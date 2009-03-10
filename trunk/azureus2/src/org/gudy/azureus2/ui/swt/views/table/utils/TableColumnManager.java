@@ -69,7 +69,14 @@ public class TableColumnManager {
    * value = List of TableColumn, indexed in the order they should be removed
    */ 
   private Map autoHideOrder = new LightHashMap();
-	private Map mapTablesConfig; // key = table; value = map of columns
+
+  /**
+   * key = table; value = map of columns
+   * 
+   * Do not access directly.  Use {@link #getTableConfigMap(String)}
+   * or {@link #saveTableConfigs()}
+   */
+	private Map mapTablesConfig;
 	private static Comparator orderComparator;
 	
 	private Map<String, TableColumnCreationListener> mapColumnIDsToListener = new LightHashMap();
@@ -96,8 +103,6 @@ public class TableColumnManager {
   
   private TableColumnManager() {
    items = new HashMap<String,Map>();
-
-   mapTablesConfig = FileUtil.readResilientConfigFile(CONFIG_FILE);
   }
   
   /** Retrieve the static TableColumnManager instance
@@ -138,7 +143,6 @@ public class TableColumnManager {
 				if (!mTypes.containsKey(name)) {
 					mTypes.put(name, item);
 					Map mapColumnConfig = getTableConfigMap(sTableID);
-					mapTablesConfig.put("Table." + sTableID, mapColumnConfig);
 					((TableColumnCore) item).loadSettings(mapColumnConfig);
 				}
 				if (!item.getColumnAdded()) {
@@ -450,10 +454,16 @@ public class TableColumnManager {
   public void setDefaultSortColumnName(String tableID, String columnName) {
   	Map mapTableConfig = getTableConfigMap(tableID);
   	mapTableConfig.put("SortColumn", columnName);
-    FileUtil.writeResilientConfigFile(CONFIG_FILE, mapTablesConfig);
+  	saveTableConfigs();
   }
 
-  /** Saves all the user configurable Table Column settings at once, complete
+  private void saveTableConfigs() {
+		if (mapTablesConfig != null) {
+			FileUtil.writeResilientConfigFile(CONFIG_FILE, mapTablesConfig);
+		}
+	}
+
+	/** Saves all the user configurable Table Column settings at once, complete
    * with a COConfigurationManager.save().
    *
    * @param sTableID Table to save settings for
@@ -467,7 +477,7 @@ public class TableColumnManager {
         if (tcs[i] != null)
           tcs[i].saveSettings(mapTableConfig);
       }
-      FileUtil.writeResilientConfigFile(CONFIG_FILE, mapTablesConfig);
+      saveTableConfigs();
   	} catch (Exception e) {
   		Debug.out(e);
   	}
@@ -493,13 +503,31 @@ public class TableColumnManager {
   }
   
   public Map getTableConfigMap(String sTableID) {
-  	Map mapTableConfig = (Map) mapTablesConfig.get("Table." + sTableID);
-  	if (mapTableConfig == null) {
-  		mapTableConfig = new HashMap();
-  		mapTablesConfig.put("Table." + sTableID, mapTableConfig);
-  	}
-  	return mapTableConfig;
-  }
+		synchronized (this) {
+			if (mapTablesConfig == null) {
+				mapTablesConfig = FileUtil.readResilientConfigFile(CONFIG_FILE);
+
+				// Dispose of tableconfigs after XXs.. saves up to 50k
+				SimpleTimer.addEvent("DisposeTbaleConfigMap",
+						SystemTime.getOffsetTime(30000), new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								synchronized (this) {
+									saveTableConfigs();
+									mapTablesConfig = null;
+								}
+							}
+						});
+			}
+
+			Map mapTableConfig = (Map) mapTablesConfig.get("Table." + sTableID);
+			if (mapTableConfig == null) {
+				mapTableConfig = new HashMap();
+				mapTablesConfig.put("Table." + sTableID, mapTableConfig);
+			}
+
+			return mapTableConfig;
+		}
+	}
   
   public void setAutoHideOrder(String sTableID, String[] autoHideOrderColumnIDs) {
   	ArrayList autoHideOrderList = new ArrayList(autoHideOrderColumnIDs.length);
