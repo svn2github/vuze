@@ -158,7 +158,7 @@ SimpleInstallUI
 		
 		data = new FormData();
 		data.left 	= new FormAttachment(label,4);
-		data.top	= new FormAttachment(0,0);
+		data.top	= new FormAttachment(cancel_button, 0, SWT.CENTER);
 		data.right	= new FormAttachment(cancel_button,-4);
 
 		progress.setLayoutData( data );
