@@ -2785,16 +2785,33 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object, boolean)
 	public void removeDataSource(DATASOURCETYPE dataSource, boolean immediate) {
-		removeDataSources(new Object[] {
-			dataSource
-		});
+		removeDataSource( dataSource );
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object)
 	public void removeDataSource(final DATASOURCETYPE dataSource) {
-		removeDataSources(new Object[] {
-			dataSource
-		});
+		if (dataSource == null) {
+			return;
+		}
+
+		if (Utils.IMMEDIATE_ADDREMOVE_DELAY == 0) {
+			reallyRemoveDataSources(new Object[]{dataSource});
+			return;
+		}
+
+		try {
+			dataSourceToRow_mon.enter();
+
+			dataSourcesToRemove.add(dataSource);
+
+			if (DEBUGADDREMOVE) {
+				debug("Queued 1 dataSource to remove.  Total Queued: " + dataSourcesToRemove.size());
+			}
+		} finally {
+			dataSourceToRow_mon.exit();
+		}
+
+		refreshenProcessDataSourcesTimer();
 	}
 
 	/** Remove the specified dataSource from the table.
@@ -2802,7 +2819,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @param dataSources data sources to be removed
 	 * @param bImmediate Remove immediately, or queue and remove at next refresh
 	 */
-	public void removeDataSources(final Object[] dataSources) {
+	public void removeDataSources(final DATASOURCETYPE[] dataSources) {
 		if (dataSources == null) {
 			return;
 		}
