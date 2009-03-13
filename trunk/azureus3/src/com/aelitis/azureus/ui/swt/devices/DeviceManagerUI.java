@@ -42,14 +42,12 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.installer.PluginInstaller;
+import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
-import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.IntParameter;
-import org.gudy.azureus2.plugins.ui.config.Parameter;
-import org.gudy.azureus2.plugins.ui.config.ParameterListener;
+import org.gudy.azureus2.plugins.ui.config.*;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
@@ -66,8 +64,10 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
@@ -408,6 +408,26 @@ DeviceManagerUI
 		configModel.addBooleanParameter2( 
 				"!" + CONFIG_VIEW_HIDE_REND_GENERIC + "!", "devices.sidebar.hide.rend.generic",
 				side_bar_hide_rend_gen );
+		
+		final PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
+		boolean hasItunes = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+				"azitunes") != null;
+
+		ActionParameter btnITunes = configModel.addActionParameter2(null, "devices.button.installitunes");
+		btnITunes.setEnabled(!hasItunes);
+		btnITunes.addListener(new ParameterListener() {
+			public void parameterChanged(Parameter param) {
+				try {
+					StandardPlugin itunes_plugin = installer.getStandardPlugin("azitunes");
+
+					itunes_plugin.install(false);
+
+				} catch (Throwable e) {
+
+					Debug.printStackTrace(e);
+				}
+			}
+		});
 
 		addAllDevices();
 	
@@ -1293,6 +1313,8 @@ DeviceManagerUI
 												device.getName(),
 												view, null, false, -1);
 										
+										entry.setImageLeftID("image.sidebar.device." + device.getName() + ".small");
+
 										entry.setDatasource(device);
 
 									}else{
@@ -1346,6 +1368,89 @@ DeviceManagerUI
 									MenuItem remove_menu_item = menu_manager.addMenuItem("sidebar." + key, "MySharesView.menu.remove");
 									
 									remove_menu_item.addListener( remove_listener );
+ 									
+									if (device instanceof TranscodeTarget) {
+  									MenuItem explore_menu_item = menu_manager.addMenuItem("sidebar." + key, "v3.menu.device.exploreTranscodes");
+  									
+  									explore_menu_item.addListener(new MenuItemListener() {
+  										public void selected(MenuItem menu, Object target) {
+  							 				ManagerUtils.open( ((TranscodeTarget) device).getWorkingDirectory());
+  										}
+  									});
+									}
+									
+
+									if (device instanceof DeviceMediaRenderer) {
+										final DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
+										MenuItem filterfiles_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.only.show");
+										filterfiles_menu_item.setStyle(MenuItem.STYLE_CHECK);
+
+										filterfiles_menu_item.addFillListener(new MenuItemFillListener() {
+											public void menuWillBeShown(MenuItem menu, Object data) {
+												menu.setData(new Boolean(renderer.getFilterFilesView()));
+											}
+										});
+										filterfiles_menu_item.addListener(new MenuItemListener() {
+											public void selected(MenuItem menu, Object target) {
+								 				renderer.setFilterFilesView( (Boolean) menu.getData());
+											}
+										});
+										
+										
+										TranscodeProfile[] transcodeProfiles = renderer.getTranscodeProfiles();
+										if (transcodeProfiles.length > 0) {
+											MenuItem menu_default_profile = menu_manager.addMenuItem(
+													"sidebar." + key, "v3.menu.device.defaultprofile");
+											menu_default_profile.setStyle(MenuItem.STYLE_MENU);
+
+											MenuItem menu_profile_none = menu_manager.addMenuItem(
+													menu_default_profile,
+											"ConfigView.section.file.decoder.nodecoder");
+											menu_profile_none.setStyle(menu_profile_none.STYLE_RADIO);
+											menu_profile_none.setData(Boolean.FALSE);
+											menu_profile_none.addListener(new MenuItemListener() {
+												public void selected(MenuItem menu, Object target) {
+													renderer.setDefaultTranscodeProfile(null);
+												}
+											});
+											menu_profile_none.addFillListener(new MenuItemFillListener() {
+												public void menuWillBeShown(MenuItem menu, Object data) {
+													TranscodeProfile profile = null;
+													try {
+														profile = renderer.getDefaultTranscodeProfile();
+													} catch (TranscodeException e) {
+													}
+													menu.setData((profile == null) ? Boolean.TRUE
+															: Boolean.FALSE);
+												}
+											});
+
+											for (final TranscodeProfile profile : transcodeProfiles) {
+												MenuItem menuItem = menu_manager.addMenuItem(
+														menu_default_profile, "!" + profile.getName() + "!");
+												menuItem.setStyle(menuItem.STYLE_RADIO);
+												menuItem.setData(Boolean.FALSE);
+												menuItem.addListener(new MenuItemListener() {
+													public void selected(MenuItem menu, Object target) {
+														renderer.setDefaultTranscodeProfile(profile);
+													}
+												});
+												menuItem.addFillListener(new MenuItemFillListener() {
+													public void menuWillBeShown(MenuItem menu, Object data) {
+														TranscodeProfile dprofile = null;
+														try {
+															dprofile = renderer.getDefaultTranscodeProfile();
+														} catch (TranscodeException e) {
+														}
+														menu.setData((profile.equals(dprofile))
+																? Boolean.TRUE : Boolean.FALSE);
+													}
+												});
+											}
+										}
+										
+									}
+
 
 										// sep
 									

@@ -193,14 +193,17 @@ public class DeviceInfoArea
 
 		main = new Composite( parent, SWT.NONE);
 		main.setLayoutData(Utils.getFilledFormData());
-		main.setLayout(new FormLayout());
+		FormLayout layout = new FormLayout();
+		layout.marginWidth = layout.marginHeight = 5;
+		main.setLayout(layout);
 		
 	
 		FormData fd;
 
-		Button itunes_button = null;
-		if (!hasItunes) {
-			itunes_button = new Button(main, SWT.NULL);
+		Control top;
+		if (hasItunes) {
+			Button itunes_button = new Button(main, SWT.NULL);
+			top = itunes_button;
 
 			itunes_button.setText("Install iTunes Integration");
 
@@ -223,10 +226,14 @@ public class DeviceInfoArea
 			fd.top = new FormAttachment(0, 4);
 
 			itunes_button.setLayoutData(fd);
+		} else {
+			Label lblItunesInstalled = new Label(main, SWT.WRAP);
+			top = lblItunesInstalled;
+			lblItunesInstalled.setText("iTunes support is available");
 		}
 		
 		if (Constants.isCVSVersion()) {
-			buildBetaArea(main, itunes_button);
+			//buildBetaArea(main, top);
 		}
 		parent.getParent().layout();
 	}						

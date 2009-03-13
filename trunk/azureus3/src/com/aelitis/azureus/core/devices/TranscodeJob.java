@@ -91,4 +91,7 @@ TranscodeJob
 	
 	public void
 	moveDown();
+
+	public long
+	getProcessTime();
 }

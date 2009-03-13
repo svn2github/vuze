@@ -27,12 +27,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -70,6 +65,9 @@ TranscodeJobImpl
 	private int						percent_complete	= 0;
 	private int						eta					= Integer.MAX_VALUE;
 	private String					error;
+	private long					started_on;
+	private long					paused_on;
+	private long					process_time;
 	
 	private Download				download;
 	private boolean					download_ok;
@@ -365,6 +363,8 @@ TranscodeJobImpl
 			if ( state != ST_PAUSED ){
 			
 				state = ST_RUNNING;
+				
+				started_on = SystemTime.getCurrentTime();
 			}
 		}
 		
@@ -396,6 +396,9 @@ TranscodeJobImpl
 		synchronized( this ){
 		
 			state = ST_COMPLETE;
+			
+			// process_time filled with negative pause time, so add to it
+			process_time += SystemTime.getCurrentTime() - started_on;
 		}
 		
 		if ( download != null ){
@@ -513,6 +516,8 @@ TranscodeJobImpl
 		
 				state = ST_PAUSED;
 				
+				paused_on = SystemTime.getCurrentTime();
+				
 			}else{
 				
 				return;
@@ -530,7 +535,11 @@ TranscodeJobImpl
 			if ( state == ST_PAUSED ){
 				
 				state = ST_RUNNING;
-				
+
+				if (paused_on > 0 && started_on > 0) {
+					process_time -= SystemTime.getCurrentTime() - paused_on;
+				}
+
 			}else{
 				
 				return;
@@ -591,6 +600,10 @@ TranscodeJobImpl
 		
 				state = ST_STOPPED;
 				
+				process_time = 0;
+
+				started_on = 0;
+				
 			}else{
 				
 				return;
@@ -640,6 +653,18 @@ TranscodeJobImpl
 	moveDown() 
 	{
 		queue.moveDown( this );
+	}
+	
+	public long
+	getProcessTime() {
+		if (state == ST_COMPLETE) {
+			return process_time;
+		}
+		if (started_on == 0) {
+			return 0;
+		}
+		// process_time filled with pause
+		return SystemTime.getCurrentTime() - started_on + process_time;
 	}
 		
 	public void

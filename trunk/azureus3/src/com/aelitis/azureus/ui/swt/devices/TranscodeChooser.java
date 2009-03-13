@@ -18,16 +18,16 @@
 
 package com.aelitis.azureus.ui.swt.devices;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -35,6 +35,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
@@ -58,8 +59,6 @@ public abstract class TranscodeChooser
 
 	private Font fontDevice;
 
-	private Image imgRenderer;
-
 	protected TranscodeTarget selectedDevice;
 
 	protected TranscodeProfile selectedProfile;
@@ -75,6 +74,8 @@ public abstract class TranscodeChooser
 	private Button btnNoPrompt;
 
 	private int transcodeRequirement;
+
+	private java.util.List<String> listImageIDsToRelease = new ArrayList<String>();
 
 	public TranscodeChooser() {
 		this(null);
@@ -116,10 +117,6 @@ public abstract class TranscodeChooser
 		});
 
 		skin.layout();
-
-		// temp
-		imgRenderer = ImageLoader.getInstance().getImage(
-				"image.sidebar.device.renderer");
 
 		soList = (SWTSkinObjectContainer) skin.getSkinObject("list");
 		if (soList != null) {
@@ -192,7 +189,9 @@ public abstract class TranscodeChooser
 				Utils.disposeSWTObjects(new Object[] {
 					fontDevice
 				});
-				ImageLoader.getInstance().releaseImage("image.sidebar.device.renderer");
+				for (String id : listImageIDsToRelease) {
+					ImageLoader.getInstance().releaseImage(id);
+				}
 			}
 		});
 		shell.open();
@@ -209,12 +208,13 @@ public abstract class TranscodeChooser
 		Messages.setLanguageText(btnNoPrompt, "MessageBoxWindow.nomoreprompting");
 		
 		Label label = new Label(composite, SWT.NONE);
-		label.setText("Transcode:");
+		label.setText(MessageText.getString("device.xcode.whenreq"));
 		
 		final Combo combo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
-		combo.add("When Required");
-		combo.add("Force Transcode");
-		combo.add("Skip Transcode");
+		
+		combo.add(MessageText.getString("device.xcode.whenreq"));
+		combo.add(MessageText.getString("device.xcode.always"));
+		combo.add(MessageText.getString("device.xcode.never"));
 		transcodeRequirement = selectedDevice.getTranscodeRequirement();
 		switch (transcodeRequirement) {
 			case TranscodeTarget.TRANSCODE_ALWAYS:
@@ -336,9 +336,12 @@ public abstract class TranscodeChooser
 
 		Listener listenerMouseInout = new Listener() {
 			public void handleEvent(Event event) {
-				Widget widget = (event.widget instanceof Label)
-						? ((Label) event.widget).getParent() : event.widget;
+				Widget widget = (event.widget instanceof Canvas)
+						? ((Canvas) event.widget).getParent() : event.widget;
 				TranscodeProfile profile = (TranscodeProfile) widget.getData("TranscodeProfile");
+				if (profile == null) {
+					return;
+				}
 				if (event.type == SWT.MouseEnter) {
 					if (soInfoTitle != null) {
 						soInfoTitle.setText(profile.getName());
@@ -378,10 +381,24 @@ public abstract class TranscodeChooser
 
 			c.addListener(SWT.MouseEnter, listenerMouseInout);
 
-			final Label lblImage = new Label(c, SWT.NONE);
+			final Canvas lblImage = new Canvas(c, SWT.NONE);
 			lblImage.addListener(SWT.MouseEnter, listenerMouseInout);
 			lblImage.addListener(SWT.MouseUp, clickListener);
 			lblImage.addListener(SWT.MouseDown, clickListener);
+			lblImage.addListener(SWT.Paint, new Listener() {
+				public void handleEvent(Event event) {
+					Image image = (Image) lblImage.getData("Image");
+					if (image != null) {
+						Rectangle bounds = image.getBounds();
+						event.gc.drawImage(image, bounds.x, bounds.y, bounds.width,
+								bounds.height, bounds.x, bounds.y, bounds.width,
+								bounds.height);
+					} else {
+						Rectangle ca = lblImage.getClientArea();
+						event.gc.drawRectangle(ca.x, ca.y, ca.width - 1, ca.height - 1);
+					}
+				}
+			});
 			gridData = new GridData();
 			gridData.heightHint = 100;
 			gridData.widthHint = 120;
@@ -393,10 +410,11 @@ public abstract class TranscodeChooser
 							public void imageDownloaded(Image image,
 									boolean returnedImmediately) {
 								if (!returnedImmediately) {
-									lblImage.setImage(image);
+									lblImage.setData("Image", image);
+									Rectangle bounds = image.getBounds();
 									GridData gridData = (GridData) lblImage.getLayoutData();
-									gridData.heightHint = -1;
-									gridData.widthHint = -1;
+									gridData.heightHint = bounds.height;
+									gridData.widthHint = bounds.width;
 									lblImage.setLayoutData(gridData);
 									lblImage.getShell().layout(new Control[] {
 										lblImage
@@ -405,9 +423,10 @@ public abstract class TranscodeChooser
 							}
 						});
 				if (image != null) {
-					lblImage.setImage(image);
-					gridData.heightHint = -1;
-					gridData.widthHint = -1;
+					lblImage.setData("Image", image);
+					Rectangle bounds = image.getBounds();
+					gridData.heightHint = bounds.height;
+					gridData.widthHint = bounds.width;
 				}
 			}
 			lblImage.setLayoutData(gridData);
@@ -426,7 +445,7 @@ public abstract class TranscodeChooser
 
 		SWTSkinObjectText soTitle = (SWTSkinObjectText) skin.getSkinObject("title");
 		if (soTitle != null) {
-			soTitle.setText("Choose a transcoding profile");
+			soTitle.setText("Choose the Type of Conversion");
 		}
 		
 		if (soBottomContainer != null) {
@@ -484,16 +503,8 @@ public abstract class TranscodeChooser
 			}
 
 			/** can't align button with image */
-			Button button = new Button(parent, SWT.RIGHT | SWT.PUSH);
+			Button button = new Button(parent, SWT.LEFT | SWT.PUSH);
 			StringBuffer sb = new StringBuffer(device.getName());
-			if (Constants.isWindows) {
-				// On windows, buttons are center when they have an image..
-				// fill with a bunch of spaces so it left aligns
-				char[] c = new char[100];
-				Arrays.fill(c, ' ');
-				sb.append(c);
-			}
-			button.setText(sb.toString());
 			button.setFont(fontDevice);
 			button.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			button.setData("DeviceMediaRenderer", device);
@@ -510,8 +521,24 @@ public abstract class TranscodeChooser
 				public void widgetDefaultSelected(SelectionEvent e) {
 				}
 			});
-			// temp:
-			button.setImage(imgRenderer);
+			String imageID = "image.sidebar.device." + device.getName() + ".big";
+			System.out.println(imageID);
+			listImageIDsToRelease.add(imageID);
+			Image imgRenderer = ImageLoader.getInstance().getImage(imageID);
+
+			if (ImageLoader.isRealImage(imgRenderer)) {
+				button.setImage(imgRenderer);
+
+				// buttons are center when they have an image..
+				// fill with a bunch of spaces so it left aligns
+				char[] c = new char[100];
+				Arrays.fill(c, ' ');
+				sb.append(c);
+			} else {
+				sb.insert(0, ' ');
+			}
+
+			button.setText(sb.toString());
 
 			/***
 

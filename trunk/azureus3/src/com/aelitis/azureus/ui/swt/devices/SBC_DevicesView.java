@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -38,6 +39,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
@@ -122,12 +124,14 @@ public class SBC_DevicesView
 			transTarget = (TranscodeTarget) device;
 		}
 
+		/*
 		new InfoBarUtil(skinObject, true, "DeviceView.infobar",
 				"v3.devicesview.infobar") {
 			public boolean allowShow() {
 				return true;
 			}
 		};
+		*/
 
 		SWTSkinObject soAdvInfo = getSkinObject("advinfo");
 		if (soAdvInfo != null) {
@@ -639,6 +643,21 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobChanged(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobChanged(TranscodeJob job) {
+		try {
+			int state = job.getState();
+			if (state == TranscodeJob.ST_COMPLETE || state == TranscodeJob.ST_FAILED) {
+				String ext = "??";
+				try {
+					ext = FileUtil.getExtension(job.getFile().getFile().getName());
+				} catch (Exception e) {
+				}
+				PlatformDevicesMessenger.qosTranscode(job, device, job.getProfile(),
+						ext, job.getProcessTime());
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+
 		synchronized (this) {
 			if (tvFiles == null) {
 				return;

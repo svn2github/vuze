@@ -229,6 +229,8 @@ public class SBC_LibraryView
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
+		super.skinObjectShown(skinObject, params);
+		
 		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 		if (tb != null) {
 			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
@@ -244,7 +246,7 @@ public class SBC_LibraryView
 						viewMode == MODE_BIGTABLE ? "-down" : "");
 			}
 		}
-		return super.skinObjectShown(skinObject, params);
+		return null;
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)

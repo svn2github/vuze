@@ -23,13 +23,14 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -39,6 +40,7 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
+import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.util.ConstantsVuze;
 
@@ -66,6 +68,10 @@ public class DevicesFTUX
 	private Button btnCancel;
 
 	private Composite install_area;
+
+	private Button checkQOS;
+
+	private Composite install_area_parent;
 
 	/**
 	 * @return
@@ -95,7 +101,7 @@ public class DevicesFTUX
 		Utils.setShellIcon(shell);
 
 		try {
-			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.BORDER));
+			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
 			new BrowserContext("DevicesFTUX", browser, null, true);
 		} catch (Throwable t) {
 		}
@@ -106,6 +112,19 @@ public class DevicesFTUX
 		checkITunes = new Button(shell, SWT.CHECK);
 		checkITunes.setSelection(true);
 		checkITunes.setText("Include support for iTunes");
+
+		checkQOS = new Button(shell, SWT.CHECK);
+		checkQOS.setSelection(true);
+		checkQOS.setText("Allow Vuze to collect anonymous device statistics");
+		checkQOS.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				COConfigurationManager.setParameter(
+						PlatformDevicesMessenger.CFG_SEND_QOS, checkQOS.getSelection());
+			}
+		
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
 
 		btnInstall = new Button(shell, SWT.NONE);
 		btnInstall.setText("Turn On");
@@ -133,50 +152,74 @@ public class DevicesFTUX
 			}
 		});
 
-		install_area = new Composite(shell, SWT.NONE);
-		install_area.setVisible(false);
+		install_area_parent = new Composite(shell, SWT.NONE);
+		install_area_parent.setLayout(new FormLayout());
+		install_area_parent.setVisible(false);
+
+		install_area = new Composite(install_area_parent, SWT.NONE);
 
 		FormLayout formLayout = new FormLayout();
-		formLayout.marginWidth = formLayout.marginHeight = 5;
+		formLayout.marginWidth = formLayout.marginHeight = 0;
 		shell.setLayout(formLayout);
 		FormData fd;
 
 		fd = Utils.getFilledFormData();
-		fd.bottom = new FormAttachment(btnInstall, -10);
+		fd.bottom = new FormAttachment(checkITunes, -5);
+		fd.top = new FormAttachment(0, 8);
+		fd.left = new FormAttachment(0, 8);
+		fd.right = new FormAttachment(100, -8);
 		lblInfo.setLayoutData(fd);
 
 		fd = Utils.getFilledFormData();
-		fd.bottom = new FormAttachment(btnInstall, -10);
+		fd.bottom = new FormAttachment(checkITunes, -5);
+		fd.width = 550;
+		fd.height = 435;
 		browser.setLayoutData(fd);
-
+		
 		fd = new FormData();
-		fd.bottom = new FormAttachment(100, 0);
-		fd.right = new FormAttachment(100, 0);
+		fd.bottom = new FormAttachment(100, -10);
+		fd.right = new FormAttachment(100, -10);
 		btnCancel.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.bottom = new FormAttachment(100, 0);
-		fd.right = new FormAttachment(btnCancel, -10);
+		fd.bottom = new FormAttachment(100, -10);
+		fd.right = new FormAttachment(btnCancel, -12);
 		btnInstall.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.bottom = new FormAttachment(btnCancel, 0, SWT.CENTER);
-		fd.left = new FormAttachment(0, 0);
-		fd.right = new FormAttachment(btnInstall, -10);
+		fd.bottom = new FormAttachment(checkQOS, -3);
+		fd.left = new FormAttachment(0, 10);
+		fd.right = new FormAttachment(btnInstall, -12);
 		checkITunes.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.top = new FormAttachment(btnCancel, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(100, -5);
+		fd.left = new FormAttachment(0, 10);
+		fd.right = new FormAttachment(btnInstall, -12);
+		checkQOS.setLayoutData(fd);
+		
+		fd = new FormData();
+		fd.top = new FormAttachment(browser, 0);
 		fd.bottom = new FormAttachment(100, 0);
 		fd.left = new FormAttachment(0, 0);
-		fd.right = new FormAttachment(100, -10);
+		fd.right = new FormAttachment(100, 0);
+		install_area_parent.setLayoutData(fd);
+
+		fd = new FormData();
+		fd.height = btnInstall.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+		fd.bottom = new FormAttachment(100, -5);
+		fd.left = new FormAttachment(0, 5);
+		fd.right = new FormAttachment(100, -12);
 		install_area.setLayoutData(fd);
 
 		String url = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(
-				"http://vuze.com/devices.start", false, true);
+				"http://www.vuze.com/devices.start", false, true);
 		browser.setUrl(url);
-		shell.setSize(600, 400);
+		
+		shell.pack();
 		Utils.centreWindow(shell);
+		
+		btnInstall.setFocus();
 		shell.open();
 	}
 
@@ -223,8 +266,8 @@ public class DevicesFTUX
 		InstallablePlugin[] installablePlugins = plugins.toArray(new InstallablePlugin[0]);
 
 		try {
-			install_area.setVisible(true);
-			install_area.moveAbove(null);
+			install_area_parent.setVisible(true);
+			install_area_parent.moveAbove(null);
 
 			Map<Integer, Object> properties = new HashMap<Integer, Object>();
 
