@@ -58,14 +58,7 @@ Device
 	
 	public browseLocation[]
 	getBrowseLocations();
-	
-	public boolean
-	canAssociate();
-	
-	public void
-	associate(
-		UnassociatedDevice	assoc );
-	
+		
 	public void
 	setTransientProperty(
 		Object		key,

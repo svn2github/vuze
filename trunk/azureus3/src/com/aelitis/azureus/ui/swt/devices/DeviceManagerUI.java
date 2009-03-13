@@ -24,6 +24,7 @@ package com.aelitis.azureus.ui.swt.devices;
 
 
 import java.io.File;
+import java.net.InetAddress;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -1473,9 +1474,13 @@ DeviceManagerUI
 														
 														if ( renderer.isAlive()){
 															
+															InetAddress a = renderer.getAddress();
+															
+															String address = a==null?"":a.getHostAddress();
+															
 															MenuItem menu_none = menu_manager.addMenuItem(
 																	menu_associate,
-																	"devices.associate.already");
+																	"!" + MessageText.getString( "devices.associate.already" ) + ": " + address + "!" );
 
 															menu_none.setEnabled( false );
 															

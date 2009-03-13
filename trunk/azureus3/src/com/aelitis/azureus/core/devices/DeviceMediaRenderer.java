@@ -21,6 +21,10 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.net.InetAddress;
+
+import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
+
 
 public interface 
 DeviceMediaRenderer
@@ -66,4 +70,14 @@ DeviceMediaRenderer
 	public void
 	setAutoStartDevice(
 		boolean		auto );
+	
+	public boolean
+	canAssociate();
+	
+	public void
+	associate(
+		UnassociatedDevice	assoc );
+	
+	public InetAddress
+	getAddress();
 }

@@ -279,7 +279,7 @@ DeviceUPnPImpl
 		alive();
 	}
 	
-	protected InetAddress
+	public InetAddress
 	getAddress()
 	{
 		try{

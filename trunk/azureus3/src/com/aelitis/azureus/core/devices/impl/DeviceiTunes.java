@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -149,6 +150,12 @@ DeviceiTunes
 	getRendererSpecies()
 	{
 		return( RS_ITUNES );
+	}
+	
+	public InetAddress
+	getAddress()
+	{
+		return( null );
 	}
 	
 	protected void
