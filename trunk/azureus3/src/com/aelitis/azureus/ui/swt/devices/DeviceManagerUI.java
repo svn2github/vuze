@@ -1313,7 +1313,10 @@ DeviceManagerUI
 												device.getName(),
 												view, null, false, -1);
 										
-										entry.setImageLeftID("image.sidebar.device." + device.getName() + ".small");
+										String id = "image.sidebar.device."
+											+ ((DeviceMediaRenderer) device).getRendererSpecies()
+											+ ".small";
+										entry.setImageLeftID(id);
 
 										entry.setDatasource(device);
 

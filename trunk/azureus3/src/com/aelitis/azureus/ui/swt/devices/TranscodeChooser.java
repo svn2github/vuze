@@ -521,10 +521,17 @@ public abstract class TranscodeChooser
 				public void widgetDefaultSelected(SelectionEvent e) {
 				}
 			});
-			String imageID = "image.sidebar.device." + device.getName() + ".big";
-			System.out.println(imageID);
-			listImageIDsToRelease.add(imageID);
-			Image imgRenderer = ImageLoader.getInstance().getImage(imageID);
+
+			
+			Image imgRenderer = null;
+			if (device instanceof DeviceMediaRenderer) {
+  			String imageID = "image.sidebar.device."
+  				+ ((DeviceMediaRenderer) device).getRendererSpecies()
+  				+ ".big";
+  
+  			listImageIDsToRelease.add(imageID);
+  			imgRenderer = ImageLoader.getInstance().getImage(imageID);
+			}
 
 			if (ImageLoader.isRealImage(imgRenderer)) {
 				button.setImage(imgRenderer);
