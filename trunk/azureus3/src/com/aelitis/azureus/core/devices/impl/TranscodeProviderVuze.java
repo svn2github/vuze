@@ -457,10 +457,12 @@ TranscodeProviderVuze
 						{
 							public void
 							updateProgress(
-								int								percent,
-								int								eta_secs )
+								int		percent,
+								int		eta_secs,
+								int		width,
+								int		height )
 							{
-								_adapter.updateProgress( percent, eta_secs );
+								_adapter.updateProgress( percent, eta_secs, width, height );
 							}
 							
 							public void
@@ -518,7 +520,15 @@ TranscodeProviderVuze
 											
 											int eta = i_eta==null?-1:i_eta;
 											
-											adapter.updateProgress( percent, eta );
+											Integer	i_width	= (Integer)status.get( "new_width" );
+											
+											int width = i_width==null?0:i_width;
+											
+											Integer	i_height	= (Integer)status.get( "new_height" );
+											
+											int height = i_height==null?0:i_height;
+											
+											adapter.updateProgress( percent, eta, width, height );
 											
 											if ( percent == 100 ){
 												

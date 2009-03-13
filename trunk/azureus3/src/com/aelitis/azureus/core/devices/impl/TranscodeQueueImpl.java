@@ -146,7 +146,9 @@ TranscodeQueueImpl
 					public void
 					updateProgress(
 						int		percent,
-						int		eta_secs )
+						int		eta_secs,
+						int		width,
+						int		height )
 					{
 					}
 					
@@ -221,7 +223,7 @@ TranscodeQueueImpl
 			
 			boolean xcode_required 	= provider_analysis.getBooleanProperty( TranscodeProviderAnalysis.PT_TRANSCODE_REQUIRED );
 			
-			TranscodeFileImpl		transcode_file = job.getTranscodeFile();
+			final TranscodeFileImpl		transcode_file = job.getTranscodeFile();
 
 			transcode_file.update( provider_analysis );
 			
@@ -247,10 +249,14 @@ TranscodeQueueImpl
 				TranscodeProviderAdapter xcode_adapter = 
 					new TranscodeProviderAdapter()
 					{
+						private boolean	resolution_updated;
+					
 						public void
 						updateProgress(
 							int			percent,
-							int			eta_secs )
+							int			eta_secs,
+							int			new_width,
+							int			new_height )
 						{
 							TranscodeProviderJob	prov_job = provider_job[0];
 							
@@ -280,6 +286,16 @@ TranscodeQueueImpl
 								job.updateProgress( percent, eta_secs );
 								
 								prov_job.setMaxBytesPerSecond( max_bytes_per_sec );
+								
+								if ( !resolution_updated ){
+									
+									if ( new_width > 0 && new_height > 0 ){
+									
+										transcode_file.setResolution( new_width, new_height );
+										
+										resolution_updated = true;
+									}	
+								}
 							}
 						}
 						

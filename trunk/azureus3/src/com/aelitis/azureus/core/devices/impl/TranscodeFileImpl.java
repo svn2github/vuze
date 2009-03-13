@@ -361,6 +361,19 @@ TranscodeFileImpl
 		}
 	}
 	
+	protected void
+	setResolution(
+		int		video_width,
+		int		video_height )
+	{
+		if ( video_width > 0 && video_height > 0 ){
+			
+			setLong( KEY_VIDEO_WIDTH, video_width );
+			
+			setLong( KEY_VIDEO_HEIGHT, video_height );
+		}
+	}
+	
 	public long
 	getDurationMillis()
 	{

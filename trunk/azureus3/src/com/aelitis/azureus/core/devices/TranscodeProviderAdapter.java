@@ -27,7 +27,9 @@ TranscodeProviderAdapter
 	public void
 	updateProgress(
 		int						percent,
-		int						eta_secs );
+		int						eta_secs,
+		int						new_width,
+		int						new_height );
 	
 	public void
 	failed(
