@@ -1349,18 +1349,7 @@ DeviceManagerUI
 									new_di.setTreeItem( entry.getTreeItem(), entry );
 									
 									setStatus( device, new_di );
-									
-									final MenuManager menu_manager = ui_manager.getMenuManager();
-										
-									if ( device.isBrowsable()){
-									
-										MenuItem browse_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.browse");
-										
-										browse_menu_item.setStyle( MenuItem.STYLE_MENU );
-										
-										browse_menu_item.addFillListener( will_browse_listener );
-									}
-									
+																			
 									if ( device instanceof TranscodeTarget ){
 										
 										entry.addListener(
@@ -1376,27 +1365,26 @@ DeviceManagerUI
 											});
 									}
 									
-									MenuItem hide_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.hide");
+									final MenuManager menu_manager = ui_manager.getMenuManager();
+
+									boolean	need_sep = false;
 									
-									hide_menu_item.addListener( hide_listener );
-	
-									MenuItem remove_menu_item = menu_manager.addMenuItem("sidebar." + key, "MySharesView.menu.remove");
-									
-									remove_menu_item.addListener( remove_listener );
- 									
-									if (device instanceof TranscodeTarget) {
-  									MenuItem explore_menu_item = menu_manager.addMenuItem("sidebar." + key, "v3.menu.device.exploreTranscodes");
-  									
-  									explore_menu_item.addListener(new MenuItemListener() {
-  										public void selected(MenuItem menu, Object target) {
-  							 				ManagerUtils.open( ((TranscodeTarget) device).getWorkingDirectory());
-  										}
-  									});
+									if ( device instanceof TranscodeTarget ){
+										
+										need_sep = true;
+										
+	  									MenuItem explore_menu_item = menu_manager.addMenuItem("sidebar." + key, "v3.menu.device.exploreTranscodes");
+	  									
+	  									explore_menu_item.addListener(new MenuItemListener() {
+	  										public void selected(MenuItem menu, Object target) {
+	  							 				ManagerUtils.open( ((TranscodeTarget) device).getWorkingDirectory());
+	  										}
+	  									});
 									}
 									
-
-									if (device instanceof DeviceMediaRenderer) {
+									if ( device instanceof DeviceMediaRenderer ){
 										
+										need_sep = true;
 											// filter view
 										
 										final DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
@@ -1433,8 +1421,23 @@ DeviceManagerUI
 												}
 											});
 					
-										
+									}
+									
+									if ( need_sep ){
+									
+										menu_manager.addMenuItem("sidebar." + key, "1" ).setStyle( MenuItem.STYLE_SEPARATOR );
+									}
+									
+									need_sep = false;
+									
+									if ( device instanceof DeviceMediaRenderer ){
+	
+										final DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
+
 										if ( renderer.canAutoStartDevice()){
+											
+											need_sep = true;
+											
 											MenuItem autostart_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.autoStart");
 											autostart_menu_item.setStyle(MenuItem.STYLE_CHECK);
 	
@@ -1451,6 +1454,8 @@ DeviceManagerUI
 										}
 										
 										if ( renderer.canAssociate()){
+											
+											need_sep = true;
 											
 											final MenuItem menu_associate = menu_manager.addMenuItem(
 													"sidebar." + key, "devices.associate");
@@ -1512,7 +1517,11 @@ DeviceManagerUI
 										}
 										
 										TranscodeProfile[] transcodeProfiles = renderer.getTranscodeProfiles();
+										
 										if (transcodeProfiles.length > 0) {
+											
+											need_sep = true;
+											
 											MenuItem menu_default_profile = menu_manager.addMenuItem(
 													"sidebar." + key, "v3.menu.device.defaultprofile");
 											menu_default_profile.setStyle(MenuItem.STYLE_MENU);
@@ -1565,10 +1574,34 @@ DeviceManagerUI
 										
 									}
 
+									if ( device.isBrowsable()){
+										
+										need_sep = true;
+										
+										MenuItem browse_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.browse");
+										
+										browse_menu_item.setStyle( MenuItem.STYLE_MENU );
+										
+										browse_menu_item.addFillListener( will_browse_listener );
+									}
+									
+									if ( need_sep ){
+									
+										menu_manager.addMenuItem("sidebar." + key, "s2" ).setStyle( MenuItem.STYLE_SEPARATOR );
+									}
+									
+									MenuItem hide_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.hide");
+									
+									hide_menu_item.addListener( hide_listener );
+	
+									MenuItem remove_menu_item = menu_manager.addMenuItem("sidebar." + key, "MySharesView.menu.remove");
+									
+									remove_menu_item.addListener( remove_listener );
+ 									
 
 										// sep
 									
-									menu_manager.addMenuItem("sidebar." + key, "s2" ).setStyle( MenuItem.STYLE_SEPARATOR );
+									menu_manager.addMenuItem("sidebar." + key, "s3" ).setStyle( MenuItem.STYLE_SEPARATOR );
 									
 										// props
 									
