@@ -385,6 +385,7 @@ public abstract class TranscodeChooser
 			lblImage.addListener(SWT.MouseEnter, listenerMouseInout);
 			lblImage.addListener(SWT.MouseUp, clickListener);
 			lblImage.addListener(SWT.MouseDown, clickListener);
+			lblImage.setData("TranscodeProfile", profile);
 			lblImage.addListener(SWT.Paint, new Listener() {
 				public void handleEvent(Event event) {
 					Image image = (Image) lblImage.getData("Image");
