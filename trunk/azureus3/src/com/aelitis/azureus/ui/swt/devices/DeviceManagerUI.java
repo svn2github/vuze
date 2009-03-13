@@ -1405,6 +1405,21 @@ DeviceManagerUI
 											}
 										});
 										
+										if ( renderer.canAutoStartDevice()){
+											MenuItem autostart_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.autoStart");
+											autostart_menu_item.setStyle(MenuItem.STYLE_CHECK);
+	
+											autostart_menu_item.addFillListener(new MenuItemFillListener() {
+												public void menuWillBeShown(MenuItem menu, Object data) {
+													menu.setData(new Boolean(renderer.getAutoStartDevice()));
+												}
+											});
+											autostart_menu_item.addListener(new MenuItemListener() {
+												public void selected(MenuItem menu, Object target) {
+									 				renderer.setAutoStartDevice((Boolean) menu.getData());
+												}
+											});
+										}
 										
 										TranscodeProfile[] transcodeProfiles = renderer.getTranscodeProfiles();
 										if (transcodeProfiles.length > 0) {

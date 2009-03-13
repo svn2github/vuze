@@ -372,7 +372,7 @@ DeviceiTunes
 	public boolean
 	getAutoStartDevice()
 	{
-		return( getPersistentBooleanProperty( PP_AUTO_START, false ));
+		return( getPersistentBooleanProperty( PP_AUTO_START, PR_AUTO_START_DEFAULT ));
 	}
 	
 	public void

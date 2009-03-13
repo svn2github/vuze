@@ -102,6 +102,8 @@ DeviceImpl
 	protected static final String	PP_COPY_OUTSTANDING = "copy_outstanding";
 	protected static final String	PP_AUTO_START		= "auto_start";
 
+	protected static final boolean	PR_AUTO_START_DEFAULT	= true;
+	
 	private static final String	GENERIC = "generic";
 	
 	
