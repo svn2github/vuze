@@ -341,12 +341,16 @@ public class DevicesFTUX
 		DeviceManager device_manager = DeviceManagerFactory.getSingleton();
 
 		if (device_manager.getTranscodeManager().getProviders().length == 0) {
-			if (instance == null || instance.isDisposed()) {
-				instance = new DevicesFTUX();
-				instance.open();
-			} else {
-				instance.setFocus();
-			}
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (instance == null || instance.isDisposed()) {
+						instance = new DevicesFTUX();
+						instance.open();
+					} else {
+						instance.setFocus();
+					}
+				}
+			});
 			return false;
 		}
 		return true;

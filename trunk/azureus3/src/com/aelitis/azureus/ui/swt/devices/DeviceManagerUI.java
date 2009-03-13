@@ -745,6 +745,11 @@ DeviceManagerUI
 
 				if (device_manager.getTranscodeManager().getProviders().length == 0) {
 					SideBarVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
+					turnon.addListener(new SideBarVitalityImageListener() {
+						public void sbVitalityImage_clicked(int x, int y) {
+							DevicesFTUX.ensureInstalled();
+						}
+					});
 				}
 				SideBarVitalityImage beta = main_sb_entry.addVitalityImage("image.sidebar.beta");
 				beta.setAlignment(SWT.LEFT);
