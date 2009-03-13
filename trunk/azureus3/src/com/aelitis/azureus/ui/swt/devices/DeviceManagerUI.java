@@ -1391,19 +1391,22 @@ DeviceManagerUI
 
 									if (device instanceof DeviceMediaRenderer) {
 										final DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
-										MenuItem filterfiles_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.only.show");
-										filterfiles_menu_item.setStyle(MenuItem.STYLE_CHECK);
-
-										filterfiles_menu_item.addFillListener(new MenuItemFillListener() {
-											public void menuWillBeShown(MenuItem menu, Object data) {
-												menu.setData(new Boolean(renderer.getFilterFilesView()));
-											}
-										});
-										filterfiles_menu_item.addListener(new MenuItemListener() {
-											public void selected(MenuItem menu, Object target) {
-								 				renderer.setFilterFilesView( (Boolean) menu.getData());
-											}
-										});
+										
+										if ( renderer.canFilterFilesView()){
+											MenuItem filterfiles_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.only.show");
+											filterfiles_menu_item.setStyle(MenuItem.STYLE_CHECK);
+	
+											filterfiles_menu_item.addFillListener(new MenuItemFillListener() {
+												public void menuWillBeShown(MenuItem menu, Object data) {
+													menu.setData(new Boolean(renderer.getFilterFilesView()));
+												}
+											});
+											filterfiles_menu_item.addListener(new MenuItemListener() {
+												public void selected(MenuItem menu, Object target) {
+									 				renderer.setFilterFilesView( (Boolean) menu.getData());
+												}
+											});
+										}
 										
 										if ( renderer.canAutoStartDevice()){
 											MenuItem autostart_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.autoStart");
