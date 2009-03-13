@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
@@ -99,6 +100,7 @@ DeviceImpl
 	protected static final String	PP_FILTER_FILES 	= "rend_filter";
 	
 	protected static final String	PP_COPY_OUTSTANDING = "copy_outstanding";
+	protected static final String	PP_AUTO_START		= "auto_start";
 
 	private static final String	GENERIC = "generic";
 	
@@ -229,28 +231,65 @@ DeviceImpl
 		return( name );
 	}
 	
-	protected String
-	getDeviceClassification()
+	public int
+	getRendererSpecies()
 	{
+			// note, overridden in itunes
+		
 		if ( name.equalsIgnoreCase( "PS3" )){
 			
-			return( "sony.PS3" );
+			return( DeviceMediaRenderer.RS_PS3 );
 			
 		}else if ( name.equalsIgnoreCase( "XBox 360" )){
 			
-			return( "microsoft.XBox" );
+			return( DeviceMediaRenderer.RS_XBOX );
 		
 		}else if ( name.equalsIgnoreCase( "Wii" )){
 
-			return( "nintendo.Wii" );
+			return( DeviceMediaRenderer.RS_WII );
 			
 		}else if ( name.equalsIgnoreCase( "Browser" )){
 
-			return( "browser.generic" );
+			return( DeviceMediaRenderer.RS_BROWSER );
 			
 		}else{
 			
-			return( GENERIC );
+			return( DeviceMediaRenderer.RS_OTHER );
+		}	
+	}
+	
+	protected String
+	getDeviceClassification()
+	{
+			// note, overridden in itunes
+		
+		switch( getRendererSpecies()){
+		
+			case DeviceMediaRenderer.RS_PS3:{
+				
+				return( "sony.PS3" );
+			}
+			case DeviceMediaRenderer.RS_XBOX:{
+				
+				return( "microsoft.XBox" );
+			}
+			case DeviceMediaRenderer.RS_WII:{
+				
+				return( "nintendo.Wii" );
+			}
+			case DeviceMediaRenderer.RS_BROWSER:{
+				
+				return( "browser.generic" );
+			}
+			case DeviceMediaRenderer.RS_OTHER:{
+				
+				return( GENERIC );
+			}
+			default:{
+				Debug.out( "Unknown classification" );
+				
+				return( GENERIC );
+			}
 		}
 	}
 	

@@ -25,8 +25,9 @@ public interface
 TranscodeProviderAdapter 
 {
 	public void
-	updatePercentDone(
-		int						percent );
+	updateProgress(
+		int						percent,
+		int						eta_secs );
 	
 	public void
 	failed(

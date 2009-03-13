@@ -29,25 +29,31 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.ImportExportUtils;
 
 public class 
 TranscodeJobImpl 
 	implements TranscodeJob, DownloadWillBeRemovedListener
 {
+	private static final int TRANSCODE_OK_DL_PERCENT	= 90;
+	
 	private TranscodeQueueImpl		queue;
 	private TranscodeTarget			target;
 	private TranscodeProfile		profile;
@@ -62,7 +68,11 @@ TranscodeJobImpl
 	
 	private int						state 				= ST_QUEUED;
 	private int						percent_complete	= 0;
+	private int						eta					= Integer.MAX_VALUE;
 	private String					error;
+	
+	private Download				download;
+	private boolean					download_ok;
 	
 	protected
 	TranscodeJobImpl(
@@ -177,9 +187,100 @@ TranscodeJobImpl
 		transcode_file = ((DeviceImpl)target.getDevice()).allocateFile( profile, file, true );
 		
 		try{
-			file.getDownload().addDownloadWillBeRemovedListener( this );
+			download = file.getDownload();
+			
+			if ( download != null ){
+				
+				download.addDownloadWillBeRemovedListener( this );
+				
+				updateStatus();
+			}
 			
 		}catch( Throwable e ){
+		}
+	}
+	
+	protected void
+	updateStatus()
+	{
+		synchronized( this ){
+			
+			if ( download_ok ){
+				
+				return;
+			}
+			
+			long	downloaded 	= file.getDownloaded();
+			long	length		= file.getLength();
+			
+			if ( 	download == null || downloaded == length ){
+				
+				download_ok = true;
+				
+			}else{
+
+				if ( PlatformTorrentUtils.isContent( download.getTorrent(), false )){
+					
+					download_ok = true;
+					
+				}else{
+					
+					int	percent_done = (int)( 100*downloaded/length );
+					
+					if ( percent_done >= TRANSCODE_OK_DL_PERCENT ){
+						
+						download_ok = true;
+					}
+				}
+			}
+		}
+		
+		if ( download_ok ){
+			
+			queue.jobChanged( this, true, false );
+		}
+	}
+	
+	public long
+	getDownloadETA()
+	{
+		if ( download_ok ){
+			
+			return( 0 );
+		}
+		
+		if ( file.getDownloaded() == file.getLength()){
+			
+			return( 0 );
+		}
+
+		if ( file.isSkipped() || file.isDeleted()){
+				
+			return( Long.MAX_VALUE );
+		}
+			
+		try{
+			long	eta = PluginCoreUtils.unwrap( download ).getStats().getETA();
+			
+			if ( eta < 0 ){
+				
+				return( Long.MAX_VALUE );
+			}
+			
+			long adjusted = eta*100/TRANSCODE_OK_DL_PERCENT;
+			
+			if ( adjusted == 0 ){
+				
+				adjusted = 1;
+			}
+			
+			return( adjusted );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( Long.MAX_VALUE );
 		}
 	}
 	
@@ -241,8 +342,7 @@ TranscodeJobImpl
 	public String
 	getName()
 	{
-		try{
-			Download download = file.getDownload();
+		if ( download != null ){
 		
 			if ( download.getDiskManagerFileInfo().length == 1 ){
 				
@@ -251,7 +351,7 @@ TranscodeJobImpl
 			
 			return( download.getName() + ": " + file.getFile().getName());
 			
-		}catch( Throwable e ){
+		}else{
 			
 			return( file.getFile().getName());
 		}
@@ -298,19 +398,26 @@ TranscodeJobImpl
 			state = ST_COMPLETE;
 		}
 		
+		if ( download != null ){
+			
+			download.removeDownloadWillBeRemovedListener( this );
+		}
+		
 		transcode_file.setComplete( true );
 		
 		queue.jobChanged( this, false, false );
 	}
 	
 	protected void
-	setPercentDone(
-		int		_done )
+	updateProgress(
+		int		_done,
+		int		_eta )
 	{
-		if ( percent_complete != _done ){
+		if ( percent_complete != _done || eta != _eta){
 		
 			percent_complete	= _done;
-		
+			eta					= _eta;
+			
 			queue.jobChanged( this, false, false );
 		}
 	}
@@ -372,6 +479,23 @@ TranscodeJobImpl
 	getPercentComplete()
 	{
 		return( percent_complete );
+	}
+	
+	public String
+	getETA()
+	{
+		if ( eta < 0 ){
+			
+			return( null );
+			
+		}else if ( eta == Integer.MAX_VALUE ){
+			
+			return( Constants.INFINITY_STRING );
+			
+		}else{
+			
+			return( TimeFormatter.format( eta ));
+		}
 	}
 	
 	public String
@@ -447,6 +571,7 @@ TranscodeJobImpl
 				
 				error 				= null;
 				percent_complete	= 0;
+				eta					= Integer.MAX_VALUE;
 				
 			}else{
 				

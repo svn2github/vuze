@@ -250,7 +250,7 @@ TranscodeFileImpl
 			return( getSourceFile());
 		}
 		
-		Debug.out( "Target file for " + cache_file + " doesn't exist" );
+		// Debug.out( "Target file for " + cache_file + " doesn't exist" );
 		
 		return( new DiskManagerFileInfoFile( cache_file ));
 	}

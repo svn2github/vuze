@@ -183,6 +183,16 @@ TableCellDisposeListener, TableCellSWTPaintListener
 		}else{
 			
 			sText = DisplayFormatters.formatPercentFromThousands(percentDone);
+			
+			if ( tf != null && percentDone < 1000 ){
+				
+				String eta = getETA(tf);
+			
+				if ( eta != null ){
+					
+					sText += " - " + eta;
+				}
+			}
 		}
 		
 		GCStringPrinter.printString(gcImage, sText, new Rectangle(bounds.x + 4,
@@ -199,5 +209,16 @@ TableCellDisposeListener, TableCellSWTPaintListener
 			return tf.isComplete()?100:0;
 		}
 		return job.getPercentComplete();
+	}
+	
+	private String getETA(TranscodeFile tf) {
+		if (tf == null) {
+			return null;
+		}
+		TranscodeJob job = tf.getJob();
+		if (job == null) {
+			return null;
+		}
+		return job.getETA();
 	}
 }

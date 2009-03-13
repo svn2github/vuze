@@ -215,6 +215,8 @@ DiskManagerFileInfoFile
 			
 			private long		position;
 			
+			private int			max_read_chunk = 128*1024;;
+
 			private volatile boolean	cancelled;
 			
 			private CopyOnWriteList<DiskManagerListener>		listeners = new CopyOnWriteList<DiskManagerListener>();
@@ -247,7 +249,14 @@ DiskManagerFileInfoFile
 				
 				length		= _length;
 			}
-						
+				
+			public void
+			setMaximumReadChunkSize(
+				int 	size )
+			{
+				max_read_chunk = size;
+			}
+			
 			public long
 			getAvailableBytes()
 			{
@@ -263,8 +272,6 @@ DiskManagerFileInfoFile
 			public void
 			run()
 			{
-				final int BUFF_SIZE = 128*1024;
-				
 				RandomAccessFile	raf = null;
 				
 				try{
@@ -272,7 +279,7 @@ DiskManagerFileInfoFile
 					
 					raf.seek( offset );
 			
-					byte[] buffer = new byte[BUFF_SIZE];
+					byte[] buffer = new byte[max_read_chunk];
 					
 					long	rem		= length;
 					long	pos 	= offset;
@@ -288,7 +295,7 @@ DiskManagerFileInfoFile
 							throw( new Exception( "Destroyed" ));
 						}
 						
-						int	chunk = (int)Math.min( rem, BUFF_SIZE );
+						int	chunk = (int)Math.min( rem, max_read_chunk );
 						
 						int	len = raf.read( buffer, 0, chunk );
 												

@@ -117,6 +117,24 @@ DeviceMediaRendererImpl
 		return( 0 );
 	}
 	
+	public boolean
+	canAutoStartDevice()
+	{
+		return( false );
+	}
+	
+	public boolean
+	getAutoStartDevice()
+	{
+		return( false );
+	}
+	
+	public void
+	setAutoStartDevice(
+		boolean		auto )
+	{
+	}
+	
 	protected void
 	getDisplayProperties(
 		List<String[]>	dp )

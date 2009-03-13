@@ -59,8 +59,14 @@ TranscodeJob
 	public int
 	getState();
 	
+	public long
+	getDownloadETA();
+	
 	public int
 	getPercentComplete();
+	
+	public String
+	getETA();
 	
 	public String
 	getError();

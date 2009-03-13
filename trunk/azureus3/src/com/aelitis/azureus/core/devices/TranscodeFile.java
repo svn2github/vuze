@@ -73,6 +73,15 @@ TranscodeFile
 	public boolean
 	isTemplate();
 	
+	public long
+	getDurationMillis();
+	
+	public long
+	getVideoWidth();
+	
+	public long
+	getVideoHeight();
+	
 	public Device
 	getDevice();
 	

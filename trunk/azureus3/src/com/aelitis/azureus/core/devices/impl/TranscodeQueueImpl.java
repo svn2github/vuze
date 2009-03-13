@@ -144,8 +144,9 @@ TranscodeQueueImpl
 				new TranscodeProviderAdapter()
 				{
 					public void
-					updatePercentDone(
-						int								percent )
+					updateProgress(
+						int		percent,
+						int		eta_secs )
 					{
 					}
 					
@@ -225,14 +226,16 @@ TranscodeQueueImpl
 			transcode_file.update( provider_analysis );
 			
 			int	tt_req = job.getTranscodeRequirement();
-			
+						
 			if ( tt_req == TranscodeTarget.TRANSCODE_NEVER ){
 				
 				xcode_required = false;
 				
 			}else if ( tt_req == TranscodeTarget.TRANSCODE_ALWAYS ){
 				
-				xcode_required = true;
+				xcode_required 	= true;
+				
+				provider_analysis.setBooleanProperty( TranscodeProviderAnalysis.PT_FORCE_TRANSCODE, true );
 			}
 							
 			if ( xcode_required ){
@@ -245,8 +248,9 @@ TranscodeQueueImpl
 					new TranscodeProviderAdapter()
 					{
 						public void
-						updatePercentDone(
-							int								percent )
+						updateProgress(
+							int			percent,
+							int			eta_secs )
 						{
 							TranscodeProviderJob	prov_job = provider_job[0];
 							
@@ -273,7 +277,7 @@ TranscodeQueueImpl
 									prov_job.resume();
 								}
 								
-								job.setPercentDone( percent );
+								job.updateProgress( percent, eta_secs );
 								
 								prov_job.setMaxBytesPerSecond( max_bytes_per_sec );
 							}
@@ -320,6 +324,7 @@ TranscodeQueueImpl
 					provider_job[0] = 
 						provider.transcode(
 							xcode_adapter,
+							provider_analysis,
 							job.getFile(),
 							profile,
 							new URL( "tcp://127.0.0.1:" + pipe.getPort()));
@@ -331,6 +336,7 @@ TranscodeQueueImpl
 					provider_job[0] = 
 						provider.transcode(
 							xcode_adapter,
+							provider_analysis,
 							job.getFile(),
 							profile,
 							output_file.toURI().toURL());
@@ -566,7 +572,7 @@ TranscodeQueueImpl
 								
 								if ( length > 0 ){
 								
-									job.setPercentDone((int)( total_copied*100/length ));
+									job.updateProgress((int)( total_copied*100/length ), -1 );
 								}
 								
 								total_copied += len;
@@ -639,7 +645,7 @@ TranscodeQueueImpl
 									checkJobStatus();
 									
 									boolean got = queue_sem.reserve( 30*1000 );
-										
+																			
 									TranscodeJobImpl	job = null;
 									
 									synchronized( TranscodeQueueImpl.this ){
@@ -656,19 +662,21 @@ TranscodeQueueImpl
 											continue;
 										}
 										
+										checkJobStatus();
+
 										for ( TranscodeJobImpl j: queue ){
 											
 											int state = j.getState();
 											
-												// pick up any existing paused ones
-											
+												// pick up any existing paused ones (remember, paused=running but with transcode paused
+												
 											if ( state == TranscodeJob.ST_PAUSED ){
 	
 												job = j;
 												
 											}else if ( state == TranscodeJob.ST_QUEUED ){
 												
-												if ( job == null ){
+												if ( job == null && j.getDownloadETA() == 0 ){
 												
 													job = j;
 												}
@@ -694,6 +702,21 @@ TranscodeQueueImpl
 				queue_thread.start();
 			}
 		}
+	}
+	
+	protected void
+	updateStatus(
+		int	tick_count )
+	{
+		if ( queue.size() > 0 ){
+			
+			TranscodeJobImpl[] jobs = getJobs();
+			
+			for ( TranscodeJobImpl job: jobs ){
+				
+				job.updateStatus();
+			}
+		}	
 	}
 	
 	protected void

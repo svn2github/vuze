@@ -166,6 +166,8 @@ DeviceManagerImpl
 						
 						tick_count++;
 						
+						transcode_manager.updateStatus( tick_count );
+						
 						synchronized( DeviceManagerImpl.this ){
 
 							if( devices.size() == 0 ){

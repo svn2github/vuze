@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -143,6 +144,12 @@ DeviceiTunes
 		return( "apple." );
 	}
 	
+	public int
+	getRendererSpecies()
+	{
+		return( RS_ITUNES );
+	}
+	
 	protected void
 	destroy()
 	{
@@ -239,20 +246,24 @@ DeviceiTunes
 				last_update_fail = 0;
 			}
 			
+			String	info = null;
+			
 			if ( getCopyToDevicePending() > 0 ){
 				
 				if ( !is_installed ){
 					
-					setInfo( ERRROR_KEY_ITUNES, "You need to install iTunes" );
+					info = MessageText.getString( "device.itunes.install" );
 					
 				}else if ( !is_running ){
 					
-					setInfo( ERRROR_KEY_ITUNES, "You need to start iTunes" );
+					if ( !getAutoStartDevice()){
+					
+						info = MessageText.getString( "device.itunes.start" );
+					}
 				}
-			}else{
-				
-				setInfo( ERRROR_KEY_ITUNES, null );
 			}
+				
+			setInfo( ERRROR_KEY_ITUNES, info );
 			
 			Throwable error = (Throwable)properties.get( "error" );
 			
@@ -287,7 +298,7 @@ DeviceiTunes
 				
 			}else if ( now - last_update_fail > 60*1000 ){
 							
-				setError( ERRROR_KEY_ITUNES, "There appears to be a problem with iTunes integration" );
+				setError( ERRROR_KEY_ITUNES, MessageText.getString( "device.itunes.install_problem" ));
 			}
 			
 			log( "iTunes IPC failed", e );
@@ -352,6 +363,30 @@ DeviceiTunes
 		}
 	}
 	
+	public boolean
+	canAutoStartDevice()
+	{
+		return( true );
+	}
+	
+	public boolean
+	getAutoStartDevice()
+	{
+		return( getPersistentBooleanProperty( PP_AUTO_START, false ));
+	}
+	
+	public void
+	setAutoStartDevice(
+		boolean		auto )
+	{
+		setPersistentBooleanProperty( PP_AUTO_START, auto );
+		
+		if ( auto ){
+			
+			copy_sem.release();
+		}
+	}
+	
 	protected void
 	performCopy()
 	{
@@ -376,10 +411,12 @@ DeviceiTunes
 				
 				while( copy_sem.reserveIfAvailable());
 			}
-							
+						
+			boolean	auto_start = getAutoStartDevice();
+			
 			synchronized( this ){
 
-				if ( itunes == null || !is_running ){
+				if ( itunes == null || ( !is_running && !( auto_start && is_installed ))){
 					
 					if ( !( copy_outstanding || copy_outstanding_set )){
 						
@@ -393,7 +430,7 @@ DeviceiTunes
 
 				copy_outstanding_set = false;
 			}
-			
+						
 			TranscodeFileImpl[] files = getFiles();
 				
 			List<TranscodeFileImpl>	to_copy = new ArrayList<TranscodeFileImpl>();
@@ -452,6 +489,11 @@ DeviceiTunes
 					try{
 						IPCInterface	ipc = itunes.getIPC();
 						
+						if ( !is_running ){
+							
+							log( "Auto-starting iTunes" );
+						}
+
 						Map<String,Object> result = (Map<String,Object>)ipc.invoke( "addFileToLibrary", new Object[]{ file } );
 		
 						Throwable error = (Throwable)result.get( "error" );
@@ -460,6 +502,8 @@ DeviceiTunes
 							
 							throw( error );
 						}
+						
+						is_running = true;
 						
 						log( "Added file '" + file + ": " + result );
 						
@@ -528,6 +572,8 @@ DeviceiTunes
 			addDP( dp, "MyTrackerView.status.started", is_running );
 			
 			addDP( dp, "devices.copy.pending", copy_outstanding );
+			
+			addDP( dp, "devices.auto.start", getAutoStartDevice());
 		}
 		
 		super.getTTDisplayProperties( dp );
@@ -542,7 +588,7 @@ DeviceiTunes
 		try{
 			writer.indent();
 	
-			writer.println( "itunes=" + itunes + ", installed=" + is_installed + ", running=" + is_running );
+			writer.println( "itunes=" + itunes + ", installed=" + is_installed + ", running=" + is_running + ", auto_start=" + getAutoStartDevice());
 			writer.println( "copy_os=" + copy_outstanding + ", last_fail=" + new SimpleDateFormat().format( new Date( last_update_fail )));
 			
 		}finally{

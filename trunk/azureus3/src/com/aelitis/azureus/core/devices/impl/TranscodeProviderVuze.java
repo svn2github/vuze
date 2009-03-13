@@ -197,8 +197,8 @@ TranscodeProviderVuze
 				
 				final Map<String,Object>	result = new HashMap<String, Object>();
 				
-				final TranscodeProviderAnalysis analysis = 
-					new TranscodeProviderAnalysis()
+				final TranscodeProviderAnalysisImpl analysis = 
+					new TranscodeProviderAnalysisImpl()
 					{
 						public void 
 						cancel() 
@@ -225,6 +225,21 @@ TranscodeProviderVuze
 								Debug.out( "Unknown property: " + property );
 								
 								return( false );
+							}
+						}
+						
+						public void
+						setBooleanProperty(
+							int		property,
+							boolean	value )
+						{
+							if ( property == PT_FORCE_TRANSCODE ){
+								
+								result.put( "force_xcode", value );
+								
+							}else{
+								
+								Debug.out( "Unknown property: " + property );
 							}
 						}
 						
@@ -280,6 +295,12 @@ TranscodeProviderVuze
 							}
 							
 							return( def );
+						}
+						
+						public Map<String,Object>
+						getResult()
+						{
+							return( result );
 						}
 					};
 					
@@ -360,6 +381,7 @@ TranscodeProviderVuze
 	public TranscodeProviderJob
 	transcode( 
 		final TranscodeProviderAdapter	_adapter,
+		TranscodeProviderAnalysis		analysis,
 		DiskManagerFileInfo				input,
 		TranscodeProfile				profile,
 		URL								output )
@@ -422,6 +444,7 @@ TranscodeProviderVuze
 						ipc.invoke(
 							"transcodeToTCP",
 							new Object[]{ 
+								((TranscodeProviderAnalysisImpl)analysis).getResult(),
 								source_url,
 								profile.getName(),
 								output.getPort() });
@@ -433,10 +456,11 @@ TranscodeProviderVuze
 						new TranscodeProviderAdapter()
 						{
 							public void
-							updatePercentDone(
-								int								percent )
+							updateProgress(
+								int								percent,
+								int								eta_secs )
 							{
-								_adapter.updatePercentDone( percent );
+								_adapter.updateProgress( percent, eta_secs );
 							}
 							
 							public void
@@ -463,6 +487,7 @@ TranscodeProviderVuze
 						ipc.invoke(
 							"transcodeToFile",
 							new Object[]{ 
+								((TranscodeProviderAnalysisImpl)analysis).getResult(),
 								source_url,
 								profile.getName(),
 								file });
@@ -489,7 +514,11 @@ TranscodeProviderVuze
 											
 											int	percent = (Integer)status.get( "percent" );
 											
-											adapter.updatePercentDone( percent );
+											Integer	i_eta	= (Integer)status.get( "eta_secs" );
+											
+											int eta = i_eta==null?-1:i_eta;
+											
+											adapter.updateProgress( percent, eta );
 											
 											if ( percent == 100 ){
 												
@@ -577,5 +606,13 @@ TranscodeProviderVuze
 	destroy()
 	{
 		// TODO
+	}
+	
+	protected interface
+	TranscodeProviderAnalysisImpl
+		extends TranscodeProviderAnalysis
+	{
+		public Map<String,Object>
+		getResult();
 	}
 }

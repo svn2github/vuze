@@ -29,12 +29,20 @@ TranscodeProviderAnalysis
 	public static final int PT_VIDEO_WIDTH			= 3;	// Long
 	public static final int PT_VIDEO_HEIGHT			= 4;	// Long
 	
+	public static final int PT_FORCE_TRANSCODE		= 5;	// Boolean (set)
+
+	
 	public void
 	cancel();
 	
 	public boolean
 	getBooleanProperty(
 		int		property );
+	
+	public void
+	setBooleanProperty(
+		int			property,
+		boolean		value );
 	
 	public long
 	getLongProperty(

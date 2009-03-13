@@ -220,6 +220,16 @@ TranscodeManagerImpl
 		}
 	}
 	
+	protected void
+	updateStatus(
+		int	tick_count )
+	{
+		if ( queue != null ){
+			
+			queue.updateStatus( tick_count );
+		}
+	}
+	
 	public TranscodeProvider[]
 	getProviders()
 	{

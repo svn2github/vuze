@@ -22,6 +22,8 @@ import java.util.Locale;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
@@ -49,11 +51,14 @@ public class ColumnTJ_Status
 		"ManagerItem.stopped",
 		"devices.copy.fail",		// 7
 		"devices.on.demand",		// 8 
-		"devices.ready"				// 9
+		"devices.ready",			// 9
+		"devices.downloading",		// 10
 	};
 
 	private static String[] js_resources;
 
+	private static String	eta_text;
+	
 	public ColumnTJ_Status(final TableColumn column) {
 		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 120);
 		column.addListeners(this);
@@ -68,6 +73,9 @@ public class ColumnTJ_Status
 				for (int i = 0; i < js_resources.length; i++) {
 					js_resources[i] = MessageText.getString(js_resource_keys[i]);
 				}
+				
+				eta_text = MessageText.getString( "TableColumn.header.eta" );
+				
 				column.invalidateCells();
 			}
 		});
@@ -120,15 +128,26 @@ public class ColumnTJ_Status
 			
 			int state = job.getState();
 
-			text = js_resources[state];
-
-			if ( state == TranscodeJob.ST_FAILED ) {
-
-				// should be red but whatever
+			if ( state == TranscodeJob.ST_QUEUED ){
 				
-				text += ": " + job.getError();
+				long eta = job.getDownloadETA();
+			
+				if ( eta > 0 ){
 				
-				error = true;
+					text = js_resources[10] + ": " + eta_text + " " + ( eta==Long.MAX_VALUE?Constants.INFINITY_STRING:TimeFormatter.format( eta ));
+				}
+			}else{
+				
+				text = js_resources[state];
+	
+				if ( state == TranscodeJob.ST_FAILED ) {
+	
+					// should be red but whatever
+					
+					text += ": " + job.getError();
+					
+					error = true;
+				}
 			}
 		}
 		

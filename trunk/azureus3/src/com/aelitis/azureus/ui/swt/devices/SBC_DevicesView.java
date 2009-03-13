@@ -212,6 +212,20 @@ public class SBC_DevicesView
 				});
 		
 		tableManager.registerColumn(TranscodeFile.class,
+				ColumnTJ_Duration.COLUMN_ID, new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTJ_Duration(column);
+					}
+				});
+
+		tableManager.registerColumn(TranscodeFile.class,
+				ColumnTJ_Resolution.COLUMN_ID, new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTJ_Resolution(column);
+					}
+				});
+		
+		tableManager.registerColumn(TranscodeFile.class,
 				ColumnTJ_CopiedToDevice.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_CopiedToDevice(column);

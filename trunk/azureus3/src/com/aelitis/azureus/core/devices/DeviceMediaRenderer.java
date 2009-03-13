@@ -25,7 +25,22 @@ package com.aelitis.azureus.core.devices;
 public interface 
 DeviceMediaRenderer
 	extends Device, TranscodeTarget
-{
+{	
+	public static final int RS_PS3		= 1;
+	public static final int RS_XBOX		= 2;
+	public static final int RS_ITUNES	= 3;
+	public static final int RS_WII		= 4;
+	public static final int RS_BROWSER	= 5;
+	public static final int RS_OTHER	= 6;
+
+		/**
+		 * THIS WILL CHANGE!!!
+		 * @return	RS_<x>
+		 */
+
+	public int
+	getRendererSpecies();
+
 	public boolean
 	canFilterFilesView();
 	
@@ -41,4 +56,14 @@ DeviceMediaRenderer
 	
 	public int
 	getCopyToDevicePending();
+	
+	public boolean
+	canAutoStartDevice();
+	
+	public boolean
+	getAutoStartDevice();
+	
+	public void
+	setAutoStartDevice(
+		boolean		auto );
 }

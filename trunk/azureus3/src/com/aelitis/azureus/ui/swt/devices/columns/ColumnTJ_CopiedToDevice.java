@@ -44,7 +44,7 @@ implements TableCellRefreshListener
 	private String	na_text;
 
 	public ColumnTJ_CopiedToDevice(final TableColumn column) {
-		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 50);
+		column.initialize(TableColumn.ALIGN_CENTER, TableColumn.POSITION_LAST, 50);
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);

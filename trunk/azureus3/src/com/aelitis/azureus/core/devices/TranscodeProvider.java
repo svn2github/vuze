@@ -49,6 +49,7 @@ TranscodeProvider
 	public TranscodeProviderJob
 	transcode( 
 		TranscodeProviderAdapter	adapter,
+		TranscodeProviderAnalysis	analysis,
 		DiskManagerFileInfo			input,
 		TranscodeProfile			profile,
 		URL							output )
