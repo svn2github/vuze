@@ -456,7 +456,7 @@ DeviceUPnPImpl
 		}
 		
 		try{
-			TranscodeFileImpl transcode_file = allocateFile( profile, source, false );
+			TranscodeFileImpl transcode_file = allocateFile( profile, false, source, false );
 			
 			AzureusContentFile acf = (AzureusContentFile)transcode_file.getTransientProperty( UPNPAV_FILE_KEY );
 

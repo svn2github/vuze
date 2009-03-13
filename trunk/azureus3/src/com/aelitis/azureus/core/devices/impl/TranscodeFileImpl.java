@@ -154,6 +154,13 @@ TranscodeFileImpl
 	}
 	
 	protected void
+	setCacheFile(
+		File		file )
+	{
+		setString( KEY_FILE, file.getAbsolutePath());
+	}
+	
+	protected void
 	checkDeleted()
 	
 		throws TranscodeException
@@ -250,7 +257,7 @@ TranscodeFileImpl
 			return( getSourceFile());
 		}
 		
-		// Debug.out( "Target file for " + cache_file + " doesn't exist" );
+			// Debug.out( "Target file for " + cache_file + " doesn't exist" );
 		
 		return( new DiskManagerFileInfoFile( cache_file ));
 	}
@@ -258,8 +265,17 @@ TranscodeFileImpl
 	protected void
 	setTranscodeRequired(
 		boolean	required )
+	
+		throws TranscodeException
 	{
 		setBoolean( KEY_NO_XCODE, !required );
+		
+		if ( !required ){
+			
+				// reset the file name as previous
+			
+			device.revertFileName( this );
+		}
 	}
 	
 	public boolean

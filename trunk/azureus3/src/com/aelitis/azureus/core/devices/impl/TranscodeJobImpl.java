@@ -182,7 +182,7 @@ TranscodeJobImpl
 	
 		throws TranscodeException
 	{
-		transcode_file = ((DeviceImpl)target.getDevice()).allocateFile( profile, file, true );
+		transcode_file = ((DeviceImpl)target.getDevice()).allocateFile( profile, getTranscodeRequirement() == TranscodeTarget.TRANSCODE_NEVER, file, true );
 		
 		try{
 			download = file.getDownload();

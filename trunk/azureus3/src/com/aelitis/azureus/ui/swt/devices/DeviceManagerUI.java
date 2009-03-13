@@ -1397,6 +1397,8 @@ DeviceManagerUI
 
 									if (device instanceof DeviceMediaRenderer) {
 										
+											// filter view
+										
 										final DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
 										
 										if ( renderer.canFilterFilesView()){
@@ -1414,6 +1416,23 @@ DeviceManagerUI
 												}
 											});
 										}
+										
+											// cache files
+										
+										MenuItem alwayscache_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.always.cache");
+										alwayscache_menu_item.setStyle(MenuItem.STYLE_CHECK);
+	
+										alwayscache_menu_item.addFillListener(new MenuItemFillListener() {
+												public void menuWillBeShown(MenuItem menu, Object data) {
+													menu.setData(new Boolean(renderer.getAlwaysCacheFiles()));
+												}
+											});
+										alwayscache_menu_item.addListener(new MenuItemListener() {
+												public void selected(MenuItem menu, Object target) {
+									 				renderer.setAlwaysCacheFiles( (Boolean) menu.getData());
+												}
+											});
+					
 										
 										if ( renderer.canAutoStartDevice()){
 											MenuItem autostart_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.autoStart");

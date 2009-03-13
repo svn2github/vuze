@@ -227,7 +227,20 @@ TranscodeQueueImpl
 
 			transcode_file.update( provider_analysis );
 			
-			int	tt_req = job.getTranscodeRequirement();
+			int	tt_req;
+			
+			if ( job.isStream()){
+				
+					// already advertised as a transcoded asset so no option not to
+					// transcode (as name/format would change if decided not to transcode and then
+					// this would confuse the clients)
+				
+				tt_req = TranscodeTarget.TRANSCODE_ALWAYS;
+				
+			}else{
+				
+				tt_req = job.getTranscodeRequirement();
+			}
 						
 			if ( tt_req == TranscodeTarget.TRANSCODE_NEVER ){
 				

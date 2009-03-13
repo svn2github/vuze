@@ -450,6 +450,7 @@ DeviceImpl
 	public TranscodeFileImpl
 	allocateFile(
 		TranscodeProfile		profile,
+		boolean					no_xcode,
 		DiskManagerFileInfo		file,
 		boolean					for_job )
 	
@@ -486,7 +487,7 @@ DeviceImpl
 					
 					String	target_file = file.getFile().getName();
 					
-					if ( ext != null ){
+					if ( ext != null && !no_xcode ){
 						
 						int	pos = target_file.lastIndexOf( '.' );
 						
@@ -498,30 +499,7 @@ DeviceImpl
 						target_file += ext;
 					}
 						
-					Set<String> name_set = new HashSet<String>();
-					
-					for (Map<String,?> entry: device_files.values()){
-						
-						try{
-							name_set.add( new File( ImportExportUtils.importString( entry, TranscodeFileImpl.KEY_FILE )).getName());
-							
-						}catch( Throwable e ){
-							
-							Debug.out( e );
-						}
-					}
-		
-					for (int i=0;i<1024;i++){
-						
-						String	test_name = i==0?target_file:( i + "_" + target_file);
-						
-						if ( !name_set.contains( test_name )){
-						
-							target_file = test_name;
-							
-							break;
-						}				
-					}
+					target_file = allocateUniqueFileName( target_file );
 					
 					File output_file = getWorkingDirectory();
 	
@@ -557,6 +535,89 @@ DeviceImpl
 		}
 		
 		return( result );
+	}
+	
+	protected String
+	allocateUniqueFileName(
+		String		str )
+	{
+		Set<String> name_set = new HashSet<String>();
+		
+		for (Map<String,?> entry: device_files.values()){
+			
+			try{
+				name_set.add( new File( ImportExportUtils.importString( entry, TranscodeFileImpl.KEY_FILE )).getName());
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+
+		for (int i=0;i<1024;i++){
+			
+			String	test_name = i==0?str:( i + "_" + str);
+			
+			if ( !name_set.contains( test_name )){
+			
+				str = test_name;
+				
+				break;
+			}				
+		}
+		
+		return( str );
+	}
+	
+	protected void
+	revertFileName(
+		TranscodeFileImpl	tf )
+	
+		throws TranscodeException
+	{
+		File cache_file = tf.getCacheFile();
+		
+		if ( cache_file.exists()){
+			
+			Debug.out( "Cache file already allocated, can't rename" );
+			
+			return;
+		}
+		
+		File source_file = tf.getSourceFile().getFile();
+		
+		String	original_name = source_file.getName();
+		
+		int pos = original_name.indexOf('.');
+		
+		if ( pos == -1 ){
+			
+			return;
+		}
+		
+		String	cf_name = cache_file.getName();
+		
+		if ( cf_name.endsWith( original_name.substring(pos))){
+			
+			return;
+		}
+		
+		try{
+			synchronized( this ){
+				
+				if ( device_files == null ){
+					
+					loadDeviceFile();
+				}
+				
+				String reverted_name = allocateUniqueFileName( original_name );
+				
+				tf.setCacheFile( new File( cache_file.getParentFile(), reverted_name ));
+			}
+		}catch( Throwable e ){
+			
+			throw( new TranscodeException( "File name revertion failed", e ));
+		}
 	}
 	
 	public TranscodeFileImpl
