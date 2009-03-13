@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.devices;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,13 +30,16 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
@@ -51,7 +55,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
@@ -451,15 +454,71 @@ public class SBC_DevicesView
 	 */
 	protected void fillMenu(Menu menu) {
 		
-			// pause
-		
 		Object[] _files = tvFiles.getSelectedDataSources().toArray();
-		
+	
 		final TranscodeFile[]	files = new TranscodeFile[_files.length];
 		
 		System.arraycopy( _files, 0, files, 0, files.length );
 		
-		final MenuItem pause_item = new MenuItem(menu, SWT.PUSH);
+
+			// open file
+		
+		final MenuItem open_item = new MenuItem(menu, SWT.PUSH);
+
+		Messages.setLanguageText(open_item, "MyTorrentsView.menu.open");
+		
+		Utils.setMenuItemImage( open_item, "run" );
+		
+		File target_file = null;
+		
+		try{
+			if ( files.length == 1 ){
+				
+				target_file = files[0].getTargetFile().getFile();
+				
+				if ( !target_file.exists()){
+					
+					target_file = null;
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		final File f_target_file = target_file;
+		
+		open_item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent ev) {
+
+				Utils.launch( f_target_file.getAbsolutePath());
+			};
+		});
+		
+		open_item.setEnabled( target_file != null && files[0].isComplete());
+		
+			// show in explorer
+		
+		final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
+		
+		final MenuItem show_item  = new MenuItem(menu, SWT.PUSH);
+		
+		Messages.setLanguageText(show_item, "MyTorrentsView.menu." + (use_open_containing_folder ? "open_parent_folder" : "explore"));
+
+		show_item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+
+				ManagerUtils.open( f_target_file, use_open_containing_folder );
+			};
+		});
+		
+		show_item.setEnabled( target_file != null );
+		
+		new MenuItem(menu, SWT.SEPARATOR);
+
+			// pause
+				
+			final MenuItem pause_item = new MenuItem(menu, SWT.PUSH);
 
 		pause_item.setText(MessageText.getString("v3.MainWindow.button.pause"));
 
@@ -544,7 +603,9 @@ public class SBC_DevicesView
 		final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 
 		remove_item.setText(MessageText.getString("azbuddy.ui.menu.remove"));
-
+		
+		Utils.setMenuItemImage(remove_item, "delete");
+		
 		remove_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				for ( TranscodeFile file: files ){
@@ -567,7 +628,7 @@ public class SBC_DevicesView
 
 		new MenuItem(menu, SWT.SEPARATOR);
 
-			// Login to disable items 
+			// Logic to disable items 
 		
 		boolean has_selection = files.length > 0;
 
