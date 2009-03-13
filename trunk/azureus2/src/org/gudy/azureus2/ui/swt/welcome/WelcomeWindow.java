@@ -54,7 +54,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 
 public class WelcomeWindow {
 	
-	private static final String URL_WHATSNEW = "http://web.azureusplatform.com/releasenotes";
+	private static final String URL_WHATSNEW = "http://www.vuze.com/releasenotes";
   
   private static final String lineSeparator = System.getProperty ("line.separator");
   
