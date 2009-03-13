@@ -742,6 +742,12 @@ DeviceManagerUI
 						}
 					});
 	  			*/
+
+				if (device_manager.getTranscodeManager().getProviders().length == 0) {
+					SideBarVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
+				}
+				SideBarVitalityImage beta = main_sb_entry.addVitalityImage("image.sidebar.beta");
+				beta.setAlignment(SWT.LEFT);
 				
 				main_sb_entry.setImageLeftID( "image.sidebar.devices" );
 					

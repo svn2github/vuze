@@ -42,10 +42,13 @@ import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ConstantsVuze;
 
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.installer.*;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 
 /**
@@ -283,6 +286,15 @@ public class DevicesFTUX
 					new PluginInstallationListener() {
 						public void completed() {
 							close();
+
+							SideBarEntrySWT sb = SideBar.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+							SideBarVitalityImage[] vitalityImages = sb.getVitalityImages();
+							for (SideBarVitalityImage vi : vitalityImages) {
+								if (vi.getImageID().contains("turnon")) {
+									vi.setVisible(false);
+								}
+							}
+							
 						}
 
 						public void 

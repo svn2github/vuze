@@ -1139,7 +1139,7 @@ public class SideBar
 		SideBarVitalityImage[] vitalityImages = sideBarEntry.getVitalityImages();
 		for (int i = 0; i < vitalityImages.length; i++) {
 			SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
-			if (!vitalityImage.isVisible()) {
+			if (!vitalityImage.isVisible() || vitalityImage.getAlignment() != SWT.RIGHT) {
 				continue;
 			}
 			vitalityImage.switchSuffix(selected ? "-selected" : "");
@@ -1210,9 +1210,30 @@ public class SideBar
 				clipping.width -= 30;
 			}
 
-			GCStringPrinter.printString(gc, text, clipping, true, false, SWT.NONE);
+			GCStringPrinter sp = new GCStringPrinter(gc, text, clipping, true, false, SWT.NONE);
+			sp.printString();
+			clipping.x += sp.getCalculatedSize().x + 5;
 			//gc.setClipping((Rectangle) null);
 		}
+		
+		for (int i = 0; i < vitalityImages.length; i++) {
+			SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
+			if (!vitalityImage.isVisible() || vitalityImage.getAlignment() != SWT.LEFT) {
+				continue;
+			}
+			vitalityImage.switchSuffix(selected ? "-selected" : "");
+			Image image = vitalityImage.getImage();
+			if (image != null && !image.isDisposed()) {
+				Rectangle bounds = image.getBounds();
+				bounds.x = clipping.x;
+				bounds.y = itemBounds.y + (itemBounds.height - bounds.height) / 2;
+				clipping.x += bounds.width + SIDEBAR_SPACING;
+
+				gc.drawImage(image, bounds.x, bounds.y);
+				vitalityImage.setHitArea(bounds);
+			}
+		}
+
 
 		// OSX overrides the twisty, and we can't use the default twisty
 		// on Windows because it doesn't have transparency and looks ugly

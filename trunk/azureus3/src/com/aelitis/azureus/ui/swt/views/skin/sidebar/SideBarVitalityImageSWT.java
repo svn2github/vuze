@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Tree;
@@ -67,6 +68,8 @@ public class SideBarVitalityImageSWT
 	private int delayTime = -1;
 
 	private String fullImageID;
+	
+	private int alignment = SWT.RIGHT;
 
 	/**
 	 * @param imageID
@@ -317,5 +320,13 @@ public class SideBarVitalityImageSWT
 	 */
 	public int getDelayTime() {
 		return delayTime;
+	}
+
+	public int getAlignment() {
+		return alignment;
+	}
+
+	public void setAlignment(int alignment) {
+		this.alignment = alignment;
 	}
 }
