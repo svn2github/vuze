@@ -734,7 +734,14 @@ DeviceImpl
 	setDefaultTranscodeProfile(
 		TranscodeProfile		profile )
 	{
-		setPersistentStringProperty( PP_REND_DEF_TRANS_PROF, profile.getUID());
+		if ( profile == null ){
+		
+			removePersistentProperty( PP_REND_DEF_TRANS_PROF );
+			
+		}else{
+			
+			setPersistentStringProperty( PP_REND_DEF_TRANS_PROF, profile.getUID());
+		}
 	}
 	
 	protected void
@@ -973,6 +980,35 @@ DeviceImpl
 		}
 	}
 	
+	public void
+	removePersistentProperty(
+		String		prop )
+	{
+		boolean	dirty = false;
+		
+		synchronized( persistent_properties ){
+			
+			String existing = getPersistentStringProperty( prop );
+			
+			if ( existing != null ){
+				
+				try{
+					persistent_properties.remove( prop );
+					
+					dirty = true;
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+		
+		if ( dirty ){
+			
+			setDirty();
+		}
+	}
 	public String
 	getError()
 	{
