@@ -40,4 +40,8 @@ public interface SideBarVitalityImage
 	public boolean isVisible();
 
 	public void triggerClickedListeners(int x, int y);
+
+	public int getAlignment();
+	
+	public void setAlignment(int a);
 }
