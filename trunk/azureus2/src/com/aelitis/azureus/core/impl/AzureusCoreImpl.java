@@ -744,76 +744,83 @@ AzureusCoreImpl
 	   				public void
 	   				run()
 	   				{
-	   					AEDiagnostics.checkDumpsAndNatives();
-
-	   					COConfigurationManager.setParameter( "diags.enable.pending.writes", true );
-	   					
-	   					AEDiagnostics.flushPendingLogs();
-	   					
-	   					NetworkAdmin na = NetworkAdmin.getSingleton();
-
-	   					na.runInitialChecks();
-
-	   					na.addPropertyChangeListener(
-	   							new NetworkAdminPropertyChangeListener()
-	   							{
-	   								private String	last_as;
-
-	   								public void
-	   								propertyChanged(
-	   										String		property )
-	   								{
-	   									NetworkAdmin na = NetworkAdmin.getSingleton();
-
-	   									if ( property.equals( NetworkAdmin.PR_NETWORK_INTERFACES )){
-
-	   										boolean	found_usable = false;
-
-	   										NetworkAdminNetworkInterface[] intf = na.getInterfaces();
-
-	   										for (int i=0;i<intf.length;i++){
-
-	   											NetworkAdminNetworkInterfaceAddress[] addresses = intf[i].getAddresses();
-
-	   											for (int j=0;j<addresses.length;j++){
-
-	   												if ( !addresses[j].isLoopback()){
-
-	   													found_usable = true;
-	   												}
-	   											}
-	   										}
-
-	   										// ignore event if nothing usable
-
-	   										if ( !found_usable ){
-
-	   											return;
-	   										}
-
-	   										Logger.log(	new LogEvent(LOGID, "Network interfaces have changed (new=" + na.getNetworkInterfacesAsString() + ")"));
-
-	   										announceAll( false );
-
-	   									}else if ( property.equals( NetworkAdmin.PR_AS )){
-
-	   										String	as = na.getCurrentASN().getAS();
-
-	   										if ( last_as == null ){
-
-	   											last_as = as;
-
-	   										}else if ( !as.equals( last_as )){
-
-	   											Logger.log(	new LogEvent(LOGID, "AS has changed (new=" + as + ")" ));
-
-	   											last_as = as;
-
-	   											announceAll( false );
-	   										}
-	   									}
-	   								}
-	   							});
+	   					new AEThread2( "core:delayTask", true )
+	   					{
+	   						public void
+	   						run()
+	   						{				
+			   					AEDiagnostics.checkDumpsAndNatives();
+		
+			   					COConfigurationManager.setParameter( "diags.enable.pending.writes", true );
+			   					
+			   					AEDiagnostics.flushPendingLogs();
+			   					
+			   					NetworkAdmin na = NetworkAdmin.getSingleton();
+		
+			   					na.runInitialChecks();
+		
+			   					na.addPropertyChangeListener(
+			   							new NetworkAdminPropertyChangeListener()
+			   							{
+			   								private String	last_as;
+		
+			   								public void
+			   								propertyChanged(
+			   										String		property )
+			   								{
+			   									NetworkAdmin na = NetworkAdmin.getSingleton();
+		
+			   									if ( property.equals( NetworkAdmin.PR_NETWORK_INTERFACES )){
+		
+			   										boolean	found_usable = false;
+		
+			   										NetworkAdminNetworkInterface[] intf = na.getInterfaces();
+		
+			   										for (int i=0;i<intf.length;i++){
+		
+			   											NetworkAdminNetworkInterfaceAddress[] addresses = intf[i].getAddresses();
+		
+			   											for (int j=0;j<addresses.length;j++){
+		
+			   												if ( !addresses[j].isLoopback()){
+		
+			   													found_usable = true;
+			   												}
+			   											}
+			   										}
+		
+			   										// ignore event if nothing usable
+		
+			   										if ( !found_usable ){
+		
+			   											return;
+			   										}
+		
+			   										Logger.log(	new LogEvent(LOGID, "Network interfaces have changed (new=" + na.getNetworkInterfacesAsString() + ")"));
+		
+			   										announceAll( false );
+		
+			   									}else if ( property.equals( NetworkAdmin.PR_AS )){
+		
+			   										String	as = na.getCurrentASN().getAS();
+		
+			   										if ( last_as == null ){
+		
+			   											last_as = as;
+		
+			   										}else if ( !as.equals( last_as )){
+		
+			   											Logger.log(	new LogEvent(LOGID, "AS has changed (new=" + as + ")" ));
+		
+			   											last_as = as;
+		
+			   											announceAll( false );
+			   										}
+			   									}
+			   								}
+			   							});
+	   						}
+	   					}.start();
 	   				}
 	   			});
 

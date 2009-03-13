@@ -1163,8 +1163,12 @@ PluginUpdatePlugin
 														
 										if ( origin.exists()){
 											
-											if ( 	file_name.toLowerCase().endsWith(".properties") ||
-													file_name.toLowerCase().endsWith(".config" )){
+											if ( 	file_name.indexOf( '/' ) == -1 &&
+													(	file_name.toLowerCase().endsWith(".properties") ||
+														file_name.toLowerCase().endsWith(".config" ))){
+												
+													// don't trash properties and config files in root as users may well
+													// have modified them
 												
 												is_plugin_properties	= file_name.toLowerCase().equals("plugin.properties");
 												

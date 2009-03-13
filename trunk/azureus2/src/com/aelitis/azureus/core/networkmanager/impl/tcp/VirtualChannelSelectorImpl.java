@@ -83,6 +83,7 @@ public class VirtualChannelSelectorImpl {
     
     private volatile boolean	destroyed;
     
+    private boolean	randomise_keys;
     
     private static final int WRITE_SELECTOR_DEBUG_CHECK_PERIOD	= 10000;
     private static final int WRITE_SELECTOR_DEBUG_MAX_TIME		= 20000;
@@ -90,11 +91,12 @@ public class VirtualChannelSelectorImpl {
     private long last_write_select_debug;
     private long last_select_debug;
     
-    public VirtualChannelSelectorImpl( VirtualChannelSelector _parent, int _interest_op, boolean _pause_after_select ) {	
+    public VirtualChannelSelectorImpl( VirtualChannelSelector _parent, int _interest_op, boolean _pause_after_select, boolean _randomise_keys ) {	
       this.parent = _parent;
       INTEREST_OP = _interest_op;
-      
+     
       pause_after_select	= _pause_after_select;
+      randomise_keys		= _randomise_keys;
       
       String type;
       switch( INTEREST_OP ) {
@@ -175,7 +177,12 @@ public class VirtualChannelSelectorImpl {
     }
     
     
-    
+    public void
+    setRandomiseKeys(
+    	boolean		r )
+    {
+    	randomise_keys = r;
+    }
     
    
      
@@ -534,7 +541,7 @@ public class VirtualChannelSelectorImpl {
       
       	// debug handling for channels stuck pending write select for long periods
       
-      Set	non_selected_keys = null;
+      Set<SelectionKey>	non_selected_keys = null;
       
       if ( INTEREST_OP == VirtualChannelSelector.OP_WRITE ){
     	  
@@ -543,16 +550,42 @@ public class VirtualChannelSelectorImpl {
     		  
     		  last_write_select_debug = now;
     		  
-    		  non_selected_keys = new HashSet( selector.keys());
+    		  non_selected_keys = new HashSet<SelectionKey>( selector.keys());
     	  }
       }
       
-      for( Iterator i = selector.selectedKeys().iterator(); i.hasNext(); ) {
+      Collection<SelectionKey>	selected_keys;
+      
+      boolean	randy = randomise_keys;
+      
+      if ( randy ){
+    	  
+    	  List<SelectionKey> sk = new ArrayList<SelectionKey>( selector.selectedKeys());
+      
+    	  Collections.shuffle( sk );
+    	  
+    	  selected_keys = sk;
+    	  
+      }else{
+    	  
+    	  selected_keys = selector.selectedKeys();
+      }
+      
+      for( Iterator<SelectionKey> it= selected_keys.iterator(); it.hasNext(); ){
+    	  
+    	SelectionKey key = it.next();
     	  
     	total_key_count++;
     	
-        SelectionKey key = (SelectionKey)i.next();
-        i.remove();
+    	if ( randy ){
+    		
+    		selector.selectedKeys().remove( key );
+    		
+    	}else{
+    	
+    		it.remove();
+    	}
+    	
         RegistrationData data = (RegistrationData)key.attachment();
 
         if ( non_selected_keys != null ){

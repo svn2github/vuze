@@ -67,6 +67,10 @@ DiskManagerRequest
 		String		agent );
 	
 	public void
+	setMaximumReadChunkSize(
+		int			size );
+	
+	public void
 	addListener(
 		DiskManagerListener	listener );
 	

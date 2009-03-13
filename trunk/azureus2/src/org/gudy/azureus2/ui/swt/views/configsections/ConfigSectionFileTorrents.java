@@ -216,19 +216,6 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     controls = new Control[]{ gWatchFolder };
     watchFolder.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
 
-    
-    if (userMode > 0) {
-
-			Label lIgnoreFiles = new Label(cTorrent, SWT.NULL);
-			Messages.setLanguageText(lIgnoreFiles,
-					"ConfigView.section.file.torrent.ignorefiles");
-
-			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			new StringParameter(cTorrent, "File.Torrent.IgnoreFiles",
-					TOTorrent.DEFAULT_IGNORE_FILES).setLayoutData(gridData);
-
-		} //end usermode>0
-
     return cTorrent;
   }
 }

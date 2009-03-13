@@ -29,7 +29,6 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 import java.util.*;
 import java.io.*;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 

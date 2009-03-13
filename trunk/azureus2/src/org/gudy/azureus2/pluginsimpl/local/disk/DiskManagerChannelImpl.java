@@ -81,7 +81,7 @@ DiskManagerChannelImpl
 	
 	private static final int COMPACT_DELAY	= 32;
 	
-	private static final int MAX_READ_CHUNK	= 64*1024;
+	private static final int MAX_READ_CHUNK_DEFAULT	= 64*1024;
 	
 	private static final Comparator comparator = new
 		Comparator()
@@ -530,6 +530,8 @@ DiskManagerChannelImpl
 		
 		private String	user_agent;
 		
+		private int		max_read_chunk = MAX_READ_CHUNK_DEFAULT;
+		
 		private volatile boolean	cancelled;
 		
 		AESemaphore	wait_sem = new AESemaphore( "DiskManagerChannelImpl:wait" );
@@ -565,6 +567,13 @@ DiskManagerChannelImpl
 			}
 			
 			request_length	= _length;
+		}
+		
+		public void
+		setMaximumReadChunkSize(
+			int 	size )
+		{
+			max_read_chunk = size;
 		}
 		
 		public long
@@ -694,7 +703,7 @@ DiskManagerChannelImpl
 							
 							if ( available > 0 ){
 								
-								len = (int)( available<MAX_READ_CHUNK?available:MAX_READ_CHUNK);
+								len = (int)available;
 								
 								break;
 							}
@@ -702,6 +711,16 @@ DiskManagerChannelImpl
 					}				
 					
 					if ( len > 0 ){
+						
+						if ( len > rem ){
+							
+							len = (int)rem;
+						}
+						
+						if ( len > max_read_chunk ){
+						
+							len = max_read_chunk;
+						}
 						
 						DirectByteBuffer buffer = core_file.read( pos, len );
 	
