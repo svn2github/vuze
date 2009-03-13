@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 
 public class 
 DeviceiTunes
@@ -385,6 +386,18 @@ DeviceiTunes
 			
 			copy_sem.release();
 		}
+	}
+	
+	public boolean
+	canAssociate()
+	{
+		return( false );
+	}
+	
+	public void
+	associate(
+		UnassociatedDevice	assoc )
+	{
 	}
 	
 	protected void

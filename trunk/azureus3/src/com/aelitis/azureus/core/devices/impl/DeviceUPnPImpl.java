@@ -49,6 +49,7 @@ import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
+import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoStream;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.UUIDGenerator;
@@ -256,6 +257,26 @@ DeviceUPnPImpl
 		}
 		
 		return( null );
+	}
+	
+	public boolean
+	canAssociate()
+	{
+		return( true );
+	}
+	
+	public void
+	associate(
+		UnassociatedDevice	assoc )
+	{
+		if ( isAlive()){
+			
+			return;
+		}
+		
+		setAddress( assoc.getAddress());
+		
+		alive();
 	}
 	
 	protected InetAddress

@@ -70,6 +70,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 
 import com.aelitis.azureus.ui.UIFunctions;
@@ -1349,7 +1350,7 @@ DeviceManagerUI
 									
 									setStatus( device, new_di );
 									
-									MenuManager menu_manager = ui_manager.getMenuManager();
+									final MenuManager menu_manager = ui_manager.getMenuManager();
 										
 									if ( device.isBrowsable()){
 									
@@ -1395,6 +1396,7 @@ DeviceManagerUI
 									
 
 									if (device instanceof DeviceMediaRenderer) {
+										
 										final DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
 										
 										if ( renderer.canFilterFilesView()){
@@ -1427,6 +1429,67 @@ DeviceManagerUI
 									 				renderer.setAutoStartDevice((Boolean) menu.getData());
 												}
 											});
+										}
+										
+										if ( renderer.canAssociate()){
+											
+											final MenuItem menu_associate = menu_manager.addMenuItem(
+													"sidebar." + key, "devices.associate");
+											
+											menu_associate.setStyle(MenuItem.STYLE_MENU);
+
+											menu_associate.addFillListener(
+												new MenuItemFillListener()
+												{
+													public void 
+													menuWillBeShown(
+														MenuItem menu, Object data )
+													{
+														menu_associate.removeAllChildItems();
+														
+														if ( renderer.isAlive()){
+															
+															MenuItem menu_none = menu_manager.addMenuItem(
+																	menu_associate,
+																	"devices.associate.already");
+
+															menu_none.setEnabled( false );
+															
+														}else{
+															
+															UnassociatedDevice[] unassoc = device_manager.getUnassociatedDevices();
+															
+															if ( unassoc.length == 0 ){
+
+																menu_associate.setEnabled( false );
+																
+															}else{
+																
+																menu_associate.setEnabled( true );
+																
+																for ( final UnassociatedDevice un: unassoc ){
+																	
+																	MenuItem menu_un = menu_manager.addMenuItem(
+																			menu_associate,
+																			"!" + un.getAddress().getHostAddress() + ": " + un.getDescription() + "!");
+																	
+																	menu_un.addListener(
+																		new MenuItemListener() 
+																		{
+																			public void 
+																			selected(
+																				MenuItem 	menu, 
+																				Object 		target)
+																			{
+																				renderer.associate( un );
+																			}
+																		});
+																}
+															}
+														}
+													}
+												});
+
 										}
 										
 										TranscodeProfile[] transcodeProfiles = renderer.getTranscodeProfiles();

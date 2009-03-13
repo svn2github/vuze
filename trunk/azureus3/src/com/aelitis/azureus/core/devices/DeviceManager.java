@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.net.InetAddress;
+
 public interface 
 DeviceManager 
 {
@@ -46,6 +48,9 @@ DeviceManager
 	setAutoSearch(
 		boolean	auto );
 	
+	public UnassociatedDevice[]
+	getUnassociatedDevices();
+	
 	public TranscodeManager
 	getTranscodeManager();
 	
@@ -56,4 +61,14 @@ DeviceManager
 	public void
 	removeListener(
 			DeviceManagerListener		listener );
+	
+	public interface 
+	UnassociatedDevice
+	{
+		public InetAddress
+		getAddress();
+		
+		public String
+		getDescription();
+	}
 }

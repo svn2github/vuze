@@ -45,7 +45,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.content.AzureusContentFilter;
-import com.aelitis.azureus.core.devices.TranscodeProfile;
+import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnP;
 import com.aelitis.net.upnp.UPnPAdapter;
@@ -67,6 +67,8 @@ DeviceManagerUPnPImpl
 	private UPnP 					upnp;
 	
 	private volatile IPCInterface			upnpav_ipc;
+	
+	private Map<InetAddress,String>		unassociated_devices = new HashMap<InetAddress, String>();
 	
 	protected
 	DeviceManagerUPnPImpl(
@@ -278,7 +280,7 @@ DeviceManagerUPnPImpl
 							String client_info 	= (String)headers.get( "x-av-client-info" );
 							
 							InetSocketAddress client_address = request.getClientAddress2();
-						
+													
 							boolean	handled = false;
 														
 							if ( user_agent != null ){
@@ -374,6 +376,11 @@ DeviceManagerUPnPImpl
 							
 							if ( browse_devices.size() > 0 ){
 								
+								synchronized( unassociated_devices ){
+									
+									unassociated_devices.remove( client_address.getAddress() );
+								}
+								
 								result.put(
 									"filter",
 									new AzureusContentFilter()
@@ -414,6 +421,15 @@ DeviceManagerUPnPImpl
 											return( visible );
 										}
 									});
+							}else{
+								
+								if ( request.getHeader().substring(0,4).equalsIgnoreCase( "POST" )){
+									
+									synchronized( unassociated_devices ){
+									
+										unassociated_devices.put( client_address.getAddress(), user_agent );
+									}
+								}
 							}
 								
 							return( result );
@@ -443,6 +459,64 @@ DeviceManagerUPnPImpl
 			
 			manager.log( "Failed to hook into UPnPAV", e );
 		}
+	}
+	
+	public UnassociatedDevice[]
+	getUnassociatedDevices()
+	{
+		List<UnassociatedDevice> result = new ArrayList<UnassociatedDevice>();
+		
+		Map<InetAddress,String> ud;
+		
+		synchronized( unassociated_devices ){
+
+			ud = new HashMap<InetAddress,String>( unassociated_devices );
+		}
+		
+		DeviceImpl[] devices = manager.getDevices();
+
+		for ( final Map.Entry<InetAddress, String> entry: ud.entrySet()){
+			
+			InetAddress	address = entry.getKey();
+			
+			boolean already_assoc = false;
+
+			for ( DeviceImpl d: devices ){
+								
+				if ( d instanceof DeviceMediaRendererImpl ){
+					
+					DeviceMediaRendererImpl r = (DeviceMediaRendererImpl)d;
+					
+					if ( d.isAlive() && r.getAddress().equals( address )){
+						
+						already_assoc = true;
+						
+						break;
+					}
+				}
+			}
+			
+			if ( !already_assoc ){
+				
+				result.add(
+					new UnassociatedDevice()
+					{
+						public InetAddress
+						getAddress()
+						{
+							return( entry.getKey());
+						}
+						
+						public String
+						getDescription()
+						{
+							return( entry.getValue());
+						}
+					});
+			}
+		}
+		
+		return( result.toArray( new UnassociatedDevice[result.size()]));
 	}
 	
 	protected IPCInterface

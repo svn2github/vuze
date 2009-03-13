@@ -338,7 +338,7 @@ DeviceImpl
 		}
 	}
 	
-	protected boolean
+	public boolean
 	isAlive()
 	{
 		return( online );

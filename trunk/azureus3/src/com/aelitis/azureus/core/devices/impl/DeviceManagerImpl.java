@@ -597,6 +597,12 @@ DeviceManagerImpl
 		return( transcode_manager );
 	}
 	
+	public UnassociatedDevice[]
+	getUnassociatedDevices()
+	{
+		return( upnp_manager.getUnassociatedDevices());
+	}
+	
   	public void
   	addListener(
   		DeviceManagerListener		listener )

@@ -23,6 +23,8 @@ package com.aelitis.azureus.core.devices;
 
 import java.net.URL;
 
+import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
+
 public interface 
 Device 
 {
@@ -41,6 +43,9 @@ Device
 	public String
 	getName();
 		
+	public boolean
+	isAlive();
+	
 	public void
 	setHidden(
 		boolean		is_hidden );
@@ -53,6 +58,13 @@ Device
 	
 	public browseLocation[]
 	getBrowseLocations();
+	
+	public boolean
+	canAssociate();
+	
+	public void
+	associate(
+		UnassociatedDevice	assoc );
 	
 	public void
 	setTransientProperty(
