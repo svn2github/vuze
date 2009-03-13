@@ -2341,7 +2341,9 @@ public class SideBar
 				iviewComposite.setLayoutData(gridData);
 			}
 
-			parent.layout(true, true);
+			if (iviewComposite.isVisible()) {
+				parent.layout(true, true);
+			}
 
 		} catch (Exception e) {
 			Debug.out("Error creating sidebar content area for " + id, e);
