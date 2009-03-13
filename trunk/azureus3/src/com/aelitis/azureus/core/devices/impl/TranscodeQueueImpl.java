@@ -858,9 +858,9 @@ TranscodeQueueImpl
 				
 				return;
 			}
-			
-			saveConfig();
 		}
+		
+		saveConfig();
 
 		job.destroy();
 		
@@ -915,13 +915,16 @@ TranscodeQueueImpl
 	getIndex(
 		TranscodeJobImpl		job )
 	{
-		return( queue.indexOf(job)+1);
+		synchronized( this ){
+		
+			return( queue.indexOf(job)+1);
+		}
 	}
 	
 	public TranscodeJobImpl[]
 	getJobs()
 	{
-		synchronized( queue ){
+		synchronized( this ){
 
 			return( queue.toArray( new TranscodeJobImpl[queue.size()]));
 		}
@@ -930,7 +933,7 @@ TranscodeQueueImpl
 	public int
 	getJobCount()
 	{
-		synchronized( queue ){
+		synchronized( this ){
 
 			return( queue.size());
 		}	
@@ -952,7 +955,7 @@ TranscodeQueueImpl
 	getJob(
 		TranscodeFile		for_file )
 	{
-		synchronized( queue ){
+		synchronized( this ){
 
 			for ( TranscodeJobImpl job: queue ){
 				
@@ -972,7 +975,7 @@ TranscodeQueueImpl
 	{
 		TranscodeJob[] updated;
 			
-		synchronized( queue ){
+		synchronized( this ){
 		
 			int index = queue.indexOf( job );
 			
@@ -1000,9 +1003,9 @@ TranscodeQueueImpl
 	{
 		TranscodeJob[] updated;
 
-		synchronized( queue ){
+		synchronized( this ){
 		
-		int index = queue.indexOf( job );
+			int index = queue.indexOf( job );
 			
 			if ( index < 0 || index == queue.size() - 1 ){
 				
@@ -1029,7 +1032,7 @@ TranscodeQueueImpl
 			
 			if ( paused ){
 				
-				COConfigurationManager.setParameter( "xcode.queue.paused", true );
+				COConfigurationManager.setParameter( "xcode.paused", true );
 			}
 		}
 	}
