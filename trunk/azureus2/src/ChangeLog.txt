@@ -3,7 +3,7 @@ VUZE CHANGELOG
 
 2009.xx.xx | Vuze 4.1.0.5
 
-
+BUGFIX: CORE  | Fix IP binding error when performing a NAT test under Vista [The 8472]
 
 2009.02.25 | Vuze 4.1.0.4
    

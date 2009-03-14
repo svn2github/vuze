@@ -61,7 +61,7 @@ public class NatTestWindow {
 
     public void runSupport() {
           printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");
-          NatChecker checker = new NatChecker(AzureusCoreFactory.getSingleton(), NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(null), TCPListenPort, false);          
+          NatChecker checker = new NatChecker(AzureusCoreFactory.getSingleton(), NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses(true)[0], TCPListenPort, false);          
           switch (checker.getResult()) {
           case NatChecker.NAT_OK :
             printMessage(MessageText.getString("configureWizard.nat.ok") + "\n" + checker.getAdditionalInfo());
