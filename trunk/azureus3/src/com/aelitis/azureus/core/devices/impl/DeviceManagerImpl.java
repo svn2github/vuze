@@ -78,7 +78,8 @@ DeviceManagerImpl
 	
 	
 	
-	private Map<String,DeviceImpl>		devices = new HashMap<String, DeviceImpl>();
+	private List<DeviceImpl>			device_list = new ArrayList<DeviceImpl>();
+	private Map<String,DeviceImpl>		device_map	= new HashMap<String, DeviceImpl>();
 	
 	private DeviceManagerUPnPImpl	upnp_manager;
 	
@@ -170,12 +171,12 @@ DeviceManagerImpl
 						
 						synchronized( DeviceManagerImpl.this ){
 
-							if( devices.size() == 0 ){
+							if( device_list.size() == 0 ){
 								
 								return;
 							}
 							
-							copy = new ArrayList<DeviceImpl>( devices.values() );
+							copy = new ArrayList<DeviceImpl>( device_list );
 						}
 						
 						for ( DeviceImpl device: copy ){
@@ -287,7 +288,7 @@ DeviceManagerImpl
 	{
 		synchronized( this ){
 
-			return( devices.get( id ));
+			return( device_map.get( id ));
 		}
 	}
 	
@@ -295,20 +296,66 @@ DeviceManagerImpl
 	addDevice(
 		DeviceImpl		device )
 	{
-		synchronized( this ){
+			// for xbox (currently) we automagically replace a manual entry with an auto one as we may have
+			// added the manual one when receiving a previous browse before getting the UPnP renderer details
 			
-			DeviceImpl existing = devices.get( device.getID());
+		DeviceImpl	existing = null;
+		
+		synchronized( this ){
+						
+			existing = device_map.get( device.getID());
 			
 			if ( existing != null ){
 				
 				existing.updateFrom( device );
+												
+			}else{
+			
+				if ( device.getType() == Device.DT_MEDIA_RENDERER ){
+					
+					DeviceMediaRenderer renderer = (DeviceMediaRenderer)device;
+					
+					if ( renderer.getRendererSpecies() == DeviceMediaRenderer.RS_XBOX && !renderer.isManual()){
+						
+						for ( DeviceImpl d: device_list ){
+							
+							if ( d.getType() == Device.DT_MEDIA_RENDERER ){
 								
-				return( existing );
+								DeviceMediaRenderer r = (DeviceMediaRenderer)d;
+								
+								if ( r.getRendererSpecies() == DeviceMediaRenderer.RS_XBOX && r.isManual()){
+									
+									existing = d;
+
+									log( "Merging " + device.getString() + " -> " + existing.getString());
+										
+									String	secondary_id = device.getID();
+									
+									existing.setSecondaryID( secondary_id );
+									
+									existing.updateFrom( device );
+								}
+							}
+						}
+					}
+				}
 			}
 			
-			devices.put( device.getID(), device );
-		}
+			if ( existing == null ){
 			
+				device_list.add( device );
+				
+				device_map.put( device.getID(), device );
+			}
+		}
+		
+		if ( existing != null ){
+			
+			deviceChanged( existing, true );
+			
+			return( existing );
+		}
+					
 		device.initialise();
 		
 		device.alive();
@@ -326,11 +373,20 @@ DeviceManagerImpl
 	{
 		synchronized( this ){
 			
-			DeviceImpl existing = devices.remove( device.getID());
+			DeviceImpl existing = device_map.remove( device.getID());
 			
 			if ( existing == null ){
 				
 				return;
+			}
+			
+			device_list.remove( device );
+			
+			String secondary_id = device.getSecondaryID();
+			
+			if ( secondary_id != null ){
+				
+				device_map.remove( secondary_id );
 			}
 		}
 		
@@ -346,7 +402,7 @@ DeviceManagerImpl
 	{
 		synchronized( this ){
 			
-			return( devices.values().toArray( new DeviceImpl[ devices.size()] ));
+			return( device_list.toArray( new DeviceImpl[ device_list.size()] ));
 		}
 	}
   		
@@ -403,8 +459,17 @@ DeviceManagerImpl
 					try{
 						DeviceImpl device = DeviceImpl.importFromBEncodedMapStatic(this,  m );
 						
-						devices.put( device.getID(), device );
+						device_list.add( device );
 						
+						device_map.put( device.getID(), device );
+						
+						String secondary_id = device.getSecondaryID();
+						
+						if ( secondary_id != null ){
+							
+							device_map.put( secondary_id, device );
+						}
+							
 						device.initialise();
 					
 						log( "    loaded " + device.getString());
@@ -476,7 +541,7 @@ DeviceManagerImpl
 			config_dirty 	= false;
 			config_unclean	= false;
 			
-			if ( devices.size() == 0 ){
+			if ( device_list.size() == 0 ){
 				
 				FileUtil.deleteResilientConfigFile( CONFIG_FILE );
 				
@@ -488,7 +553,7 @@ DeviceManagerImpl
 				
 				map.put( "devices", l_devices );
 				
-				Iterator<DeviceImpl>	it = devices.values().iterator();
+				Iterator<DeviceImpl>	it = device_list.iterator();
 				
 				while( it.hasNext()){
 					

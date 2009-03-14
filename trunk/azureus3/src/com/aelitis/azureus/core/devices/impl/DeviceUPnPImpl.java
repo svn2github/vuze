@@ -25,9 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,18 +154,7 @@ DeviceUPnPImpl
 		upnp_manager		= _manager.getUPnPManager();
 	}
 	
-	protected void
-	initialise()
-	{
-		super.initialise();
-	}
-	
-	protected void
-	destroy()
-	{
-		super.destroy();
-	}
-	
+	@Override
 	protected boolean
 	updateFrom(
 		DeviceImpl		_other )
@@ -189,6 +176,20 @@ DeviceUPnPImpl
 		device_may_be_null	= other.device_may_be_null;
 		
 		return( true );
+	}
+	
+	@Override
+	protected void
+	initialise()
+	{
+		super.initialise();
+	}
+	
+	@Override
+	protected void
+	destroy()
+	{
+		super.destroy();
 	}
 	
 	protected UPnPDevice

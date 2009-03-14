@@ -72,18 +72,7 @@ DeviceMediaRendererImpl
 		super(_manager, _map );
 	}
 	
-	protected void
-	initialise()
-	{
-		super.initialise();
-	}
-	
-	protected void
-	destroy()
-	{
-		super.destroy();
-	}
-	
+	@Override
 	protected boolean
 	updateFrom(
 		DeviceImpl		_other )
@@ -103,6 +92,20 @@ DeviceMediaRendererImpl
 		DeviceMediaRendererImpl other = (DeviceMediaRendererImpl)_other;
 		
 		return( true );
+	}
+	
+	@Override
+	protected void
+	initialise()
+	{
+		super.initialise();
+	}
+	
+	@Override
+	protected void
+	destroy()
+	{
+		super.destroy();
 	}
 	
 	public boolean
@@ -135,6 +138,7 @@ DeviceMediaRendererImpl
 	{
 	}
 	
+	@Override
 	protected void
 	getDisplayProperties(
 		List<String[]>	dp )
@@ -144,6 +148,7 @@ DeviceMediaRendererImpl
 		super.getTTDisplayProperties( dp );
 	}	
 	
+	@Override
 	public void
 	generate(
 		IndentWriter		writer )

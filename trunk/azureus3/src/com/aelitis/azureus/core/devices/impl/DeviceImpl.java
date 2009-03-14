@@ -110,6 +110,7 @@ DeviceImpl
 	private DeviceManagerImpl	manager;
 	private int					type;
 	private String				uid;
+	private String				secondary_uid;
 	private String 				name;
 	private boolean				manual;
 	
@@ -163,6 +164,8 @@ DeviceImpl
 		uid		= ImportExportUtils.importString( map, "_uid" );
 		name	= ImportExportUtils.importString( map, "_name" );
 		
+		secondary_uid		= ImportExportUtils.importString( map, "_suid" );
+
 		last_seen	= ImportExportUtils.importLong( map, "_ls" );
 		hidden		= ImportExportUtils.importBoolean( map, "_hide" );	
 		manual		= ImportExportUtils.importBoolean( map, "_man" );
@@ -191,11 +194,75 @@ DeviceImpl
 		ImportExportUtils.exportString( map, "_uid", uid );
 		ImportExportUtils.exportString( map, "_name", name );
 		
+		if ( secondary_uid != null ){
+			
+			ImportExportUtils.exportString( map, "_suid", secondary_uid );
+		}
+		
 		ImportExportUtils.exportLong( map, "_ls", new Long( last_seen ));
 		ImportExportUtils.exportBoolean( map, "_hide", hidden );
 		ImportExportUtils.exportBoolean( map, "_man", manual );
 		
 		map.put( "_pprops", persistent_properties );
+	}
+	
+	protected boolean
+	updateFrom(
+		DeviceImpl		other )
+	{
+		if ( type != other.type ){
+			
+			Debug.out( "Inconsistent update operation (type)" );
+			
+			return( false );			
+		}
+		
+		String	o_uid 	= other.uid;
+		String	o_suid	= other.secondary_uid;
+		
+		if ( !uid.equals( o_uid )){
+			
+			boolean borked = false;
+			
+			if ( secondary_uid == null && o_suid == null ){
+			
+				borked = true;
+			
+			}else if ( 	secondary_uid == null && uid.equals( o_suid ) ||
+						o_suid == null && o_uid.equals( secondary_uid ) ||
+						o_suid.equals( secondary_uid )){
+				
+			}else{
+				
+				borked = true;
+			}
+			
+			if ( borked ){
+				
+				Debug.out( "Inconsistent update operation (uids)" );
+				
+				return( false );
+
+			}
+		}
+		
+		if ( !name.equals( other.name )){
+			
+			name	= other.name;
+			
+			setDirty();
+		}
+		
+		if ( manual != other.manual ){
+			
+			manual	= other.manual;
+			
+			setDirty();
+		}
+		
+		alive();
+		
+		return( true );
 	}
 	
 	protected void
@@ -219,6 +286,19 @@ DeviceImpl
 	getID()
 	{
 		return( uid );
+	}
+	
+	protected void
+	setSecondaryID(
+		String		str )
+	{
+		secondary_uid = str;
+	}
+	
+	protected String
+	getSecondaryID()
+	{
+		return( secondary_uid );
 	}
 	
 	public Device
@@ -352,31 +432,6 @@ DeviceImpl
 			online	= false;
 			
 			setDirty( false );
-		}
-	}
-	
-	protected boolean
-	updateFrom(
-		DeviceImpl		other )
-	{
-		if ( type != other.type || !uid.equals( other.uid )){
-			
-			Debug.out( "Inconsistent update operation" );
-			
-			return( false );
-			
-		}else{
-			
-			if ( !name.equals( other.name )){
-				
-				name	= other.name;
-				
-				setDirty();
-			}
-			
-			alive();
-			
-			return( true );
 		}
 	}
 	

@@ -23,8 +23,6 @@ package com.aelitis.azureus.core.devices;
 
 import java.net.URL;
 
-import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
-
 public interface 
 Device 
 {
@@ -45,6 +43,9 @@ Device
 		
 	public boolean
 	isAlive();
+	
+	public boolean
+	isManual();
 	
 	public void
 	setHidden(

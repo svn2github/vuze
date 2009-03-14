@@ -45,6 +45,8 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.content.AzureusContentFilter;
+import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnP;
@@ -559,17 +561,31 @@ DeviceManagerUPnPImpl
 		
 		DeviceImpl[] devices = manager.getDevices();
 		
+		boolean	found = false;
+		
 		for ( DeviceImpl device: devices ){
 			
-			if ( device instanceof DeviceMediaRendererImpl && !device.isAlive()){
+			if ( device instanceof DeviceMediaRendererImpl ){
 				
-				if ( device.getName().toUpperCase().contains( "XBOX" )){
+				DeviceMediaRendererImpl renderer = (DeviceMediaRendererImpl)device;
 				
-					((DeviceMediaRendererImpl)device).setAddress( address.getAddress());
+				if ( device.getRendererSpecies() == DeviceMediaRenderer.RS_XBOX ){
+
+					found = true;
 					
-					device.alive();
+					if (!device.isAlive()){
+				
+						renderer.setAddress( address.getAddress());
+						
+						device.alive();
+					}
 				}
 			}
+		}
+		
+		if ( !found ){
+			
+			manager.addDevice( new DeviceMediaRendererImpl( manager, "Xbox 360" ));
 		}
 	}
 	
@@ -615,7 +631,7 @@ DeviceManagerUPnPImpl
 		}
 		
 		DeviceMediaRendererImpl device = new DeviceMediaRendererImpl( manager, uid, display_name, false );
-	
+					
 		device = (DeviceMediaRendererImpl)manager.addDevice( device );
 		
 		device.setAddress( address.getAddress());

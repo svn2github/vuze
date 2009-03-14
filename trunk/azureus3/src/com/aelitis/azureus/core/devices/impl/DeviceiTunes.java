@@ -96,6 +96,29 @@ DeviceiTunes
 		super( _manager, _map );
 	}
 	
+	protected boolean
+	updateFrom(
+		DeviceImpl		_other )
+	{
+		if ( !super.updateFrom( _other )){
+			
+			return( false );
+		}
+		
+		if ( !( _other instanceof DeviceiTunes )){
+			
+			Debug.out( "Inconsistent" );
+			
+			return( false );
+		}
+		
+		DeviceiTunes other = (DeviceiTunes)_other;
+		
+		itunes = other.itunes;
+		
+		return( true );
+	}
+	
 	protected void
 	initialise()
 	{
@@ -162,29 +185,6 @@ DeviceiTunes
 	destroy()
 	{
 		super.destroy();
-	}
-	
-	protected boolean
-	updateFrom(
-		DeviceImpl		_other )
-	{
-		if ( !super.updateFrom( _other )){
-			
-			return( false );
-		}
-		
-		if ( !( _other instanceof DeviceiTunes )){
-			
-			Debug.out( "Inconsistent" );
-			
-			return( false );
-		}
-		
-		DeviceiTunes other = (DeviceiTunes)_other;
-		
-		itunes = other.itunes;
-		
-		return( true );
 	}
 	
 	@Override
