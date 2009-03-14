@@ -96,6 +96,8 @@ DeviceManagerUI
 	private static final String INFO_IMAGE_ID		= "image.sidebar.vitality.info";
 	private static final String ALERT_IMAGE_ID		= "image.sidebar.vitality.alert";
 
+	private static final boolean	SHOW_VITALITY = false;
+	
 	private static final String[] to_copy_indicator_colors = { "#000000", "#000000", "#168866", "#1c5620" };
 	
 	private DeviceManager			device_manager;
@@ -843,7 +845,10 @@ DeviceManagerUI
 									
 									if ( last_indicator > 0 ){
 											
-										return( String.valueOf( last_indicator ));
+										if ( SHOW_VITALITY ){
+											
+											return( String.valueOf( last_indicator ));
+										}
 									}
 								}else{
 									
@@ -855,7 +860,10 @@ DeviceManagerUI
 									
 								if ( last_indicator > 0 ){
 									
-									return( to_copy_indicator_colors );
+									if ( SHOW_VITALITY ){
+										
+										return( to_copy_indicator_colors );
+									}
 								}
 							}
 
@@ -2101,7 +2109,10 @@ DeviceManagerUI
 						
 						if ( last_indicator > 0 ){
 							
-							return( String.valueOf( last_indicator ));
+							if ( SHOW_VITALITY ){
+							
+								return( String.valueOf( last_indicator ));
+							}
 						}
 					}else{
 						
@@ -2113,7 +2124,10 @@ DeviceManagerUI
 					
 				if ( last_indicator > 0 ){
 					
-					return( to_copy_indicator_colors );
+					if ( SHOW_VITALITY ){
+					
+						return( to_copy_indicator_colors );
+					}
 				}
 			}
 			
@@ -2288,14 +2302,20 @@ DeviceManagerUI
 					
 					if ( last_indicator > 0 ){
 						
-						return( String.valueOf( last_indicator ));
+						if ( SHOW_VITALITY ){
+						
+							return( String.valueOf( last_indicator ));
+						}
 					}
 				}
 			}else if ( propertyID == TITLE_INDICATOR_COLOR ){
 					
 				if ( last_indicator > 0 ){
 						
-					return( to_copy_indicator_colors );	
+					if ( SHOW_VITALITY ){
+					
+						return( to_copy_indicator_colors );
+					}
 				}
 			}
 			
