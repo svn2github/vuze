@@ -705,15 +705,18 @@ public class SBC_DevicesView
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobChanged(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobChanged(TranscodeJob job) {
 		try {
-			int state = job.getState();
-			if (state == TranscodeJob.ST_COMPLETE || state == TranscodeJob.ST_FAILED) {
-				String ext = "??";
-				try {
-					ext = FileUtil.getExtension(job.getFile().getFile().getName());
-				} catch (Exception e) {
-				}
-				PlatformDevicesMessenger.qosTranscode(job, device, job.getProfile(),
-						ext, job.getProcessTime());
+			if (device instanceof DeviceMediaRenderer) {
+				DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
+  			int state = job.getState();
+  			if (state == TranscodeJob.ST_COMPLETE || state == TranscodeJob.ST_FAILED) {
+  				String ext = "??";
+  				try {
+  					ext = FileUtil.getExtension(job.getFile().getFile().getName());
+  				} catch (Exception e) {
+  				}
+  				PlatformDevicesMessenger.qosTranscode(job, renderer, job.getProfile(),
+  						ext, job.getProcessTime());
+  			}
 			}
 		} catch (Exception e) {
 			Debug.out(e);

@@ -22,9 +22,7 @@ import java.util.HashMap;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
-import com.aelitis.azureus.core.devices.Device;
-import com.aelitis.azureus.core.devices.TranscodeJob;
-import com.aelitis.azureus.core.devices.TranscodeProfile;
+import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 
@@ -35,19 +33,21 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
  */
 public class PlatformDevicesMessenger
 {
-	public static String CFG_SEND_QOS = "devices.sendQOS";
+	public static final String CFG_SEND_QOS = "devices.sendQOS";
 
-	public static String LISTENER_ID = "devices";
+	public static final String LISTENER_ID = "devices";
 
-	public static String OP_QOS_TURN_ON = "qos-turn-on";
+	private static final String OP_QOS_TURN_ON = "qos-turn-on";
 
-	public static String OP_QOS_FOUND_DEVICE = "qos-found-device";
+	private static final String OP_QOS_FOUND_DEVICE = "qos-found-device";
 
-	public static String OP_QOS_TRANCODE = "qos-trancode";
+	private static final String OP_QOS_TRANCODE = "qos-trancode";
 
-	public static String OP_QOS_PLAYBACK = "qos-playback";
+	private static final String OP_QOS_PLAYBACK = "qos-playback";
 
-	public static String OP_GET_PROFILES = "get-profiles";
+	private static final String OP_GET_PROFILES = "get-profiles";
+
+	private static final String OP_QOS_DROP = "get-profiles";
 
 	public static void qosTurnOn(boolean withITunes) {
 		if (!COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
@@ -76,7 +76,24 @@ public class PlatformDevicesMessenger
 		PlatformMessenger.queueMessage(message, null);
 	}
 
-	public static void qosTranscode(TranscodeJob job, Device device,
+	public static void qosYouJustDropped(DeviceMediaRenderer renderer, String sourceExt) {
+		if (!COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
+			return;
+		}
+
+		HashMap<String,Object> map = new HashMap<String, Object>();
+		if (renderer != null) {
+			map.put("renderer-species", Integer.valueOf(renderer.getRendererSpecies()));
+		}
+		map.put("source-ext", sourceExt);
+		
+		
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+				OP_QOS_DROP, map, 5000);
+		PlatformMessenger.queueMessage(message, null);
+	}
+
+	public static void qosTranscode(TranscodeJob job, DeviceMediaRenderer renderer,
 			TranscodeProfile profile, String sourceExt, long processTime) {
 		if (!COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
 			return;
@@ -91,8 +108,9 @@ public class PlatformDevicesMessenger
 			}
 		}
 		map.put("profile-uid", profile.getUID());
-		map.put("device-name", Integer.valueOf(device.getName()));
+		map.put("render-species", Integer.valueOf(renderer.getRendererSpecies()));
 		map.put("process-time-ms", processTime);
+		map.put("source-ext", sourceExt);
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				OP_QOS_TRANCODE, map, 5000);

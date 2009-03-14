@@ -212,6 +212,8 @@ public class SideBar
 
 	private DropTarget dropTarget;
 
+	protected SideBarEntrySWT draggingOver;
+
 	public static SideBar instance = null;
 
 	static {
@@ -578,7 +580,7 @@ public class SideBar
 					}
 
 					case SWT.Paint: {
-						//System.out.println("Paint: " + event.getBounds());
+						//System.out.println("Paint: " + event.getBounds() + ";" + event.detail + ";" + event.index);
 						Rectangle bounds = event.getBounds();
 //						if (tree.getItemCount() == 0) {
 //							return;
@@ -758,6 +760,7 @@ public class SideBar
 				SideBarEntrySWT entry = getEntry(id);
 				
 				if (entry.hasDropListeners()) {
+					draggingOver = entry;
 					if ((event.operations & DND.DROP_LINK) > 0)
 						event.detail = DND.DROP_LINK;
 					else if ((event.operations & DND.DROP_DEFAULT) > 0)
@@ -769,7 +772,14 @@ public class SideBar
 				}
 			}
 			
+			// @see org.eclipse.swt.dnd.DropTargetAdapter#dragLeave(org.eclipse.swt.dnd.DropTargetEvent)
+			public void dragLeave(DropTargetEvent event) {
+				draggingOver = null;
+				tree.redraw();
+			}
+			
 			public void drop(DropTargetEvent event) {
+				draggingOver = null;
 				if (!(event.item instanceof TreeItem)) {
 					return;
 				}
@@ -1039,6 +1049,7 @@ public class SideBar
 			gc.fillGradientRectangle(event.x, itemBounds.y + 3, event.width,
 					itemBounds.height - 3, true);
 		} else {
+
 			if (fg != null) {
 				fgText = fg;
 			}
@@ -1046,6 +1057,10 @@ public class SideBar
 				gc.setBackground(bg);
 			}
 
+			if (sideBarEntry == draggingOver) {
+				gc.setBackground(ColorCache.getColor(gc.getDevice(), "#ff6688"));
+			}
+			
 			gc.fillRectangle(event.getBounds());
 		}
 

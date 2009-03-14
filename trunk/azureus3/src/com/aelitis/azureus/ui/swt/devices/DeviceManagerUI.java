@@ -36,9 +36,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnableBoolean;
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -90,7 +88,7 @@ DeviceManagerUI
 	private static final Object	DEVICE_IVIEW_KEY = new Object();
 	
 	private static final String CONFIG_VIEW_TYPE				= "device.sidebar.ui.viewtype";
-	private static final String CONFIG_VIEW_HIDE_REND_GENERIC	= "device.sidebar.ui.rend.hidegeneric";
+	static final String CONFIG_VIEW_HIDE_REND_GENERIC	= "device.sidebar.ui.rend.hidegeneric";
 	
 	private static final String SPINNER_IMAGE_ID 	= "image.sidebar.vitality.dots";
 	private static final String INFO_IMAGE_ID		= "image.sidebar.vitality.info";
@@ -139,7 +137,14 @@ DeviceManagerUI
 		plugin_interface = core.getPluginManager().getDefaultPluginInterface();
 		
 		ui_manager = plugin_interface.getUIManager();
-		
+
+		if (Constants.isUnix
+				|| (Constants.isOSX && System.getProperty("os.arch", "").toLowerCase().equals(
+						"powerpc"))) {
+			// Not supported for Unix and OSX PPC
+			return;
+		}
+
 		ui_manager.addUIListener(
 				new UIManagerListener()
 				{
@@ -1540,8 +1545,7 @@ DeviceManagerUI
 											menu_default_profile.setStyle(MenuItem.STYLE_MENU);
 
 											MenuItem menu_profile_none = menu_manager.addMenuItem(
-													menu_default_profile,
-											"ConfigView.section.file.decoder.nodecoder");
+												menu_default_profile, "option.askeverytime");
 											menu_profile_none.setStyle(menu_profile_none.STYLE_RADIO);
 											menu_profile_none.setData(Boolean.FALSE);
 											menu_profile_none.addListener(new MenuItemListener() {

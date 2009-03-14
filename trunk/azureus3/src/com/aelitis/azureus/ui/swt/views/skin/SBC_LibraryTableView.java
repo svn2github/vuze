@@ -145,28 +145,14 @@ public class SBC_LibraryTableView
 						if (seedingview != null) {
 							seedingview.overrideDefaultSelected(new TableSelectionAdapter() {
 								public void defaultSelected(TableRowCore[] rows, int stateMask) {
-									if (rows == null || rows.length != 1) {
-										return;
-									}
-									Object ds = rows[0].getDataSource(true);
-									if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
-  									TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-  											DLReferals.DL_REFERAL_DBLCLICK);
-									}
+									doDefaultClick(rows, stateMask);
 								}
 							});
 							MyTorrentsView torrentview = getTorrentview();
 							if (torrentview != null) {
 								torrentview.overrideDefaultSelected(new TableSelectionAdapter() {
 									public void defaultSelected(TableRowCore[] rows, int stateMask) {
-										if (rows == null || rows.length != 1) {
-											return;
-										}
-										Object ds = rows[0].getDataSource(true);
-										if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
-											TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-													DLReferals.DL_REFERAL_DBLCLICK);
-										}
+										doDefaultClick(rows, stateMask);
 									}
 								});
 							}
@@ -178,14 +164,7 @@ public class SBC_LibraryTableView
 			if (view instanceof MyTorrentsView) {
 				((MyTorrentsView) view).overrideDefaultSelected(new TableSelectionAdapter() {
 					public void defaultSelected(TableRowCore[] rows, int stateMask) {
-						if (rows == null || rows.length != 1) {
-							return;
-						}
-						Object ds = rows[0].getDataSource(true);
-						if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
-  						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-  								DLReferals.DL_REFERAL_DBLCLICK);
-						}
+						doDefaultClick(rows, stateMask);
 					}
 				});
 			}
@@ -302,6 +281,17 @@ public class SBC_LibraryTableView
 		}
 
 		return null;
+	}
+
+	private void doDefaultClick(TableRowCore[] rows, int stateMask) {
+		if (rows == null || rows.length != 1) {
+			return;
+		}
+		Object ds = rows[0].getDataSource(true);
+		if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
+			TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+					DLReferals.DL_REFERAL_DBLCLICK);
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#getUpdateUIName()

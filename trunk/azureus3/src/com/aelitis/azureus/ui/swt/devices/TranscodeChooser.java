@@ -27,6 +27,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -40,6 +41,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 
 /**
@@ -118,6 +121,25 @@ public abstract class TranscodeChooser
 
 		skin.layout();
 
+		SWTSkinObject soBottom = skin.getSkinObject("bottom");
+		if (soBottom instanceof SWTSkinObjectContainer) {
+			soBottomContainer = (SWTSkinObjectContainer) soBottom;
+
+			soBottomContainer.addListener(new SWTSkinObjectListener() {
+
+				public Object eventOccured(SWTSkinObject skinObject, int eventType,
+						Object params) {
+					if (eventType == EVENT_SHOW) {
+						skinObject.removeListener(this);
+						initBottom();
+					}
+					return null;
+				}
+			});
+			soBottomContainer.setVisible(selectedDevice != null);
+		}
+
+
 		soList = (SWTSkinObjectContainer) skin.getSkinObject("list");
 		if (soList != null) {
 			clickListener = new Listener() {
@@ -159,24 +181,6 @@ public abstract class TranscodeChooser
 				createProfileList(soList);
 			}
 		}
-		
-		SWTSkinObject soBottom = skin.getSkinObject("bottom");
-		if (soBottom instanceof SWTSkinObjectContainer) {
-			soBottomContainer = (SWTSkinObjectContainer) soBottom;
-			
-			soBottomContainer.addListener(new SWTSkinObjectListener(){
-			
-				public Object eventOccured(SWTSkinObject skinObject, int eventType,
-						Object params) {
-					if (eventType == EVENT_SHOW) {
-						skinObject.removeListener(this);
-						initBottom();
-					}
-					return null;
-				}
-			});
-			soBottomContainer.setVisible(selectedDevice != null);
-		}
 
 		// we may have disposed of shell during device/profile list building
 		// (ex. no devices avail)
@@ -205,13 +209,13 @@ public abstract class TranscodeChooser
 	protected void initBottom() {
 		Composite composite = soBottomContainer.getComposite();
 		btnNoPrompt = new Button(composite, SWT.CHECK);
-		Messages.setLanguageText(btnNoPrompt, "MessageBoxWindow.nomoreprompting");
-		
+		Messages.setLanguageText(btnNoPrompt, "option.rememberthis");
+
 		Label label = new Label(composite, SWT.NONE);
-		label.setText(MessageText.getString("device.xcode.whenreq"));
-		
+		label.setText(MessageText.getString("device.xcode"));
+
 		final Combo combo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
-		
+
 		combo.add(MessageText.getString("device.xcode.whenreq"));
 		combo.add(MessageText.getString("device.xcode.always"));
 		combo.add(MessageText.getString("device.xcode.never"));
@@ -220,7 +224,7 @@ public abstract class TranscodeChooser
 			case TranscodeTarget.TRANSCODE_ALWAYS:
 				combo.select(1);
 				break;
-			
+
 			case TranscodeTarget.TRANSCODE_NEVER:
 				combo.select(2);
 				break;
@@ -230,7 +234,7 @@ public abstract class TranscodeChooser
 				combo.select(0);
 				break;
 		}
-		
+
 		combo.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				int i = combo.getSelectionIndex();
@@ -248,30 +252,30 @@ public abstract class TranscodeChooser
 						break;
 				}
 			}
-		
+
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
-		
+
 		FormData fd;
-		
+
 		fd = new FormData();
 		fd.left = new FormAttachment(0, 10);
 		fd.top = new FormAttachment(combo, 0, SWT.CENTER);
 		btnNoPrompt.setLayoutData(fd);
-		
+
 		fd = new FormData();
 		fd.right = new FormAttachment(100, -10);
 		fd.top = new FormAttachment(0, 5);
 		fd.bottom = new FormAttachment(100, -5);
 		combo.setLayoutData(fd);
-		
+
 		fd = new FormData();
 		fd.right = new FormAttachment(combo, -5);
 		fd.top = new FormAttachment(combo, 0, SWT.CENTER);
 		label.setLayoutData(fd);
 
-		Point computeSize = shell.computeSize(600, SWT.DEFAULT, true);
+		Point computeSize = shell.computeSize(300, SWT.DEFAULT, true);
 		shell.setSize(computeSize);
 	}
 
@@ -287,7 +291,7 @@ public abstract class TranscodeChooser
 			shell.dispose();
 			return;
 		}
-		
+
 		try {
 			TranscodeProfile defaultProfile = selectedDevice.getDefaultTranscodeProfile();
 			if (defaultProfile != null) {
@@ -329,6 +333,8 @@ public abstract class TranscodeChooser
 		}
 
 		RowLayout layout = new RowLayout(SWT.HORIZONTAL);
+		layout.spacing = 0;
+		layout.marginLeft = layout.marginRight = 0;
 		layout.wrap = true;
 		layout.justify = true;
 		layout.fill = true;
@@ -338,6 +344,10 @@ public abstract class TranscodeChooser
 			public void handleEvent(Event event) {
 				Widget widget = (event.widget instanceof Canvas)
 						? ((Canvas) event.widget).getParent() : event.widget;
+
+				Composite c = ((Control) event.widget).getParent();
+				c.getShell().redraw();
+
 				TranscodeProfile profile = (TranscodeProfile) widget.getData("TranscodeProfile");
 				if (profile == null) {
 					return;
@@ -373,7 +383,9 @@ public abstract class TranscodeChooser
 		GridData gridData;
 		for (TranscodeProfile profile : profiles) {
 			Composite c = new Composite(parent, SWT.NONE);
-			c.setLayout(new GridLayout());
+			GridLayout clayout = new GridLayout();
+			clayout.marginWidth = clayout.horizontalSpacing = 0;
+			c.setLayout(clayout);
 			c.setCursor(c.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 			c.addListener(SWT.MouseUp, clickListener);
 			c.addListener(SWT.MouseDown, clickListener);
@@ -391,16 +403,50 @@ public abstract class TranscodeChooser
 					Image image = (Image) lblImage.getData("Image");
 					if (image != null) {
 						Rectangle bounds = image.getBounds();
+						Rectangle area = lblImage.getBounds();
+
+						event.gc.setAdvanced(true);
+						event.gc.setAntialias(SWT.ON);
+						event.gc.setLineWidth(2);
+						
 						event.gc.drawImage(image, bounds.x, bounds.y, bounds.width,
-								bounds.height, bounds.x, bounds.y, bounds.width,
-								bounds.height);
+								bounds.height, 8, 5, bounds.width, bounds.height);
+
+						if (event.display.getCursorControl() == lblImage) {
+
+							Color color1 = ColorCache.getColor(event.gc.getDevice(), 252,
+									253, 255);
+							Color color2 = ColorCache.getColor(event.gc.getDevice(), 169,
+									195, 252);
+							Pattern pattern = new Pattern(event.gc.getDevice(), 0,
+									0, 0, area.height, color1, 0, color2, 200);
+							event.gc.setBackgroundPattern(pattern);
+
+							event.gc.fillRoundRectangle(0, 0, area.width - 1,
+									area.height - 1, 20, 20);
+
+							event.gc.setBackgroundPattern(null);
+							pattern.dispose();
+
+							
+							pattern = new Pattern(event.gc.getDevice(), 0,
+									0, 0, area.height, color2, 50, color2, 255);
+							event.gc.setForegroundPattern(pattern);
+
+							event.gc.drawRoundRectangle(0, 0, area.width - 1,
+									area.height - 1, 20, 20);
+
+							event.gc.setForegroundPattern(null);
+							pattern.dispose();
+						}
+
 					} else {
 						Rectangle ca = lblImage.getClientArea();
 						event.gc.drawRectangle(ca.x, ca.y, ca.width - 1, ca.height - 1);
 					}
 				}
 			});
-			gridData = new GridData();
+			gridData = new GridData(GridData.FILL_VERTICAL);
 			gridData.heightHint = 100;
 			gridData.widthHint = 120;
 			String url = profile.getIconURL();
@@ -414,20 +460,22 @@ public abstract class TranscodeChooser
 									lblImage.setData("Image", image);
 									Rectangle bounds = image.getBounds();
 									GridData gridData = (GridData) lblImage.getLayoutData();
-									gridData.heightHint = bounds.height;
-									gridData.widthHint = bounds.width;
+									gridData.heightHint = bounds.height + 10;
+									gridData.widthHint = bounds.width + 16;
 									lblImage.setLayoutData(gridData);
 									lblImage.getShell().layout(new Control[] {
 										lblImage
 									});
+									Point computeSize = shell.computeSize(600, SWT.DEFAULT, true);
+									shell.setSize(computeSize);
 								}
 							}
 						});
 				if (image != null) {
 					lblImage.setData("Image", image);
 					Rectangle bounds = image.getBounds();
-					gridData.heightHint = bounds.height;
-					gridData.widthHint = bounds.width;
+					gridData.heightHint = bounds.height + 10;
+					gridData.widthHint = bounds.width + 16;
 				}
 			}
 			lblImage.setLayoutData(gridData);
@@ -446,11 +494,22 @@ public abstract class TranscodeChooser
 
 		SWTSkinObjectText soTitle = (SWTSkinObjectText) skin.getSkinObject("title");
 		if (soTitle != null) {
-			soTitle.setText("Choose the Type of Conversion");
+			soTitle.setText("On which device would you like to enable playback?");
 		}
 		
+		SWTSkinObjectText soSubTitle = (SWTSkinObjectText) skin.getSkinObject("subtitle");
+		if (soSubTitle != null) {
+			soSubTitle.setText("(click one)");
+		}
+		
+
 		if (soBottomContainer != null) {
 			soBottomContainer.setVisible(true);
+		}
+
+		SWTSkinObjectContainer soButtonBottomArea = (SWTSkinObjectContainer) skin.getSkinObject("button-bottom");
+		if (soButtonBottomArea != null) {
+			soButtonBottomArea.setVisible(false);
 		}
 
 		Point computeSize = shell.computeSize(600, SWT.DEFAULT, true);
@@ -461,19 +520,14 @@ public abstract class TranscodeChooser
 	private void createDeviceList(SWTSkinObjectContainer soDeviceList) {
 		Composite parent = soDeviceList.getComposite();
 		GridLayout gridLayout = new GridLayout();
-		gridLayout.marginWidth = gridLayout.horizontalSpacing = 0;
+		gridLayout.marginWidth = gridLayout.horizontalSpacing = 20;
 		parent.setLayout(gridLayout);
 
 		DeviceManager device_manager = DeviceManagerFactory.getSingleton();
 		Device[] devices = device_manager.getDevices();
 
 		if (devices.length == 0) {
-			Utils.openMessageBox(
-					mainShell,
-					SWT.OK,
-					"No Devices Found",
-					"We couldn't find any devices.  Maybe you didn't install the Vuze Transcoder Plugin?");
-			shell.dispose();
+			noDevices();
 			return;
 		}
 
@@ -492,19 +546,30 @@ public abstract class TranscodeChooser
 		};
 		**/
 
+		boolean hide_generic = COConfigurationManager.getBooleanParameter(
+				DeviceManagerUI.CONFIG_VIEW_HIDE_REND_GENERIC, true);
+
+		int numDevices = 0;
 		for (Device device : devices) {
-			if (device.getType() != Device.DT_MEDIA_RENDERER || device.isHidden()) {
+			if (device.getType() != Device.DT_MEDIA_RENDERER || device.isHidden()
+					|| !(device instanceof DeviceMediaRenderer)) {
 				continue;
 			}
 
-			TranscodeTarget renderer = (TranscodeTarget) device;
+			DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
 
-			if (renderer.getTranscodeProfiles().length == 0) {
+			if (hide_generic && renderer.isGeneric()) {
+				continue;
+			}
+
+			TranscodeTarget transcodeTarget = (TranscodeTarget) device;
+
+			if (transcodeTarget.getTranscodeProfiles().length == 0) {
 				continue;
 			}
 
 			/** can't align button with image */
-			Button button = new Button(parent, SWT.LEFT | SWT.PUSH);
+			Button button = new Button(parent, SWT.LEFT | SWT.RADIO);
 			StringBuffer sb = new StringBuffer(device.getName());
 			button.setFont(fontDevice);
 			button.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -516,22 +581,24 @@ public abstract class TranscodeChooser
 					if (selectedDevice == null) {
 						Debug.out("device is null!");
 					}
-					createProfileList(soList);
 				}
 
 				public void widgetDefaultSelected(SelectionEvent e) {
 				}
 			});
+			numDevices++;
+			if (numDevices == 1) {
+				button.setSelection(true);
+				selectedDevice = transcodeTarget;
+			}
 
-			
 			Image imgRenderer = null;
 			if (device instanceof DeviceMediaRenderer) {
-  			String imageID = "image.sidebar.device."
-  				+ ((DeviceMediaRenderer) device).getRendererSpecies()
-  				+ ".big";
-  
-  			listImageIDsToRelease.add(imageID);
-  			imgRenderer = ImageLoader.getInstance().getImage(imageID);
+				String imageID = "image.sidebar.device."
+						+ ((DeviceMediaRenderer) device).getRendererSpecies() + ".big";
+
+				listImageIDsToRelease.add(imageID);
+				imgRenderer = ImageLoader.getInstance().getImage(imageID);
 			}
 
 			if (ImageLoader.isRealImage(imgRenderer)) {
@@ -539,9 +606,9 @@ public abstract class TranscodeChooser
 
 				// buttons are center when they have an image..
 				// fill with a bunch of spaces so it left aligns
-				char[] c = new char[100];
-				Arrays.fill(c, ' ');
-				sb.append(c);
+				//char[] c = new char[100];
+				//Arrays.fill(c, ' ');
+				//sb.append(c);
 			} else {
 				sb.insert(0, ' ');
 			}
@@ -584,19 +651,74 @@ public abstract class TranscodeChooser
 			*/
 		}
 
+		if (numDevices == 0) {
+			noDevices();
+			return;
+		}
+
 		SWTSkinObjectText soTitle = (SWTSkinObjectText) skin.getSkinObject("title");
 		if (soTitle != null) {
 			soTitle.setText("Choose a device to playback to");
 		}
 
+		SWTSkinObjectText soSubTitle = (SWTSkinObjectText) skin.getSkinObject("subtitle");
+		if (soSubTitle != null) {
+			soSubTitle.setText("");
+		}
+
+		SWTSkinObjectContainer soButtonBottomArea = (SWTSkinObjectContainer) skin.getSkinObject("button-bottom");
+		if (soButtonBottomArea != null) {
+			soButtonBottomArea.setVisible(true);
+
+			SWTSkinObjectButton soOk = (SWTSkinObjectButton) skin.getSkinObject("ok");
+			if (soOk != null) {
+				soOk.addSelectionListener(new ButtonListenerAdapter() {
+					public void pressed(SWTSkinButtonUtility buttonUtility,
+							SWTSkinObject skinObject, int stateMask) {
+						createProfileList(soList);
+					}
+				});
+			}
+
+			SWTSkinObjectButton soCancel = (SWTSkinObjectButton) skin.getSkinObject("cancel");
+			if (soCancel != null) {
+				soCancel.addSelectionListener(new ButtonListenerAdapter() {
+					public void pressed(SWTSkinButtonUtility buttonUtility,
+							SWTSkinObject skinObject, int stateMask) {
+						shell.close();
+					}
+				});
+			}
+		}
+
+		if (soBottomContainer != null) {
+			soBottomContainer.setVisible(false);
+		}
+
+
 		//shell.pack();
-		Point computeSize = shell.computeSize(600, SWT.DEFAULT, true);
+		Point computeSize = shell.computeSize(400, SWT.DEFAULT, true);
 		shell.setSize(computeSize);
+		shell.layout(true);
 		Utils.centerWindowRelativeTo(shell, mainShell);
 	}
 
+	/**
+	 * 
+	 *
+	 * @since 4.1.0.5
+	 */
+	private void noDevices() {
+		Utils.openMessageBox(
+				mainShell,
+				SWT.OK,
+				"No Devices Found",
+				"We couldn't find any devices.  Maybe you didn't install the Vuze Transcoder Plugin?");
+		shell.dispose();
+	}
+
 	public abstract void closed();
-	
+
 	public int getTranscodeRequirement() {
 		return transcodeRequirement;
 	}
