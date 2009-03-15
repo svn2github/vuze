@@ -1,5 +1,5 @@
 /*
- * $Id: ItemList.java,v 1.1 2007-06-05 00:43:56 tuxpaper Exp $
+ * $Id: ItemList.java,v 1.2 2009-03-15 22:12:18 parg Exp $
  * Created on 2006-3-24
  */
 package org.json.simple;
@@ -18,7 +18,7 @@ import java.util.StringTokenizer;
  */
 public class ItemList {
 	private String sp=",";
-	List items=new ArrayList();
+	List<String> items=new ArrayList<String>();
 	
 	
 	public ItemList(){}
@@ -50,15 +50,15 @@ public class ItemList {
 		split(s,sp,items,isMultiToken);
 	}
 	
-	public List getItems(){
+	public List<String> getItems(){
 		return this.items;
 	}
 	
 	public String[] getArray(){
-		return (String[])this.items.toArray();
+		return (String[])this.items.toArray(new String[items.size()]);
 	}
 	
-	public void split(String s,String sp,List append,boolean isMultiToken){
+	public void split(String s,String sp,List<String> append,boolean isMultiToken){
 		if(s==null || sp==null)
 			return;
 		if(isMultiToken){
@@ -72,7 +72,7 @@ public class ItemList {
 		}
 	}
 	
-	public void split(String s,String sp,List append){
+	public void split(String s,String sp,List<String> append){
 		if(s==null || sp==null)
 			return;
 		int pos=0;

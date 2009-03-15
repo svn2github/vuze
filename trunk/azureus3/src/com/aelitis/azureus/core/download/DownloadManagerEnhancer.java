@@ -70,7 +70,7 @@ DownloadManagerEnhancer
 	
 	private AzureusCore		core;
 	
-	private Map				download_map = new HashMap();
+	private Map<DownloadManager,EnhancedDownloadManager>		download_map = new HashMap<DownloadManager,EnhancedDownloadManager>();
 	
 	private boolean			progressive_enabled;
 	
@@ -99,7 +99,7 @@ DownloadManagerEnhancer
 					
 					synchronized( download_map ){
 						
-						edm = (EnhancedDownloadManager)download_map.remove( dm );
+						edm = download_map.remove( dm );
 					}
 					
 					if ( edm != null ){
@@ -197,11 +197,11 @@ DownloadManagerEnhancer
 						
 						synchronized( download_map ){
 
-							Iterator it = download_map.values().iterator();
+							Iterator<EnhancedDownloadManager> it = download_map.values().iterator();
 							
 							while( it.hasNext()){
 								
-								EnhancedDownloadManager	edm = (EnhancedDownloadManager)it.next();
+								EnhancedDownloadManager	edm = it.next();
 								
 								if ( b_hash != null ){
 									
@@ -412,12 +412,8 @@ DownloadManagerEnhancer
 	public DownloadManager findDownloadManager(String hash) {
 		synchronized (download_map) {
 
-			if (download_map == null) {
-				return null;
-			}
-
-			for (Iterator iter = download_map.keySet().iterator(); iter.hasNext();) {
-				DownloadManager dm = (DownloadManager) iter.next();
+			for (Iterator<DownloadManager> iter = download_map.keySet().iterator(); iter.hasNext();) {
+				DownloadManager dm = iter.next();
 
 				TOTorrent torrent = dm.getTorrent();
 				if (PlatformTorrentUtils.isContent(torrent, true)) {
