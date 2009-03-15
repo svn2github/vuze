@@ -80,6 +80,10 @@ public abstract class TranscodeChooser
 
 	private java.util.List<String> listImageIDsToRelease = new ArrayList<String>();
 
+	private SWTSkinObjectText soInfoTitle;
+
+	private SWTSkinObjectText soInfoText;
+
 	public TranscodeChooser() {
 		this(null);
 	}
@@ -323,14 +327,9 @@ public abstract class TranscodeChooser
 			Utils.disposeComposite(parent, false);
 		}
 
-		final SWTSkinObjectText soInfoTitle = (SWTSkinObjectText) skin.getSkinObject("info-title");
-		if (soInfoTitle != null) {
-			soInfoTitle.setText("Additional Information");
-		}
-		final SWTSkinObjectText soInfoText = (SWTSkinObjectText) skin.getSkinObject("info-text");
-		if (soInfoText != null) {
-			soInfoText.setText("Hover over a profile to see additional information here");
-		}
+		soInfoTitle = (SWTSkinObjectText) skin.getSkinObject("info-title");
+		soInfoText = (SWTSkinObjectText) skin.getSkinObject("info-text");
+		resetProfileInfoBox(false);
 
 		RowLayout layout = new RowLayout(SWT.HORIZONTAL);
 		layout.spacing = 0;
@@ -353,14 +352,22 @@ public abstract class TranscodeChooser
 					return;
 				}
 				if (event.type == SWT.MouseEnter) {
-					if (soInfoTitle != null) {
-						soInfoTitle.setText(profile.getName());
-					}
-					if (soInfoText != null) {
-						soInfoText.setText(profile.getDescription());
-						Point computeSize = shell.computeSize(shell.getClientArea().width,
-								SWT.DEFAULT, true);
-						shell.setSize(computeSize);
+					String description = profile.getDescription();
+					if (description == null || description.length() == 0) {
+						resetProfileInfoBox(true);
+					} else {
+  					if (soInfoTitle != null) {
+  						soInfoTitle.setTextID("devices.choose.profile.info.title.selected",
+  								new String[] {
+  									profile.getName()
+  								});
+  					}
+  					if (soInfoText != null) {
+  						soInfoText.setText(description);
+  						Point computeSize = shell.computeSize(shell.getClientArea().width,
+  								SWT.DEFAULT, true);
+  						shell.setSize(computeSize);
+  					}
 					}
 				}
 			}
@@ -368,15 +375,7 @@ public abstract class TranscodeChooser
 
 		parent.addListener(SWT.MouseEnter, new Listener() {
 			public void handleEvent(Event event) {
-				if (soInfoTitle != null) {
-					soInfoTitle.setText("Additional Information");
-				}
-				if (soInfoText != null) {
-					soInfoText.setText("Hover over a profile to see additional information here");
-					Point computeSize = shell.computeSize(shell.getClientArea().width,
-							SWT.DEFAULT, true);
-					shell.setSize(computeSize);
-				}
+				resetProfileInfoBox(true);
 			}
 		});
 
@@ -393,7 +392,7 @@ public abstract class TranscodeChooser
 
 			c.addListener(SWT.MouseEnter, listenerMouseInout);
 
-			final Canvas lblImage = new Canvas(c, SWT.NONE);
+			final Canvas lblImage = new Canvas(c, SWT.DOUBLE_BUFFERED);
 			lblImage.addListener(SWT.MouseEnter, listenerMouseInout);
 			lblImage.addListener(SWT.MouseUp, clickListener);
 			lblImage.addListener(SWT.MouseDown, clickListener);
@@ -409,9 +408,6 @@ public abstract class TranscodeChooser
 						event.gc.setAntialias(SWT.ON);
 						event.gc.setLineWidth(2);
 						
-						event.gc.drawImage(image, bounds.x, bounds.y, bounds.width,
-								bounds.height, 8, 5, bounds.width, bounds.height);
-
 						if (event.display.getCursorControl() == lblImage) {
 
 							Color color1 = ColorCache.getColor(event.gc.getDevice(), 252,
@@ -439,6 +435,9 @@ public abstract class TranscodeChooser
 							event.gc.setForegroundPattern(null);
 							pattern.dispose();
 						}
+
+						event.gc.drawImage(image, bounds.x, bounds.y, bounds.width,
+								bounds.height, 8, 5, bounds.width, bounds.height);
 
 					} else {
 						Rectangle ca = lblImage.getClientArea();
@@ -491,15 +490,14 @@ public abstract class TranscodeChooser
 			label.setText(s);
 			label.setCursor(c.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 		}
-
 		SWTSkinObjectText soTitle = (SWTSkinObjectText) skin.getSkinObject("title");
 		if (soTitle != null) {
-			soTitle.setText("On which device would you like to enable playback?");
+			soTitle.setTextID("devices.choose.profile.title");
 		}
 		
 		SWTSkinObjectText soSubTitle = (SWTSkinObjectText) skin.getSkinObject("subtitle");
 		if (soSubTitle != null) {
-			soSubTitle.setText("(click one)");
+			soSubTitle.setTextID("label.clickone");
 		}
 		
 
@@ -517,10 +515,31 @@ public abstract class TranscodeChooser
 		Utils.centerWindowRelativeTo(shell, mainShell);
 	}
 
+	/**
+	 * 
+	 *
+	 * @param layout 
+	 * @since 4.1.0.5
+	 */
+	protected void resetProfileInfoBox(boolean layout) {
+		if (soInfoTitle != null) {
+			soInfoTitle.setTextID("devices.choose.profile.info.title");
+		}
+		if (soInfoText != null) {
+			soInfoText.setTextID("devices.choose.profile.info.text");
+			if (layout) {
+  			Point computeSize = shell.computeSize(shell.getClientArea().width,
+  					SWT.DEFAULT, true);
+  			shell.setSize(computeSize);
+			}
+		}
+	}
+
 	private void createDeviceList(SWTSkinObjectContainer soDeviceList) {
 		Composite parent = soDeviceList.getComposite();
+		parent.setBackgroundMode(SWT.INHERIT_FORCE);
 		GridLayout gridLayout = new GridLayout();
-		gridLayout.marginWidth = gridLayout.horizontalSpacing = 20;
+		gridLayout.verticalSpacing = 20;
 		parent.setLayout(gridLayout);
 
 		DeviceManager device_manager = DeviceManagerFactory.getSingleton();
@@ -568,7 +587,6 @@ public abstract class TranscodeChooser
 				continue;
 			}
 
-			/** can't align button with image */
 			Button button = new Button(parent, SWT.LEFT | SWT.RADIO);
 			StringBuffer sb = new StringBuffer(device.getName());
 			button.setFont(fontDevice);
@@ -658,7 +676,7 @@ public abstract class TranscodeChooser
 
 		SWTSkinObjectText soTitle = (SWTSkinObjectText) skin.getSkinObject("title");
 		if (soTitle != null) {
-			soTitle.setText("Choose a device to playback to");
+			soTitle.setTextID("devices.choose.device.title");
 		}
 
 		SWTSkinObjectText soSubTitle = (SWTSkinObjectText) skin.getSkinObject("subtitle");
@@ -672,6 +690,7 @@ public abstract class TranscodeChooser
 
 			SWTSkinObjectButton soOk = (SWTSkinObjectButton) skin.getSkinObject("ok");
 			if (soOk != null) {
+				shell.setDefaultButton((Button) soOk.getControl());
 				soOk.addSelectionListener(new ButtonListenerAdapter() {
 					public void pressed(SWTSkinButtonUtility buttonUtility,
 							SWTSkinObject skinObject, int stateMask) {

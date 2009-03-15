@@ -24,13 +24,13 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -58,6 +58,10 @@ import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
  */
 public class DevicesFTUX
 {
+	private static final String URL_LEARN_MORE = "";
+
+	private static final String URL_DEVICES_INFO = "http://www.vuze.com/devices.start";
+
 	public static DevicesFTUX instance;
 
 	Shell shell;
@@ -110,15 +114,15 @@ public class DevicesFTUX
 		}
 
 		Label lblInfo = new Label(shell, SWT.BORDER);
-		lblInfo.setText("To turn on this feature, installation of extra components is required.");
+		Messages.setLanguageText(lblInfo, "devices.turnon.prepageload");
 
 		checkITunes = new Button(shell, SWT.CHECK);
 		checkITunes.setSelection(true);
-		checkITunes.setText("Include support for iTunes");
+		Messages.setLanguageText(checkITunes, "devices.turnon.itunes");
 
 		checkQOS = new Button(shell, SWT.CHECK);
 		checkQOS.setSelection(true);
-		checkQOS.setText("Allow Vuze to collect anonymous device statistics");
+		Messages.setLanguageText(checkQOS, "devices.turnon.qos");
 		checkQOS.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				COConfigurationManager.setParameter(
@@ -126,6 +130,15 @@ public class DevicesFTUX
 			}
 		
 			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		Link lblLearnMore = new Link(shell, SWT.NONE);
+		lblLearnMore.setText("<A HREF=\"" + URL_LEARN_MORE + "\">"
+				+ MessageText.getString("label.learnmore") + "</A>");
+		lblLearnMore.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				Utils.launch(e.text);
 			}
 		});
 
@@ -198,8 +211,12 @@ public class DevicesFTUX
 		fd = new FormData();
 		fd.bottom = new FormAttachment(100, -5);
 		fd.left = new FormAttachment(0, 10);
-		fd.right = new FormAttachment(btnInstall, -12);
 		checkQOS.setLayoutData(fd);
+		
+		fd = new FormData();
+		fd.top = new FormAttachment(checkQOS, 0, SWT.CENTER);
+		fd.left = new FormAttachment(checkQOS, 5);
+		lblLearnMore.setLayoutData(fd);
 		
 		fd = new FormData();
 		fd.top = new FormAttachment(browser, 0);
@@ -216,7 +233,7 @@ public class DevicesFTUX
 		install_area.setLayoutData(fd);
 
 		String url = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(
-				"http://www.vuze.com/devices.start", false, true);
+				URL_DEVICES_INFO, false, true);
 		browser.setUrl(url);
 		
 		shell.pack();
