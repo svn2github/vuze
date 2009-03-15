@@ -676,7 +676,7 @@ public class TableColumnSetupWindow
 				forDataSourceType, forTableID);
 		
 		if (selectedCat == "uncat") {
-			datasources = (TableColumnCore[]) listColumnsNoCat.toArray();
+			datasources = (TableColumnCore[]) listColumnsNoCat.toArray( new TableColumnCore[listColumnsNoCat.size()]);
 		}
 		for (int i = 0; i < datasources.length; i++) {
 			TableColumnCore column = datasources[i];

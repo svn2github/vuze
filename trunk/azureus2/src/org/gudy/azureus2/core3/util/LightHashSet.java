@@ -122,7 +122,7 @@ public class LightHashSet extends AbstractSet implements Cloneable {
 
 		public void remove() {
 			if (currentIdx == -1)
-				new IllegalStateException("No entry to delete, use next() first");
+				throw new IllegalStateException("No entry to delete, use next() first");
 			if (itData != data)
 				throw new ConcurrentModificationException("removal opperation not supported as concurrent structural modification occured");
 			LightHashSet.this.removeForIndex(currentIdx);
