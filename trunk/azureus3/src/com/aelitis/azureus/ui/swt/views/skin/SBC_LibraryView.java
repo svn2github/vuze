@@ -302,15 +302,17 @@ public class SBC_LibraryView
 			COConfigurationManager.setParameter(torrentFilter + ".viewmode", viewMode);
 		}
 
-		if (torrentFilterMode == TORRENTS_ALL && infoBarUtil == null) {
+		if (torrentFilterMode == TORRENTS_ALL && viewMode == 0 && infoBarUtil == null) {
 			infoBarUtil = new InfoBarUtil(skinObject, true, CFG_INFOBAR,
 					"v3.library.infobar") {
 				public boolean allowShow() {
 					return true;
 				}
 			};
-		} else if (torrentFilterMode != TORRENTS_ALL && infoBarUtil != null) {
-			infoBarUtil.hide(true);
+		} else if (infoBarUtil != null) {
+			if (torrentFilterMode != TORRENTS_ALL || viewMode != 0) {
+				infoBarUtil.hide(true);
+			}
 		}
 		
 		String entryID = null;
