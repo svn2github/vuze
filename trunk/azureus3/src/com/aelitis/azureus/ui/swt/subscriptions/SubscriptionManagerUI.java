@@ -1141,7 +1141,7 @@ SubscriptionManagerUI
 										subs, 
 										false, 
 										show,
-										true );
+										false );
 								
 								SideBarEntrySWT	entry = SideBar.getEntry( key );
 																

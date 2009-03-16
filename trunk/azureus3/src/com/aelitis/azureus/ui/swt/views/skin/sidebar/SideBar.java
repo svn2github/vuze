@@ -1670,7 +1670,7 @@ public class SideBar
 		entry.closeable = closeable;
 		entry.parentID = parent;
 		setupTreeItem(null, treeItem, id, titleInfo, title, null, datasource,
-				closeable, true );
+				closeable, false );
 
 		return treeItem;
 	}
@@ -1695,6 +1695,9 @@ public class SideBar
 				treeItem = new TreeItem((TreeItem) parentTreeItem, SWT.NONE, index);
 			} else {
 				treeItem = new TreeItem((TreeItem) parentTreeItem, SWT.NONE);
+			}
+			if (parentTreeItem != null) {
+				((TreeItem)parentTreeItem).setExpanded(false);
 			}
 		}
 
