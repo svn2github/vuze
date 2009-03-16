@@ -272,12 +272,12 @@ public class SideBarVitalityImageSWT
 
 	public void setImageID(String id) {
 		ImageLoader imageLoader = ImageLoader.getInstance();
-		if (fullImageID != null) {
-			imageLoader.releaseImage(fullImageID);
-		}
 		String newFullImageID = id + suffix;
 		if (newFullImageID.equals(fullImageID)) {
 			return;
+		}
+		if (fullImageID != null) {
+			imageLoader.releaseImage(fullImageID);
 		}
 		this.imageID = id;
 		images = imageLoader.getImages(newFullImageID);
