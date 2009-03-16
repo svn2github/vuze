@@ -392,7 +392,7 @@ TranscodeJobImpl
 			
 				state = ST_RUNNING;
 				
-				started_on = SystemTime.getCurrentTime();
+				started_on = SystemTime.getMonotonousTime();
 			}
 		}
 		
@@ -413,8 +413,9 @@ TranscodeJobImpl
 			
 				error = Debug.getNestedExceptionMessage( e );
 				
-				// process_time filled with negative pause time, so add to it
-				process_time += SystemTime.getCurrentTime() - started_on;
+					// process_time filled with negative pause time, so add to it
+				
+				process_time += SystemTime.getMonotonousTime() - started_on;
 				
 				started_on = paused_on = 0;
 			}
@@ -430,8 +431,9 @@ TranscodeJobImpl
 		
 			state = ST_COMPLETE;
 			
-			// process_time filled with negative pause time, so add to it
-			process_time += SystemTime.getCurrentTime() - started_on;
+				// process_time filled with negative pause time, so add to it
+			
+			process_time += SystemTime.getMonotonousTime() - started_on;
 			
 			started_on = paused_on = 0;
 		}
@@ -551,7 +553,7 @@ TranscodeJobImpl
 		
 				state = ST_PAUSED;
 				
-				paused_on = SystemTime.getCurrentTime();
+				paused_on = SystemTime.getMonotonousTime();
 				
 			}else{
 				
@@ -571,10 +573,10 @@ TranscodeJobImpl
 				
 				state = ST_RUNNING;
 
-				if (paused_on > 0 && started_on > 0) {
-					process_time -= SystemTime.getCurrentTime() - paused_on;
+				if ( paused_on > 0 && started_on > 0 ){
+					
+					process_time -= SystemTime.getMonotonousTime() - paused_on;
 				}
-
 			}else{
 				
 				return;
@@ -691,18 +693,25 @@ TranscodeJobImpl
 	}
 	
 	public long
-	getProcessTime() {
-		if (state == ST_COMPLETE) {
+	getProcessTime()
+	{
+		if ( state == ST_COMPLETE ){
+		
 			return process_time;
 		}
-		if (started_on == 0) {
-			if (process_time > 0) {
+		
+		if ( started_on == 0 ){
+			
+			if (  process_time > 0 ){
+				
 				return process_time;
 			}
+			
 			return 0;
 		}
-		// process_time filled with pause
-		return SystemTime.getCurrentTime() - started_on + process_time;
+			// process_time filled with pause
+		
+		return SystemTime.getMonotonousTime() - started_on + process_time;
 	}
 		
 	public void
