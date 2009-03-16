@@ -313,6 +313,17 @@ DeviceImpl
 		return( name );
 	}
 	
+	public String
+	getShortDescription()
+	{
+		if ( getRendererSpecies() == DeviceMediaRenderer.RS_ITUNES ){
+			
+			return( "Apple TV, iPods" );
+		}
+		
+		return( null );
+	}
+	
 	public int
 	getRendererSpecies()
 	{

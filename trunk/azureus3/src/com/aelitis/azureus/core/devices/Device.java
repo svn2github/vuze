@@ -41,6 +41,9 @@ Device
 	public String
 	getName();
 		
+	public String
+	getShortDescription();
+	
 	public boolean
 	isAlive();
 	
