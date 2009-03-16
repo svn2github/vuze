@@ -183,6 +183,9 @@ public class SubscriptionsView
 				new ColumnSubscriptionNbNewResults(TABLE_ID),
 				new ColumnSubscriptionNbResults(TABLE_ID),
 				new ColumnSubscriptionLastChecked(TABLE_ID),
+				new ColumnSubscriptionSubscribers(TABLE_ID),
+				new ColumnSubscriptionAutoDownload(TABLE_ID),
+				
 		};
 		
 		view = new TableViewSWTImpl(TABLE_ID, TABLE_ID, columns, "name", SWT.SINGLE
