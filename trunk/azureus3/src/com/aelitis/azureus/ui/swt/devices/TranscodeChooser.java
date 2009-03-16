@@ -565,7 +565,7 @@ public abstract class TranscodeChooser
 			return;
 		}
 
-		fontDevice = Utils.getFontWithHeight(parent.getFont(), null, 18, SWT.BOLD);
+		fontDevice = Utils.getFontWithHeight(parent.getFont(), null, 17, SWT.BOLD);
 
 		/**
 		PaintListener paintListener = new PaintListener() {
