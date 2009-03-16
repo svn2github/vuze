@@ -329,6 +329,8 @@ TranscodeQueueImpl
 						}
 					};
 				
+				boolean	direct_input = false;
+					
 				if ( job.isStream()){
 					
 					/*
@@ -355,6 +357,7 @@ TranscodeQueueImpl
 						provider.transcode(
 							xcode_adapter,
 							provider_analysis,
+							direct_input,
 							job.getFile(),
 							profile,
 							new URL( "tcp://127.0.0.1:" + pipe.getPort()));
@@ -367,6 +370,7 @@ TranscodeQueueImpl
 						provider.transcode(
 							xcode_adapter,
 							provider_analysis,
+							direct_input,
 							job.getFile(),
 							profile,
 							output_file.toURI().toURL());

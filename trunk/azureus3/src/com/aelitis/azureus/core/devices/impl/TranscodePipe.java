@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 
 public abstract class 
@@ -56,6 +57,9 @@ TranscodePipe
 	private LinkedList<bufferCache>		buffer_cache = new LinkedList<bufferCache>();
 	private int							buffer_cache_size;
 	
+	private Average 	connection_speed 	= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+	private Average 	write_speed 		= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+
 	protected
 	TranscodePipe()
 	
@@ -72,6 +76,8 @@ TranscodePipe
 					
 					try{
 						final Socket	socket = server_socket.accept();
+						
+						connection_speed.addValue( 1 );
 						
 						new AEThread2( "TranscodePipe", true )
 						{
@@ -96,6 +102,18 @@ TranscodePipe
 		}.start();
 	}
 
+	public long
+	getConnectionSpeed()
+	{
+		return( connection_speed.getAverage());
+	}
+	
+	public long
+	getWriteSpeed()
+	{
+		return(write_speed.getAverage());
+	}
+	
 	protected abstract void
 	handleSocket(
 		Socket		socket );
@@ -159,6 +177,8 @@ TranscodePipe
 						}
 						
 						os.write( buffer, 0, len );						
+						
+						write_speed.addValue( len );
 						
 					}catch( Throwable e ){
 						
@@ -345,7 +365,9 @@ TranscodePipe
 							bytes_available -= read_length;
 						}
 						
-						os.write( buffer, buffer_start, read_length );						
+						os.write( buffer, buffer_start, read_length );		
+						
+						write_speed.addValue( read_length );
 					}
 					
 					os.flush();

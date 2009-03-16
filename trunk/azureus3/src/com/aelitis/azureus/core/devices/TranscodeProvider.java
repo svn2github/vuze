@@ -50,6 +50,7 @@ TranscodeProvider
 	transcode( 
 		TranscodeProviderAdapter	adapter,
 		TranscodeProviderAnalysis	analysis,
+		boolean						force,
 		DiskManagerFileInfo			input,
 		TranscodeProfile			profile,
 		URL							output )

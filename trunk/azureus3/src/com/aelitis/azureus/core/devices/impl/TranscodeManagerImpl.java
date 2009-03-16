@@ -140,7 +140,7 @@ TranscodeManagerImpl
 				
 				if ( vuzexcode_provider == null ){
 					
-					provider = vuzexcode_provider = new TranscodeProviderVuze( pi );
+					provider = vuzexcode_provider = new TranscodeProviderVuze( this, pi );
 			
 					added = true;
 					

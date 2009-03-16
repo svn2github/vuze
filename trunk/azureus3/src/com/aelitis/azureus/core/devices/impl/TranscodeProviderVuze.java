@@ -28,6 +28,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -44,15 +45,18 @@ public class
 TranscodeProviderVuze 
 	implements TranscodeProvider
 {
-	private PluginInterface		plugin_interface;
+	private TranscodeManagerImpl	manager;
+	private PluginInterface			plugin_interface;
 	
 	private volatile TranscodeProfile[]	profiles;
 	
 	protected
 	TranscodeProviderVuze(
-		PluginInterface			pi )
+		TranscodeManagerImpl	_manager,
+		PluginInterface			_plugin_interface )
 	{
-		plugin_interface		= pi;
+		manager					= _manager;
+		plugin_interface		= _plugin_interface;
 	}
 	
 	protected void
@@ -382,6 +386,7 @@ TranscodeProviderVuze
 	transcode( 
 		final TranscodeProviderAdapter	_adapter,
 		TranscodeProviderAnalysis		analysis,
+		boolean							direct_input,
 		DiskManagerFileInfo				input,
 		TranscodeProfile				profile,
 		URL								output )
@@ -396,35 +401,54 @@ TranscodeProviderVuze
 				throw( new TranscodeException( "Media Server plugin not found" ));
 			}
 			
-			IPCInterface av_ipc = av_pi.getIPC();
-			
-			String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
-			
-			URL 				source_url;
-			TranscodePipe		pipe;
-			
-			if ( url_str == null || url_str.length() == 0 ){
+			URL 				source_url	= null;
+			TranscodePipe		pipe		= null;
+
+			if ( direct_input ){
 				
-					// see if we can use the file directly
-				
-				File source_file = input.getFile();
-				
-				if ( source_file.exists()){
+				if ( input.getDownloaded() == input.getLength()){
 					
-					pipe = new TranscodePipeFileSource( source_file );
+					File	file = input.getFile();
 					
-					source_url = new URL( "http://127.0.0.1:" + pipe.getPort() + "/" );
-					
-				}else{
-					
-					throw( new TranscodeException( "No UPnPAV URL and file doesn't exist" ));
+					if ( file.exists() && file.length() == input.getLength()){
+						
+						source_url = file.toURI().toURL();
+					}
 				}
-			}else{
-				source_url = new URL( url_str );
-			
-				pipe = new TranscodePipeStreamSource( source_url.getPort());
 				
-				source_url = UrlUtils.setPort( source_url, pipe.getPort());
+				manager.log( "Failed to use direct input as source file doesn't exist/incomplete" );
+			}
+			
+			if ( source_url == null ){
+				
+				IPCInterface av_ipc = av_pi.getIPC();
+				
+				String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
+				
+				
+				if ( url_str == null || url_str.length() == 0 ){
+					
+						// see if we can use the file directly
+					
+					File source_file = input.getFile();
+					
+					if ( source_file.exists()){
+						
+						pipe = new TranscodePipeFileSource( source_file );
+						
+						source_url = new URL( "http://127.0.0.1:" + pipe.getPort() + "/" );
+						
+					}else{
+						
+						throw( new TranscodeException( "No UPnPAV URL and file doesn't exist" ));
+					}
+				}else{
+					source_url = new URL( url_str );
+				
+					pipe = new TranscodePipeStreamSource( source_url.getPort());
+					
+					source_url = UrlUtils.setPort( source_url, pipe.getPort());
+				}
 			}
 			
 			final TranscodePipe f_pipe = pipe;
@@ -507,6 +531,10 @@ TranscodeProviderVuze
 									
 									in_progress = false;
 									
+									if ( f_pipe != null ){
+										
+										System.out.println( "Pipe: con=" + f_pipe.getConnectionSpeed() + "/sec, write=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( f_pipe.getWriteSpeed()));
+									}
 									try{
 										Map status = (Map)ipc.invoke( "getTranscodeStatus", new Object[]{ context });
 										
@@ -555,7 +583,10 @@ TranscodeProviderVuze
 								}
 							}finally{
 								
-								f_pipe.destroy();
+								if ( f_pipe != null ){
+								
+									f_pipe.destroy();
+								}
 							}
 						}
 					}.start();
@@ -567,13 +598,19 @@ TranscodeProviderVuze
 						public void
 						pause()
 						{
-							f_pipe.pause();
+							if ( f_pipe != null ){
+							
+								f_pipe.pause();
+							}
 						}
 						
 						public void
 						resume()
 						{
-							f_pipe.resume();
+							if ( f_pipe != null ){
+								
+								f_pipe.resume();
+							}
 						}
 	
 						public void 
@@ -592,13 +629,19 @@ TranscodeProviderVuze
 						setMaxBytesPerSecond(
 							int		 max ) 
 						{
-							f_pipe.setMaxBytesPerSecond( max );
+							if ( f_pipe != null ){
+							
+								f_pipe.setMaxBytesPerSecond( max );
+							}
 						}
 					});
 						
 			}catch( Throwable e ){
 				
-				pipe.destroy();
+				if ( pipe != null ){
+				
+					pipe.destroy();
+				}
 				
 				throw( e );
 			}
