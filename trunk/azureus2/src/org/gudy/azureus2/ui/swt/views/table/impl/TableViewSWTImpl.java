@@ -2557,6 +2557,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private void addDataSourcesToSWT(final Object dataSources[], boolean async) {
 		try {
+			if (isDisposed()) {
+				return;
+			}
 			if (DEBUGADDREMOVE) {
 				debug("--" + " Add " + dataSources.length + " rows to SWT "
 						+ (async ? " async " : " NOW"));
