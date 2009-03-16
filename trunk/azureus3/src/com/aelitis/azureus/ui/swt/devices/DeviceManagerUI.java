@@ -90,7 +90,7 @@ DeviceManagerUI
 	private static final String CONFIG_VIEW_TYPE				= "device.sidebar.ui.viewtype";
 	static final String CONFIG_VIEW_HIDE_REND_GENERIC	= "device.sidebar.ui.rend.hidegeneric";
 	
-	private static final String SPINNER_IMAGE_ID 	= "image.sidebar.vitality.dots";
+	private static final String SPINNER_IMAGE_ID 	= "image.sidebar.vitality.dl";
 	private static final String INFO_IMAGE_ID		= "image.sidebar.vitality.info";
 	private static final String ALERT_IMAGE_ID		= "image.sidebar.vitality.alert";
 
