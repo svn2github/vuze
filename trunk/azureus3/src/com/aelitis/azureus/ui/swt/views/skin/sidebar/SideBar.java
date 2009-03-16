@@ -1058,7 +1058,7 @@ public class SideBar
 			}
 
 			if (sideBarEntry == draggingOver) {
-				gc.setBackground(ColorCache.getColor(gc.getDevice(), "#ff6688"));
+				gc.setBackground(ColorCache.getColor(gc.getDevice(), "#2688aa"));
 			}
 			
 			gc.fillRectangle(event.getBounds());
