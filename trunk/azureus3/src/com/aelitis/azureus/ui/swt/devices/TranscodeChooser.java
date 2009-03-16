@@ -85,6 +85,8 @@ public abstract class TranscodeChooser
 
 	private SWTSkinObjectText soInfoText;
 
+	private Font fontDeviceDesc;
+
 	public TranscodeChooser() {
 		this(null);
 	}
@@ -163,7 +165,8 @@ public abstract class TranscodeChooser
 		shell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				Utils.disposeSWTObjects(new Object[] {
-					fontDevice
+					fontDevice,
+					fontDeviceDesc
 				});
 				for (String id : listImageIDsToRelease) {
 					ImageLoader.getInstance().releaseImage(id);
@@ -551,10 +554,10 @@ public abstract class TranscodeChooser
 	private void createDeviceList(SWTSkinObjectContainer soDeviceList) {
 		Composite parent = soDeviceList.getComposite();
 		parent.setBackgroundMode(SWT.INHERIT_FORCE);
-		GridLayout gridLayout = new GridLayout();
-		gridLayout.marginLeft = 10;
-		gridLayout.verticalSpacing = 15;
-		parent.setLayout(gridLayout);
+		FormLayout layout = new FormLayout();
+		layout.marginLeft = 10;
+		layout.marginHeight = 15;
+		parent.setLayout(layout);
 
 		DeviceManager device_manager = DeviceManagerFactory.getSingleton();
 		Device[] devices = device_manager.getDevices();
@@ -563,8 +566,16 @@ public abstract class TranscodeChooser
 			noDevices();
 			return;
 		}
+		
+		Arrays.sort(devices, new Comparator<Device>() {
+			public int compare(Device o1, Device o2) {
+				return o1.getName().compareToIgnoreCase(o2.getName());
+			}
+		});
 
-		fontDevice = Utils.getFontWithHeight(parent.getFont(), null, 17, SWT.BOLD);
+		fontDevice = Utils.getFontWithHeight(parent.getFont(), null, 16, SWT.BOLD);
+		fontDeviceDesc = Utils.getFontWithHeight(parent.getFont(), null, 16, SWT.NONE);
+		
 
 		/**
 		PaintListener paintListener = new PaintListener() {
@@ -583,6 +594,7 @@ public abstract class TranscodeChooser
 				DeviceManagerUI.CONFIG_VIEW_HIDE_REND_GENERIC, true);
 
 		int numDevices = 0;
+		Button lastButton = null;
 		for (Device device : devices) {
 			if (device.getType() != Device.DT_MEDIA_RENDERER || device.isHidden()
 					|| !(device instanceof DeviceMediaRenderer)) {
@@ -604,7 +616,6 @@ public abstract class TranscodeChooser
 			Button button = new Button(parent, SWT.LEFT | SWT.RADIO);
 			StringBuffer sb = new StringBuffer(device.getName());
 			button.setFont(fontDevice);
-			button.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			button.setData("DeviceMediaRenderer", device);
 			button.addSelectionListener(new SelectionListener() {
 
@@ -646,6 +657,29 @@ public abstract class TranscodeChooser
 			}
 
 			button.setText(sb.toString());
+			
+			FormData fd = new FormData();
+			fd.left = new FormAttachment(0, 0);
+			if (lastButton == null) {
+				fd.top = new FormAttachment(0, 0);
+			} else {
+				fd.top = new FormAttachment(lastButton, 15);
+			}
+			button.setLayoutData(fd);
+			
+			
+			String shortDescription = device.getShortDescription();
+			if (shortDescription != null && shortDescription.length() > 0) {
+				Label label = new Label(parent, SWT.None);
+				label.setText("(" + shortDescription + ")");
+				
+				fd = new FormData();
+				fd.top = new FormAttachment(button, 0, SWT.CENTER);
+				fd.left = new FormAttachment(button, 5);
+				label.setLayoutData(fd);
+			}
+			
+			lastButton = button;
 		}
 
 		if (numDevices == 0) {
