@@ -146,7 +146,9 @@ public abstract class InfoBarUtil
 	}
 
 	public void hide(boolean permanently) {
-		soTop.setVisible(false);
+		if (soTop != null && !soTop.isDisposed()) {
+			soTop.setVisible(false);
+		}
 		if (permanently) {
 			RememberedDecisionsManager.setRemembered(stateConfigID, 0);
 		}
