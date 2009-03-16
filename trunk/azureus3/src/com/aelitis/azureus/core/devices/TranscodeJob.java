@@ -71,6 +71,9 @@ TranscodeJob
 	public String
 	getError();
 	
+	public boolean
+	canPause();
+	
 	public void
 	pause();
 	

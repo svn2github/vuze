@@ -70,7 +70,9 @@ TranscodeJobImpl
 	private long					process_time;
 	
 	private boolean					use_direct_input;
+	
 	private boolean					auto_retry;
+	private int						auto_retry_count;
 	
 	private Download				download;
 	private boolean					download_ok;
@@ -286,28 +288,59 @@ TranscodeJobImpl
 	}
 	
 	protected boolean
+	canUseDirectInput()
+	{
+		long	length = file.getLength();
+
+		return( file.getDownloaded() == length &&
+				file.getFile().length() == length );
+	}
+	
+	protected boolean
 	useDirectInput()
 	{
-		return( use_direct_input );
+		synchronized( this ){
+
+			return( use_direct_input );
+		}
 	}
 	
 	protected void
 	setUseDirectInput()
 	{
-		use_direct_input = true;
+		synchronized( this ){
+
+			use_direct_input = true;
+		}
 	}
 	
 	protected void
 	setAutoRetry(
 		boolean		_auto_retry )
 	{
-		auto_retry 			= true;
+		synchronized( this ){
+
+			auto_retry 			= true;
+			auto_retry_count++;
+		}
 	}
 	
 	protected boolean
 	isAutoRetry()
 	{
-		return( auto_retry );
+		synchronized( this ){
+			
+			return( auto_retry );
+		}
+	}
+	
+	protected int
+	getAutoRetryCount()
+	{
+		synchronized( this ){
+
+			return( auto_retry_count );
+		}
 	}
 	
 	protected boolean
@@ -544,10 +577,24 @@ TranscodeJobImpl
 		return( error );
 	}
 	
+	public boolean
+	canPause()
+	{
+		synchronized( this ){
+
+			return( !use_direct_input );
+		}
+	}
+	
 	public void
 	pause()
 	{
 		synchronized( this ){
+			
+			if ( use_direct_input ){
+				
+				return;
+			}
 			
 			if ( state == ST_RUNNING ){
 		
