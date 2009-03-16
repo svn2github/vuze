@@ -519,9 +519,10 @@ ContentNetworkVuzeGeneric
 	
 		String suffix = URL_SUFFIX;
 		
+		/// azid=foo&a=b&v=c
 		if ( !include_azid ){
 			
-			suffix = suffix.replaceAll( "azid=.*&", "" );
+			suffix = suffix.replaceAll( "azid=.*?&", "" );
 		}
 		
 		if ( for_post ){
