@@ -877,8 +877,10 @@ DeviceManagerUI
 					});
 
 					// devices
+				
+				String parentID = "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES;
 							
-				MenuItem de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "device.search" );
+				MenuItem de_menu_item = menu_manager.addMenuItem( parentID, "device.search" );
 			
 				de_menu_item.addListener( 
 						new MenuItemListener() 
@@ -893,7 +895,7 @@ DeviceManagerUI
 				
 					// show hidden
 				
-				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "device.show" );
+				de_menu_item = menu_manager.addMenuItem( parentID, "device.show" );
 
 				de_menu_item.addListener( show_listener );
 				de_menu_item.addFillListener( show_fill_listener );
@@ -901,7 +903,7 @@ DeviceManagerUI
 
 					// simple
 				
-				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "devices.sidebar.simple" );
+				de_menu_item = menu_manager.addMenuItem( parentID, "devices.sidebar.simple" );
 				
 				de_menu_item.setStyle( MenuItem.STYLE_CHECK );
 								
@@ -928,13 +930,13 @@ DeviceManagerUI
 							}
 						});
 				
-				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "sep" );
+				de_menu_item = menu_manager.addMenuItem( parentID, "sep" );
 
 				de_menu_item.setStyle( MenuItem.STYLE_SEPARATOR );
 				
 					// options 
 				
-				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "ConfigView.title.short" );
+				de_menu_item = menu_manager.addMenuItem( parentID, "ConfigView.title.short" );
 				
 				de_menu_item.addListener( 
 						new MenuItemListener() 
@@ -952,6 +954,17 @@ DeviceManagerUI
 							}
 						});
 
+				if (Constants.isCVSVersion()) {
+					de_menu_item = menu_manager.addMenuItem(parentID,
+							"!(CVS Only)Show FTUX!");
+					
+					de_menu_item.addListener(new MenuItemListener(){
+						public void selected(MenuItem menu, Object target) {
+							DevicesFTUX.showForDebug();
+						}
+					});
+
+				}
 			}
 			
 			if ( rebuild ){
@@ -1923,7 +1936,7 @@ DeviceManagerUI
 				new Integer( device_type ), 
 				false, 
 				false,
-				false );
+				true );
 
 		SideBarEntrySWT	entry = SideBar.getEntry( key );
 

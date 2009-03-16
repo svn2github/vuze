@@ -31,12 +31,14 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
@@ -215,33 +217,33 @@ public abstract class TranscodeChooser
 		btnNoPrompt = new Button(composite, SWT.CHECK);
 		Messages.setLanguageText(btnNoPrompt, "option.rememberthis");
 
-		Label label = new Label(composite, SWT.NONE);
-		label.setText(MessageText.getString("device.xcode"));
+		Label lblXCode = new Label(composite, SWT.NONE);
+		lblXCode.setText(MessageText.getString("device.xcode"));
 
-		final Combo combo = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
+		final Combo cmbXCode = new Combo(composite, SWT.DROP_DOWN | SWT.READ_ONLY);
 
-		combo.add(MessageText.getString("device.xcode.whenreq"));
-		combo.add(MessageText.getString("device.xcode.always"));
-		combo.add(MessageText.getString("device.xcode.never"));
+		cmbXCode.add(MessageText.getString("device.xcode.whenreq"));
+		cmbXCode.add(MessageText.getString("device.xcode.always"));
+		cmbXCode.add(MessageText.getString("device.xcode.never"));
 		transcodeRequirement = selectedDevice.getTranscodeRequirement();
 		switch (transcodeRequirement) {
 			case TranscodeTarget.TRANSCODE_ALWAYS:
-				combo.select(1);
+				cmbXCode.select(1);
 				break;
 
 			case TranscodeTarget.TRANSCODE_NEVER:
-				combo.select(2);
+				cmbXCode.select(2);
 				break;
 
 			case TranscodeTarget.TRANSCODE_WHEN_REQUIRED:
 			default:
-				combo.select(0);
+				cmbXCode.select(0);
 				break;
 		}
 
-		combo.addSelectionListener(new SelectionListener() {
+		cmbXCode.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
-				int i = combo.getSelectionIndex();
+				int i = cmbXCode.getSelectionIndex();
 				switch (i) {
 					case 0:
 						transcodeRequirement = TranscodeTarget.TRANSCODE_WHEN_REQUIRED;
@@ -265,19 +267,26 @@ public abstract class TranscodeChooser
 
 		fd = new FormData();
 		fd.left = new FormAttachment(0, 10);
-		fd.top = new FormAttachment(combo, 0, SWT.CENTER);
+		fd.top = new FormAttachment(cmbXCode, 0, SWT.CENTER);
 		btnNoPrompt.setLayoutData(fd);
 
 		fd = new FormData();
 		fd.right = new FormAttachment(100, -10);
 		fd.top = new FormAttachment(0, 5);
 		fd.bottom = new FormAttachment(100, -5);
-		combo.setLayoutData(fd);
+		cmbXCode.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.right = new FormAttachment(combo, -5);
-		fd.top = new FormAttachment(combo, 0, SWT.CENTER);
-		label.setLayoutData(fd);
+		fd.right = new FormAttachment(cmbXCode, -5);
+		fd.top = new FormAttachment(cmbXCode, 0, SWT.CENTER);
+		lblXCode.setLayoutData(fd);
+		
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+		if (userMode == 0) {
+			lblXCode.setVisible(false);
+			cmbXCode.setVisible(false);
+		}
+
 
 		Point computeSize = shell.computeSize(300, SWT.DEFAULT, true);
 		shell.setSize(computeSize);
@@ -294,6 +303,11 @@ public abstract class TranscodeChooser
 					"No Device Selected!?");
 			shell.dispose();
 			return;
+		}
+		
+		try {
+			PlatformDevicesMessenger.qosYouJustDropped((DeviceMediaRenderer) selectedDevice);
+		} catch (Throwable ignore) {
 		}
 
 		try {
@@ -539,7 +553,8 @@ public abstract class TranscodeChooser
 		Composite parent = soDeviceList.getComposite();
 		parent.setBackgroundMode(SWT.INHERIT_FORCE);
 		GridLayout gridLayout = new GridLayout();
-		gridLayout.verticalSpacing = 20;
+		gridLayout.marginLeft = 10;
+		gridLayout.verticalSpacing = 15;
 		parent.setLayout(gridLayout);
 
 		DeviceManager device_manager = DeviceManagerFactory.getSingleton();
@@ -550,7 +565,7 @@ public abstract class TranscodeChooser
 			return;
 		}
 
-		fontDevice = Utils.getFontWithHeight(parent.getFont(), null, 21, SWT.BOLD);
+		fontDevice = Utils.getFontWithHeight(parent.getFont(), null, 18, SWT.BOLD);
 
 		/**
 		PaintListener paintListener = new PaintListener() {

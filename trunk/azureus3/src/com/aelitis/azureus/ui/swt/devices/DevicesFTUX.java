@@ -113,7 +113,7 @@ public class DevicesFTUX
 		} catch (Throwable t) {
 		}
 
-		Label lblInfo = new Label(shell, SWT.BORDER);
+		Label lblInfo = new Label(shell, SWT.WRAP);
 		Messages.setLanguageText(lblInfo, "devices.turnon.prepageload");
 
 		checkITunes = new Button(shell, SWT.CHECK);
@@ -189,7 +189,7 @@ public class DevicesFTUX
 		fd = Utils.getFilledFormData();
 		fd.bottom = new FormAttachment(checkITunes, -5);
 		fd.width = 550;
-		fd.height = 435;
+		fd.height = 475;
 		browser.setLayoutData(fd);
 		
 		fd = new FormData();
@@ -249,6 +249,11 @@ public class DevicesFTUX
 	 * @since 4.1.0.5
 	 */
 	protected void doInstall(boolean itunes) {
+		try {
+			PlatformDevicesMessenger.qosTurnOn(itunes);
+		} catch (Throwable ignore) {
+		}
+
 		List<InstallablePlugin> plugins = new ArrayList<InstallablePlugin>(2);
 
 		final PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
@@ -371,6 +376,19 @@ public class DevicesFTUX
 			return false;
 		}
 		return true;
+	}
+
+	public static void showForDebug() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (instance == null || instance.isDisposed()) {
+					instance = new DevicesFTUX();
+					instance.open();
+				} else {
+					instance.setFocus();
+				}
+			}
+		});
 	}
 
 }

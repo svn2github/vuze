@@ -59,6 +59,7 @@ public class PlatformDevicesMessenger
 					"itunes",
 					Boolean.valueOf(withITunes),
 				}, 5000);
+		message.setSendAZID(false);
 		PlatformMessenger.queueMessage(message, null);
 	}
 
@@ -73,10 +74,11 @@ public class PlatformDevicesMessenger
 					"device-name",
 					device.getName(),
 				}, 5000);
+		message.setSendAZID(false);
 		PlatformMessenger.queueMessage(message, null);
 	}
 
-	public static void qosYouJustDropped(DeviceMediaRenderer renderer, String sourceExt) {
+	public static void qosYouJustDropped(DeviceMediaRenderer renderer) {
 		if (!COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
 			return;
 		}
@@ -85,35 +87,41 @@ public class PlatformDevicesMessenger
 		if (renderer != null) {
 			map.put("renderer-species", Integer.valueOf(renderer.getRendererSpecies()));
 		}
-		map.put("source-ext", sourceExt);
 		
 		
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				OP_QOS_DROP, map, 5000);
+		message.setSendAZID(false);
 		PlatformMessenger.queueMessage(message, null);
 	}
 
-	public static void qosTranscode(TranscodeJob job, DeviceMediaRenderer renderer,
-			TranscodeProfile profile, String sourceExt, long processTime) {
+	public static void qosTranscode(TranscodeJob job, int state,
+			DeviceMediaRenderer renderer, TranscodeProfile profile, String sourceExt,
+			long filesize, long processTime) {
 		if (!COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
 			return;
 		}
-		
+
 		HashMap<String,Object> map = new HashMap<String, Object>();
+
+		map.put("job-state", Integer.valueOf(state));
+
 		if (job != null) {
-			int state = job.getState();
-			map.put("job-state", Integer.valueOf(state));
 			if (state == TranscodeJob.ST_FAILED) {
 				map.put("job-error", job.getError());
 			}
 		}
 		map.put("profile-uid", profile.getUID());
 		map.put("render-species", Integer.valueOf(renderer.getRendererSpecies()));
-		map.put("process-time-ms", processTime);
+		map.put("process-time-ms", new Long(processTime));
 		map.put("source-ext", sourceExt);
+		if (filesize > 0) {
+			map.put("file-size", new Long(filesize));
+		}
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				OP_QOS_TRANCODE, map, 5000);
+		message.setSendAZID(false);
 		PlatformMessenger.queueMessage(message, null);
 	}
 }

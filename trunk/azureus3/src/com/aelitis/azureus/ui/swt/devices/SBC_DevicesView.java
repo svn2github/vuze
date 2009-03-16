@@ -144,7 +144,10 @@ public class SBC_DevicesView
 		if (device != null) {
 			SWTSkinObject soTitle = getSkinObject("title");
 			if (soTitle instanceof SWTSkinObjectText) {
-				((SWTSkinObjectText) soTitle).setText(device.getName());
+				((SWTSkinObjectText) soTitle).setTextID("device.view.heading",
+						new String[] {
+							device.getName()
+						});
 			}
 		}
 
@@ -217,7 +220,7 @@ public class SBC_DevicesView
 						new ColumnTJ_Profile(column);
 					}
 				});
-		
+
 		tableManager.registerColumn(TranscodeFile.class,
 				ColumnTJ_Duration.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
@@ -231,13 +234,13 @@ public class SBC_DevicesView
 						new ColumnTJ_Resolution(column);
 					}
 				});
-		
+
 		tableManager.registerColumn(TranscodeFile.class,
 				ColumnTJ_CopiedToDevice.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_CopiedToDevice(column);
-						
-						if (column.getTableID().endsWith( ":type=1" )){
+
+						if (column.getTableID().endsWith(":type=1")) {
 							column.setVisible(false);
 						}
 					}
@@ -247,7 +250,7 @@ public class SBC_DevicesView
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
-		
+
 		transcode_queue.addListener(this);
 
 		if (transTarget != null) {
@@ -259,7 +262,8 @@ public class SBC_DevicesView
 			initDeviceListTable((Composite) soDeviceList.getControl());
 		}
 
-		SWTSkinObject soTranscodeQueue = getSkinObject("transcode-queue");	if (soTranscodeQueue != null) {
+		SWTSkinObject soTranscodeQueue = getSkinObject("transcode-queue");
+		if (soTranscodeQueue != null) {
 			initTranscodeQueueTable((Composite) soTranscodeQueue.getControl());
 		}
 
@@ -337,7 +341,7 @@ public class SBC_DevicesView
 			tvDevices.delete();
 			tvDevices = null;
 		}
-		
+
 		return super.skinObjectHidden(skinObject, params);
 	}
 
@@ -348,24 +352,24 @@ public class SBC_DevicesView
 	 */
 	private void initTranscodeQueueTable(Composite control) {
 		String tableID;
-		
-		if ( device == null){
-			
+
+		if (device == null) {
+
 			tableID = TABLE_TRANSCODE_QUEUE;
-			
-		}else{
-			
+
+		} else {
+
 			tableID = TABLE_DEVICE_LIBRARY;
-			
-			if ( device instanceof DeviceMediaRenderer ){
-				
-				if (!((DeviceMediaRenderer)device).canCopyToDevice()){
-					
+
+			if (device instanceof DeviceMediaRenderer) {
+
+				if (!((DeviceMediaRenderer) device).canCopyToDevice()) {
+
 					tableID += ":type=1";
 				}
 			}
 		}
-		
+
 		tvFiles = new TableViewSWTImpl<TranscodeFile>(tableID, tableID,
 				new TableColumnCore[0], "rank", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
@@ -453,72 +457,72 @@ public class SBC_DevicesView
 	 * @since 4.0.0.5
 	 */
 	protected void fillMenu(Menu menu) {
-		
-		Object[] _files = tvFiles.getSelectedDataSources().toArray();
-	
-		final TranscodeFile[]	files = new TranscodeFile[_files.length];
-		
-		System.arraycopy( _files, 0, files, 0, files.length );
-		
 
-			// open file
-		
+		Object[] _files = tvFiles.getSelectedDataSources().toArray();
+
+		final TranscodeFile[] files = new TranscodeFile[_files.length];
+
+		System.arraycopy(_files, 0, files, 0, files.length);
+
+		// open file
+
 		final MenuItem open_item = new MenuItem(menu, SWT.PUSH);
 
 		Messages.setLanguageText(open_item, "MyTorrentsView.menu.open");
-		
-		Utils.setMenuItemImage( open_item, "run" );
-		
+
+		Utils.setMenuItemImage(open_item, "run");
+
 		File target_file = null;
-		
-		try{
-			if ( files.length == 1 ){
-				
+
+		try {
+			if (files.length == 1) {
+
 				target_file = files[0].getTargetFile().getFile();
-				
-				if ( !target_file.exists()){
-					
+
+				if (!target_file.exists()) {
+
 					target_file = null;
 				}
 			}
-		}catch( Throwable e ){
-			
-			Debug.out( e );
+		} catch (Throwable e) {
+
+			Debug.out(e);
 		}
-		
+
 		final File f_target_file = target_file;
-		
+
 		open_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent ev) {
 
-				Utils.launch( f_target_file.getAbsolutePath());
+				Utils.launch(f_target_file.getAbsolutePath());
 			};
 		});
-		
-		open_item.setEnabled( target_file != null && files[0].isComplete());
-		
-			// show in explorer
-		
+
+		open_item.setEnabled(target_file != null && files[0].isComplete());
+
+		// show in explorer
+
 		final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
-		
-		final MenuItem show_item  = new MenuItem(menu, SWT.PUSH);
-		
-		Messages.setLanguageText(show_item, "MyTorrentsView.menu." + (use_open_containing_folder ? "open_parent_folder" : "explore"));
+
+		final MenuItem show_item = new MenuItem(menu, SWT.PUSH);
+
+		Messages.setLanguageText(show_item, "MyTorrentsView.menu."
+				+ (use_open_containing_folder ? "open_parent_folder" : "explore"));
 
 		show_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 
-				ManagerUtils.open( f_target_file, use_open_containing_folder );
+				ManagerUtils.open(f_target_file, use_open_containing_folder);
 			};
 		});
-		
-		show_item.setEnabled( target_file != null );
-		
+
+		show_item.setEnabled(target_file != null);
+
 		new MenuItem(menu, SWT.SEPARATOR);
 
-			// pause
-				
-			final MenuItem pause_item = new MenuItem(menu, SWT.PUSH);
+		// pause
+
+		final MenuItem pause_item = new MenuItem(menu, SWT.PUSH);
 
 		pause_item.setText(MessageText.getString("v3.MainWindow.button.pause"));
 
@@ -535,7 +539,7 @@ public class SBC_DevicesView
 			};
 		});
 
-			// resume
+		// resume
 
 		final MenuItem resume_item = new MenuItem(menu, SWT.PUSH);
 
@@ -553,18 +557,18 @@ public class SBC_DevicesView
 			};
 		});
 
-			// separator
+		// separator
 
 		new MenuItem(menu, SWT.SEPARATOR);
-	
-		if ( device instanceof DeviceMediaRenderer ){
-			
-			DeviceMediaRenderer	dmr = (DeviceMediaRenderer)device;
-			
-			if ( dmr.canCopyToDevice()){
-				
-					// retry
-				
+
+		if (device instanceof DeviceMediaRenderer) {
+
+			DeviceMediaRenderer dmr = (DeviceMediaRenderer) device;
+
+			if (dmr.canCopyToDevice()) {
+
+				// retry
+
 				final MenuItem retry_item = new MenuItem(menu, SWT.PUSH);
 
 				retry_item.setText(MessageText.getString("device.retry.copy"));
@@ -574,62 +578,62 @@ public class SBC_DevicesView
 						for (int i = 0; i < files.length; i++) {
 							TranscodeFile file = files[i];
 
-							if ( file.getCopyToDeviceFails() > 0 ){
-								
+							if (file.getCopyToDeviceFails() > 0) {
+
 								file.retryCopyToDevice();
 							}
 						}
 					};
 				});
-				
-				retry_item.setEnabled( false );
-				
-				for ( TranscodeFile file: files ){
-					
-					if ( file.getCopyToDeviceFails() > 0 ){
-						
-						retry_item.setEnabled( true );
+
+				retry_item.setEnabled(false);
+
+				for (TranscodeFile file : files) {
+
+					if (file.getCopyToDeviceFails() > 0) {
+
+						retry_item.setEnabled(true);
 					}
 				}
-				
-					// separator
+
+				// separator
 
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
 		}
-		
-			// remove
+
+		// remove
 
 		final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 
 		remove_item.setText(MessageText.getString("azbuddy.ui.menu.remove"));
-		
+
 		Utils.setMenuItemImage(remove_item, "delete");
-		
+
 		remove_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				for ( TranscodeFile file: files ){
+				for (TranscodeFile file : files) {
 					TranscodeJob job = file.getJob();
 
 					if (job != null) {
 						job.remove();
 					}
-					
-					try{
-						file.delete( true );
-						
-					}catch( Throwable f ){
+
+					try {
+						file.delete(true);
+
+					} catch (Throwable f) {
 					}
 				}
 			};
 		});
 
-			// separator
+		// separator
 
 		new MenuItem(menu, SWT.SEPARATOR);
 
-			// Logic to disable items 
-		
+		// Logic to disable items 
+
 		boolean has_selection = files.length > 0;
 
 		remove_item.setEnabled(has_selection);
@@ -637,8 +641,8 @@ public class SBC_DevicesView
 		boolean can_pause = has_selection;
 		boolean can_resume = has_selection;
 
-		int	job_count = 0;
-		
+		int job_count = 0;
+
 		for (int i = 0; i < files.length; i++) {
 			TranscodeJob job = files[i].getJob();
 			if (job == null) {
@@ -646,7 +650,7 @@ public class SBC_DevicesView
 			}
 
 			job_count++;
-			
+
 			int state = job.getState();
 
 			if (state != TranscodeJob.ST_RUNNING) {
@@ -688,6 +692,25 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobAdded(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobAdded(TranscodeJob job) {
+		try {
+			if (device instanceof DeviceMediaRenderer) {
+				DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
+				String ext = "??";
+				long size = -1;
+				try {
+					ext = FileUtil.getExtension(job.getFile().getFile().getName());
+					size = job.getFile().getLength();
+				} catch (Exception e) {
+				}
+				// force state log to queued just in case it got started (or errored)
+				// before the listener was called
+				PlatformDevicesMessenger.qosTranscode(job, TranscodeJob.ST_QUEUED,
+						renderer, job.getProfile(), ext, size, job.getProcessTime());
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+
 		synchronized (this) {
 			if (tvFiles == null) {
 				return;
@@ -707,16 +730,19 @@ public class SBC_DevicesView
 		try {
 			if (device instanceof DeviceMediaRenderer) {
 				DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
-  			int state = job.getState();
-  			if (state == TranscodeJob.ST_COMPLETE || state == TranscodeJob.ST_FAILED) {
-  				String ext = "??";
-  				try {
-  					ext = FileUtil.getExtension(job.getFile().getFile().getName());
-  				} catch (Exception e) {
-  				}
-  				PlatformDevicesMessenger.qosTranscode(job, renderer, job.getProfile(),
-  						ext, job.getProcessTime());
-  			}
+				int state = job.getState();
+				if (state == TranscodeJob.ST_COMPLETE
+						|| state == TranscodeJob.ST_FAILED) {
+					String ext = "??";
+					long size = -1;
+					try {
+						ext = FileUtil.getExtension(job.getFile().getFile().getName());
+						size = job.getFile().getLength();
+					} catch (Exception e) {
+					}
+					PlatformDevicesMessenger.qosTranscode(job, state, renderer,
+							job.getProfile(), ext, size, job.getProcessTime());
+				}
 			}
 		} catch (Exception e) {
 			Debug.out(e);
@@ -884,16 +910,17 @@ public class SBC_DevicesView
 			}
 		}
 
-		java.util.List<TranscodeJob> jobs = new ArrayList<TranscodeJob>(selectedDS.length);
-		
+		java.util.List<TranscodeJob> jobs = new ArrayList<TranscodeJob>(
+				selectedDS.length);
+
 		for (int i = 0; i < selectedDS.length; i++) {
 			TranscodeFile file = (TranscodeFile) selectedDS[i];
 			TranscodeJob job = file.getJob();
 			if (job != null) {
-				jobs.add( job );
+				jobs.add(job);
 			}
 		}
-		if ( jobs.size() == 0 ){
+		if (jobs.size() == 0) {
 			return;
 		}
 
@@ -991,5 +1018,5 @@ public class SBC_DevicesView
 			}
 		}
 	}
-	
+
 }
