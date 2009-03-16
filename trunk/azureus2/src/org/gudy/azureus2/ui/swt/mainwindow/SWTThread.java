@@ -108,7 +108,7 @@ public class SWTThread {
 			try{
 				String tempDir = System.getProperty ("swt.library.path");
 				if (tempDir == null) {
-					System.getProperty ("java.io.tmpdir");
+					tempDir = System.getProperty ("java.io.tmpdir");
 				}
 				Debug.out("Loading SWT Libraries failed. "
 						+ "Typical causes:\n\n" 
