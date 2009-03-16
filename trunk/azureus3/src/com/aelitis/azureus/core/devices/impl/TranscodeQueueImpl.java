@@ -721,6 +721,8 @@ TranscodeQueueImpl
 				job.setUseDirectInput();
 				
 				job.setAutoRetry( true );
+				
+				queue_sem.release();
 			}
 			
 			return( false );
@@ -770,12 +772,8 @@ TranscodeQueueImpl
 												
 												return;
 											}
-											
-											continue;
 										}
 										
-										checkJobStatus();
-
 										for ( TranscodeJobImpl j: queue ){
 											
 											int state = j.getState();
@@ -786,12 +784,17 @@ TranscodeQueueImpl
 												
 												j.setAutoRetry( false );
 												
+												j.reset();
+												
 												job	= j;
 												
 												break;
 												
 											}else if ( state == TranscodeJob.ST_PAUSED ){
 	
+													// remember paused here is paused after an azureus
+													// restart as 'process' blocks on pause
+												
 												job = j;
 												
 											}else if ( state == TranscodeJob.ST_QUEUED ){
@@ -804,6 +807,8 @@ TranscodeQueueImpl
 										}
 									}
 									
+									checkJobStatus();
+
 									if ( job != null ){
 									
 										if ( process( job )){

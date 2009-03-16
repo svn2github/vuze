@@ -425,6 +425,15 @@ TranscodeJobImpl
 	}
 	
 	protected void
+	reset()
+	{
+		state 				= ST_QUEUED;
+		error 				= null;
+		percent_complete	= 0;
+		eta					= Integer.MAX_VALUE;
+	}
+	
+	protected void
 	starts()
 	{
 		synchronized( this ){
@@ -433,7 +442,8 @@ TranscodeJobImpl
 			
 				state = ST_RUNNING;
 				
-				started_on = SystemTime.getMonotonousTime();
+				started_on 	= SystemTime.getMonotonousTime();
+				paused_on	= 0;
 			}
 		}
 		
@@ -667,12 +677,8 @@ TranscodeJobImpl
 					
 					stop();
 				}
-				
-				state = ST_QUEUED;
-				
-				error 				= null;
-				percent_complete	= 0;
-				eta					= Integer.MAX_VALUE;
+								
+				reset();
 				
 			}else{
 				
