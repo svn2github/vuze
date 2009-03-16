@@ -29,6 +29,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -37,6 +39,9 @@ import org.gudy.azureus2.core3.util.Debug;
 public abstract class 
 TranscodePipe 
 {
+	private final int BUFFER_SIZE 		= 128*1024;
+	private final int BUFFER_CACHE_SIZE	= BUFFER_SIZE*3;
+	
 	protected volatile boolean	paused;
 	protected volatile boolean	destroyed;
 
@@ -48,6 +53,9 @@ TranscodePipe
 	private ServerSocket		server_socket;
 	private AEThread2			refiller;
 
+	private LinkedList<bufferCache>		buffer_cache = new LinkedList<bufferCache>();
+	private int							buffer_cache_size;
+	
 	protected
 	TranscodePipe()
 	
@@ -108,26 +116,24 @@ TranscodePipe
 
 				while( !destroyed ){
 					
-					try{	
-						int	len;
-						
+					try{							
+						int	limit;
+
 						if ( paused ){
 							
 							Thread.sleep(250);
 							
-							len =  is.read( buffer, 0, 1 );
+							limit = 1;
 							
 						}else{
-							
-							int	limit;
-							
+													
 							if ( max_bytes_per_sec > 0 ){
 								
 								limit = bytes_available;
 								
 								if ( limit <= 0 ){
 									
-									Thread.sleep(100);
+									Thread.sleep( 25 );
 									
 									continue;
 								}
@@ -138,9 +144,9 @@ TranscodePipe
 								
 								limit = BUFFER_SIZE;
 							}
-							
-							len =  is.read( buffer, 0, limit );
 						}
+						
+						int len =  is.read( buffer, 0, limit );
 							
 						if ( len <= 0 ){
 								
@@ -181,10 +187,24 @@ TranscodePipe
 		}.start();
 	}
 	
+	protected RandomAccessFile
+	reserveRAF()
+	
+		throws IOException
+	{
+		throw( new IOException( "Not implemented" ));
+	}
+	
+	protected void
+	releaseRAF(
+		RandomAccessFile		raf )
+	{
+	}
+	
 	protected void
 	handleRAF(
-		final RandomAccessFile	raf,
 		final OutputStream		os,
+		final long				position,
 		final long				length )
 	{
 		new AEThread2( "TranscodePipe:c", true )
@@ -192,34 +212,34 @@ TranscodePipe
 			public void
 			run()
 			{
-				final int BUFFER_SIZE = 128*1024;
+				RandomAccessFile	raf = null;
 				
-				byte[]	buffer = new byte[ BUFFER_SIZE ];
+				try{
+					raf = reserveRAF();
 
-				long	rem = length;
-				
-				while( !destroyed && rem > 0){
+					long	pos	= position;
 					
-					try{	
-						int	len;
-						
+					long	rem = length;
+					
+					while( !destroyed && rem > 0){
+																	
+						int	limit;
+
 						if ( paused ){
 							
 							Thread.sleep(250);
 							
-							len =  raf.read( buffer, 0, 1 );
+							limit = 1;
 							
 						}else{
-							
-							int	limit;
-							
+													
 							if ( max_bytes_per_sec > 0 ){
 								
 								limit = bytes_available;
 								
 								if ( limit <= 0 ){
 									
-									Thread.sleep(100);
+									Thread.sleep( 25 );
 									
 									continue;
 								}
@@ -232,46 +252,120 @@ TranscodePipe
 							}
 							
 							limit = (int)Math.min( rem, limit );
+						}
+						
+						int	read_length	= 0;
+						
+						int		buffer_start 	= 0;
+						byte[] 	buffer			= null;
+						
+						synchronized( TranscodePipe.this ){
+						
+							int	c_num = 0;
 							
-							len =  raf.read( buffer, 0, limit );
+							Iterator<bufferCache> it = buffer_cache.iterator();
+							
+							while( it.hasNext()){
+								
+								bufferCache b = it.next();
+								
+								long	rel_offset = pos - b.offset;
+								
+								if ( rel_offset >= 0 ){
+									
+									byte[] 	data = b.data;
+									
+									long avail = data.length - rel_offset;
+									
+									if ( avail > 0 ){
+										
+										read_length = (int)Math.min( avail, limit );
+										
+										buffer 			= data;
+										buffer_start 	= (int)rel_offset;
+										
+										//System.out.println( "using cache entry: o_offset=" + pos + ",r_offset=" + rel_offset+",len=" + read_length );
+										
+										if ( c_num > 0 ){
+										
+											it.remove();
+										
+											buffer_cache.addFirst( b );
+										}
+										
+										break;
+									}
+								}
+								
+								c_num++;
+							}
+							
+							if ( buffer == null ){
+							
+								buffer = new byte[ limit ];
+
+								raf.seek( pos );
+							
+								read_length =  raf.read( buffer );
+								
+								if ( read_length != limit ){
+									
+									Debug.out( "eh?");
+									
+									throw( new IOException( "Inconsistent" ));
+								}
+								
+								bufferCache b = new bufferCache( pos, buffer );
+								
+								// System.out.println( "adding to cache: o_offset=" + pos + ", size=" + limit );
+								
+								buffer_cache.addFirst( b );
+								
+								buffer_cache_size += limit;
+								
+								while( buffer_cache_size > BUFFER_CACHE_SIZE ){
+									
+									b = buffer_cache.removeLast();
+									
+									buffer_cache_size -= b.data.length;
+								}
+							}
 						}
 							
-						if ( len <= 0 ){
+						if ( read_length <= 0 ){
 								
 							break;
 						}
 							
-						rem -= len;
+						rem -= read_length;
+						pos += read_length;
 						
 						if ( max_bytes_per_sec > 0 ){
 						
-							bytes_available -= len;
+							bytes_available -= read_length;
 						}
 						
-						os.write( buffer, 0, len );						
-						
-					}catch( Throwable e ){
-						
-						break;
+						os.write( buffer, buffer_start, read_length );						
 					}
-				}
-				
-				try{
+					
 					os.flush();
 					
 				}catch( Throwable e ){
-				}
 				
-				try{
-					raf.close();
+					// e.printStackTrace();
 					
-				}catch( Throwable e ){
-				}
-				
-				try{
-					os.close();
+				}finally{
 					
-				}catch( Throwable e ){
+					try{
+						os.close();
+						
+					}catch( Throwable e ){
+					}
+					
+					if ( raf != null ){
+						
+						releaseRAF( raf );
+					}
 				}
 			}
 		}.start();
@@ -393,5 +487,21 @@ TranscodePipe
 		}
 		
 		return( true );
+	}
+	
+	protected class
+	bufferCache
+	{
+		private long	offset;
+		private byte[]	data;
+		
+		protected
+		bufferCache(
+			long		_offset,
+			byte[]		_data )
+		{
+			offset	= _offset;
+			data	= _data;
+		}
 	}
 }

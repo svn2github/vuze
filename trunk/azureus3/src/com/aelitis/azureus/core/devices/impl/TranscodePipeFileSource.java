@@ -37,7 +37,8 @@ TranscodePipeFileSource
 	
 	private File		source_file;
 	
-	private List<RandomAccessFile>	rafs = new ArrayList<RandomAccessFile>();
+	private RandomAccessFile	raf;
+	private int					raf_count;
 	
 	protected
 	TranscodePipeFileSource(
@@ -120,6 +121,8 @@ TranscodePipeFileSource
 						
 			boolean	head	= false;
 			
+			//System.out.println( command + ": " + headers );
+			
 			if ( command.startsWith( "GET " )){
 				
 			}else if ( command.startsWith( "HEAD " )){
@@ -132,17 +135,15 @@ TranscodePipeFileSource
 			}
 			
 			long	file_length = source_file.length();
-			
-			RandomAccessFile raf = null;
-			
+						
 			if ( head ){
 							
 				write( os, "HTTP/1.1 200 OK" + NL );
 				write( os, "Server: Azureus Media Server 1.0" + NL ); 
 				write( os, "Accept-Ranges: bytes" + NL );
 				write( os, "Content-Length: " + file_length + NL );
-				write( os, "Content-Range: 0-" + file_length + "/" + file_length + NL );
-				
+				write( os, "Content-Range: 0-" + (file_length-1) + "/" + file_length + NL );
+
 				os.flush();
 
 			}else{
@@ -160,7 +161,7 @@ TranscodePipeFileSource
 					write( os, "Server: Azureus Media Server 1.0" + NL ); 
 					write( os, "Connection: close" + NL );
 					write( os, "Accept-Ranges: bytes" + NL );
-					write( os, "Content-Range: 0-" + file_length + "/" + file_length + NL );
+					write( os, "Content-Range: 0-" + (file_length-1) + "/" + file_length + NL );
 					write( os, "Content-Length: " + file_length + NL + NL );
 					
 					request_length	= file_length;
@@ -240,11 +241,7 @@ TranscodePipeFileSource
 
 				if ( request_ok ){
 				
-					raf = new RandomAccessFile( source_file, "r" );
-					
-					raf.seek( request_start );
-					
-					handleRAF( raf, os, request_length );
+					handleRAF( os, request_start, request_length );
 				}
 			}
 			
@@ -266,21 +263,7 @@ TranscodePipeFileSource
 					
 					sockets.remove( socket );
 					
-					if ( raf != null ){
-						
-						try{
-							raf.close();
-							
-						}catch( Throwable e ){				
-						}
-					}
-					
 					return;
-				}
-				
-				if ( raf != null ){
-					
-					rafs.add( raf );
 				}
 			}			
 		}catch( Throwable e ){
@@ -308,22 +291,68 @@ TranscodePipeFileSource
 		os.write( str.getBytes());
 	}
 	
+	@Override
+	protected RandomAccessFile
+	reserveRAF()
+	
+		throws IOException
+	{
+		synchronized( this ){
+			
+			if ( destroyed ){
+				
+				throw( new IOException( "destroyed" ));
+			}
+			
+			if ( raf == null ){
+						
+				raf = new RandomAccessFile( source_file, "r" );
+			}
+			
+			raf_count++;
+			
+			return( raf );
+		}
+	}
+	
+	@Override
+	protected void
+	releaseRAF(
+		RandomAccessFile	_raf )
+	{
+		synchronized( this ){
+
+			raf_count--;
+			
+			if ( raf_count == 0 ){
+				
+				try{
+					raf.close();
+					
+				}catch( Throwable e ){
+				}
+				
+				raf = null;
+			}
+		}
+	}
+	
 	protected boolean
 	destroy()
 	{
 		if ( super.destroy()){
 			
-			for ( RandomAccessFile raf: rafs ){
+			if ( raf != null ){	
 				
 				try{				
 					raf.close();
 					
 				}catch( Throwable e ){	
 				}
+				
+				raf = null;
 			}
-			
-			rafs.clear();
-			
+					
 			return( true );
 		}
 		
