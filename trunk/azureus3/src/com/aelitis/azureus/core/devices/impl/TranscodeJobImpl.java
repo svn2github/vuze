@@ -320,8 +320,16 @@ TranscodeJobImpl
 	{
 		synchronized( this ){
 
-			auto_retry 			= true;
-			auto_retry_count++;
+			if ( _auto_retry ){
+				
+				auto_retry 	= true;
+				
+				auto_retry_count++;
+				
+			}else{
+				
+				auto_retry = false;
+			}
 		}
 	}
 	

@@ -653,7 +653,7 @@ public class SBC_DevicesView
 
 			int state = job.getState();
 
-			if (state != TranscodeJob.ST_RUNNING) {
+			if (state != TranscodeJob.ST_RUNNING || !job.canPause()) {
 
 				can_pause = false;
 			}

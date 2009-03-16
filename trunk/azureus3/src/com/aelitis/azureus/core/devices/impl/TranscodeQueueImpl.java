@@ -342,7 +342,7 @@ TranscodeQueueImpl
 								// and eventually failing - try and spot this behaviour and revert
 								// to direct input if needed
 							
-							if ( Constants.isOSX && !job.useDirectInput()){
+							if ( Constants.isOSX && job.canUseDirectInput() && job.getAutoRetryCount() == 0 ){
 								
 								if ( connect_rate > 5 && last_percent < 100 ){
 									
@@ -365,18 +365,10 @@ TranscodeQueueImpl
 											double over_write = ((double)total_write)/length;
 										
 											if ( over_write > 5.0 ){
-
-												if ( 	file.getDownloaded() == length &&
-														file.getFile().length() == length ){
-														
-													job.setUseDirectInput();
 													
-													job.setAutoRetry( true );
+												failed( new TranscodeException( "Overwrite limit exceeded, abandoning transcode" ));
 													
-													failed( new TranscodeException( "Overwrite limit exceeded, abandoning transcode" ));
-													
-													provider_job[0].cancel();
-												}		
+												provider_job[0].cancel();		
 											}
 										}	
 									}
@@ -721,6 +713,15 @@ TranscodeQueueImpl
 		}catch( Throwable e ){
 			
 			job.failed( e );
+			
+			if ( job.getAutoRetryCount() == 0 && job.canUseDirectInput() && !job.useDirectInput()){
+				
+				log( "Auto-retrying transcode with direct input" );
+				
+				job.setUseDirectInput();
+				
+				job.setAutoRetry( true );
+			}
 			
 			return( false );
 			

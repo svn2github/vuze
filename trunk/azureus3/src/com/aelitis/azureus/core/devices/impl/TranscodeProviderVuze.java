@@ -416,7 +416,10 @@ TranscodeProviderVuze
 					}
 				}
 				
-				manager.log( "Failed to use direct input as source file doesn't exist/incomplete" );
+				if ( source_url == null ){
+				
+					manager.log( "Failed to use direct input as source file doesn't exist/incomplete" );
+				}
 			}
 			
 			if ( source_url == null ){
