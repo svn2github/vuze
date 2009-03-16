@@ -591,6 +591,9 @@ public class SWTSkinObjectText2
 
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
+				if (canvas == null || canvas.isDisposed()) {
+					return;
+				}
 				canvas.redraw();
 				if (relayoutOnTextChange) {
 					canvas.layout(true);
