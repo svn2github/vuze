@@ -69,6 +69,9 @@ TranscodeJobImpl
 	private long					paused_on;
 	private long					process_time;
 	
+	private boolean					use_direct_input;
+	private boolean					auto_retry;
+	
 	private Download				download;
 	private boolean					download_ok;
 	
@@ -280,6 +283,31 @@ TranscodeJobImpl
 			
 			return( Long.MAX_VALUE );
 		}
+	}
+	
+	protected boolean
+	useDirectInput()
+	{
+		return( use_direct_input );
+	}
+	
+	protected void
+	setUseDirectInput()
+	{
+		use_direct_input = true;
+	}
+	
+	protected void
+	setAutoRetry(
+		boolean		_auto_retry )
+	{
+		auto_retry 			= true;
+	}
+	
+	protected boolean
+	isAutoRetry()
+	{
+		return( auto_retry );
 	}
 	
 	protected boolean

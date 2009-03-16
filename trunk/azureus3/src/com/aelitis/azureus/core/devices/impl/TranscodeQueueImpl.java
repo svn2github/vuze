@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -50,6 +51,8 @@ import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.average.Average;
+import com.aelitis.azureus.core.util.average.AverageFactory;
 
 public class 
 TranscodeQueueImpl 	
@@ -150,6 +153,13 @@ TranscodeQueueImpl
 						int		eta_secs,
 						int		width,
 						int		height )
+					{
+					}
+					
+					public void
+					streamStats(
+						long					connect_rate,
+						long					write_speed )
 					{
 					}
 					
@@ -265,6 +275,13 @@ TranscodeQueueImpl
 					{
 						private boolean	resolution_updated;
 					
+						private final int ETA_AVERAGE_SIZE	= 10;
+						
+						private int		last_eta;
+						private int		eta_samples;
+						private Average eta_average 		= AverageFactory.MovingAverage(ETA_AVERAGE_SIZE);
+						private int		last_percent;
+						
 						public void
 						updateProgress(
 							int			percent,
@@ -272,6 +289,9 @@ TranscodeQueueImpl
 							int			new_width,
 							int			new_height )
 						{
+							last_eta 		= eta_secs;
+							last_percent	= percent;
+							
 							TranscodeProviderJob	prov_job = provider_job[0];
 							
 							if ( prov_job == null ){
@@ -314,10 +334,67 @@ TranscodeQueueImpl
 						}
 						
 						public void
+						streamStats(
+							long					connect_rate,
+							long					write_speed )
+						{
+								// problem on OSX with some files thrashing the indirect piped input
+								// and eventually failing - try and spot this behaviour and revert
+								// to direct input if needed
+							
+							if ( Constants.isOSX && !job.useDirectInput()){
+								
+								if ( connect_rate > 5 && last_percent < 100 ){
+									
+									long eta = (long)eta_average.update(last_eta );
+
+									eta_samples++;
+									
+									if ( eta_samples >= ETA_AVERAGE_SIZE ){
+										
+										long	total_time = (eta*100 )/(100-last_percent);
+										
+										long 	total_write = total_time*write_speed;
+										
+										DiskManagerFileInfo file = job.getFile();
+										
+										long	length = file.getLength();
+
+										if ( length > 0 ){
+
+											double over_write = ((double)total_write)/length;
+										
+											if ( over_write > 5.0 ){
+
+												if ( 	file.getDownloaded() == length &&
+														file.getFile().length() == length ){
+														
+													job.setUseDirectInput();
+													
+													job.setAutoRetry( true );
+													
+													failed( new TranscodeException( "Overwrite limit exceeded, abandoning transcode" ));
+													
+													provider_job[0].cancel();
+												}		
+											}
+										}	
+									}
+								}else{
+									
+									eta_samples = 0;
+								}
+							}
+						}
+						
+						public void
 						failed(
 							TranscodeException		e )
 						{
-							error[0] = e;
+							if ( error[0] == null ){
+							
+								error[0] = e;
+							}
 							
 							xcode_sem.release();
 						}
@@ -329,7 +406,7 @@ TranscodeQueueImpl
 						}
 					};
 				
-				boolean	direct_input = false;
+				boolean	direct_input = job.useDirectInput();
 					
 				if ( job.isStream()){
 					
@@ -704,7 +781,15 @@ TranscodeQueueImpl
 											
 												// pick up any existing paused ones (remember, paused=running but with transcode paused
 												
-											if ( state == TranscodeJob.ST_PAUSED ){
+											if ( state == TranscodeJob.ST_FAILED && j.isAutoRetry()){
+												
+												j.setAutoRetry( false );
+												
+												job	= j;
+												
+												break;
+												
+											}else if ( state == TranscodeJob.ST_PAUSED ){
 	
 												job = j;
 												

@@ -490,6 +490,14 @@ TranscodeProviderVuze
 							}
 							
 							public void
+							streamStats(
+								long					connect_rate,
+								long					write_speed )
+							{
+								_adapter.streamStats(connect_rate, write_speed);
+							}
+							
+							public void
 							failed(
 								TranscodeException		error )
 							{
@@ -533,8 +541,9 @@ TranscodeProviderVuze
 									
 									if ( f_pipe != null ){
 										
-										System.out.println( "Pipe: con=" + f_pipe.getConnectionSpeed() + "/sec, write=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( f_pipe.getWriteSpeed()));
+										adapter.streamStats( f_pipe.getConnectionRate(), f_pipe.getWriteSpeed());										
 									}
+									
 									try{
 										Map status = (Map)ipc.invoke( "getTranscodeStatus", new Object[]{ context });
 										

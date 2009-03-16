@@ -103,7 +103,7 @@ TranscodePipe
 	}
 
 	public long
-	getConnectionSpeed()
+	getConnectionRate()
 	{
 		return( connection_speed.getAverage());
 	}

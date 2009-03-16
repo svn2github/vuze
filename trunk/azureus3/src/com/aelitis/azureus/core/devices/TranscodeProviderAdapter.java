@@ -32,6 +32,11 @@ TranscodeProviderAdapter
 		int						new_height );
 	
 	public void
+	streamStats(
+		long					connect_rate,
+		long					write_speed );
+	
+	public void
 	failed(
 		TranscodeException		error );
 	
