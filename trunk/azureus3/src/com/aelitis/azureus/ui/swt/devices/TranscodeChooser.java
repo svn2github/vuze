@@ -20,6 +20,7 @@ package com.aelitis.azureus.ui.swt.devices;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -300,6 +301,12 @@ public abstract class TranscodeChooser
 			shell.dispose();
 			return;
 		}
+		
+		Arrays.sort(profiles, new Comparator<TranscodeProfile>() {
+			public int compare(TranscodeProfile o1, TranscodeProfile o2) {
+				return o1.getName().compareToIgnoreCase(o2.getName());
+			}
+		});
 
 		Composite parent = soList.getComposite();
 		if (parent.getChildren().length > 0) {
