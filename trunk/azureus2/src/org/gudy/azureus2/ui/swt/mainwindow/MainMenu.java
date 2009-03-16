@@ -122,7 +122,7 @@ public class MainMenu
 			DebugMenuHelper.createDebugMenuItem(menuBar);
 		}
 
-		addHelpMenu(parent);
+		addV2HelpMenu(parent);
 
 		/*
 		 * Enabled/disable menus based on what ui mode we're in
@@ -295,7 +295,7 @@ public class MainMenu
 	 * Creates the Help menu and all its children
 	 * @param parent
 	 */
-	private void addHelpMenu(final Shell parent) {
+	private void addV2HelpMenu(final Shell parent) {
 		MenuItem helpItem = MenuFactory.createHelpMenuItem(menuBar);
 
 		Menu helpMenu = helpItem.getMenu();
@@ -309,7 +309,7 @@ public class MainMenu
 		MenuFactory.addReleaseNotesMenuItem(helpMenu);
 		MenuFactory.addWhatsNewMenuItem(helpMenu);
 		
-		MenuFactory.addFAQMenuItem(helpMenu, Constants.AZUREUS_WIKI);
+		MenuFactory.addWikiMenuItem(helpMenu);
 		MenuFactory.addGetPluginsMenuItem(helpMenu);
 
 		MenuFactory.addSeparatorMenuItem(helpMenu);

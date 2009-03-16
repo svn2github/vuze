@@ -928,16 +928,10 @@ public class MenuFactory
 		});
 	}
 
-	/**
-	 * Add the FAQ menu item to the given menu
-	 * @param menu
-	 * @param faq_url the fully qualified url to the appropriate FAQ (Vuze uses a different url than Classic)
-	 * @return
-	 */
-	public static MenuItem addFAQMenuItem(Menu menu, final String faq_url) {
-		return addMenuItem(menu, MENU_ID_FAQ, new Listener() {
+	public static MenuItem addWikiMenuItem(Menu menu) {
+		return addMenuItem(menu, MENU_ID_COMMUNITY_WIKI, new Listener() {
 			public void handleEvent(Event e) {
-				Utils.launch(faq_url);
+				Utils.launch(Constants.AZUREUS_WIKI);
 			}
 		});
 	}
@@ -1142,6 +1136,8 @@ public class MenuFactory
 				KeyBindings.setAccelerator(item,
 						MessageText.resolveAcceleratorKey(localizationKey));
 				updateMenuText(item.getMenu());
+			} else {
+				Messages.updateLanguageForControl(item);
 			}
 		}
 	}
