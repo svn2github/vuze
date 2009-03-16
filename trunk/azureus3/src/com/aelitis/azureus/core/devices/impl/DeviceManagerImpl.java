@@ -43,6 +43,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.util.*;
 
 public class 
@@ -582,6 +583,13 @@ DeviceManagerImpl
 		DeviceImpl		device )
 	{
 		configDirty();
+		
+		// I'd rather put this in a listener, but for now this will ensure
+		// it gets QOS'd even before any listeners are added
+		try {
+			PlatformDevicesMessenger.qosFoundDevice(device);
+		} catch (Exception e) {
+		}
 		
 		for ( DeviceManagerListener listener: listeners ){
 			
