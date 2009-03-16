@@ -110,7 +110,7 @@ public class MainMenu
 			DebugMenuHelper.createDebugMenuItem(menuDebug);
 		}
 
-		addHelpMenu();
+		addV3HelpMenu();
 
 		/*
 		 * Enabled/disable menus based on what ui mode we're in; this method call controls
@@ -730,7 +730,7 @@ public class MainMenu
 	/**
 	 * Creates the Help menu and all its children
 	 */
-	private void addHelpMenu() {
+	private void addV3HelpMenu() {
 		MenuItem helpItem = MenuFactory.createHelpMenuItem(menuBar);
 		Menu helpMenu = helpItem.getMenu();
 
