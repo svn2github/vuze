@@ -161,7 +161,7 @@ public class PlatformDevicesMessenger
 		
 		if (target instanceof DeviceMediaRenderer) {
 			DeviceMediaRenderer renderer = (DeviceMediaRenderer) target;
-			map.put("render-species", Integer.valueOf(renderer.getRendererSpecies()));
+			map.put("renderer-species", Integer.valueOf(renderer.getRendererSpecies()));
 		}
 
 		// Don't worry, we don't send the filename, just the extension.  This
