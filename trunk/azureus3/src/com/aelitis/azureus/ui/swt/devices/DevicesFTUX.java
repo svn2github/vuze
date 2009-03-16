@@ -38,6 +38,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
@@ -103,7 +104,7 @@ public class DevicesFTUX
 		// This is a simple dialog box, so instead of using SkinnedDialog, we'll
 		// just built it old school
 		shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM);
-		shell.setText("Turn On Device Support");
+		shell.setText(MessageText.getString("devices.turnon.title"));
 
 		Utils.setShellIcon(shell);
 
@@ -123,15 +124,6 @@ public class DevicesFTUX
 		checkQOS = new Button(shell, SWT.CHECK);
 		checkQOS.setSelection(true);
 		Messages.setLanguageText(checkQOS, "devices.turnon.qos");
-		checkQOS.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
-				COConfigurationManager.setParameter(
-						PlatformDevicesMessenger.CFG_SEND_QOS, checkQOS.getSelection());
-			}
-		
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		});
 		
 		Link lblLearnMore = new Link(shell, SWT.NONE);
 		lblLearnMore.setText("<A HREF=\"" + URL_LEARN_MORE + "\">"
@@ -143,10 +135,11 @@ public class DevicesFTUX
 		});
 
 		btnInstall = new Button(shell, SWT.NONE);
-		btnInstall.setText("Turn On");
+		Messages.setLanguageText(btnInstall, "Button.turnon");
 		btnInstall.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				doInstall(checkITunes.getSelection());
+				boolean sendQOS = checkQOS.getSelection();
+				doInstall(checkITunes.getSelection(), sendQOS);
 			}
 		});
 
@@ -244,16 +237,35 @@ public class DevicesFTUX
 	}
 
 	/**
+	 * @param sendQos 
 	 * @param selection
 	 *
 	 * @since 4.1.0.5
 	 */
-	protected void doInstall(boolean itunes) {
-		try {
-			PlatformDevicesMessenger.qosTurnOn(itunes);
-		} catch (Throwable ignore) {
-		}
+	protected void doInstall(boolean itunes, boolean sendQOS) {
+		COConfigurationManager.setParameter(PlatformDevicesMessenger.CFG_SEND_QOS,
+				sendQOS);
 
+		if (sendQOS) {
+  		try {
+  			PlatformDevicesMessenger.qosTurnOn(itunes);
+  		} catch (Throwable ignore) {
+  		}
+  		try {
+  			// catch any devices we found before installing additional plugins
+  			DeviceManager device_manager = DeviceManagerFactory.getSingleton();
+  			Device[] devices = device_manager.getDevices();
+  			for (Device device : devices) {
+  	  		try {
+  	  			PlatformDevicesMessenger.qosFoundDevice(device);
+  	  		} catch (Throwable ignore) {
+  	  		}
+				}
+  		} catch (Throwable ignore) {
+  		}
+		}
+		
+		
 		List<InstallablePlugin> plugins = new ArrayList<InstallablePlugin>(2);
 
 		final PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();

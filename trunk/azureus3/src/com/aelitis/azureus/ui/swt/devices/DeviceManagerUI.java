@@ -1372,6 +1372,8 @@ DeviceManagerUI
 
 										entry = SideBar.getEntry( key );
 									}
+									
+									entry.setLogID(parent + "-" + device.getName());
 
 									new_di.setTreeItem( entry.getTreeItem(), entry );
 									
@@ -1725,7 +1727,7 @@ DeviceManagerUI
 		TranscodeTarget	target,
 		TranscodeProfile profile,
 		Object			payload,
-		int				transcode_equirement )
+		int				transcode_requirement )
 	{
 		if ( payload instanceof String[]){
 			
@@ -1742,7 +1744,7 @@ DeviceManagerUI
 							target,
 							profile,
 							new DiskManagerFileInfoFile( f ),
-							transcode_equirement );
+							transcode_requirement );
 						
 					}catch( Throwable e ){
 						
@@ -1800,7 +1802,7 @@ DeviceManagerUI
   											target,
   											profile,
   											dm_file, 
-  											transcode_equirement );
+  											transcode_requirement );
 										
 									}catch( Throwable e ){
 										
@@ -1825,7 +1827,7 @@ DeviceManagerUI
 										target,
 										profile,
 										dm_file,
-										transcode_equirement);
+										transcode_requirement);
 									
 								}catch( Throwable e ){
 									

@@ -68,8 +68,6 @@ public abstract class TranscodeChooser
 
 	protected TranscodeProfile selectedProfile;
 
-	private Listener clickListener;
-
 	private SWTSkinObjectContainer soList;
 
 	private Shell mainShell;
@@ -148,43 +146,10 @@ public abstract class TranscodeChooser
 
 		soList = (SWTSkinObjectContainer) skin.getSkinObject("list");
 		if (soList != null) {
-			clickListener = new Listener() {
-				boolean down = false;
-
-				public void handleEvent(Event event) {
-					if (event.type == SWT.MouseDown) {
-						down = true;
-					} else if (event.type == SWT.MouseUp && down) {
-						Widget widget = (event.widget instanceof Label)
-								? ((Label) event.widget).getParent() : event.widget;
-						if (selectedDevice == null) {
-							selectedDevice = (TranscodeTarget) widget.getData("DeviceMediaRenderer");
-							if (selectedDevice == null) {
-								Debug.out("device is null!");
-							}
-							createProfileList(soList);
-						} else {
-							selectedProfile = (TranscodeProfile) widget.getData("TranscodeProfile");
-							if (selectedProfile == null) {
-								Debug.out("profile is null!");
-							} else {
-								if (btnNoPrompt != null) {
-									if (btnNoPrompt.getSelection()) {
-										selectedDevice.setDefaultTranscodeProfile(selectedProfile);
-									}
-								}
-							}
-							shell.dispose();
-						}
-						down = false;
-					}
-				}
-			};
-
 			if (selectedDevice == null) {
 				createDeviceList(soList);
 			} else {
-				createProfileList(soList);
+				createProfileList(soList, "drop");
 			}
 		}
 
@@ -297,7 +262,7 @@ public abstract class TranscodeChooser
 	 *
 	 * @since 4.1.0.5
 	 */
-	private void createProfileList(SWTSkinObjectContainer soList) {
+	private void createProfileList(SWTSkinObjectContainer soList, String source) {
 		if (selectedDevice == null) {
 			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "No Device",
 					"No Device Selected!?");
@@ -306,7 +271,7 @@ public abstract class TranscodeChooser
 		}
 		
 		try {
-			PlatformDevicesMessenger.qosYouJustDropped((DeviceMediaRenderer) selectedDevice);
+			PlatformDevicesMessenger.qosTranscodeRequest(selectedDevice, source);
 		} catch (Throwable ignore) {
 		}
 
@@ -392,6 +357,33 @@ public abstract class TranscodeChooser
 				resetProfileInfoBox(true);
 			}
 		});
+		
+		Listener clickListener = new Listener() {
+			boolean down = false;
+
+			public void handleEvent(Event event) {
+				if (event.type == SWT.MouseDown) {
+					down = true;
+				} else if (event.type == SWT.MouseUp && down) {
+					Widget widget = (event.widget instanceof Label)
+							? ((Label) event.widget).getParent() : event.widget;
+					selectedProfile = (TranscodeProfile) widget.getData("TranscodeProfile");
+					if (selectedProfile == null) {
+						Debug.out("profile is null!");
+					} else {
+						if (btnNoPrompt != null) {
+							if (btnNoPrompt.getSelection()) {
+								selectedDevice.setDefaultTranscodeProfile(selectedProfile);
+							}
+						}
+					}
+					shell.dispose();
+					down = false;
+				}
+			}
+		};
+
+
 
 		GridData gridData;
 		for (TranscodeProfile profile : profiles) {
@@ -647,41 +639,6 @@ public abstract class TranscodeChooser
 			}
 
 			button.setText(sb.toString());
-
-			/***
-
-			Composite c = new Composite(parent, SWT.NONE);
-			c.setCursor(c.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-			c.addPaintListener(paintListener);
-
-			c.setData("DeviceMediaRenderer", device);
-
-			RowLayout fillLayout = new RowLayout(SWT.HORIZONTAL);
-			fillLayout.marginWidth = 10;
-			fillLayout.marginHeight = 2;
-			fillLayout.marginTop = fillLayout.marginBottom = 0;
-			fillLayout.center = true;
-			fillLayout.spacing = 10;
-			c.setLayout(fillLayout);
-			GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-			gridData.heightHint = 30;
-			c.setLayoutData(gridData);
-			c.addListener(SWT.MouseUp, clickListener);
-			c.addListener(SWT.MouseDown, clickListener);
-
-			Label label = new Label(c, SWT.WRAP);
-			label.setCursor(c.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-			label.setImage(imgRenderer);
-			label.addListener(SWT.MouseUp, clickListener);
-			label.addListener(SWT.MouseDown, clickListener);
-
-			label = new Label(c, SWT.WRAP | SWT.LEFT);
-			label.setFont(fontDevice);
-			label.setText(device.getName());
-			label.setCursor(c.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-			label.addListener(SWT.MouseUp, clickListener);
-			label.addListener(SWT.MouseDown, clickListener);
-			*/
 		}
 
 		if (numDevices == 0) {
@@ -709,7 +666,7 @@ public abstract class TranscodeChooser
 				soOk.addSelectionListener(new ButtonListenerAdapter() {
 					public void pressed(SWTSkinButtonUtility buttonUtility,
 							SWTSkinObject skinObject, int stateMask) {
-						createProfileList(soList);
+						createProfileList(soList, "chooser");
 					}
 				});
 			}

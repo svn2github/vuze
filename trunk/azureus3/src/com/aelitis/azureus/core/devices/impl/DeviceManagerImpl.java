@@ -589,6 +589,7 @@ DeviceManagerImpl
 		try {
 			PlatformDevicesMessenger.qosFoundDevice(device);
 		} catch (Exception e) {
+			Debug.out(e);
 		}
 		
 		for ( DeviceManagerListener listener: listeners ){

@@ -384,6 +384,11 @@ TranscodeJobImpl
 				state = ST_FAILED;
 			
 				error = Debug.getNestedExceptionMessage( e );
+				
+				// process_time filled with negative pause time, so add to it
+				process_time += SystemTime.getCurrentTime() - started_on;
+				
+				started_on = paused_on = 0;
 			}
 		}
 		
@@ -399,6 +404,8 @@ TranscodeJobImpl
 			
 			// process_time filled with negative pause time, so add to it
 			process_time += SystemTime.getCurrentTime() - started_on;
+			
+			started_on = paused_on = 0;
 		}
 		
 		if ( download != null ){
@@ -661,6 +668,9 @@ TranscodeJobImpl
 			return process_time;
 		}
 		if (started_on == 0) {
+			if (process_time > 0) {
+				return process_time;
+			}
 			return 0;
 		}
 		// process_time filled with pause

@@ -593,21 +593,28 @@ public class SideBar
 							String id = (String) treeItem.getData("Plugin.viewID");
 							SideBarEntrySWT entry = getEntry(id);
 							Rectangle itemBounds = entry.getBounds();
+							
+							// null itemBounds is weird, the entry must be disposed. it 
+							// happened once, so let's check..
+							if (itemBounds != null) {
+  							event.item = treeItem;
+  
+  							boolean selected = tree.getSelectionCount() == 1
+  									&& tree.getSelection()[0].equals(treeItem);
+  							event.detail = selected ? SWT.SELECTED : SWT.NONE;
+  
+  							Rectangle newClip = bounds.intersection(itemBounds);
+  							//System.out.println("Paint " + id + " @ " + newClip);
+  							event.setBounds(newClip);
+  							//event.gc.setClipping(newClip);
+  
+  							paintSideBar(event, entry);
 
-							event.item = treeItem;
+  							y = itemBounds.y + itemBounds.height + 1;
+							} else {
+								y += tree.getItemHeight();
+							}
 
-							boolean selected = tree.getSelectionCount() == 1
-									&& tree.getSelection()[0].equals(treeItem);
-							event.detail = selected ? SWT.SELECTED : SWT.NONE;
-
-							Rectangle newClip = bounds.intersection(itemBounds);
-							//System.out.println("Paint " + id + " @ " + newClip);
-							event.setBounds(newClip);
-							//event.gc.setClipping(newClip);
-
-							paintSideBar(event, entry);
-
-							y = itemBounds.y + itemBounds.height + 1;
 							if (y > bounds.y + bounds.height) {
 								break;
 							}
@@ -1695,9 +1702,6 @@ public class SideBar
 				treeItem = new TreeItem((TreeItem) parentTreeItem, SWT.NONE, index);
 			} else {
 				treeItem = new TreeItem((TreeItem) parentTreeItem, SWT.NONE);
-			}
-			if (parentTreeItem != null) {
-				((TreeItem)parentTreeItem).setExpanded(false);
 			}
 		}
 

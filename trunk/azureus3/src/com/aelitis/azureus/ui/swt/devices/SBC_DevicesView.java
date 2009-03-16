@@ -692,25 +692,6 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobAdded(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobAdded(TranscodeJob job) {
-		try {
-			if (device instanceof DeviceMediaRenderer) {
-				DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
-				String ext = "??";
-				long size = -1;
-				try {
-					ext = FileUtil.getExtension(job.getFile().getFile().getName());
-					size = job.getFile().getLength();
-				} catch (Exception e) {
-				}
-				// force state log to queued just in case it got started (or errored)
-				// before the listener was called
-				PlatformDevicesMessenger.qosTranscode(job, TranscodeJob.ST_QUEUED,
-						renderer, job.getProfile(), ext, size, job.getProcessTime());
-			}
-		} catch (Exception e) {
-			Debug.out(e);
-		}
-
 		synchronized (this) {
 			if (tvFiles == null) {
 				return;
@@ -727,27 +708,6 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobChanged(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobChanged(TranscodeJob job) {
-		try {
-			if (device instanceof DeviceMediaRenderer) {
-				DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
-				int state = job.getState();
-				if (state == TranscodeJob.ST_COMPLETE
-						|| state == TranscodeJob.ST_FAILED) {
-					String ext = "??";
-					long size = -1;
-					try {
-						ext = FileUtil.getExtension(job.getFile().getFile().getName());
-						size = job.getFile().getLength();
-					} catch (Exception e) {
-					}
-					PlatformDevicesMessenger.qosTranscode(job, state, renderer,
-							job.getProfile(), ext, size, job.getProcessTime());
-				}
-			}
-		} catch (Exception e) {
-			Debug.out(e);
-		}
-
 		synchronized (this) {
 			if (tvFiles == null) {
 				return;
