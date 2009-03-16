@@ -438,12 +438,15 @@ TranscodeJobImpl
 	{
 		synchronized( this ){
 		
+			started_on 	= SystemTime.getMonotonousTime();
+			paused_on	= 0;
+
+				// this is for an Azureus restart with a paused job - we don't want to change the
+				// state as we want it to re-pause...
+			
 			if ( state != ST_PAUSED ){
 			
-				state = ST_RUNNING;
-				
-				started_on 	= SystemTime.getMonotonousTime();
-				paused_on	= 0;
+				state = ST_RUNNING;				
 			}
 		}
 		
