@@ -31,11 +31,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -631,17 +633,8 @@ public class SBC_DevicesView
 		remove_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				for (TranscodeFile file : files) {
-					TranscodeJob job = file.getJob();
-
-					if (job != null) {
-						job.remove();
-					}
-
-					try {
-						file.delete(true);
-
-					} catch (Throwable f) {
-					}
+				
+					deleteFile( file );
 				}
 			};
 		});
@@ -880,11 +873,7 @@ public class SBC_DevicesView
 
 		if (itemKey.equals("remove")) {
 			for (Object ds : selectedDS) {
-				try {
-					((TranscodeFile) ds).delete(true);
-				} catch (TranscodeException e) {
-					Debug.out(e);
-				}
+				deleteFile((TranscodeFile) ds);
 			}
 		}
 
@@ -915,11 +904,7 @@ public class SBC_DevicesView
 		boolean forceSort = false;
 		for (TranscodeJob job : jobs) {
 
-			if (itemKey.equals("remove")) {
-
-				job.remove();
-
-			} else if (itemKey.equals("stop")) {
+			if ( itemKey.equals("stop")) {
 
 				job.stop();
 
@@ -997,4 +982,99 @@ public class SBC_DevicesView
 		}
 	}
 
+	protected void
+	deleteFile(
+		TranscodeFile	file )
+	{
+		if ( tvFiles == null || tvFiles.isDisposed()){
+			
+			return;
+		}
+		
+		try{
+			boolean	do_delete		= false;
+			
+				// we are already on SWT thread
+			
+			File cache_file = file.getCacheFileIfExists();
+			
+			if ( cache_file != null && file.isComplete()){
+				
+				String path = cache_file.toString();
+		
+				String title = MessageText.getString( "xcode.deletedata.title" );
+				
+				String copy_text = "";
+				
+				Device device = file.getDevice();
+				
+				if ( device instanceof DeviceMediaRenderer ){
+				
+					if ( ((DeviceMediaRenderer)device).canCopyToDevice()){
+						
+						copy_text = MessageText.getString( "xcode.deletedata.message.2", new String[]{ device.getName() });
+					}
+				}
+				
+				String text = MessageText.getString( "xcode.deletedata.message",
+						new String[] {
+							file.getName(),
+							file.getProfileName(),
+							copy_text
+						});
+						
+				
+				MessageBoxShell mb = 
+					new MessageBoxShell(
+						tvFiles.getComposite().getShell(), 
+						title, 
+						text,
+						new String[] {
+							MessageText.getString("Button.yes"),
+							MessageText.getString("Button.no"),
+						}, 
+						1,
+						"xcode.deletedata.noconfirm.key",
+						MessageText.getString("deletedata.noprompt"),
+						false,
+						0 );
+				
+				mb.setRememberOnlyIfButton(0);
+				
+				DownloadManager dm = null;
+				
+				if ( dm != null ){
+				
+					mb.setRelatedObject(dm);
+				}
+				
+				mb.setLeftImage(SWT.ICON_WARNING);
+		
+				int result = mb.open();
+				
+				if ( result == 0 ){
+					
+					do_delete = true;
+				}
+			}else{
+				
+				do_delete = true;
+			}
+			
+			if ( do_delete ){
+				
+				TranscodeJob job = file.getJob();
+
+				if ( job != null ){
+					
+					job.remove();
+				}
+
+				file.delete( cache_file != null );
+			}
+		}catch( Throwable e ){
+	
+			Debug.out( e );
+		}
+	}
 }

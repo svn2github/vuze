@@ -22,12 +22,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 
 import com.aelitis.azureus.core.devices.TranscodeFile;
-import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.util.DataSourceUtils;
 
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -59,35 +55,12 @@ public class ColumnTJ_Name
 		if (tf == null) {
 			return;
 		}
-		TranscodeJob job = tf.getJob();
 
-		String text;
+		String text = tf.getName();
 		
-		if (job == null) {
-			try{
-				DiskManagerFileInfo sourceFile = tf.getSourceFile();
-				
-				try {
-					Download download = sourceFile.getDownload();
-					if (download == null) {
-						text = sourceFile.getFile().getName();
-					} else {
-						text = download.getName();
-						DiskManagerFileInfo[] fileInfo = download.getDiskManagerFileInfo();
-						if (fileInfo.length > 1) {
-							text += ": " + sourceFile.getFile().getName();
-						}
-					}
-				} catch (DownloadException e) {
-					text = sourceFile.getFile().getName();
-				}
+		if ( text == null || text.length() == 0 ){
 			
-			}catch( Throwable e ){
-				// most likely been recently deleted, stick with existing text
-				return;
-			}
-		} else {
-			text = job.getName();
+			return;
 		}
 
 		cell.setText(text);

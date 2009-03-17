@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import com.aelitis.azureus.core.devices.Device;
@@ -119,6 +120,53 @@ TranscodeFileImpl
 	getKey()
 	{
 		return( key );
+	}
+	
+	public String
+	getName()
+	{
+		TranscodeJob job = getJob();
+
+		String text;
+		
+		if ( job == null){
+			
+			try{
+				DiskManagerFileInfo sourceFile = getSourceFile();
+				
+				try {
+					Download download = sourceFile.getDownload();
+					
+					if ( download == null ){
+						
+						text = sourceFile.getFile().getName();
+						
+					}else{
+						
+						text = download.getName();
+						
+						DiskManagerFileInfo[] fileInfo = download.getDiskManagerFileInfo();
+						
+						if (fileInfo.length > 1) {
+							
+							text += ": " + sourceFile.getFile().getName();
+						}
+					}
+				}catch (DownloadException e ){
+					
+					text = sourceFile.getFile().getName();
+				}
+			
+			}catch( Throwable e ){
+
+				text = "";
+			}
+		}else{
+			
+			text = job.getName();
+		}
+		
+		return( text );
 	}
 	
 	public Device
@@ -412,6 +460,18 @@ TranscodeFileImpl
 	getCreationDateMillis()
 	{
 		return( getLong( KEY_DATE ));
+	}
+	
+	public File
+	getCacheFileIfExists()
+	{
+		try{
+			return( getCacheFile());
+			
+		}catch( Throwable e ){
+			
+			return( null );
+		}
 	}
 	
 	public void
