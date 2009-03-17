@@ -318,7 +318,7 @@ DeviceImpl
 	{
 		if ( getRendererSpecies() == DeviceMediaRenderer.RS_ITUNES ){
 			
-			return( "Apple TV, iPods" );
+			return( "iPhone, iPod, Apple TV" );
 		}
 		
 		return( null );
