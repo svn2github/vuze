@@ -1255,6 +1255,10 @@ public class SideBar
 				bounds.y = itemBounds.y + (itemBounds.height - bounds.height) / 2;
 				clipping.x += bounds.width + SIDEBAR_SPACING;
 
+				if (clipping.x > (treeArea.width - x1IndicatorOfs)) {
+					vitalityImage.setHitArea(null);
+					continue;
+				}
 				gc.drawImage(image, bounds.x, bounds.y);
 				vitalityImage.setHitArea(bounds);
 			}
