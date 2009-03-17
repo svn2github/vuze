@@ -378,7 +378,13 @@ PluginUpdatePlugin
 				
 				if ( pi.getPluginState().isDisabled()){
 					
-					continue;
+						// if it is disabled because it failed to load, carry on and check for updates as the newer version
+						// may be there to fix the load failure!
+					
+					if ( !pi.getPluginState().hasFailed()){
+						
+						continue;
+					}
 				}
 				
 				String	mand = pi.getPluginProperties().getProperty( "plugin.mandatory");
