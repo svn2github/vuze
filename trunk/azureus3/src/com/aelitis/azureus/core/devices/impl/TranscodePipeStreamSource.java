@@ -37,7 +37,7 @@ TranscodePipeStreamSource
 	
 		throws IOException
 	{
-		super();
+		super( null );
 		
 		source_port	= _source_port;
 	}		

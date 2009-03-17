@@ -60,11 +60,16 @@ TranscodePipe
 	private Average 	connection_speed 	= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 	private Average 	write_speed 		= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
+	private errorListener		error_listener;
+	
 	protected
-	TranscodePipe()
+	TranscodePipe(
+		errorListener		_error_listener )
 	
 		throws IOException
 	{
+		error_listener	= _error_listener;
+		
 		server_socket = new ServerSocket( 0, 50, InetAddress.getByName( "127.0.0.1" ));
 		
 		new AEThread2( "TranscodePipe", true )
@@ -374,8 +379,20 @@ TranscodePipe
 					
 				}catch( Throwable e ){
 				
-					// e.printStackTrace();
-					
+					if ( raf != null ){
+						
+						try{
+							synchronized( TranscodePipe.this ){
+
+								raf.seek( 0 );
+							
+								raf.read( new byte[1] );
+							}
+						}catch( Throwable f ){
+							
+							reportError( e );
+						}
+					}			
 				}finally{
 					
 					try{
@@ -511,7 +528,21 @@ TranscodePipe
 		return( true );
 	}
 	
-	protected class
+	protected void
+	reportError(
+		Throwable 	error )
+	{
+		if ( error_listener != null ){
+			
+			error_listener.error( error );
+			
+		}else{
+			
+			Debug.out( error );
+		}
+	}
+	
+	private class
 	bufferCache
 	{
 		private long	offset;
@@ -525,5 +556,14 @@ TranscodePipe
 			offset	= _offset;
 			data	= _data;
 		}
+	}
+	
+	
+	protected interface
+	errorListener
+	{
+		public void
+		error(
+			Throwable e );
 	}
 }

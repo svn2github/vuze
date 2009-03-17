@@ -173,7 +173,7 @@ TranscodeProviderVuze
 			
 			if ( source_file == null && source_url == null ){
 			
-				throw( new TranscodeException( "No UPnPAV URL and file doesn't exist" ));
+				throw( new TranscodeException( "File doesn't exist" ));
 			}
 
 			final TranscodePipe f_pipe = pipe;
@@ -401,6 +401,8 @@ TranscodeProviderVuze
 				throw( new TranscodeException( "Media Server plugin not found" ));
 			}
 			
+			final TranscodeProviderJob[] xcode_job = { null };
+			
 			URL 				source_url	= null;
 			TranscodePipe		pipe		= null;
 
@@ -437,13 +439,30 @@ TranscodeProviderVuze
 					
 					if ( source_file.exists()){
 						
-						pipe = new TranscodePipeFileSource( source_file );
+						pipe = 
+							new TranscodePipeFileSource( 
+									source_file,
+									new TranscodePipe.errorListener()
+									{
+										public void 
+										error(
+											Throwable e )
+										{
+											_adapter.failed(
+												new TranscodeException( "File access error", e ));
+											
+											if ( xcode_job[0] != null ){
+												
+												xcode_job[0].cancel();
+											}
+										}
+									});
 						
 						source_url = new URL( "http://127.0.0.1:" + pipe.getPort() + "/" );
 						
 					}else{
 						
-						throw( new TranscodeException( "No UPnPAV URL and file doesn't exist" ));
+						throw( new TranscodeException( "Source file doesn't exist" ));
 					}
 				}else{
 					source_url = new URL( url_str );
@@ -604,7 +623,7 @@ TranscodeProviderVuze
 					}.start();
 					
 			
-				return( 
+				xcode_job[0] = 
 					new TranscodeProviderJob()
 					{
 						public void
@@ -646,8 +665,10 @@ TranscodeProviderVuze
 								f_pipe.setMaxBytesPerSecond( max );
 							}
 						}
-					});
-						
+					};
+					
+				return( xcode_job[0] );
+				
 			}catch( Throwable e ){
 				
 				if ( pipe != null ){

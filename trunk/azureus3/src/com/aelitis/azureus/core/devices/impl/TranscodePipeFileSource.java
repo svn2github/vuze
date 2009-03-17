@@ -39,14 +39,15 @@ TranscodePipeFileSource
 	
 	private RandomAccessFile	raf;
 	private int					raf_count;
-	
+		
 	protected
 	TranscodePipeFileSource(
-		File		_source_file )
+		File			_source_file,
+		errorListener	_error_listener )
 	
 		throws IOException
 	{
-		super();
+		super( _error_listener );
 		
 		source_file	= _source_file;
 	}		

@@ -38,7 +38,7 @@ TranscodePipeStreamSource2
 	
 		throws IOException
 	{
-		super();
+		super( null );
 		
 		adapter	= _adapter;
 	}		

@@ -703,6 +703,12 @@ TranscodeJobImpl
 								
 				reset();
 				
+					// manual start, scrub error details
+				
+				use_direct_input 	= false;
+				auto_retry			= false;
+				auto_retry_count	= 0;
+
 			}else{
 				
 				return;
