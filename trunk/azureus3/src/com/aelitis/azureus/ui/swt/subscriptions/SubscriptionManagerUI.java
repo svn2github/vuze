@@ -724,10 +724,14 @@ SubscriptionManagerUI
 			side_bar_setup = true;
 		}
 		
-		SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
+		final SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
+		
 		if (mainSBEntry != null) {
+			
 			SideBarVitalityImage addSub = mainSBEntry.addVitalityImage("image.sidebar.subs.add");
+			
 			addSub.setToolTip("Add Subscription");
+			
 			addSub.addListener(new SideBarVitalityImageListener() {
 				public void sbVitalityImage_clicked(int x, int y) {
 					new SubscriptionWizard();
@@ -736,14 +740,39 @@ SubscriptionManagerUI
 			
 			mainSBEntry.setImageLeftID("image.sidebar.subscriptions");
 
-			mainSBEntry.setTitleInfo(new ViewTitleInfo() {
-				public Object getTitleInfoProperty(int propertyID) {
-					if (propertyID == TITLE_TEXT) {
-						return MessageText.getString("subscriptions.view.title");
+			mainSBEntry.setTitleInfo(
+				new ViewTitleInfo() 
+				{
+					public Object 
+					getTitleInfoProperty(
+						int propertyID ) 
+					{
+						if (propertyID == TITLE_TEXT) {
+							
+							return MessageText.getString("subscriptions.view.title");
+							
+						}else if ( propertyID == TITLE_INDICATOR_TEXT ){
+
+							boolean expanded = mainSBEntry.getTreeItem().getExpanded();
+
+							if ( !expanded ){
+								
+								int	total = 0;
+								
+								Subscription[] subs = subs_man.getSubscriptions();
+								
+								for ( Subscription s: subs ){
+									
+									total += s.getHistory().getNumUnread();
+								}
+								
+								return( String.valueOf( total ));
+							}
+						}
+						
+						return null;
 					}
-					return null;
-				}
-			});
+				});
 
 			side_bar.createTreeItemFromIViewClass(null,
 					SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS,
@@ -1239,6 +1268,13 @@ SubscriptionManagerUI
 							run()
 							{
 								ViewTitleInfoManager.refreshTitleInfo( existing_si.getView());
+								
+								SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
+								
+								if ( mainSBEntry != null ){
+									
+									ViewTitleInfoManager.refreshTitleInfo( mainSBEntry.getTitleInfo());
+								}
 								
 								setStatus( subs, existing_si );
 							}
