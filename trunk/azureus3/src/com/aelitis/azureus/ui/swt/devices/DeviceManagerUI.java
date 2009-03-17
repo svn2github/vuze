@@ -85,6 +85,9 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 public class 
 DeviceManagerUI 
 {
+	private static final int MIN_FILE_SIZE_FOR_XCODE	= 128*1024;
+	private static final int MAX_FILES_FOR_MULTI_XCODE	= 64;
+	
 	private static final Object	DEVICE_IVIEW_KEY = new Object();
 	
 	private static final String CONFIG_VIEW_TYPE				= "device.sidebar.ui.viewtype";
@@ -1175,9 +1178,7 @@ DeviceManagerUI
 												selected(
 													MenuItem 	menu,
 													Object 		x ) 
-												{
-													TranscodeManager tm = device_manager.getTranscodeManager();
-													
+												{													
 													for ( TableRow row: target ){
 														
 														Object obj = row.getDataSource();
@@ -1187,13 +1188,13 @@ DeviceManagerUI
 															
 																Download download = (Download)obj;
 	
-																tm.getQueue().add( renderer, profile, download.getDiskManagerFileInfo()[0] );
-		
+																addDownload( renderer, profile, -1, download );
+																	
 															}else{
 																
 																DiskManagerFileInfo file = (DiskManagerFileInfo)obj;
 																
-																tm.getQueue().add( renderer, profile, file );
+																addFile( renderer, profile, -1, file );
 															}
 														}catch( Throwable e ){
 															
@@ -1561,7 +1562,7 @@ DeviceManagerUI
 
 											MenuItem menu_profile_none = menu_manager.addMenuItem(
 												menu_default_profile, "option.askeverytime");
-											menu_profile_none.setStyle(menu_profile_none.STYLE_RADIO);
+											menu_profile_none.setStyle(MenuItem.STYLE_RADIO);
 											menu_profile_none.setData(Boolean.FALSE);
 											menu_profile_none.addListener(new MenuItemListener() {
 												public void selected(MenuItem menu, Object target) {
@@ -1583,7 +1584,7 @@ DeviceManagerUI
 											for (final TranscodeProfile profile : transcodeProfiles) {
 												MenuItem menuItem = menu_manager.addMenuItem(
 														menu_default_profile, "!" + profile.getName() + "!");
-												menuItem.setStyle(menuItem.STYLE_RADIO);
+												menuItem.setStyle(MenuItem.STYLE_RADIO);
 												menuItem.setData(Boolean.FALSE);
 												menuItem.addListener(new MenuItemListener() {
 													public void selected(MenuItem menu, Object target) {
@@ -1723,11 +1724,148 @@ DeviceManagerUI
 	}
 
 	protected void
+	addDownload(
+		TranscodeTarget		target,
+		TranscodeProfile 	profile,
+		int					transcode_requirement,
+		byte[]				hash )
+	{
+		try{
+		
+			addDownload( target, profile, transcode_requirement, plugin_interface.getShortCuts().getDownload(hash));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+	
+	protected void
+	addDownload(
+		TranscodeTarget		target,
+		TranscodeProfile 	profile,
+		int					transcode_requirement,
+		Download			download )
+	{
+			// we could use the primary file
+			// int index = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(hash).getPrimaryFile().getIndex();
+			// DiskManagerFileInfo dm_file = plugin_interface.getShortCuts().getDownload(hash).getDiskManagerFileInfo()[index];
+	
+			// but lets just grab all files
+
+		DiskManagerFileInfo[] dm_files = download.getDiskManagerFileInfo();
+		
+		int	num_added = 0;
+		
+		for ( DiskManagerFileInfo dm_file: dm_files ){
+			
+				// limit number of files we can add to avoid crazyness
+			
+			if ( num_added > MAX_FILES_FOR_MULTI_XCODE ){
+				
+				break;
+			}
+			
+				// could be smarter here and check extension or whatever
+			
+			if ( dm_files.length == 1 || dm_file.getLength() >= MIN_FILE_SIZE_FOR_XCODE ){
+				
+				addFile( target, profile, transcode_requirement, dm_file );
+				
+				num_added++;
+			}
+		}
+	}
+	
+	protected void
+	addFile(
+		TranscodeTarget			target,
+		TranscodeProfile 		profile,
+		int						transcode_requirement,
+		DiskManagerFileInfo		file )
+	{
+		try{
+			device_manager.getTranscodeManager().getQueue().add(
+				target,
+				profile,
+				file,
+				transcode_requirement);
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+	
+	protected void
+	addDirectory(
+		TranscodeTarget			target,
+		TranscodeProfile 		profile,
+		int						transcode_requirement,
+		File					file )
+	{
+		if ( !file.isDirectory()){
+			
+			return;
+		}
+		
+		File[]	files = file.listFiles();
+		
+		int	num_added = 0;
+		
+		for ( File f: files ){
+		
+			if ( num_added > MAX_FILES_FOR_MULTI_XCODE ){
+				
+				break;
+			}
+			
+			if ( f.isDirectory()){
+				
+				continue;
+			}
+			
+			if ( f.length() > MIN_FILE_SIZE_FOR_XCODE ){
+				
+				addFile( target, profile, transcode_requirement, f );
+				
+				num_added++;
+			}
+		}
+	}
+	
+	protected void
+	addFile(
+		TranscodeTarget			target,
+		TranscodeProfile 		profile,
+		int						transcode_requirement,
+		File					file )
+	{
+		if ( file.exists() && file.isFile()){
+
+			try{
+				device_manager.getTranscodeManager().getQueue().add(
+					target,
+					profile,
+					new DiskManagerFileInfoFile( file ),
+					transcode_requirement );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}else{
+			
+			Debug.out( "Drop to " + target.getDevice().getName() + " for " + file + " failed, file doesn't exist" );
+		}
+	}
+	
+	protected void
 	handleDrop(
-		TranscodeTarget	target,
-		TranscodeProfile profile,
-		Object			payload,
-		int				transcode_requirement )
+		TranscodeTarget		target,
+		TranscodeProfile 	profile,
+		Object				payload,
+		int					transcode_requirement )
 	{
 		if ( payload instanceof String[]){
 			
@@ -1736,23 +1874,14 @@ DeviceManagerUI
 			for ( String file: files ){
 			
 				File f = new File( file );
-				
-				if ( f.exists()){
 
-					try{
-						device_manager.getTranscodeManager().getQueue().add(
-							target,
-							profile,
-							new DiskManagerFileInfoFile( f ),
-							transcode_requirement );
-						
-					}catch( Throwable e ){
-						
-						Debug.out( e );
-					}
+				if ( f.isFile()){
+				
+					addFile( target, profile, transcode_requirement, f );
+					
 				}else{
 					
-					Debug.out( "Drop to " + target.getDevice().getName() + " for " + file + " failed, file doesn't exist" );
+					addDirectory( target, profile, transcode_requirement, f );
 				}
 			}
 		}else if ( payload instanceof String ){
@@ -1775,41 +1904,8 @@ DeviceManagerUI
 							
 							byte[]	 hash = Base32.decode( bits[i] );
 			
-								// we could use the primary file
-								// int index = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(hash).getPrimaryFile().getIndex();
-								// DiskManagerFileInfo dm_file = plugin_interface.getShortCuts().getDownload(hash).getDiskManagerFileInfo()[index];
-
-								// but lets just grab all files
-							
-							DiskManagerFileInfo[] dm_files = plugin_interface.getShortCuts().getDownload(hash).getDiskManagerFileInfo();
-							
-							for ( DiskManagerFileInfo dm_file: dm_files ){
-								
-									// limit number of files we can add to avoid crazyness
-								
-								if ( dm_file.getIndex() > 64 ){
-									
-									break;
-								}
-								
-									// could be smarter here and check extension or whatever
-								
-								if ( dm_files.length == 1 || dm_file.getLength() > 128*1024 ){
-									
-									try{
-
-  										device_manager.getTranscodeManager().getQueue().add(
-  											target,
-  											profile,
-  											dm_file, 
-  											transcode_requirement );
+							addDownload( target, profile, transcode_requirement, hash );
 										
-									}catch( Throwable e ){
-										
-										Debug.out( e );
-									}
-								}
-							}
 						}else{
 							
 							String[] files = hash_str.split(";");
@@ -1822,17 +1918,7 @@ DeviceManagerUI
 								
 								DiskManagerFileInfo dm_file = dm_files[Integer.parseInt(files[j].trim())];
 								
-								try{
-									device_manager.getTranscodeManager().getQueue().add(
-										target,
-										profile,
-										dm_file,
-										transcode_requirement);
-									
-								}catch( Throwable e ){
-									
-									Debug.out( e );
-								}
+								addFile( target, profile, transcode_requirement, dm_file );
 							}
 						}
 					}catch( Throwable e ){
