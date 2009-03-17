@@ -33,7 +33,6 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -43,7 +42,6 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
-import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
@@ -240,7 +238,9 @@ public class SBC_DevicesView
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_CopiedToDevice(column);
 
-						if (column.getTableID().endsWith(":type=1")) {
+						if ( 	column.getTableID().endsWith(":type=1") ||
+								column.getTableID().equals(TABLE_TRANSCODE_QUEUE )){
+							
 							column.setVisible(false);
 						}
 					}
