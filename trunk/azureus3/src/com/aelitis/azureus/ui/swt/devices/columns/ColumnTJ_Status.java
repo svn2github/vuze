@@ -128,6 +128,8 @@ public class ColumnTJ_Status
 			
 			int state = job.getState();
 
+			text = js_resources[state];
+
 			if ( state == TranscodeJob.ST_QUEUED ){
 				
 				long eta = job.getDownloadETA();
