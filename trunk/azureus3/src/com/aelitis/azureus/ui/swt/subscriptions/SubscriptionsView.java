@@ -83,7 +83,7 @@ public class SubscriptionsView
 	
 	public boolean isEnabled(String itemKey) {
 		if("remove".equals(itemKey) ) {
-			return view.getSelectedRows().length > 0;
+			return view.getSelectedRowsSize() > 0;
 		}
 		return false;
 	}
