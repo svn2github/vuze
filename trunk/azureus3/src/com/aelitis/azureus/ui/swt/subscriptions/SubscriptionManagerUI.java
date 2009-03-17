@@ -766,7 +766,10 @@ SubscriptionManagerUI
 									total += s.getHistory().getNumUnread();
 								}
 								
-								return( String.valueOf( total ));
+								if ( total > 0 ){
+								
+									return( String.valueOf( total ));
+								}
 							}
 						}
 						
