@@ -125,7 +125,9 @@ DeviceManagerUI
 	
 	private MenuItemListener properties_listener;
 	private MenuItemListener hide_listener;
-	private MenuItemListener remove_listener;
+	
+	private MenuItemFillListener	will_remove_listener;
+	private MenuItemListener 		remove_listener;
 	
 	private MenuItemFillListener	show_fill_listener;
 	private MenuItemListener 		show_listener;
@@ -485,6 +487,40 @@ DeviceManagerUI
 				}
 			};
 			
+		will_remove_listener = 
+				new MenuItemFillListener() 
+				{
+					public void 
+					menuWillBeShown(
+						MenuItem 	menu, 
+						Object 		targets) 
+					{
+						Object[]	rows;
+						
+						if ( targets instanceof Object[] ){
+							
+							rows = (Object[])targets;
+							
+						}else{
+							
+							rows = new Object[]{ targets };
+						}
+						
+						if ( rows.length > 0 && rows[0] instanceof SideBarEntry ){
+													
+							SideBarEntry info = (SideBarEntry)rows[0];
+						
+							Device device = (Device)info.getDatasource();
+							
+							menu.setEnabled( device.canRemove());
+							
+						}else{
+							
+							menu.setEnabled( false );
+						}
+					}
+				};
+				
 		remove_listener = 
 			new MenuItemListener() 
 			{
@@ -1629,8 +1665,9 @@ DeviceManagerUI
 	
 									MenuItem remove_menu_item = menu_manager.addMenuItem("sidebar." + key, "MySharesView.menu.remove");
 									
-									remove_menu_item.addListener( remove_listener );
+									remove_menu_item.addFillListener( will_remove_listener );
  									
+									remove_menu_item.addListener( remove_listener );
 
 										// sep
 									

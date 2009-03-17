@@ -86,6 +86,9 @@ Device
 	public void
 	remove();
 	
+	public boolean
+	canRemove();
+	
 	public String
 	getInfo();
 	

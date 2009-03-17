@@ -181,6 +181,14 @@ DeviceiTunes
 		return( null );
 	}
 	
+	public boolean
+	canRemove()
+	{
+			// no user-initiated removal, they need to uninstall the plugin
+		
+		return( false );
+	}
+	
 	protected void
 	destroy()
 	{

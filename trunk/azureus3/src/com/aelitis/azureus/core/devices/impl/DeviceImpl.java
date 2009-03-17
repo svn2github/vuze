@@ -1039,6 +1039,12 @@ DeviceImpl
 		addDP( dp, name, names);
 	}
 	
+	public boolean
+	canRemove()
+	{
+		return( true );
+	}
+	
 	public void
 	remove()
 	{
