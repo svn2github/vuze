@@ -515,9 +515,8 @@ public class SBC_DevicesView
 			};
 		});
 
-		open_item.setEnabled( 	(source_file != null && !files[0].isComplete()) ||
-								(target_file != null && files[0].isComplete()));
-
+		open_item.setEnabled( target_file != null );
+		
 		// show in explorer
 
 		final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
@@ -534,7 +533,8 @@ public class SBC_DevicesView
 			};
 		});
 
-		show_item.setEnabled(target_file != null);
+		show_item.setEnabled( 	(source_file != null && !files[0].isComplete()) ||
+								(target_file != null && files[0].isComplete()));
 
 		new MenuItem(menu, SWT.SEPARATOR);
 
