@@ -128,16 +128,25 @@ public class SWTSkinButtonUtility
 		return skinObject.getSuffix().indexOf("-disabled") >= 0;
 	}
 
+	private boolean inSetDisabled = false;
 	public void setDisabled(boolean disabled) {
-		if (disabled == isDisabled()) {
+		if (inSetDisabled) {
 			return;
 		}
-		String suffix = disabled ? "-disabled" : "";
-		skinObject.switchSuffix(suffix, 1, false);
-
-		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
-			ButtonListenerAdapter l = (ButtonListenerAdapter) iter.next();
-			l.disabledStateChanged(SWTSkinButtonUtility.this, disabled);
+		inSetDisabled = true;
+		try {
+  		if (disabled == isDisabled()) {
+  			return;
+  		}
+  		String suffix = disabled ? "-disabled" : "";
+  		skinObject.switchSuffix(suffix, 1, false);
+  
+  		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
+  			ButtonListenerAdapter l = (ButtonListenerAdapter) iter.next();
+  			l.disabledStateChanged(SWTSkinButtonUtility.this, disabled);
+  		}
+		} finally {
+			inSetDisabled = false;
 		}
 	}
 
