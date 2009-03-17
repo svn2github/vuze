@@ -197,16 +197,22 @@ TranscodeJobImpl
 			if ( download != null ){
 				
 				download.addDownloadWillBeRemovedListener( this );
-				
-				updateStatus();
 			}
-			
 		}catch( Throwable e ){
 		}
+		
+		updateStatus( false );
 	}
 	
 	protected void
 	updateStatus()
+	{
+		updateStatus( true );
+	}
+	
+	protected void
+	updateStatus(
+		boolean	report_change )
 	{
 		synchronized( this ){
 			
@@ -240,7 +246,7 @@ TranscodeJobImpl
 			}
 		}
 		
-		if ( download_ok ){
+		if ( download_ok && report_change ){
 			
 			queue.jobChanged( this, true, false );
 		}
