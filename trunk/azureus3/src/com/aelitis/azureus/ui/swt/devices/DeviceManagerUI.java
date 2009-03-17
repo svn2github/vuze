@@ -1988,6 +1988,19 @@ DeviceManagerUI
 					{
 						Device[] devices = device_manager.getDevices();
 						
+						Arrays.sort(
+							devices,
+							new Comparator<Device>()
+							{
+								public int 
+								compare(
+									Device o1, 
+									Device o2) 
+								{
+									return( o1.getName().compareToIgnoreCase( o2.getName()));
+								}
+							});
+						
 						for ( Device device: devices ){
 							
 							addOrChangeDevice( device );
