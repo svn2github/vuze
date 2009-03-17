@@ -1071,6 +1071,18 @@ SubscriptionManagerUI
 		
 		Subscription[]	subs = subs_man.getSubscriptions();
 		
+		Arrays.sort(
+			subs,
+			new Comparator<Subscription>()
+			{
+				public int 
+				compare(
+					Subscription o1, Subscription o2 )
+				{
+					return( o1.getName().compareToIgnoreCase( o2.getName()));
+				}
+			});
+		
 		for (int i=0;i<subs.length;i++){
 			
 			addSubscription( side_bar, subs[i], false );
