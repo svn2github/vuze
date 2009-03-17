@@ -355,7 +355,9 @@ public abstract class TranscodeChooser
   						soInfoText.setText(description);
   						Point computeSize = shell.computeSize(shell.getClientArea().width,
   								SWT.DEFAULT, true);
-  						shell.setSize(computeSize);
+							if (computeSize.y > shell.getSize().y) {
+								shell.setSize(computeSize);
+							}
   					}
 					}
 				}
