@@ -75,6 +75,7 @@ DeviceiTunes
 	private AsyncDispatcher		async_dispatcher = new AsyncDispatcher( 5000 );
 	
 	private long				last_update_fail;
+	private int					consec_fails;
 	
 	protected
 	DeviceiTunes(
@@ -300,7 +301,8 @@ DeviceiTunes
 			}
 			*/
 			
-			last_update_fail = 0;
+			last_update_fail 	= 0;
+			consec_fails		= 0;
 			
 			setError( ERRROR_KEY_ITUNES, null );
 			
@@ -308,11 +310,13 @@ DeviceiTunes
 			
 			long	now = SystemTime.getMonotonousTime();
 			
+			consec_fails++;
+			
 			if ( last_update_fail == 0 ){
 				
 				last_update_fail = now;
 				
-			}else if ( now - last_update_fail > 60*1000 ){
+			}else if ( now - last_update_fail > 60*1000 && consec_fails >= 3 ){
 							
 				setError( ERRROR_KEY_ITUNES, MessageText.getString( "device.itunes.install_problem" ));
 			}
