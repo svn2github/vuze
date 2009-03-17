@@ -3435,10 +3435,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getSelectedRowsSize()
 	public int getSelectedRowsSize() {
-		if (table != null && !table.isDisposed()) {
-			return table.getSelectionCount();
-		}
-		return 0;
+		return selectedRowIndexes == null ? 0 : selectedRowIndexes.length;
 	}
 
 	public TableRowSWT[] getSelectedRowsSWT() {
