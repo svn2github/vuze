@@ -768,6 +768,7 @@ public class SideBar
 				
 				if (entry.hasDropListeners()) {
 					draggingOver = entry;
+					tree.redraw();
 					if ((event.operations & DND.DROP_LINK) > 0)
 						event.detail = DND.DROP_LINK;
 					else if ((event.operations & DND.DROP_DEFAULT) > 0)
@@ -787,6 +788,7 @@ public class SideBar
 			
 			public void drop(DropTargetEvent event) {
 				draggingOver = null;
+				tree.redraw();
 				if (!(event.item instanceof TreeItem)) {
 					return;
 				}
