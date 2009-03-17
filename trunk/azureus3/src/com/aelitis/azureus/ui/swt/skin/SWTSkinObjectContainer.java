@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -212,15 +213,19 @@ public class SWTSkinObjectContainer
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#switchSuffix(java.lang.String)
-	public String switchSuffix(String suffix, int level, boolean walkUp, boolean walkDown) {
+	public String switchSuffix(final String suffix, final int level, boolean walkUp, boolean walkDown) {
 		String sFullsuffix = super.switchSuffix(suffix, level, walkUp, walkDown);
 
 		if (bPropogateDown && walkDown && suffix != null && control != null
 				&& !control.isDisposed()) {
-			SWTSkinObject[] children = getChildren();
-			for (int i = 0; i < children.length; i++) {
-				children[i].switchSuffix(suffix, level, false);
-			}
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					SWTSkinObject[] children = getChildren();
+					for (int i = 0; i < children.length; i++) {
+						children[i].switchSuffix(suffix, level, false);
+					}
+				}
+			});
 		}
 		return sFullsuffix;
 	}
