@@ -195,7 +195,7 @@ public class BrowserContext
 							System.currentTimeMillis() + 700, showBrowersPerformer);
 				}
 				if (event.title.startsWith("err: ")) {
-					fillWithRetry(event.title);
+					fillWithRetry(event.title, "err in title");
 				}
 			}
 		});
@@ -285,6 +285,24 @@ public class BrowserContext
 			private TimerEvent timerevent;
 
 			public void changed(LocationEvent event) {
+				// event.top is only filled on changed event (not changing!)
+				if (!event.top) {
+					return;
+				}
+				boolean isWebURL = event.location.startsWith("http://")
+						|| event.location.startsWith("https://");
+				if (!isWebURL) {
+					if (event.location.startsWith("res://")) {
+						fillWithRetry(event.location, "top changed");
+						return;
+					}
+					// we don't get a changed state on non URLs (mailto, javascript, etc)
+				}
+
+				if (UrlFilter.getInstance().isWhitelisted(event.location)) {
+					lastValidURL = event.location;
+				}
+
 				//System.out.println("cd" + event.location);
 				if (timerevent != null) {
 					timerevent.cancel();
@@ -316,16 +334,14 @@ public class BrowserContext
 					if (browser.isBackEnabled()) {
 						browser.back();
 					} else if (lastValidURL != null) {
-						fillWithRetry(event_location);
+						fillWithRetry(event_location, "back");
 					}
 					return;
 				}
+
 				boolean isWebURL = event_location.startsWith("http://")
 						|| event_location.startsWith("https://");
 				if (!isWebURL) {
-					if (event_location.startsWith("res://") && lastValidURL != null) {
-						fillWithRetry(event_location);
-					}
 					// we don't get a changed state on non URLs (mailto, javascript, etc)
 					return;
 				}
@@ -571,7 +587,7 @@ public class BrowserContext
 		torrentURLHandler = handler;
 	}
 	
-	public void fillWithRetry(String s) {
+	public void fillWithRetry(String s, String s2) {
 		Color bg = browser.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
 		Color fg = browser.getDisplay().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
 		
@@ -585,7 +601,7 @@ public class BrowserContext
 				+ "<div style='word-wrap: break-word'><font size=1 color=#"
 				+ Utils.toColorHexString(bg)
 				+ ">"
-				+ s
+				+ s + "<br><br>" + s2
 				+ "</font></div>" + "</body></html>");
 	}
 	
