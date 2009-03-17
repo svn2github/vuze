@@ -19,14 +19,18 @@
 package com.aelitis.azureus.core.messenger.config;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.FileUtil;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
 /**
@@ -51,6 +55,10 @@ public class PlatformDevicesMessenger
 	private static final String OP_GET_PROFILES = "get-profiles";
 
 	private static final String OP_QOS_TRANSCODE_REQUEST = "qos-transcode-request";
+	
+	private static String plugin_xcode_version = null;
+	
+	private static String plugin_itunes_version = null;
 
 	public static void qosTurnOn(boolean withITunes) {
 		if (!COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
@@ -71,8 +79,11 @@ public class PlatformDevicesMessenger
 				|| !COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
 			return;
 		}
-
+		
 		HashMap<String, Object> map = new HashMap<String, Object>();
+
+		addPluginVersionsToMap(map);
+
 		map.put("device-name", device.getName());
 		map.put("device-type", new Integer(device.getType()));
 		if (device instanceof DeviceMediaRenderer) {
@@ -87,6 +98,19 @@ public class PlatformDevicesMessenger
 		PlatformMessenger.queueMessage(message, null);
 	}
 
+	private static void addPluginVersionsToMap(Map map) {
+		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+		PluginInterface pi;
+		pi = pm.getPluginInterfaceByID("vuzexcode");
+		if (pi != null) {
+			map.put("xcode-plugin-version", pi.getPluginVersion());
+		}
+		pi = pm.getPluginInterfaceByID("azitunes");
+		if (pi != null) {
+			map.put("itunes-plugin-version", pi.getPluginVersion());
+		}
+	}
+
 	public static void qosTranscodeRequest(TranscodeTarget transcodeTarget, String sourceRef) {
 		if (!COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)
 				|| transcodeTarget == null) {
@@ -94,6 +118,8 @@ public class PlatformDevicesMessenger
 		}
 
 		HashMap<String, Object> map = new HashMap<String, Object>();
+
+		addPluginVersionsToMap(map);
 
 		Device device = transcodeTarget.getDevice();
 		if (device != null) { // should never be null..
@@ -135,6 +161,8 @@ public class PlatformDevicesMessenger
 		Device device = target.getDevice();
 		
 		HashMap<String, Object> map = new HashMap<String, Object>();
+
+		addPluginVersionsToMap(map);
 
 		map.put("job-state", Integer.valueOf(stateOveride));
 
