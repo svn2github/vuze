@@ -83,17 +83,7 @@ public class MyTorrentsView_Big
 	
 	// @see org.gudy.azureus2.ui.swt.views.MyTorrentsView#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void defaultSelected(TableRowCore[] rows, int stateMask) {
-		if (!isSeedingView) {
-			return;
-		}
-		if (rows == null || rows.length > 1 || rows.length == 0) {
-			return;
-		}
-		Object ds = rows[0].getDataSource(true);
-		if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
-  		TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-  				DLReferals.DL_REFERAL_DBLCLICK);
-		}
+		SBC_LibraryTableView.doDefaultClick(rows, stateMask, !isSeedingView);
 	}
 
 	protected int getRowDefaultHeight() {

@@ -27,6 +27,7 @@ import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
@@ -40,10 +41,13 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
@@ -145,14 +149,14 @@ public class SBC_LibraryTableView
 						if (seedingview != null) {
 							seedingview.overrideDefaultSelected(new TableSelectionAdapter() {
 								public void defaultSelected(TableRowCore[] rows, int stateMask) {
-									doDefaultClick(rows, stateMask);
+									doDefaultClick(rows, stateMask, false);
 								}
 							});
 							MyTorrentsView torrentview = getTorrentview();
 							if (torrentview != null) {
 								torrentview.overrideDefaultSelected(new TableSelectionAdapter() {
 									public void defaultSelected(TableRowCore[] rows, int stateMask) {
-										doDefaultClick(rows, stateMask);
+										doDefaultClick(rows, stateMask, false);
 									}
 								});
 							}
@@ -164,7 +168,7 @@ public class SBC_LibraryTableView
 			if (view instanceof MyTorrentsView) {
 				((MyTorrentsView) view).overrideDefaultSelected(new TableSelectionAdapter() {
 					public void defaultSelected(TableRowCore[] rows, int stateMask) {
-						doDefaultClick(rows, stateMask);
+						doDefaultClick(rows, stateMask, false);
 					}
 				});
 			}
@@ -283,11 +287,36 @@ public class SBC_LibraryTableView
 		return null;
 	}
 
-	private void doDefaultClick(TableRowCore[] rows, int stateMask) {
+	public static void doDefaultClick(TableRowCore[] rows, int stateMask,
+			boolean neverPlay) {
 		if (rows == null || rows.length != 1) {
 			return;
 		}
 		Object ds = rows[0].getDataSource(true);
+
+		String mode = COConfigurationManager.getStringParameter("list.dm.dblclick");
+		if (mode.equals("1")) {
+			// OMG! Show Details! I <3 you!
+			DownloadManager dm = DataSourceUtils.getDM(ds);
+			if (dm != null) {
+				UIFunctionsManager.getUIFunctions().openView(UIFunctions.VIEW_DM_DETAILS, dm);
+				return;
+			}
+		} else if (mode.equals("2")) {
+			// Show in explorer
+			DownloadManager dm = DataSourceUtils.getDM(ds);
+			if (dm != null) {
+  			boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
+  			ManagerUtils.open(dm, openMode);
+  			return;
+			}
+		}
+		
+		if (neverPlay) {
+			return;
+		}
+		
+		// fallback
 		if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
 			TorrentListViewsUtils.playOrStreamDataSource(ds, null,
 					DLReferals.DL_REFERAL_DBLCLICK);
