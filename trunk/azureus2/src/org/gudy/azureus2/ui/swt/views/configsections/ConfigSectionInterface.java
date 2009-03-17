@@ -55,8 +55,6 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 
 	private final static String LBLKEY_PREFIX = "ConfigView.label.";
 
-	Label passwordMatch;
-
 	private ParameterListener decisions_parameter_listener;
 
 	public String configSectionGetParentSection() {
@@ -287,48 +285,6 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		COConfigurationManager.addParameterListener("MessageBoxWindow.decisions",
 				decisions_parameter_listener);
 
-		// password
-
-		label = new Label(cArea, SWT.NULL);
-		Messages.setLanguageText(label, LBLKEY_PREFIX + "password");
-
-		gridData = new GridData();
-		gridData.widthHint = 150;
-		PasswordParameter pw1 = new PasswordParameter(cArea, "Password");
-		pw1.setLayoutData(gridData);
-		Text t1 = (Text) pw1.getControl();
-
-		//password confirm
-
-		label = new Label(cArea, SWT.NULL);
-		Messages.setLanguageText(label, LBLKEY_PREFIX + "passwordconfirm");
-		gridData = new GridData();
-		gridData.widthHint = 150;
-		PasswordParameter pw2 = new PasswordParameter(cArea, "Password Confirm");
-		pw2.setLayoutData(gridData);
-		Text t2 = (Text) pw2.getControl();
-
-		// password activated
-
-		label = new Label(cArea, SWT.NULL);
-		Messages.setLanguageText(label, LBLKEY_PREFIX + "passwordmatch");
-		passwordMatch = new Label(cArea, SWT.NULL);
-		gridData = new GridData();
-		gridData.widthHint = 150;
-		passwordMatch.setLayoutData(gridData);
-		refreshPWLabel();
-
-		t1.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				refreshPWLabel();
-			}
-		});
-		t2.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				refreshPWLabel();
-			}
-		});
-
 		// drag-drop
 
 		label = new Label(cArea, SWT.NULL);
@@ -349,6 +305,31 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		}
 		new StringListParameter(cArea, "config.style.dropdiraction",
 				dropLabels, dropValues);
+		
+		// double-click
+		
+    if (COConfigurationManager.getStringParameter("ui").equals("az3")) {
+  		label = new Label(cArea, SWT.NULL);
+  		Messages.setLanguageText(label, LBLKEY_PREFIX + "dm.dblclick");
+  
+  		String[] dblclickOptions = {
+  			"ConfigView.option.dm.dblclick.play",
+  			"ConfigView.option.dm.dblclick.details",
+  			"ConfigView.option.dm.dblclick.show",
+  		};
+  
+  		String dblclickLabels[] = new String[dblclickOptions.length];
+  		String dblclickValues[] = new String[dblclickOptions.length];
+  
+  		for (int i = 0; i < dblclickOptions.length; i++) {
+  
+  			dblclickLabels[i] = MessageText.getString(dblclickOptions[i]);
+  			dblclickValues[i] = "" + i;
+  		}
+  		new StringListParameter(cArea, "list.dm.dblclick", dblclickLabels,
+  				dblclickValues);
+    }
+		
 
 		// reset associations
 
@@ -392,40 +373,6 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		}
 
 		return cDisplay;
-	}
-
-	private void refreshPWLabel() {
-
-		if (passwordMatch == null || passwordMatch.isDisposed())
-			return;
-		byte[] password = COConfigurationManager.getByteParameter("Password", ""
-				.getBytes());
-		COConfigurationManager.setParameter("Password enabled", false);
-		if (password.length == 0) {
-			passwordMatch.setText(MessageText.getString(LBLKEY_PREFIX
-					+ "passwordmatchnone"));
-		} else {
-			byte[] confirm = COConfigurationManager.getByteParameter(
-					"Password Confirm", "".getBytes());
-			if (confirm.length == 0) {
-				passwordMatch.setText(MessageText.getString(LBLKEY_PREFIX
-						+ "passwordmatchno"));
-			} else {
-				boolean same = true;
-				for (int i = 0; i < password.length; i++) {
-					if (password[i] != confirm[i])
-						same = false;
-				}
-				if (same) {
-					passwordMatch.setText(MessageText.getString(LBLKEY_PREFIX
-							+ "passwordmatchyes"));
-					COConfigurationManager.setParameter("Password enabled", true);
-				} else {
-					passwordMatch.setText(MessageText.getString(LBLKEY_PREFIX
-							+ "passwordmatchno"));
-				}
-			}
-		}
 	}
 
 }

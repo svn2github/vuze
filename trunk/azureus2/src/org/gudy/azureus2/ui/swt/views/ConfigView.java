@@ -308,7 +308,9 @@ public class ConfigView extends AbstractIView {
      */
     pluginSections = ConfigSectionRepository.getInstance().getList();
 
-    ConfigSection[] internalSections = { new ConfigSectionConnection(),
+    ConfigSection[] internalSections = { 
+                                         new ConfigSectionMode(),
+                                         new ConfigSectionConnection(),
                                          new ConfigSectionConnectionProxy(),
                                          new ConfigSectionConnectionAdvanced(),
                                          new ConfigSectionConnectionEncryption(),
@@ -328,8 +330,8 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionInterfaceDisplay(),
                                          new ConfigSectionInterfaceColor(),
                                          new ConfigSectionInterfaceAlerts(),
+                                         new ConfigSectionInterfacePassword(),
                                          new ConfigSectionInterfaceLegacy(),
-                                         new ConfigSectionMode(),
                                          new ConfigSectionIPFilter(azureus_core),
                                          new ConfigSectionPlugins(this, azureus_core),
                                          new ConfigSectionStats(),
