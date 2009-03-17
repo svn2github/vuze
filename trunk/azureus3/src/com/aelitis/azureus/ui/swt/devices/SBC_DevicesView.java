@@ -473,6 +473,7 @@ public class SBC_DevicesView
 		Utils.setMenuItemImage(open_item, "run");
 
 		File target_file = null;
+		File source_file = null;
 
 		try {
 			if (files.length == 1) {
@@ -489,7 +490,23 @@ public class SBC_DevicesView
 			Debug.out(e);
 		}
 
+		try {
+			if (files.length == 1) {
+
+				source_file = files[0].getSourceFile().getFile();
+
+				if (!source_file.exists()) {
+
+					source_file = null;
+				}
+			}
+		} catch (Throwable e) {
+
+			Debug.out(e);
+		}
+		
 		final File f_target_file = target_file;
+		final File f_source_file = source_file;
 
 		open_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent ev) {
@@ -498,7 +515,8 @@ public class SBC_DevicesView
 			};
 		});
 
-		open_item.setEnabled(target_file != null && files[0].isComplete());
+		open_item.setEnabled( 	(source_file != null && !files[0].isComplete()) ||
+								(target_file != null && files[0].isComplete()));
 
 		// show in explorer
 
@@ -512,7 +530,7 @@ public class SBC_DevicesView
 		show_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 
-				ManagerUtils.open(f_target_file, use_open_containing_folder);
+				ManagerUtils.open(f_target_file!=null?f_target_file:f_source_file, use_open_containing_folder);
 			};
 		});
 
