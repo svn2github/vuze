@@ -333,8 +333,9 @@ public abstract class TranscodeChooser
 				Widget widget = (event.widget instanceof Canvas)
 						? ((Canvas) event.widget).getParent() : event.widget;
 
-				Composite c = ((Control) event.widget).getParent();
-				c.getShell().redraw();
+				Composite c = TranscodeChooser.this.soList.getComposite();
+				Rectangle bounds = c.getClientArea();
+				c.redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
 
 				TranscodeProfile profile = (TranscodeProfile) widget.getData("TranscodeProfile");
 				if (profile == null) {
@@ -399,7 +400,7 @@ public abstract class TranscodeChooser
 
 		GridData gridData;
 		for (TranscodeProfile profile : profiles) {
-			Composite c = new Composite(parent, SWT.NONE);
+			final Composite c = new Composite(parent, SWT.NONE);
 			GridLayout clayout = new GridLayout();
 			clayout.marginWidth = clayout.horizontalSpacing = 0;
 			c.setLayout(clayout);
@@ -409,9 +410,11 @@ public abstract class TranscodeChooser
 			c.setData("TranscodeProfile", profile);
 
 			c.addListener(SWT.MouseEnter, listenerMouseInout);
+			c.addListener(SWT.MouseExit, listenerMouseInout);
 
 			final Canvas lblImage = new Canvas(c, SWT.DOUBLE_BUFFERED);
 			lblImage.addListener(SWT.MouseEnter, listenerMouseInout);
+			lblImage.addListener(SWT.MouseExit, listenerMouseInout);
 			lblImage.addListener(SWT.MouseUp, clickListener);
 			lblImage.addListener(SWT.MouseDown, clickListener);
 			lblImage.setData("TranscodeProfile", profile);
@@ -421,12 +424,16 @@ public abstract class TranscodeChooser
 					if (image != null) {
 						Rectangle bounds = image.getBounds();
 						Rectangle area = lblImage.getBounds();
+						Rectangle carea = c.getBounds();
+
+						Point ptInDisplay = c.toDisplay(0, 0);
 
 						event.gc.setAdvanced(true);
 						event.gc.setAntialias(SWT.ON);
 						event.gc.setLineWidth(2);
 						
-						if (event.display.getCursorControl() == lblImage) {
+						if (new Rectangle(ptInDisplay.x, ptInDisplay.y, carea.width, carea.height).contains(event.display.getCursorLocation())) {
+						//if (event.display.getCursorControl() == lblImage) {
 
 							Color color1 = ColorCache.getColor(event.gc.getDevice(), 252,
 									253, 255);
