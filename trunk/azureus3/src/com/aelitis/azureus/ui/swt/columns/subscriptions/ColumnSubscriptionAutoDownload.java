@@ -17,6 +17,7 @@
 
 package com.aelitis.azureus.ui.swt.columns.subscriptions;
 
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -37,7 +38,7 @@ public class ColumnSubscriptionAutoDownload
 
 	/** Default Constructor */
 	public ColumnSubscriptionAutoDownload(String sTableID) {
-		super(COLUMN_ID, POSITION_LAST, 100, sTableID);
+		super(COLUMN_ID, ALIGN_CENTER, POSITION_LAST, 100, sTableID);
 		setMinWidth(100);
 		setMaxWidth(100);
 	}
@@ -60,7 +61,7 @@ public class ColumnSubscriptionAutoDownload
 			return;
 		}
 		
-		cell.setText(autoDownload ? "yes" : "no");
+		cell.setText( DisplayFormatters.getYesNo( autoDownload ));
 		return;
 		
 	}
