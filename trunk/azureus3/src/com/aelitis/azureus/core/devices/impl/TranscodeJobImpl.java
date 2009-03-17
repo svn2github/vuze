@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -40,6 +41,7 @@ import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
+import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.ImportExportUtils;
 
@@ -476,6 +478,15 @@ TranscodeJobImpl
 		}
 		
 		queue.jobChanged( this, false, true );
+
+		// I'd rather do qos from a listener trigger, but for now this ensures
+		// I get the event even if listeners haven't had a chance to be added.
+		// This also ensures only one failed qos gets sent
+		try {
+			PlatformDevicesMessenger.qosTranscode(this, TranscodeJob.ST_FAILED);
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
 	}
 	
 	protected void
@@ -500,6 +511,15 @@ TranscodeJobImpl
 		transcode_file.setComplete( true );
 		
 		queue.jobChanged( this, false, false );
+
+		// I'd rather do qos from a listener trigger, but for now this ensures
+		// I get the event even if listeners haven't had a chance to be added
+		// This also ensures only one completed qos event gets sent
+		try {
+			PlatformDevicesMessenger.qosTranscode(this, TranscodeJob.ST_COMPLETE);
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
 	}
 	
 	protected void
