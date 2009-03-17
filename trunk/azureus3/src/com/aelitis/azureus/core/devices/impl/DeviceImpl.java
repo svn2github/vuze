@@ -1674,7 +1674,9 @@ DeviceImpl
 	addListener(
 		TranscodeTargetListener		listener )
 	{
-		listeners.add( listener );
+		if (!listeners.contains(listener)) {
+			listeners.add( listener );
+		}
 	}
 	
 	public void

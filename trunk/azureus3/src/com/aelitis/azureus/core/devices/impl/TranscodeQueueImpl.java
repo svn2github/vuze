@@ -1366,7 +1366,9 @@ TranscodeQueueImpl
 	addListener(
 		TranscodeQueueListener		listener )
 	{
-		listeners.add( listener );
+		if (!listeners.contains(listener)) {
+			listeners.add( listener );
+		}
 	}
 	
 	public void
