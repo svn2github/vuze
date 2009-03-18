@@ -37,7 +37,6 @@ public class ColumnTJ_Profile
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
-		column.setMinWidth(100);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)

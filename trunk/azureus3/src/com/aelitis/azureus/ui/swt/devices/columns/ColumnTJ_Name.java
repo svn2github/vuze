@@ -47,7 +47,6 @@ public class ColumnTJ_Name
 		column.setObfustication(true);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
-		column.setMinWidth(100);
 	}
 
 	public void refresh(TableCell cell) {

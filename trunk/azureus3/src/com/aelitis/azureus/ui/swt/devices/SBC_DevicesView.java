@@ -174,6 +174,9 @@ public class SBC_DevicesView
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Rank(column);
+						if (!column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
+							column.setVisible(false);
+						}
 					}
 				});
 		tableManager.registerColumn(TranscodeFile.class, ColumnAzProduct.COLUMN_ID,
@@ -204,6 +207,9 @@ public class SBC_DevicesView
 				ColumnTJ_Completion.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Completion(column);
+						if (!column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
+							column.setVisible(false);
+						}
 					}
 				});
 		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Device.COLUMN_ID,

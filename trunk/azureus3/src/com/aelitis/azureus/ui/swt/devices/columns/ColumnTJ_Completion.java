@@ -72,7 +72,6 @@ TableCellDisposeListener, TableCellSWTPaintListener
 		((TableColumnImpl)column).addCellOtherListener("SWTPaint", this);
 		column.setType(TableColumn.TYPE_GRAPHIC);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
-		column.setMinWidth(100);
 		
 		MessageText.addAndFireListener(new MessageTextListener() {
 			public void localeChanged(Locale old_locale, Locale new_locale) {

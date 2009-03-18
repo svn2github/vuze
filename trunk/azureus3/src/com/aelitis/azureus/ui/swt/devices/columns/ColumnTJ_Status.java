@@ -64,7 +64,6 @@ public class ColumnTJ_Status
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
-		column.setMinWidth(100);
 
 		MessageText.addAndFireListener(new MessageTextListener() {
 			public void localeChanged(Locale old_locale, Locale new_locale) {
