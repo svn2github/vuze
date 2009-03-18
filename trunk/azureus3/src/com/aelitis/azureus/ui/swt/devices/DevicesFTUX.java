@@ -59,9 +59,9 @@ import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
  */
 public class DevicesFTUX
 {
-	private static final String URL_LEARN_MORE = "http://www.vuze.com/devices_qos.start";
+	private static final String URL_LEARN_MORE = "http://www.vuze.com/devices/qos.start";
 
-	private static final String URL_DEVICES_INFO = "http://www.vuze.com/devices.start";
+	private static final String URL_DEVICES_INFO = "http://www.vuze.com/devices/turnon.start";
 
 	public static DevicesFTUX instance;
 

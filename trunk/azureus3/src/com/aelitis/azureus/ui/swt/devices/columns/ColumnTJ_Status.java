@@ -60,7 +60,7 @@ public class ColumnTJ_Status
 	private static String	eta_text;
 	
 	public ColumnTJ_Status(final TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 120);
+		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 160);
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);

@@ -75,7 +75,7 @@ public class ColumnThumbnail
 
 	/** Default Constructor */
 	public ColumnThumbnail(String sTableID) {
-		super(COLUMN_ID, ALIGN_CENTER, 0, sTableID);
+		super(COLUMN_ID, ALIGN_CENTER, POSITION_LAST, 0, sTableID);
 		if (TableManager.TABLE_ACTIVITY_BIG.equals(sTableID)) {
 			initializeAsGraphic(WIDTH_ACTIVITY);
 		} else {
@@ -89,7 +89,7 @@ public class ColumnThumbnail
 	public ColumnThumbnail(TableColumn column) {
 		super(null, null);
 
-		column.initialize(ALIGN_CENTER, 0, WIDTH_BIG);
+		column.initialize(ALIGN_CENTER, POSITION_LAST, WIDTH_BIG);
 		column.addListeners(this);
 		// cheat.  TODO: Either auto-add (in above method), or provide
 		// access via TableColumn instead of type casting

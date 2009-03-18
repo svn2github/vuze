@@ -36,7 +36,7 @@ implements TableCellRefreshListener
 	public static final String COLUMN_ID = "trancode_qpos";
 
 	public ColumnTJ_Rank(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 30);
+		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 25);
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);

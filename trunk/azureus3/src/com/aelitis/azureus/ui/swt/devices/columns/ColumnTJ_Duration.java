@@ -34,7 +34,7 @@ public class ColumnTJ_Duration
 	public static final String COLUMN_ID = "duration";
 
 	public ColumnTJ_Duration(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 80);
+		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 85);
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);

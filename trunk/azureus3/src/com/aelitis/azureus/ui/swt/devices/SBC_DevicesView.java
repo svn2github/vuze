@@ -131,7 +131,7 @@ public class SBC_DevicesView
 		}
 
 		if (device == null) {
-			new InfoBarUtil(skinObject, "devicesview.infobar", true,
+			new InfoBarUtil(skinObject, "devicesview.infobar", false,
 					"DeviceView.infobar", "v3.deviceview.infobar") {
 				public boolean allowShow() {
 					return true;
@@ -183,20 +183,60 @@ public class SBC_DevicesView
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnAzProduct(column);
+						column.setWidth(42);
 					}
 				});
 		tableManager.registerColumn(TranscodeFile.class, ColumnThumbnail.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnThumbnail(column);
+						column.setWidth(70);
 					}
 				});
 		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Name.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Name(column);
+						if (column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
+							//column.setWidth(110);
+							column.setWidth(200);
+						}
 					}
 				});
+		tableManager.registerColumn(TranscodeFile.class,
+				ColumnTJ_Duration.COLUMN_ID, new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTJ_Duration(column);
+					}
+				});
+		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Device.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTJ_Device(column);
+						column.setVisible(false);
+					}
+				});
+		tableManager.registerColumn(TranscodeFile.class,
+				ColumnTJ_Profile.COLUMN_ID, new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTJ_Profile(column);
+						if (column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
+							column.setWidth(70);
+						}
+					}
+				});
+
+		tableManager.registerColumn(TranscodeFile.class,
+				ColumnTJ_Resolution.COLUMN_ID, new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTJ_Resolution(column);
+						column.setVisible(false);
+						if (column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
+							column.setWidth(95);
+						}
+					}
+				});
+
 		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Status.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
@@ -209,41 +249,11 @@ public class SBC_DevicesView
 						new ColumnTJ_Completion(column);
 						if (!column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
 							column.setVisible(false);
+						} else {
+							column.setWidth(145);
 						}
 					}
 				});
-		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Device.COLUMN_ID,
-				new TableColumnCreationListener() {
-					public void tableColumnCreated(TableColumn column) {
-						new ColumnTJ_Device(column);
-						// Device column not needed for Device specific view.  Since
-						// we can't remove it, just hide it
-						if (!column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
-							column.setVisible(false);
-						}
-					}
-				});
-		tableManager.registerColumn(TranscodeFile.class,
-				ColumnTJ_Profile.COLUMN_ID, new TableColumnCreationListener() {
-					public void tableColumnCreated(TableColumn column) {
-						new ColumnTJ_Profile(column);
-					}
-				});
-
-		tableManager.registerColumn(TranscodeFile.class,
-				ColumnTJ_Duration.COLUMN_ID, new TableColumnCreationListener() {
-					public void tableColumnCreated(TableColumn column) {
-						new ColumnTJ_Duration(column);
-					}
-				});
-
-		tableManager.registerColumn(TranscodeFile.class,
-				ColumnTJ_Resolution.COLUMN_ID, new TableColumnCreationListener() {
-					public void tableColumnCreated(TableColumn column) {
-						new ColumnTJ_Resolution(column);
-					}
-				});
-
 		tableManager.registerColumn(TranscodeFile.class,
 				ColumnTJ_CopiedToDevice.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
@@ -283,7 +293,15 @@ public class SBC_DevicesView
 
 		setAdditionalInfoTitle(false);
 
-		DevicesFTUX.ensureInstalled();
+		// This is bad.  Example: 
+		// 1) Do a search
+		// 2) Sidebar entry opens under Devices
+		// 3) Close search sidebar
+		// 4) Device entry gets auto-selected
+		// 5) User gets ftux
+		// 6) User says no, anger increases
+		// 7) Go to 1
+		//DevicesFTUX.ensureInstalled();
 
 		return null;
 	}
@@ -382,7 +400,8 @@ public class SBC_DevicesView
 		}
 
 		tvFiles = new TableViewSWTImpl<TranscodeFile>(tableID, tableID,
-				new TableColumnCore[0], "rank", SWT.MULTI | SWT.FULL_SELECTION
+				new TableColumnCore[0], device == null ? ColumnTJ_Rank.COLUMN_ID
+						: ColumnTJ_Status.COLUMN_ID, SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
 		tvFiles.setDataSourceType(TranscodeFile.class);
 		tvFiles.setRowDefaultHeight(50);
@@ -728,7 +747,7 @@ public class SBC_DevicesView
 	 */
 	private void initDeviceListTable(Composite control) {
 		tvDevices = new TableViewSWTImpl(TABLE_DEVICES, TABLE_DEVICES,
-				new TableColumnCore[0], "name");
+				new TableColumnCore[0], ColumnTJ_Rank.COLUMN_ID);
 		tvDevices.setDataSourceType(TranscodeProvider.class);
 		tvDevices.setRowDefaultHeight(50);
 		tvDevices.setHeaderVisible(true);

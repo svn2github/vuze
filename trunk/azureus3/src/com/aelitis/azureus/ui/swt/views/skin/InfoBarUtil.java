@@ -43,7 +43,7 @@ public abstract class InfoBarUtil
 
 	private SWTSkin skin;
 
-	private SWTSkinObject soTop;
+	private SWTSkinObject soInfoBar;
 
 	private final String stateConfigID;
 
@@ -56,7 +56,7 @@ public abstract class InfoBarUtil
 		this(forSO, "library.top.info", top, stateConfigID, textPrefix);
 	}
 
-	public InfoBarUtil(SWTSkinObject forSO, String skintemplateid, boolean top,
+	public InfoBarUtil(final SWTSkinObject forSO, String skintemplateid, boolean top,
 			final String stateConfigID, String textPrefix) {
 		this.forSO = forSO;
 		this.skintemplateid = skintemplateid;
@@ -78,8 +78,9 @@ public abstract class InfoBarUtil
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				if (eventType == EVENT_SHOW) {
+					forSO.removeListener(this);
 					boolean show = RememberedDecisionsManager.getRememberedDecision(stateConfigID) != 0;
-					if (show && allowShow() && soTop == null) {
+					if (show && allowShow() && soInfoBar == null) {
 						createInfoBar();
 					}
 				}
@@ -95,18 +96,32 @@ public abstract class InfoBarUtil
 		}
 		FormData fdForSO = (FormData) ldForSO;
 		SWTSkinObject parent = forSO.getParent();
-		soTop = skin.createSkinObject("infobarutil", skintemplateid, parent);
+		soInfoBar = skin.createSkinObject("infobarutil", skintemplateid, parent);
 
-		FormData fdTop = (FormData) soTop.getControl().getLayoutData();
-		if (fdTop == null) {
-			fdTop = Utils.getFilledFormData();
+		FormData fdInfoBar = (FormData) soInfoBar.getControl().getLayoutData();
+		if (fdInfoBar == null) {
+			fdInfoBar = Utils.getFilledFormData();
 		}
-		fdTop.top = new FormAttachment(fdForSO.top.control, fdForSO.top.offset,
-				fdForSO.top.alignment);
-		fdTop.bottom = null;
-		soTop.getControl().setLayoutData(fdTop);
-		fdForSO.top = new FormAttachment(soTop.getControl(), 0, SWT.BOTTOM);
-		forSO.getControl().setLayoutData(fdForSO);
+		if (top) {
+  		fdInfoBar.top = new FormAttachment(fdForSO.top.control, fdForSO.top.offset,
+  				fdForSO.top.alignment);
+  		fdInfoBar.bottom = null;
+  		soInfoBar.getControl().setLayoutData(fdInfoBar);
+  		fdForSO.top = new FormAttachment(soInfoBar.getControl(), 0, SWT.BOTTOM);
+  		forSO.getControl().setLayoutData(fdForSO);
+		} else {
+			if (fdForSO.bottom.control == null) {
+	  		fdInfoBar.bottom = new FormAttachment(fdForSO.bottom.numerator, fdForSO.bottom.denominator,
+	  				fdForSO.bottom.offset);
+			} else {
+    		fdInfoBar.bottom = new FormAttachment(fdForSO.bottom.control, fdForSO.bottom.offset,
+    				fdForSO.bottom.alignment);
+			}
+  		fdInfoBar.top = null;
+  		soInfoBar.getControl().setLayoutData(fdInfoBar);
+  		fdForSO.bottom = new FormAttachment(soInfoBar.getControl(), 0, SWT.TOP);
+  		forSO.getControl().setLayoutData(fdForSO);
+		}
 
 		((SWTSkinObjectContainer) parent).getComposite().layout(true);
 
@@ -117,13 +132,13 @@ public abstract class InfoBarUtil
 				// @see com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter#pressed(com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility, com.aelitis.azureus.ui.swt.skin.SWTSkinObject, int)
 				public void pressed(SWTSkinButtonUtility buttonUtility,
 						SWTSkinObject skinObject, int stateMask) {
-					soTop.setVisible(false);
+					soInfoBar.setVisible(false);
 					RememberedDecisionsManager.setRemembered(stateConfigID, 0);
 				}
 			});
 		}
 
-		soTop.addListener(new SWTSkinObjectListener() {
+		soInfoBar.addListener(new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				if (eventType == EVENT_SHOW) {
@@ -150,12 +165,12 @@ public abstract class InfoBarUtil
 			}
 		}
 
-		soTop.setVisible(true);
+		soInfoBar.setVisible(true);
 	}
 
 	public void hide(boolean permanently) {
-		if (soTop != null && !soTop.isDisposed()) {
-			soTop.setVisible(false);
+		if (soInfoBar != null && !soInfoBar.isDisposed()) {
+			soInfoBar.setVisible(false);
 		}
 		if (permanently) {
 			RememberedDecisionsManager.setRemembered(stateConfigID, 0);
@@ -164,10 +179,10 @@ public abstract class InfoBarUtil
 
 	public void show() {
 		RememberedDecisionsManager.setRemembered(stateConfigID, 1);
-		if (soTop == null) {
+		if (soInfoBar == null) {
 			createInfoBar();
 		} else {
-			soTop.setVisible(true);
+			soInfoBar.setVisible(true);
 		}
 	}
 

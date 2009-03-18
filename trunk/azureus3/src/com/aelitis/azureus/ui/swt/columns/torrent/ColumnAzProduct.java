@@ -58,7 +58,7 @@ public class ColumnAzProduct
 	
 	public ColumnAzProduct(TableColumn column) {
 		super(null, null);
-		column.initialize(ALIGN_CENTER, 0, 40, INTERVAL_GRAPHIC);
+		column.initialize(ALIGN_CENTER, POSITION_LAST, 40, INTERVAL_GRAPHIC);
 		column.setType(TYPE_GRAPHIC);
 		column.addListeners(this);
 		// cheat.  TODO: Either auto-add (in above method), or provide

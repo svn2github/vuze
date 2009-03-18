@@ -65,7 +65,7 @@ TableCellDisposeListener, TableCellSWTPaintListener
 	
 
 	public ColumnTJ_Completion(final TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 150);
+		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 145);
 		column.addListeners(this);
 		// cheat.  TODO: Either auto-add (in above method), or provide
 		// access via TableColumn instead of type casting
