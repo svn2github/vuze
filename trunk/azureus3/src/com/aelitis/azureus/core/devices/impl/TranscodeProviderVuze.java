@@ -23,12 +23,10 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;

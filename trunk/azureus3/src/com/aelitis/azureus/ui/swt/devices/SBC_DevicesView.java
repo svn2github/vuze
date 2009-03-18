@@ -19,6 +19,7 @@
 package com.aelitis.azureus.ui.swt.devices;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,6 +38,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -623,7 +625,39 @@ public class SBC_DevicesView
 			}
 		}
 
-		// remove
+			// copy stream uri
+		
+		final MenuItem sc_item = new MenuItem(menu, SWT.PUSH);
+
+		sc_item.setText(MessageText.getString("devices.copy_url"));
+
+		if ( files.length == 1 ){
+	
+			final URL url = files[0].getStreamURL();
+			
+			if ( url != null ){
+			
+				sc_item.addSelectionListener(
+					new SelectionAdapter() 
+					{
+						public void 
+						widgetSelected(
+							SelectionEvent e )
+						{
+							ClipboardCopy.copyToClipBoard( url.toExternalForm());
+						};
+					});
+				
+			}else{
+				
+				sc_item.setEnabled( false );
+			}
+		}else{
+			
+			sc_item.setEnabled( false );
+		}
+		
+			// remove
 
 		final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 

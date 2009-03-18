@@ -26,6 +26,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -472,6 +473,12 @@ TranscodeFileImpl
 			
 			return( null );
 		}
+	}
+	
+	public URL
+	getStreamURL()
+	{
+		return( device.getStreamURL( this ));
 	}
 	
 	public void

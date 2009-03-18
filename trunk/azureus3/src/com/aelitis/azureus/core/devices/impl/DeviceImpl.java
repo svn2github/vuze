@@ -1500,6 +1500,13 @@ DeviceImpl
 			});
 	}
 	
+	protected URL
+	getStreamURL(
+		TranscodeFileImpl		file )
+	{
+		return( manager.getStreamURL( file ));
+	}
+	
 	protected void
 	deleteFile(
 		TranscodeFileImpl	file,

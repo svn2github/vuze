@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -38,6 +39,8 @@ import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -663,6 +666,31 @@ DeviceManagerImpl
 				Debug.out( e );
 			}
 		}
+	}
+	
+	protected URL
+	getStreamURL(
+		TranscodeFileImpl		file )
+	{
+		IPCInterface ipc = upnp_manager.getUPnPAVIPC();
+		
+		if ( ipc != null ){
+
+			try{
+				DiskManagerFileInfo f = file.getTargetFile();
+				
+				String str = (String)ipc.invoke( "getContentURL", new Object[]{ f });
+				
+				if ( str != null && str.length() > 0 ){
+					
+					return( new URL( str ));
+				}
+			}catch( Throwable e ){
+				
+			}
+		}
+		
+		return( null );
 	}
 	
 	public TranscodeManagerImpl
