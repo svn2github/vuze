@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -109,6 +110,7 @@ public class PlatformDevicesMessenger
 		if (pi != null) {
 			map.put("itunes-plugin-version", pi.getPluginVersion());
 		}
+		map.put("os-name", Constants.OSName);
 	}
 
 	public static void qosTranscodeRequest(TranscodeTarget transcodeTarget, String sourceRef) {
