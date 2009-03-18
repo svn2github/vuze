@@ -182,7 +182,7 @@ public class DevicesFTUX
 		fd = Utils.getFilledFormData();
 		fd.bottom = new FormAttachment(checkITunes, -5);
 		fd.width = 550;
-		fd.height = 475;
+		fd.height = 490;
 		browser.setLayoutData(fd);
 		
 		fd = new FormData();
