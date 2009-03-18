@@ -55,6 +55,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
@@ -127,14 +128,14 @@ public class SBC_DevicesView
 			transTarget = (TranscodeTarget) device;
 		}
 
-		/*
-		new InfoBarUtil(skinObject, true, "DeviceView.infobar",
-				"v3.devicesview.infobar") {
-			public boolean allowShow() {
-				return true;
-			}
-		};
-		*/
+		if (device == null) {
+			new InfoBarUtil(skinObject, "devicesview.infobar", true,
+					"DeviceView.infobar", "v3.deviceview.infobar") {
+				public boolean allowShow() {
+					return true;
+				}
+			};
+		}
 
 		SWTSkinObject soAdvInfo = getSkinObject("advinfo");
 		if (soAdvInfo != null) {

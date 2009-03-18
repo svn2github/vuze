@@ -49,9 +49,17 @@ public abstract class InfoBarUtil
 
 	private final String textPrefix;
 
+	private final String skintemplateid;
+
 	public InfoBarUtil(SWTSkinObject forSO, boolean top,
 			final String stateConfigID, String textPrefix) {
+		this(forSO, "library.top.info", top, stateConfigID, textPrefix);
+	}
+
+	public InfoBarUtil(SWTSkinObject forSO, String skintemplateid, boolean top,
+			final String stateConfigID, String textPrefix) {
 		this.forSO = forSO;
+		this.skintemplateid = skintemplateid;
 		this.stateConfigID = stateConfigID;
 		this.textPrefix = textPrefix;
 		this.skin = forSO.getSkin();
@@ -87,7 +95,7 @@ public abstract class InfoBarUtil
 		}
 		FormData fdForSO = (FormData) ldForSO;
 		SWTSkinObject parent = forSO.getParent();
-		soTop = skin.createSkinObject("toptip", "library.top.info", parent);
+		soTop = skin.createSkinObject("infobarutil", skintemplateid, parent);
 
 		FormData fdTop = (FormData) soTop.getControl().getLayoutData();
 		if (fdTop == null) {

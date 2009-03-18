@@ -718,12 +718,7 @@ public class MainMenu
 		MenuFactory.addSeparatorMenuItem(toolsMenu);
 		MenuFactory.createPluginsMenuItem(toolsMenu, true);
 
-		if (false == Constants.isOSX) {
-			/*
-			 * Options is on the application menu on OSX
-			 */
-			MenuFactory.addOptionsMenuItem(toolsMenu);
-		}
+		MenuFactory.addOptionsMenuItem(toolsMenu);
 
 	}
 
