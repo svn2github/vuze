@@ -643,13 +643,29 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 		if( !isNullAd ){
 			//Find location of the ad(s).
 			try {
-  			File adFile = getAdMediaFromContentDownloadManager(dmContent);
-  			debug("  adPath: "+adFile.getAbsolutePath());
-  			replace(repBuffer,"<##-AD-PATH-##>",adFile.getAbsolutePath());
+  			List<File> ads = getAdMediaFromContentDownloadManager(dmContent);
+  			if (ads.size() > 0) {
+  				File adFile = ads.get(0);
+    			debug("  adPath: "+adFile.getAbsolutePath());
+    			replace(repBuffer,"<##-AD-PATH-##>",adFile.getAbsolutePath());
+    			
+    			for (int i = 0; i < ads.size(); i++) {
+						adFile = ads.get(i);
+						if (adFile != null) {
+							replace(repBuffer, "<##-AD-PATH-" + i + "-##>",
+									adFile.getAbsolutePath());
+						}
+					}
+  			}
 			} catch (Exception e) {
 				debug("reokacASXParams: " + e.toString());
 	  			replace(repBuffer,"<##-AD-PATH-##>","http://www.vuze.com/img43/asx_noad.gif");
 			}
+
+			String newRepBuffer = repBuffer.toString().replaceAll(
+					"<##-AD-PATH-[0-9]+-##>", "http://www.vuze.com/img43/asx_noad.gif");
+			repBuffer.delete(0, repBuffer.length());
+			repBuffer.append(newRepBuffer);
 		}
 
 		//pass the params to the player via the download manager.
@@ -721,32 +737,33 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 
 	}//replace
 
-	private File getAdMediaFromContentDownloadManager(DownloadManager contentDM){
+	private List<File> getAdMediaFromContentDownloadManager(DownloadManager contentDM){
 
 		debug("getAdMediaFromContentDownloadManager");
 
 		GlobalManager gm = contentDM.getGlobalManager();
 		Map map = AzpdFileAccess.getPlayerDataMap(contentDM);
 		List adHashList = (List) map.get("ad_hash");
-		String adHash = (String) adHashList.get(0);
 
-		if(adHash==null || adHash.equals("") ){
-			throw new IllegalStateException("No adHash found map="+map);
+		List<File> ads = new ArrayList<File>();
+		
+		for (Iterator iter = adHashList.iterator(); iter.hasNext();) {
+			String adHash = (String) iter.next();
+			if (adHash == null || adHash.equals("")) {
+				continue;
+			}
+
+			HashWrapper adHashWrapper = new HashWrapper(Base32.decode(adHash));
+			DownloadManager dmAd = gm.getDownloadManager(adHashWrapper);
+
+			File adFile;
+			if (dmAd != null) {
+				adFile = dmAd.getDiskManagerFileInfo()[0].getFile(true);
+				ads.add(adFile);
+			}
 		}
 
-		HashWrapper adHashWrapper = new HashWrapper(Base32.decode(adHash));
-		DownloadManager dmAd = gm.getDownloadManager(adHashWrapper); //ToDo: ad a check here for a null result.
-
-		File adFile;
-		if( !(dmAd==null) ){
-			adFile = dmAd.getDiskManagerFileInfo()[0].getFile(true);
-		}else{
-			//what is an alternate method to find the adFile?
-			debug("###  TODO  ### - Need to find an alternate method to get the ad media file location. ");
-			throw new NullPointerException("Need to get an ad to play.");
-		}
-
-		return adFile;
+		return ads;
 	}
 
 	/**
