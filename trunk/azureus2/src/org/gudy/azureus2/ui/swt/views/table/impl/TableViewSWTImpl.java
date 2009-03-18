@@ -1788,7 +1788,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 
 		String sSortColumn = tcManager.getDefaultSortColumnName(sTableID);
-		if (sSortColumn == null) {
+		if (sSortColumn == null || sSortColumn.length() == 0) {
 			sSortColumn = sDefaultSortOn;
 		}
 
