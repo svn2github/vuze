@@ -714,7 +714,7 @@ TranscodeQueueImpl
 			
 			job.failed( e );
 			
-			if ( job.getAutoRetryCount() == 0 && job.canUseDirectInput() && !job.useDirectInput()){
+			if ( !job.isStream() && job.getAutoRetryCount() == 0 && job.canUseDirectInput() && !job.useDirectInput()){
 				
 				log( "Auto-retrying transcode with direct input" );
 				
