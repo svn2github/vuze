@@ -714,6 +714,7 @@ TranscodeJobImpl
 				use_direct_input 	= false;
 				auto_retry			= false;
 				auto_retry_count	= 0;
+				is_stream			= false;
 
 			}else{
 				

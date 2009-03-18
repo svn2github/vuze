@@ -563,7 +563,10 @@ DiskManagerFileInfoStream
 				setMaximumReadChunkSize(
 					int 	size )
 				{
-					max_read_chunk = size;
+					if ( size > 16*1024 ){
+					
+						max_read_chunk = size;
+					}
 				}
 				
 				public long
