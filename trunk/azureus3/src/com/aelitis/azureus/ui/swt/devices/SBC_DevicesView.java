@@ -1058,7 +1058,7 @@ public class SBC_DevicesView
 			
 			File cache_file = file.getCacheFileIfExists();
 			
-			if ( cache_file != null && file.isComplete()){
+			if ( cache_file != null && cache_file.exists() && file.isComplete()){
 				
 				String path = cache_file.toString();
 		
