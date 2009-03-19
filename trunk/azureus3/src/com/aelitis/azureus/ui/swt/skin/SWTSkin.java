@@ -1564,6 +1564,7 @@ public class SWTSkin
 			sImageID = sConfigID;
 			if (typeParams.length > 1) {
 				properties.addProperty(sConfigID + ".image", typeParams[1]);
+				sImageID = typeParams[1];
 			}
 		}
 		SWTSkinObjectImage skinObject = new SWTSkinObjectImage(this, properties,
