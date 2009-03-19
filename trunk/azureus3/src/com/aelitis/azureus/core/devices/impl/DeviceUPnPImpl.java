@@ -60,9 +60,7 @@ DeviceUPnPImpl
 	implements TranscodeTargetListener, DownloadManagerListener
 {
 	private static final Object UPNPAV_FILE_KEY = new Object();
-	
-	private static final String MY_ACF_KEY = "DeviceUPnPImpl:device";
-	
+		
 	protected static String
 	getDisplayName(
 		UPnPDevice		device )
@@ -94,7 +92,8 @@ DeviceUPnPImpl
 		return( fn );
 	}
 	
-	
+	private final String MY_ACF_KEY;
+
 	
 	private final DeviceManagerUPnPImpl	upnp_manager;
 	private volatile UPnPDevice		device_may_be_null;
@@ -114,6 +113,8 @@ DeviceUPnPImpl
 		
 		upnp_manager		= _manager.getUPnPManager();
 		device_may_be_null 	= _device;
+		
+		MY_ACF_KEY = getACFKey();
 	}	
 	
 	protected
@@ -126,6 +127,8 @@ DeviceUPnPImpl
 		super( _manager, _type, UUIDGenerator.generateUUIDString(), _name, true );
 		
 		upnp_manager		= _manager.getUPnPManager();
+		
+		MY_ACF_KEY = getACFKey();
 	}
 	
 	protected
@@ -140,6 +143,8 @@ DeviceUPnPImpl
 		super( _manager, _type, _uuid, _name, _manual );
 		
 		upnp_manager		= _manager.getUPnPManager();
+		
+		MY_ACF_KEY = getACFKey();
 	}
 	
 	protected
@@ -152,6 +157,14 @@ DeviceUPnPImpl
 		super(_manager, _map );
 		
 		upnp_manager		= _manager.getUPnPManager();
+		
+		MY_ACF_KEY = getACFKey();
+	}
+	
+	protected String
+	getACFKey()
+	{
+		return( "DeviceUPnPImpl:device:" + getID());
 	}
 	
 	@Override
@@ -560,9 +573,9 @@ DeviceUPnPImpl
 						}
 					},
 					transcode_file.getCacheFile());
+							
+			final String tf_key = transcode_file.getKey();
 			
-			final Map<String,Object> properties =  new HashMap<String, Object>();
-				
 			acf =	new AzureusContentFile()
 					{	
 					   	public DiskManagerFileInfo
@@ -579,7 +592,7 @@ DeviceUPnPImpl
 
 							if ( name.equals( MY_ACF_KEY )){
 								
-								return( DeviceUPnPImpl.this );
+								return( new Object[]{ DeviceUPnPImpl.this, tf_key });
 							}
 							
 							return( null );
@@ -665,13 +678,23 @@ DeviceUPnPImpl
 		
 		if ( getFilterFilesView()){
 		
-			result = file.getProperty( MY_ACF_KEY ) == this;
+			Object[] x = (Object[])file.getProperty( MY_ACF_KEY );
 			
+			if ( x != null && x[0] == this ){
+					
+				String	tf_key = (String)x[1];
+					
+				result = getTranscodeFile( tf_key ) != null;
+				
+			}else{
+				
+				result = false;
+			}
 		}else{
 			
 			result = true;
 		}
-				
+		
 		return( result );
 	}
 	
@@ -721,7 +744,7 @@ DeviceUPnPImpl
 						{						
 							if(  name.equals( MY_ACF_KEY )){
 								
-								return( DeviceUPnPImpl.this );
+								return( new Object[]{ DeviceUPnPImpl.this, tf_key });
 								
 							}else{
 								
