@@ -47,6 +47,7 @@ import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
@@ -524,6 +525,11 @@ public class SearchResultsTabArea
 
 				controlBottom.getParent().layout(true);
 				search.setUrl("about:blank");
+				
+				BrowserContext context = browserSkinObject.getContext();
+				if (context != null) {
+					context.executeInBrowser("searchResultsClosed()");
+				}
 			}
 		});
 	}
