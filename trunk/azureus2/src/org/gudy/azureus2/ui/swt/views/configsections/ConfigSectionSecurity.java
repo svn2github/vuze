@@ -423,9 +423,7 @@ ConfigSectionSecurity
 					        		crypt_man.getECCHandler().resetKeys( "Manual key reset" );
 					        					        		
 					        	}catch( Throwable e ){
-					        		
-					        		
-					        		
+				        		
 					        		Utils.openMessageBox( 
 					        			parent.getShell(),SWT.ICON_ERROR | SWT.OK,
 					        			MessageText.getString( "ConfigView.section.security.resetkey.error.title"),
