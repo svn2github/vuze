@@ -54,10 +54,9 @@ public class TableColumnCreatorV3
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		Map mapTCs = tcManager.getTableColumnsAsMap(Download.class,
-				tableID);
+		Map mapTCs = tcManager.getTableColumnsAsMap(Download.class, tableID);
 
-		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class, tableID)
+		if (!tcManager.loadTableColumnSettings(Download.class, tableID)
 				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
 			DateCompletedItem tc = (DateCompletedItem) mapTCs.get(DateCompletedItem.COLUMN_ID);
