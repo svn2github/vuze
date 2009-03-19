@@ -283,20 +283,6 @@ VuzeCryptoManager
 		return crypt_man.getECCHandler().peekPublicKey() != null;
 	}
 	
-	public void
-	createNewKeys()
-	
-		throws VuzeCryptoException
-	{
-		try{
-			crypt_man.getECCHandler().resetKeys( "Creating new keys" );
-			
-		}catch( Throwable e ){
-			
-			throw( new VuzeCryptoException( "Failed to access public key", e ));
-		}
-	}
-	
 		/**
 		 * Remove cached password
 		 */
