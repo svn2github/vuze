@@ -598,11 +598,6 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
-		if ( new_type == getCurrentPasswordType()){
-			
-			return;
-		}
-		
 		String reason = "Changing password handler";
 		
 		boolean	have_existing_keys = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "privatekey", null ) != null;
@@ -610,6 +605,11 @@ CryptoHandlerECC
 			// ensure we unlock the private key so we can then re-persist it with new password
 
 		if ( have_existing_keys ){
+			
+			if ( new_type == getCurrentPasswordType()){
+				
+				return;
+			}
 			
 			getMyPrivateKey( reason );
 		
