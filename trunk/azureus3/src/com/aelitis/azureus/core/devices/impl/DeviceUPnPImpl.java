@@ -249,7 +249,23 @@ DeviceUPnPImpl
 	setFilterFilesView(
 		boolean	filter )
 	{
-		setPersistentBooleanProperty( PP_FILTER_FILES, filter );
+		boolean	existing = getFilterFilesView();
+		
+		if ( existing != filter ){
+		
+			setPersistentBooleanProperty( PP_FILTER_FILES, filter );
+		
+			IPCInterface ipc = upnpav_ipc;
+			
+			if ( ipc != null ){
+				
+				try{
+					ipc.invoke( "invalidateDirectory", new Object[]{});
+
+				}catch( Throwable e ){
+				}
+			}
+		}
 	}
 	
 	public boolean
