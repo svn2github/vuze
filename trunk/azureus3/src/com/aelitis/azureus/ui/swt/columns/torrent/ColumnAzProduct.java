@@ -139,36 +139,41 @@ public class ColumnAzProduct
 	public void refresh(final TableCell cell) {
 		Object ds = cell.getDataSource();
 
-		ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
-
-		long cnID = cn == null ? -1 : cn.getID();
-		long sortVal = cnID;
-
-		cell.setSortValue(sortVal);
+		if ( ds != null ){
+			ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
+	
+			long cnID = cn == null ? -1 : cn.getID();
+			long sortVal = cnID;
+	
+			cell.setSortValue(sortVal);
+		}
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellHover(TableCell cell) {
 		Object ds = cell.getDataSource();
 
-		ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
-		
-		cell.setToolTip(cn == null ? null : cn.getName());
-
-		if (false && Constants.isCVSVersion()) {
-			if (!(ds instanceof DownloadManager)) {
-				return;
+		if ( ds != null ){
+			
+			ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
+			
+			cell.setToolTip(cn == null ? null : cn.getName());
+	
+			if (false && Constants.isCVSVersion()) {
+				if (!(ds instanceof DownloadManager)) {
+					return;
+				}
+				DownloadManager dm = (DownloadManager) cell.getDataSource();
+				if (dm == null) {
+					return;
+				}
+	
+				TOTorrent torrent = dm.getTorrent();
+				long refreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
+				long diff = (refreshOn - SystemTime.getCurrentTime()) / 1000;
+				cell.setToolTip("Meta data auto refreshes in "
+						+ TimeFormatter.format(diff));
 			}
-			DownloadManager dm = (DownloadManager) cell.getDataSource();
-			if (dm == null) {
-				return;
-			}
-
-			TOTorrent torrent = dm.getTorrent();
-			long refreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
-			long diff = (refreshOn - SystemTime.getCurrentTime()) / 1000;
-			cell.setToolTip("Meta data auto refreshes in "
-					+ TimeFormatter.format(diff));
 		}
 	}
 
