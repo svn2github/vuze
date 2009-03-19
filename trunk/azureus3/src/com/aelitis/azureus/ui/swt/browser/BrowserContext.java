@@ -92,6 +92,10 @@ public class BrowserContext
 	
 	private long contentNetworkID = ConstantsVuze.DEFAULT_CONTENT_NETWORK_ID;
 	
+	private AEMonitor mon_listJS = new AEMonitor("listJS");
+	
+	private List<String> listJS = new ArrayList<String>(1);
+	
 	/**
 	 * Creates a context and registers the given browser.
 	 * 
@@ -183,6 +187,7 @@ public class BrowserContext
 		
 		browser.addTitleListener(new TitleListener() {
 			public void changed(TitleEvent event) {
+				
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
@@ -285,6 +290,15 @@ public class BrowserContext
 			private TimerEvent timerevent;
 
 			public void changed(LocationEvent event) {
+				if (timerevent != null) {
+					timerevent.cancel();
+				}
+				checkURLEventPerformer.perform(null);
+				setPageLoading(false, event.location);
+				if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
+					widgetWaitIndicator.setVisible(false);
+				}
+
 				// event.top is only filled on changed event (not changing!)
 				if (!event.top) {
 					return;
@@ -304,19 +318,9 @@ public class BrowserContext
 				}
 
 				//System.out.println("cd" + event.location);
-				if (timerevent != null) {
-					timerevent.cancel();
-				}
-				checkURLEventPerformer.perform(null);
-				setPageLoading(false, event.location);
-				if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
-					widgetWaitIndicator.setVisible(false);
-				}
 			}
 
 			public void changing(LocationEvent event) {
-				//System.out.println("cing " + event.location); 
-				
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
@@ -563,16 +567,29 @@ public class BrowserContext
 		if (pageLoading == b) {
 			return;
 		}
-		pageLoading = b;
-		if (pageLoading) {
-			pageLoadingStart = SystemTime.getCurrentTime();
-			pageLoadTime = -1;
-		} else if (pageLoadingStart > 0) {
-			pageLoadTime = SystemTime.getCurrentTime() - pageLoadingStart;
-			executeInBrowser("clientSetLoadTime(" + pageLoadTime + ");");
-			
-			pageLoadingStart = 0;
+		mon_listJS.enter();
+		try {
+  		pageLoading = b;
+  		if (pageLoading) {
+  			pageLoadingStart = SystemTime.getCurrentTime();
+  			pageLoadTime = -1;
+  		} else if (pageLoadingStart > 0) {
+  			pageLoadTime = SystemTime.getCurrentTime() - pageLoadingStart;
+  			executeInBrowser("clientSetLoadTime(" + pageLoadTime + ");");
+  			
+  			pageLoadingStart = 0;
+  		}
+  		if (!pageLoading && listJS.size() > 0) {
+  			debug(listJS.size() + " javascripts queued.  Executing now..");
+  			for (String js : listJS) {
+					executeInBrowser(js);
+				}
+  			listJS.clear();
+  		}
+		} finally {
+			mon_listJS.exit();
 		}
+		
 		Object[] listeners = loadingListeners.toArray();
 		for (int i = 0; i < listeners.length; i++) {
 			loadingListener l = (loadingListener) listeners[i];
@@ -688,11 +705,16 @@ public class BrowserContext
 	}
 
 	public boolean executeInBrowser(final String javascript) {
-		if (!mayExecute(javascript)) {
-			debug("BLOCKED: browser.execute( " + getShortJavascript(javascript)
-					+ " )");
-			return false;
+		mon_listJS.enter();
+		try {
+			if (!mayExecute(javascript)) {
+				listJS.add(javascript);
+				return false;
+			}
+		} finally {
+			mon_listJS.exit();
 		}
+
 		if (display == null || display.isDisposed()) {
 			debug("CANNOT: browser.execute( " + getShortJavascript(javascript) + " )");
 			return false;
