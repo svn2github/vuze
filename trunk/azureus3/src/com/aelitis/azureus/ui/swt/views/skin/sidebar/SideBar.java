@@ -266,7 +266,7 @@ public class SideBar
 										entry.getSidebar().showEntryByID(entry.parentID);
 									} else {
 										int i = itemIndex;
-										if (i >= tree.getItemCount()) {
+										if (i >= tree.getItemCount() || i < 0) {
 											i = tree.getItemCount() - 1;
 										}
 										TreeItem item = tree.getItem(i);
