@@ -171,7 +171,15 @@ public class PlatformDevicesMessenger
 		map.put("job-state", Integer.valueOf(stateOveride));
 
 		if ((stateOveride & 0xff) == TranscodeJob.ST_FAILED) {
-			map.put("job-error", job.getError());
+			String error = job.getError();
+			if (error != null) {
+				if (error.endsWith("\r\n")) {
+					error.substring(0, error.length() - 2);
+				} else if (error.endsWith("\r") || error.endsWith("\n")) {
+					error.substring(0, error.length() - 1);
+				}
+			}
+			map.put("job-error", error);
 		}
 
 		map.put("transcode-mode", new Integer(job.getTranscodeRequirement()));
