@@ -198,8 +198,9 @@ public class SBC_DevicesView
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Name(column);
 						if (column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
-							//column.setWidth(110);
 							column.setWidth(200);
+						} else if (!column.getTableID().endsWith(":type=1")) {
+							column.setWidth(140);
 						}
 					}
 				});
@@ -247,11 +248,7 @@ public class SBC_DevicesView
 				ColumnTJ_Completion.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Completion(column);
-						if (!column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
-							column.setVisible(false);
-						} else {
-							column.setWidth(145);
-						}
+						column.setWidth(145);
 					}
 				});
 		tableManager.registerColumn(TranscodeFile.class,

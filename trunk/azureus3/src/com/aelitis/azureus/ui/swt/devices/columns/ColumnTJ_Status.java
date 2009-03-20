@@ -43,7 +43,7 @@ public class ColumnTJ_Status
 
 	private static final String[] js_resource_keys = {
 		"ManagerItem.queued",
-		"DHTView.activity.status.false",
+		"devices.converting",
 		"ManagerItem.paused",
 		"sidebar.LibraryCD",
 		"Progress.reporting.status.canceled",

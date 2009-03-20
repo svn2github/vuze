@@ -42,7 +42,7 @@ public class ColumnTJ_Name
 	 * @param sTableID
 	 */
 	public ColumnTJ_Name(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 220);
+		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 215);
 		column.addListeners(this);
 		column.setObfustication(true);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
