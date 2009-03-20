@@ -489,7 +489,13 @@ TranscodeJobImpl
 		// I get the event even if listeners haven't had a chance to be added.
 		// This also ensures only one failed qos gets sent
 		try {
-			PlatformDevicesMessenger.qosTranscode(this, TranscodeJob.ST_FAILED);
+			int logState = TranscodeJob.ST_FAILED;
+			if ( !isStream() && getAutoRetryCount() == 0 && canUseDirectInput() && !useDirectInput()){
+				// we are going to retry..
+				logState |= 0x100;
+			}
+			
+			PlatformDevicesMessenger.qosTranscode(this, logState);
 		} catch (Throwable t) {
 			Debug.out(t);
 		}
