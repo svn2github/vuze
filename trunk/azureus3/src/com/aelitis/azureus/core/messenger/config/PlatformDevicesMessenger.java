@@ -70,6 +70,8 @@ public class PlatformDevicesMessenger
 				OP_QOS_TURN_ON, new Object[] {
 					"itunes",
 					Boolean.valueOf(withITunes),
+					"os-name",
+					Constants.OSName
 				}, 5000);
 		message.setSendAZID(false);
 		PlatformMessenger.queueMessage(message, null);
