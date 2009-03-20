@@ -137,6 +137,47 @@ public class SBC_DevicesView
 					return true;
 				}
 			};
+		} else if (device instanceof DeviceMediaRenderer) {
+			DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
+			int species = renderer.getRendererSpecies();
+			String speciesID = null;
+			switch (species) {
+				case DeviceMediaRenderer.RS_ITUNES:
+					speciesID = "itunes";
+					break;
+				case DeviceMediaRenderer.RS_PS3:
+					speciesID = "ps3";
+					break;
+				case DeviceMediaRenderer.RS_XBOX:
+					speciesID = "xbox";
+					break;
+
+				default:
+					break;
+			}
+
+			if (speciesID != null) {
+				final String fSpeciesID = speciesID;
+				new InfoBarUtil(skinObject, "devicesview.infobar", false,
+						"DeviceView.infobar." + speciesID, "v3.deviceview.infobar") {
+					public boolean allowShow() {
+						return true;
+					}
+
+					// @see com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil#created(com.aelitis.azureus.ui.swt.skin.SWTSkinObject)
+					protected void created(SWTSkinObject parent) {
+						SWTSkinObjectText soLine1 = (SWTSkinObjectText) skin.getSkinObject(
+								"line1", parent);
+						soLine1.setTextID("v3.deviceview.infobar.line1.generic",
+								new String[] {
+									device.getName()
+								});
+						SWTSkinObjectText soLine2 = (SWTSkinObjectText) skin.getSkinObject(
+								"line2", parent);
+						soLine2.setTextID("v3.deviceview.infobar.line2." + fSpeciesID);
+					}
+				};
+			}
 		}
 
 		SWTSkinObject soAdvInfo = getSkinObject("advinfo");
@@ -256,9 +297,9 @@ public class SBC_DevicesView
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_CopiedToDevice(column);
 
-						if ( 	column.getTableID().endsWith(":type=1") ||
-								column.getTableID().equals(TABLE_TRANSCODE_QUEUE )){
-							
+						if (column.getTableID().endsWith(":type=1")
+								|| column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
+
 							column.setVisible(false);
 						}
 					}
@@ -531,7 +572,7 @@ public class SBC_DevicesView
 
 			Debug.out(e);
 		}
-		
+
 		final File f_target_file = target_file;
 		final File f_source_file = source_file;
 
@@ -542,8 +583,8 @@ public class SBC_DevicesView
 			};
 		});
 
-		open_item.setEnabled( target_file != null );
-		
+		open_item.setEnabled(target_file != null);
+
 		// show in explorer
 
 		final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
@@ -556,12 +597,14 @@ public class SBC_DevicesView
 		show_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 
-				ManagerUtils.open(f_target_file!=null?f_target_file:f_source_file, use_open_containing_folder);
+				ManagerUtils.open(
+						f_target_file != null ? f_target_file : f_source_file,
+						use_open_containing_folder);
 			};
 		});
 
-		show_item.setEnabled( 	(source_file != null && !files[0].isComplete()) ||
-								(target_file != null && files[0].isComplete()));
+		show_item.setEnabled((source_file != null && !files[0].isComplete())
+				|| (target_file != null && files[0].isComplete()));
 
 		new MenuItem(menu, SWT.SEPARATOR);
 
@@ -647,39 +690,34 @@ public class SBC_DevicesView
 			}
 		}
 
-			// copy stream uri
-		
+		// copy stream uri
+
 		final MenuItem sc_item = new MenuItem(menu, SWT.PUSH);
 
 		sc_item.setText(MessageText.getString("devices.copy_url"));
 
-		if ( files.length == 1 ){
-	
+		if (files.length == 1) {
+
 			final URL url = files[0].getStreamURL();
-			
-			if ( url != null ){
-			
-				sc_item.addSelectionListener(
-					new SelectionAdapter() 
-					{
-						public void 
-						widgetSelected(
-							SelectionEvent e )
-						{
-							ClipboardCopy.copyToClipBoard( url.toExternalForm());
-						};
-					});
-				
-			}else{
-				
-				sc_item.setEnabled( false );
+
+			if (url != null) {
+
+				sc_item.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						ClipboardCopy.copyToClipBoard(url.toExternalForm());
+					};
+				});
+
+			} else {
+
+				sc_item.setEnabled(false);
 			}
-		}else{
-			
-			sc_item.setEnabled( false );
+		} else {
+
+			sc_item.setEnabled(false);
 		}
-		
-			// remove
+
+		// remove
 
 		final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 
@@ -690,8 +728,8 @@ public class SBC_DevicesView
 		remove_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				for (TranscodeFile file : files) {
-				
-					deleteFile( file );
+
+					deleteFile(file);
 				}
 			};
 		});
@@ -961,7 +999,7 @@ public class SBC_DevicesView
 		boolean forceSort = false;
 		for (TranscodeJob job : jobs) {
 
-			if ( itemKey.equals("stop")) {
+			if (itemKey.equals("stop")) {
 
 				job.stop();
 
@@ -1039,99 +1077,90 @@ public class SBC_DevicesView
 		}
 	}
 
-	protected void
-	deleteFile(
-		TranscodeFile	file )
-	{
-		if ( tvFiles == null || tvFiles.isDisposed()){
-			
+	protected void deleteFile(TranscodeFile file) {
+		if (tvFiles == null || tvFiles.isDisposed()) {
+
 			return;
 		}
-		
-		try{
-			boolean	do_delete		= false;
-			
-				// we are already on SWT thread
-			
+
+		try {
+			boolean do_delete = false;
+
+			// we are already on SWT thread
+
 			File cache_file = file.getCacheFileIfExists();
-			
-			if ( cache_file != null && cache_file.exists() && file.isComplete()){
-				
+
+			if (cache_file != null && cache_file.exists() && file.isComplete()) {
+
 				String path = cache_file.toString();
-		
-				String title = MessageText.getString( "xcode.deletedata.title" );
-				
+
+				String title = MessageText.getString("xcode.deletedata.title");
+
 				String copy_text = "";
-				
+
 				Device device = file.getDevice();
-				
-				if ( device instanceof DeviceMediaRenderer ){
-				
-					if ( ((DeviceMediaRenderer)device).canCopyToDevice()){
-						
-						copy_text = MessageText.getString( "xcode.deletedata.message.2", new String[]{ device.getName() });
+
+				if (device instanceof DeviceMediaRenderer) {
+
+					if (((DeviceMediaRenderer) device).canCopyToDevice()) {
+
+						copy_text = MessageText.getString("xcode.deletedata.message.2",
+								new String[] {
+									device.getName()
+								});
 					}
 				}
-				
-				String text = MessageText.getString( "xcode.deletedata.message",
+
+				String text = MessageText.getString("xcode.deletedata.message",
 						new String[] {
 							file.getName(),
 							file.getProfileName(),
 							copy_text
 						});
-						
-				
-				MessageBoxShell mb = 
-					new MessageBoxShell(
-						tvFiles.getComposite().getShell(), 
-						title, 
-						text,
-						new String[] {
+
+				MessageBoxShell mb = new MessageBoxShell(
+						tvFiles.getComposite().getShell(), title, text, new String[] {
 							MessageText.getString("Button.yes"),
 							MessageText.getString("Button.no"),
-						}, 
-						1,
-						"xcode.deletedata.noconfirm.key",
-						MessageText.getString("deletedata.noprompt"),
-						false,
-						0 );
-				
+						}, 1, "xcode.deletedata.noconfirm.key",
+						MessageText.getString("deletedata.noprompt"), false, 0);
+
 				mb.setRememberOnlyIfButton(0);
-				
+
 				DownloadManager dm = null;
-				
-				if ( dm != null ){
-				
+
+				if (dm != null) {
+
 					mb.setRelatedObject(dm);
 				}
-				
+
 				mb.setLeftImage(SWT.ICON_WARNING);
-		
+
 				int result = mb.open();
-				
-				if ( result == 0 ){
-					
+
+				if (result == 0) {
+
 					do_delete = true;
 				}
-			}else{
-				
+			} else {
+
 				do_delete = true;
 			}
-			
-			if ( do_delete ){
-				
+
+			if (do_delete) {
+
 				TranscodeJob job = file.getJob();
 
-				if ( job != null ){
-					
+				if (job != null) {
+
 					job.remove();
 				}
 
-				file.delete( cache_file != null );
+				file.delete(cache_file != null);
 			}
-		}catch( Throwable e ){
-	
-			Debug.out( e );
+		} catch (Throwable e) {
+
+			Debug.out(e);
 		}
 	}
 }

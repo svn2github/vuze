@@ -164,8 +164,19 @@ public abstract class InfoBarUtil
 				soText.setTextID(id);
 			}
 		}
+		
+		created(parent);
 
 		soInfoBar.setVisible(true);
+	}
+
+	/**
+	 * 
+	 *
+	 * @param parent 
+	 * @since 4.1.0.5
+	 */
+	protected void created(SWTSkinObject parent) {
 	}
 
 	public void hide(boolean permanently) {
