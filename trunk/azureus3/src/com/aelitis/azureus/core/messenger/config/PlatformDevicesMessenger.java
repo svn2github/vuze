@@ -168,7 +168,7 @@ public class PlatformDevicesMessenger
 
 		map.put("job-state", Integer.valueOf(stateOveride));
 
-		if (stateOveride == TranscodeJob.ST_FAILED) {
+		if ((stateOveride & 0xff) == TranscodeJob.ST_FAILED) {
 			map.put("job-error", job.getError());
 		}
 
