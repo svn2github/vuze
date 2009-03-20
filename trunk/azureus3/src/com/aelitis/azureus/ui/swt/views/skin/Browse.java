@@ -178,15 +178,23 @@ public class Browse
 			}
 		});
 
-		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
-			PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
-			PluginInterface pi = pm.getDefaultPluginInterface();
-			UIManager uim = pi.getUIManager();
-			MenuManager menuManager = uim.getMenuManager();
+		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+		PluginInterface pi = pm.getDefaultPluginInterface();
+		UIManager uim = pi.getUIManager();
+		MenuManager menuManager = uim.getMenuManager();
 
-			String menuID = "sidebar."
-					+ ContentNetworkUtils.getTarget(contentNetwork);
-			
+		String menuID = "sidebar."
+				+ ContentNetworkUtils.getTarget(contentNetwork);
+		
+		MenuItem item = menuManager.addMenuItem(menuID, "Button.reload");
+		item.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				browserSkinObject.refresh();
+			}
+		});
+		
+		
+		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
 			MenuItem parent = menuManager.addMenuItem(menuID, "CVS Only");
 			parent.setStyle(MenuItem.STYLE_MENU);
 			
