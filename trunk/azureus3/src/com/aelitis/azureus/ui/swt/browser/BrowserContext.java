@@ -294,7 +294,7 @@ public class BrowserContext
 					timerevent.cancel();
 				}
 				checkURLEventPerformer.perform(null);
-				setPageLoading(false, event.location);
+				setPageLoading(false, event.top ? event.location : null);
 				if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 					widgetWaitIndicator.setVisible(false);
 				}
@@ -564,7 +564,9 @@ public class BrowserContext
 	 * @since 3.1.1.1
 	 */
 	protected void setPageLoading(boolean b, String url) {
-		if (pageLoading == b) {
+		// we may get multiple "load done"s (from each frame) which we don't
+		// want to skip
+		if (b && pageLoading) {
 			return;
 		}
 		mon_listJS.enter();
@@ -573,7 +575,7 @@ public class BrowserContext
   		if (pageLoading) {
   			pageLoadingStart = SystemTime.getCurrentTime();
   			pageLoadTime = -1;
-  		} else if (pageLoadingStart > 0) {
+  		} else if (pageLoadingStart > 0 && url != null) {
   			pageLoadTime = SystemTime.getCurrentTime() - pageLoadingStart;
   			executeInBrowser("clientSetLoadTime(" + pageLoadTime + ");");
   			
