@@ -733,7 +733,9 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 	private static void replace(StringBuffer sb, String param, String value, int startIndex){
 
 		int s = sb.indexOf(param,startIndex);
-		sb.replace(s, s+param.length(), value );
+		if (s >= 0) {
+			sb.replace(s, s+param.length(), value );
+		}
 
 	}//replace
 
