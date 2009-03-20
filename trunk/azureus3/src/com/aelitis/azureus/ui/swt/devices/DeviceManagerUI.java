@@ -71,6 +71,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
+import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -355,6 +356,17 @@ DeviceManagerUI
 			configModel.addBooleanParameter2( 
 				"device.search.auto", "device.search.auto",
 				device_manager.getAutoSearch());
+		
+		final BooleanParameter qosParam = configModel.addBooleanParameter2(
+				PlatformDevicesMessenger.CFG_SEND_QOS, "devices.turnon.qos", false);
+		qosParam.setValue(COConfigurationManager.getBooleanParameter(
+				PlatformDevicesMessenger.CFG_SEND_QOS, false));
+		qosParam.addListener(new ParameterListener() {
+			public void parameterChanged(Parameter param) {
+				COConfigurationManager.setParameter(
+						PlatformDevicesMessenger.CFG_SEND_QOS, qosParam.getValue());
+			}
+		});
 		
 		as.addListener(
 			new ParameterListener()
