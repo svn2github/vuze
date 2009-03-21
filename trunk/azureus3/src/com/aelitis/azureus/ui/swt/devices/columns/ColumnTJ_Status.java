@@ -142,10 +142,32 @@ public class ColumnTJ_Status
 				text = js_resources[state];
 	
 				if ( state == TranscodeJob.ST_FAILED ) {
-	
-					// should be red but whatever
+						
+					String	error_msg = job.getError();
 					
-					text += ": " + job.getError();
+					if ( error_msg != null ){
+						
+							// error message can be very large and technical as it includes output
+							// from ffmpeg error etc. So trim it back for user consumption
+						
+						int	pos = error_msg.indexOf( '\n' );
+						
+						if ( pos >= 0 ){
+							
+							error_msg = error_msg.substring( 0, pos );
+						}
+						
+						pos = error_msg.indexOf( ',' );
+						
+						if ( pos >= 0 ){
+							
+							error_msg = error_msg.substring( 0, pos );
+						}
+						
+						text += ": " + error_msg.trim();
+					}
+					
+					tooltip = "See transcode log for more details";
 					
 					error = true;
 				}
