@@ -148,23 +148,34 @@ public class ColumnTJ_Status
 					if ( error_msg != null ){
 						
 							// error message can be very large and technical as it includes output
-							// from ffmpeg error etc. So trim it back for user consumption
+							// from ffmpeg error etc. So trim it back for user consumption.
+							// currently we try to ensure that tech info appears after second
+							// comma
 						
-						int	pos = error_msg.indexOf( '\n' );
-						
-						if ( pos >= 0 ){
+						try{
+							int	pos = error_msg.indexOf( '\n' );
 							
-							error_msg = error_msg.substring( 0, pos );
-						}
-						
-						pos = error_msg.indexOf( ',' );
-						
-						if ( pos >= 0 ){
+							if ( pos >= 0 ){
+								
+								error_msg = error_msg.substring( 0, pos );
+							}
 							
-							error_msg = error_msg.substring( 0, pos );
+							pos = error_msg.indexOf( ',' );
+							
+							if ( pos >= 0 ){
+								
+								pos = error_msg.indexOf( ',', pos+1 );
+	
+								if ( pos >= 0 ){
+								
+									error_msg = error_msg.substring( 0, pos );
+								}
+							}
+							
+							text += ": " + error_msg.trim();
+							
+						}catch( Throwable e ){
 						}
-						
-						text += ": " + error_msg.trim();
 					}
 					
 					tooltip = "See transcode log for more details";
