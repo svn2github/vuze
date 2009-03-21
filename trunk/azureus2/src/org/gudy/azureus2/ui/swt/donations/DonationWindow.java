@@ -212,7 +212,11 @@ public class DonationWindow
 				} else if (text.contains("never-ask-again")) {
 					neverAskAgain();
 				} else if (text.contains("close")) {
-					shell.dispose();
+					Utils.execSWTThreadLater(0, new AERunnable() {	
+						public void runSupport() {
+							shell.dispose();
+						}
+					});
 				} else if (text.startsWith("open-url")) {
 					String url = event.text.substring(9);
 					Utils.launch(url);
