@@ -234,7 +234,7 @@ public class SWTSkinObjectText2
 						try {
   						ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL(url);
   						if (cn != null) {
-  							url = cn.appendURLSuffix(url, false, true);
+  							url = cn.appendURLSuffix(url, false, false);
   						}
 						} catch (Throwable t) {
 							// ignore
