@@ -30,6 +30,8 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
@@ -236,6 +238,15 @@ public class SWTSkinObjectText2
   						if (cn != null) {
   							url = cn.appendURLSuffix(url, false, false);
   						}
+  						if (url.contains("?")) {
+  							url += "&";
+  						} else {
+  							url += "?";
+  						}
+  						url += "fromWeb=false&os.name=" + UrlUtils.encode(Constants.OSName)
+  								+ "&os.version="
+  								+ UrlUtils.encode(System.getProperty("os.version"))
+  								+ "&java.version=" + UrlUtils.encode(Constants.JAVA_VERSION); 
 						} catch (Throwable t) {
 							// ignore
 						}
