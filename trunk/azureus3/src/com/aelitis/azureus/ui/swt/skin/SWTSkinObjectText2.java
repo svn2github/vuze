@@ -34,6 +34,9 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
@@ -227,7 +230,16 @@ public class SWTSkinObjectText2
 				if (lastStringPrinter != null) {
 					URLInfo hitUrl = lastStringPrinter.getHitUrl(e.x, e.y);
 					if (hitUrl != null) {
-						Utils.launch(hitUrl.url);
+						String url = hitUrl.url;
+						try {
+  						ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL(url);
+  						if (cn != null) {
+  							url = cn.appendURLSuffix(url, false, true);
+  						}
+						} catch (Throwable t) {
+							// ignore
+						}
+						Utils.launch(url);
 					}
 				}
 			}
