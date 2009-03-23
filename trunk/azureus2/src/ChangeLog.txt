@@ -1,6 +1,11 @@
 VUZE CHANGELOG
 -----------------
 
+
+2009.04.xx | Vuze 4.2.0.1
+
+
+
 2009.03.23 | Vuze 4.2.0.0
 
 FEATURE: Core | Devices [parg]
