@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2009.03.xx | Vuze 4.1.0.5
+2009.03.23 | Vuze 4.2.0.0
 
 FEATURE: Core | Devices [parg]
 FEATURE: UIvz | UI for Devices panel, individual Device panel, Device chooser, and Device Profile Chooser [TuxPaper]
@@ -9,6 +9,7 @@ FEATURE: Plug | Transcoding [gudy,parg]
 
 BUGFIX: Core  | Fix IP binding error when performing a NAT test under Vista [The 8472]
 BUGFIX: UIvz  | Fix some notifications not getting pulled [TuxPaper]
+
 
 
 
