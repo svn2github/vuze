@@ -355,7 +355,10 @@ DeviceManagerImpl
 		
 		if ( existing != null ){
 			
-			deviceChanged( existing, true );
+				// don't trigger config save here, if anything has changed it will have been handled
+				// by the updateFrom call above
+			
+			deviceChanged( existing, false );
 			
 			return( existing );
 		}
