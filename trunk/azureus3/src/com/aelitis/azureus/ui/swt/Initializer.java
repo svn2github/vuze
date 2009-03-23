@@ -326,15 +326,12 @@ public class Initializer
 			Debug.printStackTrace(e);
 		}
 		
-		if ( DeviceManagerFactory.ENABLED ){
-			
-			try{
-				new DeviceManagerUI( core );
+		try{
+			new DeviceManagerUI( core );
 				
-			}catch( Throwable e ){
+		}catch( Throwable e ){
 				
-				Debug.printStackTrace(e);
-			}
+			Debug.printStackTrace(e);
 		}
 		
 		core.start();

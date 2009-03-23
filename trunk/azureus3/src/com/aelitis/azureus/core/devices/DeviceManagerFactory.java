@@ -21,34 +21,20 @@
 
 package com.aelitis.azureus.core.devices;
 
-import org.gudy.azureus2.core3.util.Constants;
-
 import com.aelitis.azureus.core.devices.impl.DeviceManagerImpl;
 
 public class 
 DeviceManagerFactory 
 {
-	public static final boolean	ENABLED = Constants.isCVSVersion();
-	
 	public static void
 	preInitialise()
-	{
-		if ( ENABLED ){
-		
-			DeviceManagerImpl.preInitialise();
-		}
+	{		
+		DeviceManagerImpl.preInitialise();
 	}
 	
 	public static DeviceManager
 	getSingleton()
 	{
-		if ( ENABLED ){
-		
-			return( DeviceManagerImpl.getSingleton());
-			
-		}else{
-			
-			return( null );
-		}
+		return( DeviceManagerImpl.getSingleton());
 	}
 }

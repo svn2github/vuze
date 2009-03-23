@@ -140,7 +140,7 @@ public class SideBar
 
 	public static final boolean SHOW_TOOLS = false;
 	
-	public static final boolean SHOW_DEVICES = DeviceManagerFactory.ENABLED;
+	public static final boolean SHOW_DEVICES = true;
 
 	public static final String SIDEBAR_SECTION_ACTIVITIES = "Activity";
 
