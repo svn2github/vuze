@@ -4,8 +4,10 @@ VUZE CHANGELOG
 2009.0x.xx | Vuze 4.2.0.3
 
 
+
 2009.03.3x | Vuze 4.2.0.2
 *See BRANCH_4202...
+
 
 
 2009.03.23 | Vuze 4.2.0.0
@@ -16,7 +18,6 @@ FEATURE: Plug | Transcoding [gudy,parg]
 
 BUGFIX: Core  | Fix IP binding error when performing a NAT test under Vista [The 8472]
 BUGFIX: UIvz  | Fix some notifications not getting pulled [TuxPaper]
-
 
 
 
