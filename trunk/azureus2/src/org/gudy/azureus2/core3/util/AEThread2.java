@@ -208,9 +208,9 @@ AEThread2
 	threadWrapper
 		extends Thread
 	{
-		private AESemaphore sem;
-		private AEThread2	target;
-		private JoinLock	currentLock;
+		private AESemaphore2	sem;
+		private AEThread2		target;
+		private JoinLock		currentLock;
 		
 		private long		last_active_time;
 		
@@ -337,7 +337,7 @@ AEThread2
 			
 			if ( sem == null ){
 				
-				 sem = new AESemaphore( "AEThread2" );
+				 sem = new AESemaphore2( "AEThread2" );
 				 
 				 super.start();
 				 

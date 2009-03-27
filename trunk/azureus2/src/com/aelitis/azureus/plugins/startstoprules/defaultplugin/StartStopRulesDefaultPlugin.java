@@ -124,7 +124,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private RecalcSeedingRanksTask recalcSeedingRanksTask;
 
 	/** Map to relate downloadData to a Download */
-	private static Map downloadDataMap = AEMonitor.getSynchronisedMap(new HashMap());
+	private static Map downloadDataMap = Collections.synchronizedMap(new HashMap());
 	/**
 	 * this is used to reduce the number of comperator invocations
 	 * by keeping a mostly sorted copy around, must be nulled whenever the map is changed
