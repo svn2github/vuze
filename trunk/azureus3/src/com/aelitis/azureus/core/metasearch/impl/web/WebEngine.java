@@ -20,6 +20,8 @@
 
 package com.aelitis.azureus.core.metasearch.impl.web;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -647,11 +649,7 @@ WebEngine
 			}
 			
 			List cts = (List)mr_rd.getProperty( "URL_Content-Type" );
-
-			StringBuffer sb = new StringBuffer();
-			
-			byte[] data = new byte[8192];			
-			
+						
 			String content_charset = "UTF-8";
 			
 			if ( cts != null && cts.size() > 0 ){
@@ -706,15 +704,75 @@ WebEngine
 				}
 			}
 			
-			int nbRead = 0;
-			
-			while((nbRead = is.read(data)) != -1){
+			ByteArrayOutputStream baos = new ByteArrayOutputStream(8192);
+									
+			byte[] buffer = new byte[8192];			
+
+			while( true ){
 				
-				sb.append(new String(data,0,nbRead, content_charset ));
+				int	len = is.read( buffer );
+				
+				if ( len <= 0 ){
+					
+					break;
+				}
+				
+				baos.write( buffer, 0, len );
 			}
+			
+			byte[] data = baos.toByteArray();
+			
+			String 	page = null;
+			
+			String	content = new String( data, 0, Math.min( data.length, 2048 ), content_charset );
+			
+			String	lc_content = content.toLowerCase();
+			
+			int	pos1 = lc_content.indexOf( "<?xml" );
+			
+			if ( pos1 != -1 ){
+				
+				int pos2 = lc_content.indexOf( "?>" );
+				
+				if ( pos2 != -1 ){
+										
+					int pos3 = lc_content.indexOf( "encoding=\"", pos1 );
+					
+					if ( pos3 > pos1 && pos3 < pos2 ){
+													
+						pos3 += 10;
+						
+						int pos4 = lc_content.indexOf( "\"", pos3 );
+						
+						if ( pos4 > pos3 && pos4 < pos2 ){
+							
+							String	encoding = content.substring( pos3, pos4 );
+							
+							try{
+								if ( Charset.isSupported( encoding )){
+									
+									debugLog( "charset: " + encoding );
+									
+									content_charset = encoding;
+									
+									page = content.substring( 0, pos3 ) + "utf-8" + content.substring( pos4, pos2 ) + new String( data, pos2, data.length - pos2, content_charset );							
+								}
+							}catch( Throwable e ){
+								
+								log( "Content type '" + encoding + "' not supported", e );
+							}
+						}
+					}
+				}
+			}
+			
+			if ( page == null ){
+			
+					// TODO: should handle <META http-equiv="Content-Type" content="text/html; charset=EUC-JP">
 
-			String page = sb.toString();
-
+				page = new String( data, content_charset );
+			}
+			
 			debugLog( "page:" );
 			debugLog( page );
 
