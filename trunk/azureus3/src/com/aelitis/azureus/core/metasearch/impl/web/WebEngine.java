@@ -460,6 +460,19 @@ WebEngine
 			
 			String searchURL = searchURLFormat;
 			
+				// see if we have explicit cookie information in the URL:
+			
+			int	cook_pos = searchURL.indexOf( ":COOKIE:" );
+			
+			String	explicit_cookie = null;
+			
+			if ( cook_pos != -1 ){
+				
+				explicit_cookie = searchURL.substring( cook_pos + 8 );
+				
+				searchURL = searchURL.substring( 0, cook_pos );
+			}
+			
 			String[]	from_strs 	= new String[ searchParameters.length ];
 			String[]	to_strs 	= new String[ searchParameters.length ];
 			
@@ -554,6 +567,10 @@ WebEngine
 			if ( needsAuth && local_cookies != null ){
 				
 				initial_url_rd.setProperty( "URL_Cookie", local_cookies );
+				
+			}else if ( explicit_cookie != null ){
+				
+				initial_url_rd.setProperty( "URL_Cookie", explicit_cookie );
 			}
 				
 			if ( only_if_modified ){
