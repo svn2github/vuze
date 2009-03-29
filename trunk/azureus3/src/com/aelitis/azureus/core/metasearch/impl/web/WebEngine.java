@@ -363,6 +363,25 @@ WebEngine
 			// normalise to permit == to be safely used when testing method
 		
 		authMethod = authMethod.intern();
+		
+			// see if we have explicit cookie information in the URL:
+		
+		int	cook_pos = searchURLFormat.indexOf( ":COOKIE:" );
+					
+		if ( cook_pos != -1 ){
+			
+			String explicit_cookie = searchURLFormat.substring( cook_pos + 8 );
+			
+			setNeedsAuth( true );
+			
+			setCookies( explicit_cookie );
+			
+			setRequiredCookies( CookieParser.getCookiesNames( explicit_cookie ));
+			
+			searchURLFormat = searchURLFormat.substring( 0, cook_pos );
+			
+			setPublic( false );
+		}
 	}
 	
 	public String 
@@ -460,19 +479,6 @@ WebEngine
 			
 			String searchURL = searchURLFormat;
 			
-				// see if we have explicit cookie information in the URL:
-			
-			int	cook_pos = searchURL.indexOf( ":COOKIE:" );
-			
-			String	explicit_cookie = null;
-			
-			if ( cook_pos != -1 ){
-				
-				explicit_cookie = searchURL.substring( cook_pos + 8 );
-				
-				searchURL = searchURL.substring( 0, cook_pos );
-			}
-			
 			String[]	from_strs 	= new String[ searchParameters.length ];
 			String[]	to_strs 	= new String[ searchParameters.length ];
 			
@@ -566,11 +572,7 @@ WebEngine
 				
 			if ( needsAuth && local_cookies != null ){
 				
-				initial_url_rd.setProperty( "URL_Cookie", local_cookies );
-				
-			}else if ( explicit_cookie != null ){
-				
-				initial_url_rd.setProperty( "URL_Cookie", explicit_cookie );
+				initial_url_rd.setProperty( "URL_Cookie", local_cookies );				
 			}
 				
 			if ( only_if_modified ){
@@ -967,6 +969,13 @@ WebEngine
 		return needsAuth;
 	}
 
+	protected void
+	setNeedsAuth(
+		boolean	b )
+	{
+		needsAuth = b;
+	}
+	
 	public String
 	getAuthMethod()
 	{

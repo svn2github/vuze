@@ -145,6 +145,9 @@ Engine
 	public boolean
 	isMine();
 	
+	public boolean
+	isPublic();
+	
 	public void
 	setMine(
 		boolean		mine );

@@ -797,7 +797,7 @@ SubscriptionManagerImpl
 			
 			String	json = SubscriptionImpl.getSkeletonJSON( engine, check_interval_mins );
 			
-			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, engine.isPublic(), null, json, SubscriptionImpl.ADD_TYPE_CREATE );
 			
 			if ( user_data != null ){
 				
@@ -815,7 +815,10 @@ SubscriptionManagerImpl
 					
 			subs = addSubscription( subs );
 			
-			updatePublicSubscription( subs );
+			if ( subs.isPublic()){
+			
+				updatePublicSubscription( subs );
+			}
 			
 			return( subs );
 			

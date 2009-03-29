@@ -151,6 +151,8 @@ EngineImpl
 	private byte[]		uid;
 	private int			version;
 	
+	private boolean		is_public					= true;
+	
 	private int			az_version;
 	
 	private int			selection_state				= SEL_STATE_DESELECTED;
@@ -904,6 +906,19 @@ EngineImpl
 	isActive()
 	{
 		return(	getSelectionState() != SEL_STATE_DESELECTED );
+	}
+	
+	public boolean
+	isPublic()
+	{
+		return( is_public );
+	}
+	
+	protected void
+	setPublic(
+		boolean		p )
+	{
+		is_public = p;
 	}
 	
 	public int
