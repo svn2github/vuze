@@ -540,7 +540,7 @@ public class FileUtil {
 	readResilientFile(
 		File		file )
 	{
-		return( readResilientFile( file.getParentFile(),file.getName(),false));
+		return( readResilientFile( file.getParentFile(),file.getName(),false, true));
 	}
 	
  	public static Map
@@ -548,6 +548,16 @@ public class FileUtil {
 		File		parent_dir,
 		String		file_name,
 		boolean		use_backup )
+ 	{
+ 		return readResilientFile(parent_dir, file_name, use_backup, true);
+ 	}
+ 	
+ 	public static Map
+	readResilientFile(
+		File		parent_dir,
+		String		file_name,
+		boolean		use_backup,
+		boolean		intern_keys )
  	{
 		File	backup_file = new File( parent_dir, file_name + ".bak" );
 		 
@@ -559,13 +569,13 @@ public class FileUtil {
  			// if we've got a backup, don't attempt recovery here as the .bak file may be
  			// fully OK
  		
- 		Map	res = readResilientFileSupport( parent_dir, file_name, !use_backup );
+ 		Map	res = readResilientFileSupport( parent_dir, file_name, !use_backup, intern_keys );
  		
  		if ( res == null && use_backup ){
  				
  				// try backup without recovery
  			
- 		 	res = readResilientFileSupport( parent_dir, file_name + ".bak", false );
+ 		 	res = readResilientFileSupport( parent_dir, file_name + ".bak", false, intern_keys );
  		 		
 	 		if ( res != null ){
 	 			
@@ -582,7 +592,7 @@ public class FileUtil {
 	 			
 	 				// neither main nor backup file ok, retry main file with recovery
 	 			
-	 			res = readResilientFileSupport( parent_dir, file_name, true );
+	 			res = readResilientFileSupport( parent_dir, file_name, true, true );
 	 		}
  		}
  		
@@ -600,7 +610,8 @@ public class FileUtil {
 	readResilientFileSupport(
 		File		parent_dir,
 		String		file_name,
-		boolean		attempt_recovery )
+		boolean		attempt_recovery,
+		boolean		intern_keys )
 	{
    		try{
   			class_mon.enter();
@@ -611,7 +622,7 @@ public class FileUtil {
 	  			Map	res = null;
 	  			
 	  			try{
-	  				res = readResilientFile( file_name, parent_dir, file_name, 0, false );
+	  				res = readResilientFile( file_name, parent_dir, file_name, 0, false, intern_keys );
 	  			
 	  			}catch( Throwable e ){
 	  				
@@ -620,7 +631,7 @@ public class FileUtil {
 	  			
 	  			if ( res == null && attempt_recovery ){
 	  				
-	  				res = readResilientFile( file_name, parent_dir, file_name, 0, true );
+	  				res = readResilientFile( file_name, parent_dir, file_name, 0, true, intern_keys );
 	  				
 	  				if ( res != null ){
 	  					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
@@ -653,7 +664,8 @@ public class FileUtil {
 		File		parent_dir,
 		String		file_name,
 		int			fail_count,
-		boolean		recovery_mode )
+		boolean		recovery_mode,
+		boolean		skip_key_intern)
 	{	  
 			// logging in here is only done during "non-recovery" mode to prevent subsequent recovery
 			// attempts logging everything a second time.
@@ -700,7 +712,7 @@ public class FileUtil {
 //								+ file_name + "' failed, " + "file not found or 0-sized."));
   			}
   			
-  			return( readResilientFile( original_file_name, parent_dir, file_name + ".saving", 0, recovery_mode ));
+  			return( readResilientFile( original_file_name, parent_dir, file_name + ".saving", 0, recovery_mode, true ));
   		}
 
   		BufferedInputStream bin = null;
@@ -736,7 +748,7 @@ public class FileUtil {
   				decoder.setRecoveryMode( true );
   			}
   			
-	    	Map	res = decoder.decodeStream(bin);
+	    	Map	res = decoder.decodeStream(bin, !skip_key_intern);
 	    	
 	    	if ( using_backup && !recovery_mode ){
   		
@@ -808,7 +820,7 @@ public class FileUtil {
 	    		return( null );
 	    	}
 	    	
-	    	return( readResilientFile( original_file_name, parent_dir, file_name + ".saving", 1, recovery_mode ));
+	    	return( readResilientFile( original_file_name, parent_dir, file_name + ".saving", 1, recovery_mode, true ));
  			 
 	    }finally{
 	    	
