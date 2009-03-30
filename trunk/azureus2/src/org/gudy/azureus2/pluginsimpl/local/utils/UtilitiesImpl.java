@@ -62,6 +62,7 @@ import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceLi
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -910,11 +911,12 @@ UtilitiesImpl
 	
 	private static void
 	queueTask(
-		DelayedTaskImpl		task )
+		DelayedTaskImpl		task,
+		int pos)
 	{
 		synchronized( delayed_tasks ){
 			
-			delayed_tasks.add( task );
+			delayed_tasks.add( pos == -1 ? delayed_tasks.size() : pos, task );
 			
 			delayed_tasks_sem.release();
 			
@@ -951,7 +953,7 @@ UtilitiesImpl
 											task = (DelayedTaskImpl)delayed_tasks.remove(0);
 										}
 										
-										// System.out.println( TimeFormatter.milliStamp() + ": Running delayed task: " + task.getName());
+										//System.out.println( TimeFormatter.milliStamp() + ": Running delayed task: " + task.getName());
 										
 										task.run();
 									}
@@ -1078,9 +1080,20 @@ UtilitiesImpl
 				throw( new RuntimeException( "Target must be set before queueing" ));
 			}	
 			
-			queueTask( this );
+			queueTask( this, -1 );
 		}
-		
+
+		public void
+		queueFirst()
+		{
+			if ( target == null ){
+				
+				throw( new RuntimeException( "Target must be set before queueing" ));
+			}	
+			
+			queueTask( this, 0 );
+		}
+
 		protected void
 		run()
 		{
