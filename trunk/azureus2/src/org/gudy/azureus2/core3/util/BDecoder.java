@@ -42,7 +42,7 @@ public class BDecoder
 	private static final boolean TRACE	= false;
 	
 	private boolean recovery_mode;
-	
+
 	public static Map
 	decode(
 		byte[]	data )
@@ -97,14 +97,24 @@ public class BDecoder
 	{ 
 		return( decode(new BDecoderInputStreamArray(data, offset, length )));
 	}
-	
+
 	public Map 
 	decodeStream(
 		BufferedInputStream data )  
 
 		throws IOException 
 	{
-		Object	res = decodeInputStream(new BDecoderInputStreamStream(data), 0);
+		return decodeStream(data, true);
+	}
+
+	public Map 
+	decodeStream(
+		BufferedInputStream data,
+		boolean internKeys)  
+
+		throws IOException 
+	{
+		Object	res = decodeInputStream(data, 0, internKeys);
 
 		if ( res == null ){
 
@@ -120,11 +130,11 @@ public class BDecoder
 
 	private Map 
 	decode(
-		BDecoderInputStream data ) 
+		InputStream data ) 
 
 		throws IOException 
 	{
-		Object res = decodeInputStream(data, 0);
+		Object res = decodeInputStream(data, 0, true);
 
 		if ( res == null ){
 
@@ -140,8 +150,9 @@ public class BDecoder
 
 	private Object 
 	decodeInputStream(
-		BDecoderInputStream dbis,
-		int			nesting ) 
+		InputStream dbis,
+		int			nesting,
+		boolean internKeys) 
 
 		throws IOException 
 	{
@@ -171,11 +182,11 @@ public class BDecoder
 				
 				byte[] tempByteArray = null;
 
-				while ((tempByteArray = (byte[]) decodeInputStream(dbis, nesting+1)) != null) {
+				while ((tempByteArray = (byte[]) decodeInputStream(dbis, nesting+1,internKeys)) != null) {
 
 						//decode some more
 
-					Object value = decodeInputStream(dbis,nesting+1);
+					Object value = decodeInputStream(dbis,nesting+1,internKeys);
 					
 						// value interning is too CPU-intensive, let's skip that for now
 						//if(value instanceof byte[] && ((byte[])value).length < 17)
@@ -192,7 +203,9 @@ public class BDecoder
 
 						key = new String(cb.array(),0,cb.limit());
 
-						key = StringInterner.intern( key );
+						if (internKeys) {
+							key = StringInterner.intern( key );
+						}
 					}
 
 					if ( TRACE ){
@@ -258,7 +271,7 @@ public class BDecoder
 					//create the key
 				
 				Object tempElement = null;
-				while ((tempElement = decodeInputStream(dbis, nesting+1)) != null) {
+				while ((tempElement = decodeInputStream(dbis, nesting+1, internKeys)) != null) {
 						//add the element
 					tempList.add(tempElement);
 				}
@@ -361,7 +374,7 @@ public class BDecoder
 	
 	private long 
 	getNumberFromStream(
-		BDecoderInputStream 	dbis, 
+		InputStream 	dbis, 
 		char 					parseChar) 
 
 		throws IOException 
@@ -395,22 +408,28 @@ public class BDecoder
 		return( parseLong( numberChars, 0, pos ));
 	}
 
+	// This is similar to Long.parseLong(String) source
 	public static long
 	parseLong(
 		char[]	chars,
 		int		start,
 		int		length )
 	{
-		long result = 0;
-
-		boolean negative = false;
-
-		int 	i 	= start;
-		int	max = start + length;
-
-		long limit;
-
 		if ( length > 0 ){
+			// Short Circuit: We don't support octal parsing, so if it 
+			// starts with 0, it's 0
+			if (chars[start] == '0') {
+
+				return 0;
+			}
+
+			long result = 0;
+
+			boolean negative = false;
+
+			int 	i 	= start;
+
+			long limit;
 
 			if ( chars[i] == '-' ){
 
@@ -421,9 +440,26 @@ public class BDecoder
 				i++;
 
 			}else{
+				// Short Circuit: If we are only processing one char,
+				// and it wasn't a '-', just return that digit instead
+				// of doing the negative junk
+				if (length == 1) {
+					int digit = chars[i] - '0';
+
+					if ( digit < 0 || digit > 9 ){
+
+						throw new NumberFormatException(new String(chars,start,length));
+
+					}else{
+
+						return digit;
+					}
+				}
 
 				limit = -Long.MAX_VALUE;
 			}
+
+			int	max = start + length;
 
 			if ( i < max ){
 
@@ -466,25 +502,26 @@ public class BDecoder
 
 				result -= digit;
 			}
+
+			if ( negative ){
+
+				if ( i > start+1 ){
+
+					return result;
+
+				}else{	/* Only got "-" */
+
+					throw new NumberFormatException(new String(chars,start,length));
+				}
+			}else{
+
+				return -result;
+			}  
 		}else{
 
 			throw new NumberFormatException(new String(chars,start,length));
 		}
 
-		if ( negative ){
-
-			if ( i > start+1 ){
-
-				return result;
-
-			}else{	/* Only got "-" */
-
-				throw new NumberFormatException(new String(chars,start,length));
-			}
-		}else{
-
-			return -result;
-		}  
 	}
 
 
@@ -536,7 +573,7 @@ public class BDecoder
 
 	private byte[] 
 	getByteArrayFromStream(
-		BDecoderInputStream dbis )
+		InputStream dbis )
 		
 		throws IOException 
 	{
@@ -766,7 +803,7 @@ public class BDecoder
 			e.printStackTrace();
 		}
 	}
-
+/*
 	private interface
 	BDecoderInputStream
 	{
@@ -878,11 +915,11 @@ public class BDecoder
 			is.reset();
 		}
 	}
-
+*/
 	private class
 	BDecoderInputStreamArray
 	
-		implements BDecoderInputStream
+		extends InputStream
 	{
 		final private byte[]		buffer;
 		final private int			count;
