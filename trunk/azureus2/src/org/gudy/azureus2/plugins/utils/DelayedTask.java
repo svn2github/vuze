@@ -32,5 +32,8 @@ DelayedTask
 	
 	public void
 	queue();
+
+	public void 
+	queueFirst();
 	
 }
