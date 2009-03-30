@@ -516,6 +516,9 @@ public class SWTSkinObjectSash
 			Composite below, boolean bVertical, Control parentComposite,
 			int minAbove, int belowMin) {
 		FormData aboveData = (FormData) above.getLayoutData();
+		if (aboveData == null) {
+			return;
+		}
 		boolean layoutNeeded = false;
 		if (bVertical) {
 			int parentWidth = parentComposite.getBounds().width
