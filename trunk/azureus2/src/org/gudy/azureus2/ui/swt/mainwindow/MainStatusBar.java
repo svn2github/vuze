@@ -38,11 +38,16 @@ import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.progress.*;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreCreationListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -53,11 +58,6 @@ import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.network.ConnectionManager;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
 /**
  * Moved from MainWindow and GUIUpdater
@@ -125,10 +125,6 @@ public class MainStatusBar
 
 	private DHTPlugin dhtPlugin;
 
-	private GlobalManager globalManager;
-
-	private AzureusCore azureusCore;
-
 	private UIFunctions uiFunctions;
 
 	private UIStatusTextClickListener clickListener;
@@ -182,23 +178,24 @@ public class MainStatusBar
 	public MainStatusBar() {
 		numberFormat = NumberFormat.getInstance();
 		overall_stats = StatsFactory.getStats();
-		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
-		connection_manager = pm.getDefaultPluginInterface().getConnectionManager();
-		PluginInterface dht_pi = pm.getPluginInterfaceByClass(DHTPlugin.class);
-		if (dht_pi != null) {
-			dhtPlugin = (DHTPlugin) dht_pi.getPlugin();
-		}
+		AzureusCoreFactory.addCreationListener(new AzureusCoreCreationListener() {
+			public void azureusCoreCreated(AzureusCore core) {
+				PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+				connection_manager = pm.getDefaultPluginInterface().getConnectionManager();
+				PluginInterface dht_pi = pm.getPluginInterfaceByClass(DHTPlugin.class);
+				if (dht_pi != null) {
+					dhtPlugin = (DHTPlugin) dht_pi.getPlugin();
+				}
+			}
+		});
 	}
 
 	/**
 	 * 
 	 * @return composite holding the statusbar
 	 */
-	public Composite initStatusBar(final AzureusCore core,
-			final GlobalManager globalManager, Display display, final Composite parent) {
-		this.display = display;
-		this.globalManager = globalManager;
-		this.azureusCore = core;
+	public Composite initStatusBar(final Composite parent) {
+		this.display = parent.getDisplay();
 		this.uiFunctions = UIFunctionsManager.getUIFunctions();
 		ImageLoader imageLoader = ImageLoader.getInstance();
 
@@ -279,51 +276,7 @@ public class MainStatusBar
 		if ( isAZ3 ){
 		
 			try{
-				/*
-				 * Feedback
-				 * 
-				 */
-				
-					// only show after restart after 15 mins uptime
-				
-				OverallStats stats = StatsFactory.getStats();
-				
-				long secs_uptime = stats.getTotalUpTime();
-				
-				long last_uptime = COConfigurationManager.getLongParameter( "statusbar.feedback.uptime", 0 );
-				
-				if ( last_uptime == 0 ){
-					
-					COConfigurationManager.setParameter( "statusbar.feedback.uptime", secs_uptime );
-					
-				}else if ( secs_uptime - last_uptime > 15*60 ){
-					
-					CLabelPadding feedback = new CLabelPadding(statusBar, borderFlag);
-					feedback.setText(MessageText.getString("statusbar.feedback"));
-			
-					Listener feedback_listener = new Listener() {
-						public void handleEvent(Event e) {
-		
-							String url = "feedback?"
-									+ Utils.getWidgetBGColorURLParam()
-									+ "&fromWeb=false&os.name=" + UrlUtils.encode(Constants.OSName)
-									+ "&os.version="
-									+ UrlUtils.encode(System.getProperty("os.version"))
-									+ "&java.version=" + UrlUtils.encode(Constants.JAVA_VERSION);
-							
-							// Utils.launch( url );
-							
-							UIFunctionsManagerSWT.getUIFunctionsSWT().viewURL(url, null, 600,
-									520, true, false);
-						}
-					};
-					
-					feedback.setToolTipText(MessageText.getString("statusbar.feedback.tooltip"));
-					feedback.setCursor(Cursors.handCursor);
-					feedback.setForeground(Colors.blue);
-					feedback.addListener(SWT.MouseUp, feedback_listener);
-					feedback.addListener(SWT.MouseDoubleClick, feedback_listener);
-				}
+				addFeedBack();
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace(e);
@@ -438,9 +391,9 @@ public class MainStatusBar
 		ipBlocked = new CLabelPadding(statusBar, borderFlag);
 		ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
 		Messages.setLanguageText(ipBlocked, "MainWindow.IPs.tooltip");
-		ipBlocked.addMouseListener(new MouseAdapter() {
-			public void mouseDoubleClick(MouseEvent arg0) {
-				BlockedIpsWindow.showBlockedIps(azureusCore, parent.getShell());
+		ipBlocked.addListener(SWT.MouseDoubleClick, new ListenerNeedingCore() {
+			public void handleEvent(AzureusCore core, Event event) {
+				BlockedIpsWindow.showBlockedIps(core, parent.getShell());
 			}
 		});
 
@@ -499,12 +452,12 @@ public class MainStatusBar
 
 		srStatus.addListener(SWT.MouseDoubleClick, lSR);
 
-		Listener lNAT = new Listener() {
-			public void handleEvent(Event e) {
+		Listener lNAT = new ListenerNeedingCore() {
+			public void handleEvent(AzureusCore core, Event e) {
 				uiFunctions.openView(UIFunctions.VIEW_CONFIG,
 						ConfigSection.SECTION_CONNECTION);
 
-				if (azureusCore.getPluginManager().getDefaultPluginInterface().getConnectionManager().getNATStatus() != ConnectionManager.NAT_OK) {
+				if (core.getPluginManager().getDefaultPluginInterface().getConnectionManager().getNATStatus() != ConnectionManager.NAT_OK) {
 					Utils.launch(Constants.AZUREUS_WIKI + "NAT_problem");
 				}
 			}
@@ -519,6 +472,12 @@ public class MainStatusBar
 			final Menu menuUpSpeed = new Menu(statusBar.getShell(), SWT.POP_UP);
 			menuUpSpeed.addListener(SWT.Show, new Listener() {
 				public void handleEvent(Event e) {
+					if (!AzureusCoreFactory.isCoreRunning()) {
+						return;
+					}
+					AzureusCore core = AzureusCoreFactory.getSingleton();
+					GlobalManager globalManager = core.getGlobalManager();
+					
 					SelectableSpeedMenu.generateMenuItems(menuUpSpeed, core,
 							globalManager, true);
 				}
@@ -551,6 +510,12 @@ public class MainStatusBar
 			final Menu menuDownSpeed = new Menu(statusBar.getShell(), SWT.POP_UP);
 			menuDownSpeed.addListener(SWT.Show, new Listener() {
 				public void handleEvent(Event e) {
+					if (!AzureusCoreFactory.isCoreRunning()) {
+						return;
+					}
+					AzureusCore core = AzureusCoreFactory.getSingleton();
+					GlobalManager globalManager = core.getGlobalManager();
+
 					SelectableSpeedMenu.generateMenuItems(menuDownSpeed, core,
 							globalManager, false);
 				}
@@ -584,6 +549,66 @@ public class MainStatusBar
 		uiFunctions.getUIUpdater().addUpdater(this);
 		
 		return statusBar;
+	}
+
+	private void addFeedBack() {
+		AzureusCoreFactory.addCreationListener(new AzureusCoreCreationListener() {
+			public void azureusCoreCreated(AzureusCore core) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						_addFeedBack();
+					}
+				});
+			}
+		});
+	}
+
+	private void _addFeedBack() {
+		/*
+		 * Feedback
+		 * 
+		 */
+
+		// only show after restart after 15 mins uptime
+		OverallStats stats = StatsFactory.getStats();
+
+		long secs_uptime = stats.getTotalUpTime();
+
+		long last_uptime = COConfigurationManager.getLongParameter(
+				"statusbar.feedback.uptime", 0);
+
+		if (last_uptime == 0) {
+
+			COConfigurationManager.setParameter("statusbar.feedback.uptime",
+					secs_uptime);
+
+		} else if (secs_uptime - last_uptime > 15 * 60) {
+
+			CLabelPadding feedback = new CLabelPadding(statusBar, borderFlag);
+			feedback.setText(MessageText.getString("statusbar.feedback"));
+
+			Listener feedback_listener = new Listener() {
+				public void handleEvent(Event e) {
+
+					String url = "feedback?" + Utils.getWidgetBGColorURLParam()
+							+ "&fromWeb=false&os.name=" + UrlUtils.encode(Constants.OSName)
+							+ "&os.version="
+							+ UrlUtils.encode(System.getProperty("os.version"))
+							+ "&java.version=" + UrlUtils.encode(Constants.JAVA_VERSION);
+
+					// Utils.launch( url );
+
+					UIFunctionsManagerSWT.getUIFunctionsSWT().viewURL(url, null, 600,
+							520, true, false);
+				}
+			};
+
+			feedback.setToolTipText(MessageText.getString("statusbar.feedback.tooltip"));
+			feedback.setCursor(Cursors.handCursor);
+			feedback.setForeground(Colors.blue);
+			feedback.addListener(SWT.MouseUp, feedback_listener);
+			feedback.addListener(SWT.MouseDoubleClick, feedback_listener);
+		}
 	}
 
 	/**
@@ -789,38 +814,41 @@ public class MainStatusBar
 
 
 		// UL/DL Status Sections
+		if (AzureusCoreFactory.isCoreRunning()) {
+			AzureusCore core = AzureusCoreFactory.getSingleton();
+			GlobalManager gm = core.getGlobalManager();
+			GlobalManagerStats stats = gm.getStats();
 
-		int dl_limit = NetworkManager.getMaxDownloadRateBPS() / 1024;
+			int dl_limit = NetworkManager.getMaxDownloadRateBPS() / 1024;
 
-		GlobalManagerStats stats = globalManager.getStats();
+			statusDown.setText((dl_limit == 0 ? "" : "[" + dl_limit + "K] ")
+					+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+							stats.getDataReceiveRate(), stats.getProtocolReceiveRate()));
 
-		statusDown.setText((dl_limit == 0 ? "" : "[" + dl_limit + "K] ")
-				+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
-						stats.getDataReceiveRate(), stats.getProtocolReceiveRate()));
+			boolean auto_up = COConfigurationManager.getBooleanParameter(TransferSpeedValidator.getActiveAutoUploadParameter(gm))
+					&& TransferSpeedValidator.isAutoUploadAvailable(core);
 
-		boolean auto_up = COConfigurationManager.getBooleanParameter(TransferSpeedValidator.getActiveAutoUploadParameter(globalManager))
-				&& TransferSpeedValidator.isAutoUploadAvailable(azureusCore);
+			int ul_limit_norm = NetworkManager.getMaxUploadRateBPSNormal() / 1024;
 
-		int ul_limit_norm = NetworkManager.getMaxUploadRateBPSNormal() / 1024;
-
-		String seeding_only;
-		if (NetworkManager.isSeedingOnlyUploadRate()) {
-			int ul_limit_seed = NetworkManager.getMaxUploadRateBPSSeedingOnly() / 1024;
-			if (ul_limit_seed == 0) {
-				seeding_only = "+" + Constants.INFINITY_STRING + "K";
+			String seeding_only;
+			if (NetworkManager.isSeedingOnlyUploadRate()) {
+				int ul_limit_seed = NetworkManager.getMaxUploadRateBPSSeedingOnly() / 1024;
+				if (ul_limit_seed == 0) {
+					seeding_only = "+" + Constants.INFINITY_STRING + "K";
+				} else {
+					int diff = ul_limit_seed - ul_limit_norm;
+					seeding_only = (diff >= 0 ? "+" : "") + diff + "K";
+				}
 			} else {
-				int diff = ul_limit_seed - ul_limit_norm;
-				seeding_only = (diff >= 0 ? "+" : "") + diff + "K";
+				seeding_only = "";
 			}
-		} else {
-			seeding_only = "";
-		}
 
-		statusUp.setText((ul_limit_norm == 0 ? "" : "[" + ul_limit_norm + "K"
-				+ seeding_only + "]")
-				+ (auto_up ? "* " : " ")
-				+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
-						stats.getDataSendRate(), stats.getProtocolSendRate()));
+			statusUp.setText((ul_limit_norm == 0 ? "" : "[" + ul_limit_norm + "K"
+					+ seeding_only + "]")
+					+ (auto_up ? "* " : " ")
+					+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+							stats.getDataSendRate(), stats.getProtocolSendRate()));
+		}
 
 		// End of Status Sections
 		statusBar.layout();
@@ -915,6 +943,9 @@ public class MainStatusBar
 	 */
 	private void updateNatStatus() {
 		// NAT status Section
+		if (connection_manager == null) {
+			return;
+		}
 
 		int nat_status = connection_manager.getNATStatus();
 
@@ -972,6 +1003,10 @@ public class MainStatusBar
 	 */
 	private void updateShareRatioStatus() {
 		// SR status section
+		
+		if (overall_stats == null) {
+			return;
+		}
 
 		long ratio = (1000 * overall_stats.getUploadedBytes() / (overall_stats.getDownloadedBytes() + 1));
 
@@ -1063,6 +1098,12 @@ public class MainStatusBar
 	 * @since 3.1.1.1
 	 */
 	private void updateIPBlocked() {
+		if (!AzureusCoreFactory.isCoreRunning()) {
+			return;
+		}
+		
+		AzureusCore azureusCore = AzureusCoreFactory.getSingleton();
+
 		// IP Filter Status Section
 		IpFilter ip_filter = azureusCore.getIpFilterManager().getIPFilter();
 
@@ -1089,7 +1130,7 @@ public class MainStatusBar
 	}
 	
 	public boolean isMouseOver() {
-		if (statusText.isDisposed()) {
+		if (statusText != null && statusText.isDisposed()) {
 			return false;
 		}
 		return statusText.getDisplay().getCursorControl() == statusText;
