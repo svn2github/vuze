@@ -182,7 +182,9 @@ SpeedManagerPingMapperImpl
 			
 			if ( history_file.exists()){
 							
-				Map map = FileUtil.readResilientFile( history_file );
+				// skip key intern to save CPU  as there are a lot of keys 
+				// and we end up ditching the map after it's processed
+				Map map = FileUtil.readResilientFile( history_file.getParentFile(), history_file.getName(), false, false );
 				
 				List	p = (List)map.get( "pings" );
 				
