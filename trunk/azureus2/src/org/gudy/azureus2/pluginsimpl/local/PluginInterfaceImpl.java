@@ -531,7 +531,11 @@ PluginInterfaceImpl
 		  init_complete_fired_set.add( listener );
 	  }
 	  
-	  listener.initializationComplete();
+	  try {
+	  	listener.initializationComplete();
+	  } catch (Exception e) {
+	  	Debug.out(e);
+	  }
   }
   
   protected void
