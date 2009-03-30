@@ -167,6 +167,10 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 			System.getProperty("user.dir") +
 			SystemProperties.SEP+ SystemProperties.getApplicationName() + ".app/Contents/Info.plist";
 
+		if (!new File(plist).exists()) {
+			Debug.out("WARNING: plist not found: " + plist);
+			return null;
+		}
 		PListEditor editor = new PListEditor( plist );
 	
 		return( editor );
@@ -177,6 +181,9 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     {
     	try{
     		PListEditor editor = getPList();
+    		if (editor == null) {
+    			return;
+    		}
     		
     		editor.setFileTypeExtensions(new String[] {"torrent","tor","vuze","vuz"});
     		editor.setSimpleStringValue("CFBundleName", "Vuze");
