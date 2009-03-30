@@ -747,38 +747,49 @@ WebEngine
 			
 			String	lc_content = content.toLowerCase();
 			
-			int	pos1 = lc_content.indexOf( "<?xml" );
+			{
+					// first look for xml charset
 			
-			if ( pos1 != -1 ){
+					// e.g. <?xml version="1.0" encoding="windows-1251" ?>
+
+				int	pos1 = lc_content.indexOf( "<?xml" );
 				
-				int pos2 = lc_content.indexOf( "?>" );
-				
-				if ( pos2 != -1 ){
-										
-					int pos3 = lc_content.indexOf( "encoding=\"", pos1 );
+				if ( pos1 != -1 ){
 					
-					if ( pos3 > pos1 && pos3 < pos2 ){
-													
-						pos3 += 10;
+					int pos2 = lc_content.indexOf( "?>" );
+					
+					if ( pos2 != -1 ){
+											
+						int pos3 = lc_content.indexOf( "encoding", pos1 );
 						
-						int pos4 = lc_content.indexOf( "\"", pos3 );
+						if ( pos3 != -1 ){
+							
+							pos3 = lc_content.indexOf( "\"", pos3 );
+						}
 						
-						if ( pos4 > pos3 && pos4 < pos2 ){
+						if ( pos3 > pos1 && pos3 < pos2 ){
+														
+							pos3++;
 							
-							String	encoding = content.substring( pos3, pos4 );
+							int pos4 = lc_content.indexOf( "\"", pos3 );
 							
-							try{
-								if ( Charset.isSupported( encoding )){
-									
-									debugLog( "charset: " + encoding );
-									
-									content_charset = encoding;
-									
-									page = content.substring( 0, pos3 ) + "utf-8" + content.substring( pos4, pos2 ) + new String( data, pos2, data.length - pos2, content_charset );							
-								}
-							}catch( Throwable e ){
+							if ( pos4 > pos3 && pos4 < pos2 ){
 								
-								log( "Content type '" + encoding + "' not supported", e );
+								String	encoding = content.substring( pos3, pos4 ).trim();
+								
+								try{
+									if ( Charset.isSupported( encoding )){
+										
+										debugLog( "charset from xml tag: " + encoding );
+										
+										content_charset = encoding;
+										
+										page = content.substring( 0, pos3 ) + "utf-8" + content.substring( pos4, pos2 ) + new String( data, pos2, data.length - pos2, content_charset );							
+									}
+								}catch( Throwable e ){
+									
+									log( "Content type '" + encoding + "' not supported", e );
+								}
 							}
 						}
 					}
@@ -786,9 +797,80 @@ WebEngine
 			}
 			
 			if ( page == null ){
-			
-					// TODO: should handle <META http-equiv="Content-Type" content="text/html; charset=EUC-JP">
+					
+					// next look for http-equiv charset
+				
+					// e.g. <meta http-equiv="Content-Type" content="text/html; charset=windows-1251" />
 
+				int	pos = 0;
+				
+				while( true ){
+				
+					int	pos1 = lc_content.indexOf( "http-equiv", pos );
+				
+					if ( pos1 != -1 ){
+					
+						int	pos2 = lc_content.indexOf( ">", pos1 );
+						
+						if ( pos2 != -1 ){
+							
+							int	pos3 = lc_content.indexOf( "charset", pos1 );
+							
+							if ( pos3 != -1 && pos3 < pos2 ){
+							
+								pos3 = lc_content.indexOf( "=", pos3 );
+								
+								if ( pos3 != -1 ){
+									
+									pos3++;
+									
+									int pos4 = lc_content.indexOf( "\"", pos3 );
+									
+									if ( pos4 != -1 ){
+										
+										int pos5 = lc_content.indexOf( ";", pos3 );
+									
+										if ( pos5 != -1 && pos5 < pos4 ){
+											
+											pos4 = pos5;
+										}
+										
+										String encoding = content.substring( pos3, pos4 ).trim();
+										
+										try{
+											if ( Charset.isSupported( encoding )){
+												
+												debugLog( "charset from http-equiv : " + encoding );
+												
+												content_charset = encoding;
+												
+												page = content.substring( 0, pos3 ) + "utf-8" + content.substring( pos4, pos2 ) + new String( data, pos2, data.length - pos2, content_charset );							
+											}
+										}catch( Throwable e ){
+											
+											log( "Content type '" + encoding + "' not supported", e );
+										}
+										
+										break;
+									}
+								}
+							}
+							
+							pos = pos2;
+							
+						}else{
+							
+							break;
+						}
+					}else{
+						
+						break;
+					}
+				}
+			}
+			
+			if ( page == null ){
+				
 				page = new String( data, content_charset );
 			}
 			
