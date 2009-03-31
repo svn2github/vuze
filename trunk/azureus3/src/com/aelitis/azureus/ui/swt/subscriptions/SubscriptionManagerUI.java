@@ -120,6 +120,7 @@ SubscriptionManagerUI
 	private MenuItemListener unmarkAllResultsListener;
 	private MenuItemListener deleteAllResultsListener;
 	private MenuItemListener resetAuthListener;
+	private MenuItemListener setCookieListener;
 	private MenuItemListener resetResultsListener;
 	private MenuItemListener exportListener;
 	private MenuItemListener renameListener;
@@ -880,6 +881,56 @@ SubscriptionManagerUI
 				}
 			}
 		};
+		
+		setCookieListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Subscription subs = (Subscription) info.getDatasource();
+					try{
+						Engine engine = subs.getEngine();
+						
+						if ( engine instanceof WebEngine ){
+							
+							WebEngine we = (WebEngine)engine;
+							
+							UISWTInputReceiver entry = (UISWTInputReceiver)swt_ui.getInputReceiver();
+							
+							String[] req = we.getRequiredCookies();
+							
+							String	req_str = "";
+							
+							for ( String r:req ){
+								
+								req_str += (req_str.length()==0?"":";") + r + "=?";
+							}
+							entry.setPreenteredText( req_str, true );
+							entry.maintainWhitespace(false);
+							entry.allowEmptyInput( false );
+							entry.setTitle("general.enter.cookies");
+							entry.prompt();
+							if (!entry.hasSubmittedInput()){
+								
+								return;
+							}
+							
+							String input = entry.getSubmittedInput().trim();
+							
+							if ( input.length() > 0 ){
+							
+								we.setCookies( input );
+								
+								subs.getManager().getScheduler().downloadAsync(subs, true);
+							}
+						}
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}
+		};
+		
 		resetResultsListener = new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				if (target instanceof SideBarEntry) {
@@ -1261,6 +1312,9 @@ SubscriptionManagerUI
 											
 											menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.resetauth");
 											menuItem.addListener(resetAuthListener);
+											
+											menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.setcookies");
+											menuItem.addListener(setCookieListener);
 										}
 									}
 								}catch( Throwable e ){
