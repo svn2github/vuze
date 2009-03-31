@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.security.impl.SESecurityManagerImpl;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
@@ -86,6 +87,7 @@ import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFPListener;
 import com.aelitis.azureus.ui.IUIIntializer;
+import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -99,7 +101,7 @@ import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PlayNowList;
-import com.aelitis.azureus.ui.swt.views.TopBarView;
+import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.*;
@@ -124,11 +126,11 @@ public class MainWindow
 
 	protected Shell shell;
 
-	private final Display display;
+	private Display display;
 
-	private final AzureusCore core;
+	private AzureusCore core;
 
-	private final IUIIntializer uiInitializer;
+	private IUIIntializer uiInitializer;
 
 	private SWTSkin skin;
 
@@ -164,8 +166,6 @@ public class MainWindow
 
 	private String lastShellStatus = null;
 
-	private TopBarView topBarView;
-	
 	private Color colorSearchTextBG; 
 	private Color colorSearchTextFGdef; 
 	private Color colorSearchTextFG; 
@@ -748,9 +748,6 @@ public class MainWindow
 			increaseProgress(uiInitializer, "splash.initializeGui");
 			startTime = SystemTime.getCurrentTime();
 
-			topBarView = new TopBarView(skin, uiSWTInstanceImpl);
-			topBarView.buildTopBarViews();
-
 			PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
 					"azbpstartstoprules");
 			if (pi != null) {
@@ -883,6 +880,7 @@ public class MainWindow
 			});
 		}
 	}
+	
 
 	/**
 	 * @param skinview
@@ -1198,6 +1196,9 @@ public class MainWindow
 			shell.setMinimized(true);
 			shell.setVisible(true);
 		}
+		
+		System.out.println("---------SHOWN AT " + SystemTime.getCurrentTime() + ";" + (SystemTime.getCurrentTime() - Main.startTime) + "ms");
+
 
 		if (bEnableTray) {
 
@@ -1246,8 +1247,9 @@ public class MainWindow
 			}
 		});
 		
-		System.out.println("---------READY AT " + SystemTime.getCurrentTime());
+		System.out.println("---------READY AT " + SystemTime.getCurrentTime() + ";" + (SystemTime.getCurrentTime() - Main.startTime) + "ms");
 		isReady = true;
+		//SESecurityManagerImpl.getSingleton().exitVM(0);
 	}
 
 	public void setVisible(final boolean visible) {
@@ -1343,7 +1345,6 @@ public class MainWindow
 	 * on first EVENT_SHOW.
 	 */
 	private void initSkinListeners() {
-
 		UISkinnableManagerSWT skinnableManagerSWT = UISkinnableManagerSWT.getInstance();
 		skinnableManagerSWT.addSkinnableListener(MessageBoxShell.class.toString(),
 				new UISkinnableSWTListener() {
@@ -1555,7 +1556,7 @@ public class MainWindow
 			statusBar = new MainStatusBar();
 			Composite composite = statusBar.initStatusBar(core,
 					core.getGlobalManager(), display, cArea);
-
+			
 			composite.setLayoutData(Utils.getFilledFormData());
 		}
 
