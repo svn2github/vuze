@@ -525,7 +525,7 @@ public class Initializer
 
 		  new DelayedEvent( 
 				  "SWTInitComplete:delay",
-				  8500,
+				  2500,
 				  new AERunnable()
 				  {
 					  public void
