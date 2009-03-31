@@ -82,7 +82,7 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
     label.setLayoutData(gridData);
     Messages.setLanguageText( label, "MainWindow.menu.language" );  //old name path, but already translated
 
-    Locale[] locales = MessageText.getLocales();
+    Locale[] locales = MessageText.getLocales(true);
     
     String[] drop_labels = new String[ locales.length ];
     String[] drop_values = new String[ locales.length ];

@@ -77,7 +77,7 @@ public class LanguagePanel extends AbstractWizardPanel {
 		gridData.heightHint = 200;
 		lstLanguage.setLayoutData(gridData);
 
-		final Locale[] locales = MessageText.getLocales();
+		final Locale[] locales = MessageText.getLocales(true);
 
 		int iUsingLocale = -1;
 		for (int i = 0; i < locales.length; i++) {

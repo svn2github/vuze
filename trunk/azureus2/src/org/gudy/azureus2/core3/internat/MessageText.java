@@ -65,7 +65,7 @@ public class MessageText {
   
   // preload default language w/o plugins
   static{
-	  setResourceBundle( new IntegratedResourceBundle( getResourceBundle( BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()), pluginLocalizationPaths ));
+	  setResourceBundle( new IntegratedResourceBundle( getResourceBundle( BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()), pluginLocalizationPaths, 4000 ));
   }
 
   	// grab a reference to the default bundle
@@ -469,7 +469,7 @@ public class MessageText {
     return LOCALE_ENGLISH.equals(locale) ? LOCALE_CURRENT.equals(LOCALE_DEFAULT) : LOCALE_CURRENT.equals(locale);
   }
 
-  public static Locale[] getLocales() {
+  public static Locale[] getLocales(boolean sort) {
     String bundleFolder = BUNDLE_NAME.replace('.', '/');
     final String prefix = BUNDLE_NAME.substring(BUNDLE_NAME.lastIndexOf('.') + 1);
     final String extension = ".properties";
@@ -584,17 +584,19 @@ public class MessageText {
     
     foundLocalesList.toArray( foundLocales );
 
-    try{
-	    Arrays.sort(foundLocales, new Comparator() {
-	      public final int compare (Object a, Object b) {
-	        return ((Locale)a).getDisplayName((Locale)a).compareToIgnoreCase(((Locale)b).getDisplayName((Locale)b));
-	      }
-	    });
-    }catch( Throwable e ){
-    	// user has a problem whereby a null-pointer exception occurs when sorting the
-    	// list - I've done some fixes to the locale list construction but am
-    	// putting this in here just in case
-    	Debug.printStackTrace( e );
+    if (sort) {
+      try{
+  	    Arrays.sort(foundLocales, new Comparator() {
+  	      public final int compare (Object a, Object b) {
+  	        return ((Locale)a).getDisplayName((Locale)a).compareToIgnoreCase(((Locale)b).getDisplayName((Locale)b));
+  	      }
+  	    });
+      }catch( Throwable e ){
+      	// user has a problem whereby a null-pointer exception occurs when sorting the
+      	// list - I've done some fixes to the locale list construction but am
+      	// putting this in here just in case
+      	Debug.printStackTrace( e );
+      }
     }
     return foundLocales;
   }
@@ -674,7 +676,7 @@ public class MessageText {
               !newResourceBundle.getLocale().getLanguage().equals(localeJustLang.getLanguage())) {
             // find first language we have in our list
             System.out.println("changeLocale: Searching for language " + newLocale.getDisplayLanguage() + " in *any* country..");
-            Locale[] locales = getLocales();
+            Locale[] locales = getLocales(false);
             for (int i = 0; i < locales.length; i++) {
               if (locales[i].getLanguage() == newLocale.getLanguage()) {
                 newResourceBundle = getResourceBundle("MessagesBundle", locales[i], 
@@ -700,11 +702,14 @@ public class MessageText {
 					if (sNewLanguage == null || sNewLanguage.trim().equals(""))
 						sNewLanguage = "English (default)";
 					System.out.println("changeLocale: no message properties for Locale '" + newLocale.getDisplayName() + "' (" + newLocale + "), using '" + sNewLanguage + "'");
+					if (newResourceBundle.getLocale().equals(RESOURCE_BUNDLE.getLocale())) {
+						return false;
+					}
 				}
 				newLocale = newResourceBundle.getLocale();
 				Locale.setDefault(newLocale.equals(LOCALE_DEFAULT) ? LOCALE_ENGLISH : newLocale);
 				LOCALE_CURRENT = newLocale;
-				setResourceBundle(new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths));
+				setResourceBundle(new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths, 3200));
 				if(newLocale.equals(LOCALE_DEFAULT))
 					DEFAULT_BUNDLE = RESOURCE_BUNDLE;
 				return true;
