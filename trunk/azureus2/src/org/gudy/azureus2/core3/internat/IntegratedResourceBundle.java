@@ -102,7 +102,7 @@ IntegratedResourceBundle
 	
 	private Locale	locale;
 
-	private Map	messages 		= new LightHashMap();
+	private Map	messages;
 	private Map	used_messages;
 	private List null_values;
 	
@@ -110,6 +110,8 @@ IntegratedResourceBundle
 	private boolean	one_off_discard_done;
 	
 	private File	scratch_file;
+
+	private final int initCapacity;
 	
 
 	
@@ -118,15 +120,28 @@ IntegratedResourceBundle
 		ResourceBundle 		main, 
 		Map 				localizationPaths) 
 	{
-		this( main, localizationPaths, null );
+		this( main, localizationPaths, null, 10 );
 	}
 
 	public 
 	IntegratedResourceBundle(
 		ResourceBundle 		main, 
 		Map 				localizationPaths,
-		Collection 			resource_bundles) 
+		int					initCapacity) 
 	{
+		this( main, localizationPaths, null, initCapacity );
+	}
+
+	public 
+	IntegratedResourceBundle(
+		ResourceBundle 		main, 
+		Map 				localizationPaths,
+		Collection 			resource_bundles,
+		int					initCapacity)  
+	{
+		this.initCapacity = initCapacity;
+		messages = new LightHashMap(initCapacity);
+
 		locale = main.getLocale();
 
 			// use a somewhat decent initial capacity, proper calculation would require java 1.6
@@ -161,6 +176,7 @@ IntegratedResourceBundle
 			
 			resetCompactTimer();
 		}
+		//System.out.println("IRB Size = " + messages.size() + "/cap=" + initCapacity + ";" + Debug.getCompressedStackTrace());
 	}
 
 	public Locale getLocale() 
@@ -332,6 +348,7 @@ IntegratedResourceBundle
 				}
 			}			
 		}
+//		System.out.println("after addrb; IRB Size = " + messages.size() + "/cap=" + initCapacity + ";" + Debug.getCompressedStackTrace());
 	}
 	
 	protected boolean
