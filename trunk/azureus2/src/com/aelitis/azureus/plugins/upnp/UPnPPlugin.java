@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.network.*;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.config.*;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
@@ -334,19 +335,30 @@ UPnPPlugin
 					model.getLogArea().appendText( error.toString()+"\n");
 				}
 			});
-		
+
+		// startup() used to be called on initializationComplete()
+		// Moved to delayed task because rootDeviceFound can take
+		// a lot of CPU cycle.  Let's hope nothing breaks
+		DelayedTask dt = plugin_interface.getUtilities().createDelayedTask(new Runnable() {
+			public void 
+			run() 
+			{
+				if ( enabled ){
+					
+					updateIgnoreList();
+					
+					startUp();			
+				}
+			}
+		});
+		dt.queue();
+
 		plugin_interface.addListener(
 				new PluginListener()
 				{
 					public void
 					initializationComplete()
 					{	
-						if ( enabled ){
-							
-							updateIgnoreList();
-							
-							startUp();			
-						}
 					}
 					
 					public void
