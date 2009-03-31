@@ -797,7 +797,9 @@ SubscriptionManagerImpl
 			
 			String	json = SubscriptionImpl.getSkeletonJSON( engine, check_interval_mins );
 			
-			SubscriptionImpl subs = new SubscriptionImpl( this, name, engine.isPublic(), null, json, SubscriptionImpl.ADD_TYPE_CREATE );
+				// engine name may have been modified so re-read it for subscription default
+			
+			SubscriptionImpl subs = new SubscriptionImpl( this, engine.getName(), engine.isPublic(), null, json, SubscriptionImpl.ADD_TYPE_CREATE );
 			
 			if ( user_data != null ){
 				

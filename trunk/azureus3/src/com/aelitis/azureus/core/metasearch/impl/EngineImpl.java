@@ -899,7 +899,14 @@ EngineImpl
 	public String 
 	getName() 
 	{
-		return name;
+		return( name );
+	}
+	
+	protected void
+	setName(
+		String		n )
+	{
+		name		= n;
 	}
 	
 	public boolean

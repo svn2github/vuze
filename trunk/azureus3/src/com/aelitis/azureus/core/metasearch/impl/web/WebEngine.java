@@ -381,6 +381,15 @@ WebEngine
 			searchURLFormat = searchURLFormat.substring( 0, cook_pos );
 			
 			setPublic( false );
+			
+			String	name = getName();
+			
+			int	n_pos = name.indexOf( ":COOKIE:" );
+			
+			if ( n_pos != -1 ){
+				
+				setName( name.substring( 0, n_pos ));
+			}
 		}
 	}
 	
