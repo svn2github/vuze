@@ -47,7 +47,11 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreComponent;
+import com.aelitis.azureus.core.AzureusCoreException;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.AzureusCoreLifecycleListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -55,8 +59,10 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
@@ -87,6 +93,8 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.plugins.utils.Utilities;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
@@ -124,12 +132,15 @@ SubscriptionManagerUI
 	private boolean		side_bar_setup;
 
 	private List<TableColumn> columns = new ArrayList<TableColumn>();
+	protected UISWTInstance swt;
+	private UIManager ui_manager;
+	private PluginInterface default_pi;
 	
 	public
 	SubscriptionManagerUI(
 		AzureusCore			core )
 	{
-		final PluginInterface	default_pi = core.getPluginManager().getDefaultPluginInterface();
+		default_pi = core.getPluginManager().getDefaultPluginInterface();
 		
 		final TableManager	table_manager = default_pi.getUIManager().getTableManager();
 
@@ -318,8 +329,8 @@ SubscriptionManagerUI
 	
 		createSubsColumns( table_manager );
 
-		final UIManager	ui_manager = default_pi.getUIManager();
-		
+		ui_manager = default_pi.getUIManager();
+
 		ui_manager.addUIListener(
 				new UIManagerListener()
 				{
@@ -327,120 +338,145 @@ SubscriptionManagerUI
 					UIAttached(
 						UIInstance		instance )
 					{
-						if ( instance instanceof UISWTInstance ){
-							
-							final UISWTInstance	swt = (UISWTInstance)instance;
-							
-							icon_rss_small			= loadGraphic( swt, "btn_rss_subscribe_orange_30x14.png" );
-							icon_rss_big			= icon_rss_small;
+						if (!( instance instanceof UISWTInstance )){
+							return;
 
-							//icon_rss_all_add_small	= loadGraphic( swt, "btn_rss_subscribed_green_30x14.png" );
-							icon_rss_all_add_small	= loadGraphic( swt, "btn_rss_subscribed_gray_30x14.png" );
-							icon_rss_all_add_big	= icon_rss_all_add_small;
-							
-							// icon_rss_some_add_small	= loadGraphic( swt, "btn_rss_subscribe_green_30x14.png" );
-							icon_rss_some_add_small	= loadGraphic( swt, "btn_rss_subscribed_gray_30x14.png" );
-							icon_rss_some_add_big	= icon_rss_some_add_small;
-							
-							subs_man = SubscriptionManagerFactory.getSingleton();
-							
-							subs_man.addListener(
-								new SubscriptionManagerListener()
-								{
-									public void 
-									subscriptionAdded(
-										Subscription subscription ) 
-									{
-									}
-									
-									public void
-									subscriptionChanged(
-										Subscription		subscription )
-									{
-									}
-									
-									public void 
-									subscriptionSelected(
-										Subscription subscription )
-									{		
-									}
-									
-									public void 
-									subscriptionRemoved(
-										Subscription subscription ) 
-									{
-									}
-									
-									public void 
-									associationsChanged(
-										byte[] hash )
-									{
-										refreshColumns();
-									}
-								});	
-							
-
-							BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
-									ConfigSection.SECTION_ROOT, "Subscriptions");
-
-							final IntParameter max_results = 
-								configModel.addIntParameter2( 
-									"subscriptions.config.maxresults", 
-									"subscriptions.config.maxresults", 
-									subs_man.getMaxNonDeletedResults());
-								
-							default_pi.getPluginconfig().addListener(
-								new PluginConfigListener()
-								{
-									public void 
-									configSaved() 
-									{
-										subs_man.setMaxNonDeletedResults(max_results.getValue());
-									}
-								});
-							
-							/* grr, this generated intermediate events...
-							max_results.addListener(
-								new ParameterListener()
-								{
-									public void 
-									parameterChanged(
-										Parameter param )
-									{
-										subs_man.setMaxNonDeletedResults( max_results.getValue());
-									}
-								});
-							*/
-							
-							SkinViewManager.addListener(
-								new SkinViewManagerListener() 
-								{
-									public void 
-									skinViewAdded(
-										SkinView skinview) 
-									{
-										if ( skinview instanceof SideBar ){
-											
-											setupSideBar((SideBar) skinview, swt);
-										}
-									}
-								});
-							
-							SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
-							
-							if ( sideBar != null ){
-								
-								setupSideBar( sideBar, swt );
-							}
 						}
+						
+						swt = (UISWTInstance)instance;
+
+        		Utilities utilities = default_pi.getUtilities();
+        		
+        		final DelayedTask dt = utilities.createDelayedTask(new Runnable()
+        			{
+        				public void 
+        				run() 
+        				{
+        					Utils.execSWTThread(new AERunnable() {
+									
+										public void 
+										runSupport() 
+										{
+       								delayedInit();
+        						}
+        					});
+        				}
+        			});
+        			
+        			dt.queue();		
 					}
-					
-					public void
-					UIDetached(
-						UIInstance		instance )
-					{
+
+					public void UIDetached(UIInstance instance) {
 					}
 				});
+	}
+
+	void delayedInit() {
+		if (swt == null) {
+			return;
+		}
+		
+		icon_rss_small			= loadGraphic( swt, "btn_rss_subscribe_orange_30x14.png" );
+		icon_rss_big			= icon_rss_small;
+
+		//icon_rss_all_add_small	= loadGraphic( swt, "btn_rss_subscribed_green_30x14.png" );
+		icon_rss_all_add_small	= loadGraphic( swt, "btn_rss_subscribed_gray_30x14.png" );
+		icon_rss_all_add_big	= icon_rss_all_add_small;
+		
+		// icon_rss_some_add_small	= loadGraphic( swt, "btn_rss_subscribe_green_30x14.png" );
+		icon_rss_some_add_small	= loadGraphic( swt, "btn_rss_subscribed_gray_30x14.png" );
+		icon_rss_some_add_big	= icon_rss_some_add_small;
+		
+		subs_man = SubscriptionManagerFactory.getSingleton();
+		
+		subs_man.addListener(
+			new SubscriptionManagerListener()
+			{
+				public void 
+				subscriptionAdded(
+					Subscription subscription ) 
+				{
+				}
+				
+				public void
+				subscriptionChanged(
+					Subscription		subscription )
+				{
+				}
+				
+				public void 
+				subscriptionSelected(
+					Subscription subscription )
+				{		
+				}
+				
+				public void 
+				subscriptionRemoved(
+					Subscription subscription ) 
+				{
+				}
+				
+				public void 
+				associationsChanged(
+					byte[] hash )
+				{
+					refreshColumns();
+				}
+			});	
+		
+
+		BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
+				ConfigSection.SECTION_ROOT, "Subscriptions");
+
+		final IntParameter max_results = 
+			configModel.addIntParameter2( 
+				"subscriptions.config.maxresults", 
+				"subscriptions.config.maxresults", 
+				subs_man.getMaxNonDeletedResults());
+			
+		default_pi.getPluginconfig().addListener(
+			new PluginConfigListener()
+			{
+				public void 
+				configSaved() 
+				{
+					subs_man.setMaxNonDeletedResults(max_results.getValue());
+				}
+			});
+		
+		/* grr, this generated intermediate events...
+		max_results.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param )
+				{
+					subs_man.setMaxNonDeletedResults( max_results.getValue());
+				}
+			});
+		*/
+		
+		SkinViewManager.addListener(
+			new SkinViewManagerListener() 
+			{
+				public void 
+				skinViewAdded(
+					SkinView skinview) 
+				{
+					if ( skinview instanceof SideBar ){
+						
+						setupSideBar((SideBar) skinview, swt);
+					}
+				}
+			});
+		
+		SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+		
+		if ( sideBar != null ){
+			
+			setupSideBar( sideBar, swt );
+		}
 	}
 
 	private void 
