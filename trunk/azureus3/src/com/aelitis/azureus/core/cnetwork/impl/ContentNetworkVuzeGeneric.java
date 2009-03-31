@@ -55,6 +55,10 @@ ContentNetworkVuzeGeneric
 					URL_SUFFIX = 	"azid=" 	+ Base32.encode(VuzeCryptoManager.getSingleton().getPlatformAZID()) +
 									"&azv=" 	+ Constants.AZUREUS_VERSION +
 									"&locale=" 	+ Locale.getDefault().toString();
+					String suffix = System.getProperty("url.suffix", null);
+					if (suffix != null) {
+						URL_SUFFIX += "&" + suffix;
+					}
 				}
 			});
 	}
