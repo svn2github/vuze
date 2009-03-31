@@ -55,16 +55,22 @@ public class ColumnRateUpDown
 	public static final Class DATASOURCE_TYPE = Download.class;
 
 	public static final String COLUMN_ID = "RateIt";
+
+	private static final String ID_ICON_RATE = "icon.rate.library";
 	
-	private static UISWTGraphicImpl graphicRate;
+	private static final String ID_ICON_RATE_UP = "icon.rate.library.up";
 	
-	private static UISWTGraphicImpl graphicRateDown;
+	private static final String ID_ICON_RATE_DOWN = "icon.rate.library.down";
 	
-	private static UISWTGraphicImpl graphicRateUp;
+	private UISWTGraphicImpl graphicRate;
 	
-	private static UISWTGraphicImpl graphicsWait[];
+	private UISWTGraphicImpl graphicRateDown;
 	
-	private static Rectangle boundsRate;
+	private UISWTGraphicImpl graphicRateUp;
+	
+	private UISWTGraphicImpl graphicsWait[];
+	
+	private Rectangle boundsRate;
 
 	private static int width = 50;
 
@@ -73,16 +79,23 @@ public class ColumnRateUpDown
 	private boolean disabled = false;
 	
 
-	static {
+	/**
+	 * 
+	 */
+	public ColumnRateUpDown(String sTableID) {
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, width, sTableID);
+		initializeAsGraphic(width);
+		setWidthLimits(width, width);
+
 		Image img;
 		
-		img = ImageLoader.getInstance().getImage("icon.rate.library");
+		img = ImageLoader.getInstance().getImage(ID_ICON_RATE);
 		graphicRate = new UISWTGraphicImpl(img);
 		
-		img = ImageLoader.getInstance().getImage("icon.rate.library.down");
+		img = ImageLoader.getInstance().getImage(ID_ICON_RATE_DOWN);
 		graphicRateDown = new UISWTGraphicImpl(img);
 		
-		img = ImageLoader.getInstance().getImage("icon.rate.library.up");
+		img = ImageLoader.getInstance().getImage(ID_ICON_RATE_UP);
 		graphicRateUp = new UISWTGraphicImpl(img);
 		
 		boundsRate = img.getBounds();
@@ -92,17 +105,21 @@ public class ColumnRateUpDown
 		for(int i = 0 ; i < imgs.length  ;i++) {
 			graphicsWait[i] =  new UISWTGraphicImpl(imgs[i]);
 		}
-		
-				
 	}
+	
+	public void remove() {
+		super.remove();
 
-	/**
-	 * 
-	 */
-	public ColumnRateUpDown(String sTableID) {
-		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, width, sTableID);
-		initializeAsGraphic(width);
-		setWidthLimits(width, width);
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		if (graphicRate != null) {
+			imageLoader.releaseImage(ID_ICON_RATE);
+		}
+		if (graphicRateDown != null) {
+			imageLoader.releaseImage(ID_ICON_RATE_DOWN); 
+		}
+		if (graphicRateUp != null) {
+			imageLoader.releaseImage(ID_ICON_RATE_UP); 
+		}
 	}
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
