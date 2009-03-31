@@ -345,6 +345,27 @@ SubscriptionManagerUI
 						}
 						
 						swt = (UISWTInstance)instance;
+						
+						SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+						
+						if ( sideBar != null ){
+							
+							uiQuickInit(sideBar);
+						} else {
+							SkinViewManager.addListener(
+									new SkinViewManagerListener() 
+									{
+										public void 
+										skinViewAdded(
+											SkinView skinview) 
+										{
+											if ( skinview instanceof SideBar ){
+												SkinViewManager.RemoveListener(this);
+												uiQuickInit((SideBar) skinview);
+											}
+										}
+									});
+						}
 
         		Utilities utilities = default_pi.getUtilities();
         		
@@ -370,6 +391,18 @@ SubscriptionManagerUI
 					public void UIDetached(UIInstance instance) {
 					}
 				});
+	}
+	
+	void uiQuickInit(SideBar side_bar) {
+		final SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
+		mainSBEntry.setImageLeftID("image.sidebar.subscriptions");
+		if (!mainSBEntry.isInTree()) {
+			side_bar.createTreeItemFromIViewClass(null,
+					SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS,
+					MessageText.getString("subscriptions.view.title"),
+					SubscriptionsView.class, null, null, null, null, false);
+		}
+		
 	}
 
 	void delayedInit() {
@@ -458,25 +491,27 @@ SubscriptionManagerUI
 			});
 		*/
 		
-		SkinViewManager.addListener(
-			new SkinViewManagerListener() 
-			{
-				public void 
-				skinViewAdded(
-					SkinView skinview) 
-				{
-					if ( skinview instanceof SideBar ){
-						
-						setupSideBar((SideBar) skinview, swt);
-					}
-				}
-			});
 		
 		SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
 		
 		if ( sideBar != null ){
 			
 			setupSideBar( sideBar, swt );
+		} else {
+			SkinViewManager.addListener(
+					new SkinViewManagerListener() 
+					{
+						public void 
+						skinViewAdded(
+							SkinView skinview) 
+						{
+							if ( skinview instanceof SideBar ){
+								
+								setupSideBar((SideBar) skinview, swt);
+								SkinViewManager.RemoveListener(this);
+							}
+						}
+					});
 		}
 	}
 
@@ -814,10 +849,12 @@ SubscriptionManagerUI
 					}
 				});
 
-			side_bar.createTreeItemFromIViewClass(null,
-					SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS,
-					MessageText.getString("subscriptions.view.title"),
-					SubscriptionsView.class, null, null, null, null, false);
+			if (!mainSBEntry.isInTree()) {
+  			side_bar.createTreeItemFromIViewClass(null,
+  					SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS,
+  					MessageText.getString("subscriptions.view.title"),
+  					SubscriptionsView.class, null, null, null, null, false);
+			}
 		}
 		
 		markAllResultsListener = new MenuItemListener() {
