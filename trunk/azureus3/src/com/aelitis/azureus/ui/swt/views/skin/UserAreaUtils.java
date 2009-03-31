@@ -211,6 +211,8 @@ public class UserAreaUtils
 
 		}
 
+		SWTSkinObject skinObject = skin.getSkinObject("user-info");
+		skinObject.relayout();
 	}
 
 	/**
