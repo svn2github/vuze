@@ -27,6 +27,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
@@ -61,6 +62,8 @@ FMFileAccessLinear
 		throws FMFileManagerException
 	{
 		try{
+			AEThread2.setDebug( owner );
+			
 			return( raf.length());
 			
 		}catch( Throwable e ){
@@ -76,7 +79,9 @@ FMFileAccessLinear
 	
 		throws FMFileManagerException
 	{
-		try{			
+		try{
+			AEThread2.setDebug( owner );
+			
 			raf.setLength( length );
 			
 		}catch( Throwable e ){
@@ -107,6 +112,8 @@ FMFileAccessLinear
 			throw( new FMFileManagerException( "read - file is closed"));
 		}
 
+		AEThread2.setDebug( owner );
+		
 		try{
 			fc.position(offset);
 			
@@ -144,6 +151,8 @@ FMFileAccessLinear
 			
 			throw( new FMFileManagerException( "read - file is closed"));
 		}
+		
+		AEThread2.setDebug( owner );
 		
 		int[]	original_positions = null;
 		
@@ -264,6 +273,8 @@ FMFileAccessLinear
 			throw( new FMFileManagerException( "read - file is closed"));
 		}
 
+		AEThread2.setDebug( owner );
+		
 		int[]	original_positions = null;
 
 		try{

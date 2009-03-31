@@ -204,6 +204,30 @@ AEThread2
 		AEThread.setOurThread( thread );
 	}
 	
+	public static void
+	setDebug(
+		Object		debug )
+	{
+		Thread current = Thread.currentThread();
+		
+		if ( current instanceof threadWrapper ){
+			
+			((threadWrapper)current).setDebug( debug );
+		}
+	}
+	
+	public static Object
+	getDebug(
+		Thread		t )
+	{
+		if ( t instanceof threadWrapper ){
+			
+			return(((threadWrapper)t).getDebug());
+		}
+		
+		return( null );
+	}
+	
 	protected static class
 	threadWrapper
 		extends Thread
@@ -213,6 +237,8 @@ AEThread2
 		private JoinLock		currentLock;
 		
 		private long		last_active_time;
+		
+		private Object		debug;
 		
 		protected
 		threadWrapper(
@@ -263,6 +289,8 @@ AEThread2
 						
 						target = null;
 
+						debug	= null;
+						
 						currentLock.released = true;
 						
 						currentLock.notifyAll();						
@@ -351,6 +379,19 @@ AEThread2
 		retire()
 		{			
 			sem.release();
+		}
+		
+		protected void
+		setDebug(
+			Object	d )
+		{
+			debug	= d;
+		}
+		
+		protected Object
+		getDebug()
+		{
+			return( debug );
 		}
 	}
 	
