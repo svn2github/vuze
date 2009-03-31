@@ -31,6 +31,7 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
@@ -258,31 +259,39 @@ public class BrowserContext
 		browser.addOpenWindowListener(new OpenWindowListener() {
 			public void open(WindowEvent event) {
 				event.required = true;
-
-				final Browser subBrowser = new Browser(browser,
-						Utils.getInitialBrowserStyle(SWT.NONE));
-				subBrowser.addLocationListener(new LocationListener() {
-					public void changed(LocationEvent arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-					public void changing(LocationEvent event) {
-						event.doit = false;
-						if (!UrlFilter.getInstance().urlIsBlocked(event.location)
-								&& (event.location.startsWith("http://") || event.location.startsWith("https://"))) {
-							debug("open sub browser: " + event.location);
-							Program.launch(event.location);
-						} else {
-							debug("blocked open sub browser: " + event.location);
-						}
-						Utils.execSWTThreadLater(0, new AERunnable() {
-							public void runSupport() {
-								subBrowser.dispose();
-							}
-						});
-					}
-				});
-				event.browser = subBrowser;
+				
+				if (browser.getUrl().contains("js.debug=1")) {
+  				Shell shell = new Shell(Utils.findAnyShell(), SWT.SHELL_TRIM);
+  				shell.setLayout(new FillLayout());
+					Browser subBrowser = new Browser(shell,
+							Utils.getInitialBrowserStyle(SWT.NONE));
+					shell.open();
+					event.browser = subBrowser;
+				} else {
+				
+  				final Browser subBrowser = new Browser(browser,
+  						Utils.getInitialBrowserStyle(SWT.NONE));
+  				subBrowser.addLocationListener(new LocationListener() {
+  					public void changed(LocationEvent arg0) {
+  					}
+  					public void changing(LocationEvent event) {
+  						event.doit = false;
+  						if (!UrlFilter.getInstance().urlIsBlocked(event.location)
+  								&& (event.location.startsWith("http://") || event.location.startsWith("https://"))) {
+  							debug("open sub browser: " + event.location);
+  							Program.launch(event.location);
+  						} else {
+  							debug("blocked open sub browser: " + event.location);
+  						}
+  						Utils.execSWTThreadLater(0, new AERunnable() {
+  							public void runSupport() {
+  								subBrowser.dispose();
+  							}
+  						});
+  					}
+  				});
+					event.browser = subBrowser;
+				}
 			}
 		});
 		
