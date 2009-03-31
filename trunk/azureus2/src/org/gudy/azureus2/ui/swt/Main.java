@@ -41,6 +41,8 @@ Main
 	
   StartServer startServer;
   
+	public static long startTime = System.currentTimeMillis();
+  
   // This method is called by other Main classes via reflection - must be kept public.
   public Main(String args[])
 	{
