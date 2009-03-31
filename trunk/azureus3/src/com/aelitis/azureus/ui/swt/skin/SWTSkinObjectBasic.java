@@ -937,8 +937,15 @@ public class SWTSkinObjectBasic
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#relayout()
 	public void relayout() {
 		if (!disposed) {
-			control.getShell().layout(new Control[] {
-				control
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (control.isDisposed()) {
+						return;
+					}
+					control.getShell().layout(new Control[] {
+						control
+					});
+				}
 			});
 		}
 	}
