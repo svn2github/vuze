@@ -85,7 +85,7 @@ public class Initializer
 	private int curPercent = 0;
 
 	private AESemaphore init_task = new AESemaphore("delayed init");
-	  
+	
 	public static void main(final String args[]) {
 		if (Launcher.checkAndLaunch(Initializer.class, args))
 			return;
@@ -135,7 +135,7 @@ public class Initializer
 					}
 				});
 
-		delayed_task.queue();
+		delayed_task.queueFirst();
 		
 		// initialise the SWT locale util
 		long startTime = SystemTime.getCurrentTime();
@@ -197,6 +197,7 @@ public class Initializer
 			}
 
 			public void reportPercent(AzureusCoreOperation op, int percent) {
+				/*
 				if (op.getOperationType() != AzureusCoreOperation.OP_INITIALISATION) {
 					return;
 				}
@@ -207,6 +208,7 @@ public class Initializer
 						System.out.println("   Core: " + diff + "ms for " + sLastTask);
 					}
 				}
+				*/
 				// TODO Auto-generated method stub
 			}
 
@@ -529,6 +531,7 @@ public class Initializer
 					  public void
 					  runSupport()
 					  {
+					  	//System.out.println("Release Init. Task");
 						  init_task.release();
 					  }
 				  });
