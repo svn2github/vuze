@@ -211,25 +211,6 @@ public class UserAreaUtils
 
 		}
 
-		/*
-		 * Make sure it's now visible since it was initialized as invisible
-		 */
-		SWTSkinObject skinObject = skin.getSkinObject("user-info");
-		if (null != skinObject) {
-			if (false == skinObject.isVisible()) {
-				skinObject.setVisible(true);
-			}
-		}
-
-		Utils.execSWTThread(new Runnable() {
-			public void run() {
-				SWTSkinObject skinObject = skin.getSkinObject("user-area");
-				if (null != skinObject) {
-					Utils.relayout(skinObject.getControl());
-				}
-			}
-		});
-
 	}
 
 	/**
