@@ -918,11 +918,12 @@ public class SWTSkin
 		controlToLayout.setData("skin.layedout", "");
 	}
 
-	private SWTSkinObject createContainer(SWTSkinProperties properties,
+	private SWTSkinObject createContainer(final SWTSkinProperties properties,
 			String sID, final String sConfigID, SWTSkinObject parentSkinObject,
 			boolean bForceCreate, boolean bPropogate, SWTSkinObject intoSkinObject) {
 		String[] sItems = properties.getStringArray(sConfigID + ".widgets");
-		if (sItems == null && !bForceCreate) {
+		final String[] sItemsLater = null; // properties.getStringArray(sConfigID + ".widgets-onshow");
+		if (sItems == null && sItemsLater == null && !bForceCreate) {
 			return null;
 		}
 
@@ -959,36 +960,56 @@ public class SWTSkin
 		}
 
 		if (sItems != null) {
-			String[] paramValues = null;
-			if (properties instanceof SWTSkinPropertiesParam) {
-				paramValues = ((SWTSkinPropertiesParam) properties).getParamValues();
-			}
-			// Cloning is only for one level.  Children get the original properties
-			// object
-			if (properties instanceof SWTSkinPropertiesClone) {
-				properties = ((SWTSkinPropertiesClone) properties).getOriginalProperties();
-			}
-
-			// Propogate any parameter values.
-			// XXX This could get ugly, we should could the # of 
-			//     SWTSkinPropertiesParam to determine if this needs optimizing
-			//     ie. if a top container has paramValues, every child will get a new
-			//         object.  How would this affect memory/performace?
-			if (paramValues != null) {
-				properties = new SWTSkinPropertiesParamImpl(properties, paramValues);
-			}
-
-			for (int i = 0; i < sItems.length; i++) {
-				String sItemID = sItems[i];
-				linkIDtoParent(properties, sItemID, sItemID, skinObject, false, true);
-			}
+			addContainerChildren(skinObject, sItems, properties);
 		}
+		if (sItemsLater != null) {
+			skinObject.addListener(new SWTSkinObjectListener() {
+				public Object eventOccured(SWTSkinObject skinObject, int eventType,
+						Object params) {
+					if (eventType == EVENT_SHOW) {
+						skinObject.removeListener(this);
+						bLayoutComplete = false;
+						addContainerChildren(skinObject, sItemsLater, properties);
+						layout();
+					}
+					return null;
+				}
+			});
+		}
+		
 
 		if (bLayoutComplete) {
 			attachControl(skinObject);
 		}
 
 		return skinObject;
+	}
+
+	private void addContainerChildren(SWTSkinObject skinObject, String[] sItems,
+			SWTSkinProperties properties) {
+		String[] paramValues = null;
+		if (properties instanceof SWTSkinPropertiesParam) {
+			paramValues = ((SWTSkinPropertiesParam) properties).getParamValues();
+		}
+		// Cloning is only for one level.  Children get the original properties
+		// object
+		if (properties instanceof SWTSkinPropertiesClone) {
+			properties = ((SWTSkinPropertiesClone) properties).getOriginalProperties();
+		}
+
+		// Propogate any parameter values.
+		// XXX This could get ugly, we should could the # of 
+		//     SWTSkinPropertiesParam to determine if this needs optimizing
+		//     ie. if a top container has paramValues, every child will get a new
+		//         object.  How would this affect memory/performace?
+		if (paramValues != null) {
+			properties = new SWTSkinPropertiesParamImpl(properties, paramValues);
+		}
+
+		for (int i = 0; i < sItems.length; i++) {
+			String sItemID = sItems[i];
+			linkIDtoParent(properties, sItemID, sItemID, skinObject, false, true);
+		}
 	}
 
 	private SWTSkinObject createSash(SWTSkinProperties properties, String sID,
@@ -1354,6 +1375,9 @@ public class SWTSkin
 
 		SWTSkinObject skinObject = null;
 		try {
+			if (sConfigID == null) {
+				return null;
+			}
 			String[] sTypeParams = properties.getStringArray(sConfigID + ".type");
 			String sType;
 			if (sTypeParams != null && sTypeParams.length > 0) {
@@ -1723,6 +1747,20 @@ public class SWTSkin
 		}
 	}
 
+	public void removeListener(String viewID, SWTSkinObjectListener listener) {
+		mapPublicViewIDsToListeners_mon.enter();
+		try {
+			Object existing = mapPublicViewIDsToListeners.get(viewID);
+
+			if (existing instanceof List) {
+				List<SWTSkinObjectListener> list = (List<SWTSkinObjectListener>) existing;
+				list.remove(listener);
+			}
+		} finally {
+			mapPublicViewIDsToListeners_mon.exit();
+		}
+	}
+
 	public SWTSkinObjectListener[] getSkinObjectListeners(String viewID) {
 		if (viewID == null) {
 			return NOLISTENERS;
@@ -1786,4 +1824,5 @@ public class SWTSkin
 			}
 		}
 	}
+
 }

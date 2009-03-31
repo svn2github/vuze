@@ -160,6 +160,7 @@ public class SWTSkinObjectImage
 	}
 
 	private Label createImageLabel(String sConfigID, String sImageID) {
+		currentImageID = sImageID;
 		int style = SWT.WRAP;
 
 		String sAlign = properties.getStringValue(sConfigID + ".align");
@@ -209,33 +210,33 @@ public class SWTSkinObjectImage
 			}
 		}
 
-		ImageLoader imageLoader = skin.getImageLoader(properties);
-		boolean imageExists = imageLoader.imageExists(sImageID);
-		if (!imageExists) {
-			sImageID = sConfigID + ".image";
-			imageExists = imageLoader.imageExists(sImageID);
-		}
-
-		if (imageExists) {
-			setLabelImage(sConfigID, sImageID, null);
-		}
-
+		//		SWTBGImagePainter painter = (SWTBGImagePainter) parent.getData("BGPainter");
+		//		if (painter != null) {
+		//			label.addListener(SWT.Paint, painter);
+		//		}
 		label.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				String oldImageID = (String) label.getData("ImageID");
-				ImageLoader imageLoader = skin.getImageLoader(properties);
 				if (oldImageID != null && label.getData("image") != null) {
+					ImageLoader imageLoader = skin.getImageLoader(properties);
 					imageLoader.releaseImage(oldImageID);
 				}
 			}
 		});
 
-		//		SWTBGImagePainter painter = (SWTBGImagePainter) parent.getData("BGPainter");
-		//		if (painter != null) {
-		//			label.addListener(SWT.Paint, painter);
-		//		}
-
 		return label;
+	}
+	
+	public void setVisible(boolean visible) {
+		super.setVisible(visible);
+
+		if (visible) {
+			reallySetImage();
+		} else {
+			if (!customImage) {
+				label.setImage(null);
+			}
+		}
 	}
 
 	//protected void setLabelImage(String sConfigID, AECallback<Image> callback) {
@@ -334,7 +335,7 @@ public class SWTSkinObjectImage
 						label.setLayoutData(fd);
 						Utils.relayout(label);
 					}
-
+					
 					// remove in case already added
 					label.removePaintListener(paintListener);
 
@@ -387,33 +388,46 @@ public class SWTSkinObjectImage
 		Utils.execSWTThread(new AERunnable() {
 
 			public void runSupport() {
-				String sImageID = (customImageID == null ? (sConfigID + ".image")
+				currentImageID = (customImageID == null ? (sConfigID + ".image")
 						: customImageID)
 						+ fSuffix;
-
-				ImageLoader imageLoader = skin.getImageLoader(properties);
-				boolean imageExists = imageLoader.imageExists(sImageID);
-				if (!imageExists) {
-					for (int i = suffixes.length - 1; i >= 0; i--) {
-						String suffixToRemove = suffixes[i];
-						if (suffixToRemove != null) {
-							sImageID = sImageID.substring(0, sImageID.length()
-									- suffixToRemove.length());
-							if (imageLoader.imageExists(sImageID)) {
-								imageExists = true;
-								break;
-							}
-						}
-					}
-				}
-
-				if (imageExists) {
-					setLabelImage(sImageID, null);
+				if (isVisible()) {
+					reallySetImage();
 				}
 			}
 		});
 
 		return suffix;
+	}
+
+	protected void reallySetImage() {
+		if (label.getImage() != null || currentImageID == null || customImage) {
+			return;
+		}
+
+		ImageLoader imageLoader = skin.getImageLoader(properties);
+		boolean imageExists = imageLoader.imageExists(currentImageID);
+		if (!imageExists && imageLoader.imageExists(currentImageID + ".image")) {
+			currentImageID = sConfigID + ".image";
+			imageExists = true;
+		}
+		if (!imageExists) {
+			for (int i = suffixes.length - 1; i >= 0; i--) {
+				String suffixToRemove = suffixes[i];
+				if (suffixToRemove != null) {
+					currentImageID = currentImageID.substring(0, currentImageID.length()
+							- suffixToRemove.length());
+					if (imageLoader.imageExists(currentImageID)) {
+						imageExists = true;
+						break;
+					}
+				}
+			}
+		}
+
+		if (imageExists) {
+			setLabelImage(currentImageID, null);
+		}
 	}
 
 	public Image getImage() {
