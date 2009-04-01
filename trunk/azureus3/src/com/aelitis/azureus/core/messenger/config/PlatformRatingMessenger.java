@@ -58,6 +58,8 @@ public class PlatformRatingMessenger
 
 	public static final ArrayList listeners = new ArrayList();
 
+	private static final int BREAK_GGR = 1000;
+
 	private static boolean delayGlobalRatingUpdate = true;
 
 	private static List<TOTorrent> delayedGlobalRatingTorrents;
@@ -117,6 +119,26 @@ public class PlatformRatingMessenger
 			String[] torrentHashes, long maxDelayMS,
 			final GetRatingReplyListener replyListener) {
 
+		if (torrentHashes.length > BREAK_GGR) {
+			int pos = 0;
+			int len;
+
+			do {
+				len = torrentHashes.length - pos;
+				if (len > BREAK_GGR) {
+					len = BREAK_GGR;
+				}
+
+				String[] hashes = new String[len];
+				System.arraycopy(torrentHashes, pos, hashes, 0, len);
+				getGlobalRating(rateTypes, hashes, maxDelayMS, replyListener);
+
+				pos += len;
+			} while (len == BREAK_GGR);
+
+			return;
+		}
+		
 		PlatformMessage message = new PlatformMessage("AZMSG", "rating",
 				"get-global", new Object[] {
 					"rating-type",
