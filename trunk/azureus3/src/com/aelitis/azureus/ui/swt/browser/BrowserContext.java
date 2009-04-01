@@ -332,7 +332,6 @@ public class BrowserContext
 			}
 
 			public void changing(LocationEvent event) {
-				System.out.println("--------- " + event.location);
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
