@@ -35,6 +35,8 @@ import java.net.Socket;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.UserProfile;
 import org.gudy.azureus2.ui.console.multiuser.UserManager;
 
@@ -69,6 +71,15 @@ final class SocketServer implements Runnable
 	{
 		int threadNum = 1;
 		System.out.println("Telnet server started. Listening on port: " + serverSocket.getLocalPort());
+		
+		new AEThread2( "AZCoreStartup", true )
+		{
+			public void
+			run()
+			{
+				UIConst.getAzureusCore();
+			}
+		}.start();
 		
 		while( true ) {
 			try {
