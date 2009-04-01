@@ -734,8 +734,15 @@ UPnPImpl
 				TorrentUtils.setTLSDescription( null );
 			}
 		}else{
-			Socket	socket = new Socket(control.getHost(), control.getPort());
+			final int CONNECT_TIMEOUT 	= 15*1000;
+			final int READ_TIMEOUT		= 30*1000;
 			
+			Socket	socket = new Socket();
+			
+			socket.connect( new InetSocketAddress( control.getHost(), control.getPort()), CONNECT_TIMEOUT );
+			
+			socket.setSoTimeout( READ_TIMEOUT );
+				
 			try{
 				PrintWriter	pw = new PrintWriter(new OutputStreamWriter( socket.getOutputStream(), "UTF8" ));
 
