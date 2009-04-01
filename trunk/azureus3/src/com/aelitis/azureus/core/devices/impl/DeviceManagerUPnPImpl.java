@@ -27,6 +27,7 @@ import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
@@ -45,7 +46,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.content.AzureusContentFilter;
-import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.util.UUIDGenerator;
@@ -93,7 +93,17 @@ DeviceManagerUPnPImpl
 					public void
 					initializationComplete()
 					{
-						start();
+							// startup can take a while as adding the upnp listener can sync call back device added and result
+							// in device details loading etc
+						
+						new AEThread2( "DMUPnPAsyncStart", true )
+						{
+							public void
+							run()
+							{
+								startUp();
+							}
+						}.start();
 					}
 					
 					public void
@@ -115,7 +125,7 @@ DeviceManagerUPnPImpl
 	}
 	
 	protected void
-	start()
+	startUp()
 	{
 		UPnPAdapter adapter = 
 			new UPnPAdapter()
