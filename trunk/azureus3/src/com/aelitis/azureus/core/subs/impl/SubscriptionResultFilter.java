@@ -5,19 +5,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.util.ImportExportUtils;
 
-public class SubscriptionResultFilter{
+public class 
+SubscriptionResultFilter
+{
 	
-	String[] textFilters;
-	String[] excludeTextFilters;
-	String regexFilter;
-	long minSeeds = -1;
-	long minSize = -1;
-	long maxSize = -1;
-	String categoryFilter = null;
+	private String[] 	textFilters;
+	private Pattern[]	textFilterPatterns;
+	
+	private String[] 	excludeTextFilters;
+	private Pattern[]	excludeTextFilterPatterns;
+	
+	private String regexFilter;	// unused
+	
+	private long minSeeds = -1;
+	private long minSize = -1;
+	private long maxSize = -1;
+	private String categoryFilter = null;
 	
 	public String
 	getString()
@@ -71,7 +79,12 @@ public class SubscriptionResultFilter{
 		try {
 			textFilters = importStrings(filters,"text_filter"," ");
 			
+			textFilterPatterns = getPatterns( textFilters );
+			
 			excludeTextFilters = importStrings(filters,"text_filter_out"," ");
+			
+			excludeTextFilterPatterns = getPatterns( excludeTextFilters );
+
 			
 			regexFilter = ImportExportUtils.importString(filters, "text_filter_regex");
 			
@@ -91,6 +104,33 @@ public class SubscriptionResultFilter{
 		}
 	}
 
+	private static Pattern[] NO_PATTERNS = {};
+	
+	private Pattern[]
+	getPatterns(
+		String[]	strs )
+	{
+		if ( strs.length == 0 ){
+			
+			return( NO_PATTERNS );
+		}
+		
+		Pattern[] pats = new Pattern[strs.length];
+		
+		for (int i=0;i<strs.length;i++){
+		
+			try{
+				pats[i] = Pattern.compile( strs[i].trim());
+				
+			}catch( Throwable e ){
+				
+				System.out.println( "Failed to compile pattern '" + strs[i] );
+			}
+		}		
+		
+		return( pats );
+	}
+	
 	private String[] importStrings(Map filters,String key,String separator) throws IOException {
 		String rawStringFilter = ImportExportUtils.importString(filters,key);
 		if(rawStringFilter != null) {
@@ -105,7 +145,7 @@ public class SubscriptionResultFilter{
 	}
 	
 	public Result[] filter(Result[] results) {
-		List filteredResults = new ArrayList(results.length);
+		List<Result> filteredResults = new ArrayList<Result>(results.length);
 		for(int i = 0 ; i < results.length ; i++) {
 			Result result = results[i];
 			
@@ -122,8 +162,17 @@ public class SubscriptionResultFilter{
 				//If one of the text filters do not match, let's not keep testing the others
 				// and mark the result as not valid
 				if(name.indexOf(textFilters[j]) == -1) {
-					valid = false;
-					break;
+					
+						// double check against reg-expr if exists
+					
+					Pattern p = textFilterPatterns[j];
+					
+					if ( p == null  || !p.matcher( name ).find()){
+					
+						valid = false;
+					
+						break;
+					}
 				}
 			}
 			
@@ -139,6 +188,13 @@ public class SubscriptionResultFilter{
 				if(name.indexOf(excludeTextFilters[j]) != -1) {
 					valid = false;
 					break;
+				}else{
+					Pattern p = excludeTextFilterPatterns[j];
+					
+					if ( p != null  && p.matcher( name ).find()){
+						valid = false;
+						break;
+					}
 				}
 			}
 			
