@@ -152,6 +152,9 @@ Subscription
 	getCreatorRef();
 	
 	public void
+	reset();
+	
+	public void
 	remove();
 	
 	public SubscriptionManager

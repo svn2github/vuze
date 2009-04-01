@@ -1762,6 +1762,20 @@ SubscriptionImpl
 	}
 	
 	public void
+	reset()
+	{
+		getHistory().reset();
+		
+		try{
+			getEngine().reset();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	public void
 	remove()
 	{
 		destroy();

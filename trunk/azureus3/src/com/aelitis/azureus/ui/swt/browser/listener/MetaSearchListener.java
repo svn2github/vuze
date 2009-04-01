@@ -1327,7 +1327,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 					if ( changed ){
 						
-						subs.getHistory().reset();
+						subs.reset();
 						
 						try{
 							subs.getManager().getScheduler().downloadAsync(subs, true);
