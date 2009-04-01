@@ -216,7 +216,13 @@ AEThread2
 		}
 	}
 	
-	public static Object
+		/**
+		 * entry 0 is debug object, 1 is Long mono-time it was set
+		 * @param t
+		 * @return
+		 */
+	
+	public static Object[]
 	getDebug(
 		Thread		t )
 	{
@@ -238,7 +244,7 @@ AEThread2
 		
 		private long		last_active_time;
 		
-		private Object		debug;
+		private Object[]		debug;
 		
 		protected
 		threadWrapper(
@@ -385,10 +391,10 @@ AEThread2
 		setDebug(
 			Object	d )
 		{
-			debug	= d;
+			debug	= new Object[]{ d, SystemTime.getMonotonousTime() };
 		}
 		
-		protected Object
+		protected Object[]
 		getDebug()
 		{
 			return( debug );
