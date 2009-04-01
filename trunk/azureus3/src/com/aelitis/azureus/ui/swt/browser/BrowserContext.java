@@ -273,6 +273,8 @@ public class BrowserContext
   						Utils.getInitialBrowserStyle(SWT.NONE));
   				subBrowser.addLocationListener(new LocationListener() {
   					public void changed(LocationEvent arg0) {
+  						// TODO Auto-generated method stub
+  						
   					}
   					public void changing(LocationEvent event) {
   						event.doit = false;
@@ -330,6 +332,7 @@ public class BrowserContext
 			}
 
 			public void changing(LocationEvent event) {
+				System.out.println("--------- " + event.location);
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */

@@ -86,6 +86,11 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 public class 
 DeviceManagerUI 
 {
+	// Not supported for Unix and OSX PPC
+	public static boolean DISABLED = Constants.isUnix
+			|| (Constants.isOSX && System.getProperty("os.arch", "").toLowerCase().equals(
+					"powerpc"));
+	
 	private static final int MIN_FILE_SIZE_FOR_XCODE	= 128*1024;
 	private static final int MAX_FILES_FOR_MULTI_XCODE	= 64;
 	
@@ -144,10 +149,7 @@ DeviceManagerUI
 		
 		ui_manager = plugin_interface.getUIManager();
 
-		if (Constants.isUnix
-				|| (Constants.isOSX && System.getProperty("os.arch", "").toLowerCase().equals(
-						"powerpc"))) {
-			// Not supported for Unix and OSX PPC
+		if (DISABLED) {
 			return;
 		}
 

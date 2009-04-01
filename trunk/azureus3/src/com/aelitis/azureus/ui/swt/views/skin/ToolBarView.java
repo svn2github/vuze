@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
@@ -50,6 +51,7 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
 import com.aelitis.azureus.ui.swt.devices.TranscodeChooser;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -156,6 +158,8 @@ public class ToolBarView
 		addSeperator("toolbar.area.item.sep", soMain);
 
 		lastControl = null;
+		
+		boolean first = true; 
 
 		// ==OPEN
 		//		item = new ToolBarItem("open", "image.toolbar.open", "iconBar.open") {
@@ -166,50 +170,53 @@ public class ToolBarView
 		//		addToolBarItem(item);
 
 		// ==transcode
-		item = new ToolBarItem("transcode", "image.button.transcode",
-				"iconBar.transcode") {
-			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-			public void triggerToolBarItem() {
-				String viewID = SelectedContentManager.getCurrentySelectedViewID();
-				if (viewID == null && triggerIViewToolBar(getId())) {
-					return;
-				}
-				final ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
-				if (contents.length == 0) {
-					return;
-				}
-				TranscodeChooser deviceChooser = new TranscodeChooser() {
-					public void closed() {
-						DeviceManager deviceManager = DeviceManagerFactory.getSingleton();
-						if (selectedDevice != null && selectedProfile != null) {
-							for (int i = 0; i < contents.length; i++) {
-								ISelectedContent selectedContent = contents[i];
-
-								DownloadManager dm = selectedContent.getDM();
-								if (dm == null) {
-									continue;
-								}
-								DiskManagerFileInfo[] files = dm.getDiskManagerFileInfo();
-								for (DiskManagerFileInfo file : files) {
-									try {
-										deviceManager.getTranscodeManager().getQueue().add(
-												selectedDevice,
-												selectedProfile,
-												(org.gudy.azureus2.plugins.disk.DiskManagerFileInfo) PluginCoreUtils.convert(
-														file, false));
-									} catch (TranscodeException e) {
-										Debug.out(e);
-									}
-								}
-							}
-						}
-					}
-				};
-				deviceChooser.show();
-			}
-		};
-		addToolBarItem(item, "toolbar.area.sitem.left", so2nd);
-		addSeperator(so2nd);
+		if (!DeviceManagerUI.DISABLED) {
+  		item = new ToolBarItem("transcode", "image.button.transcode",
+  				"iconBar.transcode") {
+  			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+  			public void triggerToolBarItem() {
+  				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+  				if (viewID == null && triggerIViewToolBar(getId())) {
+  					return;
+  				}
+  				final ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+  				if (contents.length == 0) {
+  					return;
+  				}
+  				TranscodeChooser deviceChooser = new TranscodeChooser() {
+  					public void closed() {
+  						DeviceManager deviceManager = DeviceManagerFactory.getSingleton();
+  						if (selectedDevice != null && selectedProfile != null) {
+  							for (int i = 0; i < contents.length; i++) {
+  								ISelectedContent selectedContent = contents[i];
+  
+  								DownloadManager dm = selectedContent.getDM();
+  								if (dm == null) {
+  									continue;
+  								}
+  								DiskManagerFileInfo[] files = dm.getDiskManagerFileInfo();
+  								for (DiskManagerFileInfo file : files) {
+  									try {
+  										deviceManager.getTranscodeManager().getQueue().add(
+  												selectedDevice,
+  												selectedProfile,
+  												(org.gudy.azureus2.plugins.disk.DiskManagerFileInfo) PluginCoreUtils.convert(
+  														file, false));
+  									} catch (TranscodeException e) {
+  										Debug.out(e);
+  									}
+  								}
+  							}
+  						}
+  					}
+  				};
+  				deviceChooser.show();
+  			}
+  		};
+  		addToolBarItem(item, "toolbar.area.sitem.left", so2nd);
+  		addSeperator(so2nd);
+  		first = false;
+		}
 
 		// ==share
 		item = new ToolBarItem("share", "image.button.share", "iconBar.share") {
@@ -225,7 +232,7 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		addToolBarItem(item, first ? "toolbar.area.sitem.left" : "toolbar.area.sitem", so2nd);
 		addSeperator(so2nd);
 
 		// ==run
