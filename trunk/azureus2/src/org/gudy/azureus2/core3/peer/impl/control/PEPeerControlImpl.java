@@ -307,16 +307,20 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 	};
 
+	private final int	scheduler_id;
+	
 	public 
 	PEPeerControlImpl(
 		byte[]					_peer_id,
 		PEPeerManagerAdapter 	_adapter,
-		DiskManager 			diskManager) 
+		DiskManager 			_diskManager,
+		int						_scheduler_id )
 	{
 		_myPeerId		= _peer_id;
 		adapter 		= _adapter;
-
-		disk_mgr = diskManager;
+		disk_mgr 		= _diskManager;
+		scheduler_id	= _scheduler_id;
+		
 		_nbPieces =disk_mgr.getNbPieces();
 		dm_pieces =disk_mgr.getPieces();
 		
@@ -411,7 +415,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		PeerNATTraverser.getSingleton().register( this );
 
-		PeerControlSchedulerFactory.getSingleton().register(this);
+		PeerControlSchedulerFactory.getSingleton(scheduler_id).register(this);
 	}
 
 	public void stopAll()
@@ -420,7 +424,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		UploadSlotManager.getSingleton().deregisterHelper( upload_helper );
 
-		PeerControlSchedulerFactory.getSingleton().unregister(this);
+		PeerControlSchedulerFactory.getSingleton(scheduler_id).unregister(this);
 
 		PeerNATTraverser.getSingleton().unregister( this );
 

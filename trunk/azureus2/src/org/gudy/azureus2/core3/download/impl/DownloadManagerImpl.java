@@ -2421,7 +2421,7 @@ DownloadManagerImpl
 				
 				// an active torrent changed its position, scheduling needs to be updated
 				if(getState() == DownloadManager.STATE_SEEDING || getState() == DownloadManager.STATE_DOWNLOADING)
-					PeerControlSchedulerFactory.getSingleton().updateScheduleOrdering();
+					PeerControlSchedulerFactory.updateScheduleOrdering();
 			}
 		}finally{
 			

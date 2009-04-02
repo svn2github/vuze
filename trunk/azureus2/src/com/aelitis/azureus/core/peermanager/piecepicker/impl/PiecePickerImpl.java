@@ -1163,7 +1163,7 @@ implements PiecePicker
 		return rarestOverride;
 	}
 	
-	private final SpeedTokenDispenser dispenser = PeerControlSchedulerFactory.getSingleton().getSpeedTokenDispenser();
+	private final SpeedTokenDispenser dispenser = PeerControlSchedulerFactory.getSingleton(0).getSpeedTokenDispenser();
 
 	/**
 	 * @param pt the PEPeerTransport we're working on

@@ -24,8 +24,22 @@ public class
 PeerControlSchedulerFactory 
 {
 	public static PeerControlScheduler
-	getSingleton()
+	getSingleton(
+		int		id )
 	{
-		return( PeerControlSchedulerImpl.getSingleton());
+		return( PeerControlSchedulerImpl.getSingleton( id ));
+	}
+	
+	public static void
+	overrideWeightedPriorities(
+		boolean	b )
+	{
+		PeerControlSchedulerImpl.overrideAllWeightedPriorities( b );
+	}
+	
+	public static void
+	updateScheduleOrdering()
+	{
+		PeerControlSchedulerImpl.updateAllScheduleOrdering();
 	}
 }

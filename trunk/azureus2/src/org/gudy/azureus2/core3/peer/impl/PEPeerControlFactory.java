@@ -39,6 +39,16 @@ PEPeerControlFactory {
 		PEPeerManagerAdapter 	adapter,
 		DiskManager 			diskManager )
 	{
-		return( new PEPeerControlImpl( peer_id, adapter, diskManager ));
+		return( create( peer_id, adapter, diskManager, 0 ));
+	}
+	
+	public static PEPeerControl
+	create(
+		byte[]					peer_id,
+		PEPeerManagerAdapter 	adapter,
+		DiskManager 			diskManager,
+		int						id )
+	{
+		return( new PEPeerControlImpl( peer_id, adapter, diskManager, id ));
 	}
 }

@@ -40,4 +40,14 @@ PEPeerManagerFactory
 	{
   		return( PEPeerControlFactory.create( peer_id, adapter, diskManager ));
 	}
+	
+	public static PEPeerManager
+	create(
+		byte[]					peer_id,
+		PEPeerManagerAdapter	adapter,
+	  	DiskManager 			diskManager,
+	  	int						id )
+	{
+  		return( PEPeerControlFactory.create( peer_id, adapter, diskManager, id ));
+	}
 }

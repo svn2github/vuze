@@ -23,6 +23,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
@@ -32,7 +33,32 @@ public abstract class
 PeerControlSchedulerImpl
 	implements PeerControlScheduler, AzureusCoreStatsProvider, ParameterListener
 {
-	private static final PeerControlSchedulerImpl	singleton;
+	private static final PeerControlSchedulerImpl[]	singletons;
+	
+	static{
+		int	num = COConfigurationManager.getIntParameter( "peercontrol.scheduler.parallelism", 1 );
+		
+		if ( num < 1 ){
+			
+			num = 1;
+			
+		}else if ( num > 1 ){
+			
+			if ( COConfigurationManager.getBooleanParameter( "peercontrol.scheduler.use.priorities" )){
+		
+				Debug.out( "Multiple peer schedulers not supported for prioritised scheduling" );
+				
+				num = 1;
+				
+			}else{
+				
+				System.out.println( "Peer control scheduler parallelism=" + num );
+			}
+		}
+		
+		singletons = new PeerControlSchedulerImpl[ num ];
+	}
+	
 	protected boolean useWeights = true;
 	
 	{
@@ -45,25 +71,52 @@ PeerControlSchedulerImpl
 	
 	static{ 
 		
-		if ( COConfigurationManager.getBooleanParameter( "peercontrol.scheduler.use.priorities" )){
-		
-			singleton = new PeerControlSchedulerPrioritised();
+		for (int i=0;i<singletons.length;i++){
+	
+			PeerControlSchedulerImpl singleton;
 			
-		}else{
+			if ( COConfigurationManager.getBooleanParameter( "peercontrol.scheduler.use.priorities" )){
 			
-			singleton = new PeerControlSchedulerBasic();
-
+				singleton = new PeerControlSchedulerPrioritised();
+				
+			}else{
+				
+				singleton = new PeerControlSchedulerBasic();
+	
+			}
+			
+			singletons[i] = singleton;
+			
+			singleton.start();
 		}
-		
-		singleton.start();
 	}
 	
 	public static PeerControlScheduler
-	getSingleton()
+	getSingleton(
+		int		id )
 	{
-		return( singleton );
+		return( singletons[ id%singletons.length ]);
 	}
+		
+	public static void
+	overrideAllWeightedPriorities(
+		boolean	b )
+	{
+		for ( PeerControlSchedulerImpl s: singletons ){
 			
+			s.overrideWeightedPriorities(b);
+		}
+	}
+	
+	public static void
+	updateAllScheduleOrdering()
+	{
+		for ( PeerControlSchedulerImpl s: singletons ){
+			
+			s.updateScheduleOrdering();
+		}
+	}
+	
 	protected long	schedule_count;
 	protected long	wait_count;
 	protected long	yield_count;

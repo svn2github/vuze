@@ -2411,7 +2411,7 @@ public class GlobalManagerImpl
 		  
 		  //System.out.println( "force_start_exists->" + force_start_non_seed_exists );
 		  
-		  PeerControlSchedulerFactory.getSingleton().overrideWeightedPriorities( force_start_non_seed_exists  );
+		  PeerControlSchedulerFactory.overrideWeightedPriorities( force_start_non_seed_exists  );
 	  }
   }
   
