@@ -209,14 +209,14 @@ implements CacheFile
 					
 					if ( num_clones % 100 == 0 ){
 						
-						System.out.println( "File clones=" + num_clones );
+						//System.out.println( "File clones=" + num_clones );
 					}
 					
 					if ( new_num == MAX_CLONES || new_num > max_clone_depth ){
 						
 						max_clone_depth = new_num;
 						
-						System.out.println( "Clone depth of " + new_num + " for " + clone.getName());
+						//System.out.println( "Clone depth of " + new_num + " for " + clone.getName());
 					}
 				}
 
