@@ -380,30 +380,19 @@ public class MyTorrentsView
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalIndent = 5;
         cHeader.setLayoutData(gridData);
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 3;
-        layout.marginHeight = 0;
-        layout.marginWidth = 0;
-        layout.horizontalSpacing = 2;
-        layout.verticalSpacing = 0;
-        cHeader.setLayout(layout);
-        
+        cHeader.setLayout(new FormLayout());
+        FormData fd;
         
         lblHeader = new Label(cHeader, SWT.WRAP);
-        gridData = new GridData();
-        lblHeader.setLayoutData(gridData);
         updateTableLabel();
 
         cFilterArea = new Composite(cHeader, SWT.NONE);
-        gridData = new GridData(GridData.FILL_HORIZONTAL);
-        cFilterArea.setLayoutData(gridData);
-        layout = new GridLayout();
+        cFilterArea.setVisible(false);
+        GridLayout layout = new GridLayout();
         layout.numColumns = 5;
         cFilterArea.setLayout(layout);
                 
         cCategories = new Composite(cHeader, SWT.NONE);
-        gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-        cCategories.setLayoutData(gridData);
         RowLayout rowLayout = new RowLayout();
         rowLayout.marginTop = 0;
         rowLayout.marginBottom = 0;
@@ -415,6 +404,30 @@ public class MyTorrentsView
         cCategories.setLayout(rowLayout);
 
 
+        fd = new FormData();
+        fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER);
+        lblHeader.setLayoutData(fd);
+
+        fd = new FormData();
+        fd.left = new FormAttachment(lblHeader, 10);
+        fd.right = new FormAttachment(cCategories, -10);
+        cFilterArea.setLayoutData(fd);
+
+        fd = new FormData();
+        fd.right = new FormAttachment(100, -2); 
+        fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
+        cCategories.setLayoutData(fd);
+        cHeader.addListener(SWT.Resize, new Listener(){
+					public void handleEvent(Event event) {
+						Utils.execSWTThreadLater(0, new AERunnable(){
+							public void runSupport() {
+								resizeHeader();
+							}
+						});
+					}
+				});
+
+        
         Label lblSep = new Label(cFilterArea, SWT.SEPARATOR | SWT.VERTICAL);
         gridData = new GridData(GridData.FILL_VERTICAL);
         gridData.heightHint = 5;
@@ -437,6 +450,7 @@ public class MyTorrentsView
           		sLastSearch = "";
           		updateLastSearch();
               cFilterArea.setVisible(false);
+              resizeHeader();
         		}
         	}
         });
@@ -481,8 +495,6 @@ public class MyTorrentsView
         }
       }
       
-      cFilterArea.setVisible(showCat);
-
       if (showCat) {
       	buildCat(categories);
       }
@@ -490,6 +502,59 @@ public class MyTorrentsView
   }
   
   /**
+	 * 
+	 *
+	 * @since 4.1.0.5
+	 */
+	protected void resizeHeader() {
+		Point curCatPos = cCategories.getLocation();
+		int posEndFilter = cFilterArea.getLocation().x + (cFilterArea.isVisible() ? 170 : 0);
+		//System.out.println("posend=" + posEndFilter + ";curcat" + curCatPos);
+		if (curCatPos.x < 10) {
+			Point prefSizeCat = cCategories.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			//System.out.println("pref=" + prefSizeCat + ";sz=" + cHeader.getClientArea());
+			if (prefSizeCat.x + posEndFilter < cHeader.getClientArea().width) {
+				//System.out.println("MOVE UP");
+				FormData fd = new FormData();
+        fd.right = new FormAttachment(100, -2); 
+        fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
+				cCategories.setLayoutData(fd);
+
+        fd = new FormData();
+        fd.left = new FormAttachment(lblHeader, 10);
+        fd.right = new FormAttachment(cCategories, -10);
+        cFilterArea.setLayoutData(fd);
+
+				cHeader.getShell().layout(new Control[] {
+					cFilterArea,
+					cCategories
+				});
+			}
+			// assume on new line
+		} else {
+			if (curCatPos.x < posEndFilter) {
+				//System.out.println("MOVE DOWN");
+				FormData fd = new FormData();
+				fd.top = new FormAttachment(cFilterArea, 2);
+				fd.bottom = new FormAttachment(100, -3);
+				fd.left = new FormAttachment(0,0);
+				fd.right = new FormAttachment(100,0);
+				cCategories.setLayoutData(fd);
+
+				fd = new FormData();
+        fd.left = new FormAttachment(lblHeader, 10);
+        fd.right = new FormAttachment(100, -10);
+        cFilterArea.setLayoutData(fd);
+
+				cHeader.getShell().layout(new Control[] {
+					cFilterArea,
+					cCategories
+				});
+			}
+		}
+	}
+
+	/**
 	 * 
 	 *
 	 * @param categories 
@@ -896,10 +961,14 @@ public class MyTorrentsView
 			});
 		}
 
-		cCategories.layout();
-		getComposite().layout();
+		cCategories.getShell().layout(new Control[] { cCategories });
+		Utils.execSWTThreadLater(0, new AERunnable(){
+			public void runSupport() {
+				resizeHeader();
+			}
+		});
 
-//		// layout hack - relayout
+		// layout hack - relayout
 //		if (catResizeAdapter == null) {
 //			catResizeAdapter = new ControlAdapter() {
 //				public void controlResized(ControlEvent event) {
@@ -911,8 +980,8 @@ public class MyTorrentsView
 //					int parentWidth = cCategories.getParent().getClientArea().width;
 //					int catsWidth = cCategories.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 //					// give text a 5 pixel right padding
-//					int textWidth = 5 + cHeader.computeSize(SWT.DEFAULT, SWT.DEFAULT).x
-//							+ cHeader.getBorderWidth() * 2;
+//					int textWidth = 200;
+//					System.out.println("TW=" + textWidth + ";" + (cHeader.computeSize(20, SWT.DEFAULT).x));
 //
 //					Object layoutData = cHeader.getLayoutData();
 //					if (layoutData instanceof GridData) {
@@ -1530,6 +1599,7 @@ public class MyTorrentsView
 
 		if (txtFilter != null && !txtFilter.isDisposed()) {
       cFilterArea.setVisible(true);
+      resizeHeader();
 
 			if (!sLastSearch.equals(txtFilter.getText())) { 
 				txtFilter.setText(sLastSearch);
