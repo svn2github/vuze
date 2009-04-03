@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -340,6 +341,21 @@ DiskAccessControllerInstance
 			
 			max_mb_sem.releaseGroup( mb_diff );
 		}
+	}
+	
+	protected String
+	getString()
+	{
+		return( 
+			name + 
+			",agg=" + enable_aggregation +
+			",max_t=" + max_threads +
+			",max_mb=" + max_mb_queued +
+			",q_byte=" + DisplayFormatters.formatByteCountToKiBEtc( request_bytes_queued ) +
+			",q_req=" + requests_queued +
+			",t_req=" + total_requests +
+			",t_byte=" + DisplayFormatters.formatByteCountToKiBEtc( total_bytes ) +
+			",io=" + io_count );
 	}
 	
 	protected class

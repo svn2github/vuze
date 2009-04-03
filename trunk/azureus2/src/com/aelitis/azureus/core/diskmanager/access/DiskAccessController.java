@@ -44,4 +44,7 @@ DiskAccessController
 		DirectByteBuffer			buffer,
 		boolean						free_buffer,
 		DiskAccessRequestListener	listener );
+	
+	public String
+	getString();
 }
