@@ -2,6 +2,7 @@ package com.aelitis.azureus.core.metasearch.impl.web.rss;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSChannel;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
@@ -286,20 +288,43 @@ RSSEngine
 								
 								result.setCommentsFromHTML( value );
 								
-							}else if(lc_child_name.equals( "link" ) || lc_child_name.equals( "guid" )) {
+							}else if ( lc_child_name.equals( "link" ) || lc_child_name.equals( "guid" )) {
 								
 								String lc_value = value.toLowerCase();
-								
-								try{									
+																
+								try{
+									URL url = new URL(value);
+
 									if ( 	lc_value.endsWith( ".torrent" ) ||
 											lc_value.startsWith( "magnet:" ) ||
 											lc_value.startsWith( "dht:" )){
 										
-										new URL(value);
 										
 										result.setTorrentLink(value);
+										
+									}else if ( lc_child_name.equals( "link" )){
+									
+										long	test = getLocalLong( LD_LINK_IS_TORRENT, 0 );
+									
+										if ( test == 1 ){
+										
+											result.setTorrentLink( value );
+											
+										}else if ( test == 0 || SystemTime.getCurrentTime() - test > 60*1000 ){
+										
+											if ( linkIsToTorrent( url )){
+											
+												result.setTorrentLink(value);
+												
+												setLocalLong( LD_LINK_IS_TORRENT, 1 );
+												
+											}else{
+												
+												setLocalLong( LD_LINK_IS_TORRENT, SystemTime.getCurrentTime());
+											}
+										}
 									}
-								} catch (Throwable e){
+								}catch( Throwable e ){
 								}
 							}else if ( lc_child_name.equals( "content" ) && rssFeed.isAtomFeed()){
 								
@@ -414,6 +439,36 @@ RSSEngine
 			}
 			
 			throw( new SearchException( "RSS matching failed", e ));
+		}
+	}
+	
+	protected boolean
+	linkIsToTorrent(
+		URL		url )
+	{
+		try{
+			HttpURLConnection con = (HttpURLConnection)url.openConnection();
+			
+			con.setRequestMethod( "HEAD" );
+			
+			con.setConnectTimeout( 10*1000 );
+			
+			con.setReadTimeout( 10*1000 );
+			
+			String content_type = con.getContentType();
+
+			log( "Testing link " + url + " to see if torrent link -> content type=" + content_type );
+			
+			if ( content_type.equalsIgnoreCase( "application/x-bittorrent" )){
+				
+				return( true );
+			}
+			
+			return( false );
+			
+		}catch( Throwable e ){
+			
+			return( false );
 		}
 	}
 }

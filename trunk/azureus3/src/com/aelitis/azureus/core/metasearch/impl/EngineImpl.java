@@ -139,6 +139,7 @@ EngineImpl
 	protected static final String		LD_CREATED_BY_ME		= "mine";
 	
 	protected static final String		LD_AUTO_DL_SUPPORTED	= "auto_dl_supported";
+	protected static final String		LD_LINK_IS_TORRENT		= "link_is_torrent";
 
 	
 	private MetaSearchImpl	meta_search;
