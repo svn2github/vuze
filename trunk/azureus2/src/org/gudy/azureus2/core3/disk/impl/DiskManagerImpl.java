@@ -1443,6 +1443,17 @@ DiskManagerImpl
 		return( CacheFileOwner.CACHE_MODE_NORMAL );
 	}
 	
+	public long[]
+	getReadStats()
+	{
+		if ( reader == null ){
+	
+			return( new long[]{ 0, 0 });
+		}
+				
+		return( reader.getStats());
+	}
+	
 	public DMPieceList
 	getPieceList(
 		int	piece_number )

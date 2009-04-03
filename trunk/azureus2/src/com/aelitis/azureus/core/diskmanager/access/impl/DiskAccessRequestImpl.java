@@ -102,6 +102,8 @@ DiskAccessRequestImpl
 				file.writeAndHandoverBuffer( buffer, offset );
 			}
 			
+			listener.requestExecuted( size );
+			
 			listener.requestComplete( this );
 			
 		}catch( Throwable e ){

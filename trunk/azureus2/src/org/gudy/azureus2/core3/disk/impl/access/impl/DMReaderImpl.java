@@ -61,6 +61,9 @@ DMReaderImpl
 	private boolean					started;
 	private boolean					stopped;
 	
+	private long					total_read_ops;
+	private long					total_read_bytes;
+	
 	protected AEMonitor	this_mon	= new AEMonitor( "DMReader" );
 	
 	public
@@ -179,6 +182,12 @@ DMReaderImpl
 			
 			this_mon.exit();
 		}
+	}
+	
+	public long[]
+	getStats()
+	{
+		return( new long[]{ total_read_ops, total_read_bytes });
 	}
 	
 		// returns null if the read can't be performed
@@ -577,6 +586,12 @@ DMReaderImpl
 									public void 
 									requestExecuted(long bytes) 
 									{
+										if ( bytes > 0 ){
+											
+											total_read_bytes 	+= bytes;
+											total_read_ops		++;
+										}
+										
 										listener.requestExecuted( bytes );									
 									}
 								});
@@ -662,6 +677,12 @@ DMReaderImpl
 		public void 
 		requestExecuted(long bytes) 
 		{
+			if ( bytes > 0 ){
+				
+				total_read_bytes 	+= bytes;
+				total_read_ops		++;
+			}
+			
 			listener.requestExecuted( bytes );									
 		}
 		

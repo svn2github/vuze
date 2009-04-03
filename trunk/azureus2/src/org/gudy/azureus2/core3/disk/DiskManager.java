@@ -300,6 +300,9 @@ DiskManager
 
 	public int getCacheMode();
 	
+	public long[]
+	getReadStats();
+	
 	public void
 	generateEvidence(
 		IndentWriter		writer );

@@ -61,4 +61,12 @@ DMReader
 	public boolean
 	hasOutstandingReadRequestForPiece(
 		int		piece_number );
+	
+		/**
+		 * 2 entries, first = read-ops, second = read-bytes
+		 * @return
+		 */
+	
+	public long[]
+	getStats();
 }
