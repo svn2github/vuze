@@ -251,6 +251,22 @@ RSSEngine
 						
 						SimpleXMLParserDocumentNode[] children = node.getChildren();
 						
+						boolean vuze_feed = false;
+						
+						for ( int k=0; k<children.length; k++ ){
+							
+							SimpleXMLParserDocumentNode child = children[k];
+							
+							String	lc_full_child_name 	= child.getFullName().toLowerCase();
+							
+							if ( lc_full_child_name.startsWith( "vuze:" )){
+								
+								vuze_feed = true;
+								
+								break;
+							}
+						}
+						
 						for ( int k=0; k<children.length; k++ ){
 							
 							SimpleXMLParserDocumentNode child = children[k];
@@ -302,7 +318,7 @@ RSSEngine
 										
 										result.setTorrentLink(value);
 										
-									}else if ( lc_child_name.equals( "link" )){
+									}else if ( lc_child_name.equals( "link" ) && !vuze_feed ){
 									
 										long	test = getLocalLong( LD_LINK_IS_TORRENT, 0 );
 									
