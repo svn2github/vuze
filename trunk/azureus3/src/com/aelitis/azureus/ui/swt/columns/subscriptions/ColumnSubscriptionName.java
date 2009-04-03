@@ -31,7 +31,10 @@ import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -106,8 +109,11 @@ public class ColumnSubscriptionName
 			if(event.x > cellWidth - imageWidth - 5 && event.x < cellWidth - 5) {
 				Subscription sub = (Subscription) cell.getDataSource();
 				if(sub != null) {
-					sideBarItem item = (sideBarItem) sub.getUserData(SubscriptionManagerUI.SUB_IVIEW_KEY);
-					item.activate();
+					String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
+					SideBarEntrySWT entry = SideBar.getEntry(key);
+					if (entry.isInTree()) {
+						entry.getSidebar().showEntryByID(key);
+					}
 				}
 			}
 		}
