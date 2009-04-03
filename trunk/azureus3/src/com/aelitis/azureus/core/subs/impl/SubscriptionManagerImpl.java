@@ -318,15 +318,18 @@ SubscriptionManagerImpl
 			
 			started	= true;
 		}
-		
+
+		final PluginInterface default_pi = StaticUtilities.getDefaultPluginInterface();
+
+		ta_subs_download 		= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
+		ta_subs_download_rd 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
+		ta_subscription_info 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_info" );
+
 		PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-		
-		
+				
 		if ( dht_plugin_pi != null ){
 			
 			dht_plugin = (DHTPlugin)dht_plugin_pi.getPlugin();
-
-			final PluginInterface default_pi = StaticUtilities.getDefaultPluginInterface();
 	
 			/*
 			if ( Constants.isCVSVersion()){
@@ -437,12 +440,7 @@ SubscriptionManagerImpl
 						}
 					}
 				});
-			
-			ta_subs_download 		= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
-			ta_subs_download_rd 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
-			ta_subscription_info 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_info" );
-	
-	
+				
 			DelayedTask delayed_task = UtilitiesImpl.addDelayedTask( "Subscriptions", 
 					new Runnable()
 					{
