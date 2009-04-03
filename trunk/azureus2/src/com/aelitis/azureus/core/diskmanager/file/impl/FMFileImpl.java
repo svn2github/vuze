@@ -580,7 +580,7 @@ FMFileImpl
 	{
 		try{
 		
-			file_access.read( raf, buffers, position );
+			file_access.read( this, raf, buffers, position );
 			
 		}catch( FMFileManagerException e ){
 			
@@ -589,7 +589,7 @@ FMFileImpl
 			try{
 				reopen();
 
-				file_access.read( raf, buffers, position );
+				file_access.read( this, raf, buffers, position );
 				
 			}catch( Throwable e2 ){
 				

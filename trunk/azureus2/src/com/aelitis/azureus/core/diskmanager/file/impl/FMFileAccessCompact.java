@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.FileUtil;
 
+import com.aelitis.azureus.core.diskmanager.file.FMFile;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
 public class 
@@ -195,6 +196,7 @@ FMFileAccessCompact
 	
 	protected void
 	read(
+		FMFile				file,
 		RandomAccessFile	raf,
 		DirectByteBuffer	buffer,
 		long				position )
@@ -220,7 +222,7 @@ FMFileAccessCompact
 					
 					// System.out.println( "    all in first piece" );
 
-					delegate.read( raf, new DirectByteBuffer[]{ buffer }, position );
+					delegate.read( file, raf, new DirectByteBuffer[]{ buffer }, position );
 					
 					position	+= len;
 					len			= 0;
@@ -232,7 +234,7 @@ FMFileAccessCompact
 
 					buffer.limit( SS, buffer.position(SS) + available );
 					
-					delegate.read( raf, new DirectByteBuffer[]{ buffer }, position );
+					delegate.read( file, raf, new DirectByteBuffer[]{ buffer }, position );
 				
 					buffer.limit( SS, original_limit );
 					
@@ -285,7 +287,7 @@ FMFileAccessCompact
 			
 			// System.out.println( "    some in last piece" );
 
-			delegate.read( raf, new DirectByteBuffer[]{ buffer }, ( position - last_piece_start ) + first_piece_length );
+			delegate.read( file, raf, new DirectByteBuffer[]{ buffer }, ( position - last_piece_start ) + first_piece_length );
 			
 		}finally{
 			
@@ -295,6 +297,7 @@ FMFileAccessCompact
 	
 	public void
 	read(
+		FMFile					file,
 		RandomAccessFile		raf,
 		DirectByteBuffer[]		buffers,
 		long					position )
@@ -307,7 +310,7 @@ FMFileAccessCompact
 			
 			int	len = buffers[i].limit(SS) - buffers[i].position(SS);
 		
-			read( raf, buffer, position );
+			read( file, raf, buffer, position );
 			
 			position += len;
 		}

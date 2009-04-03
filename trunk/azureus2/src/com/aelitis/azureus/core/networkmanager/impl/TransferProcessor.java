@@ -332,7 +332,7 @@ public class TransferProcessor {
    * Upgrade the given connection to a high-speed transfer handler.
    * @param connection to upgrade
    */
-  public void upgradePeerConnection( final NetworkConnectionBase connection ) {
+  public void upgradePeerConnection( final NetworkConnectionBase connection, boolean seeding ) {
     ConnectionData connection_data = null;
     
     try{ connections_mon.enter();
@@ -417,7 +417,7 @@ public class TransferProcessor {
           }
           main_bucket.setBytesUsed( num_bytes_written );
         }
-      });
+      }, seeding );
       
       conn_data.state = ConnectionData.STATE_UPGRADED;
     }

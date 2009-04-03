@@ -83,7 +83,7 @@ public class ConnectionImpl implements Connection {
 	
     core_connection.startMessageProcessing();
     
-    core_connection.enableEnhancedMessageProcessing( true );  //auto-upgrade connection
+    core_connection.enableEnhancedMessageProcessing( true, false );  //auto-upgrade connection
   }
   
   

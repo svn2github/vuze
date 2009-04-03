@@ -40,26 +40,23 @@ PeerControlSchedulerBasic
 {
 	private Random	random = new Random();
 	
-	private Map	instance_map = new HashMap();
+	private Map<PeerControlInstance,instanceWrapper>	instance_map = new HashMap();
 	
-	private List	pending_registrations = new ArrayList();
+	private List<instanceWrapper>	pending_registrations = new ArrayList<instanceWrapper>();
 	
 	private volatile boolean	registrations_changed;
-	
-	private volatile long		latest_time;
-	
+		
 	protected AEMonitor	this_mon = new AEMonitor( "PeerControlSchedulerBasic" );
 		
 	private final SpeedTokenDispenserBasic tokenDispenser = new SpeedTokenDispenserBasic();
 
+	private long	latest_time;
 	private long	last_lag_log;
 	
 	protected void
 	schedule()
 	{
-		latest_time	= SystemTime.getCurrentTime();
-		
-		SystemTime.registerConsumer(
+		SystemTime.registerMonotonousConsumer(
 			new SystemTime.TickConsumer()
 			{
 				public void
@@ -67,21 +64,17 @@ PeerControlSchedulerBasic
 					long	time )
 				{
 					synchronized( PeerControlSchedulerBasic.this ){
-						
-						latest_time	= time;
-						
+												
 						PeerControlSchedulerBasic.this.notify();
 					}
 				}
 			});
 						
 		
-		List	instances = new LinkedList();
-
-		long	latest_time_used	= 0;
+		List<instanceWrapper>	instances = new LinkedList<instanceWrapper>();
 		
 		long	tick_count		= 0;
-		long 	last_stats_time	= latest_time;
+		long 	last_stats_time	= SystemTime.getMonotonousTime();
 		
 		while( true ){
 			
@@ -90,11 +83,11 @@ PeerControlSchedulerBasic
 				try{
 					this_mon.enter();
 					
-					Iterator	it = instances.iterator();
+					Iterator<instanceWrapper>	it = instances.iterator();
 					
 					while( it.hasNext()){
 						
-						if (((instanceWrapper)it.next()).isUnregistered()){
+						if ( it.next().isUnregistered()){
 							
 							it.remove();
 						}
@@ -114,30 +107,30 @@ PeerControlSchedulerBasic
 					this_mon.exit();
 				}	
 			}
-							
-			for (Iterator it=instances.iterator();it.hasNext();){
 				
-				instanceWrapper	inst = (instanceWrapper)it.next();
-									
+			latest_time	= SystemTime.getMonotonousTime();
+
+			long current_schedule_count = schedule_count;
+			
+			for ( instanceWrapper inst: instances ){
+													
 				long	target = inst.getNextTick();
 				
-				long	diff = target - latest_time_used;			
+				long	diff = latest_time - target;		
 				
-				if ( diff <= 0 || diff > SCHEDULE_PERIOD_MILLIS ){
+				if ( diff >= 0 ){
 					
 					tick_count++;
-					
+										
 					inst.schedule( latest_time );
-					
+										
 					schedule_count++;
 					
 					long new_target = target + SCHEDULE_PERIOD_MILLIS;
 					
-					diff = new_target - latest_time_used;
-					
-					if ( diff <= 0 || diff > SCHEDULE_PERIOD_MILLIS ){
+					if ( new_target <= latest_time ){
 						
-						new_target = latest_time_used + SCHEDULE_PERIOD_MILLIS;
+						new_target = latest_time + ( target % SCHEDULE_PERIOD_MILLIS );
 					}
 					
 					inst.setNextTick( new_target );
@@ -146,14 +139,14 @@ PeerControlSchedulerBasic
 						
 			synchronized( this ){
 				
-				if ( latest_time == latest_time_used ){
+				if ( current_schedule_count == schedule_count ){
 					
 					wait_count++;
 					
 					try{
 						long wait_start = SystemTime.getHighPrecisionCounter();
 						
-						wait();
+						wait( SCHEDULE_PERIOD_MILLIS );
 						
 						long wait_time 	= SystemTime.getHighPrecisionCounter() - wait_start;
 
@@ -170,17 +163,15 @@ PeerControlSchedulerBasic
 					
 					Thread.yield();
 				}
-				
-				latest_time_used	= latest_time;
 			}
 			
-			long	stats_diff =  latest_time_used - last_stats_time;
+			long	stats_diff =  latest_time - last_stats_time;
 			
 			if ( stats_diff > 10000 ){
 				
 				// System.out.println( "stats: time = " + stats_diff + ", ticks = " + tick_count + ", inst = " + instances.size());
 				
-				last_stats_time	= latest_time_used;
+				last_stats_time	= latest_time;
 				
 				tick_count	= 0;
 			}
@@ -198,7 +189,7 @@ PeerControlSchedulerBasic
 		try{
 			this_mon.enter();
 			
-			Map	new_map = new HashMap( instance_map );
+			Map<PeerControlInstance,instanceWrapper>	new_map = new HashMap<PeerControlInstance,instanceWrapper>( instance_map );
 			
 			new_map.put( instance, wrapper );
 			
@@ -221,9 +212,9 @@ PeerControlSchedulerBasic
 		try{
 			this_mon.enter();
 			
-			Map	new_map = new HashMap( instance_map );
+			Map<PeerControlInstance,instanceWrapper>	new_map = new HashMap<PeerControlInstance,instanceWrapper>( instance_map );
 			
-			instanceWrapper wrapper = (instanceWrapper)new_map.remove(instance);
+			instanceWrapper wrapper = new_map.remove(instance);
 			
 			if ( wrapper == null ){
 				
@@ -297,24 +288,36 @@ PeerControlSchedulerBasic
 			return( next_tick );
 		}
 		
+		protected String
+		getName()
+		{
+			return( instance.getName());
+		}
+		
 		protected void
 		schedule(
-			long	now )
+			long	mono_now )
 		{
+			if ( mono_now < 100000 ){
+				
+				Debug.out("eh?");
+			}
+			
 			if ( last_schedule > 0 ){
 				
-				if ( now - last_schedule > 1000 ){
+
+				if ( mono_now - last_schedule > 1000 ){
 					
-					if ( now - last_lag_log > 1000 ){
+					if ( mono_now - last_lag_log > 1000 ){
 						
-						last_lag_log = now;
+						last_lag_log = mono_now;
 					
-						System.out.println( "Scheduling lagging: " + (now - last_schedule ));
+						System.out.println( "Scheduling lagging: " + (mono_now - last_schedule ) + " - instances=" + instance_map.size());
 					}
 				}
 			}
 			
-			last_schedule = now;
+			last_schedule = mono_now;
 			
 			try{
 				instance.schedule();

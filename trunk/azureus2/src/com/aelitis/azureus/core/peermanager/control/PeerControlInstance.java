@@ -24,5 +24,9 @@ PeerControlInstance
 	public void
 	schedule();
 	
-	public int getSchedulePriority();
+	public int 
+	getSchedulePriority();
+	
+	public String
+	getName();
 }

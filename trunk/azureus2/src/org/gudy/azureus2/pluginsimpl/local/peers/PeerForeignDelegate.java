@@ -97,7 +97,7 @@ PeerForeignDelegate
 	{
 		NetworkManager.getSingleton().startTransferProcessing( network_connection );
 		
-		NetworkManager.getSingleton().upgradeTransferProcessing( network_connection );
+		NetworkManager.getSingleton().upgradeTransferProcessing( network_connection, manager.isSeeding());
 	}
 	
 	protected void

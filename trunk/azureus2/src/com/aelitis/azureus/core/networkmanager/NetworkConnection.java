@@ -61,7 +61,7 @@ NetworkConnection
    * Upgrade the connection to high-speed transfer processing.
    * @param enable true for high-speed processing, false for normal processing
    */
-  public void enableEnhancedMessageProcessing( boolean enable );
+  public void enableEnhancedMessageProcessing( boolean enable, boolean is_seed );
   
   /**
    * Decouples the transport from this network connection so it can be reused

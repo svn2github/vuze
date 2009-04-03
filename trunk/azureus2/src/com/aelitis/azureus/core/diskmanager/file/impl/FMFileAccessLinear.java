@@ -30,7 +30,9 @@ import java.nio.channels.FileChannel;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.diskmanager.file.FMFile;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
 public class 
@@ -132,6 +134,7 @@ FMFileAccessLinear
 	
 	public void
 	read(
+		FMFile				file,
 		RandomAccessFile	raf,
 		DirectByteBuffer[]	buffers,
 		long				offset )
@@ -155,6 +158,8 @@ FMFileAccessLinear
 		AEThread2.setDebug( owner );
 		
 		int[]	original_positions = null;
+		
+		long read_start = SystemTime.getHighPrecisionCounter();
 		
 		try{			
 			fc.position(offset);
@@ -248,6 +253,14 @@ FMFileAccessLinear
 			}
 			
 			throw( new FMFileManagerException( "read fails", e ));
+		}finally{
+			
+			long elapsed_millis = ( SystemTime.getHighPrecisionCounter() - read_start )/1000000;
+
+			if ( elapsed_millis > 10*1000 ){
+				
+				System.out.println( "read took " + elapsed_millis + " for " + file.getName());
+			}
 		}
 	}
 	

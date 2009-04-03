@@ -480,6 +480,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	public String getDisplayName(){ return( adapter.getDisplayName()); }
 
+	public String
+	getName()
+	{
+		return( getDisplayName());
+	}
+	
 	public void
 	schedule()
 	{

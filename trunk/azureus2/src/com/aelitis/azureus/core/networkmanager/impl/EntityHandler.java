@@ -73,10 +73,10 @@ public class EntityHandler {
     try {  lock.enter();
       if( !global_registered ) {
         if( handler_type == TransferProcessor.TYPE_UPLOAD ) {
-          NetworkManager.getSingleton().addWriteEntity( global_uploader );  //register global upload entity
+          NetworkManager.getSingleton().addWriteEntity( global_uploader, false );  //register global upload entity
         }
         else {
-          NetworkManager.getSingleton().addReadEntity( global_downloader );  //register global download entity
+          NetworkManager.getSingleton().addReadEntity( global_downloader, false );  //register global download entity
         }
         
         global_registered = true;
@@ -123,14 +123,14 @@ public class EntityHandler {
    * @param connection to upgrade from global management
    * @param handler individual connection rate handler
    */
-  public void upgradePeerConnection( NetworkConnectionBase connection, RateHandler handler ) {   
+  public void upgradePeerConnection( NetworkConnectionBase connection, RateHandler handler, boolean seeding ) {   
     try {  lock.enter();
       if( handler_type == TransferProcessor.TYPE_UPLOAD ) {
         SinglePeerUploader upload_entity = new SinglePeerUploader( connection, handler );
         if( !global_uploader.removePeerConnection( connection ) ) {  //remove it from the general upload pool
           Debug.out( "upgradePeerConnection:: upload entity not found/removed !" );
         }
-        NetworkManager.getSingleton().addWriteEntity( upload_entity );  //register it for write processing
+        NetworkManager.getSingleton().addWriteEntity( upload_entity, seeding );  //register it for write processing
         upgraded_connections.put( connection, upload_entity );  //add it to the upgraded list
       }
       else {
@@ -138,7 +138,7 @@ public class EntityHandler {
         if( !global_downloader.removePeerConnection( connection ) ) {  //remove it from the general upload pool
           Debug.out( "upgradePeerConnection:: download entity not found/removed !" );
         }
-        NetworkManager.getSingleton().addReadEntity( download_entity );  //register it for read processing
+        NetworkManager.getSingleton().addReadEntity( download_entity, seeding );  //register it for read processing
         upgraded_connections.put( connection, download_entity );  //add it to the upgraded list
       }
     }

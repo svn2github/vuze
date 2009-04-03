@@ -38,7 +38,7 @@ PEPeerManagerFactory
 		PEPeerManagerAdapter	adapter,
 	  	DiskManager 			diskManager )
 	{
-  		return( PEPeerControlFactory.create( peer_id, adapter, diskManager ));
+  		return( create( peer_id, adapter, diskManager, 0 ));
 	}
 	
 	public static PEPeerManager

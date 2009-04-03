@@ -3058,14 +3058,14 @@ implements PEPeerTransport
         if( message_id.equals( BTMessage.ID_BT_CHOKE ) ) {
 					decodeChoke( (BTChoke)message );
 					if( choking_other_peer ) {
-						connection.enableEnhancedMessageProcessing( false );  //downgrade back to normal handler
+						connection.enableEnhancedMessageProcessing( false, manager.isSeeding());  //downgrade back to normal handler
 					}
 					return true;
 				}
 
         if( message_id.equals( BTMessage.ID_BT_UNCHOKE ) ) {
 					decodeUnchoke( (BTUnchoke)message );
-					connection.enableEnhancedMessageProcessing( true );  //make sure we use a fast handler for the resulting download
+					connection.enableEnhancedMessageProcessing( true, manager.isSeeding() );  //make sure we use a fast handler for the resulting download
 					return true;
 				}
 
@@ -3163,11 +3163,11 @@ implements PEPeerTransport
 				}
 
 				if( message.getID().equals( BTMessage.ID_BT_UNCHOKE ) ) { // is about to send piece data
-					connection.enableEnhancedMessageProcessing( true );  //so make sure we use a fast handler
+					connection.enableEnhancedMessageProcessing( true, manager.isSeeding() );  //so make sure we use a fast handler
 				}
 				else if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) { // is done sending piece data
 					if( choked_by_other_peer ) {
-						connection.enableEnhancedMessageProcessing( false );  //so downgrade back to normal handler
+						connection.enableEnhancedMessageProcessing( false, manager.isSeeding() );  //so downgrade back to normal handler
 					}
 				}
 
