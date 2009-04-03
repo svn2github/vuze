@@ -48,7 +48,16 @@ public class
 DirectByteBufferPoolReal 
 	extends DirectByteBufferPool
 {
-
+	private static final boolean disable_gc = System.getProperty( "az.disable.explicit.gc", "0" ).equals( "1" );
+	
+	static{
+	
+		if ( disable_gc ){
+	
+			System.out.println( "Explicit GC disabled" );
+		}
+	}
+	
 	protected static final boolean				DEBUG_TRACK_HANDEDOUT	= AEDiagnostics.TRACE_DBB_POOL_USAGE;
 	protected static final boolean				DEBUG_PRINT_MEM			= AEDiagnostics.PRINT_DBB_POOL_USAGE;
 	
@@ -447,11 +456,13 @@ DirectByteBufferPoolReal
    * Force system garbage collection.
    */
   private void runGarbageCollection() {
-    if( DEBUG_PRINT_MEM ) {
-      System.out.println( "runGarbageCollection()" );
-    }
-    System.runFinalization();
-    System.gc();
+	if ( !disable_gc ){
+	    if( DEBUG_PRINT_MEM ) {
+	      System.out.println( "runGarbageCollection()" );
+	    }
+	    System.runFinalization();
+	    System.gc();
+	}
   }
   
   
