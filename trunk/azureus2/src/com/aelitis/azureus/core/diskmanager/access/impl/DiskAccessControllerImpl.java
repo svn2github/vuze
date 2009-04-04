@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessControllerStats;
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequest;
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequestListener;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
@@ -256,6 +257,29 @@ DiskAccessControllerImpl
 		write_dispatcher.queueRequest( request );
 		
 		return( request );	
+	}
+	
+	public DiskAccessControllerStats 
+	getStats() 
+	{
+		return(
+			new DiskAccessControllerStats()
+			{
+				long	read_total_req 		= read_dispatcher.getTotalRequests();
+				long	read_total_bytes 	= read_dispatcher.getTotalBytes();
+				
+				public long 
+				getTotalReadRequests() 
+				{
+					return( read_total_req );
+				}
+				
+				public long 
+				getTotalReadBytes() 
+				{
+					return( read_total_bytes );
+				}
+			});
 	}
 	
 	public String
