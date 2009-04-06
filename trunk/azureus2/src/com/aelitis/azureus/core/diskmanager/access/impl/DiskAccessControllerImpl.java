@@ -44,6 +44,7 @@ DiskAccessControllerImpl
 	
 	public
 	DiskAccessControllerImpl(
+		String	_name,
 		int		_max_read_threads,
 		int		_max_read_mb,
 		int 	_max_write_threads,
@@ -60,7 +61,7 @@ DiskAccessControllerImpl
 
 		read_dispatcher 	= 
 			new DiskAccessControllerInstance( 
-					"read", 
+					_name + "/" + "read", 
 					enable_read_aggregation, 
 					read_aggregation_request_limit,
 					read_aggregation_byte_limit,
@@ -69,7 +70,7 @@ DiskAccessControllerImpl
 		
 		write_dispatcher 	= 
 			new DiskAccessControllerInstance( 
-					"write", 
+					_name + "/" + "write", 
 					enable_write_aggregation, 
 					write_aggregation_request_limit,
 					write_aggregation_byte_limit,

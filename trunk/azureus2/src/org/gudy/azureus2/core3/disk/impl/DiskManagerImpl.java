@@ -96,6 +96,7 @@ DiskManagerImpl
 
         disk_access_controller =
             DiskAccessControllerFactory.create(
+            		"core",
                     max_read_threads, max_read_mb,
                     max_write_threads, max_write_mb );
 

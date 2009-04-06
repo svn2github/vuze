@@ -119,6 +119,12 @@ DiskAccessControllerInstance
 		}
 	}
 	
+	protected String
+	getName()
+	{
+		return( name );
+	}
+	
 	protected long
 	getBlockCount()
 	{
@@ -546,7 +552,7 @@ DiskAccessControllerInstance
 						final int thread_index = i;
 						
 						threads[thread_index] = 
-							new AEThread2("DiskAccessController:requestDispatcher[" + index + "/" + thread_index + "]", true )
+							new AEThread2("DiskAccessController:dispatch(" + getName() + ")[" + index + "/" + thread_index + "]", true )
 							{
 								public void
 								run()
