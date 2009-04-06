@@ -504,7 +504,7 @@ GenericMessageConnectionDirect
 	    
 	    connection.startMessageProcessing();
 
-	    connection.enableEnhancedMessageProcessing( true, false );
+	    connection.enableEnhancedMessageProcessing( true, -1 );
 	    
 	    synchronized( this ){
 	    	

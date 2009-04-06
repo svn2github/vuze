@@ -222,11 +222,11 @@ NetworkConnectionImpl
   }
   
   
-  public void enableEnhancedMessageProcessing( boolean enable, boolean is_seed ) {
+  public void enableEnhancedMessageProcessing( boolean enable, int partition_id ) {
     if( enable ) {
-    	NetworkManager.getSingleton().upgradeTransferProcessing( this, is_seed );
+    	NetworkManager.getSingleton().upgradeTransferProcessing( this, partition_id );
     }else{
-      NetworkManager.getSingleton().downgradeTransferProcessing( this, is_seed );
+      NetworkManager.getSingleton().downgradeTransferProcessing( this );
     }
   }
   

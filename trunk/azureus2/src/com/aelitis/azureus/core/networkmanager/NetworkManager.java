@@ -402,22 +402,16 @@ public class NetworkManager {
    * Add an upload entity for write processing.
    * @param entity to add
    */
-  public void addWriteEntity( RateControlledEntity entity, boolean seeding ) {
-	  if ( write_controllers.size() == 1 || !seeding ){
+  public void addWriteEntity( RateControlledEntity entity, int partition_id ) {
+	  if ( write_controllers.size() == 1 || partition_id < 0 ){
+		  
 		  write_controllers.get(0).addWriteEntity(entity);
+		  
 	  }else{
-		  WriteController best = null;
-		  for (WriteController write_controller: write_controllers ){
-			  if ( seeding ){
-				  seeding = false;
-			  }else{
-				  if ( best == null || write_controller.getEntityCount() < best.getEntityCount()){
+		  
+		  WriteController controller = write_controllers.get((partition_id%(write_controllers.size()-1))+1 );
 
-					  best = write_controller;
-				  }
-			  }
-		  }
-		  best.addWriteEntity( entity );
+		  controller.addWriteEntity( entity );
 	  }
   }
   
@@ -441,22 +435,16 @@ public class NetworkManager {
    * Add a download entity for read processing.
    * @param entity to add
    */
-  public void addReadEntity( RateControlledEntity entity, boolean seeding ) {
-	  if ( read_controllers.size() == 1 || !seeding  ){
+  public void addReadEntity( RateControlledEntity entity, int partition_id ) {
+	  if ( read_controllers.size() == 1 || partition_id < 0 ){
+		  
 		  read_controllers.get(0).addReadEntity(entity);
+		  
 	  }else{
-		  ReadController best = null;
-		  for (ReadController read_controller: read_controllers ){
-			  if ( seeding ){
-				  seeding = false;	// skip first entry if seeding so potentially blocking disk writes on first
-			  }else{
-				  if ( best == null || read_controller.getEntityCount() < best.getEntityCount()){
-					  
-					  best = read_controller;
-				  }
-			  }
-		  }
-		  best.addReadEntity( entity );
+		  
+		  ReadController controller = read_controllers.get((partition_id%(read_controllers.size()-1))+1 );
+
+		  controller.addReadEntity( entity );
 	  }
   }
   
@@ -523,14 +511,14 @@ public class NetworkManager {
    * Upgrade the given connection to high-speed network transfer handling.
    * @param peer_connection to upgrade
    */
-  public void upgradeTransferProcessing( NetworkConnectionBase peer_connection, boolean seeding ) {
+  public void upgradeTransferProcessing( NetworkConnectionBase peer_connection, int partition_id ) {
 	  if( lan_upload_processor.isRegistered( peer_connection )) {
-  		lan_upload_processor.upgradePeerConnection( peer_connection, seeding );
-  		lan_download_processor.upgradePeerConnection( peer_connection, seeding );
+  		lan_upload_processor.upgradePeerConnection( peer_connection, partition_id );
+  		lan_download_processor.upgradePeerConnection( peer_connection, partition_id );
   	}
   	else {
-  		upload_processor.upgradePeerConnection( peer_connection, seeding );
-  		download_processor.upgradePeerConnection( peer_connection, seeding );
+  		upload_processor.upgradePeerConnection( peer_connection, partition_id );
+  		download_processor.upgradePeerConnection( peer_connection, partition_id );
   	}
   }
 
@@ -538,7 +526,7 @@ public class NetworkManager {
    * Downgrade the given connection back to a normal-speed network transfer handling.
    * @param peer_connection to downgrade
    */
-  public void downgradeTransferProcessing( NetworkConnectionBase peer_connection, boolean seeding ) {
+  public void downgradeTransferProcessing( NetworkConnectionBase peer_connection ) {
 	  if( lan_upload_processor.isRegistered( peer_connection )) {
   		lan_upload_processor.downgradePeerConnection( peer_connection );
   		lan_download_processor.downgradePeerConnection( peer_connection );

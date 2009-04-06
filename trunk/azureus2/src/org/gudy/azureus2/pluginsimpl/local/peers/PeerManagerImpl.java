@@ -259,6 +259,11 @@ PeerManagerImpl
 		manager.requestCanceled((DiskManagerReadRequest)request );
 	}
 
+	protected int
+	getPartitionID()
+	{
+		return( manager.getPartitionID());
+	}
 	
 		// these are foreign peers
 	

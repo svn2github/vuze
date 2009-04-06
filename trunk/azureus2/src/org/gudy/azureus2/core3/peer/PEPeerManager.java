@@ -372,6 +372,9 @@ PEPeerManager
 	isPeerSourceEnabled(
 		String	peer_source );
 	
+	public int
+	getPartitionID();
+
 	public void
 	generateEvidence(
 		IndentWriter		writer );

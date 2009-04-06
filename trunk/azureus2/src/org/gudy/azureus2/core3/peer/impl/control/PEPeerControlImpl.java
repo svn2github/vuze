@@ -307,19 +307,19 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 	};
 
-	private final int	scheduler_id;
+	private final int	partition_id;
 	
 	public 
 	PEPeerControlImpl(
 		byte[]					_peer_id,
 		PEPeerManagerAdapter 	_adapter,
 		DiskManager 			_diskManager,
-		int						_scheduler_id )
+		int						_partition_id )
 	{
 		_myPeerId		= _peer_id;
 		adapter 		= _adapter;
 		disk_mgr 		= _diskManager;
-		scheduler_id	= _scheduler_id;
+		partition_id	= _partition_id;
 		
 		_nbPieces =disk_mgr.getNbPieces();
 		dm_pieces =disk_mgr.getPieces();
@@ -415,7 +415,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		PeerNATTraverser.getSingleton().register( this );
 
-		PeerControlSchedulerFactory.getSingleton(scheduler_id).register(this);
+		PeerControlSchedulerFactory.getSingleton(partition_id).register(this);
 	}
 
 	public void stopAll()
@@ -424,7 +424,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		UploadSlotManager.getSingleton().deregisterHelper( upload_helper );
 
-		PeerControlSchedulerFactory.getSingleton(scheduler_id).unregister(this);
+		PeerControlSchedulerFactory.getSingleton(partition_id).unregister(this);
 
 		PeerNATTraverser.getSingleton().unregister( this );
 
@@ -464,6 +464,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 		is_destroyed = true;
 	}
 
+	public int
+	getPartitionID()
+	{
+		return( partition_id );
+	}
+	
 	public boolean
 	isDestroyed()
 	{
