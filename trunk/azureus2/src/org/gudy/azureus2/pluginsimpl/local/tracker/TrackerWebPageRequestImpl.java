@@ -32,6 +32,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 
@@ -136,7 +137,7 @@ TrackerWebPageRequestImpl
 
         	String[] key_value = header_parts[i].split(":",2);
 
-            headers.put(key_value[0].trim().toLowerCase(), key_value[1].trim());
+            headers.put(key_value[0].trim().toLowerCase( MessageText.LOCALE_ENGLISH ), key_value[1].trim());
         }
 
         return headers;
