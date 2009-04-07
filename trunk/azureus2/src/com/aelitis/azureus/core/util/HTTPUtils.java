@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 public class HTTPUtils {
@@ -86,7 +87,7 @@ public class HTTPUtils {
 	public static String guessContentTypeFromFileType(String file_type) {
 		if (file_type != null) {
 
-			String type = (String) file_types.get(file_type.toLowerCase());
+			String type = (String) file_types.get(file_type.toLowerCase( MessageText.LOCALE_ENGLISH ));
 
 			if (type != null) {
 
@@ -105,7 +106,7 @@ public class HTTPUtils {
 		
 		if ( accept_encoding != null ){
 			
-			accept_encoding = accept_encoding.toLowerCase();
+			accept_encoding = accept_encoding.toLowerCase( MessageText.LOCALE_ENGLISH );
 			
 			int gzip_index = accept_encoding.indexOf( "gzip" );
 			
@@ -222,7 +223,7 @@ public class HTTPUtils {
 			throw ( new IOException( error ));
 		}
 
-		String lc_reply_header = reply_header.toLowerCase();
+		String lc_reply_header = reply_header.toLowerCase( MessageText.LOCALE_ENGLISH );
 
 		int te_pos = lc_reply_header.indexOf("transfer-encoding");
 

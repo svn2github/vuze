@@ -1170,13 +1170,13 @@ PluginUpdatePlugin
 										if ( origin.exists()){
 											
 											if ( 	file_name.indexOf( '/' ) == -1 &&
-													(	file_name.toLowerCase().endsWith(".properties") ||
-														file_name.toLowerCase().endsWith(".config" ))){
+													(	file_name.toLowerCase(MessageText.LOCALE_ENGLISH).endsWith(".properties") ||
+														file_name.toLowerCase(MessageText.LOCALE_ENGLISH).endsWith(".config" ))){
 												
 													// don't trash properties and config files in root as users may well
 													// have modified them
 												
-												is_plugin_properties	= file_name.toLowerCase().equals("plugin.properties");
+												is_plugin_properties	= file_name.toLowerCase(MessageText.LOCALE_ENGLISH).equals("plugin.properties");
 												
 												String	old_file_name = file_name;
 												

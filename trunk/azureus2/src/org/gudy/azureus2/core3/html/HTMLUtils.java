@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 
 /**
@@ -58,7 +59,7 @@ HTMLUtils
 		text = text.replaceAll("</li>","");
 		text = text.replaceAll("<li>","\n\t*");
 		
-		String lc_text = text.toLowerCase();
+		String lc_text = text.toLowerCase( MessageText.LOCALE_ENGLISH );
 		
 		List	lines = new ArrayList();
 		
@@ -154,7 +155,7 @@ HTMLUtils
 				break;
 			}
 
-			String	tag = content.substring(p1+1,p2).toLowerCase();
+			String	tag = content.substring(p1+1,p2).toLowerCase( MessageText.LOCALE_ENGLISH );
 				
 			res += content.substring(pos,p1);
 			
@@ -241,9 +242,9 @@ HTMLUtils
 		String	content,
 		String	tag_name )
 	{
-		tag_name = tag_name.toLowerCase();
+		tag_name = tag_name.toLowerCase( MessageText.LOCALE_ENGLISH );
 		
-		String	lc_content = content.toLowerCase();
+		String	lc_content = content.toLowerCase( MessageText.LOCALE_ENGLISH );
 		
 		int	pos	= 0;
 
@@ -355,7 +356,7 @@ HTMLUtils
 			
 			String	tag 	= content_in.substring( p1, p2 ).trim();
 			
-			String	lc_tag 	= tag.toLowerCase();
+			String	lc_tag 	= tag.toLowerCase( MessageText.LOCALE_ENGLISH );
 						
 			if ( lc_tag.startsWith("a " )){
 				

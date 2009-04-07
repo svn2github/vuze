@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
@@ -752,7 +753,7 @@ redirect_label:
 									
 									if ( msg != null ){
 										
-										msg = msg.toLowerCase();
+										msg = msg.toLowerCase( MessageText.LOCALE_ENGLISH );
 										
 										if ( msg.indexOf( "gzip" ) != -1 ){
 								

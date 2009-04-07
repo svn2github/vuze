@@ -753,7 +753,7 @@ public class VersionCheckClient {
 			  			  
 			  if ( header.endsWith( "\r\n\r\n" )){
 				  
-				  header = header.toLowerCase();
+				  header = header.toLowerCase( MessageText.LOCALE_ENGLISH );
 				  
 				  int	pos = header.indexOf( "content-length:" );
 				  

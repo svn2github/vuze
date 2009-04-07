@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.Debug;
@@ -100,7 +101,7 @@ HTTPNetworkConnectionWebSeed
 				
 				if ( pos != -1 ){
 					
-					String	lhs = token.substring(0,pos).toLowerCase();
+					String	lhs = token.substring(0,pos).toLowerCase( MessageText.LOCALE_ENGLISH );
 					String	rhs = token.substring(pos+1);
 					
 					if ( lhs.equals( "info_hash" )){
@@ -185,7 +186,7 @@ HTTPNetworkConnectionWebSeed
 				throw( new IOException( "Piece number not specified" ));
 			}
 			
-			boolean	keep_alive = header.toLowerCase().indexOf( "keep-alive" ) != -1;
+			boolean	keep_alive = header.toLowerCase( MessageText.LOCALE_ENGLISH ).indexOf( "keep-alive" ) != -1;
 			
 			int	this_piece_size = control.getPieceLength( piece );
 			

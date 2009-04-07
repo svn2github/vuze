@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
@@ -174,7 +175,7 @@ HTTPNetworkConnectionFile
 					}	
 				}else{
 					
-					line = line.toLowerCase();
+					line = line.toLowerCase( MessageText.LOCALE_ENGLISH );
 					
 					if ( line.startsWith( "range" ) && target_file != null ){
 						

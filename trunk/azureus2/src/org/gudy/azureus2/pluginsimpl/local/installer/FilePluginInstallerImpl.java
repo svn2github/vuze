@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginException;
@@ -97,10 +98,10 @@ FilePluginInstallerImpl
 				}
 			}
 			
-			if ( 	suffix.toLowerCase().equals( "jar") ||
-					suffix.toLowerCase().equals( "zip" )){
+			if ( 	suffix.toLowerCase(MessageText.LOCALE_ENGLISH).equals( "jar") ||
+					suffix.toLowerCase(MessageText.LOCALE_ENGLISH).equals( "zip" )){
 		
-				is_jar		= suffix.toLowerCase().equals( "jar");
+				is_jar		= suffix.toLowerCase(MessageText.LOCALE_ENGLISH).equals( "jar");
 
 					// See if we can get at the plugin.properties in the file
 				
@@ -123,7 +124,7 @@ FilePluginInstallerImpl
 								break;
 							}
 						
-							String	zip_name = entry.getName().toLowerCase();
+							String	zip_name = entry.getName().toLowerCase( MessageText.LOCALE_ENGLISH );
 						
 							// System.out.println( "zis1:" + zip_name );
 							
@@ -146,7 +147,7 @@ FilePluginInstallerImpl
 										break;
 									}
 								
-									String	zip_name2 = entry2.getName().toLowerCase();
+									String	zip_name2 = entry2.getName().toLowerCase( MessageText.LOCALE_ENGLISH );
 							
 									// System.out.println( "    zis2:" + zip_name2 );
 									

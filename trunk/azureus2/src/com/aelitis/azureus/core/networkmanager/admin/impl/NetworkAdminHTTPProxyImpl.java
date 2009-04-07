@@ -30,6 +30,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.StringTokenizer;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -311,7 +312,7 @@ NetworkAdminHTTPProxyImpl
 														 
 														 if ( pos != -1 ){
 															 
-															 String	lhs = token.substring( 0, pos ).trim().toLowerCase();
+															 String	lhs = token.substring( 0, pos ).trim().toLowerCase( MessageText.LOCALE_ENGLISH );
 															 String	rhs = token.substring( pos+1 ).trim();
 
 															 if ( lhs.equals( "server" )){

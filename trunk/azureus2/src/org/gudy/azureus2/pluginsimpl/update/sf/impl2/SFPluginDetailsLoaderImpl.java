@@ -41,6 +41,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.html.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -229,7 +230,7 @@ SFPluginDetailsLoaderImpl
 
 					plugin_ids.add(plugin_id);
 
-					plugin_map.put(plugin_id.toLowerCase(), new SFPluginDetailsImpl(this,
+					plugin_map.put(plugin_id.toLowerCase(MessageText.LOCALE_ENGLISH), new SFPluginDetailsImpl(this,
 							plugin_id, version, cvs_version, name, category));
 				}
 			}
@@ -451,7 +452,7 @@ SFPluginDetailsLoaderImpl
 			
 			getPluginIDs();
 			
-			SFPluginDetails details = (SFPluginDetails)plugin_map.get(name.toLowerCase()); 
+			SFPluginDetails details = (SFPluginDetails)plugin_map.get(name.toLowerCase(MessageText.LOCALE_ENGLISH)); 
 			
 			if ( details == null ){
 				

@@ -309,13 +309,13 @@ MagnetURIHandlerImpl
 					
 					original_params.put( lhs, "" );
 					
-					lc_params.put( lhs.toLowerCase(), "" );
+					lc_params.put( lhs.toLowerCase( MessageText.LOCALE_ENGLISH ), "" );
 					
 				}else{
 										
 					try{
 						String	lhs 	= arg.substring( 0, pos ).trim();
-						String	lc_lhs 	= lhs.toLowerCase();
+						String	lc_lhs 	= lhs.toLowerCase( MessageText.LOCALE_ENGLISH );
 									
 						String	rhs = URLDecoder.decode( arg.substring( pos+1 ).trim(), Constants.DEFAULT_ENCODING);
 
@@ -358,7 +358,7 @@ MagnetURIHandlerImpl
 
 			String urn = (String)lc_params.get( "xt" );
 
-			if ( urn != null && urn.toLowerCase().startsWith( "urn:btih:")){
+			if ( urn != null && urn.toLowerCase( MessageText.LOCALE_ENGLISH ).startsWith( "urn:btih:")){
 			
 				for (int i=0;i<listeners.size();i++){
 					
@@ -429,7 +429,7 @@ MagnetURIHandlerImpl
 				
 			}else{
 					
-				String	lc_urn = urn.toLowerCase();
+				String	lc_urn = urn.toLowerCase( MessageText.LOCALE_ENGLISH );
 				
 				try{
 				
@@ -494,7 +494,7 @@ MagnetURIHandlerImpl
 			
 			String urn = (String)lc_params.get( "xt" );
 			
-			if ( urn == null || !( urn.toLowerCase().startsWith( "urn:sha1:") || urn.toLowerCase().startsWith( "urn:btih:"))){
+			if ( urn == null || !( urn.toLowerCase( MessageText.LOCALE_ENGLISH ).startsWith( "urn:sha1:") || urn.toLowerCase( MessageText.LOCALE_ENGLISH ).startsWith( "urn:btih:"))){
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
 							"MagnetURIHandler: " + "invalid command - '" + get + "'"));

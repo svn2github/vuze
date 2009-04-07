@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 import java.util.*;
 import java.io.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
@@ -98,7 +99,7 @@ ResourceDownloaderBaseImpl
 	getPropertySupport(
 		String	name )
 	{
-		return( lc_key_properties.get( name.toLowerCase()));
+		return( lc_key_properties.get( name.toLowerCase(MessageText.LOCALE_ENGLISH)));
 	}
 	
 	protected Map
@@ -111,7 +112,7 @@ ResourceDownloaderBaseImpl
 	getStringPropertySupport(
 		String	name )
 	{
-		Object	 obj = lc_key_properties.get( name.toLowerCase());
+		Object	 obj = lc_key_properties.get( name.toLowerCase(MessageText.LOCALE_ENGLISH));
 		
 		if ( obj instanceof String ){
 			
@@ -134,7 +135,7 @@ ResourceDownloaderBaseImpl
 		String	name,
 		Object	value )
 	{
-		boolean already_set = lc_key_properties.put( name.toLowerCase(), value ) == value;
+		boolean already_set = lc_key_properties.put( name.toLowerCase(MessageText.LOCALE_ENGLISH), value ) == value;
 		
 		if ( parent != null && !already_set ){
 			
