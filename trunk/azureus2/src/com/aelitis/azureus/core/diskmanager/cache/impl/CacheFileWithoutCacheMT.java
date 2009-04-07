@@ -35,9 +35,10 @@ import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
 public class
 CacheFileWithoutCacheMT
-implements CacheFile
+	implements CacheFile
 {
 	private static final int MAX_CLONES	= 20;
+	
 	private static int	num_clones;
 	private static int	max_clone_depth;
 	
@@ -46,7 +47,8 @@ implements CacheFile
 	private FMFile[]					files;
 	private int[]						files_use_count;
 	private TOTorrentFile				torrent_file;
-
+	private boolean						moving;
+	
 	protected
 	CacheFileWithoutCacheMT(
 		CacheFileManagerImpl	_manager,
@@ -80,7 +82,57 @@ implements CacheFile
 	
 		throws CacheFileManagerException
 	{
-		throw( new CacheFileManagerException( this, "Not Implemented" ));
+		try{
+			synchronized( this ){
+
+				moving = true;
+			}
+			
+			while( true ){
+				
+				boolean	surviving = false;
+				
+				synchronized( this ){
+					
+					for (int i=1;i<files_use_count.length;i++){
+						
+						if ( files_use_count[i] > 0 ){
+							
+							surviving = true;
+							
+							break;
+						}
+					}
+				}	
+				
+				if ( !surviving ){
+					
+					break;
+				}
+				
+				try{
+					System.out.println( "CacheFileWithoutCacheMT: waiting for clones to die" );
+					
+					Thread.sleep(250);
+					
+				}catch( Throwable e ){
+					
+				}
+			}
+			
+			files[0].moveFile( new_file );
+
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(this,e);
+			
+		}finally{
+			
+			synchronized( this ){
+
+				moving = false;
+			}
+		}
 	}
 	
 	public void
@@ -171,6 +223,13 @@ implements CacheFile
 		throws CacheFileManagerException
 	{
 		synchronized( this ){
+			
+			if ( moving ){
+				
+				files_use_count[0]++;
+				
+				return( files[0] );
+			}
 			
 			int	min_index	= -1;
 			int	min			= Integer.MAX_VALUE;

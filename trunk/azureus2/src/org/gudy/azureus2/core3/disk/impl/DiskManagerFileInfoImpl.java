@@ -122,7 +122,7 @@ DiskManagerFileInfoImpl
   	cache_file.flushCache();
   }
   
-  protected void 
+  public void 
   moveFile(
   	File	newFile,
   	boolean	link_only )
