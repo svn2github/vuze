@@ -27,6 +27,7 @@ package com.aelitis.azureus.plugins.dht;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -96,9 +97,9 @@ DHTPlugin
 	private static final String	PLUGIN_CONFIGSECTION_ID	= "plugins.dht";
 	private static final String PLUGIN_RESOURCE_ID		= "ConfigView.section.plugins.dht";
 	
-	private static final boolean	MAIN_DHT_ENABLE		= true;
-	private static final boolean	CVS_DHT_ENABLE		= true;
-	private static final boolean	MAIN_DHT_V6_ENABLE	= true;
+	private static final boolean	MAIN_DHT_ENABLE		= COConfigurationManager.getBooleanParameter( "dht.net.main_v4.enable", true );
+	private static final boolean	CVS_DHT_ENABLE		= COConfigurationManager.getBooleanParameter( "dht.net.cvs_v4.enable", true );
+	private static final boolean	MAIN_DHT_V6_ENABLE	= COConfigurationManager.getBooleanParameter( "dht.net.main_v6.enable", true );
 	
 		
 	private PluginInterface		plugin_interface;
