@@ -186,9 +186,10 @@ public class MyTorrentsSuperView extends AbstractIView implements
 				Double l = new Double((double) child1.getBounds().height
 						/ form.getBounds().height);
 				sash.setData("PCT", l);
-				if (e.detail != SWT.DRAG)
-					COConfigurationManager.setParameter("MyTorrents.SplitAt", (int) (l
-							.doubleValue() * 10000));
+				if (e.detail != SWT.DRAG) {
+					int i = (int) (l.doubleValue() * 10000);
+					COConfigurationManager.setParameter("MyTorrents.SplitAt", i);
+				}
 			}
 		});
 
@@ -202,6 +203,15 @@ public class MyTorrentsSuperView extends AbstractIView implements
 				}
 			}
 		});
+		try {
+  		Double l = (Double) sash.getData("PCT");
+  		if (l != null) {
+  			child1Data.height = (int) (form.getBounds().height * l
+  					.doubleValue());
+  		}
+		} catch (Exception e) {
+			
+		}
   }
 
   public void refresh() {
