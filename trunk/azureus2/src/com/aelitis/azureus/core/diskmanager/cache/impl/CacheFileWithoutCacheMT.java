@@ -89,11 +89,11 @@ CacheFileWithoutCacheMT
 			}
 			
 			while( true ){
-				
-				boolean	surviving = false;
-				
+								
 				synchronized( this ){
-					
+				
+					boolean	surviving = false;
+
 					for (int i=1;i<files_use_count.length;i++){
 						
 						if ( files_use_count[i] > 0 ){
@@ -103,11 +103,34 @@ CacheFileWithoutCacheMT
 							break;
 						}
 					}
-				}	
 				
-				if ( !surviving ){
-					
-					break;
+					if ( !surviving ){
+						
+						for (int i=1;i<files_use_count.length;i++){
+							
+							FMFile file = files[i];
+							
+							if ( file.isClone()){
+								
+								// System.out.println( "Destroyed clone " + file.getName());
+								
+								synchronized( CacheFileWithoutCacheMT.class ){
+									
+									num_clones--;
+								}
+							}
+							
+							file.close();
+						}
+						
+						files = new FMFile[]{ base_file };
+						
+						files_use_count = new int[]{ files_use_count[0] };
+						
+						base_file.moveFile( new_file );
+	
+						break;
+					}
 				}
 				
 				try{
@@ -120,8 +143,6 @@ CacheFileWithoutCacheMT
 				}
 			}
 			
-			files[0].moveFile( new_file );
-
 		}catch( FMFileManagerException e ){
 			
 			manager.rethrow(this,e);
