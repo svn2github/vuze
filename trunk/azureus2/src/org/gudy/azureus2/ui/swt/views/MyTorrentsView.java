@@ -961,7 +961,7 @@ public class MyTorrentsView
 			});
 		}
 
-		cCategories.getShell().layout(new Control[] { cCategories });
+		cHeader.layout(true, true);
 		Utils.execSWTThreadLater(0, new AERunnable(){
 			public void runSupport() {
 				resizeHeader();
