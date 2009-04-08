@@ -24,10 +24,12 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -41,7 +43,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 public class CommentIconItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener, TableCellMouseListener
+       implements TableCellRefreshListener, TableCellMouseListener, TableCellAddedListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
@@ -70,6 +72,12 @@ public class CommentIconItem
 		setMinWidth(20);
 	}
   
+  public void cellAdded(TableCell cell) {
+	  if ( cell instanceof TableCellSWT ){
+		  ((TableCellSWT)cell).setCursorID(SWT.CURSOR_HAND);
+	  }
+  }
+  
   public void cellMouseTrigger(TableCellMouseEvent event) {
 		DownloadManager dm = (DownloadManager) event.cell.getDataSource();
 		if (dm == null) {return;}
@@ -87,6 +95,7 @@ public class CommentIconItem
   public void refresh(TableCell cell) {
 	  if (cell.isDisposed()) {return;}
 	  
+
 	  DownloadManager dm = (DownloadManager)cell.getDataSource();
 	  String comment = null;
 	  if (dm != null) {
