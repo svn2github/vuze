@@ -47,7 +47,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnInfo
 	extends CoreTableColumn
 	implements TableCellAddedListener,
-	TableCellMouseListener, TableCellSWTPaintListener
+	TableCellMouseListener, TableCellSWTPaintListener, TableCellRefreshListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
@@ -85,10 +85,20 @@ public class ColumnInfo
 		cell.setMarginWidth(0);
 		cell.setMarginHeight(0);
 		if (cell instanceof TableCellSWT) {
-			((TableCellSWT)cell).setCursorID(SWT.CURSOR_HAND);
+			TOTorrent torrent = DataSourceUtils.getTorrent(cell.getDataSource());
+			if ( torrent != null && PlatformTorrentUtils.isContent(torrent, true)){
+			
+				((TableCellSWT)cell).setCursorID(SWT.CURSOR_HAND);
+			}
 		}
 	}
 
+	public void refresh(TableCell cell) {
+		TOTorrent torrent = DataSourceUtils.getTorrent(cell.getDataSource());
+		
+		cell.setSortValue(torrent != null && PlatformTorrentUtils.isContent(torrent, true)?1:0);
+	}
+	
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		TOTorrent torrent = DataSourceUtils.getTorrent(cell.getDataSource());
