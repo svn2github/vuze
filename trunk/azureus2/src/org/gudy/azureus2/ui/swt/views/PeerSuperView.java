@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
@@ -62,7 +64,7 @@ public class PeerSuperView
 	TableLifeCycleListener, TableViewSWTMenuFillListener
 {	
   private GlobalManager g_manager;
-	private TableViewSWT tv;
+	private TableViewSWT<PEPeer> tv;
 	private Shell shell;
 	private boolean active_listener = true;
 
@@ -82,7 +84,7 @@ public class PeerSuperView
   	System.arraycopy(items, 0, basicItems, 0, items.length);
   	basicItems[items.length] = new DownloadNameItem(TableManager.TABLE_ALL_PEERS);
 
-  	tv = new TableViewSWTImpl(TableManager.TABLE_ALL_PEERS, "AllPeersView",
+  	tv = new TableViewSWTImpl<PEPeer>(Peer.class, TableManager.TABLE_ALL_PEERS, "AllPeersView",
 				basicItems, "connected_time", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		setTableView(tv);
 		tv.setRowDefaultHeight(16);
@@ -131,10 +133,10 @@ public class PeerSuperView
 			return;
 		}
 
-		ArrayList sources = new ArrayList();
+		ArrayList<PEPeer> sources = new ArrayList<PEPeer>();
 		Iterator itr = g_manager.getDownloadManagers().iterator();
 		while (itr.hasNext()) {
-			Object[] peers = ((DownloadManager)itr.next()).getCurrentPeers();
+			PEPeer[] peers = ((DownloadManager)itr.next()).getCurrentPeers();
 			if (peers != null) {
 				sources.addAll(Arrays.asList(peers));
 			}
@@ -143,7 +145,7 @@ public class PeerSuperView
 			return;
 		}
 		
-		tv.addDataSources(sources.toArray());
+		tv.addDataSources(sources.toArray(new PEPeer[sources.size()]));
 		tv.processDataSourceQueue();
 	}
 

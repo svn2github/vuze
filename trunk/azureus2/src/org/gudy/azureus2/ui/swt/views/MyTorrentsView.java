@@ -181,7 +181,8 @@ public class MyTorrentsView
 //  				: TableManager.TABLE_MYTORRENTS_INCOMPLETE, SWT.V_SCROLL);
 //      tv.setColumnList(basicItems, "#", false);
   	} else {
-      tv = createTableView(tableID, basicItems);
+      tv = createTableView(isSeedingView ? DownloadTypeComplete.class
+  				: DownloadTypeIncomplete.class, tableID, basicItems);
   	}
     setTableView(tv);
     tv.setRowDefaultIconSize(new Point(16, 16));
@@ -204,8 +205,6 @@ public class MyTorrentsView
     tv.addMenuFillListener(this);
     tv.addRefreshListener(this, false);
     tv.addCountChangeListener(this);
-    tv.setDataSourceType(isSeedingView ? DownloadTypeComplete.class
-				: DownloadTypeIncomplete.class);
 
 		//tv.setEnableTabViews(true);
 		//IView views[] = { new GeneralView(), new PeersView(),
@@ -2120,11 +2119,12 @@ public class MyTorrentsView
 	 * @param basicItems
 	 * @return
 	 */
-	protected TableViewSWT createTableView(String tableID,
+	protected TableViewSWT createTableView(Class forDataSourceType, String tableID,
 			TableColumnCore[] basicItems) {
 		int tableExtraStyle = COConfigurationManager.getIntParameter("MyTorrentsView.table.style");
-		return new TableViewSWTImpl(tableID, "MyTorrentsView", basicItems, "#",
-				tableExtraStyle | SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		return new TableViewSWTImpl(forDataSourceType, tableID, "MyTorrentsView",
+				basicItems, "#", tableExtraStyle | SWT.MULTI | SWT.FULL_SELECTION
+						| SWT.VIRTUAL);
 	}
 
 	/**

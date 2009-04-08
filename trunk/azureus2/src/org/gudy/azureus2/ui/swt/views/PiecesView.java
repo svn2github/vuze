@@ -77,7 +77,7 @@ public class PiecesView
 
 	DownloadManager manager;
   
-	private TableViewSWTImpl tv;
+	private TableViewSWTImpl<PEPiece> tv;
 
 	private Composite legendComposite;
 
@@ -89,9 +89,9 @@ public class PiecesView
 	 *
 	 */
 	public PiecesView() {
-		tv = new TableViewSWTImpl(TableManager.TABLE_TORRENT_PIECES, "PiecesView",
-				basicItems, basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION
-						| SWT.VIRTUAL);
+		tv = new TableViewSWTImpl<PEPiece>(PEPiece.class,
+				TableManager.TABLE_TORRENT_PIECES, "PiecesView", basicItems,
+				basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		setTableView(tv);
 		tv.setEnableTabViews(true);
 		pieceInfoView = new PieceInfoView();
@@ -191,7 +191,7 @@ public class PiecesView
 			return;
 		}
 
-		Object[] dataSources = manager.getCurrentPieces();
+		PEPiece[] dataSources = manager.getCurrentPieces();
 		if (dataSources == null || dataSources.length == 0)
 			return;
 

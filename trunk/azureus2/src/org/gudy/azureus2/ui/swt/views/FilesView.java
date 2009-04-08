@@ -111,21 +111,22 @@ public class FilesView
   
   private MenuItem path_item;
 
-  private TableViewSWT tv;
+  private TableViewSWT<DiskManagerFileInfo> tv;
   
 
   /**
    * Initialize 
    */
 	public FilesView() {
-		tv = new TableViewSWTImpl(TableManager.TABLE_TORRENT_FILES, "FilesView",
-				basicItems, "firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		tv = new TableViewSWTImpl<DiskManagerFileInfo>(
+				org.gudy.azureus2.plugins.disk.DiskManagerFileInfo.class,
+				TableManager.TABLE_TORRENT_FILES, "FilesView", basicItems,
+				"firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		setTableView(tv);
 		tv.setRowDefaultIconSize(new Point(16, 16));
 		tv.setEnableTabViews(true);
 		tv.setCoreTabViews(new IView[] { new FileInfoView()
 		});
-		tv.setDataSourceType(DiskManagerFileInfo.class);
 
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addRefreshListener(this, true);
@@ -638,25 +639,25 @@ public class FilesView
 	    	if(datasources.size() == files.length)
 	    	{
 	    		// check if we actually have to replace anything
-	    		ArrayList toAdd = new ArrayList(Arrays.asList(files));
-		    	ArrayList toRemove = new ArrayList();
+	    		ArrayList<DiskManagerFileInfo> toAdd = new ArrayList<DiskManagerFileInfo>(Arrays.asList(files));
+		    	ArrayList<DiskManagerFileInfo> toRemove = new ArrayList<DiskManagerFileInfo>();
 		    	for(int i = 0;i < datasources.size();i++)
 		    	{
-		    		DiskManagerFileInfo info = (DiskManagerFileInfo)datasources.get(i);
+		    		DiskManagerFileInfo info = datasources.get(i);
 		    		
 		    		if(files[info.getIndex()] == info)
 		    			toAdd.set(info.getIndex(), null);
 		    		else
 		    			toRemove.add(info);
 		    	}
-		    	tv.removeDataSources(toRemove.toArray());
-		    	tv.addDataSources(toAdd.toArray());
+		    	tv.removeDataSources(toRemove.toArray(new DiskManagerFileInfo[toRemove.size()]));
+		    	tv.addDataSources(toAdd.toArray(new DiskManagerFileInfo[toAdd.size()]));
 		    	((TableViewSWTImpl)tv).tableInvalidate();
 	    	} else
 	    	{
 		    	tv.removeAllTableRows();
 	    		
-			    Object filesCopy[] = new Object[files.length]; 
+		    	DiskManagerFileInfo filesCopy[] = new DiskManagerFileInfo[files.length]; 
 			    System.arraycopy(files, 0, filesCopy, 0, files.length);
 
 			    tv.addDataSources(filesCopy);

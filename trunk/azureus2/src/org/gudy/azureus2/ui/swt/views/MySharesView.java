@@ -88,7 +88,7 @@ implements ShareManagerListener,
 	
 	private Menu			menuCategory;
 
-	private TableViewSWTImpl tv;
+	private TableViewSWTImpl<ShareResource> tv;
 
 	public 
 	MySharesView()
@@ -100,9 +100,9 @@ implements ShareManagerListener,
 	MySharesView(
 		AzureusCore	_azureus_core )
 	{	
-		tv = new TableViewSWTImpl(TableManager.TABLE_MYSHARES, "MySharesView",
-				basicItems, "name", SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER
-						| SWT.VIRTUAL);
+		tv = new TableViewSWTImpl<ShareResource>(ShareResource.class, TableManager.TABLE_MYSHARES,
+				"MySharesView", basicItems, "name", SWT.MULTI | SWT.FULL_SELECTION
+						| SWT.BORDER | SWT.VIRTUAL);
 		setTableView(tv);
 		azureus_core	= _azureus_core;
 		global_manager = azureus_core.getGlobalManager();
@@ -121,7 +121,7 @@ implements ShareManagerListener,
 	}
 	
 	private void defaultSelected(TableRowCore[] rows) {
-		ShareResource share = (ShareResource) tv.getFirstSelectedDataSource();
+		ShareResource share = tv.getFirstSelectedDataSource();
 		if (share == null) {
 			return;
 		}

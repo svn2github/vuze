@@ -121,8 +121,9 @@ public class PeersView
    *
    */
   public PeersView() {
-		tv = new TableViewSWTImpl(TableManager.TABLE_TORRENT_PEERS, "PeersView",
-				basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		tv = new TableViewSWTImpl(Peer.class, TableManager.TABLE_TORRENT_PEERS,
+				"PeersView", basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION
+						| SWT.VIRTUAL);
 		setTableView(tv);
 		tv.setRowDefaultHeight(16);
 		tv.setEnableTabViews(true);
@@ -134,7 +135,6 @@ public class PeersView
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
-		tv.setDataSourceType(Peer.class);
 	}
   
 	public void tableDataSourceChanged(Object newDataSource) {

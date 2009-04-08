@@ -31,6 +31,13 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.common.table.*;
 
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.plugins.sharing.ShareResource;
+import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -138,14 +145,34 @@ public class TableColumnImpl
 
 	private boolean removed;
 	
-	private Class forDataSourceType;
+	private Class forPluginDataSourceType;
 
 	/**
 	 * @deprecated
 	 */
-	public TableColumnImpl(String tableID,
-			String columnID) {
-		this(null, tableID, columnID);
+	public TableColumnImpl(String tableID, String columnID) {
+		// Guess forPluginDataSourceType based on tableID
+		Class forPluginDataSourceType = null;
+		if (TableManager.TABLE_MYTORRENTS_ALL_BIG.equals(tableID)
+				|| TableManager.TABLE_MYTORRENTS_UNOPENED.equals(tableID)
+				|| TableManager.TABLE_MYTORRENTS_UNOPENED_BIG.equals(tableID)) {
+			forPluginDataSourceType = Download.class;
+		} else if (TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG.equals(tableID)
+				|| TableManager.TABLE_MYTORRENTS_INCOMPLETE.equals(tableID)) {
+			forPluginDataSourceType = DownloadTypeIncomplete.class;
+		} else if (TableManager.TABLE_MYTORRENTS_COMPLETE.equals(tableID)
+				|| TableManager.TABLE_MYTORRENTS_COMPLETE_BIG.equals(tableID)) {
+			forPluginDataSourceType = DownloadTypeComplete.class;
+		} else if (TableManager.TABLE_TORRENT_PEERS.equals(tableID)) {
+			forPluginDataSourceType = Peer.class;
+		} else if (TableManager.TABLE_TORRENT_FILES.equals(tableID)) {
+			forPluginDataSourceType = DiskManagerFileInfo.class;
+		} else if (TableManager.TABLE_MYTRACKER.equals(tableID)) {
+			forPluginDataSourceType = TrackerTorrent.class;
+		} else if (TableManager.TABLE_MYSHARES.equals(tableID)) {
+			forPluginDataSourceType = ShareResource.class;
+		}
+		init(forPluginDataSourceType, tableID, columnID);
 	}
 
 	/** Create a column object for the specified table.
@@ -155,7 +182,12 @@ public class TableColumnImpl
 	 */
 	public TableColumnImpl(Class forDataSourceType, String tableID,
 			String columnID) {
-		this.forDataSourceType = forDataSourceType;
+		init(forDataSourceType, tableID, columnID);
+	}
+	
+	private void init(Class forDataSourceType, String tableID,
+			String columnID) {
+		this.forPluginDataSourceType = forDataSourceType;
 		sTableID = tableID;
 		sName = columnID;
 		iType = TYPE_TEXT_ONLY;
@@ -866,7 +898,7 @@ public class TableColumnImpl
 			
 		TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
 					
-		tsed.tableStructureChangedSWTThread(true);
+		tsed.tableStructureChanged(true, forPluginDataSourceType);
 	}
 
 	public boolean 
@@ -1381,11 +1413,11 @@ public class TableColumnImpl
 	}
 
 	public Class getForDataSourceType() {
-		return forDataSourceType;
+		return forPluginDataSourceType;
 	}
 
 	public void setForDataSourceType(Class forDataSourceType) {
-		this.forDataSourceType = forDataSourceType;
+		this.forPluginDataSourceType = forDataSourceType;
 	}
 
 }

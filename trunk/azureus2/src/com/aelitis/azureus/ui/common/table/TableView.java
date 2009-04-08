@@ -372,14 +372,7 @@ public interface TableView<DATASOURCETYPE>
 	 *
 	 * @since 3.1.1.1
 	 */
-	Class<DATASOURCETYPE> getDataSourceType();
-
-	/**
-	 * @param dataSourceType
-	 *
-	 * @since 3.1.1.1
-	 */
-	void setDataSourceType(Class<DATASOURCETYPE> dataSourceType);
+	Class getDataSourceType();
 
 	/**
 	 * @param columnName

@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -76,9 +77,8 @@ public class TableTooltips
 				Object oToolTip = cell.getToolTip();
 
 				// TODO: support composite, image, etc
-				if (oToolTip == null || !(oToolTip instanceof String))
+				if (oToolTip == null)
 					return;
-				String sToolTip = (String) oToolTip;
 
 				Display d = composite.getDisplay();
 				if (d == null)
@@ -96,16 +96,29 @@ public class TableTooltips
 				toolTipShell.setLayout(f);
 				toolTipShell.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 
-				toolTipLabel = new Label(toolTipShell, SWT.WRAP);
-				toolTipLabel.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
-				toolTipLabel.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-				toolTipShell.setData("TableCellSWT", cell);
-				toolTipLabel.setText(sToolTip.replaceAll("&", "&&"));
-				// compute size on label instead of shell because label
-				// calculates wrap, while shell doesn't
-				Point size = toolTipLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-				if (size.x > 600) {
-					size = toolTipLabel.computeSize(600, SWT.DEFAULT, true);
+				Point size = new Point(0, 0);
+				
+				if (oToolTip instanceof String) {
+  				String sToolTip = (String) oToolTip;
+  				toolTipLabel = new Label(toolTipShell, SWT.WRAP);
+  				toolTipLabel.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+  				toolTipLabel.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+  				toolTipShell.setData("TableCellSWT", cell);
+  				toolTipLabel.setText(sToolTip.replaceAll("&", "&&"));
+  				// compute size on label instead of shell because label
+  				// calculates wrap, while shell doesn't
+  				size = toolTipLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+  				if (size.x > 600) {
+  					size = toolTipLabel.computeSize(600, SWT.DEFAULT, true);
+  				}
+				} else if (oToolTip instanceof Image) {
+					Image image = (Image) oToolTip;
+  				toolTipLabel = new Label(toolTipShell, SWT.CENTER);
+  				toolTipLabel.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+  				toolTipLabel.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+  				toolTipShell.setData("TableCellSWT", cell);
+  				toolTipLabel.setImage(image);
+  				size = toolTipLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 				}
 				size.x += toolTipShell.getBorderWidth() * 2 + 2;
 				size.y += toolTipShell.getBorderWidth() * 2;

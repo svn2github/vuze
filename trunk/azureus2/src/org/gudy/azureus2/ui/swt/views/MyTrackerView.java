@@ -64,6 +64,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
@@ -90,7 +91,7 @@ public class MyTrackerView
 
 	private Menu			menuCategory;
 
-	private TableViewSWT tv;
+	private TableViewSWT<TRHostTorrent> tv;
 
 	public MyTrackerView() {
 		this(AzureusCoreFactory.getSingleton());
@@ -121,9 +122,9 @@ public class MyTrackerView
 			};
 		}
 
-		tv = new TableViewSWTImpl(TableManager.TABLE_MYTRACKER, "MyTrackerView",
-				basicItems, "name", SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER
-						| SWT.VIRTUAL);
+		tv = new TableViewSWTImpl<TRHostTorrent>(TrackerTorrent.class,
+				TableManager.TABLE_MYTRACKER, "MyTrackerView", basicItems, "name",
+				SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 		setTableView(tv);
 		azureus_core = _azureus_core;
 		tv.addLifeCycleListener(this);
@@ -144,7 +145,7 @@ public class MyTrackerView
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void defaultSelected(TableRowCore[] rows, int stateMask) {
-		TRHostTorrent torrent = (TRHostTorrent) tv.getFirstSelectedDataSource();
+		TRHostTorrent torrent = tv.getFirstSelectedDataSource();
 		if (torrent == null)
 			return;
 		DownloadManager dm = azureus_core.getGlobalManager().getDownloadManager(

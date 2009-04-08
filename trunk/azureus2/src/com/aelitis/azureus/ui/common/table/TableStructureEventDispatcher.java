@@ -24,14 +24,12 @@
 
 package com.aelitis.azureus.ui.common.table;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.HashMap;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -43,7 +41,7 @@ public class TableStructureEventDispatcher implements
 		TableStructureModificationListener
 {
 
-	private static Map instances = new HashMap();
+	private static Map<String, TableStructureEventDispatcher> instances = new HashMap<String, TableStructureEventDispatcher>();
 
 	private static AEMonitor class_mon = new AEMonitor(
 			"TableStructureEventDispatcher:class");
@@ -60,14 +58,14 @@ public class TableStructureEventDispatcher implements
 		listeners = new CopyOnWriteList(2);
 	}
 
-	public static TableStructureEventDispatcher getInstance(String sTableID) {
+	public static TableStructureEventDispatcher getInstance(String tableID) {
 		try {
 			class_mon.enter();
 
-			TableStructureEventDispatcher instance = (TableStructureEventDispatcher) instances.get(sTableID);
+			TableStructureEventDispatcher instance = instances.get(tableID);
 			if (instance == null) {
 				instance = new TableStructureEventDispatcher();
-				instances.put(sTableID, instance);
+				instances.put(tableID, instance);
 			}
 			return instance;
 		} finally {
@@ -101,34 +99,19 @@ public class TableStructureEventDispatcher implements
 		}
 	}
 
-	public void tableStructureChanged( boolean columnAddedOrRemoved ) {
+	public void tableStructureChanged( boolean columnAddedOrRemoved, Class forPluginDataSourceType ) {
 
 			Iterator iter = listeners.iterator();
 			while (iter.hasNext()) {
 				TableStructureModificationListener listener = (TableStructureModificationListener) iter.next();
 				try{
-					listener.tableStructureChanged(columnAddedOrRemoved);
+					listener.tableStructureChanged(columnAddedOrRemoved, forPluginDataSourceType);
 				}catch( Throwable e ){
 					Debug.printStackTrace(e);
 				}
 			}
 	}
 
-	public void tableStructureChangedSWTThread( final boolean columnAddedOrRemoved ) {
-
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				try {
-					tableStructureChanged( columnAddedOrRemoved );
-					
-				}catch( Throwable e ){
-					
-					Debug.out(e);
-				}
-			}
-		});
-	}
-	
 	public void columnSizeChanged(TableColumnCore tableColumn) {
 			Iterator iter = listeners.iterator();
 			while (iter.hasNext()) {

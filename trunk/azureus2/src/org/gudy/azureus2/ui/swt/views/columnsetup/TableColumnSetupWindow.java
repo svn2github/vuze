@@ -790,7 +790,7 @@ public class TableColumnSetupWindow
 		}
 		TableColumnManager.getInstance().saveTableColumns(forDataSourceType,
 				forTableID);
-		listener.tableStructureChanged(true);
+		listener.tableStructureChanged(true, forDataSourceType);
 	}
 
 	/**
@@ -813,13 +813,13 @@ public class TableColumnSetupWindow
 			}
 		}
 
-		final TableViewColumnSetup tvChosen = new TableViewColumnSetup(this,
-				TABLEID_CHOSEN, columnTVChosen, ColumnTC_ChosenColumn.COLUMN_ID, true);
+		final TableViewColumnSetup tvChosen = new TableViewColumnSetup(
+				this, TableColumn.class, TABLEID_CHOSEN, columnTVChosen,
+				ColumnTC_ChosenColumn.COLUMN_ID, true);
 		tvChosen.setMenuEnabled(false);
 		tvChosen.setSampleRow(sampleRow);
 		tvChosen.setHeaderVisible(false);
 		//tvChosen.setRowDefaultHeight(16);
-		tvChosen.setDataSourceType(TableColumn.class);
 
 		tvChosen.addLifeCycleListener(new TableLifeCycleListener() {
 			private DragSource dragSource;
@@ -953,11 +953,11 @@ public class TableColumnSetupWindow
 		}
 
 		final TableViewColumnSetup tvAvail = new TableViewColumnSetup(this,
-				TABLEID_AVAIL, columns, ColumnTC_ChosenColumn.COLUMN_ID, false);
+				TableColumn.class, TABLEID_AVAIL, columns,
+				ColumnTC_ChosenColumn.COLUMN_ID, false);
 		tvAvail.setMenuEnabled(false);
 		tvAvail.setSampleRow(sampleRow);
 		tvAvail.setRowDefaultHeight(65);
-		tvAvail.setDataSourceType(TableColumn.class);
 
 		tvAvail.addLifeCycleListener(new TableLifeCycleListener() {
 			private DragSource dragSource;
@@ -1079,10 +1079,11 @@ public class TableColumnSetupWindow
 		private final TableColumnSetupWindow setupWindow;
 
 		public TableViewColumnSetup(TableColumnSetupWindow setupWindow,
+				Class forPluginDataSourceType,
 				String tableID, TableColumnCore[] items, String defaultSortOn,
 				boolean multi) {
-			super(tableID, tableID, items, defaultSortOn, SWT.FULL_SELECTION
-					| SWT.VIRTUAL | (multi ? SWT.MULTI : SWT.SINGLE));
+			super(forPluginDataSourceType, tableID, tableID, items, defaultSortOn,
+					SWT.FULL_SELECTION | SWT.VIRTUAL | (multi ? SWT.MULTI : SWT.SINGLE));
 			this.setupWindow = setupWindow;
 		}
 

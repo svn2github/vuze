@@ -30,7 +30,7 @@ package com.aelitis.azureus.ui.common.table;
  */
 public interface TableStructureModificationListener<T>
 {
-	void tableStructureChanged(boolean columnAddedOrRemoved );
+	void tableStructureChanged(boolean columnAddedOrRemoved, Class forPluginDataSourceType );
 
 	void columnOrderChanged(int[] iPositions);
 

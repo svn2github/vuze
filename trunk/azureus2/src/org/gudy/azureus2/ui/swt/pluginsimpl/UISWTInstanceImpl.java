@@ -390,7 +390,7 @@ UISWTInstanceImpl
 					
 					TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(_col.getTableID());
 					
-					tsed.tableStructureChangedSWTThread(true);
+					tsed.tableStructureChanged(true, _col.getForDataSourceType());
 					
 				}else{
 					
@@ -420,7 +420,7 @@ UISWTInstanceImpl
 					
 					TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance( tid );
 							
-					tsed.tableStructureChangedSWTThread(true);
+					tsed.tableStructureChanged(true, dataSource);
 				}
 				
 				break;

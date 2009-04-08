@@ -272,7 +272,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	private boolean columnVisibilitiesChanged = true;
 
 	// What type of data is stored in this table
-	private Class<DATASOURCETYPE> classDataSourceType;
+	private final Class classPluginDataSourceType;
 
 	private AEMonitor listeners_mon = new AEMonitor("tablelisteners");
 
@@ -319,8 +319,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @param _sDefaultSortOn Column name to sort on if user hasn't chosen one yet
 	 * @param _iTableStyle SWT style constants used when creating the table
 	 */
-	public TableViewSWTImpl(String _sTableID, String _sPropertiesPrefix,
+	public TableViewSWTImpl(Class pluginDataSourceType, String _sTableID, String _sPropertiesPrefix,
 			TableColumnCore[] _basicItems, String _sDefaultSortOn, int _iTableStyle) {
+		classPluginDataSourceType = pluginDataSourceType;
 		sTableID = _sTableID;
 		basicItems = _basicItems;
 		sPropertiesPrefix = _sPropertiesPrefix;
@@ -349,10 +350,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @param _sDefaultSortOn Column name to sort on if user hasn't chosen one
 	 *                         yet
 	 */
-	public TableViewSWTImpl(String _sTableID, String _sPropertiesPrefix,
+	public TableViewSWTImpl(Class pluginDataSourceType,
+			String _sTableID, String _sPropertiesPrefix,
 			TableColumnCore[] _basicItems, String _sDefaultSortOn) {
-		this(_sTableID, _sPropertiesPrefix, _basicItems, _sDefaultSortOn,
-				SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		this(pluginDataSourceType, _sTableID, _sPropertiesPrefix, _basicItems,
+				_sDefaultSortOn, SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
 	}
 
 	private void initializeColumnDefs() {
@@ -367,7 +369,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			basicItems = null;
 		}
 
-		tableColumns = tcManager.getAllTableColumnCoreAsArray(classDataSourceType,
+		tableColumns = tcManager.getAllTableColumnCoreAsArray(classPluginDataSourceType,
 				sTableID);
 
 		// fixup order
@@ -386,7 +388,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			tcManager.addColumns(basicItems);
 		}
 
-		tableColumns = tcManager.getAllTableColumnCoreAsArray(classDataSourceType,
+		tableColumns = tcManager.getAllTableColumnCoreAsArray(classPluginDataSourceType,
 				sTableID);
 
 		// fixup order
@@ -1947,7 +1949,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (focusedRow == null) {
 			focusedRow = getRow(0);
 		}
-		new TableColumnSetupWindow(classDataSourceType, sTableID, focusedRow,
+		new TableColumnSetupWindow(classPluginDataSourceType, sTableID, focusedRow,
 				TableStructureEventDispatcher.getInstance(sTableID)).open();
 	}
 
@@ -2041,7 +2043,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					}
 				}
 
-				tableStructureChanged(false);
+				tableStructureChanged(false, null);
 			}
 		});
 
@@ -2331,7 +2333,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		if (tcManager != null) {
-			tcManager.saveTableColumns(classDataSourceType, sTableID);
+			tcManager.saveTableColumns(classPluginDataSourceType, sTableID);
 		}
 
 		if (table != null && !table.isDisposed()) {
@@ -3081,14 +3083,26 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// ITableStructureModificationListener
-	public void tableStructureChanged(boolean columnAddedOrRemoved) {
+	public void tableStructureChanged(final boolean columnAddedOrRemoved,
+			Class forPluginDataSourceType) {
+		if (forPluginDataSourceType == null
+				|| forPluginDataSourceType.equals(classPluginDataSourceType)) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+  				_tableStructureChanged(columnAddedOrRemoved);
+  			}
+  		});
+		}
+	}
+	
+	private void _tableStructureChanged(boolean columnAddedOrRemoved) {
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_DESTROYED);
 
 		removeAllTableRows();
 
 		if (columnAddedOrRemoved) {
 			tableColumns = TableColumnManager.getInstance().getAllTableColumnCoreAsArray(
-					classDataSourceType, sTableID);
+					classPluginDataSourceType, sTableID);
 		}
 
 		initializeTableColumns(table);
@@ -3106,7 +3120,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			// Pre SWT 3.1
 			// This shouldn't really happen, since this function only gets triggered
 			// from SWT >= 3.1
-			tableStructureChanged(false);
+			tableStructureChanged(false, null);
 		}
 	}
 
@@ -4604,13 +4618,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return new Point(x, y);
 	}
 
-	public Class<DATASOURCETYPE> getDataSourceType() {
-		return classDataSourceType;
-	}
-
-	// @see com.aelitis.azureus.ui.common.table.TableView#setDataSourceType(java.lang.Class)
-	public void setDataSourceType(Class<DATASOURCETYPE> dataSourceType) {
-		this.classDataSourceType = dataSourceType;
+	// @see com.aelitis.azureus.ui.common.table.TableView#getDataSourceType()
+	public Class getDataSourceType() {
+		return classPluginDataSourceType;
 	}
 
 	public void addRefreshListener(TableRowRefreshListener listener) {
