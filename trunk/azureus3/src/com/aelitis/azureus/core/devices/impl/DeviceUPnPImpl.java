@@ -358,6 +358,15 @@ DeviceUPnPImpl
 		setPersistentStringProperty( PP_IP_ADDRESS, address.getHostAddress());
 	}
 	
+	protected URL
+	getStreamURL(
+		TranscodeFileImpl		file )
+	{
+		browseReceived();
+		
+		return( super.getStreamURL( file ));
+	}
+	
 	protected void
 	browseReceived()
 	{
