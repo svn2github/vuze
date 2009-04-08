@@ -233,4 +233,32 @@ public class ByteFormatter
 		return (array[0] << 24) & 0xff000000 | (array[1] << 16) & 0x00ff0000
 				| (array[2] << 8) & 0x0000ff00 | array[3] & 0x000000ff;
 	}
+
+  public static long
+  byteArrayToLongMSB(
+  	byte[] array)
+  {
+		return (array[0] << 56) & 0xff000000000000l
+			| (array[1] << 48) & 0x00ff000000000000l
+			| (array[2] << 40) & 0x0000ff0000000000l
+			| (array[3] << 32) & 0x000000ff00000000l
+			| (array[4] << 24) & 0x00000000ff000000l
+			| (array[5] << 16) & 0x0000000000ff0000l
+			| (array[6] << 8) & 0x000000000000ff00l
+			| array[7] & 0x00000000000000ffl;
+	}
+
+  public static long
+  byteArrayToLongLSB(
+  	byte[] array)
+  {
+		return (array[7] << 56) & 0xff000000000000l
+			| (array[6] << 48) & 0x00ff000000000000l
+			| (array[5] << 40) & 0x0000ff0000000000l
+			| (array[4] << 32) & 0x000000ff00000000l
+			| (array[3] << 24) & 0x00000000ff000000l
+			| (array[2] << 16) & 0x0000000000ff0000l
+			| (array[1] << 8) & 0x000000000000ff00l
+			| array[0] & 0x00000000000000ffl;
+	}
 }
