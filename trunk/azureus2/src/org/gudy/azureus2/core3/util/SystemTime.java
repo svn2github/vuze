@@ -86,7 +86,7 @@ public class SystemTime {
 
 		private SteppedProvider()
 		{
-			System.out.println("SystemTime: using stepped time provider");
+			// System.out.println("SystemTime: using stepped time provider");
 			
 			stepped_time = 0;
 			
