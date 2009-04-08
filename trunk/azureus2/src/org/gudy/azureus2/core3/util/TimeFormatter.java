@@ -87,10 +87,14 @@ public class TimeFormatter {
 		
 		String result = vals[end] + TIME_SUFFIXES[end];
 
+		/* old logic removed to prefer showing consecutive units
 		// skip until we have a non-zero time section
 		do {
 			end--;
 		} while (end >= 0 && vals[end] == 0);
+		*/
+		
+		end--;
 		
 		if (end >= 0)
 			result += " " + twoDigits(vals[end]) + TIME_SUFFIXES[end];
