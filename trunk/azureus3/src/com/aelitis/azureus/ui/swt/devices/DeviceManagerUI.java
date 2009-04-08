@@ -1753,9 +1753,9 @@ DeviceManagerUI
 		}
 	}
 	
-	protected void
+	public static void
 	handleDrop(
-		TranscodeTarget	target,
+		TranscodeTarget			target,
 		final Object			payload )
 	{
 		TranscodeChooser deviceChooser = new TranscodeChooser(target) {
@@ -1763,18 +1763,21 @@ DeviceManagerUI
 			public void 
 			closed() 
 			{
-				if (selectedDevice != null && selectedProfile != null) {
-					handleDrop(selectedDevice, selectedProfile, payload,
-							getTranscodeRequirement());
-				}else{
-					Debug.out( "no selection" );
+				if ( selectedDevice != null && selectedProfile != null ){
+					
+					handleDrop(
+						selectedDevice, 
+						selectedProfile, 
+						payload,
+						getTranscodeRequirement());
 				}
 			}
 		};
+		
 		deviceChooser.show();
 	}
 
-	protected void
+	protected static void
 	addDownload(
 		TranscodeTarget		target,
 		TranscodeProfile 	profile,
@@ -1783,7 +1786,7 @@ DeviceManagerUI
 	{
 		try{
 		
-			addDownload( target, profile, transcode_requirement, plugin_interface.getShortCuts().getDownload(hash));
+			addDownload( target, profile, transcode_requirement, AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload(hash));
 			
 		}catch( Throwable e ){
 			
@@ -1791,7 +1794,7 @@ DeviceManagerUI
 		}
 	}
 	
-	protected void
+	protected static void
 	addDownload(
 		TranscodeTarget		target,
 		TranscodeProfile 	profile,
@@ -1828,7 +1831,7 @@ DeviceManagerUI
 		}
 	}
 	
-	protected void
+	protected static void
 	addFile(
 		TranscodeTarget			target,
 		TranscodeProfile 		profile,
@@ -1836,7 +1839,7 @@ DeviceManagerUI
 		DiskManagerFileInfo		file )
 	{
 		try{
-			device_manager.getTranscodeManager().getQueue().add(
+			DeviceManagerFactory.getSingleton().getTranscodeManager().getQueue().add(
 				target,
 				profile,
 				file,
@@ -1848,7 +1851,7 @@ DeviceManagerUI
 		}
 	}
 	
-	protected void
+	protected static void
 	addDirectory(
 		TranscodeTarget			target,
 		TranscodeProfile 		profile,
@@ -1885,7 +1888,7 @@ DeviceManagerUI
 		}
 	}
 	
-	protected void
+	protected static void
 	addFile(
 		TranscodeTarget			target,
 		TranscodeProfile 		profile,
@@ -1895,7 +1898,7 @@ DeviceManagerUI
 		if ( file.exists() && file.isFile()){
 
 			try{
-				device_manager.getTranscodeManager().getQueue().add(
+				DeviceManagerFactory.getSingleton().getTranscodeManager().getQueue().add(
 					target,
 					profile,
 					new DiskManagerFileInfoFile( file ),
@@ -1911,7 +1914,7 @@ DeviceManagerUI
 		}
 	}
 	
-	protected void
+	protected static void
 	handleDrop(
 		TranscodeTarget		target,
 		TranscodeProfile 	profile,
@@ -1963,7 +1966,7 @@ DeviceManagerUI
 							
 							byte[]	 hash = Base32.decode( files[0].trim());
 							
-							DiskManagerFileInfo[] dm_files = plugin_interface.getShortCuts().getDownload(hash).getDiskManagerFileInfo();
+							DiskManagerFileInfo[] dm_files = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload(hash).getDiskManagerFileInfo();
 							
 							for (int j=1;j<files.length;j++){
 								
@@ -1975,6 +1978,19 @@ DeviceManagerUI
 					}catch( Throwable e ){
 						
 						Debug.out( "Failed to get download for hash " + bits[1] );
+					}
+				}
+			}else if ( stuff.startsWith( "TranscodeFile\n" )){
+				
+				String[]	bits = stuff.split( "\n" );
+				
+				for (int i=1;i<bits.length;i++){
+					
+					File f = new File( bits[i] );
+
+					if ( f.isFile()){
+					
+						addFile( target, profile, transcode_requirement, f );
 					}
 				}
 			}

@@ -25,7 +25,17 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.HTMLTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridLayout;
@@ -34,11 +44,14 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -93,8 +106,13 @@ public class SBC_DevicesView
 
 	private TranscodeQueue transcode_queue;
 
-	private TableViewSWTImpl tvDevices;
+	private TableViewSWTImpl 	tvDevices;
+	private DragSource 			dragSource;
+	private DropTarget 			dropTarget;
+	private int					drag_drop_line_start = -1;
+	private TableRowCore[]		drag_drop_rows;
 
+	
 	private TableViewSWTImpl<TranscodeFile> tvFiles;
 
 	private SideBarEntrySWT sidebarEntry;
@@ -104,8 +122,6 @@ public class SBC_DevicesView
 	private Device device;
 
 	private TranscodeTarget transTarget;
-
-	private DropTarget dropTarget;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
@@ -326,9 +342,11 @@ public class SBC_DevicesView
 			initTranscodeQueueTable((Composite) soTranscodeQueue.getControl());
 		}
 
-		Control control = skinObject.getControl();
-		dropTarget = new DropTarget(control, 0xFF);
-
+		if (device instanceof TranscodeTarget){
+		
+			createDragDrop( tvFiles!=null?tvFiles:tvDevices);
+		}
+		
 		setAdditionalInfoTitle(false);
 
 		// This is bad.  Example: 
@@ -402,7 +420,8 @@ public class SBC_DevicesView
 		}
 		Utils.disposeSWTObjects(new Object[] {
 			tableJobsParent,
-			dropTarget
+			dropTarget,
+			dragSource,
 		});
 		if (tvDevices != null) {
 			tvDevices.delete();
@@ -792,7 +811,7 @@ public class SBC_DevicesView
 		GridLayout layout = new GridLayout();
 		layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
 		parent.setLayout(layout);
-
+		 
 		tvDevices.initialize(parent);
 	}
 
@@ -1161,6 +1180,141 @@ public class SBC_DevicesView
 		} catch (Throwable e) {
 
 			Debug.out(e);
+		}
+	}
+	
+	private void 
+	createDragDrop(
+		final TableViewSWTImpl<?>		table )
+	{
+		try {
+
+			Transfer[] types = new Transfer[] { TextTransfer.getInstance() };
+
+			if (dragSource != null && !dragSource.isDisposed()) {
+				dragSource.dispose();
+			}
+
+			if (dropTarget != null && !dropTarget.isDisposed()) {
+				dropTarget.dispose();
+			}
+
+			dragSource = table.createDragSource(DND.DROP_MOVE | DND.DROP_COPY);
+			if (dragSource != null) {
+				dragSource.setTransfer(types);
+				dragSource.addDragListener(new DragSourceAdapter() {
+					private String eventData;
+
+					public void dragStart(DragSourceEvent event) {
+						TableRowCore[] rows = table.getSelectedRows();
+						if (rows.length != 0) {
+							event.doit = true;
+							// System.out.println("DragStart");
+							drag_drop_line_start = rows[0].getIndex();
+							drag_drop_rows = rows;
+						} else {
+							event.doit = false;
+							drag_drop_line_start = -1;
+							drag_drop_rows = null;
+						}
+
+						// Build eventData here because on OSX, selection gets cleared
+						// by the time dragSetData occurs
+						
+						java.util.List selectedFiles = table.getSelectedDataSources();
+						
+						eventData="TranscodeFile\n";
+
+						for ( Object o: selectedFiles ){
+														
+							TranscodeFile file = (TranscodeFile)o;
+							
+							if ( file.isComplete()){
+								
+								try{
+									eventData += file.getTargetFile().getFile().getAbsolutePath() + "\n";
+									
+								}catch( Throwable e ){
+									
+								}
+							}
+						}
+					}
+
+					public void dragSetData(DragSourceEvent event) {
+						// System.out.println("DragSetData");
+						event.data = eventData;
+					}
+				});
+			}
+
+			dropTarget = table.createDropTarget(DND.DROP_DEFAULT | DND.DROP_MOVE
+					| DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
+			if (dropTarget != null) {
+				if (SWT.getVersion() >= 3107) {
+					dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
+							URLTransfer.getInstance(), FileTransfer.getInstance(),
+							TextTransfer.getInstance() });
+				} else {
+					dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(),
+							FileTransfer.getInstance(), TextTransfer.getInstance() });
+				}
+
+				dropTarget.addDropListener(new DropTargetAdapter() {
+					public void dropAccept(DropTargetEvent event) {
+						event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
+								event.currentDataType);
+					}
+
+					public void dragEnter(DropTargetEvent event) {
+						// no event.data on dragOver, use drag_drop_line_start to determine
+						// if ours
+						if (drag_drop_line_start < 0) {
+							if (event.detail != DND.DROP_COPY) {
+								if ((event.operations & DND.DROP_LINK) > 0)
+									event.detail = DND.DROP_LINK;
+								else if ((event.operations & DND.DROP_COPY) > 0)
+									event.detail = DND.DROP_COPY;
+							}
+						} else if (TextTransfer.getInstance().isSupportedType(
+								event.currentDataType)) {
+							event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
+							event.feedback = DND.FEEDBACK_SCROLL | DND.FEEDBACK_INSERT_BEFORE;
+						}
+					}
+
+					public void dragOver(DropTargetEvent event) {
+						if (drag_drop_line_start >= 0) {
+							event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
+							event.feedback = DND.FEEDBACK_SCROLL | DND.FEEDBACK_INSERT_BEFORE;
+						}
+					}
+
+					public void drop(DropTargetEvent event) {
+						try{
+							if ( 	event.data instanceof String &&
+									((String) event.data).startsWith("TranscodeFile\n")) {
+								
+									// todo: support drag and drop reordering of xcode queue?
+								
+								return;
+							}
+	
+							event.detail = DND.DROP_NONE;
+							
+							DeviceManagerUI.handleDrop((TranscodeTarget)device, event.data );
+
+						}finally{
+							
+							drag_drop_line_start = -1;
+							drag_drop_rows = null;
+						}
+					}
+				});
+			}
+
+		} catch (Throwable t) {
+			Debug.out( "failed to init drag-n-drop", t);
 		}
 	}
 }
