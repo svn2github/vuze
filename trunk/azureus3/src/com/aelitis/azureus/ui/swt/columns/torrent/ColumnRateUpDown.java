@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.columns.torrent;
 
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
@@ -29,6 +30,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.messenger.PlatformMessage;
@@ -193,6 +195,11 @@ public class ColumnRateUpDown
 		}
 
 		cell.setGraphic(graphic);
+		
+		if ( !disabled && graphic != null && cell instanceof TableCellSWT ){
+			
+			((TableCellSWT)cell).setCursorID(SWT.CURSOR_HAND);
+		}
 	}
 
 	TableRow previousSelection = null;
