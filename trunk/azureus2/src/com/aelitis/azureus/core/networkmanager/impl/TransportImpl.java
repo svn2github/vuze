@@ -430,6 +430,13 @@ TransportImpl
 			        }
 				},
 				null );
+		
+			// not sure if this will help, but on FreeBSD 7.x there seems to be an issue with connections
+			// timing out without transferring which it reportedly fixed by patches that make the connection
+			// always appear ready for reading from - trying a single fix here to see if a one off initial
+			// read-to-read fixes
+		
+		readyForRead( true );
 	}
 	
 	 
