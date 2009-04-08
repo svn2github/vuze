@@ -456,11 +456,10 @@ public class SBC_DevicesView
 			}
 		}
 
-		tvFiles = new TableViewSWTImpl<TranscodeFile>(tableID, tableID,
-				new TableColumnCore[0], device == null ? ColumnTJ_Rank.COLUMN_ID
-						: ColumnTJ_Status.COLUMN_ID, SWT.MULTI | SWT.FULL_SELECTION
-						| SWT.VIRTUAL);
-		tvFiles.setDataSourceType(TranscodeFile.class);
+		tvFiles = new TableViewSWTImpl<TranscodeFile>(TranscodeFile.class, tableID,
+				tableID, new TableColumnCore[0], device == null
+						? ColumnTJ_Rank.COLUMN_ID : ColumnTJ_Status.COLUMN_ID, SWT.MULTI
+						| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		tvFiles.setRowDefaultHeight(50);
 		tvFiles.setHeaderVisible(true);
 		tvFiles.setParentDataSource(device);
@@ -800,9 +799,8 @@ public class SBC_DevicesView
 	 * @since 4.1.0.5
 	 */
 	private void initDeviceListTable(Composite control) {
-		tvDevices = new TableViewSWTImpl(TABLE_DEVICES, TABLE_DEVICES,
-				new TableColumnCore[0], ColumnTJ_Rank.COLUMN_ID);
-		tvDevices.setDataSourceType(TranscodeProvider.class);
+		tvDevices = new TableViewSWTImpl(TranscodeProvider.class, TABLE_DEVICES,
+				TABLE_DEVICES, new TableColumnCore[0], ColumnTJ_Rank.COLUMN_ID);
 		tvDevices.setRowDefaultHeight(50);
 		tvDevices.setHeaderVisible(true);
 

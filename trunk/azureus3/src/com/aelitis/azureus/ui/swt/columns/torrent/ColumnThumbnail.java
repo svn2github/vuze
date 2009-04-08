@@ -54,7 +54,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 
 public class ColumnThumbnail
 	extends CoreTableColumn
-	implements TableCellRefreshListener, TableCellSWTPaintListener
+	implements TableCellRefreshListener, TableCellSWTPaintListener, TableCellToolTipListener
 {
 	public static final String COLUMN_ID = "Thumbnail";
 
@@ -143,7 +143,7 @@ public class ColumnThumbnail
 		Rectangle cellBounds = cell.getBounds();
 
 		Image imgThumbnail = TorrentUIUtilsV3.getContentImage(ds,
-				cellBounds.width < 17 || cellBounds.height < 17,
+				cellBounds.width >= 20 && cellBounds.height >= 20,
 				new ContentImageLoadedListener() {
 					public void contentImageLoaded(Image image, boolean wasReturned) {
 						if (!wasReturned) {
@@ -221,6 +221,24 @@ public class ColumnThumbnail
 			}
 		}
 
+		TorrentUIUtilsV3.releaseContentImage(ds);
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellHover(TableCell cell) {
+		final Object ds = cell.getDataSource();
+		Image imgThumbnail = TorrentUIUtilsV3.getContentImage(ds, true, new ContentImageLoadedListener() {
+			public void contentImageLoaded(Image image, boolean wasReturned) {
+				TorrentUIUtilsV3.releaseContentImage(ds);
+			}
+		});
+
+		cell.setToolTip(imgThumbnail);
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHoverComplete(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellHoverComplete(TableCell cell) {
+		Object ds = cell.getDataSource();
 		TorrentUIUtilsV3.releaseContentImage(ds);
 	}
 }

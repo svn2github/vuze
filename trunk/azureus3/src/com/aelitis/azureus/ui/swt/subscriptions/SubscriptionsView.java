@@ -188,8 +188,8 @@ public class SubscriptionsView
 				
 		};
 		
-		view = new TableViewSWTImpl(TABLE_ID, TABLE_ID, columns, "name", SWT.SINGLE
-				| SWT.FULL_SELECTION | SWT.VIRTUAL);
+		view = new TableViewSWTImpl(Subscription.class, TABLE_ID, TABLE_ID,
+				columns, "name", SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		
 		view.addLifeCycleListener(new TableLifeCycleListener() {
 			public void tableViewInitialized() {

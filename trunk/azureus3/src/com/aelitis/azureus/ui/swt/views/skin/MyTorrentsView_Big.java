@@ -16,6 +16,9 @@ import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.PlayUtils;
 
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 public class MyTorrentsView_Big
@@ -54,30 +57,36 @@ public class MyTorrentsView_Big
 
 	protected TableViewSWT createTableView(TableColumnCore[] basicItems) {
 		String tableID;
+		Class forDataSourceType;
 		switch (torrentFilterMode) {
 			case SBC_LibraryView.TORRENTS_COMPLETE:
 				tableID = TableManager.TABLE_MYTORRENTS_COMPLETE_BIG;
+				forDataSourceType = DownloadTypeComplete.class;
 				break;
 
 			case SBC_LibraryView.TORRENTS_INCOMPLETE:
 				tableID = TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG;
+				forDataSourceType = DownloadTypeIncomplete.class;
 				break;
 				
 			case SBC_LibraryView.TORRENTS_UNOPENED:
 				tableID = TableManager.TABLE_MYTORRENTS_UNOPENED_BIG;
+				forDataSourceType = Download.class;
 				break;
 				
 			case SBC_LibraryView.TORRENTS_ALL:
 				tableID = TableManager.TABLE_MYTORRENTS_ALL_BIG;
+				forDataSourceType = Download.class;
 				break;
 
 			default:
 				tableID = "bad";
+				forDataSourceType = null;
 				break;
 		}
-		TableViewSWTImpl tv = new TableViewSWTImpl(tableID, "MyTorrentsView_Big",
-				basicItems, "#", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL
-						| SWT.BORDER);
+		TableViewSWTImpl tv = new TableViewSWTImpl(forDataSourceType, tableID,
+				"MyTorrentsView_Big", basicItems, "#", SWT.MULTI | SWT.FULL_SELECTION
+						| SWT.VIRTUAL | SWT.BORDER);
 		return tv;
 	}
 	

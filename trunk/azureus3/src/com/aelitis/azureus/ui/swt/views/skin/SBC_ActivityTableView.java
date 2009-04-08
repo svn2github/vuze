@@ -64,7 +64,7 @@ public class SBC_ActivityTableView
 {
 	private static final String TABLE_ID_PREFIX = "activity-";
 
-	private TableViewSWT view;
+	private TableViewSWT<VuzeActivitiesEntry> view;
 
 	private String tableID;
 
@@ -103,8 +103,9 @@ public class SBC_ActivityTableView
 		tableID = big ? TableManager.TABLE_ACTIVITY_BIG : TableManager.TABLE_ACTIVITY;
 		TableColumnCore[] columns = big ?  TableColumnCreatorV3.createActivityBig(tableID) : TableColumnCreatorV3.createActivitySmall(tableID);
 
-		view = new TableViewSWTImpl(tableID, tableID, columns, "name", SWT.MULTI
-				| SWT.FULL_SELECTION | SWT.VIRTUAL);
+		view = new TableViewSWTImpl<VuzeActivitiesEntry>(VuzeActivitiesEntry.class,
+				tableID, tableID, columns, "name", SWT.MULTI | SWT.FULL_SELECTION
+						| SWT.VIRTUAL);
 		
 		view.setRowDefaultHeight(big ? 50 : 32);
 
