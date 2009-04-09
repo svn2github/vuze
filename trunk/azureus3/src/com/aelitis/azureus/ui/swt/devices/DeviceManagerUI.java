@@ -140,11 +140,16 @@ DeviceManagerUI
 	private MenuItemFillListener will_browse_listener;
 	
 	static {
-		if (Constants.isOSX) {
-			String arch = System.getProperty("os.arch", "").toLowerCase();
-			DISABLED = arch.equals("powerpc") || arch.equals("ppc");
-		} else {
-			DISABLED = Constants.isUnix;
+		try {
+  		if (Constants.isOSX) {
+  			String arch = System.getProperty("os.arch", "");
+  			DISABLED = arch.equalsIgnoreCase("powerpc") || arch.equalsIgnoreCase("ppc");
+  		} else {
+  			DISABLED = Constants.isUnix;
+  		}
+		} catch (Throwable t) {
+			// Benefit of the doubt?
+			DISABLED = false;
 		}
 	}
 	
