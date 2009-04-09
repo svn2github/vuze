@@ -92,12 +92,7 @@ public class ShareRatioItem
     if (sr == Constants.INFINITY_AS_INT) {
       shareRatio = Constants.INFINITY_STRING;
     } else {
-      String partial = String.valueOf(sr % 1000);
-      while (partial.length() < 3) {
-        partial = "0" + partial;
-      }
-      shareRatio = "" + (sr / 1000) + DisplayFormatters.getDecimalSeparator()
-					+ partial;
+      shareRatio = DisplayFormatters.formatDecimal((double) sr / 1000, 3);
     }
     
     if( cell.setText(shareRatio) && changeFG ) {
