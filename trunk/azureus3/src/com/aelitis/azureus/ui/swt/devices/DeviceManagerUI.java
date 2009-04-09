@@ -87,9 +87,7 @@ public class
 DeviceManagerUI 
 {
 	// Not supported for Unix and OSX PPC
-	public static boolean DISABLED = Constants.isUnix
-			|| (Constants.isOSX && System.getProperty("os.arch", "").toLowerCase().equals(
-					"powerpc"));
+	public static boolean DISABLED;
 	
 	private static final int MIN_FILE_SIZE_FOR_XCODE	= 128*1024;
 	private static final int MAX_FILES_FOR_MULTI_XCODE	= 64;
@@ -140,6 +138,15 @@ DeviceManagerUI
 
 	
 	private MenuItemFillListener will_browse_listener;
+	
+	static {
+		if (Constants.isOSX) {
+			String arch = System.getProperty("os.arch", "").toLowerCase();
+			DISABLED = arch.equals("powerpc") || arch.equals("ppc");
+		} else {
+			DISABLED = Constants.isUnix;
+		}
+	}
 	
 	public
 	DeviceManagerUI(
