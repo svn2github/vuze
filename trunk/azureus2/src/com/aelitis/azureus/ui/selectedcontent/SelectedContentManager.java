@@ -110,7 +110,7 @@ public class SelectedContentManager
 				if (selectedContent == null) {
 					continue;
 				}
-				dms[x] = selectedContent.getDM();
+				dms[x] = selectedContent.getDownloadManager();
 				if (dms[x] != null) {
 					x++;
 				}

@@ -90,10 +90,10 @@ VuzeFileImpl
 		return( comp );
 	}
 	
-	public byte[] 
-	exportToBytes() 
+	public Map
+	exportToMap()
 	
-		throws IOException 
+		throws IOException
 	{
 		Map	map = new HashMap();
 		
@@ -118,7 +118,15 @@ VuzeFileImpl
 			list.add( entry );
 		}
 				
-		return( BEncoder.encode( map ));
+		return( map );
+	}
+	
+	public byte[] 
+	exportToBytes() 
+	
+		throws IOException 
+	{
+		return( BEncoder.encode( exportToMap()));
 	}
 	
 	public void 

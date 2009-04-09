@@ -41,6 +41,11 @@ VuzeFile
 	
 		throws IOException;
 	
+	public Map
+	exportToMap()
+	
+		throws IOException;
+	
 	public void
 	write(
 		File	target )

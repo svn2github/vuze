@@ -19,6 +19,7 @@
 package com.aelitis.azureus.ui.selectedcontent;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 
 /**
  * @author TuxPaper
@@ -32,10 +33,14 @@ public interface ISelectedContent
 
 	public abstract void setHash(String hash);
 
-	public abstract DownloadManager getDM();
+	public abstract DownloadManager getDownloadManager();
 
-	public abstract void setDM(DownloadManager dm);
+	public abstract void setDownloadManager(DownloadManager dm);
 
+	public abstract TOTorrent getTorrent();
+	
+	public void setTorrent( TOTorrent torrent );
+	
 	public abstract String getDisplayName();
 
 	public abstract void setDisplayName(String displayName);

@@ -39,6 +39,7 @@ public class SelectedContent implements ISelectedContent
 	private String hash;
 
 	private DownloadManager dm;
+	private TOTorrent		torrent;
 
 	private String displayName;
 	
@@ -49,16 +50,7 @@ public class SelectedContent implements ISelectedContent
 	 * @throws Exception 
 	 */
 	public SelectedContent(DownloadManager dm){
-		setDM(dm);
-		TOTorrent t = dm.getTorrent();
-		if ( t != null ){
-			try{
-				setHash(t.getHashWrapper().toBase32String());
-				
-			}catch( Throwable e ){
-			}
-		}
-		setDisplayName(dm.getDisplayName());
+		setDownloadManager(dm);
 	}
 
 	/**
@@ -83,7 +75,7 @@ public class SelectedContent implements ISelectedContent
 	}
 
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDM()
-	public DownloadManager getDM() {
+	public DownloadManager getDownloadManager() {
 		if (dm == null && hash != null) {
 			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 			return gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
@@ -92,17 +84,31 @@ public class SelectedContent implements ISelectedContent
 	}
 
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setDM(org.gudy.azureus2.core3.download.DownloadManager)
-	public void setDM(DownloadManager dm) {
-		this.dm = dm;
-		if (this.dm != null) {
+	public void setDownloadManager(DownloadManager _dm) {
+		dm = _dm;
+		if ( dm != null ){
+			setTorrent( dm.getTorrent());
+			setDisplayName(dm.getDisplayName());
+		}
+	}
+
+	
+	public TOTorrent getTorrent() {
+		return( torrent );
+	}
+	
+	public void setTorrent(TOTorrent _torrent) {
+		torrent = _torrent;
+		
+		if ( torrent != null ){
 			try {
-				hash = this.dm.getTorrent().getHashWrapper().toBase32String();
+				hash = torrent.getHashWrapper().toBase32String();
 			} catch (Exception e) {
 				hash = null;
 			}
 		}
 	}
-
+	
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDisplayName()
 	public String getDisplayName() {
 		return displayName;
