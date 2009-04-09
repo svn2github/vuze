@@ -17,9 +17,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
@@ -28,12 +28,11 @@ import org.gudy.azureus2.ui.swt.shells.AbstractWizardPage;
 import org.gudy.azureus2.ui.swt.shells.MultipageWizard;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.buddy.VuzeShareable;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.login.NotLoggedInException;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
@@ -74,11 +73,9 @@ public class SharePage
 
 	private AbstractBuddyPageListener buddyPageListener;
 
-	private SelectedContentV3 shareItem;
+	private VuzeShareable shareItem;
 
 	private String referer;
-
-	private DownloadManager dm;
 
 	private Label contentThumbnail;
 
@@ -273,10 +270,9 @@ public class SharePage
 		return JSONUtils.encodeToJSON(buddieloginIDsAndContentHash);
 	}
 
-	public void setShareItem(SelectedContentV3 content, String referer) {
+	public void setShareItem(VuzeShareable content, String referer) {
 		this.shareItem = content;
 		this.referer = referer;
-		this.dm = shareItem.getDM();
 
 		if (SystemTime.getCurrentTime() - PlatformBuddyMessenger.getLastSyncCheck() > PlatformConfigMessenger.getBuddySyncOnShareMinTimeSecs() * 1000) {
 			try {
@@ -348,7 +344,7 @@ public class SharePage
 		}
 	}
 
-	public SelectedContentV3 getShareItem() {
+	public VuzeShareable getShareItem() {
 		return shareItem;
 	}
 
@@ -506,11 +502,7 @@ public class SharePage
 		style2.font = contentTitleFont;
 		contentStats.setStyleRange(style2);
 
-		if (null == dm) {
-			return;
-		}
-
-		String publisher = PlatformTorrentUtils.getContentPublisher(dm.getTorrent());
+		String publisher = shareItem.getPublisher();
 
 		if (null != publisher && publisher.length() > 0) {
 			if (publisher.startsWith("az")) {
@@ -519,7 +511,7 @@ public class SharePage
 			contentStats.append("From: " + publisher + "\n");
 		}
 
-		contentStats.append("File size: " + dm.getSize() / 1000000 + " MB");
+		contentStats.append("File size: " + DisplayFormatters.formatByteCountToKiBEtc(shareItem.getSize()));
 	}
 	
 	public ClientMessageContext getMessageContext() {

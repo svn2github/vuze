@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.buddy.VuzeShareable;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
@@ -71,6 +72,8 @@ public class DataSourceUtils
 				return gm.getDownloadManager((TOTorrent) ds);
 			} else if (ds instanceof ISelectedContent) {
 				return getDM(((ISelectedContent)ds).getDM()); 
+			} else if (ds instanceof VuzeShareable) {
+				return getDM(((VuzeShareable)ds).getDownloadManager()); 
 			} else 	if (ds instanceof TranscodeJob) {
 				TranscodeJob tj = (TranscodeJob) ds;
 				try {
@@ -176,6 +179,10 @@ public class DataSourceUtils
 			}
 		}
 
+		if ( ds instanceof VuzeShareable ){
+			return getTorrent(((VuzeShareable)ds).getDownloadManager());
+		}
+		
 		return null;
 	}
 
@@ -208,6 +215,8 @@ public class DataSourceUtils
 				return entry.getAssetHash();
 			} else if (ds instanceof ISelectedContent) {
 				return ((ISelectedContent)ds).getHash();
+			} else if (ds instanceof VuzeShareable) {
+				return ((VuzeShareable)ds).getHash();
 			} else if (ds instanceof String) {
 				return (String) ds;
 			}
@@ -229,6 +238,8 @@ public class DataSourceUtils
 				return entry.getContentNetwork();
 			} else if (ds instanceof ISelectedContent) {
 				return getContentNetwork(((ISelectedContent)ds).getDM());
+			} else if (ds instanceof VuzeShareable ) {
+				return getContentNetwork(((VuzeShareable)ds).getDownloadManager());
 			} else if ((ds instanceof String) && ((String)ds).length() == 32) {
 				// assume 32 byte string is a hash and that it belongs to the def. network
 				id = ConstantsVuze.getDefaultContentNetwork().getID();
@@ -277,6 +288,9 @@ public class DataSourceUtils
 	public static DownloadUrlInfo getDownloadInfo(Object ds) {
 		if (ds instanceof ISelectedContent) {
 			return ((ISelectedContent)ds).getDownloadInfo();
+		}
+		if (ds instanceof VuzeShareable ) {
+			return ((VuzeShareable)ds).getDownloadInfo();
 		}
 		return null;
 	}

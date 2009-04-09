@@ -24,6 +24,7 @@ import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
@@ -1355,7 +1356,7 @@ public class VuzeBuddyManager
 	 * @since 3.0.5.3
 	 */
 	public static void inviteWithShare(final Map invites,
-			final SelectedContentV3 contentToShare, final String shareMessage,
+			final VuzeShareable contentToShare, final String shareMessage,
 			final VuzeBuddy[] buddies)
 			throws NotLoggedInException {
 		if (!LoginInfoManager.getInstance().isLoggedIn()) {
@@ -1373,7 +1374,7 @@ public class VuzeBuddyManager
 	}
 
 	private static void _inviteWithShare(Map invites,
-			SelectedContentV3 contentToShare, String shareMessage,
+			VuzeShareable contentToShare, String shareMessage,
 			VuzeBuddy[] buddies)
 			throws NotLoggedInException {
 
@@ -1383,8 +1384,11 @@ public class VuzeBuddyManager
 
 		String name = "na";
 		if (contentToShare != null) {
-			name = contentToShare.getDM() == null ? contentToShare.getDisplayName()
-					: contentToShare.getDM().toString();
+			
+			DownloadManager dm = contentToShare.getDownloadManager();
+			
+			name = dm == null ? contentToShare.getDisplayName()
+					: dm.toString();
 		}
 
 		if (buddies != null && contentToShare != null) {
@@ -1438,7 +1442,7 @@ public class VuzeBuddyManager
 		}
 	}
 
-	private static void queueShare(SelectedContentV3 content, String message,
+	private static void queueShare(VuzeShareable content, String message,
 			String code) {
 		if (content == null) {
 			return;

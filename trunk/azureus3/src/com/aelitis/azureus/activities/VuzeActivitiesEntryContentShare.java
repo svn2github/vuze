@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 
+import com.aelitis.azureus.buddy.VuzeShareable;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -61,7 +62,7 @@ public class VuzeActivitiesEntryContentShare
 		super();
 	}
 
-	public VuzeActivitiesEntryContentShare(SelectedContentV3 content,
+	public VuzeActivitiesEntryContentShare(VuzeShareable content,
 			String message) throws NotLoggedInException {
 		if (content == null) {
 			return;
@@ -71,7 +72,8 @@ public class VuzeActivitiesEntryContentShare
 			throw new NotLoggedInException();
 		}
 
-		DownloadManager dm = content.getDM();
+		DownloadManager dm = content.getDownloadManager();
+		
 		TOTorrent torrent = dm == null ? null : dm.getTorrent();
 
 		boolean ourContent = content.isPlatformContent();
@@ -131,8 +133,8 @@ public class VuzeActivitiesEntryContentShare
 		version = 2;
 
 		setAssetHash(content.getHash());
-		if (content.getDM() != null) {
-			setDownloadManager(content.getDM());
+		if ( dm != null) {
+			setDownloadManager( dm );
 		}
 		setShowThumb(true);
 		if (content.getImageBytes() == null) {

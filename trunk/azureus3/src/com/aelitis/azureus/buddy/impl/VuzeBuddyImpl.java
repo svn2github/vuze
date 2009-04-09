@@ -29,6 +29,7 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
+import com.aelitis.azureus.buddy.VuzeShareable;
 import com.aelitis.azureus.buddy.chat.ChatMessage;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
@@ -361,7 +362,7 @@ public class VuzeBuddyImpl
 	}
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#shareDownload(com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentContent, java.lang.String)
-	public void shareDownload(SelectedContentV3 content, String message)
+	public void shareDownload(VuzeShareable content, String message)
 			throws NotLoggedInException {
 		if (content == null) {
 			return;

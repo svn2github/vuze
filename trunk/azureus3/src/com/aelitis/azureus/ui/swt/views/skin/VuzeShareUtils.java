@@ -4,16 +4,19 @@ import java.util.GregorianCalendar;
 
 import org.eclipse.swt.SWT;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.buddy.VuzeShareable;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.cnetwork.impl.ContentNetworkVuze;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
@@ -49,6 +52,8 @@ public class VuzeShareUtils
 	public void shareTorrent(final SelectedContentV3 currentContent,
 			final String referer) {
 		
+		final DownloadManager dm = currentContent.getDM();
+		
 		if (!canShare(currentContent)) {
 			Debug.out("Tried to share " + currentContent.getHash()
 					+ " but not shareable");
@@ -63,9 +68,9 @@ public class VuzeShareUtils
 			return;
 		}
 
-		//TODO : Gudy : make sure that this private detection method is reliable enough
-		if (currentContent.getDM() != null
-				&& (TorrentUtils.isReallyPrivate(currentContent.getDM().getTorrent()))) {
+			//TODO : Gudy : make sure that this private detection method is reliable enough
+		
+		if ( dm != null	&& (TorrentUtils.isReallyPrivate(currentContent.getDM().getTorrent()))) {
 			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "v3.share.private",
 					(String[]) null);
 			return;
@@ -83,7 +88,82 @@ public class VuzeShareUtils
 					wizard.setSize(500, 550);
 
 					com.aelitis.azureus.ui.swt.shells.friends.SharePage newSharePage = (com.aelitis.azureus.ui.swt.shells.friends.SharePage) wizard.getPage(com.aelitis.azureus.ui.swt.shells.friends.SharePage.ID);
-					newSharePage.setShareItem(currentContent, referer);
+					
+					VuzeShareable	shareable = 
+						new	VuzeShareable()
+						{
+							public String
+							getHash()
+							{
+								return( currentContent.getHash());
+							}
+							
+							public String
+							getDisplayName()
+							{
+								return( currentContent.getDisplayName());
+							}
+							
+							public String
+							getThumbURL()
+							{
+								return( currentContent.getThumbURL());
+							}
+							
+							public boolean
+							isPlatformContent()
+							{
+								return( currentContent.isPlatformContent());
+							}
+							
+							public String 
+							getPublisher() 
+							{
+								if ( dm == null ){
+									
+									return( null );
+								}
+								
+								return( PlatformTorrentUtils.getContentPublisher(dm.getTorrent()));
+							}
+							
+							public long 
+							getSize() 
+							{
+								if ( dm == null ){
+									
+									return( 0 );
+								}
+								
+								return( dm.getSize());
+							}
+							
+							public byte[]
+							getImageBytes()
+							{
+								return( currentContent.getImageBytes());
+							}
+							
+							public boolean
+							canPlay()
+							{
+								return( currentContent.canPlay());
+							}
+							
+							public DownloadManager 
+							getDownloadManager() 
+							{
+								return( currentContent.getDM());
+							}
+							
+							public DownloadUrlInfo 
+							getDownloadInfo() 
+							{
+								return( currentContent.getDownloadInfo());
+							}
+						};
+					
+					newSharePage.setShareItem( shareable, referer );
 
 					/*
 					 * Opens a centered free-floating shell

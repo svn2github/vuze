@@ -27,6 +27,7 @@ import org.gudy.azureus2.ui.swt.shells.AbstractWizardPage;
 import org.gudy.azureus2.ui.swt.shells.MultipageWizard;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.buddy.VuzeShareable;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.login.NotLoggedInException;
@@ -307,7 +308,7 @@ public class AddFriendsPage
 								Utils.execSWTThread(new AERunnable() {
 									public void runSupport() {
 										try {
-											SelectedContentV3 shareItem = null;
+											VuzeShareable shareItem = null;
 											String commentText = null;
 											VuzeBuddy[] buddies = null;
 											List buddiesToShareWith = null;

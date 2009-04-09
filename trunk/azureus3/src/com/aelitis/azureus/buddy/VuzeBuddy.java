@@ -78,7 +78,7 @@ public interface VuzeBuddy
 
 	public void loadFromMap(Map mapNewBuddy);
 
-	public void shareDownload(SelectedContentV3 content, String message) throws NotLoggedInException;
+	public void shareDownload(VuzeShareable content, String message) throws NotLoggedInException;
 
 	public void sendPayloadMap(Map map) throws NotLoggedInException;
 

@@ -31,7 +31,6 @@ import com.aelitis.azureus.ui.swt.columns.subscriptions.*;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class SubscriptionsView
@@ -85,6 +84,20 @@ public class SubscriptionsView
 		if("remove".equals(itemKey) ) {
 			return view.getSelectedRowsSize() > 0;
 		}
+		if("share".equals(itemKey) ) {
+			
+			TableRowCore[] rows = view.getSelectedRows();
+			
+			if ( rows.length == 1 ){
+				
+				Subscription subs = (Subscription) rows[0].getDataSource();
+									
+				return( true );
+			}
+			
+			return( false );
+		}
+		
 		return false;
 	}
 	
@@ -219,8 +232,13 @@ public class SubscriptionsView
 			}
 			
 			public void selected(TableRowCore[] rows) {
-				ISelectedContent[] sels = new ISelectedContent[1];
-				sels[0] = new ToolBarEnablerSelectedContent(SubscriptionsView.this);
+				ISelectedContent[] sels = new ISelectedContent[rows.length];
+				
+				for (int i=0;i<rows.length;i++){
+					
+					sels[i] = new SubscriptionSelectedContent(SubscriptionsView.this, (Subscription)rows[i].getDataSource());
+				}
+				
 				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler",
 						sels, view);
 			}
