@@ -255,13 +255,24 @@ public class VuzeActivitiesEntry
 			try {
 				// make a copy of the torrent
 
-				TOTorrent torrent_to_send = TOTorrentFactory.deserialiseFromMap(torrent.serialiseToMap());
+				Map torrent_map = torrent.serialiseToMap();
+				
+				TOTorrent torrent_to_send = TOTorrentFactory.deserialiseFromMap( torrent_map );
 
+				Map	vuze_map = (Map)torrent_map.get( "vuze" );
+				
 				// remove any non-standard stuff (e.g. resume data)
 
 				torrent_to_send.removeAdditionalProperties();
 
-				map.put("torrent", torrent_to_send.serialiseToMap());
+				torrent_map = torrent_to_send.serialiseToMap();
+				
+				if ( vuze_map != null ){
+					
+					torrent_map.put( "vuze", vuze_map );
+				}
+				
+				map.put("torrent", torrent_map );
 			} catch (TOTorrentException e) {
 				Debug.outNoStack("VuzeActivityEntry.toMap: " + e.toString());
 			}
@@ -512,8 +523,12 @@ public class VuzeActivitiesEntry
 		dm = getDownloadManger();
 		if (dm != null) {
 			sc.setDisplayName(PlatformTorrentUtils.getContentTitle2(dm));
-			sc.setDM(dm);
+			sc.setDownloadManager(dm);
 			return sc;
+		}else{
+			if ( torrent != null ){
+				sc.setTorrent( torrent );
+			}
 		}
 
 		sc.setDisplayName(getTorrentName());
@@ -527,10 +542,14 @@ public class VuzeActivitiesEntry
 			}
 		}
 		
-		if (sc.getHash() == null && assetHash != null) {
-			sc.setHash(assetHash, true);
-		} else {
-			throw new Exception("No Download Info");
+		if (sc.getHash() == null ){
+			
+			if ( assetHash != null ){
+
+				sc.setHash(assetHash, true);
+			} else {
+				throw new Exception("No Download Info");
+			}
 		}
 
 		sc.setThumbURL(assetImageURL);

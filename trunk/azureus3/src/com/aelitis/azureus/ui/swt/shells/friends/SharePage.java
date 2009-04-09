@@ -511,7 +511,12 @@ public class SharePage
 			contentStats.append("From: " + publisher + "\n");
 		}
 
-		contentStats.append("File size: " + DisplayFormatters.formatByteCountToKiBEtc(shareItem.getSize()));
+		long size = shareItem.getSize();
+		
+		if ( size > 0 ){
+			
+			contentStats.append("File size: " + DisplayFormatters.formatByteCountToKiBEtc( size ));
+		}
 	}
 	
 	public ClientMessageContext getMessageContext() {
@@ -638,6 +643,7 @@ public class SharePage
 //		return context;
 //	}
 
+	/*
 	private void showConfirmationDialog(List buddiesToShareWith) {
 
 		if (null != buddyPageListener) {
@@ -649,13 +655,13 @@ public class SharePage
 				buddiesToShareWith = Collections.EMPTY_LIST;
 			}
 
-			/*
-			 * Share only
-			 */
+			//
+			// Share only
+			//
 			if (buddyPageListener.getInvitationsSent() == 0) {
-				/*
-				 * The main message to display
-				 */
+				//
+				// The main message to display
+				//
 				if (buddiesToShareWith.size() > 1) {
 					message[0] = MessageText.getString("message.confirm.share.plural");
 				} else {
@@ -663,9 +669,9 @@ public class SharePage
 				}
 			}
 
-			/*
-			 * Share with invitations
-			 */
+			//
+			// Share with invitations
+			//
 			else {
 
 				boolean hasError = false;
@@ -682,9 +688,9 @@ public class SharePage
 					message[0] = MessageText.getString("message.confirm.invite.error");
 					messages.addAll(buddyPageListener.getConfirmationMessages());
 				} else {
-					/*
-					 * The main message to display
-					 */
+					//
+					// The main message to display
+					//
 					if (buddiesToShareWith.size()
 							+ buddyPageListener.getInvitationsSent() == 1) {
 						message[0] = MessageText.getString("message.confirm.share.invite.singular");
@@ -717,6 +723,7 @@ public class SharePage
 			});
 		}
 	}
+*/
 
 	private Browser getBrowser() {
 		if (null == browser) {

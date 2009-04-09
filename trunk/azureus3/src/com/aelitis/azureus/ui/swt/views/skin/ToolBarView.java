@@ -190,7 +190,7 @@ public class ToolBarView
   							for (int i = 0; i < contents.length; i++) {
   								ISelectedContent selectedContent = contents[i];
   
-  								DownloadManager dm = selectedContent.getDM();
+  								DownloadManager dm = selectedContent.getDownloadManager();
   								if (dm == null) {
   									continue;
   								}
@@ -228,7 +228,7 @@ public class ToolBarView
 				}
 				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 				if (contents.length > 0) {
-					VuzeShareUtils.getInstance().shareTorrent(contents[0], "ToolBar");
+					VuzeShareUtils.getInstance().shareContent(contents[0], "ToolBar");
 				}
 			}
 		};
@@ -696,7 +696,7 @@ public class ToolBarView
 		} else if (currentContent.length > 0 && hasRealDM) {
 			for (int i = 0; i < currentContent.length; i++) {
 				ISelectedContent content = currentContent[i];
-				DownloadManager dm = content.getDM();
+				DownloadManager dm = content.getDownloadManager();
 				if (!canStart && ManagerUtils.isStartable(dm)) {
 					canStart = true;
 				}
@@ -718,7 +718,7 @@ public class ToolBarView
 			boolean canRun = has1Selection;
 			if (canRun) {
 				ISelectedContent content = currentContent[0];
-				DownloadManager dm = content.getDM();
+				DownloadManager dm = content.getDownloadManager();
 
 				if (dm == null) {
 					canRun = false;
@@ -764,7 +764,7 @@ public class ToolBarView
 		item = getToolBarItem("download");
 		if (item != null) {
 			boolean enabled = has1Selection
-					&& currentContent[0].getDM() == null
+					&& currentContent[0].getDownloadManager() == null
 					&& (currentContent[0].getHash() != null || currentContent[0].getDownloadInfo() != null);
 			item.setEnabled(enabled);
 		}

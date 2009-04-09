@@ -133,7 +133,7 @@ public class TorrentListener
 						displayName, true, canPlay);
 				content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail.url",
 						null));
-				VuzeShareUtils.getInstance().shareTorrent(content, referer);
+				VuzeShareUtils.getInstance().shareContent(content, referer);
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);

@@ -74,7 +74,7 @@ public class VuzeActivitiesEntryContentShare
 
 		DownloadManager dm = content.getDownloadManager();
 		
-		TOTorrent torrent = dm == null ? null : dm.getTorrent();
+		TOTorrent torrent = content.getTorrent();
 
 		boolean ourContent = content.isPlatformContent();
 

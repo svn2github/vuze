@@ -23,6 +23,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.eclipse.swt.program.Program;
 
@@ -50,6 +51,9 @@ import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -240,6 +244,24 @@ public class TorrentListViewsUtils
 	public static void downloadDataSource(Object ds, boolean playNow,
 			String referal) {
 		TOTorrent torrent = DataSourceUtils.getTorrent(ds);
+		
+			// handle encapsulated vuze file
+		try{
+			Map torrent_map = torrent.serialiseToMap();
+			
+			torrent_map.remove( "info" );
+			
+			VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile( torrent_map );
+		
+			if ( vf != null ){
+				
+				VuzeFileHandler.getSingleton().handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
+				
+				return;
+			}
+		}catch( Throwable e ){
+			
+		}
 		// we want to re-download the torrent if it's ours, since the existing
 		// one is likely stale
 		if (torrent != null && !DataSourceUtils.isPlatformContent(ds)) {

@@ -22,6 +22,7 @@
 package com.aelitis.azureus.buddy;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 
@@ -51,6 +52,14 @@ VuzeShareable
 	
 	public boolean
 	canPlay();
+	
+		/**
+		 * Can return null 
+		 * @return
+		 */
+	
+	public TOTorrent
+	getTorrent();
 	
 		/**
 		 * Can return null if none associated with this share

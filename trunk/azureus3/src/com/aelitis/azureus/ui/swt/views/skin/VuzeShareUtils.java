@@ -22,7 +22,9 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.shells.friends.SharePage;
 import com.aelitis.azureus.ui.swt.shells.friends.ShareWizard;
+import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionSelectedContent;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.DataSourceUtils;
 
@@ -39,29 +41,57 @@ public class VuzeShareUtils
 		return instance;
 	}
 
-	public void shareTorrent(ISelectedContent content, String referer) {
+		/**
+		 * Used by EMP
+		 * @deprecated
+		 * @param content
+		 * @param referer
+		 */
+	
+	public void 
+	shareTorrent(
+		ISelectedContent content, String referer) 
+	{
+		shareContent( content, referer );
+	}
+	
+	public void
+	shareContent(
+		ISelectedContent 	content, 
+		String 				referer )
+	{
 		if (content instanceof SelectedContentV3) {
 			SelectedContentV3 sc = (SelectedContentV3) content;
-			shareTorrent(sc, referer);
+			shareContent(sc, referer);
 		} else if (content instanceof SelectedContent) {
 			SelectedContent sc = (SelectedContent) content;
-			shareTorrent(new SelectedContentV3(sc), referer);
+			shareContent(new SelectedContentV3(sc), referer);
+		}else if ( content instanceof SubscriptionSelectedContent ){
+			
+			shareVuzeFile((SubscriptionSelectedContent)content, referer );
+			
+		}else{
+			
+			Debug.out( "No share method defined for " + content );
 		}
 	}
 
-	public void shareTorrent(final SelectedContentV3 currentContent,
-			final String referer) {
+	public void 
+	shareContent(
+		final SelectedContentV3 	content,
+		final String 				referer ) 
+	{
 		
-		final DownloadManager dm = currentContent.getDM();
+		final DownloadManager dm = content.getDownloadManager();
 		
-		if (!canShare(currentContent)) {
-			Debug.out("Tried to share " + currentContent.getHash()
+		if (!canShare(content)) {
+			Debug.out("Tried to share " + content.getHash()
 					+ " but not shareable");
 			return;
 		}
 
 		PlatformBuddyMessenger.startShare(referer,
-				currentContent.isPlatformContent() ? currentContent.getHash() : null);
+				content.isPlatformContent() ? content.getHash() : null);
 
 		if (!VuzeBuddyManager.isEnabled()) {
 			VuzeBuddyManager.showDisabledDialog();
@@ -70,12 +100,189 @@ public class VuzeShareUtils
 
 			//TODO : Gudy : make sure that this private detection method is reliable enough
 		
-		if ( dm != null	&& (TorrentUtils.isReallyPrivate(currentContent.getDM().getTorrent()))) {
+		if ( dm != null	&& (TorrentUtils.isReallyPrivate(content.getTorrent()))) {
 			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "v3.share.private",
 					(String[]) null);
 			return;
 		}
 
+
+		VuzeShareable	shareable = 
+			new	VuzeShareable()
+			{
+				public String
+				getHash()
+				{
+					return( content.getHash());
+				}
+				
+				public String
+				getDisplayName()
+				{
+					return( content.getDisplayName());
+				}
+				
+				public String
+				getThumbURL()
+				{
+					return( content.getThumbURL());
+				}
+				
+				public boolean
+				isPlatformContent()
+				{
+					return( content.isPlatformContent());
+				}
+				
+				public String 
+				getPublisher() 
+				{
+					if ( dm == null ){
+						
+						return( null );
+					}
+					
+					return( PlatformTorrentUtils.getContentPublisher(dm.getTorrent()));
+				}
+				
+				public long 
+				getSize() 
+				{
+					if ( dm == null ){
+						
+						return( 0 );
+					}
+					
+					return( dm.getSize());
+				}
+				
+				public byte[]
+				getImageBytes()
+				{
+					return( content.getImageBytes());
+				}
+				
+				public boolean
+				canPlay()
+				{
+					return( content.canPlay());
+				}
+				
+				public TOTorrent 
+				getTorrent() 
+				{
+					return(content.getTorrent());
+				}
+				
+				public DownloadManager 
+				getDownloadManager() 
+				{
+					return( content.getDownloadManager());
+				}
+				
+				public DownloadUrlInfo 
+				getDownloadInfo() 
+				{
+					return( content.getDownloadInfo());
+				}
+			};
+
+		doShare( shareable, referer );
+	}
+	
+	public void 
+	shareVuzeFile(
+		final SubscriptionSelectedContent 	content,
+		final String 						referer ) 
+	{
+		
+		PlatformBuddyMessenger.startShare( referer, null );
+
+		if (!VuzeBuddyManager.isEnabled()){
+			
+			VuzeBuddyManager.showDisabledDialog();
+			
+			return;
+		}
+
+		VuzeShareable	shareable = 
+			new	VuzeShareable()
+			{
+				public String
+				getHash()
+				{
+					return( content.getHash());
+				}
+				
+				public String
+				getDisplayName()
+				{
+					return( content.getDisplayName());
+				}
+				
+				public String
+				getThumbURL()
+				{
+					return( null );
+				}
+				
+				public boolean
+				isPlatformContent()
+				{
+					return( false );
+				}
+				
+				public String 
+				getPublisher() 
+				{
+					return( null );
+				}
+				
+				public long 
+				getSize() 
+				{
+					return( 0 );
+				}
+				
+				public byte[]
+				getImageBytes()
+				{
+					return( null );
+				}
+				
+				public boolean
+				canPlay()
+				{
+					return( false );
+				}
+				
+				public TOTorrent 
+				getTorrent() 
+				{
+					return( content.getTorrent());
+				}
+				
+				public DownloadManager 
+				getDownloadManager() 
+				{
+					return( null );
+				}
+				
+				public DownloadUrlInfo 
+				getDownloadInfo() 
+				{
+					return( null );
+				}
+			};
+
+		doShare( shareable, referer );
+	}
+	
+	protected void
+	doShare(
+		final VuzeShareable	shareable,
+		final String		referer )
+	{
 		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 			public void loginComplete() {
 				try {
@@ -87,82 +294,8 @@ public class VuzeShareUtils
 					wizard.setText("Vuze - Wizard");
 					wizard.setSize(500, 550);
 
-					com.aelitis.azureus.ui.swt.shells.friends.SharePage newSharePage = (com.aelitis.azureus.ui.swt.shells.friends.SharePage) wizard.getPage(com.aelitis.azureus.ui.swt.shells.friends.SharePage.ID);
-					
-					VuzeShareable	shareable = 
-						new	VuzeShareable()
-						{
-							public String
-							getHash()
-							{
-								return( currentContent.getHash());
-							}
-							
-							public String
-							getDisplayName()
-							{
-								return( currentContent.getDisplayName());
-							}
-							
-							public String
-							getThumbURL()
-							{
-								return( currentContent.getThumbURL());
-							}
-							
-							public boolean
-							isPlatformContent()
-							{
-								return( currentContent.isPlatformContent());
-							}
-							
-							public String 
-							getPublisher() 
-							{
-								if ( dm == null ){
-									
-									return( null );
-								}
-								
-								return( PlatformTorrentUtils.getContentPublisher(dm.getTorrent()));
-							}
-							
-							public long 
-							getSize() 
-							{
-								if ( dm == null ){
-									
-									return( 0 );
-								}
-								
-								return( dm.getSize());
-							}
-							
-							public byte[]
-							getImageBytes()
-							{
-								return( currentContent.getImageBytes());
-							}
-							
-							public boolean
-							canPlay()
-							{
-								return( currentContent.canPlay());
-							}
-							
-							public DownloadManager 
-							getDownloadManager() 
-							{
-								return( currentContent.getDM());
-							}
-							
-							public DownloadUrlInfo 
-							getDownloadInfo() 
-							{
-								return( currentContent.getDownloadInfo());
-							}
-						};
-					
+					SharePage newSharePage = (SharePage) wizard.getPage( SharePage.ID );
+				
 					newSharePage.setShareItem( shareable, referer );
 
 					/*
@@ -170,6 +303,7 @@ public class VuzeShareUtils
 					 */
 
 					UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+					
 					if (null == uiFunctions) {
 						/*
 						 * Centers on the active monitor
@@ -185,13 +319,13 @@ public class VuzeShareUtils
 
 					wizard.open();
 
-				} catch (Exception e) {
-					e.printStackTrace();
+				} catch (Throwable e) {
+					Debug.printStackTrace(e);
 				}
 			}
 		});
 	}
-	
+
 	public boolean canShare(Object datasource) {
 		TOTorrent torrent = DataSourceUtils.getTorrent(datasource);
 		if (torrent == null) {

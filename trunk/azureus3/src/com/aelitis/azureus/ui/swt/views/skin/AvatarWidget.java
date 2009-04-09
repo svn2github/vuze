@@ -342,7 +342,7 @@ public class AvatarWidget
 													public void run() {
 														try {
 															SelectedContentV3 sc = new SelectedContentV3(dm);
-															VuzeShareUtils.getInstance().shareTorrent(sc,
+															VuzeShareUtils.getInstance().shareContent(sc,
 																	"buddy-dnd");
 														} catch (Exception e) {
 															e.printStackTrace();

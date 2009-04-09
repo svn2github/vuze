@@ -1,6 +1,7 @@
 package com.aelitis.azureus.ui.swt.toolbar;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
@@ -14,10 +15,13 @@ public class ToolBarEnablerSelectedContent implements ISelectedContent {
 		this.enabler = enabler;
 	}
 	
-	public DownloadManager getDM() {
+	public DownloadManager getDownloadManager() {
 		return null;
 	}
 
+	public TOTorrent getTorrent() {
+		return null;
+	}
 	public String getDisplayName() {
 		return "";
 	}
@@ -30,10 +34,14 @@ public class ToolBarEnablerSelectedContent implements ISelectedContent {
 		return null;
 	}
 
-	public void setDM(DownloadManager dm) {
+	public void setDownloadManager(DownloadManager dm) {
 
 	}
 
+	public void setTorrent(TOTorrent t ){
+		
+	}
+	
 	public void setDisplayName(String displayName) {
 
 	}

@@ -71,7 +71,7 @@ public class DataSourceUtils
 				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 				return gm.getDownloadManager((TOTorrent) ds);
 			} else if (ds instanceof ISelectedContent) {
-				return getDM(((ISelectedContent)ds).getDM()); 
+				return getDM(((ISelectedContent)ds).getDownloadManager()); 
 			} else if (ds instanceof VuzeShareable) {
 				return getDM(((VuzeShareable)ds).getDownloadManager()); 
 			} else 	if (ds instanceof TranscodeJob) {
@@ -167,7 +167,7 @@ public class DataSourceUtils
 		
 
 		if (ds instanceof ISelectedContent) {
-			return getTorrent(((ISelectedContent)ds).getDM());
+			return ((ISelectedContent)ds).getTorrent();
 		}
 		
 		if (ds instanceof String) {
@@ -237,7 +237,7 @@ public class DataSourceUtils
 				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
 				return entry.getContentNetwork();
 			} else if (ds instanceof ISelectedContent) {
-				return getContentNetwork(((ISelectedContent)ds).getDM());
+				return getContentNetwork(((ISelectedContent)ds).getDownloadManager());
 			} else if (ds instanceof VuzeShareable ) {
 				return getContentNetwork(((VuzeShareable)ds).getDownloadManager());
 			} else if ((ds instanceof String) && ((String)ds).length() == 32) {

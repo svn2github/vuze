@@ -250,7 +250,7 @@ public class SBC_ActivityTableView
 						listContent.add(currentContent);
 					}
 				} catch (Exception e) {
-					//e.printStackTrace();
+					e.printStackTrace();
 				}
 			}
 		}

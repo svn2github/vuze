@@ -19,6 +19,7 @@
 package com.aelitis.azureus.ui.selectedcontent;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -49,7 +50,7 @@ public class SelectedContentV3
 
 	public SelectedContentV3(SelectedContent content) {
 		this.content = content;
-		this.setDM(content.getDM());
+		this.setDownloadManager(content.getDownloadManager());
 	}
 
 	public SelectedContentV3() {
@@ -65,7 +66,7 @@ public class SelectedContentV3
 
 	public SelectedContentV3(DownloadManager dm) throws Exception {
 		content = new SelectedContent();
-		setDM(dm);
+		setDownloadManager(dm);
 	}
 
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDisplayName()
@@ -74,10 +75,14 @@ public class SelectedContentV3
 	}
 
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDM()
-	public DownloadManager getDM() {
-		return content.getDM();
+	public DownloadManager getDownloadManager() {
+		return content.getDownloadManager();
 	}
 
+	public TOTorrent getTorrent(){
+		return content.getTorrent();
+	}
+	
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getHash()
 	public String getHash() {
 		return content.getHash();
@@ -89,21 +94,32 @@ public class SelectedContentV3
 	}
 
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setDM(org.gudy.azureus2.core3.download.DownloadManager)
-	public void setDM(DownloadManager dm) {
-		content.setDM(dm);
-		if (dm != null) {
-			try {
-				setHash(dm.getTorrent().getHashWrapper().toBase32String());
-			} catch (Exception e) {
-				setHash(null);
-			}
-  		setPlatformContent(PlatformTorrentUtils.isContent(dm.getTorrent(), true));
-  		setDisplayName(PlatformTorrentUtils.getContentTitle2(dm));
-  		setCanPlay(PlayUtils.canUseEMP(dm.getTorrent()));
-  		setImageBytes(PlatformTorrentUtils.getContentThumbnail(dm.getTorrent()));
+	public void setDownloadManager(DownloadManager dm) {
+		content.setDownloadManager(dm);
+		if ( dm != null ){
+			setTorrent( dm.getTorrent());
+
+			setDisplayName(PlatformTorrentUtils.getContentTitle2(dm));
 		}
 	}
 
+	public void setTorrent( TOTorrent torrent ){
+		content.setTorrent( torrent );
+		
+		if ( torrent != null ){
+			
+			try {
+				setHash(torrent.getHashWrapper().toBase32String());
+			} catch (Exception e) {
+				setHash(null);
+			}
+			setPlatformContent(PlatformTorrentUtils.isContent(torrent, true));
+			setDisplayName(PlatformTorrentUtils.getContentTitle( torrent ));
+			setCanPlay(PlayUtils.canUseEMP(torrent));
+			setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));
+		}
+	}
+	
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setHash(java.lang.String)
 	public void setHash(String hash) {
 		content.setHash(hash);
