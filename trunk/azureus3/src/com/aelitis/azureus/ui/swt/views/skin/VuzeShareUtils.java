@@ -18,13 +18,13 @@ import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedVuzeFileContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.friends.SharePage;
 import com.aelitis.azureus.ui.swt.shells.friends.ShareWizard;
-import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionSelectedContent;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.DataSourceUtils;
 
@@ -66,9 +66,9 @@ public class VuzeShareUtils
 		} else if (content instanceof SelectedContent) {
 			SelectedContent sc = (SelectedContent) content;
 			shareContent(new SelectedContentV3(sc), referer);
-		}else if ( content instanceof SubscriptionSelectedContent ){
+		}else if ( content instanceof ISelectedVuzeFileContent ){
 			
-			shareVuzeFile((SubscriptionSelectedContent)content, referer );
+			shareVuzeFile((ISelectedVuzeFileContent)content, referer );
 			
 		}else{
 			
@@ -192,7 +192,7 @@ public class VuzeShareUtils
 	
 	public void 
 	shareVuzeFile(
-		final SubscriptionSelectedContent 	content,
+		final ISelectedVuzeFileContent 		content,
 		final String 						referer ) 
 	{
 		

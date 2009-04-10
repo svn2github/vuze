@@ -35,11 +35,13 @@ import org.gudy.azureus2.ui.swt.IconBarEnabler;
 
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedVuzeFileContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 
 public class 
 SubscriptionSelectedContent 
 	extends ToolBarEnablerSelectedContent
+	implements ISelectedVuzeFileContent
 {
 	private Subscription		subs;
 	
@@ -54,13 +56,7 @@ SubscriptionSelectedContent
 		
 		subs	= _subs;
 	}
-	
-	public Subscription
-	getSubscription()
-	{
-		return( subs );
-	}
-	
+		
 	public String 
 	getDisplayName() 
 	{
@@ -71,6 +67,20 @@ SubscriptionSelectedContent
 	getHash()
 	{
 		return( subs.getID());
+	}
+	
+	public VuzeFile
+	getVuzeFile()
+	{
+		try{
+			return( subs.getVuzeFile());
+			
+		}catch( Throwable e ){
+			
+			Debug.out(e);
+		}
+		
+		return( null );
 	}
 	
 	public TOTorrent
