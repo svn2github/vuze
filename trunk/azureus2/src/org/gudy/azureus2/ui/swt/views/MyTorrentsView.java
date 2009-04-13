@@ -47,8 +47,11 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
@@ -76,11 +79,6 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
-import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 /** Displays a list of torrents in a table view.
  *
@@ -149,6 +147,7 @@ public class MyTorrentsView
 	private boolean forceHeaderVisible = false;
 	private TableSelectionListener defaultSelectedListener;
 	private Composite cFilterArea;
+	protected boolean resizeHeaderEventQueued;
 
 	public
 	MyTorrentsView() {
@@ -418,11 +417,15 @@ public class MyTorrentsView
         cCategories.setLayoutData(fd);
         cHeader.addListener(SWT.Resize, new Listener(){
 					public void handleEvent(Event event) {
-						Utils.execSWTThreadLater(0, new AERunnable(){
-							public void runSupport() {
-								resizeHeader();
-							}
-						});
+						if (!resizeHeaderEventQueued) {
+  		        resizeHeaderEventQueued = true;
+  						Utils.execSWTThreadLater(0, new AERunnable(){
+  							public void runSupport() {
+  								resizeHeader();
+  								resizeHeaderEventQueued = false;
+  							}
+  						});
+						}
 					}
 				});
 
@@ -508,8 +511,11 @@ public class MyTorrentsView
 	protected void resizeHeader() {
 		Point curCatPos = cCategories.getLocation();
 		int posEndFilter = cFilterArea.getLocation().x + (cFilterArea.isVisible() ? 170 : 0);
+		
+		boolean onNewLine = ((FormData)cCategories.getLayoutData()).left != null;
+		
 		//System.out.println("posend=" + posEndFilter + ";curcat" + curCatPos);
-		if (curCatPos.x < 10) {
+		if (onNewLine) {
 			Point prefSizeCat = cCategories.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			//System.out.println("pref=" + prefSizeCat + ";sz=" + cHeader.getClientArea());
 			if (prefSizeCat.x + posEndFilter < cHeader.getClientArea().width) {
