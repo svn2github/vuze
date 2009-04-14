@@ -40,6 +40,23 @@ public class VirtualChannelSelectorImpl {
 	
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
+	private static final boolean MAYBE_BROKEN_SELECT;
+	
+	static{
+	
+			// freebsd 7.x and diablo 1.6 no works as selector returns none ready even though
+			// there's a bunch readable
+		
+		String jvm_name = System.getProperty( "java.vm.name", "" );
+		
+		MAYBE_BROKEN_SELECT = jvm_name.startsWith( "Diablo" );
+	}
+	
+	private boolean select_is_broken;
+	private int		select_looks_broken_count;
+	private boolean	logged_broken_select;
+	
+	
 	/*
 	static boolean	rm_trace 	= false;
 	static boolean	rm_test_fix = false;
@@ -508,7 +525,40 @@ public class VirtualChannelSelectorImpl {
  	    	
  	    return( 0 );
  	  }
- 	   	  
+ 	  
+ 	 if ( MAYBE_BROKEN_SELECT && INTEREST_OP == VirtualChannelSelector.OP_READ && !select_is_broken ){
+ 		 
+ 		 if ( selector.selectedKeys().size() == 0 ){
+ 			 
+ 	 		 Set<SelectionKey> keys = selector.keys();
+
+	 		 for ( SelectionKey key: keys ){
+
+	 			 if ( key.isReadable()){
+	 				 
+	 				select_looks_broken_count++;
+	 				
+	 				break;
+	 			 }
+	 		 }
+	 		 
+	 		 if ( select_looks_broken_count >= 5 ){
+	 			 
+	 			 select_is_broken = true;
+	 			 
+	 			 if ( !logged_broken_select ){
+	 				 
+	 				logged_broken_select = true;
+	 				 
+	 				Debug.outNoStack( "Select operation looks broken, trying workaround" );
+	 			 }
+	 		 }
+ 		 }else{
+ 			 
+ 			 select_looks_broken_count = 0;
+ 		 }
+ 	 }
+ 	 
       /*
       if( INTEREST_OP == VirtualChannelSelector.OP_READ ) {  //TODO
       	select_counts[ round ] = count;
@@ -554,13 +604,33 @@ public class VirtualChannelSelectorImpl {
     	  }
       }
       
+      Collection<SelectionKey> original_selected_keys;
+      
+      if ( MAYBE_BROKEN_SELECT && INTEREST_OP == VirtualChannelSelector.OP_READ && select_is_broken ){
+    	  
+    	  Set<SelectionKey> all_keys = selector.keys();
+    	  
+    	  original_selected_keys = new ArrayList<SelectionKey>();
+    	  
+    	  for ( SelectionKey key: all_keys ){
+    		  
+    		  if ( key.isReadable()){
+    			  
+    			  original_selected_keys.add( key );
+    		  }
+    	  }
+      }else{
+    	  
+    	  original_selected_keys = selector.selectedKeys();
+      }
+      
       Collection<SelectionKey>	selected_keys;
       
       boolean	randy = randomise_keys;
       
       if ( randy ){
     	  
-    	  List<SelectionKey> sk = new ArrayList<SelectionKey>( selector.selectedKeys());
+    	  List<SelectionKey> sk = new ArrayList<SelectionKey>( original_selected_keys );
       
     	  Collections.shuffle( sk );
     	  
@@ -568,7 +638,7 @@ public class VirtualChannelSelectorImpl {
     	  
       }else{
     	  
-    	  selected_keys = selector.selectedKeys();
+    	  selected_keys = original_selected_keys;
       }
       
       for( Iterator<SelectionKey> it= selected_keys.iterator(); it.hasNext(); ){
