@@ -509,6 +509,9 @@ public class MyTorrentsView
 	 * @since 4.1.0.5
 	 */
 	protected void resizeHeader() {
+		if (cCategories == null || cCategories.isDisposed()) {
+			return;
+		}
 		Point curCatPos = cCategories.getLocation();
 		int posEndFilter = cFilterArea.getLocation().x + (cFilterArea.isVisible() ? 170 : 0);
 		
