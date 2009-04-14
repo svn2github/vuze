@@ -29,19 +29,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
+import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
@@ -61,6 +65,9 @@ DeviceUPnPImpl
 {
 	private static final Object UPNPAV_FILE_KEY = new Object();
 		
+	private static final Map<String,AzureusContentFile>	acf_map = new WeakHashMap<String,AzureusContentFile>();
+	
+	
 	protected static String
 	getDisplayName(
 		UPnPDevice		device )
@@ -504,6 +511,18 @@ DeviceUPnPImpl
 				return;
 			}
 			
+			final String tf_key = transcode_file.getKey();
+
+			synchronized( acf_map ){
+				
+				acf = acf_map.get( tf_key );
+			}
+			
+			if ( acf != null ){
+				
+				return;
+			}
+			
 			final DiskManagerFileInfo stream_file = 
 				new DiskManagerFileInfoStream( 
 					new DiskManagerFileInfoStream.streamFactory()
@@ -598,9 +617,7 @@ DeviceUPnPImpl
 						}
 					},
 					transcode_file.getCacheFile());
-							
-			final String tf_key = transcode_file.getKey();
-			
+										
 			acf =	new AzureusContentFile()
 					{	
 					   	public DiskManagerFileInfo
@@ -624,6 +641,15 @@ DeviceUPnPImpl
 						}
 					};
 			
+			synchronized( acf_map ){
+
+				acf_map.put( tf_key, acf );
+			}
+					
+			transcode_file.setTransientProperty( UPNPAV_FILE_KEY, acf );
+
+			syncCategories( transcode_file );
+					
 			synchronized( this ){
 				
 				if ( dynamic_xcode_map == null ){
@@ -631,13 +657,11 @@ DeviceUPnPImpl
 					dynamic_xcode_map = new HashMap<String,AzureusContentFile>();
 				}
 				
-				dynamic_xcode_map.put( transcode_file.getKey(), acf );
+				dynamic_xcode_map.put( tf_key, acf );
 			}
 			
 			ipc.invoke( "addContent", new Object[]{ acf });
 			
-			transcode_file.setTransientProperty( UPNPAV_FILE_KEY, acf );
-
 		}catch( Throwable e ){
 			
 			Debug.out( e );
@@ -680,6 +704,11 @@ DeviceUPnPImpl
 				if ( acf != null ){
 				
 					ipc.invoke( "removeContent", new Object[]{ acf });
+				}
+				
+				synchronized( acf_map ){
+					
+					acf_map.remove( transcode_file.getKey());
 				}
 			}
 		}catch( Throwable e ){
@@ -750,9 +779,20 @@ DeviceUPnPImpl
 				return;
 			}
 
+			final String tf_key	= transcode_file.getKey();
+
+			synchronized( acf_map ){
+				
+				acf = acf_map.get( tf_key );
+			}
+			
+			if ( acf != null ){
+				
+				return;
+			}
+
 			try{
 				final DiskManagerFileInfo 	f 		= transcode_file.getTargetFile();
-				final String				tf_key	= transcode_file.getKey();
 							
 				acf = 
 					new AzureusContentFile()
@@ -773,6 +813,13 @@ DeviceUPnPImpl
 								
 							}else if ( name.equals( PT_CATEGORIES )){
 								
+								TranscodeFileImpl	tf = getTranscodeFile( tf_key );
+
+								if ( tf != null ){
+									
+									return( tf.getCategories());
+								}
+							
 								return( new String[0] );
 								
 							}else{
@@ -810,19 +857,82 @@ DeviceUPnPImpl
 							return( null );
 						}
 					};
+				
+				transcode_file.setTransientProperty( UPNPAV_FILE_KEY, acf );
+
+				synchronized( acf_map ){
+
+					acf_map.put( tf_key, acf );
+				}	
+				
+				syncCategories( transcode_file );
 					
 				try{
 					ipc.invoke( "addContent", new Object[]{ acf });
 				
-					transcode_file.setTransientProperty( UPNPAV_FILE_KEY, acf );
-					
 				}catch( Throwable e ){
 					
 					Debug.out( e );
 				}		
 			}catch( TranscodeException e ){
+				
 				// file deleted
 			}
+		}
+	}
+	
+	protected void
+	syncCategories(
+		TranscodeFileImpl		tf )
+	{
+		try{
+			Download dl = tf.getSourceFile().getDownload();
+			
+			if ( dl != null ){
+				
+				setCategories( tf, dl );
+				
+				final String tf_key = tf.getKey();
+				
+				dl.addAttributeListener(
+					new DownloadAttributeListener()
+					{
+						public void 
+						attributeEventOccurred(
+							Download 			download,
+							TorrentAttribute 	attribute, 
+							int 				eventType) 
+						{
+							TranscodeFileImpl tf = getTranscodeFile( tf_key );
+							
+							if ( tf != null ){
+								
+								setCategories( tf, download );
+							}
+						}
+					},
+					upnp_manager.getCategoryAttibute(),
+					DownloadAttributeListener.WRITTEN );
+			}
+		}catch( Throwable e ){
+			
+		}
+	}
+	
+	protected void
+	setCategories(
+		TranscodeFileImpl		tf,
+		Download				dl )
+	{
+		String	cat = dl.getCategoryName();
+		
+		if ( cat != null && cat.length() > 0 && !cat.equals( "Categories.uncategorized" )){
+			
+			tf.setCategories( new String[]{ cat });
+			
+		}else{
+			
+			tf.setCategories( new String[0] );
 		}
 	}
 	
@@ -835,6 +945,24 @@ DeviceUPnPImpl
 		if ( file.isComplete()){
 			
 			fileAdded( file );
+		}
+		
+		if ( type == TranscodeTargetListener.CT_PROPERTY ){
+			
+			if ( data == TranscodeFile.PT_CATEGORY ){
+				
+				AzureusContentFile	acf;
+				
+				synchronized( acf_map ){
+				
+					acf = acf_map.get(((TranscodeFileImpl)file).getKey());
+				}
+				
+				if ( acf != null ){
+					
+					AzureusPlatformContentDirectory.fireChanged( acf );
+				}
+			}
 		}
 	}
 	
@@ -869,6 +997,11 @@ DeviceUPnPImpl
 				Debug.out( e );
 			}
 		}
+		
+		synchronized( acf_map ){
+
+			acf_map.remove( ((TranscodeFileImpl)file).getKey());
+		}	
 	}
 	
 	protected URL

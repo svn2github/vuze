@@ -769,7 +769,10 @@ DeviceManagerImpl
 				device.generate( writer );
 			}
 			
-			transcode_manager.generate( writer );
+			if ( transcode_manager != null ){
+			
+				transcode_manager.generate( writer );
+			}
 		}finally{
 			
 			writer.exdent();

@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.devices;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -41,11 +42,14 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -318,6 +322,13 @@ public class SBC_DevicesView
 
 							column.setVisible(false);
 						}
+					}
+				});
+		
+		tableManager.registerColumn(TranscodeFile.class,
+				ColumnTJ_Category.COLUMN_ID, new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTJ_Category(column);
 					}
 				});
 	}
@@ -624,6 +635,17 @@ public class SBC_DevicesView
 		show_item.setEnabled((source_file != null && !files[0].isComplete())
 				|| (target_file != null && files[0].isComplete()));
 
+		
+			// category
+		
+	    Menu menu_category = new Menu(menu.getShell(), SWT.DROP_DOWN);
+	    final MenuItem item_category = new MenuItem(menu, SWT.CASCADE);
+	    Messages.setLanguageText(item_category, "MyTorrentsView.menu.setCategory");
+	    item_category.setMenu(menu_category);
+
+	    addCategorySubMenu( menu_category, files );
+
+		
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		// pause
@@ -791,7 +813,102 @@ public class SBC_DevicesView
 		pause_item.setEnabled(can_pause && job_count > 0);
 		resume_item.setEnabled(can_resume && job_count > 0);
 	}
+	
+	private void 
+	addCategorySubMenu(
+		Menu						menu_category,
+		final TranscodeFile[]		files )
+	{
+		MenuItem[] items = menu_category.getItems();
+		int i;
+		for (i = 0; i < items.length; i++) {
+			items[i].dispose();
+		}
 
+		Category[] categories = CategoryManager.getCategories();
+		Arrays.sort(categories);
+
+		if (categories.length > 0) {
+			Category catUncat = CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED);
+			if (catUncat != null) {
+				final MenuItem itemCategory = new MenuItem(menu_category, SWT.PUSH);
+				Messages.setLanguageText(itemCategory, catUncat.getName());
+				itemCategory.setData("Category", catUncat);
+				itemCategory.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						MenuItem item = (MenuItem)event.widget;
+						assignSelectedToCategory((Category)item.getData("Category"),files);
+					}
+				});
+
+				new MenuItem(menu_category, SWT.SEPARATOR);
+			}
+
+			for (i = 0; i < categories.length; i++) {
+				if (categories[i].getType() == Category.TYPE_USER) {
+					final MenuItem itemCategory = new MenuItem(menu_category, SWT.PUSH);
+					itemCategory.setText(categories[i].getName());
+					itemCategory.setData("Category", categories[i]);
+
+					itemCategory.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							MenuItem item = (MenuItem)event.widget;
+							assignSelectedToCategory((Category)item.getData("Category"),files);
+						}
+					});
+				}
+			}
+
+			new MenuItem(menu_category, SWT.SEPARATOR);
+		}
+
+		final MenuItem itemAddCategory = new MenuItem(menu_category, SWT.PUSH);
+		Messages.setLanguageText(itemAddCategory,
+		"MyTorrentsView.menu.setCategory.add");
+
+		itemAddCategory.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				addCategory(files);
+			}
+		});
+
+	}
+
+	private void 
+	addCategory(
+		TranscodeFile[]		files )	
+	{
+		CategoryAdderWindow adderWindow = new CategoryAdderWindow(Display.getDefault());
+		Category newCategory = adderWindow.getNewCategory();
+		if (newCategory != null)
+			assignSelectedToCategory(newCategory,files);
+	}
+
+	private void 
+	assignSelectedToCategory(
+		Category 			category,
+		TranscodeFile[]		files )
+	{
+		String[]	cats;
+		
+		if ( category.getType() == Category.TYPE_UNCATEGORIZED ){
+		
+			cats = new String[0];
+			
+		}else{
+			
+			cats = new String[]{ category.getName()};
+		}
+		
+		for ( TranscodeFile file: files ){
+			
+			file.setCategories( cats );
+		}
+	}
+
+
+	
+	
 	/**
 	 * 
 	 *

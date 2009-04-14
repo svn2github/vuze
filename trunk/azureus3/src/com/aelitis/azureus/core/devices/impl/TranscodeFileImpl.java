@@ -64,6 +64,7 @@ TranscodeFileImpl
 	private static final String			KEY_VIDEO_WIDTH			= "at_vw";
 	private static final String			KEY_VIDEO_HEIGHT		= "at_vh";
 	private static final String			KEY_DATE				= "at_dt";
+	private static final String			KEY_CATEGORIES			= PT_CATEGORY;
 
 	private DeviceImpl					device;
 	private String						key;
@@ -455,6 +456,45 @@ TranscodeFileImpl
 	getVideoHeight()
 	{
 		return( getLong( KEY_VIDEO_HEIGHT ));
+	}
+	
+	public String[] 
+	getCategories() 
+	{
+		String cats = getString( KEY_CATEGORIES );
+		
+		if ( cats == null || cats.length() == 0 ){
+			
+			return( new String[0] );
+		}
+		
+		return( cats.split( "," ));
+	}
+	
+	public void
+	setCategories(
+		String[]		cats )
+	{
+		String[] existing = getCategories();
+		
+		if ( existing.length == 0 && existing.length == cats.length ){
+			
+			return;
+		}
+		
+		String	str = "";
+		
+		for ( String cat: cats ){
+			
+			cat = cat.replaceAll( ",", "" ).trim();
+			
+			if ( cat.length() > 0 ){
+				
+				str += (str.length()==0?"":",") + cat;
+			}
+		}
+		
+		setString( KEY_CATEGORIES, str );
 	}
 	
 	public long

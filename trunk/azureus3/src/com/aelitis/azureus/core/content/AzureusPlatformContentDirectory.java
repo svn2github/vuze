@@ -66,7 +66,7 @@ AzureusPlatformContentDirectory
 		}
 	}
 	
-	private CopyOnWriteList<AzureusContentDirectoryListener>	listeners = new CopyOnWriteList<AzureusContentDirectoryListener>();
+	private static CopyOnWriteList<AzureusContentDirectoryListener>	listeners = new CopyOnWriteList<AzureusContentDirectoryListener>();
 	
 	public AzureusContent
 	lookupContent(
@@ -305,10 +305,7 @@ AzureusPlatformContentDirectory
 						TorrentAttribute 	attribute, 
 						int 				eventType ) 
 					{
-						for ( AzureusContentDirectoryListener l: listeners ){
-							
-							l.contentChanged( f_acf, AzureusContentFile.PT_CATEGORIES );
-						}
+						fireChanged( f_acf );
 					}
 				},
 				ta_category,
@@ -319,6 +316,16 @@ AzureusPlatformContentDirectory
 		}catch( Throwable e ){
 			
 			return( null );
+		}
+	}
+	
+	public static void
+	fireChanged(
+		AzureusContentFile	acf )
+	{
+		for ( AzureusContentDirectoryListener l: listeners ){
+			
+			l.contentChanged( acf, AzureusContentFile.PT_CATEGORIES );
 		}
 	}
 	

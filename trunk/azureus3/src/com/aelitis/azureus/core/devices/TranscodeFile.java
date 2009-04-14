@@ -34,6 +34,7 @@ TranscodeFile
 	public static final String PT_COMPLETE		= "comp";
 	public static final String PT_COPIED		= "copied";
 	public static final String PT_COPY_FAILED	= "copy_fail";
+	public static final String PT_CATEGORY		= "cat";
 	
 	public String
 	getName();
@@ -80,6 +81,13 @@ TranscodeFile
 	
 	public long
 	getVideoHeight();
+	
+	public String[]
+	getCategories();
+	
+	public void
+	setCategories(
+		String[]	cats );
 	
 	public Device
 	getDevice();

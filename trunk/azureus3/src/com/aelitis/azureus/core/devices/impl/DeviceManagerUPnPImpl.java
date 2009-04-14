@@ -34,6 +34,7 @@ import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
@@ -67,6 +68,7 @@ DeviceManagerUPnPImpl
 	private DeviceManagerImpl		manager;
 	private PluginInterface			plugin_interface;
 	private UPnP 					upnp;
+	private TorrentAttribute		ta_category;
 	
 	private volatile IPCInterface			upnpav_ipc;
 	
@@ -77,7 +79,6 @@ DeviceManagerUPnPImpl
 		DeviceManagerImpl		_manager )
 	{
 		manager	= _manager;
-		
 	}
 	
 	protected void
@@ -86,6 +87,8 @@ DeviceManagerUPnPImpl
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 		
 		plugin_interface = core.getPluginManager().getDefaultPluginInterface();
+		
+		ta_category = plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_CATEGORY );
 		
 		plugin_interface.addListener(
 				new PluginListener()
@@ -122,6 +125,12 @@ DeviceManagerUPnPImpl
 	getManager()
 	{
 		return( manager );
+	}
+	
+	protected TorrentAttribute
+	getCategoryAttibute()
+	{
+		return( ta_category );
 	}
 	
 	protected void
