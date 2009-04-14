@@ -1277,27 +1277,35 @@ TranscodeQueueImpl
 		}
 		
 		log( "Loading configuration" );
-				
-		synchronized( this ){
 			
-			Map map = FileUtil.readResilientConfigFile( CONFIG_FILE );
-			
-			List<Map<String,Object>>	l_jobs = (List<Map<String,Object>>)map.get( "jobs" );
-			
-			for ( Map<String,Object> m: l_jobs ){
+		try{
+			synchronized( this ){
 				
-				try{
-					TranscodeJobImpl job = new TranscodeJobImpl( this, m );
+				Map map = FileUtil.readResilientConfigFile( CONFIG_FILE );
 				
-					queue.add(job );
+				List<Map<String,Object>>	l_jobs = (List<Map<String,Object>>)map.get( "jobs" );
+				
+				if ( l_jobs != null ){
 					
-					queue_sem.release();
-					
-				}catch( Throwable e ){
-					
-					log( "Failed to restore job: " + m, e );
+					for ( Map<String,Object> m: l_jobs ){
+						
+						try{
+							TranscodeJobImpl job = new TranscodeJobImpl( this, m );
+						
+							queue.add(job );
+							
+							queue_sem.release();
+							
+						}catch( Throwable e ){
+							
+							log( "Failed to restore job: " + m, e );
+						}
+					}
 				}
 			}
+		}catch( Throwable e ){
+			
+			log( "Configuration load failed", e );
 		}
 	}
 	
