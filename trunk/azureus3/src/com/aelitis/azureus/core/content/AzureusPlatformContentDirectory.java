@@ -32,15 +32,17 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.ConstantsVuze;
 
 public class 
@@ -49,6 +51,8 @@ AzureusPlatformContentDirectory
 {
 	private static boolean registered = false;
 	
+	private static TorrentAttribute	ta_category;
+	
 	public static synchronized void
 	register()
 	{
@@ -56,9 +60,13 @@ AzureusPlatformContentDirectory
 		
 			registered = true;
 			
+			ta_category = StaticUtilities.getDefaultPluginInterface().getTorrentManager().getAttribute( TorrentAttribute.TA_CATEGORY );
+			
 			AzureusContentDirectoryManager.registerDirectory( new AzureusPlatformContentDirectory());
 		}
 	}
+	
+	private CopyOnWriteList<AzureusContentDirectoryListener>	listeners = new CopyOnWriteList<AzureusContentDirectoryListener>();
 	
 	public AzureusContent
 	lookupContent(
@@ -157,6 +165,13 @@ AzureusPlatformContentDirectory
 				
 				return( null );
 			}
+
+			AzureusContentFile acf = (AzureusContentFile)download.getUserData( AzureusPlatformContentDirectory.class );
+			
+			if ( acf != null ){
+				
+				return( acf );
+			}		
 			
 			final TOTorrent torrent = ((TorrentImpl)t_torrent).getTorrent();
 			
@@ -164,7 +179,7 @@ AzureusPlatformContentDirectory
 
 			if ( PlatformTorrentUtils.isContent( torrent, false )){
 			
-				return(
+				acf =
 					new AzureusContentFile()
 					{
 						public DiskManagerFileInfo
@@ -207,15 +222,33 @@ AzureusPlatformContentDirectory
 								}else if ( name.equals( PT_DATE )){
 		
 									return( new Long( file.getDownload().getCreationTime()));
+									
+								}else if ( name.equals( PT_CATEGORIES )){
+
+									try{
+										String cat = file.getDownload().getCategoryName();
+										
+										if ( cat != null && cat.length() > 0 ){
+											
+											if ( !cat.equalsIgnoreCase( "Categories.uncategorized" )){
+											
+												return( new String[]{ cat });
+											}
+										}
+									}catch( Throwable e ){
+										
+									}
+									
+									return( new String[0] );
 								}
 							}catch( Throwable e ){							
 							}
 							
 							return( null );
 						}
-					});
+					};
 			}else{
-				return(
+				acf =
 						new AzureusContentFile()
 						{
 							public DiskManagerFileInfo
@@ -232,18 +265,75 @@ AzureusPlatformContentDirectory
 									if ( name.equals( PT_DATE )){
 	
 										return( new Long( file.getDownload().getCreationTime()));
-									}
+										
+									}else if ( name.equals( PT_CATEGORIES )){
+
+										try{
+											String cat = file.getDownload().getCategoryName();
+											
+											if ( cat != null && cat.length() > 0 ){
+												
+												if ( !cat.equalsIgnoreCase( "Categories.uncategorized" )){
+												
+													return( new String[]{ cat });
+												}
+											}
+										}catch( Throwable e ){
+											
+										}
+										
+										return( new String[0] );
+									}	
 								}catch( Throwable e ){							
 								}
 								
 								return( null );
 							}
-						});
+						};
 			}
+			
+			download.setUserData( AzureusPlatformContentDirectory.class, acf );
+			
+			final AzureusContentFile f_acf = acf;
+			
+			download.addAttributeListener(
+				new DownloadAttributeListener()
+				{
+					public void 
+					attributeEventOccurred(
+						Download 			download,
+						TorrentAttribute 	attribute, 
+						int 				eventType ) 
+					{
+						for ( AzureusContentDirectoryListener l: listeners ){
+							
+							l.contentChanged( f_acf, AzureusContentFile.PT_CATEGORIES );
+						}
+					}
+				},
+				ta_category,
+				DownloadAttributeListener.WRITTEN );
+			
+			return( acf );
+			
 		}catch( Throwable e ){
 			
 			return( null );
 		}
+	}
+	
+	public void 
+	addListener(
+		AzureusContentDirectoryListener listener ) 
+	{
+		listeners.add( listener );
+	}
+	
+	public void 
+	removeListener(
+		AzureusContentDirectoryListener listener )
+	{
+		listeners.remove( listener );
 	}
 	
 	protected class

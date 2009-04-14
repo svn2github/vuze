@@ -771,6 +771,10 @@ DeviceUPnPImpl
 								
 								return( new Object[]{ DeviceUPnPImpl.this, tf_key });
 								
+							}else if ( name.equals( PT_CATEGORIES )){
+								
+								return( new String[0] );
+								
 							}else{
 								
 								TranscodeFileImpl	tf = getTranscodeFile( tf_key );
