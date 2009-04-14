@@ -110,6 +110,8 @@ public class SideBar
 	extends SkinView
 	implements UIUpdatable, ViewTitleInfoListener
 {
+	private static final boolean END_INDENT = Constants.isLinux || Constants.isWindows2000 || Constants.isWindows9598ME;
+
 	private static final int SIDEBAR_SPACING = 2;
 
 	public static final String SIDEBAR_SECTION_PLUGINS = "Plugins";
@@ -585,7 +587,7 @@ public class SideBar
 //						if (tree.getItemCount() == 0) {
 //							return;
 //						}
-						int indent = Constants.isUnix ? tree.getClientArea().width - 1 : 0;
+						int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
 						int y = event.y + 1;
 						treeItem = tree.getItem(new Point(indent, y));
 
@@ -660,7 +662,7 @@ public class SideBar
 						if (tree.getItemCount() == 0 || event.button != 1) {
 							return;
 						}
-						int indent = Constants.isUnix ? tree.getClientArea().width - 1
+						int indent = END_INDENT ? tree.getClientArea().width - 1
 								: 0;
 						treeItem = tree.getItem(new Point(indent, event.y));
 						if (treeItem == null) {
@@ -836,7 +838,7 @@ public class SideBar
 
 				Point ptMouse = tree.toControl(e.display.getCursorLocation());
 
-				int indent = Constants.isUnix ? tree.getClientArea().width - 1
+				int indent = END_INDENT ? tree.getClientArea().width - 1
 						: 0;
 				TreeItem treeItem = tree.getItem(new Point(indent, ptMouse.y));
 				if (treeItem == null) {
