@@ -42,4 +42,12 @@ AzureusContentDirectory
 	public AzureusContentDownload
 	lookupContentDownload(
 		Map		attributes );
+	
+	public void
+	addListener(
+		AzureusContentDirectoryListener		listener );
+	
+	public void
+	removeListener(
+		AzureusContentDirectoryListener		listener );
 }
