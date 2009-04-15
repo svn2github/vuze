@@ -29,6 +29,7 @@ import java.net.URLEncoder;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.BDecoder;
@@ -130,6 +131,8 @@ BuddyPluginBuddy
 	private Set<String>			rss_local_cats;
 	private Set<String>			rss_remote_cats;
 	private Set<String>			rss_cats_read;
+	
+	private AESemaphore			outgoing_connect_sem = new AESemaphore( "BPB:outcon", 1 );
 	
 	private volatile boolean	closing;
 	private volatile boolean	destroyed;
@@ -868,7 +871,7 @@ BuddyPluginBuddy
 				{
 					boolean	retry;
 					
-					synchronized( this ){
+					synchronized( BuddyPluginBuddy.this ){
 						
 						ygm_active = false;
 						
@@ -1416,7 +1419,7 @@ BuddyPluginBuddy
 							
 							// logMessage( "Msg " + message.getString() + " retrying" );
 
-							synchronized( this ){
+							synchronized( BuddyPluginBuddy.this ){
 								
 								messages.add( 0, message );
 							}
@@ -1478,35 +1481,16 @@ BuddyPluginBuddy
 			
 			if ( bc == null ){
 				
-				try{
-					if ( destroyed ){
-						
-						throw( new BuddyPluginException( "Friend destroyed" ));
-					}
+				if ( destroyed ){
 					
-					if ( connections.size() >= MAX_ACTIVE_CONNECTIONS ){
-						
-						throw( new BuddyPluginException( "Too many active connections" ));
-					}
+					failed_msg_error = new BuddyPluginException( "Friend destroyed" );
 					
-					GenericMessageConnection generic_connection = outgoingConnection();
+				}else if ( connections.size() >= MAX_ACTIVE_CONNECTIONS ){
 					
-					bc = new buddyConnection( generic_connection , true );
-					
-					inform_dirty = connections.size() == 0;
-					
-					connections.add( bc );
-					
-					// logMessage( "Con " + bc.getString() + " added: num=" + connections.size() );
-
-				}catch( Throwable e ){
-			
-					failed_msg_error	= e;
+					failed_msg_error = new BuddyPluginException( "Too many active connections" );
 				}
 			}
 		}
-		
-			// take outside sync block
 		
 		if ( failed_msg_error != null ){
 			
@@ -1515,6 +1499,95 @@ BuddyPluginBuddy
 			return;
 		}
 		
+		if ( bc == null ){
+			
+				// single-thread outgoing connect attempts
+			
+			try{
+				outgoing_connect_sem.reserve();
+			
+				synchronized( this ){
+
+					if ( current_message != allocated_message ){
+						
+						failed_msg_error = new BuddyPluginException( "current message no longer active" );
+						
+					}else if ( closing ){
+						
+						return;
+					}
+						
+					if ( failed_msg_error == null ){
+						
+						for (int i=0;i<connections.size();i++){
+							
+							buddyConnection c = (buddyConnection)connections.get(i);
+							
+							if ( !c.hasFailed()){
+								
+								bc	= c;
+							}
+						}
+						
+						if ( bc == null ){
+							
+							if ( destroyed ){
+								
+								failed_msg_error = new BuddyPluginException( "Friend destroyed" );
+								
+							}else if ( connections.size() >= MAX_ACTIVE_CONNECTIONS ){
+								
+								failed_msg_error = new BuddyPluginException( "Too many active connections" );
+							}
+						}
+					}
+				}
+				
+				if ( bc == null && failed_msg_error == null ){
+					
+					try{
+							// can't perform connect op while synchronized as may deadlock on password
+							// aquisition
+						
+						GenericMessageConnection generic_connection = outgoingConnection();
+
+						synchronized( this ){
+
+							if ( current_message != allocated_message ){
+								
+								failed_msg_error = new BuddyPluginException( "current message no longer active" );
+								
+								generic_connection.close();
+								
+							}else{
+								
+								bc = new buddyConnection( generic_connection, true );
+								
+								inform_dirty = connections.size() == 0;
+								
+								connections.add( bc );
+							
+								// logMessage( "Con " + bc.getString() + " added: num=" + connections.size() );
+							}
+						}
+					}catch( Throwable e ){
+						
+						failed_msg_error = e;
+					}
+				}
+			}finally{
+				
+				outgoing_connect_sem.release();
+			}
+		}
+			
+		if ( failed_msg_error != null ){
+			
+			allocated_message.reportFailed( failed_msg_error );
+			
+			return;
+		}
+			
 		try{
 			// logMessage( "Allocating msg " + allocated_message.getString() + " to con " + bc.getString());
 
@@ -1995,7 +2068,7 @@ BuddyPluginBuddy
 							BuddyPluginBuddy	from_buddy,
 							Map					reply )
 						{
-							synchronized( this ){
+							synchronized( BuddyPluginBuddy.this ){
 								
 								keep_alive_outstanding = false;
 							}
@@ -2006,7 +2079,7 @@ BuddyPluginBuddy
 							BuddyPluginBuddy		to_buddy,
 							BuddyPluginException	cause )
 						{
-							synchronized( this ){
+							synchronized( BuddyPluginBuddy.this ){
 								
 								keep_alive_outstanding = false;
 							}
