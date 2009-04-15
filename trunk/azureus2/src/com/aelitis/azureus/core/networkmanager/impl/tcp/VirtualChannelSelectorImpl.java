@@ -526,7 +526,9 @@ public class VirtualChannelSelectorImpl {
  	    return( 0 );
  	  }
  	  
- 	 if ( MAYBE_BROKEN_SELECT && INTEREST_OP == VirtualChannelSelector.OP_READ && !select_is_broken ){
+ 	 if ( 	MAYBE_BROKEN_SELECT && 
+ 			!select_is_broken && 
+ 			( INTEREST_OP == VirtualChannelSelector.OP_READ || INTEREST_OP == VirtualChannelSelector.OP_WRITE )){
  		 
  		 if ( selector.selectedKeys().size() == 0 ){
  			 
@@ -534,7 +536,7 @@ public class VirtualChannelSelectorImpl {
 
 	 		 for ( SelectionKey key: keys ){
 
-	 			 if ( key.isReadable()){
+	 			 if (( key.readyOps() & INTEREST_OP ) != 0 ){
 	 				 
 	 				select_looks_broken_count++;
 	 				
@@ -606,15 +608,15 @@ public class VirtualChannelSelectorImpl {
       
       Collection<SelectionKey> original_selected_keys;
       
-      if ( MAYBE_BROKEN_SELECT && INTEREST_OP == VirtualChannelSelector.OP_READ && select_is_broken ){
-    	  
+      if ( MAYBE_BROKEN_SELECT && select_is_broken ){
+    		   	
     	  Set<SelectionKey> all_keys = selector.keys();
     	  
     	  original_selected_keys = new ArrayList<SelectionKey>();
     	  
     	  for ( SelectionKey key: all_keys ){
     		  
-    		  if ( key.isReadable()){
+    		  if (( key.readyOps() & INTEREST_OP ) != 0 ){
     			  
     			  original_selected_keys.add( key );
     		  }
