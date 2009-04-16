@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytracker;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -32,7 +33,6 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
@@ -47,7 +47,7 @@ CategoryItem
 {
 		/** Default Constructor */
 	
-	protected static final AzureusCore	azureus_core = AzureusCoreFactory.getSingleton();
+	protected static GlobalManager gm;
 	
 	public 
 	CategoryItem() 
@@ -70,7 +70,14 @@ CategoryItem
 			
 			TOTorrent	torrent = tr_torrent.getTorrent();
 			
-			DownloadManager dm = azureus_core.getGlobalManager().getDownloadManager( torrent );
+			if (gm == null) {
+				if (AzureusCoreFactory.isCoreRunning()) {
+					return;
+				}
+				gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			}
+
+			DownloadManager dm = gm.getDownloadManager( torrent );
 
 			String	cat_str = null;
 

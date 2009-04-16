@@ -64,7 +64,7 @@ public class SWTUpdateChecker implements UpdatableComponent
   public static void
   initialize()
   {
-    PluginInitializer.getDefaultInterface().getUpdateManager().registerUpdatableComponent(new SWTUpdateChecker(),true);
+  	PluginInitializer.getDefaultInterface().getUpdateManager().registerUpdatableComponent(new SWTUpdateChecker(),true);
   }
   
   public SWTUpdateChecker() {    

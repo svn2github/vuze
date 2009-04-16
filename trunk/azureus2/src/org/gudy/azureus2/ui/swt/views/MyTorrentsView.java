@@ -51,7 +51,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
@@ -880,7 +880,7 @@ public class MyTorrentsView
 
 					// share with friends
 					
-					PluginInterface bpi = StaticUtilities.getDefaultPluginInterface().getPluginManager().getPluginInterfaceByClass( BuddyPlugin.class );
+					PluginInterface bpi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByClass( BuddyPlugin.class );
 					
 					int cat_type = category.getType();
 					
@@ -1343,7 +1343,7 @@ public class MyTorrentsView
 					public void drop(DropTargetEvent event) {
 						if (!(event.data instanceof String)
 								|| !((String) event.data).startsWith("DownloadManager\n")) {
-							TorrentOpener.openDroppedTorrents(azureus_core, event, true);
+							TorrentOpener.openDroppedTorrents(event, true);
 							return;
 						}
 

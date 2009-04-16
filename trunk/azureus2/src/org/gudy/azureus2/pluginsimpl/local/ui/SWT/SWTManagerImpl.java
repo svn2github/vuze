@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
 
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.deprecate.PluginDeprecation;
 
 /*
@@ -76,7 +77,8 @@ public class SWTManagerImpl
 
 	public void addView(final PluginView view, final boolean bAutoOpen) {
 		try {
-			UIManager ui_manager = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUIManager();
+			
+			UIManager ui_manager = PluginInitializer.getDefaultInterface().getUIManager();
 
 			ui_manager.addUIListener(new UIManagerListener() {
 				public void UIAttached(UIInstance instance) {

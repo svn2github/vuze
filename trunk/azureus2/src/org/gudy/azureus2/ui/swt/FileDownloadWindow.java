@@ -48,8 +48,6 @@ public class FileDownloadWindow
 	implements TorrentDownloaderCallBackInterface, IProgressReportConstants
 {
 	
-	AzureusCore _azureus_core;
-	
 	TorrentDownloader downloader;
 
 	TorrentDownloaderCallBackInterface listener;
@@ -79,9 +77,9 @@ public class FileDownloadWindow
 	 * @param url
 	 * @param referrer
 	 */
-	public FileDownloadWindow(AzureusCore _azureus_core, Shell parent,
-			final String url, final String referrer, Map request_properties) {
-		this(_azureus_core, parent, url, referrer, request_properties, null);
+	public FileDownloadWindow(Shell parent, final String url,
+			final String referrer, Map request_properties) {
+		this(parent, url, referrer, request_properties, null);
 	}
 
 	/**
@@ -95,12 +93,10 @@ public class FileDownloadWindow
 	 * @param referrer
 	 * @param listener
 	 */
-	public FileDownloadWindow(final AzureusCore _azureus_core,
-			final Shell parent, final String url, final String referrer,
-			final Map request_properties,
+	public FileDownloadWindow(final Shell parent, final String url,
+			final String referrer, final Map request_properties,
 			final TorrentDownloaderCallBackInterface listener) {
 
-		this._azureus_core = _azureus_core;
 		this.parent = parent;
 		this.original_url = url;
 		this.referrer = referrer;

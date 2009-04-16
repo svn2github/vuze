@@ -46,7 +46,11 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.sharing.ShareException;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
@@ -81,10 +85,6 @@ import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.util.MapUtils;
-
-import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.sharing.ShareException;
-import org.gudy.azureus2.plugins.sharing.ShareManager;
 
 /**
  * @author Olivier
@@ -392,8 +392,7 @@ public class MainWindow
 				attachToTopOf = separator;
 
 				mainStatusBar = new MainStatusBar();
-				Composite statusBar = mainStatusBar.initStatusBar(azureus_core,
-						globalManager, display, shell);
+				Composite statusBar = mainStatusBar.initStatusBar(shell);
 
 				controlAboveFolder = attachToTopOf;
 				controlBelowFolder = statusBar;
@@ -468,7 +467,7 @@ public class MainWindow
 
 			if (!COConfigurationManager.getBooleanParameter("Wizard Completed")) {
 				// returns after the wizard is done
-				new ConfigureWizard(getAzureusCore(), true);
+				new ConfigureWizard(true);
 			}
 
 			plugin_manager.firePluginEvent(PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES);
@@ -516,11 +515,9 @@ public class MainWindow
 			});
 		}
 
-		PluginManager plugin_manager = azureus_core.getPluginManager();
-
 		// share manager init is async so we need to deal with this
 
-		PluginInterface default_pi = plugin_manager.getDefaultPluginInterface();
+		PluginInterface default_pi = PluginInitializer.getDefaultInterface();
 
 		try {
 			final ShareManager share_manager = default_pi.getShareManager();
@@ -741,7 +738,7 @@ public class MainWindow
 
 	protected void showMyTracker() {
 		if (my_tracker_tab == null) {
-			my_tracker_tab = mainTabSet.createTabItem(new MyTrackerView(azureus_core), true);
+			my_tracker_tab = mainTabSet.createTabItem(new MyTrackerView(), true);
 			mainTabSet.getView(my_tracker_tab).getComposite().addDisposeListener(
 					new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
@@ -757,7 +754,7 @@ public class MainWindow
 
 	protected void showMyShares() {
 		if (my_shares_tab == null) {
-			my_shares_tab = mainTabSet.createTabItem(new MySharesView(azureus_core), true);
+			my_shares_tab = mainTabSet.createTabItem(new MySharesView(), true);
 			mainTabSet.getView(my_shares_tab).getComposite().addDisposeListener(
 					new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
@@ -773,7 +770,7 @@ public class MainWindow
 
 	protected void showMyTorrents() {
 		if (mytorrents == null) {
-			MyTorrentsSuperView view = new MyTorrentsSuperView(azureus_core);
+			MyTorrentsSuperView view = new MyTorrentsSuperView();
 			mytorrents = mainTabSet.createTabItem(view, true);
 			mainTabSet.getView(mytorrents).getComposite().addDisposeListener(
 					new DisposeListener() {
@@ -807,7 +804,7 @@ public class MainWindow
 
 	protected void showAllPeersView() {
 		if (all_peers == null) {
-			PeerSuperView view = new PeerSuperView(azureus_core.getGlobalManager());
+			PeerSuperView view = new PeerSuperView();
 			all_peers = mainTabSet.createTabItem(view, true);
 			mainTabSet.getView(all_peers).getComposite().addDisposeListener(
 					new DisposeListener() {
@@ -1059,9 +1056,13 @@ public class MainWindow
 		 * We can't rely that the normal mechanism for doing this won't fail (which it usually does)
 		 * when the GUI is being disposed of.
 		 */
-		AllTransfersBar transfer_bar = AllTransfersBar.getBarIfOpen(AzureusCoreFactory.getSingleton().getGlobalManager());
-		if (transfer_bar != null) {
-			transfer_bar.forceSaveLocation();
+		try {
+  		AllTransfersBar transfer_bar = AllTransfersBar.getBarIfOpen(AzureusCoreFactory.getSingleton().getGlobalManager());
+  		if (transfer_bar != null) {
+  			transfer_bar.forceSaveLocation();
+  		}
+		} catch (Exception e) {
+			// ignore
 		}
 
 		// close all tabs
@@ -1242,7 +1243,7 @@ public class MainWindow
 			return;
 		}
 		if (itemKey.equals("new")) {
-			new NewTorrentWizard(getAzureusCore(), display);
+			new NewTorrentWizard(display);
 			return;
 		}
 		IView currentView = getCurrentView();
@@ -1350,7 +1351,7 @@ public class MainWindow
 
 	protected ConfigView showConfig() {
 		if (config == null) {
-			config_view = new ConfigView(azureus_core);
+			config_view = new ConfigView();
 			config = mainTabSet.createTabItem(config_view, true);
 			config_view.getComposite().addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
@@ -1402,7 +1403,7 @@ public class MainWindow
 
 	protected void showStats() {
 		if (stats_tab == null) {
-			stats_tab = mainTabSet.createTabItem(new StatsView(globalManager, azureus_core), true);
+			stats_tab = mainTabSet.createTabItem(new StatsView(), true);
 			mainTabSet.getView(stats_tab).getComposite().addDisposeListener(
 					new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {

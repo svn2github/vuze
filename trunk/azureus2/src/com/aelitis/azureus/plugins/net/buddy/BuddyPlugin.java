@@ -21,53 +21,18 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.URLEncoder;
-import java.security.SecureRandom;
+import java.io.*;
+import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.AsyncDispatcher;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.RandomUtils;
-import org.gudy.azureus2.core3.util.SHA1Simple;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimeFormatter;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.protocol.azplug.AZPluginConnection;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
-import org.gudy.azureus2.plugins.Plugin;
-import org.gudy.azureus2.plugins.PluginConfig;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginListener;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseEvent;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseListener;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
+import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.ddb.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -84,12 +49,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
-import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
-import org.gudy.azureus2.plugins.ui.config.IntParameter;
-import org.gudy.azureus2.plugins.ui.config.Parameter;
-import org.gudy.azureus2.plugins.ui.config.ParameterListener;
-import org.gudy.azureus2.plugins.ui.config.StringListParameter;
-import org.gudy.azureus2.plugins.ui.config.StringParameter;
+import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
@@ -105,10 +65,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.security.CryptoHandler;
-import com.aelitis.azureus.core.security.CryptoManagerFactory;
-import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
-import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
+import com.aelitis.azureus.core.security.*;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
@@ -1876,7 +1833,7 @@ BuddyPlugin
 		
 		if ( ddb != null ){
 			
-			boolean	restarting = AzureusCoreFactory.getSingleton().isRestarting();
+			boolean	restarting = AzureusCoreFactory.isCoreAvailable() ? AzureusCoreFactory.getSingleton().isRestarting() : false;
 			
 			logMessage( "   closing buddy connections" );
 			

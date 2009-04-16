@@ -72,4 +72,12 @@ public interface IUIIntializer
 	void reportPercent(int percent);
 	
 	void initializationComplete();
+
+	/**
+	 * Code that will be executed in the SWT Thread before {@link #run()} is
+	 * invoked
+	 * 
+	 * @since 4.2.0.1
+	 */
+	public void runInSWTThread();
 }

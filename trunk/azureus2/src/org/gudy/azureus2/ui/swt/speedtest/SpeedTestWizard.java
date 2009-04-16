@@ -23,10 +23,7 @@
 package org.gudy.azureus2.ui.swt.speedtest;
 
 
-import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
-
-import com.aelitis.azureus.core.AzureusCore;
 
 /**
  * @author Olivier
@@ -39,11 +36,9 @@ SpeedTestWizard
 	protected static final String	CFG_PREFIX = "speedtest.wizard.";
 
     public
-	SpeedTestWizard(
-		AzureusCore		azureus_core,
-		Display 		display) 
+	SpeedTestWizard() 
 	{
-		super(azureus_core, "speedtest.wizard.title");
+		super("speedtest.wizard.title");
 		SpeedTestPanel panel = new SpeedTestPanel(this, null);
 		setFirstPanel(panel);
     }

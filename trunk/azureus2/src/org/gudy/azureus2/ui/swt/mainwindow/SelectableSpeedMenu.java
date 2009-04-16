@@ -38,7 +38,6 @@ import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.SpeedScaleShell;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 
 public class SelectableSpeedMenu {
 
@@ -307,12 +306,12 @@ public class SelectableSpeedMenu {
 	/**
 	 * @since 3.0.1.7
 	 */
-	public static void invokeSlider(boolean isUpSpeed) {
+	public static void invokeSlider(AzureusCore core, boolean isUpSpeed) {
 		final String prefix = MessageText.getString(isUpSpeed
 				? "GeneralView.label.maxuploadspeed"
 				: "GeneralView.label.maxdownloadspeed");
 
-		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		GlobalManager gm = core.getGlobalManager();
 
 		final String configAutoKey = TransferSpeedValidator.getActiveAutoUploadParameter(gm);
 		boolean auto = COConfigurationManager.getBooleanParameter(configAutoKey);

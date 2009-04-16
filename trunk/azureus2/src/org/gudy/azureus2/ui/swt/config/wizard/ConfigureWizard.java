@@ -27,8 +27,6 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
-import com.aelitis.azureus.core.AzureusCore;
-
 /**
  * @author Olivier
  * 
@@ -54,10 +52,9 @@ public class ConfigureWizard extends Wizard {
 
   public 
   ConfigureWizard(
-  	AzureusCore		azureus_core,
 		boolean modal) 
   {
-    super(azureus_core,"configureWizard.title",modal);
+    super("configureWizard.title",modal);
     IWizardPanel panel = new LanguagePanel(this,null);
     try  {
       torrentPath = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");

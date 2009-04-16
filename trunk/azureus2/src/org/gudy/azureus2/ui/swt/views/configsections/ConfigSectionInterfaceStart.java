@@ -74,6 +74,11 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
     layout.numColumns = 1;
     cStart.setLayout(layout);
 
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+
+		if (userMode >= 2) {
+			new BooleanParameter(cStart, "ui.startfirst", "!Start UI before Core Initialization!");
+		}
     new BooleanParameter(cStart, "Show Splash", "ConfigView.label.showsplash");
     new BooleanParameter(cStart, "update.start", "ConfigView.label.checkonstart");
     new BooleanParameter(cStart, "update.periodic", "ConfigView.label.periodiccheck");

@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.SWT;
@@ -120,6 +121,13 @@ public class ConfigSectionTransferAutoSpeedSelect
         GridData gridData;
 
         Composite cSection = new Composite(parent, SWT.NULL);
+        
+        if (!AzureusCoreFactory.isCoreRunning()) {
+        	cSection.setLayout(new FillLayout());
+        	Label lblNotAvail = new Label(cSection, SWT.WRAP);
+        	Messages.setLanguageText(lblNotAvail, "core.not.available");
+        	return cSection;
+        }
         
         gridData = new GridData(GridData.VERTICAL_ALIGN_FILL|GridData.HORIZONTAL_ALIGN_FILL);
         cSection.setLayoutData(gridData);
@@ -276,6 +284,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         gridData.horizontalSpan = 4;
         down_cap.setLayoutData(gridData);
 
+        // Core avail: We check at top
         final SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();  
         
         final TransferStatsView.limitToTextHelper	limit_to_text = new TransferStatsView.limitToTextHelper();

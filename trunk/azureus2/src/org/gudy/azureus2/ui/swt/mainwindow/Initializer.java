@@ -126,36 +126,19 @@ Initializer
 	}
 	
 
-  public void 
-  run() 
-  {
+  public void run() {
 
   	try{
-  		String uiMode = UISwitcherUtil.openSwitcherWindow(false);
-  		
-  		if (uiMode.equals("az3")) {
+  		if (initializer != null) {
+  			
   			try {
-  				final Class az3Class = Class.forName("com.aelitis.azureus.ui.swt.Initializer");
-
-  				final Constructor constructor = az3Class.getConstructor(new Class[] {
-  						AzureusCore.class,
-  						Boolean.TYPE,
-  						String[].class
-  				});
-
-  				IUIIntializer initializer = (IUIIntializer) constructor.newInstance(new Object[] {
-  						azureus_core,
-  						new Boolean(false),
-  						args
-  				});
-
   				initializer.run();
-  				return;
   			} catch (Throwable t) {
   				// use print stack trace because we don't want to introduce logger
   				t.printStackTrace();
   				// Ignore and use AZ2
   			}
+  			return;
   		}
   		// else AZ2UI
   		
@@ -183,7 +166,7 @@ Initializer
 			UIConfigDefaultsSWT.initialize();
 			
 	    //Splash Window is not always shown
-	    if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
+	    if (COConfigurationManager.getBooleanParameter("Show Splash")) {
 	      SplashWindow.create(display,this);
 	    }
 	    	    
@@ -507,6 +490,7 @@ Initializer
   private int currentTask = 0;
   private int currentPercent = 0;
   private int lastTaskPercent = 0;
+	private IUIIntializer initializer;
   
   private void setNbTasks(int _nbTasks) {
     currentTask = 0;
@@ -553,5 +537,35 @@ Initializer
 
  	new Initializer( core, null,args);
   }
+
+	public void runInSWTThread() {
+  		String uiMode = UISwitcherUtil.openSwitcherWindow(false);
+  		
+  		if (uiMode.equals("az3")) {
+  			try {
+  				final Class az3Class = Class.forName("com.aelitis.azureus.ui.swt.Initializer");
+
+  				final Constructor constructor = az3Class.getConstructor(new Class[] {
+  						AzureusCore.class,
+  						Boolean.TYPE,
+  						String[].class
+  				});
+
+  				initializer = (IUIIntializer) constructor.newInstance(new Object[] {
+  						azureus_core,
+  						new Boolean(false),
+  						args
+  				});
+
+  				initializer.runInSWTThread();
+  				return;
+  			} catch (Throwable t) {
+  				// use print stack trace because we don't want to introduce logger
+  				t.printStackTrace();
+  				// Ignore and use AZ2
+  			}
+  		}
+  		// else AZ2UI
+	}
  
 }

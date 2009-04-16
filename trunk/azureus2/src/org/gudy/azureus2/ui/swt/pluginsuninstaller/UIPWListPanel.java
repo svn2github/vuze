@@ -43,9 +43,13 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 
 
 /**
@@ -68,6 +72,14 @@ public class UIPWListPanel extends AbstractWizardPanel {
   public void 
   show() 
   {
+  	CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				_show(core);
+			}
+		});
+  }
+  
+  private void _show(AzureusCore core) {
     wizard.setTitle(MessageText.getString("uninstallPluginsWizard.list.title"));
     wizard.setErrorMessage("");
     
@@ -103,7 +115,7 @@ public class UIPWListPanel extends AbstractWizardPanel {
 
     PluginInterface plugins[] = new PluginInterface[0];
     try {
-      plugins = wizard.getAzureusCore().getPluginManager().getPluginInterfaces();
+      plugins = core.getPluginManager().getPluginInterfaces();
       
       Arrays.sort( 
 	      	plugins,

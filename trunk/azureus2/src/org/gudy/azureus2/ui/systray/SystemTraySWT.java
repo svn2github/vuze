@@ -40,6 +40,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -53,6 +54,8 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 public class SystemTraySWT
 	implements UIUpdatableAlways
 {
+
+	protected static AzureusCore core = null;
 
 	Display display;
 
@@ -68,7 +71,16 @@ public class SystemTraySWT
 	Image imgAzureusGray;
 	Image imgAzureusWhite;
 
+	protected GlobalManager gm = null;
+
 	public SystemTraySWT() {
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				SystemTraySWT.core = core;
+				gm = core.getGlobalManager();
+			}
+		});
+
 		uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		display = SWTThread.getInstance().getDisplay();
 
@@ -197,7 +209,10 @@ public class SystemTraySWT
 
 		itemStartAll.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
-				AzureusCoreFactory.getSingleton().getGlobalManager().startAllDownloads();
+				if (gm == null) {
+					return;
+				}
+				gm.startAllDownloads();
 			}
 		});
 
@@ -215,13 +230,15 @@ public class SystemTraySWT
 
 		itemResume.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
-				AzureusCoreFactory.getSingleton().getGlobalManager().resumeDownloads();
+				if (gm == null) {
+					return;
+				}
+				gm.resumeDownloads();
 			}
 		});
 
-		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-		itemPause.setEnabled(gm.canPauseDownloads());
-		itemResume.setEnabled(gm.canResumeDownloads());
+		itemPause.setEnabled(gm != null && gm.canPauseDownloads());
+		itemResume.setEnabled(gm != null && gm.canResumeDownloads());
 
 		itemCloseAll.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
@@ -253,6 +270,9 @@ public class SystemTraySWT
 	 * @param parent The system tray contextual menu
 	 */
 	private final void createUploadLimitMenu(final Menu parent) {
+		if (core == null) {
+			return;
+		}
 		final MenuItem uploadSpeedItem = new MenuItem(parent, SWT.CASCADE);
 		uploadSpeedItem.setText(MessageText.getString("GeneralView.label.maxuploadspeed"));
 
@@ -261,9 +281,8 @@ public class SystemTraySWT
 
 		uploadSpeedMenu.addListener(SWT.Show, new Listener() {
 			public void handleEvent(Event event) {
-				AzureusCore core = AzureusCoreFactory.getSingleton();
 				SelectableSpeedMenu.generateMenuItems(uploadSpeedMenu, core,
-						core.getGlobalManager(), true);
+						gm, true);
 			}
 		});
 
@@ -283,9 +302,8 @@ public class SystemTraySWT
 
 		downloadSpeedMenu.addListener(SWT.Show, new Listener() {
 			public void handleEvent(Event event) {
-				AzureusCore core = AzureusCoreFactory.getSingleton();
 				SelectableSpeedMenu.generateMenuItems(downloadSpeedMenu, core,
-						core.getGlobalManager(), false);
+						gm, false);
 			}
 		});
 
@@ -317,7 +335,12 @@ public class SystemTraySWT
 			uiFunctions.getUIUpdater().removeUpdater(this);
 			return;
 		}
-		List managers = AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers();
+		if (core == null || !core.isStarted()) {
+			return;
+		}
+
+		GlobalManagerStats stats = gm.getStats();
+		List managers = gm.getDownloadManagers();
 		//StringBuffer toolTip = new StringBuffer("Azureus - ");//$NON-NLS-1$
 		StringBuffer toolTip = new StringBuffer();
 		int seeding = 0;
@@ -345,9 +368,6 @@ public class SystemTraySWT
 		if (!downloading_text.startsWith(" ")) {
 			downloading_text = " " + downloading_text;
 		}
-
-		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-		GlobalManagerStats stats = gm.getStats();
 
 		toolTip.append(seeding_text).append(downloading_text).append("\n");
 		toolTip.append(MessageText.getString("ConfigView.download.abbreviated")).append(

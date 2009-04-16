@@ -46,10 +46,28 @@ AzureusCoreFactory
 		return( AzureusCoreImpl.create());
 	}
 	
+	/**
+	 * Returns whether the core is available.  All features
+	 * of the core (such as GlobalManager) may not be available yet.
+	 * 
+	 * @return
+	 */
 	public static boolean
 	isCoreAvailable()
 	{
 		return( AzureusCoreImpl.isCoreAvailable());
+	}
+	
+	/**
+	 * Returns whether the core is running.  All features of the
+	 * core (GlobalManager) should be available when the result
+	 * is true.
+	 * 
+	 * @return
+	 */
+	public static boolean
+	isCoreRunning() {
+		return AzureusCoreImpl.isCoreRunning();
 	}
 		/**
 		 * Once created the singleton can be accessed via this method
@@ -64,4 +82,20 @@ AzureusCoreFactory
 	{
 		return( AzureusCoreImpl.getSingleton());
 	}	
+
+	/**
+	 * Adds a listener that is triggered once the core is running.
+	 * <p>
+	 * This is in AzureusCoreFactory instead of {@link AzureusCoreLifecycleListener}
+	 * so that listeners can be added before the core instance is
+	 * even created.
+	 * 
+	 * @param l Listener to trigger when the core is running.  If
+	 *          the core is already running, listener is fired
+	 *          immediately
+	 */
+	public static void
+	addCoreRunningListener(AzureusCoreRunningListener l) {
+		AzureusCoreImpl.addCoreRunningListener(l);
+	}
 }

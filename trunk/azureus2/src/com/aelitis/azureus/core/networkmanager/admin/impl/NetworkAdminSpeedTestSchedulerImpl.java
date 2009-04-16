@@ -23,18 +23,10 @@
 
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTest;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTestListener;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-
-import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 
-import org.gudy.azureus2.core3.util.*;
+import com.aelitis.azureus.core.networkmanager.admin.*;
 
 
 public class NetworkAdminSpeedTestSchedulerImpl
@@ -53,16 +45,12 @@ public class NetworkAdminSpeedTestSchedulerImpl
     }
 
     private NetworkAdminSpeedTestSchedulerImpl(){
-        AzureusCore ac = AzureusCoreFactory.getSingleton();
-        PluginManager pm = ac.getPluginManager();
-
-        plugin = pm.getDefaultPluginInterface();
      }
 
     public void
     initialise()
     {
-    	NetworkAdminSpeedTesterBTImpl.startUp( plugin );
+    	NetworkAdminSpeedTesterBTImpl.startUp();
     }
     
     public synchronized NetworkAdminSpeedTestScheduledTest

@@ -23,38 +23,22 @@
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.SHA1Simple;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseProgressListener;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferHandler;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
-import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
+import org.gudy.azureus2.plugins.ddb.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.plugins.dht.DHTPluginProgressListener;
 
 /**
@@ -76,7 +60,6 @@ DDBaseTTTorrent
 		}
 	}
 	
-	private AzureusCore		azureus_core;
 	private DDBaseImpl		ddb;
 		
 	private TorrentAttribute	ta_sha1;
@@ -99,10 +82,8 @@ DDBaseTTTorrent
 		
 	protected
 	DDBaseTTTorrent(
-		AzureusCore		_azureus_core,
 		DDBaseImpl		_ddb )
 	{
-		azureus_core		= _azureus_core;
 		ddb					= _ddb;
 	}
 	
@@ -158,7 +139,7 @@ DDBaseTTTorrent
 			
 			Download 	download = null;
 				
-			PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
+			PluginInterface pi = PluginInitializer.getDefaultInterface();
 									
 			String	search_sha1 = pi.getUtilities().getFormatters().encodeBytesToString( search_key );
 			

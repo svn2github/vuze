@@ -28,6 +28,7 @@ import java.nio.channels.UnsupportedAddressTypeException;
 
 import org.gudy.azureus2.core3.util.IndentWriter;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminImpl;
 
 public abstract class 
@@ -96,10 +97,12 @@ NetworkAdmin
 	hasIPV6Potential(boolean forNIO);
 	
 	public abstract NetworkAdminProtocol[]
-	getOutboundProtocols();
+	getOutboundProtocols(
+			AzureusCore azureus_core);
 	
 	public abstract NetworkAdminProtocol[]
-	getInboundProtocols();
+	getInboundProtocols(
+			AzureusCore azureus_core );
 	
 	public abstract InetAddress
 	testProtocol(
@@ -114,7 +117,8 @@ NetworkAdmin
 	getHTTPProxy();
 	
 	public abstract NetworkAdminNATDevice[]
-	getNATDevices();
+	getNATDevices(
+			AzureusCore azureus_core);
 	
 		/**
 		 * Only call if the supplied address is believed to be the current public address
@@ -189,7 +193,8 @@ NetworkAdmin
 		NetworkAdminPropertyChangeListener	listener );
 	
 	public abstract void
-	runInitialChecks();
+	runInitialChecks(
+			AzureusCore azureus_core);
 	
 	public abstract void
 	logNATStatus(

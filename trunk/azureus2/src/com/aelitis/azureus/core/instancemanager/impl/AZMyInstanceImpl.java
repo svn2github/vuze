@@ -23,18 +23,15 @@
 package com.aelitis.azureus.core.instancemanager.impl;
 
 import java.net.Inet4Address;
-import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SHA1Simple;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
@@ -328,7 +325,7 @@ AZMyInstanceImpl
 				
 				last_force_read_ext	= now;
 				
-				external_address = core.getPluginManager().getDefaultPluginInterface().getUtilities().getPublicAddress();
+				external_address = PluginInitializer.getDefaultInterface().getUtilities().getPublicAddress();
 			}
 		}
 		

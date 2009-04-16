@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -58,6 +59,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytracker.*;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -87,17 +89,11 @@ public class MyTrackerView
 	protected static final TorrentAttribute	category_attribute = 
 		TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_CATEGORY );
 
-	private AzureusCore	azureus_core;
-
 	private Menu			menuCategory;
 
 	private TableViewSWT<TRHostTorrent> tv;
 
 	public MyTrackerView() {
-		this(AzureusCoreFactory.getSingleton());
-	}
-
-	public MyTrackerView(AzureusCore _azureus_core) {
 		if (basicItems == null) {
 			basicItems = new TableColumnCore[] {
 				new NameItem(),
@@ -126,7 +122,6 @@ public class MyTrackerView
 				TableManager.TABLE_MYTRACKER, "MyTrackerView", basicItems, "name",
 				SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 		setTableView(tv);
-		azureus_core = _azureus_core;
 		tv.addLifeCycleListener(this);
 		tv.addSelectionListener(this, false);
 		tv.addMenuFillListener(this);
@@ -135,27 +130,39 @@ public class MyTrackerView
 	
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
 	public void tableViewInitialized() {
-		azureus_core.getTrackerHost().addListener( this );
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				core.getTrackerHost().addListener(MyTrackerView.this);
+			}
+		});
 	}
 	
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewDestroyed()
 	public void tableViewDestroyed() {
-  	azureus_core.getTrackerHost().removeListener( this );
+		try {
+			AzureusCoreFactory.getSingleton().getTrackerHost().removeListener( this );
+		} catch (Exception ignore) {
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void defaultSelected(TableRowCore[] rows, int stateMask) {
-		TRHostTorrent torrent = tv.getFirstSelectedDataSource();
+		final TRHostTorrent torrent = tv.getFirstSelectedDataSource();
 		if (torrent == null)
 			return;
-		DownloadManager dm = azureus_core.getGlobalManager().getDownloadManager(
-				torrent.getTorrent());
-		if (dm != null) {
-			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-			if (uiFunctions != null) {
-				uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, dm);
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+		
+			public void azureusCoreRunning(AzureusCore core) {
+				DownloadManager dm = core.getGlobalManager().getDownloadManager(
+						torrent.getTorrent());
+				if (dm != null) {
+					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+					if (uiFunctions != null) {
+						uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, dm);
+					}
+				}
 			}
-		}
+		});
 	}
     
   public void fillMenu(final Menu menu) {	  
@@ -526,14 +533,23 @@ public class MyTrackerView
   }
   
   private void assignSelectedToCategory(final Category category) {
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(final AzureusCore core) {
+				assignSelectedToCategory(core, category);
+			}
+		});
+  }
+  
+  private void assignSelectedToCategory(final AzureusCore core,
+			final Category category) {
     tv.runForSelectedRows(new TableGroupRowRunner() {
       public void run(TableRowCore row) {
       	
 	    TRHostTorrent	tr_torrent = (TRHostTorrent)row.getDataSource(true);
 		
-		TOTorrent	torrent = tr_torrent.getTorrent();
+		final TOTorrent	torrent = tr_torrent.getTorrent();
 		
-		DownloadManager dm = azureus_core.getGlobalManager().getDownloadManager( torrent );
+		DownloadManager dm = core.getGlobalManager().getDownloadManager( torrent );
 
 		if ( dm != null ){
 			

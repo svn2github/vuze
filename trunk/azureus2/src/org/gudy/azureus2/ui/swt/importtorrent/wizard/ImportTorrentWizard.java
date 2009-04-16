@@ -27,19 +27,19 @@ package org.gudy.azureus2.ui.swt.importtorrent.wizard;
  *
  */
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 
-
-import com.aelitis.azureus.core.*;
-import org.gudy.azureus2.ui.swt.wizard.Wizard;
-
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 public class 
 ImportTorrentWizard 
@@ -49,11 +49,9 @@ ImportTorrentWizard
 	String import_file	= "";
   
 	public 
-	ImportTorrentWizard(
-		AzureusCore	azureus_core,
-		Display 	display )
+	ImportTorrentWizard()
 	{
-		super(azureus_core,"importTorrentWizard.title");
+		super("importTorrentWizard.title");
 	
 		ImportTorrentWizardInputPanel input_panel = new ImportTorrentWizardInputPanel(this,null);
 	

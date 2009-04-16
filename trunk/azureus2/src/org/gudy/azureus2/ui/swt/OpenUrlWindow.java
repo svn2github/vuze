@@ -64,9 +64,9 @@ OpenUrlWindow
 	 * @param linkURL
 	 * @param referrer
 	 */
-	public OpenUrlWindow(final AzureusCore azureus_core, final Shell parent,
+	public OpenUrlWindow(final Shell parent,
 			String linkURL, final String referrer) {
-		this(azureus_core, parent, linkURL, referrer, null);
+		this(parent, linkURL, referrer, null);
 	}
 
 	/**
@@ -78,7 +78,7 @@ OpenUrlWindow
 	 * @param referrer
 	 * @param listener
 	 */
-	public OpenUrlWindow(final AzureusCore azureus_core, final Shell parent,
+	public OpenUrlWindow(final Shell parent,
 			String linkURL, final String referrer,
 			final TorrentDownloaderCallBackInterface listener) {
 
@@ -205,7 +205,7 @@ OpenUrlWindow
       		url_str = url.getText();
       	}
       	
-        new FileDownloadWindow(azureus_core,parent,url_str, last_referrer, null, listener );
+        new FileDownloadWindow(parent,url_str, last_referrer, null, listener );
         shell.dispose();
       }
     }); 

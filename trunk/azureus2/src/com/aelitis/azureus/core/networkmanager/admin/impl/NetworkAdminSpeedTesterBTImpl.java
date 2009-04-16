@@ -22,40 +22,38 @@
 
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
+import java.io.File;
+import java.net.URL;
+import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
-import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.security.SECertificateListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadStats;
-import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
-import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
-import java.security.cert.X509Certificate;
-import java.util.*;
-import java.io.File;
-import java.net.URL;
-import java.text.SimpleDateFormat;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 
 
 public class NetworkAdminSpeedTesterBTImpl 
@@ -75,9 +73,10 @@ public class NetworkAdminSpeedTesterBTImpl
 
    
     protected static void
-    startUp(
-    	PluginInterface	plugin )
+    startUp()
     {
+      PluginInterface plugin = PluginInitializer.getDefaultInterface();
+
     	speedTestAttrib = plugin.getTorrentManager().getPluginAttribute(NetworkAdminSpeedTesterBTImpl.class.getName()+".test.attrib");
   
     	org.gudy.azureus2.plugins.download.DownloadManager dm = plugin.getDownloadManager();

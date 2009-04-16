@@ -42,14 +42,15 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 
 /**
  * @author Olivier
@@ -439,56 +440,40 @@ public class ManagerUtils {
     		}
 		}.start();
   	}
-  	
-  	public static void
-	asyncStartAll()
-  	{
-     	new AEThread( "asyncStartAll", true )
-		{
-    		public void
-			runSupport()
-    		{
-    			AzureusCoreFactory.getSingleton().getGlobalManager().startAllDownloads();
-    		}
-		}.start();
-  	}
-  	
-  	public static void
-	asyncStopAll()
-  	{
-		new AEThread( "asyncStopAll", true )
-		{
-			public void
-			runSupport()
-			{
-       			AzureusCoreFactory.getSingleton().getGlobalManager().stopAllDownloads();
-			}
-			
-		}.start();
-  	}
-  	
-  	public static void
-	asyncPause()
-  	{
-     	new AEThread( "asyncPause", true )
-		{
-    		public void
-			runSupport()
-    		{
-    			AzureusCoreFactory.getSingleton().getGlobalManager().pauseDownloads();
-    		}
-		}.start();
-  	}
-  	
-  	public static void
-  	asyncResume() {
-     	new AEThread( "asyncResume", true )
-		{
-    		public void
-			runSupport()
-    		{
-    			AzureusCoreFactory.getSingleton().getGlobalManager().resumeDownloads();
-    		}
-		}.start();
-  	}
+
+	public static void asyncStartAll() {
+		CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
+				new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						core.getGlobalManager().startAllDownloads();
+					}
+				});
+	}
+
+	public static void asyncStopAll() {
+		CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
+				new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						core.getGlobalManager().stopAllDownloads();
+					}
+				});
+	}
+
+	public static void asyncPause() {
+		CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
+				new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						core.getGlobalManager().pauseDownloads();
+					}
+				});
+	}
+
+	public static void asyncResume() {
+		CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
+				new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						core.getGlobalManager().resumeDownloads();
+					}
+				});
+	}
 }

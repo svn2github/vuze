@@ -94,7 +94,7 @@ DDBaseImpl
 	{
 		azureus_core	= _azureus_core;
 		
-		torrent_transfer =  new DDBaseTTTorrent( _azureus_core, this );
+		torrent_transfer =  new DDBaseTTTorrent( this );
 		
 		grabDHT();
 	}

@@ -35,11 +35,14 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.ListenerNeedingCoreRunning;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -160,10 +163,11 @@ public class TrayWindow
 
     MenuItem file_startalldownloads = new MenuItem(menu, SWT.NULL);
     Messages.setLanguageText(file_startalldownloads, "TrayWindow.menu.startalldownloads"); //$NON-NLS-1$
-    file_startalldownloads.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-            globalManager.startAllDownloads();
-        }
+    file_startalldownloads.addListener(SWT.Selection,
+				new ListenerNeedingCoreRunning() {
+					public void handleEvent(AzureusCore core, Event e) {
+						globalManager.startAllDownloads();
+					}
     });    
     
     MenuItem file_stopalldownloads = new MenuItem(menu, SWT.NULL);
@@ -194,8 +198,13 @@ public class TrayWindow
 
     Utils.createTorrentDropTarget(minimized, false);
     try {
-    	globalManager = AzureusCoreFactory.getSingleton().getGlobalManager();
-    	globalManager.addListener(this);
+    	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			
+				public void azureusCoreRunning(AzureusCore core) {
+					globalManager = core.getGlobalManager();
+					globalManager.addListener(TrayWindow.this);
+				}
+    	});
     } catch (Exception e) {
     	Debug.out(e);
     }

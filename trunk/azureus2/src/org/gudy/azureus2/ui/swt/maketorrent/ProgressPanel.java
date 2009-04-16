@@ -30,23 +30,24 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.TrackersUtil;
-import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.ui.swt.wizard.*;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
+import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
+import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 
 /**
  * @author Olivier
@@ -109,7 +110,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
   }
   
   public void makeTorrent() {
-  	NewTorrentWizard _wizard = (NewTorrentWizard)wizard;
+  	final NewTorrentWizard _wizard = (NewTorrentWizard)wizard;
   	
   	int	tracker_type = _wizard.getTrackerType();
   	
@@ -180,7 +181,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       
       if(_wizard.useMultiTracker) {
           this.reportCurrentTask(MessageText.getString("wizard.addingmt"));
-          TorrentUtils.listToAnnounceGroups(((NewTorrentWizard)wizard).trackers, torrent);
+          TorrentUtils.listToAnnounceGroups(_wizard.trackers, torrent);
          }
 
       if (_wizard.useWebSeed && _wizard.webseeds.size() > 0 ){
@@ -226,58 +227,58 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       
       this.reportCurrentTask(MessageText.getString("wizard.savingfile"));
       
-      final File torrent_file = new File(((NewTorrentWizard)wizard).savePath);
+      final File torrent_file = new File(_wizard.savePath);
       
       torrent.serialiseToBEncodedFile(torrent_file);
       this.reportCurrentTask(MessageText.getString("wizard.filesaved"));
 	  wizard.switchToClose();
 	  
-	  if ( ((NewTorrentWizard)wizard).autoOpen ){
-	  	
-        new AEThread("TorrentOpener::openTorrent") 
-		{
-            public void
-			runSupport() 
-            {
-             	boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
-             	
-             	byte[] hash = null;
-             	try {
-             		hash = torrent.getHash();
-             	} catch (TOTorrentException e1) { }
+	  if ( _wizard.autoOpen ){
+	  	CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
+						new AzureusCoreRunningListener() {
+							public void azureusCoreRunning(AzureusCore core) {
+								boolean default_start_stopped = COConfigurationManager.getBooleanParameter("Default Start Torrents Stopped");
 
-                DownloadManager dm = ((NewTorrentWizard)wizard).getAzureusCore().getGlobalManager().addDownloadManager(
-                		torrent_file.toString(),
-                		hash,
-                		save_dir.toString(), 
-						default_start_stopped 	? DownloadManager.STATE_STOPPED 
-												: DownloadManager.STATE_QUEUED,
-						true,	// persistent 
-						true,	// for seeding
-						null );	// no adapter required
-                
-                if (!default_start_stopped && dm != null) {
-                	// We want this to move to seeding ASAP, so move it to the top
-                	// of the download list, where it will do the quick check and
-                	// move to the seeding list
-                	// (the for seeding flag should really be smarter and verify
-                	//  it's a seeding torrent and set appropriately) 
-                	dm.getGlobalManager().moveTop(new DownloadManager[] { dm });
-                }
-                
-                if ( ((NewTorrentWizard)wizard).autoHost &&  ((NewTorrentWizard)wizard).getTrackerType() != NewTorrentWizard.TT_EXTERNAL ){
-                	
-                	try{
-                		((NewTorrentWizard)wizard).getAzureusCore().getTrackerHost().hostTorrent( torrent, true, false );
-                		
-                	}catch( TRHostException e ){
-                		Logger.log(new LogAlert(LogAlert.REPEATABLE,
-                				"Host operation fails", e));
-                	}
-                }
+								byte[] hash = null;
+								try {
+									hash = torrent.getHash();
+								} catch (TOTorrentException e1) {
+								}
 
-            }
-		}.start();
+								DownloadManager dm = core.getGlobalManager().addDownloadManager(
+										torrent_file.toString(),
+										hash,
+										save_dir.toString(),
+										default_start_stopped ? DownloadManager.STATE_STOPPED
+												: DownloadManager.STATE_QUEUED, true, // persistent 
+										true, // for seeding
+										null); // no adapter required
+
+								if (!default_start_stopped && dm != null) {
+									// We want this to move to seeding ASAP, so move it to the top
+									// of the download list, where it will do the quick check and
+									// move to the seeding list
+									// (the for seeding flag should really be smarter and verify
+									//  it's a seeding torrent and set appropriately) 
+									dm.getGlobalManager().moveTop(new DownloadManager[] {
+										dm
+									});
+								}
+
+								if (_wizard.autoHost
+										&& _wizard.getTrackerType() != NewTorrentWizard.TT_EXTERNAL) {
+
+									try {
+										core.getTrackerHost().hostTorrent(torrent, true, false);
+
+									} catch (TRHostException e) {
+										Logger.log(new LogAlert(LogAlert.REPEATABLE,
+												"Host operation fails", e));
+									}
+								}
+
+							}
+						});
 	  }
 	}
     catch (Exception e) {

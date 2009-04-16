@@ -49,6 +49,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -61,6 +62,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
@@ -72,10 +75,8 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
  */
 public class TransferStatsView extends AbstractIView {
 
-  GlobalManager manager;
-  AzureusCore core;
-  GlobalManagerStats stats;
-  SpeedManager speedManager;
+  GlobalManagerStats stats = null;
+  SpeedManager speedManager = null;
   
   OverallStats totalStats;
   
@@ -102,13 +103,15 @@ public class TransferStatsView extends AbstractIView {
   
   
   
-  public TransferStatsView(GlobalManager manager,AzureusCore core) {
-    this.core = core;
-    this.manager = manager;
-    this.stats = manager.getStats();
+  public TransferStatsView() {
+  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				stats = core.getGlobalManager().getStats();
+		    speedManager = core.getSpeedManager();
+			}
+		});
     this.totalStats = StatsFactory.getStats();
     
-    speedManager = core.getSpeedManager();
   }
   
   public void initialize(Composite composite) {
@@ -117,11 +120,17 @@ public class TransferStatsView extends AbstractIView {
     GridLayout mainLayout = new GridLayout();
     mainPanel.setLayout(mainLayout);
     
-    createGeneralPanel();
-    
-    createBlahPanel();
-    
-    createAutoSpeedPanel();
+    AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						createGeneralPanel();
+						createBlahPanel();
+						createAutoSpeedPanel();
+					}
+				});
+			}
+		});
   }
 
   private void createGeneralPanel() {
@@ -348,7 +357,6 @@ public class TransferStatsView extends AbstractIView {
     Messages.setLanguageText(disabled,"SpeedView.stats.autospeed.disabled");
     disabled.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL));
     
-    SpeedManager speedManager = core.getSpeedManager();
     autoSpeedPanelLayout.topControl = speedManager.isAvailable() ? autoSpeedInfoPanel : autoSpeedDisabledPanel;
     
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -482,7 +490,9 @@ public class TransferStatsView extends AbstractIView {
   }
   
   private void refreshPingPanel() {
-    SpeedManager speedManager = core.getSpeedManager();
+  	if (speedManager == null) {
+  		return;
+  	}
     if(speedManager.isAvailable() && speedManager.isEnabled()) {
       autoSpeedPanelLayout.topControl = autoSpeedInfoPanel;
       autoSpeedPanel.layout();
@@ -505,6 +515,9 @@ public class TransferStatsView extends AbstractIView {
   }
   
   public void periodicUpdate() {
+  	if (speedManager == null) {
+  		return;
+  	}
     if(speedManager.isAvailable() && speedManager.isEnabled()) {
       SpeedManagerPingSource sources[] = speedManager.getPingSources();
       if(sources.length > 0) {

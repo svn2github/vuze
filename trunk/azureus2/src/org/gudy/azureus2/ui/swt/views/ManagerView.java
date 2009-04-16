@@ -92,6 +92,8 @@ public class ManagerView
 	 * 
 	 */
 	public ManagerView() {
+		// assumed if we are opening a Download Manager View that we
+		// have a DownloadManager and thus an AzureusCore
 		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		gmListener = new GlobalManagerAdapter() {
 			public void downloadManagerRemoved(DownloadManager dm) {

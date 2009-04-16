@@ -30,25 +30,22 @@ import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.*;
 
-import com.aelitis.azureus.core.*;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
-
-
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.launch.PluginLauncherImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.update.*;
+import org.gudy.azureus2.pluginsimpl.local.update.UpdateManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
-import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl.*;
-
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl.runnableWithException;
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
 import org.gudy.azureus2.update.UpdaterUtils;
+
+import com.aelitis.azureus.core.*;
 
 
 
@@ -1766,12 +1763,16 @@ PluginInitializer
   	return( azureus_core.getGlobalManager() );
   }
   
-  public static PluginInterface
-  getDefaultInterface()
-  {
+	public static PluginInterface
+	getDefaultInterface()
+	{
+  	if (singleton == null) {
+  		throw new AzureusCoreException(
+					"PluginInitializer not instantiated by AzureusCore.create yet");
+  	}
   	return( singleton.getDefaultInterfaceSupport());
-  }
-  
+	}
+
   protected PluginInterface
   getDefaultInterfaceSupport()
   {
@@ -2062,4 +2063,5 @@ PluginInitializer
 			writer.exdent();
 		}
 	}
+
 }

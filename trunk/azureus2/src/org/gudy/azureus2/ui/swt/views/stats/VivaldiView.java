@@ -23,13 +23,17 @@
 package org.gudy.azureus2.ui.swt.views.stats;
 
 import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.gudy.azureus2.core3.internat.MessageText;
+
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
@@ -46,23 +50,33 @@ public class VivaldiView
   VivaldiPanel drawPanel;
 	private final boolean autoAlpha;
   private final int dht_type;
+  private AzureusCore core;
   
 
-  public VivaldiView(int dht_type) {
+  public VivaldiView(int dht_type, boolean autoAlpha) {
     this.dht_type = dht_type;
-  	autoAlpha = false;
-    init();
+  	this.autoAlpha = autoAlpha;
+
+  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+
+			public void azureusCoreRunning(AzureusCore core) {
+				VivaldiView.this.core = core;
+				init(core);
+			}
+		});
+  }
+
+  public VivaldiView(int dht_type) {
+  	this(dht_type, false);
   }
   
   public VivaldiView(boolean autoAlpha) {
-    this.dht_type = DHT_TYPE_MAIN;
-  	this.autoAlpha = autoAlpha;
-		init();
+  	this(DHT_TYPE_MAIN, autoAlpha);
   }
   
-  private void init() {
+  private void init(AzureusCore core) {
     try {
-      PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+      PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
     
       if ( dht_pi == null ){
     	   
@@ -100,7 +114,12 @@ public class VivaldiView
   
   public void refresh() {
   	if (dht == null) {
-  		init();
+  		if (core != null) {
+  			// keep trying until dht is avail
+  			init(core);
+  		} else {
+  			return;
+  		}
   	}
   	
     if(dht != null) {

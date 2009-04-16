@@ -167,6 +167,8 @@ BuddyPluginTracker
 				}
 			});
 		
+		// Assumed if we already have a plugin reference, that the
+		// Azureus Core is available
 		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		
 		gm.addListener(

@@ -26,12 +26,12 @@ import java.io.InputStream;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader.ResourceUploaderFactoryImpl;
 
@@ -72,19 +72,13 @@ public class StaticUtilities {
 	  return( ResourceUploaderFactoryImpl.getSingleton());
   }
   
-  public static PluginInterface
-  getDefaultPluginInterface()
-  {
-	  return( AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface());
-  }
-  
   public static RSSFeed
   getRSSFeed(
 	InputStream		is )
   
   	throws SimpleXMLParserDocumentException
   {
-	  return( getDefaultPluginInterface().getUtilities().getRSSFeed( is ));
+	  return( PluginInitializer.getDefaultInterface().getUtilities().getRSSFeed( is ));
   }
   	/**
   	 * See UIInstance.promptUser
@@ -102,7 +96,7 @@ public class StaticUtilities {
 	 String[]	options,
 	 int		default_option )
   {
-	  UIInstance[] instances = getDefaultPluginInterface().getUIManager().getUIInstances();
+	  UIInstance[] instances = PluginInitializer.getDefaultInterface().getUIManager().getUIInstances();
 	  
 	  if ( instances.length > 0 ){
 		  
@@ -127,7 +121,7 @@ public class StaticUtilities {
   getUIManager(
 	  long	millis_to_wait_for_attach )
   {
-	  final UIManager ui_manager = getDefaultPluginInterface().getUIManager();
+	  final UIManager ui_manager = PluginInitializer.getDefaultInterface().getUIManager();
 	  
 	  if ( ui_manager.getUIInstances().length == 0 ){
 		  

@@ -32,14 +32,13 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.unix.ScriptAfterShutdown;
 import org.gudy.azureus2.platform.win32.access.AEWin32Access;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.update.UpdaterUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.update.AzureusRestarter;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 public class 
 AzureusRestarterImpl 
@@ -252,7 +251,7 @@ AzureusRestarterImpl
 			//             write to the program dir.
 			
 			if (isVistaOrHigher) {
-				if (AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUpdateManager().getInstallers().length > 0) {
+				if (PluginInitializer.getDefaultInterface().getUpdateManager().getInstallers().length > 0) {
 					log.println("Vista restart w/Updates.. checking if EXE needed");
 					try {
 						final File writeFile = FileUtil.getApplicationFile("write.dll");

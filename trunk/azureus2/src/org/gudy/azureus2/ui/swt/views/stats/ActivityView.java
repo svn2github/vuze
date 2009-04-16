@@ -45,14 +45,18 @@ import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+
 /**
  * @author Olivier
  *
  */
 public class ActivityView extends AbstractIView implements ParameterListener {
 
-  GlobalManager manager;
-  GlobalManagerStats stats;
+  GlobalManager manager = null;
+  GlobalManagerStats stats = null;
   
   OverallStats totalStats;
   
@@ -64,13 +68,20 @@ public class ActivityView extends AbstractIView implements ParameterListener {
   Canvas upSpeedCanvas;
   SpeedGraphic upSpeedGraphic;  
   
-  public ActivityView(GlobalManager manager) {
-    this.manager = manager;
-    this.stats = manager.getStats();
+  public ActivityView() {
+  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				manager = core.getGlobalManager();
+				stats = manager.getStats();
+			}
+		});
     this.totalStats = StatsFactory.getStats();
   }
   
   public void periodicUpdate() {
+  	if (manager == null || stats == null) {
+  		return;
+  	}
 	  
 	int swarms_peer_speed = (int)stats.getTotalSwarmsPeerRate(true,false);
 	

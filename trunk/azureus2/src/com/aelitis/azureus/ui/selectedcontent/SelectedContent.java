@@ -77,8 +77,12 @@ public class SelectedContent implements ISelectedContent
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDM()
 	public DownloadManager getDownloadManager() {
 		if (dm == null && hash != null) {
-			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-			return gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
+			try {
+  			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+  			return gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
+			} catch (Exception ignore) {
+				
+			}
 		}
 		return dm;
 	}

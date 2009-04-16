@@ -61,7 +61,7 @@ public class HealthItem
 		info.addCategories(new String[] { CAT_ESSENTIAL });
 	}
 
-	static TRHost tracker_host = AzureusCoreFactory.getSingleton().getTrackerHost();
+	static TRHost tracker_host = null;
 
 	/** Default Constructor */
 	public HealthItem(String sTableID) {
@@ -76,6 +76,15 @@ public class HealthItem
 	}
 
 	public void refresh(TableCell cell) {
+		if (tracker_host == null) {
+			try {
+			 	tracker_host = AzureusCoreFactory.getSingleton().getTrackerHost();
+			} catch (Throwable t) {
+			}
+			if (tracker_host == null) {
+				return;
+			}
+		}
 
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 		int health;

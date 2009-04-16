@@ -189,23 +189,11 @@ public class OpenTorrentWindow
 
 	protected boolean bSkipDataDirModify = false;
 
-	private static final AzureusCore core;
-
 	private StringList dirList;
 
 	private Label dataFileTableLabel;
 
 	private Composite diskspaceComp;
-
-	static {
-		if (!AzureusCoreFactory.isCoreAvailable()) {
-			// This should be only called in test mode
-			AzureusCore core2 = AzureusCoreFactory.create();
-			core2.start();
-		}
-
-		core = AzureusCoreFactory.getSingleton();
-	}
 
 	/**
 	 * A counter to track torrent file downloads that are still active;
@@ -1011,7 +999,7 @@ public class OpenTorrentWindow
 	}
 
 	private void browseURL() {
-		new OpenUrlWindow(core, shellForChildren, null, null,
+		new OpenUrlWindow(shellForChildren, null, null,
 				OpenTorrentWindow.this);
 	}
 
@@ -1945,9 +1933,9 @@ public class OpenTorrentWindow
 				String sURL = UrlUtils.parseTextForURL(sTorrentFilenames[i], true);
 				if (sURL != null) {
 					if (COConfigurationManager.getBooleanParameter("Add URL Silently")) {
-						new FileDownloadWindow(core, shellForChildren, sURL, null, null, this);
+						new FileDownloadWindow(shellForChildren, sURL, null, null, this);
 					} else {
-						new OpenUrlWindow(core, shellForChildren, sURL, null, this);
+						new OpenUrlWindow(shellForChildren, sURL, null, this);
 					}
 					numAdded++;
 					continue;
@@ -3023,6 +3011,8 @@ public class OpenTorrentWindow
 	}
 
 	public static void main(String[] args) {
+		AzureusCore core = AzureusCoreFactory.create();
+		core.start();
 		Display display = Display.getDefault();
 
 		Colors.getInstance();

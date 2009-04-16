@@ -87,12 +87,12 @@ public class UIMagnetHandler
 												public void componentCreated(AzureusCore core,
 														AzureusCoreComponent component) {
 													if (component instanceof UIFunctions) {
-														uiswitch((UIFunctions) component);
+														uiswitch(core, (UIFunctions) component);
 													}
 												}
 											});
 										} else {
-											uiswitch(uif);
+											uiswitch(core, uif);
 										}
 
 										return true;
@@ -111,7 +111,7 @@ public class UIMagnetHandler
 		});
 	}
 
-	private static void uiswitch(final UIFunctions uif) {
+	private static void uiswitch(final AzureusCore core, final UIFunctions uif) {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				uif.bringToFront();
@@ -119,14 +119,12 @@ public class UIMagnetHandler
 						MessageText.getString("dialog.uiswitch.text"), new String[] {
 							MessageText.getString("dialog.uiswitch.button"),
 						}, 0, null, null, false, 0);
-				if (i == 0) {
-					COConfigurationManager.setParameter("ui", "az3");
-					COConfigurationManager.save();
-					AzureusCore core = AzureusCoreFactory.getSingleton();
-					if (core != null) {
-						core.requestRestart();
-					}
+				if (i != 0) {
+					return;
 				}
+				COConfigurationManager.setParameter("ui", "az3");
+				COConfigurationManager.save();
+				core.requestRestart();
 			}
 		});
 	}

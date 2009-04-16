@@ -37,11 +37,11 @@ import org.gudy.azureus2.core3.logging.impl.FileLogging;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreOperation;
-import com.aelitis.azureus.core.AzureusCoreOperationTask;
+import com.aelitis.azureus.core.*;
 
 /**
  * @author TuxPaper
@@ -143,31 +143,32 @@ public class UIDebugGenerator
 			e.printStackTrace();
 		}
 
-		AzureusCoreFactory.getSingleton().createOperation(
-			AzureusCoreOperation.OP_PROGRESS,
-			new AzureusCoreOperationTask()
-			{
-				public void 
-				run(
-						AzureusCoreOperation operation )
-				{		
-					try{
+		CoreWaiterSWT.waitForCore(TriggerInThread.ANY_THREAD,
+				new AzureusCoreRunningListener() {
 
-						File fEvidence = new File(path, "evidence.log");
-						FileWriter fw;
-						fw = new FileWriter(fEvidence);
-						PrintWriter pw = new PrintWriter(fw);
+					public void azureusCoreRunning(AzureusCore core) {
+						core.createOperation(AzureusCoreOperation.OP_PROGRESS,
+								new AzureusCoreOperationTask() {
+									public void run(AzureusCoreOperation operation) {
+										try {
 
-						AEDiagnostics.generateEvidence(pw);
+											File fEvidence = new File(path, "evidence.log");
+											FileWriter fw;
+											fw = new FileWriter(fEvidence);
+											PrintWriter pw = new PrintWriter(fw);
 
-						fw.close();
+											AEDiagnostics.generateEvidence(pw);
 
-					} catch (IOException e) {
+											fw.close();
 
-						Debug.printStackTrace( e );
+										} catch (IOException e) {
+
+											Debug.printStackTrace(e);
+										}
+									}
+								});
 					}
-				}
-			});
+				});
 
 
 		try {

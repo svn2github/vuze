@@ -48,7 +48,7 @@ import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadAnnounceResultImpl;
 
 
@@ -360,7 +360,7 @@ LWSDownload
 	getListAttribute(
 		TorrentAttribute		attribute )
 	{
-		TorrentManager tm = StaticUtilities.getDefaultPluginInterface().getTorrentManager();
+		TorrentManager tm = PluginInitializer.getDefaultInterface().getTorrentManager();
 
 		if ( attribute == tm.getAttribute( TorrentAttribute.TA_NETWORKS )){
 			

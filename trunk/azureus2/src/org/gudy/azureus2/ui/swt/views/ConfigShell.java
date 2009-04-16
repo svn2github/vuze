@@ -66,7 +66,7 @@ public class ConfigShell
 			shell.setLayout(new GridLayout());
 			shell.setText(MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")));
 			Utils.setShellIcon(shell);
-			configView = new ConfigView(AzureusCoreFactory.getSingleton());
+			configView = new ConfigView();
 			configView.initialize(shell);
 			configView.selectSection(section);
 

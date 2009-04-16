@@ -49,9 +49,6 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
  */
 public class StatsView extends AbstractIView {
   
-  GlobalManager manager;
-  AzureusCore core;
-  
   TabFolder folder;
   
   TabItem itemActivity;
@@ -68,15 +65,8 @@ public class StatsView extends AbstractIView {
   UpdateThread updateThread;
   
   public StatsView() {
-    this.core = AzureusCoreFactory.getSingleton();
-    this.manager = core.getGlobalManager();
    }
 
-  public StatsView(GlobalManager manager,AzureusCore core) {
-   this.manager = manager;
-   this.core = core;
-  }
-  
   private class UpdateThread extends Thread {
     boolean bContinue;
     
@@ -158,8 +148,8 @@ public class StatsView extends AbstractIView {
       itemVivaldis[i] = new TabItem(folder,SWT.NULL);
     }
 
-    viewActivity = new ActivityView(manager);
-    viewStats = new TransferStatsView(manager,core);
+    viewActivity = new ActivityView();
+    viewStats = new TransferStatsView();
     viewCache = new CacheView();
     
  

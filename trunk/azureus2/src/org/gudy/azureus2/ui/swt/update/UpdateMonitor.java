@@ -52,6 +52,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 /**
@@ -99,7 +100,7 @@ public class UpdateMonitor
 	protected UpdateMonitor(AzureusCore _azureus_core) {
 		azCore = _azureus_core;
 
-		PluginInterface defPI = azCore.getPluginManager().getDefaultPluginInterface();
+		PluginInterface defPI = PluginInitializer.getDefaultInterface();
 		UpdateManager um = defPI.getUpdateManager();
 
 		um.addListener(new UpdateManagerListener() {
@@ -477,7 +478,7 @@ public class UpdateMonitor
 
 		AEThread2 t = new AEThread2("UpdateMonitor:kickoff", true) {
 			public void run() {
-				UpdateManager um = azCore.getPluginManager().getDefaultPluginInterface().getUpdateManager();
+				UpdateManager um = PluginInitializer.getDefaultInterface().getUpdateManager();
 
 				current_update_instance = um.createUpdateCheckInstance(bForce
 						? UpdateCheckInstance.UCI_INSTALL : UpdateCheckInstance.UCI_UPDATE,

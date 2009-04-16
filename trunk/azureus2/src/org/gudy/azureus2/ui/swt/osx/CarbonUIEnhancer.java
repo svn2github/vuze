@@ -14,15 +14,9 @@ import java.lang.reflect.Method;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.internal.Callback;
-import org.eclipse.swt.internal.carbon.AEDesc;
-import org.eclipse.swt.internal.carbon.CFRange;
-import org.eclipse.swt.internal.carbon.EventRecord;
-import org.eclipse.swt.internal.carbon.HICommand;
-import org.eclipse.swt.internal.carbon.OS;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Widget;
+import org.eclipse.swt.internal.carbon.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -36,7 +30,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.apple.cocoa.application.NSApplication;
@@ -305,13 +298,13 @@ public class CarbonUIEnhancer
 							return OS.noErr;
 						}
 						case kHICommandWizard:
-							new ConfigureWizard(AzureusCoreFactory.getSingleton(), false);
+							new ConfigureWizard(false);
 							return OS.noErr;
 						case kHICommandNatTest:
 							new NatTestWindow();
 							return OS.noErr;
 						case kHICommandSpeedTest:
-							new SpeedTestWizard(AzureusCoreFactory.getSingleton(), display);
+							new SpeedTestWizard();
 							return OS.noErr;
 
 						case OS.kAEQuitApplication:

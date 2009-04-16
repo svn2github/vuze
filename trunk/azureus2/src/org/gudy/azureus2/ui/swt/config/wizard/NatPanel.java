@@ -26,14 +26,18 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipchecker.natchecker.NatChecker;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 /**
@@ -57,9 +61,12 @@ public class NatPanel extends AbstractWizardPanel {
 
     private boolean bContinue;
 
+		private final AzureusCore core;
+
     //public Checker(int lowPort, int highPort) {
-    public Checker(int tcp_listen_port) {
+    public Checker(AzureusCore core, int tcp_listen_port) {
       super("NAT Checker");
+			this.core = core;
       //this.lowPort = lowPort;
       //this.highPort = highPort;
       this.TCPListenPort = tcp_listen_port;
@@ -70,7 +77,7 @@ public class NatPanel extends AbstractWizardPanel {
       //if (lowPort <= highPort && (highPort-lowPort < 10)) {
         //for (int port = lowPort; port <= highPort && bContinue; port++) {
           printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");
-          NatChecker checker = new NatChecker(wizard.getAzureusCore(), NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses(true)[0], TCPListenPort, false );
+          NatChecker checker = new NatChecker(core, NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses(true)[0], TCPListenPort, false );
           switch (checker.getResult()) {
             case NatChecker.NAT_OK :
               String	additional_info = checker.getAdditionalInfo();
@@ -236,13 +243,18 @@ public class NatPanel extends AbstractWizardPanel {
         bTest.setEnabled(false);
         bCancel.setEnabled(true);
         textResults.setText("");
-        ConfigureWizard cw = (ConfigureWizard) wizard;
-        
-        //int lowPort = cw.serverMinPort;
-        //int highPort = cw.serverSharePort?cw.serverMinPort:cw.serverMaxPort;
-        int TCPListenPort = cw.serverTCPListenPort;
-        checker = new Checker(TCPListenPort);
-        checker.start();
+        CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+				
+					public void azureusCoreRunning(AzureusCore core) {
+						ConfigureWizard cw = (ConfigureWizard) wizard;
+						
+						//int lowPort = cw.serverMinPort;
+						//int highPort = cw.serverSharePort?cw.serverMinPort:cw.serverMaxPort;
+						int TCPListenPort = cw.serverTCPListenPort;
+						checker = new Checker(core, TCPListenPort);
+						checker.start();
+					}
+				});
       }
     });
 

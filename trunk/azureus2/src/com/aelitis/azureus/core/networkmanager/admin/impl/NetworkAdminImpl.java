@@ -32,27 +32,17 @@ import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.logging.LogAlert;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.platform.PlatformManagerCapabilities;
-import org.gudy.azureus2.platform.PlatformManagerFactory;
-import org.gudy.azureus2.platform.PlatformManagerPingCallback;
+import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.utils.Utilities;
-import org.gudy.azureus2.pluginsimpl.PluginUtils;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.instancemanager.AZInstance;
-import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
-import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
-import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
+import com.aelitis.azureus.core.instancemanager.*;
 import com.aelitis.azureus.core.networkmanager.admin.*;
 import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
@@ -598,7 +588,7 @@ NetworkAdminImpl
 				// next, same for nat devices
 			
 			try{
-				NetworkAdminNATDevice[] nat = getNATDevices();
+				NetworkAdminNATDevice[] nat = getNATDevices(AzureusCoreFactory.getSingleton());
 				
 				if ( nat.length > 0 ){
 					
@@ -820,7 +810,7 @@ NetworkAdminImpl
 	public InetAddress
 	getDefaultPublicAddress()
 	{
-		Utilities utils = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities();
+		Utilities utils = PluginInitializer.getDefaultInterface().getUtilities();
 		
 		InetAddress address = utils.getPublicAddress();
 		
@@ -877,10 +867,9 @@ NetworkAdminImpl
 	}
 
 	public NetworkAdminProtocol[]
- 	getOutboundProtocols()
+ 	getOutboundProtocols(
+ 			AzureusCore azureus_core)
 	{
-		AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
-				
 		NetworkAdminProtocol[]	res = 
 			{
 				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_HTTP ),
@@ -892,10 +881,9 @@ NetworkAdminImpl
 	}
  	
  	public NetworkAdminProtocol[]
- 	getInboundProtocols()
+ 	getInboundProtocols(
+ 			AzureusCore azureus_core)
  	{
-		AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
-
 		List	protocols = new ArrayList();
 		
 		TCPNetworkManager	tcp_manager = TCPNetworkManager.getSingleton();
@@ -1015,13 +1003,14 @@ NetworkAdminImpl
 	}
 	
 	public NetworkAdminNATDevice[]
-	getNATDevices()
+	getNATDevices(
+			AzureusCore azureus_core )
 	{
 		List<NetworkAdminNATDeviceImpl>	devices = new ArrayList<NetworkAdminNATDeviceImpl>();
 		
 		try{
 	
-		    PluginInterface upnp_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+		    PluginInterface upnp_pi = azureus_core.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
 		    
 		    if ( upnp_pi != null ){
 	    	
@@ -1351,9 +1340,10 @@ NetworkAdminImpl
 	}
 	
 	public void
-	runInitialChecks()
+	runInitialChecks(
+			AzureusCore azureus_core)
 	{
-		AZInstanceManager i_man = AzureusCoreFactory.getSingleton().getInstanceManager();
+		AZInstanceManager i_man = azureus_core.getInstanceManager();
 		
 		final AZInstance	my_instance = i_man.getMyInstance();
 		
@@ -1936,17 +1926,21 @@ NetworkAdminImpl
 				}
 			}
 			
-			NetworkAdminNATDevice[]	nat_devices = getNATDevices();
-			
-			writer.println( "NAT Devices: " + nat_devices.length );
-			
-			for (int i=0;i<nat_devices.length;i++){
-				
-				NetworkAdminNATDevice	device = nat_devices[i];
-				
-				writer.println( "    " + device.getName() + ",address=" + device.getAddress().getHostAddress() + ":" + device.getPort() + ",ext=" + device.getExternalAddress());
+			try {
+  			NetworkAdminNATDevice[]	nat_devices = getNATDevices(AzureusCoreFactory.getSingleton());
+  			
+  			writer.println( "NAT Devices: " + nat_devices.length );
+  			
+  			for (int i=0;i<nat_devices.length;i++){
+  				
+  				NetworkAdminNATDevice	device = nat_devices[i];
+  				
+  				writer.println( "    " + device.getName() + ",address=" + device.getAddress().getHostAddress() + ":" + device.getPort() + ",ext=" + device.getExternalAddress());
+  			}
+			} catch (Exception e) {
+				writer.println( "Nat Devices: Can't get -> " + e.toString());
 			}
-			
+  			
 			writer.println( "Interfaces" );
 			
 			writer.println( "   " + getNetworkInterfacesAsString());
@@ -2020,19 +2014,23 @@ NetworkAdminImpl
 			}
 		}
 		
-		NetworkAdminNATDevice[]	nat_devices = getNATDevices();
-		
-		iw.println( "NAT Devices: " + nat_devices.length );
-		
-		for (int i=0;i<nat_devices.length;i++){
-			
-			NetworkAdminNATDevice	device = nat_devices[i];
-			
-			iw.println( "    " + device.getName() + ",address=" + device.getAddress().getHostAddress() + ":" + device.getPort() + ",ext=" + device.getExternalAddress());
-			
-			public_addresses.add( device.getExternalAddress());
+		try {
+  		NetworkAdminNATDevice[]	nat_devices = getNATDevices(AzureusCoreFactory.getSingleton());
+  		
+  		iw.println( "NAT Devices: " + nat_devices.length );
+  		
+  		for (int i=0;i<nat_devices.length;i++){
+  			
+  			NetworkAdminNATDevice	device = nat_devices[i];
+  			
+  			iw.println( "    " + device.getName() + ",address=" + device.getAddress().getHostAddress() + ":" + device.getPort() + ",ext=" + device.getExternalAddress());
+  			
+  			public_addresses.add( device.getExternalAddress());
+  		}
+		} catch (Exception e) {
+			iw.println( "Nat Devices: Can't get -> " + e.toString());
 		}
-		
+ 		
 		iw.println( "Interfaces" );
 		
 		NetworkAdminNetworkInterface[] interfaces = getInterfaces();
@@ -2124,51 +2122,56 @@ NetworkAdminImpl
 		
 		iw.println( "Inbound protocols: default routing" );
 		
-		NetworkAdminProtocol[]	protocols = getInboundProtocols();
-		
-		for (int i=0;i<protocols.length;i++){
-			
-			NetworkAdminProtocol	protocol = protocols[i];
-			
-			try{
-				InetAddress	ext_addr = testProtocol( protocol );
-	
-				if ( ext_addr != null ){
-					
-					public_addresses.add( ext_addr );
-				}
-	
-				iw.println( "    " + protocol.getName() + " - " + ext_addr );
-				
-			}catch( NetworkAdminException e ){
-				
-				iw.println( "    " + protocol.getName() + " - " + Debug.getNestedExceptionMessage(e));
-			}
-		}
-		
-		iw.println( "Outbound protocols: default routing" );
-		
-		protocols = getOutboundProtocols();
-		
-		for (int i=0;i<protocols.length;i++){
-			
-			NetworkAdminProtocol	protocol = protocols[i];
-			
-			try{
 
-				InetAddress	ext_addr = testProtocol( protocol );
-				
-				if ( ext_addr != null ){
-				
-					public_addresses.add( ext_addr );
-				}
-				
-				iw.println( "    " + protocol.getName() + " - " + ext_addr );
-				
-			}catch( NetworkAdminException e ){
-				
-				iw.println( "    " + protocol.getName() + " - " + Debug.getNestedExceptionMessage(e));
-			}
+		if (AzureusCoreFactory.isCoreRunning()) {
+			AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
+
+			NetworkAdminProtocol[]	protocols = getInboundProtocols(azureus_core);
+		
+  		for (int i=0;i<protocols.length;i++){
+  			
+  			NetworkAdminProtocol	protocol = protocols[i];
+  			
+  			try{
+  				InetAddress	ext_addr = testProtocol( protocol );
+  	
+  				if ( ext_addr != null ){
+  					
+  					public_addresses.add( ext_addr );
+  				}
+  	
+  				iw.println( "    " + protocol.getName() + " - " + ext_addr );
+  				
+  			}catch( NetworkAdminException e ){
+  				
+  				iw.println( "    " + protocol.getName() + " - " + Debug.getNestedExceptionMessage(e));
+  			}
+  		}
+  		
+  		iw.println( "Outbound protocols: default routing" );
+  		
+  		protocols = getOutboundProtocols(azureus_core);
+  		
+  		for (int i=0;i<protocols.length;i++){
+  			
+  			NetworkAdminProtocol	protocol = protocols[i];
+  			
+  			try{
+  
+  				InetAddress	ext_addr = testProtocol( protocol );
+  				
+  				if ( ext_addr != null ){
+  				
+  					public_addresses.add( ext_addr );
+  				}
+  				
+  				iw.println( "    " + protocol.getName() + " - " + ext_addr );
+  				
+  			}catch( NetworkAdminException e ){
+  				
+  				iw.println( "    " + protocol.getName() + " - " + Debug.getNestedExceptionMessage(e));
+  			}
+  		}
 		}
 		
 		Iterator	it = public_addresses.iterator();
@@ -2374,7 +2377,9 @@ NetworkAdminImpl
 												
 						iw.println( "Outbound protocols: bound" );
 						
-						NetworkAdminProtocol[]	protocols = getOutboundProtocols();
+						AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
+						
+						NetworkAdminProtocol[]	protocols = getOutboundProtocols(azureus_core);
 						
 						for (int i=0;i<protocols.length;i++){
 							
@@ -2398,7 +2403,7 @@ NetworkAdminImpl
 						
 						iw.println( "Inbound protocols: bound" );
 						
-						protocols = getInboundProtocols();
+						protocols = getInboundProtocols(azureus_core);
 						
 						for (int i=0;i<protocols.length;i++){
 							
@@ -2512,7 +2517,9 @@ NetworkAdminImpl
 	logNATStatus(
 		IndentWriter		iw )
 	{
-		generateDiagnostics( iw, getInboundProtocols());
+		if (AzureusCoreFactory.isCoreRunning()) {
+			generateDiagnostics( iw, getInboundProtocols(AzureusCoreFactory.getSingleton()));
+		}
 	}
 	
 	public static void

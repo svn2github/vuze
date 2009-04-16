@@ -178,6 +178,7 @@ LocalTrackerPlugin
 		
 		plugin_start_time = plugin_interface.getUtilities().getCurrentSystemTime();
 
+		// Assume we have a core, since this is a plugin
 		instance_manager	= AzureusCoreFactory.getSingleton().getInstanceManager();
 		
 		instance_manager.addListener( this );

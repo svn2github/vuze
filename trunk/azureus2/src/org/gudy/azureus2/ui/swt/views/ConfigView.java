@@ -38,19 +38,16 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-
-import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 
 /**
  * @author Olivier
@@ -87,25 +84,20 @@ public class ConfigView extends AbstractIView {
   public 
   ConfigView() 
   {
-  	this(AzureusCoreFactory.getSingleton());
   }
   
-  /**
-   * Main Initializer
-   * 
-   * @param _azureus_core
-   */
-  public 
-  ConfigView(
-  	AzureusCore		_azureus_core ) 
-  {
-  	azureus_core	= _azureus_core;
-  }
-
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
-  public void initialize(Composite composite) {
+  public void initialize(final Composite composite) {
+  	// need to initalize composite now, since getComposite can
+  	// be called at any time
+    cConfig = new Composite(composite, SWT.NONE);
+		_initialize(composite);
+  }
+  	
+  public void _initialize(Composite composite) {
+  	
     GridData gridData;
     /*
     /--cConfig-----------------------------------------------------------\
@@ -128,7 +120,6 @@ public class ConfigView extends AbstractIView {
     try {
       Display d = composite.getDisplay();
 
-      cConfig = new Composite(composite, SWT.NONE);
       GridLayout configLayout = new GridLayout();
       configLayout.marginHeight = 0;
       configLayout.marginWidth = 0;
@@ -756,8 +747,12 @@ public class ConfigView extends AbstractIView {
   }
 
   private TreeItem findTreeItem(Tree tree, String ID) {
-  	if (tree == null)
+  	if (tree == null) {
   		tree = this.tree;
+  	}
+  	if (tree == null) {
+  		return null;
+  	}
     TreeItem[] items = tree.getItems();
     for (int i = 0; i < items.length; i++) {
       String itemID = (String)items[i].getData("ID");

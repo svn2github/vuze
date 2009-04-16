@@ -20,25 +20,14 @@
 package org.gudy.azureus2.ui.swt.maketorrent;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetAdapter;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.FileTransfer;
-import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.widgets.*;
 
-import com.aelitis.azureus.core.*;
-import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -107,10 +96,9 @@ NewTorrentWizard
 
   public 
   NewTorrentWizard(
-  	AzureusCore		azureus_core,
 	Display 		display) 
   {
-    super(azureus_core, "wizard.title");
+    super("wizard.title");
     
     cancel.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {

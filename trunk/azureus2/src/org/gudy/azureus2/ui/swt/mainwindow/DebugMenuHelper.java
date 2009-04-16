@@ -40,7 +40,7 @@ public class DebugMenuHelper
 		}
 
 		item = new MenuItem(menu, SWT.CASCADE);
-		item.setText("Debug");
+		item.setText("&Debug");
 		Menu menuDebug = new Menu(menu.getParent(), SWT.DROP_DOWN);
 		item.setMenu(menuDebug);
 

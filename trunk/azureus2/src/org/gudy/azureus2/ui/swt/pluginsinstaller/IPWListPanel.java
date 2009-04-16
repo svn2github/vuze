@@ -22,21 +22,14 @@
  */
 package org.gudy.azureus2.ui.swt.pluginsinstaller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.html.HTMLUtils;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -45,9 +38,14 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.LinkArea;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 
 
 /**
@@ -117,11 +115,11 @@ public class IPWListPanel extends AbstractWizardPanel {
 	data.heightHint = 100;
 	link_area.getComponent().setLayoutData(data);
 
-	AEThread listLoader = new AEThread("Plugin List Loader") {
-	  public void runSupport() {
+	CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD, new AzureusCoreRunningListener() {
+		public void azureusCoreRunning(AzureusCore core) {
 	    final StandardPlugin plugins[];
 	    try {
-	      plugins = ((InstallPluginWizard)wizard).getStandardPlugins();
+	      plugins = ((InstallPluginWizard)wizard).getStandardPlugins(core);
 	      
 	      Arrays.sort( 
 	      	plugins,
@@ -187,11 +185,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	      }
 	    });
 	  }
-	};
-	
-	listLoader.setDaemon(true);
-	
-	listLoader.start();
+	});
 	
 	
 	pluginList.addListener(SWT.Selection,new Listener() {

@@ -26,21 +26,20 @@ package org.gudy.azureus2.ui.swt.exporttorrent.wizard;
  *
  */
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 
-
-import com.aelitis.azureus.core.*;
-
-import org.gudy.azureus2.ui.swt.wizard.Wizard;
-
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 public class 
 ExportTorrentWizard 
@@ -50,11 +49,9 @@ ExportTorrentWizard
 	String export_file	= "";
   
 	public 
-	ExportTorrentWizard(
-		AzureusCore	azureus_core,	
- 		Display 	display )
+	ExportTorrentWizard()
 	{
-		super(azureus_core,"exportTorrentWizard.title");
+		super("exportTorrentWizard.title");
 	
 		ExportTorrentWizardInputPanel input_panel = new ExportTorrentWizardInputPanel(this,null);
 	
@@ -63,11 +60,10 @@ ExportTorrentWizard
   
 	public 
 	ExportTorrentWizard(
-		AzureusCore		azureus_core,	
 		Display 		display,
 		DownloadManager	dm )
 	{
-		super(azureus_core, "exportTorrentWizard.title");
+		super("exportTorrentWizard.title");
 	
 		setTorrentFile( dm.getTorrentFileName());
 		

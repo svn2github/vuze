@@ -35,8 +35,16 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.tracker.Tracker;
+import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -47,19 +55,11 @@ import org.gudy.azureus2.ui.swt.views.tableitems.myshares.NameItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.TypeItem;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.sharing.*;
-import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
-import org.gudy.azureus2.plugins.tracker.Tracker;
-import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * @author parg
@@ -82,30 +82,17 @@ implements ShareManagerListener,
 	protected static final TorrentAttribute	category_attribute = 
 		TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_CATEGORY );
 
-  	private AzureusCore		azureus_core;
-  	
-	private GlobalManager	global_manager;
-	
 	private Menu			menuCategory;
 
 	private TableViewSWTImpl<ShareResource> tv;
 
 	public 
 	MySharesView()
-	{
-		this(AzureusCoreFactory.getSingleton());
-	}
-
-	public 
-	MySharesView(
-		AzureusCore	_azureus_core )
 	{	
 		tv = new TableViewSWTImpl<ShareResource>(ShareResource.class, TableManager.TABLE_MYSHARES,
 				"MySharesView", basicItems, "name", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.BORDER | SWT.VIRTUAL);
 		setTableView(tv);
-		azureus_core	= _azureus_core;
-		global_manager = azureus_core.getGlobalManager();
 
 		tv.addSelectionListener(new TableSelectionAdapter() {
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
@@ -125,8 +112,11 @@ implements ShareManagerListener,
 		if (share == null) {
 			return;
 		}
+		
+		// if a row was selected that means it was added, which 
+		// required a core, so we assume there's a core here
 
-		List dms = global_manager.getDownloadManagers();
+		List dms = AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers();
 
 		for (int i = 0; i < dms.size(); i++) {
 			DownloadManager dm = (DownloadManager) dms.get(i);
@@ -159,22 +149,27 @@ implements ShareManagerListener,
 	}
 	
 	public void tableViewInitialized() {
-		createRows();
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				createRows(core);
+			}
+		});
 	}
 	
 	public void tableViewDestroyed() {
 		try {
-			azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager().removeListener(
+			PluginInitializer.getDefaultInterface().getShareManager().removeListener(
 					this);
 		} catch (ShareException e) {
 			Debug.printStackTrace(e);
+		} catch (Throwable ignore) {
 		}
 	}
 
-  private void createRows() {
+  private void createRows(AzureusCore core) {
 		try{
 
-			ShareManager	sm = azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager();
+			ShareManager	sm = core.getPluginManager().getDefaultPluginInterface().getShareManager();
 			
 			ShareResource[]	shares = sm.getShares();
 			
@@ -349,11 +344,15 @@ implements ShareManagerListener,
   {
     start = stop = remove = false;
     
+    if (!AzureusCoreFactory.isCoreRunning()) {
+    	return;
+    }
+    
 	List	items = getSelectedItems();
 	
     if (items.size() > 0) {
     
-  	  PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
+  	  PluginInterface pi = PluginInitializer.getDefaultInterface();
 
   	  org.gudy.azureus2.plugins.download.DownloadManager	dm 		= pi.getDownloadManager();
 
@@ -508,8 +507,11 @@ implements ShareManagerListener,
 	boolean	do_stop )
   {
 	  List	items = getSelectedItems();
+	  if (items.size() == 0) {
+	  	return;
+	  }
 	
-	  PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
+	  PluginInterface pi = PluginInitializer.getDefaultInterface();
 	    
 	  org.gudy.azureus2.plugins.download.DownloadManager	dm 		= pi.getDownloadManager();
 	    

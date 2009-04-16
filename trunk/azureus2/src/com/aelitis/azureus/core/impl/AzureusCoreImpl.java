@@ -89,6 +89,13 @@ AzureusCoreImpl
 	private static final String DM_ANNOUNCE_KEY	= "AzureusCore:announce_key";
 	private static final boolean LOAD_PLUGINS_IN_OTHER_THREAD = true;
 	
+	/** 
+	 * Listeners that will be fired after core has completed initialization
+	 */
+	static List<AzureusCoreRunningListener> coreRunningListeners = new ArrayList<AzureusCoreRunningListener>(1);
+	
+	static AEMonitor mon_coreRunningListeners = new AEMonitor("CoreCreationListeners");
+	
 	public static AzureusCore
 	create()
 	
@@ -117,7 +124,13 @@ AzureusCoreImpl
 	{
 		return( singleton != null );
 	}
-	
+
+	public static boolean
+	isCoreRunning()
+	{
+		return( singleton != null && singleton.isStarted() );
+	}
+
 	public static AzureusCore
 	getSingleton()
 	
@@ -726,7 +739,7 @@ AzureusCoreImpl
 	    
 	   instance_manager.initialize();
 
-	   NetworkManager.getSingleton().initialize(); 
+	   NetworkManager.getSingleton().initialize(this); 
          
 	   Runtime.getRuntime().addShutdownHook( new AEThread("Shutdown Hook") {
 	     public void runSupport() {
@@ -757,7 +770,7 @@ AzureusCoreImpl
 			   					
 			   					NetworkAdmin na = NetworkAdmin.getSingleton();
 		
-			   					na.runInitialChecks();
+			   					na.runInitialChecks(AzureusCoreImpl.this);
 		
 			   					na.addPropertyChangeListener(
 			   							new NetworkAdminPropertyChangeListener()
@@ -825,12 +838,52 @@ AzureusCoreImpl
 	   			});
 
 	   delayed_task.queue();
+
+	   /**
+	    * test to see if UI plays nicely with a really slow initialization
+	    */
+	   String sDelayCore = System.getProperty("delay.core", null);
+	   if (sDelayCore != null) {
+	  	 try {
+	  		 long delayCore = Long.parseLong(sDelayCore);
+	  		 Thread.sleep(delayCore);
+	  	 } catch (Exception e) {
+	  		 e.printStackTrace();
+	  	 }
+	   }
+	   
+	   Object[] listeners;
+	   mon_coreRunningListeners.enter();
+	   try {
+	  	 if (coreRunningListeners == null) {
+	  		 listeners = new Object[0];
+	  	 } else {
+	  		 listeners = coreRunningListeners.toArray();
+	  		 coreRunningListeners = null;
+	  	 }
+	  	 
+	  	 System.out.println("Core Start Completed");
+	   } finally {
+	  	 mon_coreRunningListeners.exit();
+	   }
+			for (Object l : listeners) {
+				try {
+					((AzureusCoreRunningListener)l).azureusCoreRunning(this);
+				} catch (Throwable t) {
+					Debug.out(t);
+				}
+			}
 	}
 	
 	public boolean
 	isStarted()
 	{
-		return( started );
+	   mon_coreRunningListeners.enter();
+	   try {
+	  	 return( started && coreRunningListeners == null );
+	   } finally {
+	  	 mon_coreRunningListeners.exit();
+	   }
 	}
 	
 	public void 
@@ -1485,5 +1538,18 @@ AzureusCoreImpl
 		AzureusCoreOperationListener	l )
 	{
 		operation_listeners.remove(l);
+	}
+
+	public static void addCoreRunningListener(AzureusCoreRunningListener l) {
+	   mon_coreRunningListeners.enter();
+	   try {
+    		if (AzureusCoreImpl.coreRunningListeners == null) {
+    			l.azureusCoreRunning(AzureusCoreImpl.getSingleton());
+    		} else {
+    			coreRunningListeners.add(l);
+    		}
+	   } finally {
+	  	 mon_coreRunningListeners.exit();
+	   }
 	}
 }

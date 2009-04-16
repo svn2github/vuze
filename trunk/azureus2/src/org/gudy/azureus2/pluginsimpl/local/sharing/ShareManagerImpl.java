@@ -26,18 +26,24 @@ package org.gudy.azureus2.pluginsimpl.local.sharing;
  *
  */
 
-import java.io.*;
-import java.net.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 
-import org.gudy.azureus2.plugins.torrent.*;
-import org.gudy.azureus2.pluginsimpl.local.torrent.*;
-import org.gudy.azureus2.plugins.sharing.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.config.COConfigurationListener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.plugins.torrent.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 
@@ -915,8 +921,17 @@ ShareManagerImpl
 			}
 			
 			Iterator	it = share_map.iterator();
+	
+			// We don't need GlobalManager, so isCoreRunning isn't needed
+			// Hopefully all the things we need are avail on core create
+			if (!AzureusCoreFactory.isCoreAvailable()) {
+				// could probably log some stuff below, but for now
+				// be safe and lazy and just exit
+				writer.println("No Core");
+				return;
+			}
 			
-			TorrentManager tm = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getTorrentManager();
+			TorrentManager tm = PluginInitializer.getDefaultInterface().getTorrentManager();
 
 			TorrentAttribute	category_attribute 	= tm.getAttribute( TorrentAttribute.TA_CATEGORY );
 			TorrentAttribute	props_attribute 	= tm.getAttribute( TorrentAttribute.TA_SHARE_PROPERTIES );

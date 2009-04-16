@@ -160,7 +160,7 @@ ConfigSectionTrackerServer
 
     check_button.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event event) {
-          IpCheckerWizard wizard = new IpCheckerWizard(azureus_core, display);
+          IpCheckerWizard wizard = new IpCheckerWizard();
           wizard.setIpSetterCallBack(new IpSetterCallBack() {
               public void setIp(final String ip) {
                 if(display == null || display.isDisposed())

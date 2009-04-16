@@ -35,7 +35,11 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
@@ -86,7 +90,7 @@ public class NatTestWindow {
   public NatTestWindow() {
     serverTCPListenPort = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
     
-    final Shell shell = ShellFactory.createShell(SWT.BORDER | SWT.TITLE | SWT.CLOSE);        
+    final Shell shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.BORDER | SWT.TITLE | SWT.CLOSE);        
     shell.setText(MessageText.getString("configureWizard.nat.title"));
     Utils.setShellIcon(shell);
 
@@ -165,9 +169,14 @@ public class NatTestWindow {
       public void handleEvent(Event event) {
         bTest.setEnabled(false);
         textResults.setText("");
-        
-        checker = new Checker(serverTCPListenPort);
-        checker.start();
+
+        CoreWaiterSWT.waitForCore(TriggerInThread.ANY_THREAD,
+						new AzureusCoreRunningListener() {
+							public void azureusCoreRunning(AzureusCore core) {
+						checker = new Checker(serverTCPListenPort);
+						checker.start();
+					}
+				});
       }
     });
         

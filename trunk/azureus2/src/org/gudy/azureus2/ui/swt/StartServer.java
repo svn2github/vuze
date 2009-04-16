@@ -104,7 +104,7 @@ StartServer
 					{
 						if ( component instanceof UIFunctionsSWT ){
 		    			
-							openQueuedTorrents( azureus_core );
+							openQueuedTorrents();
 						}
 		    		}
 				});
@@ -117,7 +117,7 @@ StartServer
 		    		public void 
 		    		runSupport()
 					{
-		    			pollForConnectionsSupport( azureus_core );
+		    			pollForConnectionsSupport();
 		    		}
 				};
 		    
@@ -128,8 +128,7 @@ StartServer
 	}
     
   private void 
-  pollForConnectionsSupport(
-	AzureusCore		azureus_core ) 
+  pollForConnectionsSupport() 
   {
     bContinue = true;
     while (bContinue) {
@@ -154,7 +153,7 @@ StartServer
         			  debug_str += " ; " + args[i];
         		  }
         		  Logger.log(new LogEvent(LOGID, "Main::startServer: decoded to '" + debug_str + "'"));
-        		  processArgs(azureus_core,args);
+        		  processArgs(args);
         	  }
           }
         }
@@ -198,7 +197,6 @@ StartServer
   
   protected void 
   processArgs(
-	AzureusCore		azureus_core,
    	String 			args[]) 
   {
     if (args.length < 1 || !args[0].equals( "args" )){
@@ -330,7 +328,7 @@ StartServer
 
         if ( !queued ){
  
-        	handleFile( azureus_core, file_name, open );
+        	handleFile( file_name, open );
         }
       }
   }
@@ -349,7 +347,6 @@ StartServer
   
   protected void
   handleFile(
-	AzureusCore	azureus_core,
 	String		file_name,
 	boolean		open )
   {
@@ -365,11 +362,11 @@ StartServer
       		
       		if ( f.isDirectory()){
       			
-      			ShareUtils.shareDir( azureus_core, file_name );
+      			ShareUtils.shareDir( file_name );
       			
       		}else{
       			
-         		ShareUtils.shareFile( azureus_core, file_name );            		 
+         		ShareUtils.shareFile( file_name );            		 
       		}
       	}
       } catch (Throwable e) {
@@ -379,8 +376,7 @@ StartServer
   }
   
   protected void
-  openQueuedTorrents(
-	AzureusCore		azureus_core )
+  openQueuedTorrents()
   {
     try{
       	this_mon.enter();
@@ -399,7 +395,7 @@ StartServer
     	String	file_name 	= (String)entry[0];
     	boolean	open		= ((Boolean)entry[1]).booleanValue();
     	
-    	handleFile( azureus_core, file_name, open );
+    	handleFile( file_name, open );
     }
   }
   

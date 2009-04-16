@@ -28,8 +28,11 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -65,8 +68,11 @@ public class RankItem
   public RankItem(String sTableID) {
     super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 50, sTableID);
     setRefreshInterval(INTERVAL_INVALID_ONLY);
-    GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-    gm.addListener(new GMListener());
+    AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				core.getGlobalManager().addListener(new GMListener());
+			}
+		});
     setMaxWidthAuto(true);
     setMinWidthAuto(true);
   }
@@ -131,8 +137,12 @@ public class RankItem
 			}
 
 			public void destroyInitiated() {
-				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-				gm.removeListener(this);
+				try {
+					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+					gm.removeListener(this);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 			}
 
 			public void downloadManagerAdded(DownloadManager dm) {

@@ -26,15 +26,15 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
-import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
@@ -43,10 +43,13 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
-import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
+import org.gudy.azureus2.ui.swt.views.tableitems.peers.DownloadNameItem;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
 
 /**
  * @author Olivier
@@ -63,22 +66,16 @@ public class PeerSuperView
 	implements GlobalManagerListener, DownloadManagerPeerListener,
 	TableLifeCycleListener, TableViewSWTMenuFillListener
 {	
-  private GlobalManager g_manager;
 	private TableViewSWT<PEPeer> tv;
 	private Shell shell;
 	private boolean active_listener = true;
 
 
-  public PeerSuperView() {
-  	this(AzureusCoreFactory.getSingleton().getGlobalManager());
-  }
-
-	
   /**
    * Initialize
    *
    */
-  public PeerSuperView(GlobalManager gm) {
+  public PeerSuperView() {
   	TableColumnCore[] items = PeersView.getBasicColumnItems(TableManager.TABLE_ALL_PEERS);
   	TableColumnCore[] basicItems = new TableColumnCore[items.length + 1];
   	System.arraycopy(items, 0, basicItems, 0, items.length);
@@ -97,13 +94,17 @@ public class PeerSuperView
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
 		
-		this.g_manager = gm; 
 	}	
   
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
 	public void tableViewInitialized() {
 		shell = tv.getComposite().getShell();
-		registerGlobalManagerListener();
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+		
+			public void azureusCoreRunning(AzureusCore core) {
+				registerGlobalManagerListener(core);
+			}
+		});
 	}
 		
 	public void tableViewDestroyed() {
@@ -127,14 +128,15 @@ public class PeerSuperView
 	/**
 	 * Add datasources already in existance before we called addListener.
 	 * Faster than allowing addListener to call us one datasource at a time. 
+	 * @param core 
 	 */
-	private void addExistingDatasources() {
-		if (g_manager == null || tv.isDisposed()) {
+	private void addExistingDatasources(AzureusCore core) {
+		if (tv.isDisposed()) {
 			return;
 		}
 
 		ArrayList<PEPeer> sources = new ArrayList<PEPeer>();
-		Iterator itr = g_manager.getDownloadManagers().iterator();
+		Iterator itr = core.getGlobalManager().getDownloadManagers().iterator();
 		while (itr.hasNext()) {
 			PEPeer[] peers = ((DownloadManager)itr.next()).getCurrentPeers();
 			if (peers != null) {
@@ -149,20 +151,26 @@ public class PeerSuperView
 		tv.processDataSourceQueue();
 	}
 
-	private void registerGlobalManagerListener() {
+	private void registerGlobalManagerListener(AzureusCore core) {
 		this.active_listener = false;
-  		try {g_manager.addListener(this);}
-  		finally {this.active_listener = true;}
-		addExistingDatasources();
+		try {
+			core.getGlobalManager().addListener(this);
+		} finally {
+			this.active_listener = true;
+		}
+		addExistingDatasources(core);
 	}
 	
 	private void unregisterListeners() {
-		if (this.g_manager == null) {return;}
-		this.g_manager.removeListener(this);
-		Iterator itr = g_manager.getDownloadManagers().iterator();
-		while(itr.hasNext()) {
-			DownloadManager dm = (DownloadManager)itr.next();
-			downloadManagerRemoved(dm);
+		try {
+			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			gm.removeListener(this);
+			Iterator itr = gm.getDownloadManagers().iterator();
+			while(itr.hasNext()) {
+				DownloadManager dm = (DownloadManager)itr.next();
+				downloadManagerRemoved(dm);
+			}
+		} catch (Exception e) {
 		}
 	}
 	

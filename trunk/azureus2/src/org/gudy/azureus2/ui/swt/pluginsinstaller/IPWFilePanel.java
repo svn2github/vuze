@@ -25,23 +25,22 @@ package org.gudy.azureus2.ui.swt.pluginsinstaller;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.installer.InstallablePlugin;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.mainwindow.ListenerNeedingCoreRunning;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
+
+import com.aelitis.azureus.core.AzureusCore;
 
 /**
  * @author Olivier Chalouhi
@@ -80,9 +79,9 @@ public class IPWFilePanel extends AbstractWizardPanel {
 	txtFile = new Text(panel,SWT.BORDER);
 	GridData data = new GridData(GridData.FILL_HORIZONTAL);
 	txtFile.setLayoutData(data);
-	txtFile.addListener(SWT.Modify,new Listener() {
-	  public void handleEvent(Event event) {
-	    checkValidFile();
+	txtFile.addListener(SWT.Modify,new ListenerNeedingCoreRunning() {
+	  public void handleEvent(AzureusCore core, Event event) {
+	    checkValidFile(core);
 	  }
 	}
 	);
@@ -100,44 +99,46 @@ public class IPWFilePanel extends AbstractWizardPanel {
 	  }
 	});	
 	
-	checkValidFile();
   }
   
-  private void checkValidFile() {
-    String fileName = txtFile.getText();
-    String error_message = null;
-    try {
-      File f = new File(fileName);
-      if(f.isFile() && (f.getName().endsWith(".jar") || f.getName().endsWith(".zip")) ) {
-        wizard.setErrorMessage("");
-        wizard.setNextEnabled(true);
-        List list = new ArrayList();
-        InstallablePlugin plugin = wizard.getAzureusCore().getPluginManager().getPluginInstaller().installFromFile(f);
-        list.add(plugin);
-        ((InstallPluginWizard)wizard).plugins = list;
-        valid = true;
-        return;
-      }
-    } catch (org.gudy.azureus2.plugins.PluginException e) {
-    	error_message = e.getMessage();
-    	Debug.printStackTrace(e);
-    } catch(Exception e) {    
-    	error_message = null;
-    	Debug.printStackTrace(e);
-    }
-    valid = false;
-    if (!fileName.equals("")) {
-    	String error_message_full;
-    	if (new File(fileName).isFile()) {
-    		error_message_full = MessageText.getString("installPluginsWizard.file.invalidfile");
-    	}
-    	else {
-    		error_message_full = MessageText.getString("installPluginsWizard.file.no_such_file");
-    	}
-    	if (error_message != null) {error_message_full += " (" + error_message + ")";}
-    	wizard.setErrorMessage(error_message_full);
-    	wizard.setNextEnabled(false);
-    }
+  private void checkValidFile(AzureusCore core) {
+		String fileName = txtFile.getText();
+		String error_message = null;
+		try {
+			File f = new File(fileName);
+			if (f.isFile()
+					&& (f.getName().endsWith(".jar") || f.getName().endsWith(".zip"))) {
+				wizard.setErrorMessage("");
+				wizard.setNextEnabled(true);
+				List list = new ArrayList();
+				InstallablePlugin plugin = core.getPluginManager().getPluginInstaller().installFromFile(
+						f);
+				list.add(plugin);
+				((InstallPluginWizard) wizard).plugins = list;
+				valid = true;
+				return;
+			}
+		} catch (org.gudy.azureus2.plugins.PluginException e) {
+			error_message = e.getMessage();
+			Debug.printStackTrace(e);
+		} catch (Exception e) {
+			error_message = null;
+			Debug.printStackTrace(e);
+		}
+		valid = false;
+		if (!fileName.equals("")) {
+			String error_message_full;
+			if (new File(fileName).isFile()) {
+				error_message_full = MessageText.getString("installPluginsWizard.file.invalidfile");
+			} else {
+				error_message_full = MessageText.getString("installPluginsWizard.file.no_such_file");
+			}
+			if (error_message != null) {
+				error_message_full += " (" + error_message + ")";
+			}
+			wizard.setErrorMessage(error_message_full);
+			wizard.setNextEnabled(false);
+		}
   }
   
 	public boolean 

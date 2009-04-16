@@ -26,19 +26,20 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.util.Debug;
 
-
-
-import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.impl.*;
 import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
-import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 
 
@@ -314,10 +315,10 @@ public class NetworkManager {
 	  }
   }
   
-  public void initialize() {
+  public void initialize(AzureusCore core) {
 	HTTPNetworkManager.getSingleton();  
 	   
-    AzureusCoreFactory.getSingleton().getGlobalManager().addListener( new GlobalManagerListener() {
+    core.getGlobalManager().addListener( new GlobalManagerListener() {
       public void downloadManagerAdded( DownloadManager dm ){}
       public void downloadManagerRemoved( DownloadManager dm ){}
       public void destroyInitiated(){}

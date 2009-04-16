@@ -45,6 +45,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
@@ -102,16 +104,23 @@ public class DHTView extends AbstractIView {
   DHTControlActivity[] activities;
   
   private final int dht_type;
+	protected AzureusCore core;
   
 
   public DHTView( int dht_type ) {
     this.dht_type = dht_type;
-    init();
+  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+
+			public void azureusCoreRunning(AzureusCore core) {
+				DHTView.this.core = core;
+				init(core);
+			}
+		});
   }
   
-  private void init() {
+  private void init(AzureusCore core) {
     try {
-      PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+      PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
         
       if ( dht_pi == null ){
       	   
@@ -565,10 +574,13 @@ public class DHTView extends AbstractIView {
   }
   
   public void refresh() {    
-    if(dht == null) { 
-      init();
-      return;
-    }
+  	if (dht == null) {
+  		if (core != null) {
+  			// keep trying until dht is avail
+  			init(core);
+  		}
+			return;
+  	}
     
     inGraph.refresh();
     outGraph.refresh();

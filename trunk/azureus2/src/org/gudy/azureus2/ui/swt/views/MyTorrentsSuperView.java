@@ -29,12 +29,16 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -52,8 +56,6 @@ public class MyTorrentsSuperView extends AbstractIView implements
 	private static int SASH_WIDTH = 5;
 
 	
-	private AzureusCore	azureus_core;
-  
   private MyTorrentsView torrentview;
   private MyTorrentsView seedingview;
 
@@ -61,18 +63,26 @@ public class MyTorrentsSuperView extends AbstractIView implements
 
 	private MyTorrentsView lastSelectedView;
 
+
+	private Composite child1;
+
+
+	private Composite child2;
+
   public MyTorrentsSuperView() {
-  	this(AzureusCoreFactory.getSingleton());
+  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						TableColumnManager tcManager = TableColumnManager.getInstance();
+						tcManager.addColumns(getCompleteColumns());
+						tcManager.addColumns(getIncompleteColumns());
+					}
+				});
+			}
+		});
   }
   
-
-  public MyTorrentsSuperView(AzureusCore	_azureus_core) {
-  	azureus_core		= _azureus_core;
-
-    TableColumnManager tcManager = TableColumnManager.getInstance();
-    tcManager.addColumns(getCompleteColumns());
-    tcManager.addColumns(getIncompleteColumns());
-  }
 
   public Composite getComposite() {
     return form;
@@ -86,38 +96,35 @@ public class MyTorrentsSuperView extends AbstractIView implements
     super.delete();
   }
 
-  public void initialize(Composite parent) {
+  public void initialize(final Composite parent) {
     if (form != null) {
       return;
     }
-    
-    form = new Composite(parent, SWT.NONE);
-		FormLayout flayout = new FormLayout();
-		flayout.marginHeight = 0;
-		flayout.marginWidth = 0;
-		form.setLayout(flayout);
-		GridData gridData;
-		gridData = new GridData(GridData.FILL_BOTH);
-		form.setLayoutData(gridData);
-    
-		GridLayout layout;
 
-    
-    final Composite child1 = new Composite(form,SWT.NULL);
-    layout = new GridLayout();
-    layout.numColumns = 1;
-    layout.horizontalSpacing = 0;
-    layout.verticalSpacing = 0;
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    child1.setLayout(layout);
-    torrentview = createTorrentView(azureus_core,
-				TableManager.TABLE_MYTORRENTS_INCOMPLETE, false, getIncompleteColumns(),
-				child1);
+  	form = new Composite(parent, SWT.NONE);
+  	FormLayout flayout = new FormLayout();
+  	flayout.marginHeight = 0;
+  	flayout.marginWidth = 0;
+  	form.setLayout(flayout);
+  	GridData gridData;
+  	gridData = new GridData(GridData.FILL_BOTH);
+  	form.setLayoutData(gridData);
+  	
+  	GridLayout layout;
+  	
+  	
+  	child1 = new Composite(form,SWT.NULL);
+  	layout = new GridLayout();
+  	layout.numColumns = 1;
+  	layout.horizontalSpacing = 0;
+  	layout.verticalSpacing = 0;
+  	layout.marginHeight = 0;
+  	layout.marginWidth = 0;
+  	child1.setLayout(layout);
 
     final Sash sash = new Sash(form, SWT.HORIZONTAL);
 
-    final Composite child2 = new Composite(form,SWT.NULL);
+    child2 = new Composite(form,SWT.NULL);
     layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
@@ -125,9 +132,6 @@ public class MyTorrentsSuperView extends AbstractIView implements
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     child2.setLayout(layout);
-    seedingview = createTorrentView(azureus_core,
-				TableManager.TABLE_MYTORRENTS_COMPLETE, true, getCompleteColumns(),
-				child2);
 
     FormData formData;
 
@@ -212,9 +216,37 @@ public class MyTorrentsSuperView extends AbstractIView implements
 		} catch (Exception e) {
 			
 		}
+
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(final AzureusCore core) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						initializeWithCore(core, parent);
+					}
+
+				});
+			}
+  	});
+
+  }
+  
+  private void initializeWithCore(AzureusCore core, Composite parent) {
+    torrentview = createTorrentView(core,
+				TableManager.TABLE_MYTORRENTS_INCOMPLETE, false, getIncompleteColumns(),
+				child1);
+
+    seedingview = createTorrentView(core,
+				TableManager.TABLE_MYTORRENTS_COMPLETE, true, getCompleteColumns(),
+				child2);
+
+  	initializeDone();
   }
 
-  public void refresh() {
+  public void initializeDone() {
+	}
+
+
+	public void refresh() {
     if (getComposite() == null || getComposite().isDisposed())
       return;
 

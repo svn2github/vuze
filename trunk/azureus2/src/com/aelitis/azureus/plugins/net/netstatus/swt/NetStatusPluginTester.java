@@ -21,11 +21,15 @@
 
 package com.aelitis.azureus.plugins.net.netstatus.swt;
 
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.util.*;
-import java.net.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.networkmanager.admin.*;
 import com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin;
 import com.aelitis.azureus.plugins.net.netstatus.NetStatusProtocolTesterBT;
@@ -69,6 +73,17 @@ NetStatusPluginTester
 	
 	public void
 	run()
+	{
+		// because getDefaultPublicAddress needs core to get pi..
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				_run(core);
+			}
+		});
+	}
+	
+	private void
+	_run(AzureusCore core)
 	{
 		final NetworkAdmin	admin = NetworkAdmin.getSingleton();
 		
@@ -383,7 +398,7 @@ NetStatusPluginTester
 	
 			checked_public = true;
 			
-			NetworkAdminNATDevice[] nat_devices = admin.getNATDevices();
+			NetworkAdminNATDevice[] nat_devices = admin.getNATDevices(core);
 			
 			log( nat_devices.length + " NAT device" + (nat_devices.length==1?"":"s") + " found" );
 			
@@ -467,7 +482,7 @@ NetStatusPluginTester
 
 			checked_public = true;
 			
-			NetworkAdminProtocol[] outbound_protocols = admin.getOutboundProtocols();
+			NetworkAdminProtocol[] outbound_protocols = admin.getOutboundProtocols(core);
 			
 			if ( outbound_protocols.length == 0 ){
 				
@@ -516,7 +531,7 @@ NetStatusPluginTester
 
 			checked_public = true;
 			
-			NetworkAdminProtocol[] inbound_protocols = admin.getInboundProtocols();
+			NetworkAdminProtocol[] inbound_protocols = admin.getInboundProtocols(core);
 			
 			if ( inbound_protocols.length == 0 ){
 				

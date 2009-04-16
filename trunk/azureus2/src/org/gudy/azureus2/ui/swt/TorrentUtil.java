@@ -738,7 +738,7 @@ public class TorrentUtil {
 			itemExportXML.addListener(SWT.Selection, new DMTask(dms) {
 				public void run(DownloadManager[] dms) {
 					DownloadManager dm = dms[0]; // First only.
-					if (dm != null) new ExportTorrentWizard(azureus_core, itemExportXML.getDisplay(), dm);
+					if (dm != null) new ExportTorrentWizard(itemExportXML.getDisplay(), dm);
 				}
 			});
 

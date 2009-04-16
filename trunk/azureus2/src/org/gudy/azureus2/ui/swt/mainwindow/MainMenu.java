@@ -26,13 +26,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
-
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
  * @author Olivier Chalouhi
@@ -59,8 +57,6 @@ public class MainMenu
 
 	private Menu menuBar;
 
-	private AzureusCore core;
-
 	/**
 	 * <p>Creates the main menu bar and attaches it to the given shell</p>
 	 * @param shell A shell
@@ -79,10 +75,6 @@ public class MainMenu
 	}
 
 	private void createMenus(final Shell parent) {
-
-		if (core == null) {
-			core = AzureusCoreFactory.getSingleton();
-		}
 
 		//The Main Menu
 		menuBar = new Menu(parent, SWT.BAR);

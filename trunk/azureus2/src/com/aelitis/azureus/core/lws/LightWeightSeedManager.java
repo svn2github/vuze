@@ -44,6 +44,7 @@ import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseTTTorrent;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
@@ -78,25 +79,11 @@ LightWeightSeedManager
 	protected
 	LightWeightSeedManager()
 	{
-		AzureusCore	core = AzureusCoreFactory.getSingleton();
-		
-		core.addLifecycleListener(
-			new AzureusCoreLifecycleAdapter()
-			{
-				public void
-				started(
-					AzureusCore		core )
-				{
-					core.removeLifecycleListener( this );
-					
-					startUp();
-				}
-			});
-		
-		if ( core.isStarted()){
-		
-			startUp();
-		}
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				startUp();
+			}
+		});
 	}
 	
 	protected void

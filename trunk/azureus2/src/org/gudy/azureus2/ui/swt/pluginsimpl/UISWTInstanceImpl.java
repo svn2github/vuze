@@ -47,14 +47,25 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.*;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UIMessageImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
@@ -69,19 +80,6 @@ import com.aelitis.azureus.ui.common.table.TableStructureEventDispatcher;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.plugins.ui.*;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 
 public class 
 UISWTInstanceImpl
@@ -110,7 +108,7 @@ UISWTInstanceImpl
 	}
 	
 	public void init(IUIIntializer init) {
-		UIManager ui_manager = core.getPluginManager().getDefaultPluginInterface().getUIManager();
+		UIManager ui_manager = PluginInitializer.getDefaultInterface().getUIManager();
 		ui_manager.addUIEventListener(this);
 		
 		bUIAttaching = true;
@@ -280,7 +278,7 @@ UISWTInstanceImpl
 						if (auto_download) {
 							Shell shell = uiFunctions.getMainShell();
 							if (shell != null) {
-								new FileDownloadWindow(core, shell, target.toString(),
+								new FileDownloadWindow(shell, target.toString(),
 										referrer == null ? null : referrer.toString(),
 										request_properties );
 							}
