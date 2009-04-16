@@ -55,6 +55,9 @@ import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 /**
@@ -124,6 +127,14 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 				Colors.blues[Colors.BLUES_MIDLIGHT], Colors.fadedGreen, Colors.white,
 				Colors.red, Colors.fadedRed, Colors.black };
 
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				initCountryPlugin();
+			}
+		});
+	}
+	
+	private void initCountryPlugin() {
 		// Pull in Country Information if the plugin exists
 		/**
 		 * If this view was a real plugin view, we could attach the CountryLocator.jar
