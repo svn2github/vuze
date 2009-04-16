@@ -106,8 +106,7 @@ AZPluginConnection
 		
 		String plugin_str = plugin_id + (plugin_name==null?"":( " (" + plugin_name + ")" ));
 		
-		// AZPluginConnection isn't used by Azureus, so either it's
-		// called via reflection or some plugin is using it directly
+		// AZPluginConnection is called via reflection
 		// Let's just assume that the Core is avail..
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( plugin_id );
 		
