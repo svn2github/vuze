@@ -27,7 +27,9 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.*;
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -36,50 +38,8 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.PropertiesWindow;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import org.gudy.azureus2.ui.swt.views.IView;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreComponent;
-import com.aelitis.azureus.core.AzureusCoreException;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
-import com.aelitis.azureus.core.AzureusCoreLifecycleListener;
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.core.metasearch.Engine;
-import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
-import com.aelitis.azureus.core.subs.*;
-import com.aelitis.azureus.core.vuzefile.VuzeFile;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.browser.BrowserContext;
-import com.aelitis.azureus.ui.swt.browser.CookiesListener;
-import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
-import com.aelitis.azureus.ui.swt.browser.listener.*;
-import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
-import com.aelitis.azureus.util.ConstantsVuze;
-import com.aelitis.azureus.util.MapUtils;
-import com.aelitis.azureus.util.UrlFilter;
-
 import org.gudy.azureus2.plugins.PluginConfigListener;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.*;
@@ -95,8 +55,40 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.Utilities;
-
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.PropertiesWindow;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
+import com.aelitis.azureus.core.subs.*;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.CookiesListener;
+import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
+import com.aelitis.azureus.ui.swt.browser.listener.*;
+import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
+import com.aelitis.azureus.util.ConstantsVuze;
+import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.UrlFilter;
 
 public class 
 SubscriptionManagerUI 
@@ -138,10 +130,9 @@ SubscriptionManagerUI
 	private PluginInterface default_pi;
 	
 	public
-	SubscriptionManagerUI(
-		AzureusCore			core )
+	SubscriptionManagerUI()
 	{
-		default_pi = core.getPluginManager().getDefaultPluginInterface();
+		default_pi = PluginInitializer.getDefaultInterface();
 		
 		final TableManager	table_manager = default_pi.getUIManager().getTableManager();
 
@@ -1317,8 +1308,7 @@ SubscriptionManagerUI
 								
 								setStatus( subs, new_si );
 								
-								PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
-								PluginInterface pi = pm.getDefaultPluginInterface();
+								PluginInterface pi = PluginInitializer.getDefaultInterface();
 								UIManager uim = pi.getUIManager();
 								MenuManager menuManager = uim.getMenuManager();
 								

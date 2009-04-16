@@ -42,11 +42,14 @@ import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -678,24 +681,25 @@ public class UIFunctionsImpl
 	}
 
 	public boolean isGlobalTransferBarShown() {
+		if (!AzureusCoreFactory.isCoreRunning()) {
+			return false;
+		}
 		return AllTransfersBar.getManager().isOpen(
 				AzureusCoreFactory.getSingleton().getGlobalManager());
 	}
 
 	public void showGlobalTransferBar() {
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				AllTransfersBar.open(
-						AzureusCoreFactory.getSingleton().getGlobalManager(),
-						getMainShell());
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				AllTransfersBar.open(core.getGlobalManager(), getMainShell());
 			}
 		});
 	}
 
 	public void closeGlobalTransferBar() {
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				AllTransfersBar.close(AzureusCoreFactory.getSingleton().getGlobalManager());
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				AllTransfersBar.close(core.getGlobalManager());
 			}
 		});
 	}

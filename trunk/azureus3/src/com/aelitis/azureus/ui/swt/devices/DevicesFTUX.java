@@ -33,11 +33,17 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.installer.*;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
@@ -46,11 +52,6 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ConstantsVuze;
-
-import org.gudy.azureus2.plugins.PluginException;
-import org.gudy.azureus2.plugins.installer.*;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 
 /**
  * @author TuxPaper
@@ -242,7 +243,15 @@ public class DevicesFTUX
 	 *
 	 * @since 4.1.0.5
 	 */
-	protected void doInstall(boolean itunes, boolean sendQOS) {
+	protected void doInstall(final boolean itunes, final boolean sendQOS) {
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				_doInstall(core, itunes, sendQOS);
+			}
+		});
+	}
+	
+	protected void _doInstall(AzureusCore core, boolean itunes, boolean sendQOS) {
 		COConfigurationManager.setParameter(PlatformDevicesMessenger.CFG_SEND_QOS,
 				sendQOS);
 
@@ -268,7 +277,7 @@ public class DevicesFTUX
 		
 		List<InstallablePlugin> plugins = new ArrayList<InstallablePlugin>(2);
 
-		final PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
+		final PluginInstaller installer = core.getPluginManager().getPluginInstaller();
 
 		StandardPlugin vuze_plugin = null;
 

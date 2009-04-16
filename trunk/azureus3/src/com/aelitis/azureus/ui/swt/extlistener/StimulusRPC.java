@@ -154,7 +154,7 @@ public class StimulusRPC
 							dlInfo.setReferer(MapUtils.getMapString(decodedMap, "referer",
 									null));
 
-							TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, playPrepare,
+							TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, playPrepare,
 									bringToFront, false);
 
 							return true;

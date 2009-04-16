@@ -45,7 +45,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.devices.*;
@@ -515,7 +515,7 @@ TranscodeQueueImpl
 				
 				if ( job.isStream()){
 					
-					PluginInterface av_pi = StaticUtilities.getDefaultPluginInterface().getPluginManager().getPluginInterfaceByID( "azupnpav" );
+					PluginInterface av_pi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByID( "azupnpav" );
 					
 					if ( av_pi == null ){
 					
@@ -551,7 +551,7 @@ TranscodeQueueImpl
 					
 					if ( job.getDevice().getAlwaysCacheFiles()){
 						
-						PluginInterface av_pi = StaticUtilities.getDefaultPluginInterface().getPluginManager().getPluginInterfaceByID( "azupnpav" );
+						PluginInterface av_pi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByID( "azupnpav" );
 						
 						if ( av_pi == null ){
 						

@@ -15,6 +15,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.CustomTableTooltipHandler;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
@@ -87,7 +89,15 @@ public class SubscriptionWizard {
 		this(null);
 	}
 	
-	public SubscriptionWizard(DownloadManager download) {
+	public SubscriptionWizard(final DownloadManager download) {
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				init(core, download);
+			}
+		});
+	}
+
+	protected void init(AzureusCore core, DownloadManager download) {
 		imageLoader = ImageLoader.getInstance();
 
 		this.download = download;
@@ -105,11 +115,7 @@ public class SubscriptionWizard {
 			}
 		}
 		availableSubscriptions = (SubscriptionDownloadDetails[]) notYetSubscribed.toArray(new SubscriptionDownloadDetails[notYetSubscribed.size()]);*/
-		if ( AzureusCoreFactory.isCoreAvailable()){
-			availableSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
-		}else{
-			availableSubscriptions = new SubscriptionDownloadDetails[0];
-		}
+		availableSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails(core);
 		Arrays.sort(availableSubscriptions,new Comparator() {
 			public int compare(Object o1, Object o2) {
 				if(! (o1 instanceof SubscriptionDownloadDetails && o2 instanceof SubscriptionDownloadDetails)) return 0;

@@ -33,19 +33,19 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.security.impl.SESecurityManagerImpl;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarOpenListener;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
@@ -69,7 +69,6 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -79,7 +78,6 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.config.*;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
-import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.launcher.Launcher;
@@ -87,7 +85,6 @@ import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFPListener;
 import com.aelitis.azureus.ui.IUIIntializer;
-import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -101,16 +98,10 @@ import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PlayNowList;
-import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.*;
 import com.aelitis.azureus.util.*;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarOpenListener;
 
 /**
  * @author TuxPaper
@@ -150,7 +141,8 @@ public class MainWindow
 
 	private static Map mapTrackUsage = null;
 
-	private final static AEMonitor mapTrackUsage_mon = new AEMonitor("mapTrackUsage");
+	private final static AEMonitor mapTrackUsage_mon = new AEMonitor(
+			"mapTrackUsage");
 
 	private long lCurrentTrackTime = 0;
 
@@ -166,9 +158,13 @@ public class MainWindow
 
 	private String lastShellStatus = null;
 
-	private Color colorSearchTextBG; 
-	private Color colorSearchTextFGdef; 
-	private Color colorSearchTextFG; 
+	private Color colorSearchTextBG;
+
+	private Color colorSearchTextFGdef;
+
+	private Color colorSearchTextFG;
+	
+	private boolean delayedCore;
 
 	public static void main(String args[]) {
 		if (Launcher.checkAndLaunch(MainWindow.class, args))
@@ -178,10 +174,15 @@ public class MainWindow
 	}
 
 	/**
+	 * Old Initializer.  AzureusCore is required to be started
 	 * 
+	 * @param core
+	 * @param display
+	 * @param uiInitializer
 	 */
 	public MainWindow(AzureusCore core, Display display,
 			final IUIIntializer uiInitializer) {
+		delayedCore = false;
 		this.core = core;
 		this.display = display;
 		this.uiInitializer = uiInitializer;
@@ -261,7 +262,8 @@ public class MainWindow
 		// un-"wait state" the rating
 		// TODO: smart refreshing of meta data ("Refresh On" attribute)
 		GlobalManager gm = core.getGlobalManager();
-		dms_Startup = (DownloadManager[]) gm.getDownloadManagers().toArray(new DownloadManager[0]);
+		dms_Startup = (DownloadManager[]) gm.getDownloadManagers().toArray(
+				new DownloadManager[0]);
 		gm.addListener(new GlobalManagerListener() {
 
 			public void seedingStatusChanged(boolean seeding_only_mode, boolean b) {
@@ -292,13 +294,14 @@ public class MainWindow
 				TOTorrent torrent = dm.getTorrent();
 				if (PublishUtils.isPublished(dm)) {
 					String title = MessageText.getString("v3.mb.delPublished.title");
-					
+
 					ContentNetwork cn = DataSourceUtils.getContentNetwork(torrent);
 					if (cn == null) {
 						return;
 					}
 
-					String site = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_SITE);
+					String site = ContentNetworkUtils.getUrl(cn,
+							ContentNetwork.SERVICE_SITE);
 
 					String site_host = (String) cn.getProperty(ContentNetwork.PROPERTY_SITE_HOST);
 
@@ -307,7 +310,8 @@ public class MainWindow
 								dm.getDisplayName(),
 								site,
 								site_host,
-								ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_PUBLISH_ABOUT)
+								ContentNetworkUtils.getUrl(cn,
+										ContentNetwork.SERVICE_PUBLISH_ABOUT)
 							});
 
 					MessageBoxShell mb = new MessageBoxShell(shell, title, text,
@@ -371,6 +375,255 @@ public class MainWindow
 		});
 	}
 
+	/**
+	 * New Initializer.  AzureusCore does not need to be started.
+	 * Use {@link #init(AzureusCore)} when core is available.
+	 * 
+	 * @param display
+	 * @param uiInitializer
+	 */
+	public MainWindow(final Display display, final IUIIntializer uiInitializer) {
+		delayedCore = true;
+		this.display = display;
+		this.uiInitializer = uiInitializer;
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				try {
+					createWindow(uiInitializer);
+				} catch (Throwable e) {
+					Logger.log(new LogAlert(false, "Error Initialize MainWindow", e));
+				}
+				if (uiInitializer != null) {
+					uiInitializer.abortProgress();
+				}
+
+				while (!display.isDisposed() && display.readAndDispatch());
+			}
+		});
+	}
+
+	/**
+	 * 
+	 */
+	public void init(final AzureusCore core) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				_init(core);
+			}
+		});
+	}
+
+	public void _init(AzureusCore core) {
+		this.core = core;
+		AEDiagnostics.addEvidenceGenerator(this);
+
+		disposedOrDisposing = false;
+
+		VuzeBuddyManager.init(new VuzeBuddyCreator() {
+			public VuzeBuddy createBuddy(String publicKey) {
+				VuzeBuddyManager.log("created buddy: " + publicKey);
+				return new VuzeBuddySWTImpl(publicKey);
+			}
+
+			public VuzeBuddy createBuddy() {
+				VuzeBuddyManager.log("created buddy");
+				return new VuzeBuddySWTImpl();
+			}
+
+			// @see com.aelitis.azureus.buddy.VuzeBuddyCreator#createPotentialBuddy(Map)
+			public VuzeBuddy createPotentialBuddy(Map map) {
+				return new VuzeBuddyFakeSWTImpl(map);
+			}
+		});
+
+		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
+		// user after restart.
+		if (Constants.isWindows
+				&& System.getProperty("os.name").indexOf("Vista") > 0
+				&& !COConfigurationManager.getBooleanParameter("vista.adminquit")) {
+			File fileFromInstall = FileUtil.getApplicationFile("license.txt");
+			if (fileFromInstall.exists()
+					&& fileFromInstall.lastModified() < new GregorianCalendar(2007, 06,
+							13).getTimeInMillis()) {
+				// install older than 3016
+				GlobalManager gm = core.getGlobalManager();
+				if (gm != null
+						&& gm.getDownloadManagers().size() == 0
+						&& gm.getStats().getTotalProtocolBytesReceived() < 1024 * 1024 * 100) {
+					File fileTestWrite = FileUtil.getApplicationFile("testwrite.dll");
+					fileTestWrite.deleteOnExit();
+					try {
+						FileOutputStream fos = new FileOutputStream(fileTestWrite);
+						fos.write(23);
+						fos.close();
+
+						COConfigurationManager.setParameter("vista.adminquit", true);
+						MessageBoxShell.open(shell,
+								MessageText.getString("mb.azmustclose.title"),
+								MessageText.getString("mb.azmustclose.text"), new String[] {
+									MessageText.getString("Button.ok")
+								}, 0);
+						if (uiInitializer != null) {
+							uiInitializer.abortProgress();
+						}
+						dispose(false, false);
+						return;
+					} catch (Exception e) {
+					}
+				}
+			}
+		}
+
+		try {
+			DCAdManager.getInstance().initialize(core);
+		} catch (Throwable e) {
+		}
+
+		StimulusRPC.hookListeners(core, this);
+
+		uiSWTInstanceImpl = new UISWTInstanceImpl(core);
+		uiSWTInstanceImpl.init(uiInitializer);
+
+		PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
+				"azbpstartstoprules");
+		if (pi != null) {
+			// plugin is built in, so instead of using IPC, just cast it
+			StartStopRulesDefaultPlugin plugin = (StartStopRulesDefaultPlugin) pi.getPlugin();
+			plugin.addListener(new StartStopRulesFPListener() {
+				public boolean isFirstPriority(Download dl, int numSeeds, int numPeers,
+						StringBuffer debug) {
+					// FP while our content doesn't have another seed
+					boolean b = dl.getState() == Download.ST_SEEDING && numSeeds == 0
+							&& dl.getStats().getAvailability() < 2
+							&& PublishUtils.isPublished(dl); // do last as most costly
+
+					return b;
+				}
+			});
+		}
+
+		VuzeActivitiesManager.initialize(core);
+
+		// When a download is added, check for new meta data and
+		// un-"wait state" the rating
+		// TODO: smart refreshing of meta data ("Refresh On" attribute)
+		GlobalManager gm = core.getGlobalManager();
+		dms_Startup = (DownloadManager[]) gm.getDownloadManagers().toArray(
+				new DownloadManager[0]);
+		gm.addListener(new GlobalManagerListener() {
+
+			public void seedingStatusChanged(boolean seeding_only_mode, boolean b) {
+			}
+
+			public void downloadManagerRemoved(DownloadManager dm) {
+			}
+
+			public void downloadManagerAdded(final DownloadManager dm) {
+				downloadAdded(new DownloadManager[] {
+					dm
+				});
+			}
+
+			public void destroyed() {
+			}
+
+			public void destroyInitiated() {
+			}
+
+		}, false);
+
+		gm.addDownloadWillBeRemovedListener(new GlobalManagerDownloadWillBeRemovedListener() {
+			public void downloadWillBeRemoved(DownloadManager dm,
+					boolean remove_torrent, boolean remove_data)
+
+					throws GlobalManagerDownloadRemovalVetoException {
+				TOTorrent torrent = dm.getTorrent();
+				if (PublishUtils.isPublished(dm)) {
+					String title = MessageText.getString("v3.mb.delPublished.title");
+
+					ContentNetwork cn = DataSourceUtils.getContentNetwork(torrent);
+					if (cn == null) {
+						return;
+					}
+
+					String site = ContentNetworkUtils.getUrl(cn,
+							ContentNetwork.SERVICE_SITE);
+
+					String site_host = (String) cn.getProperty(ContentNetwork.PROPERTY_SITE_HOST);
+
+					String text = MessageText.getString("v3.mb.delPublished.text",
+							new String[] {
+								dm.getDisplayName(),
+								site,
+								site_host,
+								ContentNetworkUtils.getUrl(cn,
+										ContentNetwork.SERVICE_PUBLISH_ABOUT)
+							});
+
+					MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+							new String[] {
+								MessageText.getString("v3.mb.delPublished.delete"),
+								MessageText.getString("v3.mb.delPublished.cancel")
+							}, 1);
+					mb.setRelatedObject(dm);
+
+					int result = mb.open();
+					if (result != 0) {
+						throw new GlobalManagerDownloadRemovalVetoException("", true);
+					}
+				} else if (PlatformTorrentUtils.isContentDRM(torrent) && remove_data) {
+
+					String prefix = "v3.mb.deletePurchased.";
+					String title = MessageText.getString(prefix + "title");
+					String text = MessageText.getString(prefix + "text", new String[] {
+						dm.getDisplayName()
+					});
+
+					MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+							new String[] {
+								MessageText.getString(prefix + "button.delete"),
+								MessageText.getString(prefix + "button.cancel")
+							}, 1);
+					mb.setRelatedObject(dm);
+
+					int result = mb.open();
+					if (result != 0) {
+						throw new GlobalManagerDownloadRemovalVetoException("", true);
+					}
+				}
+			}
+		});
+
+		Alerts.addListener(new Alerts.AlertListener() {
+
+			public boolean allowPopup(Object[] relatedObjects, int configID) {
+				DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
+						relatedObjects, DownloadManager.class);
+
+				if (dm == null) {
+					return true;
+				}
+				if (dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
+					return false;
+				}
+
+				HashWrapper hw;
+				try {
+					hw = dm.getTorrent().getHashWrapper();
+					if (PlayNowList.contains(hw)) {
+						return false;
+					}
+				} catch (TOTorrentException e) {
+				}
+				return true;
+			}
+
+		});
+
+		core.triggerLifeCycleComponentCreated(uiFunctions);
+	}
+
 	private void processStartupDMS() {
 		// must be in a new thread because we don't want to block
 		// initilization or any other add listeners
@@ -393,7 +646,7 @@ public class MainWindow
 		thread.setPriority(Thread.MIN_PRIORITY);
 		thread.start();
 	}
-	
+
 	private void downloadAdded(final DownloadManager[] dms) {
 		ArrayList<TOTorrent> toUpdateGlobalRating = new ArrayList();
 		boolean oneIsNotPlatform = false;
@@ -401,9 +654,9 @@ public class MainWindow
 			if (dm == null) {
 				continue;
 			}
-			
+
 			DownloadManagerState dmState = dm.getDownloadState();
-			
+
 			final TOTorrent torrent = dm.getTorrent();
 			if (torrent == null) {
 				continue;
@@ -426,8 +679,7 @@ public class MainWindow
 				String lastVersion = COConfigurationManager.getStringParameter("Last Version");
 				if (org.gudy.azureus2.core3.util.Constants.compareVersions(lastVersion,
 						"3.1.1.1") <= 0) {
-					long completedTime = dmState.getLongParameter(
-							DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+					long completedTime = dmState.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
 					if (completedTime < SystemTime.getOffsetTime(-(1000 * 60))) {
 						PlatformTorrentUtils.setHasBeenOpened(dm, true);
 					}
@@ -435,9 +687,8 @@ public class MainWindow
 			}
 
 			boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
-			
-			if (!oneIsNotPlatform
-					&& !isContent
+
+			if (!oneIsNotPlatform && !isContent
 					&& !dmState.getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
 				oneIsNotPlatform = true;
 			}
@@ -501,7 +752,7 @@ public class MainWindow
 				}
 			} // isContent
 		}
-		
+
 		if (oneIsNotPlatform && dms_Startup == null) {
 			DonationWindow.checkForDonationPopup();
 		}
@@ -529,7 +780,7 @@ public class MainWindow
 		System.out.println("UIFunctions/ImageLoad took "
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 		startTime = SystemTime.getCurrentTime();
-		
+
 		shell = new Shell(display, SWT.SHELL_TRIM);
 
 		try {
@@ -544,7 +795,7 @@ public class MainWindow
 			System.out.println("new shell took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
-			
+
 			PlatformConfigMessenger.addPlatformLoginCompleteListener(new PlatformLoginCompleteListener() {
 				public void platformLoginComplete() {
 					Utils.execSWTThread(new AERunnable() {
@@ -589,7 +840,8 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			if (org.gudy.azureus2.core3.util.Constants.isOSX && SWT.getPlatform().equals("carbon")) {
+			if (org.gudy.azureus2.core3.util.Constants.isOSX
+					&& SWT.getPlatform().equals("carbon")) {
 				try {
 
 					Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
@@ -685,12 +937,14 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			try {
-				DCAdManager.getInstance().initialize(core);
-			} catch (Throwable e) {
-			}
+			if (core != null) {
+				try {
+					DCAdManager.getInstance().initialize(core);
+				} catch (Throwable e) {
+				}
 
-			StimulusRPC.hookListeners(core, this);
+				StimulusRPC.hookListeners(core, this);
+			}
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 			System.out.println("hooks init took "
@@ -732,40 +986,40 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			increaseProgress(uiInitializer, "v3.splash.hookPluginUI");
 			startTime = SystemTime.getCurrentTime();
-			
-			
-			// attach the UI to plugins
-			// Must be done before initializing views, since plugins may register
-			// table columns and other objects
-			uiSWTInstanceImpl = new UISWTInstanceImpl(core);
-			uiSWTInstanceImpl.init(uiInitializer);
-			//uiSWTInstanceImpl.addView(UISWTInstance.VIEW_MYTORRENTS,
-			//		"PieceGraphView", new PieceGraphView());
-			
-			
+
+			if (core != null) {
+				// attach the UI to plugins
+				// Must be done before initializing views, since plugins may register
+				// table columns and other objects
+				uiSWTInstanceImpl = new UISWTInstanceImpl(core);
+				uiSWTInstanceImpl.init(uiInitializer);
+				//uiSWTInstanceImpl.addView(UISWTInstance.VIEW_MYTORRENTS,
+				//		"PieceGraphView", new PieceGraphView());
+			}
+
 			System.out.println("SWTInstance init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			increaseProgress(uiInitializer, "splash.initializeGui");
 			startTime = SystemTime.getCurrentTime();
 
-			PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
-					"azbpstartstoprules");
-			if (pi != null) {
-				// plugin is built in, so instead of using IPC, just cast it
-				StartStopRulesDefaultPlugin plugin = (StartStopRulesDefaultPlugin) pi.getPlugin();
-				plugin.addListener(new StartStopRulesFPListener() {
-					public boolean isFirstPriority(Download dl, int numSeeds,
-							int numPeers, StringBuffer debug) {
-						// FP while our content doesn't have another seed
-						boolean b = 
-							dl.getState() == Download.ST_SEEDING &&
-							numSeeds == 0 &&
-							dl.getStats().getAvailability() < 2 && 
-							PublishUtils.isPublished(dl);	// do last as most costly
-								
-						return b;
-					}
-				});
+			if (core != null) {
+				PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
+						"azbpstartstoprules");
+				if (pi != null) {
+					// plugin is built in, so instead of using IPC, just cast it
+					StartStopRulesDefaultPlugin plugin = (StartStopRulesDefaultPlugin) pi.getPlugin();
+					plugin.addListener(new StartStopRulesFPListener() {
+						public boolean isFirstPriority(Download dl, int numSeeds,
+								int numPeers, StringBuffer debug) {
+							// FP while our content doesn't have another seed
+							boolean b = dl.getState() == Download.ST_SEEDING && numSeeds == 0
+									&& dl.getStats().getAvailability() < 2
+									&& PublishUtils.isPublished(dl); // do last as most costly
+
+							return b;
+						}
+					});
+				}
 			}
 
 			ManagerUtils.setRunRunnable(new RunDownloadManager() {
@@ -822,7 +1076,9 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			VuzeActivitiesManager.initialize(core);
+			if (core != null) {
+				VuzeActivitiesManager.initialize(core);
+			}
 
 			System.out.println("vuzeactivities init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -909,12 +1165,12 @@ public class MainWindow
 					if (showWelcome && startAdv) {
 						sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_WELCOME);
 					}
-  				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
-  					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
-  				} else {
-  					startTab = "ContentNetwork." + startupCN.getID();
+					if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
+						startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
+					} else {
+						startTab = "ContentNetwork." + startupCN.getID();
 						ContentNetworkUtils.setSourceRef(startTab, "startup", false);
-  				}
+					}
 				}
 				sidebar.showEntryByTabID(startTab);
 			}
@@ -982,7 +1238,8 @@ public class MainWindow
 				return false;
 			}
 		} else {
-			if (!UIExitUtilsSWT.canClose(core.getGlobalManager(), bForRestart)) {
+			if (core != null
+					&& !UIExitUtilsSWT.canClose(core.getGlobalManager(), bForRestart)) {
 				disposedOrDisposing = false;
 				return false;
 			}
@@ -1000,9 +1257,12 @@ public class MainWindow
 		 * We can't rely that the normal mechanism for doing this won't fail (which it usually does)
 		 * when the GUI is being disposed of.
 		 */
-		AllTransfersBar transfer_bar = AllTransfersBar.getBarIfOpen(AzureusCoreFactory.getSingleton().getGlobalManager());
-		if (transfer_bar != null) {
-			transfer_bar.forceSaveLocation();
+		try {
+  		AllTransfersBar transfer_bar = AllTransfersBar.getBarIfOpen(core.getGlobalManager());
+  		if (transfer_bar != null) {
+  			transfer_bar.forceSaveLocation();
+  		}
+		} catch (Exception ignore) {
 		}
 
 		mapTrackUsage_mon.enter();
@@ -1187,6 +1447,14 @@ public class MainWindow
 			soMain.getControl().setVisible(true);
 		}
 
+		shell.addListener(SWT.Show, new Listener() {
+			public void handleEvent(Event event) {
+				System.out.println("---------SHOWN AT " + SystemTime.getCurrentTime()
+						+ ";" + (SystemTime.getCurrentTime() - Initializer.startTime)
+						+ "ms");
+			}
+		});
+
 		if (!bStartMinimize) {
 			shell.open();
 			if (!isOSX) {
@@ -1197,8 +1465,17 @@ public class MainWindow
 			shell.setVisible(true);
 		}
 		
-		System.out.println("---------SHOWN AT " + SystemTime.getCurrentTime() + ";" + (SystemTime.getCurrentTime() - Main.startTime) + "ms");
 
+		if (delayedCore) {
+			// TODO: Check if update window takes control and messes things up
+  		while (!display.isDisposed() && display.readAndDispatch());
+  		System.out.println("---------DONE DISPATCH AT "
+  				+ SystemTime.getCurrentTime() + ";"
+  				+ (SystemTime.getCurrentTime() - Initializer.startTime) + "ms");
+  		if (display.isDisposed()) {
+  			return;
+  		}
+		}
 
 		if (bEnableTray) {
 
@@ -1232,22 +1509,24 @@ public class MainWindow
 		}
 
 		AssociationChecker.checkAssociations();
-		
+
 		// Donation stuff
 		Map map = VersionCheckClient.getSingleton().getMostRecentVersionCheckData();
 		DonationWindow.setInitialAskHours(MapUtils.getMapInt(map,
 				"donations.askhrs", DonationWindow.getInitialAskHours()));
 
-
-		core.triggerLifeCycleComponentCreated(uiFunctions);
+		if (core != null) {
+			core.triggerLifeCycleComponentCreated(uiFunctions);
+		}
 
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				fixupActionBarSize();
 			}
 		});
-		
-		System.out.println("---------READY AT " + SystemTime.getCurrentTime() + ";" + (SystemTime.getCurrentTime() - Main.startTime) + "ms");
+
+		System.out.println("---------READY AT " + SystemTime.getCurrentTime() + ";"
+				+ (SystemTime.getCurrentTime() - Initializer.startTime) + "ms");
 		isReady = true;
 		//SESecurityManagerImpl.getSingleton().exitVM(0);
 	}
@@ -1554,9 +1833,8 @@ public class MainWindow
 			final Composite cArea = (Composite) skinObject.getControl();
 
 			statusBar = new MainStatusBar();
-			Composite composite = statusBar.initStatusBar(core,
-					core.getGlobalManager(), display, cArea);
-			
+			Composite composite = statusBar.initStatusBar(cArea);
+
 			composite.setLayoutData(Utils.getFilledFormData());
 		}
 
@@ -1570,13 +1848,15 @@ public class MainWindow
 			Menu topbarMenu = new Menu(shell, SWT.POP_UP);
 
 			if (COConfigurationManager.getIntParameter("User Mode") > 1) {
-  			MainMenu.createViewMenuItem(skin, topbarMenu, "v3.MainWindow.menu.view."
-  					+ SkinConstants.VIEWID_PLUGINBAR, SkinConstants.VIEWID_PLUGINBAR
-  					+ ".visible", SkinConstants.VIEWID_PLUGINBAR, true, -1);
+				MainMenu.createViewMenuItem(skin, topbarMenu,
+						"v3.MainWindow.menu.view." + SkinConstants.VIEWID_PLUGINBAR,
+						SkinConstants.VIEWID_PLUGINBAR + ".visible",
+						SkinConstants.VIEWID_PLUGINBAR, true, -1);
 			}
-			
+
 			final MenuItem itemShowText = new MenuItem(topbarMenu, SWT.CHECK);
-			Messages.setLanguageText(itemShowText, "v3.MainWindow.menu.showActionBarText");
+			Messages.setLanguageText(itemShowText,
+					"v3.MainWindow.menu.showActionBarText");
 			itemShowText.addSelectionListener(new SelectionAdapter() {
 				// @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
 				public void widgetSelected(SelectionEvent e) {
@@ -1586,7 +1866,7 @@ public class MainWindow
 					}
 				}
 			});
-			
+
 			topbarMenu.addMenuListener(new MenuListener() {
 				public void menuShown(MenuEvent e) {
 					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
@@ -1594,12 +1874,10 @@ public class MainWindow
 						itemShowText.setSelection(tb.getShowText());
 					}
 				}
-			
+
 				public void menuHidden(MenuEvent e) {
 				}
 			});
-
-			
 
 			addMenuAndNonTextChildren((Composite) skinObject.getControl(), topbarMenu);
 
@@ -1636,7 +1914,7 @@ public class MainWindow
 	 */
 	private void attachSearchBox(SWTSkinObject skinObject) {
 		Composite cArea = (Composite) skinObject.getControl();
-		
+
 		shell.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				fixupActionBarSize();
@@ -1677,11 +1955,11 @@ public class MainWindow
 		text.setTextLimit(254);
 
 		final String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
-		
+
 		SWTSkinProperties properties = skinObject.getProperties();
-		colorSearchTextBG = properties.getColor("color.search.text.bg"); 
-		colorSearchTextFG = properties.getColor("color.search.text.fg"); 
-		colorSearchTextFGdef = properties.getColor("color.search.text.fg.default"); 
+		colorSearchTextBG = properties.getColor("color.search.text.bg");
+		colorSearchTextFG = properties.getColor("color.search.text.fg");
+		colorSearchTextFGdef = properties.getColor("color.search.text.fg.default");
 
 		if (colorSearchTextFGdef != null) {
 			text.setForeground(colorSearchTextFGdef);
@@ -1762,7 +2040,8 @@ public class MainWindow
 		if (searchGo != null) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(searchGo);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
+				public void pressed(SWTSkinButtonUtility buttonUtility,
+						SWTSkinObject skinObject, int stateMask) {
 					String sSearchText = text.getText().trim();
 					doSearch(sSearchText);
 				}
@@ -1796,7 +2075,8 @@ public class MainWindow
 		if (so != null) {
 			SWTSkinButtonUtility btnSearchDD = new SWTSkinButtonUtility(so);
 			btnSearchDD.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
+				public void pressed(SWTSkinButtonUtility buttonUtility,
+						SWTSkinObject skinObject, int stateMask) {
 					String sSearchText = text.getText().trim();
 					doSearch(sSearchText);
 				}
@@ -1834,9 +2114,9 @@ public class MainWindow
 		} else if (fd.width > 260) {
 			fd.width = 260;
 		}
-		
+
 		if (oldWidth != fd.width) {
-			((Composite)soTabBar.getControl()).layout(true, true);
+			((Composite) soTabBar.getControl()).layout(true, true);
 		}
 	}
 
@@ -1846,10 +2126,10 @@ public class MainWindow
 	//TODO : Tux Move to utils? Could you also add a "mode" or something that would be added to the url
 	// eg: &subscribe_mode=true
 	public static void doSearch(String sSearchText) {
-		doSearch(sSearchText,false);
+		doSearch(sSearchText, false);
 	}
-	
-	public static void doSearch(String sSearchText,boolean toSubscribe) {
+
+	public static void doSearch(String sSearchText, boolean toSubscribe) {
 		String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
 		if (sSearchText.equals(sDefault) || sSearchText.length() == 0) {
 			return;
@@ -1859,16 +2139,15 @@ public class MainWindow
 		String id = "Search";
 		SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
 		if (searchClass != null) {
-			searchClass.anotherSearch(sSearchText,toSubscribe);
+			searchClass.anotherSearch(sSearchText, toSubscribe);
 		} else {
-			
+
 			SearchResultsTabArea.SearchQuery sq = new SearchResultsTabArea.SearchQuery();
 			sq.term = sSearchText;
 			sq.toSubscribe = toSubscribe;
-			
-			SideBarEntrySWT entry = sidebar.createEntryFromSkinRef(null, id, "main.area.searchresultstab",
-					sSearchText, null, sq,
-					true, -1);
+
+			SideBarEntrySWT entry = sidebar.createEntryFromSkinRef(null, id,
+					"main.area.searchresultstab", sSearchText, null, sq, true, -1);
 			if (entry != null) {
 				entry.setImageLeftID("image.sidebar.search");
 			}
@@ -1917,7 +2196,7 @@ public class MainWindow
 		lCurrentTrackTime = 0;
 		lCurrentTrackTimeIdle = 0;
 	}
-	
+
 	public static void addUsageStat(String id, long value) {
 		if (id == null) {
 			return;
@@ -2021,7 +2300,7 @@ public class MainWindow
 		}
 
 		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		
+
 		// Note; We don't setSourceRef on ContentNetwork here like we do
 		// everywhere else because the source ref should already be set
 		// by the caller
@@ -2030,22 +2309,22 @@ public class MainWindow
 			Utils.launch(url);
 			return;
 		}
-		
+
 		SideBarEntrySWT entry = SideBar.getEntry(id);
 		entry.addListener(new SideBarOpenListener() {
-		
+
 			public void sideBarEntryOpen(SideBarEntry entry) {
 				entry.removeListener(this);
 
 				setVisible(true);
-				
+
 				if (!(entry instanceof SideBarEntrySWT)) {
 					return;
 				}
 				SideBarEntrySWT entrySWT = (SideBarEntrySWT) entry;
 
 				SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entrySWT.getSkinObject());
-				
+
 				if (soBrowser != null) {
 					//((SWTSkinObjectBrowser) skinObject).getBrowser().setVisible(false);
 					if (url == null || url.length() == 0) {
@@ -2055,7 +2334,8 @@ public class MainWindow
 						if (UrlFilter.getInstance().urlCanRPC(url)) {
 							// 4010 Tux: This shouldn't be.. either determine ContentNetwork from
 							//           url or target, or do something..
-							fullURL = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(url, false, true);
+							fullURL = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(
+									url, false, true);
 						}
 
 						soBrowser.setURL(fullURL);
@@ -2064,7 +2344,7 @@ public class MainWindow
 			}
 		});
 	}
-	
+
 	protected MainStatusBar getMainStatusBar() {
 		return statusBar;
 	}
@@ -2313,7 +2593,7 @@ public class MainWindow
 			}
 			oldMainWindow = oldMW_SB;
 		}
-		
+
 		if (mapTrackUsage != null) {
 			newSideBarEntry.addListener((SideBarLogIdListener) this);
 		}
@@ -2327,7 +2607,7 @@ public class MainWindow
 		}
 		updateMapTrackUsage(oldID);
 	}
-	
+
 	// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
 	public void generate(IndentWriter writer) {
 		writer.println("SWT UI");
@@ -2352,9 +2632,9 @@ public class MainWindow
 		if (statusBar != null) {
 			statusBar.refreshStatusText();
 		}
-		
+
 		// download basket
-		
+
 		skin.triggerLanguageChange();
 
 		if (statusBar != null) {
@@ -2365,8 +2645,9 @@ public class MainWindow
 			MenuFactory.updateMenuText(menu.getMenu(IMenuConstants.MENU_ID_MENU_BAR));
 		}
 	}
-	
+
 	protected MainMenu getMainMenu() {
 		return menu;
 	}
+
 }

@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.PluginManager;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 
 public class 
@@ -42,8 +43,17 @@ DeviceiTunesManager
 		DeviceManagerImpl		_dm )
 	{
 		device_manager = _dm;
-		
-		AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
+
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				init(core);
+			}
+		});
+	}
+	
+	private void init(
+			AzureusCore azureus_core )
+	{
 		
 		final PluginManager pm = azureus_core.getPluginManager();
 		

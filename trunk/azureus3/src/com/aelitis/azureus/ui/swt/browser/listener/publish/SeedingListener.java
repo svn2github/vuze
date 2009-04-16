@@ -6,9 +6,11 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
@@ -73,40 +75,54 @@ public class SeedingListener
 		}
 	}
 
-	private DownloadManager getDM(String magnet) {
-		AzureusCore core = AzureusCoreFactory.getSingleton();
+	private DownloadManager getDM(AzureusCore core, String magnet) {
 		return core.getGlobalManager().getDownloadManager(
 				new HashWrapper(Base32.decode(magnet)));
 	}
 
-	private void removeTorrent(String id) {
-		final DownloadManager dm = getDM(id);
+	private void removeTorrent(final String id) {
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
 
-		if (PublishUtils.isPublished(dm)) {
-			PublishUtils.setPublished(dm, false);
-			ManagerUtils.remove(dm, null, false, false, new AERunnable() {
-				public void runSupport() {
-					PublishUtils.setPublished(dm);
+				final DownloadManager dm = getDM(core, id);
+				
+				if (PublishUtils.isPublished(dm)) {
+					PublishUtils.setPublished(dm, false);
+					ManagerUtils.remove(dm, null, false, false, new AERunnable() {
+						public void runSupport() {
+							PublishUtils.setPublished(dm);
+						}
+					});
 				}
-			});
-		}
-	}
-
-	private void startTorrent(String id) {
-		DownloadManager dm = getDM(id);
-
-		if (dm != null) {
-			try {
-				dm.setForceStart(true);
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
-		}
+		});
 	}
 
-	private void stopTorrent(String id) {
-		DownloadManager dm = getDM(id);
-		stop(dm);
+	private void startTorrent(final String id) {
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+
+				final DownloadManager dm = getDM(core, id);
+
+    		if (dm != null) {
+    			try {
+    				dm.setForceStart(true);
+    			} catch (Exception e) {
+    				e.printStackTrace();
+    			}
+    		}
+			}
+		});
+	}
+
+	private void stopTorrent(final String id) {
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+
+				final DownloadManager dm = getDM(core, id);
+				stop(dm);
+			}
+		});
 	}
 
 	private void stop(DownloadManager dm) {

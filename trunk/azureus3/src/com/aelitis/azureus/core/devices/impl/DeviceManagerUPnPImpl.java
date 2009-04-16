@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.ipc.IPCInterfaceImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -84,9 +85,7 @@ DeviceManagerUPnPImpl
 	protected void
 	initialise()
 	{
-		AzureusCore core = AzureusCoreFactory.getSingleton();
-		
-		plugin_interface = core.getPluginManager().getDefaultPluginInterface();
+		plugin_interface = PluginInitializer.getDefaultInterface();
 		
 		ta_category = plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_CATEGORY );
 		

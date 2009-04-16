@@ -30,11 +30,13 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
@@ -42,11 +44,6 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.listeners.MessageCompletionListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.util.*;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 
 /**
  * @author TuxPaper
@@ -287,8 +284,7 @@ public class PlatformMessenger
 		if (!initialized) {
 			init();
 		}
-
-		//debug("pq " + queueID + " via " + Debug.getCompressedStackTrace());
+		
 		final Map mapProcessing = new HashMap();
 
 		boolean loginAndRetry = false;
@@ -496,8 +492,6 @@ public class PlatformMessenger
 			throws Exception {
 		URL url;
 		url = new URL(sURL);
-		AzureusCore core = AzureusCoreFactory.getSingleton();
-		final PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
 
 		String s;
 		if (requiresAuthorization && authorizedSender != null) {
@@ -510,7 +504,7 @@ public class PlatformMessenger
 			if (requiresAuthorization) {
 				debug("No Authorized Sender.. using non-auth request");
 			}
-			byte[] bytes = downloadURL(pi, url, sData);
+			byte[] bytes = downloadURL(url, sData);
 			s = new String(bytes, "UTF8");
 		}
 
@@ -687,9 +681,9 @@ public class PlatformMessenger
 		}
 	}
 
-	private static byte[] downloadURL(PluginInterface pi, URL url, String postData)
+	private static byte[] downloadURL(URL url, String postData)
 			throws Exception {
-		ResourceDownloaderFactory rdf = pi.getUtilities().getResourceDownloaderFactory();
+		ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
 
 		ResourceDownloader rd = rdf.create(url, postData);
 

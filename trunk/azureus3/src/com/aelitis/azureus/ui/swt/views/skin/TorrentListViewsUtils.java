@@ -26,7 +26,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.eclipse.swt.program.Program;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
@@ -35,8 +34,15 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -44,7 +50,6 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
@@ -67,12 +72,13 @@ import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.util.ContentNetworkUtils;
+import com.aelitis.azureus.util.DCAdManager;
+import com.aelitis.azureus.util.DLReferals;
+import com.aelitis.azureus.util.DataSourceUtils;
+import com.aelitis.azureus.util.PlayUtils;
+import com.aelitis.azureus.util.PublishUtils;
 import com.aelitis.azureus.util.win32.Win32Utils;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadException;
 
 /**
  * @author TuxPaper
@@ -267,10 +273,9 @@ public class TorrentListViewsUtils
 		if (torrent != null && !DataSourceUtils.isPlatformContent(ds)) {
 			TorrentUIUtilsV3.addTorrentToGM(torrent);
 		} else {
-			AzureusCore core = AzureusCoreFactory.getSingleton();
 			DownloadUrlInfo dlInfo = DataSourceUtils.getDownloadInfo(ds);
 			if (dlInfo instanceof DownloadUrlInfoSWT) {
-				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false,
+				TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false,
 						true, true);
 				return;
 			}
@@ -290,9 +295,9 @@ public class TorrentListViewsUtils
 
 				String url = cn.getTorrentDownloadService(hash, referal);
 				dlInfo = new DownloadUrlInfoContentNetwork(url, cn);
-				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false, true, true);
+				TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false, true, true);
 			} else if (dlInfo != null) {
-				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false,
+				TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false,
 						true, true);
 			}
 		}
@@ -553,6 +558,8 @@ public class TorrentListViewsUtils
 
 		Class epwClass = null;
 		try {
+			// Assumed we have a core, since we are passed a
+			// DownloadManager
 			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
 					"azemp");
 

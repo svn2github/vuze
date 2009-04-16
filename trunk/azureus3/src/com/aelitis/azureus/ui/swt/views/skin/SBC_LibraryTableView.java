@@ -26,10 +26,13 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -43,6 +46,8 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -87,11 +92,34 @@ public class SBC_LibraryTableView
 	private TableViewSWT tv;
 
 	protected int torrentFilterMode = SBC_LibraryView.TORRENTS_ALL;
+
+	private SWTSkinObject soParent;
 	
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+		soParent = skinObject.getParent();
+		
+		Composite c = (Composite) skinObject.getControl();
+		final Label label = new Label(c, SWT.WRAP);
+		label.setText("View will be available once the core has completed initialization.");
+		label.setLayoutData(Utils.getFilledFormData());
+		
+		
+  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(final AzureusCore core) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						label.dispose();
+						initShow(core);
+					}
+				});
+			}
+  	});
 
-		SWTSkinObject soParent = skinObject.getParent();
 
+		return null;
+	}
+
+	public void initShow(AzureusCore core) {
 		Object data = soParent.getControl().getData("TorrentFilterMode");
 		if (data instanceof Long) {
 			torrentFilterMode = (int) ((Long) data).longValue();
@@ -111,29 +139,24 @@ public class SBC_LibraryTableView
 					|| torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE
 					|| torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
 
-				view = new MyTorrentsView_Big(AzureusCoreFactory.getSingleton(),
-						torrentFilterMode, columns);
+				view = new MyTorrentsView_Big(core, torrentFilterMode, columns);
 
 			} else {
 				//view = new MyTorrentsSuperView_Big();
-				view = new MyTorrentsView_Big(AzureusCoreFactory.getSingleton(),
-						torrentFilterMode, columns);
+				view = new MyTorrentsView_Big(core, torrentFilterMode, columns);
 			}
 
 		} else {
 			String tableID = SBC_LibraryView.getTableIdFromFilterMode(
 					torrentFilterMode, false);
 			if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
-				view = new MyTorrentsView(AzureusCoreFactory.getSingleton(), tableID,
-						true, columns);
+				view = new MyTorrentsView(core, tableID, true, columns);
 
 			} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
-				view = new MyTorrentsView(AzureusCoreFactory.getSingleton(), tableID,
-						false, columns);
+				view = new MyTorrentsView(core, tableID, false, columns);
 
 			} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
-				view = new MyTorrentsView(AzureusCoreFactory.getSingleton(), tableID,
-						true, columns) {
+				view = new MyTorrentsView(core, tableID, true, columns) {
 					public boolean isOurDownloadManager(DownloadManager dm) {
 						if (PlatformTorrentUtils.getHasBeenOpened(dm)) {
 							return false;
@@ -143,8 +166,7 @@ public class SBC_LibraryTableView
 				};
 			} else {
 				view = new MyTorrentsSuperView() {
-					public void initialize(Composite parent) {
-						super.initialize(parent);
+					public void initializeDone() {
 						MyTorrentsView seedingview = getSeedingview();
 						if (seedingview != null) {
 							seedingview.overrideDefaultSelected(new TableSelectionAdapter() {
@@ -229,8 +251,7 @@ public class SBC_LibraryTableView
 									String url = cn.getTorrentDownloadService(contentHash, "coq");
 									DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(
 											url, cn);
-									TorrentUIUtilsV3.loadTorrent(
-											AzureusCoreFactory.getSingleton(), dlInfo, false, false,
+									TorrentUIUtilsV3.loadTorrent(dlInfo, false, false,
 											true, false);
 								}
 
@@ -283,8 +304,7 @@ public class SBC_LibraryTableView
 				});
 			}
 		}
-
-		return null;
+		viewComposite.getParent().layout(true);
 	}
 
 	public static void doDefaultClick(TableRowCore[] rows, int stateMask,
@@ -341,7 +361,8 @@ public class SBC_LibraryTableView
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
 
-		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
+		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED
+				&& AzureusCoreFactory.isCoreRunning()) {
 			if (view instanceof MyTorrentsView) {
 				MyTorrentsView torrentsView = (MyTorrentsView) view;
 				TableViewSWT tv = torrentsView.getTableView();

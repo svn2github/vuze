@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.security.*;
@@ -178,27 +179,18 @@ VuzeCryptoManager
 		
 		if ( !init_done ){
 		
-			AzureusCore core = AzureusCoreFactory.getSingleton();
-			
-				// back this off until core started otherwise plugin not loaded...
-			
-			AzureusCoreFactory.getSingleton().addLifecycleListener(
-				new AzureusCoreLifecycleAdapter()
-				{
-					public void
-					started(
-						AzureusCore		core )
-					{			
-						initialise( core );
+			AzureusCoreFactory.addCoreRunningListener(
+				new AzureusCoreRunningListener() {
+				
+  					public void 
+  					azureusCoreRunning(
+  							AzureusCore core) {
+  					{			
+  						initialise( core );
+  					}
 					}
 				});
 			
-				// if already started do now
-			
-			if ( core.isStarted()){
-				
-				initialise( core );
-			}
 		}
 	}
 	

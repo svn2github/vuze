@@ -34,7 +34,18 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarDropListener;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -49,7 +60,9 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventCancelledException;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
@@ -58,10 +71,10 @@ import com.aelitis.azureus.activities.VuzeActivitiesListener;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -88,18 +101,6 @@ import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 import com.aelitis.azureus.util.MapUtils;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIPluginView;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarDropListener;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
  * @author TuxPaper
@@ -133,7 +134,7 @@ public class SideBar
 	public static final String SIDEBAR_SECTION_PUBLISH = "Publish";
 
 	public static final String SIDEBAR_SECTION_SUBSCRIPTIONS = "Subscriptions";
-	
+
 	public static final String SIDEBAR_SECTION_DEVICES = "Devices";
 
 	public static final String SIDEBAR_SECTION_ADVANCED = "Advanced";
@@ -152,8 +153,13 @@ public class SideBar
 
 	private static final boolean ALWAYS_IMAGE_GAP = false;
 
-	private static final String[] default_indicator_colors = { "#000000", "#000000", "#166688", "#1c2056" };
-	
+	private static final String[] default_indicator_colors = {
+		"#000000",
+		"#000000",
+		"#166688",
+		"#1c2056"
+	};
+
 	private SWTSkin skin;
 
 	private SWTSkinObject soSideBarContents;
@@ -401,8 +407,7 @@ public class SideBar
 	*/
 
 	private void addMenuNotifications() {
-		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
-		PluginInterface pi = pm.getDefaultPluginInterface();
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		UIManager uim = pi.getUIManager();
 		MenuManager menuManager = uim.getMenuManager();
 
@@ -420,8 +425,7 @@ public class SideBar
 	}
 
 	private void addMenuUnwatched() {
-		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
-		PluginInterface pi = pm.getDefaultPluginInterface();
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		UIManager uim = pi.getUIManager();
 		MenuManager menuManager = uim.getMenuManager();
 
@@ -429,17 +433,21 @@ public class SideBar
 				+ SIDEBAR_SECTION_LIBRARY_UNOPENED, "v3.activity.button.watchall");
 		menuItem.addListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
-				AzureusCore core = AzureusCoreFactory.getSingleton();
-				GlobalManager gm = core.getGlobalManager();
-				List downloadManagers = gm.getDownloadManagers();
-				for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
-					DownloadManager dm = (DownloadManager) iter.next();
+				CoreWaiterSWT.waitForCore(TriggerInThread.ANY_THREAD,
+						new AzureusCoreRunningListener() {
+							public void azureusCoreRunning(AzureusCore core) {
+								GlobalManager gm = core.getGlobalManager();
+								List downloadManagers = gm.getDownloadManagers();
+								for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
+									DownloadManager dm = (DownloadManager) iter.next();
 
-					if (!PlatformTorrentUtils.getHasBeenOpened(dm)
-							&& dm.getAssumedComplete()) {
-						PlatformTorrentUtils.setHasBeenOpened(dm, true);
-					}
-				}
+									if (!PlatformTorrentUtils.getHasBeenOpened(dm)
+											&& dm.getAssumedComplete()) {
+										PlatformTorrentUtils.setHasBeenOpened(dm, true);
+									}
+								}
+							}
+						});
 			}
 		});
 	}
@@ -584,9 +592,9 @@ public class SideBar
 					case SWT.Paint: {
 						//System.out.println("Paint: " + event.getBounds() + ";" + event.detail + ";" + event.index);
 						Rectangle bounds = event.getBounds();
-//						if (tree.getItemCount() == 0) {
-//							return;
-//						}
+						//if (tree.getItemCount() == 0) {
+						//	return;
+						//}
 						int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
 						int y = event.y + 1;
 						treeItem = tree.getItem(new Point(indent, y));
@@ -741,10 +749,9 @@ public class SideBar
 
 		// to disable collapsing
 		tree.addListener(SWT.Collapse, treeListener);
-		
-		dropTarget = new DropTarget(tree, DND.DROP_DEFAULT
-				| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK
-				| DND.DROP_TARGET_MOVE);
+
+		dropTarget = new DropTarget(tree, DND.DROP_DEFAULT | DND.DROP_MOVE
+				| DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
 		dropTarget.setTransfer(new Transfer[] {
 			URLTransfer.getInstance(),
 			FileTransfer.getInstance(),
@@ -756,7 +763,7 @@ public class SideBar
 				event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
 						event.currentDataType);
 			}
-			
+
 			// @see org.eclipse.swt.dnd.DropTargetAdapter#dragOver(org.eclipse.swt.dnd.DropTargetEvent)
 			public void dragOver(DropTargetEvent event) {
 				if (!(event.item instanceof TreeItem)) {
@@ -767,7 +774,7 @@ public class SideBar
 
 				String id = (String) treeItem.getData("Plugin.viewID");
 				SideBarEntrySWT entry = getEntry(id);
-				
+
 				if (entry.hasDropListeners()) {
 					draggingOver = entry;
 					if (Constants.isOSX) {
@@ -800,11 +807,10 @@ public class SideBar
 
 				String id = (String) treeItem.getData("Plugin.viewID");
 				SideBarEntrySWT entry = getEntry(id);
-				
+
 				entry.triggerDropListeners(event.data);
 			}
 		});
-
 
 		final Menu menuTree = new Menu(tree);
 		tree.setMenu(menuTree);
@@ -1113,13 +1119,13 @@ public class SideBar
 				Pattern pattern;
 				Color color1;
 				Color color2;
-				
-				String[] colors = (String[])sideBarEntry.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_COLOR);
-				
-				if ( colors == null || colors.length != 4 ){
+
+				String[] colors = (String[]) sideBarEntry.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_COLOR);
+
+				if (colors == null || colors.length != 4) {
 					colors = default_indicator_colors;
 				}
-				
+
 				if (selected) {
 					color1 = ColorCache.getColor(gc.getDevice(), colors[0]);
 					color2 = ColorCache.getColor(gc.getDevice(), colors[1]);
@@ -1438,7 +1444,6 @@ public class SideBar
 				MessageText.getString("sidebar." + SIDEBAR_SECTION_ACTIVITIES),
 				titleInfoActivityView, null, false, -1);
 		addMenuNotifications();
-		
 
 		//entry.setImageLeftID("image.sidebar.subscriptions");
 
@@ -1556,18 +1561,20 @@ public class SideBar
 			parent.layout(true, true);
 		}
 	}
-/**
-	 * @param entry
-	 *
-	 * @since 4.1.0.3
-	 */
+
+	/**
+		 * @param entry
+		 *
+		 * @since 4.1.0.3
+		 */
 	private void addDropTest(SideBarEntrySWT entry) {
 		if (!Constants.isCVSVersion()) {
 			return;
 		}
 		entry.addListener(new SideBarDropListener() {
 			public void sideBarEntryDrop(SideBarEntry entry, Object droppedObject) {
-				String s = "You just dropped " + droppedObject.getClass() + "\n" + droppedObject + "\n\n";
+				String s = "You just dropped " + droppedObject.getClass() + "\n"
+						+ droppedObject + "\n\n";
 				if (droppedObject.getClass().isArray()) {
 					Object[] o = (Object[]) droppedObject;
 					for (int i = 0; i < o.length; i++) {
@@ -1587,7 +1594,6 @@ public class SideBar
 
 	}
 
-
 	/**
 	 * 
 	 *
@@ -1606,11 +1612,13 @@ public class SideBar
 	public TreeItem createTreeItemFromIView(String parentID, IView iview,
 			String id, Object datasource, boolean closeable, boolean show) {
 
-		return( createTreeItemFromIView(parentID, iview, id, datasource, closeable, show, true ));
+		return (createTreeItemFromIView(parentID, iview, id, datasource, closeable,
+				show, true));
 	}
-	
+
 	public TreeItem createTreeItemFromIView(String parentID, IView iview,
-			String id, Object datasource, boolean closeable, boolean show, boolean expand ) {
+			String id, Object datasource, boolean closeable, boolean show,
+			boolean expand) {
 		if (id == null) {
 			id = iview.getClass().getName();
 			int i = id.lastIndexOf('.');
@@ -1631,11 +1639,12 @@ public class SideBar
 					iview.getFullTitle(), closeable, -1);
 
 			setupTreeItem(null, treeItem, id, null, iview.getFullTitle(), null,
-					datasource, closeable, expand );
+					datasource, closeable, expand);
 
 			entry.parentID = parentID;
 
-			createSideBarContentArea(id, iview, treeItem, datasource, closeable, expand);
+			createSideBarContentArea(id, iview, treeItem, datasource, closeable,
+					expand);
 
 			iview.dataSourceChanged(datasource);
 		}
@@ -1720,14 +1729,14 @@ public class SideBar
 
 	private void setupTreeItem(final IView iview, TreeItem treeItem, String id,
 			ViewTitleInfo titleInfo, String title, Composite initializeView,
-			Object datasource, boolean closeable, boolean expand ) {
+			Object datasource, boolean closeable, boolean expand) {
 		final SideBarEntrySWT entry = getEntry(id);
 
 		boolean pull = true;
-		if (treeItem.getParentItem() != null && expand ) {
+		if (treeItem.getParentItem() != null && expand) {
 			treeItem.getParentItem().setExpanded(true);
 		}
-		if ( !expand ){
+		if (!expand) {
 			treeItem.setExpanded(false);
 		}
 		treeItem.removeDisposeListener(disposeTreeItemListener);
@@ -1978,6 +1987,9 @@ public class SideBar
 	}
 
 	protected void flipVisibilityTo(SideBarEntrySWT newSideBarInfo) {
+		if (tree.isDisposed()) {
+			return;
+		}
 
 		final SideBarEntrySWT oldEntry = currentSideBarEntry;
 
@@ -2239,7 +2251,7 @@ public class SideBar
 			viewComposite.setVisible(false);
 
 			SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
-					skin.getSkinProperties(), viewComposite, "Contents." + id + "." 
+					skin.getSkinProperties(), viewComposite, "Contents." + id + "."
 							+ (mapIdToEntries.size() + 1), "", "container", soSideBarContents);
 
 			entry.skinObject = soContents;
@@ -2247,7 +2259,7 @@ public class SideBar
 			entry.parentID = parentID;
 
 			setupTreeItem(iview, treeItem, id, null, iview.getFullTitle(),
-					viewComposite, datasource, closeable, true );
+					viewComposite, datasource, closeable, true);
 
 			if (parent.isVisible()) {
 				parent.layout(true, true);
@@ -2301,7 +2313,7 @@ public class SideBar
 				entry.eventListener = l;
 
 				setupTreeItem(iview, treeItem, id, null, iview.getFullTitle(),
-						viewComposite, datasource, closeable,true);
+						viewComposite, datasource, closeable, true);
 
 				parent.layout(true, true);
 			} catch (Exception e1) {
@@ -2339,7 +2351,7 @@ public class SideBar
 			}
 
 			createSideBarContentArea(id, iview, sideBarInfo.treeItem,
-					sideBarInfo.datasource, sideBarInfo.closeable,true);
+					sideBarInfo.datasource, sideBarInfo.closeable, true);
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (iview != null) {
@@ -2363,7 +2375,7 @@ public class SideBar
 	 * @since 3.1.1.1
 	 */
 	private IView createSideBarContentArea(String id, IView view, TreeItem item,
-			Object datasource, boolean closeable, boolean expand ) {
+			Object datasource, boolean closeable, boolean expand) {
 		try {
 			Composite parent = (Composite) soSideBarContents.getControl();
 
@@ -2395,7 +2407,7 @@ public class SideBar
 			}
 
 			if (iviewComposite.isVisible()) {
-				parent.layout(true, true);
+			parent.layout(true, true);
 			}
 
 		} catch (Exception e) {
@@ -2467,7 +2479,7 @@ public class SideBar
 				index);
 
 		setupTreeItem(null, treeItem, id, titleInfo, title, null, datasource,
-				closeable,true);
+				closeable, true);
 
 		return entry;
 	}
@@ -2743,9 +2755,9 @@ public class SideBar
 			itemSelected(entryPublish.treeItem);
 			return true;
 		} else if (id.startsWith("ContentNetwork.")) {
-				long networkID = Long.parseLong(id.substring(15));
-				handleContentNetworkSwitch(id, networkID);
-				return true;
+			long networkID = Long.parseLong(id.substring(15));
+			handleContentNetworkSwitch(id, networkID);
+			return true;
 		}
 		return false;
 	}
@@ -2839,9 +2851,9 @@ public class SideBar
 				}
 			}
 
-				createContentNetworkSideBarEntry(cn);
-				showEntryByID(tabID);
-				return;
+			createContentNetworkSideBarEntry(cn);
+			showEntryByID(tabID);
+			return;
 		} catch (Exception e) {
 			Debug.out(e);
 		}
@@ -2868,8 +2880,8 @@ public class SideBar
 
 		ContentNetworkUI.loadImage(cn.getID(),
 				new ContentNetworkImageLoadedListener() {
-    			public void contentNetworkImageLoaded(Long contentNetworkID,
-    					Image image, boolean wasReturned) {
+					public void contentNetworkImageLoaded(Long contentNetworkID,
+							Image image, boolean wasReturned) {
 						entry.setImageLeft(image);
 					}
 				});

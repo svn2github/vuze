@@ -60,14 +60,14 @@ public class DataSourceUtils
 				DownloadManager dm = entry.getDownloadManger();
 				if (dm == null) {
 					String assetHash = entry.getAssetHash();
-					if (assetHash != null) {
+					if (assetHash != null && AzureusCoreFactory.isCoreRunning()) {
 						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 						dm = gm.getDownloadManager(new HashWrapper(Base32.decode(assetHash)));
 						entry.setDownloadManager(dm);
 					}
 				}
 				return dm;
-			} else if (ds instanceof TOTorrent) {
+			} else if ((ds instanceof TOTorrent) && AzureusCoreFactory.isCoreRunning()) {
 				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 				return gm.getDownloadManager((TOTorrent) ds);
 			} else if (ds instanceof ISelectedContent) {
@@ -172,10 +172,14 @@ public class DataSourceUtils
 		
 		if (ds instanceof String) {
 			String hash = (String) ds;
-			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-			DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
-			if (dm != null) {
-				return dm.getTorrent();
+			try {
+  			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+  			DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
+  			if (dm != null) {
+  				return dm.getTorrent();
+  			}
+			} catch (Exception e) {
+				// ignore
 			}
 		}
 

@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.swt.layout.FormData;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
@@ -31,9 +29,15 @@ import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
@@ -45,15 +49,11 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarVitalityImageSWT;
-
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * @author TuxPaper
@@ -411,7 +411,21 @@ public class SBC_LibraryView
 			});
 		}
 
-		final GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				setupViewTitleWithCore(core);
+			}
+		});
+		PlatformTorrentUtils.addHasBeenOpenedListener(new HasBeenOpenedListener() {
+			public void hasBeenOpenedChanged(DownloadManager dm, boolean opened) {
+				recountUnopened();
+				refreshAllLibraries();
+			}
+		});
+	}
+	
+	protected static void setupViewTitleWithCore(AzureusCore core) {
+		final GlobalManager gm = core.getGlobalManager();
 		final DownloadManagerListener dmListener = new DownloadManagerAdapter() {
 			public void stateChanged(DownloadManager dm, int state) {
 				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null
@@ -445,7 +459,7 @@ public class SBC_LibraryView
 						dm.setUserData("wasDownloading", new Boolean(isDownloading));
 					}
 				}
-
+				
 				boolean complete = dm.getAssumedComplete();
 				Boolean wasErrorStateB = (Boolean) dm.getUserData("wasErrorState");
 				boolean wasErrorState = wasErrorStateB == null ? false
@@ -463,7 +477,7 @@ public class SBC_LibraryView
 				}
 				refreshAllLibraries();
 			}
-
+			
 			public void completionChanged(DownloadManager dm, boolean completed) {
 				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null
 						|| PlatformTorrentUtils.isUpdateDM(dm)) {
@@ -488,7 +502,7 @@ public class SBC_LibraryView
 				updateErrorTooltip();
 				refreshAllLibraries();
 			}
-
+			
 			protected void updateErrorTooltip() {
 				if (numErrorComplete < 0) {
 					numErrorComplete = 0;
@@ -496,49 +510,49 @@ public class SBC_LibraryView
 				if (numErrorInComplete < 0) {
 					numErrorInComplete = 0;
 				}
-
+				
 				if (numErrorComplete > 0 || numErrorInComplete > 0) {
-
+					
 					String comp_error = null;
 					String incomp_error = null;
-
+					
 					List downloads = gm.getDownloadManagers();
-
+					
 					for (int i = 0; i < downloads.size(); i++) {
-
+						
 						DownloadManager download = (DownloadManager) downloads.get(i);
-
+						
 						if (download.getState() == DownloadManager.STATE_ERROR) {
-
+							
 							if (download.getAssumedComplete()) {
-
+								
 								if (comp_error == null) {
-
+									
 									comp_error = download.getDisplayName() + ": "
-											+ download.getErrorDetails();
+									+ download.getErrorDetails();
 								} else {
-
+									
 									comp_error += "...";
 								}
 							} else {
 								if (incomp_error == null) {
-
+									
 									incomp_error = download.getDisplayName() + ": "
-											+ download.getErrorDetails();
+									+ download.getErrorDetails();
 								} else {
-
+									
 									incomp_error += "...";
 								}
 							}
 						}
 					}
-
+					
 					errorCompleteTooltip = comp_error;
 					errorInCompleteTooltip = incomp_error;
 				}
 			}
 		};
-
+		
 		gm.addListener(new GlobalManagerAdapter() {
 			public void downloadManagerRemoved(DownloadManager dm) {
 				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null
@@ -562,14 +576,14 @@ public class SBC_LibraryView
 				refreshAllLibraries();
 				dm.removeListener(dmListener);
 			}
-
+			
 			public void downloadManagerAdded(DownloadManager dm) {
 				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null
 						|| PlatformTorrentUtils.isUpdateDM(dm)) {
 					return;
 				}
 				dm.addListener(dmListener, false);
-
+				
 				recountUnopened();
 				if (dm.getAssumedComplete()) {
 					numComplete++;
@@ -611,16 +625,14 @@ public class SBC_LibraryView
 				}
 			}
 		}
+
 		recountUnopened();
-		PlatformTorrentUtils.addHasBeenOpenedListener(new HasBeenOpenedListener() {
-			public void hasBeenOpenedChanged(DownloadManager dm, boolean opened) {
-				recountUnopened();
-				refreshAllLibraries();
-			}
-		});
 	}
-	
+
 	private static void recountUnopened() {
+		if (!AzureusCoreFactory.isCoreRunning()) {
+			return;
+		}
 		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		List dms = gm.getDownloadManagers();
 		numUnOpened = 0;

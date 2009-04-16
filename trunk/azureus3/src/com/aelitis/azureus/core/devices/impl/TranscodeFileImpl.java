@@ -36,7 +36,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.TranscodeException;
@@ -235,7 +235,7 @@ TranscodeFileImpl
 		if ( hash != null ){
 			
 			try{
-				Download download = StaticUtilities.getDefaultPluginInterface().getDownloadManager().getDownload( Base32.decode(hash));
+				Download download = PluginInitializer.getDefaultInterface().getDownloadManager().getDownload( Base32.decode(hash));
 				
 				if ( download != null ){
 					

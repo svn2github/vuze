@@ -22,10 +22,9 @@ package com.aelitis.azureus.ui.swt;
 
 import java.io.File;
 
-import org.eclipse.swt.SWT;
-
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.*;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
@@ -164,7 +163,7 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("LibraryCD.viewmode", startAdvanced ? 1 : 0);
 		
 		defaults.addParameter("list.dm.dblclick", "0");
-		
+
 		//=== defaults used by MainWindow
 		defaults.addParameter("vista.adminquit", false);
 		defaults.addParameter("Password enabled", false);

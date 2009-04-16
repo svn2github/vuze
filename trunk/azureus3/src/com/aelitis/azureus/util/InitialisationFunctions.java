@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadWillBeAddedListener;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 public class InitialisationFunctions
 {
@@ -53,11 +54,11 @@ public class InitialisationFunctions
 
 	public static void earlyInitialisation(AzureusCore core) {
 		
-		DownloadUtils.initialise( core );
+		DownloadUtils.initialise();
 		
 		DownloadManagerEnhancer dme = DownloadManagerEnhancer.initialise(core);
 
-		registerTrackerURLExtensions(core);
+		registerTrackerURLExtensions();
 
 		AzureusPlatformContentDirectory.register();
 
@@ -131,7 +132,7 @@ public class InitialisationFunctions
 	{
 		ExternalStimulusHandler.initialise(core);
 		
-		core.getPluginManager().getDefaultPluginInterface().getUtilities().createDelayedTask(
+		PluginInitializer.getDefaultInterface().getUtilities().createDelayedTask(
 			new Runnable()
 			{
 				public void 
@@ -145,10 +146,9 @@ public class InitialisationFunctions
 	}
 
 	protected static void 
-	registerTrackerURLExtensions(
-		AzureusCore core ) 
+	registerTrackerURLExtensions() 
 	{
-		PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
 
 		DownloadManager	dm = pi.getDownloadManager();
 		

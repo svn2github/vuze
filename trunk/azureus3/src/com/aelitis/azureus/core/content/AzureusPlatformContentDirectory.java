@@ -35,9 +35,9 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
@@ -60,7 +60,7 @@ AzureusPlatformContentDirectory
 		
 			registered = true;
 			
-			ta_category = StaticUtilities.getDefaultPluginInterface().getTorrentManager().getAttribute( TorrentAttribute.TA_CATEGORY );
+			ta_category = PluginInitializer.getDefaultInterface().getTorrentManager().getAttribute( TorrentAttribute.TA_CATEGORY );
 			
 			AzureusContentDirectoryManager.registerDirectory( new AzureusPlatformContentDirectory());
 		}
@@ -113,7 +113,7 @@ AzureusPlatformContentDirectory
 		byte[]	hash = (byte[])attributes.get( AT_BTIH );
 				
 		try{
-			final Download download = StaticUtilities.getDefaultPluginInterface().getDownloadManager().getDownload(hash);
+			final Download download = PluginInitializer.getDefaultInterface().getDownloadManager().getDownload(hash);
 		
 			if ( download == null ){
 				
@@ -152,7 +152,7 @@ AzureusPlatformContentDirectory
 		
 		try{
 
-			Download download = StaticUtilities.getDefaultPluginInterface().getDownloadManager().getDownload(hash);
+			Download download = PluginInitializer.getDefaultInterface().getDownloadManager().getDownload(hash);
 		
 			if ( download == null ){
 				

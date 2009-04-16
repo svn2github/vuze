@@ -187,6 +187,8 @@ public class DeviceInfoArea
 	}
 
 	protected void initDeviceOverview() {
+		// DeviceInfoArea isn't used, but if it were we'd want to 
+		// do a check to see if Core is available yet..
 		final PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
 		boolean hasItunes = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
 				"azitunes") != null;
@@ -264,46 +266,49 @@ public class DeviceInfoArea
 		
 		vuze_button.setText( "Install Vuze Transcoder" );
 		
-		final PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
+		if (AzureusCoreFactory.isCoreRunning()) {
+			final PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
+
+			StandardPlugin vuze_plugin = null;
 			
-		StandardPlugin vuze_plugin = null;
-		
-		try{
-			vuze_plugin = installer.getStandardPlugin( "vuzexcode" );
-
-		}catch( Throwable e ){	
-		}
-		
-		if ( vuze_plugin == null || vuze_plugin.isAlreadyInstalled()){
+			try{
+				vuze_plugin = installer.getStandardPlugin( "vuzexcode" );
+				
+			}catch( Throwable e ){	
+			}
 			
-			vuze_button.setEnabled( false );
+			if ( vuze_plugin == null || vuze_plugin.isAlreadyInstalled()){
+				
+				vuze_button.setEnabled( false );
+			}
+			
+			final StandardPlugin	f_vuze_plugin = vuze_plugin;
+			
+			vuze_button.addListener(
+					SWT.Selection, 
+					new Listener() 
+					{
+						public void 
+						handleEvent(
+								Event arg0 ) 
+						{
+							try{
+								f_vuze_plugin.install( false );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					});
+			
+			fd = new FormData();
+			fd.left 	= new FormAttachment(0,0);
+			fd.top	= new FormAttachment(label,4);
+			
+			vuze_button.setLayoutData( fd );
 		}
-		
-		final StandardPlugin	f_vuze_plugin = vuze_plugin;
-		
-		vuze_button.addListener(
-			SWT.Selection, 
-			new Listener() 
-			{
-				public void 
-				handleEvent(
-					Event arg0 ) 
-				{
-					try{
-						f_vuze_plugin.install( false );
-
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace(e);
-					}
-				}
-			});
-		
-		fd = new FormData();
-		fd.left 	= new FormAttachment(0,0);
-		fd.top	= new FormAttachment(label,4);
-
-		vuze_button.setLayoutData( fd );
+			
 
 		Control top = vuze_button;
 		
@@ -361,124 +366,129 @@ public class DeviceInfoArea
 		both_button.setText( "Test! Install RSSGen and AZBlog!" );
 		
 
-		StandardPlugin plugin1 = null;
-		StandardPlugin plugin2 = null;
-		
-		try{
-			plugin1 = installer.getStandardPlugin( "azrssgen" );
+		if (AzureusCoreFactory.isCoreRunning()) {
+			final PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
 
-		}catch( Throwable e ){	
-		}
-		
-		try{
-			plugin2 = installer.getStandardPlugin( "azblog" );
-
-		}catch( Throwable e ){	
-		}
-	
-		if ( plugin1 != null && plugin2 != null ){
+			StandardPlugin plugin1 = null;
+			StandardPlugin plugin2 = null;
 			
-			final Composite install_area = new Composite( betaArea, SWT.BORDER );
+			try{
+				plugin1 = installer.getStandardPlugin( "azrssgen" );
+				
+			}catch( Throwable e ){	
+			}
 			
-			fd = new FormData();
-			fd.left 	= new FormAttachment(both_button,0);
-			fd.right	= new FormAttachment(100,0);
-			fd.top	= new FormAttachment(top,4);
-			fd.bottom	= new FormAttachment(100,0);
-
-			install_area.setLayoutData( fd );
+			try{
+				plugin2 = installer.getStandardPlugin( "azblog" );
+				
+			}catch( Throwable e ){	
+			}
 			
-			final StandardPlugin	f_plugin1 = plugin1;
-			final StandardPlugin	f_plugin2 = plugin2;
-			
-			both_button.addListener(
-				SWT.Selection, 
-				new Listener() 
-				{
-					public void 
-					handleEvent(
-						Event arg0 ) 
-					{
-						both_button.setEnabled( false );
-						
-						try{
-							Map<Integer,Object>	properties = new HashMap<Integer, Object>();
-							
-							properties.put( UpdateCheckInstance.PT_UI_STYLE, UpdateCheckInstance.PT_UI_STYLE_SIMPLE );
-							
-							properties.put( UpdateCheckInstance.PT_UI_PARENT_SWT_COMPOSITE, install_area );
-							
-							properties.put( UpdateCheckInstance.PT_UI_DISABLE_ON_SUCCESS_SLIDEY, true );
-							
-							installer.install(
-								new InstallablePlugin[]{ f_plugin1, f_plugin2 },
-								false,
-								properties,
-								new PluginInstallationListener()
-								{
-									public void
-									completed()
-									{
-										System.out.println( "Install completed!" );
-										
-										tidy();
-									}
+			if ( plugin1 != null && plugin2 != null ){
+				
+				final Composite install_area = new Composite( betaArea, SWT.BORDER );
+				
+				fd = new FormData();
+				fd.left 	= new FormAttachment(both_button,0);
+				fd.right	= new FormAttachment(100,0);
+				fd.top	= new FormAttachment(top,4);
+				fd.bottom	= new FormAttachment(100,0);
+				
+				install_area.setLayoutData( fd );
+				
+				final StandardPlugin	f_plugin1 = plugin1;
+				final StandardPlugin	f_plugin2 = plugin2;
+				
+				both_button.addListener(
+						SWT.Selection, 
+						new Listener() 
+						{
+							public void 
+							handleEvent(
+									Event arg0 ) 
+							{
+								both_button.setEnabled( false );
+								
+								try{
+									Map<Integer,Object>	properties = new HashMap<Integer, Object>();
 									
-									public void 
-									cancelled()
-									{
-										System.out.println( "Install cancelled" );
-										
-										tidy();
-									}
+									properties.put( UpdateCheckInstance.PT_UI_STYLE, UpdateCheckInstance.PT_UI_STYLE_SIMPLE );
 									
-									public void
-									failed(
-										PluginException	e )
-									{
-										System.out.println( "Install failed: " + e );
-										
-										tidy();
-									}
+									properties.put( UpdateCheckInstance.PT_UI_PARENT_SWT_COMPOSITE, install_area );
 									
-									protected void
-									tidy()
-									{
-										Utils.execSWTThread(
-											new Runnable()
+									properties.put( UpdateCheckInstance.PT_UI_DISABLE_ON_SUCCESS_SLIDEY, true );
+									
+									installer.install(
+											new InstallablePlugin[]{ f_plugin1, f_plugin2 },
+											false,
+											properties,
+											new PluginInstallationListener()
 											{
 												public void
-												run()
+												completed()
 												{
-													Control[] kids = install_area.getChildren();
+													System.out.println( "Install completed!" );
 													
-													for ( Control c: kids ){
-														
-														c.dispose();
-													}
+													tidy();
+												}
+												
+												public void 
+												cancelled()
+												{
+													System.out.println( "Install cancelled" );
 													
-													both_button.setEnabled( true );
+													tidy();
+												}
+												
+												public void
+												failed(
+														PluginException	e )
+												{
+													System.out.println( "Install failed: " + e );
+													
+													tidy();
+												}
+												
+												protected void
+												tidy()
+												{
+													Utils.execSWTThread(
+															new Runnable()
+															{
+																public void
+																run()
+																{
+																	Control[] kids = install_area.getChildren();
+																	
+																	for ( Control c: kids ){
+																		
+																		c.dispose();
+																	}
+																	
+																	both_button.setEnabled( true );
+																}
+															});
 												}
 											});
-									}
-								});
-							
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace(e);
-						}
-					}
-				});
-		}else{
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+							}
+						});
+			}else{
+				
+				both_button.setEnabled(false);
+			}
 			
-			both_button.setEnabled(false);
+			fd = new FormData();
+			fd.left 	= new FormAttachment(0,0);
+			fd.top	= new FormAttachment(top,4);
+			fd.bottom	= new FormAttachment(100,0);
+			
+			both_button.setLayoutData( fd );
 		}
-		
-		fd = new FormData();
-		fd.left 	= new FormAttachment(0,0);
-		fd.top	= new FormAttachment(top,4);
-		fd.bottom	= new FormAttachment(100,0);
 
-		both_button.setLayoutData( fd );
 	}
 }

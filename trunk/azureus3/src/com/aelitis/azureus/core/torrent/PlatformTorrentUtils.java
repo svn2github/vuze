@@ -368,6 +368,9 @@ public class PlatformTorrentUtils
 	}
 
 	private static void writeTorrentIfExists(TOTorrent torrent) {
+		if (!AzureusCoreFactory.isCoreRunning()) {
+			return;
+		}
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 		if (core == null || !core.isStarted()) {
 			return;

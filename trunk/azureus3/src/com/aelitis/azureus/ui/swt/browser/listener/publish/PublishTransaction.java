@@ -39,7 +39,11 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserTransaction;
@@ -136,11 +140,13 @@ public class PublishTransaction extends BrowserTransaction
      * Opens a file dialog so the user can choose the image to use as a thumbnail
      */
     public void chooseThumbnail(final BrowserMessage message) {
-    	Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
+    	// Not absolutely sure if core needs to be running, but
+    	// ensure for safety
+    	CoreWaiterSWT.waitForCore(TriggerInThread.SWT_THREAD, new AzureusCoreRunningListener() {
+				public void azureusCoreRunning(AzureusCore core) {
 					_chooseThumbnail(message);
 				}
-    	});
+			});
     }
 
     private void _chooseThumbnail(BrowserMessage message) {
@@ -177,8 +183,9 @@ public class PublishTransaction extends BrowserTransaction
     					try {
                             sendBrowserMessage("thumb", "start", elements);
                             
-        					File file = new File(fileName);    				
-    	    				ResizedImageInfo info = loadAndResizeImage(file,resize_size[0],resize_size[1],1);
+        					File file = new File(fileName);
+				ResizedImageInfo info = loadAndResizeImage(file, resize_size[0],
+						resize_size[1], 1);
     	    				if(info == null) {
     	    					debug("User canceled image resizing");
     	    					sendBrowserMessage("thumb", "clear", elements);
@@ -403,8 +410,9 @@ public class PublishTransaction extends BrowserTransaction
     }
     
     
-	private ResizedImageInfo loadAndResizeImage(final File f, final int width,
-			final int height, float quality) throws Exception {
+	private ResizedImageInfo loadAndResizeImage(final File f,
+			final int width, final int height, float quality)
+			throws Exception {
 		ImageLoader loader = new ImageLoader();
 		final Display display = shell.getDisplay();
 		Image source = null;

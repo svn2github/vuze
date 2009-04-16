@@ -157,7 +157,9 @@ public class Chat implements VuzeBuddyMessageListener {
 					
 						// try and use a reasonable originating timestamp
 					
-					timeStamp -= AzureusCoreFactory.getSingleton().getInstanceManager().getClockSkew();
+					if (AzureusCoreFactory.isCoreRunning()) {
+						timeStamp -= AzureusCoreFactory.getSingleton().getInstanceManager().getClockSkew();
+					}
 					
 					message.put("timestamp", new Long(timeStamp));
 					message.put("text", text);

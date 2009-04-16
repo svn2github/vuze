@@ -45,8 +45,10 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterf
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -75,8 +77,21 @@ public class TorrentUIUtilsV3
 	//catches http://www.vuze.com/download/CHJW43PLS277RC7U3S5XRS2PZ4UUG7RS.torrent
 	private static final Pattern hashPattern = Pattern.compile("download/([A-Z0-9]{32})\\.torrent");
 
-	public static void loadTorrent(final AzureusCore core,
-			final DownloadUrlInfo dlInfo, final boolean playNow, // open player
+	public static void loadTorrent(	final DownloadUrlInfo dlInfo, 
+			final boolean playNow, // open player
+			final boolean playPrepare, // as for open player but don't actually open it
+			final boolean bringToFront, final boolean forceDRMtoCDP) {
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				_loadTorrent(core, dlInfo, playNow, playPrepare, bringToFront,
+						forceDRMtoCDP);
+			}
+		});
+	}
+
+	private static void _loadTorrent(final AzureusCore core,
+			final DownloadUrlInfo dlInfo, 
+			final boolean playNow, // open player
 			final boolean playPrepare, // as for open player but don't actually open it
 			final boolean bringToFront, final boolean forceDRMtoCDP) {
 		if (dlInfo instanceof DownloadUrlInfoSWT) {
@@ -146,7 +161,7 @@ public class TorrentUIUtilsV3
 
 				Shell shell = uiFunctions.getMainShell();
 				if (shell != null) {
-					new FileDownloadWindow(core, shell, url, dlInfo.getReferer(),
+					new FileDownloadWindow(shell, url, dlInfo.getReferer(),
 							dlInfo.getRequestProperties(),
 							new TorrentDownloaderCallBackInterface() {
 
@@ -291,26 +306,28 @@ public class TorrentUIUtilsV3
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static boolean addTorrentToGM(TOTorrent torrent) {
-		File tempTorrentFile;
-		try {
-			tempTorrentFile = File.createTempFile("AZU", ".torrent");
-			tempTorrentFile.deleteOnExit();
-			String filename = tempTorrentFile.getAbsolutePath();
-			torrent.serialiseToBEncodedFile(tempTorrentFile);
+	public static void addTorrentToGM(final TOTorrent torrent) {
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
 
-			String savePath = COConfigurationManager.getStringParameter("Default save path");
-			if (savePath == null || savePath.length() == 0) {
-				savePath = ".";
+				File tempTorrentFile;
+				try {
+					tempTorrentFile = File.createTempFile("AZU", ".torrent");
+					tempTorrentFile.deleteOnExit();
+					String filename = tempTorrentFile.getAbsolutePath();
+					torrent.serialiseToBEncodedFile(tempTorrentFile);
+
+					String savePath = COConfigurationManager.getStringParameter("Default save path");
+					if (savePath == null || savePath.length() == 0) {
+						savePath = ".";
+					}
+
+					core.getGlobalManager().addDownloadManager(filename, savePath);
+				} catch (Throwable t) {
+					Debug.out(t);
+				}
 			}
-
-			AzureusCore core = AzureusCoreFactory.getSingleton();
-			core.getGlobalManager().addDownloadManager(filename, savePath);
-		} catch (Throwable t) {
-			Debug.out(t);
-			return false;
-		}
-		return true;
+		});
 	}
 
 	/**

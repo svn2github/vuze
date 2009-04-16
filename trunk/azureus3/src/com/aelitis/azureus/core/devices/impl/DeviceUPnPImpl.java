@@ -40,9 +40,12 @@ import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
@@ -418,9 +421,17 @@ DeviceUPnPImpl
 		
 		if ( dynamic_transcode_profile != null && this instanceof TranscodeTarget ){
 			
-			DownloadManager dm = StaticUtilities.getDefaultPluginInterface().getDownloadManager();
+			// In theory this is a plugin, so there should be a core..
+			// However, check just in case
+			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			
-			dm.addListener( this, true );
+				public void azureusCoreRunning(AzureusCore core) {
+					
+					DownloadManager dm = PluginInitializer.getDefaultInterface().getDownloadManager();
+					
+					dm.addListener( DeviceUPnPImpl.this, true );
+				}
+			});
 		}
 				
 		addListener( this );
@@ -449,7 +460,7 @@ DeviceUPnPImpl
 			
 			dynamic_xcode_map = null;
 		 
-			DownloadManager dm = StaticUtilities.getDefaultPluginInterface().getDownloadManager();
+			DownloadManager dm = PluginInitializer.getDefaultInterface().getDownloadManager();
 
 			dm.removeListener( this );
 			

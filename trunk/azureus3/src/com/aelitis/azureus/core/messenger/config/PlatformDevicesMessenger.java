@@ -102,15 +102,17 @@ public class PlatformDevicesMessenger
 	}
 
 	private static void addPluginVersionsToMap(Map map) {
-		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
-		PluginInterface pi;
-		pi = pm.getPluginInterfaceByID("vuzexcode");
-		if (pi != null) {
-			map.put("xcode-plugin-version", pi.getPluginVersion());
-		}
-		pi = pm.getPluginInterfaceByID("azitunes");
-		if (pi != null) {
-			map.put("itunes-plugin-version", pi.getPluginVersion());
+		if (AzureusCoreFactory.isCoreRunning()) {
+  		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+  		PluginInterface pi;
+  		pi = pm.getPluginInterfaceByID("vuzexcode");
+  		if (pi != null) {
+  			map.put("xcode-plugin-version", pi.getPluginVersion());
+  		}
+  		pi = pm.getPluginInterfaceByID("azitunes");
+  		if (pi != null) {
+  			map.put("itunes-plugin-version", pi.getPluginVersion());
+  		}
 		}
 		map.put("os-name", Constants.OSName);
 	}

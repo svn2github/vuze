@@ -382,11 +382,16 @@ public class VuzeActivitiesEntry
 	public void setAssetHash(String assetHash) {
 		this.assetHash = assetHash;
 		if (assetHash != null) {
-			if (gm == null) {
-				gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			try {
+  			if (gm == null) {
+  				gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+  			}
+  			setDownloadManager(gm.getDownloadManager(new HashWrapper(
+  					Base32.decode(assetHash))));
+			} catch (Exception e) {
+				setDownloadManager(null);
+				Debug.out("Core not ready", e);
 			}
-			setDownloadManager(gm.getDownloadManager(new HashWrapper(
-					Base32.decode(assetHash))));
 		} else {
 			setDownloadManager(null);
 		}
@@ -407,7 +412,11 @@ public class VuzeActivitiesEntry
 			return;
 		}
 		if (gm == null) {
-			gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			try {
+				gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			} catch (Exception e) {
+				// ignore
+			}
 		}
 		
 		this.dm = dm;

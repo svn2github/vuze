@@ -21,20 +21,21 @@
 
 package com.aelitis.azureus.core.subs;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCore;
 
 public class 
 SubscriptionUtils 
 {
 	public static SubscriptionDownloadDetails[]
-	getAllCachedDownloadDetails()
+	getAllCachedDownloadDetails(AzureusCore core)
 	{
-		List 	dms 	= AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers();
+		List 	dms 	= core.getGlobalManager().getDownloadManagers();
 		
 		List	result 	= new ArrayList();
 		

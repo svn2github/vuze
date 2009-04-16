@@ -29,6 +29,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.plugins.upnp.UPnPMapping;
@@ -49,15 +51,22 @@ DeviceInternetGatewayImpl
 	private static UPnPPlugin						upnp_plugin;
 	
 	static{
-		try{
-		    PluginInterface pi_upnp = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 
-		    if ( pi_upnp != null ){
+			public void azureusCoreRunning(AzureusCore core) {
 
-		    	upnp_plugin = (UPnPPlugin)pi_upnp.getPlugin();
-		    }
-		}catch( Throwable e ){		
-		}
+				try {
+					PluginInterface pi_upnp = core.getPluginManager().getPluginInterfaceByClass(
+							UPnPPlugin.class);
+
+					if (pi_upnp != null) {
+
+						upnp_plugin = (UPnPPlugin) pi_upnp.getPlugin();
+					}
+				} catch (Throwable e) {
+				}
+			}
+		});
 	}
 	
 	private static List<DeviceInternetGatewayImpl>	igds;

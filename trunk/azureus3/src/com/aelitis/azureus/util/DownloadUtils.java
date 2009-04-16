@@ -23,12 +23,10 @@
 
 package com.aelitis.azureus.util;
 
-import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
-
-import com.aelitis.azureus.core.AzureusCore;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 public class 
 DownloadUtils 
@@ -36,14 +34,11 @@ DownloadUtils
 	private static TorrentAttribute	ta_tracker_extensions;
 	
 	public static synchronized void
-	initialise(
-		AzureusCore		core )
+	initialise()
 	{
 		if ( ta_tracker_extensions == null ){
 			
-			PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
-	
-			TorrentManager tm = pi.getTorrentManager();
+			TorrentManager tm = PluginInitializer.getDefaultInterface().getTorrentManager();
 	
 			ta_tracker_extensions = tm.getAttribute( TorrentAttribute.TA_TRACKER_CLIENT_EXTENSIONS );
 		}

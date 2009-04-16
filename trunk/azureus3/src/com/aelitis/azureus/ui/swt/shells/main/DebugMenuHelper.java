@@ -7,7 +7,10 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.drm.msdrm.LicenseAquirer;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -59,6 +62,20 @@ public class DebugMenuHelper
 				t.start();
 			}
 		});
+		
+		item = new MenuItem(menuDebug, SWT.PUSH);
+		item.setText("&CoreReq");
+		item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						Utils.openMessageBox(Utils.findAnyShell(), 0, "Done", "Core Now Avail");
+					}
+				});
+			}
+		});
+		
+		
 
 		/*
 		item = new MenuItem(menuDebug, SWT.CASCADE);

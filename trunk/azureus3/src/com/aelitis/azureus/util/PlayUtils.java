@@ -133,6 +133,10 @@ public class PlayUtils
 			return false;
 		}
 	
+		if (!AzureusCoreFactory.isCoreRunning()) {
+			return false;
+		}
+
 		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		DownloadManager dm = gm.getDownloadManager(torrent);
 	

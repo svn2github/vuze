@@ -12,6 +12,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -40,24 +41,14 @@ public class TorrentListener
 
 	public static final String OP_SHARE = "share-torrent";
 
-	private AzureusCore core;
-
 	private ClientMessageContext.torrentURLHandler		torrentURLHandler;
 	
-	public TorrentListener(AzureusCore core) {
-		this(DEFAULT_LISTENER_ID, core);
-	}
-
-	public TorrentListener(String id, AzureusCore core) {
+	public TorrentListener(String id) {
 		super(id);
-		this.core = core;
 	}
 
-	/**
-	 * 
-	 */
 	public TorrentListener() {
-		this(AzureusCoreFactory.getSingleton());
+		this(DEFAULT_LISTENER_ID);
 	}
 
 	public void 
@@ -70,15 +61,15 @@ public class TorrentListener
 	public void setShell(Shell shell) {
 	}
 
-	public void handleMessage(BrowserMessage message) {
+	public void handleMessage(final BrowserMessage message) {
 		String opid = message.getOperationId();
 		if (OP_LOAD_TORRENT.equals(opid) || OP_LOAD_TORRENT_OLD.equals(opid)) {
-			Map decodedMap = message.getDecodedMap();
+			final Map decodedMap = message.getDecodedMap();
 			String url = MapUtils.getMapString(decodedMap, "url", null);
-			boolean playNow = MapUtils.getMapBoolean(decodedMap, "play-now", false);
-			boolean playPrepare = MapUtils.getMapBoolean(decodedMap, "play-prepare",
+			final boolean playNow = MapUtils.getMapBoolean(decodedMap, "play-now", false);
+			final boolean playPrepare = MapUtils.getMapBoolean(decodedMap, "play-prepare",
 					false);
-			boolean bringToFront = MapUtils.getMapBoolean(decodedMap,
+			final boolean bringToFront = MapUtils.getMapBoolean(decodedMap,
 					"bring-to-front", true);
 			if (url != null) {
 				if ( torrentURLHandler != null ){
@@ -91,35 +82,36 @@ public class TorrentListener
 						Debug.printStackTrace(e);
 					}
 				}
-				DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(url,
+				final DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(url,
 						ContentNetworkManagerFactory.getSingleton().getContentNetwork(
 								context.getContentNetworkID()));
 				dlInfo.setReferer(message.getReferer());
-				
-				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, playPrepare,
-						bringToFront, false);
+
+				AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, playPrepare,
+								bringToFront, false);
+					}
+				});
 			} else {
-				loadTorrentByB64(core, message, MapUtils.getMapString(decodedMap,
-						"b64", null));
+				AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						loadTorrentByB64(core, message, MapUtils.getMapString(decodedMap,
+								"b64", null));
+					}
+				});
 			}
 		} else if (OP_UPDATE_RATING.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
-			String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
-			if (hash != null) {
-				DownloadManager dm = core.getGlobalManager().getDownloadManager(
-						new HashWrapper(Base32.decode(hash)));
-				if (dm != null && dm.getTorrent() != null) {
-					PlatformRatingMessenger.getUserRating(
-							PlatformTorrentUtils.getContentNetworkID(dm.getTorrent()),
-							new String[] {
-						PlatformRatingMessenger.RATE_TYPE_CONTENT
-					}, new String[] {
-						hash
-					}, 7000);
-
-					PlatformRatingMessenger.updateGlobalRating(dm.getTorrent(), 7000);
-				}
+			final String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
+			if (hash == null) {
+				return;
 			}
+			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+				public void azureusCoreRunning(AzureusCore core) {
+					updateRating(core, hash);
+				}
+			});
 		} else if (OP_SHARE.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
@@ -137,6 +129,22 @@ public class TorrentListener
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
+		}
+	}
+
+	protected void updateRating(AzureusCore core, String hash) {
+		DownloadManager dm = core.getGlobalManager().getDownloadManager(
+				new HashWrapper(Base32.decode(hash)));
+		if (dm != null && dm.getTorrent() != null) {
+			PlatformRatingMessenger.getUserRating(
+					PlatformTorrentUtils.getContentNetworkID(dm.getTorrent()),
+					new String[] {
+				PlatformRatingMessenger.RATE_TYPE_CONTENT
+			}, new String[] {
+				hash
+			}, 7000);
+
+			PlatformRatingMessenger.updateGlobalRating(dm.getTorrent(), 7000);
 		}
 	}
 

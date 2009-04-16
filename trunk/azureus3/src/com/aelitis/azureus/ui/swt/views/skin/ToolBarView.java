@@ -79,7 +79,7 @@ public class ToolBarView
 
 	private Map<String, ToolBarItem> items = new LinkedHashMap<String, ToolBarItem>();
 
-	private GlobalManager gm;
+	//private GlobalManager gm;
 
 	Control lastControl = null;
 
@@ -98,7 +98,6 @@ public class ToolBarView
 			Object params) {
 		this.skinObject = skinObject;
 		buttonListener = new toolbarButtonListener();
-		gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
 
 		soGap = skinObject.getSkin().getSkinObject("toolbar-gap");
@@ -271,6 +270,9 @@ public class ToolBarView
 		// ==UP
 		item = new ToolBarItem("up", "image.toolbar.up", "v3.iconBar.up") {
 			public void triggerToolBarItem() {
+				if (!AzureusCoreFactory.isCoreRunning()) {
+					return;
+				}
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
 				if (viewID == null && triggerIViewToolBar(getId())) {
 					return;
@@ -293,6 +295,7 @@ public class ToolBarView
 								return a.getPosition() - b.getPosition();
 							}
 						});
+						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 						for (int i = 0; i < dms.length; i++) {
 							DownloadManager dm = dms[i];
 							if (gm.isMoveableUp(dm)) {
@@ -305,6 +308,10 @@ public class ToolBarView
 
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItemHold()
 			public boolean triggerToolBarItemHold() {
+				if (!AzureusCoreFactory.isCoreRunning()) {
+					return false;
+				}
+				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 				if (dms != null) {
 					gm.moveTop(dms);
@@ -318,6 +325,10 @@ public class ToolBarView
 		// ==down
 		item = new ToolBarItem("down", "image.toolbar.down", "v3.iconBar.down") {
 			public void triggerToolBarItem() {
+				if (!AzureusCoreFactory.isCoreRunning()) {
+					return;
+				}
+
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
 				if (viewID == null && triggerIViewToolBar(getId())) {
 					return;
@@ -333,6 +344,7 @@ public class ToolBarView
 						enabler.itemActivated("down");
 					}
 				} else {
+					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 					if (dms != null) {
 						Arrays.sort(dms, new Comparator<DownloadManager>() {
@@ -352,6 +364,11 @@ public class ToolBarView
 
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItemHold()
 			public boolean triggerToolBarItemHold() {
+				if (!AzureusCoreFactory.isCoreRunning()) {
+					return false;
+				}
+
+				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 				if (dms != null) {
 					gm.moveEnd(dms);

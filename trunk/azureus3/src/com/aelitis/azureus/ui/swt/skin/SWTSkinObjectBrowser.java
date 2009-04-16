@@ -30,10 +30,10 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -45,8 +45,6 @@ import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishListener;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.LocalResourceHTTPServer;
 import com.aelitis.azureus.util.UrlFilter;
-
-import org.gudy.azureus2.plugins.PluginInterface;
 
 /**
  * @author TuxPaper
@@ -117,7 +115,6 @@ public class SWTSkinObjectBrowser
 		if (browser != null && !browser.isDisposed()) {
 			return;
 		}
-		AzureusCore core = AzureusCoreFactory.getSingleton();
 
 		try {
 			browser = new Browser(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
@@ -158,7 +155,7 @@ public class SWTSkinObjectBrowser
 		forceVisibleAfterLoad = properties.getBooleanValue(sConfigID + ".forceVisibleAfterLoad", true);
 		context = new BrowserContext(browserID, browser, widgetIndicator, forceVisibleAfterLoad);
 
-		context.addMessageListener(new TorrentListener(core));
+		context.addMessageListener(new TorrentListener());
 		context.addMessageListener(new VuzeListener());
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new ConfigListener(browser));
@@ -267,7 +264,7 @@ public class SWTSkinObjectBrowser
 	public URL hostFile(File f) {
 		if (local_publisher == null) {
 			try {
-				PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
+				PluginInterface pi = PluginInitializer.getDefaultInterface();
 				local_publisher = new LocalResourceHTTPServer(pi, null);
 			} catch (Throwable e) {
 				Debug.out("Failed to create local resource publisher", e);

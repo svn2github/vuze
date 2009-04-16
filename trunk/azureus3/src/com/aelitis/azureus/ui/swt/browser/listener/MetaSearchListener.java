@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.json.simple.JSONArray;
@@ -142,7 +143,15 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 								}
 							}
 							
-							if ( hook_dm ){
+							if ( !hook_dm ) {
+								return;
+							}
+							
+							if (!AzureusCoreFactory.isCoreRunning()) {
+								// shouldn't happen, but..
+								Debug.out("Core wasn't available for pending play now" );
+								
+							} else {
 								
 								final HashWrapper hash = torrent.getHashWrapper();
 								
@@ -1143,7 +1152,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					}
 				}
 				
-				AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
+				PluginInitializer.getDefaultInterface().getDownloadManager().addDownload(
 						new URL(torrentUrl), 
 						headers );
 				

@@ -21,17 +21,11 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.plugins.PluginEvent;
-import org.gudy.azureus2.plugins.PluginEventListener;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginListener;
-import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -61,16 +55,13 @@ TranscodeManagerImpl
 		
 		azureus_core = AzureusCoreFactory.getSingleton();
 		
-		final PluginManager pm = azureus_core.getPluginManager();
-		
-		final PluginInterface default_pi = pm.getDefaultPluginInterface();
-		
-		default_pi.addListener(
+		PluginInitializer.getDefaultInterface().addListener(
 			new PluginListener()
 			{
 				public void
 				initializationComplete()
 				{
+					PluginInterface default_pi = PluginInitializer.getDefaultInterface();
 					default_pi.addEventListener(
 						new PluginEventListener()
 						{
@@ -91,7 +82,7 @@ TranscodeManagerImpl
 							}
 						});
 					
-					PluginInterface[] plugins = pm.getPlugins();
+					PluginInterface[] plugins = default_pi.getPluginManager().getPlugins();
 					
 					for ( PluginInterface pi: plugins ){
 						
@@ -301,7 +292,7 @@ TranscodeManagerImpl
 		throws TranscodeException
 	{
 		try{
-			Download download = azureus_core.getPluginManager().getDefaultPluginInterface().getDownloadManager().getDownload( hash );
+			Download download = PluginInitializer.getDefaultInterface().getDownloadManager().getDownload( hash );
 			
 			if ( download == null ){
 				

@@ -43,6 +43,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.devices.*;
@@ -106,10 +107,21 @@ DeviceManagerImpl
 	{
 		AEDiagnostics.addEvidenceGenerator( this );
 
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				initWithCore(core);
+			}
+		});
+	}
+	
+	private void initWithCore(AzureusCore core) {
+		// not sure if DM_UPnP or loadConfig needs core,
+		// but iTunesManager does
+		
 		upnp_manager = new DeviceManagerUPnPImpl( this );
 
 		loadConfig();
-		
+				
 		new DeviceiTunesManager( this );
 		
 		transcode_manager = new TranscodeManagerImpl( this );
@@ -126,7 +138,7 @@ DeviceManagerImpl
 				}
 			});
 		
-		AzureusCoreFactory.getSingleton().addLifecycleListener(
+		core.addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
 			{
 				public void

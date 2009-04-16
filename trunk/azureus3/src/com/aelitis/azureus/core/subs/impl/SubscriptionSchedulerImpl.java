@@ -43,6 +43,7 @@ import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
@@ -328,7 +329,7 @@ SubscriptionSchedulerImpl
 														
 									// PlatformTorrentUtils.setContentTitle(torrent, torr );
 							
-									Download download = StaticUtilities.getDefaultPluginInterface().getDownloadManager().addDownload( torrent );
+									Download download = PluginInitializer.getDefaultInterface().getDownloadManager().addDownload( torrent );
 									
 									if ( subs.isPublic()){
 									

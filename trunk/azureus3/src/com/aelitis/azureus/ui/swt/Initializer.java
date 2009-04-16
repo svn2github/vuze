@@ -27,6 +27,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.*;
@@ -43,7 +45,6 @@ import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
@@ -61,9 +62,6 @@ import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
 import com.aelitis.azureus.util.InitialisationFunctions;
 
-import org.gudy.azureus2.plugins.PluginEvent;
-import org.gudy.azureus2.plugins.utils.DelayedTask;
-
 /**
  * @author TuxPaper
  * @created May 29, 2006
@@ -72,6 +70,12 @@ import org.gudy.azureus2.plugins.utils.DelayedTask;
 public class Initializer
 	implements IUIIntializer
 {
+	// Whether to initialize the UI before the core has been started
+	private static boolean STARTUP_UIFIRST = System.getProperty("ui.startfirst", "1").equals("1");
+
+	// Used in debug to find out how long initialization took
+	public static final long startTime = System.currentTimeMillis();
+
 	private static StartServer startServer;
 
 	private final AzureusCore core;
@@ -85,7 +89,9 @@ public class Initializer
 	private int curPercent = 0;
 
 	private AESemaphore init_task = new AESemaphore("delayed init");
-	
+
+	private MainWindow mainWindow;
+
 	public static void main(final String args[]) {
 		if (Launcher.checkAndLaunch(Initializer.class, args))
 			return;
@@ -123,6 +129,25 @@ public class Initializer
 			// typically the caller will call run() now 
 		}
 	}
+	
+	public void runInSWTThread() {
+		COConfigurationManager.setBooleanDefault("ui.startfirst", true);
+		STARTUP_UIFIRST = STARTUP_UIFIRST
+				&& COConfigurationManager.getBooleanParameter("ui.startfirst", true);
+		
+		if (!STARTUP_UIFIRST) {
+			return;
+		}
+
+		// Ensure colors initialized
+		Colors.getInstance();
+
+		UIConfigDefaultsSWT.initialize();
+
+		UIConfigDefaultsSWTv3.initialize(core);
+
+		mainWindow = new MainWindow(Display.getDefault(), this);
+	}
 
 	public void run() {
 		
@@ -145,10 +170,13 @@ public class Initializer
 		final Display display = SWTThread.getInstance().getDisplay();
 
 		new UIMagnetHandler(core);
-
-		UIConfigDefaultsSWT.initialize();
-
-		UIConfigDefaultsSWTv3.initialize(core);
+		
+		if (!STARTUP_UIFIRST) {
+			UIConfigDefaultsSWT.initialize();
+			UIConfigDefaultsSWTv3.initialize(core);
+		} else {
+			COConfigurationManager.setBooleanDefault("Show Splash", false);
+		}
 
 		if (COConfigurationManager.getBooleanParameter("Show Splash")) {
 			display.asyncExec(new AERunnable() {
@@ -255,7 +283,11 @@ public class Initializer
 					
 					main_window_will_report_complete = true;
 					
-					new MainWindow(core, Display.getDefault(), Initializer.this);
+					if (STARTUP_UIFIRST) {
+						mainWindow.init(core);
+					} else {
+						new MainWindow(core, Display.getDefault(), Initializer.this);
+					}
 					
 					reportCurrentTaskByKey("splash.openViews");
 	
@@ -321,7 +353,7 @@ public class Initializer
 		reportCurrentTaskByKey("splash.initializeCore");
 
 		try{
-			new SubscriptionManagerUI( core );
+			new SubscriptionManagerUI();
 			
 		}catch( Throwable e ){
 			

@@ -30,6 +30,8 @@ import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
@@ -148,7 +150,10 @@ public class ConfigListener
 		if (uiFunctions != null) {
 			uiFunctions.bringToFront();
 		}
-		UpdateMonitor.getSingleton(AzureusCoreFactory.getSingleton()).performCheck(
-				true, false, false, null);
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				UpdateMonitor.getSingleton(core).performCheck(true, false, false, null);
+			}
+		});
 	}
 }

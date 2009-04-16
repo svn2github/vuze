@@ -36,19 +36,19 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
-import com.aelitis.azureus.util.*;
-
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import com.aelitis.azureus.util.ConstantsVuze;
+import com.aelitis.azureus.util.JSONUtils;
+import com.aelitis.azureus.util.UrlFilter;
 
 /**
  * Manages the context for a single SWT {@link Browser} component,
@@ -498,7 +498,7 @@ public class BrowserContext
 									}
 								}
 								
-								AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
+								PluginInitializer.getDefaultInterface().getDownloadManager().addDownload(
 										new URL(url), headers );
 								
 							}catch( Throwable e ){

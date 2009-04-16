@@ -37,10 +37,22 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.custom.Customization;
 import com.aelitis.azureus.core.custom.CustomizationManager;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
@@ -62,19 +74,6 @@ import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
 import com.aelitis.azureus.util.ImportExportUtils;
 import com.aelitis.azureus.util.UrlFilter;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.*;
-import org.gudy.azureus2.plugins.peers.PeerManager;
-import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerEvent;
-import org.gudy.azureus2.plugins.utils.DelayedTask;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
-
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
-import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 
 public class 
@@ -284,30 +283,16 @@ SubscriptionManagerImpl
 			
 			scheduler = new SubscriptionSchedulerImpl( this );
 			
-			AzureusCore	core = AzureusCoreFactory.getSingleton();
-			
-			core.addLifecycleListener(
-				new AzureusCoreLifecycleAdapter()
-				{
-					public void
-					started(
-						AzureusCore		core )
-					{
-						core.removeLifecycleListener( this );
-						
-						startUp();
-					}
-				});
-			
-			if ( core.isStarted()){
-			
-				startUp();
-			}
+			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+				public void azureusCoreRunning(AzureusCore core) {
+					startUp(core);
+				}
+			});
 		}
 	}
 
 	protected void
-	startUp()
+	startUp(AzureusCore core)
 	{
 		synchronized( this ){
 			
@@ -319,7 +304,7 @@ SubscriptionManagerImpl
 			started	= true;
 		}
 
-		final PluginInterface default_pi = StaticUtilities.getDefaultPluginInterface();
+		final PluginInterface default_pi = PluginInitializer.getDefaultInterface();
 
 		ta_subs_download 		= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
 		ta_subs_download_rd 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
@@ -330,7 +315,7 @@ SubscriptionManagerImpl
 		if ( dht_plugin_pi != null ){
 			
 			dht_plugin = (DHTPlugin)dht_plugin_pi.getPlugin();
-	
+
 			/*
 			if ( Constants.isCVSVersion()){
 				
@@ -1588,7 +1573,7 @@ SubscriptionManagerImpl
 	getKnownSubscriptions(
 		byte[]						hash )
 	{
-		PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
 
 		try{
 			Download download = pi.getDownloadManager().getDownload( hash );
@@ -1673,7 +1658,7 @@ SubscriptionManagerImpl
 	getLinkedSubscriptions(
 		byte[]						hash )
 	{
-		PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
 
 		try{
 			Download download = pi.getDownloadManager().getDownload( hash );
@@ -1737,7 +1722,7 @@ SubscriptionManagerImpl
 		}
 		
 		try{
-			PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+			PluginInterface pi = PluginInitializer.getDefaultInterface();
 			
 			Download[] downloads = pi.getDownloadManager().getDownloads();
 					
@@ -3092,7 +3077,7 @@ SubscriptionManagerImpl
 	protected int
 	getSubscriptionDownloadCount()
 	{
-		PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		
 		Download[] downloads = pi.getDownloadManager().getDownloads();
 		
@@ -3311,7 +3296,7 @@ SubscriptionManagerImpl
 		SubscriptionImpl[]			subscriptions,
 		boolean						full_lookup )
 	{
-		PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
 
 		boolean	download_found	= false;
 		boolean	changed 		= false;
@@ -4214,7 +4199,7 @@ SubscriptionManagerImpl
 				final File	torrent_file 	= new File( dir, sid + "_" + version + ".torrent" );
 				final File	data_file 		= new File( dir, sid + "_" + version + ".vuze" );
 	
-				PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+				PluginInterface pi = PluginInitializer.getDefaultInterface();
 			
 				final DownloadManager dm = pi.getDownloadManager();
 				

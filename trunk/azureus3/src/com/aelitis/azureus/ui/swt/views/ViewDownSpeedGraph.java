@@ -39,6 +39,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
@@ -52,9 +54,9 @@ public class ViewDownSpeedGraph
 	extends AbstractIView
 {
 
-	GlobalManager manager;
+	GlobalManager manager = null;
 
-	GlobalManagerStats stats;
+	GlobalManagerStats stats = null;
 
 	OverallStats totalStats;
 
@@ -67,12 +69,20 @@ public class ViewDownSpeedGraph
 	private boolean everRefreshed = false;
 	
 	public ViewDownSpeedGraph() {
-		this.manager = AzureusCoreFactory.getSingleton().getGlobalManager();
-		this.stats = manager.getStats();
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				manager = core.getGlobalManager();
+				stats = manager.getStats();
+			}
+		});
+
 		this.totalStats = StatsFactory.getStats();
 	}
 
 	public void periodicUpdate() {
+		if (manager == null || stats == null) {
+			return;
+		}
 
 		int swarms_peer_speed = (int) stats.getTotalSwarmsPeerRate(true, false);
 

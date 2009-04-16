@@ -4,9 +4,15 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
@@ -20,14 +26,15 @@ import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUIManagerWindow;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
@@ -54,8 +61,6 @@ public class MainMenu
 
 	private final SWTSkin skin;
 
-	private AzureusCore core;
-
 	/**
 	 * Creates the main menu on the supplied shell
 	 * 
@@ -74,10 +79,6 @@ public class MainMenu
 	}
 
 	private void buildMenu(Shell parent) {
-
-		if (core == null) {
-			core = AzureusCoreFactory.getSingleton();
-		}
 
 		//The Main Menu
 		menuBar = new Menu(parent, SWT.BAR);

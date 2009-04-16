@@ -20,9 +20,6 @@ package com.aelitis.azureus.activities;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationListener;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -31,7 +28,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.cnetwork.*;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
@@ -104,8 +100,7 @@ public class VuzeActivitiesManager
 			diag_logger.log("Initialize Called");
 		}
 		
-		AzureusCoreFactory.getSingleton().addLifecycleListener(new AzureusCoreLifecycleAdapter() {
-		
+		core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
 			public void stopping(AzureusCore core) {
 				if (saveEventsOnClose) {
 					saveEventsNow();

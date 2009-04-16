@@ -36,11 +36,18 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.*;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -59,12 +66,6 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.azureus.util.UrlFilter;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.menus.*;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
  * @author TuxPaper
@@ -134,8 +135,37 @@ public class SearchResultsTabArea
 				}
 		**/
 
-		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
-		PluginInterface pi = pm.getDefaultPluginInterface();
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(final AzureusCore core) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						initCoreStuff(core);
+					}
+
+				});
+			}
+		});
+		
+		if (browserSkinObject != null) {
+			Object o = skinObject.getData("CreationParams");
+
+			if(o instanceof String) {
+				anotherSearch((String) o);
+			}
+			
+			if(o instanceof SearchQuery) {
+				SearchQuery sq = (SearchQuery) o;
+				anotherSearch(sq.term,sq.toSubscribe);
+			}
+		}
+		
+		closeSearchResults(null);
+
+		return null;
+	}
+
+	private void initCoreStuff(AzureusCore core) {
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		UIManager uim = pi.getUIManager();
 		
 		final MenuManager menuManager = uim.getMenuManager();
@@ -333,23 +363,6 @@ public class SearchResultsTabArea
 					}
 				});
 		}
-		
-		if (browserSkinObject != null) {
-			Object o = skinObject.getData("CreationParams");
-
-			if(o instanceof String) {
-				anotherSearch((String) o);
-			}
-			
-			if(o instanceof SearchQuery) {
-				SearchQuery sq = (SearchQuery) o;
-				anotherSearch(sq.term,sq.toSubscribe);
-			}
-		}
-		
-		closeSearchResults(null);
-
-		return null;
 	}
 
 	/**

@@ -34,10 +34,10 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
@@ -47,32 +47,29 @@ import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.*;
-
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.sidebar.*;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
-
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -157,7 +154,7 @@ DeviceManagerUI
 	DeviceManagerUI(
 		AzureusCore			core )
 	{
-		plugin_interface = core.getPluginManager().getDefaultPluginInterface();
+		plugin_interface = PluginInitializer.getDefaultInterface();
 		
 		ui_manager = plugin_interface.getUIManager();
 
@@ -173,72 +170,14 @@ DeviceManagerUI
 						UIInstance		instance )
 					{
 						if ( instance instanceof UISWTInstance ){
-														
-							SkinViewManager.addListener(
-								new SkinViewManagerListener() 
-								{
-									public void 
-									skinViewAdded(
-										SkinView skinview) 
-									{
-										if ( skinview instanceof SideBar ){
-											
-											setupUI((SideBar)skinview);
-										}
-									}
-								});
-							
-							SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
-							
-							if ( sideBar != null ){
-								
-								setupUI( sideBar );
+							AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+								public void azureusCoreRunning(AzureusCore core) {
+									uiAttachedAndCoreRunning(core);
+
+								}
+							});
+
 							}
-							
-							UIExitUtilsSWT.addListener(
-								new UIExitUtilsSWT.canCloseListener()
-								{
-									public boolean 
-									canClose() 
-									{
-										final TranscodeJob job = device_manager.getTranscodeManager().getQueue().getCurrentJob();
-										
-										if ( job == null || job.getState() != TranscodeJob.ST_RUNNING ){
-											
-											return( true );
-										}
-										
-										boolean allowQuit =
-											Utils.execSWTThreadWithBool(
-												"quitTranscoding",
-												new AERunnableBoolean() {
-													public boolean runSupport() {
-														String title = MessageText.getString("device.quit.transcoding.title");
-														String text = MessageText.getString(
-																"device.quit.transcoding.text",
-																new String[] {
-																	job.getName(),
-																	job.getTarget().getDevice().getName(),
-																	String.valueOf( job.getPercentComplete())
-																});
-
-														MessageBoxShell mb = new MessageBoxShell(
-																Utils.findAnyShell(),
-																title,
-																text,
-																new String[] {
-																	MessageText.getString("UpdateWindow.quit"),
-																	MessageText.getString("Content.alert.notuploaded.button.abort")
-																}, 1, null, null, false, 0);
-
-														return mb.open() == 0;
-													}
-												}, 0);
-										
-										return( allowQuit );
-									}
-								});
-						}
 					}
 					
 					public void
@@ -248,7 +187,77 @@ DeviceManagerUI
 					}
 				});
 	}
-	
+
+	private void uiAttachedAndCoreRunning(AzureusCore core) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+				
+				if (sideBar != null) {
+					
+					setupUI(sideBar);
+				} else {
+					
+					SkinViewManager.addListener(new SkinViewManagerListener() {
+						public void skinViewAdded(SkinView skinview) {
+							
+							if (skinview instanceof SideBar) {
+								
+								setupUI((SideBar) skinview);
+								SkinViewManager.RemoveListener(this);
+							}
+						}
+					});
+				}
+			}
+		});
+		
+		UIExitUtilsSWT.addListener(
+			new UIExitUtilsSWT.canCloseListener()
+			{
+				public boolean 
+				canClose() 
+				{
+					final TranscodeJob job = device_manager.getTranscodeManager().getQueue().getCurrentJob();
+					
+					if ( job == null || job.getState() != TranscodeJob.ST_RUNNING ){
+						
+						return( true );
+					}
+					
+					boolean allowQuit =
+						Utils.execSWTThreadWithBool(
+							"quitTranscoding",
+							new AERunnableBoolean() {
+								public boolean runSupport() {
+									String title = MessageText.getString("device.quit.transcoding.title");
+									String text = MessageText.getString(
+											"device.quit.transcoding.text",
+											new String[] {
+												job.getName(),
+												job.getTarget().getDevice().getName(),
+												String.valueOf( job.getPercentComplete())
+											});
+
+									MessageBoxShell mb = new MessageBoxShell(
+											Utils.findAnyShell(),
+											title,
+											text,
+											new String[] {
+												MessageText.getString("UpdateWindow.quit"),
+												MessageText.getString("Content.alert.notuploaded.button.abort")
+											}, 1, null, null, false, 0);
+
+									return mb.open() == 0;
+								}
+							}, 0);
+					
+					return( allowQuit );
+				}
+			});
+	}
+
+
 	protected DeviceManager
 	getDeviceManager()
 	{
@@ -310,8 +319,10 @@ DeviceManagerUI
 					removeDevice( device );
 				}
 			};
-			
-		device_manager.getTranscodeManager().getQueue().addListener(
+		
+			TranscodeManager transMan = device_manager.getTranscodeManager();
+			TranscodeQueue transQ = transMan.getQueue();
+			transQ.addListener(
 			new TranscodeQueueListener()
 			{
 				int	last_job_count = 0;
@@ -449,23 +460,32 @@ DeviceManagerUI
 				"!" + CONFIG_VIEW_HIDE_REND_GENERIC + "!", "devices.sidebar.hide.rend.generic",
 				side_bar_hide_rend_gen );
 		
-		final PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
-		boolean hasItunes = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-				"azitunes") != null;
+		final ActionParameter btnITunes = configModel.addActionParameter2(null, "devices.button.installitunes");
+		btnITunes.setEnabled(false);
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				boolean hasItunes = core.getPluginManager().getPluginInterfaceByID(
+						"azitunes") != null;
+				btnITunes.setEnabled(!hasItunes);
+			}
+		});
 
-		ActionParameter btnITunes = configModel.addActionParameter2(null, "devices.button.installitunes");
-		btnITunes.setEnabled(!hasItunes);
 		btnITunes.addListener(new ParameterListener() {
 			public void parameterChanged(Parameter param) {
-				try {
-					StandardPlugin itunes_plugin = installer.getStandardPlugin("azitunes");
-
-					itunes_plugin.install(false);
-
-				} catch (Throwable e) {
-
-					Debug.printStackTrace(e);
-				}
+				CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						try {
+							PluginInstaller installer = core.getPluginManager().getPluginInstaller();
+							StandardPlugin itunes_plugin = installer.getStandardPlugin("azitunes");
+							
+							itunes_plugin.install(false);
+							
+						} catch (Throwable e) {
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				});
 			}
 		});
 

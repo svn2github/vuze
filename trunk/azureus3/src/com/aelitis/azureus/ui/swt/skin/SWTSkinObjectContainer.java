@@ -159,6 +159,9 @@ public class SWTSkinObjectContainer
 	}
 
 	public SWTSkinObject[] getChildren() {
+		if (isDisposed()) {
+			return new SWTSkinObject[0];
+		}
 		SWTSkinObject[] so = (SWTSkinObject[]) Utils.execSWTThreadWithObject(
 				"getChildren", new AERunnableObject() {
 
