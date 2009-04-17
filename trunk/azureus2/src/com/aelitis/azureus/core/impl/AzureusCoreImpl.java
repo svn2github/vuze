@@ -610,16 +610,31 @@ AzureusCoreImpl
 						initialisation_op.reportPercent( percent );
 					}
 				}, 0);
+		
+		if (stopped) {
+			System.err.println("Core stopped while starting");
+			return;
+		}
 
 		// wait until plugin loading is done
 		if (LOAD_PLUGINS_IN_OTHER_THREAD) {
 			pluginload.join();
+		}
+
+		if (stopped) {
+			System.err.println("Core stopped while starting");
+			return;
 		}
 		
 		triggerLifeCycleComponentCreated(global_manager);
 
 		pi.initialisePlugins();
 
+		if (stopped) {
+			System.err.println("Core stopped while starting");
+			return;
+		}
+		
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Initializing Plugins complete"));
 
@@ -851,7 +866,12 @@ AzureusCoreImpl
 	  		 e.printStackTrace();
 	  	 }
 	   }
-	   
+
+			if (stopped) {
+				System.err.println("Core stopped while starting");
+				return;
+			}
+
 	   Object[] listeners;
 	   mon_coreRunningListeners.enter();
 	   try {
