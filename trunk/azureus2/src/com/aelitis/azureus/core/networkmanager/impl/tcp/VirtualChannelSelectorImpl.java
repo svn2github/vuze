@@ -47,9 +47,58 @@ public class VirtualChannelSelectorImpl {
 			// freebsd 7.x and diablo 1.6 no works as selector returns none ready even though
 			// there's a bunch readable
 		
+			// Seems to not just be diablo java, but general 7.1 problem
+		
 		String jvm_name = System.getProperty( "java.vm.name", "" );
 		
-		MAYBE_BROKEN_SELECT = jvm_name.startsWith( "Diablo" );
+		boolean is_diablo = jvm_name.startsWith( "Diablo" );
+		
+		boolean is_freebsd_7_or_higher = false;
+		
+		try{
+				// unfortunately the package maintainer has set os.name to Linux for FreeBSD...
+			
+			if ( Constants.isFreeBSD || Constants.isLinux ){
+			
+				String os_type = System.getenv( "OSTYPE" );
+				
+				if ( os_type != null && os_type.equals( "FreeBSD" )){
+					
+					String os_version = System.getProperty( "os.version", "" );
+					
+					String	digits = "";
+						
+					for ( int i=0;i<os_version.length();i++){
+						
+						char c = os_version.charAt(i);
+						
+						if ( Character.isDigit(c)){
+							
+							digits += c;
+						}else{
+							
+							break;
+						}
+					}
+					
+					if ( digits.length() > 0 ){
+					
+						is_freebsd_7_or_higher = Integer.parseInt(digits) >= 7;
+					}	
+				}
+			}
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+			
+		MAYBE_BROKEN_SELECT = is_freebsd_7_or_higher || is_diablo;
+		
+		if ( MAYBE_BROKEN_SELECT ){
+			
+			System.out.println( "Enabling broken select detection: diablo=" + is_diablo + ", freebsd 7+=" + is_freebsd_7_or_higher );
+
+		}
 	}
 	
 	private boolean select_is_broken;
