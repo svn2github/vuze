@@ -40,6 +40,12 @@ public class VirtualChannelSelectorImpl {
 	
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
+		// testing reveals that there is pretty much always a discrepancy between the selectedKeys
+		// returned from the selector and those that return true when their readyness is manually
+		// tested - switching to always manually retrieving their status
+	
+	private static final boolean MANUALLY_READ_READY_OPS = true;
+	
 	private static final boolean MAYBE_BROKEN_SELECT;
 	
 	static{
@@ -156,6 +162,8 @@ public class VirtualChannelSelectorImpl {
     
     private long last_write_select_debug;
     private long last_select_debug;
+    
+    private int	last_key_loop_start;
     
     public VirtualChannelSelectorImpl( VirtualChannelSelector _parent, int _interest_op, boolean _pause_after_select, boolean _randomise_keys ) {	
       this.parent = _parent;
@@ -655,57 +663,77 @@ public class VirtualChannelSelectorImpl {
     	  }
       }
       
-      Collection<SelectionKey> original_selected_keys;
-      
-      if ( MAYBE_BROKEN_SELECT && select_is_broken ){
-    		   	
-    	  Set<SelectionKey> all_keys = selector.keys();
-    	  
-    	  original_selected_keys = new ArrayList<SelectionKey>();
-    	  
-    	  for ( SelectionKey key: all_keys ){
+      List<SelectionKey> 	ready_keys 		= new ArrayList<SelectionKey>();
+        		   	
+      Set<SelectionKey> 	all_keys 		= selector.keys();
+      Set<SelectionKey> 	selected_keys 	= selector.selectedKeys();
+    	      	  
+      for ( SelectionKey key: all_keys ){
     		  
-    		  if (( key.readyOps() & INTEREST_OP ) != 0 ){
+    	  if (( key.readyOps() & INTEREST_OP ) != 0 ){
     			  
-    			  original_selected_keys.add( key );
-    		  }
+    		  ready_keys.add( key );
     	  }
-      }else{
-    	  
+      }
+     	  
+    	  /*
     	  original_selected_keys = selector.selectedKeys();
+    	  
+       	  Set<SelectionKey> all_keys = selector.keys();
+       	 
+       	  int	extra_ready = 0;
+       	  
+       	  Set<SelectionKey>	modified_selected_keys = null;
+       	  
+       	  for ( SelectionKey key: all_keys ){
+       		  
+       		  if (( key.readyOps() & INTEREST_OP ) != 0 ){
+       			  
+       			  if ( !original_selected_keys.contains( key )){
+       				  
+       				  if ( modified_selected_keys == null ){
+       					  
+       					  modified_selected_keys = new HashSet<SelectionKey>(original_selected_keys);
+       				  }
+       				  
+       				  modified_selected_keys.add( key );
+       				  
+       				  extra_ready++;
+       			  }
+       		  }
+       	  }
+       	  
+       	  if ( modified_selected_keys != null ){
+       		  
+       		  if ( now - last_x_log > 1000 ){
+       			  
+       			  last_x_log = now;
+       		  
+       			  System.out.println( parent.getName() + ": extra_ready=" + extra_ready + ", total=" + all_keys.size() + ", returned=" + original_selected_keys.size());
+       		  }
+       		  
+       		  original_selected_keys = modified_selected_keys;
+       	  }
+       	  */
+ 
+                  
+      if ( randomise_keys ){
+    	        
+    	  Collections.shuffle( ready_keys );
       }
       
-      Collection<SelectionKey>	selected_keys;
+      int	ready_key_count = ready_keys.size();
       
-      boolean	randy = randomise_keys;
+      final int loop_start 	= last_key_loop_start++;
+      final int loop_end	= loop_start+ready_key_count;
       
-      if ( randy ){
+      for( int i=loop_start;i<loop_end;i++){
     	  
-    	  List<SelectionKey> sk = new ArrayList<SelectionKey>( original_selected_keys );
-      
-    	  Collections.shuffle( sk );
-    	  
-    	  selected_keys = sk;
-    	  
-      }else{
-    	  
-    	  selected_keys = original_selected_keys;
-      }
-      
-      for( Iterator<SelectionKey> it= selected_keys.iterator(); it.hasNext(); ){
-    	  
-    	SelectionKey key = it.next();
+    	SelectionKey key = ready_keys.get( i%ready_key_count );
     	  
     	total_key_count++;
-    	
-    	if ( randy ){
-    		
-    		selector.selectedKeys().remove( key );
-    		
-    	}else{
-    	
-    		it.remove();
-    	}
+    	   		
+    	selected_keys.remove( key );
     	
         RegistrationData data = (RegistrationData)key.attachment();
 
