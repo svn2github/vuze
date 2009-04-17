@@ -40,12 +40,6 @@ public class VirtualChannelSelectorImpl {
 	
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
-		// testing reveals that there is pretty much always a discrepancy between the selectedKeys
-		// returned from the selector and those that return true when their readyness is manually
-		// tested - switching to always manually retrieving their status
-	
-	private static final boolean MANUALLY_READ_READY_OPS = true;
-	
 	private static final boolean MAYBE_BROKEN_SELECT;
 	
 	static{
@@ -139,14 +133,14 @@ public class VirtualChannelSelectorImpl {
     protected Selector selector;
     private final SelectorGuard selector_guard;
     
-    private final LinkedList 	register_cancel_list 		= new LinkedList();
-    private final AEMonitor 	register_cancel_list_mon	= new AEMonitor( "VirtualChannelSelector:RCL");
+    private final LinkedList<Object> 	register_cancel_list 		= new LinkedList<Object>();
+    private final AEMonitor 			register_cancel_list_mon	= new AEMonitor( "VirtualChannelSelector:RCL");
 
-    private final HashMap paused_states = new HashMap();
+    private final HashMap<AbstractSelectableChannel, Boolean> paused_states = new HashMap<AbstractSelectableChannel, Boolean>();
     
     private final int 		INTEREST_OP;
     private final boolean	pause_after_select;
-
+    
     protected final VirtualChannelSelector parent;
     
     
@@ -157,13 +151,13 @@ public class VirtualChannelSelectorImpl {
     
     private boolean	randomise_keys;
     
+    private int		next_select_loop_pos = 0;
+
     private static final int WRITE_SELECTOR_DEBUG_CHECK_PERIOD	= 10000;
     private static final int WRITE_SELECTOR_DEBUG_MAX_TIME		= 20000;
     
     private long last_write_select_debug;
     private long last_select_debug;
-    
-    private int	last_key_loop_start;
     
     public VirtualChannelSelectorImpl( VirtualChannelSelector _parent, int _interest_op, boolean _pause_after_select, boolean _randomise_keys ) {	
       this.parent = _parent;
@@ -348,7 +342,7 @@ public class VirtualChannelSelectorImpl {
     			// ensure that there's only one operation outstanding for a given channel
     			// at any one time (the latest operation requested )
     		
-    		for (Iterator it = register_cancel_list.iterator();it.hasNext();){
+    		for (Iterator<Object> it = register_cancel_list.iterator();it.hasNext();){
     			
     			Object	obj = it.next();
     			  		   				
@@ -400,7 +394,7 @@ public class VirtualChannelSelectorImpl {
     			// ensure that there's only one operation outstanding for a given channel
     			// at any one time (the latest operation requested )
     		
-    		for (Iterator it = register_cancel_list.iterator();it.hasNext();){
+    		for (Iterator<Object> it = register_cancel_list.iterator();it.hasNext();){
     			
     			Object	obj = it.next();
     			
@@ -663,73 +657,42 @@ public class VirtualChannelSelectorImpl {
     	  }
       }
       
-      List<SelectionKey> 	ready_keys 		= new ArrayList<SelectionKey>();
-        		   	
-      Set<SelectionKey> 	all_keys 		= selector.keys();
-      Set<SelectionKey> 	selected_keys 	= selector.selectedKeys();
-    	      	  
-      for ( SelectionKey key: all_keys ){
-    		  
-    	  if (( key.readyOps() & INTEREST_OP ) != 0 ){
-    			  
-    		  ready_keys.add( key );
-    	  }
-      }
-     	  
-    	  /*
-    	  original_selected_keys = selector.selectedKeys();
+      List<SelectionKey> ready_keys;
+      
+      if ( MAYBE_BROKEN_SELECT && select_is_broken ){
+    		   	
+    	  Set<SelectionKey> all_keys = selector.keys();
     	  
-       	  Set<SelectionKey> all_keys = selector.keys();
-       	 
-       	  int	extra_ready = 0;
-       	  
-       	  Set<SelectionKey>	modified_selected_keys = null;
-       	  
-       	  for ( SelectionKey key: all_keys ){
-       		  
-       		  if (( key.readyOps() & INTEREST_OP ) != 0 ){
-       			  
-       			  if ( !original_selected_keys.contains( key )){
-       				  
-       				  if ( modified_selected_keys == null ){
-       					  
-       					  modified_selected_keys = new HashSet<SelectionKey>(original_selected_keys);
-       				  }
-       				  
-       				  modified_selected_keys.add( key );
-       				  
-       				  extra_ready++;
-       			  }
-       		  }
-       	  }
-       	  
-       	  if ( modified_selected_keys != null ){
-       		  
-       		  if ( now - last_x_log > 1000 ){
-       			  
-       			  last_x_log = now;
-       		  
-       			  System.out.println( parent.getName() + ": extra_ready=" + extra_ready + ", total=" + all_keys.size() + ", returned=" + original_selected_keys.size());
-       		  }
-       		  
-       		  original_selected_keys = modified_selected_keys;
-       	  }
-       	  */
- 
-                  
-      if ( randomise_keys ){
+    	  ready_keys = new ArrayList<SelectionKey>();
+    	  
+    	  for ( SelectionKey key: all_keys ){
+    		  
+    		  if (( key.readyOps() & INTEREST_OP ) != 0 ){
+    			  
+    			  ready_keys.add( key );
+    		  }
+    	  }
+      }else{
+    	  
+    	  ready_keys = new ArrayList<SelectionKey>( selector.selectedKeys());
+      }
+            
+      boolean	randy = randomise_keys;
+      
+      if ( randy ){
     	        
     	  Collections.shuffle( ready_keys );
       }
       
-      int	ready_key_count = ready_keys.size();
+      Set<SelectionKey>	selected_keys = selector.selectedKeys();
       
-      final int loop_start 	= last_key_loop_start++;
-      final int loop_end	= loop_start+ready_key_count;
+      final int ready_key_size	= ready_keys.size();;
+      final int	start_pos 		= next_select_loop_pos++;
+      final int	end_pos			= start_pos + ready_key_size;
       
-      for( int i=loop_start;i<loop_end;i++){
+      for ( int i=start_pos; i<end_pos; i++ ){
     	  
-    	SelectionKey key = ready_keys.get( i%ready_key_count );
+    	SelectionKey key = ready_keys.get( i % ready_key_size );
     	  
     	total_key_count++;
     	   		
@@ -824,9 +787,9 @@ public class VirtualChannelSelectorImpl {
       
       if ( non_selected_keys != null ){
     	  
-    	  for( Iterator i = non_selected_keys.iterator(); i.hasNext(); ) {
+    	  for( Iterator<SelectionKey> i = non_selected_keys.iterator(); i.hasNext(); ) {
     	    	     	    	
-    		  SelectionKey key = (SelectionKey)i.next();
+    		  SelectionKey key = i.next();
     	    
     	      RegistrationData data = (RegistrationData)key.attachment();
  
@@ -942,8 +905,8 @@ public class VirtualChannelSelectorImpl {
     }
     
     protected void closeExistingSelector() {
-      for( Iterator i = selector.keys().iterator(); i.hasNext(); ) {
-        SelectionKey key = (SelectionKey)i.next();
+      for( Iterator<SelectionKey> i = selector.keys().iterator(); i.hasNext(); ) {
+        SelectionKey key = i.next();
         RegistrationData data = (RegistrationData)key.attachment();
         parent.selectFailure(data.listener, data.channel, data.attachment, new Throwable( "selector destroyed" ) );
       }
