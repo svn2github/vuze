@@ -1511,7 +1511,11 @@ public class SideBar
 		// building plugin views needs UISWTInstance, which needs core.
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener(){
 			public void azureusCoreRunning(AzureusCore core) {
-				setupPluginViews();
+				Utils.execSWTThread(new AERunnable(){
+					public void runSupport() {
+						setupPluginViews();
+					}
+				});
 			}
 		});
 

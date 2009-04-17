@@ -80,11 +80,11 @@ public class TopBarView
 					Object params) {
 				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
 					skin.removeListener("topbar-plugins", this);
-					Utils.execSWTThreadLater(0, new AERunnable() {
-						public void runSupport() {
-							// building needs UISWTInstance, which needs core.
-							AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener(){
-								public void azureusCoreRunning(AzureusCore core) {
+					// building needs UISWTInstance, which needs core.
+					AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+						public void azureusCoreRunning(AzureusCore core) {
+							Utils.execSWTThreadLater(0, new AERunnable() {
+								public void runSupport() {
 									buildTopBarViews();
 								}
 							});
