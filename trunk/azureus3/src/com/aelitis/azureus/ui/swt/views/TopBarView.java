@@ -42,6 +42,9 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -79,7 +82,12 @@ public class TopBarView
 					skin.removeListener("topbar-plugins", this);
 					Utils.execSWTThreadLater(0, new AERunnable() {
 						public void runSupport() {
-							buildTopBarViews();
+							// building needs UISWTInstance, which needs core.
+							AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener(){
+								public void azureusCoreRunning(AzureusCore core) {
+									buildTopBarViews();
+								}
+							});
 						}
 					});
 				}

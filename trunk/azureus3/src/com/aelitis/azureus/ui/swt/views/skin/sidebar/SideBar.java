@@ -1506,6 +1506,30 @@ public class SideBar
 			}
 		}
 
+		SBC_LibraryView.setupViewTitle();
+
+		// building plugin views needs UISWTInstance, which needs core.
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener(){
+			public void azureusCoreRunning(AzureusCore core) {
+				setupPluginViews();
+			}
+		});
+
+		loadCloseables();
+
+		if (System.getProperty("v3.sidebar.advanced", "0").equals("1")) {
+			createEntryFromSkinRef(null, SIDEBAR_SECTION_ADVANCED,
+					"main.area.advancedtab", "Advanced", null, null, false, -1);
+		}
+
+		Composite parent = tree.getParent();
+
+		if (parent.isVisible()) {
+			parent.layout(true, true);
+		}
+	}
+
+	protected void setupPluginViews() {
 		UISWTInstanceImpl uiSWTInstance = (UISWTInstanceImpl) UIFunctionsManagerSWT.getUIFunctionsSWT().getUISWTInstance();
 		if (uiSWTInstance != null) {
 			Map allViews = uiSWTInstance.getAllViews();
@@ -1534,8 +1558,6 @@ public class SideBar
 			}
 		}
 
-		SBC_LibraryView.setupViewTitle();
-
 		PluginsMenuHelper.getInstance().addPluginAddedViewListener(
 				new PluginAddedViewListener() {
 					// @see org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener#pluginViewAdded(org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo)
@@ -1547,19 +1569,6 @@ public class SideBar
 						}
 					}
 				});
-
-		loadCloseables();
-
-		if (System.getProperty("v3.sidebar.advanced", "0").equals("1")) {
-			createEntryFromSkinRef(null, SIDEBAR_SECTION_ADVANCED,
-					"main.area.advancedtab", "Advanced", null, null, false, -1);
-		}
-
-		Composite parent = tree.getParent();
-
-		if (parent.isVisible()) {
-			parent.layout(true, true);
-		}
 	}
 
 	/**
