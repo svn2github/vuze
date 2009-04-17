@@ -130,7 +130,7 @@ public class MenuFactory
 							return;
 						}
 
-						if (!AzureusCoreFactory.isCoreRunning()) {
+						if (AzureusCoreFactory.isCoreRunning()) {
 							boolean is_detailed_view = ((Boolean) torrentItem.getData("is_detailed_view")).booleanValue();
 							TableViewSWT tv = (TableViewSWT) torrentItem.getData("TableView");
 							AzureusCore core = AzureusCoreFactory.getSingleton();
