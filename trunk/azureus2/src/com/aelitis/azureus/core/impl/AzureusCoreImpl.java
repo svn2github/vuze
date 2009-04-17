@@ -1074,7 +1074,9 @@ AzureusCoreImpl
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "Stopping global manager"));
 
-			global_manager.stopGlobalManager();
+			if (global_manager != null) {
+				global_manager.stopGlobalManager();
+			}
 			
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "Invoking synchronous 'stopped' listeners"));
