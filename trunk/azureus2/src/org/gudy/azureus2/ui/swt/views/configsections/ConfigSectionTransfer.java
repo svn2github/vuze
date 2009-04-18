@@ -37,6 +37,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -44,17 +45,12 @@ import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class ConfigSectionTransfer implements UISWTConfigSection {
 	
-	private AzureusCore	core;
-	
-	public 
-	ConfigSectionTransfer(
-		AzureusCore	_core )
-	{
-		core	= _core;
+	public ConfigSectionTransfer() {
 	}
 	
 	public String configSectionGetParentSection() {
@@ -229,73 +225,86 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		
 		
 		paramMaxUploadSpeed.addChangeListener(new ParameterChangeAdapter() {
-			
+			ParameterChangeAdapter me = this;
+
 			public void parameterChanged(Parameter p, boolean internal) {
-				if ( paramMaxUploadSpeed.isDisposed()){
-					paramMaxUploadSpeed.removeChangeListener( this );
-					return;
-				}
-				
-					// we don't want to police these limits when auto-speed is running as
-					// they screw things up bigtime
-				
-				if ( TransferSpeedValidator.isAutoSpeedActive( core.getGlobalManager())){
-					
-					return;
-				}
-				
-				int up_val = paramMaxUploadSpeed.getValue();
-				int down_val = paramMaxDownSpeed.getValue();
+				CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
 
-				if (up_val != 0
-						&& up_val < COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED) {
+					public void azureusCoreRunning(AzureusCore core) {
+						if (paramMaxUploadSpeed.isDisposed()) {
+							paramMaxUploadSpeed.removeChangeListener(me);
+							return;
+						}
 
-					if ((down_val == 0) || down_val > (up_val * 2)) {
+						// we don't want to police these limits when auto-speed is running as
+						// they screw things up bigtime
 
-						paramMaxDownSpeed.setValue(up_val * 2);
+						if (TransferSpeedValidator.isAutoSpeedActive(core.getGlobalManager())) {
+
+							return;
+						}
+
+						int up_val = paramMaxUploadSpeed.getValue();
+						int down_val = paramMaxDownSpeed.getValue();
+
+						if (up_val != 0
+								&& up_val < COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED) {
+
+							if ((down_val == 0) || down_val > (up_val * 2)) {
+
+								paramMaxDownSpeed.setValue(up_val * 2);
+							}
+						} else {
+
+							if (down_val != manual_max_download_speed[0]) {
+
+								paramMaxDownSpeed.setValue(manual_max_download_speed[0]);
+							}
+						}
 					}
-				} else {
 
-					if (down_val != manual_max_download_speed[0]) {
-
-						paramMaxDownSpeed.setValue(manual_max_download_speed[0]);
-					}
-				}
-			}
+				});
+			};
 		});
 
 		paramMaxDownSpeed.addChangeListener(new ParameterChangeAdapter() {
+			ParameterChangeAdapter me = this;
+
 			public void parameterChanged(Parameter p, boolean internal) {
-				
-				if ( paramMaxDownSpeed.isDisposed()){
-					paramMaxDownSpeed.removeChangeListener( this );
-					return;
-				}
-				
-					// we don't want to police these limits when auto-speed is running as
-					// they screw things up bigtime
-				
-				if ( TransferSpeedValidator.isAutoSpeedActive( core.getGlobalManager())){
-					
-					return;
-				}
-				
-				int up_val = paramMaxUploadSpeed.getValue();
-				int down_val = paramMaxDownSpeed.getValue();
+				CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
 
-				manual_max_download_speed[0] = down_val;
+					public void azureusCoreRunning(AzureusCore core) {
+						if (paramMaxDownSpeed.isDisposed()) {
+							paramMaxDownSpeed.removeChangeListener(me);
+							return;
+						}
 
-				if (up_val < COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED) {
+						// we don't want to police these limits when auto-speed is running as
+						// they screw things up bigtime
 
-					if (up_val != 0 && up_val < (down_val * 2)) {
+						if (TransferSpeedValidator.isAutoSpeedActive(core.getGlobalManager())) {
 
-						paramMaxUploadSpeed.setValue((down_val + 1) / 2);
+							return;
+						}
 
-					} else if (down_val == 0) {
+						int up_val = paramMaxUploadSpeed.getValue();
+						int down_val = paramMaxDownSpeed.getValue();
 
-						paramMaxUploadSpeed.setValue(0);
+						manual_max_download_speed[0] = down_val;
+
+						if (up_val < COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED) {
+
+							if (up_val != 0 && up_val < (down_val * 2)) {
+
+								paramMaxUploadSpeed.setValue((down_val + 1) / 2);
+
+							} else if (down_val == 0) {
+
+								paramMaxUploadSpeed.setValue(0);
+							}
+						}
 					}
-				}
+				});
 			}
 		});
 

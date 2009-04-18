@@ -39,13 +39,7 @@ ConfigSectionTracker
 	implements UISWTConfigSection 
 {
 	
-	protected	AzureusCore	azureus_core;
-	
-	public
-	ConfigSectionTracker(
-		AzureusCore		_azureus_core )
-	{
-		azureus_core	= _azureus_core;
+	public ConfigSectionTracker() {
 	}
 	
   public String configSectionGetParentSection() {

@@ -29,6 +29,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -50,6 +51,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.views.ConfigView;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.PluginException;
@@ -82,8 +84,6 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 			SWT.RIGHT, SWT.LEFT, SWT.CENTER};
 
 	private ConfigView configView;
-
-	private AzureusCore azureusCore;
 
 	FilterComparator comparator;
 	
@@ -255,9 +255,8 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 	 * Initialize
 	 * @param _configView
 	 */
-	public ConfigSectionPlugins(ConfigView _configView, AzureusCore _azureusCore) {
+	public ConfigSectionPlugins(ConfigView _configView) {
 		configView = _configView;
-		azureusCore = _azureusCore;
 		comparator = new FilterComparator();
 	}
 
@@ -287,6 +286,14 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 	}
 
 	public Composite configSectionCreate(final Composite parent) {
+  	if (!AzureusCoreFactory.isCoreRunning()) {
+      Composite cSection = new Composite(parent, SWT.NULL);
+    	cSection.setLayout(new FillLayout());
+    	Label lblNotAvail = new Label(cSection, SWT.WRAP);
+    	Messages.setLanguageText(lblNotAvail, "core.not.available");
+    	return cSection;
+    }
+
 		GridLayout layout;
 		GridData gridData;
 
@@ -525,7 +532,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		Messages.setLanguageText(btnScan, "ConfigView.pluginlist.scan");
 		btnScan.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				azureusCore.getPluginManager().refreshPluginList(false);
+				AzureusCoreFactory.getSingleton().getPluginManager().refreshPluginList(false);
 				pluginIFs = rebuildPluginIFs();
 				table.setItemCount(pluginIFs.size());
 				Collections.sort(pluginIFs, comparator);
@@ -594,7 +601,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 	 * @since 3.0.5.3
 	 */
 	private List rebuildPluginIFs() {
-		List pluginIFs = Arrays.asList(azureusCore.getPluginManager().getPlugins());
+		List pluginIFs = Arrays.asList(AzureusCoreFactory.getSingleton().getPluginManager().getPlugins());
 		for (Iterator iter = pluginIFs.iterator(); iter.hasNext();) {
 			PluginInterface pi = (PluginInterface) iter.next();
 			// COConfigurationManager will not add the same listener twice

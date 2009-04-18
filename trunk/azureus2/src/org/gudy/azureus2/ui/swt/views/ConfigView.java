@@ -46,7 +46,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
@@ -56,9 +55,6 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 public class ConfigView extends AbstractIView {
 	private static final LogIDs LOGID = LogIDs.GUI;
   public static final String sSectionPrefix = "ConfigView.section.";
-  
-  AzureusCore		azureus_core;
-  
   
   Map<TreeItem, ConfigSection> sections = new HashMap<TreeItem, ConfigSection>();
   // Only access on SWT Thread
@@ -305,7 +301,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionConnectionProxy(),
                                          new ConfigSectionConnectionAdvanced(),
                                          new ConfigSectionConnectionEncryption(),
-                                         new ConfigSectionTransfer(azureus_core),
+                                         new ConfigSectionTransfer(),
                                          new ConfigSectionTransferAutoSpeedSelect(),
                                          new ConfigSectionTransferAutoSpeed(),
                                          new ConfigSectionTransferAutoSpeedBeta(),
@@ -323,12 +319,12 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionInterfaceAlerts(),
                                          new ConfigSectionInterfacePassword(),
                                          new ConfigSectionInterfaceLegacy(),
-                                         new ConfigSectionIPFilter(azureus_core),
-                                         new ConfigSectionPlugins(this, azureus_core),
+                                         new ConfigSectionIPFilter(),
+                                         new ConfigSectionPlugins(this),
                                          new ConfigSectionStats(),
-                                         new ConfigSectionTracker(azureus_core),
+                                         new ConfigSectionTracker(),
                                          new ConfigSectionTrackerClient(),
-                                         new ConfigSectionTrackerServer(azureus_core),
+                                         new ConfigSectionTrackerServer(),
                                          new ConfigSectionSecurity(),
                                          new ConfigSectionSharing(),
                                          new ConfigSectionLogging()

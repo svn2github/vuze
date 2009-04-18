@@ -32,6 +32,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -50,13 +51,12 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
 public class ConfigSectionIPFilter implements UISWTConfigSection {
-  AzureusCore	azureus_core;
-  
   IpFilter filter;
   Table table;
   boolean noChange;
@@ -105,10 +105,8 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 	private IPFilterListener filterListener;
   
   public
-  ConfigSectionIPFilter(
-  	AzureusCore		_azureus_core )
+  ConfigSectionIPFilter()
   {
-  	azureus_core	= _azureus_core;
   	comparator = new FilterComparator();
   }
   
@@ -137,7 +135,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 
   public void configSectionDelete() {
   	if (bIsCachingDescriptions) {
-	    IpFilterManager ipFilterManager = azureus_core.getIpFilterManager();
+	    IpFilterManager ipFilterManager = AzureusCoreFactory.getSingleton().getIpFilterManager();
 	  	ipFilterManager.clearDescriptionCache();
 	  	bIsCachingDescriptions = false;
   	}
@@ -151,6 +149,15 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
   }
 
   public Composite configSectionCreate(final Composite parent) {
+
+  	if (!AzureusCoreFactory.isCoreRunning()) {
+      Composite cSection = new Composite(parent, SWT.NULL);
+    	cSection.setLayout(new FillLayout());
+    	Label lblNotAvail = new Label(cSection, SWT.WRAP);
+    	Messages.setLanguageText(lblNotAvail, "core.not.available");
+    	return cSection;
+    }
+
 		ImageLoader imageLoader = ImageLoader.getInstance();
 		Image imgOpenFolder = imageLoader.getImage("openFolderButton");			
 
@@ -160,7 +167,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 
     int userMode = COConfigurationManager.getIntParameter("User Mode");
 
-    final IpFilterManager ipFilterManager = azureus_core.getIpFilterManager();
+    final IpFilterManager ipFilterManager = AzureusCoreFactory.getSingleton().getIpFilterManager();
     filter = ipFilterManager.getIPFilter();
 
     Composite gFilter = new Composite(parent, SWT.NULL);
@@ -572,13 +579,13 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
   }
 
   public void editRange(IpRange range) {
-    new IpFilterEditor(azureus_core,table.getShell(), range);
+    new IpFilterEditor(AzureusCoreFactory.getSingleton(),table.getShell(), range);
     noChange = false;
     //refresh();
   }
 
   public void addRange() {
-    new IpFilterEditor(azureus_core,table.getShell(), null);
+    new IpFilterEditor(AzureusCoreFactory.getSingleton(),table.getShell(), null);
     //noChange = false;
     //refresh();
   }
