@@ -72,18 +72,7 @@ NetStatusPluginTester
 	}
 	
 	public void
-	run()
-	{
-		// because getDefaultPublicAddress needs core to get pi..
-		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
-			public void azureusCoreRunning(AzureusCore core) {
-				_run(core);
-			}
-		});
-	}
-	
-	private void
-	_run(AzureusCore core)
+	run(AzureusCore core)
 	{
 		final NetworkAdmin	admin = NetworkAdmin.getSingleton();
 		

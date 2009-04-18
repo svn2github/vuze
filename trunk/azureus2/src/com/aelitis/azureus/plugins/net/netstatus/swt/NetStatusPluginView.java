@@ -38,7 +38,11 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin;
 
 public class 
@@ -279,14 +283,12 @@ NetStatusPluginView
 	protected void
 	startTest()
 	{
-		new AEThread2( "NetStatus:start", true )
-			{
-				public void
-				run()
-				{
-					startTestSupport();
-				}
-			}.start();
+		CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
+				new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				startTestSupport(core);
+			}
+		});
 	}
 	
 	protected void
@@ -303,7 +305,7 @@ NetStatusPluginView
 	}
 	
 	protected void
-	startTestSupport()
+	startTestSupport(AzureusCore core)
 	{
 		try{
 			synchronized( this ){
@@ -376,8 +378,8 @@ NetStatusPluginView
 			}
 			
 			println( "Test starting", true );
-			
-			current_test.run();
+
+			current_test.run(core);			
 			
 			println( current_test.isCancelled()?"Test Cancelled":"Test complete" );
 			
