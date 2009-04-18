@@ -37,7 +37,11 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin;
 import com.aelitis.azureus.plugins.net.netstatus.swt.NetStatusPluginTester;
@@ -172,14 +176,12 @@ DeviceInternetView
 	protected void
 	startTest()
 	{
-		new AEThread2( "NetStatus:start", true )
-			{
-				public void
-				run()
-				{
-					startTestSupport();
-				}
-			}.start();
+		CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
+				new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						startTestSupport(core);
+					}
+				});
 	}
 	
 	protected void
@@ -196,7 +198,8 @@ DeviceInternetView
 	}
 	
 	protected void
-	startTestSupport()
+	startTestSupport(
+			AzureusCore core)
 	{
 		try{
 			synchronized( this ){
@@ -270,7 +273,7 @@ DeviceInternetView
 			
 			println( "Test starting", true );
 			
-			current_test.run();
+			current_test.run(core);
 			
 			println( current_test.isCancelled()?"Test Cancelled":"Test complete" );
 			
