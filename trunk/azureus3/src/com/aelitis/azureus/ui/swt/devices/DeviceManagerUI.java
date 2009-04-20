@@ -460,6 +460,23 @@ DeviceManagerUI
 				"!" + CONFIG_VIEW_HIDE_REND_GENERIC + "!", "devices.sidebar.hide.rend.generic",
 				side_bar_hide_rend_gen );
 		
+		String def = device_manager.getDefaultWorkingDirectory().getAbsolutePath();
+		
+		final DirectoryParameter def_work_dir = configModel.addDirectoryParameter2( "device.config.xcode.workdir", "device.config.xcode.workdir", def );
+		
+		def_work_dir.setValue( def );
+		
+		def_work_dir.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param ) 
+				{
+					device_manager.setDefaultWorkingDirectory(new File( def_work_dir.getValue()));
+				}
+			});
+		
 		final ActionParameter btnITunes = configModel.addActionParameter2(null, "devices.button.installitunes");
 		btnITunes.setEnabled(false);
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {

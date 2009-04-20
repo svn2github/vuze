@@ -567,7 +567,7 @@ DeviceImpl
 						
 					target_file = allocateUniqueFileName( target_file );
 					
-					File output_file = getWorkingDirectory();
+					File output_file = getWorkingDirectory( true );
 	
 					output_file = new File( output_file.getAbsoluteFile(), target_file );
 	
@@ -754,14 +754,19 @@ DeviceImpl
 	
 	public File
 	getWorkingDirectory()
+	{
+		return( getWorkingDirectory( false ));
+	}
+	
+	public File
+	getWorkingDirectory(
+		boolean	persist )
 	{				
 		String result = getPersistentStringProperty( PP_REND_WORK_DIR );
 		
 		if ( result.length() == 0 ){
 			
-			String	def_dir = COConfigurationManager.getStringParameter( "Default save path" );
-
-			File f = new File( def_dir, "transcodes" );
+			File f = manager.getDefaultWorkingDirectory();
 			
 			f.mkdirs();
 			
@@ -783,7 +788,10 @@ DeviceImpl
 			
 			result = f.getAbsolutePath();
 			
-			setPersistentStringProperty( PP_REND_WORK_DIR, result );
+			if ( persist ){
+			
+				setPersistentStringProperty( PP_REND_WORK_DIR, result );
+			}
 		}
 		
 		File f_result = new File( result );
@@ -954,7 +962,7 @@ DeviceImpl
 	getTTDisplayProperties(
 		List<String[]>	dp )
 	{
-		addDP( dp, "devices.xcode.working_dir", getWorkingDirectory().getAbsolutePath());
+		addDP( dp, "devices.xcode.working_dir", getWorkingDirectory( false ).getAbsolutePath());
 	
 		addDP( dp, "devices.xcode.prof_def", getDefaultTranscodeProfile());
 		

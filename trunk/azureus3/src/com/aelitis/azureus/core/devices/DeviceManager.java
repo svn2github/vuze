@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.io.File;
 import java.net.InetAddress;
 
 public interface 
@@ -53,6 +54,13 @@ DeviceManager
 	
 	public TranscodeManager
 	getTranscodeManager();
+	
+	public File
+	getDefaultWorkingDirectory();
+	
+	public void
+	setDefaultWorkingDirectory(
+		File		dir );
 	
 	public void
 	addListener(

@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.File;
 import java.net.URL;
 import java.util.*;
 
@@ -57,6 +58,9 @@ DeviceManagerImpl
 	private static final String	LOGGER_NAME 			= "Devices";
 	private static final String	CONFIG_FILE 			= "devices.config";
 	private static final String	AUTO_SEARCH_CONFIG_KEY	= "devices.config.auto_search";
+	
+	private static final String CONFIG_DEFAULT_WORK_DIR	= "devices.config.def_work_dir";
+	
 	
 	protected static final int	DEVICE_UPDATE_PERIOD	= 5*1000;
 	
@@ -706,6 +710,35 @@ DeviceManagerImpl
 		}
 		
 		return( null );
+	}
+	
+	public File
+	getDefaultWorkingDirectory()
+	{
+		String def = COConfigurationManager.getStringParameter( CONFIG_DEFAULT_WORK_DIR, "" ).trim();
+		
+		if ( def.length() == 0 ){
+			
+			String	def_dir = COConfigurationManager.getStringParameter( "Default save path" );
+
+			def = def_dir + File.separator + "transcodes";
+		}
+		
+		File f = new File( def );
+		
+		if ( !f.exists()){
+		
+			f.mkdirs();
+		}
+		
+		return( f );
+	}
+	
+	public void
+	setDefaultWorkingDirectory(
+		File		dir )
+	{
+		COConfigurationManager.setParameter( CONFIG_DEFAULT_WORK_DIR, dir.getAbsolutePath());
 	}
 	
 	public TranscodeManagerImpl
