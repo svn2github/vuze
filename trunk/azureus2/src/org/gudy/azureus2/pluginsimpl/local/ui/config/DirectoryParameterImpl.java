@@ -65,4 +65,11 @@ DirectoryParameterImpl
 	{
 		return( config.getUnsafeStringParameter( getKey(), getDefaultValue()));
 	}
+	
+	public void
+	setValue(
+		String		str )
+	{
+		config.setUnsafeStringParameter( getKey(), str );
+	}
 }

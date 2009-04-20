@@ -30,6 +30,10 @@ public interface
 DirectoryParameter 
 	extends Parameter
 {
+	public void
+	setValue(
+		String		str );
+	
 	public String
 	getValue();
 }
