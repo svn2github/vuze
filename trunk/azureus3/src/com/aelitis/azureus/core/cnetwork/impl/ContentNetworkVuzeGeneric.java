@@ -465,7 +465,7 @@ ContentNetworkVuzeGeneric
 				
 				String	colour 	= (String)params[0];
 				
-				base += "ts=" + Math.random() + "&bg_color=" + colour;
+				base += "ts=" + Math.random() + "&bg_color=" + colour + "&" + URL_SUFFIX;
 
 				return( base );
 			}
