@@ -271,7 +271,7 @@ public class PlatformTorrentUtils
 		mapContent.put(key, new Long(value));
 	}
 
-	private static void setContentMapMap(TOTorrent torrent, String key,
+	public static void setContentMapMap(TOTorrent torrent, String key,
 			Map value) {
 		if (torrent == null) {
 			return;
