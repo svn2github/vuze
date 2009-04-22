@@ -565,6 +565,18 @@ TRTrackerServerProcessor
 			return( port );
 		}
 		
+		public int 
+		getHTTPPort() 
+		{
+			return( 0 );
+		}
+		
+		public int 
+		getUDPPort() 
+		{
+			return( 0 );
+		}
+		
 		public byte[]
 		getPeerID()
 		{

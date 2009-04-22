@@ -3100,13 +3100,13 @@ TRTrackerServerTorrentImpl
 			return( tcp_port & 0xffff );
 		}
 		
-		protected int
+		public int
 		getUDPPort()
 		{
 			return( udp_port & 0xffff );
 		}
 		
-		protected int
+		public int
 		getHTTPPort()
 		{
 			return( http_port & 0xffff );
