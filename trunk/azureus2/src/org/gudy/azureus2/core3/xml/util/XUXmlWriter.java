@@ -177,7 +177,23 @@ XUXmlWriter
 		str = str.replaceAll( "'", "&apos;" );
 		str = str.replaceAll( "--", "&#45;&#45;" );
 		
-		return( str );
+		char[]	chars = str.toCharArray();
+				
+			// eliminate chars not supported by XML 
+		
+		for ( int i=0;i<chars.length;i++){
+			
+			int	c = (int)chars[i];
+			
+			if (	( c <= 31 ) ||
+					( c >= 127 && c <= 159 ) ||
+					!Character.isDefined( c )){
+				
+				chars[i] = '?';
+			}
+		}
+
+		return( new String( chars ));
 	}
 	
 	public static String
