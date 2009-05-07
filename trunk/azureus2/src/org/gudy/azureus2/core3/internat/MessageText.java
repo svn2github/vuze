@@ -48,7 +48,8 @@ import sun.security.action.GetPropertyAction;
  */
 public class MessageText {
 
-  public static final Locale LOCALE_ENGLISH = new Locale("en", "");
+  public static final Locale LOCALE_ENGLISH = Constants.LOCALE_ENGLISH;
+  
   public static final Locale LOCALE_DEFAULT = new Locale("", ""); // == english
   private static Locale LOCALE_CURRENT = LOCALE_DEFAULT;
   private static final String BUNDLE_NAME = "org.gudy.azureus2.internat.MessagesBundle"; //$NON-NLS-1$

@@ -21,6 +21,7 @@
 package org.gudy.azureus2.core3.util;
 
 import java.nio.charset.Charset;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 /**
@@ -69,6 +70,8 @@ Constants
 		e.printStackTrace();
 	}
   }
+  
+  public static final Locale LOCALE_ENGLISH = new Locale("en", "");
   
   public static final String INFINITY_STRING	= "\u221E"; // "oo";pa  
   public static final int    INFINITY_AS_INT = 365*24*3600; // seconds (365days)
