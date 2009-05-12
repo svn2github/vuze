@@ -100,6 +100,54 @@ AETemporaryFileHandler
 		}
 	}
 	
+	public static File
+	getTempDirectory()
+	{
+		startup();
+
+		return( tmp_dir );
+	}
+	
+	public static boolean
+	isTempFile(
+		File		file )
+	{
+		if ( !file.exists()){
+			
+			return( false );
+		}
+		
+		try{
+			String s1 = file.getParentFile().getCanonicalPath();
+			String s2 = tmp_dir.getCanonicalPath();
+			
+			if ( !s1.equals(s2)){
+				
+				return( false );
+			}
+			
+			String	name = file.getName();
+			
+			if ( !name.startsWith( PREFIX )){
+				
+				return( false );
+			}
+			
+			if ( !name.endsWith( SUFFIX )){
+				
+				return( false );
+			}
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( false );
+		}
+	}
+	
 	public static File 
 	createTempFile()
 	
