@@ -339,11 +339,7 @@ public class SystemProperties {
   getEnvironmentalVariable( 
   		final String _var ) 
   {
-  	Process p = null;
-  	Properties envVars = new Properties();
-  	Runtime r = Runtime.getRuntime();
-    BufferedReader br = null;
-
+ 
     	// this approach doesn't work at all on Windows 95/98/ME - it just hangs
     	// so get the hell outta here!
     
@@ -352,7 +348,23 @@ public class SystemProperties {
     	return( "" );
     }
     
+		// getenv reinstated in 1.5 - try using it
+	
+	String	res = System.getenv( _var );
+	
+	if ( res != null ){
+		
+		return( res );
+	}
+
+  	Properties envVars = new Properties();
+    BufferedReader br = null;
+
     try {
+     	
+     	Process p = null;
+      	Runtime r = Runtime.getRuntime();
+ 
     	if ( Constants.isWindows ) {
     		p = r.exec( "cmd.exe /c set" );
     	}
