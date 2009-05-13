@@ -41,9 +41,11 @@ PlatformManagerFactory
 	getPlatformManager()
 	{
 		try{
+			boolean force_dummy = System.getProperty( "azureus.platform.manager.disable", "false" ).equals( "true" );
+			
 			class_mon.enter();
 		
-			if ( platform_manager == null ){
+			if ( platform_manager == null && !force_dummy ){
 										  
 				try{
 					if ( getPlatformType() == PlatformManager.PT_WINDOWS ){
@@ -56,7 +58,7 @@ PlatformManagerFactory
 	                    
 					}else if( getPlatformType() == PlatformManager.PT_UNIX ){
 						
-            platform_manager = org.gudy.azureus2.platform.unix.PlatformManagerImpl.getSingleton();
+						platform_manager = org.gudy.azureus2.platform.unix.PlatformManagerImpl.getSingleton();
 
 					}
 				}catch( PlatformManagerException e ){

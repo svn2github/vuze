@@ -60,7 +60,7 @@ public class SystemProperties {
 			// try and infer the application name. this is only required on OSX as the app name
 			// is a component of the "application path" used to find plugins etc.
 
-		if ( Constants.isOSX ){
+		if ( Constants.isOSX && !System.getProperty( "azureus.infer.app.name", "true" ).equals( "false" )){
 			
 			/* example class path
 			 
