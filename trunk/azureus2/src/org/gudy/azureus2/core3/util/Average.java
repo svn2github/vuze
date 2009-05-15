@@ -37,13 +37,13 @@ public class Average {
   */
 
   //The refresh rate of the average (ms)
-  private int refreshRate;
+  private final int refreshRate;
 
   //the period (in ms)
-  private int period;
+  private final int period;
 
   //The number of elements in the average
-  private int nbElements;
+  private final int nbElements;
 
   //The time the average was last updated (divided by the refreshRate).
   private long lastUpdate;
@@ -81,13 +81,36 @@ public class Average {
     return new Average(refreshRate, period);
   }
 
+  public synchronized void
+  clear()
+  {
+	  values = null;
+	  lastUpdate = getEffectiveTime() / refreshRate;
+  }
+  
+  public synchronized void
+  cloneFrom(
+  	Average other )
+  {
+	  Object[] details = other.getCloneDetails();
+  		
+  	  values		= (long[])details[0];
+  	  lastUpdate	= ((Long)details[1]).longValue();
+  }
+  
+  private synchronized Object[]
+  getCloneDetails()
+  {
+	  return( new Object[]{ values, new Long( lastUpdate )} );
+  }
+  
   /**
    * This method is used to update the buffer tha stores the values,
    * in fact it mostly does clean-up over this buffer,
    * erasing all values that have not been updated.
    * @param timeFactor which is the currentTime divided by the refresh Rate
    */
-  private synchronized void update(long timeFactor) {
+  private void update(long timeFactor) {
 	    //If we have a really OLD lastUpdate, we could erase the buffer a 
 	    //huge number of time, so if it's really old, we change it so we'll only
 	    //erase the buffer once.
@@ -116,7 +139,7 @@ public class Average {
    * the time it is added is the time this method is called.
    * @param value the value to be added to the Average
    */
-  public void addValue(long value) {
+  public synchronized void addValue(long value) {
     if(values == null && value != 0)
     	values = new long[nbElements];
     if(values != null)
@@ -170,7 +193,7 @@ public class Average {
 	  return( res );
   }
   
-  public long
+  public synchronized long
   getPointValue()
   {
 	  long timeFactor = getEffectiveTime() / refreshRate;
@@ -180,7 +203,7 @@ public class Average {
 	  return(values != null ? values[(int)((timeFactor-1)% nbElements)] : 0);
   }
   
-  protected final long getSum() {
+  protected synchronized final long getSum() {
     //The sum of all elements used for the average.
     long sum = 0;
     
@@ -203,7 +226,7 @@ public class Average {
     return(sum);
   }
   
-  protected final long getSum(int slots) {
+  protected synchronized final long getSum(int slots) {
 	    //We get the current timeFactor
 	    long timeFactor = getEffectiveTime() / refreshRate;
 	    //We first update the buffer
