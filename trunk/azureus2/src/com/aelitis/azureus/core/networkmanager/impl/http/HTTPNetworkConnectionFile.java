@@ -92,7 +92,7 @@ HTTPNetworkConnectionFile
 		
 		long	file_offset	= 0;
 		
-		List	ranges = new ArrayList();
+		List<long[]>	ranges = new ArrayList<long[]>();
 		
 		boolean	keep_alive	= false;
 		
@@ -110,69 +110,78 @@ HTTPNetworkConnectionFile
 				
 				if ( line_num == 1 ){
 					
-					line = line.substring( line.indexOf( "files/" ) + 6 );
-					line = line.substring( line.indexOf( "/" ) + 1 );
-					
-					line = line.substring( 0, line.lastIndexOf( ' ' ));
-					
-					String	file = line;
-					
-					target_str	= file;
-					
-					StringTokenizer	tok = new StringTokenizer( file, "/" );
-					
-					List	bits = new ArrayList();
-					
-					while( tok.hasMoreTokens()){
+					if ( to_torrent.isSimpleTorrent()){
 						
-						bits.add( URLDecoder.decode(tok.nextToken(), "ISO-8859-1").getBytes( "ISO-8859-1" ));
-					}
-					
-						// latest spec has torrent file name encoded first for non-simple torrents
-						// remove it if we find it so we have some backward compat
-					
-					if ( !to_torrent.isSimpleTorrent() && bits.size() > 1 ){
-					
-						if ( Arrays.equals( to_torrent.getName(), (byte[])bits.get(0))){
+							// optimise for simple torrents. also support the case where
+							// client has the hash but doesn't know the file name
+						
+						target_file = dm.getFiles()[0];
+						
+					}else{
+						line = line.substring( line.indexOf( "files/" ) + 6 );
+						line = line.substring( line.indexOf( "/" ) + 1 );
+						
+						line = line.substring( 0, line.lastIndexOf( ' ' ));
+						
+						String	file = line;
+						
+						target_str	= file;
+						
+						StringTokenizer	tok = new StringTokenizer( file, "/" );
+						
+						List<byte[]>	bits = new ArrayList<byte[]>();
+						
+						while( tok.hasMoreTokens()){
 							
-							bits.remove(0);
+							bits.add( URLDecoder.decode(tok.nextToken(), "ISO-8859-1").getBytes( "ISO-8859-1" ));
 						}
-					}
-					
-					DiskManagerFileInfo[]	files = dm.getFiles();
-					
-					file_offset	= 0;
-					
-					for (int j=0;j<files.length;j++){
 						
-						TOTorrentFile	torrent_file = files[j].getTorrentFile();
+							// latest spec has torrent file name encoded first for non-simple torrents
+							// remove it if we find it so we have some backward compat
 						
-						byte[][]	comps = torrent_file.getPathComponents();
+						if ( !to_torrent.isSimpleTorrent() && bits.size() > 1 ){
 						
-						if ( comps.length == bits.size()){
+							if ( Arrays.equals( to_torrent.getName(), (byte[])bits.get(0))){
+								
+								bits.remove(0);
+							}
+						}
+						
+						DiskManagerFileInfo[]	files = dm.getFiles();
+						
+						file_offset	= 0;
+						
+						for (int j=0;j<files.length;j++){
 							
-							boolean	match = true;
+							TOTorrentFile	torrent_file = files[j].getTorrentFile();
 							
-							for (int k=0;k<comps.length;k++){
-																								
-								if ( !Arrays.equals( comps[k], (byte[])bits.get(k))){
+							byte[][]	comps = torrent_file.getPathComponents();
+							
+							if ( comps.length == bits.size()){
+								
+								boolean	match = true;
+								
+								for (int k=0;k<comps.length;k++){
+																									
+									if ( !Arrays.equals( comps[k], (byte[])bits.get(k))){
+										
+										match	= false;
+										
+										break;
+									}
+								}
+								
+								if ( match ){ 
 									
-									match	= false;
-									
+									target_file 	= files[j];
+																	
 									break;
 								}
 							}
 							
-							if ( match ){ 
-								
-								target_file 	= files[j];
-																
-								break;
-							}
+							file_offset += torrent_file.getLength();
 						}
-						
-						file_offset += torrent_file.getLength();
-					}	
+					}
 				}else{
 					
 					line = line.toLowerCase( MessageText.LOCALE_ENGLISH );
