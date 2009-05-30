@@ -30,6 +30,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.Download;
@@ -420,7 +421,7 @@ LocalTrackerPlugin
 	
 	protected void
 	trackSupport(
-		Download	download )
+		final Download	download )
 	{
 		if ( !enabled.getValue()){
 			
@@ -453,7 +454,32 @@ LocalTrackerPlugin
 			return;
 		}
 		
-		AZInstanceTracked[]	peers = instance_manager.track( download );
+		if ( download.getTorrent() == null ){
+			
+			return;
+		}
+		
+		byte[] hash = new SHA1Simple().calculateHash(download.getTorrent().getHash());
+
+		
+		AZInstanceTracked[]	peers = 
+			instance_manager.track( 
+				hash,
+				new AZInstanceTracked.TrackTarget()
+				{
+					public Object
+					getTarget()
+					{
+						return( download );
+					}
+					
+					public boolean
+					isSeed()
+					{
+						return( download.isComplete());
+					}
+				});
+		
 		
 		for (int i=0;i<peers.length;i++){
 			
@@ -500,7 +526,7 @@ LocalTrackerPlugin
 	{
 		AZInstance	inst	= tracked_inst.getInstance();
 		
-		Download	download = tracked_inst.getDownload();
+		Download	download = (Download)tracked_inst.getTarget().getTarget();
 				
 		boolean	is_seed = tracked_inst.isSeed();
 		

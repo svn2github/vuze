@@ -30,15 +30,11 @@ import java.util.List;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManagerAdapter;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
-import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginListener;
@@ -51,8 +47,8 @@ AZMyInstanceImpl
 	public static final long	FORCE_READ_EXT_MIN	= 8*60*60*1000;
 	public static final long	UPNP_READ_MIN		= 5*60*1000;
 	
-	private AzureusCore				core;
-	private AZInstanceManagerImpl	manager;
+	private AZInstanceManagerAdapter	adapter;
+	private AZInstanceManagerImpl		manager;
 	
 	private String				id;
 	private InetAddress			internal_address;
@@ -70,11 +66,11 @@ AZMyInstanceImpl
 	
 	protected
 	AZMyInstanceImpl(
-		AzureusCore				_core,
-		AZInstanceManagerImpl	_manager )
+		AZInstanceManagerAdapter	_adapter,
+		AZInstanceManagerImpl		_manager )
 
 	{
-		core	= _core;
+		adapter	= _adapter;
 		manager	= _manager;
 		
 		id	= COConfigurationManager.getStringParameter( "ID", "" );
@@ -98,45 +94,40 @@ AZMyInstanceImpl
 		
 		readConfig( true );
 		
-		core.addLifecycleListener(
-			new AzureusCoreLifecycleAdapter()
+		adapter.addListener(
+			new AZInstanceManagerAdapter.StateListener()
 			{
 				public void
-				started(
-					AzureusCore		core )
-				{
-					core.removeLifecycleListener( this );
-					
-				    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-		        	
-				    DHTPlugin dht = null;
+				started()
+				{		        	
+				    DHTPlugin dht = adapter.getDHTPlugin();
 				    
-				    if ( dht_pi != null ){
-			    	
-				    	dht = (DHTPlugin)dht_pi.getPlugin();
-				    	
-				    	if ( dht != null ){
-				    		
-				        	dht.addListener(
-				        		new DHTPluginListener()
-				        		{
-				        			public void
-				        			localAddressChanged(
-				        				DHTPluginContact	local_contact )
-				        			{
-				        				InetAddress latest_dht_address = local_contact.getAddress().getAddress();
-				        								        				
-				        				if ( sameFamily( internal_address, latest_dht_address )){
+			    	if ( dht != null ){
+			    		
+			        	dht.addListener(
+			        		new DHTPluginListener()
+			        		{
+			        			public void
+			        			localAddressChanged(
+			        				DHTPluginContact	local_contact )
+			        			{
+			        				InetAddress latest_dht_address = local_contact.getAddress().getAddress();
+			        								        				
+			        				if ( sameFamily( internal_address, latest_dht_address )){
+			        				
+				        				dht_address 		= latest_dht_address;
+				        				dht_address_time	= SystemTime.getCurrentTime();
 				        				
-					        				dht_address 		= latest_dht_address;
-					        				dht_address_time	= SystemTime.getCurrentTime();
-					        				
-					        				manager.informChanged( AZMyInstanceImpl.this );
-				        				}
-				        			}
-				        		});
-				    	}
-				    }
+				        				manager.informChanged( AZMyInstanceImpl.this );
+			        				}
+			        			}
+			        		});
+			    	}
+				}
+				
+				public void
+				stopped()
+				{
 				}
 			});
 	}
@@ -205,26 +196,24 @@ AZMyInstanceImpl
 			
 			return( external_address );
 		}
-		
-	    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-        	
-	    DHTPlugin dht = null;
-	    
-	    if ( dht_pi != null ){
-    	
-	    	dht = (DHTPlugin)dht_pi.getPlugin();
-	    }
-	    
+		        	
+	    DHTPlugin dht = adapter.getDHTPlugin();
+	    	    
 	    	// if DHT has informed us of an address then we use this - most reliable up to date one
 	    	// unless the version server cache time is more recent
 	    
 	    if ( dht_address != null && dht_address_time <= SystemTime.getCurrentTime()){
 	    	
-	    	long cache_time = VersionCheckClient.getSingleton().getCacheTime( false );
-	    	 
-	    	if ( cache_time <= dht_address_time ){
+	    	AZInstanceManagerAdapter.VCPublicAddress a = adapter.getVCPublicAddress();
+
+	    	if ( a != null ){
 	    		
-	    		external_address = dht_address;
+	    		long cache_time = a.getCacheTime(); 
+	    		
+		    	if ( cache_time <= dht_address_time ){
+		    		
+		    		external_address = dht_address;
+		    	}
 	    	}
 	    }
 
@@ -233,13 +222,13 @@ AZMyInstanceImpl
 		
 	    		// use cached version if available and the DHT isn't
 
-			String	str_address = VersionCheckClient.getSingleton().getExternalIpAddress( true, false );
-		
-			if ( str_address != null ){
+	    	AZInstanceManagerAdapter.VCPublicAddress a = adapter.getVCPublicAddress();
+	    			
+			if ( a != null ){
 				
 				try{
 					
-					external_address	= InetAddress.getByName( str_address );
+					external_address	= InetAddress.getByName( a.getAddress());
 					
 				}catch( Throwable e ){
 					
@@ -294,12 +283,10 @@ AZMyInstanceImpl
 				last_upnp_read	= now;
 				
 				try{
-				    PluginInterface upnp_pi = core.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
-			        			    
-				    if ( upnp_pi != null ){
-			    	
-				    	UPnPPlugin upnp = (UPnPPlugin)upnp_pi.getPlugin();
-				    	
+				   	UPnPPlugin upnp = adapter.getUPnPPlugin();
+				 
+				   	if ( upnp != null ){
+				   		
 				    	String[]	addresses = upnp.getExternalIPAddresses();
 				    	
 				    	for (int i=0;i<addresses.length;i++){
@@ -325,7 +312,7 @@ AZMyInstanceImpl
 				
 				last_force_read_ext	= now;
 				
-				external_address = PluginInitializer.getDefaultInterface().getUtilities().getPublicAddress();
+				external_address = adapter.getPublicAddress();
 			}
 		}
 		

@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.instancemanager;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.instancemanager.impl.AZInstanceManagerImpl;
 
 public class 
@@ -30,8 +29,8 @@ AZInstanceManagerFactory
 {
 	public static AZInstanceManager
 	getSingleton(
-		AzureusCore	core )
+		AZInstanceManagerAdapter	adapter )
 	{
-		return( AZInstanceManagerImpl.getSingleton(core));
+		return( AZInstanceManagerImpl.getSingleton( adapter ));
 	}
 }

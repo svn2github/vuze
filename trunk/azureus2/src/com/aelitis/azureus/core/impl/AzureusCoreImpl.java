@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.impl;
 
+import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -36,7 +37,9 @@ import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.ipfilter.*;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.host.*;
@@ -46,13 +49,17 @@ import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManagerAdapter;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
+import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManagerAdapter.VCPublicAddress;
 import com.aelitis.azureus.core.nat.NATTraverser;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
@@ -69,9 +76,11 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerFactory;
 import com.aelitis.azureus.core.update.AzureusRestarterFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.launcher.classloading.PrimaryClassloader;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
+import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 /**
  * @author parg
@@ -245,7 +254,175 @@ AzureusCoreImpl
 		pi = PluginInitializer.getSingleton( this, initialisation_op );
 		
 		
-		instance_manager = AZInstanceManagerFactory.getSingleton( this );
+		instance_manager = 
+			AZInstanceManagerFactory.getSingleton( 
+				new AZInstanceManagerAdapter()
+				{
+					public InetAddress 
+					getPublicAddress() 
+					{	
+						return( PluginInitializer.getDefaultInterface().getUtilities().getPublicAddress());
+					}
+					
+					public VCPublicAddress
+					getVCPublicAddress()
+					{
+						return(
+							new VCPublicAddress()
+							{
+								private VersionCheckClient vcc = VersionCheckClient.getSingleton();
+								
+								public String
+								getAddress()
+								{
+									return( vcc.getExternalIpAddress( true, false ));
+								}
+								
+								public long
+								getCacheTime()
+								{
+									return( vcc.getSingleton().getCacheTime( false ));
+								}
+							});
+					}
+
+					public AZInstanceTracked.TrackTarget
+					track(
+						byte[]		hash )
+					{
+						List	dms = getGlobalManager().getDownloadManagers();
+						
+						Iterator	it = dms.iterator();
+						
+						DownloadManager	matching_dm = null;
+						
+						try{
+							while( it.hasNext()){
+								
+								DownloadManager	dm = (DownloadManager)it.next();
+								
+								TOTorrent	torrent = dm.getTorrent();
+								
+								if ( torrent == null ){
+									
+									continue;
+								}
+								
+								byte[]	sha1_hash = (byte[])dm.getData( "AZInstanceManager::sha1_hash" );
+								
+								if ( sha1_hash == null ){			
+
+									sha1_hash	= new SHA1Simple().calculateHash( torrent.getHash());
+									
+									dm.setData( "AZInstanceManager::sha1_hash", sha1_hash );
+								}
+								
+								if ( Arrays.equals( hash, sha1_hash )){
+									
+									matching_dm	= dm;
+									
+									break;
+								}
+							}
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+						
+						if ( matching_dm == null ){
+							
+							return( null );
+						}
+						
+						if ( !matching_dm.getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_PLUGIN )){
+							
+							return( null );
+						}
+						
+						int	dm_state = matching_dm.getState();
+						
+						if ( dm_state == DownloadManager.STATE_ERROR || dm_state == DownloadManager.STATE_STOPPED ){
+							
+							return( null );
+						}
+						
+						try{
+						
+							final Object target = DownloadManagerImpl.getDownloadStatic( matching_dm );
+						
+							final boolean	is_seed = matching_dm.isDownloadComplete(true);
+							
+							return(
+								new AZInstanceTracked.TrackTarget()
+								{
+									public Object
+									getTarget()
+									{
+										return( target );
+									}
+									
+									public boolean
+									isSeed()
+									{
+										return( is_seed );
+									}
+								});
+							
+						}catch( Throwable e ){
+							
+							return( null );
+						}
+					}
+					
+					public DHTPlugin 
+					getDHTPlugin()
+					{
+						PluginInterface pi = getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+						
+						if ( pi != null ){
+							
+							return( (DHTPlugin)pi.getPlugin());
+						}
+						
+						return( null );
+					}
+					
+					public UPnPPlugin 
+					getUPnPPlugin() 
+					{
+						PluginInterface pi = getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+						
+						if ( pi != null ){
+							
+							return((UPnPPlugin)pi.getPlugin());
+						}
+						
+						return( null );
+					}
+					
+					public void 
+					addListener(
+						final StateListener listener) 
+					{
+						AzureusCoreImpl.this.addLifecycleListener(
+							new AzureusCoreLifecycleAdapter()
+							{
+								public void 
+								started(
+									AzureusCore core) 
+								{
+									listener.started();
+								}
+								
+								public void
+								stopping(
+									AzureusCore		core )
+								{
+									listener.stopped();
+								}
+							});
+					}
+				});
 		
 		speed_manager	= 
 			SpeedManagerFactory.createSpeedManager( 

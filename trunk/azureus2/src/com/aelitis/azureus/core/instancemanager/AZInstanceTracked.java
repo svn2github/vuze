@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.instancemanager;
 
-import org.gudy.azureus2.plugins.download.Download;
 
 public interface 
 AZInstanceTracked 
@@ -30,9 +29,19 @@ AZInstanceTracked
 	public AZInstance
 	getInstance();
 	
-	public Download
-	getDownload();
+	public TrackTarget
+	getTarget();
 	
 	public boolean
 	isSeed();
+	
+	interface
+	TrackTarget
+	{
+		public Object
+		getTarget();
+		
+		public boolean
+		isSeed();
+	}
 }

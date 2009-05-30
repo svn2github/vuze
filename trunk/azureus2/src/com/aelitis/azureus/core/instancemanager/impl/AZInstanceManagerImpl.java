@@ -31,21 +31,15 @@ import java.util.regex.PatternSyntaxException;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.peer.PEPeerSource;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManagerAdapter;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
 import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
 import com.aelitis.azureus.core.util.NetUtils;
@@ -128,7 +122,7 @@ AZInstanceManagerImpl
 	
 	public static AZInstanceManager
 	getSingleton(
-		AzureusCore	core )
+		AZInstanceManagerAdapter	core )
 	{
 		try{
 			class_mon.enter();
@@ -145,7 +139,8 @@ AZInstanceManagerImpl
 		return( singleton );
 	}
 	
-	private AzureusCore	core;
+	private AZInstanceManagerAdapter	adapter;
+	
 	private MCGroup	 	mc_group;
 	private long		search_id_next;
 	private List		requests = new ArrayList();
@@ -177,11 +172,11 @@ AZInstanceManagerImpl
 	
 	protected
 	AZInstanceManagerImpl(
-		AzureusCore	_core )
+		AZInstanceManagerAdapter	_adapter )
 	{
-		core			= _core;
+		adapter			= _adapter;
 		
-		my_instance	= new AZMyInstanceImpl( core, this );
+		my_instance	= new AZMyInstanceImpl( adapter, this );
 		
 		new AZPortClashHandler( this );
 	}
@@ -200,12 +195,16 @@ AZInstanceManagerImpl
 					MC_CONTROL_PORT,
 					null );
 					
-			core.addLifecycleListener(
-				new AzureusCoreLifecycleAdapter()
+			adapter.addListener(
+				new AZInstanceManagerAdapter.StateListener()
 				{
+					public void 
+					started() 
+					{						
+					}
+					
 					public void
-					stopping(
-						AzureusCore		core )
+					stopped()
 					{
 						closing	= true;
 						
@@ -258,13 +257,11 @@ AZInstanceManagerImpl
 	public long 
 	getClockSkew() 
 	{
-		try{
-		    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-	    		    
-		    if ( dht_pi != null ){
-	    	
-		    	DHTPlugin dht = (DHTPlugin)dht_pi.getPlugin();
-		    	
+		try{	    	
+	    	DHTPlugin dht = adapter.getDHTPlugin();
+		    
+	    	if ( dht != null ){
+	    		
 		    	return( dht.getClockSkew());
 		    }
 		}catch( Throwable e ){
@@ -522,78 +519,28 @@ AZInstanceManagerImpl
 			
 			boolean	seed = ((Long)body.get( "seed" )).intValue() == 1;
 			
-			List	dms = core.getGlobalManager().getDownloadManagers();
-			
-			Iterator	it = dms.iterator();
-			
-			DownloadManager	matching_dm = null;
-			
-			try{
-				while( it.hasNext()){
-					
-					DownloadManager	dm = (DownloadManager)it.next();
-					
-					TOTorrent	torrent = dm.getTorrent();
-					
-					if ( torrent == null ){
+			AZInstanceTracked.TrackTarget target = adapter.track( hash );
+				
+			if ( target != null ){
+				
+				try{					
+					informTracked( new trackedInstance( instance, target, seed ));
 						
-						continue;
-					}
-					
-					byte[]	sha1_hash = (byte[])dm.getData( "AZInstanceManager::sha1_hash" );
-					
-					if ( sha1_hash == null ){			
-
-						sha1_hash	= new SHA1Simple().calculateHash( torrent.getHash());
+				}catch( Throwable e ){
 						
-						dm.setData( "AZInstanceManager::sha1_hash", sha1_hash );
-					}
-					
-					if ( Arrays.equals( hash, sha1_hash )){
-						
-						matching_dm	= dm;
-						
-						break;
-					}
+					Debug.printStackTrace(e);
 				}
-			}catch( Throwable e ){
 				
-				Debug.printStackTrace(e);
-			}
-			
-			if ( matching_dm == null ){
+				Map	reply = new HashMap();
 				
-				return( null );
-			}
-			
-			if ( !matching_dm.getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_PLUGIN )){
+				reply.put( "seed", new Long( target.isSeed()?1:0));		
+				
+				return( reply );
+				
+			}else{
 				
 				return( null );
 			}
-			
-			int	dm_state = matching_dm.getState();
-			
-			if ( dm_state == DownloadManager.STATE_ERROR || dm_state == DownloadManager.STATE_STOPPED ){
-				
-				return( null );
-			}
-							
-			try{		
-				informTracked( 
-					new trackedInstance( instance, DownloadManagerImpl.getDownloadStatic( matching_dm ), seed ));
-					
-			}catch( Throwable e ){
-					
-				Debug.printStackTrace(e);
-			}
-			
-			Map	reply = new HashMap();
-			
-			// XXX include DND?  I don't know
-			reply.put( "seed", new Long( matching_dm.isDownloadComplete(true)?1:0));		
-			
-			return( reply );
-			
 		}else{
 			
 			return( null );
@@ -1089,18 +1036,19 @@ AZInstanceManagerImpl
 	
 	public AZInstanceTracked[]
 	track(
-		Download		download )
+		byte[]							hash,
+		AZInstanceTracked.TrackTarget	target )
 	{
-		if ( mc_group == null || download.getTorrent() == null || getOtherInstances().length == 0 ){
+		if ( mc_group == null || getOtherInstances().length == 0 ){
 			
 			return( new AZInstanceTracked[0]);
 		}
 		
 		Map	body = new HashMap();
 		
-		body.put( "hash", new SHA1Simple().calculateHash(download.getTorrent().getHash()));
+		body.put( "hash", hash );
 		
-		body.put( "seed", new Long( download.isComplete()?1:0 ));
+		body.put( "seed", new Long( target.isSeed()?1:0 ));
 		
 		Map	replies = sendRequest( MT_REQUEST_TRACK, body ); 
 				
@@ -1119,7 +1067,7 @@ AZInstanceManagerImpl
 	
 			boolean	seed = ((Long)reply.get( "seed" )).intValue() == 1;
 	
-			res[ pos++ ] = new trackedInstance( inst, download, seed );
+			res[ pos++ ] = new trackedInstance( inst, target, seed );
 		}
 		
 		return( res );
@@ -1354,17 +1302,17 @@ AZInstanceManagerImpl
 		implements AZInstanceTracked
 	{
 		private AZInstance		instance;
-		private Download		download;
+		private TrackTarget		target;
 		private boolean			seed;
 		
 		protected
 		trackedInstance(
 			AZInstance		_instance,
-			Download		_download,
+			TrackTarget		_target,
 			boolean			_seed )
 		{
 			instance		= _instance;
-			download		= _download;
+			target			= _target;
 			seed			= _seed;
 		}
 		public AZInstance
@@ -1373,10 +1321,10 @@ AZInstanceManagerImpl
 			return( instance );
 		}
 		
-		public Download
-		getDownload()
+		public TrackTarget
+		getTarget()
 		{
-			return( download );
+			return( target );
 		}
 		
 		public boolean
