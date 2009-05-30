@@ -66,6 +66,8 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATTraverser;
 import com.aelitis.azureus.plugins.clientid.ClientIDPlugin;
@@ -258,12 +260,27 @@ AzureusCoreImpl
 			AZInstanceManagerFactory.getSingleton( 
 				new AZInstanceManagerAdapter()
 				{
+					public String
+					getID()
+					{
+						return( COConfigurationManager.getStringParameter( "ID", "" ));
+					}
+					
 					public InetAddress 
 					getPublicAddress() 
 					{	
 						return( PluginInitializer.getDefaultInterface().getUtilities().getPublicAddress());
 					}
 					
+					public int[]
+					getPorts()
+					{
+						return( new int[]{
+							TCPNetworkManager.getSingleton().getTCPListeningPortNumber(),
+							UDPNetworkManager.getSingleton().getUDPListeningPortNumber(),
+							UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber()});
+
+					}
 					public VCPublicAddress
 					getVCPublicAddress()
 					{

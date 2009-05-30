@@ -33,8 +33,6 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerAdapter;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
-import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginListener;
@@ -73,7 +71,7 @@ AZMyInstanceImpl
 		adapter	= _adapter;
 		manager	= _manager;
 		
-		id	= COConfigurationManager.getStringParameter( "ID", "" );
+		id	= adapter.getID();
 		
 		if ( id.length() == 0 ){
 			
@@ -147,9 +145,11 @@ AZMyInstanceImpl
 			}
 		}
 				
-		int	new_tcp_port 			= TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
-		int	new_udp_port 			= UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
-		int new_udp_non_data_port	= UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
+		int[]	ports = adapter.getPorts();
+		
+		int	new_tcp_port			= ports[0];
+		int	new_udp_port			= ports[1];
+		int	new_udp_non_data_port	= ports[2];
 		
 		boolean	same = true;
 		

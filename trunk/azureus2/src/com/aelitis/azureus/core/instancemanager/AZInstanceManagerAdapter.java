@@ -29,6 +29,12 @@ import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 public interface 
 AZInstanceManagerAdapter 
 {
+	public String
+	getID();
+	
+	public int[]
+	getPorts();
+	
 	public DHTPlugin
 	getDHTPlugin();
 	
