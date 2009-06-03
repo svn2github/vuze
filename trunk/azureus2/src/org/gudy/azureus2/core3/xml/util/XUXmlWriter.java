@@ -289,6 +289,10 @@ XUXmlWriter
 			
 			writeGeneric((List)obj);
 			
+		}else if ( obj instanceof String ){
+			
+			writeGeneric((String)obj );
+			
 		}else if ( obj instanceof byte[] ){
 		
 			writeGeneric((byte[])obj);
@@ -361,6 +365,25 @@ XUXmlWriter
 		}else{
 			
 			writeTag( "BYTES", encodeBytes( bytes ));
+		}
+	}
+	
+	protected void
+	writeGeneric(
+		String	str  )
+	{
+		if ( generic_simple ){
+			
+			try{
+				writeLineRaw( escapeXML( str ));
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}else{
+			
+			writeTag( "STRING", str );
 		}
 	}
 	
