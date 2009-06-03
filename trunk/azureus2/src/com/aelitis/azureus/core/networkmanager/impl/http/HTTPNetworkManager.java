@@ -54,6 +54,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
 import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 HTTPNetworkManager 
@@ -74,6 +75,8 @@ HTTPNetworkManager
 	private long	total_getright_requests;
 	private long	total_invalid_requests;
 	private long	total_ok_requests;
+	
+	private CopyOnWriteList<URLHandler>	url_handlers = new CopyOnWriteList<URLHandler>();
 	
 	private 
 	HTTPNetworkManager()
@@ -318,6 +321,24 @@ HTTPNetworkManager
 				    			}
 				    		}
 				    		
+				    		String trimmed = url;
+				    		
+				    		int	pos = trimmed.indexOf( ' ' );
+				    		
+				    		if ( pos != -1 ){
+				    			
+				    			trimmed = trimmed.substring( 0, pos );
+				    		}
+				    		
+				    		for ( URLHandler handler: url_handlers ){
+				    			
+				    			if ( handler.matches( trimmed )){
+				    							    					
+			    					ok	= true;
+			    					
+			    					return( new Object[]{ handler, transport, "GET " + url });
+				    			}
+				    		}
 		   					if (Logger.isEnabled()){
 	    						Logger.log(new LogEvent(LOGID, "HTTP decode from " + address + " failed: no match for " + url ));
 	    					}
@@ -392,16 +413,26 @@ HTTPNetworkManager
 	        	{
 	        		Object[]	x = (Object[])_routing_data;
 	        		
-	        		if ( x[0] instanceof TransportHelper ){
+	        		Object	entry1 = x[0];
+	        		
+	        		if ( entry1 instanceof TransportHelper ){
 	        			
 	        				// routed on failure
 	        			
 	        			writeReply(connection, (TransportHelper)x[0], (String)x[1]);
 	        			
 	        			return;
+	        			
+	        		}else if ( entry1 instanceof URLHandler ){
+	        			
+	        			((URLHandler)entry1).handle(
+	        					(TransportHelper)x[1],
+	        					(String)x[2] );
+	        		
+	        			return;
 	        		}
 	        		
-	        		final String					url 			= (String)x[0];
+	        		final String					url 			= (String)entry1;
 	        		final PeerManagerRegistration	routing_data 	= (PeerManagerRegistration)x[1];
 	        		
    					if (Logger.isEnabled()){
@@ -753,5 +784,33 @@ HTTPNetworkManager
 
 			connection.close();
 		}
+	}
+	
+	public void
+	addURLHandler(
+		URLHandler	handler )
+	{
+		url_handlers.add( handler );
+	}
+	
+	public void
+	removeURLHandler(
+		URLHandler	handler )
+	{
+		url_handlers.remove( handler );
+	}
+	
+	public interface
+	URLHandler
+	{
+		public boolean
+		matches(
+			String		url );
+		
+		public void
+		handle(
+			TransportHelper		transport,
+			String				header_so_far );
+		
 	}
 }
