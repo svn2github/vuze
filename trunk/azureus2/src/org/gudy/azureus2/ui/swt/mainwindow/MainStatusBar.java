@@ -853,9 +853,11 @@ public class MainStatusBar
 	 * @since 3.1.1.1
 	 */
 	private void updateDHTStatus() {
+		if (dhtPlugin == null) {
+			return;
+		}
 		// DHT Status Section
-		int dht_status = (dhtPlugin == null) ? DHTPlugin.STATUS_DISABLED
-				: dhtPlugin.getStatus();
+		int dht_status = dhtPlugin.getStatus();
 		long dht_count = -1;
 		//boolean	reachable = false;
 		if (dht_status == DHTPlugin.STATUS_RUNNING) {
