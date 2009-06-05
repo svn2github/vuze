@@ -24,8 +24,6 @@ package com.aelitis.azureus.core.instancemanager.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.SystemProperties;
-
 
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 
@@ -40,16 +38,11 @@ AZInstanceImpl
 		
 	protected void
 	encode(
-		Map		map )
+		Map<String,Object>		map )
 	{
 		map.put( "id", getID().getBytes());				
-
-		String app_id = getApplicationID();
-		
-		if ( app_id != SystemProperties.AZ_APP_ID ){
-			
-			map.put( "ai", app_id.getBytes());
-		}
+					
+		map.put( "ai", getApplicationID().getBytes());
 		
 		map.put( "iip", getInternalAddress().getHostAddress().getBytes());
 		

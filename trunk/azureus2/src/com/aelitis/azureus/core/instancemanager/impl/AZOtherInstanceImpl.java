@@ -56,7 +56,7 @@ AZOtherInstanceImpl
 		
 		if ( app_id_bytes == null ){
 			
-			app_id = SystemProperties.AZ_APP_ID;
+			app_id = SystemProperties.AZ_APP_ID + "_4.2.0.2";	// we dont know, but this is most likely
 			
 		}else{
 			
