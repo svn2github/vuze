@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.instancemanager.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.SystemProperties;
+
 
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 
@@ -42,6 +44,13 @@ AZInstanceImpl
 	{
 		map.put( "id", getID().getBytes());				
 
+		String app_id = getApplicationID();
+		
+		if ( app_id != SystemProperties.AZ_APP_ID ){
+			
+			map.put( "ai", app_id.getBytes());
+		}
+		
 		map.put( "iip", getInternalAddress().getHostAddress().getBytes());
 		
 		map.put( "eip", getExternalAddress().getHostAddress().getBytes());
@@ -63,8 +72,12 @@ AZInstanceImpl
 			id = id.substring(0,8) + "...";
 		}
 		
-		return( "id=" + id + ",int=" + getInternalAddress().getHostAddress() + ",ext=" + 
-				getExternalAddress().getHostAddress() +	",tcp=" + getTCPListenPort() + ",udp=" + getUDPListenPort() +
+		return( "id=" + id + 
+				",ap=" + getApplicationID() + 
+				",int=" + getInternalAddress().getHostAddress() + 
+				",ext=" + getExternalAddress().getHostAddress() +	
+				",tcp=" + getTCPListenPort() + 
+				",udp=" + getUDPListenPort() +
 				",udp2=" + getUDPNonDataListenPort());
 	}
 }

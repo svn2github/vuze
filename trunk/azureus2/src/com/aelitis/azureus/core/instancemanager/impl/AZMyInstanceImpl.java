@@ -355,6 +355,12 @@ AZMyInstanceImpl
 		return( id );
 	}
 	
+	public String
+	getApplicationID()
+	{
+		return( SystemProperties.getApplicationIdentifier() + "_" + SystemProperties.getApplicationVersion());
+	}
+	
 	public InetAddress
 	getInternalAddress()
 	{

@@ -31,6 +31,9 @@ AZInstance
 	public String
 	getID();
 	
+	public String
+	getApplicationID();
+	
 	public InetAddress
 	getInternalAddress();
 	

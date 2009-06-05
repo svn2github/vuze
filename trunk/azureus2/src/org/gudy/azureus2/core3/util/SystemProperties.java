@@ -43,8 +43,12 @@ public class SystemProperties {
    */
   public static final String SEP = System.getProperty("file.separator");
   
+  public static final String	AZ_APP_ID	= "az";
+  
   public static String APPLICATION_NAME 		= "Azureus";
-  private static 		String APPLICATION_ID 			= "az";
+  private static String APPLICATION_ID 			= AZ_APP_ID;
+  private static String APPLICATION_VERSION		= Constants.AZUREUS_VERSION;
+  
   	// TODO: fix for non-SWT entry points one day
   private static 		String APPLICATION_ENTRY_POINT 	= "org.gudy.azureus2.ui.swt.Main";
   
@@ -147,6 +151,19 @@ public class SystemProperties {
 	getApplicationName()
 	{
 		return( APPLICATION_NAME );
+	}
+	
+	public static void
+	setApplicationVersion(
+		String	v )
+	{
+		APPLICATION_VERSION = v;
+	}
+	
+	public static String
+	getApplicationVersion()
+	{
+		return( APPLICATION_VERSION );
 	}
 	
 	public static String
