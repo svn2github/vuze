@@ -46,10 +46,13 @@ AEDiagnosticsLogger
 	
 	private boolean			first_file				= true;
 	private boolean			first_write			 	= true;
+	private PrintWriter		current_writer;
 	
 	private LinkedList<StringBuilder>	pending;
 	private int							pending_size;
 	private boolean						direct_writes;
+	
+	private boolean		close_pws = false;
 	
 	protected
 	AEDiagnosticsLogger(
@@ -206,8 +209,6 @@ AEDiagnosticsLogger
 	write(
 		StringBuilder		str )
 	{
-		PrintWriter	pw = null;
-		
 		try{	
 			File	log_file	= getLogFile();
 			
@@ -218,6 +219,13 @@ AEDiagnosticsLogger
 			
 			if ( log_file.length() >= max_size ){
 				
+				if ( current_writer != null ){
+					
+					current_writer.close();
+					
+					current_writer = null;
+				}
+				
 				first_file = !first_file;
 				
 				log_file	= getLogFile();
@@ -226,18 +234,25 @@ AEDiagnosticsLogger
 				
 				log_file.delete();
 			}
-					
-			pw = new PrintWriter(new FileWriter( log_file, true ));
-		
-			pw.println( str );
+				
+			if ( current_writer == null ){
+			
+				current_writer = new PrintWriter(new FileWriter( log_file, true ));
+			}
+			
+			current_writer.println( str );
+			
+			current_writer.flush();
 			
 		}catch( Throwable e ){
 			
 		}finally{
 			
-			if ( pw != null ){
+			if ( current_writer != null && close_pws ){
 									
-				pw.close();
+				current_writer.close();
+				
+				current_writer = null;
 			}
 		}
 	}
@@ -253,9 +268,7 @@ AEDiagnosticsLogger
 			}
 			
 			// System.out.println( getName() + ": flushing " + pending_size );
-			
-			PrintWriter	pw = null;
-			
+						
 			try{	
 				File	log_file	= getLogFile();
 				
@@ -266,6 +279,13 @@ AEDiagnosticsLogger
 				
 				if ( log_file.length() >= max_size ){
 					
+					if ( current_writer != null ){
+						
+						current_writer.close();
+						
+						current_writer = null;
+					}
+					
 					first_file = !first_file;
 					
 					log_file	= getLogFile();
@@ -274,13 +294,19 @@ AEDiagnosticsLogger
 					
 					log_file.delete();
 				}
-						
-				pw = new PrintWriter(new FileWriter( log_file, true ));
-			
+					
+				if ( current_writer == null ){
+					
+					current_writer = new PrintWriter(new FileWriter( log_file, true ));
+				}
+				
 				for ( StringBuilder str: pending ){
 				
-					pw.println( str );
+					current_writer.println( str );
 				}
+				
+				current_writer.flush();
+				
 			}catch( Throwable e ){
 				
 			}finally{
@@ -288,9 +314,11 @@ AEDiagnosticsLogger
 				direct_writes 	= true;
 				pending			= null;
 				
-				if ( pw != null ){
-										
-					pw.close();
+				if ( current_writer != null && close_pws ){
+					
+					current_writer.close();
+					
+					current_writer = null;
 				}
 			}
 		}
