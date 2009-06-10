@@ -26,11 +26,11 @@ package org.gudy.azureus2.core3.util;
  *
  */
 public abstract class 
-ListenerManagerDispatcher
+ListenerManagerDispatcher<T>
 {
 	public abstract void
 	dispatch(
-		Object		_listener,
+		T			_listener,
 		int			type,
 		Object		value );
 }

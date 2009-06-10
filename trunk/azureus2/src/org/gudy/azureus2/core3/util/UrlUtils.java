@@ -87,6 +87,13 @@ public class UrlUtils
 		return parseTextForURL(text, accept_magnets, true);
 	}
 
+	public static String
+	getURL(
+		String	text )
+	{
+		return( parseTextForURL(text, false, false ));
+	}
+	
 	public static String parseTextForURL(String text, boolean accept_magnets,
 			boolean guess) {
 

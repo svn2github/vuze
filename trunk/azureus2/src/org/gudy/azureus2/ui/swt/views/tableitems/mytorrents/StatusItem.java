@@ -24,12 +24,15 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -42,15 +45,17 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 public class StatusItem
 	extends CoreTableColumn
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableCellMouseListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
 	public static final String COLUMN_ID = "status";
+
+	private final static Object CLICK_KEY = new Object();
 	
 	private boolean changeRowFG;
 	private boolean changeCellFG = true;
-
+	
 	private boolean	showTrackerErrors;
 	
 	public StatusItem(String sTableID, boolean changeRowFG) {
@@ -90,6 +95,30 @@ public class StatusItem
 		
 		if ( cell.setText( text ) || !cell.isValid()) {
 			
+			String clickable = null;
+			
+			if ( cell instanceof TableCellSWT ){
+			
+				clickable = (String)dm.getUserData( CLICK_KEY );
+				
+				if ( text.indexOf( "http://" ) == -1 ){
+					
+					if ( clickable != null){
+				
+						dm.setUserData( CLICK_KEY, null );
+					
+						((TableCellSWT)cell).setCursorID(SWT.CURSOR_ARROW);
+					}
+				}else{
+					if ( clickable == null ){
+					
+						dm.setUserData( CLICK_KEY, text );
+
+						((TableCellSWT)cell).setCursorID(SWT.CURSOR_HAND);
+					}
+				}
+			}
+			
 			if (!changeCellFG && !changeRowFG) {
 				return;
 			}
@@ -109,9 +138,12 @@ public class StatusItem
 				} else if (changeCellFG) {
 					cell.setForeground(Utils.colorToIntArray(color));
 				}
+				if ( clickable != null ){
+					cell.setForeground( Utils.colorToIntArray( Colors.blue ));
+				}
+
 			}
 		}
-
 	}
 
 	public boolean isChangeRowFG() {
@@ -135,5 +167,33 @@ public class StatusItem
 		boolean	s )
 	{
 		showTrackerErrors = s;
+	}
+	
+	public void 
+	cellMouseTrigger(
+		TableCellMouseEvent event ) 
+	{
+
+		DownloadManager dm = (DownloadManager) event.cell.getDataSource();
+		if (dm == null) {return;}
+		
+		String clickable = (String)dm.getUserData( CLICK_KEY );
+		
+		if ( clickable == null ){
+			
+			return;
+		}
+		
+		event.skipCoreFunctionality = true;
+		
+		if ( event.eventType == TableCellMouseEvent.EVENT_MOUSEUP ){
+		
+			String url = UrlUtils.getURL( clickable );
+			
+			if ( url != null ){
+				
+				Utils.launch( url );
+			}
+		}
 	}
 }

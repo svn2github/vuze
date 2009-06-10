@@ -184,18 +184,16 @@ DiskManagerImpl
     private static final int LDT_PIECE_DONE_CHANGED     = 3;
     private static final int LDT_ACCESS_MODE_CHANGED    = 4;
 
-    protected static ListenerManager    listeners_aggregator    = ListenerManager.createAsyncManager(
+    protected static ListenerManager<DiskManagerListener>    listeners_aggregator    = ListenerManager.createAsyncManager(
             "DiskM:ListenAggregatorDispatcher",
-            new ListenerManagerDispatcher()
+            new ListenerManagerDispatcher<DiskManagerListener>()
             {
                 public void
                 dispatch(
-                    Object      _listener,
-                    int         type,
-                    Object      value )
+                	DiskManagerListener      listener,
+                    int         			type,
+                    Object      			value )
                 {
-                    DiskManagerListener listener = (DiskManagerListener)_listener;
-
                     if (type == LDT_STATECHANGED){
 
                         int params[] = (int[])value;
@@ -222,15 +220,15 @@ DiskManagerImpl
                 }
             });
 
-    private ListenerManager listeners   = ListenerManager.createManager(
+    private ListenerManager<DiskManagerListener> listeners   = ListenerManager.createManager(
             "DiskM:ListenDispatcher",
-            new ListenerManagerDispatcher()
+            new ListenerManagerDispatcher<DiskManagerListener>()
             {
                 public void
                 dispatch(
-                    Object      listener,
-                    int         type,
-                    Object      value )
+                	DiskManagerListener      listener,
+                    int         			type,
+                    Object      			value )
                 {
                     listeners_aggregator.dispatch( listener, type, value );
                 }
@@ -884,12 +882,17 @@ DiskManagerImpl
 
                 fileInfo.setDownloaded(0);
                 
-                boolean mustExistOrAllocate = cache_file.getStorageType() != CacheFile.CT_COMPACT || RDResumeHandler.fileMustExist(download_manager, fileInfo);
+                boolean compact = cache_file.getStorageType() == CacheFile.CT_COMPACT;
                 
-                // delete compact files that do not contain pieces we need
-                if(!mustExistOrAllocate && cache_file.exists())
+                boolean mustExistOrAllocate = ( !compact ) || RDResumeHandler.fileMustExist(download_manager, fileInfo);
+                
+                	// delete compact files that do not contain pieces we need
+                
+                if (!mustExistOrAllocate && cache_file.exists()){
+                	
 					data_file.delete();
-
+                }
+                
                 if ( cache_file.exists() ){
 
                     try {
@@ -906,6 +909,8 @@ DiskManagerImpl
 
                                 cache_file.setLength( target_length );
 
+                                fileInfo.setAccessMode( DiskManagerFileInfo.READ );
+                                
                                 Debug.out( "Existing data file length too large [" +existing_length+ ">" +target_length+ "]: " +data_file.getAbsolutePath() + ", truncating" );
 
                             }else{
@@ -916,14 +921,23 @@ DiskManagerImpl
 
                                 return( -1 );
                             }
+                        }else if ( existing_length < target_length ){
+                        	
+                        	if ( !compact ){
+	                        		// file is too small
+	                        	
+	                         	if ( !allocateFile( fileInfo, data_file, existing_length, target_length )){
+	                            	
+	                      			// aborted
+	                    		
+	                         		return( -1 );
+	                         	}
+                        	}
                         }
+                    }catch (Throwable e) {
 
-                        fileInfo.setAccessMode( DiskManagerFileInfo.READ );
-
-                    }catch (CacheFileManagerException e) {
-
-                        this.errorMessage = Debug.getNestedExceptionMessage(e) +
-                                                " (allocateFiles existing:" + data_file.getAbsolutePath() + ")";
+                    	fileAllocFailed( data_file, target_length, false, e );
+                    	
                         setState( FAULTY );
 
                         return( -1 );
@@ -931,9 +945,9 @@ DiskManagerImpl
 
                     allocated += target_length;
 
-                } else if (mustExistOrAllocate)
-                {  //we need to allocate it
-
+                } else if ( mustExistOrAllocate ){  
+                	
+                		//we need to allocate it
                         //make sure it hasn't previously been allocated
 
                     if ( download_manager.isDataAlreadyAllocated() ){
@@ -945,100 +959,19 @@ DiskManagerImpl
                         return( -1 );
                     }
 
-                    while( started ){
-
-                        if ( allocation_scheduler.getPermission( this )){
-
-                            break;
-                        }
-                    }
-
-                    if ( !started ){
-
-                            // allocation interrupted
-
-                        return( -1 );
-                    }
-
+ 
                     try{
-                        fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
+ 
+                    	if ( !allocateFile( fileInfo, data_file, -1, target_length )){
+                    	
+                      			// aborted
+                    		
+                    		return( -1 );
+                    	}
+                    	
+                    }catch( Throwable e ){
 
-                        if( COConfigurationManager.getBooleanParameter("Enable incremental file creation") ) {
-
-                                //  do incremental stuff
-
-                            fileInfo.getCacheFile().setLength( 0 );
-
-                        }else {
-
-                                //fully allocate. XFS borks with zero length files though
-
-                            if ( 	target_length > 0 && 
-                            		COConfigurationManager.getBooleanParameter("XFS Allocation") ){
-                            	
-                                fileInfo.getCacheFile().setLength( target_length );
-                                String[] cmd = {"/usr/sbin/xfs_io","-c", "resvsp 0 " + target_length, data_file.getAbsolutePath()};
-                                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                                byte[] buffer = new byte[1024];
-                                try {
-	                                Process p = Runtime.getRuntime().exec(cmd);
-	                                for (int count = p.getErrorStream().read(buffer); count > 0; count = p.getErrorStream().read(buffer)) {
-	                                   os.write(buffer, 0, count);
-	                                }
-	                                os.close();
-	                                p.waitFor();
-                                } catch (IOException e) {
-                                	String message = MessageText.getString("xfs.allocation.xfs_io.not.found", new String[] {e.getMessage()});
-                                	Logger.log(new LogAlert(this, LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, message));
-                                }
-                                if (os.size() > 0) {
-                                	String message = os.toString().trim();
-                                	if (message.endsWith("is not on an XFS filesystem")) {
-                                		Logger.log(new LogEvent(this, LogIDs.DISK, "XFS file allocation impossible because \"" + data_file.getAbsolutePath()
-                                				+ "\" is not on an XFS filesystem. Original error reported by xfs_io : \"" + message + "\""));
-                                	} else {
-                                		throw new IOException(message);
-                                	}
-                                }
-
-                                allocated += target_length;
-                            } else if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
-                            	
-                            	boolean successfulAlloc = false;
-
-                            	try {
-                            		successfulAlloc = writer.zeroFile( fileInfo, target_length );
-                            	} catch(Exception e) {
-                            		// in case an error occured set the error message before we set it to FAULTY in the finally clause, the exception handler further down is too late 
-                                    this.errorMessage = Debug.getNestedExceptionMessage(e) + " (allocateFiles new:" + data_file.toString() + ")";
-                                    throw e;
-                            	} finally
-                            	{
-                            		if (!successfulAlloc)
-									{
-										try
-										{
-											// failed to zero it, delete it so it gets done next start
-											fileInfo.getCacheFile().close();
-											fileInfo.getCacheFile().delete();
-										} catch (Throwable e)
-										{}
-										setState(FAULTY);
-									}
-                            	}
-                            }else{
-
-                                    //reserve the full file size with the OS file system
-
-                                fileInfo.getCacheFile().setLength( target_length );
-
-                                allocated += target_length;
-                            }
-                        }
-                    }catch ( Exception e ) {
-
-                        this.errorMessage = Debug.getNestedExceptionMessage(e)
-                                    + " (allocateFiles new:" + data_file.toString() + ")";
+                    	fileAllocFailed( data_file, target_length, true, e );
 
                         setState( FAULTY );
 
@@ -1085,6 +1018,164 @@ DiskManagerImpl
         }
     }
 
+    private boolean
+    allocateFile(
+    	DiskManagerFileInfoImpl		fileInfo,
+    	File						data_file,
+    	long						existing_length,	// -1 if not exists
+    	long						target_length )
+    
+    	throws Throwable
+    {
+        while( started ){
+
+            if ( allocation_scheduler.getPermission( this )){
+
+                break;
+            }
+        }
+
+        if ( !started ){
+
+                // allocation interrupted
+
+            return( false );
+        }
+
+        fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
+
+        if ( COConfigurationManager.getBooleanParameter("Enable incremental file creation" )){
+
+                //  do incremental stuff
+
+        	if ( existing_length < 0 ){
+            
+        			// only do this if it doesn't exist
+        		
+        		fileInfo.getCacheFile().setLength( 0 );
+        	}
+        }else{
+        
+	            //fully allocate. XFS borks with zero length files though
+	
+	        if ( 	target_length > 0 && 
+	        		COConfigurationManager.getBooleanParameter("XFS Allocation") ){
+	        	
+	            fileInfo.getCacheFile().setLength( target_length );
+	            
+	            long	resvp_start;
+	            long	resvp_len;
+	            
+	            if ( existing_length > 0 ){
+	            	
+	            	resvp_start = existing_length;
+	            	resvp_len	= target_length - existing_length;
+	            }else{
+	            	resvp_start = 0;
+	            	resvp_len	= target_length;
+	            }
+	            
+	            String[] cmd = {"/usr/sbin/xfs_io","-c", "resvsp " + resvp_start + " " + resvp_len, data_file.getAbsolutePath()};
+	            
+	            ByteArrayOutputStream os = new ByteArrayOutputStream();
+	            byte[] buffer = new byte[1024];
+	            try {
+	                Process p = Runtime.getRuntime().exec(cmd);
+	                for (int count = p.getErrorStream().read(buffer); count > 0; count = p.getErrorStream().read(buffer)) {
+	                   os.write(buffer, 0, count);
+	                }
+	                os.close();
+	                p.waitFor();
+	            } catch (IOException e) {
+	            	String message = MessageText.getString("xfs.allocation.xfs_io.not.found", new String[] {e.getMessage()});
+	            	Logger.log(new LogAlert(this, LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, message));
+	            }
+	            if (os.size() > 0) {
+	            	String message = os.toString().trim();
+	            	if (message.endsWith("is not on an XFS filesystem")) {
+	            		Logger.log(new LogEvent(this, LogIDs.DISK, "XFS file allocation impossible because \"" + data_file.getAbsolutePath()
+	            				+ "\" is not on an XFS filesystem. Original error reported by xfs_io : \"" + message + "\""));
+	            	} else {
+	            		throw new Exception(message);
+	            	}
+	            }
+	            
+	            allocated += target_length;
+	            
+	        }else if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
+	        	
+	        	boolean successfulAlloc = false;
+	
+	        	try {
+	        		successfulAlloc = writer.zeroFile( fileInfo, target_length );
+	        		
+	        	}catch( Throwable e ){
+	        			// in case an error occured set the error message before we set it to FAULTY in the finally clause, the exception handler further down is too late
+	        		
+	        		fileAllocFailed( data_file, target_length, existing_length==-1, e );
+	                
+	                throw( e );
+	                
+	        	}finally{
+	        		
+	        		if (!successfulAlloc){
+	        			
+						try{
+								// failed to zero it, delete it so it gets done next start
+							
+							fileInfo.getCacheFile().close();
+							
+							fileInfo.getCacheFile().delete();
+							
+						}catch (Throwable e){
+							
+						}
+						
+						setState(FAULTY);
+					}
+	        	}
+	        	
+	        		// the zeroFile method updates allocation as it occurs
+	        	
+	        }else{
+	
+	                //reserve the full file size with the OS file system
+	
+	            fileInfo.getCacheFile().setLength( target_length );
+	            
+	            allocated += target_length;
+	        }
+        }
+        
+        fileInfo.setAccessMode( DiskManagerFileInfo.READ );
+        
+        return( true );
+    }
+    
+    private void
+    fileAllocFailed(
+    	File		file,
+    	long		length,
+    	boolean		is_new,
+    	Throwable 	e )
+    {
+    	errorMessage = Debug.getNestedExceptionMessage(e) + " (allocateFiles " + (is_new?"new":"existing") + ":" + file.toString() + ")";
+    	
+    	if ( errorMessage.indexOf( "not enough space" ) != -1 ){
+    		
+    		if ( length >= 4*1024*1024*1024L ){
+    			
+    				// might be FAT32 limit, see if we really have run out of space
+    			
+    			errorMessage = MessageText.getString( "DiskManager.error.nospace_fat32" );
+    			
+    		}else{
+    			
+    			errorMessage = MessageText.getString( "DiskManager.error.nospace" );
+    		}
+    	}
+    }
+    
     public DiskAccessController
     getDiskAccessController()
     {

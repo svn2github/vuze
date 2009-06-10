@@ -24,10 +24,6 @@ package org.gudy.azureus2.core3.disk;
  * @create 22.01.2008
  */
 public class DiskManagerException extends Exception {
-	public DiskManagerException()
-	{
-		
-	}
 
 
 	public DiskManagerException(String message)
@@ -37,7 +33,9 @@ public class DiskManagerException extends Exception {
 
 	public DiskManagerException(Throwable cause)
 	{
-		super(cause);
+			// pass "" to mark this as a delegating exception, else we get class name
+			// in message which sucks
+		super("",cause);
 	}
 
 	public DiskManagerException(String message, Throwable cause)

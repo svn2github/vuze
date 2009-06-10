@@ -1326,6 +1326,12 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 				fileName.setText(_fileName);
 				fileSize.setText(_fileSize);
 				torrentStatus.setText(_torrentStatus);
+				int pos = _torrentStatus.indexOf( "http://" );
+				if ( pos > 0 ){
+					torrentStatus.setLink( UrlUtils.getURL( _torrentStatus ));
+				}else{
+					torrentStatus.setLink( null );
+				}
 				saveIn.setText(_path);
 				hash.setText(_hash);
 				pieceNumber.setText(_pieceData); //$NON-NLS-1$

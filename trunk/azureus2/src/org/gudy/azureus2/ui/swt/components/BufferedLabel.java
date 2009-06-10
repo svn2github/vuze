@@ -30,20 +30,25 @@ package org.gudy.azureus2.ui.swt.components;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 
 public class 
 BufferedLabel
 	extends BufferedWidget 
 {
-	protected Label	label;
+	private Label	label;
 	
-	protected String	value = "";
+	private String	value = "";
 	
 	public
 	BufferedLabel(
@@ -127,6 +132,63 @@ BufferedLabel
 		
 		label.setText( value==null?"":value.replaceAll("&", "&&" ));	
 	}	
+	
+	public void
+	setLink(
+		String		url )
+	{
+		Object[]	existing = (Object[])label.getData();
+		
+		if ( existing == null && url == null ){
+			
+			return;
+			
+		}else if ( existing == null || url == null ){
+			
+		}else if (((String[])existing)[0].equals( url )){
+			
+			return;
+		}
+		
+		
+		if ( url == null ){
+			label.setData( null );
+			label.setCursor( null );
+			label.setForeground( null );
+			label.setToolTipText( null );
+		}else{
+			final String[] data = new String[]{ url };
+			
+			label.setData( data );
+
+			label.setToolTipText(url);
+		
+		    label.setCursor(Cursors.handCursor);
+		    label.setForeground(Colors.blue);
+		    label.addMouseListener(new MouseAdapter() {
+		      public void mouseDoubleClick(MouseEvent arg0) {
+		      	showURL((Label)arg0.widget);
+		      }
+		      public void mouseUp(MouseEvent arg0) {
+		    	  showURL((Label)arg0.widget);
+		      }
+		      
+		      protected void
+		      showURL(
+		    	Label label )
+		      {
+		    	  if ( label.getData() == data ){
+		    	  
+		    		  Utils.launch( data[0] );
+		    		  
+		    	  }else{
+		    		  
+		    		  label.removeMouseListener( this );
+		    	  }
+		      }
+		    });	
+		}
+	}
 	
   public String getText() {
     return value==null?"":value;

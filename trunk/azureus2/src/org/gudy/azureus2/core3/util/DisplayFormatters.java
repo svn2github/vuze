@@ -660,7 +660,7 @@ DisplayFormatters
 				tmp = ManagerItem_downloading;
 				break;
 
-			case DownloadManager.STATE_SEEDING:
+			case DownloadManager.STATE_SEEDING:{
 
 				DiskManager diskManager = manager.getDiskManager();
 
@@ -683,7 +683,7 @@ DisplayFormatters
 					tmp = ManagerItem_seeding;
 				}
 				break;
-
+			}
 			case DownloadManager.STATE_STOPPED:
 				tmp = manager.isPaused() ? ManagerItem_paused : ManagerItem_stopped;
 				break;
@@ -704,10 +704,14 @@ DisplayFormatters
 				tmp = ManagerItem_initializing;
 				break;
 
-			case DownloadManager.STATE_ALLOCATING:
+			case DownloadManager.STATE_ALLOCATING:{
 				tmp = ManagerItem_allocating;
+				DiskManager diskManager = manager.getDiskManager();
+				if (diskManager != null){		
+					tmp += ": " + formatPercentFromThousands( diskManager.getPercentDone());
+				}
 				break;
-
+			}
 			case DownloadManager.STATE_CHECKING:
 				tmp = ManagerItem_checking + ": "
 						+ formatPercentFromThousands(manager.getStats().getCompleted());

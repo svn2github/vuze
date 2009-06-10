@@ -615,6 +615,20 @@ public class TorrentUtil {
 		itemFileRescan.setSelection(allScanSelected);
 		itemFileRescan.setEnabled(fileRescan);
 
+			// clear allocation
+		
+		MenuItem itemFileClearAlloc = new MenuItem(menuFiles, SWT.PUSH);
+		Messages.setLanguageText(itemFileClearAlloc, "MyTorrentsView.menu.clear_alloc_data");
+		itemFileClearAlloc.addListener(SWT.Selection, new DMTask(dms) {
+			public void run(DownloadManager dm) {
+				dm.setDataAlreadyAllocated( false );
+			}
+		});
+		
+		itemFileClearAlloc.setEnabled(allStopped);
+		
+			// clear resume
+		
 		MenuItem itemFileClearResume = new MenuItem(menuFiles, SWT.PUSH);
 		Messages.setLanguageText(itemFileClearResume, "MyTorrentsView.menu.clear_resume_data");
 		itemFileClearResume.addListener(SWT.Selection, new DMTask(dms) {
