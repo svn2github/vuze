@@ -52,6 +52,7 @@ public class StatusItem
 	public static final String COLUMN_ID = "status";
 
 	private final static Object CLICK_KEY = new Object();
+	private static final int[] BLUE = Utils.colorToIntArray( Colors.blue );
 	
 	private boolean changeRowFG;
 	private boolean changeCellFG = true;
@@ -80,50 +81,62 @@ public class StatusItem
 	{
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 
+		if ( dm == null ){
+			
+			return;
+		}
+		
 		int state = dm.getState();
 		
 		String	text;
 		
-		if ( dm != null && showTrackerErrors && dm.isUnauthorisedOnTracker() && state != DownloadManager.STATE_ERROR ){
+		if ( showTrackerErrors && dm.isUnauthorisedOnTracker() && state != DownloadManager.STATE_ERROR ){
 			
 			text = dm.getTrackerStatus();
 			
 		}else{
 			
-			text = dm == null ? "": DisplayFormatters.formatDownloadStatus(dm);
+			text = DisplayFormatters.formatDownloadStatus(dm);
 		}
 		
 		if ( cell.setText( text ) || !cell.isValid()) {
 			
-			String clickable = null;
+			boolean clickable = false;
 			
 			if ( cell instanceof TableCellSWT ){
-			
-				clickable = (String)dm.getUserData( CLICK_KEY );
+								
+				int cursor_id;
 				
 				if ( text.indexOf( "http://" ) == -1 ){
+									
+					dm.setUserData( CLICK_KEY, null );
 					
-					if ( clickable != null){
-				
-						dm.setUserData( CLICK_KEY, null );
+					cursor_id = SWT.CURSOR_ARROW;
 					
-						((TableCellSWT)cell).setCursorID(SWT.CURSOR_ARROW);
-					}
 				}else{
-					if ( clickable == null ){
 					
-						dm.setUserData( CLICK_KEY, text );
-
-						((TableCellSWT)cell).setCursorID(SWT.CURSOR_HAND);
-					}
+					dm.setUserData( CLICK_KEY, text );
+					
+					cursor_id = SWT.CURSOR_HAND;
+					
+					clickable = true;
 				}
+				
+				((TableCellSWT)cell).setCursorID( cursor_id );
 			}
 			
-			if (!changeCellFG && !changeRowFG) {
+			if (!changeCellFG && !changeRowFG){
+				
+					// clickable, make it blue whatever
+				
+				cell.setForeground( clickable?BLUE:null);
+				
 				return;
 			}
+			
 			TableRow row = cell.getTableRow();
-			if (row != null && dm != null) {
+			
+			if (row != null ) {
 				
 				Color color = null;
 				if (state == DownloadManager.STATE_SEEDING) {
@@ -138,7 +151,7 @@ public class StatusItem
 				} else if (changeCellFG) {
 					cell.setForeground(Utils.colorToIntArray(color));
 				}
-				if ( clickable != null ){
+				if ( clickable ){
 					cell.setForeground( Utils.colorToIntArray( Colors.blue ));
 				}
 
