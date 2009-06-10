@@ -13,6 +13,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -37,7 +38,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 public class ColumnProgressETA
 	extends CoreTableColumn
-	implements TableCellAddedListener
+	implements TableCellAddedListener, TableCellMouseListener
 {
 	public static final Class DATASOURCE_TYPE = DownloadTypeIncomplete.class;
 
@@ -49,6 +50,8 @@ public class ColumnProgressETA
 
 	public static final long SHOW_ETA_AFTER_MS = 30000;
 
+	private final static Object CLICK_KEY = new Object();
+	
 	private static Font fontText = null;
 
 	Display display;
@@ -103,6 +106,34 @@ public class ColumnProgressETA
 
 	public void cellAdded(TableCell cell) {
 		new Cell(cell);
+	}
+	
+	public void 
+	cellMouseTrigger(
+		TableCellMouseEvent event ) 
+	{
+
+		DownloadManager dm = (DownloadManager) event.cell.getDataSource();
+		if (dm == null) {return;}
+		
+		String clickable = (String)dm.getUserData( CLICK_KEY );
+		
+		if ( clickable == null ){
+			
+			return;
+		}
+		
+		event.skipCoreFunctionality = true;
+		
+		if ( event.eventType == TableCellMouseEvent.EVENT_MOUSEUP ){
+		
+			String url = UrlUtils.getURL( clickable );
+			
+			if ( url != null ){
+				
+				Utils.launch( url );
+			}
+		}
 	}
 	
 	private class Cell
@@ -255,6 +286,28 @@ public class ColumnProgressETA
 						//sETALine = "";
 					}
 				}
+				
+				int cursor_id;
+				
+				if ( sETALine.indexOf( "http://" ) == -1 ){
+									
+					dm.setUserData( CLICK_KEY, null );
+					
+					cursor_id = SWT.CURSOR_ARROW;
+					
+				}else{
+					
+					dm.setUserData( CLICK_KEY, sETALine );
+					
+					cursor_id = SWT.CURSOR_HAND;
+					
+					if ( !cell.getTableRow().isSelected()){
+					
+						fgFirst = Colors.blue;
+					}
+				}
+				
+				((TableCellSWT)cell).setCursorID( cursor_id );
 			}
 
 			if (fontText == null) {
