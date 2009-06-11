@@ -225,11 +225,11 @@ public class VersionCheckClient {
 	        }
 	        catch(SocketException t) {
 	        	// internet is broken
-	        	Debug.out(t.getClass().getName() + ": " + t.getMessage());
+	        	// Debug.out(t.getClass().getName() + ": " + t.getMessage());
 	        }
 	        catch(UnknownHostException t) {
 	        	// dns is broken
-	        	Debug.out(t.getClass().getName() + ": " + t.getMessage());
+	        	// Debug.out(t.getClass().getName() + ": " + t.getMessage());
 	        }
 	        catch( Throwable t ) {
 	        	Debug.out(t);
