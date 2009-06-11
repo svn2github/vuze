@@ -312,6 +312,12 @@ ViewUtils
 
 		try {
 			int result = (int) (Double.valueOf(sReturn).doubleValue() * 1024);
+			
+			if ( DisplayFormatters.isRateUsingBits()){
+				
+				result /= 8;
+			}
+			
 			if (result <= 0) {throw new NumberFormatException("non-positive number entered");}
 			return result;
 		} catch (NumberFormatException er) {

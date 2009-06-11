@@ -364,6 +364,12 @@ DisplayFormatters
 		return units_base10[unit_size];
 	}
 
+	public static boolean
+	isRateUsingBits()
+	{
+		return( use_units_rate_bits );
+	}
+	
 	public static String
 	formatByteCountToKiBEtc(int n)
 	{
