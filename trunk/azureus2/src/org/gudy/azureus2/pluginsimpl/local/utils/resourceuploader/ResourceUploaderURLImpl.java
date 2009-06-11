@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourceuploader.*;
@@ -228,7 +229,23 @@ ResourceUploaderURLImpl
 								}
 							}
 
-							throw( e );							
+							throw( e );	
+							
+						}catch( IOException e ){
+							
+							if ( i == 0 ){
+								
+					      		URL retry_url = UrlUtils.getIPV4Fallback( url );
+				      			
+					      		if ( retry_url != null ){
+					      				
+					      			url = retry_url;
+					      			
+					      			continue;
+					      		}
+							}
+							
+							throw( e );
 						}
 					}
 					

@@ -27,6 +27,8 @@ package org.gudy.azureus2.core3.torrentdownloader.impl;
 import java.io.*;
 
 import java.net.HttpURLConnection;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Iterator;
@@ -237,6 +239,22 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
       		}
 
       		throw( e );
+      		
+      	}catch( IOException e ){
+      		
+      		if ( i == 0 ){
+      			
+      			URL retry_url = UrlUtils.getIPV4Fallback( url );
+      			
+      			if ( retry_url != null ){
+      				
+      				url = retry_url;
+      				
+      			}else{
+      				
+      				throw( e );
+      			}
+      		}
       	}
       }
       

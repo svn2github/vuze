@@ -1083,9 +1083,10 @@ TRTrackerBTAnnouncerImpl
 	 		for (int i=0;i<2;i++){	
 	 		
 		  		String	failure_reason = null;
-		  	
+
+				String	protocol = reqUrl.getProtocol();
+
 				try{  
-					String	protocol = reqUrl.getProtocol();
 					
 					if (Logger.isEnabled()){
 						Logger.log(new LogEvent(torrent, LOGID,
@@ -1206,6 +1207,22 @@ TRTrackerBTAnnouncerImpl
 						failure_reason = exceptionToString( e );
 						
 					}
+				}catch( IOException e ){
+					
+		     		if ( i == 0 && protocol.toLowerCase().startsWith( "http" )){
+		      			
+		      			URL retry_url = UrlUtils.getIPV4Fallback( reqUrl );
+		      			
+		      			if ( retry_url != null ){
+		      				
+		      				reqUrl = retry_url;
+		      				
+		      				continue;
+		      			}
+		     		}
+		     		
+		     		failure_reason = exceptionToString( e );
+		     		
 				}catch (Exception e){
 			  
 			  		// e.printStackTrace();

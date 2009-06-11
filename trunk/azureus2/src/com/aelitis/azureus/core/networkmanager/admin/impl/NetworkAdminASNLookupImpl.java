@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
+import com.aelitis.azureus.core.util.DNSUtils;
 
 public class 
 NetworkAdminASNLookupImpl 
@@ -209,11 +210,7 @@ NetworkAdminASNLookupImpl
 		DirContext context = null;
 		
 		try{
-			Hashtable env = new Hashtable();
-			
-			env.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
-			
-			context = new InitialDirContext(env);
+			context = DNSUtils.getInitialDirContext();
 			
 			Attributes attrs = context.getAttributes( query, new String[]{ "TXT" });
 			

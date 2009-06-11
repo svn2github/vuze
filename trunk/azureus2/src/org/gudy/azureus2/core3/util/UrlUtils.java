@@ -663,7 +663,12 @@ public class UrlUtils
 		String authority=u.getAuthority();
 		if (authority != null && authority.length() > 0) {
 			result.append("//");
-			int pos = authority.lastIndexOf(':');
+			int pos = authority.indexOf( '@' );
+			if ( pos != -1 ){
+				result.append(authority.substring(0,pos+1));
+				authority = authority.substring(pos+1);
+			}
+			pos = authority.lastIndexOf(':');
 			if ( pos == -1 ){
 				result.append(authority + ":" + port );
 			}else{
@@ -687,5 +692,90 @@ public class UrlUtils
 			Debug.out(e);
 			return(u);
 		}
+	}
+	
+	public static URL
+	setHost(
+		URL			u,
+		String		host )
+	{
+		StringBuffer result = new StringBuffer();
+		result.append(u.getProtocol());
+		result.append(":");
+		String authority=u.getAuthority();
+		if (authority != null && authority.length() > 0) {
+			result.append("//");
+			int pos = authority.indexOf( '@' );
+			if ( pos != -1 ){
+				result.append(authority.substring(0,pos+1));
+				authority = authority.substring(pos+1);
+			}
+			pos = authority.lastIndexOf(':');
+			if ( pos == -1 ){
+				result.append(host );
+			}else{
+				result.append(host + authority.substring(pos));				
+			}
+		}
+		if (u.getPath() != null) {
+			result.append(u.getPath());
+		}
+		if (u.getQuery() != null) {
+			result.append('?');
+			result.append(u.getQuery());
+		}
+		if (u.getRef() != null) {
+			result.append("#");
+			result.append(u.getRef());
+		}
+		try{
+			return( new URL( result.toString()));
+		}catch( Throwable e ){
+			Debug.out(e);
+			return(u);
+		}
+	}
+	
+		/**
+		 * Returns an explicit IPv4 url if the supplied one has both IPv6 and IPv4 addresses
+		 * @param url
+		 * @return
+		 */
+	
+	public static URL
+	getIPV4Fallback(
+		URL	url )
+	{
+		try{
+			InetAddress[] addresses = InetAddress.getAllByName( url.getHost());
+			
+			if ( addresses.length > 0 ){
+				
+				InetAddress	ipv4	= null;
+				InetAddress	ipv6	= null;
+				
+				for ( InetAddress a: addresses ){
+					
+					if ( a instanceof Inet4Address ){
+						
+						ipv4 = a;
+						
+					}else{
+						
+						ipv6 = a;
+					}
+				}
+				
+				if ( ipv4 != null && ipv6 != null ){
+					
+					url = UrlUtils.setHost( url, ipv4.getHostAddress());
+					
+					return( url );
+				}
+			}
+		}catch( Throwable f ){
+		}	
+		
+		return( null );
 	}
 }

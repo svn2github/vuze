@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
@@ -301,7 +302,23 @@ ResourceDownloaderURLImpl
 								}
 							}
 
-							throw( e );							
+							throw( e );
+							
+						}catch( IOException e ){
+							
+							if ( i == 0 ){
+								
+					      		URL retry_url = UrlUtils.getIPV4Fallback( url );
+				      			
+					      		if ( retry_url != null ){
+					      				
+					      			url = retry_url;
+					      			
+					      			continue;
+					      		}
+							}
+							
+							throw( e );
 						}
 					}
 					
@@ -474,7 +491,7 @@ redirect_label:
 						
 						follow_redirect = false;
 					
-						for (int ssl_loop=0;ssl_loop<2;ssl_loop++){
+						for (int connect_loop=0;connect_loop<2;connect_loop++){
 					
 							File					temp_file	= null;
 	
@@ -725,7 +742,7 @@ redirect_label:
 		
 							}catch( SSLException e ){
 								
-								if ( ssl_loop == 0 ){
+								if ( connect_loop == 0 ){
 									
 									if ( SESecurityManager.installServerCertificates( url ) != null ){
 										
@@ -739,7 +756,7 @@ redirect_label:
 								
 							}catch( ZipException e ){
 								
-								if ( ssl_loop == 0 ){
+								if ( connect_loop == 0 ){
 									
 									use_compression = false;
 									
@@ -747,7 +764,7 @@ redirect_label:
 								}
 							}catch( IOException e ){
 								
-								if ( ssl_loop == 0 ){
+								if ( connect_loop == 0 ){
 									
 									String	msg = e.getMessage();
 									
@@ -762,6 +779,15 @@ redirect_label:
 											continue;
 										}
 									}
+															      			
+						      		URL retry_url = UrlUtils.getIPV4Fallback( url );
+						      			
+						      		if ( retry_url != null ){
+						      				
+						      			url = retry_url;
+						      			
+						      			continue;
+						      		}
 								}
 								
 								throw( e );
