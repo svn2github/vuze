@@ -517,6 +517,62 @@ NetworkAdminImpl
 		return nio ? supportsIPv6withNIO : supportsIPv6;
 	}
 	
+	public InetAddress[]
+  	getBindableAddresses()
+  	{
+  		List<InetAddress>	bindable = new ArrayList<InetAddress>();
+  		
+  		NetworkAdminNetworkInterface[] interfaces = NetworkAdmin.getSingleton().getInterfaces();
+  		
+  		for ( NetworkAdminNetworkInterface intf: interfaces ){
+  			
+  			NetworkAdminNetworkInterfaceAddress[] addresses = intf.getAddresses();
+  			
+  			for ( NetworkAdminNetworkInterfaceAddress address: addresses ){
+
+  				InetAddress a = address.getAddress();
+  				
+  				if ( canBind( a )){
+  					
+  					bindable.add( a );
+  				}
+  			}
+  		}
+  		
+  		return( bindable.toArray( new InetAddress[ bindable.size()]));
+  	}
+  	
+  	protected boolean
+  	canBind(
+  		InetAddress	bind_ip )
+  	{
+  		ServerSocketChannel ssc = null;
+  		
+  		try{
+  			ssc = ServerSocketChannel.open();
+  		
+  			ssc.socket().bind( new InetSocketAddress(bind_ip,0), 16 );
+  			
+  			return( true );
+  			
+  		}catch( Throwable e ){
+  			
+  			return( false );
+  			
+  		}finally{
+  			
+  			if ( ssc != null ){
+  	
+  				try{
+  					ssc.close();
+  					
+  				}catch( Throwable e ){
+  					
+  					Debug.out( e );
+  				}
+  			}
+  		}
+  	}
 	
 	public InetAddress 
 	guessRoutableBindAddress() 

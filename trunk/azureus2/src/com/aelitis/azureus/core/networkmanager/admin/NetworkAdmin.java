@@ -85,6 +85,15 @@ NetworkAdmin
 	public abstract InetAddress
 	guessRoutableBindAddress();
 	
+		/**
+		 * Returns the list of current addresses that can successfully be bound
+		 * to with an ephemeral port
+		 * @return
+		 */
+	
+	public abstract InetAddress[]
+	getBindableAddresses();
+	
 	public abstract NetworkAdminNetworkInterface[]
 	getInterfaces();
 	
