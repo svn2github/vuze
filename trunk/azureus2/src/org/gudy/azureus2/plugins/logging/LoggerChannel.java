@@ -71,6 +71,8 @@ public interface LoggerChannel {
 	 */
 	public void setDiagnostic();
 
+	public void setDiagnostic( long max_file_size );
+
 	/**
 	 * Log a message of a specific type to this channel's logger
 	 * 

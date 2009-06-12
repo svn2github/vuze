@@ -85,9 +85,21 @@ LoggerChannelImpl
 	public void
 	setDiagnostic()
 	{
+		setDiagnostic( 0 );
+	}
+	
+	public void
+	setDiagnostic(
+		long	max_file_size )
+	{
 		if ( diagnostic_logger == null ){
 			
 			diagnostic_logger = AEDiagnostics.getLogger( FileUtil.convertOSSpecificChars( name, false ));
+			
+			if ( max_file_size > 0 ){
+				
+				diagnostic_logger.setMaxFileSize((int)max_file_size );
+			}
 			
 			addListener(
 				new LoggerChannelListener()

@@ -96,6 +96,13 @@ AEDiagnosticsLogger
 	}
 		
 	public void
+	setMaxFileSize(
+		int		_max_size )
+	{
+		max_size	= _max_size;
+	}
+	
+	public void
 	log(
 		Throwable				e )
 	{
