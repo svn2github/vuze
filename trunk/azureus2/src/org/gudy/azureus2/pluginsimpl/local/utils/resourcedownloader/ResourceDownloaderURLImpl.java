@@ -353,6 +353,8 @@ ResourceDownloaderURLImpl
 				
 			}else{
 				
+				Debug.out(e);
+				
 				rde = new ResourceDownloaderException( "Unexpected error", e );
 			}
 						
@@ -625,7 +627,7 @@ redirect_label:
 								try{
 									byte[] buf = new byte[BUFFER_SIZE];
 									
-									int	total_read	= 0;
+									long	total_read	= 0;
 									
 										// unfortunately not all servers set content length
 									
@@ -638,9 +640,9 @@ redirect_label:
 											the length of the incoming data from the client and not the
 											byte count of the decompressed data stream.
 									 */
-									int size = compressed ? -1 : con.getContentLength();					
+									long size = compressed ? -1 : con.getContentLength();					
 									
-									baos = size>0?new ByteArrayOutputStream(size>MAX_IN_MEM_READ_SIZE?MAX_IN_MEM_READ_SIZE:size):new ByteArrayOutputStream();
+									baos = size>0?new ByteArrayOutputStream(size>MAX_IN_MEM_READ_SIZE?MAX_IN_MEM_READ_SIZE:(int)size):new ByteArrayOutputStream();
 									
 									while( !cancel_download ){
 										
@@ -674,7 +676,7 @@ redirect_label:
 											
 											if ( size > 0){
 												
-												informPercentDone(( 100 * total_read ) / size );
+												informPercentDone((int)(( 100 * total_read ) / size ));
 											}
 										}else{
 											
@@ -832,6 +834,7 @@ redirect_label:
 				rde = (ResourceDownloaderException)e;
 				
 			}else{
+				Debug.out(e);
 				
 				rde = new ResourceDownloaderException( "Unexpected error", e );
 			}
