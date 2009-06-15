@@ -117,7 +117,21 @@ public class BuddiesViewer
 
 	private ScrolledComposite scrollable;
 
+	private AERunnable runnableSetPanelSize;
+	private boolean runnableSetPanelSizeQueued = false;
+
 	public BuddiesViewer() {
+
+		runnableSetPanelSize = new AERunnable() {
+			public void runSupport() {
+				runnableSetPanelSizeQueued = false;
+				avatarsPanel.layout();
+				Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT,
+						true);
+				avatarsPanel.setSize(size);
+			}
+		};
+
 
 		chat = new Chat();
 		chat.addChatListener(new ChatListener() {
@@ -272,7 +286,14 @@ public class BuddiesViewer
 			avatarSize.y = avatarNameSize.y + avatarImageSize.y
 					+ (2 * (avatarHightLightBorder + avatarImageBorder) + 6);
 
-			fillBuddies(avatarsPanel);
+			// fill buddies after the ui dust has settled.  Since fillBuddies
+			// adds a buddy listener, delaying this allows for the buddy list
+			// to the complete
+			Utils.execSWTThreadLater(100, new AERunnable() {
+				public void runSupport() {
+					fillBuddies(avatarsPanel);
+				}
+			});
 
 			/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT*/
 //			RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
@@ -461,14 +482,15 @@ public class BuddiesViewer
 							soNoBuddies.setVisible(false);
 						}
 						createBuddyControls(avatarsPanel, (VuzeBuddySWT) buddy);
-						avatarsPanel.layout();
-						Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT,
-								true);
-						avatarsPanel.setSize(size);
+						
+						if (!runnableSetPanelSizeQueued) {
+							runnableSetPanelSizeQueued = true;
+							Utils.execSWTThreadLater(100, runnableSetPanelSize);
+						}
 					}
 				}
 			});
-
+			
 		} else {
 			Debug.out("Wrong type VuzeBuddy... must be of type VuzeBuddySWT");
 		}
