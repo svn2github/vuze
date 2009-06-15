@@ -4113,7 +4113,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					}
 				}
 
-				if (numSame < selectedRows.length) {
+				if (numSame < selectedRows.length || iNumMoves > 0) {
 					// XXX setSelection calls showSelection().  We don't want the table
 					//     to jump all over.  Quick fix is to reset topIndex, but
 					//     there might be a better way
@@ -4123,7 +4123,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						iTopIndex = table.getTopIndex();
 					}
 					table.setSelection(newSelectedRowIndices);
-					setSelectedRowIndexes(newSelectedRowIndices);
+					setSelectedRowIndexes(table.getSelectionIndices());
 
 					if (!bFollowSelected) {
 						table.setTopIndex(iTopIndex);
@@ -4150,7 +4150,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 *
 	 * @since 4.1.0.5
 	 */
-	private void setSelectedRowIndexes(int[] newSelectedRowIndices) {
+	protected void setSelectedRowIndexes(int[] newSelectedRowIndices) {
 		selectedRowIndexes = newSelectedRowIndices;
 		listSelectedCoreDataSources = null;
 	}

@@ -1130,7 +1130,7 @@ public class MyTorrentsView
 		}
 		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), sc, tv);
 	}
-
+	
   private void refreshIconBar() {
   	computePossibleActions();
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
@@ -2133,7 +2133,12 @@ public class MyTorrentsView
 		int tableExtraStyle = COConfigurationManager.getIntParameter("MyTorrentsView.table.style");
 		return new TableViewSWTImpl(forDataSourceType, tableID, "MyTorrentsView",
 				basicItems, "#", tableExtraStyle | SWT.MULTI | SWT.FULL_SELECTION
-						| SWT.VIRTUAL);
+						| SWT.VIRTUAL) {
+			protected void setSelectedRowIndexes(int[] newSelectedRowIndices) {
+				super.setSelectedRowIndexes(newSelectedRowIndices);
+				updateSelectedContent();
+			}			
+		};
 	}
 
 	/**
