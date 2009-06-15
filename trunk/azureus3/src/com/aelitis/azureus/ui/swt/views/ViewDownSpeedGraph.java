@@ -58,8 +58,6 @@ public class ViewDownSpeedGraph
 
 	GlobalManagerStats stats = null;
 
-	OverallStats totalStats;
-
 	Canvas downSpeedCanvas;
 
 	SpeedGraphic downSpeedGraphic;
@@ -75,8 +73,6 @@ public class ViewDownSpeedGraph
 				stats = manager.getStats();
 			}
 		});
-
-		this.totalStats = StatsFactory.getStats();
 	}
 
 	public void periodicUpdate() {

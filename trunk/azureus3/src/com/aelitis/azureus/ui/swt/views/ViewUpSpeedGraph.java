@@ -56,8 +56,6 @@ public class ViewUpSpeedGraph
 
 	GlobalManagerStats stats = null;
 
-	OverallStats totalStats;
-
 	Canvas upSpeedCanvas;
 
 	SpeedGraphic upSpeedGraphic;
@@ -73,7 +71,6 @@ public class ViewUpSpeedGraph
 				stats = manager.getStats();
 			}
 		});
-		this.totalStats = StatsFactory.getStats();
 	}
 
 	public void initialize(Composite composite) {
