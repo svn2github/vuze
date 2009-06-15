@@ -58,8 +58,6 @@ public class ActivityView extends AbstractIView implements ParameterListener {
   GlobalManager manager = null;
   GlobalManagerStats stats = null;
   
-  OverallStats totalStats;
-  
   Composite panel;
   
   Canvas downSpeedCanvas;
@@ -75,7 +73,6 @@ public class ActivityView extends AbstractIView implements ParameterListener {
 				stats = manager.getStats();
 			}
 		});
-    this.totalStats = StatsFactory.getStats();
   }
   
   public void periodicUpdate() {

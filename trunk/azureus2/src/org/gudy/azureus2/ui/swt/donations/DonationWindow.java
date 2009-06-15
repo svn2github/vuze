@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -83,8 +84,13 @@ public class DonationWindow
 			}
 			return;
 		}
+		
+		OverallStats stats = StatsFactory.getStats();
+		if (stats == null) {
+			return;
+		}
 
-		long upTime = StatsFactory.getStats().getTotalUpTime();
+		long upTime = stats.getTotalUpTime();
 		int hours = (int) (upTime / (60 * 60)); //secs * mins
 
 		//Ask every DONATIONS_ASK_AFTER hours.

@@ -49,8 +49,8 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
@@ -173,7 +173,6 @@ public class MainStatusBar
 	 */
 	public MainStatusBar() {
 		numberFormat = NumberFormat.getInstance();
-		overall_stats = StatsFactory.getStats();
 		// Proably need to wait for core to be running to make sure dht plugin is fully avail
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
@@ -433,6 +432,10 @@ public class MainStatusBar
 				uiFunctions.openView(UIFunctions.VIEW_STATS, "transfers");
 
 				OverallStats stats = StatsFactory.getStats();
+				
+				if (stats == null) {
+					return;
+				}
 
 				long ratio = (1000 * stats.getUploadedBytes() / (stats.getDownloadedBytes() + 1));
 
@@ -577,7 +580,11 @@ public class MainStatusBar
 
 		} else if (secs_uptime - last_uptime > 15 * 60) {
 
-			CLabelPadding feedback = new CLabelPadding(statusBar, borderFlag);
+			CLabel feedback = createStatusEntry(new CLabelUpdater() {
+				public void update(CLabel label) {
+				}
+			});
+			
 			feedback.setText(MessageText.getString("statusbar.feedback"));
 
 			Listener feedback_listener = new Listener() {
@@ -595,12 +602,14 @@ public class MainStatusBar
 							520, true, false);
 				}
 			};
-
+			
 			feedback.setToolTipText(MessageText.getString("statusbar.feedback.tooltip"));
 			feedback.setCursor(Cursors.handCursor);
 			feedback.setForeground(Colors.blue);
 			feedback.addListener(SWT.MouseUp, feedback_listener);
 			feedback.addListener(SWT.MouseDoubleClick, feedback_listener);
+			
+			feedback.setVisible(true);
 		}
 	}
 
@@ -1000,7 +1009,11 @@ public class MainStatusBar
 		// SR status section
 		
 		if (overall_stats == null) {
-			return;
+			overall_stats = StatsFactory.getStats();
+			
+			if (overall_stats == null) {
+				return;
+			}
 		}
 
 		long ratio = (1000 * overall_stats.getUploadedBytes() / (overall_stats.getDownloadedBytes() + 1));

@@ -108,9 +108,9 @@ public class TransferStatsView extends AbstractIView {
 			public void azureusCoreRunning(AzureusCore core) {
 				stats = core.getGlobalManager().getStats();
 		    speedManager = core.getSpeedManager();
+		    totalStats = StatsFactory.getStats();
 			}
 		});
-    this.totalStats = StatsFactory.getStats();
     
   }
   
@@ -448,35 +448,37 @@ public class TransferStatsView extends AbstractIView {
     
     ////////////////////////////////////////////////////////////////////////
     
-    totalDown.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getDownloadedBytes() ));
-    totalUp.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getUploadedBytes() ));
-
-    sessionTime.setText( DisplayFormatters.formatETA( totalStats.getSessionUpTime() ) );
-    totalTime.setText( DisplayFormatters.formatETA( totalStats.getTotalUpTime() ) );
+    if (totalStats != null) {
+      totalDown.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getDownloadedBytes() ));
+      totalUp.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getUploadedBytes() ));
+  
+      sessionTime.setText( DisplayFormatters.formatETA( totalStats.getSessionUpTime() ) );
+      totalTime.setText( DisplayFormatters.formatETA( totalStats.getTotalUpTime() ) );
     
-    long dl_bytes = totalStats.getDownloadedBytes();
+      long dl_bytes = totalStats.getDownloadedBytes();
     
-    long t_ratio_raw = (1000* totalStats.getUploadedBytes() / (dl_bytes==0?1:dl_bytes) );
-    long s_ratio_raw = (1000* session_total_sent / (session_total_received==0?1:session_total_received) );
-    
-    String t_ratio = "";
-    String s_ratio = "";
-
-    String partial = String.valueOf(t_ratio_raw % 1000);
-    while (partial.length() < 3) {
-      partial = "0" + partial;
+      long t_ratio_raw = (1000* totalStats.getUploadedBytes() / (dl_bytes==0?1:dl_bytes) );
+      long s_ratio_raw = (1000* session_total_sent / (session_total_received==0?1:session_total_received) );
+      
+      String t_ratio = "";
+      String s_ratio = "";
+  
+      String partial = String.valueOf(t_ratio_raw % 1000);
+      while (partial.length() < 3) {
+        partial = "0" + partial;
+      }
+      t_ratio = (t_ratio_raw / 1000) + "." + partial;
+      
+      partial = String.valueOf(s_ratio_raw % 1000);
+      while (partial.length() < 3) {
+        partial = "0" + partial;
+      }
+      s_ratio = (s_ratio_raw / 1000) + "." + partial;
+      
+      
+      total_ratio.setText( t_ratio );
+      session_ratio.setText( s_ratio );
     }
-    t_ratio = (t_ratio_raw / 1000) + "." + partial;
-    
-    partial = String.valueOf(s_ratio_raw % 1000);
-    while (partial.length() < 3) {
-      partial = "0" + partial;
-    }
-    s_ratio = (s_ratio_raw / 1000) + "." + partial;
-    
-    
-    total_ratio.setText( t_ratio );
-    session_ratio.setText( s_ratio );
   }  
   
   private void
