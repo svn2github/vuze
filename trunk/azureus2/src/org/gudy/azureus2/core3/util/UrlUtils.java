@@ -778,4 +778,27 @@ public class UrlUtils
 		
 		return( null );
 	}
+	
+	public static long
+	getContentLength(
+		HttpURLConnection	con )
+	{
+		long res = con.getContentLength();
+		
+		if ( res == -1 ){
+			
+			try{
+				String	str = con.getHeaderField( "content-length" );
+				
+				if ( str != null ){
+					
+					res = Long.parseLong( str );
+				}
+			}catch( Throwable e ){
+				
+			}
+		}
+		
+		return( res );
+	}
 }

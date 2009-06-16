@@ -288,7 +288,7 @@ ResourceDownloaderURLImpl
 															
 							getRequestProperties( con );
 							
-							return( con.getContentLength());
+							return( UrlUtils.getContentLength( con ));
 							
 						}catch( SSLException e ){
 							
@@ -640,7 +640,7 @@ redirect_label:
 											the length of the incoming data from the client and not the
 											byte count of the decompressed data stream.
 									 */
-									long size = compressed ? -1 : con.getContentLength();					
+									long size = compressed ? -1 : UrlUtils.getContentLength( con );					
 									
 									baos = size>0?new ByteArrayOutputStream(size>MAX_IN_MEM_READ_SIZE?MAX_IN_MEM_READ_SIZE:(int)size):new ByteArrayOutputStream();
 									
