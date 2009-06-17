@@ -27,9 +27,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
+import java.util.TimeZone;
 
 /**
  * @author parg
@@ -54,6 +57,17 @@ AEDiagnosticsLogger
 	private boolean						direct_writes;
 	
 	private boolean		close_pws = false;
+	
+	private static final String	start_date;
+	private static final long	timezone_offset;
+	
+	static{
+		long		now = System.currentTimeMillis();
+		
+		start_date = new SimpleDateFormat().format( new Date(now));
+		
+		timezone_offset = TimeZone.getDefault().getOffset(now);
+	}
 	
 	protected
 	AEDiagnosticsLogger(
@@ -162,6 +176,7 @@ AEDiagnosticsLogger
 		log( e );
 	}
 	
+	/*
 	public static String
 	getTimestamp()
 	{
@@ -171,6 +186,49 @@ AEDiagnosticsLogger
 						format(now.get(Calendar.HOUR_OF_DAY))+ ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "] ";        
 		
 		return( timeStamp );
+	}
+	*/
+	
+	public static String
+	getTimestamp()
+	{
+		long time = SystemTime.getCurrentTime();
+			
+		time += timezone_offset;		// we'll live with this changing...
+			
+		time /= 1000;
+			
+	    int secs = (int)time % 60;
+	    int mins = (int)(time / 60) % 60;
+	    int hours = (int)(time /3600) % 24;
+	
+	    char[]	chars = new char[11];
+	    
+	    chars[0] = '[';
+	    format( hours, chars, 1 );
+	    chars[3] = ':';
+	    format( mins, chars, 4 );
+	    chars[6] = ':';
+	    format( secs, chars, 7 );
+	    chars[9] = ']';
+	    chars[10] = ' ';
+	    
+		return( new String( chars ));
+	}
+	
+	private static final void
+	format(
+		int		num,
+		char[]	chars,
+		int		pos )
+	{
+		if ( num < 10 ){
+			chars[pos] = '0';
+			chars[pos+1] =(char)( '0' + num );
+		}else{
+			chars[pos] 		= (char)('0' + (num/10));
+			chars[pos+1]	= (char)('0' + (num%10));
+		}
 	}
 	
 	public void
@@ -204,7 +262,7 @@ AEDiagnosticsLogger
 				Calendar now = GregorianCalendar.getInstance();
 
 				str.append( "\r\n[" );
-				str.append( now.get(Calendar.YEAR));
+				str.append( start_date );
 				str.append( "] Log File Opened for " );
 				str.append(  Constants.APP_NAME );
 				str.append( " " );
