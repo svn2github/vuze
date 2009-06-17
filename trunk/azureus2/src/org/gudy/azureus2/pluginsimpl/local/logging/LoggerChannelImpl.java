@@ -85,12 +85,13 @@ LoggerChannelImpl
 	public void
 	setDiagnostic()
 	{
-		setDiagnostic( 0 );
+		setDiagnostic( 0, true );
 	}
 	
 	public void
 	setDiagnostic(
-		long	max_file_size )
+		long	max_file_size,
+		boolean	timestamp )
 	{
 		if ( diagnostic_logger == null ){
 			
@@ -100,6 +101,8 @@ LoggerChannelImpl
 				
 				diagnostic_logger.setMaxFileSize((int)max_file_size );
 			}
+			
+			diagnostic_logger.enableTimeStamp( timestamp );
 			
 			addListener(
 				new LoggerChannelListener()

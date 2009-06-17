@@ -43,6 +43,7 @@ AEDiagnosticsLogger
 	private String 			name;
 	private int				max_size;
 	private File			debug_dir;
+	private boolean			timestamp_enable				= true;
 	
 	private boolean			first_file				= true;
 	private boolean			first_write			 	= true;
@@ -103,6 +104,13 @@ AEDiagnosticsLogger
 	}
 	
 	public void
+	enableTimeStamp(
+		boolean	enable )
+	{
+		timestamp_enable	= enable;
+	}
+	
+	public void
 	log(
 		Throwable				e )
 	{
@@ -154,6 +162,17 @@ AEDiagnosticsLogger
 		log( e );
 	}
 	
+	public static String
+	getTimestamp()
+	{
+		Calendar now = GregorianCalendar.getInstance();
+
+		String timeStamp = "[" + format(now.get(Calendar.DAY_OF_MONTH))+format(now.get(Calendar.MONTH)+1) + " " + 
+						format(now.get(Calendar.HOUR_OF_DAY))+ ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "] ";        
+		
+		return( timeStamp );
+	}
+	
 	public void
 	log(
 		String	_str )
@@ -163,20 +182,27 @@ AEDiagnosticsLogger
 			return;
 		}
 		
-		Calendar now = GregorianCalendar.getInstance();
-
 		StringBuilder str = new StringBuilder( _str.length() + 20 );
 		
-		String timeStamp =
-			"[" + format(now.get(Calendar.DAY_OF_MONTH))+format(now.get(Calendar.MONTH)+1) + " " + 
-			format(now.get(Calendar.HOUR_OF_DAY))+ ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "] ";        
-
+		final String timeStamp;
+		
+		if ( timestamp_enable ){	
+			
+			timeStamp = getTimestamp();
+			
+		}else{
+			
+			timeStamp = null;
+		}
+		
 		synchronized( this ){
 
 			if ( first_write ){
 				
 				first_write = false;
 				
+				Calendar now = GregorianCalendar.getInstance();
+
 				str.append( "\r\n[" );
 				str.append( now.get(Calendar.YEAR));
 				str.append( "] Log File Opened for " );
@@ -186,7 +212,11 @@ AEDiagnosticsLogger
 				str.append( "\r\n" );
 			}
 			
-			str.append( timeStamp );
+			if ( timeStamp != null ){
+				
+				str.append( timeStamp );
+			}
+			
 			str.append( _str );
 		
 			if ( !direct_writes ){
