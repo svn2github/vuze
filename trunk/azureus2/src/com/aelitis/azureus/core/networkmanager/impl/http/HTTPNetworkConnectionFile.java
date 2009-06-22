@@ -32,6 +32,7 @@ import java.util.StringTokenizer;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
@@ -45,6 +46,8 @@ public class
 HTTPNetworkConnectionFile
 	extends HTTPNetworkConnection
 {
+	private boolean	switching;
+	
 	protected
 	HTTPNetworkConnectionFile(
 		HTTPNetworkManager		_manager,
@@ -57,20 +60,25 @@ HTTPNetworkConnectionFile
 	protected void
 	decodeHeader(
 		HTTPMessageDecoder		decoder,
-		String					header )
+		final String			header )
 	
 		throws IOException
 	{
+		if ( switching ){
+			
+			Debug.out( "new header received while paused" );
+			
+			throw( new IOException( "Bork" ));
+		}
+		
 		if ( !isSeed()){
 			
 			return;
-		}
+		}		
 		
-			// note that if we allow keep-alive in the future we'd need to validate it was the
-			// same torrent...
+		PEPeerControl	control = getPeerControl();
 		
-		
-		DiskManager	dm = getPeerControl().getDiskManager();
+		DiskManager	dm = control.getDiskManager();
 		
 		if ( dm == null ){
 			
@@ -78,7 +86,7 @@ HTTPNetworkConnectionFile
 			
 			throw( new IOException( "Disk manager unavailable" ));
 		}
-			
+					
 		TOTorrent	to_torrent = dm.getTorrent();
 				
 		char[]	chars = header.toCharArray();
@@ -110,6 +118,54 @@ HTTPNetworkConnectionFile
 				
 				if ( line_num == 1 ){
 					
+					line = line.substring( line.indexOf( "files/" ) + 6 );
+					
+					int	hash_end = line.indexOf( "/" );
+					
+					final byte[] old_hash = control.getHash();
+
+					final byte[] new_hash = URLDecoder.decode(line.substring(0, hash_end), "ISO-8859-1").getBytes( "ISO-8859-1" );
+					
+					if ( !Arrays.equals( new_hash, old_hash )){
+						
+						switching		= true;
+						
+						decoder.pauseInternally();
+							
+						flushRequests(
+							new flushListener()
+							{
+								private boolean triggered;
+								
+								public void 
+								flushed() 
+								{
+									synchronized( this ){
+										
+										if ( triggered ){
+											
+											return;
+										}
+										
+										triggered = true;
+									}
+									
+									getManager().reRoute( 
+											HTTPNetworkConnectionFile.this, 
+											old_hash, new_hash, header );
+								}
+							});
+							
+						return;
+					}
+					
+					
+					line = line.substring( hash_end + 1 );
+					
+					line = line.substring( 0, line.lastIndexOf( ' ' ));
+					
+					String	file = line;
+
 					if ( to_torrent.isSimpleTorrent()){
 						
 							// optimise for simple torrents. also support the case where
@@ -118,12 +174,6 @@ HTTPNetworkConnectionFile
 						target_file = dm.getFiles()[0];
 						
 					}else{
-						line = line.substring( line.indexOf( "files/" ) + 6 );
-						line = line.substring( line.indexOf( "/" ) + 1 );
-						
-						line = line.substring( 0, line.lastIndexOf( ' ' ));
-						
-						String	file = line;
 						
 						target_str	= file;
 						
@@ -251,8 +301,7 @@ HTTPNetworkConnectionFile
 						}
 					}else if ( line.indexOf( "keep-alive" ) != -1 ){
 						
-						keep_alive	= true;
-						
+						keep_alive	= true;						
 					}
 				}
 			}
