@@ -349,6 +349,10 @@ public class Debug {
 				
 				this_message = "Unknown host " + e.getMessage();
 				
+			}else if ( e instanceof FileNotFoundException ){
+				
+				this_message = "File not found: " + e.getMessage();
+				
 			}else{
 				
 				this_message = e.getMessage();
