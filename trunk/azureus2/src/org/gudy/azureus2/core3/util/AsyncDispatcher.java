@@ -98,6 +98,15 @@ AsyncDispatcher
 		queue_sem.release();
 	}
 	
+	public boolean
+	isQuiescent()
+	{
+		synchronized( this ){
+
+			return( thread == null );
+		}
+	}
+	
 	public int
 	getQueueSize()
 	{
