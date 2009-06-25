@@ -622,6 +622,8 @@ public class MainWindow
 		});
 
 		core.triggerLifeCycleComponentCreated(uiFunctions);
+
+		processStartupDMS();
 	}
 
 	private void processStartupDMS() {
