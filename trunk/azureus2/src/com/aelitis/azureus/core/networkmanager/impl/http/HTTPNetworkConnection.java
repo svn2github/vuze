@@ -93,7 +93,7 @@ HTTPNetworkConnection
 	private static final int	DEAD_CONNECTION_TIMEOUT_PERIOD	= 30*1000;
 	private static final int	MAX_CON_PER_ENDPOINT			= 5*1000;
 
-	private static Map	http_connection_map = new HashMap();
+	private static Map<networkConnectionKey,List<HTTPNetworkConnection>>	http_connection_map = new HashMap<networkConnectionKey,List<HTTPNetworkConnection>>();
 	
 	static{
 		SimpleTimer.addPeriodicEvent(
@@ -113,15 +113,15 @@ HTTPNetworkConnection
 							
 							check = false;
 	
-							Iterator	it = http_connection_map.entrySet().iterator();
+							Iterator<Map.Entry<networkConnectionKey,List<HTTPNetworkConnection>>>	it = http_connection_map.entrySet().iterator();
 							
 							while( it.hasNext()){
 								
-								Map.Entry	entry = (Map.Entry)it.next();
+								Map.Entry<networkConnectionKey,List<HTTPNetworkConnection>>	entry = it.next();
 								
 								networkConnectionKey	key = (networkConnectionKey)entry.getKey();
 								
-								List	connections = (List)entry.getValue();
+								List<HTTPNetworkConnection>	connections = entry.getValue();
 								
 								/*
 								String	times = "";
@@ -156,16 +156,16 @@ HTTPNetworkConnection
 	
 	protected static boolean
 	checkConnections(
-		List	connections )
+		List<HTTPNetworkConnection>	connections )
 	{
 		boolean	some_closed = false;
 				
 		HTTPNetworkConnection	oldest 			= null;
 		long					oldest_time		= -1;
 		
-		Iterator	it = connections.iterator();
+		Iterator<HTTPNetworkConnection>	it = connections.iterator();
 			
-		List	timed_out = new ArrayList();
+		List<HTTPNetworkConnection>	timed_out = new ArrayList<HTTPNetworkConnection>();
 		
 		while( it.hasNext()){
 			
@@ -221,9 +221,9 @@ HTTPNetworkConnection
 
 	private boolean	choked	= true;
 	
-	private List	http_requests			= new ArrayList();
-	private List	choked_requests 		= new ArrayList();
-	private List	outstanding_requests 	= new ArrayList();
+	private List<httpRequest>		http_requests			= new ArrayList<httpRequest>();
+	private List<BTRequest>			choked_requests 		= new ArrayList<BTRequest>();
+	private List<pendingRequest>	outstanding_requests 	= new ArrayList<pendingRequest>();
 	
 	private BitSet	piece_map	= new BitSet();
 	
@@ -237,7 +237,7 @@ HTTPNetworkConnection
 	private String	last_modified_date;
 	private String	content_type	= DEFAULT_CONTENT_TYPE;
 	
-	private CopyOnWriteList	request_listeners = null;
+	private CopyOnWriteList<requestListener>	request_listeners = null;
 	
 	protected
 	HTTPNetworkConnection(
@@ -270,11 +270,11 @@ HTTPNetworkConnection
 
 		synchronized( http_connection_map ){
 						
-			List	connections = (List)http_connection_map.get( network_connection_key );
+			List<HTTPNetworkConnection>	connections = http_connection_map.get( network_connection_key );
 			
 			if ( connections == null ){
 				
-				connections = new ArrayList();
+				connections = new ArrayList<HTTPNetworkConnection>();
 				
 				http_connection_map.put( network_connection_key, connections );
 			}
@@ -406,8 +406,10 @@ HTTPNetworkConnection
 		
 		StringBuffer	res = new StringBuffer(256);
 		
+		boolean	partial = request.isPartialContent();
+		
 		res.append( "HTTP/1.1 " );
-		res.append( request.isPartialContent()?"206 Partial Content":"200 OK" );
+		res.append( partial?"206 Partial Content":"200 OK" );
 			res.append( NL );
 
 		res.append( "Content-Type: " );
@@ -431,6 +433,19 @@ HTTPNetworkConnection
 		
 		res.append( HDR_SERVER );
 		
+		if ( partial ){
+			
+			long[] offsets = request.getOffsets();
+			long[] lengths = request.getLengths();
+			
+			long content_length = request.getContentLength();
+			
+			if ( offsets.length == 1 && content_length > 0 ){
+				
+				res.append( "Content-Range: bytes=" + offsets[0] + "-" + (offsets[0]+lengths[0]-1) + "/" + content_length );
+				res.append( NL );
+			}
+		}
 		res.append( "Connection: " );
 		res.append( request.keepAlive()?"Keep-Alive":"Close" );
 			res.append( NL );
@@ -581,7 +596,7 @@ HTTPNetworkConnection
 		
 		BTPiece	piece = (BTPiece)message;
 		
-		List	ready_requests = new ArrayList();
+		List<pendingRequest>	ready_requests = new ArrayList<pendingRequest>();
 		
 		boolean	found = false;
 		
@@ -594,7 +609,7 @@ HTTPNetworkConnection
 		
 			for (int i=0;i<outstanding_requests.size();i++){
 				
-				pendingRequest	req = (pendingRequest)outstanding_requests.get(i);
+				pendingRequest	req = outstanding_requests.get(i);
 				
 				if ( 	req.getPieceNumber() == piece.getPieceNumber() &&
 						req.getStart() 	== piece.getPieceOffset() &&
@@ -608,11 +623,11 @@ HTTPNetworkConnection
 						
 						if ( i == 0 ){
 							
-							Iterator	it = outstanding_requests.iterator();
+							Iterator<pendingRequest>	it = outstanding_requests.iterator();
 							
 							while( it.hasNext()){
 								
-								pendingRequest r = (pendingRequest)it.next();
+								pendingRequest r = it.next();
 								
 								BTPiece	btp = r.getBTPiece();
 								
@@ -701,7 +716,7 @@ HTTPNetworkConnection
 			
 			if ( request_listeners != null ){
 				
-				Iterator it = request_listeners.iterator();
+				Iterator<requestListener> it = request_listeners.iterator();
 			
 				while( it.hasNext()){
 					
@@ -750,7 +765,7 @@ HTTPNetworkConnection
 	{
 		synchronized( http_connection_map ){
 
-			List	connections = (List)http_connection_map.get( network_connection_key );
+			List<HTTPNetworkConnection>	connections = http_connection_map.get( network_connection_key );
 			
 			if ( connections != null ){
 				
@@ -901,7 +916,7 @@ HTTPNetworkConnection
 				
 				if ( request_listeners == null ){
 					
-					request_listeners = new CopyOnWriteList();
+					request_listeners = new CopyOnWriteList<requestListener>();
 				}
 				
 				request_listeners.add(
@@ -1001,25 +1016,27 @@ HTTPNetworkConnection
 	protected class
 	httpRequest
 	{
-		private long[]	offsets;
-		private long[]	lengths;
-		private boolean	partial_content;
-		
+		private final long[]	offsets;
+		private final long[]	lengths;
+		private final long		content_length;
+		private final boolean	partial_content;
+		private final boolean	keep_alive;
+
 		private int		index;
 		private long	total_length;
 		private boolean	sent_first_reply;
-		
-		private boolean	keep_alive;
-		
+				
 		protected
 		httpRequest(
 			long[]		_offsets,
 			long[]		_lengths,
+			long		_content_length,
 			boolean		_partial_content,
 			boolean		_keep_alive )
 		{
-			offsets	= _offsets;
-			lengths	= _lengths;
+			offsets			= _offsets;
+			lengths			= _lengths;
+			content_length	= _content_length;
 			partial_content	= _partial_content;
 			keep_alive		= _keep_alive;
 			
@@ -1041,6 +1058,12 @@ HTTPNetworkConnection
 		isPartialContent()
 		{
 			return( partial_content );
+		}
+		
+		protected long
+		getContentLength()
+		{
+			return( content_length );
 		}
 		
 		protected boolean

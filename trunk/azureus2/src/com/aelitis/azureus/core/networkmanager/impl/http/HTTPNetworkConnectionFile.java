@@ -362,6 +362,6 @@ HTTPNetworkConnectionFile
 			lengths[i]	= ( end - start ) + 1; 
 		}
 		
-		addRequest( new httpRequest( offsets, lengths, partial_content, keep_alive ));	
+		addRequest( new httpRequest( offsets, lengths, file_length, partial_content, keep_alive ));	
 	}
 }

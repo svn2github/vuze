@@ -218,7 +218,7 @@ HTTPNetworkConnectionWebSeed
 				lengths[i]	= ( end - start ) + 1; 
 			}
 			
-			addRequest( new httpRequest( offsets, lengths, false, keep_alive ));
+			addRequest( new httpRequest( offsets, lengths, 0, false, keep_alive ));
 			
 		}catch( Throwable e ){
 			
