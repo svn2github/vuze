@@ -1319,6 +1319,11 @@ PRUDPPacketHandlerImpl
 			
 			throw( new PRUDPPacketHandlerException( "Invalid port - 0" ));
 		}
+		
+		if ( address.getAddress() == null ){
+			
+			throw( new PRUDPPacketHandlerException( "Unresolved host '" + address.getHostName() + "'" ));
+		}
 	}
 	
 	public void
