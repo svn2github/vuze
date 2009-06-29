@@ -81,15 +81,20 @@ public class ShareRatioItem
     DownloadManager dm = (DownloadManager)cell.getDataSource();
                        
     int sr = (dm == null) ? 0 : dm.getStats().getShareRatio();
-    if (sr == -1)
-      sr = Constants.INFINITY_AS_INT;
-      
+    
+    if ( sr == Integer.MAX_VALUE ){
+    	sr = Integer.MAX_VALUE-1;
+    }
+    if ( sr == -1 ){
+      sr = Integer.MAX_VALUE;
+    }
+    
     if (!cell.setSortValue(sr) && cell.isValid())
       return;
     
     String shareRatio = "";
     
-    if (sr == Constants.INFINITY_AS_INT) {
+    if (sr == Integer.MAX_VALUE ) {
       shareRatio = Constants.INFINITY_STRING;
     } else {
       shareRatio = DisplayFormatters.formatDecimal((double) sr / 1000, 3);
