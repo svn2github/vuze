@@ -88,7 +88,7 @@ public class SeedingRankColumnListener implements
 					long timeStarted = dl.getStats().getTimeStartedSeeding();
 					long timeLeft;
 					if (dl.isForceStart())
-						timeLeft = Constants.INFINITY_AS_INT;
+						timeLeft = Constants.CRAPPY_INFINITY_AS_INT;
 					else if (timeStarted <= 0)
 						timeLeft = minTimeAlive;
 					else

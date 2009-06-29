@@ -2284,7 +2284,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			}else{
 
 				final long averageSpeed = _averageReceptionSpeed.getAverage();
-				long lETA = (averageSpeed == 0) ? Constants.INFINITE_AS_LONG : dataRemaining / averageSpeed;
+				long lETA = (averageSpeed == 0) ? Constants.CRAPPY_INFINITE_AS_LONG : dataRemaining / averageSpeed;
 				// stop the flickering of ETA from "Finished" to "x seconds" when we are 
 				// just about complete, but the data rate is jumpy.
 				if (lETA == 0)
@@ -3491,7 +3491,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		if(selectedPeer.getUploadHint() == 0) {
 			//Set to infinite
-			selectedPeer.setUploadHint(Constants.INFINITY_AS_INT);
+			selectedPeer.setUploadHint(Constants.CRAPPY_INFINITY_AS_INT);
 		}
 
 		//Find a piece

@@ -65,7 +65,7 @@ public class TimeFormatter {
 	 * @return Formatted time string
 	 */
 	public static String format(long time_secs) {
-		if (time_secs == Constants.INFINITY_AS_INT || time_secs >= Constants.INFINITE_AS_LONG)
+		if (time_secs == Constants.CRAPPY_INFINITY_AS_INT || time_secs >= Constants.CRAPPY_INFINITE_AS_LONG)
 			return Constants.INFINITY_STRING;
 
 		if (time_secs < 0)
@@ -125,7 +125,7 @@ public class TimeFormatter {
 	 */
     public static String formatColon(long time)
     {
-      if (time == Constants.INFINITY_AS_INT || time >= Constants.INFINITE_AS_LONG) return Constants.INFINITY_STRING;
+      if (time == Constants.CRAPPY_INFINITY_AS_INT || time >= Constants.CRAPPY_INFINITE_AS_LONG) return Constants.INFINITY_STRING;
       if (time < 0) return "";
 
       int secs = (int) time % 60;
