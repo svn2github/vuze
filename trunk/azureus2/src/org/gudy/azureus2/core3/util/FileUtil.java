@@ -1054,6 +1054,42 @@ public class FileUtil {
     
     public static void 
     copyFile( 
+    	final InputStream 	_source, 
+    	final File 			_dest,
+    	boolean				_close_input_stream )
+    
+    	throws IOException
+    {
+    	FileOutputStream	dest = null;
+        	
+    	boolean	close_input = _close_input_stream;
+    	
+    	try{
+    		dest = new FileOutputStream(_dest);
+       		
+    		close_input = false;
+    		
+    		copyFile( _source, dest, close_input );
+    		
+    	}finally{
+    		
+       		try{
+    			if( close_input ){
+    				
+    				_source.close();
+    			}
+    		}catch( IOException e ){
+     		}
+    		
+    		if ( dest != null ){
+    			
+    			dest.close();
+    		}
+    	}
+    }
+    
+    public static void 
+    copyFile( 
       InputStream   is,
       OutputStream  os ) 
     	

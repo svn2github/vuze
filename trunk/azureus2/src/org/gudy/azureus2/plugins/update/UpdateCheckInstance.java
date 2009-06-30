@@ -38,9 +38,10 @@ UpdateCheckInstance
 	public static final int	PT_UI_STYLE_DEFAULT		= 1;
 	public static final int	PT_UI_STYLE_SIMPLE		= 2;
 	
-	public static final int	PT_UI_PARENT_SWT_COMPOSITE				= 2;	// SWT Composite
+	public static final int	PT_UI_PARENT_SWT_COMPOSITE					= 2;	// SWT Composite
 	
-	public static final int	PT_UI_DISABLE_ON_SUCCESS_SLIDEY			= 3;	// Boolean
+	public static final int	PT_UI_DISABLE_ON_SUCCESS_SLIDEY				= 3;	// Boolean
+	public static final int	PT_CLOSE_OR_RESTART_ALREADY_IN_PROGRESS		= 4;	// Boolean
 
 		/**
 		 * returns one of the above UCI_ constants

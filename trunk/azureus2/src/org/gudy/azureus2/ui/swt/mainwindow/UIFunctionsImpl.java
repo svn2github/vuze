@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.SimpleBrowserWindow;
+import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
@@ -503,6 +504,18 @@ public class UIFunctionsImpl
 
 			default:
 				break;
+		}
+	}
+	
+	public void 
+	performAction(
+		int 			action_id, 
+		Object 			args, 
+		actionListener 	listener )
+	{
+		if ( action_id == ACTION_FULL_UPDATE ){
+			
+			FullUpdateWindow.handleUpdate((String)args);
 		}
 	}
 }

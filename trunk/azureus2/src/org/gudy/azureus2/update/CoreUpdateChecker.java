@@ -28,13 +28,13 @@ package org.gudy.azureus2.update;
  */
 
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.logging.LogAlert;
-import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.html.*;
 
@@ -237,7 +237,7 @@ CoreUpdateChecker
 			if ( full_download_url == null ){
 				
 				ResourceDownloader[]	primary_mirrors;
-					
+									
 				primary_mirrors = getPrimaryDownloaders( latest_file_name );
 	
 					// the download hierarchy is primary mirrors first (randomised alternate)
@@ -427,7 +427,7 @@ CoreUpdateChecker
 							final ResourceDownloader	downloader,
 							InputStream					data )
 						{	
-							installUpdate( checker, update, downloader, f_latest_version, data );
+							installUpdate( checker, update, downloader, f_latest_file_name, f_latest_version, data );
 									
 							return( true );
 						}
@@ -797,6 +797,7 @@ CoreUpdateChecker
 		UpdateChecker		checker,
 		Update				update,
 		ResourceDownloader	rd,
+		String				filename,
 		String				version,
 		InputStream			data )
 	{
@@ -805,28 +806,136 @@ CoreUpdateChecker
 
 			rd.reportActivity( "Data verified successfully" );
 			
-			String	temp_jar_name 	= "Azureus2_" + version + ".jar";
-			String	target_jar_name	= "Azureus2.jar";
-			
-			UpdateInstaller	installer = checker.createInstaller();
-			
-			installer.addResource( temp_jar_name, data );
-			
-			if ( Constants.isOSX ){
+			if ( filename.toLowerCase().endsWith( ".zip.torrent" )){
 				
-				installer.addMoveAction( 
-					temp_jar_name,
-					installer.getInstallDir() + "/" + SystemProperties.getApplicationName() + ".app/Contents/Resources/Java/" + target_jar_name );        
+				handleZIPUpdate( checker, data );
+				
 			}else{
 				
-				installer.addMoveAction( 
-					temp_jar_name,
-					installer.getInstallDir() + File.separator + target_jar_name );
+				String	temp_jar_name 	= "Azureus2_" + version + ".jar";
+				String	target_jar_name	= "Azureus2.jar";
+				
+				UpdateInstaller	installer = checker.createInstaller();
+				
+				installer.addResource( temp_jar_name, data );
+				
+				if ( Constants.isOSX ){
+					
+					installer.addMoveAction( 
+						temp_jar_name,
+						installer.getInstallDir() + "/" + SystemProperties.getApplicationName() + ".app/Contents/Resources/Java/" + target_jar_name );        
+				}else{
+					
+					installer.addMoveAction( 
+						temp_jar_name,
+						installer.getInstallDir() + File.separator + target_jar_name );
+				}
 			}
 		}catch( Throwable e ){
 			
 			rd.reportActivity("Update install failed:" + e.getMessage());
 		}
+	}
+	
+	protected void
+	handleZIPUpdate(
+		UpdateChecker		checker,
+		InputStream			data )
+	
+		throws Exception
+	{
+		ZipInputStream zip = null;
+		
+		Properties	update_properties = new Properties();
+		
+		File		temp_dir = AETemporaryFileHandler.createTempDir();
+		
+		File		update_file = null;
+		
+		try{
+			zip = new ZipInputStream(data);
+
+			ZipEntry entry = null;
+
+			while((entry = zip.getNextEntry()) != null) {
+
+				String name = entry.getName().trim();
+
+				if ( name.equals( "azureus.sig" ) || name.endsWith( "/" ) || name.length() == 0 ){
+					
+					continue;
+				}
+
+				if ( name.equals( "update.properties" )){
+					
+					update_properties.load( zip );
+					
+				}else{
+					
+					if ( update_file != null ){
+						
+						throw( new Exception( "Multiple update files are not supported" ));
+					}
+					
+					update_file = new File( temp_dir, name );
+					
+					FileUtil.copyFile( zip, update_file, false );
+				}
+			}
+		}finally{
+			
+			if ( zip != null ){
+				
+				try{
+					zip.close();
+					
+				}catch( Throwable e ){
+					
+				}
+			}
+		}
+		
+		if ( update_properties == null ){
+			
+			throw( new Exception( "Update properties missing" ));
+		}
+		
+		if ( update_file == null ){
+			
+			throw( new Exception( "Update file missing" ));
+		}
+		
+		String	info_url = update_properties.getProperty( "info.url" );
+		
+		if ( info_url == null ){
+			
+			throw( new Exception( "Update property 'info.url' missing" ));
+		}
+		
+		checker.getCheckInstance().setProperty( UpdateCheckInstance.PT_CLOSE_OR_RESTART_ALREADY_IN_PROGRESS, true );
+		
+		UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+		if ( uif == null ){
+			
+			throw( new Exception( "Update can't proceed - UI functions unavailable" ));
+		}
+		
+		uif.performAction( 
+			UIFunctions.ACTION_FULL_UPDATE,
+			info_url,
+			new UIFunctions.actionListener()
+			{
+				public void
+				actionComplete(
+					Object	result )
+				{
+					
+				}
+			});
+		
+		System.out.println( "props=" + update_properties );
+		System.out.println( "update=" + update_file );
 	}
 	
 	protected static boolean

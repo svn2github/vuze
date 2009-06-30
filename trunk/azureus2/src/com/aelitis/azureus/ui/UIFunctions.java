@@ -52,6 +52,8 @@ public interface UIFunctions
 	public static final int VIEW_ALLPEERS = 10;
 	public static final int VIEW_DETAILED_LISTVIEW = 11;
 	
+	public static final int ACTION_FULL_UPDATE	= 1;	// arg: String - url; response Boolean - ok
+	
 
 	/**
 	 * Bring main window to the front
@@ -130,4 +132,25 @@ public interface UIFunctions
 	 * @since 3.1.1.1
 	 */
 	void openView(int viewID, Object datasource);
+	
+	
+	/**
+	 * 
+	 * @param action_id
+	 * @param args
+	 * @param listener
+	 */
+	public void
+	performAction(
+		int				action_id,
+		Object			args,
+		actionListener	listener );
+	
+	interface 
+	actionListener
+	{
+		public void
+		actionComplete(
+			Object		result );
+	}		
 }

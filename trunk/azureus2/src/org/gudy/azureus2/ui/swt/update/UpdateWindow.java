@@ -555,6 +555,16 @@ UpdateWindow
     
     display.asyncExec(new AERunnable(){
       public void runSupport() {
+    	  
+		Boolean b = (Boolean)check_instance.getProperty( UpdateCheckInstance.PT_CLOSE_OR_RESTART_ALREADY_IN_PROGRESS );
+			
+		if ( b != null && b ){
+			
+			finishUpdate(false, true);
+			
+			return;
+		}
+		
       	checkRestartNeeded();	// gotta recheck coz a maybe might have got to yes
         progress.setSelection(100);
         status.setText(MessageText.getString("UpdateWindow.status.done"));
@@ -562,7 +572,7 @@ UpdateWindow
         btnOk.setEnabled(true);
         btnOk.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
-            finishUpdate(true);
+            finishUpdate(true, false);
           }
         });
         if(restartRequired) {
@@ -571,7 +581,7 @@ UpdateWindow
           Messages.setLanguageText(btnCancel,"UpdateWindow.restartLater");
           btnCancel.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event e) {
-              finishUpdate(false);
+              finishUpdate(false,false);
             }
           });
           updateWindow.layout();
@@ -662,7 +672,7 @@ UpdateWindow
   }
   
   
-  private void finishUpdate(boolean restartNow) {
+  private void finishUpdate(boolean restartNow, boolean just_close ) {
     //When completing, remove the link in mainWindow :
   	UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
   	if (functionsSWT != null) {
@@ -673,20 +683,23 @@ UpdateWindow
   	}
     
   	boolean bDisposeUpdateWindow = true;
-    //If restart is required, then restart
-    if( restartRequired && restartNow) {
-    	// this HAS to be done this way around else the restart inherits
-    	// the 6880 port listen. However, this is a general problem....
-    	UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-    	if (uiFunctions != null && uiFunctions.dispose(true, false)) {
-   			bDisposeUpdateWindow = false;
-			}
-    }else if ( hasMandatoryUpdates && !restartRequired ){
-    	
-    		// run a further update check as we can immediately install non-mandatory updates now
-    	
-    	update_monitor.requestRecheck();
-    }
+
+  	if ( !just_close ){
+	    //If restart is required, then restart
+	    if( restartRequired && restartNow) {
+	    	// this HAS to be done this way around else the restart inherits
+	    	// the 6880 port listen. However, this is a general problem....
+	    	UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+	    	if (uiFunctions != null && uiFunctions.dispose(true, false)) {
+	   			bDisposeUpdateWindow = false;
+				}
+	    }else if ( hasMandatoryUpdates && !restartRequired ){
+	    	
+	    		// run a further update check as we can immediately install non-mandatory updates now
+	    	
+	    	update_monitor.requestRecheck();
+	    }
+  	}
 
     if (bDisposeUpdateWindow) {
       updateWindow.dispose();

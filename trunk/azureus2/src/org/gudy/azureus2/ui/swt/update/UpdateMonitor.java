@@ -499,7 +499,7 @@ public class UpdateMonitor
 		t.start();
 	}
 
-	public void complete(UpdateCheckInstance instance) {
+	public void complete( final UpdateCheckInstance instance) {
 		
 		if ( instance.isLowNoise()){
 			
@@ -592,7 +592,18 @@ public class UpdateMonitor
 			} else {
 				if (autoDownload) {
 					new UpdateAutoDownloader(us, new UpdateAutoDownloader.cbCompletion() {
-						public void allUpdatesComplete(boolean requiresRestart, boolean bHadMandatoryUpdates) {
+						public void 
+						allUpdatesComplete(
+							boolean requiresRestart, 
+							boolean bHadMandatoryUpdates) 
+						{
+							Boolean b = (Boolean)instance.getProperty( UpdateCheckInstance.PT_CLOSE_OR_RESTART_ALREADY_IN_PROGRESS );
+							
+							if ( b != null && b ){
+								
+								return;
+							}
+							
 							if (requiresRestart) {
 								handleRestart();
 							}else if ( bHadMandatoryUpdates ){
