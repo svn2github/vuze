@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
@@ -515,7 +516,11 @@ public class UIFunctionsImpl
 	{
 		if ( action_id == ACTION_FULL_UPDATE ){
 			
-			FullUpdateWindow.handleUpdate((String)args);
+			FullUpdateWindow.handleUpdate((String)args, listener );
+			
+		}else{
+			
+			Debug.out( "Unknown action " + action_id );
 		}
 	}
 }

@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
+import com.aelitis.azureus.ui.UIFunctions;
+
 
 public class FullUpdateWindow
 {
@@ -42,104 +44,151 @@ public class FullUpdateWindow
 
 	public static void 
 	handleUpdate(
-		final String		url )
+		final String						url,
+		final UIFunctions.actionListener	listener )
 	{
-		if ( shell != null ){
-			return;
+		try{
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					open( url, listener );
+				}
+			});
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			listener.actionComplete( false );
 		}
-
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				open( url );
-			}
-		});
 	}
 
 	public static void 
-	open(final String url ) {
-		if (shell != null && !shell.isDisposed()) {
-			return;
-		}
-		final Shell parentShell = Utils.findAnyShell();
-		shell = ShellFactory.createShell(parentShell, SWT.BORDER
-				| SWT.APPLICATION_MODAL | SWT.TITLE | SWT.DIALOG_TRIM );
-		shell.setLayout(new FillLayout());
-		if (parentShell != null) {
-			parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
-		}
+	open(
+		final String 						url,
+		final UIFunctions.actionListener	listener ) 
+	{
+		boolean	ok = false;
 		
-		shell.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				if (parentShell != null) {
-					parentShell.setCursor(e.display.getSystemCursor(SWT.CURSOR_ARROW));
-				}
-				shell = null;
+		try{
+			if ( shell != null && !shell.isDisposed()){
+				
+				return;
 			}
-		});
-
-		try {
-			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
-		} catch (Throwable t) {
-			shell.dispose();
-			return;
-		}
-
-		browser.addTitleListener(new TitleListener() {
-			public void changed(TitleEvent event) {
-				shell.setText(event.title);
+			
+			final Shell parentShell = Utils.findAnyShell();
+			
+			shell = ShellFactory.createShell(parentShell, SWT.BORDER
+					| SWT.APPLICATION_MODAL | SWT.TITLE | SWT.DIALOG_TRIM );
+			
+			shell.setLayout(new FillLayout());
+			
+			if (parentShell != null) {
+				parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 			}
-		});
-
-		browser.addStatusTextListener(new StatusTextListener() {
-			String last = null;
-
-			public void changed(StatusTextEvent event) {
-				String text = event.text.toLowerCase();
-				if (last != null && last.equals(text)) {
-					return;
-				}
-				last = text;
-				if ( text.contains("page-loaded")) {
-					
-					Utils.centreWindow(shell);
-					if (parentShell != null) {
-						parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
-					}
-					shell.open();
-				}
-			}
-		});
-
-		browser.addLocationListener(new LocationListener() {
-			public void changing(LocationEvent event) {
-			}
-
-			public void changed(LocationEvent event) {
-			}
-		});
-
-		String final_url = url + "?locale=" + Locale.getDefault().toString() + "&azv=" + Constants.AZUREUS_VERSION; 
-
-		SimpleTimer.addEvent(
-			"fullupdate.pageload", 
-			SystemTime.getOffsetTime(5000),
-			new TimerEventPerformer() {
-				public void perform(TimerEvent event) {
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							shell.open();
+			
+			shell.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					try{
+						if (parentShell != null) {
+							parentShell.setCursor(e.display.getSystemCursor(SWT.CURSOR_ARROW));
 						}
-					});
+						shell = null;
+						
+					}finally{
+						
+						listener.actionComplete( false );
+					}
 				}
 			});
-		
-		browser.setUrl(final_url);
+	
+			try {
+				browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
+			} catch (Throwable t) {
+				shell.dispose();
+				return;
+			}
+	
+			browser.addTitleListener(new TitleListener() {
+				public void changed(TitleEvent event) {
+					shell.setText(event.title);
+				}
+			});
+	
+			browser.addStatusTextListener(new StatusTextListener() {
+				String last = null;
+	
+				public void changed(StatusTextEvent event) {
+					String text = event.text.toLowerCase();
+					if (last != null && last.equals(text)) {
+						return;
+					}
+					last = text;
+					if ( text.contains("page-loaded")) {
+						
+						Utils.centreWindow(shell);
+						if (parentShell != null) {
+							parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
+						}
+						shell.open();
+					}
+				}
+			});
+	
+			browser.addLocationListener(new LocationListener() {
+				public void changing(LocationEvent event) {
+				}
+	
+				public void changed(LocationEvent event) {
+				}
+			});
+	
+			String final_url = url + ( url.indexOf('?')==-1?"?":"&") + 
+						"locale=" + Locale.getDefault().toString() + 
+						"&azv=" + Constants.AZUREUS_VERSION; 
+	
+			SimpleTimer.addEvent(
+				"fullupdate.pageload", 
+				SystemTime.getOffsetTime(5000),
+				new TimerEventPerformer() {
+					public void perform(TimerEvent event) {
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								if ( !shell.isDisposed()){
+								
+									shell.open();
+								}
+							}
+						});
+					}
+				});
+			
+			browser.setUrl(final_url);
+			
+			ok = true;
+			
+		}finally{
+			
+			if ( !ok ){
+				
+				listener.actionComplete( false );
+			}
+		}
 	}
 
-
-	public static void main(String[] args) {
+	public static void 
+	main(String[] args) 
+	{
 		try {
-			open( "http://www.google.com" );
+			open( 
+				"http://www.google.com", 
+				new UIFunctions.actionListener()
+				{
+					public void actionComplete(Object result) {
+						System.out.println( "result=" + result );
+						
+						System.exit(1);
+					}
+				});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

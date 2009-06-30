@@ -42,6 +42,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.versioncheck.*;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -911,15 +912,17 @@ CoreUpdateChecker
 			
 			throw( new Exception( "Update property 'info.url' missing" ));
 		}
-		
-		checker.getCheckInstance().setProperty( UpdateCheckInstance.PT_CLOSE_OR_RESTART_ALREADY_IN_PROGRESS, true );
-		
+				
 		UIFunctions uif = UIFunctionsManager.getUIFunctions();
 
 		if ( uif == null ){
 			
 			throw( new Exception( "Update can't proceed - UI functions unavailable" ));
 		}
+		
+		checker.getCheckInstance().setProperty( UpdateCheckInstance.PT_CLOSE_OR_RESTART_ALREADY_IN_PROGRESS, true );
+
+		final File f_update_file = update_file;
 		
 		uif.performAction( 
 			UIFunctions.ACTION_FULL_UPDATE,
@@ -930,12 +933,12 @@ CoreUpdateChecker
 				actionComplete(
 					Object	result )
 				{
-					
+					if ( true || (Boolean)result){
+						
+						Utils.launch( f_update_file.getAbsolutePath());
+					}
 				}
 			});
-		
-		System.out.println( "props=" + update_properties );
-		System.out.println( "update=" + update_file );
 	}
 	
 	protected static boolean
