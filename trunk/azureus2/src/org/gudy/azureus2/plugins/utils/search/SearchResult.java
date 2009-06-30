@@ -49,6 +49,7 @@ SearchResult
 
 	
 		// if you add more properties make sure you amend the mapping in PluginEngine appropriately
+		// AND the reverse mapping in MetaSearchManagerImpl
 	
 	public Object
 	getProperty(

@@ -42,7 +42,10 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
+import org.gudy.azureus2.plugins.utils.search.Search;
 import org.gudy.azureus2.plugins.utils.search.SearchException;
+import org.gudy.azureus2.plugins.utils.search.SearchInitiator;
+import org.gudy.azureus2.plugins.utils.search.SearchListener;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
@@ -106,8 +109,8 @@ UtilitiesImpl
 		};
 		
 		
-	private static List		search_managers 	= new ArrayList();
-	private static List		search_providers	= new ArrayList();
+	private static List<searchManager>		search_managers 	= new ArrayList<searchManager>();
+	private static List<Object[]>			search_providers	= new ArrayList<Object[]>();
 	
 	public
 	UtilitiesImpl(
@@ -978,19 +981,39 @@ UtilitiesImpl
 	
 		throws SearchException
 	{
-		List	managers;
+		List<searchManager>	managers;
 		
 		synchronized( UtilitiesImpl.class ){
 			
 			search_providers.add( new Object[]{ pi, provider  });
 			
-			managers = new ArrayList( search_managers );
+			managers = new ArrayList<searchManager>( search_managers );
 		}
 		
 		for (int i=0;i<managers.size();i++){
 				
 			((searchManager)managers.get(i)).addProvider( pi, provider );
 		}
+	}
+	
+	public SearchInitiator 
+	getSearchInitiator() 
+	
+		throws SearchException 
+	{
+		List<searchManager>	managers;
+		
+		synchronized( UtilitiesImpl.class ){
+						
+			managers = new ArrayList<searchManager>( search_managers );
+		}
+		
+		if ( managers.size() == 0 ){
+			
+			throw( new SearchException( "No search managers registered - try later" ));
+		}
+		
+		return( managers.get(0));
 	}
 	
 	public static void
@@ -1016,12 +1039,14 @@ UtilitiesImpl
 	
 	public interface
 	searchManager
+		extends SearchInitiator
 	{
 		public void
 		addProvider( 
 			PluginInterface		pi,
 			SearchProvider		provider );
 	}
+		
 	
 	public interface
 	runnableWithReturn<T>

@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
 import org.gudy.azureus2.plugins.utils.search.SearchException;
+import org.gudy.azureus2.plugins.utils.search.SearchInitiator;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.security.*;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.*;
@@ -337,6 +338,10 @@ Utilities
 	
 		throws SearchException;
 
+	public SearchInitiator
+	getSearchInitiator()
+	
+		throws SearchException;
 }
 
 

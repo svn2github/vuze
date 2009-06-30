@@ -28,6 +28,7 @@ SearchProvider
 {
 		// properties
 	
+	public static final int PR_ID							= 0;	// getProperty only; Long
 	public static final int PR_NAME							= 1;	// mandatory; String
 	public static final int PR_ICON_URL						= 2;	// optional; String
 	public static final int PR_DOWNLOAD_LINK_LOCATOR		= 3;	// optional; String
@@ -42,7 +43,7 @@ SearchProvider
 	
 	public SearchInstance
 	search(
-		Map					search_parameters,
+		Map<String,Object>	search_parameters,
 		SearchObserver		observer )
 	
 		throws SearchException;

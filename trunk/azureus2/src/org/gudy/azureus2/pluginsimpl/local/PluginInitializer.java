@@ -421,6 +421,24 @@ PluginInitializer
        
     plugin_manager = PluginManagerImpl.getSingleton( this );
     
+    String	dynamic_plugins = System.getProperty( "azureus.dynamic.plugins", null );
+    
+    if ( dynamic_plugins != null ){
+    	
+    	String[]	classes = dynamic_plugins.split( ";" );
+    	
+    	for ( String c: classes ){
+    		
+    		try{
+    			queueRegistration( Class.forName( c ));
+    			
+    		}catch( Throwable e ){
+    			
+    			Debug.out( "Registration of dynamic plugin '" + c + "' failed", e );
+    		}
+    	}
+    }
+    
     UpdaterUtils.checkBootstrapPlugins();
   }
   
