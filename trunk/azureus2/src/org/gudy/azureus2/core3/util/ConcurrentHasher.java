@@ -41,8 +41,9 @@ ConcurrentHasher
 	
 	protected int			processor_num;
 	
-	protected List			requests		= new LinkedList();
-	protected List			hashers			= new ArrayList();
+	protected List<ConcurrentHasherRequest>				requests		= new LinkedList<ConcurrentHasherRequest>();
+	
+	protected List<SHA1Hasher>	hashers			= new ArrayList<SHA1Hasher>();
 	
 	protected AESemaphore		request_sem		= new AESemaphore("ConcHashReqQ");
 	protected AESemaphore		scheduler_sem	= new AESemaphore("ConcHashSched");
@@ -99,101 +100,96 @@ ConcurrentHasher
 	
 		final ThreadPool pool	= new ThreadPool( "ConcurrentHasher", 64 );
 		
-		AEThread	scheduler = 
-			new AEThread("CuncurrentHasher:scheduler")
+		new AEThread2("ConcurrentHasher:scheduler", true )
+		{
+			public void
+			run()
 			{
-				public void
-				runSupport()
-				{
-					while(true){
-						
-							// get a request to run
-						
-						request_sem.reserve();
-						
-							// now extract the request
-						
-						final ConcurrentHasherRequest	req;
-						final SHA1Hasher				hasher;
-						
-						try{
-							requests_mon.enter();
-							
-							req	= (ConcurrentHasherRequest)requests.remove(0);
-							
-							if ( hashers.size() == 0 ){
-								
-								hasher = new SHA1Hasher();
-								
-							}else{
-								
-								hasher	= (SHA1Hasher)hashers.remove( hashers.size()-1 );
-							}
-						}finally{
-							
-							requests_mon.exit();
-						}
-						
-						pool.run( 
-								new AERunnable()
-								{
-									public void
-									runSupport()
-									{
-										try{											
-											req.run( hasher );
-											
-										}finally{
-											try{
-												requests_mon.enter();
-
-												hashers.add( hasher );
-											
-											}finally{
-												
-												requests_mon.exit();
-											}
-
-											if ( friendly_hashing && req.isLowPriority()){
+				while(true){
 					
-												try{  
-													int	size = req.getSize();
-													
-														// pieces can be several MB so delay based on size
-													
-													final int max = 250;
-													final int min = 50;
-													
-													size = size/1024;	// in K
-													
-													size = size/8;
-													
-														// 4MB -> 500
-														// 1MB -> 125
-													
-													size = Math.min( size, max );
-													size = Math.max( size, min );
-													
-													Thread.sleep( size );
+						// get a request to run
+					
+					request_sem.reserve();
+					
+						// now extract the request
+					
+					final ConcurrentHasherRequest	req;
+					final SHA1Hasher				hasher;
+					
+					try{
+						requests_mon.enter();
 						
-												}catch( Throwable e ){ 
+						req	= requests.remove(0);
 						
-													Debug.printStackTrace( e ); 
-												}
-											}
-										       		
-											scheduler_sem.release();
-										}
-									}
-								});
-													
+						if ( hashers.size() == 0 ){
+							
+							hasher = new SHA1Hasher();
+							
+						}else{
+							
+							hasher	= hashers.remove( hashers.size()-1 );
+						}
+					}finally{
+						
+						requests_mon.exit();
 					}
+					
+					pool.run( 
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									try{											
+										req.run( hasher );
+										
+									}finally{
+										try{
+											requests_mon.enter();
+
+											hashers.add( hasher );
+										
+										}finally{
+											
+											requests_mon.exit();
+										}
+
+										if ( friendly_hashing && req.isLowPriority()){
+				
+											try{  
+												int	size = req.getSize();
+												
+													// pieces can be several MB so delay based on size
+												
+												final int max = 250;
+												final int min = 50;
+												
+												size = size/1024;	// in K
+												
+												size = size/8;
+												
+													// 4MB -> 500
+													// 1MB -> 125
+												
+												size = Math.min( size, max );
+												size = Math.max( size, min );
+												
+												Thread.sleep( size );
+					
+											}catch( Throwable e ){ 
+					
+												Debug.printStackTrace( e ); 
+											}
+										}
+									       		
+										scheduler_sem.release();
+									}
+								}
+							});
+												
 				}
-			};
-	
-		scheduler.setDaemon( true );
-		
-		scheduler.start();
+			}
+		}.start();
 	}
 	
 		/**
