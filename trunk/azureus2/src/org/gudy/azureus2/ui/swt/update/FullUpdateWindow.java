@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -38,7 +39,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 
 public class FullUpdateWindow
 {
-	private static Shell shell = null;
+	private static Shell current_shell = null;
 
 	private static Browser browser;
 
@@ -69,16 +70,18 @@ public class FullUpdateWindow
 	{
 		boolean	ok = false;
 		
+		final boolean[] listener_informed = { false };
+		
 		try{
-			if ( shell != null && !shell.isDisposed()){
+			if ( current_shell != null && !current_shell.isDisposed()){
 				
 				return;
 			}
 			
 			final Shell parentShell = Utils.findAnyShell();
 			
-			shell = ShellFactory.createShell(parentShell, SWT.BORDER
-					| SWT.APPLICATION_MODAL | SWT.TITLE | SWT.DIALOG_TRIM );
+			final Shell shell = current_shell = 
+				ShellFactory.createShell(parentShell, SWT.BORDER | SWT.APPLICATION_MODAL | SWT.TITLE | SWT.DIALOG_TRIM );
 			
 			shell.setLayout(new FillLayout());
 			
@@ -92,11 +95,20 @@ public class FullUpdateWindow
 						if (parentShell != null) {
 							parentShell.setCursor(e.display.getSystemCursor(SWT.CURSOR_ARROW));
 						}
-						shell = null;
+						current_shell = null;
 						
 					}finally{
 						
-						listener.actionComplete( false );
+						if ( !listener_informed[0] ){
+						
+							try{
+								listener.actionComplete( false );
+								
+							}catch( Throwable f ){
+								
+								Debug.out( f );
+							}
+						}
 					}
 				}
 			});
@@ -130,6 +142,49 @@ public class FullUpdateWindow
 							parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
 						}
 						shell.open();
+						
+					} else if (text.startsWith("set-size")){
+						
+						String[] strings = text.split(" ");
+						
+						if (strings.length > 2){
+							try {
+								
+								int w = Integer.parseInt(strings[1]);
+								int h = Integer.parseInt(strings[2]);
+
+								Rectangle computeTrim = shell.computeTrim(0, 0, w, h);
+								shell.setSize(computeTrim.width, computeTrim.height);
+								
+							} catch (Exception e) {
+							}
+						}
+					}else if ( text.contains( "decline" ) || text.contains( "close" )){
+						
+						Utils.execSWTThreadLater(0, new AERunnable() {	
+							public void runSupport() {
+								shell.dispose();
+							}
+						});
+						
+					}else if ( text.contains("accept")){
+						
+						Utils.execSWTThreadLater(0, new AERunnable() {	
+							public void runSupport(){
+								
+								listener_informed[0] = true;
+								
+								try{
+									listener.actionComplete( true );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+								
+								shell.dispose();
+							}
+						});
 					}
 				}
 			});
@@ -145,7 +200,7 @@ public class FullUpdateWindow
 			String final_url = url + ( url.indexOf('?')==-1?"?":"&") + 
 						"locale=" + Locale.getDefault().toString() + 
 						"&azv=" + Constants.AZUREUS_VERSION; 
-	
+				
 			SimpleTimer.addEvent(
 				"fullupdate.pageload", 
 				SystemTime.getOffsetTime(5000),
@@ -170,7 +225,13 @@ public class FullUpdateWindow
 			
 			if ( !ok ){
 				
-				listener.actionComplete( false );
+				try{
+					listener.actionComplete( false );
+					
+				}catch( Throwable f ){
+					
+					Debug.out( f );
+				}
 			}
 		}
 	}
@@ -180,13 +241,13 @@ public class FullUpdateWindow
 	{
 		try {
 			open( 
-				"http://www.google.com", 
+				"http://192.168.0.88:8080/client/Update.html", 
 				new UIFunctions.actionListener()
 				{
 					public void actionComplete(Object result) {
 						System.out.println( "result=" + result );
 						
-						System.exit(1);
+						//System.exit(1);
 					}
 				});
 		} catch (Exception e) {

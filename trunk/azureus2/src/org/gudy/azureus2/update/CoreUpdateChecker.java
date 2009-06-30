@@ -923,7 +923,7 @@ CoreUpdateChecker
 		checker.getCheckInstance().setProperty( UpdateCheckInstance.PT_CLOSE_OR_RESTART_ALREADY_IN_PROGRESS, true );
 
 		final File f_update_file = update_file;
-		
+				
 		uif.performAction( 
 			UIFunctions.ACTION_FULL_UPDATE,
 			info_url,
@@ -933,7 +933,7 @@ CoreUpdateChecker
 				actionComplete(
 					Object	result )
 				{
-					if ( true || (Boolean)result){
+					if ((Boolean)result){
 						
 						Utils.launch( f_update_file.getAbsolutePath());
 					}
