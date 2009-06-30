@@ -33,7 +33,15 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.search.Search;
+import org.gudy.azureus2.plugins.utils.search.SearchException;
+import org.gudy.azureus2.plugins.utils.search.SearchInitiator;
+import org.gudy.azureus2.plugins.utils.search.SearchInstance;
+import org.gudy.azureus2.plugins.utils.search.SearchListener;
+import org.gudy.azureus2.plugins.utils.search.SearchObserver;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
+import org.gudy.azureus2.plugins.utils.search.SearchProviderResults;
+import org.gudy.azureus2.plugins.utils.search.SearchResult;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.custom.Customization;
@@ -44,6 +52,10 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
 import com.aelitis.azureus.core.metasearch.MetaSearchException;
 import com.aelitis.azureus.core.metasearch.MetaSearchManager;
+import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
+import com.aelitis.azureus.core.metasearch.Result;
+import com.aelitis.azureus.core.metasearch.ResultListener;
+import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -168,6 +180,99 @@ MetaSearchManagerImpl
 			Debug.out( "Failed to add search provider '" + id + "' (" + provider + ")", e );
 		}
 	}
+	
+	public SearchProvider[]
+  	getProviders()
+	{
+		Engine[] engines = meta_search.getEngines( true, false );
+		
+		SearchProvider[] result = new SearchProvider[engines.length];
+		
+		for (int i=0;i<engines.length;i++){
+				
+			result[i] = new engineInfo( engines[i] );
+		}
+		
+		return( result );
+	}
+  	
+  	public Search
+  	createSearch(
+  		SearchProvider[]	providers,
+  		Map<String,String>	properties,
+  		SearchListener		listener )
+  	
+  		throws SearchException
+  	{
+		List<SearchParameter>	sps = new ArrayList<SearchParameter>();
+
+ 		String	search_term = properties.get( SearchInitiator.PR_SEARCH_TERM );
+ 		
+ 		if ( search_term == null ){
+ 			
+ 			throw( new SearchException( "Search term is mandatory" ));
+ 		}
+ 		
+		sps.add( new SearchParameter( "s", search_term ));
+
+ 		String	mature 		= properties.get( SearchInitiator.PR_MATURE );
+  		
+		if ( mature != null ){
+			
+			sps.add( new SearchParameter( "m", mature.toString()));
+		}
+	
+		SearchParameter[] parameters = (SearchParameter[])sps.toArray(new SearchParameter[ sps.size()] );
+
+		Map<String,String>	context = new HashMap<String, String>();
+		
+		context.put( Engine.SC_FORCE_FULL, "true" );
+
+		String	headers 		= null;
+		int		max_per_engine	= 256;
+		
+		SearchObject search = new SearchObject( listener );
+		
+		Engine[]	used_engines;
+		
+		if ( providers == null || providers.length == 0 ){
+			
+			used_engines = getMetaSearch().search( search, parameters, headers, context, max_per_engine );
+
+		}else{
+			
+			List<Engine>	selected_engines = new ArrayList<Engine>();
+			
+			for ( SearchProvider sp: providers ){
+				
+				Long	id = (Long)sp.getProperty( SearchProvider.PR_ID );
+				
+				if ( id == null ){
+					
+					throw( new SearchException( "Unknown provider - no id available" ));
+				}
+				
+				Engine engine = meta_search.getEngine( id );
+				
+				if ( engine == null ){
+					
+					throw( new SearchException( "Unknown engine id - " + id ));
+					
+				}else{
+					
+					selected_engines.add( engine );
+				}
+			}
+			
+			Engine[] engines = selected_engines.toArray( new Engine[ selected_engines.size()] );
+	
+			used_engines = getMetaSearch().search( engines, search, parameters, headers, context, max_per_engine );
+		}
+		
+		search.setEnginesUsed( used_engines );
+		
+		return( search );
+  	}
 	
 	protected void
 	refresh()
@@ -1010,6 +1115,515 @@ MetaSearchManagerImpl
 		}finally{
 			
 			writer.exdent();
+		}
+	}
+	
+	protected static class
+	SearchObject
+		implements Search, ResultListener
+	{
+		private SearchListener		listener;
+		
+		private Map<Long,engineInfo>	engine_map = new HashMap<Long, engineInfo>();
+		private boolean					engines_set;
+		
+		private List<SearchProviderResults>	pending_results = new ArrayList<SearchProviderResults>();
+		
+		private boolean	is_complete;
+		
+		protected
+		SearchObject(
+			SearchListener	_listener )
+		{
+			listener = _listener;
+		}
+		
+		protected void
+		setEnginesUsed(
+			Engine[]	engines )
+		{
+			boolean	report_complete;
+			
+			synchronized( engine_map ){
+				
+				for ( Engine e: engines ){
+					
+					getInfo( e );
+				}
+				
+				engines_set = true;
+				
+				report_complete = reportOverallComplete();
+			}
+			
+			if ( listener != null && report_complete ){
+					
+				listener.completed();
+			}
+		}
+		
+		private boolean
+		reportOverallComplete()
+		{
+			if ( is_complete || !engines_set ){
+				
+				return( false );
+			}
+			
+			for ( engineInfo info: engine_map.values()){
+				
+				if ( !info.isComplete()){
+					
+					return( false );
+				}
+			}
+			
+			is_complete = true;
+			
+			return( true );
+		}
+		
+		protected engineInfo
+		getInfo(
+			Engine		engine )
+		{
+			synchronized( engine_map ){
+
+				engineInfo res = engine_map.get( engine.getId());
+				
+				if ( res == null ){
+					
+					res = new engineInfo( engine );
+					
+					engine_map.put( engine.getId(), res );
+				}
+				
+				return( res );
+			}
+		}
+		
+		public void 
+		contentReceived(
+			Engine 		engine, 
+			String 		content )
+		{	
+				// boring
+		}
+		
+		public void 
+		matchFound( 
+			Engine 		engine, 
+			String[] 	fields )
+		{	
+			// boring
+		}
+		
+		public void 
+		resultsReceived(
+			Engine 			engine,
+			final Result[] 	results )
+		{
+			SearchProviderResults	result;
+
+			synchronized( engine_map ){
+				
+				final engineInfo info = getInfo( engine );
+				
+				result = 
+					new SearchProviderResults()
+					{
+						public SearchProvider
+						getProvider()
+						{
+							return( info );
+						}
+						
+						public SearchResult[]
+						getResults()
+						{
+							return( wrapResults( results ));
+						}
+						
+						public boolean
+						isComplete()
+						{
+							return( false );
+						}
+						
+						public SearchException
+						getError()
+						{
+							return( null );
+						}
+					};
+					
+				pending_results.add( result );
+			}
+			
+			if ( listener != null ){
+				
+				listener.receivedResults( new SearchProviderResults[]{ result });
+			}
+		}
+		
+		public void 
+		resultsComplete(
+			Engine 		engine )
+		{
+			boolean					report_complete;
+			SearchProviderResults	result;
+			
+			synchronized( engine_map ){
+				
+				final engineInfo info = getInfo( engine );
+				
+				info.setComplete();
+				
+				report_complete = reportOverallComplete();
+			
+				result = 
+					new SearchProviderResults()
+					{
+						public SearchProvider
+						getProvider()
+						{
+							return( info );
+						}
+						
+						public SearchResult[]
+						getResults()
+						{
+							return( new SearchResult[0] );
+						}
+						
+						public boolean
+						isComplete()
+						{
+							return( true );
+						}
+						
+						public SearchException
+						getError()
+						{
+							return( null );
+						}
+					};
+					
+				pending_results.add( result );
+			}
+			
+			if ( listener != null ){
+				
+				listener.receivedResults( new SearchProviderResults[]{ result });
+				
+				if ( report_complete ){
+					
+					listener.completed();
+				}
+			}
+		}
+		
+		protected void
+		failed(
+			Engine						engine,
+			final SearchException		error )
+		{
+			boolean					report_complete;
+			SearchProviderResults	result;
+			
+			synchronized( engine_map ){
+				
+				final engineInfo info = getInfo( engine );
+				
+				info.setComplete();
+				
+				report_complete = reportOverallComplete();
+				
+				result = 
+						new SearchProviderResults()
+						{
+							public SearchProvider
+							getProvider()
+							{
+								return( info );
+							}
+							
+							public SearchResult[]
+							getResults()
+							{
+								return( new SearchResult[0] );
+							}
+							
+							public boolean
+							isComplete()
+							{
+								return( false );
+							}
+							
+							public SearchException
+							getError()
+							{
+								return( error );
+							}
+						};
+						
+				pending_results.add( result );
+			}
+			
+			if ( listener != null ){
+				
+				listener.receivedResults( new SearchProviderResults[]{ result });
+				
+				if ( report_complete ){
+					
+					listener.completed();
+				}
+			}
+		}
+		
+		public void 
+		engineFailed(
+			Engine 		engine, 
+			Throwable 	cause )
+		{
+			failed( engine, new SearchException( "Search failed", cause ));
+		}
+		
+		public void 
+		engineRequiresLogin(
+			Engine 		engine, 
+			Throwable 	cause )
+		{
+			failed( engine, new SearchException( "Authentication required", cause ));
+		}
+		
+		protected SearchResult[]
+		wrapResults(
+			Result[]	res )
+		{
+			SearchResult[] x = new SearchResult[ res.length ];
+			
+			for ( int i=0;i<x.length;i++){
+				
+				x[i] = new resultWrapper( res[i] );
+			}
+			
+			return( x );
+		}
+		
+		public SearchProviderResults[]
+     	getResults()
+		{
+     		synchronized( engine_map ){
+
+     			SearchProviderResults[] result = pending_results.toArray( new SearchProviderResults[pending_results.size()]);
+     			
+     			pending_results.clear();
+     			
+     			return( result );
+     		}
+		}
+     	
+     	public boolean
+     	isComplete()
+     	{
+     		synchronized( engine_map ){
+     			
+     			if ( !is_complete ){
+     				
+     				return( false );
+     			}
+     			
+     			if ( pending_results.size() > 0 ){
+     				
+     				return( false );
+     			}
+     			
+     			return( true );
+     		}
+     	}
+     	
+     	protected static class
+     	resultWrapper
+     		implements SearchResult
+     	{
+     		private Result	result;
+     		
+     		protected
+     		resultWrapper(
+     			Result		_result )
+     		{
+     			result	= _result;
+     		}
+     		
+     		public Object
+     		getProperty(
+     			int		property_name )
+     		{
+     			switch( property_name ){
+	     			case PR_NAME:{
+	     			
+	     				return( result.getName());
+	     			}
+	     			case PR_PUB_DATE:{
+	     				
+	     				return( result.getPublishedDate());
+	     			}
+	     			case PR_SIZE:{
+	     				
+	     				return( result.getSize());
+	     			}
+	     			case PR_LEECHER_COUNT:{
+	     				
+	     				return( new Long( result.getNbPeers()));
+	     			}
+	     			case PR_SEED_COUNT:{
+	     				
+	     				return( new Long( result.getNbSeeds()));
+	     			}
+	     			case PR_SUPER_SEED_COUNT:{
+	     				
+	     				return( new Long( result.getNbSuperSeeds()));
+	     			}
+	     			case PR_CATEGORY:{
+	     				
+	     				return( result.getCategory());
+	     			}
+	     			case PR_COMMENTS:{
+	     				
+	     				return( new Long( result.getComments()));
+	     			}
+	     			case PR_VOTES:{
+	     				
+	     				return( new Long( result.getVotes()));
+	     			}
+	     			case PR_CONTENT_TYPE:{
+	     				
+	     				return( result.getContentType());
+	     			}
+	     			case PR_DETAILS_LINK:{
+	     				
+	     				return( result.getCDPLink());
+	     			}
+	     			case PR_DOWNLOAD_LINK:{
+	     				
+	     				return( result.getDownloadLink());
+	     			}
+	     			case PR_PLAY_LINK:{
+	     				
+	     				return( result.getPlayLink());
+	     			}
+	     			case PR_PRIVATE:{
+	     				
+	     				return( result.isPrivate());
+	     			}
+	     			case PR_DRM_KEY:{
+	     				
+	     				return( result.getDRMKey());
+	     			}
+	     			case PR_DOWNLOAD_BUTTON_LINK:{
+	     				
+	     				return( result.getDownloadButtonLink());
+	     			}
+	     			case PR_RANK:{
+	     			
+	     				return( new Long((long)( result.getRank() * 100 )));
+	     			}
+	     			case PR_ACCURACY:{
+	     			
+	     				return( new Long((long)( result.getAccuracy() * 100 )));
+	     			}
+	     			case PR_VOTES_DOWN:{
+	     				
+	     				return( new Long( result.getVotesDown()));
+	     			}
+	     			case PR_UID:{
+	     			
+	     				return( result.getUID());
+	     			}
+	     			case PR_HASH:{
+	     				
+	     				String base32_hash = result.getHash();
+	     				
+	     				if ( base32_hash != null ){
+	     					
+	     					return( Base32.decode( base32_hash ));
+	     				}
+	     				
+	     				return( null );
+	     			}
+	     			default:{
+	     				
+	     				Debug.out( "Unknown property type " + property_name );
+	     			}
+     			}
+     			
+     			return( null );
+     		}
+     	}
+	}
+	
+    protected static class
+    engineInfo
+    	implements SearchProvider
+    {
+    	private Engine		engine;
+     		
+    	private boolean		complete;
+    	
+    	protected
+    	engineInfo(
+    		Engine		_engine )
+    	{
+    		engine	= _engine;
+    	}
+    
+    	protected void
+    	setComplete()
+    	{
+    		complete	= true;
+    	}
+    	
+    	protected boolean
+    	isComplete()
+    	{
+    		return( complete );
+    	}
+    	
+		public SearchInstance
+		search(
+			Map<String,Object>	search_parameters,
+			SearchObserver		observer )
+		
+			throws SearchException
+		{
+			throw( new SearchException( "Not supported" ));
+		}
+		
+		public Object
+		getProperty(
+			int			property )
+		{
+			if ( property == PR_ID ){
+				
+				return( engine.getId());
+				
+			}else if ( property == PR_NAME ){
+				
+				return( engine.getName());
+				
+			}else{
+				
+				return( null );
+			}
+		}
+		
+		public void
+		setProperty(
+			int			property,
+			Object		value )
+		{
+			Debug.out( "Not supported" );
 		}
 	}
 }
