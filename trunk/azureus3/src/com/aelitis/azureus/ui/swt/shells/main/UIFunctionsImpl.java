@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
@@ -822,7 +823,11 @@ public class UIFunctionsImpl
 	{
 		if ( action_id == ACTION_FULL_UPDATE ){
 			
-			FullUpdateWindow.handleUpdate((String)args);
+			FullUpdateWindow.handleUpdate((String)args, listener );
+			
+		}else{
+			
+			Debug.out( "Unknown action " + action_id );
 		}
 	}
 }
