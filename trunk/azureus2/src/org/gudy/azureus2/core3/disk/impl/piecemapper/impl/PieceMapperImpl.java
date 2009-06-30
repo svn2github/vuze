@@ -51,7 +51,7 @@ PieceMapperImpl
 	
 	private int				last_piece_length;
 	
-	protected ArrayList btFileList = new ArrayList();
+	protected ArrayList<fileInfo> btFileList = new ArrayList<fileInfo>();
 
 	
 	public
@@ -92,15 +92,18 @@ PieceMapperImpl
 	
 	// method for simple torrents
 	
-	protected void 
+	private void 
 	buildFileLookupTables(
 		TOTorrentFile			torrent_file, 
 		String					fileName )
 	{
+		// not needed as fileName already normalised
+		// fileName = FileUtil.convertOSSpecificChars( fileName,  false );
+		
 		btFileList.add(new PieceMapperImpl.fileInfo(torrent_file,"", fileName ));
 	}
 	
-	protected void 
+	private void 
 	buildFileLookupTables(
 		TOTorrentFile[]			torrent_files, 
 		LocaleUtilDecoder 		locale_decoder ) 
@@ -212,7 +215,7 @@ PieceMapperImpl
 			long fileOffset = 0;
 			int currentFile = 0;
 			for (int i = 0;(1 == piece_count && i < piece_count) || i < piece_count - 1; i++) {
-				ArrayList pieceToFileList = new ArrayList();
+				ArrayList<PieceMapEntryImpl> pieceToFileList = new ArrayList<PieceMapEntryImpl>();
 				int usedSpace = 0;
 				while (modified_piece_length > usedSpace) {
 					fileInfo tempFile = (fileInfo)btFileList.get(currentFile);
@@ -271,18 +274,18 @@ PieceMapperImpl
 
 	
 
-	private List 
+	private List<PieceMapEntryImpl> 
 	buildLastPieceToFileList(
-		List file_list, 
-		int currentFile, 
-		long fileOffset )
+		List<fileInfo> 	file_list, 
+		int 			currentFile, 
+		long 			fileOffset )
 	{
 		int piece_length	= (int)torrent.getPieceLength();
 	
-		ArrayList pieceToFileList = new ArrayList();
+		ArrayList<PieceMapEntryImpl> pieceToFileList = new ArrayList<PieceMapEntryImpl>();
 		int usedSpace = 0;
 		while (last_piece_length > usedSpace) {
-			fileInfo tempFile = (fileInfo)file_list.get(currentFile);
+			fileInfo tempFile = file_list.get(currentFile);
 			long length = tempFile.getLength();
 
 			//get the available space
