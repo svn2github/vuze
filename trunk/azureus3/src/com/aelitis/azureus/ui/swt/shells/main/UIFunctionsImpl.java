@@ -44,6 +44,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -54,6 +55,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
+import com.aelitis.azureus.ui.UIFunctions.actionListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -810,5 +812,17 @@ public class UIFunctionsImpl
 		}
 
 		return false;
+	}
+	
+	public void 
+	performAction(
+		int 			action_id, 
+		Object 			args, 
+		actionListener 	listener )
+	{
+		if ( action_id == ACTION_FULL_UPDATE ){
+			
+			FullUpdateWindow.handleUpdate((String)args);
+		}
 	}
 }
