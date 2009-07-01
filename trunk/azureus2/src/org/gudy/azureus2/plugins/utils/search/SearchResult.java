@@ -27,12 +27,12 @@ SearchResult
 	public static final int	PR_NAME					= 1;	// String
 	public static final int	PR_PUB_DATE				= 2;	// Date
 	public static final int	PR_SIZE					= 3;	// Long
-	public static final int	PR_LEECHER_COUNT		= 4;	// Long
-	public static final int	PR_SEED_COUNT			= 5;	// Long
-	public static final int	PR_SUPER_SEED_COUNT		= 6;	// Long
+	public static final int	PR_LEECHER_COUNT		= 4;	// Long	(-1 unknown)
+	public static final int	PR_SEED_COUNT			= 5;	// Long	(-1 unknown)
+	public static final int	PR_SUPER_SEED_COUNT		= 6;	// Long	(-1 unknown)
 	public static final int	PR_CATEGORY				= 7;	// String
-	public static final int	PR_COMMENTS				= 8;	// Long
-	public static final int	PR_VOTES				= 9;	// Long
+	public static final int	PR_COMMENTS				= 8;	// Long	(-1 unknown)
+	public static final int	PR_VOTES				= 9;	// Long	(-1 unknown)
 	public static final int	PR_CONTENT_TYPE			= 10;	// String  ("video","audio","game")
 	public static final int	PR_DETAILS_LINK			= 11;	// URL as String
 	public static final int	PR_DOWNLOAD_LINK		= 12;	// URL as String
@@ -40,9 +40,9 @@ SearchResult
 	public static final int	PR_PRIVATE				= 14;	// Boolean
 	public static final int	PR_DRM_KEY				= 15;	// String
 	public static final int	PR_DOWNLOAD_BUTTON_LINK = 16;	// URL as String
-	public static final int	PR_RANK					= 17;	// Long value, 0->100
-	public static final int	PR_ACCURACY				= 18;	// Long value, 0->100
-	public static final int	PR_VOTES_DOWN			= 19;	// Long
+	public static final int	PR_RANK					= 17;	// Long value, 0->100 (-1 unknown)
+	public static final int	PR_ACCURACY				= 18;	// Long value, 0->100 (-1 unknown)
+	public static final int	PR_VOTES_DOWN			= 19;	// Long	(-1 unknown)
 	public static final int	PR_UID					= 20;	// String
 	public static final int	PR_HASH					= 21;	// byte[] torrent hash
 	
@@ -50,6 +50,7 @@ SearchResult
 	
 		// if you add more properties make sure you amend the mapping in PluginEngine appropriately
 		// AND the reverse mapping in MetaSearchManagerImpl
+		// AND generic XML attributes in xml-http plugin
 	
 	public Object
 	getProperty(
