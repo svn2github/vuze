@@ -261,6 +261,13 @@ RPTracker
 		return( null );
 	}
 	
+	public void
+	setEnableKeepAlive(
+		boolean		enable )
+	{
+	   	notSupported();
+	}
+	
 	public URL[]
 	getURLs()
 	{

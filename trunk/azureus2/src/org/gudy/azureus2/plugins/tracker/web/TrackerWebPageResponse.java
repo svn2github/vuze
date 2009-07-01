@@ -58,6 +58,10 @@ TrackerWebPageResponse
 		String		name,
 		String		value );
 	
+	public void
+	setGZIP(
+		boolean		gzip );
+	
 		/**
 		 * use a file contents as the response. returns true of loaded ok, false if doesn't exist
 		 * exception if error occurred during processing.

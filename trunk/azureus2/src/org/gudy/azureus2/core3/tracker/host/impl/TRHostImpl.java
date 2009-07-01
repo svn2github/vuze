@@ -38,10 +38,13 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 TRHostImpl
 	implements 	TRHost, TRTrackerAnnouncerFactoryListener, 
-				TRTrackerServerListener, TRTrackerServerFactoryListener,
+				TRTrackerServerListener2, TRTrackerServerListener, 
+				TRTrackerServerFactoryListener,
 				TRTrackerServerRequestListener, TRTrackerServerAuthenticationListener
 {
 	private static final LogIDs LOGID = LogIDs.TRACKER;
@@ -69,15 +72,15 @@ TRHostImpl
 	private static final int LDT_TORRENT_REMOVED		= 2;
 	private static final int LDT_TORRENT_CHANGED		= 3;
 	
-	private ListenerManager	listeners 	= ListenerManager.createAsyncManager(
+	private ListenerManager<TRHostListener>	listeners 	= ListenerManager.createAsyncManager(
 		"TRHost:ListenDispatcher",
-		new ListenerManagerDispatcher()
+		new ListenerManagerDispatcher<TRHostListener>()
 		{
 			public void
 			dispatch(
-				Object		_listener,
-				int			type,
-				Object		value )
+				TRHostListener	_listener,
+				int				type,
+				Object			value )
 			{
 				TRHostListener	target = (TRHostListener)_listener;
 		
@@ -96,6 +99,8 @@ TRHostImpl
 			}
 		});	
 	
+	private CopyOnWriteList<TRHostListener2>	listeners2 = new CopyOnWriteList<TRHostListener2>();
+	
 	private static boolean host_add_announce_urls;
 	
 	static{
@@ -112,7 +117,7 @@ TRHostImpl
 				});
 	}
 	
-	private List	auth_listeners		= new ArrayList();
+	private List<TRHostAuthenticationListener>	auth_listeners		= new ArrayList<TRHostAuthenticationListener>();
 	
 	private boolean	server_factory_listener_added;
 	
@@ -549,6 +554,7 @@ TRHostImpl
 					}
 					
 					server.addListener( this );
+					server.addListener2( this );
 							
 				}catch( TRTrackerServerException e ){
 								
@@ -1000,15 +1006,44 @@ TRHostImpl
 		
 		throws IOException
 	{
-		List	listeners_copy = listeners.getListenersCopy();
+		List<TRHostListener>	listeners_copy = listeners.getListenersCopy();
 		
 		for (int i=0;i<listeners_copy.size();i++){
 
-			TRHostListener	listener = (TRHostListener)listeners_copy.get(i);
+			TRHostListener	listener = listeners_copy.get(i);
 			
-			if ( listener.handleExternalRequest( client_address, user, url, absolute_url, header, is, os, async )){
+			try{
+				if ( listener.handleExternalRequest( client_address, user, url, absolute_url, header, is, os, async )){
+					
+					return( true );
+				}
+			}catch( Throwable e ){
 				
-				return( true );
+				Debug.out( e );
+			}
+		}
+		
+		return( false );
+	}
+	
+	public boolean 
+	handleExternalRequest(
+		ExternalRequest 	request )
+	
+			throws IOException 
+	{
+		Iterator<TRHostListener2> it = listeners2.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				if ( it.next().handleExternalRequest(request)){
+					
+					return( true );
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
 			}
 		}
 		
@@ -1046,6 +1081,20 @@ TRHostImpl
 		TRHostListener	l )
 	{
 		listeners.removeListener( l );
+	}
+	
+	public void
+	addListener2(
+		TRHostListener2	l )
+	{
+		listeners2.add(l);
+	}
+		
+	public void
+	removeListener2(
+		TRHostListener2	l )
+	{
+		listeners2.remove(l);
 	}
 	
 	protected void
@@ -1176,7 +1225,7 @@ TRHostImpl
 		for (int i=0;i<auth_listeners.size();i++){
 			
 			try{
-				boolean res = ((TRHostAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user, password );
+				boolean res = auth_listeners.get(i).authenticate( resource, user, password );
 				
 				if ( res ){
 					
@@ -1199,7 +1248,7 @@ TRHostImpl
 		for (int i=0;i<auth_listeners.size();i++){
 			
 			try{
-				byte[] res = ((TRHostAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user );
+				byte[] res = auth_listeners.get(i).authenticate( resource, user );
 				
 				if ( res != null ){
 					

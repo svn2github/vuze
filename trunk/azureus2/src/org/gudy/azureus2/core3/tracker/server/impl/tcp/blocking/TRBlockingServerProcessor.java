@@ -51,6 +51,8 @@ public class
 TRBlockingServerProcessor
 	extends TRTrackerServerProcessorTCP
 {
+	protected static final int KEEP_ALIVE_SOCKET_TIMEOUT				= 30*1000;
+
 	private static final LogIDs LOGID = LogIDs.TRACKER;
 	protected Socket				socket;
 	
@@ -72,297 +74,322 @@ TRBlockingServerProcessor
 	public void
 	runSupport()
 	{
-		try{
-	
-			setTaskState( "entry" );
-			
-			try{
-												
-				socket.setSoTimeout( SOCKET_TIMEOUT );
-										
-			}catch ( SocketException e ){
-													
-				// e.printStackTrace();
-			}
-										
-			String	header_plus = "";
-			
-			setTaskState( "reading header" );
-
-			try{
-										
-				InputStream	is = socket.getInputStream();
-				
-				byte[]	buffer = new byte[1024];
-				
-				while( header_plus.length()< 4096 ){
-						
-					int	len = is.read(buffer);
-						
-					if ( len == -1 ){
-					
-						break;
-					}
-									
-					header_plus += new String( buffer, 0, len, Constants.BYTE_ENCODING );
-									
-					if ( 	header_plus.endsWith(NL+NL) ||
-							header_plus.indexOf( NL+NL ) != -1 ){
-						
-						break;
-					}
-				}
+		// System.out.println( "Processor starts: " + socket.getRemoteSocketAddress());
 		
-				if ( Logger.isEnabled()){
-					
-					String	log_str = header_plus;
-					
-					int	pos = log_str.indexOf( NL );
-					
-					if ( pos != -1 ){
-						
-						log_str = log_str.substring(0,pos);
-					}
-					
-					Logger.log(new LogEvent(LOGID, "Tracker Server: received header '"
-							+ log_str + "'"));
-				}				
-					
-				// System.out.println( "got header:" + header_plus );
-				
-				InputStream	post_is 	= null;
-				File		post_file	= null;
-				
-				String	actual_header;
-				String	lowercase_header;
-				
-				boolean	head	= false;
-				
-				String	url;
-				
+		boolean	keep_alive = getServer().isKeepAliveEnabled(); 
+		
+		try{
+			InputStream	is = new BufferedInputStream( socket.getInputStream());
 
-				if ( header_plus.startsWith( "GET " )){
+			while( true ){
 				
-					timeout_ticks		= 1;
-					
-					actual_header		= header_plus;
-					lowercase_header	= actual_header.toLowerCase();
-					url					 = actual_header.substring(4).trim();
-					
-				}else if ( header_plus.startsWith( "HEAD " )){
-					
-					timeout_ticks		= 1;
-					
-					actual_header		= header_plus;
-					lowercase_header	= actual_header.toLowerCase();			
-					url 				= actual_header.substring(4).trim();
-
-					head	= true;
-					
-				}else if ( header_plus.startsWith( "POST ")){
-					
-					timeout_ticks	= TRTrackerServerTCP.PROCESSING_POST_MULTIPLIER;
-					
-					if ( timeout_ticks == 0 ){
-						
-						setTimeoutsDisabled( true );
-					}
-					
-					setTaskState( "reading content" );
-
-					int	header_end = header_plus.indexOf(NL+NL);
-					
-					if ( header_end == -1 ){
-					
-						throw( new TRTrackerServerException( "header truncated" ));
-					}
-					
-					actual_header 		= header_plus.substring(0,header_end+4);
-					lowercase_header	= actual_header.toLowerCase();
-					url 				= actual_header.substring(4).trim();
-
-					int	cl_start = lowercase_header.indexOf("content-length:");
-					
-					if ( cl_start == -1 ){
-						
-						throw( new TRTrackerServerException( "header Content-Length start missing" ));
-					}
-					
-					int	cl_end = actual_header.indexOf( NL, cl_start );
-					
-					if ( cl_end == -1 ){
-						
-						throw( new TRTrackerServerException( "header Content-Length end missing" ));
-					}
-					
-					int	content_length = Integer.parseInt( actual_header.substring(cl_start+15,cl_end ).trim());
+				setTaskState( "entry" );
 				
-					ByteArrayOutputStream	baos		= null;
-					FileOutputStream		fos			= null;
-				
-					OutputStream	data_os;
+				try{										
+					socket.setSoTimeout( SOCKET_TIMEOUT );
+											
+				}catch ( Throwable e ){
+														
+					// e.printStackTrace();
+				}
+															
+				setTaskState( "reading header" );
+	
+				try{
+																
+					byte[]	buffer		 	= new byte[16*1024];
+					int		header_pos		= 0;
 					
-					if ( content_length <= 256*1024 ){
-						
-						baos = new ByteArrayOutputStream();
-					
-						data_os	= baos;
-						
-					}else{
-						
-						post_file	= AETemporaryFileHandler.createTempFile();
-						
-						post_file.deleteOnExit();
-						
-						fos	= new FileOutputStream( post_file );
-						
-						data_os	= fos;
-					}
-					
-						// if we have X<NL><NL>Y get Y
-					
-					int	rem = header_plus.length() - (header_end+4);
-					
-					if ( rem > 0 ){
-						
-						content_length	-= rem;
-						
-						data_os.write( header_plus.substring(header_plus.length()-rem).getBytes( Constants.BYTE_ENCODING ));
-					}
-					
-					while( content_length > 0 ){
-						
-						int	len = is.read( buffer );
-						
-						if ( len < 0 ){
+					while( header_pos < buffer.length ){
 							
-							throw( new TRTrackerServerException( "premature end of input stream" ));
+						int	len = is.read( buffer, header_pos, 1);
+							
+						if ( len != 1 ){
+						
+							throw( new Exception( "Premature end of stream reading header" ));
 						}
 						
-						data_os.write( buffer, 0, len );
+						header_pos++;
 						
-						content_length -= len;
+						if ( 	header_pos >= 4 &&
+								buffer[header_pos-4] == CR &&
+								buffer[header_pos-3] == FF &&
+								buffer[header_pos-2] == CR &&
+								buffer[header_pos-1] == FF ){
+									
+							break;
+						}
 					}
-					
-					if ( baos != null ){
+
+					String	header = new String( buffer, 0, header_pos, Constants.BYTE_ENCODING );
+			
+					if ( Logger.isEnabled()){
 						
-						post_is = new ByteArrayInputStream(baos.toByteArray());
+						String	log_str = header;
+						
+						int	pos = log_str.indexOf( NL );
+						
+						if ( pos != -1 ){
+							
+							log_str = log_str.substring(0,pos);
+						}
+						
+						Logger.log(new LogEvent(LOGID, "Tracker Server: received header '"
+								+ log_str + "'"));
+					}				
+						
+					// System.out.println( "got header:" + header );
+					
+					InputStream	post_is 	= null;
+					File		post_file	= null;
+					
+					String	lowercase_header;
+					
+					boolean	head	= false;
+					
+					int	url_start;
+					
+	
+					if ( header.startsWith( "GET " )){
+					
+						timeout_ticks		= 1;
+						
+						lowercase_header	= header.toLowerCase();
+						url_start			= 4;
+						
+					}else if ( header.startsWith( "HEAD " )){
+						
+						timeout_ticks		= 1;
+						
+						lowercase_header	= header.toLowerCase();			
+						url_start			= 5;
+	
+						head	= true;
+						
+					}else if ( header.startsWith( "POST ")){
+						
+						timeout_ticks	= TRTrackerServerTCP.PROCESSING_POST_MULTIPLIER;
+						
+						if ( timeout_ticks == 0 ){
+							
+							setTimeoutsDisabled( true );
+						}
+						
+						setTaskState( "reading content" );
+						
+						lowercase_header	= header.toLowerCase();
+						url_start			= 5;
+	
+						String cl_str = getHeaderField( header, lowercase_header, "content-length:" );
+						
+						if ( cl_str == null ){
+							
+							throw( new Exception( "Content-Length missing" ));
+						}
+						
+						int content_length = Integer.parseInt( cl_str );
+						
+						ByteArrayOutputStream	baos		= null;
+						FileOutputStream		fos			= null;
+					
+						OutputStream	data_os;
+						
+						if ( content_length <= 256*1024 ){
+							
+							baos = new ByteArrayOutputStream();
+						
+							data_os	= baos;
+							
+						}else{
+							
+							post_file	= AETemporaryFileHandler.createTempFile();
+							
+							post_file.deleteOnExit();
+							
+							fos	= new FileOutputStream( post_file );
+							
+							data_os	= fos;
+						}
+						
+						while( content_length > 0 ){
+							
+							int	len = is.read( buffer, 0, Math.min( content_length, buffer.length ));
+							
+							if ( len < 0 ){
+								
+								throw( new TRTrackerServerException( "premature end of input stream" ));
+							}
+							
+							data_os.write( buffer, 0, len );
+							
+							content_length -= len;
+						}
+						
+						if ( baos != null ){
+							
+							post_is = new ByteArrayInputStream(baos.toByteArray());
+							
+						}else{
+							
+							fos.close();
+							
+							post_is = new BufferedInputStream( new FileInputStream( post_file ), 256*1024 );
+						}
+						
+						// System.out.println( "TRTrackerServerProcessorTCP: request data = " + baos.size());
 						
 					}else{
 						
-						fos.close();
+						int	pos = header.indexOf(' ');
 						
-						post_is = new BufferedInputStream( new FileInputStream( post_file ), 256*1024 );
+						if ( pos == -1 ){
+							
+							throw( new TRTrackerServerException( "header doesn't have space in right place" ));
+						}
+						
+						timeout_ticks		= 1;
+							
+						lowercase_header	= header.toLowerCase();
+						url_start			= pos+1;
 					}
 					
-					// System.out.println( "TRTrackerServerProcessorTCP: request data = " + baos.size());
+					setTaskState( "processing request" );
+	
+					current_request	= header;
+					
+					try{
+						if ( post_is == null ){
+							
+								// set up a default input stream 
+							
+							post_is = new ByteArrayInputStream(new byte[0]);
+						}
+						
+						int	url_end = header.indexOf( " ", url_start );
+						
+						if ( url_end == -1 ){
+							
+							throw( new TRTrackerServerException( "header doesn't have space in right place" ));
+						}
+										
+						String url = header.substring( url_start, url_end ).trim();
+						
+						int	nl_pos = header.indexOf( NL, url_end );
+						
+						if ( nl_pos == -1 ){
+							
+							throw( new TRTrackerServerException( "header doesn't have nl in right place" ));
+						}
+						
+						String	http_ver = header.substring( url_end, nl_pos ).trim();
+						
+						
+						String con_str = getHeaderField( header, lowercase_header, "connection:" );
+
+						if ( con_str == null ){
+							
+							if ( http_ver.equalsIgnoreCase( "HTTP/1.0" )){
+								
+								keep_alive = false;
+							}
+						}else if ( con_str.equalsIgnoreCase( "close" )){
+							
+							keep_alive = false;
+						}
+						
+						if ( head ){
+							
+							ByteArrayOutputStream	head_response = new ByteArrayOutputStream(4096);
+							
+							if ( !processRequest( 
+										header,
+										lowercase_header,
+										url, 
+										(InetSocketAddress)socket.getRemoteSocketAddress(),
+										false,
+										keep_alive,
+										post_is,
+										head_response,
+										null )){
+										
+								keep_alive = false;
+							}
+							
+							byte[]	head_data = head_response.toByteArray();
+							
+							int	header_length = head_data.length;
+							
+							for (int i=3;i<head_data.length;i++){
+								
+								if ( 	head_data[i-3] 	== CR &&
+										head_data[i-2] 	== FF &&
+										head_data[i-1] 	== CR &&
+										head_data[i]	== FF ){
+									
+									header_length = i+1;
+							
+									break;
+								}
+							}
+													
+							setTaskState( "writing head response" );
+	
+							socket.getOutputStream().write( head_data, 0, header_length );
+							
+							socket.getOutputStream().flush();
+							
+						}else{
+						
+							if( !processRequest( 
+										header,
+										lowercase_header,
+										url, 
+										(InetSocketAddress)socket.getRemoteSocketAddress(),
+										false,
+										keep_alive,
+										post_is,
+										socket.getOutputStream(),
+										null )){
+								
+								keep_alive = false;
+							}
+						}
+					}finally{
+						
+						if ( post_is != null ){
+							
+							post_is.close();
+						}
+						
+						if ( post_file != null ){
+							
+							post_file.delete();
+						}
+					}
+				}catch( Throwable e ){
+					
+					keep_alive = false;
+					
+					 // e.printStackTrace();
+				}
+				
+				if ( keep_alive ){
+					
+					try{				
+						socket.setSoTimeout( KEEP_ALIVE_SOCKET_TIMEOUT );
+												
+					}catch ( Throwable e ){
+					}
+											
+					setTimeoutsDisabled( true );
 					
 				}else{
 					
-					int	pos = header_plus.indexOf(' ');
-					
-					if ( pos == -1 ){
-						
-						throw( new TRTrackerServerException( "header doesn't have space in right place" ));
-					}
-					
-					timeout_ticks		= 1;
-						
-					actual_header		= header_plus;
-					lowercase_header	= actual_header.toLowerCase();
-					url					= actual_header.substring(pos+1).trim();
+					break;
 				}
-				
-				setTaskState( "processing request" );
-
-				current_request	= actual_header;
-				
-				try{
-					if ( post_is == null ){
-						
-							// set up a default input stream 
-						
-						post_is = new ByteArrayInputStream(new byte[0]);
-					}
-					
-					int	pos = url.indexOf( " " );
-					
-					if ( pos == -1 ){
-						
-						throw( new TRTrackerServerException( "header doesn't have space in right place" ));
-					}
-									
-					url = url.substring(0,pos);
-					
-					if ( head ){
-						
-						ByteArrayOutputStream	head_response = new ByteArrayOutputStream(4096);
-						
-						processRequest( actual_header,
-										lowercase_header,
-										url, 
-										(InetSocketAddress)socket.getRemoteSocketAddress(),
-										false,
-										post_is,
-										head_response,
-										null );
-						
-						byte[]	head_data = head_response.toByteArray();
-						
-						int	header_length = head_data.length;
-						
-						for (int i=3;i<head_data.length;i++){
-							
-							if ( 	head_data[i-3] 	== CR &&
-									head_data[i-2] 	== FF &&
-									head_data[i-1] 	== CR &&
-									head_data[i]	== FF ){
-								
-								header_length = i+1;
-						
-								break;
-							}
-						}
-												
-						setTaskState( "writing head response" );
-
-						socket.getOutputStream().write( head_data, 0, header_length );
-						
-						socket.getOutputStream().flush();
-						
-					}else{
-					
-						processRequest( actual_header,
-										lowercase_header,
-										url, 
-										(InetSocketAddress)socket.getRemoteSocketAddress(),
-										false,
-										post_is,
-										socket.getOutputStream(),
-										null );
-					}
-				}finally{
-					
-					if ( post_is != null ){
-						
-						post_is.close();
-					}
-					
-					if ( post_file != null ){
-						
-						post_file.delete();
-					}
-				}
-			}catch( SocketTimeoutException e ){
-				
-				// System.out.println( "TRTrackerServerProcessor: timeout reading header, got '" + header + "'");
-				// ignore it
-							
-			}catch( Throwable e ){
-				
-				 // e.printStackTrace();
 			}
-	
+		}catch( Throwable e ){
+			
 		}finally{
 					
 			setTaskState( "final socket close" );
@@ -374,9 +401,35 @@ TRBlockingServerProcessor
 													
 				// e.printStackTrace();
 			}
+			
+			// System.out.println( "Processor ends: " + socket.getRemoteSocketAddress());
 		}
 	}
 
+	protected String
+	getHeaderField(
+		String		header,
+		String		lc_header,
+		String		field )
+	{
+		int	start = lc_header.indexOf( field );
+		
+		if ( start == -1 ){
+			
+			return( null );
+		}
+		
+		int	end = header.indexOf( NL, start );
+		
+		if ( end == -1 ){
+			
+			return( null );
+		}
+		
+		return( header.substring(start+field.length(),end ).trim());
+	
+	}
+	
 	public void
 	interruptTask()
 	{

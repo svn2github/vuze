@@ -53,7 +53,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
-import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 
 import com.aelitis.azureus.core.util.HTTPUtils;
@@ -64,29 +63,25 @@ TrackerWebPageResponseImpl
 {
 	private static final String	NL			= "\r\n";
 
-	private OutputStream		os;
-
 	private ByteArrayOutputStream	baos = new ByteArrayOutputStream(2048);
 
 	private String				content_type = "text/html";
 
 	private int					reply_status	= 200;
 
-	private Map		header_map 	= new LinkedHashMap();
+	private Map<String,String>		header_map 	= new LinkedHashMap<String,String>();
 
-	private TrackerWebPageRequest 	request;
-	private AsyncController			async_control;
-	private boolean					is_async;
+	private TrackerWebPageRequestImpl 	request;
+	private boolean						is_async;
+	
+	private int							explicit_gzip	= 0; // not set, 1 = gzip, 2 = no gzip
+	private boolean						is_gzipped;
 	
 	protected
 	TrackerWebPageResponseImpl(
-		OutputStream			_os,
-		TrackerWebPageRequest 	_request,
-		AsyncController			_async_control )
+		TrackerWebPageRequestImpl 	_request )
 	{
-		os				= _os;
 		request 		= _request;
-		async_control	= _async_control;
 
 		String	formatted_date_now		 = TimeFormatter.getHTTPDate( SystemTime.getCurrentTime());
 
@@ -135,17 +130,24 @@ TrackerWebPageResponseImpl
 		addHeader( name, value, true );
 	}
 
-	protected void
+	public void
+	setGZIP(
+		boolean		gzip )
+	{
+		explicit_gzip = gzip?1:2;
+	}
+	
+	protected String
 	addHeader(
 		String		name,
 		String		value,
 		boolean		replace )
 	{
-		Iterator	it = header_map.keySet().iterator();
+		Iterator<String>	it = header_map.keySet().iterator();
 
 		while( it.hasNext()){
 
-			String	key = (String)it.next();
+			String	key = it.next();
 
 			if ( key.equalsIgnoreCase( name )){
 
@@ -155,12 +157,14 @@ TrackerWebPageResponseImpl
 
 				}else{
 
-					return;
+					return( header_map.get( key ));
 				}
 			}
 		}
 
 		header_map.put( name, value );
+		
+		return( value );
 	}
 
 	public OutputStream
@@ -217,9 +221,38 @@ TrackerWebPageResponseImpl
 			// add header fields if not already present
 
 		addHeader( "Server", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION, false );
-		addHeader( "Connection", "close", false );
+		
+		if ( request.canKeepAlive()){
+			
+			String	applied_value = addHeader( "Connection", "keep-alive", false );
+			
+			if ( applied_value.equalsIgnoreCase( "keep-alive" )){
+			
+				request.setKeepAlive( true );
+			}
+		}else{
+			
+			addHeader( "Connection", "close", true );
+		}
+		
 		addHeader( "Content-Type", content_type, false );
 
+		boolean do_gzip = false;
+		
+		if ( explicit_gzip == 1 && !is_gzipped ){
+			
+			Map headers = request.getHeaders();
+		
+			String	accept_encoding = (String)headers.get("accept-encoding");
+		
+			if ( HTTPUtils.canGZIP(accept_encoding)){
+			
+				is_gzipped = do_gzip = true;
+				
+				header_map.put("Content-Encoding", "gzip");
+			}
+		}
+		
 		Iterator	it = header_map.keySet().iterator();
 
 		while( it.hasNext()){
@@ -236,12 +269,23 @@ TrackerWebPageResponseImpl
 
 		// System.out.println( "writing reply:" + reply_header );
 
+		OutputStream os = request.getOutputStream();
+		
 		os.write( reply_header.getBytes());
 
-		os.flush();
-
-		os.write( reply_bytes );
-
+		if ( do_gzip ){
+			
+			GZIPOutputStream gzos = new GZIPOutputStream(os);
+			
+			gzos.write( reply_bytes );
+			
+			gzos.finish();
+			
+		}else{
+		
+			os.write( reply_bytes );
+		}
+		
 		os.flush();
 	}
 
@@ -313,7 +357,7 @@ TrackerWebPageResponseImpl
 
 		String response_type = HTTPUtils.guessContentTypeFromFileType(file_type);
 		
-		if ( HTTPUtils.useCompressionForFileType(response_type)){
+		if ( explicit_gzip != 2 && HTTPUtils.useCompressionForFileType(response_type)){
 			
 			Map headers = request.getHeaders();
 			
@@ -321,6 +365,8 @@ TrackerWebPageResponseImpl
 			
 			if ( HTTPUtils.canGZIP(accept_encoding)){
 
+				is_gzipped = true;
+				
 				os = new GZIPOutputStream(os);
 				
 				header_map.put("Content-Encoding", "gzip");
@@ -424,6 +470,8 @@ TrackerWebPageResponseImpl
 	
 		throws IOException
 	{
+		AsyncController async_control = request.getAsyncController();
+		
 		if ( async_control == null ){
 			
 			throw( new IOException( "Request is not non-blocking" ));

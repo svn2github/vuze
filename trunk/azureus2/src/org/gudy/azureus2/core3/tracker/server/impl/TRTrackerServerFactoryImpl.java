@@ -284,7 +284,7 @@ TRTrackerServerFactoryImpl
 		{
 			ByteArrayOutputStream	os = new ByteArrayOutputStream( 1024 );
 			
-			processRequest(input_header, lowercase_input_header, url_path, client_address, announce_and_scrape_only, is, os, async );
+			processRequest(input_header, lowercase_input_header, url_path, client_address, announce_and_scrape_only, false, is, os, async );
 			
 			return( os );
 		}

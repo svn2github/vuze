@@ -27,12 +27,15 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  */
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.tracker.server.TRTrackerServerListener2;
+import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 
@@ -42,32 +45,19 @@ TrackerWebPageRequestImpl
 {
 	private Tracker				tracker;
 	private TrackerWebContext	context;
-	private InetSocketAddress	client_address;
-	private String				user;
-	private String				url;
-	private URL					absolute_url;
-	private String				header;
-	private InputStream			is;
+	
+	private TRTrackerServerListener2.ExternalRequest	request;
+	
 	
 	protected
 	TrackerWebPageRequestImpl(
-		Tracker				_tracker,
-		TrackerWebContext	_context,
-		InetSocketAddress	_client_address,
-		String				_user,
-		String				_url,
-		URL					_absolute_url,
-		String				_header,
-		InputStream			_is )
+		Tracker										_tracker,
+		TrackerWebContext							_context,
+		TRTrackerServerListener2.ExternalRequest	_request )
 	{
-		tracker			= _tracker;
-		context			= _context;
-		client_address	= _client_address;
-		user			= _user;
-		url				= _url;
-		absolute_url	= _absolute_url;
-		header			= _header;
-		is				= _is;
+		tracker		= _tracker;
+		context		= _context;
+		request		= _request;
 	}
 	
 	public Tracker
@@ -85,43 +75,68 @@ TrackerWebPageRequestImpl
 	public String
 	getURL()
 	{
-		return( url );
+		return( request.getURL());
 	}
 	
 	public URL
 	getAbsoluteURL()
 	{
-		return( absolute_url );
+		return( request.getAbsoluteURL());
 	}
 	
 	public String
 	getClientAddress()
 	{
-		return( client_address.getAddress().getHostAddress());
+		return( request.getClientAddress().getAddress().getHostAddress());
 	}
 
 	public InetSocketAddress
 	getClientAddress2()
 	{
-		return( client_address );
+		return( request.getClientAddress());
 	}
 	
 	public String
 	getUser()
 	{
-		return( user );
+		return( request.getUser());
 	}
 	
 	public InputStream
 	getInputStream()
 	{
-		return( is );
+		return( request.getInputStream());
+	}
+	
+	protected OutputStream
+	getOutputStream()
+	{
+		return( request.getOutputStream());
+	}
+	
+	protected AsyncController
+	getAsyncController()
+	{
+		return( request.getAsyncController());
+	}
+	
+	public boolean
+	canKeepAlive()
+	{
+		return( request.canKeepAlive());
+	}
+	
+	public void
+	setKeepAlive(
+		boolean	ka )
+	{
+		request.setKeepAlive( ka );
 	}
 	
 	public String
 	getHeader()
 	{
-		return( header );
+		return( request.getHeader());
 	}
 	
 	public Map 
@@ -129,7 +144,7 @@ TrackerWebPageRequestImpl
 	{
         Map headers = new HashMap();
 
-        String[] header_parts = header.split("\r\n");
+        String[] header_parts = request.getHeader().split("\r\n");
 
         headers.put("status", header_parts[0].trim());
 

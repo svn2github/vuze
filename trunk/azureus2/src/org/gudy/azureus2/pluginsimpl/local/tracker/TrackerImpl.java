@@ -42,7 +42,7 @@ import org.gudy.azureus2.core3.util.Debug;
 public class 
 TrackerImpl
 	extends		TrackerWCHelper
-	implements 	Tracker, TRHostListener, TRHostAuthenticationListener
+	implements 	Tracker, TRHostListener2, TRHostAuthenticationListener
 {
 	private static TrackerImpl	singleton;
 	private static AEMonitor 		class_mon 	= new AEMonitor( "Tracker" );
@@ -81,13 +81,20 @@ TrackerImpl
 		
 		host		= _host;
 				
-		host.addListener( this );
+		host.addListener2( this );
 	}
 	
 	public String
 	getName()
 	{
 		return( host.getName());
+	}
+	
+	public void
+	setEnableKeepAlive(
+		boolean		enable )
+	{
+		Debug.out( "Keep alive setting ignored for tracker" );
 	}
 	
 	public URL[]

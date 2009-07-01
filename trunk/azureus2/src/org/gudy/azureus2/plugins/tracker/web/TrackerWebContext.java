@@ -43,6 +43,10 @@ TrackerWebContext
 	getURLs();
 	
 	public void
+	setEnableKeepAlive(
+		boolean		enable );
+	
+	public void
 	addPageGenerator(
 		TrackerWebPageGenerator	generator );
 	

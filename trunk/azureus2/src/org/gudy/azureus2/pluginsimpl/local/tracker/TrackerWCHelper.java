@@ -38,6 +38,7 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.tracker.host.TRHostAuthenticationListener;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerAuthenticationListener;
+import org.gudy.azureus2.core3.tracker.server.TRTrackerServerListener2;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -48,7 +49,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 public abstract class
 TrackerWCHelper
-	implements TrackerWebContext, TRHostAuthenticationListener, TRTrackerServerAuthenticationListener
+	implements TrackerWebContext, TRHostAuthenticationListener
 {
 	private PluginInterface		plugin_interface;
 
@@ -72,15 +73,8 @@ TrackerWCHelper
 
 	public boolean
 	handleExternalRequest(
-		final InetSocketAddress	_client_address,
-		final String				_user,
-		final String				_url,
-		final URL					_absolute_url,
-		final String				_header,
-		final InputStream			_is,
-		final OutputStream			_os,
-		final AsyncController		_async )
-
+		final TRTrackerServerListener2.ExternalRequest	external_request )
+	
 		throws IOException
 	{
 		return(UtilitiesImpl.callWithPluginThreadContext(
@@ -92,8 +86,8 @@ TrackerWCHelper
 				
 					throws IOException
 				{
-					TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, TrackerWCHelper.this, _client_address, _user, _url, _absolute_url, _header, _is );
-					TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os , request, _async );
+					TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, TrackerWCHelper.this, external_request );
+					TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( request );
 			
 					for (int i=0;i<generators.size();i++){
 			

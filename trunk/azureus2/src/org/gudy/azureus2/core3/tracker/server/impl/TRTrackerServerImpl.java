@@ -36,6 +36,8 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public abstract class 
 TRTrackerServerImpl 
 	implements 	TRTrackerServer
@@ -226,10 +228,15 @@ TRTrackerServerImpl
 	
 	private boolean	enabled	= true;
 
-	protected Vector	listeners 			= new Vector();
-	private List		auth_listeners		= new ArrayList();
+	private boolean	keep_alive_enabled	= false;
 	
-	private Vector	request_listeners 	= new Vector();
+	
+	protected CopyOnWriteList<TRTrackerServerListener>	listeners 	= new CopyOnWriteList<TRTrackerServerListener>();
+	protected CopyOnWriteList<TRTrackerServerListener2>	listeners2 	= new CopyOnWriteList<TRTrackerServerListener2>();
+	
+	private List<TRTrackerServerAuthenticationListener>		auth_listeners		= new ArrayList<TRTrackerServerAuthenticationListener>();
+	
+	private Vector<TRTrackerServerRequestListener>	request_listeners 	= new Vector<TRTrackerServerRequestListener>();
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServer" );
 
@@ -335,6 +342,19 @@ TRTrackerServerImpl
 	isEnabled()
 	{
 		return( enabled );
+	}
+	
+	public void
+	setEnableKeepAlive(
+		boolean	enable )
+	{
+		keep_alive_enabled = enabled;
+	}
+	
+	public boolean
+	isKeepAliveEnabled()
+	{
+		return( keep_alive_enabled );
 	}
 	
 	public TRTrackerServerTorrent
@@ -800,9 +820,11 @@ TRTrackerServerImpl
 		
 		if ( entry == null ){
 			
-			for (int i=0;i<listeners.size();i++){
-				
-				if ( !((TRTrackerServerListener)listeners.elementAt(i)).permitted( _originator, _hash, _explicit )){
+			Iterator<TRTrackerServerListener>	it = listeners.iterator();
+			
+			while( it.hasNext()){
+						
+				if ( !it.next().permitted( _originator, _hash, _explicit )){
 					
 					throw( new TRTrackerServerException( "operation denied"));			
 				}
@@ -841,9 +863,11 @@ TRTrackerServerImpl
 		
 		HashWrapper	hash = new HashWrapper( _hash );
 		
-		for (int i=0;i<listeners.size();i++){
+		Iterator<TRTrackerServerListener>	it = listeners.iterator();
 			
-			if ( !((TRTrackerServerListener)listeners.elementAt(i)).denied( _hash, _explicit )){				
+		while( it.hasNext()){
+			
+			if ( !it.next().denied( _hash, _explicit )){				
 				
 				throw( new TRTrackerServerException( "operation denied"));			
 			}
@@ -952,32 +976,29 @@ TRTrackerServerImpl
 	addListener(
 		TRTrackerServerListener	l )
 	{
-		try{
-			this_mon.enter();
-		
-			listeners.addElement( l );
-			
-		}finally{
-			
-			this_mon.exit();
-		}
+		listeners.add( l );
 	}
 	
 	public void
 	removeListener(
 		TRTrackerServerListener	l )
 	{
-		try{
-			this_mon.enter();
-		
-			listeners.removeElement(l);
-			
-		}finally{
-			
-			this_mon.exit();
-		}
+		listeners.remove(l);
 	}
 	
+	public void
+	addListener2(
+		TRTrackerServerListener2	l )
+	{
+		listeners2.add( l );
+	}
+	
+	public void
+	removeListener2(
+		TRTrackerServerListener2	l )
+	{
+		listeners2.remove(l);
+	}
 	
 	public void
 	addAuthenticationListener(

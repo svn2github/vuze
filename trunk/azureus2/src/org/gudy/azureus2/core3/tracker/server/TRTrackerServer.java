@@ -63,7 +63,11 @@ TRTrackerServer
 	
 	public boolean
 	isSSL();
-		
+	
+	public void
+	setEnableKeepAlive(
+		boolean	enable );
+	
 	public TRTrackerServerTorrent
 	permit(
 		String		originator,
@@ -110,6 +114,15 @@ TRTrackerServer
 	public void
 	removeListener(
 		TRTrackerServerListener	l );
+	
+	public void
+	addListener2(
+		TRTrackerServerListener2	l );
+		
+	public void
+	removeListener2(
+		TRTrackerServerListener2	l );
+	
 	
 	public void
 	addRequestListener(

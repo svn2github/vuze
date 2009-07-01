@@ -297,37 +297,98 @@ TRTrackerServerTCP
 	
 	protected boolean
 	handleExternalRequest(
-		InetSocketAddress	client_address,
-		String				user,
-		String				url,
-		URL					absolute_url,
-		String				header,
-		InputStream			is,
-		OutputStream		os,
-		AsyncController		async )
+		final InetSocketAddress		client_address,
+		final String				user,
+		final String				url,
+		final URL					absolute_url,
+		final String				header,
+		final InputStream			is,
+		final OutputStream			os,
+		final AsyncController		async,
+		final boolean[]				keep_alive )		
 		
 		throws IOException
 	{
-		for (int i=0;i<listeners.size();i++){
-			
-			TRTrackerServerListener	listener;
-			
-			try{
-				this_mon.enter();
-				
-				if ( i >= listeners.size()){
-					
-					break;
-				}
-				
-				listener = (TRTrackerServerListener)listeners.elementAt(i);
-				
-			}finally{
-				
-				this_mon.exit();
-			}
+		final boolean	original_ka = keep_alive[0];
+		
+		keep_alive[0] = false;
+		
+		for ( TRTrackerServerListener listener: listeners ){
 			
 			if ( listener.handleExternalRequest( client_address, user, url, absolute_url, header, is, os, async )){
+								
+				return( true );
+			}
+		}
+		
+		for ( TRTrackerServerListener2 listener: listeners2 ){
+	
+			TRTrackerServerListener2.ExternalRequest request =
+				new TRTrackerServerListener2.ExternalRequest()
+				{
+					public InetSocketAddress
+					getClientAddress()
+					{
+						return( client_address );
+					}
+					
+					public String
+					getUser()
+					{
+						return( user );
+					}
+					
+					public String
+					getURL()
+					{
+						return( url );
+					}
+					
+					public URL
+					getAbsoluteURL()
+					{
+						return( absolute_url );
+					}
+					
+					public String
+					getHeader()
+					{
+						return( header );
+					}
+					
+					public InputStream
+					getInputStream()
+					{
+						return( is );
+					}
+					
+					public OutputStream
+					getOutputStream()
+					{
+						return( os );
+					}
+					
+					public AsyncController
+					getAsyncController()
+					{
+						return( async );
+					}
+					
+					public boolean
+					canKeepAlive()
+					{
+						return( original_ka );
+					}
+					
+					public void
+					setKeepAlive(
+						boolean		ka )
+					{
+						keep_alive[0] = original_ka && ka;
+					}
+				};
+			
+			if ( listener.handleExternalRequest( request )){
 				
 				return( true );
 			}
@@ -335,6 +396,4 @@ TRTrackerServerTCP
 		
 		return( false );
 	}
-	
-
 }

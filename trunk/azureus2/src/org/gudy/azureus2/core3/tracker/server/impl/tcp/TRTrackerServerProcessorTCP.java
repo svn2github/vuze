@@ -100,13 +100,14 @@ TRTrackerServerProcessorTCP
 		return( server );
 	}
 	
-	protected void
+	protected boolean
 	processRequest(
 		String				input_header,
 		String				lowercase_input_header,
 		String				url_path,
 		InetSocketAddress	client_address,
 		boolean				announce_and_scrape_only,
+		boolean				keep_alive,
 		InputStream			is,
 		OutputStream		os,
 		AsyncController		async )
@@ -174,12 +175,14 @@ TRTrackerServerProcessorTCP
 						
 						if ( user == null ){
 							
-							return;
+							return( false );
 						}
 						
-						if ( handleExternalRequest( client_address, user, str, input_header, is, os, async )){
+						boolean[] ka = new boolean[]{ keep_alive };
 						
-							return;
+						if ( handleExternalRequest( client_address, user, str, input_header, is, os, async, ka )){
+						
+							return( ka[0] );
 						}
 					}
 					
@@ -194,7 +197,7 @@ TRTrackerServerProcessorTCP
 					
 					os.flush();
 
-					return; // throw( new Exception( "Unsupported Request Type"));
+					return( false ); // throw( new Exception( "Unsupported Request Type"));
 				}
 				
 					// OK, here its an announce, scrape or full scrape
@@ -203,7 +206,7 @@ TRTrackerServerProcessorTCP
 					
 				if ( doAuthentication( url_path, input_header, os, true ) == null ){
 					
-					return;
+					return ( false );
 				}
 				
 				
@@ -615,7 +618,7 @@ TRTrackerServerProcessorTCP
 						
 						os.flush();
 
-						return;
+						return( false );
 					}
 					
 					if ( tr_excep.isUserMessage()){
@@ -775,6 +778,8 @@ TRTrackerServerProcessorTCP
 
 			os.flush();
 		}
+		
+		return( false );
 	}
 	
 	protected String
@@ -929,12 +934,13 @@ TRTrackerServerProcessorTCP
 		String				header,
 		InputStream			is,
 		OutputStream		os,
-		AsyncController		async )
+		AsyncController		async,
+		boolean[]			keep_alive )
 		
 		throws IOException
 	{
 		URL	absolute_url = new URL( server_url + (url.startsWith("/")?url:("/"+url)));
 			
-		return( server.handleExternalRequest(client_address,user,url,absolute_url,header, is, os, async));
+		return( server.handleExternalRequest(client_address,user,url,absolute_url,header, is, os, async, keep_alive ));
 	}
 }

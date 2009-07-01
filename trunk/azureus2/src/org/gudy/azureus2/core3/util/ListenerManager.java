@@ -71,10 +71,10 @@ ListenerManager<T>
 	protected boolean	async;
 	protected AEThread2	async_thread;
 	
-	protected List		listeners		= new ArrayList();
+	protected List<T>			listeners		= new ArrayList<T>();
 	
-	protected List			dispatch_queue;
-	protected AESemaphore	dispatch_sem;
+	protected List<Object[]>	dispatch_queue;
+	protected AESemaphore		dispatch_sem;
 	
 	protected
 	ListenerManager(
@@ -94,7 +94,7 @@ ListenerManager<T>
 		if ( async ){
 			
 			dispatch_sem	= new AESemaphore("ListenerManager::"+name);
-			dispatch_queue 	= new LinkedList();
+			dispatch_queue 	= new LinkedList<Object[]>();
 			
 			if ( target_with_exception != null ){
 				
@@ -105,11 +105,11 @@ ListenerManager<T>
 	
 	public void
 	addListener(
-		Object		listener )
+		T		listener )
 	{
 		synchronized( this ){
 			
-			ArrayList	new_listeners	= new ArrayList( listeners );
+			ArrayList<T>	new_listeners	= new ArrayList<T>( listeners );
 			
 			if (new_listeners.contains(listener)) {
 				Logger.log(new LogEvent(LogIDs.CORE, LogEvent.LT_WARNING,
@@ -148,7 +148,7 @@ ListenerManager<T>
 	{
 		synchronized( this ){
 			
-			ArrayList	new_listeners = new ArrayList( listeners );
+			ArrayList<T>	new_listeners = new ArrayList<T>( listeners );
 			
 			new_listeners.remove( listener );
 			
@@ -167,7 +167,7 @@ ListenerManager<T>
 	
 	public boolean
 	hasListener(
-		Object		listener )
+		T		listener )
 	{
 		synchronized( this ){
 
@@ -180,7 +180,7 @@ ListenerManager<T>
 	{
 		synchronized( this ){
 									
-			listeners	= new ArrayList();
+			listeners	= new ArrayList<T>();
 			
 			if ( async ){
 				
@@ -193,7 +193,7 @@ ListenerManager<T>
 		}
 	}
 	
-	public List
+	public List<T>
 	getListenersCopy()
 	{
 			// we can just return the listeners as we copy on update
@@ -252,7 +252,7 @@ ListenerManager<T>
 				throw( new RuntimeException( "call dispatchWithException, not dispatch"));
 			}
 			
-			List	listeners_ref;
+			List<T>	listeners_ref;
 			
 			synchronized( this ){
 				
@@ -276,7 +276,7 @@ ListenerManager<T>
 	
 		throws Throwable
 	{
-		List	listeners_ref;
+		List<T>	listeners_ref;
 		
 		synchronized( this ){
 			
@@ -351,7 +351,7 @@ ListenerManager<T>
 
 	protected String
 	getListenerName( 
-		Object	 listener )
+		T	 listener )
 	{
 		Class listener_class = listener.getClass();
 		

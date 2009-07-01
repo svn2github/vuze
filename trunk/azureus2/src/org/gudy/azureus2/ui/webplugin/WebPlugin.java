@@ -53,7 +53,7 @@ WebPlugin
 	public static final String	PR_CONFIG_MODEL				= "DefaultConfigModel";			// BasicPluginConfigModel
 	public static final String	PR_VIEW_MODEL				= "DefaultViewModel";			// BasicPluginViewModel
 	public static final String	PR_HIDE_RESOURCE_CONFIG		= "DefaultHideResourceConfig";	// Boolean
-	
+	public static final String	PR_ENABLE_KEEP_ALIVE		= "DefaultEnableKeepAlive";		// Boolean
 	
 	public static final String	PROPERTIES_MIGRATED		= "Properties Migrated";
 	public static final String	CONFIG_MIGRATED			= "Config Migrated";
@@ -529,6 +529,13 @@ WebPlugin
 						plugin_interface.getAzureusName() + " - " + plugin_interface.getPluginName(), 
 						port, protocol, bind_ip );
 		
+			Boolean	pr_enable_keep_alive = (Boolean)properties.get( PR_ENABLE_KEEP_ALIVE );
+
+			if ( pr_enable_keep_alive != null && pr_enable_keep_alive ){
+			
+				context.setEnableKeepAlive( true );
+			}
+			
 			context.addPageGenerator( this );
 	
 			context.addAuthenticationListener(

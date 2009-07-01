@@ -39,7 +39,7 @@ import org.gudy.azureus2.core3.util.Debug;
 public class 
 TrackerWebContextImpl 
 	extends		TrackerWCHelper
-	implements 	TRTrackerServerListener
+	implements 	TRTrackerServerListener2, TRTrackerServerAuthenticationListener
 {
 	protected TRTrackerServer		server;
 	
@@ -68,7 +68,7 @@ TrackerWebContextImpl
 				server = TRTrackerServerFactory.createSSL( name, TRTrackerServerFactory.PR_TCP, port, bind_ip, false, false );
 			}
 			
-			server.addListener( this );
+			server.addListener2( this );
 			
 		}catch( TRTrackerServerException e ){
 			
@@ -80,6 +80,13 @@ TrackerWebContextImpl
 	getName()
 	{
 		return( server.getName());
+	}
+	
+	public void
+	setEnableKeepAlive(
+		boolean		enable )
+	{
+		server.setEnableKeepAlive( enable );
 	}
 	
 	public URL[]
@@ -106,41 +113,6 @@ TrackerWebContextImpl
 			
 			return( null );
 		}
-	}
-	
-	public int
-	getProtocol()
-	{
-		return( server.isSSL()?Tracker.PR_HTTPS:Tracker.PR_HTTP );
-	}
-	
-	public String
-	getHostName()
-	{
-		return( server.getHost());
-	}
-	
-	public int
-	getPort()
-	{
-		return( server.getPort());
-	}
-		
-	public boolean
-	permitted(
-		String	originator,
-		byte[]	hash,
-		boolean	explicit )
-	{
-		return( false );
-	}
-	
-	public boolean
-	denied(
-		byte[]	hash,
-		boolean	explicit )
-	{
-		return( false );
 	}
 	
 	public boolean
