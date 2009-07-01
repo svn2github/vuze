@@ -125,6 +125,7 @@ Test
 												properties.put( SearchInitiator.PR_SEARCH_TERM, "monkey" );
 												properties.put( SearchInitiator.PR_MATURE, "true" );
 												
+												/*
 												final boolean[] complete = {false};
 												
 												Search s = 
@@ -167,6 +168,36 @@ Test
 													
 													System.out.println( "waiting for results" );
 												}
+												*/
+												
+												
+												Search s = si.createSearch(	providers, properties, null );
+												
+												while( !s.isComplete()){
+													
+													Thread.sleep(1000);
+													
+													SearchProviderResults[] results = s.getResults();
+													
+													if ( results.length > 0 ){
+													
+														System.out.println( "Got results: " + results.length );
+														
+														for ( SearchProviderResults result: results ){
+															
+															System.out.println( "    " + result.getProvider().getProperty( SearchProvider.PR_NAME ) + ": comp=" + result.isComplete() + ", error=" + result.getError());
+															
+															SearchResult[] srs = result.getResults();
+															
+															for ( SearchResult sr: srs ){
+																
+																System.out.println( "        " + sr.getProperty( SearchResult.PR_NAME ));
+															}
+														}
+													}
+												}
+												
+												break;
 											}
 										}catch( Throwable e){
 											

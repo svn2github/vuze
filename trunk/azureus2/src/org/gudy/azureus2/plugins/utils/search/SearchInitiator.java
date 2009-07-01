@@ -39,4 +39,19 @@ SearchInitiator
 		SearchListener		listener )
 	
 		throws SearchException;
+	
+		/**
+		 * Convenience method for remote invocation
+		 * @param provider_ids
+		 * @param properties
+		 * @return
+		 * @throws SearchException
+		 */
+	
+	public Search
+	createSearch(
+		String				provider_ids,	// comma separated list
+		String				properties )	// name=value, comma separated
+	
+		throws SearchException;
 }

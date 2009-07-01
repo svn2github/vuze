@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.xml.util;
  */
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -213,6 +214,49 @@ XUXmlWriter
 		str = str.replaceAll( "&amp;", "&" );
 
 		return( str );
+	}
+	
+	public static String[]
+	splitWithEscape(
+		String		str,
+		char		delim )
+	{
+		List<String> res = new ArrayList<String>();
+				
+		String	current = "";
+		
+		char[]	chars = str.toCharArray();
+		
+		for (int i=0;i<chars.length;i++){
+			
+			char c = chars[i];
+			
+			if ( c == '\\' && i+1<chars.length && chars[i+1] == delim ){
+				
+				current += delim;
+				
+				i++;
+				
+			}else if ( c == delim ){
+								
+				if ( current.length() > 0 ){
+						
+					res.add( current );
+						
+					current = "";
+				}
+			}else{
+					
+				current += c;
+			}
+		}
+		
+		if ( current.length() > 0 ){
+			
+			res.add( current );
+		}
+		
+		return( res.toArray( new String[ res.size() ]));
 	}
 	
 	protected void
