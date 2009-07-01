@@ -28,6 +28,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -195,10 +196,74 @@ MetaSearchManagerImpl
 		
 		return( result );
 	}
-  	
+	
+	public Search 
+	createSearch(
+		String 		provider_ids,
+		String 		properties_str )
+	
+		throws SearchException 
+	{
+		String[]	bits = XUXmlWriter.splitWithEscape( provider_ids, ',' );
+		
+		long[]	pids = new long[ bits.length ];
+		
+		for ( int i=0; i<bits.length; i++ ){
+			
+			pids[i] = Long.parseLong( bits[i] );
+		}
+
+		Map<String,String>	properties = new HashMap<String, String>();
+		
+		bits = XUXmlWriter.splitWithEscape( properties_str, ',' );
+
+		for ( int i=0; i<bits.length; i++ ){
+
+			String[] x = XUXmlWriter.splitWithEscape( bits[i], '=' );
+			
+			properties.put( x[0].trim(), x[1].trim());
+		}
+		
+		return( createSearch( pids, properties, null ));
+	}
+	
   	public Search
   	createSearch(
   		SearchProvider[]	providers,
+  		Map<String,String>	properties,
+  		SearchListener		listener )
+  	
+  		throws SearchException
+  	{
+  		long[]	pids;
+  		
+  		if ( providers == null ){
+  			
+  			pids = new long[0];
+  			
+  		}else{
+  			
+  			pids = new long[providers.length];
+  			
+  			for (int i=0;i<pids.length;i++){
+			
+  				Long	id = (Long)providers[i].getProperty( SearchProvider.PR_ID );
+			
+  				if ( id == null ){
+				
+  					throw( new SearchException( "Unknown provider - no id available" ));
+  				}
+  				
+  				pids[i] = id;
+			}
+  		}
+  		
+  		return( createSearch( pids, properties, listener ));
+  	}
+  	
+  	protected Search
+  	createSearch(
+  		long[]				provider_ids,
   		Map<String,String>	properties,
   		SearchListener		listener )
   	
@@ -235,7 +300,7 @@ MetaSearchManagerImpl
 		
 		Engine[]	used_engines;
 		
-		if ( providers == null || providers.length == 0 ){
+		if ( provider_ids.length == 0 ){
 			
 			used_engines = getMetaSearch().search( search, parameters, headers, context, max_per_engine );
 
@@ -243,14 +308,7 @@ MetaSearchManagerImpl
 			
 			List<Engine>	selected_engines = new ArrayList<Engine>();
 			
-			for ( SearchProvider sp: providers ){
-				
-				Long	id = (Long)sp.getProperty( SearchProvider.PR_ID );
-				
-				if ( id == null ){
-					
-					throw( new SearchException( "Unknown provider - no id available" ));
-				}
+			for ( long id: provider_ids ){
 				
 				Engine engine = meta_search.getEngine( id );
 				
