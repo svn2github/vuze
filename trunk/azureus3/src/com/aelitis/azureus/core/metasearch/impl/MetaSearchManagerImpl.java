@@ -1585,11 +1585,15 @@ MetaSearchManagerImpl
 	     			}
 	     			case PR_RANK:{
 	     			
-	     				return( new Long((long)( result.getRank() * 100 )));
+	     				float rank = result.getRank();
+	     				
+	     				return( new Long(rank==-1?-1:(long)( rank * 100 )));
 	     			}
 	     			case PR_ACCURACY:{
 	     			
-	     				return( new Long((long)( result.getAccuracy() * 100 )));
+	     				float accuracy = result.getAccuracy();
+	     				
+	     				return( new Long(accuracy==-1?-1:(long)( accuracy * 100 )));
 	     			}
 	     			case PR_VOTES_DOWN:{
 	     				
