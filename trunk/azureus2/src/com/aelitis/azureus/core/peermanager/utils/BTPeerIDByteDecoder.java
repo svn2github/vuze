@@ -490,6 +490,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("\u00B5Torrent 1.7.0 Beta", "2D555431 3730422D 92844644 1DB0A094 A01C01E5");
 		assertDecode("\u54c7\u560E (Vagaa) 2.6.4.4", "2D5647323634342D4FD62CDA69E235717E3BB94B");
 		assertDecode("Wyzo 0.3.0.0", "-WY0300-6huHF5Pr7Vde");
+		assertDecode("CacheLogic 25.1-26", "-PC251Q-6huHF5Pr7Vde");
 		System.out.println();
 
 		// Shadow style clients.

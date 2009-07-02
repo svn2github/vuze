@@ -279,6 +279,9 @@ class BTPeerIDByteDecoderUtils {
 		else if (version_scheme.equals("3.4")) {
 			return intchar(c) + "." + intchar(d);
 		}
+		else if (version_scheme.equals("12.3-4")) {
+			return decodeAlphaNumericChar(a) + decodeAlphaNumericChar(b) + "." + decodeAlphaNumericChar(c) + "-" + decodeAlphaNumericChar(d);
+		}
 		else {
 			throw new RuntimeException("unknown AZ style version number scheme - " + version_scheme);
 		}

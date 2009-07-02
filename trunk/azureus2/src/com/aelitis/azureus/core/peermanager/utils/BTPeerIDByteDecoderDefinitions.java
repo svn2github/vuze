@@ -275,7 +275,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("NE", "BT Next Evolution", VER_AZ_THREE_DIGITS);
 		addAzStyle("NX", "Net Transport");
 		addAzStyle("OT", "OmegaTorrent");
-		addAzStyle("PC", PeerClassifier.CACHE_LOGIC);
+		addAzStyle("PC", PeerClassifier.CACHE_LOGIC, "12.3-4" );
 		addAzStyle("PD", "Pando");
 		addAzStyle("PE", "PeerProject");
 		addAzStyle("pX", "pHoeniX");
