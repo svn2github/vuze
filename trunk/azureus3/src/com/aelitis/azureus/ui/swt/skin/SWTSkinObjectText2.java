@@ -647,4 +647,8 @@ public class SWTSkinObjectText2
 		this.style = style;
 	}
 
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText#getText()
+	public String getText() {
+		return sDisplayText;
+	}
 }

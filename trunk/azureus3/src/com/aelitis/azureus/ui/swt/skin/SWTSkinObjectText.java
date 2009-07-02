@@ -46,4 +46,11 @@ public interface SWTSkinObjectText
 	 * @since 3.1.1.1
 	 */
 	void setStyle(int style);
+
+	/**
+	 * @return
+	 *
+	 * @since 4.1.0.5
+	 */
+	public String getText();
 }

@@ -349,4 +349,9 @@ public class SWTSkinObjectText1
 	public void setStyle(int style) {
 		this.style = style;
 	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText#getText()
+	public String getText() {
+		return sText;
+	}
 }
