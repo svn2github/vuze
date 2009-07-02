@@ -19,8 +19,9 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -508,6 +509,7 @@ public class UIFunctionsImpl
 		}
 	}
 	
+	
 	public void 
 	performAction(
 		int 			action_id, 
@@ -522,5 +524,28 @@ public class UIFunctionsImpl
 			
 			Debug.out( "Unknown action " + action_id );
 		}
+	}
+
+	public Shell showCoreWaitDlg() {
+		Shell activeShell = Display.getDefault().getActiveShell();
+		if (activeShell == null) {
+			activeShell = Utils.findAnyShell();
+		}
+		Shell shell = new Shell(activeShell, SWT.TITLE | SWT.BORDER
+				| SWT.APPLICATION_MODAL);
+		shell.setText("Please Wait");
+		FillLayout fillLayout = new FillLayout();
+		fillLayout.marginHeight = 5;
+		fillLayout.marginWidth = 5;
+		shell.setLayout(fillLayout);
+
+		Label label = new Label(shell, SWT.NONE);
+		label.setText("Your operation will run momentarily");
+
+		shell.pack();
+		//shell.setSize(300,50);
+		Utils.centreWindow(shell);
+		shell.open();
+		return shell;
 	}
 }

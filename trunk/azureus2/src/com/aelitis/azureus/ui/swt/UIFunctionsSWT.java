@@ -162,4 +162,6 @@ public interface UIFunctionsSWT
 	 * @since 3.1.1.1
 	 */
 	public boolean hasDetailViews();
+	
+	public Shell showCoreWaitDlg();
 }
