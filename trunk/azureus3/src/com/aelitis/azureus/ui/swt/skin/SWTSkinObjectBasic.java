@@ -4,6 +4,7 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -89,9 +90,7 @@ public class SWTSkinObjectBasic
 	
 	protected boolean debug = false;
 
-	protected Color bgColor2;
-
-	protected int bgColor2until;
+	private List<GradientInfo> listGradients = new ArrayList<GradientInfo>();
 
 	private Image bgImage;
 
@@ -99,7 +98,7 @@ public class SWTSkinObjectBasic
 
 	protected boolean customTooltipID = false;
 
-	private Listener resizeBGListener;
+	private Listener resizeGradientBGListener;
 
 	private SkinView skinView;
 	
@@ -138,7 +137,7 @@ public class SWTSkinObjectBasic
 			return;
 		}
 		
-		resizeBGListener = new Listener() {
+		resizeGradientBGListener = new Listener() {
 			public void handleEvent(Event event) {
 				if (bgImage != null && !bgImage.isDisposed()) {
 					bgImage.dispose();
@@ -156,12 +155,27 @@ public class SWTSkinObjectBasic
 						gc.setAntialias(SWT.ON);
 					} catch (Exception ex) {
 					}
-					gc.setBackground(bgColor);
-					gc.setForeground(bgColor2);
-					gc.fillGradientRectangle(0, 0, 5, bgColor2until > 0 ? bgColor2until : bounds.height, true);
-					if (bgColor2until > 0) {
-						//gc.setBackground(bgColor2);
-						gc.fillRectangle(0, bgColor2until, 5, bounds.height - bgColor2until);
+					
+					GradientInfo lastGradInfo = new GradientInfo(bgColor, 0);
+					for (GradientInfo gradInfo : listGradients) {
+						if (gradInfo.startPoint != lastGradInfo.startPoint) {
+							gc.setForeground(lastGradInfo.color);
+							gc.setBackground(gradInfo.color);
+
+							int y = (int) (bounds.height * lastGradInfo.startPoint);
+							int height = (int) (bounds.height * gradInfo.startPoint) - y; 
+							gc.fillGradientRectangle(0, y, 5, height, true);
+						}
+						lastGradInfo = gradInfo;
+					}
+
+					if (lastGradInfo.startPoint < 1) {
+						gc.setForeground(lastGradInfo.color);
+						gc.setBackground(lastGradInfo.color);
+
+						int y = (int) (bounds.height * lastGradInfo.startPoint);
+						int height = bounds.height - y; 
+						gc.fillGradientRectangle(0, y, 5, height, true);
 					}
 				} finally {
 					gc.dispose();
@@ -532,7 +546,7 @@ public class SWTSkinObjectBasic
 				boolean needPaintHook = false;
 
 				if (properties.hasKey(sConfigID + ".color" + sSuffix)) {
-					control.removeListener(SWT.Resize, resizeBGListener);
+					control.removeListener(SWT.Resize, resizeGradientBGListener);
 
 					Color color = properties.getColor(sConfigID + ".color" + sSuffix);
 					bgColor = color;
@@ -560,13 +574,22 @@ public class SWTSkinObjectBasic
 							needPaintHook = true;
 						} else if (split[0].equals("gradient")) {
 							colorFillType = BORDER_GRADIENT;
-							bgColor2 = ColorCache.getColor(Display.getDefault(), split[1]);
-							if (split.length > 2) {
-								bgColor2until = Integer.parseInt(split[2]);
+							
+							Device device = Display.getDefault();
+							for (int i = 1; i < split.length; i += 2) {
+								Color colorStop = ColorCache.getColor(device, split[i]);
+								double posStop = 1;
+								if (i != split.length - 1) {
+									try {
+										posStop = Double.parseDouble(split[i+1]);
+									} catch (Exception ignore) {
+									}
+								}
+								listGradients.add(new GradientInfo(colorStop, posStop));
 							}
-
-							control.addListener(SWT.Resize, resizeBGListener);
-							resizeBGListener.handleEvent(null);
+							
+							control.addListener(SWT.Resize, resizeGradientBGListener);
+							resizeGradientBGListener.handleEvent(null);
 						}
 
 						control.redraw();
@@ -947,6 +970,16 @@ public class SWTSkinObjectBasic
 					});
 				}
 			});
+		}
+	}
+	
+	class GradientInfo {
+		public Color color;
+		public double startPoint;
+
+		public GradientInfo(Color c, double d) {
+			color = c;
+			startPoint = d;
 		}
 	}
 }
