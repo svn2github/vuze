@@ -114,7 +114,8 @@ public class FakeTableCell
 	private Object pluginDataSource;
 
 	private Object tooltip;
-
+	private Object default_tooltip;
+	
 	private Rectangle cellArea;
 
 	private boolean hadMore;
@@ -801,11 +802,32 @@ public class FakeTableCell
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setToolTip(java.lang.Object)
 	public void setToolTip(Object tooltip) {
 		this.tooltip = tooltip;
-		if (!isDisposed()) {
-			composite.setToolTipText(tooltip == null ? null : tooltip.toString());
-		}
+		updateTooltip();
 	}
 
+	public void
+	setDefaultToolTip(
+		Object	o )
+	{
+		default_tooltip = o;
+	}
+	
+	public Object
+	getDefaultToolTip()
+	{
+		return( default_tooltip );
+	}
+
+	private void
+	updateTooltip()
+	{
+		if (!isDisposed()) {
+			Object	target = tooltip==null?default_tooltip:tooltip;
+			
+			composite.setToolTipText(target == null ? null : target.toString());
+		}
+	}
+	
 	private boolean _setSortValue(Comparable valueToSort) {
 		if (sortValue == valueToSort)
 			return false;

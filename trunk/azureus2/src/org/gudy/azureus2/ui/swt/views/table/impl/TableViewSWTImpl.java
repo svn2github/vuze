@@ -1578,9 +1578,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 							true, cellBounds.height > 20, style);
 
 					boolean fit = sp.printString();
-					if (!fit) {
-						// XXX This overrides cell-set tooltip!
-						cell.setToolTip(text);
+					if (fit) {
+						
+						cell.setDefaultToolTip(null);
+					}else{
+						
+						cell.setDefaultToolTip(text);
 					}
 
 					Point size = sp.getCalculatedSize();
@@ -1589,6 +1592,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					if (cell.getTableColumn().getPreferredWidth() < size.x) {
 						cell.getTableColumn().setPreferredWidth(size.x);
 					}
+				}else{
+					cell.setDefaultToolTip(null);
 				}
 			}
 

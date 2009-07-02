@@ -75,7 +75,10 @@ public class TableTooltips
 					return;
 				cell.invokeToolTipListeners(TableCellSWT.TOOLTIPLISTENER_HOVER);
 				Object oToolTip = cell.getToolTip();
-
+				if ( oToolTip == null ){
+					oToolTip = cell.getDefaultToolTip();
+				}
+				
 				// TODO: support composite, image, etc
 				if (oToolTip == null)
 					return;

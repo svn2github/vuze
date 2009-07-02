@@ -106,6 +106,7 @@ public class TableCellImpl
   private byte tooltipErrLoopCount;
   private byte loopFactor;
   private Object oToolTip;
+  private Object defaultToolTip;
 	private int iCursorID = -1;
 	private Graphic graphic = null;
 	
@@ -529,6 +530,13 @@ public class TableCellImpl
     return oToolTip;
   }
 
+  public Object getDefaultToolTip() {
+	return defaultToolTip;
+  }
+  public void setDefaultToolTip(Object tt) {
+	defaultToolTip = tt;
+  }
+  
 	public boolean isDisposed() {
 		return hasFlag(FLAG_DISPOSED);
 	}
