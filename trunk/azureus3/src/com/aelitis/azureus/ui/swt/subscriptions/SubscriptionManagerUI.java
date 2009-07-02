@@ -384,14 +384,18 @@ SubscriptionManagerUI
 				});
 	}
 	
-	void uiQuickInit(SideBar side_bar) {
+	void uiQuickInit(final SideBar side_bar) {
 		final SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
 		mainSBEntry.setImageLeftID("image.sidebar.subscriptions");
 		if (!mainSBEntry.isInTree()) {
-			side_bar.createTreeItemFromIViewClass(null,
-					SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS,
-					MessageText.getString("subscriptions.view.title"),
-					SubscriptionsView.class, null, null, null, null, false);
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					side_bar.createTreeItemFromIViewClass(null,
+							SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS,
+							MessageText.getString("subscriptions.view.title"),
+							SubscriptionsView.class, null, null, null, null, false);
+				}
+			});
 		}
 		
 	}
