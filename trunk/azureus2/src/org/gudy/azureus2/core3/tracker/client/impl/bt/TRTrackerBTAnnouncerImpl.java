@@ -88,6 +88,10 @@ TRTrackerBTAnnouncerImpl
 	
 	public static String 	UDP_REALM = "UDP Tracker";
 	
+	private static int userMinInterval = 0;
+	private static int userMaxNumwant = 100;
+	private static boolean udpAnnounceEnabled = true;
+
     static{
 	  	PRUDPTrackerCodecs.registerCodecs();
 	  	COConfigurationManager.addAndFireParameterListeners(
@@ -124,11 +128,7 @@ TRTrackerBTAnnouncerImpl
 	private boolean				manual_control;
   
 	private long min_interval = 0;
-	private static int userMinInterval = 0;
-	private static int userMaxNumwant = 100;
-	private static boolean udpAnnounceEnabled = true;
 	
-  
 	private int  failure_added_time = 0;
     private long failure_time_last_updated = 0;
 	
