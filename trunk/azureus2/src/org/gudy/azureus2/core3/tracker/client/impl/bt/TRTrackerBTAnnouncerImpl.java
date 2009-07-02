@@ -1257,16 +1257,23 @@ TRTrackerBTAnnouncerImpl
  	protected String
  	announceHTTP(
  		URL[]					tracker_url,	// overwritten if redirected
- 		URL						reqUrl,
+ 		URL						original_reqUrl,
  		ByteArrayOutputStream	message )
  	
  		throws IOException
  	{ 		
- 		TRTrackerUtils.checkForBlacklistedURLs( reqUrl );
+ 		TRTrackerUtils.checkForBlacklistedURLs( original_reqUrl );
  		
- 		reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
+ 		URL reqUrl = TRTrackerUtils.adjustURLForHosting( original_reqUrl );
  		
  		reqUrl = AddressUtils.adjustURL( reqUrl );
+ 		
+ 		if ( reqUrl != original_reqUrl ){
+			if (Logger.isEnabled()){
+				Logger.log(new LogEvent(torrent, LOGID,
+						"    UDP: url adjusted to " + reqUrl ));
+			}
+ 		}
  		
  		String	failure_reason = null;
  		
@@ -1467,7 +1474,7 @@ TRTrackerBTAnnouncerImpl
  	
  	protected String
  	announceUDP(
- 		URL						reqUrl,
+ 		URL						original_reqUrl,
 		ByteArrayOutputStream	message,
 		boolean                 is_probe )
  	
@@ -1475,8 +1482,15 @@ TRTrackerBTAnnouncerImpl
  	{
  		long timeout = is_probe?10000:PRUDPPacket.DEFAULT_UDP_TIMEOUT;
  		
- 		reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
+ 		URL reqUrl = TRTrackerUtils.adjustURLForHosting( original_reqUrl );
 
+ 		if ( reqUrl != original_reqUrl ){
+			if (Logger.isEnabled()){
+				Logger.log(new LogEvent(torrent, LOGID,
+						"    UDP: url adjusted to " + reqUrl ));
+			}
+ 		}
+ 		
  		String	failure_reason = null;
 		
  		PasswordAuthentication	auth = null;	
