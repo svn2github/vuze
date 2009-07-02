@@ -23,11 +23,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -36,6 +38,8 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
@@ -51,27 +55,23 @@ import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
-import com.aelitis.azureus.ui.UIFunctions.actionListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
-import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
+import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 import com.aelitis.azureus.util.UrlFilter;
-
-import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 
 /**
  * @author TuxPaper
@@ -829,5 +829,33 @@ public class UIFunctionsImpl
 			
 			Debug.out( "Unknown action " + action_id );
 		}
+	}
+
+	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#showCoreWaitDlg()
+	public Shell showCoreWaitDlg() {
+		final SkinnedDialog closeDialog = new SkinnedDialog(
+				"skin3_dlg_coreloading", "coreloading.body", SWT.TITLE | SWT.BORDER
+				| SWT.APPLICATION_MODAL);
+		
+		closeDialog.setTitle(MessageText.getString("dlg.corewait.title"));
+		SWTSkin skin = closeDialog.getSkin();
+		SWTSkinObjectButton soButton = (SWTSkinObjectButton) skin.getSkinObject("close");
+
+		if (soButton != null) {
+			soButton.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility,
+						SWTSkinObject skinObject, int stateMask) {
+					closeDialog.close();
+				}
+			});
+		}
+
+		closeDialog.addCloseListener(new SkinnedDialogClosedListener() {
+			public void skinDialogClosed(SkinnedDialog dialog) {
+			}
+		});
+
+		closeDialog.open();
+		return closeDialog.getShell();
 	}
 }

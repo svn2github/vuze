@@ -22,12 +22,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -46,9 +46,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -59,6 +57,7 @@ import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
+import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -95,20 +94,31 @@ public class SBC_LibraryTableView
 
 	private SWTSkinObject soParent;
 	
+	private Control cWait;
+	
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		soParent = skinObject.getParent();
 		
-		Composite c = (Composite) skinObject.getControl();
-		final Label label = new Label(c, SWT.WRAP);
-		label.setText("View will be available once the core has completed initialization.");
-		label.setLayoutData(Utils.getFilledFormData());
-		
+		cWait = null;
+		try {
+			cWait = skin.getSkinObject("library-wait", skinObject.getParent().getParent()).getControl();
+		} catch (Exception e) {
+		}
+
+		AzureusCore core = AzureusCoreFactory.getSingleton();
+		if (!AzureusCoreFactory.isCoreRunning()) {
+			if (cWait != null) {
+				cWait.setVisible(true);
+			}
+		}
 		
   	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(final AzureusCore core) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
-						label.dispose();
+						if (cWait != null) {
+							cWait.setVisible(false);
+						}
 						initShow(core);
 					}
 				});
