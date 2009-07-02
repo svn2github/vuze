@@ -499,6 +499,8 @@ TRTrackerUtils
 	
 			if ( bind_ip.length() < 7 ){
 					
+					// TODO: this won't work in a pure IPv6 setup
+				
 				url += "127.0.0.1";
 					
 			}else{
@@ -549,17 +551,8 @@ TRTrackerUtils
 				target_ip	= tracker_ip;
 			}
 			
-			if ( host_in.equals( "127.0.0.1")){
-				
-				//System.out.println( "adjustHostFromHosting: " + host_in + " -> " + tracker_ip );
-				
-				return( target_ip );
-			}
-			
-			if ( host_in.equals( bind_ip )){
-				
-				//System.out.println( "adjustHostFromHosting: " + host_in +  " -> " + tracker_ip );
-
+			if ( isLoopback( host_in )){
+								
 				return( target_ip );
 			}
 		}
@@ -571,7 +564,10 @@ TRTrackerUtils
 	isLoopback(
 		String	host )
 	{
-		return( host.equals( "127.0.0.1")  || host.equals( bind_ip ));
+		return( 
+			host.equals( "127.0.0.1" ) || 
+			host.equals( "0:0:0:0:0:0:0:1" ) || host.equals( "::1" ) ||  
+			host.equals( bind_ip ));
 	}
 	
 	

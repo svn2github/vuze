@@ -29,6 +29,9 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.config.*;
@@ -73,7 +76,7 @@ TRTrackerServerProcessor
 		int							udp_port,
 		int							http_port,
 		String						real_ip_address,
-		String						client_ip_address,
+		String						original_client_ip_address,
 		long						downloaded,
 		long						uploaded,
 		long						left,
@@ -95,7 +98,7 @@ TRTrackerServerProcessor
 		
 		start = SystemTime.getHighPrecisionCounter();
 
-		boolean	ip_override = real_ip_address != client_ip_address;
+		boolean	ip_override = real_ip_address != original_client_ip_address;
 		
 		boolean	loopback	= TRTrackerUtils.isLoopback( real_ip_address );
 		
@@ -110,7 +113,20 @@ TRTrackerServerProcessor
 			// translate any 127.0.0.1 local addresses back to the tracker address. Note this
 			// fixes up .i2p and onion addresses back to their real values when needed
 		
-		client_ip_address = TRTrackerUtils.adjustHostFromHosting( client_ip_address );
+		String client_ip_address = TRTrackerUtils.adjustHostFromHosting( original_client_ip_address );
+		
+		if ( client_ip_address != original_client_ip_address ){
+			
+			if ( Logger.isEnabled()){
+				
+				Logger.log(
+					new LogEvent(LogIDs.TRACKER, 
+						"    address adjusted: original=" +	original_client_ip_address +
+						", real=" + real_ip_address +
+						", adjusted=" + client_ip_address +
+						", loopback=" + loopback ));
+			}	
+		}
 		
 		if ( !TRTrackerServerImpl.getAllNetworksSupported()){
 		

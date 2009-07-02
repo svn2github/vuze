@@ -135,7 +135,7 @@ TRBlockingServerProcessor
 						}
 						
 						Logger.log(new LogEvent(LOGID, "Tracker Server: received header '"
-								+ log_str + "'"));
+								+ log_str + "' from " + socket.getRemoteSocketAddress()));
 					}				
 						
 					// System.out.println( "got header:" + header );
