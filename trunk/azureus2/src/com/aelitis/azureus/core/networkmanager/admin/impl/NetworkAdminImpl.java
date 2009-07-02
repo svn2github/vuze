@@ -349,15 +349,32 @@ NetworkAdminImpl
 	public InetAddress getSingleHomedServiceBindAddress(int proto)
 	{
 		InetAddress[] addrs = currentBindIPs;
-		if(proto == IP_PROTOCOL_VERSION_AUTO)
+		if(proto == IP_PROTOCOL_VERSION_AUTO){
 			return addrs[0];
-		else
-			for(int i = 0;i<addrs.length;i++)
-			{
-				if( (proto == IP_PROTOCOL_VERSION_REQUIRE_V4 && addrs[i] instanceof Inet4Address || addrs[i].isAnyLocalAddress()) ||
-					(proto == IP_PROTOCOL_VERSION_REQUIRE_V6 && addrs[i] instanceof Inet6Address) )
-				return addrs[i];
+		}else{
+			for( InetAddress addr: addrs ){
+		
+				if( (proto == IP_PROTOCOL_VERSION_REQUIRE_V4 && addr instanceof Inet4Address || addr.isAnyLocalAddress()) ||
+					(proto == IP_PROTOCOL_VERSION_REQUIRE_V6 && addr instanceof Inet6Address) ){
+				
+					if ( addr.isAnyLocalAddress()){
+						
+						if ( proto == IP_PROTOCOL_VERSION_REQUIRE_V4 ){
+							
+							return( anyLocalAddressIPv4 );
+							
+						}else{
+							
+							return( anyLocalAddressIPv6 );
+						}
+					}else{
+						
+						return( addr );
+					}
+				}
 			}
+		}
+		
 		throw new UnsupportedAddressTypeException();
 	}
 	
@@ -1924,7 +1941,45 @@ NetworkAdminImpl
 		
 		try{
 			writer.indent();
-			
+		
+			try{
+				writer.println( "Binding Details" );
+				
+				writer.indent();
+				
+				writer.println( "bind to: " + getString( getAllBindAddresses( false )));
+				
+				writer.println( "bindable: " + getString( getBindableAddresses()));
+				
+				writer.println( "ipv4_potential=" + hasIPV4Potential());
+				writer.println( "ipv6_potential=" + hasIPV6Potential(false) + "/" + hasIPV6Potential(true));
+	
+				try{
+					writer.println( "single homed: " + getSingleHomedServiceBindAddress());
+				}catch( Throwable e ){
+					writer.println( "single homed: none" );
+				}
+				
+				try{
+					writer.println( "single homed (4): " + getSingleHomedServiceBindAddress( IP_PROTOCOL_VERSION_REQUIRE_V4 ));
+				}catch( Throwable e ){
+					writer.println( "single homed (4): none" );
+				}
+				
+				try{
+					writer.println( "single homed (6): " + getSingleHomedServiceBindAddress( IP_PROTOCOL_VERSION_REQUIRE_V6 ));
+				}catch( Throwable e ){
+					writer.println( "single homed (6): none" );
+				}
+				
+				writer.println( "multi homed, nio=false: " + getString( getMultiHomedServiceBindAddresses( false )));
+				writer.println( "multi homed, nio=true:  " + getString( getMultiHomedServiceBindAddresses( true )));
+					
+			}finally{
+				
+				writer.exdent();
+			}		
+				
 			NetworkAdminHTTPProxy	proxy = getHTTPProxy();
 			
 			if ( proxy == null ){
@@ -1983,17 +2038,18 @@ NetworkAdminImpl
 			}
 			
 			try {
-  			NetworkAdminNATDevice[]	nat_devices = getNATDevices(AzureusCoreFactory.getSingleton());
-  			
-  			writer.println( "NAT Devices: " + nat_devices.length );
-  			
-  			for (int i=0;i<nat_devices.length;i++){
-  				
-  				NetworkAdminNATDevice	device = nat_devices[i];
-  				
-  				writer.println( "    " + device.getName() + ",address=" + device.getAddress().getHostAddress() + ":" + device.getPort() + ",ext=" + device.getExternalAddress());
-  			}
-			} catch (Exception e) {
+				NetworkAdminNATDevice[]	nat_devices = getNATDevices(AzureusCoreFactory.getSingleton());
+
+				writer.println( "NAT Devices: " + nat_devices.length );
+
+				for (int i=0;i<nat_devices.length;i++){
+
+					NetworkAdminNATDevice	device = nat_devices[i];
+
+					writer.println( "    " + device.getName() + ",address=" + device.getAddress().getHostAddress() + ":" + device.getPort() + ",ext=" + device.getExternalAddress());
+				}
+			}catch (Exception e){
+				
 				writer.println( "Nat Devices: Can't get -> " + e.toString());
 			}
   			
@@ -2005,6 +2061,20 @@ NetworkAdminImpl
 	
 			writer.exdent();
 		}
+	}
+	
+	private String
+	getString(
+		InetAddress[]	addresses )
+	{
+		String	str = "";
+		
+		for ( InetAddress address: addresses ){
+			
+			str += (str.length()==0?"":", ") + address.getHostAddress();
+		}
+		
+		return( str );
 	}
 	
 	public void 
@@ -2071,18 +2141,18 @@ NetworkAdminImpl
 		}
 		
 		try {
-  		NetworkAdminNATDevice[]	nat_devices = getNATDevices(AzureusCoreFactory.getSingleton());
-  		
-  		iw.println( "NAT Devices: " + nat_devices.length );
-  		
-  		for (int i=0;i<nat_devices.length;i++){
-  			
-  			NetworkAdminNATDevice	device = nat_devices[i];
-  			
-  			iw.println( "    " + device.getName() + ",address=" + device.getAddress().getHostAddress() + ":" + device.getPort() + ",ext=" + device.getExternalAddress());
-  			
-  			public_addresses.add( device.getExternalAddress());
-  		}
+			NetworkAdminNATDevice[]	nat_devices = getNATDevices(AzureusCoreFactory.getSingleton());
+
+			iw.println( "NAT Devices: " + nat_devices.length );
+
+			for (int i=0;i<nat_devices.length;i++){
+
+				NetworkAdminNATDevice	device = nat_devices[i];
+
+				iw.println( "    " + device.getName() + ",address=" + device.getAddress().getHostAddress() + ":" + device.getPort() + ",ext=" + device.getExternalAddress());
+
+				public_addresses.add( device.getExternalAddress());
+			}
 		} catch (Exception e) {
 			iw.println( "Nat Devices: Can't get -> " + e.toString());
 		}
