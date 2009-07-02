@@ -49,10 +49,14 @@ public class SkinnedDialog
 	private List<SkinnedDialogClosedListener> closeListeners = new CopyOnWriteArrayList<SkinnedDialogClosedListener>();
 
 	public SkinnedDialog(String skinFile, String shellSkinObjectID) {
+		this(skinFile, shellSkinObjectID, SWT.DIALOG_TRIM | SWT.RESIZE);
+	}
+
+	public SkinnedDialog(String skinFile, String shellSkinObjectID, int style) {
 		this.shellSkinObjectID = shellSkinObjectID;
 
 		Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
-		shell = ShellFactory.createShell(mainShell, SWT.DIALOG_TRIM | SWT.RESIZE);
+		shell = ShellFactory.createShell(mainShell, style);
 
 		Utils.setShellIcon(shell);
 
@@ -123,5 +127,12 @@ public class SkinnedDialog
 		if (shell != null && !shell.isDisposed()) {
 			shell.setText(string);
 		}
+	}
+
+	/**
+	 * @return the shell
+	 */
+	public Shell getShell() {
+		return shell;
 	}
 }
