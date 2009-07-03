@@ -38,11 +38,12 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.html.*;
 
+import org.gudy.azureus2.platform.win32.access.AEWin32Access;
+import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.versioncheck.*;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -935,11 +936,129 @@ CoreUpdateChecker
 				{
 					if ((Boolean)result){
 						
-						Utils.launch( f_update_file.getAbsolutePath());
+						launchUpdate( f_update_file );
 					}
 				}
 			});
 	}
+	
+	protected void
+	launchUpdate(
+		File		file )
+	{
+		try{
+				// hack here to allow testing of osx on windows (parg) - should replace with
+				// Constants.isWindows etc
+			
+			if ( file.getName().endsWith( ".exe" )){
+				
+				try{
+					AEWin32Access accessor = AEWin32Manager.getAccessor(true);
+					
+					accessor.createProcess( file.getAbsolutePath(), false );
+					
+				}catch( Throwable e ){
+					
+					Logger.log( new LogEvent( LogIDs.LOGGER, "AEWin32Access:createProcess failed", e  ));
+
+					Runtime.getRuntime().exec( file.getAbsolutePath() );
+				}
+			}else{
+					// osx, need to unzip .app and launch
+				
+				File	dir = file.getParentFile();
+				
+			   	ZipInputStream	zis = new ZipInputStream( new BufferedInputStream( new FileInputStream( file )));
+		    		
+			   	Throwable unzip_error = null;
+			   	
+		    	try{
+					while( true ){
+												
+						ZipEntry	entry = zis.getNextEntry();
+							
+						if ( entry == null ){
+							
+							break;
+						}
+						
+						if ( entry.isDirectory()){
+							
+							continue;
+						}
+						
+						String	name = entry.getName();
+						
+						FileOutputStream	entry_os 	= null;
+						File				entry_file 	= null;
+						
+						if ( !name.endsWith("/")){
+														
+							entry_file = new File( dir, name.replace('/', File.separatorChar ));
+														
+							entry_file.getParentFile().mkdirs();
+							
+							entry_os	= new FileOutputStream( entry_file );
+						}
+						
+						try{
+							byte[]	buffer = new byte[65536];
+							
+							while( true ){
+							
+								int	len = zis.read( buffer );
+								
+								if ( len <= 0 ){
+									
+									break;
+								}
+																									
+								if ( entry_os != null ){
+									
+									entry_os.write( buffer, 0, len );
+								}
+							}
+						}finally{
+							
+							if ( entry_os != null ){
+								
+								entry_os.close();
+																	
+								if ( name.endsWith( ".jnilib" ) || name.endsWith( "JavaApplicationStub" )){
+										
+									try{
+										String[] to_run = { "/bin/sh", "-c", "chmod a+x " + entry_file.getAbsolutePath() };
+									  		
+										Runtime.getRuntime().exec( to_run ).waitFor();
+										
+									}catch( Throwable e ){
+										
+										unzip_error = e;
+									}
+								}
+							}
+						}
+					}
+		    	}finally{
+		    		
+		    		zis.close();
+		    	}
+				
+		    	if ( unzip_error != null ){
+		    		
+		    		throw( unzip_error );
+		    	}
+		    	
+			  	String[] to_run = { "/bin/sh", "-c", "open " + file.getAbsolutePath()};
+			  		
+				Runtime.getRuntime().exec( to_run );
+			}
+		}catch( Throwable e ){
+			
+			Logger.log( new LogEvent( LogIDs.LOGGER, "Failed to launch update '" + file + "'", e  ));
+		}
+	}
+	
 	
 	protected static boolean
 	shouldUpdate(

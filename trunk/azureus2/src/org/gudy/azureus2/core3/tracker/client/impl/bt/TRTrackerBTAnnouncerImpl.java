@@ -1271,7 +1271,7 @@ TRTrackerBTAnnouncerImpl
  		if ( reqUrl != original_reqUrl ){
 			if (Logger.isEnabled()){
 				Logger.log(new LogEvent(torrent, LOGID,
-						"    UDP: url adjusted to " + reqUrl ));
+						"    HTTP: url adjusted to " + reqUrl ));
 			}
  		}
  		
