@@ -1027,7 +1027,7 @@ CoreUpdateChecker
 								if ( name.endsWith( ".jnilib" ) || name.endsWith( "JavaApplicationStub" )){
 										
 									try{
-										String[] to_run = { "/bin/sh", "-c", "chmod a+x " + entry_file.getAbsolutePath() };
+										String[] to_run = { "/bin/sh", "-c", "chmod a+x \"" + entry_file.getAbsolutePath() + "\""};
 									  		
 										Runtime.getRuntime().exec( to_run ).waitFor();
 										
@@ -1049,9 +1049,26 @@ CoreUpdateChecker
 		    		throw( unzip_error );
 		    	}
 		    	
-			  	String[] to_run = { "/bin/sh", "-c", "open " + file.getAbsolutePath()};
+		    	File[] files = dir.listFiles();
+		    	
+		    	boolean launched = false;
+		    	
+		    	for ( File f: files ){
+		    		
+		    		if ( f.getName().endsWith( ".app" )){
+		    	
+		    			String[] to_run = { "/bin/sh", "-c", "open \"" + f.getAbsolutePath() + "\""};
 			  		
-				Runtime.getRuntime().exec( to_run );
+		    			Runtime.getRuntime().exec( to_run );
+		    			
+		    			launched = true;
+		    		}
+		    	}
+		    	
+		    	if ( !launched ){
+		    		
+		    		throw( new Exception( "No .app files found in '" + dir + "'" ));
+		    	}
 			}
 		}catch( Throwable e ){
 			
