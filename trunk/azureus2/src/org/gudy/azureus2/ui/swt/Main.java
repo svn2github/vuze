@@ -27,6 +27,8 @@ import com.aelitis.azureus.launcher.Launcher;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
 
 /**
@@ -130,19 +132,53 @@ Main
 	    	
         String filename = arg;
           
-          if( 	filename.toUpperCase().startsWith( "HTTP:" ) || 
-          		filename.toUpperCase().startsWith( "HTTPS:" ) || 
-         		filename.toUpperCase().startsWith( "MAGNET:" ) ||
-       			filename.toUpperCase().startsWith( "DHT:" ) ) {
-        	  
-        	  if ( !another_instance ){
-        		  
+        if ( filename.length() == 40 ){
+	        
+        	byte[]	hash = null;
+        	
+        	try{
+        		hash = ByteFormatter.decodeString( filename );
+        		
+        	}catch( Throwable e ){
+        	}
+        	
+        	if ( hash != null && hash.length == 20 ){
+        		
+        		filename = "magnet:?xt=urn:btih:" + Base32.encode( hash );
+        	}
+        }
+        
+        	// handle base32 info hash
+       
+        if ( filename.length() == 32 ){
+            
+        	byte[]	hash = null;
+        	
+        	try{
+        		hash = Base32.decode( filename );
+        		
+        	}catch( Throwable e ){
+        	}
+        	
+        	if ( hash != null && hash.length == 20 ){
+        		
+        		filename = "magnet:?xt=urn:btih:" +filename;
+        	}
+        }
+        
+        if( 	filename.toUpperCase().startsWith( "HTTP:" ) || 
+        		filename.toUpperCase().startsWith( "HTTPS:" ) || 
+        		filename.toUpperCase().startsWith( "MAGNET:" ) ||
+        		filename.toUpperCase().startsWith( "DHT:" ) ) {
+
+        	if ( !another_instance ){
+
         		Logger.log(new LogEvent(LOGID, "Main::main: args[" + i
         				+ "] handling as a URI: " + filename));
-        	  }
-        	  
-            continue;  //URIs cannot be checked as a .torrent file
-          }            
+        	}
+
+        	continue;  //URIs cannot be checked as a .torrent file
+        }            
         
         try{
         	File	file = new File(filename);
