@@ -1028,9 +1028,9 @@ CoreUpdateChecker
 										
 									try{
 										String[] to_run = { "/bin/sh", "-c", "chmod a+x \"" + entry_file.getAbsolutePath() + "\""};
-									  		
-										Runtime.getRuntime().exec( to_run ).waitFor();
-										
+									  	
+										runCommand( to_run, true );
+												
 									}catch( Throwable e ){
 										
 										unzip_error = e;
@@ -1059,7 +1059,7 @@ CoreUpdateChecker
 		    	
 		    			String[] to_run = { "/bin/sh", "-c", "open \"" + f.getAbsolutePath() + "\""};
 			  		
-		    			Runtime.getRuntime().exec( to_run );
+		    			runCommand( to_run, false );
 		    			
 		    			launched = true;
 		    		}
@@ -1076,6 +1076,36 @@ CoreUpdateChecker
 		}
 	}
 	
+	private static void
+	runCommand(
+		String[]	command,
+		boolean		wait )
+	
+		throws Throwable
+	{
+		try{
+			String	str = "";
+			
+			for ( String s: command ){
+				
+				str += (str.length()==0?"":", ") + s;
+			}
+			
+			System.out.println( "running " + str );
+			
+			Process proc = Runtime.getRuntime().exec( command );
+			
+			if ( wait ){
+				
+				proc.waitFor();
+			}
+		}catch( Throwable e ){
+			
+			System.err.println( e );
+			
+			throw( e );
+		}
+	}
 	
 	protected static boolean
 	shouldUpdate(
