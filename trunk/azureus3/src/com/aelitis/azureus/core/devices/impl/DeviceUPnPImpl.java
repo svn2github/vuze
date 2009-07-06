@@ -51,6 +51,7 @@ import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
+import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
@@ -856,6 +857,26 @@ DeviceUPnPImpl
 									}else if ( name.equals( PT_DATE )){
 
 										res = tf.getCreationDateMillis();
+										
+									}else if ( name.equals( PT_PERCENT_DONE )){
+
+										if ( tf.isComplete()){
+											
+											return( 1000 );
+											
+										}else{
+											
+											TranscodeJob job = tf.getJob();
+											
+											if ( job == null ){
+												
+												res = 0;
+												
+											}else{
+												
+												res = 10*job.getPercentComplete();
+											}
+										}
 									}
 									
 									if ( res > 0 ){

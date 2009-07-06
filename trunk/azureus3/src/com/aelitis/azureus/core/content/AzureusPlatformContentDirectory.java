@@ -240,6 +240,12 @@ AzureusPlatformContentDirectory
 									}
 									
 									return( new String[0] );
+									
+								}else if ( name.equals( PT_PERCENT_DONE )){
+									
+									long	size = file.getLength();
+									
+									return( new Long( size==0?100:(1000*file.getDownloaded()/size )));
 								}
 							}catch( Throwable e ){							
 							}
