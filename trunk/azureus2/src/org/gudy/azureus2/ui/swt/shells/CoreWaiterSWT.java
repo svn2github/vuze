@@ -51,12 +51,10 @@ public class CoreWaiterSWT
 				}
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
+						// TODO: Need to detect cancel (can't rely on shell status since it may never open)
 						if (shell != null && !shell.isDisposed()) {
 							shell.dispose();
 							shell = null;
-						} else {
-							// cancel (should do a cancel listener trigger?)
-							return;
 						}
 
 						if (triggerInThread == TriggerInThread.SWT_THREAD) {
