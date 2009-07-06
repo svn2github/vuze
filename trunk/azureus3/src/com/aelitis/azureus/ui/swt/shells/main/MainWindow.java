@@ -394,9 +394,6 @@ public class MainWindow
 				} catch (Throwable e) {
 					Logger.log(new LogAlert(false, "Error Initialize MainWindow", e));
 				}
-				if (uiInitializer != null) {
-					uiInitializer.abortProgress();
-				}
 
 				while (!display.isDisposed() && display.readAndDispatch());
 			}
@@ -410,6 +407,9 @@ public class MainWindow
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				_init(core);
+				if (uiInitializer != null) {
+					uiInitializer.abortProgress();
+				}
 			}
 		});
 	}

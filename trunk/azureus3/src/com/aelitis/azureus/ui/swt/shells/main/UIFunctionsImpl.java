@@ -24,9 +24,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -58,15 +59,18 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
@@ -840,6 +844,51 @@ public class UIFunctionsImpl
 		closeDialog.setTitle(MessageText.getString("dlg.corewait.title"));
 		SWTSkin skin = closeDialog.getSkin();
 		SWTSkinObjectButton soButton = (SWTSkinObjectButton) skin.getSkinObject("close");
+
+		final SWTSkinObject soWaitProgress = skin.getSkinObject("progress");
+		if (soWaitProgress != null) {
+			soWaitProgress.getControl().addPaintListener(new PaintListener() {
+				public void paintControl(PaintEvent e) {
+					Control c = (Control) e.widget;
+					Point size = c.getSize();
+					e.gc.setBackground(ColorCache.getColor(e.display, "#0000ff"));
+					Object data = soWaitProgress.getData("progress");
+					if (data instanceof Long) {
+						int waitProgress = ((Long) data).intValue();
+						int breakX = size.x * waitProgress / 100;
+						e.gc.fillRectangle(0, 0, breakX, size.y);
+						e.gc.setBackground(ColorCache.getColor(e.display, "#808080"));
+						e.gc.fillRectangle(breakX, 0, size.x - breakX, size.y);
+					}
+				}
+			});
+		}
+		
+		AzureusCore core = AzureusCoreFactory.getSingleton();
+		if (!AzureusCoreFactory.isCoreRunning()) {
+			final Initializer initializer = Initializer.getLastInitializer();
+			if (initializer != null) {
+				initializer.addListener(new InitializerListener() {
+					public void reportPercent(final int percent) {
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								if (soWaitProgress != null && !soWaitProgress.isDisposed()) {
+									soWaitProgress.setData("progress", new Long(percent));
+									soWaitProgress.getControl().redraw();
+									soWaitProgress.getControl().update();
+								}
+							}
+						});
+						if (percent > 100) {
+							initializer.removeListener(this);
+						}
+					}
+				
+					public void reportCurrentTask(String currentTask) {
+					}
+				});
+			}
+		}
 
 		if (soButton != null) {
 			soButton.addSelectionListener(new ButtonListenerAdapter() {

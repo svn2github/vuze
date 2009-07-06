@@ -22,6 +22,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Control;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
@@ -29,9 +34,7 @@ import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -43,14 +46,17 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemListener;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarVitalityImageSWT;
@@ -137,9 +143,77 @@ public class SBC_LibraryView
 
 	private InfoBarUtil infoBarUtil;
 
+	private SWTSkinObject soWait;
+	
+	private SWTSkinObject soWaitProgress;
+	
+	private int waitProgress = 0;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		this.skinObject = skinObject;
+		
+		soWait = null;
+		try {
+			soWait = getSkinObject("library-wait");
+			soWaitProgress = getSkinObject("library-wait-progress");
+			if (soWaitProgress != null) {
+				soWaitProgress.getControl().addPaintListener(new PaintListener() {
+					public void paintControl(PaintEvent e) {
+						Control c = (Control) e.widget;
+						Point size = c.getSize();
+						e.gc.setBackground(ColorCache.getColor(e.display, "#0000ff"));
+						int breakX = size.x * waitProgress / 100;
+						e.gc.fillRectangle(0, 0, breakX, size.y);
+						e.gc.setBackground(ColorCache.getColor(e.display, "#808080"));
+						e.gc.fillRectangle(breakX, 0, size.x - breakX, size.y);
+					}
+				});
+			}
+		} catch (Exception e) {
+		}
+
+		AzureusCore core = AzureusCoreFactory.getSingleton();
+		if (!AzureusCoreFactory.isCoreRunning()) {
+			if (soWait != null) {
+				soWait.setVisible(true);
+			}
+			final Initializer initializer = Initializer.getLastInitializer();
+			if (initializer != null) {
+				initializer.addListener(new InitializerListener() {
+					public void reportPercent(final int percent) {
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								if (soWaitProgress != null && !soWaitProgress.isDisposed()) {
+									waitProgress = percent;
+									soWaitProgress.getControl().redraw();
+									soWaitProgress.getControl().update();
+								}
+							}
+						});
+						if (percent > 100) {
+							initializer.removeListener(this);
+						}
+					}
+				
+					public void reportCurrentTask(String currentTask) {
+					}
+				});
+			}
+		}
+		
+  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(final AzureusCore core) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (soWait != null) {
+							soWait.setVisible(false);
+						}
+					}
+				});
+			}
+  	});
+
 		torrentFilter = skinObject.getSkinObjectID();
 		if (torrentFilter.equalsIgnoreCase(SideBar.SIDEBAR_SECTION_LIBRARY_DL)) {
 			torrentFilterMode = TORRENTS_INCOMPLETE;

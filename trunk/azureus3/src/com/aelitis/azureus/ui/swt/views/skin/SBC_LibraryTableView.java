@@ -94,31 +94,13 @@ public class SBC_LibraryTableView
 
 	private SWTSkinObject soParent;
 	
-	private Control cWait;
-	
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		soParent = skinObject.getParent();
-		
-		cWait = null;
-		try {
-			cWait = skin.getSkinObject("library-wait", skinObject.getParent().getParent()).getControl();
-		} catch (Exception e) {
-		}
-
-		AzureusCore core = AzureusCoreFactory.getSingleton();
-		if (!AzureusCoreFactory.isCoreRunning()) {
-			if (cWait != null) {
-				cWait.setVisible(true);
-			}
-		}
 		
   	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(final AzureusCore core) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
-						if (cWait != null) {
-							cWait.setVisible(false);
-						}
 						initShow(core);
 					}
 				});

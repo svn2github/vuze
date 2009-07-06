@@ -91,6 +91,8 @@ public class Initializer
 	private AESemaphore init_task = new AESemaphore("delayed init");
 
 	private MainWindow mainWindow;
+	
+	private static Initializer lastInitializer;
 
 	public static void main(final String args[]) {
 		if (Launcher.checkAndLaunch(Initializer.class, args))
@@ -112,6 +114,7 @@ public class Initializer
 			String[] args) {
 		this.core = core;
 		this.args = args;
+		lastInitializer = this;
 
 		if (createSWTThreadAndRun) {
 			try {
@@ -586,5 +589,9 @@ public class Initializer
 			clientMsgContext.addMessageListener(new StatusListener());
 			clientMsgContext.addMessageListener(new BrowserRpcBuddyListener());
 		}
+	}
+
+	public static Initializer getLastInitializer() {
+		return lastInitializer;
 	}
 }
