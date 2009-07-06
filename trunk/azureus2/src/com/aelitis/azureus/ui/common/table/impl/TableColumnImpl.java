@@ -1025,13 +1025,6 @@ public class TableColumnImpl
 				}
 
 				String sKeyPrefix;
-				// Try a generic one of "TableColumn." + columnid
-				sKeyPrefix = "TableColumn.header.";
-				if (MessageText.keyExists(sKeyPrefix + sName)) {
-					sTitleLanguageKey = sKeyPrefix + sName;
-					return sTitleLanguageKey;
-				}
-
 				// Support "Old Style" language keys, which have a prefix of TableID + "View."
 				// Also, "MySeeders" is actually stored in "MyTorrents"..
 				sKeyPrefix = (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE)
@@ -1058,7 +1051,15 @@ public class TableColumnImpl
 					}
 				}
 				
+				// Try a generic one of "TableColumn." + columnid
+				sKeyPrefix = "TableColumn.header.";
+				if (MessageText.keyExists(sKeyPrefix + sName)) {
+					sTitleLanguageKey = sKeyPrefix + sName;
+					return sTitleLanguageKey;
+				}
+
 				// another "Old Style"
+				// 99% sure this can be removed now, but why risk it..
 				sKeyPrefix = "MyTorrentsView." + sName;
 				//System.out.println(sKeyPrefix + ";" + MessageText.getString(sKeyPrefix));
 				if (MessageText.keyExists(sKeyPrefix)) {
