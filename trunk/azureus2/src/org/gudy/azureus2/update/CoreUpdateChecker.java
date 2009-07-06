@@ -955,11 +955,18 @@ CoreUpdateChecker
 				try{
 					AEWin32Access accessor = AEWin32Manager.getAccessor(true);
 					
-					accessor.createProcess( file.getAbsolutePath(), false );
+					// accessor.createProcess( , false );
+					
+					accessor.shellExecute( 
+						null, 
+						file.getAbsolutePath(), 
+						null,
+						SystemProperties.getApplicationPath(),
+						AEWin32Access.SW_NORMAL );
 					
 				}catch( Throwable e ){
 					
-					Logger.log( new LogEvent( LogIDs.LOGGER, "AEWin32Access:createProcess failed", e  ));
+					Logger.log( new LogEvent( LogIDs.LOGGER, "AEWin32Access failed", e  ));
 
 					Runtime.getRuntime().exec( file.getAbsolutePath() );
 				}
