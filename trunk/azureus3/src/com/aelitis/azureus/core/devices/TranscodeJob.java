@@ -65,6 +65,9 @@ TranscodeJob
 	public int
 	getPercentComplete();
 	
+	public long
+	getETASecs();
+	
 	public String
 	getETA();
 	

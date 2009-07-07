@@ -607,6 +607,23 @@ TranscodeJobImpl
 		return( percent_complete );
 	}
 	
+	public long
+	getETASecs()
+	{
+		if ( eta <= 0 ){
+			
+			return( 0 );
+			
+		}else if ( eta == Integer.MAX_VALUE ){
+			
+			return( Long.MAX_VALUE );
+			
+		}else{
+			
+			return( eta );
+		}
+	}
+	
 	public String
 	getETA()
 	{

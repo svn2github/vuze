@@ -166,7 +166,9 @@ AzureusPlatformContentDirectory
 				return( null );
 			}
 
-			AzureusContentFile acf = (AzureusContentFile)download.getUserData( AzureusPlatformContentDirectory.class );
+			String ud_key = "AzureusPlatformContentDirectory" + ":" + index;
+			
+			AzureusContentFile acf = (AzureusContentFile)download.getUserData( ud_key );
 			
 			if ( acf != null ){
 				
@@ -246,6 +248,10 @@ AzureusPlatformContentDirectory
 									long	size = file.getLength();
 									
 									return( new Long( size==0?100:(1000*file.getDownloaded()/size )));
+									
+								}else if ( name.equals( PT_ETA )){							
+								
+									return( getETA( file ));
 								}
 							}catch( Throwable e ){							
 							}
@@ -289,7 +295,17 @@ AzureusPlatformContentDirectory
 										}
 										
 										return( new String[0] );
-									}	
+										
+									}else if ( name.equals( PT_PERCENT_DONE )){
+										
+										long	size = file.getLength();
+										
+										return( new Long( size==0?100:(1000*file.getDownloaded()/size )));
+	
+									}else if ( name.equals( PT_ETA )){							
+									
+										return( getETA( file ));
+									}
 								}catch( Throwable e ){							
 								}
 								
@@ -298,7 +314,7 @@ AzureusPlatformContentDirectory
 						};
 			}
 			
-			download.setUserData( AzureusPlatformContentDirectory.class, acf );
+			download.setUserData( ud_key, acf );
 			
 			final AzureusContentFile f_acf = acf;
 			
@@ -322,6 +338,36 @@ AzureusPlatformContentDirectory
 		}catch( Throwable e ){
 			
 			return( null );
+		}
+	}
+	
+	protected long
+	getETA(
+		DiskManagerFileInfo		file )
+	{
+		try{
+			if ( file.getDownloaded() == file.getLength()){
+				
+				return( 0 );
+			}
+			
+			if ( file.isDeleted() || file.isSkipped()){
+				
+				return( Long.MAX_VALUE );
+			}
+		
+			long eta = file.getDownload().getStats().getETASecs();
+			
+			if ( eta < 0 ){
+				
+				return( Long.MAX_VALUE );
+			}
+			
+			return( eta );
+			
+		}catch( Throwable e ){
+			
+			return( Long.MAX_VALUE );
 		}
 	}
 	

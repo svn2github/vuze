@@ -647,6 +647,14 @@ DeviceUPnPImpl
 							if ( name.equals( MY_ACF_KEY )){
 								
 								return( new Object[]{ DeviceUPnPImpl.this, tf_key });
+								
+							}else if ( name.equals( PT_PERCENT_DONE )){
+								
+								return( new Long(1000));
+								
+							}else if ( name.equals( PT_ETA )){
+								
+								return( new Long(0));
 							}
 							
 							return( null );
@@ -862,7 +870,7 @@ DeviceUPnPImpl
 
 										if ( tf.isComplete()){
 											
-											return( 1000 );
+											res = 1000;
 											
 										}else{
 											
@@ -877,6 +885,30 @@ DeviceUPnPImpl
 												res = 10*job.getPercentComplete();
 											}
 										}
+										
+										return( res );
+										
+									}else if ( name.equals( PT_ETA )){
+
+										if ( tf.isComplete()){
+											
+											res = 0;
+											
+										}else{
+											
+											TranscodeJob job = tf.getJob();
+											
+											if ( job == null ){
+												
+												res = Long.MAX_VALUE;
+												
+											}else{
+												
+												res = job.getETASecs();
+											}
+										}
+										
+										return( res );
 									}
 									
 									if ( res > 0 ){
