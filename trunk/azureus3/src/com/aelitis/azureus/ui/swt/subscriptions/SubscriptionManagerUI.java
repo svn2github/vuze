@@ -77,6 +77,8 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
@@ -879,8 +881,30 @@ SubscriptionManagerUI
 					}
 				});
 
+			String parentID = "sidebar." + SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS;
+
+			MenuManager menu_manager = ui_manager.getMenuManager();
+			
+			MenuItem mi = menu_manager.addMenuItem( parentID, "ConfigView.title.short" );
+			
+			mi.addListener( 
+					new MenuItemListener() 
+					{
+						public void 
+						selected(
+							MenuItem menu, Object target ) 
+						{
+					      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
+					      	 
+					      	 if ( uif != null ){
+					      		 
+					      		 uif.openView( UIFunctions.VIEW_CONFIG, "Subscriptions" );
+					      	 }
+						}
+					});
 			if (!mainSBEntry.isInTree()) {
-  			side_bar.createTreeItemFromIViewClass(null,
+  			
+				side_bar.createTreeItemFromIViewClass(null,
   					SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS,
   					MessageText.getString("subscriptions.view.title"),
   					SubscriptionsView.class, null, null, null, null, false);
