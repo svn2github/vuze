@@ -44,6 +44,7 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.security.CryptoManagerFactory;
 
 /**
  * @author TuxPaper
@@ -140,6 +141,14 @@ public class DonationWindow
 	}
 
 	public static void open(final boolean showNoLoad) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				_open(showNoLoad);
+			}
+		});
+	}
+
+	public static void _open(final boolean showNoLoad) {
 		if (shell != null && !shell.isDisposed()) {
 			return;
 		}
@@ -252,15 +261,16 @@ public class DonationWindow
 
 		long upTime = StatsFactory.getStats().getTotalUpTime();
 		int upHours = (int) (upTime / (60 * 60)); //secs * mins
+		String azid = Base32.encode(CryptoManagerFactory.getSingleton().getSecureID());
 		final String url = "http://"
 				+ System.getProperty("platform_address", "www.vuze.com") + ":"
 				+ System.getProperty("platform_port", "80") + "/"
 				+ "donate.start?locale=" + Locale.getDefault().toString() + "&azv="
 				+ Constants.AZUREUS_VERSION + "&count="
 				+ COConfigurationManager.getLongParameter("donations.count", 1)
-				+ "&uphours=" + upHours;
+				+ "&uphours=" + upHours + "&azid=" + azid;
 
-		SimpleTimer.addEvent("donation.pageload", SystemTime.getOffsetTime(5000),
+		SimpleTimer.addEvent("donation.pageload", SystemTime.getOffsetTime(6000),
 				new TimerEventPerformer() {
 					public void perform(TimerEvent event) {
 						if (!pageLoadedOk) {
