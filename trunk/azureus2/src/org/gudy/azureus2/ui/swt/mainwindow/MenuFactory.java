@@ -954,7 +954,7 @@ public class MenuFactory
 	public static MenuItem addDonationMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_DONATE, new Listener() {
       public void handleEvent(Event e) {
-        DonationWindow.open(true);
+        DonationWindow.open(true, "menu");
       }
     });
 	}

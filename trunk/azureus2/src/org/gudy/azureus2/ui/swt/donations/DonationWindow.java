@@ -22,13 +22,7 @@ import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.events.ShellListener;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
@@ -41,7 +35,6 @@ import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
@@ -135,20 +128,20 @@ public class DonationWindow
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				open(false);
+				open(false, "check");
 			}
 		});
 	}
 
-	public static void open(final boolean showNoLoad) {
+	public static void open(final boolean showNoLoad, final String sourceRef) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				_open(showNoLoad);
+				_open(showNoLoad, sourceRef);
 			}
 		});
 	}
 
-	public static void _open(final boolean showNoLoad) {
+	public static void _open(final boolean showNoLoad, final String sourceRef) {
 		if (shell != null && !shell.isDisposed()) {
 			return;
 		}
@@ -268,7 +261,8 @@ public class DonationWindow
 				+ "donate.start?locale=" + Locale.getDefault().toString() + "&azv="
 				+ Constants.AZUREUS_VERSION + "&count="
 				+ COConfigurationManager.getLongParameter("donations.count", 1)
-				+ "&uphours=" + upHours + "&azid=" + azid;
+				+ "&uphours=" + upHours + "&azid=" + azid + "&sourceref="
+				+ UrlUtils.encode(sourceRef);
 
 		SimpleTimer.addEvent("donation.pageload", SystemTime.getOffsetTime(6000),
 				new TimerEventPerformer() {
@@ -347,7 +341,7 @@ public class DonationWindow
 		try {
 			AzureusCoreFactory.create().start();
 			//checkForDonationPopup();
-			open(true);
+			open(true, "test");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
