@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -213,7 +214,10 @@ public class StimulusRPC
 									"source-ref", null));
 						}
 
+					} else if (DisplayListener.OP_SHOW_DONATION_WINDOW.equals(lId)) {
+						DonationWindow.open(true);
 					}
+
 
 					if (System.getProperty(
 							"browser.route.all.external.stimuli.for.testing", "false").equalsIgnoreCase(

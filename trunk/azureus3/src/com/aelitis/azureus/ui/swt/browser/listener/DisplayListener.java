@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 
@@ -65,6 +66,8 @@ public class DisplayListener
 	public static final String OP_INVITE_FRIEND = "invite";
 
 	public static final String OP_SET_SELECTED_CONTENT = "set-selected-content";
+
+	public static final String OP_SHOW_DONATION_WINDOW = "show-donation-window";
 
 	public static final String OP_INVITE_FRIEND_PARAM_MESSAGE = "message";
 
@@ -181,6 +184,8 @@ public class DisplayListener
 			if (decodedMap != null) {
 				setSelectedContent(message, decodedMap);
 			}
+		} else if (OP_SHOW_DONATION_WINDOW.equals(opid)) {
+			DonationWindow.open(true);
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
 		}
