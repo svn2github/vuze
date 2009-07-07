@@ -83,7 +83,12 @@ SubscriptionManagerImpl
 	private static final String	CONFIG_FILE = "subscriptions.config";
 	private static final String	LOGGER_NAME = "Subscriptions";
 
-	private static final String CONFIG_MAX_RESULTS = "subscriptions.max.non.deleted.results";
+	private static final String CONFIG_MAX_RESULTS 			= "subscriptions.max.non.deleted.results";
+	private static final String CONFIG_AUTO_START_DLS 		= "subscriptions.auto.start.downloads";
+	private static final String CONFIG_AUTO_START_MIN_MB 	= "subscriptions.auto.start.min.mb";
+	private static final String CONFIG_AUTO_START_MAX_MB 	= "subscriptions.auto.start.max.mb";
+	
+	
 	
 	private static SubscriptionManagerImpl		singleton;
 	
@@ -4752,6 +4757,88 @@ SubscriptionManagerImpl
 		if ( max != getMaxNonDeletedResults()){
 			
 			COConfigurationManager.setParameter( CONFIG_MAX_RESULTS, max );
+		}
+	}
+	
+	public boolean
+	getAutoStartDownloads()
+	{
+		return( COConfigurationManager.getBooleanParameter( CONFIG_AUTO_START_DLS ));		
+	}
+	
+	public void
+	setAutoStartDownloads(
+		boolean		auto_start )
+	{
+		if ( auto_start != getAutoStartDownloads()){
+			
+			COConfigurationManager.setParameter( CONFIG_AUTO_START_DLS, auto_start );
+		}		
+	}
+	
+	public int
+	getAutoStartMinMB()
+	{
+		return( COConfigurationManager.getIntParameter( CONFIG_AUTO_START_MIN_MB ));
+	}
+	
+	public void
+	setAutoStartMinMB(
+		int			mb )
+	{
+		if ( mb != getAutoStartMinMB()){
+			
+			COConfigurationManager.setParameter( CONFIG_AUTO_START_MIN_MB, mb );
+		}
+	}
+
+	public int
+	getAutoStartMaxMB()
+	{
+		return( COConfigurationManager.getIntParameter( CONFIG_AUTO_START_MAX_MB ));
+	}
+	
+	public void
+	setAutoStartMaxMB(
+		int			mb )
+	{
+		if ( mb != getAutoStartMaxMB()){
+			
+			COConfigurationManager.setParameter( CONFIG_AUTO_START_MAX_MB, mb );
+		}
+	}
+	
+	protected boolean
+	shouldAutoStart(
+		Torrent		torrent )
+	{
+		if ( getAutoStartDownloads()){
+			
+			long	min = getAutoStartMinMB()*1024*1024L;
+			long	max = getAutoStartMaxMB()*1024*1024L;
+			
+			if ( min <= 0 && max <= 0 ){
+				
+				return( true );
+			}
+			
+			long size = torrent.getSize();
+			
+			if ( min > 0 && size < min ){
+				
+				return( false );
+			}
+			
+			if ( max > 0 && size > max ){
+				
+				return( false );
+			}
+			
+			return( true );
+			
+		}else{
+			
+			return( false );
 		}
 	}
 	

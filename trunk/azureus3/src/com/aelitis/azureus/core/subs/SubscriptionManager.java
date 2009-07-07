@@ -104,8 +104,29 @@ SubscriptionManager
 	
 	public void
 	setMaxNonDeletedResults(
-		int		max );
+		int			max );
 	
+	public boolean
+	getAutoStartDownloads();
+	
+	public void
+	setAutoStartDownloads(
+		boolean		auto_start );
+
+	public int
+	getAutoStartMinMB();
+	
+	public void
+	setAutoStartMinMB(
+		int			mb );
+
+	public int
+	getAutoStartMaxMB();
+	
+	public void
+	setAutoStartMaxMB(
+		int			mb );
+
 	public void
 	addListener(
 		SubscriptionManagerListener	listener );

@@ -43,8 +43,11 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.IntParameter;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
@@ -463,6 +466,49 @@ SubscriptionManagerUI
 				"subscriptions.config.maxresults", 
 				subs_man.getMaxNonDeletedResults());
 			
+			// auto
+		
+		final BooleanParameter auto_start = configModel.addBooleanParameter2(
+				"subscriptions.config.autostartdls",
+				"subscriptions.config.autostartdls",
+				subs_man.getAutoStartDownloads());
+		
+		auto_start.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param )
+				{
+					subs_man.setAutoStartDownloads( auto_start.getValue());
+				}
+			});
+		
+		final IntParameter min_auto_start_size = 
+			configModel.addIntParameter2( 
+				"subscriptions.config.autostart.min", 
+				"subscriptions.config.autostart.min", 
+				subs_man.getAutoStartMinMB());
+
+		final IntParameter max_auto_start_size = 
+			configModel.addIntParameter2( 
+				"subscriptions.config.autostart.max", 
+				"subscriptions.config.autostart.max", 
+				subs_man.getAutoStartMaxMB());
+
+		auto_start.addEnabledOnSelection( min_auto_start_size );
+		auto_start.addEnabledOnSelection( max_auto_start_size );
+		
+		configModel.createGroup( 
+			"subscriptions.config.auto", 
+			new Parameter[]{
+					auto_start, 
+					min_auto_start_size,
+					max_auto_start_size,
+			});
+		
+			// int param fires intermediate events so we have to rely on the save :(
+		
 		default_pi.getPluginconfig().addListener(
 			new PluginConfigListener()
 			{
@@ -470,22 +516,11 @@ SubscriptionManagerUI
 				configSaved() 
 				{
 					subs_man.setMaxNonDeletedResults(max_results.getValue());
+					subs_man.setAutoStartMinMB(min_auto_start_size.getValue());
+					subs_man.setAutoStartMaxMB(max_auto_start_size.getValue());
 				}
 			});
-		
-		/* grr, this generated intermediate events...
-		max_results.addListener(
-			new ParameterListener()
-			{
-				public void 
-				parameterChanged(
-					Parameter param )
-				{
-					subs_man.setMaxNonDeletedResults( max_results.getValue());
-				}
-			});
-		*/
-		
+
 		
 		SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
 		

@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
@@ -329,17 +330,30 @@ SubscriptionSchedulerImpl
 														
 									// PlatformTorrentUtils.setContentTitle(torrent, torr );
 							
-									Download download = PluginInitializer.getDefaultInterface().getDownloadManager().addDownload( torrent );
+									DownloadManager dm = PluginInitializer.getDefaultInterface().getDownloadManager();
 									
+									Download	download;
+									
+									boolean auto_start = manager.shouldAutoStart( torrent );
+									
+									if ( auto_start ){
+									
+										download = dm.addDownload( torrent );
+										
+									}else{
+									
+										download = dm.addDownloadStopped( torrent, null, null );
+									}
+									
+									log( subs.getName() + ": added download " + download.getName()+ ": auto-start=" + auto_start );
+
 									if ( subs.isPublic()){
 									
 										subs.addAssociation( torrent.getHash());
 									}
 									
 									result.setRead( true );
-									
-									log( subs.getName() + ": added download " + download.getName());
-									
+																		
 									if ( tried_ref_switch ){
 										
 										subs.getHistory().setDownloadWithReferer( use_ref );
