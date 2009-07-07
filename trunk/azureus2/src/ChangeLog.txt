@@ -3,12 +3,33 @@ VUZE CHANGELOG
 
 2009.0x.xx | Vuze 4.2.0.3
 
+FEATURE: Core | Subscription options for auto-starting auto-downloads [Parg]
+FEATURE: Core | Support for sharing .vuze files [Parg]
+FEATURE: Core | Added support for adding categories to transcoded content [Parg]
+FEATURE: Core | Added default transcode dir option [Parg]
+FEATURE: Plug | Plugin interface to the search functionality [Parg]
+FEATURE: Core | Support for keep-alive and more gzip on web contexts [Parg]
+FEATURE: Core | Added percentage complete and eta to content descriptor [Parg]
 
+CHANGE: Core | Added another non-standard RSS date format [Parg]
+CHANGE: Core | Allow HTTP seeding for simple torrents without knowledge of file name [Parg]
+CHANGE: Core | Keep log files open rather than continually opening and closing them [Parg]
+CHANGE: Core | Improved reporting of 'no disk space' errors for FAT32 [Parg]
+CHANGE: Core | Improved logging performance [Parg]
+CHANGE: Core | Support for updated via installer as opposed to incremental updates [Parg]
+
+BUGFIX: Core | Work around for broken socket handling on freebsd7.x [Parg]
+BUGFIX: Core | Recover from borked transcode queue config [Parg]
+BUGFIX: Core | Fix xml stats export with undefined characters [Parg] 
+BUGFIX: UI   | Set speeds in bits/sec when bits/sec display is selected [Parg]
+BUGFIX: Core | Support >2GB resource downloads [Parg]
+BUGFIX: Core | Fixed HTTP seeding when switching content on a keep-alive connection [Parg]
+BUGFIX: Core | Fix tracker announcer to pay attention to user options correctly [Parg]
+BUGFIX: Core | Multi-file torrents were borked in content directory [Parg]
 
 2009.03.3x | Vuze 4.2.0.2
+
 *See BRANCH_4202...
-
-
 
 2009.03.23 | Vuze 4.2.0.0
 
@@ -19,14 +40,10 @@ FEATURE: Plug | Transcoding [gudy,parg]
 BUGFIX: Core  | Fix IP binding error when performing a NAT test under Vista [The 8472]
 BUGFIX: UIvz  | Fix some notifications not getting pulled [TuxPaper]
 
-
-
 2009.02.25 | Vuze 4.1.0.4
    
 FEATURE: UI   | Donation Window [TuxPaper]
    
-
-
 2009.02.05 | Vuze 4.1.0.2
 
 FEATURE: UI   | Config option for max stalled seeding torrents (was hardcoded in 4100) [TuxPaper]
