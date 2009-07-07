@@ -202,6 +202,10 @@ public class ConfigurationDefaults {
     def.put("Seeding Piece Check Recheck Enable", TRUE );
     def.put("priorityExtensions", "");
     def.put("priorityExtensionsIgnoreCase", FALSE);
+    
+    def.put("Rename Incomplete Files", FALSE );
+    def.put("Rename Incomplete Files Extension", ".az!" );
+    
     def.put("Ip Filter Enabled", TRUE);
     def.put("Ip Filter Allow",FALSE);
     def.put("Ip Filter Enable Banning", TRUE);
@@ -571,6 +575,9 @@ public class ConfigurationDefaults {
     	// subscriptions
     
     def.put( "subscriptions.max.non.deleted.results", new Long( 512 ));
+    def.put( "subscriptions.auto.start.downloads", TRUE );
+    def.put( "subscriptions.auto.start.min.mb", ZERO );
+    def.put( "subscriptions.auto.start.max.mb", ZERO );
 }
   
   protected 
