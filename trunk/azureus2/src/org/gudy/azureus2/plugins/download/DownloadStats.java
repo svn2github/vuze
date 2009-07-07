@@ -211,6 +211,14 @@ DownloadStats
 	getETA();
 
 	/**
+	 * @since 4.2.0.3
+	 * @return Long.MAX_VALUE -> infinite
+	 */
+	
+	public long
+	getETASecs();
+	
+	/**
 	 * Gives the number of bytes thrown away due to piece hash check fails
 	 * @return
    *

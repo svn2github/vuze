@@ -235,6 +235,13 @@ RPDownloadStats
 	}
 	
 	public long
+	getETASecs()
+	{
+		notSupported();
+		return(0);
+	}
+	
+	public long
 	getHashFails()
 	{
 		notSupported();

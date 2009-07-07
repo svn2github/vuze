@@ -158,6 +158,12 @@ DownloadStatsImpl
 	}
 	
 	public long
+	getETASecs()
+	{
+		return( dm_stats.getETA());
+	}
+	
+	public long
 	getHashFails()
 	{		
 		return( dm_stats.getHashFailCount());
