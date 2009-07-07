@@ -215,7 +215,9 @@ public class StimulusRPC
 						}
 
 					} else if (DisplayListener.OP_SHOW_DONATION_WINDOW.equals(lId)) {
-						DonationWindow.open(true);
+						Map decodedMap = browserMsg.getDecodedMap();
+						DonationWindow.open(true, MapUtils.getMapString(decodedMap,
+								"source-ref", "SRPC"));
 					}
 
 

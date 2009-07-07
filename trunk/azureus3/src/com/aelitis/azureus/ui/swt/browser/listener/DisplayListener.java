@@ -185,7 +185,9 @@ public class DisplayListener
 				setSelectedContent(message, decodedMap);
 			}
 		} else if (OP_SHOW_DONATION_WINDOW.equals(opid)) {
-			DonationWindow.open(true);
+			Map decodedMap = message.getDecodedMap();
+			DonationWindow.open(true, MapUtils.getMapString(decodedMap, "source-ref",
+					"RPC"));
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
 		}
