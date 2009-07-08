@@ -1,16 +1,16 @@
 VUZE CHANGELOG
 -----------------
 
-2009.0x.xx | Vuze 4.2.0.3
+2009.07.08 | Vuze 4.2.0.4
 
 FEATURE: Core | Subscription options for auto-starting auto-downloads [Parg]
 FEATURE: Core | Support for sharing .vuze files [Parg]
 FEATURE: Core | Added support for adding categories to transcoded content [Parg]
 FEATURE: Core | Added default transcode dir option [Parg]
-FEATURE: Plug | Plugin interface to the search functionality [Parg]
 FEATURE: Core | Support for keep-alive and more gzip on web contexts [Parg]
 FEATURE: Core | Added percentage complete and eta to content descriptor [Parg]
 FEATURE: UIvz | UI displays while core initializes [TuxPaper]
+FEATURE: Plug | Plugin interface to the search functionality [Parg]
 
 CHANGE: Core | Added another non-standard RSS date format [Parg]
 CHANGE: Core | Allow HTTP seeding for simple torrents without knowledge of file name [Parg]
@@ -22,15 +22,15 @@ CHANGE: Core | Support for updated via installer as opposed to incremental updat
 BUGFIX: Core | Work around for broken socket handling on freebsd7.x [Parg]
 BUGFIX: Core | Recover from borked transcode queue config [Parg]
 BUGFIX: Core | Fix xml stats export with undefined characters [Parg] 
-BUGFIX: UI   | Set speeds in bits/sec when bits/sec display is selected [Parg]
 BUGFIX: Core | Support >2GB resource downloads [Parg]
 BUGFIX: Core | Fixed HTTP seeding when switching content on a keep-alive connection [Parg]
 BUGFIX: Core | Fix tracker announcer to pay attention to user options correctly [Parg]
 BUGFIX: Core | Multi-file torrents were borked in content directory [Parg]
+BUGFIX: UI   | Set speeds in bits/sec when bits/sec display is selected [Parg]
 
 
 
-2009.03.3x | Vuze 4.2.0.2
+2009.04.09 | Vuze 4.2.0.2
 
 BUGFIX: UI   | Fix wrap on category buttons [TuxPaper]
 BUGFIX: UI   | Fix rare case when last sash position in My Torrents wasn't being obeyed [TuxPaper]
