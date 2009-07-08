@@ -173,7 +173,7 @@ public class UpdateMonitor
 						// elevating perms when updating) and warn user. Particularly useful on OSX when
 						// users haven't installed properly
 		
-						if ( !( Constants.isWindowsVista || SystemProperties.isJavaWebStartInstance())){
+						if ( !( Constants.isWindowsVistaOrHigher || SystemProperties.isJavaWebStartInstance())){
 		
 							String	app_str = SystemProperties.getApplicationPath();
 		

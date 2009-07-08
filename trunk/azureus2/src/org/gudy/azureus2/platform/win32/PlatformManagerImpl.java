@@ -876,7 +876,7 @@ PlatformManagerImpl
 		try {
 			access.writeStringValue(AEWin32Access.HKEY_CLASSES_ROOT, subkey, name, value);
 		} catch (Throwable e) {
-			if (!Constants.isWindowsVista) {
+			if (!Constants.isWindowsVistaOrHigher) {
 				Debug.out(e);
 			}
 		}

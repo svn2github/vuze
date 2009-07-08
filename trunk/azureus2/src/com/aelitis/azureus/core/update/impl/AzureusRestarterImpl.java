@@ -237,20 +237,11 @@ AzureusRestarterImpl
 
 	private String getExeUpdater(PrintWriter log) {
 		try {
-			boolean isVistaOrHigher = false;
-			if (Constants.isWindows) {
-				Float ver = null;
-				try {
-					ver = new Float(System.getProperty("os.version"));
-				} catch (Exception e) {
-				}
-				isVistaOrHigher = ver != null && ver.floatValue() >= 6;
-			}
 
-			// Vista test: We will need to run an elevated EXE updater if we can't
-			//             write to the program dir.
+				// Vista test: 	We will need to run an elevated EXE updater if we can't
+				//            	write to the program dir.
 			
-			if (isVistaOrHigher) {
+			if (Constants.isWindowsVistaOrHigher ) {
 				if (PluginInitializer.getDefaultInterface().getUpdateManager().getInstallers().length > 0) {
 					log.println("Vista restart w/Updates.. checking if EXE needed");
 					try {

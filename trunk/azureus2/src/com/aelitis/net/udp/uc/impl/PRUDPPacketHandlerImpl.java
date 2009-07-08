@@ -534,7 +534,7 @@ PRUDPPacketHandlerImpl
 			
 			init_error	= e;
 			
-			if (!( e instanceof BindException && Constants.isWindowsVista )){
+			if (!( e instanceof BindException && Constants.isWindowsVistaOrHigher )){
 				
 				Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
 						LogAlert.AT_ERROR, "Tracker.alert.listenfail"), new String[] { "UDP:"

@@ -860,7 +860,7 @@ PluginUpdatePlugin
 					// to use an installer + restart to copy the files (as the restart can elevate
 					// permissions)
 				
-				if ( Constants.isWindowsVista ){
+				if ( Constants.isWindowsVistaOrHigher ){
 					
 						// test with .dll as this will fail write to virtual-store as required
 					

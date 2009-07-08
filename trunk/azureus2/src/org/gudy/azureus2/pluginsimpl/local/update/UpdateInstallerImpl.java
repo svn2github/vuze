@@ -221,7 +221,7 @@ UpdateInstallerImpl
 						// Vista install process goes through permissions elevation process
 						// so don't warn about lack of write permissions
 					
-					if ( !Constants.isWindowsVista ){
+					if ( !Constants.isWindowsVistaOrHigher ){
 						
 						Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
 							"The location '" + parent.toString()

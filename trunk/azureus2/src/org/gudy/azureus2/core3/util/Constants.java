@@ -108,6 +108,29 @@ Constants
   // If it isn't windows or osx, it's most likely an unix flavor
   public static final boolean isUnix = !isWindows && !isOSX;
  
+  
+  public static final boolean isWindowsVistaOrHigher;
+  
+  static{
+	  if ( isWindows ){
+
+		  Float ver = null;
+
+		  try{
+			  ver = new Float( System.getProperty( "os.version" ));
+
+		  }catch (Throwable e){
+		  }
+
+		  isWindowsVistaOrHigher = ver != null && ver.floatValue() >= 6;
+		  
+	  }else{
+		  
+		  isWindowsVistaOrHigher = false;
+	  }
+  }
+  
+  
   public static final String	JAVA_VERSION = System.getProperty("java.version");
   
   public static final String	FILE_WILDCARD = isWindows?"*.*":"*";
