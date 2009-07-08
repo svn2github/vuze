@@ -10,6 +10,7 @@ FEATURE: Core | Added default transcode dir option [Parg]
 FEATURE: Plug | Plugin interface to the search functionality [Parg]
 FEATURE: Core | Support for keep-alive and more gzip on web contexts [Parg]
 FEATURE: Core | Added percentage complete and eta to content descriptor [Parg]
+FEATURE: UIvz | UI displays while core initializes [TuxPaper]
 
 CHANGE: Core | Added another non-standard RSS date format [Parg]
 CHANGE: Core | Allow HTTP seeding for simple torrents without knowledge of file name [Parg]
@@ -27,9 +28,13 @@ BUGFIX: Core | Fixed HTTP seeding when switching content on a keep-alive connect
 BUGFIX: Core | Fix tracker announcer to pay attention to user options correctly [Parg]
 BUGFIX: Core | Multi-file torrents were borked in content directory [Parg]
 
+
+
 2009.03.3x | Vuze 4.2.0.2
 
 *See BRANCH_4202...
+
+
 
 2009.03.23 | Vuze 4.2.0.0
 
@@ -40,9 +45,13 @@ FEATURE: Plug | Transcoding [gudy,parg]
 BUGFIX: Core  | Fix IP binding error when performing a NAT test under Vista [The 8472]
 BUGFIX: UIvz  | Fix some notifications not getting pulled [TuxPaper]
 
+
+
 2009.02.25 | Vuze 4.1.0.4
    
 FEATURE: UI   | Donation Window [TuxPaper]
+
+
    
 2009.02.05 | Vuze 4.1.0.2
 
