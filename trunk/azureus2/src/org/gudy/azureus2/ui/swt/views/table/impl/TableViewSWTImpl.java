@@ -2297,7 +2297,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				Rectangle bounds = rowSWT.getBounds();
 				if (bounds.intersects(dirtyArea)) {
 
-					if (Constants.isWindowsVista) {
+					if (Constants.isWindowsVistaOrHigher) {
 						Image imgBG = new Image(gc.getDevice(), bounds.width, bounds.height);
 						gc.copyArea(imgBG, bounds.x, bounds.y);
 						rowSWT.setBackgroundImage(imgBG);
