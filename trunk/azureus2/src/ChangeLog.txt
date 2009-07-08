@@ -32,7 +32,11 @@ BUGFIX: Core | Multi-file torrents were borked in content directory [Parg]
 
 2009.03.3x | Vuze 4.2.0.2
 
-*See BRANCH_4202...
+BUGFIX: UI   | Fix wrap on category buttons [TuxPaper]
+BUGFIX: UI   | Fix rare case when last sash position in My Torrents wasn't being obeyed [TuxPaper]
+BUGFIX: UI   | Remove device toolbar when device feature not avail [TuxPaper]
+BUGFIX: Core | Fix hang on startup with some UPnP devices [Parg]
+BUGFIX: Plug | Force decode of HTTP headers to lowercase using ISO8859-1 charset to fix matching error in Turkish [Parg]
 
 
 
