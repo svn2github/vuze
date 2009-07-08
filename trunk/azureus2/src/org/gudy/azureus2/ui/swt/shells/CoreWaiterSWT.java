@@ -14,6 +14,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 public class CoreWaiterSWT
 {
+	private static boolean DEBUG = false;
+
 	public enum TriggerInThread {
 		SWT_THREAD, ANY_THREAD, NEW_THREAD
 	}
@@ -27,13 +29,15 @@ public class CoreWaiterSWT
 	public static void waitForCore(final TriggerInThread triggerInThread,
 			final AzureusCoreRunningListener l) {
 		if (!AzureusCoreFactory.isCoreRunning()) {
-			System.out.println("NOT AVAIL FOR " + Debug.getCompressedStackTrace());
+			if (DEBUG) {
+				System.out.println("NOT AVAIL FOR " + Debug.getCompressedStackTrace());
+			}
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					showWaitWindow();
 				}
 			});
-		} else {
+		} else if (DEBUG) {
 			System.out.println("NO NEED TO WAIT.. CORE AVAIL! "
 					+ Debug.getCompressedStackTrace());
 		}
