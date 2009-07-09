@@ -401,7 +401,7 @@ public class MainWindow
 	}
 
 	/**
-	 * 
+	 * Called only on STARTUP_UIFIRST
 	 */
 	public void init(final AzureusCore core) {
 		Utils.execSWTThread(new AERunnable() {
@@ -414,11 +414,18 @@ public class MainWindow
 		});
 	}
 
+	/**
+	 * Called only on STARTUP_UIFIRST
+	 */
 	public void _init(AzureusCore core) {
 		this.core = core;
 		AEDiagnostics.addEvidenceGenerator(this);
 
 		disposedOrDisposing = false;
+
+		if (!Constants.isSafeMode && COConfigurationManager.getBooleanParameter("Open Transfer Bar On Start")) {
+			uiFunctions.showGlobalTransferBar();
+		}
 
 		VuzeBuddyManager.init(new VuzeBuddyCreator() {
 			public VuzeBuddy createBuddy(String publicKey) {
