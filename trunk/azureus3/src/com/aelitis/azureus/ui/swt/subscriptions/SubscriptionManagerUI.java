@@ -81,10 +81,13 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -1973,6 +1976,35 @@ SubscriptionManagerUI
 				detailsBrowser.setVisible( false );
 				//detailsBrowser.set
 				mainBrowser.getParent().layout(true,true);
+				
+				
+				ISelectedContent[] sels = {
+					new SubscriptionSelectedContent( 
+						new ToolBarEnabler()
+						{
+							  public boolean 
+							  isEnabled(
+								  String itemKey )
+							  {
+								  return( "share".equals(itemKey));
+							  }
+							  
+							  public boolean 
+							  isSelected(
+								  String itemKey )
+							  {
+								  return( false );
+							  }
+							  
+							  public void 
+							  itemActivated(
+								String itemKey )
+							  {
+							  }
+						}, 
+						subs )};
+								
+				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler", sels );
 				
 			}catch( Throwable e ){
 			
