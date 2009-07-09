@@ -61,6 +61,7 @@ DownloadManagerState
 	public static final String AT_TIME_SINCE_UPLOAD			= "timesinceul";
 	public static final String AT_AVAIL_BAD_TIME			= "badavail";
 	public static final String AT_TIME_STOPPED				= "timestopped";
+	public static final String AT_INCOMP_FILE_SUFFIX		= "incompfilesuffix";
 	
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
 		{ AT_VERSION,								new Integer( -1 )},

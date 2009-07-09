@@ -1342,15 +1342,51 @@ DiskManagerImpl
 
                     this_file.setDownloaded(file_done);
 
-                    // change file modes based on whether or not the file is complete or not
-                    if (file_done ==file_length &&this_file.getAccessMode() ==DiskManagerFileInfo.WRITE)
-                    {
-                        try
-                        {
-                            this_file.setAccessMode(DiskManagerFileInfo.READ);
-
-                        } catch (Exception e)
-                        {
+                    	// change file modes based on whether or not the file is complete or not
+                    
+                    if ( file_done == file_length && this_file.getAccessMode() == DiskManagerFileInfo.WRITE ){
+                        
+                    	try{
+                    		this_file.setAccessMode(DiskManagerFileInfo.READ);
+                    		
+                    		DownloadManagerState state = download_manager.getDownloadState();
+                    		
+                    		String suffix = state.getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+                    		
+                    		if ( suffix != null && suffix.length() > 0 ){
+                    			
+                    			File base_file = this_file.getFile( false );
+                    			
+                    			File link = state.getFileLink( base_file );
+                    			
+                    			if ( link != null ){
+                    				
+                    				String	name = link.getName();
+                    				
+                    				if ( name.endsWith( suffix ) && name.length() > suffix.length()){
+                    					
+                    					String	new_name = name.substring( 0, name.length() - suffix.length());
+                    					
+                    					File new_file = new File( link.getParentFile(), new_name );
+                    					
+                    					if ( !new_file.exists()){
+                    						
+                    						this_file.renameFile( new_name, false );
+                    						
+                    						if ( base_file.equals( new_file )){
+                    							
+                    							state.setFileLink( base_file, null );
+                    							
+                    						}else{
+                    							
+                    							state.setFileLink( base_file, new_file );
+                    						}
+                    					}
+                    				}
+                    			}
+                    		}
+                        }catch ( Throwable e ){
+                        
                             setFailed("Disk access error - " +Debug.getNestedExceptionMessage(e));
 
                             Debug.printStackTrace(e);

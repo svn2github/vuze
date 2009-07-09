@@ -57,6 +57,12 @@ CacheFile
 		throws CacheFileManagerException;
 	
 	public void
+	renameFile(
+		String		new_name )
+	
+		throws CacheFileManagerException;
+	
+	public void
 	setAccessMode(
 		int		mode )
 	

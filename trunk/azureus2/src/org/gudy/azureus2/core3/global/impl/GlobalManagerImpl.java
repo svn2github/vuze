@@ -35,6 +35,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.*;
@@ -2719,6 +2720,56 @@ public class GlobalManagerImpl
 							}catch( Throwable e ){
 								
 								Debug.printStackTrace(e);
+							}
+						}
+						
+						if ( COConfigurationManager.getBooleanParameter( "Rename Incomplete Files")){
+							
+							String	ext = COConfigurationManager.getStringParameter( "Rename Incomplete Files Extension" ).trim();
+							
+							DownloadManagerState state = manager.getDownloadState();
+							
+							String existing_ext = state.getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+
+							if ( ext.length() > 0 && existing_ext == null ){
+									
+								ext = FileUtil.convertOSSpecificChars( ext, false );
+								
+								DiskManagerFileInfo[] fileInfos = manager.getDiskManagerFileInfo();
+								
+								try{
+									state.suppressStateSave(true);
+																	
+									for ( int i=0; i<fileInfos.length; i++ ){
+										
+										DiskManagerFileInfo fileInfo = fileInfos[i];
+										
+										File base_file = fileInfo.getFile( false );
+										
+										File existing_link = state.getFileLink( base_file );
+										
+										if ( existing_link == null || !existing_link.exists()){
+											
+											File	new_link;
+											
+											if ( existing_link == null ){
+												
+												new_link = new File( base_file.getParentFile(), base_file.getName() + ext );
+												
+											}else{
+												
+												new_link = new File( existing_link.getParentFile(), existing_link.getName() + ext );
+											}
+											
+											state.setFileLink( base_file,new_link );
+										}
+									}
+								}finally{
+									
+									state.setAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX, ext );
+									
+									state.suppressStateSave(false);
+								}
 							}
 						}
 					}

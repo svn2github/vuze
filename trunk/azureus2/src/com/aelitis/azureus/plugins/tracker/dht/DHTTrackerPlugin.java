@@ -461,6 +461,14 @@ DHTTrackerPlugin
 	addDownload(
 		final Download	download )
 	{
+		
+		// bail on our low noise ones, these don't require decentralised tracking
+	
+		if ( download.getFlag( Download.FLAG_LOW_NOISE )){
+		
+			return;
+		}
+		
 		if ( track_only_decentralsed ){
 		
 			Torrent	torrent = download.getTorrent();
@@ -473,7 +481,7 @@ DHTTrackerPlugin
 				}
 			}
 		}
-		
+	
 		if ( is_running ){
 			
 			String[]	networks = download.getListAttribute( ta_networks );

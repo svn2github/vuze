@@ -56,6 +56,12 @@ FMFile
 		throws FMFileManagerException;
 	
 	public void
+	renameFile(
+		String		new_name )
+	
+		throws FMFileManagerException;
+	
+	public void
 	setAccessMode(
 		int		mode )
 	

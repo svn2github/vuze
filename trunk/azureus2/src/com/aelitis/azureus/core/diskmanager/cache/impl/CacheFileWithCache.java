@@ -1324,6 +1324,23 @@ CacheFileWithCache
 	}
 	
 	public void
+	renameFile(
+		String		new_name )
+	
+		throws CacheFileManagerException
+	{
+		try{
+			flushCachePublic( true, -1 );
+			
+			file.renameFile( new_name );
+			
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(this,e);
+		}	
+	}
+	
+	public void
 	setAccessMode(
 		int		mode )
 	

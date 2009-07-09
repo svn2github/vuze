@@ -51,8 +51,8 @@ ByteArrayHashMap<T>
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
  
-    private Entry<T>[] table;
-    private int size;
+    protected Entry<T>[] table;
+    protected int size;
     private int threshold;
     final float loadFactor;
 
@@ -290,11 +290,11 @@ ByteArrayHashMap<T>
 
  
 
-    static class Entry<S>{
-        final byte[] key;
-        S value;
-        final int hash;
-        Entry<S> next;
+    protected static class Entry<S>{
+    	public final byte[] key;
+        public S value;
+        public final int hash;
+        public Entry<S> next;
 
         /**
          * Create new entry.

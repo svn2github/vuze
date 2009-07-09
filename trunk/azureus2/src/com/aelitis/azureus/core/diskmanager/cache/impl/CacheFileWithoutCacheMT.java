@@ -157,6 +157,88 @@ CacheFileWithoutCacheMT
 	}
 	
 	public void
+	renameFile(
+		String		new_file )
+	
+		throws CacheFileManagerException
+	{
+		try{
+			synchronized( this ){
+
+				moving = true;
+			}
+			
+			while( true ){
+								
+				synchronized( this ){
+				
+					boolean	surviving = false;
+
+					for (int i=1;i<files_use_count.length;i++){
+						
+						if ( files_use_count[i] > 0 ){
+							
+							surviving = true;
+							
+							break;
+						}
+					}
+				
+					if ( !surviving ){
+						
+						for (int i=1;i<files_use_count.length;i++){
+							
+							FMFile file = files[i];
+							
+							if ( file.isClone()){
+								
+								// System.out.println( "Destroyed clone " + file.getName());
+								
+								synchronized( CacheFileWithoutCacheMT.class ){
+									
+									num_clones--;
+								}
+							}
+							
+							file.close();
+						}
+						
+						files = new FMFile[]{ base_file };
+						
+						files_use_count = new int[]{ files_use_count[0] };
+						
+						base_file.renameFile( new_file );
+	
+						break;
+					}
+				}
+				
+				try{
+					System.out.println( "CacheFileWithoutCacheMT: waiting for clones to die" );
+					
+					Thread.sleep(250);
+					
+				}catch( Throwable e ){
+					
+				}
+			}
+			
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(this,e);
+			
+		}finally{
+			
+			synchronized( this ){
+
+				moving = false;
+			}
+		}
+	}
+	
+	
+	
+	public void
 	setAccessMode(
 		int		mode )
 	

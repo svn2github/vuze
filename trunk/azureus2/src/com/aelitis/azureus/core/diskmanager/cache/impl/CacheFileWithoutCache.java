@@ -84,6 +84,21 @@ CacheFileWithoutCache
 	}
 	
 	public void
+	renameFile(
+		String		new_file )
+	
+		throws CacheFileManagerException
+	{
+		try{
+			file.renameFile( new_file );
+			
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(this,e);
+		}	
+	}
+	
+	public void
 	setAccessMode(
 		int		mode )
 	

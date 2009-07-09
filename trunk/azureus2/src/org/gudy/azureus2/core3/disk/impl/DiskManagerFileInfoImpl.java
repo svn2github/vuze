@@ -137,6 +137,21 @@ DiskManagerFileInfoImpl
 	  file	= newFile;
   }
   
+  public void 
+  renameFile(
+  	String	new_name,
+  	boolean	link_only )
+  
+  	throws CacheFileManagerException
+  {
+	  if ( !link_only ){
+		  
+		  cache_file.renameFile( new_name );
+	  }
+	  
+	  file	= new File( file.getParentFile(), new_name );
+  }
+  
   public CacheFile
   getCacheFile()
   {

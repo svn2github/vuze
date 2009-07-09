@@ -366,6 +366,95 @@ FMFileImpl
 	}
 	
 	public void
+	renameFile(
+		String		new_name )
+	
+		throws FMFileManagerException
+	{
+		try{
+			this_mon.enter();
+		
+			String	new_canonical_path;
+			
+			File 	new_linked_file = new File( linked_file.getParentFile(), new_name );
+						
+			try{
+        
+		        try {
+					
+		          new_canonical_path = new_linked_file.getCanonicalPath();
+				  
+	
+		        }catch( IOException ioe ) {
+					
+		          String msg = ioe.getMessage();
+				  
+		          if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
+		            String abs_path = new_linked_file.getAbsolutePath();
+		            String error = "Caught 'There are no more files' exception during new_file.getCanonicalPath(). " +
+		                           "os=[" +Constants.OSName+ "], new_file.getPath()=[" +new_linked_file.getPath()+ "], new_file.getAbsolutePath()=[" +abs_path+ "]. ";
+		                           //"new_canonical_path temporarily set to [" +abs_path+ "]";
+		            Debug.out( error, ioe );
+		          }
+		          throw ioe;
+		        }
+						
+			}catch( Throwable e ){
+				
+				throw( new FMFileManagerException( "getCanonicalPath fails", e ));
+			}	
+			
+			if ( new_linked_file.exists()){
+				
+				throw( new FMFileManagerException( "renameFile fails - file '" + new_canonical_path + "' already exists"));	
+			}
+			
+			boolean	was_open	= isOpen();
+			
+			close();	// full close, this will release any slots in the limited file case
+				        
+			if ( !linked_file.exists() || linked_file.renameTo( new_linked_file )){
+				
+				linked_file		= new_linked_file;
+				canonical_path	= new_canonical_path;
+				
+				reserveFile();
+				
+				if ( was_open ){
+					
+					ensureOpen( "renameFile target" );	// ensure open will regain slots in limited file case
+				}
+				
+			}else{
+			
+				try{
+					reserveFile();
+					
+				}catch( FMFileManagerException e ){
+					
+					Debug.printStackTrace( e );
+				}
+				
+				if ( was_open ){
+					
+					try{
+						ensureOpen( "renameFile recovery" );
+						
+					}catch( FMFileManagerException e){
+						
+						Debug.printStackTrace( e );
+					}
+				}
+				
+				throw( new FMFileManagerException( "renameFile fails"));
+			}	
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public void
 	ensureOpen(
 		String	reason )
 	

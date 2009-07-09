@@ -412,7 +412,28 @@ public class ConfigSectionFile implements UISWTConfigSection {
       }
       
 
-    // Confirm Delete
+      // rename incomplete
+      
+    sCurConfigID = "Rename Incomplete Files";
+    allConfigIDs.add(sCurConfigID);
+
+    gridData = new GridData();
+    gridData.horizontalSpan = 1;
+    BooleanParameter rename_incomplete = new BooleanParameter(gFile, sCurConfigID,
+  		"ConfigView.section.file.rename.incomplete");
+    rename_incomplete.setLayoutData(gridData);
+    
+    sCurConfigID = "Rename Incomplete Files Extension";
+    allConfigIDs.add(sCurConfigID);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    StringParameter rename_incomplete_ext = new StringParameter(gFile, sCurConfigID);
+    rename_incomplete_ext.setLayoutData(gridData);
+
+    IAdditionalActionPerformer incompFileAP = new ChangeSelectionActionPerformer(
+    		rename_incomplete_ext.getControls(), false);
+    rename_incomplete.setAdditionalActionPerformer(incompFileAP);
+    
+      // Confirm Delete
     sCurConfigID = "Confirm Data Delete";
     allConfigIDs.add(sCurConfigID);
 
