@@ -27,6 +27,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyImpl;
@@ -68,8 +69,39 @@ public class VuzeBuddySWTImpl
 		ImageLoader imageLoader = ImageLoader.getInstance();
 		if (needsImageRebuilt || !imageLoader.imageExists(avatarImageRefId)) {
 
+			boolean useDefault = true;
+
 			byte[] avatarBytes = getAvatar();
-			if (avatarBytes == null) {
+			if (avatarBytes != null) {
+				try {
+  				Display display = Utils.getDisplay();
+  				if (display == null) {
+  					return null;
+  				}
+  				InputStream is = new ByteArrayInputStream(avatarBytes);
+  				Image bigAvatarImage = new Image(display, is);
+  				avatarImage = new Image(display, 40, 40);
+  				GC gc = new GC(avatarImage);
+  				try {
+  					Rectangle bounds = bigAvatarImage.getBounds();
+  					try {
+  						gc.setInterpolation(SWT.HIGH);
+  					} catch (Exception e) {
+  					}
+  					gc.drawImage(bigAvatarImage, 0, 0, bounds.width, bounds.height, 0, 0,
+  							40, 40);
+  				} finally {
+  					gc.dispose();
+  				}
+  				bigAvatarImage.dispose();
+  				avatarImageRefId = "image.buddy.avatar." + getLoginID();
+  				imageLoader.addImage(avatarImageRefId, avatarImage);
+  				useDefault = false;
+				} catch (Exception e) {
+				}
+			}
+
+			if (useDefault) {
 				try {
 					avatarImageRefId = "image.buddy.default.avatar"; 
 					avatarImage = imageLoader.getImage(avatarImageRefId);
@@ -78,29 +110,6 @@ public class VuzeBuddySWTImpl
 					avatarImageRefId = null;
 					avatarImage = null;
 				}
-			} else {
-				Display display = Utils.getDisplay();
-				if (display == null) {
-					return null;
-				}
-				InputStream is = new ByteArrayInputStream(avatarBytes);
-				Image bigAvatarImage = new Image(display, is);
-				avatarImage = new Image(display, 40, 40);
-				GC gc = new GC(avatarImage);
-				try {
-					Rectangle bounds = bigAvatarImage.getBounds();
-					try {
-						gc.setInterpolation(SWT.HIGH);
-					} catch (Exception e) {
-					}
-					gc.drawImage(bigAvatarImage, 0, 0, bounds.width, bounds.height, 0, 0,
-							40, 40);
-				} finally {
-					gc.dispose();
-				}
-				bigAvatarImage.dispose();
-				avatarImageRefId = "image.buddy.avatar." + getLoginID();
-				imageLoader.addImage(avatarImageRefId, avatarImage);
 			}
 			
 			needsImageRebuilt = false;
