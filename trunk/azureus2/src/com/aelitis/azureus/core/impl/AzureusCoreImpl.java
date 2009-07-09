@@ -754,6 +754,19 @@ AzureusCoreImpl
 			));
 		}
 		
+	   /**
+	    * test to see if UI plays nicely with a really slow initialization
+	    */
+	   String sDelayCore = System.getProperty("delay.core", null);
+	   if (sDelayCore != null) {
+	  	 try {
+	  		 long delayCore = Long.parseLong(sDelayCore);
+	  		 Thread.sleep(delayCore);
+	  	 } catch (Exception e) {
+	  		 e.printStackTrace();
+	  	 }
+	   }
+
 
 		// run plugin loading in parallel to the global manager loading
 		AEThread2 pluginload = new AEThread2("PluginLoader",true)
@@ -898,49 +911,6 @@ AzureusCoreImpl
 		}catch( Throwable e ){
 		}
 		
-	    new AEThread2("Plugin Init Complete", false )
-	       {
-	        	public void
-	        	run()
-	        	{
-	        		Iterator	it = lifecycle_listeners.iterator();
-	        		
-	        		while( it.hasNext()){
-	        			
-	        			try{
-	        				AzureusCoreLifecycleListener listener = (AzureusCoreLifecycleListener)it.next();
-	        				
-	        				if ( !listener.requiresPluginInitCompleteBeforeStartedEvent()){
-	        				
-	        					listener.started( AzureusCoreImpl.this );
-	        				}
-	        			}catch( Throwable e ){
-	        				
-	        				Debug.printStackTrace(e);
-	        			}
-	        		}
-	        		
-	        		pi.initialisationComplete();
-	        		
-	        		it = lifecycle_listeners.iterator();
-	        		
-	        		while( it.hasNext()){
-	        			
-	        			try{
-	        				AzureusCoreLifecycleListener listener = (AzureusCoreLifecycleListener)it.next();
-	        				
-	        				if ( listener.requiresPluginInitCompleteBeforeStartedEvent()){
-	        				
-	        					listener.started( AzureusCoreImpl.this );
-	        				}				
-	        			}catch( Throwable e ){
-	        				
-	        				Debug.printStackTrace(e);
-	        			}
-	        		}
-	        	}
-	       }.start();
-       
 	   if ( COConfigurationManager.getBooleanParameter( "Resume Downloads On Start" )){
 	   
 		   global_manager.resumeDownloads();
@@ -1048,31 +1018,18 @@ AzureusCoreImpl
 
 	   delayed_task.queue();
 
-	   /**
-	    * test to see if UI plays nicely with a really slow initialization
-	    */
-	   String sDelayCore = System.getProperty("delay.core", null);
-	   if (sDelayCore != null) {
-	  	 try {
-	  		 long delayCore = Long.parseLong(sDelayCore);
-	  		 Thread.sleep(delayCore);
-	  	 } catch (Exception e) {
-	  		 e.printStackTrace();
-	  	 }
-	   }
-
 			if (stopped) {
 				System.err.println("Core stopped while starting");
 				return;
 			}
 
-	   Object[] listeners;
+	   Object[] runningListeners;
 	   mon_coreRunningListeners.enter();
 	   try {
 	  	 if (coreRunningListeners == null) {
-	  		 listeners = new Object[0];
+	  		 runningListeners = new Object[0];
 	  	 } else {
-	  		 listeners = coreRunningListeners.toArray();
+	  		 runningListeners = coreRunningListeners.toArray();
 	  		 coreRunningListeners = null;
 	  	 }
 	  	 
@@ -1080,15 +1037,60 @@ AzureusCoreImpl
 	   } finally {
 	  	 mon_coreRunningListeners.exit();
 	   }
-			for (Object l : listeners) {
-				try {
-					((AzureusCoreRunningListener)l).azureusCoreRunning(this);
-				} catch (Throwable t) {
-					Debug.out(t);
+
+		// Trigger Listeners now that core is started
+		new AEThread2("Plugin Init Complete", false )
+		{
+			public void
+			run()
+			{
+				Iterator	it = lifecycle_listeners.iterator();
+				
+				while( it.hasNext()){
+					
+					try{
+						AzureusCoreLifecycleListener listener = (AzureusCoreLifecycleListener)it.next();
+						
+						if ( !listener.requiresPluginInitCompleteBeforeStartedEvent()){
+						
+							listener.started( AzureusCoreImpl.this );
+						}
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+				
+				pi.initialisationComplete();
+				
+				it = lifecycle_listeners.iterator();
+				
+				while( it.hasNext()){
+					
+					try{
+						AzureusCoreLifecycleListener listener = (AzureusCoreLifecycleListener)it.next();
+						
+						if ( listener.requiresPluginInitCompleteBeforeStartedEvent()){
+						
+							listener.started( AzureusCoreImpl.this );
+						}				
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
 				}
 			}
+		}.start();
+		
+		for (Object l : runningListeners) {
+			try {
+				((AzureusCoreRunningListener) l).azureusCoreRunning(this);
+			} catch (Throwable t) {
+				Debug.out(t);
+			}
+		}
 	}
-	
+
 	public boolean
 	isStarted()
 	{
