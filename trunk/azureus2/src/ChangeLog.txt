@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+2009.07.xx | Vuze 4.2.0.5
+
+
 2009.07.08 | Vuze 4.2.0.4
 
 FEATURE: Core | Subscription options for auto-starting auto-downloads [Parg]
