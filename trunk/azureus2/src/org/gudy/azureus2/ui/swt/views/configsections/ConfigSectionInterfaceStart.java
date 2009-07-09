@@ -75,6 +75,7 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
     cStart.setLayout(layout);
 
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
+		boolean isAZ3 = COConfigurationManager.getStringParameter("ui").equals("az3");
 
 		if (userMode >= 2) {
 			new BooleanParameter(cStart, "ui.startfirst", "!Start UI before Core Initialization!");
@@ -89,14 +90,16 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
 				new Control[] { openDialog.getControl() }, true ));
     
     new Label(cStart,SWT.NULL);
-    new BooleanParameter(cStart, "Open MyTorrents", "ConfigView.label.openmytorrents");
-    new BooleanParameter(cStart, "Open Console", "ConfigView.label.openconsole");
-    new BooleanParameter(cStart, "Open Stats On Start", "ConfigView.label.openstatsonstart");
-    new BooleanParameter(cStart, "Open Config", "ConfigView.label.openconfig");
+    if (!isAZ3) {
+      new BooleanParameter(cStart, "Open MyTorrents", "ConfigView.label.openmytorrents");
+      new BooleanParameter(cStart, "Open Console", "ConfigView.label.openconsole");
+      new BooleanParameter(cStart, "Open Stats On Start", "ConfigView.label.openstatsonstart");
+      new BooleanParameter(cStart, "Open Config", "ConfigView.label.openconfig");
+    }
     new BooleanParameter(cStart, "Open Transfer Bar On Start", "ConfigView.label.open_transfer_bar_on_start");
     new BooleanParameter(cStart, "Start Minimized", "ConfigView.label.startminimized");
     
-    if (COConfigurationManager.getStringParameter("ui").equals("az3")) {
+    if (isAZ3) {
 			new BooleanParameter(cStart, "v3.Start Advanced",
 					"ConfigView.interface.start.library");
 		}
