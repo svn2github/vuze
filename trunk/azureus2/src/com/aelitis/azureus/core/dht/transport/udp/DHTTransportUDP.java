@@ -43,6 +43,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_2500					= 15;	
 	public static final byte PROTOCOL_VERSION_2502					= 16;	
 	public static final byte PROTOCOL_VERSION_3111					= 17;	
+	public static final byte PROTOCOL_VERSION_4204					= 22;	// min -> 17
 
 	public static final byte PROTOCOL_VERSION_DIV_AND_CONT			= 6;
 	public static final byte PROTOCOL_VERSION_ANTI_SPOOF			= 7;
@@ -83,7 +84,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_MORE_NODE_STATUS;
 	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_MORE_NODE_STATUS;
 
-	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_2502;
+	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_3111;
 	public static final byte PROTOCOL_VERSION_MIN_CVS				= PROTOCOL_VERSION_CVS_FIX_OVERLOAD_V3;
 	
 	
