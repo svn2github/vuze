@@ -37,6 +37,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.ListenerManager;
+import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -91,8 +93,58 @@ DeviceManagerImpl
 	private Map<String,DeviceImpl>		device_map	= new HashMap<String, DeviceImpl>();
 	
 	private DeviceManagerUPnPImpl	upnp_manager;
+		
+		// have to go async on this as there are situations where we end up firing listeners
+		// while holding monitors and this can result in deadlock if sync
 	
-	private CopyOnWriteList<DeviceManagerListener>	listeners	= new CopyOnWriteList<DeviceManagerListener>();
+	private static final int LT_DEVICE_ADDED		= 1;
+	private static final int LT_DEVICE_CHANGED		= 2;
+	private static final int LT_DEVICE_ATTENTION	= 3;
+	private static final int LT_DEVICE_REMOVED		= 4;
+	
+	private ListenerManager<DeviceManagerListener>	listeners = 
+		ListenerManager.createAsyncManager(
+				"DM:ld",
+				new ListenerManagerDispatcher<DeviceManagerListener>()
+				{
+					public void 
+					dispatch(
+						DeviceManagerListener 		listener, 
+						int 						type, 
+						Object 						value ) 
+					{
+						Device	device = (Device)value;
+						
+						switch( type ){
+						
+							case LT_DEVICE_ADDED:{
+								
+								listener.deviceAdded( device );
+								
+								break;
+							}
+							case LT_DEVICE_CHANGED:{
+								
+								listener.deviceChanged( device );
+								
+								break;
+							}
+							case LT_DEVICE_ATTENTION:{
+								
+								listener.deviceAttentionRequest( device );
+								
+								break;
+							}
+							case LT_DEVICE_REMOVED:{
+								
+								listener.deviceRemoved( device );
+								
+								break;
+							}
+						}
+					}
+				});
+	
 	
 	private boolean	auto_search;
 	private boolean	closing;
@@ -608,22 +660,16 @@ DeviceManagerImpl
 		
 		// I'd rather put this in a listener, but for now this will ensure
 		// it gets QOS'd even before any listeners are added
-		try {
+		
+		try{
 			PlatformDevicesMessenger.qosFoundDevice(device);
-		} catch (Exception e) {
+			
+		}catch( Throwable e ){
+			
 			Debug.out(e);
 		}
 		
-		for ( DeviceManagerListener listener: listeners ){
-			
-			try{
-				listener.deviceAdded( device );
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-			}
-		}
+		listeners.dispatch( LT_DEVICE_ADDED, device );
 	}
 	
 	
@@ -641,16 +687,7 @@ DeviceManagerImpl
 			config_unclean = true;
 		}
 		
-		for ( DeviceManagerListener listener: listeners ){
-			
-			try{
-				listener.deviceChanged( device );
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-			}
-		}
+		listeners.dispatch( LT_DEVICE_CHANGED, device );
 	}
 	
 	protected void
@@ -659,32 +696,14 @@ DeviceManagerImpl
 	{
 		configDirty();
 		
-		for ( DeviceManagerListener listener: listeners ){
-			
-			try{
-				listener.deviceRemoved( device );
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-			}
-		}
+		listeners.dispatch( LT_DEVICE_REMOVED, device );
 	}
 	
 	protected void
 	requestAttention(
 		DeviceImpl		device )
 	{
-		for ( DeviceManagerListener listener: listeners ){
-			
-			try{
-				listener.deviceAttentionRequest( device );
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-			}
-		}
+		listeners.dispatch( LT_DEVICE_ATTENTION, device );
 	}
 	
 	protected URL
@@ -757,14 +776,14 @@ DeviceManagerImpl
   	addListener(
   		DeviceManagerListener		listener )
   	{
-  		listeners.add( listener );
+  		listeners.addListener( listener );
   	}
   	
   	public void
   	removeListener(
   		DeviceManagerListener		listener )
   	{
-  		listeners.remove( listener );
+  		listeners.removeListener( listener );
   	}
   	
 	protected synchronized AEDiagnosticsLogger
