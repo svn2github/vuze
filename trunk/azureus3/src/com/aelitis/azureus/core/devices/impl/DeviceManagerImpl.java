@@ -295,6 +295,7 @@ DeviceManagerImpl
 					classification.equals( "sony.PS3" ) ||
 					classification.equals( "microsoft.XBox" ) ||
 					classification.equals( "apple." ) ||
+					classification.equals( "nintendo.Wii" ) ||
 					classification.equals( "browser.generic" );
 				
 				DeviceMediaRendererTemplateImpl temp = class_map.get( classification );
