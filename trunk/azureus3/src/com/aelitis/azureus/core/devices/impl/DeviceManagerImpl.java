@@ -51,7 +51,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
-import com.aelitis.azureus.core.util.*;
 
 public class 
 DeviceManagerImpl 
@@ -287,11 +286,22 @@ DeviceManagerImpl
 				
 				String	classification = profile.getDeviceClassification();
 				
+				if ( classification.startsWith( "apple." )){
+					
+					classification = "apple.";
+				}
+				
+				boolean	auto = 
+					classification.equals( "sony.PS3" ) ||
+					classification.equals( "microsoft.XBox" ) ||
+					classification.equals( "apple." ) ||
+					classification.equals( "browser.generic" );
+				
 				DeviceMediaRendererTemplateImpl temp = class_map.get( classification );
 				
 				if ( temp == null ){
 					
-					temp = new DeviceMediaRendererTemplateImpl( this, classification );
+					temp = new DeviceMediaRendererTemplateImpl( this, classification, auto );
 					
 					class_map.put( classification, temp );
 					
@@ -299,8 +309,6 @@ DeviceManagerImpl
 				}
 				
 				temp.addProfile( profile );
-				
-				System.out.println( profile.getDeviceClassification());
 			}
 		}
 		

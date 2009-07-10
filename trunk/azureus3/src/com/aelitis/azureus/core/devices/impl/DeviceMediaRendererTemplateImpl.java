@@ -36,14 +36,17 @@ DeviceMediaRendererTemplateImpl
 	
 	private final DeviceManagerImpl		manager;
 	private final String				classification;
+	private final boolean				auto;
 	
 	protected
 	DeviceMediaRendererTemplateImpl(
 		DeviceManagerImpl	_manager,
-		String				_classification )
+		String				_classification,
+		boolean				_auto )
 	{
 		manager			= _manager;
 		classification 	= _classification;
+		auto			= _auto;
 	}
 	
 	protected void
@@ -80,12 +83,23 @@ DeviceMediaRendererTemplateImpl
 		}
 	}
 	
+	public boolean
+	isAuto()
+	{
+		return( auto );
+	}
+	
 	public Device
 	createInstance(
 		String		name )
 	
 		throws DeviceManagerException
 	{
+		if ( auto ){
+			
+			throw( new DeviceManagerException( "Device can't be added manually" ));
+		}
+		
 		Device res = manager.createDevice( Device.DT_MEDIA_RENDERER, classification, name );
 		
 		return( res );

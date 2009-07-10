@@ -30,6 +30,16 @@ DeviceTemplate
 	public String
 	getName();
 	
+	public boolean
+	isAuto();
+	
+		/**
+		 * auto devices can't be manually created
+		 * @param name
+		 * @return
+		 * @throws DeviceManagerException
+		 */
+	
 	public Device
 	createInstance(
 		String		name )
