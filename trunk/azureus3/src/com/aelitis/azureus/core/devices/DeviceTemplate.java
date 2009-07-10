@@ -1,5 +1,5 @@
 /*
- * Created on Jan 27, 2009
+ * Created on Jul 10, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -21,58 +21,18 @@
 
 package com.aelitis.azureus.core.devices;
 
-import java.io.File;
-import java.net.InetAddress;
-
 public interface 
-DeviceManager 
+DeviceTemplate 
 {
-	public DeviceTemplate[]
-	getDeviceTemplates();
+	public int
+	getType();
 	
-	public Device[]
-	getDevices();
+	public String
+	getName();
 	
-	public void
-	search(
-		int						max_millis,
-		DeviceSearchListener	listener );
+	public Device
+	createInstance(
+		String		name )
 	
-	public boolean
-	getAutoSearch();
-	
-	public void
-	setAutoSearch(
-		boolean	auto );
-	
-	public UnassociatedDevice[]
-	getUnassociatedDevices();
-	
-	public TranscodeManager
-	getTranscodeManager();
-	
-	public File
-	getDefaultWorkingDirectory();
-	
-	public void
-	setDefaultWorkingDirectory(
-		File		dir );
-	
-	public void
-	addListener(
-		DeviceManagerListener		listener );
-	
-	public void
-	removeListener(
-			DeviceManagerListener		listener );
-	
-	public interface 
-	UnassociatedDevice
-	{
-		public InetAddress
-		getAddress();
-		
-		public String
-		getDescription();
-	}
+		throws DeviceManagerException;
 }

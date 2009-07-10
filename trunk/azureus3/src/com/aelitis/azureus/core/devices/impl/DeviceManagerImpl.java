@@ -265,6 +265,12 @@ DeviceManagerImpl
 		return( upnp_manager );
 	}
 	
+	public DeviceTemplate[] 
+	getDeviceTemplates() 
+	{
+		return( new DeviceTemplate[0] );
+	}
+	
 	public Device
 	createDevice(
 		int						device_type,

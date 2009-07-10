@@ -14,6 +14,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceTemplate;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -262,9 +263,15 @@ DevicesWizard
 			public void handleEvent(Event arg0) {
 				
 				try{
-					Device device = device_manager_ui.getDeviceManager().createDevice( Device.DT_MEDIA_RENDERER, "test" );
+					DeviceTemplate[] templates = device_manager_ui.getDeviceManager().getDeviceTemplates();
 					
-					device.requestAttention();
+					
+					if ( templates.length > 0 ){
+					
+						Device device = templates[0].createInstance( "test" );
+					
+						device.requestAttention();
+					}
 					
 				}catch( Throwable e ){
 					
