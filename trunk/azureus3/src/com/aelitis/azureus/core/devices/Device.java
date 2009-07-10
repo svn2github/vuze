@@ -40,6 +40,9 @@ Device
 	
 	public String
 	getName();
+	
+	public String
+	getClassification();
 		
 	public String
 	getShortDescription();

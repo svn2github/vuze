@@ -47,19 +47,29 @@ DeviceMediaRendererImpl
 	protected
 	DeviceMediaRendererImpl(
 		DeviceManagerImpl	_manager,
+		String				_classification )
+	{
+		super( _manager, Device.DT_MEDIA_RENDERER, _classification );
+	}
+	
+	protected
+	DeviceMediaRendererImpl(
+		DeviceManagerImpl	_manager,
+		String				_classification,
+		boolean				_manual,
 		String				_name )
 	{
-		super( _manager, Device.DT_MEDIA_RENDERER, _name );
+		super( _manager, Device.DT_MEDIA_RENDERER, _classification, _manual, _name );
 	}
 	
 	protected
 	DeviceMediaRendererImpl(
 		DeviceManagerImpl	_manager,
 		String				_uuid,
-		String				_name,
+		String				_classification,
 		boolean				_manual )
 	{
-		super( _manager, Device.DT_MEDIA_RENDERER, _uuid, _name, _manual );
+		super( _manager, Device.DT_MEDIA_RENDERER, _uuid, _classification, _manual );
 	}
 	
 	protected

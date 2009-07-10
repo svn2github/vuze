@@ -111,7 +111,8 @@ DeviceImpl
 	private int					type;
 	private String				uid;
 	private String				secondary_uid;
-	private String 				name;
+	private String 				classification;
+	private String				name;
 	private boolean				manual;
 	
 	private boolean			hidden;
@@ -141,14 +142,27 @@ DeviceImpl
 		DeviceManagerImpl	_manager,
 		int					_type,
 		String				_uid,
-		String				_name,
+		String				_classification,
 		boolean				_manual )
 	{
-		manager		= _manager;
-		type		= _type;
-		uid			= _uid;
-		name		= _name;
-		manual		= _manual;
+		this( _manager, _type, _uid, _classification, _manual, _classification );
+	}
+	
+	protected
+	DeviceImpl(
+		DeviceManagerImpl	_manager,
+		int					_type,
+		String				_uid,
+		String				_classification,
+		boolean				_manual,
+		String				_name )
+	{
+		manager			= _manager;
+		type			= _type;
+		uid				= _uid;
+		classification	= _classification;
+		name			= _name;
+		manual			= _manual;
 	}
 	
 	protected
@@ -160,9 +174,15 @@ DeviceImpl
 	{
 		manager	= _manager;
 		
-		type	= (int)ImportExportUtils.importLong( map, "_type" );
-		uid		= ImportExportUtils.importString( map, "_uid" );
-		name	= ImportExportUtils.importString( map, "_name" );
+		type			= (int)ImportExportUtils.importLong( map, "_type" );
+		uid				= ImportExportUtils.importString( map, "_uid" );
+		classification	= ImportExportUtils.importString( map, "_name" );
+		name			= ImportExportUtils.importString( map, "_lname" );
+		
+		if ( name == null ){
+			
+			name = classification;
+		}
 		
 		secondary_uid		= ImportExportUtils.importString( map, "_suid" );
 
@@ -192,7 +212,8 @@ DeviceImpl
 		ImportExportUtils.exportString( map, "_impl", cla );
 		ImportExportUtils.exportLong( map, "_type", new Long( type ));
 		ImportExportUtils.exportString( map, "_uid", uid );
-		ImportExportUtils.exportString( map, "_name", name );
+		ImportExportUtils.exportString( map, "_name", classification );
+		ImportExportUtils.exportString( map, "_lname", name );
 		
 		if ( secondary_uid != null ){
 			
@@ -244,6 +265,13 @@ DeviceImpl
 				return( false );
 
 			}
+		}
+		
+		if ( !classification.equals( other.classification )){
+			
+			classification	= other.classification;
+			
+			setDirty();
 		}
 		
 		if ( !name.equals( other.name )){
@@ -314,6 +342,12 @@ DeviceImpl
 	}
 	
 	public String
+	getClassification()
+	{
+		return( classification );
+	}
+	
+	public String
 	getShortDescription()
 	{
 		if ( getRendererSpecies() == DeviceMediaRenderer.RS_ITUNES ){
@@ -329,19 +363,19 @@ DeviceImpl
 	{
 			// note, overridden in itunes
 		
-		if ( name.equalsIgnoreCase( "PS3" )){
+		if ( classification.equalsIgnoreCase( "PS3" )){
 			
 			return( DeviceMediaRenderer.RS_PS3 );
 			
-		}else if ( name.equalsIgnoreCase( "XBox 360" )){
+		}else if ( classification.equalsIgnoreCase( "XBox 360" )){
 			
 			return( DeviceMediaRenderer.RS_XBOX );
 		
-		}else if ( name.equalsIgnoreCase( "Wii" )){
+		}else if ( classification.equalsIgnoreCase( "Wii" )){
 
 			return( DeviceMediaRenderer.RS_WII );
 			
-		}else if ( name.equalsIgnoreCase( "Browser" )){
+		}else if ( classification.equalsIgnoreCase( "Browser" )){
 
 			return( DeviceMediaRenderer.RS_BROWSER );
 			
@@ -375,6 +409,11 @@ DeviceImpl
 				return( "browser.generic" );
 			}
 			case DeviceMediaRenderer.RS_OTHER:{
+				
+				if ( isManual()){
+					
+					return( classification );
+				}
 				
 				return( GENERIC );
 			}
@@ -948,7 +987,12 @@ DeviceImpl
 	getDisplayProperties(
 		List<String[]>	dp )
 	{
-		addDP( dp, "TableColumn.header.name", name );
+		if ( !name.equals( classification )){
+			
+			addDP( dp, "TableColumn.header.name", name );
+		}
+		
+		addDP( dp, "TableColumn.header.class", classification.toLowerCase() );
 		
 		if ( !manual ){
 		
@@ -1725,7 +1769,7 @@ DeviceImpl
 	public String
 	getString()
 	{
-		return( "type=" + type + ",uid=" + uid + ",name=" + name );
+		return( "type=" + type + ",uid=" + uid + ",class=" + classification );
 	}
 	
 	public void

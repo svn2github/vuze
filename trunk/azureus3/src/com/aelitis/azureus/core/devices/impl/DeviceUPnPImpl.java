@@ -132,10 +132,26 @@ DeviceUPnPImpl
 	DeviceUPnPImpl(
 		DeviceManagerImpl	_manager,
 		int					_type,
+		String				_classification )
+
+	{
+		super( _manager, _type, UUIDGenerator.generateUUIDString(), _classification, true );
+		
+		upnp_manager		= _manager.getUPnPManager();
+		
+		MY_ACF_KEY = getACFKey();
+	}
+	
+	protected
+	DeviceUPnPImpl(
+		DeviceManagerImpl	_manager,
+		int					_type,
+		String				_classification,
+		boolean				_manual,
 		String				_name )
 
 	{
-		super( _manager, _type, UUIDGenerator.generateUUIDString(), _name, true );
+		super( _manager, _type, UUIDGenerator.generateUUIDString(), _classification, _manual, _name );
 		
 		upnp_manager		= _manager.getUPnPManager();
 		
@@ -147,11 +163,11 @@ DeviceUPnPImpl
 		DeviceManagerImpl	_manager,
 		int					_type,
 		String				_uuid,
-		String				_name,
+		String				_classification,
 		boolean				_manual )
 
 	{
-		super( _manager, _type, _uuid, _name, _manual );
+		super( _manager, _type, _uuid, _classification, _manual );
 		
 		upnp_manager		= _manager.getUPnPManager();
 		

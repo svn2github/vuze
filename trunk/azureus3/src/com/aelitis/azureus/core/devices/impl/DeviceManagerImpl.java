@@ -268,19 +268,56 @@ DeviceManagerImpl
 	public DeviceTemplate[] 
 	getDeviceTemplates() 
 	{
-		return( new DeviceTemplate[0] );
+		if ( transcode_manager == null ){
+			
+			return( new DeviceTemplate[0] );
+		}
+		
+		TranscodeProvider[] providers = transcode_manager.getProviders();
+		
+		List<DeviceTemplate> result = new ArrayList<DeviceTemplate>();
+		
+		for ( TranscodeProvider provider: providers ){
+			
+			TranscodeProfile[] profiles = provider.getProfiles();
+			
+			Map<String,DeviceMediaRendererTemplateImpl>	class_map = new HashMap<String, DeviceMediaRendererTemplateImpl>();
+			
+			for ( TranscodeProfile profile: profiles ){
+				
+				String	classification = profile.getDeviceClassification();
+				
+				DeviceMediaRendererTemplateImpl temp = class_map.get( classification );
+				
+				if ( temp == null ){
+					
+					temp = new DeviceMediaRendererTemplateImpl( this, classification );
+					
+					class_map.put( classification, temp );
+					
+					result.add( temp );
+				}
+				
+				temp.addProfile( profile );
+				
+				System.out.println( profile.getDeviceClassification());
+			}
+		}
+		
+		return( result.toArray( new DeviceTemplate[ result.size() ]));
 	}
 	
-	public Device
+	protected Device
 	createDevice(
 		int						device_type,
+		String					classification,
 		String					name )
 	
 		throws DeviceManagerException
 	{
 		if ( device_type == Device.DT_MEDIA_RENDERER ){
 			
-			DeviceImpl res = new DeviceMediaRendererImpl( this, name );
+			DeviceImpl res = new DeviceMediaRendererImpl( this, classification, true, name );
 			
 			addDevice( res );
 			
