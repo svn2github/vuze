@@ -174,6 +174,7 @@ BuddyPlugin
 	private StringParameter 		nick_name_param;
 	private StringListParameter 	online_status_param;
 	private BooleanParameter 		enable_chat_notifications; 
+	private StringParameter 		cat_pub;
 
 	private boolean			ready_to_publish;
 	private publishDetails	current_publish		= new publishDetails();
@@ -382,11 +383,11 @@ BuddyPlugin
 		
 			// default published cats
 		
-		final StringParameter cat_pub = config.addStringParameter2( "azbuddy.enable_cat_pub", "azbuddy.enable_cat_pub", "" );
+		cat_pub = config.addStringParameter2( "azbuddy.enable_cat_pub", "azbuddy.enable_cat_pub", "" );
 		
 		cat_pub.setGenerateIntermediateEvents( false );
 		
-		setPublicCats( cat_pub.getValue());
+		setPublicCats( cat_pub.getValue(), false );
 		
 		cat_pub.addListener(
 			new ParameterListener()
@@ -395,7 +396,7 @@ BuddyPlugin
 				parameterChanged(
 					Parameter 	param ) 
 				{
-					setPublicCats( cat_pub.getValue());
+					setPublicCats( cat_pub.getValue(), false);
 				}
 			});
 		
@@ -951,13 +952,41 @@ BuddyPlugin
 	{
 		cat = normaliseCat( cat );
 		
-		return( !public_categories.contains( cat ));
+		return( public_categories.contains( cat ));
 	}
 	
+	public void
+	addPublicCategory(
+		String	cat )
+	{
+		cat = normaliseCat( cat );
+		
+		Set<String> new_cats = new HashSet( public_categories );
+		
+		if ( new_cats.add( cat )){
+		
+			setPublicCats( new_cats, true );
+		}
+	}
+	
+	public void
+	removePublicCategory(
+		String	cat )
+	{
+		cat = normaliseCat( cat );
+		
+		Set<String> new_cats = new HashSet( public_categories );
+		
+		if ( new_cats.remove( cat )){
+		
+			setPublicCats( new_cats, true );
+		}
+	}
 	
 	protected void
 	setPublicCats(
-		String	str )
+		String	str,
+		boolean	persist )
 	{
 		Set<String>	new_pub_cats = new HashSet<String>();
 		
@@ -973,6 +1002,14 @@ BuddyPlugin
 			}
 		}
 		
+		setPublicCats( new_pub_cats, persist );
+	}
+	
+	protected void
+	setPublicCats(
+		Set<String>	new_pub_cats,
+		boolean		persist )
+	{
 		if ( !public_categories.equals( new_pub_cats )){
 			
 			Set<String> removed = new HashSet<String>( public_categories );
@@ -980,6 +1017,18 @@ BuddyPlugin
 			removed.removeAll( new_pub_cats );
 			
 			public_categories = new_pub_cats;
+			
+			if ( persist ){
+				
+				String cat_str = "";
+				
+				for ( String s: public_categories ){
+					
+					cat_str += (cat_str.length()==0?"":",") + s;
+				}
+				
+				cat_pub.setValue( cat_str );
+			}
 			
 			List<BuddyPluginBuddy> buds = getBuddies();
 			

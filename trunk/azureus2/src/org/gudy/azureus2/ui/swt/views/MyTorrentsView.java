@@ -886,7 +886,7 @@ public class MyTorrentsView
 					
 					if ( bpi != null && cat_type != Category.TYPE_UNCATEGORIZED ){
 						
-						BuddyPlugin	buddy_plugin = (BuddyPlugin)bpi.getPlugin();
+						final BuddyPlugin	buddy_plugin = (BuddyPlugin)bpi.getPlugin();
 						
 						if ( buddy_plugin.isEnabled()){
 							
@@ -895,16 +895,17 @@ public class MyTorrentsView
 							Messages.setLanguageText(share_item, "azbuddy.ui.menu.cat.share" );
 							share_item.setMenu(share_menu);
 
-						
 							List<BuddyPluginBuddy> buddies = buddy_plugin.getBuddies();
-							
-							for ( final BuddyPluginBuddy buddy: buddies ){
+
+							if ( buddies.size() == 0 ){
 								
-								if ( buddy.getNickName() == null ){
-									
-									continue;
-								}
+								final MenuItem item = new MenuItem(share_menu, SWT.CHECK );
 								
+								item.setText( MessageText.getString( "general.add.friends" ));
+								
+								item.setEnabled( false );
+
+							}else{
 								final String cname;
 								
 								if ( cat_type == Category.TYPE_ALL ){
@@ -915,16 +916,16 @@ public class MyTorrentsView
 									
 									cname = category.getName();
 								}
+	
+								final boolean is_public = buddy_plugin.isPublicCategory( cname );
+							
+								final MenuItem itemPubCat = new MenuItem(share_menu, SWT.CHECK );
 								
-								final boolean auth = buddy.isLocalRSSCategoryAuthorised( cname );
+								Messages.setLanguageText( itemPubCat, "general.all.friends" );
 								
-								final MenuItem itemShare = new MenuItem(share_menu, SWT.CHECK );
+								itemPubCat.setSelection( is_public );
 								
-								itemShare.setText( buddy.getName());
-								
-								itemShare.setSelection( auth );
-								
-								itemShare.addListener(
+								itemPubCat.addListener(
 									SWT.Selection, 
 									new Listener() 
 									{
@@ -932,17 +933,59 @@ public class MyTorrentsView
 										handleEvent(
 											Event event) 
 										{
-											if ( auth ){
+											if ( is_public ){
 											
-												buddy.removeLocalAuthorisedRSSCategory( cname );
+												buddy_plugin.removePublicCategory( cname );
 												
 											}else{
 												
-												buddy.addLocalAuthorisedRSSCategory( cname );
+												buddy_plugin.addPublicCategory( cname );
 											}
 										}
 									});
 								
+								new MenuItem(share_menu, SWT.SEPARATOR );
+															
+								for ( final BuddyPluginBuddy buddy: buddies ){
+									
+									if ( buddy.getNickName() == null ){
+										
+										continue;
+									}
+																	
+									final boolean auth = buddy.isLocalRSSCategoryAuthorised( cname );
+									
+									final MenuItem itemShare = new MenuItem(share_menu, SWT.CHECK );
+									
+									itemShare.setText( buddy.getName());
+									
+									itemShare.setSelection( auth || is_public );
+									
+									if ( is_public ){
+										
+										itemShare.setEnabled( false );
+									}
+									
+									itemShare.addListener(
+										SWT.Selection, 
+										new Listener() 
+										{
+											public void 
+											handleEvent(
+												Event event) 
+											{
+												if ( auth ){
+												
+													buddy.removeLocalAuthorisedRSSCategory( cname );
+													
+												}else{
+													
+													buddy.addLocalAuthorisedRSSCategory( cname );
+												}
+											}
+										});
+									
+								}
 							}
 						}
 					}
