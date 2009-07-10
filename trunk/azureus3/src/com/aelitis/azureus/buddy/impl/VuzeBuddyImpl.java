@@ -38,7 +38,6 @@ import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessage;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.utils.ImageBytesDownloader;
 import com.aelitis.azureus.util.*;
 
@@ -585,6 +584,26 @@ public class VuzeBuddyImpl
 		}
 		
 		return( result );
+	}
+	
+	public boolean
+	canSubscribeToCategory()
+	{
+		Iterator<BuddyPluginBuddy> it = pluginBuddies.iterator();
+
+		while (it.hasNext()){
+
+			BuddyPluginBuddy pluginBuddy = it.next();
+
+			Set<String> x = pluginBuddy.getRemoteAuthorisedRSSCategories();
+				
+			if ( x != null && x.size() > 0 ){
+	
+				return( true );
+			}
+		}
+		
+		return( false );
 	}
 	
 	public boolean

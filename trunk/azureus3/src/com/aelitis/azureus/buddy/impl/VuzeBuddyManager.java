@@ -901,7 +901,7 @@ public class VuzeBuddyManager
 			return( false );
 		}
 		
-		return( buddyPlugin.isPublicCategory( category ));
+		return( !buddyPlugin.isPublicCategory( category ));
 	}
 	
 	/**

@@ -94,6 +94,9 @@ public interface VuzeBuddy
 	getSubscribableCategories();
 	
 	public boolean
+	canSubscribeToCategory();
+	
+	public boolean
 	isSubscribedToCategory(
 		String		category );
 	

@@ -79,6 +79,8 @@ public class AvatarWidget
 	private Rectangle nameAreaBounds = null;
 
 	private Rectangle chatAreaBounds = null;
+	
+	private Rectangle subsAreaBounds = null;
 
 	private VuzeBuddySWT vuzeBuddy = null;
 
@@ -677,6 +679,35 @@ public class AvatarWidget
 					chatAreaBounds = null;
 				}
 
+				boolean showShareIcon = !viewer.isEditMode();
+
+				if ( showShareIcon && chatAreaBounds == null && vuzeBuddy.canSubscribeToCategory()){
+					subsAreaBounds = new Rectangle(0, 0, 18, 8);
+					Set<String> possible = vuzeBuddy.getSubscribableCategories();
+					int hits = 0;
+					for ( String x: possible ){
+						if ( vuzeBuddy.isSubscribedToCategory( x )){
+							hits++;
+						}
+					}
+					String key;
+					
+					if ( hits == 0 ){
+						
+						key = "rss_buddy_orange";
+					}else if ( hits < possible.size()){
+						key = "rss_buddy_gray";
+					}else{
+						key = "rss_buddy_green";
+					}
+					Image img = imageLoader.getImage( key );
+					subsAreaBounds.x = bounds.width - img.getBounds().width - 10;
+					subsAreaBounds.y = 4;
+					e.gc.drawImage(img, subsAreaBounds.x, subsAreaBounds.y);
+					imageLoader.releaseImage( key );
+				}else{
+					subsAreaBounds = null;
+				}
 			}
 		});
 
@@ -804,20 +835,24 @@ public class AvatarWidget
 				 * can be annoying
 				 */
 				String tooltipText = "";
-
+				
 				if (true == viewer.isShareMode()) {
 					if (false == isSharedAlready()) {
 						tooltipText = tooltip_add_to_share;
 					} else {
 						tooltipText = tooltip;
 					}
+				} else if ( subsAreaBounds != null && subsAreaBounds.contains(e.x, e.y )){
+					
+					tooltipText = MessageText.getString( "friend.mod.subs" );
+
 				} else if (decorator_remove_friend.contains(e.x, e.y)) {
 					if (true == viewer.isEditMode()) {
 						tooltipText = tooltip_remove_friend;
 					} else {
 						tooltipText = tooltip;
-					}
-				} else {
+					}					
+				}else{
 					tooltipText = tooltip;
 				}
 
