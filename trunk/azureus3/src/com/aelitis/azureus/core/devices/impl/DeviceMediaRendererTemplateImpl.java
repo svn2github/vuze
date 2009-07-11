@@ -83,6 +83,12 @@ DeviceMediaRendererTemplateImpl
 		}
 	}
 	
+	public String
+	getClassification()
+	{
+		return( classification );
+	}
+	
 	public boolean
 	isAuto()
 	{

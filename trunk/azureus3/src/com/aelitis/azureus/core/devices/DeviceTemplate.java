@@ -30,6 +30,9 @@ DeviceTemplate
 	public String
 	getName();
 	
+	public String
+	getClassification();
+	
 	public boolean
 	isAuto();
 	
