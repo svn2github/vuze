@@ -326,7 +326,7 @@ DeviceManagerImpl
 	{
 		if ( device_type == Device.DT_MEDIA_RENDERER ){
 			
-			DeviceImpl res = new DeviceMediaRendererImpl( this, classification, true, name );
+			DeviceImpl res = new DeviceMediaRendererManual( this, classification, true, name );
 			
 			addDevice( res );
 			
