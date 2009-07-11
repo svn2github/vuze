@@ -265,12 +265,16 @@ DevicesWizard
 				try{
 					DeviceTemplate[] templates = device_manager_ui.getDeviceManager().getDeviceTemplates();
 					
+					for ( DeviceTemplate template: templates ){
+						
+						if ( !template.isAuto()){
 					
-					if ( templates.length > 0 ){
+							Device device = template.createInstance( template.getName() + " test!" );
 					
-						Device device = templates[0].createInstance( "test" );
-					
-						device.requestAttention();
+							device.requestAttention();
+							
+							break;
+						}
 					}
 					
 				}catch( Throwable e ){
