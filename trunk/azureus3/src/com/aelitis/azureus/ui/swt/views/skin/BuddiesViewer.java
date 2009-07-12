@@ -19,6 +19,7 @@ import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
@@ -27,6 +28,7 @@ import com.aelitis.azureus.buddy.chat.ChatDiscussion;
 import com.aelitis.azureus.buddy.chat.ChatListener;
 import com.aelitis.azureus.buddy.chat.ChatMessage;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
@@ -126,9 +128,7 @@ public class BuddiesViewer
 			public void runSupport() {
 				runnableSetPanelSizeQueued = false;
 				avatarsPanel.layout();
-				Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT,
-						true);
-				avatarsPanel.setSize(size);
+				fixupScrollableHeight();
 			}
 		};
 
@@ -254,10 +254,8 @@ public class BuddiesViewer
 			scrollable.setContent(avatarsPanel);
 
 			scrollable.addListener(SWT.Resize, new Listener() {
-
 				public void handleEvent(Event event) {
-					Rectangle r = scrollable.getClientArea();
-					scrollable.setMinHeight(avatarsPanel.computeSize(r.width, SWT.DEFAULT).y);
+					fixupScrollableHeight();
 				}
 			});
 
@@ -289,9 +287,13 @@ public class BuddiesViewer
 			// fill buddies after the ui dust has settled.  Since fillBuddies
 			// adds a buddy listener, delaying this allows for the buddy list
 			// to the complete
-			Utils.execSWTThreadLater(100, new AERunnable() {
-				public void runSupport() {
-					fillBuddies(avatarsPanel);
+			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+				public void azureusCoreRunning(AzureusCore core) {
+					Utils.execSWTThreadLater(100, new AERunnable() {
+						public void runSupport() {
+							fillBuddies(avatarsPanel);
+						}
+					});
 				}
 			});
 
@@ -333,6 +335,14 @@ public class BuddiesViewer
 
 	}
 
+	/**
+	 * 
+	 */
+	protected void fixupScrollableHeight() {
+		Rectangle r = scrollable.getClientArea();
+		scrollable.setMinHeight(avatarsPanel.computeSize(r.width, SWT.DEFAULT).y);
+	}
+
 	public boolean isEditMode() {
 		return isEditMode;
 	}
@@ -363,9 +373,7 @@ public class BuddiesViewer
 			createBuddyControls(composite, vuzeBuddy);
 		}
 		composite.layout();
-		Point size = composite.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
-		composite.setSize(size);
-
+		fixupScrollableHeight();
 	}
 
 	private void showNoBuddiesPanel(boolean value) {
