@@ -2193,7 +2193,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				if (bForceSort && sortColumn != null) {
 					sortColumn.setLastSortValueChange(SystemTime.getCurrentTime());
 				}
-				sortColumn(true);
+				_sortColumn(true, false, false);
 			}
 
 			long lTimeStart = SystemTime.getMonotonousTime();
@@ -3970,11 +3970,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	private void fillRowGaps(boolean bForceDataRefresh) {
-		_sortColumn(bForceDataRefresh, true, true);
+		_sortColumn(bForceDataRefresh, true, false);
 	}
 
 	private void sortColumn(boolean bForceDataRefresh) {
-		_sortColumn(bForceDataRefresh, false, true);
+		_sortColumn(bForceDataRefresh, false, false);
 	}
 
 	private void _sortColumn(boolean bForceDataRefresh, boolean bFillGapsOnly,
@@ -4118,22 +4118,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					}
 				}
 
-				if (numSame < selectedRows.length || iNumMoves > 0) {
-					// XXX setSelection calls showSelection().  We don't want the table
-					//     to jump all over.  Quick fix is to reset topIndex, but
-					//     there might be a better way
-					iTopIndex = 0;
-					if (!bFollowSelected) {
-						table.setRedraw(false);
-						iTopIndex = table.getTopIndex();
+				if (numSame < selectedRows.length) {
+					if (bFollowSelected) {
+						table.setSelection(newSelectedRowIndices);
+					} else {
+						table.deselectAll();
+						table.select(newSelectedRowIndices);
 					}
-					table.setSelection(newSelectedRowIndices);
 					setSelectedRowIndexes(table.getSelectionIndices());
-
-					if (!bFollowSelected) {
-						table.setTopIndex(iTopIndex);
-						table.setRedraw(true);
-					}
 				}
 			}
 
