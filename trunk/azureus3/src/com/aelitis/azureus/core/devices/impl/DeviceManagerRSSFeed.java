@@ -37,18 +37,11 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.util.Base32;
+
 import org.gudy.azureus2.core3.util.TimeFormatter;
-import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
-import org.gudy.azureus2.plugins.PluginConfig;
+
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
-import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebContext;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageGenerator;
@@ -71,20 +64,32 @@ DeviceManagerRSSFeed
 	DeviceManagerRSSFeed(
 		DeviceManagerImpl	_manager,
 		AzureusCore			_core,
-		int					_port )
+		int					_port,
+		boolean				_local_only )
 	{
 		manager = _manager;
 		
 		plugin_interface = _core.getPluginManager().getDefaultPluginInterface();
 		
 		try{
-			context = 
-				plugin_interface.getTracker().createWebContext(
-					"DeviceFeed", 
-					_port, 
-					Tracker.PR_HTTP, 
-					InetAddress.getByName( "127.0.0.1" ));
+			if ( _local_only ){
 				
+				context = 
+					plugin_interface.getTracker().createWebContext(
+						"DeviceFeed", 
+						_port, 
+						Tracker.PR_HTTP, 
+						InetAddress.getByName( "127.0.0.1" ));
+				
+			}else{
+				
+				context = 
+					plugin_interface.getTracker().createWebContext(
+						"DeviceFeed", 
+						_port, 
+						Tracker.PR_HTTP );
+			}
+			
 			context.addPageGenerator( this );
 			
 			manager.log( "RSS feed initialised on port " + _port );

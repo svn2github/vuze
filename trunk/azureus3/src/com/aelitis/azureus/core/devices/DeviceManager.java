@@ -52,6 +52,13 @@ DeviceManager
 	setRSSPublishEnabled(
 		boolean		enabled );
 
+	public boolean
+	isRSSLocalOnly();
+	
+	public void
+	setRSSLocalOnly(
+		boolean	local_only );
+	
 	public int
 	getRSSPort();
 	

@@ -62,6 +62,7 @@ DeviceManagerImpl
 	private static final String	AUTO_SEARCH_CONFIG_KEY		= "devices.config.auto_search";
 	private static final String	RSS_ENABLE_CONFIG_KEY		= "devices.config.rss_enable";
 	private static final String	RSS_PORT_CONFIG_KEY			= "devices.config.rss_port";
+	private static final String	RSS_LOCAL_ONLY_CONFIG_KEY	= "devices.config.rss_local_only";
 	private static final int	RSS_PORT_CONFIG__DEFAULT	= 6905;
 	
 	private static final String CONFIG_DEFAULT_WORK_DIR	= "devices.config.def_work_dir";
@@ -151,6 +152,7 @@ DeviceManagerImpl
 	
 	private boolean	auto_search;
 	private boolean	rss_enable		= false;
+	private boolean	rss_local_only	= true;
 	private int		rss_port		= 0;
 	
 	private DeviceManagerRSSFeed	rss_publisher;
@@ -201,6 +203,7 @@ DeviceManagerImpl
 			new String[]{
 				AUTO_SEARCH_CONFIG_KEY,
 				RSS_ENABLE_CONFIG_KEY,
+				RSS_LOCAL_ONLY_CONFIG_KEY,
 				RSS_PORT_CONFIG_KEY
 			},
 			new ParameterListener()
@@ -213,11 +216,13 @@ DeviceManagerImpl
 					
 					boolean	new_rss_enable 	= COConfigurationManager.getBooleanParameter( RSS_ENABLE_CONFIG_KEY, false );
 					int		new_rss_port 	= COConfigurationManager.getIntParameter( RSS_PORT_CONFIG_KEY, RSS_PORT_CONFIG__DEFAULT );
+					boolean	new_rss_local 	= COConfigurationManager.getBooleanParameter( RSS_LOCAL_ONLY_CONFIG_KEY, true );
 					
-					if ( new_rss_enable != rss_enable || new_rss_port != rss_port ){
+					if ( new_rss_enable != rss_enable || new_rss_port != rss_port || rss_local_only != new_rss_local ){
 						
-						rss_port	= new_rss_port;
-						rss_enable	= new_rss_enable;
+						rss_port		= new_rss_port;
+						rss_enable		= new_rss_enable;
+						rss_local_only	= new_rss_local;
 						
 						manageRSS( core );
 					}
@@ -300,7 +305,8 @@ DeviceManagerImpl
 				{
 					final boolean	f_enable 	= rss_enable;
 					final int		f_port		= rss_port;
-		
+					final boolean	f_local		= rss_local_only;
+					
 					public void
 					runSupport()
 					{
@@ -313,7 +319,7 @@ DeviceManagerImpl
 							
 							if ( f_enable ){
 							
-								rss_publisher = new DeviceManagerRSSFeed( DeviceManagerImpl.this, core, f_port );
+								rss_publisher = new DeviceManagerRSSFeed( DeviceManagerImpl.this, core, f_port, f_local );
 							}
 						}				
 					}
@@ -622,6 +628,19 @@ DeviceManagerImpl
 		COConfigurationManager.setParameter( RSS_ENABLE_CONFIG_KEY, enabled );
 	}
 
+	public boolean
+	isRSSLocalOnly()
+	{
+		return( rss_local_only );
+	}
+	
+	public void
+	setRSSLocalOnly(
+		boolean		local_only )
+	{
+		COConfigurationManager.setParameter( RSS_LOCAL_ONLY_CONFIG_KEY, local_only );
+	}
+	
 	public int
 	getRSSPort()
 	{

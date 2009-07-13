@@ -513,6 +513,21 @@ DeviceManagerUI
 				"device.rss.port", "device.rss.port",
 				device_manager.getRSSPort());
 		
+		final BooleanParameter rss_localonly = 
+			configModel.addBooleanParameter2( 
+				"device.rss.localonly", "device.rss.localonly",
+				device_manager.isRSSLocalOnly());
+		
+		rss_localonly.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param) 
+					{
+						device_manager.setRSSLocalOnly( rss_localonly.getValue());
+					}
+				});
 		
 		final HyperlinkParameter rss_view = 
 			configModel.addHyperlinkParameter2(
@@ -533,6 +548,9 @@ DeviceManagerUI
 					}
 				});
 
+
+		
+		rss_enable.addEnabledOnSelection( rss_localonly );
 		rss_enable.addEnabledOnSelection( rss_port );
 		rss_enable.addEnabledOnSelection( rss_view );
 		
@@ -540,7 +558,7 @@ DeviceManagerUI
 			"device.rss.group",
 			new Parameter[]
 			{
-					rss_enable, rss_port, rss_view,
+					rss_enable, rss_port, rss_view, rss_localonly,
 			});
 		
 			// itunes
