@@ -245,7 +245,7 @@ public class StyledShell
 	 * Creates a pop-up shell with standard dialog style and trim
 	 */
 	private void createStandardShell() {
-		styledShell = ShellFactory.createShell(parentShell, getShellStyle(SWT.NONE));
+		styledShell = ShellFactory.createShell(parentShell, getShellStyle(SWT.APPLICATION_MODAL));
 		FillLayout fillLayout = new FillLayout();
 		fillLayout.marginHeight = 0;
 		fillLayout.marginWidth = 0;
@@ -298,7 +298,7 @@ public class StyledShell
 
 			return style;
 		}
-		return SWT.DIALOG_TRIM | SWT.RESIZE;
+		return style | SWT.DIALOG_TRIM | SWT.RESIZE;
 	}
 
 	private Region getRoundedRegion(Rectangle bounds) {
