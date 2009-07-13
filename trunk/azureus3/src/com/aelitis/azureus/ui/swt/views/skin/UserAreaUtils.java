@@ -335,7 +335,7 @@ public class UserAreaUtils
 					final String url = ContentNetworkUtils.getUrl(
 							ConstantsVuze.getDefaultContentNetwork(),
 							ContentNetwork.SERVICE_LOGOUT);
-
+					
 					/*
 					 * Loads the page without switching to the On Vuze tab
 					 */
@@ -344,6 +344,9 @@ public class UserAreaUtils
 						SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
 						if (soBrowser != null) {
 							soBrowser.setURL(url);
+						} else {
+							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE,
+									"curuser-profile-menu");
 						}
 					}
 
