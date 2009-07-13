@@ -87,4 +87,8 @@ LinkLabel
 	    });		
 	}
 	
+	public static void updateLinkedLabel(Label label, String hyperlink) {
+		label.setData(hyperlink);
+		label.setToolTipText(hyperlink);
+	}
 }

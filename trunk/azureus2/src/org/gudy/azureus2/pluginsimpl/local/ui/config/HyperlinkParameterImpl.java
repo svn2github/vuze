@@ -26,6 +26,7 @@ public class HyperlinkParameterImpl extends LabelParameterImpl implements
 
 	public void setHyperlink(String url_location) {
 		this.hyperlink = url_location;
+		
+		fireParameterChanged();
 	}
-
 }

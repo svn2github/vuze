@@ -237,6 +237,32 @@ BasicPluginConfigImpl
 					LinkLabel.makeLinkedLabel(label, hyperlink);
 				}
 				
+				if (param instanceof HyperlinkParameterImpl) {
+					
+					final Label f_label = label;
+					
+					param.addListener(
+							new ParameterListener()
+							{
+								public void
+								parameterChanged(
+									org.gudy.azureus2.plugins.ui.config.Parameter	p )
+								{
+									if ( f_label.isDisposed()){
+							
+										param.removeListener( this );								
+									}else{
+										
+										String hyperlink = ((HyperlinkParameterImpl)param).getHyperlink();
+										
+										if (hyperlink != null) {
+											LinkLabel.updateLinkedLabel(f_label, hyperlink);
+										}
+									}
+								}
+							});				
+					}
+
 			}
 	
 			String	key = param.getKey();

@@ -100,6 +100,12 @@ ParameterImpl
 	parameterChanged(
 		String		key )
 	{
+		fireParameterChanged();
+	}
+	
+	protected void
+	fireParameterChanged()
+	{
 		// toArray() since listener trigger may remove listeners
 		Object[] listenerArray = listeners.toArray();
 		for (int i = 0; i < listenerArray.length; i++) {
