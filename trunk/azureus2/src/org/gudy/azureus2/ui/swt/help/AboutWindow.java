@@ -180,10 +180,10 @@ public class AboutWindow {
     final String[][] link =
       { { "homepage", "sourceforge", "sourceforgedownloads", "bugreports", "forumdiscussion", "wiki" }, {
           "http://www.vuze.com",
-          "http://sourceforge.net/projects/azureus/",
+          "http://azureus.sourceforge.net",
           "http://sourceforge.net/project/showfiles.php?group_id=84122",
-          Constants.isCVSVersion() ? "http://forum.vuze.com/forum.jspa?forumID=4" : "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",
-          "http://forum.vuze.com/index.jspa",
+          "http://forum.vuze.com/category.jspa?categoryID=3",
+          "http://forum.vuze.com",
           Constants.AZUREUS_WIKI }
     };
   

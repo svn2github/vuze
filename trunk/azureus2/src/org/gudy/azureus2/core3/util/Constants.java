@@ -40,7 +40,7 @@ Constants
   
   public static final String AELITIS_TORRENTS		= "http://torrents.aelitis.com:88/torrents/";
   public static final String AELITIS_FILES			= "http://torrents.aelitis.com:88/files/";
-  public static final String AZUREUS_WIKI 			= "http://www.azureuswiki.com/index.php/";
+  public static final String AZUREUS_WIKI 			= "http://wiki.vuze.com/index.php/";
   
   public static final String  VERSION_SERVER_V4 	= "version.azureusplatform.com";
   public static final String  VERSION_SERVER_V6 	= "version6.azureusplatform.com";
