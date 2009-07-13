@@ -476,9 +476,9 @@ TRTrackerBTAnnouncerImpl
 			
 			percentage = 100;
 			
-		}else if ( percentage < 0 ){
+		}else if ( percentage < 50 ){
 			
-			percentage	= 0;
+			percentage	= 50;
 		}
 		
 		long	now = SystemTime.getCurrentTime();
@@ -2479,6 +2479,11 @@ TRTrackerBTAnnouncerImpl
 
 						int peers_length = meta_peers.size();
 
+				  	 if (Logger.isEnabled()) {
+								Logger.log(new LogEvent(torrent, LOGID,
+										"ANNOUNCE CompactPeers2: num=" + peers_length));
+					   }
+
 						if ( peers_length > 1 ){
 								// calculate average rtt to use for those with no rtt
 		 					 
@@ -2772,7 +2777,12 @@ TRTrackerBTAnnouncerImpl
 							//for every peer
 						
 						int peers_length = meta_peers.size();
-							
+
+				  	 if (Logger.isEnabled()) {
+								Logger.log(new LogEvent(torrent, LOGID,
+										"ANNOUNCE old style non-compact: num=" + peers_length));
+					   }
+						
 						if ( crypto_flags != null && peers_length != crypto_flags.length ){
 							
 							crypto_flags = null;
@@ -2887,6 +2897,12 @@ TRTrackerBTAnnouncerImpl
 						}
 
 				    	int	peer_number = 0;
+				    	
+					  	 if (Logger.isEnabled()) {
+									Logger.log(new LogEvent(torrent, LOGID,
+											"ANNOUNCE CompactPeers: num=" + (meta_peers.length/entry_size)));
+						   }
+
 				    	
 				    	for (int i=0;i<meta_peers.length;i+=entry_size){
 				    		
