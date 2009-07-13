@@ -22,6 +22,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
@@ -34,18 +35,21 @@ import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 public class SWTLoginUtils
 {
 	public static void waitForLogin(final loginWaitListener l) {
+		VuzeBuddyManager.log("Wait for login " + l);
 		if (l == null) {
 			return;
 		}
 
 		final AERunnable loginCompleteRunnable = new AERunnable() {
 			public void runSupport() {
+				VuzeBuddyManager.log("Fire Login Complete");
 				l.loginComplete();
 			}
 		};
 
 		final AERunnable loginCancelRunnable = new AERunnable() {
 			public void runSupport() {
+				VuzeBuddyManager.log("Fire Login Cancel");
 				l.loginCanceled();
 			}
 		};
@@ -103,6 +107,7 @@ public class SWTLoginUtils
 	 * @since 3.0.5.3
 	 */
 	public static LightBoxBrowserWindow openLoginWindow(String optionalMessage) {
+		VuzeBuddyManager.log("Open Login Window: msg=" + optionalMessage);
 		String url = ConstantsVuze.getDefaultContentNetwork().getLoginService( optionalMessage );
 
 		return new LightBoxBrowserWindow(url, ConstantsVuze.URL_PAGE_VERIFIER_VALUE,
