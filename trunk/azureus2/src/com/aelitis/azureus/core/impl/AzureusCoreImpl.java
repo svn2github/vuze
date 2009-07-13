@@ -1033,7 +1033,6 @@ AzureusCoreImpl
 	  		 coreRunningListeners = null;
 	  	 }
 	  	 
-	  	 System.out.println("Core Start Completed");
 	   } finally {
 	  	 mon_coreRunningListeners.exit();
 	   }
@@ -1089,6 +1088,8 @@ AzureusCoreImpl
 				Debug.out(t);
 			}
 		}
+		
+		Debug.out("Core Start Complete");
 	}
 
 	public boolean
