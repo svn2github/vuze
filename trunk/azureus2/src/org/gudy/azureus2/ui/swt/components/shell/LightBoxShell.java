@@ -226,7 +226,7 @@ public class LightBoxShell
 		return uiFunctions;
 	}
 
-	public void open() {
+	public void open(boolean dim) {
 		if (null != lbShell && false == lbShell.isDisposed()) {
 
 			lbShell.setBounds(getBounds());
@@ -243,7 +243,9 @@ public class LightBoxShell
 				//Do nothing if alpha is not supported
 			}
 
-			lbShell.open();
+			if (dim) {
+				lbShell.open();
+			}
 		}
 	}
 
@@ -324,11 +326,11 @@ public class LightBoxShell
 	 * Centers and opens the given shell and closes the light box when the given shell is closed
 	 * @param shellToOpen
 	 */
-	public void open(StyledShell shellToOpen) {
+	public void open(StyledShell shellToOpen, boolean dim) {
 		if (null != shellToOpen && null != lbShell) {
 
 			if (false == isAlreadyOpened) {
-				open();
+				open(dim);
 			}
 
 			if (false == shellToOpen.isAlreadyOpened()) {
