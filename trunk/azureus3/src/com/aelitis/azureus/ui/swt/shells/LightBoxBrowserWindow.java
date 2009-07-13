@@ -8,6 +8,7 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -15,6 +16,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
 import org.gudy.azureus2.ui.swt.components.shell.StyledShell;
@@ -39,6 +41,9 @@ import com.aelitis.azureus.util.ConstantsVuze;
  */
 public class LightBoxBrowserWindow
 {
+	private static boolean CUSTOM_TRIM = false;
+
+	private static boolean DIM = false;
 
 	private String url = null;
 
@@ -75,6 +80,10 @@ public class LightBoxBrowserWindow
 	private String callback;
 
 	private ClientMessageContext callBackContext;
+
+	private Composite waitPanel;
+
+	private Label waitMessageLabel;
 
 	public LightBoxBrowserWindow(String url, String prefixVerifier, int width,
 			int height) {
@@ -115,7 +124,7 @@ public class LightBoxBrowserWindow
 		/*
 		 * Create the StyledShell to host the browser
 		 */
-		styledShell = lightBoxShell.createPopUpShell(6, true, true);
+		styledShell = lightBoxShell.createPopUpShell(6, true, CUSTOM_TRIM);
 
 		styledShell.setBackground(borderColor);
 
@@ -152,6 +161,22 @@ public class LightBoxBrowserWindow
 		stack.marginWidth = 0;
 		contentPanel.setLayout(stack);
 		contentPanel.setBackground(contentBackgroundColor);
+
+		if (CUSTOM_TRIM) {
+  		waitPanel = new Composite(contentPanel, SWT.NONE);
+  		waitPanel.setBackground(contentBackgroundColor);
+  		waitPanel.setLayout(new FormLayout());
+  		waitPanel.setBackgroundMode(SWT.INHERIT_DEFAULT);
+  		waitMessageLabel = new Label(waitPanel, SWT.CENTER);
+  		waitMessageLabel.setBackground(waitPanel.getBackground());
+  		waitMessageLabel.setForeground(Colors.grey);
+  		waitMessageLabel.setLayoutData(Utils.getFilledFormData());
+  		Messages.setLanguageText(waitMessageLabel, "v3.MainWindow.Loading");
+		} else {
+			contentPanel.getShell().setText(MessageText.getString("v3.MainWindow.Loading"));
+		}
+
+		
 		errorPanel = new Composite(contentPanel, SWT.NONE);
 		errorPanel.setBackground(contentBackgroundColor);
 		errorPanel.setLayout(new FormLayout());
@@ -244,12 +269,28 @@ public class LightBoxBrowserWindow
 		if (true == uiFunctions.getMainShell().getMinimized()) {
 			uiFunctions.getMainShell().setMinimized(false);
 		}
+		
+		if (CUSTOM_TRIM) {
+  		stack.topControl = waitPanel;
+  		Point computeSize = waitPanel.computeSize(browserWidth > 0 ? browserWidth : 400, 0);
+  		Point size = styledShell.getShell().computeSize(computeSize.x, computeSize.y);
+  		styledShell.setSize(size.x, size.y + 15);
+  		styledShell.centersShell();
+		} else {
+  		styledShell.setSize(browserWidth > 0 ? browserWidth : 400, 0);
+  		styledShell.centersShell();
+		}
 
-		/*
-		 * Open the shell in it's hidden state to prevent flickering when the browser initializes
-		 */
+
 		styledShell.hideShell(true);
-		lightBoxShell.open(styledShell);
+		Utils.execSWTThreadLater(1000, new AERunnable() {
+			public void runSupport() {
+				if (!styledShell.getShell().isDisposed()) {
+					styledShell.hideShell(false);
+				}
+			}
+		});
+		lightBoxShell.open(styledShell, DIM);
 
 		if (null != browser) {
 			hookListeners();
@@ -327,8 +368,12 @@ public class LightBoxBrowserWindow
 				}
 
 				lightBoxShell.showBusy(false, 0);
-				styledShell.animateFade(100);
-
+				//styledShell.animateFade(100);
+				if (browserWidth > 0 && browserHeight > 0) {
+					styledShell.setSize(browserWidth, browserHeight,
+							StyledShell.HINT_ALIGN_CENTER | StyledShell.HINT_ALIGN_CENTER);
+				}
+				styledShell.hideShell(false);
 			}
 
 			public void changed(ProgressEvent event) {
@@ -337,7 +382,7 @@ public class LightBoxBrowserWindow
 				 * show it again once the page has finished loading
 				 */
 				if (event.current == 0 && event.total != 0) {
-					styledShell.hideShell(true);
+					//styledShell.hideShell(true);
 					lightBoxShell.showBusy(true, 500);
 				}
 			}
@@ -446,7 +491,10 @@ public class LightBoxBrowserWindow
 		browserHeight = height;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				styledShell.getShell().setRedraw(false);
 				styledShell.setSize(browserWidth, browserHeight);
+				styledShell.centersShell();
+				styledShell.getShell().setRedraw(true);
 			}
 		});
 
