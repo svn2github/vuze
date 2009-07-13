@@ -45,6 +45,20 @@ DeviceManager
 	setAutoSearch(
 		boolean	auto );
 	
+	public boolean
+	isRSSPublishEnabled();
+	
+	public void
+	setRSSPublishEnabled(
+		boolean		enabled );
+
+	public int
+	getRSSPort();
+	
+	public void
+	setRSSPort(
+		int		port );
+
 	public UnassociatedDevice[]
 	getUnassociatedDevices();
 	

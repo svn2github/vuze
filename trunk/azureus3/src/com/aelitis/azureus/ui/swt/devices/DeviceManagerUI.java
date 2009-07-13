@@ -377,38 +377,46 @@ DeviceManagerUI
 		BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
 				ConfigSection.SECTION_ROOT, "Devices");
 
+			// auto search
+		
 		final BooleanParameter as = 
 			configModel.addBooleanParameter2( 
 				"device.search.auto", "device.search.auto",
 				device_manager.getAutoSearch());
 		
+		as.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param) 
+					{
+						device_manager.setAutoSearch( as.getValue());
+						
+						if ( device_manager.getAutoSearch()){
+							
+							search();
+						}
+					}
+				});
+		
 		final BooleanParameter qosParam = configModel.addBooleanParameter2(
 				PlatformDevicesMessenger.CFG_SEND_QOS, "devices.turnon.qos", false);
-		qosParam.setValue(COConfigurationManager.getBooleanParameter(
-				PlatformDevicesMessenger.CFG_SEND_QOS, false));
-		qosParam.addListener(new ParameterListener() {
-			public void parameterChanged(Parameter param) {
-				COConfigurationManager.setParameter(
-						PlatformDevicesMessenger.CFG_SEND_QOS, qosParam.getValue());
-			}
-		});
 		
-		as.addListener(
-			new ParameterListener()
-			{
-				public void 
-				parameterChanged(
-					Parameter param) 
-				{
-					device_manager.setAutoSearch( as.getValue());
-					
-					if ( device_manager.getAutoSearch()){
-						
-						search();
-					}
+			// send qos
+		
+		qosParam.setValue(COConfigurationManager.getBooleanParameter( PlatformDevicesMessenger.CFG_SEND_QOS, false));
+		
+		qosParam.addListener(
+			new ParameterListener() {
+				public void parameterChanged(Parameter param) {
+					COConfigurationManager.setParameter(
+							PlatformDevicesMessenger.CFG_SEND_QOS, qosParam.getValue());
 				}
 			});
 
+			// max xcode
+		
 		final IntParameter max_xcode = 
 			configModel.addIntParameter2( 
 				"device.config.xcode.maxbps", "device.config.xcode.maxbps",
@@ -456,9 +464,13 @@ DeviceManagerUI
 				}
 			});
 			
+			// generic devices
+		
 		configModel.addBooleanParameter2( 
 				"!" + CONFIG_VIEW_HIDE_REND_GENERIC + "!", "devices.sidebar.hide.rend.generic",
 				side_bar_hide_rend_gen );
+		
+			// default dir
 		
 		String def = device_manager.getDefaultWorkingDirectory().getAbsolutePath();
 		
@@ -476,6 +488,62 @@ DeviceManagerUI
 					device_manager.setDefaultWorkingDirectory(new File( def_work_dir.getValue()));
 				}
 			});
+		
+			// rss
+		
+		final BooleanParameter rss_enable = 
+			configModel.addBooleanParameter2( 
+				"device.rss.enable", "device.rss.enable",
+				device_manager.isRSSPublishEnabled());
+		
+		rss_enable.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param) 
+					{
+						device_manager.setRSSPublishEnabled( rss_enable.getValue());
+					}
+				});
+		
+		
+		final IntParameter rss_port = 
+			configModel.addIntParameter2( 
+				"device.rss.port", "device.rss.port",
+				device_manager.getRSSPort());
+		
+		
+		final HyperlinkParameter rss_view = 
+			configModel.addHyperlinkParameter2(
+				"device.rss.view", getRSSLink( rss_port.getValue()));
+		
+		rss_port.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param) 
+					{
+						int port =  rss_port.getValue();
+						
+						device_manager.setRSSPort( port );
+						
+						rss_view.setHyperlink( getRSSLink( port ));
+					}
+				});
+
+		rss_enable.addEnabledOnSelection( rss_port );
+		rss_enable.addEnabledOnSelection( rss_view );
+		
+		configModel.createGroup(
+			"device.rss.group",
+			new Parameter[]
+			{
+					rss_enable, rss_port, rss_view,
+			});
+		
+			// itunes
 		
 		final ActionParameter btnITunes = configModel.addActionParameter2(null, "devices.button.installitunes");
 		btnITunes.setEnabled(false);
@@ -509,6 +577,13 @@ DeviceManagerUI
 		addAllDevices();
 	
 		setupMenus();
+	}
+	
+	protected String
+	getRSSLink(
+		int		port )
+	{
+		return( "http://127.0.0.1:" + port + "/" );
 	}
 	
 	protected void
@@ -1702,6 +1777,28 @@ DeviceManagerUI
 											}
 										}
 										
+										// publish to RSS feed
+										
+										if ( true ){
+											
+											need_sep = true;
+											
+											MenuItem rss_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.rsspub");
+											rss_menu_item.setStyle(MenuItem.STYLE_CHECK);
+
+											rss_menu_item.addFillListener(new MenuItemFillListener() {
+												public void menuWillBeShown(MenuItem menu, Object data) {
+													menu.setData(new Boolean(device_manager.isRSSPublishEnabled() && renderer.isRSSPublishEnabled()));
+												}
+											});
+											rss_menu_item.addListener(new MenuItemListener() {
+												public void selected(MenuItem menu, Object target) {
+									 				renderer.setRSSPublishEnabled((Boolean) menu.getData());
+												}
+											});
+											
+											rss_menu_item.setEnabled( device_manager.isRSSPublishEnabled());
+										}
 									}
 
 									if ( device.isBrowsable()){
@@ -1714,6 +1811,7 @@ DeviceManagerUI
 										
 										browse_menu_item.addFillListener( will_browse_listener );
 									}
+																	
 									
 									if ( need_sep ){
 									

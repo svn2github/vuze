@@ -78,6 +78,13 @@ DeviceMediaRenderer
 	associate(
 		UnassociatedDevice	assoc );
 	
+	public boolean
+	isRSSPublishEnabled();
+	
+	public void
+	setRSSPublishEnabled(
+		boolean		enabled );
+	
 	public InetAddress
 	getAddress();
 }

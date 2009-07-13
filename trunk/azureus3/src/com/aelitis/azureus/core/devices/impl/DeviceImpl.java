@@ -94,6 +94,7 @@ DeviceImpl
 	private static final String PP_REND_DEF_TRANS_PROF	= "tt_def_trans_prof";
 	private static final String PP_REND_TRANS_REQ		= "tt_req";
 	private static final String PP_REND_TRANS_CACHE		= "tt_always_cache";
+	private static final String PP_REND_RSS_PUB			= "tt_rss_pub";
 	
 	protected static final String	PP_IP_ADDRESS 		= "rend_ip";	
 	protected static final String	TP_IP_ADDRESS 		= "DeviceUPnPImpl:ip";	// transient
@@ -959,6 +960,19 @@ DeviceImpl
 		boolean		always_cache )
 	{
 		setPersistentBooleanProperty( PP_REND_TRANS_CACHE, always_cache );
+	}
+	
+	public boolean
+	isRSSPublishEnabled()
+	{
+		return( getPersistentBooleanProperty( PP_REND_RSS_PUB, true ));
+	}
+	
+	public void
+	setRSSPublishEnabled(
+		boolean		enabled )
+	{
+		setPersistentBooleanProperty( PP_REND_RSS_PUB, enabled );
 	}
 	
 	public String[][] 

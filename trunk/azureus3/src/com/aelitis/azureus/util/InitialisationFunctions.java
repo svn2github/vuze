@@ -27,6 +27,9 @@ import java.net.URL;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
+import com.aelitis.azureus.core.content.RelatedContent;
+import com.aelitis.azureus.core.content.RelatedContentManager;
+import com.aelitis.azureus.core.content.RelatedContentManagerListener;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
@@ -39,6 +42,7 @@ import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManager;
@@ -73,6 +77,8 @@ public class InitialisationFunctions
 		DeviceManagerFactory.preInitialise();
 		
 		NavigationHelper.initialise();
+		
+		RelatedContentManager.preInitialise( core );
 		
 		AZ3Functions.setProvider(
 			new AZ3Functions.provider()
@@ -141,6 +147,49 @@ public class InitialisationFunctions
 					MetaSearchManagerFactory.getSingleton();
 					
 					SubscriptionManagerFactory.getSingleton();
+					
+					try{
+						RelatedContentManager.getSingleton().addListener(
+							new RelatedContentManagerListener()
+							{
+								private final boolean log = System.getProperty( "vz.rcm.log", "0" ).equals( "1" );
+								
+								public void
+								lookupStarted(
+									Download		for_download )
+								{
+									if ( log ){
+										
+										System.out.println( "RCM: start for " + for_download.getName());
+									}
+								}
+								
+								public void
+								foundContent(
+									Download		for_download,
+									RelatedContent	content )
+								{
+									if ( log ){
+										
+										System.out.println( "RCM:    " + for_download.getName() + " -> " + content.getString());
+									}
+								}
+								
+								public void
+								lookupCompleted(
+									Download		for_download )
+								{
+									if ( log ){
+										
+										System.out.println( "RCM: complete for " + for_download.getName());
+									}
+								}
+							});
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
 				}
 			}).queue();
 	}

@@ -56,9 +56,12 @@ public class
 DeviceManagerImpl 
 	implements DeviceManager, AEDiagnosticsEvidenceGenerator
 {
-	private static final String	LOGGER_NAME 			= "Devices";
-	private static final String	CONFIG_FILE 			= "devices.config";
-	private static final String	AUTO_SEARCH_CONFIG_KEY	= "devices.config.auto_search";
+	private static final String	LOGGER_NAME 				= "Devices";
+	private static final String	CONFIG_FILE 				= "devices.config";
+	private static final String	AUTO_SEARCH_CONFIG_KEY		= "devices.config.auto_search";
+	private static final String	RSS_ENABLE_CONFIG_KEY		= "devices.config.rss_enable";
+	private static final String	RSS_PORT_CONFIG_KEY			= "devices.config.rss_port";
+	private static final int	RSS_PORT_CONFIG__DEFAULT	= 6905;
 	
 	private static final String CONFIG_DEFAULT_WORK_DIR	= "devices.config.def_work_dir";
 	
@@ -146,6 +149,9 @@ DeviceManagerImpl
 	
 	
 	private boolean	auto_search;
+	private boolean	rss_enable		= false;
+	private int		rss_port		= 0;
+	
 	private boolean	closing;
 	
 	private boolean	config_unclean;
@@ -169,7 +175,10 @@ DeviceManagerImpl
 		});
 	}
 	
-	private void initWithCore(AzureusCore core) {
+	private void 
+	initWithCore(
+		final AzureusCore core ) 
+	{
 		// not sure if DM_UPnP or loadConfig needs core,
 		// but iTunesManager does
 		
@@ -181,15 +190,30 @@ DeviceManagerImpl
 		
 		transcode_manager = new TranscodeManagerImpl( this );
 		
-		COConfigurationManager.addAndFireParameterListener(
-			AUTO_SEARCH_CONFIG_KEY,
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				AUTO_SEARCH_CONFIG_KEY,
+				RSS_ENABLE_CONFIG_KEY,
+				RSS_PORT_CONFIG_KEY
+			},
 			new ParameterListener()
 			{
 				public void 
 				parameterChanged(
 					String name ) 
 				{
-					auto_search = COConfigurationManager.getBooleanParameter( name, true );
+					auto_search = COConfigurationManager.getBooleanParameter( AUTO_SEARCH_CONFIG_KEY, true );
+					
+					boolean	new_rss_enable 	= COConfigurationManager.getBooleanParameter( RSS_ENABLE_CONFIG_KEY, false );
+					int		new_rss_port 	= COConfigurationManager.getIntParameter( RSS_PORT_CONFIG_KEY, RSS_PORT_CONFIG__DEFAULT );
+					
+					if ( new_rss_enable != rss_enable || new_rss_port != rss_port ){
+						
+						rss_port	= new_rss_port;
+						rss_enable	= new_rss_enable;
+						
+						manageRSS( core );
+					}
 				}
 			});
 		
@@ -256,6 +280,14 @@ DeviceManagerImpl
 						}
 					}
 				});
+	}
+	
+	protected void
+	manageRSS(
+		AzureusCore		core )
+	{
+		
+		System.out.println( "manager rss: " + rss_port + ", " + rss_enable );
 	}
 	
 	protected DeviceManagerUPnPImpl 
@@ -544,6 +576,32 @@ DeviceManagerImpl
 		boolean	auto )
 	{
 		COConfigurationManager.setParameter( AUTO_SEARCH_CONFIG_KEY, auto );
+	}
+	
+	public boolean
+	isRSSPublishEnabled()
+	{
+		return( rss_enable );
+	}
+	
+	public void
+	setRSSPublishEnabled(
+		boolean		enabled )
+	{
+		COConfigurationManager.setParameter( RSS_ENABLE_CONFIG_KEY, enabled );
+	}
+
+	public int
+	getRSSPort()
+	{
+		return( rss_port );
+	}
+	
+	public void
+	setRSSPort(
+		int		port )
+	{
+		COConfigurationManager.setParameter( RSS_PORT_CONFIG_KEY, port );
 	}
 	
 	protected boolean
