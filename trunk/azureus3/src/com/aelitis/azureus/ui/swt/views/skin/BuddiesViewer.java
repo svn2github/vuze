@@ -291,6 +291,9 @@ public class BuddiesViewer
 				public void azureusCoreRunning(AzureusCore core) {
 					Utils.execSWTThreadLater(100, new AERunnable() {
 						public void runSupport() {
+							if (avatarsPanel == null || avatarsPanel.isDisposed()) {
+								return;
+							}
 							fillBuddies(avatarsPanel);
 						}
 					});
@@ -434,6 +437,9 @@ public class BuddiesViewer
 	public void removeBuddy(final AvatarWidget widget) {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
+				if (avatarsPanel == null || avatarsPanel.isDisposed()) {
+					return;
+				}
 				avatarWidgets.remove(widget);
 				widget.dispose(true, new AvatarWidget.AfterDisposeListener() {
 					public void disposed() {
@@ -464,6 +470,9 @@ public class BuddiesViewer
 			Utils.execSWTThreadLater(0, new AERunnable() {
 
 				public void runSupport() {
+					if (avatarsPanel == null || avatarsPanel.isDisposed()) {
+						return;
+					}
 					AvatarWidget widget = findWidget(buddy);
 					if (null != widget) {
 						widget.setVuzeBuddy((VuzeBuddySWT) buddy);
@@ -484,6 +493,9 @@ public class BuddiesViewer
 		if (buddy instanceof VuzeBuddySWT) {
 			Utils.execSWTThreadLater(0, new AERunnable() {
 				public void runSupport() {
+					if (avatarsPanel == null || avatarsPanel.isDisposed()) {
+						return;
+					}
 					AvatarWidget widget = findWidget(buddy);
 					if (widget == null) {
 						if (soNoBuddies != null) {
@@ -609,7 +621,7 @@ public class BuddiesViewer
 				*/
 
 				// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
-				if (avatarsPanel.isDisposed())
+				if (avatarsPanel == null || avatarsPanel.isDisposed())
 					return;
 
 				final List buddies = VuzeBuddyManager.getAllVuzeBuddies();
