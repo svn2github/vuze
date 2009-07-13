@@ -1573,6 +1573,13 @@ DeviceImpl
 		return( manager.getStreamURL( file ));
 	}
 	
+	protected String
+	getMimeType(
+		TranscodeFileImpl		file )
+	{
+		return( manager.getMimeType( file ));
+	}
+	
 	protected void
 	deleteFile(
 		TranscodeFileImpl	file,

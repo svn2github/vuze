@@ -521,6 +521,12 @@ TranscodeFileImpl
 		return( device.getStreamURL( this ));
 	}
 	
+	public String
+	getMimeType()
+	{
+		return( device.getMimeType( this ));
+	}
+	
 	public void
 	delete(
 		boolean	delete_contents )

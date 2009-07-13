@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -152,6 +153,8 @@ DeviceManagerImpl
 	private boolean	rss_enable		= false;
 	private int		rss_port		= 0;
 	
+	private DeviceManagerRSSFeed	rss_publisher;
+	
 	private boolean	closing;
 	
 	private boolean	config_unclean;
@@ -161,7 +164,11 @@ DeviceManagerImpl
 	
 	private TranscodeManagerImpl	transcode_manager;
 	
+	private int						getMimeType_fails;
+	
 	private AEDiagnosticsLogger		logger;
+	
+	private AsyncDispatcher	async_dispatcher = new AsyncDispatcher( 10*1000 );
 	
 	protected
 	DeviceManagerImpl()
@@ -284,10 +291,34 @@ DeviceManagerImpl
 	
 	protected void
 	manageRSS(
-		AzureusCore		core )
+		final AzureusCore		core )
 	{
+		synchronized( this ){
+			
+			async_dispatcher.dispatch(
+				new AERunnable()
+				{
+					final boolean	f_enable 	= rss_enable;
+					final int		f_port		= rss_port;
 		
-		System.out.println( "manager rss: " + rss_port + ", " + rss_enable );
+					public void
+					runSupport()
+					{
+						synchronized( DeviceManagerImpl.this ){
+														
+							if ( rss_publisher != null ){
+								
+								rss_publisher.destroy();
+							}
+							
+							if ( f_enable ){
+							
+								rss_publisher = new DeviceManagerRSSFeed( DeviceManagerImpl.this, core, f_port );
+							}
+						}				
+					}
+				});
+		}
 	}
 	
 	protected DeviceManagerUPnPImpl 
@@ -835,6 +866,39 @@ DeviceManagerImpl
 				}
 			}catch( Throwable e ){
 				
+			}
+		}
+		
+		return( null );
+	}
+	
+	protected String
+	getMimeType(
+		TranscodeFileImpl		file )
+	{
+		if ( getMimeType_fails > 5 ){
+			
+			return( null );
+		}
+		
+		IPCInterface ipc = upnp_manager.getUPnPAVIPC();
+		
+		if ( ipc != null ){
+
+			try{
+				DiskManagerFileInfo f = file.getTargetFile();
+				
+				String str = (String)ipc.invoke( "getMimeType", new Object[]{ f });
+				
+				if ( str != null && str.length() > 0 ){
+					
+					return( str );
+				}
+			}catch( Throwable e ){
+				
+				getMimeType_fails++;
+				
+				e.printStackTrace();
 			}
 		}
 		
