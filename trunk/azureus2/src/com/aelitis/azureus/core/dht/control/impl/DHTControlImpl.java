@@ -838,6 +838,17 @@ DHTControlImpl
 					original_mappings,
 					getMaxDivDepth());
 		
+		if ( encoded_keys.length == 0 ){
+		
+				// over-diversified
+			
+			listener.diversified( "Over-diversification of [" + description + "]" );
+			
+			listener.complete( false );
+			
+			return;
+		}
+		
 			// may be > 1 if diversification is replicating (for load balancing) 
 		
 		for (int i=0;i<encoded_keys.length;i++){
@@ -1456,6 +1467,17 @@ DHTControlImpl
 		
 		byte[][]	encoded_keys	= adapter.diversify( null, false, true, initial_encoded_key, DHT.DT_NONE, exhaustive, getMaxDivDepth());
 
+		if  ( encoded_keys.length == 0 ){
+		
+				// over-diversified
+			
+			get_listener.diversified( "Over-diversification of [" + description + "]" );
+			
+			get_listener.complete( false );
+			
+			return( result );
+		}
+		
 		for (int i=0;i<encoded_keys.length;i++){
 			
 			final boolean[]	diversified = { false };

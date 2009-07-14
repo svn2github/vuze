@@ -796,7 +796,7 @@ DHTPluginStorageManager
 		
 			byte[][]	res = followDivChain( wrapper, put_operation, exhaustive, max_depth );
 			
-			if ( !Arrays.equals( res[0], key )){
+			if ( res.length > 0 && !Arrays.equals( res[0], key )){
 				
 				String	trace = "";
 				
@@ -970,7 +970,10 @@ DHTPluginStorageManager
 			// System.out.println( indent + "<-" );
 		}else{
 			
-			Debug.out( "Terminated div chain lookup (max depth=" + max_depth + ")" );
+			if ( Constants.isCVSVersion()){
+			
+				Debug.out( "Terminated div chain lookup (max depth=" + max_depth + ") - net=" + network );
+			}
 		}
 		
 		return( list_out );
