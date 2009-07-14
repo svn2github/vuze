@@ -41,7 +41,7 @@ import com.aelitis.azureus.util.ConstantsVuze;
  */
 public class LightBoxBrowserWindow
 {
-	private static boolean CUSTOM_TRIM = false;
+	private static boolean CUSTOM_TRIM = true;
 
 	private static boolean DIM = false;
 

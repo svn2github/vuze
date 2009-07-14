@@ -149,6 +149,7 @@ public class BrowserWindow
 
 		browser.addCloseWindowListener(new CloseWindowListener() {
 			public void close(WindowEvent event) {
+				context.debug("window.close called");
 				shell.dispose();
 			}
 		});

@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.plugins.net.netstatus.swt.NetStatusPluginTester.loggerProvider;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.JSONUtils;
@@ -301,6 +302,7 @@ public class BrowserContext
 			private TimerEvent timerevent;
 
 			public void changed(LocationEvent event) {
+				debug("browser.changed " + event.location);
 				if (timerevent != null) {
 					timerevent.cancel();
 				}
@@ -332,6 +334,7 @@ public class BrowserContext
 			}
 
 			public void changing(LocationEvent event) {
+				debug("browser.changing " + event.location);
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
