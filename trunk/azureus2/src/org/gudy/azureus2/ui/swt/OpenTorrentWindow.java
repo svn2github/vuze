@@ -69,6 +69,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
 /**
  * Torrent Opener Window.
@@ -674,7 +675,7 @@ public class OpenTorrentWindow
 		}
 
 		try {
-			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
+			UIUpdaterSWT.getInstance().addUpdater(this);
 		} catch (Exception e) {
 			Debug.out(e);
 		}
@@ -1011,7 +1012,7 @@ public class OpenTorrentWindow
 		bClosed = true;
 
 		try {
-			UIFunctionsManager.getUIFunctions().getUIUpdater().removeUpdater(this);
+			UIUpdaterSWT.getInstance().removeUpdater(this);
 		} catch (Exception e) {
 			Debug.out(e);
 		}
@@ -2863,7 +2864,7 @@ public class OpenTorrentWindow
 	public void updateUI() {
 		if (bClosed) {
 			try {
-				UIFunctionsManager.getUIFunctions().getUIUpdater().removeUpdater(this);
+				UIUpdaterSWT.getInstance().removeUpdater(this);
 			} catch (Exception e) {
 				Debug.out(e);
 			}
