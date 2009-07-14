@@ -169,6 +169,11 @@ DeviceManagerRSSFeed
 				return( true );
 			}
 			
+			if ( device instanceof DeviceMediaRendererImpl ){
+				
+				((DeviceMediaRendererImpl)device).browseReceived();
+			}
+			
 			response.setContentType( "text/xml; charset=UTF-8" );
 				
 			pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
@@ -230,7 +235,10 @@ DeviceManagerRSSFeed
 							
 				if ( !file.isComplete()){
 					
-					continue;
+					if ( !file.isTemplate()){
+						
+						continue;
+					}
 				}
 				
 				pw.println( "<item>" );
