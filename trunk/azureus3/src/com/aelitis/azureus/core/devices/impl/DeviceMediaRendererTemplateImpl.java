@@ -36,6 +36,8 @@ DeviceMediaRendererTemplateImpl
 	
 	private final DeviceManagerImpl		manager;
 	private final String				classification;
+	private final String				name;
+	private final String				manufacturer;
 	private final boolean				auto;
 	
 	protected
@@ -47,6 +49,28 @@ DeviceMediaRendererTemplateImpl
 		manager			= _manager;
 		classification 	= _classification;
 		auto			= _auto;
+		
+		int	pos = classification.indexOf( '.' );
+		
+		if ( pos == -1 ){
+			
+			manufacturer = classification;
+			
+		}else{
+			
+			manufacturer = classification.substring( 0, pos );
+		}
+		
+		pos = classification.lastIndexOf( '.' );
+		
+		if ( pos == -1 ){
+			
+			name = classification;
+			
+		}else{
+			
+			name = classification.substring( pos+1 );
+		}
 	}
 	
 	protected void
@@ -71,16 +95,13 @@ DeviceMediaRendererTemplateImpl
 	public String
 	getName()
 	{
-		int	pos = classification.lastIndexOf( '.' );
-		
-		if ( pos == -1 ){
-			
-			return( classification );
-			
-		}else{
-			
-			return( classification.substring( pos+1 ));
-		}
+		return( name );
+	}
+	
+	public String
+	getManufacturer()
+	{
+		return( manufacturer );
 	}
 	
 	public String

@@ -28,7 +28,12 @@ public interface
 DeviceManager 
 {
 	public DeviceTemplate[]
-	getDeviceTemplates();
+	getDeviceTemplates(
+		int		device_type );
+	
+	public DeviceManufacturer[]
+	getDeviceManufacturers(
+		int		device_type );
 	
 	public Device[]
 	getDevices();
@@ -95,5 +100,15 @@ DeviceManager
 		
 		public String
 		getDescription();
+	}
+	
+	public interface
+	DeviceManufacturer
+	{
+		public String
+		getName();
+		
+		public DeviceTemplate[]
+		getDeviceTemplates();
 	}
 }

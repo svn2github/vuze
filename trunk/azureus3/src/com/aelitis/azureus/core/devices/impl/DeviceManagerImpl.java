@@ -334,9 +334,10 @@ DeviceManagerImpl
 	}
 	
 	public DeviceTemplate[] 
-	getDeviceTemplates() 
+	getDeviceTemplates(
+		int		device_type )
 	{
-		if ( transcode_manager == null ){
+		if ( transcode_manager == null || device_type != Device.DT_MEDIA_RENDERER ){
 			
 			return( new DeviceTemplate[0] );
 		}
@@ -383,6 +384,38 @@ DeviceManagerImpl
 		}
 		
 		return( result.toArray( new DeviceTemplate[ result.size() ]));
+	}
+	
+	public DeviceManufacturer[] 
+  	getDeviceManufacturers(
+  		int		device_type )
+	{
+		DeviceTemplate[] templates = getDeviceTemplates( device_type );
+		
+		Map<String,DeviceManufacturerImpl>	map = new HashMap<String, DeviceManufacturerImpl>();
+		
+		for ( DeviceTemplate template: templates ){
+			
+			if ( template.getType() != device_type ){
+				
+				continue;
+			}
+			
+			String	man_str = template.getManufacturer();
+			
+			DeviceManufacturerImpl man = map.get( man_str );
+			
+			if ( man == null ){
+				
+				man = new DeviceManufacturerImpl( man_str );
+				
+				map.put( man_str, man );
+			}
+			
+			man.addTemplate( template );
+		}
+		
+		return( map.values().toArray( new DeviceManufacturer[ map.size() ] ));
 	}
 	
 	protected Device
@@ -1033,6 +1066,41 @@ DeviceManagerImpl
 		}finally{
 			
 			writer.exdent();
+		}
+	}
+	
+	protected static class
+	DeviceManufacturerImpl
+		implements DeviceManufacturer
+	{
+		private String 	name;
+		
+		private List<DeviceTemplate>	templates = new ArrayList<DeviceTemplate>();
+		
+		protected
+		DeviceManufacturerImpl(
+			String		_name )
+		{
+			name	= _name;
+		}
+		
+		protected void
+		addTemplate(
+			DeviceTemplate	t )
+		{
+			templates.add( t );
+		}
+		
+		public String
+		getName()
+		{
+			return( name );
+		}
+		
+		public DeviceTemplate[]
+		getDeviceTemplates()
+		{
+			return( templates.toArray( new DeviceTemplate[ templates.size()] ));
 		}
 	}
 }

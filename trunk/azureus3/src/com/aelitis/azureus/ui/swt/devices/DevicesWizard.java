@@ -263,7 +263,7 @@ DevicesWizard
 			public void handleEvent(Event arg0) {
 				
 				try{
-					DeviceTemplate[] templates = device_manager_ui.getDeviceManager().getDeviceTemplates();
+					DeviceTemplate[] templates = device_manager_ui.getDeviceManager().getDeviceTemplates( Device.DT_MEDIA_RENDERER );
 					
 					for ( DeviceTemplate template: templates ){
 						

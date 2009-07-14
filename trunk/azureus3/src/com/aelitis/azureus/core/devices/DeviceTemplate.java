@@ -31,6 +31,9 @@ DeviceTemplate
 	getName();
 	
 	public String
+	getManufacturer();
+	
+	public String
 	getClassification();
 	
 	public boolean
