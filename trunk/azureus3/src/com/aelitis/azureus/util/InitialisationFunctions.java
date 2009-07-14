@@ -147,49 +147,6 @@ public class InitialisationFunctions
 					MetaSearchManagerFactory.getSingleton();
 					
 					SubscriptionManagerFactory.getSingleton();
-					
-					try{
-						RelatedContentManager.getSingleton().addListener(
-							new RelatedContentManagerListener()
-							{
-								private final boolean log = System.getProperty( "vz.rcm.log", "0" ).equals( "1" );
-								
-								public void
-								lookupStarted(
-									Download		for_download )
-								{
-									if ( log ){
-										
-										System.out.println( "RCM: start for " + for_download.getName());
-									}
-								}
-								
-								public void
-								foundContent(
-									Download		for_download,
-									RelatedContent	content )
-								{
-									if ( log ){
-										
-										System.out.println( "RCM:    " + for_download.getName() + " -> " + content.getString());
-									}
-								}
-								
-								public void
-								lookupCompleted(
-									Download		for_download )
-								{
-									if ( log ){
-										
-										System.out.println( "RCM: complete for " + for_download.getName());
-									}
-								}
-							});
-						
-					}catch( Throwable e ){
-						
-						Debug.out( e );
-					}
 				}
 			}).queue();
 	}

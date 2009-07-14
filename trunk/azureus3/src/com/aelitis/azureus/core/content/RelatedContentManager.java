@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -98,6 +99,9 @@ RelatedContentManager
 	private LinkedList<DownloadInfo>		download_infos2 	= new LinkedList<DownloadInfo>();
 	
 	private ByteArrayHashMapEx<DownloadInfo>	download_info_map	= new ByteArrayHashMapEx<DownloadInfo>();
+	private Set<String>							download_priv_set	= new HashSet<String>();
+	
+	private boolean	enabled;
 	
 	private int publishing_count = 0;
 	
@@ -129,6 +133,18 @@ RelatedContentManager
 		plugin_interface = core.getPluginManager().getDefaultPluginInterface();
 		
 		ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
+		
+		COConfigurationManager.addAndFireParameterListener(
+			"rcm.enabled",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					enabled = COConfigurationManager.getBooleanParameter( "rcm.enabled", true );
+				}
+			});
 		
 		SimpleTimer.addEvent(
 			"rcm.delay.init",
@@ -186,7 +202,10 @@ RelatedContentManager
 											perform(
 												TimerEvent event ) 
 											{
-												publish();
+												if ( enabled ){
+												
+													publish();
+												}
 											}
 										});
 								}
@@ -204,6 +223,19 @@ RelatedContentManager
 						});
 				}
 			});
+	}
+	
+	public boolean
+	isEnabled()
+	{
+		return( enabled );
+	}
+	
+	public void
+	setEnabled(
+		boolean		_enabled )
+	{
+		COConfigurationManager.setParameter( "rcm.enabled", _enabled );
 	}
 	
 	protected void
@@ -288,6 +320,11 @@ RelatedContentManager
 						download_infos2.add( info );
 						
 						download_info_map.put( hash, info );
+						
+						if ( info.getTracker() != null ){
+							
+							download_priv_set.add( info.getTitle() + ":" + info.getTracker());
+						}
 					}
 				}catch( Throwable e ){
 					
@@ -309,6 +346,11 @@ RelatedContentManager
 						if ( !download_info_map.containsKey( info.getHash())){
 							
 							download_info_map.put( info.getHash(), info );
+							
+							if ( info.getTracker() != null ){
+								
+								download_priv_set.add( info.getTitle() + ":" + info.getTracker());
+							}
 							
 							download_infos1.add( info );
 							download_infos2.add( info );
@@ -764,6 +806,28 @@ RelatedContentManager
 		RelatedContentManagerListener	extra_listener )
 	{
 		try{			
+			synchronized( this ){
+				
+				byte[] target = to_info.getHash();
+				
+				if ( target != null ){
+					
+					if ( download_info_map.containsKey( target )){
+						
+							// already know about this
+						
+						return;
+					}
+				}else{
+					
+					if ( download_priv_set.contains( to_info.getTitle() + ":" + to_info.getTracker())){
+						
+							// already know about this
+						
+						return;
+					}
+				}
+			}
 			
 			// TODO: stuff!
 			

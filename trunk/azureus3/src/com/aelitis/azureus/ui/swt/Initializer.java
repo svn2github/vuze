@@ -56,6 +56,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.browser.PlatformAuthorizedSenderImpl;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
+import com.aelitis.azureus.ui.swt.content.RelatedContentUI;
 import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
@@ -357,6 +358,14 @@ public class Initializer
 
 		try{
 			new SubscriptionManagerUI();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		try{
+			new RelatedContentUI();
 			
 		}catch( Throwable e ){
 			

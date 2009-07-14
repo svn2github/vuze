@@ -136,6 +136,8 @@ public class SideBar
 	public static final String SIDEBAR_SECTION_SUBSCRIPTIONS = "Subscriptions";
 
 	public static final String SIDEBAR_SECTION_DEVICES = "Devices";
+	
+	public static final String SIDEBAR_SECTION_RELATED_CONTENT = "RelatedContent";
 
 	public static final String SIDEBAR_SECTION_ADVANCED = "Advanced";
 
@@ -2927,6 +2929,23 @@ public class SideBar
 		return (SideBarEntry[]) mapIdToEntries.values().toArray(new SideBarEntry[0]);
 	}
 
+	public int
+	getIndexOfEntryRelativeToParent(
+		SideBarEntrySWT	entry )
+	{
+		TreeItem[] items = tree.getItems();
+		
+		for (int i=0;i<items.length;i++ ){
+			
+			if ( items[i] == entry.getTreeItem()){
+				
+				return( i );
+			}
+		}
+		
+		return( -1 );
+	}
+	
 	protected void linkTitleInfoToEntry(ViewTitleInfo ti, SideBarEntry entry) {
 		mapTitleInfoToEntry.put(ti, entry);
 	}
