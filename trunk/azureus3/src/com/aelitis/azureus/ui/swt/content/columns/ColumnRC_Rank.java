@@ -27,17 +27,17 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @created Feb 26, 2009
  *
  */
-public class ColumnRC_Title
+public class ColumnRC_Rank
 	implements TableCellRefreshListener
 {
-	public static final String COLUMN_ID = "rc_title";
+	public static final String COLUMN_ID = "rc_rank";
 
 	/**
 	 * 
 	 * @param sTableID
 	 */
-	public ColumnRC_Title(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 215);
+	public ColumnRC_Rank(TableColumn column) {
+		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 40 );
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
@@ -49,13 +49,11 @@ public class ColumnRC_Title
 			return;
 		}
 
-		String text = rc.getTitle();
-		
-		if ( text == null || text.length() == 0 ){
-			
-			return;
-		}
+		int rank = rc.getRank();
 
-		cell.setText(text);
+		if ( cell.setSortValue( rank )){
+		
+			cell.setText( String.valueOf( rank ));
+		}
 	}
 }

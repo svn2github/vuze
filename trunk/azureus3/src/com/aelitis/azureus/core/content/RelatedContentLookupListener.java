@@ -1,5 +1,5 @@
 /*
- * Created on Jul 9, 2009
+ * Created on Jul 15, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -22,16 +22,19 @@
 package com.aelitis.azureus.core.content;
 
 public interface 
-RelatedContentManagerListener 
+RelatedContentLookupListener 
 {
 	public void
-	contentFound(
-		RelatedContent	content );
-
-	public void
-	contentChanged(
-		RelatedContent	content );
+	lookupStart();
 	
 	public void
-	contentChanged();
+	contentFound(
+		RelatedContent		content );
+	
+	public void
+	lookupComplete();
+	
+	public void
+	lookupFailed(
+		ContentException 	error );
 }

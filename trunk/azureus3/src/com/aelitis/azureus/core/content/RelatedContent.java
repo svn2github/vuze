@@ -24,32 +24,36 @@ package com.aelitis.azureus.core.content;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.plugins.download.Download;
 
-public class 
+public abstract class 
 RelatedContent 
 {
-	private Download	related_to;
+	private byte[]		related_to_hash;
 	private String 		title;
 	private byte[]		hash;
 	private String		tracker;
 	
+	
 	protected
 	RelatedContent(
-		Download	_related_to,
+		byte[]		_related_to_hash,
 		String		_title,
 		byte[]		_hash,
 		String		_tracker )
 	{
-		related_to	= _related_to;
-		title		= _title;
-		hash		= _hash;
-		tracker		= _tracker;
+		related_to_hash		= _related_to_hash;
+		title				= _title;
+		hash				= _hash;
+		tracker				= _tracker;
 	}
 	
-	public Download
-	getRelatedTo()
+	public byte[]
+	getRelatedToHash()
 	{
-		return( related_to );
+		return( related_to_hash );
 	}
+	
+	public abstract Download
+	getRelatedToDownload();
 	
 	public String
 	getTitle()
@@ -57,11 +61,21 @@ RelatedContent
 		return( title );
 	}
 	
+	public abstract int
+	getRank();
+	
 	public byte[]
 	getHash()
 	{
 		return( hash );
 	}
+	
+	public abstract boolean
+	isUnread();
+	
+	public abstract void
+	setUnread(
+		boolean	unread );
 	
 	public String
 	getTracker()

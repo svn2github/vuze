@@ -113,6 +113,7 @@ RelatedContentManager
 
 	private List<DownloadInfo>	related_content = new ArrayList<DownloadInfo>();
 	
+	private int	total_unread;
 	
 	protected
 	RelatedContentManager()
@@ -325,7 +326,7 @@ RelatedContentManager
 						
 						DownloadInfo info = 
 							new DownloadInfo(
-								download,
+								hash,
 								hash,
 								download.getName(),
 								(int)rand,
@@ -368,7 +369,7 @@ RelatedContentManager
 					try{
 						DownloadInfo info = deserialiseDI((Map<String,Object>)history.get(i));
 						
-						if ( !download_info_map.containsKey( info.getHash())){
+						if ( info != null && !download_info_map.containsKey( info.getHash())){
 							
 							download_info_map.put( info.getHash(), info );
 							
@@ -395,10 +396,11 @@ RelatedContentManager
 					
 					for ( DownloadInfo info: new_info ){
 						
-						try{
-							history.add( serialiseDI( info ));
+						Map<String,Object> map = serialiseDI( info );
 							
-						}catch( Throwable e ){
+						if ( map != null ){
+							
+							history.add( map );	
 						}
 					}
 					
@@ -557,10 +559,6 @@ RelatedContentManager
 					starts(
 						byte[]				key )
 					{
-						if ( download != null ){
-						
-							fireLookupStarts( download, null );
-						}
 					}
 					
 					public void
@@ -602,7 +600,7 @@ RelatedContentManager
 								entries.add( key );
 							}
 							
-							analyseResponse( from_info, new DownloadInfo( from_info.getRelatedTo(), hash, title, rand, tracker ), null );
+							analyseResponse( from_info, new DownloadInfo( from_info.getRelatedToHash(), hash, title, rand, tracker ), null );
 							
 						}catch( Throwable e ){							
 						}
@@ -623,83 +621,75 @@ RelatedContentManager
 						byte[]				key,
 						boolean				timeout_occurred )
 					{
-						try{
-							boolean	do_it;
+						boolean	do_it;
+						
+						if ( diversified ){
 							
-							if ( diversified ){
-								
-								do_it = RandomUtils.nextInt( 10 ) == 0;
-								
-							}else if ( hits <= 10 ){
-								
-								do_it = true;
-								
-							}else{
+							do_it = RandomUtils.nextInt( 10 ) == 0;
 							
-								int scaled = 10 * ( hits - 10 ) / ( max_hits - 10 );
-								
-								do_it = RandomUtils.nextInt( scaled ) == 0;
-							}
-								
-							if ( do_it ){
-								
-								try{
-									dht_plugin.put(
-											key_bytes,
-											"Content relationship: " +  from_hash + " -> " + to_hash,
-											map_bytes,
-											DHTPlugin.FLAG_ANON,
-											new DHTPluginOperationListener()
+						}else if ( hits <= 10 ){
+							
+							do_it = true;
+							
+						}else{
+						
+							int scaled = 10 * ( hits - 10 ) / ( max_hits - 10 );
+							
+							do_it = RandomUtils.nextInt( scaled ) == 0;
+						}
+							
+						if ( do_it ){
+							
+							try{
+								dht_plugin.put(
+										key_bytes,
+										"Content relationship: " +  from_hash + " -> " + to_hash,
+										map_bytes,
+										DHTPlugin.FLAG_ANON,
+										new DHTPluginOperationListener()
+										{
+											public void
+											diversified()
 											{
-												public void
-												diversified()
-												{
-												}
-												
-												public void 
-												starts(
-													byte[] 				key ) 
-												{
-												}
-												
-												public void
-												valueRead(
-													DHTPluginContact	originator,
-													DHTPluginValue		value )
-												{
-												}
-												
-												public void
-												valueWritten(
-													DHTPluginContact	target,
-													DHTPluginValue		value )
-												{
-												}
-												
-												public void
-												complete(
-													byte[]				key,
-													boolean				timeout_occurred )
-												{
-													publishNext();
-												}
-											});
-								}catch( Throwable e ){
-									
-									Debug.printStackTrace(e);
-									
-									publishNext();
-								}
-							}else{
+											}
+											
+											public void 
+											starts(
+												byte[] 				key ) 
+											{
+											}
+											
+											public void
+											valueRead(
+												DHTPluginContact	originator,
+												DHTPluginValue		value )
+											{
+											}
+											
+											public void
+											valueWritten(
+												DHTPluginContact	target,
+												DHTPluginValue		value )
+											{
+											}
+											
+											public void
+											complete(
+												byte[]				key,
+												boolean				timeout_occurred )
+											{
+												publishNext();
+											}
+										});
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
 								
 								publishNext();
 							}
-						}finally{
+						}else{
 							
-							if ( download != null ){
-								
-								fireLookupComplete( download, null );
-							}
+							publishNext();
 						}
 					}
 				});
@@ -708,7 +698,7 @@ RelatedContentManager
 	public void
 	lookupContent(
 		final Download						download,
-		final RelatedContentManagerListener	listener )
+		final RelatedContentLookupListener	listener )
 	
 		throws ContentException
 	{
@@ -728,11 +718,9 @@ RelatedContentManager
 							
 							lookupContentSupport( download, listener );
 							
-						}catch( Throwable e ){
+						}catch( ContentException e ){
 							
 							Debug.out( e );
-							
-							listener.lookupCompleted( download );
 						}
 					}
 				});
@@ -745,37 +733,38 @@ RelatedContentManager
 	private void
 	lookupContentSupport(
 		final Download						download,
-		final RelatedContentManagerListener	listener )
+		final RelatedContentLookupListener	listener )
 	
 		throws ContentException
 	{
-		if ( dht_plugin == null ){
-			
-			throw( new ContentException( "DHT plugin unavailable" ));
-		}
-		
-		final DownloadInfo	from_info;
-	
-		synchronized( this ){
-			
-			Torrent t = download.getTorrent();
-			
-			if ( t == null ){
-				
-				throw( new ContentException( "Torrent not available" ));
-			}
-			
-			from_info = download_info_map.get( t.getHash());
-			
-			if ( from_info == null ){
-				
-				throw( new ContentException( "Unknown download" ));
-			}
-		}
-		
-		final String from_hash	= ByteFormatter.encodeString( from_info.getHash());
-		
 		try{
+
+			if ( dht_plugin == null ){
+				
+				throw( new ContentException( "DHT plugin unavailable" ));
+			}
+			
+			final DownloadInfo	from_info;
+		
+			synchronized( this ){
+				
+				Torrent t = download.getTorrent();
+				
+				if ( t == null ){
+					
+					throw( new ContentException( "Torrent not available" ));
+				}
+				
+				from_info = download_info_map.get( t.getHash());
+				
+				if ( from_info == null ){
+					
+					throw( new ContentException( "Unknown download" ));
+				}
+			}
+			
+			final String from_hash	= ByteFormatter.encodeString( from_info.getHash());
+		
 			final byte[] key_bytes	= ( "az:rcm:assoc:" + from_hash ).getBytes( "UTF-8" );
 			
 			
@@ -797,7 +786,15 @@ RelatedContentManager
 						starts(
 							byte[]				key )
 						{
-							fireLookupStarts( download, listener );
+							if ( listener != null ){
+								try{
+									listener.lookupStart();
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
 						}
 						
 						public void
@@ -838,7 +835,7 @@ RelatedContentManager
 									entries.add( key );
 								}
 								
-								analyseResponse( from_info, new DownloadInfo( from_info.getRelatedTo(), hash, title, rand, tracker ), listener );
+								analyseResponse( from_info, new DownloadInfo( from_info.getRelatedToHash(), hash, title, rand, tracker ), listener );
 								
 							}catch( Throwable e ){							
 							}
@@ -857,12 +854,73 @@ RelatedContentManager
 							byte[]				key,
 							boolean				timeout_occurred )
 						{
-							fireLookupComplete( download, listener );
+							if ( listener != null ){
+								
+								try{
+									listener.lookupComplete();
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
 						}				
 					});
 		}catch( Throwable e ){
+		
+			ContentException	ce;
 			
-			throw( new ContentException( "Lookup failed", e ));
+			if ( ( e instanceof ContentException )){
+				
+				ce = (ContentException)e;
+				
+			}else{
+				ce = new ContentException( "Lookup failed", e );
+			}
+			
+			if ( listener != null ){
+				
+				try{
+					listener.lookupFailed( ce );
+					
+				}catch( Throwable f ){
+					
+					Debug.out( f );
+				}
+			}
+			
+			throw( ce );
+		}
+	}
+	
+	protected void
+	contentChanged(
+		DownloadInfo		info )
+	{
+		for ( RelatedContentManagerListener l: listeners ){
+			
+			try{
+				l.contentChanged( info );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	protected void
+	contentChanged()
+	{
+		for ( RelatedContentManagerListener l: listeners ){
+			
+			try{
+				l.contentChanged();
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
 		}
 	}
 	
@@ -870,7 +928,7 @@ RelatedContentManager
 	analyseResponse(
 		DownloadInfo					from_info,
 		DownloadInfo					to_info,
-		RelatedContentManagerListener	extra_listener )
+		RelatedContentLookupListener	extra_listener )
 	{
 		try{			
 			synchronized( this ){
@@ -894,12 +952,16 @@ RelatedContentManager
 						return;
 					}
 				}
+			
+				to_info.setPublic();
 				
 				related_content.add( to_info );
 
 			
 				
 				// TODO: stuff!
+				
+				
 			}
 			
 		}catch( Throwable e ){
@@ -916,7 +978,7 @@ RelatedContentManager
 				for ( RelatedContentManagerListener l: listeners ){
 					
 					try{
-						l.foundContent( download, to_info );
+						l.contentFound( to_info );
 						
 					}catch( Throwable e ){
 						
@@ -927,7 +989,7 @@ RelatedContentManager
 				if ( extra_listener != null ){
 					
 					try{
-						extra_listener.foundContent( download, to_info );
+						extra_listener.contentFound( to_info );
 						
 					}catch( Throwable e ){
 						
@@ -947,6 +1009,56 @@ RelatedContentManager
 		}
 	}
 	
+	public int
+	getNumUnread()
+	{
+		synchronized( this ){
+		
+			return( total_unread );
+		}
+	}
+	
+	public void
+	setAllRead()
+	{
+		synchronized( this ){
+			
+			for ( DownloadInfo c: related_content ){
+				
+				c.setUnreadInternal( false );
+			}
+			
+			total_unread = 0;
+		}
+		
+		contentChanged();
+	}
+	
+	protected void
+	incrementUnread()
+	{
+		synchronized( this ){
+			
+			total_unread++;
+		}
+	}
+	
+	protected void
+	decrementUnread()
+	{
+		synchronized( this ){
+			
+			total_unread--;
+			
+			if ( total_unread < 0 ){
+				
+				Debug.out( "inconsistent" );
+				
+				total_unread = 0;
+			}
+		}
+	}
+	
 	protected Download
 	getDownload(
 		byte[]	hash )
@@ -957,62 +1069,6 @@ RelatedContentManager
 		}catch( Throwable e ){
 			
 			return( null );
-		}
-	}
-	
-	protected void
-	fireLookupStarts(
-		Download						download,
-		RelatedContentManagerListener	extra_listener )
-	{
-		for ( RelatedContentManagerListener listener: listeners ){
-			
-			try{
-				listener.lookupStarted( download );
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-			}
-		}
-		
-		if ( extra_listener != null ){
-			
-			try{
-				extra_listener.lookupStarted( download );
-				
-			}catch( Throwable e ){	
-				
-				Debug.out( e );
-			}
-		}
-	}
-	
-	protected void
-	fireLookupComplete(
-		Download						download,
-		RelatedContentManagerListener	extra_listener )
-	{
-		for ( RelatedContentManagerListener listener: listeners ){
-			
-			try{
-				listener.lookupCompleted( download );
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-			}
-		}
-		
-		if ( extra_listener != null ){
-			
-			try{
-				extra_listener.lookupCompleted( download );
-				
-			}catch( Throwable e ){	
-				
-				Debug.out( e );
-			}
 		}
 	}
 	
@@ -1070,46 +1126,66 @@ RelatedContentManager
 	    }
 	}
 	
-	protected Map<String,Object>
+	private Map<String,Object>
 	serialiseDI(
 		DownloadInfo	info )
-	
-		throws IOException
 	{
-		Map<String,Object> m = new HashMap<String,Object>();
-		
-		m.put( "h", info.getHash());
-		
-		ImportExportUtils.exportString( m, "d", info.getTitle());
-		ImportExportUtils.exportInt( m, "r", info.getRand());
-		ImportExportUtils.exportString( m, "t", info.getTracker());
-		
-		return( m );
+		try{
+			Map<String,Object> m = new HashMap<String,Object>();
+			
+			m.put( "h", info.getHash());
+			
+			ImportExportUtils.exportString( m, "d", info.getTitle());
+			ImportExportUtils.exportInt( m, "r", info.getRand());
+			ImportExportUtils.exportString( m, "t", info.getTracker());
+			
+			m.put( "f", info.getRelatedToHash());
+			
+			return( m );
+			
+		}catch( Throwable e ){
+			
+			return( null );
+		}
 	}
 	
-	protected DownloadInfo
+	private DownloadInfo
 	deserialiseDI(
 		Map<String,Object>				m )
-	
-		throws IOException
 	{
-		byte[]	hash 	= (byte[])m.get("h");
-		String	title	= ImportExportUtils.importString( m, "d" );
-		int		rand	= ImportExportUtils.importInt( m, "r" );
-		String	tracker	= ImportExportUtils.importString( m, "t" );
-		
-		return( new DownloadInfo( null, hash, title, rand, tracker ));
+		try{
+			byte[]	hash 	= (byte[])m.get("h");
+			String	title	= ImportExportUtils.importString( m, "d" );
+			int		rand	= ImportExportUtils.importInt( m, "r" );
+			String	tracker	= ImportExportUtils.importString( m, "t" );
+			
+			byte[]	from_hash 	= (byte[])m.get("f");
+			
+			if ( from_hash == null ){
+				
+				return( null );
+			}
+			
+			return( new DownloadInfo( from_hash, hash, title, rand, tracker ));
+			
+		}catch( Throwable e ){
+			
+			return( null );
+		}
 	}
 	
-	protected static class
+	protected class
 	DownloadInfo
 		extends RelatedContent
 	{
 		final private int			rand;
 		
+		private int			rank;
+		private boolean		unread	= true;
+		
 		protected
 		DownloadInfo(
-			Download	_related_to,
+			byte[]		_related_to,
 			byte[]		_hash,
 			String		_title,
 			int			_rand,
@@ -1120,10 +1196,86 @@ RelatedContentManager
 			rand		= _rand;
 		}
 		
+		public int
+		getRank()
+		{
+			return( rank );
+		}
+		
+		public boolean
+		isUnread()
+		{
+			return( unread );
+		}
+		
+		protected void
+		setPublic()
+		{
+			if ( unread ){
+				
+				incrementUnread();
+			}
+		}
+		
+		protected void
+		setUnreadInternal(
+			boolean	_unread )
+		{
+			synchronized( this ){
+
+				unread = _unread;
+			}
+		}
+		
+		public void
+		setUnread(
+			boolean	_unread )
+		{
+			boolean	changed = false;
+			
+			synchronized( this ){
+				
+				if ( unread != _unread ){
+				
+					unread = _unread;
+					
+					changed = true;
+				}
+			}
+			
+			if ( changed ){
+			
+				if ( _unread ){
+					
+					incrementUnread();
+					
+				}else{
+					
+					decrementUnread();
+				}
+				
+				contentChanged( this );
+			}
+		}
+		
 		protected int
 		getRand()
 		{
 			return( rand );
+		}
+		
+		public Download 
+		getRelatedToDownload() 
+		{
+			try{
+				return( getDownload( getRelatedToHash()));
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+				
+				return( null );
+			}
 		}
 		
 		public String

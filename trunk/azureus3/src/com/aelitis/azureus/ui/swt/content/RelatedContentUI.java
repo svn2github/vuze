@@ -23,7 +23,9 @@ package com.aelitis.azureus.ui.swt.content;
 
 
 
-import org.eclipse.swt.widgets.Composite;
+import java.util.ArrayList;
+import java.util.List;
+
 
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -58,10 +60,12 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.content.ContentException;
 import com.aelitis.azureus.core.content.RelatedContent;
+import com.aelitis.azureus.core.content.RelatedContentLookupListener;
 import com.aelitis.azureus.core.content.RelatedContentManager;
 import com.aelitis.azureus.core.content.RelatedContentManagerListener;
-import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -86,6 +90,8 @@ RelatedContentUI
 	private boolean			ui_setup;
 	private SideBar			side_bar;
 	private boolean			root_menus_added;
+	private MainViewInfo 	main_view_info;
+	
 	
 	private ByteArrayHashMap<RCMItem>	rcm_item_map = new ByteArrayHashMap<RCMItem>();
 	
@@ -210,9 +216,67 @@ RelatedContentUI
 						}
 					});
 			
+			main_view_info = new MainViewInfo();
+
 			hookMenus();
-			
+						
 			buildSideBar();
+			
+			manager.addListener(
+				new RelatedContentManagerListener()
+				{
+					private int last_unread;
+					
+					public void
+					contentFound(
+						RelatedContent	content )
+					{
+						check();
+					}
+
+					public void
+					contentChanged(
+						RelatedContent	content )
+					{
+						contentChanged();
+					}
+					
+					public void 
+					contentChanged() 
+					{
+						check();
+						
+						List<RCMItem>	items;
+						
+						synchronized( RelatedContentUI.this ){
+							
+							items = new ArrayList<RCMItem>( rcm_item_map.values());
+						}
+						
+						for ( RCMItem item: items ){
+							
+							item.updateNumUnread();
+						}
+					}
+					
+					protected void
+					check()
+					{
+						int	unread = manager.getNumUnread();
+						
+						synchronized( this ){
+							
+							if ( unread == last_unread ){
+								
+								return;
+							}
+							
+							last_unread = unread;
+						}
+						
+						ViewTitleInfoManager.refreshTitleInfo( main_view_info );
+					}
+				});
 			
 		}catch( Throwable e ){
 			
@@ -290,23 +354,23 @@ RelatedContentUI
 			if ( main_sb_entry.getTreeItem() == null ){
 				
 				if ( manager.isEnabled()){
-					
+										
 					side_bar.createEntryFromSkinRef(
 							null,
 							SideBar.SIDEBAR_SECTION_RELATED_CONTENT, "rcmview",
-							MessageText.getString("rcm.view.title"),
-							null, null, false, index  );
+							main_view_info.getTitle(),
+							main_view_info, null, false, index  );
 					
 					main_sb_entry.setDatasource(
 						new RelatedContentEnumerator()
 						{
 							private RelatedContentManagerListener base_listener;
 							
-							private RelatedContentManagerListener current_listener;
+							private RelatedContentEnumeratorListener current_listener;
 							
 							public void
 							enumerate(
-								RelatedContentManagerListener	listener )
+								RelatedContentEnumeratorListener	listener )
 							{
 								current_listener = listener;
 								
@@ -316,25 +380,21 @@ RelatedContentUI
 										new RelatedContentManagerListener()
 										{
 											public void
-											lookupStarted(
-												Download		for_download )
-											{
-												
-											}
-											
-											public void
-											foundContent(
-												Download		for_download,
+											contentFound(
 												RelatedContent	content )
 											{
-												current_listener.foundContent( for_download, content );
+												current_listener.contentFound( new RelatedContent[]{ content });
 											}
 											
 											public void
-											lookupCompleted(
-												Download		for_download )
+											contentChanged(
+												RelatedContent	content )
 											{
-												
+											}
+											
+											public void 
+											contentChanged() 
+											{
 											}
 										};
 										
@@ -343,17 +403,7 @@ RelatedContentUI
 								
 								RelatedContent[] current_content = manager.getRelatedContent();
 								
-									// TODO: do this in one go
-								
-								for ( RelatedContent c: current_content ){
-									
-									Download d = c.getRelatedTo();
-									
-									if ( d != null ){
-									
-										listener.foundContent( d, c );
-									}
-								}
+								listener.contentFound( current_content );
 							}
 						});
 				}else{
@@ -373,7 +423,24 @@ RelatedContentUI
 				
 				MenuManager menu_manager = ui_manager.getMenuManager();
 	
-				MenuItem menu_item = menu_manager.addMenuItem( parent_id, "ConfigView.title.short" );
+				MenuItem menu_item = menu_manager.addMenuItem( parent_id, "v3.activity.button.readall" );
+				
+				menu_item.addListener( 
+						new MenuItemListener() 
+						{
+							public void 
+							selected(
+								MenuItem menu, Object target ) 
+							{
+						      	manager.setAllRead();
+							}
+						});
+				
+				menu_item = menu_manager.addMenuItem( parent_id, "sep" );
+
+				menu_item.setStyle( MenuItem.STYLE_SEPARATOR );
+				
+				menu_item = menu_manager.addMenuItem( parent_id, "ConfigView.title.short" );
 				
 				menu_item.addListener( 
 						new MenuItemListener() 
@@ -498,17 +565,54 @@ RelatedContentUI
 	}
 	
 	protected class
+	MainViewInfo
+		implements 	ViewTitleInfo
+	{
+		protected
+		MainViewInfo()
+		{
+		}
+		
+		public Object 
+		getTitleInfoProperty(
+			int propertyID ) 
+		{		
+			if ( propertyID == TITLE_TEXT ){
+				
+				return( getTitle());
+				
+			}else if ( propertyID == TITLE_INDICATOR_TEXT ){
+				
+				int	 unread = manager.getNumUnread();
+				
+				if ( unread > 0 ){
+				
+					return( String.valueOf( unread ));
+				}
+				
+			}else if ( propertyID == TITLE_INDICATOR_COLOR ){
+	
+			}
+			
+			return null;
+		}
+		
+		public String
+		getTitle()
+		{
+			return( MessageText.getString("rcm.view.title"));
+		}
+	}
+	
+	protected class
 	RCMView
 		implements 	ViewTitleInfo
 	{
 		private String			parent_key;
 		private Download		download;
 		
-		private Composite		parent_composite;
-		private Composite		composite;
+		private int				num_unread;
 		
-		private int last_indicator;
-
 		protected
 		RCMView(
 			String			_parent_key,
@@ -528,7 +632,11 @@ RelatedContentUI
 				
 			}else if ( propertyID == TITLE_INDICATOR_TEXT ){
 				
-
+				if ( num_unread > 0 ){
+				
+					return( String.valueOf( num_unread ));
+				}
+				
 			}else if ( propertyID == TITLE_INDICATOR_COLOR ){
 	
 			}
@@ -543,23 +651,12 @@ RelatedContentUI
 		}
 		
 		protected void
-		refreshTitles()
+		setNumUnread(
+			int	n )
 		{
+			num_unread = n;
+						
 			ViewTitleInfoManager.refreshTitleInfo( this );
-
-			String	key = parent_key;
-			
-			while( key != null ){
-			
-				SideBarEntrySWT parent = SideBar.getEntry( key );
-			
-				if ( parent != null ){
-				
-					ViewTitleInfoManager.refreshTitleInfo(parent.getTitleInfo());
-					
-					key = parent.getParentID();
-				}
-			}
 		}
 	}
 	
@@ -602,9 +699,15 @@ RelatedContentUI
 		private TreeItem			tree_item;
 		private boolean				destroyed;
 		
-		private SideBarVitalityImage	warning;
 		private SideBarVitalityImage	spinner;
-		private SideBarVitalityImage	info;
+		
+		private List<RelatedContent>	content_list = new ArrayList<RelatedContent>();
+		
+		private int	num_unread;
+		
+		private CopyOnWriteList<RelatedContentEnumeratorListener>	listeners = new CopyOnWriteList<RelatedContentEnumeratorListener>();
+		
+		private boolean	lookup_complete;
 		
 		protected
 		RCMItem(
@@ -628,76 +731,122 @@ RelatedContentUI
 			sb_entry.addListener( this );
 			
 			spinner = sb_entry.addVitalityImage( SPINNER_IMAGE_ID );
-		}
-		
-		public void
-		enumerate(
-			final RelatedContentManagerListener	listener )
-		{
+			
 			try{
 				showIcon( spinner, null );
 				
-				try{
-					listener.lookupStarted( download );
-					
-				}catch( Throwable e ){
-					
-					Debug.out( e );
-				}
-				
 				manager.lookupContent(
 					download,
-					new RelatedContentManagerListener()
+					new RelatedContentLookupListener()
 					{
 						public void
-						lookupStarted(
-							Download		for_download )
+						lookupStart()
 						{
-							
 						}
 						
 						public void
-						foundContent(
-							Download		for_download,
+						contentFound(
 							RelatedContent	content )
 						{
-							try{
-								listener.foundContent( download, content );
+							synchronized( RCMItem.this ){
+							
+								content_list.add( content );
+							}
+							
+							updateNumUnread();
+							
+							for ( RelatedContentEnumeratorListener listener: listeners ){
 								
-							}catch( Throwable e ){
-								
-								Debug.out( e );
+								try{
+									listener.contentFound( new RelatedContent[]{ content });
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
 							}
 						}
 						
 						public void
-						lookupCompleted(
-							Download		for_download )
-						{
-							try{
-								listener.lookupStarted( download );
+						lookupComplete()
+						{	
+							synchronized( RCMItem.this ){
 								
-							}catch( Throwable e ){
+								lookup_complete = true;
 								
-								Debug.out( e );
+								listeners.clear();
 							}
 							
 							hideIcon( spinner );
 						}
+						
+						public void
+						lookupFailed(
+							ContentException e )
+						{	
+							lookupComplete();
+						}
 					});
 			}catch( Throwable e ){
 				
+				lookup_complete = true;
+				
 				Debug.out( e );
 				
-				try{
-					listener.lookupCompleted( download );
+				hideIcon( spinner );
+			}
+		}
+		
+		protected void
+		updateNumUnread()
+		{
+			boolean	changed = false;
+			
+			synchronized( RCMItem.this ){
+				
+				int	num = 0;
+				
+				for ( RelatedContent c: content_list ){
 					
-				}catch( Throwable f ){
-					
-					Debug.out( f );
+					if ( c.isUnread()){
+						
+						num++;
+					}
 				}
 				
-				hideIcon( spinner );
+				if ( num != num_unread ){
+					
+					num_unread = num;
+					
+					changed = true;
+				}
+			}
+			
+			if ( changed ){
+				
+				view.setNumUnread( num_unread );
+			}
+		}
+		
+		public void
+		enumerate(
+			final RelatedContentEnumeratorListener	listener )
+		{
+			RelatedContent[]	already_found;
+			 
+			synchronized( this ){
+				
+				if ( !lookup_complete ){
+					
+					listeners.add( listener );
+				}
+				
+				already_found = content_list.toArray( new RelatedContent[ content_list.size()]);
+			}
+			
+			if ( already_found.length > 0 ){
+				
+				listener.contentFound( already_found );
 			}
 		}
 		
@@ -724,23 +873,6 @@ RelatedContentUI
 		getView()
 		{
 			return( view );
-		}
-		
-		protected void
-		setStatus(
-			Device	device )
-		{
-				// possible during initialisation, status will be shown again on complete
-			
-			if ( spinner != null ){
-			
-
-			}
-			
-			if ( view != null ){
-				
-				view.refreshTitles();
-			}
 		}
 		
 		protected boolean

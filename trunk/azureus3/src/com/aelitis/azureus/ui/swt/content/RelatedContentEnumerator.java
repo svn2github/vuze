@@ -21,12 +21,21 @@
 
 package com.aelitis.azureus.ui.swt.content;
 
-import com.aelitis.azureus.core.content.RelatedContentManagerListener;
+import com.aelitis.azureus.core.content.RelatedContent;
+
 
 public interface 
 RelatedContentEnumerator 
 {
 	public void
 	enumerate(
-		RelatedContentManagerListener	listener );
+		RelatedContentEnumeratorListener	listener );
+	
+	interface
+	RelatedContentEnumeratorListener
+	{
+		public void
+		contentFound(
+			RelatedContent[]		content );
+	}
 }

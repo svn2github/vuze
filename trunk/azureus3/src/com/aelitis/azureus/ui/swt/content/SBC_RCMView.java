@@ -19,12 +19,18 @@
 package com.aelitis.azureus.ui.swt.content;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.swt.SWT;
 
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -39,25 +45,22 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.content.RelatedContent;
+import com.aelitis.azureus.core.content.RelatedContentManager;
 import com.aelitis.azureus.core.content.RelatedContentManagerListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.swt.content.columns.ColumnRC_Title;
-import com.aelitis.azureus.ui.swt.devices.columns.*;
+import com.aelitis.azureus.ui.swt.content.columns.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
-/**
- * @author TuxPaper
- * @created Feb 24, 2009
- *
- */
-public class SBC_RCMView
+
+public class 
+SBC_RCMView
 	extends SkinView
 	implements UIUpdatable
 {
@@ -65,8 +68,17 @@ public class SBC_RCMView
 
 	private static boolean columnsAdded = false;
 
-
-
+	private static RelatedContentManager	manager;
+	
+	static{
+		try{
+			manager = RelatedContentManager.getSingleton();
+			
+		}catch( Throwable e ){
+			
+			Debug.out(e);
+		}
+	}
 	
 	private TableViewSWTImpl<RelatedContent> tv_related_content;
 
@@ -74,10 +86,9 @@ public class SBC_RCMView
 	private Composite			table_parent;
 	
 
-	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object 
 	skinObjectInitialShow(
-		SWTSkinObject skinObject, Object params) 
+		SWTSkinObject skinObject, Object params ) 
 	{
 		super.skinObjectInitialShow(skinObject, params);
 
@@ -88,7 +99,7 @@ public class SBC_RCMView
 				azureusCoreRunning(
 					AzureusCore core )
 				{
-					initColumns(core);
+					initColumns( core );
 				}
 			});
 
@@ -98,35 +109,76 @@ public class SBC_RCMView
 		if ( sidebar != null ){
 			
 			sidebar_entry = sidebar.getCurrentEntry();
-			
-			//sidebarEntry.setIconBarEnabler(this);
-			// device = (Device) sidebarEntry.getDatasource();
 		}
-
-
-
-
+		
 		return null;
 	}
 
-	/**
-	 * 
-	 *
-	 * @since 4.1.0.5
-	 */
-	private void initColumns(AzureusCore core) {
-		if (columnsAdded) {
-			return;
+
+	private void 
+	initColumns(
+		AzureusCore core ) 
+	{
+		synchronized( SBC_RCMView.class ){
+			
+			if ( columnsAdded ){
+			
+				return;
+			}
+		
+			columnsAdded = true;
 		}
-		columnsAdded = true;
+		
 		UIManager uiManager = PluginInitializer.getDefaultInterface().getUIManager();
+		
 		TableManager tableManager = uiManager.getTableManager();
-		tableManager.registerColumn(RelatedContent.class, ColumnRC_Title.COLUMN_ID,
-				new TableColumnCreationListener() {
-					public void tableColumnCreated(TableColumn column) {
-						new ColumnRC_Title(column);
-					}
-				});
+		
+		tableManager.registerColumn(
+				RelatedContent.class, 
+				ColumnRC_New.COLUMN_ID,
+					new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new ColumnRC_New(column);
+						}
+					});
+
+		tableManager.registerColumn(
+				RelatedContent.class, 
+				ColumnRC_Rank.COLUMN_ID,
+					new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new ColumnRC_Rank(column);
+						}
+					});
+			
+		tableManager.registerColumn(
+				RelatedContent.class, 
+				ColumnRC_Title.COLUMN_ID,
+					new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new ColumnRC_Title(column);
+						}
+					});
+			
+		tableManager.registerColumn(
+				RelatedContent.class, 
+				ColumnRC_Hash.COLUMN_ID,
+					new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new ColumnRC_Hash(column);
+						}
+					});
+			
+		tableManager.registerColumn(
+				RelatedContent.class, 
+				ColumnRC_Tracker.COLUMN_ID,
+					new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new ColumnRC_Tracker(column);
+						}
+					});
+			
+			
 	}
 
 	public Object 
@@ -165,7 +217,7 @@ public class SBC_RCMView
 			table_parent,
 		});
 
-		return super.skinObjectHidden(skinObject, params);
+		return( super.skinObjectHidden(skinObject, params));
 	}
 
 
@@ -180,14 +232,12 @@ public class SBC_RCMView
 					TABLE_RCM,
 					TABLE_RCM, 
 					new TableColumnCore[0], 
-					ColumnRC_Title.COLUMN_ID, 
+					ColumnRC_New.COLUMN_ID, 
 					SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
 		
 		tv_related_content.setRowDefaultHeight(50);
 		tv_related_content.setHeaderVisible(true);
 		
-		// tvFiles.setParentDataSource(device);
-
 		table_parent = new Composite(control, SWT.NONE);
 		table_parent.setLayoutData(Utils.getFilledFormData());
 		GridLayout layout = new GridLayout();
@@ -230,9 +280,61 @@ public class SBC_RCMView
 		tv_related_content.addLifeCycleListener(
 			new TableLifeCycleListener() 
 			{
+				private Set<RelatedContent>	content_set = Collections.synchronizedSet( new HashSet<RelatedContent>());
+				
+				private RelatedContentManagerListener rcm_listener = 
+					new RelatedContentManagerListener()
+					{
+						public void
+						contentFound(
+							RelatedContent	content )
+						{							
+						}
+
+						public void
+						contentChanged(
+							RelatedContent	content )
+						{
+							if ( content_set.contains( content )){
+								
+								Utils.execSWTThread(
+										new Runnable()
+										{
+											public void
+											run()
+											{
+												if ( tv_related_content != null && !tv_related_content.isDisposed()){
+													
+													tv_related_content.refreshTable( false );
+												}
+											}
+										});
+							}
+						}
+						
+						public void
+						contentChanged()
+						{
+							Utils.execSWTThread(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											if ( tv_related_content != null && !tv_related_content.isDisposed()){
+												
+												tv_related_content.refreshTable( false );
+											}
+										}
+									});
+						}
+					};
+				
 				public void 
 				tableViewInitialized() 
 				{
+					manager.addListener( rcm_listener );
+					
 					Object data_source = sidebar_entry.getDatasource();
 					
 					if ( data_source instanceof RelatedContentEnumerator ){
@@ -240,92 +342,114 @@ public class SBC_RCMView
 						final TableViewSWTImpl<RelatedContent> f_table = tv_related_content;
 						
 						((RelatedContentEnumerator)data_source).enumerate(
-							new RelatedContentManagerListener()
+							new RelatedContentEnumerator.RelatedContentEnumeratorListener()
 							{
 								public void
-								lookupStarted(
-									Download		for_download )
+								contentFound(
+									RelatedContent[]	content )
 								{
+									ArrayList<RelatedContent> new_content = null;
 									
-								}
-								
-								public void
-								foundContent(
-									Download				for_download,
-									final RelatedContent	content )
-								{
-									Utils.execSWTThread(
-										new Runnable()
-										{
-											public void
-											run()
-											{
-												if ( tv_related_content == f_table && !tv_related_content.isDisposed()){
+									synchronized( content_set ){
+										
+										for ( RelatedContent c: content ){
+											
+											if ( content_set.contains( c )){
 												
-													f_table.addDataSource( content );
+												if ( new_content == null ){
+													
+													new_content = new ArrayList<RelatedContent>( content.length );
+													
+													for ( RelatedContent c2: content ){
+														
+														if ( c == c2 ){
+															
+															break;
+														}
+														
+														new_content.add( c2 );
+													}
+												}									
+											}else{
+												
+												if ( new_content != null ){
+													
+													new_content.add( c );
 												}
 											}
-										});
-								}
-								
-								public void
-								lookupCompleted(
-									Download		for_download )
-								{
+										}
+					
+										if ( new_content != null ){
+											
+											content = new_content.toArray( new RelatedContent[ new_content.size()]);
+										}
+										
+										content_set.addAll( Arrays.asList( content ));
+									}
 									
+									if ( content.length > 0 ){
+										
+										final RelatedContent[] f_content = content; 
+										
+										Utils.execSWTThread(
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													if ( tv_related_content == f_table && !tv_related_content.isDisposed()){
+													
+														f_table.addDataSources( f_content );
+													}
+												}
+											});
+									}
 								}
 							});
 					}
-				/*
-				if (transTarget == null) {
-					// just add all jobs' files
-					TranscodeJob[] jobs = transcode_queue.getJobs();
-					for (TranscodeJob job : jobs) {
-						TranscodeFile file = job.getTranscodeFile();
-						if (file != null) {
-							tvFiles.addDataSource(file);
-						}
-					}
-				} else {
-					tvFiles.addDataSources(transTarget.getFiles());
-				}
-				*/
 				}
 
 				public void 
 				tableViewDestroyed() 
 				{
+					manager.removeListener( rcm_listener );
+					
+					content_set.clear();
 				}
 			});
 
-		tv_related_content.addMenuFillListener(new TableViewSWTMenuFillListener() {
-			public void fillMenu(Menu menu) {
-				
-			}
+		tv_related_content.addMenuFillListener(
+			new TableViewSWTMenuFillListener() 
+			{
+				public void 
+				fillMenu(Menu menu)
+				{
+				}
 
-			public void addThisColumnSubMenu(String columnName, Menu menuThisColumn) {
-			}
-		});
+				public void 
+				addThisColumnSubMenu(
+					String columnName, Menu menuThisColumn) 
+				{
+				}
+			});
 
 		tv_related_content.initialize( table_parent );
 
 		control.layout(true);
 	}
 
-
-
-	
-
-
-
-	public String getUpdateUIName() {
-		return "RCMView";
+	public String 
+	getUpdateUIName() 
+	{
+		return( "RCMView" );
 	}
 
-	public void updateUI() {
-		if ( tv_related_content != null) {
-			tv_related_content.refreshTable(false);
+	public void 
+	updateUI() 
+	{
+		if ( tv_related_content != null ){
+			
+			tv_related_content.refreshTable( false );
 		}
 	}
-
 }
