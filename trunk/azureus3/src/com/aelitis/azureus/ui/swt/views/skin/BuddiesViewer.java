@@ -295,6 +295,7 @@ public class BuddiesViewer
 								return;
 							}
 							fillBuddies(avatarsPanel);
+							avatarsPanel.layout(true);
 						}
 					});
 				}
