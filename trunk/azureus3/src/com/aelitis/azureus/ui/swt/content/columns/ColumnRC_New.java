@@ -41,7 +41,7 @@ public class ColumnRC_New
 	implements TableCellSWTPaintListener, TableCellAddedListener,
 	TableCellRefreshListener, TableCellMouseListener
 {
-	public static final String COLUMN_ID = "rcm_new";
+	public static final String COLUMN_ID = "rc_new";
 
 	private static int WIDTH = 38; // enough to fit title
 

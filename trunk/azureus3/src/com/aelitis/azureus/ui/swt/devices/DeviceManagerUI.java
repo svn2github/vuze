@@ -57,6 +57,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -108,6 +109,8 @@ DeviceManagerUI
 	private final PluginInterface	plugin_interface;
 	private final UIManager			ui_manager;
 	
+	private UISWTInstance			swt_ui;
+	
 	private boolean		ui_setup;
 	
 	private SideBar		side_bar;
@@ -126,6 +129,7 @@ DeviceManagerUI
 	
 	private MenuItemListener properties_listener;
 	private MenuItemListener hide_listener;
+	private MenuItemListener rename_listener;
 	
 	private MenuItemFillListener	will_remove_listener;
 	private MenuItemListener 		remove_listener;
@@ -170,14 +174,22 @@ DeviceManagerUI
 						UIInstance		instance )
 					{
 						if ( instance instanceof UISWTInstance ){
-							AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-								public void azureusCoreRunning(AzureusCore core) {
-									uiAttachedAndCoreRunning(core);
+							
+							swt_ui	= (UISWTInstance)instance;
+							
+							AzureusCoreFactory.addCoreRunningListener(
+								new AzureusCoreRunningListener() 
+								{
+									public void 
+									azureusCoreRunning(
+										AzureusCore core )
+									{
+										uiAttachedAndCoreRunning(core);
 
-								}
-							});
+									}
+								});
 
-							}
+						}
 					}
 					
 					public void
@@ -643,6 +655,47 @@ DeviceManagerUI
 				}
 			};
 			
+		rename_listener = 
+				new MenuItemListener() 
+				{
+					public void 
+					selected(
+						MenuItem menu, 
+						Object target) 
+					{
+						if (target instanceof SideBarEntry){
+							
+							SideBarEntry info = (SideBarEntry) target;
+							
+							Device device = (Device)info.getDatasource();
+							
+							UISWTInputReceiver entry = (UISWTInputReceiver)swt_ui.getInputReceiver();
+							
+							entry.setPreenteredText(device.getName(), false );
+							
+							entry.maintainWhitespace(false);
+							
+							entry.allowEmptyInput( false );
+							
+							entry.setTitle("MyTorrentsView.menu.rename");
+							
+							entry.prompt();
+							
+							if (!entry.hasSubmittedInput()){
+								
+								return;
+							}
+							
+							String input = entry.getSubmittedInput().trim();
+							
+							if ( input.length() > 0 ){
+							
+								device.setName( input );
+							}
+						}
+					}
+				};
+
 		will_remove_listener = 
 				new MenuItemFillListener() 
 				{
@@ -1835,6 +1888,10 @@ DeviceManagerUI
 									
 										menu_manager.addMenuItem("sidebar." + key, "s2" ).setStyle( MenuItem.STYLE_SEPARATOR );
 									}
+									
+									MenuItem rename_menu_item = menu_manager.addMenuItem("sidebar." + key, "MyTorrentsView.menu.rename" );
+																	
+									rename_menu_item.addListener( rename_listener );									
 									
 									MenuItem hide_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.hide");
 									

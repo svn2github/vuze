@@ -29,7 +29,6 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -275,12 +274,14 @@ DeviceImpl
 			setDirty();
 		}
 		
+		/* don't overwite the name as user may have altered it!
 		if ( !name.equals( other.name )){
 			
 			name	= other.name;
 			
 			setDirty();
 		}
+		*/
 		
 		if ( manual != other.manual ){
 			
@@ -340,6 +341,18 @@ DeviceImpl
 	getName()
 	{
 		return( name );
+	}
+	
+	public void 
+	setName(
+		String _name ) 
+	{
+		if ( !name.equals( _name )){
+			
+			name = _name;
+			
+			setDirty();
+		}
 	}
 	
 	public String
