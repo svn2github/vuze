@@ -45,6 +45,7 @@ public class DeviceAdd_MfChooser
 {
 	private SkinnedDialog skinnedDialog;
 	private ClosedListener listener;
+	protected DeviceManufacturer chosenMF;
 
 	public void open(ClosedListener l) {
 		this.listener = l;
@@ -54,7 +55,7 @@ public class DeviceAdd_MfChooser
 		skinnedDialog.addCloseListener(new SkinnedDialogClosedListener() {
 			public void skinDialogClosed(SkinnedDialog dialog) {
 				if (listener != null) {
-					listener.MfChooserClosed(null);
+					listener.MfChooserClosed(chosenMF);
 				}
 			}
 		});
@@ -84,9 +85,9 @@ public class DeviceAdd_MfChooser
 			
 			Listener btnListener = new Listener() {
 				public void handleEvent(Event event) {
-					DeviceManufacturer mf = (DeviceManufacturer) event.widget.getData("mf");
+					chosenMF = (DeviceManufacturer) event.widget.getData("mf");
 					skinnedDialog.close();
-					Utils.openMessageBox(null, 0, "CHOSE", "You chose " + mf.getName());
+					Utils.openMessageBox(null, 0, "CHOSE", "You chose " + chosenMF.getName());
 				}
 			};
 			
