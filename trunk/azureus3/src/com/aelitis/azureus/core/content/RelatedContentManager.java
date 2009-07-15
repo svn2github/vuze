@@ -27,6 +27,9 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
@@ -107,122 +110,142 @@ RelatedContentManager
 	
 	private CopyOnWriteList<RelatedContentManagerListener>	listeners = new CopyOnWriteList<RelatedContentManagerListener>();
 	
+	private AESemaphore initialisation_complete_sem = new AESemaphore( "RCM:init" );
+
 	
 	protected
 	RelatedContentManager()
 	
 		throws ContentException
 	{
-		if ( core == null ){
-			
-			throw( new ContentException( "getSingleton called before pre-initialisation" ));
-		}
-		
-		while( global_random_id == -1 ){
-			
-			global_random_id = COConfigurationManager.getLongParameter( "rcm.random.id", -1 );
-			
-			if ( global_random_id == -1 ){
+		try{
+			if ( core == null ){
 				
-				global_random_id = RandomUtils.nextLong();
-				
-				COConfigurationManager.setParameter( "rcm.random.id", global_random_id );
+				throw( new ContentException( "getSingleton called before pre-initialisation" ));
 			}
-		}
 			
-		plugin_interface = core.getPluginManager().getDefaultPluginInterface();
-		
-		ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
-		
-		COConfigurationManager.addAndFireParameterListener(
-			"rcm.enabled",
-			new ParameterListener()
-			{
-				public void 
-				parameterChanged(
-					String name )
-				{
-					enabled = COConfigurationManager.getBooleanParameter( "rcm.enabled", true );
-				}
-			});
-		
-		SimpleTimer.addEvent(
-			"rcm.delay.init",
-			SystemTime.getOffsetTime( 15*1000 ),
-			new TimerEventPerformer()
-			{
-				public void 
-				perform(
-					TimerEvent event )
-				{
-					plugin_interface.addListener(
-						new PluginListener()
-						{
-							public void
-							initializationComplete()
-							{
-								PluginInterface dht_pi = 
-									plugin_interface.getPluginManager().getPluginInterfaceByClass(
-												DHTPlugin.class );
+			while( global_random_id == -1 ){
+				
+				global_random_id = COConfigurationManager.getLongParameter( "rcm.random.id", -1 );
+				
+				if ( global_random_id == -1 ){
 					
-								if ( dht_pi != null ){
-						
-									dht_plugin = (DHTPlugin)dht_pi.getPlugin();
-
-									DownloadManager dm = plugin_interface.getDownloadManager();
-									
-									Download[] downloads = dm.getDownloads();
-									
-									addDownloads( downloads, true );
-									
-									dm.addListener(
-										new DownloadManagerListener()
-										{
-											public void
-											downloadAdded(
-												Download	download )
-											{
-												addDownloads( new Download[]{ download }, false );
-											}
-											
-											public void
-											downloadRemoved(
-												Download	download )
-											{
-											}
-										},
-										false );
-									
-									SimpleTimer.addPeriodicEvent(
-										"RCM:publisher",
-										30*1000,
-										new TimerEventPerformer()
-										{
-											public void 
-											perform(
-												TimerEvent event ) 
-											{
-												if ( enabled ){
-												
-													publish();
-												}
-											}
-										});
-								}
-							}
-							
-							public void
-							closedownInitiated()
-							{
-							}
-							
-							public void
-							closedownComplete()
-							{
-							}
-						});
+					global_random_id = RandomUtils.nextLong();
+					
+					COConfigurationManager.setParameter( "rcm.random.id", global_random_id );
 				}
-			});
+			}
+				
+			plugin_interface = core.getPluginManager().getDefaultPluginInterface();
+			
+			ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
+			
+			COConfigurationManager.addAndFireParameterListener(
+				"rcm.enabled",
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name )
+					{
+						enabled = COConfigurationManager.getBooleanParameter( "rcm.enabled", true );
+					}
+				});
+			
+			SimpleTimer.addEvent(
+				"rcm.delay.init",
+				SystemTime.getOffsetTime( 15*1000 ),
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent event )
+					{
+						plugin_interface.addListener(
+							new PluginListener()
+							{
+								public void
+								initializationComplete()
+								{
+									try{
+										PluginInterface dht_pi = 
+											plugin_interface.getPluginManager().getPluginInterfaceByClass(
+														DHTPlugin.class );
+							
+										if ( dht_pi != null ){
+								
+											dht_plugin = (DHTPlugin)dht_pi.getPlugin();
+		
+											DownloadManager dm = plugin_interface.getDownloadManager();
+											
+											Download[] downloads = dm.getDownloads();
+											
+											addDownloads( downloads, true );
+											
+											dm.addListener(
+												new DownloadManagerListener()
+												{
+													public void
+													downloadAdded(
+														Download	download )
+													{
+														addDownloads( new Download[]{ download }, false );
+													}
+													
+													public void
+													downloadRemoved(
+														Download	download )
+													{
+													}
+												},
+												false );
+											
+											SimpleTimer.addPeriodicEvent(
+												"RCM:publisher",
+												30*1000,
+												new TimerEventPerformer()
+												{
+													public void 
+													perform(
+														TimerEvent event ) 
+													{
+														if ( enabled ){
+														
+															publish();
+														}
+													}
+												});
+										}
+									}finally{
+											
+										initialisation_complete_sem.releaseForever();
+									}
+								}
+								
+								public void
+								closedownInitiated()
+								{
+								}
+								
+								public void
+								closedownComplete()
+								{
+								}
+							});
+					}
+				});
+			
+		}catch( Throwable e ){
+			
+			initialisation_complete_sem.releaseForever();
+			
+			if ( e instanceof ContentException ){
+				
+				throw((ContentException)e);
+			}
+			
+			throw( new ContentException( "Initialisation failed", e ));
+		}
 	}
 	
 	public boolean
@@ -687,6 +710,48 @@ RelatedContentManager
 	
 		throws ContentException
 	{
+		if ( 	!initialisation_complete_sem.isReleasedForever() ||
+				( dht_plugin != null && dht_plugin.isInitialising())){
+			
+			AsyncDispatcher dispatcher = new AsyncDispatcher();
+	
+			dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						try{
+							initialisation_complete_sem.reserve();
+							
+							lookupContentSupport( download, listener );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+							
+							listener.lookupCompleted( download );
+						}
+					}
+				});
+		}else{
+			
+			lookupContentSupport( download, listener );
+		}
+	}
+	
+	private void
+	lookupContentSupport(
+		final Download						download,
+		final RelatedContentManagerListener	listener )
+	
+		throws ContentException
+	{
+		if ( dht_plugin == null ){
+			
+			throw( new ContentException( "DHT plugin unavailable" ));
+		}
+		
 		final DownloadInfo	from_info;
 	
 		synchronized( this ){
@@ -721,7 +786,7 @@ RelatedContentManager
 					max_hits,
 					60*1000,
 					false,
-					false,
+					true,
 					new DHTPluginOperationListener()
 					{
 						private Set<String>	entries = new HashSet<String>();
