@@ -22,12 +22,9 @@
 package com.aelitis.azureus.ui.swt.content;
 
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
+
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
+
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -45,7 +42,6 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
@@ -55,11 +51,9 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -68,13 +62,7 @@ import com.aelitis.azureus.core.content.RelatedContent;
 import com.aelitis.azureus.core.content.RelatedContentManager;
 import com.aelitis.azureus.core.content.RelatedContentManagerListener;
 import com.aelitis.azureus.core.devices.Device;
-import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
-import com.aelitis.azureus.core.devices.TranscodeFile;
-import com.aelitis.azureus.core.devices.TranscodeTargetListener;
-import com.aelitis.azureus.core.metasearch.Engine;
-import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
-import com.aelitis.azureus.core.subs.Subscription;
-import com.aelitis.azureus.core.subs.SubscriptionHistory;
+
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -312,11 +300,60 @@ RelatedContentUI
 					main_sb_entry.setDatasource(
 						new RelatedContentEnumerator()
 						{
+							private RelatedContentManagerListener base_listener;
+							
+							private RelatedContentManagerListener current_listener;
+							
 							public void
 							enumerate(
 								RelatedContentManagerListener	listener )
 							{
+								current_listener = listener;
 								
+								if ( base_listener == null ){
+									
+									base_listener = 
+										new RelatedContentManagerListener()
+										{
+											public void
+											lookupStarted(
+												Download		for_download )
+											{
+												
+											}
+											
+											public void
+											foundContent(
+												Download		for_download,
+												RelatedContent	content )
+											{
+												current_listener.foundContent( for_download, content );
+											}
+											
+											public void
+											lookupCompleted(
+												Download		for_download )
+											{
+												
+											}
+										};
+										
+									manager.addListener( base_listener );
+								}
+								
+								RelatedContent[] current_content = manager.getRelatedContent();
+								
+									// TODO: do this in one go
+								
+								for ( RelatedContent c: current_content ){
+									
+									Download d = c.getRelatedTo();
+									
+									if ( d != null ){
+									
+										listener.foundContent( d, c );
+									}
+								}
 							}
 						});
 				}else{

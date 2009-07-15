@@ -22,23 +22,33 @@
 package com.aelitis.azureus.core.content;
 
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.plugins.download.Download;
 
 public class 
 RelatedContent 
 {
+	private Download	related_to;
 	private String 		title;
 	private byte[]		hash;
 	private String		tracker;
 	
 	protected
 	RelatedContent(
+		Download	_related_to,
 		String		_title,
 		byte[]		_hash,
 		String		_tracker )
 	{
-		title	= _title;
-		hash	= _hash;
-		tracker	= _tracker;
+		related_to	= _related_to;
+		title		= _title;
+		hash		= _hash;
+		tracker		= _tracker;
+	}
+	
+	public Download
+	getRelatedTo()
+	{
+		return( related_to );
 	}
 	
 	public String

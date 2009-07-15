@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
@@ -112,6 +111,8 @@ RelatedContentManager
 	
 	private AESemaphore initialisation_complete_sem = new AESemaphore( "RCM:init" );
 
+	private List<DownloadInfo>	related_content = new ArrayList<DownloadInfo>();
+	
 	
 	protected
 	RelatedContentManager()
@@ -324,6 +325,7 @@ RelatedContentManager
 						
 						DownloadInfo info = 
 							new DownloadInfo(
+								download,
 								hash,
 								download.getName(),
 								(int)rand,
@@ -600,7 +602,7 @@ RelatedContentManager
 								entries.add( key );
 							}
 							
-							analyseResponse( from_info, new DownloadInfo( hash, title, rand, tracker ), null );
+							analyseResponse( from_info, new DownloadInfo( from_info.getRelatedTo(), hash, title, rand, tracker ), null );
 							
 						}catch( Throwable e ){							
 						}
@@ -836,7 +838,7 @@ RelatedContentManager
 									entries.add( key );
 								}
 								
-								analyseResponse( from_info, new DownloadInfo( hash, title, rand, tracker ), listener );
+								analyseResponse( from_info, new DownloadInfo( from_info.getRelatedTo(), hash, title, rand, tracker ), listener );
 								
 							}catch( Throwable e ){							
 							}
@@ -892,9 +894,13 @@ RelatedContentManager
 						return;
 					}
 				}
-			}
+				
+				related_content.add( to_info );
+
 			
-			// TODO: stuff!
+				
+				// TODO: stuff!
+			}
 			
 		}catch( Throwable e ){
 			
@@ -929,6 +935,15 @@ RelatedContentManager
 					}
 				}
 			}
+		}
+	}
+	
+	public RelatedContent[]
+	getRelatedContent()
+	{
+		synchronized( this ){
+
+			return( related_content.toArray( new RelatedContent[ related_content.size()]));
 		}
 	}
 	
@@ -1083,7 +1098,7 @@ RelatedContentManager
 		int		rand	= ImportExportUtils.importInt( m, "r" );
 		String	tracker	= ImportExportUtils.importString( m, "t" );
 		
-		return( new DownloadInfo( hash, title, rand, tracker ));
+		return( new DownloadInfo( null, hash, title, rand, tracker ));
 	}
 	
 	protected static class
@@ -1094,12 +1109,13 @@ RelatedContentManager
 		
 		protected
 		DownloadInfo(
+			Download	_related_to,
 			byte[]		_hash,
 			String		_title,
 			int			_rand,
 			String		_tracker )
 		{
-			super( _title, _hash, _tracker );
+			super( _related_to, _title, _hash, _tracker );
 			
 			rand		= _rand;
 		}
