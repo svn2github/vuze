@@ -97,6 +97,8 @@ public class SWTSkin
 
 	private ImageLoader imageLoader;
 
+	private String startID;
+
 	/**
 	 * 
 	 */
@@ -470,6 +472,7 @@ public class SWTSkin
 			IUIIntializer uiInitializer) {
 
 		this.shell = shell;
+		this.startID = startID;
 		FormLayout layout = new FormLayout();
 		shell.setLayout(layout);
 		shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
@@ -662,6 +665,13 @@ public class SWTSkin
 
 		bLayoutComplete = true;
 
+		int width = skinProperties.getIntValue(startID + ".width", -1);
+		int height = skinProperties.getIntValue(startID + ".height", -1);
+		if (width > 0 && height <= 0) {
+			shell.pack();
+			shell.setSize(shell.computeSize(width, SWT.DEFAULT));
+		}
+		
 		for (SWTSkinLayoutCompleteListener l : listenersLayoutComplete) {
 			l.skinLayoutCompleted();
 		}
