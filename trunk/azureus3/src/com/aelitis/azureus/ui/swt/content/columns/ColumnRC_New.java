@@ -70,7 +70,7 @@ public class ColumnRC_New
 		RelatedContent entry = (RelatedContent) cell.getDataSource();
 
 		Rectangle cellBounds = cell.getBounds();
-		Image img = entry.isUnread() ? imgNew : imgOld;
+		Image img = entry== null || entry.isUnread() ? imgNew : imgOld;
 
 		if (img != null && !img.isDisposed()) {
 			Rectangle imgBounds = img.getBounds();
@@ -93,15 +93,18 @@ public class ColumnRC_New
 	public void refresh(TableCell cell) {
 		RelatedContent entry = (RelatedContent) cell.getDataSource();
 
-		boolean unread = entry.isUnread();
-		
-		int sortVal = unread ? 1 : 0;
-
-		if (!cell.setSortValue(sortVal) && cell.isValid()) {
-			return;
+		if ( entry != null ){
+			
+			boolean unread = entry.isUnread();
+			
+			int sortVal = unread ? 1 : 0;
+	
+			if (!cell.setSortValue(sortVal) && cell.isValid()) {
+				return;
+			}
+	
+			cell.invalidate();
 		}
-
-		cell.invalidate();
 	}
 
 	public void cellMouseTrigger(final TableCellMouseEvent event) {
@@ -109,8 +112,12 @@ public class ColumnRC_New
 				&& event.button == 1) {
 			RelatedContent entry = (RelatedContent) event.cell.getDataSource();
 			
-			entry.setUnread(!entry.isUnread());
-			event.cell.invalidate();
+			if ( entry != null ){
+			
+				entry.setUnread(!entry.isUnread());
+			
+				event.cell.invalidate();
+			}
 		}
 	}
 }

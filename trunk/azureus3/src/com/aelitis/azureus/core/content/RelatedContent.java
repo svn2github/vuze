@@ -46,6 +46,24 @@ RelatedContent
 		tracker				= _tracker;
 	}
 	
+	protected
+	RelatedContent(
+		String		_title,
+		byte[]		_hash,
+		String		_tracker )
+	{
+		title				= _title;
+		hash				= _hash;
+		tracker				= _tracker;
+	}
+	
+	protected void
+	setRelatedToHash(
+		byte[]		h )
+	{
+		related_to_hash = h;
+	}
+	
 	public byte[]
 	getRelatedToHash()
 	{

@@ -780,7 +780,10 @@ RelatedContentUI
 						{
 							synchronized( RCMItem.this ){
 							
-								content_list.add( content );
+								if ( !destroyed ){
+								
+									content_list.add( content );
+								}
 							}
 							
 							updateNumUnread();
@@ -921,7 +924,12 @@ RelatedContentUI
 		protected void
 		destroy()
 		{
-			destroyed = true;
+			synchronized( this ){
+			
+				content_list.clear();
+				
+				destroyed = true;
+			}
 			
 			synchronized( RelatedContentUI.this ){
 					

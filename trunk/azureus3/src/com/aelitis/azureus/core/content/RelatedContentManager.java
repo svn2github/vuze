@@ -21,7 +21,7 @@
 
 package com.aelitis.azureus.core.content;
 
-import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.StringInterner;
@@ -67,6 +68,7 @@ RelatedContentManager
 	private static final int	MAX_TITLE_LENGTH		= 64;
 	private static final int	MAX_CONCURRENT_PUBLISH	= 2;
 	
+	private static final String	CONFIG_FILE 				= "rcm.config";
 	
 	private static RelatedContentManager	singleton;
 	private static AzureusCore				core;
@@ -112,9 +114,14 @@ RelatedContentManager
 	
 	private AESemaphore initialisation_complete_sem = new AESemaphore( "RCM:init" );
 
-	private Map<String,DownloadInfo>				related_content 	= new HashMap<String,DownloadInfo>();
-	private ByteArrayHashMapEx<List<DownloadInfo>>	related_content_map = new ByteArrayHashMapEx<List<DownloadInfo>>();
-	private boolean									content_dirty;
+	private static final int CONFIG_DISCARD_MILLIS	= 60*1000;
+	
+	private ContentCache				content_cache_ref;
+	private WeakReference<ContentCache>	content_cache;
+	
+	private boolean		content_dirty;
+	private long		last_config_access;		
+	private int			content_discard_ticks;
 	
 	private int	total_unread;
 	private AsyncDispatcher	content_change_dispatcher = new AsyncDispatcher();
@@ -219,6 +226,8 @@ RelatedContentManager
 														if ( enabled ){
 														
 															publish();
+															
+															saveRelatedContent();
 														}
 													}
 												});
@@ -232,6 +241,7 @@ RelatedContentManager
 								public void
 								closedownInitiated()
 								{
+									saveRelatedContent();
 								}
 								
 								public void
@@ -372,7 +382,7 @@ RelatedContentManager
 				for ( int i=0;i<history.size() && padd > 0;i++ ){
 					
 					try{
-						DownloadInfo info = deserialiseDI((Map<String,Object>)history.get(i));
+						DownloadInfo info = deserialiseDI((Map<String,Object>)history.get(i), null);
 						
 						if ( info != null && !download_info_map.containsKey( info.getHash())){
 							
@@ -401,7 +411,7 @@ RelatedContentManager
 					
 					for ( DownloadInfo info: new_info ){
 						
-						Map<String,Object> map = serialiseDI( info );
+						Map<String,Object> map = serialiseDI( info, null );
 							
 						if ( map != null ){
 							
@@ -954,10 +964,7 @@ RelatedContentManager
 	contentChanged(
 		DownloadInfo		info )
 	{
-		synchronized( this ){
-			
-			content_dirty	= true;
-		}
+		setConfigDirty();
 		
 		for ( RelatedContentManagerListener l: listeners ){
 			
@@ -972,11 +979,12 @@ RelatedContentManager
 	}
 	
 	protected void
-	contentChanged()
+	contentChanged(
+		boolean	is_dirty )
 	{
-		synchronized( this ){
-			
-			content_dirty	= true;
+		if ( is_dirty ){
+		
+			setConfigDirty();
 		}
 		
 		for ( RelatedContentManagerListener l: listeners ){
@@ -1027,7 +1035,7 @@ RelatedContentManager
 					}
 				}
 			
-				loadRelatedContent();
+				ContentCache	content_cache = loadRelatedContent();
 				
 				DownloadInfo	target_info = null;
 				
@@ -1035,26 +1043,28 @@ RelatedContentManager
 				boolean	new_content 	= false;
 				
 				
-				target_info = related_content.get( key );
+				target_info = content_cache.related_content.get( key );
 				
 				if ( target_info == null ){
 					
 					target_info = to_info;
 			
-					related_content.put( key, target_info );
+					content_cache.related_content.put( key, target_info );
 					
-					List<DownloadInfo> links = related_content_map.get( from_info.getHash());
+					ArrayList<DownloadInfo> links = content_cache.related_content_map.get( from_info.getHash());
 					
 					if ( links == null ){
 						
-						links = new ArrayList<DownloadInfo>();
+						links = new ArrayList<DownloadInfo>(1);
 						
-						related_content_map.put( from_info.getHash(), links );
+						content_cache.related_content_map.put( from_info.getHash(), links );
 					}
 					
 					links.add( target_info );
 					
-					target_info.setPublic();
+					links.trimToSize();
+					
+					target_info.setPublic( content_cache );
 					
 					new_content = true;
 					
@@ -1065,12 +1075,17 @@ RelatedContentManager
 					changed_content = target_info.addInfo( to_info );
 				}
 
-				if ( target_info != null && ( changed_content || new_content )){
-											
-					content_dirty	= true;
+				if ( target_info != null ){
 					
 					final DownloadInfo	f_target 	= target_info;
 					final boolean		f_change	= changed_content;
+					
+					final boolean something_changed = changed_content || new_content;
+							
+					if ( something_changed ){
+					
+						setConfigDirty();
+					}
 					
 					content_change_dispatcher.dispatch(
 						new AERunnable()
@@ -1078,20 +1093,23 @@ RelatedContentManager
 							public void
 							runSupport()
 							{
-								for ( RelatedContentManagerListener l: listeners ){
+								if ( something_changed ){
 									
-									try{
-										if ( f_change ){
-											
-											l.contentChanged( f_target );
-											
-										}else{
-											
-											l.contentFound( f_target );
-										}
-									}catch( Throwable e ){
+									for ( RelatedContentManagerListener l: listeners ){
 										
-										Debug.out( e );
+										try{
+											if ( f_change ){
+												
+												l.contentChanged( f_target );
+												
+											}else{
+												
+												l.contentFound( f_target );
+											}
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
 									}
 								}
 								
@@ -1127,9 +1145,9 @@ RelatedContentManager
 	{
 		synchronized( this ){
 
-			loadRelatedContent();
+			ContentCache	content_cache = loadRelatedContent();
 			
-			return( related_content.values().toArray( new DownloadInfo[ related_content.size()]));
+			return( content_cache.related_content.values().toArray( new DownloadInfo[ content_cache.related_content.size()]));
 		}
 	}
 	
@@ -1138,8 +1156,17 @@ RelatedContentManager
 	{
 		synchronized( this ){
 			
-			related_content.clear();
-			related_content_map.clear();
+			ContentCache cc = content_cache==null?null:content_cache.get();
+			
+			if ( cc == null ){
+				
+				FileUtil.deleteResilientConfigFile( CONFIG_FILE );
+				
+			}else{
+			
+				cc.related_content 		= new HashMap<String,DownloadInfo>();
+				cc.related_content_map 	= new ByteArrayHashMapEx<ArrayList<DownloadInfo>>();
+			}
 			
 			download_infos1.clear();
 			download_infos2.clear();
@@ -1152,6 +1179,8 @@ RelatedContentManager
 			Collections.shuffle( download_infos1 );
 			
 			total_unread = 0;
+			
+			setConfigDirty();
 		}
 		
 		for ( RelatedContentManagerListener l: listeners ){
@@ -1161,20 +1190,300 @@ RelatedContentManager
 	}
 	
 	protected void
+	setConfigDirty()
+	{
+		synchronized( this ){
+			
+			content_dirty	= true;
+		}
+	}
+	
+	protected ContentCache
 	loadRelatedContent()
 	{
-		if ( related_content != null ){
-			
-			return;
-		}
+		boolean	fire_event = false;
 		
+		try{
+			synchronized( this ){
+	
+				last_config_access = SystemTime.getMonotonousTime();
+	
+				ContentCache cc = content_cache==null?null:content_cache.get();
+				
+				if ( cc == null ){
+				
+					System.out.println( "rcm: load new" );
+					
+					fire_event = true;
+					
+					cc = new ContentCache();
+		
+					content_cache = new WeakReference<ContentCache>( cc );
+					
+					try{
+						int	new_total_unread = 0;
+		
+						if ( FileUtil.resilientConfigFileExists( CONFIG_FILE )){
+											
+							Map map = FileUtil.readResilientConfigFile( CONFIG_FILE );
+							
+							Map<String,DownloadInfo>						related_content			= cc.related_content;
+							ByteArrayHashMapEx<ArrayList<DownloadInfo>>		related_content_map		= cc.related_content_map;
+		
+							
+							Map<String,String>	rcm_map = (Map<String,String>)map.get( "rcm" );
+							
+							Map<String,Map<String,Object>>	rc_map 	= (Map<String,Map<String,Object>>)map.get( "rc" );
+							
+							
+							Map<Integer,DownloadInfo> id_map = new HashMap<Integer, DownloadInfo>();
+												
+							for ( Map.Entry<String,Map<String,Object>> entry: rc_map.entrySet()){
+								
+								try{
+								
+									String	key = entry.getKey();
+								
+									Map<String,Object>	info_map = entry.getValue();
+																
+									DownloadInfo info = deserialiseDI( info_map, cc );
+									
+									if ( info.isUnread()){
+										
+										new_total_unread++;
+									}
+									
+									related_content.put( key, info );
+									
+									int	id = ((Long)info_map.get( "_i" )).intValue();
+		
+									id_map.put( id, info );
+									
+								}catch( Throwable e ){
+									
+								}
+							}
+							
+							if ( rcm_map.size() != 0 && rc_map.size() != 0 ){
+								
+								for ( String key: rcm_map.keySet()){
+									
+									try{
+										byte[]	hash = Base32.decode( key );
+										
+										int[]	ids = ImportExportUtils.importIntArray( rcm_map, key );
+										
+										if ( ids == null || ids.length == 0 ){
+											
+											Debug.out( "Inconsistent - no ids" );
+											
+										}else{
+											
+											ArrayList<DownloadInfo>	di_list = new ArrayList<DownloadInfo>(ids.length);
+											
+											for ( int id: ids ){
+												
+												DownloadInfo di = id_map.get( id );
+												
+												if ( di == null ){
+													
+													Debug.out( "Inconsistent: id " + id + " missing" );
+													
+												}else{
+													
+													di_list.add( di );
+												}
+											}
+											
+											if ( di_list.size() > 0 ){
+												
+													// just tag it with the first entry for the moment
+												
+												di_list.get(0).setRelatedToHash( hash );
+												
+												related_content_map.put( hash, di_list );
+											}
+										}
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}
+							
+							Iterator<DownloadInfo> it = related_content.values().iterator();
+							
+							while( it.hasNext()){
+								
+								DownloadInfo di = it.next();
+								
+								if ( di.getRelatedToHash() == null ){
+							
+									Debug.out( "Inconsistent: info not referenced" );
+									
+									if ( di.isUnread()){
+										
+										new_total_unread--;
+									}
+									
+									it.remove();
+								}
+							}
+						}
+						
+						if ( total_unread != new_total_unread ){
+							
+							if ( total_unread != 0 ){
+							
+								Debug.out( "total_unread - inconsistent (" + total_unread + "/" + new_total_unread );
+							}
+							
+							total_unread = new_total_unread;
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}else{
+					
+					System.out.println( "rcm: load existing" );
+				}
+				
+				content_cache_ref = cc;
+				
+				return( cc );
+			}
+		}finally{
+			
+			if ( fire_event ){
+				
+				contentChanged( false );
+			}
+		}
 	}
 	
 	protected void
 	saveRelatedContent()
 	{
-		
+		synchronized( this ){
+				
+			long	now = SystemTime.getMonotonousTime();;
+			
+			ContentCache cc = content_cache==null?null:content_cache.get();
+			
+			if ( !content_dirty ){
+					
+				if ( cc != null  ){
+					
+					if ( now - last_config_access > CONFIG_DISCARD_MILLIS ){
+					
+						System.out.println( "rcm: discard: tick count=" + content_discard_ticks++ );
+					
+						content_cache_ref	= null;
+					}
+				}else{
+					
+					System.out.println( "rcm: discarded" );
+					
+					content_discard_ticks = 0;
+				}
+				
+				return;
+			}
+			
+			last_config_access = now;
+			
+			content_dirty	= false;
+			
+			if ( cc == null ){
+				
+				Debug.out( "RCM: cache inconsistent" );
+				
+			}else{
+
+				System.out.println( "rcm: save" );
+				
+				Map<String,DownloadInfo>						related_content			= cc.related_content;
+				ByteArrayHashMapEx<ArrayList<DownloadInfo>>		related_content_map		= cc.related_content_map;
+
+				if ( related_content.size() == 0 ){
+					
+					FileUtil.deleteResilientConfigFile( CONFIG_FILE );
+					
+				}else{
+					
+					Map<String,Object>	map = new HashMap<String, Object>();
+					
+					Set<Map.Entry<String,DownloadInfo>> rcs = related_content.entrySet();
+					
+					Map<String,Object> rc_map = new HashMap<String, Object>();
+					
+					map.put( "rc", rc_map );
+					
+					int		id = 0;
+					
+					Map<DownloadInfo,Integer>	info_map = new HashMap<DownloadInfo, Integer>();
+					
+					for ( Map.Entry<String,DownloadInfo> entry: rcs ){
+											
+						DownloadInfo	info = entry.getValue();
+												
+						Map<String,Object> di_map = serialiseDI( info, cc );
+						
+						if ( di_map != null ){
+							
+							info_map.put( info, id );
+
+							di_map.put( "_i", new Long( id ));
+							
+							String	key = entry.getKey();
+
+							rc_map.put( key, di_map );
+	
+							id++;	
+						}
+					}
+					
+					Map<String,Object> rcm_map = new HashMap<String, Object>();
+
+					map.put( "rcm", rcm_map );
+										
+					for ( byte[] hash: related_content_map.keys()){
+						
+						List<DownloadInfo> dis = related_content_map.get( hash );
+						
+						int[] ids = new int[dis.size()];
+						
+						int	pos = 0;
+						
+						for ( DownloadInfo di: dis ){
+							
+							Integer	index = info_map.get( di );
+							
+							if ( index == null ){
+								
+								Debug.out( "inconsistent: info missing for " + di );
+								
+								break;
+								
+							}else{
+								
+								ids[pos++] = index;
+							}
+						}
+						
+						if ( pos == ids.length ){
+						
+							ImportExportUtils.exportIntArray( rcm_map, Base32.encode( hash), ids );
+						}
+					}
+					
+					FileUtil.writeResilientConfigFile( CONFIG_FILE, map );
+				}
+			}
+		}
 	}
+	
 	
 	public int
 	getNumUnread()
@@ -1188,19 +1497,29 @@ RelatedContentManager
 	public void
 	setAllRead()
 	{
+		boolean	changed = false;
+		
 		synchronized( this ){
 			
 			DownloadInfo[] content = (DownloadInfo[])getRelatedContent();
 			
 			for ( DownloadInfo c: content ){
 				
-				c.setUnreadInternal( false );
+				if ( c.isUnread()){
+				
+					changed = true;
+					
+					c.setUnreadInternal( false );
+				}
 			}
 			
 			total_unread = 0;
 		}
 		
-		contentChanged();
+		if ( changed ){
+		
+			contentChanged( true );
+		}
 	}
 	
 	protected void
@@ -1255,7 +1574,7 @@ RelatedContentManager
 		listeners.remove( listener );
 	}
 	
-	protected class
+	protected static class
 	ByteArrayHashMapEx<T>
 		extends ByteArrayHashMap<T>
 	{
@@ -1297,20 +1616,29 @@ RelatedContentManager
 	
 	private Map<String,Object>
 	serialiseDI(
-		DownloadInfo	info )
+		DownloadInfo			info,
+		ContentCache			cc )
 	{
 		try{
-			Map<String,Object> m = new HashMap<String,Object>();
+			Map<String,Object> info_map = new HashMap<String,Object>();
 			
-			m.put( "h", info.getHash());
+			info_map.put( "h", info.getHash());
 			
-			ImportExportUtils.exportString( m, "d", info.getTitle());
-			ImportExportUtils.exportInt( m, "r", info.getRand());
-			ImportExportUtils.exportString( m, "t", info.getTracker());
+			ImportExportUtils.exportString( info_map, "d", info.getTitle());
+			ImportExportUtils.exportInt( info_map, "r", info.getRand());
+			ImportExportUtils.exportString( info_map, "t", info.getTracker());
+
+			if ( cc == null ){
 			
-			m.put( "f", info.getRelatedToHash());
+				info_map.put( "f", info.getRelatedToHash());
+				
+			}else{
+				
+				ImportExportUtils.exportBoolean( info_map, "u", info.isUnread());
+				ImportExportUtils.exportIntArray( info_map, "l", info.getRandList());
+			}
 			
-			return( m );
+			return( info_map );
 			
 		}catch( Throwable e ){
 			
@@ -1320,23 +1648,34 @@ RelatedContentManager
 	
 	private DownloadInfo
 	deserialiseDI(
-		Map<String,Object>				m )
+		Map<String,Object>		info_map,
+		ContentCache			cc )
 	{
 		try{
-			byte[]	hash 	= (byte[])m.get("h");
-			String	title	= ImportExportUtils.importString( m, "d" );
-			int		rand	= ImportExportUtils.importInt( m, "r" );
-			String	tracker	= ImportExportUtils.importString( m, "t" );
+			byte[]	hash 	= (byte[])info_map.get("h");
+			String	title	= ImportExportUtils.importString( info_map, "d" );
+			int		rand	= ImportExportUtils.importInt( info_map, "r" );
+			String	tracker	= ImportExportUtils.importString( info_map, "t" );
 			
-			byte[]	from_hash 	= (byte[])m.get("f");
+			if ( cc == null ){
 			
-			if ( from_hash == null ){
+				byte[]	from_hash 	= (byte[])info_map.get("f");
 				
-				return( null );
+				if ( from_hash == null ){
+					
+					return( null );
+				}
+				
+				return( new DownloadInfo( from_hash, hash, title, rand, tracker ));
+				
+			}else{
+				
+				boolean unread = ImportExportUtils.importBoolean( info_map, "u" );
+				
+				int[] rand_list = ImportExportUtils.importIntArray( info_map, "l" );
+				
+				return( new DownloadInfo( hash, title, rand, tracker, unread, rand_list, cc ));
 			}
-			
-			return( new DownloadInfo( from_hash, hash, title, rand, tracker ));
-			
 		}catch( Throwable e ){
 			
 			return( null );
@@ -1347,11 +1686,12 @@ RelatedContentManager
 	DownloadInfo
 		extends RelatedContent
 	{
-		final private int			rand;
+		final private int		rand;
 		
-		private boolean		unread	= true;
+		private boolean			unread	= true;
+		private int[]			rand_list;
 		
-		private int[]	rand_list;
+		private ContentCache	cc;
 		
 		protected
 		DownloadInfo(
@@ -1364,6 +1704,24 @@ RelatedContentManager
 			super( _related_to, _title, _hash, _tracker );
 			
 			rand		= _rand;
+		}
+		
+		protected
+		DownloadInfo(
+			byte[]			_hash,
+			String			_title,
+			int				_rand,
+			String			_tracker,
+			boolean			_unread,
+			int[]			_rand_list,
+			ContentCache	_cc )
+		{
+			super( _title, _hash, _tracker );
+			
+			rand		= _rand;
+			unread		= _unread;
+			rand_list	= _rand_list;
+			cc			= _cc;
 		}
 		
 		protected boolean
@@ -1418,8 +1776,11 @@ RelatedContentManager
 		}
 		
 		protected void
-		setPublic()
+		setPublic(
+			ContentCache	_cc )
 		{
+			cc	= _cc;
+			
 			if ( unread ){
 				
 				incrementUnread();
@@ -1475,6 +1836,12 @@ RelatedContentManager
 			return( rand );
 		}
 		
+		protected int[]
+		getRandList()
+		{
+			return( rand_list );
+		}
+		
 		public Download 
 		getRelatedToDownload() 
 		{
@@ -1494,5 +1861,12 @@ RelatedContentManager
 		{
 			return( super.getString() + ", " + rand );
 		}
+	}
+	
+	private static class
+	ContentCache
+	{
+		private Map<String,DownloadInfo>						related_content			= new HashMap<String, DownloadInfo>();
+		private ByteArrayHashMapEx<ArrayList<DownloadInfo>>		related_content_map		= new ByteArrayHashMapEx<ArrayList<DownloadInfo>>();
 	}
 }

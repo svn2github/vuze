@@ -19,6 +19,7 @@
 package com.aelitis.azureus.ui.swt.content.columns;
 
 import com.aelitis.azureus.core.content.RelatedContent;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 
 import org.eclipse.swt.SWT;
@@ -44,6 +45,10 @@ public class ColumnRC_Title
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
+		
+		if ( column instanceof TableColumnCore ){
+			((TableColumnCore)column).setUseCoreDataSource( true );
+		}
 	}
 
 	public void refresh(TableCell cell) {
@@ -66,7 +71,7 @@ public class ColumnRC_Title
 		
 		RelatedContent rc = (RelatedContent) cell.getDataSource();
 		
-		if ( cell instanceof TableCellSWT && rc != null && rc.getTracker() != null ){
+		if ( cell instanceof TableCellSWT && rc != null ){
 		
 			((TableCellSWT)cell).setCursorID( SWT.CURSOR_HAND );
 		}
@@ -77,12 +82,12 @@ public class ColumnRC_Title
 				&& event.button == 1) {
 			RelatedContent rc = (RelatedContent) event.cell.getDataSource();
 			
-			if ( rc.getTracker() != null ){
+			if ( rc != null ){
 				
 				rc.setUnread( false );
-				
+					
 				String	title = rc.getTitle();
-			
+				
 				MainWindow.doSearch( title );
 			}
 		}

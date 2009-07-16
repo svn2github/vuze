@@ -19,6 +19,7 @@
 package com.aelitis.azureus.ui.swt.content.columns;
 
 import com.aelitis.azureus.core.content.RelatedContent;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -41,6 +42,10 @@ public class ColumnRC_Rank
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
+		
+		if ( column instanceof TableColumnCore ){
+			((TableColumnCore)column).setUseCoreDataSource( true );
+		}
 	}
 
 	public void refresh(TableCell cell) {

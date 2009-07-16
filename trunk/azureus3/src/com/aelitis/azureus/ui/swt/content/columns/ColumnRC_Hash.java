@@ -19,6 +19,7 @@
 package com.aelitis.azureus.ui.swt.content.columns;
 
 import com.aelitis.azureus.core.content.RelatedContent;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -45,6 +46,9 @@ public class ColumnRC_Hash
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
+		if ( column instanceof TableColumnCore ){
+			((TableColumnCore)column).setUseCoreDataSource( true );
+		}
 	}
 
 	public void cellAdded(TableCell cell) {

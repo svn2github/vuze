@@ -334,4 +334,61 @@ public final class ImportExportUtils {
 			l.add( data[i] );
 		}
 	}
+	
+	public static final void
+	exportIntArray(
+		Map			map,
+		String		key,
+		int[]		values )
+	{
+		if ( values == null ){
+			
+			return;
+		}
+		
+		int	num = values.length;
+		
+		byte[]	bytes 	= new byte[num*4];
+		int		pos		= 0;
+		
+		for (int i=0;i<num;i++){
+			
+			int	v = values[i];
+			
+		    bytes[pos++] = (byte)(v >>> 24);
+		    bytes[pos++] = (byte)(v >>> 16);
+		    bytes[pos++] = (byte)(v >>> 8);
+		    bytes[pos++] = (byte)(v);
+		}
+		
+		map.put( key, bytes );
+	}
+	
+	public static final int[]
+	importIntArray(
+		Map			map,
+		String		key )
+	{
+		byte[]	bytes = (byte[])map.get( key );
+		
+		if ( bytes == null ){
+			
+			return( null );
+		}
+		
+		int[]	values = new int[bytes.length/4];
+		
+		int	pos = 0;
+		
+		for (int i=0;i<values.length;i++){
+			
+			values[i] =  
+				((bytes[pos++]&0xff) << 24) + 
+				((bytes[pos++]&0xff) << 16) + 
+				((bytes[pos++]&0xff) << 8) + 
+				((bytes[pos++]&0xff)); 
+		}
+		
+		return( values );
+	}
 }
