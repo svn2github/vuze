@@ -328,6 +328,23 @@ SBC_RCMView
 										}
 									});
 						}
+						
+						public void
+						contentReset()
+						{
+							Utils.execSWTThread(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											if ( tv_related_content != null && !tv_related_content.isDisposed()){
+												
+												tv_related_content.removeAllTableRows();
+											}
+										}
+									});
+						}
 					};
 				
 				public void 

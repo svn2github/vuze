@@ -19,8 +19,11 @@
 package com.aelitis.azureus.ui.swt.content.columns;
 
 import com.aelitis.azureus.core.content.RelatedContent;
+import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 
+import org.eclipse.swt.SWT;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 /**
  * @author TuxPaper
@@ -28,7 +31,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  */
 public class ColumnRC_Title
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableCellMouseListener, TableCellAddedListener
 {
 	public static final String COLUMN_ID = "rc_title";
 
@@ -57,5 +60,31 @@ public class ColumnRC_Title
 		}
 
 		cell.setText(text);
+	}
+	
+	public void cellAdded(TableCell cell) {
+		
+		RelatedContent rc = (RelatedContent) cell.getDataSource();
+		
+		if ( cell instanceof TableCellSWT && rc != null && rc.getTracker() != null ){
+		
+			((TableCellSWT)cell).setCursorID( SWT.CURSOR_HAND );
+		}
+	}
+	
+	public void cellMouseTrigger(final TableCellMouseEvent event) {
+		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN
+				&& event.button == 1) {
+			RelatedContent rc = (RelatedContent) event.cell.getDataSource();
+			
+			if ( rc.getTracker() != null ){
+				
+				rc.setUnread( false );
+				
+				String	title = rc.getTitle();
+			
+				MainWindow.doSearch( title );
+			}
+		}
 	}
 }

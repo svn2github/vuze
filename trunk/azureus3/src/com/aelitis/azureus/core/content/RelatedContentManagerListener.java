@@ -34,4 +34,7 @@ RelatedContentManagerListener
 	
 	public void
 	contentChanged();
+	
+	public void
+	contentReset();
 }

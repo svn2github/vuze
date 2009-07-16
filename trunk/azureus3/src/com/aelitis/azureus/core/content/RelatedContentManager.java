@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
@@ -111,9 +112,13 @@ RelatedContentManager
 	
 	private AESemaphore initialisation_complete_sem = new AESemaphore( "RCM:init" );
 
-	private List<DownloadInfo>	related_content = new ArrayList<DownloadInfo>();
+	private Map<String,DownloadInfo>				related_content 	= new HashMap<String,DownloadInfo>();
+	private ByteArrayHashMapEx<List<DownloadInfo>>	related_content_map = new ByteArrayHashMapEx<List<DownloadInfo>>();
+	private boolean									content_dirty;
 	
 	private int	total_unread;
+	private AsyncDispatcher	content_change_dispatcher = new AsyncDispatcher();
+	
 	
 	protected
 	RelatedContentManager()
@@ -782,11 +787,59 @@ RelatedContentManager
 					{
 						private Set<String>	entries = new HashSet<String>();
 						
+						private RelatedContentManagerListener manager_listener = 
+							new RelatedContentManagerListener()
+							{
+							private Set<RelatedContent>	content_list = new HashSet<RelatedContent>();
+							
+								public void
+								contentFound(
+									RelatedContent	content )
+								{
+									handle( content );
+								}
+	
+								public void
+								contentChanged(
+									RelatedContent	content )
+								{
+									handle( content );
+								}
+								
+								public void
+								contentChanged()
+								{									
+								}
+								
+								public void
+								contentReset()
+								{
+								}
+								
+								private void
+								handle(
+									RelatedContent	content )
+								{
+									synchronized( content_list ){
+										
+										if ( content_list.contains( content )){
+											
+											return;
+										}
+										
+										content_list.add( content );
+									}
+									
+									listener.contentFound( content );
+								}
+							};
+						
 						public void
 						starts(
 							byte[]				key )
 						{
 							if ( listener != null ){
+								
 								try{
 									listener.lookupStart();
 									
@@ -835,7 +888,11 @@ RelatedContentManager
 									entries.add( key );
 								}
 								
-								analyseResponse( from_info, new DownloadInfo( from_info.getRelatedToHash(), hash, title, rand, tracker ), listener );
+								analyseResponse( 
+									from_info, 
+									new DownloadInfo( 
+										from_info.getRelatedToHash(), hash, title, rand, tracker ),
+										listener==null?null:manager_listener );
 								
 							}catch( Throwable e ){							
 							}
@@ -897,6 +954,11 @@ RelatedContentManager
 	contentChanged(
 		DownloadInfo		info )
 	{
+		synchronized( this ){
+			
+			content_dirty	= true;
+		}
+		
 		for ( RelatedContentManagerListener l: listeners ){
 			
 			try{
@@ -912,6 +974,11 @@ RelatedContentManager
 	protected void
 	contentChanged()
 	{
+		synchronized( this ){
+			
+			content_dirty	= true;
+		}
+		
 		for ( RelatedContentManagerListener l: listeners ){
 			
 			try{
@@ -926,77 +993,132 @@ RelatedContentManager
 	
 	protected void
 	analyseResponse(
-		DownloadInfo					from_info,
-		DownloadInfo					to_info,
-		RelatedContentLookupListener	extra_listener )
+		DownloadInfo						from_info,
+		DownloadInfo						to_info,
+		final RelatedContentManagerListener	listener )
 	{
 		try{			
 			synchronized( this ){
 				
 				byte[] target = to_info.getHash();
 				
+				String	key;
+				
 				if ( target != null ){
 					
 					if ( download_info_map.containsKey( target )){
 						
-							// already know about this
+							// target refers to downoad we already have
 						
 						return;
 					}
+					
+					key = Base32.encode( target );
+					
 				}else{
 					
-					if ( download_priv_set.contains( to_info.getTitle() + ":" + to_info.getTracker())){
+					key = to_info.getTitle() + ":" + to_info.getTracker();
+					
+					if ( download_priv_set.contains( key )){
 						
-							// already know about this
+							// target refers to downoad we already have
 						
 						return;
 					}
 				}
 			
-				to_info.setPublic();
+				loadRelatedContent();
 				
-				related_content.add( to_info );
-
+				DownloadInfo	target_info = null;
+				
+				boolean	changed_content = false;
+				boolean	new_content 	= false;
+				
+				
+				target_info = related_content.get( key );
+				
+				if ( target_info == null ){
+					
+					target_info = to_info;
 			
-				
-				// TODO: stuff!
-				
-				
+					related_content.put( key, target_info );
+					
+					List<DownloadInfo> links = related_content_map.get( from_info.getHash());
+					
+					if ( links == null ){
+						
+						links = new ArrayList<DownloadInfo>();
+						
+						related_content_map.put( from_info.getHash(), links );
+					}
+					
+					links.add( target_info );
+					
+					target_info.setPublic();
+					
+					new_content = true;
+					
+				}else{
+					
+						// we already know about this, see if new info
+					
+					changed_content = target_info.addInfo( to_info );
+				}
+
+				if ( target_info != null && ( changed_content || new_content )){
+											
+					content_dirty	= true;
+					
+					final DownloadInfo	f_target 	= target_info;
+					final boolean		f_change	= changed_content;
+					
+					content_change_dispatcher.dispatch(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								for ( RelatedContentManagerListener l: listeners ){
+									
+									try{
+										if ( f_change ){
+											
+											l.contentChanged( f_target );
+											
+										}else{
+											
+											l.contentFound( f_target );
+										}
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+								
+								if ( listener != null ){
+									
+									try{
+										if ( f_change ){
+											
+											listener.contentChanged( f_target );
+											
+										}else{
+											
+											listener.contentFound( f_target );
+										}
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}
+						});
+				}
 			}
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
-		}
-		
-		if ( listeners.size() > 0 || extra_listener != null ){
-			
-			Download download = getDownload( from_info.getHash());
-			
-			if ( download != null ){
-				
-				for ( RelatedContentManagerListener l: listeners ){
-					
-					try{
-						l.contentFound( to_info );
-						
-					}catch( Throwable e ){
-						
-						Debug.out( e );
-					}
-				}
-				
-				if ( extra_listener != null ){
-					
-					try{
-						extra_listener.contentFound( to_info );
-						
-					}catch( Throwable e ){
-						
-						Debug.out( e );
-					}
-				}
-			}
+			Debug.out( e );
 		}
 	}
 	
@@ -1005,8 +1127,53 @@ RelatedContentManager
 	{
 		synchronized( this ){
 
-			return( related_content.toArray( new RelatedContent[ related_content.size()]));
+			loadRelatedContent();
+			
+			return( related_content.values().toArray( new DownloadInfo[ related_content.size()]));
 		}
+	}
+	
+	public void
+	reset()
+	{
+		synchronized( this ){
+			
+			related_content.clear();
+			related_content_map.clear();
+			
+			download_infos1.clear();
+			download_infos2.clear();
+			
+			List<DownloadInfo> list = download_info_map.values();
+			
+			download_infos1.addAll( list );
+			download_infos2.addAll( list );
+			
+			Collections.shuffle( download_infos1 );
+			
+			total_unread = 0;
+		}
+		
+		for ( RelatedContentManagerListener l: listeners ){
+			
+			l.contentReset();
+		}
+	}
+	
+	protected void
+	loadRelatedContent()
+	{
+		if ( related_content != null ){
+			
+			return;
+		}
+		
+	}
+	
+	protected void
+	saveRelatedContent()
+	{
+		
 	}
 	
 	public int
@@ -1023,7 +1190,9 @@ RelatedContentManager
 	{
 		synchronized( this ){
 			
-			for ( DownloadInfo c: related_content ){
+			DownloadInfo[] content = (DownloadInfo[])getRelatedContent();
+			
+			for ( DownloadInfo c: content ){
 				
 				c.setUnreadInternal( false );
 			}
@@ -1180,8 +1349,9 @@ RelatedContentManager
 	{
 		final private int			rand;
 		
-		private int			rank;
 		private boolean		unread	= true;
+		
+		private int[]	rand_list;
 		
 		protected
 		DownloadInfo(
@@ -1196,10 +1366,49 @@ RelatedContentManager
 			rand		= _rand;
 		}
 		
+		protected boolean
+		addInfo(
+			DownloadInfo		info )
+		{
+			synchronized( this ){
+				
+				int r = info.getRand();
+				
+				if ( rand_list == null ){
+					
+					rand_list = new int[]{ r };
+										
+					return( true );
+					
+				}else{
+					
+					for (int i=0;i<rand_list.length;i++){
+						
+						if ( rand_list[i] == r ){
+							
+							return( false );
+						}
+					}
+					
+					int	len = rand_list.length;
+					
+					int[]	new_rand_list = new int[len+1];
+					
+					System.arraycopy( rand_list, 0, new_rand_list, 0, len );
+					
+					new_rand_list[len] = r;
+					
+					rand_list = new_rand_list;
+					
+					return( true );
+				}
+			}
+		}
+		
 		public int
 		getRank()
 		{
-			return( rank );
+			return( rand_list==null?0:rand_list.length );
 		}
 		
 		public boolean
@@ -1215,6 +1424,8 @@ RelatedContentManager
 				
 				incrementUnread();
 			}
+			
+			rand_list = new int[]{ rand };
 		}
 		
 		protected void

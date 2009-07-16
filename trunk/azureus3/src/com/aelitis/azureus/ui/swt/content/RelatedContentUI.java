@@ -259,6 +259,12 @@ RelatedContentUI
 						}
 					}
 					
+					public void
+					contentReset()
+					{
+						check();
+					}
+					
 					protected void
 					check()
 					{
@@ -396,6 +402,11 @@ RelatedContentUI
 											contentChanged() 
 											{
 											}
+											
+											public void
+											contentReset()
+											{
+											}
 										};
 										
 									manager.addListener( base_listener );
@@ -435,6 +446,25 @@ RelatedContentUI
 						      	manager.setAllRead();
 							}
 						});
+				
+				menu_item = menu_manager.addMenuItem( parent_id, "Subscription.menu.reset" );
+				
+				menu_item.addListener( 
+						new MenuItemListener() 
+						{
+							public void 
+							selected(
+								MenuItem menu, Object target ) 
+							{
+								for ( RCMItem item: rcm_item_map.values()){
+									
+									item.getTreeItem().dispose();
+								}
+								
+						      	manager.reset();
+							}
+						});
+				
 				
 				menu_item = menu_manager.addMenuItem( parent_id, "sep" );
 
