@@ -3094,6 +3094,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				|| forPluginDataSourceType.equals(classPluginDataSourceType)) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
+					if (table.isDisposed()) {
+						return;
+					}
   				_tableStructureChanged(columnAddedOrRemoved);
   			}
   		});
