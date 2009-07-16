@@ -1,5 +1,4 @@
 /**
- * Created on Jul 20, 2008
  *
  * Copyright 2008 Vuze, Inc.  All rights reserved.
  * This program is free software; you can redistribute it and/or modify
@@ -185,7 +184,7 @@ public class ToolBarView
   				TranscodeChooser deviceChooser = new TranscodeChooser() {
   					public void closed() {
   						DeviceManager deviceManager = DeviceManagerFactory.getSingleton();
-  						if (selectedDevice != null && selectedProfile != null) {
+  						if (selectedTranscodeTarget != null && selectedProfile != null) {
   							for (int i = 0; i < contents.length; i++) {
   								ISelectedContent selectedContent = contents[i];
   
@@ -197,7 +196,7 @@ public class ToolBarView
   								for (DiskManagerFileInfo file : files) {
   									try {
   										deviceManager.getTranscodeManager().getQueue().add(
-  												selectedDevice,
+  												selectedTranscodeTarget,
   												selectedProfile,
   												(org.gudy.azureus2.plugins.disk.DiskManagerFileInfo) PluginCoreUtils.convert(
   														file, false));
@@ -978,7 +977,10 @@ public class ToolBarView
 		public boolean held(SWTSkinButtonUtility buttonUtility) {
 			ToolBarItem item = (ToolBarItem) buttonUtility.getSkinObject().getData(
 					"toolbaritem");
-			return item.triggerToolBarItemHold();
+			buttonUtility.getSkinObject().switchSuffix("", 0, false, true);
+			
+			boolean triggerToolBarItemHold = item.triggerToolBarItemHold();
+			return triggerToolBarItemHold;
 		}
 
 		public void disabledStateChanged(SWTSkinButtonUtility buttonUtility,

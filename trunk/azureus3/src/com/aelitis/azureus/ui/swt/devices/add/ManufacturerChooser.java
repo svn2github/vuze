@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
 
-package com.aelitis.azureus.ui.swt.devices;
+package com.aelitis.azureus.ui.swt.devices.add;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
@@ -26,9 +26,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.Utils;
 
-import com.aelitis.azureus.core.devices.Device;
-import com.aelitis.azureus.core.devices.DeviceManager;
-import com.aelitis.azureus.core.devices.DeviceManagerFactory;
+import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.devices.DeviceManager.DeviceManufacturer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -41,7 +39,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedLi
  * @created Jul 14, 2009
  *
  */
-public class DeviceAdd_MfChooser
+public class ManufacturerChooser
 {
 	private SkinnedDialog skinnedDialog;
 	private ClosedListener listener;
@@ -87,13 +85,23 @@ public class DeviceAdd_MfChooser
 				public void handleEvent(Event event) {
 					chosenMF = (DeviceManufacturer) event.widget.getData("mf");
 					skinnedDialog.close();
-					Utils.openMessageBox(null, 0, "CHOSE", "You chose " + chosenMF.getName());
 				}
 			};
 			
 			DeviceManager deviceManager = DeviceManagerFactory.getSingleton();
 			DeviceManufacturer[] mfs = deviceManager.getDeviceManufacturers(Device.DT_MEDIA_RENDERER);
 			for (DeviceManufacturer mf : mfs) {
+				DeviceTemplate[] deviceTemplates = mf.getDeviceTemplates();
+				boolean hasNonAuto = false;
+				for (DeviceTemplate deviceTemplate : deviceTemplates) {
+					if (!deviceTemplate.isAuto()) {
+						hasNonAuto = true;
+						break;
+					}
+				}
+				if (!hasNonAuto) {
+					continue;
+				}
 				Button button = new Button(area, SWT.PUSH);
 				button.setText(mf.getName());
 				button.setData("mf", mf);
@@ -101,6 +109,7 @@ public class DeviceAdd_MfChooser
 			}
 		}
 		
+		skinnedDialog.getShell().pack();
 		skinnedDialog.open();
 	}
 	

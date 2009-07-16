@@ -68,6 +68,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.devices.DeviceManager.DeviceManufacturer;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
@@ -75,6 +76,10 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser;
+import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser;
+import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser.DeviceTemplateClosedListener;
+import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser.ClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -230,41 +235,46 @@ DeviceManagerUI
 				public boolean 
 				canClose() 
 				{
-					final TranscodeJob job = device_manager.getTranscodeManager().getQueue().getCurrentJob();
+					try {
+  					final TranscodeJob job = device_manager.getTranscodeManager().getQueue().getCurrentJob();
+  					
+  					if ( job == null || job.getState() != TranscodeJob.ST_RUNNING ){
+  						
+  						return( true );
+  					}
 					
-					if ( job == null || job.getState() != TranscodeJob.ST_RUNNING ){
-						
-						return( true );
+  					boolean allowQuit =
+  						Utils.execSWTThreadWithBool(
+  							"quitTranscoding",
+  							new AERunnableBoolean() {
+  								public boolean runSupport() {
+  									String title = MessageText.getString("device.quit.transcoding.title");
+  									String text = MessageText.getString(
+  											"device.quit.transcoding.text",
+  											new String[] {
+  												job.getName(),
+  												job.getTarget().getDevice().getName(),
+  												String.valueOf( job.getPercentComplete())
+  											});
+  
+  									MessageBoxShell mb = new MessageBoxShell(
+  											Utils.findAnyShell(),
+  											title,
+  											text,
+  											new String[] {
+  												MessageText.getString("UpdateWindow.quit"),
+  												MessageText.getString("Content.alert.notuploaded.button.abort")
+  											}, 1, null, null, false, 0);
+  
+  									return mb.open() == 0;
+  								}
+  							}, 0);
+  					
+  					return( allowQuit );
+					} catch (Exception e) {
+						Debug.out(e);
+						return true;
 					}
-					
-					boolean allowQuit =
-						Utils.execSWTThreadWithBool(
-							"quitTranscoding",
-							new AERunnableBoolean() {
-								public boolean runSupport() {
-									String title = MessageText.getString("device.quit.transcoding.title");
-									String text = MessageText.getString(
-											"device.quit.transcoding.text",
-											new String[] {
-												job.getName(),
-												job.getTarget().getDevice().getName(),
-												String.valueOf( job.getPercentComplete())
-											});
-
-									MessageBoxShell mb = new MessageBoxShell(
-											Utils.findAnyShell(),
-											title,
-											text,
-											new String[] {
-												MessageText.getString("UpdateWindow.quit"),
-												MessageText.getString("Content.alert.notuploaded.button.abort")
-											}, 1, null, null, false, 0);
-
-									return mb.open() == 0;
-								}
-							}, 0);
-					
-					return( allowQuit );
 				}
 			});
 	}
@@ -994,7 +1004,8 @@ DeviceManagerUI
 						sbVitalityImage_clicked(
 							int x, int y) 
 						{
-							new DevicesWizard( DeviceManagerUI.this );
+							addNewDevice();
+							//new DevicesWizard( DeviceManagerUI.this );
 						}
 					});
 
@@ -1306,6 +1317,51 @@ DeviceManagerUI
 	}
 	
 	
+	/**
+	 * 
+	 *
+	 * @since 4.1.0.5
+	 */
+	protected void addNewDevice() {
+		ManufacturerChooser mfChooser = new ManufacturerChooser();
+		mfChooser.open(new ClosedListener() {
+			public void MfChooserClosed(DeviceManufacturer mf) {
+				if (mf == null) {
+					return;
+				}
+				DeviceTemplateChooser deviceTemplateChooser = new DeviceTemplateChooser(mf);
+				
+				deviceTemplateChooser.open(new DeviceTemplateClosedListener() {
+					public void deviceTemplateChooserClosed(DeviceTemplate deviceTemplate) {
+						if (deviceTemplate == null) {
+							return;
+						}
+
+						Device device;
+						try {
+							device = deviceTemplate.createInstance(deviceTemplate.getName() + " test!" );
+							device.requestAttention();
+						} catch (DeviceManagerException e) {
+							Debug.out(e);
+						}
+
+						/*  Don't really need to choose a profile now..
+						TranscodeProfile[] profiles = null;// deviceTemplate.getTranscodeProfiles();
+						new TranscodeChooser(profiles) {
+							public void closed() {
+								Utils.openMessageBox(null, 0, "CHOSE", "You chose "
+										+ (selectedProfile == null ? "NULL"
+												: selectedProfile.getName()));
+								
+							}
+						};
+						*/
+					}
+				});
+			}
+		});
+	}
+
 	private void 
 	setupMenus()
 	{					
@@ -1983,10 +2039,10 @@ DeviceManagerUI
 			public void 
 			closed() 
 			{
-				if ( selectedDevice != null && selectedProfile != null ){
+				if ( selectedTranscodeTarget != null && selectedProfile != null ){
 					
 					handleDrop(
-						selectedDevice, 
+						selectedTranscodeTarget, 
 						selectedProfile, 
 						payload,
 						getTranscodeRequirement());
