@@ -82,9 +82,11 @@ public class SkinViewManager
 		mon_skinViews.enter();
 		try {
 			List<SkinView> list = mapSkinViews.get(skinView.getClass());
-			list.remove(skinView);
-			if (list.isEmpty()) {
-				mapSkinViews.remove(skinView.getClass());
+			if (list != null) {
+  			list.remove(skinView);
+  			if (list.isEmpty()) {
+  				mapSkinViews.remove(skinView.getClass());
+  			}
 			}
 		} finally {
 			mon_skinViews.exit();
@@ -132,6 +134,9 @@ public class SkinViewManager
 	 */
 	public static SkinView[] getMultiByClass(Class<?> cla) {
 		List<SkinView> list = mapSkinViews.get(cla);
+		if (list == null) {
+			return new SkinView[0];
+		}
 		return list.toArray(new SkinView[0]);
 	}
 
