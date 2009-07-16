@@ -63,6 +63,14 @@ public class DebugMenuHelper
 			}
 		});
 		
+		item = new MenuItem(menuDebug, SWT.CASCADE);
+		item.setText("Run GC");
+		item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				System.gc();
+			}
+		});
+		
 		item = new MenuItem(menuDebug, SWT.PUSH);
 		item.setText("&CoreReq");
 		item.addListener(SWT.Selection, new Listener() {
