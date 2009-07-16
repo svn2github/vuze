@@ -1818,17 +1818,6 @@ public class MainWindow
 					SkinView skinView = (SkinView) cla.newInstance();
 					skinView.setMainSkinObject(skinObject);
 					skinObject.addListener(skinView);
-
-					if (skinView instanceof UIUpdatable) {
-						UIUpdatable updateable = (UIUpdatable) skinView;
-						try {
-							UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(
-									updateable);
-						} catch (Exception e) {
-							Debug.out(e);
-						}
-					}
-					SkinViewManager.add(skinView);
 				}
 			} catch (Throwable t) {
 				Debug.out(t);

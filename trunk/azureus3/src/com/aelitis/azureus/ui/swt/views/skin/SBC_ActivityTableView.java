@@ -199,7 +199,7 @@ public class SBC_ActivityTableView
 
 		VuzeActivitiesManager.addListener(this);
 		
-		return super.skinObjectInitialShow(skinObject, params);
+		return null;
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectDestroyed(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)

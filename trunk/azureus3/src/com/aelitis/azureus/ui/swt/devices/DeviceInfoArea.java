@@ -71,7 +71,7 @@ public class DeviceInfoArea
 		
 		parent = (Composite) skinObject.getControl();
 
-		return super.skinObjectInitialShow(skinObject, params);
+		return null;
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)

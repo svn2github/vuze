@@ -90,8 +90,6 @@ SBC_RCMView
 	skinObjectInitialShow(
 		SWTSkinObject skinObject, Object params ) 
 	{
-		super.skinObjectInitialShow(skinObject, params);
-
 		AzureusCoreFactory.addCoreRunningListener(
 			new AzureusCoreRunningListener() 
 			{

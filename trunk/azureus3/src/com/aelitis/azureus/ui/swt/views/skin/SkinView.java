@@ -22,17 +22,21 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.skin.*;
 
 /**
  * Converts {@link SWTSkinObjectListener} events to method calls, and
  * ensures we only "show" (initialize) once.
+ * <p>
+ * Available SkinViews are managed by {@link SkinViewManager} 
  * 
  * @author TuxPaper
  * @created Sep 30, 2006
  *
  */
-public class SkinView
+public abstract class SkinView
 	extends SWTSkinObjectAdapter
 {
 	private boolean shownOnce;
@@ -48,13 +52,16 @@ public class SkinView
 	 */
 	public SkinView() {
 		shownOnce = false;
-	}
-
-	/**
-	 * @param visible the visible to set
-	 */
-	public void setVisible(boolean visible) {
-		this.visible = visible;
+		
+		if (this instanceof UIUpdatable) {
+			UIUpdatable updateable = (UIUpdatable) this;
+			try {
+				UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(
+						updateable);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
 	}
 
 	/**
@@ -87,32 +94,49 @@ public class SkinView
 		visible = false;
 		return super.skinObjectHidden(skinObject, params);
 	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectDestroyed(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
+		SkinViewManager.remove(this);
+		if (this instanceof UIUpdatable) {
+			UIUpdatable updateable = (UIUpdatable) this;
+			try {
+				UIFunctionsManager.getUIFunctions().getUIUpdater().removeUpdater(
+						updateable);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * @param skinObject
 	 * @param params
 	 * @return
 	 */
-	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
-		return null;
-	}
+	public abstract Object skinObjectInitialShow(SWTSkinObject skinObject, Object params);
 
 	public SWTSkinObject getMainSkinObject() {
 		return soMain;
 	}
 
-	public void setMainSkinObject(SWTSkinObject main) {
+	final public void setMainSkinObject(SWTSkinObject main) {
+		if (soMain != null) {
+			return;
+		}
 		soMain = main;
 		if (soMain != null) {
 			skin = soMain.getSkin();
 		}
+		SkinViewManager.add(this);
 	}
 
-	public SWTSkin getSkin() {
+	final public SWTSkin getSkin() {
 		return skin;
 	}
 
-	public SWTSkinObject getSkinObject(String viewID) {
+	final public SWTSkinObject getSkinObject(String viewID) {
 		return skin.getSkinObject(viewID, soMain);
 	}
 }

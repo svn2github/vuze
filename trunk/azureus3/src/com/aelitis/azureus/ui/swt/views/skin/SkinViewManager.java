@@ -22,9 +22,15 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor2;
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
 
 /**
+ * Manages a list of SkinViews currently in use by the app
+ * 
  * @author TuxPaper
  * @created Oct 6, 2006
  *
@@ -32,9 +38,14 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 public class SkinViewManager
 {
 
-	private static Map skinViews = new HashMap();
+	private static Map<Class<?>, List<SkinView>> mapSkinViews = new HashMap<Class<?>, List<SkinView>>();
+	
+	private static AEMonitor2 mon_skinViews = new AEMonitor2("skinViews");
 
-	private static Map skinIDs = new HashMap();
+	/**
+	 * Map SkinObjectID to skin view
+	 */
+	private static Map<String, SkinView> skinIDs = new HashMap<String, SkinView>();
 	
 	private static List listeners = new ArrayList();
 	
@@ -42,82 +53,111 @@ public class SkinViewManager
 	 * @param key
 	 * @param skinView
 	 */
-	public static void add(SkinView skinView) {
-		Object object = skinViews.get(skinView.getClass());
-		if (object instanceof SkinView[]) {
-			SkinView[] oldSkinViews = (SkinView[])object;
-			SkinView[] newSkinViews = new SkinView[oldSkinViews.length + 1];
-			System.arraycopy(oldSkinViews, 0, newSkinViews, 0, oldSkinViews.length);
-			newSkinViews[oldSkinViews.length] = skinView;
-			
-			skinViews.put(skinView.getClass(), newSkinViews);
-		} else if (object != null) {
-			Object[] newObjs = new SkinView[] { (SkinView) object, skinView };
-			skinViews.put(skinView.getClass(), newObjs);
-		} else {
-			skinViews.put(skinView.getClass(), skinView);
+	public static void add(final SkinView skinView) {
+		mon_skinViews.enter();
+		try {
+  		List<SkinView> list = mapSkinViews.get(skinView);
+  		if (list == null) {
+  			list = new ArrayList<SkinView>(1);
+  			mapSkinViews.put(skinView.getClass(), list);
+  		}
+  		list.add(skinView);
+		} finally {
+			mon_skinViews.exit();
 		}
-		if (skinView.getMainSkinObject() != null) {
-			skinIDs.put(skinView.getMainSkinObject().getSkinObjectID(), skinView);
+		
+		SWTSkinObject mainSkinObject = skinView.getMainSkinObject();
+		if (mainSkinObject != null) {
+			skinIDs.put(mainSkinObject.getSkinObjectID(), skinView);
+		}
+
+		triggerViewAddedListeners(skinView);
+	}
+
+	public static void remove(SkinView skinView) {
+		if (skinView == null) {
+			return;
+		}
+
+		mon_skinViews.enter();
+		try {
+			List<SkinView> list = mapSkinViews.get(skinView.getClass());
+			list.remove(skinView);
+			if (list.isEmpty()) {
+				mapSkinViews.remove(skinView.getClass());
+			}
+		} finally {
+			mon_skinViews.exit();
+		}
+		
+		SWTSkinObject mainSkinObject = skinView.getMainSkinObject();
+		if (mainSkinObject != null) {
+			skinIDs.remove(mainSkinObject.getSkinObjectID());
 		}
 	}
 
 	/**
-	 * @param string
+	 * Gets the first SkinView created of the specified class
+	 * 
+	 * @param cla
 	 * @return
 	 */
-	public static SkinView getByClass(Class cla) {
-		SkinView sv = null;
-		Object object = skinViews.get(cla);
-		if (object == null) {
+	public static SkinView getByClass(Class<?> cla) {
+		List<SkinView> list = mapSkinViews.get(cla);
+		if (list == null) {
 			return null;
 		}
+		
+		Object[] skinViews = list.toArray();
+		for (int i = 0; i < skinViews.length; i++) {
+			SkinView sv = (SkinView) skinViews[i];
 
-		if (object instanceof SkinView[]) {
-			SkinView[] svs = (SkinView[]) object;
-			for (int i = 0; i < svs.length; i++) {
-				sv = svs[i];
-	  		SWTSkinObject so = sv.getMainSkinObject();
-	  		if (so != null && !so.isDisposed()) {
-	  			break;
-	  		} // else TODO remove
-			}
-		} else {
-			sv = (SkinView) object;
-		}
-
-		if (sv != null) {
-  		SWTSkinObject so = sv.getMainSkinObject();
-  		if (so != null && so.isDisposed()) {
-  			// TODO remove
-  			return null;
+			SWTSkinObject so = sv.getMainSkinObject();
+  		if (so != null) {
+    		if (!so.isDisposed()) {
+    			return sv;
+    		}
+  			remove(sv);
   		}
 		}
-		return sv;
+
+		return null;
 	}
 	
-	public static SkinView[] getMultiByClass(Class cla) {
-		Object object = skinViews.get(cla);
-		if (object instanceof Object[]) {
-			return (SkinView[]) ((Object[]) object);
-		}
-		return new SkinView[] {
-			(SkinView) object
-		};
+	/**
+	 * Return all added SkinViews of a certain class
+	 * 
+	 * @param cla
+	 * @return
+	 */
+	public static SkinView[] getMultiByClass(Class<?> cla) {
+		List<SkinView> list = mapSkinViews.get(cla);
+		return list.toArray(new SkinView[0]);
 	}
 
+	/**
+	 * Get the SkinView related to a SkinObjectID 
+	 * 
+	 * @param id
+	 * @return
+	 */
 	public static SkinView getBySkinObjectID(String id) {
-		SkinView sv = (SkinView) skinIDs.get(id);
+		SkinView sv = skinIDs.get(id);
 		if (sv != null) {
   		SWTSkinObject so = sv.getMainSkinObject();
   		if (so != null && so.isDisposed()) {
-  			// TODO remove
+  			remove(sv);
   			return null;
   		}
 		}
 		return sv;
 	}
 	
+	/**
+	 * Listen in on SkinView adds
+	 * 
+	 * @param l
+	 */
 	public static void addListener(SkinViewManagerListener l) {
 		synchronized (SkinViewManager.class) {
 			if (!listeners.contains(l)) {
@@ -136,7 +176,11 @@ public class SkinViewManager
 		Object[] array = listeners.toArray();
 		for (int i = 0; i < array.length; i++) {
 			SkinViewManagerListener l = (SkinViewManagerListener) array[i];
-			l.skinViewAdded(skinView);
+			try {
+				l.skinViewAdded(skinView);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 		}
 	}
 	

@@ -21,18 +21,32 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 /**
+ * Allows monitoring of {@link SWTSkinObject}'s events
+ * 
  * @author TuxPaper
  * @created Sep 30, 2006
  *
  */
 public interface SWTSkinObjectListener
 {
+	/**
+	 * Skin Object was shown
+	 */
 	public static int EVENT_SHOW = 0;
 
+	/**
+	 * Skin Object was hidden
+	 */
 	public static int EVENT_HIDE = 1;
 
+	/**
+	 * Skin Object was selected (activated)
+	 */
 	public static int EVENT_SELECT = 2;
 	
+	/**
+	 * Skin Object was destroyed
+	 */
 	public static int EVENT_DESTROY = 3;
 
 	/**
@@ -46,9 +60,15 @@ public interface SWTSkinObjectListener
 	 */
 	public static int EVENT_CREATE_REQUEST = 5;
 
+	/**
+	 * skinObject needs to update any text
+	 */
 	public static int EVENT_LANGUAGE_CHANGE = 6;
 
 	
+	/**
+	 * Friendly names of events, useful for debug
+	 */
 	public static String[] NAMES = {
 		"Show",
 		"Hide",

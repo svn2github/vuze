@@ -789,22 +789,9 @@ public class SWTSkinObjectBasic
 
 					skinView = cla.newInstance();
 					skinView.setMainSkinObject(this);
-					SkinViewManager.add(skinView);
 					
 					// this will fire created and show for us
 					addListener(skinView);
-
-					if (skinView instanceof UIUpdatable) {
-						UIUpdatable updateable = (UIUpdatable) skinView;
-						try {
-							UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(
-									updateable);
-						} catch (Exception e) {
-							Debug.out(e);
-						}
-					}
-					
-					SkinViewManager.triggerViewAddedListeners(skinView);
 				} catch (Throwable e) {
 					Debug.out(e);
 				}
@@ -827,6 +814,19 @@ public class SWTSkinObjectBasic
 		}
 		if (control != null && !control.isDisposed()) {
 			control.dispose();
+		}
+		if (skinView != null) {
+			removeListener(skinView);
+
+			if (skinView instanceof UIUpdatable) {
+				UIUpdatable updateable = (UIUpdatable) skinView;
+				try {
+					UIFunctionsManager.getUIFunctions().getUIUpdater().removeUpdater(
+							updateable);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
 		}
 	}
 
