@@ -25,6 +25,9 @@ public interface
 DeviceMediaRendererTemplate
 	extends DeviceTemplate
 {
+	public int
+	getRendererSpecies();
+	
 	public TranscodeProfile[]
 	getProfiles();
 }

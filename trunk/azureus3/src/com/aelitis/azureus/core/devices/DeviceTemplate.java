@@ -36,6 +36,9 @@ DeviceTemplate
 	public String
 	getClassification();
 	
+	public String
+	getShortDescription();
+	
 	public boolean
 	isAuto();
 	

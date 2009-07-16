@@ -25,6 +25,7 @@ import java.util.*;
 
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceManagerException;
+import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.devices.DeviceMediaRendererTemplate;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 
@@ -108,6 +109,18 @@ DeviceMediaRendererTemplateImpl
 	getClassification()
 	{
 		return( classification );
+	}
+	
+	public String
+	getShortDescription()
+	{
+		return( null );
+	}
+	
+	public int
+	getRendererSpecies()
+	{
+		return( DeviceMediaRenderer.RS_OTHER );
 	}
 	
 	public boolean
