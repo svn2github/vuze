@@ -147,6 +147,14 @@ public class InitialisationFunctions
 					MetaSearchManagerFactory.getSingleton();
 					
 					SubscriptionManagerFactory.getSingleton();
+					
+					try{
+						RelatedContentManager.getSingleton();
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
 				}
 			}).queue();
 	}
