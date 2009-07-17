@@ -262,6 +262,9 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
   // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#isMouseOver()
   public boolean isMouseOver() {
 		Table table = row.getTable();
+		if (table == null || table.isDisposed()) {
+			return false;
+		}
 		Point pt = table.getDisplay().getCursorLocation();
 		pt = table.toControl(pt);
 
