@@ -218,7 +218,28 @@ SBC_RCMView
 		return( super.skinObjectHidden(skinObject, params));
 	}
 
+	public Object
+	skinObjectDestroyed(
+		SWTSkinObject 	skinObject, 
+		Object 			params ) 
+	{
+		synchronized( this ){
+			
+			if ( tv_related_content != null ){
+				
+				tv_related_content.delete();
+				
+				tv_related_content = null;
+			}
+		}
+		
+		Utils.disposeSWTObjects(new Object[] {
+			table_parent,
+		});
 
+		return( super.skinObjectDestroyed(skinObject, params));
+	}
+	
 	private void 
 	initTable(
 		Composite control ) 

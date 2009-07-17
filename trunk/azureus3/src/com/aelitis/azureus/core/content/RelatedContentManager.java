@@ -114,6 +114,14 @@ RelatedContentManager
 	
 	private AESemaphore initialisation_complete_sem = new AESemaphore( "RCM:init" );
 
+	private static final int TIMER_PERIOD			= 30*1000;
+	private static final int PUBLISH_CHECK_PERIOD	= 30*1000;
+	private static final int PUBLISH_CHECK_TICKS	= PUBLISH_CHECK_PERIOD/TIMER_PERIOD;
+	private static final int SECONDARY_LOOKUP_PERIOD	= 10*60*1000;
+	private static final int SECONDARY_LOOKUP_TICKS		= SECONDARY_LOOKUP_PERIOD/TIMER_PERIOD;
+	
+	
+	
 	private static final int CONFIG_DISCARD_MILLIS	= 60*1000;
 	
 	private ContentCache				content_cache_ref;
@@ -216,18 +224,30 @@ RelatedContentManager
 											
 											SimpleTimer.addPeriodicEvent(
 												"RCM:publisher",
-												30*1000,
+												TIMER_PERIOD,
 												new TimerEventPerformer()
 												{
+													private int	tick_count;
+													
 													public void 
 													perform(
 														TimerEvent event ) 
 													{
 														if ( enabled ){
-														
-															publish();
+													
+															tick_count++;
 															
-															saveRelatedContent();
+															if ( tick_count % PUBLISH_CHECK_TICKS == 0 ){
+															
+																publish();
+															
+																saveRelatedContent();
+															}
+															
+															if ( tick_count % SECONDARY_LOOKUP_TICKS == 0 ){
+
+																secondaryLookup();
+															}
 														}
 													}
 												});
@@ -615,7 +635,7 @@ RelatedContentManager
 								entries.add( key );
 							}
 							
-							analyseResponse( from_info, new DownloadInfo( from_info.getRelatedToHash(), hash, title, rand, tracker ), null );
+							analyseResponse( new DownloadInfo( from_info.getHash(), hash, title, rand, tracker ), null );
 							
 						}catch( Throwable e ){							
 						}
@@ -752,42 +772,38 @@ RelatedContentManager
 	
 		throws ContentException
 	{
+		Torrent t = download.getTorrent();
+		
+		if ( t == null ){
+			
+			throw( new ContentException( "Torrent not available" ));
+		}
+		
+		lookupContentSupport( t.getHash(), listener );
+	}
+	
+	private void
+	lookupContentSupport(
+		final byte[]						from_hash,
+		final RelatedContentLookupListener	listener )
+	
+		throws ContentException
+	{
 		try{
-
 			if ( dht_plugin == null ){
 				
 				throw( new ContentException( "DHT plugin unavailable" ));
 			}
 			
-			final DownloadInfo	from_info;
+			final String from_hash_str	= ByteFormatter.encodeString( from_hash );
 		
-			synchronized( this ){
-				
-				Torrent t = download.getTorrent();
-				
-				if ( t == null ){
-					
-					throw( new ContentException( "Torrent not available" ));
-				}
-				
-				from_info = download_info_map.get( t.getHash());
-				
-				if ( from_info == null ){
-					
-					throw( new ContentException( "Unknown download" ));
-				}
-			}
-			
-			final String from_hash	= ByteFormatter.encodeString( from_info.getHash());
-		
-			final byte[] key_bytes	= ( "az:rcm:assoc:" + from_hash ).getBytes( "UTF-8" );
-			
+			final byte[] key_bytes	= ( "az:rcm:assoc:" + from_hash_str ).getBytes( "UTF-8" );
 			
 			final int max_hits = 30;
 			
 			dht_plugin.get(
 					key_bytes,
-					"Content relationship read: " + from_hash,
+					"Content relationship read: " + from_hash_str,
 					DHTPlugin.FLAG_SINGLE_VALUE,
 					max_hits,
 					60*1000,
@@ -899,9 +915,8 @@ RelatedContentManager
 								}
 								
 								analyseResponse( 
-									from_info, 
 									new DownloadInfo( 
-										from_info.getRelatedToHash(), hash, title, rand, tracker ),
+										from_hash, hash, title, rand, tracker ),
 										listener==null?null:manager_listener );
 								
 							}catch( Throwable e ){							
@@ -961,6 +976,14 @@ RelatedContentManager
 	}
 	
 	protected void
+	secondaryLookup()
+	{
+		synchronized( this ){
+			
+		}
+	}
+	
+	protected void
 	contentChanged(
 		DownloadInfo		info )
 	{
@@ -1001,7 +1024,6 @@ RelatedContentManager
 	
 	protected void
 	analyseResponse(
-		DownloadInfo						from_info,
 		DownloadInfo						to_info,
 		final RelatedContentManagerListener	listener )
 	{
@@ -1051,13 +1073,15 @@ RelatedContentManager
 			
 					content_cache.related_content.put( key, target_info );
 					
-					ArrayList<DownloadInfo> links = content_cache.related_content_map.get( from_info.getHash());
+					byte[] from_hash = to_info.getRelatedToHash();
+					
+					ArrayList<DownloadInfo> links = content_cache.related_content_map.get( from_hash );
 					
 					if ( links == null ){
 						
 						links = new ArrayList<DownloadInfo>(1);
 						
-						content_cache.related_content_map.put( from_info.getHash(), links );
+						content_cache.related_content_map.put( from_hash, links );
 					}
 					
 					links.add( target_info );
@@ -1377,6 +1401,11 @@ RelatedContentManager
 					
 					if ( now - last_config_access > CONFIG_DISCARD_MILLIS ){
 					
+						if ( content_cache_ref != null ){
+							
+							content_discard_ticks = 0;
+						}
+						
 						System.out.println( "rcm: discard: tick count=" + content_discard_ticks++ );
 					
 						content_cache_ref	= null;
@@ -1384,8 +1413,6 @@ RelatedContentManager
 				}else{
 					
 					System.out.println( "rcm: discarded" );
-					
-					content_discard_ticks = 0;
 				}
 				
 				return;
