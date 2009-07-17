@@ -107,6 +107,8 @@ RelatedContentManager
 	private Set<String>							download_priv_set	= new HashSet<String>();
 	
 	private boolean	enabled;
+	private int		max_search_level;
+	private int		max_results;
 	
 	private int publishing_count = 0;
 	
@@ -117,7 +119,7 @@ RelatedContentManager
 	private static final int TIMER_PERIOD			= 30*1000;
 	private static final int PUBLISH_CHECK_PERIOD	= 30*1000;
 	private static final int PUBLISH_CHECK_TICKS	= PUBLISH_CHECK_PERIOD/TIMER_PERIOD;
-	private static final int SECONDARY_LOOKUP_PERIOD	= 10*60*1000;
+	private static final int SECONDARY_LOOKUP_PERIOD	= 1*60*1000;	// !!!!
 	private static final int SECONDARY_LOOKUP_TICKS		= SECONDARY_LOOKUP_PERIOD/TIMER_PERIOD;
 	
 	
@@ -131,8 +133,13 @@ RelatedContentManager
 	private long		last_config_access;		
 	private int			content_discard_ticks;
 	
-	private int	total_unread;
+	private int	total_unread = COConfigurationManager.getIntParameter( "rcm.numunread.cache", 0 );
+	
 	private AsyncDispatcher	content_change_dispatcher = new AsyncDispatcher();
+	
+	private static final int SECONDARY_LOOKUP_CACHE_MAX = 3;	// !!!!
+	private LinkedList<SecondaryLookup> secondary_lookups = new LinkedList<SecondaryLookup>();
+	private boolean	secondary_lookup_in_progress;
 	
 	
 	protected
@@ -162,15 +169,21 @@ RelatedContentManager
 			
 			ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
 			
-			COConfigurationManager.addAndFireParameterListener(
-				"rcm.enabled",
+			COConfigurationManager.addAndFireParameterListeners(
+				new String[]{
+					"rcm.enabled",
+					"rcm.max_search_level",
+					"rcm.max_results",
+				},
 				new ParameterListener()
 				{
 					public void 
 					parameterChanged(
 						String name )
 					{
-						enabled = COConfigurationManager.getBooleanParameter( "rcm.enabled", true );
+						enabled 			= COConfigurationManager.getBooleanParameter( "rcm.enabled", true );
+						max_search_level 	= COConfigurationManager.getIntParameter( "rcm.max_search_level", 2 );
+						max_results		 	= COConfigurationManager.getIntParameter( "rcm.max_results", 250 );
 					}
 				});
 			
@@ -298,6 +311,32 @@ RelatedContentManager
 		COConfigurationManager.setParameter( "rcm.enabled", _enabled );
 	}
 	
+	public int
+	getMaxSearchLevel()
+	{
+		return( max_search_level );
+	}
+	
+	public void
+	setMaxSearchLevel(
+		int		_level )
+	{
+		COConfigurationManager.setParameter( "rcm.max_search_level", _level );
+	}
+	
+	public int
+	getMaxResults()
+	{
+		return( max_results );
+	}
+	
+	public void
+	setMaxResults(
+		int		_max )
+	{
+		COConfigurationManager.setParameter( "rcm.max_results", _max );
+	}
+	
 	protected void
 	addDownloads(
 		Download[]		downloads,
@@ -365,7 +404,8 @@ RelatedContentManager
 								hash,
 								download.getName(),
 								(int)rand,
-								torrent.isPrivate()?StringInterner.intern(torrent.getAnnounceURL().getHost()):null );
+								torrent.isPrivate()?StringInterner.intern(torrent.getAnnounceURL().getHost()):null,
+								0 );
 						
 						new_info.add( info );
 						
@@ -635,7 +675,7 @@ RelatedContentManager
 								entries.add( key );
 							}
 							
-							analyseResponse( new DownloadInfo( from_info.getHash(), hash, title, rand, tracker ), null );
+							analyseResponse( new DownloadInfo( from_info.getHash(), hash, title, rand, tracker, 1 ), null );
 							
 						}catch( Throwable e ){							
 						}
@@ -732,11 +772,20 @@ RelatedContentManager
 		
 	public void
 	lookupContent(
-		final Download						download,
+		Download							download,
 		final RelatedContentLookupListener	listener )
 	
 		throws ContentException
 	{
+		Torrent t = download.getTorrent();
+		
+		if ( t == null ){
+			
+			throw( new ContentException( "Torrent not available" ));
+		}
+
+		final byte[] hash = t.getHash();
+		
 		if ( 	!initialisation_complete_sem.isReleasedForever() ||
 				( dht_plugin != null && dht_plugin.isInitialising())){
 			
@@ -751,7 +800,7 @@ RelatedContentManager
 						try{
 							initialisation_complete_sem.reserve();
 							
-							lookupContentSupport( download, listener );
+							lookupContentSupport( hash, 0, listener );
 							
 						}catch( ContentException e ){
 							
@@ -761,30 +810,14 @@ RelatedContentManager
 				});
 		}else{
 			
-			lookupContentSupport( download, listener );
+			lookupContentSupport( hash, 0, listener );
 		}
-	}
-	
-	private void
-	lookupContentSupport(
-		final Download						download,
-		final RelatedContentLookupListener	listener )
-	
-		throws ContentException
-	{
-		Torrent t = download.getTorrent();
-		
-		if ( t == null ){
-			
-			throw( new ContentException( "Torrent not available" ));
-		}
-		
-		lookupContentSupport( t.getHash(), listener );
 	}
 	
 	private void
 	lookupContentSupport(
 		final byte[]						from_hash,
+		final int							level,
 		final RelatedContentLookupListener	listener )
 	
 		throws ContentException
@@ -830,6 +863,12 @@ RelatedContentManager
 									RelatedContent	content )
 								{
 									handle( content );
+								}
+								
+								public void 
+								contentRemoved(
+									RelatedContent content ) 
+								{
 								}
 								
 								public void
@@ -916,7 +955,7 @@ RelatedContentManager
 								
 								analyseResponse( 
 									new DownloadInfo( 
-										from_hash, hash, title, rand, tracker ),
+										from_hash, hash, title, rand, tracker, level+1 ),
 										listener==null?null:manager_listener );
 								
 							}catch( Throwable e ){							
@@ -978,8 +1017,109 @@ RelatedContentManager
 	protected void
 	secondaryLookup()
 	{
+		SecondaryLookup sl;
+		
 		synchronized( this ){
 			
+			if ( secondary_lookup_in_progress ){
+				
+				return;
+			}
+			
+			if ( secondary_lookups.size() == 0 ){
+			
+					// if not loaded, load to grab some more cache entries
+				
+				ContentCache cc = content_cache==null?null:content_cache.get();
+				
+				if ( cc == null ){
+				
+					loadRelatedContent();
+				}
+			}
+
+			if ( secondary_lookups.size() == 0 ){
+				
+				return;
+			}
+						
+			sl = secondary_lookups.removeFirst();
+
+			secondary_lookup_in_progress = true;
+		}
+		
+		try{
+			lookupContentSupport( 
+				sl.getHash(),
+				sl.getLevel(),
+				new RelatedContentLookupListener()
+				{
+					public void
+					lookupStart()
+					{	
+					}
+					
+					public void
+					contentFound(
+						RelatedContent		content )
+					{	
+					}
+					
+					public void
+					lookupComplete()
+					{
+						next();
+					}
+					
+					public void
+					lookupFailed(
+						ContentException 	error )
+					{
+						next();
+					}
+					
+					protected void
+					next()
+					{
+						SecondaryLookup next_sl;
+						
+						synchronized( RelatedContentManager.this ){
+							
+							if ( secondary_lookups.size() == 0 ){
+								
+								secondary_lookup_in_progress = false;
+								
+								return;
+							}else{
+								
+								next_sl = secondary_lookups.removeFirst();
+
+							}
+						}
+						
+						try{					
+							lookupContentSupport( next_sl.getHash(), next_sl.getLevel(), this );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+							
+							synchronized( RelatedContentManager.this ){
+								
+								secondary_lookup_in_progress = false;
+							}
+						}
+					}
+				});
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			synchronized( this ){
+				
+				secondary_lookup_in_progress = false;
+			}
 		}
 	}
 	
@@ -1068,29 +1208,43 @@ RelatedContentManager
 				target_info = content_cache.related_content.get( key );
 				
 				if ( target_info == null ){
+								
+					if ( enoughSpaceFor( content_cache, to_info )){
 					
-					target_info = to_info;
-			
-					content_cache.related_content.put( key, target_info );
-					
-					byte[] from_hash = to_info.getRelatedToHash();
-					
-					ArrayList<DownloadInfo> links = content_cache.related_content_map.get( from_hash );
-					
-					if ( links == null ){
+						target_info = to_info;
+
+						content_cache.related_content.put( key, target_info );
 						
-						links = new ArrayList<DownloadInfo>(1);
+						byte[] from_hash = to_info.getRelatedToHash();
 						
-						content_cache.related_content_map.put( from_hash, links );
+						ArrayList<DownloadInfo> links = content_cache.related_content_map.get( from_hash );
+						
+						if ( links == null ){
+							
+							links = new ArrayList<DownloadInfo>(1);
+							
+							content_cache.related_content_map.put( from_hash, links );
+						}
+						
+						links.add( target_info );
+						
+						links.trimToSize();
+						
+						target_info.setPublic( content_cache );
+						
+						if ( secondary_lookups.size() < SECONDARY_LOOKUP_CACHE_MAX ){
+							
+							byte[]	hash 	= target_info.getHash();
+							int		level	= target_info.getLevel();
+							
+							if ( hash != null && level < max_search_level ){
+								
+								secondary_lookups.add( new SecondaryLookup( hash, level ));
+							}
+						}
+						
+						new_content = true;
 					}
-					
-					links.add( target_info );
-					
-					links.trimToSize();
-					
-					target_info.setPublic( content_cache );
-					
-					new_content = true;
 					
 				}else{
 					
@@ -1162,6 +1316,125 @@ RelatedContentManager
 			
 			Debug.out( e );
 		}
+	}
+	
+	protected boolean
+	enoughSpaceFor(
+		ContentCache	content_cache,
+		DownloadInfo	fi )
+	{
+		Map<String,DownloadInfo> related_content = content_cache.related_content;
+		
+		if ( related_content.size() < max_results ){
+			
+			return( true );
+		}
+		
+		Iterator<Map.Entry<String,DownloadInfo>>	it = related_content.entrySet().iterator();
+		
+		String	to_remove = null;
+		
+		final int	level 		= fi.getLevel();
+		
+			// delete oldest at same level or higher with minimum rank
+	
+		Map<Integer,Object[]>	oldest_per_rank = new HashMap<Integer, Object[]>();
+		
+		int	min_rank = Integer.MAX_VALUE;
+		
+		while( it.hasNext()){
+			
+			Map.Entry<String,DownloadInfo> entry = it.next();
+			
+			DownloadInfo info = entry.getValue();
+			
+			if ( info.getLevel() >= level ){
+				
+				int	rank = info.getRank();
+				
+				if ( rank < min_rank ){
+					
+					min_rank = rank;
+				}
+				
+				Object[] oldest = oldest_per_rank.get( rank );
+				
+				if ( oldest == null ){
+					
+					oldest_per_rank.put( rank, new Object[]{ info, entry.getKey()});
+					
+				}else{
+					
+					if ( info.getLastSeen() < ((DownloadInfo)oldest[0]).getLastSeen()){
+						
+						oldest[0] 	= info;
+						oldest[1]	= entry.getKey();
+					}
+				}
+			}
+		}
+		
+		Object[] x = oldest_per_rank.get( min_rank );
+		
+		if ( x != null ){
+			
+			to_remove = (String)x[1];
+		}
+		
+		if ( to_remove != null ){
+		
+			final DownloadInfo f_target = related_content.remove( to_remove );
+			
+			if ( f_target.isUnread()){
+				
+				decrementUnread();
+			}
+			
+			ByteArrayHashMapEx<ArrayList<DownloadInfo>> related_content_map = content_cache.related_content_map;
+			
+			List<byte[]> delete = new ArrayList<byte[]>();
+			
+			for ( byte[] key: related_content_map.keys()){
+				
+				ArrayList<DownloadInfo>	infos = related_content_map.get( key );
+				
+				if ( infos.remove( f_target )){
+					
+					if ( infos.size() == 0 ){
+						
+						delete.add( key );
+					}
+				}
+			}
+			
+			for ( byte[] key: delete ){
+				
+				related_content_map.remove( key );
+			}
+			
+			content_change_dispatcher.dispatch(
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							for ( RelatedContentManagerListener l: listeners ){
+								
+								try{
+									l.contentRemoved( f_target );
+	
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}
+					});
+			
+			return( true );
+		}
+		
+		return( false );
 	}
 	
 	public RelatedContent[]
@@ -1315,15 +1588,15 @@ RelatedContentManager
 													
 												}else{
 													
+														// we don't currently remember all originators, just one that works 
+														
+													di.setRelatedToHash( hash );
+													
 													di_list.add( di );
 												}
 											}
 											
 											if ( di_list.size() > 0 ){
-												
-													// just tag it with the first entry for the moment
-												
-												di_list.get(0).setRelatedToHash( hash );
 												
 												related_content_map.put( hash, di_list );
 											}
@@ -1337,6 +1610,8 @@ RelatedContentManager
 							
 							Iterator<DownloadInfo> it = related_content.values().iterator();
 							
+							List<DownloadInfo> secondary_cache_temp = new ArrayList<DownloadInfo>( related_content.size());
+
 							while( it.hasNext()){
 								
 								DownloadInfo di = it.next();
@@ -1351,16 +1626,45 @@ RelatedContentManager
 									}
 									
 									it.remove();
+								}else{
+									
+									if ( di.getHash() != null && di.getLevel() < max_search_level ){
+										
+										secondary_cache_temp.add( di );
+									}
 								}
+							}
+							
+								// populate secondary content lookup cache			
+							
+							final int cache_size = Math.min( secondary_cache_temp.size(), SECONDARY_LOOKUP_CACHE_MAX );
+							
+							Random rand = new Random();
+							
+							for( int i=0;i<cache_size;i++){
+								
+								int index = rand.nextInt( secondary_cache_temp.size());
+								
+								DownloadInfo x = secondary_cache_temp.get( index );
+								
+								secondary_cache_temp.set( index, secondary_cache_temp.get(i));
+								
+								secondary_cache_temp.set( i, x );
+							}
+							
+							secondary_lookups.clear();
+							
+							for ( int i=0;i<cache_size;i++){
+								
+								DownloadInfo x = secondary_cache_temp.get(i);
+								
+								secondary_lookups.addLast(new SecondaryLookup(x.getHash(), x.getLevel()));
 							}
 						}
 						
 						if ( total_unread != new_total_unread ){
-							
-							if ( total_unread != 0 ){
-							
-								Debug.out( "total_unread - inconsistent (" + total_unread + "/" + new_total_unread );
-							}
+														
+							Debug.out( "total_unread - inconsistent (" + total_unread + "/" + new_total_unread );
 							
 							total_unread = new_total_unread;
 						}
@@ -1391,6 +1695,8 @@ RelatedContentManager
 	{
 		synchronized( this ){
 				
+			COConfigurationManager.setParameter( "rcm.numunread.cache", total_unread );
+			
 			long	now = SystemTime.getMonotonousTime();;
 			
 			ContentCache cc = content_cache==null?null:content_cache.get();
@@ -1655,14 +1961,12 @@ RelatedContentManager
 			ImportExportUtils.exportInt( info_map, "r", info.getRand());
 			ImportExportUtils.exportString( info_map, "t", info.getTracker());
 
-			if ( cc == null ){
-			
-				info_map.put( "f", info.getRelatedToHash());
-				
-			}else{
-				
+			if ( cc != null ){
+							
 				ImportExportUtils.exportBoolean( info_map, "u", info.isUnread());
 				ImportExportUtils.exportIntArray( info_map, "l", info.getRandList());
+				ImportExportUtils.exportInt( info_map, "s", info.getLastSeen());
+				ImportExportUtils.exportInt( info_map, "e", info.getLevel());
 			}
 			
 			return( info_map );
@@ -1686,14 +1990,7 @@ RelatedContentManager
 			
 			if ( cc == null ){
 			
-				byte[]	from_hash 	= (byte[])info_map.get("f");
-				
-				if ( from_hash == null ){
-					
-					return( null );
-				}
-				
-				return( new DownloadInfo( from_hash, hash, title, rand, tracker ));
+				return( new DownloadInfo( hash, hash, title, rand, tracker, 0 ));
 				
 			}else{
 				
@@ -1701,7 +1998,11 @@ RelatedContentManager
 				
 				int[] rand_list = ImportExportUtils.importIntArray( info_map, "l" );
 				
-				return( new DownloadInfo( hash, title, rand, tracker, unread, rand_list, cc ));
+				int	last_seen = ImportExportUtils.importInt( info_map, "s" );
+				
+				int	level = ImportExportUtils.importInt( info_map, "e" );
+				
+				return( new DownloadInfo( hash, title, rand, tracker, unread, rand_list, last_seen, level, cc ));
 			}
 		}catch( Throwable e ){
 			
@@ -1717,6 +2018,8 @@ RelatedContentManager
 		
 		private boolean			unread	= true;
 		private int[]			rand_list;
+		private int				last_seen;
+		private int				level;
 		
 		private ContentCache	cc;
 		
@@ -1726,11 +2029,15 @@ RelatedContentManager
 			byte[]		_hash,
 			String		_title,
 			int			_rand,
-			String		_tracker )
+			String		_tracker,
+			int			_level )
 		{
 			super( _related_to, _title, _hash, _tracker );
 			
 			rand		= _rand;
+			level		= _level;
+			
+			updateLastSeen();
 		}
 		
 		protected
@@ -1741,6 +2048,8 @@ RelatedContentManager
 			String			_tracker,
 			boolean			_unread,
 			int[]			_rand_list,
+			int				_last_seen,
+			int				_level,
 			ContentCache	_cc )
 		{
 			super( _title, _hash, _tracker );
@@ -1748,6 +2057,7 @@ RelatedContentManager
 			rand		= _rand;
 			unread		= _unread;
 			rand_list	= _rand_list;
+			level		= _level;
 			cc			= _cc;
 		}
 		
@@ -1755,7 +2065,11 @@ RelatedContentManager
 		addInfo(
 			DownloadInfo		info )
 		{
+			boolean	result = false;
+			
 			synchronized( this ){
+		
+				updateLastSeen();
 				
 				int r = info.getRand();
 				
@@ -1763,31 +2077,62 @@ RelatedContentManager
 					
 					rand_list = new int[]{ r };
 										
-					return( true );
+					result	= true;
 					
 				}else{
+					
+					boolean	match = false;
 					
 					for (int i=0;i<rand_list.length;i++){
 						
 						if ( rand_list[i] == r ){
 							
-							return( false );
+							match = true;
+							
+							break;
 						}
 					}
 					
-					int	len = rand_list.length;
+					if ( !match ){
+						
+						int	len = rand_list.length;
+						
+						int[]	new_rand_list = new int[len+1];
+						
+						System.arraycopy( rand_list, 0, new_rand_list, 0, len );
+						
+						new_rand_list[len] = r;
+						
+						rand_list = new_rand_list;
+						
+						result = true;
+					}
+				}
+				
+				if ( info.getLevel() < level ){
 					
-					int[]	new_rand_list = new int[len+1];
+					level = info.getLevel();
 					
-					System.arraycopy( rand_list, 0, new_rand_list, 0, len );
-					
-					new_rand_list[len] = r;
-					
-					rand_list = new_rand_list;
-					
-					return( true );
+					result = true;
 				}
 			}
+			
+			return( result );
+		}
+		
+		public int
+		getLevel()
+		{
+			return( level );
+		}
+		
+		protected void
+		updateLastSeen()
+		{
+				// persistence of this is piggy-backed on other saves to limit resource usage
+				// only therefore a vague measure
+
+			last_seen	= (int)( SystemTime.getCurrentTime()/1000 );
 		}
 		
 		public int
@@ -1814,6 +2159,12 @@ RelatedContentManager
 			}
 			
 			rand_list = new int[]{ rand };
+		}
+		
+		protected int
+		getLastSeen()
+		{
+			return( last_seen );
 		}
 		
 		protected void
@@ -1895,5 +2246,33 @@ RelatedContentManager
 	{
 		private Map<String,DownloadInfo>						related_content			= new HashMap<String, DownloadInfo>();
 		private ByteArrayHashMapEx<ArrayList<DownloadInfo>>		related_content_map		= new ByteArrayHashMapEx<ArrayList<DownloadInfo>>();
+	}
+	
+	private static class
+	SecondaryLookup
+	{
+		final private byte[]	hash;
+		final private int		level;
+		
+		protected
+		SecondaryLookup(
+			byte[]		_hash,
+			int			_level )
+		{
+			hash	= _hash;
+			level	= _level;
+		}
+		
+		protected byte[]
+		getHash()
+		{
+			return( hash );
+		}
+		
+		protected int
+		getLevel()
+		{
+			return( level );
+		}
 	}
 }

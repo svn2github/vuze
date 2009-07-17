@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.IntParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
@@ -216,6 +217,41 @@ RelatedContentUI
 						}
 					});
 			
+			final IntParameter max_results = 
+				config_model.addIntParameter2( 
+					"rcm.config.max_results", "rcm.config.max_results",
+					manager.getMaxResults());
+			
+			max_results.addListener(
+					new ParameterListener()
+					{
+						public void 
+						parameterChanged(
+							Parameter param) 
+						{
+							manager.setMaxResults( max_results.getValue());
+						}
+					});
+			
+			final IntParameter max_level = 
+				config_model.addIntParameter2( 
+					"rcm.config.max_level", "rcm.config.max_level",
+					manager.getMaxSearchLevel());
+			
+			max_level.addListener(
+					new ParameterListener()
+					{
+						public void 
+						parameterChanged(
+							Parameter param) 
+						{
+							manager.setMaxSearchLevel( max_level.getValue());
+						}
+					});
+			
+			enabled.addEnabledOnSelection( max_results );
+			enabled.addEnabledOnSelection( max_level );
+			
 			main_view_info = new MainViewInfo();
 
 			hookMenus();
@@ -243,6 +279,25 @@ RelatedContentUI
 					
 					public void 
 					contentChanged() 
+					{
+						check();
+						
+						List<RCMItem>	items;
+						
+						synchronized( RelatedContentUI.this ){
+							
+							items = new ArrayList<RCMItem>( rcm_item_map.values());
+						}
+						
+						for ( RCMItem item: items ){
+							
+							item.updateNumUnread();
+						}
+					}
+					
+					public void 
+					contentRemoved(
+						RelatedContent content ) 
 					{
 						check();
 						
@@ -395,6 +450,12 @@ RelatedContentUI
 											public void
 											contentChanged(
 												RelatedContent	content )
+											{
+											}
+											
+											public void 
+											contentRemoved(
+												RelatedContent content ) 
 											{
 											}
 											

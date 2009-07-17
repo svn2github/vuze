@@ -148,6 +148,15 @@ SBC_RCMView
 							new ColumnRC_Rank(column);
 						}
 					});
+		
+		tableManager.registerColumn(
+				RelatedContent.class, 
+				ColumnRC_Level.COLUMN_ID,
+					new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new ColumnRC_Level(column);
+						}
+					});
 			
 		tableManager.registerColumn(
 				RelatedContent.class, 
@@ -325,6 +334,27 @@ SBC_RCMView
 												if ( tv_related_content != null && !tv_related_content.isDisposed()){
 													
 													tv_related_content.refreshTable( false );
+												}
+											}
+										});
+							}
+						}
+						
+						public void 
+						contentRemoved(
+							final RelatedContent content )
+						{
+							if ( content_set.remove( content )){
+								
+								Utils.execSWTThread(
+										new Runnable()
+										{
+											public void
+											run()
+											{
+												if ( tv_related_content != null && !tv_related_content.isDisposed()){
+													
+													tv_related_content.removeDataSource( content );
 												}
 											}
 										});

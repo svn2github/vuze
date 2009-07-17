@@ -33,6 +33,10 @@ RelatedContentManagerListener
 		RelatedContent	content );
 	
 	public void
+	contentRemoved(
+		RelatedContent	content );
+	
+	public void
 	contentChanged();
 	
 	public void

@@ -88,6 +88,9 @@ RelatedContent
 		return( hash );
 	}
 	
+	public abstract int
+	getLevel();
+	
 	public abstract boolean
 	isUnread();
 	
