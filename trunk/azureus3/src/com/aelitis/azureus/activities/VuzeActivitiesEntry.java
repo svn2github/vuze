@@ -529,6 +529,11 @@ public class VuzeActivitiesEntry
 		boolean ourContent = DataSourceUtils.isPlatformContent(this);
 		
 		SelectedContentV3 sc = new SelectedContentV3();
+		if (assetHash == null) {
+			// Contains no content
+			return sc;
+		}
+
 		dm = getDownloadManger();
 		if (dm != null) {
 			sc.setDisplayName(PlatformTorrentUtils.getContentTitle2(dm));

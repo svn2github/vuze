@@ -3,12 +3,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.io.File;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
@@ -19,10 +14,12 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -48,8 +45,6 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.friends.SharePage;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.util.LoginInfoManager;
-
-import org.gudy.azureus2.plugins.download.Download;
 
 public class AvatarWidget
 {
@@ -213,15 +208,21 @@ public class AvatarWidget
 
 		int operations = DND.DROP_COPY;
 		Transfer[] types = new Transfer[] {
-			FileTransfer.getInstance()
+			FileTransfer.getInstance(),
+			TextTransfer.getInstance(),
 		};
 		DropTarget target = new DropTarget(canvas, operations);
 		target.setTransfer(types);
 
 		target.addDropListener(new DropTargetListener() {
 			public void dragEnter(DropTargetEvent event) {
-				if (isCreatingFile) {
-					event.detail = DND.DROP_NONE;
+				if (FileTransfer.getInstance().isSupportedType(event.currentDataType)) {
+  				if (isCreatingFile) {
+  					event.detail = DND.DROP_NONE;
+  				} else {
+  					event.detail = DND.DROP_COPY;
+  					isDragging = true;
+  				}
 				} else {
 					event.detail = DND.DROP_COPY;
 					isDragging = true;
@@ -248,6 +249,30 @@ public class AvatarWidget
 					event.detail = DND.DROP_NONE;
 					return;
 				}
+				
+				if (!FileTransfer.getInstance().isSupportedType(event.currentDataType)) {
+  				if ((event.data instanceof String) && ((String)event.data).startsWith("DownloadManager\n")) {
+  					String[] hashes = ((String)event.data).split("\n");
+  					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+  					
+  					if (hashes.length > 1) {
+    					for (int i = 1; i < hashes.length; i++) {
+    						String hash = hashes[i];
+    						DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
+    						if (dm != null) {
+    							try {
+										SelectedContentV3 sc = new SelectedContentV3(dm);
+	    							VuzeShareUtils.getInstance().shareContent(sc, new VuzeBuddy[] { vuzeBuddy }, "drop");
+	    							break; // can only share one at a time :(
+									} catch (Exception e) {
+									}
+    						}
+    					}
+  					}
+  				}
+					return;
+				}
+				
 				String[] files = null;
 				if (event.data instanceof String[]) {
 					files = (String[]) event.data;
@@ -273,7 +298,10 @@ public class AvatarWidget
 										MessageText.getString("v3.buddies.dnd.info.dialog.remember"),
 										false, 0);
 
-								mb.open();
+								int result = mb.open();
+								if (result != 0) {
+									return;
+								}
 
 								creationPercent = 0;
 								isCreatingFile = true;
@@ -338,14 +366,15 @@ public class AvatarWidget
 											dm.getDownloadState().setFlag(
 													Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE, true);
 
-											isSelected = true;
 											if (!canvas.isDisposed()) {
 												canvas.getDisplay().asyncExec(new Runnable() {
 													public void run() {
 														try {
 															SelectedContentV3 sc = new SelectedContentV3(dm);
 															VuzeShareUtils.getInstance().shareContent(sc,
-																	"buddy-dnd");
+																	new VuzeBuddy[] {
+																		vuzeBuddy
+																	}, "buddy-dnd");
 														} catch (Exception e) {
 															e.printStackTrace();
 														}
@@ -1460,7 +1489,7 @@ public class AvatarWidget
 		this.textLinkColor = textLinkColor;
 	}
 
-	public void dispose(boolean animate, final AfterDisposeListener listener) {
+	public void dispose(boolean animate, boolean relayout, final AfterDisposeListener listener) {
 		if (null != canvas && false == canvas.isDisposed()) {
 			if (chatWindow != null && !chatWindow.isDisposed()) {
 				chatWindow.close();
@@ -1505,7 +1534,9 @@ public class AvatarWidget
 			} else {
 				if (false == canvas.isDisposed()) {
 					canvas.dispose();
-					parent.layout(true);
+					if (relayout) {
+						parent.layout(true);
+					}
 					if (null != listener) {
 						listener.disposed();
 					}

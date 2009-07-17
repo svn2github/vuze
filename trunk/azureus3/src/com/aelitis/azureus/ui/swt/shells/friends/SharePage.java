@@ -1,7 +1,8 @@
 package com.aelitis.azureus.ui.swt.shells.friends;
 
 import java.io.ByteArrayInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -22,8 +23,6 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
-import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
 import org.gudy.azureus2.ui.swt.shells.AbstractWizardPage;
 import org.gudy.azureus2.ui.swt.shells.MultipageWizard;
 
@@ -37,7 +36,6 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3.ContentImageLoadedListener;
 import com.aelitis.azureus.ui.swt.views.skin.BuddiesViewer;

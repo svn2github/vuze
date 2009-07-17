@@ -878,6 +878,19 @@ public class FriendsToolbar
 				}
 			}
 		});
+		
+		menuItem = new MenuItem(menu, SWT.PUSH);
+		menuItem.setText("filter");
+		menuItem.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
+				if (null != viewer) {
+					viewer.openFilterDialog();
+				}
+			}
+		});
+		
+
 
 		control.setMenu(menu);
 	}

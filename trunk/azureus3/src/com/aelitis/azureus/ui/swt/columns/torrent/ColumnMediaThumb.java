@@ -564,7 +564,7 @@ public class ColumnMediaThumb
 				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 				if (contents.length > 0) {
 					String referer = event.cell.getTableID() + "-media-thumb-btn";
-					VuzeShareUtils.getInstance().shareContent(contents[0], referer);
+					VuzeShareUtils.getInstance().shareContent(contents[0], null, referer);
 				}
 			}
 

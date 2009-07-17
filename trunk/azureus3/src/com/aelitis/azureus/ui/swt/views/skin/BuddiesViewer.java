@@ -2,6 +2,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.*;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -13,6 +14,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
@@ -20,6 +22,7 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.InputShell;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
@@ -121,6 +124,10 @@ public class BuddiesViewer
 
 	private AERunnable runnableSetPanelSize;
 	private boolean runnableSetPanelSizeQueued = false;
+	
+	private String filter;
+
+	private boolean bRegexSearch = false;
 
 	public BuddiesViewer() {
 
@@ -294,7 +301,7 @@ public class BuddiesViewer
 							if (avatarsPanel == null || avatarsPanel.isDisposed()) {
 								return;
 							}
-							fillBuddies(avatarsPanel);
+							fillBuddies();
 							avatarsPanel.layout(true);
 						}
 					});
@@ -366,7 +373,7 @@ public class BuddiesViewer
 		}
 	}
 
-	private void fillBuddies(Composite composite) {
+	private void fillBuddies() {
 
 		List buddies = getBuddies();
 
@@ -374,9 +381,9 @@ public class BuddiesViewer
 
 		for (Iterator iterator = buddies.iterator(); iterator.hasNext();) {
 			VuzeBuddySWT vuzeBuddy = (VuzeBuddySWT) iterator.next();
-			createBuddyControls(composite, vuzeBuddy);
+			createBuddyControls(avatarsPanel, vuzeBuddy);
 		}
-		composite.layout();
+		avatarsPanel.layout();
 		fixupScrollableHeight();
 	}
 
@@ -388,6 +395,19 @@ public class BuddiesViewer
 
 	private AvatarWidget createBuddyControls(Composite composite,
 			final VuzeBuddySWT vuzeBuddy) {
+		
+		if (filter != null && filter.length() > 0) {
+  		String s = bRegexSearch ? filter : "\\Q"
+  				+ filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+  		Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
+  
+  		if (!pattern.matcher(vuzeBuddy.getDisplayName()).find()
+  				&& !pattern.matcher(vuzeBuddy.getLoginID()).find()) {
+  			return null;
+  		}
+		}
+		
+		
 		AvatarWidget avatarWidget = new AvatarWidget(this, avatarSize,
 				avatarImageSize, avatarNameSize, vuzeBuddy);
 		avatarWidget.setBorderWidth(avatarHightLightBorder);
@@ -418,6 +438,30 @@ public class BuddiesViewer
 
 		return avatarWidget;
 	}
+	
+	public void openFilterDialog() {
+		InputShell is = new InputShell("MyTorrentsView.dialog.setFilter.title",
+				"MyTorrentsView.dialog.setFilter.text");
+		is.setTextValue(filter == null ? "" : filter);
+		is.setLabelParameters(new String[] { "Moo" 
+		});
+
+		String sReturn = is.open();
+		if (sReturn == null)
+			return;
+		
+		filter = sReturn;
+
+		for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
+			AvatarWidget widget = (AvatarWidget) iterator.next();
+			
+			widget.dispose(false, false, null);
+			iterator.remove();
+		}
+		
+		fillBuddies();
+	}
+	
 
 	/**
 	 * Returns whether the given <code>AvatarWidget</code> is fully visible in the view port of the viewer
@@ -442,7 +486,7 @@ public class BuddiesViewer
 					return;
 				}
 				avatarWidgets.remove(widget);
-				widget.dispose(true, new AvatarWidget.AfterDisposeListener() {
+				widget.dispose(true, true, new AvatarWidget.AfterDisposeListener() {
 					public void disposed() {
 						avatarsPanel.setSize(avatarsPanel.computeSize(SWT.DEFAULT,
 								SWT.DEFAULT, true));
@@ -830,6 +874,7 @@ public class BuddiesViewer
 				AvatarWidget widget = (AvatarWidget) iterator.next();
 				if (false == isShareMode) {
 					widget.setSharedAlready(false);
+					widget.setSelected(false);
 				}
 				widget.refreshVisual();
 			}

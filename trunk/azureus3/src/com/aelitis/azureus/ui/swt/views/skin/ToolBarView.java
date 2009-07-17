@@ -226,7 +226,7 @@ public class ToolBarView
 				}
 				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 				if (contents.length > 0) {
-					VuzeShareUtils.getInstance().shareContent(contents[0], "ToolBar");
+					VuzeShareUtils.getInstance().shareContent(contents[0], null, "ToolBar");
 				}
 			}
 		};

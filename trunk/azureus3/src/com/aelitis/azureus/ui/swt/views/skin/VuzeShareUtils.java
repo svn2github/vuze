@@ -9,6 +9,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeShareable;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -23,6 +24,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.shells.friends.SharePage;
 import com.aelitis.azureus.ui.swt.shells.friends.ShareWizard;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
@@ -52,23 +54,24 @@ public class VuzeShareUtils
 	shareTorrent(
 		ISelectedContent content, String referer) 
 	{
-		shareContent( content, referer );
+		shareContent( content, null, referer );
 	}
 	
 	public void
 	shareContent(
 		ISelectedContent 	content, 
+		final VuzeBuddy[] defaultSelectedBuddies,
 		String 				referer )
 	{
 		if (content instanceof SelectedContentV3) {
 			SelectedContentV3 sc = (SelectedContentV3) content;
-			shareContent(sc, referer);
+			shareContent(sc, defaultSelectedBuddies, referer);
 		} else if (content instanceof SelectedContent) {
 			SelectedContent sc = (SelectedContent) content;
-			shareContent(new SelectedContentV3(sc), referer);
+			shareContent(new SelectedContentV3(sc), defaultSelectedBuddies, referer);
 		}else if ( content instanceof ISelectedVuzeFileContent ){
 			
-			shareVuzeFile((ISelectedVuzeFileContent)content, referer );
+			shareVuzeFile((ISelectedVuzeFileContent)content, defaultSelectedBuddies, referer );
 			
 		}else{
 			
@@ -79,6 +82,7 @@ public class VuzeShareUtils
 	public void 
 	shareContent(
 		final SelectedContentV3 	content,
+		final VuzeBuddy[] defaultSelectedBuddies,
 		final String 				referer ) 
 	{
 		
@@ -187,12 +191,13 @@ public class VuzeShareUtils
 				}
 			};
 
-		doShare( shareable, referer );
+		doShare( shareable, defaultSelectedBuddies, referer );
 	}
 	
 	public void 
 	shareVuzeFile(
 		final ISelectedVuzeFileContent 		content,
+		final VuzeBuddy[] defaultSelectedBuddies,
 		final String 						referer ) 
 	{
 		
@@ -275,12 +280,13 @@ public class VuzeShareUtils
 				}
 			};
 
-		doShare( shareable, referer );
+		doShare( shareable, defaultSelectedBuddies, referer );
 	}
 	
 	protected void
 	doShare(
 		final VuzeShareable	shareable,
+		final VuzeBuddy[] defaultSelectedBuddies,
 		final String		referer )
 	{
 		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
@@ -297,7 +303,7 @@ public class VuzeShareUtils
 					SharePage newSharePage = (SharePage) wizard.getPage( SharePage.ID );
 				
 					newSharePage.setShareItem( shareable, referer );
-
+					
 					/*
 					 * Opens a centered free-floating shell
 					 */
@@ -318,6 +324,15 @@ public class VuzeShareUtils
 					}
 
 					wizard.open();
+
+					if (defaultSelectedBuddies != null) {
+						for (VuzeBuddy vuzeBuddy : defaultSelectedBuddies) {
+							if (vuzeBuddy instanceof VuzeBuddySWT) {
+								newSharePage.addBuddy((VuzeBuddySWT) vuzeBuddy);
+							}
+						}
+					}
+
 
 				} catch (Throwable e) {
 					Debug.printStackTrace(e);
