@@ -188,8 +188,8 @@ RelatedContentManager
 						String name )
 					{
 						enabled 			= COConfigurationManager.getBooleanParameter( "rcm.enabled", true );
-						max_search_level 	= COConfigurationManager.getIntParameter( "rcm.max_search_level", 2 );
-						max_results		 	= COConfigurationManager.getIntParameter( "rcm.max_results", 250 );
+						max_search_level 	= COConfigurationManager.getIntParameter( "rcm.max_search_level", 3 );
+						max_results		 	= COConfigurationManager.getIntParameter( "rcm.max_results", 500 );
 					}
 				});
 			

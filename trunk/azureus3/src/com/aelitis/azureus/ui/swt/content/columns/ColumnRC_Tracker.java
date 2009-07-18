@@ -24,6 +24,7 @@ import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 /**
@@ -79,13 +80,13 @@ public class ColumnRC_Tracker
 				&& event.button == 1) {
 			RelatedContent rc = (RelatedContent) event.cell.getDataSource();
 			
-			if ( rc.getTracker() != null ){
+			String tracker = rc.getTracker();
+			
+			if ( tracker != null ){
 				
 				rc.setUnread( false );
 				
-				String	title = rc.getTitle();
-			
-				MainWindow.doSearch( title );
+				Utils.launch( "http://" + tracker + "/" );
 			}
 		}
 	}
