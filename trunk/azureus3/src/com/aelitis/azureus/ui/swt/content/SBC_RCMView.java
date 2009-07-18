@@ -313,7 +313,9 @@ SBC_RCMView
 		tv_related_content.addLifeCycleListener(
 			new TableLifeCycleListener() 
 			{
-				private Set<RelatedContent>	content_set = Collections.synchronizedSet( new HashSet<RelatedContent>());
+				private Set<RelatedContent>	content_set = new HashSet<RelatedContent>();
+				
+				private boolean destroyed;
 				
 				private RelatedContentManagerListener rcm_listener = 
 					new RelatedContentManagerListener()
@@ -329,12 +331,20 @@ SBC_RCMView
 							RelatedContent[]	content )
 						{
 							boolean	hit = false;
-							
-							for ( RelatedContent c: content ){
 
-								if ( content_set.contains( c )){
+							synchronized( content_set ){
 								
-									hit = true;
+								if ( destroyed ){
+									
+									return;
+								}							
+							
+								for ( RelatedContent c: content ){
+
+									if ( content_set.contains( c )){
+								
+										hit = true;
+									}
 								}
 							}
 							
@@ -361,11 +371,19 @@ SBC_RCMView
 						{
 							final java.util.List<RelatedContent> hits = new ArrayList<RelatedContent>( content.length );
 							
-							for ( RelatedContent c: content ){
+							synchronized( content_set ){
 								
-								if ( content_set.remove( c )){
+								if ( destroyed ){
+									
+									return;
+								}
+							
+								for ( RelatedContent c: content ){
 								
-									hits.add( c );
+									if ( content_set.remove( c )){
+								
+										hits.add( c );
+									}
 								}
 							}
 							
@@ -443,6 +461,11 @@ SBC_RCMView
 									
 									synchronized( content_set ){
 										
+										if ( destroyed ){
+											
+											return;
+										}
+										
 										for ( RelatedContent c: content ){
 											
 											if ( content_set.contains( c )){
@@ -490,6 +513,14 @@ SBC_RCMView
 												{
 													if ( tv_related_content == f_table && !tv_related_content.isDisposed()){
 													
+														synchronized( content_set ){
+															
+															if ( destroyed ){
+																
+																return;
+															}
+														}
+														
 														f_table.addDataSources( f_content );
 													}
 												}
@@ -504,8 +535,13 @@ SBC_RCMView
 				tableViewDestroyed() 
 				{
 					manager.removeListener( rcm_listener );
+
+					synchronized( content_set ){
+						
+						destroyed = true;
 					
-					content_set.clear();
+						content_set.clear();
+					}
 				}
 			});
 
