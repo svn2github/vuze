@@ -27,9 +27,12 @@ import java.util.Set;
 
 import org.eclipse.swt.SWT;
 
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -62,7 +65,7 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 public class 
 SBC_RCMView
 	extends SkinView
-	implements UIUpdatable
+	implements UIUpdatable, IconBarEnabler
 {
 	public static final String TABLE_RCM = "RCM";
 
@@ -107,6 +110,8 @@ SBC_RCMView
 		if ( sidebar != null ){
 			
 			sidebar_entry = sidebar.getCurrentEntry();
+			
+			sidebar_entry.setIconBarEnabler(this);
 		}
 		
 		return null;
@@ -315,15 +320,25 @@ SBC_RCMView
 					{
 						public void
 						contentFound(
-							RelatedContent	content )
+							RelatedContent[]	content )
 						{							
 						}
 
 						public void
 						contentChanged(
-							RelatedContent	content )
+							RelatedContent[]	content )
 						{
-							if ( content_set.contains( content )){
+							boolean	hit = false;
+							
+							for ( RelatedContent c: content ){
+
+								if ( content_set.contains( c )){
+								
+									hit = true;
+								}
+							}
+							
+							if ( hit ){
 								
 								Utils.execSWTThread(
 										new Runnable()
@@ -342,9 +357,19 @@ SBC_RCMView
 						
 						public void 
 						contentRemoved(
-							final RelatedContent content )
+							final RelatedContent[] content )
 						{
-							if ( content_set.remove( content )){
+							final java.util.List<RelatedContent> hits = new ArrayList<RelatedContent>( content.length );
+							
+							for ( RelatedContent c: content ){
+								
+								if ( content_set.remove( c )){
+								
+									hits.add( c );
+								}
+							}
+							
+							if ( hits.size() > 0 ){
 								
 								Utils.execSWTThread(
 										new Runnable()
@@ -354,7 +379,7 @@ SBC_RCMView
 											{
 												if ( tv_related_content != null && !tv_related_content.isDisposed()){
 													
-													tv_related_content.removeDataSource( content );
+													tv_related_content.removeDataSources( hits.toArray( new RelatedContent[ hits.size()] ));
 												}
 											}
 										});
@@ -490,6 +515,23 @@ SBC_RCMView
 				public void 
 				fillMenu(Menu menu)
 				{
+					Object[] _related_content = tv_related_content.getSelectedDataSources().toArray();
+
+					final RelatedContent[] related_content = new RelatedContent[_related_content.length];
+
+					System.arraycopy(_related_content, 0, related_content, 0, related_content.length);
+
+					final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
+
+					remove_item.setText(MessageText.getString("azbuddy.ui.menu.remove"));
+
+					Utils.setMenuItemImage( remove_item, "delete" );
+
+					remove_item.addSelectionListener(new SelectionAdapter() {
+						public void widgetSelected(SelectionEvent e) {
+							manager.delete( related_content );
+						};
+					});
 				}
 
 				public void 
@@ -503,7 +545,43 @@ SBC_RCMView
 
 		control.layout(true);
 	}
+	
+	public boolean 
+	isEnabled(
+		String key )
+	{
+		if ( key.equals( "remove" )){
+	
+			return( tv_related_content.getSelectedDataSources().size() > 0 );
+		}
+		
+		return( false );
+	}
+	
+	public boolean 
+	isSelected(
+		String key )
+	{
+		return( false );
+	}
+	
+	public void 
+	itemActivated(
+		String key )
+	{
+		Object[] _related_content = tv_related_content.getSelectedDataSources().toArray();
 
+		if ( _related_content.length > 0 ){
+			
+			RelatedContent[] related_content = new RelatedContent[_related_content.length];
+	
+			System.arraycopy( _related_content, 0, related_content, 0, related_content.length );
+			
+			manager.delete( related_content );
+		}
+	}
+	
+	
 	public String 
 	getUpdateUIName() 
 	{

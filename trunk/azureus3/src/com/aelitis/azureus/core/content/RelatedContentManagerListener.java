@@ -26,15 +26,15 @@ RelatedContentManagerListener
 {
 	public void
 	contentFound(
-		RelatedContent	content );
+		RelatedContent[]	content );
 
 	public void
 	contentChanged(
-		RelatedContent	content );
+		RelatedContent[]	content );
 	
 	public void
 	contentRemoved(
-		RelatedContent	content );
+		RelatedContent[]	content );
 	
 	public void
 	contentChanged();

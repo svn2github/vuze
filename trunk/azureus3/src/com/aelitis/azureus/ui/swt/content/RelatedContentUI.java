@@ -24,6 +24,7 @@ package com.aelitis.azureus.ui.swt.content;
 
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -265,14 +266,14 @@ RelatedContentUI
 					
 					public void
 					contentFound(
-						RelatedContent	content )
+						RelatedContent[]	content )
 					{
 						check();
 					}
 
 					public void
 					contentChanged(
-						RelatedContent	content )
+						RelatedContent[]	content )
 					{
 						contentChanged();
 					}
@@ -297,7 +298,7 @@ RelatedContentUI
 					
 					public void 
 					contentRemoved(
-						RelatedContent content ) 
+						RelatedContent[] content ) 
 					{
 						check();
 						
@@ -310,7 +311,7 @@ RelatedContentUI
 						
 						for ( RCMItem item: items ){
 							
-							item.updateNumUnread();
+							item.contentRemoved( content );
 						}
 					}
 					
@@ -442,20 +443,20 @@ RelatedContentUI
 										{
 											public void
 											contentFound(
-												RelatedContent	content )
+												RelatedContent[]	content )
 											{
-												current_listener.contentFound( new RelatedContent[]{ content });
+												current_listener.contentFound( content );
 											}
 											
 											public void
 											contentChanged(
-												RelatedContent	content )
+												RelatedContent[]	content )
 											{
 											}
 											
 											public void 
 											contentRemoved(
-												RelatedContent content ) 
+												RelatedContent[] 	content ) 
 											{
 											}
 											
@@ -508,6 +509,10 @@ RelatedContentUI
 							}
 						});
 				
+				menu_item = menu_manager.addMenuItem( parent_id, "sep" );
+
+				menu_item.setStyle( MenuItem.STYLE_SEPARATOR );
+
 				menu_item = menu_manager.addMenuItem( parent_id, "Subscription.menu.reset" );
 				
 				menu_item.addListener( 
@@ -837,13 +842,16 @@ RelatedContentUI
 						
 						public void
 						contentFound(
-							RelatedContent	content )
+							RelatedContent[]	content )
 						{
 							synchronized( RCMItem.this ){
 							
 								if ( !destroyed ){
 								
-									content_list.add( content );
+									for ( RelatedContent c: content ){
+									
+										content_list.add( c );
+									}
 								}
 							}
 							
@@ -852,7 +860,7 @@ RelatedContentUI
 							for ( RelatedContentEnumeratorListener listener: listeners ){
 								
 								try{
-									listener.contentFound( new RelatedContent[]{ content });
+									listener.contentFound( content );
 									
 								}catch( Throwable e ){
 									
@@ -867,8 +875,6 @@ RelatedContentUI
 							synchronized( RCMItem.this ){
 								
 								lookup_complete = true;
-								
-								listeners.clear();
 							}
 							
 							hideIcon( spinner );
@@ -888,6 +894,40 @@ RelatedContentUI
 				Debug.out( e );
 				
 				hideIcon( spinner );
+			}
+		}
+		
+		protected void 
+		contentRemoved(
+			RelatedContent[] content ) 
+		{
+			boolean deleted = false;
+			
+			synchronized( RCMItem.this ){
+				
+				Iterator<RelatedContent> it = content_list.iterator();
+				
+				while( it.hasNext()){
+					
+					RelatedContent rc = it.next();
+					
+					for ( RelatedContent x: content ){
+						
+						if ( x == rc ){
+							
+							it.remove();
+							
+							deleted = true;
+							
+							break;
+						}
+					}
+				}
+			}
+			
+			if ( deleted ){
+			
+				updateNumUnread();
 			}
 		}
 		

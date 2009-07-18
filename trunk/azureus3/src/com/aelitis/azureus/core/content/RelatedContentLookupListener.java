@@ -29,7 +29,7 @@ RelatedContentLookupListener
 	
 	public void
 	contentFound(
-		RelatedContent		content );
+		RelatedContent[]	content );
 	
 	public void
 	lookupComplete();

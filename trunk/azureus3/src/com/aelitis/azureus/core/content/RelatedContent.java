@@ -104,6 +104,9 @@ RelatedContent
 		return( tracker );
 	}
 	
+	public abstract void
+	delete();
+	
 	public String
 	getString()
 	{
