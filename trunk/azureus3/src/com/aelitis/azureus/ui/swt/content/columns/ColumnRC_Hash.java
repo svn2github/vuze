@@ -22,6 +22,7 @@ import com.aelitis.azureus.core.content.RelatedContent;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 import org.eclipse.swt.SWT;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -58,6 +59,8 @@ public class ColumnRC_Hash
 		if ( cell instanceof TableCellSWT && rc != null && rc.getHash() != null ){
 		
 			((TableCellSWT)cell).setCursorID( SWT.CURSOR_HAND );
+			
+			cell.setToolTip( MessageText.getString( "rcm.rc_hash.tt" ));
 		}
 	}
 	

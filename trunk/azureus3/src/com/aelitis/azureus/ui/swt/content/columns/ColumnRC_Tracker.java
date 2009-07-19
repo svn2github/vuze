@@ -20,9 +20,9 @@ package com.aelitis.azureus.ui.swt.content.columns;
 
 import com.aelitis.azureus.core.content.RelatedContent;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 
 import org.eclipse.swt.SWT;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -72,6 +72,8 @@ public class ColumnRC_Tracker
 		if ( cell instanceof TableCellSWT && rc != null && rc.getTracker() != null ){
 		
 			((TableCellSWT)cell).setCursorID( SWT.CURSOR_HAND );
+			
+			cell.setToolTip( MessageText.getString( "rcm.rc_tracker.tt" ));
 		}
 	}
 	
