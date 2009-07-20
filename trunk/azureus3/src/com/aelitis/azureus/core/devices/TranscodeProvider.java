@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.io.File;
 import java.net.URL;
 
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -56,4 +57,7 @@ TranscodeProvider
 		URL							output )
 	
 		throws TranscodeException;
+	
+	public File
+	getAssetDirectory();
 }

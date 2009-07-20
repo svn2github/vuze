@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.File;
 import java.util.*;
 
 import com.aelitis.azureus.core.devices.TranscodeProfile;
@@ -98,5 +99,11 @@ TranscodeProfileImpl
 	getIconURL()
 	{
 		return((String)properties.get( "icon-url" ));
+	}
+	
+	public File
+	getAssetDirectory()
+	{
+		return( provider.getAssetDirectory());
 	}
 }

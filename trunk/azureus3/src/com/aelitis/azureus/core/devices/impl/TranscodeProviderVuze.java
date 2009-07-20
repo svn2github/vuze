@@ -686,6 +686,19 @@ TranscodeProviderVuze
 		}
 	}
 	
+	public File
+	getAssetDirectory()
+	{
+		File file = plugin_interface.getPluginconfig().getPluginUserFile( "assets" );
+		
+		if ( !file.exists()){
+			
+			file.mkdirs();
+		}
+		
+		return( file );
+	}
+	
 	protected void
 	destroy()
 	{

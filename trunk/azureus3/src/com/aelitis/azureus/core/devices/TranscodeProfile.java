@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.io.File;
+
 public interface 
 TranscodeProfile 
 {
@@ -47,4 +49,7 @@ TranscodeProfile
 	
 	public TranscodeProvider
 	getProvider();
+	
+	public File
+	getAssetDirectory();
 }
