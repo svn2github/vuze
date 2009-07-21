@@ -190,7 +190,14 @@ SBC_RCMView
 						}
 					});
 			
-			
+		tableManager.registerColumn(
+				RelatedContent.class, 
+				ColumnRC_Size.COLUMN_ID,
+					new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new ColumnRC_Size(column);
+						}
+					});
 	}
 
 	public Object 

@@ -144,8 +144,11 @@ RelatedContentManager
 	private AsyncDispatcher	content_change_dispatcher = new AsyncDispatcher();
 	
 	private static final int SECONDARY_LOOKUP_CACHE_MAX = 10;
+	
 	private LinkedList<SecondaryLookup> secondary_lookups = new LinkedList<SecondaryLookup>();
+	
 	private boolean	secondary_lookup_in_progress;
+	private long	secondary_lookup_complete_time;
 	
 	
 	protected
@@ -417,7 +420,8 @@ RelatedContentManager
 								download.getName(),
 								(int)rand,
 								torrent.isPrivate()?StringInterner.intern(torrent.getAnnounceURL().getHost()):null,
-								0 );
+								0,
+								torrent.getSize());
 						
 						new_info.add( info );
 						
@@ -643,6 +647,13 @@ RelatedContentManager
 			map.put( "t", tracker );
 		}
 
+		long	size = to_info.getSize();
+		
+		if ( size != 0 ){
+			
+			map.put( "s", new Long( size ));
+		}
+		
 		final byte[] map_bytes = BEncoder.encode( map );
 		
 		final int max_hits = 30;
@@ -707,7 +718,11 @@ RelatedContentManager
 								entries.add( key );
 							}
 							
-							analyseResponse( new DownloadInfo( from_info.getHash(), hash, title, rand, tracker, 1 ), null );
+							Long	l_size = (Long)map.get( "s" );
+							
+							long	size = l_size==null?0:l_size.longValue();
+							
+							analyseResponse( new DownloadInfo( from_info.getHash(), hash, title, rand, tracker, 1, size ), null );
 							
 						}catch( Throwable e ){							
 						}
@@ -988,9 +1003,13 @@ RelatedContentManager
 									entries.add( key );
 								}
 								
+								Long	l_size = (Long)map.get( "s" );
+								
+								long	size = l_size==null?0:l_size.longValue();
+
 								analyseResponse( 
 									new DownloadInfo( 
-										from_hash, hash, title, rand, tracker, level+1 ),
+										from_hash, hash, title, rand, tracker, level+1, size ),
 										listener==null?null:manager_listener );
 								
 							}catch( Throwable e ){							
@@ -1097,9 +1116,16 @@ RelatedContentManager
 	{
 		SecondaryLookup sl;
 		
+		long	now = SystemTime.getMonotonousTime();
+		
 		synchronized( this ){
 			
 			if ( secondary_lookup_in_progress ){
+				
+				return;
+			}
+		
+			if ( now - secondary_lookup_complete_time < SECONDARY_LOOKUP_PERIOD ){
 				
 				return;
 			}
@@ -1163,7 +1189,7 @@ RelatedContentManager
 					protected void
 					next()
 					{
-						SecondaryLookup next_sl;
+						final SecondaryLookup next_sl;
 						
 						synchronized( RelatedContentManager.this ){
 							
@@ -1171,26 +1197,43 @@ RelatedContentManager
 								
 								secondary_lookup_in_progress = false;
 								
+								secondary_lookup_complete_time = SystemTime.getMonotonousTime();
+								
 								return;
+								
 							}else{
 								
 								next_sl = secondary_lookups.removeFirst();
-
 							}
 						}
 						
-						try{					
-							lookupContentSupport( next_sl.getHash(), next_sl.getLevel(), this );
-							
-						}catch( Throwable e ){
-							
-							Debug.out( e );
-							
-							synchronized( RelatedContentManager.this ){
-								
-								secondary_lookup_in_progress = false;
-							}
-						}
+						final RelatedContentLookupListener listener = this;
+						
+						SimpleTimer.addEvent(
+							"RCM:SLDelay",
+							SystemTime.getOffsetTime( 30*1000 ),
+							new TimerEventPerformer()
+							{
+								public void 
+								perform(
+									TimerEvent event ) 
+								{
+									try{					
+										lookupContentSupport( next_sl.getHash(), next_sl.getLevel(), listener );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+										
+										synchronized( RelatedContentManager.this ){
+											
+											secondary_lookup_in_progress = false;
+											
+											secondary_lookup_complete_time = SystemTime.getMonotonousTime();
+										}
+									}
+								}
+							});
 					}
 				});
 			
@@ -1201,6 +1244,8 @@ RelatedContentManager
 			synchronized( this ){
 				
 				secondary_lookup_in_progress = false;
+				
+				secondary_lookup_complete_time = now;
 			}
 		}
 	}
@@ -2198,7 +2243,8 @@ RelatedContentManager
 			ImportExportUtils.exportString( info_map, "d", info.getTitle());
 			ImportExportUtils.exportInt( info_map, "r", info.getRand());
 			ImportExportUtils.exportString( info_map, "t", info.getTracker());
-
+			ImportExportUtils.exportLong( info_map, "z", info.getSize());
+			
 			if ( cc != null ){
 							
 				ImportExportUtils.exportBoolean( info_map, "u", info.isUnread());
@@ -2225,10 +2271,11 @@ RelatedContentManager
 			String	title	= ImportExportUtils.importString( info_map, "d" );
 			int		rand	= ImportExportUtils.importInt( info_map, "r" );
 			String	tracker	= ImportExportUtils.importString( info_map, "t" );
+			long	size	= ImportExportUtils.importLong( info_map, "z" );
 			
 			if ( cc == null ){
 			
-				return( new DownloadInfo( hash, hash, title, rand, tracker, 0 ));
+				return( new DownloadInfo( hash, hash, title, rand, tracker, 0, size ));
 				
 			}else{
 				
@@ -2240,7 +2287,7 @@ RelatedContentManager
 				
 				int	level = ImportExportUtils.importInt( info_map, "e" );
 				
-				return( new DownloadInfo( hash, title, rand, tracker, unread, rand_list, last_seen, level, cc ));
+				return( new DownloadInfo( hash, title, rand, tracker, unread, rand_list, last_seen, level, size, cc ));
 			}
 		}catch( Throwable e ){
 			
@@ -2258,6 +2305,7 @@ RelatedContentManager
 		private int[]			rand_list;
 		private int				last_seen;
 		private int				level;
+		private long			size;
 		
 		private ContentCache	cc;
 		
@@ -2268,9 +2316,10 @@ RelatedContentManager
 			String		_title,
 			int			_rand,
 			String		_tracker,
-			int			_level )
+			int			_level,
+			long		_size )
 		{
-			super( _related_to, _title, _hash, _tracker );
+			super( _related_to, _title, _hash, _tracker, _size );
 			
 			rand		= _rand;
 			level		= _level;
@@ -2288,9 +2337,10 @@ RelatedContentManager
 			int[]			_rand_list,
 			int				_last_seen,
 			int				_level,
+			long			_size,
 			ContentCache	_cc )
 		{
-			super( _title, _hash, _tracker );
+			super( _title, _hash, _tracker, _size );
 			
 			rand		= _rand;
 			unread		= _unread;

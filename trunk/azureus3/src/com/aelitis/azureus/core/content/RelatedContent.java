@@ -31,30 +31,34 @@ RelatedContent
 	private String 		title;
 	private byte[]		hash;
 	private String		tracker;
-	
+	private long		size;
 	
 	protected
 	RelatedContent(
 		byte[]		_related_to_hash,
 		String		_title,
 		byte[]		_hash,
-		String		_tracker )
+		String		_tracker,
+		long		_size )
 	{
 		related_to_hash		= _related_to_hash;
 		title				= _title;
 		hash				= _hash;
 		tracker				= _tracker;
+		size				= _size;
 	}
 	
 	protected
 	RelatedContent(
 		String		_title,
 		byte[]		_hash,
-		String		_tracker )
+		String		_tracker,
+		long		_size )
 	{
-		title				= _title;
-		hash				= _hash;
-		tracker				= _tracker;
+		title		= _title;
+		hash		= _hash;
+		tracker		= _tracker;
+		size		= _size;
 	}
 	
 	protected void
@@ -102,6 +106,12 @@ RelatedContent
 	getTracker()
 	{
 		return( tracker );
+	}
+	
+	public long
+	getSize()
+	{
+		return( size );
 	}
 	
 	public abstract void
