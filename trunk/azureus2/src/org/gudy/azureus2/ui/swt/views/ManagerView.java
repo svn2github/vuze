@@ -267,6 +267,10 @@ public class ManagerView
     // Initialize view when user selects it
     folder.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent e) {
+      	// Send one last refresh to previous tab, just in case it
+      	// wants to do something when view goes invisible
+        refresh();
+
         CTabItem item = (CTabItem)e.item;
         if (item != null) {
         	IView view = (IView)item.getData("IView");
