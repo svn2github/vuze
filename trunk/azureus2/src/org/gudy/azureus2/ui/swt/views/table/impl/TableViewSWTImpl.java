@@ -4688,6 +4688,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						row.invalidate();
 					}
 				});
+				loopFactor = 0;
 			}
 		}
 		return isVisible;
