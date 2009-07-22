@@ -71,7 +71,9 @@ implements TableCellRefreshListener
 		
 		if ( d instanceof DeviceMediaRenderer ){
 			
-			if (!((DeviceMediaRenderer)d).canCopyToDevice()){
+			DeviceMediaRenderer	dmr = (DeviceMediaRenderer)d;
+			
+			if (!(dmr.canCopyToDevice()|| dmr.canCopyToFolder())){
 				
 				value = na_text;
 			}
