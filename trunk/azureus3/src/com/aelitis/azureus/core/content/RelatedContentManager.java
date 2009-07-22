@@ -1072,6 +1072,58 @@ RelatedContentManager
 	popuplateSecondaryLookups(
 		ContentCache	content_cache )
 	{
+		Random rand = new Random();
+
+		secondary_lookups.clear();
+		
+			// stuff in a couple primarys
+		
+		List<DownloadInfo> primaries = download_info_map.values();
+		
+		int	primary_count = primaries.size();
+		
+		int	primaries_to_add;
+		
+		if ( primary_count < 2 ){
+			
+			primaries_to_add = 0;
+			
+		}else if ( primary_count < 5 ){
+			
+			if ( rand.nextInt(4) == 0 ){
+				
+				primaries_to_add = 1;
+				
+			}else{
+				
+				primaries_to_add = 0;
+			}
+		}else if ( primary_count < 10 ){
+			
+			primaries_to_add = 1;
+			
+		}else{
+			
+			primaries_to_add = 2;
+		}
+		
+		if ( primaries_to_add > 0 ){
+			
+			Set<DownloadInfo> added = new HashSet<DownloadInfo>();
+			
+			for (int i=0;i<primaries_to_add;i++){
+				
+				DownloadInfo info = primaries.get( rand.nextInt( primaries.size()));
+				
+				if ( !added.contains( info )){
+					
+					added.add( info );
+					
+					secondary_lookups.addLast(new SecondaryLookup(info.getHash(), info.getLevel()));
+				}
+			}
+		}
+		
 		Map<String,DownloadInfo>		related_content			= content_cache.related_content;
 
 		Iterator<DownloadInfo> it = related_content.values().iterator();
@@ -1088,26 +1140,27 @@ RelatedContentManager
 			}
 		}
 						
-		final int cache_size = Math.min( secondary_cache_temp.size(), SECONDARY_LOOKUP_CACHE_MAX );
+		final int cache_size = Math.min( secondary_cache_temp.size(), SECONDARY_LOOKUP_CACHE_MAX - secondary_lookups.size());
 		
-		Random rand = new Random();
-		
-		for( int i=0;i<cache_size;i++){
+		if ( cache_size > 0 ){
+						
+			for( int i=0;i<cache_size;i++){
+				
+				int index = rand.nextInt( secondary_cache_temp.size());
+				
+				DownloadInfo x = secondary_cache_temp.get( index );
+				
+				secondary_cache_temp.set( index, secondary_cache_temp.get(i));
+				
+				secondary_cache_temp.set( i, x );
+			}
 			
-			int index = rand.nextInt( secondary_cache_temp.size());
-			
-			DownloadInfo x = secondary_cache_temp.get( index );
-			
-			secondary_cache_temp.set( index, secondary_cache_temp.get(i));
-			
-			secondary_cache_temp.set( i, x );
-		}
-		
-		for ( int i=0;i<cache_size;i++){
-			
-			DownloadInfo x = secondary_cache_temp.get(i);
-			
-			secondary_lookups.addLast(new SecondaryLookup(x.getHash(), x.getLevel()));
+			for ( int i=0;i<cache_size;i++){
+				
+				DownloadInfo x = secondary_cache_temp.get(i);
+				
+				secondary_lookups.addLast(new SecondaryLookup(x.getHash(), x.getLevel()));
+			}
 		}
 	}
 	
@@ -2556,6 +2609,8 @@ RelatedContentManager
 		{
 			hash	= _hash;
 			level	= _level;
+			
+			System.out.println( "Added secondary lookup: " + ByteFormatter.encodeString( hash ) + ", level=" + level );
 		}
 		
 		protected byte[]
