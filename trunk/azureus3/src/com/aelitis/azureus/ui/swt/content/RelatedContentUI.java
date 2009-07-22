@@ -82,7 +82,7 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 public class 
 RelatedContentUI 
 {
-	private static final boolean	UI_ENABLED = System.getProperty( "vz.rcm.enable", "0" ).equals( "1" );
+	private static final boolean	UI_ENABLED = true; // System.getProperty( "vz.rcm.enable", "0" ).equals( "1" );
 	
 	private PluginInterface		plugin_interface;
 	private UIManager			ui_manager;
