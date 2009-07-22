@@ -32,7 +32,9 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -1641,7 +1643,7 @@ DeviceManagerUI
 										
 									String key = parent + "/" + device.getID() + ":" + nextSidebarID();
 
-									SideBarEntrySWT	entry;
+									final SideBarEntrySWT	entry;
 									
 									if ( device.getType() == Device.DT_MEDIA_RENDERER ){
 
@@ -1769,7 +1771,7 @@ DeviceManagerUI
 											
 											MenuItem autocopy_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.autoCopy");
 											autocopy_menu_item.setStyle(MenuItem.STYLE_CHECK);
-	
+											
 											autocopy_menu_item.addFillListener(new MenuItemFillListener() {
 												public void menuWillBeShown(MenuItem menu, Object data) {
 													menu.setData(new Boolean(renderer.getAutoCopyToFolder()));
@@ -1780,6 +1782,37 @@ DeviceManagerUI
 									 				renderer.setAutoCopyToFolder((Boolean) menu.getData());
 												}
 											});
+
+											MenuItem setcopyto_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.setcopyto");
+											setcopyto_menu_item.setStyle(MenuItem.STYLE_PUSH);
+
+											setcopyto_menu_item.addListener(new MenuItemListener() {
+												public void 
+												selected(
+													MenuItem menu, Object target) 
+												{
+													Shell shell = entry.getTreeItem().getDisplay().getActiveShell();
+													
+													DirectoryDialog dd = new DirectoryDialog( shell );
+													
+													File existing = renderer.getCopyToFolder();
+													
+													if ( existing != null ){
+														
+														dd.setFilterPath( existing.getAbsolutePath());
+													}
+													
+													dd.setText( MessageText.getString( "devices.xcode.setcopyto.title" ));
+													
+													String	path = dd.open();
+													
+													if ( path != null ){
+														
+														renderer.setCopyToFolder( new File( path ));
+													}
+												}
+											});
+
 
 										}
 										

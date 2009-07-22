@@ -23,9 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +43,8 @@ public class
 DeviceMediaRendererManual 
 	extends DeviceMediaRendererImpl
 {
-	private static final Object	COPY_ERROR_KEY = new Object();
+	private static final Object	COPY_ERROR_KEY 		= new Object();
+	private static final Object	COPY_PENDING_KEY 	= new Object();
 
 	private boolean				copy_outstanding;
 	private boolean				copy_outstanding_set;
@@ -204,10 +203,10 @@ DeviceMediaRendererManual
 	{
 		setPersistentBooleanProperty( PP_AUTO_COPY, auto );
 		
-		if ( auto ){
+		//if ( auto ){
 			
 			setCopyOutstanding();
-		}
+		//}
 	}
 	
 	protected void
@@ -263,18 +262,41 @@ DeviceMediaRendererManual
 						
 			boolean	auto_copy = getAutoCopyToFolder();
 			
+			boolean	nothing_to_do = false;
+			
 			synchronized( this ){
 
 				if ( !auto_copy ){
 											
 					copy_thread = null;
 						
-					break;
-				}
+					nothing_to_do = true;
+					
+				}else{
 
-				copy_outstanding_set = false;
+					copy_outstanding_set = false;
+				}
 			}
+			
+			if ( nothing_to_do ){
 				
+				setError( COPY_ERROR_KEY, null );
+				
+				int pending = getCopyToFolderPending();
+				
+				if ( pending == 0 ){
+					
+					setInfo( COPY_PENDING_KEY, null );
+					
+				}else{
+					
+					setInfo( COPY_PENDING_KEY, pending + " files pending copy" );
+				}
+				return;
+			}
+			
+			setInfo( COPY_PENDING_KEY, null );
+			
 			File	copy_to = getCopyToFolder();
 			
 			List<TranscodeFileImpl>	to_copy = new ArrayList<TranscodeFileImpl>();
@@ -294,6 +316,8 @@ DeviceMediaRendererManual
 				setError( COPY_ERROR_KEY, "Copy to folder in not writable" );
 				
 			}else{
+				
+				setError( COPY_ERROR_KEY, null );
 				
 				borked = false;
 			
@@ -379,8 +403,6 @@ DeviceMediaRendererManual
 		super.getDisplayProperties( dp );
 		
 		addDP( dp, "devices.copy.pending", copy_outstanding );
-		
-		super.getTTDisplayProperties( dp );
 	}
 	
 	public void
