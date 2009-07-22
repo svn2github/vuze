@@ -1169,6 +1169,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				&& (oldClientArea.x != clientArea.x || oldClientArea.width != clientArea.width)) {
 			columnVisibilitiesChanged = true;
 		}
+		if (columnVisibilitiesChanged) {
+			Utils.execSWTThreadLater(50, new AERunnable() {
+				public void runSupport() {
+					if (columnVisibilitiesChanged) {
+						refreshTable(false);
+					}
+				}
+			});
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.impl.TableViewImpl#triggerSelectionListeners(com.aelitis.azureus.ui.common.table.TableRowCore[])
