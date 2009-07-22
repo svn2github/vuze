@@ -39,6 +39,9 @@ import java.util.Map;
  */
 public class BDecoder 
 {
+	private static final int MAX_BYTE_ARRAY_SIZE	= 8*1024*1024;
+	private static final int MAX_MAP_KEY_SIZE		= 64*1024;
+	
 	private static final boolean TRACE	= false;
 	
 	private boolean recovery_mode;
@@ -184,6 +187,14 @@ public class BDecoder
 
 				while ((tempByteArray = (byte[]) decodeInputStream(dbis, nesting+1,internKeys)) != null) {
 
+					if ( tempByteArray.length > MAX_MAP_KEY_SIZE ){
+						
+						String msg = "dictionary key is too large, max=" + MAX_MAP_KEY_SIZE + ": value=" + new String( tempByteArray, 0, 128 );
+						
+						System.err.println( msg );
+						
+						throw( new IOException( msg ));
+					}
 						//decode some more
 
 					Object value = decodeInputStream(dbis,nesting+1,internKeys);
@@ -220,7 +231,7 @@ public class BDecoder
 					
 					if ( value == null ){
 						
-						Debug.out( "Invalid encoding - value not serialsied for '" + key + "' - ignoring" );
+						System.err.println( "Invalid encoding - value not serialsied for '" + key + "' - ignoring" );
 						
 						break;
 					}
@@ -586,7 +597,7 @@ public class BDecoder
 		// note that torrent hashes can be big (consider a 55GB file with 2MB pieces
 		// this generates a pieces hash of 1/2 meg
 
-		if ( length > 8*1024*1024 ){
+		if ( length > MAX_BYTE_ARRAY_SIZE ){
 
 			throw( new IOException( "Byte array length too large (" + length + ")"));
 		}
@@ -731,7 +742,7 @@ public class BDecoder
 
 				}catch( Throwable e ){
 
-					Debug.printStackTrace(e);
+					System.err.println(e);
 				}
 			}else if ( value instanceof Map ){
 
@@ -767,7 +778,7 @@ public class BDecoder
 
 				}catch( Throwable e ){
 
-					Debug.printStackTrace(e);
+					System.err.println(e);
 				}
 			}else if ( value instanceof Map ){
 
