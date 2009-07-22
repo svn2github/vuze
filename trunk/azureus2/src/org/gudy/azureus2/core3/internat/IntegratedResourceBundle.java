@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.internat;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
@@ -109,7 +110,8 @@ IntegratedResourceBundle
 	private int		clean_count	= 0;
 	private boolean	one_off_discard_done;
 	
-	private File	scratch_file;
+	private File		scratch_file_name;
+	private InputStream	scratch_file_is;
 
 	private final int initCapacity;
 	
@@ -363,7 +365,7 @@ IntegratedResourceBundle
 			return( true );
 		}
 		
-		if ( scratch_file == null ){
+		if ( scratch_file_is == null ){
 			
 			File temp_file = null;
 			
@@ -384,7 +386,8 @@ IntegratedResourceBundle
 				
 				fos = null;
 				
-				scratch_file = temp_file;
+				scratch_file_name	= temp_file;
+				scratch_file_is 	= new FileInputStream( temp_file );
 				
 			}catch( Throwable e ){
 				
@@ -405,7 +408,7 @@ IntegratedResourceBundle
 			}
 		}
 		
-		if ( scratch_file != null ){
+		if ( scratch_file_is != null ){
 			
 			if ( clean_count >= 2 ){
 		
@@ -452,22 +455,22 @@ IntegratedResourceBundle
 				return( messages );
 			}
 			
-			if ( scratch_file == null ){
+			if ( scratch_file_is == null ){
 				
 				return( new LightHashMap());
 			}
 			
 			Properties p = new Properties();
 			
-			FileInputStream	fis = null;
+			InputStream	fis = scratch_file_is;
 			
 			try{
-				
-				fis = new FileInputStream( scratch_file );
-				
+								
 				p.load( fis );
 				
 				fis.close();
+				
+				scratch_file_is = new FileInputStream( scratch_file_name );
 				
 				messages = new LightHashMap();
 				
@@ -488,9 +491,9 @@ IntegratedResourceBundle
 				
 				Debug.out( "Failed to load message bundle scratch file", e );
 				
-				scratch_file.delete();
+				scratch_file_name.delete();
 				
-				scratch_file = null;
+				scratch_file_is = null;
 				
 				return( new LightHashMap());
 			}
