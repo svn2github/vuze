@@ -1724,102 +1724,103 @@ RelatedContentManager
 							
 							Map<String,Map<String,Object>>	rc_map 	= (Map<String,Map<String,Object>>)map.get( "rc" );
 							
-							
-							Map<Integer,DownloadInfo> id_map = new HashMap<Integer, DownloadInfo>();
-												
-							for ( Map.Entry<String,Map<String,Object>> entry: rc_map.entrySet()){
-								
-								try{
-								
-									String	key = entry.getKey();
-								
-									Map<String,Object>	info_map = entry.getValue();
-																
-									DownloadInfo info = deserialiseDI( info_map, cc );
-									
-									if ( info.isUnread()){
-										
-										new_total_unread++;
-									}
-									
-									related_content.put( key, info );
-									
-									int	id = ((Long)info_map.get( "_i" )).intValue();
-		
-									id_map.put( id, info );
-									
-								}catch( Throwable e ){
-									
-								}
-							}
-							
-							if ( rcm_map.size() != 0 && rc_map.size() != 0 ){
-								
-								for ( String key: rcm_map.keySet()){
+							if ( rc_map != null && rcm_map != null ){
+								Map<Integer,DownloadInfo> id_map = new HashMap<Integer, DownloadInfo>();
+													
+								for ( Map.Entry<String,Map<String,Object>> entry: rc_map.entrySet()){
 									
 									try{
-										byte[]	hash = Base32.decode( key );
+									
+										String	key = entry.getKey();
+									
+										Map<String,Object>	info_map = entry.getValue();
+																	
+										DownloadInfo info = deserialiseDI( info_map, cc );
 										
-										int[]	ids = ImportExportUtils.importIntArray( rcm_map, key );
-										
-										if ( ids == null || ids.length == 0 ){
+										if ( info.isUnread()){
 											
-											Debug.out( "Inconsistent - no ids" );
-											
-										}else{
-											
-											ArrayList<DownloadInfo>	di_list = new ArrayList<DownloadInfo>(ids.length);
-											
-											for ( int id: ids ){
-												
-												DownloadInfo di = id_map.get( id );
-												
-												if ( di == null ){
-													
-													Debug.out( "Inconsistent: id " + id + " missing" );
-													
-												}else{
-													
-														// we don't currently remember all originators, just one that works 
-														
-													di.setRelatedToHash( hash );
-													
-													di_list.add( di );
-												}
-											}
-											
-											if ( di_list.size() > 0 ){
-												
-												related_content_map.put( hash, di_list );
-											}
+											new_total_unread++;
 										}
+										
+										related_content.put( key, info );
+										
+										int	id = ((Long)info_map.get( "_i" )).intValue();
+			
+										id_map.put( id, info );
+										
 									}catch( Throwable e ){
 										
-										Debug.out( e );
 									}
 								}
-							}
-							
-							Iterator<DownloadInfo> it = related_content.values().iterator();
-							
-							while( it.hasNext()){
 								
-								DownloadInfo di = it.next();
-								
-								if ( di.getRelatedToHash() == null ){
-							
-									Debug.out( "Inconsistent: info not referenced" );
+								if ( rcm_map.size() != 0 && rc_map.size() != 0 ){
 									
-									if ( di.isUnread()){
+									for ( String key: rcm_map.keySet()){
 										
-										new_total_unread--;
+										try{
+											byte[]	hash = Base32.decode( key );
+											
+											int[]	ids = ImportExportUtils.importIntArray( rcm_map, key );
+											
+											if ( ids == null || ids.length == 0 ){
+												
+												Debug.out( "Inconsistent - no ids" );
+												
+											}else{
+												
+												ArrayList<DownloadInfo>	di_list = new ArrayList<DownloadInfo>(ids.length);
+												
+												for ( int id: ids ){
+													
+													DownloadInfo di = id_map.get( id );
+													
+													if ( di == null ){
+														
+														Debug.out( "Inconsistent: id " + id + " missing" );
+														
+													}else{
+														
+															// we don't currently remember all originators, just one that works 
+															
+														di.setRelatedToHash( hash );
+														
+														di_list.add( di );
+													}
+												}
+												
+												if ( di_list.size() > 0 ){
+													
+													related_content_map.put( hash, di_list );
+												}
+											}
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
 									}
-									
-									it.remove();
 								}
+								
+								Iterator<DownloadInfo> it = related_content.values().iterator();
+								
+								while( it.hasNext()){
+									
+									DownloadInfo di = it.next();
+									
+									if ( di.getRelatedToHash() == null ){
+								
+										Debug.out( "Inconsistent: info not referenced" );
+										
+										if ( di.isUnread()){
+											
+											new_total_unread--;
+										}
+										
+										it.remove();
+									}
+								}
+								
+								popuplateSecondaryLookups( cc );
 							}
-							
-							popuplateSecondaryLookups( cc );
 						}
 						
 						if ( total_unread != new_total_unread ){
