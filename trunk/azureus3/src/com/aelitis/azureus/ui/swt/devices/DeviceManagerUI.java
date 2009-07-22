@@ -1081,7 +1081,7 @@ DeviceManagerUI
 									
 											DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
 											
-											last_indicator += renderer.getCopyToDevicePending();
+											last_indicator += renderer.getCopyToDevicePending() + renderer.getCopyToFolderPending();
 										}
 									}
 									
@@ -1763,6 +1763,26 @@ DeviceManagerUI
 	
 										final DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
 
+										if ( renderer.canCopyToFolder()){
+											
+											need_sep = true;
+											
+											MenuItem autocopy_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.autoCopy");
+											autocopy_menu_item.setStyle(MenuItem.STYLE_CHECK);
+	
+											autocopy_menu_item.addFillListener(new MenuItemFillListener() {
+												public void menuWillBeShown(MenuItem menu, Object data) {
+													menu.setData(new Boolean(renderer.getAutoCopyToFolder()));
+												}
+											});
+											autocopy_menu_item.addListener(new MenuItemListener() {
+												public void selected(MenuItem menu, Object target) {
+									 				renderer.setAutoCopyToFolder((Boolean) menu.getData());
+												}
+											});
+
+										}
+										
 										if ( renderer.canAutoStartDevice()){
 											
 											need_sep = true;
@@ -2546,7 +2566,7 @@ DeviceManagerUI
 						
 								DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
 								
-								last_indicator += renderer.getCopyToDevicePending();
+								last_indicator += renderer.getCopyToDevicePending() + renderer.getCopyToFolderPending();
 							}
 						}
 						
@@ -2759,7 +2779,7 @@ DeviceManagerUI
 					
 					DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
 					
-					last_indicator = renderer.getCopyToDevicePending();
+					last_indicator = renderer.getCopyToDevicePending() + renderer.getCopyToFolderPending();
 					
 					if ( last_indicator > 0 ){
 						

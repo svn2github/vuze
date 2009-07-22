@@ -101,8 +101,14 @@ DeviceImpl
 	
 	protected static final String	PP_COPY_OUTSTANDING = "copy_outstanding";
 	protected static final String	PP_AUTO_START		= "auto_start";
-
+	
+	
+	protected static final String	PP_COPY_TO_FOLDER	= "copy_to_folder";
+	protected static final String	PP_AUTO_COPY		= "auto_copy";
+	
+	
 	protected static final boolean	PR_AUTO_START_DEFAULT	= true;
+	protected static final boolean	PP_AUTO_COPY_DEFAULT	= false;
 	
 	private static final String	GENERIC = "generic";
 	
@@ -1067,6 +1073,14 @@ DeviceImpl
 		dp.add( new String[]{ name, value });
 	}
 	
+	protected void
+	addDP(
+		List<String[]>	dp,
+		String			name,
+		File			value )
+	{
+		dp.add( new String[]{ name, value==null?"":value.getAbsolutePath() });
+	}
 	protected void
 	addDP(
 		List<String[]>	dp,

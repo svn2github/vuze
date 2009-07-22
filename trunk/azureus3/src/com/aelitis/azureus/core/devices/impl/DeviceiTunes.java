@@ -408,6 +408,42 @@ DeviceiTunes
 	}
 	
 	public boolean
+	canCopyToFolder()
+	{
+		return( false );
+	}
+	
+	public File
+	getCopyToFolder()
+	{
+		return( null );
+	}
+	
+	public void
+	setCopyToFolder(
+		File		file )
+	{
+	}
+	
+	public int
+	getCopyToFolderPending()
+	{
+		return( 0 );
+	}
+	
+	public boolean
+	getAutoCopyToFolder()
+	{
+		return( false );
+	}
+		
+	public void
+	setAutoCopyToFolder(
+		boolean		auto )
+	{
+	}
+	
+	public boolean
 	canAssociate()
 	{
 		return( false );

@@ -444,7 +444,9 @@ public class SBC_DevicesView
 
 			if (device instanceof DeviceMediaRenderer) {
 
-				if (!((DeviceMediaRenderer) device).canCopyToDevice()) {
+				DeviceMediaRenderer dmr = (DeviceMediaRenderer)device;
+				
+				if (!(dmr.canCopyToDevice()||dmr.canCopyToFolder())) {
 
 					tableID += ":type=1";
 				}
@@ -677,7 +679,7 @@ public class SBC_DevicesView
 
 			DeviceMediaRenderer dmr = (DeviceMediaRenderer) device;
 
-			if (dmr.canCopyToDevice()) {
+			if (dmr.canCopyToDevice() || dmr.canCopyToFolder()) {
 
 				// retry
 
@@ -1220,7 +1222,11 @@ public class SBC_DevicesView
 
 				if (device instanceof DeviceMediaRenderer) {
 
-					if (((DeviceMediaRenderer) device).canCopyToDevice()) {
+					DeviceMediaRenderer dmr = (DeviceMediaRenderer)device;
+					
+					File copy_to = dmr.getCopyToFolder();
+					
+					if ( dmr.canCopyToDevice() || ( dmr.canCopyToFolder() && copy_to != null && copy_to.exists())){
 
 						copy_text = MessageText.getString("xcode.deletedata.message.2",
 								new String[] {

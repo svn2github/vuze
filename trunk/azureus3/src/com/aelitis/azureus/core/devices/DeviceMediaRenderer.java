@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.io.File;
 import java.net.InetAddress;
 
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
@@ -55,6 +56,8 @@ DeviceMediaRenderer
 	public boolean
 	getFilterFilesView();
 	
+		// copy to device
+	
 	public boolean
 	canCopyToDevice();
 	
@@ -70,6 +73,30 @@ DeviceMediaRenderer
 	public void
 	setAutoStartDevice(
 		boolean		auto );
+	
+		// copy to folder
+	
+	public boolean
+	canCopyToFolder();
+	
+	public File
+	getCopyToFolder();
+	
+	public void
+	setCopyToFolder(
+		File		file );
+	
+	public int
+	getCopyToFolderPending();
+	
+	public boolean
+	getAutoCopyToFolder();
+		
+	public void
+	setAutoCopyToFolder(
+		boolean		auto );
+	
+		// associate
 	
 	public boolean
 	canAssociate();

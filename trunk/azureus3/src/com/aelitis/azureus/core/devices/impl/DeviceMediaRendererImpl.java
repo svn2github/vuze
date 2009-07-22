@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -148,6 +149,42 @@ DeviceMediaRendererImpl
 	{
 	}
 	
+	public boolean
+	canCopyToFolder()
+	{
+		return( false );
+	}
+	
+	public File
+	getCopyToFolder()
+	{
+		return( null );
+	}
+	
+	public void
+	setCopyToFolder(
+		File		file )
+	{
+	}
+	
+	public int
+	getCopyToFolderPending()
+	{
+		return( 0 );
+	}
+	
+	public boolean
+	getAutoCopyToFolder()
+	{
+		return( false );
+	}
+		
+	public void
+	setAutoCopyToFolder(
+		boolean		auto )
+	{
+	}
+	
 	@Override
 	protected void
 	getDisplayProperties(
@@ -155,6 +192,12 @@ DeviceMediaRendererImpl
 	{
 		super.getDisplayProperties( dp );
 
+		if ( canCopyToFolder()){
+			
+			addDP( dp, "devices.copy.folder.auto", getAutoCopyToFolder());
+			addDP( dp, "devices.copy.folder.dest", getCopyToFolder());
+		}
+		
 		super.getTTDisplayProperties( dp );
 	}	
 	
