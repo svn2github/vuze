@@ -28,7 +28,7 @@ package org.gudy.azureus2.core3.util;
 import java.util.HashMap;
 
 public class 
-ByteEncodedKeyHashMap
-	extends HashMap 
+ByteEncodedKeyHashMap<T,S>
+	extends HashMap<T,S>
 {
 }
