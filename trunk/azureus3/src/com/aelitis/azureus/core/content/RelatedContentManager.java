@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
+import org.gudy.azureus2.core3.util.ByteEncodedKeyHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -1778,6 +1779,7 @@ RelatedContentManager
 							Map<String,Map<String,Object>>	rc_map 	= (Map<String,Map<String,Object>>)map.get( "rc" );
 							
 							if ( rc_map != null && rcm_map != null ){
+								
 								Map<Integer,DownloadInfo> id_map = new HashMap<Integer, DownloadInfo>();
 													
 								for ( Map.Entry<String,Map<String,Object>> entry: rc_map.entrySet()){
@@ -1963,7 +1965,10 @@ RelatedContentManager
 					
 					Set<Map.Entry<String,DownloadInfo>> rcs = related_content.entrySet();
 					
-					Map<String,Object> rc_map = new HashMap<String, Object>();
+						// key may be non ascii so use ByteEncodedKeyHashMap to force 
+						// sensible behaviour (don't ask)
+					
+					Map<String,Object> rc_map = new ByteEncodedKeyHashMap<String, Object>();
 					
 					map.put( "rc", rc_map );
 					
@@ -2609,8 +2614,6 @@ RelatedContentManager
 		{
 			hash	= _hash;
 			level	= _level;
-			
-			System.out.println( "Added secondary lookup: " + ByteFormatter.encodeString( hash ) + ", level=" + level );
 		}
 		
 		protected byte[]
