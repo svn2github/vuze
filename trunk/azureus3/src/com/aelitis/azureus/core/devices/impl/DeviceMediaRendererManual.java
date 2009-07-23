@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.IndentWriter;
 
+import com.aelitis.azureus.core.devices.DeviceManagerException;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
@@ -202,11 +203,21 @@ DeviceMediaRendererManual
 		boolean		auto )
 	{
 		setPersistentBooleanProperty( PP_AUTO_COPY, auto );
-		
-		//if ( auto ){
 			
-			setCopyOutstanding();
-		//}
+		setCopyOutstanding();
+	}
+	
+	public void 
+	manualCopy() 
+	
+		throws DeviceManagerException 
+	{
+		if ( getAutoCopyToFolder()){
+			
+			throw( new DeviceManagerException( "Operation prohibited - auto copy enabled" ));
+		}
+		
+		doCopy();
 	}
 	
 	protected void
@@ -295,105 +306,117 @@ DeviceMediaRendererManual
 				return;
 			}
 			
-			setInfo( COPY_PENDING_KEY, null );
-			
-			File	copy_to = getCopyToFolder();
-			
-			List<TranscodeFileImpl>	to_copy = new ArrayList<TranscodeFileImpl>();
 
-			boolean	borked = true;
-
-			if ( copy_to == null ){
+			if ( doCopy()){
 				
-				setError( COPY_ERROR_KEY, "Copy to folder not set" );
-				
-			}else if ( !copy_to.exists()){
-				
-				setError( COPY_ERROR_KEY, "Copy to folder not found" );
-				
-			}else if ( !copy_to.canWrite()){
-				
-				setError( COPY_ERROR_KEY, "Copy to folder in not writable" );
-				
-			}else{
-				
-				setError( COPY_ERROR_KEY, null );
-				
-				borked = false;
-			
-				TranscodeFileImpl[] files = getFiles();
-											
-				for ( TranscodeFileImpl file: files ){
-						
-					if ( file.isComplete() && !file.isCopiedToDevice()){
-						
-						if ( file.getCopyToDeviceFails() < 3 ){
-						
-							to_copy.add( file );
-							
-						}else{
-							
-							borked = true;
-						}
-					}
-				}
-			
-				if ( borked ){
-				
-					setError( COPY_ERROR_KEY, "Copy to folder failed" );
-				}
-			}
-			
-			synchronized( this ){
-
-				if ( to_copy.size() == 0 && !copy_outstanding_set && !borked ){
-						
-					copy_outstanding = false;
-					
-					async_dispatcher.dispatch(
-						new AERunnable()
-						{
-							public void
-							runSupport()
-							{
-								setError( COPY_ERROR_KEY, null );
-
-								setPersistentBooleanProperty( PP_COPY_OUTSTANDING, false );
-							}
-						});
-					
-					copy_thread = null;
-					
-					break;
-				}
-			}
-			
-			for ( TranscodeFileImpl transcode_file: to_copy ){
-				
-				try{
-					File	file = transcode_file.getTargetFile().getFile();
-					
-					try{
-						// copy the file!
-						
-						FileUtil.copyFile( file, new File( copy_to, file.getName()));
-						
-						log( "Copied file '" + file + ": to " + copy_to );
-						
-						transcode_file.setCopiedToDevice( true );
-						
-					}catch( Throwable e ){
-						
-						transcode_file.setCopyToDeviceFailed();
-						
-						log( "Failed to copy file " + file, e );
-					}
-				}catch( TranscodeException e ){
-
-					// file has been deleted
-				}
+				break;
 			}
 		}
+	}
+	
+	protected boolean
+	doCopy()
+	{
+		setInfo( COPY_PENDING_KEY, null );
+		
+		File	copy_to = getCopyToFolder();
+		
+		List<TranscodeFileImpl>	to_copy = new ArrayList<TranscodeFileImpl>();
+
+		boolean	borked = true;
+
+		if ( copy_to == null ){
+			
+			setError( COPY_ERROR_KEY, "Copy to folder not set" );
+			
+		}else if ( !copy_to.exists()){
+			
+			setError( COPY_ERROR_KEY, "Copy to folder not found" );
+			
+		}else if ( !copy_to.canWrite()){
+			
+			setError( COPY_ERROR_KEY, "Copy to folder in not writable" );
+			
+		}else{
+			
+			setError( COPY_ERROR_KEY, null );
+			
+			borked = false;
+		
+			TranscodeFileImpl[] files = getFiles();
+										
+			for ( TranscodeFileImpl file: files ){
+					
+				if ( file.isComplete() && !file.isCopiedToDevice()){
+					
+					if ( file.getCopyToDeviceFails() < 3 ){
+					
+						to_copy.add( file );
+						
+					}else{
+						
+						borked = true;
+					}
+				}
+			}
+		
+			if ( borked ){
+			
+				setError( COPY_ERROR_KEY, "Copy to folder failed" );
+			}
+		}
+		
+		synchronized( this ){
+
+			if ( to_copy.size() == 0 && !copy_outstanding_set && !borked ){
+					
+				copy_outstanding = false;
+				
+				async_dispatcher.dispatch(
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							setError( COPY_ERROR_KEY, null );
+
+							setPersistentBooleanProperty( PP_COPY_OUTSTANDING, false );
+						}
+					});
+				
+				copy_thread = null;
+				
+				return( true );
+			}
+		}
+		
+		for ( TranscodeFileImpl transcode_file: to_copy ){
+			
+			try{
+				File	file = transcode_file.getTargetFile().getFile();
+				
+				try{
+					// copy the file!
+					
+					FileUtil.copyFile( file, new File( copy_to, file.getName()));
+					
+					log( "Copied file '" + file + ": to " + copy_to );
+					
+					transcode_file.setCopiedToDevice( true );
+					
+				}catch( Throwable e ){
+					
+					transcode_file.setCopyToDeviceFailed();
+					
+					log( "Failed to copy file " + file, e );
+				}
+			}catch( TranscodeException e ){
+
+				// file has been deleted
+			}
+		}
+		
+		return( false );
 	}
 	
 	protected void

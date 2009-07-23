@@ -185,6 +185,14 @@ DeviceMediaRendererImpl
 	{
 	}
 	
+	public void 
+	manualCopy() 
+	
+		throws DeviceManagerException 
+	{
+		throw( new DeviceManagerException( "Unsupported" ));
+	}
+	
 	@Override
 	protected void
 	getDisplayProperties(

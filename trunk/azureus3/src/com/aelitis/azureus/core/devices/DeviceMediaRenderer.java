@@ -96,6 +96,11 @@ DeviceMediaRenderer
 	setAutoCopyToFolder(
 		boolean		auto );
 	
+	public void
+	manualCopy()
+	
+		throws DeviceManagerException;
+	
 		// associate
 	
 	public boolean

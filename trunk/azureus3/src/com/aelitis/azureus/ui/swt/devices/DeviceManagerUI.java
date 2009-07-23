@@ -1782,10 +1782,51 @@ DeviceManagerUI
 									 				renderer.setAutoCopyToFolder((Boolean) menu.getData());
 												}
 											});
-
+													
+											final MenuItem mancopy_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.mancopy");
+											mancopy_menu_item.setStyle(MenuItem.STYLE_PUSH);
+																			
+											mancopy_menu_item.addListener(new MenuItemListener() {
+												public void 
+												selected(
+													MenuItem menu, Object target) 
+												{
+													try{
+														renderer.manualCopy();
+														
+													}catch( Throwable e ){
+														
+														Debug.out( e );
+													}
+												}
+											});
+											
+											mancopy_menu_item.addFillListener(
+												new MenuItemFillListener()
+												{
+													public void 
+													menuWillBeShown(
+														MenuItem menu, Object data )
+													{
+														boolean	enabled = false;
+													
+														if ( !renderer.getAutoCopyToFolder()){
+															
+															File target = renderer.getCopyToFolder();
+															
+															if ( target != null && target.exists()){
+																
+																enabled = renderer.getCopyToFolderPending() > 0;
+															}
+														}
+														mancopy_menu_item.setEnabled( enabled );
+													}
+												});
+											
 											MenuItem setcopyto_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.setcopyto");
 											setcopyto_menu_item.setStyle(MenuItem.STYLE_PUSH);
-
+										
+											
 											setcopyto_menu_item.addListener(new MenuItemListener() {
 												public void 
 												selected(

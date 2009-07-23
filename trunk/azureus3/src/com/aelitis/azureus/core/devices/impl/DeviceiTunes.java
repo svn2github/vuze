@@ -443,6 +443,14 @@ DeviceiTunes
 	{
 	}
 	
+	public void 
+	manualCopy() 
+	
+		throws DeviceManagerException 
+	{
+		throw( new DeviceManagerException( "Unsupported" ));
+	}
+	
 	public boolean
 	canAssociate()
 	{
