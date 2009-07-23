@@ -435,8 +435,8 @@ HTTPNetworkConnection
 		
 		if ( partial ){
 			
-			long[] offsets = request.getOffsets();
-			long[] lengths = request.getLengths();
+			long[] offsets = request.getOriginalOffsets();
+			long[] lengths = request.getOriginalLengths();
 			
 			long content_length = request.getContentLength();
 			
@@ -510,8 +510,8 @@ HTTPNetworkConnection
 				
 				httpRequest	http_request = (httpRequest)http_requests.get(0);
 				
-				long[]	offsets	= http_request.getOffsets();
-				long[]	lengths	= http_request.getLengths();
+				long[]	offsets	= http_request.getModifiableOffsets();
+				long[]	lengths	= http_request.getModifiableLengths();
 				
 				int	index	= http_request.getIndex();
 				
@@ -1016,11 +1016,14 @@ HTTPNetworkConnection
 	protected class
 	httpRequest
 	{
-		private final long[]	offsets;
-		private final long[]	lengths;
+		private final long[]	orig_offsets;
+		private final long[]	orig_lengths;		
 		private final long		content_length;
 		private final boolean	partial_content;
 		private final boolean	keep_alive;
+
+		private final long[]	mod_offsets;
+		private final long[]	mod_lengths;
 
 		private int		index;
 		private long	total_length;
@@ -1034,8 +1037,8 @@ HTTPNetworkConnection
 			boolean		_partial_content,
 			boolean		_keep_alive )
 		{
-			offsets			= _offsets;
-			lengths			= _lengths;
+			orig_offsets	= _offsets;
+			orig_lengths	= _lengths;
 			content_length	= _content_length;
 			partial_content	= _partial_content;
 			keep_alive		= _keep_alive;
@@ -1048,9 +1051,12 @@ HTTPNetworkConnection
 			System.out.println( network_connection_key.getName() + ": requested " + str + ",part=" + partial_content +",ka=" + keep_alive );
 			*/
 			
-			for (int i=0;i<lengths.length;i++){
+			mod_offsets = orig_offsets.clone();
+			mod_lengths = orig_lengths.clone();
+			
+			for (int i=0;i<orig_lengths.length;i++){
 				
-				total_length += lengths[i];
+				total_length += orig_lengths[i];
 			}
 		}
 				
@@ -1079,17 +1085,29 @@ HTTPNetworkConnection
 		}
 		
 		protected long[]
-		getOffsets()
+		getOriginalOffsets()
 		{
-			return( offsets );
+			return( orig_offsets );
 		}
 		
 		protected long[]
-   		getLengths()
+   		getOriginalLengths()
    		{
-   			return( lengths );
+   			return( orig_lengths );
    		}
 		
+		protected long[]
+   		getModifiableOffsets()
+   		{
+   			return( mod_offsets );
+   		}
+   		
+   		protected long[]
+  		getModifiableLengths()
+  		{
+  			return( mod_lengths );
+  		}
+		       		
 		protected int
 		getIndex()
 		{
