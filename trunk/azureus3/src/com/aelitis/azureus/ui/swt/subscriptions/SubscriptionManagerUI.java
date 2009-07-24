@@ -1145,24 +1145,7 @@ SubscriptionManagerUI
 				if (target instanceof SideBarEntry) {
 					SideBarEntry info = (SideBarEntry) target;
 					Subscription subs = (Subscription) info.getDatasource();
-					MessageBoxShell mb = 
-						new MessageBoxShell(
-							Utils.findAnyShell(),
-							MessageText.getString("message.confirm.delete.title"),
-							MessageText.getString("message.confirm.delete.text",
-									new String[] {
-										subs.getName()
-									}), 
-							new String[] {
-								MessageText.getString("Button.yes"),
-								MessageText.getString("Button.no")
-							},
-							1 );
-					
-					int result = mb.open();
-					if (result == 0) {
-						subs.remove();
-					}
+					removeWithConfirm( subs );
 				}
 			}
 		};
@@ -1487,6 +1470,30 @@ SubscriptionManagerUI
 		sideBarItem		sbi )
 	{
 		sbi.setWarning( subs );
+	}
+	
+	protected static void
+	removeWithConfirm(
+		Subscription	subs )
+	{
+		MessageBoxShell mb = 
+			new MessageBoxShell(
+				Utils.findAnyShell(),
+				MessageText.getString("message.confirm.delete.title"),
+				MessageText.getString("message.confirm.delete.text",
+						new String[] {
+							subs.getName()
+						}), 
+				new String[] {
+					MessageText.getString("Button.yes"),
+					MessageText.getString("Button.no")
+				},
+				1 );
+		
+		int result = mb.open();
+		if (result == 0) {
+			subs.remove();
+		}
 	}
 	
 	protected void
@@ -1986,7 +1993,7 @@ SubscriptionManagerUI
 							  isEnabled(
 								  String itemKey )
 							  {
-								  return( "share".equals(itemKey));
+								  return( "share".equals(itemKey) || "remove".equals(itemKey));
 							  }
 							  
 							  public boolean 
@@ -2000,6 +2007,7 @@ SubscriptionManagerUI
 							  itemActivated(
 								String itemKey )
 							  {
+								  removeWithConfirm( subs );
 							  }
 						}, 
 						subs )};

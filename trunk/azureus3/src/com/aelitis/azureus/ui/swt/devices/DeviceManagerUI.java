@@ -64,6 +64,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -78,15 +79,20 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser;
 import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser;
 import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser.DeviceTemplateClosedListener;
 import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser.ClosedListener;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
 
 public class 
 DeviceManagerUI 
@@ -914,7 +920,69 @@ DeviceManagerUI
 						menu.setEnabled( enabled );
 					}
 				};
+			
+		side_bar.addListener(
+			new SideBarListener()
+			{
+				public void 
+				sidebarItemSelected(
+					SideBarEntrySWT new_entry,
+					SideBarEntrySWT old_entry	)
+				{
+					Object data_source = new_entry.getDatasource();
 					
+					if ( data_source instanceof Device ){
+						
+						final Device	device = (Device)data_source;
+						
+						ISelectedContent[] sels = {
+							new ToolBarEnablerSelectedContent( 
+								new ToolBarEnabler()
+								{
+									public boolean 
+									isEnabled(
+										String itemKey )
+									{
+										return( "remove".equals(itemKey));
+									}
+									  
+									public boolean 
+									isSelected(
+										String itemKey )
+									{
+										return( false );
+									}
+									  
+									public void 
+									itemActivated(
+										String itemKey )
+									{
+										MessageBoxShell mb = 
+											new MessageBoxShell(
+												Utils.findAnyShell(),
+												MessageText.getString("message.confirm.delete.title"),
+												MessageText.getString("message.confirm.delete.text",
+														new String[] {
+															device.getName()
+														}), 
+												new String[] {
+													MessageText.getString("Button.yes"),
+													MessageText.getString("Button.no")
+												},
+												1 );
+										
+										int result = mb.open();
+										if (result == 0) {
+											device.remove();
+										}
+									}
+								})};
+										
+						SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler", sels );
+					}
+				}
+			});
+		
 		COConfigurationManager.addAndFireParameterListeners( 
 			new String[]{
 				CONFIG_VIEW_TYPE,
