@@ -68,6 +68,8 @@ import com.aelitis.azureus.util.ImportExportUtils;
 public class 
 RelatedContentManager 
 {
+	private static final boolean TRACE = false;
+	
 	private static final int	MAX_HISTORY				= 16;
 	private static final int	MAX_TITLE_LENGTH		= 80;
 	private static final int	MAX_CONCURRENT_PUBLISH	= 2;
@@ -1755,7 +1757,9 @@ RelatedContentManager
 				
 				if ( cc == null ){
 				
-					System.out.println( "rcm: load new" );
+					if ( TRACE ){
+						System.out.println( "rcm: load new" );
+					}
 					
 					fire_event = true;
 					
@@ -1890,7 +1894,9 @@ RelatedContentManager
 					}
 				}else{
 					
-					System.out.println( "rcm: load existing" );
+					if ( TRACE ){
+						System.out.println( "rcm: load existing" );
+					}
 				}
 				
 				content_cache_ref = cc;
@@ -1928,13 +1934,17 @@ RelatedContentManager
 							content_discard_ticks = 0;
 						}
 						
-						System.out.println( "rcm: discard: tick count=" + content_discard_ticks++ );
-					
+						if ( TRACE ){
+							System.out.println( "rcm: discard: tick count=" + content_discard_ticks++ );
+						}
+						
 						content_cache_ref	= null;
 					}
 				}else{
 					
-					System.out.println( "rcm: discarded" );
+					if ( TRACE ){
+						System.out.println( "rcm: discarded" );
+					}
 				}
 				
 				return;
@@ -1950,7 +1960,9 @@ RelatedContentManager
 				
 			}else{
 
-				System.out.println( "rcm: save" );
+				if ( TRACE ){
+					System.out.println( "rcm: save" );
+				}
 				
 				Map<String,DownloadInfo>						related_content			= cc.related_content;
 				ByteArrayHashMapEx<ArrayList<DownloadInfo>>		related_content_map		= cc.related_content_map;
