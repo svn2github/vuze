@@ -1974,6 +1974,8 @@ DeviceManagerUI
 
 															menu_none.setEnabled( false );
 															
+															menu_associate.setEnabled( true );
+															
 														}else{
 															
 															UnassociatedDevice[] unassoc = device_manager.getUnassociatedDevices();

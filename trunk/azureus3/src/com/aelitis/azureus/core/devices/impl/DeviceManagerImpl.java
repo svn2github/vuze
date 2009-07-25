@@ -197,6 +197,8 @@ DeviceManagerImpl
 				
 		new DeviceiTunesManager( this );
 		
+		new DeviceTivoManager( this );
+		
 		transcode_manager = new TranscodeManagerImpl( this );
 		
 		COConfigurationManager.addAndFireParameterListeners(

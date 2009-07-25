@@ -77,6 +77,8 @@ RelatedContentManager
 	private static final String	CONFIG_FILE 				= "rcm.config";
 	private static final String	PERSIST_DEL_FILE 			= "rcmx.config";
 	
+	private static final String	CONFIG_TOTAL_UNREAD	= "rcm.numunread.cache";
+	
 	private static RelatedContentManager	singleton;
 	private static AzureusCore				core;
 	
@@ -142,7 +144,7 @@ RelatedContentManager
 	private long		last_config_access;		
 	private int			content_discard_ticks;
 	
-	private int	total_unread = COConfigurationManager.getIntParameter( "rcm.numunread.cache", 0 );
+	private int	total_unread = COConfigurationManager.getIntParameter( CONFIG_TOTAL_UNREAD, 0 );
 	
 	private AsyncDispatcher	content_change_dispatcher = new AsyncDispatcher();
 	
@@ -1884,9 +1886,11 @@ RelatedContentManager
 						
 						if ( total_unread != new_total_unread ){
 														
-							Debug.out( "total_unread - inconsistent (" + total_unread + "/" + new_total_unread );
+							Debug.out( "total_unread - inconsistent (" + total_unread + "/" + new_total_unread + ")" );
 							
 							total_unread = new_total_unread;
+							
+							COConfigurationManager.setParameter( CONFIG_TOTAL_UNREAD, total_unread );
 						}
 					}catch( Throwable e ){
 						
@@ -1917,7 +1921,7 @@ RelatedContentManager
 	{
 		synchronized( this ){
 				
-			COConfigurationManager.setParameter( "rcm.numunread.cache", total_unread );
+			COConfigurationManager.setParameter( CONFIG_TOTAL_UNREAD, total_unread );
 			
 			long	now = SystemTime.getMonotonousTime();;
 			

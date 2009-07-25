@@ -46,7 +46,7 @@ import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 
 public class 
 DeviceiTunes
-	extends DeviceImpl
+	extends DeviceMediaRendererImpl
 	implements DeviceMediaRenderer
 {
 	private static final String UID = "a5d7869e-1ab9-6098-fef9-88476d988455";
@@ -82,7 +82,7 @@ DeviceiTunes
 		DeviceManagerImpl	_manager,
 		PluginInterface		_itunes )
 	{
-		super( _manager, DT_MEDIA_RENDERER, UID, "iTunes", true );
+		super( _manager, UID, "iTunes", true );
 		
 		itunes	= _itunes;
 	}
@@ -408,50 +408,6 @@ DeviceiTunes
 	}
 	
 	public boolean
-	canCopyToFolder()
-	{
-		return( false );
-	}
-	
-	public File
-	getCopyToFolder()
-	{
-		return( null );
-	}
-	
-	public void
-	setCopyToFolder(
-		File		file )
-	{
-	}
-	
-	public int
-	getCopyToFolderPending()
-	{
-		return( 0 );
-	}
-	
-	public boolean
-	getAutoCopyToFolder()
-	{
-		return( false );
-	}
-		
-	public void
-	setAutoCopyToFolder(
-		boolean		auto )
-	{
-	}
-	
-	public void 
-	manualCopy() 
-	
-		throws DeviceManagerException 
-	{
-		throw( new DeviceManagerException( "Unsupported" ));
-	}
-	
-	public boolean
 	canAssociate()
 	{
 		return( false );
@@ -597,24 +553,6 @@ DeviceiTunes
 				}
 			}
 		}
-	}
-	
-	public boolean
-	canFilterFilesView()
-	{
-		return( false );
-	}
-	
-	public void
-	setFilterFilesView(
-		boolean	filter )
-	{
-	}
-	
-	public boolean
-	getFilterFilesView()
-	{
-		return( false );
 	}
 	
 	public boolean 
