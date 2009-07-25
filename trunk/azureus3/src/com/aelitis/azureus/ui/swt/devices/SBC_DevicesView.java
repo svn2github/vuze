@@ -521,7 +521,7 @@ public class SBC_DevicesView
 		});
 
 		tvFiles.addMenuFillListener(new TableViewSWTMenuFillListener() {
-			public void fillMenu(Menu menu) {
+			public void fillMenu(String sColumnName, Menu menu) {
 				SBC_DevicesView.this.fillMenu(menu);
 			}
 

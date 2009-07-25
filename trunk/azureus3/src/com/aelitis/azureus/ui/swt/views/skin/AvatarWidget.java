@@ -20,11 +20,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.PropertiesWindow;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -1184,8 +1181,16 @@ public class AvatarWidget
 								"not logged in. no can do");
 						return;
 					}
-					InputShell is = new InputShell("Moo", "Message:");
-					String txt = is.open();
+					
+					SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow();
+					entryWindow.setTitle("Moo");
+					entryWindow.setMessage("Message:");
+					entryWindow.prompt();
+					if (!entryWindow.hasSubmittedInput()) {
+						return;
+					}
+					String txt = entryWindow.getSubmittedInput();
+
 					if (txt != null) {
 						txt = LoginInfoManager.getInstance().getUserInfo().userName
 								+ " says: \n" + txt;

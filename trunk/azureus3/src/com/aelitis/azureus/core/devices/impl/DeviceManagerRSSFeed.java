@@ -38,10 +38,14 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebContext;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageGenerator;
@@ -50,6 +54,8 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 public class 
 DeviceManagerRSSFeed 
@@ -174,15 +180,22 @@ DeviceManagerRSSFeed
 				((DeviceMediaRendererImpl)device).browseReceived();
 			}
 			
-			response.setContentType( "text/xml; charset=UTF-8" );
-				
+			response.setContentType( "application/xml" );
+			
 			pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
 			
 			pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\" xmlns:itunes=\"http://www.itunes.com/dtds/podcast-1.0.dtd\">" );
 			
 			pw.println( "<channel>" );
 			
-			pw.println( "<title>" + escape( device.getName()) + "</title>" );
+			pw.println( "<title>Vuze: " + escape( device.getName()) + "</title>" );
+			pw.println( "<link>http://vuze.com</link>" );
+			
+			pw.println( "<description>Vuze RSS Feed for " + escape( device.getName()) + "</description>" );
+			
+			pw.println("<itunes:image href=\"http://www.vuze.com/img/vuze_icon_128.png\"/>");
+			pw.println("<image><url>http://www.vuze.com/img/vuze_icon_128.png</url></image>");
+			
 					
 			TranscodeFileImpl[] _files = device.getFiles();
 			
@@ -232,53 +245,110 @@ DeviceManagerRSSFeed
 			pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( feed_date ) + "</pubDate>" );
 
 			for ( TranscodeFileImpl file: files ){
+				try{
 							
-				if ( !file.isComplete()){
-					
-					if ( !file.isTemplate()){
+  				if ( !file.isComplete()){
+  					
+  					if ( !file.isTemplate()){
+  						
+  						continue;
+  					}
+  				}
+  				
+  				pw.println( "<item>" );
+  				
+  				pw.println( "<title>" + escape( file.getName()) + "</title>" );
+  								
+  				pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( file.getCreationDateMillis()) + "</pubDate>" );
+  				
+  				String[] categories = file.getCategories();
+  				
+  				for ( String category: categories ){
+  					
+  					pw.println( "<category>" + category + "</category>" );
+  				}
+  				
+  
+  				String mediaContent = "";
+  				URL stream_url = file.getStreamURL();
+  				
+  				if ( stream_url != null ){
+  					
+  					String url_ext = stream_url.toExternalForm().replaceAll("127.0.0.1", "192.168.0.149");
+  					long fileSize = file.getTargetFile().getLength();
+  					
+  					pw.println( "<link>" + url_ext + "</link>" );
+  					
+  					mediaContent = "<media:content medium=\"video\" fileSize=\""
+								+ fileSize + "\" url=\"" + url_ext + "\""; 
+  					
+  					String	mime_type = file.getMimeType();
+  					
+  					if (mime_type != null) {
+  						mediaContent += " type=\"" + mime_type + "\"";
+  					}
+  				
+						pw.println("<enclosure url=\"" + url_ext
+								+ "\" length=\"" + fileSize
+								+ (mime_type == null ? "" : "\" type=\"" + mime_type)
+								+ "\"></enclosure>");
 						
-						continue;
-					}
-				}
-				
-				pw.println( "<item>" );
-				
-				pw.println( "<title>" + escape( file.getName()) + "</title>" );
-								
-				pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( file.getCreationDateMillis()) + "</pubDate>" );
-				
-				String[] categories = file.getCategories();
-				
-				for ( String category: categories ){
-					
-					pw.println( "<category>" + category + "</category>" );
-				}
+  				}
+  				
+  				try {
+  					Torrent torrent = file.getSourceFile().getDownload().getTorrent();
+  				
+  					TOTorrent toTorrent = PluginCoreUtils.unwrap(torrent);
 
-				URL stream_url = file.getStreamURL();
-				
-				if ( stream_url != null ){
-					
-					pw.println( "<link>" + stream_url.toExternalForm() + "</link>" );
-								
-					String	mime_type = file.getMimeType();
-				
-					if ( mime_type != null ){
+  					
+  					long duration = PlatformTorrentUtils.getContentVideoRunningTime(toTorrent);
+  					if (mediaContent.length() > 0) {
+  						mediaContent += " duration=\"" + duration + "\"";
+  					}
+  					mediaContent += ">";
+  					
+  					String thumbURL = PlatformTorrentUtils.getContentThumbnailUrl(toTorrent);
+  					if (thumbURL != null) {
+  						pw.println("<itunes:image href=\"" + thumbURL + "\"/>");
+  						mediaContent += "<media:thumbnail url=\"" + thumbURL + "\" />";
+  					}
+  					
+  					String author = PlatformTorrentUtils.getContentAuthor(toTorrent);
+  					if (author != null) {
+  						pw.println("<itunes:author>" + escape(author) + "</itunees:author>");
+  					}
+  					
+  					String desc = PlatformTorrentUtils.getContentDescription(toTorrent);
+  					if (desc != null) {
+    					mediaContent += "<media:description>" + escapeMultiline(desc) + "</media:description>";
+  						pw.println("<description>" + escapeMultiline(desc) + "</description>");
+  					}
+  					
+  				} catch (Exception e) {
+  					
+  				}
+
+  				if (mediaContent.length() > 0) {
+  					if (!mediaContent.contains(">")) {
+  						mediaContent += ">";
+  					}
+
+  					mediaContent += "<media:title>" + escape( file.getName()) + "</media:title>";
+
+						mediaContent += "</media:content>";
 						
-						try{
-							pw.println( 
-								"<enclosure url=\"" + stream_url.toExternalForm() + 
-								"\" length=\"" + file.getTargetFile().getLength() + "\" type=\"" + mime_type + "\"></enclosure>" );
-							
-						}catch( Throwable e ){
-							
-						}
-					}
+						// Unfortunately, writing the media:content tag breaks some rss readers.
+						// Comment out until I figure out why
+						//pw.println(mediaContent);
+  				}
+
+  				pw.println( "<itunes:summary>" + escape( file.getName()) + "</itunes:summary>" );
+  				pw.println( "<itunes:duration>" + TimeFormatter.formatColon( file.getDurationMillis()/1000 ) + "</itunes:duration>" );
+  				
+  				pw.println( "</item>" );
+				}catch( Throwable e ){
+					Debug.out(e);
 				}
-				
-				pw.println( "<itunes:summary>" + escape( file.getName()) + "</itunes:summary>" );
-				pw.println( "<itunes:duration>" + TimeFormatter.formatColon( file.getDurationMillis()/1000 ) + "</itunes:duration>" );
-				
-				pw.println( "</item>" );
 			}
 		
 			pw.println( "</channel>" );
@@ -296,5 +366,12 @@ DeviceManagerRSSFeed
 		String	str )
 	{
 		return( XUXmlWriter.escapeXML(str));
+	}
+
+	protected String
+	escapeMultiline(
+		String	str )
+	{
+		return( XUXmlWriter.escapeXML(str.replaceAll("[\r\n]+", "<BR>")));
 	}
 }

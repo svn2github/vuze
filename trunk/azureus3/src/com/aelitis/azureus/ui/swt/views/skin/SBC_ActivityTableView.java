@@ -32,9 +32,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -45,13 +45,10 @@ import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
-
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * @author TuxPaper

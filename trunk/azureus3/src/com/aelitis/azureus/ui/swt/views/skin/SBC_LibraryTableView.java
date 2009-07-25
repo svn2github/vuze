@@ -249,6 +249,15 @@ public class SBC_LibraryTableView
 
 							}
 						}
+					} else if (e.character == 18 && e.stateMask == (SWT.SHIFT | SWT.CONTROL)) {
+						Object[] selectedDataSources = tv.getSelectedDataSources().toArray();
+						for (int i = 0; i < selectedDataSources.length; i++) {
+							DownloadManager dm = (DownloadManager) selectedDataSources[i];
+							if (dm != null) {
+								PlatformTorrentUtils.setContentLastUpdated(dm.getTorrent(), 0);
+								PlatformTorrentUtils.updateMetaData(dm.getTorrent(), 0);
+							}
+						}
 					}
 				}
 			});

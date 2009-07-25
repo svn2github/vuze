@@ -11,41 +11,37 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
-import org.gudy.azureus2.ui.swt.shells.InputShell;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
-import com.aelitis.azureus.buddy.chat.Chat;
-import com.aelitis.azureus.buddy.chat.ChatDiscussion;
-import com.aelitis.azureus.buddy.chat.ChatListener;
-import com.aelitis.azureus.buddy.chat.ChatMessage;
+import com.aelitis.azureus.buddy.chat.*;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
-import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.chat.impl.MessageNotificationWindow;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayout;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayoutData;
-import com.aelitis.azureus.ui.swt.shells.friends.AddFriendsPage;
 import com.aelitis.azureus.ui.swt.shells.friends.SharePage;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.FAQTopics;
-
-import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 
 public class BuddiesViewer
 	extends SkinView
@@ -440,17 +436,21 @@ public class BuddiesViewer
 	}
 	
 	public void openFilterDialog() {
-		InputShell is = new InputShell("MyTorrentsView.dialog.setFilter.title",
+		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+				"MyTorrentsView.dialog.setFilter.title",
 				"MyTorrentsView.dialog.setFilter.text");
-		is.setTextValue(filter == null ? "" : filter);
-		is.setLabelParameters(new String[] { "Moo" 
-		});
-
-		String sReturn = is.open();
-		if (sReturn == null)
+		entryWindow.setPreenteredText(filter, false);
+		entryWindow.prompt();
+		if (!entryWindow.hasSubmittedInput()) {
 			return;
+		}
+		String message = entryWindow.getSubmittedInput();
+
+		if (message == null) {
+			message = "";
+		}
 		
-		filter = sReturn;
+		filter = message;
 
 		for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
 			AvatarWidget widget = (AvatarWidget) iterator.next();

@@ -556,7 +556,7 @@ SBC_RCMView
 			new TableViewSWTMenuFillListener() 
 			{
 				public void 
-				fillMenu(Menu menu)
+				fillMenu(String sColumnName, Menu menu)
 				{
 					Object[] _related_content = tv_related_content.getSelectedDataSources().toArray();
 
