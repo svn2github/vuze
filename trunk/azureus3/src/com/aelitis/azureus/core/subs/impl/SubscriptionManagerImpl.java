@@ -826,7 +826,9 @@ SubscriptionManagerImpl
 	{
 		if ( url.getHost().trim().length() == 0 ){
 			
-			if ( !url.getProtocol().equalsIgnoreCase( "azplug" )){
+			String protocol = url.getProtocol().toLowerCase();
+			
+			if ( ! ( protocol.equals( "azplug" ) || protocol.equals( "file" ))){
 			
 				throw( new SubscriptionException( "Invalid URL '" + url + "'" ));
 			}

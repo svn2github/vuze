@@ -418,7 +418,8 @@ public class SubscriptionWizard {
 				boolean valid_url = false;
 				try {
 					URL url = new URL(feedUrl.getText());
-					valid_url = url.getProtocol().equalsIgnoreCase( "azplug" ) || url.getHost().trim().length() > 0;
+					String protocol = url.getProtocol().toLowerCase();
+					valid_url = protocol.equals( "azplug" ) || protocol.equals( "file") || url.getHost().trim().length() > 0;
 				} catch (Exception e) {}
 				
 				saveButton.setEnabled(valid_url);

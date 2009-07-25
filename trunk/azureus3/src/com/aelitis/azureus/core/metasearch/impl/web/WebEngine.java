@@ -22,6 +22,8 @@ package com.aelitis.azureus.core.metasearch.impl.web;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -600,132 +602,158 @@ WebEngine
 				}
 			}
 			
-			ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( initial_url_rd );
-
 			InputStream	is;
 			
-			try{
-			
-				is = mr_rd.download();
-				
-			}catch( ResourceDownloaderException e ){
-			
-				Long	response = (Long)mr_rd.getProperty( "URL_HTTP_Response" );
-				
-				if ( response != null && response.longValue() == 304 ){
-					
-						// not modified
-					
-					return( new pageDetails( initial_url, initial_url, "" ));
-					
-				}else{
-					
-					throw( e );
-				}
-			}
-				
-			if ( needsAuth ){
-				
-				List	cookies_list = (List)mr_rd.getProperty( "URL_Set-Cookie" );
-				
-				List	cookies_set = new ArrayList();
-				
-				if ( cookies_list != null ){
-					
-					for (int i=0;i<cookies_list.size();i++){
-						
-						String[] cookies = ((String)cookies_list.get(i)).split(";");
-						
-						for (int j=0;j<cookies.length;j++){
-							
-							String	cookie = cookies[j].trim();
-							
-							if ( cookie.indexOf('=') != -1 ){
-								
-								cookies_set.add( cookie );
-							}
-						}
-					}
-				}
-				
-					// well, not much we can do with the cookies anyway as in general the ones
-					// set are the ones missing/expired, not the existing ones. That is, we can't
-					// deduce anything from the fact that a required cookie is not 'set' here
-					// the most we could do is catch a server that explicitly deleted invalid
-					// cookies by expiring it, but I doubt this is a common practice.
-				
-					// Also note the complexity of cookie syntax
-					// Set-Cookie: old standard using expires=, new using MaxAge
-					// Set-Cookie2:
-					// Maybe use http://jcookie.sourceforge.net/ if needed
-			}
-			
-			if ( only_if_modified ){
-				
-				String last_modified 	= extractProperty( mr_rd.getProperty( "URL_Last-Modified" ));
-				String etag				= extractProperty( mr_rd.getProperty( "URL_ETag" ));
-				
-				if ( last_modified != null ){
-					
-					setLocalString( LD_LAST_MODIFIED, last_modified );
-				}
-				
-				if ( etag != null ){
-					
-					setLocalString( LD_ETAG, etag );
-				}
-			}
-			
-			List cts = (List)mr_rd.getProperty( "URL_Content-Type" );
-						
 			String content_charset = "UTF-8";
+
+			ResourceDownloader mr_rd = null;
 			
-			if ( cts != null && cts.size() > 0 ){
+			if ( initial_url.getProtocol().equalsIgnoreCase( "file" )){
 				
-				String	content_type = (String)cts.get(0);
+					// handle file://c:/ - map to file:/c:/
 				
-				int	pos = content_type.toLowerCase().indexOf( "charset" );
+				String	str = initial_url.toExternalForm();
+				
+				if ( initial_url.getAuthority() != null ){
+				
+					str = str.replaceFirst( "://", ":/" );
+				}
+								
+				int	pos = str.indexOf( '?' );
 				
 				if ( pos != -1 ){
 					
-					content_type = content_type.substring( pos+1 );
+					str = str.substring( 0, pos );
+				}
+				
+				is = new FileInputStream( new File( new URL( str ).toURI()));
+				
+			}else{
+				
+				mr_rd = rdf.getMetaRefreshDownloader( initial_url_rd );
+
+				try{
+				
+					is = mr_rd.download();
 					
-					pos = content_type.indexOf('=');
+				}catch( ResourceDownloaderException e ){
+				
+					Long	response = (Long)mr_rd.getProperty( "URL_HTTP_Response" );
+					
+					if ( response != null && response.longValue() == 304 ){
+						
+							// not modified
+						
+						return( new pageDetails( initial_url, initial_url, "" ));
+						
+					}else{
+						
+						throw( e );
+					}
+				}
+
+			
+				if ( needsAuth ){
+					
+					List	cookies_list = (List)mr_rd.getProperty( "URL_Set-Cookie" );
+					
+					List	cookies_set = new ArrayList();
+					
+					if ( cookies_list != null ){
+						
+						for (int i=0;i<cookies_list.size();i++){
+							
+							String[] cookies = ((String)cookies_list.get(i)).split(";");
+							
+							for (int j=0;j<cookies.length;j++){
+								
+								String	cookie = cookies[j].trim();
+								
+								if ( cookie.indexOf('=') != -1 ){
+									
+									cookies_set.add( cookie );
+								}
+							}
+						}
+					}
+					
+						// well, not much we can do with the cookies anyway as in general the ones
+						// set are the ones missing/expired, not the existing ones. That is, we can't
+						// deduce anything from the fact that a required cookie is not 'set' here
+						// the most we could do is catch a server that explicitly deleted invalid
+						// cookies by expiring it, but I doubt this is a common practice.
+					
+						// Also note the complexity of cookie syntax
+						// Set-Cookie: old standard using expires=, new using MaxAge
+						// Set-Cookie2:
+						// Maybe use http://jcookie.sourceforge.net/ if needed
+				}
+				
+				if ( only_if_modified ){
+					
+					String last_modified 	= extractProperty( mr_rd.getProperty( "URL_Last-Modified" ));
+					String etag				= extractProperty( mr_rd.getProperty( "URL_ETag" ));
+					
+					if ( last_modified != null ){
+						
+						setLocalString( LD_LAST_MODIFIED, last_modified );
+					}
+					
+					if ( etag != null ){
+						
+						setLocalString( LD_ETAG, etag );
+					}
+				}
+				
+				List cts = (List)mr_rd.getProperty( "URL_Content-Type" );
+											
+				if ( cts != null && cts.size() > 0 ){
+					
+					String	content_type = (String)cts.get(0);
+					
+					int	pos = content_type.toLowerCase().indexOf( "charset" );
 					
 					if ( pos != -1 ){
 						
-						content_type = content_type.substring( pos+1 ).trim();
+						content_type = content_type.substring( pos+1 );
 						
-						pos = content_type.indexOf(';');
+						pos = content_type.indexOf('=');
 						
 						if ( pos != -1 ){
 							
-							content_type = content_type.substring(0,pos).trim();
-						}
-						
-						try{
-							if ( Charset.isSupported( content_type )){
+							content_type = content_type.substring( pos+1 ).trim();
+							
+							pos = content_type.indexOf(';');
+							
+							if ( pos != -1 ){
 								
-								debugLog( "charset: " + content_type );
-								
-								content_charset = content_type;
+								content_type = content_type.substring(0,pos).trim();
 							}
-						}catch( Throwable e ){
 							
 							try{
-									// handle lowercase 'utf-8' for example
-								
-								content_type = content_type.toUpperCase();
-								
 								if ( Charset.isSupported( content_type )){
 									
 									debugLog( "charset: " + content_type );
 									
 									content_charset = content_type;
 								}
-							}catch( Throwable f ){
+							}catch( Throwable e ){
 								
-								log( "Content type '" + content_type + "' not supported", f );
+								try{
+										// handle lowercase 'utf-8' for example
+									
+									content_type = content_type.toUpperCase();
+									
+									if ( Charset.isSupported( content_type )){
+										
+										debugLog( "charset: " + content_type );
+										
+										content_charset = content_type;
+									}
+								}catch( Throwable f ){
+									
+									log( "Content type '" + content_type + "' not supported", f );
+								}
 							}
 						}
 					}
@@ -899,11 +927,16 @@ WebEngine
 				//No BASE tag in the page
 			}
 			
-			URL	final_url = (URL)mr_rd.getProperty( "URL_URL" );
-
-			if ( final_url == null ){
+			URL	final_url = initial_url;
+			
+			if ( mr_rd != null ){
 				
-				final_url = initial_url;
+				URL	x = (URL)mr_rd.getProperty( "URL_URL" );
+	
+				if ( x != null ){
+					
+					final_url = x;
+				}
 			}
 			
 			return( new pageDetails( initial_url, final_url, page ));
