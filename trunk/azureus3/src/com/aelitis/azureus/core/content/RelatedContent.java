@@ -27,12 +27,13 @@ import org.gudy.azureus2.plugins.download.Download;
 public abstract class 
 RelatedContent 
 {
-	private byte[]		related_to_hash;
-	private String 		title;
-	private byte[]		hash;
-	private String		tracker;
-	private long		size;
+	final private String 		title;
+	final private byte[]		hash;
+	final private String		tracker;
+	final private long			size;
 	
+	private byte[]		related_to_hash;
+
 	protected
 	RelatedContent(
 		byte[]		_related_to_hash,
@@ -101,6 +102,9 @@ RelatedContent
 	public abstract void
 	setUnread(
 		boolean	unread );
+	
+	public abstract int
+	getLastSeenSecs();
 	
 	public String
 	getTracker()

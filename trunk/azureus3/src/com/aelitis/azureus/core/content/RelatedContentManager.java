@@ -1665,7 +1665,7 @@ RelatedContentManager
 					
 				}else{
 					
-					if ( info.getLastSeen() < oldest.getLastSeen()){
+					if ( info.getLastSeenSecs() < oldest.getLastSeenSecs()){
 						
 						oldest_per_rank.put( rank, info );
 					}
@@ -2324,7 +2324,7 @@ RelatedContentManager
 							
 				ImportExportUtils.exportBoolean( info_map, "u", info.isUnread());
 				ImportExportUtils.exportIntArray( info_map, "l", info.getRandList());
-				ImportExportUtils.exportInt( info_map, "s", info.getLastSeen());
+				ImportExportUtils.exportInt( info_map, "s", info.getLastSeenSecs());
 				ImportExportUtils.exportInt( info_map, "e", info.getLevel());
 			}
 			
@@ -2380,7 +2380,6 @@ RelatedContentManager
 		private int[]			rand_list;
 		private int				last_seen;
 		private int				level;
-		private long			size;
 		
 		private ContentCache	cc;
 		
@@ -2420,6 +2419,7 @@ RelatedContentManager
 			rand		= _rand;
 			unread		= _unread;
 			rand_list	= _rand_list;
+			last_seen	= _last_seen;
 			level		= _level;
 			cc			= _cc;
 		}
@@ -2524,8 +2524,8 @@ RelatedContentManager
 			rand_list = new int[]{ rand };
 		}
 		
-		protected int
-		getLastSeen()
+		public int
+		getLastSeenSecs()
 		{
 			return( last_seen );
 		}

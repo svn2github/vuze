@@ -21,7 +21,6 @@ package com.aelitis.azureus.ui.swt.content;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -196,6 +195,15 @@ SBC_RCMView
 					new TableColumnCreationListener() {
 						public void tableColumnCreated(TableColumn column) {
 							new ColumnRC_Size(column);
+						}
+					});
+		
+		tableManager.registerColumn(
+				RelatedContent.class, 
+				ColumnRC_LastSeen.COLUMN_ID,
+					new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new ColumnRC_LastSeen(column);
 						}
 					});
 	}
