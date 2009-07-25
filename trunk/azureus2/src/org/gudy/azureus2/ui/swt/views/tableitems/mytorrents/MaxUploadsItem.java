@@ -24,13 +24,21 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.*;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuManagerImpl;
+
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectedRowsListener;
 
 public class MaxUploadsItem
        extends CoreTableColumn 
@@ -45,6 +53,39 @@ public class MaxUploadsItem
     super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 30, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
+    
+    TableContextMenuItem menuItem = addContextMenuItem("TableColumn.menu.maxuploads");
+    menuItem.setStyle(TableContextMenuItem.STYLE_MENU);
+    menuItem.addFillListener(new MenuItemFillListener() {
+		
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.removeAllChildItems();
+				
+				PluginInterface pi = PluginInitializer.getDefaultInterface();
+				UIManager uim = pi.getUIManager();
+				MenuManager menuManager = uim.getMenuManager();
+
+	      int iStart = COConfigurationManager.getIntParameter("Max Uploads") - 2;
+	      if (iStart < 2) iStart = 2;
+	      for (int i = iStart; i < iStart + 6; i++) {
+					MenuItem item = menuManager.addMenuItem(menu, "MaxUploads." + i);
+					item.setText(String.valueOf(i));
+					item.setData(new Long(i));
+					item.addMultiListener(new MenuItemListener() {
+						public void selected(MenuItem item, Object target) {
+							if (target instanceof Object[]) {
+								Object[] targets = (Object[]) target;
+								for (Object object : targets) {
+									DownloadManager dm = (DownloadManager) object;
+									int value = ((Long) item.getData()).intValue();
+									dm.setMaxUploads(value);
+								}
+							} // run
+						}
+					}); // listener
+				} // for
+			}
+		});
   }
 
 	public void fillTableColumnInfo(TableColumnInfo info) {

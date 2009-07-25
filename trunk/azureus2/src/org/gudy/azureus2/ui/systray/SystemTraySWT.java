@@ -111,7 +111,7 @@ public class SystemTraySWT
 		});
 		
 		MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuildUtils.MenuBuilder() {
-			public void buildMenu(Menu menu) {
+			public void buildMenu(Menu menu, MenuEvent menuEvent) {
 				fillMenu(menu);
 			}
 		});

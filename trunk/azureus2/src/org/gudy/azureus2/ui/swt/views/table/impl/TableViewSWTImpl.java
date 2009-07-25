@@ -177,9 +177,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	/** Context Menu */
 	private Menu menu;
 
-	/** Context Menu specific to the column the mouse was on */
-	private Menu menuThisColumn;
-
 	/** Link DataSource to their row in the table.
 	 * key = DataSource
 	 * value = TableRowSWT
@@ -399,8 +396,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	public void initialize(Composite composite) {
 		composite.setRedraw(false);
 		mainComposite = createSashForm(composite);
-		menu = createMenu();
 		table = createTable(tableComposite);
+		menu = createMenu(table);
 		clientArea = table.getClientArea();
 		editor = new TableEditor(table);
 		editor.minimumWidth = 80;
@@ -1796,6 +1793,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			// At the time of writing this SWT (3.0RC1) on OSX doesn't call the 
 			// selection listener for tables
 			column.addListener(SWT.Selection, columnSelectionListener);
+			
 
 			swtColumnPos++;
 		}
@@ -1861,19 +1859,42 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	/** Creates the Context Menu.
+	 * @param table 
 	 *
 	 * @return a new Menu object
 	 */
-	public Menu createMenu() {
+	private Menu createMenu(final Table table) {
 		if (!isMenuEnabled()) {
 			return null;
 		}
+		
 		final Menu menu = new Menu(tableComposite.getShell(), SWT.POP_UP);
+		table.addListener(SWT.MenuDetect, new Listener() {
+			public void handleEvent(Event event) {
+				Point pt = event.display.map(null, table, new Point(event.x, event.y));
+				Rectangle clientArea = table.getClientArea();
+				boolean header = clientArea.y <= pt.y && pt.y < (clientArea.y + table.getHeaderHeight());
+				
+				menu.setData("isHeader", new Boolean(header));
+
+				int columnNo = getColumnNo(pt.x);
+				TableColumn tcColumn = table.getColumn(columnNo);
+				menu.setData("column", tcColumn);
+			}
+		});
 		MenuBuildUtils.addMaintenanceListenerForMenu(menu,
 				new MenuBuildUtils.MenuBuilder() {
-					public void buildMenu(Menu menu) {
-						fillMenu(menu);
-						addThisColumnSubMenu(getColumnNo(iMouseX));
+					public void buildMenu(Menu menu, MenuEvent menuEvent) {
+						Object oIsHeader = menu.getData("isHeader");
+						boolean isHeader = (oIsHeader instanceof Boolean) ? ((Boolean)oIsHeader).booleanValue() : false;
+
+						TableColumn tcColumn = (TableColumn) menu.getData("column");
+						
+						if (!isHeader) {
+							fillMenu(menu, tcColumn);
+						} else {
+							fillColumnMenu(tcColumn);
+						}
 					}
 				});
 
@@ -1885,29 +1906,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * By default, a "Edit Columns" menu and a Column specific menu is set up.
 	 *
 	 * @param menu Menu to fill
+	 * @param tcColumn 
 	 */
-	public void fillMenu(Menu menu) {
+	public void fillMenu(final Menu menu, final TableColumn tcColumn) {
+		String columnName = tcColumn == null ? null : (String) tcColumn.getData("Name");
+
 		Object[] listeners = listenersMenuFill.toArray();
 		for (int i = 0; i < listeners.length; i++) {
 			TableViewSWTMenuFillListener l = (TableViewSWTMenuFillListener) listeners[i];
-			l.fillMenu(menu);
+			l.fillMenu(columnName, menu);
 		}
-
-		final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemChangeTable,
-				"MyTorrentsView.menu.editTableColumns");
-		Utils.setMenuItemImage(itemChangeTable, "columns");
-
-		itemChangeTable.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				showColumnEditor();
-			}
-		});
-
-		menuThisColumn = new Menu(tableComposite.getShell(), SWT.DROP_DOWN);
-		final MenuItem itemThisColumn = new MenuItem(menu, SWT.CASCADE);
-		itemThisColumn.setMenu(menuThisColumn);
-
 		// Add Plugin Context menus..
 		boolean enable_items = table != null && table.getSelection().length > 0;
 
@@ -1923,6 +1931,41 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		} else {
 			menu_items = MenuItemManager.getInstance().getAllAsArray((String) null);
 		}
+		
+		MenuItem item = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.toClipboard");
+		item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				String sToClipboard = "";
+				if (tcColumn == null) {
+					return;
+				}
+				String columnName = (String) tcColumn.getData("Name");
+				if (columnName == null) {
+					return;
+				}
+				TableItem[] tis = table.getSelection();
+				for (int i = 0; i < tis.length; i++) {
+					if (i != 0) {
+						sToClipboard += "\n";
+					}
+					TableRowCore row = (TableRowCore) tis[i].getData("TableRow");
+					TableCellCore cell = row.getTableCellCore(columnName);
+					if (cell != null) {
+						sToClipboard += cell.getText();
+					}
+				}
+				if (sToClipboard.length() == 0) {
+					return;
+				}
+				new Clipboard(mainComposite.getDisplay()).setContents(new Object[] {
+					sToClipboard
+				}, new Transfer[] {
+					TextTransfer.getInstance()
+				});
+			}
+		});
+		
 		if (items.length > 0 || menu_items.length > 0) {
 			new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);
 
@@ -1956,6 +1999,18 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						});
 			}
 		}
+		
+		// Add Plugin Context menus..
+		TableColumnCore tc = (TableColumnCore) tcColumn.getData("TableColumnCore");
+		TableContextMenuItem[] columnItems = tc.getContextMenuItems(TableColumnCore.MENU_STYLE_COLUMN_DATA);
+		if (columnItems.length > 0) {
+			new MenuItem(menu, SWT.SEPARATOR);
+
+			MenuBuildUtils.addPluginMenuItems(getComposite(), columnItems, menu,
+					true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
+							getSelectedDataSources(true)));
+
+		}
 	}
 
 	void showColumnEditor() {
@@ -1972,34 +2027,20 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 *
 	 * @param iColumn Column # that tasks apply to.
 	 */
-	private void addThisColumnSubMenu(int iColumn) {
-		MenuItem item;
+	private void fillColumnMenu(final TableColumn tcColumn) {
+		
+		final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemChangeTable,
+				"MyTorrentsView.menu.editTableColumns");
+		Utils.setMenuItemImage(itemChangeTable, "columns");
 
-		if (menuThisColumn == null || menuThisColumn.isDisposed()) {
-			return;
-		}
-
-		// Dispose of the old items
-		MenuItem[] oldItems = menuThisColumn.getItems();
-		for (int i = 0; i < oldItems.length; i++) {
-			oldItems[i].dispose();
-		}
-
-		item = menuThisColumn.getParentItem();
-		if (iColumn == -1) {
-			item.setEnabled(false);
-			item.setText(MessageText.getString("GenericText.column"));
-			return;
-		}
-
-		item.setEnabled(true);
-
-		final TableColumn tcColumn = table.getColumn(iColumn);
-		item.setText("'" + tcColumn.getText() + "' "
-				+ MessageText.getString("GenericText.column"));
+		itemChangeTable.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				showColumnEditor();
+			}
+		});
 
 		if (menu != null) {
-			menu.setData("ColumnNo", new Long(iColumn));
 			menu.setData("column", tcColumn);
 		}
 
@@ -2008,24 +2049,23 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			Object[] listeners = listenersMenuFill.toArray();
 			for (int i = 0; i < listeners.length; i++) {
 				TableViewSWTMenuFillListener l = (TableViewSWTMenuFillListener) listeners[i];
-				l.addThisColumnSubMenu(sColumnName, menuThisColumn);
+				l.addThisColumnSubMenu(sColumnName, menu);
 			}
 		}
 
-		if (menuThisColumn.getItemCount() > 0) {
-			new MenuItem(menuThisColumn, SWT.SEPARATOR);
+		if (menu.getItemCount() > 0) {
+			new MenuItem(menu, SWT.SEPARATOR);
 		}
 
-		item = new MenuItem(menuThisColumn, SWT.PUSH);
+		MenuItem item = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.sort");
 		item.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
-				int iColumn = ((Long) menu.getData("ColumnNo")).intValue();
-				table.getColumn(iColumn).notifyListeners(SWT.Selection, new Event());
+				tcColumn.notifyListeners(SWT.Selection, new Event());
 			}
 		});
 
-		final MenuItem at_item = new MenuItem(menuThisColumn, SWT.CHECK);
+		final MenuItem at_item = new MenuItem(menu, SWT.CHECK);
 		Messages.setLanguageText(at_item,
 				"MyTorrentsView.menu.thisColumn.autoTooltip");
 		at_item.addListener(SWT.Selection, new Listener() {
@@ -2038,7 +2078,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		});
 		at_item.setSelection(((TableColumnCore) tcColumn.getData("TableColumnCore")).doesAutoTooltip());
 
-		item = new MenuItem(menuThisColumn, SWT.PUSH);
+		item = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.remove");
 
 		item.addListener(SWT.Selection, new Listener() {
@@ -2061,49 +2101,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 
-		item = new MenuItem(menuThisColumn, SWT.PUSH);
-		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.toClipboard");
-		item.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				String sToClipboard = "";
-				//int iColumn = ((Long) menu.getData("ColumnNo")).intValue();
-				TableColumn tc = (TableColumn) menu.getData("column");
-				if (tc == null) {
-					return;
-				}
-				String columnName = (String) tcColumn.getData("Name");
-				if (columnName == null) {
-					return;
-				}
-				TableItem[] tis = table.getSelection();
-				for (int i = 0; i < tis.length; i++) {
-					if (i != 0) {
-						sToClipboard += "\n";
-					}
-					TableRowCore row = (TableRowCore) tis[i].getData("TableRow");
-					TableCellCore cell = row.getTableCellCore(columnName);
-					if (cell != null) {
-						sToClipboard += cell.getText();
-					}
-				}
-				if (sToClipboard.length() == 0) {
-					return;
-				}
-				new Clipboard(mainComposite.getDisplay()).setContents(new Object[] {
-					sToClipboard
-				}, new Transfer[] {
-					TextTransfer.getInstance()
-				});
-			}
-		});
-
 		// Add Plugin Context menus..
 		TableColumnCore tc = (TableColumnCore) tcColumn.getData("TableColumnCore");
-		TableContextMenuItem[] items = tc.getContextMenuItems();
+		TableContextMenuItem[] items = tc.getContextMenuItems(TableColumnCore.MENU_STYLE_HEADER);
 		if (items.length > 0) {
-			new MenuItem(menuThisColumn, SWT.SEPARATOR);
+			new MenuItem(menu, SWT.SEPARATOR);
 
-			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menuThisColumn,
+			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu,
 					true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
 							getSelectedDataSources(true)));
 

@@ -27,20 +27,23 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 
 /**
  * amc1: This class was largely derived from TableContextMenuImpl.
  */
 public class MenuItemImpl implements MenuItem {
-	
-	private UIManagerImpl	uiManager;
+
+	private PluginInterface pi;
 	
 	private String sMenuID;
 
@@ -69,14 +72,17 @@ public class MenuItemImpl implements MenuItem {
 	
 	private MenuContextImpl menu_context = null;
 
-	public MenuItemImpl(UIManagerImpl _uiManager, String menuID, String key) {
-		uiManager = _uiManager;
+	public MenuItemImpl(PluginInterface _pi, String menuID, String key) {
+		pi = _pi;
+		if (pi == null) {
+			pi = PluginInitializer.getDefaultInterface();
+		}
 		sMenuID = menuID;
 		sName = key;
 	}
 
 	public MenuItemImpl(MenuItemImpl ti, String key) {
-		uiManager = ti.uiManager;
+		pi = ti.pi;
 		this.parent = ti;
 		this.parent.addChildMenuItem(this);
 		this.sMenuID = this.parent.getMenuID();
@@ -235,12 +241,12 @@ public class MenuItemImpl implements MenuItem {
 	protected void removeWithEvents(int root_menu_event, int sub_menu_event) {
 		removeAllChildItems();
 		if (this.parent != null) {
-			UIManagerImpl.fireEvent(uiManager.getPluginInterface(),sub_menu_event, new Object[]{this.parent, this});
+			UIManagerImpl.fireEvent(pi, sub_menu_event, new Object[]{this.parent, this});
 			parent.children.remove(this);
 			this.parent = null;
 		}
 		else {
-			UIManagerImpl.fireEvent(uiManager.getPluginInterface(),root_menu_event, this);
+			UIManagerImpl.fireEvent(pi, root_menu_event, this);
 		}
 		this.data = null;
 		this.graphic = null;

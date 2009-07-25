@@ -55,7 +55,7 @@ public class MenuBuildUtils {
 	 * An interface to be used for addMaintenanceListenerForMenu. 
 	 */
 	public static interface MenuBuilder {
-		public void buildMenu(Menu root_menu);
+		public void buildMenu(Menu root_menu, MenuEvent menuEvent);
 	}
 
 	/**
@@ -107,7 +107,7 @@ public class MenuBuildUtils {
 					items[i].dispose();
 
 				bShown = true;
-				builder.buildMenu(menu);
+				builder.buildMenu(menu, e);
 			}
 		});
 	}

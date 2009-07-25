@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.shells.InputShell;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.shells.SpeedScaleShell;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -135,16 +135,26 @@ public class SelectableSpeedMenu {
 			public void widgetSelected(SelectionEvent e) {
 				String kbps_str = MessageText.getString("MyTorrentsView.dialog.setNumber.inKbps",
 						new String[]{ DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB ) });
-				
-				InputShell is = new InputShell(
-						"MyTorrentsView.dialog.setSpeed.title",
-						new String[] { MessageText.getString(up_menu?"MyTorrentsView.dialog.setNumber.upload":"MyTorrentsView.dialog.setNumber.download") },
-						"MyTorrentsView.dialog.setNumber.text",
-						new String[] {
-								kbps_str,
-								MessageText.getString(up_menu?"MyTorrentsView.dialog.setNumber.upload":"MyTorrentsView.dialog.setNumber.download") });
 
-				String sReturn = is.open();
+				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow();
+				entryWindow.initTexts("MyTorrentsView.dialog.setSpeed.title",
+						new String[] {
+							MessageText.getString(up_menu
+									? "MyTorrentsView.dialog.setNumber.upload"
+									: "MyTorrentsView.dialog.setNumber.download")
+						}, "MyTorrentsView.dialog.setNumber.text", new String[] {
+							kbps_str,
+							MessageText.getString(up_menu
+									? "MyTorrentsView.dialog.setNumber.upload"
+									: "MyTorrentsView.dialog.setNumber.download")
+						});
+
+				entryWindow.prompt();
+				if (!entryWindow.hasSubmittedInput()) {
+					return;
+				}
+				String sReturn = entryWindow.getSubmittedInput();
+
 				if (sReturn == null)
 					return;
 

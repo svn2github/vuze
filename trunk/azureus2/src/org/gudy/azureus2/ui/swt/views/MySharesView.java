@@ -188,7 +188,7 @@ implements ShareManagerListener,
 
   public void 
   fillMenu(
-  	final Menu menu) 
+  	String sColumnName, final Menu menu) 
   {
   	Shell shell = menu.getShell();
 		/*

@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.Menu;
  */
 public interface TableViewSWTMenuFillListener
 {
-	public void fillMenu(Menu menu);
+	public void fillMenu(String sColumnName, Menu menu);
 
 	/** 
 	 * Create a SubMenu for column specific tasks.  Everytime the user opens

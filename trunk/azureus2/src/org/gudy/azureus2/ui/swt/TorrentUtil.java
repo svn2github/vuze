@@ -24,11 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -56,7 +53,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
-import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -692,9 +688,9 @@ public class TorrentUtil {
 				final boolean change_displayed_name = ((Boolean) mi.getData("display_name")).booleanValue();
 				final boolean change_save_name = ((Boolean) mi.getData("save_name")).booleanValue();
 				String msg_key_prefix = "MyTorrentsView.menu.rename." + (String) mi.getData("msg_key") + ".enter.";
-				SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(composite.getDisplay());
+				SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow();
 				text_entry.setTitle(msg_key_prefix + "title");
-				text_entry.setMessages(new String[] { msg_key_prefix + "message", msg_key_prefix + "message.2" });
+				text_entry.setMessage(msg_key_prefix + "message");
 				text_entry.setPreenteredText(suggested, false);
 				text_entry.prompt();
 				if (text_entry.hasSubmittedInput()) {
@@ -1041,11 +1037,15 @@ public class TorrentUtil {
 				"MyTorrentsView.menu.reposition.manual");
 		itemPositionManual.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				InputShell is = new InputShell(
+				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
 						"MyTorrentsView.dialog.setPosition.title",
 						"MyTorrentsView.dialog.setPosition.text");
+				entryWindow.prompt();
+				if (!entryWindow.hasSubmittedInput()) {
+					return;
+				}
+				String sReturn = entryWindow.getSubmittedInput();
 
-				String sReturn = is.open();
 				if (sReturn == null)
 					return;
 
@@ -1169,31 +1169,6 @@ public class TorrentUtil {
 
 		addCategorySubMenu(dms, menuCategory, composite);
 		
-		// Rename
-		final MenuItem itemRenameAll = new MenuItem(menu, SWT.CASCADE);
-		Messages.setLanguageText(itemRenameAll, "MyTorrentsView.menu.rename");
-		itemRenameAll.setEnabled(hasSelection);
-		if (itemRenameAll.isEnabled()) {
-			itemRenameAll.setData("suggested_text", first_selected.getDisplayName());
-			itemRenameAll.setData("display_name", Boolean.FALSE);
-			itemRenameAll.setData("save_name", Boolean.FALSE);
-			itemRenameAll.setData("rename_all", Boolean.TRUE);
-			itemRenameAll.setData("msg_key", "displayed");
-		}
-
-		itemRenameAll.addListener(SWT.Selection, rename_listener);
-		
-		// Edit Comment
-		final MenuItem itemEditComment = new MenuItem(menu, SWT.CASCADE);
-		Messages.setLanguageText(itemEditComment, "MyTorrentsView.menu.edit_comment");
-		itemEditComment.setEnabled(dms.length > 0);
-
-		itemEditComment.addListener(SWT.Selection, new DMTask(dms) {
-			public void run(DownloadManager[] dms) {
-				promptUserForComment(dms);
-			}
-		});
-
 		// ---
 		new MenuItem(menu, SWT.SEPARATOR);
 
@@ -1527,7 +1502,7 @@ public class TorrentUtil {
 		// Create dialog box.
 		String suggested = dm.getDownloadState().getUserComment(); 
 		String msg_key_prefix = "MyTorrentsView.menu.edit_comment.enter.";
-		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(Display.getCurrent());
+		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow();
 		text_entry.setTitle(msg_key_prefix + "title");
 		text_entry.setMessage(msg_key_prefix + "message");
 		text_entry.setPreenteredText(suggested, false);

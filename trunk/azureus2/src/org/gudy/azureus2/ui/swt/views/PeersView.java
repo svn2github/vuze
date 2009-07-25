@@ -172,7 +172,7 @@ public class PeersView
   	}
 	}
 	
-	public void fillMenu(Menu menu) {fillMenu(menu, tv, shell, true);}
+	public void fillMenu(String sColumnName, Menu menu) {fillMenu(menu, tv, shell, true);}
 
 	public static void fillMenu(final Menu menu, final TableView tv, final Shell shell, boolean download_specific) {
 		

@@ -58,7 +58,6 @@ import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
-import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -144,7 +143,7 @@ public class MyTorrentsView
 	private TableViewSWT tv;
 	private Composite cTableParentPanel;
 	protected boolean viewActive;
-	private boolean forceHeaderVisible = false;
+	private boolean forceHeaderVisible = true;
 	private TableSelectionListener defaultSelectedListener;
 	private Composite cFilterArea;
 	protected boolean resizeHeaderEventQueued;
@@ -383,6 +382,33 @@ public class MyTorrentsView
         
         lblHeader = new Label(cHeader, SWT.WRAP);
         updateTableLabel();
+        
+        Label lblSep = new Label(cHeader, SWT.SEPARATOR | SWT.VERTICAL);
+        gridData = new GridData(GridData.FILL_VERTICAL);
+        gridData.heightHint = 5;
+        lblSep.setLayoutData(gridData);
+        
+        final Button lblFilter = new Button(cHeader, SWT.TOGGLE);
+        //gridData = new GridData(GridData.BEGINNING);
+        //lblFilter.setLayoutData(gridData);
+        Messages.setLanguageText(lblFilter, "MyTorrentsView.filter");
+        lblFilter.addSelectionListener(new SelectionListener() {
+				
+					public void widgetSelected(SelectionEvent e) {
+						boolean enable = lblFilter.getSelection();
+            cFilterArea.setVisible(enable);
+            if (enable) {
+            	txtFilter.setFocus();
+            } else {
+            	tv.setFocus();
+            }
+            resizeHeader();
+					}
+				
+					public void widgetDefaultSelected(SelectionEvent e) {
+					}
+				});
+        
 
         cFilterArea = new Composite(cHeader, SWT.NONE);
         cFilterArea.setVisible(false);
@@ -407,7 +433,18 @@ public class MyTorrentsView
         lblHeader.setLayoutData(fd);
 
         fd = new FormData();
+        fd.left = new FormAttachment(lblSep, 10);
+        fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER);
+        lblFilter.setLayoutData(fd);
+
+        fd = new FormData();
         fd.left = new FormAttachment(lblHeader, 10);
+        fd.top = new FormAttachment(cFilterArea, 3, SWT.TOP);
+        fd.bottom = new FormAttachment(cFilterArea, -3, SWT.BOTTOM);
+        lblSep.setLayoutData(fd);
+
+        fd = new FormData();
+        fd.left = new FormAttachment(lblFilter, 0);
         fd.right = new FormAttachment(cCategories, -10);
         cFilterArea.setLayoutData(fd);
 
@@ -429,33 +466,6 @@ public class MyTorrentsView
 					}
 				});
 
-        
-        Label lblSep = new Label(cFilterArea, SWT.SEPARATOR | SWT.VERTICAL);
-        gridData = new GridData(GridData.FILL_VERTICAL);
-        gridData.heightHint = 5;
-        lblSep.setLayoutData(gridData);
-        
-        Label lblFilter = new Label(cFilterArea, SWT.WRAP);
-        gridData = new GridData(GridData.BEGINNING);
-        lblFilter.setLayoutData(gridData);
-        Messages.setLanguageText(lblFilter, "MyTorrentsView.filter");
-
-        lblX = new Label(cFilterArea, SWT.WRAP);
-        Messages.setLanguageTooltip(lblX, "MyTorrentsView.clearFilter.tooltip");
-        gridData = new GridData(SWT.TOP);
-        lblX.setLayoutData(gridData);
-        ImageLoader.getInstance().setLabelImage(lblX, "smallx-gray");
-        lblX.setData("ImageID", "smallx-gray");
-        lblX.addMouseListener(new MouseAdapter() {
-        	public void mouseUp(MouseEvent e) {
-        		if (e.y <= 10) {
-          		sLastSearch = "";
-          		updateLastSearch();
-              cFilterArea.setVisible(false);
-              resizeHeader();
-        		}
-        	}
-        });
         
         txtFilter = new Text(cFilterArea, SWT.BORDER);
         Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
@@ -483,6 +493,25 @@ public class MyTorrentsView
         	}
         });
         
+
+        lblX = new Label(cFilterArea, SWT.WRAP);
+        Messages.setLanguageTooltip(lblX, "MyTorrentsView.clearFilter.tooltip");
+        gridData = new GridData(SWT.TOP);
+        lblX.setLayoutData(gridData);
+        ImageLoader.getInstance().setLabelImage(lblX, "smallx-gray");
+        lblX.setData("ImageID", "smallx-gray");
+        lblX.addMouseListener(new MouseAdapter() {
+        	public void mouseUp(MouseEvent e) {
+        		if (e.y <= 10) {
+          		sLastSearch = "";
+          		updateLastSearch();
+              cFilterArea.setVisible(false);
+              resizeHeader();
+        		}
+        	}
+        });
+        
+
         lblSep = new Label(cFilterArea, SWT.SEPARATOR | SWT.VERTICAL);
         gridData = new GridData(GridData.FILL_VERTICAL);
         gridData.heightHint = 5;
@@ -1239,53 +1268,34 @@ public class MyTorrentsView
         }
       });
 
-    } else if (sColumnName.equals("maxuploads")) {
-      int iStart = COConfigurationManager.getIntParameter("Max Uploads") - 2;
-      if (iStart < 2) iStart = 2;
-      for (int i = iStart; i < iStart + 6; i++) {
-        MenuItem item = new MenuItem(menuThisColumn, SWT.PUSH);
-        item.setText(String.valueOf(i));
-        item.setData("MaxUploads", new Long(i));
-        item.addListener(SWT.Selection,
-                         new TableSelectedRowsListener(tv) {
-          public void run(TableRowCore row) {
-            DownloadManager dm = (DownloadManager)row.getDataSource(true);
-            MenuItem item = (MenuItem)event.widget;
-            if (item != null) {
-              int value = ((Long)item.getData("MaxUploads")).intValue();
-              dm.setMaxUploads(value);
-            }
-          } // run
-        }); // listener
-      } // for
     }
   }
-  
-	  public void fillMenu(final Menu menu) {
-			Object[] dm_items = tv.getSelectedDataSources().toArray();
-			boolean hasSelection = (dm_items.length > 0);
 
-			if (hasSelection) {
-				DownloadManager[] dms = new DownloadManager[dm_items.length];
-				for (int i=0; i<dm_items.length; i++) {
-					dms[i] = (DownloadManager)dm_items[i];
-				}
-				TorrentUtil.fillTorrentMenu(menu, dms, azureus_core, cTablePanel, true,
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener#fillMenu(java.lang.String, org.eclipse.swt.widgets.Menu)
+	public void fillMenu(String sColumnName, final Menu menu) {
+		Object[] dm_items = tv.getSelectedDataSources().toArray();
+		boolean hasSelection = (dm_items.length > 0);
+
+		if (hasSelection) {
+			DownloadManager[] dms = new DownloadManager[dm_items.length];
+			for (int i = 0; i < dm_items.length; i++) {
+				dms[i] = (DownloadManager) dm_items[i];
+			}
+			TorrentUtil.fillTorrentMenu(menu, dms, azureus_core, cTablePanel, true,
 					(isSeedingView) ? 2 : 1, tv);
 
-				// ---
-				new MenuItem(menu, SWT.SEPARATOR);
-			}
-			
-			final MenuItem itemFilter = new MenuItem(menu, SWT.PUSH);
-			Messages.setLanguageText(itemFilter, "MyTorrentsView.menu.filter");
-			itemFilter.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					openFilterDialog();
-				}
-			});
+			// ---
+			new MenuItem(menu, SWT.SEPARATOR);
+		}
 
-  }
+		final MenuItem itemFilter = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemFilter, "MyTorrentsView.menu.filter");
+		itemFilter.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				openFilterDialog();
+			}
+		});
+	}
 
 	private void createDragDrop() {
 		try {
@@ -1629,18 +1639,23 @@ public class MyTorrentsView
 	}
 
 	private void openFilterDialog() {
-		InputShell is = new InputShell("MyTorrentsView.dialog.setFilter.title",
-				"MyTorrentsView.dialog.setFilter.text");
-		is.setTextValue(sLastSearch);
-		is.setLabelParameters(new String[] { MessageText.getString(tv.getTableID() + "View"
-				+ ".header")
-		});
-
-		String sReturn = is.open();
-		if (sReturn == null)
+		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow();
+		entryWindow.initTexts("MyTorrentsView.dialog.setFilter.title",
+				new String[] {
+					MessageText.getString(tv.getTableID() + "View" + ".header")
+				}, "MyTorrentsView.dialog.setFilter.text", null);
+		entryWindow.setPreenteredText(sLastSearch, false);
+		entryWindow.prompt();
+		if (!entryWindow.hasSubmittedInput()) {
 			return;
+		}
+		String message = entryWindow.getSubmittedInput();
+
+		if (message == null) {
+			message = "";
+		}
 		
-		sLastSearch = sReturn;
+		sLastSearch = message;
 		updateLastSearch();
 	}
 	

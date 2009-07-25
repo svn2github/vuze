@@ -165,7 +165,7 @@ public class MyTrackerView
 		});
 	}
     
-  public void fillMenu(final Menu menu) {	  
+  public void fillMenu(String sColumnName, final Menu menu) {	  
 	    menuCategory = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
 	    final MenuItem itemCategory = new MenuItem(menu, SWT.CASCADE);
 	    Messages.setLanguageText(itemCategory, "MyTorrentsView.menu.setCategory"); //$NON-NLS-1$

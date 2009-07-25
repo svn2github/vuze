@@ -1,7 +1,12 @@
 VUZE CHANGELOG
 -----------------
 
-2009.07.xx | Vuze 4.2.0.5
+2009.08.xx | Vuze 4.2.0.5
+
+CHANGE: Core | Added more meta data for devices RSS Feed [TuxPaper]
+CHANGE: UI   | Moved Column Setup and column related menu items to right click of column header [TuxPaper]
+CHANGE: UI   | Made Library/My Torrents filter more visible [TuxPaper]
+CHANGE: UI   | Moved "Rename" context menu in Library to context menu of Name column only [TuxPaper]
 
 
 2009.07.08 | Vuze 4.2.0.4

@@ -124,7 +124,7 @@ public class MenuFactory
 		 */
 		MenuBuildUtils.addMaintenanceListenerForMenu(torrentItem.getMenu(),
 				new MenuBuildUtils.MenuBuilder() {
-					public void buildMenu(Menu menu) {
+					public void buildMenu(Menu menu, MenuEvent menuEvent) {
 						DownloadManager[] current_dls = (DownloadManager[]) torrentItem.getData("downloads");
 						if (current_dls == null) {
 							return;
@@ -220,7 +220,7 @@ public class MenuFactory
 				MENU_ID_PLUGINS);
 		MenuBuildUtils.addMaintenanceListenerForMenu(pluginsMenuItem.getMenu(),
 				new MenuBuildUtils.MenuBuilder() {
-					public void buildMenu(Menu menu) {
+					public void buildMenu(Menu menu, MenuEvent menuEvent) {
 						PluginsMenuHelper.getInstance().buildPluginMenu(menu,
 								menuParent.getShell(), includeGetPluginsMenu);
 					}

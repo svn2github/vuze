@@ -18,18 +18,18 @@
  
 package org.gudy.azureus2.pluginsimpl.local.ui.tables;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
 
 public class TableContextMenuItemImpl extends MenuItemImpl implements TableContextMenuItem {
 
   private String sTableID;
   
-  public TableContextMenuItemImpl(UIManagerImpl uiManager, String tableID, String key) {
-	  super(uiManager,MenuManager.MENU_TABLE, key);
+  public TableContextMenuItemImpl(PluginInterface pi, String tableID, String key) {
+	  super(pi, MenuManager.MENU_TABLE, key);
 	  sTableID = tableID;
   }
   

@@ -44,8 +44,24 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	
 	private Display display;
 	
-	public SimpleTextEntryWindow(final Display display) {
-		this.display = display;
+	public SimpleTextEntryWindow() {
+	}
+
+	public SimpleTextEntryWindow(String sTitleKey, String sLabelKey) {
+		setTitle(sTitleKey);
+		setMessage(sLabelKey);
+	}
+
+	public SimpleTextEntryWindow(String sTitleKey, String sLabelKey, boolean bMultiLine) {
+		setTitle(sTitleKey);
+		setMessage(sLabelKey);
+		setMultiLine(bMultiLine);
+	}
+
+	public void initTexts(String sTitleKey, String[] p0, String sLabelKey,
+			String[] p1) {
+		setLocalisedTitle(MessageText.getString(sTitleKey, p0));
+		setLocalisedMessage(MessageText.getString(sLabelKey, p1));
 	}
 	
 	protected void promptForInput() {
@@ -57,6 +73,7 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	private void promptForInput0() {
 		final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 
+		display = shell.getDisplay();
 		if (this.title != null) {
 			shell.setText(this.title);
 		}

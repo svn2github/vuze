@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -92,7 +93,7 @@ public class AllTransfersBar extends MiniBar {
 		this.up_speed = this.createSpeedLabel();
 	}
 	
-	public void buildMenu(Menu menu) {
+	public void buildMenu(Menu menu, MenuEvent menuEvent) {
 
 		// Start All
 		MenuItem start_all = new MenuItem(menu, SWT.PUSH);

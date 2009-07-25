@@ -127,7 +127,7 @@ public class TableManagerImpl implements TableManager
 
 	public TableContextMenuItem addContextMenuItem(String tableID,
 			String resourceKey) {
-		TableContextMenuItemImpl item = new TableContextMenuItemImpl(ui_manager, tableID, resourceKey);
+		TableContextMenuItemImpl item = new TableContextMenuItemImpl(ui_manager.getPluginInterface(), tableID, resourceKey);
 
 		// this event is replayed for us on UI attaches so no extra work
 

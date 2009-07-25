@@ -834,7 +834,7 @@ UISWTInstanceImpl
 	}
 	
 	public UIInputReceiver getInputReceiver() {
-		return new SimpleTextEntryWindow(getDisplay());
+		return new SimpleTextEntryWindow();
 	}
 	
 	public UIMessage createMessage() {

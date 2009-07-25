@@ -111,7 +111,7 @@ public class PeerSuperView
 		unregisterListeners();
 	}
 
-	public void fillMenu(final Menu menu) {
+	public void fillMenu(String sColumnName, final Menu menu) {
 		PeersView.fillMenu(menu, tv, shell, false);
 	}
 

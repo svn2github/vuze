@@ -105,8 +105,10 @@ public class TableColumnImpl
 	
 	private int iConsecutiveErrCount;
 
-	private ArrayList menuItems;
+	private ArrayList<TableContextMenuItem> menuItemsHeader;
 
+	private ArrayList<TableContextMenuItem> menuItemsColumn;
+	
 	private boolean bObfusticateData;
 
 	protected AEMonitor this_mon = new AEMonitor("TableColumn");
@@ -1083,30 +1085,52 @@ public class TableColumnImpl
 	}
 
 	public void removeContextMenuItem(TableContextMenuItem menuItem) {
-		if (menuItems == null) {
-			return;
+		if (menuItemsColumn != null) {
+			menuItemsColumn.remove(menuItem);
 		}
-
-		menuItems.remove(menuItem);
+		if (menuItemsHeader != null) {
+			menuItemsColumn.remove(menuItem);
+		}
 	}
 
+	// @see org.gudy.azureus2.plugins.ui.tables.TableColumn#addContextMenuItem(java.lang.String, int)
 	public TableContextMenuItem addContextMenuItem(String key) {
-		if (menuItems == null) {
-			menuItems = new ArrayList();
-		}
+		return addContextMenuItem(key, MENU_STYLE_COLUMN_DATA);
+	}
 
+	public TableContextMenuItem addContextMenuItem(String key, int menuStyle) {
+		ArrayList<TableContextMenuItem> menuItems;		
+		if (menuStyle == MENU_STYLE_COLUMN_DATA) {
+			if (menuItemsColumn == null) {
+				menuItemsColumn = new ArrayList<TableContextMenuItem>();
+			}
+			menuItems = menuItemsColumn;
+		} else {
+			if (menuItemsHeader == null) {
+				menuItemsHeader = new ArrayList<TableContextMenuItem>();
+			}
+			menuItems = menuItemsHeader;
+		}
+		
 		// Hack.. should be using our own implementation..
 		TableContextMenuItemImpl item = new TableContextMenuItemImpl(null,"", key);
 		menuItems.add(item);
 		return item;
 	}
 
-	public TableContextMenuItem[] getContextMenuItems() {
+	public TableContextMenuItem[] getContextMenuItems(int menuStyle) {
+		ArrayList<TableContextMenuItem> menuItems;		
+		if (menuStyle == MENU_STYLE_COLUMN_DATA) {
+			menuItems = menuItemsColumn;
+		} else {
+			menuItems = menuItemsHeader;
+		}
+
 		if (menuItems == null) {
 			return new TableContextMenuItem[0];
 		}
 
-		return (TableContextMenuItem[]) menuItems.toArray(new TableContextMenuItem[0]);
+		return menuItems.toArray(new TableContextMenuItem[0]);
 	}
 
 	public boolean isObfusticated() {

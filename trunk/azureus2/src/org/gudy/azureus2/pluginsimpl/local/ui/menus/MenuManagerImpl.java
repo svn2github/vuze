@@ -19,6 +19,7 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
 package org.gudy.azureus2.pluginsimpl.local.ui.menus;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.menus.*;
@@ -35,8 +36,9 @@ public class MenuManagerImpl implements MenuManager {
 	public MenuManagerImpl(UIManagerImpl _ui_manager) { ui_manager = _ui_manager; }
 	
     public MenuItem addMenuItem(String menuID, String resource_key) {
-    	MenuItemImpl item = new MenuItemImpl(ui_manager, menuID, resource_key);
-    	UIManagerImpl.fireEvent(ui_manager.getPluginInterface(), UIManagerEvent.ET_ADD_MENU_ITEM, item);
+    	PluginInterface pi = ui_manager.getPluginInterface();
+    	MenuItemImpl item = new MenuItemImpl(pi, menuID, resource_key);
+    	UIManagerImpl.fireEvent(pi, UIManagerEvent.ET_ADD_MENU_ITEM, item);
     	return item;
     }
     

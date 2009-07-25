@@ -218,7 +218,7 @@ public interface TableColumnCore
 	 *
 	 * @since 2.1.0.0
 	 */
-	public TableContextMenuItem[] getContextMenuItems();
+	public TableContextMenuItem[] getContextMenuItems(int menuStyle);
 
 	/**
 	 * @return

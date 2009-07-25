@@ -36,9 +36,9 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.logging.impl.FileLogging;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
-import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
 import com.aelitis.azureus.core.*;
@@ -117,12 +117,14 @@ public class UIDebugGenerator
 			}
 		}
 
-		InputShell inputShell = new InputShell("UIDebugGenerator.messageask.title",
+		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+				"UIDebugGenerator.messageask.title",
 				"UIDebugGenerator.messageask.text", true);
-		String message = inputShell.open();
-		if (inputShell.isCanceled()) {
+		entryWindow.prompt();
+		if (!entryWindow.hasSubmittedInput()) {
 			return;
-		} 
+		}
+		String message = entryWindow.getSubmittedInput();
 
 		if (message == null || message.length() == 0) {
 			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK,

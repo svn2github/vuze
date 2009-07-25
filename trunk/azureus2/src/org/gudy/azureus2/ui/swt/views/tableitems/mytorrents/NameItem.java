@@ -30,13 +30,15 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ui.tables.*;
 
 /** Torrent name cell for My Torrents.
  *
@@ -67,6 +69,35 @@ public class NameItem extends CoreTableColumn implements
 		setType(TableColumn.TYPE_TEXT);
 		setMinWidth(100);
 
+    TableContextMenuItem menuItem = addContextMenuItem("MyTorrentsView.menu.rename.displayed");
+    menuItem.addMultiListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target == null) {
+					return;
+				}
+				Object[] o = (Object[]) target;
+				for (Object object : o) {
+					if (object instanceof DownloadManager) {
+						DownloadManager dm = (DownloadManager) object;
+						String msg_key_prefix = "MyTorrentsView.menu.rename.displayed.enter.";
+
+						SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+								msg_key_prefix + "title", msg_key_prefix + "message");
+						entryWindow.setPreenteredText(dm.getDisplayName(), false);
+						entryWindow.prompt();
+						if (!entryWindow.hasSubmittedInput()) {
+							return;
+						}
+						String value = entryWindow.getSubmittedInput();
+						if (value != null && value.length() > 0) {
+							dm.getDownloadState().setDisplayName(value);
+						}
+					}
+				}
+			}
+		});
+
+		
 		COConfigurationManager.addAndFireParameterListener(
 				"NameColumn.showProgramIcon", new ParameterListener() {
 					public void parameterChanged(String parameterName) {

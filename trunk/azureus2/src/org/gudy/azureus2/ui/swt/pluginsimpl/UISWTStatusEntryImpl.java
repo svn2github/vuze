@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Menu;
 
@@ -118,7 +119,7 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 				
 			MenuBuildUtils.addMaintenanceListenerForMenu(menu,
 			    new MenuBuildUtils.MenuBuilder() {
-					public void buildMenu(Menu menu) {
+					public void buildMenu(Menu menu, MenuEvent menuEvent) {
 						MenuItem[] items = MenuItemManager.getInstance().getAllAsArray(menu_context.context);
 						MenuBuildUtils.addPluginMenuItems(label, items, menu, true, true, 
 							MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);

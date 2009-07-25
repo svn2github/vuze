@@ -29,6 +29,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -102,7 +103,7 @@ public class DownloadBar extends MiniBar {
 		this.eta = this.createDataLabel(65);
 	}
 	
-	public void buildMenu(Menu menu) {
+	public void buildMenu(Menu menu, MenuEvent menuEvent) {
 		
 		// Queue
 		final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);

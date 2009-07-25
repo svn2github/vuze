@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -58,8 +59,6 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
 import com.aelitis.azureus.ui.common.table.*;
-
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * @author Olivier
@@ -177,7 +176,7 @@ public class FilesView
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWTMenuFillListener#fillMenu(org.eclipse.swt.widgets.Menu)
-	public void fillMenu(final Menu menu) {
+	public void fillMenu(String sColumnName, final Menu menu) {
 		Shell shell = menu.getShell();
 		Object[] data_sources = tv.getSelectedDataSources().toArray();
 		boolean hasSelection = (data_sources.length > 0);
@@ -355,9 +354,8 @@ public class FilesView
 	}
 
 	private String askForRenameFilename(DiskManagerFileInfo fileInfo) {
-		SimpleTextEntryWindow dialog = new SimpleTextEntryWindow(Display.getDefault());
-		dialog.setTitle("FilesView.rename.filename.title");
-		dialog.setMessage("FilesView.rename.filename.text");
+		SimpleTextEntryWindow dialog = new SimpleTextEntryWindow(
+				"FilesView.rename.filename.title", "FilesView.rename.filename.text");
 		dialog.setPreenteredText(fileInfo.getFile(true).getName(), false); // false -> it's not "suggested", it's a previous value
 		dialog.allowEmptyInput(false);
 		dialog.prompt();

@@ -21,6 +21,10 @@ package org.gudy.azureus2.plugins.ui.tables;
  * This interface provides access to an Azureus table column.
  */
 public interface TableColumn {
+	public static final int MENU_STYLE_HEADER = 1;
+
+	public static final int MENU_STYLE_COLUMN_DATA = 2;
+
   /** The cells in this column display textual information. */
   public static final int TYPE_TEXT = 1;
   /** The graphic type, providing access to graphic specific functions in 
@@ -499,16 +503,29 @@ public interface TableColumn {
   public void invalidateCell(Object data_source);
 
 
-  /** Adds a Context Menu item to the "This Column" sub menu
-   *
-   * @param resourceKey ID of the context menu, which is also used to retreieve
-   *                    the textual name from the plugin language file.
-   *
-   * @return a newly created menu item
-   * 
-   * @since 2.4.0.0
-   */
-  public TableContextMenuItem addContextMenuItem(String resourceKey);
+  /** Adds a Context Menu item to the column
+	 *
+	 * @param resourceKey ID of the context menu, which is also used to retreieve
+	 *                    the textual name from the plugin language file.
+	 * @param menuStyle See MENU_STYLE_* constants (header or data)
+	 *
+	 * @return a newly created menu item
+	 * 
+	 * @since 4.2.0.5
+	 */
+	public TableContextMenuItem addContextMenuItem(String resourceKey,
+			int menuStyle);
+
+	/** Adds a Context Menu item to data section of the column
+	 *
+	 * @param resourceKey ID of the context menu, which is also used to retreieve
+	 *                    the textual name from the plugin language file.
+	 *
+	 * @return a newly created menu item
+	 * 
+	 * @since 2.4.0.0
+	 */
+	public TableContextMenuItem addContextMenuItem(String resourceKey);
 
 
 	/**
