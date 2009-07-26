@@ -52,8 +52,7 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.Initializer;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemListener;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -147,6 +146,8 @@ public class SBC_LibraryView
 	
 	private SWTSkinObject soWaitProgress;
 	
+	private SWTSkinObjectText soWaitTask;
+	
 	private int waitProgress = 0;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
@@ -157,6 +158,7 @@ public class SBC_LibraryView
 		try {
 			soWait = getSkinObject("library-wait");
 			soWaitProgress = getSkinObject("library-wait-progress");
+			soWaitTask = (SWTSkinObjectText) getSkinObject("library-wait-task");
 			if (soWaitProgress != null) {
 				soWaitProgress.getControl().addPaintListener(new PaintListener() {
 					public void paintControl(PaintEvent e) {
@@ -197,6 +199,9 @@ public class SBC_LibraryView
 					}
 				
 					public void reportCurrentTask(String currentTask) {
+						if (soWaitTask != null && !soWaitTask.isDisposed()) {
+							soWaitTask.setText(currentTask);
+						}
 					}
 				});
 			}

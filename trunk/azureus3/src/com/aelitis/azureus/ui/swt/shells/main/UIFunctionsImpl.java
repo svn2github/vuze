@@ -845,6 +845,8 @@ public class UIFunctionsImpl
 		SWTSkin skin = closeDialog.getSkin();
 		SWTSkinObjectButton soButton = (SWTSkinObjectButton) skin.getSkinObject("close");
 
+		final SWTSkinObjectText soWaitTask = (SWTSkinObjectText) skin.getSkinObject("task");
+
 		final SWTSkinObject soWaitProgress = skin.getSkinObject("progress");
 		if (soWaitProgress != null) {
 			soWaitProgress.getControl().addPaintListener(new PaintListener() {
@@ -885,6 +887,9 @@ public class UIFunctionsImpl
 					}
 				
 					public void reportCurrentTask(String currentTask) {
+						if (soWaitTask != null && !soWaitTask.isDisposed()) {
+							soWaitTask.setText(currentTask);
+						}
 					}
 				});
 			}
