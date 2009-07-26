@@ -892,7 +892,18 @@ WebEngine
 												
 												content_charset = encoding;
 												
-												page = content.substring( 0, pos3 ) + "utf-8" + content.substring( pos4, pos2 ) + new String( data, pos2, data.length - pos2, content_charset );							
+													// some feeds have crap at the start which makes pos2 mismatch for the above '?' - adjust if necessary
+												
+												int data_start = pos2;
+												
+												int	max_skip	= 64;
+												
+												while( data[data_start] != '?' && max_skip-- > 0 ){
+													
+													data_start++;
+												}
+												
+												page = content.substring( 0, pos3 ) + "utf-8" + content.substring( pos4, pos2 ) + new String( data, data_start, data.length - data_start, content_charset );							
 											}
 										}catch( Throwable e ){
 											
