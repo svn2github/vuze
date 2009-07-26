@@ -91,6 +91,11 @@ public class ScriptBeforeStartup
 	}
 
 	public static String getNewGreDir() {
+		// SWT does a pretty awesome job at finding GRE, most cases this will work
+		if (canOpenBrowser()) {
+			return null;
+		}
+
 		// TODO: Store last successful dir somewhere and check that first
 		//       COConfigurationManager probably a bad idea, since that may load
 		//       Logger and who knows what other libraries
@@ -103,10 +108,6 @@ public class ScriptBeforeStartup
 			"/etc/gre.d/xulrunner.conf",
 			"/etc/gre.d/libxul0d.conf"
 		};
-
-		if (canOpenBrowser()) {
-			return null;
-		}
 
 		log("Auto-scanning for GRE/XULRunner.  You can skip this by appending the GRE path to LD_LIBRARY_PATH and setting MOZILLA_FIVE_HOME.");
 		try {
@@ -192,7 +193,7 @@ public class ScriptBeforeStartup
 
 		if (!canOpenBrowser()) {
 			log("Can't create browser.  Will try to set LD_LIBRARY_PATH and hope "
-					+ Constants.APP_NAME + "has better luck.");
+					+ Constants.APP_NAME + " has better luck.");
 		}
 
 		return grePath;
@@ -246,18 +247,27 @@ public class ScriptBeforeStartup
 		if (!dir.isDirectory()) {
 			return false;
 		}
+		
 		if (new File(dir, "components/libwidget_gtk.so").exists()
 				|| new File(dir, "libwidget_gtk.so").exists()) {
 			log("	Can not use GRE from " + dir
 					+ " as it's too old (GTK2 version required).");
 			return false;
 		}
-		if (!new File(dir, "components/libwidget_gtk2.so").exists()
-				&& !new File(dir, "libwidget_gtk2.so").exists()) {
-			log("	Can not use GRE from " + dir
-					+ " because it's missing components/libwidget_gtk2.so.");
+
+		// newer GRE doesn't have libwidget at all, but older ones do, and it's 
+		// gtk2, we are good to go
+		if (new File(dir, "components/libwidget_gtk2.so").exists()
+				|| new File(dir, "libwidget_gtk2.so").exists()) {
+			return true;
+		}
+
+		if (!new File(dir, "components/libxpcom.so").exists()
+				&& !new File(dir, "libxpcom.so").exists()) {
+			log("	Can not use GRE from " + dir + " because it's missing libxpcom.so.");
 			return false;
 		}
+
 		return true;
 	}
 
