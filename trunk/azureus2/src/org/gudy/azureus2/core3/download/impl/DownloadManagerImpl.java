@@ -1984,36 +1984,31 @@ DownloadManagerImpl
 		}
 		
 		if (response != null) {
-			if (response.isValid()) {
-				int state = getState();
-				if (state == STATE_ERROR || state == STATE_STOPPED) {
-					long minNextScrape = SystemTime.getCurrentTime()
-							+ (state == STATE_ERROR ? SCRAPE_DELAY_ERROR_TORRENTS
-									: SCRAPE_DELAY_STOPPED_TORRENTS);
-					if (response.getNextScrapeStartTime() < minNextScrape) {
-						response.setNextScrapeStartTime(minNextScrape);
-					}
-				}
-			} else if (response.getStatus() == TRTrackerScraperResponse.ST_INITIALIZING) {
+			int state = getState();
+			if (state == STATE_ERROR || state == STATE_STOPPED) {
 				long minNextScrape;
-				int state = getState();
-				if (state == STATE_ERROR || state == STATE_STOPPED) {
-					// Delay initial scrape if torrent is stopped or in error.
-					// Save excessive thread creation (by the scraper) and spreads out
-					// CPU usage at startup time
+				if (response.getStatus() == TRTrackerScraperResponse.ST_INITIALIZING) {
 					minNextScrape = SystemTime.getCurrentTime()
 							+ (state == STATE_ERROR ? SCRAPE_INITDELAY_ERROR_TORRENTS
 									: SCRAPE_INITDELAY_STOPPED_TORRENTS);
 				} else {
-					// Spread the scrapes out a bit.  This is extremely helpfull on large
-					// torrent lists, and trackers that do not support multi-scrapes.
-					// For trackers that do support multi-scrapes, it will really delay
-					// the scrape for all torrent in the tracker to the one that has
-					// the lowest share ratio.
-					int sr = getStats().getShareRatio();
 					minNextScrape = SystemTime.getCurrentTime()
-							+ ((sr > 10000 ? 10000 : sr + 1000) * 60);
+							+ (state == STATE_ERROR ? SCRAPE_DELAY_ERROR_TORRENTS
+									: SCRAPE_DELAY_STOPPED_TORRENTS);
 				}
+				if (response.getNextScrapeStartTime() < minNextScrape) {
+					response.setNextScrapeStartTime(minNextScrape);
+				}
+			} else if (!response.isValid() && response.getStatus() == TRTrackerScraperResponse.ST_INITIALIZING) {
+				long minNextScrape;
+				// Spread the scrapes out a bit.  This is extremely helpfull on large
+				// torrent lists, and trackers that do not support multi-scrapes.
+				// For trackers that do support multi-scrapes, it will really delay
+				// the scrape for all torrent in the tracker to the one that has
+				// the lowest share ratio.
+				int sr = getStats().getShareRatio();
+				minNextScrape = SystemTime.getCurrentTime()
+						+ ((sr > 10000 ? 10000 : sr + 1000) * 60);
 
 				if (response.getNextScrapeStartTime() < minNextScrape) {
 					response.setNextScrapeStartTime(minNextScrape);
