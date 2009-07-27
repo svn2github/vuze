@@ -20,11 +20,17 @@
 
 package org.gudy.azureus2.ui.swt.win32;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.internal.Callback;
 import org.eclipse.swt.internal.win32.OS;
 import org.eclipse.swt.internal.win32.TCHAR;
+import org.eclipse.swt.widgets.Shell;
+
+import com.aelitis.azureus.core.drivedetector.*;
 
 /**
  * @author TuxPaper
@@ -35,6 +41,20 @@ import org.eclipse.swt.internal.win32.TCHAR;
  */
 public class Win32UIEnhancer
 {
+	
+	public static final int WM_DEVICECHANGE = 0x219;
+
+	public static final int DBT_DEVICEARRIVAL = 0x8000;
+	public static final int DBT_DEVICEREMOVECOMPLETE = 0x8004;
+	
+	public static final int DBT_DEVTYP_VOLUME = 0x2;
+
+	private static int messageProc;
+
+	private static  Callback messageCallback;
+
+	private static DriveDetectedInfo loc;
+
 	static String findProgramKey(String extension) {
 		if (extension == null)
 			SWT.error(SWT.ERROR_NULL_ARGUMENT);
@@ -131,5 +151,86 @@ public class Win32UIEnhancer
 		if (phkResult[0] != 0)
 			OS.RegCloseKey(phkResult[0]);
 		return result;
+	}
+	
+	public static void initMainShell(Shell shell) {
+		//Canvas canvas = new Canvas(shell, SWT.NO_BACKGROUND | SWT.NO_TRIM);
+		//canvas.setVisible(false);
+		Shell subshell = new Shell(shell);
+		
+
+		messageCallback = new Callback (Win32UIEnhancer.class, "messageProc2", 4);
+		messageProc = messageCallback.getAddress ();
+		if (messageProc != 0) {
+			OS.SetWindowLongPtr (subshell.handle, OS.GWLP_WNDPROC, messageProc);
+		}
+	}
+
+	static int /*long*/messageProc2(int /*long*/hwnd, int /*long*/msg,
+			int /*long*/wParam, int /*long*/lParam) {
+		try {
+			// I'll clean this up soon
+			switch ((int) /*64*/msg) {
+				case WM_DEVICECHANGE:
+					if (wParam == DBT_DEVICEARRIVAL) {
+						int[] st = new int[3];
+						OS.memmove(st, lParam, 12);
+
+						System.out.println("Arrival: " + st[0] + "/" + st[1] + "/" + st[2]);
+
+						if (st[1] == DBT_DEVTYP_VOLUME) {
+							System.out.println("NEW VOLUME!");
+
+							byte b[] = new byte[st[0]];
+							OS.memmove(b, lParam, st[0]);
+							long unitMask = b[12] + (b[13] << 8) + (b[14] << 16)
+									+ (b[14] << 24);
+							char letter = '?';
+							for (int i = 0; i < 26; i++) {
+								if (1 << i == unitMask) {
+									letter = (char) ('A' + i);
+								}
+							}
+							System.out.println("Drive " + letter);
+							if (letter != '?') {
+								DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
+								driveDetector.driveDetected(new File(letter + ":\\"));
+							}
+						}
+
+					} else if (wParam == DBT_DEVICEREMOVECOMPLETE) {
+						int[] st = new int[3];
+						OS.memmove(st, lParam, 12);
+
+						System.out.println("Remove: " + st[0] + "/" + st[1] + "/" + st[2]);
+
+						if (st[1] == DBT_DEVTYP_VOLUME) {
+							System.out.println("REMOVE VOLUME!");
+
+							byte b[] = new byte[st[0]];
+							OS.memmove(b, lParam, st[0]);
+							long unitMask = b[12] + (b[13] << 8) + (b[14] << 16)
+									+ (b[14] << 24);
+							char letter = '?';
+							for (int i = 0; i < 26; i++) {
+								if (1 << i == unitMask) {
+									letter = (char) ('A' + i);
+								}
+							}
+							System.out.println("Drive " + letter);
+							if (letter != '?') {
+								DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
+								driveDetector.driveRemoved(new File(letter + ":\\"));
+							}
+						}
+
+					}
+					System.out.println("DEVICE CHANGE" + wParam + "/" + lParam);
+					break;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return 0;// OS.DefWindowProc (hwnd, (int)/*64*/msg, wParam, lParam);
 	}
 }
