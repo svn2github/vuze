@@ -43,13 +43,11 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 
 public class 
 DeviceTivoManager 
 {
 	private static final String		LF				= "\n";
-	private static final String		NL				= "\r\n";
 	private static final int		CONTROL_PORT	= 2190;
 	
 	private DeviceManagerImpl		device_manager;
@@ -58,6 +56,8 @@ DeviceTivoManager
 	private String	uid;
 	private String	server_name	= "Vuze";
 	private int		tcp_port;
+	
+	private TrackerWebContext twc;
 	
 	protected
 	DeviceTivoManager(
@@ -107,7 +107,7 @@ DeviceTivoManager
 			}catch( Throwable e ){
 			}
 			
-			TrackerWebContext twc = plugin_interface.getTracker().createWebContext( 0, Tracker.PR_HTTP );
+			twc = plugin_interface.getTracker().createWebContext( 0, Tracker.PR_HTTP );
 			
 			twc.addPageGenerator(
 				new TrackerWebPageGenerator()
@@ -115,56 +115,25 @@ DeviceTivoManager
 					public boolean 
 					generate(
 						TrackerWebPageRequest 	request,
-						TrackerWebPageResponse 	response ) 
+						TrackerWebPageResponse 	response )
 					
 						throws IOException 
 					{
-						System.out.println( "Got query: " + request.getURL());
+						String	id = (String)request.getHeaders().get( "tsn" );
 						
-						String x = 
-						"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" + NL +
-						"<TiVoContainer>" + NL +
-						"    <Details>" + NL +
-						"        <Title>" + server_name + "</Title>" + NL +
-						"        <ContentType>x-container/tivo-server</ContentType>" + NL +
-						"        <SourceFormat>x-container/folder</SourceFormat>" + NL +
-						"        <TotalItems>2</TotalItems>" + NL +
-						"    </Details>" + NL +
-						"    <Item>" + NL +
-						"        <Details>" + NL +
-						"            <Title>Admin</Title>" + NL +
-						"            <ContentType>text/html</ContentType>" + NL +
-						"            <SourceFormat>x-container/folder</SourceFormat>" + NL +
-						"        </Details>" + NL +
-						"        <Links>" + NL +
-						"            <Content>" + NL +
-						"                <Url>/TiVoConnect?Command=QueryContainer&amp;Container=Admin</Url>" + NL +
-						"                <ContentType>text/html</ContentType>" + NL +
-						"            </Content>" + NL +
-						"        </Links>" + NL +
-						"    </Item>" + NL +
-						"    <Item>" + NL +
-						"        <Details>" + NL +
-						"            <Title>TEST</Title>" + NL +
-						"            <ContentType>x-container/tivo-videos</ContentType>" + NL +
-						"            <SourceFormat>x-container/folder</SourceFormat>" + NL +
-						"        </Details>" + NL +
-						"        <Links>" + NL +
-						"            <Content>" + NL +
-						"                <Url>/TiVoConnect?Command=QueryContainer&amp;Container=Stuff</Url>" + NL +
-						"                <ContentType>x-container/tivo-videos</ContentType>" + NL +
-						"            </Content>" + NL +
-						"        </Links>" + NL +
-						"    </Item>" + NL +
-						"    <ItemStart>0</ItemStart>" + NL +
-						"    <ItemCount>2</ItemCount>" + NL +
-						"</TiVoContainer>";
+						if ( id == null ){
+							
+							id = (String)request.getHeaders().get( "tivo_tcd_id" );	
+						}
 						
-						response.setContentType( "text/xml" );
+						if ( id != null ){
+							
+							DeviceTivo tivo = foundTiVo( request.getClientAddress2().getAddress(), id, "tivo.series3" );
+							
+							return( tivo.generate( request, response ));
+						}
 						
-						response.getOutputStream().write( x.getBytes( "UTF-8" ));
-						
-						return( true );
+						return( false );
 					}
 				});
 			
@@ -314,7 +283,7 @@ DeviceTivoManager
 		}
 	}
 	
-	protected void
+	protected DeviceTivo
 	foundTiVo(
 		InetAddress		address,
 		String			uid,
@@ -326,29 +295,24 @@ DeviceTivoManager
 				
 		for ( DeviceImpl device: devices ){
 			
-			if ( device instanceof DeviceMediaRendererImpl ){
+			if ( device instanceof DeviceTivo ){
 				
-				DeviceMediaRendererImpl renderer = (DeviceMediaRendererImpl)device;
+				DeviceTivo tivo = (DeviceTivo)device;
 				
 				if ( device.getID().equals( uid )){
 				
-					renderer.setAddress( address );
-
-					if ( !device.isAlive()){
-										
-						device.alive();
-					}
+					tivo.found( address, server_name );
 					
-					return;
+					return( tivo );
 				}
 			}
 		}
 					
-		DeviceMediaRendererImpl device = (DeviceMediaRendererImpl)device_manager.addDevice( new DeviceTivo( device_manager, uid, classification ));
+		DeviceTivo tivo = (DeviceTivo)device_manager.addDevice( new DeviceTivo( device_manager, uid, classification ));
 		
-		device.setAddress( address );
+		tivo.found( address, server_name );
 		
-		device.alive();
+		return( tivo );
 	}
 	
 	protected void
