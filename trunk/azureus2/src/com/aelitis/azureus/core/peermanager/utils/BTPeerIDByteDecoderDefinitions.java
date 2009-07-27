@@ -295,6 +295,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("TT", "TuoTu", VER_AZ_THREE_DIGITS);
 		addAzStyle("UL", "uLeecher!");
 		addAzStyle("UT", "\u00B5Torrent", VER_AZ_THREE_DIGITS_PLUS_MNEMONIC);
+		addAzStyle("UM", "\u00B5Torrent Mac", VER_AZ_THREE_DIGITS_PLUS_MNEMONIC);
 		addAzStyle("WT", "Bitlet");
 		addAzStyle("WY", "Wyzo");
 		addAzStyle("VG", "\u54c7\u560E (Vagaa)", VER_AZ_FOUR_DIGITS);
