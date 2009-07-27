@@ -388,20 +388,21 @@ public class MyTorrentsView
         gridData.heightHint = 5;
         lblSep.setLayoutData(gridData);
         
-        final Button lblFilter = new Button(cHeader, SWT.TOGGLE);
-        //gridData = new GridData(GridData.BEGINNING);
-        //lblFilter.setLayoutData(gridData);
-        Messages.setLanguageText(lblFilter, "MyTorrentsView.filter");
-        lblFilter.addSelectionListener(new SelectionListener() {
+        final Button btnFilter = new Button(cHeader, SWT.TOGGLE);
+        Messages.setLanguageText(btnFilter, "MyTorrentsView.filter");
+        btnFilter.addSelectionListener(new SelectionListener() {
 				
 					public void widgetSelected(SelectionEvent e) {
-						boolean enable = lblFilter.getSelection();
+						boolean enable = btnFilter.getSelection();
             cFilterArea.setVisible(enable);
             if (enable) {
+            	sLastSearch = txtFilter.getText();
             	txtFilter.setFocus();
             } else {
+            	sLastSearch = "";
             	tv.setFocus();
             }
+            updateLastSearch();
             resizeHeader();
 					}
 				
@@ -435,7 +436,7 @@ public class MyTorrentsView
         fd = new FormData();
         fd.left = new FormAttachment(lblSep, 10);
         fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER);
-        lblFilter.setLayoutData(fd);
+        btnFilter.setLayoutData(fd);
 
         fd = new FormData();
         fd.left = new FormAttachment(lblHeader, 10);
@@ -444,7 +445,7 @@ public class MyTorrentsView
         lblSep.setLayoutData(fd);
 
         fd = new FormData();
-        fd.left = new FormAttachment(lblFilter, 0);
+        fd.left = new FormAttachment(btnFilter, 0);
         fd.right = new FormAttachment(cCategories, -10);
         cFilterArea.setLayoutData(fd);
 
@@ -504,9 +505,8 @@ public class MyTorrentsView
         	public void mouseUp(MouseEvent e) {
         		if (e.y <= 10) {
           		sLastSearch = "";
+          		txtFilter.setText("");
           		updateLastSearch();
-              cFilterArea.setVisible(false);
-              resizeHeader();
         		}
         	}
         });
@@ -1662,17 +1662,14 @@ public class MyTorrentsView
 	private void updateLastSearch() {
 		if (lblHeader == null || lblHeader.isDisposed())
 			createTabs();
-
-		if (txtFilter != null && !txtFilter.isDisposed()) {
-      cFilterArea.setVisible(true);
-      resizeHeader();
-
-			if (!sLastSearch.equals(txtFilter.getText())) { 
+		
+		if (txtFilter != null && !txtFilter.isDisposed() && txtFilter.isVisible()) {
+			if (!sLastSearch.equals(txtFilter.getText())) {
 				txtFilter.setText(sLastSearch);
 				txtFilter.setSelection(sLastSearch.length());
 			}
 
-				if (bRegexSearch) {
+			if (bRegexSearch) {
 				try {
 					Pattern.compile(sLastSearch, Pattern.CASE_INSENSITIVE);
 					txtFilter.setBackground(Colors.colorAltRow);
