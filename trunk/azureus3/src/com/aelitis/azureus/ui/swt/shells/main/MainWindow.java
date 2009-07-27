@@ -27,6 +27,8 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.Callback;
+import org.eclipse.swt.internal.win32.OS;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
@@ -42,6 +44,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Constants;
+
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
@@ -791,6 +794,22 @@ public class MainWindow
 		startTime = SystemTime.getCurrentTime();
 
 		shell = new Shell(display, SWT.SHELL_TRIM);
+		
+
+		if (Constants.isWindows) {
+			try {
+				Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.win32.Win32UIEnhancer");
+				Method method = ehancerClass.getMethod("initMainShell",
+						new Class[] {
+							Shell.class
+						});
+				method.invoke(null, new Object[] {
+					shell
+				});
+			} catch (Exception e) {
+				Debug.printStackTrace(e);
+			}
+		}
 
 		try {
 			shell.setData("class", this);
@@ -1145,7 +1164,6 @@ public class MainWindow
 			});
 		}
 	}
-	
 
 	/**
 	 * @param skinview
