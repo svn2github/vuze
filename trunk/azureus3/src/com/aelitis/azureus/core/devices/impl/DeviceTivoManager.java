@@ -39,10 +39,8 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebContext;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageGenerator;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 
 public class 
 DeviceTivoManager 
@@ -51,7 +49,6 @@ DeviceTivoManager
 	private static final int		CONTROL_PORT	= 2190;
 	
 	private DeviceManagerImpl		device_manager;
-	private PluginInterface			plugin_interface;
 	
 	private String	uid;
 	private String	server_name	= "Vuze";
@@ -59,31 +56,21 @@ DeviceTivoManager
 	
 	private TrackerWebContext twc;
 	
+	private volatile boolean	destroyed;
+	
 	protected
 	DeviceTivoManager(
 		DeviceManagerImpl		_dm )
 	{
 		device_manager = _dm;
-
-		AzureusCoreFactory.addCoreRunningListener(
-			new AzureusCoreRunningListener() 
-			{
-				public void 
-				azureusCoreRunning( 
-					AzureusCore core )
-				{
-					init( core );
-				}
-			});
 	}
 	
-	private void 
-	init(
-		AzureusCore azureus_core )
+	protected void
+	startUp()
 	{
-		plugin_interface = azureus_core.getPluginManager().getDefaultPluginInterface();
-		
 		try{
+			PluginInterface plugin_interface = PluginInitializer.getDefaultInterface();
+
 			uid = COConfigurationManager.getStringParameter( "devices.tivo.uid", null );
 			
 			if ( uid == null ){
@@ -147,22 +134,25 @@ DeviceTivoManager
 				control_socket.setSoTimeout( 60*1000 );
 				
 			}catch( Throwable e ){
-				
-				SimpleTimer.addPeriodicEvent(
-					"Tivo:Beacon",
-					60*1000,
-					new TimerEventPerformer()
-					{
-						public void 
-						perform(
-							TimerEvent 	event )
-						{
-							sendBeacon( control_socket );
-						}
-					});
 			}
 			
 			control_socket.bind( new InetSocketAddress((InetAddress)null, CONTROL_PORT ));
+
+			SimpleTimer.addPeriodicEvent(
+				"Tivo:Beacon",
+				60*1000,
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent 	event )
+					{
+						if ( !destroyed ){
+						
+							sendBeacon( control_socket );
+						}
+					}
+				});	
 			
 			sendBeacon( control_socket );
 			
@@ -174,7 +164,7 @@ DeviceTivoManager
 					long	successful_accepts 	= 0;
 					long	failed_accepts		= 0;
 
-					while(true){
+					while( !destroyed ){
 						
 						try{
 							byte[] buf = new byte[8192];
@@ -190,9 +180,7 @@ DeviceTivoManager
 							receiveBeacon( packet.getAddress(), packet.getData(), packet.getLength() );
 							
 						}catch( SocketTimeoutException e ){
-							
-							sendBeacon( control_socket );
-							
+														
 						}catch( Throwable e ){
 							
 							failed_accepts++;

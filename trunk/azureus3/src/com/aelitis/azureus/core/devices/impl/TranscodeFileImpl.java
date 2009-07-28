@@ -518,7 +518,14 @@ TranscodeFileImpl
 	public URL
 	getStreamURL()
 	{
-		return( device.getStreamURL( this ));
+		return( device.getStreamURL( this, null ));
+	}
+	
+	public URL
+	getStreamURL(
+		String	host )
+	{
+		return( device.getStreamURL( this, host ));
 	}
 	
 	public String

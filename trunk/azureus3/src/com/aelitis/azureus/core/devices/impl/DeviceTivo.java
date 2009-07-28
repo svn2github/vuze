@@ -23,15 +23,19 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.URL;
 import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.URLEncoder;
+import java.util.*;
+
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.tracker.web.TrackerWebContext;
-import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageGenerator;
+import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
+
+import com.aelitis.azureus.core.devices.TranscodeFile;
 
 public class 
 DeviceTivo
@@ -101,13 +105,28 @@ DeviceTivo
 		InetAddress			_address,
 		String				_server_name )
 	{
-		server_name	= _server_name;
-
+		boolean	first_time = false;
+		
+		synchronized( this ){
+		
+			if ( server_name == null ){
+			
+				server_name	= _server_name;
+				
+				first_time = true;
+			}
+		}
+		
 		setAddress( _address );
 
 		if ( !isAlive()){
 							
 			alive();
+		}
+		
+		if ( first_time ){
+			
+			browseReceived();
 		}
 	}
 	
@@ -119,6 +138,15 @@ DeviceTivo
 	
 		throws IOException 
 	{
+		InetSocketAddress	local_address = request.getLocalAddress();
+		
+		if ( local_address == null ){
+			
+			return( false );
+		}
+		
+		String	host = local_address.getAddress().getHostAddress();
+		
 		String	url = request.getURL();
 		
 		System.out.println( "url: " + url );
@@ -128,7 +156,7 @@ DeviceTivo
 			return( false );
 		}
 		
-		int	pos = url.indexOf( '?' );
+		int pos = url.indexOf( '?' );
 		
 		if ( pos == -1 ){
 			
@@ -179,21 +207,6 @@ DeviceTivo
 				"        <SourceFormat>x-container/folder</SourceFormat>" + NL +
 				"        <TotalItems>1</TotalItems>" + NL +
 				"    </Details>" + NL +
-				/*
-				"    <Item>" + NL +
-				"        <Details>" + NL +
-				"            <Title>Admin</Title>" + NL +
-				"            <ContentType>text/html</ContentType>" + NL +
-				"            <SourceFormat>x-container/folder</SourceFormat>" + NL +
-				"        </Details>" + NL +
-				"        <Links>" + NL +
-				"            <Content>" + NL +
-				"                <Url>/TiVoConnect?Command=QueryContainer&amp;Container=Admin</Url>" + NL +
-				"                <ContentType>text/html</ContentType>" + NL +
-				"            </Content>" + NL +
-				"        </Links>" + NL +
-				"    </Item>" + NL +
-				*/
 				"    <Item>" + NL +
 				"        <Details>" + NL +
 				"            <Title>" + server_name + "</Title>" + NL +
@@ -202,7 +215,7 @@ DeviceTivo
 				"        </Details>" + NL +
 				"        <Links>" + NL +
 				"            <Content>" + NL +
-				"                <Url>/TiVoConnect?Command=QueryContainer&amp;Container=/Stuff</Url>" + NL +
+				"                <Url>/TiVoConnect?Command=QueryContainer&amp;Container=" + urlencode( "/Content" ) + "</Url>" + NL +
 				"                <ContentType>x-container/tivo-videos</ContentType>" + NL +
 				"            </Content>" + NL +
 				"        </Links>" + NL +
@@ -210,21 +223,137 @@ DeviceTivo
 				"    <ItemStart>0</ItemStart>" + NL +
 				"    <ItemCount>1</ItemCount>" + NL +
 				"</TiVoContainer>";
-			}else{
 				
-				reply =
+			}else if ( container.startsWith( "/Content" )){
+				
+				
+				List<TranscodeFile> files = new ArrayList<TranscodeFile>(Arrays.asList( getFiles()));
+				
+				Iterator<TranscodeFile> it = files.iterator();
+				
+				while( it.hasNext()){
+					
+					TranscodeFile file = it.next();
+					
+					if ( !file.isComplete()){
+						
+						it.remove();
+					}
+				
+					URL stream_url = file.getStreamURL( host );
+					
+					if ( stream_url == null ){
+						
+						it.remove();
+					}
+				}
+				
+					// todo sorting
+				
+				String item_count_str = args.get( "ItemCount" );
+				
+				if ( item_count_str == null ){
+					
+					return( false );
+				}
+				
+				int	item_count = Integer.parseInt( item_count_str );
+				
+				String	anchor = args.get( "AnchorItem" );
+				
+				int	item_start;
+				
+				if ( anchor == null ){
+					
+					item_start = 0;
+					
+				}else{
+					
+					// find index of anchor and then add offset if found
+					
+					item_start = 0;
+				}
+				
+				int	num_to_return = Math.min( item_count, files.size() - item_start );
+				
+				int	container_id = 1;
+				
+				String	header = 
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" + NL +
+				//"<?xml-stylesheet type=\"text/xsl\" href=\"/TiVoConnect?Command=XSL&amp;Container=Parg%27s%20pyTivo\"?>" + NL +
 				"<TiVoContainer>" + NL +
+				"    <Tivos>" + NL +
+				"                <Tivo>VuzeTivoHDDVR</Tivo>" + NL +	// TODO
+				"    </Tivos>" + NL +
+				"    <ItemStart>" + item_start + "</ItemStart>" + NL +
+				"    <ItemCount>" + num_to_return + "</ItemCount>" + NL +
 				"    <Details>" + NL +
-				"        <Title>" + "Stuff" + "</Title>" + NL +
-				"        <ContentType>x-container/tivo-server</ContentType>" + NL +
+				"        <Title>" + escape( container ) + "</Title>" + NL +
+				"        <ContentType>x-container/tivo-videos</ContentType>" + NL +
 				"        <SourceFormat>x-container/folder</SourceFormat>" + NL +
-				"        <TotalItems>0</TotalItems>" + NL +
-				"    </Details>" + NL +
-
-				"    <ItemStart>0</ItemStart>" + NL +
-				"    <ItemCount>0</ItemCount>" + NL +
+				"        <TotalItems>" + files.size() + "</TotalItems>" + NL +
+				"        <UniqueId>" + container_id + "</UniqueId>" + NL +
+				"    </Details>" + NL;
+				
+				reply = header;
+				
+				for (int i=item_start;i<item_start+num_to_return;i++){
+					
+					TranscodeFile	file = files.get(i);
+					
+					long	source_size = 0;
+					
+					try{
+						source_size = file.getSourceFile().getLength();
+						
+					}catch( Throwable e ){	
+					}
+					
+					String	capture_date = Long.toString( file.getCreationDateMillis()/1000, 16);
+					
+					reply +=
+				
+				"    <Item>" + NL +
+				"        <Details>" + NL +
+				"            <Title>" + escape( file.getName()) + "</Title>" + NL +
+				"            <ContentType>video/x-tivo-mpeg</ContentType>" + NL +
+				"            <SourceFormat>video/x-ms-wmv</SourceFormat>" + NL +
+				"            <SourceSize>" + source_size + "</SourceSize>" + NL +
+				"            <Duration>" + file.getDurationMillis() + "</Duration>" + NL +
+				"            <Description></Description>" + NL +
+				"            <SourceChannel>0</SourceChannel>" + NL +
+				"            <SourceStation></SourceStation>" + NL +
+				"            <SeriesId></SeriesId>" + NL +
+				"            <CaptureDate>0x" + capture_date + "</CaptureDate>" + NL + 
+				"        </Details>" + NL +
+				"        <Links>" + NL +
+				"            <Content>" + NL +
+				"                <ContentType>video/x-tivo-mpeg</ContentType>" + NL +
+				"                    <AcceptsParams>No</AcceptsParams>" + NL +
+				"                    <Url>" + file.getStreamURL( host ).toExternalForm() + "</Url>" + NL +
+				"                </Content>" + NL +
+				"                <CustomIcon>" + NL +
+				"                    <ContentType>video/*</ContentType>" + NL +
+				"                    <AcceptsParams>No</AcceptsParams>" + NL +
+				"                    <Url>urn:tivo:image:save-until-i-delete-recording</Url>" + NL +
+				"                </CustomIcon>" + NL +
+				"            <TiVoVideoDetails>" + NL +
+				"                <ContentType>text/xml</ContentType>" + NL +
+				"                <AcceptsParams>No</AcceptsParams>" + NL +
+				"                <Url>/TiVoConnect?Command=TVBusQuery&amp;Container=Parg%27s%20pyTivo&amp;File=/Big_Buck_Bunny%5BBLEN00000001%5D.mkv</Url>" + NL +
+				"            </TiVoVideoDetails>" + NL +
+				//"            <Push>" + NL +
+				//"                <Container>" + escape( container ) + "</Container>" + NL +
+				//"                <File>\\" + escape( file.getName()) + "</File>" + NL +
+				//"            </Push>" + NL +
+				"        </Links>" + NL +
+				"    </Item>" + NL;
+				}
+				
+				String footer =
 				"</TiVoContainer>";
+				
+				reply += footer;
 			}
 			
 	
@@ -256,5 +385,21 @@ DeviceTivo
 		response.getOutputStream().write( reply.getBytes( "UTF-8" ));
 		
 		return( true );
+	}
+	
+	protected String
+	urlencode(
+		String	str )
+	
+		throws IOException
+	{
+		return( URLEncoder.encode( str, "UTF-8" ));
+	}
+	
+	protected String
+	escape(
+		String	str )
+	{
+		return( XUXmlWriter.escapeXML( str ));
 	}
 }

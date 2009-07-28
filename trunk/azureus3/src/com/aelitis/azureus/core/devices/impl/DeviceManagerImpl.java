@@ -96,6 +96,7 @@ DeviceManagerImpl
 	private List<DeviceImpl>			device_list = new ArrayList<DeviceImpl>();
 	private Map<String,DeviceImpl>		device_map	= new HashMap<String, DeviceImpl>();
 	
+	private DeviceTivoManager		tivo_manager;
 	private DeviceManagerUPnPImpl	upnp_manager;
 		
 		// have to go async on this as there are situations where we end up firing listeners
@@ -188,17 +189,16 @@ DeviceManagerImpl
 	initWithCore(
 		final AzureusCore core ) 
 	{
-		// not sure if DM_UPnP or loadConfig needs core,
-		// but iTunesManager does
+			// init tivo before upnp as upnp init completion starts up tivo
 		
+		tivo_manager = new DeviceTivoManager( this );
+
 		upnp_manager = new DeviceManagerUPnPImpl( this );
 
 		loadConfig();
 				
 		new DeviceiTunesManager( this );
-		
-		new DeviceTivoManager( this );
-		
+				
 		transcode_manager = new TranscodeManagerImpl( this );
 		
 		COConfigurationManager.addAndFireParameterListeners(
@@ -327,6 +327,12 @@ DeviceManagerImpl
 					}
 				});
 		}
+	}
+	
+	protected void
+	UPnPManagerStarted()
+	{
+		tivo_manager.startUp();
 	}
 	
 	protected DeviceManagerUPnPImpl 
@@ -903,7 +909,8 @@ DeviceManagerImpl
 	
 	protected URL
 	getStreamURL(
-		TranscodeFileImpl		file )
+		TranscodeFileImpl		file,
+		String					host )
 	{
 		IPCInterface ipc = upnp_manager.getUPnPAVIPC();
 		
@@ -915,6 +922,11 @@ DeviceManagerImpl
 				String str = (String)ipc.invoke( "getContentURL", new Object[]{ f });
 				
 				if ( str != null && str.length() > 0 ){
+					
+					if ( host != null ){
+						
+						str = str.replace( "127.0.0.1", host );
+					}
 					
 					return( new URL( str ));
 				}

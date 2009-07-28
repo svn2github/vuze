@@ -391,7 +391,7 @@ DeviceUPnPImpl
 	{
 		browseReceived();
 		
-		return( super.getStreamURL( file ));
+		return( super.getStreamURL( file, null ));
 	}
 	
 	protected void

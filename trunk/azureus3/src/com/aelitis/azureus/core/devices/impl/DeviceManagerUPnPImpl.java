@@ -276,6 +276,8 @@ DeviceManagerUPnPImpl
 			
 			manager.log( "Failed to hook into UPnPAV", e );
 		}
+		
+		manager.UPnPManagerStarted();
 	}
 	
 	protected void

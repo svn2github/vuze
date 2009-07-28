@@ -106,6 +106,10 @@ TranscodeFile
 	public URL
 	getStreamURL();
 	
+	public URL
+	getStreamURL(
+		String	host );
+	
 	public void
 	delete(
 		boolean	delete_cache_file )

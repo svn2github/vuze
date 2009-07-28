@@ -430,7 +430,7 @@ DeviceImpl
 			}
 			case DeviceMediaRenderer.RS_OTHER:{
 				
-				if ( isManual()){
+				if ( isManual() || !classification.contains( "generic" )){
 					
 					return( classification );
 				}
@@ -1595,9 +1595,10 @@ DeviceImpl
 	
 	protected URL
 	getStreamURL(
-		TranscodeFileImpl		file )
+		TranscodeFileImpl		file,
+		String					host )
 	{
-		return( manager.getStreamURL( file ));
+		return( manager.getStreamURL( file, host ));
 	}
 	
 	protected String
