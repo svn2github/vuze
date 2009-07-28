@@ -96,7 +96,7 @@ public class ImageBytesDownloader
 			});
 			rd.asyncDownload();
 		} catch (Exception e) {
-			Debug.out(e);
+			Debug.out(url, e);
 		}
 	}
 

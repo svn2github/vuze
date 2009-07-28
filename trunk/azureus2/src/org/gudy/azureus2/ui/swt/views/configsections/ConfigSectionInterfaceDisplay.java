@@ -70,6 +70,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 	public Composite configSectionCreate(final Composite parent) {
     int userMode = COConfigurationManager.getIntParameter("User Mode");
+		boolean isAZ3 = COConfigurationManager.getStringParameter("ui").equals("az3");
 
     // "Display" Sub-Section:
 		// ----------------------
@@ -87,8 +88,10 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		new BooleanParameter(cLook, "Show Download Basket", MSG_PREFIX
 				+ "showdownloadbasket");
 
-		new BooleanParameter(cLook, "IconBar.enabled", MSG_PREFIX
-				+ "showiconbar");
+		if (!isAZ3) {
+  		new BooleanParameter(cLook, "IconBar.enabled", MSG_PREFIX
+  				+ "showiconbar");
+		}
 
 		Composite cStatusBar = new Composite(cLook, SWT.NULL);
 		layout = new GridLayout();
@@ -253,6 +256,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 		new BooleanParameter(cLook, "DND Always In Incomplete", MSG_PREFIX
 				+ "DNDalwaysInIncomplete");
+		
+		new BooleanParameter(cLook, "MyTorrentsView.alwaysShowHeader", "ConfigView.label.alwaysShowLibraryHeader");
 		
 		// Reuse the labels of the other menu actions.
 		if (PlatformManagerFactory.getPlatformManager().hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {

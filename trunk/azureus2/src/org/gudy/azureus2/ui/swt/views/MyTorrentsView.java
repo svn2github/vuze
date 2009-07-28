@@ -143,10 +143,11 @@ public class MyTorrentsView
 	private TableViewSWT tv;
 	private Composite cTableParentPanel;
 	protected boolean viewActive;
-	private boolean forceHeaderVisible = true;
+	private boolean forceHeaderVisible = false;
 	private TableSelectionListener defaultSelectedListener;
 	private Composite cFilterArea;
 	protected boolean resizeHeaderEventQueued;
+	private Button btnFilter;
 
 	public
 	MyTorrentsView() {
@@ -203,6 +204,8 @@ public class MyTorrentsView
     tv.addMenuFillListener(this);
     tv.addRefreshListener(this, false);
     tv.addCountChangeListener(this);
+    
+    forceHeaderVisible = COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader");
 
 		//tv.setEnableTabViews(true);
 		//IView views[] = { new GeneralView(), new PeersView(),
@@ -222,6 +225,7 @@ public class MyTorrentsView
     COConfigurationManager.addAndFireParameterListeners(new String[] {
 			"DND Always In Incomplete",
 			"Confirm Data Delete",
+			"MyTorrentsView.alwaysShowHeader",
 		}, this);
 
     if (currentCategory != null) {
@@ -370,7 +374,7 @@ public class MyTorrentsView
     }
     
     if (show) {
-      if (cCategories == null) {
+      if (cCategories == null || cCategories.isDisposed()) {
         Composite parent = cTableParentPanel;
 
         cHeader = new Composite(parent, SWT.NONE);
@@ -388,7 +392,7 @@ public class MyTorrentsView
         gridData.heightHint = 5;
         lblSep.setLayoutData(gridData);
         
-        final Button btnFilter = new Button(cHeader, SWT.TOGGLE);
+        btnFilter = new Button(cHeader, SWT.TOGGLE);
         Messages.setLanguageText(btnFilter, "MyTorrentsView.filter");
         btnFilter.addSelectionListener(new SelectionListener() {
 				
@@ -409,10 +413,11 @@ public class MyTorrentsView
 					public void widgetDefaultSelected(SelectionEvent e) {
 					}
 				});
+        btnFilter.setSelection(sLastSearch.length() != 0);
         
 
         cFilterArea = new Composite(cHeader, SWT.NONE);
-        cFilterArea.setVisible(false);
+        cFilterArea.setVisible(sLastSearch.length() != 0);
         GridLayout layout = new GridLayout();
         layout.numColumns = 5;
         cFilterArea.setLayout(layout);
@@ -425,7 +430,6 @@ public class MyTorrentsView
         rowLayout.marginRight = 0;
         rowLayout.spacing = 0;
         rowLayout.wrap = true;
-        new Label(cCategories, SWT.NONE);
         cCategories.setLayout(rowLayout);
 
 
@@ -452,6 +456,7 @@ public class MyTorrentsView
         fd = new FormData();
         fd.right = new FormAttachment(100, -2); 
         fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
+        fd.bottom = new FormAttachment(cFilterArea, 0, SWT.BOTTOM); 
         cCategories.setLayoutData(fd);
         cHeader.addListener(SWT.Resize, new Listener(){
 					public void handleEvent(Event event) {
@@ -476,6 +481,7 @@ public class MyTorrentsView
         txtFilter.addModifyListener(new ModifyListener() {
         	public void modifyText(ModifyEvent e) {
         		sLastSearch = ((Text)e.widget).getText();
+        		showFilterArea();
         		updateLastSearch();
         	}
         });
@@ -529,10 +535,31 @@ public class MyTorrentsView
       if (showCat) {
       	buildCat(categories);
       }
+    } else {
+    	if (cHeader != null && !cHeader.isDisposed()) {
+    		cHeader.dispose();
+    	}
+    	if (cTableParentPanel != null && !cTableParentPanel.isDisposed()) {
+    		cTableParentPanel.layout();
+    	}
     }
   }
   
   /**
+	 * 
+	 *
+	 * @since 4.1.0.5
+	 */
+	protected void showFilterArea() {
+		if (cFilterArea != null && !cFilterArea.isDisposed()) {
+			cFilterArea.setVisible(true);
+		}
+		if (btnFilter != null && !btnFilter.isDisposed()) {
+			btnFilter.setSelection(true);
+		}
+	}
+
+	/**
 	 * 
 	 *
 	 * @since 4.1.0.5
@@ -555,6 +582,7 @@ public class MyTorrentsView
 				FormData fd = new FormData();
         fd.right = new FormAttachment(100, -2); 
         fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
+        fd.bottom = new FormAttachment(cFilterArea, 0, SWT.BOTTOM); 
 				cCategories.setLayoutData(fd);
 
         fd = new FormData();
@@ -1593,6 +1621,7 @@ public class MyTorrentsView
 			sLastSearch += String.valueOf(e.character);
 
 		if (ASYOUTYPE_MODE == ASYOUTYPE_MODE_FILTER) {
+			showFilterArea();
 			if (txtFilter != null && !txtFilter.isDisposed()) {
 				txtFilter.setFocus();
 			}
@@ -1840,6 +1869,9 @@ public class MyTorrentsView
 		if (parameterName == null
 				|| parameterName.equals("DND Always In Incomplete")) {
 			bDNDalwaysIncomplete = COConfigurationManager.getBooleanParameter("DND Always In Incomplete");
+		}
+		if (parameterName == null || parameterName.equals("MyTorrentsView.alwaysShowHeader")) {
+			setForceHeaderVisible(COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader"));
 		}
 	}
 
