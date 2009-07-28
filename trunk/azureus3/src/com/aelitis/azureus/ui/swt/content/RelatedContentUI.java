@@ -522,10 +522,6 @@ RelatedContentUI
 							}
 						});
 				
-				menu_item = menu_manager.addMenuItem( parent_id, "sep" );
-
-				menu_item.setStyle( MenuItem.STYLE_SEPARATOR );
-
 				menu_item = menu_manager.addMenuItem( parent_id, "Subscription.menu.reset" );
 				
 				menu_item.addListener( 
