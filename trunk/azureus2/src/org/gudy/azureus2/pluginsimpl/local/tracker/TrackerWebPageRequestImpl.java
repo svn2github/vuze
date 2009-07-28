@@ -96,6 +96,12 @@ TrackerWebPageRequestImpl
 		return( request.getClientAddress());
 	}
 	
+	public InetSocketAddress
+	getLocalAddress()
+	{
+		return( request.getLocalAddress());
+	}
+	
 	public String
 	getUser()
 	{

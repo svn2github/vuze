@@ -275,7 +275,7 @@ TRTrackerServerFactoryImpl
 			String 				input_header, 
 			String 				lowercase_input_header, 
 			String 				url_path, 
-			InetSocketAddress 	client_address, 
+			InetSocketAddress 	remote_address, 
 			boolean 			announce_and_scrape_only, 
 			InputStream 		is,
 			AsyncController		async )
@@ -284,7 +284,9 @@ TRTrackerServerFactoryImpl
 		{
 			ByteArrayOutputStream	os = new ByteArrayOutputStream( 1024 );
 			
-			processRequest(input_header, lowercase_input_header, url_path, client_address, announce_and_scrape_only, false, is, os, async );
+			InetSocketAddress	local_address = null;	// TODO
+			
+			processRequest(input_header, lowercase_input_header, url_path, local_address, remote_address, announce_and_scrape_only, false, is, os, async );
 			
 			return( os );
 		}

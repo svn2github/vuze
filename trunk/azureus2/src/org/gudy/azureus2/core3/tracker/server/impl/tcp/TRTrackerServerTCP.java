@@ -297,6 +297,7 @@ TRTrackerServerTCP
 	
 	protected boolean
 	handleExternalRequest(
+		final InetSocketAddress		local_address,
 		final InetSocketAddress		client_address,
 		final String				user,
 		final String				url,
@@ -330,6 +331,12 @@ TRTrackerServerTCP
 					getClientAddress()
 					{
 						return( client_address );
+					}
+					
+					public InetSocketAddress
+					getLocalAddress()
+					{
+						return( local_address );
 					}
 					
 					public String

@@ -45,6 +45,9 @@ TRTrackerServerListener2
 		public InetSocketAddress
 		getClientAddress();
 		
+		public InetSocketAddress
+		getLocalAddress();
+
 		public String
 		getUser();
 		

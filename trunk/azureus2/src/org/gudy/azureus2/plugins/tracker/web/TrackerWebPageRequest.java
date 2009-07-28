@@ -45,6 +45,9 @@ TrackerWebPageRequest
 	public InetSocketAddress
 	getClientAddress2();
 	
+	public InetSocketAddress
+	getLocalAddress();
+	
 	public String
 	getUser();
 	

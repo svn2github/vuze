@@ -105,7 +105,8 @@ TRTrackerServerProcessorTCP
 		String				input_header,
 		String				lowercase_input_header,
 		String				url_path,
-		InetSocketAddress	client_address,
+		InetSocketAddress	local_address,
+		InetSocketAddress	remote_address,
 		boolean				announce_and_scrape_only,
 		boolean				keep_alive,
 		InputStream			is,
@@ -180,7 +181,7 @@ TRTrackerServerProcessorTCP
 						
 						boolean[] ka = new boolean[]{ keep_alive };
 						
-						if ( handleExternalRequest( client_address, user, str, input_header, is, os, async, ka )){
+						if ( handleExternalRequest( local_address, remote_address, user, str, input_header, is, os, async, ka )){
 						
 							return( ka[0] );
 						}
@@ -270,7 +271,7 @@ TRTrackerServerProcessorTCP
 				
 				DHTNetworkPosition	network_position = null;
 				
-				String		real_ip_address		= client_address.getAddress().getHostAddress();
+				String		real_ip_address		= remote_address.getAddress().getHostAddress();
 				String		client_ip_address	= real_ip_address;
 				
 				while(pos < str.length()){
@@ -456,7 +457,7 @@ TRTrackerServerProcessorTCP
 						if ( lhs.equals( "aznp" )){
 
 							try{
-								network_position = DHTNetworkPositionManager.deserialisePosition( client_address.getAddress(), Base32.decode( rhs ));
+								network_position = DHTNetworkPositionManager.deserialisePosition( remote_address.getAddress(), Base32.decode( rhs ));
 																
 							}catch( Throwable e ){
 								
@@ -928,7 +929,8 @@ TRTrackerServerProcessorTCP
 		
 	protected boolean
 	handleExternalRequest(
-		InetSocketAddress	client_address,
+		InetSocketAddress	local_address,
+		InetSocketAddress	remote_address,
 		String				user,
 		String				url,
 		String				header,
@@ -941,6 +943,6 @@ TRTrackerServerProcessorTCP
 	{
 		URL	absolute_url = new URL( server_url + (url.startsWith("/")?url:("/"+url)));
 			
-		return( server.handleExternalRequest(client_address,user,url,absolute_url,header, is, os, async, keep_alive ));
+		return( server.handleExternalRequest( local_address, remote_address, user,url,absolute_url,header, is, os, async, keep_alive ));
 	}
 }
