@@ -56,6 +56,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnAzProduct;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
 import com.aelitis.azureus.ui.swt.devices.columns.*;
@@ -470,10 +471,13 @@ public class SBC_DevicesView
 		tvFiles.addSelectionListener(new TableSelectionListener() {
 
 			public void selected(TableRowCore[] row) {
+				SelectedContentManager.clearCurrentlySelectedContent();
+
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
 					uiFunctions.refreshIconBar();
 				}
+				
 			}
 
 			public void mouseExit(TableRowCore row) {
@@ -483,6 +487,8 @@ public class SBC_DevicesView
 			}
 
 			public void focusChanged(TableRowCore focus) {
+				SelectedContentManager.clearCurrentlySelectedContent();
+				
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
 					uiFunctions.refreshIconBar();
@@ -490,6 +496,8 @@ public class SBC_DevicesView
 			}
 
 			public void deselected(TableRowCore[] rows) {
+				SelectedContentManager.clearCurrentlySelectedContent();
+				
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
 					uiFunctions.refreshIconBar();
@@ -497,6 +505,8 @@ public class SBC_DevicesView
 			}
 
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
+				SelectedContentManager.clearCurrentlySelectedContent();
+				
 			}
 		}, false);
 
