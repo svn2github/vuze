@@ -586,7 +586,7 @@ public class MyTorrentsView
 				cCategories.setLayoutData(fd);
 
         fd = new FormData();
-        fd.left = new FormAttachment(lblHeader, 10);
+        fd.left = new FormAttachment(btnFilter, 0);
         fd.right = new FormAttachment(cCategories, -10);
         cFilterArea.setLayoutData(fd);
 
@@ -607,7 +607,7 @@ public class MyTorrentsView
 				cCategories.setLayoutData(fd);
 
 				fd = new FormData();
-        fd.left = new FormAttachment(lblHeader, 10);
+        fd.left = new FormAttachment(btnFilter, 0);
         fd.right = new FormAttachment(100, -10);
         cFilterArea.setLayoutData(fd);
 
