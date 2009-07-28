@@ -509,6 +509,19 @@ RelatedContentUI
 							}
 						});
 				
+				menu_item = menu_manager.addMenuItem( parent_id, "Subscription.menu.deleteall");
+				
+				menu_item.addListener(
+						new MenuItemListener() 
+						{
+							public void 
+							selected(
+								MenuItem menu, Object target ) 
+							{
+						      	manager.deleteAll();
+							}
+						});
+				
 				menu_item = menu_manager.addMenuItem( parent_id, "sep" );
 
 				menu_item.setStyle( MenuItem.STYLE_SEPARATOR );

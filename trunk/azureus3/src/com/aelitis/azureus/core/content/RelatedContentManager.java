@@ -1310,20 +1310,28 @@ RelatedContentManager
 	
 	protected void
 	contentChanged(
-		DownloadInfo		info )
+		final DownloadInfo		info )
 	{
 		setConfigDirty();
 		
-		for ( RelatedContentManagerListener l: listeners ){
-			
-			try{
-				l.contentChanged( new RelatedContent[]{ info });
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-			}
-		}
+		content_change_dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					for ( RelatedContentManagerListener l: listeners ){
+						
+						try{
+							l.contentChanged( new RelatedContent[]{ info });
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			});
 	}
 	
 	protected void
@@ -1335,16 +1343,24 @@ RelatedContentManager
 			setConfigDirty();
 		}
 		
-		for ( RelatedContentManagerListener l: listeners ){
-			
-			try{
-				l.contentChanged();
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-			}
-		}
+		content_change_dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					for ( RelatedContentManagerListener l: listeners ){
+						
+						try{
+							l.contentChanged();
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			});
 	}
 	
 	public void
@@ -1699,6 +1715,13 @@ RelatedContentManager
 	public void
 	reset()
 	{
+		reset( true );
+	}
+	
+	protected void
+	reset(
+		boolean	reset_perm_dels )
+	{
 		synchronized( this ){
 			
 			ContentCache cc = content_cache==null?null:content_cache.get();
@@ -1725,15 +1748,26 @@ RelatedContentManager
 			
 			total_unread = 0;
 			
-			resetPersistentlyDeleted();
+			if ( reset_perm_dels ){
+			
+				resetPersistentlyDeleted();
+			}
 			
 			setConfigDirty();
 		}
 		
-		for ( RelatedContentManagerListener l: listeners ){
-			
-			l.contentReset();
-		}
+		content_change_dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						for ( RelatedContentManagerListener l: listeners ){
+							
+							l.contentReset();
+						}
+					}
+				});
 	}
 	
 	protected void
@@ -2090,6 +2124,19 @@ RelatedContentManager
 		}
 	}
 	
+	public void
+	deleteAll()
+	{	
+		synchronized( this ){
+
+			ContentCache	content_cache = loadRelatedContent();
+			
+			addPersistentlyDeleted( content_cache.related_content.values().toArray( new DownloadInfo[ content_cache.related_content.size()]));
+		
+			reset( false );
+		}
+	}
+	
 	protected void
 	incrementUnread()
 	{
@@ -2160,6 +2207,26 @@ RelatedContentManager
 		return( key );
 	}
 	
+	protected List<byte[]>
+	loadPersistentlyDeleted()
+	{
+		List<byte[]> entries = null;
+		
+		if ( FileUtil.resilientConfigFileExists( PERSIST_DEL_FILE )){
+				
+			Map<String,Object> map = (Map<String,Object>)FileUtil.readResilientConfigFile( PERSIST_DEL_FILE );
+				
+			entries = (List<byte[]>)map.get( "entries" );
+		}
+	
+		if ( entries == null ){
+			
+			entries = new ArrayList<byte[]>(0);
+		}
+		
+		return( entries );
+	}
+	
 	protected void
 	addPersistentlyDeleted(
 		RelatedContent[]	content )
@@ -2169,15 +2236,8 @@ RelatedContentManager
 			return;
 		}
 	
-		List<byte[]> entries = new ArrayList<byte[]>(0);
-			
-		if ( FileUtil.resilientConfigFileExists( PERSIST_DEL_FILE )){
-				
-			Map<String,Object> map = (Map<String,Object>)FileUtil.readResilientConfigFile( PERSIST_DEL_FILE );
-				
-			entries = (List<byte[]>)map.get( "entries" );
-		}
-	
+		List<byte[]> entries = loadPersistentlyDeleted();
+		
 		List<byte[]> new_keys = new ArrayList<byte[]>( content.length );
 		
 		for ( RelatedContent rc: content ){
@@ -2221,14 +2281,7 @@ RelatedContentManager
 	{
 		if ( persist_del_bloom == null ){
 			
-			List<byte[]> entries = new ArrayList<byte[]>(0);
-
-			if ( FileUtil.resilientConfigFileExists( PERSIST_DEL_FILE )){
-				
-				Map<String,Object> map = (Map<String,Object>)FileUtil.readResilientConfigFile( PERSIST_DEL_FILE );
-				
-				entries = (List<byte[]>)map.get( "entries" );
-			}
+			List<byte[]> entries = loadPersistentlyDeleted();
 			
 			persist_del_bloom = BloomFilterFactory.createAddOnly( Math.max( PD_BLOOM_INITIAL_SIZE, entries.size()*10 + PD_BLOOM_INCREMENT_SIZE ));
 

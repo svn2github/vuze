@@ -118,11 +118,8 @@ DeviceTivo
 		}
 		
 		setAddress( _address );
-
-		if ( !isAlive()){
 							
-			alive();
-		}
+		alive();
 		
 		if ( first_time ){
 			
