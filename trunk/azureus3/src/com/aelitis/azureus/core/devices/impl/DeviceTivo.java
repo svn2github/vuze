@@ -393,7 +393,7 @@ DeviceTivo
 					show_categories = false;
 				}
 				
-				TranscodeFile[] tfs = getFiles();
+				TranscodeFileImpl[] tfs = getFiles();
 				
 				String	category = null;
 				
@@ -415,64 +415,71 @@ DeviceTivo
 				
 				List<ItemInfo> items = new ArrayList<ItemInfo>( tfs.length );
 									
-				for ( TranscodeFile file: tfs ){
-										
-					if ( file.isComplete()){
-												
-						if ( category != null ){
+				for ( TranscodeFileImpl file: tfs ){
 						
-							boolean	hit = false;
+					if ( !file.isComplete()){
+						
+							// see if we can set up a stream xcode for this
+						
+						if ( !setupStreamXCode( file )){
+							
+							continue;
+						}
+					}
+												
+					if ( category != null ){
+					
+						boolean	hit = false;
 
-							String[]	cats = file.getCategories();
+						String[]	cats = file.getCategories();
+						
+						for ( String c: cats ){
 							
-							for ( String c: cats ){
+							if ( c.equals( category )){
 								
-								if ( c.equals( category )){
-									
-									hit = true;
-								}
-							}
-							
-							if ( !hit ){
-								
-								continue;
+								hit = true;
 							}
 						}
 						
-						FileInfo	info = new FileInfo( file, host );
+						if ( !hit ){
+							
+							continue;
+						}
+					}
+					
+					FileInfo	info = new FileInfo( file, host );
+					
+					if ( info.isOK()){
 						
-						if ( info.isOK()){
+						boolean	skip = false;
+						
+						if ( categories != null ){
 							
-							boolean	skip = false;
+							String[]	cats = file.getCategories();
 							
-							if ( categories != null ){
+							if ( cats.length > 0 ){
 								
-								String[]	cats = file.getCategories();
-								
-								if ( cats.length > 0 ){
-									
-									skip = true;
+								skip = true;
 
-									for ( String s: cats ){
+								for ( String s: cats ){
+									
+									ContainerInfo cont = categories.get( s );
+									
+									if ( cont == null ){
 										
-										ContainerInfo cont = categories.get( s );
+										items.add( cont = new ContainerInfo( s ));
 										
-										if ( cont == null ){
-											
-											items.add( cont = new ContainerInfo( s ));
-											
-											categories.put( s, cont );
-										}
-																
-										cont.addChild();
+										categories.put( s, cont );
 									}
+															
+									cont.addChild();
 								}
 							}
-							
-							if ( !skip ){
-							
-								items.add( info );
-							}
+						}
+						
+						if ( !skip ){
+						
+							items.add( info );
 						}
 					}
 				}

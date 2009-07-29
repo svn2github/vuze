@@ -177,7 +177,7 @@ TranscodeFileImpl
 		return( device );
 	}
 	
-	public TranscodeJob
+	public TranscodeJobImpl
 	getJob()
 	{
 		if ( isComplete()){

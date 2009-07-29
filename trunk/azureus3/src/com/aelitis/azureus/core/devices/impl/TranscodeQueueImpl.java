@@ -1086,7 +1086,7 @@ TranscodeQueueImpl
 		return( current_job != null );
 	}
 	
-	protected TranscodeJob
+	protected TranscodeJobImpl
 	getJob(
 		TranscodeFile		for_file )
 	{

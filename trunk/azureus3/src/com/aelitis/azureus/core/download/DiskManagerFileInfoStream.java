@@ -44,7 +44,7 @@ public class
 DiskManagerFileInfoStream
 	implements DiskManagerFileInfo
 {
-	private streamFactory		stream_factory;
+	private StreamFactory		stream_factory;
 	private File				save_to;
 	private byte[]				hash;
 	
@@ -54,7 +54,7 @@ DiskManagerFileInfoStream
 	
 	public
 	DiskManagerFileInfoStream(
-		streamFactory		_stream_factory,
+		StreamFactory		_stream_factory,
 		File				_save_to )
 	{
 		stream_factory		= _stream_factory;
@@ -244,8 +244,9 @@ DiskManagerFileInfoStream
 	protected class
 	context
 	{
-		private RandomAccessFile	raf;
-		private InputStream			stream;
+		private RandomAccessFile				raf;
+		private StreamFactory.StreamDetails		stream_details;
+		
 		private boolean				stream_got_eof;
 		
 		private List<channel>		channels	= new ArrayList<channel>();
@@ -259,100 +260,104 @@ DiskManagerFileInfoStream
 		
 			throws Exception
 		{
-			if ( raf == null ){
+			if ( save_to.exists()){
 				
-				if ( save_to.exists()){
-					
-					raf = new RandomAccessFile( save_to, "r" );
-					
-					stream_got_eof = true;
-					
-				}else{
-					
-					final File	temp_file = new File( save_to.getAbsolutePath() + "._tmp_" );
-					
-					raf = new RandomAccessFile( temp_file, "rw" );
+				raf = new RandomAccessFile( save_to, "r" );
+				
+				stream_got_eof = true;
+				
+			}else{
+				
+				final File	temp_file = new File( save_to.getAbsolutePath() + "._tmp_" );
+				
+				raf = new RandomAccessFile( temp_file, "rw" );
 
-					stream = stream_factory.getStream( this );
-										
-					new AEThread2( "DMS:reader", true )
+				stream_details = stream_factory.getStream( this );
+				
+				final InputStream stream = stream_details.getStream();
+				
+				new AEThread2( "DMS:reader", true )
+				{
+					public void
+					run()
 					{
-						public void
-						run()
-						{
-							final int BUFF_SIZE = 128*1024;
-							
-							byte[]	buffer = new byte[BUFF_SIZE];
-							
-							try{
-								while( true ){
+						final int BUFF_SIZE = 128*1024;
+						
+						byte[]	buffer = new byte[BUFF_SIZE];
+						
+						try{
+							while( true ){
+								
+								int len = stream.read( buffer );
+								
+								if ( len <= 0 ){
 									
-									int len = stream.read( buffer );
-									
-									if ( len <= 0 ){
+									if ( stream_details.hasFailed()){
 										
-										stream_got_eof	= true;
-										
-										break;
+										throw( new IOException( "Stream failed" ));
 									}
 									
-									synchronized( lock ){
-										
-										raf.seek( raf.length());
-										
-										raf.write( buffer, 0, len );
-										
-										for ( AESemaphore waiter: waiters ){
-											
-											waiter.release();
-										}
-									}
-								}								
-							}catch( Throwable e ){
-																
-								context.this.destroy( e );
-								
-							}finally{
-								
-								try{
-									stream.close();
-																		
-								}catch( Throwable e ){
+									stream_got_eof	= true;
 									
+									break;
 								}
-								
-								Throwable failed = null;
 								
 								synchronized( lock ){
 									
-									stream = null;
+									raf.seek( raf.length());
 									
-									if ( stream_got_eof ){
+									raf.write( buffer, 0, len );
+									
+									for ( AESemaphore waiter: waiters ){
 										
-										try{
-											raf.close();
-											
-											save_to.delete();
-											
-											temp_file.renameTo( save_to );
-											
-											raf = new RandomAccessFile( save_to, "r" );
-											
-										}catch( Throwable e ){
-																						
-											failed = e;
-										}
+										waiter.release();
 									}
 								}
+							}								
+						}catch( Throwable e ){
+															
+							context.this.destroy( e );
+							
+						}finally{
+							
+							try{
+								stream.close();
+																	
+							}catch( Throwable e ){
 								
-								if ( failed != null ){
+							}
+							
+							Throwable failed = null;
+							
+							synchronized( lock ){
+								
+								stream_details = null;
+								
+								if ( stream_got_eof ){
 									
-									context.this.destroy( failed );
+									try{
+										raf.close();
+										
+										save_to.delete();
+										
+										temp_file.renameTo( save_to );
+										
+										raf = new RandomAccessFile( save_to, "r" );
+										
+									}catch( Throwable e ){
+																					
+										failed = e;
+									}
 								}
 							}
+							
+							if ( failed != null ){
+								
+								context.this.destroy( failed );
+							}
 						}
-					}.start();
-				}
+					}
+				}.start();
 			}
 		}
 		
@@ -375,7 +380,7 @@ DiskManagerFileInfoStream
 					return( raf.read( buffer, 0, length ));
 				}	
 				
-				if ( stream == null ){
+				if ( stream_details == null ){
 					
 					if ( stream_got_eof ){
 						
@@ -471,16 +476,16 @@ DiskManagerFileInfoStream
 					raf = null;
 				}
 				
-				if ( stream != null ){
+				if ( stream_details != null ){
 					
 					try{
-						stream.close();
+						stream_details.getStream().close();
 						
 					}catch( Throwable e ){
 						
 					}
 					
-					stream = null;
+					stream_details = null;
 				}
 				
 				if ( error != null ){
@@ -749,9 +754,9 @@ DiskManagerFileInfoStream
 	}
 
 	public interface
-	streamFactory
+	StreamFactory
 	{
-		public InputStream
+		public StreamDetails
 		getStream(
 			Object		requester )
 		
@@ -760,5 +765,15 @@ DiskManagerFileInfoStream
 		public void
 		destroyed(
 			Object		requester );
+		
+		public interface
+		StreamDetails
+		{
+			public InputStream
+			getStream();
+			
+			public boolean
+			hasFailed();
+		}
 	}
 }

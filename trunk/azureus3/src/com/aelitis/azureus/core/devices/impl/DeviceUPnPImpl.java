@@ -33,6 +33,7 @@ import java.util.WeakHashMap;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
@@ -553,11 +554,11 @@ DeviceUPnPImpl
 			
 			final DiskManagerFileInfo stream_file = 
 				new DiskManagerFileInfoStream( 
-					new DiskManagerFileInfoStream.streamFactory()
+					new DiskManagerFileInfoStream.StreamFactory()
 					{
 						private List<Object>	current_requests = new ArrayList<Object>();
 						
-						public InputStream 
+						public StreamDetails 
 						getStream(
 							Object		request )
 						
@@ -581,7 +582,7 @@ DeviceUPnPImpl
 									
 									if ( is != null ){
 										
-										return( is );
+										return( new StreamWrapper( is, job ));
 									}
 									
 									int	state = job.getState();
@@ -750,6 +751,178 @@ DeviceUPnPImpl
 		}catch( Throwable e ){
 			
 			Debug.out( e );
+		}
+	}
+	
+	protected boolean
+	setupStreamXCode(
+		TranscodeFileImpl		transcode_file )
+	{
+		final TranscodeJobImpl	job = transcode_file.getJob();
+		
+		if ( job == null ){
+			
+				// may have just completed, say things are OK as caller can continue
+			
+			return( transcode_file.isComplete());
+		}
+		
+		final String tf_key = transcode_file.getKey();
+
+		AzureusContentFile	acf;
+		
+		synchronized( acf_map ){
+			
+			acf = acf_map.get( tf_key );
+		}
+		
+		if ( acf != null ){
+			
+			return( true );
+		}
+		
+		IPCInterface			ipc	= upnpav_ipc;
+
+		if ( ipc == null ){
+			
+			return( false );
+		}
+		
+		try{
+			final DiskManagerFileInfo stream_file = 
+				new DiskManagerFileInfoStream( 
+					new DiskManagerFileInfoStream.StreamFactory()
+					{
+						private List<Object>	current_requests = new ArrayList<Object>();
+						
+						public StreamDetails 
+						getStream(
+							Object		request )
+						
+							throws IOException 
+						{						
+							try{
+								synchronized( this ){
+								
+									current_requests.add( request );
+								}
+								
+								while( true ){
+									
+									InputStream is = job.getStream( 1000 );
+									
+									if ( is != null ){
+										
+										return( new StreamWrapper( is, job ));
+									}
+									
+									int	state = job.getState();
+									
+									if ( state == TranscodeJobImpl.ST_FAILED ){
+										
+										throw( new IOException( "Transcode failed: " + job.getError()));
+										
+									}else if ( state == TranscodeJobImpl.ST_CANCELLED ){
+										
+										throw( new IOException( "Transcode failed: job cancelled" ));
+	
+									}else if ( state == TranscodeJobImpl.ST_COMPLETE ){
+										
+										throw( new IOException( "Job complete but no stream!" ));
+									}
+									
+									synchronized( this ){
+										
+										if ( !current_requests.contains( request )){
+											
+											break;
+										}
+									}
+									
+									System.out.println( "waiting for stream" );
+									
+								}
+								
+								IOException error = new IOException( "Stream request cancelled" );
+								
+								job.failed( error );
+								
+								throw( error );
+								
+							}catch( IOException e ){
+								
+								throw( e );
+								
+							}catch( Throwable e ){
+								
+								throw( new IOException( "Failed to add transcode job: " + Debug.getNestedExceptionMessage(e)));
+								
+							}finally{
+								
+								synchronized( this ){
+								
+									current_requests.remove( request );
+								}
+							}
+						}
+						
+						public void 
+						destroyed(
+							Object request ) 
+						{
+							synchronized( this ){
+								
+								current_requests.remove( request );
+							}
+						}
+					},
+					transcode_file.getCacheFile());
+										
+			acf =	new AzureusContentFile()
+					{	
+					   	public DiskManagerFileInfo
+					   	getFile()
+					   	{
+					   		return( stream_file );
+					   	}
+					   	
+						public Object
+						getProperty(
+							String		name )
+						{
+								// TODO: duration etc
+	
+							if ( name.equals( MY_ACF_KEY )){
+								
+								return( new Object[]{ DeviceUPnPImpl.this, tf_key });
+								
+							}else if ( name.equals( PT_PERCENT_DONE )){
+								
+								return( new Long(1000));
+								
+							}else if ( name.equals( PT_ETA )){
+								
+								return( new Long(0));
+							}
+							
+							return( null );
+						}
+					};
+			
+			synchronized( acf_map ){
+	
+				acf_map.put( tf_key, acf );
+			}
+		
+			ipc.invoke( "addContent", new Object[]{ acf });
+
+			log( "Set up stream-xcode for " + transcode_file.getName());
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			return( false );
 		}
 	}
 	
@@ -1187,6 +1360,70 @@ DeviceUPnPImpl
 		}finally{
 			
 			writer.exdent();
+		}
+	}
+	
+	protected static class
+	StreamWrapper
+		implements DiskManagerFileInfoStream.StreamFactory.StreamDetails
+	{
+		private InputStream		is;
+		private TranscodeJob	job;
+		
+		protected
+		StreamWrapper(
+			InputStream		_is,
+			TranscodeJob	_job )
+		{
+			is		= _is;
+			job		= _job;
+		}
+		
+		public InputStream
+		getStream()
+		{
+			return( is );
+		}
+		
+		public boolean
+		hasFailed()
+		{
+			long start = SystemTime.getMonotonousTime();
+		
+			while( true ){
+				
+				int state = job.getState();
+								
+				if ( state == TranscodeJobImpl.ST_RUNNING ){
+					
+					if ( SystemTime.getMonotonousTime() - start > 5*1000 ){
+						
+						break;
+						
+					}else{
+						
+						try{
+							Thread.sleep(250);
+							
+							continue;
+							
+						}catch( Throwable e ){
+							
+							break;
+						}
+					}
+				}
+				
+				if ( 	state == TranscodeJobImpl.ST_FAILED ||
+						state == TranscodeJobImpl.ST_CANCELLED ||
+						state == TranscodeJobImpl.ST_REMOVED ||
+						state == TranscodeJobImpl.ST_STOPPED ){
+					
+					return( true );
+				}
+			}
+			
+			return( false );
 		}
 	}
 }
