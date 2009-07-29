@@ -788,95 +788,14 @@ DeviceUPnPImpl
 			return( false );
 		}
 		
+		if ( transcode_file.getDurationMillis() == 0 ){
+			
+			return( false );
+		}
+		
 		try{
 			final DiskManagerFileInfo stream_file = 
-				new DiskManagerFileInfoStream( 
-					new DiskManagerFileInfoStream.StreamFactory()
-					{
-						private List<Object>	current_requests = new ArrayList<Object>();
-						
-						public StreamDetails 
-						getStream(
-							Object		request )
-						
-							throws IOException 
-						{						
-							try{
-								synchronized( this ){
-								
-									current_requests.add( request );
-								}
-								
-								while( true ){
-									
-									InputStream is = job.getStream( 1000 );
-									
-									if ( is != null ){
-										
-										return( new StreamWrapper( is, job ));
-									}
-									
-									int	state = job.getState();
-									
-									if ( state == TranscodeJobImpl.ST_FAILED ){
-										
-										throw( new IOException( "Transcode failed: " + job.getError()));
-										
-									}else if ( state == TranscodeJobImpl.ST_CANCELLED ){
-										
-										throw( new IOException( "Transcode failed: job cancelled" ));
-	
-									}else if ( state == TranscodeJobImpl.ST_COMPLETE ){
-										
-										throw( new IOException( "Job complete but no stream!" ));
-									}
-									
-									synchronized( this ){
-										
-										if ( !current_requests.contains( request )){
-											
-											break;
-										}
-									}
-									
-									System.out.println( "waiting for stream" );
-									
-								}
-								
-								IOException error = new IOException( "Stream request cancelled" );
-								
-								job.failed( error );
-								
-								throw( error );
-								
-							}catch( IOException e ){
-								
-								throw( e );
-								
-							}catch( Throwable e ){
-								
-								throw( new IOException( "Failed to add transcode job: " + Debug.getNestedExceptionMessage(e)));
-								
-							}finally{
-								
-								synchronized( this ){
-								
-									current_requests.remove( request );
-								}
-							}
-						}
-						
-						public void 
-						destroyed(
-							Object request ) 
-						{
-							synchronized( this ){
-								
-								current_requests.remove( request );
-							}
-						}
-					},
-					transcode_file.getCacheFile());
+				new TranscodeJobOutputLeecher( job, transcode_file );
 										
 			acf =	new AzureusContentFile()
 					{	
@@ -1393,12 +1312,15 @@ DeviceUPnPImpl
 			while( true ){
 				
 				int state = job.getState();
-								
+							
+					// timing issues - we can get here during teh fail process so
+					// hang around a little if we're still running
+				
 				if ( state == TranscodeJobImpl.ST_RUNNING ){
 					
 					if ( SystemTime.getMonotonousTime() - start > 5*1000 ){
 						
-						break;
+						return( true );
 						
 					}else{
 						
@@ -1409,7 +1331,7 @@ DeviceUPnPImpl
 							
 						}catch( Throwable e ){
 							
-							break;
+							return( true );
 						}
 					}
 				}
@@ -1422,8 +1344,6 @@ DeviceUPnPImpl
 					return( true );
 				}
 			}
-			
-			return( false );
 		}
 	}
 }

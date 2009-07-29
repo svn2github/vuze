@@ -419,7 +419,8 @@ DeviceTivo
 						
 					if ( !file.isComplete()){
 						
-							// see if we can set up a stream xcode for this
+							// see if we can set up a stream xcode for this but only if we
+							// know the duration and the transcode is in progress (done in setup)
 						
 						if ( !setupStreamXCode( file )){
 							
@@ -650,7 +651,6 @@ DeviceTivo
 				
 				String	header = 
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" + NL +
-				//"<?xml-stylesheet type=\"text/xsl\" href=\"/TiVoConnect?Command=XSL&amp;Container=Parg%27s%20pyTivo\"?>" + NL +
 				"<TiVoContainer>" + NL +
 				"    <Tivos>" + NL +
 				"      <Tivo>" + machine + "</Tivo>" + NL +
@@ -662,7 +662,6 @@ DeviceTivo
 				"        <ContentType>x-container/tivo-videos</ContentType>" + NL +
 				"        <SourceFormat>x-container/folder</SourceFormat>" + NL +
 				"        <TotalItems>" + items.size() + "</TotalItems>" + NL +
-				//"        <UniqueId>" + container_id + "</UniqueId>" + NL +
 				"    </Details>" + NL;
 				
 				reply = header;
