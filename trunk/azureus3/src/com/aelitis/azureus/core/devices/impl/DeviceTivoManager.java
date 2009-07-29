@@ -213,21 +213,58 @@ DeviceTivoManager
 		}
 	}
 	
+	protected byte[]
+	encodeBeacon(
+		boolean		is_broadcast,
+		int			my_port )
+	
+		throws IOException
+	{
+		String beacon = 
+			"tivoconnect=1" + LF +
+			"swversion=1" + LF +	
+			"method=" + (is_broadcast?"broadcast":"connected") + LF +
+			"identity=" + uid + LF +
+			"machine=" + server_name + LF +
+			"platform=pc" + LF +
+			"services=TiVoMediaServer:" + my_port + "/http";
+
+		return( beacon.getBytes( "ISO-8859-1" ));
+	}
+	
+	protected Map<String,String>
+	decodeBeacon(
+		byte[]		buffer,
+		int			length )
+		
+		throws IOException
+	{
+		String str = new String( buffer, 0, length, "ISO-8859-1" );
+		
+		String[]	lines = str.split( LF );
+		
+		Map<String,String>	map = new HashMap<String, String>();
+		
+		for (String line:lines ){
+			
+			int pos = line.indexOf( '=' );
+			
+			if ( pos > 0 ){
+				
+				map.put( line.substring( 0, pos ).trim().toLowerCase(), line.substring( pos+ 1 ).trim());
+			}
+		}
+		
+		return( map );
+	}
+	
 	protected void
 	sendBeacon(
 		DatagramSocket		socket )
 	{
-		String packet = 
-			"tivoconnect=1" + LF +
-			"swversion=1" + LF +	
-			"method=broadcast" + LF +
-			"identity=" + uid + LF +
-			"machine=" + server_name + LF +
-			"platform=pc" + LF +
-			"services=TiVoMediaServer:" + tcp_port + "/http";
 		
 		try{
-			byte[] 	bytes = packet.getBytes( "ISO-8859-1" );
+			byte[] 	bytes = encodeBeacon( true, tcp_port );
 			
 			socket.send( new DatagramPacket( bytes, bytes.length, InetAddress.getByName( "255.255.255.255" ), CONTROL_PORT ));
 			
@@ -244,21 +281,7 @@ DeviceTivoManager
 		int			length )
 	{
 		try{
-			String str = new String( buffer, 0, length, "ISO-8859-1" );
-			
-			String[]	lines = str.split( LF );
-			
-			Map<String,String>	map = new HashMap<String, String>();
-			
-			for (String line:lines ){
-				
-				int pos = line.indexOf( '=' );
-				
-				if ( pos > 0 ){
-					
-					map.put( line.substring( 0, pos ).trim().toLowerCase(), line.substring( pos+ 1 ).trim());
-				}
-			}
+			Map<String,String>	map = decodeBeacon( buffer, length );
 			
 			String id = map.get( "identity" );
 			
@@ -300,7 +323,7 @@ DeviceTivoManager
 				
 				if ( device.getID().equals( uid )){
 				
-					tivo.found( address, server_name, machine );
+					tivo.found( this, address, server_name, machine );
 					
 					return( tivo );
 				}
@@ -309,7 +332,7 @@ DeviceTivoManager
 					
 		DeviceTivo tivo = (DeviceTivo)device_manager.addDevice( new DeviceTivo( device_manager, uid, classification ));
 		
-		tivo.found( address, server_name, machine );
+		tivo.found( this, address, server_name, machine );
 		
 		return( tivo );
 	}

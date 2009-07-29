@@ -21,9 +21,12 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -43,9 +46,9 @@ public class
 DeviceTivo
 	extends DeviceMediaRendererImpl
 {
+	private static final boolean	TRACE	= false;
+	
 	private static final String		NL				= "\r\n";
-
-	private String		server_name;
 	
 	private static Map<String,Comparator<ItemInfo>>	sort_comparators = new HashMap<String, Comparator<ItemInfo>>();
 	
@@ -109,6 +112,9 @@ DeviceTivo
 		sort_comparators.put( "LastChangeDate", sort_comparators.get( "CreationDate" ));
 		sort_comparators.put( "CaptureDate", sort_comparators.get( "CreationDate" ));
 	}
+	
+	private String		server_name;
+	private boolean		tried_tcp_beacon;
 	
 	protected
 	DeviceTivo(
@@ -176,6 +182,12 @@ DeviceTivo
 		return( true );
 	}
 	
+	protected boolean
+	getShowCategoriesDefault()
+	{
+		return( true );
+	}
+	
 	protected String
 	getMachineName()
 	{
@@ -184,6 +196,7 @@ DeviceTivo
 	
 	protected void
 	found(
+		DeviceTivoManager	_tivo_manager,
 		InetAddress			_address,
 		String				_server_name,
 		String				_machine )
@@ -197,6 +210,57 @@ DeviceTivo
 				server_name	= _server_name;
 				
 				first_time = true;
+			}
+		}
+		
+		if ( _machine == null && !tried_tcp_beacon ){
+			
+			try{
+				Socket socket = new Socket();
+			
+				try{
+					socket.connect( new InetSocketAddress( _address, 2190 ), 5000 );
+					
+					socket.setSoTimeout( 5000 );
+	
+					DataOutputStream dos = new DataOutputStream( socket.getOutputStream());
+					
+					byte[]	beacon_out = _tivo_manager.encodeBeacon( false, 0 );
+					
+					dos.writeInt( beacon_out.length );		
+				
+					dos.write( beacon_out );				
+						
+					DataInputStream dis = new DataInputStream( socket.getInputStream());
+					
+					int len = dis.readInt();
+				
+					if ( len < 65536 ){
+						
+						byte[] bytes = new byte[len];
+	
+						int	pos = 0;
+						
+						while( pos < len ){
+						
+							int read = dis.read( bytes, pos, len-pos );
+							
+							pos += read;
+						}
+						
+						Map<String,String> beacon_in = _tivo_manager.decodeBeacon( bytes, len );
+						
+						_machine = beacon_in.get( "machine" );
+					}	
+				}finally{
+					
+					socket.close();
+				}
+			}catch( Throwable e ){
+				
+			}finally{
+				
+				tried_tcp_beacon = true;
 			}
 		}
 		
@@ -239,8 +303,10 @@ DeviceTivo
 		
 		String	url = request.getURL();
 		
-		System.out.println( "url: " + url );
-
+		if ( TRACE ){
+			System.out.println( "url: " + url );
+		}
+		
 		if ( !url.startsWith( "/TiVoConnect?" )){
 			
 			return( false );
@@ -264,7 +330,9 @@ DeviceTivo
 			args.put( x[0], URLDecoder.decode( x[1], "UTF-8" ));
 		}
 		
-		System.out.println( "args: " + args );
+		if ( TRACE ){
+			System.out.println( "args: " + args );
+		}
 		
 			// root folder /TiVoConnect?Command=QueryContainer&Container=%2F
 		
@@ -679,7 +747,9 @@ DeviceTivo
 			return( false );
 		}
 		
-		System.out.println( "->" + reply );
+		if ( TRACE ){
+			System.out.println( "->" + reply );
+		}
 		
 		response.setContentType( "text/xml" );
 		

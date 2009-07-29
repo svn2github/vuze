@@ -209,9 +209,14 @@ DeviceMediaRendererImpl
 	public boolean
 	getShowCategories()
 	{
-		return( getPersistentBooleanProperty( PP_REND_SHOW_CAT, false ));
+		return( getPersistentBooleanProperty( PP_REND_SHOW_CAT, getShowCategoriesDefault()));
 	}
 	
+	protected boolean
+	getShowCategoriesDefault()
+	{
+		return( false );
+	}
 	
 	@Override
 	protected void
@@ -226,6 +231,11 @@ DeviceMediaRendererImpl
 			addDP( dp, "devices.copy.folder.dest", getCopyToFolder());
 		}
 		
+		if ( canShowCategories()){
+			
+			addDP( dp, "devices.cat.show", getShowCategories());
+
+		}
 		super.getTTDisplayProperties( dp );
 	}	
 	
