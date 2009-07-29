@@ -168,7 +168,7 @@ IPCInterfaceImpl
 		Method mtd	= null;
 		
 		try{
-			mtd = target.getClass().getMethod(methodName,paramTypes);
+			mtd = target.getClass().getDeclaredMethod( methodName,paramTypes );
 			
 		}catch( NoSuchMethodException e ){
 			
@@ -211,7 +211,7 @@ IPCInterfaceImpl
 				throw( e );
 			}
 		}
-		
+				
 		return( mtd );
 	}
 	
