@@ -1878,8 +1878,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				menu.setData("isHeader", new Boolean(header));
 
 				int columnNo = getColumnNo(pt.x);
-				TableColumn tcColumn = table.getColumn(columnNo);
-				menu.setData("column", tcColumn);
+				menu.setData("column", columnNo < 0
+						|| columnNo >= table.getColumnCount() ? null
+						: table.getColumn(columnNo)); 
 			}
 		});
 		MenuBuildUtils.addMaintenanceListenerForMenu(menu,
@@ -2042,6 +2043,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		if (menu != null) {
 			menu.setData("column", tcColumn);
+		}
+		
+		if (tcColumn == null) {
+			return;
 		}
 
 		String sColumnName = (String) tcColumn.getData("Name");
