@@ -1804,6 +1804,24 @@ DeviceManagerUI
 											});
 										}
 										
+											// show cats
+										
+										if ( renderer.canShowCategories()){
+											MenuItem showcat_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.show.cat");
+											showcat_menu_item.setStyle(MenuItem.STYLE_CHECK);
+	
+											showcat_menu_item.addFillListener(new MenuItemFillListener() {
+												public void menuWillBeShown(MenuItem menu, Object data) {
+													menu.setData(new Boolean(renderer.getShowCategories()));
+												}
+											});
+											showcat_menu_item.addListener(new MenuItemListener() {
+												public void selected(MenuItem menu, Object target) {
+									 				renderer.setShowCategories( (Boolean) menu.getData());
+												}
+											});
+										}
+
 											// cache files
 										
 										MenuItem alwayscache_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.always.cache");

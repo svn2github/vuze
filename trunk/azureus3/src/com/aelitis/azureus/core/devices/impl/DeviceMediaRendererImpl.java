@@ -193,6 +193,26 @@ DeviceMediaRendererImpl
 		throw( new DeviceManagerException( "Unsupported" ));
 	}
 	
+	public boolean
+	canShowCategories()
+	{
+		return( false );
+	}
+	
+	public void
+	setShowCategories(
+		boolean	b )
+	{
+		setPersistentBooleanProperty( PP_REND_SHOW_CAT, b );
+	}
+	
+	public boolean
+	getShowCategories()
+	{
+		return( getPersistentBooleanProperty( PP_REND_SHOW_CAT, false ));
+	}
+	
+	
 	@Override
 	protected void
 	getDisplayProperties(

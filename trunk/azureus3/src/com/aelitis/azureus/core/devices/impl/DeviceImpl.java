@@ -95,6 +95,8 @@ DeviceImpl
 	private static final String PP_REND_TRANS_CACHE		= "tt_always_cache";
 	private static final String PP_REND_RSS_PUB			= "tt_rss_pub";
 	
+	protected static final String PP_REND_SHOW_CAT		= "tt_show_cat";
+	
 	protected static final String	PP_IP_ADDRESS 		= "rend_ip";	
 	protected static final String	TP_IP_ADDRESS 		= "DeviceUPnPImpl:ip";	// transient
 	protected static final String	PP_FILTER_FILES 	= "rend_filter";
@@ -106,6 +108,8 @@ DeviceImpl
 	protected static final String	PP_COPY_TO_FOLDER	= "copy_to_folder";
 	protected static final String	PP_AUTO_COPY		= "auto_copy";
 	
+	protected static final String	PP_TIVO_MACHINE		= "tivo_machine";
+
 	
 	protected static final boolean	PR_AUTO_START_DEFAULT	= true;
 	protected static final boolean	PP_AUTO_COPY_DEFAULT	= false;

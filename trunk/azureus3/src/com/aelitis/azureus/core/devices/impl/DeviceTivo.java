@@ -31,9 +31,11 @@ import java.util.*;
 
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
+import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 
 import com.aelitis.azureus.core.devices.TranscodeFile;
 
@@ -45,6 +47,68 @@ DeviceTivo
 
 	private String		server_name;
 	
+	private static Map<String,Comparator<ItemInfo>>	sort_comparators = new HashMap<String, Comparator<ItemInfo>>();
+	
+	static {
+		sort_comparators.put(
+			"Type",
+			new Comparator<ItemInfo>()
+			{
+				public int 
+				compare(
+					ItemInfo o1, ItemInfo o2 )
+				{
+					if ( o1.isContainer() == o2.isContainer()){
+						
+						return( 0 );
+					}
+					
+					if ( o1.isContainer()){
+						
+						return( -1 );
+					}
+					
+					return( 1 );
+				}
+			});
+		
+		sort_comparators.put(
+			"Title",
+			new Comparator<ItemInfo>()
+			{
+				Comparator<String> c = new FormattersImpl().getAlphanumericComparator( true );
+				
+				public int 
+				compare(
+					ItemInfo o1, ItemInfo o2 )
+				{
+					return( c.compare( o1.getName(), o2.getName()));
+				}
+			});
+		
+		sort_comparators.put(
+			"CreationDate",
+			new Comparator<ItemInfo>()
+			{
+				public int 
+				compare(
+					ItemInfo o1, ItemInfo o2 )
+				{
+					long	res = o1.getCreationMillis() - o2.getCreationMillis();
+					
+					if ( res < 0 ){
+						return( -1 );
+					}else if ( res > 0 ){
+						return( 1 );
+					}else{
+						return( 0 );
+					}
+				}
+			});
+		
+		sort_comparators.put( "LastChangeDate", sort_comparators.get( "CreationDate" ));
+		sort_comparators.put( "CaptureDate", sort_comparators.get( "CreationDate" ));
+	}
 	
 	protected
 	DeviceTivo(
@@ -94,16 +158,35 @@ DeviceTivo
 		super.initialise();
 	}
 	
+	public boolean
+	canFilterFilesView()
+	{
+		return( false );
+	}
+	
 	public boolean 
 	canAssociate()
 	{
 		return( true );
 	}
 	
+	public boolean
+	canShowCategories()
+	{
+		return( true );
+	}
+	
+	protected String
+	getMachineName()
+	{
+		return( getPersistentStringProperty( PP_TIVO_MACHINE, null ));
+	}
+	
 	protected void
 	found(
 		InetAddress			_address,
-		String				_server_name )
+		String				_server_name,
+		String				_machine )
 	{
 		boolean	first_time = false;
 		
@@ -114,6 +197,16 @@ DeviceTivo
 				server_name	= _server_name;
 				
 				first_time = true;
+			}
+		}
+		
+		if ( _machine != null ){
+			
+			String existing = getMachineName();
+			
+			if ( existing == null || !existing.equals( _machine )){
+				
+				setPersistentStringProperty( PP_TIVO_MACHINE, _machine );
 			}
 		}
 		
@@ -223,128 +316,339 @@ DeviceTivo
 				
 			}else if ( container.startsWith( "/Content" )){
 				
+				boolean	show_categories = getShowCategories();
 				
-				List<TranscodeFile> files = new ArrayList<TranscodeFile>(Arrays.asList( getFiles()));
+				String	recurse = args.get( "Recurse" );
 				
-				Iterator<TranscodeFile> it = files.iterator();
-				
-				while( it.hasNext()){
+				if ( recurse != null && recurse.equals( "Yes" )){
 					
-					TranscodeFile file = it.next();
+					show_categories = false;
+				}
+				
+				TranscodeFile[] tfs = getFiles();
+				
+				String	category = null;
+				
+				Map<String,ContainerInfo>	categories = null;
+
+				if ( show_categories ){
 					
-					if ( !file.isComplete()){
+					if ( container.startsWith( "/Content/" )){
 						
-						it.remove();
-					}
-				
-					URL stream_url = file.getStreamURL( host );
-					
-					if ( stream_url == null ){
+						category = container.substring( container.lastIndexOf( '/' ) + 1 );
 						
-						it.remove();
+					}else{
+						
+						categories = new HashMap<String,ContainerInfo>();
 					}
 				}
 				
-					// todo sorting
+					// build list of applicable items
 				
-				String item_count_str = args.get( "ItemCount" );
+				List<ItemInfo> items = new ArrayList<ItemInfo>( tfs.length );
+									
+				for ( TranscodeFile file: tfs ){
+										
+					if ( file.isComplete()){
+												
+						if ( category != null ){
+						
+							boolean	hit = false;
+
+							String[]	cats = file.getCategories();
+							
+							for ( String c: cats ){
+								
+								if ( c.equals( category )){
+									
+									hit = true;
+								}
+							}
+							
+							if ( !hit ){
+								
+								continue;
+							}
+						}
+						
+						FileInfo	info = new FileInfo( file, host );
+						
+						if ( info.isOK()){
+							
+							boolean	skip = false;
+							
+							if ( categories != null ){
+								
+								String[]	cats = file.getCategories();
+								
+								if ( cats.length > 0 ){
+									
+									skip = true;
+
+									for ( String s: cats ){
+										
+										ContainerInfo cont = categories.get( s );
+										
+										if ( cont == null ){
+											
+											items.add( cont = new ContainerInfo( s ));
+											
+											categories.put( s, cont );
+										}
+																
+										cont.addChild();
+									}
+								}
+							}
+							
+							if ( !skip ){
+							
+								items.add( info );
+							}
+						}
+					}
+				}
+								
+					// sort
 				
-				if ( item_count_str == null ){
+				String	sort_order = args.get( "SortOrder" );
+				
+				if ( sort_order != null ){
 					
-					return( false );
+					String[] keys = sort_order.split( "," );
+					
+					final List<Comparator<ItemInfo>> 	comparators = new  ArrayList<Comparator<ItemInfo>>();
+					final List<Boolean>					reverses	= new ArrayList<Boolean>();
+					
+					for ( String key: keys ){
+						
+						boolean	reverse = false;
+						
+						if ( key.startsWith( "!" )){
+							
+							reverse = true;
+							
+							key = key.substring(1);
+						}
+						
+						Comparator<ItemInfo> comp = sort_comparators.get( key );
+						
+						if ( comp != null ){
+							
+							comparators.add( comp );
+							reverses.add( reverse );
+						}
+					}
+					
+					if ( comparators.size() > 0 ){
+						
+						Collections.sort(
+							items,
+							new Comparator<ItemInfo>()
+							{
+								public int 
+								compare(
+									ItemInfo i1, 
+									ItemInfo i2) 
+								{
+									for ( int i=0;i<comparators.size();i++){
+										
+										Comparator<ItemInfo> comp = comparators.get(i);
+										
+										int res = comp.compare( i1, i2 );
+										
+										if ( res != 0 ){
+											
+											if ( reverses.get(i)){
+												
+												res = -res;
+											}
+											
+											return( res );
+										}
+									}
+									
+									return( 0 );
+								}
+							});
+					}
 				}
 				
-				int	item_count = Integer.parseInt( item_count_str );
+					// select items to return
 				
-				String	anchor = args.get( "AnchorItem" );
+				String	item_count		= args.get( "ItemCount" );
+				String	anchor_offset 	= args.get( "AnchorOffset" );
+				String	anchor 			= args.get( "AnchorItem" );
 				
-				int	item_start;
+				int	num_items;
 				
-				if ( anchor == null ){
-					
-					item_start = 0;
+				if ( item_count == null ){
+				
+					num_items = items.size();
 					
 				}else{
 					
-					// find index of anchor and then add offset if found
+						// can be negative if X items from end
 					
-					item_start = 0;
+					num_items = Integer.parseInt( item_count );
 				}
 				
-				int	num_to_return = Math.min( item_count, files.size() - item_start );
+				int	anchor_index;	// either one before or one after item to be returned depending on count +ve/-ve
 				
-				int	container_id = 1;
+				if ( num_items < 0 ){
+					
+					anchor_index = items.size();
+					
+				}else{
+					
+					anchor_index = -1;
+				}
+				
+				if ( anchor != null ){
+						
+					for (int i=0;i<items.size();i++){
+						
+						ItemInfo info = items.get(i);
+						
+						if ( anchor.equals( info.getLinkURL())){
+							
+							anchor_index = i;
+						}
+					}
+				}
+				
+				if ( anchor_offset != null ){
+					
+					anchor_index += Integer.parseInt( anchor_offset );
+					
+					if ( anchor_index < -1 ){
+						
+						anchor_index = -1;
+						
+					}else if ( anchor_index > items.size()){
+						
+						anchor_index = items.size();
+					}
+				}
+				
+				int	start_index;
+				int end_index;
+				
+				if ( num_items > 0 ){
+					
+					start_index = anchor_index + 1;
+					
+					end_index	= anchor_index + num_items;
+					
+				}else{
+					
+					start_index = anchor_index + num_items;
+					
+					end_index	= anchor_index - 1;
+				}
+
+				if ( start_index < 0 ){
+					
+					start_index = 0;
+				}
+				
+				if ( end_index >= items.size()){
+					
+					end_index = items.size() - 1;
+				}
+				
+				int	num_to_return = end_index - start_index + 1;
+				
+				if ( num_to_return < 0 ){
+					
+					num_to_return = 0;
+				}
+								
+				String machine = getMachineName();
+				
+				if ( machine == null ){
+				
+						// default until we find out what it is - can't see any way to get it apart from wait for broadcast
+					
+					machine = "TivoHDDVR";
+				}
 				
 				String	header = 
 				"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" + NL +
 				//"<?xml-stylesheet type=\"text/xsl\" href=\"/TiVoConnect?Command=XSL&amp;Container=Parg%27s%20pyTivo\"?>" + NL +
 				"<TiVoContainer>" + NL +
 				"    <Tivos>" + NL +
-				"                <Tivo>VuzeTivoHDDVR</Tivo>" + NL +	// TODO
+				"      <Tivo>" + machine + "</Tivo>" + NL +
 				"    </Tivos>" + NL +
-				"    <ItemStart>" + item_start + "</ItemStart>" + NL +
+				"    <ItemStart>" + start_index + "</ItemStart>" + NL +
 				"    <ItemCount>" + num_to_return + "</ItemCount>" + NL +
 				"    <Details>" + NL +
 				"        <Title>" + escape( container ) + "</Title>" + NL +
 				"        <ContentType>x-container/tivo-videos</ContentType>" + NL +
 				"        <SourceFormat>x-container/folder</SourceFormat>" + NL +
-				"        <TotalItems>" + files.size() + "</TotalItems>" + NL +
-				"        <UniqueId>" + container_id + "</UniqueId>" + NL +
+				"        <TotalItems>" + items.size() + "</TotalItems>" + NL +
+				//"        <UniqueId>" + container_id + "</UniqueId>" + NL +
 				"    </Details>" + NL;
 				
 				reply = header;
 				
-				for (int i=item_start;i<item_start+num_to_return;i++){
+				for ( int i=start_index;i<=end_index;i++ ){
 					
-					TranscodeFile	file = files.get(i);
+					ItemInfo	item = items.get(i);
 					
-					long	source_size = 0;
-					
-					try{
-						source_size = file.getSourceFile().getLength();
+					if ( item instanceof FileInfo ){
 						
-					}catch( Throwable e ){	
+						FileInfo file = (FileInfo)item;
+						
+						reply +=
+						
+						"    <Item>" + NL +
+						"        <Details>" + NL +
+						"            <Title>" + escape( file.getName()) + "</Title>" + NL +
+						"            <ContentType>video/x-tivo-mpeg</ContentType>" + NL +
+						"            <SourceFormat>video/x-ms-wmv</SourceFormat>" + NL +
+						"            <SourceSize>" + file.getSize() + "</SourceSize>" + NL +
+						"            <Duration>" + file.getDurationMillis() + "</Duration>" + NL +
+						"            <Description></Description>" + NL +
+						"            <SourceChannel>0</SourceChannel>" + NL +
+						"            <SourceStation></SourceStation>" + NL +
+						"            <SeriesId></SeriesId>" + NL +
+						"            <CaptureDate>" + file.getCaptureDate() + "</CaptureDate>" + NL + 
+						"        </Details>" + NL +
+						"        <Links>" + NL +
+						"            <Content>" + NL +
+						"                <ContentType>video/x-tivo-mpeg</ContentType>" + NL +
+						"                    <AcceptsParams>No</AcceptsParams>" + NL +
+						"                    <Url>" + file.getLinkURL() + "</Url>" + NL +
+						"                </Content>" + NL +
+						"                <CustomIcon>" + NL +
+						"                    <ContentType>video/*</ContentType>" + NL +
+						"                    <AcceptsParams>No</AcceptsParams>" + NL +
+						"                    <Url>urn:tivo:image:save-until-i-delete-recording</Url>" + NL +
+						"                </CustomIcon>" + NL +
+						"        </Links>" + NL +
+						"    </Item>" + NL;
+						
+					}else{
+						
+						ContainerInfo cont = (ContainerInfo)item;
+						
+						reply +=
+						"    <Item>" + NL +
+						"        <Details>" + NL +
+						"            <Title>" + cont.getName() + "</Title>" + NL +
+						"            <ContentType>x-container/tivo-videos</ContentType>" + NL +
+						"            <SourceFormat>x-container/folder</SourceFormat>" + NL +
+						"            <TotalItems>" + cont.getChildCount() + "</TotalItems>" + NL +
+						"        </Details>" + NL +
+						"        <Links>" + NL +
+						"            <Content>" + NL +
+						"                <Url>" + cont.getLinkURL() + "</Url>" + NL +
+						"                <ContentType>x-container/tivo-videos</ContentType>" + NL +
+						"            </Content>" + NL +
+						"        </Links>" + NL +
+						"    </Item>" + NL;
 					}
-					
-					String	capture_date = Long.toString( file.getCreationDateMillis()/1000, 16);
-					
-					reply +=
-				
-				"    <Item>" + NL +
-				"        <Details>" + NL +
-				"            <Title>" + escape( file.getName()) + "</Title>" + NL +
-				"            <ContentType>video/x-tivo-mpeg</ContentType>" + NL +
-				"            <SourceFormat>video/x-ms-wmv</SourceFormat>" + NL +
-				"            <SourceSize>" + source_size + "</SourceSize>" + NL +
-				"            <Duration>" + file.getDurationMillis() + "</Duration>" + NL +
-				"            <Description></Description>" + NL +
-				"            <SourceChannel>0</SourceChannel>" + NL +
-				"            <SourceStation></SourceStation>" + NL +
-				"            <SeriesId></SeriesId>" + NL +
-				"            <CaptureDate>0x" + capture_date + "</CaptureDate>" + NL + 
-				"        </Details>" + NL +
-				"        <Links>" + NL +
-				"            <Content>" + NL +
-				"                <ContentType>video/x-tivo-mpeg</ContentType>" + NL +
-				"                    <AcceptsParams>No</AcceptsParams>" + NL +
-				"                    <Url>" + file.getStreamURL( host ).toExternalForm() + "</Url>" + NL +
-				"                </Content>" + NL +
-				"                <CustomIcon>" + NL +
-				"                    <ContentType>video/*</ContentType>" + NL +
-				"                    <AcceptsParams>No</AcceptsParams>" + NL +
-				"                    <Url>urn:tivo:image:save-until-i-delete-recording</Url>" + NL +
-				"                </CustomIcon>" + NL +
-				"            <TiVoVideoDetails>" + NL +
-				"                <ContentType>text/xml</ContentType>" + NL +
-				"                <AcceptsParams>No</AcceptsParams>" + NL +
-				"                <Url>/TiVoConnect?Command=TVBusQuery&amp;Container=Parg%27s%20pyTivo&amp;File=/Big_Buck_Bunny%5BBLEN00000001%5D.mkv</Url>" + NL +
-				"            </TiVoVideoDetails>" + NL +
-				//"            <Push>" + NL +
-				//"                <Container>" + escape( container ) + "</Container>" + NL +
-				//"                <File>\\" + escape( file.getName()) + "</File>" + NL +
-				//"            </Push>" + NL +
-				"        </Links>" + NL +
-				"    </Item>" + NL;
 				}
 				
 				String footer =
@@ -384,19 +688,212 @@ DeviceTivo
 		return( true );
 	}
 	
-	protected String
+	protected static String
 	urlencode(
 		String	str )
-	
-		throws IOException
 	{
-		return( URLEncoder.encode( str, "UTF-8" ));
+		try{
+			return( URLEncoder.encode( str, "UTF-8" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( str );
+		}
 	}
 	
-	protected String
+	protected static String
 	escape(
 		String	str )
 	{
 		return( XUXmlWriter.escapeXML( str ));
+	}
+	
+	protected void
+	getDisplayProperties(
+		List<String[]>	dp )
+	{
+		super.getDisplayProperties( dp );
+		
+		addDP( dp, "devices.tivo.machine", getMachineName());
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		super.generate( writer );
+		
+		try{
+			writer.indent();
+	
+			writer.println( "tico_machine=" + getMachineName());
+			
+		}finally{
+			
+			writer.exdent();
+		}
+	}
+	
+	protected abstract static class
+	ItemInfo
+	{
+		protected abstract String
+		getName();
+		
+		protected abstract String
+		getLinkURL();
+		
+		protected abstract boolean
+		isContainer();
+		
+		public abstract long
+		getCreationMillis();
+
+	}
+	
+	protected static class
+	ContainerInfo
+		extends ItemInfo
+	{
+		private String		name;
+		
+		private int		child_count;
+		
+		protected
+		ContainerInfo(
+			String	_name )
+		{
+			name	= _name;
+		}
+		
+		protected String
+		getName()
+		{
+			return( name );
+		}
+		
+		protected String
+		getLinkURL()
+		{
+			return( "/TiVoConnect?Command=QueryContainer&amp;Container=" + urlencode( "/Content/" + name ));
+		}
+		
+		protected void
+		addChild()
+		{
+			child_count++;
+		}
+		
+		protected int
+		getChildCount()
+		{
+			return( child_count );
+		}
+		
+		public long
+		getCreationMillis()
+		{
+			return( 0 );
+		}
+		
+		protected boolean
+		isContainer()
+		{
+			return( true );
+		}
+	}
+	
+	protected static class
+	FileInfo
+		extends ItemInfo
+	{
+		private TranscodeFile	file;
+		private String			stream_url;
+		private long			size;
+		private long			creation_millis;
+		
+		boolean	ok;
+		
+		protected
+		FileInfo(
+			TranscodeFile		_file,
+			String				_host )
+		{
+			file	= _file;
+			
+			try{
+				URL url = file.getStreamURL( _host );
+				
+				if ( url == null ){
+					
+					return;
+				}
+				
+				stream_url = url.toExternalForm();
+								
+				try{
+					size = file.getSourceFile().getLength();
+					
+				}catch( Throwable e ){	
+				}
+				
+				creation_millis =  file.getCreationDateMillis();
+				
+				ok = true;
+				
+			}catch( Throwable e ){
+				
+			}
+		}
+		
+		protected boolean
+		isOK()
+		{
+			return( ok );
+		}
+		
+		protected String
+		getName()
+		{
+			return( file.getName());
+		}
+		
+		protected String
+		getLinkURL()
+		{
+			return( stream_url );
+		}
+		
+		protected long
+		getSize()
+		{
+			return( size );
+		}
+		
+		protected long
+		getDurationMillis()
+		{
+			return( file.getDurationMillis());
+		}
+		
+		public long
+		getCreationMillis()
+		{
+			return( creation_millis );
+		}
+		
+		protected String
+		getCaptureDate()
+		{
+			return( "0x" + Long.toString( creation_millis/1000, 16 ));
+		}
+		
+		protected boolean
+		isContainer()
+		{
+			return( false );
+		}
 	}
 }

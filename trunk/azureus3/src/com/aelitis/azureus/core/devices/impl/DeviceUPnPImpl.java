@@ -457,7 +457,7 @@ DeviceUPnPImpl
 		
 		for ( TranscodeFile file: transcode_files ){
 			
-			fileAdded( file );
+			fileAdded( file, false );
 		}
 	}
 	
@@ -684,7 +684,7 @@ DeviceUPnPImpl
 					
 			transcode_file.setTransientProperty( UPNPAV_FILE_KEY, acf );
 
-			syncCategories( transcode_file );
+			syncCategories( transcode_file, true );
 					
 			synchronized( this ){
 				
@@ -791,6 +791,14 @@ DeviceUPnPImpl
 	public void
 	fileAdded(
 		TranscodeFile		_transcode_file )
+	{
+		fileAdded( _transcode_file, true );
+	}
+	
+	public void
+	fileAdded(
+		TranscodeFile		_transcode_file,
+		boolean				_new_file )
 	{
 		TranscodeFileImpl	transcode_file = (TranscodeFileImpl)_transcode_file;
 		
@@ -945,7 +953,7 @@ DeviceUPnPImpl
 					acf_map.put( tf_key, acf );
 				}	
 				
-				syncCategories( transcode_file );
+				syncCategories( transcode_file, _new_file );
 					
 				try{
 					ipc.invoke( "addContent", new Object[]{ acf });
@@ -963,14 +971,20 @@ DeviceUPnPImpl
 	
 	protected void
 	syncCategories(
-		TranscodeFileImpl		tf )
+		TranscodeFileImpl		tf,
+		boolean					inherit_from_download )
 	{
 		try{
 			Download dl = tf.getSourceFile().getDownload();
 			
 			if ( dl != null ){
 				
-				setCategories( tf, dl );
+					// only overwrite categories with the downloads ones if none already set
+				
+				if ( inherit_from_download ){
+				
+					setCategories( tf, dl );
+				}
 				
 				final String tf_key = tf.getKey();
 				
@@ -1024,7 +1038,7 @@ DeviceUPnPImpl
 	{
 		if ( file.isComplete()){
 			
-			fileAdded( file );
+			fileAdded( file, false );
 		}
 		
 		if ( type == TranscodeTargetListener.CT_PROPERTY ){

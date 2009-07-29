@@ -111,6 +111,16 @@ DeviceMediaRenderer
 		UnassociatedDevice	assoc );
 	
 	public boolean
+	canShowCategories();
+	
+	public void
+	setShowCategories(
+		boolean	b );
+	
+	public boolean
+	getShowCategories();
+	
+	public boolean
 	isRSSPublishEnabled();
 	
 	public void

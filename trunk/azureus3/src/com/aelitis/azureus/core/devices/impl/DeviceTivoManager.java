@@ -84,6 +84,8 @@ DeviceTivoManager
 				COConfigurationManager.setParameter( "devices.tivo.uid", uid );
 			}
 			
+				// set up default server name
+			
 			try{
 				String cn = PlatformManagerFactory.getPlatformManager().getComputerName();
 				
@@ -91,6 +93,14 @@ DeviceTivoManager
 				
 					server_name += " on " + cn;
 				}
+			}catch( Throwable e ){
+			}
+
+				// try to use the media server's name
+			
+			try{
+				server_name = (String)device_manager.getUPnPManager().getUPnPAVIPC().invoke( "getServiceName", new Object[]{});
+								
 			}catch( Throwable e ){
 			}
 			
@@ -115,7 +125,7 @@ DeviceTivoManager
 						
 						if ( id != null ){
 							
-							DeviceTivo tivo = foundTiVo( request.getClientAddress2().getAddress(), id, "tivo.series3" );
+							DeviceTivo tivo = foundTiVo( request.getClientAddress2().getAddress(), id, "tivo.series3", null );
 							
 							return( tivo.generate( request, response ));
 						}
@@ -263,7 +273,7 @@ DeviceTivoManager
 				
 				String classification = "tivo." + platform.substring( 4 ).toLowerCase();
 				
-				foundTiVo( sender, id, classification );
+				foundTiVo( sender, id, classification, (String)map.get( "machine" ));
 			}
 		}catch( Throwable e ){
 			
@@ -275,7 +285,8 @@ DeviceTivoManager
 	foundTiVo(
 		InetAddress		address,
 		String			uid,
-		String			classification )
+		String			classification,
+		String			machine )
 	{
 		uid	= "tivo:" + uid;
 		
@@ -289,7 +300,7 @@ DeviceTivoManager
 				
 				if ( device.getID().equals( uid )){
 				
-					tivo.found( address, server_name );
+					tivo.found( address, server_name, machine );
 					
 					return( tivo );
 				}
@@ -298,7 +309,7 @@ DeviceTivoManager
 					
 		DeviceTivo tivo = (DeviceTivo)device_manager.addDevice( new DeviceTivo( device_manager, uid, classification ));
 		
-		tivo.found( address, server_name );
+		tivo.found( address, server_name, machine );
 		
 		return( tivo );
 	}
