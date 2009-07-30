@@ -26,7 +26,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -41,7 +41,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TimeFormatter;
-import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -122,6 +121,15 @@ DeviceManagerRSSFeed
 	
 		throws IOException
 	{
+		InetSocketAddress	local_address = request.getLocalAddress();
+		
+		if ( local_address == null ){
+			
+			return( false );
+		}
+		
+		String	host = local_address.getAddress().getHostAddress();
+		
 		URL	url	= request.getAbsoluteURL();
 			
 		String path = url.getPath();
@@ -184,7 +192,11 @@ DeviceManagerRSSFeed
 			
 			pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
 			
-			pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\" xmlns:itunes=\"http://www.itunes.com/dtds/podcast-1.0.dtd\">" );
+			pw.println( 
+					"<rss version=\"2.0\" " + 
+					"xmlns:vuze=\"http://www.vuze.com\" " +
+					"xmlns:media=\"http://search.yahoo.com/mrss\" " +
+					"xmlns:itunes=\"http://www.itunes.com/dtds/podcast-1.0.dtd\">" );
 			
 			pw.println( "<channel>" );
 			
@@ -270,11 +282,13 @@ DeviceManagerRSSFeed
   				
   
   				String mediaContent = "";
-  				URL stream_url = file.getStreamURL();
+  				
+  				URL stream_url = file.getStreamURL( host );
   				
   				if ( stream_url != null ){
   					
-  					String url_ext = stream_url.toExternalForm().replaceAll("127.0.0.1", "192.168.0.149");
+  					String url_ext = stream_url.toExternalForm();
+  					
   					long fileSize = file.getTargetFile().getLength();
   					
   					pw.println( "<link>" + url_ext + "</link>" );
@@ -339,7 +353,7 @@ DeviceManagerRSSFeed
 						
 						// Unfortunately, writing the media:content tag breaks some rss readers.
 						// Comment out until I figure out why
-						//pw.println(mediaContent);
+						pw.println(mediaContent);
   				}
 
   				pw.println( "<itunes:summary>" + escape( file.getName()) + "</itunes:summary>" );
