@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.networkmanager.admin.*;
 
@@ -34,8 +35,6 @@ public class NetworkAdminSpeedTestSchedulerImpl
 {
     private static NetworkAdminSpeedTestSchedulerImpl instance = null;
     private NetworkAdminSpeedTestScheduledTestImpl currentTest = null;
-
-    private PluginInterface plugin;
 
      public static synchronized NetworkAdminSpeedTestScheduler getInstance(){
         if(instance==null){
@@ -69,6 +68,8 @@ public class NetworkAdminSpeedTestSchedulerImpl
     	}
 
     	if ( type == TEST_TYPE_BT ){
+
+        PluginInterface plugin = PluginInitializer.getDefaultInterface(); 
 
     		currentTest = new NetworkAdminSpeedTestScheduledTestImpl(plugin, new NetworkAdminSpeedTesterBTImpl(plugin) );
             currentTest.getTester().setMode(type);
