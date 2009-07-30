@@ -1845,6 +1845,7 @@ RelatedContentManager
 										
 									}catch( Throwable e ){
 										
+										Debug.out( e );
 									}
 								}
 								
@@ -2040,7 +2041,10 @@ RelatedContentManager
 							
 							String	key = entry.getKey();
 
-							rc_map.put( key, di_map );
+							if ( rc_map.put( key, di_map ) != null ){
+								
+								Debug.out( "Duplicate key for " + info.getString() + " - " + key );
+							}
 	
 							id++;	
 						}
@@ -2385,6 +2389,8 @@ RelatedContentManager
 			
 		}catch( Throwable e ){
 			
+			Debug.out( e );
+			
 			return( null );
 		}
 	}
@@ -2418,6 +2424,8 @@ RelatedContentManager
 				return( new DownloadInfo( hash, title, rand, tracker, unread, rand_list, last_seen, level, size, cc ));
 			}
 		}catch( Throwable e ){
+			
+			Debug.out( e );
 			
 			return( null );
 		}
