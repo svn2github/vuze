@@ -236,7 +236,10 @@ public class BDecoder
 						break;
 					}
 				
-					tempMap.put( key, value);
+					if ( tempMap.put( key, value) != null ){
+						
+						Debug.out( "BDecoder: key '" + key + "' already exists!" );
+					}
 				}
 
 				/*	
