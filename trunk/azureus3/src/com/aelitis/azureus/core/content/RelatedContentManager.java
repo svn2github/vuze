@@ -1816,40 +1816,75 @@ RelatedContentManager
 							
 							Map<String,String>	rcm_map = (Map<String,String>)map.get( "rcm" );
 							
-							Map<String,Map<String,Object>>	rc_map 	= (Map<String,Map<String,Object>>)map.get( "rc" );
+							Object	rc_map_stuff 	= map.get( "rc" );
 							
-							if ( rc_map != null && rcm_map != null ){
+							if ( rc_map_stuff != null && rcm_map != null ){
 								
 								Map<Integer,DownloadInfo> id_map = new HashMap<Integer, DownloadInfo>();
-													
-								for ( Map.Entry<String,Map<String,Object>> entry: rc_map.entrySet()){
 									
-									try{
+								if ( rc_map_stuff instanceof Map ){
 									
-										String	key = entry.getKey();
+										// migration from when it was a Map with non-ascii key issues
 									
-										Map<String,Object>	info_map = entry.getValue();
-																	
-										DownloadInfo info = deserialiseDI( info_map, cc );
+									Map<String,Map<String,Object>>	rc_map 	= (Map<String,Map<String,Object>>)rc_map_stuff;
+
+									for ( Map.Entry<String,Map<String,Object>> entry: rc_map.entrySet()){
 										
-										if ( info.isUnread()){
+										try{
+										
+											String	key = entry.getKey();
+										
+											Map<String,Object>	info_map = entry.getValue();
+																		
+											DownloadInfo info = deserialiseDI( info_map, cc );
 											
-											new_total_unread++;
+											if ( info.isUnread()){
+												
+												new_total_unread++;
+											}
+											
+											related_content.put( key, info );
+											
+											int	id = ((Long)info_map.get( "_i" )).intValue();
+				
+											id_map.put( id, info );
+											
+										}catch( Throwable e ){
+											
+											Debug.out( e );
 										}
+									}
+								}else{
+									
+									List<Map<String,Object>>	rc_map_list 	= (List<Map<String,Object>>)rc_map_stuff;
+
+									for ( Map<String,Object> info_map: rc_map_list ){
 										
-										related_content.put( key, info );
+										try{
 										
-										int	id = ((Long)info_map.get( "_i" )).intValue();
-			
-										id_map.put( id, info );
-										
-									}catch( Throwable e ){
-										
-										Debug.out( e );
+											String	key = new String((byte[])info_map.get( "_k" ), "UTF-8" );
+																												
+											DownloadInfo info = deserialiseDI( info_map, cc );
+											
+											if ( info.isUnread()){
+												
+												new_total_unread++;
+											}
+											
+											related_content.put( key, info );
+											
+											int	id = ((Long)info_map.get( "_i" )).intValue();
+				
+											id_map.put( id, info );
+											
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
 									}
 								}
-								
-								if ( rcm_map.size() != 0 && rc_map.size() != 0 ){
+															
+								if ( rcm_map.size() != 0 && id_map.size() != 0 ){
 									
 									for ( String key: rcm_map.keySet()){
 										
@@ -2015,13 +2050,10 @@ RelatedContentManager
 					Map<String,Object>	map = new HashMap<String, Object>();
 					
 					Set<Map.Entry<String,DownloadInfo>> rcs = related_content.entrySet();
+										
+					List<Map<String,Object>> rc_map_list = new ArrayList<Map<String, Object>>( rcs.size());
 					
-						// key may be non ascii so use ByteEncodedKeyHashMap to force 
-						// sensible behaviour (don't ask)
-					
-					Map<String,Object> rc_map = new ByteEncodedKeyHashMap<String, Object>();
-					
-					map.put( "rc", rc_map );
+					map.put( "rc", rc_map_list );
 					
 					int		id = 0;
 					
@@ -2038,13 +2070,9 @@ RelatedContentManager
 							info_map.put( info, id );
 
 							di_map.put( "_i", new Long( id ));
+							di_map.put( "_k", entry.getKey());
 							
-							String	key = entry.getKey();
-
-							if ( rc_map.put( key, di_map ) != null ){
-								
-								Debug.out( "Duplicate key for " + info.getString() + " - " + key );
-							}
+							if ( rc_map_list.add( di_map ));
 	
 							id++;	
 						}
