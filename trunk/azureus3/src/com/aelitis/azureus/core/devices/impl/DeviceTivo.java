@@ -982,7 +982,7 @@ DeviceTivo
 				}else{
 					long mb_per_sec = 3;	// upper limit of 3 MB a sec assumed
 						
-					return( duration_secs & mb_per_sec*1024*1024L );
+					return( duration_secs * mb_per_sec*1024*1024L );
 				}
 			}catch( Throwable e ){
 			}
