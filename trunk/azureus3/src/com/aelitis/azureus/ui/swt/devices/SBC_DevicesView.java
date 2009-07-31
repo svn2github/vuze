@@ -24,6 +24,8 @@ import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridLayout;
@@ -539,6 +541,45 @@ public class SBC_DevicesView
 			}
 		});
 
+		tvFiles.addKeyListener(
+			new KeyListener()
+			{
+				public void 
+				keyPressed(
+					KeyEvent e )
+				{
+					if ( e.stateMask == 0 && e.keyCode == SWT.DEL ){
+						
+						Object[] selected;
+						
+						synchronized (this) {
+							
+							if ( tvFiles == null ){
+								
+								selected = new Object[0];
+								
+							}else{
+							
+								selected = tvFiles.getSelectedDataSources().toArray();
+							}
+						}
+						
+						for (Object ds : selected) {
+							
+							deleteFile((TranscodeFile)ds);
+						}
+						
+						e.doit = false;
+					}
+				}
+				
+				public void 
+				keyReleased(
+					KeyEvent arg0 ) 
+				{
+				}
+			});
+		
 		tvFiles.initialize(tableJobsParent);
 
 		control.layout(true);

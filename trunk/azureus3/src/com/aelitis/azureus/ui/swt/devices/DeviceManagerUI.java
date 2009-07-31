@@ -64,7 +64,6 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;

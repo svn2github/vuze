@@ -905,6 +905,8 @@ DeviceUPnPImpl
 			
 			if ( !transcode_file.isComplete()){
 				
+				syncCategories( transcode_file, _new_file );
+
 				return;
 			}
 			
