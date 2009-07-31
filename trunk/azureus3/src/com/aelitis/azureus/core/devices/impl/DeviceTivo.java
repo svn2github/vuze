@@ -674,14 +674,29 @@ DeviceTivo
 						
 						FileInfo file = (FileInfo)item;
 						
+						long	file_size = file.getTargetSize();
+						
 						reply +=
 						
 						"    <Item>" + NL +
 						"        <Details>" + NL +
 						"            <Title>" + escape( file.getName()) + "</Title>" + NL +
 						"            <ContentType>video/x-tivo-mpeg</ContentType>" + NL +
-						"            <SourceFormat>video/x-ms-wmv</SourceFormat>" + NL +
-						"            <SourceSize>" + file.getSize() + "</SourceSize>" + NL +
+						"            <SourceFormat>video/x-ms-wmv</SourceFormat>" + NL;
+						
+						if ( file_size > 0 ){
+							reply +=
+								"            <SourceSize>" + file_size + "</SourceSize>" + NL;
+						}else{
+							long est_size = file.getEstimatedTargetSize();
+							
+							if ( est_size > 0 ){
+								reply +=
+									"            <SourceSize>" + est_size + "</SourceSize>" + NL;
+							}
+						}
+						
+						reply +=
 						"            <Duration>" + file.getDurationMillis() + "</Duration>" + NL +
 						"            <Description></Description>" + NL +
 						"            <SourceChannel>0</SourceChannel>" + NL +
@@ -887,7 +902,7 @@ DeviceTivo
 	{
 		private TranscodeFile	file;
 		private String			stream_url;
-		private long			size;
+		private long			target_size;
 		private long			creation_millis;
 		
 		boolean	ok;
@@ -910,8 +925,10 @@ DeviceTivo
 				stream_url = url.toExternalForm();
 								
 				try{
-					size = file.getSourceFile().getLength();
-					
+					if ( file.isComplete()){
+						
+						target_size = file.getTargetFile().getLength();
+					}				
 				}catch( Throwable e ){	
 				}
 				
@@ -943,9 +960,25 @@ DeviceTivo
 		}
 		
 		protected long
-		getSize()
+		getTargetSize()
 		{
-			return( size );
+			return( target_size );
+		}
+		
+		protected long
+		getEstimatedTargetSize()
+		{
+				// TODO: we need access to max bitrate info... and then use duration and increase by, say, 5%
+			
+			try{
+				long length = file.getSourceFile().getLength();
+				
+				return( length * 10 );
+				
+			}catch( Throwable e ){
+			}
+				
+			return( 0 );
 		}
 		
 		protected long

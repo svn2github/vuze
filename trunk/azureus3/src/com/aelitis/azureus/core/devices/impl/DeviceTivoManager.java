@@ -26,12 +26,16 @@ import java.io.IOException;
 import java.net.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.tracker.Tracker;
@@ -41,6 +45,9 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
+import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceManagerException;
+
 
 public class 
 DeviceTivoManager 
@@ -49,14 +56,14 @@ DeviceTivoManager
 	private static final int		CONTROL_PORT	= 2190;
 	
 	private DeviceManagerImpl		device_manager;
+	private PluginInterface 		plugin_interface;
 	
 	private String	uid;
 	private String	server_name	= "Vuze";
-	private int		tcp_port;
 	
-	private TrackerWebContext twc;
+	private Searcher	current_search;
 	
-	private volatile boolean	destroyed;
+	private volatile boolean	manager_destroyed;
 	
 	protected
 	DeviceTivoManager(
@@ -68,148 +75,87 @@ DeviceTivoManager
 	protected void
 	startUp()
 	{
-		try{
-			PluginInterface plugin_interface = PluginInitializer.getDefaultInterface();
+		plugin_interface = PluginInitializer.getDefaultInterface();
 
-			uid = COConfigurationManager.getStringParameter( "devices.tivo.uid", null );
-			
-			if ( uid == null ){
-				
-				byte[] bytes = new byte[8];
-				
-				RandomUtils.nextBytes( bytes );
-				
-				uid = Base32.encode( bytes );
-				
-				COConfigurationManager.setParameter( "devices.tivo.uid", uid );
-			}
-			
-				// set up default server name
-			
-			try{
-				String cn = PlatformManagerFactory.getPlatformManager().getComputerName();
-				
-				if ( cn != null && cn.length() > 0 ){
-				
-					server_name += " on " + cn;
-				}
-			}catch( Throwable e ){
-			}
-
-				// try to use the media server's name
-			
-			try{
-				server_name = (String)device_manager.getUPnPManager().getUPnPAVIPC().invoke( "getServiceName", new Object[]{});
-								
-			}catch( Throwable e ){
-			}
-			
-			twc = plugin_interface.getTracker().createWebContext( 0, Tracker.PR_HTTP );
-			
-			twc.addPageGenerator(
-				new TrackerWebPageGenerator()
-				{
-					public boolean 
-					generate(
-						TrackerWebPageRequest 	request,
-						TrackerWebPageResponse 	response )
-					
-						throws IOException 
-					{
-						String	id = (String)request.getHeaders().get( "tsn" );
-						
-						if ( id == null ){
-							
-							id = (String)request.getHeaders().get( "tivo_tcd_id" );	
-						}
-						
-						if ( id != null ){
-							
-							DeviceTivo tivo = foundTiVo( request.getClientAddress2().getAddress(), id, "tivo.series3", null );
-							
-							return( tivo.generate( request, response ));
-						}
-						
-						return( false );
-					}
-				});
-			
-			tcp_port = twc.getURLs()[0].getPort();
-			
-			final DatagramSocket control_socket = new DatagramSocket( null );
-				
-			control_socket.setReuseAddress( true );
-				
-			try{
-				control_socket.setSoTimeout( 60*1000 );
-				
-			}catch( Throwable e ){
-			}
-			
-			control_socket.bind( new InetSocketAddress((InetAddress)null, CONTROL_PORT ));
-
-			SimpleTimer.addPeriodicEvent(
-				"Tivo:Beacon",
-				60*1000,
-				new TimerEventPerformer()
-				{
-					public void 
-					perform(
-						TimerEvent 	event )
-					{
-						if ( !destroyed ){
-						
-							sendBeacon( control_socket );
-						}
-					}
-				});	
-			
-			sendBeacon( control_socket );
-			
-			new AEThread2( "TiVo:CtrlListener", true )
-			{
-				public void
-				run()
-				{
-					long	successful_accepts 	= 0;
-					long	failed_accepts		= 0;
-
-					while( !destroyed ){
-						
-						try{
-							byte[] buf = new byte[8192];
-							
-							DatagramPacket packet = new DatagramPacket(buf, buf.length );
-											
-							control_socket.receive( packet );
-								
-							successful_accepts++;
-							
-							failed_accepts	 = 0;
-							
-							receiveBeacon( packet.getAddress(), packet.getData(), packet.getLength() );
-							
-						}catch( SocketTimeoutException e ){
-														
-						}catch( Throwable e ){
-							
-							failed_accepts++;
-							
-							log( "UDP receive on port " + CONTROL_PORT + " failed", e );
-
-							if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){
-								
-								log( "    too many failures, abandoning" );
-
-								break;
-							}
-						}
-					}				}
-			}.start();
-											
-		}catch( Throwable e ){
+		uid = COConfigurationManager.getStringParameter( "devices.tivo.uid", null );
 		
-			log( "Failed to establish listen on port " + CONTROL_PORT, e );
+		if ( uid == null ){
+			
+			byte[] bytes = new byte[8];
+			
+			RandomUtils.nextBytes( bytes );
+			
+			uid = Base32.encode( bytes );
+			
+			COConfigurationManager.setParameter( "devices.tivo.uid", uid );
+		}
+		
+			// set up default server name
+		
+		try{
+			String cn = PlatformManagerFactory.getPlatformManager().getComputerName();
+			
+			if ( cn != null && cn.length() > 0 ){
+			
+				server_name += " on " + cn;
+			}
+		}catch( Throwable e ){
+		}
+
+			// try to use the media server's name
+		
+		try{
+			server_name = (String)device_manager.getUPnPManager().getUPnPAVIPC().invoke( "getServiceName", new Object[]{});
+							
+		}catch( Throwable e ){
+		}
+		
+		boolean	found_tivo = false;
+		
+		for ( Device device: device_manager.getDevices()){
+			
+			if ( device instanceof DeviceTivo ){
+				
+				found_tivo = true;
+				
+				break;
+			}
+		}
+			
+		if ( found_tivo || device_manager.getAutoSearch()){
+			
+			search( found_tivo );
+		}
+	}
+	
+	protected void
+	search()
+	{
+		search( false );
+	}
+	
+	protected void
+	search(
+		boolean	persistent )
+	{
+		try{
+			synchronized( this ){
+				
+				if ( current_search == null ){
+					
+					current_search = new Searcher( persistent );
+					
+				}else{
+					
+					if ( !current_search.wakeup()){
+						
+						current_search = new Searcher( persistent );
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
 		}
 	}
 	
@@ -258,23 +204,7 @@ DeviceTivoManager
 		return( map );
 	}
 	
-	protected void
-	sendBeacon(
-		DatagramSocket		socket )
-	{
-		
-		try{
-			byte[] 	bytes = encodeBeacon( true, tcp_port );
-			
-			socket.send( new DatagramPacket( bytes, bytes.length, InetAddress.getByName( "255.255.255.255" ), CONTROL_PORT ));
-			
-		}catch( Throwable e ){
-			
-			log( "Failed to send beacon", e );
-		}
-	}
-	
-	protected void
+	protected boolean
 	receiveBeacon(
 		InetAddress	sender,
 		byte[]		buffer,
@@ -287,7 +217,7 @@ DeviceTivoManager
 			
 			if ( id == null || id.equals( uid )){
 				
-				return;
+				return( false );
 			}
 			
 			String platform = map.get( "platform" );
@@ -297,11 +227,15 @@ DeviceTivoManager
 				String classification = "tivo." + platform.substring( 4 ).toLowerCase();
 				
 				foundTiVo( sender, id, classification, (String)map.get( "machine" ));
+				
+				return( true );
 			}
 		}catch( Throwable e ){
 			
 			log( "Failed to decode beacon", e );
 		}
+		
+		return( false );
 	}
 	
 	protected DeviceTivo
@@ -365,6 +299,259 @@ DeviceTivoManager
 		}else{
 		
 			device_manager.log( "TiVo: " + str, e );
+		}
+	}
+	
+	protected class
+	Searcher
+	{
+		private static final int	LIFE_MILLIS = 10*1000;
+		
+		private long start = SystemTime.getMonotonousTime();
+		
+		private int		tcp_port;
+		
+		private DatagramSocket 		control_socket;
+		private TrackerWebContext 	twc;
+		private TimerEventPeriodic	timer_event;
+		
+		private volatile boolean		persistent;
+		
+		private volatile boolean		search_destroyed;
+		
+		protected
+		Searcher(
+			boolean	_persistent )
+		
+			throws DeviceManagerException
+		{
+			try{
+				int	last_port = COConfigurationManager.getIntParameter( "devices.tivo.net.tcp.port", 0 );
+				
+				if ( last_port > 0 ){
+					
+					try{
+						ServerSocket ss = new ServerSocket( last_port );
+					
+						ss.setReuseAddress( true );
+						
+						ss.close();
+						
+					}catch( Throwable e ){
+						
+						last_port = 0;
+					}
+				}
+				
+				twc = plugin_interface.getTracker().createWebContext( last_port, Tracker.PR_HTTP );
+				
+				tcp_port = twc.getURLs()[0].getPort();
+
+				COConfigurationManager.setParameter( "devices.tivo.net.tcp.port", tcp_port );
+				
+				twc.addPageGenerator(
+					new TrackerWebPageGenerator()
+					{
+						public boolean 
+						generate(
+							TrackerWebPageRequest 	request,
+							TrackerWebPageResponse 	response )
+						
+							throws IOException 
+						{
+							String	id = (String)request.getHeaders().get( "tsn" );
+							
+							if ( id == null ){
+								
+								id = (String)request.getHeaders().get( "tivo_tcd_id" );	
+							}
+							
+							if ( id != null ){
+								
+								persistent = true;
+								
+								DeviceTivo tivo = foundTiVo( request.getClientAddress2().getAddress(), id, "tivo.series3", null );
+								
+								return( tivo.generate( request, response ));
+							}
+							
+							return( false );
+						}
+					});
+								
+				control_socket  = new DatagramSocket( null );
+					
+				control_socket.setReuseAddress( true );
+					
+				try{
+					control_socket.setSoTimeout( 60*1000 );
+					
+				}catch( Throwable e ){
+				}
+				
+				control_socket.bind( new InetSocketAddress((InetAddress)null, CONTROL_PORT ));
+		
+				timer_event = 
+					SimpleTimer.addPeriodicEvent(
+						"Tivo:Beacon",
+						60*1000,
+						new TimerEventPerformer()
+						{
+							public void 
+							perform(
+								TimerEvent 	event )
+							{
+								if ( !( manager_destroyed || search_destroyed )){
+								
+									sendBeacon();
+								}
+								
+									// see if time to auto-shutdown searching
+								
+								if ( !persistent ){
+								
+									synchronized( DeviceTivoManager.this ){
+									
+										if ( SystemTime.getMonotonousTime() - start >= LIFE_MILLIS ){
+											
+											log( "Terminating search, no devices found" );
+											
+											current_search = null;
+											
+											destroy();
+										}
+									}
+								}
+							}
+						});	
+				
+				final AESemaphore start_sem = new AESemaphore( "TiVo:CtrlListener" );
+				
+				new AEThread2( "TiVo:CtrlListener", true )
+				{
+					public void
+					run()
+					{
+						start_sem.release();
+						
+						long	successful_accepts 	= 0;
+						long	failed_accepts		= 0;
+		
+						while( !( manager_destroyed || search_destroyed )){
+							
+							try{
+								byte[] buf = new byte[8192];
+								
+								DatagramPacket packet = new DatagramPacket(buf, buf.length );
+												
+								control_socket.receive( packet );
+									
+								successful_accepts++;
+								
+								failed_accepts	 = 0;
+								
+								if ( receiveBeacon( packet.getAddress(), packet.getData(), packet.getLength())){
+									
+									persistent = true;
+								}
+								
+							}catch( SocketTimeoutException e ){
+															
+							}catch( Throwable e ){
+								
+								failed_accepts++;
+								
+								log( "UDP receive on port " + CONTROL_PORT + " failed", e );
+		
+								if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){
+									
+									log( "    too many failures, abandoning" );
+		
+									break;
+								}
+							}
+						}				
+					}
+				}.start();
+					
+				start_sem.reserve( 5000 );
+				
+				sendBeacon();
+				
+
+				log( "Initiated device search" );
+				
+			}catch( Throwable e ){
+			
+				log( "Failed to initialise search", e );
+
+				destroy();
+				
+				throw( new DeviceManagerException( "Creation failed",e ));
+			}
+		}
+		
+		protected void
+		sendBeacon()
+		{
+			try{
+				byte[] 	bytes = encodeBeacon( true, tcp_port );
+				
+				control_socket.send( new DatagramPacket( bytes, bytes.length, InetAddress.getByName( "255.255.255.255" ), CONTROL_PORT ));
+				
+			}catch( Throwable e ){
+				
+				log( "Failed to send beacon", e );
+			}
+		}
+		
+		protected boolean
+		wakeup()
+		{
+			synchronized( DeviceTivoManager.this ){
+				
+				if ( search_destroyed ){
+					
+					return( false );
+				}
+				
+				start = SystemTime.getMonotonousTime();
+			}
+			
+			sendBeacon();
+			
+			return( true );
+		}
+		
+		protected void
+		destroy()
+		{
+			search_destroyed = true;
+			
+			if ( twc != null ){
+				
+				twc.destroy();
+				
+				twc = null;
+			}
+			
+			if ( timer_event != null ){
+				
+				timer_event.cancel();
+				
+				timer_event = null;
+			}
+			
+			if ( control_socket != null ){
+				
+				try{
+					control_socket.close();
+					
+				}catch( Throwable e ){
+				}
+				
+				control_socket = null;
+			}
 		}
 	}
 }

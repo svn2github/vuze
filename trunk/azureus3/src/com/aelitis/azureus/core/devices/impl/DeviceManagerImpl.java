@@ -463,6 +463,8 @@ DeviceManagerImpl
 					explicit_search++;
 				}
 				
+				tivo_manager.search();
+				
 				AESemaphore	sem = new AESemaphore( "DM:search" );
 				
 				DeviceManagerListener	dm_listener =

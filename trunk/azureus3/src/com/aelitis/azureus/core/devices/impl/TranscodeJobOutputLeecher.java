@@ -120,7 +120,19 @@ TranscodeJobOutputLeecher
 	public long
 	getLength()
 	{
-		return( -1 );
+		if ( file.isComplete()){
+			
+			try{
+				return( file.getTargetFile().getLength());
+				
+			}catch( Throwable e ){
+				
+				return( -1 );
+			}
+		}else{
+			
+			return( -1 );
+		}
 	}
 	
 	public File 
