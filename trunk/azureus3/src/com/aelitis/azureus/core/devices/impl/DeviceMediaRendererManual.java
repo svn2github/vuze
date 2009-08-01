@@ -158,7 +158,7 @@ DeviceMediaRendererManual
 	setCopyToFolder(
 		File		file )
 	{
-		setPersistentStringProperty( PP_COPY_TO_FOLDER, file.getAbsolutePath());
+		setPersistentStringProperty( PP_COPY_TO_FOLDER, file==null?null:file.getAbsolutePath());
 		
 		if ( getAutoCopyToFolder()){
 			
@@ -323,51 +323,61 @@ DeviceMediaRendererManual
 		
 		List<TranscodeFileImpl>	to_copy = new ArrayList<TranscodeFileImpl>();
 
-		boolean	borked = true;
-
-		if ( copy_to == null ){
-			
-			setError( COPY_ERROR_KEY, "Copy to folder not set" );
-			
-		}else if ( !copy_to.exists()){
-			
-			setError( COPY_ERROR_KEY, "Copy to folder not found" );
-			
-		}else if ( !copy_to.canWrite()){
-			
-			setError( COPY_ERROR_KEY, "Copy to folder in not writable" );
-			
-		}else{
-			
-			setError( COPY_ERROR_KEY, null );
-			
-			borked = false;
+		boolean	borked = false;
 		
-			TranscodeFileImpl[] files = getFiles();
-										
-			for ( TranscodeFileImpl file: files ){
+		TranscodeFileImpl[] files = getFiles();
+									
+		for ( TranscodeFileImpl file: files ){
+				
+			if ( file.isComplete() && !file.isCopiedToDevice()){
+				
+				if ( file.getCopyToDeviceFails() < 3 ){
+				
+					to_copy.add( file );
 					
-				if ( file.isComplete() && !file.isCopiedToDevice()){
+				}else{
 					
-					if ( file.getCopyToDeviceFails() < 3 ){
-					
-						to_copy.add( file );
-						
-					}else{
-						
-						borked = true;
-					}
+					setError( COPY_ERROR_KEY, "One or more files failed to copy to folder" );
+
+					borked = true;
 				}
 			}
+		}
 		
-			if ( borked ){
+		boolean	try_copy = false;
+		
+		if ( to_copy.size() > 0 ){
 			
-				setError( COPY_ERROR_KEY, "Copy to folder failed" );
+			if ( copy_to == null ){
+				
+				setError( COPY_ERROR_KEY, "Copy to folder not set" );
+				
+				borked = true;
+				
+			}else if ( !copy_to.exists()){
+				
+				setError( COPY_ERROR_KEY, "Copy to folder not found" );
+				
+				borked = true;
+				
+			}else if ( !copy_to.canWrite()){
+				
+				setError( COPY_ERROR_KEY, "Copy to folder in not writable" );
+				
+				borked = true;
+				
+			}else{
+				
+				try_copy = true;
+				
+				setError( COPY_ERROR_KEY, null );
 			}
 		}
 		
 		synchronized( this ){
 
+				// all done, tidy up and exit
+			
 			if ( to_copy.size() == 0 && !copy_outstanding_set && !borked ){
 					
 				copy_outstanding = false;
@@ -390,29 +400,39 @@ DeviceMediaRendererManual
 			}
 		}
 		
-		for ( TranscodeFileImpl transcode_file: to_copy ){
+		if ( try_copy ){
 			
 			try{
-				File	file = transcode_file.getTargetFile().getFile();
+				setBusy( true );
 				
-				try{
-					// copy the file!
+				for ( TranscodeFileImpl transcode_file: to_copy ){
 					
-					FileUtil.copyFile( file, new File( copy_to, file.getName()));
-					
-					log( "Copied file '" + file + ": to " + copy_to );
-					
-					transcode_file.setCopiedToDevice( true );
-					
-				}catch( Throwable e ){
-					
-					transcode_file.setCopyToDeviceFailed();
-					
-					log( "Failed to copy file " + file, e );
+					try{
+						File	file = transcode_file.getTargetFile().getFile();
+						
+						try{
+							// copy the file!
+							
+							FileUtil.copyFile( file, new File( copy_to, file.getName()));
+							
+							log( "Copied file '" + file + ": to " + copy_to );
+							
+							transcode_file.setCopiedToDevice( true );
+							
+						}catch( Throwable e ){
+							
+							transcode_file.setCopyToDeviceFailed();
+							
+							log( "Failed to copy file " + file, e );
+						}
+					}catch( TranscodeException e ){
+		
+						// file has been deleted
+					}
 				}
-			}catch( TranscodeException e ){
-
-				// file has been deleted
+			}finally{
+					
+				setBusy( false );
 			}
 		}
 		

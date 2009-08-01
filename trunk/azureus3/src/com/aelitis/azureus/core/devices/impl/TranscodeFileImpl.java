@@ -382,8 +382,15 @@ TranscodeFileImpl
 	
 	public void 
 	retryCopyToDevice() 
-	{
-		setLong( PT_COPY_FAILED, 0 );
+	{		
+		if ( isCopiedToDevice()){
+			
+			setCopiedToDevice( false );
+			
+		}else{
+			
+			setLong( PT_COPY_FAILED, 0 );
+		}
 	}
 	
 	protected void

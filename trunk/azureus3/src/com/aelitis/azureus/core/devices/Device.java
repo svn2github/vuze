@@ -55,6 +55,9 @@ Device
 	isAlive();
 	
 	public boolean
+	isBusy();
+	
+	public boolean
 	isManual();
 	
 	public void

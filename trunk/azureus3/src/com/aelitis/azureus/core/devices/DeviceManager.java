@@ -84,6 +84,9 @@ DeviceManager
 	setDefaultWorkingDirectory(
 		File		dir );
 	
+	public boolean
+	isBusy();
+	
 	public void
 	addListener(
 		DeviceManagerListener		listener );

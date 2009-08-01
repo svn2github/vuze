@@ -743,7 +743,7 @@ public class SBC_DevicesView
 						for (int i = 0; i < files.length; i++) {
 							TranscodeFile file = files[i];
 
-							if (file.getCopyToDeviceFails() > 0) {
+							if ( file.getCopyToDeviceFails() > 0 || file.isCopiedToDevice() ){
 
 								file.retryCopyToDevice();
 							}
@@ -755,7 +755,7 @@ public class SBC_DevicesView
 
 				for (TranscodeFile file : files) {
 
-					if (file.getCopyToDeviceFails() > 0) {
+					if ( file.getCopyToDeviceFails() > 0 || file.isCopiedToDevice()) {
 
 						retry_item.setEnabled(true);
 					}

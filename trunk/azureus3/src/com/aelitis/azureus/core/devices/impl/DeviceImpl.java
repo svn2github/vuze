@@ -128,6 +128,7 @@ DeviceImpl
 	private boolean			hidden;
 	private long			last_seen;
 	
+	private int				busy_count;
 	private boolean			online;
 	
 	private boolean			transcoding;
@@ -1142,6 +1143,44 @@ DeviceImpl
 		return( true );
 	}
 	
+	public boolean
+	isBusy()
+	{
+		if ( isTranscoding()){
+			
+			return( true );
+		}
+		
+		synchronized( this ){
+			
+			return( busy_count > 0 );
+		}
+	}
+	
+	protected void
+	setBusy(
+		boolean	busy )
+	{
+		boolean	changed = false;
+		
+		synchronized( this ){	
+			
+			if ( busy ){
+		
+				changed = busy_count++ == 0; 
+				
+			}else{
+				
+				changed = busy_count-- == 1; 
+			}
+		}
+		
+		if ( changed ){
+			
+			manager.deviceChanged( this, false );
+		}
+	}
+	
 	public void
 	remove()
 	{
@@ -1195,7 +1234,14 @@ DeviceImpl
 			if ( !existing.equals( value )){
 				
 				try{
-					persistent_properties.put( prop, value.getBytes( "UTF-8" ));
+					if ( value == null ){
+						
+						persistent_properties.remove( prop );
+						
+					}else{
+					
+						persistent_properties.put( prop, value.getBytes( "UTF-8" ));
+					}
 					
 					dirty = true;
 					

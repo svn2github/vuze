@@ -1119,7 +1119,7 @@ DeviceManagerUI
 								
 							}else if ( propertyID == TITLE_INDICATOR_TEXT ){
 																
-								spinner.setVisible( !expanded && device_manager.getTranscodeManager().getQueue().isTranscoding());
+								spinner.setVisible( !expanded && device_manager.isBusy());
 								
 								if ( !expanded ){
 																	
@@ -2695,7 +2695,7 @@ DeviceManagerUI
 				
 					if ( spinner != null ){
 					
-						spinner.setVisible( !expanded && ui.getDeviceManager().getTranscodeManager().getQueue().isTranscoding());
+						spinner.setVisible( !expanded && ui.getDeviceManager().isBusy());
 					}
 					
 					if ( !expanded ){
@@ -3130,11 +3130,8 @@ DeviceManagerUI
 			}
 			
 			if ( spinner != null ){
-			
-				if ( device instanceof DeviceMediaRenderer ){
-			
-					spinner.setVisible(((DeviceMediaRenderer)device).isTranscoding());
-				}
+						
+				spinner.setVisible( device.isBusy());
 			}
 			
 			if ( view != null ){

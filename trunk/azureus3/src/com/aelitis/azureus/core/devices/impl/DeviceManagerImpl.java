@@ -98,6 +98,7 @@ DeviceManagerImpl
 	
 	private DeviceTivoManager		tivo_manager;
 	private DeviceManagerUPnPImpl	upnp_manager;
+	private DeviceDriveManager		drive_manager;
 		
 		// have to go async on this as there are situations where we end up firing listeners
 		// while holding monitors and this can result in deadlock if sync
@@ -189,6 +190,22 @@ DeviceManagerImpl
 	initWithCore(
 		final AzureusCore core ) 
 	{
+			// need to pick up auto-search early on
+		
+		COConfigurationManager.addAndFireParameterListeners(
+				new String[]{
+					AUTO_SEARCH_CONFIG_KEY,
+				},
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name ) 
+					{
+						auto_search = COConfigurationManager.getBooleanParameter( AUTO_SEARCH_CONFIG_KEY, true );
+					}
+				});
+		
 			// init tivo before upnp as upnp init completion starts up tivo
 		
 		tivo_manager = new DeviceTivoManager( this );
@@ -199,11 +216,12 @@ DeviceManagerImpl
 				
 		new DeviceiTunesManager( this );
 				
+		drive_manager = new DeviceDriveManager( this );
+		
 		transcode_manager = new TranscodeManagerImpl( this );
 		
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{
-				AUTO_SEARCH_CONFIG_KEY,
 				RSS_ENABLE_CONFIG_KEY,
 				RSS_LOCAL_ONLY_CONFIG_KEY,
 				RSS_PORT_CONFIG_KEY
@@ -214,8 +232,6 @@ DeviceManagerImpl
 				parameterChanged(
 					String name ) 
 				{
-					auto_search = COConfigurationManager.getBooleanParameter( AUTO_SEARCH_CONFIG_KEY, true );
-					
 					boolean	new_rss_enable 	= COConfigurationManager.getBooleanParameter( RSS_ENABLE_CONFIG_KEY, false );
 					int		new_rss_port 	= COConfigurationManager.getIntParameter( RSS_PORT_CONFIG_KEY, RSS_PORT_CONFIG__DEFAULT );
 					boolean	new_rss_local 	= COConfigurationManager.getBooleanParameter( RSS_LOCAL_ONLY_CONFIG_KEY, true );
@@ -465,6 +481,8 @@ DeviceManagerImpl
 				
 				tivo_manager.search();
 				
+				drive_manager.search();
+				
 				AESemaphore	sem = new AESemaphore( "DM:search" );
 				
 				DeviceManagerListener	dm_listener =
@@ -636,6 +654,28 @@ DeviceManagerImpl
 		configDirty();
 	}
 
+	public boolean
+	isBusy()
+	{
+		if ( getTranscodeManager().getQueue().isTranscoding()){
+			
+			return( true );
+		}
+		
+		synchronized( this ){
+			
+			for ( DeviceImpl device: device_list ){
+				
+				if ( device.isBusy()){
+					
+					return( true );
+				}
+			}
+		}
+		
+		return( false );
+	}
+	
 	public DeviceImpl[]
   	getDevices()
 	{
