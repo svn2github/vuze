@@ -32,6 +32,7 @@ FeatureAvailability
 	private static final long	FT_DISABLE_PEER_GENERAL_RECONNECT	= 0x0000000000000002;
 	private static final long	FT_DISABLE_PEER_UDP_RECONNECT		= 0x0000000000000004;
 	private static final long	FT_AUTO_SPEED_DEFAULT_CLASSIC		= 0x0000000000000008;
+	private static final long	FT_DISABLE_RCM						= 0x0000000000000010;
 	
 	private static VersionCheckClient vcc = VersionCheckClient.getSingleton();
 	
@@ -62,7 +63,15 @@ FeatureAvailability
 	public static boolean
 	isAutoSpeedDefaultClassic()
 	{
-		final boolean result = ( vcc.getFeatureFlags() & FT_AUTO_SPEED_DEFAULT_CLASSIC ) == 1;
+		final boolean result = ( vcc.getFeatureFlags() & FT_AUTO_SPEED_DEFAULT_CLASSIC ) != 0;
+				
+		return( result );
+	}
+	
+	public static boolean
+	isRCMEnabled()
+	{
+		final boolean result = ( vcc.getFeatureFlags() & FT_DISABLE_RCM ) == 0;
 				
 		return( result );
 	}
