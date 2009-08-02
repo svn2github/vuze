@@ -204,6 +204,8 @@ DeviceDriveManager
 
 		renderer.setCopyToFolder( copy_to );
 		
+		renderer.setLivenessDetectable( true );
+		
 		renderer.alive();
 	}
 	
@@ -223,6 +225,8 @@ DeviceDriveManager
 			log( "Unmapped " + existing.getName() + " from " + root );
 
 			existing.setCopyToFolder( null );
+			
+			existing.dead();
 		}
 	}
 	

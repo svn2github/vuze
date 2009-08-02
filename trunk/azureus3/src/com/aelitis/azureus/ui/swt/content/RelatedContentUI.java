@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -81,8 +82,8 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 public class 
 RelatedContentUI 
-{
-	private static final boolean	UI_ENABLED = true; // System.getProperty( "vz.rcm.enable", "0" ).equals( "1" );
+{	
+	private static final boolean	DISABLE_ALL_UI	= !Constants.isCVSVersion();
 	
 	private PluginInterface		plugin_interface;
 	private UIManager			ui_manager;
@@ -186,15 +187,15 @@ RelatedContentUI
 			ui_setup = true;
 		}
 		
-		if ( !UI_ENABLED ){
-			
-			return;
-		}
-		
 		side_bar		= _side_bar;
 
-		try{
+		try{	
 			manager 	= RelatedContentManager.getSingleton();
+
+			if ( DISABLE_ALL_UI || !manager.isEnabled()){
+				
+				return;
+			}
 			
 			BasicPluginConfigModel config_model = 
 				ui_manager.createBasicPluginConfigModel(
@@ -203,7 +204,7 @@ RelatedContentUI
 			final BooleanParameter enabled = 
 				config_model.addBooleanParameter2( 
 					"rcm.config.enabled", "rcm.config.enabled",
-					manager.isEnabled());
+					manager.isUIEnabled());
 			
 			enabled.addListener(
 					new ParameterListener()
@@ -212,7 +213,7 @@ RelatedContentUI
 						parameterChanged(
 							Parameter param) 
 						{
-							manager.setEnabled( enabled.getValue());
+							manager.setUIEnabled( enabled.getValue());
 							
 							buildSideBar();
 						}
@@ -415,7 +416,7 @@ RelatedContentUI
 			
 			if ( main_sb_entry.getTreeItem() == null ){
 				
-				if ( manager.isEnabled()){
+				if ( manager.isUIEnabled()){
 										
 					side_bar.createEntryFromSkinRef(
 							null,
@@ -483,7 +484,7 @@ RelatedContentUI
 					
 					return;
 				}
-			}else if ( !manager.isEnabled()){
+			}else if ( !manager.isUIEnabled()){
 				
 				main_sb_entry.getTreeItem().dispose();
 				

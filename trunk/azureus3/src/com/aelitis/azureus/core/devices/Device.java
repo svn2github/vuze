@@ -55,6 +55,9 @@ Device
 	isAlive();
 	
 	public boolean
+	isLivenessDetectable();
+	
+	public boolean
 	isBusy();
 	
 	public boolean

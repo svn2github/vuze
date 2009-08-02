@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
-import org.gudy.azureus2.core3.util.ByteEncodedKeyHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -57,6 +56,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
@@ -116,6 +116,8 @@ RelatedContentManager
 	private Set<String>							download_priv_set	= new HashSet<String>();
 	
 	private boolean	enabled;
+	
+	private boolean	ui_enabled;
 	private int		max_search_level;
 	private int		max_results;
 	
@@ -161,6 +163,16 @@ RelatedContentManager
 	
 		throws ContentException
 	{
+		if ( !FeatureAvailability.isRCMEnabled()){
+			
+			enabled		= false;
+			ui_enabled 	= false;
+			
+			return;
+		}
+		
+		enabled = true;
+		
 		try{
 			if ( core == null ){
 				
@@ -185,7 +197,7 @@ RelatedContentManager
 			
 			COConfigurationManager.addAndFireParameterListeners(
 				new String[]{
-					"rcm.enabled",
+					"rcm.ui.enabled",
 					"rcm.max_search_level",
 					"rcm.max_results",
 				},
@@ -195,7 +207,7 @@ RelatedContentManager
 					parameterChanged(
 						String name )
 					{
-						enabled 			= COConfigurationManager.getBooleanParameter( "rcm.enabled", true );
+						ui_enabled 			= COConfigurationManager.getBooleanParameter( "rcm.ui.enabled", true );
 						max_search_level 	= COConfigurationManager.getIntParameter( "rcm.max_search_level", 3 );
 						max_results		 	= COConfigurationManager.getIntParameter( "rcm.max_results", 500 );
 					}
@@ -260,7 +272,7 @@ RelatedContentManager
 													perform(
 														TimerEvent event ) 
 													{
-														if ( enabled ){
+														if ( ui_enabled ){
 													
 															tick_count++;
 															
@@ -324,11 +336,17 @@ RelatedContentManager
 		return( enabled );
 	}
 	
-	public void
-	setEnabled(
-		boolean		_enabled )
+	public boolean
+	isUIEnabled()
 	{
-		COConfigurationManager.setParameter( "rcm.enabled", _enabled );
+		return( ui_enabled );
+	}
+	
+	public void
+	setUIEnabled(
+		boolean		_ui_enabled )
+	{
+		COConfigurationManager.setParameter( "rcm.ui.enabled", _ui_enabled );
 	}
 	
 	public int

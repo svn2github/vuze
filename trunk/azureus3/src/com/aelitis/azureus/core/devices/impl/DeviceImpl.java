@@ -108,6 +108,8 @@ DeviceImpl
 	protected static final String	PP_COPY_TO_FOLDER	= "copy_to_folder";
 	protected static final String	PP_AUTO_COPY		= "auto_copy";
 	
+	protected static final String	PP_LIVENESS_DETECTABLE	= "live_det";
+
 	protected static final String	PP_TIVO_MACHINE		= "tivo_machine";
 
 	
@@ -483,14 +485,17 @@ DeviceImpl
 	protected void
 	alive()
 	{
-		if ( !manual ){
+		last_seen	= SystemTime.getCurrentTime();
 			
-			last_seen	= SystemTime.getCurrentTime();
+		online	= true;
 			
-			online	= true;
-			
-			setDirty( false );
-		}
+		setDirty( false );
+	}
+	
+	public boolean
+	isLivenessDetectable()
+	{
+		return( !manual );
 	}
 	
 	public boolean
@@ -501,13 +506,10 @@ DeviceImpl
 	
 	protected void
 	dead()
-	{
-		if ( !manual ){
+	{			
+		online	= false;
 			
-			online	= false;
-			
-			setDirty( false );
-		}
+		setDirty( false );
 	}
 	
 	protected void

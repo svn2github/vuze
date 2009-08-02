@@ -302,6 +302,12 @@ DeviceUPnPImpl
 		return( getPersistentBooleanProperty( PP_FILTER_FILES, true ));
 	}
 	
+	public boolean
+	isLivenessDetectable()
+	{
+		return( true );
+	}
+	
 	protected URL
 	getLocation()
 	{

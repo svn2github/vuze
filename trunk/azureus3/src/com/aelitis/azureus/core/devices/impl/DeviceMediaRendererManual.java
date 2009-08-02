@@ -166,6 +166,19 @@ DeviceMediaRendererManual
 		}
 	}
 	
+	public boolean
+	isLivenessDetectable()
+	{
+		return( getPersistentBooleanProperty( PP_LIVENESS_DETECTABLE, false ));
+	}
+	
+	public void
+	setLivenessDetectable(
+		boolean	b )
+	{
+		setPersistentBooleanProperty( PP_LIVENESS_DETECTABLE, true );
+	}
+	
 	public int
 	getCopyToFolderPending()
 	{
