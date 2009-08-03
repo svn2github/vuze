@@ -768,19 +768,17 @@ RelatedContentManager
 					{
 						boolean	do_it;
 						
-						if ( diversified ){
+						if ( diversified || hits >= 20 ){
 							
-							do_it = RandomUtils.nextInt( 10 ) == 0;
+							do_it = false;
 							
 						}else if ( hits <= 10 ){
 							
 							do_it = true;
-							
+														
 						}else{
-						
-							int scaled = 10 * ( hits - 10 ) / ( max_hits - 10 );
-							
-							do_it = RandomUtils.nextInt( scaled ) == 0;
+													
+							do_it = RandomUtils.nextInt( hits - 10 + 1 ) == 0;
 						}
 							
 						if ( do_it ){
