@@ -33,6 +33,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -857,7 +858,7 @@ TranscodeQueueImpl
 					
 					DeviceImpl	device = j.getDevice();
 					
-					j.getDevice().setError( KEY_XCODE_ERROR, "Transcode failed" );
+					device.setError( KEY_XCODE_ERROR, MessageText.getString( "device.error.xcodefail" ));
 					
 					devices.remove( device );
 				}

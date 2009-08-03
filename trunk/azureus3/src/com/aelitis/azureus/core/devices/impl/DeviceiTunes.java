@@ -486,7 +486,7 @@ DeviceiTunes
 				
 			if ( borked_exist ){
 				
-				setError( COPY_ERROR_KEY, "Copy to device failed" );
+				setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copyfail2") );
 			}
 			
 			synchronized( this ){

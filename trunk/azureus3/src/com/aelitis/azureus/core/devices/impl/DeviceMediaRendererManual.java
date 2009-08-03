@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -314,7 +315,9 @@ DeviceMediaRendererManual
 					
 				}else{
 					
-					setInfo( COPY_PENDING_KEY, pending + " files pending copy" );
+					String str = MessageText.getString( "devices.info.copypending", new String[]{ String.valueOf( pending ) });
+					
+					setInfo( COPY_PENDING_KEY, str );
 				}
 				return;
 			}
@@ -349,8 +352,8 @@ DeviceMediaRendererManual
 					to_copy.add( file );
 					
 				}else{
-					
-					setError( COPY_ERROR_KEY, "One or more files failed to copy to folder" );
+						
+					setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copyfail") );
 
 					borked = true;
 				}
@@ -362,20 +365,20 @@ DeviceMediaRendererManual
 		if ( to_copy.size() > 0 ){
 			
 			if ( copy_to == null ){
-				
-				setError( COPY_ERROR_KEY, "Copy to folder not set" );
+			
+				setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytonotset" ));
 				
 				borked = true;
 				
 			}else if ( !copy_to.exists()){
 				
-				setError( COPY_ERROR_KEY, "Copy to folder not found" );
+				setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytomissing", new String[]{copy_to.getAbsolutePath()}));
 				
 				borked = true;
 				
 			}else if ( !copy_to.canWrite()){
 				
-				setError( COPY_ERROR_KEY, "Copy to folder in not writable" );
+				setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytonowrite", new String[]{copy_to.getAbsolutePath()}));
 				
 				borked = true;
 				
