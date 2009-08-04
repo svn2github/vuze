@@ -69,6 +69,7 @@ public class ImageLoader
 		"-down",
 		"-disabled",
 		"-selected",
+		"-gray",
 	};
 
 	private Display display;
@@ -346,6 +347,13 @@ public class ImageLoader
 												: disabledOpacity * 255 / 100);
 								bg.dispose();
 							}
+						}
+						releaseImage(id);
+					}else if (sKey.endsWith("-gray")) {
+						String id = sKey.substring(0, sKey.length() - 5);
+						Image imgToGray = getImage(id);
+						if (isRealImage(imgToGray)) {
+							img = new Image( display, imgToGray, SWT.IMAGE_GRAY );
 						}
 						releaseImage(id);
 					}

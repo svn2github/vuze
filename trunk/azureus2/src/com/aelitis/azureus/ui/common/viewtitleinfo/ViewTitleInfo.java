@@ -33,6 +33,8 @@ public interface ViewTitleInfo
 	public static int TITLE_INDICATOR_COLOR = 8;
 
 	
+	public static int TITLE_ACTIVE_STATE = 9;	// -> Long: 0 - not supported; 1 - active; 2 - inactive
+
 	public static int TITLE_INDICATOR_TEXT_TOOLTIP = 1;
 	
 	public static int TITLE_IMAGEID = 2;

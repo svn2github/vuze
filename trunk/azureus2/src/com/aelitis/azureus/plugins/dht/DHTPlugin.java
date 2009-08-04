@@ -45,7 +45,9 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
+import com.aelitis.azureus.core.dht.control.DHTControlContact;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
+import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
@@ -331,6 +333,49 @@ DHTPlugin
 											dht.getControl().pingAll();
 										}
 										
+									}else if ( lc.equals( "versions" )){
+										
+										List<DHTRouterContact> contacts = dht.getRouter().getAllContacts();
+										
+										Map<Byte,Integer>	counts = new TreeMap<Byte, Integer>();
+										
+										for ( DHTRouterContact r: contacts ){
+											
+											DHTControlContact contact = (DHTControlContact)r.getAttachment();
+											
+											byte v = contact.getTransportContact().getProtocolVersion();
+											
+											Integer count = counts.get( v );
+											
+											if ( count == null ){
+												
+												counts.put( v, 1 );
+												
+											}else{
+												
+												counts.put( v, count+1 );
+											}
+										}
+										
+										log.log( "Net " + dht.getTransport().getNetwork());
+										
+										int	total = contacts.size();
+										
+										if ( total == 0 ){
+											
+											log.log( "   no contacts" );
+											
+										}else{
+											
+											String ver = "";
+											
+											for ( Map.Entry<Byte, Integer> entry: counts.entrySet()){
+											
+												ver += (ver.length()==0?"":", " ) + entry.getKey() + "=" + 100*entry.getValue()/total;
+											}
+											
+											log.log( "    " + ver );
+										}
 									}else if ( lc.equals( "testca" )){
 																
 										((DHTTransportUDPImpl)transport).testExternalAddressChange();

@@ -139,7 +139,7 @@ DHTRouter
 		 * @return
 		 */
 	
-	public List
+	public List<DHTRouterContact>
 	getAllContacts();
 	
 	public DHTRouterStats
