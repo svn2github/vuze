@@ -2959,6 +2959,12 @@ DeviceManagerUI
 						return( to_copy_indicator_colors );
 					}
 				}
+			}else if ( propertyID == TITLE_ACTIVE_STATE ){
+
+				if ( device.isLivenessDetectable()){
+				
+					return( new Long( device.isAlive()?1:2 ));
+				}
 			}
 			
 			return null;

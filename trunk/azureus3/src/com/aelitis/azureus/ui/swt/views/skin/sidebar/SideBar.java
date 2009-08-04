@@ -1192,6 +1192,18 @@ public class SideBar
 			}
 		}
 
+		boolean	greyScale = false;
+		
+		if ( sideBarEntry.titleInfo != null ){
+		
+			Object active_state = sideBarEntry.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_ACTIVE_STATE);
+		
+			if ( active_state instanceof Long ){
+			
+				greyScale = (Long)active_state == 2;
+			}
+		}
+		
 		String suffix = selected ? "-selected" : null;
 		Image imageLeft = sideBarEntry.getImageLeft(suffix);
 		if (imageLeft == null && selected) {
@@ -1206,7 +1218,25 @@ public class SideBar
 			Rectangle clipping = gc.getClipping();
 			gc.setClipping(x0IndicatorOfs, itemBounds.y, IMAGELEFT_SIZE,
 					itemBounds.height);
-			gc.drawImage(imageLeft, x, y);
+			
+			boolean drawn = false;
+			if ( greyScale ){
+				String	imageLeftID = sideBarEntry.getImageLeftID();
+				if ( imageLeftID != null ){
+					Image grey = ImageLoader.getInstance().getImage(imageLeftID + "-gray" );
+				
+					if ( grey != null ){
+						gc.drawImage( grey, x, y);
+						ImageLoader.getInstance().releaseImage(imageLeftID + "-gray" );
+						
+						drawn = true;
+					}
+				}
+			}
+			
+			if ( !drawn ){
+				gc.drawImage(imageLeft, x, y);
+			}
 			sideBarEntry.releaseImageLeft(suffix);
 			gc.setClipping(clipping);
 			//			0, 0, bounds.width, bounds.height,

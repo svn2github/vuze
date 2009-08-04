@@ -288,6 +288,12 @@ public class SideBarEntrySWT implements SideBarEntry
 		imageLeft = null;
 	}
 	
+	public String
+	getImageLeftID()
+	{
+		return( imageLeftID );
+	}
+	
 	/**
 	 * @param imageLeft the imageLeft to set
 	 */
