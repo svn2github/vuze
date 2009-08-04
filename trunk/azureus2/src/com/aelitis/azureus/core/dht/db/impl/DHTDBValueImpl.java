@@ -45,7 +45,8 @@ DHTDBValueImpl
 	private DHTTransportContact	originator;
 	private DHTTransportContact	sender;
 	private boolean				local;
-	private int					flags;
+	private byte				flags;
+	private byte				life_multiplier;
 	private int					version;
 	
 	private long				store_time;
@@ -68,7 +69,8 @@ DHTDBValueImpl
 		DHTTransportContact	_originator,
 		DHTTransportContact	_sender,
 		boolean				_local,
-		int					_flags )
+		int					_flags,
+		int					_life_multiplier )
 	{
 		creation_time	= _creation_time;
 		value			= _value;
@@ -76,7 +78,8 @@ DHTDBValueImpl
 		originator		= _originator;
 		sender			= _sender;
 		local			= _local;
-		flags			= _flags;
+		flags			= (byte)_flags;
+		life_multiplier	= (byte)_life_multiplier;
 		
 			// we get quite a few zero length values - optimise mem usage
 		
@@ -108,7 +111,8 @@ DHTDBValueImpl
 				_other.getOriginator(),
 				_sender,
 				_local,
-				_other.getFlags());
+				_other.getFlags(),
+				_other.getLifeMultiplier());
 	}
 	
 	protected void
@@ -178,10 +182,11 @@ DHTDBValueImpl
 	{
 		return( sender );
 	}
+	
 	public int
 	getFlags()
 	{
-		return( flags );
+		return( flags&0xff );
 	}
 	
 	public void
@@ -189,6 +194,12 @@ DHTDBValueImpl
 		byte	_flags )
 	{
 		flags = _flags;
+	}
+	
+	public int 
+	getLifeMultiplier() 
+	{
+		return( life_multiplier&0xff );
 	}
 	
 	protected void

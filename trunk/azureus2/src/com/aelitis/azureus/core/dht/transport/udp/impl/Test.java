@@ -144,6 +144,12 @@ Test
 								return(0);
 							}
 							
+							public int 
+							getLifeMultiplier() 
+							{
+								return 0;
+							}
+
 							public String
 							getString()
 							{

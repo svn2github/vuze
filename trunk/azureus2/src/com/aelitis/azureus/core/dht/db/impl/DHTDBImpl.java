@@ -65,14 +65,17 @@ public class
 DHTDBImpl
 	implements DHTDB, DHTDBStats
 {	
+	private static final long MAX_VALUE_LIFETIME	= 3*24*60*60*1000L;
+	
+	
 	private int			original_republish_interval;
 	
 		// the grace period gives the originator time to republish their data as this could involve
 		// some work on their behalf to find closest nodes etc. There's no real urgency here anyway
 	
-	private int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 60*60*1000;
+	public static int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 60*60*1000;
 	
-	private final int	PRECIOUS_CHECK_INTERVAL				= 2*60*60*1000;
+	private static final int	PRECIOUS_CHECK_INTERVAL				= 2*60*60*1000;
 	
 	private int			cache_republish_interval;
 	
@@ -265,26 +268,50 @@ DHTDBImpl
 	store(
 		HashWrapper		key,
 		byte[]			value,
-		byte			flags )
+		byte			flags,
+		byte			life_multiplier )
 	{
 			// local store
 		
-		try{
-			this_mon.enter();
-				
-			total_local_keys++;
+		if ((flags & DHT.FLAG_PUT_AND_FORGET ) == 0 ){
 			
-				// don't police max check for locally stored data
-				// only that received
-			
-			DHTDBMapping	mapping = (DHTDBMapping)stored_values.get( key );
-			
-			if ( mapping == null ){
+			try{
+				this_mon.enter();
+					
+				total_local_keys++;
 				
-				mapping = new DHTDBMapping( this, key, true );
+					// don't police max check for locally stored data
+					// only that received
 				
-				stored_values.put( key, mapping );
+				DHTDBMapping	mapping = (DHTDBMapping)stored_values.get( key );
+				
+				if ( mapping == null ){
+					
+					mapping = new DHTDBMapping( this, key, true );
+					
+					stored_values.put( key, mapping );
+				}
+				
+				DHTDBValueImpl res =	
+					new DHTDBValueImpl( 
+							SystemTime.getCurrentTime(), 
+							value, 
+							getNextValueVersion(),
+							local_contact, 
+							local_contact,
+							true,
+							flags,
+							life_multiplier );
+		
+				mapping.add( res );
+				
+				return( res );
+				
+			}finally{
+				
+				this_mon.exit();
 			}
+		}else{
 			
 			DHTDBValueImpl res =	
 				new DHTDBValueImpl( 
@@ -294,15 +321,10 @@ DHTDBImpl
 						local_contact, 
 						local_contact,
 						true,
-						flags );
-	
-			mapping.add( res );
+						flags,
+						life_multiplier );
 			
 			return( res );
-			
-		}finally{
-			
-			this_mon.exit();
 		}
 	}
 	
@@ -1282,7 +1304,25 @@ DHTDBImpl
 								// when deciding whether or not to remove this, plus a bit, as the 
 								// original publisher is supposed to republish these
 							
-							if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
+							int lt_mult = value.getLifeMultiplier();
+							
+							long	max_age;
+							
+							if ( lt_mult < 1 ){
+								
+								max_age = original_republish_interval;
+								
+							}else{
+								
+								max_age = original_republish_interval * lt_mult;
+								
+								if ( max_age > MAX_VALUE_LIFETIME ){
+									
+									max_age = MAX_VALUE_LIFETIME;
+								}
+							}
+							
+							if ( now > value.getCreationTime() + max_age + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
 								
 								DHTLog.log( "removing cache entry (" + value.getString() + ")" );
 								

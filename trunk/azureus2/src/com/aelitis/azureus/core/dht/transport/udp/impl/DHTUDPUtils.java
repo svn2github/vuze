@@ -455,6 +455,16 @@ DHTUDPUtils
 		
 		final int flags	= is.readByte()&0xff;
 		
+		final int life_mult;
+		
+		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_LONGER_LIFE ){
+
+			life_mult = is.readByte()&0xff;
+		}else{
+			
+			life_mult = 0;
+		}
+		
 		DHTTransportValue value = 
 			new DHTTransportValue()
 			{
@@ -494,6 +504,12 @@ DHTUDPUtils
 					return( flags );
 				}
 				
+				public int
+				getLifeMultiplier()
+				{
+					return( life_mult );
+				}
+				
 				public String
 				getString()
 				{
@@ -507,7 +523,7 @@ DHTUDPUtils
 		return( value );
 	}
 	
-	public static final int DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE	= 15 + DHTTRANSPORTCONTACT_SIZE;
+	public static final int DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE	= 16 + DHTTRANSPORTCONTACT_SIZE;
 		
 	protected static void
 	serialiseTransportValue(
@@ -541,6 +557,11 @@ DHTUDPUtils
 		serialiseContact( os, value.getOriginator());	// 12 + 2+X + contact
 		
 		os.writeByte( value.getFlags());	// 13 + 2+ X + contact
+		
+		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_LONGER_LIFE ){
+
+			os.writeByte( value.getLifeMultiplier()); // 14 + 2+ X + contact
+		}
 	}
 	
 	protected static void

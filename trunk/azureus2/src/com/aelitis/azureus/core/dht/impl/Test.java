@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.impl;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
+import com.aelitis.azureus.core.dht.db.impl.DHTDBImpl;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
 import com.aelitis.azureus.core.dht.nat.impl.DHTNATPuncherImpl;
 import com.aelitis.azureus.core.dht.transport.*;
@@ -86,8 +87,10 @@ Test
 	int		fail_percentage	= 00;
 	
 	static Properties	dht_props = new Properties();
+	
+	static{		
+		DHTDBImpl.ORIGINAL_REPUBLISH_INTERVAL_GRACE = 0;
 
-	static{
 		dht_props.put( DHT.PR_CONTACTS_PER_NODE, new Integer(K));
 		dht_props.put( DHT.PR_NODE_SPLIT_FACTOR, new Integer(B));
 		dht_props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer(30000));
@@ -326,8 +329,8 @@ Test
 					
 					DHT	dht = dhts[dht_index];
 					
-					String	lhs = str.substring(0,pos);
-					String	rhs = str.substring(pos+1);
+					String	lhs = str.substring(0,pos).trim();
+					String	rhs = str.substring(pos+1).trim();
 					
 					DHTTransportStats	stats_before 	= null;
 					
@@ -350,7 +353,37 @@ Test
 							String	key = rhs.substring(0,pos);
 							String	val = rhs.substring(pos+1);
 							
-							dht.put( key.getBytes(), "", val.getBytes(), (byte)(Math.random()*255), new DHTOperationAdapter() );
+							pos = val.indexOf( ' ' );
+							
+							byte flags 	= 0;
+							byte life 	= 0;
+							
+							if ( pos != -1 ){
+								
+								String	opts = val.substring( pos+1 );
+								
+								String[] x = opts.split( "," );
+								
+								for ( String s: x ){
+									
+									String[] y = s.split("=");
+									
+									String	opt = y[0];
+									
+									if ( opt.equals( "f" )){
+										
+										flags = (byte)Integer.parseInt(y[1]);
+										
+									}else if ( opt.equals( "l" )){
+										
+										life = (byte)Integer.parseInt(y[1]);
+									}
+								}
+								
+								val = val.substring(0,pos);
+							}
+							
+							dht.put( key.getBytes(), "", val.getBytes(), flags, life, false, new DHTOperationAdapter() );
 						}
 					}else if ( command == 'x' ){
 						
@@ -877,7 +910,8 @@ Test
 		DHTTransportValue		value )
 	{
 		return( new String( value.getValue()) + 
-				"; flags=" + Integer.parseInt(String.valueOf( value.getFlags()), 16 ) +
+				"; flags=" + value.getFlags() +
+				"; life=" + value.getLifeMultiplier() +
 				", orig=" + value.getOriginator().getAddress());
 	}
 	

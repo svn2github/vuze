@@ -55,7 +55,8 @@ DHTDB
 	store(
 		HashWrapper		key,
 		byte[]			value,
-		byte			flags );
+		byte			flags,
+		byte			life_multiplier );
 	
 		/**
 		 * Remote store

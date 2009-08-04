@@ -48,6 +48,9 @@ DHTTransportValue
 	public int
 	getFlags();
 	
+	public int
+	getLifeMultiplier();
+	
 	public String
 	getString();
 }

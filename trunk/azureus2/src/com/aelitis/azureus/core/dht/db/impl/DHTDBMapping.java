@@ -364,7 +364,8 @@ DHTDBMapping
 								db.getLocalContact(),
 								db.getLocalContact(),
 								true,
-								DHT.FLAG_STATS )});
+								DHT.FLAG_STATS,
+								0 )});
 					
 				}catch( Throwable e ){
 					

@@ -59,6 +59,7 @@ DHTControl
 		String					description,
 		byte[]					value,
 		byte					flags,
+		byte					life_multiplier,
 		boolean					high_priority,
 		DHTOperationListener	listener );
 	
