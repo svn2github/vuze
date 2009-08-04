@@ -1762,13 +1762,15 @@ AzureusCoreImpl
 	public static void addCoreRunningListener(AzureusCoreRunningListener l) {
 	   mon_coreRunningListeners.enter();
 	   try {
-    		if (AzureusCoreImpl.coreRunningListeners == null) {
-    			l.azureusCoreRunning(AzureusCoreImpl.getSingleton());
-    		} else {
+    		if (AzureusCoreImpl.coreRunningListeners != null) {
     			coreRunningListeners.add(l);
+    			
+    			return;
     		}
 	   } finally {
 	  	 mon_coreRunningListeners.exit();
 	   }
+	   
+	   l.azureusCoreRunning(AzureusCoreImpl.getSingleton());
 	}
 }
