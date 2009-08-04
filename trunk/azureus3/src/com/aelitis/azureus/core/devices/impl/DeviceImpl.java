@@ -421,6 +421,14 @@ DeviceImpl
 	{
 			// note, overridden in itunes
 		
+			// bit of a mess here. First release used name as classification and mapped to 
+			// species + device-classification here.
+			// second release moved to separate name and classification and used the correct
+			// device-classification as the classification
+			// so we deal with both for the moment...
+			// 'generic' means one we don't explicitly support, which are rendereres discovered
+			// by UPnP
+		
 		switch( getRendererSpecies()){
 		
 			case DeviceMediaRenderer.RS_PS3:{
@@ -441,11 +449,17 @@ DeviceImpl
 			}
 			case DeviceMediaRenderer.RS_OTHER:{
 				
-				if ( isManual() || !classification.contains( "generic" )){
+				if ( isManual()){
 					
 					return( classification );
 				}
 				
+				if ( 	classification.equals( "sony.PSP" ) ||
+						classification.startsWith( "tivo." )){
+					
+					return( classification );	
+				}
+	
 				return( GENERIC );
 			}
 			default:{
@@ -491,9 +505,12 @@ DeviceImpl
 	{
 		last_seen	= SystemTime.getCurrentTime();
 			
-		online	= true;
+		if ( !online ){
+		
+			online	= true;
 			
-		setDirty( false );
+			setDirty( false );
+		}
 	}
 	
 	public boolean
