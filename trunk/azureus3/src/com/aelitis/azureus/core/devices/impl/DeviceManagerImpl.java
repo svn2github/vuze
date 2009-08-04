@@ -550,6 +550,14 @@ DeviceManagerImpl
 	addDevice(
 		DeviceImpl		device )
 	{
+		return( addDevice( device, true ));
+	}
+	
+	protected DeviceImpl
+	addDevice(
+		DeviceImpl		device,
+		boolean			is_alive )
+	{
 			// for xbox (currently) we automagically replace a manual entry with an auto one as we may have
 			// added the manual one when receiving a previous browse before getting the UPnP renderer details
 			
@@ -561,7 +569,7 @@ DeviceManagerImpl
 			
 			if ( existing != null ){
 				
-				existing.updateFrom( device );
+				existing.updateFrom( device, is_alive );
 												
 			}else{
 			
@@ -587,7 +595,7 @@ DeviceManagerImpl
 									
 									existing.setSecondaryID( secondary_id );
 									
-									existing.updateFrom( device );
+									existing.updateFrom( device, is_alive );
 								}
 							}
 						}
@@ -615,7 +623,10 @@ DeviceManagerImpl
 					
 		device.initialise();
 		
-		device.alive();
+		if ( is_alive ){
+		
+			device.alive();
+		}
 		
 		deviceAdded( device );
 		

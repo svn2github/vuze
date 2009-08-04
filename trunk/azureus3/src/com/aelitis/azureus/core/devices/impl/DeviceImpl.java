@@ -242,7 +242,8 @@ DeviceImpl
 	
 	protected boolean
 	updateFrom(
-		DeviceImpl		other )
+		DeviceImpl		other,
+		boolean			is_alive )
 	{
 		if ( type != other.type ){
 			
@@ -303,7 +304,10 @@ DeviceImpl
 			setDirty();
 		}
 		
-		alive();
+		if ( is_alive ){
+		
+			alive();
+		}
 		
 		return( true );
 	}

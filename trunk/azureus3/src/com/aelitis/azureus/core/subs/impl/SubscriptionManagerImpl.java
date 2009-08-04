@@ -138,13 +138,26 @@ SubscriptionManagerImpl
 			});		
 	}
 		
-	public static synchronized SubscriptionManager
+	public static SubscriptionManager
 	getSingleton(
 		boolean		stand_alone )
 	{
-		if ( singleton == null ){
+		synchronized( SubscriptionManagerFactory.class ){
+			
+			if ( singleton != null ){
+			
+				return( singleton );
+			}
 			
 			singleton = new SubscriptionManagerImpl( stand_alone );
+		}
+		
+			// saw deadlock here when adding core listener while synced on class - rework
+			// to avoid 
+		
+		if ( !stand_alone ){
+			
+			singleton.initialise();
 		}
 		
 		return( singleton );
@@ -287,13 +300,17 @@ SubscriptionManagerImpl
 			}
 			
 			scheduler = new SubscriptionSchedulerImpl( this );
-			
-			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-				public void azureusCoreRunning(AzureusCore core) {
-					startUp(core);
-				}
-			});
 		}
+	}
+	
+	protected void
+	initialise()
+	{
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				startUp(core);
+			}
+		});
 	}
 
 	protected void

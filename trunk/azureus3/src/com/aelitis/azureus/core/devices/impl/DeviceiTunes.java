@@ -99,9 +99,10 @@ DeviceiTunes
 	
 	protected boolean
 	updateFrom(
-		DeviceImpl		_other )
+		DeviceImpl		_other,
+		boolean			_is_alive )
 	{
-		if ( !super.updateFrom( _other )){
+		if ( !super.updateFrom( _other, _is_alive )){
 			
 			return( false );
 		}
@@ -190,19 +191,40 @@ DeviceiTunes
 		return( false );
 	}
 	
+	public boolean 
+	isLivenessDetectable() 
+	{
+		return( true );
+	}
+	
 	protected void
 	destroy()
 	{
 		super.destroy();
 	}
 	
-	@Override
 	protected void
 	updateStatus(
 		int		tick_count )
 	{
 		super.updateStatus( tick_count );
 		
+		updateStatusSupport( tick_count );
+		
+		if ( is_installed && is_running ){
+			
+			alive();
+			
+		}else{
+			
+			dead();
+		}
+	}
+	
+	protected void
+	updateStatusSupport(
+		int		tick_count )
+	{
 		if ( itunes == null ){
 			
 			return;

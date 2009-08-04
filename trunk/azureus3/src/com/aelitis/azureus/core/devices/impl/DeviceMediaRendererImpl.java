@@ -86,9 +86,10 @@ DeviceMediaRendererImpl
 	@Override
 	protected boolean
 	updateFrom(
-		DeviceImpl		_other )
+		DeviceImpl		_other,
+		boolean			_is_alive )
 	{
-		if ( !super.updateFrom( _other )){
+		if ( !super.updateFrom( _other, _is_alive )){
 			
 			return( false );
 		}

@@ -159,7 +159,15 @@ public class SBC_DevicesView
 				case DeviceMediaRenderer.RS_XBOX:
 					speciesID = "xbox";
 					break;
-
+				case DeviceMediaRenderer.RS_OTHER:{
+					String classification = renderer.getClassification();
+					
+					if ( classification.equals( "sony.PSP")){
+						speciesID = "psp";
+					}else if ( classification.startsWith( "tivo.")){
+						speciesID = "tivo";
+					}
+				}
 				default:
 					break;
 			}

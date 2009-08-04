@@ -135,7 +135,7 @@ DeviceiTunesManager
 				}
 			}
 			
-			device_manager.addDevice( new_device );
+			device_manager.addDevice( new_device, false );
 		}
 	}	
 	

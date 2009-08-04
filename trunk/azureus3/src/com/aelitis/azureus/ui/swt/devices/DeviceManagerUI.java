@@ -1721,11 +1721,39 @@ DeviceManagerUI
 												device.getName(),
 												view, null, false, -1);
 										
-										String id = "image.sidebar.device."
-											+ ((DeviceMediaRenderer) device).getRendererSpecies()
-											+ ".small";
-										entry.setImageLeftID(id);
-
+										String id = null;
+										
+										int	species = ((DeviceMediaRenderer)device).getRendererSpecies();
+										
+										if ( species != DeviceMediaRenderer.RS_OTHER ){
+										
+											id = "image.sidebar.device." + species + ".small";
+											
+										}else{
+											
+											String	classification = device.getClassification();
+											
+											if ( classification.equals( "sony.PSP")){
+												
+												id = "psp";
+												
+											}else if ( classification.startsWith( "tivo.")){
+												
+												id = "tivo";
+												
+											}else{
+												
+												id = String.valueOf( species );
+											}
+											
+											id = "image.sidebar.device." + id + ".small";
+										}
+										
+										if ( id != null ){
+										
+											entry.setImageLeftID(id);
+										}
+										
 										entry.setDatasource(device);
 
 									}else{
