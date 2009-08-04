@@ -1062,6 +1062,7 @@ DeviceManagerUI
 						null, null, false, -1);
 
 
+				/* and away you go!
 				SideBarVitalityImage addDevice = main_sb_entry.addVitalityImage("image.sidebar.subs.add");
 				
 				addDevice.setToolTip("Add Device");
@@ -1077,7 +1078,8 @@ DeviceManagerUI
 							//new DevicesWizard( DeviceManagerUI.this );
 						}
 					});
-
+				*/
+				
 				if (device_manager.getTranscodeManager().getProviders().length == 0) {
 					SideBarVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
 					turnon.addListener(new SideBarVitalityImageListener() {
