@@ -342,10 +342,14 @@ DeviceMediaRendererManual
 		boolean	borked = false;
 		
 		TranscodeFileImpl[] files = getFiles();
-									
+			
+		int	pending = 0;
+		
 		for ( TranscodeFileImpl file: files ){
 				
 			if ( file.isComplete() && !file.isCopiedToDevice()){
+				
+				pending++;
 				
 				if ( file.getCopyToDeviceFails() < 3 ){
 				
@@ -364,29 +368,42 @@ DeviceMediaRendererManual
 		
 		if ( to_copy.size() > 0 ){
 			
-			if ( copy_to == null ){
+				// handle case where device is auto-detectable and copy-to is missing
 			
-				setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytonotset" ));
+			if ( isLivenessDetectable() && !isAlive() && ( copy_to == null || !copy_to.exists())){
+			
+				String str = MessageText.getString( "devices.info.copypending2", new String[]{ String.valueOf( pending ) });
 				
-				borked = true;
-				
-			}else if ( !copy_to.exists()){
-				
-				setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytomissing", new String[]{copy_to.getAbsolutePath()}));
-				
-				borked = true;
-				
-			}else if ( !copy_to.canWrite()){
-				
-				setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytonowrite", new String[]{copy_to.getAbsolutePath()}));
+				setInfo( COPY_PENDING_KEY, str );
+
 				
 				borked = true;
 				
 			}else{
+				if ( copy_to == null ){
 				
-				try_copy = true;
-				
-				setError( COPY_ERROR_KEY, null );
+					setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytonotset" ));
+					
+					borked = true;
+					
+				}else if ( !copy_to.exists()){
+					
+					setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytomissing", new String[]{copy_to.getAbsolutePath()}));
+					
+					borked = true;
+					
+				}else if ( !copy_to.canWrite()){
+					
+					setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytonowrite", new String[]{copy_to.getAbsolutePath()}));
+					
+					borked = true;
+					
+				}else{
+					
+					try_copy = true;
+					
+					setError( COPY_ERROR_KEY, null );
+				}
 			}
 		}
 		
