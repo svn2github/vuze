@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
 <jardesc>
-    <jar path="aeseedingengine/aeseedingengine.jar"/>
+    <jar path="azureus2/Azureus2_parg.jar"/>
     <options buildIfNeeded="true" compress="true" descriptionLocation="/azureus2/Azureus2.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
@@ -144,9 +144,9 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.network"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.metasearch.impl.web"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.disk.impl.resume"/>
-        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.drivedetector"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.host"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.ui.menus"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.drivedetector"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.natpmp.upnp"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.asn1.misc"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.network"/>
