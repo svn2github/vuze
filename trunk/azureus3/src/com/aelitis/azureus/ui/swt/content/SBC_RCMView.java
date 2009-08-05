@@ -26,6 +26,8 @@ import java.util.Set;
 
 import org.eclipse.swt.SWT;
 
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridLayout;
@@ -49,6 +51,7 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.content.RelatedContent;
 import com.aelitis.azureus.core.content.RelatedContentManager;
 import com.aelitis.azureus.core.content.RelatedContentManagerListener;
+import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
@@ -592,6 +595,48 @@ SBC_RCMView
 				}
 			});
 
+		tv_related_content.addKeyListener(
+				new KeyListener()
+				{
+					public void 
+					keyPressed(
+						KeyEvent e )
+					{
+						if ( e.stateMask == 0 && e.keyCode == SWT.DEL ){
+							
+							Object[] selected;
+							
+							synchronized (this) {
+								
+								if ( tv_related_content == null ){
+									
+									selected = new Object[0];
+									
+								}else{
+								
+									selected = tv_related_content.getSelectedDataSources().toArray();
+								}
+							}
+							
+							RelatedContent[] content = new RelatedContent[ selected.length ];
+							
+							for ( int i=0;i<content.length;i++){
+								
+								content[i] = (RelatedContent)selected[i];
+							}
+							
+							manager.delete( content );
+							
+							e.doit = false;
+						}
+					}
+					
+					public void 
+					keyReleased(
+						KeyEvent arg0 ) 
+					{
+					}
+				});
 		tv_related_content.initialize( table_parent );
 
 		control.layout(true);
