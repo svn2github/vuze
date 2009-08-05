@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.platform.win32.access;
 
+import java.io.File;
 import java.net.InetAddress;
 
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
@@ -226,4 +227,12 @@ AEWin32Access
 		String		params )
 
 		throws AEWin32AccessException;
+
+	/**
+	 * @return
+	 *
+	 * @since 4.1.0.5
+	 */
+	public File[] 
+		getUSBDrives();
 }

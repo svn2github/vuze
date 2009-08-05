@@ -59,6 +59,7 @@ public class DriveDetectorImpl
 	}
 
 	public void driveDetected(File location) {
+		System.out.println("Drive Detected: " + location.toString());
 		mon_listListeners.enter();
 		try {
 			for (DriveDetectedListener l : listListeners) {

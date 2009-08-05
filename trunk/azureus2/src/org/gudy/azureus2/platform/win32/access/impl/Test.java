@@ -27,7 +27,11 @@ package org.gudy.azureus2.platform.win32.access.impl;
  *
  */
 
+import java.io.File;
 import java.net.InetAddress;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 
@@ -39,6 +43,24 @@ Test
 		String[]	args )
 	{
 		try{
+			
+			List availableDrives = AEWin32AccessInterface.getAvailableDrives();
+			
+			for (Object object : availableDrives) {
+				File f = (File) object;
+				System.out.println(f.getAbsolutePath());
+
+				Map driveInfo = AEWin32AccessInterface.getDriveInfo(f.getPath().charAt(0));
+				for (Iterator iter = driveInfo.keySet().iterator(); iter.hasNext();) {
+					Object key = (Object) iter.next();
+					Object val = driveInfo.get(key);
+					System.out.println(key + ": " + val);
+				}
+				
+			}
+			
+			if (true)
+				return;
 			/*
 			AEWin32Access access = AEWin32Manager.getAccessor();
 			

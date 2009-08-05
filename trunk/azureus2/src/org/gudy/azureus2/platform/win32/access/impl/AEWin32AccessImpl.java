@@ -27,6 +27,7 @@ package org.gudy.azureus2.platform.win32.access.impl;
  *
  */
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -34,8 +35,11 @@ import java.util.*;
 // don't use any core stuff in here as we need this access stub to be able to run in isolation
 
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.platform.win32.access.*;
+
+import com.aelitis.azureus.util.MapUtils;
 
 public class 
 AEWin32AccessImpl
@@ -552,4 +556,37 @@ AEWin32AccessImpl
 			return( cb.reportNode( ping_mode?-1:ttl, address, time )?1:0 );
 		}  	
 	}
+    
+    public File[] getUSBDrives() {
+    	
+    	ArrayList<File> listUSB = new ArrayList<File>();
+    	try {
+				List availableDrives = AEWin32AccessInterface.getAvailableDrives();
+				if (availableDrives != null) {
+					for (Object object : availableDrives) {
+						File f = (File) object;
+
+						Map driveInfo = AEWin32AccessInterface.getDriveInfo(f.getPath().charAt(0));
+						if (driveInfo != null) {
+							boolean removeable = MapUtils.getMapBoolean(driveInfo, "Removable", false);
+							// values GetDriveType
+							long driveType = MapUtils.getMapLong(driveInfo, "DriveType", 0);
+							// values STORAGE_BUS_TYPE
+							long busType = MapUtils.getMapLong(driveInfo, "BusType", 0);
+							// values MEDIA_TYPE
+							long mediaType = MapUtils.getMapLong(driveInfo, "MediaType", 0);
+
+							if (removeable && driveType == 2 && busType == 7 && mediaType == 11) {
+								listUSB.add(f);
+							}
+						}
+					}
+				}
+				
+				return listUSB.toArray(new File[0]);
+			} catch (Throwable e) {
+				Debug.out(e);
+			}
+			return new File[0];
+    }
 }

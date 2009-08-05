@@ -30,7 +30,11 @@ import org.eclipse.swt.internal.win32.OS;
 import org.eclipse.swt.internal.win32.TCHAR;
 import org.eclipse.swt.widgets.Shell;
 
-import com.aelitis.azureus.core.drivedetector.*;
+import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
+
+import com.aelitis.azureus.core.drivedetector.DriveDetectedInfo;
+import com.aelitis.azureus.core.drivedetector.DriveDetector;
+import com.aelitis.azureus.core.drivedetector.DriveDetectorFactory;
 
 /**
  * @author TuxPaper
@@ -163,6 +167,14 @@ public class Win32UIEnhancer
 		messageProc = messageCallback.getAddress ();
 		if (messageProc != 0) {
 			OS.SetWindowLongPtr (subshell.handle, OS.GWLP_WNDPROC, messageProc);
+		}
+		
+
+		File[] drives = AEWin32Manager.getAccessor(false).getUSBDrives();
+		if (drives != null) {
+			for (File file : drives) {
+				DriveDetectorFactory.getDeviceDetector().driveDetected(file);
+			}
 		}
 	}
 

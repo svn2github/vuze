@@ -34,7 +34,7 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.17"
+#define VERSION "1.18"
 
  
 HMODULE	application_module;
@@ -488,7 +488,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getModu
 		return( NULL );
 	}
 
-	return( env->NewString(buffer, wcslen(buffer)));
+	return( env->NewString((const jchar *)buffer, wcslen(buffer)));
 }
 
 
@@ -552,12 +552,12 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readStr
 
 					ExpandEnvironmentStringsW((const WCHAR*)value, expanded_value, sizeof( expanded_value ));
 			
-					result = env->NewString(expanded_value,wcslen(expanded_value));
+					result = env->NewString((const jchar *)expanded_value,wcslen(expanded_value));
 
 				}else{
 
 
-					result = env->NewString((const WCHAR*)value,wcslen((WCHAR *)value));
+					result = env->NewString((const jchar *)value,wcslen((WCHAR *)value));
 				}			
 
 			}else{

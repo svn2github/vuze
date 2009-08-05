@@ -27,9 +27,6 @@ extern "C" {
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMSUSPEND 4L
 #undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMRESUMESUSPEND
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMRESUMESUSPEND 7L
-/* Inaccessible static: enabled */
-/* Inaccessible static: enabled_set */
-/* Inaccessible static: cb */
 /*
  * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
  * Method:    initialise
@@ -157,6 +154,22 @@ JNIEXPORT jint JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32
  */
 JNIEXPORT jint JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecuteAndWait
   (JNIEnv *, jclass, jstring, jstring);
+
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    getAvailableDrives
+ * Signature: ()Ljava/util/List;
+ */
+JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getAvailableDrives
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    getDriveInfo
+ * Signature: (C)Ljava/util/Map;
+ */
+JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getDriveInfo
+  (JNIEnv *, jclass, jchar);
 
 #ifdef __cplusplus
 }
