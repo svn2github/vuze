@@ -25,6 +25,7 @@ package org.gudy.azureus2.platform.macosx;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.text.MessageFormat;
@@ -72,6 +73,9 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     //T: PlatformManagerCapabilities
     private final HashSet capabilitySet = new HashSet();
 
+    private volatile String		computer_name;
+    private volatile boolean	computer_name_tried;
+    
     /**
      * Gets the platform manager singleton, which was already initialized
      */
@@ -229,31 +233,109 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	public String 
 	getComputerName() 
 	{
-		String	hostname = System.getenv( "HOSTNAME" );
+		if ( computer_name_tried ){
+			
+			return( computer_name );
+		}
 		
-		if ( hostname != null && hostname.length() > 0 ){
+		try{
+			String result = null;
 			
-			int	pos = hostname.lastIndexOf( '.' );
+			String	hostname = System.getenv( "HOSTNAME" );
 			
-			if ( pos != -1 ){
+			if ( hostname != null && hostname.length() > 0 ){
 				
-				hostname = hostname.substring( 0, pos );
+				result = hostname;
+			}
+			
+			if ( result == null ){
 				
-				if ( hostname.length() > 0 ){
+				String	host = System.getenv( "HOST" );
+				
+				if ( host != null && host.length() > 0 ){
 					
-					return( hostname );
+					result = host;
 				}
 			}
-		}
-		
-		String	host = System.getenv( "HOST" );
-		
-		if ( host != null && host.length() > 0 ){
 			
-			return( host );
+			if ( result == null ){
+			
+				try{				
+					String[] to_run = new String[3];
+					
+				  	to_run[0] = "/bin/sh";
+				  	to_run[1] = "-c";
+				  	to_run[2] = "echo $HOSTNAME";
+				  	
+					Process p = Runtime.getRuntime().exec( to_run );
+					
+					if ( p.waitFor() == 0 ){
+						
+						String	output = "";
+						
+						InputStream is = p.getInputStream();
+						
+						while( true ){
+							
+							byte[] buffer = new byte[1024];
+							
+							int len = is.read( buffer );
+							
+							if ( len <= 0 ){
+								
+								break;
+							}
+							
+							output += new String( buffer, 0, len );
+							
+							if ( output.length() > 64 ){
+								
+								break;
+							}
+						}
+						
+						if ( output.length() > 0 ){
+							
+							result = output.trim();
+							
+							int pos = result.indexOf(' ');
+							
+							if ( pos != -1 ){
+								
+								result = result.substring( 0, pos ).trim();
+							}
+						}
+					}
+				}catch( Throwable e ){
+				}
+			}
+			
+			if ( result != null ){
+			
+				int	pos = result.lastIndexOf( '.' );
+				
+				if ( pos != -1 ){
+					
+					result = result.substring( 0, pos );
+				}
+				
+				if ( result.length() > 0 ){
+					
+					if ( result.length() > 32 ){
+						
+						result = result.substring( 0, 32 );
+					}
+					
+					computer_name = result;
+				}
+			}
+						
+			return( computer_name );
+			
+		}finally{
+			
+			computer_name_tried = true;
 		}
-		
-		return( null );
 	}
 	
 	public File
@@ -806,6 +888,9 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 				} else {
 					writer.println("Not loaded");
 				}
+				
+				writer.println("Computer Name: " + getComputerName());
+
 			} finally {
 				writer.exdent();
 			}
