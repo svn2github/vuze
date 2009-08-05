@@ -860,6 +860,33 @@ ConfigurationManager
 				writer.exdent();
 			}
 			
+			writer.println( "Environment" );
+			
+			try{
+				writer.indent();
+			
+				Map<String,String> env = System.getenv();
+				
+				if ( env == null ){
+					
+					writer.println( "Not supported" );
+					
+				}else{
+					
+					Iterator	it = new TreeSet( env.keySet()).iterator();
+					
+					while(it.hasNext()){
+						
+						String	key = (String)it.next();
+						
+						writer.println( key + "=" + env.get( key ));
+					}
+				}
+			}finally{
+				
+				writer.exdent();
+			}
+			
 			writer.println( "Azureus Config" );
 
 			try{
