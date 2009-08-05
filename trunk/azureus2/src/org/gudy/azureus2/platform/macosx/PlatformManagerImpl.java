@@ -229,6 +229,23 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	public String 
 	getComputerName() 
 	{
+		String	hostname = System.getenv( "HOSTNAME" );
+		
+		if ( hostname != null && hostname.length() > 0 ){
+			
+			int	pos = hostname.lastIndexOf( '.' );
+			
+			if ( pos != -1 ){
+				
+				hostname = hostname.substring( 0, pos );
+				
+				if ( hostname.length() > 0 ){
+					
+					return( hostname );
+				}
+			}
+		}
+		
 		String	host = System.getenv( "HOST" );
 		
 		if ( host != null && host.length() > 0 ){
