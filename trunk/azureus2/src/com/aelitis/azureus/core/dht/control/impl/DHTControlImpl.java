@@ -732,7 +732,7 @@ DHTControlImpl
 		String					_description,
 		byte[]					_value,
 		byte					_flags,
-		byte					_life_multiplier,
+		byte					_life_hours,
 		boolean					_high_priority,
 		DHTOperationListener	_listener )
 	{
@@ -751,7 +751,7 @@ DHTControlImpl
 			DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
 		}
 		
-		DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value, _flags, _life_multiplier );
+		DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value, _flags, _life_hours );
 		
 		put( 	external_put_pool,
 				_high_priority,
@@ -3850,9 +3850,9 @@ DHTControlImpl
 		}
 		
 		public int 
-		getLifeMultiplier() 
+		getLifeTimeHours() 
 		{
-			return( delegate.getLifeMultiplier());
+			return( delegate.getLifeTimeHours());
 		}
 		
 		public String

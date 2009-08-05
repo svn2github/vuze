@@ -455,14 +455,15 @@ DHTUDPUtils
 		
 		final int flags	= is.readByte()&0xff;
 		
-		final int life_mult;
+		final int life_hours;
 		
 		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_LONGER_LIFE ){
 
-			life_mult = is.readByte()&0xff;
+			life_hours = is.readByte()&0xff;
+			
 		}else{
 			
-			life_mult = 0;
+			life_hours = 0;
 		}
 		
 		DHTTransportValue value = 
@@ -505,9 +506,9 @@ DHTUDPUtils
 				}
 				
 				public int
-				getLifeMultiplier()
+				getLifeTimeHours()
 				{
-					return( life_mult );
+					return( life_hours );
 				}
 				
 				public String
@@ -516,7 +517,7 @@ DHTUDPUtils
 					long	now = SystemTime.getCurrentTime();
 					
 					return( DHTLog.getString( value_bytes ) + " - " + new String(value_bytes) + "{v=" + version + ",f=" + 
-							Integer.toHexString(flags) +",ca=" + (now - created ) + ",or=" + originator.getString() +"}" );
+							Integer.toHexString(flags) + ",l=" + life_hours + ",ca=" + (now - created ) + ",or=" + originator.getString() +"}" );
 				}
 			};
 			
@@ -560,7 +561,7 @@ DHTUDPUtils
 		
 		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_LONGER_LIFE ){
 
-			os.writeByte( value.getLifeMultiplier()); // 14 + 2+ X + contact
+			os.writeByte( value.getLifeTimeHours()); // 14 + 2+ X + contact
 		}
 	}
 	

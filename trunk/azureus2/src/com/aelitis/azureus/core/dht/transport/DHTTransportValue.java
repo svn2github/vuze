@@ -49,7 +49,7 @@ DHTTransportValue
 	getFlags();
 	
 	public int
-	getLifeMultiplier();
+	getLifeTimeHours();
 	
 	public String
 	getString();

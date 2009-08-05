@@ -145,7 +145,7 @@ Test
 							}
 							
 							public int 
-							getLifeMultiplier() 
+							getLifeTimeHours() 
 							{
 								return 0;
 							}

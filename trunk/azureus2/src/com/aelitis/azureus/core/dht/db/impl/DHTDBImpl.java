@@ -79,7 +79,7 @@ DHTDBImpl
 	
 	private int			cache_republish_interval;
 	
-	private long		MIN_CACHE_EXPIRY_CHECK_INTERVAL		= 60000;
+	private long		MIN_CACHE_EXPIRY_CHECK_INTERVAL		= 60*1000;
 	private long		last_cache_expiry_check;
 	
 	private static final long	IP_BLOOM_FILTER_REBUILD_PERIOD		= 15*60*1000;
@@ -269,11 +269,21 @@ DHTDBImpl
 		HashWrapper		key,
 		byte[]			value,
 		byte			flags,
-		byte			life_multiplier )
+		byte			life_hours )
 	{
 			// local store
 		
-		if ((flags & DHT.FLAG_PUT_AND_FORGET ) == 0 ){
+		if ( (flags & DHT.FLAG_PUT_AND_FORGET ) == 0 ){
+			
+			if ( life_hours > 0 ){
+				
+				if ( life_hours*60*60*1000 < original_republish_interval ){
+					
+					Debug.out( "Don't put persistent values with a lifetime less than republish period - lifetime over-ridden" );
+					
+					life_hours = 0;
+				}
+			}
 			
 			try{
 				this_mon.enter();
@@ -301,7 +311,7 @@ DHTDBImpl
 							local_contact,
 							true,
 							flags,
-							life_multiplier );
+							life_hours );
 		
 				mapping.add( res );
 				
@@ -322,7 +332,7 @@ DHTDBImpl
 						local_contact,
 						true,
 						flags,
-						life_multiplier );
+						life_hours );
 			
 			return( res );
 		}
@@ -1304,17 +1314,17 @@ DHTDBImpl
 								// when deciding whether or not to remove this, plus a bit, as the 
 								// original publisher is supposed to republish these
 							
-							int lt_mult = value.getLifeMultiplier();
+							int life_hours = value.getLifeTimeHours();
 							
 							long	max_age;
 							
-							if ( lt_mult < 1 ){
+							if ( life_hours < 1 ){
 								
 								max_age = original_republish_interval;
 								
 							}else{
 								
-								max_age = original_republish_interval * lt_mult;
+								max_age = life_hours * 60*60*1000;
 								
 								if ( max_age > MAX_VALUE_LIFETIME ){
 									

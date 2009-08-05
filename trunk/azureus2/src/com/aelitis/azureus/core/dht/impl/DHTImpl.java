@@ -231,11 +231,11 @@ DHTImpl
 		String					description,
 		byte[]					value,
 		byte					flags,
-		byte					life_multiplier,
+		byte					life_hours,
 		boolean					high_priority,
 		DHTOperationListener	listener )
 	{
-		control.put( key, description, value, flags, life_multiplier, high_priority, listener );
+		control.put( key, description, value, flags, life_hours, high_priority, listener );
 	}
 	
 	public DHTTransportValue

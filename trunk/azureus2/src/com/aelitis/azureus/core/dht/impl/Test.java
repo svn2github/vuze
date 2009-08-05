@@ -911,7 +911,7 @@ Test
 	{
 		return( new String( value.getValue()) + 
 				"; flags=" + value.getFlags() +
-				"; life=" + value.getLifeMultiplier() +
+				"; life=" + value.getLifeTimeHours() +
 				", orig=" + value.getOriginator().getAddress());
 	}
 	
