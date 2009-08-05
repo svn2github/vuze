@@ -616,7 +616,9 @@ DeviceManagerImpl
 				// don't trigger config save here, if anything has changed it will have been handled
 				// by the updateFrom call above
 			
-			deviceChanged( existing, false );
+			// if anything has changed then the updateFrom methods should have indicated this
+			// so there's no need to blindly fire a change event here
+			// deviceChanged( existing, false );
 			
 			return( existing );
 		}
@@ -940,6 +942,8 @@ DeviceManagerImpl
 			
 			config_unclean = true;
 		}
+		
+		Debug.out( "changed!" );
 		
 		listeners.dispatch( LT_DEVICE_CHANGED, device );
 	}
