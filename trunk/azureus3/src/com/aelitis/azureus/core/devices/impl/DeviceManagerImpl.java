@@ -942,9 +942,7 @@ DeviceManagerImpl
 			
 			config_unclean = true;
 		}
-		
-		Debug.out( "changed!" );
-		
+				
 		listeners.dispatch( LT_DEVICE_CHANGED, device );
 	}
 	
