@@ -527,10 +527,13 @@ DeviceImpl
 	
 	protected void
 	dead()
-	{			
-		online	= false;
+	{		
+		if ( online ){
+		
+			online	= false;
 			
-		setDirty( false );
+			setDirty( false );
+		}
 	}
 	
 	protected void
