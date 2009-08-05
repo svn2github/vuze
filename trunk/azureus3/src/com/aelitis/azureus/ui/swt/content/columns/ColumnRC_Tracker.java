@@ -55,21 +55,21 @@ public class ColumnRC_Tracker
 			return;
 		}
 
-		String text = rc.getTracker();
+		String tracker = rc.getTracker();
 		
-		if ( text == null || text.length() == 0 ){
+		if ( !validTracker( tracker )){
 			
 			return;
 		}
 
-		cell.setText(text);
+		cell.setText(tracker);
 	}
 	
 	public void cellAdded(TableCell cell) {
 		
 		RelatedContent rc = (RelatedContent) cell.getDataSource();
 		
-		if ( cell instanceof TableCellSWT && rc != null && rc.getTracker() != null ){
+		if ( cell instanceof TableCellSWT && rc != null && validTracker(  rc.getTracker())){
 		
 			((TableCellSWT)cell).setCursorID( SWT.CURSOR_HAND );
 			
@@ -84,12 +84,39 @@ public class ColumnRC_Tracker
 			
 			String tracker = rc.getTracker();
 			
-			if ( tracker != null ){
+			if ( validTracker( tracker )){
 				
 				rc.setUnread( false );
 				
 				Utils.launch( "http://" + tracker + "/" );
 			}
 		}
+	}
+	
+	private boolean
+	validTracker(
+		String	tracker )
+	{
+		if ( tracker == null || tracker.length() == 0 ){
+			
+			return( false );
+		}
+		
+		int pos = tracker.lastIndexOf( '.' );
+		
+		if ( pos == -1 ){
+			
+			return( false );
+		}
+		
+		for ( int i=pos+1;i<tracker.length();i++){
+			
+			if ( !Character.isDigit( tracker.charAt( i ))){
+				
+				return( true );
+			}
+		}
+		
+		return( false );
 	}
 }
