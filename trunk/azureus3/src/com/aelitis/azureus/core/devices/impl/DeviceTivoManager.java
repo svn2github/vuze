@@ -263,12 +263,19 @@ DeviceTivoManager
 				}
 			}
 		}
-					
-		DeviceTivo tivo = (DeviceTivo)device_manager.addDevice( new DeviceTivo( device_manager, uid, classification ));
 		
-		tivo.found( this, address, server_name, machine );
+		DeviceTivo new_device = new DeviceTivo( device_manager, uid, classification );
 		
-		return( tivo );
+		DeviceTivo result = (DeviceTivo)device_manager.addDevice( new_device );
+		
+			// possible race here so handle case where device already present
+		
+		if ( result == new_device ){
+		
+			new_device.found( this, address, server_name, machine );
+		}
+		
+		return( result );
 	}
 	
 	protected void
