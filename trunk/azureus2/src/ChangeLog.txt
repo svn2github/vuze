@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2009.08.xx | Vuze 4.2.0.5
+2009.08.06 | Vuze 4.2.0.6
 
 FEATURE: UI   | Support delete key for deleting transcoded content [Parg]
 FEATURE: UI   | Added visual indication of buddy shares [Parg]
@@ -12,17 +12,19 @@ FEATURE: Core | Added RSS feed generation for device's transcoded content [Parg]
 FEATURE: Core | File-based RSS feeds [Parg]
 FEATURE: Core | Added ability to set category for downloads from a subscription [Parg]
 
-CHANGE: Core  | Added more meta data for devices RSS Feed [TuxPaper]
 CHANGE: UI    | Moved Column Setup and column related menu items to right click of column header [TuxPaper]
 CHANGE: UI    | Made Library/My Torrents filter more visible [TuxPaper]
 CHANGE: UI    | Moved "Rename" context menu in Library to context menu of Name column only [TuxPaper]
 CHANGE: UI    | Gray out non-active devices [Parg]
+CHANGE: Core  | Added more meta data for devices RSS Feed [TuxPaper]
 CHANGE: Plug  | Added lifetime controls to DHT puts [Parg]
 
 BUGFIX: Core  | HTTP seeding was incorrectly handling byte range requests [Parg]
-BUGFIX: Core  | Catch failed transcodes and prevent partial files from being produces [Parg]
+BUGFIX: Core  | Catch failed transcodes and prevent partial files from being produced [Parg]
 BUGFIX: Core  | Fixed potential deadlock on startup with Device loading [Parg]
 BUGFIX: Core  | Support UTF marker chars in RSS feeds [Parg]
+
+
 
 2009.07.08 | Vuze 4.2.0.4
 
