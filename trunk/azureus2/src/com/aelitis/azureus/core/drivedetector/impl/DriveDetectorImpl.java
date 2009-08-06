@@ -73,6 +73,7 @@ public class DriveDetectorImpl
 	}
 
 	public void driveDetected(File location) {
+		location = normaliseFile( location );
 		mon_driveDetector.enter();
 		try {
 			if (!listDrives.contains(location)) {
@@ -96,6 +97,7 @@ public class DriveDetectorImpl
 	}
 
 	public void driveRemoved(File location) {
+		location = normaliseFile( location );
 		mon_driveDetector.enter();
 		try {
 			if (!listDrives.remove(location)) {
@@ -113,5 +115,20 @@ public class DriveDetectorImpl
 				Debug.out(e);
 			}
 		}
+	}
+	
+	protected File
+	normaliseFile(
+		File		f )
+	{
+		try{
+			return( f.getCanonicalFile());
+			
+		}catch( Throwable e ){
+		
+			Debug.out( e );
+			
+			return( f );
+		}	
 	}
 }
