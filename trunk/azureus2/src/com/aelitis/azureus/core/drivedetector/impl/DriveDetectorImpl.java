@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.util.AEMonitor2;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.drivedetector.*;
 
@@ -36,16 +37,31 @@ public class DriveDetectorImpl
 	implements DriveDetector
 {
 	private List<DriveDetectedListener> listListeners = new ArrayList<DriveDetectedListener>(1);
-	private AEMonitor2 mon_listListeners = new AEMonitor2("listListeners"); 
+	private AEMonitor2 mon_listListeners = new AEMonitor2("listListeners");
+	
+	private List<File> listDrives = new ArrayList<File>(1); 
+	private AEMonitor2 mon_listDrives = new AEMonitor2("listDrives");
 
 	public void addListener(DriveDetectedListener l) {
 		mon_listListeners.enter();
 		try {
 			if (!listListeners.contains(l)) {
 				listListeners.add(l);
+			} else {
+				// already added, skip trigger
+				return;
 			}
 		} finally {
 			mon_listListeners.exit();
+		}
+		
+		File[] drives = listDrives.toArray(new File[0]);
+		for (File drive : drives) {
+			try {
+				l.driveDetected(new DriveDetectedInfoImpl(drive));
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 		}
 	}
 
@@ -59,11 +75,26 @@ public class DriveDetectorImpl
 	}
 
 	public void driveDetected(File location) {
-		System.out.println("Drive Detected: " + location.toString());
+		mon_listDrives.enter();
+		try {
+			if (!listDrives.contains(location)) {
+				listDrives.add(location);
+			} else {
+				// not there, no trigger
+				return;
+			}
+		} finally {
+			mon_listDrives.exit();
+		}
+		
 		mon_listListeners.enter();
 		try {
 			for (DriveDetectedListener l : listListeners) {
-				l.driveDetected(new DriveDetectedInfoImpl(location));
+				try {
+					l.driveDetected(new DriveDetectedInfoImpl(location));
+  			} catch (Exception e) {
+  				Debug.out(e);
+  			}
 			}
 		} finally {
 			mon_listListeners.exit();
@@ -71,10 +102,24 @@ public class DriveDetectorImpl
 	}
 
 	public void driveRemoved(File location) {
+		mon_listDrives.enter();
+		try {
+			if (!listDrives.remove(location)) {
+				// not there, no trigger
+				return;
+			}
+		} finally {
+			mon_listDrives.exit();
+		}
+		
 		mon_listListeners.enter();
 		try {
 			for (DriveDetectedListener l : listListeners) {
-				l.driveRemoved(new DriveDetectedInfoImpl(location));
+				try {
+					l.driveRemoved(new DriveDetectedInfoImpl(location));
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 			}
 		} finally {
 			mon_listListeners.exit();
