@@ -1043,31 +1043,54 @@ public class VersionCheckClient {
    */
   private static Map constructVersionCheckMessage( String reason ) {
     Map message = new HashMap();
-    
-    message.put( "appid", SystemProperties.getApplicationIdentifier());
-    message.put( "version", Constants.AZUREUS_VERSION );
-    
-    String id = COConfigurationManager.getStringParameter( "ID", null );
-    boolean send_info = COConfigurationManager.getBooleanParameter( "Send Version Info" );
-    
-    int last_send_time = COConfigurationManager.getIntParameter( "Send Version Info Last Time", -1 );
 
-    int current_send_time = (int)(SystemTime.getCurrentTime()/1000);
+    //always send
+    message.put( "appid",   SystemProperties.getApplicationIdentifier());
+    message.put( "version", Constants.AZUREUS_VERSION );
+    message.put( "ui",      COConfigurationManager.getStringParameter( "ui", "unknown" ) );
+    message.put( "os",      Constants.OSName );
     
-    COConfigurationManager.setParameter( "Send Version Info Last Time", current_send_time );
-    
-    if( id != null && send_info ) {
-    	
-      message.put( "id", id );
-      message.put( "os", Constants.OSName );
+    boolean using_phe = COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require" );
+    message.put( "using_phe", using_phe ? new Long(1) : new Long(0) );
+
+    //swt stuff
+    try {
+      Class c = Class.forName( "org.eclipse.swt.SWT" );
       
+      String swt_platform = (String)c.getMethod( "getPlatform", new Class[]{} ).invoke( null, new Object[]{} );
+      message.put( "swt_platform", swt_platform );
+      
+      Integer swt_version = (Integer)c.getMethod( "getVersion", new Class[]{} ).invoke( null, new Object[]{} );
+      message.put( "swt_version", new Long( swt_version.longValue() ) );
+
+      c = Class.forName("org.gudy.azureus2.ui.swt.mainwindow.MainWindow");
+      if (c != null) {
+    	  c.getMethod("addToVersionCheckMessage", new Class[] { Map.class }).invoke(
+    			  null, new Object[] { message });
+      }      
+    }
+    catch( ClassNotFoundException e ) {  /* ignore */ }
+    catch( NoClassDefFoundError er ) {  /* ignore */ }
+    catch( InvocationTargetException err ) {  /* ignore */ }
+    catch( Throwable t ) {  t.printStackTrace();  }
+    
+  
+    int last_send_time = COConfigurationManager.getIntParameter( "Send Version Info Last Time", -1 );
+    int current_send_time = (int)(SystemTime.getCurrentTime()/1000);    
+    COConfigurationManager.setParameter( "Send Version Info Last Time", current_send_time );
+
+    
+    //only send if anonymous-check flag is not set
+    boolean send_info = COConfigurationManager.getBooleanParameter( "Send Version Info" );
+    String id = COConfigurationManager.getStringParameter( "ID", null );
+
+    if( id != null && send_info ) {    	
+      message.put( "id", id );      
       message.put( "os_version", System.getProperty( "os.version" ) );
       message.put( "os_arch", System.getProperty( "os.arch" ) );   //see http://lopica.sourceforge.net/os.html
     
-      if ( last_send_time != -1 && last_send_time < current_send_time ){
-    	  
-    	  	// tims since last
-    	  
+      if ( last_send_time != -1 && last_send_time < current_send_time ){    	  
+    	  // time since last    	  
     	  message.put( "tsl", new Long(current_send_time-last_send_time));
       }
       
@@ -1130,11 +1153,6 @@ public class VersionCheckClient {
       }catch( Throwable e ){
     	  
     	  Debug.out( e );
-      }
-      
-      String ui = COConfigurationManager.getStringParameter("ui");
-      if (ui.length() > 0) {
-      	message.put("ui", ui);
       }
 
       // send locale, so we can determine which languages need attention
@@ -1226,32 +1244,6 @@ public class VersionCheckClient {
       }
     }
         
-    //swt stuff
-    try {
-      Class c = Class.forName( "org.eclipse.swt.SWT" );
-      
-      String swt_platform = (String)c.getMethod( "getPlatform", new Class[]{} ).invoke( null, new Object[]{} );
-      message.put( "swt_platform", swt_platform );
-      
-      if( send_info ) {
-        Integer swt_version = (Integer)c.getMethod( "getVersion", new Class[]{} ).invoke( null, new Object[]{} );
-        message.put( "swt_version", new Long( swt_version.longValue() ) );
-
-        c = Class.forName("org.gudy.azureus2.ui.swt.mainwindow.MainWindow");
-				if (c != null) {
-					c.getMethod("addToVersionCheckMessage", new Class[] { Map.class }).invoke(
-							null, new Object[] { message });
-				}
-      }
-    }
-    catch( ClassNotFoundException e ) {  /* ignore */ }
-    catch( NoClassDefFoundError er ) {  /* ignore */ }
-    catch( InvocationTargetException err ) {  /* ignore */ }
-    catch( Throwable t ) {  t.printStackTrace();  }
-    
-    
-    boolean using_phe = COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require" );
-    message.put( "using_phe", using_phe ? new Long(1) : new Long(0) );
     
     return message;
   }
