@@ -131,6 +131,13 @@ Subscription
 	hasAssociation(
 		byte[]		hash );
 	
+	public String
+	getCategory();
+	
+	public void
+	setCategory(
+		String	category );
+	
 	public Engine
 	getEngine()
 	

@@ -36,6 +36,8 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginConfigListener;
@@ -60,6 +62,8 @@ import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -72,6 +76,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -1359,7 +1364,8 @@ SubscriptionManagerUI
 								
 								PluginInterface pi = PluginInitializer.getDefaultInterface();
 								UIManager uim = pi.getUIManager();
-								MenuManager menuManager = uim.getMenuManager();
+								
+								final MenuManager menuManager = uim.getMenuManager();
 								
 								MenuItem menuItem;
 								
@@ -1402,6 +1408,24 @@ SubscriptionManagerUI
 								
 								menuManager.addMenuItem("sidebar." + key,"s1").setStyle( MenuItem.STYLE_SEPARATOR );
 
+									// category
+								
+								menuItem = menuManager.addMenuItem("sidebar." + key, "MyTorrentsView.menu.setCategory");
+								menuItem.setStyle( MenuItem.STYLE_MENU );
+								
+								menuItem.addFillListener(
+										new MenuItemFillListener()
+										{
+											public void 
+											menuWillBeShown(
+												MenuItem 	menu, 
+												Object 		data ) 
+											{		
+												addCategorySubMenu( menuManager, menu, subs );
+											}
+										});
+								
+								
 								if ( subs.isUpdateable()){
 									
 									menuItem = menuManager.addMenuItem("sidebar." + key,"MyTorrentsView.menu.rename");
@@ -1461,6 +1485,119 @@ SubscriptionManagerUI
 							}
 						});
 			}
+		}
+	}
+	
+	
+	private void 
+	addCategorySubMenu(
+		MenuManager				menu_manager,
+		MenuItem				menu,
+		final Subscription		subs )
+	{
+		menu.removeAllChildItems();
+
+		Category[] categories = CategoryManager.getCategories();
+		
+		Arrays.sort( categories );
+
+		MenuItem m;
+
+		if ( categories.length > 0 ){
+			
+			final Category uncat = CategoryManager.getCategory( Category.TYPE_UNCATEGORIZED );
+						
+			if ( uncat != null ){
+				
+				m = menu_manager.addMenuItem( menu, uncat.getName());
+				
+				m.addListener(
+					new MenuItemListener() 
+					{
+						public void
+						selected(
+							MenuItem			menu,
+							Object 				target )
+						{
+							assignSelectedToCategory( uncat, subs );
+						}
+					});
+				
+
+				m = menu_manager.addMenuItem( menu, "sep1" );
+				
+				m.setStyle( MenuItem.STYLE_SEPARATOR );
+			}
+
+			for ( int i=0; i<categories.length; i++ ){
+				
+				final Category cat = categories[i];
+				
+				if ( cat.getType() == Category.TYPE_USER) {
+					
+					m = menu_manager.addMenuItem( menu, "!" + cat.getName() + "!" );
+					
+					m.addListener(
+						new MenuItemListener() 
+						{
+							public void
+							selected(
+								MenuItem			menu,
+								Object 				target )
+							{
+								assignSelectedToCategory( cat, subs );
+							}
+						});
+				}
+			}
+
+			m = menu_manager.addMenuItem( menu, "sep2" );
+			
+			m.setStyle( MenuItem.STYLE_SEPARATOR );
+		}
+
+		m = menu_manager.addMenuItem( menu, "MyTorrentsView.menu.setCategory.add" );
+		
+		m.addListener(
+				new MenuItemListener() 
+				{
+					public void
+					selected(
+						MenuItem			menu,
+						Object 				target )
+					{
+						addCategory( subs );
+					}
+				});
+
+	}
+
+	private void 
+	addCategory(
+		Subscription subs  )	
+	{
+		CategoryAdderWindow adderWindow = new CategoryAdderWindow(Display.getDefault());
+		
+		Category newCategory = adderWindow.getNewCategory();
+		
+		if ( newCategory != null ){
+		
+			assignSelectedToCategory( newCategory, subs );
+		}
+	}
+	
+	private void 
+	assignSelectedToCategory(
+		Category 			category,
+		Subscription		subs )
+	{
+		if ( category.getType() == Category.TYPE_UNCATEGORIZED ){
+		
+			subs.setCategory( null );
+			
+		}else{
+			
+			subs.setCategory( category.getName());
 		}
 	}
 	
@@ -1617,7 +1754,21 @@ SubscriptionManagerUI
 				"subscriptions.listwindow.popularity",
 				"subs.prop.template",
 				"subs.prop.auth",
+				"TableColumn.header.category",
 			};
+		
+		String	category_str;
+		
+		String category = subs.getCategory();
+		
+		if ( category == null ){
+			
+			category_str = MessageText.getString( "Categories.uncategorized" );
+			
+		}else{
+			
+			category_str = category;
+		}
 		
 		String[] values = { 
 				String.valueOf( history.isEnabled()),
@@ -1637,6 +1788,7 @@ SubscriptionManagerUI
 				subs.getCachedPopularity()<=1?null:String.valueOf( subs.getCachedPopularity()),
 				engine_str,
 				auth_str,
+				category_str,
 			};
 		
 		new PropertiesWindow( subs.getName(), keys, values );

@@ -153,6 +153,7 @@ SubscriptionImpl
 	private boolean			verify_cache_result;
 	
 	private String			creator_ref;
+	private String			category;
 	
 	protected static String
 	getSkeletonJSON(
@@ -406,6 +407,11 @@ SubscriptionImpl
 				map.put( "cref", creator_ref.getBytes( "UTF-8" ));
 			}
 			
+			if ( category != null ){
+				
+				map.put( "cat", category.getBytes( "UTF-8" ));
+			}
+			
 			return( map );
 		}
 	}
@@ -475,6 +481,13 @@ SubscriptionImpl
 		if ( b_cref != null ){
 			
 			creator_ref = new String( b_cref, "UTF-8" );
+		}
+		
+		byte[] b_cat = (byte[])map.get( "cat" );
+		
+		if ( b_cat != null ){
+			
+			category = new String( b_cat, "UTF-8" );
 		}
 	}
 	
@@ -1665,6 +1678,21 @@ SubscriptionImpl
 		return( creator_ref );
 	}
 	
+	public void
+	setCategory(
+		String	_category )
+	{
+		category = _category;
+		
+		fireChanged();
+	}
+	
+	public String
+	getCategory()
+	{
+		return( category );
+	}
+
 	protected void
 	fireChanged()
 	{

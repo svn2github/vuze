@@ -347,10 +347,7 @@ SubscriptionSchedulerImpl
 									
 									log( subs.getName() + ": added download " + download.getName()+ ": auto-start=" + auto_start );
 
-									if ( subs.isPublic()){
-									
-										subs.addAssociation( torrent.getHash());
-									}
+									subs.addAssociation( torrent.getHash());
 									
 									result.setRead( true );
 																		

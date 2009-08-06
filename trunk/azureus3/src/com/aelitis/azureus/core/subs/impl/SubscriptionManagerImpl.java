@@ -42,6 +42,7 @@ import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
@@ -200,6 +201,7 @@ SubscriptionManagerImpl
 	private TorrentAttribute		ta_subs_download;
 	private TorrentAttribute		ta_subs_download_rd;
 	private TorrentAttribute		ta_subscription_info;
+	private TorrentAttribute		ta_category;
 	
 	private boolean					periodic_lookup_in_progress;
 	private int						priority_lookup_pending;
@@ -328,10 +330,13 @@ SubscriptionManagerImpl
 
 		final PluginInterface default_pi = PluginInitializer.getDefaultInterface();
 
-		ta_subs_download 		= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
-		ta_subs_download_rd 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
-		ta_subscription_info 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_info" );
-
+		TorrentManager  tm = default_pi.getTorrentManager();
+		
+		ta_subs_download 		= tm.getPluginAttribute( "azsubs.subs_dl" );
+		ta_subs_download_rd 	= tm.getPluginAttribute( "azsubs.subs_dl_rd" );
+		ta_subscription_info 	= tm.getPluginAttribute( "azsubs.subs_info" );
+		ta_category				= tm.getAttribute( TorrentAttribute.TA_CATEGORY );
+		
 		PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
 				
 		if ( dht_plugin_pi != null ){
@@ -3126,7 +3131,7 @@ SubscriptionManagerImpl
 		byte[]						association_hash )
 	{
 		recordAssociations( association_hash, new SubscriptionImpl[]{ subscription }, false );
-		
+
 		if ( dht_plugin != null ){
 			
 			publishAssociations();
@@ -3329,7 +3334,22 @@ SubscriptionManagerImpl
 			Download download = pi.getDownloadManager().getDownload( association_hash );
 			
 			if ( download != null ){
+					
+				if ( subscriptions.length > 0 ){
+					
+					String	category = subscriptions[0].getCategory();
+					
+					if ( category != null ){
 						
+						String existing = download.getAttribute( ta_category );
+								
+						if ( existing == null ){
+									
+							download.setAttribute( ta_category, category );
+						}
+					}
+				}
+				
 				download_found = true;
 				
 				Map	map = download.getMapAttribute( ta_subscription_info );
