@@ -998,6 +998,11 @@ public class FileUtil {
       }
     }
     
+    public static boolean copyFileWithException( final File _source, final File _dest ) throws IOException{
+         copyFile( new FileInputStream( _source ), new FileOutputStream( _dest ) );
+          return true;
+    }
+    
     public static boolean copyFile( final File _source, final OutputStream _dest, boolean closeInputStream ) {
         try {
           copyFile( new FileInputStream( _source ), _dest, closeInputStream );
