@@ -64,6 +64,8 @@ SubscriptionUtils
 		return((SubscriptionDownloadDetails[])result.toArray( new SubscriptionDownloadDetails[result.size()]));
 	}
 	
+
+	
 	public static class
 	SubscriptionDownloadDetails
 	{

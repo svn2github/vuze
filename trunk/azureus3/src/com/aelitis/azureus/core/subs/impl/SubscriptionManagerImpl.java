@@ -1647,6 +1647,36 @@ SubscriptionManagerImpl
 	}
 	
 	protected boolean
+	subscriptionExists(
+		Download			download,
+		SubscriptionImpl	subs )
+	{
+		byte[]	sid = subs.getShortID();
+	
+		Map	m = download.getMapAttribute( ta_subscription_info );
+		
+		if ( m != null ){
+			
+			List s = (List)m.get("s");
+			
+			if ( s != null && s.size() > 0 ){
+								
+				for (int i=0;i<s.size();i++){
+					
+					byte[]	x = (byte[])s.get(i);
+					
+					if ( Arrays.equals( x, sid )){
+						
+						return( true );
+					}
+				}
+			}
+		}
+		
+		return( false );
+	}
+	
+	protected boolean
 	isVisible(
 		SubscriptionImpl		subs )
 	{
@@ -4782,6 +4812,29 @@ SubscriptionManagerImpl
 		return((SubscriptionResultImpl[])results.toArray( new SubscriptionResultImpl[results.size()] ));
 	}
 	
+	protected void
+  	setCategoryOnExisting(
+  		SubscriptionImpl	subscription,
+  		String				old_category,
+  		String				new_category )
+  	{
+		PluginInterface default_pi = PluginInitializer.getDefaultInterface();
+
+  		Download[] downloads 	= default_pi.getDownloadManager().getDownloads();
+  		 		 		
+  		for ( Download d: downloads ){
+  			 			
+  			if ( subscriptionExists( d, subscription )){
+  					
+				String existing = d.getAttribute( ta_category );
+
+				if ( existing == null || existing.equals( old_category )){
+					
+					d.setAttribute( ta_category, new_category );
+				}
+  			}
+  		}
+  	}
 	
 	public int
 	getMaxNonDeletedResults()

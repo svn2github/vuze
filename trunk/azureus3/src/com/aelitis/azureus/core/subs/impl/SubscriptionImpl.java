@@ -1682,8 +1682,20 @@ SubscriptionImpl
 	setCategory(
 		String	_category )
 	{
-		category = _category;
+		if ( _category == null && category == null ){
+			
+			return;
+		}
 		
+		if ( _category != null && category != null && _category.equals( category )){
+			
+			return;
+		}
+				
+		manager.setCategoryOnExisting( this, category, _category );
+		
+		category = _category;
+
 		fireChanged();
 	}
 	

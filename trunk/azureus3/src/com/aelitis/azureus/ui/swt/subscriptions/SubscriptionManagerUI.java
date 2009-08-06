@@ -1505,11 +1505,17 @@ SubscriptionManagerUI
 
 		if ( categories.length > 0 ){
 			
+			String	assigned_category = subs.getCategory();
+			
 			final Category uncat = CategoryManager.getCategory( Category.TYPE_UNCATEGORIZED );
 						
 			if ( uncat != null ){
 				
 				m = menu_manager.addMenuItem( menu, uncat.getName());
+				
+				m.setStyle( MenuItem.STYLE_RADIO );
+								
+				m.setData( new Boolean( assigned_category == null ));
 				
 				m.addListener(
 					new MenuItemListener() 
@@ -1536,6 +1542,10 @@ SubscriptionManagerUI
 				if ( cat.getType() == Category.TYPE_USER) {
 					
 					m = menu_manager.addMenuItem( menu, "!" + cat.getName() + "!" );
+					
+					m.setStyle( MenuItem.STYLE_RADIO );
+										
+					m.setData( new Boolean( assigned_category != null && assigned_category.equals( cat.getName())));
 					
 					m.addListener(
 						new MenuItemListener() 
