@@ -45,7 +45,9 @@ import com.aelitis.azureus.core.drivedetector.DriveDetectorFactory;
  */
 public class Win32UIEnhancer
 {
-	
+
+	public static final boolean DEBUG = false;
+
 	public static final int WM_DEVICECHANGE = 0x219;
 
 	public static final int DBT_DEVICEARRIVAL = 0x8000;
@@ -188,10 +190,14 @@ public class Win32UIEnhancer
 						int[] st = new int[3];
 						OS.memmove(st, lParam, 12);
 
-						System.out.println("Arrival: " + st[0] + "/" + st[1] + "/" + st[2]);
+						if (DEBUG) {
+							System.out.println("Arrival: " + st[0] + "/" + st[1] + "/" + st[2]);
+						}
 
 						if (st[1] == DBT_DEVTYP_VOLUME) {
-							System.out.println("NEW VOLUME!");
+							if (DEBUG) {
+								System.out.println("NEW VOLUME!");
+							}
 
 							byte b[] = new byte[st[0]];
 							OS.memmove(b, lParam, st[0]);
@@ -203,7 +209,9 @@ public class Win32UIEnhancer
 									letter = (char) ('A' + i);
 								}
 							}
-							System.out.println("Drive " + letter);
+							if (DEBUG) {
+								System.out.println("Drive " + letter);
+							}
 							if (letter != '?') {
 								DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
 								driveDetector.driveDetected(new File(letter + ":\\"));
@@ -214,10 +222,14 @@ public class Win32UIEnhancer
 						int[] st = new int[3];
 						OS.memmove(st, lParam, 12);
 
-						System.out.println("Remove: " + st[0] + "/" + st[1] + "/" + st[2]);
+						if (DEBUG) {
+							System.out.println("Remove: " + st[0] + "/" + st[1] + "/" + st[2]);
+						}
 
 						if (st[1] == DBT_DEVTYP_VOLUME) {
-							System.out.println("REMOVE VOLUME!");
+							if (DEBUG) {
+								System.out.println("REMOVE VOLUME!");
+							}
 
 							byte b[] = new byte[st[0]];
 							OS.memmove(b, lParam, st[0]);
@@ -229,7 +241,9 @@ public class Win32UIEnhancer
 									letter = (char) ('A' + i);
 								}
 							}
-							System.out.println("Drive " + letter);
+							if (DEBUG) {
+								System.out.println("Drive " + letter);
+							}
 							if (letter != '?') {
 								DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
 								driveDetector.driveRemoved(new File(letter + ":\\"));
@@ -237,7 +251,9 @@ public class Win32UIEnhancer
 						}
 
 					}
-					System.out.println("DEVICE CHANGE" + wParam + "/" + lParam);
+					if (DEBUG) {
+						System.out.println("DEVICE CHANGE" + wParam + "/" + lParam);
+					}
 					break;
 			}
 		} catch (Exception e) {
