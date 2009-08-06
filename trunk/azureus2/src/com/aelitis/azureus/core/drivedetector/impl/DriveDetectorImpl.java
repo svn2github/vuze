@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.util.AEMonitor2;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.drivedetector.*;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * @author TuxPaper
@@ -36,14 +37,15 @@ import com.aelitis.azureus.core.drivedetector.*;
 public class DriveDetectorImpl
 	implements DriveDetector
 {
-	private List<DriveDetectedListener> listListeners = new ArrayList<DriveDetectedListener>(1);
-	private AEMonitor2 mon_listListeners = new AEMonitor2("listListeners");
+	private AEMonitor2 mon_driveDetector = new AEMonitor2("driveDetector");
+
+	private CopyOnWriteList<DriveDetectedListener> listListeners = new CopyOnWriteList<DriveDetectedListener>(1);
 	
 	private List<File> listDrives = new ArrayList<File>(1); 
-	private AEMonitor2 mon_listDrives = new AEMonitor2("listDrives");
 
 	public void addListener(DriveDetectedListener l) {
-		mon_listListeners.enter();
+		File[] drives;
+		mon_driveDetector.enter();
 		try {
 			if (!listListeners.contains(l)) {
 				listListeners.add(l);
@@ -51,78 +53,65 @@ public class DriveDetectorImpl
 				// already added, skip trigger
 				return;
 			}
+			
+			drives = listDrives.toArray(new File[0]);
 		} finally {
-			mon_listListeners.exit();
+			mon_driveDetector.exit();
 		}
 		
-		File[] drives = listDrives.toArray(new File[0]);
 		for (File drive : drives) {
 			try {
 				l.driveDetected(new DriveDetectedInfoImpl(drive));
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				Debug.out(e);
 			}
 		}
 	}
 
 	public void removeListener(DriveDetectedListener l) {
-		mon_listListeners.enter();
-		try {
-			listListeners.remove(l);
-		} finally {
-			mon_listListeners.exit();
-		}
+		listListeners.remove(l);
 	}
 
 	public void driveDetected(File location) {
-		mon_listDrives.enter();
+		mon_driveDetector.enter();
 		try {
 			if (!listDrives.contains(location)) {
 				listDrives.add(location);
 			} else {
-				// not there, no trigger
+				// already there, no trigger
 				return;
 			}
+			
 		} finally {
-			mon_listDrives.exit();
+			mon_driveDetector.exit();
 		}
 		
-		mon_listListeners.enter();
-		try {
-			for (DriveDetectedListener l : listListeners) {
-				try {
-					l.driveDetected(new DriveDetectedInfoImpl(location));
-  			} catch (Exception e) {
-  				Debug.out(e);
-  			}
+		for (DriveDetectedListener l : listListeners) {
+			try {
+				l.driveDetected(new DriveDetectedInfoImpl(location));
+ 			} catch (Throwable e) {
+ 				Debug.out(e);
 			}
-		} finally {
-			mon_listListeners.exit();
 		}
 	}
 
 	public void driveRemoved(File location) {
-		mon_listDrives.enter();
+		mon_driveDetector.enter();
 		try {
 			if (!listDrives.remove(location)) {
 				// not there, no trigger
 				return;
 			}
 		} finally {
-			mon_listDrives.exit();
+			mon_driveDetector.exit();
 		}
 		
-		mon_listListeners.enter();
-		try {
-			for (DriveDetectedListener l : listListeners) {
-				try {
-					l.driveRemoved(new DriveDetectedInfoImpl(location));
-				} catch (Exception e) {
-					Debug.out(e);
-				}
+		for (DriveDetectedListener l : listListeners) {
+			try {
+				l.driveRemoved(new DriveDetectedInfoImpl(location));
+			} catch (Throwable e) {
+				Debug.out(e);
 			}
-		} finally {
-			mon_listListeners.exit();
 		}
 	}
 }
