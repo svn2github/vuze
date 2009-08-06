@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+2009.08.xx | Vuze 4.2.0.7
+
+
 2009.08.06 | Vuze 4.2.0.6
 
 FEATURE: UI   | Support delete key for deleting transcoded content [Parg]
