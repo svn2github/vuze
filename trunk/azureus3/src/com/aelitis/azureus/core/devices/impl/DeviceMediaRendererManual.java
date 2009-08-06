@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.IndentWriter;
 
@@ -357,7 +358,9 @@ DeviceMediaRendererManual
 					
 				}else{
 						
-					setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copyfail") );
+					String info = (String)file.getTransientProperty( COPY_ERROR_KEY );
+					
+					setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copyfail") + (info==null?"":(" - " + info)));
 
 					borked = true;
 				}
@@ -443,18 +446,22 @@ DeviceMediaRendererManual
 					try{
 						File	file = transcode_file.getTargetFile().getFile();
 						
-						try{
-							// copy the file!
-							
-							FileUtil.copyFile( file, new File( copy_to, file.getName()));
-							
+						File	target = new File( copy_to, file.getName());
+						
+						try{							
+							FileUtil.copyFileWithException( file, target );
+																						
 							log( "Copied file '" + file + ": to " + copy_to );
 							
 							transcode_file.setCopiedToDevice( true );
 							
 						}catch( Throwable e ){
 							
+							copy_to.delete();
+							
 							transcode_file.setCopyToDeviceFailed();
+							
+							transcode_file.setTransientProperty( COPY_ERROR_KEY, Debug.getNestedExceptionMessage( e ));
 							
 							log( "Failed to copy file " + file, e );
 						}
