@@ -116,7 +116,7 @@ DeviceDriveManager
 								DeviceImpl[] devices = manager.getDevices();
 								
 								String target_name				= "PSP";
-								String target_classification 	= "sony.psp";
+								String target_classification 	= "sony.PSP";
 								
 								File target_directory = new File( root,"VIDEO" );
 
@@ -139,23 +139,49 @@ DeviceDriveManager
 								
 								DeviceTemplate[] templates = manager.getDeviceTemplates( Device.DT_MEDIA_RENDERER );
 								
+								DeviceMediaRendererManual	renderer = null;
+								
 								for ( DeviceTemplate template: templates ){
 									
 									if ( template.getClassification().equalsIgnoreCase( target_classification )){
 										
 										try{
-											DeviceMediaRendererManual renderer = (DeviceMediaRendererManual)template.createInstance( target_name );
-											
-											renderer.setAutoCopyToFolder( true );
-											
-											mapDevice( renderer, root, target_directory );
-											
-											return;
+											renderer = (DeviceMediaRendererManual)template.createInstance( target_name );
+	
+											break;
 											
 										}catch( Throwable e ){
 											
 											log( "Failed to add device", e );
 										}
+									}
+								}
+								
+								if ( renderer == null ){
+									
+										// damn, the above doesn't work until devices is turned on...
+									
+									try{
+										renderer = (DeviceMediaRendererManual)manager.createDevice( Device.DT_MEDIA_RENDERER, target_classification, target_name );
+										
+									}catch( Throwable e ){
+										
+										log( "Failed to add device", e );
+									}
+								}
+								
+								if ( renderer != null ){
+									
+									try{
+										renderer.setAutoCopyToFolder( true );
+										
+										mapDevice( renderer, root, target_directory );
+										
+										return;
+										
+									}catch( Throwable e ){
+										
+										log( "Failed to add device", e );
 									}
 								}
 							}
