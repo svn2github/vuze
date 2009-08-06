@@ -2002,15 +2002,17 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 		
 		// Add Plugin Context menus..
-		TableColumnCore tc = (TableColumnCore) tcColumn.getData("TableColumnCore");
-		TableContextMenuItem[] columnItems = tc.getContextMenuItems(TableColumnCore.MENU_STYLE_COLUMN_DATA);
-		if (columnItems.length > 0) {
-			new MenuItem(menu, SWT.SEPARATOR);
-
-			MenuBuildUtils.addPluginMenuItems(getComposite(), columnItems, menu,
-					true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
-							getSelectedDataSources(true)));
-
+		if (tcColumn != null) {
+  		TableColumnCore tc = (TableColumnCore) tcColumn.getData("TableColumnCore");
+  		TableContextMenuItem[] columnItems = tc.getContextMenuItems(TableColumnCore.MENU_STYLE_COLUMN_DATA);
+  		if (columnItems.length > 0) {
+  			new MenuItem(menu, SWT.SEPARATOR);
+  
+  			MenuBuildUtils.addPluginMenuItems(getComposite(), columnItems, menu,
+  					true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
+  							getSelectedDataSources(true)));
+  
+  		}
 		}
 	}
 
