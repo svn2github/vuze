@@ -10,6 +10,7 @@ FEATURE: Core | Support for TiVo device [Parg]
 FEATURE: Core | Support for PSP device [Parg;TuxPaper]
 FEATURE: Core | Added RSS feed generation for device's transcoded content [Parg]
 FEATURE: Core | File-based RSS feeds [Parg]
+FEATURE: Core | Added ability to set category for downloads from a subscription [Parg]
 
 CHANGE: Core  | Added more meta data for devices RSS Feed [TuxPaper]
 CHANGE: UI    | Moved Column Setup and column related menu items to right click of column header [TuxPaper]
