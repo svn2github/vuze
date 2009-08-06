@@ -1042,6 +1042,11 @@ public class VersionCheckClient {
    * @return message to send
    */
   private static Map constructVersionCheckMessage( String reason ) {
+	  
+	  //only send if anonymous-check flag is not set
+	  
+	boolean send_info = COConfigurationManager.getBooleanParameter( "Send Version Info" );
+
     Map message = new HashMap();
 
     //always send
@@ -1049,7 +1054,9 @@ public class VersionCheckClient {
     message.put( "version", Constants.AZUREUS_VERSION );
     message.put( "ui",      COConfigurationManager.getStringParameter( "ui", "unknown" ) );
     message.put( "os",      Constants.OSName );
-    
+    message.put( "os_version", System.getProperty( "os.version" ) );
+    message.put( "os_arch", System.getProperty( "os.arch" ) );   //see http://lopica.sourceforge.net/os.html
+
     boolean using_phe = COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require" );
     message.put( "using_phe", using_phe ? new Long(1) : new Long(0) );
 
@@ -1063,11 +1070,13 @@ public class VersionCheckClient {
       Integer swt_version = (Integer)c.getMethod( "getVersion", new Class[]{} ).invoke( null, new Object[]{} );
       message.put( "swt_version", new Long( swt_version.longValue() ) );
 
-      c = Class.forName("org.gudy.azureus2.ui.swt.mainwindow.MainWindow");
-      if (c != null) {
-    	  c.getMethod("addToVersionCheckMessage", new Class[] { Map.class }).invoke(
-    			  null, new Object[] { message });
-      }      
+      if ( send_info ){
+	      c = Class.forName("org.gudy.azureus2.ui.swt.mainwindow.MainWindow");
+	      if (c != null) {
+	    	  c.getMethod("addToVersionCheckMessage", new Class[] { Map.class }).invoke(
+	    			  null, new Object[] { message });
+	      }   
+      }
     }
     catch( ClassNotFoundException e ) {  /* ignore */ }
     catch( NoClassDefFoundError er ) {  /* ignore */ }
@@ -1080,14 +1089,10 @@ public class VersionCheckClient {
     COConfigurationManager.setParameter( "Send Version Info Last Time", current_send_time );
 
     
-    //only send if anonymous-check flag is not set
-    boolean send_info = COConfigurationManager.getBooleanParameter( "Send Version Info" );
     String id = COConfigurationManager.getStringParameter( "ID", null );
 
     if( id != null && send_info ) {    	
       message.put( "id", id );      
-      message.put( "os_version", System.getProperty( "os.version" ) );
-      message.put( "os_arch", System.getProperty( "os.arch" ) );   //see http://lopica.sourceforge.net/os.html
     
       if ( last_send_time != -1 && last_send_time < current_send_time ){    	  
     	  // time since last    	  
