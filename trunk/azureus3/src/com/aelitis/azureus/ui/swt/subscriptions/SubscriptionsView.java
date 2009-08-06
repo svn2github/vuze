@@ -198,6 +198,7 @@ public class SubscriptionsView
 				new ColumnSubscriptionLastChecked(TABLE_ID),
 				new ColumnSubscriptionSubscribers(TABLE_ID),
 				new ColumnSubscriptionAutoDownload(TABLE_ID),
+				new ColumnSubscriptionCategory(TABLE_ID),
 				
 		};
 		
