@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -149,6 +150,17 @@ public class DebugMenuHelper
 				}
 			}
 		});
+		
+		item = new MenuItem(menuDebug, SWT.CHECK);
+		item.setText("SR ChangeFlagChecker Paused");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				StartStopRulesDefaultPlugin.pauseChangeFlagChecker = !StartStopRulesDefaultPlugin.pauseChangeFlagChecker;
+				((MenuItem)e.widget).setSelection(StartStopRulesDefaultPlugin.pauseChangeFlagChecker);
+			}
+		});
+		
+		
 
 		return menuDebug;
 	}
