@@ -595,6 +595,15 @@ BufferedTableRow
   
   public boolean setTableItem(int newIndex, boolean bCopyFromOld, boolean isVisible) {
   	TableItem newRow;
+
+  	boolean needsNewAltBG = false;
+		if (alternatingColors != null) {
+			int newAltRowNo = newIndex % alternatingColors.length;
+			int oldAltRowNo = item == null ? -1 : table.indexOf(item)
+					% alternatingColors.length;
+			needsNewAltBG = newAltRowNo != oldAltRowNo;
+		}
+  	
   	try {
   		newRow = table.getItem(newIndex);
   	} catch (IllegalArgumentException er) {
@@ -616,8 +625,8 @@ BufferedTableRow
 
   	if (newRow == item) {
   		if (newRow.getData("TableRow") == this) {
-  			if(isVisible)
-  				setAlternatingBGColor(false);
+  			if(isVisible && needsNewAltBG)
+  				setAlternatingBGColor(true);
   			return false;
   		}
   	}
@@ -647,7 +656,7 @@ BufferedTableRow
   		setIconSize(ptIconSize);
   	}
 
-  	if(isVisible)
+  	if(isVisible && needsNewAltBG)
   		setAlternatingBGColor(false);
 
   	try {

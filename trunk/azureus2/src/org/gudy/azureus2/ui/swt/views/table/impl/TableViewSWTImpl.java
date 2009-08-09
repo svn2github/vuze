@@ -2244,7 +2244,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		runForVisibleRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
-				row.setAlternatingBGColor(true);
 				row.refresh(false, true);
 			}
 		});
@@ -4082,7 +4081,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						boolean visible = i >= iTopIndex && i <= iBottomIndex;
 						if (visible) {
 							if (row.setTableItem(i)) {
-								row.setAlternatingBGColor(true);
 								iNumMoves++;
 							}
 						} else {
