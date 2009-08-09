@@ -78,7 +78,7 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
 		boolean isAZ3 = COConfigurationManager.getStringParameter("ui").equals("az3");
 
 		if (userMode >= 2) {
-			new BooleanParameter(cStart, "ui.startfirst", "!Start UI before Core Initialization!");
+			new BooleanParameter(cStart, "ui.startfirst", "ConfigView.label.StartUIBeforeCore");
 		}
     new BooleanParameter(cStart, "Show Splash", "ConfigView.label.showsplash");
     new BooleanParameter(cStart, "update.start", "ConfigView.label.checkonstart");
