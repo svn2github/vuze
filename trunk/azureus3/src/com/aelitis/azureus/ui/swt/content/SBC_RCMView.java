@@ -286,7 +286,7 @@ SBC_RCMView
 					ColumnRC_New.COLUMN_ID, 
 					SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
 		
-		tv_related_content.setRowDefaultHeight(50);
+		tv_related_content.setRowDefaultHeight(16);
 		tv_related_content.setHeaderVisible(true);
 		
 		table_parent = new Composite(control, SWT.NONE);
