@@ -16,6 +16,7 @@ import java.util.*;
 
 
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
@@ -49,6 +50,7 @@ public class Share extends IConsoleCommand {
 		out.println( "rcontents      Share files and sub-dir files in a folder as separate torrents." );
 		out.println( "list           List the shares (path not required)");
 		out.println( "remove         Remove a share given its path");
+		out.println( "remove hash <hash>   Remove a share given its hash");
 		
 		out.println( "      <properties> is semicolon separated <name>=<value> list.");
 		out.println( "      Defined values are 'category=<cat>', 'private=<true/false>', 'dht_backup=<true/false>' and 'comment=<comment>' ('_' in <comment> are replaced with spaces)");
@@ -127,7 +129,77 @@ public class Share extends IConsoleCommand {
 			return;
 		} 
 		
-		final File path = new File( (String) args.get(0) );
+		String	first_arg = (String)args.get(0);
+		
+		if ( first_arg.equals( "hash" ) && args.size() > 1 ){
+		
+			byte[]	hash = ByteFormatter.decodeString((String)args.get(1));
+			
+			boolean	force = false;
+			
+			if ( args.size() > 2 ){
+				
+				force = ((String)args.get(2)).equalsIgnoreCase( "true" );
+			}
+			
+			if (( "remove".equalsIgnoreCase(arg))){
+				
+				ShareResource[]	shares = share_manager.getShares();
+
+				boolean	done = false;
+				
+				for (int i=0;i<shares.length;i++){
+					
+					ShareResource share = shares[i];
+					
+					ShareItem item = null;
+					
+					if ( share instanceof ShareResourceFile ){
+						
+						item = ((ShareResourceFile)share).getItem();
+						
+					}else if ( share instanceof ShareResourceDir ){
+						
+						item = ((ShareResourceDir)share).getItem();
+					}
+					
+					if ( item != null ){
+						
+						try{
+							byte[] item_hash = item.getTorrent().getHash();
+							
+							if ( Arrays.equals( hash, item_hash )){
+								
+								share.delete( force );
+						
+								ci.out.println( "> Share " + share.getName() + " removed" );
+						
+								done = true;
+								
+								break;
+							}
+						}catch( Throwable e ) {
+							
+							ci.out.println( "ERROR: " + e.getMessage() + " ::");
+							
+							Debug.printStackTrace( e );
+						}
+					}
+				}
+				
+				if ( !done ){
+					
+					ci.out.println( "> Share with hash " + ByteFormatter.encodeString( hash ) + " not found" );
+				}
+			}else{
+				
+				ci.out.println( "ERROR: Unsupported hash based command '" + arg + "'" );
+			}
+			
+			return;
+		}
+		
+		final File path = new File( first_arg );
 		if( !path.exists() ) {
 			ci.out.println( "ERROR: path [" +path+ "] does not exist." );
 			return;
