@@ -440,7 +440,7 @@ ShareResourceDirContentsImpl
 			throw( new ShareResourceDeletionVetoException( MessageText.getString("plugin.sharing.remove.veto")));
 		}
 		
-		protected void
+		public void
 		delete(
 			boolean	force )
 		
@@ -456,7 +456,6 @@ ShareResourceDirContentsImpl
 				}else{
 					
 					((shareNode)o).delete(force);
-
 				}
 			}
 		}

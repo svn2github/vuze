@@ -276,7 +276,7 @@ ShareResourceImpl
 		delete( false );
 	}
 	
-	protected void
+	public void
 	delete(
 		boolean	force )
 	

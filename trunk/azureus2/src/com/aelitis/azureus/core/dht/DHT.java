@@ -109,7 +109,7 @@ DHT
 		String					description,
 		byte[]					value,
 		byte					flags,
-		byte					life_multiplier,
+		byte					life_hours,
 		boolean					high_priority,
 		DHTOperationListener	listener );
 

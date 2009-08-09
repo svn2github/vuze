@@ -46,6 +46,12 @@ ShareResource
 		throws ShareException, ShareResourceDeletionVetoException;
 	
 	public void
+	delete(
+		boolean		force )
+	
+		throws ShareException, ShareResourceDeletionVetoException;
+
+	public void
 	setAttribute(
 		TorrentAttribute		attribute,
 		String					value );
