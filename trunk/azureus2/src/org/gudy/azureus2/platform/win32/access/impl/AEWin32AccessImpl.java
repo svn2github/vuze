@@ -584,6 +584,8 @@ AEWin32AccessImpl
 				}
 				
 				return listUSB.toArray(new File[0]);
+    	} catch (UnsatisfiedLinkError ue) {
+    		Debug.outNoStack("Old aereg.dll");
 			} catch (Throwable e) {
 				Debug.out(e);
 			}
