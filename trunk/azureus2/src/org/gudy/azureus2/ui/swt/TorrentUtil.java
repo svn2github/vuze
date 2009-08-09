@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -42,8 +43,7 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
@@ -1390,14 +1390,25 @@ public class TorrentUtil {
 		dDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.savepath"));
 		String sSavePath = dDialog.open();
 		if (sSavePath != null) {
+			File fSavePath = new File(sSavePath);
 			for (int i = 0; i < dms.length; i++) {
 				DownloadManager dm = dms[i];
 				if (dm.getState() == DownloadManager.STATE_ERROR) {
-
+					
 					dm.setTorrentSaveDir(sSavePath);
+					
+					boolean found = dm.filesExist(true);
+					if (!found && dm.getTorrent() != null
+							&& !dm.getTorrent().isSimpleTorrent()) {
+						sSavePath = fSavePath.getParent();
+						if (sSavePath != null) {
+							dm.setTorrentSaveDir(sSavePath);
+							found = dm.filesExist(true);
+						}
+					}
 
-					if (dm.filesExist(true)) {
 
+					if (found) {
 						dm.stopIt(DownloadManager.STATE_STOPPED, false, false);
 
 						ManagerUtils.queue(dm, shell);
