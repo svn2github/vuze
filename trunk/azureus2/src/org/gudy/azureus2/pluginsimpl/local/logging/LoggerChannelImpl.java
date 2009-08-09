@@ -22,6 +22,7 @@
 package org.gudy.azureus2.pluginsimpl.local.logging;
 
 import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogRelation;
 
 /**
  * @author parg
@@ -180,8 +181,32 @@ LoggerChannelImpl
 	}
 	
 	public void log(Object[] relatedTo, int log_type, String data) {
+
+		String listenerData = data;
+		if (relatedTo != null) {
+			StringBuffer text = new StringBuffer();
+			for (int i = 0; i < relatedTo.length; i++) {
+				Object obj = relatedTo[i];
+
+				if (obj == null)
+					continue;
+
+				if (i > 0)
+					text.append("; ");
+
+				if (obj instanceof LogRelation) {
+					text.append(((LogRelation) obj).getRelationText());
+				} else {
+					text.append("RelatedTo[")
+					    .append(obj.toString())
+					    .append("]");
+				}
+			}
+			
+			listenerData += "\t" +  text.toString() + "] " + data;
+		}
 		
-		notifyListeners(log_type, addTimeStamp(data));
+		notifyListeners(log_type, addTimeStamp(listenerData));
 		
 		if (isEnabled() && !no_output) {
 			data = "[" + name + "] " + data;
