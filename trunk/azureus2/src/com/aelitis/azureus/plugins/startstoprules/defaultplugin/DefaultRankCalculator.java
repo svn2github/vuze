@@ -102,6 +102,17 @@ public class DefaultRankCalculator implements Comparable {
 	/** Seeding Rank value when download is marked as Share Ratio Met */
 	public static final int SR_SHARERATIOMET = -8;
 
+	public static final String[] SR_NEGATIVE_DEBUG = {
+		"?",
+		"Not Qd",
+		"FP SPRatioMet",
+		"Ratio Met",
+		"# CDs Met",
+		"FP 0 Peers",
+		"0 Peers",
+		"Share Ratio Met"
+	};
+
 	private static final long STALE_REFRESH_INTERVAL = 1000 * 60;
 
 	//
@@ -907,6 +918,10 @@ public class DefaultRankCalculator implements Comparable {
 			if (iIgnoreShareRatio != 0 && shareRatio >= iIgnoreShareRatio
 					&& (numSeeds >= iIgnoreShareRatio_SeedStart || !lastScrapeResultOk)
 					&& shareRatio != -1) {
+				if (rules.bDebugLog) {
+					rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
+							"somethingChanged: shareRatio changeChecker");
+				}
 				return true;
 			}
 		}
@@ -930,6 +945,10 @@ public class DefaultRankCalculator implements Comparable {
 			if (now - lastStaleCDRefresh > STALE_REFRESH_INTERVAL) {
 				staleCDOffset += (now - lastStaleCDRefresh) / STALE_REFRESH_INTERVAL;
 				lastStaleCDRefresh = now;
+				if (rules.bDebugLog) {
+					rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
+							"somethingChanged: staleCD changeChecker");
+				}
 				return true;
 			}
 		}
