@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
 
 /**
  * Provides validation for transfer speed settings
@@ -191,7 +192,8 @@ public final class TransferSpeedValidator
     isAutoUploadAvailable(
     	AzureusCore	core )
     {
-    	return( core.getSpeedManager().isAvailable());
+    	SpeedManager speedManager = core.getSpeedManager();
+    	return speedManager == null ? false : speedManager.isAvailable();
     }
     
     public static String
