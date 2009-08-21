@@ -1874,6 +1874,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				Point pt = event.display.map(null, table, new Point(event.x, event.y));
 				Rectangle clientArea = table.getClientArea();
 				boolean header = clientArea.y <= pt.y && pt.y < (clientArea.y + table.getHeaderHeight());
+				// give clicks on blank rows a header menu.
+				header |= table.getItem(pt) == null;
 				
 				menu.setData("isHeader", new Boolean(header));
 
