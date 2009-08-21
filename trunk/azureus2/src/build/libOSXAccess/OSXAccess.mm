@@ -14,10 +14,11 @@
 #define VERSION "1.04"
 
 #define assertNot0(a) if (a == 0) { fprintf(stderr, "%s is 0\n", #a); return; }
+void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethodID methPut);
+
 extern "C" {
 void notify(const char *mount, io_service_t service, struct statfs *fs, bool added);
 }
-void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethodID methPut);
 
 /**
  * AEDesc code from SWT, os_structs.c
@@ -228,11 +229,12 @@ io_object_t IOKitObjectFindParentOfClass(io_object_t inService, io_name_t inClas
 }
 
 void notify(const char *mount, io_service_t service, struct statfs *fs, bool added) {
+
 	assertNot0(gCallBackClass);
 	assertNot0(gjvm);
 
 	JNIEnv* env = NULL;
-	jint attachResult = gjvm->AttachCurrentThread((void **) &env, NULL);
+	gjvm->AttachCurrentThread((void **) &env, NULL);
 	assertNot0(env);
 
 	jmethodID meth;
@@ -268,6 +270,7 @@ void notify(const char *mount, io_service_t service, struct statfs *fs, bool add
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	if (fs) {
+		/**
 		NSString *path = [[NSString alloc] initWithUTF8String:fs->f_mntonname];
 		NSWorkspace *ws = [NSWorkspace sharedWorkspace];
 		BOOL removable;
@@ -290,6 +293,7 @@ void notify(const char *mount, io_service_t service, struct statfs *fs, bool add
 		}
 
 		[path release];
+		**/
 
 		env->CallObjectMethod(hashMap, methPut, char2jstring(env, "mntfromname"), char2jstring(env, fs->f_mntfromname));
 		env->CallObjectMethod(hashMap, methPut, char2jstring(env, "mntonname"), char2jstring(env, fs->f_mntonname));
@@ -300,8 +304,8 @@ void notify(const char *mount, io_service_t service, struct statfs *fs, bool add
 	}
 
 	env->CallVoidMethod(gCallBackObj, meth, file, hashMap);
-
 [pool release];
+
 }
 
 void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethodID methPut) {

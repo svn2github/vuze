@@ -6,8 +6,6 @@
 //  Copyright 2009 __MyCompanyName__. All rights reserved.
 //
 
-#import "IONotification.h"
-
 #include <IOKit/IOKitLib.h>
 #include <IOKit/IOMessage.h>
 #include <IOKit/IOCFPlugIn.h>
@@ -17,14 +15,22 @@
 #include <sys/mount.h>
 #include <JavaVM/jni.h>
 
-//#define IODISMOUNT 1
+#import "IONotification.h"
+
+extern void notify(const char *mount, io_service_t service, struct statfs *fs, bool added);
+
+// When a device is added, call IOServiceAddInterestNotification
+// and monitor device removal.  Not really needed since NSWorkspaceDidUnmountNotification
+// does an okay job (although it can't retrieve a ioservice)
 //#define IONOTIFYDISMOUNT 1
 
 #define _PATH_DEV       "/dev/"
 
-static IONotificationPortRef gNotifyPort;
+void RawDeviceAdded(void* refcon, io_iterator_t iterator)
+{
+    [(IONotification*)refcon rawDeviceAdded:iterator];
+}
 
-void DeviceNotification(void *refCon, io_service_t service, natural_t messageType, void *messageArgument);
 
 /**
  * lookup a disk based on "dev" mount and return fileSystem Status
@@ -38,8 +44,7 @@ static struct statfs * getFileSystemStatusDevMount(char * disk) {
 	mountListCount = getmntinfo(&mountList, MNT_NOWAIT);
 
 	for (mountListIndex = 0; mountListIndex < mountListCount; mountListIndex++) {
-		fprintf(stderr, "test looking for %s mounto %s fr %s\n ", disk, mountList[mountListIndex].f_mntonname,
-				mountList[mountListIndex].f_mntfromname);
+		//fprintf(stderr, "looking for %s mounto %s fr %s\n ", disk, mountList[mountListIndex].f_mntonname, mountList[mountListIndex].f_mntfromname);
 		if (strncmp(mountList[mountListIndex].f_mntfromname, _PATH_DEV, strlen(_PATH_DEV)) == 0) {
 			if (strcmp(mountList[mountListIndex].f_mntfromname + strlen(_PATH_DEV), disk) == 0) {
 				break;
@@ -71,16 +76,19 @@ static struct statfs * getFileSystemStatusFromMount(const char * mount) {
 	return (mountListIndex < mountListCount) ? (mountList + mountListIndex) : (NULL);
 }
 
+
+void print( NSDictionary *map ) {
+    NSEnumerator *enumerator = [map keyEnumerator];
+    void * key;
+
+    while ( key = [enumerator nextObject] ) {
+        fprintf(stderr, "%p => %s\n", key, [map objectForKey: key]  );
+    }
+}
+
+
 @implementation IONotification
 
-/**
- * Prepare file system info we gathered and pass it to a function that
- * will do something with it (like send it back to Java)
- *
- **/
-extern void notify(const char *mount, io_service_t service, struct statfs *fs, bool added);
-
-#ifdef IODISMOUNT
 void DeviceRemoved(void *refCon, io_iterator_t iterator) {
 	kern_return_t kr;
 	io_service_t service;
@@ -96,81 +104,102 @@ void DeviceRemoved(void *refCon, io_iterator_t iterator) {
 			io_name_t deviceName;
 			kern_return_t kr = IORegistryEntryGetName(service, deviceName);
 			fprintf(stderr, "DR %s -- %s\n", s, deviceName);
-			CFRelease(str_bsd_path);
 
-			struct statfs *fs = getFileSystemStatusDevMount(s);
-			const char *mount = (fs == 0) ? 0 : fs->f_mntonname;
-			notify(mount, service, fs, false);
+
+			struct statfs *fs = 0;
+			void *val = [map objectForKey:(NSString *)str_bsd_path];
+			fprintf(stderr, "found key as %p\n", val);
+			if (val) {
+				[map removeObjectForKey:(NSString *)str_bsd_path];
+				fs = (struct statfs *)val;
+				fprintf(stderr, "   %s\n", fs->f_mntfromname);
+
+				const char *mount = (fs == 0) ? 0 : fs->f_mntonname;
+				notify(mount, service, fs, false);
+			}
+
+			CFRelease(str_bsd_path);
 		}
 		kr = IOObjectRelease(service);
 	}
 }
-#endif
 
--(int) checkExisting
+- (void) setup
+{
+
+	SInt32 majorVersion,minorVersion;
+
+	Gestalt(gestaltSystemVersionMajor, &majorVersion);
+	Gestalt(gestaltSystemVersionMinor, &minorVersion);
+	useNSWorkspace = majorVersion > 10 || (majorVersion == 10 && minorVersion > 4);
+	
+	fprintf(stderr, "useNSWorkspace = %d\n", useNSWorkspace);
+
+
+	// We need a pool otherwise we get warnings of memory leaks
+	// Should probably dispose of the pool on shutdown, however, since
+	// this library is currently used during the life of the app, it's assumed
+	// that when the app shuts down, the pool auto-shuts down.
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+	map = [[NSMutableDictionary alloc] init];
+	
+	if (!useNSWorkspace) {
+		// port for service notifications
+		gNotifyPort = IONotificationPortCreate(kIOMasterPortDefault);
+		// We don't get service notifications if we don't set up a runLoop
+		CFRunLoopSourceRef runLoopSource = IONotificationPortGetRunLoopSource(gNotifyPort);
+		CFRunLoopRef runLoop = CFRunLoopGetCurrent();
+		CFRunLoopAddSource(runLoop, runLoopSource, kCFRunLoopDefaultMode);
+	} else {
+		// Setup mount/unmount triggers
+		NSWorkspace *ws = [NSWorkspace sharedWorkspace];
+		NSNotificationCenter *center = [ws notificationCenter];
+		[center addObserver:self selector:@selector(mount:) name:NSWorkspaceDidMountNotification object:ws];
+		// TODO: Try NSWorkspaceWillUnmountNotification to see if we can get a statfs
+		[center addObserver:self selector:@selector(unmount:) name:NSWorkspaceDidUnmountNotification object:ws];
+	}
+
+	[ self checkExisting ];
+}
+
+-(int)checkExisting
 {
 	CFMutableDictionaryRef matchingDict;
 	kern_return_t kr;
 	io_iterator_t iter;
 
-#ifdef IODISMOUNT
-	matchingDict = IOServiceMatching(kIOMediaClass);
-	if (matchingDict == NULL) {
-		fprintf(stderr, "IOServiceMatching returned NULL.\n");
-		return -1;
+	if (!useNSWorkspace) {
+		matchingDict = IOServiceMatching(kIOMediaClass);
+		if (matchingDict) {
+			kr = IOServiceAddMatchingNotification(gNotifyPort, kIOTerminatedNotification,
+					matchingDict, DeviceRemoved, NULL, &iter);
+			io_service_t service;
+			while (service = IOIteratorNext(iter)) {
+				IOObjectRelease(service);
+			}
+		}
+
+		// Hookup mediaAdded service notification.
+		matchingDict = IOServiceMatching(kIOMediaClass);
+		if (matchingDict == NULL) {
+			fprintf(stderr, "IOServiceMatching returned NULL.\n");
+			return -1;
+		}
+
+		kr = IOServiceAddMatchingNotification(gNotifyPort, kIOFirstMatchNotification,
+				matchingDict, RawDeviceAdded, (void *)self, &iter);
+	} else {
+		// Get list of IOMedia and notify
+		matchingDict = IOServiceMatching(kIOMediaClass);
+		kr = IOServiceGetMatchingServices(kIOMasterPortDefault, matchingDict, &iter);
 	}
 
-	kr = IOServiceAddMatchingNotification(gNotifyPort, kIOTerminatedNotification,
-			matchingDict, // matching
-			DeviceRemoved, // callback
-			NULL, &iter);
-	io_service_t service;
-	while (service = IOIteratorNext(iter)) {
-		IOObjectRelease(service);
-	}
-#endif
-#ifdef NOCODE
-	matchingDict = IOServiceMatching(kIOMediaClass);
-	if (matchingDict == NULL) {
-		fprintf(stderr, "IOServiceMatching returned NULL.\n");
-		return -1;
-	}
-
-	kr = IOServiceAddMatchingNotification(gNotifyPort, kIOMatchedNotification,
-			matchingDict, // matching
-			rawDeviceAdded, // callback
-			NULL, &iter);
-	//io_service_t service;
-	//while (service = IOIteratorNext(iter)) {
-	//	IOObjectRelease(service);
-	//}
-#endif
-
-	matchingDict = IOServiceMatching(kIOMediaClass);
-	kr = IOServiceGetMatchingServices(kIOMasterPortDefault, matchingDict, &iter);
-	//[self rawDeviceAdded:iter];
-	rawDeviceAdded(0,iter);
+	[self rawDeviceAdded:iter];
 
 	return 0;
 }
 
-- (void) setup
-{
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
-	gNotifyPort = IONotificationPortCreate(kIOMasterPortDefault);
-	CFRunLoopSourceRef runLoopSource = IONotificationPortGetRunLoopSource(gNotifyPort);
-
-	CFRunLoopRef runLoop = CFRunLoopGetCurrent();
-	CFRunLoopAddSource(runLoop, runLoopSource, kCFRunLoopDefaultMode);
-
-	NSWorkspace *ws = [NSWorkspace sharedWorkspace];
-	NSNotificationCenter *center = [ws notificationCenter];
-	[center addObserver:self selector:@selector(mount:) name:NSWorkspaceDidMountNotification object:ws];
-	[center addObserver:self selector:@selector(unmount:) name:NSWorkspaceDidUnmountNotification object:ws];
-
-	[ self checkExisting ];
-}
 
 #ifdef IONOTIFYDISMOUNT
 void DeviceNotification(void *refCon, io_service_t service, natural_t messageType, void *messageArgument) {
@@ -206,8 +235,43 @@ void DeviceNotification(void *refCon, io_service_t service, natural_t messageTyp
 }
 #endif
 
-//- (void)rawDeviceAdded:(io_iterator_t)iterator
-void rawDeviceAdded(void *refCon, io_iterator_t iterator) {
+- (void) handleTimer: (NSTimer *) timer {
+	CFTypeRef str_bsd_path = [timer userInfo];
+	int len = CFStringGetLength(str_bsd_path) * 2 + 1;
+	char s[len];
+	CFStringGetCString((CFStringRef) str_bsd_path, s, len, kCFStringEncodingUTF8);
+
+	struct statfs *fs = getFileSystemStatusDevMount(s);
+	if (fs) {
+		[map setObject:(void *)fs forKey:(NSString *)str_bsd_path];
+
+		CFMutableDictionaryRef matchingDict;
+
+		matchingDict = IOServiceMatching(kIOMediaClass);
+		if (matchingDict) {
+			io_service_t service;
+			char *sBSDName = strrchr(fs->f_mntfromname, (int) '/');
+			if (sBSDName) {
+				sBSDName++;
+
+				fprintf(stderr, "Searching for %s\n", sBSDName);
+				CFStringRef bsdname = CFStringCreateWithCString(kCFAllocatorDefault, sBSDName, kCFStringEncodingMacRoman);
+
+				CFDictionarySetValue(matchingDict, CFSTR(kIOBSDNameKey), bsdname);
+				service = IOServiceGetMatchingService(kIOMasterPortDefault, matchingDict);
+			}
+
+			notify(fs->f_mntonname, service, fs, true);
+			if (service) {
+				IOObjectRelease(service);
+			}
+		}
+	}
+	
+	fprintf(stderr, "timer hit %s\n", s);
+}
+
+- (void)rawDeviceAdded:(io_iterator_t)iterator {
 	kern_return_t kr;
 	io_service_t service;
 
@@ -223,18 +287,11 @@ void rawDeviceAdded(void *refCon, io_iterator_t iterator) {
 			CFStringGetCString((CFStringRef) str_bsd_path, s, len, kCFStringEncodingUTF8);
 
 			fprintf(stderr, "rDA BSD %s\n", s);
-			CFRelease(str_bsd_path);
-#ifdef NOCODE
-			NSDate *fireDate = [NSDate dateWithTimeIntervalSinceNow:2.0];
-			NSTimer *timer = [[NSTimer alloc] initWithFireDate:fireDate
-			target:self
-			selector:@selector(countedtargetMethod:)
-			userInfo:[self userInfo]
-			repeats:NO];
-#endif
 			struct statfs *fs;
 			fs = getFileSystemStatusDevMount(s);
 			if (fs) {
+				[map setObject:(void *)fs forKey:(NSString *)str_bsd_path];
+
 				notify(fs->f_mntonname, service, fs, true);
 #ifdef IONOTIFYDISMOUNT
 				io_object_t obj;
@@ -246,7 +303,16 @@ void rawDeviceAdded(void *refCon, io_iterator_t iterator) {
 						&obj // notification
 						);
 #endif
+			} else if (!useNSWorkspace) {
+				NSDate *fireDate = [NSDate dateWithTimeIntervalSinceNow:8.0];
+				NSTimer *timer = [[NSTimer alloc] initWithFireDate:fireDate
+					interval:0
+					target:self 
+					selector:@selector(handleTimer:) 
+					userInfo:(void *)str_bsd_path repeats:NO];
+				[[NSRunLoop currentRunLoop] addTimer:timer forMode: NSDefaultRunLoopMode];
 			}
+
 		}
 		kr = IOObjectRelease(service);
 	}
@@ -254,7 +320,6 @@ void rawDeviceAdded(void *refCon, io_iterator_t iterator) {
 
 -(void)mount:(id)notification
 {
-	NSLog(@"mount: %@", notification);
 	NSString *path = [[notification userInfo] valueForKey:@"NSDevicePath"];
 
 	// With the path, we can use statfs to get the device name (/mnt/<name>)
@@ -272,6 +337,7 @@ void rawDeviceAdded(void *refCon, io_iterator_t iterator) {
 			return;
 		}
 
+		io_service_t service = 0;
 		char *sBSDName = strrchr(fs->f_mntfromname, (int) '/');
 		if (sBSDName) {
 			sBSDName++;
@@ -279,14 +345,13 @@ void rawDeviceAdded(void *refCon, io_iterator_t iterator) {
 			fprintf(stderr, "Searching for %s\n", sBSDName);
 			CFStringRef bsdname = CFStringCreateWithCString(kCFAllocatorDefault, sBSDName, kCFStringEncodingMacRoman);
 
-			CFDictionarySetValue(matchingDict,
-					CFSTR(kIOBSDNameKey),
-					bsdname);
+			CFDictionarySetValue(matchingDict, CFSTR(kIOBSDNameKey), bsdname);
+			service = IOServiceGetMatchingService(kIOMasterPortDefault, matchingDict);
 		}
 
-		io_service_t service = IOServiceGetMatchingService(kIOMasterPortDefault, matchingDict);
+		notify(cPath, service, fs, true);
+
 		if (service) {
-			notify(cPath, service, fs, true);
 #ifdef IONOTIFYDISMOUNT
 			io_object_t obj;
 			kern_return_t kr = IOServiceAddInterestNotification(gNotifyPort, // notifyPort
@@ -308,15 +373,14 @@ void rawDeviceAdded(void *refCon, io_iterator_t iterator) {
 
 	// With the path, we can use statfs to get the device name (/mnt/<name>)
 	// from device name, we can query UIServiceGetMatchingService and get info (like if it's optical media)
-	NSLog(@"unmount: %@", notification);
-
+	
 	const char *cPath = [path UTF8String];
 	fprintf(stderr, "unmount %s\n", cPath);
 	struct statfs *fs = getFileSystemStatusFromMount(cPath);
 	io_service_t service = 0;
 
 	// Alas, fs will always be null, so service lookup will never run
-	// If we stored the NSDevicePath : fs->f_mntfromname mapping, and looked
+	// TODO: If we stored the NSDevicePath : fs->f_mntfromname mapping, and looked
 	// it up, we might have a chance to get the ioservice..
 	if (fs) {
 		CFMutableDictionaryRef matchingDict;
