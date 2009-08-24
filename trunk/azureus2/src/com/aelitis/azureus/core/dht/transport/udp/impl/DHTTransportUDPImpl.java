@@ -91,6 +91,8 @@ DHTTransportUDPImpl
 	public static final int		MIN_ADDRESS_CHANGE_PERIOD_INIT_DEFAULT	= 5*60*1000;
 	public static final int		MIN_ADDRESS_CHANGE_PERIOD_NEXT_DEFAULT	= 10*60*1000;
 	
+	public static final int		STORE_TIMEOUT_MULTIPLIER = 2;
+	
 	private static boolean	XFER_TRACE	= false;
 	
 	static{
@@ -248,7 +250,7 @@ DHTTransportUDPImpl
 		reachable				= _initial_reachability;
 		logger					= _logger;
 				
-		store_timeout			= request_timeout * 2;
+		store_timeout			= request_timeout * STORE_TIMEOUT_MULTIPLIER;
 		
 		try{
 			random = RandomUtils.SECURE_RANDOM;
@@ -491,6 +493,27 @@ DHTTransportUDPImpl
 		createPacketHandler();
 		
 		setLocalContact();
+	}
+	
+	public long
+	getTimeout()
+	{
+		return( request_timeout );
+	}
+	
+	public void
+	setTimeout(
+		long		timeout )
+	{
+		if ( request_timeout == timeout ){
+			
+			return;
+		}
+		
+		request_timeout = timeout;
+		store_timeout   = request_timeout * STORE_TIMEOUT_MULTIPLIER;
+		
+		packet_handler.setDelays( dht_send_delay, dht_receive_delay, (int)request_timeout );
 	}
 	
 	public int

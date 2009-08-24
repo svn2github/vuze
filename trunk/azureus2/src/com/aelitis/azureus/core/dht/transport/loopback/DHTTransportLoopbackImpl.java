@@ -197,6 +197,19 @@ DHTTransportLoopbackImpl
 		return( 0 );
 	}
 	
+	
+	public long 
+	getTimeout() 
+	{
+		return( 0 );
+	}
+	
+	public void 
+	setTimeout(
+		long 	millis ) 
+	{
+	}
+	
 	public boolean
 	isReachable()
 	{

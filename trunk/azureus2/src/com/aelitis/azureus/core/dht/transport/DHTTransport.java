@@ -55,6 +55,13 @@ DHTTransport
 	
 		throws DHTTransportException;
 	
+	public long
+	getTimeout();
+	
+	public void
+	setTimeout(
+		long		millis );
+	
 	public DHTTransportContact
 	importContact(
 		DataInputStream		is )
