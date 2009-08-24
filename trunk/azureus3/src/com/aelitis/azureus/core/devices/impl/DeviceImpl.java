@@ -907,6 +907,12 @@ DeviceImpl
 		setPersistentStringProperty( PP_REND_WORK_DIR, directory.getAbsolutePath());
 	}
 
+	protected void
+	resetWorkingDirectory()
+	{
+		setPersistentStringProperty( PP_REND_WORK_DIR, "" );
+	}
+	
 	public TranscodeProfile[]
 	getTranscodeProfiles()
 	{		

@@ -611,8 +611,6 @@ DeviceiTunes
 			
 			addDP( dp, "devices.auto.start", getAutoStartDevice());
 		}
-		
-		super.getTTDisplayProperties( dp );
 	}
 	
 	public void

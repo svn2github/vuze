@@ -1062,6 +1062,22 @@ DeviceManagerImpl
 	setDefaultWorkingDirectory(
 		File		dir )
 	{
+		File existing = getDefaultWorkingDirectory( false );
+		
+		if ( !existing.getAbsolutePath().equals( dir.getAbsolutePath())){
+		
+			// default has changed, reset all device save locations so that they pick up the change
+			
+			
+			synchronized( this ){
+				
+				for ( DeviceImpl d: device_list ){
+
+					d.resetWorkingDirectory();
+				}
+			}
+		}
+		
 		COConfigurationManager.setParameter( CONFIG_DEFAULT_WORK_DIR, dir.getAbsolutePath());
 	}
 	
