@@ -1029,6 +1029,13 @@ DeviceManagerImpl
 	public File
 	getDefaultWorkingDirectory()
 	{
+		return( getDefaultWorkingDirectory( false ));
+	}
+	
+	public File
+	getDefaultWorkingDirectory(
+		boolean		persist )
+	{
 		String def = COConfigurationManager.getStringParameter( CONFIG_DEFAULT_WORK_DIR, "" ).trim();
 		
 		if ( def.length() == 0 ){
@@ -1042,7 +1049,10 @@ DeviceManagerImpl
 		
 		if ( !f.exists()){
 		
-			f.mkdirs();
+			if ( persist ){
+			
+				f.mkdirs();
+			}
 		}
 		
 		return( f );

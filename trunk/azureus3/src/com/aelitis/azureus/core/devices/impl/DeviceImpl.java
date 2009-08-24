@@ -856,9 +856,12 @@ DeviceImpl
 		
 		if ( result.length() == 0 ){
 			
-			File f = manager.getDefaultWorkingDirectory();
+			File f = manager.getDefaultWorkingDirectory( persist );
 			
-			f.mkdirs();
+			if ( persist ){
+			
+				f.mkdirs();
+			}
 			
 			String	name = FileUtil.convertOSSpecificChars( getName(), true );
 			
@@ -888,7 +891,10 @@ DeviceImpl
 		
 		if ( !f_result.exists()){
 			
-			f_result.mkdirs();
+			if ( persist ){
+			
+				f_result.mkdirs();
+			}
 		}
 		
 		return( f_result );
@@ -1056,7 +1062,9 @@ DeviceImpl
 			addDP( dp, "TableColumn.header.name", name );
 		}
 		
-		addDP( dp, "TableColumn.header.class", classification.toLowerCase() );
+		addDP( dp, "TableColumn.header.class", classification.toLowerCase());
+		
+		addDP( dp, "!UID!", getID());
 		
 		if ( !manual ){
 		
