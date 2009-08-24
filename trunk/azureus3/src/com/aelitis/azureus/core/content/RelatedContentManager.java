@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.content;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -146,7 +147,7 @@ RelatedContentManager
 	private long		last_config_access;		
 	private int			content_discard_ticks;
 	
-	private int	total_unread = COConfigurationManager.getIntParameter( CONFIG_TOTAL_UNREAD, 0 );
+	private AtomicInteger	total_unread = new AtomicInteger( COConfigurationManager.getIntParameter( CONFIG_TOTAL_UNREAD, 0 ));
 	
 	private AsyncDispatcher	content_change_dispatcher = new AsyncDispatcher();
 	
@@ -1762,7 +1763,7 @@ RelatedContentManager
 			
 			Collections.shuffle( download_infos1 );
 			
-			total_unread = 0;
+			total_unread.set( 0 );
 			
 			if ( reset_perm_dels ){
 			
@@ -1970,13 +1971,13 @@ RelatedContentManager
 							}
 						}
 						
-						if ( total_unread != new_total_unread ){
+						if ( total_unread.get() != new_total_unread ){
 														
 							Debug.out( "total_unread - inconsistent (" + total_unread + "/" + new_total_unread + ")" );
 							
-							total_unread = new_total_unread;
+							total_unread.set( new_total_unread );
 							
-							COConfigurationManager.setParameter( CONFIG_TOTAL_UNREAD, total_unread );
+							COConfigurationManager.setParameter( CONFIG_TOTAL_UNREAD, new_total_unread );
 						}
 					}catch( Throwable e ){
 						
@@ -2007,7 +2008,7 @@ RelatedContentManager
 	{
 		synchronized( this ){
 				
-			COConfigurationManager.setParameter( CONFIG_TOTAL_UNREAD, total_unread );
+			COConfigurationManager.setParameter( CONFIG_TOTAL_UNREAD, total_unread.get());
 			
 			long	now = SystemTime.getMonotonousTime();;
 			
@@ -2138,10 +2139,7 @@ RelatedContentManager
 	public int
 	getNumUnread()
 	{
-		synchronized( this ){
-		
-			return( total_unread );
-		}
+		return( total_unread.get());
 	}
 	
 	public void
@@ -2163,7 +2161,7 @@ RelatedContentManager
 				}
 			}
 			
-			total_unread = 0;
+			total_unread.set( 0 );
 		}
 		
 		if ( changed ){
@@ -2188,10 +2186,7 @@ RelatedContentManager
 	protected void
 	incrementUnread()
 	{
-		synchronized( this ){
-			
-			total_unread++;
-		}
+		total_unread.incrementAndGet();
 	}
 	
 	protected void
@@ -2199,13 +2194,13 @@ RelatedContentManager
 	{
 		synchronized( this ){
 			
-			total_unread--;
+			int val = total_unread.decrementAndGet();
 			
-			if ( total_unread < 0 ){
+			if ( val < 0 ){
 				
 				Debug.out( "inconsistent" );
 				
-				total_unread = 0;
+				total_unread.set( 0 );
 			}
 		}
 	}
