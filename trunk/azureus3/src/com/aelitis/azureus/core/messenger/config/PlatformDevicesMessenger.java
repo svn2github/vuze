@@ -24,15 +24,18 @@ import java.util.Map;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.HashWrapper;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 
 /**
  * @author TuxPaper
@@ -182,6 +185,14 @@ public class PlatformDevicesMessenger
 				}
 			}
 			map.put("job-error", error);
+		}
+		
+		try {
+			Torrent torrent = job.getFile().getDownload().getTorrent();
+			if (PlatformTorrentUtils.isContent(torrent, true)) {
+				map.put("asset-hash", new HashWrapper(torrent.getHash()).toBase32String());
+			}
+		} catch (Throwable t) {
 		}
 
 		map.put("transcode-mode", new Integer(job.getTranscodeRequirement()));
