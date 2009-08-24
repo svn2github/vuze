@@ -39,7 +39,7 @@ public class UnchokerUtil {
    * @param allow_snubbed if true, ignore snubbed state
    * @return true if peer is allowed to be unchoked, false if not
    */
-  public static boolean isUnchokable( PEPeerTransport peer, boolean allow_snubbed ) {
+  public static boolean isUnchokable( PEPeer peer, boolean allow_snubbed ) {
     return peer.getPeerState() == PEPeer.TRANSFERING && !peer.isSeed() && !peer.isRelativeSeed() && peer.isInterested() && ( !peer.isSnubbed() || allow_snubbed );
   }
   
@@ -53,7 +53,7 @@ public class UnchokerUtil {
    * @param items existing items
    * @param start_pos index at which to start compare
    */
-  public static void updateLargestValueFirstSort( long new_value, long[] values, PEPeerTransport new_item, ArrayList items, int start_pos ) {
+  public static void updateLargestValueFirstSort( long new_value, long[] values, PEPeer new_item, ArrayList items, int start_pos ) {
 	items.ensureCapacity( values.length );
     for( int i=start_pos; i < values.length; i++ ) {
       if( new_value >= values[ i ] ) {
@@ -81,9 +81,9 @@ public class UnchokerUtil {
    * @param allow_snubbed allow the picking of snubbed-state peers as last resort
    * @return the next peer to optimistically unchoke, or null if there are no peers available
    */
-  public static PEPeerTransport getNextOptimisticPeer( ArrayList all_peers, boolean factor_reciprocated, boolean allow_snubbed ) {
+  public static PEPeer getNextOptimisticPeer( ArrayList<PEPeer> all_peers, boolean factor_reciprocated, boolean allow_snubbed ) {
 	  
-	  ArrayList	peers = getNextOptimisticPeers( all_peers, factor_reciprocated, allow_snubbed, 1 );
+	  ArrayList<PEPeer>	peers = getNextOptimisticPeers( all_peers, factor_reciprocated, allow_snubbed, 1 );
 	  
 	  if ( peers != null ){
 		  
@@ -93,11 +93,11 @@ public class UnchokerUtil {
 	  return( null );
   }
 
-  public static ArrayList getNextOptimisticPeers( ArrayList all_peers, boolean factor_reciprocated, boolean allow_snubbed, int num_needed ) {
+  public static ArrayList<PEPeer> getNextOptimisticPeers( ArrayList<PEPeer> all_peers, boolean factor_reciprocated, boolean allow_snubbed, int num_needed ) {
     //find all potential optimistic peers
-    ArrayList optimistics = new ArrayList();
+    ArrayList<PEPeer> optimistics = new ArrayList<PEPeer>();
     for( int i=0; i < all_peers.size(); i++ ) {
-    	PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+    	PEPeer peer = all_peers.get( i );
       
       if( isUnchokable( peer, false ) && peer.isChokedByMe() ) {
         optimistics.add( peer );
@@ -106,7 +106,7 @@ public class UnchokerUtil {
     
     if( optimistics.isEmpty() && allow_snubbed ) {  //try again, allowing snubbed peers as last resort
       for( int i=0; i < all_peers.size(); i++ ) {
-      	PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+    	  PEPeer peer = all_peers.get( i );
         
         if( isUnchokable( peer, true ) && peer.isChokedByMe() ) {
           optimistics.add( peer );
@@ -118,17 +118,17 @@ public class UnchokerUtil {
     
     //factor in peer reciprocation ratio when picking optimistic peers
     
-    ArrayList	result = new ArrayList(optimistics.size());
+    ArrayList<PEPeer>	result = new ArrayList<PEPeer>(optimistics.size());
     
     if ( factor_reciprocated ){
     	
-      ArrayList ratioed_peers = new ArrayList( optimistics.size() );
+      ArrayList<PEPeerTransport> ratioed_peers = new ArrayList<PEPeerTransport>( optimistics.size() );
       long[] ratios = new long[ optimistics.size() ];
       Arrays.fill( ratios, Long.MIN_VALUE );
         
       //order by upload ratio
       for( int i=0; i < optimistics.size(); i++ ) {
-      	PEPeerTransport peer = (PEPeerTransport)optimistics.get( i );
+    	  PEPeer peer = optimistics.get( i );
 
         //score of >0 means we've uploaded more, <0 means we've downloaded more
         long score = peer.getStats().getTotalDataBytesSent() - peer.getStats().getTotalDataBytesReceived();
@@ -170,7 +170,7 @@ public class UnchokerUtil {
    * @param peers_to_choke
    * @param peers_to_unchoke
    */
-  public static void performChokes( ArrayList peers_to_choke, ArrayList peers_to_unchoke ) {
+  public static void performChokes( ArrayList<PEPeer> peers_to_choke, ArrayList<PEPeer> peers_to_unchoke ) {
   	//do chokes
   	if( peers_to_choke != null ) {
   		for( int i=0; i < peers_to_choke.size(); i++ ) {
@@ -185,7 +185,7 @@ public class UnchokerUtil {
 		//do unchokes
   	if( peers_to_unchoke != null ) {
   		for( int i=0; i < peers_to_unchoke.size(); i++ ) {
-  			final PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
+  			final PEPeer peer = peers_to_unchoke.get( i );
 			
   			if( peer.isChokedByMe() ) {   //TODO add UnchokerUtil.isUnchokable() test here to be safe?
   				peer.sendUnChoke();
@@ -195,7 +195,7 @@ public class UnchokerUtil {
   }
   
   
-  public static void performChokeUnchoke( PEPeerTransport to_choke, PEPeerTransport to_unchoke ) {
+  public static void performChokeUnchoke( PEPeer to_choke, PEPeer to_unchoke ) {
   	if( to_choke != null && !to_choke.isChokedByMe() ) {  
   		to_choke.sendChoke();   		
   	}

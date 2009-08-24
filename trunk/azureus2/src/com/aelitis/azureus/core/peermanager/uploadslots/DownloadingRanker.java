@@ -25,7 +25,7 @@ package com.aelitis.azureus.core.peermanager.uploadslots;
 import java.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.PEPeer;
 
 import com.aelitis.azureus.core.peermanager.unchoker.UnchokerUtil;
 
@@ -42,22 +42,22 @@ public class DownloadingRanker {
   
   
   
-  public PEPeerTransport getNextOptimisticPeer( ArrayList all_peers ) {
+  public PEPeer getNextOptimisticPeer( ArrayList<PEPeer> all_peers ) {
   	return UnchokerUtil.getNextOptimisticPeer( all_peers, true, true );  //TODO extract and optimize?
   }
   
    
   
 
-  public ArrayList rankPeers( int max_to_unchoke, ArrayList all_peers ) {
+  public ArrayList<PEPeer> rankPeers( int max_to_unchoke, ArrayList<PEPeer> all_peers ) {
   
-  	 ArrayList best_peers = new ArrayList();
+  	 ArrayList<PEPeer> best_peers = new ArrayList<PEPeer>();
   	 long[] bests = new long[ max_to_unchoke ];  //ensure we never rank more peers than needed
   	 
     
     //fill slots with peers who we are currently downloading the fastest from
     for( int i=0; i < all_peers.size(); i++ ) {
-    	PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+    	PEPeer peer = all_peers.get( i );
 
       if( peer.isInteresting() && UnchokerUtil.isUnchokable( peer, false ) ) {  //viable peer found
         long rate = peer.getStats().getSmoothDataReceiveRate();
@@ -74,7 +74,7 @@ public class DownloadingRanker {
       
       //fill the remaining slots with peers that we have downloaded from in the past
       for( int i=0; i < all_peers.size(); i++ ) {
-      	PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+    	PEPeer peer = all_peers.get( i );
 
         if( peer.isInteresting() && UnchokerUtil.isUnchokable( peer, false ) && !best_peers.contains( peer ) ) {  //viable peer found
           long uploaded_ratio = peer.getStats().getTotalDataBytesSent() / (peer.getStats().getTotalDataBytesReceived() + (DiskManager.BLOCK_SIZE-1));

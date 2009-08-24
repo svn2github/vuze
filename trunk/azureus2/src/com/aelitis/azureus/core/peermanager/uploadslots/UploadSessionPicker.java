@@ -23,7 +23,7 @@ package com.aelitis.azureus.core.peermanager.uploadslots;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -139,7 +139,7 @@ public class UploadSessionPicker {
 				
 				if( failed_helpers == null || !failed_helpers.contains( helper ) ) {   //pre-emptive check to see if we've already tried this helper
 					
-					PEPeerTransport peer;
+					PEPeer peer;
 					
 					if( helper.isSeeding() ) {
 						peer = seed_ranker.getNextOptimisticPeer( helper.getAllPeers() );
@@ -172,11 +172,11 @@ public class UploadSessionPicker {
 	
 	
 
-	private ArrayList globalGetAllDownloadPeers() {
+	private ArrayList<PEPeer> globalGetAllDownloadPeers() {
 		try {  next_optimistics_mon.enter();
-			ArrayList all = new ArrayList();
+			ArrayList<PEPeer> all = new ArrayList<PEPeer>();
 			
-			for( Iterator it = helpers.iterator(); it.hasNext(); ) {
+			for( Iterator<PEPeer> it = helpers.iterator(); it.hasNext(); ) {
 				UploadHelper helper = (UploadHelper)it.next();
 				
 				if( !helper.isSeeding() )  {  //filter out seeding
@@ -192,28 +192,28 @@ public class UploadSessionPicker {
 	
 	
 	//this picks downloading sessions only
-	protected LinkedList pickBestDownloadSessions( int max_sessions ) {
+	protected LinkedList<UploadSession> pickBestDownloadSessions( int max_sessions ) {
 		//TODO factor download priority into best calculation?
 		
-		ArrayList all_peers = globalGetAllDownloadPeers();
+		ArrayList<PEPeer> all_peers = globalGetAllDownloadPeers();
 		
 		if( all_peers.isEmpty() )  return new LinkedList();
 		
-		ArrayList best = down_ranker.rankPeers( max_sessions, all_peers );
+		ArrayList<PEPeer> best = down_ranker.rankPeers( max_sessions, all_peers );
 		
 		if( best.size() != max_sessions ) {
 			Debug.outNoStack( "best.size()[" +best.size()+ "] != max_sessions[" +max_sessions+ "]" );
 		}
 		
 		if( best.isEmpty() ) {
-			return new LinkedList();
+			return new LinkedList<UploadSession>();
 		}
 		
 		
-		LinkedList best_sessions = new LinkedList();
+		LinkedList<UploadSession> best_sessions = new LinkedList<UploadSession>();
 		
-		for( Iterator it = best.iterator(); it.hasNext(); ) {
-			PEPeerTransport peer = (PEPeerTransport)it.next();
+		for( Iterator<PEPeer> it = best.iterator(); it.hasNext(); ) {
+			PEPeer peer = it.next();
 			UploadSession session = new UploadSession( peer, UploadSession.TYPE_DOWNLOAD );
 			best_sessions.add( session );
 		}

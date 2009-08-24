@@ -127,6 +127,8 @@ public class UnchokerUtilTest {
         public void setSnubbed(boolean b){}
         public boolean isChokingMe(){ return true;  }
         public boolean isChokedByMe() {  return true;  }
+        public void sendChoke(){}
+        public void sendUnChoke(){}
         public boolean isInteresting(){  return true;  }
         public boolean isInterested(){  return true;  }
         public boolean isRelativeSeed() { return false; }
@@ -272,6 +274,15 @@ public class UnchokerUtilTest {
     return peers;
   }
   
-  
-  
+  public static class
+  UF
+  	extends UnchokerFactory
+  {
+	public Unchoker 
+	getUnchoker(
+		boolean seeding) 
+	{
+		return super.getUnchoker(seeding);
+	}  
+  } 
 }

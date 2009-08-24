@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.PEPeer;
 
 
 /**
@@ -34,22 +34,27 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
  */
 public class DownloadingUnchoker implements Unchoker {
 
-  private ArrayList chokes = new ArrayList();
-  private ArrayList unchokes = new ArrayList();
+  private ArrayList<PEPeer> chokes 		= new ArrayList<PEPeer>();
+  private ArrayList<PEPeer> unchokes 	= new ArrayList<PEPeer>();
   
 
-  public DownloadingUnchoker() {
+  protected DownloadingUnchoker() {
     /* nothing */
   }
   
+  public boolean
+  isSeedingUnchoker()
+  {
+	  return( false );
+  }
   
-  public ArrayList getImmediateUnchokes( int max_to_unchoke, ArrayList all_peers ) {
-    ArrayList to_unchoke = new ArrayList();
+  public ArrayList<PEPeer> getImmediateUnchokes( int max_to_unchoke, ArrayList<PEPeer> all_peers ) {
+    ArrayList<PEPeer> to_unchoke = new ArrayList<PEPeer>();
     
     //count all the currently unchoked peers
     int num_unchoked = 0;
     for( int i=0; i < all_peers.size(); i++ ) {
-    	PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+    	PEPeer peer = all_peers.get( i );
       if( !peer.isChokedByMe() )  num_unchoked++;
     }
     
@@ -57,7 +62,7 @@ public class DownloadingUnchoker implements Unchoker {
     int needed = max_to_unchoke - num_unchoked;
     if( needed > 0 ) {
       for( int i=0; i < needed; i++ ) {
-      	PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true, true );
+    	PEPeer peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true, true );
         if( peer == null )  break;  //no more new unchokes avail
         to_unchoke.add( peer );
         peer.setOptimisticUnchoke( true );
@@ -69,17 +74,17 @@ public class DownloadingUnchoker implements Unchoker {
   
   
 
-  public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh, boolean check_priority_connections ) {
+  public void calculateUnchokes( int max_to_unchoke, ArrayList<PEPeer> all_peers, boolean force_refresh, boolean check_priority_connections ) {
     int max_optimistic = ((max_to_unchoke - 1) / 10) + 1;  //one optimistic unchoke for every 10 upload slots
     
-    ArrayList optimistic_unchokes = new ArrayList();
-    ArrayList best_peers = new ArrayList();
+    ArrayList<PEPeer> optimistic_unchokes = new ArrayList<PEPeer>();
+    ArrayList<PEPeer> best_peers = new ArrayList<PEPeer>();
     long[] bests = new long[ max_to_unchoke ];  //ensure we never pick more slots than allowed to unchoke
     
     
     //get all the currently unchoked peers
     for( int i=0; i < all_peers.size(); i++ ) {
-    	PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+      PEPeer peer = all_peers.get( i );
       
       if( !peer.isChokedByMe() ) { 
         if( UnchokerUtil.isUnchokable( peer, true ) ) {
@@ -97,7 +102,7 @@ public class DownloadingUnchoker implements Unchoker {
     
     if( !force_refresh ) {  //ensure current optimistic unchokes remain unchoked
       for( int i=0; i < optimistic_unchokes.size(); i++ ) {
-      	PEPeerTransport peer = (PEPeerTransport)optimistic_unchokes.get( i );
+    	PEPeer peer = optimistic_unchokes.get( i );
         
         if( i < max_optimistic ) {
           best_peers.add( peer );  //add them to the front of the "best" list
@@ -112,7 +117,7 @@ public class DownloadingUnchoker implements Unchoker {
     //fill slots with peers who we are currently downloading the fastest from
     int start_pos = best_peers.size();
     for( int i=0; i < all_peers.size(); i++ ) {
-    	PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+      PEPeer peer = all_peers.get( i );
 
       if( peer.isInteresting() && UnchokerUtil.isUnchokable( peer, false ) && !best_peers.contains( peer ) ) {  //viable peer found
         long rate = peer.getStats().getSmoothDataReceiveRate();
@@ -129,7 +134,7 @@ public class DownloadingUnchoker implements Unchoker {
       
       //fill the remaining slots with peers that we have downloaded from in the past
       for( int i=0; i < all_peers.size(); i++ ) {
-      	PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+    	PEPeer peer = all_peers.get( i );
 
         if( peer.isInteresting() && UnchokerUtil.isUnchokable( peer, false ) && !best_peers.contains( peer ) ) {  //viable peer found
           long uploaded_ratio = peer.getStats().getTotalDataBytesSent() / (peer.getStats().getTotalDataBytesReceived() + (DiskManager.BLOCK_SIZE-1));
@@ -152,7 +157,7 @@ public class DownloadingUnchoker implements Unchoker {
     
     //if we still have remaining slots
     while( best_peers.size() < max_to_unchoke ) { 
-    	PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true, true );  //just pick one optimistically
+      PEPeer peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true, true );  //just pick one optimistically
       if( peer == null )  break;  //no more new unchokes avail
       
       if( !best_peers.contains( peer ) ) {
@@ -170,8 +175,8 @@ public class DownloadingUnchoker implements Unchoker {
       
 
     //update chokes
-    for( Iterator it = unchokes.iterator(); it.hasNext(); ) {
-    	PEPeerTransport peer = (PEPeerTransport)it.next();
+    for( Iterator<PEPeer> it = unchokes.iterator(); it.hasNext(); ) {
+      PEPeer peer = it.next();
 
       if( !best_peers.contains( peer ) ) {  //should be choked
         if( best_peers.size() < max_to_unchoke ) {  //but there are still slots needed (no optimistics avail), so don't bother choking them
@@ -186,7 +191,7 @@ public class DownloadingUnchoker implements Unchoker {
     
     //update unchokes
     for( int i=0; i < best_peers.size(); i++ ) {
-    	PEPeerTransport peer = (PEPeerTransport)best_peers.get( i );
+      PEPeer peer = best_peers.get( i );
       
       if( !unchokes.contains( peer ) ) {
         unchokes.add( peer );
@@ -196,16 +201,16 @@ public class DownloadingUnchoker implements Unchoker {
   }
   
   
-  public ArrayList getChokes() {
-    ArrayList to_choke = chokes;
-    chokes = new ArrayList();
+  public ArrayList<PEPeer> getChokes() {
+    ArrayList<PEPeer> to_choke = chokes;
+    chokes = new ArrayList<PEPeer>();
     return to_choke;
   }
   
   
-  public ArrayList getUnchokes() {
-    ArrayList to_unchoke = unchokes;
-    unchokes  = new ArrayList();
+  public ArrayList<PEPeer> getUnchokes() {
+    ArrayList<PEPeer> to_unchoke = unchokes;
+    unchokes  = new ArrayList<PEPeer>();
     return to_unchoke;
   }
     

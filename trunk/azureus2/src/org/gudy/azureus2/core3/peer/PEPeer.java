@@ -145,6 +145,12 @@ PEPeer
    */
 	public boolean isChokedByMe();
 
+	public void
+	sendChoke();
+	
+	public void
+	sendUnChoke();
+	
   /**
    * Am I Interested in the peer.
    * @return true if peer is interesting, false if not

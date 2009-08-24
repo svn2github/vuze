@@ -21,7 +21,7 @@
  */
 package com.aelitis.azureus.core.peermanager.uploadslots;
 
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 import com.aelitis.azureus.core.peermanager.unchoker.UnchokerUtil;
@@ -35,11 +35,11 @@ public class UploadSession {
 	protected static final int TYPE_SEED		 = 1;
 	
 	
-	private final PEPeerTransport peer;
+	private final PEPeer peer;
 	private final int session_type;
 	
 	
-	protected UploadSession( PEPeerTransport _peer, int _session_type ) {
+	protected UploadSession( PEPeer _peer, int _session_type ) {
 		this.peer = _peer;
 		this.session_type = _session_type;		
 	}

@@ -24,10 +24,16 @@ package com.aelitis.azureus.core.peermanager.unchoker;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.peer.PEPeer;
+
 /**
  * Performs peer choke/unchoke calculations.
  */
-public interface Unchoker {
+public interface 
+Unchoker 
+{
+  public boolean
+  isSeedingUnchoker();
   
   /**
    * Get any unchokes that should be performed immediately.
@@ -35,7 +41,7 @@ public interface Unchoker {
    * @param all_peers list of peers to choose from
    * @return peers to unchoke
    */
-  public ArrayList getImmediateUnchokes( int max_to_unchoke, ArrayList all_peers );
+  public ArrayList<PEPeer> getImmediateUnchokes( int max_to_unchoke, ArrayList<PEPeer> all_peers );
 
   /**
    * Perform peer choke, unchoke and optimistic calculations
@@ -43,17 +49,17 @@ public interface Unchoker {
    * @param all_peers list of peers to choose from
    * @param force_refresh force a refresh of optimistic unchokes
    */
-  public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh, boolean check_priority_connections );
+  public void calculateUnchokes( int max_to_unchoke, ArrayList<PEPeer> all_peers, boolean force_refresh, boolean check_priority_connections );
   
   /**
    * Get the list of peers calculated to be choked.
    * @return peers to choke
    */
-  public ArrayList getChokes();
+  public ArrayList<PEPeer> getChokes();
   
   /**
    * Get the list of peers calculated to be unchoked.
    * @return peers to unchoke
    */
-  public ArrayList getUnchokes();
+  public ArrayList<PEPeer> getUnchokes();
 }

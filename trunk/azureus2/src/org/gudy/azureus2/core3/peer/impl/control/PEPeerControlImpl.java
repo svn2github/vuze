@@ -1653,13 +1653,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			//determine proper unchoker
 			if( seeding_mode ) {
-				if( unchoker == null || !(unchoker instanceof SeedingUnchoker) ) {
-					unchoker = new SeedingUnchoker();
+				if( unchoker == null || !(unchoker.isSeedingUnchoker()) ) {
+					unchoker = UnchokerFactory.getSingleton().getUnchoker( true );
 				}
 			}
 			else {
-				if( unchoker == null || !(unchoker instanceof DownloadingUnchoker) ) {
-					unchoker = new DownloadingUnchoker();
+				if( unchoker == null || unchoker.isSeedingUnchoker()) {
+					unchoker = UnchokerFactory.getSingleton().getUnchoker( false );
 				}
 			}
 
