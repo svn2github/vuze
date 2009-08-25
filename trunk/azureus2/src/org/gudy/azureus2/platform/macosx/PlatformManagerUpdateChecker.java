@@ -303,9 +303,12 @@ PlatformManagerUpdateChecker
 						
 						installer.addResource(resource_name, zip, false);
 
+						
 						installer.addMoveAction(
 								resource_name, 
-								installer.getInstallDir() + File.separator + name );
+								installer.getInstallDir() +
+									File.separator + SystemProperties.getApplicationName() + ".app" + 
+									File.separator + name );
 					}
 				}
 			}
