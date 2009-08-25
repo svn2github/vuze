@@ -285,7 +285,7 @@ PlatformManagerUpdateChecker
 
 					// OSX only files
 
-					name = name.substring(8);
+					name = name.substring(4);
 
 					// skip the directory entry
 
@@ -297,10 +297,15 @@ PlatformManagerUpdateChecker
 							Logger.log(new LogEvent(LOGID,
 									"PlatformManager:OSX adding action for '" + name + "'"));
 
-						installer.addResource(name, zip, false);
+							// handle sub-dirs
+						
+						String	resource_name = name.replaceAll( "/", "-" );
+						
+						installer.addResource(resource_name, zip, false);
 
-						installer.addMoveAction(name, installer.getInstallDir()
-								+ File.separator + name);
+						installer.addMoveAction(
+								resource_name, 
+								installer.getInstallDir() + File.separator + name );
 					}
 				}
 			}
