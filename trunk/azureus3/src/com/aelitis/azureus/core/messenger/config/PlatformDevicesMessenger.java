@@ -18,8 +18,7 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
@@ -57,6 +56,8 @@ public class PlatformDevicesMessenger
 	private static final String OP_QOS_PLAYBACK = "qos-playback";
 
 	private static final String OP_GET_PROFILES = "get-profiles";
+
+	private static final String OP_REPORT_DEVICES = "report-devices";
 
 	private static final String OP_QOS_TRANSCODE_REQUEST = "qos-transcode-request";
 	
@@ -232,6 +233,55 @@ public class PlatformDevicesMessenger
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				OP_QOS_TRANSCODE, map, 5000);
 		message.setSendAZID(false);
+		PlatformMessenger.queueMessage(message, null);
+	}
+	
+	public static void setupDeviceSender() {
+		final DeviceManager deviceManager = DeviceManagerFactory.getSingleton();
+		Device[] devices = deviceManager.getDevices();
+		if (devices == null || devices.length == 0) {
+  		deviceManager.addListener(new DeviceManagerListener() {
+  		
+  			public void deviceRemoved(Device device) {
+  			}
+  		
+  			public void deviceChanged(Device device) {
+  			}
+  		
+  			public void deviceAttentionRequest(Device device) {
+  			}
+  			
+  			public void deviceAdded(Device device) {
+  			}
+  
+  			public void deviceManagerLoaded() {
+  				deviceManager.removeListener(this);
+  				Device[] devices = deviceManager.getDevices();
+  				if (devices != null && devices.length > 0) {
+  					sendDeviceList(devices);
+  				}
+  			}
+  		});
+		} else {
+			sendDeviceList(devices);
+		}
+		
+
+	}
+
+	private static void sendDeviceList(Device[] devices) {
+		List<String> listRenderers = new ArrayList<String>(devices.length);
+		for (Device dev : devices) {
+			if (dev.getType() == Device.DT_MEDIA_RENDERER) {
+				listRenderers.add(dev.getClassification());
+			}
+		}
+
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+				OP_REPORT_DEVICES, new Object[] {
+					"renderers",
+					listRenderers
+				}, 500);
 		PlatformMessenger.queueMessage(message, null);
 	}
 }

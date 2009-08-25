@@ -831,6 +831,8 @@ public class MainWindow
 					});
 				}
 			});
+			
+			PlatformDevicesMessenger.setupDeviceSender();
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 

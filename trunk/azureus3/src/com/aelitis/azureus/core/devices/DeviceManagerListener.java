@@ -39,4 +39,7 @@ DeviceManagerListener
 	public void
 	deviceRemoved(
 		Device		device );
+
+	public void
+	deviceManagerLoaded();
 }

@@ -316,7 +316,32 @@ DeviceManagerUI
 		side_bar		= _side_bar;
 
 		device_manager 	= DeviceManagerFactory.getSingleton();
+		
+		device_manager.addListener(new DeviceManagerListener() {
+		
+			public void deviceRemoved(Device device) {
+			}
+		
+			public void deviceManagerLoaded() {
+				device_manager.removeListener(this);
+				setupUIwithDeviceManager();
+			}
+		
+			public void deviceChanged(Device device) {
+			}
+		
+			public void deviceAttentionRequest(Device device) {
+			}
+		
+			public void deviceAdded(Device device) {
+			}
+		});
+	}
 
+	
+	private void
+	setupUIwithDeviceManager()
+	{
 		device_manager_listener = 
 			new DeviceManagerListener()
 			{
@@ -346,6 +371,10 @@ DeviceManagerUI
 					Device		device )
 				{
 					removeDevice( device );
+				}
+				
+				public void 
+				deviceManagerLoaded() {
 				}
 			};
 		

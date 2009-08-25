@@ -107,6 +107,7 @@ DeviceManagerImpl
 	private static final int LT_DEVICE_CHANGED		= 2;
 	private static final int LT_DEVICE_ATTENTION	= 3;
 	private static final int LT_DEVICE_REMOVED		= 4;
+	private static final int LT_INITIALIZED		= 5;
 	
 	private ListenerManager<DeviceManagerListener>	listeners = 
 		ListenerManager.createAsyncManager(
@@ -147,6 +148,12 @@ DeviceManagerImpl
 								
 								break;
 							}
+							case LT_INITIALIZED:{
+								
+								listener.deviceManagerLoaded();
+								
+								break;
+							}
 						}
 					}
 				});
@@ -173,6 +180,8 @@ DeviceManagerImpl
 	private AEDiagnosticsLogger		logger;
 	
 	private AsyncDispatcher	async_dispatcher = new AsyncDispatcher( 10*1000 );
+
+	private boolean initialized = false;
 	
 	protected
 	DeviceManagerImpl()
@@ -310,6 +319,9 @@ DeviceManagerImpl
 						}
 					}
 				});
+		
+		listeners.dispatch( LT_INITIALIZED, null );
+		initialized = true;
 	}
 	
 	protected void
@@ -511,6 +523,10 @@ DeviceManagerImpl
 						deviceRemoved(
 							Device		device )
 						{
+						}
+
+						public void 
+						deviceManagerLoaded() {
 						}
 					};
 					
@@ -1098,6 +1114,11 @@ DeviceManagerImpl
   		DeviceManagerListener		listener )
   	{
   		listeners.addListener( listener );
+  		
+  		if (initialized) {
+
+  			listener.deviceManagerLoaded();
+  		}
   	}
   	
   	public void
