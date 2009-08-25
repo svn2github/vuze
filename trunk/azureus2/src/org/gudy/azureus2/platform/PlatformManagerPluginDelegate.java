@@ -23,7 +23,6 @@ package org.gudy.azureus2.platform;
 import java.util.Properties;
 
 import org.gudy.azureus2.platform.unix.PlatformManagerUnixPlugin;
-import org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker;
 
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginException;
@@ -45,13 +44,16 @@ public class PlatformManagerPluginDelegate
 		PlatformManager platform = PlatformManagerFactory.getPlatformManager();
 
 		int platformType = platform.getPlatformType();
-		if (platformType == PlatformManager.PT_WINDOWS) {
-			PlatformManagerUpdateChecker plugin = new PlatformManagerUpdateChecker();
+		if ( platformType == PlatformManager.PT_WINDOWS ){
+			org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker plugin = new org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker();
 			plugin.initialize(pluginInterface);
-		} else if (platformType == PlatformManager.PT_UNIX) {
+		}else if ( platformType == PlatformManager.PT_MACOSX ){
+			org.gudy.azureus2.platform.macosx.PlatformManagerUpdateChecker plugin = new org.gudy.azureus2.platform.macosx.PlatformManagerUpdateChecker();
+			plugin.initialize(pluginInterface);
+		}else if ( platformType == PlatformManager.PT_UNIX ){
 			PlatformManagerUnixPlugin plugin = new PlatformManagerUnixPlugin();
 			plugin.initialize(pluginInterface);
-		} else {
+		}else{
 			Properties pluginProperties = pluginInterface.getPluginProperties();
 			pluginProperties.setProperty("plugin.name", "Platform-Specific Support");
 			pluginProperties.setProperty("plugin.version", "1.0");
