@@ -510,6 +510,9 @@ public class Utils
 		}
 
 		int iTopIndex = table.getTopIndex();
+		if (iTopIndex < 0) {
+			return;
+		}
 		int iBottomIndex = getTableBottomIndex(table, iTopIndex);
 
 		Color[] colors = {
@@ -975,7 +978,7 @@ public class Utils
 		// (such as within a paint event)
 
 		int itemCount = table.getItemCount();
-		if (iTopIndex >= itemCount)
+		if (iTopIndex >= itemCount || iTopIndex < 0)
 			return -1;
 
 		if (Constants.isOSX || Constants.isWindows) {

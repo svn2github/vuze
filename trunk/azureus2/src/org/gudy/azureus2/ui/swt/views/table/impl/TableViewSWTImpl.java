@@ -3525,6 +3525,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 
 		int iTopIndex = table.getTopIndex();
+		if (iTopIndex < 0) {
+			return new TableRowSWT[0];
+		}
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
 		int size = iBottomIndex - iTopIndex + 1;
@@ -3820,7 +3823,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			//Using  table.getTopIndex() instead of 0, cause
 			//the first row has no bounds when it's not visible under OS X.
 			int topIndex = table.getTopIndex();
-			if (topIndex >= itemCount) {
+			if (topIndex >= itemCount || topIndex < 0) {
 				topIndex = itemCount - 1;
 			}
 			TableItem ti = table.getItem(topIndex);
@@ -4244,6 +4247,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		int i = row.getIndex();
 		if (Utils.SWT32_TABLEPAINT) {
 			int iTopIndex = table.getTopIndex();
+			if (iTopIndex < 0) {
+				return false;
+			}
 			int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 			return i >= iTopIndex && i <= iBottomIndex;
 		}
@@ -4364,7 +4370,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
 				int size = iBottomIndex - iTopIndex + 1;
-				if (size <= 0) {
+				if (size <= 0 || iTopIndex < 0) {
 					continue;
 				}
 
