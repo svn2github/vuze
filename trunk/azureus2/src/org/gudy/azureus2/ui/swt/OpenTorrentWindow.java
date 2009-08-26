@@ -1973,7 +1973,7 @@ public class OpenTorrentWindow
 		// Make a copy if user wants that.  We'll delete it when we cancel, if we 
 		// actually made a copy.
 		try {
-			if (sFileName.startsWith("http://localhost/")) {
+			if (Constants.isOSX && sFileName.startsWith("http://localhost/")) {
 				sFileName = sFileName.substring(16);
 			}
 
