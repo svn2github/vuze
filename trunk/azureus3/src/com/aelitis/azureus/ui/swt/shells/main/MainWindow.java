@@ -2141,8 +2141,12 @@ public class MainWindow
 	 */
 	//TODO : Tux Move to utils? Could you also add a "mode" or something that would be added to the url
 	// eg: &subscribe_mode=true
-	public static void doSearch(String sSearchText) {
-		doSearch(sSearchText, false);
+	public static void doSearch(final String sSearchText) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				doSearch(sSearchText, false);
+			}
+		});
 	}
 
 	public static void doSearch(String sSearchText, boolean toSubscribe) {

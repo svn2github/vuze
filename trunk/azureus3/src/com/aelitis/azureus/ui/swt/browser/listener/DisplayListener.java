@@ -71,6 +71,8 @@ public class DisplayListener
 
 	public static final String OP_INVITE_FRIEND_PARAM_MESSAGE = "message";
 
+	public static final String OP_OPEN_SEARCH = "open-search";
+
 	private Browser browser;
 
 	public DisplayListener(String id, Browser browser) {
@@ -188,6 +190,12 @@ public class DisplayListener
 			Map decodedMap = message.getDecodedMap();
 			DonationWindow.open(true, MapUtils.getMapString(decodedMap, "source-ref",
 					"RPC"));
+		} else if (OP_OPEN_SEARCH.equals(opid)) {
+			Map decodedMap = message.getDecodedMap();
+			UIFunctions uif = UIFunctionsManager.getUIFunctions();
+			if (uif != null) {
+				uif.doSearch(MapUtils.getMapString(decodedMap, "search-text", ""));
+			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
 		}

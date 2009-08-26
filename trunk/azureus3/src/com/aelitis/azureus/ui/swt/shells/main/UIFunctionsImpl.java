@@ -912,4 +912,9 @@ public class UIFunctionsImpl
 		closeDialog.open();
 		return closeDialog.getShell();
 	}
+	
+	// @see com.aelitis.azureus.ui.UIFunctions#doSearch(java.lang.String)
+	public void doSearch(String searchText) {
+		mainWindow.doSearch(searchText);
+	}
 }
