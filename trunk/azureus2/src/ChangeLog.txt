@@ -3,6 +3,14 @@ VUZE CHANGELOG
 
 2009.08.xx | Vuze 4.2.0.7
 
+FEATURE: Core | Drive Detection for Devices for OSX (for PSP devices) [TuxPaper]
+
+BUGFIX: Core  | OSX 10.6 support (not getting data from connected peers) [Parg]
+BUGFIX: UI    | OSX 10.6 support (opening torrent from file) [TuxPaper]
+BUGFIX: UI    | Fixed Speedtest not working [TuxPaper]
+
+CHANGE: UI    | Less CPU usage for Seeding Rules [TuxPaper]
+
 
 
 2009.08.06 | Vuze 4.2.0.6
