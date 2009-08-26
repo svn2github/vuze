@@ -24,7 +24,7 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.Utils;
+// import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 /**
@@ -33,13 +33,13 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
  *
  */
 public class ColumnRC_Tracker
-	implements TableCellRefreshListener, TableCellMouseListener, TableCellAddedListener
+	implements TableCellRefreshListener, TableCellAddedListener // , TableCellMouseListener
 {
 	public static final String COLUMN_ID = "rc_tracker";
 
 
 	public ColumnRC_Tracker(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 215);
+		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_INVISIBLE, 215);
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
@@ -77,6 +77,7 @@ public class ColumnRC_Tracker
 		}
 	}
 	
+	/*
 	public void cellMouseTrigger(final TableCellMouseEvent event) {
 		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN
 				&& event.button == 1) {
@@ -92,6 +93,7 @@ public class ColumnRC_Tracker
 			}
 		}
 	}
+	*/
 	
 	private boolean
 	validTracker(

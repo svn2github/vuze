@@ -39,7 +39,7 @@ public class ColumnRC_Size
 	 * @param sTableID
 	 */
 	public ColumnRC_Size(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 40 );
+		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 80 );
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);

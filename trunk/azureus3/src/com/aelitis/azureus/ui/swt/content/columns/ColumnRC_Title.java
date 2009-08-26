@@ -42,7 +42,7 @@ public class ColumnRC_Title
 	 * @param sTableID
 	 */
 	public ColumnRC_Title(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 215);
+		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 400);
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
