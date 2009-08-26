@@ -1973,6 +1973,10 @@ public class OpenTorrentWindow
 		// Make a copy if user wants that.  We'll delete it when we cancel, if we 
 		// actually made a copy.
 		try {
+			if (sFileName.startsWith("http://localhost/")) {
+				sFileName = sFileName.substring(16);
+			}
+
 			File fOriginal = new File(sFileName);
 
 			if (!fOriginal.isFile() || !fOriginal.exists()) {
