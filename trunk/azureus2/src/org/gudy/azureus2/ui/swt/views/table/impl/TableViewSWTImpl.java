@@ -814,7 +814,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				TableCellSWT cell = getTableCell(e.x, e.y);
 				if (cell != null && tc != null) {
 					TableCellMouseEvent event = createMouseEvent(cell, e,
-							TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK);
+							TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK, false);
 					if (event != null) {
 						tc.invokeCellMouseListeners(event);
 						cell.invokeMouseListeners(event);
@@ -830,7 +830,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				TableCellSWT cell = getTableCell(e.x, e.y);
 				if (cell != null && tc != null) {
 					TableCellMouseEvent event = createMouseEvent(cell, e,
-							TableCellMouseEvent.EVENT_MOUSEUP);
+							TableCellMouseEvent.EVENT_MOUSEUP, false);
 					if (event != null) {
 						tc.invokeCellMouseListeners(event);
 						cell.invokeMouseListeners(event);
@@ -861,7 +861,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 								+ ((TableCellImpl) cell).bDebug);
 					}
 					TableCellMouseEvent event = createMouseEvent(cell, e,
-							TableCellMouseEvent.EVENT_MOUSEDOWN);
+							TableCellMouseEvent.EVENT_MOUSEDOWN, false);
 					if (event != null) {
 						tc.invokeCellMouseListeners(event);
 						cell.invokeMouseListeners(event);
@@ -932,6 +932,17 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					iMouseX = e.x;
 
 					TableCellSWT cell = getTableCell(e.x, e.y);
+					
+					if (lastCell != null && cell != lastCell) {
+						TableCellMouseEvent event = createMouseEvent(lastCell, e,
+								TableCellMouseEvent.EVENT_MOUSEEXIT, true);
+						if (event != null) {
+							TableColumnCore tc = ((TableColumnCore) lastCell.getTableColumn());
+							((TableColumnCore) lastCell.getTableColumn()).invokeCellMouseListeners(event);
+							lastCell.invokeMouseListeners(event);
+						}
+					}
+
 					int iCursorID = 0;
 					if (cell == null) {
 						lastCell = null;
@@ -958,7 +969,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 					if (cell != null) {
 						TableCellMouseEvent event = createMouseEvent(cell, e,
-								TableCellMouseEvent.EVENT_MOUSEMOVE);
+								TableCellMouseEvent.EVENT_MOUSEMOVE, false);
 						if (event != null) {
 							TableColumnCore tc = ((TableColumnCore) cell.getTableColumn());
 							if (tc.hasCellMouseMoveListener()) {
@@ -1417,7 +1428,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	private TableCellMouseEvent createMouseEvent(TableCellSWT cell, MouseEvent e,
-			int type) {
+			int type, boolean allowOOB) {
 		TableCellMouseEvent event = new TableCellMouseEvent();
 		event.cell = cell;
 		if (cell != null) {
@@ -1431,11 +1442,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (cell != null) {
 			Rectangle r = cell.getBounds();
 			event.x = e.x - r.x + VerticalAligner.getTableAdjustHorizontallyBy(table);
-			if (event.x < 0) {
+			if (!allowOOB && event.x < 0) {
 				return null;
 			}
 			event.y = e.y - r.y + VerticalAligner.getTableAdjustVerticalBy(table);
-			if (event.y < 0) {
+			if (!allowOOB && event.y < 0) {
 				return null;
 			}
 		}

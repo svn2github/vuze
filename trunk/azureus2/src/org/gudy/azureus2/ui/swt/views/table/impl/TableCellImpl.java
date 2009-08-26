@@ -1309,7 +1309,8 @@ public class TableCellImpl
 		return "TableCell {"
 				+ tableColumn.getName()
 				+ ","
-				+ (bufferedTableItem == null ? "null" : ""
+				+ (tableRow == null ? "" : "r" + tableRow.getIndex())
+				+ (bufferedTableItem == null ? "c?" : "c"
 						+ bufferedTableItem.getPosition()) + "," + getText() + ","
 				+ getSortValue() + "}";
 	}
