@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarCloseListener;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -210,6 +211,17 @@ public class Browse
 			menuItem.addListener(new MenuItemListener() {
 				public void selected(MenuItem menu, Object target) {
 					browserSkinObject.setURL("c:\\test\\BrowserMessaging.html");
+				}
+			});
+
+			menuItem = menuManager.addMenuItem(parent, "URL..");
+			menuItem.addListener(new MenuItemListener() {
+				public void selected(MenuItem menu, Object target) {
+					SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow("", "!URL!");
+					entryWindow.prompt();
+					if (entryWindow.hasSubmittedInput()) {
+						browserSkinObject.setURL(entryWindow.getSubmittedInput());
+					}
 				}
 			});
 
