@@ -55,6 +55,10 @@ public class VirtualChannelSelectorImpl {
 		
 		boolean is_freebsd_7_or_higher = false;
 		
+			// hack for 10.6 - will switch to not doing System.setProperty( "java.nio.preferSelect", "true" ); later
+		
+		boolean	is_osx_16	= false;
+		
 		try{
 				// unfortunately the package maintainer has set os.name to Linux for FreeBSD...
 			
@@ -75,6 +79,7 @@ public class VirtualChannelSelectorImpl {
 						if ( Character.isDigit(c)){
 							
 							digits += c;
+							
 						}else{
 							
 							break;
@@ -86,17 +91,25 @@ public class VirtualChannelSelectorImpl {
 						is_freebsd_7_or_higher = Integer.parseInt(digits) >= 7;
 					}	
 				}
+			}else if ( Constants.isOSX ){
+				
+				String os_version = System.getProperty( "os.version", "" );
+				
+				if ( os_version.startsWith( "10.6" )){
+					
+					is_osx_16 = true;
+				}
 			}
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
 		}
 			
-		MAYBE_BROKEN_SELECT = is_freebsd_7_or_higher || is_diablo;
+		MAYBE_BROKEN_SELECT = is_freebsd_7_or_higher || is_diablo || is_osx_16;
 		
 		if ( MAYBE_BROKEN_SELECT ){
 			
-			System.out.println( "Enabling broken select detection: diablo=" + is_diablo + ", freebsd 7+=" + is_freebsd_7_or_higher );
+			System.out.println( "Enabling broken select detection: diablo=" + is_diablo + ", freebsd 7+=" + is_freebsd_7_or_higher + ", osx 10.6=" + is_osx_16 );
 
 		}
 	}
