@@ -12,7 +12,7 @@
 
 #include "IONotification.h"
 
-#define VERSION "1.04"
+#define VERSION "1.05"
 
 #define assertNot0(a) if (a == 0) { fprintf(stderr, "%s is 0\n", #a); return; }
 void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethodID methPut);
