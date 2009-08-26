@@ -133,6 +133,8 @@ public interface UIFunctions
 	 */
 	void openView(int viewID, Object datasource);
 	
+	void doSearch(String searchText);
+	
 	
 	/**
 	 * 

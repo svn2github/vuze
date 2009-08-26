@@ -548,4 +548,8 @@ public class UIFunctionsImpl
 		shell.open();
 		return shell;
 	}
+	
+	// @see com.aelitis.azureus.ui.UIFunctions#doSearch(java.lang.String)
+	public void doSearch(String searchText) {
+	}
 }
