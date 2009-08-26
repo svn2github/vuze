@@ -1974,7 +1974,7 @@ public class OpenTorrentWindow
 		// actually made a copy.
 		try {
 			if (sFileName.startsWith("file://localhost/")) {
-				sFileName = sFileName.substring(16);
+				sFileName = UrlUtils.decode(sFileName.substring(16));
 			}
 
 			File fOriginal = new File(sFileName);
