@@ -33,7 +33,7 @@ public class CocoaUIEnhancer
 	private Application fApplication = Application.getApplication();
 
 	public CocoaUIEnhancer() {
-		//initAppMenu();
+		initAppMenu();
 	}
 
 	private void initAppMenu() {
