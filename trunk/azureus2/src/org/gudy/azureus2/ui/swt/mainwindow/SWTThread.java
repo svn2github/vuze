@@ -153,24 +153,38 @@ public class SWTThread {
 			}
 		});
     
-    if ( Constants.isOSX && SWT.getPlatform().equals("carbon") ){
-    	
-    		// use reflection here so we decouple generic SWT from OSX specific stuff to an extent
-    	
-    	 try{
-    	 	
-            Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
-            
-            Constructor constructor = ehancerClass.getConstructor(new Class[]{});
-            
-            constructor.newInstance(new Object[] {});
+		if (Constants.isOSX) {
+			String platform = SWT.getPlatform();
+			// use reflection here so we decouple generic SWT from OSX specific stuff to an extent
 
-        } catch (Exception e) {
-        	
-            Debug.printStackTrace(e);
-        }
-    }
-    
+			if (platform.equals("carbon")) {
+				try {
+
+					Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
+
+					Constructor constructor = ehancerClass.getConstructor(new Class[] {});
+
+					constructor.newInstance(new Object[] {});
+
+				} catch (Throwable e) {
+
+					Debug.printStackTrace(e);
+				}
+			} else if (platform.equals("cocoa")) {
+				try {
+
+					Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CocoaUIEnhancer");
+
+					Constructor constructor = ehancerClass.getConstructor(new Class[] {});
+
+					constructor.newInstance(new Object[] {});
+
+				} catch (Throwable e) {
+
+					Debug.printStackTrace(e);
+				}
+			}
+		}   
 
 		if (app != null) {
 			app.runInSWTThread();
