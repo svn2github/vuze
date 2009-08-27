@@ -69,7 +69,7 @@ SSDPCore
 		try{
 			class_mon.enter();
 		
-			String	key = group_address + ":" + group_port;// + ":" + control_port;
+			String	key = group_address + ":" + group_port + ":" + control_port;
 			
 			SSDPCore	singleton = (SSDPCore)singletons.get( key );
 			
@@ -106,7 +106,7 @@ SSDPCore
 
 	private Set<String>		ignore_mx	= new HashSet();
 	
-	public
+	private
 	SSDPCore(
 		UPnPSSDPAdapter		_adapter,
 		String				_group_address,

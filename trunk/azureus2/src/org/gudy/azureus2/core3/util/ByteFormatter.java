@@ -178,11 +178,23 @@ public class ByteFormatter
     return out;
   }
 
+  	/**
+  	 * Note this has a truncation limit at 1024 chars....
+  	 * @param bytes
+  	 * @return
+  	 */
   public static String
   encodeString(
   	byte[]		bytes )
   {
   	return( nicePrint( bytes, true ));
+  }
+  
+  public static String
+  encodeStringFully(
+  	byte[]		bytes )
+  {
+  	return( nicePrint( bytes, true,  Integer.MAX_VALUE ));
   }
   
   public static String

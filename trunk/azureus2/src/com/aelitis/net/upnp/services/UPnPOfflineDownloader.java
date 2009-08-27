@@ -1,7 +1,7 @@
 /*
- * Created on 20-Dec-2005
+ * Created on 15-Jun-2004
  * Created by Paul Gardner
- * Copyright (C) 2005, 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2004, 2005, 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,33 +20,44 @@
  *
  */
 
-package com.aelitis.net.upnp;
+package com.aelitis.net.upnp.services;
+
+import com.aelitis.net.upnp.UPnPException;
+
+/**
+ * @author parg
+ *
+ */
 
 public interface 
-UPnPSSDP 
+UPnPOfflineDownloader
+	extends UPnPSpecificService
 {
-	public static final String				SSDP_GROUP_ADDRESS 	= "239.255.255.250"; 
-	public static final int					SSDP_GROUP_PORT		= 1900;	
-
-	public int
-	getControlPort();
+	public String
+	addDownload(
+		String		client_id,
+		String		hash_list,
+		String		torrent )
 	
-	public void
-	search(
-		String[]		STs );
+		throws UPnPException;
 	
-	public void
-	notify(
-		String		NT,
-		String		NTS,
-		String		UUID,
-		String		url );
+	public String[]
+	updateDownload(
+		String		client_id,
+		String		hash_list,
+		String		required_map )
 	
-	public void
-	addListener(
-		UPnPSSDPListener	l );
+		throws UPnPException;
 	
-	public void
-	removeListener(
-		UPnPSSDPListener	l );
+	public String[]
+	setDownloads(
+		String		client_id,
+		String		hash_list )
+	
+		throws UPnPException;
+	
+	public long
+	getFreeSpace()
+	
+		throws UPnPException;
 }

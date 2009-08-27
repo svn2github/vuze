@@ -23,6 +23,7 @@
 
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.*;
 import java.nio.channels.ServerSocketChannel;
@@ -590,6 +591,82 @@ NetworkAdminImpl
   			}
   		}
   	}
+  	
+	public int
+	getBindablePort(
+		int	prefer_port )
+	
+		throws IOException
+	{
+		final int tries = 1024;
+		
+		Random random = new Random();
+		
+		for ( int i=1;i<=tries;i++ ){
+			
+			int port;
+			
+			if ( i == 1 && prefer_port != 0 ){
+				
+				port = prefer_port;
+				
+			}else{
+				
+				port = i==tries?0:random.nextInt(20000) + 40000;
+			}
+			
+			ServerSocketChannel ssc = null;
+			
+			try{
+				ssc = ServerSocketChannel.open();
+
+				ssc.socket().setReuseAddress( true );
+				
+				bind( ssc, null, port );
+
+				port = ssc.socket().getLocalPort();
+				
+				ssc.close();
+				
+				return( port );
+				
+			}catch( Throwable e ){
+				
+				if ( ssc != null ){
+					
+					try{
+						ssc.close();
+						
+					}catch( Throwable f ){
+						
+						Debug.printStackTrace(e);
+					}
+					
+					ssc = null;
+				}
+			}
+		}
+		
+		throw( new IOException( "No bindable ports found" ));
+	}
+	
+	protected void
+	bind(
+		ServerSocketChannel	ssc,
+		InetAddress			address,
+		int					port )
+	
+		throws IOException
+	{		
+		if ( address == null ){
+			
+			ssc.socket().bind( new InetSocketAddress( port ), 1024 );
+			
+		}else{
+			
+			ssc.socket().bind( new InetSocketAddress( address, port ), 1024 );
+		}
+	}
 	
 	public InetAddress 
 	guessRoutableBindAddress() 

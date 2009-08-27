@@ -262,6 +262,10 @@ UPnPServiceImpl
 			
 			return( new UPnPSSWANCommonInterfaceConfigImpl( this ));
 			
+		}else if ( service_type.equalsIgnoreCase("urn:schemas-upnp-org:service:VuzeOfflineDownloaderService:1")){
+			
+			return( new UPnPSSOfflineDownloaderImpl( this ));
+			
 		}else{
 			
 			return( null );

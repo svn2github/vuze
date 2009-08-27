@@ -64,7 +64,7 @@ SSDPIGDImpl
 				upnp.getAdapter(),
 				UPnPSSDP.SSDP_GROUP_ADDRESS,
 				UPnPSSDP.SSDP_GROUP_PORT,
-				UPnPSSDP.SSDP_CONTROL_PORT,
+				0,
 				_selected_interfaces );
 		
 		ssdp_core.addListener( this );

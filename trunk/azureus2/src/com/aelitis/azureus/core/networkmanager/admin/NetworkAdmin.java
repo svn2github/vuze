@@ -23,6 +23,7 @@
 
 package com.aelitis.azureus.core.networkmanager.admin;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.channels.UnsupportedAddressTypeException;
 
@@ -93,6 +94,12 @@ NetworkAdmin
 	
 	public abstract InetAddress[]
 	getBindableAddresses();
+	
+	public abstract int
+	getBindablePort(
+		int		preferred_port )
+	
+		throws IOException;
 	
 	public abstract NetworkAdminNetworkInterface[]
 	getInterfaces();

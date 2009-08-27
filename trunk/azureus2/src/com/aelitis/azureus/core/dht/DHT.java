@@ -52,14 +52,15 @@ DHT
 	public static final String	PR_ORIGINAL_REPUBLISH_INTERVAL			= "OriginalRepublishInterval";
 	public static final String	PR_CACHE_REPUBLISH_INTERVAL				= "CacheRepublishInterval";
 
-	public static final byte		FLAG_SINGLE_VALUE	= 0x00;
-	public static final byte		FLAG_DOWNLOADING	= 0x01;
-	public static final byte		FLAG_SEEDING		= 0x02;
-	public static final byte		FLAG_MULTI_VALUE	= 0x04;
-	public static final byte		FLAG_STATS			= 0x08;
-	public static final byte		FLAG_ANON			= 0x10;
-	public static final byte		FLAG_PRECIOUS		= 0x20;
-	public static final byte		FLAG_PUT_AND_FORGET	= 0x40;		// local only
+	public static final byte		FLAG_SINGLE_VALUE		= 0x00;
+	public static final byte		FLAG_DOWNLOADING		= 0x01;
+	public static final byte		FLAG_SEEDING			= 0x02;
+	public static final byte		FLAG_MULTI_VALUE		= 0x04;
+	public static final byte		FLAG_STATS				= 0x08;
+	public static final byte		FLAG_ANON				= 0x10;
+	public static final byte		FLAG_PRECIOUS			= 0x20;
+	public static final byte		FLAG_PUT_AND_FORGET		= 0x40;				// local only
+	public static final byte		FLAG_OBFUSCATE_LOOKUP	= (byte)0x80;		// local only
 
 	public static final int 	MAX_VALUE_SIZE		= 512;
 
