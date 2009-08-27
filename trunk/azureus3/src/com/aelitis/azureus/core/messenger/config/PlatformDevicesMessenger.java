@@ -277,6 +277,9 @@ public class PlatformDevicesMessenger
 			}
 		}
 
+		if (listRenderers.size() == 0) {
+			return;
+		}
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				OP_REPORT_DEVICES, new Object[] {
 					"renderers",
