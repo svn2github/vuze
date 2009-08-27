@@ -101,12 +101,12 @@ public class GenericIntParameter
 
 		int value = adapter.getIntValue(name, iDefaultValue);
 
-		spinner = new Spinner(composite, SWT.WRAP);
+		spinner = new Spinner(composite, SWT.BORDER);
 		setMinimumValue(iMinValue);
 		setMaximumValue(iMaxValue);
 		spinner.setSelection(value);
 		
-		if (delayIntialSet ) {
+		if (delayIntialSet) {
   		Utils.execSWTThreadLater(0, new AERunnable() {
   			public void runSupport() {
   				spinner.setSelection(adapter.getIntValue(sParamName, iDefaultValue));
