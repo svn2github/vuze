@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2009.08.xx | Vuze 4.2.0.7
+2009.08.26 | Vuze 4.2.0.8
 
 FEATURE: Core | Drive Detection for Devices for OSX (for PSP devices) [TuxPaper]
 FEATURE: Core | Factory option to allow switchable unchoke algorithms [Parg]
@@ -10,9 +10,9 @@ CHANGE: UI    | Less CPU usage for Seeding Rules [TuxPaper]
 CHANGE: Core  | Only create the transcode directories when required [Parg]
 CHANGE: Core  | Allow OSX platform component to be updated properly [Parg]
 
-BUGFIX: Core  | OSX 10.6 support (not getting data from connected peers) [Parg]
-BUGFIX: UI    | OSX 10.6 support (opening torrent from file) [TuxPaper]
 BUGFIX: UI    | Fixed Speedtest not working [TuxPaper]
+BUGFIX: UI    | OSX 10.6 support (opening torrent from file) [TuxPaper]
+BUGFIX: Core  | OSX 10.6 support (not getting data from connected peers) [Parg]
 BUGFIX: Core  | Fixed deadlock during UI initialisation [Parg]
 
 
