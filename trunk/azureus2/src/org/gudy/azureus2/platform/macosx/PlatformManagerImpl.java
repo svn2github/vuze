@@ -506,7 +506,13 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
      */
     public void dispose()
     {
-        NativeInvocationBridge.sharedInstance().dispose();
+    	try {
+    		if (NativeInvocationBridge.hasSharedInstance()) {
+    			NativeInvocationBridge.sharedInstance().dispose();
+    		}
+    	} catch (Throwable t) {
+    		Debug.out("Problem disposing NativeInvocationBridge", t);
+    	}
     }
 
     /**
