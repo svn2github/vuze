@@ -933,12 +933,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 					TableCellSWT cell = getTableCell(e.x, e.y);
 					
-					if (lastCell != null && cell != lastCell) {
+					if (lastCell != null && cell != lastCell && !lastCell.isDisposed()) {
 						TableCellMouseEvent event = createMouseEvent(lastCell, e,
 								TableCellMouseEvent.EVENT_MOUSEEXIT, true);
 						if (event != null) {
 							TableColumnCore tc = ((TableColumnCore) lastCell.getTableColumn());
-							((TableColumnCore) lastCell.getTableColumn()).invokeCellMouseListeners(event);
+							if (tc != null) {
+								tc.invokeCellMouseListeners(event);
+							}
 							lastCell.invokeMouseListeners(event);
 						}
 					}
