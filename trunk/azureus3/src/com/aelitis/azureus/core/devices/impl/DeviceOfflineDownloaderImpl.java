@@ -23,14 +23,15 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.Map.Entry;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -50,7 +51,10 @@ DeviceOfflineDownloaderImpl
 	
 	public static final String	client_id = ByteFormatter.encodeString( CryptoManagerFactory.getSingleton().getSecureID());
 	
-	private UPnPOfflineDownloader		service;
+	private volatile UPnPOfflineDownloader		service;
+	private volatile boolean					closing;
+	
+	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
 	protected
 	DeviceOfflineDownloaderImpl(
@@ -95,6 +99,8 @@ DeviceOfflineDownloaderImpl
 		if ( service == null && other.service != null ){
 			
 			service = other.service;
+			
+			updateDownloads();
 		}
 		
 		return( true );
@@ -122,6 +128,20 @@ DeviceOfflineDownloaderImpl
 	protected void
 	updateDownloads()
 	{
+		dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					updateDownloadsSupport();
+				}
+			});
+	}
+	
+	protected void
+	updateDownloadsSupport()
+	{
 		AzureusCore core = getManager().getAzureusCore();
 		
 		if ( core == null ){
@@ -129,7 +149,7 @@ DeviceOfflineDownloaderImpl
 			return;
 		}
 
-		if ( !isAlive()){
+		if ( !isAlive() || service == null || closing ){
 			
 			return;
 		}
@@ -400,6 +420,41 @@ DeviceOfflineDownloaderImpl
 			
 			log( "setDownloads failed", e );
 		}
+	}
+	
+	protected void
+	close()
+	{
+		super.close();
+	
+		final AESemaphore sem = new AESemaphore( "DOD:closer" );
+		
+		dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void 
+				runSupport() 
+				{
+					try{
+						closing	= true;
+						
+						if ( service != null ){
+							
+							try{
+								service.activate( client_id );
+								
+							}catch( Throwable e ){
+								
+							}
+						}
+					}finally{
+						
+						sem.release();
+					}
+				}
+			});
+		
+		sem.reserve(250);
 	}
 	
 	protected void
