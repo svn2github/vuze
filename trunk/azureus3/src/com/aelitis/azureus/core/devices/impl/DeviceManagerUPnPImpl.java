@@ -57,6 +57,7 @@ import com.aelitis.net.upnp.UPnPListener;
 import com.aelitis.net.upnp.UPnPRootDevice;
 import com.aelitis.net.upnp.UPnPRootDeviceListener;
 import com.aelitis.net.upnp.UPnPService;
+import com.aelitis.net.upnp.services.UPnPOfflineDownloader;
 import com.aelitis.net.upnp.services.UPnPWANConnection;
 
 public class 
@@ -539,6 +540,12 @@ DeviceManagerUPnPImpl
 		return( result.toArray( new UnassociatedDevice[result.size()]));
 	}
 	
+	public PluginInterface
+	getPluginInterface()
+	{
+		return( plugin_interface );
+	}
+	
 	protected IPCInterface
 	getUPnPAVIPC()
 	{
@@ -645,6 +652,8 @@ DeviceManagerUPnPImpl
 				uid = UUIDGenerator.generateUUIDString();
 				
 				COConfigurationManager.setParameter( "devices.upnp.uid." + unique_name, uid );
+				
+				COConfigurationManager.save();
 			}
 		}
 		
@@ -698,6 +707,45 @@ DeviceManagerUPnPImpl
 			}else if ( service_type.equals( "urn:schemas-upnp-org:service:ContentDirectory:1" )){
 				
 				new_devices.add( new DeviceContentDirectoryImpl( manager, device, service ));
+				
+			}else if ( service_type.equals( "urn:schemas-upnp-org:service:VuzeOfflineDownloaderService:1" )){
+				
+					// ignore local offline downloader
+				
+				try{
+					PluginInterface od_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azofflinedownloader" );
+	
+					if ( od_pi != null ){
+					
+						String	local_usn = (String)od_pi.getIPC().invoke( "getUSN", new Object[0] );
+					
+						String	od_usn = device.getRootDevice().getUSN();
+						
+							// we end up with "::upnp:rootdevice" on the end of this - remove
+						
+						int	pos = od_usn.indexOf( "::upnp:rootdevice" );
+						
+						if ( pos > 0 ){
+							
+							od_usn = od_usn.substring( 0, pos );
+						}
+						
+						if ( od_usn.equals( local_usn )){
+							
+							continue;
+						}
+					}
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+				
+				UPnPOfflineDownloader downloader = (UPnPOfflineDownloader)service.getSpecificService();
+
+				if ( downloader != null ){
+					
+					new_devices.add( new DeviceOfflineDownloaderImpl( manager, device, downloader ));
+				}
 			}
 		}
 		

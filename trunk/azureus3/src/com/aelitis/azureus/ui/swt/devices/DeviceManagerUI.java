@@ -1382,7 +1382,7 @@ DeviceManagerUI
 	
 					// routers
 				
-				categoryView routers_category			= addDeviceCategory( Device.DT_INTERNET_GATEWAY, "device.router.view.title", 			"image.sidebar.device.router" );
+				categoryView routers_category			= addDeviceCategory( Device.DT_INTERNET_GATEWAY, "device.router.view.title", "image.sidebar.device.router" );
 				
 				categories.add( routers_category );
 				
@@ -1409,6 +1409,12 @@ DeviceManagerUI
 							}
 						});
 				
+					// offline downloaders
+				
+				categoryView od_category	= addDeviceCategory( Device.DT_OFFLINE_DOWNLOADER, "device.offlinedownloader.view.title", "image.sidebar.device.offlinedownloader" );
+				
+				categories.add( od_category );
+
 					// internet
 				
 				categoryView internet_category	= addDeviceCategory( Device.DT_INTERNET, "MainWindow.about.section.internet", "image.sidebar.device.internet" );
@@ -1678,7 +1684,7 @@ DeviceManagerUI
 			}
 		}else{
 			
-			if ( type != Device.DT_MEDIA_RENDERER ){
+			if ( type != Device.DT_MEDIA_RENDERER && type != Device.DT_OFFLINE_DOWNLOADER ){
 				
 				return;
 			}

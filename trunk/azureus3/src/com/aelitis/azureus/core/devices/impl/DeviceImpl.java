@@ -31,6 +31,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
@@ -111,6 +112,8 @@ DeviceImpl
 	protected static final String	PP_LIVENESS_DETECTABLE	= "live_det";
 
 	protected static final String	PP_TIVO_MACHINE		= "tivo_machine";
+
+	protected static final String	PP_OD_STATE_CACHE	= "od_state_cache";
 
 	
 	protected static final boolean	PR_AUTO_START_DEFAULT	= true;
@@ -1281,6 +1284,70 @@ DeviceImpl
 					}else{
 					
 						persistent_properties.put( prop, value.getBytes( "UTF-8" ));
+					}
+					
+					dirty = true;
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+		
+		if ( dirty ){
+			
+			setDirty();
+		}
+	}
+	
+	public <T> Map<String,T>
+	getPersistentMapProperty(
+		String					prop,
+		Map<String,T>			def )
+	{
+		synchronized( persistent_properties ){
+			
+			try{
+				Map<String,T>	value = (Map<String,T>)persistent_properties.get( prop );
+		
+				if ( value == null ){
+					
+					return( def );
+				}
+				
+				return( value );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+				
+				return( def );
+			}
+		}
+	}
+	
+	public <T>void
+	setPersistentMapProperty(
+		String					prop,
+		Map<String,T>			value )
+	{
+		boolean	dirty = false;
+		
+		synchronized( persistent_properties ){
+			
+			Map<String,T> existing = getPersistentMapProperty( prop, null );
+			
+			if ( !BEncoder.mapsAreIdentical( value, existing )){
+				
+				try{
+					if ( value == null ){
+						
+						persistent_properties.remove( prop );
+						
+					}else{
+					
+						persistent_properties.put( prop, value );
 					}
 					
 					dirty = true;

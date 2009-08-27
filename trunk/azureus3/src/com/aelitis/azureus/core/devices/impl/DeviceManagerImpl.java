@@ -92,6 +92,7 @@ DeviceManagerImpl
 	}
 	
 	
+	private AzureusCore		azureus_core;
 	
 	private List<DeviceImpl>			device_list = new ArrayList<DeviceImpl>();
 	private Map<String,DeviceImpl>		device_map	= new HashMap<String, DeviceImpl>();
@@ -199,6 +200,8 @@ DeviceManagerImpl
 	initWithCore(
 		final AzureusCore core ) 
 	{
+		azureus_core = core;
+		
 			// need to pick up auto-search early on
 		
 		COConfigurationManager.addAndFireParameterListeners(
@@ -361,6 +364,12 @@ DeviceManagerImpl
 	UPnPManagerStarted()
 	{
 		tivo_manager.startUp();
+	}
+	
+	protected AzureusCore
+	getAzureusCore()
+	{
+		return( azureus_core );
 	}
 	
 	protected DeviceManagerUPnPImpl 
