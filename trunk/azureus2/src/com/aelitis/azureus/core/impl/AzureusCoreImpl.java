@@ -1346,6 +1346,15 @@ AzureusCoreImpl
 				AzureusRestarterFactory.create( this ).restart( true );
 			}
 			
+			try {
+	      Class c = Class.forName( "sun.awt.AWTAutoShutdown" );
+	      
+	      if (c != null) {
+		      c.getMethod( "notifyToolkitThreadFree", new Class[]{} ).invoke( null, new Object[]{} );
+	      }
+			} catch (Throwable t) {
+			}
+			
 			try{
 				ThreadGroup	tg = Thread.currentThread().getThreadGroup();
 				
@@ -1357,7 +1366,7 @@ AzureusCoreImpl
 					
 					final Thread	t = threads[i];
 					
-					if ( t != null && t != Thread.currentThread() && !t.isDaemon() && !AEThread2.isOurThread( t )){
+					if ( t != null && t.isAlive() && t != Thread.currentThread() && !t.isDaemon() && !AEThread2.isOurThread( t )){
 						
 						new AEThread2( "VMKiller", true )
 						{
@@ -1366,7 +1375,7 @@ AzureusCoreImpl
 							{
 								try{
 									Thread.sleep(10*1000);
-								
+									
 									Debug.out( "Non-daemon thread found '" + t.getName() + "', force closing VM" );
 									
 									SESecurityManager.exitVM(0);
