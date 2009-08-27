@@ -904,7 +904,7 @@ public class MenuFactory
 	public static MenuItem addAboutMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_ABOUT, new Listener() {
 			public void handleEvent(Event e) {
-				AboutWindow.show(getDisplay());
+				AboutWindow.show();
 			}
 		});
 	}

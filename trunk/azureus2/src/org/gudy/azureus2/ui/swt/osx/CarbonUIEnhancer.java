@@ -288,7 +288,7 @@ public class CarbonUIEnhancer
 							return OS.noErr;
 						}
 						case kHICommandAbout:
-							AboutWindow.show(display);
+							AboutWindow.show();
 							return OS.noErr;
 						case kHICommandRestart: {
 							UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();

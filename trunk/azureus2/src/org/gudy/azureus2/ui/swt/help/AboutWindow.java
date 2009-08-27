@@ -25,9 +25,7 @@ import java.util.Properties;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -40,7 +38,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 
-import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
@@ -54,8 +51,17 @@ public class AboutWindow {
   static AEMonitor	class_mon	= new AEMonitor( "AboutWindow" );
   private static Shell instance;
 	private static Image imgSrc;
+	private static int paintColorTo = 0;
 
-  public static void show(final Display display) {
+  public static void show() {
+  	Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				_show();
+			}
+		});
+  }
+
+  private static void _show() {
     if(instance != null)
     {
         instance.open();
@@ -74,6 +80,7 @@ public class AboutWindow {
     final Shell window = ShellFactory.createMainShell((Constants.isOSX)
 				? SWT.DIALOG_TRIM : (SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL));
     Utils.setShellIcon(window);
+    final Display display = window.getDisplay();
 
     window.setText(MessageText.getString("MainWindow.about.title") + " " + Constants.AZUREUS_VERSION); //$NON-NLS-1$
     GridData gridData;
@@ -130,6 +137,20 @@ public class AboutWindow {
     labelImage.setImage(image);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
     labelImage.setLayoutData(gridData);
+    labelImage.addPaintListener(new PaintListener() {
+			public void paintControl(PaintEvent e) {
+				Rectangle boundsColor = imgSrc.getBounds();
+				if (paintColorTo > 0) {
+					e.gc.drawImage(imgSrc, 0, 0, paintColorTo, boundsColor.height, 0, 0, paintColorTo, boundsColor.height);
+				}
+				Rectangle imgBounds = image.getBounds();
+				if (imgBounds.width - paintColorTo > 0) {
+					e.gc.drawImage(image, 
+							paintColorTo + 1, 0, imgBounds.width - paintColorTo - 1, imgBounds.height, 
+							paintColorTo + 1, 0, imgBounds.width - paintColorTo - 1, imgBounds.height);
+				}
+			}
+		});
   
     Group gTranslators = new Group(window, SWT.NULL);
     GridLayout gl = new GridLayout();
@@ -251,10 +272,12 @@ public class AboutWindow {
             public void runSupport() {
               if(labelImage.isDisposed())
                 return;
-              GC gcImage = new GC(labelImage);
-              gcImage.setClipping(x[0],0,1,maxY);
-              gcImage.drawImage(imgSrc,0,0);
-              gcImage.dispose();
+              //GC gcImage = new GC(labelImage);
+              //gcImage.setClipping(x[0],0,1,maxY);
+              //gcImage.drawImage(imgSrc,0,0);
+              //gcImage.dispose();
+              paintColorTo++;
+              labelImage.redraw();
               x[0]++;
               if(x[0] >= maxX) {
                 finished[0] = true;
@@ -294,7 +317,7 @@ public class AboutWindow {
   		new Display();
   		Colors.getInstance();
 			SWTThread.createInstance(null);
-			show(Display.getCurrent());
+			show();
 		} catch (SWTThreadAlreadyInstanciatedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
