@@ -1,12 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2009.09.xx | Vuze 4.2.0.9
-
-
-
-
-2009.08.26 | Vuze 4.2.0.8
+2009.08.27 | Vuze 4.2.0.8
 
 FEATURE: Core | Drive Detection for Devices for OSX (for PSP devices) [TuxPaper]
 FEATURE: Core | Factory option to allow switchable unchoke algorithms [Parg]
