@@ -54,6 +54,8 @@ public class GenericIntParameter
 
 	private TimerEventPerformer timerEventSave;
 
+	private final boolean delayIntialSet = Constants.isOSX && System.getProperty("os.version", "").startsWith("10.6");
+
 	public GenericIntParameter(GenericParameterAdapter adapter,
 			Composite composite, final String name) {
 		iDefaultValue = adapter.getIntValue(name);
@@ -99,10 +101,18 @@ public class GenericIntParameter
 
 		int value = adapter.getIntValue(name, iDefaultValue);
 
-		spinner = new Spinner(composite, SWT.BORDER);
+		spinner = new Spinner(composite, SWT.WRAP);
 		setMinimumValue(iMinValue);
 		setMaximumValue(iMaxValue);
 		spinner.setSelection(value);
+		
+		if (delayIntialSet ) {
+  		Utils.execSWTThreadLater(0, new AERunnable() {
+  			public void runSupport() {
+  				spinner.setSelection(adapter.getIntValue(sParamName, iDefaultValue));
+  			}
+  		});
+		}
 
 		spinner.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
