@@ -502,7 +502,15 @@ public class UIFunctionsImpl
 		return false;
 	}
 
-	public void openView(int viewID, Object data) {
+	public void openView(final int viewID, final Object data) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				_openView(viewID, data);
+			}
+		});
+	}
+		
+	private void _openView(int viewID, Object data) {
 		if (mainWindow.isOnAdvancedView()) {
 			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions != null) {
