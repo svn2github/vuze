@@ -33,6 +33,18 @@ public interface
 UPnPOfflineDownloader
 	extends UPnPSpecificService
 {
+	public long
+	getFreeSpace(
+		String		client_id )
+	
+		throws UPnPException;
+	
+	public void
+	activate(
+		String		client_id )
+	
+		throws UPnPException;
+	
 	public String
 	addDownload(
 		String		client_id,
@@ -55,9 +67,18 @@ UPnPOfflineDownloader
 		String		hash_list )
 	
 		throws UPnPException;
+
+	public String
+	removeDownload(
+		String		client_id,
+		String		hash )
 	
-	public long
-	getFreeSpace()
+		throws UPnPException;
+	
+	public String[]
+	startDownload(
+		String		client_id,
+		String		hash )
 	
 		throws UPnPException;
 }

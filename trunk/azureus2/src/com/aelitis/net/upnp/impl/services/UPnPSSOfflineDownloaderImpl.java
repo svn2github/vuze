@@ -49,7 +49,8 @@ UPnPSSOfflineDownloaderImpl
 	}
 	
 	public long
-	getFreeSpace()
+	getFreeSpace(
+		String		client_id )
 	
 		throws UPnPException
 	{
@@ -62,7 +63,9 @@ UPnPSSOfflineDownloaderImpl
 		}else{
 					
 			UPnPActionInvocation inv = act.getInvocation();
-						
+				
+			inv.addArgument( "NewClientID", client_id );
+			
 			UPnPActionArgument[]	args = inv.invoke();
 						
 			for (int i=0;i<args.length;i++){
@@ -79,6 +82,43 @@ UPnPSSOfflineDownloaderImpl
 			}
 			
 			throw( new UPnPException( "result not found" ));
+		}
+	}
+	
+	public void
+	activate(
+		String		client_id )
+	
+		throws UPnPException
+	{
+		UPnPAction act = service.getAction( "Activate" );
+		
+		if ( act == null ){
+						
+			throw( new UPnPException( "Activate not supported" ));
+			
+		}else{
+					
+			UPnPActionInvocation inv = act.getInvocation();
+				
+			inv.addArgument( "NewClientID", client_id );
+			
+			UPnPActionArgument[]	args = inv.invoke();
+						
+			for (int i=0;i<args.length;i++){
+				
+				UPnPActionArgument	arg = args[i];
+			
+				String	name = arg.getName();
+				
+				if ( name.equalsIgnoreCase("NewStatus")){
+					
+					return;
+					
+				}
+			}
+			
+			throw( new UPnPException( "status not found" ));
 		}
 	}
 	
@@ -223,4 +263,99 @@ UPnPSSOfflineDownloaderImpl
   			throw( new UPnPException( "have or status not found" ));
   		}
   	}
+	
+	public String
+	removeDownload(
+		String 	client_id, 
+		String 	hash )		
+	
+		throws UPnPException 
+	{
+		UPnPAction act = service.getAction( "RemoveDownload" );
+		
+		if ( act == null ){
+						
+			throw( new UPnPException( "RemoveDownload not supported" ));
+			
+		}else{
+					
+			UPnPActionInvocation inv = act.getInvocation();
+						
+			inv.addArgument( "NewClientID", client_id );
+			inv.addArgument( "NewTorrentHash", hash );
+		
+			UPnPActionArgument[]	args = inv.invoke();
+			
+			String	status 	= null;
+			
+			for (int i=0;i<args.length;i++){
+				
+				UPnPActionArgument	arg = args[i];
+			
+				String	name = arg.getName();
+				
+				if ( name.equalsIgnoreCase("NewStatus")){
+					
+					status = arg.getValue();
+				}
+			}
+			
+			if ( status != null ){
+				
+				return( status );
+			}
+			
+			throw( new UPnPException( "status not found" ));
+		}
+	}
+	
+	public String[]
+	startDownload(
+		String 	client_id, 
+		String 	hash )		
+	
+		throws UPnPException 
+	{
+		UPnPAction act = service.getAction( "StartDownload" );
+		
+		if ( act == null ){
+						
+			throw( new UPnPException( "StartDownload not supported" ));
+			
+		}else{
+					
+			UPnPActionInvocation inv = act.getInvocation();
+						
+			inv.addArgument( "NewClientID", client_id );
+			inv.addArgument( "NewTorrentHash", hash );
+		
+			UPnPActionArgument[]	args = inv.invoke();
+			
+			String	status 		= null;
+			String	data_port	= null;
+			
+			for (int i=0;i<args.length;i++){
+				
+				UPnPActionArgument	arg = args[i];
+			
+				String	name = arg.getName();
+				
+				if ( name.equalsIgnoreCase("NewStatus")){
+					
+					status = arg.getValue();
+					
+				}else if ( name.equalsIgnoreCase("NewDataPort")){
+					
+					data_port = arg.getValue();
+				}
+			}
+			
+			if ( status != null && data_port != null ){
+				
+				return( new String[]{ data_port, status });
+			}
+			
+			throw( new UPnPException( "status or data port not found" ));
+		}
+	}
 }
