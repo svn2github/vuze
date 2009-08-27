@@ -181,7 +181,7 @@ DeviceManagerImpl
 	
 	private AsyncDispatcher	async_dispatcher = new AsyncDispatcher( 10*1000 );
 
-	private boolean initialized = false;
+	private volatile boolean initialized = false;
 	
 	protected
 	DeviceManagerImpl()
@@ -320,8 +320,8 @@ DeviceManagerImpl
 					}
 				});
 		
-		listeners.dispatch( LT_INITIALIZED, null );
 		initialized = true;
+		listeners.dispatch( LT_INITIALIZED, null );
 	}
 	
 	protected void
@@ -1117,7 +1117,7 @@ DeviceManagerImpl
   		
   		if (initialized) {
 
-  			listener.deviceManagerLoaded();
+  			listeners.dispatch( listener, LT_INITIALIZED, null );
   		}
   	}
   	

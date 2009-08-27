@@ -324,7 +324,11 @@ DeviceManagerUI
 		
 			public void deviceManagerLoaded() {
 				device_manager.removeListener(this);
-				setupUIwithDeviceManager();
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						setupUIwithDeviceManager();
+					}
+				});
 			}
 		
 			public void deviceChanged(Device device) {
