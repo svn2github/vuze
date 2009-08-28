@@ -113,7 +113,8 @@ DeviceImpl
 
 	protected static final String	PP_TIVO_MACHINE		= "tivo_machine";
 
-	protected static final String	PP_OD_STATE_CACHE	= "od_state_cache";
+	protected static final String	PP_OD_STATE_CACHE		= "od_state_cache";
+	protected static final String	PP_OD_UPNP_DISC_CACHE	= "od_upnp_cache";
 
 	
 	protected static final boolean	PR_AUTO_START_DEFAULT	= true;

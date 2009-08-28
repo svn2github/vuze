@@ -364,6 +364,16 @@ DeviceManagerImpl
 	UPnPManagerStarted()
 	{
 		tivo_manager.startUp();
+		
+		DeviceImpl[] devices = getDevices();
+		
+		for ( DeviceImpl device: devices ){
+			
+			if ( device instanceof DeviceUPnPImpl ){
+				
+				((DeviceUPnPImpl)device).UPnPInitialised();
+			}
+		}
 	}
 	
 	protected AzureusCore

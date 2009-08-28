@@ -482,6 +482,19 @@ DeviceManagerUPnPImpl
 		}
 	}
 	
+	protected void
+	injectDiscoveryCache(
+		Map		cache )
+	{
+		try{
+			upnp.injectDiscoveryCache( cache );
+			
+		}catch( Throwable e ){
+	
+			Debug.out( e );
+		}
+	}
+	
 	public UnassociatedDevice[]
 	getUnassociatedDevices()
 	{

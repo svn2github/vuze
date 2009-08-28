@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.net.upnp.UPnPDevice;
+import com.aelitis.net.upnp.UPnPRootDevice;
 import com.aelitis.net.upnp.services.UPnPOfflineDownloader;
 
 public class 
@@ -64,7 +65,7 @@ DeviceOfflineDownloaderImpl
 	{
 		super( _manager, _device, Device.DT_OFFLINE_DOWNLOADER );
 		
-		service	= _service;
+		setService( _service );
 	}
 	
 	protected
@@ -98,12 +99,44 @@ DeviceOfflineDownloaderImpl
 			
 		if ( service == null && other.service != null ){
 			
-			service = other.service;
+			setService( other.service );
 			
 			updateDownloads();
 		}
 		
 		return( true );
+	}
+	
+	protected void
+	setService(
+		UPnPOfflineDownloader	_service )
+	{
+		service	= _service;
+		
+		UPnPRootDevice root = service.getGenericService().getDevice().getRootDevice();
+		
+		Map cache = root.getDiscoveryCache();
+		
+		if ( cache != null ){
+			
+			setPersistentMapProperty( PP_OD_UPNP_DISC_CACHE, cache );
+		}
+	}
+	
+	protected void 
+	UPnPInitialised() 
+	{
+		super.UPnPInitialised();
+		
+		if ( service == null ){
+		
+			Map	cache = getPersistentMapProperty( PP_OD_UPNP_DISC_CACHE, null );
+		
+			if ( cache != null ){
+			
+				getUPnPDeviceManager().injectDiscoveryCache( cache );
+			}
+		}
 	}
 	
 	protected void 

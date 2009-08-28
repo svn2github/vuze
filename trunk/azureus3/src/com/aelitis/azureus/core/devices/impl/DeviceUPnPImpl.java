@@ -227,11 +227,22 @@ DeviceUPnPImpl
 		super.initialise();
 	}
 	
+	protected void
+	UPnPInitialised()
+	{
+	}
+	
 	@Override
 	protected void
 	destroy()
 	{
 		super.destroy();
+	}
+	
+	protected DeviceManagerUPnPImpl
+	getUPnPDeviceManager()
+	{
+		return( upnp_manager );
 	}
 	
 	protected UPnPDevice
