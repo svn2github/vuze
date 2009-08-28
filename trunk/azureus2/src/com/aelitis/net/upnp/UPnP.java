@@ -22,6 +22,8 @@
 
 package com.aelitis.net.upnp;
 
+import java.util.Map;
+
 /**
  * @author parg
  *
@@ -51,6 +53,10 @@ UPnP
 	public void
 	search(
 		String[]		STs );
+	
+	public void
+	injectDiscoveryCache(
+		Map				cache );
 	
 		/**
 		 * Logs a message to all registered log listeners

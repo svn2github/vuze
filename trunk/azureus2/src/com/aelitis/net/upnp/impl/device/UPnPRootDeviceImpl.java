@@ -58,12 +58,13 @@ UPnPRootDeviceImpl
 			//true,		// report always	removed, apparently it works OK now according to manufacturer
 		};
 	
-	private UPnPImpl			upnp;
-	private NetworkInterface	network_interface;
-	private InetAddress			local_address;
+	final private UPnPImpl			upnp;
+	final private NetworkInterface	network_interface;
+	final private InetAddress		local_address;
 	
-	private String		usn;
-	private URL			location;
+	final private String		usn;
+	final private URL			location;
+	
 	private URL			url_base_for_relative_urls;
 	private URL			saved_url_base_for_relative_urls;
 	
@@ -137,6 +138,27 @@ UPnPRootDeviceImpl
 		if ( version != null ){
 			
 			info += "/" + version;
+		}
+	}
+	
+	public Map 
+	getDiscoveryCache() 
+	{		
+		try{
+			Map	cache = new HashMap();
+
+			cache.put( "ni", network_interface.getName().getBytes( "UTF-8" ));
+			cache.put( "la", local_address.getHostAddress().getBytes( "UTF-8" ));
+			cache.put( "usn", usn.getBytes( "UTF-8" ));
+			cache.put( "loc", location.toExternalForm().getBytes( "UTF-8" ));
+			
+			return( cache );
+		
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
 		}
 	}
 	

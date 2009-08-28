@@ -122,6 +122,35 @@ UPnPImpl
 		ssdp.start();
 	}
 	
+	public void 
+	injectDiscoveryCache(
+		Map 		cache )
+	{
+		try{
+			String	ni_s	= new String((byte[])cache.get( "ni" ), "UTF-8" );
+			String	la_s 	= new String((byte[])cache.get( "la" ), "UTF-8" );
+			String	usn 	= new String((byte[])cache.get( "usn" ), "UTF-8" );
+			String	loc_s 	= new String((byte[])cache.get( "loc" ), "UTF-8" );
+			
+			NetworkInterface	network_interface = NetworkInterface.getByName( ni_s );
+			
+			if ( network_interface == null ){
+				
+				return;
+			}
+			
+			InetAddress	local_address = InetAddress.getByName( la_s );
+			
+			URL location = new URL( loc_s );
+			
+			rootDiscovered( network_interface, local_address, usn, location );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+	
 	public void
 	rootDiscovered(
 		final NetworkInterface		network_interface,

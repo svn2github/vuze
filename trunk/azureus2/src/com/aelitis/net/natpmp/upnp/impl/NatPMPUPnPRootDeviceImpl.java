@@ -25,6 +25,7 @@ package com.aelitis.net.natpmp.upnp.impl;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.ThreadPool;
@@ -123,6 +124,12 @@ NatPMPUPnPRootDeviceImpl
 	isDestroyed()
 	{
 		return( false );
+	}
+	
+	public Map
+	getDiscoveryCache() 
+	{
+		return( null );
 	}
 	
 	public void
