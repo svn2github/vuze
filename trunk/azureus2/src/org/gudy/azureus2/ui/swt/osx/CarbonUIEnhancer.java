@@ -580,18 +580,16 @@ public class CarbonUIEnhancer
 						int dirUrl = OS.CFURLCreateFromFSRef(OS.kCFAllocatorDefault, fsRef);
 						int dirString = OS.CFURLCopyFileSystemPath(dirUrl,
 								OS.kCFURLPOSIXPathStyle);
-						OS.CFRelease(dirUrl);
 						int length = OS.CFStringGetLength(dirString);
 						char[] buffer = new char[length];
 						CFRange range = new CFRange();
 						range.length = length;
 						OS.CFStringGetCharacters(dirString, range, buffer);
-						OS.CFRelease(dirString);
 						fileNames[i] = new String(buffer);
-					}
-
-					if (OS.AEGetNthPtr(aeDesc, i + 1, typeText, aeKeyword, typeCode,
-							dataPtr, maximumSize, actualSize) == OS.noErr) {
+						OS.CFRelease(dirString);
+						OS.CFRelease(dirUrl);
+					} else if (OS.AEGetNthPtr(aeDesc, i + 1, typeText, aeKeyword, typeCode,
+							dataPtr, 2048, actualSize) == OS.noErr) {
 						byte[] urlRef = new byte[actualSize[0]];
 						memmove(urlRef, dataPtr, actualSize[0]);
 						fileNames[i] = new String(urlRef);
