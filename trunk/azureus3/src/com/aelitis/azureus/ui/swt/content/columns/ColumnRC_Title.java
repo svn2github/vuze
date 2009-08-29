@@ -20,12 +20,12 @@ package com.aelitis.azureus.ui.swt.content.columns;
 
 import com.aelitis.azureus.core.content.RelatedContent;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
+//import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 
-import org.eclipse.swt.SWT;
-import org.gudy.azureus2.core3.internat.MessageText;
+//import org.eclipse.swt.SWT;
+//import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+//import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 /**
  * @author TuxPaper
@@ -33,7 +33,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
  *
  */
 public class ColumnRC_Title
-	implements TableCellRefreshListener, TableCellMouseListener, TableCellAddedListener
+	implements TableCellRefreshListener //, TableCellMouseListener, TableCellAddedListener
 {
 	public static final String COLUMN_ID = "rc_title";
 
@@ -68,6 +68,7 @@ public class ColumnRC_Title
 		cell.setText(text);
 	}
 	
+	/*
 	public void cellAdded(TableCell cell) {
 		
 		RelatedContent rc = (RelatedContent) cell.getDataSource();
@@ -95,4 +96,5 @@ public class ColumnRC_Title
 			}
 		}
 	}
+	*/
 }
