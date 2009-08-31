@@ -1462,9 +1462,7 @@ public class MainWindow
 		}
 
 		boolean isOSX = org.gudy.azureus2.core3.util.Constants.isOSX;
-		// No tray access on OSX yet
-		boolean bEnableTray = COConfigurationManager.getBooleanParameter("Enable System Tray")
-				&& (!isOSX || SWT.getVersion() > 3300);
+		boolean bEnableTray = COConfigurationManager.getBooleanParameter("Enable System Tray");
 		boolean bPassworded = COConfigurationManager.getBooleanParameter("Password enabled");
 		boolean bStartMinimize = bEnableTray
 				&& (bPassworded || COConfigurationManager.getBooleanParameter("Start Minimized"));

@@ -20,9 +20,6 @@
 package com.aelitis.azureus.ui.swt.browser.listener.publish;
 
 import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -30,7 +27,6 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.internal.image.FileFormat;
 import org.eclipse.swt.widgets.*;
 
 import org.bouncycastle.util.encoders.Base64;
@@ -461,69 +457,11 @@ public class PublishTransaction extends BrowserTransaction
 		loader.data = new ImageData[] { data
 		};
 		
-		String ext;
-		if (SWT.getVersion() >= 3500) {
-			// XXX Bug in SWT which borks some PNGs.. thus we can't use PNG saving
-			//     at all until they fix it.. See 
-			//     https://bugs.eclipse.org/bugs/show_bug.cgi?id=172290
-			loader.save(baos, SWT.IMAGE_PNG);
-			ext = ".png";
-		} else {
-			try {
-				Class cJPGFF = Class.forName("org.eclipse.swt.internal.image.JPEGFileFormat");
-
-				Constructor jpgConst = cJPGFF.getDeclaredConstructor(new Class[0]);
-
-				jpgConst.setAccessible(true);
-
-				FileFormat format = (FileFormat) jpgConst.newInstance(new Object[0]);
-
-				Field field = cJPGFF.getDeclaredField("encoderQFactor");
-
-				field.setAccessible(true);
-
-				field.setInt(format, (int) (quality * 100));
-
-				Class claLEDataOS = Class.forName("org.eclipse.swt.internal.image.LEDataOutputStream");
-
-				Constructor le_constructor = claLEDataOS.getDeclaredConstructor(new Class[] { OutputStream.class
-				});
-
-				le_constructor.setAccessible(true);
-
-				Object le_stream = le_constructor.newInstance(new Object[] { baos
-				});
-
-				Method unloadIntoStream = cJPGFF.getMethod("unloadIntoStream",
-						new Class[] {
-							ImageLoader.class,
-							claLEDataOS
-						});
-
-				try {
-					unloadIntoStream.invoke(format, new Object[] {
-						loader,
-						le_stream
-					});
-				} catch (Exception ex) {
-					//Too bad for us here
-					//However we don't want to try the other way, as it may be an io 
-					//exception, ie the stream is corrupted...
-					ex.printStackTrace();
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				// The reflection way failed, do it the normal way with default 
-				// (0.75) quality...
-				loader.save(baos, SWT.IMAGE_JPEG);
-			}
-			ext = ".jpg";
-		}
-
+		loader.save(baos, SWT.IMAGE_PNG);
 
 		byte[] bs = baos.toByteArray();
 
-		File fDest = File.createTempFile("thumbnail", ext);
+		File fDest = File.createTempFile("thumbnail", ".png");
 		FileOutputStream fos = new FileOutputStream(fDest);
 		fos.write(bs);
 		fos.close();
