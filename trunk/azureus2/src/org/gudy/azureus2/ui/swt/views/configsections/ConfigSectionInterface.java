@@ -25,8 +25,6 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -123,28 +121,24 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		
 		new BooleanParameter(cDisplay, "Remember transfer bar location", LBLKEY_PREFIX + "transferbar.remember_location");
 
-		if (!Constants.isOSX || SWT.getVersion() >= 3300) {
+		Group gSysTray = new Group(cDisplay, SWT.NULL);
+		Messages.setLanguageText(gSysTray, LBLKEY_PREFIX + "systray");
+		layout = new GridLayout();
+		gSysTray.setLayout(layout);
+		gSysTray.setLayoutData(new GridData());
 
-	    Group gSysTray = new Group(cDisplay, SWT.NULL);
-	    Messages.setLanguageText(gSysTray, LBLKEY_PREFIX + "systray");
-	    layout = new GridLayout();
-	    gSysTray.setLayout(layout);
-	    gSysTray.setLayoutData(new GridData());
+		BooleanParameter est = new BooleanParameter(gSysTray, "Enable System Tray",
+				KEY_PREFIX + "enabletray");
 
-			BooleanParameter est = new BooleanParameter(gSysTray,
-					"Enable System Tray", KEY_PREFIX + "enabletray");
+		BooleanParameter ctt = new BooleanParameter(gSysTray, "Close To Tray",
+				LBLKEY_PREFIX + "closetotray");
+		BooleanParameter mtt = new BooleanParameter(gSysTray, "Minimize To Tray",
+				LBLKEY_PREFIX + "minimizetotray");
 
-			BooleanParameter ctt = new BooleanParameter(gSysTray, "Close To Tray",
-					LBLKEY_PREFIX + "closetotray");
-			BooleanParameter mtt = new BooleanParameter(gSysTray, "Minimize To Tray",
-					LBLKEY_PREFIX + "minimizetotray");
-
-			est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(ctt
-					.getControls()));
-			est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(mtt
-					.getControls()));
-
-		}
+		est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+				ctt.getControls()));
+		est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+				mtt.getControls()));
 		
         /**
          * Default download / upload limits available in the UI.

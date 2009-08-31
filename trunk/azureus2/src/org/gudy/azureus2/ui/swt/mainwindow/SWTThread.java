@@ -56,12 +56,6 @@ public class SWTThread {
       throw new SWTThreadAlreadyInstanciatedException();
     }
     
-    // set SWT specific config parameter defaults
-    
-    boolean bGTKTableBug_default = SWT.getPlatform().equals("gtk");
-  
-    COConfigurationManager.setBooleanDefault( "SWT_bGTKTableBug", bGTKTableBug_default );
-    
     	//Will only return on termination
     
     new SWTThread(initializer);

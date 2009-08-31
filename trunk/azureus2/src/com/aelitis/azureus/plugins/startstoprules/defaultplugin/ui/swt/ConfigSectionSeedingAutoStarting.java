@@ -66,7 +66,6 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     Label label;
 
     Composite gQR = new Composite(parent, SWT.NULL);
-    gQR.addControlListener(new Utils.LabelWrapControlListener());
 
     layout = new GridLayout();
     layout.numColumns = 1;

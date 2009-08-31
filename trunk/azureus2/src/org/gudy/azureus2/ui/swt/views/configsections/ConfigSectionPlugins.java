@@ -314,9 +314,6 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		infoGroup.setLayout(layout);
 
 		infoGroup.setLayout(new GridLayout());
-		if (SWT.getVersion() < 3105) { // screws up scrolling on 3.2M2
-			infoGroup.addControlListener(new Utils.LabelWrapControlListener());
-		}
 
 		String sep = System.getProperty("file.separator");
 

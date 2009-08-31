@@ -34,12 +34,10 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -57,7 +55,6 @@ import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
-import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
@@ -111,9 +108,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	// Non-Virtual tables scroll faster with they keyboard
 	// Virtual tables don't flicker when updating a cell (Windows)
 	private final static boolean DISABLEVIRTUAL = SWT.getVersion() < 3138;
-
-	private final static boolean COLUMN_CLICK_DELAY = Constants.isOSX
-			&& SWT.getVersion() >= 3221 && SWT.getVersion() <= 3222;
 
 	private static final boolean DEBUG_SORTER = false;
 
@@ -197,9 +191,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	/** TimeStamp of when last sorted all the rows was */
 	private long lLastSortedOn;
 
-	/* position of mouse in table.  Used for context menu. */
-	private int iMouseX = -1;
-
 	/** For updating GUI.  
 	 * Some UI objects get updating every X cycles (user configurable) 
 	 */
@@ -210,11 +201,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	protected int graphicsUpdate = configMan.getIntParameter("Graphics Update");
 
 	protected int reOrderDelay = configMan.getIntParameter("ReOrder Delay");
-
-	/** Check Column Widths every 10 seconds on Pre 3.0RC1 on OSX if view is active.  
-	 * Other OSes can capture column width changes automatically */
-	private int checkColumnWidthsEvery = (Constants.isOSX && SWT.getVersion() < 3054)
-			? 10000 / configMan.getIntParameter("GUI Refresh") : 0;
 
 	/**
 	 * Cache of selected table items to bypass insufficient drawing on Mac OS X
@@ -253,9 +239,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	protected IView[] coreTabViews = null;
 
 	private long lCancelSelectionTriggeredOn = -1;
-
-	// XXX Remove after column selection is no longered triggered on column resize (OSX)
-	private long lLastColumnResizeOn = -1;
 
 	private List<TableViewSWTMenuFillListener> listenersMenuFill = new ArrayList<TableViewSWTMenuFillListener>(
 			1);
@@ -711,59 +694,29 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		// Setup table
 		// -----------
 
-		// XXX On linux (an other OSes?), changing the column indicator doesn't 
-		//     work until the table is shown.  Since SWT.Show doesn't trigger,
-		//     use the first paint trigger.
-		if (!Utils.SWT32_TABLEPAINT) {
-			table.addPaintListener(new PaintListener() {
-				boolean first = true;
+		table.addPaintListener(new PaintListener() {
+			public void paintControl(PaintEvent event) {
+				changeColumnIndicator();
+				// This fixes the scrollbar not being long enough on Win2k
+				// There may be other methods to get it to refresh right, but
+				// layout(true, true) didn't work.
+				table.setRedraw(false);
+				table.setRedraw(true);
+				table.removePaintListener(this);
+			}
+		});
 
-				public void paintControl(PaintEvent event) {
-					if (first) {
-						changeColumnIndicator();
-						// This fixes the scrollbar not being long enough on Win2k
-						// There may be other methods to get it to refresh right, but
-						// layout(true, true) didn't work.
-						table.setRedraw(false);
-						table.setRedraw(true);
-						first = false;
-					}
-					if (event.width == 0 || event.height == 0) {
-						return;
-					}
-					visibleRowsChanged();
-					doPaint(event.gc, new Rectangle(event.x, event.y, event.width,
-							event.height));
-				}
-			});
-		}
-
-		if (Utils.SWT32_TABLEPAINT) {
-			table.addPaintListener(new PaintListener() {
-				public void paintControl(PaintEvent event) {
-					changeColumnIndicator();
-					// This fixes the scrollbar not being long enough on Win2k
-					// There may be other methods to get it to refresh right, but
-					// layout(true, true) didn't work.
-					table.setRedraw(false);
-					table.setRedraw(true);
-					table.removePaintListener(this);
-				}
-			});
-
-			// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
-			table.addListener(SWT.PaintItem, new Listener() {
-				public void handleEvent(Event event) {
-					//visibleRowsChanged();
-					paintItem(event);
-				}
-			});
-			//table.addListener(SWT.Paint, new Listener() {
-			//	public void handleEvent(Event event) {
-			//		System.out.println("paint " + event.getBounds() + ";" + table.getColumnCount());
-			//	}
-			//});
-		}
+		table.addListener(SWT.PaintItem, new Listener() {
+			public void handleEvent(Event event) {
+				//visibleRowsChanged();
+				paintItem(event);
+			}
+		});
+		//table.addListener(SWT.Paint, new Listener() {
+		//	public void handleEvent(Event event) {
+		//		System.out.println("paint " + event.getBounds() + ";" + table.getColumnCount());
+		//	}
+		//});
 
 		table.addListener(SWT.Activate, new Listener() {
 			public void handleEvent(Event event) {
@@ -878,7 +831,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					}
 				}
 
-				iMouseX = e.x;
 				try {
 					if (table.getItemCount() <= 0) {
 						return;
@@ -929,8 +881,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			public void mouseMove(MouseEvent e) {
 				try {
-					iMouseX = e.x;
-
 					TableCellSWT cell = getTableCell(e.x, e.y);
 					
 					if (lastCell != null && cell != lastCell && !lastCell.isDisposed()) {
@@ -1033,13 +983,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		// we are sent a SWT.Settings event when the language changes and
 		// when System fonts/colors change.  In both cases, invalidate
-		if (SWT.getVersion() > 3200) {
-			table.addListener(SWT.Settings, new Listener() {
-				public void handleEvent(Event e) {
-					tableInvalidate();
-				}
-			});
-		}
+		table.addListener(SWT.Settings, new Listener() {
+			public void handleEvent(Event e) {
+				tableInvalidate();
+			}
+		});
 
 		new TableTooltips(this, table);
 
@@ -1443,11 +1391,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		event.skipCoreFunctionality = false;
 		if (cell != null) {
 			Rectangle r = cell.getBounds();
-			event.x = e.x - r.x + VerticalAligner.getTableAdjustHorizontallyBy(table);
+			event.x = e.x - r.x;
 			if (!allowOOB && event.x < 0) {
 				return null;
 			}
-			event.y = e.y - r.y + VerticalAligner.getTableAdjustVerticalBy(table);
+			event.y = e.y - r.y;
 			if (!allowOOB && event.y < 0) {
 				return null;
 			}
@@ -1684,10 +1632,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	protected void initializeTableColumns(final Table table) {
 		TableColumn[] oldColumns = table.getColumns();
 
-		if (SWT.getVersion() >= 3100) {
-			for (int i = 0; i < oldColumns.length; i++) {
-				oldColumns[i].removeListener(SWT.Move, columnMoveListener);
-			}
+		for (int i = 0; i < oldColumns.length; i++) {
+			oldColumns[i].removeListener(SWT.Move, columnMoveListener);
 		}
 
 		for (int i = oldColumns.length - 1; i >= 0; i--) {
@@ -1829,22 +1775,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		// Add move listener at the very end, so we don't get a bazillion useless 
 		// move triggers
-		if (SWT.getVersion() >= 3100) {
-			Listener columnResizeListener = (!COLUMN_CLICK_DELAY) ? null
-					: new Listener() {
-						public void handleEvent(Event event) {
-							lLastColumnResizeOn = System.currentTimeMillis();
-						}
-					};
-
-			TableColumn[] columns = table.getColumns();
-			for (int i = 0; i < columns.length; i++) {
-				TableColumn column = columns[i];
-				column.addListener(SWT.Move, columnMoveListener);
-				if (COLUMN_CLICK_DELAY) {
-					column.addListener(SWT.Resize, columnResizeListener);
-				}
-			}
+		TableColumn[] columns = table.getColumns();
+		for (int i = 0; i < columns.length; i++) {
+			TableColumn column = columns[i];
+			column.addListener(SWT.Move, columnMoveListener);
 		}
 
 		columnVisibilitiesChanged = true;
@@ -2199,20 +2133,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		try {
 			if (getComposite() == null || getComposite().isDisposed()) {
 				return;
-			}
-
-			if (checkColumnWidthsEvery != 0
-					&& (loopFactor % checkColumnWidthsEvery) == 0) {
-				TableColumn[] tableColumnsSWT = table.getColumns();
-				for (int i = 0; i < tableColumnsSWT.length; i++) {
-					TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
-					if (tc != null && tc.getWidth() != tableColumnsSWT[i].getWidth()) {
-						tc.setWidth(tableColumnsSWT[i].getWidth());
-
-						int columnNumber = table.indexOf(tableColumnsSWT[i]);
-						locationChanged(columnNumber);
-					}
-				}
 			}
 
 			if (columnVisibilitiesChanged == true) {
@@ -3728,30 +3648,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		 * @param event event information
 		 */
 		public void handleEvent(final Event event) {
-			if (COLUMN_CLICK_DELAY) {
-				// temporary for OSX.. resizing column triggers selection, so cancel
-				// if a resize was recent. 
-				final Timer timer = new Timer("Column Selection Wait");
-				timer.addEvent(System.currentTimeMillis() + 85,
-						new TimerEventPerformer() {
-							public void perform(TimerEvent timerEvent) {
-								Utils.execSWTThread(new AERunnable() {
-									public void runSupport() {
-										if (lLastColumnResizeOn == -1
-												|| System.currentTimeMillis() - lLastColumnResizeOn > 220) {
-											reallyHandleEvent(event);
-										}
-									}
-								});
-								timer.destroy();
-							}
-						});
-			} else {
-				reallyHandleEvent(event);
-			}
-		}
-
-		private void reallyHandleEvent(Event event) {
 			TableColumn column = (TableColumn) event.widget;
 			if (column == null) {
 				return;
@@ -4258,15 +4154,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return false;
 		}
 		int i = row.getIndex();
-		if (Utils.SWT32_TABLEPAINT) {
-			int iTopIndex = table.getTopIndex();
-			if (iTopIndex < 0) {
-				return false;
-			}
-			int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
-			return i >= iTopIndex && i <= iBottomIndex;
+		int iTopIndex = table.getTopIndex();
+		if (iTopIndex < 0) {
+			return false;
 		}
-		return i >= lastTopIndex && i <= lastBottomIndex;
+		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+		return i >= iTopIndex && i <= iBottomIndex;
 	}
 
 	private void visibleRowsChanged() {
@@ -4645,12 +4538,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		pt = table.toControl(pt);
 
 		Rectangle bounds = tableCell.getBounds();
-		int x = pt.x - bounds.x
-				+ VerticalAligner.getTableAdjustHorizontallyBy(table);
+		int x = pt.x - bounds.x;
 		if (x < 0 || x > bounds.width) {
 			return null;
 		}
-		int y = pt.y - bounds.y + VerticalAligner.getTableAdjustVerticalBy(table);
+		int y = pt.y - bounds.y;
 		if (y < 0 || y > bounds.height) {
 			return null;
 		}

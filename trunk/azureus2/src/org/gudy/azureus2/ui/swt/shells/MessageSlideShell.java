@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
@@ -64,8 +63,6 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
  */
 public class MessageSlideShell
 {
-	private static boolean USE_SWT32_BG_SET = true;
-
 	private static final boolean DEBUG = false;
 
 	/** Slide until there's this much gap between shell and edge of screen */
@@ -335,31 +332,24 @@ public class MessageSlideShell
 		if (shell == null) {
 			shell = new Shell(display, style);
 		}
-		if (USE_SWT32_BG_SET) {
-			try {
-				shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
-			} catch (NoSuchMethodError e) {
-				// Ignore
-			} catch (NoSuchFieldError e2) {
-				// ignore
-			}
+		try {
+			shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
+		} catch (NoSuchMethodError e) {
+			// Ignore
+		} catch (NoSuchFieldError e2) {
+			// ignore
 		}
 		Utils.setShellIcon(shell);
 		shell.setText(popupParams.title);
 
 		// Disable BG Image on OSX
 		if (imgPopup == null) {
-			if (Constants.isOSX && (SWT.getVersion() < 3221 || !USE_SWT32_BG_SET)) {
-				USE_SWT32_BG_SET = false;
-				imgPopup = null;
-			} else {
-				imgPopup = ImageLoader.getInstance().getImage("popup");
-				shell.addDisposeListener(new DisposeListener() {
-					public void widgetDisposed(DisposeEvent e) {
-						ImageLoader.getInstance().releaseImage("popup");
-					}
-				});
-			}
+			imgPopup = ImageLoader.getInstance().getImage("popup");
+			shell.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					ImageLoader.getInstance().releaseImage("popup");
+				}
+			});
 		}
 		Rectangle imgPopupBounds;
 		if (imgPopup != null) {
@@ -582,12 +572,10 @@ public class MessageSlideShell
 			gc.dispose();
 
 			boolean bAlternateDrawing = true;
-			if (USE_SWT32_BG_SET) {
-				try {
-					shell.setBackgroundImage(imgBackground);
-					bAlternateDrawing = false;
-				} catch (NoSuchMethodError e) {
-				}
+			try {
+				shell.setBackgroundImage(imgBackground);
+				bAlternateDrawing = false;
+			} catch (NoSuchMethodError e) {
 			}
 
 			if (bAlternateDrawing) {

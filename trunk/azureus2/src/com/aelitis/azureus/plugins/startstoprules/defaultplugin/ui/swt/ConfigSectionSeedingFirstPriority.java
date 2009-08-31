@@ -69,7 +69,6 @@ public class ConfigSectionSeedingFirstPriority
     Composite cArea, cArea1;
 
     Composite cFirstPriorityArea = new Composite(parent, SWT.NULL);
-    cFirstPriorityArea.addControlListener(new Utils.LabelWrapControlListener());
 
     layout = new GridLayout();
     layout.numColumns = 2;

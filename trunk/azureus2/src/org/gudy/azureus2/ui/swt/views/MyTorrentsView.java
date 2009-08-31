@@ -1382,14 +1382,9 @@ public class MyTorrentsView
 			dropTarget = tv.createDropTarget(DND.DROP_DEFAULT | DND.DROP_MOVE
 					| DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
 			if (dropTarget != null) {
-				if (SWT.getVersion() >= 3107) {
-					dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
-							URLTransfer.getInstance(), FileTransfer.getInstance(),
-							TextTransfer.getInstance() });
-				} else {
-					dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(),
-							FileTransfer.getInstance(), TextTransfer.getInstance() });
-				}
+				dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
+						URLTransfer.getInstance(), FileTransfer.getInstance(),
+						TextTransfer.getInstance() });
 
 				dropTarget.addDropListener(new DropTargetAdapter() {
 					public void dropAccept(DropTargetEvent event) {

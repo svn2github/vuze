@@ -69,7 +69,6 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     int userMode = COConfigurationManager.getIntParameter("User Mode");
 
     Composite cSection = new Composite(parent, SWT.NULL);
-  	cSection.addControlListener(new Utils.LabelWrapControlListener());
     layout = new GridLayout();
     layout.numColumns = 3;
     cSection.setLayout(layout);

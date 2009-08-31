@@ -164,12 +164,6 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			});
 		}
 
-		if (Utils.isGTK) {
-			// See Eclipse Bug #42416 ([Platform Inconsistency] GC(Table) has wrong origin)
-			new BooleanParameter(cLook, "SWT_bGTKTableBug", MSG_PREFIX
-					+ "verticaloffset");
-		}
-
 		if (Constants.isOSX) {
 			new BooleanParameter(cLook, "enable_small_osx_fonts", MSG_PREFIX
 					+ "osx_small_fonts");

@@ -29,8 +29,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
-import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /** Draws an image at a column in a row of a table using direct paints to the 
  *  table.
@@ -42,7 +40,6 @@ import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
  * Cons:
  *  - Bug - overpainting of table causing our cell to redraw everytime any other cell redraws
  *          (New for Windows since SWT3.0M8, always been there for linux)
- *  - Bug - incorrect drawing location on linux (new to SWT3.0M8)
  *  - other bugs
  *
  * @see BufferedGraphicTable2
@@ -185,11 +182,6 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
           gc = new GC(table);
         }
         if (gc != null) {
-          int iAdj = VerticalAligner.getTableAdjustVerticalBy(table);
-          bounds.y += iAdj;
-          iAdj = VerticalAligner.getTableAdjustHorizontallyBy(table);
-          bounds.x += iAdj;
-
           gc.drawImage(image, bounds.x, bounds.y);
           if (ourGC) {
             gc.dispose();
@@ -234,23 +226,6 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
       //System.out.println(row.getIndex() + " clipping="+clipping + ";" + iMinY + ";" + iMaxY + ";tca=" + tableBounds);
       return;
     }
-
-    // See Eclipse Bug 42416
-    // "[Platform Inconsistency] GC(Table) has wrong origin"
-    // Notes/Questions:
-    // - GTK's "new GC(table)" starts under header, instead of above
-    //   -- so, adjust bounds up
-    // - Appears to apply to new GC(table) AND GC passed by PaintEvent from a Table PaintListener
-    // - Q) .height may be effected (smaller than it should be).  How does this effect clipping?
-    // - Q) At what version does this bug start appearing?
-    //   A) Reports suggest at least 2.1.1
-    int iAdj = VerticalAligner.getTableAdjustVerticalBy(table);
-    bounds.y += iAdj;
-    clipping.y += iAdj;
-    // New: GTK M8+ has a bounds.x bug.. works fine in M7, but assume people have M8 or higher (3.0final)
-    iAdj = VerticalAligner.getTableAdjustHorizontallyBy(table);
-    bounds.x += iAdj;
-    clipping.x += iAdj;
 
     boolean ourGC = (gc == null);
     if (ourGC) {

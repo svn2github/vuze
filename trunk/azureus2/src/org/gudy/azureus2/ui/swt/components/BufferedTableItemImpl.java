@@ -51,36 +51,24 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 	}
 
 	public String getText() {
-		if (Utils.SWT32_TABLEPAINT) {
-			return text;
-		}
-
-		if (position != -1)
-			return row.getText(position);
-		return "";
+		return text;
 	}
 
 	public boolean setText(String text) {
-		if (Utils.SWT32_TABLEPAINT) {
-			if (this.text.equals(text)) {
-				return false;
-			}
-	
-			this.text = (text == null) ? "" : text;
-			
-			Rectangle bounds = getBounds();
-			if (bounds != null) {
-				Table table = row.getTable();
-				Rectangle dirty = table.getClientArea().intersection(bounds);
-				table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
-			}
-			
-			return true;
+		if (this.text.equals(text)) {
+			return false;
 		}
 
-		if (position != -1)
-			return row.setText(position, text);
-		return false;
+		this.text = (text == null) ? "" : text;
+		
+		Rectangle bounds = getBounds();
+		if (bounds != null) {
+			Table table = row.getTable();
+			Rectangle dirty = table.getClientArea().intersection(bounds);
+			table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
+		}
+		
+		return true;
 	}
 
 	public void setIcon(Image img) {

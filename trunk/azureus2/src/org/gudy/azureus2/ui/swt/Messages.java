@@ -97,13 +97,10 @@ public class Messages {
         
         // XXX We could (should?) send this event for all widget types
         // XXX Would it better to have a custom event type?
-        if (SWT.getVersion() > 3200) {
-	        Event event = new Event();
-	    		// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
-	        event.type = SWT.Settings;
-	        event.widget = widget;
-	        widget.notifyListeners(SWT.Settings, event);
-        }
+        Event event = new Event();
+        event.type = SWT.Settings;
+        event.widget = widget;
+        widget.notifyListeners(SWT.Settings, event);
       }
       else if (widget instanceof Tree) {
         Tree tree = (Tree) widget;

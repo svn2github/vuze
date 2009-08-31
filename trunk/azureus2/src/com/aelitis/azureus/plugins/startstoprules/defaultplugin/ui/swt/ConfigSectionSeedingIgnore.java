@@ -62,7 +62,6 @@ public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
     Label label;
 
     Composite cIgnoreRules = new Composite(parent, SWT.NULL);
-    cIgnoreRules.addControlListener(new Utils.LabelWrapControlListener());
 
     layout = new GridLayout();
     layout.numColumns = 3;

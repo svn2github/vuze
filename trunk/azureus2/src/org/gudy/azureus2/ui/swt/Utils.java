@@ -26,7 +26,6 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
@@ -43,7 +42,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
-import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -66,11 +64,6 @@ public class Utils
 
 	/** GTK already handles alternating background for tables */
 	public static final boolean TABLE_GRIDLINE_IS_ALTERNATING_COLOR = isGTK;
-
-	private static final boolean DIRECT_SETCHECKED = !Constants.isOSX
-			|| SWT.getVersion() >= 3212;
-
-	public static final boolean SWT32_TABLEPAINT = SWT.getVersion() >= 3200;
 
 	/**
 	 * Debug/Diagnose SWT exec calls.  Provides usefull information like how
@@ -156,37 +149,12 @@ public class Utils
 		if (disposeList == null) {
 			return;
 		}
-		boolean bResourceObjectExists = SWT.getVersion() >= 3129;
-
 		for (int i = 0; i < disposeList.length; i++) {
 			Object o = disposeList[i];
 			if (o instanceof Widget && !((Widget) o).isDisposed())
 				((Widget) o).dispose();
-			else if (bResourceObjectExists && (o instanceof Resource)
-					&& !((Resource) o).isDisposed())
+			else if ((o instanceof Resource) && !((Resource) o).isDisposed()) {
 				((Resource) o).dispose();
-			else {
-				try {
-					// For Pre-SWT 3.1
-					if ((o instanceof Cursor) && !((Cursor) o).isDisposed()) {
-						((Cursor) o).dispose();
-					} else if ((o instanceof Font) && !((Font) o).isDisposed()) {
-						((Font) o).dispose();
-					} else if ((o instanceof GC) && !((GC) o).isDisposed()) {
-						((GC) o).dispose();
-					} else if ((o instanceof Image) && !((Image) o).isDisposed()) {
-						((Image) o).dispose();
-					} else if ((o instanceof Region) && !((Region) o).isDisposed()) {
-						((Region) o).dispose(); // 3.0
-					} else if ((o instanceof TextLayout)
-							&& !((TextLayout) o).isDisposed()) {
-						((TextLayout) o).dispose(); // 3.0
-					}
-				} catch (NoClassDefFoundError e) {
-					// ignore
-				}
-				// Path, Pattern, Transform are all 3.1, which will be instances of 
-				// Resource
 			}
 		}
 	}
@@ -293,21 +261,12 @@ public class Utils
 			final boolean bAllowShareAdd, final Text url,
 			DropTargetListener dropTargetListener) {
 
-		Transfer[] transferList;
-		if (SWT.getVersion() >= 3107) {
-			transferList = new Transfer[] {
-				HTMLTransfer.getInstance(),
-				URLTransfer.getInstance(),
-				FileTransfer.getInstance(),
-				TextTransfer.getInstance()
-			};
-		} else {
-			transferList = new Transfer[] {
-				URLTransfer.getInstance(),
-				FileTransfer.getInstance(),
-				TextTransfer.getInstance()
-			};
-		}
+		Transfer[] transferList = new Transfer[] {
+			HTMLTransfer.getInstance(),
+			URLTransfer.getInstance(),
+			FileTransfer.getInstance(),
+			TextTransfer.getInstance()
+		};
 
 		final DropTarget dropTarget = new DropTarget(composite, DND.DROP_DEFAULT
 				| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
@@ -393,89 +352,6 @@ public class Utils
 			}
 		}
 	}
-
-	/**
-	 * Force label to use more vertical space if wrapped and in a GridLayout
-	 * Place this listener on the _parent_ of the label
-	 * See Eclipse SWT Bug #9866 (GridLayout does not handle wrapped Label properly)
-	 * This workaround only works for labels who:
-	 *   - horizontally span their whole parent 
-	 *     (ie. the parent has 3 columns, the label must span 3 columns)
-	 *   - GridData style has GridData.FILL_HORIZONTAL
-	 *   - Label style has SWT.WRAP
-	 *
-	 * @author TuxPaper
-	 * @note Bug 9866 fixed in 3105 and later
-	 */
-	public static class LabelWrapControlListener
-		extends ControlAdapter
-	{
-		public void controlResized(ControlEvent e) {
-			if (SWT.getVersion() >= 3105)
-				return;
-			Composite parent = (Composite) e.widget;
-			Control children[] = parent.getChildren();
-
-			if (children.length > 0) {
-				GridLayout parentLayout = (GridLayout) parent.getLayout();
-				if (parentLayout != null) {
-					Point size;
-					int marginWidth = parentLayout.marginWidth;
-
-					Composite grandParent = parent.getParent();
-					if (grandParent instanceof ScrolledComposite) {
-						Composite greatGP = grandParent.getParent();
-						if (greatGP != null) {
-							size = greatGP.getSize();
-
-							if (greatGP.getLayout() instanceof GridLayout) {
-								marginWidth += ((GridLayout) greatGP.getLayout()).marginWidth;
-							}
-						} else {
-							// not tested
-							size = grandParent.getSize();
-						}
-
-						if (grandParent.getLayout() instanceof GridLayout) {
-							marginWidth += ((GridLayout) grandParent.getLayout()).marginWidth;
-						}
-
-						ScrollBar sb = grandParent.getVerticalBar();
-						if (sb != null) {
-							// I don't know why, but we have to remove one
-							size.x -= sb.getSize().x + 1;
-						}
-					} else
-						size = parent.getSize();
-
-					boolean oneChanged = false;
-					for (int i = 0; i < children.length; i++) {
-						if ((children[i] instanceof Label)
-								&& (children[i].getStyle() & SWT.WRAP) == SWT.WRAP) {
-							GridData gd = (GridData) children[i].getLayoutData();
-							if (gd != null && gd.horizontalAlignment == GridData.FILL) {
-								if (gd.horizontalSpan == parentLayout.numColumns) {
-									gd.widthHint = size.x - 2 * marginWidth;
-									oneChanged = true;
-								} else {
-									Point pt = children[i].getLocation();
-									gd.widthHint = size.x - pt.x - (2 * marginWidth);
-									oneChanged = true;
-								}
-							}
-						}
-					}
-					if (oneChanged) {
-						parent.layout(true);
-						if (grandParent instanceof ScrolledComposite) {
-							((ScrolledComposite) grandParent).setMinSize(parent.computeSize(
-									SWT.DEFAULT, SWT.DEFAULT, true));
-						}
-					}
-				}
-			} // size
-		} // controlResized
-	} // class
 
 	public static void alternateRowBackground(TableItem item) {
 		if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR) {
@@ -1024,20 +900,11 @@ public class Utils
 			return;
 		}
 
-		if (SWT.getVersion() >= 3315 || SWT.getVersion() < 3300
-				|| UrlUtils.isURL(sFile) || sFile.startsWith("mailto:")) {
-			boolean launched = Program.launch(sFile);
-			if (!launched && Constants.isUnix
-					&& (UrlUtils.isURL(sFile) || sFile.startsWith("mailto:"))) {
-				if (!Program.launch("xdg-open " + sFile)) {
-					Program.launch("htmlview " + sFile);
-				}
-			}
-		} else {
-			if (Constants.isOSX) {
-				Program.launch("file://" + sFile.replaceAll(" ", "%20"));
-			} else {
-				Program.launch(sFile);
+		boolean launched = Program.launch(sFile);
+		if (!launched && Constants.isUnix
+				&& (UrlUtils.isURL(sFile) || sFile.startsWith("mailto:"))) {
+			if (!Program.launch("xdg-open " + sFile)) {
+				Program.launch("htmlview " + sFile);
 			}
 		}
 	}
@@ -1051,23 +918,13 @@ public class Utils
 	 */
 	public static void setCheckedInSetData(final TableItem item,
 			final boolean checked) {
-		if (DIRECT_SETCHECKED) {
-			item.setChecked(checked);
-		} else {
-			item.setChecked(!checked);
-			item.getDisplay().asyncExec(new AERunnable() {
-				public void runSupport() {
-					item.setChecked(checked);
-				}
-			});
-		}
+		item.setChecked(checked);
 
 		if (Constants.isWindowsXP || isGTK) {
 			Rectangle r = item.getBounds(0);
 			Table table = item.getParent();
 			Rectangle rTable = table.getClientArea();
 
-			r.y += VerticalAligner.getTableAdjustVerticalBy(table);
 			table.redraw(0, r.y, rTable.width, r.height, true);
 		}
 	}
