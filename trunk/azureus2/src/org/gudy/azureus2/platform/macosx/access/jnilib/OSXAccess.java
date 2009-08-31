@@ -22,8 +22,6 @@ package org.gudy.azureus2.platform.macosx.access.jnilib;
 import java.io.File;
 import java.util.Map;
 
-import org.eclipse.swt.internal.carbon.AEDesc;
-
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.drivedetector.DriveDetectorFactory;
@@ -88,7 +86,7 @@ public class OSXAccess
 	}
 
 	public static final native int AEGetParamDesc(int theAppleEvent,
-			int theAEKeyword, int desiredType, AEDesc result);
+			int theAEKeyword, int desiredType, Object result); //AEDesc result
 
 	public static final native String getVersion();
 
