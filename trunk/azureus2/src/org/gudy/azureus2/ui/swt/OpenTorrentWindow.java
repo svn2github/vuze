@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.List;
 
@@ -1977,15 +1978,15 @@ public class OpenTorrentWindow
 				sFileName = UrlUtils.decode(sFileName.substring(16));
 			}
 
-			File fOriginal = new File(sFileName);
+			final File fOriginal = new File(sFileName);
 
 			if (!fOriginal.isFile() || !fOriginal.exists()) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						if (shell == null)
 							new MessageSlideShell(Display.getCurrent(), SWT.ICON_ERROR,
-									"OpenTorrentWindow.mb.openError", "", new String[] {
-										sOriginatingLocation,
+									"OpenTorrentWindow.mb.openError", fOriginal.toString(), new String[] {
+										UrlUtils.decode(sOriginatingLocation),
 										"Not a File"
 									}, -1 );
 						else
