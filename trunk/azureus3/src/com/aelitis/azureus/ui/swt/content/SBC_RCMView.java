@@ -356,7 +356,7 @@ SBC_RCMView
 						contentChanged(
 							RelatedContent[]	content )
 						{
-							boolean	hit = false;
+							final java.util.List<RelatedContent> hits = new ArrayList<RelatedContent>( content.length );
 
 							synchronized( content_set ){
 								
@@ -369,12 +369,12 @@ SBC_RCMView
 
 									if ( content_set.contains( c )){
 								
-										hit = true;
+										hits.add( c );
 									}
 								}
 							}
 							
-							if ( hit ){
+							if ( hits.size() > 0 ){
 								
 								Utils.execSWTThread(
 										new Runnable()
@@ -384,7 +384,15 @@ SBC_RCMView
 											{
 												if ( tv_related_content != null && !tv_related_content.isDisposed()){
 													
-													tv_related_content.refreshTable( false );
+													for ( RelatedContent c: hits ){
+														
+														TableRowCore row = tv_related_content.getRow( c );
+													
+														if ( row != null ){
+													
+															row.refresh(true );
+														}
+													}
 												}
 											}
 										});
