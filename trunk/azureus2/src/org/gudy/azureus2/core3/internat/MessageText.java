@@ -46,6 +46,7 @@ import sun.security.action.GetPropertyAction;
  * 
  * @author CrazyAlchemist Added keyExistsForDefaultLocale
  */
+@SuppressWarnings("restriction")
 public class MessageText {
 
   public static final Locale LOCALE_ENGLISH = Constants.LOCALE_ENGLISH;
@@ -763,7 +764,8 @@ public class MessageText {
  * Reverts Locale back to default, and removes the config settin. 
  * Notifications of change should be done by the caller.
  */
-  public static void revertToDefaultLocale() {
+  @SuppressWarnings("restriction")
+	public static void revertToDefaultLocale() {
   	// Aside from the last 2 lines, this is Sun's code that is run
   	// at startup to determine the locale.  Too bad they didn't provide
   	// a way to call this code explicitly..
