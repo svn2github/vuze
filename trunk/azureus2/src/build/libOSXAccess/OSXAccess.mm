@@ -1,6 +1,8 @@
 #include <Carbon/Carbon.h>
 #include <JavaVM/jni.h>
+#ifdef CARBON
 #include <AEDataModel.h>
+#endif
 #include "org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess.h"
 #include <IOKit/IOBSD.h>
 #include <sys/mount.h>
@@ -42,6 +44,8 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 	gjvm = vm;
 	return JNI_VERSION_1_4;
 }
+
+#ifdef CARBON
 
 void cacheAEDescFields(JNIEnv *env, jobject lpObject) {
 	if (AEDescFc.cached)
@@ -85,6 +89,7 @@ fail: if (result && lpresult)
 	
 	return rc;
 }
+#endif
 
 JNIEXPORT jstring JNICALL
 Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getVersion(
