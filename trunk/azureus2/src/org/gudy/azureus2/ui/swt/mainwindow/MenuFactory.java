@@ -38,6 +38,7 @@ import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -47,6 +48,7 @@ import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -685,7 +687,11 @@ public class MenuFactory
 	public static MenuItem addSpeedTestMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_SPEED_TEST, new Listener() {
 			public void handleEvent(Event e) {
-				new SpeedTestWizard();
+				CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						new SpeedTestWizard();
+					}
+				});
 			}
 		});
 	}
