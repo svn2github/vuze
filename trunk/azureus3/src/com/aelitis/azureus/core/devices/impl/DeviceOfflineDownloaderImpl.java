@@ -28,6 +28,9 @@ import java.util.*;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -37,9 +40,12 @@ import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.peers.Peer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.devices.*;
@@ -216,7 +222,9 @@ DeviceOfflineDownloaderImpl
 			
 			Map<String,byte[]>	new_cache 	= new HashMap<String, byte[]>();
 			
-			List<DownloadManager> downloads = core.getGlobalManager().getDownloadManagers();
+			GlobalManager gm = core.getGlobalManager();
+			
+			List<DownloadManager> downloads = gm.getDownloadManagers();
 			
 			if ( start_of_day ){
 				
@@ -246,7 +254,7 @@ DeviceOfflineDownloaderImpl
 								
 								if ( m.containsKey( "f" )){
 									
-									log( "Resetting force-start for " + download.getDisplayName());
+									log( download, "Resetting force-start" );
 									
 									download.setForceStart( false );
 								}
@@ -257,6 +265,37 @@ DeviceOfflineDownloaderImpl
 						}
 					}
 				}
+				
+				final FrequencyLimitedDispatcher	fld = 
+					new FrequencyLimitedDispatcher(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								updateDownloads();
+							}
+						},
+						5*1000 );
+				
+				gm.addListener(
+					new GlobalManagerAdapter()
+					{
+						public void
+						downloadManagerAdded(
+							DownloadManager	dm )
+						{
+							fld.dispatch();
+						}
+							
+						public void
+						downloadManagerRemoved( 
+							DownloadManager	dm )
+						{
+							fld.dispatch();
+						}
+					},
+					false );
 			}
 			
 			Map<DownloadManager,byte[]>	download_map = new HashMap<DownloadManager, byte[]>();
@@ -355,8 +394,6 @@ DeviceOfflineDownloaderImpl
 							new_cache.put( hash_str, needed );
 							
 							download_map.put( download, needed );
-							
-							System.out.println( hash_str + " (pieces=" + pieces.length + ") -> " + ByteFormatter.encodeString( needed ));
 						}
 					}
 				}catch( Throwable e ){
@@ -403,7 +440,7 @@ DeviceOfflineDownloaderImpl
 					
 				}catch( Throwable e ){
 					
-					log( "Failed to get download hash", e );
+					log( download, "Failed to get download hash", e );
 					
 					it.remove();
 				}
@@ -424,7 +461,7 @@ DeviceOfflineDownloaderImpl
 				
 				if ( bits.length != entries.size()){
 					
-					log( "setDownloads returned an invalid number of results (hashes=" + entries.size() + ",result=" + set_dl_result );
+					log( "SetDownloads returned an invalid number of results (hashes=" + entries.size() + ",result=" + set_dl_result );
 					
 				}else{
 					
@@ -463,6 +500,8 @@ DeviceOfflineDownloaderImpl
 											hash_str,
 											ByteFormatter.encodeStringFully( BEncoder.encode( torrent.serialiseToMap())));
 									
+									log( download, "AddDownload succeeded" );
+									
 									if ( add_result.equals( "OK" )){
 										
 										do_update = true;
@@ -475,11 +514,11 @@ DeviceOfflineDownloaderImpl
 									
 										// TODO: prevent continual attempts to add same torrent?
 									
-									log( "Failed to add download", e );
+									log( download, "Failed to add download", e );
 								}
 							}else{
 							
-								log( "setDownloads: error status returned for " + download.getDisplayName() + " - " + status );
+								log( download, "SetDownloads: error status returned - " + status );
 							}
 					
 							if ( do_update ){
@@ -500,46 +539,64 @@ DeviceOfflineDownloaderImpl
 									
 									if ( !update_status.equals( "OK" )){
 										
-										throw( new Exception( "Failing result returned: " + update_status ));
+										throw( new Exception( "UpdateDownload: Failing result returned: " + update_status ));
 									}
-									
-									System.out.println( "have bitfield: " + have_bitfield );
-									
+												
+									int	useful_piece_count = 0;
+
 									if ( have_bitfield.length() > 0 ){
 										
 										byte[]	have_map = ByteFormatter.decodeString( have_bitfield );
 										
 										if ( have_map.length != required_map.length ){
 											
-											throw( new Exception( "setDownloads: returned bitmap length invalid" ));
+											throw( new Exception( "UpdateDownload: Returned bitmap length invalid" ));
 										}
 										
 										for ( int i=0;i<required_map.length;i++){
 											
-											if (( required_map[0] & have_map[i] ) != 0 ){
+											int x = ( required_map[i] & have_map[i] )&0xff;
+											
+											if ( x != 0 ){
 													
-												new_transferables.put( hash_str, new TransferableDownload( download, hash_str, have_map  ));
-												
-												break;
+												for (int j=0;j<8;j++){
+													
+													if ((x&0x01) != 0 ){
+														
+														useful_piece_count++;
+													}
+													
+													x >>= 1;
+												}
 											}
 										}
+										
+										if ( useful_piece_count > 0 ) {
+										
+											new_transferables.put( hash_str, new TransferableDownload( download, hash_str, have_map  ));
+										}
+									}
+									
+									if ( useful_piece_count > 0 ){
+									
+										log( download, "They have " + useful_piece_count + " pieces that we don't" );
 									}
 									
 								}catch( Throwable e ){
 							
-									log( "updateDownload failed for " + download.getDisplayName(), e );
+									log( download, "UpdateDownload failed", e );
 								}
 							}
 						}catch( Throwable e ){
 						
-							log( "Processing failed for " + download.getDisplayName(), e );
+							log( download, "Processing failed", e );
 						}
 					}
 				}
 				
 			}catch( Throwable e ){
 				
-				log( "setDownloads failed", e );
+				log( "SetDownloads failed", e );
 			}
 		}finally{
 			
@@ -678,9 +735,7 @@ DeviceOfflineDownloaderImpl
 			int	data_port = current_transfer.getDataPort();
 			
 			if ( data_port <= 0 ){
-				
-				log( "startDownload for " + download.getDisplayName());
-				
+								
 				try{
 					String[] start_results = service.startDownload( client_id, current_transfer.getHash());
 					
@@ -693,9 +748,11 @@ DeviceOfflineDownloaderImpl
 					
 					data_port = Integer.parseInt( start_results[0] );
 					
+					log( download, "StartDownload succeeded - data port=" + data_port );
+
 				}catch( Throwable e ){
 					
-					log( "startDownload failed for " + download.getDisplayName(), e );
+					log( download, "StartDownload failed", e );
 				}
 			}
 			
@@ -735,7 +792,11 @@ DeviceOfflineDownloaderImpl
 							return;
 						}
 						
-						pm.addPeer( service_ip, transfer.getDataPort(), 0, false, null );
+						Map	user_data = new LightHashMap();
+												
+						user_data.put( Peer.PR_PRIORITY_CONNECTION, new Boolean( true ));
+						
+						pm.addPeer( service_ip, transfer.getDataPort(), 0, false, user_data );
 						
 						if ( count[0] < 3 ){
 							
@@ -796,6 +857,23 @@ DeviceOfflineDownloaderImpl
 	
 	protected void
 	log(
+		DownloadManager		download,	
+		String				str )
+	{
+		log( download.getDisplayName() + ": " + str );
+	}
+	
+	protected void
+	log(
+		DownloadManager		download,	
+		String				str,
+		Throwable			e )
+	{
+		log( download.getDisplayName() + ": " + str, e );
+	}
+	
+	protected void
+	log(
 		String	str )
 	{
 		super.log( "OfflineDownloader: " + str );
@@ -809,7 +887,7 @@ DeviceOfflineDownloaderImpl
 		super.log( "OfflineDownloader: " + str, e );
 	}
 	
-	protected static class
+	protected class
 	TransferableDownload
 	{
 		private DownloadManager		download;
@@ -870,10 +948,16 @@ DeviceOfflineDownloaderImpl
 			active		= true;		
 			start_time 	= SystemTime.getMonotonousTime();
 			
-			if ( !download.isForceStart()){
+			if ( download.isForceStart()){
+
+				log( download, "Activating for transfer" );
 				
+			}else{
+				
+				log( download, "Activating for transfer; setting force-start" );
+
 				forced = true;
-				
+								
 				download.setForceStart( true );
 			}
 		}
@@ -884,8 +968,14 @@ DeviceOfflineDownloaderImpl
 			active = false;
 			
 			if ( forced ){
-				
+
+				log( download, "Deactivating for transfer; resetting force-start" );
+	
 				download.setForceStart( false );
+				
+			}else{
+				
+				log( download, "Deactivating for transfer" );
 			}
 			
 			data_port	= 0;
