@@ -24,7 +24,7 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.tables.*;
-// import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 /**
@@ -77,7 +77,6 @@ public class ColumnRC_Tracker
 		}
 	}
 	
-	/*
 	public void cellMouseTrigger(final TableCellMouseEvent event) {
 		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN
 				&& event.button == 1) {
@@ -93,7 +92,6 @@ public class ColumnRC_Tracker
 			}
 		}
 	}
-	*/
 	
 	private boolean
 	validTracker(

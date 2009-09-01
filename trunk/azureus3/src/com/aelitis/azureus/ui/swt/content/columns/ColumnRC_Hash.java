@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 /**
@@ -79,7 +80,6 @@ public class ColumnRC_Hash
 		cell.setText(ByteFormatter.encodeString(hash));
 	}
 	
-	/*
 	public void cellMouseTrigger(final TableCellMouseEvent event) {
 		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN
 				&& event.button == 1) {
@@ -95,5 +95,4 @@ public class ColumnRC_Hash
 			}
 		}
 	}
-	*/
 }

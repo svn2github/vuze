@@ -44,7 +44,10 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
@@ -55,15 +58,21 @@ import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 
 public class 
 DeviceManagerImpl 
-	implements DeviceManager, AEDiagnosticsEvidenceGenerator
+	implements DeviceManager, DeviceOfflineDownloaderManager, AEDiagnosticsEvidenceGenerator
 {
 	private static final String	LOGGER_NAME 				= "Devices";
 	private static final String	CONFIG_FILE 				= "devices.config";
 	private static final String	AUTO_SEARCH_CONFIG_KEY		= "devices.config.auto_search";
+	
 	private static final String	RSS_ENABLE_CONFIG_KEY		= "devices.config.rss_enable";
 	private static final String	RSS_PORT_CONFIG_KEY			= "devices.config.rss_port";
 	private static final String	RSS_LOCAL_ONLY_CONFIG_KEY	= "devices.config.rss_local_only";
 	private static final int	RSS_PORT_CONFIG__DEFAULT	= 6905;
+	
+	private static final String OD_ENABLED_CONFIG_KEY			= "devices.config.od.enabled";
+	private static final String OD_IS_AUTO_CONFIG_KEY			= "devices.config.od.auto";
+	private static final String OD_INCLUDE_PRIVATE_CONFIG_KEY	= "devices.config.od.inc_priv";
+	
 	
 	private static final String CONFIG_DEFAULT_WORK_DIR	= "devices.config.def_work_dir";
 	
@@ -93,6 +102,8 @@ DeviceManagerImpl
 	
 	
 	private AzureusCore		azureus_core;
+	
+	private TorrentAttribute			od_manual_ta;
 	
 	private List<DeviceImpl>			device_list = new ArrayList<DeviceImpl>();
 	private Map<String,DeviceImpl>		device_map	= new HashMap<String, DeviceImpl>();
@@ -183,6 +194,11 @@ DeviceManagerImpl
 	
 	private DeviceManagerRSSFeed	rss_publisher;
 	
+	private boolean	od_enabled;
+	private boolean	od_is_auto;
+	private boolean od_include_private;
+	
+	
 	private boolean	closing;
 	
 	private boolean	config_unclean;
@@ -218,6 +234,8 @@ DeviceManagerImpl
 	{
 		azureus_core = core;
 		
+		od_manual_ta = PluginInitializer.getDefaultInterface().getTorrentManager().getPluginAttribute( "device.manager.od.ta.manual" );
+		
 			// need to pick up auto-search early on
 		
 		COConfigurationManager.addAndFireParameterListeners(
@@ -231,6 +249,33 @@ DeviceManagerImpl
 						String name ) 
 					{
 						auto_search = COConfigurationManager.getBooleanParameter( AUTO_SEARCH_CONFIG_KEY, true );
+					}
+				});
+		
+		COConfigurationManager.addAndFireParameterListeners(
+				new String[]{
+					OD_ENABLED_CONFIG_KEY,
+					OD_IS_AUTO_CONFIG_KEY,
+					OD_INCLUDE_PRIVATE_CONFIG_KEY
+				},
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name ) 
+					{
+						boolean	new_od_enabled 				= COConfigurationManager.getBooleanParameter( OD_ENABLED_CONFIG_KEY, true );
+						boolean	new_od_is_auto 				= COConfigurationManager.getBooleanParameter( OD_IS_AUTO_CONFIG_KEY, true );
+						boolean	new_od_include_private_priv	= COConfigurationManager.getBooleanParameter( OD_INCLUDE_PRIVATE_CONFIG_KEY, false );
+						
+						if ( new_od_enabled != od_enabled || new_od_is_auto != od_is_auto || new_od_include_private_priv != od_include_private ){
+							
+							od_enabled			= new_od_enabled;
+							od_is_auto			= new_od_is_auto;
+							od_include_private	= new_od_include_private_priv;
+							
+							manageOD();
+						}
 					}
 				});
 		
@@ -340,6 +385,7 @@ DeviceManagerImpl
 				});
 		
 		initialized = true;
+		
 		listeners.dispatch( LT_INITIALIZED, null );
 	}
 	
@@ -373,6 +419,20 @@ DeviceManagerImpl
 						}				
 					}
 				});
+		}
+	}
+	
+	protected void
+	manageOD()
+	{
+		DeviceImpl[] devices = getDevices();
+		
+		for ( DeviceImpl device: devices ){
+			
+			if ( device.getType() == Device.DT_OFFLINE_DOWNLOADER ){
+				
+				((DeviceOfflineDownloaderImpl)device).checkConfig();
+			}
 		}
 	}
 	
@@ -800,6 +860,86 @@ DeviceManagerImpl
 	{
 		COConfigurationManager.setParameter( RSS_PORT_CONFIG_KEY, port );
 	}
+	
+		// offline downloader stuff
+	
+	public DeviceOfflineDownloaderManager
+	getOfflineDownlaoderManager()
+	{
+		return( this );
+	}
+	
+	public boolean
+	isOfflineDownloadingEnabled()
+	{
+		return( od_enabled );
+	}
+	
+	public void
+	setOfflineDownloadingEnabled(
+		boolean		enabled )
+	{
+		COConfigurationManager.setParameter( OD_ENABLED_CONFIG_KEY, enabled );
+	}
+
+	public boolean
+	getOfflineDownloadingIsAuto()
+	{
+		return( od_is_auto );
+	}
+	
+	public void
+	setOfflineDownloadingIsAuto(
+		boolean		auto )
+	{
+		COConfigurationManager.setParameter( OD_IS_AUTO_CONFIG_KEY, auto );
+	}
+
+	public boolean
+	getOfflineDownloadingIncludePrivate()
+	{
+		return( od_include_private );	
+	}
+	
+	public void
+	setOfflineDownloadingIncludePrivate(
+		boolean		include )
+	{
+		COConfigurationManager.setParameter( OD_INCLUDE_PRIVATE_CONFIG_KEY, include );
+	}
+	
+	public boolean
+	isManualDownload(
+		Download		download )
+	{
+		return( download.getBooleanAttribute( od_manual_ta ));
+	}
+	
+	public void
+	addManualDownloads(
+		Download[]		downloads )
+	{
+		for ( Download d: downloads ){
+			
+			d.setBooleanAttribute( od_manual_ta, true );
+		}
+		
+		manageOD();
+	}
+
+	public void
+	removeManualDownloads(
+		Download[]		downloads )
+	{
+		for ( Download d: downloads ){
+			
+			d.setBooleanAttribute( od_manual_ta, false );
+		}
+		
+		manageOD();
+	}
+	
+		// sdsd
 	
 	protected boolean
 	isExplicitSearch()

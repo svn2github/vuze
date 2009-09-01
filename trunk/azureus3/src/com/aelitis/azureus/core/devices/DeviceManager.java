@@ -87,6 +87,9 @@ DeviceManager
 	public boolean
 	isBusy();
 	
+	public DeviceOfflineDownloaderManager
+	getOfflineDownlaoderManager();
+	
 	public void
 	addListener(
 		DeviceManagerListener		listener );

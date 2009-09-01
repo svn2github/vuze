@@ -45,7 +45,9 @@ import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.devices.*;
@@ -72,10 +74,23 @@ DeviceOfflineDownloaderImpl
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
+	final FrequencyLimitedDispatcher	freq_lim_updater = 
+		new FrequencyLimitedDispatcher(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					updateDownloads();
+				}
+			},
+			5*1000 );
+	
 	private boolean								start_of_day	= true;
 	
 	private Map<String,TransferableDownload>	transferable 	= new LinkedHashMap<String,TransferableDownload>();
 	private TransferableDownload				current_transfer;
+	private boolean								is_transferring;
 	
 	protected
 	DeviceOfflineDownloaderImpl(
@@ -157,8 +172,6 @@ DeviceOfflineDownloaderImpl
 		manufacturer = root.getDevice().getManufacturer();
 		
 		setPersistentStringProperty( PP_OD_MANUFACTURER, manufacturer );
-		
-		setBusy( true );
 	}
 	
 	protected void 
@@ -194,6 +207,12 @@ DeviceOfflineDownloaderImpl
 		}
 		
 		updateDownloads();
+	}
+	
+	protected void
+	checkConfig()
+	{
+		freq_lim_updater.dispatch();
 	}
 	
 	protected void
@@ -234,7 +253,7 @@ DeviceOfflineDownloaderImpl
 			
 			GlobalManager gm = core.getGlobalManager();
 			
-			List<DownloadManager> downloads = gm.getDownloadManagers();
+			List<DownloadManager> initial_downloads = gm.getDownloadManagers();
 			
 			if ( start_of_day ){
 				
@@ -242,7 +261,7 @@ DeviceOfflineDownloaderImpl
 				
 				Map<String,Map> xfer_cache = getPersistentMapProperty( PP_OD_XFER_CACHE, new HashMap<String,Map>());
 				
-				for ( DownloadManager download: downloads ){
+				for ( DownloadManager download: initial_downloads ){
 
 					if ( download.isForceStart()){
 						
@@ -275,19 +294,7 @@ DeviceOfflineDownloaderImpl
 						}
 					}
 				}
-				
-				final FrequencyLimitedDispatcher	fld = 
-					new FrequencyLimitedDispatcher(
-						new AERunnable()
-						{
-							public void
-							runSupport()
-							{
-								updateDownloads();
-							}
-						},
-						5*1000 );
-				
+							
 				gm.addListener(
 					new GlobalManagerAdapter()
 					{
@@ -295,23 +302,27 @@ DeviceOfflineDownloaderImpl
 						downloadManagerAdded(
 							DownloadManager	dm )
 						{
-							fld.dispatch();
+							freq_lim_updater.dispatch();
 						}
 							
 						public void
 						downloadManagerRemoved( 
 							DownloadManager	dm )
 						{
-							fld.dispatch();
+							freq_lim_updater.dispatch();
 						}
 					},
 					false );
 			}
 			
-			Map<DownloadManager,byte[]>	download_map = new HashMap<DownloadManager, byte[]>();
+			DeviceManager manager = getManager();
+									
+			List<DownloadManager> relevant_downloads = new ArrayList<DownloadManager>( initial_downloads.size());
 			
-			for ( DownloadManager download: downloads ){
-							
+				// remove uninteresting ones
+			
+			for ( DownloadManager download: initial_downloads ){
+			
 				int	state = download.getState();
 				
 				if ( 	state == DownloadManager.STATE_SEEDING ||
@@ -336,8 +347,53 @@ DeviceOfflineDownloaderImpl
 					}
 				}
 				
-					// download is interesting 
-				
+				relevant_downloads.add( download );
+			}
+			
+			List<DownloadManager> downloads = new ArrayList<DownloadManager>( relevant_downloads.size());
+
+			DeviceOfflineDownloaderManager dodm = manager.getOfflineDownlaoderManager();
+			
+			if ( dodm.isOfflineDownloadingEnabled()){
+			
+				if ( dodm.getOfflineDownloadingIsAuto()){
+					
+					boolean	include_private = dodm.getOfflineDownloadingIncludePrivate();
+					
+					if ( include_private ){
+						
+						downloads.addAll( relevant_downloads );
+						
+					}else{
+						
+						for ( DownloadManager download: relevant_downloads ){
+							
+							TOTorrent torrent = download.getTorrent();
+							
+							if ( !TorrentUtils.isReallyPrivate( torrent )){
+								
+								downloads.add( download );
+							}
+						}
+					}
+				}else{
+					
+						// manual, just use the tagged downloads
+					
+					for ( DownloadManager download: relevant_downloads ){
+
+						if ( dodm.isManualDownload( PluginCoreUtils.wrap( download ))){
+							
+							downloads.add( download );
+						}
+					}
+				}
+			}
+			
+			Map<DownloadManager,byte[]>	download_map = new HashMap<DownloadManager, byte[]>();
+			
+			for ( DownloadManager download: downloads ){
+											
 				TOTorrent torrent = download.getTorrent();
 	
 				if ( torrent == null ){
@@ -655,7 +711,21 @@ DeviceOfflineDownloaderImpl
 		
 		if ( transferable.size() == 0 ){
 			
+			if ( is_transferring ){
+			
+				is_transferring = false;
+				
+				setBusy( false );
+			}
+			
 			return;
+		}
+		
+		if ( !is_transferring ){
+		
+			is_transferring = true;
+			
+			setBusy( true );
 		}
 		
 			// check current
@@ -874,7 +944,7 @@ DeviceOfflineDownloaderImpl
 	public int
 	getTransferingCount()
 	{
-		return( 3 );
+		return( transferable.size());
 	}
 	
 	protected void

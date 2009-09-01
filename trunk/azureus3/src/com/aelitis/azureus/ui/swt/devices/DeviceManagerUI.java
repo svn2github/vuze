@@ -153,6 +153,9 @@ DeviceManagerUI
 	
 	private MenuItemFillListener will_browse_listener;
 	
+	private boolean	offline_menus_setup;
+	
+	
 	static {
 		try {
   		if (Constants.isOSX) {
@@ -448,20 +451,20 @@ DeviceManagerUI
 				device_manager.getAutoSearch());
 		
 		as.addListener(
-				new ParameterListener()
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
 				{
-					public void 
-					parameterChanged(
-						Parameter param) 
-					{
-						device_manager.setAutoSearch( as.getValue());
+					device_manager.setAutoSearch( as.getValue());
+					
+					if ( device_manager.getAutoSearch()){
 						
-						if ( device_manager.getAutoSearch()){
-							
-							search();
-						}
+						search();
 					}
-				});
+				}
+			});
 		
 		final BooleanParameter qosParam = configModel.addBooleanParameter2(
 				PlatformDevicesMessenger.CFG_SEND_QOS, "devices.turnon.qos", false);
@@ -478,25 +481,6 @@ DeviceManagerUI
 				}
 			});
 
-			// max xcode
-		
-		final IntParameter max_xcode = 
-			configModel.addIntParameter2( 
-				"device.config.xcode.maxbps", "device.config.xcode.maxbps",
-				(int)(device_manager.getTranscodeManager().getQueue().getMaxBytesPerSecond()/1024), 
-				0, Integer.MAX_VALUE );
-		
-		max_xcode.addListener(
-			new ParameterListener()
-			{
-				public void 
-				parameterChanged(
-					Parameter param) 
-				{
-					device_manager.getTranscodeManager().getQueue().setMaxBytesPerSecond( max_xcode.getValue()*1024 );
-				}
-			});
-
 			// config - simple view
 		
 		final BooleanParameter config_simple_view = 
@@ -505,15 +489,15 @@ DeviceManagerUI
 				side_bar_view_type == SBV_SIMPLE );
 		
 		config_simple_view.addListener(
-				new ParameterListener()
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
 				{
-					public void 
-					parameterChanged(
-						Parameter param) 
-					{
-						COConfigurationManager.setParameter( CONFIG_VIEW_TYPE, config_simple_view.getValue()?SBV_SIMPLE:SBV_FULL );
-					}
-				});	
+					COConfigurationManager.setParameter( CONFIG_VIEW_TYPE, config_simple_view.getValue()?SBV_SIMPLE:SBV_FULL );
+				}
+			});	
 		
 		COConfigurationManager.addParameterListener(
 			CONFIG_VIEW_TYPE,
@@ -532,6 +516,8 @@ DeviceManagerUI
 		configModel.addBooleanParameter2( 
 				"!" + CONFIG_VIEW_HIDE_REND_GENERIC + "!", "devices.sidebar.hide.rend.generic",
 				side_bar_hide_rend_gen );
+		
+		// transcoding
 		
 			// default dir
 		
@@ -552,81 +538,28 @@ DeviceManagerUI
 				}
 			});
 		
-			// rss
+			// max xcode
 		
-		final BooleanParameter rss_enable = 
-			configModel.addBooleanParameter2( 
-				"device.rss.enable", "device.rss.enable",
-				device_manager.isRSSPublishEnabled());
-		
-		rss_enable.addListener(
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-						Parameter param) 
-					{
-						device_manager.setRSSPublishEnabled( rss_enable.getValue());
-					}
-				});
-		
-		
-		final IntParameter rss_port = 
+		final IntParameter max_xcode = 
 			configModel.addIntParameter2( 
-				"device.rss.port", "device.rss.port",
-				device_manager.getRSSPort());
+				"device.config.xcode.maxbps", "device.config.xcode.maxbps",
+				(int)(device_manager.getTranscodeManager().getQueue().getMaxBytesPerSecond()/1024), 
+				0, Integer.MAX_VALUE );
 		
-		final BooleanParameter rss_localonly = 
-			configModel.addBooleanParameter2( 
-				"device.rss.localonly", "device.rss.localonly",
-				device_manager.isRSSLocalOnly());
-		
-		rss_localonly.addListener(
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-						Parameter param) 
-					{
-						device_manager.setRSSLocalOnly( rss_localonly.getValue());
-					}
-				});
-		
-		final HyperlinkParameter rss_view = 
-			configModel.addHyperlinkParameter2(
-				"device.rss.view", getRSSLink( rss_port.getValue()));
-		
-		rss_port.addListener(
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-						Parameter param) 
-					{
-						int port =  rss_port.getValue();
-						
-						device_manager.setRSSPort( port );
-						
-						rss_view.setHyperlink( getRSSLink( port ));
-					}
-				});
-
-
-		
-		rss_enable.addEnabledOnSelection( rss_localonly );
-		rss_enable.addEnabledOnSelection( rss_port );
-		rss_enable.addEnabledOnSelection( rss_view );
-		
-		configModel.createGroup(
-			"device.rss.group",
-			new Parameter[]
+		max_xcode.addListener(
+			new ParameterListener()
 			{
-					rss_enable, rss_port, rss_view, rss_localonly,
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					device_manager.getTranscodeManager().getQueue().setMaxBytesPerSecond( max_xcode.getValue()*1024 );
+				}
 			});
-		
+
 			// itunes
 		
-		final ActionParameter btnITunes = configModel.addActionParameter2(null, "devices.button.installitunes");
+		final ActionParameter btnITunes = configModel.addActionParameter2("devices.button.installitunes", "UpdateWindow.columns.install");
 		btnITunes.setEnabled(false);
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
@@ -654,10 +587,158 @@ DeviceManagerUI
 				});
 			}
 		});
+		
+		configModel.createGroup(
+			"device.xcode.group",
+			new Parameter[]
+			{
+					def_work_dir, max_xcode, btnITunes
+			});
+		
+			// rss
+		
+		final BooleanParameter rss_enable = 
+			configModel.addBooleanParameter2( 
+				"device.rss.enable", "device.rss.enable",
+				device_manager.isRSSPublishEnabled());
+		
+		rss_enable.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					device_manager.setRSSPublishEnabled( rss_enable.getValue());
+				}
+			});
+		
+		
+		final IntParameter rss_port = 
+			configModel.addIntParameter2( 
+				"device.rss.port", "device.rss.port",
+				device_manager.getRSSPort());
+		
+		final BooleanParameter rss_localonly = 
+			configModel.addBooleanParameter2( 
+				"device.rss.localonly", "device.rss.localonly",
+				device_manager.isRSSLocalOnly());
+		
+		rss_localonly.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					device_manager.setRSSLocalOnly( rss_localonly.getValue());
+				}
+			});
+		
+		final HyperlinkParameter rss_view = 
+			configModel.addHyperlinkParameter2(
+				"device.rss.view", getRSSLink( rss_port.getValue()));
+		
+		rss_port.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					int port =  rss_port.getValue();
+					
+					device_manager.setRSSPort( port );
+					
+					rss_view.setHyperlink( getRSSLink( port ));
+				}
+			});
 
+
+		
+		rss_enable.addEnabledOnSelection( rss_localonly );
+		rss_enable.addEnabledOnSelection( rss_port );
+		rss_enable.addEnabledOnSelection( rss_view );
+		
+		configModel.createGroup(
+			"device.rss.group",
+			new Parameter[]
+			{
+					rss_enable, rss_port, rss_view, rss_localonly,
+			});
+
+			// offline downloaders
+		
+				// enable
+		
+		final DeviceOfflineDownloaderManager dodm = device_manager.getOfflineDownlaoderManager();
+		
+		final BooleanParameter od_enable = 
+			configModel.addBooleanParameter2( 
+				"device.od.enable", "device.od.enable",
+				dodm.isOfflineDownloadingEnabled());
+		
+		od_enable.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					dodm.setOfflineDownloadingEnabled( od_enable.getValue());
+					
+					rebuildSideBar();
+				}
+			});
+		
+				// auto manage
+		
+		final BooleanParameter od_auto_enable = 
+			configModel.addBooleanParameter2( 
+				"device.odauto.enable", "device.odauto.enable",
+				dodm.getOfflineDownloadingIsAuto());
+		
+		od_auto_enable.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					dodm.setOfflineDownloadingIsAuto( od_auto_enable.getValue());
+				}
+			});
+		
+				// private torrents
+		
+		final BooleanParameter od_pt_enable = 
+			configModel.addBooleanParameter2( 
+				"device.odpt.enable", "device.odpt.enable",
+				dodm.getOfflineDownloadingIncludePrivate());
+		
+		od_pt_enable.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					dodm.setOfflineDownloadingIncludePrivate( od_pt_enable.getValue());
+				}
+			});
+		
+		od_auto_enable.addEnabledOnSelection( od_pt_enable );
+		
+		configModel.createGroup(
+			"device.od.group",
+			new Parameter[]
+			{
+				od_enable, od_auto_enable, od_pt_enable,
+			});
+		
 		addAllDevices();
 	
-		setupMenus();
+		setupTranscodeMenus();
 	}
 	
 	protected String
@@ -1031,22 +1112,7 @@ DeviceManagerUI
 					
 					side_bar_hide_rend_gen = COConfigurationManager.getBooleanParameter( CONFIG_VIEW_HIDE_REND_GENERIC, true );
 
-					if ( sidebar_built ){
-						
-						Utils.execSWTThread(
-								new Runnable()
-								{
-									public void
-									run()
-									{
-										removeAllDevices();
-										
-										buildSideBar( true );
-										
-										addAllDevices();
-									}
-								});
-					}
+					rebuildSideBar();
 				}
 			});
 	}
@@ -1074,6 +1140,27 @@ DeviceManagerUI
 		
 		x.setToolTip( t );
 		x.setVisible( true );
+	}
+	
+	protected void
+	rebuildSideBar()
+	{
+		if ( sidebar_built ){
+			
+			Utils.execSWTThread(
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							removeAllDevices();
+							
+							buildSideBar( true );
+							
+							addAllDevices();
+						}
+					});
+		}
 	}
 	
 	protected void
@@ -1422,10 +1509,13 @@ DeviceManagerUI
 				
 					// offline downloaders
 				
-				categoryView od_category	= addDeviceCategory( Device.DT_OFFLINE_DOWNLOADER, "device.offlinedownloader.view.title", "image.sidebar.device.offlinedownloader" );
+				if ( device_manager.getOfflineDownlaoderManager().isOfflineDownloadingEnabled()){
+					
+					categoryView od_category	= addDeviceCategory( Device.DT_OFFLINE_DOWNLOADER, "device.offlinedownloader.view.title", "image.sidebar.device.offlinedownloader" );
+					
+					categories.add( od_category );
+				}
 				
-				categories.add( od_category );
-
 					// internet
 				
 				categoryView internet_category	= addDeviceCategory( Device.DT_INTERNET, "MainWindow.about.section.internet", "image.sidebar.device.internet" );
@@ -1484,7 +1574,7 @@ DeviceManagerUI
 	}
 
 	private void 
-	setupMenus()
+	setupTranscodeMenus()
 	{					
 			// top level menus
 				
@@ -1654,6 +1744,134 @@ DeviceManagerUI
 		}
 	}
 	
+	private void 
+	setupOfflineDownloadingMenus()
+	{					
+		final String[] tables = {
+				TableManager.TABLE_MYTORRENTS_INCOMPLETE,
+				TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,
+				TableManager.TABLE_MYTORRENTS_ALL_BIG,
+			};
+		
+		TableManager table_manager = plugin_interface.getUIManager().getTableManager();
+		
+		final DeviceOfflineDownloaderManager dodm = device_manager.getOfflineDownlaoderManager();
+		
+		MenuItemFillListener	menu_fill_listener = 
+			new MenuItemFillListener()
+			{
+				public void
+				menuWillBeShown(
+					MenuItem	menu,
+					Object		_target )
+				{
+					menu.removeAllChildItems();
+
+					if ( dodm.getOfflineDownloadingIsAuto()){
+						
+						menu.setEnabled( true );
+						
+						TableContextMenuItem auto_item =
+							plugin_interface.getUIManager().getTableManager().addContextMenuItem(
+								(TableContextMenuItem)menu,
+								"devices.contextmenu.od.auto");
+						
+						auto_item.setEnabled( false );
+
+						return;
+					}
+			
+					final TableRow[]	target;
+					
+					if ( _target instanceof TableRow ){
+						
+						target = new TableRow[]{ (TableRow)_target };
+						
+					}else{
+						
+						target = (TableRow[])_target;
+					}
+										
+					boolean	all_non_manual	= true;
+					boolean all_manual		= true;
+					
+					final List<Download> downloads = new ArrayList<Download>();
+					
+					for ( TableRow row: target ){
+						
+						Object obj = row.getDataSource();
+					
+						if ( obj instanceof Download ){
+						
+							Download download = (Download)obj;
+
+							downloads.add( download );
+							
+							if ( dodm.isManualDownload( download )){
+								
+								all_non_manual = false;
+								
+							}else{
+								
+								all_manual = false;
+							}
+						}
+					}
+					
+					boolean	enabled = downloads.size() > 0;
+
+					menu.setEnabled( enabled );
+										
+					if ( enabled ){
+						
+						TableContextMenuItem manual_item =
+							plugin_interface.getUIManager().getTableManager().addContextMenuItem(
+								(TableContextMenuItem)menu,
+								"devices.contextmenu.od.enable" + (all_manual?"d":""));
+						
+						final boolean f_all_manual = all_manual;
+						
+						manual_item.setData( new Boolean( f_all_manual ));
+						
+						manual_item.setStyle( MenuItem.STYLE_CHECK );
+						
+						manual_item.addListener(
+							new MenuItemListener()
+							{
+								public void
+								selected(
+									MenuItem			menu,
+									Object 				target )
+								{
+									Download[] d = downloads.toArray( new Download[ downloads.size()]);
+									
+									if ( f_all_manual ){
+										
+										dodm.removeManualDownloads( d );
+										
+									}else{
+										
+										dodm.addManualDownloads( d );
+									}
+								}
+							});
+					}
+				}
+			};
+		
+		// TUX TODO: make a table_manager.addContentMenuItem(Class forDataSourceType, String resourceKey)
+		//           instead of forcing a loop like this
+			
+		for( String table: tables ){
+				
+			TableContextMenuItem menu = table_manager.addContextMenuItem(table, "devices.contextmenu.od" );
+			
+			menu.setStyle(TableContextMenuItem.STYLE_MENU);
+		
+			menu.addFillListener( menu_fill_listener );				
+		}
+	}
+	
 	protected void
 	search()
 	{
@@ -1679,6 +1897,11 @@ DeviceManagerUI
 		final Device		device )
 	{
 		int	type = device.getType();
+		
+		if ( !device_manager.getOfflineDownlaoderManager().isOfflineDownloadingEnabled() && type == Device.DT_OFFLINE_DOWNLOADER ){
+			
+			return;
+		}
 		
 		String parent_key = null;
 		
@@ -1728,11 +1951,18 @@ DeviceManagerUI
 			
 			return;
 		}
-		
+				
 		final String parent = parent_key;
 		
 		synchronized( this ){
 			
+			if ( !offline_menus_setup && type == Device.DT_OFFLINE_DOWNLOADER ){
+				
+				offline_menus_setup = true;
+				
+				setupOfflineDownloadingMenus();
+			}
+
 			final deviceItem existing_di = (deviceItem)device.getTransientProperty( DEVICE_IVIEW_KEY );
 			
 			if (  existing_di == null ){
