@@ -72,6 +72,8 @@ public class HTTPUtils {
 		file_types.put("mp4", "video/mp4");
 		file_types.put("mov", "video/quicktime");
 		file_types.put("avi", "video/avi");
+		
+		file_types.put("xap", "application/x-silverlight-app");
 
 		compression.add("text/html");
 		compression.add("text/css");
