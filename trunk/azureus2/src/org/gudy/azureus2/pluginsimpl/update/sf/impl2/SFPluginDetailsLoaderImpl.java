@@ -89,6 +89,8 @@ SFPluginDetailsLoaderImpl
 		try{
 			base_url_params += "&os=" + URLEncoder.encode(System.getProperty( "os.name"),"UTF-8" );
 			
+			base_url_params += "&osv=" + URLEncoder.encode(System.getProperty( "os.version" ),"UTF-8" );
+			
 			base_url_params += "&arch=" + URLEncoder.encode(System.getProperty( "os.arch"),"UTF-8" );
 			
 			base_url_params += "&ui=" + URLEncoder.encode(COConfigurationManager.getStringParameter("ui"),"UTF-8" );
