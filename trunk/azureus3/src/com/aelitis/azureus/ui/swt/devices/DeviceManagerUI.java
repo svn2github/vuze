@@ -111,7 +111,8 @@ DeviceManagerUI
 	private static final String INFO_IMAGE_ID		= "image.sidebar.vitality.info";
 	private static final String ALERT_IMAGE_ID		= "image.sidebar.vitality.alert";
 
-	private static final boolean	SHOW_VITALITY = false;
+	private static final boolean	SHOW_RENDERER_VITALITY 	= false;
+	private static final boolean	SHOW_OD_VITALITY 		= true;
 	
 	private static final String[] to_copy_indicator_colors = { "#000000", "#000000", "#168866", "#1c5620" };
 	
@@ -1183,9 +1184,20 @@ DeviceManagerUI
 										
 										if ( device instanceof DeviceMediaRenderer ){
 									
-											DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+											if ( SHOW_RENDERER_VITALITY ){
+												
+												DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+												
+												last_indicator += renderer.getCopyToDevicePending() + renderer.getCopyToFolderPending();
+											}
+										}else if ( device instanceof DeviceOfflineDownloader ){
 											
-											last_indicator += renderer.getCopyToDevicePending() + renderer.getCopyToFolderPending();
+											if ( SHOW_OD_VITALITY ){
+												
+												DeviceOfflineDownloader	dod = (DeviceOfflineDownloader)device;
+												
+												last_indicator += dod.getTransferingCount();
+											}
 										}
 									}
 									
@@ -1210,11 +1222,8 @@ DeviceManagerUI
 									}
 									
 									if ( last_indicator > 0 ){
-											
-										if ( SHOW_VITALITY ){
-											
-											return( String.valueOf( last_indicator ));
-										}
+																						
+										return( String.valueOf( last_indicator ));
 									}
 								}else{
 									
@@ -1224,6 +1233,7 @@ DeviceManagerUI
 								}
 							}else if ( propertyID == TITLE_INDICATOR_COLOR ){
 									
+								/*
 								if ( last_indicator > 0 ){
 									
 									if ( SHOW_VITALITY ){
@@ -1231,6 +1241,7 @@ DeviceManagerUI
 										return( to_copy_indicator_colors );
 									}
 								}
+								*/
 							}
 
 							return null;
@@ -1753,7 +1764,9 @@ DeviceManagerUI
 
 									final SideBarEntrySWT	entry;
 									
-									if ( device.getType() == Device.DT_MEDIA_RENDERER ){
+									int	device_type = device.getType();
+									
+									if ( device_type == Device.DT_MEDIA_RENDERER ){
 
 										entry = 
 											side_bar.createEntryFromSkinRef(
@@ -1809,6 +1822,28 @@ DeviceManagerUI
 												false );
 
 										entry = SideBar.getEntry( key );
+										
+										if ( device_type == Device.DT_OFFLINE_DOWNLOADER ){
+											
+											DeviceOfflineDownloader dod = (DeviceOfflineDownloader)device;
+											
+											String	id;
+											
+											String manufacturer = dod.getManufacturer();
+											
+											if ( manufacturer.toLowerCase().contains( "vuze" )){
+												
+												id = "vuze";
+												
+											}else{
+												
+												id = "other";
+											}
+											
+											entry.setImageLeftID( "image.sidebar.device.od." + id + ".small" );
+										}
+										
+										entry.setDatasource( device );
 									}
 									
 									entry.setLogID(parent + "-" + device.getName());
@@ -2760,7 +2795,7 @@ DeviceManagerUI
 				
 			}else if ( propertyID == TITLE_INDICATOR_TEXT ){
 			
-				if ( device_type == Device.DT_MEDIA_RENDERER ){ 
+				if ( device_type == Device.DT_MEDIA_RENDERER || device_type == Device.DT_OFFLINE_DOWNLOADER ){ 
 				
 					if ( spinner != null ){
 					
@@ -2794,9 +2829,20 @@ DeviceManagerUI
 							
 							if ( device instanceof DeviceMediaRenderer ){
 						
-								DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+								if ( SHOW_RENDERER_VITALITY ){
+									
+									DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+									
+									last_indicator += renderer.getCopyToDevicePending() + renderer.getCopyToFolderPending();
+								}
+							}else if ( device instanceof DeviceOfflineDownloader ){
 								
-								last_indicator += renderer.getCopyToDevicePending() + renderer.getCopyToFolderPending();
+								if ( SHOW_OD_VITALITY ){
+									
+									DeviceOfflineDownloader dod = (DeviceOfflineDownloader)device;
+									
+									last_indicator += dod.getTransferingCount();
+								}
 							}
 						}
 						
@@ -2819,11 +2865,8 @@ DeviceManagerUI
 						}
 						
 						if ( last_indicator > 0 ){
-							
-							if ( SHOW_VITALITY ){
-							
-								return( String.valueOf( last_indicator ));
-							}
+														
+							return( String.valueOf( last_indicator ));
 						}
 					}else{
 						
@@ -2832,14 +2875,16 @@ DeviceManagerUI
 					}
 				}
 			}else if ( propertyID == TITLE_INDICATOR_COLOR ){
-					
+				
+				/*
 				if ( last_indicator > 0 ){
-					
+				
 					if ( SHOW_VITALITY ){
 					
 						return( to_copy_indicator_colors );
 					}
 				}
+				*/
 			}
 			
 			return null;
@@ -3007,20 +3052,29 @@ DeviceManagerUI
 				
 				if ( device instanceof DeviceMediaRenderer ){
 					
-					DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+					if ( SHOW_RENDERER_VITALITY ){
 					
-					last_indicator = renderer.getCopyToDevicePending() + renderer.getCopyToFolderPending();
+						DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
 					
-					if ( last_indicator > 0 ){
-						
-						if ( SHOW_VITALITY ){
-						
-							return( String.valueOf( last_indicator ));
-						}
+					
+						last_indicator = renderer.getCopyToDevicePending() + renderer.getCopyToFolderPending();
+					}
+				}else if ( device instanceof DeviceOfflineDownloader ){
+					
+					if ( SHOW_OD_VITALITY ){
+					
+						DeviceOfflineDownloader	dod = (DeviceOfflineDownloader)device;
+					
+						last_indicator = dod.getTransferingCount();
 					}
 				}
+				
+				if ( last_indicator > 0 ){
+										
+					return( String.valueOf( last_indicator ));
+				}
 			}else if ( propertyID == TITLE_INDICATOR_COLOR ){
-					
+				/*	
 				if ( last_indicator > 0 ){
 						
 					if ( SHOW_VITALITY ){
@@ -3028,6 +3082,7 @@ DeviceManagerUI
 						return( to_copy_indicator_colors );
 					}
 				}
+				*/
 			}else if ( propertyID == TITLE_ACTIVE_STATE ){
 
 				if ( device.isLivenessDetectable()){

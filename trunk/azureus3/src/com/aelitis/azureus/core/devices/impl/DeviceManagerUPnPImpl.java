@@ -63,7 +63,7 @@ import com.aelitis.net.upnp.services.UPnPWANConnection;
 public class 
 DeviceManagerUPnPImpl 
 {
-	private final static Object KEY_LISTENER_ADDED = new Object();
+	private final static Object KEY_ROOT_DEVICE = new Object();
 	
 	private DeviceManagerImpl		manager;
 	private PluginInterface			plugin_interface;
@@ -773,22 +773,32 @@ DeviceManagerUPnPImpl
 		}
 		
 		for ( final DeviceUPnPImpl new_device: new_devices ){
+				
+			final DeviceImpl actual_device;
 			
-			if ( !update_if_found &&  manager.getDevice( new_device.getID()) != null ){
+			DeviceImpl existing = manager.getDevice( new_device.getID());
+			
+			if ( !update_if_found && existing != null ){
 					
-				continue;
+				actual_device = existing;
+				
+			}else{
+			
+					// grab the actual device as the 'addDevice' call will update an existing one
+					// with same id
+			
+				actual_device = manager.addDevice( new_device );
 			}
 			
-				// grab the actual device as the 'addDevice' call will update an existing one
-				// with same id
+			UPnPRootDevice current_root = device.getRootDevice();
 			
-			final DeviceImpl actual_device = manager.addDevice( new_device );
-
-			if ( actual_device.getTransientProperty( KEY_LISTENER_ADDED ) == null ){
+			UPnPRootDevice existing_root = (UPnPRootDevice)actual_device.getTransientProperty( KEY_ROOT_DEVICE );
+			
+			if ( current_root != existing_root ){
 				
-				actual_device.setTransientProperty( KEY_LISTENER_ADDED, "" );
+				actual_device.setTransientProperty( KEY_ROOT_DEVICE, current_root );
 				
-				device.getRootDevice().addListener(
+				current_root.addListener(
 					new UPnPRootDeviceListener()
 					{
 						public void

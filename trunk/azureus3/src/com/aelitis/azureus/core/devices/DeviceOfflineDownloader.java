@@ -25,4 +25,9 @@ public interface
 DeviceOfflineDownloader
 	extends Device
 {
+	public String
+	getManufacturer();
+	
+	public int
+	getTransferingCount();
 }

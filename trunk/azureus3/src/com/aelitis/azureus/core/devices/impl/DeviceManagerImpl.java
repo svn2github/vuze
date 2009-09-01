@@ -108,7 +108,7 @@ DeviceManagerImpl
 	private static final int LT_DEVICE_CHANGED		= 2;
 	private static final int LT_DEVICE_ATTENTION	= 3;
 	private static final int LT_DEVICE_REMOVED		= 4;
-	private static final int LT_INITIALIZED		= 5;
+	private static final int LT_INITIALIZED			= 5;
 	
 	private ListenerManager<DeviceManagerListener>	listeners = 
 		ListenerManager.createAsyncManager(
@@ -133,13 +133,19 @@ DeviceManagerImpl
 							}
 							case LT_DEVICE_CHANGED:{
 								
-								listener.deviceChanged( device );
+								if ( deviceAdded( device )){
+								
+									listener.deviceChanged( device );
+								}
 								
 								break;
 							}
 							case LT_DEVICE_ATTENTION:{
 								
-								listener.deviceAttentionRequest( device );
+								if ( deviceAdded( device )){
+								
+									listener.deviceAttentionRequest( device );
+								}
 								
 								break;
 							}
@@ -155,6 +161,16 @@ DeviceManagerImpl
 								
 								break;
 							}
+						}
+					}
+					
+					protected boolean
+					deviceAdded(
+						Device		device )
+					{
+						synchronized( DeviceManagerImpl.this ){
+							
+							return( device_list.contains( device ));
 						}
 					}
 				});

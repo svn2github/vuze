@@ -66,6 +66,7 @@ DeviceOfflineDownloaderImpl
 	
 	private volatile UPnPOfflineDownloader		service;
 	private volatile String						service_ip;
+	private volatile String						manufacturer;
 	
 	private volatile boolean					closing;
 	
@@ -95,6 +96,8 @@ DeviceOfflineDownloaderImpl
 		throws IOException
 	{
 		super(_manager, _map );
+		
+		manufacturer = getPersistentStringProperty( PP_OD_MANUFACTURER, "?" );
 	}
 	
 	protected boolean
@@ -143,12 +146,19 @@ DeviceOfflineDownloaderImpl
 			
 			Debug.out( e );
 		}
+		
 		Map cache = root.getDiscoveryCache();
 		
 		if ( cache != null ){
 			
 			setPersistentMapProperty( PP_OD_UPNP_DISC_CACHE, cache );
 		}
+		
+		manufacturer = root.getDevice().getManufacturer();
+		
+		setPersistentStringProperty( PP_OD_MANUFACTURER, manufacturer );
+		
+		setBusy( true );
 	}
 	
 	protected void 
@@ -853,6 +863,18 @@ DeviceOfflineDownloaderImpl
 			});
 		
 		sem.reserve(250);
+	}
+	
+	public String
+	getManufacturer()
+	{
+		return( manufacturer );
+	}
+	
+	public int
+	getTransferingCount()
+	{
+		return( 3 );
 	}
 	
 	protected void
