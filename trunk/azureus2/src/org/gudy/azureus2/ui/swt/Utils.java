@@ -56,6 +56,10 @@ public class Utils
 	public static final String GOOD_STRING = "(/|,jI~`gy";
 
 	public static final boolean isGTK = SWT.getPlatform().equals("gtk");
+	
+	public static final boolean isCarbon = SWT.getPlatform().equals("carbon");
+
+	public static final boolean isCocoa = SWT.getPlatform().equals("cocoa");
 
 	/** Some platforms expand the last column to fit the remaining width of
 	 * the table.
@@ -931,6 +935,13 @@ public class Utils
 
 	public static boolean linkShellMetricsToConfig(final Shell shell,
 			final String sConfigPrefix) {
+		boolean isMaximized = COConfigurationManager.getBooleanParameter(sConfigPrefix
+				+ ".maximized");
+		
+		if (!isMaximized) {
+			shell.setMaximized(false);
+		}
+
 		String windowRectangle = COConfigurationManager.getStringParameter(
 				sConfigPrefix + ".rectangle", null);
 		boolean bDidResize = false;
@@ -953,12 +964,9 @@ public class Utils
 			}
 		}
 
-		boolean isMaximized = COConfigurationManager.getBooleanParameter(sConfigPrefix
-				+ ".maximized");
-		if (Constants.isOSX && windowRectangle != null) {
-			isMaximized = false;
+		if (isMaximized) {
+			shell.setMaximized(isMaximized);
 		}
-		shell.setMaximized(isMaximized);
 
 		new ShellMetricsResizeListener(shell, sConfigPrefix);
 
@@ -987,7 +995,7 @@ public class Utils
 
 		private int calcState(Shell shell) {
 			return shell.getMinimized() ? SWT.MIN : shell.getMaximized()
-					&& !Constants.isOSX ? SWT.MAX : SWT.NONE;
+					&& !isCarbon ? SWT.MAX : SWT.NONE;
 		}
 
 		private void saveMetrics() {

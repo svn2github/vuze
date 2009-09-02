@@ -46,7 +46,7 @@ public class GenericIntParameter
 
 	// OSX doesn't send selection events while typing, so we need to trigger save
 	// on focus out
-	private boolean bTriggerOnFocusOut = Constants.isOSX;
+	private boolean bTriggerOnFocusOut = Utils.isCarbon;
 
 	private Spinner spinner;
 
@@ -54,7 +54,7 @@ public class GenericIntParameter
 
 	private TimerEventPerformer timerEventSave;
 
-	private final boolean delayIntialSet = Constants.isOSX && System.getProperty("os.version", "").startsWith("10.6");
+	private final boolean delayIntialSet = Utils.isCarbon && System.getProperty("os.version", "").startsWith("10.6");
 
 	public GenericIntParameter(GenericParameterAdapter adapter,
 			Composite composite, final String name) {

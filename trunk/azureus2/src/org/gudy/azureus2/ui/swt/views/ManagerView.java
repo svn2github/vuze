@@ -173,7 +173,7 @@ public class ManagerView
     //Don't ask me why, but without this an exception is thrown further
     // (in folder.dispose() )
     //TODO : Investigate to see if it's a platform (OSX-Carbon) BUG, and report to SWT team.
-    if(Constants.isOSX) {
+    if(Utils.isCarbon) {
       if(folder != null && !folder.isDisposed()) {
         CTabItem[] items = folder.getItems();
         for(int i=0 ; i < items.length ; i++) {

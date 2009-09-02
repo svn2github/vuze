@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier Chalouhi
@@ -186,9 +187,11 @@ public class MainMenu
 		 * No need for restart and exit on OSX in the File menu since it is moved to the gobla application
 		 * menu instead see org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer for detail about that menu
 		 */
-		if (false == Constants.isOSX) {
+		if (!Utils.isCarbon) {
 			MenuFactory.addSeparatorMenuItem(fileMenu);
 			MenuFactory.addRestartMenuItem(fileMenu);
+		}
+		if (!Constants.isOSX) {
 			MenuFactory.addExitMenuItem(fileMenu);
 		}
 
