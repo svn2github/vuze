@@ -268,7 +268,7 @@ public class SideBarEntrySWT implements SideBarEntry
 				Rectangle bounds = treeItem.getBounds();
 				Rectangle treeBounds = tree.getBounds();
 				tree.redraw(0, bounds.y, treeBounds.width, bounds.height, true);
-				tree.update();
+				//tree.update();
 			}
 		});
 	}
