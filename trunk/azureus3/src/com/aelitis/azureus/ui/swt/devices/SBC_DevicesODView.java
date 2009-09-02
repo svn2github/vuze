@@ -40,15 +40,14 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.devices.DeviceManager;
-import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownloader;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownloaderListener;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.swt.content.columns.*;
-import com.aelitis.azureus.ui.swt.devices.columns.ColumnOD_Name;
+import com.aelitis.azureus.ui.swt.columns.torrent.ColumnAzProduct;
+import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
+import com.aelitis.azureus.ui.swt.devices.columns.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
@@ -119,10 +118,53 @@ SBC_DevicesODView
 		
 		TableManager tableManager = uiManager.getTableManager();
 		
-		tableManager.registerColumn( DeviceOfflineDownload.class, ColumnOD_Name.COLUMN_ID,
+		tableManager.registerColumn( 
+			DeviceOfflineDownload.class, ColumnAzProduct.COLUMN_ID,
+			new TableColumnCreationListener() {
+				public void tableColumnCreated(TableColumn column) {
+					new ColumnAzProduct(column);
+					column.setWidth(42);
+				}
+			});
+		
+		tableManager.registerColumn( 
+			DeviceOfflineDownload.class, ColumnThumbnail.COLUMN_ID,
+			new TableColumnCreationListener() {
+				public void tableColumnCreated(TableColumn column) {
+					new ColumnThumbnail(column);
+					column.setWidth(70);
+				}
+			});
+
+		tableManager.registerColumn( 
+			DeviceOfflineDownload.class, ColumnOD_Name.COLUMN_ID,
+			new TableColumnCreationListener() {
+				public void tableColumnCreated(TableColumn column) {
+					new ColumnOD_Name(column);
+				}
+			});
+		
+		tableManager.registerColumn( 
+			DeviceOfflineDownload.class, ColumnOD_Status.COLUMN_ID,
+			new TableColumnCreationListener() {
+				public void tableColumnCreated(TableColumn column) {
+					new ColumnOD_Status(column);
+				}
+			});
+		
+		tableManager.registerColumn( 
+				DeviceOfflineDownload.class, ColumnOD_Completion.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnOD_Name(column);
+						new ColumnOD_Completion(column);
+					}
+				});
+		
+		tableManager.registerColumn( 
+				DeviceOfflineDownload.class, ColumnOD_Remaining.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnOD_Remaining(column);
 					}
 				});
 	}
@@ -199,10 +241,10 @@ SBC_DevicesODView
 					TABLE_RCM,
 					TABLE_RCM, 
 					new TableColumnCore[0], 
-					ColumnRC_New.COLUMN_ID, 
+					ColumnOD_Name.COLUMN_ID, 
 					SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
 		
-		tv_downloads.setRowDefaultHeight(16);
+		tv_downloads.setRowDefaultHeight(50);
 		tv_downloads.setHeaderVisible(true);
 		
 		table_parent = new Composite(control, SWT.NONE);
@@ -225,8 +267,43 @@ SBC_DevicesODView
 					{
 						public void
 						downloadAdded(
-							DeviceOfflineDownload 	download )
-						{							
+							final DeviceOfflineDownload 	download )
+						{	
+							synchronized( download_set ){
+								
+								if ( destroyed ){
+									
+									return;
+								}							
+							
+								if ( download_set.contains( download )){
+									
+									return;
+								}
+								
+								download_set.add( download );
+							}
+							
+							Utils.execSWTThread(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											if ( tv_downloads == f_table && !f_table.isDisposed()){
+												
+												synchronized( download_set ){
+													
+													if ( destroyed ){
+														
+														return;
+													}
+												}
+												
+												f_table.addDataSources( new DeviceOfflineDownload[]{ download });
+											}
+										}
+									});
 						}
 
 						public void
@@ -253,7 +330,15 @@ SBC_DevicesODView
 										run()
 										{
 											if ( tv_downloads == f_table && !f_table.isDisposed()){
-																									
+													
+												synchronized( download_set ){
+													
+													if ( destroyed ){
+														
+														return;
+													}
+												}
+												
 												TableRowCore row = f_table.getRow( download );
 												
 												if ( row != null ){
@@ -276,7 +361,7 @@ SBC_DevicesODView
 									return;
 								}							
 							
-								if ( !download_set.contains( download )){
+								if ( !download_set.remove( download )){
 									
 									return;
 								}
@@ -289,7 +374,15 @@ SBC_DevicesODView
 										run()
 										{
 											if ( tv_downloads == f_table && !f_table.isDisposed()){
-																									
+													
+												synchronized( download_set ){
+													
+													if ( destroyed ){
+														
+														return;
+													}
+												}
+												
 												f_table.removeDataSources( new DeviceOfflineDownload[]{ download });
 											}
 										}
@@ -317,6 +410,8 @@ SBC_DevicesODView
 							
 							if ( !download_set.contains( download )){
 	
+								download_set.add( download );
+								
 								new_downloads.add( download );
 							}
 						}

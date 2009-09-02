@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.devices.columns;
 
 import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -28,16 +29,17 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @created Feb 26, 2009
  *
  */
-public class ColumnOD_Name
+public class ColumnOD_Remaining
 	implements TableCellRefreshListener
 {
-	public static final String COLUMN_ID = "od_name";
-
-	public ColumnOD_Name(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 300);
+	public static final String COLUMN_ID = "od_remaining";
+	
+	public ColumnOD_Remaining(final TableColumn column) {
+		column.initialize(TableColumn.ALIGN_CENTER, TableColumn.POSITION_LAST, 80);
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
+		
 	}
 
 	public void refresh(TableCell cell) {
@@ -46,13 +48,8 @@ public class ColumnOD_Name
 			return;
 		}
 
-		String text = od.getDownload().getName();
+		long remaining = od.getRemaining();
 		
-		if ( text == null || text.length() == 0 ){
-			
-			return;
-		}
-
-		cell.setText(text);
+		cell.setText( remaining==0?"":DisplayFormatters.formatByteCountToKiBEtc( remaining ));
 	}
 }

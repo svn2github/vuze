@@ -19,21 +19,18 @@
 package com.aelitis.azureus.ui.swt.devices.columns;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 
-import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -45,26 +42,24 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @created Feb 26, 2009
  *
  */
-public class ColumnTJ_Completion
+public class ColumnOD_Completion
 implements TableCellAddedListener, TableCellRefreshListener,
 TableCellDisposeListener, TableCellSWTPaintListener
 {
 	private static final int borderWidth = 1;
 
-	public static final String COLUMN_ID = "trancode_completion";
+	public static final String COLUMN_ID = "od_completion";
 
 	private static Font fontText;
 
-	private Map mapCellLastPercentDone = new HashMap();
+	private Map<TableCell,Integer> mapCellLastPercentDone = new HashMap<TableCell,Integer>();
 
 	private int marginHeight = -1;
-
-	private String	na_text;
 	
 	Color textColor;
 	
 
-	public ColumnTJ_Completion(final TableColumn column) {
+	public ColumnOD_Completion(final TableColumn column) {
 		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 145);
 		column.addListeners(this);
 		// cheat.  TODO: Either auto-add (in above method), or provide
@@ -72,15 +67,6 @@ TableCellDisposeListener, TableCellSWTPaintListener
 		((TableColumnImpl)column).addCellOtherListener("SWTPaint", this);
 		column.setType(TableColumn.TYPE_GRAPHIC);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
-		
-		MessageText.addAndFireListener(new MessageTextListener() {
-			public void localeChanged(Locale old_locale, Locale new_locale) {
-
-				na_text = MessageText.getString( "general.na.short" );
-				
-				column.invalidateCells();
-			}
-		});
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -99,11 +85,11 @@ TableCellDisposeListener, TableCellSWTPaintListener
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
-		TranscodeFile tf =  (TranscodeFile) cell.getDataSource();
+		DeviceOfflineDownload od =  (DeviceOfflineDownload) cell.getDataSource();
 
-		int percentDone = getPerThouDone(tf);
+		int percentDone = getPerThouDone(od);
 
-		Integer intObj = (Integer) mapCellLastPercentDone.get(cell);
+		Integer intObj = mapCellLastPercentDone.get(cell);
 		int lastPercentDone = intObj == null ? 0 : intObj.intValue();
 
 		if (!cell.setSortValue(percentDone) && cell.isValid()
@@ -114,10 +100,8 @@ TableCellDisposeListener, TableCellSWTPaintListener
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
 	public void cellPaint(GC gcImage, TableCellSWT cell) {
-		TranscodeFile tf =  (TranscodeFile) cell.getDataSource();
-
-		int perThouDone = getPerThouDone(tf);
-
+		DeviceOfflineDownload od =  (DeviceOfflineDownload) cell.getDataSource();
+		
 		Rectangle bounds = cell.getBounds();
 
 		int yOfs = (bounds.height - 13) / 2 ;
@@ -128,7 +112,16 @@ TableCellDisposeListener, TableCellSWTPaintListener
 			return;
 		}
 
-		mapCellLastPercentDone.put(cell, new Integer(perThouDone));
+		if ( !od.isTransfering()){
+			
+			gcImage.fillRectangle( bounds );
+			
+			return;
+		}
+
+		int percentDone = getPerThouDone(od);
+
+		mapCellLastPercentDone.put(cell, new Integer(percentDone));
 		
 		ImageLoader imageLoader = ImageLoader.getInstance();
 		Image imgEnd = imageLoader.getImage("tc_bar_end");
@@ -143,14 +136,14 @@ TableCellDisposeListener, TableCellSWTPaintListener
 		
 		
 		
-		int limit = (x1 * perThouDone) / 1000;
+		int limit = (x1 * percentDone) / 1000;
 		
 		if (!img1.isDisposed() && limit > 0) {
 			Rectangle imgBounds = img1.getBounds();
 			gcImage.drawImage(img1, 0, 0, imgBounds.width, imgBounds.height,
 					bounds.x + 1, bounds.y + yOfs, limit, imgBounds.height);
 		}
-		if (perThouDone < 1000 && !img0.isDisposed()) {
+		if (percentDone < 1000 && !img0.isDisposed()) {
 			Rectangle imgBounds = img0.getBounds();
 			gcImage.drawImage(img0, 0, 0, imgBounds.width, imgBounds.height, bounds.x
 					+ limit + 1, bounds.y + yOfs, x1 - limit, imgBounds.height);
@@ -172,51 +165,30 @@ TableCellDisposeListener, TableCellSWTPaintListener
 		
 		gcImage.setFont(fontText);
 		
-		String sText;
-		
-		if ( tf != null && perThouDone == 1000 && !tf.getTranscodeRequired()){
-			
-			sText = na_text;
-			
-		}else{
-			
-			sText = DisplayFormatters.formatPercentFromThousands(perThouDone);
-			
-			if ( tf != null && perThouDone < 1000 ){
-				
-				String eta = getETA(tf);
-			
-				if ( eta != null ){
-					
-					sText += " - " + eta;
-				}
-			}
-		}
+		String sText = DisplayFormatters.formatPercentFromThousands(percentDone);
 		
 		GCStringPrinter.printString(gcImage, sText, new Rectangle(bounds.x + 4,
 				bounds.y + yOfs, bounds.width - 4,13), true,
 				false, SWT.CENTER);
 	}
 
-	private int getPerThouDone(TranscodeFile tf) {
-		if (tf == null) {
+	private int getPerThouDone(DeviceOfflineDownload od) {
+		if (od == null) {
 			return 0;
 		}
-		TranscodeJob job = tf.getJob();
-		if (job == null) {
-			return tf.isComplete()?1000:0;
+		long total 	= od.getCurrentTransferSize();
+		long rem	= od.getRemaining();
+		
+		if ( total == 0 ){
+			
+			return( 0 );
 		}
-		return job.getPercentComplete()*10;
-	}
-	
-	private String getETA(TranscodeFile tf) {
-		if (tf == null) {
-			return null;
+		
+		if ( rem == 0 ){
+			
+			return( 1000 );
 		}
-		TranscodeJob job = tf.getJob();
-		if (job == null) {
-			return null;
-		}
-		return job.getETA();
+		
+		return((int)( 1000 * ( total - rem ) / total ));
 	}
 }

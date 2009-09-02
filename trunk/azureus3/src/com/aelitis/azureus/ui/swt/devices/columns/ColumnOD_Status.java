@@ -19,8 +19,12 @@
 package com.aelitis.azureus.ui.swt.devices.columns;
 
 
+import java.util.Locale;
+
 import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -28,16 +32,33 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @created Feb 26, 2009
  *
  */
-public class ColumnOD_Name
+public class ColumnOD_Status
 	implements TableCellRefreshListener
 {
-	public static final String COLUMN_ID = "od_name";
+	public static final String COLUMN_ID = "od_status";
 
-	public ColumnOD_Name(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 300);
+	private static final String[] js_resource_keys = {
+		"devices.od.idle",
+		"devices.od.xfering",
+	};
+
+	private static String[] js_resources = new String[js_resource_keys.length];
+	
+	public ColumnOD_Status(final TableColumn column) {
+		column.initialize(TableColumn.ALIGN_CENTER, TableColumn.POSITION_LAST, 80);
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
+		
+		MessageText.addAndFireListener(new MessageTextListener() {
+			public void localeChanged(Locale old_locale, Locale new_locale) {
+				for (int i = 0; i < js_resources.length; i++) {
+					js_resources[i] = MessageText.getString(js_resource_keys[i]);
+				}
+								
+				column.invalidateCells();
+			}
+		});
 	}
 
 	public void refresh(TableCell cell) {
@@ -46,7 +67,7 @@ public class ColumnOD_Name
 			return;
 		}
 
-		String text = od.getDownload().getName();
+		String text = od.isTransfering()?js_resources[1]:js_resources[0];
 		
 		if ( text == null || text.length() == 0 ){
 			

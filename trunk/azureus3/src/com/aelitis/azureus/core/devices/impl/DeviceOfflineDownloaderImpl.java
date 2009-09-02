@@ -338,20 +338,23 @@ DeviceOfflineDownloaderImpl
 					continue;
 				}
 				
+					// don't include 'stopping' here as we go through stopping on way to queued
+				
 				if ( state == DownloadManager.STATE_STOPPED ){
+					
+						// don't remove from downloader if simply paused
 					
 					if ( !download.isPaused()){
 						
 						continue;
 					}
 				}
-	
-				if ( state == DownloadManager.STATE_QUEUED ){
-					
-					if ( download.isDownloadComplete( false )){
+				
+					// if it is complete then of no interest
+				
+				if ( download.isDownloadComplete( false )){
 						
-						continue;
-					}
+					continue;
 				}
 				
 				relevant_downloads.add( download );
@@ -617,8 +620,8 @@ DeviceOfflineDownloaderImpl
 										throw( new Exception( "UpdateDownload: Failing result returned: " + update_status ));
 									}
 												
-									int	useful_piece_count = 0;
-
+									int		useful_piece_count 	= 0;
+									
 									if ( have_bitfield.length() > 0 ){
 										
 										byte[]	have_map = ByteFormatter.decodeString( have_bitfield );
@@ -648,7 +651,9 @@ DeviceOfflineDownloaderImpl
 										
 										if ( useful_piece_count > 0 ) {
 										
-											new_transferables.put( hash_str, new TransferableDownload( download, hash_str, have_map  ));
+											long	piece_size	= torrent.getPieceLength();
+
+											new_transferables.put( hash_str, new TransferableDownload( download, hash_str, have_map, useful_piece_count * piece_size ));
 										}
 									}
 									
@@ -679,6 +684,7 @@ DeviceOfflineDownloaderImpl
 			
 			List<OfflineDownload>	new_ods = new ArrayList<OfflineDownload>();
 			List<OfflineDownload>	del_ods = new ArrayList<OfflineDownload>();
+			List<OfflineDownload>	cha_ods = new ArrayList<OfflineDownload>();
 			
 			synchronized( offline_downloads ){
 			
@@ -702,13 +708,29 @@ DeviceOfflineDownloaderImpl
 					
 					Map.Entry<String,OfflineDownload>	entry = it.next();
 					
-					String key = entry.getKey();
+					String 			key 	= entry.getKey();
+					OfflineDownload	od		= entry.getValue();
 					
-					if ( !new_offline_downloads.containsKey( key )){
-												
+					if ( new_offline_downloads.containsKey( key )){
+						
+						TransferableDownload new_td = transferable.get( key );
+						
+						TransferableDownload existing_td = od.getTransferable();
+						
+						if ( new_td != existing_td ){
+							
+							if ( !new_ods.contains( od )){
+								
+								cha_ods.add( od );
+							}
+							
+							od.setTransferable( new_td );
+						}
+					}else{
+						
 						it.remove();
 						
-						del_ods.add( entry.getValue());
+						del_ods.add( od );
 					}
 				}
 			}
@@ -727,12 +749,12 @@ DeviceOfflineDownloaderImpl
 				}
 			}
 			
-			for ( OfflineDownload od: del_ods ){
+			for ( OfflineDownload od: cha_ods ){
 				
 				for ( DeviceOfflineDownloaderListener listener: listeners ){
 					
 					try{
-						listener.downloadRemoved( od );
+						listener.downloadChanged( od );
 						
 					}catch( Throwable e ){
 						
@@ -740,6 +762,21 @@ DeviceOfflineDownloaderImpl
 					}
 				}
 			}
+			
+			for ( OfflineDownload od: new_ods ){
+				
+				for ( DeviceOfflineDownloaderListener listener: listeners ){
+					
+					try{
+						listener.downloadAdded( od );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+			
 		}
 	}
 
@@ -1082,6 +1119,8 @@ DeviceOfflineDownloaderImpl
 		private DownloadManager		core_download;
 		private Download			download;
 		
+		private TransferableDownload	transferable;
+		
 		protected
 		OfflineDownload(
 			DownloadManager		_core_download )
@@ -1099,7 +1138,46 @@ DeviceOfflineDownloaderImpl
 		public boolean
 		isTransfering()
 		{
-			return( false );
+			return( transferable != null );
+		}
+		
+		public long
+		getCurrentTransferSize()
+		{
+			TransferableDownload t = transferable;
+			
+			if ( t == null ){
+				
+				return( 0 );
+			}
+			
+			return( t.getCurrentTransferSize());
+		}
+		
+		public long
+		getRemaining()
+		{
+			TransferableDownload t = transferable;
+			
+			if ( t == null ){
+				
+				return( 0 );
+			}
+			
+			return( t.getRemaining());
+		}
+		
+		protected void
+		setTransferable(
+			TransferableDownload		td )
+		{
+			transferable = td;
+		}
+	
+		protected TransferableDownload
+		getTransferable()
+		{
+			return( transferable );
 		}
 	}
 	
@@ -1116,15 +1194,105 @@ DeviceOfflineDownloaderImpl
 		
 		private int					data_port;
 		
+		private long				transfer_size;
+		
+		private volatile long		last_calc;
+		private volatile long		last_calc_time;
+		
 		protected
 		TransferableDownload(
 			DownloadManager		_download,
 			String				_hash_str,
-			byte[]				_have_map )
+			byte[]				_have_map,
+			long				_transfer_size_estimate )
 		{
 			download		= _download;
 			hash_str		= _hash_str;
 			have_map		= _have_map;
+			
+				// not totally accurate, in general will be > required as based purely on piece
+				// size as opposed to blocks. however, we need an initial estimate as the download
+				// may not yet be running and therefore we can't get accurate size now
+			
+			transfer_size 	= _transfer_size_estimate;
+			
+			last_calc		= transfer_size;
+		}
+		
+		protected long
+		calcDiff()
+		{
+			long	now = SystemTime.getMonotonousTime();
+			
+			if ( now - last_calc_time < 2*1000 ){
+				
+				return( last_calc );
+			}
+			
+			DiskManager disk = download.getDiskManager();
+
+			if ( disk == null ){
+				
+				return( last_calc );
+			}
+			
+			DiskManagerPiece[] pieces = disk.getPieces();
+			
+			int	pos		= 0;
+			int	current	= 0;
+			
+			long remaining = 0;
+			
+			for ( int i=0; i<pieces.length; i++ ){
+			
+				if ( i % 8 == 0 ){
+					
+					current = have_map[pos++]&0xff;
+				}
+				
+				if (( current & 0x80 ) != 0 ){
+					
+					DiskManagerPiece piece = pieces[i];
+					
+					boolean[] written = piece.getWritten();
+					
+					if ( written == null ){
+						
+						if ( !piece.isDone()){
+					
+							remaining += piece.getLength();
+						}
+					}else{
+						
+						for (int j=0;j<written.length;j++){
+							
+							if ( !written[j] ){
+								
+								remaining += piece.getBlockSize( j );
+							}
+						}
+					}
+				}
+				
+				current <<= 1;
+			}
+			
+			last_calc		= remaining;
+			last_calc_time 	= now;
+			
+			return( last_calc );
+		}
+		
+		protected long
+		getCurrentTransferSize()
+		{
+			return( transfer_size );
+		}
+		
+		protected long
+		getRemaining()
+		{
+			return( calcDiff());
 		}
 		
 		protected long

@@ -31,4 +31,10 @@ DeviceOfflineDownload
 	
 	public boolean
 	isTransfering();
+	
+	public long
+	getCurrentTransferSize();
+	
+	public long
+	getRemaining();
 }

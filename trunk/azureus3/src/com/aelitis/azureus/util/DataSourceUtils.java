@@ -30,6 +30,7 @@ import com.aelitis.azureus.buddy.VuzeShareable;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -98,6 +99,8 @@ public class DataSourceUtils
 					}
 				} catch (DownloadException e) {
 				}
+			} else if (ds instanceof DeviceOfflineDownload ) {
+				return( PluginCoreUtils.unwrap(((DeviceOfflineDownload)ds).getDownload()));
 			}
 
 		} catch (Exception e) {
@@ -164,7 +167,12 @@ public class DataSourceUtils
 			}
 		}
 		
-		
+		if (ds instanceof DeviceOfflineDownload ){
+			Torrent torrent = ((DeviceOfflineDownload) ds).getDownload().getTorrent();
+			if (torrent != null) {
+				return PluginCoreUtils.unwrap(torrent);
+			}
+		}
 
 		if (ds instanceof ISelectedContent) {
 			return ((ISelectedContent)ds).getTorrent();
@@ -214,6 +222,8 @@ public class DataSourceUtils
 				return ((DownloadManager) ds).getTorrent().getHashWrapper().toBase32String();
 			} else if (ds instanceof TOTorrent) {
 				return ((TOTorrent) ds).getHashWrapper().toBase32String();
+			} else if (ds instanceof DeviceOfflineDownload) {
+				return( getHash(PluginCoreUtils.unwrap(((DeviceOfflineDownload)ds).getDownload())));
 			} else if (ds instanceof VuzeActivitiesEntry) {
 				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
 				return entry.getAssetHash();
@@ -237,6 +247,8 @@ public class DataSourceUtils
 				id = PlatformTorrentUtils.getContentNetworkID(((DownloadManager) ds).getTorrent());
 			} else if (ds instanceof TOTorrent) {
 				id = PlatformTorrentUtils.getContentNetworkID((TOTorrent) ds);
+			} else if (ds instanceof DeviceOfflineDownload) {
+				return( getContentNetwork(PluginCoreUtils.unwrap(((DeviceOfflineDownload)ds).getDownload())));
 			} else if (ds instanceof VuzeActivitiesEntry) {
 				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
 				return entry.getContentNetwork();
