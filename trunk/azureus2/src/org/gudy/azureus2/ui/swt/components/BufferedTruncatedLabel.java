@@ -117,7 +117,7 @@ BufferedTruncatedLabel
   }
   
   public void setCursor(Cursor cursor) {
-  	if (isDisposed()) {
+  	if (isDisposed() || cursor == null || cursor.isDisposed()) {
   		return;
   	}
     label.setCursor(cursor);
