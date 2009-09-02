@@ -38,8 +38,9 @@ CorePatchLevel
 	
 		// Level 1: 2302 - fix for DHT version propagation problem
 		// Level 2: 2306 - fix for SF mirror parsing problem for core updates
+		// Level 3: 4208 - fix for OSX Snow Leopard torrent opening problem
 	
-	public static final int	PATCH_LEVEL	= 2;
+	public static final int	PATCH_LEVEL	= 3;
 	
 	public static int
 	getCurrentPatchLevel()
