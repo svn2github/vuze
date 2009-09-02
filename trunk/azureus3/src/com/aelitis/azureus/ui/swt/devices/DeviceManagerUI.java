@@ -1955,18 +1955,30 @@ DeviceManagerUI
 		final String parent = parent_key;
 		
 		synchronized( this ){
-			
-			if ( !offline_menus_setup && type == Device.DT_OFFLINE_DOWNLOADER ){
-				
-				offline_menus_setup = true;
-				
-				setupOfflineDownloadingMenus();
-			}
 
 			final deviceItem existing_di = (deviceItem)device.getTransientProperty( DEVICE_IVIEW_KEY );
 			
 			if (  existing_di == null ){
 	
+				if ( type == Device.DT_OFFLINE_DOWNLOADER ){
+
+					if ( !offline_menus_setup ){
+					
+						offline_menus_setup = true;
+					
+						setupOfflineDownloadingMenus();
+					}
+					
+					DeviceOfflineDownloader	dod = (DeviceOfflineDownloader)device;
+					
+					if ( !dod.hasShownFTUX()){
+						
+						dod.setShownFTUX();
+						
+						new DevicesODFTUX( dod );
+					}
+				}
+				
 				if ( !device.isHidden()){
 					
 					final deviceItem new_di = new deviceItem();
@@ -2448,6 +2460,43 @@ DeviceManagerUI
 										}
 									}
 
+									if ( device instanceof DeviceOfflineDownloader ){
+
+										final DeviceOfflineDownloader	dod = (DeviceOfflineDownloader)device;
+										
+										need_sep = true;
+										
+										MenuItem configure_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.configure");
+																				
+										configure_menu_item.addListener(
+											new MenuItemListener()
+											{
+												public void 
+												selected(
+													MenuItem 	menu,
+													Object 		target ) 
+												{
+													new DevicesODFTUX( dod );
+												}
+											});
+										
+										MenuItem enabled_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.contextmenu.od.enabled");
+										
+										enabled_menu_item.setStyle(MenuItem.STYLE_CHECK);
+
+										enabled_menu_item.addFillListener(new MenuItemFillListener() {
+											public void menuWillBeShown(MenuItem menu, Object data) {
+												menu.setData(new Boolean( dod.isEnabled()));
+											}
+										});
+										
+										enabled_menu_item.addListener(new MenuItemListener() {
+											public void selected(MenuItem menu, Object target) {
+								 				dod.setEnabled((Boolean) menu.getData());
+											}
+										});
+									}
+									
 									if ( device.isBrowsable()){
 										
 										need_sep = true;

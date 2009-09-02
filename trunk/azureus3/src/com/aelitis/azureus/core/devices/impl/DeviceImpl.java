@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceListener;
 import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
@@ -113,6 +114,8 @@ DeviceImpl
 
 	protected static final String	PP_TIVO_MACHINE		= "tivo_machine";
 
+	protected static final String	PP_OD_ENABLED			= "od_enabled";
+	protected static final String	PP_OD_SHOWN_FTUX		= "od_shown_ftux";
 	protected static final String	PP_OD_MANUFACTURER		= "od_manufacturer";
 	protected static final String	PP_OD_STATE_CACHE		= "od_state_cache";
 	protected static final String	PP_OD_XFER_CACHE		= "od_xfer_cache";
@@ -155,6 +158,8 @@ DeviceImpl
 	
 	private Map<Object,String>	errors 	= new HashMap<Object, String>();
 	private Map<Object,String>	infos	= new HashMap<Object, String>();
+	
+	private CopyOnWriteList<DeviceListener>		device_listeners;
 	
 	protected
 	DeviceImpl(
@@ -1958,6 +1963,68 @@ DeviceImpl
 		TranscodeTargetListener		listener )
 	{
 		listeners.remove( listener );
+	}
+	
+	protected void
+	fireChanged()
+	{
+		List<DeviceListener> l;
+		
+		synchronized( this ){
+			
+			if ( device_listeners != null ){
+				
+				l = device_listeners.getList();
+				
+			}else{
+				
+				return;
+			}
+		}
+		
+		for ( DeviceListener listener: l ){
+			
+			try{
+				listener.deviceChanged( this );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	public void
+	addListener(
+		DeviceListener		listener )
+	{
+		synchronized( this ){
+			
+			if ( device_listeners == null ){
+				
+				device_listeners = new CopyOnWriteList<DeviceListener>();
+			}
+			
+			device_listeners.add( listener );
+		}
+	}
+	
+	public void
+	removeListener(
+		DeviceListener		listener )
+	{
+		synchronized( this ){
+			
+			if ( device_listeners != null ){
+							
+				device_listeners.remove( listener );
+				
+				if ( device_listeners.size() == 0 ){
+					
+					device_listeners = null;
+				}		
+			}
+		}
 	}
 	
 	protected void

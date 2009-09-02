@@ -25,9 +25,12 @@ import java.util.Set;
 
 import org.eclipse.swt.SWT;
 
+import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -40,6 +43,8 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceListener;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownloader;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownloaderListener;
@@ -69,7 +74,7 @@ SBC_DevicesODView
 	private TableViewSWTImpl<DeviceOfflineDownload> tv_downloads;
 
 	private SideBarEntrySWT 	sidebar_entry;
-	private Composite			table_parent;
+	private Composite			control_parent;
 	
 
 	public Object 
@@ -202,7 +207,7 @@ SBC_DevicesODView
 		}
 		
 		Utils.disposeSWTObjects(new Object[] {
-			table_parent,
+				control_parent,
 		});
 
 		return( super.skinObjectHidden(skinObject, params));
@@ -224,7 +229,7 @@ SBC_DevicesODView
 		}
 		
 		Utils.disposeSWTObjects(new Object[] {
-			table_parent,
+				control_parent,
 		});
 
 		return( super.skinObjectDestroyed(skinObject, params));
@@ -232,9 +237,23 @@ SBC_DevicesODView
 	
 	private void 
 	initTable(
-		Composite control ) 
-	{
+		final Composite control ) 
+	{	
+		control_parent = new Composite(control, SWT.NONE);
+		control_parent.setLayoutData(Utils.getFilledFormData());
+		
+		final StackLayout stack_layout = new StackLayout();
+		
+		control_parent.setLayout( stack_layout );
+		
+			// enabled
+		
+		final Composite enabled_device_parent = new Composite( control_parent, SWT.NONE);
 
+		GridLayout layout = new GridLayout();
+		layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
+		enabled_device_parent.setLayout(layout);
+			
 		tv_downloads = 
 			new TableViewSWTImpl<DeviceOfflineDownload>(
 					DeviceOfflineDownload.class, 
@@ -243,15 +262,9 @@ SBC_DevicesODView
 					new TableColumnCore[0], 
 					ColumnOD_Name.COLUMN_ID, 
 					SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
-		
+
 		tv_downloads.setRowDefaultHeight(50);
 		tv_downloads.setHeaderVisible(true);
-		
-		table_parent = new Composite(control, SWT.NONE);
-		table_parent.setLayoutData(Utils.getFilledFormData());
-		GridLayout layout = new GridLayout();
-		layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
-		table_parent.setLayout(layout);
 
 		tv_downloads.addLifeCycleListener(
 			new TableLifeCycleListener() 
@@ -456,8 +469,63 @@ SBC_DevicesODView
 				}
 			});
 
-		tv_downloads.initialize( table_parent );
+		tv_downloads.initialize( enabled_device_parent );	
+			
+			// disabled
+		
+		final Composite disabled_device_parent = new Composite( control_parent, SWT.NONE);
+	
+		layout = new GridLayout();
+		layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
+		disabled_device_parent.setLayout(layout);
 
+		Label l = new Label( disabled_device_parent, SWT.NULL );
+		GridData grid_data = new GridData( GridData.FILL_HORIZONTAL );
+		grid_data.horizontalIndent = 5;
+		l.setLayoutData( grid_data );
+		
+		l.setText( MessageText.getString( "device.is.disabled" ));
+	
+		device.addListener(
+			new DeviceListener()
+			{
+				public void 
+				deviceChanged(
+					Device d )
+				{
+					Composite x = device.isEnabled()?enabled_device_parent:disabled_device_parent;
+
+					if ( x.isDisposed()){
+						
+						device.removeListener( this );
+						
+					}else{
+					
+						if ( x != stack_layout.topControl ){
+							
+							Utils.execSWTThread(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										Composite x = device.isEnabled()?enabled_device_parent:disabled_device_parent;
+										
+										if ( !x.isDisposed() && x != stack_layout.topControl ){
+											
+											stack_layout.topControl = x;
+											
+											control.layout( true, true );
+										}
+									}
+								});
+						}
+					}
+				}
+			});
+		
+		stack_layout.topControl = device.isEnabled()?enabled_device_parent:disabled_device_parent;
+		
 		control.layout(true);
 	}	
 	

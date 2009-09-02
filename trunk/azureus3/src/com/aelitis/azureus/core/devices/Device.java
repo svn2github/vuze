@@ -109,6 +109,14 @@ Device
 	public String
 	getError();
 	
+	public void
+	addListener(
+		DeviceListener		listener );
+	
+	public void
+	removeListener(
+		DeviceListener		listener );
+	
 	public String
 	getString();
 	

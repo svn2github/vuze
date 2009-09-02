@@ -132,7 +132,7 @@ DeviceManagerImpl
 						int 						type, 
 						Object 						value ) 
 					{
-						Device	device = (Device)value;
+						DeviceImpl	device = (DeviceImpl)value;
 						
 						switch( type ){
 						
@@ -146,6 +146,8 @@ DeviceManagerImpl
 								
 								if ( deviceAdded( device )){
 								
+									device.fireChanged();
+									
 									listener.deviceChanged( device );
 								}
 								

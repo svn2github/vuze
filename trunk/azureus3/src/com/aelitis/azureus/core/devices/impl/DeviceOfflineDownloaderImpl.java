@@ -260,48 +260,51 @@ DeviceOfflineDownloaderImpl
 			
 			GlobalManager gm = core.getGlobalManager();
 			
-			List<DownloadManager> initial_downloads = gm.getDownloadManagers();
-			
 			if ( start_of_day ){
 				
 				start_of_day = false;
 				
 				Map<String,Map> xfer_cache = getPersistentMapProperty( PP_OD_XFER_CACHE, new HashMap<String,Map>());
 				
-				for ( DownloadManager download: initial_downloads ){
-
-					if ( download.isForceStart()){
-						
-						TOTorrent torrent = download.getTorrent();
-						
-						if ( torrent == null ){
+				if ( xfer_cache.size() > 0 ){
+					
+					List<DownloadManager> initial_downloads = gm.getDownloadManagers();
+					
+					for ( DownloadManager download: initial_downloads ){
+	
+						if ( download.isForceStart()){
 							
-							continue;
-						}
-						
-						try{
-							byte[] hash = torrent.getHash();
+							TOTorrent torrent = download.getTorrent();
 							
-							String	hash_str = ByteFormatter.encodeString( hash );
-							
-							Map m = xfer_cache.get( hash_str );
+							if ( torrent == null ){
 								
-							if ( m != null ){
-								
-								if ( m.containsKey( "f" )){
-									
-									log( download, "Resetting force-start" );
-									
-									download.setForceStart( false );
-								}
+								continue;
 							}
-						}catch( Throwable e ){
 							
-							Debug.printStackTrace(e);
+							try{
+								byte[] hash = torrent.getHash();
+								
+								String	hash_str = ByteFormatter.encodeString( hash );
+								
+								Map m = xfer_cache.get( hash_str );
+									
+								if ( m != null ){
+									
+									if ( m.containsKey( "f" )){
+										
+										log( download, "Resetting force-start" );
+										
+										download.setForceStart( false );
+									}
+								}
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
 						}
 					}
 				}
-							
+				
 				gm.addListener(
 					new GlobalManagerAdapter()
 					{
@@ -323,48 +326,52 @@ DeviceOfflineDownloaderImpl
 			}
 			
 			DeviceManager manager = getManager();
-									
-			List<DownloadManager> relevant_downloads = new ArrayList<DownloadManager>( initial_downloads.size());
-			
-				// remove uninteresting ones
-			
-			for ( DownloadManager download: initial_downloads ){
-			
-				int	state = download.getState();
 				
-				if ( 	state == DownloadManager.STATE_SEEDING ||
-						state == DownloadManager.STATE_ERROR ){
-					
-					continue;
-				}
+			DeviceOfflineDownloaderManager dodm = manager.getOfflineDownlaoderManager();
+			
+			List<DownloadManager> downloads;
+			
+			if ( dodm.isOfflineDownloadingEnabled() && isEnabled()){
+
+				List<DownloadManager> initial_downloads = gm.getDownloadManagers();
+
+				List<DownloadManager> relevant_downloads = new ArrayList<DownloadManager>( initial_downloads.size());
+			
+					// remove uninteresting ones
 				
-					// don't include 'stopping' here as we go through stopping on way to queued
+				for ( DownloadManager download: initial_downloads ){
 				
-				if ( state == DownloadManager.STATE_STOPPED ){
+					int	state = download.getState();
 					
-						// don't remove from downloader if simply paused
-					
-					if ( !download.isPaused()){
+					if ( 	state == DownloadManager.STATE_SEEDING ||
+							state == DownloadManager.STATE_ERROR ){
 						
 						continue;
 					}
-				}
-				
-					// if it is complete then of no interest
-				
-				if ( download.isDownloadComplete( false )){
+					
+						// don't include 'stopping' here as we go through stopping on way to queued
+					
+					if ( state == DownloadManager.STATE_STOPPED ){
 						
-					continue;
+							// don't remove from downloader if simply paused
+						
+						if ( !download.isPaused()){
+							
+							continue;
+						}
+					}
+					
+						// if it is complete then of no interest
+					
+					if ( download.isDownloadComplete( false )){
+							
+						continue;
+					}
+					
+					relevant_downloads.add( download );
 				}
-				
-				relevant_downloads.add( download );
-			}
 			
-			List<DownloadManager> downloads = new ArrayList<DownloadManager>( relevant_downloads.size());
-
-			DeviceOfflineDownloaderManager dodm = manager.getOfflineDownlaoderManager();
-			
-			if ( dodm.isOfflineDownloadingEnabled()){
+				downloads = new ArrayList<DownloadManager>( relevant_downloads.size());
 			
 				if ( dodm.getOfflineDownloadingIsAuto()){
 					
@@ -398,6 +405,9 @@ DeviceOfflineDownloaderImpl
 						}
 					}
 				}
+			}else{
+				
+				downloads = new ArrayList<DownloadManager>();
 			}
 			
 			Map<DownloadManager,byte[]>	download_map = new HashMap<DownloadManager, byte[]>();
@@ -763,12 +773,12 @@ DeviceOfflineDownloaderImpl
 				}
 			}
 			
-			for ( OfflineDownload od: new_ods ){
+			for ( OfflineDownload od: del_ods ){
 				
 				for ( DeviceOfflineDownloaderListener listener: listeners ){
 					
 					try{
-						listener.downloadAdded( od );
+						listener.downloadRemoved( od );
 						
 					}catch( Throwable e ){
 						
@@ -1045,6 +1055,36 @@ DeviceOfflineDownloaderImpl
 		sem.reserve(250);
 	}
 	
+	public boolean
+	isEnabled()
+	{
+		return( getPersistentBooleanProperty( PP_OD_ENABLED, false ));
+	}
+	
+	public void
+	setEnabled(
+		boolean	b )
+	{
+		setPersistentBooleanProperty( PP_OD_ENABLED, b );
+		
+		if ( b ){
+			
+			freq_lim_updater.dispatch();
+		}
+	}
+
+	public boolean
+	hasShownFTUX()
+	{
+		return( getPersistentBooleanProperty( PP_OD_SHOWN_FTUX, false ));
+	}
+	
+	public void
+	setShownFTUX()
+	{
+		setPersistentBooleanProperty( PP_OD_SHOWN_FTUX, true );
+	}
+	
 	public String
 	getManufacturer()
 	{
@@ -1079,7 +1119,16 @@ DeviceOfflineDownloaderImpl
  	{
  		listeners.remove( listener );
  	}
-	                         	
+	       
+	protected void
+	getDisplayProperties(
+		List<String[]>	dp )
+	{
+		super.getDisplayProperties( dp );
+		
+		addDP( dp, "azbuddy.enabled", isEnabled());
+	}
+	
 	protected void
 	log(
 		DownloadManager		download,	
