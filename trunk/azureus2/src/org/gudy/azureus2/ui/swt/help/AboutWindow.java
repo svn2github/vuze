@@ -68,6 +68,8 @@ public class AboutWindow {
         instance.open();
         return;
     }
+    
+    paintColorTo = 0;
 
     Properties properties = new Properties();
     try {
@@ -134,9 +136,12 @@ public class AboutWindow {
     label.setText(properties.getProperty("developers")); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
     
-    final Label labelImage = new Label(window, SWT.NONE);
-    labelImage.setImage(image);
+    final Canvas labelImage = new Canvas(window, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
+    //labelImage.setImage(image);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+    Rectangle imgBounds = image.getBounds();
+    gridData.widthHint = imgBounds.width;
+    gridData.heightHint = imgBounds.height;
     labelImage.setLayoutData(gridData);
     labelImage.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
@@ -145,7 +150,7 @@ public class AboutWindow {
 					e.gc.drawImage(imgSrc, 0, 0, paintColorTo, boundsColor.height, 0, 0, paintColorTo, boundsColor.height);
 				}
 				Rectangle imgBounds = image.getBounds();
-				if (imgBounds.width - paintColorTo > 0) {
+				if (imgBounds.width - paintColorTo - 1 > 0) {
 					e.gc.drawImage(image, 
 							paintColorTo + 1, 0, imgBounds.width - paintColorTo - 1, imgBounds.height, 
 							paintColorTo + 1, 0, imgBounds.width - paintColorTo - 1, imgBounds.height);
@@ -280,10 +285,11 @@ public class AboutWindow {
               //gcImage.dispose();
               paintColorTo++;
               labelImage.redraw();
+              //labelImage.update();
               x[0]++;
               if(x[0] >= maxX) {
                 finished[0] = true;
-                labelImage.setImage(imgSrc);
+                //labelImage.setImage(imgSrc);
               }
             }
           });
