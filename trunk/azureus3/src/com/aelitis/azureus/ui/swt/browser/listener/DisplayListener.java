@@ -2,12 +2,17 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.util.*;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -21,6 +26,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.*;
@@ -31,6 +37,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ContentNetworkUtils;
+import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -66,6 +73,8 @@ public class DisplayListener
 	public static final String OP_INVITE_FRIEND = "invite";
 
 	public static final String OP_SET_SELECTED_CONTENT = "set-selected-content";
+
+	public static final String OP_GET_SELECTED_CONTENT = "get-selected-content";
 
 	public static final String OP_SHOW_DONATION_WINDOW = "show-donation-window";
 
@@ -186,6 +195,11 @@ public class DisplayListener
 			if (decodedMap != null) {
 				setSelectedContent(message, decodedMap);
 			}
+		} else if (OP_GET_SELECTED_CONTENT.equals(opid)) {
+			Map decodedMap = message.getDecodedMap();
+			if (decodedMap != null) {
+				getSelectedContent(message, decodedMap);
+			}
 		} else if (OP_SHOW_DONATION_WINDOW.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			DonationWindow.open(true, MapUtils.getMapString(decodedMap, "source-ref",
@@ -198,6 +212,51 @@ public class DisplayListener
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
+		}
+	}
+
+	private void getSelectedContent(BrowserMessage message, Map decodedMap) {
+		String callback = MapUtils.getMapString(decodedMap, "callback", null);
+		if (callback == null) {
+			return;
+		}
+		
+		List<Map> list = new ArrayList<Map>();
+		
+		DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+		for (DownloadManager dm : dms) {
+			if (dm != null) {
+				Map<String, Object> mapDM = new HashMap<String, Object>();
+				TOTorrent torrent = dm.getTorrent();
+				if (torrent != null && !TorrentUtils.isReallyPrivate(torrent)) {
+					try {
+  					// make a copy of the torrent
+  
+  					Map torrent_map = torrent.serialiseToMap();
+  					TOTorrent torrent_to_send = TOTorrentFactory.deserialiseFromMap( torrent_map );
+  					Map	vuze_map = (Map)torrent_map.get( "vuze" );
+  					// remove any non-standard stuff (e.g. resume data)
+  					torrent_to_send.removeAdditionalProperties();
+  					torrent_map = torrent_to_send.serialiseToMap();
+  					if ( vuze_map != null ){
+  						torrent_map.put( "vuze", vuze_map );
+  					}
+  					
+  					byte[] encode = BEncoder.encode(torrent_map);
+  					
+  					mapDM.put("name", PlatformTorrentUtils.getContentTitle2(dm));
+  					mapDM.put("torrent", Base32.encode(encode));
+  					
+  					list.add(mapDM);
+					} catch (Throwable t) {
+						Debug.out(t);
+					}
+				}
+			}
+		}
+		
+		if (list.size() > 0 && context != null) {
+			context.executeInBrowser(callback + "(" + JSONUtils.encodeToJSON(list) + ")");
 		}
 	}
 

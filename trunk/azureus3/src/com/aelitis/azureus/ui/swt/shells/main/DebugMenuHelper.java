@@ -12,8 +12,10 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.drm.msdrm.LicenseAquirer;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.util.ConstantsVuze;
 
 /**
  * A convenience class for creating the Debug menu
@@ -204,6 +206,14 @@ public class DebugMenuHelper
 			}
 		});
 
+		item = new MenuItem(menuDebug, SWT.NONE);
+		item.setText("FB");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				UIFunctionsManager.getUIFunctions().viewURL(ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("facebookshare.start", true), null, null);
+			}
+		});
+		
 		return item;
 	}
 }
