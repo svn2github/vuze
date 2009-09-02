@@ -1,5 +1,5 @@
 /*
- * Created on Jan 27, 2009
+ * Created on Sep 1, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -22,23 +22,18 @@
 package com.aelitis.azureus.core.devices;
 
 public interface 
-DeviceOfflineDownloader
-	extends Device
+DeviceOfflineDownloaderListener 
 {
-	public String
-	getManufacturer();
-	
-	public int
-	getTransferingCount();
-
-	public DeviceOfflineDownload[]
-	getDownloads();
-		
 	public void
-	addListener(
-		DeviceOfflineDownloaderListener		listener );
+	downloadAdded(
+		DeviceOfflineDownload	download );
 	
 	public void
-	removeListener(
-		DeviceOfflineDownloaderListener		listener );
+	downloadChanged(
+		DeviceOfflineDownload	download );
+	
+	public void
+	downloadRemoved(
+		DeviceOfflineDownload	download );
+	
 }

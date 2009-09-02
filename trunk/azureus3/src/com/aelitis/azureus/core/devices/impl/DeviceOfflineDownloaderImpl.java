@@ -947,6 +947,26 @@ DeviceOfflineDownloaderImpl
 		return( transferable.size());
 	}
 	
+	public DeviceOfflineDownload[]
+ 	getDownloads()
+	{
+		return( new DeviceOfflineDownload[0] );
+	}
+ 		
+ 	public void
+ 	addListener(
+ 		DeviceOfflineDownloaderListener		listener )
+ 	{
+ 		
+ 	}
+ 	
+ 	public void
+ 	removeListener(
+ 		DeviceOfflineDownloaderListener		listener )
+ 	{
+ 		
+ 	}
+	                         	
 	protected void
 	log(
 		DownloadManager		download,	

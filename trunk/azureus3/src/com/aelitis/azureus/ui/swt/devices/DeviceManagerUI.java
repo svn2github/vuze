@@ -2038,10 +2038,35 @@ DeviceManagerUI
 											entry.setImageLeftID(id);
 										}
 										
-										entry.setDatasource(device);
+									}else if ( device_type == Device.DT_OFFLINE_DOWNLOADER ){
+										
+										entry = 
+											side_bar.createEntryFromSkinRef(
+												parent,
+												key, "devicesodview",
+												device.getName(),
+												view, null, false, -1);
+										
+											
+										DeviceOfflineDownloader dod = (DeviceOfflineDownloader)device;
+										
+										String	id;
+										
+										String manufacturer = dod.getManufacturer();
+										
+										if ( manufacturer.toLowerCase().contains( "vuze" )){
+											
+											id = "vuze";
+											
+										}else{
+											
+											id = "other";
+										}
+										
+										entry.setImageLeftID( "image.sidebar.device.od." + id + ".small" );
 
 									}else{
-
+										
 										side_bar.createTreeItemFromIView(
 												parent, 
 												view,
@@ -2052,29 +2077,9 @@ DeviceManagerUI
 												false );
 
 										entry = SideBar.getEntry( key );
-										
-										if ( device_type == Device.DT_OFFLINE_DOWNLOADER ){
-											
-											DeviceOfflineDownloader dod = (DeviceOfflineDownloader)device;
-											
-											String	id;
-											
-											String manufacturer = dod.getManufacturer();
-											
-											if ( manufacturer.toLowerCase().contains( "vuze" )){
-												
-												id = "vuze";
-												
-											}else{
-												
-												id = "other";
-											}
-											
-											entry.setImageLeftID( "image.sidebar.device.od." + id + ".small" );
-										}
-										
-										entry.setDatasource( device );
 									}
+									
+									entry.setDatasource( device );
 									
 									entry.setLogID(parent + "-" + device.getName());
 
