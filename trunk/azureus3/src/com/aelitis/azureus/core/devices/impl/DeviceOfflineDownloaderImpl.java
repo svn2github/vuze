@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -46,12 +45,14 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.net.upnp.UPnPDevice;
 import com.aelitis.net.upnp.UPnPRootDevice;
 import com.aelitis.net.upnp.services.UPnPOfflineDownloader;
@@ -88,9 +89,13 @@ DeviceOfflineDownloaderImpl
 	
 	private boolean								start_of_day	= true;
 	
-	private Map<String,TransferableDownload>	transferable 	= new LinkedHashMap<String,TransferableDownload>();
+	private Map<String,OfflineDownload>			offline_downloads	= new HashMap<String, OfflineDownload>(); 
+	private Map<String,TransferableDownload>	transferable 		= new LinkedHashMap<String,TransferableDownload>();
 	private TransferableDownload				current_transfer;
 	private boolean								is_transferring;
+	
+	
+	private CopyOnWriteList<DeviceOfflineDownloaderListener>	listeners = new CopyOnWriteList<DeviceOfflineDownloaderListener>();		
 	
 	protected
 	DeviceOfflineDownloaderImpl(
@@ -239,7 +244,9 @@ DeviceOfflineDownloaderImpl
 			return;
 		}
 
-		Map<String,TransferableDownload>	new_transferables = new HashMap<String,TransferableDownload>();
+		
+		Map<String,DownloadManager>			new_offline_downloads 	= new HashMap<String,DownloadManager>();
+		Map<String,TransferableDownload>	new_transferables 		= new HashMap<String,TransferableDownload>();
 		
 		try{
 			if ( !isAlive() || service == null || closing ){
@@ -504,6 +511,8 @@ DeviceOfflineDownloaderImpl
 					
 					download_hashes += ( download_hashes.length()==0?"":"," ) + hash;
 					
+					new_offline_downloads.put( hash, download );
+					
 				}catch( Throwable e ){
 					
 					log( download, "Failed to get download hash", e );
@@ -667,6 +676,70 @@ DeviceOfflineDownloaderImpl
 		}finally{
 			
 			updateTransferable( new_transferables );
+			
+			List<OfflineDownload>	new_ods = new ArrayList<OfflineDownload>();
+			List<OfflineDownload>	del_ods = new ArrayList<OfflineDownload>();
+			
+			synchronized( offline_downloads ){
+			
+				for (Map.Entry<String,DownloadManager> entry: new_offline_downloads.entrySet()){
+				
+					String key = entry.getKey();
+					
+					if ( !offline_downloads.containsKey( key )){
+						
+						OfflineDownload new_od = new OfflineDownload( entry.getValue());
+						
+						offline_downloads.put( key, new_od );
+						
+						new_ods.add( new_od );
+					}
+				}
+				
+				Iterator<Map.Entry<String,OfflineDownload>> it = offline_downloads.entrySet().iterator();
+				
+				while( it.hasNext()){
+					
+					Map.Entry<String,OfflineDownload>	entry = it.next();
+					
+					String key = entry.getKey();
+					
+					if ( !new_offline_downloads.containsKey( key )){
+												
+						it.remove();
+						
+						del_ods.add( entry.getValue());
+					}
+				}
+			}
+			
+			for ( OfflineDownload od: new_ods ){
+				
+				for ( DeviceOfflineDownloaderListener listener: listeners ){
+					
+					try{
+						listener.downloadAdded( od );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+			
+			for ( OfflineDownload od: del_ods ){
+				
+				for ( DeviceOfflineDownloaderListener listener: listeners ){
+					
+					try{
+						listener.downloadRemoved( od );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
 		}
 	}
 
@@ -950,21 +1023,24 @@ DeviceOfflineDownloaderImpl
 	public DeviceOfflineDownload[]
  	getDownloads()
 	{
-		return( new DeviceOfflineDownload[0] );
+		synchronized( offline_downloads ){
+			
+			return( offline_downloads.values().toArray( new DeviceOfflineDownload[ offline_downloads.size()]));
+		}
 	}
  		
  	public void
  	addListener(
  		DeviceOfflineDownloaderListener		listener )
  	{
- 		
+ 		listeners.add( listener );
  	}
  	
  	public void
  	removeListener(
  		DeviceOfflineDownloaderListener		listener )
  	{
- 		
+ 		listeners.remove( listener );
  	}
 	                         	
 	protected void
@@ -997,6 +1073,34 @@ DeviceOfflineDownloaderImpl
 		Throwable	e )
 	{
 		super.log( "OfflineDownloader: " + str, e );
+	}
+	
+	protected class
+	OfflineDownload
+		implements DeviceOfflineDownload
+	{
+		private DownloadManager		core_download;
+		private Download			download;
+		
+		protected
+		OfflineDownload(
+			DownloadManager		_core_download )
+		{
+			core_download	= _core_download;
+			download		= PluginCoreUtils.wrap( core_download );
+		}
+		
+		public Download
+		getDownload()
+		{
+			return( download );
+		}
+		
+		public boolean
+		isTransfering()
+		{
+			return( false );
+		}
 	}
 	
 	protected class

@@ -20,46 +20,35 @@ package com.aelitis.azureus.ui.swt.devices;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
 
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownloader;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownloaderListener;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.content.columns.*;
+import com.aelitis.azureus.ui.swt.devices.columns.ColumnOD_Name;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
@@ -76,7 +65,6 @@ SBC_DevicesODView
 
 	private static boolean columnsAdded = false;
 	
-	private DeviceManager				device_manager;
 	private DeviceOfflineDownloader		device;
 	
 	private TableViewSWTImpl<DeviceOfflineDownload> tv_downloads;
@@ -95,9 +83,7 @@ SBC_DevicesODView
 				public void 
 				azureusCoreRunning(
 					AzureusCore core )
-				{
-					device_manager = DeviceManagerFactory.getSingleton();
-					
+				{					
 					initColumns( core );
 				}
 			});
@@ -133,7 +119,12 @@ SBC_DevicesODView
 		
 		TableManager tableManager = uiManager.getTableManager();
 		
-
+		tableManager.registerColumn( DeviceOfflineDownload.class, ColumnOD_Name.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnOD_Name(column);
+					}
+				});
 	}
 
 	public Object 
