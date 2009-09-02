@@ -2963,13 +2963,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				mapDataSourceToRow.remove(dataSources[i]);
 				if (item != null) {
 					sortedRows.remove(item);
-					item.delete();
 				}
 			}
 
-			fillRowGaps(false);
 			if (DEBUGADDREMOVE) {
-				debug("<< Remove 1 row, noswt");
+				debug("<< Remove row(s), noswt");
 			}
 		}
 	}
