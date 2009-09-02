@@ -1494,15 +1494,20 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			Rectangle clipping = new Rectangle(cellBounds.x, cellBounds.y,
 					cellBounds.width, cellBounds.height);
-			int headerHeight = table.getHeaderHeight();
-			int iMinY = headerHeight + clientArea.y;
-			if (clipping.y < iMinY) {
-				clipping.height -= iMinY - clipping.y;
-				clipping.y = iMinY;
-			}
-			int iMaxY = clientArea.height + clientArea.y;
-			if (clipping.y + clipping.height > iMaxY) {
-				clipping.height = iMaxY - clipping.y + 1;
+			// Cocoa calls paintitem while row is below tablearea, and painting there
+			// is valid!
+			if (!Utils.isCocoa) {
+				int headerHeight = table.getHeaderHeight();
+				int iMinY = headerHeight + clientArea.y;
+
+  			if (clipping.y < iMinY) {
+  				clipping.height -= iMinY - clipping.y;
+  				clipping.y = iMinY;
+  			}
+  			int iMaxY = clientArea.height + clientArea.y;
+  			if (clipping.y + clipping.height > iMaxY) {
+  				clipping.height = iMaxY - clipping.y + 1;
+  			}
 			}
 
 			if (clipping.width <= 0 || clipping.height <= 0) {
