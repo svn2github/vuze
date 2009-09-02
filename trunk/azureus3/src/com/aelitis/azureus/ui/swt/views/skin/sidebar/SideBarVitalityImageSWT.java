@@ -123,8 +123,9 @@ public class SideBarVitalityImageSWT
 									return;
 								}
 								Tree parent = treeItem.getParent();
-								parent.redraw(hitArea.x, hitArea.y, hitArea.width, hitArea.height,
-										false);
+								// SWT.PAINTITEM won't fire on Cocoa unless whole row is dirtied
+								Rectangle redrawBounds = Utils.isCocoa ? treeItem.getBounds() : hitArea;
+								parent.redraw(redrawBounds.x, redrawBounds.y, redrawBounds.width, redrawBounds.height,	true);
 								parent.update();
 							}
 						});

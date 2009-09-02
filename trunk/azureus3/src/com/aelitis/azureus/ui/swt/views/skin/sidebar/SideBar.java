@@ -112,6 +112,14 @@ public class SideBar
 	implements UIUpdatable, ViewTitleInfoListener
 {
 	private static final boolean END_INDENT = Constants.isLinux || Constants.isWindows2000 || Constants.isWindows9598ME;
+	
+	private static final boolean USE_PAINTITEM = Utils.isCocoa;
+	
+	// Need to use paint even on Cocoa, because there's cases where an area
+	// will become invalidated and we don't get a paintitem :(
+	private static final boolean USE_PAINT = true;
+	
+	private static final boolean HIDE_NATIVE_EXPANDER = false;
 
 	private static final int SIDEBAR_SPACING = 2;
 
@@ -587,16 +595,53 @@ public class SideBar
 						break;
 					}
 					case SWT.PaintItem: {
-						//paintSideBar(event);
+						if (USE_PAINTITEM) {
+							String id = (String) ((TreeItem) event.item).getData("Plugin.viewID");
+							//System.out.println(event.item + ";" + event.index + ";" + event.detail + ";" + id);
+							SideBarEntrySWT entry = getEntry(id);
+							paintSideBar(event, entry);
+						}
 						break;
 					}
 
 					case SWT.Paint: {
-						//System.out.println("Paint: " + event.getBounds() + ";" + event.detail + ";" + event.index);
+						if (HIDE_NATIVE_EXPANDER) {
+							boolean selected = (event.detail & SWT.SELECTED) > 0;
+							Rectangle bounds = event.getBounds();
+							int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
+							int y = event.y + 1;
+							treeItem = tree.getItem(new Point(indent, y));
+
+							while (treeItem != null) {
+								String id = (String) treeItem.getData("Plugin.viewID");
+								SideBarEntrySWT entry = getEntry(id);
+								Rectangle itemBounds = entry.getBounds();
+
+								if (itemBounds != null && entry.disableCollapse) {
+									Rectangle paintArea = treeItem.getBounds();
+									paintArea.x = 0;
+									paintArea.width = 17;
+									selected = tree.getSelectionCount() == 1
+											&& tree.getSelection()[0].equals(treeItem);
+									paintEntryBG(selected, event.gc, paintArea, entry);
+									y = itemBounds.y + itemBounds.height + 1;
+  							} else {
+  								y += tree.getItemHeight();
+  							}
+  
+  							if (y > bounds.y + bounds.height) {
+  								break;
+  							}
+  							treeItem = tree.getItem(new Point(indent, y));
+							}
+						}
+
+						
+						//System.out.println("Paint: " + event.getBounds() + ";" + event.detail + ";" + event.index + ";" + event.gc.getClipping() + "  " + Debug.getCompressedStackTrace());
+						if (!USE_PAINT) {
+							return;
+						}
 						Rectangle bounds = event.getBounds();
-						//if (tree.getItemCount() == 0) {
-						//	return;
-						//}
 						int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
 						int y = event.y + 1;
 						treeItem = tree.getItem(new Point(indent, y));
@@ -618,7 +663,7 @@ public class SideBar
   							Rectangle newClip = bounds.intersection(itemBounds);
   							//System.out.println("Paint " + id + " @ " + newClip);
   							event.setBounds(newClip);
-  							//event.gc.setClipping(newClip);
+  							event.gc.setClipping(newClip);
   
   							paintSideBar(event, entry);
 
@@ -646,7 +691,7 @@ public class SideBar
 					case SWT.EraseItem: {
 						//event.detail &= ~SWT.FOREGROUND;
 						//event.detail &= ~(SWT.FOREGROUND | SWT.BACKGROUND);
-						event.doit = false;
+						event.doit = true;
 						break;
 					}
 
@@ -739,8 +784,10 @@ public class SideBar
 		tree.addListener(SWT.MeasureItem, treeListener);
 		tree.addListener(SWT.Resize, treeListener);
 		tree.addListener(SWT.Paint, treeListener);
-		//tree.addListener(SWT.PaintItem, treeListener);
-		//tree.addListener(SWT.EraseItem, treeListener);
+		if (USE_PAINTITEM) {
+			tree.addListener(SWT.PaintItem, treeListener);
+			tree.addListener(SWT.EraseItem, treeListener);
+		}
 
 		tree.addListener(SWT.Selection, treeListener);
 		tree.addListener(SWT.Dispose, treeListener);
@@ -1020,32 +1067,12 @@ public class SideBar
 			}
 		}
 	}
-
-	/**
-	 * @param event
-	 * @param sideBarEntry
-	 *
-	 * @since 3.1.0.1
-	 */
-	protected void paintSideBar(Event event, SideBarEntrySWT sideBarEntry) {
-		TreeItem treeItem = (TreeItem) event.item;
-		Rectangle itemBounds = treeItem.getBounds();
-
-		String text = (String) treeItem.getData("text");
-		if (text == null)
-			text = "";
-
-		//Point size = event.gc.textExtent(text);
-		//Rectangle treeBounds = tree.getBounds();
-		GC gc = event.gc;
-
-		gc.setAntialias(SWT.ON);
-		gc.setAdvanced(true);
-		//gc.setClipping((Rectangle) null);
-
-		boolean selected = (event.detail & SWT.SELECTED) > 0;
+	
+	private Color paintEntryBG(boolean selected, GC gc, Rectangle drawBounds, SideBarEntrySWT sideBarEntry) {
 		Color fgText = Colors.black;
 		if (selected) {
+			//System.out.println("gmmm" + drawBounds + ": " + Debug.getCompressedStackTrace());
+			gc.setClipping((Rectangle)null);
 			if (fgSel != null) {
 				fgText = fgSel;
 			}
@@ -1063,12 +1090,13 @@ public class SideBar
 			}
 
 			gc.setBackground(color1);
-			gc.fillRectangle(event.x, itemBounds.y, event.width, 3);
+			gc.fillRectangle(drawBounds.x, drawBounds.y, drawBounds.width, 3);
 
 			gc.setForeground(color1);
 			gc.setBackground(color2);
-			gc.fillGradientRectangle(event.x, itemBounds.y + 3, event.width,
-					itemBounds.height - 3, true);
+			//System.out.println("FOO");
+			//gc.fillGradientRectangle(itemBounds.x, itemBounds.y, itemBounds.width, itemBounds.height, true);
+			gc.fillGradientRectangle(drawBounds.x, drawBounds.y + 3, drawBounds.width,	drawBounds.height - 3, true);
 		} else {
 
 			if (fg != null) {
@@ -1082,8 +1110,36 @@ public class SideBar
 				gc.setBackground(ColorCache.getColor(gc.getDevice(), "#2688aa"));
 			}
 			
-			gc.fillRectangle(event.getBounds());
+			gc.fillRectangle(drawBounds);
 		}
+		return fgText;
+	}
+
+	/**
+	 * @param event
+	 * @param sideBarEntry
+	 *
+	 * @since 3.1.0.1
+	 */
+	protected void paintSideBar(Event event, SideBarEntrySWT sideBarEntry) {
+		TreeItem treeItem = (TreeItem) event.item;
+		Rectangle itemBounds = treeItem.getBounds();
+		Rectangle drawBounds = Utils.isCocoa ? event.gc.getClipping() : event.getBounds();
+		
+		String text = (String) treeItem.getData("text");
+		if (text == null)
+			text = "";
+
+		//Point size = event.gc.textExtent(text);
+		//Rectangle treeBounds = tree.getBounds();
+		GC gc = event.gc;
+
+		gc.setAntialias(SWT.ON);
+		gc.setAdvanced(true);
+		//gc.setClipping((Rectangle) null);
+
+		boolean selected = (event.detail & SWT.SELECTED) > 0;
+		Color fgText = paintEntryBG(selected, gc, drawBounds, sideBarEntry);
 
 		Rectangle treeArea = tree.getClientArea();
 
@@ -1092,6 +1148,9 @@ public class SideBar
 		if (sideBarEntry == null) {
 			String id = (String) treeItem.getData("Plugin.viewID");
 			sideBarEntry = getEntry(id);
+		}
+		if (Utils.isCocoa) {
+			itemBounds.x += 18;
 		}
 		int x1IndicatorOfs = SIDEBAR_SPACING;
 		int x0IndicatorOfs = itemBounds.x;
@@ -1267,7 +1326,8 @@ public class SideBar
 		Rectangle clipping = new Rectangle(x0IndicatorOfs, itemBounds.y,
 				treeArea.width - x1IndicatorOfs - SIDEBAR_SPACING - x0IndicatorOfs,
 				itemBounds.height);
-		if (event.getBounds().intersects(clipping)) {
+		//System.out.println("itemBounds=" + itemBounds + ";event=" + event.getBounds() + ";" + event.gc.getClipping() + ";" + text);
+		if (drawBounds.intersects(clipping)) {
 			//gc.setClipping(clipping);
 
 			if (text.startsWith(" ")) {
@@ -1275,6 +1335,8 @@ public class SideBar
 				clipping.x += 30;
 				clipping.width -= 30;
 			}
+
+			//System.out.println("draw at " + clipping + " " + text);
 
 			GCStringPrinter sp = new GCStringPrinter(gc, text, clipping, true, false, SWT.NONE);
 			sp.printString();
@@ -1307,12 +1369,15 @@ public class SideBar
 
 		// OSX overrides the twisty, and we can't use the default twisty
 		// on Windows because it doesn't have transparency and looks ugly
-		if (treeItem.getItemCount() > 0 && !sideBarEntry.disableCollapse) {
+		if (treeItem.getItemCount() > 0 && !sideBarEntry.disableCollapse && (!Utils.isCocoa || !HIDE_NATIVE_EXPANDER)) {
 			gc.setAntialias(SWT.ON);
 			Color oldBG = gc.getBackground();
 			gc.setBackground(gc.getForeground());
 			if (treeItem.getExpanded()) {
 				int xStart = 15;
+				if (Utils.isCocoa) {
+					xStart -= 5;
+				}
 				int arrowSize = 8;
 				int yStart = itemBounds.height - (itemBounds.height + arrowSize) / 2;
 				gc.fillPolygon(new int[] {
@@ -1325,6 +1390,9 @@ public class SideBar
 				});
 			} else {
 				int xStart = 15;
+				if (Utils.isCocoa) {
+					xStart -= 5;
+				}
 				int arrowSize = 8;
 				int yStart = itemBounds.height - (itemBounds.height + arrowSize) / 2;
 				gc.fillPolygon(new int[] {
@@ -1756,12 +1824,19 @@ public class SideBar
 		}
 
 		if (parentTreeItem instanceof Tree) {
+			Tree tree = (Tree) parentTreeItem;
+			if (tree.isDisposed()) {
+				return null;
+			}
 			if (index >= 0) {
-				treeItem = new TreeItem((Tree) parentTreeItem, SWT.NONE, index);
+				treeItem = new TreeItem(tree, SWT.NONE, index);
 			} else {
-				treeItem = new TreeItem((Tree) parentTreeItem, SWT.NONE);
+				treeItem = new TreeItem(tree, SWT.NONE);
 			}
 		} else {
+			if (((TreeItem) parentTreeItem).isDisposed()) {
+				return null;
+			}
 			if (index >= 0) {
 				treeItem = new TreeItem((TreeItem) parentTreeItem, SWT.NONE, index);
 			} else {

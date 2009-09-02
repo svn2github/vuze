@@ -84,7 +84,7 @@ public class BrowserContext
 	
 	private MessageDispatcherSWT messageDispatcherSWT;
 
-	protected boolean wiggleBrowser = org.gudy.azureus2.core3.util.Constants.isOSX;
+	protected boolean wiggleBrowser = Utils.isCarbon;
 
 	private torrentURLHandler		torrentURLHandler;
 

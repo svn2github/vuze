@@ -127,7 +127,7 @@ public class SWTSkinObjectBrowser
 		}
 
 		//TODO [SWT] : Remove this stupid code as soon as we update SWT
-		if(Constants.isOSX && ! doneTheUglySWTFocusHack) {
+		if(Utils.isCarbon && ! doneTheUglySWTFocusHack) {
 			doneTheUglySWTFocusHack = true;
 			Shell shell = new Shell(browser.getDisplay(),SWT.NONE);
 			shell.setSize(1,1);

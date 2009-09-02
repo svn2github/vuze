@@ -170,27 +170,6 @@ public class SWTSkinTabSet
 			parent.getControl().setFocus();
 		}
 
-		if (org.gudy.azureus2.core3.util.Constants.isOSX) {
-			boolean bHasSkinBrowser = false;
-			SWTSkinObject[] activeWidgets = activeTab.getActiveWidgets(true);
-			for (int i = 0; i < activeWidgets.length; i++) {
-				SWTSkinObject skinObject = activeWidgets[i];
-				if (hasSkinBrowser(skinObject)) {
-					bHasSkinBrowser = true;
-					break;
-				}
-			}
-
-			if (bHasSkinBrowser) {
-				Shell shell = activeTab.getControl().getShell();
-				Point size = shell.getSize();
-				size.x -= 1;
-				shell.setSize(size);
-				size.x += 1;
-				shell.setSize(size);
-			}
-		}
-
 		triggerChangeListener(sOldID, sNewID);
 	}
 

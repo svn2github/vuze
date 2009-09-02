@@ -331,9 +331,11 @@ public class MainMenu
 		/*
 		 * No need for restart and exit on OS X since it's already handled on the application menu
 		 */
-		if (false == Constants.isOSX) {
+		if (!Utils.isCarbon) {
 			MenuFactory.addSeparatorMenuItem(fileMenu);
 			MenuFactory.addRestartMenuItem(fileMenu);
+		}
+		if (!Constants.isOSX) {
 			MenuFactory.addExitMenuItem(fileMenu);
 		}
 	}

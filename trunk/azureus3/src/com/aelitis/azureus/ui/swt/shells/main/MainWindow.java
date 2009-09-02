@@ -868,8 +868,7 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			if (org.gudy.azureus2.core3.util.Constants.isOSX
-					&& SWT.getPlatform().equals("carbon")) {
+			if (Utils.isCarbon) {
 				try {
 
 					Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
