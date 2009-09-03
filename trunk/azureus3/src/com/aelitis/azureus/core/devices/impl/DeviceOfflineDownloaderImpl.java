@@ -23,6 +23,8 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
@@ -33,6 +35,8 @@ import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
@@ -52,7 +56,9 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.util.DownloadUtils;
 import com.aelitis.net.upnp.UPnPDevice;
 import com.aelitis.net.upnp.UPnPRootDevice;
 import com.aelitis.net.upnp.services.UPnPOfflineDownloader;
@@ -581,7 +587,46 @@ DeviceOfflineDownloaderImpl
 									// need to add the torrent
 							
 								try{
-							
+										// for vuze content add in the azid
+									
+									if ( PlatformTorrentUtils.isContent( torrent, true )){
+										
+										String ext = DownloadUtils.getTrackerExtensions( PluginCoreUtils.wrap( download ));
+										
+										if ( ext != null && ext.length() > 0 ){
+											
+											try{
+												
+												if ( ext.startsWith( "&" )){
+													
+													ext = ext.substring(1);
+												}
+											
+												torrent = TOTorrentFactory.deserialiseFromMap( torrent.serialiseToMap());
+												
+												torrent.setAnnounceURL( appendToURL( torrent.getAnnounceURL(), ext ));
+												
+												TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+												
+												for ( TOTorrentAnnounceURLSet set: sets ){
+													
+													URL[] urls = set.getAnnounceURLs();
+													
+													for (int i=0;i<urls.length;i++){
+														
+														urls[i] = appendToURL( urls[i], ext );
+													}
+												}
+												
+												torrent.getAnnounceURLGroup().setAnnounceURLSets( sets );
+												
+											}catch( Throwable e ){
+												
+												log( "Torrent modification failed", e );
+											}
+										}
+									}
+									
 									String add_result = 
 										service.addDownload( 
 											client_id, 
@@ -790,6 +835,27 @@ DeviceOfflineDownloaderImpl
 		}
 	}
 
+	protected URL
+	appendToURL(
+		URL			url,
+		String		ext )
+	
+		throws MalformedURLException
+	{
+		String url_str = url.toExternalForm();
+		
+		if ( url_str.indexOf( '?' ) == -1 ){
+			
+			url_str += "?" + ext;
+			
+		}else{
+			
+			url_str += "&" + ext;
+		}
+		
+		return( new URL( url_str ));
+	}
+	
 	protected void
 	updateTransferable(
 		Map<String,TransferableDownload>	map )

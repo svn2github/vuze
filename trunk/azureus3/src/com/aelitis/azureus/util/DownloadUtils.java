@@ -97,6 +97,13 @@ DownloadUtils
 		download.setAttribute( ta_tracker_extensions, value );
 	}
 	
+	public static synchronized String
+	getTrackerExtensions(
+		Download	download )
+	{
+		return( download.getAttribute( ta_tracker_extensions ));
+	}
+	
 	public static synchronized void
 	removeTrackerExtension(
 		Download	download,
