@@ -91,26 +91,70 @@ public class SWTVersionGetter {
 					+ "and url from version check client."));
     
     Map reply = VersionCheckClient.getSingleton().getVersionCheckInfo(VersionCheckClient.REASON_CHECK_SWT);
+
+    String msg = "SWT version check received:";
+
+    boolean	done = false;
     
     if ( Constants.isOSX_10_5_OrHigher ){
     
-    	String	temp_lib = COConfigurationManager.getStringParameter( "ConfigView.section.style.swt.library.selection" );
+    	String target_lib = COConfigurationManager.getStringParameter( "ConfigView.section.style.swt.library.selection" );
     	
-    	System.out.println( temp_lib );
+    	String current_lib = SWT.getPlatform();
+    	
+    	if ( target_lib.equalsIgnoreCase( current_lib )){
+    		
+    	    byte[] version_bytes = (byte[])reply.get( "swt_version_" + target_lib );
+    	    
+    	    if ( version_bytes != null ){
+    	    	
+    	    	latestVersion = Integer.parseInt( new String( version_bytes ) );
+    	    	
+    	    	msg += " version=" + latestVersion;
+    	    	
+        		byte[] url_bytes = (byte[])reply.get( "swt_url_" + target_lib );
+
+        		if ( url_bytes != null ){
+
+           			mirrors = new String[] { new String( url_bytes ) };
+        			
+        			msg += " url=" + mirrors[0];
+        		}
+        		
+        		done = true;
+    	    }
+    	}else{
+    		
+    		byte[] url_bytes = (byte[])reply.get( "swt_url_" + target_lib );
+
+    		if ( url_bytes != null ){
+    			
+    			msg += " (platform switch from " + current_lib + " to " + target_lib + ")";
+    			
+    			mirrors = new String[] { new String( url_bytes ) };
+    			
+    			msg += " url=" + mirrors[0];
+    			
+    			latestVersion = Integer.MAX_VALUE;
+    			
+    			done = true;
+    		}
+    	}
     }
     
-    String msg = "SWT version check received:";
-    
-    byte[] version_bytes = (byte[])reply.get( "swt_version" );
-    if( version_bytes != null ) {
-      latestVersion = Integer.parseInt( new String( version_bytes ) );
-      msg += " version=" + latestVersion;
-    }
-    
-    byte[] url_bytes = (byte[])reply.get( "swt_url" );
-    if( url_bytes != null ) {
-      mirrors = new String[] { new String( url_bytes ) };
-      msg += " url=" + mirrors[0];
+    if ( !done ){
+    	
+	    byte[] version_bytes = (byte[])reply.get( "swt_version" );
+	    if( version_bytes != null ) {
+	      latestVersion = Integer.parseInt( new String( version_bytes ) );
+	      msg += " version=" + latestVersion;
+	    }
+	    
+	    byte[] url_bytes = (byte[])reply.get( "swt_url" );
+	    if( url_bytes != null ) {
+	      mirrors = new String[] { new String( url_bytes ) };
+	      msg += " url=" + mirrors[0];
+	    }
     }
     
     byte[] info_bytes = (byte[])reply.get( "swt_info_url" );
