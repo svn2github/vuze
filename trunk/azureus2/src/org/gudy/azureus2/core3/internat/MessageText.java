@@ -24,7 +24,6 @@ import java.io.FilenameFilter;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.security.AccessController;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -39,7 +38,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
-import sun.security.action.GetPropertyAction;
 
 /**
  * @author Arbeiten
@@ -764,17 +762,16 @@ public class MessageText {
  * Reverts Locale back to default, and removes the config settin. 
  * Notifications of change should be done by the caller.
  */
+  /*
   @SuppressWarnings("restriction")
 	public static void revertToDefaultLocale() {
   	// Aside from the last 2 lines, this is Sun's code that is run
   	// at startup to determine the locale.  Too bad they didn't provide
   	// a way to call this code explicitly..
     String language, region, country, variant;
-    language = (String) AccessController.doPrivileged(
-                    new GetPropertyAction("user.language", "en"));
+    language = System.getProperty("user.language", "en");
     // for compatibility, check for old user.region property
-    region = (String) AccessController.doPrivileged(
-                    new GetPropertyAction("user.region"));
+    region = System.getProperty("user.region");
     if (region != null) {
         // region can be of form country, country_variant, or _variant
         int i = region.indexOf('_');
@@ -786,14 +783,13 @@ public class MessageText {
             variant = "";
         }
     } else {
-        country = (String) AccessController.doPrivileged(
-                        new GetPropertyAction("user.country", ""));
-        variant = (String) AccessController.doPrivileged(
-                        new GetPropertyAction("user.variant", ""));
+        country = System.getProperty("user.country", "");
+        variant = System.getProperty("user.variant", "");
     }
     changeLocale(new Locale(language, country, variant));
     COConfigurationManager.removeParameter("locale");
   }
+  */
   
   public static interface
   MessageTextListener
