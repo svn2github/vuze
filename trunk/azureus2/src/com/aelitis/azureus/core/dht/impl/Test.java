@@ -89,7 +89,7 @@ Test
 	static Properties	dht_props = new Properties();
 	
 	static{		
-		DHTDBImpl.ORIGINAL_REPUBLISH_INTERVAL_GRACE = 0;
+		// DHTDBImpl.ORIGINAL_REPUBLISH_INTERVAL_GRACE = 0;
 
 		dht_props.put( DHT.PR_CONTACTS_PER_NODE, new Integer(K));
 		dht_props.put( DHT.PR_NODE_SPLIT_FACTOR, new Integer(B));
@@ -428,8 +428,33 @@ Test
 						
 						stats_before = dht.getTransport().getStats().snapshot();
 					
+						pos = rhs.indexOf( ' ' );
+						
+						byte flags 	= 0;
+						
+						if ( pos != -1 ){
+							
+							String	opts = rhs.substring( pos+1 );
+							
+							String[] x = opts.split( "," );
+							
+							for ( String s: x ){
+								
+								String[] y = s.split("=");
+								
+								String	opt = y[0];
+								
+								if ( opt.equals( "f" )){
+									
+									flags = (byte)Integer.parseInt(y[1]);
+								}
+							}
+							
+							rhs = rhs.substring(0,pos);
+						}
+						
 						dht.get( 
-								rhs.getBytes(), "", (byte)0, 32, 0, false, false,
+								rhs.getBytes(), "", flags, 32, 0, false, false,
 								new DHTOperationAdapter()
 								{
 									public void

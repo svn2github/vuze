@@ -33,6 +33,9 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.engines.RC4Engine;
+import org.bouncycastle.crypto.params.KeyParameter;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.dht.*;
@@ -758,6 +761,7 @@ DHTControlImpl
 				encoded_key, 
 				_description,
 				value, 
+				_flags,
 				0, 
 				true,
 				new HashSet(),
@@ -780,6 +784,7 @@ DHTControlImpl
 				encoded_key, 
 				description, 
 				value, 
+				(byte)0,
 				timeout, 
 				original_mappings,
 				new HashSet(),
@@ -795,6 +800,7 @@ DHTControlImpl
 		byte[]						initial_encoded_key,
 		String						description,
 		DHTTransportValue			value,
+		byte						flags,
 		long						timeout,
 		boolean						original_mappings,
 		Set							things_written,
@@ -806,6 +812,7 @@ DHTControlImpl
 				initial_encoded_key, 
 				description, 
 				new DHTTransportValue[]{ value }, 
+				flags,
 				timeout,
 				original_mappings,
 				things_written,
@@ -820,6 +827,7 @@ DHTControlImpl
 		final byte[]						initial_encoded_key,
 		final String						description,
 		final DHTTransportValue[]			values,
+		final byte							flags,
 		final long							timeout,
 		final boolean						original_mappings,
 		final Set							things_written,
@@ -879,7 +887,7 @@ DHTControlImpl
 					high_priority,
 					encoded_key,
 					this_description,
-					(byte)0,
+					flags,
 					false, 
 					timeout,
 					search_concurrency,
@@ -904,6 +912,7 @@ DHTControlImpl
 									new byte[][]{ encoded_key }, 
 									"Store of [" + this_description + "]",
 									new DHTTransportValue[][]{ values }, 
+									flags,
 									_closest, 
 									timeout, 
 									listener, 
@@ -932,6 +941,7 @@ DHTControlImpl
 				encoded_keys, 
 				description,
 				value_sets, 
+				(byte)0,
 				contacts, 
 				0, 
 				new DHTOperationListenerDemuxer( new DHTOperationAdapter()),
@@ -941,6 +951,89 @@ DHTControlImpl
 				false );
 	}
 		
+	protected byte[]
+	getObfuscatedKey(
+		byte[]		plain_key )
+	{
+		byte[]	obs_key = new byte[ plain_key.length ];
+		
+		System.arraycopy( plain_key, 0, obs_key, 0, 5 );
+		
+		return( obs_key );
+	}
+	
+	protected DHTTransportValue
+	getObfuscatedValue(
+		final DHTTransportValue		basis,
+		byte[]						plain_key )
+	{
+        RC4Engine	engine = new RC4Engine();
+        
+		CipherParameters	params = new KeyParameter( new SHA1Simple().calculateHash( plain_key ));
+		
+		engine.init( true, params ); 
+
+		byte[]	temp = new byte[1024];
+		
+		engine.processBytes( temp, 0, 1024, temp, 0 );
+		
+		final byte[] obs_value = new byte[ plain_key.length ];
+		
+		engine.processBytes( plain_key, 0, plain_key.length, obs_value, 0 );
+		
+		return( 
+			new DHTTransportValue()
+			{
+				public boolean
+				isLocal()
+				{
+					return( basis.isLocal());
+				}
+				
+				public long
+				getCreationTime()
+				{
+					return( basis.getCreationTime());
+				}
+				
+				public byte[]
+				getValue()
+				{
+					return( obs_value );
+				}
+				
+				public int
+				getVersion()
+				{	
+					return( basis.getVersion());
+				}
+				
+				public DHTTransportContact
+				getOriginator()
+				{
+					return( basis.getOriginator());
+				}
+				
+				public int
+				getFlags()
+				{
+					return( basis.getFlags());
+				}
+				
+				public int
+				getLifeTimeHours()
+				{
+					return( basis.getLifeTimeHours());
+				}
+				
+				public String
+				getString()
+				{
+					return( "obs: " + basis.getString());
+				}
+			});
+	}
+	
 	protected void
 	put(
 		final ThreadPool						thread_pool,
@@ -948,6 +1041,7 @@ DHTControlImpl
 		byte[][]								initial_encoded_keys,
 		final String							description,
 		final DHTTransportValue[][]				initial_value_sets,
+		final byte								flags,
 		final List								contacts,
 		final long								timeout,
 		final DHTOperationListenerDemuxer		listener,
@@ -1011,6 +1105,32 @@ DHTControlImpl
 			}
 		}
 		
+		final byte[][] 				obs_keys;
+		final DHTTransportValue[][]	obs_vals;
+
+		if ( ( flags & DHT.FLAG_OBFUSCATE_LOOKUP ) != 0 ){
+		
+			if ( encoded_keys.length != 1 ){
+				
+				Debug.out( "inconsistent - expected one key" );
+			}
+			
+			if ( value_sets[0].length != 1 ){
+				
+				Debug.out( "inconsistent - expected one value" );
+			}
+			
+			obs_keys	= new byte[1][];
+			obs_vals	= new DHTTransportValue[1][1];
+
+			obs_keys[0] 	= getObfuscatedKey( encoded_keys[0] );
+			obs_vals[0][0]	= getObfuscatedValue( value_sets[0][0], encoded_keys[0] );
+		}else{
+			
+			obs_keys	= null;
+			obs_vals	= null;
+		}
+		
 			// only diversify on one hit as we're storing at closest 'n' so we only need to
 			// do it once for each key
 		
@@ -1020,7 +1140,7 @@ DHTControlImpl
 		
 		for (int i=0;i<contacts.size();i++){
 		
-			DHTTransportContact	contact = (DHTTransportContact)contacts.get(i);
+			final DHTTransportContact	contact = (DHTTransportContact)contacts.get(i);
 			
 			if ( router.isID( contact.getID())){
 					
@@ -1076,6 +1196,8 @@ DHTControlImpl
 									DHTTransportContact _contact,
 									byte[]				_diversifications )
 								{
+									boolean	complete_is_async = false;
+									
 									try{
 										if ( DHTLog.isOn()){
 											DHTLog.log( "Store OK " + DHTLog.getString( _contact ));
@@ -1085,11 +1207,15 @@ DHTControlImpl
 									
 											// can be null for old protocol versions
 										
+										boolean div_done = false;
+										
 										if ( consider_diversification && _diversifications != null ){
 																			
 											for (int j=0;j<_diversifications.length;j++){
 												
 												if ( _diversifications[j] != DHT.DT_NONE && !diversified[j] ){
+													
+													div_done = true;
 													
 													diversified[j]	= true;
 													
@@ -1106,6 +1232,7 @@ DHTControlImpl
 																diversified_keys[k], 
 																"Diversification of [" + description + "]",
 																value_sets[j], 
+																flags,
 																timeout,
 																false,
 																things_written,
@@ -1115,9 +1242,51 @@ DHTControlImpl
 												}
 											}
 										}
+										
+										if ( !div_done ){
+											
+											if ( obs_keys != null ){
+																								
+												contact.sendStore( 
+														new DHTTransportReplyHandlerAdapter()
+														{
+															public void
+															storeReply(
+																DHTTransportContact _contact,
+																byte[]				_diversifications )
+															{
+																if ( DHTLog.isOn()){
+																	DHTLog.log( "Obs store OK " + DHTLog.getString( _contact ));
+																}
+
+																listener.complete( false );
+															}
+															
+															public void
+															failed(
+																DHTTransportContact 	_contact,
+																Throwable 				_error )
+															{
+																if ( DHTLog.isOn()){
+																	DHTLog.log( "Obs store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+																}
+
+																listener.complete( true );
+															}
+														},
+														obs_keys,
+														obs_vals,
+														immediate );
+												
+												complete_is_async = true;
+											}
+										}
 									}finally{
 										
-										listener.complete( false );
+										if ( !complete_is_async ){
+										
+											listener.complete( false );
+										}
 									}	
 								}
 								
@@ -1648,6 +1817,7 @@ DHTControlImpl
 					encoded_key, 
 					description, 
 					res,
+					(byte)res.getFlags(),
 					0, 
 					true, 
 					new HashSet(),
@@ -1693,6 +1863,7 @@ DHTControlImpl
 					new byte[][]{ encoded_key }, 
 					"Store of [" + description + "]",
 					new DHTTransportValue[][]{{ res }}, 
+					(byte)res.getFlags(),
 					contacts_l, 
 					0, 
 					new DHTOperationListenerDemuxer( listener ), 
@@ -1716,7 +1887,7 @@ DHTControlImpl
 	lookup(
 		final ThreadPool 			thread_pool, 
 		boolean 					high_priority, 
-		final byte[] 				lookup_id, 
+		final byte[] 				_lookup_id, 
 		final String 				description, 
 		final byte 					flags, 
 		final boolean 				value_search, 
@@ -1726,9 +1897,24 @@ DHTControlImpl
 		final int 					search_accuracy, 
 		final lookupResultHandler 	handler )
 	{
+		final byte[] lookup_id;
+		
+		if (( flags & DHT.FLAG_OBFUSCATE_LOOKUP ) != 0 ){
+			
+			lookup_id = getObfuscatedKey( _lookup_id );
+			
+		}else{
+			
+			lookup_id = _lookup_id;
+		}
+		
+		System.out.println( "lookup for " + ByteFormatter.encodeString( lookup_id ));
+		
 		DhtTask	task =
 			new DhtTask(thread_pool)
 			{
+				final boolean obs_lookup = lookup_id != _lookup_id;
+				
 				boolean timeout_occurred = false;
 
 				// keep querying successively closer nodes until we have got responses from the K
@@ -2174,9 +2360,18 @@ DHTControlImpl
 													HashWrapper x = new HashWrapper(value_id);
 													if (!values_found_set.contains(x))
 													{
-														new_values++;
-														values_found_set.add(x);
-														handler.read(contact, values[i]);
+														if ( obs_lookup ){
+														
+																// we have read the marker value, now issue a direct read with the 
+																// real key
+															
+															System.out.println( "I would now do a lookup!!!!" );
+															
+														}else{
+															new_values++;
+															values_found_set.add(x);
+															handler.read(contact, values[i]);
+														}
 													}
 												}
 											}
