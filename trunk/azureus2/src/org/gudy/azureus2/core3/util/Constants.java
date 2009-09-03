@@ -130,6 +130,36 @@ Constants
 	  }
   }
   
+ public static final boolean isOSX_10_5_OrHigher;
+  
+  static{
+	  if ( isOSX ){
+		 
+		  int	first_digit 	= 0;
+		  int	second_digit	= 0;
+		  
+		  try{
+			  String os_version = System.getProperty( "os.version" );
+
+			  String[] bits = os_version.split( "\\." );
+			
+			  first_digit = Integer.parseInt( bits[0] );
+			  
+			  if ( bits.length > 1 ){
+			  
+				  second_digit = Integer.parseInt( bits[1] );
+			  }
+		  }catch( Throwable e ){
+			  
+		  }
+		  
+		  isOSX_10_5_OrHigher = first_digit > 10 || ( first_digit == 10 && second_digit >= 5 );
+		  
+	  }else{
+		  
+		  isOSX_10_5_OrHigher = false;
+	  }
+  }
   
   public static final String	JAVA_VERSION = System.getProperty("java.version");
   

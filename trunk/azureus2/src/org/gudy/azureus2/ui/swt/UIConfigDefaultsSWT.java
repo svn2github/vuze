@@ -123,6 +123,8 @@ public class UIConfigDefaultsSWT
 		
 		
 		def.addParameter("MyTorrentsView.table.style", 0);
-    def.addParameter("MyTorrentsView.alwaysShowHeader", true);
+		def.addParameter("MyTorrentsView.alwaysShowHeader", true);
+		
+		def.addParameter("ConfigView.section.style.swt.library.selection", "cocoa");
 	}
 }

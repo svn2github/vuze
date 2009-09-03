@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEVerifier;
 import org.gudy.azureus2.core3.util.Constants;
@@ -90,6 +91,13 @@ public class SWTVersionGetter {
 					+ "and url from version check client."));
     
     Map reply = VersionCheckClient.getSingleton().getVersionCheckInfo(VersionCheckClient.REASON_CHECK_SWT);
+    
+    if ( Constants.isOSX_10_5_OrHigher ){
+    
+    	String	temp_lib = COConfigurationManager.getStringParameter( "ConfigView.section.style.swt.library.selection" );
+    	
+    	System.out.println( temp_lib );
+    }
     
     String msg = "SWT version check received:";
     
