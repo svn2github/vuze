@@ -685,6 +685,13 @@ DownloadManager
      */
     public void renameTorrent(String new_name) throws DownloadManagerException;
 
+
+		/**
+		 * Same as renameTorrent, but appends numbers if torrent already exists 
+		 * @since 4.2.0.9
+		 */
+		public void renameTorrentSafe(String name) throws DownloadManagerException;
+    
     /**
      * @since 3.0.5.1
      */

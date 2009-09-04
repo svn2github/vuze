@@ -3749,7 +3749,7 @@ DownloadManagerImpl
 		this.moveTorrentFile(null, name);
 	}
 
-	private void renameTorrentSafe(String name) throws DownloadManagerException {
+	public void renameTorrentSafe(String name) throws DownloadManagerException {
 		String torrent_parent = new File(this.getTorrentFileName()).getParent();
 		String torrent_name = name;
 		
