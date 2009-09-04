@@ -275,6 +275,11 @@ DHTDBImpl
 		
 		if ( (flags & DHT.FLAG_PUT_AND_FORGET ) == 0 ){
 			
+			if (( flags & DHT.FLAG_OBFUSCATE_LOOKUP ) != 0 ){
+				
+				Debug.out( "Obfuscated puts without 'put-and-forget' are not supported as original-republishing of them is not implemented" );
+			}
+			
 			if ( life_hours > 0 ){
 				
 				if ( life_hours*60*60*1000 < original_republish_interval ){

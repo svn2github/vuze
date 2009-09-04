@@ -962,10 +962,9 @@ DHTControlImpl
 		return( obs_key );
 	}
 	
-	protected DHTTransportValue
+	protected byte[]
 	getObfuscatedValue(
-		final DHTTransportValue		basis,
-		byte[]						plain_key )
+		byte[]		plain_key )
 	{
         RC4Engine	engine = new RC4Engine();
         
@@ -981,6 +980,16 @@ DHTControlImpl
 		
 		engine.processBytes( plain_key, 0, plain_key.length, obs_value, 0 );
 		
+		return( obs_value );
+	}
+	
+	protected DHTTransportValue
+	getObfuscatedValue(
+		final DHTTransportValue		basis,
+		byte[]						plain_key )
+	{		
+		final byte[] obs_value = getObfuscatedValue( plain_key );
+				
 		return( 
 			new DHTTransportValue()
 			{
@@ -1897,15 +1906,18 @@ DHTControlImpl
 		final int 					search_accuracy, 
 		final lookupResultHandler 	handler )
 	{
-		final byte[] lookup_id;
+		final byte[] 	lookup_id;
+		final byte[]	obs_value;
 		
 		if (( flags & DHT.FLAG_OBFUSCATE_LOOKUP ) != 0 ){
 			
-			lookup_id = getObfuscatedKey( _lookup_id );
+			lookup_id 	= getObfuscatedKey( _lookup_id );
+			obs_value	= getObfuscatedValue( _lookup_id );
 			
 		}else{
 			
-			lookup_id = _lookup_id;
+			lookup_id 	= _lookup_id;
+			obs_value	= null;
 		}
 		
 		System.out.println( "lookup for " + ByteFormatter.encodeString( lookup_id ));
@@ -1913,8 +1925,6 @@ DHTControlImpl
 		DhtTask	task =
 			new DhtTask(thread_pool)
 			{
-				final boolean obs_lookup = lookup_id != _lookup_id;
-				
 				boolean timeout_occurred = false;
 
 				// keep querying successively closer nodes until we have got responses from the K
@@ -2232,6 +2242,9 @@ DHTControlImpl
 											closest = vp_closest;
 									}
 								}
+								
+								final DHTTransportContact f_closest = closest;
+								
 								contacts_to_query.remove(closest);
 								contacts_queried.put(new HashWrapper(closest.getID()), closest);
 								// never search ourselves!
@@ -2321,9 +2334,24 @@ DHTControlImpl
 										}
 									}
 
-									public void findValueReply(DHTTransportContact contact, DHTTransportValue[] values, byte diversification_type, boolean more_to_come) {
+									public void 
+									findValueReply(
+										DHTTransportContact 	contact, 
+										DHTTransportValue[] 	values, 
+										byte 					diversification_type, 	// hack - this is set to 99 when recursing here during obsfuscated lookup
+										boolean 				more_to_come )
+									{
 										if ( DHTLog.isOn()){
 											DHTLog.log("findValueReply: " + DHTLog.getString(values) + ",mtc=" + more_to_come + ", dt=" + diversification_type);
+										}
+										
+										boolean	obs_recurse = false;
+										
+										if ( diversification_type == 99 ){
+											
+											obs_recurse = true;
+											
+											diversification_type = DHT.DT_NONE;
 										}
 										
 										try
@@ -2358,15 +2386,48 @@ DHTControlImpl
 													System.arraycopy(originator_id, 0, value_id, 0, originator_id.length);
 													System.arraycopy(value_bytes, 0, value_id, originator_id.length, value_bytes.length);
 													HashWrapper x = new HashWrapper(value_id);
-													if (!values_found_set.contains(x))
-													{
-														if ( obs_lookup ){
+													
+													if ( !values_found_set.contains(x)){
+														
+														if ( obs_value != null && ! obs_recurse ){
 														
 																// we have read the marker value, now issue a direct read with the 
 																// real key
 															
-															System.out.println( "I would now do a lookup!!!!" );
+															if ( Arrays.equals( obs_value, value_bytes )){
 															
+																more_to_come = true;
+															
+																final DHTTransportReplyHandlerAdapter f_outer = this;
+																
+																f_closest.sendFindValue( 
+																	new DHTTransportReplyHandlerAdapter()
+																	{
+																		public void
+																		findValueReply(
+																			DHTTransportContact 	contact, 
+																			DHTTransportValue[] 	values, 
+																			byte 					diversification_type, 
+																			boolean 				more_to_come )
+																		{
+																			if ( diversification_type == DHT.DT_NONE ){
+																			
+																				f_outer.findValueReply( contact, values, (byte)99, false );
+																			}
+																		}
+																		
+																		public void 
+																		failed(
+																			DHTTransportContact 	contact,
+																			Throwable 				error )
+																		{
+																			f_outer.failed( contact, error );
+																		}
+																	},
+																	_lookup_id, 1, flags );
+																
+																break;
+															}
 														}else{
 															new_values++;
 															values_found_set.add(x);
