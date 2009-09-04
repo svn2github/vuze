@@ -53,6 +53,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
+import org.gudy.azureus2.ui.swt.shells.AdvRenameWindow;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -635,101 +636,16 @@ public class TorrentUtil {
 		itemFileClearResume.setEnabled(allStopped);
 
 		// Advanced - > Rename
-		final MenuItem itemRename = new MenuItem(menuAdvanced, SWT.CASCADE);
+		final MenuItem itemRename = new MenuItem(menuAdvanced, SWT.DROP_DOWN);
 		Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");
-		itemRename.setEnabled(hasSelection);
-
-		final Menu menuRename = new Menu(composite.getShell(), SWT.DROP_DOWN);
-		itemRename.setMenu(menuRename);
-		
-		DownloadManager first_selected = (dms.length == 0) ? null : dms[0];
-		
-		// Advanced - > Rename -> Displayed Name
-		final MenuItem itemRenameDisplayed = new MenuItem(menuRename, SWT.CASCADE);
-		Messages.setLanguageText(itemRenameDisplayed, "MyTorrentsView.menu.rename.displayed");
-		itemRenameDisplayed.setEnabled(hasSelection);
-		if (itemRenameDisplayed.isEnabled()) {
-			itemRenameDisplayed.setData("suggested_text", first_selected.getDisplayName());
-			itemRenameDisplayed.setData("display_name", Boolean.TRUE);
-			itemRenameDisplayed.setData("save_name", Boolean.FALSE);
-			itemRenameDisplayed.setData("rename_all", Boolean.FALSE);
-			itemRenameDisplayed.setData("msg_key", "displayed");
-		}
-
-		// Rename -> Save Name
-		final MenuItem itemRenameSavePath = new MenuItem(menuRename, SWT.CASCADE);
-		Messages.setLanguageText(itemRenameSavePath, "MyTorrentsView.menu.rename.save_path");
-		itemRenameSavePath.setEnabled(fileMove && dms.length == 1);
-		if (itemRenameSavePath.isEnabled()) {
-			itemRenameSavePath.setData("suggested_text", first_selected.getAbsoluteSaveLocation().getName());
-			itemRenameSavePath.setData("display_name", Boolean.FALSE);
-			itemRenameSavePath.setData("save_name", Boolean.TRUE);
-			itemRenameSavePath.setData("rename_all", Boolean.FALSE);
-			itemRenameSavePath.setData("msg_key", "save_path");
-		}
-
-		// Rename -> Both
-		final MenuItem itemRenameBoth = new MenuItem(menuRename, SWT.CASCADE);
-		Messages.setLanguageText(itemRenameBoth, "MyTorrentsView.menu.rename.displayed_and_save_path");
-		itemRenameBoth.setEnabled(fileMove && dms.length == 1);
-		if (itemRenameBoth.isEnabled()) {
-			itemRenameBoth.setData("suggested_text", first_selected.getAbsoluteSaveLocation().getName());
-			itemRenameBoth.setData("display_name", Boolean.TRUE);
-			itemRenameBoth.setData("save_name", Boolean.TRUE);
-			itemRenameBoth.setData("msg_key", "displayed_and_save_path");
-			itemRenameBoth.setData("rename_all", Boolean.FALSE);
-		}
-
-		Listener rename_listener = new Listener() {
+		itemRename.setEnabled(hasSelection && dms.length == 1);
+		itemRename.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				MenuItem mi = (MenuItem) event.widget;
-				String suggested = (String) mi.getData("suggested_text");
-				final boolean rename_all = ((Boolean) mi.getData("rename_all")).booleanValue();
-				final boolean change_displayed_name = ((Boolean) mi.getData("display_name")).booleanValue();
-				final boolean change_save_name = ((Boolean) mi.getData("save_name")).booleanValue();
-				String msg_key_prefix = "MyTorrentsView.menu.rename." + (String) mi.getData("msg_key") + ".enter.";
-				SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow();
-				text_entry.setTitle(msg_key_prefix + "title");
-				text_entry.setMessage(msg_key_prefix + "message");
-				text_entry.setPreenteredText(suggested, false);
-				text_entry.prompt();
-				if (text_entry.hasSubmittedInput()) {
-					String value = text_entry.getSubmittedInput();
-					final String value_to_set = (value.length() == 0) ? null : value;
-					DMTask task = new DMTask(dms) {
-						public void run(DownloadManager dm) {
-							if (rename_all) {
-								try {
-									dm.rename(value_to_set);
-								}
-								catch (Exception e) {
-									Logger.log(new LogAlert(dm, LogAlert.REPEATABLE,
-											"Download data rename operation failed", e));
-								}
-							}
-							if (change_displayed_name) {
-								dm.getDownloadState().setDisplayName(value_to_set);
-							}
-							if (change_save_name) {
-								try {
-									dm.renameDownload((value_to_set == null) ? dm.getDisplayName() : value_to_set);
-								}
-								catch (Exception e) {
-									Logger.log(new LogAlert(dm, LogAlert.REPEATABLE,
-											"Download data rename operation failed", e));
-								}
-							}
-						}
-					};
-					task.go();
-				}
+				AdvRenameWindow window = new AdvRenameWindow();
+				window.open(dms[0]);
 			}
-		};
+		});
 
-		itemRenameDisplayed.addListener(SWT.Selection, rename_listener);
-		itemRenameSavePath.addListener(SWT.Selection, rename_listener);
-		itemRenameBoth.addListener(SWT.Selection, rename_listener);
-		
 		// === advanced > export ===
 		// =========================
 
