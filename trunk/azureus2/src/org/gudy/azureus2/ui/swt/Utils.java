@@ -2149,6 +2149,8 @@ public class Utils
 	
 	
 	private static Map truncatedTextCache = new HashMap();
+
+	private static ThreadPool tp;
 	
 	private static class TruncatedTextResult {
 		String text;
@@ -2256,5 +2258,14 @@ public class Utils
 				0 );
 		
 		mb.open();
+	}
+	
+	public static void getOffOfSWTThread(AERunnable runnable) {
+		synchronized (GOOD_STRING) {
+			if (tp == null) {
+				tp = new ThreadPool("GetOffSWT", 2);
+			}
+		}
+		tp.run(runnable);
 	}
 }
