@@ -179,7 +179,7 @@ TableCellDisposeListener, TableCellSWTPaintListener
 		long total 	= od.getCurrentTransferSize();
 		long rem	= od.getRemaining();
 		
-		if ( total == 0 ){
+		if ( total == 0 || total < rem ){
 			
 			return( 0 );
 		}
