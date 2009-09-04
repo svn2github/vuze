@@ -1919,9 +1919,7 @@ DHTControlImpl
 			lookup_id 	= _lookup_id;
 			obs_value	= null;
 		}
-		
-		System.out.println( "lookup for " + ByteFormatter.encodeString( lookup_id ));
-		
+				
 		DhtTask	task =
 			new DhtTask(thread_pool)
 			{
