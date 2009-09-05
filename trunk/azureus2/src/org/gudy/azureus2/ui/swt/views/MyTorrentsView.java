@@ -2060,14 +2060,14 @@ public class MyTorrentsView
 		}
 		
 		Object[] managers = globalManager.getDownloadManagers().toArray();
-		List list = tv.getDataSources();
+		Set existing = new HashSet(tv.getDataSources());
 		List listRemoves = new ArrayList();
 		List listAdds = new ArrayList();
 		
 		for (int i = 0; i < managers.length; i++) {
 			DownloadManager dm = (DownloadManager) managers[i];
 		
-			boolean bHave = list.contains(dm);
+			boolean bHave = existing.contains(dm);
 			if (!isOurDownloadManager(dm)) {
 				if (bHave) {
 					listRemoves.add(dm);
