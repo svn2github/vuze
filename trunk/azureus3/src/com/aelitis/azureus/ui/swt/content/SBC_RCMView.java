@@ -42,7 +42,9 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWTFiltered;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTFilteredImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -84,11 +86,13 @@ SBC_RCMView
 		}
 	}
 	
-	private TableViewSWTImpl<RelatedContent> tv_related_content;
+	private TableViewSWTFiltered<RelatedContent> tv_related_content;
 
 	private SideBarEntrySWT 	sidebar_entry;
 	private Composite			table_parent;
 	
+	
+	private String		match = "";
 
 	public Object 
 	skinObjectInitialShow(
@@ -285,14 +289,28 @@ SBC_RCMView
 		Composite control ) 
 	{
 
-		tv_related_content = 
+		tv_related_content = new TableViewSWTFilteredImpl<RelatedContent>(
 			new TableViewSWTImpl<RelatedContent>(
 					RelatedContent.class, 
 					TABLE_RCM,
 					TABLE_RCM, 
 					new TableColumnCore[0], 
 					ColumnRC_New.COLUMN_ID, 
-					SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
+					SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL ),
+			new TableViewSWTFiltered.Filter<RelatedContent>()
+			{
+				public boolean 
+				isVisible(
+					RelatedContent data_source ) 
+				{
+					if ( match == null || match.length() == 0 ){
+						
+						return( true );
+					}
+					
+					return( data_source.getTitle().toUpperCase().contains( match ));
+				}
+			});
 		
 		tv_related_content.setRowDefaultHeight(16);
 		tv_related_content.setHeaderVisible(true);
@@ -382,17 +400,9 @@ SBC_RCMView
 											public void
 											run()
 											{
-												if ( tv_related_content != null && !tv_related_content.isDisposed()){
+												if ( tv_related_content != null ){
 													
-													for ( RelatedContent c: hits ){
-														
-														TableRowCore row = tv_related_content.getRow( c );
-													
-														if ( row != null ){
-													
-															row.refresh(true );
-														}
-													}
+													tv_related_content.changeDataSources( hits.toArray( new RelatedContent[hits.size()]));
 												}
 											}
 										});
@@ -429,7 +439,7 @@ SBC_RCMView
 											public void
 											run()
 											{
-												if ( tv_related_content != null && !tv_related_content.isDisposed()){
+												if ( tv_related_content != null ){
 													
 													tv_related_content.removeDataSources( hits.toArray( new RelatedContent[ hits.size()] ));
 												}
@@ -447,9 +457,9 @@ SBC_RCMView
 										public void
 										run()
 										{
-											if ( tv_related_content != null && !tv_related_content.isDisposed()){
+											if ( tv_related_content != null ){
 												
-												tv_related_content.refreshTable( false );
+												tv_related_content.refresh( false );
 											}
 										}
 									});
@@ -464,9 +474,9 @@ SBC_RCMView
 										public void
 										run()
 										{
-											if ( tv_related_content != null && !tv_related_content.isDisposed()){
+											if ( tv_related_content != null ){
 												
-												tv_related_content.removeAllTableRows();
+												tv_related_content.removeAllDataSources();
 											}
 										}
 									});
@@ -482,7 +492,7 @@ SBC_RCMView
 					
 					if ( data_source instanceof RelatedContentEnumerator ){
 						
-						final TableViewSWTImpl<RelatedContent> f_table = tv_related_content;
+						final TableViewSWTFiltered<RelatedContent> f_table = tv_related_content;
 						
 						((RelatedContentEnumerator)data_source).enumerate(
 							new RelatedContentEnumerator.RelatedContentEnumeratorListener()
@@ -545,7 +555,7 @@ SBC_RCMView
 												public void
 												run()
 												{
-													if ( tv_related_content == f_table && !tv_related_content.isDisposed()){
+													if ( tv_related_content == f_table ){
 													
 														synchronized( content_set ){
 															
@@ -644,6 +654,23 @@ SBC_RCMView
 							manager.delete( content );
 							
 							e.doit = false;
+							
+						}else{
+							
+							if ( e.keyCode == SWT.BS ){
+								
+								if ( match.length() > 0 ){
+									
+									match = match.substring( 0, match.length()-1 );
+									
+									tv_related_content.filterChanged();
+								}
+							}else{
+								
+								match += Character.toUpperCase( e.character );
+								
+								tv_related_content.filterChanged();
+							}
 						}
 					}
 					
@@ -705,7 +732,7 @@ SBC_RCMView
 	{
 		if ( tv_related_content != null ){
 			
-			tv_related_content.refreshTable( false );
+			tv_related_content.refresh( false );
 		}
 	}
 }
