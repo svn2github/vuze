@@ -198,6 +198,7 @@ TableViewSWTFilteredImpl<T>
 	{
 		if ( !basis.isDisposed()){
 			
+			basis.removeAllTableRows();
 		}
 	}
 
