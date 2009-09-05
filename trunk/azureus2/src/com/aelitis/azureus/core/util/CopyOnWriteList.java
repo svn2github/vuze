@@ -23,9 +23,14 @@
 package com.aelitis.azureus.core.util;
 
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
+import org.gudy.azureus2.core3.util.IndentWriter;
 
 public class 
 CopyOnWriteList<T> 
@@ -35,7 +40,7 @@ implements Iterable<T>
 	
 	//private int mutation_count = 0;
 	
-	private List<T>	list = Collections.emptyList();
+	private List<T>	list = Collections.EMPTY_LIST;
 	
 	private boolean	visible = false;
 	
@@ -113,7 +118,7 @@ implements Iterable<T>
 				visible = false;
 				
 			}else{
-				if (list == Collections.emptyList()) {
+				if (list == Collections.EMPTY_LIST) {
 					list = new ArrayList<T>(initialCapacity);
 				}
 				
@@ -154,7 +159,7 @@ implements Iterable<T>
 	{
 		synchronized( this ){
 								
-			list	= Collections.emptyList();
+			list	= Collections.EMPTY_LIST;
 			
 			visible = false;
 		}
