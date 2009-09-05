@@ -288,7 +288,8 @@ SBC_RCMView
 	initTable(
 		Composite control ) 
 	{
-
+		match = "";
+		
 		tv_related_content = new TableViewSWTFilteredImpl<RelatedContent>(
 			new TableViewSWTImpl<RelatedContent>(
 					RelatedContent.class, 
@@ -664,12 +665,16 @@ SBC_RCMView
 									match = match.substring( 0, match.length()-1 );
 									
 									tv_related_content.filterChanged();
+									
+									e.doit = false;
 								}
 							}else{
 								
 								match += Character.toUpperCase( e.character );
 								
 								tv_related_content.filterChanged();
+								
+								e.doit = false;
 							}
 						}
 					}
