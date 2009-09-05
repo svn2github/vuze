@@ -25,7 +25,9 @@ import java.util.*;
 
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.widgets.Composite;
-import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTFiltered;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 
@@ -42,6 +44,26 @@ TableViewSWTFilteredImpl<T>
 	
 	private Set<T>	all_data_sources = new HashSet<T>();
 	
+	private FrequencyLimitedDispatcher	dispatcher = 
+		new FrequencyLimitedDispatcher(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					Utils.execSWTThread(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								filterChangedSupport();
+							}
+						});
+				}
+			},
+			300 );
+	
 	public 
 	TableViewSWTFilteredImpl(
 		TableViewSWTImpl<T>		_basis,
@@ -53,6 +75,12 @@ TableViewSWTFilteredImpl<T>
 	
 	public void 
 	filterChanged() 
+	{
+		dispatcher.dispatch();
+	}
+	
+	protected void
+	filterChangedSupport()
 	{
 		Set<T>  existing		= new HashSet<T>( basis.getDataSources());
 		List<T> list_removes 	= new ArrayList<T>();
