@@ -963,9 +963,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				wasSelected = selectedRowIndexes;
 
 				//System.out.println(table.getSelection().length);
-				triggerSelectionListeners(new TableRowCore[] {
-					getRow((TableItem) event.item)
-				});
+				if (selectedRowIndexes.length > 0 && event.item != null) {
+					triggerSelectionListeners(new TableRowCore[] {
+						getRow((TableItem) event.item)
+					});
+				}
 
 				triggerTabViewsDataSourceChanged();
 			}
