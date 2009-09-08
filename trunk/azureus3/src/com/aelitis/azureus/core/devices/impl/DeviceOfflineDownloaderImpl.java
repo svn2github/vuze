@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -73,9 +74,13 @@ DeviceOfflineDownloaderImpl
 	
 	public static final String	client_id = ByteFormatter.encodeString( CryptoManagerFactory.getSingleton().getSecureID());
 	
+	private static final Object	ERROR_KEY_OD = new Object();
+
 	private volatile UPnPOfflineDownloader		service;
 	private volatile String						service_ip;
 	private volatile String						manufacturer;
+	
+	private long	start_time = SystemTime.getMonotonousTime();
 	
 	private volatile boolean					closing;
 	
@@ -94,6 +99,7 @@ DeviceOfflineDownloaderImpl
 			5*1000 );
 	
 	private boolean								start_of_day	= true;
+	private int									consec_errors	= 0;
 	
 	private Map<String,OfflineDownload>			offline_downloads	= new HashMap<String, OfflineDownload>(); 
 	private Map<String,TransferableDownload>	transferable 		= new LinkedHashMap<String,TransferableDownload>();
@@ -183,6 +189,8 @@ DeviceOfflineDownloaderImpl
 		manufacturer = root.getDevice().getManufacturer();
 		
 		setPersistentStringProperty( PP_OD_MANUFACTURER, manufacturer );
+		
+		updateDownloads();
 	}
 	
 	protected void 
@@ -207,11 +215,6 @@ DeviceOfflineDownloaderImpl
 	{
 		super.updateStatus( tick_count );
 		
-		if ( service == null ){
-			
-			return;
-		}
-		
 		if ( tick_count % UPDATE_TICKS != 0 ){
 			
 			return;
@@ -235,7 +238,10 @@ DeviceOfflineDownloaderImpl
 				public void
 				runSupport()
 				{
-					updateDownloadsSupport();
+					if ( dispatcher.getQueueSize() == 0 ){
+					
+						updateDownloadsSupport();
+					}
 				}
 			});
 	}
@@ -245,21 +251,33 @@ DeviceOfflineDownloaderImpl
 	{
 		AzureusCore core = getManager().getAzureusCore();
 		
-		if ( core == null ){
+		if ( core == null || closing ){
+			
+				// not yet initialised or closing
 			
 			return;
 		}
 
+		boolean warn_if_dead = SystemTime.getMonotonousTime() - start_time > 3*60*1000;
+		
+		if ( !isAlive() || service == null  ){
+			
+				// no usable service
+			
+			if ( warn_if_dead ){
+			
+				setError( ERROR_KEY_OD, MessageText.getString( "device.od.error.notfound" ));
+			}
+			
+			return;
+		}
+
+		String	error_status = null;
 		
 		Map<String,DownloadManager>			new_offline_downloads 	= new HashMap<String,DownloadManager>();
 		Map<String,TransferableDownload>	new_transferables 		= new HashMap<String,TransferableDownload>();
 		
-		try{
-			if ( !isAlive() || service == null || closing ){
-				
-				return;
-			}
-			
+		try{		
 			Map<String,byte[]>	old_cache 	= (Map<String,byte[]>)getPersistentMapProperty( PP_OD_STATE_CACHE, new HashMap<String,byte[]>());
 			
 			Map<String,byte[]>	new_cache 	= new HashMap<String, byte[]>();
@@ -548,6 +566,8 @@ DeviceOfflineDownloaderImpl
 				
 				if ( !set_dl_status.equals( "OK" )){
 					
+					error_status = MessageText.getString( "device.od.error.opfailstatus", new String[]{ "SetDownloads", set_dl_status });
+
 					throw( new Exception( "Failing result returned: " + set_dl_status ));
 				}
 				
@@ -641,16 +661,22 @@ DeviceOfflineDownloaderImpl
 										
 									}else{
 										
+										error_status = MessageText.getString( "device.od.error.opfailstatus", new String[]{ "AddDownload", add_result });
+									
 										throw( new Exception( "Failed to add download: " + add_result ));
 									}
 								}catch( Throwable e ){
 									
 										// TODO: prevent continual attempts to add same torrent?
 									
+									error_status = MessageText.getString( "device.od.error.opfailexcep", new String[]{ "AddDownload", Debug.getNestedExceptionMessage( e )});
+
 									log( download, "Failed to add download", e );
 								}
 							}else{
 							
+								error_status = MessageText.getString( "device.od.error.opfailstatus", new String[]{ "SetDownloads", String.valueOf( status )});
+
 								log( download, "SetDownloads: error status returned - " + status );
 							}
 					
@@ -672,6 +698,8 @@ DeviceOfflineDownloaderImpl
 									
 									if ( !update_status.equals( "OK" )){
 										
+										error_status = MessageText.getString( "device.od.error.opfailstatus", new String[]{ "UpdateDownload", update_status });
+
 										throw( new Exception( "UpdateDownload: Failing result returned: " + update_status ));
 									}
 												
@@ -719,6 +747,8 @@ DeviceOfflineDownloaderImpl
 									
 								}catch( Throwable e ){
 							
+									error_status = MessageText.getString( "device.od.error.opfailexcep", new String[]{ "UpdateDownload", Debug.getNestedExceptionMessage( e )});
+
 									log( download, "UpdateDownload failed", e );
 								}
 							}
@@ -730,6 +760,8 @@ DeviceOfflineDownloaderImpl
 				}
 				
 			}catch( Throwable e ){
+				
+				error_status = MessageText.getString( "device.od.error.opfailexcep", new String[]{ "SetDownloads", Debug.getNestedExceptionMessage( e )});
 				
 				log( "SetDownloads failed", e );
 			}
@@ -832,9 +864,31 @@ DeviceOfflineDownloaderImpl
 				}
 			}
 			
+			updateError( error_status );
 		}
 	}
 
+	protected void
+	updateError(
+		String	str )
+	{
+		if ( str == null ){
+			
+			setError( ERROR_KEY_OD, null );
+			
+			consec_errors = 0;
+			
+		}else{
+			
+			consec_errors++;
+			
+			if ( consec_errors > 2 ){
+				
+				setError( ERROR_KEY_OD, str );
+			}
+		}
+	}
+	
 	protected URL
 	appendToURL(
 		URL			url,
