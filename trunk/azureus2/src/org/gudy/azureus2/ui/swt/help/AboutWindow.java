@@ -257,40 +257,28 @@ public class AboutWindow {
         }
     });
 
-    Thread updater =  new AEThread("Splash Screen Updater") {
-      public void runSupport() {        
+    AEThread2 updater =  new AEThread2("Splash Screen Updater", true) {
+      public void run() {        
         if(image == null || image.isDisposed())
           return;
         
-        final boolean finished[] = new boolean[1];
-        final int[] x = new int[1];
         final int maxX = image.getBounds().width;
         final int maxY = image.getBounds().height;
-        while(!finished[0]) {
+        while(paintColorTo < maxX) {
           if(image == null || image.isDisposed()) {
-            finished[0] = true;
+            paintColorTo = maxX;
             break;
           }
           if(display.isDisposed()) {
-            finished[0] = true;
+            paintColorTo = maxX;
             break;
           }
           Utils.execSWTThread(new AERunnable() {
             public void runSupport() {
               if(labelImage.isDisposed())
                 return;
-              //GC gcImage = new GC(labelImage);
-              //gcImage.setClipping(x[0],0,1,maxY);
-              //gcImage.drawImage(imgSrc,0,0);
-              //gcImage.dispose();
               paintColorTo++;
-              labelImage.redraw();
-              //labelImage.update();
-              x[0]++;
-              if(x[0] >= maxX) {
-                finished[0] = true;
-                //labelImage.setImage(imgSrc);
-              }
+              labelImage.redraw(paintColorTo - 1, 0, 2, maxY, true);
             }
           });
           try {
