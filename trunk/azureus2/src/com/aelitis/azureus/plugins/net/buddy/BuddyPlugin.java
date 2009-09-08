@@ -2002,7 +2002,7 @@ BuddyPlugin
 			List	buddies_config = (List)map.get( "friends" );
 				
 			if ( buddies_config != null ){
-							
+										
 				for (int i=0;i<buddies_config.size();i++){
 					
 					Object o = buddies_config.get(i);
@@ -2010,6 +2010,15 @@ BuddyPlugin
 					if ( o instanceof Map ){
 						
 						Map	details = (Map)o;
+						
+						Long	l_ct = (Long)details.get( "ct" );
+						
+						long	created_time = l_ct==null?now:l_ct.longValue();
+						
+						if ( created_time > now ){
+							
+							created_time = now;
+						}
 						
 						String	key = new String((byte[])details.get( "pk" ));
 						
@@ -2041,7 +2050,7 @@ BuddyPlugin
 						String	loc_cat = decodeString((byte[])details.get( "lc" ));
 						String	rem_cat = decodeString((byte[])details.get( "rc" ));
 						
-						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, subsystem, true, key, nick, ver, loc_cat, rem_cat, last_seq, last_time_online, recent_ygm );
+						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, created_time, subsystem, true, key, nick, ver, loc_cat, rem_cat, last_seq, last_time_online, recent_ygm );
 						
 						byte[]	ip_bytes = (byte[])details.get( "ip" );
 						
@@ -2066,6 +2075,13 @@ BuddyPlugin
 						buddies_map.put( key, buddy );
 					}
 				}
+			}
+			
+			int	num_buddies = buddies.size();
+			
+			for ( BuddyPluginBuddy b: buddies ){
+				
+				b.setInitialStatus( now, num_buddies );
 			}
 		}
 	}
@@ -2115,6 +2131,8 @@ BuddyPlugin
 					
 					Map	map = new HashMap();
 				
+					map.put( "ct", new Long( buddy.getCreatedTime()));
+					
 					map.put( "pk", buddy.getPublicKey());
 				
 					List	ygm = buddy.getYGMMarkers();
@@ -2240,7 +2258,7 @@ BuddyPlugin
 			if ( buddy_to_return == null ){
 				
 				buddy_to_return = 
-					new BuddyPluginBuddy( this, subsystem, authorised, key, null, VERSION_CURRENT, null, null, 0, 0, null );
+					new BuddyPluginBuddy( this, SystemTime.getCurrentTime(), subsystem, authorised, key, null, VERSION_CURRENT, null, null, 0, 0, null );
 				
 				buddies.add( buddy_to_return );
 				
@@ -2452,7 +2470,9 @@ BuddyPlugin
 			
 			period += random.nextInt( 2*60*1000 );
 			
-			if ( last_check > now || now - last_check > period ){
+				// last check may be in the future as we defer checks for seemingly inactive buddies
+			
+			if ( now - last_check > period ){
 				
 				if ( !buddy.statusCheckActive()){
 			

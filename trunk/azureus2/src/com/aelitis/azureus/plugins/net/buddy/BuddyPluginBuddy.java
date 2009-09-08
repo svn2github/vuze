@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
@@ -70,6 +71,7 @@ BuddyPluginBuddy
 
 	
 	private BuddyPlugin		plugin;
+	private long			created_time;
 	private int				subsystem;
 	private boolean			authorised;
 	private String			public_key;
@@ -140,6 +142,7 @@ BuddyPluginBuddy
 	protected
 	BuddyPluginBuddy(
 		BuddyPlugin	_plugin,
+		long		_created_time,
 		int			_subsystem,
 		boolean		_authorised,
 		String		_pk,
@@ -152,6 +155,7 @@ BuddyPluginBuddy
 		List<Long>	_recent_ygm )
 	{
 		plugin				= _plugin;
+		created_time		= _created_time;
 		subsystem			= _subsystem;
 		authorised			= _authorised;
 		public_key 			= _pk;
@@ -164,6 +168,21 @@ BuddyPluginBuddy
 		recent_ygm			= _recent_ygm;
 		
 		persistent_msg_handler = new BuddyPluginBuddyMessageHandler( this, new File(plugin.getBuddyConfigDir(), public_key ));
+	}
+	
+	protected void
+	setInitialStatus(
+		long	now,
+		int		num_buddies )
+	{
+			// for inactive buddies we schedule their status checks so that on average we don't
+			// do more than one check every 5 minutes
+		
+		if ( 	last_time_online == 0 && 
+				now - created_time > 7*24*60*60*1000L ){
+			
+			last_status_check_time = now + RandomUtils.nextInt( 5*60*1000 * num_buddies );
+		}
 	}
 	
 	protected BuddyPlugin
@@ -209,6 +228,12 @@ BuddyPluginBuddy
 		Map			data )
 	{
 		return( plugin.writeConfigFile( name, data ));
+	}
+	
+	protected long
+	getCreatedTime()
+	{
+		return( created_time );
 	}
 	
 	public int
