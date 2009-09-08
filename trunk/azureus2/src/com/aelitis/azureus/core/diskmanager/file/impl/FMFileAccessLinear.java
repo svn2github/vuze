@@ -93,6 +93,16 @@ FMFileAccessLinear
 	}
 	
 	public void
+	setPieceComplete(
+		RandomAccessFile	raf,
+		int					piece_number,
+		DirectByteBuffer	piece_data )
+	
+		throws FMFileManagerException
+	{	
+	}
+	
+	public void
 	read(
 		RandomAccessFile	raf,
 		DirectByteBuffer	buffer,
@@ -134,7 +144,6 @@ FMFileAccessLinear
 	
 	public void
 	read(
-		FMFile				file,
 		RandomAccessFile	raf,
 		DirectByteBuffer[]	buffers,
 		long				offset )
@@ -253,13 +262,14 @@ FMFileAccessLinear
 			}
 			
 			throw( new FMFileManagerException( "read fails", e ));
+			
 		}finally{
 			
 			long elapsed_millis = ( SystemTime.getHighPrecisionCounter() - read_start )/1000000;
 
 			if ( elapsed_millis > 10*1000 ){
 				
-				System.out.println( "read took " + elapsed_millis + " for " + file.getName());
+				System.out.println( "read took " + elapsed_millis + " for " + owner.getString());
 			}
 		}
 	}

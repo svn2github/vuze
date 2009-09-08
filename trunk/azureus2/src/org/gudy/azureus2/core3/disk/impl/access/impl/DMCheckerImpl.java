@@ -602,7 +602,7 @@ DMCheckerImpl
 			return;
 		}
 		
-		int	pieceNumber	= request.getPieceNumber();
+		final int	pieceNumber	= request.getPieceNumber();
 		
 		try{
 			
@@ -617,7 +617,7 @@ DMCheckerImpl
 				// three pieces as it is possible that these were once complete and have all their bits
 				// living in retained compact areas
 			
-			DMPieceList pieceList = disk_manager.getPieceList(pieceNumber);
+			final DMPieceList pieceList = disk_manager.getPieceList(pieceNumber);
 
 			try{
 					// there are other comments in the code about the existence of 0 length piece lists
@@ -756,6 +756,25 @@ DMCheckerImpl
 					    					}finally{
 					    						
 					    						try{
+					    							if ( async_result == 1 ){
+					    							
+					    								try{
+					    									for (int i = 0; i < pieceList.size(); i++) {
+					    										
+					    										DMPieceMapEntry piece_entry = pieceList.get(i);
+					    											
+					    										DiskManagerFileInfoImpl	file_info = piece_entry.getFile();
+					    										
+					    										CacheFile	cache_file = file_info.getCacheFile();
+					    										
+					    										cache_file.setPieceComplete( pieceNumber, f_buffer );
+					    									}
+					    								}catch( Throwable e ){
+					    									
+					    									Debug.out( e );
+					    								}
+					    							}
+					    							
 						    						f_buffer.returnToPool();
 	
 						    						if ( async_result == 1 ){

@@ -47,7 +47,7 @@ FMFileAccess
 	
 	public void
 	read(
-		FMFile				file,
+		//FMFile				file,
 		RandomAccessFile	raf,
 		DirectByteBuffer[]	buffers,
 		long				offset )
@@ -64,6 +64,14 @@ FMFileAccess
 	
 	public void
 	flush()
+	
+		throws FMFileManagerException;
+	
+	public void
+	setPieceComplete(
+		RandomAccessFile	raf,
+		int					piece_number,
+		DirectByteBuffer	piece_data )
 	
 		throws FMFileManagerException;
 	

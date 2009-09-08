@@ -196,7 +196,6 @@ FMFileAccessCompact
 	
 	protected void
 	read(
-		FMFile				file,
 		RandomAccessFile	raf,
 		DirectByteBuffer	buffer,
 		long				position )
@@ -222,7 +221,7 @@ FMFileAccessCompact
 					
 					// System.out.println( "    all in first piece" );
 
-					delegate.read( file, raf, new DirectByteBuffer[]{ buffer }, position );
+					delegate.read( raf, new DirectByteBuffer[]{ buffer }, position );
 					
 					position	+= len;
 					len			= 0;
@@ -234,7 +233,7 @@ FMFileAccessCompact
 
 					buffer.limit( SS, buffer.position(SS) + available );
 					
-					delegate.read( file, raf, new DirectByteBuffer[]{ buffer }, position );
+					delegate.read( raf, new DirectByteBuffer[]{ buffer }, position );
 				
 					buffer.limit( SS, original_limit );
 					
@@ -287,7 +286,7 @@ FMFileAccessCompact
 			
 			// System.out.println( "    some in last piece" );
 
-			delegate.read( file, raf, new DirectByteBuffer[]{ buffer }, ( position - last_piece_start ) + first_piece_length );
+			delegate.read( raf, new DirectByteBuffer[]{ buffer }, ( position - last_piece_start ) + first_piece_length );
 			
 		}finally{
 			
@@ -297,7 +296,6 @@ FMFileAccessCompact
 	
 	public void
 	read(
-		FMFile					file,
 		RandomAccessFile		raf,
 		DirectByteBuffer[]		buffers,
 		long					position )
@@ -310,7 +308,7 @@ FMFileAccessCompact
 			
 			int	len = buffers[i].limit(SS) - buffers[i].position(SS);
 		
-			read( file, raf, buffer, position );
+			read( raf, buffer, position );
 			
 			position += len;
 		}
@@ -453,6 +451,16 @@ FMFileAccessCompact
 		throws FMFileManagerException
 	{
 		writeState();
+	}
+	
+	public void
+	setPieceComplete(
+		RandomAccessFile	raf,
+		int					piece_number,
+		DirectByteBuffer	piece_data )
+	
+		throws FMFileManagerException
+	{	
 	}
 	
 	protected void

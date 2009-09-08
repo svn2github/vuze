@@ -634,6 +634,16 @@ FMFileImpl
 		file_access.flush();
 	}
 	
+	protected void
+	setPieceCompleteSupport(
+		int					piece_number,
+		DirectByteBuffer	piece_data )
+	
+		throws FMFileManagerException
+	{
+		file_access.setPieceComplete( raf, piece_number, piece_data );
+	}
+	
 	public void
 	delete()
 	
@@ -669,7 +679,7 @@ FMFileImpl
 	{
 		try{
 		
-			file_access.read( this, raf, buffers, position );
+			file_access.read( raf, buffers, position );
 			
 		}catch( FMFileManagerException e ){
 			
@@ -678,7 +688,7 @@ FMFileImpl
 			try{
 				reopen();
 
-				file_access.read( this, raf, buffers, position );
+				file_access.read( raf, buffers, position );
 				
 			}catch( Throwable e2 ){
 				

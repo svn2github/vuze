@@ -320,6 +320,22 @@ CacheFileWithoutCacheMT
 		}
 	}
 	
+	public void
+	setPieceComplete(
+		int					piece_number,
+		DirectByteBuffer	piece_data )
+	
+		throws CacheFileManagerException
+	{
+		try{
+			base_file.setPieceComplete( piece_number, piece_data );
+			
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(this,e);
+		}
+	}
+	
 	protected FMFile
 	getFile()
 	

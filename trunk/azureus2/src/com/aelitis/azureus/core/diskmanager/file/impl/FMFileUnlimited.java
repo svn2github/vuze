@@ -132,9 +132,29 @@ FMFileUnlimited
 	}
 	
 	public void
+	setPieceComplete(
+		int					piece_number,
+		DirectByteBuffer	piece_data )
+	
+		throws FMFileManagerException
+	{
+		try{
+			this_mon.enter();
+		
+			ensureOpen( "FMFileUnlimited:setPieceComplete" );
+			
+			setPieceCompleteSupport( piece_number, piece_data );
+			
+		}finally{
+			
+			this_mon.exit();
+		}	
+	}
+	
+	public void
 	read(
 		DirectByteBuffer	buffer,
-		long		offset )
+		long				offset )
 	
 		throws FMFileManagerException
 	{

@@ -172,7 +172,7 @@ FMFileAccessController
 					
 					try{
 					
-						file_access.read( owner, raf, new DirectByteBuffer[]{ buffer }, last_piece_start );
+						file_access.read( raf, new DirectByteBuffer[]{ buffer }, last_piece_start );
 						
 							// see if we need to truncate
 						
@@ -354,15 +354,25 @@ FMFileAccessController
 	}
 	
 	public void
+	setPieceComplete(
+		RandomAccessFile	raf,
+		int					piece_number,
+		DirectByteBuffer	piece_data )
+	
+		throws FMFileManagerException
+	{
+		file_access.setPieceComplete( raf, piece_number, piece_data );
+	}
+	
+	public void
 	read(
-		FMFile				file,
 		RandomAccessFile	raf,
 		DirectByteBuffer[]	buffers,
 		long				offset )
 	
 		throws FMFileManagerException
 	{
-		file_access.read( file, raf, buffers, offset );
+		file_access.read( raf, buffers, offset );
 	}
 	
 	public void

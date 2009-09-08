@@ -98,6 +98,13 @@ CacheFile
 		throws CacheFileManagerException;
 	
 	public void
+	setPieceComplete(
+		int					piece_number,
+		DirectByteBuffer	piece_data )
+	
+		throws CacheFileManagerException;
+	
+	public void
 	read(
 		DirectByteBuffer	buffer,
 		long				offset,

@@ -1519,6 +1519,22 @@ CacheFileWithCache
 	}
 	
 	public void
+	setPieceComplete(
+		int					piece_number,
+		DirectByteBuffer	piece_data )
+	
+		throws CacheFileManagerException
+	{
+		try{
+			file.setPieceComplete( piece_number, piece_data );
+			
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(this,e);
+		}
+	}
+	
+	public void
 	read(
 		DirectByteBuffer[]	buffers,
 		long				position,

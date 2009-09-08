@@ -97,6 +97,13 @@ FMFile
 		throws FMFileManagerException;
 	
 	public void
+	setPieceComplete(
+		int					piece_number,
+		DirectByteBuffer	piece_data )
+	
+		throws FMFileManagerException;
+	
+	public void
 	read(
 		DirectByteBuffer	buffer,
 		long				offset )
