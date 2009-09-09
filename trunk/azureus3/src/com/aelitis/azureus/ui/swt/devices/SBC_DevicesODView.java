@@ -48,8 +48,11 @@ import com.aelitis.azureus.core.devices.DeviceListener;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownloader;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownloaderListener;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnAzProduct;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
 import com.aelitis.azureus.ui.swt.devices.columns.*;
@@ -63,7 +66,7 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 public class 
 SBC_DevicesODView
 	extends SkinView
-	implements UIUpdatable
+	implements UIUpdatable, IconBarEnabler
 {
 	public static final String TABLE_RCM = "DevicesOD";
 
@@ -97,6 +100,8 @@ SBC_DevicesODView
 		if ( sidebar != null ){
 			
 			sidebar_entry = sidebar.getCurrentEntry();
+			
+			sidebar_entry.setIconBarEnabler( this );
 			
 			device = (DeviceOfflineDownloader)sidebar_entry.getDatasource();
 		}
@@ -266,6 +271,60 @@ SBC_DevicesODView
 		tv_downloads.setRowDefaultHeight(50);
 		tv_downloads.setHeaderVisible(true);
 
+		tv_downloads.addSelectionListener(
+			new TableSelectionListener() 
+			{
+				public void 
+				selected(
+					TableRowCore[] row ) 
+				{
+					refreshIconBar();
+				}
+	
+				public void 
+				mouseExit(
+					TableRowCore row ) 
+				{
+				}
+	
+				public void 
+				mouseEnter(
+					TableRowCore row )
+				{
+				}
+	
+				public void 
+				focusChanged(
+					TableRowCore focus ) 
+				{
+					refreshIconBar();
+				}
+	
+				public void 
+				deselected(
+					TableRowCore[] rows) 
+				{
+					refreshIconBar();
+				}
+	
+				public void 
+				defaultSelected(TableRowCore[] rows, int stateMask)
+				{
+					refreshIconBar();
+				}
+				
+				protected void
+				refreshIconBar()
+				{
+					SelectedContentManager.clearCurrentlySelectedContent();
+					
+					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+					if (uiFunctions != null) {
+						uiFunctions.refreshIconBar();
+					}
+				}
+			}, false );
+		
 		tv_downloads.addLifeCycleListener(
 			new TableLifeCycleListener() 
 			{
@@ -528,6 +587,26 @@ SBC_DevicesODView
 		
 		control.layout(true);
 	}	
+	
+	public boolean 
+	isEnabled(
+		String key )
+	{
+		return( false );
+	}
+	
+	public boolean 
+	isSelected(
+		String key )
+	{
+		return( false );
+	}
+	
+	public void 
+	itemActivated(
+		String key )
+	{
+	}
 	
 	public String 
 	getUpdateUIName() 
