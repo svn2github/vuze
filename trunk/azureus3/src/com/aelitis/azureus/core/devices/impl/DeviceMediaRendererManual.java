@@ -281,12 +281,7 @@ DeviceMediaRendererManual
 				}
 				
 				File audio_dir = new File( video_dir.getParentFile(), "MUSIC" );
-				
-				if ( !audio_dir.exists()){
-					
-					return( false );
-				}
-				
+								
 				File file = transcode_file.getSourceFile().getFile();
 				
 				if ( file.exists()){
