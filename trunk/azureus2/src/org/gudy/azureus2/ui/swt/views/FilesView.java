@@ -699,11 +699,7 @@ public class FilesView
     if (sColumnName.equals("path")) {
       path_item = new MenuItem( menuThisColumn, SWT.CHECK );
       
-      menuThisColumn.addListener( SWT.Show, new Listener() {
-        public void handleEvent(Event e) {
-          path_item.setSelection( show_full_path );
-        }
-      });
+      path_item.setSelection( show_full_path );
       
       Messages.setLanguageText(path_item, "FilesView.fullpath");
       
