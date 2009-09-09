@@ -63,7 +63,6 @@ import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
-import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -76,7 +75,6 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -109,6 +107,10 @@ SubscriptionManagerUI
 	public static final Object	SUB_IVIEW_KEY 		= new Object();
 	public static final Object	SUB_EDIT_MODE_KEY 	= new Object();
 	
+	public static final String ALERT_IMAGE_ID	= "image.sidebar.vitality.alert";
+	public static final String AUTH_IMAGE_ID	= "image.sidebar.vitality.auth";
+	
+
 	private static final String EDIT_MODE_MARKER	= "&editMode=1";
 	
 	private Graphic	icon_rss_big;
@@ -840,7 +842,7 @@ SubscriptionManagerUI
 		
 		if (mainSBEntry != null) {
 			
-			SideBarVitalityImage addSub = mainSBEntry.addVitalityImage("image.sidebar.subs.add");
+			SideBarVitalityImage addSub 	= mainSBEntry.addVitalityImage("image.sidebar.subs.add");
 			
 			addSub.setToolTip("Add Subscription");
 			
@@ -849,6 +851,10 @@ SubscriptionManagerUI
 					new SubscriptionWizard();
 				}
 			});
+			
+			final SideBarVitalityImage warnSub 	= mainSBEntry.addVitalityImage( ALERT_IMAGE_ID );
+			
+			warnSub.setVisible( false );
 			
 			mainSBEntry.setImageLeftID("image.sidebar.subscriptions");
 
@@ -867,16 +873,37 @@ SubscriptionManagerUI
 
 							boolean expanded = mainSBEntry.getTreeItem().getExpanded();
 
-							if ( !expanded ){
+							if ( expanded ){
 								
-								int	total = 0;
+								warnSub.setVisible( false );
+								
+							}else{
+								
+								int		total 	= 0;
+								boolean	warn 	= false;
 								
 								Subscription[] subs = subs_man.getSubscriptions();
 								
 								for ( Subscription s: subs ){
 									
-									total += s.getHistory().getNumUnread();
+									SubscriptionHistory history = s.getHistory();
+
+									total += history.getNumUnread();
+									
+									String	last_error = history.getLastError();
+
+									if ( last_error != null ){
+										
+										boolean	auth_fail = history.isAuthFail();
+																		
+										if ( history.getConsecFails() >= 3 || auth_fail ){
+										
+											warn = true;
+										}
+									}
 								}
+								
+								warnSub.setVisible( warn );
 								
 								if ( total > 0 ){
 								
@@ -2429,9 +2456,6 @@ SubscriptionManagerUI
 	public static class
 	sideBarItem
 	{
-		public static final String ALERT_IMAGE_ID	= "image.sidebar.vitality.alert";
-		public static final String AUTH_IMAGE_ID	= "image.sidebar.vitality.auth";
-		
 		private subscriptionView	view;
 		private SideBarEntrySWT		sb_entry;
 		private TreeItem			tree_item;
