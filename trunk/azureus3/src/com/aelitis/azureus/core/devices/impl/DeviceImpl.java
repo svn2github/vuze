@@ -1023,6 +1023,13 @@ DeviceImpl
 	}
 	
 	public boolean
+	isAudioCompatible(
+		TranscodeFile		file )
+	{
+		return( false );
+	}
+	
+	public boolean
 	getAlwaysCacheFiles()
 	{
 		return( getPersistentBooleanProperty( PP_REND_TRANS_CACHE, false ));

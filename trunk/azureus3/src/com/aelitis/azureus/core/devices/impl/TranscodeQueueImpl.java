@@ -129,7 +129,9 @@ TranscodeQueueImpl
 		
 		current_job = job;
 		
-		job.getDevice().setTranscoding( true );
+		DeviceImpl	device = job.getDevice();
+		
+		device.setTranscoding( true );
 		
 		try{
 			job.starts();
@@ -252,6 +254,19 @@ TranscodeQueueImpl
 			}else{
 				
 				tt_req = job.getTranscodeRequirement();
+				
+					// audio hack for PSP audio
+				
+				if ( device instanceof TranscodeTarget ){
+					
+					if ( provider_analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_HEIGHT ) == 0 ){
+						
+						if (((TranscodeTarget)device).isAudioCompatible( transcode_file )){
+					
+							tt_req = TranscodeTarget.TRANSCODE_NEVER;
+						}
+					}
+				}
 			}
 						
 			if ( tt_req == TranscodeTarget.TRANSCODE_NEVER ){
@@ -550,7 +565,7 @@ TranscodeQueueImpl
 					}
 				}else{
 					
-					if ( job.getDevice().getAlwaysCacheFiles()){
+					if ( device.getAlwaysCacheFiles()){
 						
 						PluginInterface av_pi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByID( "azupnpav" );
 						
@@ -735,7 +750,7 @@ TranscodeQueueImpl
 				pipe.destroy();
 			}
 			
-			job.getDevice().setTranscoding( false );
+			device.setTranscoding( false );
 
 			current_job = null;
 		}

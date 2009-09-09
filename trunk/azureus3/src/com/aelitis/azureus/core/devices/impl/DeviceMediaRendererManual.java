@@ -261,6 +261,54 @@ DeviceMediaRendererManual
 		}
 	}
 	
+	public boolean
+	isAudioCompatible(
+		TranscodeFile		transcode_file )
+	{
+		if ( getDeviceClassification().equals( "sony.PSP" )){
+			
+			try{
+				File video_dir = getCopyToFolder();
+				
+				if ( video_dir == null ){
+					
+					return( false );
+				}
+				
+				if ( !video_dir.getName().equals( "VIDEO" )){
+					
+					return( false );
+				}
+				
+				File audio_dir = new File( video_dir.getParentFile(), "MUSIC" );
+				
+				if ( !audio_dir.exists()){
+					
+					return( false );
+				}
+				
+				File file = transcode_file.getSourceFile().getFile();
+				
+				if ( file.exists()){
+					
+					String name = file.getName().toLowerCase();
+					
+					if ( name.endsWith( ".mp3" ) || name.endsWith( ".wma" )){
+						
+						((TranscodeFileImpl)transcode_file).setCopyToFolderOverride( audio_dir.getAbsolutePath());
+						
+						return( true );
+					}
+				}
+			}catch( Throwable e ){
+				
+				log( "audio compatible check failed", e );
+			}
+		}
+		
+		return( false );
+	}
+	
 	protected void
 	performCopy()
 	{
@@ -447,6 +495,15 @@ DeviceMediaRendererManual
 						File	file = transcode_file.getTargetFile().getFile();
 						
 						File	target = new File( copy_to, file.getName());
+						
+						String override_str = transcode_file.getCopyToFolderOverride();
+						
+						if ( override_str != null ){
+							
+							File override = new File( override_str );
+							
+							target = new File( override, file.getName());
+						}					
 						
 						try{							
 							FileUtil.copyFileWithException( file, target );

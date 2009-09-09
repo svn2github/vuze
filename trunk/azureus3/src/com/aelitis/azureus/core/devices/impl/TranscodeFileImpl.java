@@ -65,6 +65,7 @@ TranscodeFileImpl
 	private static final String			KEY_VIDEO_HEIGHT		= "at_vh";
 	private static final String			KEY_DATE				= "at_dt";
 	private static final String			KEY_CATEGORIES			= PT_CATEGORY;
+	private static final String			KEY_COPY_TO_OVERRIDE	= "ct_over";
 
 	private DeviceImpl					device;
 	private String						key;
@@ -411,6 +412,19 @@ TranscodeFileImpl
 		}
 		
 		return( s );
+	}
+	
+	protected void
+	setCopyToFolderOverride(
+		String s )
+	{
+		setString( KEY_COPY_TO_OVERRIDE, s );
+	}
+	
+	public String
+	getCopyToFolderOverride()
+	{
+		return( getString( KEY_COPY_TO_OVERRIDE ));
 	}
 	
 	protected void

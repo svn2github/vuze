@@ -79,6 +79,10 @@ TranscodeTarget
 	public boolean
 	isGeneric();
 	
+	public boolean
+	isAudioCompatible(
+		TranscodeFile		file );
+	
 	public void
 	addListener(
 		TranscodeTargetListener		listener );
