@@ -68,7 +68,9 @@ void setAEDescFields(JNIEnv *env, jobject lpObject, AEDesc *lpStruct) {
 	if (!AEDescFc.cached)
 		cacheAEDescFields(env, lpObject);
 	env->SetIntField(lpObject, AEDescFc.descriptorType, (jint) lpStruct->descriptorType);
+#ifndef __LP64__
 	env->SetIntField(lpObject, AEDescFc.dataHandle, (jint) lpStruct->dataHandle);
+#endif
 }
 
 JNIEXPORT jint JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_AEGetParamDesc(JNIEnv *env,
