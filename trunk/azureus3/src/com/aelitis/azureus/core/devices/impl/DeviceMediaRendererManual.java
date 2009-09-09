@@ -268,20 +268,6 @@ DeviceMediaRendererManual
 		if ( getDeviceClassification().equals( "sony.PSP" )){
 			
 			try{
-				File video_dir = getCopyToFolder();
-				
-				if ( video_dir == null ){
-					
-					return( false );
-				}
-				
-				if ( !video_dir.getName().equals( "VIDEO" )){
-					
-					return( false );
-				}
-				
-				File audio_dir = new File( video_dir.getParentFile(), "MUSIC" );
-								
 				File file = transcode_file.getSourceFile().getFile();
 				
 				if ( file.exists()){
@@ -290,7 +276,7 @@ DeviceMediaRendererManual
 					
 					if ( name.endsWith( ".mp3" ) || name.endsWith( ".wma" )){
 						
-						((TranscodeFileImpl)transcode_file).setCopyToFolderOverride( audio_dir.getAbsolutePath());
+						((TranscodeFileImpl)transcode_file).setCopyToFolderOverride( ".." + File.separator + "MUSIC" );
 						
 						return( true );
 					}
@@ -495,9 +481,12 @@ DeviceMediaRendererManual
 						
 						if ( override_str != null ){
 							
-							File override = new File( override_str );
-							
-							target = new File( override, file.getName());
+							File override_dir = new File( copy_to, override_str );
+											
+							if ( override_dir.exists()){
+														
+								target = new File( override_dir, file.getName());
+							}
 						}					
 						
 						try{							
