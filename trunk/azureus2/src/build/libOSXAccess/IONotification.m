@@ -105,14 +105,12 @@ void DeviceRemoved(void *refCon, io_iterator_t iterator) {
 			kern_return_t kr = IORegistryEntryGetName(service, deviceName);
 			fprintf(stderr, "DR %s -- %s\n", s, deviceName);
 
-
 			struct statfs *fs = 0;
-			void *val = [map objectForKey:(NSString *)str_bsd_path];
-			fprintf(stderr, "found key as %p\n", val);
-			if (val) {
+			StatfsObject *fso = [map objectForKey:(NSString *)str_bsd_path];
+			fprintf(stderr, "found key as %p\n", fso);
+			if (fso) {
 				[map removeObjectForKey:(NSString *)str_bsd_path];
-				fs = (struct statfs *)val;
-				fprintf(stderr, "   %s\n", fs->f_mntfromname);
+				fs = fso->fs;
 
 				const char *mount = (fs == 0) ? 0 : fs->f_mntonname;
 				notify(mount, service, fs, false);
@@ -243,7 +241,9 @@ void DeviceNotification(void *refCon, io_service_t service, natural_t messageTyp
 
 	struct statfs *fs = getFileSystemStatusDevMount(s);
 	if (fs) {
-		[map setObject:(void *)fs forKey:(NSString *)str_bsd_path];
+		StatfsObject *fso = [StatfsObject new];
+		fso->fs = fs;
+		[map setObject:fso forKey:(NSString *)str_bsd_path];
 
 		CFMutableDictionaryRef matchingDict;
 
@@ -286,12 +286,14 @@ void DeviceNotification(void *refCon, io_service_t service, natural_t messageTyp
 			char s[len];
 			CFStringGetCString((CFStringRef) str_bsd_path, s, len, kCFStringEncodingUTF8);
 
-			fprintf(stderr, "rDA BSD %s\n", s);
 			struct statfs *fs;
 			fs = getFileSystemStatusDevMount(s);
+			fprintf(stderr, "rDA BSD %s; %p\n", s, fs);
 			if (fs) {
-				[map setObject:(void *)fs forKey:(NSString *)str_bsd_path];
-
+				StatfsObject *fso = [StatfsObject new];
+				fso->fs = fs;
+				[map setObject:fso forKey:(NSString *)str_bsd_path];
+				
 				notify(fs->f_mntonname, service, fs, true);
 #ifdef IONOTIFYDISMOUNT
 				io_object_t obj;
@@ -316,6 +318,8 @@ void DeviceNotification(void *refCon, io_service_t service, natural_t messageTyp
 		}
 		kr = IOObjectRelease(service);
 	}
+
+	fprintf(stderr, "rDA done\n");
 }
 
 -(void)mount:(id)notification
@@ -403,10 +407,14 @@ void DeviceNotification(void *refCon, io_service_t service, natural_t messageTyp
 		}
 	}
 
+	
 	notify(cPath, service, fs, false);
 	if (service) {
 		IOObjectRelease(service);
 	}
 }
 
+@end
+
+@implementation StatfsObject
 @end

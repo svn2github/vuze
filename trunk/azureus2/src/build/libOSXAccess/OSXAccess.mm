@@ -14,7 +14,7 @@
 
 #include "IONotification.h"
 
-#define VERSION "1.05"
+#define VERSION "1.06"
 
 #define assertNot0(a) if (a == 0) { fprintf(stderr, "%s is 0\n", #a); return; }
 void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethodID methPut);
@@ -304,14 +304,14 @@ void notify(const char *mount, io_service_t service, struct statfs *fs, bool add
 		env->CallObjectMethod(hashMap, methPut, char2jstring(env, "mntfromname"), char2jstring(env, fs->f_mntfromname));
 		env->CallObjectMethod(hashMap, methPut, char2jstring(env, "mntonname"), char2jstring(env, fs->f_mntonname));
 	}
-	
+
 	if (service) {
 		fillServiceInfo(service, env, hashMap, methPut);
 	}
 	
 	env->CallVoidMethod(gCallBackObj, meth, file, hashMap);
+
 	[pool release];
-	
 }
 
 void addDictionaryToHashMap(CFDictionaryRef dict, JNIEnv *env, jobject hashMap, jmethodID methPut) {

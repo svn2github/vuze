@@ -1,6 +1,6 @@
 #import <Cocoa/Cocoa.h>
 
-#define fprintf
+//#define fprintf
 
 NSMutableDictionary *map;
 Boolean useNSWorkspace;
@@ -19,4 +19,12 @@ Boolean useNSWorkspace;
 //void rawDeviceAdded(void *refCon, io_iterator_t iterator);
 void DeviceNotification(void *refCon, io_service_t service, natural_t messageType, void *messageArgument);
 
+@end
+
+
+@interface StatfsObject : NSObject
+{
+@public
+	struct statfs *fs;
+}
 @end
