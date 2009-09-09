@@ -282,8 +282,10 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("qB", "qBittorrent", VER_AZ_THREE_DIGITS);
 		addAzStyle("QD", "qqdownload");
 		addAzStyle("RT", "Retriever");
+		addAzStyle("RZ", "RezTorrent");
 		addAzStyle("S~", "Shareaza alpha/beta");
 		addAzStyle("SB", "SwiftBit");
+		addAzStyle("SD", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)"); // Apparently, the English name of the client is "Thunderbolt".
 		addAzStyle("SN", "ShareNET");
 		addAzStyle("SS", "SwarmScope");
 		addAzStyle("ST", "SymTorrent", "2.34");
@@ -297,7 +299,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("UT", "\u00B5Torrent", VER_AZ_THREE_DIGITS_PLUS_MNEMONIC);
 		addAzStyle("UM", "\u00B5Torrent Mac", VER_AZ_THREE_DIGITS_PLUS_MNEMONIC);
 		addAzStyle("WT", "Bitlet");
-		addAzStyle("WY", "Wyzo");
+		addAzStyle("WY", "FireTorrent"); // formerly Wyzo.
 		addAzStyle("VG", "\u54c7\u560E (Vagaa)", VER_AZ_FOUR_DIGITS);
 		addAzStyle("XL", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)"); // Apparently, the English name of the client is "Thunderbolt".
 		addAzStyle("XT", "XanTorrent");
