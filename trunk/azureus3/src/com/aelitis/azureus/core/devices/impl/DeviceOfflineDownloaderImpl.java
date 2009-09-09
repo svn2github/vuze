@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -366,15 +367,19 @@ DeviceOfflineDownloaderImpl
 				for ( DownloadManager download: initial_downloads ){
 				
 					int	state = download.getState();
-					
-					if ( 	state == DownloadManager.STATE_SEEDING ||
-							state == DownloadManager.STATE_ERROR ){
+										
+					if ( state == DownloadManager.STATE_SEEDING ){
+							// state == DownloadManager.STATE_ERROR ){	removed - might be out of disk space and fixable
 						
 						continue;
 					}
 					
 						// don't include 'stopping' here as we go through stopping on way to queued
-					
+					/*
+					 * changed our mind here - users prolly use 'stop' to manage their download queue
+					 * and we wouldn't want them temporarily stopping things and losing stuff router
+					 * has downloaded
+					 * 
 					if ( state == DownloadManager.STATE_STOPPED ){
 						
 							// don't remove from downloader if simply paused
@@ -384,6 +389,7 @@ DeviceOfflineDownloaderImpl
 							continue;
 						}
 					}
+					*/
 					
 						// if it is complete then of no interest
 					
@@ -461,6 +467,58 @@ DeviceOfflineDownloaderImpl
 							new_cache.put( hash_str, existing );
 							
 							download_map.put( download, existing );
+							
+						}else{
+							
+								// assume not yet started and just use the non-skipped files
+							
+							DiskManagerFileInfo[] files = download.getDiskManagerFileInfo();
+							
+							byte[] needed = new byte[( torrent.getNumberOfPieces() + 7 ) / 8];
+
+							int	hits = 0;
+
+							for ( DiskManagerFileInfo file: files ){
+								
+								if ( file.isSkipped()){
+									
+									continue;
+								}
+								
+								int	first_piece 	= file.getFirstPieceNumber();
+								int	last_piece		= first_piece + file.getNbPieces() - 1;
+																
+								int	needed_pos		= first_piece/8;
+								int	current_byte	= 0;
+																
+								for ( int pos=first_piece;pos<=last_piece;pos++ ){
+									
+									current_byte = current_byte << 1;
+																			
+									current_byte += 1;
+										
+									hits++;
+									
+									if (( pos %8 ) == 7 ){
+										
+										needed[needed_pos++] |= (byte)current_byte;
+										
+										current_byte = 0;
+									}
+								}
+								
+								if ( current_byte != 0 ){
+									
+									needed[needed_pos++] |= (byte)(current_byte << (8 - (last_piece % 8)));
+								}
+							}
+							
+							if ( hits > 0 ){
+									
+								new_cache.put( hash_str, needed );
+									
+								download_map.put( download, needed );
+							}
 						}
 					}else{
 					
