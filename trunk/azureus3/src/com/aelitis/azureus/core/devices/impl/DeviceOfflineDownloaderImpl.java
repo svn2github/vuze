@@ -646,7 +646,7 @@ DeviceOfflineDownloaderImpl
 			try{
 				String[] set_dl_results = service.setDownloads( client_id, download_hashes );
 				
-				String	set_dl_result	= set_dl_results[0];
+				String	set_dl_result	= set_dl_results[0].trim();
 				String	set_dl_status 	= set_dl_results[1];
 				
 				if ( !set_dl_status.equals( "OK" )){
@@ -658,9 +658,11 @@ DeviceOfflineDownloaderImpl
 				
 				String[]	bits = set_dl_result.split( "," );
 				
-				if ( bits.length != entries.size()){
+				int	num_bits = set_dl_result.length()==0?0:bits.length;
+				
+				if ( num_bits != entries.size()){
 					
-					log( "SetDownloads returned an invalid number of results (hashes=" + entries.size() + ",result=" + set_dl_result );
+					log( "SetDownloads returned an invalid number of results (hashes=" + new_offline_downloads.size() + ",result=" + set_dl_result + ")");
 					
 				}else{
 					
