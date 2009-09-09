@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -73,6 +74,9 @@ DeviceOfflineDownloaderImpl
 	public static final int	UPDATE_MILLIS	= 30*1000;
 	public static final int UPDATE_TICKS	= UPDATE_MILLIS/DeviceManagerImpl.DEVICE_UPDATE_PERIOD;
 	
+	public static final int	UPDATE_SPACE_MILLIS	= 3*60*1000;
+	public static final int UPDATE_SPACE_TICKS	= UPDATE_SPACE_MILLIS/DeviceManagerImpl.DEVICE_UPDATE_PERIOD;
+	
 	public static final String	client_id = ByteFormatter.encodeString( CryptoManagerFactory.getSingleton().getSecureID());
 	
 	private static final Object	ERROR_KEY_OD = new Object();
@@ -82,6 +86,9 @@ DeviceOfflineDownloaderImpl
 	private volatile String						manufacturer;
 	
 	private long	start_time = SystemTime.getMonotonousTime();
+	
+	private volatile boolean		update_space_outstanding 	= true;
+	private volatile long			space_on_device				= -1;
 	
 	private volatile boolean					closing;
 	
@@ -216,12 +223,12 @@ DeviceOfflineDownloaderImpl
 	{
 		super.updateStatus( tick_count );
 		
-		if ( tick_count % UPDATE_TICKS != 0 ){
-			
-			return;
+		update_space_outstanding |= tick_count % UPDATE_SPACE_TICKS == 0;
+
+		if ( tick_count % UPDATE_TICKS == 0 ){
+							
+			updateDownloads();
 		}
-		
-		updateDownloads();
 	}
 	
 	protected void
@@ -278,7 +285,27 @@ DeviceOfflineDownloaderImpl
 		Map<String,DownloadManager>			new_offline_downloads 	= new HashMap<String,DownloadManager>();
 		Map<String,TransferableDownload>	new_transferables 		= new HashMap<String,TransferableDownload>();
 		
-		try{		
+		try{	
+			if ( update_space_outstanding ){
+			
+				try{
+					space_on_device = service.getFreeSpace( client_id );
+					
+					update_space_outstanding = false;
+					
+					if ( space_on_device == 0 ){
+						
+						error_status = MessageText.getString( "device.od.error.nospace" );
+					}
+				}catch( Throwable e ){
+					
+					error_status = MessageText.getString( "device.od.error.opfailexcep", new String[]{ "GetFreeSpace", Debug.getNestedExceptionMessage( e )});
+
+					log( "Failed to get free space", e );
+
+				}
+			}
+			
 			Map<String,byte[]>	old_cache 	= (Map<String,byte[]>)getPersistentMapProperty( PP_OD_STATE_CACHE, new HashMap<String,byte[]>());
 			
 			Map<String,byte[]>	new_cache 	= new HashMap<String, byte[]>();
@@ -1304,7 +1331,15 @@ DeviceOfflineDownloaderImpl
 	{
 		super.getDisplayProperties( dp );
 		
+		String	space_str = "";
+		
+		if ( space_on_device >= 0 ){
+			
+			space_str = DisplayFormatters.formatByteCountToKiBEtc( space_on_device );
+		}
+		
 		addDP( dp, "azbuddy.enabled", isEnabled());
+		addDP( dp, "device.od.space", space_str );
 	}
 	
 	protected void
