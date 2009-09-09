@@ -398,7 +398,7 @@ public class ConfigurationDefaults {
     def.put( "Peer Source Selection Default.Incoming", TRUE);
     
     def.put( "config.style.useSIUnits", FALSE );
-    def.put( "config.style.forceSIValues", TRUE );
+    def.put( "config.style.forceSIValues", Constants.isOSX_10_6_OrHigher?FALSE:TRUE );
     def.put( "config.style.useUnitsRateBits", FALSE );
     def.put( "config.style.separateProtDataStats", FALSE );
     def.put( "config.style.dataStatsOnly", FALSE );
