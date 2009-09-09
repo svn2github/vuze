@@ -40,14 +40,23 @@ public class OSXAccess
 	private static boolean DEBUG = Constants.isCVSVersion();
 
 	static {
+		if (!Constants.isOSX_10_5_OrHigher || !loadLibrary("OSXAccess_10.5")) {
+			loadLibrary("OSXAccess");
+		}
+	}
+
+
+	private static boolean loadLibrary(String lib) {
 		try {
-			System.loadLibrary("OSXAccess");
-			System.out.println("OSXAccess v" + getVersion() + " Load complete!");
+			System.loadLibrary(lib);
+			System.out.println(lib + " v" + getVersion() + " Load complete!");
 			bLoaded = true;
 			initDriveDetection();
 		} catch (UnsatisfiedLinkError e1) {
-			Debug.out("Could not find libOSXAccess.jnilib");
+			Debug.out("Could not find " + lib + ".jnilib", e1);
 		}
+		
+		return bLoaded;
 	}
 
 	private static void initDriveDetection() {
