@@ -75,6 +75,7 @@ DisplayFormatters
 	private static String		per_sec;
 	
 	private static boolean use_si_units;
+	private static boolean force_si_values;
 	private static boolean use_units_rate_bits;
 	private static boolean not_use_GB_TB;
 
@@ -85,52 +86,29 @@ DisplayFormatters
 		private static char decimalSeparator;
     
 	static{
-		use_si_units = COConfigurationManager.getBooleanParameter("config.style.useSIUnits");
-
-		COConfigurationManager.addParameterListener( "config.style.useSIUnits",
+		COConfigurationManager.addAndFireParameterListeners( 
+				new String[]{
+					"config.style.useSIUnits",
+					"config.style.forceSIValues",
+					"config.style.useUnitsRateBits",
+					"config.style.doNotUseGB",
+				},
 				new ParameterListener()
 				{
 					public void
 					parameterChanged(
-						String	value )
+						String	x )
 					{
-						use_si_units = COConfigurationManager.getBooleanParameter("config.style.useSIUnits");
-
-						setUnits();
-					}
-				});
-
-		use_units_rate_bits = COConfigurationManager.getBooleanParameter("config.style.useUnitsRateBits");
-
-		COConfigurationManager.addParameterListener( "config.style.useUnitsRateBits",
-				new ParameterListener()
-				{
-					public void
-					parameterChanged(
-						String	value )
-					{
+						use_si_units 		= COConfigurationManager.getBooleanParameter("config.style.useSIUnits");
+						force_si_values 		= COConfigurationManager.getBooleanParameter("config.style.forceSIValues");
 						use_units_rate_bits = COConfigurationManager.getBooleanParameter("config.style.useUnitsRateBits");
+			            not_use_GB_TB 		= COConfigurationManager.getBooleanParameter("config.style.doNotUseGB");
+			            
+			            unitsStopAt = (not_use_GB_TB) ? UNIT_MB : UNIT_TB;
 
 						setUnits();
 					}
 				});
-
-	    not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB");
-	    unitsStopAt = (not_use_GB_TB) ? UNIT_MB : UNIT_TB;
-	
-	    COConfigurationManager.addParameterListener( "config.style.doNotUseGB",
-	        new ParameterListener()
-	        {
-	          public void
-	          parameterChanged(
-	            String  value )
-	          {
-	            not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB");
-	            unitsStopAt = (not_use_GB_TB) ? UNIT_MB : UNIT_TB;
-	
-							setUnits();
-	          }
-	        });
 
     	COConfigurationManager.addListener(
     		new COConfigurationListener()
@@ -146,7 +124,10 @@ DisplayFormatters
     		});
 		
 		COConfigurationManager.addAndFireParameterListeners( 
-				new String[]{ "config.style.dataStatsOnly", "config.style.separateProtDataStats" },
+				new String[]{ 
+						"config.style.dataStatsOnly", 
+						"config.style.separateProtDataStats" 
+				},
 				new ParameterListener()
 				{
 					public void
@@ -410,9 +391,11 @@ DisplayFormatters
 
 	  	int unitIndex = UNIT_B;
 	  	
-	  	while (dbl >= 1024 && unitIndex < unitsStopAt){ 
+        long	div = force_si_values?1024:(use_si_units?1024:1000);
+        
+	  	while (dbl >= div && unitIndex < unitsStopAt){ 
 	  	
-		  dbl /= 1024L;
+		  dbl /= div;
 		  unitIndex++;
 		}
 	  	
@@ -582,9 +565,11 @@ DisplayFormatters
 
         int unitIndex = UNIT_B;
 
-        while (dbl >= 1024 && unitIndex < unitsStopAt){
+        long	div = force_si_values?1024:(use_si_units?1024:1000);
+        
+        while (dbl >= div && unitIndex < unitsStopAt){
 
-          dbl /= 1024L;
+          dbl /= div;
           unitIndex++;
         }
 

@@ -174,20 +174,19 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
   				+ "alternateTablePainting");
 		}
 
-		if (userMode > 0) {
-  		new BooleanParameter(cLook, "config.style.useSIUnits", MSG_PREFIX
-  				+ "useSIUnits");
-  		new BooleanParameter(cLook, "config.style.useUnitsRateBits",
-  				MSG_PREFIX + "useUnitsRateBits");
-  		new BooleanParameter(cLook, "config.style.doNotUseGB", MSG_PREFIX
-  				+ "doNotUseGB");
+	if (userMode > 0) {
+  		new BooleanParameter(cLook, "config.style.useSIUnits", MSG_PREFIX + "useSIUnits");
+  		
+  		new BooleanParameter(cLook, "config.style.forceSIValues", MSG_PREFIX + "forceSIValues");
+  		
+  		new BooleanParameter(cLook, "config.style.useUnitsRateBits", MSG_PREFIX + "useUnitsRateBits");
+  		
+  		new BooleanParameter(cLook, "config.style.doNotUseGB", MSG_PREFIX + "doNotUseGB");
   
-  		new BooleanParameter(cLook, "config.style.dataStatsOnly", MSG_PREFIX
-  				+ "dataStatsOnly");
+  		new BooleanParameter(cLook, "config.style.dataStatsOnly", MSG_PREFIX + "dataStatsOnly");
   
-  		new BooleanParameter(cLook, "config.style.separateProtDataStats", MSG_PREFIX
-  				+ "separateProtDataStats");
-		}
+  		new BooleanParameter(cLook, "config.style.separateProtDataStats", MSG_PREFIX + "separateProtDataStats");
+	}
 		
 		
     if( userMode > 1 ) {

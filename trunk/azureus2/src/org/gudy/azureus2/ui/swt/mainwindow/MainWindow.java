@@ -287,8 +287,8 @@ public class MainWindow
 
 			globalManager.loadExistingTorrentsNow(true);
 
-			COConfigurationManager.addParameterListener("config.style.useSIUnits",
-					this);
+			COConfigurationManager.addParameterListener("config.style.useSIUnits", this);
+			COConfigurationManager.addParameterListener("config.style.forceSIValues", this);
 
 			mytorrents = null;
 			my_tracker_tab = null;
@@ -1081,8 +1081,9 @@ public class MainWindow
 			shell.dispose();
 		}
 
-		COConfigurationManager.removeParameterListener("config.style.useSIUnits",
-				this);
+		COConfigurationManager.removeParameterListener("config.style.useSIUnits", this);
+		COConfigurationManager.removeParameterListener("config.style.forceSIValues", this);
+		
 		COConfigurationManager.removeParameterListener("Show Download Basket", this);
 
 		UIExitUtilsSWT.uiShutdown();
@@ -1206,7 +1207,7 @@ public class MainWindow
 			}
 		}
 
-		if (parameterName.equals("config.style.useSIUnits")) {
+		if (parameterName.equals("config.style.useSIUnits") || parameterName.equals("config.style.forceSIValues")) {
 			updateComponents();
 		}
 	}
