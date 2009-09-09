@@ -105,6 +105,8 @@ UPnPImpl
 	private ThreadPool	device_dispatcher	 = new ThreadPool("UPnPDispatcher", 1, true );
 	private Set			device_dispatcher_pending	= new HashSet();
 	
+	private Map<String,long[]>	failed_urls = new HashMap<String,long[]>();
+	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UPnP" );
 
 	protected
@@ -569,28 +571,105 @@ UPnPImpl
 	
 		throws UPnPException
 	{
-		try{
+		String url_str = url.toExternalForm();
+
+		boolean	record_failure = true;
+		
+		try{			
 			TorrentUtils.setTLSDescription( "UPnP Device" + ( friendly_name==null?"":( ": " + friendly_name )));
 			
 			ResourceDownloaderFactory rdf = adapter.getResourceDownloaderFactory();
 				
-			ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( url, true ), 3 );
+			int	retries;
+			
+			synchronized( failed_urls ){
+
+				long[] fails = failed_urls.get( url_str );
+				
+				if ( fails == null ){
+					
+					retries = 3;
+					
+				}else{
+					
+					long	consec_fails 	= fails[0];
+					long	last_fail		= fails[1];
+					
+					long	max_period	= 10*60*1000;
+					long	period 		= 60*1000;
+					
+					for (int i=0;i<consec_fails;i++){
+						
+						period <<= 1;
+						
+						if ( period >= max_period ){
+							
+							period = max_period;
+							
+							break;
+						}
+					}
+					
+					if ( SystemTime.getMonotonousTime() - last_fail < period ){
+						
+						record_failure = false;
+						
+						throw( new UPnPException( "Download failed too recently, ignoring" ));
+					}
+					
+					retries = 1;
+				}
+			}
+			
+			ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( url, true ), retries );
 				
 			rd.addListener( this );
 				
 			InputStream	data = rd.download();
-					
+						
 			try{
-				return( parseXML( data ));
+				
+				SimpleXMLParserDocument res = parseXML( data );
+			
+				synchronized( failed_urls ){
 					
+					failed_urls.remove( url_str );
+				}
+				
+				return( res );
+				
 			}finally{
 					
 				data.close();
-			}
+			}	
 		}catch( Throwable e ){
 				
-			adapter.log( Debug.getNestedExceptionMessageAndStack(e));
-
+			if ( record_failure ){
+				
+				synchronized( failed_urls ){
+					
+					if ( failed_urls.size() >= 64 ){
+						
+						failed_urls.clear();
+					}
+					
+					long[] fails = failed_urls.get( url_str );
+					
+					if ( fails == null ){
+						
+						fails = new long[2];
+						
+						failed_urls.put( url_str, fails );
+					}
+					
+					fails[0]++;
+					
+					fails[1] = SystemTime.getMonotonousTime();
+				}
+			
+				adapter.log( Debug.getNestedExceptionMessageAndStack(e));
+			}
+			
 			if (e instanceof UPnPException ){
 				
 				throw((UPnPException)e);
