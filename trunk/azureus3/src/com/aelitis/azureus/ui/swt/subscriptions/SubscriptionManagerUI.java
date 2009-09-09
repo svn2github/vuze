@@ -1323,7 +1323,7 @@ SubscriptionManagerUI
 	{
 		if ( subs.isSubscribed()){
 			
-			addSubscription( side_bar, subs, true );
+			addSubscription( side_bar, subs, false );
 			
 		}else{
 			
