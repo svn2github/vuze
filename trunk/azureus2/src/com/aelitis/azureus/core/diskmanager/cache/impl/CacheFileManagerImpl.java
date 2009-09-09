@@ -61,6 +61,42 @@ CacheFileManagerImpl
 		}
 	}
 	
+	protected static int
+	convertCacheToFileType(
+		int	cache_type )
+	{
+		if ( cache_type == CacheFile.CT_LINEAR ){
+			
+			return( FMFile.FT_LINEAR );
+			
+		}else if ( cache_type == CacheFile.CT_COMPACT ){
+			
+			return( FMFile.FT_COMPACT );
+			
+		}else{
+			
+			return( FMFile.FT_PIECE_REORDER );
+		}
+	}
+	
+	protected static int
+	convertFileToCacheType(
+		int	file_type )
+	{
+		if ( file_type == FMFile.FT_LINEAR ){
+			
+			return( CacheFile.CT_LINEAR );
+			
+		}else if ( file_type == FMFile.FT_COMPACT ){
+			
+			return( CacheFile.CT_COMPACT );
+			
+		}else{
+			
+			return( CacheFile.CT_PIECE_REORDER );
+		}
+	}
+	
 	protected boolean	cache_enabled;
 	protected boolean	cache_read_enabled;
 	protected boolean	cache_write_enabled;
@@ -203,6 +239,8 @@ CacheFileManagerImpl
 			this_mon.exit();
 		}
 		
+		int	fm_type = convertCacheToFileType( type );
+		
 		try{
 			FMFile	fm_file	= 
 				file_manager.createFile(
@@ -223,8 +261,7 @@ CacheFileManagerImpl
 						{
 							return( owner.getCacheFileControlFileDir( ));
 						}
-					}, file,
-					type==CacheFile.CT_LINEAR?FMFile.FT_LINEAR:FMFile.FT_COMPACT );
+					}, file, fm_type );
 				
 			TOTorrentFile	tf = owner.getCacheFileTorrentFile();
 			

@@ -276,7 +276,7 @@ CacheFileWithoutCacheMT
 	public int
 	getStorageType()
 	{
-		return( base_file.getStorageType()==FMFile.FT_COMPACT?CT_COMPACT:CT_LINEAR );
+		return( CacheFileManagerImpl.convertFileToCacheType( base_file.getStorageType()));
 	}
 
 	public long

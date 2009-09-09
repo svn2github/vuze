@@ -128,7 +128,7 @@ CacheFileWithoutCache
 	{
 		try{
 			
-			file.setStorageType( type==CT_COMPACT?FMFile.FT_COMPACT:FMFile.FT_LINEAR );
+			file.setStorageType( CacheFileManagerImpl.convertCacheToFileType( type ));
 			
 		}catch( FMFileManagerException e ){
 			
@@ -139,7 +139,7 @@ CacheFileWithoutCache
 	public int
 	getStorageType()
 	{
-		return( file.getStorageType()==FMFile.FT_COMPACT?CT_COMPACT:CT_LINEAR );
+		return( CacheFileManagerImpl.convertFileToCacheType( file.getStorageType()));
 	}
 
 	public long

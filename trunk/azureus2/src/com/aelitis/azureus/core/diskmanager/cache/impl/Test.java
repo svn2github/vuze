@@ -23,8 +23,12 @@
 package com.aelitis.azureus.core.diskmanager.cache.impl;
 
 import java.io.*;
+import java.net.URL;
+import java.util.Random;
 
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -61,11 +65,88 @@ Test
 			
 			manager.initialise( true, true, true, 10*1024*1024, 1024 );
 
-			new Test().writeTest(manager);
+			new Test().pieceReorderTest(manager);
 			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
+		}
+	}
+	
+	public void
+	pieceReorderTest(
+		CacheFileManagerImpl	manager )
+	{
+		final Random random = new Random();
+		
+		try{
+			final File	source_file 	= new File("C:\\temp\\filetest1.dat" );
+			final File	target_file 	= new File("C:\\temp\\filetest2.dat" );
+			final File	torrent_file 	= new File("C:\\temp\\filetest.torrent" );
+			
+			final File	control_dir		= new File("C:\\temp\\filetestcontrol" );
+			
+			control_dir.mkdirs();
+			
+			final TOTorrent torrent;
+			
+			if ( !source_file.exists() || !torrent_file.exists()){
+				
+				FileOutputStream fos = new FileOutputStream( source_file );
+				
+				byte[]	buffer = new byte[64*1024];
+				
+				for (int i=0;i<10;i++){
+				
+					random.nextBytes( buffer );
+				
+					fos.write( buffer );
+				}
+				
+				fos.close();
+				
+				torrent = 
+					TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(
+						source_file,
+						new URL( "http://a.b.c/" ),
+						32*1024 ).create();
+			}else{
+				
+				torrent = TOTorrentFactory.deserialiseFromBEncodedFile( torrent_file );
+			}
+			
+			CacheFile	cf = manager.createFile(
+					new CacheFileOwner()
+					{
+						public String
+						getCacheFileOwnerName()
+						{
+							return( "file " + source_file.toString() );
+						}
+						
+						public TOTorrentFile
+						getCacheFileTorrentFile()
+						{
+							return( torrent.getFiles()[0] );
+						}
+						public File 
+						getCacheFileControlFileDir() 
+						{
+							return( control_dir );
+						}
+   						public int
+						getCacheMode()
+						{
+							return( CacheFileOwner.CACHE_MODE_NORMAL );
+						}
+					},
+					target_file, CacheFile.CT_PIECE_REORDER );
+			
+			cf.setAccessMode( CacheFile.CF_WRITE );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
 		}
 	}
 	

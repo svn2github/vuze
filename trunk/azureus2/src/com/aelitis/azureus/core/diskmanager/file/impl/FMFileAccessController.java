@@ -38,6 +38,8 @@ public class
 FMFileAccessController
 	implements FMFileAccess
 {
+	private static final String REORDER_SUFFIX = ".2";
+	
 	private FMFileImpl	owner;
 	
 	private int		type		= FMFile.FT_LINEAR;
@@ -80,22 +82,47 @@ FMFileAccessController
 
 		}else{
 		
-			boolean	control_file_existed = new File(controlPath,controlFileName).exists();
+			if ( new File( controlPath, controlFileName ).exists()){
+				
+				type = FMFile.FT_COMPACT;
+				
+			}else if ( new File( controlPath, controlFileName + REORDER_SUFFIX ).exists()){
 			
-			type = control_file_existed?FMFile.FT_COMPACT:FMFile.FT_LINEAR;
+				type = FMFile.FT_PIECE_REORDER;
+				
+			}else{
+				
+				if ( _target_type == FMFile.FT_PIECE_REORDER && !owner.getLinkedFile().exists()){
+					
+					type = FMFile.FT_PIECE_REORDER;
+					
+				}else{
+					
+					type = FMFile.FT_LINEAR;
+				}
+			}
 						
 			if ( type == FMFile.FT_LINEAR ){
 				
 				file_access = new FMFileAccessLinear( owner );
 				
-			}else{
+			}else if ( type == FMFile.FT_COMPACT ){
 				
 				file_access = 
 					new FMFileAccessCompact(
-							owner.getOwner().getTorrentFile(),controlPath,
+							owner.getOwner().getTorrentFile(),
+							controlPath,
 							controlFileName,  
 							new FMFileAccessLinear( owner ));
-			}				
+			}else{
+				
+				file_access = 
+					new FMFileAccessPieceReorderer(
+							owner.getOwner().getTorrentFile(),
+							controlPath,
+							controlFileName = REORDER_SUFFIX,  
+							new FMFileAccessLinear( owner ));
+			}
 			
 			if ( type != _target_type ){
 				
@@ -110,6 +137,11 @@ FMFileAccessController
 	
 		throws FMFileManagerException
 	{
+		if ( type == FMFile.FT_PIECE_REORDER || target_type == FMFile.FT_PIECE_REORDER ){
+			
+			throw( new FMFileManagerException( "Conversion to/from piece-reorder not supported" ));
+		}
+		
 		File	file = owner.getLinkedFile();
 			
 		RandomAccessFile raf = null;
@@ -300,11 +332,11 @@ FMFileAccessController
 			Debug.out("File '" + owner.getName() + "' not found in torrent!" );
 			
 			controlFileName = null;
-			controlPath = null;
+			controlPath 	= null;
 			
 		}else{
 			
-			controlPath = owner.getOwner().getControlFileDir( );
+			controlPath 	= owner.getOwner().getControlFileDir( );
 			controlFileName =  "fmfile" + file_index + ".dat";
 			
 		}
