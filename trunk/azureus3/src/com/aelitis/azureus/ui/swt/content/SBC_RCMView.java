@@ -606,6 +606,16 @@ SBC_RCMView
 
 					assoc_item.setText(MessageText.getString("rcm.contextmenu.lookupassoc"));
 
+					final ArrayList<RelatedContent> assoc_ok = new ArrayList<RelatedContent>();
+					
+					for ( RelatedContent c: related_content ){
+						
+						if ( c.getHash() != null ){
+							
+							assoc_ok.add( c );
+						}
+					}
+					
 					assoc_item.addSelectionListener(new SelectionAdapter() {
 						public void widgetSelected(SelectionEvent e ){
 							
@@ -613,7 +623,7 @@ SBC_RCMView
 							
 							RelatedContentUI ui = RelatedContentUI.getSingleton();
 							
-							for ( RelatedContent c: related_content ){
+							for ( RelatedContent c: assoc_ok ){
 							
 								ui.addSearch( c.getHash(), c.getTitle());
 								
@@ -626,6 +636,11 @@ SBC_RCMView
 							}
 						};
 					});
+					
+					if ( assoc_ok.size() == 0 ){
+						
+						assoc_item.setEnabled( false );
+					}
 					
 					new MenuItem(menu, SWT.SEPARATOR );
 
