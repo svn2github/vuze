@@ -696,12 +696,16 @@ SBC_RCMView
 									e.doit = false;
 								}
 							}else{
+								if ( 	e.keyCode == SWT.SHIFT ||
+										e.keyCode == SWT.CONTROL ){
+									
+								}else{
+									match += Character.toUpperCase( e.character );
 								
-								match += Character.toUpperCase( e.character );
+									tv_related_content.filterChanged();
 								
-								tv_related_content.filterChanged();
-								
-								e.doit = false;
+									e.doit = false;
+								}
 							}
 						}
 					}
