@@ -838,24 +838,7 @@ RelatedContentManager
 					}
 				});
 	}
-		
-	public void
-	lookupContent(
-		Download							download,
-		final RelatedContentLookupListener	listener )
-	
-		throws ContentException
-	{
-		Torrent t = download.getTorrent();
-		
-		if ( t == null ){
 			
-			throw( new ContentException( "Torrent not available" ));
-		}
-		
-		lookupContent( t.getHash(), listener );
-	}
-	
 	public void
 	lookupContent(
 		final byte[]						hash,
