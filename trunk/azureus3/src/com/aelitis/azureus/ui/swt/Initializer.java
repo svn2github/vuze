@@ -365,7 +365,7 @@ public class Initializer
 		}
 		
 		try{
-			new RelatedContentUI();
+			RelatedContentUI.getSingleton();
 			
 		}catch( Throwable e ){
 			

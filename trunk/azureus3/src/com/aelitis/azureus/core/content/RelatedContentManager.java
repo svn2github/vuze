@@ -852,9 +852,17 @@ RelatedContentManager
 			
 			throw( new ContentException( "Torrent not available" ));
 		}
-
-		final byte[] hash = t.getHash();
 		
+		lookupContent( t.getHash(), listener );
+	}
+	
+	public void
+	lookupContent(
+		final byte[]						hash,
+		final RelatedContentLookupListener	listener )
+	
+		throws ContentException
+	{
 		if ( 	!initialisation_complete_sem.isReleasedForever() ||
 				( dht_plugin != null && dht_plugin.isInitialising())){
 			

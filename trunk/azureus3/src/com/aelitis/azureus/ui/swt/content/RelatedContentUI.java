@@ -85,6 +85,19 @@ RelatedContentUI
 {	
 	private static final boolean	DISABLE_ALL_UI	= !Constants.isCVSVersion();
 	
+	private static RelatedContentUI	singleton;
+	
+	public static synchronized RelatedContentUI
+	getSingleton()
+	{
+		if ( singleton == null ){
+			
+			singleton = new RelatedContentUI();
+		}
+		
+		return( singleton );
+	}
+	
 	private PluginInterface		plugin_interface;
 	private UIManager			ui_manager;
 	
@@ -571,22 +584,30 @@ RelatedContentUI
 	addSearch(
 		final Download		download )
 	{
+		Torrent	torrent = download.getTorrent();
+		
+		if ( torrent == null ){
+			
+			return;
+		}
+		
+		final byte[] hash = torrent.getHash();
+		
+		addSearch( hash, download.getName());
+	}
+	
+	protected void
+	addSearch(
+		final byte[]		hash,
+		final String		name )
+	{
 		synchronized( this ){
-				
-			Torrent	torrent = download.getTorrent();
-			
-			if ( torrent == null ){
-				
-				return;
-			}
-			
-			final byte[] hash = torrent.getHash();
 			
 			final RCMItem existing_si = rcm_item_map.get( hash );
 			
 			if (  existing_si == null ){
 	
-				final RCMItem new_si = new RCMItem( download, hash );
+				final RCMItem new_si = new RCMItem( hash );
 				
 				rcm_item_map.put( hash, new_si );
 				
@@ -603,7 +624,7 @@ RelatedContentUI
 									return;
 								}
 								
-								RCMView view = new RCMView( SideBar.SIDEBAR_SECTION_RELATED_CONTENT, download );
+								RCMView view = new RCMView( SideBar.SIDEBAR_SECTION_RELATED_CONTENT, name );
 								
 								new_si.setView( view );
 								
@@ -715,17 +736,17 @@ RelatedContentUI
 		implements 	ViewTitleInfo
 	{
 		private String			parent_key;
-		private Download		download;
+		private String			name;
 		
 		private int				num_unread;
 		
 		protected
 		RCMView(
 			String			_parent_key,
-			Download		_download )
+			String			_name )
 		{
 			parent_key	= _parent_key;
-			download	= _download;
+			name		= _name;
 		}
 		
 		public Object 
@@ -753,7 +774,7 @@ RelatedContentUI
 		public String
 		getTitle()
 		{
-			return( download.getName());
+			return( name );
 		}
 		
 		protected void
@@ -797,7 +818,6 @@ RelatedContentUI
 	RCMItem
 		implements RelatedContentEnumerator, SideBarCloseListener
 	{	
-		private Download			download;
 		private byte[]				hash;
 		
 		private RCMView				view;
@@ -817,10 +837,8 @@ RelatedContentUI
 		
 		protected
 		RCMItem(
-			Download	_download,
 			byte[]		_hash )
 		{
-			download	= _download;
 			hash		= _hash;
 		}
 		
@@ -842,7 +860,7 @@ RelatedContentUI
 				showIcon( spinner, null );
 				
 				manager.lookupContent(
-					download,
+					hash,
 					new RelatedContentLookupListener()
 					{
 						public void

@@ -602,6 +602,33 @@ SBC_RCMView
 
 					System.arraycopy(_related_content, 0, related_content, 0, related_content.length);
 
+					final MenuItem assoc_item = new MenuItem(menu, SWT.PUSH);
+
+					assoc_item.setText(MessageText.getString("rcm.contextmenu.lookupassoc"));
+
+					assoc_item.addSelectionListener(new SelectionAdapter() {
+						public void widgetSelected(SelectionEvent e ){
+							
+							int	 i = 0;
+							
+							RelatedContentUI ui = RelatedContentUI.getSingleton();
+							
+							for ( RelatedContent c: related_content ){
+							
+								ui.addSearch( c.getHash(), c.getTitle());
+								
+								i++;
+								
+								if ( i > 8 ){
+									
+									break;
+								}
+							}
+						};
+					});
+					
+					new MenuItem(menu, SWT.SEPARATOR );
+
 					final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 
 					remove_item.setText(MessageText.getString("azbuddy.ui.menu.remove"));
