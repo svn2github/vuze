@@ -34,7 +34,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -57,8 +60,12 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.content.columns.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
@@ -324,7 +331,34 @@ SBC_RCMView
 
 		tv_related_content.addSelectionListener(new TableSelectionListener() {
 
-			public void selected(TableRowCore[] row) {
+			public void 
+			selected(
+				TableRowCore[] rows) 
+			{				
+				ArrayList<ISelectedContent>	valid = new ArrayList<ISelectedContent>();
+				
+				for (int i=0;i<rows.length;i++){
+					
+					final RelatedContent rc = (RelatedContent)rows[i].getDataSource();
+					
+					if ( rc.getHash() != null ){
+
+						valid.add(
+							new ToolBarEnablerSelectedContent( SBC_RCMView.this )
+							{
+								public DownloadUrlInfo 
+								getDownloadInfo() 
+								{
+									return(	new DownloadUrlInfo( TorrentUtils.getMagnetURI( rc.getHash())));
+								}
+							});
+					}
+				}
+				
+				ISelectedContent[] sels = valid.toArray( new ISelectedContent[valid.size()] );
+				
+				SelectedContentManager.changeCurrentlySelectedContent( "IconBarEnabler", sels, null );
+				
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
 					uiFunctions.refreshIconBar();
