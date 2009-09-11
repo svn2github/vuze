@@ -724,8 +724,10 @@ public class ToolBarView
 
 		item = getToolBarItem("share");
 		if (item != null) {
-			boolean canShare = has1SelectionWithHash
-					&& VuzeShareUtils.getInstance().canShare(currentContent[0]);
+			boolean canShare = 
+					has1SelectionWithHash &&
+					VuzeShareUtils.getInstance().canShareContent(currentContent[0]) &&
+					VuzeShareUtils.getInstance().canShare(currentContent[0]);
 			item.setEnabled(canShare);
 		}
 

@@ -57,6 +57,15 @@ public class VuzeShareUtils
 		shareContent( content, null, referer );
 	}
 	
+	public boolean
+	canShareContent(
+		ISelectedContent		content )
+	{
+		return(	content instanceof SelectedContentV3 ||
+				content instanceof SelectedContent ||
+				content instanceof ISelectedVuzeFileContent );
+	}
+	
 	public void
 	shareContent(
 		ISelectedContent 	content, 
