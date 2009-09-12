@@ -399,6 +399,15 @@ public class FileUtil {
 	  writeResilientFile( file.getParentFile(), file.getName(), data, false );
   }
   
+  public static boolean
+  writeResilientFileWithResult(
+    File		parent_dir,
+  	String		file_name,
+	Map			data )
+  {
+	  return( writeResilientFile( parent_dir, file_name, data ));
+  }
+  
   public static void
   writeResilientFile(
     File		parent_dir,
@@ -432,63 +441,95 @@ public class FileUtil {
   
   	// synchronise it to prevent concurrent attempts to write the same file
   
-  private static void
+  private static boolean
   writeResilientFile(
 	File		parent_dir,
   	String		file_name,
 	Map			data )
   {
-  	try{
-  		class_mon.enter();
-  	
-	  	try{
-	  		getReservedFileHandles();
-	      File temp = new File(  parent_dir, file_name + ".saving");
-		    BufferedOutputStream	baos = null;
-		    
-		    try{
-		    	byte[] encoded_data = BEncoder.encode(data);
-		    	FileOutputStream tempOS = new FileOutputStream( temp, false );
-		    	baos = new BufferedOutputStream( tempOS, 8192 );
-		    	baos.write( encoded_data );
-		    	baos.flush();
-		    	tempOS.getFD().sync();
-	        baos.close();
-	        baos = null;
-	           
-	        //only use newly saved file if it got this far, i.e. it saved successfully
-	        if ( temp.length() > 1L ) {
-	        	File file = new File( parent_dir, file_name );
-	        	if ( file.exists() ){
-	        		file.delete();
-	        	}
-	        	temp.renameTo( file );
-	        }
-	
-		    }catch (Exception e) {
-		    	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, "Save of '"
-							+ file_name + "' fails", e));
-		    	
-		    }finally{
-		    	
-		    	try {
-		    		if (baos != null){
-		    			
-		    			baos.close();
-		    		}
-		    	}catch( Exception e){
-		    		Logger.log(new LogAlert(LogAlert.UNREPEATABLE, "Save of '"
-								+ file_name + "' fails", e)); 
-		    	}
-		    }
-	  	}finally{
-	  		
-	  		releaseReservedFileHandles();
-	  	}
-  	}finally{
-  		
-  		class_mon.exit();
-  	}
+	  try{
+		  class_mon.enter();
+
+		  try{
+			  getReservedFileHandles();
+			  File temp = new File(  parent_dir, file_name + ".saving");
+			  BufferedOutputStream	baos = null;
+
+			  try{
+				  byte[] encoded_data = BEncoder.encode(data);
+				  FileOutputStream tempOS = new FileOutputStream( temp, false );
+				  baos = new BufferedOutputStream( tempOS, 8192 );
+				  baos.write( encoded_data );
+				  baos.flush();
+				  tempOS.getFD().sync();
+				  baos.close();
+				  baos = null;
+
+				  	//only use newly saved file if it got this far, i.e. it saved successfully
+				  
+				  if ( temp.length() > 1L ){
+					  
+					  File file = new File( parent_dir, file_name );
+					  
+					  if ( file.exists()){
+						  
+						  if ( !file.delete()){
+							  
+							  Logger.log(
+								 new LogAlert(
+										 LogAlert.UNREPEATABLE, 
+										 LogAlert.AT_ERROR,
+										 "Save of '" + file_name + "' fails - couldn't delete " + file.getAbsolutePath()));
+ 
+						  }
+					  }
+					  
+					  if ( temp.renameTo( file )){
+						  
+						  return( true );
+						  
+					  }else{
+						  
+						  Logger.log(
+							 new LogAlert(
+									 LogAlert.UNREPEATABLE, 
+									 LogAlert.AT_ERROR,
+									 "Save of '" + file_name + "' fails - couldn't rename " + temp.getAbsolutePath() + " to " + file.getAbsolutePath()));
+
+					  }
+				  }
+					  
+				  return( false );
+
+			  }catch( Throwable e ){
+				  
+				  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, "Save of '"
+						  + file_name + "' fails", e));
+
+				  return( false );
+				  
+			  }finally{
+
+				  try{
+					  if (baos != null){
+
+						  baos.close();
+					  }
+				  }catch( Exception e){
+					  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, "Save of '"
+							  + file_name + "' fails", e)); 
+					  
+					  return( false );
+				  }
+			  }
+		  }finally{
+
+			  releaseReservedFileHandles();
+		  }
+	  }finally{
+
+		  class_mon.exit();
+	  }
   }
   
   	public static boolean

@@ -57,6 +57,13 @@ FMFileAccessLinear
 		owner	= _owner;
 	}
 	
+	public void
+	aboutToOpen()
+	
+		throws FMFileManagerException
+	{
+	}
+	
 	public long
 	getLength(
 		RandomAccessFile		raf )

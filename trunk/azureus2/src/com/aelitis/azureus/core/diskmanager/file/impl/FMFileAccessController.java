@@ -56,6 +56,8 @@ FMFileAccessController
 	
 		throws FMFileManagerException
 	{
+		// _target_type = FMFile.FT_PIECE_REORDER;
+		
 		owner		= _file;
 		
 		// actual file shouldn't exist for change to occur - it is the responsibility
@@ -120,7 +122,7 @@ FMFileAccessController
 					new FMFileAccessPieceReorderer(
 							owner.getOwner().getTorrentFile(),
 							controlPath,
-							controlFileName = REORDER_SUFFIX,  
+							controlFileName + REORDER_SUFFIX,  
 							new FMFileAccessLinear( owner ));
 			}
 			
@@ -338,7 +340,6 @@ FMFileAccessController
 			
 			controlPath 	= owner.getOwner().getControlFileDir( );
 			controlFileName =  "fmfile" + file_index + ".dat";
-			
 		}
 	}
 	
@@ -365,6 +366,14 @@ FMFileAccessController
 	
 	
 		// FileAccess
+	
+	public void
+	aboutToOpen()
+	
+		throws FMFileManagerException
+	{
+		file_access.aboutToOpen();
+	}
 	
 	public long
 	getLength(

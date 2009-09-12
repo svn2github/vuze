@@ -50,7 +50,7 @@ FMFileImpl
 	
 	// If there is an exception that occurs, which causes us to try and perform
 	// a reopen, setting this flag to true will print it to debug.
-	private static boolean OUTPUT_REOPEN_RELATED_ERRORS = false; 
+	private static boolean OUTPUT_REOPEN_RELATED_ERRORS = true; 
 	
 	static{
 		AEDiagnostics.addEvidenceGenerator(
@@ -545,6 +545,8 @@ FMFileImpl
 				// if the subsequent open fails
 		}
 		
+		file_access.aboutToOpen();
+		
 		raf = new RandomAccessFile( linked_file, access_mode==FM_READ?READ_ACCESS_MODE:WRITE_ACCESS_MODE);
 		
 		Debug.outNoStack( "Recovered connection to " + getName() + " after access failure" );
@@ -563,7 +565,9 @@ FMFileImpl
 
 		reserveAccess( reason );
 		
-		try{		
+		try{	
+			file_access.aboutToOpen();
+			
 			raf = new RandomAccessFile( linked_file, access_mode==FM_READ?READ_ACCESS_MODE:WRITE_ACCESS_MODE);
 			
 		}catch( Throwable e ){

@@ -60,15 +60,15 @@ FMFileAccessCompact
 	protected
 	FMFileAccessCompact(
 		TOTorrentFile	_torrent_file,
-		File			controlFileDir,
-		String			controlFileName,
+		File			_controlFileDir,
+		String			_controlFileName,
 		FMFileAccess	_delegate )
 	
 		throws FMFileManagerException
 	{
 		torrent_file	= _torrent_file;
-		this.controlFileDir	= controlFileDir;
-		this.controlFileName = controlFileName;
+		controlFileDir	= _controlFileDir;
+		controlFileName = _controlFileName;
 		delegate		= _delegate;
 
 		try{
@@ -168,6 +168,14 @@ FMFileAccessCompact
 	getLastPieceLength()
 	{
 		return( last_piece_length );
+	}
+	
+	public void
+	aboutToOpen()
+	
+		throws FMFileManagerException
+	{
+		delegate.aboutToOpen();
 	}
 	
 	public long

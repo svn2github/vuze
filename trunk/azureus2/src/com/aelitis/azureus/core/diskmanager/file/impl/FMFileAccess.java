@@ -26,12 +26,16 @@ import java.io.RandomAccessFile;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.diskmanager.file.FMFile;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
 public interface 
 FMFileAccess 
 {
+	public void
+	aboutToOpen()
+	
+		throws FMFileManagerException;
+		
 	public long
 	getLength(
 		RandomAccessFile		raf )
@@ -47,7 +51,6 @@ FMFileAccess
 	
 	public void
 	read(
-		//FMFile				file,
 		RandomAccessFile	raf,
 		DirectByteBuffer[]	buffers,
 		long				offset )
