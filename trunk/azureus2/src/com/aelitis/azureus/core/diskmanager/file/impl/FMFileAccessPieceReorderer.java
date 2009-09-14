@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -102,6 +103,7 @@ FMFileAccessPieceReorderer
 		
 	private long	current_length;
 	private int[]	piece_map;
+	private int[]	piece_reverse_map;
 	private int		next_piece_index;
 	
 	private int		dirt_state;
@@ -217,16 +219,18 @@ FMFileAccessPieceReorderer
 		throws FMFileManagerException
 	{
 		if ( num_pieces >= MIN_PIECES_REORDERABLE ){
-
+			
 			if ( piece_map == null ){
 				
 				readConfig();
 			}
 			
-			current_length = length;
+			if ( current_length != length ){
 			
-			setDirty();
+				current_length = length;
 			
+				setDirty();
+			}
 		}else{
 			
 			delegate.setLength( raf, length );
@@ -235,8 +239,9 @@ FMFileAccessPieceReorderer
 	
 	protected long
 	getPieceOffset(
-		int			piece_number,
-		boolean		allocate_if_needed )
+		RandomAccessFile	raf,
+		int					piece_number,
+		boolean				allocate_if_needed )
 	
 		throws FMFileManagerException
 	{
@@ -245,7 +250,7 @@ FMFileAccessPieceReorderer
 			readConfig();
 		}
 		
-		int index = getPieceIndex( piece_number, allocate_if_needed );
+		int index = getPieceIndex( raf, piece_number, allocate_if_needed );
 			
 		if ( index < 0 ){
 			
@@ -315,7 +320,7 @@ FMFileAccessPieceReorderer
 			}
 		}
 		
-		long piece_start = getPieceOffset( piece_number, !is_read );
+		long piece_start = getPieceOffset( raf, piece_number, !is_read );
 		 
 		if ( piece_start == -1 ){
 			
@@ -474,8 +479,84 @@ FMFileAccessPieceReorderer
 		throws FMFileManagerException
 	{	
 		if ( num_pieces >= MIN_PIECES_REORDERABLE ){
+						
+			piece_number = piece_number - first_piece_number;
 			
 			System.out.println( "pieceComplete: " + piece_number );
+
+			if ( piece_number >= next_piece_index ){
+			
+					// nothing stored yet in the location where this piece belongs
+				
+				return;
+			}
+			
+			int	store_index = getPieceIndex( raf, piece_number, false );
+			
+			if ( store_index == -1 ){
+				
+				throw( new FMFileManagerException( "piece marked as complete but not yet allocated" ));
+			}
+			
+			if ( piece_number == store_index ){
+				
+					// already in the right place
+				
+				return;
+			}
+			
+				// find out what's currently stored in the place this piece should be 
+			
+			int	swap_piece_number = piece_reverse_map[ piece_number ];
+			
+			if ( swap_piece_number < 1 ){
+				
+				throw( new FMFileManagerException( "Inconsistent: failed to find piece to swap" ));
+			}
+			
+			System.out.println( "swapping " + piece_number + ": " + store_index + " <->" + swap_piece_number );
+			
+			DirectByteBuffer temp_buffer = DirectByteBufferPool.getBuffer( SS_FILE, piece_size );
+			
+			DirectByteBuffer[] temp_buffers = new DirectByteBuffer[]{ temp_buffer };
+			
+			try{
+				long	store_offset = first_piece_length + ((store_index-1)*piece_size );
+				long	swap_offset	 = first_piece_length + ((piece_number-1)*piece_size );
+				
+				delegate.read( raf, temp_buffers, swap_offset );
+				
+				piece_data.position( SS_FILE, 0 );
+				
+				delegate.write( raf, new DirectByteBuffer[]{ piece_data }, swap_offset );
+				
+				temp_buffer.position( SS_FILE, 0 );
+				
+				delegate.write( raf, temp_buffers, store_offset );
+				
+				piece_map[ piece_number ] 			= piece_number;
+				piece_reverse_map[ piece_number ] 	= piece_number;
+				
+				piece_map[ swap_piece_number ] 		= store_index;
+				piece_reverse_map[ store_index ] 	= swap_piece_number;
+				
+				setDirty();
+				
+				if ( piece_number == num_pieces - 1 ){
+					
+					long	file_length = swap_offset + last_piece_length;
+					
+					if ( delegate.getLength( raf ) > file_length ){
+						
+						System.out.println( "Truncation file to correct length of " + file_length );
+						
+						delegate.setLength( raf, file_length );
+					}
+				}
+			}finally{
+				
+				temp_buffer.returnToPool();
+			}
 			
 		}else{
 			
@@ -485,27 +566,81 @@ FMFileAccessPieceReorderer
 
 	protected int
 	getPieceIndex(
-		int			piece_number,
-		boolean		allocate_if_needed )
+		RandomAccessFile	raf,
+		int					piece_number,
+		boolean				allocate_if_needed )
 	
 		throws FMFileManagerException
 	{		
-		int	index = piece_map[ piece_number ];
+		int	store_index = piece_map[ piece_number ];
 				
-		if ( index == -1 && allocate_if_needed ){
+		if ( store_index == -1 && allocate_if_needed ){
 			
-			index = next_piece_index++;
+			store_index = next_piece_index++;
 			
-			System.out.println( "getPiece: allocated " + index );
+			System.out.println( "getPiece: allocated " + store_index );
 			
-			piece_map[ piece_number ] = index;
+			piece_map[ piece_number ] = store_index;
+			piece_reverse_map[ store_index ] = piece_number;
+			
+			if ( piece_number != store_index ){
+				
+					// not already in the right place, see if the piece we just allocated
+					// corresponds to a piece previously allocated and swap if so
+				
+				int	swap_index = piece_map[ store_index ];
+								
+				if ( swap_index > 0 ){
+					
+					System.out.println( "piece at this index already allocated, swapping" );
+					
+					DirectByteBuffer temp_buffer = DirectByteBufferPool.getBuffer( SS_FILE, piece_size );
+					
+					DirectByteBuffer[] temp_buffers = new DirectByteBuffer[]{ temp_buffer };
+	
+					try{
+						long	store_offset 	= first_piece_length + ((store_index-1)*piece_size );
+						long	swap_offset 	= first_piece_length + ((swap_index-1)*piece_size );
+
+						delegate.read( raf, temp_buffers, swap_offset );
+
+						temp_buffer.position( SS_FILE, 0 );
+						
+						delegate.write( raf, temp_buffers, store_offset );
+
+						piece_map[ store_index ] 			= store_index;
+						piece_reverse_map[ store_index ] 	= store_index;
+						
+						piece_map[ piece_number ]		= swap_index;
+						piece_reverse_map[ swap_index ]	= piece_number;
+											
+						if ( store_index == num_pieces - 1 ){
+							
+							long	file_length = store_offset + last_piece_length;
+							
+							if ( delegate.getLength( raf ) > file_length ){
+								
+								System.out.println( "Truncation file to correct length of " + file_length );
+								
+								delegate.setLength( raf, file_length );
+							}
+						}
+						
+						store_index = swap_index;
+
+					}finally{
+						
+						temp_buffer.returnToPool();
+					}
+				}
+			}
 			
 			setDirty();
 		}
 		
-		System.out.println( "getPiece: " + piece_number + "->" + index );
+		System.out.println( "getPiece: " + piece_number + "->" + store_index );
 		
-		return( index );
+		return( store_index );
 	}
 	
 	protected void
@@ -513,16 +648,17 @@ FMFileAccessPieceReorderer
 	
 		throws FMFileManagerException
 	{
-		piece_map = new int[num_pieces];
+		piece_map 			= new int[num_pieces];
+		piece_reverse_map 	= new int[num_pieces];
 
 		if ( dirt_state == DIRT_NEVER_WRITTEN ){
-			
-			
+					
 			Arrays.fill( piece_map, -1 );
 			
-			piece_map[0]		= 0;
-			next_piece_index 	= 1;
-			current_length		= 0;
+			piece_map[0]			= 0;
+			piece_reverse_map[0]	= 0;
+			next_piece_index 		= 1;
+			current_length			= 0;
 			
 		}else{
 			
@@ -549,11 +685,18 @@ FMFileAccessPieceReorderer
 			
 			for (int i=0;i<num_pieces;i++){
 			
-				piece_map[i] = 
+				int	index = 
 					( piece_bytes[pos++] << 24 ) + 
 					(( piece_bytes[pos++] & 0xff ) << 16 ) +
 					(( piece_bytes[pos++] & 0xff ) << 8 ) +
 					(( piece_bytes[pos++] & 0xff ));
+				
+				piece_map[i] = index;
+
+				if ( index != -1 ){
+				
+					piece_reverse_map[ index ] = i;
+				}
 			}
 		}
 		
@@ -565,6 +708,8 @@ FMFileAccessPieceReorderer
 	
 		throws FMFileManagerException
 	{
+		Debug.out( "setDirty");
+			
 		if ( dirt_state == DIRT_NEVER_WRITTEN ){
 			
 			Debug.out( "shouldn't get here" );

@@ -771,7 +771,13 @@ DMCheckerImpl
 					    									}
 					    								}catch( Throwable e ){
 					    									
+					    									f_buffer.returnToPool();
+					    									
 					    									Debug.out( e );
+					    									
+					    									listener.checkFailed( request, e );
+					    									
+					    									return;
 					    								}
 					    							}
 					    							
