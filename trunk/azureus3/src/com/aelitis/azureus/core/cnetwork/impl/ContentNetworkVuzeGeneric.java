@@ -54,7 +54,8 @@ ContentNetworkVuzeGeneric
 					
 					URL_SUFFIX = 	"azid=" 	+ Base32.encode(VuzeCryptoManager.getSingleton().getPlatformAZID()) +
 									"&azv=" 	+ Constants.AZUREUS_VERSION +
-									"&locale=" 	+ Locale.getDefault().toString();
+									"&locale=" 	+ Locale.getDefault().toString() +
+									"&os.name=" + UrlUtils.encode(System.getProperty("os.name"));
 					String suffix = System.getProperty("url.suffix", null);
 					if (suffix != null) {
 						URL_SUFFIX += "&" + suffix;
