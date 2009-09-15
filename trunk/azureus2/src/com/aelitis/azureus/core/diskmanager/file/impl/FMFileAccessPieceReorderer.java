@@ -87,6 +87,7 @@ FMFileAccessPieceReorderer
 	private static final int	DIRT_DIRTY				= 1;
 	private static final int	DIRT_NEVER_WRITTEN		= 2;
 	
+	private static final long	DIRT_FLUSH_MILLIS		= 30*1000;
 	
 	private FMFileAccess	delegate;
 	private File			control_dir;
@@ -107,7 +108,7 @@ FMFileAccessPieceReorderer
 	private int		next_piece_index;
 	
 	private int		dirt_state;
-	private long	dirt_time;
+	private long	dirt_time		= -1;
 	
 	protected
 	FMFileAccessPieceReorderer(
@@ -365,6 +366,13 @@ FMFileAccessPieceReorderer
 		for ( DirectByteBuffer buffer: buffers ){
 			
 			total_length += buffer.remaining( SS_FILE );
+		}
+		
+		if ( !is_read && position + total_length > current_length ){
+			
+			current_length = position + total_length;
+			
+			setDirty();
 		}
 		
 		long	current_position = position;
@@ -708,8 +716,6 @@ FMFileAccessPieceReorderer
 	
 		throws FMFileManagerException
 	{
-		Debug.out( "setDirty");
-			
 		if ( dirt_state == DIRT_NEVER_WRITTEN ){
 			
 			Debug.out( "shouldn't get here" );
@@ -717,11 +723,19 @@ FMFileAccessPieceReorderer
 			writeConfig();
 				
 		}else{
+			long	now = SystemTime.getMonotonousTime();
 			
 			if ( dirt_state == DIRT_CLEAN ){
 			
 				dirt_state 	= DIRT_DIRTY;
-				dirt_time	= SystemTime.getMonotonousTime();
+				dirt_time	= now;
+				
+			}else{
+				
+				if ( dirt_time >= 0 && ( now - dirt_time >= DIRT_FLUSH_MILLIS )){
+					
+					writeConfig();
+				}
 			}
 		}
 	}
@@ -776,7 +790,8 @@ FMFileAccessPieceReorderer
 
 		System.out.println( "WriteConfig: length=" + current_length + ", next=" + next_piece_index );
 
-		dirt_state = DIRT_CLEAN;
+		dirt_state 	= DIRT_CLEAN;
+		dirt_time	= -1;
 	}
 	
 	public String
