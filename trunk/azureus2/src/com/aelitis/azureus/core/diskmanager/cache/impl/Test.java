@@ -26,6 +26,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -84,9 +85,16 @@ Test
 		try{
 			Random random = new Random();
 			
-			int	num_files 	= 10;
+			int	num_files 	= 5;
 			int	piece_size	= 2048;
-			int file_size_average	= piece_size*5;
+			int file_size_average	= piece_size*50;
+			
+			int	chunk_fixed_size 	= 1500;
+			int chunk_random_size	= 0;
+			
+			int	write_order	= 1;		// 0 = linear forwards; 1 = linear backwards; 2 = random;
+			
+			
 			
 			int[]	file_sizes = new int[num_files];
 			
@@ -245,7 +253,16 @@ Test
 	
 				while( rem > 0 ){
 					
-					long chunk_length = random.nextInt( 1024 ) + 1;
+					long chunk_length;
+					
+					if ( chunk_fixed_size != 0 ){
+						
+						chunk_length = chunk_fixed_size;
+						
+					}else{
+						
+						chunk_length = random.nextInt( chunk_random_size ) + 1;
+					}
 					
 					if ( rem < chunk_length ){
 						
@@ -320,9 +337,27 @@ Test
 			
 			while ( chunks.size() > 0 ){
 				
-				Chunk chunk = chunks.remove( random.nextInt( chunks.size()));
+				Chunk chunk;
 				
-				List<ChunkSlice> slices = chunk.getSlices();
+				if ( write_order == 0 ){
+					
+					chunk = chunks.remove( 0 );
+					
+				}else if ( write_order == 1 ){
+						
+					chunk = chunks.remove( chunks.size() - 1 );
+						
+				}else{
+					
+					chunk = chunks.remove( random.nextInt( chunks.size()));
+				}
+				
+				List<ChunkSlice> slices = new ArrayList<ChunkSlice>( chunk.getSlices());
+				
+				if ( write_order == 1 ){
+					
+					Collections.reverse( slices );
+				}
 				
 				for ( ChunkSlice slice: slices ){
 					

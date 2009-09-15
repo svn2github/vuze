@@ -510,6 +510,8 @@ FMFileAccessPieceReorderer
 				
 					// already in the right place
 				
+				System.out.println( "    already in right place" );
+				
 				return;
 			}
 			
@@ -522,7 +524,7 @@ FMFileAccessPieceReorderer
 				throw( new FMFileManagerException( "Inconsistent: failed to find piece to swap" ));
 			}
 			
-			System.out.println( "swapping " + piece_number + ": " + store_index + " <->" + swap_piece_number );
+			System.out.println( "    swapping " + piece_number + " and " + swap_piece_number + ": " + piece_number + " <-> " + store_index );
 			
 			DirectByteBuffer temp_buffer = DirectByteBufferPool.getBuffer( SS_FILE, piece_size );
 			
@@ -556,7 +558,7 @@ FMFileAccessPieceReorderer
 					
 					if ( delegate.getLength( raf ) > file_length ){
 						
-						System.out.println( "Truncation file to correct length of " + file_length );
+						System.out.println( "    truncating file to correct length of " + file_length );
 						
 						delegate.setLength( raf, file_length );
 					}
@@ -586,7 +588,7 @@ FMFileAccessPieceReorderer
 			
 			store_index = next_piece_index++;
 			
-			System.out.println( "getPiece: allocated " + store_index );
+			System.out.println( "getPiece(" + piece_number + "): allocated " + store_index );
 			
 			piece_map[ piece_number ] = store_index;
 			piece_reverse_map[ store_index ] = piece_number;
@@ -600,8 +602,8 @@ FMFileAccessPieceReorderer
 								
 				if ( swap_index > 0 ){
 					
-					System.out.println( "piece at this index already allocated, swapping" );
-					
+					System.out.println( "    piece number " + store_index + " already allocated at " + swap_index + ": moving piece ");
+												
 					DirectByteBuffer temp_buffer = DirectByteBufferPool.getBuffer( SS_FILE, piece_size );
 					
 					DirectByteBuffer[] temp_buffers = new DirectByteBuffer[]{ temp_buffer };
@@ -628,7 +630,7 @@ FMFileAccessPieceReorderer
 							
 							if ( delegate.getLength( raf ) > file_length ){
 								
-								System.out.println( "Truncation file to correct length of " + file_length );
+								System.out.println( "    truncating file to correct length of " + file_length );
 								
 								delegate.setLength( raf, file_length );
 							}
@@ -646,7 +648,7 @@ FMFileAccessPieceReorderer
 			setDirty();
 		}
 		
-		System.out.println( "getPiece: " + piece_number + "->" + store_index );
+		// System.out.println( "getPiece: " + piece_number + "->" + store_index );
 		
 		return( store_index );
 	}
