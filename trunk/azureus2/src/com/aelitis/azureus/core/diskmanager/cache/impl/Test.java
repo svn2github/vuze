@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.disk.impl.access.impl.DMWriterImpl;
 import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
@@ -83,16 +82,16 @@ Test
 		CacheFileManagerImpl	manager )
 	{
 		try{
-			Random random = new Random();
+			Random random = new Random(0);
 			
-			int	num_files 	= 5;
-			int	piece_size	= 2048;
-			int file_size_average	= piece_size*50;
+			int	num_files 	= 100;
+			int	piece_size	= 1024;
+			int file_size_average	= piece_size*30;
 			
-			int	chunk_fixed_size 	= 1500;
-			int chunk_random_size	= 0;
+			int	chunk_fixed_size 	= 0;
+			int chunk_random_size	= 1024;
 			
-			int	write_order	= 1;		// 0 = linear forwards; 1 = linear backwards; 2 = random;
+			int	write_order	= 2;		// 0 = linear forwards; 1 = linear backwards; 2 = random;
 			
 			
 			
@@ -191,22 +190,63 @@ Test
 			
 			final TOTorrentFile[] torrent_files = torrent.getFiles();
 			
+				// unfortunately the torrent's file order may not be ours...
+			
+			for ( int i=0;i<torrent_files.length;i++){
+
+				TOTorrentFile tf = torrent_files[i];
+				
+				String rel_path = tf.getRelativePath();
+				
+				boolean	found = false;
+				
+				for (int j=0;j<source_files.length;j++){
+					
+					if ( source_files[j].getName().equals( rel_path )){
+				
+						found = true;
+					
+						if ( j != i ){
+							
+							int	temp = file_sizes[i];
+							file_sizes[i] = file_sizes[j];
+							file_sizes[j] = temp;
+							
+							File femp = source_files[i];
+							source_files[i] = source_files[j];
+							source_files[j] = femp;
+							
+							femp = target_files[i];
+							target_files[i] = target_files[j];
+							target_files[j] = femp;
+							
+							RandomAccessFile remp = source_file_rafs[i];
+							source_file_rafs[i] = source_file_rafs[j];
+							source_file_rafs[j] = remp;
+						}
+						break;
+					}
+				}
+
+				if ( !found ){
+					
+					Debug.out( "eh?" );
+					
+					return;
+				}
+			}
+			
 			CacheFile[] cache_files = new CacheFile[ torrent_files.length ];
 			
 			for ( int i=0;i<torrent_files.length;i++){
 				
 				final int f_i = i;
 				
-				File target_file;
+				File target_file		= target_files[i];
+				final File source_file	= source_files[i];
 				
-				if  ( num_files == 1 ){
-					
-					target_file = target_file_or_dir;
-					
-				}else{
-					
-					target_file = new File( target_file_or_dir, "file" + i );
-				}
+				
+				System.out.println( "file " + i + ": e_size=" + file_sizes[i] + ", t_size=" + torrent_files[i].getLength() + ", d_size=" + source_file.length());
 				
 				cache_files[i] = manager.createFile(
 					new CacheFileOwner()
@@ -214,7 +254,7 @@ Test
 						public String
 						getCacheFileOwnerName()
 						{
-							return( "file " + f_i );
+							return( source_file.getAbsolutePath());
 						}
 						
 						public TOTorrentFile
@@ -352,6 +392,8 @@ Test
 					chunk = chunks.remove( random.nextInt( chunks.size()));
 				}
 				
+				System.out.println( "Processing chunk " + chunk.getString());
+				
 				List<ChunkSlice> slices = new ArrayList<ChunkSlice>( chunk.getSlices());
 				
 				if ( write_order == 1 ){
@@ -364,6 +406,9 @@ Test
 					int		file_index 	= slice.getFileIndex();
 					long	file_offset	= slice.getFileOffset();
 					long	length		= slice.getLength();
+					
+
+					System.out.println( "Processing slice " + slice.getString() + "[file size=" + file_sizes[file_index]);
 					
 					DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_OTHER, (int)length );
 					
@@ -529,7 +574,19 @@ Test
 							pos += r1;
 						}else{
 							
-							System.err.println( "mismatch: file=" + i + ",pos=" + pos );
+							int diff_at = -1;
+							
+							for (int j=0;j<avail;j++){
+								
+								if ( buffer1[j] != buffer2[j] ){
+									
+									diff_at = j;
+									
+									break;
+								}
+							}
+							
+							System.err.println( "mismatch: file=" + i + ",pos=" + pos + " + " + diff_at );
 							
 							failed = true;
 							

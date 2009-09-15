@@ -78,9 +78,10 @@ FMFileAccessPieceReorderer
  * pieces and blocks contain valid data. I guess such details could be added to the 
  * setStorageType call as a further parameter
  */
+	private static final boolean TRACE	= false;
 	
 	private static final int MIN_PIECES_REORDERABLE	= 3;	// first piece fixed at file start so need 3 to do anything worthwhile
-	
+		
 	private static final byte SS_FILE = DirectByteBuffer.SS_FILE;
 	
 	private static final int	DIRT_CLEAN				= 0;
@@ -282,7 +283,7 @@ FMFileAccessPieceReorderer
 		throws FMFileManagerException
 	{
 		String	str = is_read?"read":"write";
-		
+			
 		if ( piece_number >= num_pieces ){
 			
 			throw( new FMFileManagerException( "Attempt to " + str + " piece " + piece_number + ": last=" + num_pieces ));
@@ -321,17 +322,21 @@ FMFileAccessPieceReorderer
 			}
 		}
 		
-		long piece_start = getPieceOffset( raf, piece_number, !is_read );
-		 
-		if ( piece_start == -1 ){
-			
-			return( 0 );
-		}
-		
-		long piece_io_position = piece_start + piece_offset;
-		
 		try{
-		
+
+			long piece_start = getPieceOffset( raf, piece_number, !is_read );
+			 
+			if ( TRACE ){
+				System.out.println( str + " to " + piece_number + "/" + piece_offset + "/" + this_piece_size + "/" + piece_space + "/" + rem_space + "/" + piece_start );
+			}
+
+			if ( piece_start == -1 ){
+				
+				return( 0 );
+			}
+			
+			long piece_io_position = piece_start + piece_offset;
+				
 			if ( is_read ){
 			
 				delegate.read( raf, buffers, piece_io_position );
@@ -487,10 +492,18 @@ FMFileAccessPieceReorderer
 		throws FMFileManagerException
 	{	
 		if ( num_pieces >= MIN_PIECES_REORDERABLE ){
-						
+				
+				// note that it is possible to reduce the number of piece moves at the expense
+				// of complicating the allocation process. We have the advantage here of having
+				// the piece data already in memory. We also don't want to defer a mass of IO
+				// until the download completes, hence interfering with other stuff such as
+				// streaming. So I'm going to stick with this approach.
+			
 			piece_number = piece_number - first_piece_number;
 			
-			System.out.println( "pieceComplete: " + piece_number );
+			if ( TRACE ){
+				System.out.println( "pieceComplete: " + piece_number );
+			}
 
 			if ( piece_number >= next_piece_index ){
 			
@@ -510,7 +523,9 @@ FMFileAccessPieceReorderer
 				
 					// already in the right place
 				
-				System.out.println( "    already in right place" );
+				if ( TRACE ){
+					System.out.println( "    already in right place" );
+				}
 				
 				return;
 			}
@@ -524,7 +539,9 @@ FMFileAccessPieceReorderer
 				throw( new FMFileManagerException( "Inconsistent: failed to find piece to swap" ));
 			}
 			
-			System.out.println( "    swapping " + piece_number + " and " + swap_piece_number + ": " + piece_number + " <-> " + store_index );
+			if ( TRACE ){
+				System.out.println( "    swapping " + piece_number + " and " + swap_piece_number + ": " + piece_number + " <-> " + store_index );
+			}
 			
 			DirectByteBuffer temp_buffer = DirectByteBufferPool.getBuffer( SS_FILE, piece_size );
 			
@@ -558,7 +575,9 @@ FMFileAccessPieceReorderer
 					
 					if ( delegate.getLength( raf ) > file_length ){
 						
-						System.out.println( "    truncating file to correct length of " + file_length );
+						if ( TRACE ){
+							System.out.println( "    truncating file to correct length of " + file_length );
+						}
 						
 						delegate.setLength( raf, file_length );
 					}
@@ -567,7 +586,6 @@ FMFileAccessPieceReorderer
 				
 				temp_buffer.returnToPool();
 			}
-			
 		}else{
 			
 			delegate.setPieceComplete( raf, piece_number, piece_data );
@@ -588,7 +606,9 @@ FMFileAccessPieceReorderer
 			
 			store_index = next_piece_index++;
 			
-			System.out.println( "getPiece(" + piece_number + "): allocated " + store_index );
+			if ( TRACE ){
+				System.out.println( "getPiece(" + piece_number + "): allocated " + store_index );
+			}
 			
 			piece_map[ piece_number ] = store_index;
 			piece_reverse_map[ store_index ] = piece_number;
@@ -602,7 +622,9 @@ FMFileAccessPieceReorderer
 								
 				if ( swap_index > 0 ){
 					
-					System.out.println( "    piece number " + store_index + " already allocated at " + swap_index + ": moving piece ");
+					if ( TRACE ){
+						System.out.println( "    piece number " + store_index + " already allocated at " + swap_index + ": moving piece ");
+					}
 												
 					DirectByteBuffer temp_buffer = DirectByteBufferPool.getBuffer( SS_FILE, piece_size );
 					
@@ -630,7 +652,9 @@ FMFileAccessPieceReorderer
 							
 							if ( delegate.getLength( raf ) > file_length ){
 								
-								System.out.println( "    truncating file to correct length of " + file_length );
+								if ( TRACE ){
+									System.out.println( "    truncating file to correct length of " + file_length );
+								}
 								
 								delegate.setLength( raf, file_length );
 							}
@@ -710,7 +734,9 @@ FMFileAccessPieceReorderer
 			}
 		}
 		
-		System.out.println( "ReadConfig: length=" + current_length + ", next=" + next_piece_index );
+		if ( TRACE ){
+			System.out.println( "ReadConfig: length=" + current_length + ", next=" + next_piece_index );
+		}
 	}
 
 	protected void
@@ -790,8 +816,10 @@ FMFileAccessPieceReorderer
 			throw( new FMFileManagerException( "Failed to write control file " + new File( control_dir, control_file ).getAbsolutePath()));
 		}
 
-		System.out.println( "WriteConfig: length=" + current_length + ", next=" + next_piece_index );
-
+		if ( TRACE ){
+			System.out.println( "WriteConfig: length=" + current_length + ", next=" + next_piece_index );
+		}
+		
 		dirt_state 	= DIRT_CLEAN;
 		dirt_time	= -1;
 	}
