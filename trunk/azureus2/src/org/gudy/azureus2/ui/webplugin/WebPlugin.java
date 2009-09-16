@@ -49,6 +49,7 @@ WebPlugin
 	public static final String	PR_PORT						= "Port";						// Integer
 	public static final String	PR_BIND_IP					= "Bind IP";					// String
 	public static final String	PR_ROOT_RESOURCE			= "Root Resource";				// String
+	public static final String	PR_ROOT_DIR					= "Root Dir";					// String
 	public static final String	PR_LOG						= "DefaultLoggerChannel";		// LoggerChannel
 	public static final String	PR_CONFIG_MODEL				= "DefaultConfigModel";			// BasicPluginConfigModel
 	public static final String	PR_VIEW_MODEL				= "DefaultViewModel";			// BasicPluginViewModel
@@ -83,7 +84,7 @@ WebPlugin
 	public        final String 	CONFIG_HOME_PAGE_DEFAULT		= "index.html";
 	
 	public static final String 	CONFIG_ROOT_DIR					= "Root Dir";
-	public        final String 	CONFIG_ROOT_DIR_DEFAULT			= "";
+	public        		String 	CONFIG_ROOT_DIR_DEFAULT			= "";
 	
 	public static final String 	CONFIG_ROOT_RESOURCE			= PR_ROOT_RESOURCE;
 	public              String 	CONFIG_ROOT_RESOURCE_DEFAULT	= "";
@@ -155,6 +156,13 @@ WebPlugin
 		if( pr_root_resource != null ){
 			
 			CONFIG_ROOT_RESOURCE_DEFAULT	= pr_root_resource;
+		}
+		
+		String	pr_root_dir = (String)properties.get( PR_ROOT_DIR );
+		
+		if( pr_root_dir != null ){
+			
+			CONFIG_ROOT_DIR_DEFAULT	= pr_root_dir;
 		}
 		
 		Boolean	pr_hide_resource_config = (Boolean)properties.get( PR_HIDE_RESOURCE_CONFIG );
@@ -419,8 +427,29 @@ WebPlugin
 				
 			}else{
 				
-				file_root = SystemProperties.getUserPath() + "web" + File.separator + root_dir;
+				if ( File.separatorChar != '/' && root_dir.contains( "/" )){
+					
+					root_dir = root_dir.replace( '/', File.separatorChar );
+				}
 				
+					// try relative to plugin dir
+				
+				file_root = plugin_interface.getPluginDirectoryName();
+
+				if ( file_root != null ){
+					
+					file_root = file_root + File.separator + root_dir;
+					
+					if ( !new File(file_root).exists()){
+						
+						file_root = null;
+					}
+				}
+				
+				if ( file_root == null ){
+					
+					file_root = SystemProperties.getUserPath() + "web" + File.separator + root_dir;
+				}
 			}
 		}
 
