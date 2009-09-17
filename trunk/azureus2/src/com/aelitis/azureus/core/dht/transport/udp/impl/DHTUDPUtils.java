@@ -26,7 +26,9 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -53,17 +55,20 @@ public class
 DHTUDPUtils 
 {
 	protected static final int	CT_UDP		= 1;
-	
-	private static ThreadLocal		tls	= 
-		new ThreadLocal()
+			
+	private static Map<String,byte[]>	node_id_history = 
+		new LinkedHashMap<String,byte[]>(128,0.75f,true)
 		{
-			public Object
-			initialValue()
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry<String,byte[]> eldest) 
 			{
-				return( new SHA1Simple());
+				return size() > 128;
 			}
 		};
 		
+	private static SHA1Simple	hasher = new SHA1Simple();
+	
 	protected static byte[]
 	getNodeID(
 		InetSocketAddress	address,
@@ -81,26 +86,34 @@ DHTUDPUtils
 			
 		}else{
 			
-			SHA1Simple	hasher = (SHA1Simple)tls.get();
-			
-			byte[]	res;
+			String	key;
 			
 			if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID_PORTS ){
-				
+
 					// limit range to around 2000 (1999 is prime)
-				
-				res = hasher.calculateHash(
-						(	ia.getHostAddress() + ":" + ( address.getPort() % 1999)).getBytes());
+
+				key = ia.getHostAddress() + ":" + ( address.getPort() % 1999 );
 
 			}else{
-				
-				res = hasher.calculateHash(
-							(	ia.getHostAddress() + ":" + address.getPort()).getBytes());
+			
+				key = ia.getHostAddress() + ":" + address.getPort();
 			}
 			
-			//System.out.println( "NodeID: " + address + " -> " + DHTLog.getString( res ));
+			synchronized( node_id_history ){
+				
+				byte[]	res = node_id_history.get( key );
+				
+				if ( res == null ){
+									
+					res = hasher.calculateHash( key.getBytes());
 			
-			return( res );
+					node_id_history.put( key, res );
+				}
+				
+				// System.out.println( "NodeID: " + address + " -> " + DHTLog.getString( res ));
+			
+				return( res );
+			}
 		}
 	}
 	
