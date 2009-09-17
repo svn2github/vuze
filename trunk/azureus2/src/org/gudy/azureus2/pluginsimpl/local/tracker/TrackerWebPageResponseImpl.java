@@ -262,7 +262,27 @@ TrackerWebPageResponseImpl
 
 			reply_header += name + ": " + value + NL;
 		}
+		
+		if ( do_gzip ){
 
+				// try and set the content-length to that of the compressed data
+			
+			if ( reply_bytes.length < 512*1024 ){
+				
+				ByteArrayOutputStream temp = new ByteArrayOutputStream( reply_bytes.length );
+				
+				GZIPOutputStream gzos = new GZIPOutputStream(temp);
+				
+				gzos.write( reply_bytes );
+				
+				gzos.finish();
+				
+				reply_bytes = temp.toByteArray();
+				
+				do_gzip = false;
+			}
+		}
+		
 		reply_header +=
 			"Content-Length: " + reply_bytes.length + NL +
 			NL;
