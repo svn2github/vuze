@@ -150,6 +150,8 @@ DHTControlImpl
 
 	private Cipher 			spoof_cipher;
 	private SecretKey		spoof_key;
+	private DHTTransportContact	spoof_last_verify_contact;
+	private int					spoof_last_verify_result;
 	
 	private long			last_node_add_check;
 	private byte[]			node_add_check_uninteresting_limit;
@@ -3617,6 +3619,14 @@ DHTControlImpl
 		try{
 			spoof_mon.enter();
 			
+				// during cache forwarding we get a lot of consecutive requests from the
+				// same contact so we can save CPU by caching the latest result and optimising for this
+			
+			if ( contact == spoof_last_verify_contact ){
+								
+				return( spoof_last_verify_result );
+			}
+			
 			spoof_cipher.init(Cipher.ENCRYPT_MODE, spoof_key ); 
 		
 			byte[]	address = contact.getAddress().getAddress().getAddress();
@@ -3630,6 +3640,9 @@ DHTControlImpl
 			
 			// System.out.println( "anti-spoof: generating " + res + " for " + contact.getAddress());
 
+			spoof_last_verify_contact 	= contact;
+			spoof_last_verify_result	= res;
+			
 			return( res );
 
 		}catch( Throwable e ){
