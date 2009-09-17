@@ -546,7 +546,7 @@ WebPlugin
 		}
 		
 		log.log( 	LoggerChannel.LT_INFORMATION, 
-					"acceptable IP range = " +
+					"Acceptable IP range = " +
 						( ip_range==null?
 							(ip_range_all?"all":"local"):
 							(ip_range.getStartIP() + " - " + ip_range.getEndIP())));
@@ -815,5 +815,20 @@ WebPlugin
 	
 	protected BasicPluginViewModel getViewModel() {
 		return this.view_model;
+	}
+	
+	protected void
+	log(
+		String	str )
+	{
+		log.log( str );
+	}
+	
+	protected void
+	log(
+		String		str,
+		Throwable 	e )
+	{
+		log.log( str, e );
 	}
 }
