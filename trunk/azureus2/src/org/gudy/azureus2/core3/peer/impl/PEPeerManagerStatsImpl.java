@@ -37,6 +37,12 @@ PEPeerManagerStatsImpl
 	private long total_data_bytes_sent = 0;
 	private long total_protocol_bytes_sent = 0;
 	  
+	private long total_data_bytes_received_lan = 0;
+	private long total_protocol_bytes_received_lan = 0;
+  
+	private long total_data_bytes_sent_lan = 0;
+	private long total_protocol_bytes_sent_lan = 0;
+
 	private long totalDiscarded;
 	private long hash_fail_bytes;
 
@@ -81,6 +87,9 @@ PEPeerManagerStatsImpl
 	
 	public void dataBytesReceived( PEPeer peer, int length) {
 	  total_data_bytes_received += length;
+	  if ( peer.isLANLocal()){
+		  total_data_bytes_received_lan += length;
+	  }
 	  data_receive_speed.addValue(length);
 	  
 	  if ( length > 0 ){
@@ -92,6 +101,9 @@ PEPeerManagerStatsImpl
 
   public void protocolBytesReceived(PEPeer peer, int length) {
     total_protocol_bytes_received += length;
+	  if ( peer.isLANLocal()){
+		  total_protocol_bytes_received_lan += length;
+	  }
     protocol_receive_speed.addValue(length);
     
     adapter.protocolBytesReceived( peer, length );
@@ -100,6 +112,9 @@ PEPeerManagerStatsImpl
   
 	public void dataBytesSent(PEPeer peer, int length ) {
 	  total_data_bytes_sent += length;
+	  if ( peer.isLANLocal()){
+		  total_data_bytes_sent_lan += length;
+	  }
 	  data_send_speed.addValue(length);  
 	  
 	  if ( length > 0 ){
@@ -111,6 +126,9 @@ PEPeerManagerStatsImpl
   
   public void protocolBytesSent(PEPeer peer, int length) {
     total_protocol_bytes_sent += length;
+	  if ( peer.isLANLocal()){
+		  total_protocol_bytes_sent_lan += length;
+	  }
     protocol_send_speed.addValue(length);
     
  	adapter.protocolBytesSent( peer, length );
@@ -125,19 +143,18 @@ PEPeerManagerStatsImpl
 	  return( data_receive_speed.getAverage());
 	}
 
-  public long getProtocolReceiveRate() {
-    return protocol_receive_speed.getAverage();
-  }
+	public long getProtocolReceiveRate() {
+		return protocol_receive_speed.getAverage();
+	}
   
   
 	public long getDataSendRate() {
 	  return( data_send_speed.getAverage());
 	}
   
-  public long getProtocolSendRate() {
-    return protocol_send_speed.getAverage();
-  }
-  
+	public long getProtocolSendRate() {
+		return protocol_send_speed.getAverage();
+	}
   
 	public long getTotalDiscarded() {
 	  return( totalDiscarded );
@@ -163,7 +180,24 @@ PEPeerManagerStatsImpl
     return total_protocol_bytes_received;
   }
   
-    
+	public long getTotalDataBytesSentNoLan()
+	{
+		return( Math.max( total_data_bytes_sent - total_data_bytes_sent_lan, 0 ));
+	}
+	public long getTotalProtocolBytesSentNoLan()
+	{
+		return( Math.max( total_protocol_bytes_sent - total_protocol_bytes_sent_lan, 0 ));
+	}
+  	public long getTotalDataBytesReceivedNoLan()
+	{
+  		return( Math.max( total_data_bytes_received - total_data_bytes_received_lan, 0 ));
+  	}
+  	public long getTotalProtocolBytesReceivedNoLan()
+	{
+  		return( Math.max( total_protocol_bytes_received - total_protocol_bytes_received_lan, 0 ));
+	}
+
+
 	public long 
 	getTotalAverage() 
 	{

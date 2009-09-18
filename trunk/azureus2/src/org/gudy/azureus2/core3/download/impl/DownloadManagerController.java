@@ -331,12 +331,12 @@ DownloadManagerController
 	    			public long
 	    			getTotalSent()
 	    			{
-	    				return(temp.getStats().getTotalDataBytesSent());
+	    				return(temp.getStats().getTotalDataBytesSentNoLan());
 	    			}
 	    			public long
 	    			getTotalReceived()
 	    			{
-	    				long received 	= temp.getStats().getTotalDataBytesReceived();
+	    				long received 	= temp.getStats().getTotalDataBytesReceivedNoLan();
 	    				long discarded 	= temp.getStats().getTotalDiscarded();
 	    				long failed		= temp.getStats().getTotalHashFailBytes();
 	    				
