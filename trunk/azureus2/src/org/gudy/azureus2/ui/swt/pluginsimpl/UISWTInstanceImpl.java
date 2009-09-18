@@ -845,11 +845,13 @@ UISWTInstanceImpl
 		final UISWTStatusEntryImpl entry = new UISWTStatusEntryImpl();
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (functionsSWT == null) {
+			Debug.outNoStack("No UIFunctionsSWT on createStatusEntry");
 			return null;
 		}
 		
 		MainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
 		if (mainStatusBar == null) {
+			Debug.outNoStack("No MainStatusBar on createStatusEntry");
 			return null;
 		}
 		final CLabel label = mainStatusBar.createStatusEntry(entry);
