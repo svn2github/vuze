@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +37,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.IUIIntializer;
 
@@ -80,6 +82,8 @@ public class SWTThread {
     
     this.initializer = app;
 		instance = this;
+    Display.setAppName(Constants.APP_NAME);
+
     try {
       display = Display.getCurrent();
 	  if ( display == null ){
@@ -121,8 +125,6 @@ public class SWTThread {
 			return;
 		}
     
-    Display.setAppName(Constants.APP_NAME);
-    
     primaryMonitor = display.getPrimaryMonitor();
     
     AEDiagnostics.addEvidenceGenerator(new AEDiagnosticsEvidenceGenerator() {
@@ -146,7 +148,7 @@ public class SWTThread {
 				}
 			}
 		});
-    
+
 		if (Constants.isOSX) {
 			String platform = SWT.getPlatform();
 			// use reflection here so we decouple generic SWT from OSX specific stuff to an extent
@@ -169,10 +171,19 @@ public class SWTThread {
 
 					Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CocoaUIEnhancer");
 
-					Constructor constructor = ehancerClass.getConstructor(new Class[] {});
+					Method mGetInstance = ehancerClass.getMethod("getInstance", new Class[0]);
+					Object claObj = mGetInstance.invoke(null, new Object[0] );
 
-					constructor.newInstance(new Object[] {});
+					Method mHookAppMenu = claObj.getClass().getMethod("hookApplicationMenu", new Class[] {});
+					if (mHookAppMenu != null) {
+						mHookAppMenu.invoke(claObj, null);
+					}
 
+					Method mHookDocOpen = claObj.getClass().getMethod("hookDocumentOpen", new Class[] {});
+					if (mHookDocOpen != null) {
+						mHookDocOpen.invoke(claObj, null);
+					}
+					
 				} catch (Throwable e) {
 
 					Debug.printStackTrace(e);
