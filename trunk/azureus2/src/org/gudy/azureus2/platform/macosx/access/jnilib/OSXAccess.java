@@ -48,15 +48,29 @@ public class OSXAccess
 
 	private static boolean loadLibrary(String lib) {
 		try {
-			System.loadLibrary(lib);
+			SystemLoadLibrary(lib);
 			System.out.println(lib + " v" + getVersion() + " Load complete!");
 			bLoaded = true;
 			initDriveDetection();
-		} catch (UnsatisfiedLinkError e1) {
-			Debug.out("Could not find " + lib + ".jnilib", e1);
+		} catch (Throwable e1) {
+			Debug.out("Could not find lib" + lib + ".jnilib", e1);
 		}
 		
 		return bLoaded;
+	}
+	
+	private static  void SystemLoadLibrary(String lib) throws Throwable {
+		try {
+			System.loadLibrary(lib);
+		} catch (Throwable t) {
+			// if launched from eclipse, updates will put it into ./Azureus.app/Contents/Resources/Java/dll
+			try {
+				File f = new File("Azureus.app/Contents/Resources/Java/dll/lib" + lib + ".jnilib");
+				System.load(f.getAbsolutePath());
+			} catch (Throwable t2) {
+				throw t;
+			}
+		}
 	}
 
 	private static void initDriveDetection() {
