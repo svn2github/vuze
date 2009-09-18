@@ -88,7 +88,6 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFP
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
@@ -868,21 +867,47 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			if (Utils.isCarbon) {
-				try {
+			if (Constants.isOSX) {
+				if (Utils.isCarbon) {
+  				try {
+  
+  					Class<?> ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
+  
+  					Method method = ehancerClass.getMethod("registerToolbarToggle",
+  							new Class[] {
+  								Shell.class
+  							});
+  					method.invoke(null, new Object[] {
+  						shell
+  					});
+  
+  				} catch (Exception e) {
+  					Debug.printStackTrace(e);
+  				}
+				} else if (Utils.isCocoa) {
+					try {
 
-					Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
+						Class<?> ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CocoaUIEnhancer");
 
-					Method method = ehancerClass.getMethod("registerToolbarToggle",
-							new Class[] {
-								Shell.class
+						Method mGetInstance = ehancerClass.getMethod("getInstance",
+								new Class[0]);
+						Object claObj = mGetInstance.invoke(null, new Object[0]);
+
+						Method mregTBToggle = claObj.getClass().getMethod(
+								"registerToolbarToggle", new Class[] {
+									Shell.class
+								});
+						if (mregTBToggle != null) {
+							mregTBToggle.invoke(claObj, new Object[] {
+								shell
 							});
-					method.invoke(null, new Object[] {
-						shell
-					});
+						}
 
-				} catch (Exception e) {
-					Debug.printStackTrace(e);
+					} catch (Throwable e) {
+
+						Debug.printStackTrace(e);
+					}
+
 				}
 
 				Listener toggleListener = new Listener() {
