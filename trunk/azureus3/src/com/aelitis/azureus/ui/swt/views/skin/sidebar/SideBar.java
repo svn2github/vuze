@@ -2036,6 +2036,9 @@ public class SideBar
 	}
 
 	private void _itemSelected(TreeItem treeItem) {
+		if (treeItem == null) {
+			return;
+		}
 		TreeItem[] selection = tree.getSelection();
 		if (selection == null || selection.length == 0 || selection[0] != treeItem) {
 			tree.showItem(treeItem);
