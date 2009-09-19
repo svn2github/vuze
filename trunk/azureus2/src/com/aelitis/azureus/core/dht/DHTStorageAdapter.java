@@ -99,6 +99,7 @@ DHTStorageAdapter
 	
 	public byte[][]
 	createNewDiversification(
+		String				description,
 		DHTTransportContact	cause,
 		byte[]				key,
 		boolean				put_operation,

@@ -38,6 +38,7 @@ DHTControlAdapter
 
 	public byte[][]
 	diversify(
+		String				description,
 		DHTTransportContact	cause,
 		boolean				put_operation,
 		boolean				existing,

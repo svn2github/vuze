@@ -108,6 +108,7 @@ DHTImpl
 					
 					public byte[][]
 					diversify(
+						String				description,
 						DHTTransportContact	cause,
 						boolean				put_operation,
 						boolean				existing,
@@ -137,7 +138,7 @@ DHTImpl
 								
 							}else{
 								
-								return( storage_adapter.createNewDiversification( cause, key, put_operation, type, exhaustive, max_depth ));
+								return( storage_adapter.createNewDiversification( description, cause, key, put_operation, type, exhaustive, max_depth ));
 							}
 						}else{
 							

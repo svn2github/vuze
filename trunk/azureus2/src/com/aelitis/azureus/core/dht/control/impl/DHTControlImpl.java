@@ -841,6 +841,7 @@ DHTControlImpl
 		
 		byte[][]	encoded_keys	= 
 			adapter.diversify( 
+					description,
 					null, 
 					true, 
 					true, 
@@ -1231,7 +1232,7 @@ DHTControlImpl
 													diversified[j]	= true;
 													
 													byte[][]	diversified_keys = 
-														adapter.diversify( _contact, true, false, encoded_keys[j], _diversifications[j], false, getMaxDivDepth());
+														adapter.diversify( description, _contact, true, false, encoded_keys[j], _diversifications[j], false, getMaxDivDepth());
 												
 													
 													logDiversification( _contact, encoded_keys, diversified_keys );
@@ -1646,7 +1647,7 @@ DHTControlImpl
 		
 			// get the initial starting point for the get - may have previously been diversified
 		
-		byte[][]	encoded_keys	= adapter.diversify( null, false, true, initial_encoded_key, DHT.DT_NONE, exhaustive, getMaxDivDepth());
+		byte[][]	encoded_keys	= adapter.diversify( description, null, false, true, initial_encoded_key, DHT.DT_NONE, exhaustive, getMaxDivDepth());
 
 		if  ( encoded_keys.length == 0 ){
 		
@@ -1709,7 +1710,7 @@ DHTControlImpl
 								
 								if ( max_values == 0 || rem > 0 ){
 									
-									byte[][]	diversified_keys = adapter.diversify( cause, false, false, encoded_key, diversification_type, exhaustive, getMaxDivDepth());
+									byte[][]	diversified_keys = adapter.diversify( description, cause, false, false, encoded_key, diversification_type, exhaustive, getMaxDivDepth());
 									
 									if ( diversified_keys.length > 0 ){
 										

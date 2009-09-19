@@ -817,6 +817,7 @@ DHTPluginStorageManager
 	
 	public byte[][]
 	createNewDiversification(
+		String				description,
 		DHTTransportContact	cause,
 		byte[]				key,
 		boolean				put_operation,
@@ -832,7 +833,7 @@ DHTPluginStorageManager
 			}
 		}
 		
-		//System.out.println( "DHT create new diversification: put = " + put_operation +", type = " + diversification_type );
+		// System.out.println( "DHT create new diversification: desc=" + description + ", put=" + put_operation +", type=" + diversification_type );
 		
 		HashWrapper	wrapper = new HashWrapper( key );
 		
@@ -860,10 +861,11 @@ DHTPluginStorageManager
 			}
 			
 			log.log( "SM: create div: " + DHTLog.getString2(key) + 
-						", new = " + created + ", put = " + put_operation + 
-						", exh = " + exhaustive + 
-						", type = " + DHT.DT_STRINGS[diversification_type] + " -> " + trace +
-						", cause = " + (cause==null?"<unknown>":cause.getString()));
+						", new=" + created + ", put = " + put_operation + 
+						", exh=" + exhaustive + 
+						", type=" + DHT.DT_STRINGS[diversification_type] + " -> " + trace +
+						", cause=" + (cause==null?"<unknown>":cause.getString()) +
+						", desc=" + description );
 			
 
 			return( res );

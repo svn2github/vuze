@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -771,6 +772,17 @@ DHTDBImpl
 				}else if ( dt == DHT.DT_SIZE ){
 					
 					res[DHTDBStats.VD_DIV_SIZE]++;
+					
+					Iterator it2 = mapping.getIndirectValues();
+					
+					// System.out.println( "values=" + mapping.getValueCount());
+					
+					while( it2.hasNext()){
+						
+						DHTDBValueImpl val = (DHTDBValueImpl)it2.next();
+						
+						//System.out.println( new String( val.getValue()) + " - " + val.getOriginator().getAddress());
+					}
 				}
 			}
 			
@@ -1471,6 +1483,8 @@ DHTDBImpl
 			
 			Iterator	it = stored_values.entrySet().iterator();
 			
+			// ByteArrayHashMap<Integer> blah = new ByteArrayHashMap<Integer>();
+			
 			while( it.hasNext()){
 						
 				Map.Entry		entry = (Map.Entry)it.next();
@@ -1479,13 +1493,29 @@ DHTDBImpl
 				
 				DHTDBMapping	mapping = (DHTDBMapping)entry.getValue();
 				
-				// mapping.print();
+				/*
+				if ( mapping.getIndirectSize() > 1000 ){
+					mapping.print();
+				}
+				*/
 				
 				DHTDBValue[]	values = mapping.get(null,0,(byte)0);
 					
 				for (int i=0;i<values.length;i++){
 					
 					DHTDBValue	value = values[i];
+					
+					/*
+					byte[] v = value.getValue();
+					
+					Integer y = blah.get( v );
+					
+					if ( y == null ){
+						blah.put( v, 1 );
+					}else{
+						blah.put( v, y+1 );
+					}
+					*/
 					
 					Integer key = new Integer( value.isLocal()?0:1);
 					
@@ -1513,6 +1543,24 @@ DHTDBImpl
 					data[1]	= s;
 				}
 			}
+			
+			/*
+			long	total_dup = 0;
+			
+			for ( byte[] k: blah.keys()){
+				
+				int c = blah.get( k );
+				
+				if ( c > 1 ){
+					
+					total_dup += ( c * k.length );
+					
+					System.out.println( "Dup: " + new String(k) + " -> " + c );
+				}
+			}
+			
+			System.out.println( "Total dup: " + total_dup );
+			*/
 			
 			it = count.keySet().iterator();
 			
@@ -2067,6 +2115,7 @@ DHTDBImpl
 		
 		public byte[][]
 		createNewDiversification(
+			String				description,
 			DHTTransportContact	cause,
 			byte[]				key,
 			boolean				put_operation,
@@ -2074,7 +2123,7 @@ DHTDBImpl
 			boolean				exhaustive_get,
 			int					max_depth )
 		{
-			return( delegate.createNewDiversification( cause, key, put_operation, diversification_type, exhaustive_get, max_depth ));
+			return( delegate.createNewDiversification( description, cause, key, put_operation, diversification_type, exhaustive_get, max_depth ));
 		}
 		
 		public int

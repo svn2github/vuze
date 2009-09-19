@@ -1025,6 +1025,17 @@ DHTDBMapping
 			"dir=" + (direct_originator_map_may_be_null==null?0:direct_originator_map_may_be_null.size()) + "," +
 			"indir=" + indirect_originator_value_map.size() + "," +
 			"bloom=" + entries );	
+		
+		System.out.println( "    indirect" );
+		
+		Iterator it = getIndirectValues();
+				
+		while( it.hasNext()){
+			
+			DHTDBValueImpl val = (DHTDBValueImpl)it.next();
+			
+			System.out.println( "        " + val.getOriginator().getString() + ": " + new String( val.getValue()));
+		}
 	}
 	
 	protected class
