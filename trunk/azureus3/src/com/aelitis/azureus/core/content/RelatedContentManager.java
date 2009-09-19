@@ -56,6 +56,8 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
@@ -671,6 +673,29 @@ RelatedContentManager
 			map.put( "t", tracker );
 		}
 
+		if ( to_info.getLevel() == 0 ){
+			
+			try{
+				Download d = to_info.getRelatedToDownload();
+			
+				if ( d != null ){
+					
+					Torrent torrent = d.getTorrent();
+					
+					if ( torrent != null ){
+						
+						long cnet = PlatformTorrentUtils.getContentNetworkID( PluginCoreUtils.unwrap( torrent ));
+						
+						if ( cnet != ContentNetwork.CONTENT_NETWORK_UNKNOWN ){
+							
+							map.put( "c", new Long( cnet ));
+						}
+					}
+				}
+			}catch( Throwable e ){		
+			}
+		}
+		
 		long	size = to_info.getSize();
 		
 		if ( size != 0 ){
