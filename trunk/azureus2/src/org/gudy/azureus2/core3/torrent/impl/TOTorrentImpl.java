@@ -409,45 +409,10 @@ TOTorrentImpl
 				
 				TOTorrentFileImpl	file	= files[i];
 				
-				Map	file_map = new HashMap();
+				Map	file_map = file.serializeToMap();
 		
 				meta_files.add( file_map );
 				
-				file_map.put( TK_LENGTH, new Long( file.getLength()));
-				
-				List path = new ArrayList();
-				
-				file_map.put( TK_PATH, path );
-				
-				byte[][]	path_comps = file.getPathComponents();
-				
-				for (int j=0;j<path_comps.length;j++){
-					
-					path.add( path_comps[j]);
-				}
-				
-				if ( file.isUTF8()){
-					
-					List utf8_path = new ArrayList();
-					
-					file_map.put( TK_PATH_UTF8, utf8_path );
-										
-					for (int j=0;j<path_comps.length;j++){
-						
-						utf8_path.add( path_comps[j]);
-					}
-				}
-				
-				Map file_additional_properties = file.getAdditionalProperties();
-				
-				Iterator prop_it = file_additional_properties.keySet().iterator();
-				
-				while( prop_it.hasNext()){
-					
-					String	key = (String)prop_it.next();
-					
-					file_map.put( key, file_additional_properties.get( key ));
-				}
 			}
 		}
 		
@@ -504,6 +469,13 @@ TOTorrentImpl
 		byte[]	_name )
 	{
 		torrent_name	= _name;
+	}
+	
+	protected void
+	setNameUTF8(
+		byte[]	_name )
+	{
+		torrent_name_utf8	= _name;
 	}
 	
 	public boolean

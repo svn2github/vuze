@@ -61,6 +61,9 @@ public class LocaleTorrentUtil
 		if (encoding == null) {
 			return null;
 		}
+		if (TOTorrent.ENCODING_ACTUALLY_UTF8_KEYS.equals(encoding)) {
+			encoding = "utf8";
+		}
 
 		// get canonical name
 
@@ -106,6 +109,9 @@ public class LocaleTorrentUtil
 		throws TOTorrentException, UnsupportedEncodingException
 	{
 		String encoding = torrent.getAdditionalStringProperty("encoding");
+		if (TOTorrent.ENCODING_ACTUALLY_UTF8_KEYS.equals(encoding)) {
+			encoding = "utf8";
+		}
 
 		// we can only persist the torrent if it has a filename defined for it
 

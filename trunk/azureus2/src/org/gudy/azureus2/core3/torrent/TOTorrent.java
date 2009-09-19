@@ -44,7 +44,9 @@ TOTorrent
 		 */
 	
 	public static final String	AZUREUS_PRIVATE_PROPERTIES		= "azureus_private_properties";
-	
+
+	public static final String ENCODING_ACTUALLY_UTF8_KEYS = "utf8 keys";
+
 	/**
 	 * Get the name of the torrent
 	 * @return

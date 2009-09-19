@@ -467,6 +467,8 @@ TOTorrentDeserialiseImpl
 												TOTorrentException.RT_DECODE_FAILS ));
 			}
 		
+			boolean hasUTF8Keys = info.containsKey(TK_NAME_UTF8);
+			
 			setName((byte[])info.get( TK_NAME ));
 				
 			long	piece_length = ((Long)info.get( TK_PIECE_LENGTH )).longValue();
@@ -485,11 +487,19 @@ TOTorrentDeserialiseImpl
 			
 			long	total_length = 0;
 			
+			String encoding = getAdditionalStringProperty("encoding");
+			hasUTF8Keys &= encoding == null || encoding.equals(ENCODING_ACTUALLY_UTF8_KEYS);
+			
 			if ( simple_file_length != null ){
 			
 				setSimpleTorrent( true );
 				
 				total_length = simple_file_length.longValue();
+
+				if (hasUTF8Keys) {
+					setNameUTF8((byte[])info.get( TK_NAME_UTF8 ));
+					setAdditionalStringProperty("encoding", ENCODING_ACTUALLY_UTF8_KEYS);
+				}
 				
 				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, 0, total_length, new byte[][]{getName()})});
 				
@@ -500,7 +510,23 @@ TOTorrentDeserialiseImpl
 				List	meta_files = (List)info.get( TK_FILES );
 			
 				TOTorrentFileImpl[] files = new TOTorrentFileImpl[ meta_files.size()];
-			
+
+				if (hasUTF8Keys) {
+  				for (int i=0;i<files.length;i++){
+  					Map	file_map = (Map)meta_files.get(i);
+  					
+  					hasUTF8Keys &= file_map.containsKey(TK_PATH_UTF8);
+  					if (!hasUTF8Keys) {
+  						break;
+  					}
+  				}
+
+  				if (hasUTF8Keys) {
+  					setNameUTF8((byte[])info.get( TK_NAME_UTF8 ));
+  					setAdditionalStringProperty("encoding", ENCODING_ACTUALLY_UTF8_KEYS);
+  				}
+				}
+				
 				for (int i=0;i<files.length;i++){
 					
 					Map	file_map = (Map)meta_files.get(i);
@@ -508,7 +534,8 @@ TOTorrentDeserialiseImpl
 					long	len = ((Long)file_map.get( TK_LENGTH )).longValue();
 					
 					List	paths = (List)file_map.get( TK_PATH );
-						
+					List	paths8 = (List)file_map.get( TK_PATH_UTF8 );
+					
 					byte[][]	path_comps = new byte[paths.size()][];
 					
 					for (int j=0;j<paths.size();j++){
@@ -516,7 +543,20 @@ TOTorrentDeserialiseImpl
 						path_comps[j] = (byte[])paths.get(j);
 					}
 					
-					TOTorrentFileImpl file = files[i] = new TOTorrentFileImpl( this, total_length, len, path_comps );
+					TOTorrentFileImpl file;
+
+					if (hasUTF8Keys) {
+  					byte[][]	path_comps8 = new byte[paths8.size()][];
+  					
+  					for (int j=0;j<paths8.size();j++){
+  					
+  						path_comps8[j] = (byte[])paths8.get(j);
+  					}
+					
+						file = files[i] = new TOTorrentFileImpl( this, total_length, len, path_comps, path_comps8 );
+					} else {
+						file = files[i] = new TOTorrentFileImpl( this, total_length, len, path_comps );
+					}
 					
 					total_length += len;
 					
@@ -532,6 +572,7 @@ TOTorrentDeserialiseImpl
 								key.equals( TK_PATH )){
 									
 							// standard
+							// we don't skip TK_PATH_UTF8 because some code might assume getAdditionalProperty can get it
 						}else{
 							
 							file.setAdditionalProperty( key, file_map.get( key ));
