@@ -93,6 +93,8 @@ SubscriptionManagerImpl
 	
 	private static SubscriptionManagerImpl		singleton;
 	
+	private static final int random_seed = RandomUtils.nextInt( 256 );
+	
 	public static void
 	preInitialise()
 	{
@@ -4047,6 +4049,11 @@ SubscriptionManagerImpl
 	{
 		Map		details = subs.getPublicationDetails();					
 		
+			// inject a random element so we can count occurrences properly (as the DHT logic
+			// removes duplicates)
+		
+		details.put( "!", new Long( random_seed ));
+		
 		byte[] encoded = BEncoder.encode( details );
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -4104,7 +4111,13 @@ SubscriptionManagerImpl
 			is.close();
 		}
 		
-		return( BDecoder.decode( to_decode ));
+		Map res = BDecoder.decode( to_decode );
+		
+			// remove any injected random seed
+		
+		res.remove( "!" );
+		
+		return( res );
 	}
 	
 	protected void
