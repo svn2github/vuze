@@ -76,6 +76,8 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS		= 32;	// introduced now (2403/V15) to support possible future change to id allocation
 																			// If/when introduced the min DHT version must be set to 15 at the same time
 
+	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2	= 33;
+	
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
@@ -83,7 +85,7 @@ DHTTransportUDP
 		// current versions
 	
 	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_LONGER_LIFE;
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_LONGER_LIFE;
+	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_RESTRICT_ID_PORTS2;
 
 	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_3111;
 	public static final byte PROTOCOL_VERSION_MIN_CVS				= PROTOCOL_VERSION_CVS_FIX_OVERLOAD_V3;
