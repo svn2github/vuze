@@ -252,7 +252,7 @@ public class CocoaUIEnhancer
 				int.class
 			});
 			Constructor<?> conNSString = nsstringCls.getConstructor(new Class[] {
-				org.eclipse.swt.internal.cocoa.id.class
+				nsidCls
 			});
 
 			Object arrayOfFiles = conNSArray.newInstance(arg1);
@@ -711,7 +711,8 @@ public class CocoaUIEnhancer
 
 		// reflect me
 		//NSWindow nsWindow = shell.view.window();
-		Object nsWindow = shell.view.window();
+		Object view = shell.getClass().getField("view").get(shell);
+		Object nsWindow = invoke(view, "window");
 		//nsWindow.setToolbar(dummyBar);
 		invoke(nsWindow, "setToolbar", new Class<?>[] {
 			nstoolbarCls
