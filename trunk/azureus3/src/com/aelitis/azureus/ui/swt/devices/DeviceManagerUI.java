@@ -2475,7 +2475,14 @@ DeviceManagerUI
 										need_sep = true;
 										
 										MenuItem configure_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.configure");
-																				
+											
+
+										configure_menu_item.addFillListener(new MenuItemFillListener() {
+											public void menuWillBeShown(MenuItem menu, Object data) {
+												menu.setEnabled( dod.isAlive());
+											}
+										});
+
 										configure_menu_item.addListener(
 											new MenuItemListener()
 											{
