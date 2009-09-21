@@ -579,7 +579,7 @@ public class CocoaUIEnhancer
 		Object menuId = appMenu.getClass().getField("id").get(appMenu);
 		boolean isAZ3 = "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"));
 
-		if (!isAZ3 || true) {
+		if (!isAZ3) {
 			// add Wizard, NAT Test, Speed Test
 
 			addMenuItem(menuId, 5, (int) sel_wizardMenuSelected_,
