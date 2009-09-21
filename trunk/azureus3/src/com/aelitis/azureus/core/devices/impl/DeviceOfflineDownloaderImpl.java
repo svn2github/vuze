@@ -1298,6 +1298,34 @@ DeviceOfflineDownloaderImpl
 		return( manufacturer );
 	}
 	
+	public long
+	getSpaceAvailable()
+	
+		throws DeviceManagerException
+	{
+		if ( space_on_device >= 0 ){
+			
+			return( space_on_device );
+		}
+		
+		if ( service == null ){
+			
+			throw( new DeviceManagerException( "Device is not online" ));
+		}
+		
+		try{
+			space_on_device = service.getFreeSpace( client_id );
+			
+			update_space_outstanding = false;
+
+			return( space_on_device );
+			
+		}catch( Throwable e ){
+			
+			throw( new DeviceManagerException( "Failed to read available space", e ));
+		}
+	}
+	
 	public int
 	getTransferingCount()
 	{

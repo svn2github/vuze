@@ -1973,9 +1973,13 @@ DeviceManagerUI
 					
 					if ( !dod.hasShownFTUX()){
 						
-						dod.setShownFTUX();
-						
-						new DevicesODFTUX( dod );
+						try{
+							new DevicesODFTUX( dod );
+														
+						}catch( Throwable e ){
+							
+							Debug.out( "Failed to show offline downloader FTUX", e );
+						}
 					}
 				}
 				
@@ -2069,6 +2073,10 @@ DeviceManagerUI
 										if ( manufacturer.toLowerCase().contains( "vuze" )){
 											
 											id = "vuze";
+
+										}else if ( manufacturer.toLowerCase().contains( "belkin" )){
+											
+											id = "bel";
 											
 										}else{
 											
@@ -2476,7 +2484,13 @@ DeviceManagerUI
 													MenuItem 	menu,
 													Object 		target ) 
 												{
-													new DevicesODFTUX( dod );
+													try{
+														new DevicesODFTUX( dod );
+														
+													}catch( Throwable e ){
+														
+														Debug.out( e );
+													}
 												}
 											});
 										

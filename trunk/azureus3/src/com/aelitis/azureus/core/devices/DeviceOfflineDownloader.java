@@ -41,6 +41,11 @@ DeviceOfflineDownloader
 	public String
 	getManufacturer();
 	
+	public long
+	getSpaceAvailable()
+	
+		throws DeviceManagerException;
+	
 	public int
 	getTransferingCount();
 
