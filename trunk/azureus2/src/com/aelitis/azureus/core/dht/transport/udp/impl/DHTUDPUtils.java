@@ -88,21 +88,20 @@ DHTUDPUtils
 			
 			String	key;
 			
-			if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID_PORTS ){
+			if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID_PORTS2 ){
+
+					// more draconian limit, analysis shows that of 500,000 node addresses only
+					// 0.01% had >= 8 ports active. ( 1% had 2 ports, 0.1% 3)
+					// Having > 1 node with the same ID doesn't actually cause too much grief
+		
+				key = ia.getHostAddress() + ":" + ( address.getPort() % 8 );
+				
+			}else if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID_PORTS ){
 
 					// limit range to around 2000 (1999 is prime)
 
 				key = ia.getHostAddress() + ":" + ( address.getPort() % 1999 );
 				
-			}else if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID_PORTS2 ){
-
-					// more draconian limit, analysis shows that of 500,000 node addresses only
-					// 0.01% had >= 8 ports active. ( 1% had 2 ports, 0.1% 3)
-					// Having > 1 node with the same ID doesn't actually cause too much grief
-
-				key = ia.getHostAddress() + ":" + ( address.getPort() % 8 );
-
-
 			}else{
 			
 				key = ia.getHostAddress() + ":" + address.getPort();
