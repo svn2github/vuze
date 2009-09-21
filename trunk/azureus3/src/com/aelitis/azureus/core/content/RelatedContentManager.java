@@ -794,17 +794,19 @@ RelatedContentManager
 					{
 						boolean	do_it;
 						
-						if ( diversified || hits >= 20 ){
+						// System.out.println( from_hash + ": hits=" + hits + ", div=" + diversified );
+						
+						if ( diversified || hits >= 10 ){
 							
 							do_it = false;
 							
-						}else if ( hits <= 10 ){
+						}else if ( hits <= 5 ){
 							
 							do_it = true;
 														
 						}else{
 													
-							do_it = RandomUtils.nextInt( hits - 10 + 1 ) == 0;
+							do_it = RandomUtils.nextInt( hits - 5 + 1 ) == 0;
 						}
 							
 						if ( do_it ){
