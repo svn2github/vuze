@@ -165,7 +165,7 @@ ConfigSectionTrackerClient
     
     StringParameter tcpOverride = new StringParameter(overrideGroup, "TCP.Listen.Port.Override");
     data = new GridData();
-    data.widthHint = 40;
+    data.widthHint = 50;
     tcpOverride.setLayoutData(data);
     
     tcpOverride.addChangeListener(new ParameterChangeAdapter() {
@@ -197,7 +197,6 @@ ConfigSectionTrackerClient
     
     IntParameter numwant = new IntParameter(overrideGroup, "Tracker Client Numwant Limit",0,100);
     data = new GridData();
-    data.widthHint = 40;
     numwant.setLayoutData(data);
     
     label = new Label(overrideGroup, SWT.WRAP);
@@ -206,7 +205,6 @@ ConfigSectionTrackerClient
     
     IntParameter minmininterval = new IntParameter(overrideGroup, "Tracker Client Min Announce Interval");
     data = new GridData();
-    data.widthHint = 40;
     minmininterval.setLayoutData(data);
 
     
@@ -219,7 +217,6 @@ ConfigSectionTrackerClient
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label,  "ConfigView.section.tracker.client.connecttimeout");
     gridData = new GridData();
-    gridData.widthHint = 40;
     IntParameter	connect_timeout = new IntParameter(gMainTab, "Tracker Client Connect Timeout" );
     connect_timeout.setLayoutData(gridData);
     label = new Label(gMainTab, SWT.NULL);
@@ -229,7 +226,6 @@ ConfigSectionTrackerClient
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label,  "ConfigView.section.tracker.client.readtimeout");
     gridData = new GridData();
-    gridData.widthHint = 40;
     IntParameter	read_timeout = new IntParameter(gMainTab, "Tracker Client Read Timeout" );
     read_timeout.setLayoutData(gridData);
     label = new Label(gMainTab, SWT.NULL);

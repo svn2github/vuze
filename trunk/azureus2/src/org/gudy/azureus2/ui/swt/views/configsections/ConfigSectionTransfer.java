@@ -101,7 +101,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed");
 
 		gridData = new GridData();
-		gridData.widthHint = 35;
 		final IntParameter paramMaxUploadSpeed = new IntParameter(cSection,
 				"Max Upload Speed KBs", 0, -1);
 		paramMaxUploadSpeed.setLayoutData(gridData);
@@ -134,7 +133,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		enable_seeding_rate.setLayoutData(gridData);
 
 		gridData = new GridData();
-		gridData.widthHint = 35;
 		final IntParameter paramMaxUploadSpeedSeeding = new IntParameter(
 				cMaxUploadSpeedOptionsArea, "Max Upload Speed Seeding KBs", 0, -1);
 		paramMaxUploadSpeedSeeding.setLayoutData(gridData);
@@ -177,7 +175,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			Messages.setLanguageText(label, "ConfigView.label.maxuploadswhenbusymin" );
 
 			gridData = new GridData();
-			gridData.widthHint = 35;
 			new IntParameter(cSection, "max.uploads.when.busy.inc.min.secs", 0, -1).setLayoutData(gridData);
 		}
 		
@@ -188,7 +185,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		Messages.setLanguageText(label, "ConfigView.label.maxdownloadspeed");
 		
 		gridData = new GridData();
-		gridData.widthHint = 35;
 		final IntParameter paramMaxDownSpeed = new IntParameter(cSection,
 				"Max Download Speed KBs", 0, -1);
 		paramMaxDownSpeed.setLayoutData(gridData);
@@ -318,7 +314,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			Messages.setLanguageText(label, "ConfigView.label.maxuploads");
 
 			gridData = new GridData();
-			gridData.widthHint = 35;
 			IntParameter paramMaxUploads = new IntParameter(cSection, "Max Uploads",
 					2, -1);
 			paramMaxUploads.setLayoutData(gridData);
@@ -348,7 +343,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			enable_seeding_uploads.setLayoutData(gridData);
 
 			gridData = new GridData();
-			gridData.widthHint = 35;
 			IntParameter paramMaxUploadsSeeding = new IntParameter(
 					cMaxUploadsOptionsArea, "Max Uploads Seeding", 2, -1);
 			paramMaxUploadsSeeding.setLayoutData(gridData);
@@ -365,7 +359,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			Messages.setLanguageText(label, "ConfigView.label.max_peers_per_torrent");
 
 			gridData = new GridData();
-			gridData.widthHint = 35;
 			IntParameter paramMaxClients = new IntParameter(cSection,
 					"Max.Peer.Connections.Per.Torrent");
 			paramMaxClients.setLayoutData(gridData);
@@ -398,7 +391,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			enable_max_peers_seeding.setLayoutData(gridData);
 
 			gridData = new GridData();
-			gridData.widthHint = 35;
 			IntParameter paramMaxPeersSeeding = new IntParameter(
 					cMaxPeersOptionsArea, "Max.Peer.Connections.Per.Torrent.When.Seeding", 0, -1);
 			paramMaxPeersSeeding.setLayoutData(gridData);
@@ -415,7 +407,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			Messages.setLanguageText(label, "ConfigView.label.max_peers_total");
 
 			gridData = new GridData();
-			gridData.widthHint = 35;
 			IntParameter paramMaxClientsTotal = new IntParameter(cSection,
 					"Max.Peer.Connections.Total");
 			paramMaxClientsTotal.setLayoutData(gridData);
@@ -426,7 +417,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			Messages.setLanguageText(label, "ConfigView.label.maxseedspertorrent");
 
 			gridData = new GridData();
-			gridData.widthHint = 35;
 			new IntParameter(cSection,"Max Seeds Per Torrent").setLayoutData(gridData);
 
 			

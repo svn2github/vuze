@@ -313,7 +313,6 @@ public class ConfigSectionFile implements UISWTConfigSection {
 
       IntParameter paramSaveInterval = new IntParameter(cResumeGroup, sCurConfigID);
       gridData = new GridData();
-      gridData.widthHint = 30;
       paramSaveInterval.setLayoutData(gridData);
 
       Label lblMinutes = new Label(cResumeGroup, SWT.NULL);
@@ -347,7 +346,6 @@ public class ConfigSectionFile implements UISWTConfigSection {
       Messages.setLanguageText(lblSavePeersMax, "ConfigView.section.file.save.peers.max");
       final IntParameter savePeersMax = new IntParameter(cResumeGroup, sCurConfigID);
       gridData = new GridData();
-      gridData.widthHint = 30;
       savePeersMax.setLayoutData(gridData);
       final Label lblPerTorrent = new Label(cResumeGroup, SWT.NULL);
       Messages.setLanguageText(lblPerTorrent, "ConfigView.section.file.save.peers.pertorrent");

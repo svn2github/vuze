@@ -78,7 +78,6 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
     label = new Label(cSeeding, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.minSeedingTime");
     gridData = new GridData();
-    gridData.widthHint = 40;
     new IntParameter(cSeeding, "StartStopManager_iMinSeedingTime").setLayoutData(gridData);
 
     gridData = new GridData();
@@ -99,7 +98,6 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
     label = new Label(cSeeding, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeding.addForSeedingDLCopyCount");
     gridData = new GridData();
-    gridData.widthHint = 40;
     new IntParameter(cSeeding, "StartStopManager_iAddForSeedingDLCopyCount").setLayoutData(gridData);
 
     label = new Label(cSeeding, SWT.NULL);
@@ -115,7 +113,6 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
     cArea.setLayoutData(gridData);
 
     gridData = new GridData();
-    gridData.widthHint = 20;
     final IntParameter paramFakeFullCopy = new IntParameter(cArea, "StartStopManager_iNumPeersAsFullCopy");
     paramFakeFullCopy.setLayoutData(gridData);
 
@@ -143,7 +140,6 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
     Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
 
     gridData = new GridData();
-    gridData.widthHint = 20;
     new IntParameter(cFullCopyOptionsArea, "StartStopManager_iFakeFullCopySeedStart").setLayoutData(gridData);
     label = new Label(cFullCopyOptionsArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeds");

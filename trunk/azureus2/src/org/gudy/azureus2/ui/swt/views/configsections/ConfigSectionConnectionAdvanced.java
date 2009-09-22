@@ -24,10 +24,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -38,7 +36,6 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -130,7 +127,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		IntParameter max_connects = new IntParameter(gSocket,
 				"network.max.simultaneous.connect.attempts", 1, 100);    
 		gridData = new GridData();
-		gridData.widthHint = 30;
 		max_connects.setLayoutData(gridData);
 
 			// // max pending
@@ -143,7 +139,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		IntParameter max_pending_connects = new IntParameter(gSocket,
 				"network.tcp.max.connections.outstanding", 1, 65536 );    
 		gridData = new GridData();
-		gridData.widthHint = 30;
 		max_pending_connects.setLayoutData(gridData);
 		
 		
@@ -175,7 +170,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		final IntParameter port_bind = new IntParameter(gSocket,
 				"network.bind.local.port", 0, 65535);
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		port_bind.setLayoutData(gridData);
 		
 		
@@ -184,7 +178,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		final IntParameter mtu_size = new IntParameter(gSocket,"network.tcp.mtu.size");
 		mtu_size.setMaximumValue(512 * 1024);
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		mtu_size.setLayoutData(gridData);
 
 
@@ -192,7 +185,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Messages.setLanguageText(lsend, CFG_PREFIX + "SO_SNDBUF");
 		final IntParameter SO_SNDBUF = new IntParameter(gSocket,	"network.tcp.socket.SO_SNDBUF");
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		SO_SNDBUF.setLayoutData(gridData);
 
 
@@ -200,7 +192,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Messages.setLanguageText(lreceiv, CFG_PREFIX + "SO_RCVBUF");
 		final IntParameter SO_RCVBUF = new IntParameter(gSocket,	"network.tcp.socket.SO_RCVBUF");
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		SO_RCVBUF.setLayoutData(gridData);
 		
 
@@ -208,7 +199,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Messages.setLanguageText(ltos, CFG_PREFIX + "IPDiffServ");
 		final StringParameter IPDiffServ = new StringParameter(gSocket,	"network.tcp.socket.IPDiffServ");
 		gridData = new GridData();
-		gridData.widthHint = 30;
+		gridData.widthHint = 100;
 		IPDiffServ.setLayoutData(gridData);
 
 
@@ -255,14 +246,12 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Messages.setLanguageText(lreadsel, CFG_PREFIX + "read_select", new String[]{ String.valueOf( COConfigurationManager.getDefault("network.tcp.read.select.time"))});
 		final IntParameter read_select = new IntParameter(gSocket,	"network.tcp.read.select.time", 10, 250);
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		read_select.setLayoutData(gridData);
 		
 		Label lreadselmin = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lreadselmin, CFG_PREFIX + "read_select_min", new String[]{ String.valueOf( COConfigurationManager.getDefault("network.tcp.read.select.min.time"))});
 		final IntParameter read_select_min = new IntParameter(gSocket,	"network.tcp.read.select.min.time", 0, 100 );
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		read_select_min.setLayoutData(gridData);
 
 			// write select
@@ -271,14 +260,12 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Messages.setLanguageText(lwritesel, CFG_PREFIX + "write_select", new String[]{ String.valueOf( COConfigurationManager.getDefault("network.tcp.write.select.time"))});
 		final IntParameter write_select = new IntParameter(gSocket,	"network.tcp.write.select.time", 10, 250);
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		write_select.setLayoutData(gridData);
 		
 		Label lwriteselmin = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lwriteselmin, CFG_PREFIX + "write_select_min", new String[]{ String.valueOf( COConfigurationManager.getDefault("network.tcp.write.select.min.time"))});
 		final IntParameter write_select_min = new IntParameter(gSocket,	"network.tcp.write.select.min.time", 0, 100 );
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		write_select_min.setLayoutData(gridData);
 
 		

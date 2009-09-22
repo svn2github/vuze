@@ -139,7 +139,6 @@ public class ConfigSectionSharing implements UISWTConfigSection {
 	period_label.setLayoutData( gridData );
 
     gridData = new GridData();
-    gridData.widthHint = 30;
 	IntParameter rescan_period = new IntParameter(gSharing, "Sharing Rescan Period");
     rescan_period.setMinimumValue(1);
     rescan_period.setLayoutData( gridData );

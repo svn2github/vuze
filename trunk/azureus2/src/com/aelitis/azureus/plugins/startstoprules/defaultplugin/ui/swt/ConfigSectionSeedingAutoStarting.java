@@ -121,7 +121,6 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     Messages.setLanguageText(label, "ConfigView.label.seeding.rankType.seed.fallback");
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    gridData.widthHint = 20;
     IntParameter intParamFallBack = new IntParameter(gSeedCount, "StartStopManager_iRankTypeSeedFallback");
     intParamFallBack.setLayoutData(gridData);
 

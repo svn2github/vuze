@@ -125,7 +125,6 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
 				"diskmanager.perf.cache.size", 1,
 				COConfigurationManager.CONFIG_CACHE_SIZE_MAX_MB);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    gridData.widthHint = 30;
     cache_size.setLayoutData( gridData );
     
      
@@ -157,7 +156,6 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     IntParameter cache_not_smaller_than= new IntParameter(cSection, "diskmanager.perf.cache.notsmallerthan" );
     cache_not_smaller_than.setMinimumValue(0);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    gridData.widthHint = 30;
     cache_not_smaller_than.setLayoutData( gridData );
     
     	
@@ -214,7 +212,6 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     Messages.setLanguageText(label, "ConfigView.section.file.max_open_files");
     IntParameter file_max_open = new IntParameter(cSection, "File Max Open");
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    gridData.widthHint = 30;
     file_max_open.setLayoutData( gridData );
     label = new Label(cSection, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
@@ -234,7 +231,6 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     label.setText(label_text);
     IntParameter write_block_limit = new IntParameter(cSection, "diskmanager.perf.write.maxmb" );
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    gridData.widthHint = 30;
     write_block_limit.setLayoutData( gridData );
     label = new Label(cSection, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
@@ -254,7 +250,6 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     label.setText(label_text);
     IntParameter check_piece_limit = new IntParameter(cSection, "diskmanager.perf.read.maxmb" );
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    gridData.widthHint = 30;
     check_piece_limit.setLayoutData( gridData );
     label = new Label(cSection, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);

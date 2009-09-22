@@ -237,7 +237,6 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 
     FloatParameter discard_ratio = new FloatParameter(gBlockBanning, "Ip Filter Ban Discard Ratio");
     gridData = new GridData();
-    gridData.widthHint = 30;
     discard_ratio.setLayoutData(gridData);
 
 
@@ -264,7 +263,6 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 
     IntParameter discard_min = new IntParameter(cIndent, "Ip Filter Ban Discard Min KB");
     gridData = new GridData();
-    gridData.widthHint = 30;
     discard_min.setLayoutData(gridData);
     
    	// block banning
@@ -274,9 +272,8 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     "ConfigView.section.ipfilter.blockbanning");
 
     IntParameter block_banning = new IntParameter(gBlockBanning,
-    "Ip Filter Ban Block Limit");
+    "Ip Filter Ban Block Limit", 0, 256);
     gridData = new GridData();
-    gridData.widthHint = 30;
     block_banning.setLayoutData(gridData);
 
     // triggers

@@ -104,7 +104,6 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 		final IntParameter tcplisten = new IntParameter(cMiniArea,
 				"TCP.Listen.Port", 1, 65535);
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		tcplisten.setLayoutData(gridData);
 
 		tcplisten.addChangeListener(new ParameterChangeAdapter() {
@@ -132,7 +131,6 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			final IntParameter udp_listen = new IntParameter(cMiniArea,
 					"UDP.Listen.Port", 1, 65535);
 			gridData = new GridData();
-			gridData.widthHint = 40;
 			udp_listen.setLayoutData(gridData);
 
 			final boolean MULTI_UDP = COConfigurationManager.ENABLE_MULTIPLE_UDP_PORTS && userMode > 1;
@@ -202,7 +200,6 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 						});
 				
 				gridData = new GridData();
-				gridData.widthHint = 40;
 				non_data_udp_listen.setLayoutData( gridData );
 	
 				commonUDP.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( non_data_udp_listen.getControls(), true ));
@@ -321,7 +318,6 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			IntParameter http_port = new IntParameter(http_group, "HTTP.Data.Listen.Port");
 
 			gridData = new GridData();
-			gridData.widthHint = 40;
 			http_port.setLayoutData( gridData );
 
 			label = new Label(http_group, SWT.NULL);
@@ -330,7 +326,6 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			IntParameter http_port_override = new IntParameter(http_group, "HTTP.Data.Listen.Port.Override");
 
 			gridData = new GridData();
-			gridData.widthHint = 40;
 			http_port_override.setLayoutData( gridData );
 
 			enable_http.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( http_port ));

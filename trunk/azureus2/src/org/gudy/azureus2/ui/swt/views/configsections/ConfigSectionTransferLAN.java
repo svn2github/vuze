@@ -111,7 +111,6 @@ public class ConfigSectionTransferLAN implements UISWTConfigSection {
 		
 		IntParameter lan_max_upload = new IntParameter( cSection, "Max LAN Upload Speed KBs" );
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		lan_max_upload.setLayoutData(gridData);
 		Label llmux = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText( llmux, CFG_PREFIX + "uploadrate" );
@@ -119,7 +118,6 @@ public class ConfigSectionTransferLAN implements UISWTConfigSection {
 		
 		IntParameter lan_max_download = new IntParameter( cSection, "Max LAN Download Speed KBs" );
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		lan_max_download.setLayoutData(gridData);
 		Label llmdx = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText( llmdx, CFG_PREFIX + "downloadrate" );

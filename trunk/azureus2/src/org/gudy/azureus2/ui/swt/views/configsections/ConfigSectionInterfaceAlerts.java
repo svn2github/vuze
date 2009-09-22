@@ -420,7 +420,6 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 				"Message Popup Autoclose in Seconds", 0, 86400);
 		gridData = new GridData();
 		gridData.horizontalSpan = 1;
-		gridData.widthHint = 30;
 		auto_hide_alert.setLayoutData(gridData);
 		
 		// Use popup boxes rather than Mr Slidey.

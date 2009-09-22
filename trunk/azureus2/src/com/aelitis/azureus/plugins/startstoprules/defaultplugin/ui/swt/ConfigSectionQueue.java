@@ -76,7 +76,6 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		label = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.label.maxdownloads");
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		final IntParameter maxDLs = new IntParameter(cSection, "max downloads");
 		maxDLs.setLayoutData(gridData);
 
@@ -85,7 +84,6 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		label = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.label.maxactivetorrents");
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		final IntParameter maxActiv = new IntParameter(cSection,
 				"max active torrents");
 		maxActiv.setLayoutData(gridData);
@@ -115,7 +113,6 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		maxActiveWhenSeedingEnabled.setLayoutData(gridData);
 
 		gridData = new GridData();
-		gridData.widthHint = 40;
 
 		final IntParameter maxActivWhenSeeding = new IntParameter(
 				cMaxActiveOptionsArea, "StartStopManager_iMaxActiveTorrentsWhenSeeding");
@@ -126,7 +123,6 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		label = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.label.mindownloads");
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		final IntParameter minDLs = new IntParameter(cSection, "min downloads");
 		minDLs.setLayoutData(gridData);
 		minDLs.setMaximumValue(maxDLs.getValue() / 2);

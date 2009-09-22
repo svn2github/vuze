@@ -131,7 +131,7 @@ ConfigSectionTrackerServer
     final StringParameter tracker_ip = new StringParameter(gMainTab, "Tracker IP", "" );
 
     gridData = new GridData();
-    gridData.widthHint = 80;
+    gridData.widthHint = 120;
     tracker_ip.setLayoutData( gridData );
 
     Button check_button = new Button(gMainTab, SWT.PUSH);
@@ -168,10 +168,9 @@ ConfigSectionTrackerServer
         new BooleanParameter(gMainTab, "Tracker Port Enable", 
                              CFG_PREFIX + "tracker.port");
 
-    IntParameter tracker_port = new IntParameter(gMainTab, "Tracker Port");
+    IntParameter tracker_port = new IntParameter(gMainTab, "Tracker Port", 0, 65535);
 
     gridData = new GridData();
-    gridData.widthHint = 50;
     tracker_port.setLayoutData( gridData );
 
     final StringParameter tracker_port_backup = new StringParameter(gMainTab, "Tracker Port Backups", "" );
@@ -198,9 +197,8 @@ ConfigSectionTrackerServer
                              CFG_PREFIX + "tracker.sslport");
 
     IntParameter tracker_port_ssl = new IntParameter(gMainTab,
-					"Tracker Port SSL");
+					"Tracker Port SSL", 0, 65535);
     gridData = new GridData();
-    gridData.widthHint = 50;
     tracker_port_ssl.setLayoutData( gridData );
 
     final StringParameter tracker_port_ssl_backup = new StringParameter(gMainTab, "Tracker Port SSL Backups", "" );
@@ -433,7 +431,6 @@ ConfigSectionTrackerServer
     IntParameter pollIntervalMin = new IntParameter(gPollStuff, "Tracker Poll Interval Min");
 
     gridData = new GridData();
-    gridData.widthHint = 30;
     pollIntervalMin.setLayoutData( gridData );
 
     label = new Label(gPollStuff, SWT.NULL);
@@ -444,7 +441,6 @@ ConfigSectionTrackerServer
     IntParameter pollIntervalMax = new IntParameter(gPollStuff, "Tracker Poll Interval Max");
 
     gridData = new GridData();
-    gridData.widthHint = 30;
     pollIntervalMax.setLayoutData( gridData );
 
     // row
@@ -457,7 +453,6 @@ ConfigSectionTrackerServer
     IntParameter pollIntervalIncBy = new IntParameter(gPollStuff, "Tracker Poll Inc By");
 
     gridData = new GridData();
-    gridData.widthHint = 30;
     pollIntervalIncBy.setLayoutData( gridData );
 
     label = new Label(gPollStuff, SWT.NULL);
@@ -468,7 +463,6 @@ ConfigSectionTrackerServer
     IntParameter pollIntervalIncPer = new IntParameter(gPollStuff, "Tracker Poll Inc Per");
 
     gridData = new GridData();
-    gridData.widthHint = 30;
     pollIntervalIncPer.setLayoutData( gridData );
 
     
@@ -491,7 +485,6 @@ ConfigSectionTrackerServer
     IntParameter scrapeannouncepercentage = new IntParameter(gScrapeCache, "Tracker Scrape Retry Percentage");
 
     gridData = new GridData();
-    gridData.widthHint = 30;
     scrapeannouncepercentage.setLayoutData( gridData );
     
     label = new Label(gScrapeCache, SWT.NULL);
@@ -502,7 +495,6 @@ ConfigSectionTrackerServer
     IntParameter scrapeCachePeriod = new IntParameter(gScrapeCache, "Tracker Scrape Cache");
 
     gridData = new GridData();
-    gridData.widthHint = 30;
     scrapeCachePeriod.setLayoutData( gridData );
     
  
@@ -514,7 +506,6 @@ ConfigSectionTrackerServer
     IntParameter announceCacheMinPeers = new IntParameter(gScrapeCache, "Tracker Announce Cache Min Peers");
 
     gridData = new GridData();
-    gridData.widthHint = 30;
     announceCacheMinPeers.setLayoutData( gridData );
     
     label = new Label(gScrapeCache, SWT.NULL);
@@ -525,7 +516,6 @@ ConfigSectionTrackerServer
     IntParameter announceCachePeriod = new IntParameter(gScrapeCache, "Tracker Announce Cache");
 
     gridData = new GridData();
-    gridData.widthHint = 30;
     announceCachePeriod.setLayoutData( gridData );
 
     
@@ -540,7 +530,6 @@ ConfigSectionTrackerServer
     IntParameter maxPeersReturned = new IntParameter(gMainTab, "Tracker Max Peers Returned");
 
     gridData = new GridData();
-    gridData.widthHint = 50;
     maxPeersReturned.setLayoutData( gridData );
 
     label = new Label(gMainTab, SWT.NULL);
@@ -556,7 +545,6 @@ ConfigSectionTrackerServer
     IntParameter seedRetentionLimit = new IntParameter(gMainTab, "Tracker Max Seeds Retained");
 
     gridData = new GridData();
-    gridData.widthHint = 50;
     seedRetentionLimit.setLayoutData( gridData );
 
     label = new Label(gMainTab, SWT.NULL);
@@ -592,7 +580,6 @@ ConfigSectionTrackerServer
     IntParameter NATTimeout = new IntParameter(gNATDetails, "Tracker NAT Check Timeout");
 
     gridData = new GridData();
-    gridData.widthHint = 50;
     NATTimeout.setLayoutData( gridData );
 
  
@@ -620,7 +607,6 @@ ConfigSectionTrackerServer
     Label udp_version_label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(udp_version_label,  CFG_PREFIX + "tracker.udpversion");
     gridData = new GridData();
-    gridData.widthHint = 40;
     IntParameter	udp_version = new IntParameter(gMainTab, "Tracker Port UDP Version");
     udp_version.setLayoutData(gridData);
     label = new Label(gMainTab, SWT.NULL);
@@ -708,7 +694,6 @@ ConfigSectionTrackerServer
     IntParameter maxGetTime = new IntParameter(gProcessing, "Tracker Max GET Time");
  
     gridData = new GridData();
-    gridData.widthHint = 50;
     maxGetTime.setLayoutData( gridData );
 
     label = new Label(gProcessing, SWT.NULL);
@@ -724,7 +709,6 @@ ConfigSectionTrackerServer
     IntParameter maxPostTimeMultiplier = new IntParameter(gProcessing, "Tracker Max POST Time Multiplier");
 
     gridData = new GridData();
-    gridData.widthHint = 50;
     maxPostTimeMultiplier.setLayoutData( gridData );
 
     label = new Label(gProcessing, SWT.NULL);
@@ -741,7 +725,6 @@ ConfigSectionTrackerServer
     maxThreadsTime.setMinimumValue(1);
     maxThreadsTime.setMaximumValue(4096);
     gridData = new GridData();
-    gridData.widthHint = 50;
     maxThreadsTime.setLayoutData( gridData );
 
     label = new Label(gProcessing, SWT.NULL);
@@ -777,7 +760,6 @@ ConfigSectionTrackerServer
 
     IntParameter maxConcConn = new IntParameter(gNBTracker, "Tracker TCP NonBlocking Conc Max" );
     gridData = new GridData();
-    gridData.widthHint = 50;
     maxConcConn.setLayoutData( gridData );
 
     label = new Label(gNBTracker, SWT.NULL);

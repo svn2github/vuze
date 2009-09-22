@@ -88,16 +88,14 @@ public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
     label = new Label(cIgnore, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.ignoreSeeds"); //$NON-NLS-1$
     gridData = new GridData();
-    gridData.widthHint = 20;
-    new IntParameter(cIgnore, "StartStopManager_iIgnoreSeedCount").setLayoutData(gridData);
+    new IntParameter(cIgnore, "StartStopManager_iIgnoreSeedCount", 0, 9999).setLayoutData(gridData);
     label = new Label(cIgnore, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeds");
 
     label = new Label(cIgnore, SWT.WRAP);
     Messages.setLanguageText(label, "ConfigView.label.seeding.ignoreRatioPeers"); //$NON-NLS-1$
     gridData = new GridData();
-    gridData.widthHint = 20;
-    new IntParameter(cIgnore, "Stop Peers Ratio").setLayoutData(gridData);
+    new IntParameter(cIgnore, "Stop Peers Ratio", 0, 9999).setLayoutData(gridData);
     label = new Label(cIgnore, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.peers");
 
@@ -121,8 +119,7 @@ public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
     Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
 
     gridData = new GridData();
-    gridData.widthHint = 20;
-    new IntParameter(cArea, "StartStopManager_iIgnoreRatioPeersSeedStart").setLayoutData(gridData);
+    new IntParameter(cArea, "StartStopManager_iIgnoreRatioPeersSeedStart", 0, 9999).setLayoutData(gridData);
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeds");
 
@@ -130,7 +127,7 @@ public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
     label = new Label(cIgnore, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeding.ignoreShareRatio");
     gridData = new GridData();
-    gridData.widthHint = 30;
+    gridData.widthHint = 50;
     new FloatParameter(cIgnore, "Stop Ratio", 1, -1, true, 1).setLayoutData(gridData);
     label = new Label(cIgnore, SWT.NULL);
     label.setText(":1");
@@ -155,8 +152,7 @@ public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
     Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
 
     gridData = new GridData();
-    gridData.widthHint = 20;
-    new IntParameter(cArea, "StartStopManager_iIgnoreShareRatioSeedStart").setLayoutData(gridData);
+    new IntParameter(cArea, "StartStopManager_iIgnoreShareRatioSeedStart", 0, 9999).setLayoutData(gridData);
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeds");
 
