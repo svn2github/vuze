@@ -37,7 +37,7 @@ public class OSXAccess
 {
 	private static boolean bLoaded = false;
 
-	private static boolean DEBUG = Constants.isCVSVersion();
+	private static boolean DEBUG = false;
 
 	static {
 		if (!Constants.isOSX_10_5_OrHigher || !loadLibrary("OSXAccess_10.5")) {
