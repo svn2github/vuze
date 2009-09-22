@@ -78,7 +78,7 @@ DHTUDPPacketRequestStore
 		
 			// times receieved are adjusted by + skew
 				
-		value_sets 	= DHTUDPUtils.deserialiseTransportValuesArray( this, is, getClockSkew(), MAX_VALUES_PER_KEY );
+		value_sets 	= DHTUDPUtils.deserialiseTransportValuesArray( this, is, getClockSkew(), MAX_KEYS_PER_PACKET );
 		
 		super.postDeserialise(is);
 	}
@@ -99,7 +99,7 @@ DHTUDPPacketRequestStore
 		DHTUDPUtils.serialiseByteArrayArray( os, keys, MAX_KEYS_PER_PACKET );
 		
 		try{
-			DHTUDPUtils.serialiseTransportValuesArray( this, os, value_sets, 0, MAX_VALUES_PER_KEY );
+			DHTUDPUtils.serialiseTransportValuesArray( this, os, value_sets, 0, MAX_KEYS_PER_PACKET );
 			
 		}catch( DHTTransportException e ){
 			
