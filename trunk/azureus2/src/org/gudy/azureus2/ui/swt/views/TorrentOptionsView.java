@@ -183,7 +183,6 @@ TorrentOptionsView
 				adhoc_param_adapter, gTorrentOptions, MAX_UPLOAD);
 		adhoc_parameters.put( MAX_UPLOAD, max_upload );
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		max_upload.setLayoutData(gridData);
 		
 		if ( userMode > 0) {
@@ -200,7 +199,6 @@ TorrentOptionsView
 					DownloadManagerState.PARAM_MAX_UPLOAD_WHEN_BUSY);
 			ds_parameters.put( DownloadManagerState.PARAM_MAX_UPLOAD_WHEN_BUSY, max_upload_when_busy );
 			gridData = new GridData();
-			gridData.widthHint = 40;
 			max_upload_when_busy.setLayoutData(gridData);
 		}
 		
@@ -215,7 +213,6 @@ TorrentOptionsView
 				adhoc_param_adapter, gTorrentOptions, MAX_DOWNLOAD);
 		adhoc_parameters.put( MAX_DOWNLOAD, max_download );
 		gridData = new GridData();
-		gridData.widthHint = 40;
 		max_download.setLayoutData(gridData);
 		
 			// max uploads
@@ -232,7 +229,6 @@ TorrentOptionsView
 			ds_parameters.put( DownloadManagerState.PARAM_MAX_UPLOADS, max_uploads );
 			max_uploads.setMinimumValue(2);
 			gridData = new GridData();
-			gridData.widthHint = 40;
 			max_uploads.setLayoutData(gridData);
 			
 				//	max uploads when seeding enabled
@@ -270,7 +266,6 @@ TorrentOptionsView
 					DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING);
 			ds_parameters.put( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING, max_uploads_when_seeding );
 			gridData = new GridData();
-			gridData.widthHint = 40;
 			max_uploads_when_seeding.setMinimumValue(2);
 			max_uploads_when_seeding.setLayoutData(gridData);
 			
@@ -288,7 +283,6 @@ TorrentOptionsView
 					gTorrentOptions, DownloadManagerState.PARAM_MAX_PEERS);
 			ds_parameters.put( DownloadManagerState.PARAM_MAX_PEERS, max_peers );
 			gridData = new GridData();
-			gridData.widthHint = 40;
 			max_peers.setLayoutData(gridData);
 	
 				// max peers when seeding
@@ -326,7 +320,6 @@ TorrentOptionsView
 					DownloadManagerState.PARAM_MAX_PEERS_WHEN_SEEDING);
 			ds_parameters.put( DownloadManagerState.PARAM_MAX_PEERS_WHEN_SEEDING, max_peers_when_seeding );
 			gridData = new GridData();
-			gridData.widthHint = 40;
 			max_peers_when_seeding.setLayoutData(gridData);
 			
 			max_peers_when_seeding_enabled.setAdditionalActionPerformer(
@@ -345,7 +338,6 @@ TorrentOptionsView
 					DownloadManagerState.PARAM_MAX_SEEDS);
 			ds_parameters.put( DownloadManagerState.PARAM_MAX_SEEDS, max_seeds );
 			gridData = new GridData();
-			gridData.widthHint = 40;
 			max_seeds.setLayoutData(gridData);
 		}
 		
