@@ -35,6 +35,7 @@ public class SWTSkinObjectImage
 
 	protected static final Long DRAW_HCENTER = new Long(5);
 
+	// if false, Cocoa will bork because of https://bugs.eclipse.org/bugs/show_bug.cgi?id=290166
 	private static boolean ALWAYS_USE_PAINT = true;
 
 	Label label;
@@ -341,7 +342,9 @@ public class SWTSkinObjectImage
 
 					label.addPaintListener(paintListener);
 
-					label.setImage(null);
+					if (!ALWAYS_USE_PAINT) {
+						label.setImage(null);
+					}
 				} else if (sDrawMode.equals(("scale"))) {
 					noSetLabelImage = true;
 					Rectangle imgBounds = image.getBounds();
