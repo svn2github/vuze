@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -42,6 +43,8 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
+import com.aelitis.azureus.core.dht.DHTOperationAdapter;
+import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.DHTStorageBlock;
 import com.aelitis.azureus.core.dht.DHTStorageKey;
@@ -88,12 +91,14 @@ DHTDBImpl
 	
 	private BloomFilter	ip_count_bloom_filter = BloomFilterFactory.createAddRemove8Bit( IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
 	
+	private static final long	NEIGHBOURHOOD_SURVEY_PERIOD		= 1*60*1000;
+
 	private static final int	VALUE_VERSION_CHUNK = 128;
 	private int	next_value_version;
 	private int next_value_version_left;
 	
 	
-	private Map			stored_values = new HashMap();
+	private Map<HashWrapper,DHTDBMapping>			stored_values = new HashMap<HashWrapper,DHTDBMapping>();
 	
 	private DHTControl				control;
 	private DHTStorageAdapter		adapter;
@@ -115,6 +120,8 @@ DHTDBImpl
 
 	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
 
+	private volatile boolean survey_in_progress;
+	
 	public
 	DHTDBImpl(
 		DHTStorageAdapter	_adapter,
@@ -229,7 +236,20 @@ DHTDBImpl
 						}
 					}
 				});
-						
+					
+		SimpleTimer.addPeriodicEvent(
+				"DHTDB:survey",
+				NEIGHBOURHOOD_SURVEY_PERIOD,
+				true, 
+				new TimerEventPerformer()
+				{
+					public void
+					perform(
+						TimerEvent	event )
+					{
+						//survey();
+					}
+				});
 	}
 	
 	
@@ -435,6 +455,13 @@ DHTDBImpl
 			}
 		}
 		
+			// don't start accepting cache forwards until we have a good idea of our 
+			// acceptable key space
+		
+		if ( cache_forward && !control.isSeeded()){
+			
+			return( DHT.DT_NONE );
+		}
 		
 		if ( cache_forward ){
 			
@@ -1463,6 +1490,180 @@ DHTDBImpl
 	getStats()
 	{
 		return( this );
+	}
+	
+	protected void
+	survey()
+	{
+		if ( survey_in_progress ){
+			
+			return;
+		}
+		
+		System.out.println( "surveying" );
+		
+		checkCacheExpiration( false );
+		
+		final byte[]	my_id = router.getID();
+		
+		byte[]	max_key 	= my_id;
+		byte[]	max_dist	= null;
+		
+		System.out.println( "    my_id=" + ByteFormatter.encodeString( my_id ));
+
+		try{
+			this_mon.enter();
+						
+			Iterator	it = stored_values.values().iterator();
+			
+			while( it.hasNext()){
+				
+				DHTDBMapping	mapping = (DHTDBMapping)it.next();
+	
+				if ( mapping.getIndirectSize()== 0 ){ 
+					
+					continue;
+				}
+				
+				byte[] key = mapping.getKey().getBytes();
+				
+				byte[] distance = control.computeDistance( my_id, key );
+				
+				if ( max_dist == null || control.compareDistances( distance, max_dist  ) > 0 ){
+					
+					max_dist	= distance;
+					max_key 	= key;
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		System.out.println( "    max_key=" + ByteFormatter.encodeString( max_key ) + ", dist=" + ByteFormatter.encodeString( max_dist ));
+		
+		if ( max_key == my_id ){
+			
+			return;
+		}
+		
+		List<DHTTransportContact> all_contacts = control.getClosestKContactsList( my_id, true );
+		
+		final ByteArrayHashMap<DHTTransportContact>	id_map = new ByteArrayHashMap<DHTTransportContact>();
+		
+		for ( DHTTransportContact contact: all_contacts ){
+			
+			id_map.put( contact.getID(), contact );
+		}
+		
+			// obscure key so we don't leak any keys
+		
+		byte[]	obscured_key = control.getObfuscatedKey( max_key );
+		
+		final int[]	requery_count = { 0 };
+		
+		try{
+			survey_in_progress = true;
+		
+			control.lookupEncoded(
+				obscured_key,
+				0,
+				new DHTOperationAdapter()
+				{
+					private List<DHTTransportContact> contacts = new ArrayList<DHTTransportContact>();
+					
+					public void
+					found(
+						DHTTransportContact	contact,
+						boolean				is_closest )
+					{
+						if ( is_closest ){
+							
+							synchronized( contacts ){
+								
+								contacts.add( contact );
+							}
+						}
+					}
+					
+					public void
+					complete(
+						boolean				timeout )
+					{
+						boolean	requeried = false;
+						
+						try{
+							int	hits	= 0;
+							int	misses	= 0;
+							
+								// find the closest miss to us and recursively search
+							
+							byte[]	min_dist 	= null;
+							byte[]	min_id		= null;
+							
+							synchronized( contacts ){
+								
+								for ( DHTTransportContact c: contacts ){
+									
+									byte[]	id = c.getID();
+									
+									if ( id_map.containsKey( id )){
+										
+										hits++;
+										
+									}else{
+										
+										misses++;
+										
+										id_map.put( id, c );
+										
+										byte[] distance = control.computeDistance( my_id, id );
+										
+										if ( min_dist == null || control.compareDistances( distance, min_dist  ) < 0 ){
+								
+											min_dist	= distance;
+											min_id		= id;
+										}
+									}
+								}
+							}
+							
+								// if significant misses then re-query
+							
+							if ( misses > 0 && misses*100/(hits+misses) >= 50 ){
+								
+								if ( requery_count[0]++ < 5 ){
+									
+									System.out.println( "requery at " + ByteFormatter.encodeString( min_dist )); 
+									
+									byte[]	obscured_key = control.getObfuscatedKey( min_id );
+									
+									control.lookupEncoded( obscured_key, 0, this );
+									
+									requeried = true;
+									
+								}else{
+									
+									System.out.println( "requery limit exceeded" );
+								}
+							}else{
+								
+								System.out.println( "super-neighbourhood=" + id_map.size() + " (hits=" + hits + ", misses=" + misses + ")" );
+							}
+						}finally{
+							
+							if ( !requeried ){
+								
+								survey_in_progress = false;
+							}
+						}
+					}
+				});
+			
+		}catch( Throwable e ){
+			
+			survey_in_progress = false;
+		}
 	}
 	
 	public void

@@ -715,7 +715,8 @@ outer:
 						
 						public void
 						found(
-							DHTTransportContact	contact )
+							DHTTransportContact	contact,
+							boolean				is_closest )
 						{
 						}
 
@@ -819,7 +820,8 @@ outer:
 						
 						public void
 						found(
-							DHTTransportContact	contact )
+							DHTTransportContact	contact,
+							boolean				is_closest )
 						{
 						}
 
@@ -894,7 +896,8 @@ outer:
 		
 							public void
 							found(
-								DHTTransportContact	contact )
+								DHTTransportContact	contact,
+								boolean				is_closest )
 							{
 							}
 
@@ -983,7 +986,8 @@ outer:
 							
 							public void
 							found(
-								DHTTransportContact	contact )
+								DHTTransportContact	contact,
+								boolean				is_closest )
 							{
 							}
 

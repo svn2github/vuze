@@ -63,6 +63,8 @@ public class
 DHTControlImpl 
 	implements DHTControl, DHTTransportRequestHandler
 {
+	private static final boolean DISABLE_REPLICATE_ON_JOIN	= true;
+	
 	private static final int EXTERNAL_LOOKUP_CONCURRENCY	= 16;
 	private static final int EXTERNAL_PUT_CONCURRENCY		= 8;
 	
@@ -100,6 +102,8 @@ DHTControlImpl
 	private ThreadPool	external_put_pool;
 	
 	private Map			imported_state	= new HashMap();
+	
+	private volatile boolean	seeded;
 	
 	private long		last_lookup;
 	
@@ -646,6 +650,8 @@ DHTControlImpl
 							sem.release();
 						}
 						
+						seeded = true;
+						
 						try{
 							
 							router.seed();
@@ -687,6 +693,12 @@ DHTControlImpl
 				Debug.out(e);
 			}
 		}
+	}
+	
+	public boolean
+	isSeeded()
+	{
+		return( seeded );
 	}
 	
 	protected void
@@ -954,7 +966,7 @@ DHTControlImpl
 				false );
 	}
 		
-	protected byte[]
+	public byte[]
 	getObfuscatedKey(
 		byte[]		plain_key )
 	{
@@ -1483,9 +1495,10 @@ DHTControlImpl
 					
 					public void
 					found(
-						DHTTransportContact	contact )
+						DHTTransportContact	contact,
+						boolean				is_closest )
 					{
-						get_listener.found(contact);
+						get_listener.found(contact,is_closest);
 					}
 					
 					public void
@@ -1536,8 +1549,15 @@ DHTControlImpl
    		long							timeout,
    		final DHTOperationListener		lookup_listener )
 	{
-		final byte[]	encoded_key = encodeKey( unencoded_key );
-
+		return( lookupEncoded( encodeKey( unencoded_key ), timeout, lookup_listener ));
+	}
+	
+	public boolean
+   	lookupEncoded(		
+   		byte[]							encoded_key,
+   		long							timeout,
+   		final DHTOperationListener		lookup_listener )
+	{
 		if ( DHTLog.isOn()){
 			DHTLog.log( "lookup for " + DHTLog.getString( encoded_key ));
 		}
@@ -1560,7 +1580,8 @@ DHTControlImpl
 				
 				public void
 				found(
-					DHTTransportContact	contact )
+					DHTTransportContact	contact,
+					boolean				is_closest )
 				{
 				}
 				
@@ -1622,7 +1643,7 @@ DHTControlImpl
 						{
 							for (int i=0;i<closest.size();i++){
 								
-								lookup_listener.found((DHTTransportContact)closest.get(i));
+								lookup_listener.found((DHTTransportContact)closest.get(i),true);
 							}
 						}
 					});
@@ -2002,7 +2023,7 @@ DHTControlImpl
 					while (it.hasNext())
 					{
 						DHTTransportContact contact = (DHTTransportContact) it.next();
-						handler.found(contact);
+						handler.found(contact,false);
 						level_map.put(contact, new Integer(0));
 					}
 					
@@ -2305,7 +2326,7 @@ DHTControlImpl
 														}
 														
 														contacts_to_query.add(contact);
-														handler.found(contact);
+														handler.found(contact,false);
 														level_map.put(contact, new Integer(search_level + 1));
 														if (idle_searches > 0)
 														{
@@ -2755,6 +2776,16 @@ DHTControlImpl
 	nodeAddedToRouter(
 		DHTRouterContact	new_contact )
 	{	
+		if ( DISABLE_REPLICATE_ON_JOIN ){
+			
+			if ( !new_contact.hasBeenAlive()){
+				
+				requestPing( new_contact );
+			}
+				
+			return;
+		}
+		
 			// ignore ourselves
 		
 		if ( router.isID( new_contact.getID())){
@@ -2863,6 +2894,8 @@ DHTControlImpl
 			return;
 		}
 			
+		// System.out.println( "Node added to router: id=" + ByteFormatter.encodeString( contact_id ));
+		
 			// ok, we're close enough to worry about transferring values				
 		
 		Iterator	it = database.getKeys();
@@ -3160,15 +3193,15 @@ DHTControlImpl
 		}
 	}
 	
-	protected Set
+	protected Set<DHTTransportContact>
 	getClosestContactsSet(
 		byte[]		id,
 		int			num_to_return,
 		boolean		live_only )
 	{
-		List	l = router.findClosestContacts( id, num_to_return, live_only );
+		List<DHTRouterContact>	l = router.findClosestContacts( id, num_to_return, live_only );
 		
-		Set	sorted_set	= new sortedTransportContactSet( id, true ).getSet(); 
+		Set<DHTTransportContact>	sorted_set	= new sortedTransportContactSet( id, true ).getSet(); 
 
 		// profilers says l.size() is taking CPU (!) so put it into a variable
 		// this is safe since the list returned is created for us only
@@ -3181,7 +3214,7 @@ DHTControlImpl
 		return( sorted_set );
 	}
 	
-	public List
+	public List<DHTTransportContact>
 	getClosestKContactsList(
 		byte[]		id,
 		boolean		live_only )
@@ -3189,17 +3222,17 @@ DHTControlImpl
 		return( getClosestContactsList( id, K, live_only ));
 	}
 	
-	public List
+	public List<DHTTransportContact>
 	getClosestContactsList(
 		byte[]		id,
 		int			num_to_return,
 		boolean		live_only )
 	{
-		Set	sorted_set	= getClosestContactsSet( id, num_to_return, live_only );
+		Set<DHTTransportContact>	sorted_set	= getClosestContactsSet( id, num_to_return, live_only );
 					
-		List	res = new ArrayList(num_to_return);
+		List<DHTTransportContact>	res = new ArrayList<DHTTransportContact>(num_to_return);
 		
-		Iterator	it = sorted_set.iterator();
+		Iterator<DHTTransportContact>	it = sorted_set.iterator();
 		
 		while( it.hasNext() && res.size() < num_to_return ){
 			
@@ -3773,7 +3806,7 @@ DHTControlImpl
 		*/
 	}
 	
-	public List
+	public List<DHTTransportContact>
 	sortContactsByDistance(
 		List		contacts )
 	{
@@ -3781,13 +3814,13 @@ DHTControlImpl
 
 		sorted_contacts.addAll( contacts );
 		
-		return( new ArrayList( sorted_contacts ));
+		return( new ArrayList<DHTTransportContact>( sorted_contacts ));
 	}
 	
 	protected static class
 	sortedTransportContactSet
 	{
-		private TreeSet	tree_set;
+		private TreeSet<DHTTransportContact>	tree_set;
 		
 		private byte[]	pivot;
 		private boolean	ascending;
@@ -3800,20 +3833,17 @@ DHTControlImpl
 			pivot		= _pivot;
 			ascending	= _ascending;
 			
-			tree_set = new TreeSet(
-				new Comparator()
+			tree_set = new TreeSet<DHTTransportContact>(
+				new Comparator<DHTTransportContact>()
 				{
 					public int
 					compare(
-						Object	o1,
-						Object	o2 )
+						DHTTransportContact	t1,
+						DHTTransportContact	t2 )
 					{
 							// this comparator ensures that the closest to the key
 							// is first in the iterator traversal
-					
-						DHTTransportContact	t1 = (DHTTransportContact)o1;
-						DHTTransportContact t2 = (DHTTransportContact)o2;
-											
+							 									
 						int	distance = computeAndCompareDistances2( t1.getID(), t2.getID(), pivot );
 						
 						if ( ascending ){
@@ -3828,7 +3858,7 @@ DHTControlImpl
 				});
 		}
 		
-		public Set
+		public Set<DHTTransportContact>
 		getSet()
 		{
 			return( tree_set );
@@ -3892,9 +3922,10 @@ DHTControlImpl
 		
 		public void
 		found(
-			DHTTransportContact	contact )
+			DHTTransportContact	contact,
+			boolean				is_closest )
 		{
-			delegate.found( contact );
+			delegate.found( contact, is_closest );
 		}
 		
 		public void

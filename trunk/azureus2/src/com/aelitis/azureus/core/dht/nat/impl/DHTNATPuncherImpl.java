@@ -648,7 +648,8 @@ DHTNATPuncherImpl
       										
       										public void
       										found(
-      											DHTTransportContact	contact )
+      											DHTTransportContact	contact,
+      											boolean				is_closest )
       										{}
       										
       										public void
@@ -698,7 +699,8 @@ DHTNATPuncherImpl
       										
       										public void
       										found(
-      											DHTTransportContact	contact )
+      											DHTTransportContact	contact,
+      											boolean				is_closest )
       										{}
       										
       										public void
@@ -751,7 +753,8 @@ DHTNATPuncherImpl
       									
       									public void
       									found(
-      										DHTTransportContact	contact )
+      										DHTTransportContact	contact,
+      										boolean				is_closest )
       									{}
       									
       									public void

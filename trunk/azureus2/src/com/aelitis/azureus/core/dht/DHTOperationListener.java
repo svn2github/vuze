@@ -45,7 +45,8 @@ DHTOperationListener
 	
 	public void
 	found(
-		DHTTransportContact	contact );
+		DHTTransportContact		contact,
+		boolean					is_closest );
 	
 	public void
 	read(
