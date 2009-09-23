@@ -134,11 +134,15 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 				LBLKEY_PREFIX + "closetotray");
 		BooleanParameter mtt = new BooleanParameter(gSysTray, "Minimize To Tray",
 				LBLKEY_PREFIX + "minimizetotray");
+		BooleanParameter esttt = new BooleanParameter(gSysTray, "ui.systray.tooltip.enable",
+				"ConfigView.label.enableSystrayToolTip");
 
 		est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 				ctt.getControls()));
 		est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 				mtt.getControls()));
+		est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+				esttt.getControls()));
 		
         /**
          * Default download / upload limits available in the UI.

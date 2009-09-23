@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.systray;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuEvent;
@@ -28,20 +29,25 @@ import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -52,7 +58,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
  *
  */
 public class SystemTraySWT
-	implements UIUpdatableAlways
+	implements UIUpdatableAlways, MessageTextListener
 {
 
 	protected static AzureusCore core = null;
@@ -73,6 +79,17 @@ public class SystemTraySWT
 
 	protected GlobalManager gm = null;
 
+	private String seedingKeyVal;
+	private String downloadingKeyVal;
+
+	private String dlAbbrKeyVal;
+
+	protected String ulAbbrKeyVal;
+	
+	long interval = 0;
+
+	protected boolean enableTooltip;
+
 	public SystemTraySWT() {
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
@@ -80,6 +97,21 @@ public class SystemTraySWT
 				gm = core.getGlobalManager();
 			}
 		});
+		
+		COConfigurationManager.addAndFireParameterListener(
+				"ui.systray.tooltip.enable", new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						enableTooltip = COConfigurationManager.getBooleanParameter(parameterName);
+						if (enableTooltip) {
+							MessageText.addAndFireListener(SystemTraySWT.this);
+						} else {
+							MessageText.removeListener(SystemTraySWT.this);
+							if (trayItem != null && !trayItem.isDisposed()) {
+								trayItem.setToolTipText(null);
+							}
+						}
+					}
+				});
 
 		uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		display = SWTThread.getInstance().getDisplay();
@@ -331,6 +363,9 @@ public class SystemTraySWT
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
 	public void updateUI() {
+		if (interval++ % 10 > 0) {
+			return;
+		}
 		if (trayItem.isDisposed()) {
 			uiFunctions.getUIUpdater().removeUpdater(this);
 			return;
@@ -339,50 +374,41 @@ public class SystemTraySWT
 			return;
 		}
 
-		GlobalManagerStats stats = gm.getStats();
-		List managers = gm.getDownloadManagers();
-		//StringBuffer toolTip = new StringBuffer("Azureus - ");//$NON-NLS-1$
-		StringBuffer toolTip = new StringBuffer();
-		int seeding = 0;
-		int downloading = 0;
+		if (enableTooltip) {
+  		GlobalManagerStats stats = gm.getStats();
+  		List<?> managers = gm.getDownloadManagers();
 
-		for (int i = 0; i < managers.size(); i++) {
-			DownloadManager manager = (DownloadManager) managers.get(i);
-			int state = manager.getState();
-			if (state == DownloadManager.STATE_DOWNLOADING)
-				downloading++;
-			if (state == DownloadManager.STATE_SEEDING)
-				seeding++;
+  		StringBuffer toolTip = new StringBuffer();
+  		int seeding = 0;
+  		int downloading = 0;
+  
+  		// OMG this must be slow on 10k lists
+  		for (int i = 0; i < managers.size(); i++) {
+  			DownloadManager manager = (DownloadManager) managers.get(i);
+  			int state = manager.getState();
+  			if (state == DownloadManager.STATE_DOWNLOADING)
+  				downloading++;
+  			if (state == DownloadManager.STATE_SEEDING)
+  				seeding++;
+  		}
+  
+  		String seeding_text = seedingKeyVal.replaceAll("%1", "" + seeding);
+  		String downloading_text = downloadingKeyVal.replaceAll("%1", "" + downloading);
+  
+  		toolTip.append(seeding_text).append(downloading_text).append("\n");
+  		toolTip.append(dlAbbrKeyVal).append(
+  				" ");
+  
+  		toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+  				stats.getDataReceiveRate(), stats.getProtocolReceiveRate()));
+  		
+  		toolTip.append(", ").append(ulAbbrKeyVal).append(" ");
+  		toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+  				stats.getDataSendRate(), stats.getProtocolSendRate()));
+  		
+  		
+  		trayItem.setToolTipText(toolTip.toString());
 		}
-
-		// something went funny here across Java versions, leading " " got lost
-
-		String seeding_text = MessageText.getString("SystemTray.tooltip.seeding").replaceAll(
-				"%1", "" + seeding);
-		String downloading_text = MessageText.getString(
-				"SystemTray.tooltip.downloading").replaceAll("%1", "" + downloading);
-
-		/*	if ( !seeding_text.startsWith(" " )){
-		 seeding_text = " " + seeding_text;
-		 }*/
-		if (!downloading_text.startsWith(" ")) {
-			downloading_text = " " + downloading_text;
-		}
-
-		toolTip.append(seeding_text).append(downloading_text).append("\n");
-		toolTip.append(MessageText.getString("ConfigView.download.abbreviated")).append(
-				" ");
-
-		toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
-				stats.getDataReceiveRate(), stats.getProtocolReceiveRate()));
-		
-		toolTip.append(", ").append(
-				MessageText.getString("ConfigView.upload.abbreviated")).append(" ");
-		toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
-				stats.getDataSendRate(), stats.getProtocolSendRate()));
-		
-		
-		trayItem.setToolTipText(toolTip.toString());
 
 		//Why should we refresh the image? it never changes ...
 		//and is a memory bottleneck for some non-obvious reasons.
@@ -405,5 +431,16 @@ public class SystemTraySWT
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
 	public String getUpdateUIName() {
 		return "SystemTraySWT";
+	}
+
+	public void localeChanged(Locale oldLocale, Locale newLocale) {
+		seedingKeyVal = MessageText.getString("SystemTray.tooltip.seeding");
+		downloadingKeyVal = MessageText.getString("SystemTray.tooltip.downloading");
+		if (!downloadingKeyVal.startsWith(" ")) {
+			downloadingKeyVal = " " + downloadingKeyVal;
+		}
+
+		dlAbbrKeyVal = MessageText.getString("ConfigView.download.abbreviated");
+		ulAbbrKeyVal = MessageText.getString("ConfigView.upload.abbreviated");
 	}
 }
