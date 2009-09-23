@@ -1353,6 +1353,19 @@ SubscriptionManagerUI
 				final sideBarItem new_si = new sideBarItem();
 				
 				subs.setUserData( SUB_IVIEW_KEY, new_si );
+
+				// GetEngine used to be near menu item created, but was moved here
+				// since it takes time on first start and we don't want it stalling
+				// the UI Thread
+				Engine e = null;
+				try{
+					e = subs.getEngine();
+					
+				}catch( Throwable ex ){
+					
+					Debug.printStackTrace(ex);
+				}
+				final Engine engine = e;
 				
 				Utils.execSWTThread(
 					new Runnable()
@@ -1413,11 +1426,9 @@ SubscriptionManagerUI
 								menuItem.addListener(resetResultsListener);
 
 								try{
-									Engine e = subs.getEngine();
-									
-									if ( e instanceof WebEngine ){
+									if ( engine instanceof WebEngine ){
 										
-										if (((WebEngine)e).isNeedsAuth()){
+										if (((WebEngine)engine).isNeedsAuth()){
 											
 											menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.resetauth");
 											menuItem.addListener(resetAuthListener);

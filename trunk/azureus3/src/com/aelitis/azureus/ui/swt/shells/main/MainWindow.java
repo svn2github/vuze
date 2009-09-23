@@ -427,20 +427,24 @@ public class MainWindow
 			uiFunctions.showGlobalTransferBar();
 		}
 
-		VuzeBuddyManager.init(new VuzeBuddyCreator() {
-			public VuzeBuddy createBuddy(String publicKey) {
-				VuzeBuddyManager.log("created buddy: " + publicKey);
-				return new VuzeBuddySWTImpl(publicKey);
-			}
-
-			public VuzeBuddy createBuddy() {
-				VuzeBuddyManager.log("created buddy");
-				return new VuzeBuddySWTImpl();
-			}
-
-			// @see com.aelitis.azureus.buddy.VuzeBuddyCreator#createPotentialBuddy(Map)
-			public VuzeBuddy createPotentialBuddy(Map map) {
-				return new VuzeBuddyFakeSWTImpl(map);
+		Utils.getOffOfSWTThread(new AERunnable() {
+			public void runSupport() {
+				VuzeBuddyManager.init(new VuzeBuddyCreator() {
+					public VuzeBuddy createBuddy(String publicKey) {
+						VuzeBuddyManager.log("created buddy: " + publicKey);
+						return new VuzeBuddySWTImpl(publicKey);
+					}
+					
+					public VuzeBuddy createBuddy() {
+						VuzeBuddyManager.log("created buddy");
+						return new VuzeBuddySWTImpl();
+					}
+					
+					// @see com.aelitis.azureus.buddy.VuzeBuddyCreator#createPotentialBuddy(Map)
+					public VuzeBuddy createPotentialBuddy(Map map) {
+						return new VuzeBuddyFakeSWTImpl(map);
+					}
+				});
 			}
 		});
 
@@ -1533,6 +1537,7 @@ public class MainWindow
 
 			} catch (Throwable e) {
 
+				e.printStackTrace();
 				Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
 						"Upgrade to SWT3.0M8 or later for system tray support."));
 			}
