@@ -120,7 +120,9 @@ DHTDBImpl
 
 	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
 
+	private static final int	MAX_SURVEY_SIZE	= 60;
 	private volatile boolean survey_in_progress;
+	
 	
 	public
 	DHTDBImpl(
@@ -247,7 +249,7 @@ DHTDBImpl
 					perform(
 						TimerEvent	event )
 					{
-						//survey();
+						survey();
 					}
 				});
 	}
@@ -290,7 +292,8 @@ DHTDBImpl
 		HashWrapper		key,
 		byte[]			value,
 		byte			flags,
-		byte			life_hours )
+		byte			life_hours,
+		byte			replication_factor )
 	{
 			// local store
 		
@@ -337,7 +340,8 @@ DHTDBImpl
 							local_contact,
 							true,
 							flags,
-							life_hours );
+							life_hours,
+							replication_factor );
 		
 				mapping.add( res );
 				
@@ -358,7 +362,8 @@ DHTDBImpl
 						local_contact,
 						true,
 						flags,
-						life_hours );
+						life_hours,
+						replication_factor );
 			
 			return( res );
 		}
@@ -1514,13 +1519,18 @@ DHTDBImpl
 		try{
 			this_mon.enter();
 						
-			Iterator	it = stored_values.values().iterator();
+			Iterator<DHTDBMapping>	it = stored_values.values().iterator();
 			
 			while( it.hasNext()){
 				
-				DHTDBMapping	mapping = (DHTDBMapping)it.next();
+				DHTDBMapping	mapping = it.next();
 	
-				if ( mapping.getIndirectSize()== 0 ){ 
+				if ( mapping.getDiversificationType() != DHT.DT_NONE ){
+					
+					continue;
+				}
+				
+				if ( mapping.getIndirectValueCount()== 0 ){ 
 					
 					continue;
 				}
@@ -1567,10 +1577,13 @@ DHTDBImpl
 		
 			control.lookupEncoded(
 				obscured_key,
+				"Neighbourhood survey: basic",
 				0,
 				new DHTOperationAdapter()
 				{
 					private List<DHTTransportContact> contacts = new ArrayList<DHTTransportContact>();
+					
+					private boolean	survey_complete;
 					
 					public void
 					found(
@@ -1581,7 +1594,10 @@ DHTDBImpl
 							
 							synchronized( contacts ){
 								
-								contacts.add( contact );
+								if ( !survey_complete ){
+									
+									contacts.add( contact );
+								}
 							}
 						}
 					}
@@ -1615,6 +1631,13 @@ DHTDBImpl
 										
 										misses++;
 										
+										if ( id_map.size() >= MAX_SURVEY_SIZE ){
+											
+											log( "Max survery size exceeded" );
+											
+											break;
+										}
+										
 										id_map.put( id, c );
 										
 										byte[] distance = control.computeDistance( my_id, id );
@@ -1626,19 +1649,25 @@ DHTDBImpl
 										}
 									}
 								}
+								
+								contacts.clear();
 							}
 							
 								// if significant misses then re-query
 							
-							if ( misses > 0 && misses*100/(hits+misses) >= 50 ){
+							if ( misses > 0 && misses*100/(hits+misses) >= 25 && id_map.size()< MAX_SURVEY_SIZE ){
 								
 								if ( requery_count[0]++ < 5 ){
 									
-									System.out.println( "requery at " + ByteFormatter.encodeString( min_dist )); 
+									System.out.println( "requery at " + ByteFormatter.encodeString( min_id )); 
+											
+										// don't need to obscure here as its a node-id
 									
-									byte[]	obscured_key = control.getObfuscatedKey( min_id );
-									
-									control.lookupEncoded( obscured_key, 0, this );
+									control.lookupEncoded( 
+										min_id,
+										"Neighbourhood survey: level=" + requery_count[0],
+										0, 
+										this );
 									
 									requeried = true;
 									
@@ -1648,19 +1677,120 @@ DHTDBImpl
 								}
 							}else{
 								
-								System.out.println( "super-neighbourhood=" + id_map.size() + " (hits=" + hits + ", misses=" + misses + ")" );
+								System.out.println( "super-neighbourhood=" + id_map.size() + " (hits=" + hits + ", misses=" + misses + ", level=" + requery_count[0] + ")" );
 							}
 						}finally{
 							
 							if ( !requeried ){
 								
-								survey_in_progress = false;
+								synchronized( contacts ){
+
+									survey_complete = true;
+								}
+								
+								processSurvey( id_map );
 							}
 						}
 					}
 				});
 			
 		}catch( Throwable e ){
+			
+			survey_in_progress = false;
+		}
+	}
+	
+	protected void
+	processSurvey(
+		ByteArrayHashMap<DHTTransportContact>	survey )
+	{
+		try{
+			byte[][]	node_ids = new byte[survey.size()][];
+			
+			int	pos = 0;
+			
+			for ( byte[] id: survey.keys()){
+				
+				node_ids[pos++] = id;
+			}
+			
+			ByteArrayHashMap<List<DHTDBMapping>>	value_map = new ByteArrayHashMap<List<DHTDBMapping>>();
+			
+			final int max_nodes = Math.min( node_ids.length, router.getK());
+			
+			try{
+				this_mon.enter();
+							
+				Iterator<DHTDBMapping>	it = stored_values.values().iterator();
+				
+				int	value_count = 0;
+				
+				while( it.hasNext()){
+					
+					DHTDBMapping	mapping = it.next();
+		
+					if ( mapping.getDiversificationType() != DHT.DT_NONE ){
+						
+						continue;
+					}
+					
+					if ( mapping.getIndirectValueCount()== 0 ){ 
+						
+						continue;
+					}
+					
+					value_count++;
+					
+					final byte[] key = mapping.getKey().getBytes();
+					
+						// find closest nodes to this key in order to asses availability
+					
+					Arrays.sort(
+						node_ids,
+						new Comparator<byte[]>()
+						{
+							public int 
+							compare(
+								byte[] o1, 
+								byte[] o2 ) 
+							{
+								return( control.computeAndCompareDistances( o1, o2, key ));
+							}
+						});
+					
+					for ( int i=0;i<max_nodes;i++ ){
+						
+						byte[]	id = node_ids[i];
+						
+						List<DHTDBMapping> list = value_map.get( id );
+						
+						if ( list == null ){
+							
+							list = new ArrayList<DHTDBMapping>();
+							
+							value_map.put( id, list );
+						}
+						
+						list.add( mapping );
+					}
+				}
+				
+				System.out.println( "Total values: " + value_count );
+				
+				for ( byte[] id: node_ids ){
+					
+					List<DHTDBMapping> list = value_map.get( id );
+					
+					byte[]	prefix = null;
+					
+					
+					System.out.println( "node " + ByteFormatter.encodeString( id ) + " -> " + (list==null?0:list.size()));
+				}
+			}finally{
+				
+				this_mon.exit();
+			}
+		}finally{
 			
 			survey_in_progress = false;
 		}

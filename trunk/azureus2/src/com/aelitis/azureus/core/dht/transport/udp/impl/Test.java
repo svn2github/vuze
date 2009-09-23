@@ -150,6 +150,12 @@ Test
 								return 0;
 							}
 
+							public int 
+							getReplicationFactor() 
+							{
+								return 0;
+							}
+
 							public String
 							getString()
 							{

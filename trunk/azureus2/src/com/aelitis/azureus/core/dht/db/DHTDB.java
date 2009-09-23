@@ -56,7 +56,8 @@ DHTDB
 		HashWrapper		key,
 		byte[]			value,
 		byte			flags,
-		byte			life_hours );
+		byte			life_hours,
+		byte			replication_factor );
 	
 		/**
 		 * Remote store

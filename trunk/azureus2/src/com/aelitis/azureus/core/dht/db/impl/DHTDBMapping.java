@@ -365,6 +365,7 @@ DHTDBMapping
 								db.getLocalContact(),
 								true,
 								DHT.FLAG_STATS,
+								0,
 								0 )});
 					
 				}catch( Throwable e ){
@@ -480,6 +481,23 @@ DHTDBMapping
 		}
 		
 		return( direct_originator_map_may_be_null.size() + indirect_originator_value_map.size());
+	}
+	
+	protected int
+	getDirectValueCount()
+	{
+		if ( direct_originator_map_may_be_null == null ){
+			
+			return( 0 );
+		}
+		
+		return( direct_originator_map_may_be_null.size());
+	}
+	
+	protected int
+	getIndirectValueCount()
+	{
+		return( indirect_originator_value_map.size());
 	}
 	
 	protected Iterator

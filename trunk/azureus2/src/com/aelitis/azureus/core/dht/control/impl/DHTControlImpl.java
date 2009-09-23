@@ -750,6 +750,7 @@ DHTControlImpl
 		byte[]					_value,
 		byte					_flags,
 		byte					_life_hours,
+		byte					_replication_factor,
 		boolean					_high_priority,
 		DHTOperationListener	_listener )
 	{
@@ -768,7 +769,7 @@ DHTControlImpl
 			DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
 		}
 		
-		DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value, _flags, _life_hours );
+		DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value, _flags, _life_hours, _replication_factor );
 		
 		put( 	external_put_pool,
 				_high_priority,
@@ -1048,6 +1049,12 @@ DHTControlImpl
 				getLifeTimeHours()
 				{
 					return( basis.getLifeTimeHours());
+				}
+				
+				public int
+				getReplicationFactor()
+				{
+					return( basis.getReplicationFactor());
 				}
 				
 				public String
@@ -1546,15 +1553,17 @@ DHTControlImpl
 	public boolean
    	lookup(		
    		byte[]							unencoded_key,
+   		String							description,
    		long							timeout,
    		final DHTOperationListener		lookup_listener )
 	{
-		return( lookupEncoded( encodeKey( unencoded_key ), timeout, lookup_listener ));
+		return( lookupEncoded( encodeKey( unencoded_key ), description, timeout, lookup_listener ));
 	}
 	
 	public boolean
    	lookupEncoded(		
    		byte[]							encoded_key,
+   		String							description,
    		long							timeout,
    		final DHTOperationListener		lookup_listener )
 	{
@@ -1618,7 +1627,7 @@ DHTControlImpl
 			
 		lookup( 	external_lookup_pool, false,
 					encoded_key, 
-					"lookup",
+					description,
 					(byte)0,
 					false, 
 					timeout,
@@ -4152,6 +4161,12 @@ DHTControlImpl
 		getLifeTimeHours() 
 		{
 			return( delegate.getLifeTimeHours());
+		}
+		
+		public int 
+		getReplicationFactor() 
+		{
+			return( delegate.getReplicationFactor());
 		}
 		
 		public String

@@ -47,6 +47,7 @@ DHTDBValueImpl
 	private boolean				local;
 	private byte				flags;
 	private byte				life_hours;
+	private byte				rep_fact;
 	private int					version;
 	
 	private long				store_time;
@@ -70,7 +71,8 @@ DHTDBValueImpl
 		DHTTransportContact	_sender,
 		boolean				_local,
 		int					_flags,
-		int					_life_hours )
+		int					_life_hours,
+		int					_rep_fact )
 	{
 		creation_time	= _creation_time;
 		value			= _value;
@@ -80,6 +82,7 @@ DHTDBValueImpl
 		local			= _local;
 		flags			= (byte)_flags;
 		life_hours		= (byte)_life_hours;
+		rep_fact		= (byte)_rep_fact;
 		
 			// we get quite a few zero length values - optimise mem usage
 		
@@ -112,7 +115,8 @@ DHTDBValueImpl
 				_sender,
 				_local,
 				_other.getFlags(),
-				_other.getLifeTimeHours());
+				_other.getLifeTimeHours(),
+				_other.getReplicationFactor());
 	}
 	
 	protected void
@@ -200,6 +204,12 @@ DHTDBValueImpl
 	getLifeTimeHours() 
 	{
 		return( life_hours&0xff );
+	}
+	
+	public int 
+	getReplicationFactor() 
+	{
+		return( rep_fact&0xff );
 	}
 	
 	protected void

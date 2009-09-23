@@ -487,6 +487,17 @@ DHTUDPUtils
 			life_hours = 0;
 		}
 		
+		final int rep_fact;
+		
+		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+
+			rep_fact = is.readByte()&0xff;
+			
+		}else{
+			
+			rep_fact = 0;
+		}
+		
 		DHTTransportValue value = 
 			new DHTTransportValue()
 			{
@@ -532,6 +543,12 @@ DHTUDPUtils
 					return( life_hours );
 				}
 				
+				public int 
+				getReplicationFactor() 
+				{
+					return( rep_fact );
+				}
+				
 				public String
 				getString()
 				{
@@ -545,7 +562,7 @@ DHTUDPUtils
 		return( value );
 	}
 	
-	public static final int DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE	= 16 + DHTTRANSPORTCONTACT_SIZE;
+	public static final int DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE	= 17 + DHTTRANSPORTCONTACT_SIZE;
 		
 	protected static void
 	serialiseTransportValue(
@@ -583,6 +600,11 @@ DHTUDPUtils
 		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_LONGER_LIFE ){
 
 			os.writeByte( value.getLifeTimeHours()); // 14 + 2+ X + contact
+		}
+		
+		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+
+			os.writeByte( value.getLifeTimeHours()); // 15 + 2+ X + contact
 		}
 	}
 	

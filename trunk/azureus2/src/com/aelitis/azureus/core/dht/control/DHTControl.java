@@ -63,6 +63,7 @@ DHTControl
 		byte[]					value,
 		byte					flags,
 		byte					life_hours,
+		byte					replication_factor,
 		boolean					high_priority,
 		DHTOperationListener	listener );
 	
@@ -182,12 +183,14 @@ DHTControl
 	public boolean
 	lookup(
 		byte[]					id,
+		String					description,
 		long					timeout,
 		DHTOperationListener	listener );
 	
 	public boolean
 	lookupEncoded(
 		byte[]					id,
+		String					description,
 		long					timeout,
 		DHTOperationListener	listener );
 	

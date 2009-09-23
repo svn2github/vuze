@@ -71,6 +71,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_CVS_FIX_OVERLOAD_V3	= 21;
 	public static final byte PROTOCOL_VERSION_MORE_NODE_STATUS		= 22;
 	public static final byte PROTOCOL_VERSION_LONGER_LIFE			= 23;
+	public static final byte PROTOCOL_VERSION_REPLICATION_CONTROL	= 24;
 
 	
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS		= 32;	// introduced now (2403/V15) to support possible future change to id allocation

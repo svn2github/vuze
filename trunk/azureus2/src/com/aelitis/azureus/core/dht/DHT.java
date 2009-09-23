@@ -64,6 +64,9 @@ DHT
 
 	public static final int 	MAX_VALUE_SIZE		= 512;
 
+	public static final byte	REP_FACT_NONE			= 0;
+	public static final byte	REP_FACT_DEFAULT		= (byte)0xff;
+	
 		// diversification types, don't change as serialised!!!!
 	
 	public static final byte	DT_NONE			= 1;
@@ -114,6 +117,17 @@ DHT
 		boolean					high_priority,
 		DHTOperationListener	listener );
 
+	public void
+	put(
+		byte[]					key,
+		String					description,
+		byte[]					value,
+		byte					flags,
+		byte					life_hours,
+		byte					replication_factor,
+		boolean					high_priority,
+		DHTOperationListener	listener );
+	
 		/**
 		 * Returns value if originated from here for key
 		 * @param key

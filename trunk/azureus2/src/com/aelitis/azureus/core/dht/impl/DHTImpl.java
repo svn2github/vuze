@@ -211,7 +211,7 @@ DHTImpl
 		byte					flags,
 		DHTOperationListener	listener )
 	{
-		control.put( key, description, value, flags, (byte)0, true, listener );
+		control.put( key, description, value, flags, (byte)0, DHT.REP_FACT_DEFAULT, true, listener );
 	}
 	
 	public void
@@ -223,7 +223,7 @@ DHTImpl
 		boolean					high_priority,
 		DHTOperationListener	listener )
 	{
-		control.put( key, description, value, flags, (byte)0, high_priority, listener );
+		control.put( key, description, value, flags, (byte)0, DHT.REP_FACT_DEFAULT, high_priority, listener );
 	}
 	
 	public void
@@ -236,7 +236,21 @@ DHTImpl
 		boolean					high_priority,
 		DHTOperationListener	listener )
 	{
-		control.put( key, description, value, flags, life_hours, high_priority, listener );
+		control.put( key, description, value, flags, life_hours, DHT.REP_FACT_DEFAULT, high_priority, listener );
+	}
+	
+	public void
+	put(
+		byte[]					key,
+		String					description,
+		byte[]					value,
+		byte					flags,
+		byte					life_hours,
+		byte					replication_factor,
+		boolean					high_priority,
+		DHTOperationListener	listener )
+	{
+		control.put( key, description, value, flags, life_hours, replication_factor, high_priority, listener );
 	}
 	
 	public DHTTransportValue
