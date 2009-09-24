@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.dht.transport;
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.util.Debug;
 
 /**
@@ -70,6 +72,14 @@ DHTTransportReplyHandlerAdapter
 	storeReply(
 		DHTTransportContact contact,
 		byte[]				diversifications )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	public void
+	queryStoreReply(
+		DHTTransportContact contact,
+		List<byte[]>		response )
 	{
 		throw( new RuntimeException( "Not implemented" ));
 	}

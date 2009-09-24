@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 
@@ -301,6 +303,14 @@ DHTTransportUDPContactImpl
 		transport.sendStore( 
 				this, handler, keys, value_sets, 
 				immediate?PRUDPPacketHandler.PRIORITY_IMMEDIATE:PRUDPPacketHandler.PRIORITY_LOW );
+	}
+	
+	public void 
+	sendQueryStore(
+		DHTTransportReplyHandler 	handler,
+		Map<byte[], List<byte[]>> 	key_details ) 
+	{
+		transport.sendQueryStore( this, handler, key_details);
 	}
 	
 	public void

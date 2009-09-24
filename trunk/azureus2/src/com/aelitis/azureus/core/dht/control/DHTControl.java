@@ -192,6 +192,7 @@ DHTControl
 		byte[]					id,
 		String					description,
 		long					timeout,
+		boolean					high_priority,
 		DHTOperationListener	listener );
 	
 	public byte[]

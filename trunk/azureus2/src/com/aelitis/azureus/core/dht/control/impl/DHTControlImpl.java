@@ -1557,7 +1557,7 @@ DHTControlImpl
    		long							timeout,
    		final DHTOperationListener		lookup_listener )
 	{
-		return( lookupEncoded( encodeKey( unencoded_key ), description, timeout, lookup_listener ));
+		return( lookupEncoded( encodeKey( unencoded_key ), description, timeout, false, lookup_listener ));
 	}
 	
 	public boolean
@@ -1565,6 +1565,7 @@ DHTControlImpl
    		byte[]							encoded_key,
    		String							description,
    		long							timeout,
+   		boolean							high_priority,
    		final DHTOperationListener		lookup_listener )
 	{
 		if ( DHTLog.isOn()){
@@ -1625,7 +1626,8 @@ DHTControlImpl
 				}
 			};
 			
-		lookup( 	external_lookup_pool, false,
+		lookup( 	external_lookup_pool, 
+					high_priority,
 					encoded_key, 
 					description,
 					(byte)0,
@@ -4313,6 +4315,14 @@ DHTControlImpl
 			boolean						immediate )
 		{
 			delegate.sendStore(handler, keys, value_sets, immediate);
+		}
+		
+		public void 
+		sendQueryStore(
+			DHTTransportReplyHandler 	handler,
+			Map<byte[], List<byte[]>> 	key_details ) 
+		{
+			delegate.sendQueryStore(handler, key_details);
 		}
 		
 		public void

@@ -249,7 +249,7 @@ DHTDBImpl
 					perform(
 						TimerEvent	event )
 					{
-						survey();
+						// survey();
 					}
 				});
 	}
@@ -1572,6 +1572,8 @@ DHTDBImpl
 		
 		final int[]	requery_count = { 0 };
 		
+		final boolean[]	processing = { false };
+		
 		try{
 			survey_in_progress = true;
 		
@@ -1579,6 +1581,7 @@ DHTDBImpl
 				obscured_key,
 				"Neighbourhood survey: basic",
 				0,
+				true,
 				new DHTOperationAdapter()
 				{
 					private List<DHTTransportContact> contacts = new ArrayList<DHTTransportContact>();
@@ -1667,6 +1670,7 @@ DHTDBImpl
 										min_id,
 										"Neighbourhood survey: level=" + requery_count[0],
 										0, 
+										true,
 										this );
 									
 									requeried = true;
@@ -1689,6 +1693,8 @@ DHTDBImpl
 								}
 								
 								processSurvey( id_map );
+								
+								processing[0] = true;
 							}
 						}
 					}
@@ -1696,7 +1702,10 @@ DHTDBImpl
 			
 		}catch( Throwable e ){
 			
-			survey_in_progress = false;
+			if ( !processing[0] ){
+			
+				survey_in_progress = false;
+			}
 		}
 	}
 	
@@ -1704,6 +1713,8 @@ DHTDBImpl
 	processSurvey(
 		ByteArrayHashMap<DHTTransportContact>	survey )
 	{
+		final int HEADER_BYTES = 6;
+
 		try{
 			byte[][]	node_ids = new byte[survey.size()][];
 			
@@ -1778,9 +1789,7 @@ DHTDBImpl
 				}
 				
 				System.out.println( "Total values: " + value_count );
-				
-				final int HEADER_BYTES = 6;
-				
+								
 				for ( byte[] id: node_ids ){
 										
 					final int MAX_PREFIX_TEST = 3;
@@ -1897,7 +1906,60 @@ DHTDBImpl
 			
 			for ( Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>> entry: request_map.entrySet()){
 				
+				DHTTransportContact contact = entry.getKey();
 				
+				if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+					
+					ByteArrayHashMap<List<DHTDBMapping>>	map = entry.getValue();
+					
+					Map<byte[],List<byte[]>> map2 = new HashMap<byte[], List<byte[]>>();
+					
+					List<byte[]> prefixes = map.keys();
+					
+					for ( byte[] prefix: prefixes ){
+						
+						int	prefix_len = prefix.length;
+						int	suffix_len = HEADER_BYTES - prefix_len;
+						
+						List<DHTDBMapping> mappings = map.get( prefix );
+						
+						List<byte[]> l = new ArrayList<byte[]>( mappings.size());
+						
+						map2.put( prefix, l );
+						
+						for ( DHTDBMapping m: mappings ){
+						
+							byte[]	k = m.getKey().getBytes();
+							
+							byte[]	suffix = new byte[ suffix_len ];
+							
+							System.arraycopy( k, prefix_len, suffix, 0, suffix_len );
+							
+							l.add( suffix );
+						}
+					}
+					
+					contact.sendQueryStore(
+						new DHTTransportReplyHandlerAdapter()
+						{
+							public void
+							queryStoreReply(
+								DHTTransportContact contact,
+								List<byte[]>		response )
+							{
+								
+							}
+							
+							public void
+							failed(
+								DHTTransportContact 	contact,
+								Throwable				error )
+							{
+								
+							}
+						}, map2 );
+						
+				}
 			}
 		}finally{
 			

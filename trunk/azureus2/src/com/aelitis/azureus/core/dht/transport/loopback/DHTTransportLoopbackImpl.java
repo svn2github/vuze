@@ -530,6 +530,17 @@ DHTTransportLoopbackImpl
 		}
 	}
 	
+		// QUERY STORE
+	
+	public void 
+	sendQueryStore(
+		DHTTransportContact			contact,
+		DHTTransportReplyHandler 	handler,
+		Map<byte[], List<byte[]>> 	key_details ) 
+	{
+		handler.failed( contact, new Throwable( "not implemented" ));
+	}
+	
 		// FIND NODE
 	
 	public void

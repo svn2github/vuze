@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.dht.transport.loopback;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.Map;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
@@ -170,6 +172,14 @@ DHTTransportLoopbackContactImpl
 		boolean						immediate )
 	{
 		transport.sendStore( this, handler, keys, value_sets, false );
+	}
+	
+	public void 
+	sendQueryStore(
+		DHTTransportReplyHandler 	handler,
+		Map<byte[], List<byte[]>> 	key_details ) 
+	{
+		transport.sendQueryStore( this, handler, key_details);
 	}
 	
 	public void
