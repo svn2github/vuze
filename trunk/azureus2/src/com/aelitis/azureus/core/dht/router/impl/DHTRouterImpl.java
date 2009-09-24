@@ -102,6 +102,13 @@ DHTRouterImpl
 	
 	private TimerEventPeriodic	timer_event;
 	
+	private volatile int seed_in_ticks;
+	
+	private static final int	TICK_PERIOD 		= 10*1000;
+	private static final int	SEED_DELAY_PERIOD	= 60*1000;
+	private static final int	SEED_DELAY_TICKS	= SEED_DELAY_PERIOD/TICK_PERIOD;
+	
+	
 	public
 	DHTRouterImpl(
 		int										_K,
@@ -150,7 +157,7 @@ DHTRouterImpl
 		
 		timer_event = SimpleTimer.addPeriodicEvent(
 			"DHTRouter:pinger",
-			10*1000,
+			TICK_PERIOD,
 			new TimerEventPerformer()
 			{
 				public void 
@@ -158,6 +165,16 @@ DHTRouterImpl
 					TimerEvent event ) 
 				{
 					pingeroonies();
+					
+					if ( seed_in_ticks > 0 ){
+						
+						seed_in_ticks--;
+						
+						if ( seed_in_ticks == 0 ){
+							
+							seedSupport();
+						}
+					}
 				}
 			});
 	}
@@ -894,6 +911,15 @@ DHTRouterImpl
 	public void
 	seed()
 	{
+			// defer this a while to see how much refreshing is done by the normal DHT traffic
+		
+		seed_in_ticks = SEED_DELAY_TICKS;
+	}
+	
+	protected void
+	seedSupport()
+	{
+			
 			// refresh all buckets apart from closest neighbour
 		
 		byte[]	path = new byte[router_node_id.length];
@@ -903,7 +929,7 @@ DHTRouterImpl
 		try{
 			this_mon.enter();
 			
-			refreshNodes( ids, root, path, true, 0 );
+			refreshNodes( ids, root, path, true, SEED_DELAY_PERIOD * 2 );
 			
 		}finally{
 			
