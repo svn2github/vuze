@@ -67,6 +67,7 @@ DHTTransportStats
 	public static final int AT_STATS			= 3; 
 	public static final int AT_STORE			= 4; 
 	public static final int AT_KEY_BLOCK		= 5; 
+	public static final int AT_QUERY_STORE		= 6; 
 	
 	public long[]
 	getAliens();

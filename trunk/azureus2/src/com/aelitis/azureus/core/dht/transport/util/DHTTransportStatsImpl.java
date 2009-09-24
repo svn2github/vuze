@@ -45,15 +45,16 @@ DHTTransportStatsImpl
 {
 	private byte	protocol_version;
 	
-	private long[]	pings		= new long[4];
-	private long[]	find_nodes	= new long[4];
-	private long[]	find_values	= new long[4];
-	private long[]	stores		= new long[4];
-	private long[]	stats		= new long[4];
-	private long[]	data		= new long[4];
-	private long[]	key_blocks	= new long[4];
+	private long[]	pings			= new long[4];
+	private long[]	find_nodes		= new long[4];
+	private long[]	find_values		= new long[4];
+	private long[]	stores			= new long[4];
+	private long[]	stats			= new long[4];
+	private long[]	data			= new long[4];
+	private long[]	key_blocks		= new long[4];
+	private long[]	store_queries	= new long[4];
 	
-	private long[]	aliens		= new long[6];
+	private long[]	aliens		= new long[7];
 
 	private long	incoming_requests;
 	private long	outgoing_requests;
@@ -102,6 +103,7 @@ DHTTransportStatsImpl
 		add( stats, other.stats );
 		add( data, other.data );
 		add( key_blocks, other.key_blocks );
+		add( store_queries, other.store_queries );
 		add( aliens, other.aliens );
 		
 		incoming_requests += other.incoming_requests;
@@ -128,6 +130,7 @@ DHTTransportStatsImpl
 		clone.stores		= (long[])stores.clone();
 		clone.data			= (long[])data.clone();
 		clone.key_blocks	= (long[])key_blocks.clone();
+		clone.store_queries	= (long[])store_queries.clone();
 		clone.aliens		= (long[])aliens.clone();
 		
 		clone.incoming_requests	= incoming_requests;
@@ -196,6 +199,41 @@ DHTTransportStatsImpl
 	getKeyBlocks()
 	{
 		return( key_blocks );
+	}
+	
+		// store queries
+	
+	public void
+	queryStoreSent(
+		DHTUDPPacketRequest	request )
+	{
+		store_queries[STAT_SENT]++;
+					
+		outgoingRequestSent( request );
+	}
+	
+	public void
+	queryStoreOK()
+	{
+		store_queries[STAT_OK]++;
+	}
+	
+	public void
+	queryStoreFailed()
+	{
+		store_queries[STAT_FAILED]++;
+	}
+	
+	public void
+	queryStoreReceived()
+	{
+		store_queries[STAT_RECEIVED]++;
+	}
+	
+	public long[]
+	getStoreQueries()
+	{
+		return( store_queries );
 	}
 	
 		// find node
@@ -436,6 +474,10 @@ DHTTransportStatsImpl
 			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_KEY_BLOCK ){
 				
 				aliens[AT_KEY_BLOCK]++;
+				
+			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_QUERY_STORE ){
+				
+				aliens[AT_QUERY_STORE]++;
 			}
 		}
 		

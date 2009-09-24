@@ -1716,6 +1716,8 @@ DHTDBImpl
 			
 			ByteArrayHashMap<List<DHTDBMapping>>	value_map = new ByteArrayHashMap<List<DHTDBMapping>>();
 			
+			Map<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>> request_map = new HashMap<DHTTransportContact, ByteArrayHashMap<List<DHTDBMapping>>>();
+					
 			final int max_nodes = Math.min( node_ids.length, router.getK());
 			
 			try{
@@ -1777,18 +1779,125 @@ DHTDBImpl
 				
 				System.out.println( "Total values: " + value_count );
 				
+				final int HEADER_BYTES = 6;
+				
 				for ( byte[] id: node_ids ){
+										
+					final int MAX_PREFIX_TEST = 3;
+									
+					List<DHTDBMapping> all_entries = value_map.remove( id );
 					
-					List<DHTDBMapping> list = value_map.get( id );
+					ByteArrayHashMap<List<DHTDBMapping>> prefix_map = new ByteArrayHashMap<List<DHTDBMapping>>();
+
+					if ( all_entries != null ){
+						
+						prefix_map.put( new byte[0], all_entries );
+						
+						for (int i=0;i<MAX_PREFIX_TEST;i++){
+						
+							List<byte[]> prefixes = prefix_map.keys();
+							
+							for ( byte[] prefix: prefixes ){
+								
+								if ( prefix.length == i ){
+	
+									List<DHTDBMapping> list = prefix_map.get( prefix );
+	
+									if ( list.size() < 2 ){
+										
+										continue;
+									}
+									
+									ByteArrayHashMap<List<DHTDBMapping>> temp_map = new ByteArrayHashMap<List<DHTDBMapping>>();
+									
+									for ( DHTDBMapping mapping: list ){
+										
+										byte[] key = mapping.getKey().getBytes();
+										
+										byte[] sub_prefix = new byte[ i+1 ];
+										
+										System.arraycopy( key, 0, sub_prefix, 0, i+1 );
+	
+										List<DHTDBMapping> entries = temp_map.get( sub_prefix );
+										
+										if ( entries == null ){
+											
+											entries = new ArrayList<DHTDBMapping>();
+											
+											temp_map.put( sub_prefix, entries );
+										}
+										
+										entries.add( mapping );
+									}
+									
+									List<DHTDBMapping> new_list = new ArrayList<DHTDBMapping>( list.size());
+	
+									List<byte[]> temp_keys = temp_map.keys();
+									
+									for ( byte[] k: temp_keys ){
+										
+										List<DHTDBMapping> entries = temp_map.get( k );
+										
+										int	num	= entries.size();
+										
+										int outer_cost 	= num * ( HEADER_BYTES - i );
+										int inner_cost	= i+2 + num * (HEADER_BYTES - i - 1 );
+										
+										if ( inner_cost < outer_cost ){
+											
+											prefix_map.put( k, entries );
+											
+										}else{
+											
+											new_list.addAll( entries );
+										}
+									}
+									
+									if ( new_list.size() == 0 ){
+										
+										prefix_map.remove( prefix );
+										
+									}else{
+										
+										prefix_map.put( prefix, new_list );
+									}
+								}
+							}
+						}
+					}
 					
-					byte[]	prefix = null;
+					String str = "";
 					
+					int encoded_size = 1;	// header size 
+						
+					List<byte[]> prefixes = prefix_map.keys();
 					
-					System.out.println( "node " + ByteFormatter.encodeString( id ) + " -> " + (list==null?0:list.size()));
+					for ( byte[] prefix: prefixes ){
+						
+						encoded_size += 1 + prefix.length;
+						
+						List<DHTDBMapping> entries = prefix_map.get( prefix );
+						
+						encoded_size += ( HEADER_BYTES - prefix.length ) * entries.size();
+						
+						str += (str.length()==0?"":", ")+ ByteFormatter.encodeString( prefix ) + "->" + entries.size();
+					}
+					
+					System.out.println( "node " + ByteFormatter.encodeString( id ) + " -> " + (all_entries==null?0:all_entries.size()) + ", encoded=" + encoded_size + ", prefix=" + str );
+					
+					if ( prefixes.size() > 0 ){
+						
+						request_map.put( survey.get( id ), prefix_map );
+					}
 				}
 			}finally{
 				
 				this_mon.exit();
+			}
+			
+			for ( Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>> entry: request_map.entrySet()){
+				
+				
 			}
 		}finally{
 			
