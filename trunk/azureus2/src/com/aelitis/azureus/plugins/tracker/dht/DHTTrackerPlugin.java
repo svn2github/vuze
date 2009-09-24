@@ -123,6 +123,9 @@ DHTTrackerPlugin
 	private static final int	DL_DERIVED_MAX_TRACK		= 20;
 	private static final int	DIRECT_INJECT_PEER_MAX		= 5;
 	
+	private static boolean ADD_ASN_DERIVED_TARGET			= true;
+	private static boolean ADD_NETPOS_DERIVED_TARGETS		= false;
+	
 	private static URL	DEFAULT_URL;
 	
 	static{
@@ -2993,7 +2996,7 @@ DHTTrackerPlugin
 			}
 		}
 		
-		protected boolean
+		protected void
     	getTrackerTargets(
     		Download		download,
     		int				type )
@@ -3007,129 +3010,134 @@ DHTTrackerPlugin
     			result.add( new trackerTarget( torrent_hash, REG_TYPE_FULL, "" ));
     		}
     		
-    	    NetworkAdminASN net_asn = NetworkAdmin.getSingleton().getCurrentASN();
-    	      
-    	    String	as 	= net_asn.getAS();
-    	    String	asn = net_asn.getASName();
-
-    		if ( as.length() > 0 && asn.length() > 0 ){
-    			 
-    			String	key = "azderived:asn:" + as;
+    		if ( ADD_ASN_DERIVED_TARGET ){
     			
-    			try{
-    				byte[] asn_bytes = key.getBytes( "UTF-8" );
-    			
-    				byte[] key_bytes = new byte[torrent_hash.length + asn_bytes.length];
-    				
-    				System.arraycopy( torrent_hash, 0, key_bytes, 0, torrent_hash.length );
-    				
-    				System.arraycopy( asn_bytes, 0, key_bytes, torrent_hash.length, asn_bytes.length );
-    				
-    				result.add( new trackerTarget( key_bytes, REG_TYPE_DERIVED, asn + "/" + as ));
-    				
-    			}catch( Throwable e ){
-    				
-    				Debug.printStackTrace(e);
-    			}
-    		}
-    		
-    		long	now = SystemTime.getMonotonousTime();
-    		
-    		boolean	do_it;
-    		
-       		Long	metric = (Long)download.getUserData( DL_DERIVED_METRIC_KEY );
-       	 
-       		boolean	do_it_now = metric != null;
-       		
-    		if ( derived_active_start >= 0 && now - derived_active_start <= DERIVED_ACTIVE_MIN_MILLIS ){
-    			
-    			do_it = true;
-    			
-    			if ( metric == null ){
-    				
-    				metric = new Long( previous_metric );
-    			}
-    		}else{
-    			
-    			if ( do_it_now ){
-    				
-    				do_it = true;
-    				
-    			}else{
-    				
-    				derived_active_start = -1;
-    				
-    				do_it = false;
-    			}
-    		}
-    		
-    		boolean	newly_active = false;
-    		
-    		if ( do_it_now ){
-    			
-    			newly_active = derived_active_start == -1;
-    			
-    			derived_active_start = now;
-    		}
-     		  
-    		List<trackerTarget>	skipped_targets = null;
-    		
-    		if ( do_it ){
-    			
-    			previous_metric = metric.longValue();
-    			
-	    		try{
-	    			DHTNetworkPosition[] positions = getNetworkPositions();
-	    		
-	    			for (int i=0;i<positions.length;i++){
-	    				
-	    				DHTNetworkPosition pos = positions[i];
-	    				
-	    				if ( pos.getPositionType() == DHTNetworkPosition.POSITION_TYPE_VIVALDI_V2 ){
-	    					
-	    					if ( pos.isValid()){
-	    						
-	    						List<Object[]>	derived_results = getVivaldiTargets( torrent_hash, pos.getLocation());
-	    						
-	    		    			int	num_to_add = metric.intValue() * derived_results.size() / 100;
-    				 			
-	    		    			// System.out.println( download.getName() + ": metric=" + metric + ", adding=" + num_to_add );
-	    		    			
-	    						for (int j=0;j<derived_results.size();j++){
-	    							
-	    							Object[] entry = derived_results.get(j);
-	    							
-	    							// int	distance = ((Integer)entry[0]).intValue();
-	    							
-	    							trackerTarget	target= (trackerTarget)entry[1];
-	    								    						
-	    							if ( j < num_to_add ){
-	    							
-	    								result.add( target );
-	    								
-	    							}else{
-	    								
-	    								if ( skipped_targets == null ){
-	    									
-	    									skipped_targets = new ArrayList<trackerTarget>();
-	    								}
-	    								
-	    								skipped_targets.add( target );
-	    							}
-	    						}
-	    					}
-	    				}
-	    			}
-	    		}catch( Throwable e ){
+	    	    NetworkAdminASN net_asn = NetworkAdmin.getSingleton().getCurrentASN();
+	    	      
+	    	    String	as 	= net_asn.getAS();
+	    	    String	asn = net_asn.getASName();
+	
+	    		if ( as.length() > 0 && asn.length() > 0 ){
+	    			 
+	    			String	key = "azderived:asn:" + as;
 	    			
-	    			Debug.printStackTrace(e);
+	    			try{
+	    				byte[] asn_bytes = key.getBytes( "UTF-8" );
+	    			
+	    				byte[] key_bytes = new byte[torrent_hash.length + asn_bytes.length];
+	    				
+	    				System.arraycopy( torrent_hash, 0, key_bytes, 0, torrent_hash.length );
+	    				
+	    				System.arraycopy( asn_bytes, 0, key_bytes, torrent_hash.length, asn_bytes.length );
+	    				
+	    				result.add( new trackerTarget( key_bytes, REG_TYPE_DERIVED, asn + "/" + as ));
+	    				
+	    			}catch( Throwable e ){
+	    				
+	    				Debug.printStackTrace(e);
+	    			}
 	    		}
     		}
     		
-    		put_targets 	= result.toArray( new trackerTarget[result.size()]);
-    		not_put_targets = skipped_targets;
+    		if ( ADD_NETPOS_DERIVED_TARGETS ){
+	    			
+	    		long	now = SystemTime.getMonotonousTime();
+	    		
+	    		boolean	do_it;
+	    		
+	       		Long	metric = (Long)download.getUserData( DL_DERIVED_METRIC_KEY );
+	       	 
+	       		boolean	do_it_now = metric != null;
+	       		
+	    		if ( derived_active_start >= 0 && now - derived_active_start <= DERIVED_ACTIVE_MIN_MILLIS ){
+	    			
+	    			do_it = true;
+	    			
+	    			if ( metric == null ){
+	    				
+	    				metric = new Long( previous_metric );
+	    			}
+	    		}else{
+	    			
+	    			if ( do_it_now ){
+	    				
+	    				do_it = true;
+	    				
+	    			}else{
+	    				
+	    				derived_active_start = -1;
+	    				
+	    				do_it = false;
+	    			}
+	    		}
+	    		
+	    		boolean	newly_active = false;
+	    		
+	    		if ( do_it_now ){
+	    			
+	    			newly_active = derived_active_start == -1;
+	    			
+	    			derived_active_start = now;
+	    		}
+	     		  
+	    		List<trackerTarget>	skipped_targets = null;
+	    		
+	    		if ( do_it ){
+	    			
+	    			previous_metric = metric.longValue();
+	    			
+		    		try{
+		    			DHTNetworkPosition[] positions = getNetworkPositions();
+		    		
+		    			for (int i=0;i<positions.length;i++){
+		    				
+		    				DHTNetworkPosition pos = positions[i];
+		    				
+		    				if ( pos.getPositionType() == DHTNetworkPosition.POSITION_TYPE_VIVALDI_V2 ){
+		    					
+		    					if ( pos.isValid()){
+		    						
+		    						List<Object[]>	derived_results = getVivaldiTargets( torrent_hash, pos.getLocation());
+		    						
+		    		    			int	num_to_add = metric.intValue() * derived_results.size() / 100;
+	    				 			
+		    		    			// System.out.println( download.getName() + ": metric=" + metric + ", adding=" + num_to_add );
+		    		    			
+		    						for (int j=0;j<derived_results.size();j++){
+		    							
+		    							Object[] entry = derived_results.get(j);
+		    							
+		    							// int	distance = ((Integer)entry[0]).intValue();
+		    							
+		    							trackerTarget	target= (trackerTarget)entry[1];
+		    								    						
+		    							if ( j < num_to_add ){
+		    							
+		    								result.add( target );
+		    								
+		    							}else{
+		    								
+		    								if ( skipped_targets == null ){
+		    									
+		    									skipped_targets = new ArrayList<trackerTarget>();
+		    								}
+		    								
+		    								skipped_targets.add( target );
+		    							}
+		    						}
+		    					}
+		    				}
+		    			}
+		    		}catch( Throwable e ){
+		    			
+		    			Debug.printStackTrace(e);
+		    		}
+	    		}
     		
-    		return( newly_active );
+	    		not_put_targets = skipped_targets;
+    		}
+    		
+	    	put_targets 	= result.toArray( new trackerTarget[result.size()]);
     	}
 	}
 	
