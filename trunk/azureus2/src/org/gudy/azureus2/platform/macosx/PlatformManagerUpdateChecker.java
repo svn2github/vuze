@@ -289,7 +289,7 @@ PlatformManagerUpdateChecker
 
 					// skip the directory entry
 
-					if (name.length() > 0) {
+					if ( name.length() > 0 ){
 
 						rd.reportActivity("Adding update action for '" + name + "'");
 
@@ -301,14 +301,19 @@ PlatformManagerUpdateChecker
 						
 						String	resource_name = name.replaceAll( "/", "-" );
 						
-						installer.addResource(resource_name, zip, false);
+						installer.addResource( resource_name, zip, false );
 
+						String target = 
+							installer.getInstallDir() +
+							File.separator + SystemProperties.getApplicationName() + ".app" + 
+							File.separator + name;
+
+						installer.addMoveAction( resource_name, target ); 
 						
-						installer.addMoveAction(
-								resource_name, 
-								installer.getInstallDir() +
-									File.separator + SystemProperties.getApplicationName() + ".app" + 
-									File.separator + name );
+						if ( name.endsWith( ".jnilib" ) || name.endsWith( "JavaApplicationStub" )){
+							
+							installer.addChangeRightsAction( "755", target );
+						}
 					}
 				}
 			}
