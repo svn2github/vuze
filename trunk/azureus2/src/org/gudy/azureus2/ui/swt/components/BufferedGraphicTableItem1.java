@@ -162,13 +162,17 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
     }
 
     Rectangle tableBounds = table.getClientArea();
-    if (bounds.y + bounds.height - tableBounds.y < table.getHeaderHeight()
-				|| bounds.y > tableBounds.height) {
-//    	System.out.println("doPnt#" + row.getIndex() + ": "
-//					+ (bounds.y + bounds.height - tableBounds.y) + "<" + tableBounds.y
-//					+ " || " + bounds.y + " > " + tableBounds.height);
-      return;
-    }
+		// Cocoa calls paintitem while row is below tablearea, and painting there
+		// is valid!
+		if (!Utils.isCocoa) {
+      if (bounds.y + bounds.height - tableBounds.y < table.getHeaderHeight()
+  				|| bounds.y > tableBounds.height) {
+      	//System.out.println("doPnt#" + row.getIndex() + ": "
+  			//		+ (bounds.y + bounds.height - tableBounds.y) + "<" + tableBounds.y
+  			//		+ " || " + bounds.y + " > " + tableBounds.height);
+        return;
+      }
+		}
     
     boolean fits = (imageBounds.width == bounds.width
 				&& imageBounds.height == bounds.height);
