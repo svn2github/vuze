@@ -48,14 +48,26 @@ public class FirstPieceItem
 
   public void refresh(TableCell cell) {
     DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
-    long value = (fileInfo == null) ? 0 : fileInfo.getFirstPieceNumber();
+    long sort_value;
+    
+    if ( fileInfo == null ){
+    	sort_value = 0;
+    }else{
+    	sort_value = fileInfo.getFirstPieceNumber();
+    	
+    	if ( sort_value >= 0 ){
+    		
+    		sort_value = sort_value << 32 + fileInfo.getIndex();
+    	}
+    }
 
-    if( !cell.setSortValue( value ) && cell.isValid() ) {
+    
+    if( !cell.setSortValue( sort_value ) && cell.isValid() ) {
       return;
     }
     
 		// < 0 -> unknown skeleton value 
 	
-    cell.setText( value<0?"":(""+value));
+    cell.setText( sort_value<0?"":(""+fileInfo.getFirstPieceNumber()));
   }
 }
