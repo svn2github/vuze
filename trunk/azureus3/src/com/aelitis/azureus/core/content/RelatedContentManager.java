@@ -2501,6 +2501,8 @@ RelatedContentManager
 		private int				last_seen;
 		private int				level;
 		
+			// we *need* this reference here to maange garbage collection correctly
+		
 		private ContentCache	cc;
 		
 		protected
@@ -2542,6 +2544,18 @@ RelatedContentManager
 			last_seen	= _last_seen;
 			level		= _level;
 			cc			= _cc;
+			
+			if ( rand_list != null ){
+				
+				if ( rand_list.length > MAX_RANK ){
+					
+					int[] temp = new int[ MAX_RANK ];
+					
+					System.arraycopy( rand_list, 0, temp, 0, MAX_RANK );
+						
+					rand_list = temp;
+				}
+			}
 		}
 		
 		protected boolean
