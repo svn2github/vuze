@@ -2674,6 +2674,26 @@ DHTControlImpl
 		}
 	}
 	
+	public List<byte[]>
+	queryStoreRequest(
+		DHTTransportContact 		originating_contact, 
+		int							header_len,
+		List<Object[]>				keys )
+	{
+		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
+		
+		if ( DHTLog.isOn()){
+		
+			DHTLog.log( "queryStoreRequest from " + DHTLog.getString( originating_contact )+ ", header_len=" + header_len + ", keys=" + keys.size());
+		}
+
+		int	rand = generateSpoofID( originating_contact );
+		
+		originating_contact.setRandomID( rand );
+
+		return( database.queryStore( originating_contact, header_len, keys ));
+	}
+	
 	public DHTTransportContact[]
 	findNodeRequest(
 		DHTTransportContact originating_contact, 
@@ -4320,9 +4340,10 @@ DHTControlImpl
 		public void 
 		sendQueryStore(
 			DHTTransportReplyHandler 	handler,
-			Map<byte[], List<byte[]>> 	key_details ) 
+			int							header_length,
+			List<Object[]>			 	key_details ) 
 		{
-			delegate.sendQueryStore(handler, key_details);
+			delegate.sendQueryStore( handler, header_length, key_details );
 		}
 		
 		public void

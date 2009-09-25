@@ -536,7 +536,8 @@ DHTTransportLoopbackImpl
 	sendQueryStore(
 		DHTTransportContact			contact,
 		DHTTransportReplyHandler 	handler,
-		Map<byte[], List<byte[]>> 	key_details ) 
+		int							header_length,
+		List<Object[]>				key_details ) 
 	{
 		handler.failed( contact, new Throwable( "not implemented" ));
 	}

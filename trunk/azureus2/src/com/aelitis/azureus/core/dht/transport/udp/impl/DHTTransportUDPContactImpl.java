@@ -308,9 +308,10 @@ DHTTransportUDPContactImpl
 	public void 
 	sendQueryStore(
 		DHTTransportReplyHandler 	handler,
-		Map<byte[], List<byte[]>> 	key_details ) 
+		int							header_length,
+		List<Object[]>			 	key_details ) 
 	{
-		transport.sendQueryStore( this, handler, key_details);
+		transport.sendQueryStore( this, handler, header_length, key_details);
 	}
 	
 	public void

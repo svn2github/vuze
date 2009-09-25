@@ -1883,11 +1883,215 @@ DHTTransportUDPImpl
 	
 	public void 
 	sendQueryStore(
-		DHTTransportUDPContactImpl	contact,
-		DHTTransportReplyHandler 	handler,
-		Map<byte[], List<byte[]>> 	key_details ) 
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler 		handler,
+		int									header_size,
+		List<Object[]>						key_details )
 	{
-		handler.failed( contact, new Throwable( "not implemented" ));
+		try{
+			checkAddress( contact );
+			
+			final long	connection_id = getConnectionID();
+			
+			Iterator<Object[]> it = key_details.iterator();
+			
+			byte[]				current_prefix			= null;
+			Iterator<byte[]>	current_suffixes 		= null;
+						
+			List<DHTUDPPacketRequestQueryStorage> requests = new ArrayList<DHTUDPPacketRequestQueryStorage>();
+	
+outer:	
+			while( it.hasNext()){
+
+				int	space = DHTUDPPacketRequestQueryStorage.SPACE;
+
+				DHTUDPPacketRequestQueryStorage	request = 
+					new DHTUDPPacketRequestQueryStorage( this, connection_id, local_contact, contact );
+
+				List<Object[]> packet_key_details = new ArrayList<Object[]>();
+				
+				while( space > 0 && it.hasNext()){
+					
+					if ( current_prefix == null ){
+					
+						Object[] entry = it.next();
+					
+						current_prefix = (byte[])entry[0];
+					
+						List<byte[]> l = (List<byte[]>)entry[1];
+						
+						current_suffixes = l.iterator();
+					}
+					
+					if ( current_suffixes.hasNext()){
+						
+						int	min_space = header_size + 3;	// 1 byte prefix len, 2 byte num suffix
+						
+						if ( space < min_space ){
+							
+							request.setDetails( header_size, packet_key_details );
+							
+							requests.add( request );
+							
+							continue outer ;
+						}
+						
+						List<byte[]> s = new ArrayList<byte[]>();
+						
+						packet_key_details.add( new Object[]{ current_prefix, s });
+						
+						int	prefix_size = current_prefix.length;
+						int	suffix_size = header_size - prefix_size;
+
+						space -= ( 3 + prefix_size );
+						
+						while( space >= suffix_size && current_suffixes.hasNext()){
+							
+							s.add( current_suffixes.next());
+						}
+						
+					}else{
+						
+						current_prefix = null;
+					}
+				}
+				
+				if ( !it.hasNext()){
+					
+					request.setDetails( header_size, packet_key_details );
+					
+					requests.add( request );
+				}
+			}
+
+			final Object[] replies = new Object[ requests.size() ];
+							
+			for ( int i=0;i<requests.size();i++){
+				
+				DHTUDPPacketRequestQueryStorage request = requests.get(i);
+				
+				final int f_i = i;
+					
+				stats.queryStoreSent( request );
+							
+				requestSendRequestProcessor( contact, request );
+	
+				packet_handler.sendAndReceive(
+					request,
+					contact.getTransportAddress(),
+					new DHTUDPPacketReceiver()
+					{					
+						public void
+						packetReceived(
+							DHTUDPPacketReply	packet,
+							InetSocketAddress	from_address,
+							long				elapsed_time )
+						{
+							try{														
+								if ( packet.getConnectionId() != connection_id ){
+									
+									throw( new Exception( "connection id mismatch" ));
+								}
+	
+								contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
+								
+								requestSendReplyProcessor( contact, handler, packet, elapsed_time );
+									
+								DHTUDPPacketReplyQueryStorage	reply = (DHTUDPPacketReplyQueryStorage)packet;
+								
+									// copy out the random id in preparation for a possible subsequent
+									// store operation
+								
+								contact.setRandomID( reply.getRandomID());
+																							
+								stats.queryStoreOK();
+									
+								synchronized( replies ){
+									
+									replies[f_i] = reply;
+									
+									checkComplete();
+								}
+								
+							}catch( DHTUDPPacketHandlerException e ){
+								
+								error( e );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+								
+								error( new DHTUDPPacketHandlerException( "queryStore failed", e ));
+							}
+						}
+						
+						public void
+						error(
+							DHTUDPPacketHandlerException	e )
+						{
+							stats.queryStoreFailed();
+							
+							synchronized( replies ){
+								
+								replies[f_i] = e;
+								
+								checkComplete();
+							}
+						}
+						
+						protected void
+						checkComplete()
+						{
+							DHTUDPPacketHandlerException last_error = null;
+							
+							for ( int i=0;i<replies.length;i++ ){
+							
+								Object o = replies[i];
+								
+								if ( o == null ){
+									
+									return;
+								}
+								
+								if ( o instanceof DHTUDPPacketHandlerException ){
+									
+									last_error = (DHTUDPPacketHandlerException)o;
+								}
+							}
+							
+							if ( last_error != null ){
+							
+								handler.failed( contact, last_error );
+								
+							}else{
+							
+								if ( replies.length == 1 ){
+									
+									handler.queryStoreReply( contact, ((DHTUDPPacketReplyQueryStorage)replies[0]).getResponse());
+									
+								}else{
+									
+									List<byte[]> response = new ArrayList<byte[]>();
+							
+									for ( int i=0;i<replies.length;i++ ){
+									
+										response.addAll(((DHTUDPPacketReplyQueryStorage)replies[0]).getResponse());
+									}
+								
+									handler.queryStoreReply( contact, response );
+								}
+							}
+						}
+					},
+					request_timeout, PRUDPPacketHandler.PRIORITY_MEDIUM );
+			}
+			
+		}catch( Throwable e ){
+			
+			stats.queryStoreFailed();
+			
+			handler.failed( contact, e );
+		}
 	}
 	
 		// FIND NODE
@@ -3372,6 +3576,31 @@ DHTTransportUDPImpl
 							packet_handler.send( reply, request.getAddress());
 						}
 					}
+				}else if ( request instanceof DHTUDPPacketRequestQueryStorage ){
+					
+					DHTUDPPacketRequestQueryStorage	query_request = (DHTUDPPacketRequestQueryStorage)request;
+					
+					List<byte[]>	res = 
+						request_handler.queryStoreRequest(
+									originating_contact,
+									query_request.getHeaderLength(),
+									query_request.getKeys());		
+					
+					DHTUDPPacketReplyQueryStorage	reply = 
+						new DHTUDPPacketReplyQueryStorage(
+								this,
+								request.getTransactionId(),
+								request.getConnectionId(),
+								local_contact,
+								originating_contact );
+							
+					reply.setRandomID( originating_contact.getRandomID());
+						
+					reply.setResponse( res );
+					
+					requestReceiveReplyProcessor( originating_contact, reply );
+
+					packet_handler.send( reply, request.getAddress());
 					
 				}else if ( request instanceof DHTUDPPacketRequestFindNode ){
 					

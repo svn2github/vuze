@@ -32,13 +32,13 @@ import java.io.*;
 import java.net.InetSocketAddress;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
-import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 
 public class 
 DHTUDPPacketReplyQueryStorage
 	extends DHTUDPPacketReply
 {
+	private int					random_id;
 	private List<byte[]>		response;
 	
 	public
@@ -63,7 +63,45 @@ DHTUDPPacketReplyQueryStorage
 	{
 		super( network_handler, originator, is, DHTUDPPacketHelper.ACT_REPLY_QUERY_STORE, trans_id );
 		
-	
+		short size = is.readShort();
+		
+		response = new ArrayList<byte[]>( size );
+		
+		if ( size > 0 ){
+
+			int	entry_size = is.readByte()&0xff;
+			
+			byte[]	bitmap = new byte[size+7/8];
+
+			is.read( bitmap );
+			
+			int	pos		= 0;
+			
+			int	current	= 0;
+			
+			for (int i=0;i<size;i++){
+			
+				if ( i % 8 == 0 ){
+					
+					current = bitmap[pos++]&0xff;
+				}
+				
+				if (( current&0x80)!=0 ){
+					
+					byte[]	x = new byte[entry_size];
+					
+					is.read( x );
+					
+					response.add( x );
+					
+				}else{
+					
+					response.add( null );
+				}
+				
+				current <<= 1;
+			}
+		}
 	}
 	
 	public void
@@ -74,7 +112,67 @@ DHTUDPPacketReplyQueryStorage
 	{
 		super.serialise(os);
 		
+		int	size = response.size();
+		
+		os.writeShort( size );
 
+		if ( size > 0 ){
+			
+			os.writeByte( response.get(0).length );
+			
+			byte[]	bitmap = new byte[size+7/8];
+			
+			int	bitmap_pos		= 0;
+			int	current_byte	= 0;
+			int	pos 			= 0;
+			
+			for ( byte[] x: response ){
+				
+				current_byte = current_byte << 1;
+				
+				if ( x != null){
+					
+					current_byte += 1;
+				}
+				
+				if (( pos %8 ) == 7 ){
+					
+					bitmap[bitmap_pos++] = (byte)current_byte;
+					
+					current_byte = 0;
+				}
+				
+				pos++;
+			}
+			
+			if (( pos % 8 ) != 0 ){
+				
+				bitmap[bitmap_pos++] = (byte)(current_byte << (8 - (pos % 8)));
+			}
+			
+			os.write( bitmap );
+			
+			for ( byte[] x: response ){
+
+				if ( x != null ){
+				
+					os.write( x );
+				}
+			}
+		}
+	}
+	
+	protected void
+	setRandomID(
+		int		id )
+	{
+		random_id	= id;
+	}
+	
+	protected int
+	getRandomID()
+	{
+		return( random_id );
 	}
 	
 	protected void

@@ -22,6 +22,9 @@
 
 package com.aelitis.azureus.core.dht.transport.udp.impl;
 
+import java.util.List;
+import java.util.Map;
+
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
@@ -281,6 +284,17 @@ Test
 				});
 	}
 	
+	public List<byte[]> 
+	queryStoreRequest(
+		DHTTransportContact 		contact,
+		int 						headerLen, 
+		List<Object[]>				keys) 
+	{
+		System.out.println( "TransportHandler: queryStore" );
+
+		return null;
+	}
+
 	public DHTTransportContact[]
 	findNodeRequest(
 		DHTTransportContact contact, 

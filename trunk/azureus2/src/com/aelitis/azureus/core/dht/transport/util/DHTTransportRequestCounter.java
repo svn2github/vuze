@@ -22,6 +22,9 @@
 
 package com.aelitis.azureus.core.dht.transport.util;
 
+import java.util.List;
+import java.util.Map;
+
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFindValueReply;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
@@ -88,6 +91,17 @@ DHTTransportRequestCounter
 		stats.storeReceived();
 		
 		return( delegate.storeRequest( contact, keys, value_sets ));
+	}
+	
+	public List<byte[]>
+	queryStoreRequest(
+		DHTTransportContact 	contact, 
+		int						header_len,
+		List<Object[]>			keys )
+	{
+		stats.queryStoreReceived();
+		
+		return( delegate.queryStoreRequest( contact, header_len, keys ));
 	}
 	
 	public DHTTransportContact[]

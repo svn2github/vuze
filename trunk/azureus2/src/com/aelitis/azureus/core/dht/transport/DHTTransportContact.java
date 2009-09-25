@@ -100,7 +100,8 @@ DHTTransportContact
 	public void
 	sendQueryStore(
 		DHTTransportReplyHandler	handler,
-		Map<byte[],List<byte[]>>	key_details );
+		int							header_length,
+		List<Object[]>				key_details );
 	
 	public void
 	sendFindNode(

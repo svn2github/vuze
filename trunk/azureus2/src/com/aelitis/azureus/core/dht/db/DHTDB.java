@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.db;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.gudy.azureus2.core3.util.HashWrapper;
 
@@ -73,6 +74,12 @@ DHTDB
 		DHTTransportContact 	sender, 
 		HashWrapper				key,
 		DHTTransportValue[]		values );
+	
+	public List<byte[]>
+	queryStore(
+		DHTTransportContact 		originating_contact, 
+		int							header_len,
+		List<Object[]>				keys );
 	
 		/**
 		 * Internal lookup for locally originated values

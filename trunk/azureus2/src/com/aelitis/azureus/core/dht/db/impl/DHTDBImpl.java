@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.HashWrapper2;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -79,7 +80,8 @@ DHTDBImpl
 	
 	public static int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 60*60*1000;
 	
-	private static final int	PRECIOUS_CHECK_INTERVAL				= 2*60*60*1000;
+	private static final boolean	ENABLE_PRECIOUS_STUFF			= false;
+	private static final int		PRECIOUS_CHECK_INTERVAL			= 2*60*60*1000;
 	
 	private int			cache_republish_interval;
 	
@@ -98,7 +100,10 @@ DHTDBImpl
 	private int next_value_version_left;
 	
 	
-	private Map<HashWrapper,DHTDBMapping>			stored_values = new HashMap<HashWrapper,DHTDBMapping>();
+	private static final int		PREFIX_LENGTH	= 6;
+	
+	private Map<HashWrapper,DHTDBMapping>			stored_values 				= new HashMap<HashWrapper,DHTDBMapping>();
+	private Map<HashWrapper2,DHTDBMapping>			stored_values_prefix_map	= new HashMap<HashWrapper2,DHTDBMapping>();
 	
 	private DHTControl				control;
 	private DHTStorageAdapter		adapter;
@@ -135,20 +140,23 @@ DHTDBImpl
 		original_republish_interval		= _original_republish_interval;
 		cache_republish_interval		= _cache_republish_interval;
 		logger							= _logger;
-				
-		SimpleTimer.addPeriodicEvent(
-			"DHTDB:precious",
-			PRECIOUS_CHECK_INTERVAL/4,
-			true, // absolute, we don't want effective time changes (computer suspend/resume) to shift these
-			new TimerEventPerformer()
-			{
-				public void
-				perform(
-					TimerEvent	event )
+			
+		if ( ENABLE_PRECIOUS_STUFF ){
+			
+			SimpleTimer.addPeriodicEvent(
+				"DHTDB:precious",
+				PRECIOUS_CHECK_INTERVAL/4,
+				true, // absolute, we don't want effective time changes (computer suspend/resume) to shift these
+				new TimerEventPerformer()
 				{
-					checkPreciousStuff();
-				}
-			});
+					public void
+					perform(
+						TimerEvent	event )
+					{
+						checkPreciousStuff();
+					}
+				});
+		}
 		
 		SimpleTimer.addPeriodicEvent(
 			"DHTDB:op",
@@ -329,6 +337,13 @@ DHTDBImpl
 					mapping = new DHTDBMapping( this, key, true );
 					
 					stored_values.put( key, mapping );
+					
+					stored_values_prefix_map.put( new HashWrapper2( mapping.getKey().getBytes(), 0, PREFIX_LENGTH ), mapping );
+					
+					if ( stored_values_prefix_map.size() > stored_values.size()){
+						
+						Debug.out( "inconsistent" );
+					}
 				}
 				
 				DHTDBValueImpl res =	
@@ -508,6 +523,13 @@ DHTDBImpl
 				mapping = new DHTDBMapping( this, key, false );
 				
 				stored_values.put( key, mapping );
+				
+				stored_values_prefix_map.put( new HashWrapper2( mapping.getKey().getBytes(), 0, PREFIX_LENGTH ), mapping );
+				
+				if ( stored_values_prefix_map.size() > stored_values.size()){
+					
+					Debug.out( "inconsistent" );
+				}
 			}
 			
 			boolean contact_checked = false;
@@ -1196,6 +1218,8 @@ DHTDBImpl
 					
 					if ( mapping != null ){
 						
+						stored_values_prefix_map.remove( new HashWrapper2( mapping.getKey().getBytes(), 0, PREFIX_LENGTH ));
+						
 						mapping.destroy();
 					}
 				}
@@ -1346,6 +1370,8 @@ DHTDBImpl
 				if ( mapping.getValueCount() == 0 ){
 										
 					it.remove();
+					
+					stored_values_prefix_map.remove( new HashWrapper2( mapping.getKey().getBytes(), 0, PREFIX_LENGTH ));
 					
 					mapping.destroy();
 
@@ -1511,11 +1537,20 @@ DHTDBImpl
 		
 		final byte[]	my_id = router.getID();
 		
+		System.out.println( "    my_id=" + ByteFormatter.encodeString( my_id ));
+		
+		final ByteArrayHashMap<DHTTransportContact>	id_map = new ByteArrayHashMap<DHTTransportContact>();
+
+		List<DHTTransportContact> all_contacts = control.getClosestContactsList( my_id, router.getK()*3, true );
+				
+		for ( DHTTransportContact contact: all_contacts ){
+			
+			id_map.put( contact.getID(), contact );
+		}
+		
 		byte[]	max_key 	= my_id;
 		byte[]	max_dist	= null;
 		
-		System.out.println( "    my_id=" + ByteFormatter.encodeString( my_id ));
-
 		try{
 			this_mon.enter();
 						
@@ -1532,10 +1567,20 @@ DHTDBImpl
 				
 				if ( mapping.getIndirectValueCount()== 0 ){ 
 					
-					continue;
+				//	continue;
 				}
 				
+				
 				byte[] key = mapping.getKey().getBytes();
+				
+				/*
+				List<DHTTransportContact>	contacts = control.getClosestKContactsList( key, true );
+
+				for ( DHTTransportContact c: contacts ){
+					
+					id_map.put( c.getID(), c );
+				}
+				*/
 				
 				byte[] distance = control.computeDistance( my_id, key );
 				
@@ -1550,22 +1595,13 @@ DHTDBImpl
 			this_mon.exit();
 		}
 		
-		System.out.println( "    max_key=" + ByteFormatter.encodeString( max_key ) + ", dist=" + ByteFormatter.encodeString( max_dist ));
+		System.out.println( "    max_key=" + ByteFormatter.encodeString( max_key ) + ", dist=" + ByteFormatter.encodeString( max_dist ) + ", initial_contacts=" + id_map.size());
 		
 		if ( max_key == my_id ){
 			
 			return;
 		}
-		
-		List<DHTTransportContact> all_contacts = control.getClosestKContactsList( my_id, true );
-		
-		final ByteArrayHashMap<DHTTransportContact>	id_map = new ByteArrayHashMap<DHTTransportContact>();
-		
-		for ( DHTTransportContact contact: all_contacts ){
-			
-			id_map.put( contact.getID(), contact );
-		}
-		
+						
 			// obscure key so we don't leak any keys
 		
 		byte[]	obscured_key = control.getObfuscatedKey( max_key );
@@ -1692,6 +1728,8 @@ DHTDBImpl
 									survey_complete = true;
 								}
 								
+								System.out.println( "survey complete: nodes=" + id_map.size());
+																
 								processSurvey( id_map );
 								
 								processing[0] = true;
@@ -1713,8 +1751,6 @@ DHTDBImpl
 	processSurvey(
 		ByteArrayHashMap<DHTTransportContact>	survey )
 	{
-		final int HEADER_BYTES = 6;
-
 		try{
 			byte[][]	node_ids = new byte[survey.size()][];
 			
@@ -1749,7 +1785,7 @@ DHTDBImpl
 					
 					if ( mapping.getIndirectValueCount()== 0 ){ 
 						
-						continue;
+						// continue;
 					}
 					
 					value_count++;
@@ -1849,8 +1885,14 @@ DHTDBImpl
 										
 										int	num	= entries.size();
 										
-										int outer_cost 	= num * ( HEADER_BYTES - i );
-										int inner_cost	= i+2 + num * (HEADER_BYTES - i - 1 );
+											// prefix spread over multiple entries so ignore and just count suffix cost
+											
+										int outer_cost 	= num * ( PREFIX_LENGTH - i );
+										
+											// include new prefix, one byte prefix len, 2 bytes num-suffixes, then suffixes
+											// yes, this code should be elsewhere, but whatever
+										
+										int inner_cost	= i+4 + num * (PREFIX_LENGTH - i - 1 );
 										
 										if ( inner_cost < outer_cost ){
 											
@@ -1883,11 +1925,11 @@ DHTDBImpl
 					
 					for ( byte[] prefix: prefixes ){
 						
-						encoded_size += 1 + prefix.length;
+						encoded_size += 3 + prefix.length;
 						
 						List<DHTDBMapping> entries = prefix_map.get( prefix );
 						
-						encoded_size += ( HEADER_BYTES - prefix.length ) * entries.size();
+						encoded_size += ( PREFIX_LENGTH - prefix.length ) * entries.size();
 						
 						str += (str.length()==0?"":", ")+ ByteFormatter.encodeString( prefix ) + "->" + entries.size();
 					}
@@ -1912,20 +1954,20 @@ DHTDBImpl
 					
 					ByteArrayHashMap<List<DHTDBMapping>>	map = entry.getValue();
 					
-					Map<byte[],List<byte[]>> map2 = new HashMap<byte[], List<byte[]>>();
-					
 					List<byte[]> prefixes = map.keys();
+
+					List<Object[]> encoded = new ArrayList<Object[]>( prefixes.size() );					
 					
 					for ( byte[] prefix: prefixes ){
 						
 						int	prefix_len = prefix.length;
-						int	suffix_len = HEADER_BYTES - prefix_len;
+						int	suffix_len = PREFIX_LENGTH - prefix_len;
 						
 						List<DHTDBMapping> mappings = map.get( prefix );
 						
 						List<byte[]> l = new ArrayList<byte[]>( mappings.size());
 						
-						map2.put( prefix, l );
+						encoded.add( new Object[]{ prefix, l });
 						
 						for ( DHTDBMapping m: mappings ){
 						
@@ -1947,7 +1989,7 @@ DHTDBImpl
 								DHTTransportContact contact,
 								List<byte[]>		response )
 							{
-								
+								System.out.println( "response" + response.size());
 							}
 							
 							public void
@@ -1955,15 +1997,69 @@ DHTDBImpl
 								DHTTransportContact 	contact,
 								Throwable				error )
 							{
-								
+								Debug.out( error );
 							}
-						}, map2 );
+						}, PREFIX_LENGTH, encoded );
 						
 				}
 			}
 		}finally{
 			
 			survey_in_progress = false;
+		}
+	}
+	
+	public List<byte[]>
+	queryStore(
+		DHTTransportContact 		originating_contact, 
+		int							header_len,
+		List<Object[]>				keys )
+	{
+		List<byte[]> reply = new ArrayList<byte[]>();
+		
+		try{
+			this_mon.enter();
+			
+			for (Object[] entry: keys ){
+				
+				byte[]			prefix 		= (byte[])entry[0];
+				List<byte[]>	suffixes 	= (List<byte[]>)entry[1];
+				
+				byte[]	header = new byte[header_len];
+				
+				int		prefix_len	= prefix.length;
+				int		suffix_len	= header_len - prefix_len;
+				
+				System.arraycopy( prefix, 0, header, 0, prefix_len );
+				
+				for ( byte[] suffix: suffixes ){
+					
+					System.arraycopy( suffix, 0, header, prefix_len, suffix_len );
+					
+					DHTDBMapping mapping = stored_values_prefix_map.get( new HashWrapper2( header ));
+					
+					if ( mapping == null ){
+					
+						reply.add( null );
+						
+					}else{
+						
+						byte[] k = mapping.getKey().getBytes();
+						
+						byte[] r = new byte[2];
+						
+						System.arraycopy( k, k.length-2, r, 0, 2 );
+						
+						reply.add( r );
+					}
+				}
+			}
+			
+			return( reply );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
