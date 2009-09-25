@@ -77,6 +77,8 @@ RelatedContentManager
 	private static final int	MAX_TITLE_LENGTH		= 80;
 	private static final int	MAX_CONCURRENT_PUBLISH	= 2;
 	
+	private static final int	MAX_RANK	= 100;
+	
 	private static final String	CONFIG_FILE 				= "rcm.config";
 	private static final String	PERSIST_DEL_FILE 			= "rcmx.config";
 	
@@ -2574,7 +2576,7 @@ RelatedContentManager
 						}
 					}
 					
-					if ( !match ){
+					if ( !match && rand_list.length < MAX_RANK ){
 						
 						int	len = rand_list.length;
 						
