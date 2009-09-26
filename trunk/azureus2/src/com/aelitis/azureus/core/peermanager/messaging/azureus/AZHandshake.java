@@ -22,9 +22,13 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.azureus;
 
+import java.net.InetAddress;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.HashWrapper;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
@@ -59,6 +63,7 @@ public class AZHandshake implements AZMessage {
   private int udp_non_data_port;
   private final int handshake_type;
   private final boolean uploadOnly;
+  private final InetAddress ipv6;
   
   
   public AZHandshake( byte[] peer_identity,
@@ -69,6 +74,7 @@ public class AZHandshake implements AZMessage {
                       int tcp_listen_port,
                       int udp_listen_port,
                       int udp_non_data_listen_port,
+                      InetAddress ipv6addr,
                       String[] avail_msg_ids,
                       byte[] avail_msg_versions,
                       int _handshake_type,
@@ -88,6 +94,7 @@ public class AZHandshake implements AZMessage {
     this.handshake_type = _handshake_type;
     this.version = _version;
     this.uploadOnly = uploadOnly;
+    this.ipv6 = ipv6addr;
     
     //verify given port info is ok
     if( tcp_port < 0 || tcp_port > 65535 ) {
@@ -125,6 +132,7 @@ public class AZHandshake implements AZMessage {
   public int getTCPListenPort() {  return tcp_port;  }
   public int getUDPListenPort() {  return udp_port;  }
   public int getUDPNonDataListenPort() {  return udp_non_data_port;  }
+  public InetAddress getIPv6() { return ipv6; }
   
   public int getHandshakeType() {  return handshake_type;  }
   
@@ -154,6 +162,7 @@ public class AZHandshake implements AZMessage {
       							client+ " " +client_version+ ", TCP/UDP ports " +tcp_port+ "/" +udp_port+ "/" + udp_non_data_port +
       							", handshake " + (getHandshakeType() == HANDSHAKE_TYPE_PLAIN ? "plain" : "crypto") +
       							", upload_only = " + (isUploadOnly() ? "1" : "0") + 
+      							(ipv6 != null ? ", ipv6 = "+ipv6.getHostAddress() : "") +
       							(sessionID != null ? ", sessionID: "+sessionID.toBase32String() : "") +
       							(reconnectID != null ? ", reconnect request: "+reconnectID.toBase32String() : "") +
       							"] supports " +msgs_desc;
@@ -179,6 +188,8 @@ public class AZHandshake implements AZMessage {
 			payload_map.put("udp2_port", new Long(udp_non_data_port));
 			payload_map.put("handshake_type", new Long(handshake_type));
 			payload_map.put("upload_only", new Long(uploadOnly ? 1L : 0L));
+			if(ipv6 != null)
+				payload_map.put("ipv6", ipv6.getAddress());
 
 			//available message list
 			List message_list = new ArrayList();
@@ -246,6 +257,8 @@ public class AZHandshake implements AZMessage {
     if( h_type == null ) {  //only 2307+ send type
     	h_type = new Long( HANDSHAKE_TYPE_PLAIN );
     }
+    
+    InetAddress ipv6 = (InetAddress)root.get("ipv6");
 
     List raw_msgs = (List) root.get("messages");
     if (raw_msgs == null)  throw new MessageException("raw_msgs == null");
@@ -274,7 +287,7 @@ public class AZHandshake implements AZMessage {
     Long ulOnly = (Long)root.get("upload_only");
     boolean uploadOnly = ulOnly != null && ulOnly.longValue() > 0L ? true : false;
 
-    return new AZHandshake( id, session == null ? null : new HashWrapper(session),reconnect == null ? null : new HashWrapper(reconnect), name, client_version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ids, vers, h_type.intValue(), version , uploadOnly);
+    return new AZHandshake( id, session == null ? null : new HashWrapper(session),reconnect == null ? null : new HashWrapper(reconnect), name, client_version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ipv6 ,ids, vers, h_type.intValue(), version , uploadOnly);
   }
   
   
