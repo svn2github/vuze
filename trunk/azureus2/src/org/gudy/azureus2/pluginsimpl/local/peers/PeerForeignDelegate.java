@@ -126,7 +126,6 @@ PeerForeignDelegate
      */
     public void sendUnChoke() {}
     
-    @Override
     public InetAddress getAlternativeIPv6() {  return null; }
 
     

@@ -22,13 +22,17 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.azureus;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
 import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.networkmanager.impl.RawMessageImpl;
-import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.MessageException;
+import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 
@@ -73,7 +77,7 @@ public class AZMessageFactory {
    */
   public static void init() {
     try {
-      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], null, null, "", "", 0, 0, 0, new String[0], new byte[0], 0, MESSAGE_VERSION_SUPPORTS_PADDING,false ) );
+      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], null, null, "", "", 0, 0, 0, null, new String[0], new byte[0], 0, MESSAGE_VERSION_SUPPORTS_PADDING,false ) );
       MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new AZRequestHint( -1, -1, -1, -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new AZHave( new int[0], MESSAGE_VERSION_SUPPORTS_PADDING ));
