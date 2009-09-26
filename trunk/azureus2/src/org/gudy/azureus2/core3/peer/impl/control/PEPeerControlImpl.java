@@ -2524,7 +2524,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 						canTryIpv6 = false;
 					}
 					
-					System.out.println("netfail="+network_failed+", connfail="+connect_failed+", can6="+canTryIpv6+", was6="+wasIPv6);
+					//System.out.println("netfail="+network_failed+", connfail="+connect_failed+", can6="+canTryIpv6+", was6="+wasIPv6);
 					
 					String	key = ip + ":" + udpPort;
 
