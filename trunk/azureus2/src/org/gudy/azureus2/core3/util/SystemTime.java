@@ -18,7 +18,10 @@
  */
 package org.gudy.azureus2.core3.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Utility class to retrieve current system time, and catch clock backward time
@@ -76,7 +79,8 @@ public class SystemTime {
 		private final Thread		updater;
 		private volatile long		stepped_time;
 		private volatile long		currentTimeOffset = System.currentTimeMillis();
-		private volatile long		last_approximate_time;
+		private AtomicLong 			last_approximate_time = new AtomicLong(); 
+		//private volatile long		last_approximate_time;
 		private volatile int		access_count;
 		private volatile int		slice_access_count;
 		private volatile int		access_average_per_slice;
@@ -213,7 +217,7 @@ public class SystemTime {
 		}
 
 		public long getMonoTime() {
-			long adjusted_time = stepped_time;
+			long adjusted_time;
 			long averageSliceStep = access_average_per_slice;
 			if (averageSliceStep > 0)
 			{
@@ -222,15 +226,19 @@ public class SystemTime {
 				{
 					sliceStep = drift_adjusted_granularity - 1;
 				}
-				adjusted_time += sliceStep;
-			}
+				adjusted_time = sliceStep + stepped_time;
+			} else
+				adjusted_time = stepped_time;
 			access_count++;
 			slice_access_count++;
-			// make sure we don't go backwards
-			if (adjusted_time < last_approximate_time)
-				adjusted_time = last_approximate_time;
+
+			// make sure we don't go backwards and our reference value for going backwards doesn't go backwards either
+			long approxBuffered = last_approximate_time.get(); 
+			if (adjusted_time < approxBuffered)
+				adjusted_time = approxBuffered;				
 			else
-				last_approximate_time = adjusted_time;
+				last_approximate_time.compareAndSet(approxBuffered, adjusted_time);
+
 			return adjusted_time;
 		}
 		
@@ -349,9 +357,6 @@ public class SystemTime {
 	 * 
 	 * <b>Do not mix times retrieved by this method with normal time!</b>
 	 * 
-	 * TODO once we move to java 1.5 use atomic stuff to harden the guarantee
-	 * (multithreaded access can weaken it at the moment)
-	 * 
 	 * @return the amount of real time passed since the program start in
 	 *         milliseconds
 	 */
@@ -360,7 +365,7 @@ public class SystemTime {
 	}
 
 		/**
-		 * Like getMonotonousTime but only updated at TIME_GRANULARITY_MILLIS intervals (not interopolated)
+		 * Like getMonotonousTime but only updated at TIME_GRANULARITY_MILLIS intervals (not interpolated)
 		 * As such it is likely to be cheaper to obtain
 		 * @return
 		 */
