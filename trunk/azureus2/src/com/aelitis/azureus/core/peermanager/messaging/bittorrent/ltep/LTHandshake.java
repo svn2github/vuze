@@ -1,13 +1,11 @@
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
-import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
@@ -109,6 +107,23 @@ public class LTHandshake implements LTMessage {
 	public boolean isUploadOnly() {
 		Long ulOnly = (Long)data_dict.get("upload_only");
 		return ulOnly != null && ulOnly.longValue() > 0L;
+	}
+	
+	public InetAddress getIPv6() {
+		byte[] addr = (byte[])data_dict.get("ipv6");
+		if(addr != null && addr.length == 16)
+		{
+			try
+			{
+				return InetAddress.getByAddress(addr);
+			} catch (UnknownHostException e)
+			{
+				// should not happen
+				e.printStackTrace();
+			}
+		}
+		
+		return null;
 	}
 	
 	public int getTCPListeningPort()

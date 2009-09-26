@@ -3,6 +3,7 @@ VUZE CHANGELOG
 
 2009.09.xx | Vuze 4.2.0.9
 
+CHANGE: Core  | Improved IPv6-handshaking and reconnects with other clients (see http://www.azureuswiki.com/index.php/IPv6_compatibility for supported systems) [The 8472]
 
 2009.08.27 | Vuze 4.2.0.8
 

@@ -21,9 +21,9 @@
 package org.gudy.azureus2.core3.peer.impl.transport;
 
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.security.SecureRandom;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -47,6 +47,7 @@ import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.ProtocolEndpointUDP;
@@ -91,6 +92,8 @@ implements PEPeerTransport
 	private int tcp_listen_port = 0;
 	private int udp_listen_port = 0;
 	private int udp_non_data_port = 0;
+	// if the peer announces an ipv6 address
+	private InetAddress alternativeAddress;
 
 	private byte	crypto_level;
 
@@ -847,7 +850,7 @@ implements PEPeerTransport
 			recentlyDisconnected.put(mySessionID, this);
 	}
 	
-	public PEPeerTransport reconnect(boolean tryUDP) {
+	public PEPeerTransport reconnect(boolean tryUDP, boolean tryIPv6) {
 		
 		boolean use_tcp = isTCP() && !(tryUDP && getUDPListenPort() > 0);
 		
@@ -859,7 +862,7 @@ implements PEPeerTransport
 				PEPeerTransportFactory.createTransport( 
 						manager, 
 						getPeerSource(), 
-						getIp(), 
+						tryIPv6 && alternativeAddress != null ? alternativeAddress.getHostAddress() : getIp(), 
 						getTCPListenPort(), 
 						getUDPListenPort(),
 						use_tcp,
@@ -873,6 +876,9 @@ implements PEPeerTransport
 			{
 				PEPeerTransportProtocol pt = (PEPeerTransportProtocol) new_conn;
 				pt.checkForReconnect(mySessionID);
+				// carry over the alt address in case the reconnect fails and we try again with ipv6
+				pt.alternativeAddress = alternativeAddress;
+
 			}
 			
 			manager.addPeer( new_conn );
@@ -1010,6 +1016,9 @@ implements PEPeerTransport
 		data_dict.put("p", new Integer(localTcpPort));
 		data_dict.put("e", new Long(require_crypto ? 1L : 0L));
 		data_dict.put("upload_only", new Long(manager.isSeeding() && !ENABLE_LAZY_BITFIELD ? 1L : 0L));
+		InetAddress defaultV6 = NetworkAdmin.getSingleton().hasIPV6Potential(true) ? NetworkAdmin.getSingleton().getDefaultPublicAddressV6() : null;
+		if(defaultV6 != null)
+			data_dict.put("ipv6",defaultV6.getAddress());
 		LTHandshake lt_handshake = new LTHandshake(
 				data_dict, other_peer_bt_lt_ext_version
 		);
@@ -1057,6 +1066,7 @@ implements PEPeerTransport
 				local_tcp_port,
 				local_udp_port,
 				local_udp2_port,
+				NetworkAdmin.getSingleton().hasIPV6Potential(true) ? NetworkAdmin.getSingleton().getDefaultPublicAddressV6() : null,
 				avail_ids,
 				avail_vers,
 				require_crypto ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN,
@@ -1529,6 +1539,7 @@ implements PEPeerTransport
 
 	public byte[] getId() {  return peer_id;  }
 	public String getIp() {  return ip;  }
+	public InetAddress getAlternativeIPv6() { return alternativeAddress; }
 	public int getPort() {  return port;  }
 
 	public int getTCPListenPort() {  return tcp_listen_port;  }
@@ -2375,6 +2386,9 @@ implements PEPeerTransport
 		  relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED;
 		  checkSeed();
 	  }
+	  
+	  if(AddressUtils.isGlobalAddressV6(handshake.getIPv6()))
+		  alternativeAddress = handshake.getIPv6();
 		  
 	  
 	  
@@ -2421,6 +2435,9 @@ implements PEPeerTransport
 			// their random local port
 			peer_item_identity = PeerItemFactory.createPeerItem(ip, tcp_listen_port, PeerItem.convertSourceID(peer_source), type, udp_listen_port, crypto_level, 0);
 		}
+		
+		if(AddressUtils.isGlobalAddressV6(handshake.getIPv6()))
+			alternativeAddress = handshake.getIPv6();
 
 		
 		if(handshake.getReconnectSessionID() != null)

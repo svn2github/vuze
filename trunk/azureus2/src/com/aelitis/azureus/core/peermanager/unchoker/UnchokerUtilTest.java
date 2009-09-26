@@ -22,9 +22,13 @@
 
 package com.aelitis.azureus.core.peermanager.unchoker;
 
+import java.net.InetAddress;
 import java.util.*;
 
-import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerListener;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.network.Connection;
 
@@ -108,6 +112,7 @@ public class UnchokerUtilTest {
       
       final PEPeerStats[] f_stats = { null };
       final PEPeer peer = new PEPeer() {
+    	public InetAddress getAlternativeIPv6() { return null; }
         public void addListener( PEPeerListener listener ){}
         public void removeListener( PEPeerListener listener ){}
         public int getPeerState(){  return PEPeer.TRANSFERING;  }

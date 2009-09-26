@@ -22,10 +22,14 @@
 
 package org.gudy.azureus2.core3.util;
 
-import java.util.*;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
@@ -301,6 +305,61 @@ AddressUtils
 		}
 		
 		return is_lan_local;
+	}
+	
+	/**
+	 * checks if the provided address is a global-scope ipv6 unicast address
+	 */
+	public static boolean isGlobalAddressV6(InetAddress addr) {
+		return addr instanceof Inet6Address && !addr.isAnyLocalAddress() && !addr.isLinkLocalAddress() && !addr.isLoopbackAddress() && !addr.isMulticastAddress() && !addr.isSiteLocalAddress() && !((Inet6Address)addr).isIPv4CompatibleAddress();
+	}
+	
+	public static boolean isTeredo(InetAddress addr)
+	{
+		if(!(addr instanceof Inet6Address))
+			return false;
+		byte[] bytes = addr.getAddress();
+		// check for the 2001:0000::/32 prefix, i.e. teredo
+		return bytes[0] == 0x20 && bytes[1] == 0x01 && bytes[2] == 0x00 && bytes[3] == 0x00;
+	}
+	
+	public static boolean is6to4(InetAddress addr)
+	{
+		if(!(addr instanceof Inet6Address))
+			return false;
+		byte[] bytes = addr.getAddress();
+		// check for the 2002::/16 prefix, i.e. 6to4
+		return bytes[0] == 0x20 && bytes[1] == 0x02;
+	}
+	
+	/**
+	 * picks 1 global-scoped address out of a list based on the heuristic
+	 * "true" ipv6/tunnel broker > 6to4 > teredo
+	 * 
+	 * @return null if no proper v6 address is found, best one otherwise
+	 */
+	public static InetAddress pickBestGlobalV6Address(List<InetAddress> addrs)
+	{
+		InetAddress bestPick = null;
+		int currentRanking = 0;
+		for(InetAddress addr : addrs)
+		{
+			if(!isGlobalAddressV6(addr))
+				continue;
+			int ranking = 3;
+			if(isTeredo(addr))
+				ranking = 1;
+			else if(is6to4(addr))
+				ranking = 2;
+			
+			if(ranking > currentRanking)
+			{
+				bestPick = addr;
+				currentRanking = ranking;
+			}
+		}
+		
+		return bestPick;
 	}
 	
 }

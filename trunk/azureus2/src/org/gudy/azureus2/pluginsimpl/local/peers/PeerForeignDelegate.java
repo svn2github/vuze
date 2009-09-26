@@ -28,12 +28,16 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
  *
  */
 
-import java.util.*;
+import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
@@ -44,7 +48,8 @@ import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.peermanager.peerdb.*;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 public class 
@@ -120,6 +125,9 @@ PeerForeignDelegate
      * Should never be called
      */
     public void sendUnChoke() {}
+    
+    @Override
+    public InetAddress getAlternativeIPv6() {  return null; }
 
     
  
@@ -874,7 +882,7 @@ PeerForeignDelegate
      */
 	public void clearAvailabilityAdded() {};
 	
-	public PEPeerTransport reconnect(boolean tryUDP){ return null; }
+	public PEPeerTransport reconnect(boolean tryUDP, boolean tryIPv6){ return null; }
 	public boolean isSafeForReconnect() { return false; }
 	
 	public void setUploadRateLimitBytesPerSecond( int bytes ){ network_connection.setUploadLimit( bytes ); }

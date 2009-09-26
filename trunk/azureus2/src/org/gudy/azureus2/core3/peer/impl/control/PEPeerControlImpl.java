@@ -23,35 +23,50 @@
 package org.gudy.azureus2.core3.peer.impl.control;
 
 
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
-import org.gudy.azureus2.core3.peer.util.*;
+import org.gudy.azureus2.core3.peer.util.PeerIdentityDataID;
+import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponsePeer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
-import com.aelitis.azureus.core.peermanager.control.*;
+import com.aelitis.azureus.core.peermanager.control.PeerControlInstance;
+import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
+import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATInitiator;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATTraversalAdapter;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATTraverser;
 import com.aelitis.azureus.core.peermanager.peerdb.*;
-import com.aelitis.azureus.core.peermanager.piecepicker.*;
-import com.aelitis.azureus.core.peermanager.unchoker.*;
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePickerFactory;
+import com.aelitis.azureus.core.peermanager.unchoker.Unchoker;
+import com.aelitis.azureus.core.peermanager.unchoker.UnchokerFactory;
+import com.aelitis.azureus.core.peermanager.unchoker.UnchokerUtil;
 import com.aelitis.azureus.core.peermanager.uploadslots.UploadHelper;
 import com.aelitis.azureus.core.peermanager.uploadslots.UploadSlotManager;
 import com.aelitis.azureus.core.util.FeatureAvailability;
@@ -790,7 +805,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			for( int i=0; i < peer_transports.size(); i++ ) {
 				final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
 
-				PEPeerTransport	reconnected_peer = peer.reconnect(false);
+				PEPeerTransport	reconnected_peer = peer.reconnect(false, false);
 			}
 		}
 	}
@@ -2479,6 +2494,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		boolean	connection_found = false;
 		
 		boolean tcpReconnect = false;
+		boolean ipv6reconnect = false;
 		
 		try{
 			peer_transports_mon.enter();
@@ -2486,15 +2502,29 @@ DiskManagerCheckRequestListener, IPFilterListener
 			int udpPort = peer.getUDPListenPort();
 			
 			boolean canTryUDP = UDPNetworkManager.UDP_OUTGOING_ENABLED && peer.getUDPListenPort() > 0;
+			boolean canTryIpv6 = NetworkAdmin.getSingleton().hasIPV6Potential(true) && peer.getAlternativeIPv6() != null;
 
 			if ( is_running ){
 
 				PeerItem peer_item = peer.getPeerItemIdentity();
 				PeerItem self_item = peer_database.getSelfPeer();
+				
 
 				if ( self_item == null || !self_item.equals( peer_item )){
 
 					String	ip = peer.getIp();
+					boolean wasIPv6;
+					try
+					{
+						wasIPv6 = InetAddress.getByName(ip) instanceof Inet6Address;
+					} catch (UnknownHostException e)
+					{
+						wasIPv6 = false;
+						// something is fishy about the old address, don't try to reconnect with v6
+						canTryIpv6 = false;
+					}
+					
+					System.out.println("netfail="+network_failed+", connfail="+connect_failed+", can6="+canTryIpv6+", was6="+wasIPv6);
 					
 					String	key = ip + ":" + udpPort;
 
@@ -2507,7 +2537,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 							if ( canTryUDP && udp_fallback_for_failed_connection ){
 								
 								pending_nat_traversals.put(key, peer);
-							}					
+							} else if (canTryIpv6 && !wasIPv6)
+							{
+								tcpReconnect = true;
+								ipv6reconnect = true;
+							}
 						}else if ( 	canTryUDP && 
 									udp_fallback_for_dropped_connection && 
 									network_failed && 
@@ -2571,7 +2605,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 		
 		if(tcpReconnect)
-			peer.reconnect(false);
+			peer.reconnect(false, ipv6reconnect);
 	}
 
 
@@ -3911,7 +3945,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 							{
 								complete();
 								
-								PEPeerTransport newTransport = peer.reconnect(true);
+								PEPeerTransport newTransport = peer.reconnect(true, false);
 								
 								if( newTransport != null ){
 									
@@ -3957,7 +3991,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 					PEPeerTransport	peer_item = (PEPeerTransport)new_connections.get(i);
 
 						// don't call when holding monitor - deadlock potential
-					peer_item.reconnect(true);
+					peer_item.reconnect(true, false);
 
 				}
 			}

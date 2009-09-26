@@ -33,9 +33,15 @@ import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.platform.*;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.utils.Utilities;
@@ -43,7 +49,10 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.instancemanager.*;
+import com.aelitis.azureus.core.instancemanager.AZInstance;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
+import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
 import com.aelitis.azureus.core.networkmanager.admin.*;
 import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
@@ -63,7 +72,7 @@ NetworkAdminImpl
 	
 	private static final boolean	FULL_INTF_PROBE	= false;
 	
-	private Set							old_network_interfaces;
+	private Set<NetworkInterface>			old_network_interfaces;
 	private InetAddress[]				currentBindIPs			= new InetAddress[] { null };
 	private boolean						supportsIPv6withNIO		= true;
 	private boolean						supportsIPv6 = true;
@@ -221,13 +230,13 @@ NetworkAdminImpl
 				boolean newV6 = false;
 				boolean newV4 = false;
 				
-				Set interfaces = old_network_interfaces;
+				Set<NetworkInterface> interfaces = old_network_interfaces;
 				if (interfaces != null)
 				{
-					Iterator it = interfaces.iterator();
+					Iterator<NetworkInterface> it = interfaces.iterator();
 					while (it.hasNext())
 					{
-						NetworkInterface ni = (NetworkInterface) it.next();
+						NetworkInterface ni = it.next();
 						Enumeration addresses = ni.getInetAddresses();
 						while (addresses.hasMoreElements())
 						{
@@ -970,6 +979,35 @@ NetworkAdminImpl
 		}
 		
 		return( utils.getPublicAddress( true ));
+	}
+	
+	@Override
+	public InetAddress getDefaultPublicAddressV6() {
+		if(!supportsIPv6)
+			return null;
+		
+		// check bindings first
+		for(InetAddress addr : currentBindIPs)
+		{
+			// found a specific bind address, use that one
+			if(AddressUtils.isGlobalAddressV6(addr))
+				return addr;
+			
+			// found v6 any-local address, check interfaces for a best match
+			if(addr instanceof Inet6Address && addr.isAnyLocalAddress())
+			{
+				ArrayList<InetAddress> addrs = new ArrayList<InetAddress>();
+				for(NetworkInterface iface : old_network_interfaces)
+				{
+					for(InterfaceAddress nAddr : iface.getInterfaceAddresses())
+						addrs.add(nAddr.getAddress());
+				}
+				
+				return AddressUtils.pickBestGlobalV6Address(addrs);
+			}
+		}
+		
+		return null;
 	}
 	
 	protected void

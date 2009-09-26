@@ -26,6 +26,8 @@
 package org.gudy.azureus2.core3.peer;
 
 
+import java.net.InetAddress;
+
 import org.gudy.azureus2.plugins.network.Connection;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
@@ -88,6 +90,11 @@ PEPeer
 	public byte[] getId();
 
 	public String getIp();
+	
+	/**
+	 * @return an ipv6 address under which the peer should be connectable if it announced one, null otherwise
+	 */
+	public InetAddress getAlternativeIPv6();
   
   /**
    * Get the peer's local TCP connection port.

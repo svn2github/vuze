@@ -196,6 +196,8 @@ NetworkAdmin
 	public abstract InetAddress
 	getDefaultPublicAddress();
 	
+	public abstract InetAddress getDefaultPublicAddressV6();
+	
 	public abstract void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener );
