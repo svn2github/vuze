@@ -999,8 +999,9 @@ NetworkAdminImpl
 				ArrayList<InetAddress> addrs = new ArrayList<InetAddress>();
 				for(NetworkInterface iface : old_network_interfaces)
 				{
-					for(InterfaceAddress nAddr : iface.getInterfaceAddresses())
-						addrs.add(nAddr.getAddress());
+					// commented out pending removal of Java1.6 dependency
+					//for(InterfaceAddress nAddr : iface.getInterfaceAddresses())
+					//	addrs.add(nAddr.getAddress());
 				}
 				
 				return AddressUtils.pickBestGlobalV6Address(addrs);
