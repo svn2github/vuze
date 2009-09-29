@@ -3580,7 +3580,7 @@ outer:
 					
 					DHTUDPPacketRequestQueryStorage	query_request = (DHTUDPPacketRequestQueryStorage)request;
 					
-					List<byte[]>	res = 
+					DHTTransportQueryStoreReply	res = 
 						request_handler.queryStoreRequest(
 									originating_contact,
 									query_request.getHeaderLength(),
@@ -3596,7 +3596,7 @@ outer:
 							
 					reply.setRandomID( originating_contact.getRandomID());
 						
-					reply.setResponse( res );
+					reply.setResponse( res.getHeaderSize(), res.getEntries());
 					
 					requestReceiveReplyProcessor( originating_contact, reply );
 

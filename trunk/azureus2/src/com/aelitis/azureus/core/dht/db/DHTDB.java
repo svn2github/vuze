@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import com.aelitis.azureus.core.dht.DHTStorageBlock;
 import com.aelitis.azureus.core.dht.control.DHTControl;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportQueryStoreReply;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 /**
@@ -75,7 +76,7 @@ DHTDB
 		HashWrapper				key,
 		DHTTransportValue[]		values );
 	
-	public List<byte[]>
+	public DHTTransportQueryStoreReply
 	queryStore(
 		DHTTransportContact 		originating_contact, 
 		int							header_len,

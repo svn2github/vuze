@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.db.impl;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
@@ -55,6 +56,7 @@ import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.control.DHTControl;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportQueryStoreReply;
 import com.aelitis.azureus.core.dht.transport.DHTTransportReplyHandlerAdapter;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
@@ -100,7 +102,8 @@ DHTDBImpl
 	private int next_value_version_left;
 	
 	
-	private static final int		PREFIX_LENGTH	= 6;
+	private static final int		QUERY_STORE_REQUEST_ENTRY_SIZE	= 6;
+	private static final int		QUERY_STORE_REPLY_ENTRY_SIZE	= 2;
 	
 	private Map<HashWrapper,DHTDBMapping>			stored_values 				= new HashMap<HashWrapper,DHTDBMapping>();
 	private Map<HashWrapper2,DHTDBMapping>			stored_values_prefix_map	= new HashMap<HashWrapper2,DHTDBMapping>();
@@ -125,7 +128,7 @@ DHTDBImpl
 
 	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
 
-	private static final int	MAX_SURVEY_SIZE	= 60;
+	private static final int	MAX_SURVEY_SIZE	= 100;
 	private volatile boolean survey_in_progress;
 	
 	
@@ -338,7 +341,7 @@ DHTDBImpl
 					
 					stored_values.put( key, mapping );
 					
-					stored_values_prefix_map.put( new HashWrapper2( mapping.getKey().getBytes(), 0, PREFIX_LENGTH ), mapping );
+					stored_values_prefix_map.put( new HashWrapper2( mapping.getKey().getBytes(), 0, QUERY_STORE_REQUEST_ENTRY_SIZE ), mapping );
 					
 					if ( stored_values_prefix_map.size() > stored_values.size()){
 						
@@ -524,7 +527,7 @@ DHTDBImpl
 				
 				stored_values.put( key, mapping );
 				
-				stored_values_prefix_map.put( new HashWrapper2( mapping.getKey().getBytes(), 0, PREFIX_LENGTH ), mapping );
+				stored_values_prefix_map.put( new HashWrapper2( mapping.getKey().getBytes(), 0, QUERY_STORE_REQUEST_ENTRY_SIZE ), mapping );
 				
 				if ( stored_values_prefix_map.size() > stored_values.size()){
 					
@@ -1218,7 +1221,7 @@ DHTDBImpl
 					
 					if ( mapping != null ){
 						
-						stored_values_prefix_map.remove( new HashWrapper2( mapping.getKey().getBytes(), 0, PREFIX_LENGTH ));
+						stored_values_prefix_map.remove( new HashWrapper2( mapping.getKey().getBytes(), 0, QUERY_STORE_REQUEST_ENTRY_SIZE ));
 						
 						mapping.destroy();
 					}
@@ -1371,7 +1374,7 @@ DHTDBImpl
 										
 					it.remove();
 					
-					stored_values_prefix_map.remove( new HashWrapper2( mapping.getKey().getBytes(), 0, PREFIX_LENGTH ));
+					stored_values_prefix_map.remove( new HashWrapper2( mapping.getKey().getBytes(), 0, QUERY_STORE_REQUEST_ENTRY_SIZE ));
 					
 					mapping.destroy();
 
@@ -1729,7 +1732,9 @@ DHTDBImpl
 								}
 								
 								System.out.println( "survey complete: nodes=" + id_map.size());
-																
+											
+								id_map.remove( my_id );
+								
 								processSurvey( id_map );
 								
 								processing[0] = true;
@@ -1763,7 +1768,7 @@ DHTDBImpl
 			
 			ByteArrayHashMap<List<DHTDBMapping>>	value_map = new ByteArrayHashMap<List<DHTDBMapping>>();
 			
-			Map<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>> request_map = new HashMap<DHTTransportContact, ByteArrayHashMap<List<DHTDBMapping>>>();
+			final Map<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>> request_map = new HashMap<DHTTransportContact, ByteArrayHashMap<List<DHTDBMapping>>>();
 					
 			final int max_nodes = Math.min( node_ids.length, router.getK());
 			
@@ -1887,12 +1892,12 @@ DHTDBImpl
 										
 											// prefix spread over multiple entries so ignore and just count suffix cost
 											
-										int outer_cost 	= num * ( PREFIX_LENGTH - i );
+										int outer_cost 	= num * ( QUERY_STORE_REQUEST_ENTRY_SIZE - i );
 										
 											// include new prefix, one byte prefix len, 2 bytes num-suffixes, then suffixes
 											// yes, this code should be elsewhere, but whatever
 										
-										int inner_cost	= i+4 + num * (PREFIX_LENGTH - i - 1 );
+										int inner_cost	= i+4 + num * (QUERY_STORE_REQUEST_ENTRY_SIZE - i - 1 );
 										
 										if ( inner_cost < outer_cost ){
 											
@@ -1929,7 +1934,7 @@ DHTDBImpl
 						
 						List<DHTDBMapping> entries = prefix_map.get( prefix );
 						
-						encoded_size += ( PREFIX_LENGTH - prefix.length ) * entries.size();
+						encoded_size += ( QUERY_STORE_REQUEST_ENTRY_SIZE - prefix.length ) * entries.size();
 						
 						str += (str.length()==0?"":", ")+ ByteFormatter.encodeString( prefix ) + "->" + entries.size();
 					}
@@ -1945,77 +1950,125 @@ DHTDBImpl
 				
 				this_mon.exit();
 			}
+						
+			LinkedList<Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>>> to_do = new LinkedList<Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>>>( request_map.entrySet());
+					
+			AtomicInteger	rem = new AtomicInteger( to_do.size());
 			
-			for ( Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>> entry: request_map.entrySet()){
-				
-				DHTTransportContact contact = entry.getKey();
-				
-				if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
-					
-					ByteArrayHashMap<List<DHTDBMapping>>	map = entry.getValue();
-					
-					List<byte[]> prefixes = map.keys();
-
-					List<Object[]> encoded = new ArrayList<Object[]>( prefixes.size() );					
-					
-					for ( byte[] prefix: prefixes ){
-						
-						int	prefix_len = prefix.length;
-						int	suffix_len = PREFIX_LENGTH - prefix_len;
-						
-						List<DHTDBMapping> mappings = map.get( prefix );
-						
-						List<byte[]> l = new ArrayList<byte[]>( mappings.size());
-						
-						encoded.add( new Object[]{ prefix, l });
-						
-						for ( DHTDBMapping m: mappings ){
-						
-							byte[]	k = m.getKey().getBytes();
-							
-							byte[]	suffix = new byte[ suffix_len ];
-							
-							System.arraycopy( k, prefix_len, suffix, 0, suffix_len );
-							
-							l.add( suffix );
-						}
-					}
-					
-					contact.sendQueryStore(
-						new DHTTransportReplyHandlerAdapter()
-						{
-							public void
-							queryStoreReply(
-								DHTTransportContact contact,
-								List<byte[]>		response )
-							{
-								System.out.println( "response" + response.size());
-							}
-							
-							public void
-							failed(
-								DHTTransportContact 	contact,
-								Throwable				error )
-							{
-								Debug.out( error );
-							}
-						}, PREFIX_LENGTH, encoded );
-						
-				}
+			for (int i=0;i<Math.min(3,to_do.size());i++){
+			
+				doQuery( to_do );
 			}
+				
 		}finally{
 			
 			survey_in_progress = false;
 		}
 	}
 	
-	public List<byte[]>
+	protected void
+	doQuery(
+		final LinkedList<Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>>>	to_do )
+	{
+		Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>>	entry;
+		
+		synchronized( to_do ){
+			
+			if ( to_do.size() == 0 ){
+			
+				return;
+			}
+			
+			entry = to_do.removeFirst();
+		}
+		
+		DHTTransportContact contact = entry.getKey();
+		
+		if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+			
+			System.out.println( "Hitting " + contact.getString());
+			
+			ByteArrayHashMap<List<DHTDBMapping>>	map = entry.getValue();
+			
+			List<byte[]> prefixes = map.keys();
+
+			List<Object[]> encoded = new ArrayList<Object[]>( prefixes.size() );					
+			
+			for ( byte[] prefix: prefixes ){
+				
+				int	prefix_len = prefix.length;
+				int	suffix_len = QUERY_STORE_REQUEST_ENTRY_SIZE - prefix_len;
+				
+				List<DHTDBMapping> mappings = map.get( prefix );
+				
+				List<byte[]> l = new ArrayList<byte[]>( mappings.size());
+				
+				encoded.add( new Object[]{ prefix, l });
+				
+				for ( DHTDBMapping m: mappings ){
+				
+					byte[]	k = m.getKey().getBytes();
+					
+					byte[]	suffix = new byte[ suffix_len ];
+					
+					System.arraycopy( k, prefix_len, suffix, 0, suffix_len );
+					
+					l.add( suffix );
+				}
+			}
+			
+			contact.sendQueryStore(
+				new DHTTransportReplyHandlerAdapter()
+				{
+					public void
+					queryStoreReply(
+						DHTTransportContact contact,
+						List<byte[]>		response )
+					{
+						try{
+							System.out.println( "response " + response.size());
+							
+							for (int i=0;i<response.size();i++){
+								
+								System.out.println( "    " + ByteFormatter.encodeString( response.get(i)));
+							}
+						}finally{
+						
+							doQuery( to_do );
+						}
+					}
+					
+					public void
+					failed(
+						DHTTransportContact 	contact,
+						Throwable				error )
+					{
+						try{
+							System.out.println( "Failed: " + Debug.getNestedExceptionMessage( error ));
+							
+						}finally{
+							
+							doQuery( to_do );
+						}
+					}
+				}, QUERY_STORE_REQUEST_ENTRY_SIZE, encoded );
+				
+		}else{
+			
+			System.out.println( "Not hitting " + contact.getString());
+			
+			doQuery( to_do );
+		}
+	}
+	
+	
+	public DHTTransportQueryStoreReply
 	queryStore(
 		DHTTransportContact 		originating_contact, 
 		int							header_len,
 		List<Object[]>				keys )
 	{
-		List<byte[]> reply = new ArrayList<byte[]>();
+		final List<byte[]> reply = new ArrayList<byte[]>();
 		
 		try{
 			this_mon.enter();
@@ -2046,16 +2099,30 @@ DHTDBImpl
 						
 						byte[] k = mapping.getKey().getBytes();
 						
-						byte[] r = new byte[2];
+						byte[] r = new byte[QUERY_STORE_REPLY_ENTRY_SIZE];
 						
-						System.arraycopy( k, k.length-2, r, 0, 2 );
+						System.arraycopy( k, k.length-QUERY_STORE_REPLY_ENTRY_SIZE, r, 0, QUERY_STORE_REPLY_ENTRY_SIZE );
 						
 						reply.add( r );
 					}
 				}
 			}
 			
-			return( reply );
+			return( 
+				new DHTTransportQueryStoreReply()
+				{
+					public int
+					getHeaderSize()
+					{
+						return( QUERY_STORE_REPLY_ENTRY_SIZE );
+					}
+					
+					public List<byte[]>
+					getEntries()
+					{
+						return( reply );
+					}
+				});
 			
 		}finally{
 			

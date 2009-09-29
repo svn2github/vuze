@@ -52,7 +52,7 @@ DHTTransportRequestHandler
 		byte[][]				keys,
 		DHTTransportValue[][]	value_sets );
 	
-	public List<byte[]>
+	public DHTTransportQueryStoreReply
 	queryStoreRequest(
 		DHTTransportContact 	contact, 
 		int						header_len,

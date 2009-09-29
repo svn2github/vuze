@@ -2674,7 +2674,7 @@ DHTControlImpl
 		}
 	}
 	
-	public List<byte[]>
+	public DHTTransportQueryStoreReply
 	queryStoreRequest(
 		DHTTransportContact 		originating_contact, 
 		int							header_len,

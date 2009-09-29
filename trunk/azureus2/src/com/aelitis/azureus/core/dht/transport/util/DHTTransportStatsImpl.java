@@ -231,7 +231,7 @@ DHTTransportStatsImpl
 	}
 	
 	public long[]
-	getStoreQueries()
+	getQueryStores()
 	{
 		return( store_queries );
 	}

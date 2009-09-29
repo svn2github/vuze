@@ -39,6 +39,7 @@ DHTUDPPacketReplyQueryStorage
 	extends DHTUDPPacketReply
 {
 	private int					random_id;
+	private int					header_length;
 	private List<byte[]>		response;
 	
 	public
@@ -69,7 +70,7 @@ DHTUDPPacketReplyQueryStorage
 		
 		if ( size > 0 ){
 
-			int	entry_size = is.readByte()&0xff;
+			header_length = is.readByte()&0xff;
 			
 			byte[]	bitmap = new byte[size+7/8];
 
@@ -88,7 +89,7 @@ DHTUDPPacketReplyQueryStorage
 				
 				if (( current&0x80)!=0 ){
 					
-					byte[]	x = new byte[entry_size];
+					byte[]	x = new byte[header_length];
 					
 					is.read( x );
 					
@@ -118,7 +119,7 @@ DHTUDPPacketReplyQueryStorage
 
 		if ( size > 0 ){
 			
-			os.writeByte( response.get(0).length );
+			os.writeByte( header_length );
 			
 			byte[]	bitmap = new byte[size+7/8];
 			
@@ -177,9 +178,11 @@ DHTUDPPacketReplyQueryStorage
 	
 	protected void
 	setResponse(
+		int				_header_length,
 		List<byte[]>	_response )
 	{
-		response	= _response;
+		header_length	= _header_length;
+		response		= _response;
 	}
 	
 	protected List<byte[]>

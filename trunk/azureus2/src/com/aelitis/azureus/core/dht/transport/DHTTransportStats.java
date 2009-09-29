@@ -54,6 +54,9 @@ DHTTransportStats
 	getStores();
 	
 	public long[]
+	getQueryStores();
+	
+	public long[]
 	getData();
 	
 	public long[]

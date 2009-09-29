@@ -687,9 +687,11 @@ public class DHTView extends AbstractIView {
       lblFindValues[i].setText("" + findValues[i]);
     }
     
-    long[] stores = transportStats.getStores();
+    long[] stores 	= transportStats.getStores();
+    long[] qstores 	= transportStats.getQueryStores();
+    
     for(int i = 0 ; i < 4 ; i++) {
-      lblStores[i].setText("" + stores[i]);
+      lblStores[i].setText("" + stores[i] + " (" + qstores[i] + ")");
     }
     long[] data = transportStats.getData();
     for(int i = 0 ; i < 4 ; i++) {

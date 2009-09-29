@@ -284,7 +284,7 @@ Test
 				});
 	}
 	
-	public List<byte[]> 
+	public DHTTransportQueryStoreReply 
 	queryStoreRequest(
 		DHTTransportContact 		contact,
 		int 						headerLen, 
