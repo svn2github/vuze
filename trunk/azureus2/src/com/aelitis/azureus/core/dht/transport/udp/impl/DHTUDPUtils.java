@@ -495,7 +495,7 @@ DHTUDPUtils
 			
 		}else{
 			
-			rep_fact = 0;
+			rep_fact = DHT.REP_FACT_DEFAULT;
 		}
 		
 		DHTTransportValue value = 
