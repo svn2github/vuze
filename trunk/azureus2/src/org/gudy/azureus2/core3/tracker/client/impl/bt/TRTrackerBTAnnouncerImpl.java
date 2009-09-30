@@ -21,39 +21,41 @@
 
 package org.gudy.azureus2.core3.tracker.client.impl.bt;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.*;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Properties;
-import java.util.StringTokenizer;
+import java.util.*;
+import java.util.zip.GZIPInputStream;
 
-import javax.net.ssl.*;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
 
-import java.util.zip.*;
-
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.security.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
+import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.tracker.client.impl.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.internat.*;
-//import org.gudy.azureus2.core3.peer.util.*;
-import org.gudy.azureus2.core3.peer.*;
-
-import org.gudy.azureus2.core3.tracker.protocol.*;
+import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
-
-import org.gudy.azureus2.plugins.clientid.*;
-import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.plugins.clientid.ClientIDException;
+import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
@@ -62,11 +64,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
-import com.aelitis.net.udp.uc.PRUDPPacket;
-import com.aelitis.net.udp.uc.PRUDPPacketHandler;
-import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
-import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
-import com.aelitis.net.udp.uc.PRUDPPacketRequest;
+import com.aelitis.net.udp.uc.*;
 
 
 /**
@@ -1074,6 +1072,8 @@ TRTrackerBTAnnouncerImpl
   		throws Exception
 	{
    			// set context in case authentication dialog is required
+ 		
+ 		boolean errorLevel = true;
     	
  		try{
 	    	TorrentUtils.setTLSTorrentHash( torrent_hash );
@@ -1209,6 +1209,9 @@ TRTrackerBTAnnouncerImpl
 					}
 				}catch( IOException e ){
 					
+					if(e instanceof UnknownHostException)
+						errorLevel = false;
+					
 		     		if ( i == 0 && protocol.toLowerCase().startsWith( "http" )){
 		      			
 		      			URL retry_url = UrlUtils.getIPV4Fallback( reqUrl );
@@ -1233,10 +1236,11 @@ TRTrackerBTAnnouncerImpl
 				if ( failure_reason != null && failure_reason.indexOf("401" ) != -1 ){
 						
 					failure_reason = "Tracker authentication failed";
+					errorLevel = false;
 				}
 			
 				if (Logger.isEnabled())
-					Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+					Logger.log(new LogEvent(torrent, LOGID, errorLevel ? LogEvent.LT_ERROR : LogEvent.LT_WARNING,
 							"Exception while processing the Tracker Request for " + reqUrl + ": "
 									+ failure_reason));
 				
