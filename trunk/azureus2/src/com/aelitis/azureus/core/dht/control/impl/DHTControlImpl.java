@@ -975,6 +975,17 @@ DHTControlImpl
 		
 		System.arraycopy( plain_key, 0, obs_key, 0, 5 );
 		
+			// ensure plain key and obfuscated one differ at subsequent bytes to prevent potential 
+			// clashes with code that uses 'n' byte prefix (e.g. DB survey code)
+		
+		for (int i=6;i<plain_key.length;i++){
+		
+			if ( plain_key[i] == 0 ){
+			
+				obs_key[i] = 1;
+			}
+		}
+		
 		return( obs_key );
 	}
 	
