@@ -258,20 +258,23 @@ DHTDBImpl
 						}
 					}
 				});
-					
-		SimpleTimer.addPeriodicEvent(
-				"DHTDB:survey",
-				NEIGHBOURHOOD_SURVEY_PERIOD,
-				true, 
-				new TimerEventPerformer()
-				{
-					public void
-					perform(
-						TimerEvent	event )
+				
+		if ( local_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+			
+			SimpleTimer.addPeriodicEvent(
+					"DHTDB:survey",
+					NEIGHBOURHOOD_SURVEY_PERIOD,
+					true, 
+					new TimerEventPerformer()
 					{
-						// survey();
-					}
-				});
+						public void
+						perform(
+							TimerEvent	event )
+						{
+							survey();
+						}
+					});
+		}
 	}
 	
 	
@@ -1813,9 +1816,11 @@ DHTDBImpl
 			
 			ByteArrayHashMap<List<DHTDBMapping>>	value_map = new ByteArrayHashMap<List<DHTDBMapping>>();
 			
-			final Map<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>> request_map = new HashMap<DHTTransportContact, ByteArrayHashMap<List<DHTDBMapping>>>();
+			Map<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>> request_map = new HashMap<DHTTransportContact, ByteArrayHashMap<List<DHTDBMapping>>>();
 					
-			final int max_nodes = Math.min( node_ids.length, router.getK());
+			Map<DHTDBMapping,List<DHTTransportContact>>	mapping_to_node_map = new HashMap<DHTDBMapping, List<DHTTransportContact>>();
+			
+			int max_nodes = Math.min( node_ids.length, router.getK());
 			
 			try{
 				this_mon.enter();
@@ -1857,6 +1862,10 @@ DHTDBImpl
 							}
 						});
 					
+					List<DHTTransportContact>	node_list = new ArrayList<DHTTransportContact>(max_nodes);
+					
+					mapping_to_node_map.put( mapping, node_list );
+					
 					for ( int i=0;i<max_nodes;i++ ){
 						
 						byte[]	id = node_ids[i];
@@ -1871,6 +1880,8 @@ DHTDBImpl
 						}
 						
 						list.add( mapping );
+						
+						node_list.add( survey.get( id ));
 					}
 				}
 				
@@ -2004,7 +2015,7 @@ DHTDBImpl
 			
 				went_async = true;
 				
-				doQuery( request_map.size(), to_do, replies, null, null, null );
+				doQuery( request_map.size(), mapping_to_node_map, to_do, replies, null, null, null );
 			}
 				
 		}finally{
@@ -2019,6 +2030,7 @@ DHTDBImpl
 	protected void
 	doQuery(
 		final int				total,
+		final Map<DHTDBMapping,List<DHTTransportContact>>										mapping_to_node_map,
 		final LinkedList<Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>>>	to_do,
 		final Map<DHTTransportContact,Object[]>													replies,
 		DHTTransportContact		done_contact,
@@ -2038,7 +2050,7 @@ DHTDBImpl
 			
 				if ( replies.size() == total ){
 					
-					queriesComplete( replies );
+					queriesComplete( mapping_to_node_map, replies );
 				}
 				
 				return;
@@ -2127,7 +2139,7 @@ DHTDBImpl
 									}
 								}finally{
 								
-									doQuery( total, to_do, replies, contact, mapping_list, response );
+									doQuery( total, mapping_to_node_map, to_do, replies, contact, mapping_list, response );
 								}
 							}
 							
@@ -2141,7 +2153,7 @@ DHTDBImpl
 									
 								}finally{
 									
-									doQuery( total, to_do, replies, contact, mapping_list, null );
+									doQuery( total, mapping_to_node_map, to_do, replies, contact, mapping_list, null );
 								}
 							}
 						}, QUERY_STORE_REQUEST_ENTRY_SIZE, encoded );
@@ -2171,20 +2183,25 @@ DHTDBImpl
 					mapping_list.addAll( map.get( prefix ));
 				}
 				
-				doQuery( total, to_do, replies, contact, mapping_list, null );
+				doQuery( total, mapping_to_node_map, to_do, replies, contact, mapping_list, null );
 			}
 		}
 	}
 	
 	protected void
 	queriesComplete(
-		Map<DHTTransportContact,Object[]>	replies )
+		Map<DHTDBMapping,List<DHTTransportContact>>		mapping_to_node_map,
+		Map<DHTTransportContact,Object[]>				replies )
 	{
+		Map<SurveyContactState,List<DHTDBMapping>>	store_ops = new HashMap<SurveyContactState, List<DHTDBMapping>>();
+
 		try{
 			this_mon.enter();
 			
 			System.out.println( "Queries complete (replies=" + replies.size() + ")" );
-						
+					
+			Map<DHTDBMapping,int[]>	totals = new HashMap<DHTDBMapping, int[]>();
+			
 			for ( Map.Entry<DHTTransportContact,Object[]> entry: replies.entrySet()){
 				
 				DHTTransportContact	contact = entry.getKey();
@@ -2285,6 +2302,138 @@ DHTDBImpl
 							}
 						}
 					}
+					
+					Set<DHTDBMapping> contact_mappings = contact_state.getMappings();
+					
+					for ( DHTDBMapping m: contact_mappings ){
+						
+						int[] t = totals.get( m );
+						
+						if ( t == null ){
+							
+							t = new int[]{ 1 };
+							
+							totals.put( m, t );
+							
+						}else{
+							
+							t[0]++;
+						}
+					}
+				}
+			}
+						
+			for (Map.Entry<DHTDBMapping,List<DHTTransportContact>> entry: mapping_to_node_map.entrySet()){
+				
+				DHTDBMapping				mapping 	= entry.getKey();
+				List<DHTTransportContact>	contacts 	= entry.getValue();
+				
+				int[]	t = totals.get( mapping );
+				
+				int	copies;
+				
+				if ( t == null ){
+					
+					copies = 0;
+					
+				}else{
+					
+					copies = t[0];
+				}
+								
+				Iterator<DHTDBValueImpl> values = mapping.getIndirectValues();
+				
+				if ( values.hasNext()){
+				
+					int	max_replication_factor = -1;
+				
+					while( values.hasNext()){
+						
+						DHTDBValueImpl value = values.next();
+						
+						int	rf = value.getReplicationFactor();
+						
+						if ( rf > max_replication_factor ){
+							
+							max_replication_factor = rf;
+						}
+					}
+					
+					if ( max_replication_factor == 0 ){
+						
+						continue;
+					}
+					
+					if ( max_replication_factor > router.getK()){
+						
+						max_replication_factor = router.getK();
+					}
+					
+					if ( copies < max_replication_factor ){
+						
+						int	required = max_replication_factor - copies;
+						
+						List<SurveyContactState> potential_targets = new ArrayList<SurveyContactState>();
+						
+						for ( DHTTransportContact c: contacts ){
+							
+							if ( c.getProtocolVersion() < DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+								
+								continue;
+							}
+							
+							SurveyContactState	contact_state = survey_state.get( new HashWrapper( c.getID()));
+							
+							if ( contact_state != null && !contact_state.hasMapping( mapping )){
+								
+								potential_targets.add( contact_state );
+							}
+						}
+						
+						Collections.sort(
+							potential_targets,
+							new Comparator<SurveyContactState>()
+							{
+								public int 
+								compare(
+									SurveyContactState o1,
+									SurveyContactState o2) 
+								{
+									long res = o2.getCreationTime() - o1.getCreationTime();
+						
+									if ( res < 0 ){
+										
+										return( -1 );
+										
+									}else if ( res > 0 ){
+										
+										return( 1 );
+										
+									}else{
+										
+										return( 0 );
+									}
+								}
+							});
+						
+						int	avail = Math.min( required, potential_targets.size());
+						
+						for (int i=0;i<avail;i++){
+							
+							SurveyContactState target = potential_targets.get( i );
+							
+							List<DHTDBMapping> m = store_ops.get( target );
+							
+							if ( m == null ){
+								
+								m = new ArrayList<DHTDBMapping>();
+								
+								store_ops.put( target, m );
+							}
+							
+							m.add( mapping );
+						}
+					}
 				}
 			}
 		}finally{
@@ -2293,6 +2442,8 @@ DHTDBImpl
 			
 			survey_in_progress = false;
 		}
+		
+		System.out.println( "Store ops: " + store_ops.size());
 	}
 	
 	public DHTTransportQueryStoreReply
@@ -3104,6 +3255,7 @@ DHTDBImpl
 	SurveyContactState
 	{
 		private DHTTransportContact		contact;
+		private long					creation_time	= SystemTime.getMonotonousTime();
 		
 		private Set<DHTDBMapping>		mappings = new HashSet<DHTDBMapping>();
 		
@@ -3114,6 +3266,12 @@ DHTDBImpl
 			DHTTransportContact		c )
 		{
 			contact = c;
+		}
+		
+		protected long
+		getCreationTime()
+		{
+			return( creation_time );
 		}
 		
 		protected void
@@ -3150,6 +3308,12 @@ DHTDBImpl
 			DHTDBMapping	mapping )
 		{
 			return( mappings.contains( mapping ));
+		}
+		
+		protected Set<DHTDBMapping>
+		getMappings()
+		{
+			return( mappings );
 		}
 		
 		protected void
