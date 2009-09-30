@@ -1570,7 +1570,7 @@ DHTDBImpl
 				
 				if ( mapping.getIndirectValueCount()== 0 ){ 
 					
-				//	continue;
+					continue;
 				}
 				
 				
@@ -1756,6 +1756,8 @@ DHTDBImpl
 	processSurvey(
 		ByteArrayHashMap<DHTTransportContact>	survey )
 	{
+		boolean went_async = false;
+		
 		try{
 			byte[][]	node_ids = new byte[survey.size()][];
 			
@@ -1790,7 +1792,7 @@ DHTDBImpl
 					
 					if ( mapping.getIndirectValueCount()== 0 ){ 
 						
-						// continue;
+						 continue;
 					}
 					
 					value_count++;
@@ -1952,30 +1954,50 @@ DHTDBImpl
 			}
 						
 			LinkedList<Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>>> to_do = new LinkedList<Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>>>( request_map.entrySet());
-					
-			AtomicInteger	rem = new AtomicInteger( to_do.size());
+				
+			Map<DHTTransportContact,Object[]>	replies = new HashMap<DHTTransportContact,Object[]>();
 			
-			for (int i=0;i<Math.min(3,to_do.size());i++){
+			for ( int i=0;i<Math.min(3,to_do.size());i++ ){
 			
-				doQuery( to_do );
+				went_async = true;
+				
+				doQuery( request_map.size(), to_do, replies, null, null, null );
 			}
 				
 		}finally{
 			
-			survey_in_progress = false;
+			if ( !went_async ){
+			
+				survey_in_progress = false;
+			}
 		}
 	}
 	
 	protected void
 	doQuery(
-		final LinkedList<Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>>>	to_do )
+		final int				total,
+		final LinkedList<Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>>>	to_do,
+		final Map<DHTTransportContact,Object[]>													replies,
+		DHTTransportContact		done_contact,
+		List<DHTDBMapping>		done_mappings,
+		List<byte[]>			done_reply )
 	{
 		Map.Entry<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>>	entry;
 		
 		synchronized( to_do ){
 			
+			if ( done_contact != null ){
+				
+				replies.put( done_contact, new Object[]{ done_mappings, done_reply });
+			}
+			
 			if ( to_do.size() == 0 ){
 			
+				if ( replies.size() == total ){
+					
+					queriesComplete( replies );
+				}
+				
 				return;
 			}
 			
@@ -1984,83 +2006,236 @@ DHTDBImpl
 		
 		DHTTransportContact contact = entry.getKey();
 		
-		if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+		boolean	handled = false;
+		
+		try{
+			if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
 			
-			System.out.println( "Hitting " + contact.getString());
-			
-			ByteArrayHashMap<List<DHTDBMapping>>	map = entry.getValue();
-			
-			List<byte[]> prefixes = map.keys();
-
-			List<Object[]> encoded = new ArrayList<Object[]>( prefixes.size() );					
-			
-			for ( byte[] prefix: prefixes ){
+				System.out.println( "Hitting " + contact.getString());
 				
-				int	prefix_len = prefix.length;
-				int	suffix_len = QUERY_STORE_REQUEST_ENTRY_SIZE - prefix_len;
+				final List<DHTDBMapping>	mapping_list = new ArrayList<DHTDBMapping>();
 				
-				List<DHTDBMapping> mappings = map.get( prefix );
+				ByteArrayHashMap<List<DHTDBMapping>>	map = entry.getValue();
 				
-				List<byte[]> l = new ArrayList<byte[]>( mappings.size());
+				List<byte[]> prefixes = map.keys();
+	
+				List<Object[]> encoded = new ArrayList<Object[]>( prefixes.size() );					
 				
-				encoded.add( new Object[]{ prefix, l });
-				
-				for ( DHTDBMapping m: mappings ){
-				
-					byte[]	k = m.getKey().getBytes();
+				for ( byte[] prefix: prefixes ){
 					
-					byte[]	suffix = new byte[ suffix_len ];
+					int	prefix_len = prefix.length;
+					int	suffix_len = QUERY_STORE_REQUEST_ENTRY_SIZE - prefix_len;
 					
-					System.arraycopy( k, prefix_len, suffix, 0, suffix_len );
+					List<DHTDBMapping> mappings = map.get( prefix );
 					
-					l.add( suffix );
-				}
-			}
-			
-			contact.sendQueryStore(
-				new DHTTransportReplyHandlerAdapter()
-				{
-					public void
-					queryStoreReply(
-						DHTTransportContact contact,
-						List<byte[]>		response )
-					{
-						try{
-							System.out.println( "response " + response.size());
-							
-							for (int i=0;i<response.size();i++){
-								
-								System.out.println( "    " + ByteFormatter.encodeString( response.get(i)));
-							}
-						}finally{
+					List<byte[]> l = new ArrayList<byte[]>( mappings.size());
+					
+					encoded.add( new Object[]{ prefix, l });
+					
+						// TODO: remove entries that we know the contact already has
+						// and then add them back in in the query-reply. note that we
+						// still need to hit the contact if we end up with no values to
+						// query as need to ascertain liveness. We might want to wait until,
+						// say, 2 subsequent fails before treating contact as dead
+					
+					for ( DHTDBMapping m: mappings ){
+					
+						mapping_list.add( m );
 						
-							doQuery( to_do );
-						}
+						byte[]	k = m.getKey().getBytes();
+						
+						byte[]	suffix = new byte[ suffix_len ];
+						
+						System.arraycopy( k, prefix_len, suffix, 0, suffix_len );
+						
+						l.add( suffix );
 					}
-					
-					public void
-					failed(
-						DHTTransportContact 	contact,
-						Throwable				error )
-					{
-						try{
-							System.out.println( "Failed: " + Debug.getNestedExceptionMessage( error ));
-							
-						}finally{
-							
-							doQuery( to_do );
-						}
-					}
-				}, QUERY_STORE_REQUEST_ENTRY_SIZE, encoded );
+				}
 				
-		}else{
+				contact.sendQueryStore(
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						queryStoreReply(
+							DHTTransportContact contact,
+							List<byte[]>		response )
+						{
+							try{
+								System.out.println( "response " + response.size());
+								
+								for (int i=0;i<response.size();i++){
+									
+									System.out.println( "    " + ByteFormatter.encodeString( response.get(i)));
+								}
+							}finally{
+							
+								doQuery( total, to_do, replies, contact, mapping_list, response );
+							}
+						}
+						
+						public void
+						failed(
+							DHTTransportContact 	contact,
+							Throwable				error )
+						{
+							try{
+								System.out.println( "Failed: " + Debug.getNestedExceptionMessage( error ));
+								
+							}finally{
+								
+								doQuery( total, to_do, replies, contact, mapping_list, null );
+							}
+						}
+					}, QUERY_STORE_REQUEST_ENTRY_SIZE, encoded );
+				
+				handled = true;
+				
+			}else{
+				
+				System.out.println( "Not hitting " + contact.getString());
+			}
+		}finally{
 			
-			System.out.println( "Not hitting " + contact.getString());
-			
-			doQuery( to_do );
+			if ( !handled ){
+					
+				final List<DHTDBMapping>	mapping_list = new ArrayList<DHTDBMapping>();
+				
+				ByteArrayHashMap<List<DHTDBMapping>>	map = entry.getValue();
+				
+				List<byte[]> prefixes = map.keys();
+				
+				for ( byte[] prefix: prefixes ){
+												
+					mapping_list.addAll( map.get( prefix ));
+				}
+				
+				doQuery( total, to_do, replies, contact, mapping_list, null );
+			}
 		}
 	}
 	
+	protected void
+	queriesComplete(
+		Map<DHTTransportContact,Object[]>	replies )
+	{
+		try{
+			System.out.println( "Queries complete (replies=" + replies.size() + ")" );
+			
+			Map<DHTDBMapping,List[]>	mapping_details = new HashMap<DHTDBMapping, List[]>();
+			
+			for ( Map.Entry<DHTTransportContact,Object[]> entry: replies.entrySet()){
+				
+				DHTTransportContact	contact = entry.getKey();
+				Object[]			temp	= entry.getValue();
+				
+				List<DHTDBMapping>	mappings 	= (List<DHTDBMapping>)temp[0];
+				List<byte[]>		reply		= (List<byte[]>)temp[1];
+				
+				if ( reply == null ){
+					
+						// contact failed
+					
+					for ( DHTDBMapping mapping: mappings ){
+						
+						List[]	x = mapping_details.get( mapping );
+						
+						if ( x == null ){
+							
+							x = new List[]{ new ArrayList(), new ArrayList(), new ArrayList() };
+							
+							mapping_details.put( mapping, x );
+						}
+						
+						x[2].add( contact );
+					}
+				}else{
+					
+					if ( mappings.size() != reply.size()){
+						
+						Debug.out( "Inconsistent: mappings=" + mappings.size() + ", reply=" + reply.size());
+						
+						continue;
+					}
+					
+					Iterator<DHTDBMapping>	it1 = mappings.iterator();
+					Iterator<byte[]>		it2 = reply.iterator();
+					
+					while( it1.hasNext()){
+						
+						DHTDBMapping	mapping = it1.next();
+						byte[]			rep		= it2.next();
+						
+						List[]	x = mapping_details.get( mapping );
+						
+						if ( x == null ){
+							
+							x = new List[]{ new ArrayList(), new ArrayList(), new ArrayList() };
+							
+							mapping_details.put( mapping, x );
+						}
+
+						if ( rep == null ){
+							
+							x[1].add( contact );
+							
+								// doesn't have it
+							
+						}else{
+							
+							byte[] k = mapping.getKey().getBytes();
+	
+							int	rep_len = rep.length;
+							
+							if ( rep_len < 2 || rep_len >= k.length ){
+								
+								Debug.out( "Invalid rep_len: " + rep_len );
+								
+								continue;
+							}
+							
+							boolean	match = true;
+							
+							int	offset = k.length-rep_len;
+							
+							for (int i=0;i<rep_len;i++){
+								
+								if ( rep[i] != k[i+offset] ){
+									
+									match = false;
+									
+									break;
+								}
+							}
+							
+							if ( match ){
+															
+								x[0].add( contact );
+								
+							}else{
+								
+								System.out.println( "mis-match" );
+
+								x[1].add( contact );
+							}
+						}
+					}
+				}
+			}
+			
+			for ( Map.Entry<DHTDBMapping,List[]> entry: mapping_details.entrySet()){
+				
+				DHTDBMapping	mapping = entry.getKey();
+				List[]			lists	= entry.getValue();
+				
+				System.out.println(
+						ByteFormatter.encodeString( mapping.getKey().getBytes(), 0, 8 ) + 
+						" -> " + lists[0].size() + "/" + lists[1].size() + "/" + lists[2].size());
+			}
+		}finally{
+			
+			survey_in_progress = false;
+		}
+	}
 	
 	public DHTTransportQueryStoreReply
 	queryStore(
