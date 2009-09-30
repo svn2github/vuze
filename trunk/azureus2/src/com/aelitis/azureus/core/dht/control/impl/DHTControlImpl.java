@@ -194,6 +194,7 @@ DHTControlImpl
 						adapter.getStorageAdapter(),
 						_original_republish_interval,
 						_cache_republish_interval,
+						transport.getProtocolVersion(),
 						logger );
 					
 		internal_lookup_pool 	= new ThreadPool("DHTControl:internallookups", lookup_concurrency );

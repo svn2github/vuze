@@ -146,6 +146,7 @@ DHTDBImpl
 		DHTStorageAdapter	_adapter,
 		int					_original_republish_interval,
 		int					_cache_republish_interval,
+		byte				_protocol_version,
 		DHTLogger			_logger )
 	{
 		adapter							= _adapter==null?null:new adapterFacade( _adapter );
@@ -259,7 +260,7 @@ DHTDBImpl
 					}
 				});
 				
-		if ( local_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+		if ( _protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
 			
 			SimpleTimer.addPeriodicEvent(
 					"DHTDB:survey",
