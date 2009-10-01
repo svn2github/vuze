@@ -2103,7 +2103,7 @@ DHTDBImpl
 						
 							if ( contact_state != null ){
 								
-								if ( contact_state.hasMapping(m)){
+								if ( contact_state.testMapping(m)){
 							
 									System.out.println( "    skipping " + ByteFormatter.encodeString( m.getKey().getBytes()) + " as contact already has" );
 									
@@ -2385,7 +2385,7 @@ DHTDBImpl
 							
 							SurveyContactState	contact_state = survey_state.get( new HashWrapper( c.getID()));
 							
-							if ( contact_state != null && !contact_state.hasMapping( mapping )){
+							if ( contact_state != null && !contact_state.testMapping( mapping )){
 								
 								potential_targets.add( contact_state );
 							}
@@ -2511,7 +2511,7 @@ DHTDBImpl
 												
 												for ( DHTDBMapping m: keys ){
 													
-													contact.hasMapping( m );
+													contact.addMapping( m );
 												}
 											}
 										}finally{
@@ -2523,7 +2523,7 @@ DHTDBImpl
 					}
 				};
 				
-			if ( d_contact.getRandomID() == 0 ){
+			if ( true || d_contact.getRandomID() == 0 ){
 				
 				d_contact.sendFindNode(
 						new DHTTransportReplyHandlerAdapter()
@@ -2606,7 +2606,7 @@ DHTDBImpl
 						
 						if ( existing_state != null ){
 							
-							existing_state.hasMapping( mapping );
+							existing_state.addMapping( mapping );
 						}
 						
 						byte[] k = mapping.getKey().getBytes();
@@ -3434,7 +3434,7 @@ DHTDBImpl
 		}
 		
 		protected boolean
-		hasMapping(
+		testMapping(
 			DHTDBMapping	mapping )
 		{
 			return( mappings.contains( mapping ));
