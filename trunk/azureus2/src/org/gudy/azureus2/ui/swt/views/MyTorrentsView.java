@@ -1460,6 +1460,9 @@ public class MyTorrentsView
     for (int i = 0; i < rows.length; i++) {
 			TableRowCore row = rows[i];
       DownloadManager dm = (DownloadManager)row.getDataSource(true);
+      if (dm == null) {
+      	continue;
+      }
       int iOldPos = dm.getPosition();
       
       globalManager.moveTo(dm, iNewPos);
