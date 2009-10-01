@@ -992,7 +992,7 @@ DHTControlImpl
 				(byte)0,
 				contacts, 
 				0, 
-				new DHTOperationListenerDemuxer( new DHTOperationAdapter()),
+				new DHTOperationListenerDemuxer( listener ),
 				false,
 				new HashSet(),
 				1,
