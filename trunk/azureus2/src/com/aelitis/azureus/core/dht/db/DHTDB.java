@@ -138,7 +138,7 @@ DHTDB
 		 * @return
 		 */
 	
-	public Iterator
+	public Iterator<HashWrapper>
 	getKeys();
 	
 	public DHTDBStats
