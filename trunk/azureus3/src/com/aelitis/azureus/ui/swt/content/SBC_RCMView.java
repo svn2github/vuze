@@ -95,6 +95,7 @@ SBC_RCMView
 
 	private SideBarEntrySWT 	sidebar_entry;
 	private Composite			table_parent;
+	private boolean				space_reserved;
 	
 	
 	private String		match = "";
@@ -122,10 +123,15 @@ SBC_RCMView
 			sidebar_entry = sidebar.getCurrentEntry();
 			
 			sidebar_entry.setIconBarEnabler(this);
+
+			if ( !sidebar_entry.getId().equals( SideBar.SIDEBAR_SECTION_RELATED_CONTENT )){
+		
+				manager.reserveTemporarySpace();
+				
+				space_reserved = true;
+			}
 		}
 		
-		manager.reserveTemporarySpace();
-
 		return null;
 	}
 
@@ -288,8 +294,11 @@ SBC_RCMView
 			table_parent,
 		});
 
-		manager.releaseTemporarySpace();
-
+		if ( space_reserved ){
+		
+			manager.releaseTemporarySpace();
+		}
+		
 		return( super.skinObjectDestroyed(skinObject, params));
 	}
 	
