@@ -124,11 +124,15 @@ DHTDBImpl
 	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
 
 	private static final boolean	DEBUG_SURVEY		= false;
-
+	private static final boolean	SURVEY_ONLY_RF_KEYS	= false;
+	
+	
 	private static final long	SURVEY_PERIOD		= DEBUG_SURVEY?1*60*1000:5*60*1000;
 
 	private static final int	MAX_SURVEY_SIZE			= 100;
 	private static final int	MAX_SURVEY_STATE_SIZE	= 150;
+	
+	private final boolean	survey_enabled;
 	
 	private volatile boolean survey_in_progress;
 		
@@ -156,6 +160,8 @@ DHTDBImpl
 		cache_republish_interval		= _cache_republish_interval;
 		logger							= _logger;
 			
+		survey_enabled = _protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL;
+		
 		if ( ENABLE_PRECIOUS_STUFF ){
 			
 			SimpleTimer.addPeriodicEvent(
@@ -262,7 +268,7 @@ DHTDBImpl
 					}
 				});
 				
-		if ( _protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+		if ( survey_enabled ){
 			
 			SimpleTimer.addPeriodicEvent(
 					"DHTDB:survey",
@@ -968,6 +974,8 @@ DHTDBImpl
 		
 		final Map<HashWrapper,List<DHTDBValueImpl>>	republish = new HashMap<HashWrapper,List<DHTDBValueImpl>>();
 		
+		List<DHTDBMapping>	republish_via_survey = new ArrayList<DHTDBMapping>();
+		
 		long	now = System.currentTimeMillis();
 		
 		try{
@@ -997,6 +1005,8 @@ DHTDBImpl
 				
 				Iterator<DHTDBValueImpl>	it2 = mapping.getValues();
 				
+				boolean	all_rf_values = it2.hasNext();
+				
 				List<DHTDBValueImpl>	values = new ArrayList<DHTDBValueImpl>();
 				
 				while( it2.hasNext()){
@@ -1004,6 +1014,11 @@ DHTDBImpl
 					DHTDBValueImpl	value = it2.next();
 				
 					if ( !value.isLocal()){
+						
+						if ( value.getReplicationFactor() == DHT.REP_FACT_DEFAULT ){
+							
+							all_rf_values = false;
+						}
 						
 							// if this value was stored < period ago then we assume that it was
 							// also stored to the other k-1 locations at the same time and therefore
@@ -1026,15 +1041,81 @@ DHTDBImpl
 					}
 				}
 
+				if ( survey_enabled && all_rf_values ){
+							
+					values.clear();	// handled by the survey process
+					
+					republish_via_survey.add( mapping );
+				}
+					
 				if ( values.size() > 0 ){
-					
+						
 					republish.put( key, values );
-					
 				}
 			}
 		}finally{
 			
 			this_mon.exit();
+		}
+		
+		if ( republish_via_survey.size() > 0 ){
+		
+				// we still check for being too far away here
+			
+			List<HashWrapper>	stop_caching = new ArrayList<HashWrapper>();
+
+			for ( DHTDBMapping mapping: republish_via_survey ){
+				
+				HashWrapper			key		= mapping.getKey();
+				
+				byte[]	lookup_id	= key.getHash();
+
+				List<DHTTransportContact>	contacts = control.getClosestKContactsList( lookup_id, false );
+				
+					// if we are no longer one of the K closest contacts then we shouldn't
+					// cache the value
+			
+				boolean	keep_caching	= false;
+			
+				for (int j=0;j<contacts.size();j++){
+			
+					if ( router.isID(((DHTTransportContact)contacts.get(j)).getID())){
+					
+						keep_caching	= true;
+					
+						break;
+					}
+				}
+			
+				if ( !keep_caching ){
+					
+					DHTLog.log( "Dropping cache entry for " + DHTLog.getString( lookup_id ) + " as now too far away" );
+					
+					stop_caching.add( key );
+				}
+			}
+			
+			if ( stop_caching.size() > 0 ){
+				
+				try{
+					this_mon.enter();
+					
+					for (int i=0;i<stop_caching.size();i++){
+						
+						DHTDBMapping	mapping = (DHTDBMapping)stored_values.remove( stop_caching.get(i));
+						
+						if ( mapping != null ){
+							
+							removeFromPrefixMap( mapping );
+							
+							mapping.destroy();
+						}
+					}
+				}finally{
+					
+					this_mon.exit();
+				}
+			}
 		}
 		
 		final int[]	values_published	= {0};
@@ -1631,6 +1712,27 @@ DHTDBImpl
 					continue;
 				}
 				
+				if ( SURVEY_ONLY_RF_KEYS ){
+					
+					Iterator<DHTDBValueImpl>	it2 = mapping.getValues();
+					
+					boolean	all_rf_values = it2.hasNext();
+					
+					while( it2.hasNext()){
+
+						if ( it2.next().getReplicationFactor() == DHT.REP_FACT_DEFAULT ){
+
+							all_rf_values = false;
+							
+							break;
+						}
+					}
+					
+					if ( !all_rf_values ){
+						
+						continue;
+					}
+				}
 				
 				byte[] key = mapping.getKey().getBytes();
 				
