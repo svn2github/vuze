@@ -2388,7 +2388,7 @@ RelatedContentManager
 
 			Map<String,DownloadInfo>		related_content			= content_cache.related_content;
 
-			int num_to_remove = related_content.size() - max_results + temporary_space.get();
+			int num_to_remove = related_content.size() - ( max_results + temporary_space.get());
 			
 			if ( num_to_remove > 0 ){
 				
