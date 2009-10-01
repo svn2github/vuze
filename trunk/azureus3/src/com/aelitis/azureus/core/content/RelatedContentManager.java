@@ -77,6 +77,8 @@ RelatedContentManager
 	private static final int	MAX_TITLE_LENGTH		= 80;
 	private static final int	MAX_CONCURRENT_PUBLISH	= 2;
 	
+	private static final int	TEMPORARY_SPACE_DELTA	= 50;
+	
 	private static final int	MAX_RANK	= 100;
 	
 	private static final String	CONFIG_FILE 				= "rcm.config";
@@ -125,6 +127,8 @@ RelatedContentManager
 	private boolean	ui_enabled;
 	private int		max_search_level;
 	private int		max_results;
+	
+	private AtomicInteger	temporary_space = new AtomicInteger();
 	
 	private int publishing_count = 0;
 	
@@ -1669,7 +1673,7 @@ RelatedContentManager
 	{
 		Map<String,DownloadInfo> related_content = content_cache.related_content;
 		
-		if ( related_content.size() < max_results ){
+		if ( related_content.size() < max_results + temporary_space.get()){
 			
 			return( true );
 		}
@@ -2365,6 +2369,71 @@ RelatedContentManager
 		FileUtil.deleteResilientConfigFile( PERSIST_DEL_FILE );
 		
 		persist_del_bloom = BloomFilterFactory.createAddOnly( PD_BLOOM_INITIAL_SIZE );
+	}
+	
+	public void
+	reserveTemporarySpace()
+	{
+		temporary_space.addAndGet( TEMPORARY_SPACE_DELTA );
+	}
+	
+	public void
+	releaseTemporarySpace()
+	{
+		temporary_space.addAndGet( -TEMPORARY_SPACE_DELTA );
+		
+		synchronized( this ){
+			
+			ContentCache	content_cache = loadRelatedContent();
+
+			Map<String,DownloadInfo>		related_content			= content_cache.related_content;
+
+			int num_to_remove = related_content.size() - max_results + temporary_space.get();
+			
+			if ( num_to_remove > 0 ){
+				
+				List<DownloadInfo>	infos = new ArrayList<DownloadInfo>(related_content.values());
+					
+				Collections.sort(
+					infos,
+					new Comparator<DownloadInfo>()
+					{
+						public int 
+						compare(
+							DownloadInfo o1, 
+							DownloadInfo o2) 
+						{
+							int res = o2.getLevel() - o1.getLevel();
+							
+							if ( res != 0 ){
+								
+								return( res );
+							}
+							
+							res = o1.getRank() - o2.getRank();
+							
+							if ( res != 0 ){
+								
+								return( res );
+							}
+							
+							return( o1.getLastSeenSecs() - o2.getLastSeenSecs());
+						}
+					});
+
+				List<RelatedContent> to_remove = new ArrayList<RelatedContent>();
+				
+				for (int i=0;i<Math.min( num_to_remove, infos.size());i++ ){
+					
+					to_remove.add( infos.get(i));
+				}
+				
+				if ( to_remove.size() > 0 ){
+						
+					delete( to_remove.toArray( new RelatedContent[to_remove.size()]), content_cache, false );
+				}
+			}
+		}
 	}
 	
 	public void

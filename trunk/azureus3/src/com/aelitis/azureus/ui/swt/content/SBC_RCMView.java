@@ -34,8 +34,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -126,6 +124,8 @@ SBC_RCMView
 			sidebar_entry.setIconBarEnabler(this);
 		}
 		
+		manager.reserveTemporarySpace();
+
 		return null;
 	}
 
@@ -287,6 +287,8 @@ SBC_RCMView
 		Utils.disposeSWTObjects(new Object[] {
 			table_parent,
 		});
+
+		manager.releaseTemporarySpace();
 
 		return( super.skinObjectDestroyed(skinObject, params));
 	}
@@ -522,7 +524,7 @@ SBC_RCMView
 				tableViewInitialized() 
 				{
 					manager.addListener( rcm_listener );
-					
+				
 					Object data_source = sidebar_entry.getDatasource();
 					
 					if ( data_source instanceof RelatedContentEnumerator ){
@@ -614,7 +616,7 @@ SBC_RCMView
 				tableViewDestroyed() 
 				{
 					manager.removeListener( rcm_listener );
-
+					
 					synchronized( content_set ){
 						
 						destroyed = true;
