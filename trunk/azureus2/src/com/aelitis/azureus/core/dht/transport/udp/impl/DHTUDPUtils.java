@@ -604,7 +604,7 @@ DHTUDPUtils
 		
 		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
 
-			os.writeByte( value.getLifeTimeHours()); // 15 + 2+ X + contact
+			os.writeByte( value.getReplicationFactor()); // 15 + 2+ X + contact
 		}
 	}
 	

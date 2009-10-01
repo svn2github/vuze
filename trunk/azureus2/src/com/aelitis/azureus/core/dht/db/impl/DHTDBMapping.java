@@ -375,7 +375,7 @@ DHTDBMapping
 								true,
 								DHT.FLAG_STATS,
 								0,
-								0 )});
+								DHT.REP_FACT_DEFAULT )});
 					
 				}catch( Throwable e ){
 					
