@@ -2451,8 +2451,8 @@ DHTDBImpl
 			final SurveyContactState 	contact = store_op.getKey();
 			final List<DHTDBMapping>	keys	= store_op.getValue();
 			
-			byte[][]				store_keys 		= new byte[keys.size()][];
-			DHTTransportValue[][]	store_values 	= new DHTTransportValue[store_keys.length][];
+			final byte[][]				store_keys 		= new byte[keys.size()][];
+			final DHTTransportValue[][]	store_values 	= new DHTTransportValue[store_keys.length][];
 				
 			for (int i=0;i<store_keys.length;i++){
 			
@@ -2477,43 +2477,86 @@ DHTDBImpl
 				store_values[i] = v.toArray( new DHTTransportValue[v.size()]);
 			}
 				
-			DHTTransportContact d_contact = contact.getContact();
+			final DHTTransportContact d_contact = contact.getContact();
 			
-			System.out.println( "Storing " + keys.size() + " on " + d_contact.getString() + " - rand=" + d_contact.getRandomID());
-			
-			control.putDirectEncodedKeys( 
-					store_keys, 
-					"Replication forward",
-					store_values,
-					d_contact,
-					new DHTOperationAdapter()
+			final Runnable	store_exec = 
+				new Runnable()
+				{
+					public void
+					run()
 					{
-						public void
-						complete(
-							boolean				timeout )
-						{
-							try{
-								this_mon.enter();
-
-								if ( timeout ){
-									
-									contact.contactFailed();
-									
-								}else{
-									
-									contact.contactOK();
-									
-									for ( DHTDBMapping m: keys ){
-										
-										contact.hasMapping( m );
+						System.out.println( "Storing " + keys.size() + " on " + d_contact.getString() + " - rand=" + d_contact.getRandomID());
+						
+						control.putDirectEncodedKeys( 
+								store_keys, 
+								"Replication forward",
+								store_values,
+								d_contact,
+								new DHTOperationAdapter()
+								{
+									public void
+									complete(
+										boolean				timeout )
+									{
+										try{
+											this_mon.enter();
+			
+											if ( timeout ){
+												
+												contact.contactFailed();
+												
+											}else{
+												
+												contact.contactOK();
+												
+												for ( DHTDBMapping m: keys ){
+													
+													contact.hasMapping( m );
+												}
+											}
+										}finally{
+											
+											this_mon.exit();
+										}
 									}
-								}
-							}finally{
-								
-								this_mon.exit();
+								});
+					}
+				};
+				
+			if ( d_contact.getRandomID() == 0 ){
+				
+				d_contact.sendFindNode(
+						new DHTTransportReplyHandlerAdapter()
+						{
+							public void
+							findNodeReply(
+								DHTTransportContact 	_contact,
+								DHTTransportContact[]	_contacts )
+							{	
+								store_exec.run();
 							}
-						}
-					});
+					
+							public void
+							failed(
+								DHTTransportContact 	_contact,
+								Throwable				_error )
+							{
+								try{
+									this_mon.enter();
+										
+									contact.contactFailed();
+										
+								}finally{
+									
+									this_mon.exit();
+								}
+							}
+						},
+						d_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20] );
+			}else{
+				
+				store_exec.run();
+			}
 		}
 	}
 	
