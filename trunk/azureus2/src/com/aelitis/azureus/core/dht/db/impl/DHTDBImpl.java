@@ -272,7 +272,7 @@ DHTDBImpl
 						perform(
 							TimerEvent	event )
 						{
-							survey();
+							//survey();
 						}
 					});
 		}
