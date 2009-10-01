@@ -272,7 +272,7 @@ DHTDBImpl
 						perform(
 							TimerEvent	event )
 						{
-							//survey();
+							survey();
 						}
 					});
 		}
@@ -2445,7 +2445,79 @@ DHTDBImpl
 		}
 		
 		System.out.println( "Store ops: " + store_ops.size());
+		
+		for ( Map.Entry<SurveyContactState,List<DHTDBMapping>> store_op: store_ops.entrySet()){
+			
+			final SurveyContactState 	contact = store_op.getKey();
+			final List<DHTDBMapping>	keys	= store_op.getValue();
+			
+			byte[][]				store_keys 		= new byte[keys.size()][];
+			DHTTransportValue[][]	store_values 	= new DHTTransportValue[store_keys.length][];
+				
+			for (int i=0;i<store_keys.length;i++){
+			
+				DHTDBMapping	mapping = keys.get(i);
+			
+				store_keys[i] = mapping.getKey().getBytes();
+					
+				List<DHTTransportValue> v = new ArrayList<DHTTransportValue>();
+				
+				Iterator<DHTDBValueImpl> it = mapping.getValues();
+				
+				while( it.hasNext()){
+					
+					DHTDBValueImpl value = it.next();
+					
+					if ( !value.isLocal()){
+						
+						v.add( value.getValueForRelay(local_contact));
+					}
+				}
+				
+				store_values[i] = v.toArray( new DHTTransportValue[v.size()]);
+			}
+				
+			DHTTransportContact d_contact = contact.getContact();
+			
+			System.out.println( "Storing " + keys.size() + " on " + d_contact.getString() + " - rand=" + d_contact.getRandomID());
+			
+			control.putDirectEncodedKeys( 
+					store_keys, 
+					"Replication forward",
+					store_values,
+					d_contact,
+					new DHTOperationAdapter()
+					{
+						public void
+						complete(
+							boolean				timeout )
+						{
+							try{
+								this_mon.enter();
+
+								if ( timeout ){
+									
+									contact.contactFailed();
+									
+								}else{
+									
+									contact.contactOK();
+									
+									for ( DHTDBMapping m: keys ){
+										
+										contact.hasMapping( m );
+									}
+								}
+							}finally{
+								
+								this_mon.exit();
+							}
+						}
+					});
+		}
 	}
+	
+	
 	
 	public DHTTransportQueryStoreReply
 	queryStore(
@@ -3267,6 +3339,14 @@ DHTDBImpl
 			DHTTransportContact		c )
 		{
 			contact = c;
+			
+			log( "new" );
+		}
+		
+		protected DHTTransportContact
+		getContact()
+		{
+			return( contact );
 		}
 		
 		protected long
@@ -3281,6 +3361,8 @@ DHTDBImpl
 		{
 			if ( c.getInstanceID() != contact.getInstanceID()){
 				
+				log( "instance id changed" );
+				
 				mappings.clear();
 			}
 			
@@ -3290,6 +3372,8 @@ DHTDBImpl
 		protected void
 		contactOK()
 		{
+			log( "contact ok" );
+			
 			consec_fails	= 0;
 		}
 		
@@ -3297,6 +3381,8 @@ DHTDBImpl
 		contactFailed()
 		{
 			consec_fails++;
+			
+			log( "failed, consec=" + consec_fails );
 			
 			if ( consec_fails >= 2 ){
 				
@@ -3320,15 +3406,28 @@ DHTDBImpl
 		protected void
 		addMapping(
 			DHTDBMapping	mapping )
-		{
-			mappings.add( mapping );
+		{			
+			if ( mappings.add( mapping )){
+				
+				log( "add mapping" );
+			}
 		}
 		
 		protected void
 		removeMapping(
 			DHTDBMapping	mapping )
+		{			
+			if ( mappings.remove( mapping )){
+				
+				log( "remove mapping" );
+			}
+		}
+		
+		protected void
+		log(
+			String	str )
 		{
-			mappings.remove( mapping );
+			System.out.println( "s_state: " + contact.getString() + ": " + str );
 		}
 	}
 }

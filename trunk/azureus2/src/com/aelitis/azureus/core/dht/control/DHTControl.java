@@ -159,6 +159,14 @@ DHTControl
 		DHTTransportValue[][]		value_sets,
 		List<DHTTransportContact>	contacts );
 	
+	public void
+	putDirectEncodedKeys(
+		byte[][]					keys,
+		String						description,
+		DHTTransportValue[][]		value_sets,
+		DHTTransportContact			contact,
+		DHTOperationListener		listener );
+	
 	public int
 	computeAndCompareDistances(
 		byte[]		n1,

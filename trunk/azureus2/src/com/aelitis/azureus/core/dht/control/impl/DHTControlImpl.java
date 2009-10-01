@@ -968,6 +968,37 @@ DHTControlImpl
 				false );
 	}
 		
+	public void
+	putDirectEncodedKeys(
+		byte[][]				encoded_keys,
+		String					description,
+		DHTTransportValue[][]	value_sets,
+		DHTTransportContact		contact,
+		DHTOperationListener	listener )
+	{
+			// we don't consider diversification for direct puts (these are for republishing
+			// of cached mappings and we maintain these as normal - its up to the original
+			// publisher to diversify as required)
+		
+		List<DHTTransportContact> contacts = new ArrayList<DHTTransportContact>(1);
+		
+		contacts.add( contact );
+		
+		put( 	internal_put_pool,
+				false,
+				encoded_keys, 
+				description,
+				value_sets, 
+				(byte)0,
+				contacts, 
+				0, 
+				new DHTOperationListenerDemuxer( new DHTOperationAdapter()),
+				false,
+				new HashSet(),
+				1,
+				false );
+	}
+	
 	public byte[]
 	getObfuscatedKey(
 		byte[]		plain_key )
