@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -53,6 +54,11 @@ import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.utils.search.SearchException;
+import org.gudy.azureus2.plugins.utils.search.SearchInstance;
+import org.gudy.azureus2.plugins.utils.search.SearchObserver;
+import org.gudy.azureus2.plugins.utils.search.SearchProvider;
+import org.gudy.azureus2.plugins.utils.search.SearchResult;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -231,6 +237,49 @@ RelatedContentManager
 					perform(
 						TimerEvent event )
 					{
+						if ( ui_enabled ){
+							
+							try{
+								plugin_interface.getUtilities().registerSearchProvider(
+									new SearchProvider()
+									{
+										private Map<Integer,Object>	properties = new HashMap<Integer, Object>();
+										
+										{
+											properties.put( PR_NAME, "RCM" );
+										}
+										
+										public SearchInstance
+										search(
+											Map<String,Object>	search_parameters,
+											SearchObserver		observer )
+										
+											throws SearchException
+										{
+											return( searchRCM( search_parameters, observer ));
+										}
+										
+										public Object
+										getProperty(
+											int			property )
+										{
+											return( properties.get( property ));
+										}
+										
+										public void
+										setProperty(
+											int			property,
+											Object		value )
+										{
+											properties.put( property, value );
+										}
+									});
+							}catch( Throwable e ){
+								
+								Debug.out( "Failed to register search provider" );
+							}
+						}
+						
 						plugin_interface.addListener(
 							new PluginListener()
 							{
@@ -1810,6 +1859,90 @@ RelatedContentManager
 					}
 				});
 	}
+	
+	protected SearchInstance
+	searchRCM(
+		Map<String,Object>		search_parameters,
+		final SearchObserver	observer )
+	
+		throws SearchException
+	{
+		final String	term = (String)search_parameters.get( SearchProvider.SP_SEARCH_TERM );
+		
+		final SearchInstance si = 
+			new SearchInstance()
+			{
+				public void
+				cancel()
+			{
+					Debug.out( "Cancelled" );
+				}
+			};
+			
+		if ( term == null ){
+		
+			observer.complete();
+			
+		}else{
+		
+			new AEThread2( "RCM:search", true )
+			{
+				public void
+				run()
+				{
+					try{
+						
+						RelatedContent[] content = getRelatedContent();
+						
+						for ( final RelatedContent c: content ){
+							
+							String title = c.getTitle();
+							
+							if ( title.toLowerCase().contains( term.toLowerCase())){
+								
+								SearchResult result = 
+									new SearchResult()
+									{
+										public Object
+										getProperty(
+											int		property_name )
+										{
+											if ( property_name == SearchResult.PR_NAME ){
+												
+												return( c.getTitle());
+												
+											}else if ( property_name == SearchResult.PR_SIZE ){
+												
+												return( c.getSize());
+												
+											}else if ( property_name == SearchResult.PR_RANK ){
+												
+												return( new Long( c.getRank()));
+												
+											}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
+														property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
+												
+												return( TorrentUtils.getMagnetURI( c.getHash()));
+											}
+											
+											return( null );
+										}
+									};
+									
+								observer.resultReceived( si, result );
+							}
+						}
+					}finally{
+						
+						observer.complete();
+					}
+				}
+			}.start();
+		}
+		
+		return( si );
+	}
+	
 	
 	protected void
 	setConfigDirty()
