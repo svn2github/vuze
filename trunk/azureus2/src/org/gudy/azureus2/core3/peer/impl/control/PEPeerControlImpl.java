@@ -4004,9 +4004,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	public boolean doOptimisticDisconnect( boolean	pending_lan_local_peer, boolean force )
 	{
-		// avoid unnecessary churn, i.e. 2 non-forced ones per 30 seconds
-		if(!pending_lan_local_peer && !force && optimisticDisconnectCount >= 2)
-			return false;
 		
 		final ArrayList peer_transports = peer_transports_cow;
 		PEPeerTransport max_transport = null;
@@ -4016,6 +4013,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 		long max_time = 0;
 		long max_seed_time 		= 0;
 		long max_non_lan_time	= 0;
+		
+
+		List<Long> activeConnectionTimes = new ArrayList<Long>(peer_transports.size());
 
 		int	lan_peer_count	= 0;
 
@@ -4023,15 +4023,19 @@ DiskManagerCheckRequestListener, IPFilterListener
 			final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
 
 			if( peer.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
-				final long timeSinceSentData =peer.getTimeSinceLastDataMessageSent();
 
+				final long timeSinceConnection =peer.getTimeSinceConnectionEstablished();
+				final long timeSinceSentData =peer.getTimeSinceLastDataMessageSent();				
+				
+				activeConnectionTimes.add(timeSinceConnection);
+				
 				long peerTestTime = 0;
 				if( seeding_mode){
 					if( timeSinceSentData != -1 )
 						peerTestTime = timeSinceSentData;  //ensure we've sent them at least one data message to qualify for drop
 				}else{
 					final long timeSinceGoodData =peer.getTimeSinceGoodDataReceived();
-					final long timeSinceConnection =peer.getTimeSinceConnectionEstablished();
+					
 
 					if( timeSinceGoodData == -1 ) 
 						peerTestTime +=timeSinceConnection;   //never received
@@ -4104,12 +4108,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 				}
 
 
-
-
-
-
-
-
 				if( peerTestTime > max_time ) {
 					max_time = peerTestTime;
 					max_transport = peer;
@@ -4124,7 +4122,18 @@ DiskManagerCheckRequestListener, IPFilterListener
 				}
 			}
 		}
-
+		
+		Collections.sort(activeConnectionTimes);
+		long medianConnectionTime = activeConnectionTimes.get(activeConnectionTimes.size()/2);
+		
+		// allow 1 disconnect every 30s per 30 peers; 2 at least every 30s
+		int maxOptimistics = Math.max(getMaxConnections()/30,2);
+		
+		// avoid unnecessary churn, e.g. 
+		if(!pending_lan_local_peer && !force && optimisticDisconnectCount >= maxOptimistics && medianConnectionTime < 5*60*1000)
+			return false;
+		
+		
 		// don't boot lan peers if we can help it (unless we have a few of them)
 
 		if ( max_transport != null ){
