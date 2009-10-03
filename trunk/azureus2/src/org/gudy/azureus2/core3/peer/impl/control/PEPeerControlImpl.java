@@ -3825,6 +3825,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		if ( mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0 ) {
 			//if we're at our connection limit, time out the least-useful
 			//one so we can establish a possibly-better new connection
+			optimisticDisconnectCount = 0;
 			if( getMaxNewConnectionsAllowed() == 0 ) {  //we've reached limit        
 				doOptimisticDisconnect( false, false );
 			}
@@ -3849,7 +3850,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		nextPEXSweepIndex = goal;
 	}
-
+	
 	private void
 	doUDPConnectionChecks(
 		int		number )
@@ -3997,9 +3998,16 @@ DiskManagerCheckRequestListener, IPFilterListener
 			}
 		}
 	}
+	
+	// counter is reset every 30s by doConnectionChecks()
+	private int optimisticDisconnectCount = 0;
 
 	public boolean doOptimisticDisconnect( boolean	pending_lan_local_peer, boolean force )
 	{
+		// avoid unnecessary churn, i.e. 2 non-forced ones per 30 seconds
+		if(!pending_lan_local_peer && !force && optimisticDisconnectCount >= 2)
+			return false;
+		
 		final ArrayList peer_transports = peer_transports_cow;
 		PEPeerTransport max_transport = null;
 		PEPeerTransport max_seed_transport		= null;
@@ -4071,19 +4079,27 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 					PEPeerStats pestats = peer.getStats();
 					// everybody has deserverd a chance of half an MB transferred data
-					if(pestats.getTotalDataBytesReceived()+pestats.getTotalDataBytesSent() < 1024*512 ) {
+					if(pestats.getTotalDataBytesReceived()+pestats.getTotalDataBytesSent() > 1024*512 ) {
+						boolean goodPeer = true;
+						
 						// we don't like snubbed peers with a negative gain
 						if( peer.isSnubbed() && pestats.getTotalDataBytesReceived() < pestats.getTotalDataBytesSent() ) {
 							peerTestTime *= 1.5;
+							goodPeer = false;
 						}
 						// we don't like peers with a very bad ratio (10:1)
 						if( pestats.getTotalDataBytesSent() > pestats.getTotalDataBytesReceived() * 10 ) {
 							peerTestTime *= 2;
+							goodPeer = false;
 						}
 						// modify based on discarded : overall downloaded ratio
-						if( pestats.getTotalDataBytesReceived() > 0  ) {
+						if( pestats.getTotalDataBytesReceived() > 0 && pestats.getTotalBytesDiscarded() > 0 ) {
 							peerTestTime = (long)(peerTestTime *( 1.0+((double)pestats.getTotalBytesDiscarded()/(double)pestats.getTotalDataBytesReceived())));
 						}
+						
+						// prefer peers that do some work, let the churn happen with peers that did nothing
+						if(goodPeer)
+							peerTestTime *= 0.7;							
 					}
 				}
 
@@ -4127,11 +4143,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			if( getMaxSeedConnections() > 0 && max_seed_transport != null && max_time > 5*60*1000 ) {
 				closeAndRemovePeer( max_seed_transport, "timed out by doOptimisticDisconnect()", true );
+				optimisticDisconnectCount++;
 				return true;
 			}
 
 			if( max_transport != null && max_time > 5 *60*1000 ) {  //ensure a 5 min minimum test time
 				closeAndRemovePeer( max_transport, "timed out by doOptimisticDisconnect()", true );
+				optimisticDisconnectCount++;
 				return true;
 			}
 
@@ -4139,6 +4157,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			if ( pending_lan_local_peer && lan_peer_count < LAN_PEER_MAX ){
 				closeAndRemovePeer( max_transport, "making space for LAN peer in doOptimisticDisconnect()", true );
+				optimisticDisconnectCount++;
 				return true;
 			}
 			
