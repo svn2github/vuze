@@ -37,6 +37,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
@@ -45,6 +46,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+import com.aelitis.azureus.core.util.HTTPUtils;
 import com.aelitis.azureus.core.util.png.PNG;
 import com.aelitis.net.magneturi.MagnetURIHandler;
 import com.aelitis.net.magneturi.MagnetURIHandlerListener;
@@ -96,6 +98,8 @@ MagnetURIHandlerImpl
 	private List	listeners	= new ArrayList();
 	
 	private Map		info_map 	= new HashMap();
+	
+	private Map<String,ResourceProvider>	resources = new HashMap<String, ResourceProvider>();
 	
 	protected
 	MagnetURIHandlerImpl()
@@ -283,10 +287,10 @@ MagnetURIHandlerImpl
 		
 			// magnet:?xt=urn:sha1:YNCKHTQCWBTRNJIV4WNAE52SJUQCZO5C
 		
-		Map		original_params 			= new HashMap();
-		Map		lc_params					= new HashMap();
+		Map<String,String>		original_params 			= new HashMap<String,String>();
+		Map<String,String>		lc_params					= new HashMap<String,String>();
 		
-		List 	source_params	= new ArrayList();
+		List<String> 	source_params	= new ArrayList<String>();
 		
 		int	pos	= get.indexOf( '?' );
 		
@@ -845,6 +849,34 @@ MagnetURIHandlerImpl
 
 			
 			writeReply( os, "application/x-javascript", script );
+			
+		}else if ( get.startsWith( "/resource." )){
+
+			String rid = lc_params.get( "rid" );
+			
+			ResourceProvider provider;
+			
+			synchronized( resources ){
+				
+				provider = resources.get( rid );
+			}
+			
+			if ( provider != null ){
+				
+				byte[] data = provider.getData();
+				
+				if ( data != null ){
+				
+					writeReply( os, HTTPUtils.guessContentTypeFromFileType( provider.getFileType()), data );
+					
+				}else{
+					
+					writeNotFound( os );
+				}
+			}else{
+				
+				writeNotFound( os );
+			}
 		}
 		
 		return( true );
@@ -1022,6 +1054,28 @@ MagnetURIHandlerImpl
 			Thread.sleep(1000000);
 		}catch( Throwable e ){
 			
+		}
+	}
+	
+	public URL
+	registerResource(
+		ResourceProvider		provider )
+	{
+		try{
+			String rid = URLEncoder.encode( provider.getUID(), "UTF-8" );
+
+			synchronized( resources ){
+						
+				resources.put( rid, provider );
+			}				
+			
+			return( new URL( "http://127.0.0.1:" + port +  "/resource." + provider.getFileType() + "?rid=" + rid ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( null );
 		}
 	}
 }

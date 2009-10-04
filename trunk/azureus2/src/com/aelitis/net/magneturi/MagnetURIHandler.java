@@ -22,6 +22,8 @@
 
 package com.aelitis.net.magneturi;
 
+import java.net.URL;
+
 import com.aelitis.net.magneturi.impl.MagnetURIHandlerImpl;
 
 /**
@@ -53,4 +55,21 @@ MagnetURIHandler
 	addInfo(
 		String		name,
 		int			info );
+	
+	public abstract URL
+	registerResource(
+		ResourceProvider		provider );
+	
+	public interface
+	ResourceProvider
+	{
+		public String
+		getUID();
+		
+		public String
+		getFileType();
+				
+		public byte[]
+		getData();
+	}
 }
