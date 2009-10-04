@@ -127,8 +127,8 @@ DHTDBImpl
 	private static final boolean	SURVEY_ONLY_RF_KEYS	= false;
 	
 	
-	private static final long	SURVEY_PERIOD		= DEBUG_SURVEY?1*60*1000:5*60*1000;
-
+	private static final int	SURVEY_PERIOD			= DEBUG_SURVEY?1*60*1000:5*60*1000;
+	private static final int	SURVEY_STATE_TIMEOUT	= SURVEY_PERIOD*6; 
 	private static final int	MAX_SURVEY_SIZE			= 100;
 	private static final int	MAX_SURVEY_STATE_SIZE	= 150;
 	
@@ -1693,7 +1693,19 @@ DHTDBImpl
 		
 		try{
 			this_mon.enter();
-						
+			
+			long	now = SystemTime.getMonotonousTime();
+			
+			Iterator<SurveyContactState> s_it = survey_state.values().iterator();
+			
+			while( s_it.hasNext()){
+				
+				if ( now - s_it.next().getLastUseTime() > SURVEY_STATE_TIMEOUT ){
+					
+					s_it.remove();
+				}
+			}
+			
 			Iterator<DHTDBMapping>	it = stored_values.values().iterator();
 			
 			int	key_count = 0;
@@ -2380,6 +2392,7 @@ DHTDBImpl
 					survey_state.put( hw, contact_state );
 				}
 				
+				contact_state.updateUseTime();
 				
 				Object[]			temp	= entry.getValue();
 				
@@ -3552,6 +3565,7 @@ DHTDBImpl
 	{
 		private DHTTransportContact		contact;
 		private long					creation_time	= SystemTime.getMonotonousTime();
+		private long					last_used		= creation_time;
 		
 		private Set<DHTDBMapping>		mappings = new HashSet<DHTDBMapping>();
 		
@@ -3590,6 +3604,18 @@ DHTDBImpl
 			}
 			
 			contact	= c;
+		}
+		
+		protected void
+		updateUseTime()
+		{
+			last_used = SystemTime.getMonotonousTime();
+		}
+		
+		protected long
+		getLastUseTime()
+		{
+			return( last_used );
 		}
 		
 		protected void
