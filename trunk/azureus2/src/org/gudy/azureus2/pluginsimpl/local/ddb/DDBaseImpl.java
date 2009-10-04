@@ -541,7 +541,34 @@ DDBaseImpl
 		
 		transfer_map.put( type_key, handler );
 		
-		final String	handler_name = type==torrent_transfer?"Torrent Transfer":"Plugin Defined";
+		final String	handler_name;
+		
+		if ( type == torrent_transfer ){
+			
+			handler_name = "Torrent Transfer";
+			
+		}else{
+			
+			String class_name = type.getClass().getName();
+			
+			int	pos = class_name.indexOf( '$' );
+			
+			if ( pos != -1 ){
+				
+				class_name = class_name.substring( pos+1 );
+				
+			}else{
+			
+				pos = class_name.lastIndexOf( '.' );
+				
+				if ( pos != -1 ){
+					
+					class_name = class_name.substring( pos+1 );
+				}
+			}
+			
+			handler_name = "Plugin Defined (" + class_name + ")";
+		}
 		
 		getDHT().registerHandler(
 			type_key.getHash(),
