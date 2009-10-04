@@ -21,7 +21,10 @@
 
 package com.aelitis.azureus.core.content;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,6 +42,7 @@ import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -49,6 +53,13 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferHandler;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
@@ -73,9 +84,11 @@ import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 import com.aelitis.azureus.util.ImportExportUtils;
+import com.aelitis.net.magneturi.MagnetURIHandler;
 
 public class 
-RelatedContentManager 
+RelatedContentManager
+	implements DistributedDatabaseTransferHandler
 {
 	private static final boolean TRACE = false;
 	
@@ -172,6 +185,8 @@ RelatedContentManager
 	private boolean	secondary_lookup_in_progress;
 	private long	secondary_lookup_complete_time;
 	
+	private DistributedDatabase		ddb;
+	private RCMSearchXFer			transfer_type = new RCMSearchXFer();
 	
 	protected
 	RelatedContentManager()
@@ -228,6 +243,116 @@ RelatedContentManager
 					}
 				});
 			
+			if ( ui_enabled ){
+				
+				try{
+					plugin_interface.getUtilities().registerSearchProvider(
+						new SearchProvider()
+						{
+							private Map<Integer,Object>	properties = new HashMap<Integer, Object>();
+							
+							{
+								properties.put( PR_NAME, "RCM" );
+								
+								try{
+									URL url = 
+										MagnetURIHandler.getSingleton().registerResource(
+											new MagnetURIHandler.ResourceProvider()
+											{
+												public String
+												getUID()
+												{
+													return( RelatedContentManager.class.getName() + ".1" );
+												}
+												
+												public String
+												getFileType()
+												{
+													return( "png" );
+												}
+														
+												public byte[]
+												getData()
+												{
+													InputStream is = getClass().getClassLoader().getResourceAsStream( "org/gudy/azureus2/ui/icons/a16.png" );
+													
+													if ( is == null ){
+														
+														return( null );
+													}
+													
+													try{
+														ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+														
+														try{
+															byte[]	buffer = new byte[8192];
+															
+															while( true ){
+									
+																int	len = is.read( buffer );
+												
+																if ( len <= 0 ){
+																	
+																	break;
+																}
+										
+																baos.write( buffer, 0, len );
+															}
+														}finally{
+															
+															is.close();
+														}
+														
+														return( baos.toByteArray());
+														
+													}catch( Throwable e ){
+														
+														return( null );
+													}
+												}
+											});
+																			
+									properties.put( PR_ICON_URL, url.toExternalForm());
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+							
+							public SearchInstance
+							search(
+								Map<String,Object>	search_parameters,
+								SearchObserver		observer )
+							
+								throws SearchException
+							{
+								initialisation_complete_sem.reserve();
+								
+								return( searchRCM( search_parameters, observer ));
+							}
+							
+							public Object
+							getProperty(
+								int			property )
+							{
+								return( properties.get( property ));
+							}
+							
+							public void
+							setProperty(
+								int			property,
+								Object		value )
+							{
+								properties.put( property, value );
+							}
+						});
+				}catch( Throwable e ){
+					
+					Debug.out( "Failed to register search provider" );
+				}
+			}
+			
 			SimpleTimer.addEvent(
 				"rcm.delay.init",
 				SystemTime.getOffsetTime( 15*1000 ),
@@ -236,50 +361,7 @@ RelatedContentManager
 					public void 
 					perform(
 						TimerEvent event )
-					{
-						if ( ui_enabled ){
-							
-							try{
-								plugin_interface.getUtilities().registerSearchProvider(
-									new SearchProvider()
-									{
-										private Map<Integer,Object>	properties = new HashMap<Integer, Object>();
-										
-										{
-											properties.put( PR_NAME, "RCM" );
-										}
-										
-										public SearchInstance
-										search(
-											Map<String,Object>	search_parameters,
-											SearchObserver		observer )
-										
-											throws SearchException
-										{
-											return( searchRCM( search_parameters, observer ));
-										}
-										
-										public Object
-										getProperty(
-											int			property )
-										{
-											return( properties.get( property ));
-										}
-										
-										public void
-										setProperty(
-											int			property,
-											Object		value )
-										{
-											properties.put( property, value );
-										}
-									});
-							}catch( Throwable e ){
-								
-								Debug.out( "Failed to register search provider" );
-							}
-						}
-						
+					{						
 						plugin_interface.addListener(
 							new PluginListener()
 							{
@@ -330,6 +412,18 @@ RelatedContentManager
 													perform(
 														TimerEvent event ) 
 													{
+														if ( tick_count == 0 ){
+															
+															try{
+																ddb = plugin_interface.getDistributedDatabase();
+															
+																ddb.addTransferHandler( transfer_type, RelatedContentManager.this );
+																
+															}catch( Throwable e ){
+																
+																Debug.out( e );
+															}
+														}
 														if ( ui_enabled ){
 													
 															tick_count++;
@@ -354,7 +448,7 @@ RelatedContentManager
 														}
 													}
 												});
-										}
+										}										
 									}finally{
 											
 										initialisation_complete_sem.releaseForever();
@@ -1919,10 +2013,19 @@ RelatedContentManager
 												
 												return( new Long( c.getRank()));
 												
+											}else if ( property_name == SearchResult.PR_PUB_DATE ){
+												
+												return( new Date( c.getLastSeenSecs()*1000L ));
+												
 											}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
 														property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
 												
-												return( TorrentUtils.getMagnetURI( c.getHash()));
+												byte[] hash = c.getHash();
+												
+												if ( hash != null ){
+													
+													return( TorrentUtils.getMagnetURI( c.getHash()));
+												}
 											}
 											
 											return( null );
@@ -1943,6 +2046,54 @@ RelatedContentManager
 		return( si );
 	}
 	
+	protected Map<String,Object>
+	handleRemoteSearch(
+		Map<String,Object>		request )
+	{
+		Map<String,Object>	response = new HashMap<String,Object>();
+		
+		return( response );
+	}
+	
+	public DistributedDatabaseValue
+	read(
+		DistributedDatabaseContact			contact,
+		DistributedDatabaseTransferType		type,
+		DistributedDatabaseKey				ddb_key )
+	
+		throws DistributedDatabaseException
+	{
+		Object	o_key = ddb_key.getKey();
+		
+		try{
+			byte[]	key = (byte[])o_key;
+			
+				// TODO bloom
+			
+			Map<String,Object>	request = BDecoder.decode( key );
+			
+			Map<String,Object>	result = handleRemoteSearch( request );
+			
+			return( ddb.createValue( BEncoder.encode( result )));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( null );
+		}
+	}
+	
+	public void
+	write(
+		DistributedDatabaseContact			contact,
+		DistributedDatabaseTransferType		type,
+		DistributedDatabaseKey				key,
+		DistributedDatabaseValue			value )
+	
+		throws DistributedDatabaseException
+	{
+	}
 	
 	protected void
 	setConfigDirty()
@@ -2979,5 +3130,11 @@ RelatedContentManager
 		{
 			return( level );
 		}
+	}
+	
+	protected class
+	RCMSearchXFer
+		implements DistributedDatabaseTransferType
+	{	
 	}
 }
