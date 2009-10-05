@@ -73,7 +73,7 @@ SubscriptionResultImpl
 		
 		String	uid = result.getUID();
 		
-		if ( uid != null ){
+		if ( uid != null && uid.length() > 0 ){
 		
 			String	key2_str = result.getEngine().getId() + ":" + uid;
 			
