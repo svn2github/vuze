@@ -209,18 +209,25 @@ public class SWTThread {
               display.sleep();
         }
         catch (Throwable e) {
-					if (Constants.isOSX && (e instanceof SWTException)
-							&& e.getMessage().endsWith(" is disposed")
-							&& (terminated || Debug.getStackTrace(e).indexOf("DropTarget") > 0)) {
+					if (terminated) {
 						Logger.log(new LogEvent(LogIDs.GUI,
-								"Weird non-critical display disposal in readAndDispatch"));
+								"Weird non-critical error after terminated in readAndDispatch: "
+										+ e.toString()));
 					} else {
-						// Must use printStackTrace() (no params) in order to get 
-						// "cause of"'s stack trace in SWT < 3119
-						if (SWT.getVersion() < 3119)
-							e.printStackTrace();
-						if (Constants.isCVSVersion()) {
-							Logger.log(new LogAlert(LogAlert.UNREPEATABLE,MessageText.getString("SWT.alert.erroringuithread"),e));
+						String stackTrace = Debug.getStackTrace(e);
+						if (Constants.isOSX 
+								&& stackTrace.indexOf("Device.dispose") > 0
+								&& stackTrace.indexOf("DropTarget") > 0) {
+							Logger.log(new LogEvent(LogIDs.GUI,
+									"Weird non-critical display disposal in readAndDispatch"));
+						} else {
+  						// Must use printStackTrace() (no params) in order to get 
+  						// "cause of"'s stack trace in SWT < 3119
+  						if (SWT.getVersion() < 3119)
+  							e.printStackTrace();
+  						if (Constants.isCVSVersion()) {
+  							Logger.log(new LogAlert(LogAlert.UNREPEATABLE,MessageText.getString("SWT.alert.erroringuithread"),e));
+  						}
 						}
 						
 					}
