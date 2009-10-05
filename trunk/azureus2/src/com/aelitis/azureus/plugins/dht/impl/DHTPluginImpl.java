@@ -1052,6 +1052,22 @@ outer:
 		}
 	}
 	
+	public DHTPluginContact
+	importContact(
+		InetSocketAddress				address,
+		byte							version )
+	{
+		try{
+			return( new DHTPluginContactImpl( this, transport.importContact( address, version )));
+			
+		}catch( DHTTransportException	e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
+	}
+	
 		// direct read/write support
 	
 	public void

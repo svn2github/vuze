@@ -222,6 +222,12 @@ DHTTransportLoopbackImpl
 		return( new DHTTransportContact[0] );
 	}
 	
+	public DHTTransportContact[]
+	getRecentContacts()
+	{
+		return( new DHTTransportContact[0] );
+	}
+	
 	protected DHTTransportLoopbackImpl
 	findTarget(
 		byte[]		id )

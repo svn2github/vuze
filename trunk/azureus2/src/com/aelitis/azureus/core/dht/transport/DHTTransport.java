@@ -127,6 +127,9 @@ DHTTransport
 	public DHTTransportContact[]
 	getReachableContacts();
 	
+	public DHTTransportContact[]
+	getRecentContacts();
+	
 	public void
 	addListener(
 		DHTTransportListener	l );

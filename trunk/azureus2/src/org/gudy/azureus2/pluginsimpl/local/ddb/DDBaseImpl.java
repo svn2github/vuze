@@ -288,6 +288,25 @@ DDBaseImpl
 		return( new DDBaseContactImpl( this, contact));
 	}
 	
+	public DistributedDatabaseContact
+	importContact(
+		InetSocketAddress				address,
+		byte							version )
+	
+		throws DistributedDatabaseException
+	{
+		throwIfNotAvailable();
+	
+		DHTPluginContact	contact = getDHT().importContact( address, version );
+		
+		if ( contact == null ){
+			
+			throw( new DistributedDatabaseException( "import of '" + address + "' failed" ));
+		}
+		
+		return( new DDBaseContactImpl( this, contact));
+	}
+	
 	public void
 	write(
 		DistributedDatabaseListener		listener,

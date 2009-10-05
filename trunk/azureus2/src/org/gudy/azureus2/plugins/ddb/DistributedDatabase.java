@@ -77,6 +77,13 @@ DistributedDatabase
 	
 		throws DistributedDatabaseException;
 	
+	public DistributedDatabaseContact
+	importContact(
+		InetSocketAddress				address,
+		byte							protocol_version )
+	
+		throws DistributedDatabaseException;
+	
 	public void
 	write(
 		DistributedDatabaseListener		listener,

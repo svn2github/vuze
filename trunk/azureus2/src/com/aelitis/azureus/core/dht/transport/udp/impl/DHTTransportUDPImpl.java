@@ -151,25 +151,25 @@ DHTTransportUDPImpl
 	private static final int CONTACT_HISTORY_MAX 		= 32;
 	private static final int CONTACT_HISTORY_PING_SIZE	= 24;
 	
-	private Map	contact_history = 
-		new LinkedHashMap(CONTACT_HISTORY_MAX,0.75f,true)
+	private Map<InetSocketAddress,DHTTransportContact>	contact_history = 
+		new LinkedHashMap<InetSocketAddress,DHTTransportContact>(CONTACT_HISTORY_MAX,0.75f,true)
 		{
 			protected boolean 
 			removeEldestEntry(
-		   		Map.Entry eldest) 
+		   		Map.Entry<InetSocketAddress,DHTTransportContact> eldest) 
 			{
 				return size() > CONTACT_HISTORY_MAX;
 			}
 		};
 		
-	private static final int ROUTABLE_CONTACT_HISTORY_MAX 		= 32;
+	private static final int ROUTABLE_CONTACT_HISTORY_MAX 		= 64;
 
-	private Map	routable_contact_history = 
-		new LinkedHashMap(ROUTABLE_CONTACT_HISTORY_MAX,0.75f,true)
+	private Map<InetSocketAddress,DHTTransportContact>	routable_contact_history = 
+		new LinkedHashMap<InetSocketAddress,DHTTransportContact>(ROUTABLE_CONTACT_HISTORY_MAX,0.75f,true)
 		{
 			protected boolean 
 			removeEldestEntry(
-		   		Map.Entry eldest) 
+		   		Map.Entry<InetSocketAddress,DHTTransportContact> eldest) 
 			{
 				return size() > ROUTABLE_CONTACT_HISTORY_MAX;
 			}
@@ -947,7 +947,27 @@ DHTTransportUDPImpl
 		try{
 			this_mon.enter();
 			
-			Collection vals = routable_contact_history.values();
+			Collection<DHTTransportContact> vals = routable_contact_history.values();
+			
+			DHTTransportContact[]	res = new DHTTransportContact[vals.size()];
+			
+			vals.toArray( res );
+			
+			return( res );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+   	}
+	
+	public DHTTransportContact[]
+   	getRecentContacts()
+   	{
+		try{
+			this_mon.enter();
+			
+			Collection<DHTTransportContact> vals = contact_history.values();
 			
 			DHTTransportContact[]	res = new DHTTransportContact[vals.size()];
 			
@@ -988,7 +1008,7 @@ DHTTransportUDPImpl
 							
 							other_routable_total++;
 						}
-						
+												
 						routable_contact_history.put( contact.getTransportAddress(), contact );
 						
 					}else{

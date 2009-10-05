@@ -24,6 +24,9 @@ package com.aelitis.azureus.plugins.dht;
 
 
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
@@ -1686,6 +1689,32 @@ DHTPlugin
 			// first DHT will do here
 		
 		return( dhts[0].importContact( address ));
+	}
+	
+	public DHTPluginContact
+	importContact(
+		InetSocketAddress				address,
+		byte							version )
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+
+		InetAddress contact_address = address.getAddress();
+		
+		for ( DHTPluginImpl dht: dhts ){
+			
+			InetAddress dht_address = dht.getLocalAddress().getAddress().getAddress();
+			
+			if ( 	( contact_address instanceof Inet4Address && dht_address instanceof Inet4Address ) ||
+					( contact_address instanceof Inet6Address && dht_address instanceof Inet6Address )){
+				
+				return( dht.importContact( address, version ));
+			}
+		}
+		
+		return( null );
 	}
 	
 	public DHTPluginContact
