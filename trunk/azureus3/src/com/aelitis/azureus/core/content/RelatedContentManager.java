@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.content;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,7 +43,6 @@ import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -57,6 +57,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseProgressListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferHandler;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
@@ -74,6 +75,9 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.FeatureAvailability;
@@ -92,9 +96,10 @@ RelatedContentManager
 {
 	private static final boolean TRACE = false;
 	
-	private static final int	MAX_HISTORY				= 16;
-	private static final int	MAX_TITLE_LENGTH		= 80;
-	private static final int	MAX_CONCURRENT_PUBLISH	= 2;
+	private static final int	MAX_HISTORY					= 16;
+	private static final int	MAX_TITLE_LENGTH			= 80;
+	private static final int	MAX_CONCURRENT_PUBLISH		= 2;
+	private static final int	MAX_REMOTE_SEARCH_RESULTS	= 30;
 	
 	private static final int	TEMPORARY_SPACE_DELTA	= 50;
 	
@@ -1954,6 +1959,27 @@ RelatedContentManager
 				});
 	}
 	
+	protected List<RelatedContent>
+	matchContent(
+		String		term )
+	{
+		List<RelatedContent>	result = new ArrayList<RelatedContent>();
+		
+		RelatedContent[] content = getRelatedContent();
+		
+		for ( final RelatedContent c: content ){
+			
+			String title = c.getTitle();
+			
+			if ( title.toLowerCase().contains( term.toLowerCase())){
+				
+				result.add( c );
+			}
+		}
+	
+		return( result );
+	}
+	
 	protected SearchInstance
 	searchRCM(
 		Map<String,Object>		search_parameters,
@@ -1984,60 +2010,164 @@ RelatedContentManager
 				public void
 				run()
 				{
-					try{
-						
-						RelatedContent[] content = getRelatedContent();
-						
-						for ( final RelatedContent c: content ){
+					try{				
+						List<RelatedContent>	matches = matchContent( term );
 							
-							String title = c.getTitle();
+						for ( final RelatedContent c: matches ){
 							
-							if ( title.toLowerCase().contains( term.toLowerCase())){
-								
-								SearchResult result = 
-									new SearchResult()
+							SearchResult result = 
+								new SearchResult()
+								{
+									public Object
+									getProperty(
+										int		property_name )
 									{
-										public Object
-										getProperty(
-											int		property_name )
-										{
-											if ( property_name == SearchResult.PR_NAME ){
-												
-												return( c.getTitle());
-												
-											}else if ( property_name == SearchResult.PR_SIZE ){
-												
-												return( c.getSize());
-												
-											}else if ( property_name == SearchResult.PR_RANK ){
-												
-												return( new Long( c.getRank()));
-												
-											}else if ( property_name == SearchResult.PR_PUB_DATE ){
-												
-												return( new Date( c.getLastSeenSecs()*1000L ));
-												
-											}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
-														property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
-												
-												byte[] hash = c.getHash();
-												
-												if ( hash != null ){
-													
-													return( TorrentUtils.getMagnetURI( c.getHash()));
-												}
-											}
+										if ( property_name == SearchResult.PR_NAME ){
 											
-											return( null );
+											return( c.getTitle());
+											
+										}else if ( property_name == SearchResult.PR_SIZE ){
+											
+											return( c.getSize());
+											
+										}else if ( property_name == SearchResult.PR_RANK ){
+											
+											return( new Long( c.getRank()));
+											
+										}else if ( property_name == SearchResult.PR_PUB_DATE ){
+											
+											return( new Date( c.getLastSeenSecs()*1000L ));
+											
+										}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
+													property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
+											
+											byte[] hash = c.getHash();
+											
+											if ( hash != null ){
+												
+												return( TorrentUtils.getMagnetURI( hash ));
+											}
 										}
-									};
-									
-								observer.resultReceived( si, result );
-							}
+										
+										return( null );
+									}
+								};
+								
+							observer.resultReceived( si, result );
 						}
 					}finally{
 						
-						observer.complete();
+						try{
+							int	max_contacts = 10;
+							
+							DHT[]	dhts = dht_plugin.getDHTs();
+	
+							Set<InetSocketAddress>	addresses = new HashSet<InetSocketAddress>();
+							
+							for ( DHT dht: dhts ){
+							
+								DHTTransportContact[] contacts = dht.getTransport().getReachableContacts();
+								
+								for ( DHTTransportContact c: contacts ){
+									
+									if ( c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+										
+										addresses.add( c.getAddress());
+									}
+								}
+							}
+							
+							if ( addresses.size() < max_contacts ){
+								
+								for ( DHT dht: dhts ){
+									
+									DHTTransportContact[] contacts = dht.getTransport().getRecentContacts();
+	
+									for ( DHTTransportContact c: contacts ){
+										
+										if ( c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+											
+											addresses.add( c.getAddress());
+											
+											if ( addresses.size() >= max_contacts ){
+												
+												break;
+											}
+										}
+									}
+									
+									if ( addresses.size() >= max_contacts ){
+										
+										break;
+									}
+								}
+							}
+							
+							List<InetSocketAddress>	list = new ArrayList<InetSocketAddress>( addresses );
+							
+							Collections.shuffle( list );
+							
+							List<DistributedDatabaseContact>	ddb_contacts = new ArrayList<DistributedDatabaseContact>();
+							
+							for (int i=0;i<Math.min( list.size(), max_contacts );i++){
+								
+								try{				
+									ddb_contacts.add( ddb.importContact( list.get(i), DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ));
+									
+								}catch( Throwable e ){
+								}
+							}
+							
+							long	start		= SystemTime.getCurrentTime();
+							long	max			= 25*1000;
+							
+							final AESemaphore	sem = new AESemaphore( "RCM:rems" );
+							
+							for (int i=0;i<ddb_contacts.size();i++){
+								
+								final DistributedDatabaseContact c = ddb_contacts.get( i );
+								
+								final int f_i = i;
+								
+								new AEThread2( "RCM:rems", true )
+								{
+									public void
+									run()
+									{
+										try{
+											sendRemoteSearch( si, c, term, observer );
+											
+											if ( f_i > 3 ){
+												
+												Thread.sleep( 1000 );
+											}
+										}catch( Throwable e ){
+											
+										}finally{
+											
+											sem.release();
+										}
+									}
+								}.start();
+							}
+							
+							for (int i=0;i<ddb_contacts.size();i++){
+								
+								long	elapsed = SystemTime.getMonotonousTime() - start;
+								
+								if ( elapsed < max ){
+									
+									sem.reserve( max - elapsed );
+									
+								}else{
+									
+									break;
+								}
+							}
+						}finally{
+													
+							observer.complete();
+						}
 					}
 				}
 			}.start();
@@ -2046,11 +2176,162 @@ RelatedContentManager
 		return( si );
 	}
 	
+	protected void
+	sendRemoteSearch(
+		SearchInstance					si,
+		DistributedDatabaseContact		contact,
+		String							term,
+		SearchObserver					observer )
+	{
+		try{
+			Map<String,Object>	request = new HashMap<String,Object>();
+			
+			request.put( "t", term );
+		
+			DistributedDatabaseKey key = ddb.createKey( BEncoder.encode( request ));
+			
+			DistributedDatabaseValue value = 
+				contact.read( 
+					new DistributedDatabaseProgressListener()
+					{
+						public void
+						reportSize(
+							long	size )
+						{	
+						}
+						
+						public void
+						reportActivity(
+							String	str )
+						{	
+						}
+						
+						public void
+						reportCompleteness(
+							int		percent )
+						{
+						}
+					},
+					transfer_type,
+					key,
+					10000 );
+			
+			// System.out.println( "search result=" + value );
+			
+			if ( value == null ){
+				
+				return;
+			}
+			
+			Map<String,Object> reply = (Map<String,Object>)BDecoder.decode((byte[])value.getValue( byte[].class ));
+			
+			List<Map<String,Object>>	list = (List<Map<String,Object>>)reply.get( "l" );
+			
+			for ( final Map<String,Object> map: list ){
+				
+				SearchResult result = 
+					new SearchResult()
+					{
+						public Object
+						getProperty(
+							int		property_name )
+						{
+							try{
+								if ( property_name == SearchResult.PR_NAME ){
+									
+									return( ImportExportUtils.importString( map, "n" ));
+									
+								}else if ( property_name == SearchResult.PR_SIZE ){
+									
+									return( ImportExportUtils.importLong( map, "s" ));
+									
+								}else if ( property_name == SearchResult.PR_RANK ){
+									
+									return( ImportExportUtils.importLong( map, "r" ));
+									
+								}else if ( property_name == SearchResult.PR_PUB_DATE ){
+									
+									return( new Date( ImportExportUtils.importLong( map, "d" )*1000L ));
+									
+								}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
+											property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
+									
+									byte[] hash = (byte[])map.get( "h" );
+									
+									if ( hash != null ){
+										
+										return( TorrentUtils.getMagnetURI( hash ));
+									}
+								}
+							}catch( Throwable e ){
+							}
+							
+							return( null );
+						}
+					};
+					
+				observer.resultReceived( si, result );
+			}
+		}catch( Throwable e ){
+		}
+	}
+	
 	protected Map<String,Object>
-	handleRemoteSearch(
+	receiveRemoteSearch(
 		Map<String,Object>		request )
 	{
 		Map<String,Object>	response = new HashMap<String,Object>();
+		
+		try{
+			String	term = ImportExportUtils.importString( request, "t" );
+		
+			if ( term != null ){
+				
+				List<RelatedContent>	matches = matchContent( term );
+
+				if ( matches.size() > MAX_REMOTE_SEARCH_RESULTS ){
+					
+					Collections.sort(
+						matches,
+						new Comparator<RelatedContent>()
+						{
+							public int 
+							compare(
+								RelatedContent o1,
+								RelatedContent o2) 
+							{
+								return( o2.getRank() - o1.getRank());
+							}
+						});
+				}
+				
+				List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+				
+				for (int i=0;i<Math.min( matches.size(),MAX_REMOTE_SEARCH_RESULTS);i++){
+					
+					RelatedContent	c = matches.get(i);
+					
+					Map<String,Object>	map = new HashMap<String, Object>();
+					
+					list.add( map );
+					
+					ImportExportUtils.exportString( map, "n", c.getTitle());
+					ImportExportUtils.exportLong( map, "s", c.getSize());
+					ImportExportUtils.exportLong( map, "r", c.getRank());
+					ImportExportUtils.exportLong( map, "d", c.getLastSeenSecs());
+					
+					byte[] hash = c.getHash();
+					
+					if ( hash != null ){
+						
+						map.put( "h", hash );
+					}
+				}
+				
+				response.put( "l", list );
+			}
+		}catch( Throwable e ){
+		}
 		
 		return( response );
 	}
@@ -2072,7 +2353,7 @@ RelatedContentManager
 			
 			Map<String,Object>	request = BDecoder.decode( key );
 			
-			Map<String,Object>	result = handleRemoteSearch( request );
+			Map<String,Object>	result = receiveRemoteSearch( request );
 			
 			return( ddb.createValue( BEncoder.encode( result )));
 			
