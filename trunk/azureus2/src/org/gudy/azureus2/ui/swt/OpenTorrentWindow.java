@@ -1222,7 +1222,7 @@ public class OpenTorrentWindow
 					TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
 
 					TorrentFileInfo[] files = info.getFiles();
-					if (files.length == 1) {
+					if (files.length == 1 && info.torrent.isSimpleTorrent()) {
 						changeFileDestination(new int[] {
 							0
 						});
