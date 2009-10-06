@@ -3696,21 +3696,21 @@ DHTControlImpl
 	IDToBigInteger(
 		byte[]		data )
 	{
-		String	str_key = "";
+		StringBuilder	str_key = new StringBuilder( data.length*2 );
 		
 		for (int i=0;i<data.length;i++){
 			
 			String	hex = Integer.toHexString( data[i]&0xff );
 			
-			while( hex.length() < 2 ){
+			if ( hex.length() < 2 ){
 				
-				hex = "0" + hex;
+				str_key.append( "0" );
 			}
 				
-			str_key += hex;
+			str_key.append( hex );
 		}
 				
-		BigInteger	res		= new BigInteger( str_key, 16 );	
+		BigInteger	res		= new BigInteger( str_key.toString(), 16 );	
 		
 		return( res );
 	}
