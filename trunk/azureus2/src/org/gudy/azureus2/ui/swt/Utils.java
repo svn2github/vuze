@@ -720,6 +720,153 @@ public class Utils
 		return (display.getThread() == Thread.currentThread());
 	}
 
+	/** Open a messagebox using resource keys for title/text
+	 * 
+	 * @param parent Parent shell for messagebox
+	 * @param style SWT styles for messagebox
+	 * @param keyPrefix message bundle key prefix used to get title and text.  
+	 *         Title will be keyPrefix + ".title", and text will be set to
+	 *         keyPrefix + ".text"
+	 * @param textParams any parameters for text
+	 * 
+	 * @return what the messagebox returns
+	 */
+	public static int openMessageBox(Shell parent, int style, String keyPrefix,
+			String[] textParams) {
+		if ((style & (0x7f << 5)) == 0) {
+			// need at least one button
+			style |= SWT.OK;
+		}
+		Object[] buttonInfo = swtButtonStylesToText(style);
+		MessageBoxShell mb = new MessageBoxShell(parent,
+				MessageText.getString(keyPrefix + ".title"), MessageText.getString(
+						keyPrefix + ".text", textParams), (String[]) buttonInfo[0], 0);
+		mb.setLeftImage(style & 0x1f);
+		int ret = mb.open();
+
+		Integer[] buttonVals = (Integer[]) buttonInfo[1];
+		if (ret < 0 || ret > buttonVals.length) {
+			return SWT.CANCEL;
+		}
+		return buttonVals[ret].intValue();
+	}
+
+	/** Open a messagebox with actual title and text
+	 * 
+	 * @param parent
+	 * @param style
+	 * @param title
+	 * @param text
+	 * @return
+	 */
+	public static int openMessageBox(Shell parent, int style, String title,
+			String text) {
+		if (parent == null) {
+			parent = findAnyShell();
+		}
+		if ((style & (0x7f << 5)) == 0) {
+			// need at least one button
+			style |= SWT.OK;
+		}
+
+		Object[] buttonInfo = swtButtonStylesToText(style);
+		MessageBoxShell mb = new MessageBoxShell(parent, title, text,
+				(String[]) buttonInfo[0], 0);
+		mb.setLeftImage(style & 0x1f);
+		int ret = mb.open();
+
+		Integer[] buttonVals = (Integer[]) buttonInfo[1];
+		if (ret < 0 || ret > buttonVals.length) {
+			return SWT.CANCEL;
+		}
+		return buttonVals[ret].intValue();
+	}
+
+	public static int openMessageBox(Shell parent, int style, int default_style,
+			String title, String text) {
+		if (parent == null) {
+			parent = findAnyShell();
+		}
+		if ((style & (0x7f << 5)) == 0) {
+			// need at least one button
+			style |= SWT.OK;
+		}
+
+		Object[] buttonInfo = swtButtonStylesToText(style);
+
+		Object[] defaultButtonInfo = swtButtonStylesToText(default_style);
+
+		int defaultIndex = 0;
+
+		if (defaultButtonInfo.length > 0) {
+			String name = ((String[]) defaultButtonInfo[0])[0];
+
+			String[] names = (String[]) buttonInfo[0];
+
+			for (int i = 0; i < names.length; i++) {
+				if (names[i].equals(name)) {
+					defaultIndex = i;
+					break;
+				}
+			}
+		}
+		MessageBoxShell mb = new MessageBoxShell(parent, title, text,
+				(String[]) buttonInfo[0], defaultIndex);
+		mb.setLeftImage(style & 0x1f);
+		int ret = mb.open();
+
+		Integer[] buttonVals = (Integer[]) buttonInfo[1];
+		if (ret < 0 || ret > buttonVals.length) {
+			return SWT.CANCEL;
+		}
+		return buttonVals[ret].intValue();
+	}
+
+	private static Object[] swtButtonStylesToText(int style) {
+		List buttons = new ArrayList(2);
+		List buttonVal = new ArrayList(2);
+		int buttonCount = 0;
+		if ((style & SWT.OK) > 0) {
+			buttons.add(MessageText.getString("Button.ok"));
+			buttonVal.add(new Integer(SWT.OK));
+			buttonCount++;
+		}
+		if ((style & SWT.YES) > 0) {
+			buttons.add(MessageText.getString("Button.yes"));
+			buttonVal.add(new Integer(SWT.YES));
+			buttonCount++;
+		}
+		if ((style & SWT.NO) > 0) {
+			buttons.add(MessageText.getString("Button.no"));
+			buttonVal.add(new Integer(SWT.NO));
+			buttonCount++;
+		}
+		if ((style & SWT.CANCEL) > 0) {
+			buttons.add(MessageText.getString("Button.cancel"));
+			buttonVal.add(new Integer(SWT.CANCEL));
+			buttonCount++;
+		}
+		if ((style & SWT.ABORT) > 0) {
+			buttons.add(MessageText.getString("Button.abort"));
+			buttonVal.add(new Integer(SWT.ABORT));
+			buttonCount++;
+		}
+		if ((style & SWT.RETRY) > 0) {
+			buttons.add(MessageText.getString("Button.retry"));
+			buttonVal.add(new Integer(SWT.RETRY));
+			buttonCount++;
+		}
+		if ((style & SWT.IGNORE) > 0) {
+			buttons.add(MessageText.getString("Button.ignore"));
+			buttonVal.add(new Integer(SWT.IGNORE));
+			buttonCount++;
+		}
+		return new Object[] {
+			(String[]) buttons.toArray(new String[buttonCount]),
+			(Integer[]) buttonVal.toArray(new Integer[buttonCount])
+		};
+	}
+
 	/**
 	 * Bottom Index may be negative. Returns bottom index even if invisible.
 	 */
@@ -1656,21 +1803,6 @@ public class Utils
 		return false;
 	}
 
-	public static Shell findFirstShellWithStyle(int styles) {
-		Display display = Display.getCurrent();
-		if (display != null) {
-			Shell[] shells = display.getShells();
-			for (int i = 0; i < shells.length; i++) {
-				Shell shell = shells[i];
-				int style = shell.getStyle();
-				if ((style & styles) == styles && !shell.isDisposed()) {
-					return shell;
-				}
-			}
-		}
-		return null;
-	}
-
 	public static int[] colorToIntArray(Color color) {
 		if (color == null || color.isDisposed()) {
 			return null;
@@ -2134,6 +2266,7 @@ public class Utils
 	{
 		MessageBoxShell mb = 
 			new MessageBoxShell(
+				findAnyShell(),
 				MessageText.getString("ConfigView.section.security.op.error.title"),
 				MessageText.getString("ConfigView.section.security.op.error",
 						new String[] {
@@ -2144,23 +2277,10 @@ public class Utils
 				},
 				0 );
 		
-		mb.open(null);
+		mb.open();
 	}
 	
 	public static void getOffOfSWTThread(AERunnable runnable) {
 		tp.run(runnable);
-	}
-
-	/**
-	 * ONLY FOR OLD EMP. DO NOT USE.
-	 * 
-	 * @deprecated Use {@link MessageBoxShell}
-	 */
-	@Deprecated
-	public static void openMessageBox(Shell shell, int ok, String string,
-			String string2) {
-		MessageBoxShell mb = new MessageBoxShell(ok, string, string2);
-		mb.setParent(shell);
-		mb.open(null);
 	}
 }
