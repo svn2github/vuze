@@ -317,7 +317,12 @@ BasicPluginConfigModelImpl
 		
 		for (int i=0;i<_parameters.length;i++){
 			
-			((ParameterImpl)_parameters[i]).setGroup( pg );
+			ParameterImpl parameter = (ParameterImpl)_parameters[i];
+			
+			if ( parameter != null ){
+			
+				parameter.setGroup( pg );
+			}
 		}
 		
 		return( pg );

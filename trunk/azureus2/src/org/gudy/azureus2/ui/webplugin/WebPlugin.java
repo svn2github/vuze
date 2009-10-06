@@ -40,6 +40,10 @@ import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 
+import com.aelitis.azureus.core.pairing.PairedService;
+import com.aelitis.azureus.core.pairing.PairingConnectionData;
+import com.aelitis.azureus.core.pairing.PairingManager;
+import com.aelitis.azureus.core.pairing.PairingManagerFactory;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 public class 
@@ -55,12 +59,17 @@ WebPlugin
 	public static final String	PR_VIEW_MODEL				= "DefaultViewModel";			// BasicPluginViewModel
 	public static final String	PR_HIDE_RESOURCE_CONFIG		= "DefaultHideResourceConfig";	// Boolean
 	public static final String	PR_ENABLE_KEEP_ALIVE		= "DefaultEnableKeepAlive";		// Boolean
+	public static final String	PR_PAIRING_SID				= "PairingSID";					// String
 	
 	public static final String	PROPERTIES_MIGRATED		= "Properties Migrated";
 	public static final String	CONFIG_MIGRATED			= "Config Migrated";
 	
 	public static final String	CONFIG_PASSWORD_ENABLE			= "Password Enable";
 	public        final boolean	CONFIG_PASSWORD_ENABLE_DEFAULT	= false;
+	
+	public static final String	CONFIG_PAIRING_ENABLE			= "Pairing Enable";
+	public        final boolean	CONFIG_PAIRING_ENABLE_DEFAULT	= true;
+
 	
 	public static final String	CONFIG_USER				= "User";
 	public        final String	CONFIG_USER_DEFAULT		= "";
@@ -106,6 +115,9 @@ WebPlugin
 	private Tracker					tracker;
 	private BasicPluginViewModel 	view_model;
 	private BasicPluginConfigModel	config_model;
+	
+	private IntParameter			param_port;
+	private StringListParameter		param_protocol;
 	
 	private String				home_page;
 	private String				file_root;
@@ -327,10 +339,13 @@ WebPlugin
 		
 		config_model.addLabelParameter2( "webui.restart.info" );
 
-		IntParameter	param_port = config_model.addIntParameter2(		CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
+			// connection group
+		
+		param_port = config_model.addIntParameter2(		CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
+		
 		StringParameter	param_bind = config_model.addStringParameter2(	CONFIG_BIND_IP, "webui.bindip", CONFIG_BIND_IP_DEFAULT );
 		
-		StringListParameter	param_protocol = 
+		param_protocol = 
 			config_model.addStringListParameter2(
 					CONFIG_PROTOCOL, "webui.protocol", new String[]{ "http", "https" }, CONFIG_PROTOCOL_DEFAULT );
 		
@@ -341,6 +356,42 @@ WebPlugin
 							"webui.upnpenable",
 							CONFIG_UPNP_ENABLE_DEFAULT );
 
+		final String p_sid = (String)properties.get( PR_PAIRING_SID );
+		
+		final BooleanParameter	pairing_enable;
+		
+		if ( p_sid != null ){
+			
+			pairing_enable = 
+				config_model.addBooleanParameter2( 
+						CONFIG_PAIRING_ENABLE, 
+								"webui.pairingenable",
+								CONFIG_PAIRING_ENABLE_DEFAULT );
+
+			pairing_enable.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param ) 
+					{
+						setupPairing( p_sid, pairing_enable.getValue());
+					}
+				});
+			
+			setupPairing( p_sid, pairing_enable.getValue());
+			
+		}else{
+			
+			pairing_enable = null;
+		}
+			
+		config_model.createGroup(
+			"ConfigView.section.server",
+			new Parameter[]{
+				param_port, param_bind, param_protocol, upnp_enable, pairing_enable,
+			});
+		
 		StringParameter	param_home 		= config_model.addStringParameter2(	CONFIG_HOME_PAGE, "webui.homepage", CONFIG_HOME_PAGE_DEFAULT );
 		StringParameter	param_rootdir 	= config_model.addStringParameter2(	CONFIG_ROOT_DIR, "webui.rootdir", CONFIG_ROOT_DIR_DEFAULT );
 		StringParameter	param_rootres	= config_model.addStringParameter2(	CONFIG_ROOT_RESOURCE, "webui.rootres", CONFIG_ROOT_RESOURCE_DEFAULT );
@@ -352,12 +403,15 @@ WebPlugin
 			param_rootres.setVisible( false );
 		}
 		
-		config_model.addLabelParameter2( "webui.mode.info" ); 
-		config_model.addStringListParameter2(	
+			// access group
+		
+		LabelParameter a_label1 = config_model.addLabelParameter2( "webui.mode.info" ); 
+		StringListParameter param_mode = 
+			config_model.addStringListParameter2(	
 					CONFIG_MODE, "webui.mode", new String[]{ "full", "view" }, CONFIG_MODE_DEFAULT );
 		
 		
-		config_model.addLabelParameter2( "webui.access.info" );
+		LabelParameter a_label2 = config_model.addLabelParameter2( "webui.access.info" );
 		StringParameter	param_access	= config_model.addStringParameter2(	CONFIG_ACCESS, "webui.access", CONFIG_ACCESS_DEFAULT );
 		
 		
@@ -382,6 +436,16 @@ WebPlugin
 		
 		pw_enable.addEnabledOnSelection( user_name );
 		pw_enable.addEnabledOnSelection( password );
+		
+
+		config_model.createGroup(
+			"webui.group.access",
+			new Parameter[]{
+				a_label1, param_mode, a_label2, param_access,
+				pw_enable, user_name, password,
+			});
+			              
+			// end config
 		
 		tracker = plugin_interface.getTracker();
 		
@@ -654,6 +718,48 @@ WebPlugin
 				{	
 				}
 			});
+	}
+	
+	protected void
+	setupPairing(
+		String		sid,
+		boolean		enable )
+	{
+		PairingManager pm = PairingManagerFactory.getSingleton();
+		
+		PairedService service = pm.getService( sid );
+		
+		if ( enable ){
+			
+			if ( service == null ){
+				
+				service =  pm.addService( sid ); 
+				
+				PairingConnectionData cd = service.getConnectionData();
+
+				try{					
+					setupPairingSupport( cd );
+				
+				}finally{
+				
+					cd.sync();
+				}
+			}
+		}else{
+			
+			if ( service != null ){
+				
+				service.remove();
+			}
+		}
+	}
+	
+	protected void
+	setupPairingSupport(
+		PairingConnectionData		cd )
+	{
+		cd.setAttribute( PairingConnectionData.ATTR_PORT, 		String.valueOf( param_port.getValue()));
+		cd.setAttribute( PairingConnectionData.ATTR_PROTOCOL, 	param_protocol.getValue());
 	}
 	
 	public boolean
