@@ -79,6 +79,7 @@ DHTTransportUDP
 																			// If/when introduced the min DHT version must be set to 15 at the same time
 
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2	= 33;
+	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2X	= 34;	// nothing new here - added to we can track CVS user's access to replication control
 	
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
@@ -86,11 +87,11 @@ DHTTransportUDP
 	
 		// current versions
 	
-	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_LONGER_LIFE;
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_RESTRICT_ID_PORTS2;
+	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_REPLICATION_CONTROL;
+	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_RESTRICT_ID_PORTS2X;
 
-	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_3111;
-	public static final byte PROTOCOL_VERSION_MIN_CVS				= PROTOCOL_VERSION_CVS_FIX_OVERLOAD_V3;
+	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_MORE_NODE_STATUS;
+	public static final byte PROTOCOL_VERSION_MIN_CVS				= PROTOCOL_VERSION_RESTRICT_ID_PORTS2;
 	
 	
 	
