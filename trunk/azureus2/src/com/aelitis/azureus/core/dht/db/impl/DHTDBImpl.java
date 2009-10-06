@@ -1989,6 +1989,28 @@ DHTDBImpl
 						 continue;
 					}
 					
+					if ( SURVEY_ONLY_RF_KEYS ){
+						
+						Iterator<DHTDBValueImpl>	it2 = mapping.getValues();
+						
+						boolean	all_rf_values = it2.hasNext();
+						
+						while( it2.hasNext()){
+
+							if ( it2.next().getReplicationFactor() == DHT.REP_FACT_DEFAULT ){
+
+								all_rf_values = false;
+								
+								break;
+							}
+						}
+						
+						if ( !all_rf_values ){
+							
+							continue;
+						}
+					}
+					
 					value_count++;
 					
 					final byte[] key = mapping.getKey().getBytes();
