@@ -124,7 +124,7 @@ DHTDBImpl
 	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
 
 	private static final boolean	DEBUG_SURVEY		= false;
-	private static final boolean	SURVEY_ONLY_RF_KEYS	= false;
+	private static final boolean	SURVEY_ONLY_RF_KEYS	= true;
 	
 	
 	private static final int	SURVEY_PERIOD			= DEBUG_SURVEY?1*60*1000:5*60*1000;
