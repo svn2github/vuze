@@ -2010,10 +2010,14 @@ RelatedContentManager
 				public void
 				run()
 				{
+					final Set<String>	titles_or_hashes = new HashSet<String>();
+					
 					try{				
 						List<RelatedContent>	matches = matchContent( term );
 							
 						for ( final RelatedContent c: matches ){
+							
+							titles_or_hashes.add( c.getHash()==null?c.getTitle():Base32.encode(c.getHash()));
 							
 							SearchResult result = 
 								new SearchResult()
@@ -2135,7 +2139,7 @@ RelatedContentManager
 									run()
 									{
 										try{
-											sendRemoteSearch( si, c, term, observer );
+											sendRemoteSearch( si, titles_or_hashes, c, term, observer );
 											
 											if ( f_i > 3 ){
 												
@@ -2179,6 +2183,7 @@ RelatedContentManager
 	protected void
 	sendRemoteSearch(
 		SearchInstance					si,
+		Set<String>						titles_or_hashes,
 		DistributedDatabaseContact		contact,
 		String							term,
 		SearchObserver					observer )
@@ -2229,6 +2234,19 @@ RelatedContentManager
 			
 			for ( final Map<String,Object> map: list ){
 				
+				final String title = ImportExportUtils.importString( map, "n" );
+				
+				byte[] hash = (byte[])map.get( "h" );
+				
+				String	title_or_hash = hash==null?title:Base32.encode( hash );
+					
+				if ( titles_or_hashes.contains( title_or_hash )){
+					
+					continue;
+				}
+				
+				titles_or_hashes.add( title_or_hash );
+
 				SearchResult result = 
 					new SearchResult()
 					{
@@ -2239,7 +2257,7 @@ RelatedContentManager
 							try{
 								if ( property_name == SearchResult.PR_NAME ){
 									
-									return( ImportExportUtils.importString( map, "n" ));
+									return( title );
 									
 								}else if ( property_name == SearchResult.PR_SIZE ){
 									
