@@ -469,7 +469,7 @@ public class PieceInfoView
 				}
 
 				if (oldBlockInfo != null && i < oldBlockInfo.length
-						&& oldBlockInfo[i].equals(newBlockInfo[i])) {
+						&& oldBlockInfo[i].sameAs(newBlockInfo[i])) {
 					iCol++;
 					continue;
 				}
@@ -654,9 +654,7 @@ public class PieceInfoView
 			haveWidth = -1;
 		}
 		
-		// @see java.lang.Object#equals(java.lang.Object)
-		public boolean equals(Object obj) {
-			BlockInfo otherBlockInfo = (BlockInfo) obj;
+		public boolean sameAs(BlockInfo otherBlockInfo) {
 			return haveWidth == otherBlockInfo.haveWidth
 					&& availNum == otherBlockInfo.availNum
 					&& availDotted == otherBlockInfo.availDotted
