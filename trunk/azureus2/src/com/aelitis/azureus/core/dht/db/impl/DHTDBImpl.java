@@ -69,7 +69,7 @@ public class
 DHTDBImpl
 	implements DHTDB, DHTDBStats
 {	
-	private static final long MAX_VALUE_LIFETIME	= 3*24*60*60*1000L;
+	private static final int MAX_VALUE_LIFETIME	= 3*24*60*60*1000;
 	
 	
 	private int			original_republish_interval;
@@ -1484,7 +1484,7 @@ DHTDBImpl
 							
 							int life_hours = value.getLifeTimeHours();
 							
-							long	max_age;
+							int	max_age;
 							
 							if ( life_hours < 1 ){
 								
@@ -1500,7 +1500,20 @@ DHTDBImpl
 								}
 							}
 							
-							if ( now > value.getCreationTime() + max_age + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
+							int	grace;
+							
+							if (( value.getFlags() & DHT.FLAG_PUT_AND_FORGET ) != 0 ){
+								
+								grace = 0;
+								
+							}else{
+								
+									// scale the grace period for short lifetimes
+								
+								grace = Math.min( ORIGINAL_REPUBLISH_INTERVAL_GRACE, max_age/4 );
+							}
+							
+							if ( now > value.getCreationTime() + max_age + grace ){
 								
 								DHTLog.log( "removing cache entry (" + value.getString() + ")" );
 								
