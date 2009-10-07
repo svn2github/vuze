@@ -1781,7 +1781,7 @@ DHTDBImpl
 				}
 			}
 			
-			logger.log( "Survey starts: state size=" + survey_state.size() + ", keys=" + key_count );
+			logger.log( "Survey starts: state size=" + survey_state.size() + ", all keys=" + stored_values.size() + ", applicable keys=" + key_count );
 
 		}finally{
 			

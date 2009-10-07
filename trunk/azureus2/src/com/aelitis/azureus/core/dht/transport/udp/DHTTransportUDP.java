@@ -80,6 +80,7 @@ DHTTransportUDP
 
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2	= 33;
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2X	= 34;	// nothing new here - added to we can track CVS user's access to replication control
+	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2Y	= 35;	// another one to track fix to broken rep factor handling
 	
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
@@ -88,7 +89,7 @@ DHTTransportUDP
 		// current versions
 	
 	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_REPLICATION_CONTROL;
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_RESTRICT_ID_PORTS2X;
+	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_RESTRICT_ID_PORTS2Y;
 
 	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_MORE_NODE_STATUS;
 	public static final byte PROTOCOL_VERSION_MIN_CVS				= PROTOCOL_VERSION_RESTRICT_ID_PORTS2;
