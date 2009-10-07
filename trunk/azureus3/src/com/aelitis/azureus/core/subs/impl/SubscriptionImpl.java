@@ -58,6 +58,7 @@ import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
+import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -1830,6 +1831,13 @@ SubscriptionImpl
 
 			return( destroyed );
 		}
+	}
+	
+	public SubscriptionResult[]
+  	getResults(
+  		boolean		include_deleted )
+	{
+		return( getHistory().getResults( include_deleted ));
 	}
 	
 	public void

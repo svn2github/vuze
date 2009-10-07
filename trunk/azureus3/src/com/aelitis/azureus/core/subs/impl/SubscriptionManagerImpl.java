@@ -92,12 +92,23 @@ SubscriptionManagerImpl
 	
 	
 	private static SubscriptionManagerImpl		singleton;
+	private static boolean						pre_initialised;
 	
 	private static final int random_seed = RandomUtils.nextInt( 256 );
 	
 	public static void
 	preInitialise()
 	{
+		synchronized( SubscriptionManagerImpl.class ){
+			
+			if ( pre_initialised ){
+				
+				return;
+			}
+			
+			pre_initialised = true;
+		}
+		
 		VuzeFileHandler.getSingleton().addProcessor(
 			new VuzeFileProcessor()
 			{
@@ -145,7 +156,9 @@ SubscriptionManagerImpl
 	getSingleton(
 		boolean		stand_alone )
 	{
-		synchronized( SubscriptionManagerFactory.class ){
+		preInitialise();
+		
+		synchronized( SubscriptionManagerImpl.class ){
 			
 			if ( singleton != null ){
 			

@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SHA1Simple;
+import org.gudy.azureus2.plugins.utils.search.SearchResult;
 
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
@@ -295,5 +296,19 @@ SubscriptionResultImpl
 	getAssetHash() 
 	{
 		return((String)toJSONMap().get( "h" ));
+	}
+	
+	public Map<Integer,Object>
+	toPropertyMap()
+	{
+		Map map = toJSONMap();
+		
+		Map<Integer,Object>	result = new HashMap<Integer, Object>();
+		
+		String title = (String)map.get( "n" );
+		
+		result.put( SearchResult.PR_NAME, title );
+		
+		return( result );
 	}
 }

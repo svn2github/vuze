@@ -24,9 +24,11 @@ package com.aelitis.azureus.core.subs;
 import java.net.URL;
 import java.util.Map;
 
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 public interface 
-SubscriptionManager 
+SubscriptionManager
+	extends UtilitiesImpl.PluginSubscriptionManager
 {
 	public Subscription
 	create(

@@ -21,11 +21,14 @@
 
 package com.aelitis.azureus.core.subs;
 
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
+
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 
 public interface 
 Subscription 
+	extends UtilitiesImpl.PluginSubscription
 {
 	public static final int AZ_VERSION	= 1;
 	
@@ -169,6 +172,15 @@ Subscription
 	
 	public SubscriptionHistory
 	getHistory();
+	
+		/**
+		 * shortcut to help plugin interface
+		 * @param l
+		 */
+	
+	public SubscriptionResult[]
+	getResults(
+		boolean		include_deleted );
 	
 	public void
 	addListener(

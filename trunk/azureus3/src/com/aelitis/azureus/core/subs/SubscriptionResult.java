@@ -23,14 +23,25 @@ package com.aelitis.azureus.core.subs;
 
 import java.util.Map;
 
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
+
 public interface 
 SubscriptionResult 
+	extends UtilitiesImpl.PluginSubscriptionResult
 {
 	public String
 	getID();
 	
 	public Map
 	toJSONMap();
+	
+		/**
+		 * See SearchResult properties for list
+		 * @return
+		 */
+	
+	public Map<Integer,Object>
+	toPropertyMap();
 	
 	public String
 	getDownloadLink();
