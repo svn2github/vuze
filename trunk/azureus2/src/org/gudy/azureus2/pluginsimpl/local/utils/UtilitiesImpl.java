@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -48,6 +49,10 @@ import org.gudy.azureus2.plugins.utils.search.SearchInitiator;
 import org.gudy.azureus2.plugins.utils.search.SearchListener;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
+import org.gudy.azureus2.plugins.utils.subscriptions.Subscription;
+import org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionException;
+import org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionManager;
+import org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionResult;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentFactory;
@@ -1047,6 +1052,125 @@ UtilitiesImpl
 			SearchProvider		provider );
 	}
 		
+	
+	public SubscriptionManager 
+	getSubscriptionManager() 
+	
+		throws SubscriptionException
+	{
+		try{
+			Method m = Class.forName( "com.aelitis.azureus.core.subs.SubscriptionManagerFactory" ).getMethod( "getSingleton" );
+			
+			final PluginSubscriptionManager sm = (PluginSubscriptionManager)m.invoke( null );
+			
+			return( 
+				new SubscriptionManager()
+				{
+					public Subscription[] 
+					getSubscriptions() 
+					{
+						PluginSubscription[] p_subs = sm.getSubscriptions( true );
+						
+						Subscription[]	subs = new Subscription[ p_subs.length ];
+						
+						for ( int i=0;i<subs.length;i++ ){
+							
+							final PluginSubscription p_sub = p_subs[i];
+							
+							subs[i] = 
+								new Subscription()
+								{
+									public String 
+									getName() 
+									{
+										return( p_sub.getName());
+									}
+									
+									public SubscriptionResult[] 
+									getResults() 
+									{
+										PluginSubscriptionResult[] p_results = p_sub.getResults( false );
+										
+										SubscriptionResult[] results = new SubscriptionResult[p_results.length];
+										
+										for (int i=0;i<results.length;i++){
+											
+											final PluginSubscriptionResult p_res = p_results[i];
+											
+											results[i] = 
+												new SubscriptionResult()
+												{
+													private Map<Integer,Object> map = p_res.toPropertyMap();
+													
+													public Object
+													getProperty(
+														int		property_name )
+													{
+														return( map.get( property_name ));
+													}
+													
+													public boolean
+													isRead()
+													{
+														return( p_res.getRead());
+													}
+													
+													public void
+													setRead(
+														boolean	read )
+													{
+														p_res.setRead( read );
+													}
+												};
+										}
+										
+										return( results );
+									}
+								};
+						}
+					
+						return( subs );
+					}
+				});
+			
+		}catch( Throwable e ){
+			
+			throw( new SubscriptionException( "Subscriptions unavailable", e ));
+		}
+	}
+	
+	public interface
+	PluginSubscriptionManager
+	{
+		public PluginSubscription[]
+		getSubscriptions(
+			boolean	subscribed_only );
+	}
+	
+	public interface
+	PluginSubscription
+	{
+		public String
+		getName();
+		
+		public PluginSubscriptionResult[]
+		getResults(
+			boolean		include_deleted );
+	}
+	
+	public interface
+	PluginSubscriptionResult
+	{
+		public Map<Integer,Object>
+		toPropertyMap();
+		
+		public void
+		setRead(
+			boolean		read );
+		
+		public boolean
+		getRead();
+	}
 	
 	public interface
 	runnableWithReturn<T>

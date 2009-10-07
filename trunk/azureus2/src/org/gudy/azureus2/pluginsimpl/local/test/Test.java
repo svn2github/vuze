@@ -55,6 +55,10 @@ import org.gudy.azureus2.plugins.utils.search.SearchResult;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
+import org.gudy.azureus2.plugins.utils.subscriptions.Subscription;
+import org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionManager;
+import org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionResult;
+
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler.passwordDetails;
@@ -107,6 +111,29 @@ Test
 										e.printStackTrace();
 									}
 									
+									try{
+										SubscriptionManager sm = plugin_interface.getUtilities().getSubscriptionManager();
+									
+										Subscription[] subs = sm.getSubscriptions();
+										
+										for ( Subscription s: subs ){
+											
+											System.out.println( "subs: " + s.getName());
+											
+											SubscriptionResult[] results = s.getResults();
+											
+											for ( SubscriptionResult result: results ){
+												
+												System.out.println( "    " + result.getProperty( SearchResult.PR_NAME ) + ", read=" + result.isRead());
+											}
+											
+										}
+									}catch( Throwable e ){
+										
+										e.printStackTrace();
+									}
+									
+									/*
 									while( true ){
 										
 										try{
@@ -168,7 +195,7 @@ Test
 													
 													System.out.println( "waiting for results" );
 												}
-												*/
+												
 												
 												
 												Search s = si.createSearch(	providers, properties, null );
@@ -204,6 +231,7 @@ Test
 											e.printStackTrace();
 										}
 									}
+									*/
 								}
 							};
 							

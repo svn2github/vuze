@@ -41,6 +41,8 @@ import org.gudy.azureus2.plugins.utils.search.SearchException;
 import org.gudy.azureus2.plugins.utils.search.SearchInitiator;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.security.*;
+import org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionException;
+import org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionManager;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.*;
 import org.gudy.azureus2.plugins.utils.xml.rss.*;
 
@@ -342,6 +344,11 @@ Utilities
 	getSearchInitiator()
 	
 		throws SearchException;
+	
+	public SubscriptionManager
+	getSubscriptionManager()
+	
+		throws SubscriptionException;
 }
 
 
