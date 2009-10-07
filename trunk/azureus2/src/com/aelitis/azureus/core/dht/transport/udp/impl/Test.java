@@ -153,7 +153,7 @@ Test
 								return 0;
 							}
 
-							public int 
+							public byte 
 							getReplicationFactor() 
 							{
 								return 0;

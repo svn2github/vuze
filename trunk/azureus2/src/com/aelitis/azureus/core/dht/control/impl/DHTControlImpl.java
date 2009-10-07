@@ -1094,7 +1094,7 @@ DHTControlImpl
 					return( basis.getLifeTimeHours());
 				}
 				
-				public int
+				public byte
 				getReplicationFactor()
 				{
 					return( basis.getReplicationFactor());
@@ -4228,7 +4228,7 @@ DHTControlImpl
 			return( delegate.getLifeTimeHours());
 		}
 		
-		public int 
+		public byte 
 		getReplicationFactor() 
 		{
 			return( delegate.getReplicationFactor());

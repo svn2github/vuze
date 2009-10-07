@@ -206,10 +206,10 @@ DHTDBValueImpl
 		return( life_hours&0xff );
 	}
 	
-	public int 
+	public byte 
 	getReplicationFactor() 
 	{
-		return( rep_fact&0xff );
+		return( rep_fact );
 	}
 	
 	protected void

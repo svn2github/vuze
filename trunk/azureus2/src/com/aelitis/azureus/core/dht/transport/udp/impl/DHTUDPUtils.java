@@ -487,11 +487,11 @@ DHTUDPUtils
 			life_hours = 0;
 		}
 		
-		final int rep_fact;
+		final byte rep_fact;
 		
 		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
 
-			rep_fact = is.readByte()&0xff;
+			rep_fact = is.readByte();
 			
 		}else{
 			
@@ -543,7 +543,7 @@ DHTUDPUtils
 					return( life_hours );
 				}
 				
-				public int 
+				public byte 
 				getReplicationFactor() 
 				{
 					return( rep_fact );
