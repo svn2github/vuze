@@ -92,8 +92,6 @@ public class MainMenu
 
 		addCommunityMenu();
 
-		addPublishMenu();
-
 		addToolsMenu();
 
 		/*
@@ -250,23 +248,6 @@ public class MainMenu
 		item.setText(cn.getName());
 
 		item.setData("ContentNetwork", cn);
-	}
-
-	/**
-	 * 
-	 *
-	 * @since 3.1.1.1
-	 */
-	private void addPublishMenu() {
-		try {
-			MenuItem publishItem = MenuFactory.createPublishMenuItem(menuBar);
-			final Menu publishMenu = publishItem.getMenu();
-
-			addPublishMenuItems(publishMenu);
-
-		} catch (Exception e) {
-			Debug.out("Error creating View Menu", e);
-		}
 	}
 
 	/**
@@ -630,75 +611,6 @@ public class MainMenu
 				sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_PUBLISH);
 			}
 		});
-
-	}
-
-	private void addPublishMenuItems(Menu publishMenu) {
-		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.new",
-				new Listener() {
-					public void handleEvent(Event event) {
-						String sURL = ContentNetworkUtils.getUrl(
-								ConstantsVuze.getDefaultContentNetwork(),
-								ContentNetwork.SERVICE_PUBLISH_NEW);
-
-						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-						SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_PUBLISH);
-						if (entry.getIView() == null) {
-							entry = sidebar.createEntryFromSkinRef(
-									SideBar.SIDEBAR_SECTION_BROWSE,
-									SideBar.SIDEBAR_SECTION_PUBLISH, "publishtab.area",
-									"Publish", null, sURL, true, -1);
-						} else {
-							UISWTViewEventListener eventListener = entry.getEventListener();
-							if (eventListener instanceof UISWTViewEventListenerSkinObject) {
-								SWTSkinObject so = ((UISWTViewEventListenerSkinObject) eventListener).getSkinObject();
-								if (so instanceof SWTSkinObjectBrowser) {
-									((SWTSkinObjectBrowser) so).setURL(sURL);
-								}
-							}
-						}
-						sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_PUBLISH);
-					}
-				});
-
-		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.mine",
-				new Listener() {
-					public void handleEvent(Event event) {
-						String sURL = ContentNetworkUtils.getUrl(
-								ConstantsVuze.getDefaultContentNetwork(),
-								ContentNetwork.SERVICE_PUBLISH);
-
-						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-						SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_PUBLISH);
-						if (entry.getIView() == null) {
-							entry = sidebar.createEntryFromSkinRef(
-									SideBar.SIDEBAR_SECTION_BROWSE,
-									SideBar.SIDEBAR_SECTION_PUBLISH, "publishtab.area",
-									"Publish", null, sURL, true, -1);
-						} else {
-							UISWTViewEventListener eventListener = entry.getEventListener();
-							if (eventListener instanceof UISWTViewEventListenerSkinObject) {
-								SWTSkinObject so = ((UISWTViewEventListenerSkinObject) eventListener).getSkinObject();
-								if (so instanceof SWTSkinObjectBrowser) {
-									((SWTSkinObjectBrowser) so).setURL(sURL);
-								}
-							}
-						}
-						sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_PUBLISH);
-					}
-				});
-
-		MenuFactory.addSeparatorMenuItem(publishMenu);
-
-		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.about",
-				new Listener() {
-					public void handleEvent(Event event) {
-						String sURL = ContentNetworkUtils.getUrl(
-								ConstantsVuze.getDefaultContentNetwork(),
-								ContentNetwork.SERVICE_PUBLISH_ABOUT);
-						Utils.launch(sURL);
-					}
-				});
 
 	}
 
