@@ -117,6 +117,11 @@ public class StringListParameter extends Parameter {
       	// @see org.eclipse.swt.widgets.Text#computeSize(int, int, boolean)
       	public Point computeSize(int wHint, int hHint, boolean changed) {
       		// List widget, at least on Windows, forces the preferred height
+      		
+      		if ( !isVisible()){
+    			return( new Point( 0, 0 ));
+    		}
+      		
       		Point pt = super.computeSize(wHint, hHint, changed);
       		
       		if (hHint == SWT.DEFAULT) {

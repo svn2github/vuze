@@ -60,6 +60,9 @@ public class StringParameter extends Parameter{
     		// Text widget, at least on Windows, forces the preferred width
     		// to the width of the text inside of it
     		// Fix this by forcing to LayoutData's minWidth
+    		if ( !isVisible()){
+    			return( new Point( 0, 0 ));
+    		}
     		Point pt = super.computeSize(wHint, hHint, changed);
     		
     		if (wHint == SWT.DEFAULT) {
@@ -70,6 +73,8 @@ public class StringParameter extends Parameter{
       			}
       		}
     		}
+    		
+ 
     		return pt;
     	}
     };
