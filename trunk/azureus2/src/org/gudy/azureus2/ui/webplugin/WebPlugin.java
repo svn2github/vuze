@@ -381,6 +381,19 @@ WebPlugin
 			
 			setupPairing( p_sid, pairing_enable.getValue());
 			
+			ParameterListener update_pairing_listener = 
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param ) 
+					{
+						updatePairing( p_sid );
+					}
+				};
+				
+			param_port.addListener( update_pairing_listener );
+			param_protocol.addListener( update_pairing_listener );
 		}else{
 			
 			pairing_enable = null;
@@ -738,7 +751,7 @@ WebPlugin
 				PairingConnectionData cd = service.getConnectionData();
 
 				try{					
-					setupPairingSupport( cd );
+					updatePairing( cd );
 				
 				}finally{
 				
@@ -753,14 +766,37 @@ WebPlugin
 			}
 		}
 	}
-	
+		
 	protected void
-	setupPairingSupport(
+	updatePairing(
+		String		sid )
+	{
+		PairingManager pm = PairingManagerFactory.getSingleton();
+		
+		PairedService service = pm.getService( sid );
+		
+		if ( service != null ){
+			
+			PairingConnectionData cd = service.getConnectionData();
+			
+			try{
+				updatePairing( cd );
+				
+			}finally{
+				
+				cd.sync();
+			}
+		}
+	}
+
+	protected void
+	updatePairing(
 		PairingConnectionData		cd )
 	{
 		cd.setAttribute( PairingConnectionData.ATTR_PORT, 		String.valueOf( param_port.getValue()));
 		cd.setAttribute( PairingConnectionData.ATTR_PROTOCOL, 	param_protocol.getValue());
 	}
+
 	
 	public boolean
 	generateSupport(
