@@ -123,6 +123,13 @@ LWSDiskManagerState
 	{
 		return( false );
 	}
+	
+	public long 
+	getFlags() 
+	{
+		return 0;
+	}
+	
 	public boolean 
 	isOurContent() 
 	{

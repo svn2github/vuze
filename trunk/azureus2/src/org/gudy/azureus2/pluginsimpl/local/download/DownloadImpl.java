@@ -267,6 +267,12 @@ DownloadImpl
 		return( download_manager.getErrorDetails());
 	}
 	
+	public long
+	getFlags()
+	{
+		return( download_manager.getDownloadState().getFlags());
+	}
+	
 	public boolean
 	getFlag(
 		long		flag )

@@ -186,6 +186,12 @@ LWSDownload
 		return( false );
 	}
 	
+	public long 
+	getFlags() 
+	{
+		return 0;
+	}
+	
 	public int
 	getIndex()
 	{

@@ -327,6 +327,14 @@ RPDownload
 		return( false );
 	}
 	
+	public long
+	getFlags()
+	{
+		notSupported();
+		
+		return( 0 );
+	}
+	
 	public int
 	getIndex()
 	{

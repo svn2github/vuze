@@ -199,6 +199,14 @@ Download extends DownloadEventNotifier
 	 */
 	public void setFlag(long flag, boolean set);
 
+	/**
+	 * get all the flags as a bitmap
+	 * @since 4209
+	 * @return
+	 */
+	
+	public long
+	getFlags();
 	
 	/**
 	 * Index of download. {@link #getPosition()}

@@ -885,6 +885,12 @@ DownloadManagerStateImpl
 		return(( value & flag ) != 0 );
 	}
 	
+	public long 
+	getFlags() 
+	{
+		return( getLongAttribute( AT_FLAGS ));
+	}
+	
 	public boolean parameterExists(String name) {
 		return parameters.containsKey(name);
 	}
@@ -2391,6 +2397,12 @@ DownloadManagerStateImpl
 			long		flag )
 		{
 			return( false );
+		}
+		
+		public long 
+		getFlags() 
+		{
+			return 0;
 		}
 		
 		public void

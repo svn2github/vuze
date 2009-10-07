@@ -130,6 +130,9 @@ DownloadManagerState
 	getFlag(
 		long		flag );
 	
+	public long
+	getFlags();
+
 		/**
 		 * Reset to default value
 		 * @param name
