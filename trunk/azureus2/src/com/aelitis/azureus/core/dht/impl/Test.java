@@ -72,8 +72,8 @@ Test
 		DHTTransportUDPImpl.TEST_EXTERNAL_IP	= true;
 	}
 	
-	int num_dhts			= 3;
-	int num_stores			= 2;
+	int num_dhts			= 6;
+	int num_stores			= 0;
 	static int MAX_VALUES	= 10000;
 	
 	boolean	udp_protocol	= true;
@@ -355,8 +355,9 @@ Test
 							
 							pos = val.indexOf( ' ' );
 							
-							byte flags 	= 0;
-							byte life 	= 0;
+							byte flags 		= 0;
+							byte life 		= 0;
+							byte rep_fact 	= DHT.REP_FACT_DEFAULT;
 							
 							if ( pos != -1 ){
 								
@@ -372,18 +373,23 @@ Test
 									
 									if ( opt.equals( "f" )){
 										
-										flags = (byte)Integer.parseInt(y[1]);
+										flags = (byte)Integer.parseInt(y[1],16);
 										
 									}else if ( opt.equals( "l" )){
 										
 										life = (byte)Integer.parseInt(y[1]);
+										
+									}else if ( opt.equals( "r" )){
+										
+										rep_fact = (byte)Integer.parseInt(y[1]);
+
 									}
 								}
 								
 								val = val.substring(0,pos);
 							}
 							
-							dht.put( key.getBytes(), "", val.getBytes(), flags, life, false, new DHTOperationAdapter() );
+							dht.put( key.getBytes(), "", val.getBytes(), flags, life, rep_fact, false, new DHTOperationAdapter() );
 						}
 					}else if ( command == 'x' ){
 						
@@ -936,8 +942,9 @@ Test
 		DHTTransportValue		value )
 	{
 		return( new String( value.getValue()) + 
-				"; flags=" + value.getFlags() +
+				"; flags=" + Integer.toHexString( value.getFlags()) +
 				"; life=" + value.getLifeTimeHours() +
+				"; rep=" + value.getReplicationFactor() +
 				", orig=" + value.getOriginator().getAddress());
 	}
 	

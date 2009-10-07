@@ -374,10 +374,10 @@ DHTPlugin
 											
 											for ( Map.Entry<Byte, Integer> entry: counts.entrySet()){
 											
-												ver += (ver.length()==0?"":", " ) + entry.getKey() + "=" + 100*entry.getValue()/total;
+												ver += (ver.length()==0?"":", " ) + entry.getKey() + "=" + 100*entry.getValue()/total + "%";
 											}
 											
-											log.log( "    " + ver );
+											log.log( "    contacts=" + total + ": " + ver );
 										}
 									}else if ( lc.equals( "testca" )){
 																
