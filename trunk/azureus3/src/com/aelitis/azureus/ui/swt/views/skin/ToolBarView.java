@@ -847,13 +847,21 @@ public class ToolBarView
 		} else {
 			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 			if (sidebar != null) {
+				ToolBarItem[] allToolBarItems = getAllToolBarItems();
 				SideBarEntrySWT entry = sidebar.getCurrentEntry();
 				IconBarEnabler enabler = entry.getIconBarEnabler();
-				if (enabler == null && entry.iview != null) {
-					enabler = entry.iview;
+				if (enabler == null) {
+					if (entry.iview != null) {
+						enabler = entry.iview;
+					} else {
+						for (int i = 0; i < allToolBarItems.length; i++) {
+							ToolBarItem toolBarItem = allToolBarItems[i];
+							toolBarItem.setEnabled(false);
+						}
+						return;
+					}
 				}
 
-				ToolBarItem[] allToolBarItems = getAllToolBarItems();
 				for (int i = 0; i < allToolBarItems.length; i++) {
 					ToolBarItem toolBarItem = allToolBarItems[i];
 					toolBarItem.setEnabled(enabler.isEnabled(toolBarItem.getId()));
