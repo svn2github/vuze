@@ -555,7 +555,7 @@ DHTUDPUtils
 					long	now = SystemTime.getCurrentTime();
 					
 					return( DHTLog.getString( value_bytes ) + " - " + new String(value_bytes) + "{v=" + version + ",f=" + 
-							Integer.toHexString(flags) + ",l=" + life_hours + ",ca=" + (now - created ) + ",or=" + originator.getString() +"}" );
+							Integer.toHexString(flags) + ",l=" + life_hours + ",r=" + rep_fact + ",ca=" + (now - created ) + ",or=" + originator.getString() +"}" );
 				}
 			};
 			
