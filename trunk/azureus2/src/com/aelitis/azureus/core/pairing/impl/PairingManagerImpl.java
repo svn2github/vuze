@@ -21,9 +21,14 @@
 
 package com.aelitis.azureus.core.pairing.impl;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -32,6 +37,9 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
@@ -116,8 +124,8 @@ PairingManagerImpl
 	private static final int MIN_UPDATE_PERIOD_DEFAULT	= 60*1000;
 	private static final int MAX_UPDATE_PERIOD_DEFAULT	= 60*60*1000;
 		
-	private static final int min_update_period	= MIN_UPDATE_PERIOD_DEFAULT;
-	private static final int max_update_period	= MAX_UPDATE_PERIOD_DEFAULT;
+	private int min_update_period	= MIN_UPDATE_PERIOD_DEFAULT;
+	private int max_update_period	= MAX_UPDATE_PERIOD_DEFAULT;
 	
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
@@ -320,20 +328,34 @@ PairingManagerImpl
 	
 		throws PairingException
 	{
-		String code = "og";
+		Map<String,Object>	request = new HashMap<String, Object>();
 		
-		writeAccessCode( code );
+		String existing = readAccessCode();
 		
-		// amend min_update_period if value returned
-
-		if ( !updating ){
+		request.put( "ac", existing );
 		
-			updateNeeded();
-		}
+		Map<String,Object> response = sendRequest( "allocate", request );
 		
-		return( code );
-	}
+		try{
+			String code = new String((byte[])response.get( "ac" ), "UTF-8" );
+			
+			writeAccessCode( code );
+			
+			// amend min_update_period if value returned
 	
+			if ( !updating ){
+			
+				updateNeeded();
+			}
+			
+			return( code );
+			
+		}catch( Throwable e ){
+			
+			throw( new PairingException( "allocation failed", e ));
+		}
+	}
+
 	public String
 	getAccessCode()
 	
@@ -661,13 +683,10 @@ PairingManagerImpl
 				}
 			}
 			
-			
-			// do update
-			
-			// amend min_update_period if value returned
-			
 			System.out.println( "PS: doUpdate: " + payload );
 
+			sendRequest( "update", payload );
+			
 			synchronized( this ){
 
 				consec_update_fails	= 0;
@@ -734,6 +753,78 @@ PairingManagerImpl
 						updateNeeded();
 					}
 				});
+	}
+	
+	
+	private Map<String, Object> 
+	sendRequest(
+		String 				command,
+		Map<String, Object> payload )
+		
+		throws PairingException
+	{
+		try{
+			Map<String, Object> request = new HashMap<String, Object>();
+			
+			request.put( "req", payload );
+			
+			String request_str = Base32.encode( BEncoder.encode( request ));
+			
+			URL target = new URL( SERVICE_URL + "/client/" + command + "?request=" + request_str );
+			
+			HttpURLConnection connection = (HttpURLConnection)target.openConnection();
+			
+			InputStream is = connection.getInputStream();
+			
+			Map<String,Object> response = (Map<String,Object>)BDecoder.decode( new BufferedInputStream( is ));
+			
+			synchronized( this ){
+				
+				Long	min_retry = (Long)response.get( "min_secs" );
+				
+				if ( min_retry != null ){
+					
+					min_update_period	= min_retry.intValue()*1000;
+				}
+				
+				Long	max_retry = (Long)response.get( "max_secs" );
+				
+				if ( max_retry != null ){
+					
+					max_update_period	= max_retry.intValue()*1000;
+				}
+			}
+			
+			String error = getString( response, "error" );
+			
+			if ( error != null ){
+				
+				throw( new PairingException( error ));
+			}
+			
+			return((Map<String,Object>)response.get( "rep" ));
+			
+		}catch( Throwable e ){
+			
+			throw( new PairingException( "invocation failed", e ));
+		}
+	}
+	
+	protected String
+	getString(
+		Map<String,Object>	map,
+		String				name )
+	
+		throws IOException
+	{
+		byte[]	bytes = (byte[])map.get(name);
+		
+		if ( bytes == null ){
+			
+			return( null );
+		}
+		
+		return( new String( bytes, "UTF-8" ));
 	}
 	
 	protected class
