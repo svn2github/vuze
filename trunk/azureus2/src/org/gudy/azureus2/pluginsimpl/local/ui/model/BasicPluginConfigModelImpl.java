@@ -268,7 +268,7 @@ BasicPluginConfigModelImpl
 		String		resource_name,
 		String		value )
 	{
-		InfoParameterImpl res = new InfoParameterImpl(configobj, key_prefix, resource_name, value );
+		InfoParameterImpl res = new InfoParameterImpl(configobj, resolveKey(resource_name), resource_name, value );
 		
 		parameters.add( res );
 		

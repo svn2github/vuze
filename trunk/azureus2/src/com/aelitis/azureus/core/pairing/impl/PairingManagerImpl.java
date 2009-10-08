@@ -21,11 +21,20 @@
 
 package com.aelitis.azureus.core.pairing.impl;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -43,17 +52,34 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.pairing.*;
 
 public class 
 PairingManagerImpl
 	implements PairingManager
 {
+	private static final String	SERVICE_URL;
+	
+	static{
+		String url = System.getProperty( "az.pairing.url", "" );
+		
+		if ( url.length() == 0 ){
+			
+			SERVICE_URL = Constants.PAIRING_URL;
+			
+		}else{
+			
+			SERVICE_URL = url;
+		}
+	}
+	
 	private static final PairingManagerImpl	singleton = new PairingManagerImpl();
 	
 	public static PairingManager
@@ -62,21 +88,146 @@ PairingManagerImpl
 		return( singleton );
 	}
 	
-	private InfoParameter		param_ac;
+	private AzureusCore	azureus_core;
+	
+	private BooleanParameter 	param_enable;
+
+	
+	private InfoParameter		param_ac_info;
+	private InfoParameter		param_status_info;
+	
 	private BooleanParameter 	param_e_enable;
 	private StringParameter		param_ipv4;
 	private StringParameter		param_ipv6;
 	private StringParameter		param_host;
 	
-	private Map<String,PairedService>		services = new HashMap<String, PairedService>();
+	private Map<String,PairedServiceImpl>		services = new HashMap<String, PairedServiceImpl>();
 	
 	private AESemaphore	init_sem = new AESemaphore( "PM:init" );
 	
-	private TimerEventPeriodic	update_event;
+	private TimerEventPeriodic	global_update_event;
+	
+	private InetAddress		current_v4;
+	private InetAddress		current_v6;
+	
+	private boolean	update_outstanding;
+	private boolean	updates_enabled;
+
+	private static final int MIN_UPDATE_PERIOD_DEFAULT	= 60*1000;
+	private static final int MAX_UPDATE_PERIOD_DEFAULT	= 60*60*1000;
+		
+	private static final int min_update_period	= MIN_UPDATE_PERIOD_DEFAULT;
+	private static final int max_update_period	= MAX_UPDATE_PERIOD_DEFAULT;
+	
+	
+	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
+	
+	private TimerEvent		deferred_update_event;
+	private long			last_update_time		= -1;
+	private int				consec_update_fails;
 	
 	protected
 	PairingManagerImpl()
 	{
+		PluginInterface default_pi = PluginInitializer.getDefaultInterface();
+		
+		final UIManager	ui_manager = default_pi.getUIManager();
+		
+		BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
+				ConfigSection.SECTION_CONNECTION, "Pairing");
+
+		param_enable = configModel.addBooleanParameter2( "pairing.enable", "pairing.enable", false );
+
+		param_ac_info = configModel.addInfoParameter2( "pairing.accesscode", readAccessCode());
+		
+		param_status_info = configModel.addInfoParameter2( "pairing.status.info", "" );
+		
+		final ActionParameter ap = configModel.addActionParameter2( "pairing.ac.getnew", "pairing.ac.getnew.create" );
+		
+		ap.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter 	param ) 
+				{
+					try{
+						ap.setEnabled( false );
+						
+						allocateAccessCode( false );
+						
+						SimpleTimer.addEvent(
+							"PM:enabler",
+							SystemTime.getOffsetTime(30*1000),
+							new TimerEventPerformer()
+							{
+								public void 
+								perform(
+									TimerEvent event ) 
+								{
+									ap.setEnabled( true );
+								}
+							});
+						
+					}catch( Throwable e ){
+						
+						ap.setEnabled( true );
+						
+						String details = MessageText.getString(
+								"pairing.alloc.fail",
+								new String[]{ Debug.getNestedExceptionMessage( e )});
+						
+						ui_manager.showMessageBox(
+								"pairing.op.fail",
+								"!" + details + "!",
+								UIManagerEvent.MT_OK );
+					}
+				}
+			});
+		
+		LabelParameter	param_e_info = configModel.addLabelParameter2( "pairing.explicit.info" );
+		
+		param_e_enable = configModel.addBooleanParameter2( "pairing.explicit.enable", "pairing.explicit.enable", false );
+		
+		param_ipv4	= configModel.addStringParameter2( "pairing.ipv4", "pairing.ipv4", "" );
+		param_ipv6	= configModel.addStringParameter2( "pairing.ipv6", "pairing.ipv6", "" );
+		param_host	= configModel.addStringParameter2( "pairing.host", "pairing.host", "" );
+		
+		param_ipv4.setGenerateIntermediateEvents( false );
+		param_ipv6.setGenerateIntermediateEvents( false );
+		param_host.setGenerateIntermediateEvents( false );
+		
+		ParameterListener change_listener = 
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param )
+				{
+					updateNeeded();
+				}
+			};
+			
+		param_enable.addListener( change_listener );
+		param_e_enable.addListener(	change_listener );
+		param_ipv4.addListener(	change_listener );
+		param_ipv6.addListener(	change_listener );
+		param_host.addListener(	change_listener );
+		
+		param_e_enable.addEnabledOnSelection( param_ipv4 );
+		param_e_enable.addEnabledOnSelection( param_ipv6 );
+		param_e_enable.addEnabledOnSelection( param_host );
+		
+		configModel.createGroup(
+			"pairing.group.explicit",
+			new Parameter[]{
+				param_e_info,
+				param_e_enable,
+				param_ipv4,	
+				param_ipv6,
+				param_host,
+			});
+		
 		AzureusCoreFactory.addCoreRunningListener(
 			new AzureusCoreRunningListener()
 			{
@@ -94,80 +245,35 @@ PairingManagerImpl
 	initialise(
 		AzureusCore		_core )
 	{
+		synchronized( this ){
+			
+			azureus_core	= _core;
+		}
+		
 		try{
 			PluginInterface default_pi = PluginInitializer.getDefaultInterface();
-	
-			final UIManager	ui_manager = default_pi.getUIManager();
-			
-			BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
-					ConfigSection.SECTION_CONNECTION, "Pairing");
-	
-			param_ac = configModel.addInfoParameter2( "pairing.accesscode", "" );
-			
-			final ActionParameter ap = configModel.addActionParameter2( "pairing.ac.getnew", "pairing.ac.getnew.create" );
-			
-			ap.addListener(
-				new ParameterListener()
+
+			DelayedTask dt = default_pi.getUtilities().createDelayedTask(
+				new Runnable()
 				{
 					public void 
-					parameterChanged(
-						Parameter 	param ) 
+					run() 
 					{
-						try{
-							ap.setEnabled( false );
-							
-							allocateAccessCode();
-							
-							SimpleTimer.addEvent(
-								"PM:enabler",
-								SystemTime.getOffsetTime(30*1000),
-								new TimerEventPerformer()
+						new DelayedEvent( 
+							"PM:delayinit",
+							30*1000,
+							new AERunnable()
+							{
+								public void
+								runSupport()
 								{
-									public void 
-									perform(
-										TimerEvent event ) 
-									{
-										ap.setEnabled( true );
-									}
-								});
-							
-						}catch( Throwable e ){
-							
-							ap.setEnabled( true );
-							
-							String details = MessageText.getString(
-									"pairing.alloc.fail",
-									new String[]{ Debug.getNestedExceptionMessage( e )});
-							
-							ui_manager.showMessageBox(
-									"pairing.op.fail",
-									"!" + details + "!",
-									UIManagerEvent.MT_OK );
-						}
+									enableUpdates();
+								}
+							});
 					}
 				});
 			
-			LabelParameter	param_e_info = configModel.addLabelParameter2( "pairing.explicit.info" );
-			
-			param_e_enable = configModel.addBooleanParameter2( "pairing.explicit.enable", "pairing.explicit.enable", false );
-			
-			param_ipv4	= configModel.addStringParameter2( "pairing.ipv4", "pairing.ipv4", "" );
-			param_ipv6	= configModel.addStringParameter2( "pairing.ipv6", "pairing.ipv6", "" );
-			param_host	= configModel.addStringParameter2( "pairing.host", "pairing.host", "" );
-			
-			param_e_enable.addEnabledOnSelection( param_ipv4 );
-			param_e_enable.addEnabledOnSelection( param_ipv6 );
-			param_e_enable.addEnabledOnSelection( param_host );
-			
-			configModel.createGroup(
-				"pairing.group.explicit",
-				new Parameter[]{
-					param_e_info,
-					param_e_enable,
-					param_ipv4,	
-					param_ipv6,
-					param_host,
-				});
+			dt.queue();
 			
 		}finally{
 			
@@ -187,13 +293,45 @@ PairingManagerImpl
 	}
 	
 	protected void
-	allocateAccessCode()
+	setStatus(
+		String		str )
+	{
+		param_status_info.setValue( str );
+	}
+	
+	protected String
+	readAccessCode()
+	{
+		return( COConfigurationManager.getStringParameter( "pairing.accesscode", "" ));
+	}
+	
+	protected void
+	writeAccessCode(
+		String		ac )
+	{
+		 COConfigurationManager.setParameter( "pairing.accesscode", ac );
+		 
+		 param_ac_info.setValue( ac );
+	}
+	
+	protected String
+	allocateAccessCode(
+		boolean		updating )
 	
 		throws PairingException
 	{
-		param_ac.setValue( "og" );
+		String code = "og";
 		
-		//throw( new PairingException( "parp" ));
+		writeAccessCode( code );
+		
+		// amend min_update_period if value returned
+
+		if ( !updating ){
+		
+			updateNeeded();
+		}
+		
+		return( code );
 	}
 	
 	public String
@@ -203,14 +341,14 @@ PairingManagerImpl
 	{
 		waitForInitialisation();
 		
-		String ac = param_ac.getValue();
+		String ac = readAccessCode();
 		
 		if ( ac == null || ac.length() == 0 ){
 			
-			allocateAccessCode();
+			ac = allocateAccessCode( false );
 		}
 		
-		return( param_ac.getValue());
+		return( ac );
 	}
 	
 	public String
@@ -220,37 +358,18 @@ PairingManagerImpl
 	{
 		waitForInitialisation();
 		
-		allocateAccessCode();
+		String new_code = allocateAccessCode( false );
 		
-		return( param_ac.getValue());
+		return( new_code );
 	}
 	
 	public PairedService
 	addService(
 		String		sid )
 	{
-		synchronized( services ){
-			
-			if ( update_event == null ){
-				
-				update_event = 
-					SimpleTimer.addPeriodicEvent(
-					"PM:updater",
-					60*1000,
-					new TimerEventPerformer()
-					{
-						public void 
-						perform(
-							TimerEvent event ) 
-						{
-							updateGlobals();
-						}
-					});
-				
-				updateGlobals();
-			}
-			
-			PairedService	result = services.get( sid );
+		synchronized( this ){
+						
+			PairedServiceImpl	result = services.get( sid );
 			
 			if ( result == null ){
 				
@@ -269,19 +388,10 @@ PairingManagerImpl
 	getService(
 		String		sid )
 	{
-		synchronized( services ){
+		synchronized( this ){
 			
 			PairedService	result = services.get( sid );
 			
-			if ( services.size() == 0 ){
-				
-				if ( update_event != null ){
-					
-					update_event.cancel();
-					
-					update_event = null;
-				}
-			}
 			return( result );
 		}
 	}
@@ -290,7 +400,7 @@ PairingManagerImpl
 	remove(
 		PairedServiceImpl	service )
 	{
-		synchronized( services ){
+		synchronized( this ){
 
 			String sid = service.getSID();
 			
@@ -310,16 +420,320 @@ PairingManagerImpl
 		updateNeeded();
 	}
 	
-	protected void
-	updateGlobals()
+	protected InetAddress
+	updateAddress(
+		InetAddress		current,
+		InetAddress		latest,
+		boolean			v6 )
 	{
+		if ( v6 ){
+			
+			if ( latest instanceof Inet4Address ){
+				
+				return( current );
+			}
+		}else{
+			
+			if ( latest instanceof Inet6Address ){
+				
+				return( current );
+			}
+		}
 		
+		if ( current == latest ){
+			
+			return( current );
+		}
+		
+		if ( current == null || latest == null ){
+			
+			return( latest );
+		}
+		
+		if ( !current.equals( latest )){
+			
+			return( latest );
+		}
+		
+		return( current );
+	}
+	
+	protected void
+	updateGlobals(
+		boolean	is_updating )	
+	{
+		synchronized( this ){
+						
+			NetworkAdmin network_admin = NetworkAdmin.getSingleton();
+					
+			InetAddress latest_v4 = azureus_core.getInstanceManager().getMyInstance().getExternalAddress();
+			
+			InetAddress temp_v4 = updateAddress( current_v4, latest_v4, false );
+			
+			InetAddress latest_v6 = network_admin.getDefaultPublicAddressV6();
+	
+			InetAddress temp_v6 = updateAddress( current_v6, latest_v6, true );
+	
+			if (	temp_v4 != current_v4 ||
+					temp_v6 != current_v6 ){
+				
+				current_v4	= temp_v4;
+				current_v6	= temp_v6;
+				
+				if ( !is_updating ){
+				
+					updateNeeded();
+				}
+			}
+		}
+	}
+	
+	protected void
+	enableUpdates()
+	{		
+		synchronized( this ){
+			
+			updates_enabled = true;
+
+			if ( update_outstanding ){
+				
+				update_outstanding = false;
+				
+				updateNeeded();
+			}
+		}
 	}
 	
 	protected void
 	updateNeeded()
 	{
 		System.out.println( "PS: updateNeeded" );
+
+		synchronized( this ){
+			
+			if ( updates_enabled ){
+				
+				dispatcher.dispatch(
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							doUpdate();
+						}
+					});
+						
+				
+			}else{
+				
+				setStatus( MessageText.getString( "pairing.status.initialising" ));
+				
+				update_outstanding	= true;
+			}
+		}
+	}
+	
+	protected void
+	doUpdate()
+	{
+		long	now = SystemTime.getMonotonousTime();
+
+		synchronized( this ){
+			
+			if ( deferred_update_event != null ){
+				
+				return;
+			}
+			
+			long	time_since_last_update = now - last_update_time;
+			
+			if ( last_update_time > 0 &&  time_since_last_update < min_update_period ){
+				
+				deferUpdate(  min_update_period - time_since_last_update  );
+				
+				return;
+			}
+		}
+		
+		try{
+			Map<String,Object>	payload = new HashMap<String, Object>();
+						
+			synchronized( this ){
+				
+				List<Map<String,String>>	list =  new ArrayList<Map<String,String>>();
+				
+				payload.put( "s", list );
+				
+				if ( services.size() > 0 && param_enable.getValue()){
+					
+					if ( global_update_event == null ){
+						
+						global_update_event = 
+							SimpleTimer.addPeriodicEvent(
+							"PM:updater",
+							60*1000,
+							new TimerEventPerformer()
+							{
+								public void 
+								perform(
+									TimerEvent event ) 
+								{
+									updateGlobals( false );
+								}
+							});
+						
+						updateGlobals( true );
+					}
+					
+					for ( PairedServiceImpl service: services.values()){
+						
+						list.add( service.toMap());
+					}
+				}else{
+					
+						// when we get to zero services we want to push through the
+						// last update to remove cd
+					
+					if ( global_update_event == null ){
+						
+						if ( consec_update_fails == 0 ){
+					
+							setStatus( MessageText.getString( "pairing.status.disabled" ));
+							
+							return;
+						}
+					}else{
+					
+						global_update_event.cancel();
+					
+						global_update_event = null;
+					}
+				}
+				
+				last_update_time = now;
+			}
+			
+				// we need a valid access code here!
+			
+			String ac = readAccessCode();
+			
+			if ( ac.length() == 0 ){
+				
+				ac = allocateAccessCode( true );			
+			}
+			
+			payload.put( "ac", ac );
+			
+			synchronized( this ){
+
+				if ( current_v4 != null ){
+				
+					payload.put( "c_v4", current_v4.getHostAddress());
+				}
+				
+				if ( current_v6 != null ){
+					
+					payload.put( "c_v6", current_v6.getHostAddress());
+				}
+			
+				if ( param_e_enable.getValue()){
+				
+					String host = param_host.getValue().trim();
+					
+					if ( host.length() > 0 ){
+						
+						payload.put( "e_h", host );
+					}
+					
+					String v4 = param_ipv4.getValue().trim();
+					
+					if ( v4.length() > 0 ){
+						
+						payload.put( "e_v4", v4 );
+					}
+					
+					String v6 = param_ipv6.getValue().trim();
+					
+					if ( v6.length() > 0 ){
+						
+						payload.put( "e_v4", v6 );
+					}
+				}
+			}
+			
+			
+			// do update
+			
+			// amend min_update_period if value returned
+			
+			System.out.println( "PS: doUpdate: " + payload );
+
+			synchronized( this ){
+
+				consec_update_fails	= 0;
+			}
+			
+			setStatus( 
+					MessageText.getString( 
+						"pairing.status.registered", 
+						new String[]{ new SimpleDateFormat().format(new Date( SystemTime.getCurrentTime() ))}));
+			
+		}catch( Throwable e ){
+			
+			synchronized( this ){
+				
+				consec_update_fails++;
+	
+				long back_off = min_update_period;
+				
+				for (int i=0;i<consec_update_fails;i++){
+					
+					back_off *= 2;
+					
+					if ( back_off > max_update_period ){
+					
+						back_off = max_update_period;
+						
+						break;
+					}
+				}
+				
+				deferUpdate( back_off );
+			}
+		}
+	}
+	
+	protected void
+	deferUpdate(
+		long	millis )
+	{
+		millis += 5000;
+		
+		long target = SystemTime.getOffsetTime( millis );
+		
+		setStatus( 
+			MessageText.getString( 
+				"pairing.status.pending", 
+				new String[]{ new SimpleDateFormat().format(new Date( target ))}));
+
+		deferred_update_event = 
+			SimpleTimer.addEvent(
+				"PM:defer",
+				target,
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent event )
+					{
+						synchronized( PairingManagerImpl.this ){
+							
+							deferred_update_event = null;
+						}
+						
+						updateNeeded();
+					}
+				});
 	}
 	
 	protected class
@@ -359,9 +773,12 @@ PairingManagerImpl
 			String		name,
 			String		value )
 		{
-			System.out.println( "PS: " + sid + ": " + name + " -> " + value );
-
-			attributes.put( name, value );
+			synchronized( this ){
+				
+				System.out.println( "PS: " + sid + ": " + name + " -> " + value );
+	
+				attributes.put( name, value );
+			}
 		}
 		
 		public String
@@ -375,6 +792,21 @@ PairingManagerImpl
 		sync()
 		{
 			PairingManagerImpl.this.sync( this );
+		}
+		
+		protected Map<String,String>
+		toMap()
+		{
+			Map<String,String> result = new HashMap<String, String>();
+			
+			result.put( "sid", sid );
+			
+			synchronized( this ){
+			
+				result.putAll( attributes );
+			}
+			
+			return( result );
 		}
 	}
 }
