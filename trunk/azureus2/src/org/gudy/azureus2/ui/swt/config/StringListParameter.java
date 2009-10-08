@@ -119,7 +119,7 @@ public class StringListParameter extends Parameter {
       		// List widget, at least on Windows, forces the preferred height
       		
       		if ( !isVisible()){
-    			return( new Point( 0, 0 ));
+    			// return( new Point( 0, 0 ));
     		}
       		
       		Point pt = super.computeSize(wHint, hHint, changed);

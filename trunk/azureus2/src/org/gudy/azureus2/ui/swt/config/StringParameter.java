@@ -61,7 +61,7 @@ public class StringParameter extends Parameter{
     		// to the width of the text inside of it
     		// Fix this by forcing to LayoutData's minWidth
     		if ( !isVisible()){
-    			return( new Point( 0, 0 ));
+    			//return( new Point( 0, 0 ));
     		}
     		Point pt = super.computeSize(wHint, hHint, changed);
     		
