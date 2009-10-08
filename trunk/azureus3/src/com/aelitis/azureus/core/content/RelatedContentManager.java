@@ -2062,7 +2062,7 @@ RelatedContentManager
 					}finally{
 						
 						try{
-							int	max_contacts = 10;
+							int	max_contacts = 20;
 							
 							DHT[]	dhts = dht_plugin.getDHTs();
 	
@@ -2122,17 +2122,19 @@ RelatedContentManager
 								}
 							}
 							
-							long	start		= SystemTime.getCurrentTime();
+							long	start		= SystemTime.getMonotonousTime();
 							long	max			= 25*1000;
 							
 							final AESemaphore	sem = new AESemaphore( "RCM:rems" );
 							
+							int	sent = 0;
+							
+							final int[]			done = {0};
+							
 							for (int i=0;i<ddb_contacts.size();i++){
 								
 								final DistributedDatabaseContact c = ddb_contacts.get( i );
-								
-								final int f_i = i;
-								
+																
 								new AEThread2( "RCM:rems", true )
 								{
 									public void
@@ -2140,22 +2142,48 @@ RelatedContentManager
 									{
 										try{
 											sendRemoteSearch( si, titles_or_hashes, c, term, observer );
-											
-											if ( f_i > 3 ){
-												
-												Thread.sleep( 1000 );
-											}
-										}catch( Throwable e ){
-											
+																						
 										}finally{
+											
+											synchronized( done ){
+											
+												done[0]++;
+											}
 											
 											sem.release();
 										}
 									}
 								}.start();
+								
+								sent++;
+								
+								synchronized( done ){
+									
+									if ( done[0] >= ddb_contacts.size() / 2 ){
+										
+										start		= SystemTime.getMonotonousTime();
+										max			= 5*1000;
+										
+										break;
+									}
+								}
+								
+								if ( i > 5 ){
+									
+									try{
+										Thread.sleep( 500 );
+										
+									}catch( Throwable e ){
+									}
+								}
 							}
 							
-							for (int i=0;i<ddb_contacts.size();i++){
+							for (int i=0;i<sent;i++){
+								
+								if ( done[0] > sent*2/3 ){
+									
+									break;
+								}
 								
 								long	elapsed = SystemTime.getMonotonousTime() - start;
 								
