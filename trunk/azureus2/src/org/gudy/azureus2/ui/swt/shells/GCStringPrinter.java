@@ -545,6 +545,9 @@ public class GCStringPrinter
 			} else {
 				int posLastWordStart = 0;
 				int posWordStart = lineInfo.originalLine.indexOf(' ');
+				while (posWordStart == 0) {
+					posWordStart = lineInfo.originalLine.indexOf(' ', posWordStart + 1);
+				}
 				if (posWordStart < 0) {
 					posWordStart = lineInfo.originalLine.length();
 				}
@@ -686,21 +689,24 @@ public class GCStringPrinter
 			}
 		}
 
-		Point ptWordSize = gc.stringExtent(word + " ");
-		boolean bWordLargerThanWidth = ptWordSize.x > printArea.width;
-		// This will split put a word that is longer than a full line onto a new
-		// line (when the existing line has text).
-		if (bWordLargerThanWidth && lineInfo.width > 0) {
-			//System.out.println("w3 = " + lineInfo.width + ";h=" + lineInfo.height);
-			return 0;
-		}
-		int targetWidth = lineInfo.width + ptWordSize.x;
-		if (targetWidth > printArea.width) {
+		Point ptLineAndWordSize = gc.stringExtent(outputLine + word + " ");
+		//System.out.println(ptLineAndWordSize + ";" + outputLine  + "::WordComp " + (ptLineAndWordSize.x - lineInfo.width));
+		if (ptLineAndWordSize.x > printArea.width) {
 			// word is longer than space avail, split
+
+			Point ptWordSize2 = gc.stringExtent(word + " ");
+			boolean bWordLargerThanWidth = ptWordSize2.x > printArea.width;
+			// This will split put a word that is longer than a full line onto a new
+			// line (when the existing line has text).
+			if (bWordLargerThanWidth && lineInfo.width > 0) {
+				//System.out.println("w3 = " + lineInfo.width + ";h=" + lineInfo.height);
+				return 0;
+			}
+
 			int endIndex = word.length();
 			long diff = endIndex;
 
-			while (targetWidth != printArea.width) {
+			while (ptLineAndWordSize.x != printArea.width) {
 				diff = (diff >> 1) + (diff % 2);
 
 				if (diff <= 0) {
@@ -708,7 +714,7 @@ public class GCStringPrinter
 				}
 
 				//System.out.println("diff=" + diff + ";e=" + endIndex + ";tw=" + targetWidth + ";paw= " + printArea.width);
-				if (targetWidth > printArea.width) {
+				if (ptLineAndWordSize.x > printArea.width) {
 					endIndex -= diff;
 					if (endIndex < 1) {
 						endIndex = 1;
@@ -720,38 +726,33 @@ public class GCStringPrinter
 					}
 				}
 
-				ptWordSize = gc.stringExtent(word.substring(0, endIndex) + " ");
-				targetWidth = lineInfo.width + ptWordSize.x;
+				ptLineAndWordSize = gc.stringExtent(outputLine + word.substring(0, endIndex) + " ");
 
 				if (diff <= 1) {
 					break;
 				}
 			}
-			;
-			if (endIndex == 0) {
+			boolean nothingFit = endIndex == 0;
+			if (nothingFit) {
 				endIndex = 1;
 			}
-			if (targetWidth > printArea.width && endIndex > 1) {
+			if (ptLineAndWordSize.x > printArea.width && endIndex > 1) {
 				endIndex--;
-				ptWordSize = gc.stringExtent(word.substring(0, endIndex) + " ");
+				ptLineAndWordSize = gc.stringExtent(outputLine + word.substring(0, endIndex) + " ");
 			}
 
 			if (DEBUG) {
-				System.out.println("excess starts at " + endIndex + "(" + ptWordSize.x
-						+ "px) of " + word.length() + ". "
-						+ (ptWordSize.x + lineInfo.width) + "/" + printArea.width
-						+ "; wrap?" + wrap);
+				System.out.println("excess starts at " + endIndex + " of "
+						+ word.length() + ". "
+						+ "wrap?" + wrap);
 			}
 
-			if (endIndex > 0 && outputLine.length() > 0) {
+			if (endIndex > 0 && outputLine.length() > 0 && !nothingFit) {
 				outputLine.append(space);
 			}
 
-			if (endIndex == 0 && outputLine.length() == 0) {
-				endIndex = 1;
-			}
-
-			if (wrap && ptWordSize.x < printArea.width && !bWordLargerThanWidth) {
+			int w = ptLineAndWordSize.x - lineInfo.width;
+			if (wrap && !nothingFit && !bWordLargerThanWidth) {
 				// whole word is excess
 				return 0;
 			}
@@ -782,7 +783,7 @@ public class GCStringPrinter
 			return endIndex;
 		}
 
-		lineInfo.width += ptWordSize.x;
+		lineInfo.width = ptLineAndWordSize.x;
 		if (lineInfo.width > printArea.width) {
 			if (space.length() > 0) {
 				space.delete(0, space.length());
