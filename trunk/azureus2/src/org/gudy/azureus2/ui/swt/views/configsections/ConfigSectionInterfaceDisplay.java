@@ -216,21 +216,18 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		label = new Label(cArea, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "inactiveUpdate");
 		gridData = new GridData();
-		gridData.widthHint = 15;
 		IntParameter inactiveUpdate = new IntParameter(cArea, "Refresh When Inactive", 1,	-1);
 		inactiveUpdate.setLayoutData(gridData);
 
 		label = new Label(cArea, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "graphicsUpdate");
 		gridData = new GridData();
-		gridData.widthHint = 15;
 		IntParameter graphicUpdate = new IntParameter(cArea, "Graphics Update", 1,	-1);
 		graphicUpdate.setLayoutData(gridData);
 
 		label = new Label(cArea, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "reOrderDelay");
 		gridData = new GridData();
-		gridData.widthHint = 15;
 		IntParameter reorderDelay = new IntParameter(cArea, "ReOrder Delay");
 		reorderDelay.setLayoutData(gridData);
 
