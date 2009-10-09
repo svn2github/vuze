@@ -54,6 +54,7 @@ import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.HyperlinkParameter;
 import org.gudy.azureus2.plugins.ui.config.InfoParameter;
 import org.gudy.azureus2.plugins.ui.config.LabelParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
@@ -103,6 +104,7 @@ PairingManagerImpl
 	
 	private InfoParameter		param_ac_info;
 	private InfoParameter		param_status_info;
+	private HyperlinkParameter	param_view;
 	
 	private BooleanParameter 	param_e_enable;
 	private StringParameter		param_ipv4;
@@ -146,9 +148,18 @@ PairingManagerImpl
 
 		param_enable = configModel.addBooleanParameter2( "pairing.enable", "pairing.enable", false );
 
-		param_ac_info = configModel.addInfoParameter2( "pairing.accesscode", readAccessCode());
+		String	access_code = readAccessCode();
+		
+		param_ac_info = configModel.addInfoParameter2( "pairing.accesscode", access_code);
 		
 		param_status_info = configModel.addInfoParameter2( "pairing.status.info", "" );
+		
+		param_view = configModel.addHyperlinkParameter2( "pairing.view.registered", SERVICE_URL + "/web/view?ac=" + access_code);
+
+		if ( access_code.length() == 0 ){
+			
+			param_view.setEnabled( false );
+		}
 		
 		final ActionParameter ap = configModel.addActionParameter2( "pairing.ac.getnew", "pairing.ac.getnew.create" );
 		
@@ -317,9 +328,13 @@ PairingManagerImpl
 	writeAccessCode(
 		String		ac )
 	{
-		 COConfigurationManager.setParameter( "pairing.accesscode", ac );
+		COConfigurationManager.setParameter( "pairing.accesscode", ac );
 		 
-		 param_ac_info.setValue( ac );
+		param_ac_info.setValue( ac );
+		 
+		param_view.setHyperlink( SERVICE_URL + "/web/view?ac=" + ac );
+				
+		param_view.setEnabled( ac.length() > 0 );
 	}
 	
 	protected String
