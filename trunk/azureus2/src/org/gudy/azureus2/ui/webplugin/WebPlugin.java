@@ -44,6 +44,7 @@ import com.aelitis.azureus.core.pairing.PairedService;
 import com.aelitis.azureus.core.pairing.PairingConnectionData;
 import com.aelitis.azureus.core.pairing.PairingManager;
 import com.aelitis.azureus.core.pairing.PairingManagerFactory;
+import com.aelitis.azureus.core.pairing.PairingManagerListener;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 public class 
@@ -358,10 +359,15 @@ WebPlugin
 
 		final String p_sid = (String)properties.get( PR_PAIRING_SID );
 		
+		final LabelParameter	pairing_info;
 		final BooleanParameter	pairing_enable;
 		
 		if ( p_sid != null ){
 			
+			PairingManager pm = PairingManagerFactory.getSingleton();
+
+			pairing_info = config_model.addLabelParameter2( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
+				
 			pairing_enable = 
 				config_model.addBooleanParameter2( 
 						CONFIG_PAIRING_ENABLE, 
@@ -377,6 +383,21 @@ WebPlugin
 					{
 						setupPairing( p_sid, pairing_enable.getValue());
 					}
+				});
+			
+			pairing_enable.setEnabled( pm.isEnabled());
+			
+			pm.addListener(
+				new PairingManagerListener()
+				{
+					public void 
+					somethingChanged(
+						PairingManager pm ) 
+					{
+						pairing_info.setLabelKey( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
+
+						pairing_enable.setEnabled( pm.isEnabled());
+					}		
 				});
 			
 			setupPairing( p_sid, pairing_enable.getValue());
@@ -395,14 +416,14 @@ WebPlugin
 			param_port.addListener( update_pairing_listener );
 			param_protocol.addListener( update_pairing_listener );
 		}else{
-			
-			pairing_enable = null;
+			pairing_info	= null;
+			pairing_enable 	= null;
 		}
 			
 		config_model.createGroup(
 			"ConfigView.section.server",
 			new Parameter[]{
-				param_port, param_bind, param_protocol, upnp_enable, pairing_enable,
+				param_port, param_bind, param_protocol, upnp_enable, pairing_info, pairing_enable,
 			});
 		
 		StringParameter	param_home 		= config_model.addStringParameter2(	CONFIG_HOME_PAGE, "webui.homepage", CONFIG_HOME_PAGE_DEFAULT );

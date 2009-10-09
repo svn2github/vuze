@@ -1,5 +1,5 @@
 /*
- * Created on Oct 5, 2009
+ * Created on Oct 9, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -22,34 +22,9 @@
 package com.aelitis.azureus.core.pairing;
 
 public interface 
-PairingManager 
+PairingManagerListener 
 {
-	public boolean
-	isEnabled();
-	
-	public String
-	getAccessCode()
-	
-		throws PairingException;
-	
-	public String
-	getReplacementAccessCode()
-	
-		throws PairingException;
-	
-	public PairedService
-	addService(
-		String		sid );
-	
-	public PairedService
-	getService(
-		String		sid );
-	
 	public void
-	addListener(
-		PairingManagerListener	l );
-	
-	public void
-	removeListener(
-		PairingManagerListener	l );
+	somethingChanged(
+		PairingManager	pm );
 }

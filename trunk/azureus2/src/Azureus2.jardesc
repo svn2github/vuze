@@ -120,6 +120,8 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.pluginsuninstaller"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.clientmessageservice.secure"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.ui.common.table"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.utils.subscriptions"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.pairing.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.jce.provider"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.config"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.shells.friends"/>
@@ -215,6 +217,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.torrentdownloader"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.crypto.signers"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.tracker.dht"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.pairing"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.util.png"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.speed.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.extseed.util"/>

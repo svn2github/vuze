@@ -69,6 +69,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.pairing.*;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 PairingManagerImpl
@@ -96,6 +97,10 @@ PairingManagerImpl
 	{
 		return( singleton );
 	}
+	
+	private static final int	GLOBAL_UPDATE_PERIOD	= 60*1000;
+	private static final int	CD_REFRESH_PERIOD		= 23*60*60*1000;
+	private static final int	CD_REFRESH_TICKS		= CD_REFRESH_PERIOD / GLOBAL_UPDATE_PERIOD;
 	
 	private AzureusCore	azureus_core;
 	
@@ -132,13 +137,18 @@ PairingManagerImpl
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
+	private boolean			must_update_once;
 	private TimerEvent		deferred_update_event;
 	private long			last_update_time		= -1;
 	private int				consec_update_fails;
 	
+	private CopyOnWriteList<PairingManagerListener>	listeners = new CopyOnWriteList<PairingManagerListener>();
+	
 	protected
 	PairingManagerImpl()
 	{
+		must_update_once = COConfigurationManager.getBooleanParameter( "pairing.updateoutstanding" );
+
 		PluginInterface default_pi = PluginInitializer.getDefaultInterface();
 		
 		final UIManager	ui_manager = default_pi.getUIManager();
@@ -147,7 +157,7 @@ PairingManagerImpl
 				ConfigSection.SECTION_CONNECTION, "Pairing");
 
 		param_enable = configModel.addBooleanParameter2( "pairing.enable", "pairing.enable", false );
-
+		
 		String	access_code = readAccessCode();
 		
 		param_ac_info = configModel.addInfoParameter2( "pairing.accesscode", access_code);
@@ -224,6 +234,11 @@ PairingManagerImpl
 					Parameter param )
 				{
 					updateNeeded();
+					
+					if ( param == param_enable ){
+						
+						fireChanged();
+					}
 				}
 			};
 			
@@ -309,6 +324,12 @@ PairingManagerImpl
 		
 			throw( new PairingException( "Timeout waiting for initialisation" ));
 		}
+	}
+	
+	public boolean
+	isEnabled()
+	{
+		return( param_enable.getValue());
 	}
 	
 	protected void
@@ -606,14 +627,23 @@ PairingManagerImpl
 						global_update_event = 
 							SimpleTimer.addPeriodicEvent(
 							"PM:updater",
-							60*1000,
+							GLOBAL_UPDATE_PERIOD,
 							new TimerEventPerformer()
 							{
+								private int	tick_count;
+								
 								public void 
 								perform(
 									TimerEvent event ) 
 								{
+									tick_count++;
+									
 									updateGlobals( false );
+									
+									if ( tick_count % CD_REFRESH_TICKS == 0 ){
+										
+										updateNeeded();
+									}
 								}
 							});
 						
@@ -631,7 +661,7 @@ PairingManagerImpl
 					
 					if ( global_update_event == null ){
 						
-						if ( consec_update_fails == 0 ){
+						if ( consec_update_fails == 0 && !must_update_once ){
 					
 							setStatus( MessageText.getString( "pairing.status.disabled" ));
 							
@@ -703,6 +733,8 @@ PairingManagerImpl
 			synchronized( this ){
 
 				consec_update_fails	= 0;
+				
+				must_update_once = false;
 			}
 			
 			setStatus( 
@@ -748,6 +780,8 @@ PairingManagerImpl
 				"pairing.status.pending", 
 				new String[]{ new SimpleDateFormat().format(new Date( target ))}));
 
+		COConfigurationManager.setParameter( "pairing.updateoutstanding", true );
+		
 		deferred_update_event = 
 			SimpleTimer.addEvent(
 				"PM:defer",
@@ -762,6 +796,8 @@ PairingManagerImpl
 							
 							deferred_update_event = null;
 						}
+						
+						COConfigurationManager.setParameter( "pairing.updateoutstanding", false );
 						
 						updateNeeded();
 					}
@@ -821,6 +857,35 @@ PairingManagerImpl
 			
 			throw( new PairingException( "invocation failed", e ));
 		}
+	}
+	
+	protected void
+	fireChanged()
+	{
+		for ( PairingManagerListener l: listeners ){
+			
+			try{
+				l.somethingChanged( this );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	public void
+	addListener(
+		PairingManagerListener		l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		PairingManagerListener		l )
+	{
+		listeners.remove( l );
 	}
 	
 	protected String
