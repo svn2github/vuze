@@ -258,7 +258,17 @@ public class AZHandshake implements AZMessage {
     	h_type = new Long( HANDSHAKE_TYPE_PLAIN );
     }
     
-    InetAddress ipv6 = (InetAddress)root.get("ipv6");
+    InetAddress ipv6 = null;
+    if(root.get("ipv6") instanceof byte[])
+	{
+		try
+		{
+			InetAddress.getByAddress((byte[]) root.get("ipv6"));
+		} catch (Exception e)
+		{
+			
+		}
+	}
 
     List raw_msgs = (List) root.get("messages");
     if (raw_msgs == null)  throw new MessageException("raw_msgs == null");
