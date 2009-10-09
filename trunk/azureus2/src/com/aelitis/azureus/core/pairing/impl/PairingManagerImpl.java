@@ -337,12 +337,10 @@ PairingManagerImpl
 		Map<String,Object> response = sendRequest( "allocate", request );
 		
 		try{
-			String code = new String((byte[])response.get( "ac" ), "UTF-8" );
+			String code = getString( response, "ac" );
 			
 			writeAccessCode( code );
-			
-			// amend min_update_period if value returned
-	
+				
 			if ( !updating ){
 			
 				updateNeeded();
