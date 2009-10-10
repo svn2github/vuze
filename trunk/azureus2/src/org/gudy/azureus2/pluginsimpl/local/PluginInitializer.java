@@ -169,6 +169,12 @@ PluginInitializer
 					"azbuddy",
 					"true",
 					"false"},
+			{	 PluginManagerDefaults.PID_RSS, 
+					"com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin", 
+					"azintrss", 
+					"azintrss",
+					"true",
+					"false"},
 			/* disable until we can get some tracker admins to work on this
 	   		{	 PluginManagerDefaults.PID_TRACKER_PEER_AUTH, 
 					"com.aelitis.azureus.plugins.tracker.peerauth.TrackerPeerAuthPlugin", 

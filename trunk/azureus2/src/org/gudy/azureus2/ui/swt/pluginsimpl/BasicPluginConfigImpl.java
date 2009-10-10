@@ -643,6 +643,8 @@ BasicPluginConfigImpl
 				    	
 				    	con.setVisible(false);
 				    	
+				    	con.setSize( 0, 0 );
+				    	
 				    	GridData gridData = new GridData();
 						
 						gridData.heightHint 				= 0;

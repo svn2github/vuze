@@ -51,10 +51,12 @@ public class
 WebPlugin
 	implements Plugin, TrackerWebPageGenerator
 {
+	public static final String	PR_DISABLABLE				= "Disablable";					// Boolean
 	public static final String	PR_PORT						= "Port";						// Integer
 	public static final String	PR_BIND_IP					= "Bind IP";					// String
 	public static final String	PR_ROOT_RESOURCE			= "Root Resource";				// String
 	public static final String	PR_ROOT_DIR					= "Root Dir";					// String
+	public static final String	PR_ACCESS					= "Access";						// String
 	public static final String	PR_LOG						= "DefaultLoggerChannel";		// LoggerChannel
 	public static final String	PR_CONFIG_MODEL				= "DefaultConfigModel";			// BasicPluginConfigModel
 	public static final String	PR_VIEW_MODEL				= "DefaultViewModel";			// BasicPluginViewModel
@@ -71,12 +73,14 @@ WebPlugin
 	public static final String	CONFIG_PAIRING_ENABLE			= "Pairing Enable";
 	public        final boolean	CONFIG_PAIRING_ENABLE_DEFAULT	= true;
 
+	public static final String	CONFIG_ENABLE					= "Enable";
+	public static final boolean	CONFIG_ENABLE_DEFAULT			= true;
 	
-	public static final String	CONFIG_USER				= "User";
-	public        final String	CONFIG_USER_DEFAULT		= "";
+	public static final String	CONFIG_USER						= "User";
+	public        final String	CONFIG_USER_DEFAULT				= "";
 	
-	public static final String	CONFIG_PASSWORD			= "Password";
-	public        final byte[]	CONFIG_PASSWORD_DEFAULT	= {};
+	public static final String	CONFIG_PASSWORD					= "Password";
+	public        final byte[]	CONFIG_PASSWORD_DEFAULT			= {};
 	
 	public static final String 	CONFIG_PORT						= PR_PORT;
 	public int			 		CONFIG_PORT_DEFAULT				= 8089;
@@ -93,7 +97,7 @@ WebPlugin
 	public static final String 	CONFIG_HOME_PAGE				= "Home Page";
 	public        final String 	CONFIG_HOME_PAGE_DEFAULT		= "index.html";
 	
-	public static final String 	CONFIG_ROOT_DIR					= "Root Dir";
+	public static final String 	CONFIG_ROOT_DIR					= PR_ROOT_DIR;
 	public        		String 	CONFIG_ROOT_DIR_DEFAULT			= "";
 	
 	public static final String 	CONFIG_ROOT_RESOURCE			= PR_ROOT_RESOURCE;
@@ -103,8 +107,8 @@ WebPlugin
 	public static final String 	CONFIG_MODE_FULL				= "full";
 	public        final String 	CONFIG_MODE_DEFAULT				= CONFIG_MODE_FULL;
 	
-	public static final String 	CONFIG_ACCESS					= "Access";
-	public        final String 	CONFIG_ACCESS_DEFAULT			= "all";
+	public static final String 	CONFIG_ACCESS					= PR_ACCESS;
+	public        		String 	CONFIG_ACCESS_DEFAULT			= "all";
 	
 	protected static final String	NL			= "\r\n";
 	
@@ -176,6 +180,13 @@ WebPlugin
 		if( pr_root_dir != null ){
 			
 			CONFIG_ROOT_DIR_DEFAULT	= pr_root_dir;
+		}
+		
+		String	pr_access = (String)properties.get( PR_ACCESS );
+		
+		if( pr_access != null ){
+			
+			CONFIG_ACCESS_DEFAULT	= pr_access;
 		}
 		
 		Boolean	pr_hide_resource_config = (Boolean)properties.get( PR_HIDE_RESOURCE_CONFIG );
@@ -338,8 +349,21 @@ WebPlugin
 			plugin_config.save();
 		}
 		
-		config_model.addLabelParameter2( "webui.restart.info" );
+		LabelParameter param_info = config_model.addLabelParameter2( "webui.restart.info" );
 
+		Boolean	disablable = (Boolean)properties.get( PR_DISABLABLE );
+		
+		boolean	enabled = true;
+		
+		BooleanParameter	param_enable = null;
+		
+		if ( disablable != null && disablable ){
+			
+			param_enable = 
+				config_model.addBooleanParameter2( CONFIG_ENABLE, "webui.enable", CONFIG_ENABLE_DEFAULT );
+
+			enabled	= param_enable.getValue();
+		}
 			// connection group
 		
 		param_port = config_model.addIntParameter2(		CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
@@ -478,7 +502,24 @@ WebPlugin
 				a_label1, param_mode, a_label2, param_access,
 				pw_enable, user_name, password,
 			});
-			              
+			    
+		if ( !enabled ){
+			
+			Parameter[] params = config_model.getParameters();
+			
+			for ( Parameter param: params ){
+				
+				if ( param == param_enable || param == param_info ){
+					
+					continue;
+				}
+				
+				param.setEnabled( false );
+			}
+			
+			return;
+		}
+		
 			// end config
 		
 		tracker = plugin_interface.getTracker();
@@ -818,6 +859,17 @@ WebPlugin
 		cd.setAttribute( PairingConnectionData.ATTR_PROTOCOL, 	param_protocol.getValue());
 	}
 
+	protected int
+	getPort()
+	{
+		return( param_port.getValue());
+	}
+	
+	protected String
+	getProtocol()
+	{
+		return( param_protocol.getValue());
+	}
 	
 	public boolean
 	generateSupport(

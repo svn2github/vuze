@@ -67,6 +67,7 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfac
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
+import com.aelitis.azureus.core.pairing.PairingManagerFactory;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATTraverser;
 import com.aelitis.azureus.plugins.clientid.ClientIDPlugin;
@@ -1022,6 +1023,8 @@ AzureusCoreImpl
 				return;
 			}
 
+	   PairingManagerFactory.getSingleton();
+	   
 	   Object[] runningListeners;
 	   mon_coreRunningListeners.enter();
 	   try {
