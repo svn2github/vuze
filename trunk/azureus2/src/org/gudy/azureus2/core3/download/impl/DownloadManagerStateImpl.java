@@ -24,7 +24,6 @@ package org.gudy.azureus2.core3.download.impl;
 
 import java.io.*;
 import java.net.URL;
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -35,11 +34,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFactory;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
-import org.gudy.azureus2.core3.download.DownloadManagerStateEvent;
-import org.gudy.azureus2.core3.download.DownloadManagerStateListener;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.LogRelation;
@@ -117,7 +112,7 @@ DownloadManagerStateImpl
 	
 	private static Map					state_map 					= new HashMap();
 	private static Map					global_state_cache			= new HashMap();
-	private static List					global_state_cache_wrappers	= new ArrayList();
+	private static ArrayList			global_state_cache_wrappers	= new ArrayList();
 	
 	private DownloadManagerImpl			download_manager;
 	
@@ -471,6 +466,7 @@ DownloadManagerStateImpl
 		}
 		
 		global_state_cache_wrappers.clear();
+		global_state_cache_wrappers.trimToSize();
 	}
 
 	protected

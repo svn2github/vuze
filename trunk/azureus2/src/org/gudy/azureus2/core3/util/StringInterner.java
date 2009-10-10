@@ -1,4 +1,5 @@
 /*
+
  * Created on Jun 8, 2007
  * Created by Paul Gardner
  * Copyright (C) 2007 Aelitis, All Rights Reserved.
@@ -24,15 +25,18 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.File;
-import java.lang.ref.*;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.aelitis.azureus.core.util.HashCodeUtils;
 
 
 public class 
-StringInterner 
+StringInterner
 {
 	private static final int SCHEDULED_CLEANUP_INTERVAL = 60*1000;
 	
@@ -48,6 +52,7 @@ StringInterner
 	
 	private static LightHashSet managedInterningSet = new LightHashSet(800);
 	private static LightHashSet unmanagedInterningSet = new LightHashSet();
+	private static ReadWriteLock managedSetLock = new ReentrantReadWriteLock();
 	
 	private final static ReferenceQueue managedRefQueue = new ReferenceQueue();
 	private final static ReferenceQueue unmanagedRefQueue = new ReferenceQueue();
@@ -92,7 +97,14 @@ StringInterner
 			{
 				SimpleTimer.addPeriodicEvent("StringInterner:cleaner", SCHEDULED_CLEANUP_INTERVAL, new TimerEventPerformer() {
 					public void perform(TimerEvent event) {
-						sanitize(true);
+						managedSetLock.writeLock().lock();
+						try {
+							sanitize(true);
+						} finally {
+							managedSetLock.writeLock().unlock();
+						}
+						
+						
 						sanitizeLight();
 					}
 				});
@@ -114,79 +126,6 @@ StringInterner
 		return( res );
 	}
 	
-	public static String intern(String toIntern) {
-		
-		if(toIntern == null)
-			return null;
-		
-		String internedString;
-		
-		WeakStringEntry checkEntry = new WeakStringEntry(toIntern);
-		
-		synchronized( managedInterningSet ){
-
-			sanitize(false);
-
-			WeakStringEntry internedEntry = (WeakStringEntry) managedInterningSet.get(checkEntry);
-
-			if (internedEntry == null || (internedString = internedEntry.getString()) == null)
-			{
-				internedString = toIntern;
-				if(!managedInterningSet.add(checkEntry))
-					System.out.println("unexpected modification");  // should not happen
-			} else
-			{
-				internedEntry.incHits();
-				checkEntry.destroy();
-				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
-					System.out.println("multihit "+internedEntry);
-			}
-
-		}
-		
-		// should not happen
-		if(!toIntern.equals(internedString))
-			System.err.println("mismatch");
-		
-		return internedString;
-	}
-	
-	public static byte[] internBytes(byte[] toIntern) {
-		
-		if(toIntern == null)
-			return null;
-		
-		byte[] internedArray;
-		
-		WeakByteArrayEntry checkEntry = new WeakByteArrayEntry(toIntern);
-
-		synchronized( managedInterningSet){
-			
-			sanitize(false);
-			
-			WeakByteArrayEntry internedEntry = (WeakByteArrayEntry) managedInterningSet.get(checkEntry);
-			
-			if (internedEntry == null || (internedArray = internedEntry.getArray()) == null)
-			{
-				internedArray = toIntern;
-				if(!managedInterningSet.add(checkEntry))
-					System.out.println("unexpected modification");  // should not happen
-			} else
-			{
-				internedEntry.incHits();
-				checkEntry.destroy();
-				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
-					System.out.println("multihit"+internedEntry);
-			}
-		}
-		
-		// should not happen
-		if(!Arrays.equals(toIntern, internedArray))
-			System.err.println("mismatch");
-		
-		return internedArray;
-	}
-	
 	/**
 	 * A generic interning facilty for heavyweight or frequently duplicated
 	 * Objects that have a reasonable <code>equals()</code> implementation.<br>
@@ -204,7 +143,7 @@ StringInterner
 		Object internedItem;
 		
 		WeakEntry checkEntry = new WeakEntry(toIntern,unmanagedRefQueue);
-
+	
 		synchronized( unmanagedInterningSet ){
 			
 			WeakEntry internedEntry = (WeakEntry) unmanagedInterningSet.get(checkEntry);
@@ -225,6 +164,113 @@ StringInterner
 		
 		return internedItem;
 	}
+
+	public static String intern(String toIntern) {
+		
+		if(toIntern == null)
+			return null;
+		
+		String internedString;
+		
+		WeakStringEntry checkEntry = new WeakStringEntry(toIntern);
+
+		WeakStringEntry internedEntry = null;
+		boolean hit = false;
+		
+		managedSetLock.readLock().lock();
+		try {
+			
+			internedEntry = (WeakStringEntry) managedInterningSet.get(checkEntry);
+			
+			if (internedEntry != null && (internedString = internedEntry.getString()) != null)
+				hit = true;
+			else
+			{
+				managedSetLock.readLock().unlock();
+				managedSetLock.writeLock().lock();
+				
+				sanitize(false);
+				
+				// get again, weakrefs might have expired and been added by another thread concurrently
+				internedEntry = (WeakStringEntry) managedInterningSet.get(checkEntry);
+
+				if (internedEntry != null && (internedString = internedEntry.getString()) != null)
+					hit = true;
+				else {
+					managedInterningSet.add(checkEntry);
+					internedString = toIntern;
+				}
+				managedSetLock.readLock().lock();
+				managedSetLock.writeLock().unlock();
+
+			}
+		} finally {
+			managedSetLock.readLock().unlock();
+		}
+		
+		if(hit) {
+			internedEntry.incHits();
+			checkEntry.destroy();
+			if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
+				System.out.println("multihit "+internedEntry);
+		}
+
+		
+		return internedString;
+	}
+	
+	public static byte[] internBytes(byte[] toIntern) {
+		
+		if(toIntern == null)
+			return null;
+		
+		byte[] internedArray;
+		
+		WeakByteArrayEntry checkEntry = new WeakByteArrayEntry(toIntern);
+
+		WeakByteArrayEntry internedEntry = null;
+		boolean hit = false;
+		managedSetLock.readLock().lock();
+		try
+		{
+			internedEntry = (WeakByteArrayEntry) managedInterningSet.get(checkEntry);
+			if (internedEntry != null && (internedArray = internedEntry.getArray()) != null)
+				hit = true;
+			else
+			{
+				managedSetLock.readLock().unlock();
+				managedSetLock.writeLock().lock();
+				sanitize(false);
+				// get again, weakrefs might have expired and been added by another thread concurrently
+				internedEntry = (WeakByteArrayEntry) managedInterningSet.get(checkEntry);
+				if (internedEntry != null && (internedArray = internedEntry.getArray()) != null)
+					hit = true;
+				else
+				{
+					managedInterningSet.add(checkEntry);
+					internedArray = toIntern;
+				}
+				managedSetLock.readLock().lock();
+				managedSetLock.writeLock().unlock();
+			}
+		} finally
+		{
+			managedSetLock.readLock().unlock();
+		}
+		if (hit)
+		{
+			internedEntry.incHits();
+			checkEntry.destroy();
+			if (TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
+				System.out.println("multihit " + internedEntry);
+		}		
+		
+		// should not happen
+		if(!Arrays.equals(toIntern, internedArray))
+			System.err.println("mismatch");
+		
+		return internedArray;
+	}
 	
 	/**
 	 * This is based on File.hashCode() and File.equals(), which can return different values for different representations of the same paths.
@@ -239,24 +285,42 @@ StringInterner
 		
 		WeakFileEntry checkEntry = new WeakFileEntry(toIntern);
 
-		synchronized( managedInterningSet ){
-			
-			sanitize(false);
-					
-			WeakFileEntry internedEntry = (WeakFileEntry) managedInterningSet.get(checkEntry);
-			
-			if (internedEntry == null || (internedFile = internedEntry.getFile()) == null)
+		WeakFileEntry internedEntry = null;
+		boolean hit = false;
+		managedSetLock.readLock().lock();
+		try
+		{
+			internedEntry = (WeakFileEntry) managedInterningSet.get(checkEntry);
+			if (internedEntry != null && (internedFile = internedEntry.getFile()) != null)
+				hit = true;
+			else
 			{
-				internedFile = toIntern;
-				if(!managedInterningSet.add(checkEntry))
-					System.out.println("unexpected modification"); // should not happen
-			} else
-			{
-				internedEntry.incHits();
-				checkEntry.destroy();
-				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
-					System.out.println("multihit"+internedEntry);
+				managedSetLock.readLock().unlock();
+				managedSetLock.writeLock().lock();
+				sanitize(false);
+				// get again, weakrefs might have expired and been added by another thread concurrently
+				internedEntry = (WeakFileEntry) managedInterningSet.get(checkEntry);
+				if (internedEntry != null && (internedFile = internedEntry.getFile()) != null)
+					hit = true;
+				else
+				{
+					managedInterningSet.add(checkEntry);
+					internedFile = toIntern;
+				}
+				managedSetLock.readLock().lock();
+				managedSetLock.writeLock().unlock();
 			}
+		} finally
+		{
+			managedSetLock.readLock().unlock();
+		}
+		
+		if (hit)
+		{
+			internedEntry.incHits();
+			checkEntry.destroy();
+			if (TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
+				System.out.println("multihit " + internedEntry);
 		}
 		
 		// should not happen
@@ -275,24 +339,43 @@ StringInterner
 		
 		WeakURLEntry checkEntry = new WeakURLEntry(toIntern);
 
-		synchronized( managedInterningSet ){
-			
-			sanitize(false);
-					
-			WeakURLEntry internedEntry = (WeakURLEntry) managedInterningSet.get(checkEntry);
-			
-			if (internedEntry == null || (internedURL = internedEntry.getURL()) == null)
+		WeakURLEntry internedEntry = null;
+		boolean hit = false;
+		managedSetLock.readLock().lock();
+		try
+		{
+			internedEntry = (WeakURLEntry) managedInterningSet.get(checkEntry);
+			if (internedEntry != null && (internedURL = internedEntry.getURL()) != null)
+				hit = true;
+			else
 			{
-				internedURL = toIntern;
-				if(!managedInterningSet.add(checkEntry))
-					System.out.println("unexpected modification"); // should not happen
-			} else
-			{
-				internedEntry.incHits();
-				checkEntry.destroy();
-				if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
-					System.out.println("multihit"+internedEntry);
+				managedSetLock.readLock().unlock();
+				managedSetLock.writeLock().lock();
+				sanitize(false);
+				// get again, weakrefs might have expired and been added by another thread concurrently
+				internedEntry = (WeakURLEntry) managedInterningSet.get(checkEntry);
+				if (internedEntry != null && (internedURL = internedEntry.getURL()) != null)
+					hit = true;
+				else
+				{
+					managedInterningSet.add(checkEntry);
+					internedURL = toIntern;
+				}
+				
+				managedSetLock.readLock().lock();
+				managedSetLock.writeLock().unlock();
 			}
+		} finally
+		{
+			managedSetLock.readLock().unlock();
+		}
+		
+		if (hit)
+		{
+			internedEntry.incHits();
+			checkEntry.destroy();
+			if (TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
+				System.out.println("multihit " + internedEntry);
 		}
 		
 		// should not happen
@@ -326,98 +409,82 @@ StringInterner
 												
 	private static void sanitize(boolean scheduled)
 	{
-		synchronized( managedInterningSet ){
-			
-			WeakWeightedEntry ref;
-			while((ref = (WeakWeightedEntry)(managedRefQueue.poll())) != null)
+		WeakWeightedEntry ref;
+		while ((ref = (WeakWeightedEntry) (managedRefQueue.poll())) != null)
+		{
+			if (!ref.isDestroyed())
 			{
-				if(!ref.isDestroyed())
-				{
-					managedInterningSet.remove(ref);
-					if(TRACE_CLEANUP && ref.hits > 30)
-						System.out.println("queue remove:"+ref);
-				} else
-				{// should not happen
-					System.err.println("double removal "+ref);					
-				}
+				managedInterningSet.remove(ref);
+				if (TRACE_CLEANUP && ref.hits > 30)
+					System.out.println("queue remove:" + ref);
+			} else
+			{// should not happen
+				System.err.println("double removal " + ref);
 			}
-				
-			
-			int currentSetSize = managedInterningSet.size();
-			
-			aging:
+		}
+		int currentSetSize = managedInterningSet.size();
+		aging:
+		{
+			cleanup:
 			{
-				cleanup:
-				{
-					// unscheduled cleanup/aging only in case of emergency
-					if (currentSetSize < IMMEDIATE_CLEANUP_TRIGGER && !scheduled)
-						break aging;
-					
-					if (TRACE_CLEANUP)
-						System.out.println("Doing cleanup " + currentSetSize);
-					
-					ArrayList remaining = new ArrayList();
-					
-					// remove objects that aren't shared by multiple holders first (interning is useless)
-					for (Iterator it = managedInterningSet.iterator(); it.hasNext();)
-					{
-						if (managedInterningSet.size() < IMMEDIATE_CLEANUP_GOAL && !scheduled)
-							break aging;
-						WeakWeightedEntry entry = (WeakWeightedEntry) it.next();
-						if (entry.hits == 0)
-						{
-							if (TRACE_CLEANUP)
-								System.out.println("0-remove: " + entry);
-							it.remove();
-						} else
-							remaining.add(entry);
-					}
-					
-					currentSetSize = managedInterningSet.size();
-					if (currentSetSize < SCHEDULED_CLEANUP_TRIGGER && scheduled)
-						break cleanup;
-					if (currentSetSize < IMMEDIATE_CLEANUP_GOAL && !scheduled)
-						break aging;
-					
-					Collections.sort(remaining, savingsComp);
-					// remove those objects that saved the least amount first
-					weightedRemove: for (int i = 0; i < remaining.size(); i++)
-					{
-						currentSetSize = managedInterningSet.size();
-						if (currentSetSize < SCHEDULED_CLEANUP_GOAL && scheduled)
-							break weightedRemove;
-						if (currentSetSize < IMMEDIATE_CLEANUP_GOAL && !scheduled)
-							break aging;
-						WeakWeightedEntry entry = (WeakWeightedEntry) remaining.get(i);
-						if (TRACE_CLEANUP)
-							System.out.println("weighted remove: " + entry);
-						managedInterningSet.remove(entry);
-					}
-				}
-			
-			
-				currentSetSize = managedInterningSet.size();
-				if (currentSetSize < SCHEDULED_AGING_THRESHOLD && scheduled)
+				// unscheduled cleanup/aging only in case of emergency
+				if (currentSetSize < IMMEDIATE_CLEANUP_TRIGGER && !scheduled)
 					break aging;
+				if (TRACE_CLEANUP)
+					System.out.println("Doing cleanup " + currentSetSize);
+				ArrayList remaining = new ArrayList();
+				// remove objects that aren't shared by multiple holders first (interning is useless)
+				for (Iterator it = managedInterningSet.iterator(); it.hasNext();)
+				{
+					if (managedInterningSet.size() < IMMEDIATE_CLEANUP_GOAL && !scheduled)
+						break aging;
+					WeakWeightedEntry entry = (WeakWeightedEntry) it.next();
+					if (entry.hits == 0)
+					{
+						if (TRACE_CLEANUP)
+							System.out.println("0-remove: " + entry);
+						it.remove();
+					} else
+						remaining.add(entry);
+				}
+				currentSetSize = managedInterningSet.size();
+				if (currentSetSize < SCHEDULED_CLEANUP_TRIGGER && scheduled)
+					break cleanup;
 				if (currentSetSize < IMMEDIATE_CLEANUP_GOAL && !scheduled)
 					break aging;
-				for (Iterator it = managedInterningSet.iterator(); it.hasNext();)
-					((WeakWeightedEntry) it.next()).decHits();
+				Collections.sort(remaining, savingsComp);
+				// remove those objects that saved the least amount first
+				weightedRemove: for (int i = 0; i < remaining.size(); i++)
+				{
+					currentSetSize = managedInterningSet.size();
+					if (currentSetSize < SCHEDULED_CLEANUP_GOAL && scheduled)
+						break weightedRemove;
+					if (currentSetSize < IMMEDIATE_CLEANUP_GOAL && !scheduled)
+						break aging;
+					WeakWeightedEntry entry = (WeakWeightedEntry) remaining.get(i);
+					if (TRACE_CLEANUP)
+						System.out.println("weighted remove: " + entry);
+					managedInterningSet.remove(entry);
+				}
 			}
-			
-			if(TRACE_CLEANUP && scheduled)
-			{
-				List weightTraceSorted = new ArrayList(managedInterningSet);
-				Collections.sort(weightTraceSorted,savingsComp);
-				System.out.println("Remaining elements after cleanup:");
-				for(Iterator it = weightTraceSorted.iterator();it.hasNext();)
-					System.out.println("\t"+it.next());
-			}
-			
-			if(scheduled)
-				managedInterningSet.compactify(-1f);
-				
+			currentSetSize = managedInterningSet.size();
+			if (currentSetSize < SCHEDULED_AGING_THRESHOLD && scheduled)
+				break aging;
+			if (currentSetSize < IMMEDIATE_CLEANUP_GOAL && !scheduled)
+				break aging;
+			for (Iterator it = managedInterningSet.iterator(); it.hasNext();)
+				((WeakWeightedEntry) it.next()).decHits();
 		}
+		if (TRACE_CLEANUP && scheduled)
+		{
+			List weightTraceSorted = new ArrayList(managedInterningSet);
+			Collections.sort(weightTraceSorted, savingsComp);
+			System.out.println("Remaining elements after cleanup:");
+			for (Iterator it = weightTraceSorted.iterator(); it.hasNext();)
+				System.out.println("\t" + it.next());
+		}
+		if (scheduled)
+			managedInterningSet.compactify(-1f);				
 	}
 
 	private static class WeakEntry extends WeakReference {

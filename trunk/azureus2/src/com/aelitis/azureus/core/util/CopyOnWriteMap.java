@@ -31,7 +31,7 @@ public class CopyOnWriteMap {
 	private volatile Map map;
 	
 	public CopyOnWriteMap() {
-		this.map = new HashMap();
+		this.map = new HashMap(0);
 	}
 	
 	public void put(Object key, Object val) {

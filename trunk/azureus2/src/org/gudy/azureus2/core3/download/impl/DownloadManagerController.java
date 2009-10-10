@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.*;
 
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -2182,7 +2181,7 @@ DownloadManagerController
 			// too early in initialisation sequence to action this - it'll get reinvoked later anyway
 			if (info.length == 0) return;
 			
-			final List delayed_prio_changes = new ArrayList();
+			final List delayed_prio_changes = new ArrayList(0);
 			
 			try {
 				this_mon.enter();

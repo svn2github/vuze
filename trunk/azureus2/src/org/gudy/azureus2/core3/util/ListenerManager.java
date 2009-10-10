@@ -34,7 +34,9 @@ package org.gudy.azureus2.core3.util;
  */
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -71,7 +73,7 @@ ListenerManager<T>
 	protected boolean	async;
 	protected AEThread2	async_thread;
 	
-	protected List<T>			listeners		= new ArrayList<T>();
+	protected List<T>			listeners		= new ArrayList<T>(0);
 	
 	protected List<Object[]>	dispatch_queue;
 	protected AESemaphore		dispatch_sem;
