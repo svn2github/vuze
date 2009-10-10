@@ -153,7 +153,7 @@ DeviceManagerRSSFeed
 				return( true );
 			}
 			
-			String	feed_url = url.toExternalForm();
+			URL	feed_url = url;
 
 				// absolute url is borked as it doesn't set the host properly. hack 
 			
@@ -168,7 +168,7 @@ DeviceManagerRSSFeed
 					host = host.substring( 0, pos );
 				}
 				
-				feed_url = UrlUtils.setHost( url, host ).toExternalForm();
+				feed_url = UrlUtils.setHost( url, host );
 			}
 			
 			if ( device instanceof DeviceMediaRendererImpl ){
@@ -193,7 +193,7 @@ DeviceManagerRSSFeed
 					
 			pw.println( "<title>" + channel_title + "</title>" );
 			pw.println( "<link>http://vuze.com</link>" );
-			pw.println( "<atom:link href=\"" + feed_url + "\" rel=\"self\" type=\"application/rss+xml\" />" );
+			pw.println( "<atom:link href=\"" + feed_url.toExternalForm() + "\" rel=\"self\" type=\"application/rss+xml\" />" );
 			
 			pw.println( "<description>Vuze RSS Feed for " + escape( device.getName()) + "</description>" );
 			
@@ -276,7 +276,7 @@ DeviceManagerRSSFeed
 	  				
 	  				String mediaContent = "";
 	  				
-	  				URL stream_url = file.getStreamURL( url.getHost() );
+	  				URL stream_url = file.getStreamURL( feed_url.getHost() );
 	  				
 	  				if ( stream_url != null ){
 	  					
