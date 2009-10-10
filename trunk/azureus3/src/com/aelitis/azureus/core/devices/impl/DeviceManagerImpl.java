@@ -65,9 +65,6 @@ DeviceManagerImpl
 	private static final String	AUTO_SEARCH_CONFIG_KEY		= "devices.config.auto_search";
 	
 	private static final String	RSS_ENABLE_CONFIG_KEY		= "devices.config.rss_enable";
-	private static final String	RSS_PORT_CONFIG_KEY			= "devices.config.rss_port";
-	private static final String	RSS_LOCAL_ONLY_CONFIG_KEY	= "devices.config.rss_local_only";
-	private static final int	RSS_PORT_CONFIG__DEFAULT	= 6905;
 	
 	private static final String OD_ENABLED_CONFIG_KEY			= "devices.config.od.enabled";
 	private static final String OD_IS_AUTO_CONFIG_KEY			= "devices.config.od.auto";
@@ -191,8 +188,6 @@ DeviceManagerImpl
 	
 	private boolean	auto_search;
 	private boolean	rss_enable		= false;
-	private boolean	rss_local_only	= true;
-	private int		rss_port		= 0;
 	
 	private DeviceManagerRSSFeed	rss_publisher;
 	
@@ -238,6 +233,8 @@ DeviceManagerImpl
 		
 		od_manual_ta = PluginInitializer.getDefaultInterface().getTorrentManager().getPluginAttribute( "device.manager.od.ta.manual" );
 		
+		rss_publisher = new DeviceManagerRSSFeed( this );
+
 			// need to pick up auto-search early on
 		
 		COConfigurationManager.addAndFireParameterListeners(
@@ -298,8 +295,6 @@ DeviceManagerImpl
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{
 				RSS_ENABLE_CONFIG_KEY,
-				RSS_LOCAL_ONLY_CONFIG_KEY,
-				RSS_PORT_CONFIG_KEY
 			},
 			new ParameterListener()
 			{
@@ -308,14 +303,10 @@ DeviceManagerImpl
 					String name ) 
 				{
 					boolean	new_rss_enable 	= COConfigurationManager.getBooleanParameter( RSS_ENABLE_CONFIG_KEY, false );
-					int		new_rss_port 	= COConfigurationManager.getIntParameter( RSS_PORT_CONFIG_KEY, RSS_PORT_CONFIG__DEFAULT );
-					boolean	new_rss_local 	= COConfigurationManager.getBooleanParameter( RSS_LOCAL_ONLY_CONFIG_KEY, true );
 					
-					if ( new_rss_enable != rss_enable || new_rss_port != rss_port || rss_local_only != new_rss_local ){
+					if ( new_rss_enable != rss_enable ){
 						
-						rss_port		= new_rss_port;
 						rss_enable		= new_rss_enable;
-						rss_local_only	= new_rss_local;
 						
 						manageRSS( core );
 					}
@@ -395,33 +386,7 @@ DeviceManagerImpl
 	manageRSS(
 		final AzureusCore		core )
 	{
-		synchronized( this ){
-			
-			async_dispatcher.dispatch(
-				new AERunnable()
-				{
-					final boolean	f_enable 	= rss_enable;
-					final int		f_port		= rss_port;
-					final boolean	f_local		= rss_local_only;
-					
-					public void
-					runSupport()
-					{
-						synchronized( DeviceManagerImpl.this ){
-														
-							if ( rss_publisher != null ){
-								
-								rss_publisher.destroy();
-							}
-							
-							if ( f_enable ){
-							
-								rss_publisher = new DeviceManagerRSSFeed( DeviceManagerImpl.this, core, f_port, f_local );
-							}
-						}				
-					}
-				});
-		}
+
 	}
 	
 	protected void
@@ -836,31 +801,11 @@ DeviceManagerImpl
 	{
 		COConfigurationManager.setParameter( RSS_ENABLE_CONFIG_KEY, enabled );
 	}
-
-	public boolean
-	isRSSLocalOnly()
-	{
-		return( rss_local_only );
-	}
 	
-	public void
-	setRSSLocalOnly(
-		boolean		local_only )
+	public String
+	getRSSLink()
 	{
-		COConfigurationManager.setParameter( RSS_LOCAL_ONLY_CONFIG_KEY, local_only );
-	}
-	
-	public int
-	getRSSPort()
-	{
-		return( rss_port );
-	}
-	
-	public void
-	setRSSPort(
-		int		port )
-	{
-		COConfigurationManager.setParameter( RSS_PORT_CONFIG_KEY, port );
+		return( rss_publisher.getFeedURL());
 	}
 	
 		// offline downloader stuff

@@ -57,20 +57,9 @@ DeviceManager
 	setRSSPublishEnabled(
 		boolean		enabled );
 
-	public boolean
-	isRSSLocalOnly();
+	public String
+	getRSSLink();
 	
-	public void
-	setRSSLocalOnly(
-		boolean	local_only );
-	
-	public int
-	getRSSPort();
-	
-	public void
-	setRSSPort(
-		int		port );
-
 	public UnassociatedDevice[]
 	getUnassociatedDevices();
 	

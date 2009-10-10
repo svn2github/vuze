@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -41,79 +40,48 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 
-import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.plugins.tracker.Tracker;
-import org.gudy.azureus2.plugins.tracker.web.TrackerWebContext;
-import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageGenerator;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 public class 
 DeviceManagerRSSFeed 
-	implements TrackerWebPageGenerator
+	implements RSSGeneratorPlugin.Provider
 {
-	private DeviceManagerImpl		manager;
-	private int						port;
+	private static final String PROVIDER = "devices";
 	
-	private PluginInterface			plugin_interface;
-	private TrackerWebContext		context;
+	private DeviceManagerImpl		manager;
+		
+	private RSSGeneratorPlugin		generator;
 	
 	protected
 	DeviceManagerRSSFeed(
-		DeviceManagerImpl	_manager,
-		AzureusCore			_core,
-		int					_port,
-		boolean				_local_only )
+		DeviceManagerImpl	_manager )
 	{
-		manager = _manager;
-		port	= _port;
+		manager 	= _manager;
+		generator	= RSSGeneratorPlugin.getSingleton();
 		
-		plugin_interface = _core.getPluginManager().getDefaultPluginInterface();
+		generator.registerProvider( PROVIDER, this );
+	}
 		
-		try{
-			if ( _local_only ){
-				
-				context = 
-					plugin_interface.getTracker().createWebContext(
-						"DeviceFeed", 
-						_port, 
-						Tracker.PR_HTTP, 
-						InetAddress.getByName( "127.0.0.1" ));
-				
-			}else{
-				
-				context = 
-					plugin_interface.getTracker().createWebContext(
-						"DeviceFeed", 
-						_port, 
-						Tracker.PR_HTTP );
-			}
-			
-			context.addPageGenerator( this );
-			
-			manager.log( "RSS feed initialised on port " + _port );
-			
-		}catch( Throwable e ){
-			
-			manager.log( "Failed to initialise RSS feed on port " + _port, e );
-		}
+	public boolean
+	isEnabled()
+	{
+		return( manager.isRSSPublishEnabled());
 	}
 	
-	protected void
-	destroy()
+	public String
+	getFeedURL()
 	{
-		if ( context != null ){
-			
-			context.destroy();
-		}
+		return( generator.getURL() + PROVIDER );
 	}
 	
 	public boolean
@@ -130,13 +98,11 @@ DeviceManagerRSSFeed
 			return( false );
 		}
 		
-		String	host = local_address.getAddress().getHostAddress();
-		
-		String	feed_url = "http://" + host + ":" + port + request.getURL();
-		
 		URL	url	= request.getAbsoluteURL();
-			
+					
 		String path = url.getPath();
+		
+		path = path.substring( PROVIDER.length()+1);
 		
 		DeviceImpl[] devices = manager.getDevices();
 		
@@ -148,7 +114,7 @@ DeviceManagerRSSFeed
 			
 			response.setContentType( "text/html; charset=UTF-8" );
 			
-			pw.println( "<HTML><HEAD><TITLE>Vuze device feeds</TITLE></HEAD><BODY>" );
+			pw.println( "<HTML><HEAD><TITLE>Vuze Device Feeds</TITLE></HEAD><BODY>" );
 			
 			for ( DeviceImpl d: devices ){
 			
@@ -159,7 +125,7 @@ DeviceManagerRSSFeed
 
 				String	name = d.getName();
 								
-				pw.println( "<UL><A href=\"/" + URLEncoder.encode( name, "UTF-8" ) + "\">" + name + "</A></UL>" );
+				pw.println( "<LI><A href=\"" + PROVIDER + "/" + URLEncoder.encode( name, "UTF-8" ) + "\">" + name + "</A></LI>" );
 			}
 			
 			pw.println( "</BODY></HTML>" );
@@ -185,6 +151,24 @@ DeviceManagerRSSFeed
 				response.setReplyStatus( 404 );
 				
 				return( true );
+			}
+			
+			String	feed_url = url.toExternalForm();
+
+				// absolute url is borked as it doesn't set the host properly. hack 
+			
+			String	host = (String)request.getHeaders().get( "host" );
+			
+			if ( host != null ){
+				
+				int	pos = host.indexOf( ':' );
+				
+				if ( pos != -1 ){
+					
+					host = host.substring( 0, pos );
+				}
+				
+				feed_url = UrlUtils.setHost( url, host ).toExternalForm();
 			}
 			
 			if ( device instanceof DeviceMediaRendererImpl ){
@@ -292,7 +276,7 @@ DeviceManagerRSSFeed
 	  				
 	  				String mediaContent = "";
 	  				
-	  				URL stream_url = file.getStreamURL( host );
+	  				URL stream_url = file.getStreamURL( url.getHost() );
 	  				
 	  				if ( stream_url != null ){
 	  					
