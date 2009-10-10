@@ -55,14 +55,15 @@ public class PercentItem
     long percent = 0;
 	
     if (fileInfo != null ){
+    	long bytesDownloaded = fileInfo.getDownloaded();
 		
-		if ( fileInfo.getDownloaded() < 0 ){
+		if ( bytesDownloaded < 0 ){
 			
 			percent = -1; // unknown skeleton value
 			
 		}else if ( fileInfo.getLength() != 0 ){
 
-			percent = (1000 * fileInfo.getDownloaded()) / fileInfo.getLength();
+			percent = (1000 * bytesDownloaded) / fileInfo.getLength();
 		}
 	  
     }else{
