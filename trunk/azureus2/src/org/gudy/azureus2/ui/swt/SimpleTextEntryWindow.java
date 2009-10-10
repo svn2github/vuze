@@ -90,7 +90,7 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    Label label = null;
 	    GridData gridData = null;
 	    for (int i=0; i<this.messages.length; i++) {
-	    	label = new Label(shell, SWT.NONE);
+	    	label = new Label(shell, SWT.WRAP);
 	    	label.setText(this.messages[i]);
 	    	
 	    	// 330 is the current default width.
