@@ -514,7 +514,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	        
 	        bufBytes = 0;
 	        
-	        int size = this.con.getContentLength();
+	        int size = (int) UrlUtils.getContentLength(con);
 	        
 			this.percentDone = -1;
 			
