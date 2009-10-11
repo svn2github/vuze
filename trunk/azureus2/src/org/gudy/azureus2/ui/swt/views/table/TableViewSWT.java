@@ -27,6 +27,7 @@ import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.ui.swt.views.IView;
 
@@ -133,4 +134,25 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 * @since 3.1.1.1
 	 */
 	void addRefreshListener(TableRowRefreshListener listener);
+
+	/**
+	 * @return
+	 *
+	 * @since 4.1.0.9
+	 */
+	String getFilterText();
+
+	/**
+	 * @param filterCheck
+	 *
+	 * @since 4.1.0.9
+	 */
+	void enableFilterCheck(Text txtFilter, TableViewFilterCheck<DATASOURCETYPE> filterCheck);
+
+	/**
+	 * @param s
+	 *
+	 * @since 4.1.0.8
+	 */
+	void setFilterText(String s);
 }

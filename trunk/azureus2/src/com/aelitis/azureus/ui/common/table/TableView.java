@@ -46,7 +46,6 @@ public interface TableView<DATASOURCETYPE>
 	 * You can't add datasources until the table is initialized
 	 * 
 	 * @param dataSource data source to add to the table
-	 * @param bImmediate Add immediately, or queue and add at next refresh
 	 */
 	void addDataSource(DATASOURCETYPE dataSource);
 
@@ -57,7 +56,6 @@ public interface TableView<DATASOURCETYPE>
 	 * You can't add datasources until the table is initialized
 	 * 
 	 * @param dataSources
-	 * @param bImmediate Add immediately, or queue and add at next refresh
 	 */
 	void addDataSources(DATASOURCETYPE[] dataSources);
 
@@ -275,22 +273,10 @@ public interface TableView<DATASOURCETYPE>
 	TableRowCore getRow(int x, int y);
 
 	/**
-	 * @param datasource
-	 * @param immediate
-	 */
-	void addDataSource(DATASOURCETYPE datasource, boolean immediate);
-
-	/**
 	 * @param dataSource
 	 * @return
 	 */
 	boolean dataSourceExists(DATASOURCETYPE dataSource);
-
-	/**
-	 * @param datasource
-	 * @param immediate
-	 */
-	void removeDataSource(DATASOURCETYPE datasource, boolean immediate);
 
 	/**
 	 * @return

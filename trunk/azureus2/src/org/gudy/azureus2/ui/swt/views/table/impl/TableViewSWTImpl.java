@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.util.*;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
@@ -34,14 +36,13 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.ui.swt.MenuBuildUtils;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -60,6 +61,7 @@ import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
@@ -99,8 +101,8 @@ import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 public class TableViewSWTImpl<DATASOURCETYPE>
 	extends TableViewImpl<DATASOURCETYPE>
 	implements ParameterListener, TableViewSWT<DATASOURCETYPE>,
-	TableStructureModificationListener<DATASOURCETYPE>, ObfusticateImage
-
+	TableStructureModificationListener<DATASOURCETYPE>, ObfusticateImage,
+	KeyListener
 {
 	private final static LogIDs LOGID = LogIDs.GUI;
 
@@ -121,6 +123,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	private static final long BREAKOFF_ADDROWSTOSWT = 800;
 
 	private static final boolean TRIGGER_PAINT_ON_SELECTIONS = false;
+
+	private static final int ASYOUTYPE_MODE_FIND = 0;
+	private static final int ASYOUTYPE_MODE_FILTER = 1;
+	private static final int ASYOUTYPE_MODE = ASYOUTYPE_MODE_FILTER;
+	private static final int ASYOUTYPE_UPDATEDELAY = 300;
+
+	private static final boolean DEBUG_CELL_CHANGES = false;
 
 	/** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
 	 * of the table this class is
@@ -176,6 +185,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * value = TableRowSWT
 	 */
 	private Map<DATASOURCETYPE, TableRowCore> mapDataSourceToRow;
+
+	private AEMonitor listUnfilteredDatasources_mon = new AEMonitor("TableView:uds");
+
+	private Set<DATASOURCETYPE> listUnfilteredDataSources;
 
 	private AEMonitor dataSourceToRow_mon = new AEMonitor("TableView:OTSI");
 
@@ -268,6 +281,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private boolean headerVisible = true;
 
+	/**
+	 * Up to date list of selected rows, so we can access rows without being on SWT Thread
+	 */
 	private int[] selectedRowIndexes;
 
 	private List<DATASOURCETYPE> listSelectedCoreDataSources;
@@ -285,6 +301,29 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	// private Rectangle firstClientArea;
 
 	private int lastHorizontalPos;
+	
+
+	// class used to keep filter stuff in a nice readable parcel
+	class filter {
+		Text widget = null;
+		
+		TimerEvent eventUpdate;
+		
+		String text = "";
+		
+		long lastFilterTime;
+		
+		boolean regex = false;
+		
+		TableViewFilterCheck<DATASOURCETYPE> checker;
+		
+		String nextText = "";
+		
+		ModifyListener widgetModifyListener;
+	};
+	
+	filter filter;
+	
 
 	/**
 	 * Main Initializer
@@ -314,6 +353,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		mapDataSourceToRow = new LightHashMap<DATASOURCETYPE, TableRowCore>();
 		sortedRows = new ArrayList<TableRowSWT>();
+		listUnfilteredDataSources = new HashSet<DATASOURCETYPE>();
 	}
 
 	/**
@@ -993,86 +1033,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		new TableTooltips(this, table);
 
-		table.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent event) {
-				Object[] listeners = listenersKey.toArray();
-				for (int i = 0; i < listeners.length; i++) {
-					KeyListener l = (KeyListener) listeners[i];
-					l.keyPressed(event);
-					if (!event.doit) {
-						lCancelSelectionTriggeredOn = SystemTime.getCurrentTime();
-						return;
-					}
-				}
-
-				if (event.keyCode == SWT.F5) {
-					if ((event.stateMask & SWT.SHIFT) > 0) {
-						runForSelectedRows(new TableGroupRowRunner() {
-							public void run(TableRowCore row) {
-								row.invalidate();
-								row.refresh(true);
-							}
-						});
-					} else {
-						sortColumn(true);
-					}
-					event.doit = false;
-					return;
-				}
-
-				int key = event.character;
-				if (key <= 26 && key > 0) {
-					key += 'a' - 1;
-				}
-
-				if (event.stateMask == SWT.MOD1) {
-					switch (key) {
-						case 'a': // CTRL+A select all Torrents
-							if ((table.getStyle() & SWT.MULTI) > 0) {
-								selectAll();
-								event.doit = false;
-							}
-							break;
-
-						case '+': {
-							if (Constants.isUnix) {
-								TableColumn[] tableColumnsSWT = table.getColumns();
-								for (int i = 0; i < tableColumnsSWT.length; i++) {
-									TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
-									if (tc != null) {
-										int w = tc.getPreferredWidth();
-										if (w <= 0) {
-											w = tc.getMinWidth();
-											if (w <= 0) {
-												w = 100;
-											}
-										}
-										tc.setWidth(w);
-									}
-								}
-								event.doit = false;
-							}
-							break;
-						}
-					}
-
-					if (!event.doit) {
-						return;
-					}
-				}
-			}
-
-			public void keyReleased(KeyEvent event) {
-				calculateClientArea();
-				visibleRowsChanged();
-
-				Object[] listeners = listenersKey.toArray();
-				for (int i = 0; i < listeners.length; i++) {
-					KeyListener l = (KeyListener) listeners[i];
-					l.keyReleased(event);
-					if (!event.doit) {
-						return;
-					}
+		table.addKeyListener(this);
+		
+		table.addDisposeListener(new DisposeListener(){
+			public void widgetDisposed(DisposeEvent e) {
+				if (filter != null && !filter.widget.isDisposed()) {
+					filter.widget.removeKeyListener(TableViewSWTImpl.this);
+					filter.widget.removeModifyListener(filter.widgetModifyListener);
 				}
 			}
 		});
@@ -1103,6 +1070,122 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		initializeTableColumns(table);
 	}
 
+	public void keyPressed(KeyEvent event) {
+		// Note: Both table key presses and txtFilter keypresses go through this
+		//       method.
+
+		Object[] listeners = listenersKey.toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			KeyListener l = (KeyListener) listeners[i];
+			l.keyPressed(event);
+			if (!event.doit) {
+				lCancelSelectionTriggeredOn = SystemTime.getCurrentTime();
+				return;
+			}
+		}
+
+		if (event.keyCode == SWT.F5) {
+			if ((event.stateMask & SWT.SHIFT) > 0) {
+				runForSelectedRows(new TableGroupRowRunner() {
+					public void run(TableRowCore row) {
+						row.invalidate();
+						row.refresh(true);
+					}
+				});
+			} else {
+				sortColumn(true);
+			}
+			event.doit = false;
+			return;
+		}
+
+		int key = event.character;
+		if (key <= 26 && key > 0) {
+			key += 'a' - 1;
+		}
+
+		if (event.stateMask == SWT.MOD1) {
+			switch (key) {
+				case 'a': // CTRL+A select all Torrents
+					if (filter == null || event.widget != filter.widget) {
+						if ((table.getStyle() & SWT.MULTI) > 0) {
+							selectAll();
+							event.doit = false;
+						}
+					} else {
+						filter.widget.selectAll();
+						event.doit = false;
+					}
+					break;
+
+				case '+': {
+					if (Constants.isUnix) {
+						TableColumn[] tableColumnsSWT = table.getColumns();
+						for (int i = 0; i < tableColumnsSWT.length; i++) {
+							TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
+							if (tc != null) {
+								int w = tc.getPreferredWidth();
+								if (w <= 0) {
+									w = tc.getMinWidth();
+									if (w <= 0) {
+										w = 100;
+									}
+								}
+								tc.setWidth(w);
+							}
+						}
+						event.doit = false;
+					}
+					break;
+				}
+				case 'f': // CTRL+F Find/Filter
+					openFilterDialog();
+					event.doit = false;
+					break;
+				case 'x': // CTRL+X: RegEx search switch
+					if (filter != null && event.widget == filter.widget) {
+						filter.regex = !filter.regex;
+						event.doit = false;
+						refilter();
+					}
+					break;
+			}
+
+		}
+
+		if (event.stateMask == 0) {
+			if (filter != null && filter.widget == event.widget) {
+				if (event.keyCode == SWT.ARROW_DOWN) {
+					setFocus();
+					event.doit = false;
+				} else if (event.character == 13) {
+					refilter();
+				}
+			}
+		}
+		
+		if (!event.doit) {
+			return;
+		}
+
+		handleSearchKeyPress(event);
+	}
+
+	public void keyReleased(KeyEvent event) {
+		calculateClientArea();
+		visibleRowsChanged();
+
+		Object[] listeners = listenersKey.toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			KeyListener l = (KeyListener) listeners[i];
+			l.keyReleased(event);
+			if (!event.doit) {
+				return;
+			}
+		}
+	}
+	
+	
 	public boolean getHeaderVisible() {
 		return headerVisible;
 	}
@@ -1414,6 +1497,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (event.gc.getClipping().isEmpty()) {
 				return;
 			}
+			//System.out.println("paintItem " + event.gc.getClipping());
+			if (DEBUG_CELL_CHANGES) {
+  			Random random = new Random(SystemTime.getCurrentTime() / 500);
+  			event.gc.setBackground(ColorCache.getColor(event.gc.getDevice(), 
+  					210 + random.nextInt(45), 
+  					210 + random.nextInt(45), 
+  					210 + random.nextInt(45)));
+  			event.gc.fillRectangle(event.gc.getClipping());
+			}
+
 			TableItem item = (TableItem) event.item;
 			if (item == null || item.isDisposed()) {
 				return;
@@ -1970,6 +2063,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   
   		}
 		}
+
+		if (filter != null) {
+  		final MenuItem itemFilter = new MenuItem(menu, SWT.PUSH);
+  		Messages.setLanguageText(itemFilter, "MyTorrentsView.menu.filter");
+  		itemFilter.addListener(SWT.Selection, new Listener() {
+  			public void handleEvent(Event event) {
+  				openFilterDialog();
+  			}
+  		});
+		}
 	}
 
 	void showColumnEditor() {
@@ -2333,15 +2436,26 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
-	// @see com.aelitis.azureus.ui.common.table.TableView#addDataSource(java.lang.Object, boolean)
-	public void addDataSource(DATASOURCETYPE datasource, boolean immediate) {
-		addDataSource(datasource);
-	}
-
 	// see common.TableView
 	public void addDataSource(DATASOURCETYPE dataSource) {
+		addDataSource(dataSource, false);
+	}
+
+	private void addDataSource(DATASOURCETYPE dataSource, boolean skipFilterCheck) {
 
 		if (dataSource == null) {
+			return;
+		}
+
+		listUnfilteredDatasources_mon.enter();
+		try {
+			listUnfilteredDataSources.add(dataSource);
+		} finally {
+			listUnfilteredDatasources_mon.exit();
+		}
+
+		if (!skipFilterCheck && filter != null
+				&& !filter.checker.filterCheck(dataSource, filter.text, filter.regex)) {
 			return;
 		}
 
@@ -2382,12 +2496,32 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	// see common.TableView
 	public void addDataSources(final DATASOURCETYPE dataSources[]) {
+		addDataSources(dataSources, false);
+	}
+
+	public void addDataSources(final DATASOURCETYPE dataSources[],
+			boolean skipFilterCheck) {
 
 		if (dataSources == null) {
 			return;
 		}
 
+		listUnfilteredDatasources_mon.enter();
+		try {
+			listUnfilteredDataSources.addAll(Arrays.asList(dataSources));
+		} finally {
+			listUnfilteredDatasources_mon.exit();
+		}
+
 		if (Utils.IMMEDIATE_ADDREMOVE_DELAY == 0) {
+			if (!skipFilterCheck && filter!= null) {
+  			for (int i = 0; i < dataSources.length; i++) {
+  				if (!filter.checker.filterCheck(dataSources[i], filter.text,
+  						filter.regex)) {
+  					dataSources[i] = null;
+  				}
+  			}
+			}
 			reallyAddDataSources(dataSources);
 			return;
 		}
@@ -2403,6 +2537,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			for (int i = 0; i < dataSources.length; i++) {
 				if (dataSources[i] == null) {
+					continue;
+				}
+				if (!skipFilterCheck
+						&& filter != null
+						&& !filter.checker.filterCheck(dataSources[i], filter.text,
+								filter.regex)) {
 					continue;
 				}
 				boolean alreadyThere = dataSourcesToAdd.contains(dataSources[i]);
@@ -2446,7 +2586,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	private void reallyAddDataSources(final Object dataSources[]) {
-
+		// Note: We assume filterCheck has already run, and the list of dataSources
+		//       all passed the filter
+		
 		if (mainComposite == null || table == null || mainComposite.isDisposed()
 				|| table.isDisposed()) {
 			return;
@@ -2754,15 +2896,17 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		mainComposite.getParent().setCursor(null);
 	}
 
-	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object, boolean)
-	public void removeDataSource(DATASOURCETYPE dataSource, boolean immediate) {
-		removeDataSource( dataSource );
-	}
-
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object)
 	public void removeDataSource(final DATASOURCETYPE dataSource) {
 		if (dataSource == null) {
 			return;
+		}
+
+		listUnfilteredDatasources_mon.enter();
+		try {
+			listUnfilteredDataSources.remove(dataSource);
+		} finally {
+			listUnfilteredDatasources_mon.exit();
 		}
 
 		if (Utils.IMMEDIATE_ADDREMOVE_DELAY == 0) {
@@ -2791,8 +2935,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @param bImmediate Remove immediately, or queue and remove at next refresh
 	 */
 	public void removeDataSources(final DATASOURCETYPE[] dataSources) {
-		if (dataSources == null) {
+		if (dataSources == null || dataSources.length == 0) {
 			return;
+		}
+
+		listUnfilteredDatasources_mon.enter();
+		try {
+			listUnfilteredDataSources.removeAll(Arrays.asList(dataSources));
+		} finally {
+			listUnfilteredDatasources_mon.exit();
 		}
 
 		if (Utils.IMMEDIATE_ADDREMOVE_DELAY == 0) {
@@ -4643,5 +4794,217 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	public void setMenuEnabled(boolean menuEnabled) {
 		this.menuEnabled = menuEnabled;
+	}
+
+	private void openFilterDialog() {
+		if (filter == null) {
+			return;
+		}
+		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow();
+		entryWindow.initTexts("MyTorrentsView.dialog.setFilter.title", null,
+				"MyTorrentsView.dialog.setFilter.text", new String[] {
+					MessageText.getString(getTableID() + "View" + ".header")
+				});
+		entryWindow.setPreenteredText(filter.text, false);
+		entryWindow.prompt();
+		if (!entryWindow.hasSubmittedInput()) {
+			return;
+		}
+		String message = entryWindow.getSubmittedInput();
+
+		if (message == null) {
+			message = "";
+		}
+
+		setFilterText(message);
+	}
+
+	private void handleSearchKeyPress(KeyEvent e) {
+		if (filter == null || e.widget == filter.widget) {
+			return;
+		}
+
+		String newText = null;
+
+		// normal character: jump to next item with a name beginning with this character
+		if (ASYOUTYPE_MODE == ASYOUTYPE_MODE_FIND) {
+			if (System.currentTimeMillis() - filter.lastFilterTime > 3000)
+				newText = "";
+		}
+
+		if (e.keyCode == SWT.BS) {
+			if (e.stateMask == SWT.CONTROL) {
+				newText = "";
+			} else if (filter.nextText.length() > 0) {
+				newText = filter.nextText.substring(0, filter.nextText.length() - 1);
+			}
+		} else if ((e.stateMask & ~SWT.SHIFT) == 0 && e.character > 0) {
+			newText = filter.nextText + String.valueOf(e.character);
+		}
+
+		if (newText == null) {
+			return;
+		}
+
+		if (ASYOUTYPE_MODE == ASYOUTYPE_MODE_FILTER) {
+			if (filter != null && !filter.widget.isDisposed()) {
+				filter.widget.setFocus();
+			}
+			setFilterText(newText);
+		} else {
+			TableCellCore[] cells = getColumnCells("name");
+
+			//System.out.println(sLastSearch);
+
+			Arrays.sort(cells, TableCellImpl.TEXT_COMPARATOR);
+			int index = Arrays.binarySearch(cells, filter.text,
+					TableCellImpl.TEXT_COMPARATOR);
+			if (index < 0) {
+
+				int iEarliest = -1;
+				String s = filter.regex ? filter.text : "\\Q" + filter.text + "\\E";
+				Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
+				for (int i = 0; i < cells.length; i++) {
+					Matcher m = pattern.matcher(cells[i].getText());
+					if (m.find() && (m.start() < iEarliest || iEarliest == -1)) {
+						iEarliest = m.start();
+						index = i;
+					}
+				}
+
+				if (index < 0)
+					// Insertion Point (best guess)
+					index = -1 * index - 1;
+			}
+
+			if (index >= 0) {
+				if (index >= cells.length)
+					index = cells.length - 1;
+				TableRowCore row = cells[index].getTableRowCore();
+				int iTableIndex = row.getIndex();
+				if (iTableIndex >= 0) {
+					setSelectedRows(new TableRowCore[] {
+						row
+					});
+				}
+			}
+			filter.lastFilterTime = System.currentTimeMillis();
+		}
+		e.doit = false;
+	}
+
+	public void setFilterText(String s) {
+		if (filter == null) {
+			return;
+		}
+		filter.nextText = s;
+		if (filter != null && !filter.widget.isDisposed()) {
+			if (!filter.nextText.equals(filter.widget.getText())) {
+				filter.widget.setText(filter.nextText);
+				filter.widget.setSelection(filter.nextText.length());
+			}
+
+			if (filter.regex) {
+				try {
+					Pattern.compile(filter.nextText, Pattern.CASE_INSENSITIVE);
+					filter.widget.setBackground(Colors.colorAltRow);
+					Messages.setLanguageTooltip(filter.widget,
+							"MyTorrentsView.filter.tooltip");
+				} catch (Exception e) {
+					filter.widget.setBackground(Colors.colorErrorBG);
+					filter.widget.setToolTipText(e.getMessage());
+				}
+			} else {
+				filter.widget.setBackground(null);
+				Messages.setLanguageTooltip(filter.widget,
+						"MyTorrentsView.filter.tooltip");
+			}
+		}
+
+		if (filter.eventUpdate != null) {
+			filter.eventUpdate.cancel();
+		}
+		filter.eventUpdate = SimpleTimer.addEvent("SearchUpdate",
+				SystemTime.getOffsetTime(ASYOUTYPE_UPDATEDELAY),
+				new TimerEventPerformer() {
+					public void perform(TimerEvent event) {
+						if (filter.eventUpdate.isCancelled()) {
+							filter.eventUpdate = null;
+							return;
+						}
+						filter.eventUpdate = null;
+						if (filter.nextText != null && !filter.nextText.equals(filter.text)) {
+							filter.text = filter.nextText;
+							filter.checker.filterSet(filter.text);
+							refilter();
+						}
+					}
+				});
+	}
+
+	public String getFilterText() {
+		return filter == null ? "" : filter.text;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void refilter() {
+		if (filter == null) {
+			return;
+		}
+		if (filter.eventUpdate != null) {
+			filter.eventUpdate.cancel();
+		}
+		filter.eventUpdate = null;
+
+		listUnfilteredDatasources_mon.enter();
+		try {
+			DATASOURCETYPE[] unfilteredArray = (DATASOURCETYPE[]) listUnfilteredDataSources.toArray();
+
+			boolean all = filter.text.length() == 0;
+
+			Set<DATASOURCETYPE> existing = new HashSet<DATASOURCETYPE>(
+					getDataSources());
+			List<DATASOURCETYPE> listRemoves = new ArrayList<DATASOURCETYPE>();
+			List<DATASOURCETYPE> listAdds = new ArrayList<DATASOURCETYPE>();
+
+			for (int i = 0; i < unfilteredArray.length; i++) {
+				boolean bHave = existing.contains(unfilteredArray[i]);
+				boolean isOurs = all ? true : filter.checker.filterCheck(
+						unfilteredArray[i], filter.text, filter.regex);
+				if (!isOurs) {
+					if (bHave) {
+						listRemoves.add(unfilteredArray[i]);
+					}
+				} else {
+					if (!bHave) {
+						listAdds.add(unfilteredArray[i]);
+					}
+				}
+			}
+			removeDataSources((DATASOURCETYPE[]) listRemoves.toArray());
+			addDataSources((DATASOURCETYPE[]) listAdds.toArray(), true);
+
+			// add back the ones removeDataSources removed
+			listUnfilteredDataSources.addAll(listRemoves);
+		} finally {
+			listUnfilteredDatasources_mon.exit();
+			processDataSourceQueue();
+		}
+	}
+
+	public void enableFilterCheck(Text txtFilter,
+			TableViewFilterCheck<DATASOURCETYPE> filterCheck) {
+		filter = new filter();
+		filter.widget = txtFilter;
+		txtFilter.addKeyListener(this);
+
+		filter.widgetModifyListener = new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				setFilterText(((Text) e.widget).getText());
+			}
+		};
+		txtFilter.addModifyListener(filter.widgetModifyListener);
+
+		filter.checker = filterCheck;
 	}
 }
