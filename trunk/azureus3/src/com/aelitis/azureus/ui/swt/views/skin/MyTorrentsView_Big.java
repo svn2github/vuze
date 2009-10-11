@@ -49,7 +49,7 @@ public class MyTorrentsView_Big
 				return false;
 			}
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
-			return isInCurrentCategory(dm) && filterCheck(dm);
+			return isInCurrentCategory(dm);
 		}
 		
 		return super.isOurDownloadManager(dm);

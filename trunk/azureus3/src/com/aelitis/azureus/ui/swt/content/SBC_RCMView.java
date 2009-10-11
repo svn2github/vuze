@@ -26,15 +26,20 @@ import java.util.Set;
 
 import org.eclipse.swt.SWT;
 
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
+
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -43,9 +48,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWTFiltered;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTFilteredImpl;
+import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -73,7 +76,7 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 public class 
 SBC_RCMView
 	extends SkinView
-	implements UIUpdatable, IconBarEnabler
+	implements UIUpdatable, IconBarEnabler, TableViewFilterCheck<RelatedContent>
 {
 	public static final String TABLE_RCM = "RCM";
 
@@ -91,14 +94,14 @@ SBC_RCMView
 		}
 	}
 	
-	private TableViewSWTFiltered<RelatedContent> tv_related_content;
+	private TableViewSWT<RelatedContent> tv_related_content;
 
 	private SideBarEntrySWT 	sidebar_entry;
 	private Composite			table_parent;
 	private boolean				space_reserved;
 	
 	
-	private String		match = "";
+	private Text txtFilter;
 
 	public Object 
 	skinObjectInitialShow(
@@ -131,7 +134,27 @@ SBC_RCMView
 				space_reserved = true;
 			}
 		}
-		
+
+		SWTSkinObject soFilterArea = getSkinObject("filterarea");
+		if (soFilterArea != null) {
+			Composite parent = (Composite) soFilterArea.getControl();
+			FormData fd;
+			CLabel lblFilter = new CLabel(parent, SWT.CENTER);
+			Messages.setLanguageText(lblFilter, "MyTorrentsView.filter");
+			fd = Utils.getFilledFormData();
+			fd.right = null;
+			lblFilter.setLayoutData(fd);
+
+			txtFilter = new Text(parent, SWT.BORDER);
+			fd = new FormData();
+			fd.left = new FormAttachment(lblFilter, 10);
+			fd.top = new FormAttachment(lblFilter, 0, SWT.CENTER);
+			fd.right = new FormAttachment(100, -10);
+			txtFilter.setLayoutData(fd);
+			
+			parent.layout(true);
+		}
+
 		return null;
 	}
 
@@ -306,33 +329,17 @@ SBC_RCMView
 	initTable(
 		Composite control ) 
 	{
-		match = "";
-		
-		tv_related_content = new TableViewSWTFilteredImpl<RelatedContent>(
-			new TableViewSWTImpl<RelatedContent>(
-					RelatedContent.class, 
-					TABLE_RCM,
-					TABLE_RCM, 
-					new TableColumnCore[0], 
-					ColumnRC_New.COLUMN_ID, 
-					SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL ),
-			new TableViewSWTFiltered.Filter<RelatedContent>()
-			{
-				public boolean 
-				isVisible(
-					RelatedContent data_source ) 
-				{
-					if ( match == null || match.length() == 0 ){
-						
-						return( true );
-					}
-					
-					return( data_source.getTitle().toUpperCase().contains( match ));
-				}
-			});
-		
+		tv_related_content = new TableViewSWTImpl<RelatedContent>(
+				RelatedContent.class, 
+				TABLE_RCM,
+				TABLE_RCM, 
+				new TableColumnCore[0], 
+				ColumnRC_New.COLUMN_ID, 
+				SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
+		if (txtFilter != null) {
+			tv_related_content.enableFilterCheck(txtFilter, this);
+		}
 		tv_related_content.setRowDefaultHeight(16);
-		tv_related_content.setHeaderVisible(true);
 		
 		table_parent = new Composite(control, SWT.NONE);
 		table_parent.setLayoutData(Utils.getFilledFormData());
@@ -440,18 +447,12 @@ SBC_RCMView
 							
 							if ( hits.size() > 0 ){
 								
-								Utils.execSWTThread(
-										new Runnable()
-										{
-											public void
-											run()
-											{
-												if ( tv_related_content != null ){
-													
-													tv_related_content.changeDataSources( hits.toArray( new RelatedContent[hits.size()]));
-												}
-											}
-										});
+								for (RelatedContent rc : hits) {
+									TableRowCore row = tv_related_content.getRow(rc);
+									if (row != null) {
+										row.refresh(true);
+									}
+								}
 							}
 						}
 						
@@ -497,35 +498,19 @@ SBC_RCMView
 						public void
 						contentChanged()
 						{
-							Utils.execSWTThread(
-									new Runnable()
-									{
-										public void
-										run()
-										{
-											if ( tv_related_content != null ){
-												
-												tv_related_content.refresh( false );
-											}
-										}
-									});
+							if ( tv_related_content != null ){
+								
+								tv_related_content.refreshTable( false );
+							}
 						}
 						
 						public void
 						contentReset()
 						{
-							Utils.execSWTThread(
-									new Runnable()
-									{
-										public void
-										run()
-										{
-											if ( tv_related_content != null ){
-												
-												tv_related_content.removeAllDataSources();
-											}
-										}
-									});
+							if ( tv_related_content != null ){
+								
+								tv_related_content.removeAllTableRows();
+							}
 						}
 					};
 				
@@ -538,7 +523,7 @@ SBC_RCMView
 					
 					if ( data_source instanceof RelatedContentEnumerator ){
 						
-						final TableViewSWTFiltered<RelatedContent> f_table = tv_related_content;
+						final TableViewSWT<RelatedContent> f_table = tv_related_content;
 						
 						((RelatedContentEnumerator)data_source).enumerate(
 							new RelatedContentEnumerator.RelatedContentEnumeratorListener()
@@ -686,6 +671,27 @@ SBC_RCMView
 						
 						assoc_item.setEnabled( false );
 					}
+
+					MenuItem item = new MenuItem(menu, SWT.PUSH);
+					item.setText("gis");
+					item.addSelectionListener(new SelectionAdapter() {
+						public void widgetSelected(SelectionEvent e) {
+							String s = related_content[0].getTitle();
+							s = s.replaceAll("[-_]", " ");
+							Utils.launch("http://images.google.com/images?q=" + UrlUtils.encode(s));
+						};
+					});
+
+					item = new MenuItem(menu, SWT.PUSH);
+					item.setText("g");
+					item.addSelectionListener(new SelectionAdapter() {
+						public void widgetSelected(SelectionEvent e) {
+							String s = related_content[0].getTitle();
+							s = s.replaceAll("[-_]", " ");
+							Utils.launch("http://google.com/search?q=" + UrlUtils.encode(s));
+						};
+					});
+
 					
 					new MenuItem(menu, SWT.SEPARATOR );
 
@@ -742,31 +748,6 @@ SBC_RCMView
 							manager.delete( content );
 							
 							e.doit = false;
-							
-						}else{
-							
-							if ( e.keyCode == SWT.BS ){
-								
-								if ( match.length() > 0 ){
-									
-									match = match.substring( 0, match.length()-1 );
-									
-									tv_related_content.filterChanged();
-									
-									e.doit = false;
-								}
-							}else{
-								if ( 	e.keyCode == SWT.SHIFT ||
-										e.keyCode == SWT.CONTROL ){
-									
-								}else{
-									match += Character.toUpperCase( e.character );
-								
-									tv_related_content.filterChanged();
-								
-									e.doit = false;
-								}
-							}
 						}
 					}
 					
@@ -828,7 +809,22 @@ SBC_RCMView
 	{
 		if ( tv_related_content != null ){
 			
-			tv_related_content.refresh( false );
+			tv_related_content.refreshTable( false );
 		}
+	}
+
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewFilterCheck#filterCheck(java.lang.Object, java.lang.String, boolean)
+	public boolean filterCheck(RelatedContent ds, String filter, boolean regex) {
+		if ( filter == null || filter.length() == 0 ){
+			
+			return( true );
+		}
+		
+		return( ds.getTitle().toUpperCase().contains( filter.toUpperCase() ));
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewFilterCheck#filterSet(java.lang.String)
+	public void filterSet(String filter) {
 	}
 }

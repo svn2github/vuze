@@ -789,11 +789,13 @@ public class TorrentListViewsUtils
 
 		AERunnable failure = null;
 		if (tableView != null) {
-			tableView.removeDataSource(dm, true);
+			tableView.removeDataSource(dm);
+			tableView.processDataSourceQueue();
 
 			failure = new AERunnable() {
 				public void runSupport() {
-					tableView.addDataSource(dm, true);
+					tableView.addDataSource(dm);
+					tableView.processDataSourceQueue();
 				}
 			};
 		}
