@@ -5004,7 +5004,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		};
 		txtFilter.addModifyListener(filter.widgetModifyListener);
-
+		
 		filter.checker = filterCheck;
+		setFilterText(txtFilter.getText());
 	}
 }
