@@ -330,9 +330,14 @@ public class FilesView
     
     Listener rename_listener = new Listener() {
     	public void handleEvent(Event event) {
-    		boolean rename_it = ((Boolean)event.widget.getData("rename")).booleanValue();
-    		boolean retarget_it = ((Boolean)event.widget.getData("retarget")).booleanValue();
-    		rename(tv.getSelectedRows(), rename_it, retarget_it);
+    		final boolean rename_it = ((Boolean)event.widget.getData("rename")).booleanValue();
+    		final boolean retarget_it = ((Boolean)event.widget.getData("retarget")).booleanValue();
+				final TableRowCore[] selectedRows = tv.getSelectedRows();
+				Utils.getOffOfSWTThread(new AERunnable(){
+					public void runSupport() {
+						rename(selectedRows, rename_it, retarget_it);
+					}
+				});
     	}
     };
     
@@ -342,8 +347,13 @@ public class FilesView
     
     Listener priorityListener = new Listener() {
 			public void handleEvent(Event event) {
-				changePriority(((Integer) event.widget.getData("Priority")).intValue(),
-						tv.getSelectedRows());
+				final int priority = ((Integer) event.widget.getData("Priority")).intValue();
+				final TableRowCore[] selectedRows = tv.getSelectedRows();
+				Utils.getOffOfSWTThread(new AERunnable(){
+					public void runSupport() {
+						changePriority(priority, selectedRows);
+					}
+				});
 			}
     };
 
