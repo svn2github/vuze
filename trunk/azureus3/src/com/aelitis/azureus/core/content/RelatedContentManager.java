@@ -1027,6 +1027,11 @@ RelatedContentManager
 	
 		throws ContentException
 	{
+		if ( hash == null ){
+			
+			throw( new ContentException( "Torrent not available" ));
+		}
+
 		if ( 	!initialisation_complete_sem.isReleasedForever() ||
 				( dht_plugin != null && dht_plugin.isInitialising())){
 			
