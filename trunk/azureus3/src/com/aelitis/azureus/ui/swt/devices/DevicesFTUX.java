@@ -49,6 +49,8 @@ import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.listener.*;
+import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ConstantsVuze;
@@ -111,7 +113,12 @@ public class DevicesFTUX
 
 		try {
 			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
-			new BrowserContext("DevicesFTUX", browser, null, true);
+			BrowserContext context = new BrowserContext("DevicesFTUX", browser, null, true);
+
+			context.addMessageListener(new TorrentListener());
+			context.addMessageListener(new VuzeListener());
+			context.addMessageListener(new DisplayListener(browser));
+			context.addMessageListener(new ConfigListener(browser));
 		} catch (Throwable t) {
 		}
 
