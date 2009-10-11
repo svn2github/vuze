@@ -27,6 +27,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.Date;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
@@ -183,7 +184,7 @@ SubscriptionRSSFeed
 						
 				pw.println( "<title>" + channel_title + "</title>" );
 				pw.println( "<link>http://vuze.com</link>" );
-				pw.println( "<atom:link href=\"" + feed_url.toExternalForm() + "\" rel=\"self\" type=\"application/rss+xml\" />" );
+				pw.println( "<atom:link href=\"" + escape( feed_url.toExternalForm()) + "\" rel=\"self\" type=\"application/rss+xml\" />" );
 				
 				pw.println( "<description>Vuze RSS Feed for subscription " + escape( subscription.getName()) + "</description>" );
 				
@@ -191,7 +192,8 @@ SubscriptionRSSFeed
 				pw.println("<image><url>http://www.vuze.com/img/vuze_icon_128.png</url><title>" + channel_title + "</title><link>http://vuze.com</link></image>");
 				
 						
-	
+				SubscriptionResult[] results = subscription.getResults();
+
 											
 				String	feed_date_key = "subscriptions.feed_date." + subscription.getID();
 				
@@ -199,7 +201,19 @@ SubscriptionRSSFeed
 	
 				boolean new_date = false;
 				
-				// TODO: date
+				for ( SubscriptionResult result: results ){
+				
+					Date date = (Date)result.getProperty( SearchResult.PR_PUB_DATE );
+					
+					long 	millis = date.getTime();
+					
+					if ( millis > feed_date ){
+						
+						feed_date = millis;
+						
+						new_date = true;
+					}
+				}
 				
 				if ( new_date ){
 					
@@ -208,7 +222,6 @@ SubscriptionRSSFeed
 				
 				pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( feed_date ) + "</pubDate>" );
 	
-				SubscriptionResult[] results = subscription.getResults();
 				
 				for ( SubscriptionResult result: results ){
 											
@@ -219,114 +232,39 @@ SubscriptionRSSFeed
 		  				
 		  				pw.println( "<title>" + escape( name ) + "</title>" );
 		  					
-		  				/*
-		  				pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( file.getCreationDateMillis()) + "</pubDate>" );
-		  				
-		  				pw.println( "<guid isPermaLink=\"false\">" + escape( file.getKey()) + "</guid>" );
-		  				
-		  				String[] categories = file.getCategories();
-		  				
-		  				for ( String category: categories ){
-		  					
-		  					pw.println( "<category>" + category + "</category>" );
-		  				}
-		  				
-		  				String mediaContent = "";
-		  				
-		  				URL stream_url = file.getStreamURL( feed_url.getHost() );
-		  				
-		  				if ( stream_url != null ){
-		  					
-		  					String url_ext = stream_url.toExternalForm();
-		  					
-		  					long fileSize = file.getTargetFile().getLength();
-		  					
-		  					pw.println( "<link>" + url_ext + "</link>" );
-		  					
-		  					mediaContent = "<media:content medium=\"video\" fileSize=\"" +
-												fileSize + "\" url=\"" + url_ext + "\""; 
-		  					
-		  					String	mime_type = file.getMimeType();
-		  					
-		  					if ( mime_type != null ){
-		  						
-		  						mediaContent += " type=\"" + mime_type + "\"";
-		  					}
-		  				
-							pw.println("<enclosure url=\"" + url_ext
-									+ "\" length=\"" + fileSize
-									+ (mime_type == null ? "" : "\" type=\"" + mime_type)
-									+ "\"></enclosure>");		
-		  				}
-		  				
-		   				String	thumb_url		= null;
-		  				String	author			= null;
-		  				String	description		= null;
-		  				
-		  				try{
-		  					Torrent torrent = file.getSourceFile().getDownload().getTorrent();
-		  				
-		  					TOTorrent toTorrent = PluginCoreUtils.unwrap(torrent);
+						Date date = (Date)result.getProperty( SearchResult.PR_PUB_DATE );
 						
-		  					long duration_secs = PlatformTorrentUtils.getContentVideoRunningTime(toTorrent);
-		  					
-		  					if ( mediaContent.length() > 0 && duration_secs > 0 ){
-		  						
-		  						mediaContent += " duration=\"" + duration_secs + "\"";
-		  					}
-		  					  					
-		  					thumb_url = PlatformTorrentUtils.getContentThumbnailUrl(toTorrent);
-		  					
-		  					author = PlatformTorrentUtils.getContentAuthor(toTorrent);
-		  								
-		  					description= PlatformTorrentUtils.getContentDescription(toTorrent);
-		  					
-		  					if ( description != null ){
-		  						
-		  						description = escapeMultiline( description );
-	
-		
-		  							pw.println( "<description>" + description + "</description>");
-		  						//}
-		   					}					
-		  				}catch( Throwable e ){
-		  				}
-		
-		  					// media elements
-		  				
-		  				if ( mediaContent.length() > 0 ){
-		  					  						
-		  					pw.println( mediaContent += "></media:content>" );
-		  				}
-		
-		  				pw.println( "<media:title>" + escape( file.getName()) + "</media:title>" );
-		
-						if ( description != null ){
-								
-							pw.println( "<media:description>" + description + "</media:description>" );
+						if ( date != null ){
+		  
+							pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( date.getTime()) + "</pubDate>" );
 						}
 						
-						if ( thumb_url != null ) {
-								
-							pw.println("<media:thumbnail url=\"" + thumb_url + "\"/>" );
-						}
-		 
-		 					// iTunes elements
-		 					
-						if ( thumb_url != null ) {
-								
-							pw.println("<itunes:image href=\"" + thumb_url + "\"/>");
-						}
-		
-		 				if ( author != null ){
-		  					
-		  					pw.println("<itunes:author>" + escape(author) + "</itunees:author>");
-		  				}
+						String	uid = (String)result.getProperty( SearchResult.PR_UID );
+						
+						if ( uid != null ){
 		  				
-		  				pw.println( "<itunes:summary>" + escape( file.getName()) + "</itunes:summary>" );
-		  				pw.println( "<itunes:duration>" + TimeFormatter.formatColon( file.getDurationMillis()/1000 ) + "</itunes:duration>" );
-		  				*/
-		  				
+							pw.println( "<guid isPermaLink=\"false\">" + escape(uid ) + "</guid>" );
+						}
+						
+						String	link = (String)result.getProperty( SearchResult.PR_DOWNLOAD_LINK );
+						Long	size = (Long)result.getProperty( SearchResult.PR_SIZE );
+
+						if ( link != null ){
+							
+							pw.println( "<link>" + link + "</link>" );
+						
+
+							if ( size != null ){
+							
+								pw.println( "<media:content fileSize=\"" + size + "\" url=\"" + link + "\"/>" );
+							}
+						}
+						
+						if ( size != null ){
+
+							pw.println( "<vuze:size>" + size + "</vuze:size>" );
+						}
+						
 		  				pw.println( "</item>" );
 		  				
 					}catch( Throwable e ){
@@ -343,6 +281,8 @@ SubscriptionRSSFeed
 			pw.flush();
 			
 		}catch( Throwable e ){
+			
+			Debug.out( e );
 			
 			throw( new IOException( Debug.getNestedExceptionMessage( e )));
 		}

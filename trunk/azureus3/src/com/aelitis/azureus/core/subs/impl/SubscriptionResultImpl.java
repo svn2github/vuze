@@ -307,7 +307,34 @@ SubscriptionResultImpl
 		
 		String title = (String)map.get( "n" );
 		
+		result.put( SearchResult.PR_UID, getID());
 		result.put( SearchResult.PR_NAME, title );
+		
+		String pub_date = (String)map.get( "ts" );
+		if ( pub_date != null ){	
+			result.put( SearchResult.PR_PUB_DATE, new Date( Long.parseLong( pub_date )));
+		}
+		
+		String size = (String)map.get( "lb" );
+		if ( size != null ){	
+			result.put( SearchResult.PR_SIZE, Long.parseLong( size ));
+		}
+		
+		String	link = (String)map.get( "dbl" );
+		
+		if ( link == null ){
+			
+			link = (String)map.get( "dl" );
+		}		
+		
+		if ( link != null ){
+			result.put( SearchResult.PR_DOWNLOAD_LINK, link );
+		}
+		
+		String	hash = (String)map.get( "h" );
+		if ( hash != null ){
+			result.put( SearchResult.PR_HASH, hash );
+		}
 		
 		return( result );
 	}
