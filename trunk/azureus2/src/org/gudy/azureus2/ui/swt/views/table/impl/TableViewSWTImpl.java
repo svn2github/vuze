@@ -5006,6 +5006,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		txtFilter.addModifyListener(filter.widgetModifyListener);
 		
 		filter.checker = filterCheck;
-		setFilterText(txtFilter.getText());
+
+		filter.text = filter.nextText = txtFilter.getText();
+		filter.checker.filterSet(filter.text);
+		refilter();
 	}
 }
