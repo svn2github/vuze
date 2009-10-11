@@ -467,7 +467,7 @@ public class Utils
 			if (icon128 == null) {
   			ImageLoader imageLoader = ImageLoader.getInstance();
   			icon128 = imageLoader.getImage("azureus128");
-  			if (Constants.isCVSVersion()) {
+  			if (Constants.isCVSVersion() && false) {
   				GC gc = new GC(icon128);
   				gc.setTextAntialias(SWT.ON);
   				gc.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_YELLOW));
