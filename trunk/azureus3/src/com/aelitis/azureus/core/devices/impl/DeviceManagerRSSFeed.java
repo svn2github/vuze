@@ -189,13 +189,13 @@ DeviceManagerRSSFeed
 			
 			pw.println( "<channel>" );
 			
-			String channel_title = "Vuze: " + escape( device.getName());
+			String channel_title = "Vuze Device: " + escape( device.getName());
 					
 			pw.println( "<title>" + channel_title + "</title>" );
 			pw.println( "<link>http://vuze.com</link>" );
 			pw.println( "<atom:link href=\"" + feed_url.toExternalForm() + "\" rel=\"self\" type=\"application/rss+xml\" />" );
 			
-			pw.println( "<description>Vuze RSS Feed for " + escape( device.getName()) + "</description>" );
+			pw.println( "<description>Vuze RSS Feed for device " + escape( device.getName()) + "</description>" );
 			
 			pw.println("<itunes:image href=\"http://www.vuze.com/img/vuze_icon_128.png\"/>");
 			pw.println("<image><url>http://www.vuze.com/img/vuze_icon_128.png</url><title>" + channel_title + "</title><link>http://vuze.com</link></image>");

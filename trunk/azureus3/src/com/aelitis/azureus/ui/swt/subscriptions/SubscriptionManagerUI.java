@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.HyperlinkParameter;
 import org.gudy.azureus2.plugins.ui.config.IntParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
@@ -533,6 +534,37 @@ SubscriptionManagerUI
 				}
 			});
 
+		
+			// rss
+		
+		final BooleanParameter rss_enable = 
+			configModel.addBooleanParameter2( 
+				"subscriptions.rss.enable", "subscriptions.rss.enable",
+				subs_man.isRSSPublishEnabled());
+		
+		rss_enable.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					subs_man.setRSSPublishEnabled( rss_enable.getValue());
+				}
+			});
+				
+		HyperlinkParameter rss_view = 
+			configModel.addHyperlinkParameter2(
+				"device.rss.view", subs_man.getRSSLink());
+		
+		rss_enable.addEnabledOnSelection( rss_view );
+		
+		configModel.createGroup(
+			"device.rss.group",
+			new Parameter[]
+			{
+					rss_enable, rss_view,
+			});
 		
 		SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
 		

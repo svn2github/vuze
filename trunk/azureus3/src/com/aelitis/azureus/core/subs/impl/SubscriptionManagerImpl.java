@@ -89,7 +89,8 @@ SubscriptionManagerImpl
 	private static final String CONFIG_AUTO_START_MIN_MB 	= "subscriptions.auto.start.min.mb";
 	private static final String CONFIG_AUTO_START_MAX_MB 	= "subscriptions.auto.start.max.mb";
 	
-	
+	private static final String	RSS_ENABLE_CONFIG_KEY		= "subscriptions.config.rss_enable";
+
 	
 	private static SubscriptionManagerImpl		singleton;
 	private static boolean						pre_initialised;
@@ -232,6 +233,8 @@ SubscriptionManagerImpl
 	
 	private Pattern					exclusion_pattern = Pattern.compile( "azdev[0-9]+\\.azureus\\.com" );
 	
+	private SubscriptionRSSFeed		rss_publisher;
+	
 	private AEDiagnosticsLogger		logger;
 	
 	
@@ -325,13 +328,14 @@ SubscriptionManagerImpl
 	{
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
-				startUp(core);
+				initWithCore(core);
 			}
 		});
 	}
 
 	protected void
-	startUp(AzureusCore core)
+	initWithCore(
+		AzureusCore 	core )
 	{
 		synchronized( this ){
 			
@@ -345,6 +349,8 @@ SubscriptionManagerImpl
 
 		final PluginInterface default_pi = PluginInitializer.getDefaultInterface();
 
+		rss_publisher = new SubscriptionRSSFeed( this, default_pi );
+		
 		TorrentManager  tm = default_pi.getTorrentManager();
 		
 		ta_subs_download 		= tm.getPluginAttribute( "azsubs.subs_dl" );
@@ -626,6 +632,25 @@ SubscriptionManagerImpl
 	getScheduler()
 	{
 		return( scheduler );
+	}
+	
+	public boolean
+	isRSSPublishEnabled()
+	{
+		return( COConfigurationManager.getBooleanParameter( RSS_ENABLE_CONFIG_KEY, false ));
+	}
+	
+	public void
+	setRSSPublishEnabled(
+		boolean		enabled )
+	{
+		COConfigurationManager.setParameter( RSS_ENABLE_CONFIG_KEY, enabled );
+	}
+	
+	public String
+	getRSSLink()
+	{
+		return( rss_publisher.getFeedURL());
 	}
 	
 	public Subscription 

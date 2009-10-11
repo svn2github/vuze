@@ -187,7 +187,6 @@ DeviceManagerImpl
 	
 	
 	private boolean	auto_search;
-	private boolean	rss_enable		= false;
 	
 	private DeviceManagerRSSFeed	rss_publisher;
 	
@@ -292,27 +291,6 @@ DeviceManagerImpl
 		
 		transcode_manager = new TranscodeManagerImpl( this );
 		
-		COConfigurationManager.addAndFireParameterListeners(
-			new String[]{
-				RSS_ENABLE_CONFIG_KEY,
-			},
-			new ParameterListener()
-			{
-				public void 
-				parameterChanged(
-					String name ) 
-				{
-					boolean	new_rss_enable 	= COConfigurationManager.getBooleanParameter( RSS_ENABLE_CONFIG_KEY, false );
-					
-					if ( new_rss_enable != rss_enable ){
-						
-						rss_enable		= new_rss_enable;
-						
-						manageRSS( core );
-					}
-				}
-			});
-		
 		core.addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
 			{
@@ -380,13 +358,6 @@ DeviceManagerImpl
 		initialized = true;
 		
 		listeners.dispatch( LT_INITIALIZED, null );
-	}
-	
-	protected void
-	manageRSS(
-		final AzureusCore		core )
-	{
-
 	}
 	
 	protected void
@@ -792,7 +763,7 @@ DeviceManagerImpl
 	public boolean
 	isRSSPublishEnabled()
 	{
-		return( rss_enable );
+		return( COConfigurationManager.getBooleanParameter( RSS_ENABLE_CONFIG_KEY, false ) );
 	}
 	
 	public void

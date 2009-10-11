@@ -129,6 +129,16 @@ SubscriptionManager
 	setAutoStartMaxMB(
 		int			mb );
 
+	public boolean
+	isRSSPublishEnabled();
+	
+	public void
+	setRSSPublishEnabled(
+		boolean		enabled );
+	
+	public String
+	getRSSLink();
+	
 	public void
 	addListener(
 		SubscriptionManagerListener	listener );
