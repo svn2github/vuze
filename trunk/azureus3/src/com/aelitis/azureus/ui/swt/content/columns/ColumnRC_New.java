@@ -97,13 +97,11 @@ public class ColumnRC_New
 			
 			boolean unread = entry.isUnread();
 			
-			int sortVal = unread ? 1 : 0;
+			long sortVal = ((unread ? 2 : 1) << 62) + entry.getLastSeenSecs();
 	
 			if (!cell.setSortValue(sortVal) && cell.isValid()) {
 				return;
 			}
-	
-			cell.invalidate();
 		}
 	}
 
