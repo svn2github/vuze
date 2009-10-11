@@ -22,11 +22,9 @@
 package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /**
@@ -45,6 +43,8 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 	
 	private Image icon = null;
 
+	private AERunnable runnableDirtyCell;
+
 	public BufferedTableItemImpl(BufferedTableRow row, int position) {
 		this.row = row;
 		this.position = position;
@@ -58,17 +58,33 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		if (this.text.equals(text)) {
 			return false;
 		}
-
 		this.text = (text == null) ? "" : text;
 		
-		Rectangle bounds = getBounds();
-		if (bounds != null) {
-			Table table = row.getTable();
-			Rectangle dirty = table.getClientArea().intersection(bounds);
-			table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
-		}
+		dirtyCell();
 		
 		return true;
+	}
+	private void dirtyCell() {
+		if (runnableDirtyCell == null) {
+			synchronized (this) {
+				if (runnableDirtyCell == null) {
+					runnableDirtyCell = new AERunnable(){
+						public void runSupport() {
+							Rectangle bounds = getBounds();
+							if (bounds != null) {
+								Table table = row.getTable();
+								Rectangle dirty = table.getClientArea().intersection(bounds);
+								//System.out.println("old = " + this.text + ";new=" + text + ";dirty=" + bounds);
+								
+								table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
+							}
+						}
+					};
+				}
+			}
+		}
+		
+		Utils.execSWTThread(runnableDirtyCell);
 	}
 
 	public void setIcon(Image img) {
@@ -212,6 +228,8 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 
   // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#redraw()
   public void redraw() {
+		//System.out.println("redraw via " + Debug.getCompressedStackTrace(5));
+
   	Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				Rectangle bounds = getBounds();
