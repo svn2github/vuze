@@ -1081,6 +1081,12 @@ UtilitiesImpl
 								new Subscription()
 								{
 									public String 
+									getID() 
+									{
+										return( p_sub.getID());
+									}
+									
+									public String 
 									getName() 
 									{
 										return( p_sub.getName());
@@ -1150,6 +1156,9 @@ UtilitiesImpl
 	public interface
 	PluginSubscription
 	{
+		public String
+		getID();
+		
 		public String
 		getName();
 		
