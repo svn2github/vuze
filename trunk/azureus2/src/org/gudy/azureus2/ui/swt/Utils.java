@@ -78,7 +78,7 @@ public class Utils
 	private static final boolean DEBUG_SWTEXEC = System.getProperty(
 			"debug.swtexec", "0").equals("1");
 
-	private static ArrayList queue;
+	private static ArrayList<Runnable> queue;
 
 	private static AEDiagnosticsLogger diag_logger;
 
@@ -97,9 +97,20 @@ public class Utils
 
 	static {
 		if (DEBUG_SWTEXEC) {
-			queue = new ArrayList();
+			queue = new ArrayList<Runnable>();
 			diag_logger = AEDiagnostics.getLogger("swt");
 			diag_logger.log("\n\nSWT Logging Starts");
+			
+			AEDiagnostics.addEvidenceGenerator(new AEDiagnosticsEvidenceGenerator(){
+				public void generate(IndentWriter writer) {
+					writer.println("SWT Queue:");
+					writer.indent();
+					for (Runnable r : queue) {
+						writer.println(r.toString());
+					}
+					writer.exdent();
+				}
+			});
 		} else {
 			queue = null;
 			diag_logger = null;
@@ -645,9 +656,15 @@ public class Utils
 
 								queue.remove(code);
 
-								diag_logger.log(SystemTime.getCurrentTime()
-										+ "] - Q. size=" + queue.size() + ";wait:" + wait
-										+ "ms;run:" + runTIme + "ms");
+								if (runTIme > 10) {
+									diag_logger.log(SystemTime.getCurrentTime()
+											+ "] - Q. size=" + queue.size() + ";wait:" + wait
+											+ "ms;run:" + runTIme + "ms " + code);
+								} else {
+									diag_logger.log(SystemTime.getCurrentTime()
+											+ "] - Q. size=" + queue.size() + ";wait:" + wait
+											+ "ms;run:" + runTIme + "ms");
+								}
 							}
 						}
 					};
