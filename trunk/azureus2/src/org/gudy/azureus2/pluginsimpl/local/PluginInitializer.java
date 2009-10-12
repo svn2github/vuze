@@ -1082,6 +1082,33 @@ PluginInitializer
 	      
 	      String pid = plugin_id[0]==null?directory.getName():plugin_id[0];
 	      
+	      if ( pid.endsWith( "_v" )){
+	    	  
+	    	  	// re-verify jar files
+	    	  
+	    	  log( "Re-verifying " + pid );
+	    	  
+	    	  for( int i = 0 ; i < pluginContents.length ; i++){
+	    	    	
+	    	    	File	jar_file = pluginContents[i];
+	    	    	
+	    	    	if ( jar_file.getName().endsWith( ".jar" )){
+	    	    		
+	    	    		try{
+	    	    			log( "    verifying " + jar_file );
+	    	    			
+	    	    			AEVerifier.verifyData( jar_file );
+	    	    			
+	    	    			log( "    OK" );
+	    	    		}catch( Throwable e ){
+	    	    			
+	    	    			log( "    Failed" );
+	    	    			
+	    	    			throw( e );
+	    	    		}
+	    	    	}
+	    	   }
+	      }
 	      Plugin plugin = PluginLauncherImpl.getPreloadedPlugin( plugin_class );
 	      
 	      if ( plugin == null ){
@@ -1194,6 +1221,15 @@ PluginInitializer
     	
     	throw( new PluginException( msg, e ));
     }
+  }
+  
+  private void
+  log(
+	String	str )
+  {
+	if (Logger.isEnabled()){
+		Logger.log(new LogEvent(LOGID, str ));
+	}
   }
   
   public void 
