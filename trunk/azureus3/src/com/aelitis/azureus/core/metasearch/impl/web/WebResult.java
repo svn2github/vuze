@@ -61,6 +61,7 @@ public class WebResult extends Result {
 	int	comments	= -1;
 	int votes = -1;
 	int votesDown = -1;
+	float rank = -1;
 	
 	boolean privateTorrent;
 	
@@ -179,6 +180,41 @@ public class WebResult extends Result {
 				//e.printStackTrace();
 			}
 		}
+	}
+	
+	public void setRankFromHTML( String rank_str ){
+		if ( rank_str != null ){
+			try{
+					// either a float 0->1 or integer 0->100
+				
+				float f = Float.parseFloat( rank_str.trim() );
+				
+				if ( rank_str.indexOf( "." ) == -1 ){
+					
+					if ( f >= 0 &&  f <= 100 ){
+						
+						rank = f/100;
+					}
+				}else{
+					
+					if ( f >= 0 &&  f <= 1 ){
+						
+						rank = f;
+					}
+				}
+			}catch( Throwable e ){
+			}
+		}
+	}
+	
+	public float
+	getRank()
+	{
+		if ( rank != -1 ){
+			return( rank );
+		}
+		
+		return( super.getRank());
 	}
 	
 	public void setPublishedDate(Date date) {

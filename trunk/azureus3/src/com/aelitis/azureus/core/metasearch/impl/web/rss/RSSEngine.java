@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -34,6 +36,8 @@ public class
 RSSEngine 
 	extends WebEngine 
 {
+	private Pattern seed_leecher_pat = Pattern.compile("([0-9]+)\\s+(seed|leecher)s", Pattern.CASE_INSENSITIVE);
+
 	public static EngineImpl
 	importFromBEncodedMap(
 		MetaSearchImpl		meta_search,
@@ -245,6 +249,8 @@ RSSEngine
 						result.setUID( uid );
 					}
 					
+					boolean got_seeds_peers = false;
+					
 					SimpleXMLParserDocumentNode node = item.getNode();
 					
 					if ( node != null ){
@@ -381,15 +387,25 @@ RSSEngine
 								
 							}else if ( lc_full_child_name.equals( "vuze:seeds" )){
 								
+								got_seeds_peers = true;
+								
 								result.setNbSeedsFromHTML( value );
 								
 							}else if ( lc_full_child_name.equals( "vuze:superseeds" )){
+								
+								got_seeds_peers = true;
 								
 								result.setNbSuperSeedsFromHTML( value );
 								
 							}else if ( lc_full_child_name.equals( "vuze:peers" )){
 								
+								got_seeds_peers = true;
+								
 								result.setNbPeersFromHTML( value );
+								
+							}else if ( lc_full_child_name.equals( "vuze:rank" )){
+								
+								result.setRankFromHTML( value );
 								
 							}else if ( lc_full_child_name.equals( "vuze:contenttype" )){
 								
@@ -426,6 +442,41 @@ RSSEngine
 
 								result.setHash( value);
 							}
+						}
+					}
+					
+					if ( !got_seeds_peers ){
+						
+						try{
+							SimpleXMLParserDocumentNode desc_node = node.getChild( "description" );
+							
+							if ( desc_node != null ){
+								
+								String desc = desc_node.getValue().trim();
+								
+									// see if we can pull from description
+								
+								Matcher m = seed_leecher_pat.matcher( desc );
+							
+								while( m.find()){
+									
+									String	num = m.group(1);
+									
+									String	type = m.group(2);
+									
+									if ( type.toLowerCase().charAt(0) == 's' ){
+										
+										result.setNbSeedsFromHTML( num );
+										
+									}else{
+										
+										result.setNbPeersFromHTML( num );
+									}
+								}
+							}
+							
+						}catch( Throwable e ){
+							
 						}
 					}
 					

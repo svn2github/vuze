@@ -265,6 +265,28 @@ SubscriptionRSSFeed
 							pw.println( "<vuze:size>" + size + "</vuze:size>" );
 						}
 						
+						Long	seeds = (Long)result.getProperty( SearchResult.PR_SEED_COUNT );
+						
+						if ( seeds != null ){
+							
+							pw.println( "<vuze:seeds>" + seeds + "</vuze:seeds>" );
+						}
+						
+						Long	peers = (Long)result.getProperty( SearchResult.PR_LEECHER_COUNT );
+						
+						if ( peers != null ){
+							
+							pw.println( "<vuze:peers>" + peers + "</vuze:peers>" );
+						}
+
+						Long	rank = (Long)result.getProperty( SearchResult.PR_RANK );
+						
+						if ( rank != null ){
+							
+							pw.println( "<vuze:rank>" + rank + "</vuze:rank>" );
+						}
+
+						
 		  				pw.println( "</item>" );
 		  				
 					}catch( Throwable e ){

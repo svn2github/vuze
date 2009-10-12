@@ -336,6 +336,21 @@ SubscriptionResultImpl
 			result.put( SearchResult.PR_HASH, hash );
 		}
 		
+		String	seeds = (String)map.get( "s" );
+		if ( seeds != null ){
+			result.put( SearchResult.PR_SEED_COUNT, Long.parseLong(seeds) );
+		}
+		
+		String	peers = (String)map.get( "p" );
+		if ( peers != null ){
+			result.put( SearchResult.PR_LEECHER_COUNT, Long.parseLong(peers) );
+		}
+		
+		String	rank = (String)map.get( "r" );
+		if ( rank != null ){
+			result.put( SearchResult.PR_RANK, (long)(100*Float.parseFloat( rank )));
+		}
+		
 		return( result );
 	}
 }
