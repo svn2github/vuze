@@ -35,6 +35,8 @@ import com.aelitis.azureus.core.security.CryptoECCUtils;
 public class 
 PlatformSubscriptionsMessenger 
 {
+	private static final boolean	MESSAGING_ENABLED = true;
+	
 	private static final PlatformMessengerConfig	dispatcher = 
 		new PlatformMessengerConfig( "subscription", false );
 
@@ -56,6 +58,8 @@ PlatformSubscriptionsMessenger
 	
 		throws PlatformMessengerException
 	{
+		checkEnabled();
+		
 		Map parameters = new HashMap();
 		
 		String	sid_str = Base32.encode( sid );
@@ -102,6 +106,8 @@ PlatformSubscriptionsMessenger
 	
 		throws PlatformMessengerException
 	{
+		checkEnabled();
+		
 		Map parameters = new HashMap();
 		
 		List	sid_list = new JSONArray();
@@ -133,6 +139,8 @@ PlatformSubscriptionsMessenger
 	
 		throws PlatformMessengerException
 	{
+		checkEnabled();
+		
 		Map parameters = new HashMap();
 		
 		List	sid_list = new JSONArray();
@@ -164,6 +172,8 @@ PlatformSubscriptionsMessenger
 	
 		throws PlatformMessengerException
 	{
+		checkEnabled();
+		
 		Map parameters = new HashMap();
 		
 		List	sid_list 	= new JSONArray();		
@@ -207,6 +217,15 @@ PlatformSubscriptionsMessenger
 		return( new List[]{ versions,popularities } );
 	}   
 	
+	protected static void
+	checkEnabled()
+		throws PlatformMessengerException
+	{
+		if ( !MESSAGING_ENABLED ){
+			
+			throw( new PlatformMessengerException( "messaging disabled" ));
+		}
+	}
 	
 	public static class
 	subscriptionInfo
