@@ -947,8 +947,10 @@ public class TrackerStatus {
 		// Error will apply to ALL hashes, so set all
 		Object[] values;
 		try {
-			values = hashes.values().toArray();
 			hashes_mon.enter();
+			
+			values = hashes.values().toArray();
+
 		} finally {
 			hashes_mon.exit();
 		}
