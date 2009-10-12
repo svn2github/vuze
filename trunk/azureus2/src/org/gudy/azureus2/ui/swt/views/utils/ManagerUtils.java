@@ -29,7 +29,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -38,7 +37,10 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AERunnableBoolean;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -397,11 +399,14 @@ public class ManagerUtils {
 				bDeleteData, deleteFailed);
 	}
   
+  private static AsyncDispatcher async = new AsyncDispatcher(2000);
+  
   public static void asyncStopDelete(final DownloadManager dm,
 			final int stateAfterStopped, final boolean bDeleteTorrent,
 			final boolean bDeleteData, final AERunnable deleteFailed) {
 
-		new AEThread("asyncStop", true) {
+	  
+	async.dispatch(new AERunnable() {
 			public void runSupport() {
 
 				try {
@@ -423,7 +428,7 @@ public class ManagerUtils {
 					}
 				}
 			}
-		}.start();
+		});
 	}
   
   	public static void
@@ -431,14 +436,13 @@ public class ManagerUtils {
 		final DownloadManager	dm,
 		final int 				stateAfterStopped )
   	{
-    	new AEThread( "asyncStop", true )
-		{
+    	async.dispatch(new AERunnable() {
     		public void
 			runSupport()
     		{
     			dm.stopIt( stateAfterStopped, false, false );
     		}
-		}.start();
+		});
   	}
 
 	public static void asyncStartAll() {

@@ -22,30 +22,17 @@
 
 package com.aelitis.net.magneturi.impl;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
+import java.io.*;
+import java.net.*;
 import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.HTTPUtils;
 import com.aelitis.azureus.core.util.png.PNG;
 import com.aelitis.net.magneturi.MagnetURIHandler;
@@ -154,11 +141,10 @@ MagnetURIHandlerImpl
 								
 								errors	= 0;
 								
-								Thread t = 
-									new AEThread( "MagnetURIHandler:processor" )
+								new AEThread2( "MagnetURIHandler:processor",true)
 									{
 										public void
-										runSupport()
+										run()
 										{
 											boolean	close_socket	= true;
 											
@@ -247,11 +233,8 @@ MagnetURIHandlerImpl
 												}
 											}
 										}
-									};
+									}.start();
 								
-								t.setDaemon( true );
-								
-								t.start();
 								
 							}catch( Throwable e ){
 								

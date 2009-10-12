@@ -25,9 +25,11 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.Plugin;
+import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -492,6 +494,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			}
 		}
 	}
+	
+	private volatile boolean immediateProcessingScheduled = false;
 
 	/** Listen to Download changes and recalc SR if needed 
 	 */
@@ -503,7 +507,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			if (dlData != null) {
 				// force a SR recalc, so that it gets position properly next process()
 				requestProcessCycle(dlData);
-				if (new_state == Download.ST_READY || new_state == Download.ST_WAITING) {
+				if ((new_state == Download.ST_READY || new_state == Download.ST_WAITING) && !immediateProcessingScheduled) {
+					immediateProcessingScheduled = true;
 					new AEThread2("processReady", true) {
 						public void run() {
 							process();
@@ -1371,6 +1376,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				}
 				processLastComplete = now;
 			}
+			
+			immediateProcessingScheduled = false;
 
 			this_mon.exit();
 		}

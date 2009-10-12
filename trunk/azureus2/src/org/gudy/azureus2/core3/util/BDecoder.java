@@ -150,6 +150,9 @@ public class BDecoder
 
 		return((Map)res );
 	}
+	
+	// reuseable buffer for keys, recursion is not an issue as this is only a temporary buffer that gets converted into a string immediately
+	private ByteBuffer keyBytesBuffer = ByteBuffer.allocate(32);
 
 	private Object 
 	decodeInputStream(
@@ -183,41 +186,53 @@ public class BDecoder
 			try{
 					//get the key   
 				
-				byte[] tempByteArray = null;
+				while (true) {
+					
+					dbis.mark(Integer.MAX_VALUE);
 
-				while ((tempByteArray = (byte[]) decodeInputStream(dbis, nesting+1,internKeys)) != null) {
+					tempByte = dbis.read();
+					if(tempByte == 'e' || tempByte == -1)
+						break; // end of map
 
-					if ( tempByteArray.length > MAX_MAP_KEY_SIZE ){
-						
-						String msg = "dictionary key is too large, max=" + MAX_MAP_KEY_SIZE + ": value=" + new String( tempByteArray, 0, 128 );
-						
+					dbis.reset();
+					
+					// decode key strings manually so we can reuse the bytebuffer
+
+					int keyLength = (int)getNumberFromStream(dbis, ':');
+
+					ByteBuffer keyBytes;
+					if(keyLength < keyBytesBuffer.capacity())
+					{
+						keyBytes = keyBytesBuffer;
+						keyBytes.position(0).limit(keyLength);
+					} else {
+						keyBytes = keyBytesBuffer = ByteBuffer.allocate(keyLength);
+					}
+					
+					getByteArrayFromStream(dbis, keyLength, keyBytes.array());						
+
+					if ( keyLength > MAX_MAP_KEY_SIZE ){
+						String msg = "dictionary key is too large, max=" + MAX_MAP_KEY_SIZE + ": value=" + new String( keyBytes.array(), 0, 128 );
 						System.err.println( msg );
-						
 						throw( new IOException( msg ));
 					}
-						//decode some more
+					
+					CharBuffer	cb = Constants.BYTE_CHARSET.decode(keyBytes);
+					String key = new String(cb.array(),0,cb.limit());
+					
+					// keys often repeat a lot - intern to save space
+					if (internKeys)
+						key = StringInterner.intern( key );
+					
+					
+
+					//decode value
 
 					Object value = decodeInputStream(dbis,nesting+1,internKeys);
 					
-						// value interning is too CPU-intensive, let's skip that for now
-						//if(value instanceof byte[] && ((byte[])value).length < 17)
-						//value = StringInterner.internBytes((byte[])value);
-
-
-						// keys often repeat a lot - intern to save space
-					
-					String	key = null;//StringInterner.intern( tempByteArray );
-
-					if ( key == null ){
-
-						CharBuffer	cb = Constants.BYTE_CHARSET.decode(ByteBuffer.wrap(tempByteArray));
-
-						key = new String(cb.array(),0,cb.limit());
-
-						if (internKeys) {
-							key = StringInterner.intern( key );
-						}
-					}
+					// value interning is too CPU-intensive, let's skip that for now
+					/*if(value instanceof byte[] && ((byte[])value).length < 17)
+					value = StringInterner.internBytes((byte[])value);*/
 
 					if ( TRACE ){
 						System.out.println( key + "->" + value + ";" );
@@ -318,7 +333,7 @@ public class BDecoder
 			return null;
 
 		case 'i' :
-			return new Long(getNumberFromStream(dbis, 'e'));
+			return Long.valueOf(getNumberFromStream(dbis, 'e'));
 
 		case '0' :
 		case '1' :
@@ -423,7 +438,7 @@ public class BDecoder
 	}
 
 	// This is similar to Long.parseLong(String) source
-	public static long
+	private static long
 	parseLong(
 		char[]	chars,
 		int		start,
@@ -604,21 +619,25 @@ public class BDecoder
 
 			throw( new IOException( "Byte array length too large (" + length + ")"));
 		}
-
+		
 		byte[] tempArray = new byte[length];
+		
+		getByteArrayFromStream(dbis, length, tempArray);		
+		
+		return tempArray; 
+	}
+
+	private void getByteArrayFromStream(InputStream dbis, int length, byte[] targetArray) throws IOException {
+
 		int count = 0;
 		int len = 0;
 		//get the string
-		while (count != length && (len = dbis.read(tempArray, count, length - count)) > 0) {
+		while (count != length && (len = dbis.read(targetArray, count, length - count)) > 0)
 			count += len;
-		}
 
-		if ( count != tempArray.length ){
-			throw( new IOException( "BDecoder::getByteArrayFromStream: truncated"));
-		}
-
-		return tempArray;
-	}
+		if (count != length)
+			throw (new IOException("BDecoder::getByteArrayFromStream: truncated"));
+	}	
 
 	public void
 	setRecoveryMode(

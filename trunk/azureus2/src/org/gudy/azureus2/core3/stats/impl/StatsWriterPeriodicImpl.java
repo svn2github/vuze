@@ -21,15 +21,15 @@
  
 package org.gudy.azureus2.core3.stats.impl;
 
-import java.io.*;
+import java.io.File;
 
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.stats.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.config.COConfigurationListener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 /**
@@ -38,41 +38,31 @@ import com.aelitis.azureus.core.AzureusCore;
 
 public class 
 StatsWriterPeriodicImpl 
-	implements StatsWriterPeriodic, COConfigurationListener
+	implements StatsWriterPeriodic, COConfigurationListener, TimerEventPerformer
 {
 	private static final LogIDs LOGID = LogIDs.CORE; 
 	
 	private static StatsWriterPeriodicImpl	singleton;
-	private static AEMonitor				class_mon	= new AEMonitor( "StatsWriterPeriodic" );
 		
-	private static int				start_count;
-	private static Thread			current_thread;
+	private boolean started;
 	
 	private long			last_write_time	= 0;
 	private AzureusCore		core;
 	
+	private TimerEventPeriodic event;
 	private boolean			config_enabled;
 	private int				config_period;	
 	private String			config_dir;
 	private String			config_file;
 	
-	public static StatsWriterPeriodic
-	create(
-		AzureusCore		_core )
-	{
-		try{
-			class_mon.enter();
-		
-			if ( singleton == null ){
-				
+	public static synchronized StatsWriterPeriodic create(AzureusCore _core) {
+		synchronized (StatsWriterPeriodicImpl.class)
+		{
+			if (singleton == null)
+			{
 				singleton = new StatsWriterPeriodicImpl(_core);
 			}
-			
-			return( singleton );
-			
-		}finally{
-			
-			class_mon.exit();
+			return (singleton);
 		}
 	}
 	
@@ -81,63 +71,25 @@ StatsWriterPeriodicImpl
 		AzureusCore		_core )
 	{
 		core	= _core;
-		
-		COConfigurationManager.addListener( this );	
+	}
+	
+
+	public void perform(TimerEvent event) {
+		update();
 	}
 	
 	protected void
 	update()
 	{
-		readConfigValues();
-		
-		while( true ){
-									
-			try{
-				class_mon.enter();
-				
-				if ( Thread.currentThread() != current_thread ){
-					
-					break;
-				}
-				
-				writeStats();	
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e );
-				
-			}finally{
-				
-				class_mon.exit();
-			}
-			
-			try{
-				int	period;
-				
-				if ( !config_enabled ){
-					
-					period = DEFAULT_SLEEP_PERIOD;
-								
-				}else{
-				
-				 	period = config_period*1000;
-				}
-				
-				if ( period > DEFAULT_SLEEP_PERIOD ){
-					
-					period = DEFAULT_SLEEP_PERIOD;
-				}
-				
-				Thread.sleep( period );
-				
-			}catch( InterruptedException e ){
-				
-				Debug.printStackTrace( e );
-			}
+		try {
+			writeStats();
+		} catch (Throwable e)
+		{
+			Debug.printStackTrace(e);
 		}
 	}
 	
-	protected void
+	protected synchronized void
 	readConfigValues()
 	{
 		config_enabled 	= COConfigurationManager.getBooleanParameter( "Stats Enable" );
@@ -147,6 +99,27 @@ StatsWriterPeriodicImpl
 		config_dir		= COConfigurationManager.getStringParameter( "Stats Dir" );
 		
 		config_file		= COConfigurationManager.getStringParameter( "Stats File" );
+		
+		if(config_enabled)
+		{
+			long targetFrequency = 1000 * (config_period < DEFAULT_SLEEP_PERIOD ? config_period : DEFAULT_SLEEP_PERIOD); 
+			if(event != null && event.getFrequency() != targetFrequency)
+			{
+				event.cancel();
+				event = null;
+			}
+			
+			if(event == null)
+				event = SimpleTimer.addPeriodicEvent("StatsWriter", targetFrequency, this);
+			
+		} else if(event != null)
+		{
+			event.cancel();
+			event = null;
+		}
+
+
+		
 	}
 	
 	protected void
@@ -159,11 +132,8 @@ StatsWriterPeriodicImpl
 
 		int	period = config_period;
 		
-		long	now = SystemTime.getCurrentTime() /1000;
+		long	now = SystemTime.getMonotonousTime() /1000;
         
-        if( now < last_write_time ) {  //time went backwards
-          last_write_time   = now;
-        }
 		
 			// if we have a 1 second period then now-last-write_time will often be 0 (due to the
 			// rounding of SystemTime) and the stats won't be written - hence the check against
@@ -225,49 +195,21 @@ StatsWriterPeriodicImpl
 	public void
 	start()
 	{
-		try{
-			class_mon.enter();
-			
-			start_count++;
-			
-			if ( start_count == 1 ){
-							
-				current_thread = 
-					new AEThread("StatsWriter"){
-						public void
-						runSupport()
-						{
-							update();
-						}
-					};
-					
-				current_thread.setDaemon( true );
-				
-				current_thread.start();
-			}
-		}finally{
-			
-			class_mon.exit();
-		}
+		if(started)
+			return;
+		started = true;
+		COConfigurationManager.addListener( this );	
+		configurationSaved();
 	}
 	
 	public void
 	stop()
 	{
-		try{
-			class_mon.enter();
-			
-			start_count--;
-			
-			if ( start_count == 0 ){
-				
-				current_thread = null;
-			}
-		}finally{
-			
-			class_mon.exit();
-		}
+		COConfigurationManager.removeListener( this );	
+		if(event != null)
+			event.cancel();
 	}
+
 	
 
 }

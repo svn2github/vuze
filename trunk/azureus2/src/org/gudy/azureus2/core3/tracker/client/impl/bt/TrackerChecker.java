@@ -20,13 +20,20 @@
  */
 package org.gudy.azureus2.core3.tracker.client.impl.bt;
 
-import java.util.*;
-import java.net.*;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperResponseImpl;
 import org.gudy.azureus2.core3.util.*;
 
@@ -34,7 +41,7 @@ import org.gudy.azureus2.core3.util.*;
  * @author Olivier
  * 
  */
-public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTime.ChangeListener {
+public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTime.ChangeListener, TimerEventPerformer {
 	private final static LogIDs LOGID = LogIDs.TRACKER;
 
   /** List of Trackers. 
@@ -64,15 +71,9 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
     
     if ( !COConfigurationManager.getBooleanParameter("Tracker Client Scrape Total Disable")){
     	
-	    Thread t = new AEThread("Tracker Scrape") {
-	       public void runSupport() {
-	        runScrapes();
-	      }
-	    };
+	     runScrapes();
 	    
-	    t.setDaemon(true);
-	    t.setPriority(Thread.MIN_PRIORITY);
-	    t.start();
+
     }
   
     AEDiagnostics.addEvidenceGenerator( this );
@@ -288,15 +289,36 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
   }
     
   
+	public void perform(TimerEvent event) {
+		runScrapes();
+	}
+  
   /** Loop indefinitely, waiting for the next scrape, and scraping.
    */
+	
+	TRTrackerBTScraperResponseImpl oldResponse;
+	
   private void 
   runScrapes() 
   {
-		TRTrackerBTScraperResponseImpl nextResponseScraping = null;
+		TRTrackerBTScraperResponseImpl nextResponseScraping = checkForNextScrape();
 
-		while (true) {
-
+		if (Logger.isEnabled() && nextResponseScraping != oldResponse && nextResponseScraping != null ) {
+			Logger.log(new LogEvent(
+					TorrentUtils.getDownloadManager(nextResponseScraping.getHash()),
+					LOGID,
+					LogEvent.LT_INFORMATION,
+					"Next scrape will be "
+							+ nextResponseScraping.getURL()
+							+ " in "
+							+ ((nextResponseScraping.getNextScrapeStartTime() - SystemTime.getCurrentTime())/1000)
+							+ " sec,type="
+							+ (nextResponseScraping.getTrackerStatus().getSupportsMultipeHashScrapes()
+									? "multi" : "single")
+									+ ",active="+nextResponseScraping.getTrackerStatus().getNumActiveScrapes()));
+		}
+		
+		
 			long delay;
 
 			if (nextResponseScraping == null) {
@@ -342,31 +364,11 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
 				}
 			}
 
-			try {
-				nextScrapeCheckOn = SystemTime.getCurrentTime() + delay;
-				Thread.sleep(delay);
+			nextScrapeCheckOn = SystemTime.getCurrentTime() + delay;
+			oldResponse = nextResponseScraping;
+			// use tracker timer/thread pool
+			TRTrackerBTAnnouncerImpl.tracker_timer.addEvent(nextScrapeCheckOn, this);
 
-			} catch (Exception e) {
-			}
-
-			TRTrackerBTScraperResponseImpl oldResponse = nextResponseScraping;
-			nextResponseScraping = checkForNextScrape();
-
-			if (Logger.isEnabled() && nextResponseScraping != oldResponse && nextResponseScraping != null ) {
-				Logger.log(new LogEvent(
-						TorrentUtils.getDownloadManager(nextResponseScraping.getHash()),
-						LOGID,
-						LogEvent.LT_INFORMATION,
-						"Next scrape will be "
-								+ nextResponseScraping.getURL()
-								+ " in "
-								+ ((nextResponseScraping.getNextScrapeStartTime() - SystemTime.getCurrentTime())/1000)
-								+ " sec,type="
-								+ (nextResponseScraping.getTrackerStatus().getSupportsMultipeHashScrapes()
-										? "multi" : "single")
-										+ ",active="+nextResponseScraping.getTrackerStatus().getNumActiveScrapes()));
-			}
-		}
 	}
   
   /** Finds the torrent that will be needing a scrape next.

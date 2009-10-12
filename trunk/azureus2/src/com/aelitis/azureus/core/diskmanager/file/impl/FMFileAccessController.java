@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+import org.gudy.azureus2.core3.util.StringInterner;
 
 import com.aelitis.azureus.core.diskmanager.file.FMFile;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
@@ -339,7 +340,7 @@ FMFileAccessController
 		}else{
 			
 			controlPath 	= owner.getOwner().getControlFileDir( );
-			controlFileName =  "fmfile" + file_index + ".dat";
+			controlFileName =  StringInterner.intern("fmfile" + file_index + ".dat");
 		}
 	}
 	

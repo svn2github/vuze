@@ -33,8 +33,8 @@ AEThread2
 {
 	public static final boolean TRACE_TIMES = false;
 	
-	private static final int MIN_RETAINED	= 2;
-	private static final int MAX_RETAINED	= 16;
+	private static final int MIN_RETAINED	= Math.max(Runtime.getRuntime().availableProcessors(),2);
+	private static final int MAX_RETAINED	= Math.max(MIN_RETAINED*4, 16);
 	
 	private static final int THREAD_TIMEOUT_CHECK_PERIOD	= 10*1000;
 	private static final int THREAD_TIMEOUT					= 60*1000;
