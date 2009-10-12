@@ -58,7 +58,9 @@ PlatformSubscriptionsMessenger
 	
 		throws PlatformMessengerException
 	{
-		checkEnabled();
+		String operation = create?OP_CREATE_SUBS:OP_UPDATE_SUBS;
+		
+		checkEnabled( operation );
 		
 		Map parameters = new HashMap();
 		
@@ -92,7 +94,7 @@ PlatformSubscriptionsMessenger
 			
 			parameters.put( "signature", Base32.encode( sig_bytes ));
 
-			dispatcher.syncInvoke(	create?OP_CREATE_SUBS:OP_UPDATE_SUBS, parameters ); 
+			dispatcher.syncInvoke( operation, parameters ); 
 			
 		}catch( Throwable e ){
 			
@@ -106,7 +108,7 @@ PlatformSubscriptionsMessenger
 	
 		throws PlatformMessengerException
 	{
-		checkEnabled();
+		checkEnabled( OP_GET_SUBS_BY_SID );
 		
 		Map parameters = new HashMap();
 		
@@ -139,7 +141,7 @@ PlatformSubscriptionsMessenger
 	
 		throws PlatformMessengerException
 	{
-		checkEnabled();
+		checkEnabled( OP_GET_POP_BY_SID );
 		
 		Map parameters = new HashMap();
 		
@@ -172,7 +174,7 @@ PlatformSubscriptionsMessenger
 	
 		throws PlatformMessengerException
 	{
-		checkEnabled();
+		checkEnabled( OP_SET_SELECTED );
 		
 		Map parameters = new HashMap();
 		
@@ -184,7 +186,7 @@ PlatformSubscriptionsMessenger
 		
 		parameters.put( "subscription_ids", sid_list);
 		
-		Map reply = dispatcher.syncInvoke(	OP_SET_SELECTED, parameters ); 
+		Map reply = dispatcher.syncInvoke( OP_SET_SELECTED, parameters ); 
 		
 		List	versions = (List)reply.get( "version_numbers" );
 		
@@ -218,7 +220,9 @@ PlatformSubscriptionsMessenger
 	}   
 	
 	protected static void
-	checkEnabled()
+	checkEnabled(
+		String		method )
+	
 		throws PlatformMessengerException
 	{
 		if ( !MESSAGING_ENABLED ){
