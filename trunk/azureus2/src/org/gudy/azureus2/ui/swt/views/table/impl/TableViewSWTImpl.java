@@ -1037,7 +1037,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		
 		table.addDisposeListener(new DisposeListener(){
 			public void widgetDisposed(DisposeEvent e) {
-				if (filter != null && !filter.widget.isDisposed()) {
+				if (filter != null && filter.widget != null && !filter.widget.isDisposed()) {
 					filter.widget.removeKeyListener(TableViewSWTImpl.this);
 					filter.widget.removeModifyListener(filter.widgetModifyListener);
 				}
@@ -4847,7 +4847,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 
 		if (ASYOUTYPE_MODE == ASYOUTYPE_MODE_FILTER) {
-			if (filter != null && !filter.widget.isDisposed()) {
+			if (filter != null && filter.widget != null && !filter.widget.isDisposed()) {
 				filter.widget.setFocus();
 			}
 			setFilterText(newText);
@@ -4898,7 +4898,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 		filter.nextText = s;
-		if (filter != null && !filter.widget.isDisposed()) {
+		if (filter != null && filter.widget != null && !filter.widget.isDisposed()) {
 			if (!filter.nextText.equals(filter.widget.getText())) {
 				filter.widget.setText(filter.nextText);
 				filter.widget.setSelection(filter.nextText.length());
@@ -4994,20 +4994,36 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	public void enableFilterCheck(Text txtFilter,
 			TableViewFilterCheck<DATASOURCETYPE> filterCheck) {
-		filter = new filter();
-		filter.widget = txtFilter;
-		txtFilter.addKeyListener(this);
-
-		filter.widgetModifyListener = new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				setFilterText(((Text) e.widget).getText());
+		if (filter != null) {
+			if (filter.widget != null && !filter.widget.isDisposed()) {
+				filter.widget.removeKeyListener(TableViewSWTImpl.this);
+				filter.widget.removeModifyListener(filter.widgetModifyListener);
 			}
-		};
-		txtFilter.addModifyListener(filter.widgetModifyListener);
+		} else{
+			filter = new filter();
+		}
+		filter.widget = txtFilter;
+		if (txtFilter != null) {
+  		txtFilter.addKeyListener(this);
+  
+  		filter.widgetModifyListener = new ModifyListener() {
+  			public void modifyText(ModifyEvent e) {
+  				setFilterText(((Text) e.widget).getText());
+  			}
+  		};
+  		txtFilter.addModifyListener(filter.widgetModifyListener);
+  		
+  		if (txtFilter.getText().length() == 0) {
+  			txtFilter.setText(filter.text);
+  		} else {
+  			filter.text = filter.nextText = txtFilter.getText();
+  		}
+		} else {
+			filter.text = filter.nextText = "";
+		}
 		
 		filter.checker = filterCheck;
 
-		filter.text = filter.nextText = txtFilter.getText();
 		filter.checker.filterSet(filter.text);
 		refilter();
 	}

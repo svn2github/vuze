@@ -211,7 +211,9 @@ public class MyTorrentsView
 
     createTabs();
 
-    tv.enableFilterCheck(txtFilter, this);
+    if (txtFilter == null) {
+    	tv.enableFilterCheck(null, this);
+    }
 
     createDragDrop();
 
@@ -523,6 +525,8 @@ public class MyTorrentsView
     
     cHeader.moveAbove(null);
     parent.layout(true);
+
+    tv.enableFilterCheck(txtFilter, this);
 	}
 
 
@@ -1168,7 +1172,11 @@ public class MyTorrentsView
 				}
 
 				if (filter.length() > 0) {
-					showFilterArea();
+					if (txtFilter == null) {
+				    createTabs();
+					} else {
+						showFilterArea();
+					}
 				}
 			}
 		});
