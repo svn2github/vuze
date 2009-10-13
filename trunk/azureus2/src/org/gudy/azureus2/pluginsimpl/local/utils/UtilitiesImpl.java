@@ -41,6 +41,7 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
+import org.gudy.azureus2.plugins.utils.Utilities.FeatureEnabler;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
 import org.gudy.azureus2.plugins.utils.search.Search;
@@ -91,6 +92,7 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 public class 
@@ -116,6 +118,8 @@ UtilitiesImpl
 		
 	private static List<searchManager>		search_managers 	= new ArrayList<searchManager>();
 	private static List<Object[]>			search_providers	= new ArrayList<Object[]>();
+	
+	private static CopyOnWriteList<FeatureEnabler>	feature_enablers = new CopyOnWriteList<FeatureEnabler>();
 	
 	public
 	UtilitiesImpl(
@@ -1040,6 +1044,48 @@ UtilitiesImpl
 			
 			manager.addProvider((PluginInterface)entry[0],(SearchProvider)entry[1]);
 		}
+	}
+	
+	public boolean 
+	isFeatureEnabled(
+		String 					feature_id,
+		Map<String, Object> 	feature_properties) 
+	{
+		String pid = pi.getPluginID();
+		
+		if ( !pid.endsWith( "_v" )){
+			
+			return( false );
+		}
+		
+		for ( FeatureEnabler fe: feature_enablers ){
+			
+			if ( fe.isFeatureEnabled( pid, feature_id, feature_properties)){
+				
+				return( true );
+			}
+		}
+		
+		return false;
+	}
+	
+	public void
+	registerFeatureEnabler(
+		FeatureEnabler	enabler )
+	{
+		if ( !pi.getPluginID().endsWith( "_v" )){
+						
+			return;
+		}
+		
+		feature_enablers.add( enabler );
+	}
+	
+	public void
+	unregisterFeatureEnabler(
+		FeatureEnabler	enabler )
+	{
+		feature_enablers.remove( enabler );
 	}
 	
 	public interface

@@ -349,6 +349,29 @@ Utilities
 	getSubscriptionManager()
 	
 		throws SubscriptionException;
+	
+	public boolean
+	isFeatureEnabled(
+		String					feature_id,
+		Map<String,Object>		feature_properties );
+	
+	public void
+	registerFeatureEnabler(
+		FeatureEnabler	enabler );
+	
+	public void
+	unregisterFeatureEnabler(
+		FeatureEnabler	enabler );
+	
+	public interface
+	FeatureEnabler
+	{
+		public boolean
+		isFeatureEnabled(
+			String					requester_id,
+			String					feature_id,
+			Map<String,Object>		feature_properties );
+	}
 }
 
 
