@@ -174,34 +174,37 @@ OverallStatsImpl
 				Map		values )
 			{	
 			  	try{
-				    GlobalManagerStats stats = core.getGlobalManager().getStats();
-
 			  		this_mon.enter();
 			  		
-					if ( types.contains( AzureusCoreStats.ST_XFER_UPLOADED_PROTOCOL_BYTES )){
-						
-						values.put( 
-							AzureusCoreStats.ST_XFER_UPLOADED_PROTOCOL_BYTES, 
-							new Long( totalProtocolUploaded + ( stats.getTotalProtocolBytesSent() - lastProtocolUploaded )));
-					}
-					if ( types.contains( AzureusCoreStats.ST_XFER_UPLOADED_DATA_BYTES )){
-						
-						values.put( 
-							AzureusCoreStats.ST_XFER_UPLOADED_DATA_BYTES, 
-							new Long( totalDataUploaded + ( stats.getTotalDataBytesSent() - lastDataUploaded )));
-					}
-					if ( types.contains( AzureusCoreStats.ST_XFER_DOWNLOADED_PROTOCOL_BYTES )){
-						
-						values.put( 
-							AzureusCoreStats.ST_XFER_DOWNLOADED_PROTOCOL_BYTES, 
-							new Long( totalProtocolDownloaded + ( stats.getTotalProtocolBytesReceived() - lastProtocolDownloaded )));
-					}
-					if ( types.contains( AzureusCoreStats.ST_XFER_DOWNLOADED_DATA_BYTES )){
-						
-						values.put( 
-							AzureusCoreStats.ST_XFER_DOWNLOADED_DATA_BYTES, 
-							new Long( totalDataDownloaded + ( stats.getTotalDataBytesReceived() - lastDataDownloaded )));
-					}
+			  		if ( core.isStarted()){
+			  			
+					    GlobalManagerStats stats = core.getGlobalManager().getStats();
+	
+						if ( types.contains( AzureusCoreStats.ST_XFER_UPLOADED_PROTOCOL_BYTES )){
+							
+							values.put( 
+								AzureusCoreStats.ST_XFER_UPLOADED_PROTOCOL_BYTES, 
+								new Long( totalProtocolUploaded + ( stats.getTotalProtocolBytesSent() - lastProtocolUploaded )));
+						}
+						if ( types.contains( AzureusCoreStats.ST_XFER_UPLOADED_DATA_BYTES )){
+							
+							values.put( 
+								AzureusCoreStats.ST_XFER_UPLOADED_DATA_BYTES, 
+								new Long( totalDataUploaded + ( stats.getTotalDataBytesSent() - lastDataUploaded )));
+						}
+						if ( types.contains( AzureusCoreStats.ST_XFER_DOWNLOADED_PROTOCOL_BYTES )){
+							
+							values.put( 
+								AzureusCoreStats.ST_XFER_DOWNLOADED_PROTOCOL_BYTES, 
+								new Long( totalProtocolDownloaded + ( stats.getTotalProtocolBytesReceived() - lastProtocolDownloaded )));
+						}
+						if ( types.contains( AzureusCoreStats.ST_XFER_DOWNLOADED_DATA_BYTES )){
+							
+							values.put( 
+								AzureusCoreStats.ST_XFER_DOWNLOADED_DATA_BYTES, 
+								new Long( totalDataDownloaded + ( stats.getTotalDataBytesReceived() - lastDataDownloaded )));
+						}
+			  		}
 			  	}finally{
 			  	  	
 			  		this_mon.exit();
