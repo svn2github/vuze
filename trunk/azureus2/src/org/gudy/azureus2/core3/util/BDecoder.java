@@ -438,7 +438,8 @@ public class BDecoder
 	}
 
 	// This is similar to Long.parseLong(String) source
-	private static long
+	// It is also used in projects external to azureus2/azureus3 hence it is public
+	public static long
 	parseLong(
 		char[]	chars,
 		int		start,
