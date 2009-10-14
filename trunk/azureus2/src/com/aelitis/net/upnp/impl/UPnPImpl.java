@@ -849,7 +849,7 @@ UPnPImpl
 				final int CONNECT_TIMEOUT 	= 15*1000;
 				final int READ_TIMEOUT		= 30*1000;
 				
-				Socket	socket = new Socket();
+				Socket	socket = new Socket( Proxy.NO_PROXY );
 				
 				socket.connect( new InetSocketAddress( control.getHost(), control.getPort()), CONNECT_TIMEOUT );
 				
