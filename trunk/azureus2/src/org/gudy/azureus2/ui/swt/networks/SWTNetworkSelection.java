@@ -77,7 +77,7 @@ SWTNetworkSelection
 		final classifierDialog[]	dialog = new classifierDialog[1];
 		
 		try{
-			display.asyncExec(
+			Utils.execSWTThread(
 				new AERunnable()
 				{
 					public void
@@ -120,7 +120,7 @@ SWTNetworkSelection
 			
 			if ( display.isDisposed()){
 				
-				sem.release();
+				sem.releaseForever();
 				
 				return;
 			}
@@ -249,6 +249,12 @@ SWTNetworkSelection
 			Utils.centreWindow( shell );
 
 			shell.open ();   
+			
+			while (!shell.isDisposed()) {
+				if (display != null && !display.isDisposed() && !display.readAndDispatch()) {
+					display.sleep();
+				}
+			}
 		}
    
 		protected void
@@ -277,7 +283,7 @@ SWTNetworkSelection
 	 		}
 	 		
 	 		shell.dispose();
-	 		sem.release();
+	 		sem.releaseForever();
 	 	}
 	 	
 	 	protected String[]
