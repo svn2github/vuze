@@ -74,6 +74,11 @@ DHTTransportContact
 	isAlive(
 		long		timeout );
 
+	public void
+	isAlive(
+		DHTTransportReplyHandler	handler,
+		long						timeout );
+	
 	public boolean
 	isValid();
 	

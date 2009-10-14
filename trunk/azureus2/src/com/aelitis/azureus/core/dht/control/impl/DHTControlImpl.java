@@ -4342,6 +4342,14 @@ DHTControlImpl
 			return( delegate.isAlive( timeout ));
 		}
 
+		public void
+		isAlive(
+			DHTTransportReplyHandler	handler,
+			long						timeout )
+		{
+			delegate.isAlive( handler, timeout );
+		}
+		
 		public boolean
 		isValid()
 		{

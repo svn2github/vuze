@@ -47,6 +47,11 @@ DHTPluginContact
 	isAlive(
 		long		timeout );
 	
+	public void
+	isAlive(
+		long						timeout,
+		DHTPluginOperationListener	listener );
+	
 	public boolean
 	isOrHasBeenLocal();
 	

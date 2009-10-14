@@ -271,6 +271,14 @@ DHTTransportUDPContactImpl
 		}
 	}
 
+	public void 
+	isAlive(
+		DHTTransportReplyHandler 	handler, 
+		long 						timeout )
+	{
+		transport.sendPing( this, handler, timeout, PRUDPPacketHandler.PRIORITY_IMMEDIATE );		
+	}
+	
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler )

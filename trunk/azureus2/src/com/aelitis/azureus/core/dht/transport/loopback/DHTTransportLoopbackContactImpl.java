@@ -133,6 +133,14 @@ DHTTransportLoopbackContactImpl
 		return( true );
 	}
 
+	public void 
+	isAlive(
+		DHTTransportReplyHandler 	handler, 
+		long 						timeout )
+	{
+		transport.sendPing( this, handler );
+	}
+	
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler )

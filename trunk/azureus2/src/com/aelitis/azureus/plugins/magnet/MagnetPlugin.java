@@ -549,14 +549,16 @@ MagnetPlugin
 							potential_contacts_mon.exit();
 						}
 						
-						AEThread2 t = 
-							new AEThread2( "MagnetPlugin:HitHandler", true )
+						contact.isAlive(
+							20*1000,
+							new DistributedDatabaseListener()
 							{
-								public void
-								run()
+								public void 
+								event(
+									DistributedDatabaseEvent event) 
 								{
 									try{
-										boolean	alive = contact.isAlive(20*1000);
+										boolean	alive = event.getType() == DistributedDatabaseEvent.ET_OPERATION_COMPLETE;
 																						
 										listener.reportActivity( 
 												getMessageText( alive?"report.alive":"report.dead",	contact.getName()));
@@ -609,9 +611,7 @@ MagnetPlugin
 										potential_contacts_sem.release();
 									}
 								}
-							};
-													
-						t.start();
+							});
 					}
 				};
 				

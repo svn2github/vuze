@@ -42,6 +42,13 @@ DistributedDatabaseContact
 	isAlive(
 		long		timeout );
 	
+		// async version - event types: complete -> alive, timeout -> dead
+	
+	public void
+	isAlive(
+		long							timeout,
+		DistributedDatabaseListener		listener );
+	
 	public boolean
 	isOrHasBeenLocal();
 	
