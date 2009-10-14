@@ -419,7 +419,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         			while( true ){
         				
         				try{
-        					Thread.sleep(250);
+        					Thread.sleep(100);
         					
         					try{
         						this_mon.enter();
@@ -434,11 +434,45 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         					}
         					
         					String	s = con.getResponseMessage();
-        					        					
+        					  
         					if ( !s.equals( getStatus())){
         						
         						if ( !s.toLowerCase().startsWith("error:")){
         							
+        							if ( s.toLowerCase().indexOf( "alive" ) != -1 ){
+        								
+        								if ( percentDone < 10 ){
+        									
+        									percentDone++;
+        								}
+        							}
+        							
+        	     					int	pos = s.indexOf( '%' );
+                					
+                					if ( pos != -1 ){
+                						
+                						int	 i;
+                						
+                						for ( i=pos-1;i>=0;i--){
+                							
+                							char	c = s.charAt(i);
+                							
+                							if ( !Character.isDigit( c ) && c != ' ' ){
+                								
+                								i++;
+                								
+                								break;
+                							}
+                						}
+                						
+                						try{
+                							percentDone = Integer.parseInt( s.substring( i, pos ).trim());
+                							
+                						}catch( Throwable e ){
+                							
+                						}
+                					}
+                					
         							setStatus(s);
         							
         						}else{
@@ -448,6 +482,9 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         						
         						changed_status	= true;
         					}
+   
+        					
+ 
         				}catch( Throwable e ){
         					
         					break;
