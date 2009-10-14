@@ -298,9 +298,7 @@ public class ModePanel extends AbstractWizardPanel {
 	    }
     });
     btnWebSeed.setSelection(((NewTorrentWizard) wizard).useWebSeed);
-    
-    btnWebSeed.setEnabled( tracker_type != NewTorrentWizard.TT_DECENTRAL);
-    
+        
     //Line:
     // include hashes for other networks (
 
