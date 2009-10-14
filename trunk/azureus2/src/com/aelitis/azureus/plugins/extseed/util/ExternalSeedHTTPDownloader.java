@@ -47,8 +47,11 @@ ExternalSeedHTTPDownloader
 	public static final String	NL = "\r\n";
 	
 
-	private URL			url;
+	private URL			original_url;
 	private String		user_agent;
+	
+	private URL			redirected_url;
+	private int			consec_redirect_fails;
 	
 	private int			last_response;
 	private int			last_response_retry_after_secs;
@@ -58,14 +61,14 @@ ExternalSeedHTTPDownloader
 		URL		_url,
 		String	_user_agent )
 	{
-		url			= _url;
-		user_agent	= _user_agent;
+		original_url	= _url;
+		user_agent		= _user_agent;
 	}
 	
 	public URL
 	getURL()
 	{
-		return( url );
+		return( original_url );
 	}
 	
 	public void
@@ -115,38 +118,76 @@ ExternalSeedHTTPDownloader
 			
 			// System.out.println( "Connecting to " + url + ": " + Thread.currentThread().getId());
 
-			HttpURLConnection	connection = (HttpURLConnection)url.openConnection();
+			HttpURLConnection	connection;
+			int					response;
 			
-			connection.setRequestProperty( "Connection", "Keep-Alive" );
-			connection.setRequestProperty( "User-Agent", user_agent );
-			
-			for (int i=0;i<prop_names.length;i++){
+			while( true ){
 				
-				connection.setRequestProperty( prop_names[i], prop_values[i] );
-			}
-			
-			int	time_remaining	= listener.getPermittedTime();
-			
-			if ( time_remaining > 0 ){
+				URL	target = redirected_url==null?original_url:redirected_url;
 				
-				Java15Utils.setConnectTimeout( connection, time_remaining );
-			}
-						
-			connection.connect();
-			
-			time_remaining	= listener.getPermittedTime();
-								
-			if ( time_remaining < 0 ){
+				connection = (HttpURLConnection)target.openConnection();
 				
-				throw( new IOException( "Timeout during connect" ));
-			}
-			
-			Java15Utils.setReadTimeout( connection, time_remaining );
+				connection.setRequestProperty( "Connection", "Keep-Alive" );
+				connection.setRequestProperty( "User-Agent", user_agent );
+				
+				for (int i=0;i<prop_names.length;i++){
 					
-			connected	= true;
+					connection.setRequestProperty( prop_names[i], prop_values[i] );
+				}
+				
+				int	time_remaining	= listener.getPermittedTime();
+				
+				if ( time_remaining > 0 ){
+					
+					Java15Utils.setConnectTimeout( connection, time_remaining );
+				}
+							
+				connection.connect();
 			
-			int	response = connection.getResponseCode();
+				time_remaining	= listener.getPermittedTime();
+									
+				if ( time_remaining < 0 ){
+					
+					throw( new IOException( "Timeout during connect" ));
+				}
+				
+				Java15Utils.setReadTimeout( connection, time_remaining );
+						
+				connected	= true;
+				
+				response = connection.getResponseCode();
 
+				if (	response == HttpURLConnection.HTTP_ACCEPTED || 
+						response == HttpURLConnection.HTTP_OK ||
+						response == HttpURLConnection.HTTP_PARTIAL ){
+					
+					if ( redirected_url != null ){
+						
+						consec_redirect_fails = 0;
+					}
+					
+					break;
+				}
+				
+				if ( redirected_url == null ){
+					
+					break;
+				}
+				
+					// try again with original URL
+				
+				consec_redirect_fails++;
+				
+				redirected_url = null;
+			}
+			
+			URL final_url = connection.getURL();
+			
+			if ( consec_redirect_fails < 10 && !original_url.toExternalForm().equals( final_url.toExternalForm())){
+				
+				redirected_url = final_url;
+			}
+			
 			last_response	= response;
 			
 			last_response_retry_after_secs	= -1;
@@ -349,8 +390,8 @@ ExternalSeedHTTPDownloader
 		
 		try{				
 			String	output_header = 
-				"GET " + url.getPath() + "?" + url.getQuery() + " HTTP/1.1" + NL +
-				"Host: " + url.getHost() + (url.getPort()==-1?"":( ":" + url.getPort())) + NL +
+				"GET " + original_url.getPath() + "?" + original_url.getQuery() + " HTTP/1.1" + NL +
+				"Host: " + original_url.getHost() + (original_url.getPort()==-1?"":( ":" + original_url.getPort())) + NL +
 				"Accept: */*" + NL +
 				"Connection: Close" + NL +	// if we want to support keep-alive we'll need to implement a socket cache etc.
 				"User-Agent: " + user_agent + NL;
@@ -368,11 +409,11 @@ ExternalSeedHTTPDownloader
 				
 				socket = new Socket();
 				
-				socket.connect( new InetSocketAddress( url.getHost(), url.getPort()==-1?url.getDefaultPort():url.getPort()), time_remaining );
+				socket.connect( new InetSocketAddress( original_url.getHost(), original_url.getPort()==-1?original_url.getDefaultPort():original_url.getPort()), time_remaining );
 				
 			}else{
 		
-				socket = new Socket(  url.getHost(), url.getPort()==-1?url.getDefaultPort():url.getPort());
+				socket = new Socket(  original_url.getHost(), original_url.getPort()==-1?original_url.getDefaultPort():original_url.getPort());
 			}
 			
 			connected	= true;
@@ -622,5 +663,84 @@ ExternalSeedHTTPDownloader
 	getLast503RetrySecs()
 	{
 		return( last_response_retry_after_secs );
+	}
+	
+	public static void
+	main(
+		String[]		args )
+	{
+		try{
+			ExternalSeedHTTPDownloader downloader = 
+		
+				new ExternalSeedHTTPDownloader(
+						new URL( "http://www.podtrac.com/pts/redirect.avi/bitcast-a.bitgravity.com/revision3/web/xlr8rtv/0129/xlr8rtv--0129--themselves--large.xvid.avi" ),
+						"Azureus" );
+				
+			downloader.downloadRange( 
+				0, 1,
+				new ExternalSeedHTTPDownloaderListener()
+				{
+					private int	position;
+					
+					public byte[]
+		        	getBuffer()
+		        	
+		        		throws ExternalSeedException
+		        	{
+						return( new byte[1024] );
+		        	}
+		        	
+		        	public void
+		        	setBufferPosition(
+		        		int	_position )
+		        	{
+		        		position = _position;
+		        	}
+		        	
+		        	public int
+		        	getBufferPosition()
+		        	{
+		        		return( position );
+		        	}
+		        	
+		        	public int
+		        	getBufferLength()
+		        	{
+		        		return( 1024 );
+		        	}
+		        	
+		        	public int
+		        	getPermittedBytes()
+		        	
+		        		throws ExternalSeedException
+		        	{
+		        		return( 1024 );
+		        	}
+		        	
+		        	public int
+		           	getPermittedTime()
+		        	{
+		        		return( Integer.MAX_VALUE );
+		        	}
+		        	
+		        	public void
+		        	reportBytesRead(
+		        		int		num )
+		        	{
+		        		System.out.println( "read " + num );
+		        	}
+		        	
+		        	public void
+		        	done()
+		        	{
+		        		System.out.println( "done" );
+		        	}
+				},
+				true );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 }
