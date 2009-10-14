@@ -2181,6 +2181,14 @@ public class OpenTorrentWindow
 	 * @param sDataDir 
 	 */
 	private void openTorrents() {
+		Utils.getOffOfSWTThread(new AERunnable() {
+			public void runSupport() {
+				_openTorrents();
+			}
+		});
+	}
+
+	private void _openTorrents() {
 		ArrayList addedTorrentsTop = new ArrayList();
 
 		for (int i = 0; i < torrentList.size(); i++) {
