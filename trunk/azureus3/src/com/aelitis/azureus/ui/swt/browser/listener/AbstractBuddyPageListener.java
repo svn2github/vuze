@@ -59,7 +59,7 @@ public abstract class AbstractBuddyPageListener
 
 	public void handleMessage(final BrowserMessage message) {
 		if (true == Constants.isCVSVersion()) {
-			System.out.println(message.getFullMessage());//KN: sysout
+			System.out.println(message.toString());//KN: sysout
 		}
 
 		Utils.execSWTThread(new AERunnable() {

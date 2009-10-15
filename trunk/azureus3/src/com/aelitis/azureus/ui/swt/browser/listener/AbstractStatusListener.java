@@ -31,7 +31,7 @@ public abstract class AbstractStatusListener
 
 		String opID = message.getOperationId();
 		if (true == Constants.isCVSVersion()) {
-			System.out.println("\tLogin status message: " + message.getFullMessage());//KN: sysout
+			System.out.println("\tLogin status message: " + message.toString());//KN: sysout
 		}
 		/*
 		 * When no parameter is supplied the BrowserMessage throws an exception;
