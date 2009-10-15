@@ -507,13 +507,17 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			if (dlData != null) {
 				// force a SR recalc, so that it gets position properly next process()
 				requestProcessCycle(dlData);
-				if ((new_state == Download.ST_READY || new_state == Download.ST_WAITING) && !immediateProcessingScheduled) {
-					immediateProcessingScheduled = true;
-					new AEThread2("processReady", true) {
-						public void run() {
-							process();
-						}
-					}.start();
+				if ((new_state == Download.ST_READY || new_state == Download.ST_WAITING)) {
+					if (immediateProcessingScheduled) { 
+						requestProcessCycle(dlData);
+					} else {
+						immediateProcessingScheduled = true;
+						new AEThread2("processReady", true) {
+							public void run() {
+								process();
+							}
+						}.start();
+					}
 				}
 				
 				if (bDebugLog)
