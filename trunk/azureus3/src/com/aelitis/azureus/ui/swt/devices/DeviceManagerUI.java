@@ -2460,7 +2460,7 @@ DeviceManagerUI
 												}
 											});
 										
-										MenuItem enabled_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.contextmenu.od.enabled");
+										MenuItem enabled_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.contextmenu.od.enable" );
 										
 										enabled_menu_item.setStyle(MenuItem.STYLE_CHECK);
 
