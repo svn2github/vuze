@@ -383,8 +383,8 @@ public class ConfigurationDefaults {
     def.put( "Tracker Server Not Found Redirect", "" );
     def.put( "Tracker Server Support Experimental Extensions", FALSE );
     
-    def.put( "Network Selection Prompt", TRUE);
-    def.put( "Network Selection Default.Public", TRUE);
+    def.put( "Network Selection Prompt", FALSE );
+    def.put( "Network Selection Default.Public", TRUE );
     def.put( "Network Selection Default.I2P", FALSE );
     def.put( "Network Selection Default.Tor", FALSE );
     def.put( "Tracker Network Selection Default.Public", TRUE);
