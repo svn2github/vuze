@@ -425,15 +425,18 @@ ExternalSeedReaderImpl
 				return( false );
 			}
 			
+			boolean	deactivate = false;
+			String	reason		= "";
+			
 			if ( min_availability > 0 ){
 
 				float availability = peer_manager.getDownload().getStats().getAvailability();
 			
 				if ( availability >= min_availability + 1 ){
 				
-					log( getName() + ": deactivating as availability is good" );
+					reason =  "availability is good";
 				
-					return( true );
+					deactivate = true;
 				}
 			}
 			
@@ -445,11 +448,21 @@ ExternalSeedReaderImpl
 				
 				if ( overall_speed - my_speed > 2 * min_speed ){
 					
-					log( getName() + ": deactivating as speed is good" );
+					reason += (reason.length()==0?"":", ") + "speed is good";
 
-					return( true );
+					deactivate = true;
+					
+				}else{
+					
+					deactivate = false;
 				}
+			}
+			
+			if ( deactivate ){
 				
+				log( getName() + ": deactivating as " + reason );
+
+				return( true );
 			}
 		}catch( Throwable e ){
 			

@@ -62,6 +62,13 @@ ExternalSeedReaderFactoryGetRight
   				config.put( "url-list", obj );
   			}
   			
+ 			obj = torrent.getAdditionalProperty( "url-list-params" );
+  			
+  			if ( obj != null ){
+  				
+  				config.put( "url-list-params", obj );
+  			}
+  			
   			return( getSeedReaders( plugin, download, config ));
   			
   		}catch( Throwable e ){

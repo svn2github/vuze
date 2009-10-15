@@ -670,10 +670,12 @@ ExternalSeedHTTPDownloader
 		String[]		args )
 	{
 		try{
+			String	url_str = "";
+			
 			ExternalSeedHTTPDownloader downloader = 
 		
 				new ExternalSeedHTTPDownloader(
-						new URL( "http://www.podtrac.com/pts/redirect.avi/bitcast-a.bitgravity.com/revision3/web/xlr8rtv/0129/xlr8rtv--0129--themselves--large.xvid.avi" ),
+						new URL( url_str ),
 						"Azureus" );
 				
 			downloader.downloadRange( 
