@@ -37,6 +37,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.ui.components.UITextField;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.*;
 
@@ -54,6 +55,8 @@ ExternalSeedPlugin
 	
 	private PluginInterface			plugin_interface;
 	private DownloadManagerStats	dm_stats;
+	
+	private UITextField				status_field;
 	private LoggerChannel			log;
 	
 	private 		Random	random = new Random();
@@ -118,6 +121,10 @@ ExternalSeedPlugin
 					}
 				});		
 		
+		status_field = view_model.getStatus();
+		
+		setStatus( "Initialising" );
+		
 		download_mon	= plugin_interface.getUtilities().getMonitor();
 		
 		Utilities utilities = plugin_interface.getUtilities();
@@ -133,8 +140,9 @@ ExternalSeedPlugin
 							public void 
 							run() 
 							{
-								plugin_interface.getDownloadManager().addListener(
-										ExternalSeedPlugin.this);
+								setStatus( "Running" );
+								
+								plugin_interface.getDownloadManager().addListener( ExternalSeedPlugin.this);
 							}
 						};
 					
@@ -311,6 +319,8 @@ ExternalSeedPlugin
 				}
 				
 				
+				setStatus( "Running: Downloads with external seeds = " + download_map.size());
+				
 			}finally{
 				
 				download_mon.exit();
@@ -440,6 +450,8 @@ ExternalSeedPlugin
 			
 			download_map.remove( download );
 			
+			setStatus( "Running: Downloads with external seeds = " + download_map.size());
+			
 		}finally{
 			
 			download_mon.exit();
@@ -474,6 +486,13 @@ ExternalSeedPlugin
 	getGlobalDownloadRateBytesPerSec()
 	{
 		return( dm_stats.getDataAndProtocolReceiveRate());
+	}
+	
+	protected void
+	setStatus(
+		String		str )
+	{
+		status_field.setText( str );
 	}
 	
 	public void

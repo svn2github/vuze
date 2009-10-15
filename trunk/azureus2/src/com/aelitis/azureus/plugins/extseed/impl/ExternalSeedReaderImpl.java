@@ -87,6 +87,7 @@ ExternalSeedReaderImpl
 	
 	private int[]		priority_offsets;
 	
+	private boolean		fast_activate;
 	private int			min_availability;
 	private int			min_speed;
 	private long		valid_until;
@@ -112,7 +113,8 @@ ExternalSeedReaderImpl
 	{
 		plugin	= _plugin;
 		torrent	= _torrent;
-		
+				
+		fast_activate 		= getBooleanParam( _params, "fast_start", false );
 		min_availability 	= getIntParam( _params, "min_avail", 1 );	// default is avail based
 		min_speed			= getIntParam( _params, "min_speed", 0 );
 		valid_until			= getIntParam( _params, "valid_ms", 0 );
@@ -366,7 +368,7 @@ ExternalSeedReaderImpl
 			
 				// availability and speed based stuff needs a little time before being applied
 			
-			if ( !early_days ){
+			if ( fast_activate || !early_days ){
 				
 				if ( min_availability > 0 ){
 										
