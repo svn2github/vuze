@@ -173,7 +173,11 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     genLayout.numColumns = 1;
     genComposite.setLayout(genLayout);
 
-    refreshInfo();
+    Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				refreshInfo();
+			}
+		});
     COConfigurationManager.addParameterListener("Graphics Update", this);
   }
   
@@ -724,7 +728,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
-    if(getComposite() == null || getComposite().isDisposed() || manager == null)
+    if(gFile == null || gFile.isDisposed() || manager == null)
       return;
 
     loopFactor++;

@@ -140,8 +140,8 @@ public class MyTorrentsView
 	protected boolean resizeHeaderEventQueued;
 	private Button btnFilter;
 
-	public
-	MyTorrentsView() {
+	public MyTorrentsView() {
+		super("MyTorrentsView");
 	}
 	
   /**
@@ -158,7 +158,13 @@ public class MyTorrentsView
   		boolean 					isSeedingView,
       TableColumnCore[]	basicItems) 
   {
+		super("MyTorrentsView");
   	init(_azureus_core, tableID, isSeedingView, basicItems);
+  }
+  
+  // @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
+  public TableViewSWT initYourTableView() {
+  	return tv;
   }
   
   public void init(AzureusCore _azureus_core, String tableID,
@@ -174,7 +180,6 @@ public class MyTorrentsView
       tv = createTableView(isSeedingView ? DownloadTypeComplete.class
   				: DownloadTypeIncomplete.class, tableID, basicItems);
   	}
-    setTableView(tv);
     tv.setRowDefaultIconSize(new Point(16, 16));
     
     /*
@@ -2070,7 +2075,7 @@ public class MyTorrentsView
 	protected TableViewSWT createTableView(Class forDataSourceType, String tableID,
 			TableColumnCore[] basicItems) {
 		int tableExtraStyle = COConfigurationManager.getIntParameter("MyTorrentsView.table.style");
-		return new TableViewSWTImpl(forDataSourceType, tableID, "MyTorrentsView",
+		return new TableViewSWTImpl(forDataSourceType, tableID, getPropertiesPrefix(),
 				basicItems, "#", tableExtraStyle | SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL) {
 			protected void setSelectedRowIndexes(int[] newSelectedRowIndices) {

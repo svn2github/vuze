@@ -94,6 +94,7 @@ public class MyTrackerView
 	private TableViewSWT<TRHostTorrent> tv;
 
 	public MyTrackerView() {
+		super("MyTrackerView");
 		if (basicItems == null) {
 			basicItems = new TableColumnCore[] {
 				new NameItem(),
@@ -119,15 +120,18 @@ public class MyTrackerView
 		}
 
 		tv = new TableViewSWTImpl<TRHostTorrent>(TrackerTorrent.class,
-				TableManager.TABLE_MYTRACKER, "MyTrackerView", basicItems, "name",
+				TableManager.TABLE_MYTRACKER, getPropertiesPrefix(), basicItems, "name",
 				SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
-		setTableView(tv);
 		tv.addLifeCycleListener(this);
 		tv.addSelectionListener(this, false);
 		tv.addMenuFillListener(this);
 		tv.addRefreshListener(this, false);
 	}
-	
+
+  public TableViewSWT initYourTableView() {
+  	return tv;
+  }
+
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
 	public void tableViewInitialized() {
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {

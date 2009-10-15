@@ -240,6 +240,7 @@ public class ManagerView
   	for (int i = 0; i < views.length; i++)
 		addSection(views[i], manager);
 
+
     // Call plugin listeners
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
@@ -263,10 +264,11 @@ public class ManagerView
 			}
 		}
 		
-    
+
     // Initialize view when user selects it
     folder.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent e) {
+      	folder.getShell().setCursor(e.display.getSystemCursor(SWT.CURSOR_WAIT));
       	// Send one last refresh to previous tab, just in case it
       	// wants to do something when view goes invisible
         refresh();
@@ -285,6 +287,7 @@ public class ManagerView
         }
         refresh();
     		ViewTitleInfoManager.refreshTitleInfo(ManagerView.this);
+      	folder.getShell().setCursor(e.display.getSystemCursor(SWT.CURSOR_ARROW));
       }
     });
     

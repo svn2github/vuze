@@ -117,11 +117,14 @@ public class FilesView
    * Initialize 
    */
 	public FilesView() {
+		super("FilesView");
+	}
+
+	public TableViewSWT initYourTableView() {
 		tv = new TableViewSWTImpl<DiskManagerFileInfo>(
 				org.gudy.azureus2.plugins.disk.DiskManagerFileInfo.class,
-				TableManager.TABLE_TORRENT_FILES, "FilesView", basicItems,
+				TableManager.TABLE_TORRENT_FILES, getPropertiesPrefix(), basicItems,
 				"firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
-		setTableView(tv);
 		tv.setRowDefaultIconSize(new Point(16, 16));
 		tv.setEnableTabViews(true);
 		tv.setCoreTabViews(new IView[] { new FileInfoView()
@@ -132,6 +135,8 @@ public class FilesView
 		tv.addSelectionListener(this, false);
 		tv.addMenuFillListener(this);
 		tv.addLifeCycleListener(this);
+
+		return tv;
 	}
 
   

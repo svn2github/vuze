@@ -121,10 +121,14 @@ public class PeersView
    *
    */
   public PeersView() {
+  	super("PeersView");
+  }
+  
+  // @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
+  public TableViewSWT initYourTableView() {
 		tv = new TableViewSWTImpl(Peer.class, TableManager.TABLE_TORRENT_PEERS,
-				"PeersView", basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION
+				getPropertiesPrefix(), basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
-		setTableView(tv);
 		tv.setRowDefaultHeight(16);
 		tv.setEnableTabViews(true);
 		tv.setCoreTabViews(new IView[] {
@@ -135,6 +139,7 @@ public class PeersView
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
+		return tv;
 	}
   
 	public void tableDataSourceChanged(Object newDataSource) {

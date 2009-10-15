@@ -76,14 +76,16 @@ public class PeerSuperView
    *
    */
   public PeerSuperView() {
+  	super("AllPeersView");
+
   	TableColumnCore[] items = PeersView.getBasicColumnItems(TableManager.TABLE_ALL_PEERS);
   	TableColumnCore[] basicItems = new TableColumnCore[items.length + 1];
   	System.arraycopy(items, 0, basicItems, 0, items.length);
   	basicItems[items.length] = new DownloadNameItem(TableManager.TABLE_ALL_PEERS);
 
-  	tv = new TableViewSWTImpl<PEPeer>(Peer.class, TableManager.TABLE_ALL_PEERS, "AllPeersView",
-				basicItems, "connected_time", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
-		setTableView(tv);
+  	tv = new TableViewSWTImpl<PEPeer>(Peer.class, TableManager.TABLE_ALL_PEERS,
+				getPropertiesPrefix(), basicItems, "connected_time", SWT.MULTI
+						| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		tv.setRowDefaultHeight(16);
 		tv.setEnableTabViews(true);
 		tv.setCoreTabViews(new IView[] {
@@ -95,7 +97,11 @@ public class PeerSuperView
 		tv.addMenuFillListener(this);
 		
 	}	
-  
+
+  public TableViewSWT initYourTableView() {
+  	return tv;
+  }
+
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
 	public void tableViewInitialized() {
 		shell = tv.getComposite().getShell();

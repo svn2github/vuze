@@ -89,10 +89,14 @@ public class PiecesView
 	 *
 	 */
 	public PiecesView() {
+		super("PiecesView");
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
+	public TableViewSWT initYourTableView() {
 		tv = new TableViewSWTImpl<PEPiece>(PEPiece.class,
-				TableManager.TABLE_TORRENT_PIECES, "PiecesView", basicItems,
+				TableManager.TABLE_TORRENT_PIECES, getPropertiesPrefix(), basicItems,
 				basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
-		setTableView(tv);
 		tv.setEnableTabViews(true);
 		pieceInfoView = new PieceInfoView();
 		pieceDistView = new MyPieceDistributionView();
@@ -101,6 +105,8 @@ public class PiecesView
 		});
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addLifeCycleListener(this);
+
+		return tv;
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener#tableDataSourceChanged(java.lang.Object)

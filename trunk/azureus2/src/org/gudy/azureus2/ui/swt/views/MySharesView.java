@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -89,10 +90,10 @@ implements ShareManagerListener,
 	public 
 	MySharesView()
 	{	
+		super("MySharesView");
 		tv = new TableViewSWTImpl<ShareResource>(ShareResource.class, TableManager.TABLE_MYSHARES,
-				"MySharesView", basicItems, "name", SWT.MULTI | SWT.FULL_SELECTION
+				getPropertiesPrefix(), basicItems, "name", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.BORDER | SWT.VIRTUAL);
-		setTableView(tv);
 
 		tv.addSelectionListener(new TableSelectionAdapter() {
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
@@ -106,6 +107,10 @@ implements ShareManagerListener,
 		tv.addRefreshListener(this, false);
 		tv.addSelectionListener(this, false);
 	}
+
+	public TableViewSWT initYourTableView() {
+  	return tv;
+  }
 	
 	private void defaultSelected(TableRowCore[] rows) {
 		ShareResource share = tv.getFirstSelectedDataSource();
