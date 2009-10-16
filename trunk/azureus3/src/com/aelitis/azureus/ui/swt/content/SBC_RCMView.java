@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 
@@ -820,8 +821,12 @@ SBC_RCMView
 			
 			return( true );
 		}
-		
-		return( ds.getTitle().toUpperCase().contains( filter.toUpperCase() ));
+
+		String name = ds.getTitle();
+		String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+		Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
+
+		return pattern.matcher(name).find();
 	}
 	
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewFilterCheck#filterSet(java.lang.String)
