@@ -322,7 +322,7 @@ TrackerWebPageResponseImpl
 
 			// make sure some fool isn't trying to use ../../ to escape from web dir
 
-		if ( !canonical_file.toString().startsWith( root_dir )){
+		if ( !canonical_file.toString().toLowerCase().startsWith( root_dir.toLowerCase())){
 
 			return( false );
 		}
