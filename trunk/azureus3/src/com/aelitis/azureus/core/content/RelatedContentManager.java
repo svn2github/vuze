@@ -28,6 +28,7 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -1968,20 +1969,123 @@ RelatedContentManager
 	matchContent(
 		String		term )
 	{
+			// term is made up of space separated bits - all bits must match
+			// each bit can be prefixed by + or -, a leading - means 'bit doesn't match'. + doesn't mean anything
+			// each bit (with prefix removed) can be "(" regexp ")"
+			// if bit isn't regexp but has "|" in it it is turned into a regexp so a|b means 'a or b'
+		
 		List<RelatedContent>	result = new ArrayList<RelatedContent>();
 		
 		RelatedContent[] content = getRelatedContent();
 		
+		String[]	 bits = term.toLowerCase().split( " " );
+
+		int[]		bit_types 		= new int[bits.length];
+		Pattern[]	bit_patterns 	= new Pattern[bits.length];
+		
+		for (int i=0;i<bits.length;i++){
+			
+			String bit = bits[i] = bits[i].trim();
+			
+			if ( bit.length() > 0 ){
+				
+				char	c = bit.charAt(0);
+				
+				if ( c == '+' ){
+					
+					bit_types[i] = 1;
+					
+					bit = bits[i] = bit.substring(1);
+					
+				}else if ( c == '-' ){
+					
+					bit_types[i] = 2;
+					
+					bit = bits[i] = bit.substring(1);
+				}
+				
+				if ( bit.startsWith( "(" ) && bit.endsWith((")"))){
+					
+					bit = bit.substring( 1, bit.length()-1 );
+					
+					try{
+						bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+						
+					}catch( Throwable e ){
+					}
+				}else if ( bit.contains( "|" )){
+					
+					try{
+						bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+						
+					}catch( Throwable e ){
+					}
+				}
+			}
+		}
+			
+		
 		for ( final RelatedContent c: content ){
 			
-			String title = c.getTitle();
+			String title = c.getTitle().toLowerCase();
 			
-			if ( title.toLowerCase().contains( term.toLowerCase())){
+			boolean	match 			= true;
+			boolean	at_least_one 	= false;
+			
+			for (int i=0;i<bits.length;i++){
+				
+				String bit = bits[i];
+				
+				if ( bit.length() > 0 ){
+					
+					boolean	hit;
+					
+					if ( bit_patterns[i] == null ){
+					
+						hit = title.contains( bit );
+						
+					}else{
+					
+						hit = bit_patterns[i].matcher( title ).find();
+					}
+					
+					int	type = bit_types[i];
+					
+					if ( hit ){
+												
+						if ( type == 2 ){
+							
+							match = false;
+							
+							break;
+							
+						}else{
+							
+							at_least_one = true;
+
+						}
+					}else{
+						
+						if ( type == 2 ){
+						
+							at_least_one = true;
+							
+						}else{
+							
+							match = false;
+						
+							break;
+						}
+					}
+				}
+			}
+			
+			if ( match && at_least_one ){
 				
 				result.add( c );
 			}
 		}
-	
+		
 		return( result );
 	}
 	
