@@ -108,6 +108,7 @@ DeviceOfflineDownloaderImpl
 	
 	private boolean								start_of_day	= true;
 	private int									consec_errors	= 0;
+	private int									consec_success	= 0;
 	
 	private Map<String,OfflineDownload>			offline_downloads	= new HashMap<String, OfflineDownload>(); 
 	private Map<String,TransferableDownload>	transferable 		= new LinkedHashMap<String,TransferableDownload>();
@@ -402,21 +403,16 @@ DeviceOfflineDownloaderImpl
 					}
 					
 						// don't include 'stopping' here as we go through stopping on way to queued
-					/*
-					 * changed our mind here - users prolly use 'stop' to manage their download queue
-					 * and we wouldn't want them temporarily stopping things and losing stuff router
-					 * has downloaded
-					 * 
+
 					if ( state == DownloadManager.STATE_STOPPED ){
 						
 							// don't remove from downloader if simply paused
 						
 						if ( !download.isPaused()){
-							
+														
 							continue;
 						}
 					}
-					*/
 					
 						// if it is complete then of no interest
 					
@@ -965,9 +961,13 @@ DeviceOfflineDownloaderImpl
 			
 			consec_errors = 0;
 			
+			consec_success++;
+			
 		}else{
 			
 			consec_errors++;
+			
+			consec_success = 0;
 			
 			if ( consec_errors > 2 ){
 				
