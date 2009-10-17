@@ -93,7 +93,6 @@ public class PlatformConfigMessenger
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				"login", params, maxDelayMS);
 		message.setContentNetworkID(contentNetworkID);
-		message.setRequiresAuthorizationNoCheck();
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
@@ -162,11 +161,6 @@ public class PlatformConfigMessenger
   						"play-after-url", null);
 				} catch (Exception e) {
 					Debug.out(e);
-				}
-				
-				Map mapUserInfo = MapUtils.getMapMap(reply, "user-info", null);
-				if (mapUserInfo != null) {
-					LoginInfoManager.getInstance().setUserInfo(mapUserInfo);
 				}
 				
 				platformLoginComplete = true;

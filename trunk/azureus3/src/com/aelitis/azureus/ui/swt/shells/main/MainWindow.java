@@ -66,9 +66,6 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils.RunDownloadManager;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
-import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.buddy.VuzeBuddyCreator;
-import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
@@ -78,11 +75,9 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.config.*;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
-import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.launcher.Launcher;
-import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFPListener;
 import com.aelitis.azureus.ui.IUIIntializer;
@@ -91,8 +86,6 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
-import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyFakeSWTImpl;
-import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -189,23 +182,6 @@ public class MainWindow
 		AEDiagnostics.addEvidenceGenerator(this);
 
 		disposedOrDisposing = false;
-
-		VuzeBuddyManager.init(new VuzeBuddyCreator() {
-			public VuzeBuddy createBuddy(String publicKey) {
-				VuzeBuddyManager.log("created buddy: " + publicKey);
-				return new VuzeBuddySWTImpl(publicKey);
-			}
-
-			public VuzeBuddy createBuddy() {
-				VuzeBuddyManager.log("created buddy");
-				return new VuzeBuddySWTImpl();
-			}
-
-			// @see com.aelitis.azureus.buddy.VuzeBuddyCreator#createPotentialBuddy(Map)
-			public VuzeBuddy createPotentialBuddy(Map map) {
-				return new VuzeBuddyFakeSWTImpl(map);
-			}
-		});
 
 		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
 		// user after restart.
@@ -427,27 +403,6 @@ public class MainWindow
 			uiFunctions.showGlobalTransferBar();
 		}
 
-		Utils.getOffOfSWTThread(new AERunnable() {
-			public void runSupport() {
-				VuzeBuddyManager.init(new VuzeBuddyCreator() {
-					public VuzeBuddy createBuddy(String publicKey) {
-						VuzeBuddyManager.log("created buddy: " + publicKey);
-						return new VuzeBuddySWTImpl(publicKey);
-					}
-					
-					public VuzeBuddy createBuddy() {
-						VuzeBuddyManager.log("created buddy");
-						return new VuzeBuddySWTImpl();
-					}
-					
-					// @see com.aelitis.azureus.buddy.VuzeBuddyCreator#createPotentialBuddy(Map)
-					public VuzeBuddy createPotentialBuddy(Map map) {
-						return new VuzeBuddyFakeSWTImpl(map);
-					}
-				});
-			}
-		});
-
 		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
 		// user after restart.
 		if (Constants.isWindows
@@ -661,7 +616,6 @@ public class MainWindow
 	}
 
 	private void downloadAdded(final DownloadManager[] dms) {
-		ArrayList<TOTorrent> toUpdateGlobalRating = new ArrayList();
 		boolean oneIsNotPlatform = false;
 		for (final DownloadManager dm : dms) {
 			if (dm == null) {
@@ -709,43 +663,7 @@ public class MainWindow
 			final String fHash = hash;
 
 			if (isContent) {
-				if (PlatformTorrentUtils.getUserRating(torrent) == -2) {
-					PlatformTorrentUtils.setUserRating(torrent, -1);
-					PlatformRatingMessenger.getUserRating(
-							PlatformTorrentUtils.getContentNetworkID(torrent), new String[] {
-								PlatformRatingMessenger.RATE_TYPE_CONTENT
-							}, new String[] {
-								hash
-							}, 5000);
-				}
-
 				long now = SystemTime.getCurrentTime();
-				long mdRefreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
-				if (mdRefreshOn < now) {
-					PlatformTorrentUtils.log(torrent, "addDM, update MD NOW");
-					PlatformTorrentUtils.updateMetaData(torrent, 5000);
-				} else {
-					PlatformTorrentUtils.log(torrent, "addDM, update MD on "
-							+ new Date(mdRefreshOn));
-					SimpleTimer.addEvent("Update MD", mdRefreshOn,
-							new TimerEventPerformer() {
-								public void perform(TimerEvent event) {
-									PlatformTorrentUtils.updateMetaData(torrent, 15000);
-								}
-							});
-				}
-
-				long grRefreshOn = GlobalRatingUtils.getRefreshOn(torrent);
-				if (grRefreshOn <= now) {
-					toUpdateGlobalRating.add(torrent);
-				} else {
-					SimpleTimer.addEvent("Update G.Rating", grRefreshOn,
-							new TimerEventPerformer() {
-								public void perform(TimerEvent event) {
-									PlatformRatingMessenger.updateGlobalRating(torrent, 15000);
-								}
-							});
-				}
 
 				long expiresOn = PlatformTorrentUtils.getExpiresOn(torrent);
 				if (expiresOn > now) {
@@ -768,11 +686,6 @@ public class MainWindow
 
 		if (oneIsNotPlatform && dms_Startup == null) {
 			DonationWindow.checkForDonationPopup();
-		}
-
-		if (toUpdateGlobalRating.size() > 0) {
-			TOTorrent[] torrents = toUpdateGlobalRating.toArray(new TOTorrent[0]);
-			PlatformRatingMessenger.updateGlobalRating(torrents, 5000);
 		}
 	}
 
@@ -1159,30 +1072,12 @@ public class MainWindow
 
 									uif.bringToFront();
 								}
-							} else if (type == NavigationHelper.COMMAND_BUDDY_SYNC) {
-
-								try {
-									PlatformRelayMessenger.fetch(0);
-									PlatformBuddyMessenger.sync(null);
-									PlatformBuddyMessenger.getInvites();
-								} catch (NotLoggedInException e1) {
-								}
-
 							} else if (type == NavigationHelper.COMMAND_CONDITION_CHECK) {
 
 								if (args[0].equals(NavigationHelper.COMMAND_CHECK_BUDDY_MANAGER)) {
 
 									if (args[1].equals(NavigationHelper.COMMAND_CHECK_BUDDY_MANAGER_ENABLED)) {
 
-										if (!VuzeBuddyManager.isEnabled()) {
-
-											VuzeBuddyManager.showDisabledDialog();
-
-											if (uif != null) {
-
-												uif.bringToFront();
-											}
-										}
 									}
 								}
 							}
@@ -1843,14 +1738,10 @@ public class MainWindow
 		 * before it's even shown for the first time
 		 */
 		Class[] forceInits = new Class[] {
-			BuddiesViewer.class,
 			SideBar.class,
-			FriendsToolbar.class
 		};
 		String[] forceInitsIDs = new String[] {
-			SkinConstants.VIEWID_BUDDIES_VIEWER,
 			SkinConstants.VIEWID_SIDEBAR,
-			SkinConstants.VIEWID_FRIENDS_TOOLBAR
 		};
 
 		for (int i = 0; i < forceInits.length; i++) {
@@ -1930,11 +1821,6 @@ public class MainWindow
 						topbarMenu);
 			}
 		}
-
-		/*
-		 * Init the user area for login/logout info
-		 */
-		new UserAreaUtils(skin, uiFunctions);
 	}
 
 	private void addMenuAndNonTextChildren(Composite parent, Menu menu) {
@@ -2142,7 +2028,7 @@ public class MainWindow
 		if (fd == null || fd.width <= 0) {
 			return;
 		}
-		if (clientArea.width > 1024 && fd.width == 260) {
+		if (clientArea.width > 1024 && fd.width == 195) {
 			return;
 		}
 		SWTSkinObject soTabBar = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
@@ -2154,8 +2040,8 @@ public class MainWindow
 		fd.width = clientArea.width - (size.x - oldWidth) - 5;
 		if (fd.width < 100) {
 			fd.width = 100;
-		} else if (fd.width > 260) {
-			fd.width = 260;
+		} else if (fd.width > 195) {
+			fd.width = 195;
 		}
 
 		if (oldWidth != fd.width) {

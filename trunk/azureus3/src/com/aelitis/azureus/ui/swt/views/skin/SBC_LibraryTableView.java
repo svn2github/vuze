@@ -22,10 +22,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
@@ -57,7 +55,6 @@ import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
-import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -247,15 +244,6 @@ public class SBC_LibraryTableView
 											true, false);
 								}
 
-							}
-						}
-					} else if (e.character == 18 && e.stateMask == (SWT.SHIFT | SWT.CONTROL)) {
-						Object[] selectedDataSources = tv.getSelectedDataSources().toArray();
-						for (int i = 0; i < selectedDataSources.length; i++) {
-							DownloadManager dm = (DownloadManager) selectedDataSources[i];
-							if (dm != null) {
-								PlatformTorrentUtils.setContentLastUpdated(dm.getTorrent(), 0);
-								PlatformTorrentUtils.updateMetaData(dm.getTorrent(), 0);
 							}
 						}
 					}

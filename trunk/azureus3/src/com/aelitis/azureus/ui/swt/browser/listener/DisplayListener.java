@@ -2,18 +2,21 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.util.*;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow;
@@ -32,19 +35,12 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.MapUtils;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.ui.UIInstance;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerListener;
 
 public class DisplayListener
 	extends AbstractBrowserMessageListener
@@ -109,7 +105,7 @@ public class DisplayListener
 				launchUrl(MapUtils.getMapString(decodedMap, "url", null));
 			} else {
 				String ref = message.getReferer();
-				if (target.equals("browse") && ref != null) {
+				if (target != null && target.equals("browse") && ref != null) {
 					ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL(
 							ref);
 					if (cn != null) {
@@ -180,16 +176,6 @@ public class DisplayListener
 		} else if (OP_REFRESH_TAB.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			refreshTab(MapUtils.getMapString(decodedMap, "browser-id", ""));
-		} else if (OP_INVITE_FRIEND.equals(opid)) {
-			Map decodedMap = message.getDecodedMap();
-			FriendsToolbar friendsToolbar = (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
-			if(friendsToolbar != null) {
-				friendsToolbar.addBuddy(MapUtils.getMapString(decodedMap, OP_INVITE_FRIEND_PARAM_MESSAGE,	null));
-			}
-			
-//			VuzeFriendUtils.getInstance().invite(
-//					MapUtils.getMapString(decodedMap, OP_INVITE_FRIEND_PARAM_MESSAGE,
-//							null));
 		} else if (OP_SET_SELECTED_CONTENT.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			if (decodedMap != null) {

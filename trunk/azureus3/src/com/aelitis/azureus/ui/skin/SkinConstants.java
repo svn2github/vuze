@@ -33,12 +33,6 @@ public class SkinConstants
 
 	public static final String VIEWID_BROWSER_SEARCHRESULTS = "searchresults";
 
-	public static final String VIEWID_BROWSER_MINI = "minibrowse";
-
-	public static final String VIEWID_BROWSER_PUBLISH = "publish";
-
-	public static final String VIEWID_BUDDIES_VIEWER = "buddies-viewer";
-
 	public static final String VIEWID_PLUGINBAR = "pluginbar";
 
 	public static final String VIEWID_TAB_BAR = "tabbar";
@@ -63,8 +57,6 @@ public class SkinConstants
 
 	public static final String VIEWID_SIDEBAR = "sidebar";
 
-	public static final String VIEWID_FRIENDS_TOOLBAR = "toolbar-friends";
-	
 	public static final String VIEWID_LIBRARY_TOOLBAR = "library-list-button-smalltable";
 	public static final String VIEWID_LIBRARY_TOOLBAR_BIG = "library-list-button-bigtable";
 

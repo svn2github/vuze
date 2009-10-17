@@ -20,18 +20,14 @@
 
 package com.aelitis.azureus.ui.swt.skin;
 
-import java.io.File;
-import java.net.URL;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -40,10 +36,6 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
-import com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster;
-import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishListener;
-import com.aelitis.azureus.ui.swt.utils.PublishUtils;
-import com.aelitis.azureus.util.LocalResourceHTTPServer;
 import com.aelitis.azureus.util.UrlFilter;
 
 /**
@@ -53,7 +45,6 @@ import com.aelitis.azureus.util.UrlFilter;
  */
 public class SWTSkinObjectBrowser
 	extends SWTSkinObjectBasic
-	implements LocalHoster
 {
 
 	private Browser browser;
@@ -63,8 +54,6 @@ public class SWTSkinObjectBrowser
 	private Composite cArea;
 
 	private String sStartURL;
-
-	private LocalResourceHTTPServer local_publisher;
 
 	private BrowserContext context;
 
@@ -159,10 +148,6 @@ public class SWTSkinObjectBrowser
 		context.addMessageListener(new VuzeListener());
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new ConfigListener(browser));
-		context.addMessageListener(new PublishListener(skin.getShell(), this));
-		context.addMessageListener(new LightBoxBrowserRequestListener());
-		context.addMessageListener(new StatusListener());
-		context.addMessageListener(new BrowserRpcBuddyListener());
 
 		context.addListener(new loadingListener() {
 			public void browserLoadingChanged(boolean loading, String url) {
@@ -175,8 +160,6 @@ public class SWTSkinObjectBrowser
 				
 			}
 		});
-
-		PublishUtils.setupContext(context);
 
 		String url = urlToUse != null ? urlToUse : sStartURL != null ? sStartURL
 				: properties.getStringValue(sConfigID + ".url", (String) null);
@@ -258,25 +241,6 @@ public class SWTSkinObjectBrowser
 			browser.setUrl("about:blank");
 		}
 		super.dispose();
-	}
-
-	// @see com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster#hostFile(java.io.File)
-	public URL hostFile(File f) {
-		if (local_publisher == null) {
-			try {
-				PluginInterface pi = PluginInitializer.getDefaultInterface();
-				local_publisher = new LocalResourceHTTPServer(pi, null);
-			} catch (Throwable e) {
-				Debug.out("Failed to create local resource publisher", e);
-				return null;
-			}
-		}
-		try {
-			return local_publisher.publishResource(f);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
 	}
 
 	public BrowserContext getContext() {

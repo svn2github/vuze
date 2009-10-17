@@ -223,6 +223,9 @@ public class MessageDispatcherSWT
 
 		// handle messages for dispatcher and context regardless of sequence number
 		String listenerId = message.getListenerId();
+		if ("lightbox-browser".equals(listenerId)) {
+			listenerId = "display";
+		}
 		if (LISTENER_ID.equals(listenerId)) {
 			handleMessage(message);
 		} else {

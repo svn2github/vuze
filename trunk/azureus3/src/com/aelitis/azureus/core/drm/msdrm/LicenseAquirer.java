@@ -15,7 +15,6 @@ import org.json.simple.JSONObject;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
-import com.aelitis.azureus.login.NotLoggedInException;
 
 public class LicenseAquirer {
 	

@@ -53,7 +53,6 @@ import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.swt.browser.PlatformAuthorizedSenderImpl;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.content.RelatedContentUI;
@@ -126,8 +125,6 @@ public class Initializer
 		} else {
 
 			initializePlatformClientMessageContext();
-
-			PlatformMessenger.setAuthorizedTransferListener(new PlatformAuthorizedSenderImpl());
 
 			PlatformConfigMessenger.login(ContentNetwork.CONTENT_NETWORK_VUZE, 0);
 			// typically the caller will call run() now 
@@ -594,9 +591,6 @@ public class Initializer
 			clientMsgContext.addMessageListener(new VuzeListener());
 			clientMsgContext.addMessageListener(new DisplayListener(null));
 			clientMsgContext.addMessageListener(new ConfigListener(null));
-			clientMsgContext.addMessageListener(new LightBoxBrowserRequestListener());
-			clientMsgContext.addMessageListener(new StatusListener());
-			clientMsgContext.addMessageListener(new BrowserRpcBuddyListener());
 		}
 	}
 

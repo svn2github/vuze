@@ -26,9 +26,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.util.JSONUtils;
-import com.aelitis.azureus.util.LoginInfoManager;
 
 /**
  * @author TuxPaper
@@ -166,46 +164,6 @@ public class PlatformMessage
 				+ ", "
 				+ (paramString.length() > 32767 ? paramString.substring(0, 32767)
 						: paramString) + "}";
-	}
-
-	/**
-	 * @param requiresAuthorization the requiresAuthorization to set
-	 * @throws NotLoggedInException 
-	 */
-	public void setRequiresAuthorization(boolean requiresAuthorization,
-			boolean promptUser)
-			throws NotLoggedInException {
-		this.requiresAuthorization = requiresAuthorization;
-		this.loginAndRetry = promptUser;
-
-		if (!promptUser && !LoginInfoManager.getInstance().isLoggedIn()) {
-			throw new NotLoggedInException();
-		}
-	}
-
-	public void setRequiresAuthorizationNoCheck() {
-		this.requiresAuthorization = true;
-	}
-
-	/**
-	 * @return the requiresAuthorization
-	 */
-	public boolean requiresAuthorization() {
-		return requiresAuthorization;
-	}
-
-	/**
-	 * @param loginAndRetry the loginAndRetry to set
-	 */
-	public void setLoginAndRetry(boolean loginAndRetry) {
-		this.loginAndRetry = loginAndRetry;
-	}
-
-	/**
-	 * @return the loginAndRetry
-	 */
-	public boolean getLoginAndRetry() {
-		return loginAndRetry;
 	}
 
 	public String toShortString() {

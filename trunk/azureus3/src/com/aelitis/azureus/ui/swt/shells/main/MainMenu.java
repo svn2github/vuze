@@ -4,15 +4,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.events.MenuListener;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
@@ -24,7 +18,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
@@ -33,16 +26,12 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUIManagerWindow;
-import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar.UISWTViewEventListenerSkinObject;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 
@@ -570,13 +559,6 @@ public class MainMenu
 								SkinConstants.VIEWID_PLUGINBAR, true, 0);
 					}
 
-					if (null == MenuFactory.findMenuItem(viewToolBarsMenu, PREFIX_V3
-							+ ".view." + SkinConstants.VIEWID_BUDDIES_VIEWER)) {
-						createViewMenuItem(skin, viewToolBarsMenu, PREFIX_V3 + ".view."
-								+ SkinConstants.VIEWID_BUDDIES_VIEWER, "Friends.visible",
-								SkinConstants.VIEWID_BUDDIES_VIEWER, true, -1);
-					}
-
 				}
 
 				public void menuHidden(MenuEvent e) {
@@ -602,13 +584,6 @@ public class MainMenu
 			public void handleEvent(Event event) {
 				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 				sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
-			}
-		});
-
-		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".publish", new Listener() {
-			public void handleEvent(Event event) {
-				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-				sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_PUBLISH);
 			}
 		});
 
@@ -753,18 +728,6 @@ public class MainMenu
 						ConstantsVuze.getDefaultContentNetwork(), ContentNetwork.SERVICE_FAQ));
 			}
 		});
-
-		MenuFactory.addSeparatorMenuItem(communityMenu);
-
-		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_ADD_FRIENDS,
-				new Listener() {
-					public void handleEvent(Event e) {
-						FriendsToolbar friendsToolbar = (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
-						if (friendsToolbar != null) {
-							friendsToolbar.addBuddy();
-						}
-					}
-				});
 	}
 
 	//====================================

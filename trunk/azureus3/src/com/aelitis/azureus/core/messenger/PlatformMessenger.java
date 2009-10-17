@@ -42,7 +42,6 @@ import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.listeners.MessageCompletionListener;
-import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.util.*;
 
 /**
@@ -72,13 +71,9 @@ public class PlatformMessenger
 	/** Key: id of queue;  Value: Map of queued messages & listeners */
 	static private Map<String, Map> mapQueues = new HashMap();
 
-	private static final String QUEUE_AUTH = "Auth.";
-
 	private static final String QUEUE_NOAZID = "noazid.";
 
 	private static final String QUEUE_NORMAL = "msg.";
-
-	private static final String QUEUE_RELAY = "relay.";
 
 	static private AEMonitor queue_mon = new AEMonitor(
 			"v3.PlatformMessenger.queue");
@@ -95,10 +90,6 @@ public class PlatformMessenger
 
 	private static fakeContext context;
 
-	private static PlatformAuthorizedSender authorizedSender;
-
-	private static boolean authorizedDelayed;
-	
 	public static synchronized void init() {
 		if (initialized) {
 			return;
@@ -107,16 +98,6 @@ public class PlatformMessenger
 
 		// The UI will initialize this
 		context = new fakeContext();
-	}
-
-	public static void setAuthorizedTransferListener(
-			PlatformAuthorizedSender authorizedSender) {
-		debug("set Authorized Sender");
-		PlatformMessenger.authorizedSender = authorizedSender;
-	}
-
-	public static PlatformAuthorizedSender getAuthorizedTransferListener() {
-		return PlatformMessenger.authorizedSender;
 	}
 
 	public static ClientMessageContext getClientMessageContext() {
@@ -156,17 +137,10 @@ public class PlatformMessenger
 					debug("Content Network invalid for " + message);
 					return;
 				}
-				if (message.requiresAuthorization()) {
-					queueID = QUEUE_AUTH;
-				} else if (!message.sendAZID()) {
+				if (!message.sendAZID()) {
 					queueID = QUEUE_NOAZID;
 				} else {
-					boolean isRelayServer = PlatformRelayMessenger.LISTENER_ID.equals(message.getListenerID());
-					if (isRelayServer) {
-						queueID = QUEUE_RELAY;
-					} else {
-						queueID = QUEUE_NORMAL;
-					}
+					queueID = QUEUE_NORMAL;
 				}
 				queueID += networkID;
 				
@@ -181,9 +155,6 @@ public class PlatformMessenger
 						+ message.toShortString() + ": " + message + " @ "
 						+ new Date(message.getFireBefore()) + "; in "
 						+ (message.getFireBefore() - SystemTime.getCurrentTime()) + "ms");
-				if (message.requiresAuthorization() && authorizedDelayed) {
-					debug("   authorized msg is delayed");
-				}
 
 				fireBefore = message.getFireBefore();
 			} else {
@@ -287,8 +258,6 @@ public class PlatformMessenger
 		
 		final Map mapProcessing = new HashMap();
 
-		boolean loginAndRetry = false;
-		boolean requiresAuthorization = false;
 		boolean sendAZID = true;
 		long contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE;
 
@@ -307,7 +276,6 @@ public class PlatformMessenger
 				Object value = mapQueue.get(message);
 
 				if (first) {
-					requiresAuthorization = message.requiresAuthorization();
 					sendAZID = message.sendAZID();
 					contentNetworkID = message.getContentNetworkID();
 					first = false;
@@ -365,15 +333,6 @@ public class PlatformMessenger
 				mapProcessing.put(message, value);
 
 				iter.remove();
-
-				// split up ones that requre login and retry and ones that don't
-				if (mapProcessing.size() == 1) {
-					loginAndRetry = message.getLoginAndRetry();
-				} else {
-					if (loginAndRetry != message.getLoginAndRetry()) {
-						break;
-					}
-				}
 			}
 		} finally {
 			queue_mon.exit();
@@ -398,40 +357,23 @@ public class PlatformMessenger
 			cn = ConstantsVuze.getDefaultContentNetwork();
 		}
 
-		String sURL_RPC;
-		boolean isRelayServer = (PlatformRelayMessenger.MSG_ID + "-" + PlatformRelayMessenger.LISTENER_ID).equals(server);
-		if (isRelayServer) {
-
-			sURL_RPC = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_RELAY_RPC);
-
-		} else {
-			sURL_RPC = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_RPC)
+		String sURL_RPC = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_RPC)
 					+ server;
-		}
 
 		// Build full url and data to send
 		String sURL;
 		String sPostData = null;
-		if (USE_HTTP_POST || requiresAuthorization) {
+		if (USE_HTTP_POST) {
 			sURL = sURL_RPC;
-			if (requiresAuthorization) {
-				String sAuthUrl = ContentNetworkUtils.getUrl(cn,
-						ContentNetwork.SERVICE_AUTH_RPC);
-				if (sAuthUrl != null) {
-					sURL = sAuthUrl;
-				}
-			}
 
 			sPostData = URL_POST_PLATFORM_DATA + "&" + urlStem.toString();
 			sPostData = cn.appendURLSuffix(sPostData, true, sendAZID);
 
-			if (!requiresAuthorization) {
-				if (DEBUG_URL) {
-					debug("POST for " + mapProcessing.size() + ": " + sURL + "?"
-							+ sPostData);
-				} else {
-					debug("POST for " + mapProcessing.size() + ": " + sURL);
-				}
+			if (DEBUG_URL) {
+				debug("POST for " + mapProcessing.size() + ": " + sURL + "?"
+						+ sPostData);
+			} else {
+				debug("POST for " + mapProcessing.size() + ": " + sURL);
 			}
 		} else {
 			sURL = sURL_RPC + URL_PLATFORM_MESSAGE + "&" + urlStem.toString();
@@ -447,15 +389,12 @@ public class PlatformMessenger
 
 		final String fURL = sURL;
 		final String fPostData = sPostData;
-		final boolean fLoginAndRetry = loginAndRetry;
-		final boolean fReqAuth = requiresAuthorization;
 
 		// proccess queue on a new thread
 		AEThread2 thread = new AEThread2("v3.PlatformMessenger", true) {
 			public void run() {
 				try {
-					processQueueAsync(fURL, fPostData, mapProcessing, fReqAuth,
-							fLoginAndRetry);
+					processQueueAsync(fURL, fPostData, mapProcessing);
 				} catch (Throwable e) {
 					if (e instanceof ResourceDownloaderException) {
 						debug("Error while sending message(s) to Platform: " + e.toString());
@@ -488,29 +427,17 @@ public class PlatformMessenger
 	 * @throws Exception 
 	 */
 	protected static void processQueueAsync(String sURL, String sData,
-			Map mapProcessing, boolean requiresAuthorization, boolean loginAndRetry)
-			throws Exception {
+			Map mapProcessing) throws Exception {
 		URL url;
 		url = new URL(sURL);
 
 		String s;
-		if (requiresAuthorization && authorizedSender != null) {
-			AESemaphore sem_waitDL = new AESemaphore("Waiting for DL");
-			authorizedSender.startDownload(url, sData, sem_waitDL, loginAndRetry);
-			sem_waitDL.reserve();
-			s = authorizedSender.getResults();
-			authorizedSender.clearResults();
-		} else {
-			if (requiresAuthorization) {
-				debug("No Authorized Sender.. using non-auth request");
-			}
-			byte[] bytes = downloadURL(url, sData);
-			s = new String(bytes, "UTF8");
-		}
+		byte[] bytes = downloadURL(url, sData);
+		s = new String(bytes, "UTF8");
 
 		// Format: <sequence no> ; <classification> [; <results>] [ \n ]
 
-		if (s == null || s.length() == 0 || !Character.isDigit(s.charAt(0))) {
+		if (s.length() == 0 || !Character.isDigit(s.charAt(0))) {
 			debug("Error while sending message(s) to Platform: reply: " + s
 					+ "\nurl: " + sURL + "\nPostData: " + sData);
 			for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
@@ -792,39 +719,5 @@ public class PlatformMessenger
 		public void setContentNetworkID(long contentNetwork) {
 			this.contentNetworkID = contentNetwork;
 		}
-	}
-
-	/**
-	 * @param b
-	 *
-	 * @since 3.0.5.3
-	 */
-	public static void setAuthorizedDelayed(boolean authorizedDelayed) {
-		debug("setDelayAuthorized " + authorizedDelayed);
-		PlatformMessenger.authorizedDelayed = authorizedDelayed;
-		if (!authorizedDelayed) {
-			boolean fireQueue = false;
-			queue_mon.enter();
-			try {
-				for (String key : mapQueues.keySet()) {
-					if (key.startsWith(QUEUE_AUTH)) {
-						Map map = mapQueues.get(key);
-						if (map != null && map.size() > 0) {
-							fireQueue = true;
-							break;
-						}
-					}
-				}
-			} finally {
-				queue_mon.exit();
-			}
-			if (fireQueue) {
-				queueMessage(null, null);
-			}
-		}
-	}
-
-	public static boolean isAuthorizedDelayed() {
-		return authorizedDelayed;
 	}
 }

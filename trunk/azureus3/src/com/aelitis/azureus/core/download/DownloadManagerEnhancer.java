@@ -33,7 +33,6 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerChannelImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.ExternalStimulusHandler;
 import com.aelitis.azureus.util.ExternalStimulusListener;
@@ -125,31 +124,6 @@ DownloadManagerEnhancer
 			    	boolean seeding_only_mode, boolean b )
 			    {
 			    }
-			});
-		
-		PlatformTorrentUtils.addListener(
-			new MetaDataUpdateListener()
-			{
-				public void 
-				metaDataUpdated(
-					TOTorrent torrent )
-				{
-					 DownloadManager dm = core.getGlobalManager().getDownloadManager( torrent );
-
-					 if ( dm == null ){
-						 
-						 Debug.out( "Meta data update: download not found for " + torrent );
-						 
-					 }else{
-						
-						 EnhancedDownloadManager edm = getEnhancedDownload( dm );
-						 
-						 if ( edm != null ){
-							 
-							 edm.refreshMetaData();
-						 }
-					 }
-				}
 			});
 		
 		ExternalStimulusHandler.addListener(

@@ -34,7 +34,6 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -165,10 +164,7 @@ public class ColumnActivityText
 			int newCursor;
 			if (hitUrl != null) {
 				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
-					if (VuzeActivitiesEntryContentShare.URL_USERMESSAGE.equals(hitUrl.url)) {
-						String userMessage = ((VuzeActivitiesEntryContentShare) entry).getUserMessage();
-						Utils.openMessageBox(null, SWT.OK, "", userMessage);
-					} else if (!UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
+					if (!UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
 						Utils.launch(hitUrl.url);
 					} else {
 						UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -184,8 +180,7 @@ public class ColumnActivityText
 				}
 
 				newCursor = SWT.CURSOR_HAND;
-				if (UrlFilter.getInstance().urlCanRPC(hitUrl.url)
-						|| VuzeActivitiesEntryContentShare.URL_USERMESSAGE.equals(hitUrl.url)) {
+				if (UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
 					try {
 						tooltip = hitUrl.title == null ? null : URLDecoder.decode(
 								hitUrl.title, "utf-8");

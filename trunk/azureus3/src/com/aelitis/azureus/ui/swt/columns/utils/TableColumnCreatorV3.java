@@ -45,9 +45,6 @@ public class TableColumnCreatorV3
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
-			ColumnQuality.COLUMN_ID,
-			ColumnInfo.COLUMN_ID,
-			ColumnRateUpDown.COLUMN_ID,
 			StatusItem.COLUMN_ID,
 			ShareRatioItem.COLUMN_ID,
 			DateCompletedItem.COLUMN_ID,
@@ -101,8 +98,6 @@ public class TableColumnCreatorV3
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
-			ColumnQuality.COLUMN_ID,
-			ColumnInfo.COLUMN_ID,
 			ColumnProgressETA.COLUMN_ID,
 			SeedsItem.COLUMN_ID,
 			PeersItem.COLUMN_ID,
@@ -179,9 +174,6 @@ public class TableColumnCreatorV3
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
-			ColumnQuality.COLUMN_ID,
-			ColumnInfo.COLUMN_ID,
-			ColumnRateUpDown.COLUMN_ID,
 			StatusItem.COLUMN_ID,
 			ShareRatioItem.COLUMN_ID,
 			DateCompletedItem.COLUMN_ID,
@@ -235,8 +227,6 @@ public class TableColumnCreatorV3
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
-			ColumnQuality.COLUMN_ID,
-			ColumnInfo.COLUMN_ID,
 			StatusItem.COLUMN_ID,
 			DateCompletedItem.COLUMN_ID,
 		};
@@ -317,7 +307,6 @@ public class TableColumnCreatorV3
 		final String[] defaultVisibleOrder = {
 			ColumnActivityNew.COLUMN_ID,
 			ColumnActivityType.COLUMN_ID,
-			ColumnActivityAvatar.COLUMN_ID,
 			ColumnActivityText.COLUMN_ID,
 			ColumnThumbnail.COLUMN_ID,
 			ColumnActivityActions.COLUMN_ID,
@@ -378,10 +367,6 @@ public class TableColumnCreatorV3
 
 		c.put(ColumnUnopened.COLUMN_ID, new cInfo(ColumnUnopened.class, ColumnUnopened.DATASOURCE_TYPE));
 		//c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, ColumnThumbnail.DATASOURCE_TYPE));
-		c.put(ColumnQuality.COLUMN_ID, new cInfo(ColumnQuality.class, ColumnQuality.DATASOURCE_TYPE));
-		c.put(ColumnInfo.COLUMN_ID, new cInfo(ColumnInfo.class, ColumnInfo.DATASOURCE_TYPE));
-		c.put(ColumnRateUpDown.COLUMN_ID, new cInfo(ColumnRateUpDown.class, ColumnRateUpDown.DATASOURCE_TYPE));
-		c.put(ColumnRatingGlobal.COLUMN_ID, new cInfo(ColumnRatingGlobal.class, ColumnRatingGlobal.DATASOURCE_TYPE));
 		c.put(ColumnVideoLength.COLUMN_ID, new cInfo(ColumnVideoLength.class, ColumnVideoLength.DATASOURCE_TYPE));
 		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, DateAddedItem.DATASOURCE_TYPE));
 		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, DateCompletedItem.DATASOURCE_TYPE));
@@ -392,8 +377,6 @@ public class TableColumnCreatorV3
 		final Class ac = VuzeActivitiesEntry.class;
 
 		c.put(ColumnActivityNew.COLUMN_ID, new cInfo(ColumnActivityNew.class, ac));
-		c.put(ColumnActivityAvatar.COLUMN_ID, new cInfo(ColumnActivityAvatar.class,
-				ac));
 		c.put(ColumnActivityType.COLUMN_ID, new cInfo(ColumnActivityType.class, ac));
 		c.put(ColumnActivityText.COLUMN_ID, new cInfo(ColumnActivityText.class, ac));
 		c.put(ColumnActivityActions.COLUMN_ID, new cInfo(

@@ -20,14 +20,14 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
-import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 /**
@@ -39,80 +39,7 @@ public class PlatformTorrentMessenger
 {
 	public static String LISTENER_ID = "torrent";
 
-	public static String OP_GETMETADATA = "get-metadata";
-
 	public static String OP_STREAMCOMPLETE = "stream-complete";
-
-	public static interface GetMetaDataReplyListener
-	{
-		public void messageSent();
-
-		public void replyReceived(String replyType, Map mapHashes);
-	}
-
-	/**
-	 * @param torrent
-	 * @param maxDelayMS
-	 * @param replyListener
-	 *
-	 * @since 3.0.0.7
-	 */
-	public static void getMetaData(long contentNetworkID, TOTorrent[] torrents,
-			long maxDelayMS, final GetMetaDataReplyListener replyListener) {
-		Map mapParameters = new HashMap();
-		List listContent = new ArrayList();
-		List listHashes = new ArrayList();
-		mapParameters.put("content-list", listContent);
-		if (PlatformConfigMessenger.getRPCVersion() == 0) {
-			// legacy support
-			mapParameters.put("hashes", listHashes);
-		}
-
-		for (int i = 0; i < torrents.length; i++) {
-			TOTorrent torrent = torrents[i];
-			if (!PlatformTorrentUtils.isContent(torrent, true)) {
-				continue;
-			}
-
-			String hash = null;
-			try {
-				hash = torrent.getHashWrapper().toBase32String();
-			} catch (TOTorrentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			if (hash != null) {
-				listHashes.add(hash);
-
-				Map jsonSubObject = new HashMap();
-				listContent.add(jsonSubObject);
-				jsonSubObject.put("hash", hash);
-				jsonSubObject.put("last-revision", new Long(
-						PlatformTorrentUtils.getContentLastUpdated(torrent)));
-			}
-		}
-
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-				OP_GETMETADATA, mapParameters, maxDelayMS);
-
-		PlatformMessengerListener listener = new PlatformMessengerListener() {
-			public void messageSent(PlatformMessage message) {
-				replyListener.messageSent();
-			}
-
-			public void replyReceived(PlatformMessage message, String replyType,
-					Map reply) {
-				if (reply != null) {
-					replyListener.replyReceived(replyType, reply);
-				} else {
-					replyListener.replyReceived(replyType, new HashMap());
-				}
-			}
-		};
-
-		PlatformMessenger.queueMessage(message, listener);
-	}
 
 	public static void streamComplete(TOTorrent torrent, long waitTime,
 			int maxSeekAheadSecs, int numRebuffers, int numHardRebuffers) {

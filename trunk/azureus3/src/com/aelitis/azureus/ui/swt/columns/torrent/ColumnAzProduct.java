@@ -8,25 +8,18 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.util.DataSourceUtils;
-
-import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -158,22 +151,6 @@ public class ColumnAzProduct
 			ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
 			
 			cell.setToolTip(cn == null ? null : cn.getName());
-	
-			if (false && Constants.isCVSVersion()) {
-				if (!(ds instanceof DownloadManager)) {
-					return;
-				}
-				DownloadManager dm = (DownloadManager) cell.getDataSource();
-				if (dm == null) {
-					return;
-				}
-	
-				TOTorrent torrent = dm.getTorrent();
-				long refreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
-				long diff = (refreshOn - SystemTime.getCurrentTime()) / 1000;
-				cell.setToolTip("Meta data auto refreshes in "
-						+ TimeFormatter.format(diff));
-			}
 		}
 	}
 

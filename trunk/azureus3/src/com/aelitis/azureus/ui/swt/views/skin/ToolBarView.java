@@ -216,23 +216,6 @@ public class ToolBarView
   		first = false;
 		}
 
-		// ==share
-		item = new ToolBarItem("share", "image.button.share", "iconBar.share") {
-			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-			public void triggerToolBarItem() {
-				String viewID = SelectedContentManager.getCurrentySelectedViewID();
-				if (viewID == null && triggerIViewToolBar(getId())) {
-					return;
-				}
-				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
-				if (contents.length > 0) {
-					VuzeShareUtils.getInstance().shareContent(contents[0], null, "ToolBar");
-				}
-			}
-		};
-		addToolBarItem(item, first ? "toolbar.area.sitem.left" : "toolbar.area.sitem", so2nd);
-		addSeperator(so2nd);
-
 		// ==run
 		item = new ToolBarItem("run", "image.toolbar.run", "iconBar.run") {
 			public void triggerToolBarItem() {
@@ -659,7 +642,6 @@ public class ToolBarView
 				String[] TBKEYS = new String[] {
 					"download",
 					"play",
-					"share",
 					"run",
 					"up",
 					"down",
@@ -720,15 +702,6 @@ public class ToolBarView
 					canStop = true;
 				}
 			}
-		}
-
-		item = getToolBarItem("share");
-		if (item != null) {
-			boolean canShare = 
-					has1SelectionWithHash &&
-					VuzeShareUtils.getInstance().canShareContent(currentContent[0]) &&
-					VuzeShareUtils.getInstance().canShare(currentContent[0]);
-			item.setEnabled(canShare);
 		}
 
 		item = getToolBarItem("run");

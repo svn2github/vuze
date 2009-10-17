@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.*;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.util.ConstantsV3;
 
 import org.gudy.azureus2.plugins.PluginException;
@@ -87,12 +86,6 @@ public class TestPlatformMessenger
 					}
 
 				});
-
-		System.out.println(SystemTime.getCurrentTime() + ": queueMessage gr");
-		PlatformRatingMessenger.getUserRating(1l,
-				new String[] { PlatformRatingMessenger.RATE_TYPE_CONTENT
-				}, new String[] { "11"
-				}, 500);
 
 		System.out.println(SystemTime.getCurrentTime() + ": queueMessage 3");
 		//PlatformRatingMessenger.setUserRating("11", 1, false, 500, null);

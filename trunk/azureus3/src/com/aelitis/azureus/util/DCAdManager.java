@@ -4,7 +4,6 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
 
 import java.util.*;
@@ -137,20 +136,6 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 				new DownloadManager[0]);
 		initDownloadManagerLists(dms);
 
-
-		//Add MetaData Update Listener.
-		PlatformTorrentUtils.addListener(new MetaDataUpdateListener() {
-			public void metaDataUpdated(TOTorrent torrent) {
-				GlobalManager gm = core.getGlobalManager();
-				DownloadManager dm = gm.getDownloadManager(torrent);
-				if (dm != null
-						&& PlatformTorrentUtils.isContentAdEnabled(dm.getTorrent())) {
-					downloadManagerAddedHook(new DownloadManager[] {
-							dm
-					}, 0);
-				}
-			}
-		});
 
 		//send the unsent impressions.
 		PlatformDCAdManager.loadUnsentImpressions();

@@ -7,7 +7,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
@@ -19,13 +18,10 @@ import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.ClientMessageContext.torrentURLHandler;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
-import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 public class TorrentListener
@@ -36,10 +32,6 @@ public class TorrentListener
 	public static final String OP_LOAD_TORRENT_OLD = "loadTorrent";
 
 	public static final String OP_LOAD_TORRENT = "load-torrent";
-
-	public static final String OP_UPDATE_RATING = "update-rating";
-
-	public static final String OP_SHARE = "share-torrent";
 
 	private ClientMessageContext.torrentURLHandler		torrentURLHandler;
 	
@@ -101,50 +93,8 @@ public class TorrentListener
 					}
 				});
 			}
-		} else if (OP_UPDATE_RATING.equals(opid)) {
-			Map decodedMap = message.getDecodedMap();
-			final String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
-			if (hash == null) {
-				return;
-			}
-			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-				public void azureusCoreRunning(AzureusCore core) {
-					updateRating(core, hash);
-				}
-			});
-		} else if (OP_SHARE.equals(opid)) {
-			Map decodedMap = message.getDecodedMap();
-			String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
-			String displayName = MapUtils.getMapString(decodedMap, "display-name",
-					null);
-			if (hash != null && displayName != null) {
-				String referer = MapUtils.getMapString(decodedMap, "referer",
-						"torrentlistener");
-				boolean canPlay = MapUtils.getMapBoolean(decodedMap, "can-play", false);
-				SelectedContentV3 content = new SelectedContentV3(hash,
-						displayName, true, canPlay);
-				content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail.url",
-						null));
-				VuzeShareUtils.getInstance().shareContent(content, null, referer);
-			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
-		}
-	}
-
-	protected void updateRating(AzureusCore core, String hash) {
-		DownloadManager dm = core.getGlobalManager().getDownloadManager(
-				new HashWrapper(Base32.decode(hash)));
-		if (dm != null && dm.getTorrent() != null) {
-			PlatformRatingMessenger.getUserRating(
-					PlatformTorrentUtils.getContentNetworkID(dm.getTorrent()),
-					new String[] {
-				PlatformRatingMessenger.RATE_TYPE_CONTENT
-			}, new String[] {
-				hash
-			}, 7000);
-
-			PlatformRatingMessenger.updateGlobalRating(dm.getTorrent(), 7000);
 		}
 	}
 

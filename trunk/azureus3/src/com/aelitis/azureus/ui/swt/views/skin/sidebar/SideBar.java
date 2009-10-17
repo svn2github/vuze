@@ -139,8 +139,6 @@ public class SideBar
 
 	public static final String SIDEBAR_SECTION_WELCOME = "Welcome";
 
-	public static final String SIDEBAR_SECTION_PUBLISH = "Publish";
-
 	public static final String SIDEBAR_SECTION_SUBSCRIPTIONS = "Subscriptions";
 
 	public static final String SIDEBAR_SECTION_DEVICES = "Devices";
@@ -2871,12 +2869,6 @@ public class SideBar
 			SideBarEntrySWT entryWelcome = createWelcomeSection();
 			itemSelected(entryWelcome.treeItem);
 			return true;
-		} else if (id.equals(SIDEBAR_SECTION_PUBLISH)) {
-			SideBarEntrySWT entryPublish = createEntryFromSkinRef(
-					SIDEBAR_SECTION_BROWSE, SIDEBAR_SECTION_PUBLISH, "publishtab.area",
-					"Publish", null, null, true, -1);
-			itemSelected(entryPublish.treeItem);
-			return true;
 		} else if (id.startsWith("ContentNetwork.")) {
 			long networkID = Long.parseLong(id.substring(15));
 			handleContentNetworkSwitch(id, networkID);
@@ -2905,8 +2897,6 @@ public class SideBar
 			id = tabID;
 		} else if (tabID.equals("library") || tabID.equals("minilibrary")) {
 			id = SIDEBAR_SECTION_LIBRARY;
-		} else if (tabID.equals("publish")) {
-			id = SIDEBAR_SECTION_PUBLISH;
 		} else if (tabID.equals("activities")) {
 			id = SIDEBAR_SECTION_ACTIVITIES;
 		} else if (tabID.startsWith("ContentNetwork.")) {

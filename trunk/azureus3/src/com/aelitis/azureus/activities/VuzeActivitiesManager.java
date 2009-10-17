@@ -20,22 +20,12 @@ package com.aelitis.azureus.activities;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.cnetwork.*;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
-import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
-import com.aelitis.azureus.core.torrent.*;
-import com.aelitis.azureus.util.ConstantsVuze;
-import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -51,26 +41,22 @@ public class VuzeActivitiesManager
 
 	private static final long DEFAULT_PLATFORM_REFRESH = 60 * 60 * 1000L * 24;
 
-	private static final long RATING_REMINDER_DELAY = 1000L * 60 * 60 * 24 * 3;
-
-	private static final long WEEK_MS = 604800000L;
-
 	private static final String SAVE_FILENAME = "VuzeActivities.config";
 
-	private static ArrayList listeners = new ArrayList();
+	private static ArrayList<VuzeActivitiesListener> listeners = new ArrayList<VuzeActivitiesListener>();
 
-	private static ArrayList allEntries = new ArrayList();
+	private static ArrayList<VuzeActivitiesEntry> allEntries = new ArrayList<VuzeActivitiesEntry>();
 
 	private static AEMonitor allEntries_mon = new AEMonitor("VuzeActivityMan");
 
-	private static List removedEntries = new ArrayList();
+	private static List<VuzeActivitiesEntry> removedEntries = new ArrayList<VuzeActivitiesEntry>();
 
 	private static PlatformVuzeActivitiesMessenger.GetEntriesReplyListener replyListener;
 
 	private static AEDiagnosticsLogger diag_logger;
 
 	/** Key: NetworkID, Value: last time we pulled news **/ 
-	private static Map<String, Long> lastNewsAt = new HashMap();
+	private static Map<String, Long> lastNewsAt = new HashMap<String, Long>();
 
 	private static boolean skipAutoSave = true;
 
@@ -158,89 +144,6 @@ public class VuzeActivitiesManager
 		};
 
 		pullActivitiesNow(5000);
-
-		PlatformRatingMessenger.addListener(new RatingUpdateListener2() {
-			// @see com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.RatingUpdateListener#ratingUpdated(com.aelitis.azureus.core.torrent.RatingInfoList)
-			public void ratingUpdated(RatingInfoList rating) {
-				if (!(rating instanceof SingleUserRatingInfo)) {
-					return;
-				}
-				Object[] allEntriesArray = allEntries.toArray();
-				for (int i = 0; i < allEntriesArray.length; i++) {
-					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) allEntriesArray[i];
-					if (entry == null) {
-						continue;
-					}
-					String typeID = entry.getTypeID();
-					DownloadManager dm = entry.getDownloadManger();
-					if (VuzeActivitiesConstants.TYPEID_RATING_REMINDER.equals(typeID)
-							&& dm != null) {
-						try {
-							String hash = dm.getTorrent().getHashWrapper().toBase32String();
-							if (rating.hasHash(hash)
-									&& rating.getRatingValue(hash,
-											PlatformRatingMessenger.RATE_TYPE_CONTENT) != GlobalRatingUtils.RATING_NONE) {
-								removeEntries(new VuzeActivitiesEntry[] {
-									entry
-								});
-							}
-						} catch (Exception e) {
-						}
-					}
-				}
-			}
-		});
-
-		GlobalManagerListener gmListener = new GlobalManagerListener() {
-
-			public void seedingStatusChanged(boolean seeding_only_mode, boolean b) {
-			}
-
-			public void downloadManagerRemoved(DownloadManager dm) {
-			}
-
-			public void downloadManagerAdded(DownloadManager dm) {
-				List entries = registerDM(dm);
-				if (entries != null && entries.size() > 0) {
-					addEntries((VuzeActivitiesEntry[]) entries.toArray(new VuzeActivitiesEntry[0]));
-				}
-			}
-
-			public void destroyed() {
-			}
-
-			public void destroyInitiated() {
-			}
-		};
-
-		
-		
-		
-		List newEntries = new ArrayList();
-		GlobalManager gm = core.getGlobalManager();
-		gm.addListener(gmListener, false);
-
-		List downloadManagers = gm.getDownloadManagers();
-		for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
-			DownloadManager dm = (DownloadManager) iter.next();
-			List entries = registerDM(dm);
-			if (entries != null && entries.size() > 0) {
-				newEntries.addAll(entries);
-			}
-		}
-
-		if (newEntries.size() > 0) {
-			trimReminders(newEntries, false);
-			addEntries((VuzeActivitiesEntry[]) newEntries.toArray(new VuzeActivitiesEntry[0]));
-		}
-
-		try {
-			allEntries_mon.enter();
-
-			trimReminders(allEntries, true);
-		} finally {
-			allEntries_mon.exit();
-		}
 	}
 
 	/**
@@ -263,102 +166,6 @@ public class VuzeActivitiesManager
 				}
 			}
 		});
-	}
-
-	/**
-	 * @param allEntries2
-	 *
-	 * @since 3.0.4.3
-	 */
-	private static void trimReminders(List entries, boolean liveRemove) {
-		List listReminders = new ArrayList();
-		for (Iterator iter = entries.iterator(); iter.hasNext();) {
-			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
-			if (VuzeActivitiesConstants.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
-				listReminders.add(entry);
-			}
-		}
-		if (listReminders.size() > 3) {
-			Collections.sort(listReminders); // will be sorted by date ascending
-			long weekBreak = SystemTime.getCurrentTime() - (WEEK_MS * 4);
-			int numInWeek = 0;
-			for (Iterator iter = listReminders.iterator(); iter.hasNext();) {
-				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
-
-				if (entry.getTimestamp() < weekBreak) {
-					numInWeek++;
-					if (numInWeek > 3) {
-						if (liveRemove) {
-							removeEntries(new VuzeActivitiesEntry[] {
-								entry
-							});
-						} else {
-							entries.remove(entry);
-						}
-					}
-				} else {
-					numInWeek = 1;
-					while (entry.getTimestamp() >= weekBreak) {
-						weekBreak += WEEK_MS;
-					}
-				}
-			}
-		}
-	}
-
-
-	private static List registerDM(DownloadManager dm) {
-		TOTorrent torrent = dm.getTorrent();
-		if (PlatformTorrentUtils.getAdId(torrent) != null) {
-			return null;
-		}
-
-		boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
-
-		List entries = new ArrayList();
-
-		try {
-			if (isContent) {
-				long networkID = PlatformTorrentUtils.getContentNetworkID(torrent);
-				long completedOn = dm.getDownloadState().getLongParameter(
-						DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
-				if (completedOn > 0
-						&& networkID == ConstantsVuze.getDefaultContentNetwork().getID()
-						&& SystemTime.getCurrentTime() - completedOn > RATING_REMINDER_DELAY) {
-					int userRating = PlatformTorrentUtils.getUserRating(torrent);
-					if (userRating < 0) {
-						VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
-						entries.add(entry);
-
-						String hash = torrent.getHashWrapper().toBase32String();
-						String title;
-						ContentNetwork cn = DataSourceUtils.getContentNetwork(dm);
-						if (cn == null) {
-							title = PlatformTorrentUtils.getContentTitle2(dm);
-						} else {
-							String url = cn.getContentDetailsService(hash, "activity-"
-									+ VuzeActivitiesConstants.TYPEID_RATING_REMINDER);
-
-							title = "<A HREF=\"" + url + "\">"
-									+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";
-						}
-						entry.setAssetHash(hash);
-
-						entry.setDownloadManager(dm);
-						entry.setShowThumb(true);
-						entry.setID(hash + ";r" + completedOn);
-						entry.setText("To improve your recommendations, please rate "
-								+ title);
-						entry.setTimestamp(SystemTime.getCurrentTime());
-						entry.setTypeID(VuzeActivitiesConstants.TYPEID_RATING_REMINDER, true);
-					}
-				}
-			}
-		} catch (Throwable t) {
-			// ignore
-		}
-
-		return entries;
 	}
 
 	/**
@@ -403,7 +210,7 @@ public class VuzeActivitiesManager
 	}
 	
 	public static void clearLastPullTimes() {
-		lastNewsAt = new HashMap();
+		lastNewsAt = new HashMap<String, Long>();
 	}
 
 	/**
@@ -436,7 +243,7 @@ public class VuzeActivitiesManager
 		skipAutoSave = true;
 
 		try {
-			Map map = FileUtil.readResilientConfigFile(SAVE_FILENAME);
+			Map<?,?> map = FileUtil.readResilientConfigFile(SAVE_FILENAME);
 
 			long cutoffTime = getCutoffTime();
 
@@ -492,10 +299,6 @@ public class VuzeActivitiesManager
 				VuzeActivitiesEntry entry = createEntryFromMap((Map) value, true);
 
 				if (entry != null) {
-					if (VuzeActivitiesConstants.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
-						entry.setShowThumb(true);
-					}
-
 					if (entry.getTimestamp() > cutoffTime) {
 						entriesToAdd.add(entry);
 					}
@@ -539,8 +342,8 @@ public class VuzeActivitiesManager
 			mapSave.put("entries", entriesList);
 
 			List removedEntriesList = new ArrayList();
-			for (Iterator iter = removedEntries.iterator(); iter.hasNext();) {
-				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
+			for (Iterator<VuzeActivitiesEntry> iter = removedEntries.iterator(); iter.hasNext();) {
+				VuzeActivitiesEntry entry = iter.next();
 				removedEntriesList.add(entry.toDeletedMap());
 			}
 			mapSave.put("removed-entries", removedEntriesList);
@@ -616,8 +419,8 @@ public class VuzeActivitiesManager
 				saveEvents();
 			}
 
-  		for (Iterator iter = existingEntries.iterator(); iter.hasNext();) {
-  			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
+  		for (Iterator<VuzeActivitiesEntry> iter = existingEntries.iterator(); iter.hasNext();) {
+  			VuzeActivitiesEntry entry = iter.next();
   			triggerEntryChanged(entry);
   		}
 		}
@@ -662,8 +465,8 @@ public class VuzeActivitiesManager
 		try {
 			allEntries_mon.enter();
 
-			for (Iterator iter = allEntries.iterator(); iter.hasNext();) {
-				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
+			for (Iterator<VuzeActivitiesEntry> iter = allEntries.iterator(); iter.hasNext();) {
+				VuzeActivitiesEntry entry = iter.next();
 				if (entry == null) {
 					continue;
 				}
@@ -680,7 +483,7 @@ public class VuzeActivitiesManager
 	}
 
 	public static VuzeActivitiesEntry[] getAllEntries() {
-		return (VuzeActivitiesEntry[]) allEntries.toArray(new VuzeActivitiesEntry[allEntries.size()]);
+		return allEntries.toArray(new VuzeActivitiesEntry[allEntries.size()]);
 	}
 	
 	public static int getNumEntries() {
@@ -724,15 +527,7 @@ public class VuzeActivitiesManager
 		VuzeActivitiesEntry entry;
 		String typeID = MapUtils.getMapString(map, "typeID", MapUtils.getMapString(
 				map, "type-id", null));
-		if (VuzeActivitiesConstants.TYPEID_BUDDYREQUEST.equals(typeID)) {
-			entry = new VuzeActivitiesEntryBuddyRequest();
-		} else if (VuzeActivitiesConstants.TYPEID_BUDDYSHARE.equals(typeID)) {
-			entry = new VuzeActivitiesEntryContentShare();
-		} else if (VuzeActivitiesConstants.TYPEID_BUDDYLINKUP.equals(typeID)) {
-			entry = new VuzeActivitiesEntryBuddyLinkup();
-		} else {
-			entry = new VuzeActivitiesEntry();
-		}
+		entry = new VuzeActivitiesEntry();
 		entry.setContentNetworkID(defaultContentNetworkID);
 		if (internalMap) {
 			entry.loadFromInternalMap(map);

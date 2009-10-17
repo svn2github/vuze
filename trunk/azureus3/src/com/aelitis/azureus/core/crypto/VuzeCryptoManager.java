@@ -31,7 +31,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 
-import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -232,7 +231,7 @@ VuzeCryptoManager
 						
 						}catch( Throwable e ){
 							
-							VuzeBuddyManager.log( "CRYPTO: Failed to set default password handler type: " + Debug.getNestedExceptionMessage( e ));
+							Debug.out( "CRYPTO: Failed to set default password handler type: " + Debug.getNestedExceptionMessage( e ));
 						}
 					}
 					
@@ -242,7 +241,7 @@ VuzeCryptoManager
 					
 					COConfigurationManager.save();
 					
-					VuzeBuddyManager.log( "CRYPTO: initialised buddy plugin and default handler type" );
+					Debug.out( "CRYPTO: initialised buddy plugin and default handler type" );
 				}
 			}
 		}

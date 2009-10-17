@@ -25,24 +25,19 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
 
-import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.messenger.PlatformMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformTorrentMessenger;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.torrent.Torrent;
 
 /**
  * @author TuxPaper
@@ -51,13 +46,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
  */
 public class PlatformTorrentUtils
 {
-	private static final long RETRY_METADATA = 10 * 60 * 1000;
-
 	private static final long MIN_SPEED_DEFAULT = 100 * 1024;
-
-	private static final long MIN_MD_REFRESH_MS = 1000 * 60;
-
-	private static final long MAX_MD_REFRESH_MS = 1000L * 60 * 60 * 24 * 30;
 
 	public static final String AELITIS_HOST_CORE	= "aelitis.com";			// needs to be lowercase
 
@@ -86,14 +75,6 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_QUALITY = "Quality";
 
-	private static final String TOR_AZ_PROP_USER_RATING = "UserRating";
-
-	private static final String TOR_AZ_PROP_LASTUPDATED = "Revision Date";
-
-	private static final String TOR_AZ_PROP_CREATIONDATE = "Creation Date";
-
-	private static final String TOR_AZ_PROP_METADATA_REFRESHON = "Refresh On";
-
 	private static final String TOR_AZ_PROP_PROGRESSIVE = "Progressive";
 
 	private static final String TOR_AZ_PROP_SPEED = "Speed Bps";
@@ -115,8 +96,6 @@ public class PlatformTorrentUtils
 	private static final String TOR_AZ_PROP_EXPIRESON = "Expires On";
 	
 	private static final String TOR_AZ_PROP_PRIMARY_FILE = "Primary File Index";
-
-	private static final ArrayList metaDataListeners = new ArrayList(1);
 
 	private static final ArrayList hasBeenOpenedListeners = new ArrayList(1);
 
@@ -410,55 +389,6 @@ public class PlatformTorrentUtils
 		writeTorrentIfExists(torrent);
 	}
 
-	public static void setUserRating(TOTorrent torrent, int rating) {
-		if (torrent == null || getUserRating(torrent) == rating) {
-			return;
-		}
-		Map mapContent = getTempContentMap(torrent);
-		mapContent.put(TOR_AZ_PROP_USER_RATING, new Long(rating));
-		writeTorrentIfExists(torrent);
-		RatingInfoList ratingReply = new SingleUserRatingInfo(torrent);
-		PlatformRatingMessenger.invokeUpdateListeners(ratingReply);
-	}
-
-	public static void removeUserRating(TOTorrent torrent) {
-		Map mapContent = getTempContentMap(torrent);
-		if (mapContent.remove(TOR_AZ_PROP_USER_RATING) != null) {
-			writeTorrentIfExists(torrent);
-			RatingInfoList ratingReply = new SingleUserRatingInfo(torrent);
-			PlatformRatingMessenger.invokeUpdateListeners(ratingReply);
-		}
-	}
-
-	/**
-	 * 
-	 * @param torrent
-	 * @return -1: No rating
-	 */
-	public static int getUserRating(TOTorrent torrent) {
-		Map mapContent = getTempContentMap(torrent);
-		Long l = (Long) mapContent.get(TOR_AZ_PROP_USER_RATING);
-		if (l == null) {
-			return -1;
-		}
-		return l.intValue();
-	}
-
-	public static long getMetaDataRefreshOn(TOTorrent torrent) {
-		Map mapContent = getTempContentMap(torrent);
-		Long l = (Long) mapContent.get(TOR_AZ_PROP_METADATA_REFRESHON);
-		if (l == null) {
-			return 0;
-		}
-		return l.longValue();
-	}
-
-	public static void setMetaDataRefreshOn(TOTorrent torrent, long refreshOn) {
-		Map mapContent = getTempContentMap(torrent);
-		mapContent.put(TOR_AZ_PROP_METADATA_REFRESHON, new Long(refreshOn));
-		writeTorrentIfExists(torrent);
-	}
-
 	public static boolean isContent(TOTorrent torrent,
 			boolean requirePlatformTracker) {
 		if (torrent == null) {
@@ -649,202 +579,6 @@ public class PlatformTorrentUtils
 		putOrRemove(mapContent, TOR_AZ_PROP_AD_ID, sID);
 
 		writeTorrentIfExists(torrent);
-	}
-
-
-	/**
-	 * @param torrent
-	 * @param maxDelayMS TODO
-	 *
-	public static void updateMetaData(final TOTorrent[] torrents, long maxDelayMS) {
-		if (torrents == null) {
-			log("no torrents to update MD on");
-			return;
-		}
-
-		log("update " + torrents.length + " MD");
-
-		PlatformTorrentMessenger.getMetaData(torrents, maxDelayMS,
-				new PlatformTorrentMessenger.GetMetaDataReplyListener() {
-
-			public void messageSent() {
-			}
-
-			public void replyReceived(String replyType, Map mapHashes) {
-				for (Iterator iter = mapHashes.keySet().iterator(); iter.hasNext();) {
-					String hash = (String) iter.next();
-					updateMetaData_handleReply(null, hash, replyType, mapHashes);
-				}
-			}
-		});
-	}
-*/
-	/**
-	 * @param torrent
-	 * @param maxDelayMS TODO
-	 */
-	public static void updateMetaData(final TOTorrent torrent, long maxDelayMS) {
-		if (!isContent(torrent, true)) {
-			log(torrent, "torrent " + new String(torrent.getName())
-					+ " not az content");
-			return;
-		}
-
-		log(torrent, "updateMD");
-
-		PlatformTorrentMessenger.getMetaData(getContentNetworkID(torrent),
-				new TOTorrent[] {
-					torrent
-				}, maxDelayMS, new PlatformTorrentMessenger.GetMetaDataReplyListener() {
-
-					public void messageSent() {
-					}
-
-					public void replyReceived(String replyType, Map mapHashes) {
-						updateMetaData_handleReply(torrent, null, replyType, mapHashes);
-					}
-				});
-	}
-
-	private static void updateMetaData_handleReply(TOTorrent torrent,
-			String hash, String replyType, Map mapHashes) {
-		if (hash == null && torrent != null) {
-			try {
-				hash = torrent.getHashWrapper().toBase32String();
-			} catch (Exception e) {
-			}
-		}
-
-		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-		DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
-
-		if (torrent == null && dm != null) {
-			torrent = dm.getTorrent();
-		}
-		Map contentMap = PlatformTorrentUtils.getContentMap(torrent);
-
-		final TOTorrent torrentFinal = torrent;
-		
-		if (replyType.equals(PlatformMessenger.REPLY_EXCEPTION)) {
-			if (torrent != null) {
-  			// try again in a bit
-  			log(torrent, "Exception, retrying later (~" + RETRY_METADATA + "ms)");
-  			SimpleTimer.addEvent("Update MD Retry", SystemTime.getCurrentTime()
-  					+ RETRY_METADATA, new TimerEventPerformer() {
-  				public void perform(TimerEvent event) {
-  					log(torrentFinal, "retry time");
-  					PlatformTorrentUtils.updateMetaData(torrentFinal, 15000);
-  				}
-  			});
-			}
-		} else {
-			Map jsonMapMetaData = hash == null ? null : (Map) mapHashes.get(hash);
-			if (jsonMapMetaData != null && !jsonMapMetaData.isEmpty()) {
-				long oldLastUpdated = getContentLastUpdated(torrent);
-				long expireyMins = 0;
-
-				for (Iterator iter = jsonMapMetaData.keySet().iterator(); iter.hasNext();) {
-					String key = (String) iter.next();
-					Object value = jsonMapMetaData.get(key);
-
-					if (value == null || value.equals(null)) {
-						contentMap.remove(key);
-					} else if ((key.equals("Thumbnail") || key.endsWith(".B64"))
-							&& value instanceof String) {
-						contentMap.put(key, Base64.decode((String) value));
-					} else if (key.equals("expires-in-mins") && value instanceof Long) {
-						expireyMins = ((Long) value).longValue();
-					} else {
-						contentMap.put(key, value);
-					}
-					writeTorrentIfExists(torrent);
-				}
-
-				// crappy way of updating the display name
-				if (dm != null) {
-					String title = PlatformTorrentUtils.getContentTitle(torrent);
-					if (title != null && title.length() > 0
-							&& dm.getDownloadState().getDisplayName() == null) {
-						dm.getDownloadState().setDisplayName(title);
-					}
-				}
-				triggerMetaDataUpdateListeners(torrent);
-
-				if (torrent != null) {
-					// setup next refresh
-
-  				long refreshOn;
-  				if (expireyMins > 0) {
-  					refreshOn = SystemTime.getCurrentTime() + (expireyMins * 60 * 1000L);
-  				} else {
-  					long newLastUpdated = getContentLastUpdated(torrent);
-  
-  					long diff = newLastUpdated - oldLastUpdated;
-  					log(torrent, "Last Updated: new " + new Date(newLastUpdated)
-  							+ ";old " + new Date(oldLastUpdated) + ";diff=" + diff);
-  					if (diff > 0 && oldLastUpdated != 0) {
-  						diff *= 2;
-  						if (diff < MIN_MD_REFRESH_MS) {
-  							diff = MIN_MD_REFRESH_MS;
-  						} else if (diff > MAX_MD_REFRESH_MS) {
-  							diff = MAX_MD_REFRESH_MS;
-  						}
-  						refreshOn = SystemTime.getOffsetTime(diff);
-  					} else {
-  						refreshOn = SystemTime.getCurrentTime()
-  								+ (7 * 24 * 60 * 60 * 1000L);
-  					}
-  				}
-  
-  				log(torrent, "got MD. Next refresh in "
-  						+ (refreshOn - SystemTime.getCurrentTime()));
-  				setMetaDataRefreshOn(torrent, refreshOn);
-  				SimpleTimer.addEvent("Update MD", refreshOn, new TimerEventPerformer() {
-  					public void perform(TimerEvent event) {
-  						PlatformTorrentUtils.updateMetaData(torrentFinal, 15000);
-  					}
-  				});
-				}
-			} else if (torrent != null) {
-				long refreshOn = SystemTime.getCurrentTime()
-						+ (30 * 24 * 60 * 60 * 1000L);
-				setMetaDataRefreshOn(torrent, refreshOn);
-				log(torrent, "no hash in reply. Next refresh on " + new Date(refreshOn));
-			}
-		}
-	}
-
-	public static void addListener(MetaDataUpdateListener l) {
-		if (metaDataListeners.indexOf(l) < 0) {
-			metaDataListeners.add(l);
-		}
-	}
-
-	public static void removeListener(MetaDataUpdateListener l) {
-		metaDataListeners.remove(l);
-	}
-
-	public static void triggerMetaDataUpdateListeners(TOTorrent torrent) {
-		if (torrent == null) {
-			return;
-		}
-		MetaDataUpdateListener[] listeners = (MetaDataUpdateListener[]) metaDataListeners.toArray(new MetaDataUpdateListener[0]);
-		for (int i = 0; i < listeners.length; i++) {
-			MetaDataUpdateListener listener = listeners[i];
-			try {
-				listener.metaDataUpdated(torrent);
-			} catch (Exception e) {
-				Debug.out(e);
-			}
-		}
-	}
-
-	public static long getContentLastUpdated(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_LASTUPDATED, 0);
-	}
-
-	public static void setContentLastUpdated(TOTorrent torrent, long lastUpdate) {
-		setContentMapLong(torrent, TOR_AZ_PROP_LASTUPDATED, lastUpdate);
 	}
 
 	public static boolean isContentProgressive(TOTorrent torrent) {
