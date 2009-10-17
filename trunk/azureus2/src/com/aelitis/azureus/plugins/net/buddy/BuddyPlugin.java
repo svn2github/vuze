@@ -567,18 +567,6 @@ BuddyPlugin
 				{
 					boolean enabled = enabled_param.getValue();
 
-					if (param != null && !enabled) {
-						UIInstance[] uis = plugin_interface.getUIManager().getUIInstances();
-						if (uis != null && uis.length > 0) {
-							int i = promptUserOnDisable(uis[0]);
-  						if (i != 0) {
-    						enabled_param.setValue(true);
-    						fireEnabledStateChanged();
-  							return;
-  						}
-						}
-					}
-					
 					nick_name_param.setEnabled( enabled );
 					
 						// only toggle overall state on a real change
@@ -674,38 +662,11 @@ BuddyPlugin
 					public void parameterChanged(
 							String parameterName) 
 					{
-						boolean enabled = COConfigurationManager.getBooleanParameter(parameterName);
-						if (enabled) {
-							fireEnabledStateChanged();
-							return;
-						}
-
-						if (promptUserOnDisable(ui) != 0) {
-							plugin_interface.getPluginState().setDisabled(false);
-							plugin_interface.getPluginState().setLoadedAtStartup(true);
-						} else {
-							fireEnabledStateChanged();
-						}
+						fireEnabledStateChanged();
 					}
 				});
 	}
 	
-	protected int
-	promptUserOnDisable(UIInstance ui)
-	{
-		if ("az2".equals(COConfigurationManager.getStringParameter("ui", "az3"))) {
-			return 0;
-		}
-		LocaleUtilities localeUtil = plugin_interface.getUtilities().getLocaleUtilities();
-		return ui.promptUser(
-				localeUtil.getLocalisedMessageText("azbuddy.ui.dialog.disable.title"),
-				localeUtil.getLocalisedMessageText("azbuddy.ui.dialog.disable.text"),
-				new String[] {
-					localeUtil.getLocalisedMessageText("Button.yes"),
-					localeUtil.getLocalisedMessageText("Button.no"),
-				}, 1);
-	}
-
 	public void
 	showConfig()
 	{
