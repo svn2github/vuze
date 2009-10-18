@@ -79,6 +79,13 @@ DeviceManager
 	public DeviceOfflineDownloaderManager
 	getOfflineDownlaoderManager();
 	
+	public boolean
+	isTiVoEnabled();
+	
+	public void
+	setTiVoEnabled(
+		boolean	enabled );
+	
 	public void
 	addListener(
 		DeviceManagerListener		listener );

@@ -402,6 +402,19 @@ DeviceManagerImpl
 		return( upnp_manager );
 	}
 	
+	public boolean
+	isTiVoEnabled()
+	{
+		return( tivo_manager.isEnabled());
+	}
+	
+	public void
+	setTiVoEnabled(
+		boolean	enabled )
+	{
+		tivo_manager.setEnabled( enabled );
+	}
+	
 	public DeviceTemplate[] 
 	getDeviceTemplates(
 		int		device_type )

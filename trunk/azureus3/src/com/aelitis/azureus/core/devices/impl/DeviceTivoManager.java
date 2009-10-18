@@ -26,10 +26,12 @@ import java.io.IOException;
 import java.net.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -58,6 +60,7 @@ DeviceTivoManager
 	private DeviceManagerImpl		device_manager;
 	private PluginInterface 		plugin_interface;
 	
+	private boolean	is_enabled;
 	private String	uid;
 	private String	server_name	= "Vuze";
 	
@@ -77,6 +80,8 @@ DeviceTivoManager
 	{
 		plugin_interface = PluginInitializer.getDefaultInterface();
 
+		is_enabled = COConfigurationManager.getBooleanParameter( "devices.tivo.enabled", true );
+
 		uid = COConfigurationManager.getStringParameter( "devices.tivo.uid", null );
 		
 		if ( uid == null ){
@@ -89,7 +94,7 @@ DeviceTivoManager
 			
 			COConfigurationManager.setParameter( "devices.tivo.uid", uid );
 		}
-		
+				
 			// set up default server name
 		
 		try{
@@ -124,32 +129,61 @@ DeviceTivoManager
 			
 		if ( found_tivo || device_manager.getAutoSearch()){
 			
-			search( found_tivo );
+			search( found_tivo, false );
+		}
+	}
+	
+	protected boolean
+	isEnabled()
+	{
+		return( is_enabled );
+	}
+	
+	protected void
+	setEnabled(
+		boolean	enabled )
+	{
+		COConfigurationManager.setParameter( "devices.tivo.enabled", enabled );
+		
+		if ( enabled ){
+			
+			search( false, true );
+			
+		}else{
+			
+			for ( Device device: device_manager.getDevices()){
+				
+				if ( device instanceof DeviceTivo ){
+		
+					device.remove();
+				}
+			}
 		}
 	}
 	
 	protected void
 	search()
 	{
-		search( false );
+		search( false, false );
 	}
 	
 	protected void
 	search(
-		boolean	persistent )
+		boolean		persistent,
+		boolean		async )
 	{
 		try{
 			synchronized( this ){
 				
 				if ( current_search == null ){
 					
-					current_search = new Searcher( persistent );
+					current_search = new Searcher( persistent, async );
 					
 				}else{
 					
 					if ( !current_search.wakeup()){
 						
-						current_search = new Searcher( persistent );
+						current_search = new Searcher( persistent, async );
 					}
 				}
 			}
@@ -210,29 +244,32 @@ DeviceTivoManager
 		byte[]		buffer,
 		int			length )
 	{
-		try{
-			Map<String,String>	map = decodeBeacon( buffer, length );
+		if ( is_enabled ){
 			
-			String id = map.get( "identity" );
-			
-			if ( id == null || id.equals( uid )){
+			try{
+				Map<String,String>	map = decodeBeacon( buffer, length );
 				
-				return( false );
+				String id = map.get( "identity" );
+				
+				if ( id == null || id.equals( uid )){
+					
+					return( false );
+				}
+				
+				String platform = map.get( "platform" );
+				
+				if ( platform != null && platform.toLowerCase().startsWith( "tcd/")){
+					
+					String classification = "tivo." + platform.substring( 4 ).toLowerCase();
+					
+					foundTiVo( sender, id, classification, (String)map.get( "machine" ));
+					
+					return( true );
+				}
+			}catch( Throwable e ){
+				
+				log( "Failed to decode beacon", e );
 			}
-			
-			String platform = map.get( "platform" );
-			
-			if ( platform != null && platform.toLowerCase().startsWith( "tcd/")){
-				
-				String classification = "tivo." + platform.substring( 4 ).toLowerCase();
-				
-				foundTiVo( sender, id, classification, (String)map.get( "machine" ));
-				
-				return( true );
-			}
-		}catch( Throwable e ){
-			
-			log( "Failed to decode beacon", e );
 		}
 		
 		return( false );
@@ -328,7 +365,8 @@ DeviceTivoManager
 		
 		protected
 		Searcher(
-			boolean	_persistent )
+			boolean		_persistent,
+			boolean		_async )
 		
 			throws DeviceManagerException
 		{
@@ -373,7 +411,7 @@ DeviceTivoManager
 								id = (String)request.getHeaders().get( "tivo_tcd_id" );	
 							}
 							
-							if ( id != null ){
+							if ( id != null && is_enabled ){
 								
 								persistent = true;
 								
@@ -481,10 +519,25 @@ DeviceTivoManager
 					}
 				}.start();
 					
-				start_sem.reserve( 5000 );
+				if ( _async ){
+					
+					new DelayedEvent( 
+						"search:delay", 
+						5000,
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								sendBeacon();
+							}
+						});	
+				}else{
+					
+					start_sem.reserve( 5000 );
 				
-				sendBeacon();
-				
+					sendBeacon();
+				}
 
 				log( "Initiated device search" );
 				
@@ -501,14 +554,17 @@ DeviceTivoManager
 		protected void
 		sendBeacon()
 		{
-			try{
-				byte[] 	bytes = encodeBeacon( true, tcp_port );
+			if ( is_enabled ){
 				
-				control_socket.send( new DatagramPacket( bytes, bytes.length, InetAddress.getByName( "255.255.255.255" ), CONTROL_PORT ));
-				
-			}catch( Throwable e ){
-				
-				log( "Failed to send beacon", e );
+				try{
+					byte[] 	bytes = encodeBeacon( true, tcp_port );
+					
+					control_socket.send( new DatagramPacket( bytes, bytes.length, InetAddress.getByName( "255.255.255.255" ), CONTROL_PORT ));
+					
+				}catch( Throwable e ){
+					
+					log( "Failed to send beacon", e );
+				}
 			}
 		}
 		

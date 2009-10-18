@@ -695,6 +695,25 @@ DeviceManagerUI
 				od_enable, od_auto_enable, od_pt_enable,
 			});
 		
+		final BooleanParameter tivo_enable = 
+			configModel.addBooleanParameter2( 
+				"device.tivo.enable", "device.tivo.enable", false );
+		
+		tivo_enable.setValue(device_manager.isTiVoEnabled());
+		
+		tivo_enable.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					device_manager.setTiVoEnabled( tivo_enable.getValue());
+					
+					rebuildSideBar();
+				}
+			});
+		
 		addAllDevices();
 	
 		setupTranscodeMenus();
