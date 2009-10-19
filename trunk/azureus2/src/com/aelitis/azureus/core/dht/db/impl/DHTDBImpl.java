@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -127,8 +128,11 @@ DHTDBImpl
 	private static final boolean	SURVEY_ONLY_RF_KEYS	= true;
 	
 	
-	private static final int	SURVEY_PERIOD			= DEBUG_SURVEY?1*60*1000:5*60*1000;
-	private static final int	SURVEY_STATE_TIMEOUT	= SURVEY_PERIOD*6; 
+	private static final int	SURVEY_PERIOD					= DEBUG_SURVEY?1*60*1000:5*60*1000;
+	private static final int	SURVEY_STATE_INACT_TIMEOUT		= SURVEY_PERIOD*6; 
+	private static final int	SURVEY_STATE_MAX_LIFE_TIMEOUT	= 3*60*60*1000 + 30*60*1000;
+	private static final int	SURVEY_STATE_MAX_LIFE_RAND		= 1*60*60*1000;
+	
 	private static final int	MAX_SURVEY_SIZE			= 100;
 	private static final int	MAX_SURVEY_STATE_SIZE	= 150;
 	
@@ -1713,7 +1717,7 @@ DHTDBImpl
 			
 			while( s_it.hasNext()){
 				
-				if ( now - s_it.next().getLastUseTime() > SURVEY_STATE_TIMEOUT ){
+				if ( s_it.next().timeout( now )){
 					
 					s_it.remove();
 				}
@@ -2587,6 +2591,8 @@ DHTDBImpl
 							}
 						}
 						
+						final byte[] key = mapping.getKey().getBytes();
+						
 						Collections.sort(
 							potential_targets,
 							new Comparator<SurveyContactState>()
@@ -2601,19 +2607,31 @@ DHTDBImpl
 									
 									if ( o1_bad == o2_bad ){
 										
-										long res = o2.getCreationTime() - o1.getCreationTime();
-							
-										if ( res < 0 ){
+											// switch from age based to closest as per Roxana's advice
+										
+										if ( false ){
 											
-											return( -1 );
-											
-										}else if ( res > 0 ){
-											
-											return( 1 );
-											
+											long res = o2.getCreationTime() - o1.getCreationTime();
+								
+											if ( res < 0 ){
+												
+												return( -1 );
+												
+											}else if ( res > 0 ){
+												
+												return( 1 );
+												
+											}else{
+												
+												return( 0 );
+											}
 										}else{
 											
-											return( 0 );
+											return(
+												control.computeAndCompareDistances(
+														o1.getContact().getID(),
+														o2.getContact().getID(),
+														key ));
 										}
 									}else{
 								
@@ -3589,7 +3607,10 @@ DHTDBImpl
 	SurveyContactState
 	{
 		private DHTTransportContact		contact;
+		
 		private long					creation_time	= SystemTime.getMonotonousTime();
+		private long					timeout			= creation_time + SURVEY_STATE_MAX_LIFE_TIMEOUT + RandomUtils.nextInt( SURVEY_STATE_MAX_LIFE_RAND );
+		
 		private long					last_used		= creation_time;
 		
 		private Set<DHTDBMapping>		mappings = new HashSet<DHTDBMapping>();
@@ -3603,6 +3624,13 @@ DHTDBImpl
 			contact = c;
 			
 			log( "new" );
+		}
+		
+		protected boolean
+		timeout(
+			long	now )
+		{
+			 return( now - last_used > SURVEY_STATE_INACT_TIMEOUT || now > timeout );
 		}
 		
 		protected DHTTransportContact
