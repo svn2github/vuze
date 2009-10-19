@@ -43,7 +43,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 public class CommentIconItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener, TableCellMouseListener, TableCellAddedListener
+       implements TableCellRefreshListener, TableCellMouseListener, TableCellAddedListener, TableCellToolTipListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
@@ -106,15 +106,26 @@ public class CommentIconItem
 	  Graphic oldGraphic = cell.getGraphic();
 	  if (comment == null && oldGraphic != noGraphicComment) {
 	  	cell.setGraphic(noGraphicComment);
-		  cell.setToolTip(null);
 		  cell.setSortValue(null);
 	  }
 	  else if (comment != null && oldGraphic != graphicComment) {
 	  	cell.setGraphic(graphicComment);
-		  cell.setToolTip(comment);
 		  cell.setSortValue(comment);
 	  }
 	  
   }
 
+  public void cellHover(TableCell cell) {
+	  DownloadManager dm = (DownloadManager)cell.getDataSource();
+	  String comment = null;
+	  if (dm != null) {
+		  comment = dm.getDownloadState().getUserComment();
+		  if (comment!=null && comment.length()==0) {comment = null;}
+	  }
+	  cell.setToolTip(comment);
+  }
+  
+  public void cellHoverComplete(TableCell cell) {
+	  cell.setToolTip(null);
+  }
 }
