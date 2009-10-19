@@ -1731,12 +1731,7 @@ DHTDBImpl
 					
 					continue;
 				}
-				
-				if ( mapping.getIndirectValueCount()== 0 ){ 
-					
-					continue;
-				}
-				
+								
 				if ( SURVEY_ONLY_RF_KEYS ){
 					
 					Iterator<DHTDBValueImpl>	it2 = mapping.getValues();
@@ -1996,12 +1991,7 @@ DHTDBImpl
 						
 						continue;
 					}
-					
-					if ( mapping.getIndirectValueCount()== 0 ){ 
-						
-						 continue;
-					}
-					
+										
 					if ( SURVEY_ONLY_RF_KEYS ){
 						
 						Iterator<DHTDBValueImpl>	it2 = mapping.getValues();
@@ -2548,7 +2538,7 @@ DHTDBImpl
 					copies = t[0];
 				}
 								
-				Iterator<DHTDBValueImpl> values = mapping.getIndirectValues();
+				Iterator<DHTDBValueImpl> values = mapping.getValues();
 				
 				if ( values.hasNext()){
 				
