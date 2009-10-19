@@ -369,6 +369,15 @@ public class MainWindow
 							minimizeToTray(event);
 						}
 					}
+					
+					public void shellActivated(ShellEvent e) {
+						Shell shellAppModal = Utils.findFirstShellWithStyle(SWT.APPLICATION_MODAL);
+						if (shellAppModal != null) {
+							shellAppModal.forceActive();
+						} else {
+							shell.forceActive();
+						}
+					}
 
 					public void shellDeiconified(ShellEvent e) {
 						if (Constants.isOSX
