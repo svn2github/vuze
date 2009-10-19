@@ -53,8 +53,6 @@ public class PlatformConfigMessenger
 
 	private static boolean sendStats = true;
 
-	protected static long buddySyncOnShareMinTime;
-
 	private static boolean doUrlQOS = false;
 	
 	private static boolean platformLoginComplete = false;
@@ -153,8 +151,6 @@ public class PlatformConfigMessenger
 				} catch (Exception e) {
 				}
 				
-				buddySyncOnShareMinTime = MapUtils.getMapLong(reply, "buddy-sync-on-share-min-time-secs", 60000);
-
 				try {
   				iRPCVersion = MapUtils.getMapInt(reply, "rpc-version", 0);
   				playAfterURL = (String) MapUtils.getMapString(reply,
@@ -229,14 +225,6 @@ public class PlatformConfigMessenger
 
 	public static boolean allowSendStats() {
 		return sendStats;
-	}
-
-	public static long getBuddySyncOnShareMinTimeSecs() {
-		return buddySyncOnShareMinTime;
-	}
-
-	public static void setBuddySyncOnShareMinTimeSecs(long buddySyncOnShareMinTime) {
-		PlatformConfigMessenger.buddySyncOnShareMinTime = buddySyncOnShareMinTime;
 	}
 
 	/**

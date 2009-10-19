@@ -44,8 +44,6 @@ public class
 DownloadManagerEnhancer 
 {
 	public static final int	TICK_PERIOD				= 1000;
-	public static final int	PUBLISHING_CHECK_PERIOD	= 15000;
-	public static final int	PUBLISHING_CHECK_TICKS	= PUBLISHING_CHECK_PERIOD / TICK_PERIOD;
 	
 	private static DownloadManagerEnhancer		singleton;
 	
@@ -244,8 +242,6 @@ DownloadManagerEnhancer
 					{
 						tick_count++;
 						
-						boolean	check_publish = tick_count % PUBLISHING_CHECK_TICKS == 0;
-						
 						List	downloads = core.getGlobalManager().getDownloadManagers();
 						
 						for ( int i=0;i<downloads.size();i++){
@@ -264,11 +260,6 @@ DownloadManagerEnhancer
 								
 								edm.updateStats( tick_count );
 							
-								if ( 	state == DownloadManager.STATE_SEEDING &&
-										check_publish ){
-											
-									edm.checkPublishing();
-								}
 							}
 						}
 					}

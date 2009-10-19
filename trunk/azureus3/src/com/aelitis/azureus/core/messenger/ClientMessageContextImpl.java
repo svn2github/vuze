@@ -25,8 +25,6 @@ import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
-import com.aelitis.azureus.core.messenger.browser.BrowserTransaction;
-import com.aelitis.azureus.core.messenger.browser.BrowserTransactionManager;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.util.ConstantsVuze;
 
@@ -42,12 +40,9 @@ public abstract class ClientMessageContextImpl
 
 	private BrowserMessageDispatcher dispatcher;
 
-	private BrowserTransactionManager txnManager;
-
 	public ClientMessageContextImpl(String id, BrowserMessageDispatcher dispatcher) {
 		this.id = id;
 		this.dispatcher = dispatcher;
-		this.txnManager = new BrowserTransactionManager(this);
 	}
 
 	public void addMessageListener(BrowserMessageListener listener) {
@@ -57,10 +52,6 @@ public abstract class ClientMessageContextImpl
 			debug("No dispatcher when trying to add MessageListener "
 					+ listener.getId() + ";" + Debug.getCompressedStackTrace());
 		}
-	}
-
-	public BrowserTransaction cancelTransaction(String type) {
-		return txnManager.cancelTransaction(type);
 	}
 
 	public void debug(String message) {
@@ -81,18 +72,6 @@ public abstract class ClientMessageContextImpl
 		}
 	}
 
-	public BrowserTransaction getTransaction(String type) {
-		return txnManager.getTransaction(type);
-	}
-
-	public BrowserTransactionManager getTransactionManager() {
-		return txnManager;
-	}
-
-	public void registerTransactionType(String type, Class clazz) {
-		txnManager.registerTransactionType(type, clazz);
-	}
-
 	public void removeMessageListener(String listenerId) {
 		if (dispatcher != null) {
 			dispatcher.removeListener(listenerId);
@@ -109,10 +88,6 @@ public abstract class ClientMessageContextImpl
 			debug("No dispatcher when trying to remove MessageListener "
 					+ listener.getId() + ";" + Debug.getCompressedStackTrace());
 		}
-	}
-
-	public BrowserTransaction startTransaction(String type) {
-		return txnManager.startTransaction(type);
 	}
 
 	public BrowserMessageDispatcher getDispatcher() {

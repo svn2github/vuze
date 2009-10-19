@@ -31,17 +31,12 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
-import com.aelitis.azureus.ui.skin.SkinConstants;
 
 public class 
 NavigationHelper 
 {
 	public static final int COMMAND_SWITCH_TO_TAB	= 1;
 	public static final int COMMAND_CONDITION_CHECK	= 2;
-	public static final int COMMAND_BUDDY_SYNC	= 3;
-	
-	public static final String COMMAND_CHECK_BUDDY_MANAGER			= "buddy-manager";
-	public static final String COMMAND_CHECK_BUDDY_MANAGER_ENABLED	= "enabled";
 	
 		
 	private static CopyOnWriteList	listeners = new CopyOnWriteList();
@@ -243,9 +238,6 @@ NavigationHelper
 			commands.add( command3 );
 			
 			List	l_args3 = new ArrayList();
-			
-			l_args3.add( COMMAND_CHECK_BUDDY_MANAGER );
-			l_args3.add( COMMAND_CHECK_BUDDY_MANAGER_ENABLED );
 			
 			command3.put( "type", new Long( COMMAND_CONDITION_CHECK ));
 			command3.put( "args", l_args3 );

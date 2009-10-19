@@ -268,40 +268,7 @@ public class MainWindow
 
 					throws GlobalManagerDownloadRemovalVetoException {
 				TOTorrent torrent = dm.getTorrent();
-				if (PublishUtils.isPublished(dm)) {
-					String title = MessageText.getString("v3.mb.delPublished.title");
-
-					ContentNetwork cn = DataSourceUtils.getContentNetwork(torrent);
-					if (cn == null) {
-						return;
-					}
-
-					String site = ContentNetworkUtils.getUrl(cn,
-							ContentNetwork.SERVICE_SITE);
-
-					String site_host = (String) cn.getProperty(ContentNetwork.PROPERTY_SITE_HOST);
-
-					String text = MessageText.getString("v3.mb.delPublished.text",
-							new String[] {
-								dm.getDisplayName(),
-								site,
-								site_host,
-								ContentNetworkUtils.getUrl(cn,
-										ContentNetwork.SERVICE_PUBLISH_ABOUT)
-							});
-
-					MessageBoxShell mb = new MessageBoxShell(shell, title, text,
-							new String[] {
-								MessageText.getString("v3.mb.delPublished.delete"),
-								MessageText.getString("v3.mb.delPublished.cancel")
-							}, 1);
-					mb.setRelatedObject(dm);
-
-					int result = mb.open();
-					if (result != 0) {
-						throw new GlobalManagerDownloadRemovalVetoException("", true);
-					}
-				} else if (PlatformTorrentUtils.isContentDRM(torrent) && remove_data) {
+				if (PlatformTorrentUtils.isContentDRM(torrent) && remove_data) {
 
 					String prefix = "v3.mb.deletePurchased.";
 					String title = MessageText.getString(prefix + "title");
@@ -441,33 +408,10 @@ public class MainWindow
 			}
 		}
 
-		try {
-			DCAdManager.getInstance().initialize(core);
-		} catch (Throwable e) {
-		}
-
 		StimulusRPC.hookListeners(core, this);
 
 		uiSWTInstanceImpl = new UISWTInstanceImpl(core);
 		uiSWTInstanceImpl.init(uiInitializer);
-
-		PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
-				"azbpstartstoprules");
-		if (pi != null) {
-			// plugin is built in, so instead of using IPC, just cast it
-			StartStopRulesDefaultPlugin plugin = (StartStopRulesDefaultPlugin) pi.getPlugin();
-			plugin.addListener(new StartStopRulesFPListener() {
-				public boolean isFirstPriority(Download dl, int numSeeds, int numPeers,
-						StringBuffer debug) {
-					// FP while our content doesn't have another seed
-					boolean b = dl.getState() == Download.ST_SEEDING && numSeeds == 0
-							&& dl.getStats().getAvailability() < 2
-							&& PublishUtils.isPublished(dl); // do last as most costly
-
-					return b;
-				}
-			});
-		}
 
 		VuzeActivitiesManager.initialize(core);
 
@@ -505,40 +449,7 @@ public class MainWindow
 
 					throws GlobalManagerDownloadRemovalVetoException {
 				TOTorrent torrent = dm.getTorrent();
-				if (PublishUtils.isPublished(dm)) {
-					String title = MessageText.getString("v3.mb.delPublished.title");
-
-					ContentNetwork cn = DataSourceUtils.getContentNetwork(torrent);
-					if (cn == null) {
-						return;
-					}
-
-					String site = ContentNetworkUtils.getUrl(cn,
-							ContentNetwork.SERVICE_SITE);
-
-					String site_host = (String) cn.getProperty(ContentNetwork.PROPERTY_SITE_HOST);
-
-					String text = MessageText.getString("v3.mb.delPublished.text",
-							new String[] {
-								dm.getDisplayName(),
-								site,
-								site_host,
-								ContentNetworkUtils.getUrl(cn,
-										ContentNetwork.SERVICE_PUBLISH_ABOUT)
-							});
-
-					MessageBoxShell mb = new MessageBoxShell(shell, title, text,
-							new String[] {
-								MessageText.getString("v3.mb.delPublished.delete"),
-								MessageText.getString("v3.mb.delPublished.cancel")
-							}, 1);
-					mb.setRelatedObject(dm);
-
-					int result = mb.open();
-					if (result != 0) {
-						throw new GlobalManagerDownloadRemovalVetoException("", true);
-					}
-				} else if (PlatformTorrentUtils.isContentDRM(torrent) && remove_data) {
+				if (PlatformTorrentUtils.isContentDRM(torrent) && remove_data) {
 
 					String prefix = "v3.mb.deletePurchased.";
 					String title = MessageText.getString(prefix + "title");
@@ -675,11 +586,6 @@ public class MainWindow
 									ManagerUtils.remove(dm, null, true, true);
 								}
 							});
-				}
-
-				if (PublishUtils.isPublished(dm)
-						&& dm.getStats().getShareRatio() < 1000 && !dm.isForceStart()) {
-					dm.setForceStart(true);
 				}
 			} // isContent
 		}
@@ -907,11 +813,6 @@ public class MainWindow
 			startTime = SystemTime.getCurrentTime();
 
 			if (core != null) {
-				try {
-					DCAdManager.getInstance().initialize(core);
-				} catch (Throwable e) {
-				}
-
 				StimulusRPC.hookListeners(core, this);
 			}
 
@@ -971,37 +872,6 @@ public class MainWindow
 			increaseProgress(uiInitializer, "splash.initializeGui");
 			startTime = SystemTime.getCurrentTime();
 
-			if (core != null) {
-				PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
-						"azbpstartstoprules");
-				if (pi != null) {
-					// plugin is built in, so instead of using IPC, just cast it
-					StartStopRulesDefaultPlugin plugin = (StartStopRulesDefaultPlugin) pi.getPlugin();
-					plugin.addListener(new StartStopRulesFPListener() {
-						public boolean isFirstPriority(Download dl, int numSeeds,
-								int numPeers, StringBuffer debug) {
-							// FP while our content doesn't have another seed
-							boolean b = dl.getState() == Download.ST_SEEDING && numSeeds == 0
-									&& dl.getStats().getAvailability() < 2
-									&& PublishUtils.isPublished(dl); // do last as most costly
-
-							return b;
-						}
-					});
-				}
-			}
-
-			ManagerUtils.setRunRunnable(new RunDownloadManager() {
-				public void run(DownloadManager dm) {
-					TOTorrent torrent = dm.getTorrent();
-					if (PlatformTorrentUtils.isContent(torrent, true)
-							&& PlatformTorrentUtils.isContentAdEnabled(torrent)) {
-						TorrentListViewsUtils.playOrStream(dm);
-					} else {
-						Utils.launch(dm.getSaveLocation().toString());
-					}
-				}
-			});
 		} catch (Throwable t) {
 			Debug.out(t);
 		} finally {
@@ -1073,13 +943,6 @@ public class MainWindow
 									uif.bringToFront();
 								}
 							} else if (type == NavigationHelper.COMMAND_CONDITION_CHECK) {
-
-								if (args[0].equals(NavigationHelper.COMMAND_CHECK_BUDDY_MANAGER)) {
-
-									if (args[1].equals(NavigationHelper.COMMAND_CHECK_BUDDY_MANAGER_ENABLED)) {
-
-									}
-								}
 							}
 						}
 					});

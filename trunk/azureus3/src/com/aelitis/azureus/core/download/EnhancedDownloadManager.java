@@ -37,26 +37,9 @@ import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
-import org.gudy.azureus2.core3.peer.PEPeerStats;
-import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
-import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.RealTimeInfo;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.peers.PeerManager;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 import com.aelitis.azureus.core.peer.cache.CachePeer;
@@ -71,7 +54,13 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedManualPeer;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.DownloadUtils;
-import com.aelitis.azureus.util.PublishUtils;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.peers.PeerManager;
+
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 public class 
 EnhancedDownloadManager 
@@ -1082,8 +1071,7 @@ EnhancedDownloadManager
 						continue;
 					}
 
-					if (!dmCheck.isDownloadComplete(false)
-							&& PlatformTorrentUtils.getAdId(dmCheck.getTorrent()) == null) {
+					if (!dmCheck.isDownloadComplete(false)) {
 						int state = dmCheck.getState();
 						if (state == DownloadManager.STATE_DOWNLOADING
 								|| state == DownloadManager.STATE_QUEUED) {
@@ -1281,100 +1269,7 @@ EnhancedDownloadManager
 			}
 		}
 	}
-	
-	protected void
-	checkPublishing()
-	{
-		if ( publish_handling_complete ){
-			
-			return;
-		}
-		
-		if ( PublishUtils.isPublished( download_manager )){
-			
-			if ( PublishUtils.isPublishComplete( download_manager )){
-				
-				publish_handling_complete = true;
-				
-			}else{
-				
-				TRTrackerScraperResponse scrape = download_manager.getTrackerScrapeResponse();
-				
-				if ( scrape == null || scrape.getStatus() != TRTrackerScraperResponse.ST_ONLINE ){
-					
-					return;
-				}
-				
-				if ( scrape.getSeeds() >= 2 ){
-									
-					PublishUtils.setPublishComplete( download_manager );
-					
-					publish_handling_complete = true;
-					
-				}else{
-					
-					PEPeerManager pm = download_manager.getPeerManager();
-				
-					if ( pm != null ){
-				
-						long	now = SystemTime.getCurrentTime();
-						
-						long	pub_sent = download_manager.getStats().getTotalDataBytesSent();
-						
-						if ( pub_sent != publish_sent ){
-							
-							publish_sent = pub_sent;
-						
-							publish_sent_time = now;
-						}
-						
-						if ( publish_sent_time > now ){
-							
-							publish_sent_time = now;
-						}
-						
-						if ( now - publish_sent_time > STALLED_TIMEOUT ){
-							
-							publish_sent_time = now;
-							
-							log( "Publish: upload stalled - switching transports" );
-							
-								// no data uploded recently. 
-							
-							pm.setPreferUDP( !pm.getPreferUDP());
-							
-							List peers = pm.getPeers();
-							
-							for (int i=0;i<peers.size();i++){
-								
-								PEPeer peer = (PEPeer)peers.get(i);
-								
-								pm.removePeer( peer, "Transport switch" );
-							}
-							
-							download_manager.requestTrackerAnnounce( true );					
 
-						}else if ( pm.getNbPeers() == 0 ){
-									
-							log( "Publish: no connected peers, forcing announce" );
-							
-							download_manager.requestTrackerAnnounce( true );					
-						}
-					}
-				}
-			}		
-		}else{
-			
-				// we've only got to handle the possible small delay here between a download being
-				// added and the flag being set
-			
-			if ( SystemTime.getCurrentTime() - time_download_started > 120*1000 ){
-				
-				publish_handling_complete = true;
-			}
-		}
-	}
-	
 	public DiskManagerFileInfo
 	getPrimaryFile()
 	{

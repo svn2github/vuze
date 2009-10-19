@@ -11,7 +11,6 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.drm.msdrm.LicenseAquirer;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -42,28 +41,6 @@ public class DebugMenuHelper
 			throw new IllegalStateException(
 					"UIFunctionsManagerSWT.getUIFunctionsSWT() is returning null");
 		}
-		
-		item = new MenuItem(menuDebug, SWT.CASCADE);
-		item.setText("DRM");
-		item.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				final Shell shell = new Shell(Utils.findAnyShell());
-				//shell.setLayout(new FillLayout());
-				shell.open();
-				final LicenseAquirer la = new LicenseAquirer(shell);
-				Thread t = new Thread() {
-					public void run() {
-						try {
-							la.aquireLicenseFor("SNWEAY7K6RJPAJF2HD52BEX27ERKJXAO");
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				};
-				t.setDaemon(true);
-				t.start();
-			}
-		});
 		
 		item = new MenuItem(menuDebug, SWT.CASCADE);
 		item.setText("Run GC");

@@ -731,9 +731,6 @@ public class ToolBarView
 
 						canRun = false;
 
-					} else if (PlatformTorrentUtils.getAdId(torrent) != null) {
-
-						canRun = false;
 					}
 				}
 			}

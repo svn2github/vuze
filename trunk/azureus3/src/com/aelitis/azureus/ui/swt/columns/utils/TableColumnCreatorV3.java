@@ -51,7 +51,8 @@ public class TableColumnCreatorV3
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		Map mapTCs = tcManager.getTableColumnsAsMap(Download.class, tableID);
+		Map<String, TableColumnCore> mapTCs = tcManager.getTableColumnsAsMap(
+				Download.class, tableID);
 
 		if (!tcManager.loadTableColumnSettings(Download.class, tableID)
 				|| areNoneVisible(mapTCs)) {
@@ -88,7 +89,7 @@ public class TableColumnCreatorV3
 			}
 		}
 
-		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
+		return mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
 	public static TableColumnCore[] createIncompleteDM(String tableID, boolean big) {
@@ -104,8 +105,8 @@ public class TableColumnCreatorV3
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class,
-				tableID);
+		Map<String, TableColumnCore> mapTCs = tcManager.getTableColumnsAsMap(
+				DownloadTypeIncomplete.class, tableID);
 
 		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
 				tableID)
@@ -143,7 +144,7 @@ public class TableColumnCreatorV3
 			}
 		}
 
-		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
+		return mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
 	/**
@@ -363,11 +364,10 @@ public class TableColumnCreatorV3
 		TableColumnCreator.initCoreColumns();
 
 		// short variable names to reduce wrapping
-		final Map c = new LightHashMap(7);
+		final Map<String, cInfo> c = new LightHashMap<String, cInfo>(7);
 
 		c.put(ColumnUnopened.COLUMN_ID, new cInfo(ColumnUnopened.class, ColumnUnopened.DATASOURCE_TYPE));
 		//c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, ColumnThumbnail.DATASOURCE_TYPE));
-		c.put(ColumnVideoLength.COLUMN_ID, new cInfo(ColumnVideoLength.class, ColumnVideoLength.DATASOURCE_TYPE));
 		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, DateAddedItem.DATASOURCE_TYPE));
 		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, DateCompletedItem.DATASOURCE_TYPE));
 		c.put(ColumnProgressETA.COLUMN_ID, new cInfo(ColumnProgressETA.class, ColumnProgressETA.DATASOURCE_TYPE));
@@ -404,7 +404,7 @@ public class TableColumnCreatorV3
 			// @see org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener#createTableColumnCore(java.lang.Class, java.lang.String, java.lang.String)
 			public TableColumnCore createTableColumnCore(Class forDataSourceType,
 					String tableID, String columnID) {
-				cInfo info = (cInfo) c.get(columnID);
+				cInfo info = c.get(columnID);
 
 				try {
 					Constructor constructor = info.cla.getDeclaredConstructor(new Class[] {
@@ -425,9 +425,9 @@ public class TableColumnCreatorV3
 			}
 		};
 
-		for (Iterator iter = c.keySet().iterator(); iter.hasNext();) {
-			String id = (String) iter.next();
-			cInfo info = (cInfo) c.get(id);
+		for (Iterator<String> iter = c.keySet().iterator(); iter.hasNext();) {
+			String id = iter.next();
+			cInfo info = c.get(id);
 
 			for (int i = 0; i < info.forDataSourceTypes.length; i++) {
 				Class cla = info.forDataSourceTypes[i];

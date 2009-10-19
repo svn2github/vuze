@@ -23,10 +23,7 @@ package com.aelitis.azureus.core.messenger;
 import java.util.Collection;
 import java.util.Map;
 
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
-import com.aelitis.azureus.core.messenger.browser.BrowserTransaction;
-import com.aelitis.azureus.core.messenger.browser.BrowserTransactionManager;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 
 /**
@@ -41,16 +38,6 @@ public interface ClientMessageContext
 	public abstract void removeMessageListener(String listenerId);
 
 	public abstract void removeMessageListener(BrowserMessageListener listener);
-
-	public abstract BrowserTransactionManager getTransactionManager();
-
-	public abstract void registerTransactionType(String type, Class clazz);
-
-	public abstract BrowserTransaction getTransaction(String type);
-
-	public abstract BrowserTransaction startTransaction(String type);
-
-	public abstract BrowserTransaction cancelTransaction(String type);
 
 	public abstract Object getBrowserData(String key);
 

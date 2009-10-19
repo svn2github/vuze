@@ -39,8 +39,7 @@ public class MyTorrentsView_Big
 	
 
 	public boolean isOurDownloadManager(DownloadManager dm) {
-		if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null ||
-				PlatformTorrentUtils.isUpdateDM(dm)) {
+		if (PlatformTorrentUtils.isUpdateDM(dm)) {
 			return false;
 		}
 		

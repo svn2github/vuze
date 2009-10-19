@@ -53,7 +53,7 @@ import com.aelitis.azureus.util.UrlFilter;
 
 /**
  * Manages the context for a single SWT {@link Browser} component,
- * including transactions, listeners and messages.
+ * including listeners and messages.
  * 
  * @author dharkness
  * @created Jul 19, 2006

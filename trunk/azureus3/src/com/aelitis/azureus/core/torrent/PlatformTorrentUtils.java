@@ -89,22 +89,16 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_CONTENT_NETWORK = "Content Network";
 		
-	private static final String TOR_AZ_PROP_AD_ID = "Ad ID";
-
-	private static final String TOR_AZ_PROP_AD_ENABLED = "Ad Enabled";
-
 	private static final String TOR_AZ_PROP_EXPIRESON = "Expires On";
 	
 	private static final String TOR_AZ_PROP_PRIMARY_FILE = "Primary File Index";
 
-	private static final ArrayList hasBeenOpenedListeners = new ArrayList(1);
+	private static final ArrayList<HasBeenOpenedListener> hasBeenOpenedListeners = new ArrayList<HasBeenOpenedListener>(1);
 
 	private static final String TOR_AZ_PROP_USE_EMP = "useEMP";
 	
 	private static final String TOR_AZ_PROP_FILE_METADATA = "File MetaData";
 	
-	private static final String TOR_AZ_PROP_WEB_AD_ENABLED = "Web Ad Enabled";
-
 	private static final String TOR_AZ_PROP_VIDEO_WIDTH = "Video Width";
 
 	private static final String TOR_AZ_PROP_VIDEO_HEIGHT = "Video Height";
@@ -113,7 +107,7 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_OPENED = "Opened";
 
-	private static ArrayList listPlatformHosts = null;
+	private static ArrayList<String> listPlatformHosts = null;
 
 	private static final Map mapPlatformTrackerTorrents = new WeakHashMap();
 
@@ -411,9 +405,9 @@ public class PlatformTorrentUtils
 		return false;
 	}
 
-	public static List getPlatformHosts() {
+	public static List<String> getPlatformHosts() {
 		if (listPlatformHosts == null) {
-			listPlatformHosts = new ArrayList();
+			listPlatformHosts = new ArrayList<String>();
 			for (int i = 0; i < Constants.AZUREUS_DOMAINS.length; i++) {
 				listPlatformHosts.add(Constants.AZUREUS_DOMAINS[i].toLowerCase());
 			}
@@ -422,7 +416,7 @@ public class PlatformTorrentUtils
 	}
 
 	public static void addPlatformHost(String host) {
-		List platformHosts = getPlatformHosts();
+		List<String> platformHosts = getPlatformHosts();
 		host = host.toLowerCase();
 
 		if (!platformHosts.contains(host)) {
@@ -570,17 +564,6 @@ public class PlatformTorrentUtils
 		return isUpdate;
 	}
 
-	public static String getAdId(TOTorrent torrent) {
-		return getContentMapString(torrent, TOR_AZ_PROP_AD_ID);
-	}
-
-	public static void setAdId(TOTorrent torrent, String sID) {
-		Map mapContent = getContentMap(torrent);
-		putOrRemove(mapContent, TOR_AZ_PROP_AD_ID, sID);
-
-		writeTorrentIfExists(torrent);
-	}
-
 	public static boolean isContentProgressive(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_PROGRESSIVE, 0) == 1;
 	}
@@ -591,24 +574,6 @@ public class PlatformTorrentUtils
 
 	public static long getContentMinimumSpeedBps(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_MIN_SPEED, MIN_SPEED_DEFAULT);
-	}
-
-	/**
-	 * If either Ad Enabled or Web Ad Enabled is set return true.
-	 * @param torrent
-	 * @return - boolean - true if EITHER "Ad Enabled"==1  OR  "Web Ad Enabled"==1
-	 */
-	public static boolean isContentAdEnabled(TOTorrent torrent) {
-		return (getContentMapLong(torrent, TOR_AZ_PROP_AD_ENABLED, 0) == 1 ||
-				getContentMapLong(torrent, TOR_AZ_PROP_WEB_AD_ENABLED, 0) == 1);
-	}
-
-	public static boolean isContentUnitAdEnabled(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_WEB_AD_ENABLED, 0) == 1;
-	}
-
-	public static boolean isContentWebAdEnabled(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_WEB_AD_ENABLED, 0) == 1;
 	}
 
 	public static boolean useEMP(TOTorrent torrent) {
@@ -634,12 +599,6 @@ public class PlatformTorrentUtils
 			return 0;
 		}
 		return l.longValue();
-	}
-
-	public static void setExpiresOn(TOTorrent torrent, long expiresOn) {
-		Map mapContent = getContentMap(torrent);
-		mapContent.put(TOR_AZ_PROP_EXPIRESON, new Long(expiresOn));
-		writeTorrentIfExists(torrent);
 	}
 
 	public static int getContentPrimaryFileIndex(TOTorrent torrent ){
@@ -761,10 +720,10 @@ public class PlatformTorrentUtils
 			return true;
 		}
 		boolean opened = getContentMapLong(torrent, TOR_AZ_PROP_OPENED, -1) > 0;
-		if (opened || getAdId(torrent) != null || isUpdateDM(dm)) {
+		if (opened || isUpdateDM(dm)) {
 			return true;
 		}
-		
+
 		return false;
 	}
 

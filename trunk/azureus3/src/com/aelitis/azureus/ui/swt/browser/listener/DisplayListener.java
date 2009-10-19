@@ -66,15 +66,11 @@ public class DisplayListener
 
 	public static final String VZ_NON_ACTIVE = "vz-non-active";
 
-	public static final String OP_INVITE_FRIEND = "invite";
-
 	public static final String OP_SET_SELECTED_CONTENT = "set-selected-content";
 
 	public static final String OP_GET_SELECTED_CONTENT = "get-selected-content";
 
 	public static final String OP_SHOW_DONATION_WINDOW = "show-donation-window";
-
-	public static final String OP_INVITE_FRIEND_PARAM_MESSAGE = "message";
 
 	public static final String OP_OPEN_SEARCH = "open-search";
 

@@ -200,6 +200,9 @@ public class VuzeActivitiesManager
 			long lastPullTime = oLastPullTime != null ? oLastPullTime.longValue() : 0;
 			long now = SystemTime.getCurrentTime();
 			long diff = now - lastPullTime;
+			if (diff < 5000) {
+				return;
+			}
 			if (diff > MAX_LIFE_MS) {
 				diff = MAX_LIFE_MS;
 			}
