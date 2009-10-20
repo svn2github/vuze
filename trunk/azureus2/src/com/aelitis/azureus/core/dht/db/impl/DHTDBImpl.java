@@ -2238,7 +2238,7 @@ DHTDBImpl
 					return( false );
 				}
 				
-				long	period		= min_period*60*1000;
+				long	period		= min_period*60*60*1000;
 				
 				long	offset_time = ( SystemTime.getCurrentTime() - min_create ) % period;
 				
@@ -2251,7 +2251,9 @@ DHTDBImpl
 					new_next_time += period;
 				}
 				
-				System.out.println( "allocated next time with value relative " + (new_next_time-now) + ": period=" + period + ", offset=" + offset_time + ", rand=" + rand );
+				if ( DEBUG_SURVEY ){
+					System.out.println( "allocated next time with value relative " + (new_next_time-now) + ": period=" + period + ", offset=" + offset_time + ", rand=" + rand );
+				}
 				
 				survey_mapping_times.put( hw, new_next_time );
 				
