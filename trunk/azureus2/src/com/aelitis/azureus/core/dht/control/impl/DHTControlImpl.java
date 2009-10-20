@@ -1100,6 +1100,12 @@ DHTControlImpl
 					return( basis.getReplicationFactor());
 				}
 				
+				public byte 
+				getReplicationFrequencyHours() 
+				{
+					return( basis.getReplicationFrequencyHours());
+				}
+				
 				public String
 				getString()
 				{
@@ -4232,6 +4238,12 @@ DHTControlImpl
 		getReplicationFactor() 
 		{
 			return( delegate.getReplicationFactor());
+		}
+		
+		public byte 
+		getReplicationFrequencyHours() 
+		{
+			return( delegate.getReplicationFrequencyHours());
 		}
 		
 		public String

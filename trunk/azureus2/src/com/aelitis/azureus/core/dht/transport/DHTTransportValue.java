@@ -54,6 +54,9 @@ DHTTransportValue
 	public byte
 	getReplicationFactor();
 
+	public byte
+	getReplicationFrequencyHours();
+
 	public String
 	getString();
 }

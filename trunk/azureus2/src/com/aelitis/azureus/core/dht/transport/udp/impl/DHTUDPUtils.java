@@ -546,7 +546,13 @@ DHTUDPUtils
 				public byte 
 				getReplicationFactor() 
 				{
-					return( rep_fact );
+					return( rep_fact == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)(rep_fact&0x0f));
+				}
+				
+				public byte 
+				getReplicationFrequencyHours() 
+				{
+					return( rep_fact == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)(rep_fact>>8));
 				}
 				
 				public String
@@ -555,7 +561,7 @@ DHTUDPUtils
 					long	now = SystemTime.getCurrentTime();
 					
 					return( DHTLog.getString( value_bytes ) + " - " + new String(value_bytes) + "{v=" + version + ",f=" + 
-							Integer.toHexString(flags) + ",l=" + life_hours + ",r=" + rep_fact + ",ca=" + (now - created ) + ",or=" + originator.getString() +"}" );
+							Integer.toHexString(flags) + ",l=" + life_hours + ",r=" + Integer.toHexString(rep_fact) + ",ca=" + (now - created ) + ",or=" + originator.getString() +"}" );
 				}
 			};
 			

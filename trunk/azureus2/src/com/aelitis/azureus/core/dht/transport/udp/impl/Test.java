@@ -159,6 +159,12 @@ Test
 								return 0;
 							}
 
+							public byte 
+							getReplicationFrequencyHours() 
+							{
+								return 0;
+							}
+							
 							public String
 							getString()
 							{

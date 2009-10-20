@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.db.impl;
 
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.db.DHTDBValue;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -209,7 +210,13 @@ DHTDBValueImpl
 	public byte 
 	getReplicationFactor() 
 	{
-		return( rep_fact );
+		return( rep_fact == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)(rep_fact&0x0f));
+	}
+	
+	public byte 
+	getReplicationFrequencyHours() 
+	{
+		return( rep_fact == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)((rep_fact&0xf0)>>8));
 	}
 	
 	protected void

@@ -140,6 +140,8 @@ DHTDBImpl
 	
 	private volatile boolean survey_in_progress;
 		
+	private Map<HashWrapper,Long>	survey_mapping_times = new HashMap<HashWrapper, Long>();
+	
 	private Map<HashWrapper,SurveyContactState>	survey_state = 
 		new LinkedHashMap<HashWrapper,SurveyContactState>(MAX_SURVEY_STATE_SIZE,0.75f,true)
 		{
@@ -1727,38 +1729,25 @@ DHTDBImpl
 			
 			int	key_count = 0;
 			
+			Set<HashWrapper>	existing_times = new HashSet<HashWrapper>( survey_mapping_times.keySet());
+			
 			while( it.hasNext()){
 				
 				DHTDBMapping	mapping = it.next();
-	
-				if ( mapping.getDiversificationType() != DHT.DT_NONE ){
 					
+				HashWrapper hw = mapping.getKey();
+				
+				if ( existing_times.size() > 0 ){
+				
+					existing_times.remove( hw );
+				}
+				
+				if ( !applyRF( mapping )){
+						
 					continue;
 				}
 								
-				if ( SURVEY_ONLY_RF_KEYS ){
-					
-					Iterator<DHTDBValueImpl>	it2 = mapping.getValues();
-					
-					boolean	all_rf_values = it2.hasNext();
-					
-					while( it2.hasNext()){
-
-						if ( it2.next().getReplicationFactor() == DHT.REP_FACT_DEFAULT ){
-
-							all_rf_values = false;
-							
-							break;
-						}
-					}
-					
-					if ( !all_rf_values ){
-						
-						continue;
-					}
-				}
-				
-				byte[] key = mapping.getKey().getBytes();
+				byte[] key = hw.getBytes();
 				
 				/*
 				List<DHTTransportContact>	contacts = control.getClosestKContactsList( key, true );
@@ -1778,6 +1767,13 @@ DHTDBImpl
 					max_dist	= distance;
 					max_key 	= key;
 				}
+			}
+			
+				// remove dead mappings
+			
+			for ( HashWrapper hw: existing_times ){
+				
+				survey_mapping_times.remove( hw );
 			}
 			
 			logger.log( "Survey starts: state size=" + survey_state.size() + ", all keys=" + stored_values.size() + ", applicable keys=" + key_count );
@@ -1991,31 +1987,9 @@ DHTDBImpl
 					
 					DHTDBMapping	mapping = it.next();
 		
-					if ( mapping.getDiversificationType() != DHT.DT_NONE ){
-						
-						continue;
-					}
-										
-					if ( SURVEY_ONLY_RF_KEYS ){
-						
-						Iterator<DHTDBValueImpl>	it2 = mapping.getValues();
-						
-						boolean	all_rf_values = it2.hasNext();
-						
-						while( it2.hasNext()){
-
-							if ( it2.next().getReplicationFactor() == DHT.REP_FACT_DEFAULT ){
-
-								all_rf_values = false;
-								
-								break;
-							}
-						}
-						
-						if ( !all_rf_values ){
+					if ( !applyRF(mapping)){
 							
-							continue;
-						}
+						continue;
 					}
 					
 					value_count++;
@@ -2206,6 +2180,89 @@ DHTDBImpl
 				survey_in_progress = false;
 			}
 		}
+	}
+	
+	protected boolean
+	applyRF(
+		DHTDBMapping	mapping )
+	{
+		if ( mapping.getDiversificationType() != DHT.DT_NONE ){
+			
+			return( false );
+		}
+						
+		if ( SURVEY_ONLY_RF_KEYS ){
+
+			Iterator<DHTDBValueImpl>	it2 = mapping.getValues();
+		
+			if ( !it2.hasNext()){
+				
+				return( false );
+			}
+			
+			int	min_period = Integer.MAX_VALUE;
+			
+			long	min_create = Long.MAX_VALUE;
+			
+			while( it2.hasNext()){
+	
+				DHTDBValueImpl value = it2.next();
+				
+				byte rep_fact = value.getReplicationFactor();
+				
+				if ( rep_fact == DHT.REP_FACT_DEFAULT || rep_fact == 0 ){
+	
+					return( false );
+				}
+				
+				int hours = value.getReplicationFrequencyHours()&0xff;
+				
+				if ( hours < min_period ){
+					
+					min_period = hours;
+				}
+				
+				min_create = Math.min( min_create, value.getCreationTime());
+			}
+			
+			if ( min_period > 0 ){
+				
+				HashWrapper hw = mapping.getKey();
+				
+				Long	next_time = survey_mapping_times.get( hw );
+				
+				long now = SystemTime.getMonotonousTime();
+				
+				if ( next_time != null && next_time > now ){
+					
+					return( false );
+				}
+				
+				long	period		= min_period*60*1000;
+				
+				long	offset_time = ( SystemTime.getCurrentTime() - min_create ) % period;
+				
+				long	rand		= RandomUtils.nextInt( 30*60*1000 ) - 15*60*1000;
+				
+				long	new_next_time = now - offset_time + period + rand;
+				
+				if ( new_next_time < now + 30*60*1000 ){
+					
+					new_next_time += period;
+				}
+				
+				System.out.println( "allocated next time with value relative " + (new_next_time-now) + ": period=" + period + ", offset=" + offset_time + ", rand=" + rand );
+				
+				survey_mapping_times.put( hw, new_next_time );
+				
+				if ( next_time == null ){
+					
+					return( false );
+				}
+			}
+		}
+		
+		return( true );
 	}
 	
 	protected void
@@ -3248,7 +3305,7 @@ DHTDBImpl
 				*/
 			}
 			
-			logger.log( "Rebuilt global IP bloom filter, size = " + new_filter.getSize() + ", entries =" + new_filter.getEntryCount()+", max hits = " + max_hits );
+			logger.log( "Rebuilt global IP bloom filter, size=" + new_filter.getSize() + ", entries=" + new_filter.getEntryCount()+", max hits=" + max_hits );
 				
 			/*
 			senders = control.sortContactsByDistance( senders );
