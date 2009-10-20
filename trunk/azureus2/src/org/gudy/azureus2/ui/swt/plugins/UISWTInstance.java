@@ -24,6 +24,8 @@ package org.gudy.azureus2.ui.swt.plugins;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
@@ -282,5 +284,15 @@ public interface UISWTInstance extends UIInstance {
 	 * @since 3.0.5.3
 	 */
 	public void openConfig(BasicPluginConfigModel model);
+
+	/**
+	 * Creates a SWT Shell, ensuring Vuze knows about it (ie. Icon, "Window" menu)
+	 *  
+	 * @param style
+	 * @return
+	 * 
+	 * @since 4.2.0.9
+	 */
+	Shell createShell(int style);
 
 }

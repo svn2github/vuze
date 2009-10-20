@@ -62,6 +62,7 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
@@ -538,6 +539,12 @@ UISWTInstanceImpl
 		Image img) 
 	{
 		return new UISWTGraphicImpl(img);
+	}
+	
+	public Shell createShell(int style) {
+		Shell shell = ShellFactory.createShell(Utils.findAnyShell(), style);
+		Utils.setShellIcon(shell);
+		return shell;
 	}
   
 
@@ -1031,6 +1038,10 @@ UISWTInstanceImpl
 
 		public void openConfig(BasicPluginConfigModel model) {
 			delegate.openConfig(model);
+		}
+
+		public Shell createShell(int style) {
+			return delegate.createShell(style);
 		}
 		
 	}
