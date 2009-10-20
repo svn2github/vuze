@@ -333,7 +333,7 @@ DHTDBImpl
 		byte[]			value,
 		byte			flags,
 		byte			life_hours,
-		byte			replication_factor )
+		byte			replication_control )
 	{
 			// local store
 		
@@ -383,7 +383,7 @@ DHTDBImpl
 							true,
 							flags,
 							life_hours,
-							replication_factor );
+							replication_control );
 		
 				mapping.add( res );
 				
@@ -405,7 +405,7 @@ DHTDBImpl
 						true,
 						flags,
 						life_hours,
-						replication_factor );
+						replication_control );
 			
 			return( res );
 		}

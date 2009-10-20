@@ -63,7 +63,7 @@ DHTControl
 		byte[]					value,
 		byte					flags,
 		byte					life_hours,
-		byte					replication_factor,
+		byte					replication_control,
 		boolean					high_priority,
 		DHTOperationListener	listener );
 	

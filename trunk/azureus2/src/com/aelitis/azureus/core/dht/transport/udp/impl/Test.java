@@ -153,6 +153,12 @@ Test
 								return 0;
 							}
 
+							public byte
+							getReplicationControl()
+							{
+								return 0;
+							}
+							
 							public byte 
 							getReplicationFactor() 
 							{

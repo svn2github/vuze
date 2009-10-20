@@ -52,6 +52,9 @@ DHTTransportValue
 	getLifeTimeHours();
 	
 	public byte
+	getReplicationControl();
+	
+	public byte
 	getReplicationFactor();
 
 	public byte

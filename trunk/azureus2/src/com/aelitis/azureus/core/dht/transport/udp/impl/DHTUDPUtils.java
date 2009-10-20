@@ -487,15 +487,15 @@ DHTUDPUtils
 			life_hours = 0;
 		}
 		
-		final byte rep_fact;
+		final byte rep_control;
 		
 		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
 
-			rep_fact = is.readByte();
+			rep_control = is.readByte();
 			
 		}else{
 			
-			rep_fact = DHT.REP_FACT_DEFAULT;
+			rep_control = DHT.REP_FACT_DEFAULT;
 		}
 		
 		DHTTransportValue value = 
@@ -543,16 +543,22 @@ DHTUDPUtils
 					return( life_hours );
 				}
 				
+				public byte
+				getReplicationControl()
+				{
+					return( rep_control );
+				}
+				
 				public byte 
 				getReplicationFactor() 
 				{
-					return( rep_fact == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)(rep_fact&0x0f));
+					return( rep_control == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)(rep_control&0x0f));
 				}
 				
 				public byte 
 				getReplicationFrequencyHours() 
 				{
-					return( rep_fact == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)(rep_fact>>8));
+					return( rep_control == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)(rep_control>>4));
 				}
 				
 				public String
@@ -561,7 +567,7 @@ DHTUDPUtils
 					long	now = SystemTime.getCurrentTime();
 					
 					return( DHTLog.getString( value_bytes ) + " - " + new String(value_bytes) + "{v=" + version + ",f=" + 
-							Integer.toHexString(flags) + ",l=" + life_hours + ",r=" + Integer.toHexString(rep_fact) + ",ca=" + (now - created ) + ",or=" + originator.getString() +"}" );
+							Integer.toHexString(flags) + ",l=" + life_hours + ",r=" + Integer.toHexString(getReplicationControl()) + ",ca=" + (now - created ) + ",or=" + originator.getString() +"}" );
 				}
 			};
 			
@@ -609,8 +615,8 @@ DHTUDPUtils
 		}
 		
 		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
-
-			os.writeByte( value.getReplicationFactor()); // 15 + 2+ X + contact
+			
+			os.writeByte( value.getReplicationControl()); // 15 + 2+ X + contact
 		}
 	}
 	

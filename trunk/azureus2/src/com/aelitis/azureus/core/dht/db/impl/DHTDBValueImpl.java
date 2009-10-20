@@ -48,7 +48,7 @@ DHTDBValueImpl
 	private boolean				local;
 	private byte				flags;
 	private byte				life_hours;
-	private byte				rep_fact;
+	private byte				rep_control;
 	private int					version;
 	
 	private long				store_time;
@@ -73,7 +73,7 @@ DHTDBValueImpl
 		boolean				_local,
 		int					_flags,
 		int					_life_hours,
-		int					_rep_fact )
+		byte				_rep_control )
 	{
 		creation_time	= _creation_time;
 		value			= _value;
@@ -83,7 +83,7 @@ DHTDBValueImpl
 		local			= _local;
 		flags			= (byte)_flags;
 		life_hours		= (byte)_life_hours;
-		rep_fact		= (byte)_rep_fact;
+		rep_control		= _rep_control;
 		
 			// we get quite a few zero length values - optimise mem usage
 		
@@ -117,7 +117,7 @@ DHTDBValueImpl
 				_local,
 				_other.getFlags(),
 				_other.getLifeTimeHours(),
-				_other.getReplicationFactor());
+				_other.getReplicationControl());
 	}
 	
 	protected void
@@ -207,16 +207,22 @@ DHTDBValueImpl
 		return( life_hours&0xff );
 	}
 	
+	public byte
+	getReplicationControl()
+	{
+		return( rep_control );
+	}
+	
 	public byte 
 	getReplicationFactor() 
 	{
-		return( rep_fact == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)(rep_fact&0x0f));
+		return( rep_control == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)(rep_control&0x0f));
 	}
 	
 	public byte 
 	getReplicationFrequencyHours() 
 	{
-		return( rep_fact == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)((rep_fact&0xf0)>>8));
+		return( rep_control == DHT.REP_FACT_DEFAULT?DHT.REP_FACT_DEFAULT:(byte)((rep_control&0xf0)>>4));
 	}
 	
 	protected void
@@ -255,7 +261,7 @@ DHTDBValueImpl
 		long	now = SystemTime.getCurrentTime();
 		
 		return( DHTLog.getString( value ) + " - " + new String(value) + "{v=" + version + ",f=" + 
-				Integer.toHexString(flags) + ",l=" + life_hours + ",r=" + rep_fact + ",ca=" + (now - creation_time ) + ",sa=" + (now-store_time)+
+				Integer.toHexString(flags) + ",l=" + life_hours + ",r=" + Integer.toHexString( rep_control ) + ",ca=" + (now - creation_time ) + ",sa=" + (now-store_time)+
 				",se=" + sender.getString() + ",or=" + originator.getString() +"}" );
 	}
 }

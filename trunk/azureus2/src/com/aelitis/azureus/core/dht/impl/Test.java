@@ -944,7 +944,7 @@ Test
 		return( new String( value.getValue()) + 
 				"; flags=" + Integer.toHexString( value.getFlags()) +
 				"; life=" + value.getLifeTimeHours() +
-				"; rep=" + value.getReplicationFactor() +
+				"; rep=" + Integer.toHexString( value.getReplicationControl())  +
 				", orig=" + value.getOriginator().getAddress());
 	}
 	

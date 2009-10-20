@@ -124,7 +124,7 @@ DHT
 		byte[]					value,
 		byte					flags,
 		byte					life_hours,
-		byte					replication_factor,
+		byte					replication_control,	// 4 bits 1->14 republish hours; 0=vuze default | 4 bits 0->15 maintain replicas; [ff=no replication control-use default]
 		boolean					high_priority,
 		DHTOperationListener	listener );
 	
