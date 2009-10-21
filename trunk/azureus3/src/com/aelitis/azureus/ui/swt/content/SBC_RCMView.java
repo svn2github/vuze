@@ -822,11 +822,15 @@ SBC_RCMView
 			return( true );
 		}
 
-		String name = ds.getTitle();
-		String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
-		Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
-
-		return pattern.matcher(name).find();
+		try {
+			String name = ds.getTitle();
+			String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+  		Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
+  
+  		return pattern.matcher(name).find();
+		} catch (Exception e) {
+			return true;
+		}
 	}
 	
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewFilterCheck#filterSet(java.lang.String)
