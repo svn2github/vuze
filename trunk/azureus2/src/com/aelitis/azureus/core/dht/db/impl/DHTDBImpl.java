@@ -2636,18 +2636,47 @@ DHTDBImpl
 						
 						List<SurveyContactState> potential_targets = new ArrayList<SurveyContactState>();
 						
+						List<byte[]>	addresses = new ArrayList<byte[]>( contacts.size());
+						
 						for ( DHTTransportContact c: contacts ){
-							
+						
 							if ( c.getProtocolVersion() < DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
 								
 								continue;
 							}
+							
+							addresses.add( c.getAddress().getAddress().getAddress());
 							
 							SurveyContactState	contact_state = survey_state.get( new HashWrapper( c.getID()));
 							
 							if ( contact_state != null && !contact_state.testMapping( mapping )){
 								
 								potential_targets.add( contact_state );
+							}
+						}
+						
+						Set<HashWrapper>	bad_addresses = new HashSet<HashWrapper>();
+						
+						for ( byte[] a1: addresses ){
+							
+							for ( byte[] a2: addresses ){
+								
+									// ignore ipv6 for the moment...
+								
+								if ( a1 == a2 || a1.length != a2.length || a1.length != 4 ){
+									
+									continue;
+								}
+								
+									// ignore common /16 s
+								
+								if ( a1[0] == a2[0] && a1[1] == a2[1] ){
+									
+									log( "/16 match on " + ByteFormatter.encodeString( a1 ) + "/" + ByteFormatter.encodeString( a2 ));
+									
+									bad_addresses.add( new HashWrapper( a1 ));
+									bad_addresses.add( new HashWrapper( a2 ));
+								}
 							}
 						}
 						
@@ -2713,16 +2742,27 @@ DHTDBImpl
 							
 							SurveyContactState target = potential_targets.get( i );
 							
-							List<DHTDBMapping> m = store_ops.get( target );
+							if ( 	bad_addresses.size() > 0 && 
+									bad_addresses.contains( new HashWrapper( target.getContact().getAddress().getAddress().getAddress()))){
+								
+									// make it look like this target has the mapping as we don't want to store it there but we want to treat it as
+									// if it has it, effectively reducing availability but not skewing storage in favour of potentially malicious nodes
+								
+								target.addMapping( mapping );
+								
+							}else{
 							
-							if ( m == null ){
+								List<DHTDBMapping> m = store_ops.get( target );
 								
-								m = new ArrayList<DHTDBMapping>();
+								if ( m == null ){
+									
+									m = new ArrayList<DHTDBMapping>();
+									
+									store_ops.put( target, m );
+								}
 								
-								store_ops.put( target, m );
+								m.add( mapping );
 							}
-							
-							m.add( mapping );
 						}
 					}
 				}
