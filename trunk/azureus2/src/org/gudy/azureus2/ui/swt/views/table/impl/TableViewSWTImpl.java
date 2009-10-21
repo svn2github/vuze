@@ -129,6 +129,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	private static final int ASYOUTYPE_MODE = ASYOUTYPE_MODE_FILTER;
 	private static final int ASYOUTYPE_UPDATEDELAY = 300;
 
+	private static final Color COLOR_FILTER_REGEX	= Colors.fadedYellow;
+	
 	private static final boolean DEBUG_CELL_CHANGES = false;
 
 	/** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
@@ -1151,6 +1153,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				case 'x': // CTRL+X: RegEx search switch
 					if (filter != null && event.widget == filter.widget) {
 						filter.regex = !filter.regex;
+						filter.widget.setBackground(filter.regex?COLOR_FILTER_REGEX:null);
 						event.doit = false;
 						refilter();
 					}
@@ -4913,7 +4916,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (filter.regex) {
 				try {
 					Pattern.compile(filter.nextText, Pattern.CASE_INSENSITIVE);
-					filter.widget.setBackground(Colors.colorAltRow);
+					filter.widget.setBackground(COLOR_FILTER_REGEX);
 					Messages.setLanguageTooltip(filter.widget,
 							"MyTorrentsView.filter.tooltip");
 				} catch (Exception e) {

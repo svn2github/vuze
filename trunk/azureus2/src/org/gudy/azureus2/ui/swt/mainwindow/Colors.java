@@ -68,6 +68,7 @@ public class Colors implements ParameterListener {
   public static Color red;
   public static Color fadedRed;
   public static Color yellow;
+  public static Color fadedYellow;
   public static Color white;
   public static Color background;
   public static Color red_ConsoleView;
@@ -323,6 +324,7 @@ public class Colors implements ParameterListener {
 		red = ColorCache.getColor(display, 255, 0, 0);
 		fadedRed = ColorCache.getColor(display, 160, 96, 96);
 		yellow = ColorCache.getColor(display, 255, 255, 0);
+		fadedYellow = ColorCache.getColor(display, 255, 255, 221);
 		white = ColorCache.getColor(display, 255, 255, 255);
 		background = ColorCache.getColor(display, 248, 248, 248);
 		red_ConsoleView = ColorCache.getColor(display, 255, 192, 192);
