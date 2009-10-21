@@ -663,7 +663,6 @@ public class OpenTorrentWindow
 	}
 
 	protected void cmbDataDirChanged() {
-		System.out.println("mod");
 		if (bSkipDataDirModify) {
 			return;
 		}
