@@ -29,6 +29,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
@@ -89,6 +90,8 @@ public class PlatformMessenger
 	private static boolean initialized;
 
 	private static fakeContext context;
+
+	private static boolean allowMulti = false;
 
 	public static synchronized void init() {
 		if (initialized) {
@@ -262,18 +265,26 @@ public class PlatformMessenger
 		long contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE;
 
 		// Create urlStem (or post data)
-		// determine which server to use
-		String server = null;
+		boolean isMulti = false;
 		StringBuffer urlStem = new StringBuffer();
 		long sequenceNo = 0;
 
+		Map<String, Object> mapPayload = new HashMap<String, Object>();
+		mapPayload.put("azid", ConstantsVuze.AZID);
+		mapPayload.put("azv", Constants.AZUREUS_VERSION);
+		List<Map> listCommands = new ArrayList<Map>();
+		mapPayload.put("commands", listCommands);
+
 		queue_mon.enter();
 		try {
+			String lastServer = null;
 			// add one at a time, ensure relay server messages are seperate
 			boolean first = true;
 			for (Iterator iter = mapQueue.keySet().iterator(); iter.hasNext();) {
 				PlatformMessage message = (PlatformMessage) iter.next();
 				Object value = mapQueue.get(message);
+				
+				Map<String, Object> mapCmd = new HashMap<String, Object>();
 
 				if (first) {
 					sendAZID = message.sendAZID();
@@ -284,44 +295,44 @@ public class PlatformMessenger
 				// build urlStem
 				message.setSequenceNo(sequenceNo);
 
-				StringBuffer urlStemSegment = new StringBuffer();
-				if (sequenceNo > 0) {
-					urlStemSegment.append('&');
+				if (urlStem.length() > 0) {
+					urlStem.append('&');
 				}
 
 				String listenerID = message.getListenerID();
 				String messageID = message.getMessageID();
-				String params = message.getParameters().toString();
+				Map params = message.getParameters();
 				try {
-					urlStemSegment.append("cmd=");
-					urlStemSegment.append(URLEncoder.encode(messageID, "UTF-8"));
-					urlStemSegment.append(BrowserMessage.MESSAGE_DELIM_ENCODED);
-					urlStemSegment.append(sequenceNo);
-					urlStemSegment.append(BrowserMessage.MESSAGE_DELIM_ENCODED);
-					urlStemSegment.append(URLEncoder.encode(listenerID, "UTF-8"));
-					urlStemSegment.append(BrowserMessage.MESSAGE_DELIM_ENCODED);
-					urlStemSegment.append(URLEncoder.encode(message.getOperationID(),
+					urlStem.append("msg=");
+					urlStem.append(URLEncoder.encode(listenerID, "UTF-8"));
+					urlStem.append(":");
+					urlStem.append(URLEncoder.encode(message.getOperationID(),
 							"UTF-8"));
-					urlStemSegment.append(BrowserMessage.MESSAGE_DELIM_ENCODED);
-					urlStemSegment.append(URLEncoder.encode(params, "UTF-8"));
 				} catch (UnsupportedEncodingException e) {
 				}
+				
+				mapCmd.put("seq-id", sequenceNo);
+				mapCmd.put("listener-id", listenerID);
+				mapCmd.put("op-id", message.getOperationID());
+				if (params != null) {
+					mapCmd.put("values", params);
+				}
+				listCommands.add(mapCmd);
 
-				if (sequenceNo > 0
-						&& urlStem.length() + urlStemSegment.length() > MAX_POST_LENGTH) {
+				// We used to check on MAX_POST_LENGTH, but with the changes that
+				// would require converting the map to JSON on every iteration to get
+				// the length.  For now, just limit to 10
+				if (sequenceNo > 10) {
 					debug("breaking up batch at " + sequenceNo
-							+ " because max limit would be exceeded (" + urlStem.length()
-							+ " + " + urlStemSegment.length() + ")");
+							+ " because max limit would be exceeded");
 					break;
 				}
 
-				urlStem.append(urlStemSegment);
 				String curServer = messageID + "-" + listenerID;
-				if (server == null) {
-					server = curServer;
-				} else if (!server.equals(curServer)) {
-					server = "multi";
+				if (lastServer != null && !lastServer.equals(curServer)) {
+					isMulti = true;
 				}
+				lastServer = curServer;
 
 				PlatformMessengerListener listener = (PlatformMessengerListener) mapProcessing.get(message);
 				if (listener != null) {
@@ -333,6 +344,10 @@ public class PlatformMessenger
 				mapProcessing.put(message, value);
 
 				iter.remove();
+				
+				if (!getAllowMulti() ) {
+					break;
+				}
 			}
 		} finally {
 			queue_mon.exit();
@@ -341,10 +356,6 @@ public class PlatformMessenger
 
 		if (mapProcessing.size() == 0) {
 			return;
-		}
-
-		if (server == null) {
-			server = "default";
 		}
 
 		// Build base RPC url based on listener and server
@@ -358,25 +369,26 @@ public class PlatformMessenger
 		}
 
 		String sURL_RPC = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_RPC)
-					+ server;
+					+ "?" + urlStem.toString();
 
 		// Build full url and data to send
 		String sURL;
 		String sPostData = null;
+		String sJSONPayload = UrlUtils.encode(JSONUtils.encodeToJSON(mapPayload));
 		if (USE_HTTP_POST) {
 			sURL = sURL_RPC;
 
-			sPostData = URL_POST_PLATFORM_DATA + "&" + urlStem.toString();
+			sPostData = URL_POST_PLATFORM_DATA + "&payload=" + sJSONPayload;
 			sPostData = cn.appendURLSuffix(sPostData, true, sendAZID);
 
 			if (DEBUG_URL) {
-				debug("POST for " + mapProcessing.size() + ": " + sURL + "?"
+				debug("POST for " + mapProcessing.size() + ": " + sURL + "\n   DATA: "
 						+ sPostData);
 			} else {
 				debug("POST for " + mapProcessing.size() + ": " + sURL);
 			}
 		} else {
-			sURL = sURL_RPC + URL_PLATFORM_MESSAGE + "&" + urlStem.toString();
+			sURL = sURL_RPC + URL_PLATFORM_MESSAGE + "&payload=" + sJSONPayload;
 
 			sURL = cn.appendURLSuffix(sURL, false, sendAZID);
 
@@ -435,9 +447,10 @@ public class PlatformMessenger
 		byte[] bytes = downloadURL(url, sData);
 		s = new String(bytes, "UTF8");
 
-		// Format: <sequence no> ; <classification> [; <results>] [ \n ]
+		Map mapAllReplies = JSONUtils.decodeJSON(s);
+		List listReplies = MapUtils.getMapList(mapAllReplies, "replies", null);
 
-		if (s.length() == 0 || !Character.isDigit(s.charAt(0))) {
+		if (mapAllReplies == null || listReplies == null || listReplies.isEmpty()) {
 			debug("Error while sending message(s) to Platform: reply: " + s
 					+ "\nurl: " + sURL + "\nPostData: " + sData);
 			for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
@@ -457,154 +470,44 @@ public class PlatformMessenger
 			return;
 		}
 
-		Map mapSeqToBrowserMsg = new HashMap();
-
-		String[] replies = s.split("\\n");
-		for (int i = 0; i < replies.length; i++) {
-			String reply = replies[i];
-
-			final String[] replySections = reply.split(BrowserMessage.MESSAGE_DELIM,
-					3);
-			if (replySections.length < 2) {
-				continue;
-			}
-			long sequenceNo = NumberFormat.getInstance().parse(replySections[0]).longValue();
-
-			Map actionResults = null;
-
-			if (replySections.length == 3) {
-				try {
-					actionResults = JSONUtils.decodeJSON(replySections[2]);
-				} catch (Throwable e) {
-					debug("Error while sending message(s) to Platform: reply: " + s
-							+ "\nurl: " + sURL + "\nPostData: " + sData, e);
-				}
-			}
-
-			// Find PlatformMessage associated with sequence
-			// TODO: There's a better way to do this
-			PlatformMessage message = null;
-			PlatformMessengerListener listener = null;
-			for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
-				PlatformMessage potentialMessage = (PlatformMessage) iter.next();
-				if (potentialMessage.getSequenceNo() == sequenceNo) {
-					message = potentialMessage;
-					listener = (PlatformMessengerListener) mapProcessing.get(message);
-				}
-			}
-
-			if (message == null) {
-				debug("No message with sequence number " + sequenceNo);
-				continue;
-			}
-
-			debug("Got a " + reply.length() + " byte reply for "
-					+ message.toShortString() + "\n\t\t"
-					+ reply.substring(0, Math.min(8192, reply.length())));
-
-			final PlatformMessage fMessage = message;
-			final PlatformMessengerListener fListener = listener;
-			final Map fActionResults = actionResults;
-
-			// test
-			if (i == 0 && false) {
-				replySections[1] = "action";
-				actionResults = new JSONObject();
-				actionResults.put("retry-client-message", new Boolean(true));
-				JSONArray a = new JSONArray();
-				a.add("[AZMSG;1;display;open-url;{\"url\":\"http://yahoo.com\",\"width\":500,\"height\":200}]");
-				actionResults.put("messages", a);
-			}
-
-			// Todo check array [1] for reply type
-
-			if (replySections[1].equals("action")) {
-				final BrowserMessageDispatcher dispatcher = context.getDispatcher();
-				if (dispatcher == null) {
-					debug("action requested.. no dispatcher");
-				} else if (actionResults instanceof Map) {
-					final boolean bRetry = MapUtils.getMapBoolean(actionResults,
-							"retry-client-message", false);
-
-					List array = (List) MapUtils.getMapObject(actionResults, "messages",
-							null, List.class);
-					if (actionResults.containsKey("messages")) {
-						for (int j = 0; j < array.size(); j++) {
-							final String sMsg = (String) array.get(j);
-							debug("handling (" + ((bRetry) ? " with retry" : " no retry")
-									+ "): " + sMsg);
-
-							final BrowserMessage browserMsg = new BrowserMessage(sMsg);
-							int seq = browserMsg.getSequence();
-							BrowserMessage existingBrowserMsg = (BrowserMessage) mapSeqToBrowserMsg.get(new Long(
-									seq));
-							if (existingBrowserMsg != null) {
-								existingBrowserMsg.addCompletionListener(new MessageCompletionListener() {
-									public void completed(boolean success, Object data) {
-										debug("got complete for " + sMsg);
-										if (success) {
-											queueMessage(fMessage, fListener);
-										} else {
-											if (fListener != null) {
-												try {
-													fListener.replyReceived(fMessage, replySections[1],
-															fActionResults);
-												} catch (Throwable e2) {
-													debug("Error while sending replyReceived", e2);
-												}
-											}
-										}
-									}
-								});
-								continue;
-							}
-
-							if (bRetry) {
-								mapSeqToBrowserMsg.put(new Long(seq), browserMsg);
-
-								browserMsg.addCompletionListener(new MessageCompletionListener() {
-									public void completed(boolean success, Object data) {
-										debug("got complete for " + sMsg + ";" + success);
-										if (success) {
-											queueMessage(fMessage, fListener);
-										} else {
-											if (fListener != null) {
-												try {
-													fListener.replyReceived(fMessage, replySections[1],
-															fActionResults);
-												} catch (Throwable e2) {
-													debug("Error while sending replyReceived", e2);
-												}
-											}
-										}
-									}
-								});
-							}
-
-							new AEThread2("v3.Msg.Dispatch", true) {
-								public void run() {
-									dispatcher.dispatch(browserMsg);
-								}
-							}.start();
-						}
-					}
-					if (bRetry) {
-						continue;
-					}
-				}
-			}
-
-			if (listener != null) {
-				try {
-					listener.replyReceived(message, replySections[1], actionResults);
-				} catch (Exception e2) {
-					debug("Error while sending replyReceived", e2);
-				}
+		Map<Long, Map> mapOrder = new HashMap<Long, Map>();
+		for (Object reply : listReplies) {
+			if (reply instanceof Map) {
+				mapOrder.put(MapUtils.getMapLong((Map) reply, "seq-id", -1), (Map) reply);
 			}
 		}
-		BrowserMessageDispatcher dispatcher = context.getDispatcher();
-		if (dispatcher != null) {
-			dispatcher.resetSequence();
+		for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
+			PlatformMessage message = (PlatformMessage) iter.next();
+			PlatformMessengerListener l = (PlatformMessengerListener) mapProcessing.get(message);
+			if (l == null) {
+				continue;
+			}
+			Map mapReply = mapOrder.get(new Long(message.getSequenceNo()));
+			if (mapReply == null) {
+				debug("No reply for " + message.toShortString());
+			}
+			String replyType = MapUtils.getMapString(mapReply, "type", "payload");
+			Map payload;
+			if (replyType.equalsIgnoreCase("payload")) {
+				payload = MapUtils.getMapMap(mapReply, "payload", Collections.EMPTY_MAP);
+			} else {
+				payload = new HashMap();
+				payload.put("message", MapUtils.getMapString(mapReply, "message", "?"));
+			}
+
+			
+			if (mapReply != null) {
+  			String reply = JSONUtils.encodeToJSON(payload);
+  			debug("Got a reply for "
+  					+ message.toShortString() + "\n\t"
+  					+ reply.substring(0, Math.min(8192, reply.length())));
+			}
+
+			try {
+				l.replyReceived(message, replyType, payload);
+			} catch (Exception e2) {
+				debug("Error while sending replyReceived", e2);
+			}
 		}
 	}
 
@@ -651,6 +554,14 @@ public class PlatformMessenger
 		}
 
 		return (data);
+	}
+
+	public static void setAllowMulti(boolean allowMulti) {
+		PlatformMessenger.allowMulti = allowMulti;
+	}
+
+	public static boolean getAllowMulti() {
+		return allowMulti;
 	}
 
 	private static class fakeContext

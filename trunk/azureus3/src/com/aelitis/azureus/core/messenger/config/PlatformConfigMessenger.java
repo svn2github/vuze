@@ -99,6 +99,10 @@ public class PlatformConfigMessenger
 				if (reply == null) {
 					return;
 				}
+				
+				boolean allowMulti = MapUtils.getMapBoolean(reply, "allow-multi-rpc",
+						PlatformMessenger.getAllowMulti());
+				PlatformMessenger.setAllowMulti(allowMulti);
 
 				try {
 					List listURLs = (List) MapUtils.getMapObject(reply, "url-whitelist",
