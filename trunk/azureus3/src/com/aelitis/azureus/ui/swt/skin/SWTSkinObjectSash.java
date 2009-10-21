@@ -292,7 +292,7 @@ public class SWTSkinObjectSash
 
 			public void handleEvent(Event e) {
 				if (e.type == SWT.MouseUp) {
-					if (e.button == 2 || (e.button == 3 && (e.stateMask & SWT.MOD1) > 0)) {
+					if (e.button == 3 || (e.button == 1 && (e.stateMask & SWT.MOD1) > 0)) {
 						String sPos = properties.getStringValue(sConfigID + ".startpos");
 						if (sPos == null) {
 							return;
