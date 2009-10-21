@@ -24,13 +24,13 @@ package com.aelitis.azureus.ui.swt.content;
 
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
@@ -110,6 +110,8 @@ RelatedContentUI
 	
 	
 	private ByteArrayHashMap<RCMItem>	rcm_item_map = new ByteArrayHashMap<RCMItem>();
+	
+	private AsyncDispatcher	async_dispatcher = new AsyncDispatcher();
 	
 	public 
 	RelatedContentUI()
@@ -878,7 +880,10 @@ RelatedContentUI
 								
 									for ( RelatedContent c: content ){
 									
-										content_list.add( c );
+										if ( !content_list.contains( c )){
+										
+											content_list.add( c );
+										}
 									}
 								}
 							}
@@ -932,23 +937,12 @@ RelatedContentUI
 			boolean deleted = false;
 			
 			synchronized( RCMItem.this ){
-				
-				Iterator<RelatedContent> it = content_list.iterator();
-				
-				while( it.hasNext()){
-					
-					RelatedContent rc = it.next();
-					
-					for ( RelatedContent x: content ){
+									
+				for ( RelatedContent c: content ){
 						
-						if ( x == rc ){
-							
-							it.remove();
-							
-							deleted = true;
-							
-							break;
-						}
+					if ( content_list.remove( c )){
+														
+						deleted = true;
 					}
 				}
 			}
@@ -962,8 +956,6 @@ RelatedContentUI
 		protected void
 		updateNumUnread()
 		{
-			boolean	changed = false;
-			
 			synchronized( RCMItem.this ){
 				
 				int	num = 0;
@@ -980,13 +972,23 @@ RelatedContentUI
 					
 					num_unread = num;
 					
-					changed = true;
+					final int f_num = num;
+										
+					async_dispatcher.dispatch(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								if ( async_dispatcher.getQueueSize() > 0 ){
+									
+									return;
+								}
+								
+								view.setNumUnread( f_num );
+							}
+						});
 				}
-			}
-			
-			if ( changed ){
-				
-				view.setNumUnread( num_unread );
 			}
 		}
 		

@@ -531,6 +531,8 @@ RelatedContentManager
 		int		_max )
 	{
 		COConfigurationManager.setParameter( "rcm.max_results", _max );
+		
+		enforceMaxResults( false );
 	}
 	
 	protected void
@@ -602,6 +604,7 @@ RelatedContentManager
 								(int)rand,
 								torrent.isPrivate()?StringInterner.intern(torrent.getAnnounceURL().getHost()):null,
 								0,
+								false,
 								torrent.getSize());
 						
 						new_info.add( info );
@@ -926,7 +929,7 @@ RelatedContentManager
 							
 							long	size = l_size==null?0:l_size.longValue();
 							
-							analyseResponse( new DownloadInfo( from_info.getHash(), hash, title, rand, tracker, 1, size ), null );
+							analyseResponse( new DownloadInfo( from_info.getHash(), hash, title, rand, tracker, 1, false, size ), null );
 							
 						}catch( Throwable e ){							
 						}
@@ -1030,7 +1033,7 @@ RelatedContentManager
 	{
 		if ( hash == null ){
 			
-			throw( new ContentException( "Torrent not available" ));
+			throw( new ContentException( "hash is null" ));
 		}
 
 		if ( 	!initialisation_complete_sem.isReleasedForever() ||
@@ -1047,7 +1050,7 @@ RelatedContentManager
 						try{
 							initialisation_complete_sem.reserve();
 							
-							lookupContentSupport( hash, 0, listener );
+							lookupContentSupport( hash, 0, true, listener );
 							
 						}catch( ContentException e ){
 							
@@ -1057,7 +1060,7 @@ RelatedContentManager
 				});
 		}else{
 			
-			lookupContentSupport( hash, 0, listener );
+			lookupContentSupport( hash, 0, true, listener );
 		}
 	}
 	
@@ -1065,6 +1068,7 @@ RelatedContentManager
 	lookupContentSupport(
 		final byte[]						from_hash,
 		final int							level,
+		final boolean						explicit,
 		final RelatedContentLookupListener	listener )
 	
 		throws ContentException
@@ -1209,7 +1213,7 @@ RelatedContentManager
 
 								analyseResponse( 
 									new DownloadInfo( 
-										from_hash, hash, title, rand, tracker, level+1, size ),
+										from_hash, hash, title, rand, tracker, level+1, explicit, size ),
 										listener==null?null:manager_listener );
 								
 							}catch( Throwable e ){							
@@ -1413,6 +1417,7 @@ RelatedContentManager
 			lookupContentSupport( 
 				sl.getHash(),
 				sl.getLevel(),
+				false,
 				new RelatedContentLookupListener()
 				{
 					public void
@@ -1472,7 +1477,7 @@ RelatedContentManager
 									TimerEvent event ) 
 								{
 									try{					
-										lookupContentSupport( next_sl.getHash(), next_sl.getLevel(), listener );
+										lookupContentSupport( next_sl.getHash(), next_sl.getLevel(), false, listener );
 										
 									}catch( Throwable e ){
 										
@@ -1847,6 +1852,11 @@ RelatedContentManager
 			Map.Entry<String,DownloadInfo> entry = it.next();
 			
 			DownloadInfo info = entry.getValue();
+			
+			if ( info.isExplicit()){
+				
+				continue;
+			}
 			
 			int	info_level = info.getLevel();
 			
@@ -2727,6 +2737,9 @@ RelatedContentManager
 						
 						Debug.out( e );
 					}
+					
+					enforceMaxResults( cc, false );
+
 				}else{
 					
 					if ( TRACE ){
@@ -2735,7 +2748,7 @@ RelatedContentManager
 				}
 				
 				content_cache_ref = cc;
-				
+								
 				return( cc );
 			}
 		}finally{
@@ -3100,58 +3113,84 @@ RelatedContentManager
 	public void
 	releaseTemporarySpace()
 	{
-		temporary_space.addAndGet( -TEMPORARY_SPACE_DELTA );
+		boolean	reset_explicit = temporary_space.addAndGet( -TEMPORARY_SPACE_DELTA ) == 0;
 		
+		enforceMaxResults( reset_explicit );
+	}
+	
+	protected void
+	enforceMaxResults(
+		boolean reset_explicit )
+	{
 		synchronized( this ){
-			
+	
 			ContentCache	content_cache = loadRelatedContent();
-
-			Map<String,DownloadInfo>		related_content			= content_cache.related_content;
-
-			int num_to_remove = related_content.size() - ( max_results + temporary_space.get());
 			
-			if ( num_to_remove > 0 ){
-				
-				List<DownloadInfo>	infos = new ArrayList<DownloadInfo>(related_content.values());
-					
-				Collections.sort(
-					infos,
-					new Comparator<DownloadInfo>()
-					{
-						public int 
-						compare(
-							DownloadInfo o1, 
-							DownloadInfo o2) 
-						{
-							int res = o2.getLevel() - o1.getLevel();
-							
-							if ( res != 0 ){
-								
-								return( res );
-							}
-							
-							res = o1.getRank() - o2.getRank();
-							
-							if ( res != 0 ){
-								
-								return( res );
-							}
-							
-							return( o1.getLastSeenSecs() - o2.getLastSeenSecs());
-						}
-					});
+			enforceMaxResults( content_cache, reset_explicit );
+		}
+	}
+	
+	protected void
+	enforceMaxResults(
+		ContentCache		content_cache,
+		boolean				reset_explicit )	
+	{
+		Map<String,DownloadInfo>		related_content			= content_cache.related_content;
 
-				List<RelatedContent> to_remove = new ArrayList<RelatedContent>();
+		int num_to_remove = related_content.size() - ( max_results + temporary_space.get());
+		
+		if ( num_to_remove > 0 ){
+			
+			List<DownloadInfo>	infos = new ArrayList<DownloadInfo>(related_content.values());
 				
-				for (int i=0;i<Math.min( num_to_remove, infos.size());i++ ){
+			if ( reset_explicit ){
+				
+				for ( DownloadInfo info: infos ){
 					
-					to_remove.add( infos.get(i));
-				}
-				
-				if ( to_remove.size() > 0 ){
+					if ( info.isExplicit()){
 						
-					delete( to_remove.toArray( new RelatedContent[to_remove.size()]), content_cache, false );
+						info.setExplicit( false );
+					}
 				}
+			}
+			
+			Collections.sort(
+				infos,
+				new Comparator<DownloadInfo>()
+				{
+					public int 
+					compare(
+						DownloadInfo o1, 
+						DownloadInfo o2) 
+					{
+						int res = o2.getLevel() - o1.getLevel();
+						
+						if ( res != 0 ){
+							
+							return( res );
+						}
+						
+						res = o1.getRank() - o2.getRank();
+						
+						if ( res != 0 ){
+							
+							return( res );
+						}
+						
+						return( o1.getLastSeenSecs() - o2.getLastSeenSecs());
+					}
+				});
+
+			List<RelatedContent> to_remove = new ArrayList<RelatedContent>();
+			
+			for (int i=0;i<Math.min( num_to_remove, infos.size());i++ ){
+				
+				to_remove.add( infos.get(i));
+			}
+			
+			if ( to_remove.size() > 0 ){
+					
+				delete( to_remove.toArray( new RelatedContent[to_remove.size()]), content_cache, false );
 			}
 		}
 	}
@@ -3257,7 +3296,7 @@ RelatedContentManager
 			
 			if ( cc == null ){
 			
-				return( new DownloadInfo( hash, hash, title, rand, tracker, 0, size ));
+				return( new DownloadInfo( hash, hash, title, rand, tracker, 0, false, size ));
 				
 			}else{
 				
@@ -3289,6 +3328,7 @@ RelatedContentManager
 		private int[]			rand_list;
 		private int				last_seen;
 		private int				level;
+		private boolean			explicit;
 		
 			// we *need* this reference here to maange garbage collection correctly
 		
@@ -3302,12 +3342,14 @@ RelatedContentManager
 			int			_rand,
 			String		_tracker,
 			int			_level,
+			boolean		_explicit,
 			long		_size )
 		{
 			super( _related_to, _title, _hash, _tracker, _size );
 			
 			rand		= _rand;
 			level		= _level;
+			explicit	= _explicit;
 			
 			updateLastSeen();
 		}
@@ -3410,6 +3452,19 @@ RelatedContentManager
 		getLevel()
 		{
 			return( level );
+		}
+		
+		protected boolean
+		isExplicit()
+		{
+			return( explicit );
+		}
+		
+		protected void
+		setExplicit(
+			boolean		b )
+		{
+			explicit	= b;
 		}
 		
 		protected void

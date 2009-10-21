@@ -413,112 +413,117 @@ SBC_RCMView
 			{
 				private Set<RelatedContent>	content_set = new HashSet<RelatedContent>();
 				
-				private boolean destroyed;
+				private int liveness_marker;
 				
-				private RelatedContentManagerListener rcm_listener = 
-					new RelatedContentManagerListener()
-					{
-						public void
-						contentFound(
-							RelatedContent[]	content )
-						{							
-						}
-
-						public void
-						contentChanged(
-							RelatedContent[]	content )
-						{
-							final java.util.List<RelatedContent> hits = new ArrayList<RelatedContent>( content.length );
-
-							synchronized( content_set ){
-								
-								if ( destroyed ){
-									
-									return;
-								}							
-							
-								for ( RelatedContent c: content ){
-
-									if ( content_set.contains( c )){
-								
-										hits.add( c );
-									}
-								}
-							}
-							
-							if ( hits.size() > 0 ){
-								
-								for (RelatedContent rc : hits) {
-									TableRowCore row = tv_related_content.getRow(rc);
-									if (row != null) {
-										row.refresh(true);
-									}
-								}
-							}
-						}
-						
-						public void 
-						contentRemoved(
-							final RelatedContent[] content )
-						{
-							final java.util.List<RelatedContent> hits = new ArrayList<RelatedContent>( content.length );
-							
-							synchronized( content_set ){
-								
-								if ( destroyed ){
-									
-									return;
-								}
-							
-								for ( RelatedContent c: content ){
-								
-									if ( content_set.remove( c )){
-								
-										hits.add( c );
-									}
-								}
-							}
-							
-							if ( hits.size() > 0 ){
-								
-								Utils.execSWTThread(
-										new Runnable()
-										{
-											public void
-											run()
-											{
-												if ( tv_related_content != null ){
-													
-													tv_related_content.removeDataSources( hits.toArray( new RelatedContent[ hits.size()] ));
-												}
-											}
-										});
-							}
-						}
-						
-						public void
-						contentChanged()
-						{
-							if ( tv_related_content != null ){
-								
-								tv_related_content.refreshTable( false );
-							}
-						}
-						
-						public void
-						contentReset()
-						{
-							if ( tv_related_content != null ){
-								
-								tv_related_content.removeAllTableRows();
-							}
-						}
-					};
+				private RelatedContentManagerListener current_rcm_listener;
+				
 				
 				public void 
 				tableViewInitialized() 
 				{
-					manager.addListener( rcm_listener );
+					final int current_liveness_marker = ++liveness_marker;
+					
+					current_rcm_listener = 
+						new RelatedContentManagerListener()
+						{
+							public void
+							contentFound(
+								RelatedContent[]	content )
+							{							
+							}
+
+							public void
+							contentChanged(
+								RelatedContent[]	content )
+							{
+								final java.util.List<RelatedContent> hits = new ArrayList<RelatedContent>( content.length );
+
+								synchronized( content_set ){
+									
+									if ( liveness_marker != current_liveness_marker ){
+										
+										return;
+									}							
+								
+									for ( RelatedContent c: content ){
+
+										if ( content_set.contains( c )){
+									
+											hits.add( c );
+										}
+									}
+								}
+								
+								if ( hits.size() > 0 ){
+									
+									for (RelatedContent rc : hits) {
+										TableRowCore row = tv_related_content.getRow(rc);
+										if (row != null) {
+											row.refresh(true);
+										}
+									}
+								}
+							}
+							
+							public void 
+							contentRemoved(
+								final RelatedContent[] content )
+							{
+								final java.util.List<RelatedContent> hits = new ArrayList<RelatedContent>( content.length );
+								
+								synchronized( content_set ){
+									
+									if ( liveness_marker != current_liveness_marker ){
+										
+										return;
+									}
+								
+									for ( RelatedContent c: content ){
+									
+										if ( content_set.remove( c )){
+									
+											hits.add( c );
+										}
+									}
+								}
+								
+								if ( hits.size() > 0 ){
+									
+									Utils.execSWTThread(
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													if ( tv_related_content != null ){
+														
+														tv_related_content.removeDataSources( hits.toArray( new RelatedContent[ hits.size()] ));
+													}
+												}
+											});
+								}
+							}
+							
+							public void
+							contentChanged()
+							{
+								if ( tv_related_content != null ){
+									
+									tv_related_content.refreshTable( false );
+								}
+							}
+							
+							public void
+							contentReset()
+							{
+								if ( tv_related_content != null ){
+									
+									tv_related_content.removeAllTableRows();
+								}
+							}
+						};
+						
+					manager.addListener( current_rcm_listener );
 				
 					Object data_source = sidebar_entry.getDatasource();
 					
@@ -537,7 +542,7 @@ SBC_RCMView
 									
 									synchronized( content_set ){
 										
-										if ( destroyed ){
+										if ( liveness_marker != current_liveness_marker ){
 											
 											return;
 										}
@@ -591,7 +596,7 @@ SBC_RCMView
 													
 														synchronized( content_set ){
 															
-															if ( destroyed ){
+															if ( liveness_marker != current_liveness_marker ){
 																
 																return;
 															}
@@ -610,11 +615,11 @@ SBC_RCMView
 				public void 
 				tableViewDestroyed() 
 				{
-					manager.removeListener( rcm_listener );
+					manager.removeListener( current_rcm_listener );
 					
 					synchronized( content_set ){
 						
-						destroyed = true;
+						liveness_marker++;
 					
 						content_set.clear();
 					}
