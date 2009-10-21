@@ -550,8 +550,6 @@ public class VuzeActivitiesEntry
 			if (torrent != null) {
 				sc.setDisplayName(TorrentUtils.getLocalisedName(torrent));
 				sc.setHash(torrent.getHashWrapper().toBase32String(), ourContent);
-			} else {
-				throw new Exception("No Display Name");
 			}
 		}
 		
@@ -560,8 +558,6 @@ public class VuzeActivitiesEntry
 			if ( assetHash != null ){
 
 				sc.setHash(assetHash, true);
-			} else {
-				throw new Exception("No Download Info");
 			}
 		}
 

@@ -83,6 +83,7 @@ import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -1044,13 +1045,13 @@ SubscriptionManagerUI
 			public void selected(MenuItem menu, Object target) {
 				if (target instanceof SideBarEntry) {
 					SideBarEntry info = (SideBarEntry) target;
-					Subscription subs = (Subscription) info.getDatasource();
+					final Subscription subs = (Subscription) info.getDatasource();
 					try{
 						Engine engine = subs.getEngine();
 						
 						if ( engine instanceof WebEngine ){
 							
-							WebEngine we = (WebEngine)engine;
+							final WebEngine we = (WebEngine)engine;
 							
 							UISWTInputReceiver entry = (UISWTInputReceiver)swt_ui.getInputReceiver();
 							
@@ -1066,20 +1067,28 @@ SubscriptionManagerUI
 							entry.maintainWhitespace(false);
 							entry.allowEmptyInput( false );
 							entry.setTitle("general.enter.cookies");
-							entry.prompt();
-							if (!entry.hasSubmittedInput()){
-								
-								return;
-							}
-							
-							String input = entry.getSubmittedInput().trim();
-							
-							if ( input.length() > 0 ){
-							
-								we.setCookies( input );
-								
-								subs.getManager().getScheduler().downloadAsync(subs, true);
-							}
+							entry.prompt(new UIInputReceiverListener() {
+								public void UIInputReceiverClosed(UIInputReceiver entry) {
+									if (!entry.hasSubmittedInput()){
+										
+										return;
+									}
+
+									try {
+  									String input = entry.getSubmittedInput().trim();
+  									
+  									if ( input.length() > 0 ){
+  										
+  										we.setCookies( input );
+  										
+  										subs.getManager().getScheduler().downloadAsync(subs, true);
+  									}
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+									}
+								}
+							});
 						}
 					}catch( Throwable e ){
 						
@@ -1175,31 +1184,37 @@ SubscriptionManagerUI
 			public void selected(MenuItem menu, Object target) {
 				if (target instanceof SideBarEntry) {
 					SideBarEntry info = (SideBarEntry) target;
-					Subscription subs = (Subscription) info.getDatasource();
+					final Subscription subs = (Subscription) info.getDatasource();
 					
 					UISWTInputReceiver entry = (UISWTInputReceiver)swt_ui.getInputReceiver();
 					entry.setPreenteredText(subs.getName(), false );
 					entry.maintainWhitespace(false);
 					entry.allowEmptyInput( false );
-					entry.setTitle("MyTorrentsView.menu.rename");
-					entry.prompt();
-					if (!entry.hasSubmittedInput()){
-						
-						return;
-					}
-					
-					String input = entry.getSubmittedInput().trim();
-					
-					if ( input.length() > 0 ){
-						
-						try{
-							subs.setName( input );
+					entry.setLocalisedTitle(MessageText.getString("label.rename",
+							new String[] {
+								subs.getName()
+							}));
+					entry.prompt(new UIInputReceiverListener() {
+						public void UIInputReceiverClosed(UIInputReceiver entry) {
+							if (!entry.hasSubmittedInput()){
+								
+								return;
+							}
 							
-						}catch( Throwable e ){
+							String input = entry.getSubmittedInput().trim();
 							
-							Debug.printStackTrace(e);
+							if ( input.length() > 0 ){
+								
+								try{
+									subs.setName( input );
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+							}
 						}
-					}
+					});
 				}
 			}
 		};
@@ -1691,11 +1706,10 @@ SubscriptionManagerUI
 	
 	protected static void
 	removeWithConfirm(
-		Subscription	subs )
+		final Subscription	subs )
 	{
 		MessageBoxShell mb = 
 			new MessageBoxShell(
-				Utils.findAnyShell(),
 				MessageText.getString("message.confirm.delete.title"),
 				MessageText.getString("message.confirm.delete.text",
 						new String[] {
@@ -1707,10 +1721,13 @@ SubscriptionManagerUI
 				},
 				1 );
 		
-		int result = mb.open();
-		if (result == 0) {
-			subs.remove();
-		}
+		mb.open(new UserPrompterResultListener() {
+			public void prompterClosed(int result) {
+				if (result == 0) {
+					subs.remove();
+				}
+			}
+		});
 	}
 	
 	protected void

@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
@@ -56,7 +57,7 @@ public class DebugMenuHelper
 			public void handleEvent(Event event) {
 				CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
 					public void azureusCoreRunning(AzureusCore core) {
-						Utils.openMessageBox(Utils.findAnyShell(), 0, "Done", "Core Now Avail");
+						new MessageBoxShell(0, "Done", "Core Now Avail").open(null);
 					}
 				});
 			}

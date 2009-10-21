@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.devices;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
@@ -56,6 +57,7 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -558,24 +560,22 @@ public class SBC_DevicesView
 				{
 					if ( e.stateMask == 0 && e.keyCode == SWT.DEL ){
 						
-						Object[] selected;
+						TranscodeFile[] selected;
 						
 						synchronized (this) {
 							
 							if ( tvFiles == null ){
 								
-								selected = new Object[0];
+								selected = new TranscodeFile[0];
 								
 							}else{
 							
-								selected = tvFiles.getSelectedDataSources().toArray();
+								List<TranscodeFile> selectedDataSources = tvFiles.getSelectedDataSources();
+								selected = selectedDataSources.toArray(new TranscodeFile[0]);
 							}
 						}
 						
-						for (Object ds : selected) {
-							
-							deleteFile((TranscodeFile)ds);
-						}
+						deleteFiles(selected, 0);
 						
 						e.doit = false;
 					}
@@ -812,10 +812,7 @@ public class SBC_DevicesView
 
 		remove_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				for (TranscodeFile file : files) {
-
-					deleteFile(file);
-				}
+				deleteFiles(files, 0);
 			};
 		});
 
@@ -1139,16 +1136,14 @@ public class SBC_DevicesView
 			return;
 		}
 
-		Object[] selectedDS = tvFiles.getSelectedDataSources().toArray();
-		int size = tvFiles.size(false);
+		TranscodeFile[] selectedDS = tvFiles.getSelectedDataSources().toArray(new TranscodeFile[0]);
 		if (selectedDS.length == 0) {
 			return;
 		}
 
 		if (itemKey.equals("remove")) {
-			for (Object ds : selectedDS) {
-				deleteFile((TranscodeFile) ds);
-			}
+			deleteFiles(selectedDS, 0);
+			return;
 		}
 
 		java.util.List<TranscodeJob> jobs = new ArrayList<TranscodeJob>(
@@ -1256,16 +1251,17 @@ public class SBC_DevicesView
 		}
 	}
 
-	protected void deleteFile(TranscodeFile file) {
-		if (tvFiles == null || tvFiles.isDisposed()) {
-
+	protected void deleteFiles(final TranscodeFile[] toRemove, final int startIndex) {
+		if (toRemove[startIndex] == null) {
+			int nextIndex = startIndex + 1;
+			if (nextIndex < toRemove.length) {
+				deleteFiles(toRemove, nextIndex);
+			}
 			return;
 		}
 
+		final TranscodeFile file = toRemove[startIndex];
 		try {
-			boolean do_delete = false;
-
-			// we are already on SWT thread
 
 			File cache_file = file.getCacheFileIfExists();
 
@@ -1301,14 +1297,24 @@ public class SBC_DevicesView
 							copy_text
 						});
 
-				MessageBoxShell mb = new MessageBoxShell(
-						tvFiles.getComposite().getShell(), title, text, new String[] {
-							MessageText.getString("Button.yes"),
-							MessageText.getString("Button.no"),
-						}, 1, "xcode.deletedata.noconfirm.key",
-						MessageText.getString("deletedata.noprompt"), false, 0);
+				MessageBoxShell mb = new MessageBoxShell(title, text);
+				mb.setRemember("xcode.deletedata.noconfirm.key", false,
+						MessageText.getString("deletedata.noprompt"));
 
-				mb.setRememberOnlyIfButton(0);
+				if (startIndex == toRemove.length - 1) {
+  				mb.setButtons(0, new String[] {
+  					MessageText.getString("Button.yes"),
+  					MessageText.getString("Button.no"),
+  				}, new Integer[] { 0, 1 });
+  				mb.setRememberOnlyIfButton(0);
+				} else {
+  				mb.setButtons(1, new String[] {
+  					MessageText.getString("Button.removeAll"),
+  					MessageText.getString("Button.yes"),
+  					MessageText.getString("Button.no"),
+  				}, new Integer[] { 2, 0, 1 });
+  				mb.setRememberOnlyIfButton(1);
+				}
 
 				DownloadManager dm = null;
 
@@ -1319,30 +1325,49 @@ public class SBC_DevicesView
 
 				mb.setLeftImage(SWT.ICON_WARNING);
 
-				int result = mb.open();
+				mb.open(new UserPrompterResultListener() {
+					public void prompterClosed(int result) {
+						if (result == -1) {
+							return;
+						} else if (result == 0) {
+							deleteNoCheck(file);
+						} else if (result == 2) {
+							for (int i = startIndex; i < toRemove.length; i++) {
+								if (toRemove[i] != null) {
+									deleteNoCheck(toRemove[i]);
+								}
+							}
+							return;
+						}
 
-				if (result == 0) {
+						int nextIndex = startIndex + 1;
+						if (nextIndex < toRemove.length) {
+							deleteFiles(toRemove, nextIndex);
+						}
+					}
+				});
 
-					do_delete = true;
-				}
 			} else {
 
-				do_delete = true;
-			}
-
-			if (do_delete) {
-
-				TranscodeJob job = file.getJob();
-
-				if (job != null) {
-
-					job.remove();
-				}
-
-				file.delete(cache_file != null);
+				deleteNoCheck(file);
 			}
 		} catch (Throwable e) {
 
+			Debug.out(e);
+		}
+	}
+	
+	private void deleteNoCheck(TranscodeFile file) {
+		TranscodeJob job = file.getJob();
+
+		if (job != null) {
+
+			job.remove();
+		}
+
+		try {
+			file.delete(file.getCacheFileIfExists() != null);
+		} catch (TranscodeException e) {
 			Debug.out(e);
 		}
 	}

@@ -23,6 +23,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -119,27 +120,61 @@ public class SubscriptionsView
 
 	private void removeSelected() {
 		TableRowCore[] rows = view.getSelectedRows();
-		for(int i = 0 ; i < rows.length ; i++) {
-			Subscription subs = (Subscription) rows[i].getDataSource();
-			MessageBoxShell mb = 
-				new MessageBoxShell(
-					Utils.findAnyShell(),
-					MessageText.getString("message.confirm.delete.title"),
-					MessageText.getString("message.confirm.delete.text",
-							new String[] {
-								subs.getName()
-							}), 
-					new String[] {
-						MessageText.getString("Button.yes"),
-						MessageText.getString("Button.no")
-					},
-					1 );
-			
-			int result = mb.open();
-			if (result == 0) {
-				subs.remove();
-			}
+		Subscription[] subs = new Subscription[rows.length];
+		int i = 0;
+		for (Subscription subscription : subs) {
+			subs[i] = (Subscription) rows[i++].getDataSource();
 		}
+		removeSubs(subs, 0);
+	}
+	
+	private void removeSubs(final Subscription[] toRemove, final int startIndex) {
+		if (toRemove[startIndex] == null) {
+			int nextIndex = startIndex + 1;
+			if (nextIndex < toRemove.length) {
+				removeSubs(toRemove, nextIndex);
+			}
+			return;
+		}
+
+		MessageBoxShell mb = new MessageBoxShell(
+				MessageText.getString("message.confirm.delete.title"),
+				MessageText.getString("message.confirm.delete.text", new String[] {
+					toRemove[startIndex].getName()
+				}));
+
+		if (startIndex == toRemove.length - 1) {
+			mb.setButtons(0, new String[] {
+				MessageText.getString("Button.yes"),
+				MessageText.getString("Button.no"),
+			}, new Integer[] { 0, 1 });
+		} else {
+			mb.setButtons(1, new String[] {
+				MessageText.getString("Button.removeAll"),
+				MessageText.getString("Button.yes"),
+				MessageText.getString("Button.no"),
+			}, new Integer[] { 2, 0, 1 });
+		}
+
+		mb.open(new UserPrompterResultListener() {
+			public void prompterClosed(int result) {
+				if (result == 0) {
+					toRemove[startIndex].remove();
+				} else if (result == 2) {
+					for (int i = startIndex; i < toRemove.length; i++) {
+						if (toRemove[i] != null) {
+							toRemove[i].remove();
+						}
+					}
+					return;
+				}
+
+				int nextIndex = startIndex + 1;
+				if (nextIndex < toRemove.length) {
+					removeSubs(toRemove, nextIndex);
+				}
+			}
+		});
 	}
 	
 	public void updateUI() {

@@ -43,8 +43,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Constants;
 
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarOpenListener;
 import org.gudy.azureus2.ui.swt.*;
@@ -62,7 +60,6 @@ import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils.RunDownloadManager;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
@@ -78,8 +75,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.Platfor
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.launcher.Launcher;
-import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
-import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFPListener;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -205,11 +200,13 @@ public class MainWindow
 						fos.close();
 
 						COConfigurationManager.setParameter("vista.adminquit", true);
-						MessageBoxShell.open(shell,
+						MessageBoxShell mb = new MessageBoxShell(
 								MessageText.getString("mb.azmustclose.title"),
 								MessageText.getString("mb.azmustclose.text"), new String[] {
 									MessageText.getString("Button.ok")
 								}, 0);
+						mb.open(null);
+						mb.waitUntilClosed();
 						if (uiInitializer != null) {
 							uiInitializer.abortProgress();
 						}
@@ -276,14 +273,15 @@ public class MainWindow
 						dm.getDisplayName()
 					});
 
-					MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+					MessageBoxShell mb = new MessageBoxShell(title, text,
 							new String[] {
 								MessageText.getString(prefix + "button.delete"),
 								MessageText.getString(prefix + "button.cancel")
 							}, 1);
 					mb.setRelatedObject(dm);
 
-					int result = mb.open();
+					mb.open(null);
+					int result = mb.waitUntilClosed();
 					if (result != 0) {
 						throw new GlobalManagerDownloadRemovalVetoException("", true);
 					}
@@ -392,11 +390,13 @@ public class MainWindow
 						fos.close();
 
 						COConfigurationManager.setParameter("vista.adminquit", true);
-						MessageBoxShell.open(shell,
+						MessageBoxShell mb = new MessageBoxShell(
 								MessageText.getString("mb.azmustclose.title"),
 								MessageText.getString("mb.azmustclose.text"), new String[] {
 									MessageText.getString("Button.ok")
 								}, 0);
+						mb.open(null);
+						mb.waitUntilClosed();
 						if (uiInitializer != null) {
 							uiInitializer.abortProgress();
 						}
@@ -457,14 +457,15 @@ public class MainWindow
 						dm.getDisplayName()
 					});
 
-					MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+					MessageBoxShell mb = new MessageBoxShell(title, text,
 							new String[] {
 								MessageText.getString(prefix + "button.delete"),
 								MessageText.getString(prefix + "button.cancel")
 							}, 1);
 					mb.setRelatedObject(dm);
 
-					int result = mb.open();
+					mb.open(null);
+					int result = mb.waitUntilClosed();
 					if (result != 0) {
 						throw new GlobalManagerDownloadRemovalVetoException("", true);
 					}
@@ -781,6 +782,15 @@ public class MainWindow
 						minimizeToTray(event);
 					} else {
 						event.doit = dispose(false, false);
+					}
+				}
+
+				public void shellActivated(ShellEvent e) {
+					Shell shellAppModal = Utils.findFirstShellWithStyle(SWT.APPLICATION_MODAL);
+					if (shellAppModal != null) {
+						shellAppModal.forceActive();
+					} else {
+						shell.forceActive();
 					}
 				}
 
@@ -1278,9 +1288,14 @@ public class MainWindow
 		
 
 		if (delayedCore) {
-			// TODO: Check if update window takes control and messes things up
-  		while (!display.isDisposed() && display.readAndDispatch());
-  		System.out.println("---------DONE DISPATCH AT "
+			// max 5 seconds of dispatching.  We don't display.sleep here because
+			// we only want to clear the backlog of SWT events, and sleep would
+			// add new ones
+			long endSWTDispatchOn = SystemTime.getOffsetTime(5000);
+			while (SystemTime.getCurrentTime() < endSWTDispatchOn
+					&& !display.isDisposed() && display.readAndDispatch());
+
+			System.out.println("---------DONE DISPATCH AT "
   				+ SystemTime.getCurrentTime() + ";"
   				+ (SystemTime.getCurrentTime() - Initializer.startTime) + "ms");
   		if (display.isDisposed()) {

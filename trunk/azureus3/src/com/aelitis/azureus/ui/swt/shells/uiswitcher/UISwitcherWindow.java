@@ -31,8 +31,11 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.UISwitcherUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
@@ -74,6 +77,7 @@ public class UISwitcherWindow
 	 * 
 	 */
 	public UISwitcherWindow(Shell parentShell, final boolean allowCancel) {
+		final String originalUIMode = UISwitcherUtil.calcUIMode();
 		try {
 			final Image[] images = new Image[IMAGES.length];
 			final Button[] buttons = new Button[IMAGES.length];
@@ -90,6 +94,21 @@ public class UISwitcherWindow
 			shell.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					Utils.disposeSWTObjects(disposeList);
+					if (ui == 0) {
+						// Full AZ3UI
+						COConfigurationManager.setParameter("ui", "az3");
+						// Anyone switching to az3 gets the "advanced mode"
+						if (!originalUIMode.equals("az3")) {
+							COConfigurationManager.setParameter("v3.Start Advanced", true);
+						}
+					} else if (ui == 1) {
+						COConfigurationManager.setParameter("ui", "az2");
+					}
+
+					if (ui != -1) {
+						COConfigurationManager.setParameter("ui.asked", true);
+						UISwitcherUtil.triggerListeners(UISwitcherUtil.calcUIMode());
+					}
 				}
 			});
 
@@ -288,20 +307,19 @@ public class UISwitcherWindow
 		}
 	}
 
-	public int open() {
+	public void open() {
 		shell.open();
-
-		while (!shell.isDisposed()) {
-			if (!shell.getDisplay().readAndDispatch()) {
-				shell.getDisplay().sleep();
-			}
-		}
-		return ui;
 	}
 
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
 		UISwitcherWindow window = new UISwitcherWindow(null, false);
-		System.out.println(window.open());
+		Shell shell = window.shell;
+		while (!shell.isDisposed()) {
+			if (!shell.getDisplay().readAndDispatch()) {
+				shell.getDisplay().sleep();
+			}
+		}
+		System.out.println(window.ui);
 	}
 }

@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.devices.DeviceTemplate;
 import com.aelitis.azureus.core.devices.DeviceManager.DeviceManufacturer;
@@ -166,11 +167,10 @@ public class DeviceTemplateChooser
 	 * @since 4.1.0.5
 	 */
 	private void noDevices() {
-		Utils.openMessageBox(
-				null,
+		new MessageBoxShell(
 				SWT.OK,
 				"No Devices Found",
-				"We couldn't find any devices.  Maybe you didn't install the Vuze Transcoder Plugin?");
+				"We couldn't find any devices.  Maybe you didn't install the Vuze Transcoder Plugin?").open(null);
 		skinnedDialog.close();
 	}
 

@@ -22,7 +22,6 @@ package com.aelitis.azureus.ui.swt.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,10 +45,11 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -128,12 +128,12 @@ public class TorrentUIUtilsV3
 
 						}.start();
 					} else {
-						Utils.openMessageBox(Utils.findAnyShell(), SWT.OK,
+						new MessageBoxShell(SWT.OK,
 								MSG_ALREADY_EXISTS, new String[] {
 									" ",
 									dm.getDisplayName(),
 									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
-								});
+								}).open(null);
 					}
 					return;
 				}
@@ -280,17 +280,12 @@ public class TorrentUIUtilsV3
 						return;
 					}
 
-					boolean showHomeHint = true;
 					if (playNow || playPrepare) {
 						if (playNow) {
-							showHomeHint = !TorrentListViewsUtils.playOrStream(dm);
+							TorrentListViewsUtils.playOrStream(dm);
 						} else {
 							PlayUtils.prepareForPlay(dm);
-							showHomeHint = false;
 						}
-					}
-					if (showHomeHint) {
-						TorrentListViewsUtils.showHomeHint(dm);
 					}
 				} catch (Exception e) {
 					Debug.out(e);

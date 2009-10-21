@@ -26,16 +26,13 @@ package com.aelitis.azureus.ui.swt.devices;
 import java.io.File;
 import java.net.InetAddress;
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -45,20 +42,17 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.installer.PluginInstaller;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
-import org.gudy.azureus2.plugins.ui.UIInstance;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.menus.*;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.sidebar.*;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.PropertiesWindow;
-import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -76,6 +70,7 @@ import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -253,35 +248,27 @@ DeviceManagerUI
   						
   						return( true );
   					}
-					
-  					boolean allowQuit =
-  						Utils.execSWTThreadWithBool(
-  							"quitTranscoding",
-  							new AERunnableBoolean() {
-  								public boolean runSupport() {
-  									String title = MessageText.getString("device.quit.transcoding.title");
-  									String text = MessageText.getString(
-  											"device.quit.transcoding.text",
-  											new String[] {
-  												job.getName(),
-  												job.getTarget().getDevice().getName(),
-  												String.valueOf( job.getPercentComplete())
-  											});
-  
-  									MessageBoxShell mb = new MessageBoxShell(
-  											Utils.findAnyShell(),
-  											title,
-  											text,
-  											new String[] {
-  												MessageText.getString("UpdateWindow.quit"),
-  												MessageText.getString("Content.alert.notuploaded.button.abort")
-  											}, 1, null, null, false, 0);
-  
-  									return mb.open() == 0;
-  								}
-  							}, 0);
-  					
-  					return( allowQuit );
+
+						String title = MessageText.getString("device.quit.transcoding.title");
+						String text = MessageText.getString(
+								"device.quit.transcoding.text",
+								new String[] {
+									job.getName(),
+									job.getTarget().getDevice().getName(),
+									String.valueOf( job.getPercentComplete())
+								});
+
+						MessageBoxShell mb = new MessageBoxShell(
+								title,
+								text,
+								new String[] {
+									MessageText.getString("UpdateWindow.quit"),
+									MessageText.getString("Content.alert.notuploaded.button.abort")
+								}, 1);
+						mb.open(null);
+						mb.waitUntilClosed();
+						return mb.getResult() == 0;
+
 					} catch (Exception e) {
 						Debug.out(e);
 						return true;
@@ -777,7 +764,7 @@ DeviceManagerUI
 							
 							SideBarEntry info = (SideBarEntry) target;
 							
-							Device device = (Device)info.getDatasource();
+							final Device device = (Device)info.getDatasource();
 							
 							UISWTInputReceiver entry = (UISWTInputReceiver)swt_ui.getInputReceiver();
 							
@@ -787,21 +774,24 @@ DeviceManagerUI
 							
 							entry.allowEmptyInput( false );
 							
-							entry.setTitle("MyTorrentsView.menu.rename");
-							
-							entry.prompt();
-							
-							if (!entry.hasSubmittedInput()){
-								
-								return;
-							}
-							
-							String input = entry.getSubmittedInput().trim();
-							
-							if ( input.length() > 0 ){
-							
-								device.setName( input );
-							}
+							entry.setLocalisedTitle(MessageText.getString("label.rename",
+									new String[] {
+								device.getName()
+							}));
+	
+							entry.prompt(new UIInputReceiverListener() {
+								public void UIInputReceiverClosed(UIInputReceiver entry) {
+									if (!entry.hasSubmittedInput()) {
+										return;
+									}
+									String input = entry.getSubmittedInput().trim();
+									
+									if ( input.length() > 0 ){
+										
+										device.setName( input );
+									}
+								}
+							});		
 						}
 					}
 				};
@@ -1011,8 +1001,8 @@ DeviceManagerUI
 						
 						menu.setEnabled( enabled );
 					}
-				};
 			
+				};
 		side_bar.addListener(
 			new SideBarListener()
 			{
@@ -1051,7 +1041,6 @@ DeviceManagerUI
 									{
 										MessageBoxShell mb = 
 											new MessageBoxShell(
-												Utils.findAnyShell(),
 												MessageText.getString("message.confirm.delete.title"),
 												MessageText.getString("message.confirm.delete.text",
 														new String[] {
@@ -1063,10 +1052,13 @@ DeviceManagerUI
 												},
 												1 );
 										
-										int result = mb.open();
-										if (result == 0) {
-											device.remove();
-										}
+										mb.open(new UserPrompterResultListener() {
+											public void prompterClosed(int result) {
+												if (result == 0) {
+													device.remove();
+												}
+											}
+										});
 									}
 								})};
 										

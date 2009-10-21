@@ -62,6 +62,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventCancelledException;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
@@ -1699,7 +1700,7 @@ public class SideBar
 						s += "\n";
 					}
 				}
-				Utils.openMessageBox(null, SWT.OK, "test", s);
+				new MessageBoxShell(SWT.OK, "test", s).open(null);
 			}
 		});
 

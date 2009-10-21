@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
@@ -218,10 +220,13 @@ public class Browse
 			menuItem.addListener(new MenuItemListener() {
 				public void selected(MenuItem menu, Object target) {
 					SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow("", "!URL!");
-					entryWindow.prompt();
-					if (entryWindow.hasSubmittedInput()) {
-						browserSkinObject.setURL(entryWindow.getSubmittedInput());
-					}
+					entryWindow.prompt(new UIInputReceiverListener() {
+						public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
+							if (entryWindow.hasSubmittedInput()) {
+								browserSkinObject.setURL(entryWindow.getSubmittedInput());
+							}
+						}
+					});
 				}
 			});
 

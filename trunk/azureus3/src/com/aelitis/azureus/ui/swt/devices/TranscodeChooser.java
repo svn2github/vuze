@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.devices.Device;
@@ -276,8 +277,7 @@ public abstract class TranscodeChooser
 	private void createProfileList(SWTSkinObjectContainer soList,
 			String source) {
 		if (selectedTranscodeTarget == null && selectedDeviceTemplate == null) {
-			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "No Device",
-					"No Device Selected!?");
+			new MessageBoxShell(SWT.OK, "No Device", "No Device Selected!?").open(null);
 			shell.dispose();
 			return;
 		}
@@ -302,8 +302,8 @@ public abstract class TranscodeChooser
 		}
 
 		if (transcodeProfiles.length == 0) {
-			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "No Profiles",
-					"No Profiles for " + selectedTranscodeTarget.getDevice().getName());
+			new MessageBoxShell(SWT.OK, "No Profiles", "No Profiles for "
+					+ selectedTranscodeTarget.getDevice().getName()).open(null);
 			shell.dispose();
 			return;
 		}
@@ -784,11 +784,10 @@ public abstract class TranscodeChooser
 	 * @since 4.1.0.5
 	 */
 	private void noDevices() {
-		Utils.openMessageBox(
-				mainShell,
+		new MessageBoxShell(
 				SWT.OK,
 				"No Devices Found",
-				"We couldn't find any devices.  Maybe you didn't install the Vuze Transcoder Plugin?");
+				"We couldn't find any devices.  Maybe you didn't install the Vuze Transcoder Plugin?").open(null);
 		shell.dispose();
 	}
 

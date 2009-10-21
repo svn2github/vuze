@@ -60,6 +60,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
@@ -296,32 +297,29 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	public static boolean playOrStream(final DownloadManager dm,
+	public static void playOrStream(final DownloadManager dm,
 			final SWTSkinButtonUtility btn) {
-		boolean played = _playOrStream(dm, btn);
-		if (played) {
-			PlatformTorrentUtils.setHasBeenOpened(dm, true);
-		}
-		return played;
+		_playOrStream(dm, btn);
 	}
 
-	private static boolean _playOrStream(final DownloadManager dm,
+	private static void _playOrStream(final DownloadManager dm,
 			final SWTSkinButtonUtility btn) {
 
 		if (dm == null) {
-			return false;
+			return;
 		}
 
 		//		if (!canPlay(dm)) {
 		//			return false;
 		//		}
 
-		TOTorrent torrent = dm.getTorrent();
+		final TOTorrent torrent = dm.getTorrent();
 		if (PlayUtils.canUseEMP(torrent)) {
 			debug("Can use EMP");
 
 			if (openInEMP(dm)) {
-				return true;
+				PlatformTorrentUtils.setHasBeenOpened(dm, true);
+				return;
 			} else {
 				debug("Open EMP Failed");
 			}
@@ -338,7 +336,7 @@ public class TorrentListViewsUtils
 		boolean reenableButton = false;
 		try {
 			if (!PlayUtils.canProgressiveOrIsComplete(torrent)) {
-				return false;
+				return;
 			}
 
 			File file;
@@ -349,14 +347,16 @@ public class TorrentListViewsUtils
 			if (edm != null) {
 				boolean doProgressive = edm.getProgressiveMode();
 				if (doProgressive && edm.getProgressivePlayETA() > 0) {
-					return false;
+					return;
 				}
 
 				if (!doProgressive && dm.getDiskManagerFileInfo().length > 1
 						&& PlatformTorrentUtils.getContentPrimaryFileIndex(torrent) == -1) {
 					// multi-file torrent that we aren't progressive playing or useEMPing
 					Utils.launch(dm.getSaveLocation().getAbsolutePath());
-					return true;
+  				reenableButton = true;
+  				PlatformTorrentUtils.setHasBeenOpened(dm, true);
+  				return;
 				}
 
 				file = edm.getPrimaryFile().getFile(true);
@@ -365,6 +365,8 @@ public class TorrentListViewsUtils
 				sFile = dm.getDownloadState().getPrimaryFile();
 				file = new File(sFile);
 			}
+			
+			final String sfFile = sFile;
 
 			String ext = FileUtil.getExtension(sFile);
 			
@@ -372,22 +374,24 @@ public class TorrentListViewsUtils
   			if (ext.equalsIgnoreCase(".exe")
   					&& DataSourceUtils.isPlatformContent(dm)
   					&& "Game".equalsIgnoreCase(PlatformTorrentUtils.getContentType(dm.getTorrent()))) {
+  				reenableButton = true;
   				Utils.launch(sFile);
-  				return true;
+  				PlatformTorrentUtils.setHasBeenOpened(dm, true);
+  				return;
   			}
 			} catch (Exception e) {
 				Debug.out(e);
 			}
 
-			String sPrefix = "v3.mb.openFile.";
+			final String sPrefix = "v3.mb.openFile.";
 			
 
 			UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 			if (functionsSWT == null) {
-				return false;
+				return;
 			}
 			
-			Program program = Program.findProgram(ext);
+			final Program program = Program.findProgram(ext);
 			String sTextID;
 			String sFileType;
 			if (program == null) {
@@ -405,62 +409,68 @@ public class TorrentListViewsUtils
 			MessageBoxShell mb = null;
 			if(program != null) {
 				buttons[1] = MessageText.getString(sPrefix + "button.play");
-				mb = new MessageBoxShell(functionsSWT.getMainShell(),
-						MessageText.getString(sPrefix + "title"), MessageText.getString(
-								sTextID, new String[] {
-									dm.getDisplayName(),
-									sFileType,
-									ext
-								}), buttons, 0, sPrefix + ".remember_id", MessageText.getString(sPrefix
-								+ "remember"), false, 0);
-				mb.setRememberOnlyIfButton(1);
-				mb.setRelatedObject(dm);
-			} else {
-				mb = new MessageBoxShell(functionsSWT.getMainShell(),
-						MessageText.getString(sPrefix + "title"), MessageText.getString(
-								sTextID, new String[] {
+				mb = new MessageBoxShell(MessageText.getString(sPrefix + "title"),
+						MessageText.getString(sTextID, new String[] {
 									dm.getDisplayName(),
 									sFileType,
 									ext
 								}), buttons, 0);
+				mb.setRemember(sPrefix + ".remember_id", false, MessageText.getString(sPrefix
+						+ "remember"));
+				mb.setRememberOnlyIfButton(1);
+				mb.setRelatedObject(dm);
+			} else {
+				mb = new MessageBoxShell(MessageText.getString(sPrefix + "title"),
+						MessageText.getString(sTextID, new String[] {
+							dm.getDisplayName(),
+							sFileType,
+							ext
+						}), buttons, 0);
 				mb.setRelatedObject(dm);
 			}
 
-			int i = mb.open();
-			
-			if(i == 0) {
-				String url = MessageText.getString(sPrefix + "guideurl");
-				if(UrlUtils.isURL(url)) {
-					Utils.launch(url);
+			reenableButton = false;
+			mb.open(new UserPrompterResultListener() {
+				public void prompterClosed(int i) {
+					if(i == 0) {
+						String url = MessageText.getString(sPrefix + "guideurl");
+						if(UrlUtils.isURL(url)) {
+							Utils.launch(url);
+							return;
+						}
+					}
+					
+					if (i != 1 || program == null) {
+						return;
+					}
+					
+    			boolean bComplete = dm.isDownloadComplete(false);
+    
+    			if (bComplete) {
+    				if (btn != null) {
+    					btn.setDisabled(false);
+    				}
+    				runFile(dm.getTorrent(), sfFile);
+    			} else {
+    				if (btn != null) {
+    					btn.setDisabled(false);
+    				}
+    				try {
+    					playViaMediaServer(DownloadManagerImpl.getDownloadStatic(dm));
+    				} catch (DownloadException e) {
+    					Debug.out(e);
+    				}
+    			}
 				}
-			}
+			});
 			
-			if (i != 1 || program == null) {
-				return false;
-			}
-			//}
-
-			boolean bComplete = dm.isDownloadComplete(false);
-
-			if (bComplete) {
-				reenableButton = true;
-				runFile(dm.getTorrent(), sFile);
-			} else {
-				reenableButton = true;
-				try {
-					playViaMediaServer(DownloadManagerImpl.getDownloadStatic(dm));
-				} catch (DownloadException e) {
-					Debug.out(e);
-				}
-			}
 		} finally {
 			if (btn != null && reenableButton) {
 				btn.setDisabled(false);
 			}
 		}
-
-		return true;
 	}
+
 
 	/**
 	 * @param string
@@ -566,15 +576,15 @@ public class TorrentListViewsUtils
 	*
 	* @since 3.0.0.7
 	*/
-	private static void handleNoFileExists(DownloadManager dm) {
-		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+	private static void handleNoFileExists(final DownloadManager dm) {
+		final UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (functionsSWT == null) {
 			return;
 		}
 		ManagerUtils.start(dm);
 
 		String sPrefix = "v3.mb.PlayFileNotFound.";
-		MessageBoxShell mb = new MessageBoxShell(functionsSWT.getMainShell(),
+		MessageBoxShell mb = new MessageBoxShell(
 				MessageText.getString(sPrefix + "title"), MessageText.getString(sPrefix
 						+ "text", new String[] {
 					dm.getDisplayName(),
@@ -584,17 +594,20 @@ public class TorrentListViewsUtils
 					MessageText.getString("Button.cancel"),
 				}, 2);
 		mb.setRelatedObject(dm);
-		int i = mb.open();
-
-		if (i == 0) {
-			ManagerUtils.remove(dm, functionsSWT.getMainShell(), true, false);
-		} else if (i == 1) {
-			dm.forceRecheck(new ForceRecheckListener() {
-				public void forceRecheckComplete(DownloadManager dm) {
-					ManagerUtils.start(dm);
+		mb.open(new UserPrompterResultListener() {
+			public void prompterClosed(int i) {
+				if (i == 0) {
+					ManagerUtils.remove(dm, functionsSWT.getMainShell(), true, false);
+				} else if (i == 1) {
+					dm.forceRecheck(new ForceRecheckListener() {
+						public void forceRecheckComplete(DownloadManager dm) {
+							ManagerUtils.start(dm);
+						}
+					});
 				}
-			});
-		}
+			}
+		});
+
 	}
 
 	/**
@@ -649,9 +662,15 @@ public class TorrentListViewsUtils
 		if (dms == null) {
 			return;
 		}
-		
-		int doAllAs = -1;
 
+		// confusing code:
+		// for loop goes through erasing published and low noise torrents until
+		// it reaches a normal one.  We then prompt the user, and stop the loop.
+		// When the user finally chooses an option, we act on it.  If the user
+		// chose to act on all, we do immediately all and quit.  
+		// If the user chose an action just for the one torrent, we do that action, 
+		// remove that item from the array (by nulling it), and then call 
+		// removeDownloads again so we can prompt again (or erase more published/low noise torrents)
 		for (int i = 0; i < dms.length; i++) {
 			DownloadManager dm = dms[i];
 			if (dm != null) {
@@ -661,68 +680,80 @@ public class TorrentListViewsUtils
 					continue;
 				}
 
-				boolean deleteTorrent = true;
-				boolean deleteData = true;
+			boolean deleteTorrent = true;
+			boolean deleteData = true;
 
 
-				if (!dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
-					String path = dm.getSaveLocation().toString();
-
-					String title = MessageText.getString("deletedata.title");
-					String text = MessageText.getString("v3.deleteContent.message",
-							new String[] {
-								dm.getDisplayName()
-							});
-						
-					int result;
-					if (doAllAs < 0) {
-  					MessageBoxShell mb = new MessageBoxShell(Utils.findAnyShell(), title,
-  							text, new String[] {
-  								MessageText.getString("Button.cancel"),
-  								MessageText.getString("Button.deleteContent.fromComputer"),
-  								MessageText.getString("Button.deleteContent.fromLibrary"),
-  							}, 2, null, null, false, 0);
-  					int numLeft = (dms.length - i);
-  					if (numLeft > 1) {
-    					mb.setRememberText(MessageText.getString(
-									"v3.deleteContent.applyToAll", new String[] {
-										"" + numLeft
-									}));
-    					mb.setRememberID("na", false);
-    					mb.setRememberOnlyIfButton(-3);
-  					}
-  					mb.setRelatedObject(dm);
-  					mb.setLeftImage(ImageLoader.getInstance().getImage("image.trash"));
-  
-  					result = mb.open();
-
-  					ImageLoader.getInstance().releaseImage("image.trash");
-						if (numLeft > 1 && mb.isRemembered()) {
-							doAllAs = result;
-						}
-					} else {
-						result = doAllAs;
-					}
-
-					if (result == 1 || result == 2) {
-						if (result == 2) {
-							deleteData = false;
-						}
+			if (!dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
+				String title = MessageText.getString("deletedata.title");
+				String text = MessageText.getString("v3.deleteContent.message",
+						new String[] {
+							dm.getDisplayName()
+						});
 					
-						ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
-								deleteTorrent, deleteData, null);
-					} else {
-						if (doAllAs >= 0) {
+				final MessageBoxShell mb = new MessageBoxShell(title,
+						text, new String[] {
+							MessageText.getString("Button.cancel"),
+							MessageText.getString("Button.deleteContent.fromComputer"),
+							MessageText.getString("Button.deleteContent.fromLibrary"),
+						}, 2);
+				int numLeft = (dms.length - i);
+				if (numLeft > 1) {
+					mb.setRemember("na", false, MessageText.getString(
+							"v3.deleteContent.applyToAll", new String[] {
+								"" + numLeft
+							}));
+					mb.setRememberOnlyIfButton(-3);
+				}
+				mb.setRelatedObject(dm);
+				mb.setLeftImage(ImageLoader.getInstance().getImage("image.trash"));
+
+				final int index = i;
+				mb.open(new UserPrompterResultListener() {
+					
+					public void prompterClosed(int result) {
+						ImageLoader.getInstance().releaseImage("image.trash");
+						
+						if (result == -1) {
+							// user pressed ESC (as opposed to clicked Cancel), cancel whole
+							// list
 							return;
 						}
-						continue;
+						if (mb.isRemembered()) {
+							if (result == 1 || result == 2) {
+								boolean deleteData = result == 2 ? false : true;
+								boolean deleteTorrent = true;
+							
+								for (int i = index; i < dms.length; i++) {
+									DownloadManager dm = dms[i];
+									ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+											deleteTorrent, deleteData, null);
+								}
+							} //else cancel
+						} else { // not remembered
+							if (result == 1 || result == 2) {
+								boolean deleteData = result == 2 ? false : true;
+								boolean deleteTorrent = true;
+							
+								DownloadManager dm = dms[index];
+								ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+										deleteTorrent, deleteData, null);
+							}
+							// remove the one we just did and go through loop again
+							dms[index] = null;
+							if (index != dms.length - 1) {
+								removeDownloads(dms);
+							}
+						}
 					}
-				} else {
-					ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
-							deleteTorrent, deleteData, null);
-				}
+				});
+				return;
+			} else {
+				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+						deleteTorrent, deleteData, null);
 			}
-		}
+			dms[i] = null;
+		}}
 	}
 
 	public static void removeDownload(final DownloadManager dm,
@@ -742,6 +773,7 @@ public class TorrentListViewsUtils
 				}
 			};
 		}
+		final AERunnable ffailure = failure;
 
 		if (dm.getDownloadState().getFlag(
 				Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE)) {
@@ -762,31 +794,37 @@ public class TorrentListViewsUtils
 						dm.getDisplayName()
 					});
 					
-			MessageBoxShell mb = new MessageBoxShell(Utils.findAnyShell(), title,
-					text, new String[] {
+			MessageBoxShell mb = new MessageBoxShell(title, text, new String[] {
 						MessageText.getString("Button.cancel"),
 						MessageText.getString("Button.deleteContent.fromComputer"),
 						MessageText.getString("Button.deleteContent.fromLibrary"),
-					}, 2, null, null, false, 0);
+					}, 2);
 			mb.setRelatedObject(dm);
 			mb.setLeftImage(ImageLoader.getInstance().getImage("image.trash"));
 
-			int result = mb.open();
-			ImageLoader.getInstance().releaseImage("image.trash");
-
-			if (result == 1 || result == 2) {
-				if (result == 2) {
-					deleteData = false;
+			mb.open(new UserPrompterResultListener() {
+				
+				public void prompterClosed(int result) {
+					ImageLoader.getInstance().releaseImage("image.trash");
+					
+					boolean deleteData = true;
+					boolean deleteTorrent = true;
+					
+					if (result == 1 || result == 2) {
+						if (result == 2) {
+							deleteData = false;
+						}
+						
+						ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+								deleteTorrent, deleteData, ffailure);
+					} else {
+						if (ffailure != null) {
+							ffailure.runSupport();
+						}
+						return;
+					}
 				}
-			
-				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
-						deleteTorrent, deleteData, failure);
-			} else {
-				if (failure != null) {
-					failure.runSupport();
-				}
-				return;
-			}
+			});
 		} else {
 			ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
 					deleteTorrent, deleteData, failure);
@@ -801,7 +839,7 @@ public class TorrentListViewsUtils
 	public static void showHomeHint(final DownloadManager dm) {
 	}
 
-	public static boolean playOrStream(final DownloadManager dm) {
-		return playOrStream(dm, null);
+	public static void playOrStream(final DownloadManager dm) {
+		playOrStream(dm, null);
 	}
 }

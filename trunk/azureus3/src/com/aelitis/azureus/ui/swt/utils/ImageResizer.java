@@ -106,6 +106,8 @@ public class ImageResizer
 		}
 	};
 
+	private ImageResizerListener imageResizerListener;
+
 	public ImageResizer(Display display, int width, int height, Shell parent) {
 		this.parent = parent;
 		this.display = display;
@@ -113,9 +115,10 @@ public class ImageResizer
 		this.minHeight = height;
 	}
 
-	public Image resize(Image original) throws ImageResizeException {
+	public void resize(Image original, ImageResizerListener l) throws ImageResizeException {
 
 		this.original = original;
+		this.imageResizerListener = l;
 
 		//If the image is too small, let's just not deal with it
 		if (!checkSize(original)) {
@@ -148,18 +151,10 @@ public class ImageResizer
 			initUI();
 
 			done = false;
-			while (!done) {
-				if (!display.readAndDispatch()) {
-					display.sleep();
-				}
-			}
 		} else {
 			result = computeResultImage();
+			l.imageResized(result);
 		}
-
-		dispose();
-
-		return result;
 	}
 
 	private void initUI() {
@@ -180,6 +175,9 @@ public class ImageResizer
 				event.doit = false;
 				result = null;
 				done = true;
+				shell = null;
+				dispose();
+				imageResizerListener.imageResized(result);
 			}
 		});
 
@@ -301,6 +299,8 @@ public class ImageResizer
 			public void handleEvent(Event arg0) {
 				result = null;
 				done = true;
+				dispose();
+				imageResizerListener.imageResized(result);
 			}
 		});
 
@@ -315,6 +315,8 @@ public class ImageResizer
 			public void handleEvent(Event arg0) {
 				result = computeResultImage();
 				done = true;
+				dispose();
+				imageResizerListener.imageResized(result);
 			}
 		});
 
@@ -582,21 +584,28 @@ public class ImageResizer
 			drawCurrentImage();
 		}
 	}
+	
+	public interface ImageResizerListener {
+		void imageResized(Image image);
+	}
 
-	public static void main(String args[]) throws Exception {
-		Display display = Display.getDefault();
-		Shell test = new Shell(display);
+	public static void main(final String args[]) throws Exception {
+		final Display display = Display.getDefault();
+		final Shell test = new Shell(display);
 		ImageResizer resizer = new ImageResizer(display, 228, 128, null);
 		String file = new FileDialog(test).open();
 		Image img = new Image(display, file);
-		Image thumbnail = resizer.resize(img);
+		resizer.resize(img, new  ImageResizerListener() {
+			public void imageResized(Image thumbnail) {
+				System.out.println(thumbnail);
+				
+				thumbnail.dispose();
+				test.dispose();
+				if (args.length == 0) {
+					display.dispose();
+				}
+			}
+		});
 
-		System.out.println(thumbnail);
-
-		thumbnail.dispose();
-		test.dispose();
-		if (args.length == 0) {
-			display.dispose();
-		}
 	}
 }

@@ -25,15 +25,19 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
@@ -44,7 +48,9 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -63,10 +69,6 @@ import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.PlayUtils;
-
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.plugins.ui.tables.TableRow;
-import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 
 /**
  * Classic My Torrents view wrapped in a SkinView
@@ -233,8 +235,8 @@ public class SBC_LibraryTableView
 								if (contentHash != null && contentHash.length() > 0) {
 									ContentNetwork cn = DataSourceUtils.getContentNetwork(torrent);
 									if (cn == null) {
-										Utils.openMessageBox(null, SWT.OK, "coq",
-												"Not in Content Network List");
+										new MessageBoxShell(SWT.OK, "coq",
+												"Not in Content Network List").open(null);
 										return;
 									}
 									String url = cn.getTorrentDownloadService(contentHash, "coq");
@@ -250,7 +252,7 @@ public class SBC_LibraryTableView
 				}
 			});
 		}
-		
+
 		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
 				skin.getSkinProperties(), getUpdateUIName(), "", soMain);
 

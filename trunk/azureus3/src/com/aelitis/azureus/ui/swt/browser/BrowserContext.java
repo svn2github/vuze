@@ -40,12 +40,12 @@ import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
-import com.aelitis.azureus.plugins.net.netstatus.swt.NetStatusPluginTester.loggerProvider;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.JSONUtils;
@@ -368,8 +368,8 @@ public class BrowserContext
 
 				if (blocked) {
 					event.doit = false;
-					Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "URL blocked",
-							"Tried to open " + event_location + " but it's blocked");
+					new MessageBoxShell(SWT.OK, "URL blocked", "Tried to open "
+							+ event_location + " but it's blocked").open(null);
 					browser.back();
 				} else {
 					if (UrlFilter.getInstance().isWhitelisted(event_location)) {
