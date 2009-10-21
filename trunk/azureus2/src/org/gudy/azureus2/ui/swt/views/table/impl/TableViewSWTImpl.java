@@ -822,8 +822,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			long lastMouseUpEventTime = 0;
 			public void mouseUp(MouseEvent e) {
-				long time = e.time & 0xFFFFFFFFL; 
-				if (time - lastMouseUpEventTime < 10) {
+				long time = e.time & 0xFFFFFFFFL;
+				long diff = time - lastMouseUpEventTime;
+				if (diff < 10 && diff >= 0) {
 					return;
 				}
 				lastMouseUpEventTime = time;
