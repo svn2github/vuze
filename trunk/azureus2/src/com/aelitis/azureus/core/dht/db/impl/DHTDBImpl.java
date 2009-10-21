@@ -1710,6 +1710,8 @@ DHTDBImpl
 		byte[]	max_key 	= my_id;
 		byte[]	max_dist	= null;
 		
+		final List<HashWrapper> applicable_keys = new ArrayList<HashWrapper>();
+		
 		try{
 			this_mon.enter();
 			
@@ -1726,9 +1728,7 @@ DHTDBImpl
 			}
 			
 			Iterator<DHTDBMapping>	it = stored_values.values().iterator();
-			
-			int	key_count = 0;
-			
+						
 			Set<HashWrapper>	existing_times = new HashSet<HashWrapper>( survey_mapping_times.keySet());
 			
 			while( it.hasNext()){
@@ -1746,7 +1746,9 @@ DHTDBImpl
 						
 					continue;
 				}
-								
+					
+				applicable_keys.add( hw );
+				
 				byte[] key = hw.getBytes();
 				
 				/*
@@ -1757,9 +1759,7 @@ DHTDBImpl
 					id_map.put( c.getID(), c );
 				}
 				*/
-				
-				key_count++;
-				
+								
 				byte[] distance = control.computeDistance( my_id, key );
 				
 				if ( max_dist == null || control.compareDistances( distance, max_dist  ) > 0 ){
@@ -1776,7 +1776,7 @@ DHTDBImpl
 				survey_mapping_times.remove( hw );
 			}
 			
-			logger.log( "Survey starts: state size=" + survey_state.size() + ", all keys=" + stored_values.size() + ", applicable keys=" + key_count );
+			logger.log( "Survey starts: state size=" + survey_state.size() + ", all keys=" + stored_values.size() + ", applicable keys=" + applicable_keys.size());
 
 		}finally{
 			
@@ -1932,7 +1932,7 @@ DHTDBImpl
 											
 								id_map.remove( my_id );
 								
-								processSurvey( my_id, id_map );
+								processSurvey( my_id, applicable_keys, id_map );
 								
 								processing[0] = true;
 							}
@@ -1954,6 +1954,7 @@ DHTDBImpl
 	protected void
 	processSurvey(
 		byte[]									survey_my_id,
+		List<HashWrapper>						applicable_keys,
 		ByteArrayHashMap<DHTTransportContact>	survey )
 	{
 		boolean went_async = false;
@@ -1979,15 +1980,15 @@ DHTDBImpl
 			try{
 				this_mon.enter();
 							
-				Iterator<DHTDBMapping>	it = stored_values.values().iterator();
+				Iterator<HashWrapper>	it = applicable_keys.iterator();
 				
 				int	value_count = 0;
 				
 				while( it.hasNext()){
 					
-					DHTDBMapping	mapping = it.next();
+					DHTDBMapping	mapping = stored_values.get( it.next());
 		
-					if ( !applyRF(mapping)){
+					if ( mapping == null ){
 							
 						continue;
 					}
