@@ -822,10 +822,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			long lastMouseUpEventTime = 0;
 			public void mouseUp(MouseEvent e) {
-				if (e.time - lastMouseUpEventTime < 10) {
+				long time = e.time & 0xFFFFFFFFL; 
+				if (time - lastMouseUpEventTime < 10) {
 					return;
 				}
-				lastMouseUpEventTime = e.time;
+				lastMouseUpEventTime = time;
 
 				TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellSWT cell = getTableCell(e.x, e.y);
