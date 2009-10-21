@@ -350,7 +350,7 @@ public class ManagerUtils {
 
 				mb.open(null);
 				int result = mb.waitUntilClosed();
-				if (result != 0) {
+				if (result != SWT.YES) {
 					if (deleteFailed != null) {
 						deleteFailed.runSupport();
 					}
@@ -380,7 +380,7 @@ public class ManagerUtils {
 
 				mb.open(null);
 				int result = mb.waitUntilClosed();
-				if (result != 0) {
+				if (result != SWT.YES) {
 					if (deleteFailed != null) {
 						deleteFailed.runSupport();
 					}
