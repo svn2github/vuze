@@ -34,7 +34,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -46,7 +45,7 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 public class Wizard {
 
 	private final static int DEFAULT_WIDTH = 500;
-  List		listeners = new ArrayList();
+  List<WizardListener>		listeners = new ArrayList<WizardListener>(1);
   
   Display display;
   Shell wizardWindow;
@@ -373,16 +372,6 @@ public class Wizard {
     insureSize();
     Utils.centreWindow( wizardWindow );
     wizardWindow.open();
-    
-    while (!wizardWindow.isDisposed()) {
-    	try {
-  			if (!display.readAndDispatch()) {
-  				display.sleep();
-  			}
-    	} catch (Exception e) {
-    		Debug.out(e);
-    	}
-		}
   }
 
   public Shell getWizardWindow() {
@@ -420,7 +409,7 @@ public class Wizard {
   	
   	for (int i=0;i<listeners.size();i++){
   		
-  		((WizardListener)listeners.get(i)).closed();
+  		listeners.get(i).closed();
   	}
   }  
   /**

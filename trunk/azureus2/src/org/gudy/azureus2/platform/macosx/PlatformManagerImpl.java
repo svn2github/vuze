@@ -583,9 +583,12 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
             StringBuffer sb = new StringBuffer();
             sb.append("tell application \"");
             sb.append(getFileBrowserName());
-            sb.append("\" to reveal (posix file \"");
+            sb.append("\"\n");
+            sb.append("reveal (posix file \"");
             sb.append(path);
-            sb.append("\" as alias)");
+            sb.append("\" as alias)\n");
+            sb.append("activate\n");
+            sb.append("end tell\n");
 
             try
             {

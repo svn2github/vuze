@@ -197,35 +197,32 @@ UISWTInstanceImpl
 							}
 							
 
-							Shell shell = uiFunctions.getMainShell();
+							MessageBoxShell mb = new MessageBoxShell(styles, 
+									MessageText.getString((String)params[0]), 
+									MessageText.getString((String)params[1]));
+							mb.open(null);
+							int _r = mb.waitUntilClosed();
 							
-							if ( shell != null ){
+							int	r = 0;
+							
+							if (( _r & SWT.YES ) != 0 ){
 								
-								int _r = Utils.openMessageBox(shell, styles, 
-										MessageText.getString((String)params[0]), 
-										MessageText.getString((String)params[1]));
-								
-								int	r = 0;
-								
-								if (( _r & SWT.YES ) != 0 ){
-									
-									r |= UIManagerEvent.MT_YES;
-								}
-								if (( _r & SWT.NO ) != 0 ){
-									
-									r |= UIManagerEvent.MT_NO;
-								}
-								if (( _r & SWT.OK ) != 0 ){
-									
-									r |= UIManagerEvent.MT_OK;
-								}
-								if (( _r & SWT.CANCEL ) != 0 ){
-									
-									r |= UIManagerEvent.MT_CANCEL;
-								}
-								
-								result[0] = r;
+								r |= UIManagerEvent.MT_YES;
 							}
+							if (( _r & SWT.NO ) != 0 ){
+								
+								r |= UIManagerEvent.MT_NO;
+							}
+							if (( _r & SWT.OK ) != 0 ){
+								
+								r |= UIManagerEvent.MT_OK;
+							}
+							if (( _r & SWT.CANCEL ) != 0 ){
+								
+								r |= UIManagerEvent.MT_CANCEL;
+							}
+							
+							result[0] = r;
 						}
 					}, false );
 				
@@ -791,8 +788,12 @@ UISWTInstanceImpl
 	// @see org.gudy.azureus2.plugins.ui.UIInstance#promptUser(java.lang.String, java.lang.String, java.lang.String[], int)
 	public int promptUser(String title, String text, String[] options,
 			int defaultOption) {
-		return MessageBoxShell.open(uiFunctions.getMainShell(), title, text,
-				options, defaultOption);
+		
+		MessageBoxShell mb = new MessageBoxShell(title, text, options,
+				defaultOption);
+		mb.open(null);
+		// bah, no way to change this to use the UserPrompterResultListener trigger
+		return mb.waitUntilClosed();
 	}
 	
 	public void showDownloadBar(Download download, final boolean display) {

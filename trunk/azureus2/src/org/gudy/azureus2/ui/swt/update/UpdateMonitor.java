@@ -43,9 +43,7 @@ import org.gudy.azureus2.ui.swt.progress.ProgressReportingManager;
 import org.gudy.azureus2.update.CoreUpdateChecker;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
+import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -124,12 +122,15 @@ public class UpdateMonitor
 							+ "accept.unverified.text", new String[] {
 						update.getName()
 					});
-					return uiFunctions.promptUser(title, text, new String[] {
+					UIFunctionsUserPrompter prompter = uiFunctions.getUserPrompter(title, text, new String[] {
 						MessageText.getString("Button.yes"),
 						MessageText.getString("Button.no")
-					}, 1, MSG_PREFIX + "accept.unverified",
-							MessageText.getString("MessageBoxWindow.nomoreprompting"), false,
-							0) == 0;
+					}, 1);
+					prompter.setRemember(MSG_PREFIX + "accept.unverified", false,
+							MessageText.getString("MessageBoxWindow.nomoreprompting"));
+					prompter.setAutoCloseInMS(0);
+					prompter.open(null);
+					return prompter.waitUntilClosed() == 0;
 				}
 
 				return false;
@@ -148,7 +149,7 @@ public class UpdateMonitor
 					});
 					uiFunctions.promptUser(title, text, new String[] {
 						MessageText.getString("Button.ok")
-					}, 0, null, null, false, 0);
+					}, 0, null, null, false, 0, null);
 				}
 			}
 		});
@@ -207,11 +208,10 @@ public class UpdateMonitor
 					
 												prompt.setIconResource( "warning" );
 					
-												prompt.setRememberID( "UpdateMonitor.can.not.write.to.app.dir.2", false );
+												prompt.setRemember( "UpdateMonitor.can.not.write.to.app.dir.2", false, 
+														MessageText.getString( "MessageBoxWindow.nomoreprompting" ));
 					
-												prompt.setRememberText( MessageText.getString( "MessageBoxWindow.nomoreprompting" ));
-					
-												prompt.open();
+												prompt.open(null);
 											}
 										},
 										true );
@@ -639,24 +639,27 @@ public class UpdateMonitor
 	
 	protected void
 	handleRestart()
-	{
-		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+ {
+		final UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		if (uiFunctions != null) {
-			String title = MessageText.getString(MSG_PREFIX
-					+ "restart.title");
-			String text = MessageText.getString(MSG_PREFIX
-					+ "restart.text");
+			String title = MessageText.getString(MSG_PREFIX + "restart.title");
+			String text = MessageText.getString(MSG_PREFIX + "restart.text");
 			uiFunctions.bringToFront();
 			int timeout = 180000;
 			if (azCore != null && !azCore.getPluginManager().isSilentRestartEnabled()) {
 				timeout = -1;
 			}
-			if (uiFunctions.promptUser(title, text, new String[] {
+			uiFunctions.promptUser(title, text, new String[] {
 				MessageText.getString("UpdateWindow.restart"),
 				MessageText.getString("UpdateWindow.restartLater")
-			}, 0, null, null, false, timeout) == 0) {
-				uiFunctions.dispose(true, false);
-			}
+			}, 0, null, null, false, timeout, new UserPrompterResultListener() {
+
+				public void prompterClosed(int result) {
+					if (result == 0) {
+						uiFunctions.dispose(true, false);
+					}
+				}
+			});
 		}
 	}
 		

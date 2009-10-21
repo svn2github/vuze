@@ -35,7 +35,6 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -43,10 +42,13 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
-import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -956,38 +958,41 @@ public class TorrentUtil {
 				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
 						"MyTorrentsView.dialog.setPosition.title",
 						"MyTorrentsView.dialog.setPosition.text");
-				entryWindow.prompt();
-				if (!entryWindow.hasSubmittedInput()) {
-					return;
-				}
-				String sReturn = entryWindow.getSubmittedInput();
-
-				if (sReturn == null)
-					return;
-
-				int newPosition = -1;
-				try {
-					newPosition = Integer.valueOf(sReturn).intValue();
-				} catch (NumberFormatException er) {
-					// Ignore
-				}
-
-				int size = azureus_core.getGlobalManager().downloadManagerCount(
-						isSeedingView);
-				if (newPosition > size)
-					newPosition = size;
-
-				if (newPosition <= 0) {
-					MessageBox mb = new MessageBox(composite.getShell(), SWT.ICON_ERROR
-							| SWT.OK);
-					mb.setText(MessageText.getString("MyTorrentsView.dialog.NumberError.title"));
-					mb.setMessage(MessageText.getString("MyTorrentsView.dialog.NumberError.text"));
-
-					mb.open();
-					return;
-				}
-
-				moveSelectedTorrentsTo(tv, dms, newPosition);
+				entryWindow.prompt(new UIInputReceiverListener() {
+					public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
+						if (!entryWindow.hasSubmittedInput()) {
+							return;
+						}
+						String sReturn = entryWindow.getSubmittedInput();
+						
+						if (sReturn == null)
+							return;
+						
+						int newPosition = -1;
+						try {
+							newPosition = Integer.valueOf(sReturn).intValue();
+						} catch (NumberFormatException er) {
+							// Ignore
+						}
+						
+						int size = azureus_core.getGlobalManager().downloadManagerCount(
+								isSeedingView);
+						if (newPosition > size)
+							newPosition = size;
+						
+						if (newPosition <= 0) {
+							MessageBox mb = new MessageBox(composite.getShell(), SWT.ICON_ERROR
+									| SWT.OK);
+							mb.setText(MessageText.getString("MyTorrentsView.dialog.NumberError.title"));
+							mb.setMessage(MessageText.getString("MyTorrentsView.dialog.NumberError.text"));
+							
+							mb.open();
+							return;
+						}
+						
+						moveSelectedTorrentsTo(tv, dms, newPosition);
+					}
+				});
 			}
 		});
 
@@ -1422,7 +1427,7 @@ public class TorrentUtil {
 		task.go();
 	}
 	
-	public static void promptUserForComment(DownloadManager[] dms) {
+	public static void promptUserForComment(final DownloadManager[] dms) {
 		if (dms.length == 0) {return;}
 		DownloadManager dm = dms[0];
 		
@@ -1434,18 +1439,21 @@ public class TorrentUtil {
 		text_entry.setMessage(msg_key_prefix + "message");
 		text_entry.setPreenteredText(suggested, false);
 		text_entry.setMultiLine(true);
-		text_entry.prompt();
-		
-		if (text_entry.hasSubmittedInput()) {
-			String value = text_entry.getSubmittedInput();
-			final String value_to_set = (value.length() == 0) ? null : value;
-			DMTask task = new DMTask(dms) {
-				public void run(DownloadManager dm) {
-					dm.getDownloadState().setUserComment(value_to_set);
+		text_entry.prompt(new UIInputReceiverListener() {
+			public void UIInputReceiverClosed(UIInputReceiver text_entry) {
+				if (text_entry.hasSubmittedInput()) {
+					String value = text_entry.getSubmittedInput();
+					final String value_to_set = (value.length() == 0) ? null : value;
+					DMTask task = new DMTask(dms) {
+						public void run(DownloadManager dm) {
+							dm.getDownloadState().setUserComment(value_to_set);
+						}
+					};
+					task.go();
 				}
-			};
-			task.go();
-		}
+			}
+		});
+		
 	}
 
 
@@ -1543,7 +1551,7 @@ public class TorrentUtil {
 		if (!sFirstChunk.startsWith("d")) {
 			if (parentShell != null) {
   			boolean isHTML = sFirstChunk.indexOf("<html") >= 0;
-  			MessageBoxShell boxShell = new MessageBoxShell(parentShell,
+  			MessageBoxShell boxShell = new MessageBoxShell(
   					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
   					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text",
   							new String[] {
@@ -1555,7 +1563,7 @@ public class TorrentUtil {
   			if (isHTML) {
   				boxShell.setHtml(sFirstChunk);
   			}
-  			boxShell.open();
+  			boxShell.open(null);
 			}
 
 			return false;

@@ -28,20 +28,6 @@ public class CoreWaiterSWT
 
 	public static void waitForCore(final TriggerInThread triggerInThread,
 			final AzureusCoreRunningListener l) {
-		if (!AzureusCoreFactory.isCoreRunning()) {
-			if (DEBUG) {
-				System.out.println("NOT AVAIL FOR " + Debug.getCompressedStackTrace());
-			}
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					showWaitWindow();
-				}
-			});
-		} else if (DEBUG) {
-			System.out.println("NO NEED TO WAIT.. CORE AVAIL! "
-					+ Debug.getCompressedStackTrace());
-		}
-
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(final AzureusCore core) {
 				if (triggerInThread == TriggerInThread.ANY_THREAD) {
@@ -68,6 +54,21 @@ public class CoreWaiterSWT
 				});
 			}
 		});
+
+		if (!AzureusCoreFactory.isCoreRunning()) {
+			if (DEBUG) {
+				System.out.println("NOT AVAIL FOR " + Debug.getCompressedStackTrace());
+			}
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					showWaitWindow();
+				}
+			});
+		} else if (DEBUG) {
+			System.out.println("NO NEED TO WAIT.. CORE AVAIL! "
+					+ Debug.getCompressedStackTrace());
+		}
+
 	}
 
 	protected static void showWaitWindow() {

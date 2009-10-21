@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.ui;
 
+
 /**
  * @author TuxPaper
  * @created Mar 18, 2007
@@ -71,11 +72,11 @@ public interface UIFunctionsUserPrompter
 	/**
 	 * Opens the prompt.  returns when user has chosen an action, or auto-close
 	 * 
-	 * @return Button number the user pressed
-	 *
 	 * @since 3.0.0.9
 	 */
-	int open();
+	void open(UserPrompterResultListener l);
+	
+	int waitUntilClosed();
 
 	/**
 	 * Sets the # of milliseconds before auto closing. 
@@ -99,9 +100,9 @@ public interface UIFunctionsUserPrompter
 	 * @param rememberID
 	 * @param rememberByDefault
 	 *
-	 * @since 3.0.0.9
+	 * @since 4.2.0.9
 	 */
-	void setRememberID(String rememberID, boolean rememberByDefault);
+	void setRemember(String rememberID, boolean rememberByDefault, String rememberText);
 
 	/**
 	 * @param rememberText

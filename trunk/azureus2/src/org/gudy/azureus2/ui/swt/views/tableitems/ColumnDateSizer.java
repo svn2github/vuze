@@ -150,7 +150,7 @@ public abstract class ColumnDateSizer
 		}
 	}
 
-	public void recalcWidth(Date date) {
+	private void recalcWidth(Date date) {
 		String suffix = showTime && !multiline ? " hh:mm a" : "";
 
 		int width = getWidth();
@@ -208,7 +208,7 @@ public abstract class ColumnDateSizer
 		}
 	}
 
-	public int calcWidth(Date date, String format) {
+	private int calcWidth(Date date, String format) {
 		GC gc = new GC(Display.getDefault());
 		if (fontBold == null) {
 			FontData[] fontData = gc.getFont().getFontData();

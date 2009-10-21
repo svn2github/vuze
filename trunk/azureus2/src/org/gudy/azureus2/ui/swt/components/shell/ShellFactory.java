@@ -23,9 +23,13 @@ package org.gudy.azureus2.ui.swt.components.shell;
  */
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -243,8 +247,27 @@ public final class ShellFactory
 					uiFunctions.bringToFront();
 				}
 			}
-
-			super.open();
+			
+			Shell firstShellWithStyle = Utils.findFirstShellWithStyle(SWT.APPLICATION_MODAL);
+			if (firstShellWithStyle != null && firstShellWithStyle != this) {
+				// ok, there's a window with application_modal set, which on OSX will mean
+				// that if we open our window, it will be on top, but users won't be able
+				// to interact with it.  So, wait until the modal window goes away..
+				firstShellWithStyle.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent e) {
+						// wait for dispose to complete, then run open again to check for
+						// any new application modal shells to wait for
+						Utils.execSWTThreadLater(0, new AERunnable() {
+							public void runSupport() {
+								AEShell.this.open();
+							}
+						});
+					}
+				});
+				firstShellWithStyle.forceActive();
+			} else {
+				super.open();
+			}
 		}
 	}
 }

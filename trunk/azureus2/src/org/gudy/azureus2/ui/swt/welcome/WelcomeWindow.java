@@ -62,7 +62,11 @@ public class WelcomeWindow {
   Shell shell;
   Color black,white,light,grey,green,blue,fg,bg;
   String sWhatsNew;
-  Font monospace; 
+  Font monospace;
+
+	private Composite cWhatsNew;
+
+	private Label labelLoading; 
   
   public WelcomeWindow(Shell parentShell) {
   	try {
@@ -88,7 +92,7 @@ public class WelcomeWindow {
     
     GridData data;
     
-    Composite cWhatsNew = new Composite(shell, SWT.BORDER);
+    cWhatsNew = new Composite(shell, SWT.BORDER);
     data = new GridData(GridData.FILL_BOTH);
     cWhatsNew.setLayoutData(data);
     cWhatsNew.setLayout(new FillLayout());
@@ -123,60 +127,27 @@ public class WelcomeWindow {
     Utils.centreWindow(shell);
     shell.layout();
     shell.open();    
-    fillWhatsNew(cWhatsNew);
+    pullWhatsNew(cWhatsNew);
   }
   
-  private void fillWhatsNew(Composite cWhatsNew) {
-  	String helpFile;
-
-  	Label label = new Label(cWhatsNew, SWT.CENTER);
-  	label.setText(MessageText.getString("installPluginsWizard.details.loading"));
+  private void pullWhatsNew(Composite cWhatsNew) {
+  	labelLoading = new Label(cWhatsNew, SWT.CENTER);
+  	labelLoading.setText(MessageText.getString("installPluginsWizard.details.loading"));
   	shell.layout(true, true);
   	shell.update();
   	
-		// Support external URLs for what's new
-		helpFile = MessageText.getString("window.welcome.file");
-		if (sWhatsNew == null || sWhatsNew.length() == 0) {
-			if (helpFile.toLowerCase().startsWith(Constants.SF_WEB_SITE)) {
-				sWhatsNew = getWhatsNew(helpFile);
-				if (shell.isDisposed()) {
-					return;
-				}
-			}
-		}
+  	getWhatsNew(1);
+  }
 
-		if (sWhatsNew == null || sWhatsNew.length() == 0) {
-  		helpFile = URL_WHATSNEW + "?version=" + Constants.AZUREUS_VERSION
-  				+ "&locale=" + Locale.getDefault().toString() + "&ui="
-  				+ COConfigurationManager.getStringParameter("ui");
-  
-  		sWhatsNew = getWhatsNew(helpFile);
-  		if (shell.isDisposed()) {
-  			return;
-  		}
-		}
-		
-		if (sWhatsNew == null || sWhatsNew.length() == 0) {
-			InputStream stream;
-			stream = getClass().getResourceAsStream(helpFile);
-			if (stream == null) {
-				String helpFullPath = "/org/gudy/azureus2/internat/whatsnew/" + helpFile;
-				stream = getClass().getResourceAsStream(helpFullPath);
+  public void setWhatsNew() {
+  	Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				_setWhatsNew();
 			}
-			if (stream == null) {
-				stream = getClass().getResourceAsStream("/ChangeLog.txt");
-			}
-			if (stream == null) {
-				sWhatsNew = "Welcome Window: Error loading resource: " + helpFile;
-			} else {
-				try {
-					sWhatsNew = FileUtil.readInputStreamAsString(stream, 65535, "utf8");
-					stream.close();
-				} catch (IOException e) {
-					Debug.out(e);
-				}
-			}
-		}
+		});
+  }
+
+  public void _setWhatsNew() {
 
 		if (sWhatsNew.indexOf("<html") >= 0 || sWhatsNew.indexOf("<HTML") >= 0) {
 			try {
@@ -293,16 +264,58 @@ public class WelcomeWindow {
 			}
 		}
 		
-		label.dispose();
+		if (labelLoading != null && !labelLoading.isDisposed()) {
+			labelLoading.dispose();
+		}
 		shell.layout(true, true);
 	}
   
-  private String getWhatsNew(final String url) {
-		final String[] s = new String[1];
-		new AEThread("getWhatsNew", true) {
+  private void getWhatsNew(final int phase) {
+  	String helpFile = null;
+  	if (phase == 1) {
+  		helpFile = MessageText.getString("window.welcome.file");
 
-			public void runSupport() {
+			if (!helpFile.toLowerCase().startsWith(Constants.SF_WEB_SITE)) {
+				getWhatsNew(2);
+				return;
+			}
+  	} else if (phase == 2) {
+  		helpFile = URL_WHATSNEW + "?version=" + Constants.AZUREUS_VERSION
+			+ "&locale=" + Locale.getDefault().toString() + "&ui="
+			+ COConfigurationManager.getStringParameter("ui");
+  	} else {
+  		helpFile = MessageText.getString("window.welcome.file");
 
+			InputStream stream;
+			stream = getClass().getResourceAsStream(helpFile);
+			if (stream == null) {
+				String helpFullPath = "/org/gudy/azureus2/internat/whatsnew/" + helpFile;
+				stream = getClass().getResourceAsStream(helpFullPath);
+			}
+			if (stream == null) {
+				stream = getClass().getResourceAsStream("/ChangeLog.txt");
+			}
+			if (stream == null) {
+				sWhatsNew = "Welcome Window: Error loading resource: " + helpFile;
+			} else {
+				try {
+					sWhatsNew = FileUtil.readInputStreamAsString(stream, 65535, "utf8");
+					stream.close();
+				} catch (IOException e) {
+					Debug.out(e);
+				}
+			}
+			setWhatsNew();
+			return;
+  	}
+  	
+  	final String url = helpFile;
+  	
+		new AEThread2("getWhatsNew", true) {
+
+			public void run() {
+
+				String s;
 				ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 				try {
 					ResourceDownloader rd = rdf.create(new URL(url));
@@ -311,32 +324,34 @@ public class WelcomeWindow {
 					byte data[] = new byte[length];
 					is.read(data);
 					is.close();
-					s[0] = new String(data);
+					s = new String(data);
 				} catch (ResourceDownloaderException rde) {
 					// We don't need a stack trace - it's arguable that we even need any
 					// errors at all - the below line is better, but suppressed output might
 					// be better.
 					//Debug.outNoStack("Error downloading from " + url + ", " + rde, true);
-					s[0] = "";
+					s = "";
 				} catch (Exception e) {
 					Debug.out(e);
-					s[0] = "";
+					s = "";
+				}
+				sWhatsNew = s;
+				
+				if (sWhatsNew == null || sWhatsNew.length() == 0) {
+					getWhatsNew(phase + 1);
+					return;
 				}
 
-				if (!shell.isDisposed()) {
-					shell.getDisplay().wake();
-				}
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (cWhatsNew != null && !cWhatsNew.isDisposed()) {
+							setWhatsNew();
+						}
+					}
+				});
 			}
 
 		}.start();
-		
-		while (!shell.isDisposed() && s[0] == null) {
-			if (!shell.getDisplay().readAndDispatch()) {
-				shell.getDisplay().sleep();
-			}
-		}
-
-		return s[0];
 	}
   
   private void close() {

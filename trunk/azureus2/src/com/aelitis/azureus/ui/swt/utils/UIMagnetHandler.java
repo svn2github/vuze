@@ -32,6 +32,7 @@ import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.net.magneturi.MagnetURIHandler;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -115,16 +116,19 @@ public class UIMagnetHandler
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				uif.bringToFront();
-				int i = uif.promptUser(MessageText.getString("dialog.uiswitch.title"),
+				uif.promptUser(MessageText.getString("dialog.uiswitch.title"),
 						MessageText.getString("dialog.uiswitch.text"), new String[] {
 							MessageText.getString("dialog.uiswitch.button"),
-						}, 0, null, null, false, 0);
-				if (i != 0) {
-					return;
-				}
-				COConfigurationManager.setParameter("ui", "az3");
-				COConfigurationManager.save();
-				core.requestRestart();
+						}, 0, null, null, false, 0, new UserPrompterResultListener() {
+							public void prompterClosed(int returnVal) {
+								if (returnVal != 0) {
+									return;
+								}
+								COConfigurationManager.setParameter("ui", "az3");
+								COConfigurationManager.save();
+								core.requestRestart();
+							}
+						});
 			}
 		});
 	}

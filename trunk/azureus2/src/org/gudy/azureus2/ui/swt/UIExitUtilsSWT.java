@@ -132,16 +132,16 @@ public class UIExitUtilsSWT
 											});
 
 									MessageBoxShell mb = new MessageBoxShell(
-											Utils.findAnyShell(),
 											title,
 											text,
 											new String[] {
 												MessageText.getString("UpdateWindow.quit"),
 												MessageText.getString("Content.alert.notuploaded.button.abort")
-											}, 1, null, null, false, 0);
+											}, 1);
 									mb.setRelatedObject(((DownloadManager) flistUnfinished.get(0)));
 
-									return mb.open() == 0;
+									mb.open(null);
+									return mb.waitUntilClosed() == 0;
 								}
 							}, 0);
 				} else {
@@ -167,15 +167,15 @@ public class UIExitUtilsSWT
 											});
 
 									MessageBoxShell mb = new MessageBoxShell(
-											Utils.findAnyShell(),
 											title,
 											text,
 											new String[] {
 												MessageText.getString("UpdateWindow.quit"),
 												MessageText.getString("Content.alert.notuploaded.button.abort")
-											}, 1, null, null, false, 0);
+											}, 1);
 
-									return mb.open() == 0;
+									mb.open(null);
+									return mb.waitUntilClosed() == 0;
 								}
 							}, 0);
 				}
@@ -192,12 +192,12 @@ public class UIExitUtilsSWT
 	 * @author Rene Leonhardt
 	 */
 	private static boolean getExitConfirmation(boolean for_restart) {
-		int result = Utils.openMessageBox(Utils.findAnyShell(), SWT.ICON_WARNING
-				| SWT.YES | SWT.NO, for_restart
-				? "MainWindow.dialog.restartconfirmation"
+		MessageBoxShell mb = new MessageBoxShell(SWT.ICON_WARNING | SWT.YES
+				| SWT.NO, for_restart ? "MainWindow.dialog.restartconfirmation"
 				: "MainWindow.dialog.exitconfirmation", (String[]) null);
+		mb.open(null);
 
-		return result == SWT.YES;
+		return mb.waitUntilClosed() == SWT.YES;
 	}
 
 	public static void uiShutdown() {

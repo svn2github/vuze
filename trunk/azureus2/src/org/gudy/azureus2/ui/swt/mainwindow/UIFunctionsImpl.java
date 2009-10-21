@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
@@ -39,11 +40,10 @@ import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
-
-import org.gudy.azureus2.plugins.PluginView;
 
 /**
  * @author TuxPaper
@@ -401,20 +401,20 @@ public class UIFunctionsImpl
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#promptUser(java.lang.String, java.lang.String, java.lang.String[], int, java.lang.String, java.lang.String, boolean, int)
-	public int promptUser(String title, String text, String[] buttons,
+	public void promptUser(String title, String text, String[] buttons,
 			int defaultOption, String rememberID, String rememberText,
-			boolean rememberByDefault, int autoCloseInMS) {
-		return MessageBoxShell.open(getMainShell(), title, text, buttons,
+			boolean rememberByDefault, int autoCloseInMS, UserPrompterResultListener l) {
+		MessageBoxShell.open(getMainShell(), title, text, buttons,
 				defaultOption, rememberID, rememberText, rememberByDefault,
-				autoCloseInMS);
+				autoCloseInMS, l);
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#getUserPrompter(java.lang.String, java.lang.String, java.lang.String[], int)
 	public UIFunctionsUserPrompter getUserPrompter(String title, String text,
 			String[] buttons, int defaultOption) {
 
-		MessageBoxShell mb = new MessageBoxShell(getMainShell(), title, text,
-				buttons, defaultOption);
+		MessageBoxShell mb = new MessageBoxShell(title, text, buttons,
+				defaultOption);
 		return mb;
 	}
 

@@ -539,7 +539,7 @@ Initializer
   }
 
 	public void runInSWTThread() {
-  		String uiMode = UISwitcherUtil.openSwitcherWindow(false);
+  		String uiMode = UISwitcherUtil.calcUIMode();
   		
   		if (uiMode.equals("az3")) {
   			try {

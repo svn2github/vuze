@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.shells.SpeedScaleShell;
@@ -149,46 +151,44 @@ public class SelectableSpeedMenu {
 									: "MyTorrentsView.dialog.setNumber.download")
 						});
 
-				entryWindow.prompt();
-				if (!entryWindow.hasSubmittedInput()) {
-					return;
-				}
-				String sReturn = entryWindow.getSubmittedInput();
+				entryWindow.prompt(new UIInputReceiverListener() {
+					public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
+						if (!entryWindow.hasSubmittedInput()) {
+							return;
+						}
+						String sReturn = entryWindow.getSubmittedInput();
 
-				if (sReturn == null)
-					return;
+						if (sReturn == null)
+							return;
 
-				int newSpeed;
-				try {
-					newSpeed = (int) (Double.valueOf(sReturn).doubleValue());
-				} catch (NumberFormatException er) {
-					MessageBox mb = new MessageBox(parent.getShell(),
-							SWT.ICON_ERROR | SWT.OK);
-					mb.setText(MessageText
-							.getString("MyTorrentsView.dialog.NumberError.title"));
-					mb.setMessage(MessageText
-							.getString("MyTorrentsView.dialog.NumberError.text"));
+						int newSpeed;
+						try {
+							newSpeed = (int) (Double.valueOf(sReturn).doubleValue());
+						} catch (NumberFormatException er) {
+							MessageBox mb = new MessageBox(parent.getShell(), SWT.ICON_ERROR
+									| SWT.OK);
+							mb.setText(MessageText.getString("MyTorrentsView.dialog.NumberError.title"));
+							mb.setMessage(MessageText.getString("MyTorrentsView.dialog.NumberError.text"));
 
-					mb.open();
-					return;
-				}
-				
-			    if ( up_menu ){	   
-			    }
-			    
-                if ( up_menu ){
-                    
-                	String configAutoKey = 
-                		TransferSpeedValidator.getActiveAutoUploadParameter(globalManager);
-     
-                	COConfigurationManager.setParameter( configAutoKey, false );
-                }
-                
-                final int cValue = ((Integer)new TransferSpeedValidator(configKey, new Integer(newSpeed)).getValue()).intValue();
-                
-                COConfigurationManager.setParameter(configKey, cValue);
-                
-                COConfigurationManager.save();
+							mb.open();
+							return;
+						}
+
+						if (up_menu) {
+
+							String configAutoKey = TransferSpeedValidator.getActiveAutoUploadParameter(globalManager);
+
+							COConfigurationManager.setParameter(configAutoKey, false);
+						}
+
+						final int cValue = ((Integer) new TransferSpeedValidator(configKey,
+								new Integer(newSpeed)).getValue()).intValue();
+
+						COConfigurationManager.setParameter(configKey, cValue);
+
+						COConfigurationManager.save();
+					}
+				});
 			}
 		});
     }

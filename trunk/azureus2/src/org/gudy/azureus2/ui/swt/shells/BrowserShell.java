@@ -21,9 +21,7 @@
 
 package org.gudy.azureus2.ui.swt.shells;
 
-import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.ui.swt.Utils;
 
 public class 
 BrowserShell 
@@ -35,11 +33,8 @@ BrowserShell
 		int			width,
 		int			height )
 	{
-		Shell parent_shell = Utils.findAnyShell();
-		
 		MessageBoxShell boxShell = 
 			new MessageBoxShell(
-				parent_shell,
 				MessageText.getString( title_resource ),
 				"",
 				new String[] {
@@ -55,6 +50,6 @@ BrowserShell
 		
 		boxShell.setSize( width, height );
 		
-		boxShell.open();
+		boxShell.open(null);
 	}
 }

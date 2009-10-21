@@ -22,6 +22,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIInputValidator;
 
 /**
@@ -110,6 +111,8 @@ public abstract class AbstractUIInputReceiver implements UIInputReceiver {
 	}
 	
 	private boolean result_recorded = false;
+	
+	protected UIInputReceiverListener receiver_listener;
 
 	public final void prompt() {
 		assertPrePrompt();
@@ -120,6 +123,21 @@ public abstract class AbstractUIInputReceiver implements UIInputReceiver {
 		this.prompted = true;
 	}
 	
+	public final void prompt(UIInputReceiverListener receiver_listener) {
+		assertPrePrompt();
+		this.receiver_listener = receiver_listener;
+		this.promptForInput();
+	}
+	
+	public final void triggerReceiverListener() {
+		if (!result_recorded) {
+			throw new RuntimeException(this.toString() + " did not record a result.");
+		}
+		this.prompted = true;
+		if (receiver_listener != null) {
+			receiver_listener.UIInputReceiverClosed(this);
+		}
+	}
 	
 	private boolean result_input_submitted = false;
 	private String result_input = null;

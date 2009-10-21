@@ -39,9 +39,11 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 
 /**
  * @author TuxPaper
@@ -127,8 +129,8 @@ public class UIDebugGenerator
 		String message = entryWindow.getSubmittedInput();
 
 		if (message == null || message.length() == 0) {
-			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK,
-					"UIDebugGenerator.message.cancel", (String[]) null);
+			new MessageBoxShell(SWT.OK, "UIDebugGenerator.message.cancel",
+					(String[]) null).open(null);
 			return;
 		}
 
@@ -174,7 +176,7 @@ public class UIDebugGenerator
 
 
 		try {
-			File outFile = new File(SystemProperties.getUserPath(), "debug.zip");
+			final File outFile = new File(SystemProperties.getUserPath(), "debug.zip");
 			if (outFile.exists()) {
 				outFile.delete();
 			}
@@ -238,19 +240,23 @@ public class UIDebugGenerator
 			out.close();
 
 			if (outFile.exists()) {
-				int result = Utils.openMessageBox(Utils.findAnyShell(), SWT.OK
-						| SWT.CANCEL | SWT.ICON_INFORMATION | SWT.APPLICATION_MODAL,
+				MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.CANCEL
+						| SWT.ICON_INFORMATION | SWT.APPLICATION_MODAL,
 						"UIDebugGenerator.complete", new String[] { outFile.toString() });
-
-				if (result == SWT.OK) {
-					try {
-						PlatformManagerFactory.getPlatformManager().showFile(
-								outFile.getAbsolutePath());
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+				mb.open(new UserPrompterResultListener() {
+					public void prompterClosed(int result) {
+						if (result == SWT.OK) {
+							try {
+								PlatformManagerFactory.getPlatformManager().showFile(
+										outFile.getAbsolutePath());
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
 					}
-				}
+				});
+
 			}
 
 		} catch (IOException e) {

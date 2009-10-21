@@ -41,16 +41,22 @@ public abstract class TableViewTab extends AbstractIView
 
 	public void updateLanguage() {
 		super.updateLanguage();
-		tv.updateLanguage();
+		if (tv != null) {
+			tv.updateLanguage();
+		}
 	}
 
 	public final void refresh() {
-		tv.refreshTable(false);
+		if (tv != null) {
+			tv.refreshTable(false);
+		}
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#delete()
 	public final void delete() {
-		tv.delete();
+		if (tv != null) {
+			tv.delete();
+		}
 		super.delete();
 	}
 
@@ -65,12 +71,14 @@ public abstract class TableViewTab extends AbstractIView
 
 	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#generateDiagnostics(org.gudy.azureus2.core3.util.IndentWriter)
 	public final void generateDiagnostics(IndentWriter writer) {
-		tv.generate(writer);
+		if (tv != null) {
+			tv.generate(writer);
+		}
 	}
 	
 	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#getComposite()
 	public Composite getComposite() {
-		return tv.getComposite();
+		return tv == null ? null : tv.getComposite();
 	}
 	
 	public void itemActivated(String itemKey) {

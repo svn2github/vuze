@@ -301,26 +301,22 @@ public class ManagerUtils {
 	        numSeeds--;
 	      
 	      if (numSeeds == 0) {
-	  			stopme = Utils.execSWTThreadWithBool("stopSeeding",
-	  					new AERunnableBoolean() {
-	  						public boolean runSupport() {
-	  							String title = MessageText.getString("Content.alert.notuploaded.title");
-	  							String text = MessageText.getString("Content.alert.notuploaded.text",
-	  									new String[] {
-	  										dm.getDisplayName(),
-	  										MessageText.getString("Content.alert.notuploaded.stop")
-	  									});
+					String title = MessageText.getString("Content.alert.notuploaded.title");
+					String text = MessageText.getString("Content.alert.notuploaded.text",
+							new String[] {
+								dm.getDisplayName(),
+								MessageText.getString("Content.alert.notuploaded.stop")
+							});
 
-	  							MessageBoxShell mb = new MessageBoxShell(Utils.findAnyShell(),
-	  									title, text, new String[] {
-	  										MessageText.getString("Content.alert.notuploaded.button.stop"),
-	  										MessageText.getString("Content.alert.notuploaded.button.continue")
-	  									}, 1, null, null, false, 0);
-	  							mb.setRelatedObject(dm);
+					MessageBoxShell mb = new MessageBoxShell(
+							title, text, new String[] {
+								MessageText.getString("Content.alert.notuploaded.button.stop"),
+								MessageText.getString("Content.alert.notuploaded.button.continue")
+							}, 1);
+					mb.setRelatedObject(dm);
 
-	  							return mb.open() == 0;
-	  						}
-	  					});
+					mb.open(null);
+					stopme = mb.waitUntilClosed() == 0;
 	      }
 			}
 		}
@@ -347,15 +343,13 @@ public class ManagerUtils {
 						+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
 						+ MessageText.getString("deletetorrent.message2");
 
-				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
-						new String[] {
-							MessageText.getString("Button.yes"),
-							MessageText.getString("Button.no"),
-						}, 1);
+				MessageBoxShell mb = new MessageBoxShell(SWT.YES | SWT.NO, title, text);
+				mb.setDefaultButtonUsingStyle(SWT.NO);
 				mb.setRelatedObject(dm);
 				mb.setLeftImage(SWT.ICON_WARNING);
 
-				int result = mb.open();
+				mb.open(null);
+				int result = mb.waitUntilClosed();
 				if (result != 0) {
 					if (deleteFailed != null) {
 						deleteFailed.runSupport();
@@ -376,16 +370,16 @@ public class ManagerUtils {
 							dm.getDisplayName()
 						});
 						
-				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
-						new String[] {
-							MessageText.getString("Button.yes"),
-							MessageText.getString("Button.no"),
-						}, 1,"deletedata.noconfirm.key2",MessageText.getString("deletedata.noprompt"),false,0);
+				MessageBoxShell mb = new MessageBoxShell(SWT.YES | SWT.NO, title, text);
+				mb.setDefaultButtonUsingStyle(SWT.NO);
+				mb.setRemember("deletedata.noconfirm.key2", false,
+						MessageText.getString("deletedata.noprompt"));
 				mb.setRememberOnlyIfButton(0);
 				mb.setRelatedObject(dm);
 				mb.setLeftImage(SWT.ICON_WARNING);
 
-				int result = mb.open();
+				mb.open(null);
+				int result = mb.waitUntilClosed();
 				if (result != 0) {
 					if (deleteFailed != null) {
 						deleteFailed.runSupport();

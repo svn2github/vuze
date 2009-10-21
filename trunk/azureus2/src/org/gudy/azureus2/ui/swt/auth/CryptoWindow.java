@@ -35,6 +35,8 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -189,7 +191,8 @@ CryptoWindow
 				return;
 			}
 			
-	 		shell = new Shell( display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+			shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM
+					| SWT.APPLICATION_MODAL);
 	 	
 	 		Utils.setShellIcon(shell);
 	 		

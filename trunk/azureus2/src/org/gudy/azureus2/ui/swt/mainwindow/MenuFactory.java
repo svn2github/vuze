@@ -39,6 +39,7 @@ import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -992,13 +993,10 @@ public class MenuFactory
 
 							public void complete(UpdateCheckInstance instance) {
 								if (instance.getUpdates().length == 0) {
-									Utils.execSWTThread(new AERunnable() {
-										public void runSupport() {
-											Utils.openMessageBox(menu.getShell(),
-													SWT.ICON_INFORMATION | SWT.OK,
-													"window.update.noupdates", (String[]) null);
-										}
-									});
+									MessageBoxShell mb = new MessageBoxShell(
+											SWT.ICON_INFORMATION | SWT.OK,
+											"window.update.noupdates", (String[]) null);
+									mb.open(null);
 								}
 							}
 						});

@@ -119,7 +119,11 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		Object[] listeners = listenersSelection.toArray();
 		for (int i = 0; i < listeners.length; i++) {
 			TableSelectionListener l = (TableSelectionListener) listeners[i];
-			l.deselected(rows);
+			try {
+				l.deselected(rows);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 		}
 	}
 

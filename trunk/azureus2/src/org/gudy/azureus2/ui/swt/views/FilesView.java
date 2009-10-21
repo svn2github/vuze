@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -338,11 +339,7 @@ public class FilesView
     		final boolean rename_it = ((Boolean)event.widget.getData("rename")).booleanValue();
     		final boolean retarget_it = ((Boolean)event.widget.getData("retarget")).booleanValue();
 				final TableRowCore[] selectedRows = tv.getSelectedRows();
-				Utils.getOffOfSWTThread(new AERunnable(){
-					public void runSupport() {
-						rename(selectedRows, rename_it, retarget_it);
-					}
-				});
+				rename(selectedRows, rename_it, retarget_it);
     	}
     };
     
@@ -396,14 +393,18 @@ public class FilesView
 	}
 	
 	private boolean askCanOverwrite(File file) {
-		return MessageBoxWindow.open( 
-				"FilesView.messagebox.rename.id",
-				SWT.OK | SWT.CANCEL,
-				SWT.OK, true,
-				Display.getDefault(), 
-				MessageBoxWindow.ICON_WARNING,
-				MessageText.getString( "FilesView.rename.confirm.delete.title" ),
-				MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ file.toString()})) == SWT.OK;
+		MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.CANCEL,
+				MessageText.getString("FilesView.rename.confirm.delete.title"),
+				MessageText.getString("FilesView.rename.confirm.delete.text",
+						new String[] {
+							file.toString()
+						}));
+		mb.setDefaultButtonUsingStyle(SWT.OK);
+		mb.setRememberOnlyIfButton(0);
+		mb.setRemember("FilesView.messagebox.rename.id", true, null);
+		mb.setLeftImage(SWT.ICON_WARNING);
+		mb.open(null);
+		return mb.waitUntilClosed() == SWT.OK;
 	}
 	
 	// same code is used in tableitems.files.NameItem
@@ -444,8 +445,8 @@ public class FilesView
 		boolean	paused = false;
 		try {
 			for (int i=0; i<rows.length; i++) {
-				TableRowCore row = rows[i];
-				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)rows[i].getDataSource(true);
+				final TableRowCore row = rows[i];
+				final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)rows[i].getDataSource(true);
 				File existing_file = fileInfo.getFile(true);
 				File f_target = null;
 				if (rename_it && retarget_it) {
@@ -483,8 +484,13 @@ public class FilesView
     				// no existing file.
     			}
     					
-    			moveFile(fileInfo, f_target);
-    			row.invalidate();
+    			final File ff_target = f_target;
+  				Utils.getOffOfSWTThread(new AERunnable(){
+  					public void runSupport() {
+  						moveFile(fileInfo, ff_target);
+  	    			row.invalidate();
+  					}
+  				});
 			}
 		}
 		finally {
@@ -576,17 +582,22 @@ public class FilesView
 			if (root_exists) {perform_check = true;}
 			else if (FileUtil.isAncestorOf(save_location, existing_file)) {perform_check = false;}
 			else {perform_check = true;}
-						
+
 			if (perform_check && existing_file.exists()) {
-				if (delete_action) {
-					boolean wants_to_delete = MessageBoxWindow.open( 
-							"FilesView.messagebox.delete.id",
-							SWT.OK | SWT.CANCEL,
-							SWT.OK, true,
-							Display.getDefault(), 
-							MessageBoxWindow.ICON_WARNING,
-							MessageText.getString( "FilesView.rename.confirm.delete.title" ),
-							MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK;
+					if (delete_action) {
+						MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.CANCEL,
+								MessageText.getString("FilesView.rename.confirm.delete.title"),
+								MessageText.getString("FilesView.rename.confirm.delete.text",
+										new String[] {
+											existing_file.toString()
+										}));
+						mb.setDefaultButtonUsingStyle(SWT.OK);
+						mb.setRememberOnlyIfButton(0);
+						mb.setRemember("FilesView.messagebox.delete.id", true, null);
+						mb.setLeftImage(SWT.ICON_WARNING);
+						mb.open(null);
+
+					boolean wants_to_delete = mb.waitUntilClosed() == SWT.OK;
 					
 					if (wants_to_delete) {new_storage_type = DiskManagerFileInfo.ST_COMPACT;}
 				}

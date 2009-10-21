@@ -21,32 +21,33 @@
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.pluginsimpl.local.ui.AbstractUIMessage;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 /**
  * @author Allan Crooks
  *
  */
-public class UIMessageImpl extends AbstractUIMessage {
-	
+public class UIMessageImpl
+	extends AbstractUIMessage
+{
+
 	public UIMessageImpl() {
 	}
 
 	public int ask() {
 		final int[] result = new int[1];
 		Utils.execSWTThread(new Runnable() {
-			public void run() {result[0] = ask0();}
+			public void run() {
+				result[0] = ask0();
+			}
 		}, false);
 		return result[0];
 	}
-	
+
 	private int ask0() {
-		final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		Utils.setShellIcon(shell);
-		
 		int style = 0;
 		switch (this.input_type) {
 			case INPUT_OK_CANCEL:
@@ -69,7 +70,7 @@ public class UIMessageImpl extends AbstractUIMessage {
 				style |= SWT.NO;
 				break;
 		}
-		
+
 		switch (this.message_type) {
 			case MSG_ERROR:
 				style |= SWT.ICON_ERROR;
@@ -87,8 +88,12 @@ public class UIMessageImpl extends AbstractUIMessage {
 				style |= SWT.ICON_WORKING;
 				break;
 		}
-		
-		int result = Utils.openMessageBox(shell, style, this.title, this.messagesAsString());
+
+		MessageBoxShell mb = new MessageBoxShell(style, this.title,
+				this.messagesAsString());
+		mb.open(null);
+		int result = mb.waitUntilClosed();
+
 		switch (result) {
 			case SWT.OK:
 				return ANSWER_OK;

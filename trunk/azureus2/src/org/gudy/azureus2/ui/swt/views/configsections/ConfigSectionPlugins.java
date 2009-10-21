@@ -54,8 +54,12 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 
@@ -359,20 +363,17 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 
 		final String _sUserPluginDir = sUserPluginDir;
 
-		//TODO : Fix it for windows
 		label.addMouseListener(new MouseAdapter() {
 			public void mouseUp(MouseEvent arg0) {
 				if (_sUserPluginDir.endsWith("/plugins/")
 						|| _sUserPluginDir.endsWith("\\plugins\\")) {
 					File f = new File(_sUserPluginDir);
-					if (f.exists() && f.isDirectory()) {
-						Utils.launch(_sUserPluginDir);
-					} else {
-						String azureusDir = _sUserPluginDir.substring(0, _sUserPluginDir
+					String dir = _sUserPluginDir;
+					if (!(f.exists() && f.isDirectory())) {
+						dir = _sUserPluginDir.substring(0, _sUserPluginDir
 								.length() - 9);
-						System.out.println(azureusDir);
-						Utils.launch(azureusDir);
 					}
+					Utils.launch(dir);
 				}
 			}
 		});

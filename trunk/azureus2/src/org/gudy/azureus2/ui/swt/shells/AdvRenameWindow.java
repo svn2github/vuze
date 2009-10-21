@@ -209,7 +209,7 @@ public class AdvRenameWindow
 		shell.open();
 	}
 	
-	public void waitUntilDone() {
+	private void waitUntilDone() {
 		while (shell != null && !shell.isDisposed()) {
 			if (!shell.getDisplay().readAndDispatch()) {
 				shell.getDisplay().sleep();

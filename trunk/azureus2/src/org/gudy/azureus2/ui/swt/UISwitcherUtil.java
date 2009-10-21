@@ -27,6 +27,8 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.FirstPieceItem;
 
 /**
@@ -38,190 +40,157 @@ public class UISwitcherUtil
 {
 	private static final long UPTIME_NEWUSER = 60 * 60 * 1; // 1 hour
 
-	private static boolean NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET = true;
-	
-	public static ArrayList listeners = new ArrayList();
-	
-	public static String lastUI = null;
-	
+	private static ArrayList listeners = new ArrayList();
+
+	private static String switchedToUI = null;
+
 	public static void addListener(UISwitcherListener l) {
 		listeners.add(l);
-		if (lastUI != null) {
-			triggerListeners(lastUI);
+		if (switchedToUI != null) {
+			triggerListeners(switchedToUI);
 		}
 	}
-	
+
 	public static void removeListener(UISwitcherListener l) {
 		listeners.remove(l);
 	}
 
-	public static String openSwitcherWindow(boolean bForceAsk) {
-		lastUI = _openSwitcherWindow(bForceAsk);
-		triggerListeners(lastUI);
-		return lastUI;
+	public static void openSwitcherWindow() {
+		_openSwitcherWindow();
 	}
-	
-	private static void triggerListeners(String ui) {
+
+	public static void triggerListeners(String ui) {
 		Object[] array = listeners.toArray();
 		for (int i = 0; i < array.length; i++) {
 			UISwitcherListener l = (UISwitcherListener) array[i];
 			l.uiSwitched(ui);
 		}
 	}
-	
-	public static String _openSwitcherWindow(boolean bForceAsk) {
+
+	public static String calcUIMode() {
+		if (!isAZ3Avail()) {
+			return "az2";
+		}
+
+		// Can't use Constants.isSafeMode - it's not set by the time we
+		// get here.
+		if ("1".equals(System.getProperty("azureus.safemode"))) {
+			// If we are in safe-mode, prefer the classic UI - less likely to cause problems.
+			return "az2";
+		}
+
+		String lastUI = COConfigurationManager.getStringParameter("ui", "az2");
+		COConfigurationManager.setParameter("lastUI", lastUI);
+
+		String forceUI = System.getProperty("force.ui");
+		if (forceUI != null) {
+			COConfigurationManager.setParameter("ui", forceUI);
+			return forceUI;
+		}
+
+		// Flip people who install this client over top of an existing az
+		// to az3ui.  The installer will write a file to the program dir,
+		// while an upgrade won't
+		boolean installLogExists = FileUtil.getApplicationFile("installer.log").exists();
+		boolean alreadySwitched = COConfigurationManager.getBooleanParameter(
+				"installer.ui.alreadySwitched", false);
+		if (!alreadySwitched && installLogExists) {
+			COConfigurationManager.setParameter("installer.ui.alreadySwitched", true);
+			COConfigurationManager.setParameter("ui", "az3");
+			COConfigurationManager.setParameter("az3.virgin.switch", true);
+
+			// Anyone who wasn't on az3 and had an old version "advanced mode"
+			if (!lastUI.equals("az3")) {
+				String sFirstVersion = COConfigurationManager.getStringParameter(
+						"First Recorded Version", Constants.AZUREUS_VERSION);
+				if (!Constants.getBaseVersion(sFirstVersion).equals(
+						Constants.getBaseVersion(Constants.AZUREUS_VERSION))) {
+					COConfigurationManager.setParameter("v3.Start Advanced", true);
+				}
+			}
+			return "az3";
+		}
+
+		boolean asked = COConfigurationManager.getBooleanParameter("ui.asked",
+				false);
+
+		if (asked || COConfigurationManager.hasParameter("ui", true)) {
+			return COConfigurationManager.getStringParameter("ui", "az3");
+		}
+
+		// Never auto-ask people who never have had 2.x, because they'd be scared
+		// and cry at the advanced coolness of the az2 ui
+		String sFirstVersion = COConfigurationManager.getStringParameter("First Recorded Version");
+		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
+			COConfigurationManager.setParameter("ui", "az3");
+			return "az3";
+		}
+
+		// For new users who install pre v3 Azureus, and then immediately upgrade 
+		// to v3:
+		// Give them v3 by default since they've (in theory) never used az2ui
+		// Note: Users with any existing 3.x.x.x version will not get because
+		//       they have the "ui" parameter set and there's logic above to
+		//       exit early.
+		try {
+			Map map = FileUtil.readResilientConfigFile("azureus.statistics");
+			if (map != null) {
+				Map overallMap = (Map) map.get("all");
+				if (overallMap != null) {
+					long uptime = 0;
+					Object uptimeObject = overallMap.get("uptime");
+					if (uptimeObject instanceof Number) {
+						uptime = ((Number) uptimeObject).longValue();
+					}
+					// during a previous azureus, we may have screwed up uptime
+					// and it might be zero.. so check for that..
+					if (uptime < UPTIME_NEWUSER && uptime >= 0) {
+						COConfigurationManager.setParameter("ui", "az3");
+						COConfigurationManager.setParameter("az3.virgin.switch", true);
+						COConfigurationManager.setParameter("az3.switch.immediate", true);
+						return "az3";
+					}
+				}
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+			// ignore
+		}
+
+		// Short Circuit: We don't want to ask az2 users yet
+		COConfigurationManager.setParameter("ui", "az2");
+		return "az2";
+	}
+
+	public static void _openSwitcherWindow() {
 		Class uiswClass = null;
 		try {
 			uiswClass = Class.forName("com.aelitis.azureus.ui.swt.shells.uiswitcher.UISwitcherWindow");
 		} catch (ClassNotFoundException e1) {
 		}
 		if (uiswClass == null) {
-			return "az2";
-		}
-
-		if (!bForceAsk) {
-			
-			// Can't use Constants.isSafeMode - it's not set by the time we
-			// get here.
-			if ("1".equals(System.getProperty("azureus.safemode"))) {
-				// If we are in safe-mode, prefer the classic UI - less likely to cause problems.
-				return "az2";
-			}
-			
-			String lastUI = COConfigurationManager.getStringParameter("ui", "az2");
-			COConfigurationManager.setParameter("lastUI", lastUI);
-			
-			String forceUI = System.getProperty("force.ui");
-			if (forceUI != null) {
-				COConfigurationManager.setParameter("ui", forceUI);
-				return forceUI;
-			}
-
-			// Flip people who install this client over top of an existing az
-			// to az3ui.  The installer will write a file to the program dir,
-			// while an upgrade won't
-			boolean installLogExists = FileUtil.getApplicationFile("installer.log").exists();
-			boolean alreadySwitched = COConfigurationManager.getBooleanParameter("installer.ui.alreadySwitched", false);
-			if (!alreadySwitched && installLogExists) {
-				COConfigurationManager.setParameter("installer.ui.alreadySwitched", true);
-				COConfigurationManager.setParameter("ui", "az3");
-				COConfigurationManager.setParameter("az3.virgin.switch", true);
-				
-				// Anyone who wasn't on az3 and had an old version "advanced mode"
-				if (!lastUI.equals("az3")) {
-					String sFirstVersion = COConfigurationManager.getStringParameter("First Recorded Version", Constants.AZUREUS_VERSION);
-					if (!Constants.getBaseVersion(sFirstVersion).equals(
-							Constants.getBaseVersion(Constants.AZUREUS_VERSION))) {
-						COConfigurationManager.setParameter("v3.Start Advanced", true);
-					}
-				}
-				return "az3";
-			}
-			
-			boolean asked = COConfigurationManager.getBooleanParameter("ui.asked",
-					false);
-
-			if (asked || COConfigurationManager.hasParameter("ui", true)) {
-				return COConfigurationManager.getStringParameter("ui", "az3");
-			}
-
-			// Never auto-ask people who never have had 2.x, because they'd be scared
-			// and cry at the advanced coolness of the az2 ui
-			String sFirstVersion = COConfigurationManager.getStringParameter("First Recorded Version");
-			if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
-				COConfigurationManager.setParameter("ui", "az3");
-				return "az3";
-			}
-			
-			// For new users who install pre v3 Azureus, and then immediately upgrade 
-			// to v3:
-			// Give them v3 by default since they've (in theory) never used az2ui
-			// Note: Users with any existing 3.x.x.x version will not get because
-			//       they have the "ui" parameter set and there's logic above to
-			//       exit early.
-			try {
-  			Map map = FileUtil.readResilientConfigFile("azureus.statistics");
-  			if (map != null) {
-  				Map overallMap = (Map) map.get("all");
-  				if (overallMap != null) {
-      			long uptime = 0;
-      			Object uptimeObject = overallMap.get("uptime");
-      			if (uptimeObject instanceof Number) {
-      				uptime = ((Number)uptimeObject).longValue();
-      			}
-      			// during a previous azureus, we may have screwed up uptime
-      			// and it might be zero.. so check for that..
-      			if (uptime < UPTIME_NEWUSER && uptime >= 0) {
-      				COConfigurationManager.setParameter("ui", "az3");
-      				COConfigurationManager.setParameter("az3.virgin.switch", true);
-      				COConfigurationManager.setParameter("az3.switch.immediate", true);
-      				return "az3";
-      			}
-  				}
-  			}
-			} catch (Exception e) {
-				Debug.out(e);
-				// ignore
-			}
-			
-			// Short Circuit: We don't want to ask az2 users yet
-			if (NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET) {
-				COConfigurationManager.setParameter("ui", "az2");
-				return "az2";
-			}
+			return;
 		}
 
 		// either !asked or forceAsked at this point
 
 		try {
 
-			final int[] result = {
-				-1
-			};
+			final Constructor constructor = uiswClass.getConstructor(new Class[] {});
 
-			final Class fuiswClass = uiswClass;
+			Object object = constructor.newInstance(new Object[] {});
 
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					try {
-						final Constructor constructor = fuiswClass.getConstructor(new Class[] {});
+			Method method = uiswClass.getMethod("open", new Class[] {});
 
-						Object object = constructor.newInstance(new Object[] {});
+			method.invoke(object, new Object[] {});
 
-						Method method = fuiswClass.getMethod("open", new Class[] {});
-
-						Object resultObj = method.invoke(object, new Object[] {});
-
-						if (resultObj instanceof Number) {
-							result[0] = ((Number) resultObj).intValue();
-						}
-					} catch (Exception e) {
-						Debug.printStackTrace(e);
-					}
-				}
-			}, false);
-
-			if (result[0] == 0) {
-				// Full AZ3UI
-				COConfigurationManager.setParameter("ui", "az3");
-				// Anyone switching to az3 gets the "advanced mode"
-				if (!lastUI.equals("az3")) {
-					COConfigurationManager.setParameter("v3.Start Advanced", true);
-				}
-			} else if (result[0] == 1) {
-				COConfigurationManager.setParameter("ui", "az2");
-			}
-
-			if (result[0] != -1) {
-				COConfigurationManager.setParameter("ui.asked", true);
-			}
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
 		}
 
-		return COConfigurationManager.getStringParameter("ui");
+		return;
 	}
-	
+
 	public static boolean isAZ3Avail() {
 		Class uiswClass = null;
 		try {

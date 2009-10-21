@@ -28,18 +28,19 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Monitor;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.ui.swt.UISwitcherListener;
+import org.gudy.azureus2.ui.swt.UISwitcherUtil;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
-import com.aelitis.azureus.ui.IUIIntializer;
+import com.aelitis.azureus.ui.*;
 
 /**
  * The main SWT Thread, the only one that should run any GUI code.
@@ -148,8 +149,40 @@ public class SWTThread {
 				}
 			}
 		});
+    
+    UISwitcherUtil.addListener(new UISwitcherListener() {
+			public void uiSwitched(String ui) {
+				MessageBoxShell mb = new MessageBoxShell(
+						MessageText.getString("dialog.uiswitcher.restart.title"),
+						MessageText.getString("dialog.uiswitcher.restart.text"),
+						new String[] {
+							MessageText.getString("UpdateWindow.restart"),
+							MessageText.getString("UpdateWindow.restartLater"),
+						}, 0);
+				mb.open(new UserPrompterResultListener() {
+					public void prompterClosed(int result) {
+						if (result != 0) {
+							return;
+						}
+						UIFunctions uif = UIFunctionsManager.getUIFunctions();
+						if (uif != null) {
+							uif.dispose(true, false);
+						}
+					}
+				});
+			}
+		});
 
 		if (Constants.isOSX) {
+			
+			// On Cocoa, we get a Close trigger on display.  Need to check if all
+			// platforms send this.
+			display.addListener(SWT.Close, new Listener() {
+				public void handleEvent(Event event) {
+					event.doit = UIFunctionsManager.getUIFunctions().dispose(false, false);
+				}
+			});
+
 			String platform = SWT.getPlatform();
 			// use reflection here so we decouple generic SWT from OSX specific stuff to an extent
 

@@ -27,7 +27,6 @@ package org.gudy.azureus2.ui.swt;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.util.*;
 import java.util.List;
 
@@ -63,11 +62,11 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
@@ -238,7 +237,7 @@ public class OpenTorrentWindow
 			OpenTorrentWindow openTorrentWindow = stOpenTorrentWindow;
 			openTorrentWindow.bOverrideStartModeToStopped = bDefaultStopped;
 			openTorrentWindow.bDefaultForSeeding = bForSeeding;
-			if (sFilesToOpen != null) {
+			if (sFilesToOpen != null || sPathOfFilesToOpen != null) {
 				// If none of the files sent to us were valid files, don't open the 
 				// window
 				if (!bPopupOpenURL
@@ -501,31 +500,12 @@ public class OpenTorrentWindow
 
 		cmbDataDir.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				if (bSkipDataDirModify) {
-					return;
-				}
-				sDestDir = cmbDataDir.getText();
-
-				int[] indexes = torrentTable.getSelectionIndices();
-				for (int i = 0; i < indexes.length; i++) {
-					TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
-					//if (!info.allFilesMoving())
-					info.sDestDir = sDestDir;
-				}
-
-				torrentTable.clearAll();
-
-				checkSeedingMode();
-
-				File file = new File(sDestDir);
-				if (!file.isDirectory()) {
-					cmbDataDir.setBackground(Colors.colorErrorBG);
-				} else {
-					cmbDataDir.setBackground(null);
-				}
-				cmbDataDir.redraw();
-				cmbDataDir.update();
-				diskFreeInfoRefreshPending = true;
+				cmbDataDirChanged();
+			}
+		});
+		cmbDataDir.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				cmbDataDirChanged();
 			}
 		});
 
@@ -682,6 +662,37 @@ public class OpenTorrentWindow
 		}
 	}
 
+	protected void cmbDataDirChanged() {
+		System.out.println("mod");
+		if (bSkipDataDirModify) {
+			return;
+		}
+		sDestDir = cmbDataDir.getText();
+
+		int[] indexes = torrentTable.getSelectionIndices();
+		for (int i = 0; i < indexes.length; i++) {
+			TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
+			//if (!info.allFilesMoving())
+			info.sDestDir = sDestDir;
+		}
+
+		torrentTable.clearAll();
+
+		checkSeedingMode();
+
+		if (!Utils.isCocoa || SWT.getVersion() > 3600) { // See Eclipse Bug 292449
+  		File file = new File(sDestDir);
+  		if (!file.isDirectory()) {
+  			cmbDataDir.setBackground(Colors.colorErrorBG);
+  		} else {
+  			cmbDataDir.setBackground(null);
+  		}
+  		cmbDataDir.redraw();
+  		cmbDataDir.update();
+		}
+		diskFreeInfoRefreshPending = true;
+	}
+
 	protected void okPressed() {
 		if (bClosed) {
 			return;
@@ -703,11 +714,13 @@ public class OpenTorrentWindow
 
 		boolean isPathInvalid = cmbDataDir.getText().length() == 0 || file.isFile();
 		if (!isPathInvalid && !file.isDirectory()) {
-			int doCreate = Utils.openMessageBox(shellForChildren, SWT.YES | SWT.NO
+			MessageBoxShell mb = new MessageBoxShell(SWT.YES | SWT.NO
 					| SWT.ICON_QUESTION, "OpenTorrentWindow.mb.askCreateDir",
 					new String[] {
 						file.toString()
 					});
+			mb.open(null);
+			int doCreate = mb.waitUntilClosed();
 
 			if (doCreate == SWT.YES)
 				isPathInvalid = !FileUtil.mkdirs(file);
@@ -718,10 +731,11 @@ public class OpenTorrentWindow
 		}
 
 		if (isPathInvalid) {
-			Utils.openMessageBox(shellForChildren, SWT.OK | SWT.ICON_ERROR,
+			MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.ICON_ERROR,
 					"OpenTorrentWindow.mb.noGlobalDestDir", new String[] {
 						file.toString()
 					});
+			mb.open(null);
 			cmbDataDir.setFocus();
 			return;
 		}
@@ -741,19 +755,21 @@ public class OpenTorrentWindow
 			// 4) change the global def directory to a real one
 			// 5) click ok.  "hi.exe" will be written as moo in c:\test			
 			if (!file.isDirectory() && !FileUtil.mkdirs(file)) {
-				Utils.openMessageBox(shellForChildren, SWT.OK | SWT.ICON_ERROR,
+				MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.ICON_ERROR,
 						"OpenTorrentWindow.mb.noDestDir", new String[] {
 							file.toString(),
 							info.getTorrentName()
 						});
+				mb.open(null);
 				return;
 			}
 
 			if (!info.isValid) {
-				Utils.openMessageBox(shellForChildren, SWT.OK | SWT.ICON_ERROR,
+				MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.ICON_ERROR,
 						"OpenTorrentWindow.mb.notValid", new String[] {
 							info.getTorrentName()
 						});
+				mb.open(null);
 				return;
 			}
 
@@ -782,11 +798,13 @@ public class OpenTorrentWindow
 						+ "\n";
 			}
 
-			if (Utils.openMessageBox(shellForChildren, SWT.OK | SWT.CANCEL
+			MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.CANCEL
 					| SWT.ICON_WARNING, "OpenTorrentWindow.mb.existingFiles",
 					new String[] {
 						sExistingFiles
-					}) != SWT.OK) {
+					});
+			mb.open(null);
+			if (mb.waitUntilClosed() != SWT.OK) {
 				return;
 			}
 		}
@@ -1780,12 +1798,14 @@ public class OpenTorrentWindow
 				File file = new File(sNewName);
 				if (file.length() == fileInfo.lSize)
 					fileInfo.setFullDestName(sNewName);
-				else
-					Utils.openMessageBox(shellForChildren, SWT.OK,
+				else {
+					MessageBoxShell mb = new MessageBoxShell(SWT.OK,
 							"OpenTorrentWindow.mb.badSize", new String[] {
 								file.getName(),
 								fileInfo.orgFullName
 							});
+					mb.open(null);
+				}
 			} else
 				fileInfo.setFullDestName(sNewName);
 
@@ -1989,12 +2009,14 @@ public class OpenTorrentWindow
 										UrlUtils.decode(sOriginatingLocation),
 										"Not a File"
 									}, -1 );
-						else
-							Utils.openMessageBox(shell, SWT.OK,
+						else {
+							MessageBoxShell mb = new MessageBoxShell(SWT.OK,
 									"OpenTorrentWindow.mb.openError", new String[] {
 										sOriginatingLocation,
 										"Not a File"
 									});
+							mb.open(null);
+						}
 					}
 				});
 				return null;
@@ -2034,12 +2056,14 @@ public class OpenTorrentWindow
 									sOriginatingLocation,
 									e.getMessage()
 								}, -1 );
-					else
-						Utils.openMessageBox(shell, SWT.OK,
+					else {
+						MessageBoxShell mb = new MessageBoxShell(SWT.OK,
 								"OpenTorrentWindow.mb.openError", new String[] {
 									sOriginatingLocation,
 									e.getMessage()
 								});
+						mb.open(null);
+					}
 				}
 			});
 
@@ -2102,13 +2126,15 @@ public class OpenTorrentWindow
 								}, new Object[] {
 									fExistingDownload
 								}, -1 );
-					else
-						Utils.openMessageBox(shell, SWT.OK, MSG_ALREADY_EXISTS,
+					else {
+						MessageBoxShell mb = new MessageBoxShell(SWT.OK, MSG_ALREADY_EXISTS,
 								new String[] {
 									":" + sOriginatingLocation,
 									sfExistingName,
 									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
 								});
+						mb.open(null);
+					}
 				}
 			});
 
@@ -2271,12 +2297,14 @@ public class OpenTorrentWindow
 								info.sOriginatingLocation,
 								e.getMessage()
 							}, -1 );
-				else
-					Utils.openMessageBox(shell, SWT.OK, "OpenTorrentWindow.mb.openError",
+				else {
+					MessageBoxShell mb = new MessageBoxShell(SWT.OK, "OpenTorrentWindow.mb.openError",
 							new String[] {
 								info.sOriginatingLocation,
 								e.getMessage()
 							});
+					mb.open(null);
+				}
 			}
 		}
 

@@ -1,5 +1,8 @@
 package org.gudy.azureus2.ui.swt.shells;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.*;
@@ -14,6 +17,7 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.swt.UISkinnableManagerSWT;
@@ -52,19 +56,21 @@ public class MessageBoxShell
 
 	private final String text;
 
-	private final String[] buttons;
+	private String[] buttons;
 
-	private final int defaultOption;
+	private Integer[] buttonVals;
 
-	private String rememberID;
+	private int defaultButtonPos;
 
-	private String rememberText;
+	private String rememberID = null;
 
-	private boolean rememberByDefault;
+	private String rememberText = null;
 
-	private int rememberOnlyIfButton = -1;
+	private boolean rememberByDefault = false;
 
-	private int autoCloseInMS;
+	private int rememberOnlyIfButtonPos = -1;
+
+	private int autoCloseInMS = 0;
 
 	private String html;
 
@@ -91,61 +97,32 @@ public class MessageBoxShell
 	protected boolean isRemembered;
 
 	private String iconImageID;
+
+	private UserPrompterResultListener resultListener;
+
+	private int result;
+
+	private Listener filterListener;
+
+	private Shell shell;
+
+	private boolean opened;
 	
-	public static int open(final Shell parent, final String title,
-			final String text, final String[] buttons, final int defaultOption) {
-		return open(parent, title, text, buttons, defaultOption, null, false, -1);
-	}
+	public static void open(Shell parent, String title, String text,
+			String[] buttons, int defaultOption, String rememberID,
+			String rememberText, boolean bRememberByDefault, int autoCloseInMS,
+			UserPrompterResultListener l) {
 
-	public static int open(final Shell parent, final String title,
-			final String text, final String[] buttons, final int defaultOption,
-			final String rememberID, final boolean bRememberByDefault,
-			final int autoCloseInMS) {
-		return open(parent, title, text, buttons, defaultOption, rememberID,
-				MessageText.getString("MessageBoxWindow.rememberdecision"),
-				bRememberByDefault, autoCloseInMS);
-	}
-
-	public static int open(final Shell parent, final String title,
-			final String text, final String[] buttons, final int defaultOption,
-			final String rememberID, final String rememberText,
-			final boolean bRememberByDefault, final int autoCloseInMS) {
-
-		MessageBoxShell messageBoxShell = new MessageBoxShell(parent, title, text,
-				buttons, defaultOption, rememberID, rememberText, bRememberByDefault,
-				autoCloseInMS);
-		return messageBoxShell.open();
+		MessageBoxShell messageBoxShell = new MessageBoxShell(title, text,
+				buttons, defaultOption);
+		messageBoxShell.setRemember(rememberID, bRememberByDefault, rememberText);
+		messageBoxShell.setAutoCloseInMS(autoCloseInMS);
+		messageBoxShell.setParent(parent);
+		messageBoxShell.open(l);
 	}
 
 	public static boolean isOpen() {
 		return numOpen > 0;
-	}
-
-	/**
-	 * @param parent
-	 * @param title
-	 * @param text
-	 * @param buttons
-	 * @param defaultOption
-	 * @param rememberID
-	 * @param rememberText
-	 * @param bRememberByDefault
-	 * @param autoCloseInMS
-	 */
-	public MessageBoxShell(final Shell parent, final String title,
-			final String text, final String[] buttons, final int defaultOption,
-			final String rememberID, final String rememberText,
-			final boolean bRememberByDefault, final int autoCloseInMS) {
-
-		this.parent = parent;
-		this.title = title;
-		this.text = text;
-		this.buttons = buttons;
-		this.defaultOption = defaultOption;
-		this.rememberID = rememberID;
-		this.rememberText = rememberText;
-		this.rememberByDefault = bRememberByDefault;
-		this.autoCloseInMS = autoCloseInMS;
 	}
 
 	/**
@@ -154,54 +131,191 @@ public class MessageBoxShell
 	 * @param string2
 	 * @param strings
 	 */
-	public MessageBoxShell(final Shell parent, final String title,
+	public MessageBoxShell(final String title,
 			final String text, final String[] buttons, final int defaultOption) {
-		this(parent, title, text, buttons, defaultOption, null, null, false, -1);
+		this.title = title;
+		this.text = text;
+		this.buttons = buttons;
+		this.defaultButtonPos = defaultOption;
 	}
 
+	/**
+	 * ONLY FOR OLD EMP. DO NOT USE
+	 */
+	@Deprecated
+	public MessageBoxShell(Shell parent, final String title,
+			final String text, final String[] buttons, final int defaultOption) {
+		this(title, text, buttons, defaultOption);
+		this.parent = parent;
+	}
+
+	public MessageBoxShell(String title, String text) {
+		this(title, text, null, 0);
+	}
+
+	/** Open a messagebox using resource keys for title/text
+	 * 
+	 * @param parent Parent shell for messagebox
+	 * @param style SWT styles for messagebox
+	 * @param keyPrefix message bundle key prefix used to get title and text.  
+	 *         Title will be keyPrefix + ".title", and text will be set to
+	 *         keyPrefix + ".text"
+	 * @param textParams any parameters for text
+	 */
+	public MessageBoxShell(int style, String keyPrefix,
+			String[] textParams) {
+		if ((style & (0x7f << 5)) == 0) {
+			// need at least one button
+			style |= SWT.OK;
+		}
+		final Object[] buttonInfo = swtButtonStylesToText(style);
+
+		this.title = MessageText.getString(keyPrefix + ".title");
+		this.text = MessageText.getString(keyPrefix + ".text", textParams);
+		this.buttons = (String[]) buttonInfo[0];
+		this.defaultButtonPos = 0;
+		this.rememberID = null;
+		this.rememberText = null;
+		this.rememberByDefault = false;
+		this.autoCloseInMS = -1;
+		this.buttonVals = (Integer[]) buttonInfo[1];
+		
+		setLeftImage(style & 0x1f);
+	}
+
+	/** Open a messagebox with actual title and text
+	 * 
+	 * @param parent
+	 * @param style
+	 * @param title
+	 * @param text
+	 * @return
+	 */
+	public MessageBoxShell(int style, String title, String text) {
+		if ((style & (0x7f << 5)) == 0) {
+			// need at least one button
+			style |= SWT.OK;
+		}
+
+		final Object[] buttonInfo = swtButtonStylesToText(style);
+
+		this.title = title;
+		this.text = text;
+		this.buttons = (String[]) buttonInfo[0];
+		this.defaultButtonPos = 0;
+		this.rememberID = null;
+		this.rememberText = null;
+		this.rememberByDefault = false;
+		this.autoCloseInMS = -1;
+		this.buttonVals = (Integer[]) buttonInfo[1];
+		
+		setLeftImage(style & 0x1f);
+	}
+
+	public void setDefaultButtonUsingStyle(int defaultStyle) {
+		Object[] defaultButtonInfo = swtButtonStylesToText(defaultStyle);
+
+		int defaultIndex = 0;
+		if (defaultButtonInfo.length > 0) {
+			String name = ((String[]) defaultButtonInfo[0])[0];
+
+			for (int i = 0; i < buttons.length; i++) {
+				if (buttons[i].equals(name)) {
+					defaultIndex = i;
+					break;
+				}
+			}
+		}
+		defaultButtonPos = defaultIndex;
+	}
+
+	/**
+	 * ONLY FOR OLD EMP.  DO NOT USE.
+	 * <P>
+	 * Use {@link #open(UserPrompterResultListener)}
+	 * @return
+	 */
+	@Deprecated
 	public int open() {
-		return open(false);
+		open(false);
+		return waitUntilClosed();
 	}
 
-	private int open(final boolean useCustomShell) {
+	public void open(UserPrompterResultListener l) {
+		this.resultListener = l;
+		open(false);
+	}
+	
+	private void triggerResultListener(int returnVal) {
+		if (resultListener == null) {
+			return;
+		}
+		int realResult = getButtonVal(returnVal);
+		resultListener.prompterClosed(realResult);
+	}
+	
+	private int getButtonVal(int buttonPos) {
+		if (buttonVals == null) {
+			return buttonPos;
+		}
+		if (buttonPos < 0 || buttonPos >= buttonVals.length) {
+			return SWT.CANCEL;
+		}
+		return buttonVals[buttonPos].intValue();
+	}
+
+	private int getButtonPos(int buttonVal) {
+		if (buttonVals == null) {
+			return buttonVal;
+		}
+		if (buttonVal < 0 || buttonVal >= buttonVals.length) {
+			return -1;
+		}
+		for (int i = 0; i < buttonVals.length; i++) {
+			if (buttonVals[i] == buttonVal) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	private void open(final boolean useCustomShell) {
 		if (rememberID != null) {
 			int rememberedDecision = RememberedDecisionsManager.getRememberedDecision(rememberID);
-			if (rememberedDecision >= 0) {
-				return rememberedDecision;
+			if (rememberedDecision >= 0
+					&& (rememberOnlyIfButtonPos == -1 || rememberOnlyIfButtonPos == getButtonPos(rememberedDecision))) {
+				result = getButtonPos(rememberedDecision);
+				triggerResultListener(result);
+				return;
 			}
 		}
 
-		numOpen++;
-
-		final int[] result = new int[1];
-		result[0] = -1;
-
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				result[0] = _open();
+				_open();
 			}
 		}, false);
 
-		numOpen--;
-		return result[0];
+		return;
 	}
 
-	private int _open() {
-		final int[] result = {
-			-1
-		};
+	private void _open() {
+		result = -1;
 
+		boolean ourParent = false;
 		if (parent == null || parent.isDisposed()) {
 			parent = Utils.findAnyShell();
+			ourParent = true;
 			if (parent == null || parent.isDisposed()) {
-				return result[0];
+				triggerResultListener(result);
+				return;
 			}
 		}
 
 		MouseTrackAdapter mouseAdapter = null;
-		Display display = parent.getDisplay();
+		final Display display = parent.getDisplay();
 
-		final Shell shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM
+		shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM
 				| SWT.RESIZE | SWT.APPLICATION_MODAL);
 		if (title != null) {
 			shell.setText(title);
@@ -233,6 +347,12 @@ public class MessageBoxShell
 				if (iconImageID != null) {
 					ImageLoader.getInstance().releaseImage(iconImageID);
 				}
+				triggerResultListener(result);
+				if (display != null && !display.isDisposed() && filterListener != null) {
+					display.removeFilter(SWT.Traverse, filterListener);
+				}
+
+				numOpen--;
 			}
 		});
 		
@@ -385,7 +505,7 @@ public class MessageBoxShell
 
 								long endOn = ((Long) lblCloseIn.getData("CloseOn")).longValue();
 								if (SystemTime.getCurrentTime() > endOn) {
-									result[0] = defaultOption;
+									result = defaultButtonPos;
 									autoClosed = true;
 									shell.dispose();
 								} else {
@@ -456,6 +576,13 @@ public class MessageBoxShell
 			checkRemember = new Button(shell, SWT.CHECK);
 			checkRemember.setText(rememberText);
 			checkRemember.setSelection(rememberByDefault);
+			isRemembered = rememberByDefault;
+			checkRemember.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					Button checkRemember = (Button) event.widget;
+					isRemembered = checkRemember.getSelection();
+				}
+			});
 
 			checkRemember.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
@@ -463,8 +590,8 @@ public class MessageBoxShell
 					isRemembered = checkRemember != null && checkRemember.getSelection();
 					if (rememberID != null
 							&& isRemembered
-							&& (rememberOnlyIfButton == -1 || rememberOnlyIfButton == result[0])) {
-						RememberedDecisionsManager.setRemembered(rememberID, result[0]);
+							&& (rememberOnlyIfButtonPos == -1 || rememberOnlyIfButtonPos == result)) {
+						RememberedDecisionsManager.setRemembered(rememberID, getButtonVal(result));
 					}
 				}
 			});
@@ -489,7 +616,7 @@ public class MessageBoxShell
 			Listener buttonListener = new Listener() {
 	
 				public void handleEvent(Event event) {
-					result[0] = ((Integer) event.widget.getData()).intValue();
+					result = ((Integer) event.widget.getData()).intValue();
 					shell.dispose();
 				}
 	
@@ -516,7 +643,7 @@ public class MessageBoxShell
 					buttonWidth = size.x;
 				}
 	
-				if (i == defaultOption) {
+				if (i == defaultButtonPos) {
 					button.setFocus();
 					shell.setDefaultButton(button);
 				}
@@ -545,7 +672,7 @@ public class MessageBoxShell
 			}
 		});
 
-		Listener filterListener = new Listener() {
+		filterListener = new Listener() {
 			public void handleEvent(Event event) {
 				if (event.detail == SWT.TRAVERSE_ARROW_NEXT) {
 					event.detail = SWT.TRAVERSE_TAB_NEXT;
@@ -577,25 +704,25 @@ public class MessageBoxShell
 			shell.setSize(size);
 		}
 
-		Utils.centerWindowRelativeTo(shell, parent);
+		Shell centerRelativeToShell = parent;
+		if (ourParent) {
+			Control cursorControl = display.getCursorControl();
+			if (cursorControl != null) {
+				centerRelativeToShell = cursorControl.getShell();
+			}
+		}
+		Utils.centerWindowRelativeTo(shell, centerRelativeToShell);
 
 		for (int i = 0; i < listeners.length; i++) {
 			listeners[i].skinAfterComponents(shell, this, relatedObjects);
 		}
 
 		shell.open();
+		opened = true;
+		numOpen++;
 
-		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch()) {
-				display.sleep();
-			}
-		}
 
-		if (display != null && !display.isDisposed()) {
-			display.removeFilter(SWT.Traverse, filterListener);
-		}
-
-		return result[0];
+		return;
 	}
 
 	/**
@@ -728,11 +855,19 @@ public class MessageBoxShell
 	}
 
 	/**
-	 * @param rememberID the rememberID to set
+	 * 
+	 * @param rememberID
+	 * @param rememberByDefault
+	 * @param rememberText null if you want the default
 	 */
-	public void setRememberID(String rememberID, boolean rememberByDefault) {
+	public void setRemember(String rememberID, boolean rememberByDefault,
+			String rememberText) {
 		this.rememberID = rememberID;
 		this.rememberByDefault = rememberByDefault;
+		this.rememberText = rememberText;
+		if (this.rememberText == null) {
+			this.rememberText = MessageText.getString("MessageBoxWindow.rememberdecision");
+		}
 	}
 
 	/**
@@ -841,7 +976,6 @@ public class MessageBoxShell
 		shell.open();
 
 		MessageBoxShell messageBoxShell = new MessageBoxShell(
-				shell,
 				"Title",
 				"Test\n"
 						+ "THis is a very long line that tests whether the box gets really wide which is something we don't want.\n"
@@ -850,19 +984,31 @@ public class MessageBoxShell
 					"Okay",
 					"Cancyyyyyy",
 					"Maybe"
-				}, 1, "test2",
-				MessageText.getString("MessageBoxWindow.nomoreprompting"), false, 15000);
-
+				}, 1);
+		messageBoxShell.setRemember("test2", false,
+				MessageText.getString("MessageBoxWindow.nomoreprompting"));
+		messageBoxShell.setAutoCloseInMS(15000);
+		messageBoxShell.setParent(shell);
 		messageBoxShell.setHtml("<b>Moo</b> goes the cow<p><hr>");
-		System.out.println(messageBoxShell.open());
+		messageBoxShell.open(new UserPrompterResultListener() {
+			
+			public void prompterClosed(int returnVal) {
+				System.out.println(returnVal);
+			}
+		});
+		while (!shell.isDisposed()) {
+			if (!display.isDisposed() && !display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
 	}
 
 	public int getRememberOnlyIfButton() {
-		return rememberOnlyIfButton;
+		return rememberOnlyIfButtonPos;
 	}
 
 	public void setRememberOnlyIfButton(int rememberOnlyIfButton) {
-		this.rememberOnlyIfButton = rememberOnlyIfButton;
+		this.rememberOnlyIfButtonPos = rememberOnlyIfButton;
 	}
 
 	public Color getUrlColor() {
@@ -892,4 +1038,104 @@ public class MessageBoxShell
 	public boolean isRemembered() {
 		return isRemembered;
 	}
+	
+	/** 
+	 * NOT RECOMMENDED!
+	 * <P>
+	 * TODO: Occasionaly inspect list of callers and make them use 
+	 *       {@link UserPrompterResultListener} if possible
+	 */
+	public int waitUntilClosed() {
+		Utils.execSWTThreadWithBool("waitUntilClose", new AERunnableBoolean() {
+			public boolean runSupport() {
+				if (shell == null) {
+					return false;
+				}
+				if (!opened) {
+					shell.open();
+				}
+				while (shell != null && !shell.isDisposed()) {
+					if (shell.getDisplay() != null && !shell.getDisplay().readAndDispatch()) {
+						shell.getDisplay().sleep();
+					}
+				}
+				return true;
+			}
+		});
+		int realResult = getButtonVal(result);
+
+		return realResult;
+	}
+
+	public int getResult() {
+		return result;
+	}
+
+	private static Object[] swtButtonStylesToText(int style) {
+		List buttons = new ArrayList(2);
+		List buttonVal = new ArrayList(2);
+		int buttonCount = 0;
+		if ((style & SWT.OK) > 0) {
+			buttons.add(MessageText.getString("Button.ok"));
+			buttonVal.add(new Integer(SWT.OK));
+			buttonCount++;
+		}
+		if ((style & SWT.YES) > 0) {
+			buttons.add(MessageText.getString("Button.yes"));
+			buttonVal.add(new Integer(SWT.YES));
+			buttonCount++;
+		}
+		if ((style & SWT.NO) > 0) {
+			buttons.add(MessageText.getString("Button.no"));
+			buttonVal.add(new Integer(SWT.NO));
+			buttonCount++;
+		}
+		if ((style & SWT.CANCEL) > 0) {
+			buttons.add(MessageText.getString("Button.cancel"));
+			buttonVal.add(new Integer(SWT.CANCEL));
+			buttonCount++;
+		}
+		if ((style & SWT.ABORT) > 0) {
+			buttons.add(MessageText.getString("Button.abort"));
+			buttonVal.add(new Integer(SWT.ABORT));
+			buttonCount++;
+		}
+		if ((style & SWT.RETRY) > 0) {
+			buttons.add(MessageText.getString("Button.retry"));
+			buttonVal.add(new Integer(SWT.RETRY));
+			buttonCount++;
+		}
+		if ((style & SWT.IGNORE) > 0) {
+			buttons.add(MessageText.getString("Button.ignore"));
+			buttonVal.add(new Integer(SWT.IGNORE));
+			buttonCount++;
+		}
+		return new Object[] {
+			(String[]) buttons.toArray(new String[buttonCount]),
+			(Integer[]) buttonVal.toArray(new Integer[buttonCount])
+		};
+	}
+
+	public String[] getButtons() {
+		return buttons;
+	}
+
+	public void setButtons(String[] buttons) {
+		this.buttons = buttons;
+	}
+
+	public void setButtons(int defaltButtonPos, String[] buttons, Integer[] buttonVals) {
+		this.defaultButtonPos = defaltButtonPos;
+		this.buttons = buttons;
+		this.buttonVals = buttonVals;
+	}
+
+	public Shell getParent() {
+		return parent;
+	}
+
+	public void setParent(Shell parent) {
+		this.parent = parent;
+	}
+
 }

@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.net.buddy.swt;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
@@ -31,45 +32,17 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.events.MenuListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Sash;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.SHA1Simple;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
+
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -77,18 +50,9 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
-import com.aelitis.azureus.core.security.CryptoHandler;
-import com.aelitis.azureus.core.security.CryptoManager;
-import com.aelitis.azureus.core.security.CryptoManagerFactory;
-import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
+import com.aelitis.azureus.core.security.*;
 import com.aelitis.azureus.core.util.AZ3Functions;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessage;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessageListener;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyRequestListener;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginException;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener;
+import com.aelitis.azureus.plugins.net.buddy.*;
 
 public class 
 BuddyPluginViewInstance 
@@ -838,7 +802,7 @@ BuddyPluginViewInstance
 				widgetSelected(
 					SelectionEvent event ) 
 				{
-					TableItem[] selection = buddy_table.getSelection();
+					final TableItem[] selection = buddy_table.getSelection();
 					
 					UIInputReceiver prompter = ui_instance.getInputReceiver();
 					
@@ -846,19 +810,22 @@ BuddyPluginViewInstance
 					prompter.setLocalisedMessage( lu.getLocalisedMessageText( "azbuddy.ui.menu.send_msg" ) );
 					
 					try{
-						prompter.prompt();
-						
-						String text = prompter.getSubmittedInput();
-						
-						if ( text != null ){
-						
-							for (int i=0;i<selection.length;i++){
+						prompter.prompt(new UIInputReceiverListener() {
+							public void UIInputReceiverClosed(UIInputReceiver prompter) {
+								String text = prompter.getSubmittedInput();
 								
-								BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
-								
-								plugin.getAZ2Handler().sendAZ2Message( buddy, text );
+								if ( text != null ){
+									
+									for (int i=0;i<selection.length;i++){
+										
+										BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+										
+										plugin.getAZ2Handler().sendAZ2Message( buddy, text );
+									}
+								}
 							}
-						}
+						});
+						
 					}catch( Throwable e ){
 						
 					}
@@ -1255,28 +1222,31 @@ BuddyPluginViewInstance
 					prompter.setLocalisedTitle( lu.getLocalisedMessageText( "azbuddy.ui.menu.cat.set" ));
 					prompter.setLocalisedMessage( lu.getLocalisedMessageText( "azbuddy.ui.menu.cat.set_msg" ));
 					
-					prompter.prompt();
-					
-					String cats = prompter.getSubmittedInput();
-					
-					if ( cats != null ){
-					
-						cats = cats.trim();
-						
-						if ( cats.equalsIgnoreCase( "None" )){
+					prompter.prompt(new UIInputReceiverListener() {
+						public void UIInputReceiverClosed(UIInputReceiver prompter) {
+							String cats = prompter.getSubmittedInput();
 							
-							cats = "";
+							if ( cats != null ){
+								
+								cats = cats.trim();
+								
+								if ( cats.equalsIgnoreCase( "None" )){
+									
+									cats = "";
+								}
+								
+								TableItem[] selection = buddy_table.getSelection();
+								
+								for (int i=0;i<selection.length;i++){
+									
+									BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+									
+									buddy.setLocalAuthorisedRSSCategories( cats );
+								}
+							}
 						}
-						
-						TableItem[] selection = buddy_table.getSelection();
-						
-						for (int i=0;i<selection.length;i++){
-							
-							BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
-							
-							buddy.setLocalAuthorisedRSSCategories( cats );
-						}
-					}
+					});
+					
 				};
 			});
 		

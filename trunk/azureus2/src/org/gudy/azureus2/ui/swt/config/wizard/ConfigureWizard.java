@@ -27,6 +27,8 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
+import com.aelitis.azureus.ui.UserPrompterResultListener;
+
 /**
  * @author Olivier
  * 
@@ -77,17 +79,22 @@ public class ConfigureWizard extends Wizard {
 		try {
 			if (!completed
 					&& !COConfigurationManager.getBooleanParameter("Wizard Completed")) {
-				int result = MessageBoxShell.open(this.getWizardWindow(),
+				MessageBoxShell mb = new MessageBoxShell(
 						MessageText.getString("wizard.close.confirmation"),
 						MessageText.getString("wizard.close.message"), new String[] {
 							MessageText.getString("Button.yes"),
 							MessageText.getString("Button.no")
 						}, 0);
 
-				if (result == 1) {
-					COConfigurationManager.setParameter("Wizard Completed", true);
-					COConfigurationManager.save();
-				}
+				mb.open(new UserPrompterResultListener() {
+					public void prompterClosed(int result) {
+						if (result == 1) {
+							COConfigurationManager.setParameter("Wizard Completed", true);
+							COConfigurationManager.save();
+						}
+					}
+				});
+
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

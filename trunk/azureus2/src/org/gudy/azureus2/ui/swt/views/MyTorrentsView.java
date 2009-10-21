@@ -51,6 +51,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -212,7 +214,8 @@ public class MyTorrentsView
 
   // @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
   public void tableViewInitialized() {
-    tv.addKeyListener(this);
+ 
+  	tv.addKeyListener(this);
 
     createTabs();
 

@@ -112,9 +112,9 @@ public interface UIFunctions
 	public UIFunctionsUserPrompter getUserPrompter(String title, String text,
 			String[] buttons, int defaultOption);
 
-	public int promptUser(String title, String text, String[] buttons,
+	public void promptUser(String title, String text, String[] buttons,
 			int defaultOption, String rememberID, String rememberText,
-			boolean bRememberByDefault, int autoCloseInMS);
+			boolean bRememberByDefault, int autoCloseInMS, UserPrompterResultListener l);
 	
 	/**
 	 * Retrieves the class that handles periodically updating the UI

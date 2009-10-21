@@ -36,6 +36,7 @@ import org.gudy.azureus2.update.UpdaterUtils;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginException;
@@ -233,11 +234,11 @@ public class PlatformManagerUnixPlugin
 	}
 	
 	private void showScriptManualUpdateDialog(String newFilePath,
-			String oldFilePath, int version) {
-		UIFunctions uif = UIFunctionsManager.getUIFunctions();
+			String oldFilePath, final int version) {
+		final UIFunctions uif = UIFunctionsManager.getUIFunctions();
 		if (uif != null) {
-			String sCopyLine = "cp \"" + newFilePath + "\" \"" + oldFilePath + "\"";
-			int answer = uif.promptUser(
+			final String sCopyLine = "cp \"" + newFilePath + "\" \"" + oldFilePath + "\"";
+			uif.promptUser(
 					MessageText.getString("unix.script.new.title"),
 					MessageText.getString("unix.script.new.text", new String[] {
 						newFilePath,
@@ -246,32 +247,37 @@ public class PlatformManagerUnixPlugin
 						MessageText.getString("unix.script.new.button.quit"),
 						MessageText.getString("unix.script.new.button.continue"),
 						MessageText.getString("unix.script.new.button.asknomore"),
-					}, 0, null, null, false, 0);
-			if (answer == 0) {
-				System.out.println("The line you should run:\n" + sCopyLine);
-				uif.dispose(false, false);
-			} else if (answer == 2) {
-				COConfigurationManager.setParameter("unix.script.lastaskversion",
-						version);
-			}
+					}, 0, null, null, false, 0, new UserPrompterResultListener() {
+						public void prompterClosed(int answer) {
+							if (answer == 0) {
+								System.out.println("The line you should run:\n" + sCopyLine);
+								uif.dispose(false, false);
+							} else if (answer == 2) {
+								COConfigurationManager.setParameter("unix.script.lastaskversion",
+										version);
+							}
+						}
+					});
 		} else {
 			System.out.println("NO UIF");
 		}
 	}
 
 	private void showScriptAutoUpdateDialog() {
-		UIFunctions uif = UIFunctionsManager.getUIFunctions();
+		final UIFunctions uif = UIFunctionsManager.getUIFunctions();
 		if (uif != null) {
-			int answer = uif.promptUser(
-					MessageText.getString("unix.script.new.auto.title"),
-					MessageText.getString("unix.script.new.auto.text", new String[] {
-					}), new String[] {
+			uif.promptUser(MessageText.getString("unix.script.new.auto.title"),
+					MessageText.getString("unix.script.new.auto.text", new String[] {}),
+					new String[] {
 						MessageText.getString("UpdateWindow.restart"),
 						MessageText.getString("UpdateWindow.restartLater"),
-					}, 0, null, null, false, 0);
-			if (answer == 0) {
-				uif.dispose(true, false);
-			}
+					}, 0, null, null, false, 0, new UserPrompterResultListener() {
+						public void prompterClosed(int answer) {
+							if (answer == 0) {
+								uif.dispose(true, false);
+							}
+						}
+					});
 		} else {
 			System.out.println("NO UIF");
 		}

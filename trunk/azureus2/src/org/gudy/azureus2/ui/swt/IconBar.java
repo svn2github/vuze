@@ -30,14 +30,10 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.components.BufferedToolItem;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
@@ -108,23 +104,7 @@ public class IconBar {
 			Messages.setLanguageText(tiSwitch, "iconBar.switch.tooltip", true);
 			tiSwitch.addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
-					String uiOld = COConfigurationManager.getStringParameter("ui");
-					String uiNew = UISwitcherUtil.openSwitcherWindow(true);
-					if (!uiOld.equals(uiNew) && !IconBar.this.parent.isDisposed()) {
-  					int result = MessageBoxShell.open(IconBar.this.parent.getShell(),
-  							MessageText.getString("dialog.uiswitcher.restart.title"),
-  							MessageText.getString("dialog.uiswitcher.restart.text"),
-  							new String[] {
-  								MessageText.getString("UpdateWindow.restart"),
-  								MessageText.getString("UpdateWindow.restartLater"),
-  							}, 0);
-  					if (result == 0) {
-    					UIFunctions uif = UIFunctionsManager.getUIFunctions();
-    					if (uif != null) {
-    						uif.dispose(true, false);
-    					}
-  					}
-					}
+					UISwitcherUtil.openSwitcherWindow();
 				}
 
 				public void widgetDefaultSelected(SelectionEvent e) {

@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
@@ -62,8 +63,7 @@ public class DonationWindow
 	public static void checkForDonationPopup() {
 		if (shell != null) {
 			if (DEBUG) {
-				Utils.openMessageBox(null, SWT.OK, "Donations Test",
-						"Already Open");
+				new MessageBoxShell(SWT.OK, "Donations Test", "Already Open").open(null);
 			}
 			return;
 		}
@@ -73,8 +73,8 @@ public class DonationWindow
 				"donations.donated", false);
 		if (alreadyDonated) {
 			if (DEBUG) {
-				Utils.openMessageBox(null, SWT.OK, "Donations Test",
-						"Already Donated! I like you.");
+				new MessageBoxShell(SWT.OK, "Donations Test",
+						"Already Donated! I like you.").open(null);
 			}
 			return;
 		}
@@ -97,16 +97,16 @@ public class DonationWindow
 					+ initialAskHours);
 			COConfigurationManager.save();
 			if (DEBUG) {
-				Utils.openMessageBox(null, SWT.OK, "Donations Test",
-						"Newbie. You're active for " + hours + ".");
+				new MessageBoxShell(SWT.OK, "Donations Test",
+						"Newbie. You're active for " + hours + ".").open(null);
 			}
 			return;
 		}
 
 		if (hours < nextAsk) {
 			if (DEBUG) {
-				Utils.openMessageBox(null, SWT.OK, "Donations Test", "Wait "
-						+ (nextAsk - hours) + ".");
+				new MessageBoxShell(SWT.OK, "Donations Test", "Wait "
+						+ (nextAsk - hours) + ".").open(null);
 			}
 			return;
 		}
@@ -115,9 +115,9 @@ public class DonationWindow
 				0);
 		if (minDate > 0 && minDate > SystemTime.getCurrentTime()) {
 			if (DEBUG) {
-				Utils.openMessageBox(null, SWT.OK, "Donation Test", "Wait "
+				new MessageBoxShell(SWT.OK, "Donation Test", "Wait "
 						+ ((SystemTime.getCurrentTime() - minDate) / 1000 / 3600 / 24)
-						+ " days");
+						+ " days").open(null);
 			}
 			return;
 		}
@@ -273,12 +273,12 @@ public class DonationWindow
 									Debug.out("Page Didn't Load:" + url);
 									shell.dispose();
 									if (showNoLoad) {
-  									Utils.openMessageBox(shell, SWT.OK,
+										new MessageBoxShell(SWT.OK,
   											MessageText.getString("DonationWindow.noload.title"),
   											MessageText.getString("DonationWindow.noload.text",
 														new String[] {
 															url
-														}));
+														})).open(null);
 									}
 								}
 							});

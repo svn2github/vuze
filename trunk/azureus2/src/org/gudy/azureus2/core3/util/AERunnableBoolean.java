@@ -48,7 +48,7 @@ public abstract class AERunnableBoolean
 			//System.out.println(this + "]" + id + " sem=" + sem);
 			if (sem != null) {
 				//System.out.println(this + "]" + id + " sem Release");
-				sem.release();
+				sem.releaseForever();
 			}
 		}
 	}

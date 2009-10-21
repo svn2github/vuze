@@ -180,8 +180,21 @@ public interface UIInputReceiver {
 	 * This prompts the user for input. This method will not return until
 	 * the user has either entered valid input, or signalled they want to
 	 * cancel entering any data.
+	 * 
+	 * @deprecated Use {@link #prompt(UIInputReceiverListener)}
 	 */
+	@Deprecated
 	public void prompt();
+	
+	/**
+	 * This prompts the user for input and returns immediately.  When the user
+	 * has closed the input ui, the {@link UIInputReceiverListener} will
+	 * be triggered
+	 * 
+	 * @param receiver_listener
+	 * @since 4.2.0.9
+	 */
+	public void prompt(UIInputReceiverListener receiver_listener);
 	
 	/**
 	 * Returns <tt>true</tt> if the user submitted any data.
