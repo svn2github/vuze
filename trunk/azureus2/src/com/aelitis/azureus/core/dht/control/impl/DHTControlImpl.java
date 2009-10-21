@@ -1003,20 +1003,28 @@ DHTControlImpl
 	getObfuscatedKey(
 		byte[]		plain_key )
 	{
-		byte[]	obs_key = new byte[ plain_key.length ];
+		int	length = plain_key.length;
+		
+		byte[]	obs_key = new byte[ length ];
 		
 		System.arraycopy( plain_key, 0, obs_key, 0, 5 );
 		
 			// ensure plain key and obfuscated one differ at subsequent bytes to prevent potential 
 			// clashes with code that uses 'n' byte prefix (e.g. DB survey code)
 		
-		for (int i=6;i<plain_key.length;i++){
+		for (int i=6;i<length;i++){
 		
 			if ( plain_key[i] == 0 ){
 			
 				obs_key[i] = 1;
 			}
 		}
+		
+			// finally copy over last two bytes for code that uses challenge-response on this
+			// (survey code)
+		
+		obs_key[length-2] = plain_key[length-2];
+		obs_key[length-1] = plain_key[length-1];
 		
 		return( obs_key );
 	}
