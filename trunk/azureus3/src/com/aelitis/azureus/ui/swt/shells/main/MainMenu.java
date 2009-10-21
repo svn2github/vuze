@@ -1,8 +1,5 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
-import java.util.Arrays;
-import java.util.Comparator;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.*;
@@ -20,15 +17,11 @@ import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
-import com.aelitis.azureus.ui.swt.utils.ContentNetworkUIManagerWindow;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
@@ -77,8 +70,6 @@ public class MainMenu
 		//addViewMenu();
 		addSimpleViewMenu();
 
-		addContentNetworksMenu();
-
 		addCommunityMenu();
 
 		addToolsMenu();
@@ -106,139 +97,7 @@ public class MainMenu
 		 */
 		MenuFactory.updateEnabledStates(menuBar);
 	}
-
-	/**
-	 * 
-	 *
-	 * @since 4.0.0.3
-	 */
-	private void addContentNetworksMenu() {
-		try {
-			MenuItem contentNetworkItem = MenuFactory.createTopLevelMenuItem(menuBar,
-					MENU_ID_CONTENT_NETWORKS);
-			final Menu contentNetworkMenu = contentNetworkItem.getMenu();
-
-			contentNetworkMenu.addListener(SWT.Show, new Listener() {
-				public void handleEvent(Event event) {
-					try {
-						MenuItem[] menuItems = contentNetworkMenu.getItems();
-						Utils.disposeSWTObjects(menuItems);
-
-						buildContentNetworkMenu(contentNetworkMenu);
-
-					} catch (Exception e) {
-						Debug.out("Error creating Menu", e);
-					}
-
-				}
-			});
-		} catch (Exception e) {
-			Debug.out("Error creating Menu", e);
-		}
-	}
-
-	/**
-	 * @param contentNetworkMenu
-	 *
-	 * @since 4.0.0.3
-	 */
-	protected void buildContentNetworkMenu(final Menu contentNetworkMenu) {
-		ContentNetworkManager cnManager = ContentNetworkManagerFactory.getSingleton();
-		if (cnManager == null) {
-			return;
-		}
-		ContentNetwork[] contentNetworks = cnManager.getContentNetworks();
-		Arrays.sort(contentNetworks, new Comparator() {
-			public int compare(Object o1, Object o2) {
-				String p1 = ""
-						+ ((ContentNetwork) o1).getProperty(ContentNetwork.PROPERTY_ORDER);
-				String p2 = ""
-						+ ((ContentNetwork) o2).getProperty(ContentNetwork.PROPERTY_ORDER);
-
-				return p1.compareTo(p2);
-			}
-		});
-		for (int i = 0; i < contentNetworks.length; i++) {
-			ContentNetwork contentNetwork = contentNetworks[i];
-			addContentNetworkItem(contentNetworkMenu, contentNetwork);
-		}
-		
-		MenuFactory.addSeparatorMenuItem(contentNetworkMenu);
-
-		MenuFactory.addMenuItem(contentNetworkMenu, MENU_ID_CONTENT_NETWORKS
-				+ ".manage", new Listener() {
-			public void handleEvent(Event event) {
-				new ContentNetworkUIManagerWindow();
-			}			
-		});
-
-		MenuFactory.addSeparatorMenuItem(contentNetworkMenu);
-
-		MenuFactory.addMenuItem(contentNetworkMenu, MENU_ID_CONTENT_NETWORKS
-				+ ".about", new Listener() {
-			public void handleEvent(Event event) {
-				String url = "AboutHDNetworks.start";
-				UIFunctionsManagerSWT.getUIFunctionsSWT().viewURL(url, "_blank", 0,
-						0, true, false);
-			}			
-		});
-	}
-
 	
-	/**
-	 * @param contentNetworkMenu
-	 * @param cn
-	 *
-	 * @since 4.0.0.3
-	 */
-	private void addContentNetworkItem(Menu contentNetworkMenu,
-			ContentNetwork cn) {
-		if (cn == null) {
-			return;
-		}
-
-		Object prop = cn.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
-		boolean removable = (prop instanceof Boolean) ? ((Boolean) prop).booleanValue()
-				: false;
-		
-		if (removable) {
-  		prop = cn.getPersistentProperty(ContentNetwork.PP_SHOW_IN_MENU);
-  		boolean show = (prop instanceof Boolean) ? ((Boolean) prop).booleanValue()
-  				: true;
-  		
-  		if (!show) {
-  			return;
-  		}
-		}
-
-
-		final MenuItem item = MenuFactory.addMenuItem(contentNetworkMenu,
-				SWT.CHECK,
-				null,
-				new Listener() {
-					public void handleEvent(Event event) {
-						MenuItem item = (MenuItem) event.widget;
-						ContentNetwork contentNetwork = (ContentNetwork) item.getData("ContentNetwork");
-						if (contentNetwork == null) {
-							return;
-						}
-
-						SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-						if (sideBar == null) {
-							return;
-						}
-						String sidebarID = ContentNetworkUtils.getTarget(contentNetwork);
-
-						ContentNetworkUtils.setSourceRef(contentNetwork, "menu", false);
-						sideBar.showEntryByTabID(sidebarID);
-					}
-				});
-
-		item.setText(cn.getName());
-
-		item.setData("ContentNetwork", cn);
-	}
-
 	/**
 	 * Creates the File menu and all its children
 	 */
