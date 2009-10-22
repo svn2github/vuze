@@ -227,6 +227,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.upnp.impl.ssdp"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.impl.tests"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.utils.security"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.rssgen"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.platform.macosx"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.disk"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.ui"/>
