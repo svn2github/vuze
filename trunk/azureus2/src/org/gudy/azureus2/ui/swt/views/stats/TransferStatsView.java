@@ -374,20 +374,26 @@ public class TransferStatsView extends AbstractIView {
   }
   
   public void delete() {
-	Utils.disposeComposite(generalPanel);
-	Utils.disposeComposite(blahPanel);
-    pingGraph.dispose();
- 
-    for (int i=0;i<plot_views.length;i++){
+		Utils.disposeComposite(generalPanel);
+		Utils.disposeComposite(blahPanel);
+		if (pingGraph != null) {
+			pingGraph.dispose();
+		}
 
-    	plot_views[i].dispose();
-    }
+		if (plot_views != null) {
+			for (int i = 0; i < plot_views.length; i++) {
 
-    for (int i=0;i<zone_views.length;i++){
+				plot_views[i].dispose();
+			}
+		}
 
-    	zone_views[i].dispose();
-    }
-  }
+		if (zone_views != null) {
+			for (int i = 0; i < zone_views.length; i++) {
+
+				zone_views[i].dispose();
+			}
+		}
+	}
 
   public String getFullTitle() {
     return MessageText.getString("SpeedView.title.full"); //$NON-NLS-1$
