@@ -36,6 +36,7 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
 import com.aelitis.azureus.plugins.extseed.impl.ExternalSeedReaderImpl;
 import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloader;
 import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloaderListener;
+import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloaderRange;
 
 public class 
 ExternalSeedReaderWebSeed
@@ -141,7 +142,7 @@ ExternalSeedReaderWebSeed
 		ExternalSeedHTTPDownloader	http_downloader = null;
 		
 		try{
-			http_downloader = new ExternalSeedHTTPDownloader( new URL( str ), getUserAgent());
+			http_downloader = new ExternalSeedHTTPDownloaderRange( new URL( str ), getUserAgent());
 
 				// unfortunately using HttpURLConnection it isn't possible to read the 503 response as per
 				// protocol - however, for az http web seeds we don't uses 503 anyway so we cna use URLCon. The

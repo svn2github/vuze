@@ -54,6 +54,9 @@ ExternalSeedHTTPDownloaderListener
 	reportBytesRead(
 		int		num );
 	
+	public boolean
+	isCancelled();
+	
 	public void
 	done();
 }

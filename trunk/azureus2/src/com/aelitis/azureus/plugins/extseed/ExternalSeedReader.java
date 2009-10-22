@@ -69,7 +69,7 @@ ExternalSeedReader
 	
 	public void
 	addRequests(
-		List			requests );
+		List<PeerReadRequest>			requests );
 	
 	public void
 	cancelRequest(
@@ -92,10 +92,10 @@ ExternalSeedReader
 	public int
 	getRequestCount();
 	
-	public List
+	public List<PeerReadRequest>
 	getExpiredRequests();
 	
-	public List
+	public List<PeerReadRequest>
 	getRequests();
 	
 	public int

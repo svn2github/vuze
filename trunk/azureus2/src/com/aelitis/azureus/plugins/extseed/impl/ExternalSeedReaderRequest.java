@@ -35,7 +35,7 @@ ExternalSeedReaderRequest
 {
 	private ExternalSeedReaderImpl	reader;
 	
-	private List			requests;
+	private List<PeerReadRequest>			requests;
 
 	private int		start_piece_number;
 	private int		start_piece_offset;
@@ -49,8 +49,8 @@ ExternalSeedReaderRequest
 	
 	protected 
 	ExternalSeedReaderRequest(
-		ExternalSeedReaderImpl	_reader,
-		List					_requests )
+		ExternalSeedReaderImpl		_reader,
+		List<PeerReadRequest>		_requests )
 	{
 		reader		= _reader;
 		requests	= _requests;
@@ -105,7 +105,23 @@ ExternalSeedReaderRequest
 		
 		return( current_buffer );
 	}
-	        	
+	     
+	public boolean 
+	isCancelled() 
+	{
+		for (int i=0;i<requests.size();i++){
+			
+			PeerReadRequest	req = requests.get(i);
+
+			if ( req.isCancelled()){
+				
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
 	public void
 	done()
 	{
@@ -117,7 +133,7 @@ ExternalSeedReaderRequest
 	{
 		for (int i=0;i<requests.size();i++){
 			
-			PeerReadRequest	req = (PeerReadRequest)requests.get(i);
+			PeerReadRequest	req = requests.get(i);
 
 			if ( !req.isCancelled()){
 				
@@ -131,7 +147,7 @@ ExternalSeedReaderRequest
 	{
 		for (int i=current_request_index;i<requests.size();i++){
 			
-			PeerReadRequest	request = (PeerReadRequest)requests.get(i);
+			PeerReadRequest	request = requests.get(i);
 
 			reader.informFailed( request );
 		}
@@ -179,7 +195,7 @@ ExternalSeedReaderRequest
 		
 		if ( req == null ){
 			
-			req = (PeerReadRequest)requests.get(0);	
+			req = requests.get(0);	
 		}
 		
 		if ( req.isCancelled()){
