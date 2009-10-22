@@ -496,7 +496,7 @@ public class SWTSkinObjectBasic
 		return switchSuffix(suffix, level, walkUp, true);
 	}
 
-	public String switchSuffix(String suffix, int level, boolean walkUp, boolean walkDown) {
+	public String switchSuffix(String newSuffixEntry, int level, boolean walkUp, boolean walkDown) {
 		if (walkUp) {
 			SWTSkinObject parentSkinObject = parent;
 			SWTSkinObject skinObject = this;
@@ -511,30 +511,33 @@ public class SWTSkinObjectBasic
 			if (skinObject != this) {
 				//System.out.println(sConfigID + suffix + "; walkup");
 
-				skinObject.switchSuffix(suffix, level, false);
+				skinObject.switchSuffix(newSuffixEntry, level, false);
 				return null;
 			}
 		}
+		String old = getSuffix();
 
 		if (level > 0) {
   		//System.out.println(SystemTime.getCurrentTime() + ": " + this + suffix + "; switchy");
   		if (suffixes == null) {
+  			old = null;
   			suffixes = new String[level];
   		} else if (suffixes.length < level) {
   			String[] newSuffixes = new String[level];
   			System.arraycopy(suffixes, 0, newSuffixes, 0, suffixes.length);
   			suffixes = newSuffixes;
   		}
-  		suffixes[level - 1] = suffix;
+  		suffixes[level - 1] = newSuffixEntry;
 		}
 
-		suffix = getSuffix();
+		String fullSuffix = getSuffix();
 
-		if (sConfigID == null || control == null || control.isDisposed() || !isVisible) {
-			return suffix;
+		if (sConfigID == null || control == null || control.isDisposed()
+				|| !isVisible || (newSuffixEntry != null && fullSuffix.equals(old))) {
+			return fullSuffix;
 		}
 
-		final String sSuffix = suffix;
+		final String sSuffix = fullSuffix;
 
 		Utils.execSWTThread(new AERunnable() {
 
@@ -657,11 +660,14 @@ public class SWTSkinObjectBasic
 			}
 
 		});
-		return suffix;
+		return fullSuffix;
 	}
 
 	public String getSuffix() {
 		String suffix = "";
+		if (suffixes == null) {
+			return suffix;
+		}
 		for (int i = 0; i < suffixes.length; i++) {
 			if (suffixes[i] != null) {
 				suffix += suffixes[i];
