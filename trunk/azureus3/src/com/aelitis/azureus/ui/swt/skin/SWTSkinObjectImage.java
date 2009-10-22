@@ -35,10 +35,7 @@ public class SWTSkinObjectImage
 
 	protected static final Long DRAW_HCENTER = new Long(5);
 
-	// if false, Cocoa will bork because of https://bugs.eclipse.org/bugs/show_bug.cgi?id=290166
-	private static boolean ALWAYS_USE_PAINT = true;
-
-	Label label;
+	private Canvas canvas;
 
 	private boolean customImage;
 
@@ -48,32 +45,30 @@ public class SWTSkinObjectImage
 
 	private static PaintListener paintListener;
 
-	private boolean noSetLabelImage = false;
-
 	private int h_align;
 
 	static {
 		paintListener = new PaintListener() {
 			public void paintControl(PaintEvent e) {
-
+				SWTSkinObject so = (SWTSkinObject) e.widget.getData("SkinObject");
 				try {
 					e.gc.setAdvanced(true);
 					e.gc.setInterpolation(SWT.HIGH);
 				} catch (Exception ex) {
 				}
 
-				Label label = (Label) e.widget;
-				Image imgSrc = (Image) label.getData("image");
+				Canvas control = (Canvas) e.widget;
+				Image imgSrc = (Image) control.getData("image");
 				Image imgRight = null;
 				Image imgLeft = null;
 				String idToRelease = null;
 				ImageLoader imageLoader = null;
 
 				if (imgSrc == null) {
-					SWTSkinObjectImage soImage = (SWTSkinObjectImage) label.getData("SkinObject");
+					SWTSkinObjectImage soImage = (SWTSkinObjectImage) control.getData("SkinObject");
 					imageLoader = soImage.getSkin().getImageLoader(
 							soImage.getProperties());
-					String imageID = (String) label.getData("ImageID");
+					String imageID = (String) control.getData("ImageID");
 					if (imageLoader.imageExists(imageID)) {
 						idToRelease = imageID;
 						Image[] images = imageLoader.getImages(imageID);
@@ -89,9 +84,9 @@ public class SWTSkinObjectImage
 					}
 				}
 				Rectangle imgSrcBounds = imgSrc.getBounds();
-				Point size = label.getSize();
+				Point size = control.getSize();
 
-				Long drawMode = (Long) label.getData("drawmode");
+				Long drawMode = (Long) control.getData("drawmode");
 
 				if (drawMode == DRAW_STRETCH) {
 					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
@@ -112,7 +107,7 @@ public class SWTSkinObjectImage
 					int y1 = size.y;
 
 					if (imgRight == null) {
-						imgRight = (Image) label.getData("image-right");
+						imgRight = (Image) control.getData("image-right");
 					}
 					if (imgRight != null) {
 						int width = imgRight.getBounds().width;
@@ -121,7 +116,7 @@ public class SWTSkinObjectImage
 					}
 
 					if (imgLeft == null) {
-						imgLeft = (Image) label.getData("image-left");
+						imgLeft = (Image) control.getData("image-left");
 					}
 					if (imgLeft != null) {
 						// TODO: Tile down
@@ -155,14 +150,14 @@ public class SWTSkinObjectImage
 	public SWTSkinObjectImage(SWTSkin skin, SWTSkinProperties skinProperties,
 			String sID, String sConfigID, String sImageID, SWTSkinObject parent) {
 		super(skin, skinProperties, sID, sConfigID, "image", parent);
-		setControl(createImageLabel(sConfigID, sImageID));
+		setControl(createImageWidget(sConfigID, sImageID));
 		customImage = false;
 		customImageID = null;
 	}
 
-	private Label createImageLabel(String sConfigID, String sImageID) {
+	private Canvas createImageWidget(String sConfigID, String sImageID) {
 		currentImageID = sImageID;
-		int style = SWT.WRAP;
+		int style = SWT.WRAP | SWT.DOUBLE_BUFFERED;
 
 		String sAlign = properties.getStringValue(sConfigID + ".align");
 		if (sAlign != null) {
@@ -183,18 +178,18 @@ public class SWTSkinObjectImage
 			createOn = (Composite) parent.getControl();
 		}
 
-		label = new Label(createOn, style);
-		label.setData("SkinObject", this);
+		canvas = new Canvas(createOn, style);
+		canvas.setData("SkinObject", this);
 
 		Color color = properties.getColor(sConfigID + ".color");
 		if (color != null) {
-			label.setBackground(color);
+			canvas.setBackground(color);
 		}
 
 		final String sURL = properties.getStringValue(sConfigID + ".url");
 		if (sURL != null && sURL.length() > 0) {
-			label.setToolTipText(sURL);
-			label.addListener(SWT.MouseUp, new Listener() {
+			canvas.setToolTipText(sURL);
+			canvas.addListener(SWT.MouseUp, new Listener() {
 				public void handleEvent(Event arg0) {
 					Utils.launch(UrlUtils.encode(sURL));
 				}
@@ -204,28 +199,28 @@ public class SWTSkinObjectImage
 		String sCursor = properties.getStringValue(sConfigID + ".cursor");
 		if (sCursor != null && sCursor.length() > 0) {
 			if (sCursor.equalsIgnoreCase("hand")) {
-				label.addListener(SWT.MouseEnter,
-						skin.getHandCursorListener(label.getDisplay()));
-				label.addListener(SWT.MouseExit,
-						skin.getHandCursorListener(label.getDisplay()));
+				canvas.addListener(SWT.MouseEnter,
+						skin.getHandCursorListener(canvas.getDisplay()));
+				canvas.addListener(SWT.MouseExit,
+						skin.getHandCursorListener(canvas.getDisplay()));
 			}
 		}
 
 		//		SWTBGImagePainter painter = (SWTBGImagePainter) parent.getData("BGPainter");
 		//		if (painter != null) {
-		//			label.addListener(SWT.Paint, painter);
+		//			canvas.addListener(SWT.Paint, painter);
 		//		}
-		label.addDisposeListener(new DisposeListener() {
+		canvas.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
-				String oldImageID = (String) label.getData("ImageID");
-				if (oldImageID != null && label.getData("image") != null) {
+				String oldImageID = (String) canvas.getData("ImageID");
+				if (oldImageID != null && canvas.getData("image") != null) {
 					ImageLoader imageLoader = skin.getImageLoader(properties);
 					imageLoader.releaseImage(oldImageID);
 				}
 			}
 		});
 
-		return label;
+		return canvas;
 	}
 	
 	public void setVisible(boolean visible) {
@@ -233,36 +228,32 @@ public class SWTSkinObjectImage
 
 		if (visible) {
 			reallySetImage();
-		} else {
-			if (!customImage) {
-				label.setImage(null);
-			}
 		}
 	}
 
-	//protected void setLabelImage(String sConfigID, AECallback<Image> callback) {
-	protected void setLabelImage(String sImageID, AECallback callback) {
-		setLabelImage(sConfigID, sImageID, callback);
+	//protected void setCanvasImage(String sConfigID, AECallback<Image> callback) {
+	protected void setCanvasImage(String sImageID, AECallback callback) {
+		setCanvasImage(sConfigID, sImageID, callback);
 	}
 
-	//private void setLabelImage(final String sConfigID, final String sImageID, AECallback<Image> callback) {
-	private void setLabelImage(final String sConfigID, final String sImageID,
+	//private void setCanvasImage(final String sConfigID, final String sImageID, AECallback<Image> callback) {
+	private void setCanvasImage(final String sConfigID, final String sImageID,
 			AECallback callback) {
 		Utils.execSWTThread(new AERunnableWithCallback(callback) {
 
 			public Object runSupport() {
-				if (label == null || label.isDisposed()) {
+				if (canvas == null || canvas.isDisposed()) {
 					return null;
 				}
 
-				String oldImageID = (String) label.getData("ImageID");
+				String oldImageID = (String) canvas.getData("ImageID");
 				if (sImageID != null && sImageID.equals(oldImageID)) {
 					return null;
 				}
 
 				ImageLoader imageLoader = skin.getImageLoader(properties);
 
-				if (oldImageID != null && label.getData("image") != null) {
+				if (oldImageID != null && canvas.getData("image") != null) {
 					imageLoader.releaseImage(oldImageID);
 				}
 
@@ -274,14 +265,14 @@ public class SWTSkinObjectImage
 				if (images.length == 3) {
 					Image imageLeft = images[0];
 					if (ImageLoader.isRealImage(imageLeft)) {
-						label.setData("image-left", imageLeft);
+						canvas.setData("image-left", imageLeft);
 					}
 
 					image = images[1];
 
 					Image imageRight = images[2];
 					if (ImageLoader.isRealImage(imageRight)) {
-						label.setData("image-right", imageRight);
+						canvas.setData("image-right", imageRight);
 					}
 				} else if (images.length > 0) {
 					image = images[0];
@@ -313,57 +304,37 @@ public class SWTSkinObjectImage
 				} else {
 					drawMode = DRAW_NORMAL;
 				}
-				label.setData("drawmode", drawMode);
+				canvas.setData("drawmode", drawMode);
 
-				if (drawMode != DRAW_NORMAL || ALWAYS_USE_PAINT) {
-					noSetLabelImage = true;
-					Rectangle imgBounds = image.getBounds();
-					if (drawMode != DRAW_CENTER && drawMode != DRAW_HCENTER
-							&& drawMode != DRAW_STRETCH) {
-						label.setSize(imgBounds.width, imgBounds.height);
-					}
-					//label.setData("image", image);
-
-					if (drawMode == DRAW_TILE || drawMode == DRAW_NORMAL) {
-						// XXX Huh? A tile of one? :)
-						FormData fd = (FormData) label.getLayoutData();
-						if (fd == null) {
-							fd = new FormData(imgBounds.width, imgBounds.height);
-						} else {
-							fd.width = imgBounds.width;
-							fd.height = imgBounds.height;
-						}
-						label.setLayoutData(fd);
-						Utils.relayout(label);
-					}
-					
-					// remove in case already added
-					label.removePaintListener(paintListener);
-
-					label.addPaintListener(paintListener);
-
-					if (!ALWAYS_USE_PAINT) {
-						label.setImage(null);
-					}
-				} else if (sDrawMode.equals(("scale"))) {
-					noSetLabelImage = true;
-					Rectangle imgBounds = image.getBounds();
-					label.setSize(imgBounds.width, imgBounds.height);
-					label.setData("image", image);
-
-				} else {
-					Image oldImage = label.getImage();
-					label.setImage(image);
-					if (oldImage == null || image == null
-							|| !oldImage.getBounds().equals(image.getBounds())) {
-						Utils.relayout(label);
-					}
+				Rectangle imgBounds = image.getBounds();
+				if (drawMode != DRAW_CENTER && drawMode != DRAW_HCENTER
+						&& drawMode != DRAW_STRETCH) {
+					canvas.setSize(imgBounds.width, imgBounds.height);
 				}
-				label.setData("ImageID", sImageID);
+				//canvas.setData("image", image);
 
-				label.redraw();
+				if (drawMode == DRAW_TILE || drawMode == DRAW_NORMAL) {
+					// XXX Huh? A tile of one? :)
+					FormData fd = (FormData) canvas.getLayoutData();
+					if (fd == null) {
+						fd = new FormData(imgBounds.width, imgBounds.height);
+					} else {
+						fd.width = imgBounds.width;
+						fd.height = imgBounds.height;
+					}
+					canvas.setLayoutData(fd);
+					Utils.relayout(canvas);
+				}
+				
+				// remove in case already added
+				canvas.removePaintListener(paintListener);
 
-				SWTSkinUtils.addMouseImageChangeListeners(label);
+				canvas.addPaintListener(paintListener);
+				canvas.setData("ImageID", sImageID);
+
+				canvas.redraw();
+
+				SWTSkinUtils.addMouseImageChangeListeners(canvas);
 				imageLoader.releaseImage(sImageID);
 				return null;
 			}
@@ -404,7 +375,7 @@ public class SWTSkinObjectImage
 	}
 
 	protected void reallySetImage() {
-		if (label.getImage() != null || currentImageID == null || customImage) {
+		if (currentImageID == null || customImage) {
 			return;
 		}
 
@@ -429,26 +400,18 @@ public class SWTSkinObjectImage
 		}
 
 		if (imageExists) {
-			setLabelImage(currentImageID, null);
+			setCanvasImage(currentImageID, null);
 		}
-	}
-
-	public Image getImage() {
-		return label.getImage();
 	}
 
 	public void setImage(Image image) {
 		customImage = true;
 		customImageID = null;
-		label.setData("image", image);
-		label.setData("image-left", null);
-		label.setData("image-right", null);
-		if (!noSetLabelImage) {
-			label.setImage(image);
-		} else {
-			label.redraw();
-		}
-		Utils.relayout(label);
+		canvas.setData("image", image);
+		canvas.setData("image-left", null);
+		canvas.setData("image-right", null);
+		canvas.redraw();
+		Utils.relayout(canvas);
 	}
 
 	protected void setImageByID(String sConfigID, AECallback callback) {
@@ -466,9 +429,9 @@ public class SWTSkinObjectImage
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		Image image = imageLoader.getImage(sImageID);
 		if (ImageLoader.isRealImage(image)) {
-			setLabelImage(sConfigID, sImageID, callback);
+			setCanvasImage(sConfigID, sImageID, callback);
 		} else {
-			setLabelImage(sConfigID, sConfigID, callback);
+			setCanvasImage(sConfigID, sConfigID, callback);
 		}
 		imageLoader.releaseImage(sImageID);
 		return;
@@ -487,7 +450,7 @@ public class SWTSkinObjectImage
 				final ImageLoader imageLoader = skin.getImageLoader(properties);
 				imageLoader.getUrlImage(url, new ImageDownloaderListener() {
 					public void imageDownloaded(Image image, boolean returnedImmediately) {
-						setLabelImage(url, null);
+						setCanvasImage(url, null);
 						imageLoader.releaseImage(url);
 					}
 				});
