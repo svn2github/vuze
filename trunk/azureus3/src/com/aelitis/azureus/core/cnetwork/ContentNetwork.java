@@ -37,6 +37,8 @@ ContentNetwork
 	
 	public static final long	CONTENT_NETWORK_RFN			= 2;
 	
+	public static final long	CONTENT_NETWORK_VHDNL		= 3;
+
 		// test networks
 	
 	public static final long	CONTENT_NETWORK_JR			= 10000;

@@ -104,6 +104,8 @@ public class PlatformTorrentUtils
 	private static final String TOR_AZ_PROP_VIDEO_HEIGHT = "Video Height";
 
 	private static final String TOR_AZ_PROP_VIDEO_RUNNINGTIME = "Running Time";
+	
+	private static final String TOR_AZ_PROP_DURATION_MILLIS = "Duration";
 
 	private static final String TOR_AZ_PROP_OPENED = "Opened";
 
@@ -268,6 +270,10 @@ public class PlatformTorrentUtils
 
 	public static String getContentDescription(TOTorrent torrent) {
 		return getContentMapString(torrent, TOR_AZ_PROP_DESCRIPTION);
+	}
+	
+	public static void setContentDescription(TOTorrent torrent, String desc) {
+		setContentMapString(torrent, TOR_AZ_PROP_DESCRIPTION,desc);
 	}
 
 	public static String getContentType(TOTorrent torrent) {
@@ -616,6 +622,14 @@ public class PlatformTorrentUtils
 
 	public static long getContentVideoRunningTime(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_VIDEO_RUNNINGTIME, -1);
+	}
+	
+	public static long getContentDurationMillis(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_DURATION_MILLIS, -1);
+	}
+	
+	public static void setContentDurationMillis(TOTorrent torrent, long millis ) {
+		setContentMapLong(torrent, TOR_AZ_PROP_DURATION_MILLIS, millis );
 	}
 	
 	public static int[] getContentVideoResolution(TOTorrent torrent) {
