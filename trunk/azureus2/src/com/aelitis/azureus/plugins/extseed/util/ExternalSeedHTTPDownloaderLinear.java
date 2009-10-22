@@ -454,14 +454,14 @@ ExternalSeedHTTPDownloaderLinear
 			try{
 				synchronized( this ){
 
-					long pos = raf.getFilePointer();
-					
 					if ( raf == null ){
-					
-							// not yet initialised
 						
+							// not yet initialised
+					
 						return( requests.size());
 					}
+
+					long pos = raf.getFilePointer();
 					
 					Iterator<Request> it = requests.iterator();
 					
