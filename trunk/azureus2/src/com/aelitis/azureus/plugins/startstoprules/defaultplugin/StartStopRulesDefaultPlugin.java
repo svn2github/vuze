@@ -318,7 +318,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		configModel.addBooleanParameter2("StartStopManager_bAutoReposition",
 				"ConfigView.label.seeding.autoReposition", false);
 		configModel.addIntParameter2("StartStopManager_iMinSeedingTime",
-				"ConfigView.label.minSeedingTime", 60 * 3);
+				"ConfigView.label.minSeedingTime", 60 * 10);
 
 		// ignore rules subsection
 		// ---------
