@@ -495,12 +495,16 @@ public class SWTSkin
 				Control cursorControl = shell.getDisplay().getCursorControl();
 				//System.out.println("move from " + (lastControl == null ? null : lastControl.handle) + " to " + (cursorControl == null ? "null" : cursorControl.handle));
 				if (cursorControl != lastControl) {
+					Point cursorLocation = shell.getDisplay().getCursorLocation();
 					while (lastControl != null && !lastControl.isDisposed()) {
-						SWTSkinObjectBasic so = (SWTSkinObjectBasic) lastControl.getData("SkinObject");
-						if (so != null) {
-							so.switchSuffix("", 3, false, false);
+						Point cursorLocationInControl = lastControl.toControl(cursorLocation);
+						Point size = lastControl.getSize();
+						if (!new Rectangle(0, 0, size.x, size.y).contains(cursorLocationInControl)) {
+  						SWTSkinObjectBasic so = (SWTSkinObjectBasic) lastControl.getData("SkinObject");
+  						if (so != null) {
+  							so.switchSuffix("", 3, false, false);
+  						}
 						}
-
 						lastControl = lastControl.getParent();
 					}
 					lastControl = cursorControl;
