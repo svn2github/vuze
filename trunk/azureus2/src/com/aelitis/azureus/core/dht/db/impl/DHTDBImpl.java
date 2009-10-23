@@ -124,7 +124,7 @@ DHTDBImpl
 
 	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
 
-	private static final boolean	DEBUG_SURVEY		= true;
+	private static final boolean	DEBUG_SURVEY		= false;
 	private static final boolean	SURVEY_ONLY_RF_KEYS	= true;
 	
 	
@@ -1929,9 +1929,7 @@ DHTDBImpl
 								if ( DEBUG_SURVEY ){
 									System.out.println( "survey complete: nodes=" + id_map.size());
 								}
-											
-								id_map.remove( my_id );
-								
+																			
 								processSurvey( my_id, applicable_keys, id_map );
 								
 								processing[0] = true;
@@ -1968,7 +1966,7 @@ DHTDBImpl
 				
 				node_ids[pos++] = id;
 			}
-						
+				
 			ByteArrayHashMap<List<DHTDBMapping>>	value_map = new ByteArrayHashMap<List<DHTDBMapping>>();
 			
 			Map<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>> request_map = new HashMap<DHTTransportContact, ByteArrayHashMap<List<DHTDBMapping>>>();
@@ -2164,32 +2162,32 @@ DHTDBImpl
 								}
 							}
 						}
-					}
 					
-					String str = "";
-					
-					int encoded_size = 1;	// header size 
+						String str = "";
 						
-					List<byte[]> prefixes = prefix_map.keys();
-					
-					for ( byte[] prefix: prefixes ){
+						int encoded_size = 1;	// header size 
+							
+						List<byte[]> prefixes = prefix_map.keys();
 						
-						encoded_size += 3 + prefix.length;
+						for ( byte[] prefix: prefixes ){
+							
+							encoded_size += 3 + prefix.length;
+							
+							List<DHTDBMapping> entries = prefix_map.get( prefix );
+							
+							encoded_size += ( QUERY_STORE_REQUEST_ENTRY_SIZE - prefix.length ) * entries.size();
+							
+							str += (str.length()==0?"":", ")+ ByteFormatter.encodeString( prefix ) + "->" + entries.size();
+						}
 						
-						List<DHTDBMapping> entries = prefix_map.get( prefix );
+						if ( DEBUG_SURVEY ){
+							System.out.println( "node " + ByteFormatter.encodeString( id ) + " -> " + (all_entries==null?0:all_entries.size()) + ", encoded=" + encoded_size + ", prefix=" + str );
+						}
 						
-						encoded_size += ( QUERY_STORE_REQUEST_ENTRY_SIZE - prefix.length ) * entries.size();
-						
-						str += (str.length()==0?"":", ")+ ByteFormatter.encodeString( prefix ) + "->" + entries.size();
-					}
-					
-					if ( DEBUG_SURVEY ){
-						System.out.println( "node " + ByteFormatter.encodeString( id ) + " -> " + (all_entries==null?0:all_entries.size()) + ", encoded=" + encoded_size + ", prefix=" + str );
-					}
-					
-					if ( prefixes.size() > 0 ){
-						
-						request_map.put( survey.get( id ), prefix_map );
+						if ( prefixes.size() > 0 ){
+							
+							request_map.put( survey.get( id ), prefix_map );
+						}
 					}
 				}
 			}finally{
