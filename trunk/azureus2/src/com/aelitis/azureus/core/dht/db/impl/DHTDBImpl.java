@@ -124,7 +124,7 @@ DHTDBImpl
 
 	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
 
-	private static final boolean	DEBUG_SURVEY		= false;
+	private static final boolean	DEBUG_SURVEY		= true;
 	private static final boolean	SURVEY_ONLY_RF_KEYS	= true;
 	
 	
@@ -166,7 +166,7 @@ DHTDBImpl
 		cache_republish_interval		= _cache_republish_interval;
 		logger							= _logger;
 			
-		survey_enabled = _protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL;
+		survey_enabled = _protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL2;
 		
 		if ( ENABLE_PRECIOUS_STUFF ){
 			
@@ -1963,12 +1963,12 @@ DHTDBImpl
 			byte[][]	node_ids = new byte[survey.size()][];
 			
 			int	pos = 0;
-			
+						
 			for ( byte[] id: survey.keys()){
 				
 				node_ids[pos++] = id;
 			}
-			
+						
 			ByteArrayHashMap<List<DHTDBMapping>>	value_map = new ByteArrayHashMap<List<DHTDBMapping>>();
 			
 			Map<DHTTransportContact,ByteArrayHashMap<List<DHTDBMapping>>> request_map = new HashMap<DHTTransportContact, ByteArrayHashMap<List<DHTDBMapping>>>();
@@ -2012,6 +2012,31 @@ DHTDBImpl
 							}
 						});
 					
+					boolean	found_myself = false;
+					
+					for ( int i=0;i<max_nodes;i++ ){
+						
+						byte[]	id = node_ids[i];
+
+						if ( Arrays.equals( survey_my_id, id )){
+							
+							found_myself = true;
+							
+							break;
+						}
+					}
+					
+						// if we're not in the closest set to this key then ignore it
+					
+					if ( !found_myself ){
+						
+						if ( DEBUG_SURVEY ){
+							System.out.println( "we're not in closest set for " + ByteFormatter.encodeString( key ) + " - ignoring" );
+						}
+						
+						continue;
+					}
+					
 					List<DHTTransportContact>	node_list = new ArrayList<DHTTransportContact>(max_nodes);
 					
 					mapping_to_node_map.put( mapping, node_list );
@@ -2019,6 +2044,15 @@ DHTDBImpl
 					for ( int i=0;i<max_nodes;i++ ){
 						
 						byte[]	id = node_ids[i];
+						
+							// remove ourselves from the equation here as we don't want to end
+							// up querying ourselves and we account for the replica we have later
+							// on
+						
+						if ( Arrays.equals( survey_my_id, id )){
+							
+							continue;
+						}
 						
 						List<DHTDBMapping> list = value_map.get( id );
 						
@@ -2038,6 +2072,8 @@ DHTDBImpl
 				if ( DEBUG_SURVEY ){
 					System.out.println( "Total values: " + value_count );
 				}
+				
+					// build a list of requests to send to nodes to check their replicas
 				
 				for ( byte[] id: node_ids ){
 										
@@ -2306,7 +2342,7 @@ DHTDBImpl
 		boolean	handled = false;
 		
 		try{
-			if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+			if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL2 ){
 			
 				if ( DEBUG_SURVEY ){
 					System.out.println( "Hitting " + contact.getString());
@@ -2368,6 +2404,11 @@ DHTDBImpl
 						}
 					}
 				
+					if ( contact.getID().equals( survey_my_id )){
+						
+						Debug.out( "inconsistent - we shouldn't query ourselves!" );
+					}
+					
 					contact.sendQueryStore(
 						new DHTTransportReplyHandlerAdapter()
 						{
@@ -2572,7 +2613,7 @@ DHTDBImpl
 						
 						if ( t == null ){
 							
-							t = new int[]{ 1 };
+							t = new int[]{ 2 };		// one for local node + 1 for them
 							
 							totals.put( m, t );
 							
@@ -2595,7 +2636,7 @@ DHTDBImpl
 				
 				if ( t == null ){
 					
-					copies = 0;
+					copies = 1;		// us!
 					
 				}else{
 					
@@ -2640,7 +2681,7 @@ DHTDBImpl
 						
 						for ( DHTTransportContact c: contacts ){
 						
-							if ( c.getProtocolVersion() < DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+							if ( c.getProtocolVersion() < DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL2 ){
 								
 								continue;
 							}
