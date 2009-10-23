@@ -128,8 +128,8 @@ DHTDBImpl
 	private static final boolean	SURVEY_ONLY_RF_KEYS	= true;
 	
 	
-	private static final int	SURVEY_PERIOD					= DEBUG_SURVEY?1*60*1000:5*60*1000;
-	private static final int	SURVEY_STATE_INACT_TIMEOUT		= SURVEY_PERIOD*6; 
+	private static final int	SURVEY_PERIOD					= DEBUG_SURVEY?1*60*1000:15*60*1000;
+	private static final int	SURVEY_STATE_INACT_TIMEOUT		= DEBUG_SURVEY?5*60*1000:60*60*1000;
 	private static final int	SURVEY_STATE_MAX_LIFE_TIMEOUT	= 3*60*60*1000 + 30*60*1000;
 	private static final int	SURVEY_STATE_MAX_LIFE_RAND		= 1*60*60*1000;
 	
