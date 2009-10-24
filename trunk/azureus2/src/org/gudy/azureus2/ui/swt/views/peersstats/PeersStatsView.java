@@ -110,7 +110,7 @@ public class PeersStatsView
 		tv = new TableViewSWTImpl<PeersStatsDataSource>(
 				PeersStatsDataSource.class,
 				TableManager.TABLE_TORRENT_FILES, getPropertiesPrefix(), new TableColumnCore[0],
-				"name", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+				ColumnPS_Count.COLUMN_ID, SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		/*
 				tv.addTableDataSourceChangedListener(this, true);
 				tv.addRefreshListener(this, true);
