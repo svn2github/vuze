@@ -3280,6 +3280,16 @@ DownloadManagerStateImpl
 	   		return( null );
     	}
     	
+       	public void
+    	setCreatedBy(
+    		byte[]		cb )
+       	{
+	   		if ( fixup()){
+				
+				delegate.setCreatedBy( cb );
+			}
+    	}
+       	
     	public boolean
     	isCreated()
        	{

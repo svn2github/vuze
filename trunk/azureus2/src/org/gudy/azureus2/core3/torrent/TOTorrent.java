@@ -91,6 +91,10 @@ TOTorrent
 	public byte[]
 	getCreatedBy();
 	
+	public void
+	setCreatedBy(
+		byte[]		cb );
+	
 	public boolean
 	isCreated();
 	

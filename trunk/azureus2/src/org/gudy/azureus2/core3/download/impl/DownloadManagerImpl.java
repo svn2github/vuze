@@ -2017,6 +2017,14 @@ DownloadManagerImpl
 			
 			// Need to notify listeners, even if scrape result is not valid, in
 			// case they parse invalid scrapes 
+			
+			if ( response.isValid() && response.getStatus() == TRTrackerScraperResponse.ST_ONLINE ){
+			
+				long cache = ((((long)response.getSeeds())&0x00ffffffL)<<32)|(((long)response.getPeers())&0x00ffffffL);
+				
+				download_manager_state.setLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE, cache );
+			}
+			
 			tracker_listeners.dispatch(LDT_TL_SCRAPERESULT, response);
 		}
 	}

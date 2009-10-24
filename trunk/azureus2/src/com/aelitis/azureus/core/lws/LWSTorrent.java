@@ -136,6 +136,13 @@ LWSTorrent
 		return( getDelegate().getCreatedBy());
 	}
 	
+  	public void
+	setCreatedBy(
+		byte[]		cb )
+   	{
+  		getDelegate().setCreatedBy( cb );
+   	}
+  	
 	public boolean
 	isCreated()
 	{

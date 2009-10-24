@@ -551,7 +551,7 @@ TOTorrentImpl
 		creation_date 	= _creation_date;
 	}
 	
-	protected void
+	public void
 	setCreatedBy(
 		byte[]		_created_by )
 	{

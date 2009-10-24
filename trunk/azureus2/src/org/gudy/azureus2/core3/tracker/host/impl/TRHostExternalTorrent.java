@@ -112,6 +112,12 @@ TRHostExternalTorrent
 		return( null );
 	}
 	
+ 	public void
+	setCreatedBy(
+		byte[]		cb )
+   	{
+   	}
+ 	
 	public boolean
 	isCreated()
 	{

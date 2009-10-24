@@ -1601,6 +1601,13 @@ TorrentUtils
 			return( delegate.getCreatedBy());
 		}
 		
+	 	public void
+		setCreatedBy(
+			byte[]		cb )
+	   	{
+	  		delegate.setCreatedBy( cb );
+	   	}
+	 	
 		public boolean
 		isCreated()
 		{
