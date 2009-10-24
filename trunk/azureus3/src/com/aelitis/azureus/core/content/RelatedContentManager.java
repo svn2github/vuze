@@ -65,6 +65,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.utils.search.SearchException;
@@ -169,6 +170,9 @@ RelatedContentManager
 	private static final int REPUBLISH_PERIOD			= 8*60*60*1000;
 	private static final int REPUBLISH_TICKS			= REPUBLISH_PERIOD/TIMER_PERIOD;
 
+	private static final int INITIAL_PUBLISH_DELAY	= 3*60*1000;
+	private static final int INITIAL_PUBLISH_TICKS	= INITIAL_PUBLISH_DELAY/TIMER_PERIOD;
+	
 	
 	
 	private static final int CONFIG_DISCARD_MILLIS	= 60*1000;
@@ -249,7 +253,7 @@ RelatedContentManager
 					}
 				});
 			
-			if ( ui_enabled ){
+			if ( enabled ){
 				
 				try{
 					plugin_interface.getUtilities().registerSearchProvider(
@@ -418,7 +422,9 @@ RelatedContentManager
 													perform(
 														TimerEvent event ) 
 													{
-														if ( tick_count == 0 ){
+														tick_count++;
+
+														if ( tick_count == 1 ){
 															
 															try{
 																ddb = plugin_interface.getDistributedDatabase();
@@ -430,27 +436,28 @@ RelatedContentManager
 																Debug.out( e );
 															}
 														}
-														if ( ui_enabled ){
-													
-															tick_count++;
-															
-															if ( tick_count % PUBLISH_CHECK_TICKS == 0 ){
-															
-																publish();
-															
-																saveRelatedContent();
+														
+														if ( enabled ){
+																
+															if ( tick_count >= INITIAL_PUBLISH_TICKS ){
+																
+																if ( tick_count % PUBLISH_CHECK_TICKS == 0 ){
+																
+																	publish();
+																
+																	saveRelatedContent();
+																}
+																
+																if ( tick_count % SECONDARY_LOOKUP_TICKS == 0 ){
+	
+																	secondaryLookup();
+																}
+																
+																if ( tick_count % REPUBLISH_TICKS == 0 ){
+	
+																	republish();
+																}
 															}
-															
-															if ( tick_count % SECONDARY_LOOKUP_TICKS == 0 ){
-
-																secondaryLookup();
-															}
-															
-															if ( tick_count % REPUBLISH_TICKS == 0 ){
-
-																republish();
-															}
-
 														}
 													}
 												});
@@ -848,7 +855,44 @@ RelatedContentManager
 							
 							map.put( "c", new Long( cnet ));
 						}
+						
+						long secs = torrent.getCreationDate();
+						
+						long hours = secs/(60*60);
+						
+						if ( hours > 0 ){
+							
+							map.put( "p", new Long( hours ));
+						}
 					}
+					
+					DownloadScrapeResult scrape = d.getLastScrapeResult();
+					
+					int leechers 	= -1;
+					int seeds 		= -1;
+					
+					if ( scrape != null && scrape.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+						
+						leechers 	= scrape.getNonSeedCount();
+						seeds 		= scrape.getSeedCount();
+						
+					}else{
+						
+						long cache = PluginCoreUtils.unwrap( d ).getDownloadState().getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
+						
+						if ( cache != -1 ){
+							
+							seeds 		= (int)((cache>>32)&0x00ffffff);
+							leechers 	= (int)(cache&0x00ffffff);
+						}
+					}
+					
+					if ( leechers > 0 ){
+						map.put( "l", new Long( leechers ));
+					}
+					if ( seeds > 0 ){
+						map.put( "z", new Long( seeds ));
+					}					
 				}
 			}catch( Throwable e ){		
 			}
