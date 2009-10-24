@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.util.bloom;
 
+import java.util.Map;
+
 import com.aelitis.azureus.core.util.bloom.impl.*;
 
 public class 
@@ -68,5 +70,12 @@ BloomFilterFactory
 		{
 			return( new BloomFilterRotator( basis, number ));
 		}
+	}
+	
+	public static BloomFilter
+	deserialiseFromMap(
+		Map<String,Object>	map )
+	{
+		return( BloomFilterImpl.deserialiseFromMap(map));
 	}
 }

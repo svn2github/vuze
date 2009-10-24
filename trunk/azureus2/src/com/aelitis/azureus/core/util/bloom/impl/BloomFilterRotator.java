@@ -21,6 +21,11 @@
 
 package com.aelitis.azureus.core.util.bloom.impl;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 
 public class 
@@ -48,6 +53,58 @@ BloomFilterRotator
 		
 		current_filter 			= _target;
 		current_filter_index	= 0;
+	}
+	
+	public
+	BloomFilterRotator(
+		Map<String,Object>		x )
+	{
+		List<Map<String,Object>>	list = (List<Map<String,Object>>)x.get( "list" );
+		
+		filters = new BloomFilter[ list.size() ];
+		
+		for (int i=0;i<filters.length;i++){
+			
+			filters[i] = BloomFilterImpl.deserialiseFromMap( list.get(i));
+		}
+		
+		current_filter_index = ((Long)x.get( "index" )).intValue();
+		
+		current_filter = filters[ current_filter_index ];
+	}
+	
+	public Map<String, Object> 
+	serialiseToMap() 
+	{
+		Map<String, Object>  m = new HashMap<String, Object>();
+		
+		serialiseToMap( m );
+		
+		return( m );
+	}
+	
+	protected void
+	serialiseToMap(
+		Map<String,Object>		x )
+	{
+		String	cla = this.getClass().getName();
+		
+		if ( cla.startsWith( BloomFilterImpl.MY_PACKAGE )){
+			
+			cla = cla.substring( BloomFilterImpl.MY_PACKAGE.length());
+		}
+		
+		x.put( "_impl", cla );
+		
+		List<Map<String,Object>>	list = new ArrayList<Map<String,Object>>();
+		
+		for ( BloomFilter filter: filters ){
+			
+			list.add( filter.serialiseToMap());
+		}
+		
+		x.put( "list", list );
+		x.put( "index", new Long( current_filter_index ));
 	}
 	
 	public int

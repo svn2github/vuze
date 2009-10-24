@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.util.bloom;
 
+import java.util.Map;
+
 public interface 
 BloomFilter 
 {
@@ -59,6 +61,9 @@ BloomFilter
 	
 	public BloomFilter
 	getReplica();
+	
+	public Map<String,Object>
+	serialiseToMap();
 	
 	public String
 	getString();

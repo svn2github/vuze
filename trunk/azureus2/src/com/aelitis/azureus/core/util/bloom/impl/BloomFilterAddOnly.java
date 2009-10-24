@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.util.bloom.impl;
 
+import java.util.Map;
+
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 
 public class 
@@ -37,6 +39,24 @@ BloomFilterAddOnly
 		super( _max_entries );
 			
 		map	= new byte[(getMaxEntries()+7)/8];
+	}
+	
+	public
+	BloomFilterAddOnly(
+		Map<String,Object>		x )
+	{
+		super( x );
+		
+		map = (byte[])x.get( "map" );
+	}
+	
+	protected void
+	serialiseToMap(
+		Map<String,Object>		x )
+	{
+		super.serialiseToMap( x );
+		
+		x.put( "map", map.clone());
 	}
 	
 	public BloomFilter 
