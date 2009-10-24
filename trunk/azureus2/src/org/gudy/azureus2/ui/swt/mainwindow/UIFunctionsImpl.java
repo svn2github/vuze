@@ -349,6 +349,14 @@ public class UIFunctionsImpl
 		});
 	}
 
+	private void showPeersStatsView() {
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				mainwindow.showPeersStatsView();
+			}
+		});
+	}
+
 	private void showMultiOptionsView(final DownloadManager[] dms) {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
@@ -459,6 +467,10 @@ public class UIFunctionsImpl
 
 			case VIEW_ALLPEERS:
 				showAllPeersView();
+				break;
+
+			case VIEW_PEERS_STATS:
+				showPeersStatsView();
 				break;
 
 			case VIEW_CONFIG:

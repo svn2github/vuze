@@ -118,6 +118,8 @@ public interface IMenuConstants
 
 	public static final String MENU_ID_ALL_PEERS = "MainWindow.menu.view.allpeers";
 
+	public static final String MENU_ID_PEERS_STATS = "MainWindow.menu.view.peersstats";
+
 	public static final String MENU_ID_MY_TRACKERS = "MainWindow.menu.view.mytracker";
 
 	public static final String MENU_ID_MY_SHARES = "MainWindow.menu.view.myshares";

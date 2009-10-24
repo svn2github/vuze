@@ -24,12 +24,22 @@ public abstract class TableViewTab extends AbstractIView
 
 	public final void initialize(Composite composite) {
 		tv = initYourTableView();
-		tv.initialize(composite);
+		Composite parent = initComposite(composite);
+		tv.initialize(parent);
+		
+		tableViewInitComplete();
 		if (parentDataSource != null) {
 			tv.setParentDataSource(parentDataSource);
 		}
 	}
 	
+	public void tableViewInitComplete() {
+	}
+
+	public Composite initComposite(Composite composite) {
+		return composite;
+	}
+
 	public abstract TableViewSWT initYourTableView();
 
 	public final void dataSourceChanged(Object newDataSource) {

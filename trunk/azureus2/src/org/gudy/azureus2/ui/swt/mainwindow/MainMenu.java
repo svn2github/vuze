@@ -222,6 +222,7 @@ public class MainMenu
 			indent(MenuFactory.addViewToolbarMenuItem(viewMenu));
 			indent(MenuFactory.addTransferBarToMenu(viewMenu));
 			indent(MenuFactory.addAllPeersMenuItem(viewMenu));
+			indent(MenuFactory.addPeersStatsMenuItem(viewMenu));
 			if (Constants.isCVSVersion()) {
 				indent(MenuFactory.addDetailedListMenuItem(viewMenu));
 			}

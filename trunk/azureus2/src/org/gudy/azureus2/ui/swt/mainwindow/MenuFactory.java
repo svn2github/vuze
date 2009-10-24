@@ -567,6 +567,17 @@ public class MenuFactory
 		});
 	}
 
+	public static MenuItem addPeersStatsMenuItem(Menu menu) {
+		return addMenuItem(menu, MENU_ID_PEERS_STATS, new Listener() {
+			public void handleEvent(Event e) {
+				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+				if (uiFunctions != null) {
+					uiFunctions.openView(UIFunctions.VIEW_PEERS_STATS, null);
+				}
+			}
+		});
+	}
+
 	public static MenuItem addMyTrackerMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_MY_TRACKERS, new Listener() {
 			public void handleEvent(Event e) {

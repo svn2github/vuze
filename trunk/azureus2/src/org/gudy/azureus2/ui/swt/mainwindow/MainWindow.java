@@ -68,6 +68,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.views.peersstats.PeersStatsView;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -171,6 +172,8 @@ public class MainWindow
 	private boolean bSettingVisibility = false;
 
 	private Tab mainTabSet;
+
+	private Item viewPeersStats;
 
 	public MainWindow(AzureusCore _azureus_core, Initializer _initializer,
 			ArrayList events) {
@@ -812,6 +815,23 @@ public class MainWindow
 					});
 		} else {
 			mainTabSet.setFocus(all_peers);
+		}
+		refreshIconBar();
+		refreshTorrentMenu();
+	}
+
+	protected void showPeersStatsView() {
+		if (viewPeersStats == null) {
+			PeersStatsView view = new PeersStatsView();
+			viewPeersStats = mainTabSet.createTabItem(view, true);
+			mainTabSet.getView(viewPeersStats).getComposite().addDisposeListener(
+					new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							viewPeersStats = null;
+						}
+					});
+		} else {
+			mainTabSet.setFocus(viewPeersStats);
 		}
 		refreshIconBar();
 		refreshTorrentMenu();
