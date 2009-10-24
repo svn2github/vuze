@@ -5,14 +5,13 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 public class ColumnPS_Name
-implements TableCellRefreshListener
+	implements TableCellRefreshListener
 {
 
 	public static final String COLUMN_ID = "name";
 
 	public ColumnPS_Name(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_INVISIBLE,
-				215);
+		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 215);
 		column.addListeners(this);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 	}

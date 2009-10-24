@@ -12,8 +12,7 @@ public class ColumnPS_Discarded
 	public static final String COLUMN_ID = "discarded";
 
 	public ColumnPS_Discarded(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_INVISIBLE,
-				150);
+		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 150);
 		column.addListeners(this);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 	}
