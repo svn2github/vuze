@@ -233,14 +233,15 @@ public class PeersStatsView
 
 	protected void addPeer(PEPeer peer) {
 		synchronized (mapData) {
-  		PeersStatsDataSource stat = mapData.get(getID(peer));
+			String id = getID(peer);
+  		PeersStatsDataSource stat = mapData.get(id);
   		boolean needNew = stat == null;
   		if (needNew) {
   			stat = new PeersStatsDataSource();
-  			mapData.put(peer.getClient(), stat);
+  			mapData.put(id, stat);
   		}
 
-  		stat.client = peer.getClient();
+  		stat.client = getID(peer);
   		stat.count++;
   		stat.current++;
   		if (needNew) {
@@ -272,6 +273,6 @@ public class PeersStatsView
 	
 	private String getID(PEPeer peer) {
 		String s = peer.getClientNameFromPeerID();
-		return s;
+		return s.replaceAll(" [0-9.]+", "");
 	}
 }
