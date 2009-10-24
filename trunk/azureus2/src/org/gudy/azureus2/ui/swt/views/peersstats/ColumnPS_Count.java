@@ -15,6 +15,7 @@ public class ColumnPS_Count
 				215);
 		column.addListeners(this);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
+		column.setRefreshInterval(4);
 	}
 
 	public void refresh(TableCell cell) {
