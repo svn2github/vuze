@@ -18,6 +18,11 @@
  
 package org.gudy.azureus2.ui.swt.views.peersstats;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.aelitis.azureus.util.MapUtils;
+
 /**
  * @author TuxPaper
  * @created Oct 24, 2009
@@ -26,4 +31,20 @@ package org.gudy.azureus2.ui.swt.views.peersstats;
 public class PeersStatsOverall
 {
 	long count;
+	
+	public PeersStatsOverall() {
+	}
+
+	public PeersStatsOverall(Map loadMap) {
+		if (loadMap == null) {
+			return;
+		}
+		count = MapUtils.getMapLong(loadMap, "count", 0);
+	}
+
+	public Map<String, Object> toMap() {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("count", Long.valueOf(count));
+		return map;
+	}
 }

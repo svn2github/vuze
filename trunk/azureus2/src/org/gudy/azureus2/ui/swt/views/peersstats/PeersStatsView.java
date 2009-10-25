@@ -1,8 +1,7 @@
 package org.gudy.azureus2.ui.swt.views.peersstats;
 
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.*;
@@ -14,6 +13,8 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.util.FileUtil;
+
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -34,19 +35,20 @@ import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.util.MapUtils;
 
 public class PeersStatsView
 	extends TableViewTab
 	implements TableLifeCycleListener, GlobalManagerListener,
 	DownloadManagerPeerListener
 {
-	protected static AzureusCore core;
+	private AzureusCore core;
 
 	private TableViewSWTImpl<PeersStatsDataSource> tv;
 
 	private boolean columnsAdded;
 
-	private Map<String, PeersStatsDataSource> mapData = new HashMap<String, PeersStatsDataSource>();
+	private Map<String, PeersStatsDataSource> mapData;
 
 	private Composite parent;
 
@@ -57,10 +59,7 @@ public class PeersStatsView
 	public PeersStatsView() {
 		super("PeersStats");
 
-		bloomFilter = BloomFilterFactory.createRotating(
-				BloomFilterFactory.createAddOnly(100000), 2);
-
-		overall = new PeersStatsOverall();
+		initAndLoad();
 
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
@@ -192,19 +191,74 @@ public class PeersStatsView
 		for (Object object : downloadManagers) {
 			((DownloadManager) object).removePeerListener(this);
 		}
+		save();
+	}
+
+	private void initAndLoad() {
+		mapData = new HashMap<String, PeersStatsDataSource>();
+
+		synchronized (mapData) {
+			Map map = FileUtil.readResilientConfigFile("peersstats.dat");
+
+			Map mapBloom = MapUtils.getMapMap(map, "bloomfilter", null);
+			if (mapBloom != null) {
+				bloomFilter = BloomFilterFactory.deserialiseFromMap(mapBloom);
+			}
+			if (bloomFilter == null) {
+				bloomFilter = BloomFilterFactory.createRotating(
+						BloomFilterFactory.createAddOnly(100000), 2);
+			}
+
+			overall = new PeersStatsOverall();
+
+			List listSavedData = MapUtils.getMapList(map, "data", null);
+			if (listSavedData != null) {
+				for (Object val : listSavedData) {
+					try {
+						Map mapVal = (Map) val;
+						if (mapVal != null) {
+							PeersStatsDataSource ds = new PeersStatsDataSource(mapVal);
+							ds.overall = overall;
+
+							if (!mapData.containsKey(ds.client)) {
+								mapData.put(ds.client, ds);
+								overall.count += ds.count; 
+							}
+						}
+							
+					} catch (Exception e) {
+						// ignore
+					}
+				}
+			}
+		}
+	}
+
+	private void save() {
+		Map<String, Object> map = new HashMap<String, Object>();
+		synchronized (mapData) {
+			map.put("data", new ArrayList(mapData.values()));
+			map.put("bloomfilter", bloomFilter.serialiseToMap());
+		}
+		FileUtil.writeResilientConfigFile("peersstats.dat", map);
 	}
 
 	public void tableViewInitialized() {
+		synchronized (mapData) {
+			if (mapData.values().size() > 0) {
+				tv.addDataSources(mapData.values().toArray(new PeersStatsDataSource[0]));
+			}
+		}
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 
 			public void azureusCoreRunning(AzureusCore core) {
-				PeersStatsView.core = core;
 				register(core);
 			}
 		});
 	}
 
 	protected void register(AzureusCore core) {
+		this.core = core;
 		core.getGlobalManager().addListener(this);
 	}
 
@@ -300,7 +354,7 @@ public class PeersStatsView
 				stat.bytesReceived += peer.getStats().getTotalDataBytesReceived();
 				stat.bytesSent += peer.getStats().getTotalDataBytesSent();
 				stat.bytesDiscarded += peer.getStats().getTotalBytesDiscarded();
-				
+
 				TableRowCore row = tv.getRow(stat);
 				if (row != null) {
 					row.invalidate();
@@ -311,6 +365,6 @@ public class PeersStatsView
 
 	private String getID(PEPeer peer) {
 		String s = peer.getClient();
-		return s.replaceAll(" [0-9.]+", "");
+		return s.replaceAll(" v?[0-9.]+", "");
 	}
 }
