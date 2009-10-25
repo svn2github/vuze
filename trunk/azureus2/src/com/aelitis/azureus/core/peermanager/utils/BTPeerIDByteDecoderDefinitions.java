@@ -287,6 +287,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("SB", "SwiftBit");
 		addAzStyle("SD", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)"); // Apparently, the English name of the client is "Thunderbolt".
 		addAzStyle("SN", "ShareNET");
+		addAzStyle("SP", "BitSpirit"); // >= 3.6
 		addAzStyle("SS", "SwarmScope");
 		addAzStyle("ST", "SymTorrent", "2.34");
 		addAzStyle("st", "SharkTorrent");
