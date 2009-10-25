@@ -87,6 +87,10 @@ BEncoder
     	throws IOException
 	{
     	
+        if (object instanceof BEncodableObject) {
+            object = ((BEncodableObject)object).toBencodeObject();
+        }
+
         if ( object instanceof String || object instanceof Float){
         	
             String tempString = (object instanceof String) ? (String)object : String.valueOf((Float)object);
@@ -478,7 +482,7 @@ BEncoder
     }
     
     public static boolean isEncodable(Object toCheck) {
-		if (toCheck instanceof Integer || toCheck instanceof Long || toCheck instanceof Boolean || toCheck instanceof Float || toCheck instanceof byte[] || toCheck instanceof String)
+		if (toCheck instanceof Integer || toCheck instanceof Long || toCheck instanceof Boolean || toCheck instanceof Float || toCheck instanceof byte[] || toCheck instanceof String || toCheck instanceof BEncodableObject)
 			return true;
 		if (toCheck instanceof Map)
 		{
