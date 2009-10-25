@@ -14,6 +14,7 @@ public class ColumnPS_Pct
 		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 150);
 		column.addListeners(this);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
+		column.setRefreshInterval(TableColumn.INTERVAL_LIVE);
 	}
 
 	public void refresh(TableCell cell) {
