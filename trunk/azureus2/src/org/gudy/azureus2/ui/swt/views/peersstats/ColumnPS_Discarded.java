@@ -12,15 +12,19 @@ public class ColumnPS_Discarded
 	public static final String COLUMN_ID = "discarded";
 
 	public ColumnPS_Discarded(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 100);
+		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 100);
 		column.addListeners(this);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
-		column.setRefreshInterval(2);
 	}
 
 	public void refresh(TableCell cell) {
 		PeersStatsDataSource ds = (PeersStatsDataSource) cell.getDataSource();
-		cell.setSortValue(ds.bytesDiscarded);
-		cell.setText(DisplayFormatters.formatByteCountToKiBEtc(ds.bytesDiscarded));
+		if (ds == null) {
+			return;
+		}
+		long val = ds.bytesDiscarded;
+		if (cell.setSortValue(val) || !cell.isValid()) {
+			cell.setText(DisplayFormatters.formatByteCountToKiBEtc(val));
+		}
 	}
 }

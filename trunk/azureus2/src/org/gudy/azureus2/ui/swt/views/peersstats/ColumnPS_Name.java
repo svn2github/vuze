@@ -18,6 +18,9 @@ public class ColumnPS_Name
 
 	public void refresh(TableCell cell) {
 		PeersStatsDataSource ds = (PeersStatsDataSource) cell.getDataSource();
+		if (ds == null) {
+			return;
+		}
 		cell.setText(ds.client);
 	}
 

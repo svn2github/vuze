@@ -29,42 +29,54 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 
 public class PeersStatsView
 	extends TableViewTab
-	implements TableLifeCycleListener, GlobalManagerListener, DownloadManagerPeerListener
+	implements TableLifeCycleListener, GlobalManagerListener,
+	DownloadManagerPeerListener
 {
 	protected static AzureusCore core;
 
 	private TableViewSWTImpl<PeersStatsDataSource> tv;
 
 	private boolean columnsAdded;
-	
+
 	private Map<String, PeersStatsDataSource> mapData = new HashMap<String, PeersStatsDataSource>();
 
 	private Composite parent;
 
+	private BloomFilter bloomFilter;
+
+	private PeersStatsOverall overall;
+
 	public PeersStatsView() {
 		super("PeersStats");
+
+		bloomFilter = BloomFilterFactory.createRotating(
+				BloomFilterFactory.createAddOnly(100000), 2);
+
+		overall = new PeersStatsOverall();
+
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
 				initColumns(core);
 			}
 		});
-
 	}
 
 	public Composite initComposite(Composite composite) {
 		parent = new Composite(composite, SWT.BORDER);
 		parent.setLayout(new FormLayout());
 		parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		
+
 		return parent;
 	}
-	
+
 	public void tableViewInitComplete() {
 		Composite cTV = (Composite) parent.getChildren()[0];
 		Composite cBottom = new Composite(parent, SWT.None);
@@ -76,7 +88,7 @@ public class PeersStatsView
 		fd.top = null;
 		cBottom.setLayoutData(fd);
 		cBottom.setLayout(new FormLayout());
-		
+
 		Button btnCopy = new Button(cBottom, SWT.PUSH);
 		btnCopy.setLayoutData(new FormData());
 		btnCopy.setText("Copy");
@@ -107,9 +119,8 @@ public class PeersStatsView
 	}
 
 	public TableViewSWT initYourTableView() {
-		tv = new TableViewSWTImpl<PeersStatsDataSource>(
-				PeersStatsDataSource.class,
-				TableManager.TABLE_TORRENT_FILES, getPropertiesPrefix(), new TableColumnCore[0],
+		tv = new TableViewSWTImpl<PeersStatsDataSource>(PeersStatsDataSource.class,
+				"PeersStats", getPropertiesPrefix(), new TableColumnCore[0],
 				ColumnPS_Count.COLUMN_ID, SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		/*
 				tv.addTableDataSourceChangedListener(this, true);
@@ -167,19 +178,25 @@ public class PeersStatsView
 						new ColumnPS_Sent(column);
 					}
 				});
+		tableManager.registerColumn(PeersStatsDataSource.class,
+				ColumnPS_Pct.COLUMN_ID, new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnPS_Pct(column);
+					}
+				});
 	}
 
 	public void tableViewDestroyed() {
 		core.getGlobalManager().removeListener(this);
 		List downloadManagers = core.getGlobalManager().getDownloadManagers();
 		for (Object object : downloadManagers) {
-			((DownloadManager)object).removePeerListener(this);
+			((DownloadManager) object).removePeerListener(this);
 		}
 	}
 
 	public void tableViewInitialized() {
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-			
+
 			public void azureusCoreRunning(AzureusCore core) {
 				PeersStatsView.core = core;
 				register(core);
@@ -197,11 +214,11 @@ public class PeersStatsView
 	public void destroyed() {
 	}
 
-	public void	downloadManagerAdded(DownloadManager dm) {
+	public void downloadManagerAdded(DownloadManager dm) {
 		dm.addPeerListener(this, true);
 	}
 
-	public void	downloadManagerRemoved(DownloadManager dm) {
+	public void downloadManagerRemoved(DownloadManager dm) {
 		dm.removePeerListener(this);
 	}
 
@@ -211,21 +228,22 @@ public class PeersStatsView
 
 	public void peerAdded(PEPeer peer) {
 		peer.addListener(new PEPeerListener() {
-			
+
 			public void stateChanged(PEPeer peer, int newState) {
 				if (newState == PEPeer.TRANSFERING) {
 					addPeer(peer);
-				} else if (newState == PEPeer.CLOSING || newState == PEPeer.DISCONNECTED) {
+				} else if (newState == PEPeer.CLOSING
+						|| newState == PEPeer.DISCONNECTED) {
 					peer.removeListener(this);
 				}
 			}
-			
+
 			public void sentBadChunk(PEPeer peer, int pieceNum, int totalBadChunks) {
 			}
-			
+
 			public void removeAvailability(PEPeer peer, BitFlags peerHavePieces) {
 			}
-			
+
 			public void addAvailability(PEPeer peer, BitFlags peerHavePieces) {
 			}
 		});
@@ -233,20 +251,35 @@ public class PeersStatsView
 
 	protected void addPeer(PEPeer peer) {
 		synchronized (mapData) {
-			String id = getID(peer);
-  		PeersStatsDataSource stat = mapData.get(id);
-  		boolean needNew = stat == null;
-  		if (needNew) {
-  			stat = new PeersStatsDataSource();
-  			mapData.put(id, stat);
-  		}
+			byte[] peerId = peer.getId();
+			if (bloomFilter.contains(peerId)) {
+				return;
+			}
 
-  		stat.client = getID(peer);
-  		stat.count++;
-  		stat.current++;
-  		if (needNew) {
-  			tv.addDataSource(stat);
-  		}
+			bloomFilter.add(peerId);
+
+			String id = getID(peer);
+			PeersStatsDataSource stat = mapData.get(id);
+			boolean needNew = stat == null;
+			if (needNew) {
+				stat = new PeersStatsDataSource();
+				stat.overall = overall;
+				mapData.put(id, stat);
+			}
+
+			overall.count++;
+
+			stat.client = getID(peer);
+			stat.count++;
+			stat.current++;
+			if (needNew) {
+				tv.addDataSource(stat);
+			} else {
+				TableRowCore row = tv.getRow(stat);
+				if (row != null) {
+					row.invalidate();
+				}
+			}
 		}
 	}
 
@@ -261,16 +294,21 @@ public class PeersStatsView
 
 	public void peerRemoved(PEPeer peer) {
 		synchronized (mapData) {
-  		PeersStatsDataSource stat = mapData.get(getID(peer));
-  		if (stat != null) {
-  			stat.current--;
-  			stat.bytesReceived += peer.getStats().getTotalDataBytesReceived();
-  			stat.bytesSent += peer.getStats().getTotalDataBytesSent();
-  			stat.bytesDiscarded += peer.getStats().getTotalBytesDiscarded();
-  		}
+			PeersStatsDataSource stat = mapData.get(getID(peer));
+			if (stat != null) {
+				stat.current--;
+				stat.bytesReceived += peer.getStats().getTotalDataBytesReceived();
+				stat.bytesSent += peer.getStats().getTotalDataBytesSent();
+				stat.bytesDiscarded += peer.getStats().getTotalBytesDiscarded();
+				
+				TableRowCore row = tv.getRow(stat);
+				if (row != null) {
+					row.invalidate();
+				}
+			}
 		}
 	}
-	
+
 	private String getID(PEPeer peer) {
 		String s = peer.getClientNameFromPeerID();
 		return s.replaceAll(" [0-9.]+", "");

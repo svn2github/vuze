@@ -12,15 +12,19 @@ public class ColumnPS_Received
 	public static final String COLUMN_ID = "received";
 
 	public ColumnPS_Received(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 100);
+		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 100);
 		column.addListeners(this);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
-		column.setRefreshInterval(2);
 	}
 
 	public void refresh(TableCell cell) {
 		PeersStatsDataSource ds = (PeersStatsDataSource) cell.getDataSource();
-		cell.setSortValue(ds.bytesReceived);
-		cell.setText(DisplayFormatters.formatByteCountToKiBEtc(ds.bytesReceived));
+		if (ds == null) {
+			return;
+		}
+		long val = ds.bytesReceived;
+		if (cell.setSortValue(val) || !cell.isValid()) {
+			cell.setText(DisplayFormatters.formatByteCountToKiBEtc(val));
+		}
 	}
 }

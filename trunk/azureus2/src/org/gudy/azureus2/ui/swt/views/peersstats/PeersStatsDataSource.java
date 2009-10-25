@@ -10,4 +10,5 @@ public class PeersStatsDataSource
 	public long bytesDiscarded;
 	public long bytesSent;
 
+	public PeersStatsOverall overall;
 }
