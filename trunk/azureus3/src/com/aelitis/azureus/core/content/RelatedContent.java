@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.content;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.plugins.download.Download;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+
 public abstract class 
 RelatedContent 
 {
@@ -31,6 +33,9 @@ RelatedContent
 	final private byte[]		hash;
 	final private String		tracker;
 	final private long			size;
+	final private int			date;
+	final private int			seeds_leechers;
+	final private byte			content_network;
 	
 	private byte[]		related_to_hash;
 
@@ -40,13 +45,19 @@ RelatedContent
 		String		_title,
 		byte[]		_hash,
 		String		_tracker,
-		long		_size )
+		long		_size,
+		int			_date,
+		int			_seeds_leechers,
+		byte		_cnet )
 	{
 		related_to_hash		= _related_to_hash;
 		title				= _title;
 		hash				= _hash;
 		tracker				= _tracker;
 		size				= _size;
+		date				= _date;
+		seeds_leechers		= _seeds_leechers;
+		content_network		= _cnet;
 	}
 	
 	protected
@@ -54,12 +65,18 @@ RelatedContent
 		String		_title,
 		byte[]		_hash,
 		String		_tracker,
-		long		_size )
+		long		_size,
+		int			_date,
+		int			_seeds_leechers,
+		byte		_cnet )
 	{
-		title		= _title;
-		hash		= _hash;
-		tracker		= _tracker;
-		size		= _size;
+		title				= _title;
+		hash				= _hash;
+		tracker				= _tracker;
+		size				= _size;
+		date				= _date;
+		seeds_leechers		= _seeds_leechers;
+		content_network		= _cnet;
 	}
 	
 	protected void
@@ -116,6 +133,40 @@ RelatedContent
 	getSize()
 	{
 		return( size );
+	}
+	
+	public long
+	getPublishDate()
+	{
+		return( date*60*60*1000L );
+	}
+	
+	public int
+	getLeechers()
+	{
+		if ( seeds_leechers == -1 ){
+			
+			return( -1 );
+		}
+		
+		return( seeds_leechers&0xffff );
+	}
+	
+	public int
+	getSeeds()
+	{
+		if ( seeds_leechers == -1 ){
+			
+			return( -1 );
+		}
+		
+		return( (seeds_leechers>>16) & 0xffff );
+	}
+	
+	public long
+	getContentNetwork()
+	{
+		return( content_network==0xff?ContentNetwork.CONTENT_NETWORK_UNKNOWN:(content_network&0xff));
 	}
 	
 	public abstract void

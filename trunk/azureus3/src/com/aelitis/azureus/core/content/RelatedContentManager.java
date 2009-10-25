@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -65,7 +66,6 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
-import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.utils.search.SearchException;
@@ -592,7 +592,9 @@ RelatedContentManager
 						}
 					}
 					
-					if ( public_net && !TorrentUtils.isReallyPrivate( PluginCoreUtils.unwrap( torrent ))){
+					TOTorrent to_torrent = PluginCoreUtils.unwrap( torrent );
+					
+					if ( public_net && !TorrentUtils.isReallyPrivate( to_torrent )){
 						
 						DownloadManagerState state = PluginCoreUtils.unwrap( download ).getDownloadState();
 
@@ -603,6 +605,22 @@ RelatedContentManager
 						
 						long rand = global_random_id ^ state.getLongParameter( DownloadManagerState.PARAM_RANDOM_SEED );						
 						
+						long cache = state.getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
+
+						int	seeds_leechers;
+						
+						if ( cache == -1 ){
+							
+							seeds_leechers = -1;
+							
+						}else{
+							
+							int seeds 		= (int)((cache>>32)&0x00ffffff);
+							int leechers 	= (int)(cache&0x00ffffff);
+							
+							seeds_leechers 	= (int)((seeds<<16)|(leechers&0xffff));
+						}
+
 						DownloadInfo info = 
 							new DownloadInfo(
 								hash,
@@ -612,7 +630,10 @@ RelatedContentManager
 								torrent.isPrivate()?StringInterner.intern(torrent.getAnnounceURL().getHost()):null,
 								0,
 								false,
-								torrent.getSize());
+								torrent.getSize(),
+								(int)( to_torrent.getCreationDate()/(60*60)),
+								seeds_leechers,
+								(byte)PlatformTorrentUtils.getContentNetworkID( to_torrent ));
 						
 						new_info.add( info );
 						
@@ -865,26 +886,16 @@ RelatedContentManager
 							map.put( "p", new Long( hours ));
 						}
 					}
-					
-					DownloadScrapeResult scrape = d.getLastScrapeResult();
-					
+										
 					int leechers 	= -1;
 					int seeds 		= -1;
 					
-					if ( scrape != null && scrape.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+					long cache = PluginCoreUtils.unwrap( d ).getDownloadState().getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
 						
-						leechers 	= scrape.getNonSeedCount();
-						seeds 		= scrape.getSeedCount();
-						
-					}else{
-						
-						long cache = PluginCoreUtils.unwrap( d ).getDownloadState().getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
-						
-						if ( cache != -1 ){
+					if ( cache != -1 ){
 							
-							seeds 		= (int)((cache>>32)&0x00ffffff);
-							leechers 	= (int)(cache&0x00ffffff);
-						}
+						seeds 		= (int)((cache>>32)&0x00ffffff);
+						leechers 	= (int)(cache&0x00ffffff);
 					}
 					
 					if ( leechers > 0 ){
@@ -973,7 +984,39 @@ RelatedContentManager
 							
 							long	size = l_size==null?0:l_size.longValue();
 							
-							analyseResponse( new DownloadInfo( from_info.getHash(), hash, title, rand, tracker, 1, false, size ), null );
+							Long	cnet	 	= (Long)map.get( "c" );
+							Long	published 	= (Long)map.get( "p" );
+							Long	leechers 	= (Long)map.get( "l" );
+							Long	seeds	 	= (Long)map.get( "z" );
+							
+							// System.out.println( "p=" + published + ", l=" + leechers + ", s=" + seeds );
+							
+							int	seeds_leechers;
+							
+							if ( leechers == null && seeds == null ){
+								
+								seeds_leechers = -1;
+								
+							}else if ( leechers == null ){
+								
+								seeds_leechers = seeds.intValue()<<16;
+								
+							}else if ( seeds == null ){
+								
+								seeds_leechers = leechers.intValue()&0xffff;
+								
+							}else{
+								
+								seeds_leechers = (seeds.intValue()<<16)|(leechers.intValue()&0xffff);
+							}
+								
+							analyseResponse( 
+								new DownloadInfo( 
+										from_info.getHash(), hash, title, rand, tracker, 1, false, size, 
+										published==null?0:published.intValue(),
+										seeds_leechers,
+										(byte)(cnet==null?ContentNetwork.CONTENT_NETWORK_UNKNOWN:cnet.byteValue())), 
+								null );
 							
 						}catch( Throwable e ){							
 						}
@@ -1255,10 +1298,36 @@ RelatedContentManager
 								
 								long	size = l_size==null?0:l_size.longValue();
 
+								Long	cnet	 	= (Long)map.get( "c" );
+								Long	published 	= (Long)map.get( "p" );
+								Long	leechers 	= (Long)map.get( "l" );
+								Long	seeds	 	= (Long)map.get( "z" );
+
+								int	seeds_leechers;
+								
+								if ( leechers == null && seeds == null ){
+									
+									seeds_leechers = -1;
+									
+								}else if ( leechers == null ){
+									
+									seeds_leechers = seeds.intValue()<<16;
+									
+								}else if ( seeds == null ){
+									
+									seeds_leechers = leechers.intValue()&0xffff;
+									
+								}else{
+									
+									seeds_leechers = (seeds.intValue()<<16)|(leechers.intValue()&0xffff);
+								}
 								analyseResponse( 
 									new DownloadInfo( 
-										from_hash, hash, title, rand, tracker, level+1, explicit, size ),
-										listener==null?null:manager_listener );
+										from_hash, hash, title, rand, tracker, level+1, explicit, size,
+										published==null?0:published.intValue(),
+										seeds_leechers,
+										(byte)(cnet==null?ContentNetwork.CONTENT_NETWORK_UNKNOWN:cnet.byteValue())),
+									listener==null?null:manager_listener );
 								
 							}catch( Throwable e ){							
 							}
@@ -2201,9 +2270,27 @@ RelatedContentManager
 											
 											return( new Long( c.getRank()));
 											
-										}else if ( property_name == SearchResult.PR_PUB_DATE ){
+										}else if ( property_name == SearchResult.PR_SEED_COUNT ){
 											
-											return( new Date( c.getLastSeenSecs()*1000L ));
+											return( new Long( c.getSeeds()));
+											
+										}else if ( property_name == SearchResult.PR_LEECHER_COUNT ){
+											
+											return( new Long( c.getLeechers()));
+											
+										}else if ( property_name == SearchResult.PR_SUPER_SEED_COUNT ){
+											
+											if ( c.getContentNetwork() != ContentNetwork.CONTENT_NETWORK_UNKNOWN ){
+												
+												return( new Long( 1 ));
+												
+											}else{
+												
+												return( new Long( 0 ));
+											}
+										}else if ( property_name == SearchResult.PR_PUB_DATE ){
+																						
+											return( new Date( c.getPublishDate()));
 											
 										}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
 													property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
@@ -2458,9 +2545,31 @@ RelatedContentManager
 									
 									return( ImportExportUtils.importLong( map, "r" ));
 									
+								}else if ( property_name == SearchResult.PR_SUPER_SEED_COUNT ){
+									
+									long cnet = ImportExportUtils.importLong( map, "c", ContentNetwork.CONTENT_NETWORK_UNKNOWN );
+									
+									if ( cnet == ContentNetwork.CONTENT_NETWORK_UNKNOWN ){
+										
+										return( 0L );
+										
+									}else{
+										
+										return( 1L );
+									}
+								}else if ( property_name == SearchResult.PR_SEED_COUNT ){
+									
+									return( ImportExportUtils.importLong( map, "z" ));
+									
+								}else if ( property_name == SearchResult.PR_LEECHER_COUNT ){
+									
+									return( ImportExportUtils.importLong( map, "l" ));
+									
 								}else if ( property_name == SearchResult.PR_PUB_DATE ){
 									
-									return( new Date( ImportExportUtils.importLong( map, "d" )*1000L ));
+									long date = ImportExportUtils.importLong( map, "p", 0 )*60*60*1000L;
+									
+									return( new Date( date ));
 									
 								}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
 											property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
@@ -2528,6 +2637,10 @@ RelatedContentManager
 					ImportExportUtils.exportLong( map, "s", c.getSize());
 					ImportExportUtils.exportLong( map, "r", c.getRank());
 					ImportExportUtils.exportLong( map, "d", c.getLastSeenSecs());
+					ImportExportUtils.exportLong( map, "p", c.getPublishDate()/(60*60*1000));
+					ImportExportUtils.exportLong( map, "l", c.getLeechers());
+					ImportExportUtils.exportLong( map, "z", c.getSeeds());
+					ImportExportUtils.exportLong( map, "c", c.getContentNetwork());
 					
 					byte[] hash = c.getHash();
 					
@@ -3308,6 +3421,10 @@ RelatedContentManager
 			ImportExportUtils.exportString( info_map, "t", info.getTracker());
 			ImportExportUtils.exportLong( info_map, "z", info.getSize());
 			
+			ImportExportUtils.exportInt( info_map, "p", (int)( info.getPublishDate()/(60*60*1000)));
+			ImportExportUtils.exportInt( info_map, "q", (info.getSeeds()<<16)|(info.getLeechers()&0xffff));
+			ImportExportUtils.exportInt( info_map, "c", (int)info.getContentNetwork());
+
 			if ( cc != null ){
 							
 				ImportExportUtils.exportBoolean( info_map, "u", info.isUnread());
@@ -3338,9 +3455,13 @@ RelatedContentManager
 			String	tracker	= ImportExportUtils.importString( info_map, "t" );
 			long	size	= ImportExportUtils.importLong( info_map, "z" );
 			
+			int		date 			=  ImportExportUtils.importInt( info_map, "p", 0 );
+			int		seeds_leechers 	=  ImportExportUtils.importInt( info_map, "q", -1 );
+			byte	cnet 			=  (byte)ImportExportUtils.importInt( info_map, "c", (int)ContentNetwork.CONTENT_NETWORK_UNKNOWN );
+			
 			if ( cc == null ){
 			
-				return( new DownloadInfo( hash, hash, title, rand, tracker, 0, false, size ));
+				return( new DownloadInfo( hash, hash, title, rand, tracker, 0, false, size, date, seeds_leechers, cnet ));
 				
 			}else{
 				
@@ -3352,7 +3473,7 @@ RelatedContentManager
 				
 				int	level = ImportExportUtils.importInt( info_map, "e" );
 				
-				return( new DownloadInfo( hash, title, rand, tracker, unread, rand_list, last_seen, level, size, cc ));
+				return( new DownloadInfo( hash, title, rand, tracker, unread, rand_list, last_seen, level, size, date, seeds_leechers, cnet, cc ));
 			}
 		}catch( Throwable e ){
 			
@@ -3387,9 +3508,12 @@ RelatedContentManager
 			String		_tracker,
 			int			_level,
 			boolean		_explicit,
-			long		_size )
+			long		_size,
+			int			_date,
+			int			_seeds_leechers,
+			byte		_cnet )
 		{
-			super( _related_to, _title, _hash, _tracker, _size );
+			super( _related_to, _title, _hash, _tracker, _size, _date, _seeds_leechers, _cnet );
 			
 			rand		= _rand;
 			level		= _level;
@@ -3409,9 +3533,12 @@ RelatedContentManager
 			int				_last_seen,
 			int				_level,
 			long			_size,
+			int				_date,
+			int				_seeds_leechers,
+			byte			_cnet,
 			ContentCache	_cc )
 		{
-			super( _title, _hash, _tracker, _size );
+			super( _title, _hash, _tracker, _size, _date, _seeds_leechers, _cnet );
 			
 			rand		= _rand;
 			unread		= _unread;
