@@ -274,6 +274,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("MT", "MoonlightTorrent");
 		addAzStyle("NE", "BT Next Evolution", VER_AZ_THREE_DIGITS);
 		addAzStyle("NX", "Net Transport");
+		addAzStyle("OS", "OneSwarm", VER_AZ_FOUR_DIGITS);
 		addAzStyle("OT", "OmegaTorrent");
 		addAzStyle("PC", PeerClassifier.CACHE_LOGIC, "12.3-4" );
 		addAzStyle("PD", "Pando");
@@ -286,6 +287,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("S~", "Shareaza alpha/beta");
 		addAzStyle("SB", "SwiftBit");
 		addAzStyle("SD", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)"); // Apparently, the English name of the client is "Thunderbolt".
+		addAzStyle("SG", "GS Torrent", VER_AZ_FOUR_DIGITS);
 		addAzStyle("SN", "ShareNET");
 		addAzStyle("SP", "BitSpirit"); // >= 3.6
 		addAzStyle("SS", "SwarmScope");
@@ -304,7 +306,8 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("VG", "\u54c7\u560E (Vagaa)", VER_AZ_FOUR_DIGITS);
 		addAzStyle("XL", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)"); // Apparently, the English name of the client is "Thunderbolt".
 		addAzStyle("XT", "XanTorrent");
-		addAzStyle("XX", "XTorrent", "v1234");
+		addAzStyle("XX", "XTorrent", "1.2.34");
+		addAzStyle("XC", "XTorrent", "1.2.34");
 		addAzStyle("ZT", "ZipTorrent"); 
 		
 		addShadowStyle('A', "ABC");
