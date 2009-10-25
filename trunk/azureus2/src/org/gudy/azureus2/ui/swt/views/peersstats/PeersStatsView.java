@@ -310,7 +310,7 @@ public class PeersStatsView
 	}
 
 	private String getID(PEPeer peer) {
-		String s = peer.getClientNameFromPeerID();
+		String s = peer.getClient();
 		return s.replaceAll(" [0-9.]+", "");
 	}
 }
