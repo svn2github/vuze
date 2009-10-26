@@ -169,7 +169,33 @@ public class FileUtil {
     
     return( true );
   }
-  
+
+  public static boolean recursiveDeleteNoCheck(File f) {
+    try {
+      if (f.isDirectory()) {
+        File[] files = f.listFiles();
+        for (int i = 0; i < files.length; i++) {
+          if ( !recursiveDeleteNoCheck(files[i])){
+        	  
+        	  return( false );
+          }
+        }
+        if ( !f.delete()){
+        	
+        	return( false );
+        }
+      }
+      else {
+        if ( !f.delete()){
+        	
+        	return( false );
+        }
+      }
+    } catch (Exception ignore) {/*ignore*/}
+    
+    return( true );
+  }  
+ 
   public static long
   getFileOrDirectorySize(
   	File		file )
