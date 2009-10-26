@@ -165,7 +165,7 @@ public class PlatformTorrentUtils
 		return mapContent;
 	}
 
-	private static String getContentMapString(TOTorrent torrent, String key) {
+	public static String getContentMapString(TOTorrent torrent, String key) {
 		if (torrent == null) {
 			return null;
 		}

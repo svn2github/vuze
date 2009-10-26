@@ -248,6 +248,15 @@ public class VuzeActivitiesManager
 		try {
 			Map<?,?> map = FileUtil.readResilientConfigFile(SAVE_FILENAME);
 
+			// Clear all entries if we aren't on v2
+			if (map != null && map.size() > 0
+					&& MapUtils.getMapLong(map, "version", 0) < 2) {
+				clearLastPullTimes();
+				skipAutoSave = false;
+				saveEventsNow();
+				return;
+			}
+			
 			long cutoffTime = getCutoffTime();
 
 			try {
@@ -267,7 +276,7 @@ public class VuzeActivitiesManager
   						lastVuzeNewsAt));
   			}
 			}
-
+			
 			Object value;
 
 			List newRemovedEntries = (List) MapUtils.getMapObject(map,
@@ -327,6 +336,7 @@ public class VuzeActivitiesManager
 
 			Map mapSave = new HashMap();
 			mapSave.put("LastChecks", lastNewsAt);
+			mapSave.put("version", new Long(2));
 
 			List entriesList = new ArrayList();
 

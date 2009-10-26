@@ -19,12 +19,16 @@
  */
 package com.aelitis.azureus.ui.swt;
 
+import java.io.File;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
@@ -48,6 +52,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.ui.IUIIntializer;
@@ -125,12 +130,74 @@ public class Initializer
 		} else {
 
 			initializePlatformClientMessageContext();
+			new AEThread2("cleanupOldStuff", true) {
+				public void run() {
+					cleanupOldStuff();
+				}
+			}.start();
 
 			PlatformConfigMessenger.login(ContentNetwork.CONTENT_NETWORK_VUZE, 0);
 			// typically the caller will call run() now 
 		}
 	}
 	
+	private void cleanupOldStuff() {
+		File v3Shares = new File(SystemProperties.getUserPath(), "v3shares");
+		if (v3Shares.isDirectory()) {
+			FileUtil.recursiveDeleteNoCheck(v3Shares);
+		}
+		File dirFriends = new File(SystemProperties.getUserPath(), "friends");
+		if (dirFriends.isDirectory()) {
+			FileUtil.recursiveDeleteNoCheck(dirFriends);
+		}
+		File dirMedia = new File(SystemProperties.getUserPath(), "media");
+		if (dirMedia.isDirectory()) {
+			FileUtil.recursiveDeleteNoCheck(dirMedia);
+		}
+		deleteConfig("v3.Friends.dat");
+		deleteConfig("unsentdata.config");
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(final AzureusCore core) {
+				new AEThread2("cleanupOldStuff", true) {
+					public void run() {
+						GlobalManager gm = core.getGlobalManager();
+						List dms = gm.getDownloadManagers();
+						for (Object o : dms) {
+							DownloadManager dm = (DownloadManager) o;
+							if (dm != null) {
+								String val = PlatformTorrentUtils.getContentMapString(
+										dm.getTorrent(), "Ad ID");
+								if (val != null) {
+									try {
+										gm.removeDownloadManager(dm, true, true);
+									} catch (Exception e) {
+									}
+								}
+							}
+						}
+					}
+				}.start();
+			}
+		});
+	}
+
+	private void deleteConfig(String name) {
+		try {
+  		File file = new File(SystemProperties.getUserPath(), name);
+  		if (file.exists()) {
+  			file.delete();
+  		}
+		} catch (Exception e) {
+		}
+		try {
+  		File file = new File(SystemProperties.getUserPath(), name + ".bak");
+  		if (file.exists()) {
+  			file.delete();
+  		}
+		} catch (Exception e) {
+		}
+	}
+
 	public void runInSWTThread() {
 		COConfigurationManager.setBooleanDefault("ui.startfirst", true);
 		STARTUP_UIFIRST = STARTUP_UIFIRST

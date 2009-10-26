@@ -895,12 +895,6 @@ public class MainWindow
 					COConfigurationManager.getBooleanParameter(configID)
 							&& COConfigurationManager.getIntParameter("User Mode") > 1);
 
-			configID = "Friends.visible";
-			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
-					configID)) {
-				COConfigurationManager.setBooleanDefault(configID, true);
-			}
-
 			setVisible(WINDOW_ELEMENT_TABBAR, true);
 
 			shell.layout(true, true);
