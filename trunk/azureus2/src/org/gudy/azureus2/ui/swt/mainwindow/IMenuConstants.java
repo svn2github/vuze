@@ -186,10 +186,6 @@ public interface IMenuConstants
 	
 	public static final String MENU_ID_COMMUNITY_WIKI = "MainWindow.menu.community.wiki";
 
-	public static final String MENU_ID_COMMUNITY_ADD_FRIENDS = "MainWindow.menu.community.add_friends";
-	
-	public static final String MENU_ID_PUBLISH = "v3.MainWindow.menu.publish";
-	
 	public static final String MENU_ID_HELP_SUPPORT = "MainWindow.menu.help.support";
 	
 	public static final String MENU_ID_DONATE = "MainWindow.menu.help.donate";
