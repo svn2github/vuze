@@ -83,7 +83,28 @@ RSSChannelImpl
 	public String
 	getDescription()
 	{
-		return( node.getChild( is_atom?"summary":"description" ).getValue());
+		String[] fields;
+		
+		if ( is_atom ){
+			
+			fields = new String[]{ "summary", "description" };
+			
+		}else{
+			
+			fields = new String[]{ "description", "summary" };
+		}
+		
+		for ( String field: fields ){
+			
+			SimpleXMLParserDocumentNode x = node.getChild( field );
+			
+			if ( x != null ){
+				
+				return( x.getValue());
+			}
+		}
+		
+		return( null );
 	}
 	
 	public URL
