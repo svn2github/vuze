@@ -53,6 +53,8 @@ public class TableColumnCreatorV3
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map<String, TableColumnCore> mapTCs = tcManager.getTableColumnsAsMap(
 				Download.class, tableID);
+		
+		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
 
 		if (!tcManager.loadTableColumnSettings(Download.class, tableID)
 				|| areNoneVisible(mapTCs)) {
@@ -107,6 +109,8 @@ public class TableColumnCreatorV3
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map<String, TableColumnCore> mapTCs = tcManager.getTableColumnsAsMap(
 				DownloadTypeIncomplete.class, tableID);
+
+		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
 
 		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
 				tableID)
@@ -184,6 +188,8 @@ public class TableColumnCreatorV3
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeComplete.class,
 				tableID);
 
+		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
+
 		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class, tableID)
 				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
@@ -236,6 +242,8 @@ public class TableColumnCreatorV3
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class,
 				tableID);
 
+		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
+
 		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
 				tableID)
 				|| areNoneVisible(mapTCs)) {
@@ -286,6 +294,8 @@ public class TableColumnCreatorV3
 		Map mapTCs = tcManager.getTableColumnsAsMap(VuzeActivitiesEntry.class,
 				tableID);
 
+		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
+
 		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID)
 				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
@@ -316,6 +326,8 @@ public class TableColumnCreatorV3
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map mapTCs = tcManager.getTableColumnsAsMap(VuzeActivitiesEntry.class,
 				tableID);
+
+		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
 
 		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID)
 				|| areNoneVisible(mapTCs)) {
