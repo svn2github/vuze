@@ -164,6 +164,8 @@ RelatedContentManager
 	private AESemaphore initialisation_complete_sem = new AESemaphore( "RCM:init" );
 
 	private static final int TIMER_PERIOD			= 30*1000;
+	private static final int CONFIG_SAVE_PERIOD		= 60*1000;
+	private static final int CONFIG_SAVE_TICKS		= CONFIG_SAVE_PERIOD/TIMER_PERIOD;
 	private static final int PUBLISH_CHECK_PERIOD	= 30*1000;
 	private static final int PUBLISH_CHECK_TICKS	= PUBLISH_CHECK_PERIOD/TIMER_PERIOD;
 	private static final int SECONDARY_LOOKUP_PERIOD	= 15*60*1000;
@@ -445,8 +447,6 @@ RelatedContentManager
 																if ( tick_count % PUBLISH_CHECK_TICKS == 0 ){
 																
 																	publish();
-																
-																	saveRelatedContent();
 																}
 																
 																if ( tick_count % SECONDARY_LOOKUP_TICKS == 0 ){
@@ -457,6 +457,11 @@ RelatedContentManager
 																if ( tick_count % REPUBLISH_TICKS == 0 ){
 	
 																	republish();
+																}
+																
+																if ( tick_count % CONFIG_SAVE_TICKS == 0 ){
+																	
+																	saveRelatedContent();
 																}
 															}
 														}
@@ -3612,6 +3617,15 @@ RelatedContentManager
 				if ( info.getLevel() < level ){
 					
 					level = info.getLevel();
+					
+					result = true;
+				}
+				
+				int sl = info.getSeedsLeechers();
+				
+				if ( sl != -1 && sl != getSeedsLeechers()){
+					
+					setSeedsLeechers( sl );
 					
 					result = true;
 				}

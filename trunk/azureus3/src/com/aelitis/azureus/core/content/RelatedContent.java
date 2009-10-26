@@ -34,7 +34,7 @@ RelatedContent
 	final private String		tracker;
 	final private long			size;
 	final private int			date;
-	final private int			seeds_leechers;
+	private int					seeds_leechers;
 	final private byte			content_network;
 	
 	private byte[]		related_to_hash;
@@ -161,6 +161,19 @@ RelatedContent
 		}
 		
 		return( (seeds_leechers>>16) & 0xffff );
+	}
+	
+	protected int
+	getSeedsLeechers()
+	{
+		return( seeds_leechers );
+	}
+	
+	protected void
+	setSeedsLeechers(
+		int		_sl )
+	{
+		seeds_leechers = _sl;
 	}
 	
 	public long
