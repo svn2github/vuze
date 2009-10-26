@@ -51,8 +51,6 @@ import com.aelitis.azureus.util.UrlFilter;
  * 
  * @author dharkness
  * @created Jul 18, 2006
- * 
- * @todo Remove "extends MessageDispatcher" after EMP for 3100 is out
  */
 public class MessageDispatcherSWT
 	implements StatusTextListener, TitleListener, BrowserMessageDispatcher
@@ -123,13 +121,6 @@ public class MessageDispatcherSWT
 		} else {
 			listener.setContext(context);
 			listeners.put(id, listener);
-		}
-	}
-
-	// @see com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher#addListener(com.aelitis.azureus.ui.swt.browser.msg.MessageListener)
-	public void addListener(MessageListener listener) {
-		if (listener instanceof BrowserMessageListener) {
-			addListener((BrowserMessageListener) listener);
 		}
 	}
 

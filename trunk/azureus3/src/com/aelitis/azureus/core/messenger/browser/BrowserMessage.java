@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.messenger.browser.listeners.MessageCompletionListener;
 import com.aelitis.azureus.util.ConstantsVuze;
-import com.aelitis.azureus.util.JSFunctionParametersParser;
 import com.aelitis.azureus.util.JSONUtils;
 
 /**
@@ -58,9 +57,6 @@ public class BrowserMessage
 	/** Parameters were an encoded JSONArray. */
 	public static final int ARRAY_PARAM = 2;
 
-	/** Parameters were an encoded list. */
-	public static final int LIST_PARAM = 3;
-	
 	static {
 		try {
 			MESSAGE_DELIM_ENCODED = URLEncoder.encode(";", "UTF-8");
@@ -155,13 +151,6 @@ public class BrowserMessage
 		return (List) decodedParams;
 	}
 
-	public List getDecodedList() {
-		if (!isParamList()) {
-			throw new IllegalStateException("Decoded parameter is not a List");
-		}
-		return (List) decodedParams;
-	}
-
 	public Map getDecodedMap() {
 		if (!isParamObject()) {
 			throw new IllegalStateException("Decoded parameter is not a Map");
@@ -217,10 +206,6 @@ public class BrowserMessage
 
 	public boolean isParamArray() {
 		return paramType == ARRAY_PARAM;
-	}
-
-	public boolean isParamList() {
-		return paramType == LIST_PARAM;
 	}
 
 	public boolean isParamObject() {
@@ -297,11 +282,6 @@ public class BrowserMessage
 						} else {
 							decodedParams = null;
 						}
-						break;
-
-					default:
-						paramType = LIST_PARAM;
-						decodedParams = JSFunctionParametersParser.parse(params);
 						break;
 				}
 			} catch (Exception e) {
