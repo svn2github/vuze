@@ -19,6 +19,7 @@
 package org.gudy.azureus2.ui.swt.views.columnsetup;
 
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
@@ -102,6 +103,8 @@ public class TableColumnSetupWindow
 	private Combo comboFilter;
 
 	private Group cPickArea;
+
+	protected boolean doReset;
 
 	public TableColumnSetupWindow(final Class forDataSourceType, String _tableID,
 			TableRow sampleRow, TableStructureModificationListener _listener) {
@@ -234,12 +237,9 @@ public class TableColumnSetupWindow
 		Group cResultArea = new Group(shell, SWT.NONE);
 		Messages.setLanguageText(cResultArea, "ColumnSetup.chosencolumns");
 		cResultArea.setLayout(new FormLayout());
-		fd = new FormData();
-		fd.top = new FormAttachment(topInfo, 5);
-		fd.right = new FormAttachment(100, -3);
-		fd.bottom = new FormAttachment(btnOk, -5);
-		fd.width = 200;
-		cResultArea.setLayoutData(fd);
+		
+		Composite cResultButtonArea = new Composite(cResultArea, SWT.NONE);
+		cResultButtonArea.setLayout(new FormLayout());
 
 		tvAvail = createTVAvail();
 
@@ -415,7 +415,7 @@ public class TableColumnSetupWindow
 
 		ImageLoader imageLoader = ImageLoader.getInstance();
 
-		Button btnUp = new Button(cResultArea, SWT.PUSH);
+		Button btnUp = new Button(cResultButtonArea, SWT.PUSH);
 		imageLoader.setButtonImage(btnUp, "up");
 		btnUp.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
@@ -426,7 +426,7 @@ public class TableColumnSetupWindow
 			}
 		});
 
-		Button btnDown = new Button(cResultArea, SWT.PUSH);
+		Button btnDown = new Button(cResultButtonArea, SWT.PUSH);
 		imageLoader.setButtonImage(btnDown, "down");
 		btnDown.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
@@ -437,7 +437,7 @@ public class TableColumnSetupWindow
 			}
 		});
 
-		Button btnDel = new Button(cResultArea, SWT.PUSH);
+		Button btnDel = new Button(cResultButtonArea, SWT.PUSH);
 		imageLoader.setButtonImage(btnDel, "delete");
 		btnDel.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
@@ -475,6 +475,39 @@ public class TableColumnSetupWindow
 		}
 		tvChosen.processDataSourceQueue();
 
+		
+		Button btnReset = null;
+		String[] defaultColumnNames = tcm.getDefaultColumnNames(forTableID);
+		if (defaultColumnNames != null) {
+  		btnReset = new Button(cResultButtonArea, SWT.PUSH);
+  		Messages.setLanguageText(btnReset, "Button.reset");
+  		btnReset.addSelectionListener(new SelectionAdapter() {
+  			public void widgetSelected(SelectionEvent e) {
+  				String[] defaultColumnNames = tcm.getDefaultColumnNames(forTableID);
+  				if (defaultColumnNames != null) {
+  					List<TableColumnCore> defaultColumns = new ArrayList<TableColumnCore>();
+  					for (String name : defaultColumnNames) {
+  						TableColumnCore column = tcm.getTableColumnCore(forTableID, name);
+  						if (column != null) {
+  							defaultColumns.add(column);
+  						}
+						}
+  					if (defaultColumns.size() > 0) {
+  						mapNewVisibility.clear();
+  						tvChosen.removeAllTableRows();
+  						columnsChosen = defaultColumns.toArray(new TableColumnCore[0]);
+  						for (int i = 0; i < columnsChosen.length; i++) {
+  							mapNewVisibility.put(columnsChosen[i], Boolean.TRUE);
+								columnsChosen[i].setPositionNoShift(i);
+								tvChosen.addDataSource(columnsChosen[i]);
+  						}
+  						doReset = true;
+  					}
+  				}
+  			}
+  		});
+		}
+		
 		Button btnCancel = new Button(shell, SWT.PUSH);
 		Messages.setLanguageText(btnCancel, "Button.cancel");
 		btnCancel.addSelectionListener(new SelectionAdapter() {
@@ -483,7 +516,7 @@ public class TableColumnSetupWindow
 			}
 		});
 
-		Button btnApply = new Button(shell, SWT.PUSH);
+		Button btnApply = new Button(cResultButtonArea, SWT.PUSH);
 		Messages.setLanguageText(btnApply, "Button.apply");
 		btnApply.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -498,8 +531,21 @@ public class TableColumnSetupWindow
 		//lblChosenHeader.setLayoutData(fd);
 
 		fd = new FormData();
+		fd.top = new FormAttachment(topInfo, 5);
+		fd.right = new FormAttachment(100, -3);
+		fd.bottom = new FormAttachment(btnOk, -5);
+		fd.width = 200;
+		cResultArea.setLayoutData(fd);
+		
+		fd = new FormData();
+		fd.bottom = new FormAttachment(100, 0);
+		fd.left = new FormAttachment(cTableChosen, 0, SWT.CENTER);
+		//fd.right = new FormAttachment(100, 0);
+		cResultButtonArea.setLayoutData(fd);
+
+		fd = new FormData();
 		fd.right = new FormAttachment(btnDown, -5);
-		fd.bottom = new FormAttachment(100, -3);
+		fd.bottom = new FormAttachment(btnApply, -3);
 		btnUp.setLayoutData(fd);
 
 		fd = new FormData();
@@ -519,24 +565,31 @@ public class TableColumnSetupWindow
 		fd.left = new FormAttachment(0, 0);
 		fd.right = new FormAttachment(100, 0);
 		//fd.bottom = new FormAttachment(100, 0);
-		fd.bottom = new FormAttachment(btnUp, -3);
+		fd.bottom = new FormAttachment(cResultButtonArea, -3, SWT.TOP);
 		cTableChosen.setLayoutData(fd);
+		
+		if (btnReset != null) {
+  		fd = new FormData();
+  		fd.right = new FormAttachment(btnApply, -3);
+  		fd.bottom = new FormAttachment(btnApply, 0, SWT.BOTTOM);
+  		btnReset.setLayoutData(fd);
+		}
 
 		fd = new FormData();
-		fd.right = new FormAttachment(100, -8);
+		fd.right = new FormAttachment(100, -5);
 		fd.bottom = new FormAttachment(100, -3);
 		//fd.width = 64;
 		btnApply.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.right = new FormAttachment(btnApply, -3);
-		fd.bottom = new FormAttachment(btnApply, 0, SWT.BOTTOM);
+		fd.right = new FormAttachment(100, -8);
+		fd.bottom = new FormAttachment(100, -3);
 		//fd.width = 65;
 		btnCancel.setLayoutData(fd);
 
 		fd = new FormData();
 		fd.right = new FormAttachment(btnCancel, -3);
-		fd.bottom = new FormAttachment(btnApply, 0, SWT.BOTTOM);
+		fd.bottom = new FormAttachment(btnCancel, 0, SWT.BOTTOM);
 		//fd.width = 64;
 		btnOk.setLayoutData(fd);
 
@@ -606,7 +659,6 @@ public class TableColumnSetupWindow
 			cResultArea,
 			btnOk,
 			btnCancel,
-			btnApply
 		});
 
 		cPickArea.setTabList(new Control[] {
@@ -786,6 +838,9 @@ public class TableColumnSetupWindow
 			TableColumnCore column = columnsChosen[i];
 			if (column != null) {
 				column.setVisible(mapNewVisibility.get(column).booleanValue());
+				if (doReset) {
+					column.reset();
+				}
 			}
 		}
 		TableColumnManager.getInstance().saveTableColumns(forDataSourceType,

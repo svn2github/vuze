@@ -352,4 +352,6 @@ public interface TableColumnCore
 	 * @since 4.0.0.5
 	 */
 	List<TableColumnExtraInfoListener> getColumnExtraInfoListeners();
+
+	void reset();
 }

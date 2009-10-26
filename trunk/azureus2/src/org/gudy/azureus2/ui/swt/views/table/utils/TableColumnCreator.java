@@ -21,24 +21,21 @@
 package org.gudy.azureus2.ui.swt.views.table.utils;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
-import org.gudy.azureus2.ui.swt.views.columnsetup.*;
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.ui.swt.views.columnsetup.ColumnTC_ChosenColumn;
+import org.gudy.azureus2.ui.swt.views.columnsetup.ColumnTC_NameInfo;
+import org.gudy.azureus2.ui.swt.views.columnsetup.ColumnTC_Sample;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
-import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /**
  * @author TuxPaper
@@ -72,6 +69,8 @@ public class TableColumnCreator
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class, tableID);
+
+		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
 
 		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
 				tableID)
@@ -109,6 +108,8 @@ public class TableColumnCreator
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeComplete.class, tableID);
+
+		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
 
 		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class,
 				tableID)

@@ -79,8 +79,13 @@ public class TableColumnManager {
 	private Map mapTablesConfig;
 	private static Comparator orderComparator;
 	
-	private Map<String, TableColumnCreationListener> mapColumnIDsToListener = new LightHashMap();
-	private Map<Class, List> mapDataSourceTypeToColumnIDs = new LightHashMap();
+	private Map<String, TableColumnCreationListener> mapColumnIDsToListener = new LightHashMap<String, TableColumnCreationListener>();
+	private Map<Class, List> mapDataSourceTypeToColumnIDs = new LightHashMap<Class, List>();
+
+	/**
+	 * key = TableID; value = table column ids
+	 */
+	private Map<String, String[]> mapTableDefaultColumns = new LightHashMap<String, String[]>();
 
 	static {
 		orderComparator = new Comparator() {
@@ -225,6 +230,15 @@ public class TableColumnManager {
 		return (TableColumnCore[]) mTypes.values().toArray(
 				new TableColumnCore[mTypes.values().size()]);
 	}
+  
+  public String[] getDefaultColumnNames(String tableID) {
+  	String[] columnNames = mapTableDefaultColumns.get(tableID);
+  	return columnNames;
+  }
+  
+  public void setDefaultColumnNames(String tableID, String[] columnNames) {
+  	mapTableDefaultColumns.put(tableID, columnNames);
+  }
 
   /*
   private Map getAllTableColumnCore(

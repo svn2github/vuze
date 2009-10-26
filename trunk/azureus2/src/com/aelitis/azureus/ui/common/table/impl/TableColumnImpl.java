@@ -74,6 +74,8 @@ public class TableColumnImpl
 
 	private int iWidth;
 
+	private int iDefaultWidth;
+
 	private int iInterval;
 
 	private long lLastSortValueChange;
@@ -216,7 +218,7 @@ public class TableColumnImpl
 
 		this.iAlignment = iAlignment;
 		setPosition(iPosition);
-		this.iWidth = iWidth;
+		this.iWidth = this.iDefaultWidth = iWidth;
 		this.iMinWidth = 16;
 		this.iInterval = iInterval;
 	}
@@ -229,7 +231,7 @@ public class TableColumnImpl
 
 		this.iAlignment = iAlignment;
 		setPosition(iPosition);
-		this.iWidth = iWidth;
+		this.iWidth = this.iDefaultWidth = iWidth;
 		this.iMinWidth = 16;
 	}
 
@@ -279,6 +281,9 @@ public class TableColumnImpl
 		//		}
 
 		iWidth = width;
+		if (iDefaultWidth == 0) {
+			iDefaultWidth = width;
+		}
 
 		if (bColumnAdded && bVisible) {
 			triggerColumnSizeChange();
@@ -1445,4 +1450,9 @@ public class TableColumnImpl
 		this.forPluginDataSourceType = forDataSourceType;
 	}
 
+	public void reset() {
+		if (iDefaultWidth != 0) {
+			setWidth(iDefaultWidth);
+		}
+	}
 }
