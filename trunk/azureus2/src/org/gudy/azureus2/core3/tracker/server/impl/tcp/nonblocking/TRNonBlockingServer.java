@@ -82,6 +82,8 @@ TRNonBlockingServer
 
 	private VirtualServerChannelSelector accept_server;
 	
+	private boolean immediate_close;
+	
 	private volatile boolean	closed;
 	
 	public
@@ -209,6 +211,13 @@ TRNonBlockingServer
 				destroySupport();
 			}
 		}
+	}
+	
+	public void
+	setImmediateClose(
+		boolean	immediate )
+	{
+		immediate_close = immediate;
 	}
 	
 	protected void
@@ -426,7 +435,20 @@ TRNonBlockingServer
         		read_selector.cancel( processor.getSocketChannel() );
         		write_selector.cancel( processor.getSocketChannel() );
         	
-        		connections_to_close.add( processor );
+        		if ( immediate_close ){
+
+        			try{
+        				processor.closed();
+
+        				processor.getSocketChannel().close();
+        				
+        			}catch( Throwable e ){
+        				
+        			}
+        		}else{
+        			
+        			connections_to_close.add( processor );
+        		}
         	}
         	
         }finally{
