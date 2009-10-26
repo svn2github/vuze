@@ -2004,6 +2004,10 @@ BuddyPlugin
 						
 						int	subsystem = l_subsystem==null?SUBSYSTEM_AZ2:l_subsystem.intValue();
 						
+						if (subsystem == SUBSYSTEM_AZ3) {
+							continue;
+						}
+						
 						Long l_ver = (Long)details.get("v");
 						
 						int	ver = l_ver==null?VERSION_INITIAL:l_ver.intValue();
