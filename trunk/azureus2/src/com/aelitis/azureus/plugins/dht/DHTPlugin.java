@@ -1221,7 +1221,12 @@ DHTPlugin
 	getLocalValue(
 		byte[]		key )
 	{
-		return( main_dht.getLocalValue( key ));
+		if ( main_dht != null ){
+			
+			return( main_dht.getLocalValue( key ));
+		}
+		
+		return( cvs_dht.getLocalValue( key ));
 	}
 	
 	public void
@@ -1247,6 +1252,15 @@ DHTPlugin
 			main_listener = original_listener;
 			
 		}else{
+			
+			if ( main_dht == null && main_v6_dht == null ){
+				
+					// just the cvs dht
+				
+				cvs_dht.get( original_key, description, flags, max_values, timeout, exhaustive, high_priority, original_listener );
+
+				return;
+			}
 			
 				// hook into CVS completion to prevent runaway CVS dht operations
 			
