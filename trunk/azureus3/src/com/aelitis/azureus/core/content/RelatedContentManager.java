@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -262,7 +263,7 @@ RelatedContentManager
 							private Map<Integer,Object>	properties = new HashMap<Integer, Object>();
 							
 							{
-								properties.put( PR_NAME, "RCM" );
+								properties.put( PR_NAME, MessageText.getString( "rcm.search.provider" ));
 								
 								try{
 									URL url = 
@@ -284,7 +285,7 @@ RelatedContentManager
 												public byte[]
 												getData()
 												{
-													InputStream is = getClass().getClassLoader().getResourceAsStream( "org/gudy/azureus2/ui/icons/a16.png" );
+													InputStream is = getClass().getClassLoader().getResourceAsStream( "org/gudy/azureus2/ui/icons/rcm.png" );
 													
 													if ( is == null ){
 														
@@ -3755,7 +3756,7 @@ RelatedContentManager
 		public String
 		getString()
 		{
-			return( super.getString() + ", " + rand );
+			return( super.getString() + ", " + rand + ", rl=" + rand_list + ", last_seen=" + last_seen + ", level=" + level );
 		}
 	}
 	

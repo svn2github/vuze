@@ -65,6 +65,7 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.columns.torrent.ColumnAzProduct;
 import com.aelitis.azureus.ui.swt.content.columns.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
@@ -180,6 +181,16 @@ SBC_RCMView
 		
 		tableManager.registerColumn(
 				RelatedContent.class, 
+				ColumnAzProduct.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnAzProduct(column);
+						column.setWidth(42);
+					}
+				});
+		
+		tableManager.registerColumn(
+				RelatedContent.class, 
 				ColumnRC_New.COLUMN_ID,
 					new TableColumnCreationListener() {
 						public void tableColumnCreated(TableColumn column) {
@@ -249,6 +260,34 @@ SBC_RCMView
 							new ColumnRC_Size(column);
 						}
 					});
+		
+		tableManager.registerColumn(
+				RelatedContent.class, 
+				ColumnRC_Created.COLUMN_ID,
+					new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new ColumnRC_Created(column);
+						}
+					});
+		tableManager.registerColumn(
+				RelatedContent.class, 
+				ColumnRC_Seeds.COLUMN_ID,
+					new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new ColumnRC_Seeds(column);
+						}
+					});
+
+		tableManager.registerColumn(
+				RelatedContent.class, 
+				ColumnRC_Peers.COLUMN_ID,
+					new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new ColumnRC_Peers(column);
+						}
+					});
+
+		
 		
 		tableManager.registerColumn(
 				RelatedContent.class, 

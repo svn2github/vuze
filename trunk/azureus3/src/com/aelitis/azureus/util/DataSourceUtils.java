@@ -29,6 +29,7 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.core.content.RelatedContent;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
@@ -274,6 +275,8 @@ public class DataSourceUtils
 					}
 				} catch (Throwable e) {
 				}
+			} else if (ds instanceof RelatedContent) {
+				id = ((RelatedContent)ds).getContentNetwork();
 			} else {
 				Debug.out("Tux: UH OH NO CN for " + ds + "\n" + Debug.getCompressedStackTrace());
 			}

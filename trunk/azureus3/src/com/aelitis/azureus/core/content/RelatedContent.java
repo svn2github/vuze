@@ -166,7 +166,7 @@ RelatedContent
 	public long
 	getContentNetwork()
 	{
-		return( content_network==0xff?ContentNetwork.CONTENT_NETWORK_UNKNOWN:(content_network&0xff));
+		return((content_network&0xff)==0xff?ContentNetwork.CONTENT_NETWORK_UNKNOWN:(content_network&0xff));
 	}
 	
 	public abstract void
@@ -175,6 +175,6 @@ RelatedContent
 	public String
 	getString()
 	{
-		return( "title=" + title + ", hash=" + (hash==null?"null":Base32.encode( hash )) + ", tracker=" + tracker );
+		return( "title=" + title + ", hash=" + (hash==null?"null":Base32.encode( hash )) + ", tracker=" + tracker +", date=" + date + ", sl=" + seeds_leechers + ", cnet=" + content_network );
 	}
 }
