@@ -27,20 +27,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.UISwitcherListener;
 import org.gudy.azureus2.ui.swt.UISwitcherUtil;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.ui.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * The main SWT Thread, the only one that should run any GUI code.
@@ -170,6 +169,15 @@ public class SWTThread {
 						}
 					}
 				});
+			}
+		});
+
+		display.addListener(SWT.Activate, new Listener() {
+			public void handleEvent(Event event) {
+				UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				if (uif != null) {
+					uif.bringToFront(false);
+				}
 			}
 		});
 
