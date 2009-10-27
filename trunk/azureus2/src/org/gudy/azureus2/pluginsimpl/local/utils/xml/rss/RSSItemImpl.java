@@ -28,6 +28,7 @@ import java.util.Date;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSItem;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentAttribute;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 
 /**
@@ -83,13 +84,34 @@ RSSItemImpl
 			try{
 				if ( is_atom ){
 					
-					return( new URL( link_node.getAttribute( "href" ).getValue()));
+					SimpleXMLParserDocumentAttribute attr = link_node.getAttribute( "href" );
+					
+					if ( attr == null ){
+						
+						return( null );
+					}
+					
+					String	value = attr.getValue().trim();
+					
+					if ( value.length() == 0 ){
+						
+						return( null );
+					}
+					
+					return( new URL( value ));
 
 				}else{
 				
-					return( new URL( link_node.getValue()));
+					String	value = link_node.getValue().trim();
+					
+					if ( value.length() == 0 ){
+						
+						return( null );
+					}
+					
+					return( new URL( value ));
 				}
-			}catch( MalformedURLException e ){
+			}catch( Throwable e ){
 			
 				Debug.printStackTrace(e);
 				
