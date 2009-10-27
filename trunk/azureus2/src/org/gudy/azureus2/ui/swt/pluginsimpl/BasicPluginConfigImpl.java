@@ -253,10 +253,19 @@ BasicPluginConfigImpl
 										param.removeListener( this );								
 									}else{
 										
-										String hyperlink = ((HyperlinkParameterImpl)param).getHyperlink();
+										final String hyperlink = ((HyperlinkParameterImpl)param).getHyperlink();
 										
 										if (hyperlink != null) {
-											LinkLabel.updateLinkedLabel(f_label, hyperlink);
+											
+											Utils.execSWTThread(
+												new Runnable()
+												{
+													public void
+													run()
+													{
+														LinkLabel.updateLinkedLabel(f_label, hyperlink);
+													}
+												});
 										}
 									}
 								}
