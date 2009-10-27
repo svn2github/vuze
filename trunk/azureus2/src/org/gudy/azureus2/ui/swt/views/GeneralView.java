@@ -700,13 +700,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
       }
     });
 
-    if( Constants.isOSX ) {
-      Shell shell = genComposite.getShell();
-      Point size = shell.getSize();
-      shell.setSize(size.x-1,size.y-1);
-      shell.setSize(size);
-    }
-    
     genComposite.addDisposeListener(new DisposeListener() {
     	public void widgetDisposed(DisposeEvent e) {
     		menuTracker.dispose();
