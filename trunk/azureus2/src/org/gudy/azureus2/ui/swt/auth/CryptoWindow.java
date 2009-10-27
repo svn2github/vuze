@@ -87,15 +87,7 @@ CryptoWindow
 		try{
 			if ( display.getThread() == Thread.currentThread()){
 				
-				display.syncExec(
-						new Runnable() 
-						{
-							public void
-							run()
-							{
-								dialog[0] = new cryptoDialog( sem, display, handler_type, action_type, last_pw_incorrect, reason );
-							}
-						});
+				dialog[0] = new cryptoDialog( sem, display, handler_type, action_type, last_pw_incorrect, reason );
 				
 				while ( !( display.isDisposed() || sem.isReleasedForever())){
 					
