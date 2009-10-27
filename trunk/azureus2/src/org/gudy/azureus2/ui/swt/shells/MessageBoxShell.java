@@ -246,12 +246,16 @@ public class MessageBoxShell
 		open(false);
 	}
 	
-	private void triggerResultListener(int returnVal) {
-		if (resultListener == null) {
-			return;
-		}
-		int realResult = getButtonVal(returnVal);
-		resultListener.prompterClosed(realResult);
+	private void triggerResultListener(final int returnVal) {
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				if (resultListener == null) {
+					return;
+				}
+				int realResult = getButtonVal(returnVal);
+				resultListener.prompterClosed(realResult);
+			}
+		});
 	}
 	
 	private int getButtonVal(int buttonPos) {
