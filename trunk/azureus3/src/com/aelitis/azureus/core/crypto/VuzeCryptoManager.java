@@ -21,23 +21,9 @@
 
 package com.aelitis.azureus.core.crypto;
 
-import java.util.Iterator;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.Plugin;
-import org.gudy.azureus2.plugins.PluginInterface;
-
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.security.*;
-import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
+
 
 public class 
 VuzeCryptoManager 
@@ -55,18 +41,19 @@ VuzeCryptoManager
 		return( singleton );
 	}
 	
-	private boolean			init_tried;
+	//private boolean			init_tried;
 	
 	private CryptoManager	crypt_man;
-	private CopyOnWriteList	listeners = new CopyOnWriteList();
+	//private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
-	private volatile CryptoManagerPasswordHandler.passwordDetails	session_pw;
+	//private volatile CryptoManagerPasswordHandler.passwordDetails	session_pw;
 	
 	protected
 	VuzeCryptoManager()
 	{
 		crypt_man = CryptoManagerFactory.getSingleton();
 		
+		/*
 		crypt_man.addPasswordHandler(
 			new CryptoManagerPasswordHandler()
 			{
@@ -191,8 +178,10 @@ VuzeCryptoManager
 				});
 			
 		}
+		*/
 	}
 	
+	/*
 	protected void
 	initialise(
 		AzureusCore		core )
@@ -246,13 +235,15 @@ VuzeCryptoManager
 			}
 		}
 	}
-	
+	*/
+		
 	public byte[]
 	getPlatformAZID()
 	{
 		return( crypt_man.getSecureID());
 	}
 
+	/*
 	public String
 	getPublicKey(
 		String		reason )
@@ -273,11 +264,7 @@ VuzeCryptoManager
 	{
 		return crypt_man.getECCHandler().peekPublicKey() != null;
 	}
-	
-		/**
-		 * Remove cached password
-		 */
-	
+		
 	public void
 	clearPassword()
 	{
@@ -285,11 +272,6 @@ VuzeCryptoManager
 	
 		crypt_man.clearPasswords( CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM );
 	}
-	
-		/**
-		 * Explicitly set password instead of waiting for listener trigger
-		 * @param pw
-		 */
 		 
 	public void
 	setPassword(
@@ -342,4 +324,5 @@ VuzeCryptoManager
 	{
 		listeners.remove( listener );
 	}
+	*/
 }
