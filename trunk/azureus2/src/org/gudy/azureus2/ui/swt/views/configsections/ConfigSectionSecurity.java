@@ -322,6 +322,7 @@ ConfigSectionSecurity
 		    
 		    	// manage keys
 		    
+		    /*
 		    gridData = new GridData();
 		    gridData.horizontalSpan = 3;
 
@@ -403,6 +404,7 @@ ConfigSectionSecurity
 	    				}
 		    		}
 		    	});
+		    */
 		    
 	    		// reset keys
 		    
@@ -620,14 +622,14 @@ ConfigSectionSecurity
 			    final CryptoManager crypto_man 	= CryptoManagerFactory.getSingleton();
 				final CryptoHandler ecc_handler = crypto_man.getECCHandler();
 				
-				if ( ecc_handler.getDefaultPasswordHandlerType() == CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM ){
-					
-					error = MessageText.getString( "ConfigView.section.security.nopw_v" );
-
-				}else{
+				//if ( ecc_handler.getDefaultPasswordHandlerType() == CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM ){
+				//	
+				//	error = MessageText.getString( "ConfigView.section.security.nopw_v" );
+				//
+				//}else{
 					
 					error = MessageText.getString( "ConfigView.section.security.nopw" );
-				}
+				//}
 			}
 		}else{
 			

@@ -22,38 +22,27 @@
 
 package com.aelitis.azureus.core.security.impl;
 
-import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
-import java.security.KeyFactory;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.spec.AlgorithmParameterSpec;
-import java.security.spec.KeySpec;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.interfaces.ECPrivateKey;
-import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.bouncycastle.jce.provider.JCEIESCipher;
-import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
-import org.bouncycastle.jce.spec.ECParameterSpec;
-import org.bouncycastle.jce.spec.ECPrivateKeySpec;
-import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.jce.spec.IEKeySpec;
 import org.bouncycastle.jce.spec.IESParameterSpec;
-import org.bouncycastle.math.ec.ECPoint;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -69,6 +58,10 @@ public class
 CryptoHandlerECC
 	implements CryptoHandler
 {	
+	private static final String	DEFAULT_PASSWORD	= "";
+	private static final Long	DEFAULT_TIMEOUT		= Long.MAX_VALUE;
+	
+
 	private static final int	TIMEOUT_DEFAULT_SECS		= 60*60;
 
 	
@@ -89,6 +82,28 @@ CryptoHandlerECC
 		manager	= _manager;
 		
 		CONFIG_PREFIX += _instance_id + ".";
+		
+			// migration away from system managed keys
+		
+		// COConfigurationManager.setParameter( CONFIG_PREFIX + "pwtype", CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM );
+		
+		if ( getCurrentPasswordType() == CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM ){
+			
+			try{
+				createAndStoreKeys(
+					manager.setPassword(
+						CryptoManager.HANDLER_ECC,
+						CryptoManagerPasswordHandler.HANDLER_TYPE_USER,
+						DEFAULT_PASSWORD.toCharArray(),
+						DEFAULT_TIMEOUT ));
+				
+				Debug.outNoStack( "Successfully migrated key management" );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "Failed to migrate key management", e );
+			}
+		}
 	}
 	
 	public int
@@ -651,19 +666,28 @@ CryptoHandlerECC
 	}
 	
 	protected Key[]
+  	createAndStoreKeys(
+  		String		reason )
+  	
+  		throws CryptoManagerException
+  	{	
+		CryptoManagerImpl.passwordDetails password_details = 
+				manager.getPassword( 
+  							CryptoManager.HANDLER_ECC,
+  							CryptoManagerPasswordHandler.ACTION_ENCRYPT,
+  							reason,
+  							null,
+  							getDefaultPasswordHandlerType());
+		
+		return( createAndStoreKeys( password_details ));
+  	}
+	
+	protected Key[]
 	createAndStoreKeys(
-		String		reason )
+		CryptoManagerImpl.passwordDetails	password_details )
 	
 		throws CryptoManagerException
 	{		
-		CryptoManagerImpl.passwordDetails password_details = 
-			manager.getPassword( 
-							CryptoManager.HANDLER_ECC,
-							CryptoManagerPasswordHandler.ACTION_ENCRYPT,
-							reason,
-							null,
-							getDefaultPasswordHandlerType());
-		
 		try{
 			synchronized( this ){
 				
