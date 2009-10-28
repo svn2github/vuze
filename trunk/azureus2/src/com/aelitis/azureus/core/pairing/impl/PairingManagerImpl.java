@@ -36,6 +36,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AEVerifier;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -64,6 +66,7 @@ import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -145,6 +148,8 @@ PairingManagerImpl
 	private TimerEvent		deferred_update_event;
 	private long			last_update_time		= -1;
 	private int				consec_update_fails;
+	
+	private String			last_message;
 	
 	private CopyOnWriteList<PairingManagerListener>	listeners = new CopyOnWriteList<PairingManagerListener>();
 	
@@ -879,6 +884,41 @@ PairingManagerImpl
 				if ( max_retry != null ){
 					
 					max_update_period	= max_retry.intValue()*1000;
+				}
+			}
+			
+			final String message = getString( response, "message" );
+			
+			if ( message != null ){
+				
+				if ( last_message == null || !last_message.equals( message )){
+					
+					last_message = message;
+				
+					try{
+						byte[] message_sig = (byte[])response.get( "message_sig" );
+						
+						AEVerifier.verifyData( message, message_sig );
+						
+						new AEThread2( "PairMsg", true )
+						{
+							public void
+							run()
+							{
+								UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+								
+								if ( ui_manager != null ){
+								
+									ui_manager.showMessageBox(
+											"pairing.server.warning.title",
+											"!" + message + "!",
+											UIManagerEvent.MT_OK );
+								}
+							}
+						}.start();
+						
+					}catch( Throwable e ){
+					}
 				}
 			}
 			
