@@ -73,15 +73,22 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminHTTPProxy;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.pairing.*;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
+import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
+import com.aelitis.net.upnp.UPnPRootDevice;
 
 public class 
 PairingManagerImpl
 	implements PairingManager
 {
+	private static final boolean DEBUG	= false;
+	
 	private static final String	SERVICE_URL;
 	
 	static{
@@ -438,8 +445,10 @@ PairingManagerImpl
 			
 			if ( result == null ){
 				
-				System.out.println( "PS: added " + sid );
-
+				if ( DEBUG ){
+					System.out.println( "PS: added " + sid );
+				}
+				
 				result = new PairedServiceImpl( sid );
 				
 				services.put( sid, result );
@@ -471,7 +480,9 @@ PairingManagerImpl
 			
 			if ( services.remove( sid ) != null ){
 				
-				System.out.println( "PS: removed " + sid );
+				if ( DEBUG ){
+					System.out.println( "PS: removed " + sid );
+				}
 			}
 		}
 		
@@ -572,8 +583,10 @@ PairingManagerImpl
 	protected void
 	updateNeeded()
 	{
-		System.out.println( "PS: updateNeeded" );
-
+		if ( DEBUG ){
+			System.out.println( "PS: updateNeeded" );
+		}
+		
 		synchronized( this ){
 			
 			if ( updates_enabled ){
@@ -736,11 +749,71 @@ PairingManagerImpl
 					}
 				}
 				
+					// grab some UPnP info for diagnostics
+				
+				try{
+				    PluginInterface pi_upnp = azureus_core.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+
+				    if ( pi_upnp != null ){
+				    	
+				        UPnPPlugin upnp = (UPnPPlugin)pi_upnp.getPlugin();
+
+				        if ( upnp.isEnabled()){
+				        	
+				        	List<Map<String,String>>	upnp_list = new ArrayList<Map<String,String>>();
+				        	
+				        	payload.put( "upnp", upnp_list );
+				        	
+				        	UPnPPluginService[] services = upnp.getServices();
+				        	
+				        	Set<UPnPRootDevice> devices = new HashSet<UPnPRootDevice>();
+				        	
+				        	for ( UPnPPluginService service: services ){
+				        		
+				        		UPnPRootDevice root_device = service.getService().getGenericService().getDevice().getRootDevice();
+				        		
+				        		if ( !devices.contains( root_device )){
+				        			
+				        			devices.add( root_device );
+				        	
+					        		Map<String,String>	map = new HashMap<String, String>();
+					        	
+					        		upnp_list.add( map );
+					        		
+					        		map.put( "i", root_device.getInfo());
+				        		}
+				        	}
+				        }
+				    }
+				}catch( Throwable e ){					
+				}
+				
+				try{
+					NetworkAdmin admin = NetworkAdmin.getSingleton();
+					
+					NetworkAdminHTTPProxy http_proxy = admin.getHTTPProxy();
+					
+					if ( http_proxy != null ){
+						
+						payload.put( "hp", http_proxy.getName());
+					}
+					
+					NetworkAdminSocksProxy[] socks_proxies = admin.getSocksProxies();
+					
+					if ( socks_proxies.length > 0 ){
+						
+						payload.put( "sp", socks_proxies[0].getName());
+					}
+				}catch( Throwable e ){	
+				}
+				
 				payload.put( "_enabled", is_enabled?1L:0L );
 			}
 			
-			System.out.println( "PS: doUpdate: " + payload );
-
+			if ( DEBUG ){
+				System.out.println( "PS: doUpdate: " + payload );
+			}
+			
 			sendRequest( "update", payload );
 			
 			synchronized( this ){
@@ -1022,8 +1095,10 @@ PairingManagerImpl
 		{
 			synchronized( this ){
 				
-				System.out.println( "PS: " + sid + ": " + name + " -> " + value );
-	
+				if ( DEBUG ){
+					System.out.println( "PS: " + sid + ": " + name + " -> " + value );
+				}
+				
 				attributes.put( name, value );
 			}
 		}
