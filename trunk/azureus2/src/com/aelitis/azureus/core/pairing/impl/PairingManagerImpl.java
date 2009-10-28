@@ -71,6 +71,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.pairing.*;
+import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -730,7 +731,7 @@ PairingManagerImpl
 					}
 				}
 				
-				payload.put( "enabled", is_enabled?1L:0L );
+				payload.put( "_enabled", is_enabled?1L:0L );
 			}
 			
 			System.out.println( "PS: doUpdate: " + payload );
@@ -832,9 +833,21 @@ PairingManagerImpl
 	{
 		try{
 			Map<String, Object> request = new HashMap<String, Object>();
-			
-			String azid = Base32.encode(CryptoManagerFactory.getSingleton().getSecureID());
 
+			CryptoManager cman = CryptoManagerFactory.getSingleton();
+
+			String azid = Base32.encode( cman.getSecureID());
+
+			payload.put( "_azid", azid );
+
+			try{
+				String pk = Base32.encode( cman.getECCHandler().getPublicKey( "pairing" ));
+
+				payload.put( "_pk", pk );
+				
+			}catch( Throwable e ){	
+			}
+			
 			request.put( "req", payload );
 			
 			String request_str = Base32.encode( BEncoder.encode( request ));
