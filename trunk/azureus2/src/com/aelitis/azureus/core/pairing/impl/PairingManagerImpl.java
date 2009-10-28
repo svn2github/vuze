@@ -44,10 +44,12 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
@@ -69,6 +71,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.pairing.*;
+import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -614,13 +617,15 @@ PairingManagerImpl
 		try{
 			Map<String,Object>	payload = new HashMap<String, Object>();
 						
+			boolean	is_enabled = param_enable.getValue();
+			
 			synchronized( this ){
 				
 				List<Map<String,String>>	list =  new ArrayList<Map<String,String>>();
 				
 				payload.put( "s", list );
 				
-				if ( services.size() > 0 && param_enable.getValue()){
+				if ( services.size() > 0 && is_enabled ){
 					
 					if ( global_update_event == null ){
 						
@@ -724,6 +729,8 @@ PairingManagerImpl
 						payload.put( "e_v4", v6 );
 					}
 				}
+				
+				payload.put( "enabled", is_enabled?1L:0L );
 			}
 			
 			System.out.println( "PS: doUpdate: " + payload );
@@ -735,13 +742,24 @@ PairingManagerImpl
 				consec_update_fails	= 0;
 				
 				must_update_once = false;
+				
+				if ( deferred_update_event == null ){
+										
+					COConfigurationManager.setParameter( "pairing.updateoutstanding", false );
+				}
+
+				if ( global_update_event == null ){
+					
+					setStatus( MessageText.getString( "pairing.status.disabled" ));
+					
+				}else{
+					
+					setStatus( 
+						MessageText.getString( 
+							"pairing.status.registered", 
+							new String[]{ new SimpleDateFormat().format(new Date( SystemTime.getCurrentTime() ))}));
+				}
 			}
-			
-			setStatus( 
-					MessageText.getString( 
-						"pairing.status.registered", 
-						new String[]{ new SimpleDateFormat().format(new Date( SystemTime.getCurrentTime() ))}));
-			
 		}catch( Throwable e ){
 			
 			synchronized( this ){
@@ -815,11 +833,18 @@ PairingManagerImpl
 		try{
 			Map<String, Object> request = new HashMap<String, Object>();
 			
+			String azid = Base32.encode(CryptoManagerFactory.getSingleton().getSecureID());
+
 			request.put( "req", payload );
 			
 			String request_str = Base32.encode( BEncoder.encode( request ));
 			
-			URL target = new URL( SERVICE_URL + "/client/" + command + "?request=" + request_str );
+			String other_params = 
+				"&ver=" + UrlUtils.encode( Constants.AZUREUS_VERSION ) + 
+				"&app=" + UrlUtils.encode( SystemProperties.getApplicationName()) +
+				"&locale=" + UrlUtils.encode( MessageText.getCurrentLocale().toString());
+
+			URL target = new URL( SERVICE_URL + "/client/" + command + "?request=" + request_str + other_params );
 			
 			HttpURLConnection connection = (HttpURLConnection)target.openConnection();
 			
