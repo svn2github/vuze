@@ -3621,11 +3621,28 @@ RelatedContentManager
 					result = true;
 				}
 				
+				long cn =  info.getContentNetwork();
+				
+				if ( 	cn != ContentNetwork.CONTENT_NETWORK_UNKNOWN && 
+						getContentNetwork() == ContentNetwork.CONTENT_NETWORK_UNKNOWN ){
+					
+					setContentNetwork( cn );
+				}
+				
 				int sl = info.getSeedsLeechers();
 				
 				if ( sl != -1 && sl != getSeedsLeechers()){
 					
 					setSeedsLeechers( sl );
+					
+					result = true;
+				}
+				
+				int	d = info.getDateHours();
+				
+				if ( d > 0 && d != getDateHours()){
+					
+					setDateHours( d );
 					
 					result = true;
 				}

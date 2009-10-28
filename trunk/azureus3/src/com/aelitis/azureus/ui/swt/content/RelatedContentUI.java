@@ -439,6 +439,8 @@ RelatedContentUI
 							main_view_info.getTitle(),
 							main_view_info, null, false, index  );
 					
+					main_sb_entry.setImageLeftID( "image.sidebar.rcm" );
+					
 					main_sb_entry.setDatasource(
 						new RelatedContentEnumerator()
 						{

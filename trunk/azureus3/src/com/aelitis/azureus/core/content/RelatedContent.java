@@ -33,9 +33,9 @@ RelatedContent
 	final private byte[]		hash;
 	final private String		tracker;
 	final private long			size;
-	final private int			date;
+	private int					date;
 	private int					seeds_leechers;
-	final private byte			content_network;
+	private byte				content_network;
 	
 	private byte[]		related_to_hash;
 
@@ -141,6 +141,19 @@ RelatedContent
 		return( date*60*60*1000L );
 	}
 	
+	protected int
+	getDateHours()
+	{
+		return( date );
+	}
+	
+	protected void
+	setDateHours(
+		int		_date )
+	{
+		date = _date;
+	}
+	
 	public int
 	getLeechers()
 	{
@@ -180,6 +193,13 @@ RelatedContent
 	getContentNetwork()
 	{
 		return((content_network&0xff)==0xff?ContentNetwork.CONTENT_NETWORK_UNKNOWN:(content_network&0xff));
+	}
+	
+	protected void
+	setContentNetwork(
+		long		cnet )
+	{
+		content_network = (byte)cnet;
 	}
 	
 	public abstract void
