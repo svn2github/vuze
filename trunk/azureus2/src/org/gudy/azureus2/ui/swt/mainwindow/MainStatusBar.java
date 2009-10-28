@@ -590,7 +590,7 @@ public class MainStatusBar
 			Listener feedback_listener = new Listener() {
 				public void handleEvent(Event e) {
 
-					String url = "feedback?" + Utils.getWidgetBGColorURLParam()
+					String url = "feedback.start?" + Utils.getWidgetBGColorURLParam()
 							+ "&fromWeb=false&os.name=" + UrlUtils.encode(Constants.OSName)
 							+ "&os.version="
 							+ UrlUtils.encode(System.getProperty("os.version"))
