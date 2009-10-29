@@ -84,8 +84,11 @@ CryptoHandlerECC
 		CONFIG_PREFIX += _instance_id + ".";
 		
 			// migration away from system managed keys
+				
+		if ( getDefaultPasswordHandlerType() != CryptoManagerPasswordHandler.HANDLER_TYPE_USER ){
 		
-		// COConfigurationManager.setParameter( CONFIG_PREFIX + "pwtype", CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM );
+			COConfigurationManager.setParameter( CONFIG_PREFIX + "default_pwtype", CryptoManagerPasswordHandler.HANDLER_TYPE_USER );
+		}
 		
 		if ( getCurrentPasswordType() == CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM ){
 			
