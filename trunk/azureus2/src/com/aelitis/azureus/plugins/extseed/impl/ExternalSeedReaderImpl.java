@@ -1176,7 +1176,7 @@ ExternalSeedReaderImpl
 				request.cancel();
 			}
 			
-			if ( dangling_requests.contains( request ) && !request.isCancelled()){
+			if ( dangling_requests != null & dangling_requests.contains( request ) && !request.isCancelled()){
 				
 				request.cancel();
 			}
@@ -1201,11 +1201,14 @@ ExternalSeedReaderImpl
 				}
 			}	
 			
-			for ( PeerReadRequest request: dangling_requests ){
+			if ( dangling_requests != null ){
+			
+				for ( PeerReadRequest request: dangling_requests ){
 							
-				if ( !request.isCancelled()){
+					if ( !request.isCancelled()){
 	
-					request.cancel();
+						request.cancel();
+					}
 				}
 			}	
 			
