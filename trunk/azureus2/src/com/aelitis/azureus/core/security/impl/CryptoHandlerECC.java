@@ -90,7 +90,8 @@ CryptoHandlerECC
 			COConfigurationManager.setParameter( CONFIG_PREFIX + "default_pwtype", CryptoManagerPasswordHandler.HANDLER_TYPE_USER );
 		}
 		
-		if ( getCurrentPasswordType() == CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM ){
+		if ( 	getCurrentPasswordType() == CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM || 
+				COConfigurationManager.getByteParameter( CONFIG_PREFIX + "publickey", null ) == null ){
 			
 			try{
 				createAndStoreKeys(
