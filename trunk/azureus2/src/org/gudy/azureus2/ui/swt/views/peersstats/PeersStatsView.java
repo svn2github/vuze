@@ -495,6 +495,6 @@ public class PeersStatsView
 
 	private String getID(PEPeer peer) {
 		String s = peer.getClient();
-		return s.replaceAll(" v?[0-9.]+", "");
+		return s.replaceAll(" v?[0-9._]+", "");
 	}
 }
