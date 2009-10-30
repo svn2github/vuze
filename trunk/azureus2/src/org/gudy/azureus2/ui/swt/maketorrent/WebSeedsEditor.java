@@ -90,7 +90,7 @@ public class WebSeedsEditor {
   private void createWindow() {
     this.display = Display.getCurrent();
     this.shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-    Messages.setLanguageText(this.shell,"wizard.multitracker.edit.title");
+    Messages.setLanguageText(this.shell,"wizard.webseedseditor.edit.title");
     Utils.setShellIcon(shell);
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
@@ -316,7 +316,7 @@ public class WebSeedsEditor {
           //The Group menu
            
           MenuItem item = new MenuItem(menu,SWT.NULL);
-          Messages.setLanguageText(item,"wizard.multitracker.edit.newtracker");
+          Messages.setLanguageText(item,"wizard.webseedseditor.edit.newseed");
           item.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event arg0) {
               TreeItem itemTracker = newTracker(treeItem,"http://");

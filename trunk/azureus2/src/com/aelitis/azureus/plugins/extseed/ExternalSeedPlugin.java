@@ -228,6 +228,15 @@ ExternalSeedPlugin
 	}
 		
 	public void
+	downloadChanged(
+		Download	download )
+	{
+		downloadRemoved( download );
+		
+		downloadAdded( download );
+	}
+	
+	public void
 	addSeed(
 		Download	download,
 		Map			config )

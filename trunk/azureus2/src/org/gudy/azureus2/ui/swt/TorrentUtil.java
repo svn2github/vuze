@@ -47,6 +47,8 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
@@ -54,6 +56,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
+import org.gudy.azureus2.ui.swt.maketorrent.WebSeedsEditor;
+import org.gudy.azureus2.ui.swt.maketorrent.WebSeedsEditorListener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.shells.AdvRenameWindow;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -62,6 +66,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
@@ -478,6 +483,102 @@ public class TorrentUtil {
 		
 		itemEditTracker.setEnabled(hasSelection);
 
+			// edit webseeds
+		
+		final MenuItem itemEditWebSeeds = new MenuItem(menuTracker, SWT.PUSH);
+		Messages.setLanguageText(itemEditWebSeeds, "MyTorrentsView.menu.editWebSeeds");
+		itemEditWebSeeds.addListener(SWT.Selection, new DMTask(dms) {
+			public void 
+			run(
+				final DownloadManager[] dms ) 
+			{
+				final TOTorrent torrent = dms[0].getTorrent();
+				
+				if ( torrent == null ){
+					
+					return;
+				}
+				
+				List getright = torrent.getAdditionalListProperty( "url-list" );
+				List webseeds = torrent.getAdditionalListProperty( "httpseeds" );
+				
+				Map ws = new HashMap();
+				
+				if ( getright == null ){
+					getright = new ArrayList();
+				}
+				
+				ws.put( "getright", getright );
+				
+				if ( webseeds == null ){
+					webseeds = new ArrayList();
+				}
+				
+				ws.put( "webseeds", webseeds );
+				
+				ws = BDecoder.decodeStrings( ws );
+				
+				new WebSeedsEditor(
+						null, ws,
+						new WebSeedsEditorListener()
+						{
+							public void 
+							webSeedsChanged(
+								String 	oldName,
+								String 	newName, 
+								Map 	ws ) 
+							{
+								try{
+										// String -> byte[] 
+									
+									ws = BDecoder.decode( BEncoder.encode( ws ));
+									
+									List	getright =  (List)ws.get( "getright" );
+									
+									if ( getright == null || getright.size() == 0 ){
+										
+										torrent.removeAdditionalProperty( "url-list" );
+										
+									}else{
+										
+										torrent.setAdditionalListProperty( "url-list", getright );
+									}
+									
+									List	webseeds =  (List)ws.get( "webseeds" );
+									
+									if ( webseeds == null || webseeds.size() == 0 ){
+										
+										torrent.removeAdditionalProperty( "httpseeds" );
+										
+									}else{
+										
+										torrent.setAdditionalListProperty( "httpseeds", webseeds );
+									}
+			
+									PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(ExternalSeedPlugin.class);
+									
+									if ( pi != null ){
+										
+										ExternalSeedPlugin ext_seed_plugin = (ExternalSeedPlugin)pi.getPlugin();
+										
+										ext_seed_plugin.downloadChanged( PluginCoreUtils.wrap( dms[0] ));
+									}
+						
+								}catch (Throwable e){
+						
+									Debug.printStackTrace( e );
+								}
+							}
+						},
+						true );
+
+			}
+		});
+		
+		itemEditWebSeeds.setEnabled(dms.length==1);
+
+			// manual update
+		
 		final MenuItem itemManualUpdate = new MenuItem(menuTracker, SWT.PUSH);
 		Messages.setLanguageText(itemManualUpdate, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
 		//itemManualUpdate.setImage(ImageRepository.getImage("edit_trackers"));
