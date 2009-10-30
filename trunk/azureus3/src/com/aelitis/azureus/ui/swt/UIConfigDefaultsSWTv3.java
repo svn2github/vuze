@@ -42,9 +42,11 @@ public class UIConfigDefaultsSWTv3
 	public static void initialize(AzureusCore core) {
 		ConfigurationManager config = ConfigurationManager.getInstance();
 
+		boolean configNeedsSave = false;
+
 		if (System.getProperty("FORCE_PROGRESSIVE", "").length() > 0) { //TODO HACK FOR DEMO PURPOSES ONLY!
 			config.setParameter("Prioritize First Piece", true);
-			config.save();
+			configNeedsSave = true;
 		}
 
 		// Up to az > 3.0.0.2, we did not store the original version the user starts
@@ -75,7 +77,7 @@ public class UIConfigDefaultsSWTv3
 				if (sDefSavePath != null && fNewPath.equals(new File(sDefSavePath))) {
 					sFirstVersion = "3.0.0.5";
 					config.setParameter("First Recorded Version", sFirstVersion);
-					config.save();
+					configNeedsSave = true;
 				}
 			}
 		}
@@ -105,7 +107,7 @@ public class UIConfigDefaultsSWTv3
 				if (sDefSavePath != null && fNewPath.equals(new File(sDefSavePath))) {
 					sFirstVersion = "3.0.0.5";
 					config.setParameter("First Recorded Version", sFirstVersion);
-					config.save();
+					configNeedsSave = true;
 				} else if (sDefSavePath == null
 						|| !fOldPath.equals(new File(sDefSavePath))) {
 					sFirstVersion = "2.5.0.0"; // guess
@@ -141,8 +143,6 @@ public class UIConfigDefaultsSWTv3
 			defaults.addParameter("auto_remove_inactive_items", false);
 			
 			defaults.addParameter("show_torrents_menu", false);
-			
-			config.save();
 		}
 
 
@@ -182,5 +182,9 @@ public class UIConfigDefaultsSWTv3
 				defaults.addParameter("Plugin.UPnP.upnp.alertdeviceproblems", false);
 			}
 		});
+		
+		if (configNeedsSave) {
+			config.save();
+		}
 	}
 }
