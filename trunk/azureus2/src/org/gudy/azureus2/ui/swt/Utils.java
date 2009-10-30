@@ -472,17 +472,24 @@ public class Utils
 			if (icon128 == null) {
   			ImageLoader imageLoader = ImageLoader.getInstance();
   			icon128 = imageLoader.getImage("azureus128");
-  			if (Constants.isCVSVersion() && false) {
-  				GC gc = new GC(icon128);
-  				gc.setTextAntialias(SWT.ON);
-  				gc.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_YELLOW));
-  				Font font = getFontWithHeight(gc.getFont(), gc, 20, SWT.BOLD);
-  				gc.setFont(font);
-					GCStringPrinter.printString(gc, Constants.AZUREUS_VERSION,
-							new Rectangle(0, 0, 128, 128), false, false, SWT.CENTER
-									| SWT.BOTTOM);
-  				gc.dispose();
-  				font.dispose();
+  			if (Constants.isCVSVersion()) {
+  				final int border = 9;
+					Image image = Utils.createAlphaImage(shell.getDisplay(),
+							128 + (border * 2), 128 + (border * 2));
+					image = blitImage(shell.getDisplay(), icon128, null, image, new Point(border,
+							border + 1));
+					imageLoader.releaseImage("azureus128");
+					icon128 = image;
+//  				GC gc = new GC(icon128);
+//  				gc.setTextAntialias(SWT.ON);
+//  				gc.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_YELLOW));
+//  				Font font = getFontWithHeight(gc.getFont(), gc, 20, SWT.BOLD);
+//  				gc.setFont(font);
+//					GCStringPrinter.printString(gc, Constants.AZUREUS_VERSION,
+//							new Rectangle(0, 0, 128, 128), false, false, SWT.CENTER
+//									| SWT.BOTTOM);
+//  				gc.dispose();
+//  				font.dispose();
   			}
 			}
  			shell.setImage(icon128);

@@ -25,8 +25,8 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -41,10 +41,12 @@ import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
  * @author Aaron Grunthal
  * @create 02.10.2007
  */
-public abstract class PieceDistributionView extends AbstractIView {
+public abstract class PieceDistributionView
+	extends AbstractIView
+	implements IViewExtension
+{
 	private Composite		comp;
 	private Canvas			pieceDistCanvas;
-	private GC				pieceDistGC;
 	protected PEPeerManager	pem;
 	// list of pieces that the data source has, won't be used if isMe is true
 	protected boolean[]		hasPieces;
@@ -52,6 +54,7 @@ public abstract class PieceDistributionView extends AbstractIView {
 	// instead of remote peers
 	protected boolean		isMe		= false;
 	private boolean			initialized	= false;
+	private Image imgToPaint = null;
 	
 	/**
 	 * implementors of this method must provide an appropriate peer manager and
@@ -80,17 +83,25 @@ public abstract class PieceDistributionView extends AbstractIView {
 		comp.setLayout(new FillLayout());
 		//pieceDistComposite = new Composite(parent, SWT.NONE);
 		pieceDistCanvas = new Canvas(comp,SWT.NONE);
-		pieceDistGC = new GC(pieceDistCanvas);
+		pieceDistCanvas.addListener(SWT.Paint, new Listener() {
+			public void handleEvent(Event event) {
+				if (imgToPaint != null && !imgToPaint.isDisposed()) {
+					event.gc.drawImage(imgToPaint, 0, 0);
+				}
+			}
+		});
 	}
 
 	private final void updateDistribution()
 	{
-		if (!initialized || pem.getPiecePicker() == null || pem.getDiskManager() == null)
+		if (!initialized || pem == null || comp == null
+				|| pem.getPiecePicker() == null || pem.getDiskManager() == null
+				|| !comp.isVisible())
 			return;
 		Rectangle rect = pieceDistCanvas.getBounds();
 		if (rect.height <= 0 || rect.width <= 0)
 			return;
-	
+		
 		PiecePicker picker = pem.getPiecePicker();
 		
 		final int seeds = pem.getNbSeeds() + (pem.isSeeding() ? 1 : 0);
@@ -128,7 +139,7 @@ public abstract class PieceDistributionView extends AbstractIView {
 				downloading[availabilties[i]] = true;
 		}
 		
-		Image img = new Image(pieceDistGC.getDevice(),pieceDistCanvas.getBounds());
+		Image img = new Image(comp.getDisplay(),pieceDistCanvas.getBounds());
 		
 		GC gc = new GC(img);
 
@@ -253,8 +264,11 @@ public abstract class PieceDistributionView extends AbstractIView {
 			gc.dispose();
 		}
 		
-		pieceDistGC.drawImage(img, 0, 0);
-		img.dispose();
+		if (imgToPaint != null) {
+			imgToPaint.dispose();
+		}
+		imgToPaint = img;
+		pieceDistCanvas.redraw();
 	}
 	
 	public void refresh() {
@@ -280,7 +294,19 @@ public abstract class PieceDistributionView extends AbstractIView {
 		if (!initialized)
 			return;
 		initialized = false;
-		Utils.disposeSWTObjects(new Object[] { pieceDistGC, pieceDistCanvas, comp });
+		Utils.disposeSWTObjects(new Object[] { pieceDistCanvas, comp, imgToPaint });
 		super.delete();
+	}
+	
+	public Menu getPrivateMenu() {
+		return null;
+	}
+	
+	public void viewActivated() {
+		updateDistribution();
+	}
+	
+	public void viewDeactivated() {
+		Utils.disposeSWTObjects(new Object[] { imgToPaint });
 	}
 }

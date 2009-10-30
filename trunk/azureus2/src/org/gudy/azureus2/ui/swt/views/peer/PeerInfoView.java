@@ -49,11 +49,13 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.IViewExtension;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -69,7 +71,10 @@ import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
  * 
  * @todo on paint, paint cached image instead of recalc
  */
-public class PeerInfoView extends AbstractIView implements ObfusticateImage {
+public class PeerInfoView
+	extends AbstractIView
+	implements ObfusticateImage, IViewExtension
+{
 	private final static int BLOCK_FILLSIZE = 14;
 
 	private final static int BLOCK_SPACING = 2;
@@ -117,6 +122,8 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 	private Font font = null;
 
 	Image img = null;
+
+	protected boolean refreshInfoCanvasQueued;
 
 	/**
 	 * Initialize
@@ -272,10 +279,20 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 
 		peerInfoCanvas.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
+				System.out.println("resize on " + peerInfoCanvas.isVisible());
+				if (refreshInfoCanvasQueued || !peerInfoCanvas.isVisible()) {
+					return;
+				}
+				
 				// wrap in asyncexec because sc.setMinWidth (called later) doesn't work
 				// too well inside a resize (the canvas won't size isn't always updated)
-				e.widget.getDisplay().asyncExec(new AERunnable() {
+				Utils.execSWTThreadLater(100, new AERunnable() {
 					public void runSupport() {
+						if (refreshInfoCanvasQueued) {
+							return;
+						}
+						refreshInfoCanvasQueued = true;
+
 						if (img != null) {
 							int iOldColCount = img.getBounds().width / BLOCK_SIZE;
 							int iNewColCount = peerInfoCanvas.getClientArea().width / BLOCK_SIZE;
@@ -369,7 +386,10 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 		}
 	}
 
-	protected void refreshInfoCanvas() {
+	private void refreshInfoCanvas() {
+		refreshInfoCanvasQueued = false;
+		System.out.println("refreshinfoc " + Debug.getCompressedStackTrace());
+
 		peerInfoCanvas.layout(true);
 		Rectangle bounds = peerInfoCanvas.getClientArea();
 		if (bounds.width <= 0 || bounds.height <= 0)
@@ -600,5 +620,16 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 	public Image obfusticatedImage(Image image, Point shellOffset) {
 		UIDebugGenerator.obfusticateArea(image, topLabel, shellOffset, "");
 		return image;
+	}
+
+	public Menu getPrivateMenu() {
+		return null;
+	}
+
+	public void viewActivated() {
+		refreshInfoCanvas();
+	}
+
+	public void viewDeactivated() {
 	}
 }

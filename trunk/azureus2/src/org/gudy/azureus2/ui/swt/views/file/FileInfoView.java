@@ -46,14 +46,18 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.IViewExtension;
 
 
 
-public class FileInfoView extends AbstractIView {
+public class FileInfoView
+	extends AbstractIView
+	implements IViewExtension
+{
 	private final static int BLOCK_FILLSIZE = 14;
 
 	private final static int BLOCK_SPACING = 2;
@@ -87,6 +91,9 @@ public class FileInfoView extends AbstractIView {
 	private Font font = null;
 
 	Image img = null;
+
+	// accessed only in SWT Thread
+	private boolean refreshInfoCanvasQueued;
 
 	/**
 	 * Initialize
@@ -220,25 +227,16 @@ public class FileInfoView extends AbstractIView {
 			
 			public void handleEvent(Event e) {
 				
+				if (refreshInfoCanvasQueued) {
+					return;
+				}
+				
+				refreshInfoCanvasQueued = true;
+
 					// wrap in asyncexec because sc.setMinWidth (called later) doesn't work
 					// too well inside a resize (the canvas won't size isn't always updated)
 
-				SWTThread.getInstance().limitFrequencyAsyncExec(
-					this,
-					e.widget.getDisplay(),
-					new AERunnable() {
-						public void runSupport() {
-							if (img != null) {
-								int iOldColCount = img.getBounds().width / BLOCK_SIZE;
-								int iNewColCount = fileInfoCanvas.getClientArea().width / BLOCK_SIZE;
-								if (iOldColCount != iNewColCount)
-									refreshInfoCanvas();
-							}
-						}
-					});
-			
-				/*
-				e.widget.getDisplay().asyncExec(new AERunnable() {
+				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
 						if (img != null) {
 							int iOldColCount = img.getBounds().width / BLOCK_SIZE;
@@ -248,7 +246,6 @@ public class FileInfoView extends AbstractIView {
 						}
 					}
 				});
-				*/
 			}
 		});
 
@@ -362,6 +359,7 @@ public class FileInfoView extends AbstractIView {
 	}
 	
 	protected void refreshInfoCanvas() {
+		refreshInfoCanvasQueued = false;
 		Rectangle bounds = fileInfoCanvas.getClientArea();
 		if (bounds.width <= 0 || bounds.height <= 0)
 			return;
@@ -478,8 +476,17 @@ public class FileInfoView extends AbstractIView {
 			font = null;
 		}
 		
-		SWTThread.getInstance().removeLimitedFrequencyOwner(this);
-
 		super.delete();
+	}
+
+	public Menu getPrivateMenu() {
+		return null;
+	}
+
+	public void viewActivated() {
+		refreshInfoCanvas();
+	}
+
+	public void viewDeactivated() {
 	}
 }

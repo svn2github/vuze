@@ -51,6 +51,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.IViewExtension;
 import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
@@ -611,6 +612,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				try {
 					((CTabItem) e.item).getControl().setVisible(true);
 					((CTabItem) e.item).getControl().moveAbove(null);
+
+					// TODO: Need to viewDeactivated old one
+					IView view = getActiveSubView();
+					if (view instanceof IViewExtension) {
+						((IViewExtension)view).viewActivated();
+					}
+					
 				} catch (Exception t) {
 				}
 			}
@@ -760,12 +768,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		//	}
 		//});
 
-		table.addListener(SWT.Activate, new Listener() {
-			public void handleEvent(Event event) {
-				refreshVisibleRows();
-			}
-		});
-
 		ScrollBar horizontalBar = table.getHorizontalBar();
 		if (horizontalBar != null) {
 			horizontalBar.addSelectionListener(new SelectionListener() {
@@ -796,7 +798,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 
 				int defaultHeight = getRowDefaultHeight();
-				if (event.height < defaultHeight) {
+				if (event.height < defaultHeight || (Utils.isCocoa && defaultHeight > 0)) {
 					event.height = defaultHeight;
 				}
 			}
@@ -1051,6 +1053,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					filter.widget.removeKeyListener(TableViewSWTImpl.this);
 					filter.widget.removeModifyListener(filter.widgetModifyListener);
 				}
+				Utils.disposeSWTObjects(new Object[] { slider } );
 			}
 		});
 
@@ -1303,6 +1306,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	private SourceReplaceListener cellEditNotifier;
+
+	private Scale slider;
 
 	private void editCell(final int column, final int row) {
 		Text oldInput = (Text) editor.getEditor();
@@ -2218,7 +2223,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	public void refreshSelectedSubView() {
 		IView view = getActiveSubView();
-		if (view != null) {
+		if (view != null && view.getComposite().isVisible()) {
 			view.refresh();
 		}
 	}
@@ -4042,7 +4047,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		} else {
 			ptIconSize.y = iHeight;
 		}
-		bSkipFirstColumn = true;
+		if (!Constants.isOSX) {
+			bSkipFirstColumn = true;
+		}
 	}
 
 	public int getRowDefaultHeight() {
@@ -4055,7 +4062,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	// from common.TableView
 	public void setRowDefaultIconSize(Point size) {
 		ptIconSize = size;
-		bSkipFirstColumn = true;
+		if (!Constants.isOSX) {
+			bSkipFirstColumn = true;
+		}
 	}
 
 	// TabViews Functions
@@ -4787,6 +4796,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					}
 				});
 				loopFactor = 0;
+
+				IView view = getActiveSubView();
+				if (view instanceof IViewExtension) {
+					((IViewExtension)view).viewActivated();
+				}
+			} else {
+				IView view = getActiveSubView();
+				if (view instanceof IViewExtension) {
+					((IViewExtension)view).viewDeactivated();
+				}
 			}
 		}
 		return isVisible;
@@ -5037,5 +5056,23 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		filter.checker.filterSet(filter.text);
 		refilter();
+	}
+
+	public void enableSizeSlider(Composite composite, int min, int max) {
+		composite.setLayout(new FillLayout());
+		slider = new Scale(composite, SWT.HORIZONTAL);
+		slider.setMinimum(min);
+		slider.setMaximum(max);
+		slider.setSelection(getRowDefaultHeight());
+		slider.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				setRowDefaultHeight(slider.getSelection());
+				tableInvalidate();
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		composite.layout();
 	}
 }

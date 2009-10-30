@@ -23,8 +23,6 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
@@ -45,8 +43,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  * The main SWT Thread, the only one that should run any GUI code.
  */
 public class SWTThread {
-  private static final int	FREQ_PER_SEC_LIMIT = 10;
-  
   private static SWTThread instance;
   
   public static SWTThread getInstance() {
@@ -71,8 +67,6 @@ public class SWTThread {
   private Thread runner;
   private final IUIIntializer initializer;
   
-  private Map	freq_map = new HashMap();
-
 	private Monitor primaryMonitor;
   
   private 
@@ -197,9 +191,9 @@ public class SWTThread {
 			if (platform.equals("carbon")) {
 				try {
 
-					Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
+					Class<?> ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
 
-					Constructor constructor = ehancerClass.getConstructor(new Class[] {});
+					Constructor<?> constructor = ehancerClass.getConstructor(new Class[] {});
 
 					constructor.newInstance(new Object[] {});
 
@@ -210,19 +204,19 @@ public class SWTThread {
 			} else if (platform.equals("cocoa")) {
 				try {
 
-					Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CocoaUIEnhancer");
+					Class<?> ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CocoaUIEnhancer");
 
 					Method mGetInstance = ehancerClass.getMethod("getInstance", new Class[0]);
 					Object claObj = mGetInstance.invoke(null, new Object[0] );
 
 					Method mHookAppMenu = claObj.getClass().getMethod("hookApplicationMenu", new Class[] {});
 					if (mHookAppMenu != null) {
-						mHookAppMenu.invoke(claObj, null);
+						mHookAppMenu.invoke(claObj, new Object[0]);
 					}
 
 					Method mHookDocOpen = claObj.getClass().getMethod("hookDocumentOpen", new Class[] {});
 					if (mHookDocOpen != null) {
-						mHookDocOpen.invoke(claObj, null);
+						mHookDocOpen.invoke(claObj, new Object[0]);
 					}
 					
 				} catch (Throwable e) {
@@ -338,70 +332,6 @@ public class SWTThread {
 
 	public IUIIntializer getInitializer() {
 		return initializer;
-	}
-	
-	public void
-	limitFrequencyAsyncExec(
-		Object		owner,
-		Display		display,
-		AERunnable	target )
-	{
-		if ( display.isDisposed()){
-			
-			return;
-		}
-		
-		int	now = (int)( SystemTime.getCurrentTime()/1000 );
-		
-		boolean	do_it	= true;
-		
-		synchronized( freq_map ){
-			
-			if ( freq_map.size() > 1024 ){
-				
-				Debug.out( "Frequency map is overloaded - check your logic!!!!" );
-				
-			}else{
-				
-				int[]	data = (int[])freq_map.get( owner );
-			
-				if ( data == null ){
-					
-					data = new int[]{ now, 0 };
-					
-					freq_map.put( owner, data );
-				}
-				
-				if ( data[0] == now ){
-					
-					data[1]++;
-					
-					if ( data[1] > FREQ_PER_SEC_LIMIT ){
-						
-						do_it	= false;
-						
-						Debug.out( "SWT frequency limit exceeded for " + owner.getClass());
-					}
-				}else{
-					
-					data[0] = now;
-					data[1] = 1;
-				}
-			}
-		}
-		
-		if ( do_it ){
-			
-			display.asyncExec( target );
-		}
-	}
-	
-	public void removeLimitedFrequencyOwner(Object owner)
-	{
-		synchronized (freq_map)
-		{
-			freq_map.remove(owner);
-		}		
 	}
 
 	public Monitor getPrimaryMonitor() {

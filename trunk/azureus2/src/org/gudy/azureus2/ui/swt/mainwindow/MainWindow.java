@@ -993,7 +993,9 @@ public class MainWindow
 					}
 
 					if (visible) {
-						shell.setMinimized(false);
+						if (shell.getMinimized()) {
+							shell.setMinimized(false);
+						}
 						if (!currentlyVisible
 								&& COConfigurationManager.getBooleanParameter("window.maximized")) {
 							shell.setMaximized(true);

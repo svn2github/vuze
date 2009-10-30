@@ -1,24 +1,29 @@
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.IViewExtension;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
-public abstract class TableViewTab extends AbstractIView
+public abstract class TableViewTab<DATASOURCETYPE>
+	extends AbstractIView
+	implements IViewExtension
 {
-	private TableViewSWT tv;
+	private TableViewSWT<DATASOURCETYPE> tv;
 	private Object parentDataSource;
 	private final String propertiesPrefix;
+	private Composite composite;
 
 	
 	public TableViewTab(String propertiesPrefix) {
 		this.propertiesPrefix = propertiesPrefix;
 	}
 	
-	public TableViewSWT getTableView() {
+	public TableViewSWT<DATASOURCETYPE> getTableView() {
 		return tv;
 	}
 
@@ -26,21 +31,26 @@ public abstract class TableViewTab extends AbstractIView
 		tv = initYourTableView();
 		Composite parent = initComposite(composite);
 		tv.initialize(parent);
+		if (parent != composite) {
+			this.composite = composite;
+		} else {
+			this.composite = tv.getComposite();
+		}
 		
-		tableViewInitComplete();
+		tableViewTabInitComplete();
 		if (parentDataSource != null) {
 			tv.setParentDataSource(parentDataSource);
 		}
 	}
 	
-	public void tableViewInitComplete() {
+	public void tableViewTabInitComplete() {
 	}
 
 	public Composite initComposite(Composite composite) {
 		return composite;
 	}
 
-	public abstract TableViewSWT initYourTableView();
+	public abstract TableViewSWT<DATASOURCETYPE> initYourTableView();
 
 	public final void dataSourceChanged(Object newDataSource) {
 		this.parentDataSource = newDataSource;
@@ -88,7 +98,7 @@ public abstract class TableViewTab extends AbstractIView
 	
 	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#getComposite()
 	public Composite getComposite() {
-		return tv == null ? null : tv.getComposite();
+		return composite;
 	}
 	
 	public void itemActivated(String itemKey) {
@@ -106,5 +116,23 @@ public abstract class TableViewTab extends AbstractIView
 
 	public String getPropertiesPrefix() {
 		return propertiesPrefix;
+	}
+	
+	public Menu getPrivateMenu() {
+		return null;
+	}
+	
+	public void viewActivated() {
+		// cheap hack.. calling isVisible freshens table's visible status (and
+		// updates subviews)
+		if (tv instanceof TableViewSWTImpl) {
+			((TableViewSWTImpl)tv).isVisible();
+		}
+	}
+	
+	public void viewDeactivated() {
+		if (tv instanceof TableViewSWTImpl) {
+			((TableViewSWTImpl)tv).isVisible();
+		}
 	}
 }

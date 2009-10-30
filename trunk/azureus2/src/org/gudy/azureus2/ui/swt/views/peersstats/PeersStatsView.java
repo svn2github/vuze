@@ -1,5 +1,8 @@
 package org.gudy.azureus2.ui.swt.views.peersstats;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
@@ -13,7 +16,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -38,10 +41,14 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.util.MapUtils;
 
 public class PeersStatsView
-	extends TableViewTab
+	extends TableViewTab<PeersStatsDataSource>
 	implements TableLifeCycleListener, GlobalManagerListener,
 	DownloadManagerPeerListener
 {
+	private static final String CONFIG_FILE = "peersstats.dat";
+
+	private static final String CONFIG_FILE_ARCHIVE = "peersstats_%1.dat";
+
 	private AzureusCore core;
 
 	private TableViewSWTImpl<PeersStatsDataSource> tv;
@@ -56,6 +63,16 @@ public class PeersStatsView
 
 	private PeersStatsOverall overall;
 
+	private long startedListeningOn;
+
+	private long totalTime;
+
+	private long lastAdd;
+
+	private GregorianCalendar calendar = new GregorianCalendar();
+
+	private int lastAddMonth;
+	
 	public PeersStatsView() {
 		super("PeersStats");
 
@@ -71,12 +88,17 @@ public class PeersStatsView
 	public Composite initComposite(Composite composite) {
 		parent = new Composite(composite, SWT.BORDER);
 		parent.setLayout(new FormLayout());
-		parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		Layout layout = composite.getLayout();
+		if (layout instanceof GridLayout) {
+			parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		} else if (layout instanceof FormLayout) {
+			parent.setLayoutData(Utils.getFilledFormData());
+		}
 
 		return parent;
 	}
 
-	public void tableViewInitComplete() {
+	public void tableViewTabInitComplete() {
 		Composite cTV = (Composite) parent.getChildren()[0];
 		Composite cBottom = new Composite(parent, SWT.None);
 		FormData fd;
@@ -95,6 +117,10 @@ public class PeersStatsView
 			public void handleEvent(Event event) {
 				TableRowCore[] rows = tv.getRows();
 				StringBuilder sb = new StringBuilder();
+
+				sb.append(new SimpleDateFormat("MMM yyyy").format(new Date()));
+				sb.append("\n");
+
 				sb.append("Hits,Client,Bytes Sent,Bytes Received,Bad Bytes\n");
 				for (TableRowCore row : rows) {
 					PeersStatsDataSource stat = (PeersStatsDataSource) row.getDataSource();
@@ -115,9 +141,49 @@ public class PeersStatsView
 				ClipboardCopy.copyToClipBoard(sb.toString());
 			}
 		});
+
+		Button btnCopyShort = new Button(cBottom, SWT.PUSH);
+		btnCopyShort.setLayoutData(new FormData());
+		btnCopyShort.setText("Copy > 1%");
+		btnCopyShort.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				TableRowCore[] rows = tv.getRows();
+				StringBuilder sb = new StringBuilder();
+
+				sb.append(new SimpleDateFormat("MMM ''yy").format(new Date()));
+				sb.append("] ");
+				sb.append(overall.count);
+				sb.append(": ");
+
+				boolean first = true;
+				for (TableRowCore row : rows) {
+					PeersStatsDataSource stat = (PeersStatsDataSource) row.getDataSource();
+					if (stat == null) {
+						continue;
+					}
+					
+					int pct = (int) (stat.count * 1000 / overall.count);
+					if (pct < 10) {
+						continue;
+					}
+					if (first) {
+						first = false;
+					} else {
+						sb.append(", ");
+					}
+					sb.append(DisplayFormatters.formatPercentFromThousands(pct));
+					sb.append(" ");
+					sb.append(stat.client);
+				}
+				ClipboardCopy.copyToClipBoard(sb.toString());
+			}
+		});
+		fd = new FormData();
+		fd.left = new FormAttachment(btnCopy, 5);
+		btnCopyShort.setLayoutData(fd);
 	}
 
-	public TableViewSWT initYourTableView() {
+	public TableViewSWT<PeersStatsDataSource> initYourTableView() {
 		tv = new TableViewSWTImpl<PeersStatsDataSource>(PeersStatsDataSource.class,
 				"PeersStats", getPropertiesPrefix(), new TableColumnCore[0],
 				ColumnPS_Count.COLUMN_ID, SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
@@ -191,18 +257,26 @@ public class PeersStatsView
 		for (Object object : downloadManagers) {
 			((DownloadManager) object).removePeerListener(this);
 		}
-		save();
+		save(CONFIG_FILE);
 	}
 
 	private void initAndLoad() {
 		mapData = new HashMap<String, PeersStatsDataSource>();
 
 		synchronized (mapData) {
-			Map map = FileUtil.readResilientConfigFile("peersstats.dat");
+			Map map = FileUtil.readResilientConfigFile(CONFIG_FILE);
 
-			Map mapBloom = MapUtils.getMapMap(map, "bloomfilter", null);
-			if (mapBloom != null) {
-				bloomFilter = BloomFilterFactory.deserialiseFromMap(mapBloom);
+			totalTime = MapUtils.getMapLong(map, "time", 0);
+			
+			lastAdd = MapUtils.getMapLong(map, "lastadd", 0);
+			if (lastAdd == 0) {
+  			Map mapBloom = MapUtils.getMapMap(map, "bloomfilter", null);
+  			if (mapBloom != null) {
+  				bloomFilter = BloomFilterFactory.deserialiseFromMap(mapBloom);
+  			}
+			} else {
+				calendar.setTimeInMillis(lastAdd);
+				lastAddMonth = calendar.get(Calendar.MONTH);
 			}
 			if (bloomFilter == null) {
 				bloomFilter = BloomFilterFactory.createRotating(
@@ -234,13 +308,19 @@ public class PeersStatsView
 		}
 	}
 
-	private void save() {
+	private void save(String filename) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		synchronized (mapData) {
 			map.put("data", new ArrayList(mapData.values()));
 			map.put("bloomfilter", bloomFilter.serialiseToMap());
+			map.put("lastadd", SystemTime.getCurrentTime());
+			if (startedListeningOn > 0) {
+				map.put("time", totalTime + (SystemTime.getCurrentTime() - startedListeningOn));
+			} else {
+				map.put("time", totalTime);
+			}
 		}
-		FileUtil.writeResilientConfigFile("peersstats.dat", map);
+		FileUtil.writeResilientConfigFile(filename, map);
 	}
 
 	public void tableViewInitialized() {
@@ -260,6 +340,7 @@ public class PeersStatsView
 	protected void register(AzureusCore core) {
 		this.core = core;
 		core.getGlobalManager().addListener(this);
+		startedListeningOn = SystemTime.getCurrentTime();
 	}
 
 	public void destroyInitiated() {
@@ -304,13 +385,62 @@ public class PeersStatsView
 	}
 
 	protected void addPeer(PEPeer peer) {
+		byte[] bloomId;
+		long now = SystemTime.getCurrentTime();
+		
+		// Bloom Filter is based on the first 8 bytes of peer id + ip address
+		// This captures more duplicates than peer id because most clients
+		// randomize their peer id on restart.  IP address, however, changes
+		// less often.
+		byte[] peerId = peer.getId();
+		InetAddress ip = peer.getAlternativeIPv6();
+		if (ip == null) {
+			try {
+				ip = InetAddress.getByName(peer.getIp());
+			} catch (UnknownHostException e) {
+			}
+		}
+		if (ip == null) {
+			bloomId = new byte[8 + 4];
+			System.arraycopy(peerId, 0, bloomId, 0, 8);
+			System.arraycopy(peerId, 8, bloomId, 8, 4);
+		} else {
+			byte[] address = ip.getAddress();
+			bloomId = new byte[8 + address.length];
+			System.arraycopy(peerId, 0, bloomId, 0, 8);
+			System.arraycopy(address, 0, bloomId, 8, address.length);
+		}
+
 		synchronized (mapData) {
-			byte[] peerId = peer.getId();
-			if (bloomFilter.contains(peerId)) {
+			// break on month.. assume user didn't last use this on the same month in a different year
+			calendar.setTimeInMillis(now);
+			int thisMonth = calendar.get(Calendar.MONTH);
+			if (thisMonth != lastAddMonth) {
+				if (lastAddMonth == 0) {
+					lastAddMonth = thisMonth;
+				} else {
+  				String s = new SimpleDateFormat("yyyy-MM").format(new Date(lastAdd));
+  				String filename = CONFIG_FILE_ARCHIVE.replace("%1", s);
+  				save(filename);
+  
+  				lastAddMonth = thisMonth;
+  				lastAdd = 0;
+  				bloomFilter = BloomFilterFactory.createRotating(
+  						BloomFilterFactory.createAddOnly(100000), 2);
+  				overall = new PeersStatsOverall();
+  				mapData.clear();
+  				tv.removeAllTableRows();
+  				totalTime = 0;
+  				startedListeningOn = 0;
+			}}
+			
+			if (bloomFilter.contains(bloomId)) {
 				return;
 			}
 
-			bloomFilter.add(peerId);
+			bloomFilter.add(bloomId);
+			
+			lastAdd = now;
 
 			String id = getID(peer);
 			PeersStatsDataSource stat = mapData.get(id);

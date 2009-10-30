@@ -33,13 +33,11 @@ import java.util.WeakHashMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
-import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -862,18 +860,7 @@ UISWTInstanceImpl
 			Debug.outNoStack("No MainStatusBar on createStatusEntry");
 			return null;
 		}
-		final CLabel label = mainStatusBar.createStatusEntry(entry);
-		final Listener click_listener = new Listener() {
-			public void handleEvent(Event e) {
-				entry.onClick();
-			}
-		};
-
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				label.addListener(SWT.MouseDoubleClick, click_listener);
-			}
-		}, true);
+		mainStatusBar.createStatusEntry(entry);
 		
 		return entry;
 	}

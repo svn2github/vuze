@@ -155,4 +155,13 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 * @since 4.1.0.8
 	 */
 	void setFilterText(String s);
+
+	/**
+	 * @param composite
+	 * @param min
+	 * @param max
+	 * 
+	 * @since 4.1.0.9
+	 */
+	void enableSizeSlider(Composite composite, int min, int max);
 }

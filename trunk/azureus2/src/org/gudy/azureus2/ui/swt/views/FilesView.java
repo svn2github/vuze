@@ -67,7 +67,7 @@ import com.aelitis.azureus.ui.common.table.*;
  *         2004/Apr/23: extends TableView instead of IAbstractView
  */
 public class FilesView
-	extends TableViewTab
+	extends TableViewTab<DiskManagerFileInfo>
 	implements TableDataSourceChangedListener, TableSelectionListener,
 	TableViewSWTMenuFillListener, TableRefreshListener, DownloadManagerStateAttributeListener,
 	TableLifeCycleListener
@@ -121,7 +121,7 @@ public class FilesView
 		super("FilesView");
 	}
 
-	public TableViewSWT initYourTableView() {
+	public TableViewSWT<DiskManagerFileInfo> initYourTableView() {
 		tv = new TableViewSWTImpl<DiskManagerFileInfo>(
 				org.gudy.azureus2.plugins.disk.DiskManagerFileInfo.class,
 				TableManager.TABLE_TORRENT_FILES, getPropertiesPrefix(), basicItems,

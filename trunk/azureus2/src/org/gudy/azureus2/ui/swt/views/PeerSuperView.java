@@ -62,7 +62,7 @@ import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
  */
 
 public class PeerSuperView
-	extends TableViewTab
+	extends TableViewTab<PEPeer>
 	implements GlobalManagerListener, DownloadManagerPeerListener,
 	TableLifeCycleListener, TableViewSWTMenuFillListener
 {	
@@ -89,16 +89,16 @@ public class PeerSuperView
 		tv.setRowDefaultHeight(16);
 		tv.setEnableTabViews(true);
 		tv.setCoreTabViews(new IView[] {
-			new PeerInfoView(),
+			//new PeerInfoView(),
 			new RemotePieceDistributionView(),
-			new LoggerView(true)
+			//new LoggerView(true)
 		});
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
 		
 	}	
 
-  public TableViewSWT initYourTableView() {
+  public TableViewSWT<PEPeer> initYourTableView() {
   	return tv;
   }
 

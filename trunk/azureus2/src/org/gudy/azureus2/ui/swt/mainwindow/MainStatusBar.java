@@ -20,6 +20,7 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -103,6 +104,8 @@ public class MainStatusBar
 	private CLabel statusUp;
 
 	private Composite plugin_label_composite;
+	
+	private ArrayList<Runnable> listRunAfterInit = new ArrayList<Runnable>();
 
 	private Display display;
 
@@ -544,6 +547,22 @@ public class MainStatusBar
 		
 		uiFunctions.getUIUpdater().addUpdater(this);
 		
+		ArrayList<Runnable> list;
+		this_mon.enter();
+		try {
+			list = listRunAfterInit;
+			listRunAfterInit = null;
+		} finally {
+			this_mon.exit();
+		}
+		for (Runnable runnable : list) {
+			try {
+				runnable.run();
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+		
 		return statusBar;
 	}
 
@@ -580,36 +599,39 @@ public class MainStatusBar
 
 		} else if (secs_uptime - last_uptime > 15 * 60) {
 
-			CLabel feedback = createStatusEntry(new CLabelUpdater() {
+			createStatusEntry(new CLabelUpdater() {
 				public void update(CLabel label) {
 				}
-			});
-			
-			feedback.setText(MessageText.getString("statusbar.feedback"));
 
-			Listener feedback_listener = new Listener() {
-				public void handleEvent(Event e) {
-
-					String url = "feedback.start?" + Utils.getWidgetBGColorURLParam()
+				public void created(CLabel feedback) {
+					feedback.setText(MessageText.getString("statusbar.feedback"));
+					
+					Listener feedback_listener = new Listener() {
+						public void handleEvent(Event e) {
+							
+							String url = "feedback.start?" + Utils.getWidgetBGColorURLParam()
 							+ "&fromWeb=false&os.name=" + UrlUtils.encode(Constants.OSName)
 							+ "&os.version="
 							+ UrlUtils.encode(System.getProperty("os.version"))
 							+ "&java.version=" + UrlUtils.encode(Constants.JAVA_VERSION);
-
-					// Utils.launch( url );
-
-					UIFunctionsManagerSWT.getUIFunctionsSWT().viewURL(url, null, 600,
-							520, true, false);
+							
+							// Utils.launch( url );
+							
+							UIFunctionsManagerSWT.getUIFunctionsSWT().viewURL(url, null, 600,
+									520, true, false);
+						}
+					};
+					
+					feedback.setToolTipText(MessageText.getString("statusbar.feedback.tooltip"));
+					feedback.setCursor(Cursors.handCursor);
+					feedback.setForeground(Colors.blue);
+					feedback.addListener(SWT.MouseUp, feedback_listener);
+					feedback.addListener(SWT.MouseDoubleClick, feedback_listener);
+					
+					feedback.setVisible(true);
 				}
-			};
+			});
 			
-			feedback.setToolTipText(MessageText.getString("statusbar.feedback.tooltip"));
-			feedback.setCursor(Cursors.handCursor);
-			feedback.setForeground(Colors.blue);
-			feedback.addListener(SWT.MouseUp, feedback_listener);
-			feedback.addListener(SWT.MouseDoubleClick, feedback_listener);
-			
-			feedback.setVisible(true);
 		}
 	}
 
@@ -1146,6 +1168,7 @@ public class MainStatusBar
 
 	public static interface CLabelUpdater
 	{
+		public void created(CLabel label);
 		public void update(CLabel label);
 	}
 
@@ -1225,21 +1248,26 @@ public class MainStatusBar
 		}
 	}
 
-	public CLabel createStatusEntry(final CLabelUpdater updater) {
-		final CLabel[] result = new CLabel[1];
-		Utils.execSWTThread(new AERunnable() {
+	public void createStatusEntry(final CLabelUpdater updater) {
+		AERunnable r = new AERunnable() {
 			public void runSupport() {
-				try {
-					this_mon.enter();
-					result[0] = new UpdateableCLabel(plugin_label_composite, borderFlag,
-							updater);
-					result[0].setLayoutData(new GridData(GridData.FILL_BOTH));
-				} finally {
-					this_mon.exit();
-				}
+				UpdateableCLabel result = new UpdateableCLabel(plugin_label_composite, borderFlag,
+						updater);
+				result.setLayoutData(new GridData(GridData.FILL_BOTH));
+				updater.created(result);
 			}
-		}, false);
-		return result[0];
+		};
+		this_mon.enter();
+		try {
+			if (listRunAfterInit != null) {
+				listRunAfterInit.add(r);
+				return;
+			}
+		} finally {
+			this_mon.exit();
+		}
+
+		Utils.execSWTThread(r);
 	}
 
 	// =============================================================
