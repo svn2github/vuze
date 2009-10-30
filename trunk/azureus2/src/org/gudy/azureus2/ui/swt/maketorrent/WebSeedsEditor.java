@@ -152,7 +152,7 @@ public class WebSeedsEditor {
     
     Composite cButtons = new Composite(shell, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 3;
     cButtons.setLayoutData(gridData);
     GridLayout layoutButtons = new GridLayout();
     layoutButtons.numColumns = 3;
@@ -210,9 +210,11 @@ public class WebSeedsEditor {
 	    }
     });
     
+    shell.pack();
+
     Point size = shell.computeSize(400,SWT.DEFAULT);
     shell.setSize(size);
-    
+        
     Utils.centreWindow( shell );
     
     shell.open();
