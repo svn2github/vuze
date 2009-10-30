@@ -160,7 +160,7 @@ public class SideBar
 
 	private static final int IMAGELEFT_GAP = 5;
 
-	private static final boolean ALWAYS_IMAGE_GAP = false;
+	private static final boolean ALWAYS_IMAGE_GAP = true;
 
 	private static final String[] default_indicator_colors = {
 		"#000000",
@@ -168,6 +168,8 @@ public class SideBar
 		"#166688",
 		"#1c2056"
 	};
+
+	private static final boolean DO_OUR_OWN_TREE_INDENT = Utils.isCocoa;
 
 	private SWTSkin skin;
 
@@ -1148,8 +1150,14 @@ public class SideBar
 			String id = (String) treeItem.getData("Plugin.viewID");
 			sideBarEntry = getEntry(id);
 		}
-		if (Utils.isCocoa) {
-			itemBounds.x += 18;
+		if (DO_OUR_OWN_TREE_INDENT) {
+			int indentLevel = 0;
+			TreeItem tempItem = treeItem;
+			while (tempItem != null)  {
+				tempItem =  tempItem.getParentItem();
+				indentLevel++;
+			}
+			itemBounds.x += (18 * indentLevel);
 		}
 		int x1IndicatorOfs = SIDEBAR_SPACING;
 		int x0IndicatorOfs = itemBounds.x;
@@ -2160,6 +2168,14 @@ public class SideBar
 			c.setVisible(true);
 		}
 
+		if (currentSideBarEntry.iview instanceof IViewExtension) {
+			try {
+				((IViewExtension)currentSideBarEntry.iview).viewActivated();
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+
 		// hide old
 		if (oldEntry != null && oldEntry != newSideBarInfo) {
 			if (lastImage != null && !lastImage.isDisposed()) {
@@ -2185,6 +2201,14 @@ public class SideBar
 
 					oldComposite.setVisible(false);
 					oldComposite.getShell().update();
+				}
+				
+				if (oldEntry.iview instanceof IViewExtension) {
+					try {
+						((IViewExtension)oldEntry.iview).viewDeactivated();
+					} catch (Exception e) {
+						Debug.out(e);
+					}
 				}
 			}
 		}

@@ -23,7 +23,6 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -76,15 +75,7 @@ public class WelcomeView
 			public void sidebarClosed(SideBarEntry entry) {
 				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 				if (sidebar != null) {
-					String startTab;
-					if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
-						startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
-					} else {
-						ContentNetwork startupCN = ContentNetworkManagerFactory.getSingleton().getStartupContentNetwork();
-						startTab = "ContentNetwork." + startupCN.getID();
-					}
-
-					sidebar.showEntryByID(startTab);
+					sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 				}
 			}
 		});

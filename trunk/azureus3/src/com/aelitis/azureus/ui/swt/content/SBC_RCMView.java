@@ -38,6 +38,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
 
@@ -65,9 +66,9 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.columns.torrent.ColumnAzProduct;
 import com.aelitis.azureus.ui.swt.content.columns.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
@@ -178,16 +179,6 @@ SBC_RCMView
 		UIManager uiManager = PluginInitializer.getDefaultInterface().getUIManager();
 		
 		TableManager tableManager = uiManager.getTableManager();
-		
-		tableManager.registerColumn(
-				RelatedContent.class, 
-				ColumnAzProduct.COLUMN_ID,
-				new TableColumnCreationListener() {
-					public void tableColumnCreated(TableColumn column) {
-						new ColumnAzProduct(column);
-						column.setWidth(42);
-					}
-				});
 		
 		tableManager.registerColumn(
 				RelatedContent.class, 
@@ -380,6 +371,15 @@ SBC_RCMView
 			tv_related_content.enableFilterCheck(txtFilter, this);
 		}
 		tv_related_content.setRowDefaultHeight(16);
+		SWTSkinObject soSizeSlider = getSkinObject("table-size-slider");
+		if (soSizeSlider instanceof SWTSkinObjectContainer) {
+			SWTSkinObjectContainer so = (SWTSkinObjectContainer) soSizeSlider;
+			if (Constants.isOSX) {
+				tv_related_content.enableSizeSlider(so.getComposite(), 16, 100);
+			} else {
+				so.getControl().setSize(0, -1);
+			}
+		}
 		
 		table_parent = new Composite(control, SWT.NONE);
 		table_parent.setLayoutData(Utils.getFilledFormData());

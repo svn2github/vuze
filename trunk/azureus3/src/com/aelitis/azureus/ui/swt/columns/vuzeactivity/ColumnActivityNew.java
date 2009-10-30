@@ -57,6 +57,7 @@ public class ColumnActivityNew
 		super(COLUMN_ID, tableID);
 
 		initializeAsGraphic(WIDTH);
+		setAlignment(ALIGN_CENTER);
 		imgNew = ImageLoader.getInstance().getImage("image.activity.unread");
 		imgOld = ImageLoader.getInstance().getImage("image.activity.read");
 	}

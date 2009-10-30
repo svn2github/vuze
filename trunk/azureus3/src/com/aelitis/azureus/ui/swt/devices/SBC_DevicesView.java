@@ -61,7 +61,6 @@ import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.columns.torrent.ColumnAzProduct;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
 import com.aelitis.azureus.ui.swt.devices.columns.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
@@ -235,13 +234,6 @@ public class SBC_DevicesView
 						if (!column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
 							column.setVisible(false);
 						}
-					}
-				});
-		tableManager.registerColumn(TranscodeFile.class, ColumnAzProduct.COLUMN_ID,
-				new TableColumnCreationListener() {
-					public void tableColumnCreated(TableColumn column) {
-						new ColumnAzProduct(column);
-						column.setWidth(42);
 					}
 				});
 		tableManager.registerColumn(TranscodeFile.class, ColumnThumbnail.COLUMN_ID,

@@ -53,7 +53,6 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.columns.torrent.ColumnAzProduct;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
 import com.aelitis.azureus.ui.swt.devices.columns.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -127,15 +126,6 @@ SBC_DevicesODView
 		UIManager uiManager = PluginInitializer.getDefaultInterface().getUIManager();
 		
 		TableManager tableManager = uiManager.getTableManager();
-		
-		tableManager.registerColumn( 
-			DeviceOfflineDownload.class, ColumnAzProduct.COLUMN_ID,
-			new TableColumnCreationListener() {
-				public void tableColumnCreated(TableColumn column) {
-					new ColumnAzProduct(column);
-					column.setWidth(42);
-				}
-			});
 		
 		tableManager.registerColumn( 
 			DeviceOfflineDownload.class, ColumnThumbnail.COLUMN_ID,

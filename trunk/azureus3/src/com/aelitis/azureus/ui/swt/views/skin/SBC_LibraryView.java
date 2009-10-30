@@ -18,7 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,8 +39,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
@@ -52,7 +51,9 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.Initializer;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemListener;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -82,10 +83,6 @@ public class SBC_LibraryView
 
 	public static final int TORRENTS_UNOPENED = 3;
 	
-	private static final String CFG_INFOBAR = "Library.infobar";
-
-	public static List allViews = new ArrayList(1);
-
 	private final static String[] modeViewIDs = {
 		SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG,
 		SkinConstants.VIEWID_SIDEBAR_LIBRARY_SMALL
@@ -138,10 +135,6 @@ public class SBC_LibraryView
 
 	private ToolBarItem itemModeBig;
 
-	private SWTSkinObject skinObject;
-
-	private InfoBarUtil infoBarUtil;
-
 	private SWTSkinObject soWait;
 	
 	private SWTSkinObject soWaitProgress;
@@ -152,8 +145,6 @@ public class SBC_LibraryView
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
-		this.skinObject = skinObject;
-		
 		soWait = null;
 		try {
 			soWait = getSkinObject("library-wait");
@@ -381,19 +372,6 @@ public class SBC_LibraryView
 			COConfigurationManager.setParameter(torrentFilter + ".viewmode", viewMode);
 		}
 
-		if (torrentFilterMode == TORRENTS_ALL && viewMode == 0 && infoBarUtil == null) {
-			infoBarUtil = new InfoBarUtil(skinObject, true, CFG_INFOBAR,
-					"v3.library.infobar") {
-				public boolean allowShow() {
-					return true;
-				}
-			};
-		} else if (infoBarUtil != null) {
-			if (torrentFilterMode != TORRENTS_ALL || viewMode != 0) {
-				infoBarUtil.hide(true);
-			}
-		}
-		
 		String entryID = null;
 		if (torrentFilterMode == TORRENTS_ALL) {
 			entryID = SideBar.SIDEBAR_SECTION_LIBRARY;

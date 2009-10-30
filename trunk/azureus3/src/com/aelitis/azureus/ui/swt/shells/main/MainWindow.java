@@ -969,25 +969,16 @@ public class MainWindow
 			public void runSupport() {
 				String startTab;
 				boolean showWelcome = COConfigurationManager.getBooleanParameter("v3.Show Welcome");
-				boolean startAdv = COConfigurationManager.getBooleanParameter("v3.Start Advanced");
 
 				ContentNetwork startupCN = ContentNetworkManagerFactory.getSingleton().getStartupContentNetwork();
 				if (!startupCN.isServiceSupported(ContentNetwork.SERVICE_WELCOME)) {
 					showWelcome = false;
 				}
 
-				if (showWelcome && !startAdv) {
+				if (showWelcome) {
 					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
 				} else {
-					if (showWelcome && startAdv) {
-						sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_WELCOME);
-					}
-					if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
-						startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
-					} else {
-						startTab = "ContentNetwork." + startupCN.getID();
-						ContentNetworkUtils.setSourceRef(startTab, "startup", false);
-					}
+					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
 				}
 				sidebar.showEntryByTabID(startTab);
 			}

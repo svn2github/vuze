@@ -40,7 +40,6 @@ public class TableColumnCreatorV3
 			boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
-			ColumnAzProduct.COLUMN_ID,
 			ColumnThumbnail.COLUMN_ID,
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
@@ -96,7 +95,6 @@ public class TableColumnCreatorV3
 
 	public static TableColumnCore[] createIncompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
-			ColumnAzProduct.COLUMN_ID,
 			ColumnThumbnail.COLUMN_ID,
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
@@ -174,7 +172,6 @@ public class TableColumnCreatorV3
 	public static TableColumnCore[] createCompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
-			ColumnAzProduct.COLUMN_ID,
 			ColumnThumbnail.COLUMN_ID,
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
@@ -396,11 +393,6 @@ public class TableColumnCreatorV3
 		c.put(ColumnActivityDate.COLUMN_ID, new cInfo(ColumnActivityDate.class, ac));
 
 		c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class,
-				new Class[] {
-					ac,
-					Download.class
-				}));
-		c.put(ColumnAzProduct.COLUMN_ID, new cInfo(ColumnAzProduct.class,
 				new Class[] {
 					ac,
 					Download.class
