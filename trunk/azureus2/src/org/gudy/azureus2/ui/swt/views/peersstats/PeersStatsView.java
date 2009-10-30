@@ -155,13 +155,18 @@ public class PeersStatsView
 				sb.append(overall.count);
 				sb.append(": ");
 
-				boolean first = true;
-				for (TableRowCore row : rows) {
-					PeersStatsDataSource stat = (PeersStatsDataSource) row.getDataSource();
-					if (stat == null) {
-						continue;
+				PeersStatsDataSource[] stats = mapData.values().toArray(new PeersStatsDataSource[0]);
+				Arrays.sort(stats, new Comparator<PeersStatsDataSource>() {
+					public int compare(PeersStatsDataSource o1, PeersStatsDataSource o2) {
+						if (o1.count == o2.count) {
+							return 0;
+						}
+						return o1.count > o2.count ? -1 : 1;
 					}
-					
+				});
+
+				boolean first = true;
+				for (PeersStatsDataSource stat : stats) {
 					int pct = (int) (stat.count * 1000 / overall.count);
 					if (pct < 10) {
 						continue;
@@ -175,6 +180,43 @@ public class PeersStatsView
 					sb.append(" ");
 					sb.append(stat.client);
 				}
+				
+				Arrays.sort(stats, new Comparator<PeersStatsDataSource>() {
+					public int compare(PeersStatsDataSource o1, PeersStatsDataSource o2) {
+						float v1 = (float)o1.bytesReceived / o1.count;
+						float v2 = (float)o2.bytesReceived / o2.count;
+						if (v1 == v2) {
+							return 0;
+						}
+						return v1 > v2 ? -1 : 1;
+					}
+				});
+				int top = 5;
+				first = true;
+				sb.append("\nBest Seeders (");
+				long total = 0;
+				for (PeersStatsDataSource stat : stats) {
+					total += stat.bytesReceived;
+				}
+				sb.append(DisplayFormatters.formatByteCountToKiBEtc(total, false, true, 0));
+				sb.append(" Downloaded): ");
+				for (PeersStatsDataSource stat : stats) {
+					if (first) {
+						first = false;
+					} else {
+						sb.append(", ");
+					}
+					sb.append(DisplayFormatters.formatByteCountToKiBEtc(stat.bytesReceived / stat.count, false, true, 0));
+					sb.append(" per " );
+					sb.append(stat.client);
+					sb.append("(x");
+					sb.append(stat.count);
+					sb.append(")");
+					if (--top <= 0) {
+						break;
+					}
+				}
+				
 				ClipboardCopy.copyToClipBoard(sb.toString());
 			}
 		});
@@ -401,9 +443,7 @@ public class PeersStatsView
 			}
 		}
 		if (ip == null) {
-			bloomId = new byte[8 + 4];
-			System.arraycopy(peerId, 0, bloomId, 0, 8);
-			System.arraycopy(peerId, 8, bloomId, 8, 4);
+			bloomId = peerId;
 		} else {
 			byte[] address = ip.getAddress();
 			bloomId = new byte[8 + address.length];
