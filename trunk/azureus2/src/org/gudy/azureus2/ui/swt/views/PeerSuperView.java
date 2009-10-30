@@ -89,9 +89,9 @@ public class PeerSuperView
 		tv.setRowDefaultHeight(16);
 		tv.setEnableTabViews(true);
 		tv.setCoreTabViews(new IView[] {
-			//new PeerInfoView(),
+			new PeerInfoView(),
 			new RemotePieceDistributionView(),
-			//new LoggerView(true)
+			new LoggerView(true)
 		});
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
