@@ -792,7 +792,7 @@ public class MyTorrentsView
 				}
 			});
 
-			final Menu menu = new Menu(getComposite().getShell(), SWT.POP_UP);
+			final Menu menu = new Menu(catButton.getShell(), SWT.POP_UP);
 
 			catButton.setMenu(menu);
 
