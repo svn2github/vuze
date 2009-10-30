@@ -95,6 +95,7 @@ class BTPeerIDByteDecoderUtils {
 		if (peer_id.substring(1, 3).equals("LH")) {return true;}
 		if (peer_id.substring(1, 3).equals("NE")) {return true;}
 		if (peer_id.substring(1, 3).equals("KT")) {return true;}
+		if (peer_id.substring(1, 3).equals("SP")) {return true;}
 		return false;
 	}
 	
