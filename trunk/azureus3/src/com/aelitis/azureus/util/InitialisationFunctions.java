@@ -62,7 +62,7 @@ public class InitialisationFunctions
 		
 		DownloadManagerEnhancer dme = DownloadManagerEnhancer.initialise(core);
 
-		registerTrackerURLExtensions();
+		hookDownloadAddition();
 
 		AzureusPlatformContentDirectory.register();
 
@@ -160,7 +160,7 @@ public class InitialisationFunctions
 	}
 
 	protected static void 
-	registerTrackerURLExtensions() 
+	hookDownloadAddition() 
 	{
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 
@@ -175,6 +175,17 @@ public class InitialisationFunctions
 				initialised(
 					Download 	download )
 				{
+						// unfortunately the has-been-opened state is updated by azureus when a user opens content
+						// but is also preserved across torrent export/import (e.g. when downloaded via magnet
+						// URL. So reset it here if it is found to be set
+					
+					org.gudy.azureus2.core3.download.DownloadManager dm = PluginCoreUtils.unwrap( download );
+					
+					if ( PlatformTorrentUtils.getHasBeenOpened( dm )){
+						
+						PlatformTorrentUtils.setHasBeenOpened( dm, false );
+					}
+					
 					register( download );
 				}
 			});
