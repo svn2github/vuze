@@ -178,6 +178,13 @@ public class DonationWindow
 
 		try {
 			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
+			browser.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					((Browser)e.widget).setUrl("about:blank");
+					((Browser)e.widget).setVisible(false);
+					while (!e.display.isDisposed() && e.display.readAndDispatch());
+				}
+			});
 		} catch (Throwable t) {
 			shell.dispose();
 			return;

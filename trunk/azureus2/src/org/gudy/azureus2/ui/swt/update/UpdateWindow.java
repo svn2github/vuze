@@ -29,6 +29,8 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -245,6 +247,13 @@ UpdateWindow
     
     try {
     	browser = new Browser(cInfoArea, Utils.getInitialBrowserStyle(SWT.BORDER));
+  		browser.addDisposeListener(new DisposeListener() {
+  			public void widgetDisposed(DisposeEvent e) {
+  				((Browser)e.widget).setUrl("about:blank");
+  				((Browser)e.widget).setVisible(false);
+  				while (!e.display.isDisposed() && e.display.readAndDispatch());
+  			}
+  		});
       fd = new FormData();
       fd.top = new FormAttachment(0, 0);
       fd.bottom = new FormAttachment(100, 0);

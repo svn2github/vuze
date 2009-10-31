@@ -326,26 +326,6 @@ public class MessageBoxShell
 		}
 		shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
 
-		shell.addListener(
-			SWT.Close,
-			new Listener()
-			{
-				public void 
-				handleEvent(
-					Event arg0) 
-				{
-					try{
-						if ( shell_browser != null ){
-						
-							shell_browser.setUrl( "about:blank" );
-							shell_browser.setVisible(false);
-						}
-					}catch( Throwable e ){
-						
-					}
-				}
-			});
-		
 		shell.addListener(SWT.Dispose, new Listener() {
 			public void handleEvent(Event event) {
 				if (iconImageID != null) {
@@ -410,6 +390,13 @@ public class MessageBoxShell
 			try {
 				final Browser browser = shell_browser = new Browser(shell,
 						Utils.getInitialBrowserStyle(SWT.NONE));
+				browser.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent e) {
+						((Browser)e.widget).setUrl("about:blank");
+						((Browser)e.widget).setVisible(false);
+						while (!e.display.isDisposed() && e.display.readAndDispatch());
+					}
+				});
 				if (url != null && url.length() > 0) {
 					browser.setUrl(url);
 				} else {

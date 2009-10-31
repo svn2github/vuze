@@ -22,6 +22,8 @@ package org.gudy.azureus2.ui.swt.shells;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
@@ -79,25 +81,13 @@ public class SimpleBrowserWindow
 		
 		try {
 			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
-			
-			shell.addListener(
-					SWT.Close,
-					new Listener()
-					{
-						public void 
-						handleEvent(
-							Event arg0) 
-						{
-							try{
-								if ( browser != null ){
-								
-									browser.setUrl( "about:blank" );
-									browser.setVisible(false);
-								}
-							}catch( Throwable e ){
-							}
-						}
-					});
+			browser.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					((Browser)e.widget).setUrl("about:blank");
+					((Browser)e.widget).setVisible(false);
+					while (!e.display.isDisposed() && e.display.readAndDispatch());
+				}
+			});
 		} catch (Throwable t) {
 			shell.dispose();
 			return;
