@@ -30,6 +30,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -1946,15 +1948,6 @@ SubscriptionManagerUI
 		}
 		
 		public void delete() {
-			// Fix/Hack for SWT Browser disposal bug + memory leak
-			if(mainBrowser != null && ! mainBrowser.isDisposed()) {
-				mainBrowser.setUrl("about:blank");
-				mainBrowser.setVisible(false);
-			}
-			if(detailsBrowser != null && ! detailsBrowser.isDisposed()) {
-				detailsBrowser.setUrl("about:blank");
-				detailsBrowser.setVisible(false);
-			}
 			super.delete();
 		}
 		
@@ -2106,6 +2099,13 @@ SubscriptionManagerUI
 		{
 			try{
 				mainBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
+				mainBrowser.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent e) {
+						((Browser)e.widget).setUrl("about:blank");
+						((Browser)e.widget).setVisible(false);
+						while (!e.display.isDisposed() && e.display.readAndDispatch());
+					}
+				});
 				BrowserContext context = 
 					new BrowserContext("browser-window"	+ Math.random(), mainBrowser, null, true);
 				
@@ -2154,6 +2154,13 @@ SubscriptionManagerUI
 				mainBrowser.setLayoutData(data);
 				
 				detailsBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
+				detailsBrowser.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent e) {
+						((Browser)e.widget).setUrl("about:blank");
+						((Browser)e.widget).setVisible(false);
+						while (!e.display.isDisposed() && e.display.readAndDispatch());
+					}
+				});
 				BrowserContext detailsContext = 
 					new BrowserContext("browser-window"	+ Math.random(), detailsBrowser, null, false);
 				detailsContext.addListener(new BrowserContext.loadingListener(){
@@ -2273,9 +2280,6 @@ SubscriptionManagerUI
 		{
 			if ( mainBrowser != null ){
 			
-				//OSX bug : browsers don't really get disposed
-				mainBrowser.setUrl("about:blank");
-				
 				mainBrowser.dispose();
 				
 				mainBrowser = null;
@@ -2283,9 +2287,6 @@ SubscriptionManagerUI
 			
 			if ( detailsBrowser != null ){
 				
-				//OSX bug : browsers don't really get disposed
-				detailsBrowser.setUrl("about:blank");
-			
 				detailsBrowser.dispose();
 
 				detailsBrowser = null;

@@ -239,6 +239,9 @@ public class SWTSkinObjectBrowser
 		if (browser != null && !browser.isDisposed()) {
 			browser.setVisible(false);
 			browser.setUrl("about:blank");
+			// ensure set url works
+			Display d = browser.getDisplay();
+			while (!d.isDisposed() && d.readAndDispatch());
 		}
 		super.dispose();
 	}

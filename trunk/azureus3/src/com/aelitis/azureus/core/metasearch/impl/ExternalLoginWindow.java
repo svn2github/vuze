@@ -102,6 +102,13 @@ public class ExternalLoginWindow {
 		}
 		
 		browser = new Browser(shell,Utils.getInitialBrowserStyle(SWT.BORDER));
+		browser.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				((Browser)e.widget).setUrl("about:blank");
+				((Browser)e.widget).setVisible(false);
+				while (!e.display.isDisposed() && e.display.readAndDispatch());
+			}
+		});
 		final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
 			public void cookiesFound(String cookies){
 				foundCookies( cookies, true );
@@ -374,10 +381,6 @@ public class ExternalLoginWindow {
 	public void close() {
 		Utils.execSWTThread(new Runnable() {
 			public void run() {
-				if(browser!=null && !browser.isDisposed()){
-					//OSX browser disposal bug -- workaround for limiting memory leak
-					browser.setUrl("about:blank");
-				}
 				shell.close();
 			}
 		});

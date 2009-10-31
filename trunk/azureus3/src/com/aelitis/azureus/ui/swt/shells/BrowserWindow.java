@@ -22,8 +22,7 @@ package com.aelitis.azureus.ui.swt.shells;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
@@ -121,6 +120,13 @@ public class BrowserWindow
 		
 		try {
 			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
+			browser.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					((Browser)e.widget).setUrl("about:blank");
+					((Browser)e.widget).setVisible(false);
+					while (!e.display.isDisposed() && e.display.readAndDispatch());
+				}
+			});
 		} catch (Throwable t) {
 			shell.dispose();
 			return;
