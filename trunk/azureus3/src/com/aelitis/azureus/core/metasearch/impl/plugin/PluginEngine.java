@@ -229,12 +229,12 @@ PluginEngine
 	
 	protected Result[] 
 	searchSupport(
-		SearchParameter[] 	params, 
-		Map					searchContext,
-		final int 			desired_max_matches,
-		final int			absolute_max_matches,
-		String 				headers, 
-		ResultListener 		listener )
+		SearchParameter[] 		params, 
+		Map						searchContext,
+		final int 				desired_max_matches,
+		final int				absolute_max_matches,
+		String 					headers, 
+		final ResultListener 	listener )
 	
 		throws SearchException 
 	{
@@ -273,7 +273,7 @@ PluginEngine
 		final String f_term = term;
 		
 		try{
-			final List	results = new ArrayList();
+			final List<PluginResult>	results = new ArrayList<PluginResult>();
 			
 			final AESemaphore	sem = new AESemaphore( "waiter" );
 
@@ -288,6 +288,8 @@ PluginEngine
 						SearchInstance 		search,
 						SearchResult 		result )
 					{
+						PluginResult p_result = new PluginResult( PluginEngine.this, result, f_term );
+						
 						synchronized( this ){
 							
 							if ( complete ){
@@ -295,8 +297,16 @@ PluginEngine
 								return;
 							}
 							
-							results.add( new PluginResult( PluginEngine.this, result, f_term ));
+							results.add( p_result );
+						}
+						
+						if ( listener != null ){
 							
+							listener.resultsReceived( PluginEngine.this, new Result[]{ p_result });
+						}
+						
+						synchronized( this ){
+
 							if ( absolute_max_matches >= 0 && results.size() >= absolute_max_matches ){
 								
 								complete = true;
@@ -332,6 +342,11 @@ PluginEngine
 				});
 			
 			sem.reserve();
+			
+			if ( listener != null ){
+				
+				listener.resultsComplete( this );
+			}
 			
 			return((Result[])results.toArray(new Result[results.size()]));
 			

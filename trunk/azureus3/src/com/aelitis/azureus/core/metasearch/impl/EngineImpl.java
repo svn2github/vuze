@@ -645,12 +645,12 @@ EngineImpl
 		
 	public Result[]
 	search(
-		SearchParameter[] 	params,
-		Map					context,
-		int					desired_max_matches,
-		int					absolute_max_matches,
-		String				headers,
-		ResultListener		listener )
+		SearchParameter[] 		params,
+		Map						context,
+		int						desired_max_matches,
+		int						absolute_max_matches,
+		String					headers,
+		final ResultListener	listener )
 	
 		throws SearchException
 	{
@@ -660,13 +660,99 @@ EngineImpl
 		}
 		
 		try{
-			Result[] results = searchAndMap( params, context, desired_max_matches, absolute_max_matches, headers, listener) ;
+			final Set<Result>		results_informed 	= new HashSet<Result>();
+			final boolean[]			complete_informed	= { false };
+			
+			ResultListener	interceptor = 
+				new ResultListener()
+				{
+					public void 
+					contentReceived(
+						Engine 		engine, 
+						String 		content )
+					{
+						listener.contentReceived(engine, content);
+					}
+				
+					public void 
+					matchFound( 
+						Engine engine, 
+						String[] fields )
+					{
+						listener.matchFound(engine, fields);
+					}
+				
+					public void 
+					resultsReceived(
+						Engine engine,
+						Result[] 	results )
+					{
+						listener.resultsReceived(engine, results);
+						
+						synchronized( results_informed ){
+							
+							results_informed.addAll( Arrays.asList( results ));
+						}
+					}
+				
+					public void 
+					resultsComplete(
+						Engine 		engine)
+					{
+						listener.resultsComplete(engine);
+						
+						synchronized( results_informed ){
+							
+							complete_informed[0] = true;
+						}
+					}
+				
+					public void 
+					engineFailed(
+						Engine 		engine, 
+						Throwable 	cause )
+					{
+						listener.engineFailed(engine, cause);
+					}
+					
+					public void 
+					engineRequiresLogin(
+						Engine 		engine, 
+						Throwable 	cause )
+					{
+						listener.engineRequiresLogin(engine, cause);
+					}
+				};
+				
+			Result[] results = searchAndMap( params, context, desired_max_matches, absolute_max_matches, headers, listener==null?null:interceptor );
 			
 			if ( listener != null ){
 				
-				listener.resultsReceived( this, results );
+				boolean			inform_complete;
+				List<Result>	inform_result = new ArrayList<Result>();
 				
-				listener.resultsComplete( this );
+				synchronized( results_informed ){
+					
+					for ( Result r: results ){
+						
+						if ( !results_informed.contains( r )){
+							
+							inform_result.add( r );
+						}
+					}
+					
+					inform_complete = !complete_informed[0];
+				}
+				
+				if ( inform_result.size() > 0 ){
+				
+					listener.resultsReceived( this, inform_result.toArray( new Result[ inform_result.size()] ));
+				}
+				
+				if ( inform_complete ){
+				
+					listener.resultsComplete( this );
+				}
 			}
 			
 			return( results );
