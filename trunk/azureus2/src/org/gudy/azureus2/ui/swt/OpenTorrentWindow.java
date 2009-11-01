@@ -1168,7 +1168,7 @@ public class OpenTorrentWindow
 		// Menu for tableTorrents
 
 		String sTitle;
-		Menu menu = new Menu(torrentTable);
+		Menu menu = new Menu(torrentTable.getShell());
 		MenuItem item;
 		sTitle = MessageText.getString("OpenTorrentWindow.startMode");
 
