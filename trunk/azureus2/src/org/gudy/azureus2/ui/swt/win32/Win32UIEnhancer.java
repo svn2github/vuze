@@ -43,7 +43,7 @@ import com.aelitis.azureus.core.drivedetector.*;
 public class Win32UIEnhancer
 {
 
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 
 	public static final int SHGFI_LARGEICON = 0x2;
 
@@ -77,7 +77,9 @@ public class Win32UIEnhancer
 
 	private static int OS_GWLP_WNDPROC;
 
-	private static Method mOS_memmove;
+	private static Method mOS_memmove_byte;
+
+	private static Method mOS_memmove_int;
 
 	static {
 		try {
@@ -105,8 +107,13 @@ public class Win32UIEnhancer
 
 				useLong = false;
 				
-				mOS_memmove = claOS.getMethod("memmove", new Class[] {
+				mOS_memmove_byte = claOS.getMethod("memmove", new Class[] {
 					byte[].class,
+					int.class,
+					int.class
+				});
+				mOS_memmove_int = claOS.getMethod("memmove", new Class[] {
+					int[].class,
 					int.class,
 					int.class
 				});
@@ -120,10 +127,15 @@ public class Win32UIEnhancer
 						});
 
 				useLong = true;
-				mOS_memmove = claOS.getMethod("memmove", new Class[] {
+				mOS_memmove_byte = claOS.getMethod("memmove", new Class[] {
 					byte[].class,
 					long.class,
 					int.class
+				});
+				mOS_memmove_int = claOS.getMethod("memmove", new Class[] {
+					int[].class,
+					int.class,
+					long.class
 				});
 			}
 
@@ -213,11 +225,19 @@ public class Win32UIEnhancer
 				case WM_DEVICECHANGE:
 					if (wParam == DBT_DEVICEARRIVAL) {
 						int[] st = new int[3];
-						mOS_memmove.invoke(null, new Object[] {
-							st,
-							useLong ? lParam : new Integer((int) lParam),
-							12
-						});
+						if (useLong) {
+  						mOS_memmove_int.invoke(null, new Object[] {
+  							st,
+  							lParam,
+  							(long) 12
+  						});
+						} else {
+  						mOS_memmove_int.invoke(null, new Object[] {
+  							st,
+  							(int) lParam,
+  							(int) 12
+  						});
+						}
 
 						if (DEBUG) {
 							System.out.println("Arrival: " + st[0] + "/" + st[1] + "/"
@@ -231,11 +251,19 @@ public class Win32UIEnhancer
 
 							byte b[] = new byte[st[0]];
 							
-							mOS_memmove.invoke(null, new Object[] {
-								b,
-								useLong ? Long.valueOf(lParam) : new Integer((int) lParam),
-								st[0]
-							});
+							if (useLong) {
+  							mOS_memmove_byte.invoke(null, new Object[] {
+  								b,
+  								lParam,
+  								(int) st[0]
+  							});
+							} else {
+  							mOS_memmove_byte.invoke(null, new Object[] {
+  								b,
+  								(int) lParam,
+  								(int) st[0]
+  							});
+							}
 							long unitMask = b[12] + (b[13] << 8) + (b[14] << 16)
 									+ (b[14] << 24);
 							char letter = '?';
@@ -255,11 +283,19 @@ public class Win32UIEnhancer
 
 					} else if (wParam == DBT_DEVICEREMOVECOMPLETE) {
 						int[] st = new int[3];
-						mOS_memmove.invoke(null, new Object[] {
-							st,
-							useLong ? lParam : new Integer((int) lParam),
-							12
-						});
+						if (useLong) {
+  						mOS_memmove_int.invoke(null, new Object[] {
+  							st,
+  							lParam,
+  							(long) 12
+  						});
+						} else {
+  						mOS_memmove_int.invoke(null, new Object[] {
+  							st,
+  							(int) lParam,
+  							(int) 12
+  						});
+						}
 
 						if (DEBUG) {
 							System.out.println("Remove: " + st[0] + "/" + st[1] + "/" + st[2]);
@@ -271,11 +307,19 @@ public class Win32UIEnhancer
 							}
 
 							byte b[] = new byte[st[0]];
-							mOS_memmove.invoke(null, new Object[] {
-								b,
-								useLong ? lParam : new Integer((int) lParam),
-								st[0]
-							});
+							if (useLong) {
+  							mOS_memmove_byte.invoke(null, new Object[] {
+  								b,
+  								lParam,
+  								(int) st[0]
+  							});
+							} else {
+  							mOS_memmove_byte.invoke(null, new Object[] {
+  								b,
+  								(int) lParam,
+  								(int) st[0]
+  							});
+							}
 							long unitMask = b[12] + (b[13] << 8) + (b[14] << 16)
 									+ (b[14] << 24);
 							char letter = '?';
