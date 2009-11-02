@@ -32,8 +32,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.FillLayout;
@@ -152,17 +150,10 @@ public class WelcomeWindow {
   public void _setWhatsNew() {
 
 		if (sWhatsNew.indexOf("<html") >= 0 || sWhatsNew.indexOf("<HTML") >= 0) {
-			try {
-				Browser browser = new Browser(cWhatsNew, Utils.getInitialBrowserStyle(SWT.NONE));
-				browser.addDisposeListener(new DisposeListener() {
-					public void widgetDisposed(DisposeEvent e) {
-						((Browser)e.widget).setUrl("about:blank");
-						((Browser)e.widget).setVisible(false);
-						while (!e.display.isDisposed() && e.display.readAndDispatch());
-					}
-				});
+			Browser browser = Utils.createSafeBrowser(cWhatsNew, SWT.NONE);
+			if (browser != null) {	
 				browser.setText(sWhatsNew);
-			} catch (Throwable t) {
+			} else {
 				try {
 					File tempFile = File.createTempFile("AZU", ".html");
 					tempFile.deleteOnExit();

@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
@@ -2189,5 +2190,21 @@ public class Utils
 	
 	public static void getOffOfSWTThread(AERunnable runnable) {
 		tp.run(runnable);
+	}
+	
+	public static Browser createSafeBrowser(Composite parent, int style) {
+		try {
+  		Browser browser = new Browser(parent, Utils.getInitialBrowserStyle(style));
+  		browser.addDisposeListener(new DisposeListener() {
+  			public void widgetDisposed(DisposeEvent e) {
+  				((Browser)e.widget).setUrl("about:blank");
+  				((Browser)e.widget).setVisible(false);
+  				while (!e.display.isDisposed() && e.display.readAndDispatch());
+  			}
+  		});
+  		return browser;
+		} catch (Throwable e) {
+		}
+		return null;
 	}
 }

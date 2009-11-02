@@ -113,22 +113,17 @@ public class FullUpdateWindow
 				}
 			});
 	
-			try {
-				browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
-				browser.addDisposeListener(new DisposeListener() {
-					public void widgetDisposed(DisposeEvent e) {
-						((Browser)e.widget).setUrl("about:blank");
-						((Browser)e.widget).setVisible(false);
-						while (!e.display.isDisposed() && e.display.readAndDispatch());
-					}
-				});
-			} catch (Throwable t) {
+			browser = Utils.createSafeBrowser(shell, SWT.NONE);
+			if (browser == null) {
 				shell.dispose();
 				return;
 			}
 	
 			browser.addTitleListener(new TitleListener() {
 				public void changed(TitleEvent event) {
+					if (shell == null || shell.isDisposed()) {
+						return;
+					}
 					shell.setText(event.title);
 				}
 			});
@@ -137,6 +132,9 @@ public class FullUpdateWindow
 				String last = null;
 	
 				public void changed(StatusTextEvent event) {
+					if (shell == null || shell.isDisposed()) {
+						return;
+					}
 					String text = event.text.toLowerCase();
 					if (last != null && last.equals(text)) {
 						return;

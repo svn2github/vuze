@@ -246,20 +246,15 @@ UpdateWindow
     link_area.getComponent().setLayoutData(fd);
     
     try {
-    	browser = new Browser(cInfoArea, Utils.getInitialBrowserStyle(SWT.BORDER));
-  		browser.addDisposeListener(new DisposeListener() {
-  			public void widgetDisposed(DisposeEvent e) {
-  				((Browser)e.widget).setUrl("about:blank");
-  				((Browser)e.widget).setVisible(false);
-  				while (!e.display.isDisposed() && e.display.readAndDispatch());
-  			}
-  		});
-      fd = new FormData();
-      fd.top = new FormAttachment(0, 0);
-      fd.bottom = new FormAttachment(100, 0);
-      fd.right = new FormAttachment(100, 0);
-      fd.left = new FormAttachment(0, 0);
-      browser.setLayoutData(fd);
+    	browser = Utils.createSafeBrowser(cInfoArea, SWT.BORDER);
+    	if (browser != null) {
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 0);
+        fd.bottom = new FormAttachment(100, 0);
+        fd.right = new FormAttachment(100, 0);
+        fd.left = new FormAttachment(0, 0);
+        browser.setLayoutData(fd);
+    	}
     } catch (Throwable t) {
     }
 

@@ -388,15 +388,7 @@ public class MessageBoxShell
 		if ((html != null && html.length() > 0)
 				|| (url != null && url.length() > 0)) {
 			try {
-				final Browser browser = shell_browser = new Browser(shell,
-						Utils.getInitialBrowserStyle(SWT.NONE));
-				browser.addDisposeListener(new DisposeListener() {
-					public void widgetDisposed(DisposeEvent e) {
-						((Browser)e.widget).setUrl("about:blank");
-						((Browser)e.widget).setVisible(false);
-						while (!e.display.isDisposed() && e.display.readAndDispatch());
-					}
-				});
+				final Browser browser = shell_browser = Utils.createSafeBrowser(shell, SWT.NONE);
 				if (url != null && url.length() > 0) {
 					browser.setUrl(url);
 				} else {
@@ -408,6 +400,9 @@ public class MessageBoxShell
 				browser.setLayoutData(gd);
 				browser.addProgressListener(new ProgressListener() {
 					public void completed(ProgressEvent event) {
+						if (shell == null || shell.isDisposed()) {
+							return;
+						}
 						browser.addLocationListener(new LocationListener() {
 							public void changing(LocationEvent event) {
 								event.doit = browser_follow_links;

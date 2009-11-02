@@ -79,16 +79,8 @@ public class SimpleBrowserWindow
 
 		Utils.setShellIcon(shell);
 		
-		try {
-			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
-			browser.addDisposeListener(new DisposeListener() {
-				public void widgetDisposed(DisposeEvent e) {
-					((Browser)e.widget).setUrl("about:blank");
-					((Browser)e.widget).setVisible(false);
-					while (!e.display.isDisposed() && e.display.readAndDispatch());
-				}
-			});
-		} catch (Throwable t) {
+		browser = Utils.createSafeBrowser(shell, SWT.NONE);
+		if (browser == null) {
 			shell.dispose();
 			return;
 		}
@@ -104,6 +96,9 @@ public class SimpleBrowserWindow
 
 		browser.addCloseWindowListener(new CloseWindowListener() {
 			public void close(WindowEvent event) {
+				if (shell == null || shell.isDisposed()) {
+					return;
+				}
 				shell.dispose();
 			}
 		});
@@ -111,6 +106,9 @@ public class SimpleBrowserWindow
 		browser.addTitleListener(new TitleListener() {
 
 			public void changed(TitleEvent event) {
+				if (shell == null || shell.isDisposed()) {
+					return;
+				}
 				shell.setText(event.title);
 			}
 
