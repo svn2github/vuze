@@ -41,7 +41,7 @@ import org.gudy.azureus2.core3.util.*;
 
 public class 
 DownloadRemoveRulesPlugin 
-	implements Plugin, DownloadManagerListener, HostNameToIPResolverListener
+	implements Plugin, DownloadManagerListener
 {
 	public static final int			INITIAL_DELAY			= 60*1000;
 	public static final int			DELAYED_REMOVAL_PERIOD	= 60*1000;
@@ -51,11 +51,8 @@ DownloadRemoveRulesPlugin
 	
 	public static final int			MAX_SEED_TO_PEER_RATIO	= 10;	// 10 to 1
 		
-	public static final String		AELITIS_HOST_CORE	= "aelitis.com";			// needs to be lowercase
-	public static final String		AELITIS_TRACKER		= "tracker.aelitis.com";	// needs to be lowercase
-	
-	protected String				aelitis_ip;
-	
+	public static final String		UPDATE_TRACKER		= "tracker.update.vuze.com";	// needs to be lowercase
+		
 	protected PluginInterface		plugin_interface;
 	protected boolean				closing;
 	
@@ -83,9 +80,7 @@ DownloadRemoveRulesPlugin
 		PluginInterface 	_plugin_interface )
 	{
 		plugin_interface	= _plugin_interface;
-		
-		HostNameToIPResolver.addResolverRequest( AELITIS_TRACKER, this );
-		
+				
 		log = plugin_interface.getLogger().getChannel("DLRemRules");
 
 		BasicPluginConfigModel	config = plugin_interface.getUIManager().createBasicPluginConfigModel( "torrents", "download.removerules.name" );
@@ -120,18 +115,6 @@ DownloadRemoveRulesPlugin
 				});
 	}
 	
-	public void
-	hostNameResolutionComplete(
-		InetAddress	address )
-	{
-			// resolution will fail if disconnected from net
-		
-		if ( address != null ){
-			
-			aelitis_ip	= address.getHostAddress();
-		}
-	}
-
 	public void
 	downloadAdded(
 		final Download	download )
@@ -250,13 +233,13 @@ DownloadRemoveRulesPlugin
 		
 			String	url_string = torrent.getAnnounceURL().toString().toLowerCase();
 			
-			if ( 	url_string.indexOf( AELITIS_HOST_CORE ) != -1 ||
-					( aelitis_ip != null && url_string.indexOf( aelitis_ip ) != -1 )){
+			if ( url_string.indexOf( UPDATE_TRACKER ) != -1 ){
 	
 					// emergency instruction from tracker
 				
-				if ( 	( download_completed && status.indexOf( "too many seeds" ) != -1 ) ||
-						status.indexOf( "too many peers" ) != -1 ){
+				if ( 	( download_completed && 
+							status.indexOf( "too many seeds" ) != -1 ) ||
+							status.indexOf( "too many peers" ) != -1 ){
 		
 					log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
 							"Download '" + download.getName()
