@@ -1241,10 +1241,14 @@ DownloadManagerStateImpl
 			if (fileInfo.length > 0) {
 				int idxBiggest = -1;
 				long lBiggest = -1;
-				for (int i = 0; i < fileInfo.length && i < 10; i++) {
-					if (!fileInfo[i].isSkipped() && fileInfo[i].getLength() > lBiggest) {
-						lBiggest = fileInfo[i].getLength();
-						idxBiggest = i;
+				int numChecked = 0;
+				for (int i = 0; i < fileInfo.length && numChecked < 10; i++) {
+					if (!fileInfo[i].isSkipped()) {
+						numChecked++;
+						if (fileInfo[i].getLength() > lBiggest) {
+  						lBiggest = fileInfo[i].getLength();
+  						idxBiggest = i;
+						}
 					}
 				}
 				if (idxBiggest >= 0) {
