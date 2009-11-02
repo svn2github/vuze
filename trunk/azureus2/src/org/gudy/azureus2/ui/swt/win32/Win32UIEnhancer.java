@@ -21,20 +21,17 @@
 package org.gudy.azureus2.ui.swt.win32;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.internal.Callback;
-import org.eclipse.swt.internal.win32.OS;
-import org.eclipse.swt.internal.win32.TCHAR;
+import org.eclipse.swt.internal.win32.*;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
 
-import com.aelitis.azureus.core.drivedetector.DriveDetectedInfo;
-import com.aelitis.azureus.core.drivedetector.DriveDetector;
-import com.aelitis.azureus.core.drivedetector.DriveDetectorFactory;
+import com.aelitis.azureus.core.drivedetector.*;
 
 /**
  * @author TuxPaper
@@ -48,129 +45,137 @@ public class Win32UIEnhancer
 
 	public static final boolean DEBUG = false;
 
+	public static final int SHGFI_LARGEICON = 0x2;
+
 	public static final int WM_DEVICECHANGE = 0x219;
 
 	public static final int DBT_DEVICEARRIVAL = 0x8000;
+
 	public static final int DBT_DEVICEREMOVECOMPLETE = 0x8004;
-	
+
 	public static final int DBT_DEVTYP_VOLUME = 0x2;
 
-	private static int messageProc;
+	private static int messageProcInt;
 
-	private static  Callback messageCallback;
+	private static long messageProcLong;
+
+	private static Object /* Callback */messageCallback;
 
 	private static DriveDetectedInfo loc;
 
-	static String findProgramKey(String extension) {
-		if (extension == null)
-			SWT.error(SWT.ERROR_NULL_ARGUMENT);
-		if (extension.length() == 0)
-			return null;
-		if (extension.charAt(0) != '.')
-			extension = "." + extension; //$NON-NLS-1$
-		/* Use the character encoding for the default locale */
-		TCHAR key = new TCHAR(0, extension, true);
-		int[] phkResult = new int[1];
-		if (OS.RegOpenKeyEx(OS.HKEY_CLASSES_ROOT, key, 0, OS.KEY_READ, phkResult) != 0) {
-			return null;
+	private static Class<?> claOS;
+
+	private static boolean useLong;
+
+	private static Class<?> claCallback;
+
+	private static Constructor<?> constCallBack;
+
+	private static Method mCallback_getAddress;
+
+	private static Method mSetWindowLongPtr;
+
+	private static int OS_GWLP_WNDPROC;
+
+	static {
+		try {
+			claOS = Class.forName("org.eclipse.swt.internal.win32.OS");
+
+			// public Callback (Object object, String method, int argCount)
+			claCallback = Class.forName("org.eclipse.swt.internal.Callback");
+			constCallBack = claCallback.getDeclaredConstructor(new Class[] {
+				Object.class,
+				String.class,
+				int.class
+			});
+			// public long /*int*/ getAddress ()
+			mCallback_getAddress = claCallback.getDeclaredMethod("getAddress",
+					new Class[] {});
+
+			try {
+				mSetWindowLongPtr = claOS.getDeclaredMethod("SetWindowLongPtr",
+						new Class[] {
+							long.class,
+							int.class,
+							int.class
+						});
+
+				useLong = false;
+			} catch (Exception e) {
+				mSetWindowLongPtr = claOS.getDeclaredMethod("SetWindowLongPtr",
+						new Class[] {
+							long.class,
+							int.class,
+							long.class
+						});
+
+				useLong = true;
+			}
+
+			//OS.GWLP_WNDPROC
+			OS_GWLP_WNDPROC = ((Integer) claOS.getField("GWLP_WNDPROC").get(null)).intValue();
+		} catch (Throwable e) {
+			e.printStackTrace();
 		}
-		int[] lpcbData = new int[1];
-		int result = OS.RegQueryValueEx(phkResult[0], null, 0, null, (TCHAR) null,
-				lpcbData);
-		if (result == 0) {
-			TCHAR lpData = new TCHAR(0, lpcbData[0] / TCHAR.sizeof);
-			result = OS.RegQueryValueEx(phkResult[0], null, 0, null, lpData, lpcbData);
-			if (result == 0)
-				return lpData.toString(0, lpData.strlen());
+	}
+
+	public static Image getFileIcon(File file, boolean big) {
+		int flags = OS.SHGFI_ICON;
+		flags |= big ? SHGFI_LARGEICON : OS.SHGFI_SMALLICON;
+		if (!file.exists()) {
+			flags |= OS.SHGFI_USEFILEATTRIBUTES;
 		}
-		OS.RegCloseKey(phkResult[0]);
+		SHFILEINFO shfi = OS.IsUnicode ? (SHFILEINFO) new SHFILEINFOW()
+				: new SHFILEINFOA();
+		TCHAR pszPath = new TCHAR(0, file.getAbsolutePath(), true);
+		OS.SHGetFileInfo(pszPath, file.isDirectory() ? 16
+				: OS.FILE_ATTRIBUTE_NORMAL, shfi, SHFILEINFO.sizeof, flags);
+		if (shfi.hIcon != 0) {
+			Image image = Image.win32_new(null, SWT.ICON, shfi.hIcon);
+			return image;
+		}
+
 		return null;
 	}
 
-    public static ImageData getBigImageData(String extension) {
-		String key = findProgramKey(extension);
-		if (key == null) {
-			return null;
-		}
-
-		/* Icon */
-		String DEFAULT_ICON = "\\DefaultIcon"; //$NON-NLS-1$
-		String iconName = getKeyValue(key + DEFAULT_ICON, true);
-		if (iconName == null)
-			iconName = ""; //$NON-NLS-1$
-
-		int nIconIndex = 0;
-		String fileName = iconName;
-		int index = iconName.indexOf(',');
-		if (index != -1) {
-			fileName = iconName.substring(0, index);
-			String iconIndex = iconName.substring(index + 1, iconName.length()).trim();
-			try {
-				nIconIndex = Integer.parseInt(iconIndex);
-			} catch (NumberFormatException e) {
-			}
-		}
-		/* Use the character encoding for the default locale */
-		TCHAR lpszFile = new TCHAR(0, fileName, true);
-		int[] phiconSmall = null, phiconLarge = new int[1];
-		OS.ExtractIconEx(lpszFile, nIconIndex, phiconLarge, phiconSmall, 1);
-		if (phiconLarge[0] == 0) {
-			return null;
-		}
-		Image image = Image.win32_new(null, SWT.ICON, phiconLarge[0]);
-		ImageData imageData = image.getImageData();
-		image.dispose();
-		return imageData;
-	}
-
-	static String getKeyValue(String string, boolean expand) {
-		/* Use the character encoding for the default locale */
-		TCHAR key = new TCHAR(0, string, true);
-		int[] phkResult = new int[1];
-		if (OS.RegOpenKeyEx(OS.HKEY_CLASSES_ROOT, key, 0, OS.KEY_READ, phkResult) != 0) {
-			return null;
-		}
-		String result = null;
-		int[] lpcbData = new int[1];
-		if (OS.RegQueryValueEx(phkResult[0], (TCHAR) null, 0, null, (TCHAR) null,
-				lpcbData) == 0) {
-			result = "";
-			int length = lpcbData[0] / TCHAR.sizeof;
-			if (length != 0) {
-				/* Use the character encoding for the default locale */
-				TCHAR lpData = new TCHAR(0, length);
-				if (OS.RegQueryValueEx(phkResult[0], null, 0, null, lpData, lpcbData) == 0) {
-					if (!OS.IsWinCE && expand) {
-						length = OS.ExpandEnvironmentStrings(lpData, null, 0);
-						if (length != 0) {
-							TCHAR lpDst = new TCHAR(0, length);
-							OS.ExpandEnvironmentStrings(lpData, lpDst, length);
-							result = lpDst.toString(0, Math.max(0, length - 1));
-						}
-					} else {
-						length = Math.max(0, lpData.length() - 1);
-						result = lpData.toString(0, length);
-					}
-				}
-			}
-		}
-		if (phkResult[0] != 0)
-			OS.RegCloseKey(phkResult[0]);
-		return result;
-	}
-	
 	public static void initMainShell(Shell shell) {
 		//Canvas canvas = new Canvas(shell, SWT.NO_BACKGROUND | SWT.NO_TRIM);
 		//canvas.setVisible(false);
 		Shell subshell = new Shell(shell);
-		
 
-		messageCallback = new Callback (Win32UIEnhancer.class, "messageProc2", 4);
-		messageProc = messageCallback.getAddress ();
-		if (messageProc != 0) {
-			OS.SetWindowLongPtr (subshell.handle, OS.GWLP_WNDPROC, messageProc);
+		try {
+			messageCallback = constCallBack.newInstance(new Object[] {
+				Win32UIEnhancer.class,
+				"messageProc2",
+				4
+			});
+
+			if (useLong) {
+				Number n = (Number) mCallback_getAddress.invoke(messageCallback,
+						new Object[] {});
+				messageProcLong = n.longValue();
+				if (messageProcLong != 0) {
+					mSetWindowLongPtr.invoke(null, new Object[] {
+						subshell.handle,
+						OS_GWLP_WNDPROC,
+						messageProcLong
+					});
+				}
+			} else {
+				Number n = (Number) mCallback_getAddress.invoke(messageCallback,
+						new Object[] {});
+				messageProcInt = n.intValue();
+				if (messageProcInt != 0) {
+					mSetWindowLongPtr.invoke(null, new Object[] {
+						subshell.handle,
+						OS_GWLP_WNDPROC,
+						messageProcInt
+					});
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
-		
 
 		File[] drives = AEWin32Manager.getAccessor(false).getUSBDrives();
 		if (drives != null) {
@@ -182,6 +187,11 @@ public class Win32UIEnhancer
 
 	static int /*long*/messageProc2(int /*long*/hwnd, int /*long*/msg,
 			int /*long*/wParam, int /*long*/lParam) {
+		return (int) messageProc2(hwnd, msg, (long) wParam, (long) lParam);
+	}
+
+	static long /*int*/messageProc2(long /*int*/hwnd, long /*int*/msg,
+			long /*int*/wParam, long /*int*/lParam) {
 		try {
 			// I'll clean this up soon
 			switch ((int) /*64*/msg) {
@@ -191,7 +201,8 @@ public class Win32UIEnhancer
 						OS.memmove(st, lParam, 12);
 
 						if (DEBUG) {
-							System.out.println("Arrival: " + st[0] + "/" + st[1] + "/" + st[2]);
+							System.out.println("Arrival: " + st[0] + "/" + st[1] + "/"
+									+ st[2]);
 						}
 
 						if (st[1] == DBT_DEVTYP_VOLUME) {

@@ -53,7 +53,7 @@ public class ImageRepository
 		".exe"
 	};
 
-	private static final boolean forceNoAWT = Constants.isOSX;
+	private static final boolean forceNoAWT = Constants.isOSX || Constants.isWindows;
 
 	/**public*/
 	static void addPath(String path, String id) {
@@ -75,7 +75,7 @@ public class ImageRepository
 	   *
 	   * @param program the Program
 	   */
-	public static Image getIconFromExtension(String ext, boolean bBig,
+	public static Image getIconFromExtension(File file, String ext, boolean bBig,
 			boolean minifolder) {
 		Image image = null;
 
@@ -97,16 +97,28 @@ public class ImageRepository
 
 			ImageData imageData = null;
 
-			if (Constants.isWindows && bBig) {
+			if (Constants.isWindows) {
 				try {
+					//Image icon = Win32UIEnhancer.getFileIcon(new File(path), big);
+					
 					Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.win32.Win32UIEnhancer");
-					Method method = ehancerClass.getMethod("getBigImageData",
+					Method method = ehancerClass.getMethod("getFileIcon",
 							new Class[] {
-								String.class
+								File.class,
+								boolean.class
 							});
-					imageData = (ImageData) method.invoke(null, new Object[] {
-						ext
+					image = (Image) method.invoke(null, new Object[] {
+						file,
+						bBig
 					});
+					if (image != null) {
+						if (!bBig)
+							image = force16height(image);
+						if (minifolder)
+							image = minifolderize(file.getParent(), image, bBig);
+						ImageLoader.getInstance().addImageNoDipose(key, image);
+						return image;
+					}
 				} catch (Exception e) {
 					Debug.printStackTrace(e);
 				}
@@ -124,7 +136,7 @@ public class ImageRepository
 				if (!bBig)
 					image = force16height(image);
 				if (minifolder)
-					image = minifolderize(image, bBig);
+					image = minifolderize(file.getParent(), image, bBig);
 
 				ImageLoader.getInstance().addImageNoDipose(key, image);
 			}
@@ -139,8 +151,8 @@ public class ImageRepository
 		return image;
 	}
 
-	private static Image minifolderize(Image img, boolean big) {
-		Image imgFolder = getImage(big ? "folder" : "foldersmall");
+	private static Image minifolderize(String path, Image img, boolean big) {
+		Image imgFolder =  getImage(big ? "folder" : "foldersmall");
 		Rectangle folderBounds = imgFolder.getBounds();
 		Rectangle dstBounds = img.getBounds();
 		Image tempImg = Utils.renderTransparency(Display.getCurrent(), img,
@@ -181,7 +193,7 @@ public class ImageRepository
 	}
 
 	/**
-	* <p>Gets a small-sized iconic representation of the file or directory at the path</p>
+	* <p>Gets an iconic representation of the file or directory at the path</p>
 	* <p>For most platforms, the icon is a 16x16 image; weak-referencing caching is used to avoid abundant reallocation.</p>
 	* @param path Absolute path to the file or directory
 	* @return The image
@@ -206,6 +218,9 @@ public class ImageRepository
 			String key;
 			if (file.isDirectory()) {
 				if (noAWT) {
+					if (Constants.isWindows) {
+						return getIconFromExtension(file, "-folder", bBig, false);
+					}
 					return getImage("folder");
 				}
 
@@ -224,7 +239,7 @@ public class ImageRepository
 					key = ext;
 					
 					if (noAWT)
-						return getIconFromExtension(ext, bBig, minifolder);
+						return getIconFromExtension(file, ext, bBig, minifolder);
 
 					// case-insensitive file systems
 					for (int i = 0; i < noCacheExtList.length; i++) {
@@ -296,7 +311,7 @@ public class ImageRepository
 					image = force16height(image);
 				}
 				if (minifolder)
-					image = minifolderize(image, bBig);
+					image = minifolderize(file.getParent(), image, bBig);
 
 				
 				ImageLoader.getInstance().addImageNoDipose(key, image);
@@ -320,7 +335,7 @@ public class ImageRepository
 			return getImage("folder");
 		}
 
-		return getIconFromExtension(ext, bBig, minifolder);
+		return getIconFromExtension(file, ext, bBig, minifolder);
 	}
 
 	public static void main(String[] args) {
