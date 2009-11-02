@@ -35,28 +35,26 @@ Constants
 {
   public static final String EMPTY_STRING = "";
   public static final String SF_WEB_SITE			= "http://azureus.sourceforge.net/";
-  //public static final String AELITIS_WEB_SITE   	= "http://azureus.aelitis.com/";  
-  //public static final String GETAZUREUS_WEB_SITE	= "http://www.getazureus.com/";
-  
-  public static final String AELITIS_TORRENTS		= "http://torrents.aelitis.com:88/torrents/";
-  public static final String AELITIS_FILES			= "http://torrents.aelitis.com:88/files/";
+ 
+  public static final String AELITIS_TORRENTS		= "http://torrent.vuze:88/torrents/";
+  public static final String AELITIS_FILES			= "http://torrent.vuze.com:88/files/";
   public static final String AZUREUS_WIKI 			= "http://wiki.vuze.com/index.php/";
   
-  public static final String  VERSION_SERVER_V4 	= "version.azureusplatform.com";
-  public static final String  VERSION_SERVER_V6 	= "version6.azureusplatform.com";
+  public static final String  VERSION_SERVER_V4 	= "version.vuze.com";
+  public static final String  VERSION_SERVER_V6 	= "version6.vuze.com";
 
-  public static final String DHT_SEED_ADDRESS_V4	= "dht.aelitis.com";
-  public static final String DHT_SEED_ADDRESS_V6	= "dht6.azureusplatform.com";
+  public static final String DHT_SEED_ADDRESS_V4	= "dht.vuze.com";
+  public static final String DHT_SEED_ADDRESS_V6	= "dht6.vuze.com";
   
-  public static final String NAT_TEST_SERVER		= "nettest.azureusplatform.com";
-  public static final String NAT_TEST_SERVER_HTTP	= "http://nettest.azureusplatform.com/";
+  public static final String NAT_TEST_SERVER		= "nettest.vuze.com";
+  public static final String NAT_TEST_SERVER_HTTP	= "http://nettest.vuze.com/";
    
-  public static final String SPEED_TEST_SERVER		= "speed.azureusplatform.com";
+  public static final String SPEED_TEST_SERVER		= "speedtest.vuze.com";
   
   public static final String PAIRING_URL			= "http://pair.vuze.com/pairing";
 
   
-  public static final String[] AZUREUS_DOMAINS = { "azureusplatform.com", "azureus.com", "aelitis.com", "vuze.com" };
+  public static final String[] AZUREUS_DOMAINS = { "vuze.com" };
   
   public static final String DEFAULT_ENCODING 	= "UTF8";
   public static final String BYTE_ENCODING 		= "ISO-8859-1";
