@@ -382,6 +382,10 @@ public class PlatformTorrentUtils
 		return getContentMapString(torrent, TOR_AZ_PROP_THUMBNAIL_URL);
 	}
 
+	public static void setContentThumbnailUrl(TOTorrent torrent, String url) {
+		setContentMapString(torrent, TOR_AZ_PROP_THUMBNAIL_URL, url);
+	}
+	
 	public static void setContentThumbnail(TOTorrent torrent, byte[] thumbnail) {
 		Map mapContent = getContentMap(torrent);
 		putOrRemove(mapContent, TOR_AZ_PROP_THUMBNAIL, thumbnail);
