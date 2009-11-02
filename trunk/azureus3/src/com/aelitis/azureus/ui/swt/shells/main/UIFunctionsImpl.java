@@ -52,7 +52,7 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
-import org.gudy.azureus2.ui.swt.views.peersstats.PeersStatsView;
+import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
@@ -530,7 +530,7 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_PEERS_STATS:
-				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, PeersStatsView.class,
+				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, ClientStatsView.class,
 						null, data, true);
 				break;
 

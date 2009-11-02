@@ -462,7 +462,7 @@ public class MainMenu
 
 		MenuFactory.addTransferBarToMenu(toolsMenu);
 		MenuFactory.addAllPeersMenuItem(toolsMenu);
-		MenuFactory.addPeersStatsMenuItem(toolsMenu);
+		MenuFactory.addClientStatsMenuItem(toolsMenu);
 		MenuFactory.addBlockedIPsMenuItem(toolsMenu);
 
 		MenuFactory.addSeparatorMenuItem(toolsMenu);
