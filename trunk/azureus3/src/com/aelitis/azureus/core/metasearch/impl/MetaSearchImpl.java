@@ -718,6 +718,10 @@ MetaSearchImpl
 			param_str += (i==0?"":",") + param.getMatchPattern() + "->" + param.getValue();
 		}
 		
+		String batch_millis_str = context.get( Engine.SC_BATCH_PERIOD );
+		
+		final long batch_millis = batch_millis_str==null?0:Long.parseLong( batch_millis_str );
+		
 		ResultListener	listener = 
 			new ResultListener()
 			{
@@ -725,6 +729,8 @@ MetaSearchImpl
 			
 				private AsyncDispatcher dispatcher = new AsyncDispatcher( 5000 );
 
+				final private Map<Engine,List<Result[]>>	pending_results = new HashMap<Engine,List<Result[]>>();
+				
 				public void 
 				contentReceived(
 					final Engine engine, 
@@ -768,9 +774,52 @@ MetaSearchImpl
 							public void
 							runSupport()
 							{
-								Result[] results_to_return = truncateResults( engine, results, max_results_per_engine );
+								Result[] results_to_return = null;
 								
-								original_listener.resultsReceived( engine, results_to_return );
+								if ( batch_millis > 0 ){
+									
+									List<Result[]> list = pending_results.get( engine );
+																		
+									if ( list == null ){
+																			
+										results_to_return = results;
+										
+										pending_results.put( engine, new ArrayList<Result[]>());
+										
+										new DelayedEvent(
+											"SearchBatcher",
+											batch_millis,
+											new AERunnable()
+											{
+												public void 
+												runSupport() 
+												{
+													dispatcher.dispatch(
+														new AERunnable()
+														{
+															public void 
+															runSupport() 
+															{
+																batchResultsComplete( engine );
+															}
+														});
+												}
+											});
+									}else{
+																															
+										list.add( results );
+									}
+								}else{
+								
+									results_to_return = results;
+								}
+								
+								if ( results_to_return != null ){
+									
+									results_to_return = truncateResults( engine, results_to_return, max_results_per_engine );
+									
+									original_listener.resultsReceived( engine, results_to_return );
+								}
 							}
 						});
 				}
@@ -785,11 +834,39 @@ MetaSearchImpl
 								public void
 								runSupport()
 								{
+									if ( batch_millis > 0 ){
+
+										batchResultsComplete( engine );
+									}
+									
 									original_listener.resultsComplete( engine );
 								}
 							});
 				}
 			
+				protected void
+				batchResultsComplete(
+					Engine engine )
+				{
+					List<Result[]> list = pending_results.remove( engine );
+					
+					if ( list != null ){
+						
+						List<Result> x = new ArrayList<Result>();
+						
+						for ( Result[] y: list ){
+							
+							x.addAll( Arrays.asList( y ));
+						}
+						
+						Result[] results = x.toArray( new Result[ x.size()]);
+					
+						results = truncateResults( engine, results, max_results_per_engine );
+					
+						original_listener.resultsReceived( engine, results );
+					}
+				}
+				
 				public void 
 				engineFailed(
 					final Engine 	engine,

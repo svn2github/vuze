@@ -1941,6 +1941,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 		
 		context.put( Engine.SC_FORCE_FULL, "true" );
 		
+		context.put( Engine.SC_BATCH_PERIOD, "1000" );
+		
 		if ( target == null ){
 		
 			metaSearchManager.getMetaSearch().search( listener, parameters, headers, context, max_per_engine );
