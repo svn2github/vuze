@@ -3,6 +3,8 @@ package org.gudy.azureus2.ui.swt.osx;
 import java.lang.reflect.*;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.internal.C;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -122,6 +124,10 @@ public class CocoaUIEnhancer
 	private static Class<?> nsstringCls = classForName("org.eclipse.swt.internal.cocoa.NSString");
 	private static Class<?> swtmenuitemCls = classForName("org.eclipse.swt.internal.cocoa.SWTMenuItem");
 	private static Class<?> nsidCls = classForName("org.eclipse.swt.internal.cocoa.id");
+	private static Class<?> nsautoreleasepoolCls = classForName("org.eclipse.swt.internal.cocoa.NSAutoreleasePool");
+	private static Class<?> nsworkspaceCls = classForName("org.eclipse.swt.internal.cocoa.NSWorkspace");
+	private static Class<?> nsimageCls = classForName("org.eclipse.swt.internal.cocoa.NSImage");
+	private static Class<?> nssizeCls = classForName("org.eclipse.swt.internal.cocoa.NSSize");
 
 	static {
 		Class<CocoaUIEnhancer> clazz = CocoaUIEnhancer.class;
@@ -329,6 +335,16 @@ public class CocoaUIEnhancer
 				else
 					signature[i] = thisClass;
 			}
+			Method method = clazz.getMethod(methodName, signature);
+			return method.invoke(target, args);
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	private static Object invoke(Class<?> clazz, Object target,
+			String methodName, Class[] signature, Object[] args) {
+		try {
 			Method method = clazz.getMethod(methodName, signature);
 			return method.invoke(target, args);
 		} catch (Exception e) {
@@ -752,6 +768,70 @@ public class CocoaUIEnhancer
 		invoke(nsbuttonCls, toolbarButton, "setAction", new Object[] {
 			wrapPointer(sel_toolbarButtonClicked_)
 		});
+	}
+
+	// from Program.getImageData, except returns bigger images
+	public static Image getFileIcon (String path, int imageWidthHeight) {
+		Object pool = null;
+		try {
+			//NSAutoreleasePool pool = (NSAutoreleasePool) new NSAutoreleasePool().alloc().init();
+			pool = nsautoreleasepoolCls.newInstance();
+			Object delegateAlloc = invoke(pool, "alloc");
+			invoke(delegateAlloc, "init");
+
+			//NSWorkspace workspace = NSWorkspace.sharedWorkspace();
+			Object workspace = invoke(nsworkspaceCls, "sharedWorkspace", new Object[] {});
+			//NSString fullPath = NSString.stringWith(path);
+			Object fullPath = invoke(nsstringCls, "stringWith", new Object[] {
+				path
+			});
+			if (fullPath != null) {
+				// SWT also had a :
+				// fullPath = workspace.fullPathForApplication(NSString.stringWith(name));
+				// which might be handy someday, but for now, full path works
+
+				//NSImage nsImage = workspace.iconForFile(fullPath);
+				Object nsImage = invoke(workspace, "iconForFile", new Class[] {
+					nsstringCls
+				}, new Object[] {
+					fullPath
+				});
+				if (nsImage != null) {
+					//NSSize size = new NSSize();
+					Object size = nssizeCls.newInstance();
+					//size.width = size.height = imageWidthHeight;
+					nssizeCls.getField("width").set(size, imageWidthHeight);
+					nssizeCls.getField("height").set(size, imageWidthHeight);
+					//nsImage.setSize(size);
+					invoke(nsImage, "setSize", new Class[] {
+						nssizeCls
+					}, new Object[] {
+						size
+					});
+					//nsImage.retain();
+					invoke(nsImage, "retain");
+					//Image image = Image.cocoa_new(Display.getCurrent(), SWT.BITMAP, nsImage);
+					Image image = (Image) invoke(Image.class, null, "cocoa_new",
+							new Class[] {
+								Device.class,
+								int.class,
+								nsimageCls
+							}, new Object[] {
+								Display.getCurrent(),
+								SWT.BITMAP,
+								nsImage
+							});
+				return image;
+				}
+			}
+		} catch (Throwable t) {
+			Debug.printStackTrace(t);
+		} finally {
+			if (pool != null) {
+				invoke(pool, "release");
+			}
+		}
+		return null;
 	}
 
 }
