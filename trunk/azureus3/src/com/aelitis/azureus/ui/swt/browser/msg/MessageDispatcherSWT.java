@@ -160,11 +160,17 @@ public class MessageDispatcherSWT
 	 * @see org.eclipse.swt.browser.StatusTextListener#changed(org.eclipse.swt.browser.StatusTextEvent)
 	 */
 	public void changed(StatusTextEvent event) {
+		if (event.widget.isDisposed() || ((Browser) event.widget).getShell().isDisposed()) {
+			return;
+		}
 		processIncomingMessage(event.text, ((Browser) event.widget).getUrl());
 	}
 
 	// @see org.eclipse.swt.browser.TitleListener#changed(org.eclipse.swt.browser.TitleEvent)
 	public void changed(TitleEvent event) {
+		if (event.widget.isDisposed() || ((Browser) event.widget).getShell().isDisposed()) {
+			return;
+		}
 		processIncomingMessage(event.title, ((Browser) event.widget).getUrl());
 	}
 
@@ -252,8 +258,7 @@ public class MessageDispatcherSWT
 	public boolean isValidSequence(BrowserMessage message) {
 		int sequence = message.getSequence();
 		if (sequence < 0) {
-			Debug.outNoStack("Invalid sequence number: " + sequence);
-			return false;
+			return true;
 		}
 
 		if (sequence <= lastSequence) {

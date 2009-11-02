@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -116,6 +117,24 @@ public class BrowserContext
 		browser 				= _browser;
 		forceVisibleAfterLoad 	= _forceVisibleAfterLoad;
 		widgetWaitIndicator 	= _widgetWaitingIndicator;
+		
+		BrowserFunction browserFunction = new BrowserFunction(browser, "sendMessageToClient") {
+			// @see org.eclipse.swt.browser.BrowserFunction#function(java.lang.Object[])
+			public Object function(Object[] arguments) {
+				if (arguments == null) {
+					debug("sendMessageToClient: arguments null on " + browser.getUrl());
+					return null;
+				}
+				if (arguments.length != 3) {
+					debug("sendMessageToClient: # arguments not 3 (" + arguments.length + ") on " + browser.getUrl());
+					return null;
+				}
+
+				BrowserMessage message = new BrowserMessage((String) arguments[0], (String) arguments[1], (Map<?, ?>) arguments[2]);
+				messageDispatcherSWT.dispatch(message);
+				return null;
+			}
+		};
 
 		// System.out.println( "Registered browser context: id=" + getID());
 		
@@ -193,7 +212,7 @@ public class BrowserContext
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
-				if(true == browser.isDisposed()){
+				if (browser.isDisposed() || browser.getShell().isDisposed()) {
 					return;
 				}
 				
@@ -217,7 +236,7 @@ public class BrowserContext
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
-				if(true == browser.isDisposed()){
+				if (browser.isDisposed() || browser.getShell().isDisposed()) {
 					return;
 				}
 				
@@ -259,6 +278,9 @@ public class BrowserContext
 		
 		browser.addOpenWindowListener(new OpenWindowListener() {
 			public void open(WindowEvent event) {
+				if (browser.isDisposed() || browser.getShell().isDisposed()) {
+					return;
+				}
 				event.required = true;
 				
 				if (browser.getUrl().contains("js.debug=1")) {
@@ -302,6 +324,9 @@ public class BrowserContext
 			private TimerEvent timerevent;
 
 			public void changed(LocationEvent event) {
+				if (browser.isDisposed() || browser.getShell().isDisposed()) {
+					return;
+				}
 				debug("browser.changed " + event.location);
 				if (timerevent != null) {
 					timerevent.cancel();
@@ -338,8 +363,7 @@ public class BrowserContext
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
-				
-				if ( browser.isDisposed()){
+				if (browser.isDisposed() || browser.getShell().isDisposed()) {
 					return;
 				}
 				

@@ -116,21 +116,7 @@ public class BrowserWindow
 		});
 
 
-		browser = null;
-		
-		try {
-			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
-			browser.addDisposeListener(new DisposeListener() {
-				public void widgetDisposed(DisposeEvent e) {
-					((Browser)e.widget).setUrl("about:blank");
-					((Browser)e.widget).setVisible(false);
-					while (!e.display.isDisposed() && e.display.readAndDispatch());
-				}
-			});
-		} catch (Throwable t) {
-			shell.dispose();
-			return;
-		}
+		browser = Utils.createSafeBrowser(shell, SWT.NONE);
 		
 		if (browser == null) {
 			shell.dispose();
@@ -146,6 +132,9 @@ public class BrowserWindow
 
 		browser.addProgressListener(new ProgressListener() {
 			public void completed(ProgressEvent event) {
+				if (browser.isDisposed() || browser.getShell().isDisposed()) {
+					return;
+				}
 				shell.open();
 			}
 
@@ -155,6 +144,9 @@ public class BrowserWindow
 
 		browser.addCloseWindowListener(new CloseWindowListener() {
 			public void close(WindowEvent event) {
+				if (browser.isDisposed() || browser.getShell().isDisposed()) {
+					return;
+				}
 				context.debug("window.close called");
 				shell.dispose();
 			}
@@ -163,6 +155,9 @@ public class BrowserWindow
 		browser.addTitleListener(new TitleListener() {
 
 			public void changed(TitleEvent event) {
+				if (browser.isDisposed() || browser.getShell().isDisposed()) {
+					return;
+				}
 				shell.setText(event.title);
 			}
 
@@ -170,6 +165,9 @@ public class BrowserWindow
 		
 		browser.addStatusTextListener(new StatusTextListener() {
 			public void changed(StatusTextEvent event) {
+				if (browser.isDisposed() || browser.getShell().isDisposed()) {
+					return;
+				}
 				if(MessageBoxShell.STATUS_TEXT_CLOSE.equals(event.text)) {
 					//For some reason disposing the shell / browser in the same Thread makes
 					//ieframe.dll crash on windows.

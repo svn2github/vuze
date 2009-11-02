@@ -235,17 +235,6 @@ public class SWTSkinObjectBrowser
 		cParent.layout();
 	}
 	
-	public void dispose() {
-		if (browser != null && !browser.isDisposed()) {
-			browser.setVisible(false);
-			browser.setUrl("about:blank");
-			// ensure set url works
-			Display d = browser.getDisplay();
-			while (!d.isDisposed() && d.readAndDispatch());
-		}
-		super.dispose();
-	}
-
 	public BrowserContext getContext() {
 		return context;
 	}

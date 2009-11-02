@@ -101,14 +101,11 @@ public class ExternalLoginWindow {
 			explain.setText(MessageText.getString("externalLogin.explanation", new String[]{ name }));
 		}
 		
-		browser = new Browser(shell,Utils.getInitialBrowserStyle(SWT.BORDER));
-		browser.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				((Browser)e.widget).setUrl("about:blank");
-				((Browser)e.widget).setVisible(false);
-				while (!e.display.isDisposed() && e.display.readAndDispatch());
-			}
-		});
+		browser = Utils.createSafeBrowser(shell, SWT.BORDER);
+		if (browser == null) {
+			shell.dispose();
+			return;
+		}
 		final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
 			public void cookiesFound(String cookies){
 				foundCookies( cookies, true );
@@ -243,6 +240,9 @@ public class ExternalLoginWindow {
 					completed(
 						ProgressEvent arg0 ) 
 					{
+						if (browser.isDisposed() || browser.getShell().isDisposed()) {
+							return;
+						}
 						browser.removeProgressListener( this );
 						
 						prog_wind.destroy();

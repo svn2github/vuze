@@ -111,20 +111,15 @@ public class DevicesFTUX
 		Utils.setShellIcon(shell);
 
 		try {
-			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
-			browser.addDisposeListener(new DisposeListener() {
-				public void widgetDisposed(DisposeEvent e) {
-					((Browser)e.widget).setUrl("about:blank");
-					((Browser)e.widget).setVisible(false);
-					while (!e.display.isDisposed() && e.display.readAndDispatch());
-				}
-			});
-			BrowserContext context = new BrowserContext("DevicesFTUX", browser, null, true);
-
-			context.addMessageListener(new TorrentListener());
-			context.addMessageListener(new VuzeListener());
-			context.addMessageListener(new DisplayListener(browser));
-			context.addMessageListener(new ConfigListener(browser));
+			browser = Utils.createSafeBrowser(shell, SWT.NONE);
+			if (browser != null) {
+  			BrowserContext context = new BrowserContext("DevicesFTUX", browser, null, true);
+  
+  			context.addMessageListener(new TorrentListener());
+  			context.addMessageListener(new VuzeListener());
+  			context.addMessageListener(new DisplayListener(browser));
+  			context.addMessageListener(new ConfigListener(browser));
+			}
 		} catch (Throwable t) {
 		}
 

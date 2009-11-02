@@ -297,14 +297,19 @@ public class Browse
 				if (shell == null) {
 					return;
 				}
-				final Browser browser = new Browser(shell,
-						Utils.getInitialBrowserStyle(SWT.NONE));
+				final Browser browser = Utils.createSafeBrowser(shell, SWT.NONE);
+				if (browser == null) {
+					return;
+				}
 				browser.setVisible(false);
 
 				browser.addProgressListener(new ProgressListener() {
 					public void completed(ProgressEvent event) {
 						Utils.execSWTThreadLater(1000, new AERunnable() {
 							public void runSupport() {
+								if (browser.isDisposed() || browser.getShell().isDisposed()) {
+									return;
+								}
 								browser.setUrl("about:blank");
 								browser.dispose();
 							}

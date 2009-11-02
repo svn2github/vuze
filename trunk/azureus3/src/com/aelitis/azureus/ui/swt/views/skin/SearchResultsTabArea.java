@@ -421,6 +421,10 @@ public class SearchResultsTabArea
 						
 						browser.addTitleListener(new TitleListener() {
 							public void changed(TitleEvent event) {
+								if (event.widget.isDisposed()
+										|| ((Browser) event.widget).getShell().isDisposed()) {
+									return;
+								}
 								title = event.title;
 								int i = title.toLowerCase().indexOf("details:");
 								if (i > 0) {
