@@ -51,7 +51,7 @@ PlatformManagerImpl
 	public static final int			RT_AZ 		= 1;
 	public static final int			RT_OTHER 	= 2;
 	
-	public static final String					DLL_NAME = "aereg";
+	public static String					DLL_NAME = "aereg";
 	
 	public static final String				VUZE_ASSOC		= "Vuze";
 	public static final String				NEW_MAIN_ASSOC	= "Azureus";
@@ -66,6 +66,12 @@ PlatformManagerImpl
 	private final Set capabilitySet = new HashSet();
 
 	private List	listeners = new ArrayList();
+	
+	static {
+		if (System.getProperty("os.arch", "").contains("64")) {
+			DLL_NAME += "64";
+		}
+	}
 	
 	public static PlatformManagerImpl
 	getSingleton()
