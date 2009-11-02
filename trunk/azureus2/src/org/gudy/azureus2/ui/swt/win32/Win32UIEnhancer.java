@@ -43,7 +43,7 @@ import com.aelitis.azureus.core.drivedetector.*;
 public class Win32UIEnhancer
 {
 
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false;
 
 	public static final int SHGFI_LARGEICON = 0x2;
 
