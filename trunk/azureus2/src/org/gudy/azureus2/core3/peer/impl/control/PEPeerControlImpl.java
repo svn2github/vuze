@@ -4123,8 +4123,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 			}
 		}
 		
-		Collections.sort(activeConnectionTimes);
-		long medianConnectionTime = activeConnectionTimes.get(activeConnectionTimes.size()/2);
+		long medianConnectionTime;
+		
+		if ( activeConnectionTimes.size() > 0 ){
+			Collections.sort(activeConnectionTimes);
+			medianConnectionTime = activeConnectionTimes.get(activeConnectionTimes.size()/2);
+		}else{
+			medianConnectionTime = 0;
+		}
 		
 		// allow 1 disconnect every 30s per 30 peers; 2 at least every 30s
 		int maxOptimistics = Math.max(getMaxConnections()/30,2);
