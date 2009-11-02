@@ -57,6 +57,16 @@ TRTrackerScraperClientResolver
 	getStatus(
 		HashWrapper	torrent_hash );
 	
+		/**
+		 * 
+		 * @param hash
+		 * @return
+		 */
+	
+	public int[]
+	getCachedScrape(
+		HashWrapper	hash );
+
 	public boolean
 	isNetworkEnabled(
 		HashWrapper	hash,

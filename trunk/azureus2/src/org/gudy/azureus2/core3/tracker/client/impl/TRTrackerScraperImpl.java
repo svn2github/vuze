@@ -200,6 +200,12 @@ TRTrackerScraperImpl
 		client_resolver	= resolver;
 	}
 	
+	public TRTrackerScraperClientResolver
+	getClientResolver()
+	{
+		return( client_resolver );
+	}
+	
 	public boolean
 	isTorrentDownloading(
 		HashWrapper		hash )

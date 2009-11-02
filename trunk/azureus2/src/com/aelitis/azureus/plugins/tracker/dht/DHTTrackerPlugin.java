@@ -102,6 +102,11 @@ DHTTrackerPlugin
 	private static final int	INTERESTING_INIT_RAND_OTHERS	=   30*60*1000;
 	private static final int	INTERESTING_INIT_MIN_OTHERS		=    5*60*1000;
 
+	private static final int	INTERESTING_DHT_CHECK_PERIOD	= 1*60*60*1000;
+	private static final int	INTERESTING_DHT_INIT_RAND		=    5*60*1000;
+	private static final int	INTERESTING_DHT_INIT_MIN		=    2*60*1000;
+	
+	
 	private static final int	INTERESTING_AVAIL_MAX		= 8;	// won't pub if more
 	private static final int	INTERESTING_PUB_MAX_DEFAULT	= 30;	// limit on pubs
 	
@@ -526,9 +531,22 @@ DHTTrackerPlugin
 						}
 					}else{
 						
+						int	min;
+						int	rand;
+						
+						if ( TorrentUtils.isDecentralised( torrent.getAnnounceURL())){
+							
+							min		= INTERESTING_DHT_INIT_MIN;	
+							rand	= INTERESTING_DHT_INIT_RAND;
+
+						}else{
+							
+							min		= INTERESTING_INIT_MIN_OTHERS;	
+							rand	= INTERESTING_INIT_RAND_OTHERS;
+						}
+						
 						delay = plugin_interface.getUtilities().getCurrentSystemTime() + 
-									INTERESTING_INIT_MIN_OTHERS + 
-									random.nextInt( INTERESTING_INIT_RAND_OTHERS );
+									min + random.nextInt( rand );
 					}
 					
 					try{
@@ -2333,8 +2351,9 @@ DHTTrackerPlugin
 	protected void
 	processNonRegistrations()
 	{
-		Download	ready_download = null;
-	
+		Download	ready_download 				= null;
+		long		ready_download_next_check	= -1;
+		
 		long	now = plugin_interface.getUtilities().getCurrentSystemTime();
 		
 			// unfortunately getting scrape results can acquire locks and there is a vague
@@ -2405,7 +2424,7 @@ DHTTrackerPlugin
 					
 					if ( !force ){
 						
-						if ( !dht.isReachable()){
+						if ( false && !dht.isReachable()){
 							
 							continue;
 						}
@@ -2432,15 +2451,18 @@ DHTTrackerPlugin
 					
 					long	target = ((Long)interesting_downloads.get( download )).longValue();
 					
+					long check_period = TorrentUtils.isDecentralised( torrent.getAnnounceURL())?INTERESTING_DHT_CHECK_PERIOD:INTERESTING_CHECK_PERIOD;
+					
 					if ( target <= now ){
 						
-						ready_download	= download;
+						ready_download				= download;
+						ready_download_next_check 	= now + check_period;
 						
-						interesting_downloads.put( download, new Long( now + INTERESTING_CHECK_PERIOD ));
+						interesting_downloads.put( download, new Long( ready_download_next_check ));
 						
-					}else if ( target - now > INTERESTING_CHECK_PERIOD ){
+					}else if ( target - now > check_period ){
 						
-						interesting_downloads.put( download, new Long( now + (target%INTERESTING_CHECK_PERIOD)));
+						interesting_downloads.put( download, new Long( now + (target%check_period)));
 					}
 				}
 			}
@@ -2471,7 +2493,8 @@ DHTTrackerPlugin
 			
 				//System.out.println( "presence query for " + ready_download.getName());
 				
-				final long start = now;
+				final long start 		= now;
+				final long f_next_check = ready_download_next_check;
 				
 				dht.get(	ready_download.getTorrent().getHash(), 
 							"Presence query for '" + ready_download.getName() + "'",
@@ -2482,7 +2505,8 @@ DHTTrackerPlugin
 							new DHTPluginOperationListener()
 							{
 								private boolean diversified;
-								private int total = 0;
+								private int 	leechers = 0;
+								private int 	seeds	 = 0;
 								
 								public void
 								diversified()
@@ -2501,7 +2525,14 @@ DHTTrackerPlugin
 									DHTPluginContact	originator,
 									DHTPluginValue		value )
 								{
-									total++;
+									if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
+
+										leechers++;
+										
+									}else{
+										
+										seeds++;
+									}
 								}
 								
 								public void
@@ -2518,6 +2549,8 @@ DHTTrackerPlugin
 								{
 									// System.out.println( "    presence query for " + f_ready_download.getName() + "->" + total + "/div = " + diversified );
 	
+									int	total = leechers + seeds;
+									
 									log.log( f_ready_download.getTorrent(), LoggerChannel.LT_INFORMATION,
 											"Presence query for '" + f_ready_download.getName() + "': availability="+
 											(total==INTERESTING_AVAIL_MAX?(INTERESTING_AVAIL_MAX+"+"):(total+"")) + ",div=" + diversified +
@@ -2593,6 +2626,64 @@ DHTTrackerPlugin
 												});
 	
 									}
+									
+									f_ready_download.setScrapeResult(
+										new DownloadScrapeResult()
+										{
+											public Download
+											getDownload()
+											{
+												return( null );
+											}
+											
+											public int
+											getResponseType()
+											{
+												return( RT_SUCCESS );
+											}
+											
+											public int
+											getSeedCount()
+											{
+												return( seeds );
+											}
+											
+											public int
+											getNonSeedCount()
+											{
+												return( leechers );
+											}
+	
+											public long
+											getScrapeStartTime()
+											{
+												return( SystemTime.getCurrentTime());
+											}
+												
+											public void 
+											setNextScrapeStartTime(
+												long nextScrapeStartTime)
+											{
+											}
+											
+											public long
+											getNextScrapeStartTime()
+											{
+												return( f_next_check );
+											}
+											
+											public String
+											getStatus()
+											{
+												return( "OK" );
+											}
+	
+											public URL
+											getURL()
+											{
+												return( f_ready_download.getTorrent().getAnnounceURL());
+											}
+										});
 								}
 							});
 	
@@ -2674,6 +2765,7 @@ DHTTrackerPlugin
 		}
 	}
 	
+	/*
 	public DownloadScrapeResult
 	scrape(
 		byte[]		hash )
@@ -2793,6 +2885,7 @@ DHTTrackerPlugin
 					}
 				});
 	}
+	*/
 	
 	protected void
 	increaseActive(

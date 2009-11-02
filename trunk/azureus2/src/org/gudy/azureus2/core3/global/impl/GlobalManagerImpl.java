@@ -409,6 +409,32 @@ public class GlobalManagerImpl
     			return( false );
     		}
     		
+    		public int[] 
+    		getCachedScrape(
+    			HashWrapper hash )
+    		{
+    			DownloadManager	dm = getDownloadManager(hash);
+    			
+    			if ( dm == null ){
+    				
+    				return( null );
+    			}
+    						
+				long cache = dm.getDownloadState().getLongAttribute( DownloadManagerState.AT_SCRAPE_CACHE );
+				
+				if ( cache == -1 ){
+					
+					return( null );
+					
+				}else{
+					
+					int seeds 		= (int)((cache>>32)&0x00ffffff);
+					int leechers 	= (int)(cache&0x00ffffff);
+					
+					return( new int[]{ seeds, leechers });
+				}
+    		}
+    		
     		public Object[]
     		getExtensions(
     			HashWrapper	hash )

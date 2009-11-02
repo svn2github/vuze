@@ -57,7 +57,8 @@ TRTrackerUtils
 	private static int[]		BLACKLISTED_PORTS	= 
 		{ 81 };
 
-	private static String		tracker_ip;
+	private static String			tracker_ip;
+	private static Set<String>		tracker_ip_aliases;
 	
 	private static Map			override_map;
 	
@@ -316,9 +317,31 @@ TRTrackerUtils
 	static void
 	readConfig()
 	{
-		tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
+		tracker_ip 	= COConfigurationManager.getStringParameter("Tracker IP", "");
 	
-		tracker_ip = UrlUtils.expandIPV6Host( tracker_ip );
+		tracker_ip 	= UrlUtils.expandIPV6Host( tracker_ip );
+		
+		String	aliases = COConfigurationManager.getStringParameter("Tracker IP Aliases", "");
+		
+		if ( aliases.length() > 0 ){
+			
+			tracker_ip_aliases = new HashSet<String>();
+			
+			String[] bits = aliases.split(",");
+			
+			for (String b: bits ){
+				
+				b = b.trim();
+				
+				if ( b.length() > 0 ){
+					
+					tracker_ip_aliases.add( b );
+				}
+			}
+		}else{
+			
+			tracker_ip_aliases = null;
+		}
 		
 		String override_ips		= COConfigurationManager.getStringParameter("Override Ip", "");
 		
@@ -354,8 +377,23 @@ TRTrackerUtils
 	isHosting(
 		URL		url_in )
 	{
-		return( tracker_ip.length() > 0  &&
-				UrlUtils.expandIPV6Host(url_in.getHost()).equalsIgnoreCase( tracker_ip ));
+		if ( tracker_ip.length() > 0  ){
+			
+			String host = UrlUtils.expandIPV6Host(url_in.getHost());
+			
+			boolean	result = host.equalsIgnoreCase( tracker_ip );
+			
+			if ( !result && tracker_ip_aliases != null ){
+			
+				result = tracker_ip_aliases.contains( host );
+			}
+		
+			return( result );
+			
+		}else{
+			
+			return( false );
+		}
 	}
 	
 	public static String

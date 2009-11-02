@@ -25,14 +25,17 @@ package org.gudy.azureus2.core3.tracker.client.impl.dht;
 import java.util.*;
 import java.net.URL;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperClientResolver;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperImpl;
-import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperResponseImpl;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
 /**
@@ -48,7 +51,7 @@ TRTrackerDHTScraperImpl
 
 	private TRTrackerScraperImpl		scraper;
 
-	private Map		responses = new HashMap();
+	private Map<HashWrapper,TRTrackerDHTScraperResponseImpl>		responses = new HashMap<HashWrapper,TRTrackerDHTScraperResponseImpl>();
 	
 	public static TRTrackerDHTScraperImpl
 	create(
@@ -86,7 +89,7 @@ TRTrackerDHTScraperImpl
 		if ( torrent != null && result != null){
 			
 			try{
-				TRTrackerScraperResponseImpl resp = 
+				TRTrackerDHTScraperResponseImpl resp = 
 					new TRTrackerDHTScraperResponseImpl( torrent.getHashWrapper(), result.getURL());
 							
 				resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());
@@ -115,13 +118,50 @@ TRTrackerDHTScraperImpl
 	public TRTrackerScraperResponse
 	scrape(
 		TOTorrent		torrent,
-		URL				target_url,
-		boolean			force )
+		URL				unused_target_url,
+		boolean			unused_force )
 	{
 		if ( torrent != null ){
 
 			try{
-				return((TRTrackerScraperResponse)responses.get( torrent.getHashWrapper()));
+				HashWrapper hw = torrent.getHashWrapper();
+				
+				TRTrackerDHTScraperResponseImpl response = responses.get( hw );
+				
+				if ( response == null ){
+					
+					TRTrackerScraperClientResolver resolver = scraper.getClientResolver();
+					
+					if ( resolver != null ){
+						
+						int[] cache = resolver.getCachedScrape( hw );
+						
+						if ( cache != null ){
+							
+							response = 
+								new TRTrackerDHTScraperResponseImpl( 
+										hw, torrent.getAnnounceURL());
+										
+							response.setSeedsPeers( cache[0], cache[1] );
+							
+							long now = SystemTime.getCurrentTime();
+							
+							response.setScrapeStartTime( now );
+							
+							response.setNextScrapeStartTime( now + 5*60*1000 );
+
+							response.setStatus( 
+									TRTrackerScraperResponse.ST_ONLINE,
+									MessageText.getString( "Scrape.status.cached" )); 
+						
+							responses.put( torrent.getHashWrapper(), response );
+							
+							scraper.scrapeReceived( response );
+						}
+					}
+				}
+				
+				return( response );
 				
 			}catch( TOTorrentException e ){
 				
@@ -136,20 +176,7 @@ TRTrackerDHTScraperImpl
 	scrape(
 		TRTrackerAnnouncer	tracker_client )
 	{
-		TOTorrent	torrent = tracker_client.getTorrent();
-		
-		if ( torrent != null ){
-
-			try{
-				return((TRTrackerScraperResponse)responses.get( torrent.getHashWrapper()));
-				
-			}catch( TOTorrentException e ){
-				
-				Debug.printStackTrace(e);
-			}
-		}
-		
-		return( null );	
+		return( scrape( tracker_client.getTorrent(), null, false ));
 	}
 	
 	public void
