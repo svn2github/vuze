@@ -349,10 +349,10 @@ public class UIFunctionsImpl
 		});
 	}
 
-	private void showPeersStatsView() {
+	private void showClientStatsView() {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-				mainwindow.showPeersStatsView();
+				mainwindow.showClientStatsView();
 			}
 		});
 	}
@@ -470,7 +470,7 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_PEERS_STATS:
-				showPeersStatsView();
+				showClientStatsView();
 				break;
 
 			case VIEW_CONFIG:

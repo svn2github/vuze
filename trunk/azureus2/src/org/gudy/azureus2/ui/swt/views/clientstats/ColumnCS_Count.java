@@ -1,21 +1,21 @@
-package org.gudy.azureus2.ui.swt.views.peersstats;
+package org.gudy.azureus2.ui.swt.views.clientstats;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-public class ColumnPS_Count
+public class ColumnCS_Count
 	implements TableCellRefreshListener
 {
 
 	public static final String COLUMN_ID = "count";
 
-	public ColumnPS_Count(TableColumn column) {
-		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 150);
+	public ColumnCS_Count(TableColumn column) {
+		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 50);
 		column.addListeners(this);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 	}
 
 	public void refresh(TableCell cell) {
-		PeersStatsDataSource ds = (PeersStatsDataSource) cell.getDataSource();
+		ClientStatsDataSource ds = (ClientStatsDataSource) cell.getDataSource();
 		if (ds == null) {
 			return;
 		}

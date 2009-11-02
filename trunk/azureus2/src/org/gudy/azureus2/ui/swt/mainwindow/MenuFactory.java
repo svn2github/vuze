@@ -567,8 +567,8 @@ public class MenuFactory
 		});
 	}
 
-	public static MenuItem addPeersStatsMenuItem(Menu menu) {
-		return addMenuItem(menu, MENU_ID_PEERS_STATS, new Listener() {
+	public static MenuItem addClientStatsMenuItem(Menu menu) {
+		return addMenuItem(menu, MENU_ID_CLIENT_STATS, new Listener() {
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {

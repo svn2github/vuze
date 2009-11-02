@@ -1,4 +1,4 @@
-package org.gudy.azureus2.ui.swt.views.peersstats;
+package org.gudy.azureus2.ui.swt.views.clientstats;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,7 +7,7 @@ import org.gudy.azureus2.core3.util.BEncodableObject;
 
 import com.aelitis.azureus.util.MapUtils;
 
-public class PeersStatsDataSource
+public class ClientStatsDataSource
 	implements BEncodableObject
 {
 
@@ -23,12 +23,12 @@ public class PeersStatsDataSource
 
 	public long bytesSent;
 
-	public PeersStatsOverall overall;
+	public ClientStatsOverall overall;
 
-	public PeersStatsDataSource() {
+	public ClientStatsDataSource() {
 	}
 
-	public PeersStatsDataSource(Map loadMap) {
+	public ClientStatsDataSource(Map loadMap) {
 		client = MapUtils.getMapString(loadMap, "client", "?");
 		count = MapUtils.getMapInt(loadMap, "count", 0);
 		bytesReceived = MapUtils.getMapLong(loadMap, "bytesReceived", 0);

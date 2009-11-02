@@ -68,7 +68,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.views.*;
-import org.gudy.azureus2.ui.swt.views.peersstats.PeersStatsView;
+import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -155,6 +155,8 @@ public class MainWindow
 
 	private Item config;
 
+	private Item viewClientStats;
+	
 	private ConfigView config_view;
 
 	protected AEMonitor this_mon = new AEMonitor("MainWindow");
@@ -172,8 +174,6 @@ public class MainWindow
 	private boolean bSettingVisibility = false;
 
 	private Tab mainTabSet;
-
-	private Item viewPeersStats;
 
 	public MainWindow(AzureusCore _azureus_core, Initializer _initializer,
 			ArrayList events) {
@@ -601,6 +601,14 @@ public class MainWindow
 			});
 		}
 
+		if (!Constants.isSafeMode && COConfigurationManager.getBooleanParameter("Open Client Stats")) {
+			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
+				public void run() {
+					showClientStatsView();
+				}
+			});
+		}
+
 		COConfigurationManager.addAndFireParameterListener("IconBar.enabled",
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
@@ -820,18 +828,18 @@ public class MainWindow
 		refreshTorrentMenu();
 	}
 
-	protected void showPeersStatsView() {
-		if (viewPeersStats == null) {
-			PeersStatsView view = new PeersStatsView();
-			viewPeersStats = mainTabSet.createTabItem(view, true);
-			mainTabSet.getView(viewPeersStats).getComposite().addDisposeListener(
+	protected void showClientStatsView() {
+		if (viewClientStats == null) {
+			ClientStatsView view = new ClientStatsView();
+			viewClientStats = mainTabSet.createTabItem(view, true);
+			mainTabSet.getView(viewClientStats).getComposite().addDisposeListener(
 					new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
-							viewPeersStats = null;
+							viewClientStats = null;
 						}
 					});
 		} else {
-			mainTabSet.setFocus(viewPeersStats);
+			mainTabSet.setFocus(viewClientStats);
 		}
 		refreshIconBar();
 		refreshTorrentMenu();

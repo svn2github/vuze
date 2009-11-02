@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
  
-package org.gudy.azureus2.ui.swt.views.peersstats;
+package org.gudy.azureus2.ui.swt.views.clientstats;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,14 +28,14 @@ import com.aelitis.azureus.util.MapUtils;
  * @created Oct 24, 2009
  *
  */
-public class PeersStatsOverall
+public class ClientStatsOverall
 {
 	long count;
 	
-	public PeersStatsOverall() {
+	public ClientStatsOverall() {
 	}
 
-	public PeersStatsOverall(Map loadMap) {
+	public ClientStatsOverall(Map loadMap) {
 		if (loadMap == null) {
 			return;
 		}
