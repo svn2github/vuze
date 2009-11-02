@@ -142,7 +142,7 @@ public class ColumnThumbnail
 
 		Rectangle cellBounds = cell.getBounds();
 
-		Image imgThumbnail = TorrentUIUtilsV3.getContentImage(ds,
+		Image[] imgThumbnail = TorrentUIUtilsV3.getContentImage(ds,
 				cellBounds.width >= 20 && cellBounds.height >= 20,
 				new ContentImageLoadedListener() {
 					public void contentImageLoaded(Image image, boolean wasReturned) {
@@ -164,9 +164,7 @@ public class ColumnThumbnail
 			cellBounds.height -= 4;
 		}
 
-		Rectangle imgBounds = imgThumbnail.getBounds();
-		Rectangle srcBounds = new Rectangle(imgBounds.x, imgBounds.y,
-				imgBounds.width, imgBounds.height);
+		Rectangle imgBounds = imgThumbnail[0].getBounds();
 
 		int dstWidth;
 		int dstHeight;
@@ -212,8 +210,25 @@ public class ColumnThumbnail
 			try {
 				gc.setClipping(cellBounds);
 
-				gc.drawImage(imgThumbnail, srcBounds.x, srcBounds.y, srcBounds.width,
-						srcBounds.height, x, y, dstWidth, dstHeight);
+				for (int i = 0; i < imgThumbnail.length; i++) {
+					Image image = imgThumbnail[i];
+					Rectangle srcBounds = image.getBounds();
+					if (i == 0) {
+						int w = dstWidth;
+						int h = dstHeight;
+						if (imgThumbnail.length > 1) {
+							w = w * 9 / 10;
+							h = h * 9 / 10;
+						}
+  					gc.drawImage(image, srcBounds.x, srcBounds.y, srcBounds.width,
+  							srcBounds.height, x, y, w, h);
+					} else {
+						int w = dstWidth * 3 / 8;
+						int h = dstHeight * 3 / 8;
+						gc.drawImage(image, srcBounds.x, srcBounds.y, srcBounds.width,
+								srcBounds.height, x + dstWidth - w, y + dstHeight - h, w, h);
+					}
+				}
 			} catch (Exception e) {
 				Debug.out(e);
 			} finally {
@@ -227,13 +242,13 @@ public class ColumnThumbnail
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellHover(TableCell cell) {
 		final Object ds = cell.getDataSource();
-		Image imgThumbnail = TorrentUIUtilsV3.getContentImage(ds, true, new ContentImageLoadedListener() {
+		Image[] imgThumbnail = TorrentUIUtilsV3.getContentImage(ds, true, new ContentImageLoadedListener() {
 			public void contentImageLoaded(Image image, boolean wasReturned) {
 				TorrentUIUtilsV3.releaseContentImage(ds);
 			}
 		});
 
-		cell.setToolTip(imgThumbnail);
+		cell.setToolTip(imgThumbnail == null ? null : imgThumbnail[0]);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHoverComplete(org.gudy.azureus2.plugins.ui.tables.TableCell)

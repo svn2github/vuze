@@ -337,7 +337,7 @@ public class TorrentUIUtilsV3
 	 *
 	 * @since 4.0.0.5
 	 */
-	public static Image getContentImage(Object datasource, boolean big,
+	public static Image[] getContentImage(Object datasource, boolean big,
 			final ContentImageLoadedListener l) {
 		if (l == null) {
 			return null;
@@ -348,13 +348,16 @@ public class TorrentUIUtilsV3
 			return null;
 		}
 
-		ImageLoader imageLoader = ImageLoader.getInstance();
+		final ImageLoader imageLoader = ImageLoader.getInstance();
 
 		String thumbnailUrl = PlatformTorrentUtils.getContentThumbnailUrl(torrent);
 
+		//System.out.println("thumburl= " + thumbnailUrl);
 		if (thumbnailUrl != null && imageLoader.imageExists(thumbnailUrl)) {
-			l.contentImageLoaded(imageLoader.getImage(thumbnailUrl), true);
-			return null;
+			//System.out.println("return thumburl");
+			Image image = imageLoader.getImage(thumbnailUrl);
+			l.contentImageLoaded(image, true);
+			return new Image[] { image };
 		}
 
 		String hash = null;
@@ -367,15 +370,17 @@ public class TorrentUIUtilsV3
 			return null;
 		}
 
-		String id = "Thumbnail." + hash;
+		final String id = "Thumbnail." + hash;
 
 		Image image = imageLoader.imageAdded(id) ? imageLoader.getImage(id) : null;
+		//System.out.println("image = " + image);
 		if (image != null && !image.isDisposed()) {
 			l.contentImageLoaded(image, true);
-			return image;
+			return new Image[] { image };
 		}
 
 		final byte[] imageBytes = PlatformTorrentUtils.getContentThumbnail(torrent);
+		//System.out.println("imageBytes = " + imageBytes);
 		if (imageBytes != null) {
 			image = (Image) Utils.execSWTThreadWithObject("thumbcreator",
 					new AERunnableObject() {
@@ -389,15 +394,19 @@ public class TorrentUIUtilsV3
 					}, 500);
 		}
 		if ((image == null || image.isDisposed()) && thumbnailUrl != null) {
+			//System.out.println("get image from " + thumbnailUrl);
 			image = imageLoader.getUrlImage(thumbnailUrl,
 					new ImageDownloaderListener() {
 						public void imageDownloaded(Image image, boolean returnedImmediately) {
 							l.contentImageLoaded(image, returnedImmediately);
+							//System.out.println("got image from thumburl");
 						}
 					});
-			return image;
+			//System.out.println("returning " + image + " (url loading)");
+			return new Image[] { image };
 		}
 		if (image == null || image.isDisposed()) {
+			//System.out.println("build image from files");
 			DownloadManager dm = DataSourceUtils.getDM(datasource);
 			/*
 			 * Try to get an image from the OS
@@ -415,11 +424,14 @@ public class TorrentUIUtilsV3
 				path = dm.getDownloadState().getPrimaryFile();
 			}
 			if (path != null) {
-				// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
-				Image icon = ImageRepository.getPathIcon(path, big, torrent != null
-						&& !torrent.isSimpleTorrent());
-				if (icon != null) {
-					image = new Image(Display.getDefault(), icon, SWT.IMAGE_COPY);
+				image = ImageRepository.getPathIcon(path, big, false);
+				
+				if (image != null && torrent != null && !torrent.isSimpleTorrent()) {
+					Image[] images = new Image[] {
+						image,
+						ImageRepository.getPathIcon(new File(path).getParent(), false, false)
+					};
+					return images;
 				}
 			}
 
@@ -429,11 +441,12 @@ public class TorrentUIUtilsV3
 				imageLoader.addImage(id, image);
 			}
 		} else {
+			//System.out.println("has mystery image");
 			imageLoader.addImage(id, image);
 		}
 
 		l.contentImageLoaded(image, true);
-		return image;
+		return new Image[] { image };
 	}
 
 	public static void releaseContentImage(Object datasource) {
