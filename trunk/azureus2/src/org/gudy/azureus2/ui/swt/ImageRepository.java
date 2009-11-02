@@ -101,8 +101,8 @@ public class ImageRepository
 				try {
 					//Image icon = Win32UIEnhancer.getFileIcon(new File(path), big);
 					
-					Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.win32.Win32UIEnhancer");
-					Method method = ehancerClass.getMethod("getFileIcon",
+					Class<?> enhancerClass = Class.forName("org.gudy.azureus2.ui.swt.win32.Win32UIEnhancer");
+					Method method = enhancerClass.getMethod("getFileIcon",
 							new Class[] {
 								File.class,
 								boolean.class
@@ -121,6 +121,29 @@ public class ImageRepository
 					}
 				} catch (Exception e) {
 					Debug.printStackTrace(e);
+				}
+			} else if (Utils.isCocoa) {
+				try {
+					Class<?> enhancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CocoaUIEnhancer");
+					Method method = enhancerClass.getMethod("getFileIcon",
+							new Class[] {
+								String.class,
+								int.class
+							});
+					image = (Image) method.invoke(null, new Object[] {
+						file.getAbsolutePath(),
+						(int) (bBig ? 128 : 16)
+					});
+					if (image != null) {
+						if (!bBig)
+							image = force16height(image);
+						if (minifolder)
+							image = minifolderize(file.getParent(), image, bBig);
+						ImageLoader.getInstance().addImageNoDipose(key, image);
+						return image;
+					}
+				} catch (Throwable t) {
+					Debug.printStackTrace(t);
 				}
 			}
 
@@ -218,7 +241,7 @@ public class ImageRepository
 			String key;
 			if (file.isDirectory()) {
 				if (noAWT) {
-					if (Constants.isWindows) {
+					if (Constants.isWindows || Utils.isCocoa) {
 						return getIconFromExtension(file, "-folder", bBig, false);
 					}
 					return getImage("folder");
