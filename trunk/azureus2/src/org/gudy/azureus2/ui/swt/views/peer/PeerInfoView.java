@@ -279,7 +279,6 @@ public class PeerInfoView
 
 		peerInfoCanvas.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
-				System.out.println("resize on " + peerInfoCanvas.isVisible());
 				if (refreshInfoCanvasQueued || !peerInfoCanvas.isVisible()) {
 					return;
 				}
@@ -388,7 +387,6 @@ public class PeerInfoView
 
 	private void refreshInfoCanvas() {
 		refreshInfoCanvasQueued = false;
-		System.out.println("refreshinfoc " + Debug.getCompressedStackTrace());
 
 		peerInfoCanvas.layout(true);
 		Rectangle bounds = peerInfoCanvas.getClientArea();
