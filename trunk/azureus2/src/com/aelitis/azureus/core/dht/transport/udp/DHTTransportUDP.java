@@ -74,6 +74,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_LONGER_LIFE			= 23;
 	public static final byte PROTOCOL_VERSION_REPLICATION_CONTROL	= 24;
 	public static final byte PROTOCOL_VERSION_REPLICATION_CONTROL2	= 25;
+	public static final byte PROTOCOL_VERSION_REPLICATION_CONTROL3	= 26;
 
 	
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS		= 32;	// introduced now (2403/V15) to support possible future change to id allocation
@@ -82,6 +83,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2	= 33;
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2X	= 34;	// nothing new here - added to we can track CVS user's access to replication control
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2Y	= 35;	// another one to track fix to broken rep factor handling
+	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2Z	= 36;	// hopefully last one - needed to excluded nodes that don't support replication frequency
 	
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
@@ -89,8 +91,8 @@ DHTTransportUDP
 	
 		// current versions
 	
-	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_REPLICATION_CONTROL2;
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_RESTRICT_ID_PORTS2Y;
+	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_REPLICATION_CONTROL3;
+	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_RESTRICT_ID_PORTS2Z;
 
 	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_MORE_NODE_STATUS;
 	public static final byte PROTOCOL_VERSION_MIN_CVS				= PROTOCOL_VERSION_RESTRICT_ID_PORTS2Y;

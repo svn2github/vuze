@@ -166,7 +166,7 @@ DHTDBImpl
 		cache_republish_interval		= _cache_republish_interval;
 		logger							= _logger;
 			
-		survey_enabled = _protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL2;
+		survey_enabled = _protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL3;
 		
 		if ( ENABLE_PRECIOUS_STUFF ){
 			
@@ -2340,7 +2340,7 @@ DHTDBImpl
 		boolean	handled = false;
 		
 		try{
-			if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL2 ){
+			if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL3 ){
 			
 				if ( DEBUG_SURVEY ){
 					System.out.println( "Hitting " + contact.getString());
@@ -2679,7 +2679,7 @@ DHTDBImpl
 						
 						for ( DHTTransportContact c: contacts ){
 						
-							if ( c.getProtocolVersion() < DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL2 ){
+							if ( c.getProtocolVersion() < DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL3 ){
 								
 								continue;
 							}
