@@ -186,7 +186,25 @@ public class SBC_LibraryTableView
 				});
 			}
 		}
-		
+
+		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
+				skin.getSkinProperties(), getUpdateUIName(), "", soMain);
+
+		skin.layout();
+
+		viewComposite = soContents.getComposite();
+		viewComposite.setBackground(viewComposite.getDisplay().getSystemColor(
+				SWT.COLOR_WIDGET_BACKGROUND));
+		viewComposite.setForeground(viewComposite.getDisplay().getSystemColor(
+				SWT.COLOR_WIDGET_FOREGROUND));
+		viewComposite.setLayoutData(Utils.getFilledFormData());
+		GridLayout gridLayout = new GridLayout();
+		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;
+		viewComposite.setLayout(gridLayout);
+
+		view.initialize(viewComposite);
+
+
 		if (tv == null) {
 			if (view instanceof TableViewTab) {
 				TableViewTab tvt = (TableViewTab) view;
@@ -195,6 +213,15 @@ public class SBC_LibraryTableView
 				tv = (TableViewSWT) view;
 			}
 		}
+		
+		SWTSkinObject soSizeSlider = skin.getSkinObject("table-size-slider", soParent.getParent());
+		if (soSizeSlider instanceof SWTSkinObjectContainer) {
+			SWTSkinObjectContainer so = (SWTSkinObjectContainer) soSizeSlider;
+			if (tv != null && !tv.enableSizeSlider(so.getComposite(), 16, 100)) {
+				so.setVisible(false);
+			}
+		}
+
 		
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL
 				&& tv != null) {
@@ -252,23 +279,6 @@ public class SBC_LibraryTableView
 				}
 			});
 		}
-
-		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
-				skin.getSkinProperties(), getUpdateUIName(), "", soMain);
-
-		skin.layout();
-
-		viewComposite = soContents.getComposite();
-		viewComposite.setBackground(viewComposite.getDisplay().getSystemColor(
-				SWT.COLOR_WIDGET_BACKGROUND));
-		viewComposite.setForeground(viewComposite.getDisplay().getSystemColor(
-				SWT.COLOR_WIDGET_FOREGROUND));
-		viewComposite.setLayoutData(Utils.getFilledFormData());
-		GridLayout gridLayout = new GridLayout();
-		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;
-		viewComposite.setLayout(gridLayout);
-
-		view.initialize(viewComposite);
 
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
 			SWTSkinObject so = skin.getSkinObject("library-list-button-right",
