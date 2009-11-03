@@ -150,7 +150,7 @@ public class PlatformConfigMessenger
 				}
 				
 				try {
-					sendStats = MapUtils.getMapBoolean(reply, "send-stats", true);
+					sendStats = MapUtils.getMapBoolean(reply, "send-stats", false);
 					doUrlQOS = MapUtils.getMapBoolean(reply, "do-url-qos", false);
 				} catch (Exception e) {
 				}
