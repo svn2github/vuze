@@ -21,6 +21,8 @@
  */
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -797,9 +799,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					event.width = preferredWidth;
 				}
 
-				int defaultHeight = getRowDefaultHeight();
-				if (event.height < defaultHeight || (Utils.isCocoa && defaultHeight > 0)) {
-					event.height = defaultHeight;
+				if (slider == null) {
+  				int defaultHeight = getRowDefaultHeight();
+  				if (event.height < defaultHeight) {
+  					event.height = defaultHeight;
+  				}
 				}
 			}
 		});
@@ -5058,21 +5062,44 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		refilter();
 	}
 
-	public void enableSizeSlider(Composite composite, int min, int max) {
-		composite.setLayout(new FillLayout());
-		slider = new Scale(composite, SWT.HORIZONTAL);
-		slider.setMinimum(min);
-		slider.setMaximum(max);
-		slider.setSelection(getRowDefaultHeight());
-		slider.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
-				setRowDefaultHeight(slider.getSelection());
-				tableInvalidate();
+	public boolean enableSizeSlider(Composite composite, int min, int max) {
+		try {
+			if (slider != null && !slider.isDisposed()) {
+				slider.dispose();
 			}
-			
-			public void widgetDefaultSelected(SelectionEvent e) {
+			final Method method = Table.class.getDeclaredMethod("setItemHeight", new Class<?>[] {
+				int.class
+			});
+			method.setAccessible(true);
+
+			composite.setLayout(new FormLayout());
+			slider = new Scale(composite, SWT.HORIZONTAL);
+			slider.setMinimum(min);
+			slider.setMaximum(max);
+			slider.setSelection(getRowDefaultHeight());
+			try {
+				method.invoke(table, new Object[] { slider.getSelection() } );
+			} catch (Throwable e1) {
 			}
-		});
-		composite.layout();
+			slider.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) {
+					setRowDefaultHeight(slider.getSelection());
+					try {
+						method.invoke(table, new Object[] { slider.getSelection() } );
+					} catch (Throwable e1) {
+						e1.printStackTrace();
+					}
+					tableInvalidate();
+				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+			slider.setLayoutData(Utils.getFilledFormData());
+			composite.layout();
+		} catch (Throwable t) {
+			return false;
+		}
+		return true;
 	}
 }

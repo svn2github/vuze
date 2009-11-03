@@ -163,5 +163,5 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 * 
 	 * @since 4.1.0.9
 	 */
-	void enableSizeSlider(Composite composite, int min, int max);
+	boolean enableSizeSlider(Composite composite, int min, int max);
 }
