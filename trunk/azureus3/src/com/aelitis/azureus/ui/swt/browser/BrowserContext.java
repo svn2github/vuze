@@ -671,10 +671,12 @@ public class BrowserContext
 		}
 
 		// System.out.println( "Unregistered browser context: id=" + getID());
-	
-		browser.setData(CONTEXT_KEY, null);
-		browser.removeDisposeListener(this);
-		messageDispatcherSWT.deregisterBrowser(browser);
+
+		if (!browser.isDisposed()) {
+  		browser.setData(CONTEXT_KEY, null);
+  		browser.removeDisposeListener(this);
+  		messageDispatcherSWT.deregisterBrowser(browser);
+		}
 		browser = null;
 
 		if (checkURLEvent != null && !checkURLEvent.isCancelled()) {
