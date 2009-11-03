@@ -1637,7 +1637,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			} else if (text.length() > 0) {
 				int ofsx = 0;
 				Image image = item.getImage(event.index);
-				if (image != null) {
+				if (image != null && !image.isDisposed()) {
 					int ofs = image.getBounds().width;
 					ofsx += ofs;
 					cellBounds.x += ofs;
