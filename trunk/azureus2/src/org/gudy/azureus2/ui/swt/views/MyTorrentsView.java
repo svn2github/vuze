@@ -24,7 +24,6 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.util.*;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
@@ -51,18 +50,14 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
-import org.gudy.azureus2.plugins.ui.UIInputReceiver;
-import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
 import org.gudy.azureus2.ui.swt.views.table.*;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -106,10 +101,6 @@ public class MyTorrentsView
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
-	/** Experimental Table UI.  When setting to true, some code needs 
-	 *  uncommenting as well */
-	private static final boolean EXPERIMENT = false;
-	
 	private AzureusCore		azureus_core;
 
   private GlobalManager globalManager;
@@ -141,6 +132,8 @@ public class MyTorrentsView
 	private Composite cFilterArea;
 	protected boolean resizeHeaderEventQueued;
 	private Button btnFilter;
+
+	private Composite cSizer;
 
 	public MyTorrentsView() {
 		super("MyTorrentsView");
@@ -174,14 +167,8 @@ public class MyTorrentsView
 
   	this.isSeedingView 	= isSeedingView;
   	
-  	if (EXPERIMENT) {
-//      tv = new ListView(isSeedingView ? TableManager.TABLE_MYTORRENTS_COMPLETE
-//  				: TableManager.TABLE_MYTORRENTS_INCOMPLETE, SWT.V_SCROLL);
-//      tv.setColumnList(basicItems, "#", false);
-  	} else {
-      tv = createTableView(isSeedingView ? DownloadTypeComplete.class
-  				: DownloadTypeIncomplete.class, tableID, basicItems);
-  	}
+    tv = createTableView(isSeedingView ? DownloadTypeComplete.class
+				: DownloadTypeIncomplete.class, tableID, basicItems);
     tv.setRowDefaultIconSize(new Point(16, 16));
     
     /*
@@ -316,17 +303,6 @@ public class MyTorrentsView
     	cTableParentPanel.setLayoutData(new GridData(GridData.FILL_BOTH));
     }
     
-    if (EXPERIMENT) {
-    	Composite cHeaders = new Composite(cTableParentPanel, SWT.NONE);
-    	gridData = new GridData(GridData.FILL_HORIZONTAL);
-    	GC gc = new GC(cHeaders);
-    	int h = gc.textExtent("alyup").y + 2;
-    	gc.dispose();
-    	gridData.heightHint = h;
-    	cHeaders.setLayoutData(gridData);
-    	//((ListView)tv).setHeaderArea(cHeaders, null, null);
-    }
-
     cTablePanel = new Composite(cTableParentPanel, SWT.NULL);
     cTablePanel.setBackground(composite.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
     cTablePanel.setForeground(composite.getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
@@ -462,6 +438,8 @@ public class MyTorrentsView
     rowLayout.spacing = 0;
     rowLayout.wrap = true;
     cCategories.setLayout(rowLayout);
+    
+    cSizer = new Composite(cHeader, SWT.BORDER);
 
 
     fd = new FormData();
@@ -485,10 +463,19 @@ public class MyTorrentsView
     cFilterArea.setLayoutData(fd);
 
     fd = new FormData();
-    fd.right = new FormAttachment(100, -2); 
+    fd.right = new FormAttachment(cSizer, -2); 
     fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
     fd.bottom = new FormAttachment(cFilterArea, 0, SWT.BOTTOM); 
     cCategories.setLayoutData(fd);
+
+    fd = new FormData();
+    fd.right = new FormAttachment(100, -2); 
+    fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
+    fd.width = 100;
+    cSizer.setLayoutData(fd);
+
+    tv.enableSizeSlider(cSizer, 16, 96);
+
     cHeader.addListener(SWT.Resize, new Listener(){
 			public void handleEvent(Event event) {
 				if (!resizeHeaderEventQueued) {
@@ -502,7 +489,7 @@ public class MyTorrentsView
 				}
 			}
 		});
-
+    
     
     txtFilter = new Text(cFilterArea, SWT.BORDER);
     Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
@@ -570,10 +557,10 @@ public class MyTorrentsView
 		if (onNewLine) {
 			Point prefSizeCat = cCategories.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			//System.out.println("pref=" + prefSizeCat + ";sz=" + cHeader.getClientArea());
-			if (prefSizeCat.x + posEndFilter < cHeader.getClientArea().width) {
+			if (prefSizeCat.x + posEndFilter + cSizer.getSize().x < cHeader.getClientArea().width) {
 				//System.out.println("MOVE UP");
 				FormData fd = new FormData();
-        fd.right = new FormAttachment(100, -2); 
+        fd.right = new FormAttachment(cSizer, -2); 
         fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
         fd.bottom = new FormAttachment(cFilterArea, 0, SWT.BOTTOM); 
 				cCategories.setLayoutData(fd);
@@ -601,7 +588,7 @@ public class MyTorrentsView
 
 				fd = new FormData();
         fd.left = new FormAttachment(btnFilter, 0);
-        fd.right = new FormAttachment(100, -10);
+        fd.right = new FormAttachment(cSizer, -10);
         cFilterArea.setLayoutData(fd);
 
 				cHeader.getShell().layout(new Control[] {
