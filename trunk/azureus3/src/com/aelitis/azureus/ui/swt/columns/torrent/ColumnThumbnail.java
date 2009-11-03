@@ -168,30 +168,12 @@ public class ColumnThumbnail
 
 		int dstWidth;
 		int dstHeight;
-		if (imgBounds.width > cellBounds.width
-				|| imgBounds.height > cellBounds.height) {
+		if (imgBounds.height > cellBounds.height) {
+			dstHeight = cellBounds.height;
+			dstWidth = imgBounds.width * cellBounds.height / imgBounds.height;
+		} else if (imgBounds.width > cellBounds.width)  {
 			dstWidth = cellBounds.width - 4;
 			dstHeight = imgBounds.height * cellBounds.width / imgBounds.width;
-			if (cellBounds.height < 30) {
-				cellBounds.y += 1;
-				cellBounds.height -= 1;
-				
-				if (dstWidth > cellBounds.height * 5) {
-					dstHeight = cellBounds.height;
-					dstWidth = imgBounds.width * dstHeight / imgBounds.height;
-				}
-			}
-			
-			/*
-			int trim = (int) (imgBounds.width * 0.2);
-			if (imgBounds.width - cellBounds.width > trim) {
-				srcBounds.x += trim;
-				srcBounds.width -= trim * 2;
-				trim = (int) (imgBounds.height * 0.2);
-				srcBounds.y += trim;
-				srcBounds.height -= trim * 2;
-			}
-			*/
 		} else {
 			dstWidth = imgBounds.width;
 			dstHeight = imgBounds.height;

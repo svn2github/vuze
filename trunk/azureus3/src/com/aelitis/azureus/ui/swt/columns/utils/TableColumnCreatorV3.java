@@ -40,8 +40,8 @@ public class TableColumnCreatorV3
 			boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
-			ColumnThumbnail.COLUMN_ID,
-			NameItem.COLUMN_ID,
+			ColumnThumbAndName.COLUMN_ID,
+			"RatingColumn",
 			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
 			StatusItem.COLUMN_ID,
@@ -63,7 +63,7 @@ public class TableColumnCreatorV3
 				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
-			NameItem tcName = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+			ColumnThumbAndName tcName = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
 			if (tcName != null) {
 				tcName.setWidth(140);
 			}
@@ -78,9 +78,9 @@ public class TableColumnCreatorV3
 				tcStatusItem.setShowTrackerErrors( true );
 			}
 		}
-		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
-		if (tcNameItem != null) {
-			tcNameItem.setShowIcon(false);
+		ColumnThumbAndName tcColumnNameIcon = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
+		if (tcColumnNameIcon != null) {
+			tcColumnNameIcon.setShowIcon(false);
 		}
 		if (big) {
 			ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
@@ -95,8 +95,7 @@ public class TableColumnCreatorV3
 
 	public static TableColumnCore[] createIncompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
-			ColumnThumbnail.COLUMN_ID,
-			NameItem.COLUMN_ID,
+			ColumnThumbAndName.COLUMN_ID,
 			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
 			ColumnProgressETA.COLUMN_ID,
@@ -114,12 +113,12 @@ public class TableColumnCreatorV3
 				tableID)
 				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
-			NameItem tc = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+			ColumnThumbAndName tc = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
 			if (tc != null) {
-				tcManager.setDefaultSortColumnName(tableID, NameItem.COLUMN_ID);
+				tcManager.setDefaultSortColumnName(tableID, ColumnThumbAndName.COLUMN_ID);
 				tc.setSortAscending(true);
 			}
-			NameItem tcName = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+			ColumnThumbAndName tcName = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
 			if (tcName != null) {
 				tcName.setWidth(220);
 			}
@@ -133,9 +132,9 @@ public class TableColumnCreatorV3
 				tcStatusItem.setChangeCellFG(false);
 			}
 		}
-		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
-		if (tcNameItem != null) {
-			tcNameItem.setShowIcon(false);
+		ColumnThumbAndName tcColumnNameIcon = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
+		if (tcColumnNameIcon != null) {
+			tcColumnNameIcon.setShowIcon(false);
 		}
 		
 		if (big) {
@@ -172,8 +171,8 @@ public class TableColumnCreatorV3
 	public static TableColumnCore[] createCompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
-			ColumnThumbnail.COLUMN_ID,
-			NameItem.COLUMN_ID,
+			ColumnThumbAndName.COLUMN_ID,
+			"RatingColumn",
 			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
 			StatusItem.COLUMN_ID,
@@ -195,7 +194,7 @@ public class TableColumnCreatorV3
 				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
-			NameItem tcName = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+			ColumnThumbAndName tcName = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
 			if (tcName != null) {
 				tcName.setWidth(140);
 			}
@@ -209,9 +208,9 @@ public class TableColumnCreatorV3
 				tcStatusItem.setChangeCellFG(false);
 			}
 		}
-		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
-		if (tcNameItem != null) {
-			tcNameItem.setShowIcon(false);
+		ColumnThumbAndName tcColumnNameIcon = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
+		if (tcColumnNameIcon != null) {
+			tcColumnNameIcon.setShowIcon(false);
 		}
 		if (big) {
 			ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
@@ -227,8 +226,7 @@ public class TableColumnCreatorV3
 	public static TableColumnCore[] createUnopenedDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
-			ColumnThumbnail.COLUMN_ID,
-			NameItem.COLUMN_ID,
+			ColumnThumbAndName.COLUMN_ID,
 			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
 			StatusItem.COLUMN_ID,
@@ -250,7 +248,7 @@ public class TableColumnCreatorV3
 				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
-			NameItem tcName = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+			ColumnThumbAndName tcName = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
 			if (tcName != null) {
 				tcName.setWidth(265);
 			}
@@ -264,9 +262,9 @@ public class TableColumnCreatorV3
 				tcStatusItem.setChangeCellFG(false);
 			}
 		}
-		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
-		if (tcNameItem != null) {
-			tcNameItem.setShowIcon(false);
+		ColumnThumbAndName tcColumnNameIcon = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
+		if (tcColumnNameIcon != null) {
+			tcColumnNameIcon.setShowIcon(false);
 		}
 		if (big) {
 			ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
@@ -376,7 +374,7 @@ public class TableColumnCreatorV3
 		final Map<String, cInfo> c = new LightHashMap<String, cInfo>(7);
 
 		c.put(ColumnUnopened.COLUMN_ID, new cInfo(ColumnUnopened.class, ColumnUnopened.DATASOURCE_TYPE));
-		//c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, ColumnThumbnail.DATASOURCE_TYPE));
+		c.put(ColumnThumbAndName.COLUMN_ID, new cInfo(ColumnThumbAndName.class, ColumnThumbAndName.DATASOURCE_TYPE));
 		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, DateAddedItem.DATASOURCE_TYPE));
 		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, DateCompletedItem.DATASOURCE_TYPE));
 		c.put(ColumnProgressETA.COLUMN_ID, new cInfo(ColumnProgressETA.class, ColumnProgressETA.DATASOURCE_TYPE));
@@ -395,7 +393,6 @@ public class TableColumnCreatorV3
 		c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class,
 				new Class[] {
 					ac,
-					Download.class
 				}));
 
 		// Core columns are implementors of TableColumn to save one class creation
@@ -429,6 +426,8 @@ public class TableColumnCreatorV3
 			}
 		};
 
+		tcManager.unregisterColumn(NameItem.DATASOURCE_TYPE, NameItem.COLUMN_ID, null);
+
 		for (Iterator<String> iter = c.keySet().iterator(); iter.hasNext();) {
 			String id = iter.next();
 			cInfo info = c.get(id);
@@ -439,6 +438,7 @@ public class TableColumnCreatorV3
 				tcManager.registerColumn(cla, id, tcCreator);
 			}
 		}
+		
 
 	}
 
