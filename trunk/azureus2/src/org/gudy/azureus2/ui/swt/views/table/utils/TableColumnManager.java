@@ -150,6 +150,7 @@ public class TableColumnManager {
 					Map mapColumnConfig = getTableConfigMap(sTableID);
 					((TableColumnCore) item).loadSettings(mapColumnConfig);
 				}
+				
 				if (!item.getColumnAdded()) {
 					item.setColumnAdded(true);
 				}
@@ -382,7 +383,9 @@ public class TableColumnManager {
 						tc = new TableColumnImpl(forDataSourceType, tableID, columnID);
 					}
 
-					l.tableColumnCreated(tc);
+					if (l != null) {
+						l.tableColumnCreated(tc);
+					}
 
 					addColumns(new TableColumnCore[] {
 						tc
@@ -610,13 +613,17 @@ public class TableColumnManager {
 	 */
 	public void registerColumn(Class forDataSourceType, String columnID,
 			TableColumnCreationListener listener) {
-  	mapColumnIDsToListener.put(forDataSourceType + "." + columnID, listener);
+		if (listener != null) {
+			mapColumnIDsToListener.put(forDataSourceType + "." + columnID, listener);
+		}
 		List list = (List) mapDataSourceTypeToColumnIDs.get(forDataSourceType);
 		if (list == null) {
 			list = new ArrayList(1);
 			mapDataSourceTypeToColumnIDs.put(forDataSourceType, list);
 		}
-		list.add(columnID);
+		if (!list.contains(columnID)) {
+			list.add(columnID);
+		}
 	}
 	
 	public void unregisterColumn(Class forDataSourceType, String columnID,
