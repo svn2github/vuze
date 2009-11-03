@@ -17,6 +17,7 @@ import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -51,7 +52,7 @@ public class ColumnProgressETA
 	public static final long SHOW_ETA_AFTER_MS = 30000;
 
 	private final static Object CLICK_KEY = new Object();
-	
+
 	private static Font fontText = null;
 
 	Display display;
@@ -63,7 +64,7 @@ public class ColumnProgressETA
 	private Color cBorder;
 
 	private Color cText;
-		
+
 	Color textColor;
 
 	/**
@@ -76,7 +77,7 @@ public class ColumnProgressETA
 		setMinWidth(COLUMN_WIDTH);
 
 		display = SWTThread.getInstance().getDisplay();
-		
+
 		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
 		cBG = skinProperties.getColor("color.progress.bg");
 		if (cBG == null) {
@@ -107,39 +108,39 @@ public class ColumnProgressETA
 	public void cellAdded(TableCell cell) {
 		new Cell(cell);
 	}
-	
-	public void 
-	cellMouseTrigger(
-		TableCellMouseEvent event ) 
-	{
+
+	public void cellMouseTrigger(TableCellMouseEvent event) {
 
 		DownloadManager dm = (DownloadManager) event.cell.getDataSource();
-		if (dm == null) {return;}
-		
-		String clickable = (String)dm.getUserData( CLICK_KEY );
-		
-		if ( clickable == null ){
-			
+		if (dm == null) {
 			return;
 		}
-		
+
+		String clickable = (String) dm.getUserData(CLICK_KEY);
+
+		if (clickable == null) {
+
+			return;
+		}
+
 		event.skipCoreFunctionality = true;
-		
-		if ( event.eventType == TableCellMouseEvent.EVENT_MOUSEUP ){
-		
-			String url = UrlUtils.getURL( clickable );
-			
-			if ( url != null ){
-				
-				Utils.launch( url );
+
+		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
+
+			String url = UrlUtils.getURL(clickable);
+
+			if (url != null) {
+
+				Utils.launch(url);
 			}
 		}
 	}
-	
+
 	private class Cell
-		implements TableCellRefreshListener,
-		TableCellSWTPaintListener
+		implements TableCellRefreshListener, TableCellSWTPaintListener
 	{
+		private static final int MAX_PROGRESS_FILL_HEIGHT = 19;
+
 		int lastPercentDone = 0;
 
 		long lastETA;
@@ -147,7 +148,6 @@ public class ColumnProgressETA
 		public Cell(TableCell cell) {
 			cell.addListeners(this);
 			cell.setMarginHeight(3);
-			//cell.setFillCell(true);
 		}
 
 		public void refresh(TableCell cell) {
@@ -162,16 +162,14 @@ public class ColumnProgressETA
 
 			long completedTime = dm.getDownloadState().getLongParameter(
 					DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
-			if (completedTime <= 0) {
-				sortValue = dm.getDownloadState().getLongParameter(
-						DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME) * 10000;
-				sortValue += 1000 - percentDone;
+			if (completedTime <= 0 || !dm.isDownloadComplete(false)) {
+				sortValue = Long.MAX_VALUE - 10000 + percentDone;
 			} else {
 				sortValue = completedTime;
 			}
 
 			long eta = getETA(cell);
-			
+
 			if (!cell.setSortValue(sortValue) && cell.isValid()
 					&& lastPercentDone == percentDone && lastETA == eta) {
 				return;
@@ -180,84 +178,65 @@ public class ColumnProgressETA
 			lastPercentDone = percentDone;
 			lastETA = eta;
 
-			cell.setSortValue(sortValue);
 			cell.invalidate();
 		}
-		
+
 		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
-		public void cellPaint(GC gcImage, TableCellSWT cell) {
+		public void cellPaint(GC gc, TableCellSWT cell) {
 			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			if (dm == null) {
 				return;
 			}
 			int percentDone = getPercentDone(cell);
 			long eta = getETA(cell);
-		
+
 			//Compute bounds ...
 			int newWidth = cell.getWidth();
 			if (newWidth <= 0) {
 				return;
 			}
 			int newHeight = cell.getHeight();
-			
-			Color fgFirst = gcImage.getForeground();
-			
-			Rectangle cellBounds = cell.getBounds();
-			
-			int x0 = cellBounds.x + cell.getMarginWidth();
-			int y0 = cellBounds.y + cell.getMarginHeight();
 
-			int x1 = borderWidth;
-			int y1 = borderWidth;
-			int x2 = newWidth - x1 - borderWidth;
-			int progressX2 = x2;
-			int progressY2 = newHeight - y1 - borderWidth - 13;
-			if (progressY2 > 18) {
-				progressY2 = 18;
-			}
-			boolean showSecondLine = progressY2 > 0;
-			if (!showSecondLine) {
-				progressY2 = newHeight;
-			}
-			
-			if (x2 < 10 || progressX2 < 10) {
+			Color fgFirst = gc.getForeground();
+
+			Rectangle cellBounds = cell.getBounds();
+
+			int xStart = cellBounds.x + cell.getMarginWidth();
+			int yStart = cellBounds.y + cell.getMarginHeight();
+
+			int xRelProgressFillStart = borderWidth;
+			int yRelProgressFillStart = borderWidth;
+			int xRelProgressFillEnd = newWidth - xRelProgressFillStart - borderWidth;
+			int yRelProgressFillEnd = yRelProgressFillStart + 13;
+			boolean showSecondLine = yRelProgressFillEnd + 10 < newHeight;
+
+			if (xRelProgressFillEnd < 10 || xRelProgressFillEnd < 10) {
 				return;
 			}
 
 			boolean bDrawProgressBar = true;
 
 			String sETALine = null;
-			long lSpeed = getSpeed(dm);
-			String sSpeed = lSpeed <= 0 ? "" : "("
-					+ DisplayFormatters.formatByteCountToKiBEtcPerSec(lSpeed, true) + ")";
 
+			// Draw Progress bar
 			if (bDrawProgressBar && percentDone < 1000) {
-
-		    ImageLoader imageLoader = ImageLoader.getInstance();
+				ImageLoader imageLoader = ImageLoader.getInstance();
 				Image imgEnd = imageLoader.getImage("dl_bar_end");
 				Image img0 = imageLoader.getImage("dl_bar_0");
 				Image img1 = imageLoader.getImage("dl_bar_1");
 
-				gcImage.drawImage(imgEnd, x0, y0+y1);
-				gcImage.drawImage(imgEnd, x0 + progressX2 - x1 + 1, y0+y1);
-				
-				
-				
-//				gcImage.setForeground(cBorder);
-//				gcImage.drawRectangle(x0, y0, progressX2 - x1 + 1, progressY2 - y1 + 1);
+				gc.drawImage(imgEnd, xStart, yStart + yRelProgressFillStart);
+				gc.drawImage(imgEnd, xStart + xRelProgressFillEnd
+						- xRelProgressFillStart + 1, yStart + yRelProgressFillStart);
 
-				int limit = ((progressX2 - x1) * percentDone) / 1000;
+				int limit = ((xRelProgressFillEnd - xRelProgressFillStart) * percentDone) / 1000;
 
-				gcImage.drawImage(img1, 0, 0, 1, 13,x0 + x1, y0 + y1, limit, 13);
-				
-				
-//				gcImage.setBackground(cBG);
-//				gcImage.fillRectangle(x0 + x1, y0 + y1, limit, progressY2 - y1);
-				if (limit < progressX2) {
-					gcImage.drawImage(img0, 0, 0, 1, 13, x0 + limit + 1, y0 + y1, progressX2 - limit - 1,13);
-//					gcImage.setBackground(cFG);
-//					gcImage.fillRectangle(x0 + limit + 1, y0 + y1, progressX2 - limit - 1,
-//							progressY2 - y1);
+				gc.drawImage(img1, 0, 0, 1, 13, xStart + xRelProgressFillStart, yStart
+						+ yRelProgressFillStart, limit, 13);
+
+				if (limit < xRelProgressFillEnd) {
+					gc.drawImage(img0, 0, 0, 1, 13, xStart + limit + 1, yStart
+							+ yRelProgressFillStart, xRelProgressFillEnd - limit - 1, 13);
 				}
 
 				imageLoader.releaseImage("dl_bar_end");
@@ -266,15 +245,12 @@ public class ColumnProgressETA
 			}
 
 			if (sETALine == null) {
-				if ( dm.isUnauthorisedOnTracker()){
+				if (dm.isUnauthorisedOnTracker()) {
 					sETALine = dm.getTrackerStatus();
 					// fgFirst = Colors.colorError;	pftt, no colours allowed apparently
-				}else{
-					//if (isStopped(cell)) {
-					//sETALine = DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource());
-					//} else
+				} else {
 					if (dm.isDownloadComplete(true)) {
-						sETALine = DisplayFormatters.formatByteCountToKiBEtc(dm.getSize());
+						//sETALine = DisplayFormatters.formatByteCountToKiBEtc(dm.getSize());
 					} else if (eta > 0) {
 						String sETA = TimeFormatter.format(eta);
 						sETALine = MessageText.getString(
@@ -283,59 +259,76 @@ public class ColumnProgressETA
 								});
 					} else {
 						sETALine = DisplayFormatters.formatDownloadStatus(dm);
-						//sETALine = "";
 					}
 				}
-				
+
 				int cursor_id;
-				
-				if ( sETALine.indexOf( "http://" ) == -1 ){
-									
-					dm.setUserData( CLICK_KEY, null );
-					
+
+				if (sETALine != null && sETALine.indexOf("http://") == -1) {
+
+					dm.setUserData(CLICK_KEY, null);
+
 					cursor_id = SWT.CURSOR_ARROW;
-					
-				}else{
-					
-					dm.setUserData( CLICK_KEY, sETALine );
-					
+
+				} else {
+
+					dm.setUserData(CLICK_KEY, sETALine);
+
 					cursor_id = SWT.CURSOR_HAND;
-					
-					if ( !cell.getTableRow().isSelected()){
-					
+
+					if (!cell.getTableRow().isSelected()) {
+
 						fgFirst = Colors.blue;
 					}
 				}
-				
-				((TableCellSWT)cell).setCursorID( cursor_id );
+
+				((TableCellSWT) cell).setCursorID(cursor_id);
 			}
 
 			if (fontText == null) {
-				fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 11);
+				fontText = Utils.getFontWithHeight(gc.getFont(), gc, 11);
 			}
 
-			gcImage.setTextAntialias(SWT.ON);
-			if (showSecondLine) {
-  			gcImage.setFont(fontText);
-  			//int[] fg = cell.getForeground();
-  			//gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
-  			gcImage.setForeground(fgFirst);
-  			gcImage.drawText(sETALine, x0 + 2, y0 + progressY2, true);
-  			Point textExtent = gcImage.textExtent(sETALine);
-  			cell.setToolTip(textExtent.x > newWidth ? sETALine : null);
+			gc.setTextAntialias(SWT.ON);
+			gc.setFont(fontText);
+			if (showSecondLine && sETALine != null) {
+				gc.setForeground(fgFirst);
+				boolean over = GCStringPrinter.printString(gc, sETALine, new Rectangle(
+						xStart + 2, yStart + yRelProgressFillEnd, xRelProgressFillEnd,
+						newHeight - yRelProgressFillEnd), true, false, SWT.CENTER);
+				cell.setToolTip(over ? sETALine : null);
 			}
-			int middleY = (progressY2 - 12) / 2;
+			int middleY = (yRelProgressFillEnd - 12) / 2;
 			if (percentDone == 1000) {
-				gcImage.setForeground(cText);
-				gcImage.drawText("Complete", x0 + 2, y0 + middleY, true);
+				gc.setForeground(fgFirst);
+				long value;
+				long completedTime = dm.getDownloadState().getLongParameter(
+						DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+				if (completedTime <= 0) {
+					value = dm.getDownloadState().getLongParameter(
+							DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
+				} else {
+					value = completedTime;
+				}
+
+				String s = "Completed on " + DisplayFormatters.formatDateShort(value);
+				GCStringPrinter.printString(gc, s, new Rectangle(xStart + 2, yStart,
+						newWidth - 4, newHeight), true, false, SWT.WRAP);
 			} else if (bDrawProgressBar) {
-				gcImage.setForeground(cText);
+				long lSpeed = getSpeed(dm);
+				String sSpeed = lSpeed <= 0 ? "" : "("
+						+ DisplayFormatters.formatByteCountToKiBEtcPerSec(lSpeed, true)
+						+ ")";
+
+				gc.setForeground(cText);
 				String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
-				gcImage.drawText(sSpeed, x0 + 50, y0 + y1 + 1, true);
-				gcImage.drawText(sPercent, x0 + 2, y0 + y1 + 1, true);
+				gc.drawText(sSpeed, xStart + 50, yStart + yRelProgressFillStart + 1,
+						true);
+				gc.drawText(sPercent, xStart + 2, yStart + yRelProgressFillStart + 1,
+						true);
 			}
-  
-			gcImage.setFont(null);
+
+			gc.setFont(null);
 		}
 
 		private int getPercentDone(TableCell cell) {
@@ -389,7 +382,6 @@ public class ColumnProgressETA
 			}
 			return dmEnhancer.getEnhancedDownload(dm);
 		}
-
 
 		private void log(TableCell cell, String s) {
 			System.out.println(((TableRowCore) cell.getTableRow()).getIndex() + ":"
