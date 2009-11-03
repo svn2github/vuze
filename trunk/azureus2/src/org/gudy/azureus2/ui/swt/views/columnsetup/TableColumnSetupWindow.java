@@ -493,7 +493,9 @@ public class TableColumnSetupWindow
   						}
 						}
   					if (defaultColumns.size() > 0) {
-  						mapNewVisibility.clear();
+  						for (TableColumnCore tc : mapNewVisibility.keySet()) {
+								mapNewVisibility.put(tc, Boolean.FALSE);
+							}
   						tvChosen.removeAllTableRows();
   						columnsChosen = defaultColumns.toArray(new TableColumnCore[0]);
   						for (int i = 0; i < columnsChosen.length; i++) {
@@ -834,13 +836,11 @@ public class TableColumnSetupWindow
 	 * @since 4.0.0.5
 	 */
 	protected void apply() {
-		for (int i = 0; i < columnsChosen.length; i++) {
-			TableColumnCore column = columnsChosen[i];
-			if (column != null) {
-				column.setVisible(mapNewVisibility.get(column).booleanValue());
-				if (doReset) {
-					column.reset();
-				}
+		for (TableColumnCore tc : mapNewVisibility.keySet()) {
+			boolean visible = mapNewVisibility.get(tc).booleanValue();
+			tc.setVisible(visible);
+			if (doReset) {
+				tc.reset();
 			}
 		}
 		TableColumnManager.getInstance().saveTableColumns(forDataSourceType,
