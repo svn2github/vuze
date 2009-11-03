@@ -48,7 +48,8 @@ public class PlatformTorrentUtils
 {
 	private static final long MIN_SPEED_DEFAULT = 100 * 1024;
 
-	public static final String AELITIS_HOST_CORE	= "aelitis.com";			// needs to be lowercase
+	public static final String AELITIS_HOST_CORE	= ".aelitis.com";			// needs to be lowercase
+	public static final String VUZE_HOST_CORE		= ".vuze.com";				// needs to be lowercase
 
 	public static final boolean DEBUG_CACHING = System.getProperty(
 			"az3.debug.caching", "0").equals("1");
@@ -547,7 +548,9 @@ public class PlatformTorrentUtils
 			URL announceURL = torrent.getAnnounceURL();
 
 			if (announceURL != null) {
-				if (announceURL.getHost().indexOf(AELITIS_HOST_CORE) == -1) {
+				String	host = announceURL.getHost();
+				
+				if (!( host.endsWith(AELITIS_HOST_CORE)|| host.endsWith( VUZE_HOST_CORE ))){
 					isUpdate = false;
 				}
 			}
@@ -561,7 +564,9 @@ public class PlatformTorrentUtils
 
 					for (int j = 0; j < urls.length; j++) {
 
-						if (urls[j].getHost().indexOf(AELITIS_HOST_CORE) == -1) {
+						String host = urls[j].getHost();
+						
+						if (!( host.endsWith(AELITIS_HOST_CORE)|| host.endsWith( VUZE_HOST_CORE ))){
 							isUpdate = false;
 							break;
 						}
