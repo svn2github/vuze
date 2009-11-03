@@ -316,6 +316,10 @@ public class ClientStatsView
 	}
 
 	public void tableViewDestroyed() {
+		if (core == null) {
+			// not initialized, skip save
+			return;
+		}
 		core.getGlobalManager().removeListener(this);
 		List downloadManagers = core.getGlobalManager().getDownloadManagers();
 		for (Object object : downloadManagers) {
