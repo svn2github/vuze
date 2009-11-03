@@ -374,10 +374,8 @@ SBC_RCMView
 		SWTSkinObject soSizeSlider = getSkinObject("table-size-slider");
 		if (soSizeSlider instanceof SWTSkinObjectContainer) {
 			SWTSkinObjectContainer so = (SWTSkinObjectContainer) soSizeSlider;
-			if (Constants.isOSX) {
-				tv_related_content.enableSizeSlider(so.getComposite(), 16, 100);
-			} else {
-				so.getControl().setSize(0, -1);
+			if (!tv_related_content.enableSizeSlider(so.getComposite(), 16, 100)) {
+				so.setVisible(false);
 			}
 		}
 		
