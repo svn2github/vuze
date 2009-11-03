@@ -735,7 +735,7 @@ SubscriptionManagerUI
 				public void tableColumnCreated(TableColumn result) {
 					result.setAlignment(TableColumn.ALIGN_CENTER);
 					result.setPosition(TableColumn.POSITION_LAST);
-					result.setWidth(75);
+					result.setWidth(72);
 					result.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 					result.setType(TableColumn.TYPE_GRAPHIC);
 				
