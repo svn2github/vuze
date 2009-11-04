@@ -73,6 +73,11 @@ PlatformContentNetworkMessenger
 	public static void 
 	listNetworksAync(final listNetworksListener l, int maxDelayMS)
 	{
+		if (l != null) {
+			l.networkListReturned(new ArrayList<contentNetworkDetails>(0));
+			return;
+		}
+
 		JSONObject parameters = new JSONObject();
 
 		parameters.put("azver", Constants.AZUREUS_VERSION);
