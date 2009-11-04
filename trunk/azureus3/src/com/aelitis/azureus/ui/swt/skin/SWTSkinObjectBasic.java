@@ -194,7 +194,7 @@ public class SWTSkinObjectBasic
 		control.setData("SkinObject", this);
 
 		SWTSkinUtils.addMouseImageChangeListeners(control);
-		switchSuffix("", 1, false);
+		switchSuffix(null, 0, false);
 
 		// setvisible is one time only
 		if (!properties.getBooleanValue(sConfigID + ".visible", true)) {
@@ -532,9 +532,11 @@ public class SWTSkinObjectBasic
 
 		String fullSuffix = getSuffix();
 
-		if (sConfigID == null || control == null || control.isDisposed()
-				|| !isVisible || (newSuffixEntry != null && fullSuffix.equals(old))) {
-			return fullSuffix;
+		if (newSuffixEntry != null) {
+  		if (sConfigID == null || control == null || control.isDisposed()
+  				|| !isVisible || (newSuffixEntry != null && fullSuffix.equals(old))) {
+  			return fullSuffix;
+  		}
 		}
 
 		final String sSuffix = fullSuffix;
