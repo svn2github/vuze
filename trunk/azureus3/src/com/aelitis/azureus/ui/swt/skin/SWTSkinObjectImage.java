@@ -220,6 +220,9 @@ public class SWTSkinObjectImage
 			}
 		});
 
+		// needed to set paint listener and canvas size
+		reallySetImage();
+
 		return canvas;
 	}
 	
@@ -385,7 +388,7 @@ public class SWTSkinObjectImage
 			currentImageID = sConfigID + ".image";
 			imageExists = true;
 		}
-		if (!imageExists) {
+		if (!imageExists && suffixes != null) {
 			for (int i = suffixes.length - 1; i >= 0; i--) {
 				String suffixToRemove = suffixes[i];
 				if (suffixToRemove != null) {
