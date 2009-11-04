@@ -5102,4 +5102,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 		return true;
 	}
+	
+	public void disableSizeSlider() {
+		Utils.disposeSWTObjects(new Object[] { slider });
+	}
 }

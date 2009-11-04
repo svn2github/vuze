@@ -216,6 +216,7 @@ public class MyTorrentsView
 			"DND Always In Incomplete",
 			"Confirm Data Delete",
 			"MyTorrentsView.alwaysShowHeader",
+			"User Mode"
 		}, this);
 
     if (currentCategory != null) {
@@ -439,8 +440,7 @@ public class MyTorrentsView
     rowLayout.wrap = true;
     cCategories.setLayout(rowLayout);
     
-    cSizer = new Composite(cHeader, SWT.BORDER);
-
+    cSizer = new Composite(cHeader, SWT.NONE);
 
     fd = new FormData();
     fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER);
@@ -468,13 +468,20 @@ public class MyTorrentsView
     fd.bottom = new FormAttachment(cFilterArea, 0, SWT.BOTTOM); 
     cCategories.setLayoutData(fd);
 
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+
+		boolean isAdvanced = userMode >= 2;
+		
     fd = new FormData();
     fd.right = new FormAttachment(100, -2); 
     fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
-    fd.width = 100;
+    fd.width = isAdvanced ? 100 : 1;
+    fd.height = isAdvanced ? 18 : 1;
     cSizer.setLayoutData(fd);
 
-    tv.enableSizeSlider(cSizer, 16, 96);
+    if (isAdvanced) {
+    	tv.enableSizeSlider(cSizer, 16, 96);
+    }
 
     cHeader.addListener(SWT.Resize, new Listener(){
 			public void handleEvent(Event event) {
@@ -522,6 +529,40 @@ public class MyTorrentsView
     parent.layout(true);
 
     tv.enableFilterCheck(txtFilter, this);
+	}
+
+  private void hideShowSlider() {
+  	Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				int userMode = COConfigurationManager.getIntParameter("User Mode");
+				boolean isAdvanced = userMode >= 2;
+				
+				if (cSizer == null || cSizer.isDisposed()) {
+					return;
+				}
+				
+				FormData fd = (FormData) cSizer.getLayoutData();
+				if (isAdvanced) {
+					if (fd.width < 100) {
+						fd.width = 100;
+						fd.height = 16;
+			    	tv.enableSizeSlider(cSizer, 16, 96);
+			    	cSizer.setVisible(false);
+						cSizer.getParent().layout(true);
+					}
+				} else {
+					if (fd.width == 100) {
+						fd.width = 1;
+						fd.height = 1;
+						tv.disableSizeSlider();
+						cSizer.setVisible(true);
+						cSizer.getParent().layout(true);
+					}
+				}
+			}
+		});
+
+		
 	}
 
 
@@ -1720,9 +1761,12 @@ public class MyTorrentsView
 		if (parameterName == null || parameterName.equals("MyTorrentsView.alwaysShowHeader")) {
 			setForceHeaderVisible(COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader"));
 		}
+		if (parameterName == null || parameterName.equals("User Mode")) {
+			hideShowSlider();
+		}
 	}
 
-  private boolean top,bottom,up,down,run,start,stop,remove;
+	private boolean top,bottom,up,down,run,start,stop,remove;
 
   private void computePossibleActions() {
     Object[] dataSources = tv.getSelectedDataSources().toArray();
