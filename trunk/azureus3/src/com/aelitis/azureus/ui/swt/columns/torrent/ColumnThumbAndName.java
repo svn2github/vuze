@@ -167,7 +167,6 @@ public class ColumnThumbAndName
 			cellBounds.y += 1;
 			cellBounds.height -= 3;
 		}
-
 		Rectangle imgBounds = imgThumbnail[0].getBounds();
 
 		int dstWidth;
@@ -183,6 +182,15 @@ public class ColumnThumbAndName
 			dstHeight = imgBounds.height;
 		}
 
+		if (cellBounds.height <= 18) {
+			dstWidth = Math.min(dstWidth, cellBounds.height);
+			dstHeight = Math.min(dstHeight, cellBounds.height);
+			if (imgBounds.width > 16) {
+				cellBounds.y++;
+				dstHeight -= 2;
+			}
+		}
+		
 		try {
 			gc.setAdvanced(true);
 			gc.setInterpolation(SWT.HIGH);
