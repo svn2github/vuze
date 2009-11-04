@@ -28,7 +28,7 @@ public class
 ContentNetworkVuze 
 	extends ContentNetworkVuzeGeneric
 {
-	private static final String DEFAULT_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  use the -Dplatform_address=ip override instead
+	private static final String DEFAULT_ADDRESS = "client.vuze.com"; //DO NOT TOUCH !!!!  use the -Dplatform_address=ip override instead
 
 	private static final String DEFAULT_PORT = "80";
 

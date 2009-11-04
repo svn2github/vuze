@@ -196,7 +196,7 @@ ContentNetworkVuzeGeneric
 		
 		addService( SERVICE_SEARCH, 			URL_PREFIX + "search?q=" );
 		addService( SERVICE_XSEARCH, 			URL_PREFIX + "xsearch?q=" );
-		addService( SERVICE_RPC, 				URL_PREFIX + "rpc-v2" );
+		addService( SERVICE_RPC, 				"http://vrpc.vuze.com/vzrpc/rpc.php" );
 		addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" );
 		addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start?" );
 		addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start?" );
