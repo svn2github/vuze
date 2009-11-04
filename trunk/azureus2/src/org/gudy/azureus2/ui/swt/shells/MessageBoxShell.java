@@ -272,9 +272,6 @@ public class MessageBoxShell
 		if (buttonVals == null) {
 			return buttonVal;
 		}
-		if (buttonVal < 0 || buttonVal >= buttonVals.length) {
-			return -1;
-		}
 		for (int i = 0; i < buttonVals.length; i++) {
 			if (buttonVals[i] == buttonVal) {
 				return i;
