@@ -3900,17 +3900,6 @@ DHTControlImpl
 		*/
 	}
 	
-	public List<DHTTransportContact>
-	sortContactsByDistance(
-		List		contacts )
-	{
-		Set	sorted_contacts = new sortedTransportContactSet( router.getID(), true ).getSet(); 
-
-		sorted_contacts.addAll( contacts );
-		
-		return( new ArrayList<DHTTransportContact>( sorted_contacts ));
-	}
-	
 	protected static class
 	sortedTransportContactSet
 	{

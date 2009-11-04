@@ -139,10 +139,6 @@ DHTControl
 		byte[]		id,
 		int			num_to_return,
 		boolean		live_only );
-
-	public List<DHTTransportContact>
-	sortContactsByDistance(
-		List<DHTTransportContact>		contacts );
 	
 	public void
 	putEncodedKey(
