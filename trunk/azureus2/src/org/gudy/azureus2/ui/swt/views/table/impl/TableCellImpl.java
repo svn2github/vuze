@@ -1166,9 +1166,11 @@ public class TableCellImpl
 						  l.refresh(this);
 				  }
 			  }
-			  long lTimeEnd = Constants.isCVSVersion()?SystemTime.getMonotonousTime():0;
-			  tableColumn.addRefreshTime(lTimeEnd - lTimeStart);
-
+			  if ( Constants.isCVSVersion()){
+				  long lTimeEnd = SystemTime.getMonotonousTime();
+				  tableColumn.addRefreshTime(lTimeEnd - lTimeStart);
+			  }
+			  
 			  // Change to valid only if we weren't valid before the listener calls
 			  // This is in case the listeners set valid to false when it was true
 			  if (!bWasValid && !hasFlag(FLAG_MUSTREFRESH)) {
