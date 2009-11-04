@@ -160,6 +160,8 @@ DHTControlImpl
 	private long			last_node_add_check;
 	private byte[]			node_add_check_uninteresting_limit;
 	
+	private long			rbs_time;
+	private byte[]			rbs_id	= {};
 	
 	public
 	DHTControlImpl(
@@ -2684,7 +2686,9 @@ DHTControlImpl
 		byte[][]				keys,
 		DHTTransportValue[][]	value_sets )
 	{
-		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
+		byte[] originator_id = originating_contact.getID();
+		
+		router.contactAlive( originator_id, new DHTControlContactImpl(originating_contact));
 		
 		if ( DHTLog.isOn()){
 		
@@ -2702,25 +2706,134 @@ DHTControlImpl
 			return( new DHTTransportStoreReplyImpl(  diverse_res ));
 		}
 		
+		DHTStorageBlock	blocked_details	= null;
+
 		// System.out.println( "storeRequest: received " + originating_contact.getRandomID() + " from " + originating_contact.getAddress());
 		
-		DHTStorageBlock	blocked_details	= null;
+		//System.out.println( "store request: keys=" + keys.length );
 		
-		for (int i=0;i<keys.length;i++){
+		if ( keys.length > 0 ){
 			
-			HashWrapper			key		= new HashWrapper( keys[i] );
+			boolean	cache_forward = false;
 			
-			DHTTransportValue[]	values 	= value_sets[i];
-		
-			if ( DHTLog.isOn()){
-				DHTLog.log( "    key=" + DHTLog.getString(key) + ", value=" + DHTLog.getString(values));
+			for ( DHTTransportValue[] values: value_sets ){
+				
+				for ( DHTTransportValue value: values ){
+				
+					if ( !Arrays.equals( originator_id, value.getOriginator().getID())){
+						
+						cache_forward	= true;
+					
+						break;
+					}
+				}
+				
+				if ( cache_forward ){
+						
+					break;
+				}
 			}
 			
-			diverse_res[i] = database.store( originating_contact, key, values );
-			
-			if ( blocked_details == null ){
+				// don't start accepting cache forwards until we have a good idea of our 
+				// acceptable key space
+							
+			if ( cache_forward && !isSeeded()){
+				
+				//System.out.println( "not seeded" );
+				
+				if ( DHTLog.isOn()){
+					DHTLog.log( "Not storing keys as not yet seeded" );
+				}
+				
+			}else if ( !verifyContact( originating_contact, !cache_forward )){
 					
-				blocked_details = database.getKeyBlockDetails( keys[i] );
+				//System.out.println( "verification fail" );
+				
+				logger.log( "Verification of contact '" + originating_contact.getName() + "' failed for store operation" );
+				
+			}else{
+				
+					// get the closest contacts to me
+					
+				byte[]	my_id	= local_contact.getID();
+				
+				int	c_factor = router.getK();
+				
+				if ( adapter.getStorageAdapter().getNetwork() != DHT.NW_CVS ){
+					
+					c_factor += ( c_factor/2 );
+				}
+
+				boolean store_it = true;
+				
+				if ( cache_forward ){
+					
+					long	now = SystemTime.getMonotonousTime();
+					
+					if ( now - rbs_time < 10*1000 && Arrays.equals( originator_id, rbs_id )){
+						
+						// System.out.println( "contact too far away - repeat" );
+						
+						store_it = false;
+						
+					}else{
+							// make sure the originator is in our group
+						
+						List<DHTTransportContact>closest_contacts = getClosestContactsList( my_id, c_factor, true );
+						
+						DHTTransportContact	furthest = closest_contacts.get( closest_contacts.size()-1);
+							
+						if ( computeAndCompareDistances( furthest.getID(), originator_id, my_id ) < 0 ){
+			
+							rbs_id 		= originator_id;
+							rbs_time	= now;
+							
+							// System.out.println( "contact too far away" );
+		
+							if ( DHTLog.isOn()){
+								DHTLog.log( "Not storing keys as cache forward and sender too far away" );
+							}
+							
+							store_it	= false;
+						}
+					}
+				}
+								
+				if ( store_it ){
+					
+					for (int i=0;i<keys.length;i++){
+						
+						byte[]			key = keys[i];
+						
+						HashWrapper		hw_key		= new HashWrapper( key );
+						
+						DHTTransportValue[]	values 	= value_sets[i];
+					
+						if ( DHTLog.isOn()){
+							DHTLog.log( "    key=" + DHTLog.getString(key) + ", value=" + DHTLog.getString(values));
+						}
+						
+							// make sure the key isn't too far away from us
+						
+						if ( 	!( 	database.hasKey( hw_key ) ||
+									isIDInClosestContacts( my_id, key, c_factor, true ))){
+							
+							// System.out.println( "key too far away" );
+		
+							if ( DHTLog.isOn()){
+								DHTLog.log( "Not storing keys as cache forward and sender too far away" );
+							}
+						}else{					
+							
+							diverse_res[i] = database.store( originating_contact, hw_key, values );
+							
+							if ( blocked_details == null ){
+									
+								blocked_details = database.getKeyBlockDetails( key );
+							}
+						}
+					}
+				}
 			}
 		}
 		
@@ -3297,9 +3410,11 @@ DHTControlImpl
 		
 		Set<DHTTransportContact>	sorted_set	= new sortedTransportContactSet( id, true ).getSet(); 
 
-		// profilers says l.size() is taking CPU (!) so put it into a variable
-		// this is safe since the list returned is created for us only
+			// profilers says l.size() is taking CPU (!) so put it into a variable
+			// this is safe since the list returned is created for us only
+		
 		long size = l.size();
+		
 		for (int i=0;i<size;i++){
 			
 			sorted_set.add(((DHTControlContactImpl)((DHTRouterContact)l.get(i)).getAttachment()).getTransportContact());
@@ -3334,6 +3449,38 @@ DHTControlImpl
 		}
 		
 		return( res );
+	}
+	
+	protected boolean
+	isIDInClosestContacts(
+		byte[]		test_id,
+		byte[]		target_id,
+		int			num_to_consider,
+		boolean		live_only )
+	{
+		List<DHTRouterContact>	l = router.findClosestContacts( target_id, num_to_consider, live_only );
+		
+		boolean	found		= false;
+		int		num_closer 	= 0;
+		
+		for ( DHTRouterContact c: l ){
+			
+			byte[]	c_id = c.getID();
+			
+			if ( Arrays.equals( test_id, c_id )){
+				
+				found = true;
+				
+			}else{
+			
+				if ( computeAndCompareDistances( c_id, test_id, target_id ) < 0 ){
+					
+					num_closer++;
+				}
+			}
+		}
+		
+		return( found && num_closer < num_to_consider );
 	}
 	
 	protected byte[]

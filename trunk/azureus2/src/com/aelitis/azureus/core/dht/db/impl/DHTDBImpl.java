@@ -439,103 +439,6 @@ DHTDBImpl
 			return( DHT.DT_SIZE );
 		}
 		
-			// remote store for cache values
-		
-			// Make sure that we only accept values for storing that are reasonable.
-			// Assumption is that the caller has made a reasonable effort to ascertain
-			// the correct place to store a value. Part of this will in general have 
-			// needed them to query us for example. Therefore, limit values to those
-			// that are at least as close to us
-			// used to just use K here but this is a little too strict as we end up rejecting
-			// a fair few valid stores - widened to 2*K
-		
-			// dropped a bit, especially on CVS DHT due to smallness
-		
-		int	c_factor = router.getK();
-		
-		if ( adapter.getNetwork() != DHT.NW_CVS ){
-			
-			c_factor += ( c_factor/2 );
-		}
-		
-		List<DHTTransportContact> closest_contacts = control.getClosestContactsList( key.getHash(), c_factor, true );
-		
-		boolean	store_it	= false;
-		
-		
-		// store_ops++;
-		
-		for (int i=0;i<closest_contacts.size();i++){
-			
-			if ( router.isID(closest_contacts.get(i).getID())){
-				
-				store_it	= true;
-				
-				break;
-			}		
-		}
-		
-		if ( !store_it ){
-			
-			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as key too far away" );
-
-			// store_ops_bad1++;
-			// logStoreOps();
-			
-			return( DHT.DT_NONE );
-		}
-		
-			// next, for cache forwards (rather then values coming directly from 
-			// originators) we ensure that the contact sending the values to us is
-			// close enough. If any values are coming indirect then we can safely assume
-			// that they all are
-		
-		boolean	cache_forward = false;
-		
-		for (int i=0;i<values.length;i++){
-			
-			if (!Arrays.equals( sender.getID(), values[i].getOriginator().getID())){
-				
-				cache_forward	= true;
-				
-				break;
-			}
-		}
-		
-			// don't start accepting cache forwards until we have a good idea of our 
-			// acceptable key space
-		
-		if ( cache_forward && !control.isSeeded()){
-			
-			return( DHT.DT_NONE );
-		}
-		
-		if ( cache_forward ){
-			
-				// get the closest contacts to me
-				
-			byte[]	my_id	= local_contact.getID();
-			
-			closest_contacts = control.getClosestContactsList( my_id, c_factor, true );
-			
-			DHTTransportContact	furthest = (DHTTransportContact)closest_contacts.get( closest_contacts.size()-1);
-						
-			if ( control.computeAndCompareDistances( furthest.getID(), sender.getID(), my_id ) < 0 ){
-
-				store_it	= false;
-			}
-		}
-		
-		if ( !store_it ){
-			
-			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as cache forward and sender too far away" );
-			
-			// store_ops_bad2++;			
-			// logStoreOps();
-			
-			return( DHT.DT_NONE );
-		}
-		
 		// logStoreOps();
 		
 		try{
@@ -553,46 +456,17 @@ DHTDBImpl
 				
 				addToPrefixMap( mapping );
 			}
-			
-			boolean contact_checked = false;
-			boolean	contact_ok		= false;
-			
+						
 				// we carry on an update as its ok to replace existing entries
 				// even if diversified
 			
 			for (int i=0;i<values.length;i++){
 				
-					// last check, verify that the contact is who they say they are, only for non-forwards
-					// as cache forwards are only accepted if they are "close enough" and we can't 
-					// rely on their identify due to the way that cache republish works (it doesn't
-					// guarantee a "lookup_node" prior to "store".
-
 				DHTTransportValue	value = values[i];
-				
-				boolean	ok_to_store = false;
-				
-				boolean	direct =Arrays.equals( sender.getID(), value.getOriginator().getID());
-								
-				if ( !contact_checked ){
-						
-					contact_ok =  control.verifyContact( sender, direct );
-						
-					if ( !contact_ok ){
-						
-						logger.log( "DB: verification of contact '" + sender.getName() + "' failed for store operation" );
-					}
 					
-					contact_checked	= true;
-				}
+				DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, value, false );
 			
-				ok_to_store	= contact_ok;
-
-				if ( ok_to_store ){
-					
-					DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, value, false );
-			
-					mapping.add( mapping_value );
-				}
+				mapping.add( mapping_value );
 			}
 			
 			return( mapping.getDiversificationType());
@@ -669,6 +543,21 @@ DHTDBImpl
 			}
 			
 			return( null );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public boolean
+	hasKey(
+		HashWrapper		key )
+	{
+		try{
+			this_mon.enter();
+			
+			return( stored_values.containsKey( key ));
 			
 		}finally{
 			

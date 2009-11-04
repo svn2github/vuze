@@ -92,6 +92,10 @@ DHTDB
 	get(
 		HashWrapper		key );
 	
+	public boolean
+	hasKey(
+		HashWrapper		key );
+	
 	public DHTDBLookupResult
 	get(
 		DHTTransportContact		reader,
