@@ -191,7 +191,7 @@ CoreUpdateChecker
 			}
 			
 			//latest_version 		= "3.0.0.3";
-			//latest_file_name	= "http://torrents.aelitis.com:88/torrents/Azureus2.5.0.0.jar.torrent";
+			//latest_file_name	= "http://torrent.vuze.com:88/torrents/Azureus2.5.0.0.jar.torrent";
 			//latest_file_name	= "Azureus2.5.0.0.jar.torrent";
 			
 			String	msg = "Core: latest_version = '" + latest_version + "', file = '" + latest_file_name + "'";
@@ -761,7 +761,7 @@ CoreUpdateChecker
 					try{
 						
 						res.add( new URL( mirror + latest_file_name ));
-						// res.add( new URL( "http://torrents.aelitis.com:88/torrents/Azureus2.4.0.2_signed.jar.torrent" ));
+						// res.add( new URL( "http://torrent.vuze.com:88/torrents/Azureus2.4.0.2_signed.jar.torrent" ));
 						
 					}catch(Throwable e){
 						

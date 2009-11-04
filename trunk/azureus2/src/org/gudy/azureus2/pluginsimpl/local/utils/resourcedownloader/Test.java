@@ -47,7 +47,7 @@ Test
 		try{
 			ResourceDownloaderFactory	rdf = pi.getUtilities().getResourceDownloaderFactory();
 			
-			// ResourceDownloader rd_t = rdf.create(new URL("http://play.aelitis.com/torrents/Azureus2201-B22.jar.torrent"));
+			// ResourceDownloader rd_t = rdf.create(new URL("http://torrent.vuze.com:88/torrents/Azureus2201-B22.jar.torrent"));
 			
 			//rd_t = rdf.getMetaRefreshDownloader(rd_t);
 			
@@ -65,7 +65,7 @@ Test
 			
 			//rd_u = rdf.getSuffixBasedDownloader(rd_u);
 
-			ResourceDownloader rd_u = rdf.create( new URL( "http://torrents.aelitis.com:88/files/Azureus3009-B5.jar" ));
+			ResourceDownloader rd_u = rdf.create( new URL( "http://torrent.vuze.com:88/files/Azureus3009-B5.jar" ));
 			
 			// rd_u = rdf.getTorrentDownloader( rd_u, true );
 
