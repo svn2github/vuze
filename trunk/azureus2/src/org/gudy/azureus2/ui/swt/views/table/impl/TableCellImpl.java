@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.ui.Graphic;
@@ -1154,7 +1155,7 @@ public class TableCellImpl
 			  if (bDebug)
 				  debug("invoke refresh; wasValid? " + bWasValid);
 
-			  long lTimeStart = SystemTime.getMonotonousTime();
+			  long lTimeStart = Constants.isCVSVersion()?SystemTime.getMonotonousTime():0;
 			  tableColumn.invokeCellRefreshListeners(this, !bCellVisible);
 			  if (refreshListeners != null) {
 				  for (int i = 0; i < refreshListeners.size(); i++) {
@@ -1165,7 +1166,7 @@ public class TableCellImpl
 						  l.refresh(this);
 				  }
 			  }
-			  long lTimeEnd = SystemTime.getMonotonousTime();
+			  long lTimeEnd = Constants.isCVSVersion()?SystemTime.getMonotonousTime():0;
 			  tableColumn.addRefreshTime(lTimeEnd - lTimeStart);
 
 			  // Change to valid only if we weren't valid before the listener calls
