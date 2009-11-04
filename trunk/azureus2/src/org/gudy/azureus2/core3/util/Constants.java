@@ -87,7 +87,8 @@ Constants
   public static final String AZUREUS_NAME	  = "Azureus";
   public static final String AZUREUS_VERSION  = "4.2.0.9_CVS";  //4.2.0.9_CVS
   public static final byte[] VERSION_ID       = ("-" + "AZ" + "4209" + "-").getBytes();  //MUST be 8 chars long!
-  
+
+  public static final boolean IS_CVS_VERSION = isCVSVersion( AZUREUS_VERSION );
   
   public static final String  OSName = System.getProperty("os.name");
   
@@ -202,7 +203,7 @@ Constants
   public static boolean
   isCVSVersion()
   {
-  	return( isCVSVersion( AZUREUS_VERSION )); 
+  	return IS_CVS_VERSION; 
   }
   
   public static boolean
