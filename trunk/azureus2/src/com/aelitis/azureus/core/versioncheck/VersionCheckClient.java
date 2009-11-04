@@ -532,23 +532,8 @@ public class VersionCheckClient {
 	Exception 	error 	= null;
 	Map			reply	= null;
 	
-	if ( use_az_message ){
 	
-		try{
-			reply = executeAZMessage( data_to_send, v6 );
-			
-			reply.put( "protocol_used", "AZMSG" );
-		}
-		catch (IOException e) {
-			error = e;
-		}
-		catch (Exception e) {
-			Debug.printStackTrace( e );
-			error = e;
-		}
-	}
-	
-	if ( reply == null && use_http ){
+	if ( use_http ){
 		
 		try{
 			reply = executeHTTP( data_to_send, v6 );
@@ -564,6 +549,22 @@ public class VersionCheckClient {
 			Debug.printStackTrace(e);
 			error = e;
 			
+		}
+	}
+	
+	if ( reply == null && use_az_message ){
+		
+		try{
+			reply = executeAZMessage( data_to_send, v6 );
+			
+			reply.put( "protocol_used", "AZMSG" );
+		}
+		catch (IOException e) {
+			error = e;
+		}
+		catch (Exception e) {
+			Debug.printStackTrace( e );
+			error = e;
 		}
 	}
 	if ( error != null ){
