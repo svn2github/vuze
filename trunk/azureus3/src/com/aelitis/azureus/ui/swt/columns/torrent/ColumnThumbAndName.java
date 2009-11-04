@@ -212,6 +212,9 @@ public class ColumnThumbAndName
 
 				for (int i = 0; i < imgThumbnail.length; i++) {
 					Image image = imgThumbnail[i];
+					if (image == null || image.isDisposed()) {
+						continue;
+					}
 					Rectangle srcBounds = image.getBounds();
 					if (i == 0) {
 						int w = dstWidth;
