@@ -47,6 +47,10 @@ PlatformContentNetworkMessenger
 	
 		throws PlatformMessengerException
 	{
+		if (true) {
+			return new ArrayList<contentNetworkDetails>(0);
+		}
+
 		JSONObject parameters = new JSONObject();
 		
 		parameters.put( "azver", Constants.AZUREUS_VERSION );
