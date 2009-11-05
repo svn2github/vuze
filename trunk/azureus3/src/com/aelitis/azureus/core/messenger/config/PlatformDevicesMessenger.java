@@ -270,6 +270,9 @@ public class PlatformDevicesMessenger
 	}
 
 	private static void sendDeviceList(Device[] devices) {
+		if (!PlatformConfigMessenger.allowSendDeviceList()) {
+			return;
+		}
 		List<String> listRenderers = new ArrayList<String>(devices.length);
 		for (Device dev : devices) {
 			if (dev.getType() == Device.DT_MEDIA_RENDERER) {

@@ -47,6 +47,8 @@ public class PlatformConfigMessenger
 {
 	public static final String LISTENER_ID = "config";
 
+	private static boolean allowSendDeviceList = false;
+
 	private static int iRPCVersion = 0;
 
 	private static String playAfterURL = null;
@@ -152,8 +154,10 @@ public class PlatformConfigMessenger
 				try {
 					sendStats = MapUtils.getMapBoolean(reply, "send-stats", false);
 					doUrlQOS = MapUtils.getMapBoolean(reply, "do-url-qos", false);
+					allowSendDeviceList = MapUtils.getMapBoolean(reply, "send-device-list", false);
 				} catch (Exception e) {
 				}
+				
 				
 				try {
   				iRPCVersion = MapUtils.getMapInt(reply, "rpc-version", 0);
@@ -261,5 +265,10 @@ public class PlatformConfigMessenger
 	
 	public static interface PlatformLoginCompleteListener {
 		public void platformLoginComplete();
+	}
+
+
+	public static boolean allowSendDeviceList() {
+		return allowSendDeviceList;
 	}
 }
