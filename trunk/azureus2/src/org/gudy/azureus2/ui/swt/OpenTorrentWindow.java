@@ -2249,12 +2249,17 @@ public class OpenTorrentWindow
 								DiskManagerFileInfo fileInfo = fileInfos[iIndex];
 								if (iIndex >= 0 && iIndex < files.length && files[iIndex].lSize == fileInfo.getLength())
 								{
-									File fDest = files[iIndex].getDestFileFullName();
+									// Always pull destination file from fileInfo and not from
+									// TorrentFileInfo because the destination may have changed
+									// by magic code elsewhere
+									File fDest = fileInfo.getFile(true);
 									if (files[iIndex].isLinked())
 									{
+										fDest = files[iIndex].getDestFileFullName();
 										// Can't use fileInfo.setLink(fDest) as it renames
 										// the existing file if there is one
-										dm.getDownloadState().setFileLink(fileInfo.getFile(false), fDest);
+										dm.getDownloadState().setFileLink(
+														fileInfo.getFile(false), fDest);
 									}
 									if (!files[iIndex].bDownload)
 									{
