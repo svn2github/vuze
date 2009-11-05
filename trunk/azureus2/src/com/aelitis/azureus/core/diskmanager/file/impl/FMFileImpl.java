@@ -43,7 +43,7 @@ FMFileImpl
 	implements FMFile
 {	
 	protected static final String		READ_ACCESS_MODE	= "r";
-	protected static final String		WRITE_ACCESS_MODE	= "rwd";
+	protected static final String		WRITE_ACCESS_MODE	= "rw"; // "rwd"; - removing this to improve performance
 	
 	private static Map			file_map = new HashMap();
 	private static AEMonitor	file_map_mon	= new AEMonitor( "FMFile:map");

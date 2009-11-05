@@ -487,7 +487,14 @@ public class FileUtil {
 				  baos = new BufferedOutputStream( tempOS, 8192 );
 				  baos.write( encoded_data );
 				  baos.flush();
-				  tempOS.getFD().sync();
+				  
+				  	// thinking about removing this - just do so for CVS for the moment
+				  
+				  if ( !Constants.isCVSVersion()){
+					  
+					  tempOS.getFD().sync();
+				  }
+				  
 				  baos.close();
 				  baos = null;
 

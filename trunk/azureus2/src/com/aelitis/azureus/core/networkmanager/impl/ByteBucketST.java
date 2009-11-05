@@ -55,7 +55,7 @@ ByteBucketST
 	    this.rate = rate_bytes_per_sec;
 	    this.burst_rate = burst_rate;
 	    avail_bytes = 0; //start bucket empty
-	    prev_update_time = SystemTime.getCurrentTime();
+	    prev_update_time = SystemTime.getSteppedMonotonousTime();
 	    ensureByteBucketMinBurstRate();
 	  }
 	  
@@ -134,16 +134,12 @@ ByteBucketST
 	  
 	  
 	  private void update_avail_byte_count() {
-	      final long now =SystemTime.getCurrentTime();
+	      final long now =SystemTime.getSteppedMonotonousTime();
 	      if (prev_update_time <now) {
 	          avail_bytes +=((now -prev_update_time) * rate) / 1000;
 	          prev_update_time =now;
 	          if( avail_bytes > burst_rate ) avail_bytes = burst_rate;
 	          else if( avail_bytes < 0 )  Debug.out("ERROR: avail_bytes < 0: " + avail_bytes);
-	      }
-	      else if (prev_update_time >now) {	//oops, time went backwards
-	          avail_bytes =burst_rate;
-	          prev_update_time =now;
 	      }
 	  }
 

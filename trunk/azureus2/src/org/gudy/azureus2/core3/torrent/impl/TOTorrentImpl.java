@@ -228,8 +228,13 @@ TOTorrentImpl
 			
             bos.flush();
 			
-            fos.getFD().sync();
+		  		// thinking about removing this - just do so for CVS for the moment
+			  
+			if ( !Constants.isCVSVersion()){
             
+				fos.getFD().sync();
+			}
+			
             bos.close();
             
             bos = null;

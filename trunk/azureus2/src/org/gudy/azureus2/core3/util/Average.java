@@ -263,6 +263,6 @@ public class Average {
   protected long
   getEffectiveTime()
   {
-	  return( SystemTime.getMonotonousTime());
+	  return( SystemTime.getSteppedMonotonousTime());
   }
 }
