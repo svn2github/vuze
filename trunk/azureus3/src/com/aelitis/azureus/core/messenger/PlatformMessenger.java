@@ -87,6 +87,8 @@ public class PlatformMessenger
 
 	private static boolean allowMulti = false;
 
+	private static AsyncDispatcher	dispatcher = new AsyncDispatcher(5000);
+	
 	public static synchronized void init() {
 		if (initialized) {
 			return;
@@ -396,35 +398,40 @@ public class PlatformMessenger
 		final String fURL = sURL;
 		final String fPostData = sPostData;
 
-		// proccess queue on a new thread
-		AEThread2 thread = new AEThread2("v3.PlatformMessenger", true) {
-			public void run() {
-				try {
-					processQueueAsync(fURL, fPostData, mapProcessing);
-				} catch (Throwable e) {
-					if (e instanceof ResourceDownloaderException) {
-						debug("Error while sending message(s) to Platform: " + e.toString());
-					} else {
-						debug("Error while sending message(s) to Platform", e);
-					}
-					for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
-						PlatformMessage message = (PlatformMessage) iter.next();
-						PlatformMessengerListener l = (PlatformMessengerListener) mapProcessing.get(message);
-						if (l != null) {
-							try {
-								HashMap map = new HashMap();
-								map.put("text", e.toString());
-								map.put("Throwable", e);
-								l.replyReceived(message, REPLY_EXCEPTION, map);
-							} catch (Throwable e2) {
-								debug("Error while sending replyReceived", e2);
+			// one at a time to take advantage of keep-alive connections
+		
+		dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void 
+				runSupport() 
+				{
+					try {
+						processQueueAsync(fURL, fPostData, mapProcessing);
+					} catch (Throwable e) {
+						if (e instanceof ResourceDownloaderException) {
+							debug("Error while sending message(s) to Platform: " + e.toString());
+						} else {
+							debug("Error while sending message(s) to Platform", e);
+						}
+						for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
+							PlatformMessage message = (PlatformMessage) iter.next();
+							PlatformMessengerListener l = (PlatformMessengerListener) mapProcessing.get(message);
+							if (l != null) {
+								try {
+									HashMap map = new HashMap();
+									map.put("text", e.toString());
+									map.put("Throwable", e);
+									l.replyReceived(message, REPLY_EXCEPTION, map);
+								} catch (Throwable e2) {
+									debug("Error while sending replyReceived", e2);
+								}
 							}
 						}
 					}
 				}
-			}
-		};
-		thread.start();
+			});
+
 	}
 
 	/**
@@ -511,6 +518,8 @@ public class PlatformMessenger
 
 		ResourceDownloader rd = rdf.create(url, postData);
 
+		rd.setProperty( "URL_Connection", "Keep-Alive" );
+		
 		rd = rdf.getRetryDownloader(rd, 3);
 		// We could report percentage to listeners, but there's no need to atm
 		//		rd.addListener(new ResourceDownloaderListener() {
