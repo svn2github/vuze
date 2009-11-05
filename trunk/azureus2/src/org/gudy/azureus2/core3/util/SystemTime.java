@@ -30,6 +30,9 @@ import java.util.concurrent.atomic.AtomicLong;
 public class SystemTime {
 	public static final long			TIME_GRANULARITY_MILLIS	= 25;	//internal update time ms
 	private static SystemTimeProvider	instance;
+	
+	private static final boolean		SOD_IT_LETS_USE_HPC	= Constants.isCVSVersion();
+	
 	static
 	{
 		try
@@ -217,34 +220,47 @@ public class SystemTime {
 		}
 
 		public long getMonoTime() {
-			long adjusted_time;
-			long averageSliceStep = access_average_per_slice;
-			if (averageSliceStep > 0)
-			{
-				long sliceStep = (drift_adjusted_granularity * slice_access_count) / averageSliceStep;
-				if (sliceStep >= drift_adjusted_granularity)
+			if ( SOD_IT_LETS_USE_HPC ){
+				
+				return( getHighPrecisionCounter()/1000000 );
+				
+			}else{
+				long adjusted_time;
+				long averageSliceStep = access_average_per_slice;
+				if (averageSliceStep > 0)
 				{
-					sliceStep = drift_adjusted_granularity - 1;
-				}
-				adjusted_time = sliceStep + stepped_time;
-			} else
-				adjusted_time = stepped_time;
-			access_count++;
-			slice_access_count++;
-
-			// make sure we don't go backwards and our reference value for going backwards doesn't go backwards either
-			long approxBuffered = last_approximate_time.get(); 
-			if (adjusted_time < approxBuffered)
-				adjusted_time = approxBuffered;				
-			else
-				last_approximate_time.compareAndSet(approxBuffered, adjusted_time);
-
-			return adjusted_time;
+					long sliceStep = (drift_adjusted_granularity * slice_access_count) / averageSliceStep;
+					if (sliceStep >= drift_adjusted_granularity)
+					{
+						sliceStep = drift_adjusted_granularity - 1;
+					}
+					adjusted_time = sliceStep + stepped_time;
+				} else
+					adjusted_time = stepped_time;
+				access_count++;
+				slice_access_count++;
+	
+				// make sure we don't go backwards and our reference value for going backwards doesn't go backwards either
+				long approxBuffered = last_approximate_time.get(); 
+				if (adjusted_time < approxBuffered)
+					adjusted_time = approxBuffered;				
+				else
+					last_approximate_time.compareAndSet(approxBuffered, adjusted_time);
+	
+				return adjusted_time;
+			}
 		}
 		
 		public long getSteppedMonoTime() {
 
-			return( stepped_mono_time );
+			if ( SOD_IT_LETS_USE_HPC ){
+				
+				return( getHighPrecisionCounter()/1000000 );
+				
+			}else{
+				
+				return( stepped_mono_time );
+			}
 		}
 	}
 	
