@@ -26,6 +26,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.cnetwork.*;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -177,6 +178,7 @@ public class VuzeActivitiesManager
 	 * @since 3.0.4.3
 	 */
 	public static void pullActivitiesNow(long delay) {
+		/*
 		ContentNetworkManager cnm = ContentNetworkManagerFactory.getSingleton();
 		if (cnm == null) {
 			return;
@@ -184,15 +186,19 @@ public class VuzeActivitiesManager
 		
 		ContentNetwork[] contentNetworks = cnm.getContentNetworks();
 		for (ContentNetwork cn : contentNetworks) {
+		*/
+		{
+			// short circuit.. only get vuzenews from default network
+			ContentNetwork cn = ConstantsVuze.getDefaultContentNetwork();
 			if (cn == null) {
-				continue;
+				return; //continue;
 			}
 			
 			Object oIsActive = cn.getPersistentProperty(ContentNetwork.PP_ACTIVE);
 			boolean isActive = (oIsActive instanceof Boolean)
 					? ((Boolean) oIsActive).booleanValue() : false;
 			if (!isActive) {
-				continue;
+				return; //continue;
 			}
 			
 			String id = "" + cn.getID();
