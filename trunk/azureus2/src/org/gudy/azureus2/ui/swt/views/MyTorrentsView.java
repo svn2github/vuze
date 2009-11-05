@@ -470,16 +470,16 @@ public class MyTorrentsView
 
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
 
-		boolean isAdvanced = userMode >= 2;
+		boolean enableSizer = userMode >= 2 && Constants.IS_CVS_VERSION;
 		
     fd = new FormData();
     fd.right = new FormAttachment(100, -2); 
     fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
-    fd.width = isAdvanced ? 100 : 1;
-    fd.height = isAdvanced ? 18 : 1;
+    fd.width = enableSizer ? 100 : 1;
+    fd.height = enableSizer ? 18 : 1;
     cSizer.setLayoutData(fd);
 
-    if (isAdvanced) {
+    if (enableSizer) {
     	tv.enableSizeSlider(cSizer, 16, 96);
     }
 
@@ -532,6 +532,9 @@ public class MyTorrentsView
 	}
 
   private void hideShowSlider() {
+  	if (!Constants.IS_CVS_VERSION) {
+  		return;
+  	}
   	Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				int userMode = COConfigurationManager.getIntParameter("User Mode");
