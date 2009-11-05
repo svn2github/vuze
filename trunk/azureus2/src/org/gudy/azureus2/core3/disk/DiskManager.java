@@ -25,6 +25,7 @@ package org.gudy.azureus2.core3.disk;
 import java.io.File;
 
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMap;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.IndentWriter;
@@ -179,6 +180,13 @@ DiskManager
 	public DiskManagerFileInfoSet getFileSet();
 	public DiskManagerPiece getPiece(int PieceNumber);
 
+		/**
+		 * DON'T CACHE the DMPieceMap - as it is designed to be discarded when not in use
+		 * @return
+		 */
+	
+	public DMPieceMap  getPieceMap();
+	
 	public DMPieceList getPieceList(int pieceNumber);
 	
 	public int

@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMap;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
@@ -1031,6 +1032,7 @@ implements PiecePicker
 		final boolean firstPiecePriorityL =firstPiecePriority;
 		final boolean completionPriorityL =completionPriority;
 
+		final DMPieceMap	pieceMap = diskManager.getPieceMap();
 		try
 		{
 			final boolean rarestOverride = calcRarestAllowed() < 1;
@@ -1042,10 +1044,9 @@ implements PiecePicker
 				if (dmPiece.isDone())
 					continue;	// nothing to do for pieces not needing requesting
 
-				int priority =Integer.MIN_VALUE;
 				int startPriority =Integer.MIN_VALUE;
 
-				final DMPieceList pieceList =diskManager.getPieceList(dmPiece.getPieceNumber());
+				final DMPieceList pieceList =pieceMap.getPieceList(dmPiece.getPieceNumber());
 				final int pieceListSize =pieceList.size();
 				for (int j =0; j <pieceListSize; j++)
 				{
@@ -1054,7 +1055,7 @@ implements PiecePicker
 					final long length =fileInfo.getLength();
 					if (length >0 &&downloaded <length &&!fileInfo.isSkipped())
 					{
-						priority =0;
+						int priority =0;
 						// user option "prioritize first and last piece"
 						// TODO: should prioritize ~10% from edges of file
 						if (firstPiecePriorityL &&fileInfo.getNbPieces() >FIRST_PIECE_MIN_NB)

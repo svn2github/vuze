@@ -585,9 +585,8 @@ LWSDiskManager
 		return( disk_access_controller );
 	}
 	
-	public DMPieceList
-	getPieceList(
-		int	piece_number )
+	public DMPieceMap  
+	getPieceMap()
 	{
 		DMPieceMap	map = piece_map_use_accessor;
 		
@@ -596,9 +595,19 @@ LWSDiskManager
 			piece_map_use_accessor = map = piece_mapper.getPieceMap();			
 		}
 		
+		return( map );
+	}
+	
+	public DMPieceList
+	getPieceList(
+		int	piece_number )
+	{
+		DMPieceMap	map = getPieceMap();
+		
 		return( map.getPieceList( piece_number ));
 	}
 		
+	
 	protected DMChecker
 	getChecker()
 	{

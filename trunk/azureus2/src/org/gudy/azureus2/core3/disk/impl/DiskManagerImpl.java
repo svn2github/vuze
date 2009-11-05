@@ -1582,9 +1582,8 @@ DiskManagerImpl
 		return( reader.getStats());
 	}
 	
-	public DMPieceList
-	getPieceList(
-		int	piece_number )
+	public DMPieceMap  
+	getPieceMap()
 	{
 		DMPieceMap	map = piece_map_use_accessor;
 		
@@ -1596,6 +1595,15 @@ DiskManagerImpl
 		}
 		
 		piece_map_use_accessor_time = SystemTime.getCurrentTime();
+
+		return( map );
+	}
+	
+	public DMPieceList
+	getPieceList(
+		int	piece_number )
+	{
+		DMPieceMap	map = getPieceMap();
 
 		return( map.getPieceList( piece_number ));
 	}
