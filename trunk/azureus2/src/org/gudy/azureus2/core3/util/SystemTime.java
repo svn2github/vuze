@@ -79,6 +79,8 @@ public class SystemTime {
 
 	protected static class SteppedProvider implements SystemTimeProvider {
 		private static final int	STEPS_PER_SECOND	= (int) (1000 / TIME_GRANULARITY_MILLIS);
+		private static final long	HPC_START = getHighPrecisionCounter()/1000000L;
+		
 		private final Thread		updater;
 		private volatile long		stepped_time;
 		private volatile long		currentTimeOffset = System.currentTimeMillis();
@@ -222,7 +224,7 @@ public class SystemTime {
 		public long getMonoTime() {
 			if ( SOD_IT_LETS_USE_HPC ){
 				
-				return( getHighPrecisionCounter()/1000000 );
+				return( ( getHighPrecisionCounter()/1000000) - HPC_START );
 				
 			}else{
 				long adjusted_time;
