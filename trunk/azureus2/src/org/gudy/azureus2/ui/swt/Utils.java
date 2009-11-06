@@ -46,7 +46,6 @@ import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
@@ -224,10 +223,14 @@ public class Utils
 
 	public static void centreWindow(Shell shell) {
 		Rectangle displayArea; // area to center in
-		try {
-			displayArea = shell.getMonitor().getClientArea();
-		} catch (NoSuchMethodError e) {
-			displayArea = shell.getDisplay().getClientArea();
+		if (shell.getParent() != null) {
+			displayArea = shell.getParent().getBounds();
+		} else {
+  		try {
+  			displayArea = shell.getMonitor().getClientArea();
+  		} catch (NoSuchMethodError e) {
+  			displayArea = shell.getDisplay().getClientArea();
+  		}
 		}
 
 		Rectangle shellRect = shell.getBounds();
