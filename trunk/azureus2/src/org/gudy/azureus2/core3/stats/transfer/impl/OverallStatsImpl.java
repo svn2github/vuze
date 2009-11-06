@@ -50,7 +50,9 @@ OverallStatsImpl
   
   private static final long TEN_YEARS 		= 60*60*24*365*10L;
   
-  private static final long	STATS_PERIOD	= 60*1000;	// 1 min
+  private static final int	STATS_PERIOD	= 60*1000;		// 1 min
+  private static final int	SAVE_PERIOD		= 10*60*1000;	// 10 min
+  private static final int	SAVE_TICKS		= SAVE_PERIOD / STATS_PERIOD;
   
   private AzureusCore	core;
    
@@ -345,9 +347,7 @@ OverallStatsImpl
 	    
 	    totalUptime += delta;
 	    lastUptime = current_time;
-	    
-	    tick_count++;
-    
+	        
 	    HashMap	overallMap = new HashMap();
 	    
 	    overallMap.put("downloaded",new Long(totalDownloaded));
@@ -363,7 +363,12 @@ OverallStatsImpl
 	    
 	    map.put( "all", overallMap );
 	    
-	    save( map );
+	    tick_count++;
+
+	    if ( force || tick_count % SAVE_TICKS == 0 ){
+	    
+	    	save( map );
+	    }
   	}finally{
   	
   		this_mon.exit();
