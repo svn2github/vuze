@@ -28,8 +28,6 @@ package org.gudy.azureus2.pluginsimpl.local.ui.components;
  */
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -47,17 +45,15 @@ UITextAreaImpl
 	private int	max_size		= DEFAULT_MAX_SIZE;
 	private int max_file_size = 20 * max_size;
 	
-	PrintWriter pw;
+	PoopWriter pw;
 	int current_file_size;
-	
-	File file;
-	
+	File poop_file;
 	boolean useFile = true;
 	
 	AEMonitor file_mon = new AEMonitor("filemon");
 	
-	LinkedList	delay_text	= new LinkedList();
-	int			delay_size	= 0;
+	LinkedList<String>	delay_text	= new LinkedList<String>();
+	int					delay_size	= 0;
 	
 	FrequencyLimitedDispatcher	dispatcher = 
 		new FrequencyLimitedDispatcher(
@@ -81,25 +77,23 @@ UITextAreaImpl
 	setText(
 		String		text )
 	{
-		if (useFile) {
-			try {
+		if ( useFile ){
+			
+			try{
 				file_mon.enter();
-				if (pw == null) {
-					try {
-						file = AETemporaryFileHandler.createTempFile();
+				
+				if ( pw == null ){
+					
+					pw = new PoopWriter();
 
-						FileWriter fr = new FileWriter(file);
-						pw = new PrintWriter(fr);
+					pw.print(text);
+					
+					current_file_size = text.length();
 
-						pw.print(text);
-						current_file_size = text.length();
-						pw.flush();
-
-						return;
-					} catch (IOException e) {
-					}
+					return;
 				}
-			} finally {
+			}finally{
+				
 				file_mon.exit();
 			}
 		}
@@ -125,19 +119,26 @@ UITextAreaImpl
 	appendText(
 		String		text )
 	{
-		if (useFile && pw != null) {
-			try {
+		if ( useFile && pw != null ){
+			
+			try{
 				file_mon.enter();
 				
-				// shrink the file occasionally
-				if(current_file_size > max_file_size)
-					getFileText();
+					// shrink the file occasionally
+				
+				if ( current_file_size > max_file_size ){
+					
+					current_file_size = getFileText().length();
+				}
 				
 				pw.print(text);
+				
 				current_file_size += text.length();
-				pw.flush();
+				
 				return;
-			} finally {
+				
+			}finally{
+				
 				file_mon.exit();
 			}
 		}
@@ -181,11 +182,11 @@ UITextAreaImpl
 				
 				StringBuffer sb = new StringBuffer( delay_size );
 				
-				Iterator	it = delay_text.iterator();
+				Iterator<String>	it = delay_text.iterator();
 				
 				while( it.hasNext()){
 				
-					sb.append((String)it.next());
+					sb.append( it.next());
 				}
 				
 				text = sb.toString();
@@ -208,8 +209,9 @@ UITextAreaImpl
 	public String
 	getText()
 	{
-		if (useFile && pw != null) {
-			return getFileText();
+		if ( useFile && pw != null ){
+			
+			return( getFileText());
 		}
 
 		return((String)getProperty( PT_VALUE ));
@@ -222,61 +224,132 @@ UITextAreaImpl
 		max_size	= _max_size;
 	}
 	
-	private String getFileText() {
-		boolean recreate = pw != null;
-
-		try {
+	private String 
+	getFileText() 
+	{
+		try{
 			file_mon.enter();
 
-			if (recreate) {
-				pw.close();
-			}
-
 			String text = null;
-			try {
-				text = FileUtil.readFileEndAsString(file, max_size);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 
-			if (text == null) {
+			if ( pw != null ){
+				
+				pw.close();
+			
+				text = pw.getText();
+			}
+			
+			if ( text == null ){
+				
 				text = "";
 			}
 
-			if (recreate) {
-				try {
-					FileWriter fr = new FileWriter(file);
-					pw = new PrintWriter(fr);
-					pw.print(text);
-					current_file_size = text.length();
-				} catch (IOException e) {
-					useFile = false;
-					e.printStackTrace();
-				}
+			pw = null;
+			
+			if ( useFile ){
+			
+				pw = new PoopWriter();
+				
+				pw.print(text);
+				
+				current_file_size = text.length();
 			}
+			
 			return text;
-		} finally {
+			
+		}finally{
+			
 			file_mon.exit();
 		}
 	}
 	
-	public void addPropertyChangeListener(UIPropertyChangeListener l) {
-		if (useFile) {
-			if (pw != null) {
-				try {
-					file_mon.enter();
-
-					pw.close();
-					pw = null;
-				} finally {
-					file_mon.exit();
-				}
-			}
+	public void 
+	addPropertyChangeListener(
+		UIPropertyChangeListener l ) 
+	{
+		if ( useFile ){
 
 			useFile = false;
-			setText(getFileText());
+			
+			setText( getFileText());
 		}
 
 		super.addPropertyChangeListener(l);
+	}
+	
+	protected class
+	PoopWriter
+	{	
+		private StringBuffer	buffer = new StringBuffer(256);
+		
+		private PrintWriter		pw;
+		
+		public void
+		print(
+			String	text )
+		{
+			if ( pw == null ){
+				
+				buffer.append( text );
+				
+				if ( buffer.length() > 8*1024 ){
+					
+					if ( poop_file == null ){
+						
+						try{
+							poop_file = AETemporaryFileHandler.createTempFile();
+							
+						}catch( Throwable e ){
+						}
+					}
+					
+					if ( poop_file != null ){
+						
+						try{
+							pw = new PrintWriter( poop_file );
+						
+							pw.print( buffer.toString());
+							
+						}catch( Throwable e ){
+						}
+					}
+					
+					buffer.setLength( 0 );
+				}
+			}else{
+				
+				pw.print( text );
+			}
+		}
+		
+		public String
+		getText()
+		{
+			if ( poop_file == null ){
+				
+				return( buffer.toString());
+				
+			}else{
+				
+				try{
+					return( FileUtil.readFileEndAsString( poop_file, max_size ));
+					
+				}catch( Throwable e ){
+					
+					return( "" );
+				}
+			}
+		}
+		
+		public void
+		close()
+		{
+			if ( pw != null ){
+				
+				pw.close();
+				
+				pw = null;
+			}
+		}
 	}
 }
