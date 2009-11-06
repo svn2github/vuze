@@ -20,15 +20,13 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
 
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.util.http.HTTPAuthHelper;
 import com.aelitis.azureus.core.util.http.HTTPAuthHelperListener;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 import com.aelitis.azureus.ui.swt.browser.listener.ExternalLoginCookieListener;
 
@@ -61,18 +59,9 @@ public class ExternalLoginWindow {
 		listener			= _listener;
 		originalLoginUrl 	= _loginUrl;
 
-		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		if(functionsSWT != null) {
-			Shell mainShell = functionsSWT.getMainShell();
-			shell = new Shell(mainShell,SWT.TITLE | SWT.CLOSE);
-			shell.setSize(800,600);
-			Utils.centerWindowRelativeTo(shell, mainShell);
-			
-		} else {
-			shell = new Shell(SWT.TITLE | SWT.CLOSE);
-			shell.setSize(800,600);
-			Utils.centreWindow(shell);
-		}
+		shell = ShellFactory.createMainShell(SWT.TITLE | SWT.CLOSE);
+		shell.setSize(800,600);
+		Utils.centreWindow(shell);
 		
 		display = shell.getDisplay();
 		shell.setText(MessageText.getString("externalLogin.title"));

@@ -36,12 +36,11 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.core.devices.DeviceManagerException;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownloader;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
@@ -98,26 +97,11 @@ DevicesODFTUX
 	{
 		imageLoader = ImageLoader.getInstance();
 
-		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		shell = ShellFactory.createMainShell(SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
 		
-		if ( functionsSWT != null ){
-			
-			Shell mainShell = functionsSWT.getMainShell();
-			
-			shell = new Shell(mainShell,SWT.TITLE | SWT.CLOSE | SWT.ICON | SWT.RESIZE);
-			
-			shell.setSize(650,400);
-			
-			Utils.centerWindowRelativeTo(shell, mainShell);
-			
-		}else{
-			
-			shell = new Shell(SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
-			
-			shell.setSize(650,400);
-			
-			Utils.centreWindow(shell);
-		}
+		shell.setSize(650,400);
+		
+		Utils.centreWindow(shell);
 		
 		shell.setMinimumSize(550,400);
 		

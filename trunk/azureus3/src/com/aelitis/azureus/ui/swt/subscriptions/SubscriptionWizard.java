@@ -14,14 +14,13 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.CustomTableTooltipHandler;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -126,17 +125,9 @@ public class SubscriptionWizard {
 		});
 		
 		
-		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		if(functionsSWT != null) {
-			Shell mainShell = functionsSWT.getMainShell();
-			shell = new Shell(mainShell,SWT.TITLE | SWT.CLOSE | SWT.ICON | SWT.RESIZE);
-			shell.setSize(650,400);
-			Utils.centerWindowRelativeTo(shell, mainShell);
-		} else {
-			shell = new Shell(SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
-			shell.setSize(650,400);
-			Utils.centreWindow(shell);
-		}
+		shell = ShellFactory.createMainShell(SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
+		shell.setSize(650,400);
+		Utils.centreWindow(shell);
 		
 		shell.setMinimumSize(550,400);
 		

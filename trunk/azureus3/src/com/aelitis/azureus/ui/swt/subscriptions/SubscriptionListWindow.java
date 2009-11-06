@@ -24,22 +24,16 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
-import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionException;
-import com.aelitis.azureus.core.subs.SubscriptionHistory;
-import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
-import com.aelitis.azureus.core.vuzefile.VuzeFile;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.widgets.AnimatedImage;
 
 public class SubscriptionListWindow implements SubscriptionLookupListener {
@@ -81,18 +75,9 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		this.download 		= download;
 		this.useCachedSubs	= useCachedSubs;
 		
-		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		if(functionsSWT != null) {
-			Shell mainShell = functionsSWT.getMainShell();
-			shell = new Shell(mainShell,SWT.TITLE);
-			shell.setSize(400,300);
-			Utils.centerWindowRelativeTo(shell, mainShell);
-			
-		} else {
-			shell = new Shell(SWT.TITLE);
-			shell.setSize(400,300);
-			Utils.centreWindow(shell);
-		}
+		shell = ShellFactory.createMainShell(SWT.TITLE);
+		shell.setSize(400,300);
+		Utils.centreWindow(shell);
 		
 		display = shell.getDisplay();
 		shell.setText(MessageText.getString("subscriptions.listwindow.title"));

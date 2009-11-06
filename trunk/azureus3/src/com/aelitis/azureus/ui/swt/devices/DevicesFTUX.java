@@ -105,7 +105,7 @@ public class DevicesFTUX
 	private void open() {
 		// This is a simple dialog box, so instead of using SkinnedDialog, we'll
 		// just built it old school
-		shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM);
+		shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM);
 		shell.setText(MessageText.getString("devices.turnon.title"));
 
 		Utils.setShellIcon(shell);

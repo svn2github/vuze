@@ -13,6 +13,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 public class ImageResizer
 {
@@ -162,9 +163,9 @@ public class ImageResizer
 		cursor = new Cursor(display, SWT.CURSOR_HAND);
 
 		if (parent != null) {
-			shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+			shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		} else {
-			shell = new Shell(display, SWT.CLOSE | SWT.BORDER);
+			shell = ShellFactory.createMainShell(SWT.CLOSE | SWT.BORDER);
 		}
 		shell.setText("Thumbnail Assistant");
 

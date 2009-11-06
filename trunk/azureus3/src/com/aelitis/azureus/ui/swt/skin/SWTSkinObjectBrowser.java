@@ -115,17 +115,6 @@ public class SWTSkinObjectBrowser
 			return;
 		}
 
-		//TODO [SWT] : Remove this stupid code as soon as we update SWT
-		if(Utils.isCarbon && ! doneTheUglySWTFocusHack) {
-			doneTheUglySWTFocusHack = true;
-			Shell shell = new Shell(browser.getDisplay(),SWT.NONE);
-			shell.setSize(1,1);
-			shell.setLocation(-2, -2);
-			shell.open();
-			shell.close();
-			browser.setFocus();
-		}
-		
 		Control widgetIndicator = null;
 		String sIndicatorWidgetID = properties.getStringValue(sConfigID
 				+ ".indicator");

@@ -9,14 +9,12 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DebugLight;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceTemplate;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
@@ -52,26 +50,12 @@ DevicesWizard
 		
 		imageLoader = ImageLoader.getInstance();
 				
-		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		shell = ShellFactory.createMainShell(SWT.TITLE | SWT.CLOSE | SWT.ICON
+				| SWT.RESIZE);
 		
-		if ( functionsSWT != null ){
+		shell.setSize(650,400);
 			
-			Shell mainShell = functionsSWT.getMainShell();
-			
-			shell = new Shell(mainShell,SWT.TITLE | SWT.CLOSE | SWT.ICON | SWT.RESIZE);
-			
-			shell.setSize(650,400);
-			
-			Utils.centerWindowRelativeTo(shell, mainShell);
-			
-		}else{
-			
-			shell = new Shell(SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
-			
-			shell.setSize(650,400);
-			
-			Utils.centreWindow(shell);
-		}
+		Utils.centreWindow(shell);
 		
 		shell.setMinimumSize(550,400);
 		
