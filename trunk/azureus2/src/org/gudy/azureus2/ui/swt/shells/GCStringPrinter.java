@@ -368,7 +368,7 @@ public class GCStringPrinter
 						if (isOverY && !fullLinesOnly) {
 							//fullLinesOnly = true; // <-- don't know why we needed this
 							lines.add(lineInfo);
-						} else if (isOverY && fullLinesOnly) {
+						} else if (isOverY && fullLinesOnly && lines.size() > 0) {
 							String excess = lineInfo.excessPos >= 0
 									? sLine.substring(lineInfo.excessPos) : null;
 							if (excess != null) {
