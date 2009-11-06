@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -86,7 +87,7 @@ public class PasswordWindow {
   protected PasswordWindow(Display display) {
   	bOk = false;
 
-    shell = new Shell(display,SWT.APPLICATION_MODAL | SWT.TITLE | SWT.CLOSE);
+    shell = ShellFactory.createMainShell(SWT.APPLICATION_MODAL | SWT.TITLE | SWT.CLOSE);
     shell.setText(MessageText.getString("PasswordWindow.title"));
     Utils.setShellIcon(shell);
     GridLayout layout = new GridLayout();

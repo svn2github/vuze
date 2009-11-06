@@ -183,7 +183,7 @@ CryptoWindow
 				return;
 			}
 			
-			shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM
+			shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM
 					| SWT.APPLICATION_MODAL);
 	 	
 	 		Utils.setShellIcon(shell);

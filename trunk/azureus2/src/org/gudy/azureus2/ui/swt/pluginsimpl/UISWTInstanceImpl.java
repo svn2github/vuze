@@ -537,7 +537,7 @@ UISWTInstanceImpl
 	}
 	
 	public Shell createShell(int style) {
-		Shell shell = ShellFactory.createShell(Utils.findAnyShell(), style);
+		Shell shell = ShellFactory.createMainShell(style);
 		Utils.setShellIcon(shell);
 		return shell;
 	}

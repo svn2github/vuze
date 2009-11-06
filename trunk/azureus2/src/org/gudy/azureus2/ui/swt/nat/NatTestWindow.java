@@ -90,7 +90,7 @@ public class NatTestWindow {
   public NatTestWindow() {
     serverTCPListenPort = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
     
-    final Shell shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.BORDER | SWT.TITLE | SWT.CLOSE);        
+    final Shell shell = ShellFactory.createMainShell(SWT.BORDER | SWT.TITLE | SWT.CLOSE);        
     shell.setText(MessageText.getString("configureWizard.nat.title"));
     Utils.setShellIcon(shell);
 

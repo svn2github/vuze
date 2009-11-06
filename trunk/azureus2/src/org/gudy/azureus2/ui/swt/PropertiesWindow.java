@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 
 public class 
@@ -46,9 +47,7 @@ PropertiesWindow
 		String[]	keys,
 		String[]	values )
 	{	
-		final Shell any_shell = Utils.findAnyShell();
-
-		shell = new Shell( any_shell.getDisplay(),SWT.APPLICATION_MODAL | SWT.TITLE | SWT.CLOSE |SWT.RESIZE );
+		shell = ShellFactory.createMainShell(SWT.APPLICATION_MODAL | SWT.TITLE | SWT.CLOSE |SWT.RESIZE );
 
 		shell.setText( MessageText.getString( "props.window.title", new String[]{ object_name }));
 		

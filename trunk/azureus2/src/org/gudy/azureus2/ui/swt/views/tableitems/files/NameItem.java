@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -197,10 +198,9 @@ public class NameItem extends CoreTableColumn implements
 		
 		if (!result[0])
 		{
-			MessageBox mb = new MessageBox(Utils.findAnyShell(), SWT.ICON_ERROR | SWT.OK);
-			mb.setText(MessageText.getString("FilesView.rename.failed.title"));
-			mb.setMessage(MessageText.getString("FilesView.rename.failed.text"));
-			mb.open();
+			new MessageBoxShell(SWT.ICON_ERROR | SWT.OK, 
+					MessageText.getString("FilesView.rename.failed.title"),
+					MessageText.getString("FilesView.rename.failed.text")).open(null);
 		}
 		
 		return true;

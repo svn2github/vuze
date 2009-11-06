@@ -74,8 +74,7 @@ public class AdvRenameWindow
 	}
 
 	private void openInSWT() {
-		shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM
-				| SWT.RESIZE);
+		shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE);
 		Utils.setShellIcon(shell);
 		shell.addTraverseListener(new TraverseListener() {
 			public void keyTraversed(TraverseEvent e) {

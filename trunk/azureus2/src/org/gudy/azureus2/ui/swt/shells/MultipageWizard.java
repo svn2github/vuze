@@ -25,11 +25,7 @@ abstract public class MultipageWizard
 
 	private Shell shell;
 
-	private Display display;
-
 	private int shellStyle;
-
-	private Shell parent;
 
 	private Composite topPanel;
 
@@ -52,27 +48,11 @@ abstract public class MultipageWizard
 
 	private List initializedPages = new ArrayList();
 
-	public MultipageWizard(Display display, int shellStyle) {
-		this.display = display;
-		this.shellStyle = shellStyle;
-		init();
-	}
-
-	public MultipageWizard(Shell parent, int shellStyle) {
-		this.parent = parent;
-		this.shellStyle = shellStyle;
-		init();
-	}
-
 	public abstract void createPages();
 
 	private void init() {
 
-		if (null != parent) {
-			shell = ShellFactory.createShell(parent, shellStyle);
-		} else {
-			shell = ShellFactory.createShell(display, shellStyle);
-		}
+		shell = ShellFactory.createMainShell(shellStyle);
 
 		createControls();
 		createPages();

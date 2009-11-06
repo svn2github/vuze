@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
@@ -79,7 +80,7 @@ BuddyPluginViewChat
 		
 		lu		= plugin.getPluginInterface().getUtilities().getLocaleUtilities();
 		
-		shell = new Shell( _display, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MIN | SWT.MAX );
+		shell = ShellFactory.createMainShell( SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MIN | SWT.MAX );
 
 		shell.addDisposeListener(
 			new DisposeListener()

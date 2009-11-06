@@ -424,10 +424,9 @@ public class FilesView
 		is_changing_links = false;
 
 		if (!result[0]){
-			MessageBox mb = new MessageBox(Utils.findAnyShell(), SWT.ICON_ERROR | SWT.OK);
-			mb.setText(MessageText.getString("FilesView.rename.failed.title"));
-			mb.setMessage(MessageText.getString("FilesView.rename.failed.text"));
-			mb.open();	    					
+			new MessageBoxShell(SWT.ICON_ERROR | SWT.OK, 
+					MessageText.getString("FilesView.rename.failed.title"),
+					MessageText.getString("FilesView.rename.failed.text")).open(null);
 		}
 
 	}
