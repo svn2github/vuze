@@ -754,7 +754,7 @@ MetaSearchManagerImpl
 					Engine	engine = engines[i];
 					
 					if ( 	engine.getSource() == Engine.ENGINE_SOURCE_VUZE &&
-							engine.getSelectionState() != Engine.SEL_STATE_DESELECTED &&
+							engine.getSelectionState() == Engine.SEL_STATE_AUTO_SELECTED &&
 							!vuze_selected_ids.containsKey( new Long( engine.getId()))){
 						
 						log( "Deselecting " + engine.getString() + " as no longer visible on Vuze");
@@ -920,6 +920,8 @@ MetaSearchManagerImpl
 				}
 			}
 		}catch( Throwable e ){
+			
+			e.printStackTrace();
 			
 			if ( e instanceof MetaSearchException ){
 				
