@@ -238,7 +238,10 @@ implements ShareManagerListener,
 	  tv.addDataSource(resource);
 	}
 	
-	public void resourceModified(ShareResource resource) { }
+	public void resourceModified(ShareResource old_resource,ShareResource new_resource) {
+		tv.removeDataSource( old_resource );
+		tv.addDataSource( new_resource );
+	}
 	
 	public void resourceDeleted(ShareResource resource) {
 	  tv.removeDataSource(resource);

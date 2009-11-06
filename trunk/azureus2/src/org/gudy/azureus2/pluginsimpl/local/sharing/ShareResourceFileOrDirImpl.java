@@ -310,11 +310,11 @@ ShareResourceFileOrDirImpl
 				}
 			}else{
 				
-				manager.addFileOrDir( null, file, getType(), true );
+				manager.addFileOrDir( null, file, getType());
 			}
 		}catch( Throwable e ){
-						
-			manager.delete( this );
+							
+			manager.delete( this, true );
 		}
 	}
 	

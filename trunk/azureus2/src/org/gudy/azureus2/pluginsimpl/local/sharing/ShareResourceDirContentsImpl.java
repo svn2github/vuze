@@ -187,7 +187,7 @@ ShareResourceDirContentsImpl
 				
 			}else{
 			
-				manager.delete( this );
+				manager.delete( this, true );
 			}
 		}else{
 					

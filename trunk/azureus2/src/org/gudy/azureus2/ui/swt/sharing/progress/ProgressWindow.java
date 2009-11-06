@@ -292,9 +292,10 @@ ProgressWindow
 	
 	public void
 	resourceModified(
-		ShareResource		resource )
+		ShareResource		old_resource,
+		ShareResource		new_resource )
 	{
-		reportCurrentTask( "Resource modified: " + resource.getName());
+		reportCurrentTask( "Resource modified: " + old_resource.getName());
 	}
 	
 	public void

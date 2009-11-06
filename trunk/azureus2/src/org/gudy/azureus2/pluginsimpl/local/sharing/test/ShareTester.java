@@ -257,9 +257,10 @@ ShareTester
 	
 	public void
 	resourceModified(
-		ShareResource		resource )
+		ShareResource		old_resource ,
+		ShareResource		new_resource )
 	{
-		System.out.println( "resource modified:" + resource.getName());
+		System.out.println( "resource modified:" + old_resource.getName());
 	}
 	
 	public void

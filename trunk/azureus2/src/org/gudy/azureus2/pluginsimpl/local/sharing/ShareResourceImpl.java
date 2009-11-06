@@ -282,12 +282,22 @@ ShareResourceImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
+		delete( force, true );
+	}
+	
+	public void
+	delete(
+		boolean	force,
+		boolean	fire_listeners )
+	
+		throws ShareException, ShareResourceDeletionVetoException
+	{
 		if ( !force ){
 	
 			canBeDeleted();
 		}
 		
-		manager.delete(this);
+		manager.delete( this, fire_listeners );
 	}
 	
 	public abstract boolean

@@ -54,9 +54,7 @@ ShareHosterPlugin
 	
 	protected Download			download_being_removed;
 	protected TrackerTorrent	torrent_being_removed;
-		
-	protected boolean			initialised	= false;
-	
+			
 	public static void
 	load(
 		PluginInterface		plugin_interface )
@@ -111,15 +109,6 @@ ShareHosterPlugin
 			
 			share_manager.initialise();
 			
-			initialised	= true;
-			
-			ShareResource[]	shares = share_manager.getShares();
-			
-			for ( int i=0;i<shares.length;i++){
-				
-				resourceAdded( shares[i] );
-			}
-			
 		}catch( ShareException e ){
 			
 			Debug.printStackTrace( e );
@@ -146,153 +135,150 @@ ShareHosterPlugin
 	resourceAdded(
 		final ShareResource		resource )
 	{
-		if ( initialised ){
+		log.log( LoggerChannel.LT_INFORMATION, "Resource added:".concat(resource.getName()));
+		
+		try{
 			
-			log.log( LoggerChannel.LT_INFORMATION, "Resource added:".concat(resource.getName()));
+			resource.addDeletionListener(
+				new ShareResourceWillBeDeletedListener()
+				{
+					public void
+					resourceWillBeDeleted(
+						ShareResource	resource )
+					
+						throws ShareResourceDeletionVetoException
+					{
+						canResourceBeDeleted( resource );
+					}
+				});
 			
-			try{
+			Download	new_download = null;
+			
+			int	type = resource.getType();
+			
+			if ( type == ShareResource.ST_FILE ){
 				
-				resource.addDeletionListener(
-					new ShareResourceWillBeDeletedListener()
+				ShareResourceFile	file_resource = (ShareResourceFile)resource;
+				
+				ShareItem	item = file_resource.getItem();
+		
+				Torrent torrent = item.getTorrent();
+				
+				Download	download = download_manager.getDownload( torrent );
+				
+				if ( download == null ){
+					
+					new_download = download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), file_resource.getFile());
+				}
+			}else if ( type == ShareResource.ST_DIR ){
+			
+				ShareResourceDir	dir_resource = (ShareResourceDir)resource;
+				
+				ShareItem	item = dir_resource.getItem();
+				
+				Torrent torrent = item.getTorrent();
+				
+				Download	download = download_manager.getDownload( torrent );
+				
+				if ( download == null ){
+					
+					new_download = download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), dir_resource.getDir());
+				}
+			}
+			
+			if ( new_download != null ){
+
+				final Download	f_new_download = new_download;
+				
+				resource_dl_map.put( resource, new_download );
+				
+				resource.addChangeListener(
+					new ShareResourceListener()
 					{
 						public void
-						resourceWillBeDeleted(
-							ShareResource	resource )
-						
-							throws ShareResourceDeletionVetoException
+						shareResourceChanged(
+							ShareResource			resource,
+							ShareResourceEvent		event )
 						{
-							canResourceBeDeleted( resource );
+							if ( event.getType() == ShareResourceEvent.ET_ATTRIBUTE_CHANGED ){
+						
+								TorrentAttribute	attribute = (TorrentAttribute)event.getData();
+								
+								// System.out.println( "sh: res -> ds: " + attribute.getName() + "/" + resource.getAttribute( attribute ));
+								
+								f_new_download.setAttribute(
+										attribute,
+										resource.getAttribute( attribute ));
+							}
 						}
 					});
+					
+				TorrentAttribute[]	attributes = resource.getAttributes();
 				
-				Download	new_download = null;
-				
-				int	type = resource.getType();
-				
-				if ( type == ShareResource.ST_FILE ){
+				for (int i=0;i<attributes.length;i++){
 					
-					ShareResourceFile	file_resource = (ShareResourceFile)resource;
-					
-					ShareItem	item = file_resource.getItem();
-			
-					Torrent torrent = item.getTorrent();
-					
-					Download	download = download_manager.getDownload( torrent );
-					
-					if ( download == null ){
-						
-						new_download = download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), file_resource.getFile());
-					}
-				}else if ( type == ShareResource.ST_DIR ){
-				
-					ShareResourceDir	dir_resource = (ShareResourceDir)resource;
-					
-					ShareItem	item = dir_resource.getItem();
-					
-					Torrent torrent = item.getTorrent();
-					
-					Download	download = download_manager.getDownload( torrent );
-					
-					if ( download == null ){
-						
-						new_download = download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), dir_resource.getDir());
-					}
+					TorrentAttribute	ta = attributes[i];
+								
+					new_download.setAttribute( ta,	resource.getAttribute( ta ));
 				}
 				
-				if ( new_download != null ){
-
-					final Download	f_new_download = new_download;
+				new_download.addAttributeListener(
+					new DownloadAttributeListener() {
+						public void attributeEventOccurred(Download d, TorrentAttribute attr, int event_type){
+							resource.setAttribute(attr, d.getAttribute(attr));
+						}
+					},
+					plugin_interface.getTorrentManager().getAttribute(TorrentAttribute.TA_CATEGORY),
+					DownloadAttributeListener.WRITTEN
+				);
+				
+				Torrent	dl_torrent = new_download.getTorrent();
+				
+				if ( dl_torrent != null ){
 					
-					resource_dl_map.put( resource, new_download );
+					TrackerTorrent	tt = tracker.host(dl_torrent, false );
 					
-					resource.addChangeListener(
-						new ShareResourceListener()
+					tt.addRemovalListener(
+							new TrackerTorrentWillBeRemovedListener()
+							{
+								public void
+								torrentWillBeRemoved(
+									TrackerTorrent	tt )
+								
+									throws TrackerTorrentRemovalVetoException
+								{
+									if ( tt != torrent_being_removed ){
+										
+										throw( new TrackerTorrentRemovalVetoException(
+												MessageText.getString("plugin.sharing.torrent.remove.veto")));
+									}
+								}								
+							});
+					
+					resource_tt_map.put( resource, tt );
+				}
+				
+				new_download.addDownloadWillBeRemovedListener(
+						new DownloadWillBeRemovedListener()
 						{
 							public void
-							shareResourceChanged(
-								ShareResource			resource,
-								ShareResourceEvent		event )
-							{
-								if ( event.getType() == ShareResourceEvent.ET_ATTRIBUTE_CHANGED ){
+							downloadWillBeRemoved(
+								Download	dl )
 							
-									TorrentAttribute	attribute = (TorrentAttribute)event.getData();
+								throws DownloadRemovalVetoException
+							{
+								if ( dl != download_being_removed ){
 									
-									// System.out.println( "sh: res -> ds: " + attribute.getName() + "/" + resource.getAttribute( attribute ));
-									
-									f_new_download.setAttribute(
-											attribute,
-											resource.getAttribute( attribute ));
+									throw( new DownloadRemovalVetoException(
+												MessageText.getString("plugin.sharing.download.remove.veto")));
 								}
 							}
 						});
-						
-					TorrentAttribute[]	attributes = resource.getAttributes();
-					
-					for (int i=0;i<attributes.length;i++){
-						
-						TorrentAttribute	ta = attributes[i];
-									
-						new_download.setAttribute( ta,	resource.getAttribute( ta ));
-					}
-					
-					new_download.addAttributeListener(
-						new DownloadAttributeListener() {
-							public void attributeEventOccurred(Download d, TorrentAttribute attr, int event_type){
-								resource.setAttribute(attr, d.getAttribute(attr));
-							}
-						},
-						plugin_interface.getTorrentManager().getAttribute(TorrentAttribute.TA_CATEGORY),
-						DownloadAttributeListener.WRITTEN
-					);
-					
-					Torrent	dl_torrent = new_download.getTorrent();
-					
-					if ( dl_torrent != null ){
-						
-						TrackerTorrent	tt = tracker.host(dl_torrent, false );
-						
-						tt.addRemovalListener(
-								new TrackerTorrentWillBeRemovedListener()
-								{
-									public void
-									torrentWillBeRemoved(
-										TrackerTorrent	tt )
-									
-										throws TrackerTorrentRemovalVetoException
-									{
-										if ( tt != torrent_being_removed ){
-											
-											throw( new TrackerTorrentRemovalVetoException(
-													MessageText.getString("plugin.sharing.torrent.remove.veto")));
-										}
-									}								
-								});
-						
-						resource_tt_map.put( resource, tt );
-					}
-					
-					new_download.addDownloadWillBeRemovedListener(
-							new DownloadWillBeRemovedListener()
-							{
-								public void
-								downloadWillBeRemoved(
-									Download	dl )
-								
-									throws DownloadRemovalVetoException
-								{
-									if ( dl != download_being_removed ){
-										
-										throw( new DownloadRemovalVetoException(
-													MessageText.getString("plugin.sharing.download.remove.veto")));
-									}
-								}
-							});
-				}
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
 			}
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
 		}
 	}
 	
@@ -343,16 +329,14 @@ ShareHosterPlugin
 	
 	public void
 	resourceModified(
-		ShareResource		resource )
+		ShareResource		old_resource,
+		ShareResource		new_resource )
 	{
-		log.log( LoggerChannel.LT_INFORMATION, "Resource modified:".concat(resource.getName()));
-		
-		if ( initialised ){
+		log.log( LoggerChannel.LT_INFORMATION, "Resource modified:".concat(old_resource.getName()));
+					
+		resourceDeleted( old_resource );
 			
-			resourceDeleted( resource );
-			
-			resourceAdded( resource );
-		}
+		resourceAdded( new_resource );
 	}
 	
 	public void
@@ -360,62 +344,59 @@ ShareHosterPlugin
 		ShareResource		resource )
 	{
 		log.log( LoggerChannel.LT_INFORMATION, "Resource deleted:".concat(resource.getName()));
+				
+		Download	dl = (Download)resource_dl_map.get(resource);
 		
-		if ( initialised ){
-		
-			Download	dl = (Download)resource_dl_map.get(resource);
+		if ( dl != null ){
 			
-			if ( dl != null ){
+			try{
+				download_being_removed	= dl;
+				
+					// the resource has gone! stop torrent if running to permit 
+					// deletion
 				
 				try{
-					download_being_removed	= dl;
-					
-						// the resource has gone! stop torrent if running to permit 
-						// deletion
-					
-					try{
-						dl.stop();
-						
-					}catch( Throwable e ){
-						
-						// ignore this as it might already be stopped
-					}
-					
-					dl.remove();
+					dl.stop();
 					
 				}catch( Throwable e ){
 					
-					Debug.printStackTrace( e );
-					
-				}finally{
-					
-					download_being_removed	= null;
+					// ignore this as it might already be stopped
 				}
 				
-				resource_dl_map.remove( resource );
-			}	
-			
-			TrackerTorrent	tt = (TrackerTorrent)resource_tt_map.get(resource);
-			
-			if ( tt != null ){
+				dl.remove();
 				
-				try{
-					torrent_being_removed	= tt;
-					
-					tt.remove();
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace( e );
-					
-				}finally{
-					
-					torrent_being_removed	= null;
-				}
+			}catch( Throwable e ){
 				
-				resource_tt_map.remove( resource );
-			}	
-		}
+				Debug.printStackTrace( e );
+				
+			}finally{
+				
+				download_being_removed	= null;
+			}
+			
+			resource_dl_map.remove( resource );
+		}	
+		
+		TrackerTorrent	tt = (TrackerTorrent)resource_tt_map.get(resource);
+		
+		if ( tt != null ){
+			
+			try{
+				torrent_being_removed	= tt;
+				
+				tt.remove();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+				
+			}finally{
+				
+				torrent_being_removed	= null;
+			}
+			
+			resource_tt_map.remove( resource );
+		}	
 	}
 
 	public void

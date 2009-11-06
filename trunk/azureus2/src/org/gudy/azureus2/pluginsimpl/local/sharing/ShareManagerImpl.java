@@ -95,12 +95,12 @@ ShareManagerImpl
 	private URL[]				announce_urls;
 	private ShareConfigImpl		config;
 	
-	private Map					shares 		= new HashMap();
+	private Map<String,ShareResourceImpl>	shares 		= new HashMap<String, ShareResourceImpl>();
 	
 	private shareScanner		current_scanner;
 	private boolean				scanning;
 	
-	private List				listeners	= new ArrayList();
+	private List<ShareManagerListener>				listeners	= new ArrayList<ShareManagerListener>();
 	
 	protected
 	ShareManagerImpl()
@@ -147,11 +147,11 @@ ShareManagerImpl
 										
 					}finally{
 					
-						Iterator it = shares.values().iterator();
+						Iterator<ShareResourceImpl> it = shares.values().iterator();
 						
 						while(it.hasNext()){
 						
-							ShareResourceImpl	resource = (ShareResourceImpl)it.next();
+							ShareResourceImpl	resource = it.next();
 							
 							if ( resource.getType() == ShareResource.ST_DIR_CONTENTS ){
 					
@@ -159,7 +159,7 @@ ShareManagerImpl
 									
 									try{
 										
-										((ShareManagerListener)listeners.get(i)).resourceAdded( resource );
+										listeners.get(i).resourceAdded( resource );
 										
 									}catch( Throwable e ){
 										
@@ -257,11 +257,11 @@ ShareManagerImpl
 	{
 			// copy set for iteration as consistency check can delete resource
 		
-		Iterator	it = new HashSet(shares.values()).iterator();
+		Iterator<ShareResourceImpl>	it = new HashSet<ShareResourceImpl>(shares.values()).iterator();
 		
 		while(it.hasNext()){
 			
-			ShareResourceImpl	resource = (ShareResourceImpl)it.next();
+			ShareResourceImpl	resource = it.next();
 			
 			try{
 				resource.checkConsistency();
@@ -294,7 +294,7 @@ ShareManagerImpl
 			
 			if ( new_resource != null ){
 				
-				ShareResourceImpl	old_resource = (ShareResourceImpl)shares.get(new_resource.getName());
+				ShareResourceImpl	old_resource = shares.get(new_resource.getName());
 				
 				if ( old_resource != null ){
 					
@@ -530,7 +530,7 @@ ShareManagerImpl
 					+ file.toString() + "'"));
 
 		try{
-			return( (ShareResourceFile)addFileOrDir( parent, file, ShareResource.ST_FILE, false ));
+			return( (ShareResourceFile)addFileOrDir( parent, file, ShareResource.ST_FILE ));
 			
 		}catch( ShareException e ){
 			
@@ -572,7 +572,7 @@ ShareManagerImpl
 		try{
 			this_mon.enter();
 			
-			return( (ShareResourceDir)addFileOrDir( parent, dir, ShareResource.ST_DIR, false ));
+			return( (ShareResourceDir)addFileOrDir( parent, dir, ShareResource.ST_DIR ));
 			
 		}catch( ShareException e ){
 			
@@ -599,8 +599,7 @@ ShareManagerImpl
 	addFileOrDir(
 		ShareResourceDirContentsImpl	parent,
 		File							file,
-		int								type,
-		boolean							modified )
+		int								type )
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
@@ -609,11 +608,13 @@ ShareManagerImpl
 		
 			String	name = file.getCanonicalFile().toString();
 			
-			ShareResource	old_resource = (ShareResource)shares.get(name);
+			ShareResourceImpl	old_resource = shares.get(name);
 			
-			if ( old_resource != null ){
+			boolean	modified = old_resource != null;
+			
+			if ( modified ){
 		
-				old_resource.delete();
+				old_resource.delete( true, false );
 			}
 			
 			ShareResourceImpl new_resource;
@@ -641,7 +642,7 @@ ShareManagerImpl
 					
 					if ( modified ){
 						
-						((ShareManagerListener)listeners.get(i)).resourceModified( new_resource );
+						((ShareManagerListener)listeners.get(i)).resourceModified( old_resource, new_resource );
 					
 					}else{
 						
@@ -689,10 +690,10 @@ ShareManagerImpl
 			
 			if ( old_resource != null ){
 				
-				old_resource.delete();
+				old_resource.delete( true );
 			}
 
-			ShareResourceDirContents new_resource = new ShareResourceDirContentsImpl( this, dir, recursive, true );
+			ShareResourceDirContentsImpl new_resource = new ShareResourceDirContentsImpl( this, dir, recursive, true );
 						
 			shares.put( name, new_resource );
 			
@@ -732,7 +733,8 @@ ShareManagerImpl
 	
 	protected void
 	delete(
-		ShareResourceImpl	resource )
+		ShareResourceImpl	resource,
+		boolean				fire_listeners )
 	
 		throws ShareException
 	{
@@ -749,15 +751,18 @@ ShareManagerImpl
 			
 			config.saveConfig();
 			
-			for (int i=0;i<listeners.size();i++){
+			if ( fire_listeners ){
 				
-				try{
+				for (int i=0;i<listeners.size();i++){
 					
-					((ShareManagerListener)listeners.get(i)).resourceDeleted( resource );
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace( e );
+					try{
+						
+						((ShareManagerListener)listeners.get(i)).resourceDeleted( resource );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace( e );
+					}
 				}
 			}
 		}finally{

@@ -229,6 +229,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.utils.security"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.rssgen"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.platform.macosx"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.clientstats"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.disk"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.ui"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.util"/>
@@ -451,6 +452,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.speedmanager.impl.v1"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.metasearch.utils"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.tracker.local"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.peersstats"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.clientid"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.shells"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.widgets"/>

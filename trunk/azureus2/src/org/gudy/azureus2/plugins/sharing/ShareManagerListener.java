@@ -34,7 +34,8 @@ ShareManagerListener
 	
 	public void
 	resourceModified(
-		ShareResource		resource );
+		ShareResource		old_resource,
+		ShareResource		new_resource );
 	
 	public void
 	resourceDeleted(
