@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.util;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -116,6 +117,7 @@ AEDiagnostics
 	
 	private static Map<String,AEDiagnosticsLogger>		loggers	= new HashMap<String, AEDiagnosticsLogger>();
 	
+	protected static boolean	logging_enabled;
 	protected static boolean	loggers_enabled;
 	
 	private static List		evidence_generators	= new ArrayList();
@@ -151,8 +153,23 @@ AEDiagnostics
 			
 			debug_save_dir	= new File( debug_dir, "save" );
 			
-			loggers_enabled = COConfigurationManager.getBooleanParameter( "Logger.DebugFiles.Enabled");
-
+			COConfigurationManager.addAndFireParameterListeners(
+				new String[]{
+					"Logger.Enabled",
+					"Logger.DebugFiles.Enabled",	
+				},
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String parameterName) 
+					{			
+						logging_enabled = COConfigurationManager.getBooleanParameter( "Logger.Enabled" );
+						
+						loggers_enabled = logging_enabled && COConfigurationManager.getBooleanParameter( "Logger.DebugFiles.Enabled");
+					}
+				});
+			
 			boolean	was_tidy	= COConfigurationManager.getBooleanParameter( CONFIG_KEY );
 			
 			new AEThread2( "asyncify", true )
