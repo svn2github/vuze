@@ -77,6 +77,7 @@ public class TableColumnManager {
    * or {@link #saveTableConfigs()}
    */
 	private Map mapTablesConfig;
+	private long lastTableConfigAccess;
 	private static Comparator orderComparator;
 	
 	private Map<String, TableColumnCreationListener> mapColumnIDsToListener = new LightHashMap<String, TableColumnCreationListener>();
@@ -521,16 +522,36 @@ public class TableColumnManager {
   
   public Map getTableConfigMap(String sTableID) {
 		synchronized (this) {
+			lastTableConfigAccess = SystemTime.getMonotonousTime();
+			
 			if (mapTablesConfig == null) {
 				mapTablesConfig = FileUtil.readResilientConfigFile(CONFIG_FILE);
 
-				// Dispose of tableconfigs after XXs.. saves up to 50k
-				SimpleTimer.addEvent("DisposeTbaleConfigMap",
-						SystemTime.getOffsetTime(30000), new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
-								synchronized (this) {
-									saveTableConfigs();
-									mapTablesConfig = null;
+					// Dispose of tableconfigs after XXs.. saves up to 50k
+				
+				SimpleTimer.addEvent(
+						"DisposeTbaleConfigMap",
+						SystemTime.getOffsetTime(30000), 
+						new TimerEventPerformer() 
+						{
+							public void 
+							perform(
+								TimerEvent event ) 
+							{
+								synchronized( TableColumnManager.this ){
+									
+									long	now = SystemTime.getMonotonousTime();
+									
+									if ( now - lastTableConfigAccess > 25000 ){
+									
+										mapTablesConfig = null;
+										
+									}else{
+										SimpleTimer.addEvent(
+											"DisposeTbaleConfigMap",
+											SystemTime.getOffsetTime(30000), 
+											this );
+									}
 								}
 							}
 						});
