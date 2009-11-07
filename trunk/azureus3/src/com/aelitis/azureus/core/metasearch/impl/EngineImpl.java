@@ -30,6 +30,7 @@ import java.util.*;
 
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -64,6 +65,24 @@ EngineImpl
 	implements Engine
 {
 	private static final int DEFAULT_UPDATE_CHECK_SECS = 24*60*60;
+	
+	private static boolean logging_enabled;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"Logger.Enabled",
+			},
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameterName) 
+				{			
+					logging_enabled = COConfigurationManager.getBooleanParameter( "Logger.Enabled" );
+				}
+			});
+	}
 	
 	protected static EngineImpl
 	importFromBEncodedMap(
@@ -1380,13 +1399,25 @@ EngineImpl
 	protected File
 	getDebugFile()
 	{
-		return( new File( AEDiagnostics.getLogDir(), "MetaSearch_Engine_" + getId() + ".txt" ));
+		if ( logging_enabled ){
+		
+			return( new File( AEDiagnostics.getLogDir(), "MetaSearch_Engine_" + getId() + ".txt" ));
+			
+		}else{
+			
+			return( null );
+		}
 	}
 	
 	protected synchronized void
 	debugStart()
 	{
-		getDebugFile().delete();
+		File f = getDebugFile();
+		
+		if ( f != null ){
+			
+			f.delete();
+		}
 	}
 	
 	protected synchronized void
@@ -1395,20 +1426,23 @@ EngineImpl
 	{
 		File f = getDebugFile();
 		
-		PrintWriter	 pw = null;
-		
-		try{
-			pw = new PrintWriter(new FileWriter( f, true ));
+		if ( f != null ){
 			
-			pw.println( str );
+			PrintWriter	 pw = null;
 			
-		}catch( Throwable e ){
-			
-		}finally{
-			
-			if ( pw != null ){
+			try{
+				pw = new PrintWriter(new FileWriter( f, true ));
 				
-				pw.close();
+				pw.println( str );
+				
+			}catch( Throwable e ){
+				
+			}finally{
+				
+				if ( pw != null ){
+					
+					pw.close();
+				}
 			}
 		}
 	}
