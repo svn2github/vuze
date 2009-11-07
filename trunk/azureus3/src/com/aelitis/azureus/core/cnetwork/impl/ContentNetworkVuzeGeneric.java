@@ -195,7 +195,7 @@ ContentNetworkVuzeGeneric
 		service_map.clear();
 		
 		addService( SERVICE_SEARCH, 			URL_PREFIX + "search?q=" );
-		addService( SERVICE_XSEARCH, 			URL_PREFIX + "xsearch?q=" );
+		addService( SERVICE_XSEARCH, 			URL_PREFIX + "xsearch/index.php?q=" );
 		addService( SERVICE_RPC, 				"http://vrpc.vuze.com/vzrpc/rpc.php" );
 		addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" );
 		addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start?" );
@@ -216,7 +216,7 @@ ContentNetworkVuzeGeneric
 		addService( SERVICE_MY_ACCOUNT,			URL_PREFIX + "account.start?" );
 		addService( SERVICE_SITE_RELATIVE,		URL_PREFIX );
 		addService( SERVICE_ADD_FRIEND,			URL_PREFIX + "user/AddFriend.html?" );
-		addService( SERVICE_SUBSCRIPTION,		URL_PREFIX + "xsearch?" );
+		addService( SERVICE_SUBSCRIPTION,		URL_PREFIX + "xsearch/index.php?" );
 		 		
 		addService( SERVICE_AUTHORIZE,			URL_PREFIX + "ip.start?" );
 		addService( SERVICE_GET_ICON,			URL_ICON );
