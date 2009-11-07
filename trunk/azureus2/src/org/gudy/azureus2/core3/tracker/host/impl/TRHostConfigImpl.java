@@ -53,6 +53,8 @@ TRHostConfigImpl
 	private Map			saved_stats				= new HashMap();
 	private List		saved_stats_to_delete	= new ArrayList();
 	
+	private boolean		config_exists = true;
+	
 	private AEMonitor this_mon 	= new AEMonitor( "TRHostConfig" );
 
 	protected
@@ -427,8 +429,21 @@ TRHostConfigImpl
 			   	try{
 			   		save_lock_mon.enter();
 			   		
-			   		FileUtil.writeResilientConfigFile( "tracker.config", map );
-				   	
+			   		if ( torrents.length == 0 ){
+			   			
+			   			if ( config_exists ){
+			   		
+			   				FileUtil.deleteResilientConfigFile( "tracker.config" );
+			   				
+			   				config_exists = false;
+			   			}
+			   		}else{
+			   		
+			   			config_exists = true;
+			   			
+			   			FileUtil.writeResilientConfigFile( "tracker.config", map );
+			   		}
+			   		
 					if ( 	COConfigurationManager.getBooleanParameter( "Tracker Log Enable") &&
 							stats_entries.size() > 0 ){
 				   		
