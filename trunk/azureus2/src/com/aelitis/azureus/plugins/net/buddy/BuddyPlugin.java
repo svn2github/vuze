@@ -25,6 +25,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -1963,81 +1964,87 @@ BuddyPlugin
 			List	buddies_config = (List)map.get( "friends" );
 				
 			if ( buddies_config != null ){
-										
-				for (int i=0;i<buddies_config.size();i++){
 					
-					Object o = buddies_config.get(i);
-		
-					if ( o instanceof Map ){
-						
-						Map	details = (Map)o;
-						
-						Long	l_ct = (Long)details.get( "ct" );
-						
-						long	created_time = l_ct==null?now:l_ct.longValue();
-						
-						if ( created_time > now ){
-							
-							created_time = now;
-						}
-						
-						String	key = new String((byte[])details.get( "pk" ));
-						
-						List	recent_ygm = (List)details.get( "ygm" );
-											
-						String	nick = decodeString((byte[])details.get( "n" ));
-						
-						Long	l_seq = (Long)details.get( "ls" );
-						
-						int	last_seq = l_seq==null?0:l_seq.intValue();
-						
-						Long	l_lo = (Long)details.get( "lo" );
-						
-						long	last_time_online = l_lo==null?0:l_lo.longValue();
+				if ( buddies_config.size() == 0 ){
 					
-						if ( last_time_online > now ){
+					deleteConfig();
+					
+				}else{
+					for (int i=0;i<buddies_config.size();i++){
+						
+						Object o = buddies_config.get(i);
+			
+						if ( o instanceof Map ){
 							
-							last_time_online = now;
-						}
-						
-						Long l_subsystem = (Long)details.get( "ss" );
-						
-						int	subsystem = l_subsystem==null?SUBSYSTEM_AZ2:l_subsystem.intValue();
-						
-						if (subsystem == SUBSYSTEM_AZ3) {
-							continue;
-						}
-						
-						Long l_ver = (Long)details.get("v");
-						
-						int	ver = l_ver==null?VERSION_INITIAL:l_ver.intValue();
-													
-						String	loc_cat = decodeString((byte[])details.get( "lc" ));
-						String	rem_cat = decodeString((byte[])details.get( "rc" ));
-						
-						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, created_time, subsystem, true, key, nick, ver, loc_cat, rem_cat, last_seq, last_time_online, recent_ygm );
-						
-						byte[]	ip_bytes = (byte[])details.get( "ip" );
-						
-						if ( ip_bytes != null ){
+							Map	details = (Map)o;
 							
-							try{
-								InetAddress ip = InetAddress.getByAddress( ip_bytes );
+							Long	l_ct = (Long)details.get( "ct" );
+							
+							long	created_time = l_ct==null?now:l_ct.longValue();
+							
+							if ( created_time > now ){
 								
-								int	tcp_port = ((Long)details.get( "tcp" )).intValue();
-								int	udp_port = ((Long)details.get( "udp" )).intValue();
-								
-								buddy.setCachedStatus( ip, tcp_port, udp_port );
-								
-							}catch( Throwable e ){
+								created_time = now;
 							}
+							
+							String	key = new String((byte[])details.get( "pk" ));
+							
+							List	recent_ygm = (List)details.get( "ygm" );
+												
+							String	nick = decodeString((byte[])details.get( "n" ));
+							
+							Long	l_seq = (Long)details.get( "ls" );
+							
+							int	last_seq = l_seq==null?0:l_seq.intValue();
+							
+							Long	l_lo = (Long)details.get( "lo" );
+							
+							long	last_time_online = l_lo==null?0:l_lo.longValue();
+						
+							if ( last_time_online > now ){
+								
+								last_time_online = now;
+							}
+							
+							Long l_subsystem = (Long)details.get( "ss" );
+							
+							int	subsystem = l_subsystem==null?SUBSYSTEM_AZ2:l_subsystem.intValue();
+							
+							if (subsystem == SUBSYSTEM_AZ3) {
+								continue;
+							}
+							
+							Long l_ver = (Long)details.get("v");
+							
+							int	ver = l_ver==null?VERSION_INITIAL:l_ver.intValue();
+														
+							String	loc_cat = decodeString((byte[])details.get( "lc" ));
+							String	rem_cat = decodeString((byte[])details.get( "rc" ));
+							
+							BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, created_time, subsystem, true, key, nick, ver, loc_cat, rem_cat, last_seq, last_time_online, recent_ygm );
+							
+							byte[]	ip_bytes = (byte[])details.get( "ip" );
+							
+							if ( ip_bytes != null ){
+								
+								try{
+									InetAddress ip = InetAddress.getByAddress( ip_bytes );
+									
+									int	tcp_port = ((Long)details.get( "tcp" )).intValue();
+									int	udp_port = ((Long)details.get( "udp" )).intValue();
+									
+									buddy.setCachedStatus( ip, tcp_port, udp_port );
+									
+								}catch( Throwable e ){
+								}
+							}
+							
+							logMessage( "Loaded buddy " + buddy.getString());
+							
+							buddies.add( buddy );
+							
+							buddies_map.put( key, buddy );
 						}
-						
-						logMessage( "Loaded buddy " + buddy.getString());
-						
-						buddies.add( buddy );
-						
-						buddies_map.put( key, buddy );
 					}
 				}
 			}
@@ -2153,9 +2160,16 @@ BuddyPlugin
 				
 				Map	map = new HashMap();
 				
-				map.put( "friends", buddies_config );
+				if ( buddies_config.size() > 0 ){
 				
-				writeConfig( map );
+					map.put( "friends", buddies_config );
+				
+					writeConfig( map );
+					
+				}else{
+					
+					deleteConfig();
+				}
 				
 				config_dirty = false;
 			}
@@ -2288,11 +2302,25 @@ BuddyPlugin
 		writeConfigFile( config_file, map );
 	}
 	
+	protected void
+	deleteConfig()
+	{
+		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "friends.config" );
+		
+		Utilities utils = plugin_interface.getUtilities();
+			
+		plugin_interface.getUtilities().deleteResilientBEncodedFile(
+				config_file.getParentFile(), config_file.getName(), true );
+
+	}
+	
 	protected Map
 	readConfigFile(
 		File		name )
 	{
-		Map map = plugin_interface.getUtilities().readResilientBEncodedFile(
+		Utilities utils = plugin_interface.getUtilities();
+		
+		Map map = utils.readResilientBEncodedFile(
 						name.getParentFile(), name.getName(), true );
 		
 		if ( map == null ){
@@ -2308,8 +2336,10 @@ BuddyPlugin
 		File		name,
 		Map			data )
 	{
+		Utilities utils = plugin_interface.getUtilities();
+			
 		plugin_interface.getUtilities().writeResilientBEncodedFile(
-				name.getParentFile(), name.getName(), data, true );
+			name.getParentFile(), name.getName(), data, true );
 		
 		return( name.exists());
 	}

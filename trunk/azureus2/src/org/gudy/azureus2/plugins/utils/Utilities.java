@@ -289,6 +289,12 @@ Utilities
  		Map		data,
  		boolean	use_backup );	
 	
+	public void
+ 	deleteResilientBEncodedFile(
+ 		File	parent_dir,
+ 		String	file_name,
+ 		boolean	use_backup );
+	
 	/**
 	 * Compares two version strings for order. 
 	 * Returns a negative integer, zero, or a positive integer as the first 

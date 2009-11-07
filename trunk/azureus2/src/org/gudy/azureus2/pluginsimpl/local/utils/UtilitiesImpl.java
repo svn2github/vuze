@@ -899,6 +899,15 @@ UtilitiesImpl
 		FileUtil.writeResilientFile( parent_dir, file_name, data, use_backup );
 	}
 
+	public void
+ 	deleteResilientBEncodedFile(
+ 		File	parent_dir,
+ 		String	file_name,
+ 		boolean	use_backup )
+	{
+		FileUtil.deleteResilientFile( new File( parent_dir, file_name ));
+	}
+	
 	public int compareVersions(String v1, String v2) {
 		return Constants.compareVersions( v1, v2 );
 	}
