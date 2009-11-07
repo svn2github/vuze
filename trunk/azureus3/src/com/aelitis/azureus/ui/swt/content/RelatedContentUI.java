@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -82,9 +81,7 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 public class 
 RelatedContentUI 
-{	
-	private static final boolean	DISABLE_ALL_UI	= !Constants.isCVSVersion();
-	
+{		
 	private static RelatedContentUI	singleton;
 	
 	public static synchronized RelatedContentUI
@@ -207,7 +204,7 @@ RelatedContentUI
 		try{	
 			manager 	= RelatedContentManager.getSingleton();
 
-			if ( DISABLE_ALL_UI || !manager.isEnabled()){
+			if ( !manager.isUIEnabled()){
 				
 				return;
 			}

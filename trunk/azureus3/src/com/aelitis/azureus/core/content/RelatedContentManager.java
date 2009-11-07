@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.RandomUtils;
@@ -97,8 +98,9 @@ public class
 RelatedContentManager
 	implements DistributedDatabaseTransferHandler
 {
-	private static final boolean TRACE = false;
-	
+	private static final boolean 	TRACE = false;
+	private static final boolean	DISABLE_ALL_UI	= !Constants.isCVSVersion();
+
 	private static final int	MAX_HISTORY					= 16;
 	private static final int	MAX_TITLE_LENGTH			= 80;
 	private static final int	MAX_CONCURRENT_PUBLISH		= 2;
@@ -149,7 +151,7 @@ RelatedContentManager
 	private ByteArrayHashMapEx<DownloadInfo>	download_info_map	= new ByteArrayHashMapEx<DownloadInfo>();
 	private Set<String>							download_priv_set	= new HashSet<String>();
 	
-	private boolean	enabled;
+	private final boolean	enabled;
 	
 	private boolean	ui_enabled;
 	private int		max_search_level;
@@ -250,7 +252,7 @@ RelatedContentManager
 					parameterChanged(
 						String name )
 					{
-						ui_enabled 			= COConfigurationManager.getBooleanParameter( "rcm.ui.enabled", true );
+						ui_enabled 			= COConfigurationManager.getBooleanParameter( "rcm.ui.enabled", true ) && !DISABLE_ALL_UI;
 						max_search_level 	= COConfigurationManager.getIntParameter( "rcm.max_search_level", 3 );
 						max_results		 	= COConfigurationManager.getIntParameter( "rcm.max_results", 500 );
 					}
@@ -258,111 +260,114 @@ RelatedContentManager
 			
 			if ( enabled ){
 				
-				try{
-					plugin_interface.getUtilities().registerSearchProvider(
-						new SearchProvider()
-						{
-							private Map<Integer,Object>	properties = new HashMap<Integer, Object>();
-							
+				if ( ui_enabled ){
+
+					try{
+						plugin_interface.getUtilities().registerSearchProvider(
+							new SearchProvider()
 							{
-								properties.put( PR_NAME, MessageText.getString( "rcm.search.provider" ));
+								private Map<Integer,Object>	properties = new HashMap<Integer, Object>();
 								
-								try{
-									URL url = 
-										MagnetURIHandler.getSingleton().registerResource(
-											new MagnetURIHandler.ResourceProvider()
-											{
-												public String
-												getUID()
+								{
+									properties.put( PR_NAME, MessageText.getString( "rcm.search.provider" ));
+									
+									try{
+										URL url = 
+											MagnetURIHandler.getSingleton().registerResource(
+												new MagnetURIHandler.ResourceProvider()
 												{
-													return( RelatedContentManager.class.getName() + ".1" );
-												}
-												
-												public String
-												getFileType()
-												{
-													return( "png" );
-												}
-														
-												public byte[]
-												getData()
-												{
-													InputStream is = getClass().getClassLoader().getResourceAsStream( "org/gudy/azureus2/ui/icons/rcm.png" );
-													
-													if ( is == null ){
-														
-														return( null );
+													public String
+													getUID()
+													{
+														return( RelatedContentManager.class.getName() + ".1" );
 													}
 													
-													try{
-														ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+													public String
+													getFileType()
+													{
+														return( "png" );
+													}
+															
+													public byte[]
+													getData()
+													{
+														InputStream is = getClass().getClassLoader().getResourceAsStream( "org/gudy/azureus2/ui/icons/rcm.png" );
 														
-														try{
-															byte[]	buffer = new byte[8192];
+														if ( is == null ){
 															
-															while( true ){
-									
-																int	len = is.read( buffer );
-												
-																if ( len <= 0 ){
-																	
-																	break;
-																}
-										
-																baos.write( buffer, 0, len );
-															}
-														}finally{
-															
-															is.close();
+															return( null );
 														}
 														
-														return( baos.toByteArray());
-														
-													}catch( Throwable e ){
-														
-														return( null );
+														try{
+															ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+															
+															try{
+																byte[]	buffer = new byte[8192];
+																
+																while( true ){
+										
+																	int	len = is.read( buffer );
+													
+																	if ( len <= 0 ){
+																		
+																		break;
+																	}
+											
+																	baos.write( buffer, 0, len );
+																}
+															}finally{
+																
+																is.close();
+															}
+															
+															return( baos.toByteArray());
+															
+														}catch( Throwable e ){
+															
+															return( null );
+														}
 													}
-												}
-											});
-																			
-									properties.put( PR_ICON_URL, url.toExternalForm());
-									
-								}catch( Throwable e ){
-									
-									Debug.out( e );
+												});
+																				
+										properties.put( PR_ICON_URL, url.toExternalForm());
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
 								}
-							}
-							
-							public SearchInstance
-							search(
-								Map<String,Object>	search_parameters,
-								SearchObserver		observer )
-							
-								throws SearchException
-							{
-								initialisation_complete_sem.reserve();
 								
-								return( searchRCM( search_parameters, observer ));
-							}
-							
-							public Object
-							getProperty(
-								int			property )
-							{
-								return( properties.get( property ));
-							}
-							
-							public void
-							setProperty(
-								int			property,
-								Object		value )
-							{
-								properties.put( property, value );
-							}
-						});
-				}catch( Throwable e ){
-					
-					Debug.out( "Failed to register search provider" );
+								public SearchInstance
+								search(
+									Map<String,Object>	search_parameters,
+									SearchObserver		observer )
+								
+									throws SearchException
+								{
+									initialisation_complete_sem.reserve();
+									
+									return( searchRCM( search_parameters, observer ));
+								}
+								
+								public Object
+								getProperty(
+									int			property )
+								{
+									return( properties.get( property ));
+								}
+								
+								public void
+								setProperty(
+									int			property,
+									Object		value )
+								{
+									properties.put( property, value );
+								}
+							});
+					}catch( Throwable e ){
+						
+						Debug.out( "Failed to register search provider" );
+					}
 				}
 			}
 			
