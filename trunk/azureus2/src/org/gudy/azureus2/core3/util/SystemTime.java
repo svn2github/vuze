@@ -31,7 +31,10 @@ public class SystemTime {
 	public static final long			TIME_GRANULARITY_MILLIS	= 25;	//internal update time ms
 	private static SystemTimeProvider	instance;
 	
-	private static final boolean		SOD_IT_LETS_USE_HPC	= Constants.isCVSVersion();
+	// can't do that without some safeguarding code.
+	// monotime does guarantee that time neither goes backwards nor performs leaps into the future.
+	// the HPC doesn't jump backward but can jump forward in time
+	private static final boolean		SOD_IT_LETS_USE_HPC = false;//	= Constants.isCVSVersion();
 	
 	static
 	{
