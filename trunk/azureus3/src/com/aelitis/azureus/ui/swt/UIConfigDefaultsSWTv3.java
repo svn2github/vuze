@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.swt;
 
 import java.io.File;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
@@ -152,11 +153,11 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter(SkinConstants.VIEWID_PLUGINBAR + ".visible", false);
 		config.removeParameter("v3.home-tab.starttab");
 		defaults.addParameter("v3.topbar.height", 60);
-		defaults.addParameter("v3.Start Advanced", false);
 		defaults.addParameter("MyTorrentsView.table.style", 0);
 		defaults.addParameter("v3.Show Welcome", true);
 		
-		boolean startAdvanced = config.getBooleanParameter("v3.Start Advanced");
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
+		boolean startAdvanced = userMode > 1;
 		defaults.addParameter("Library.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("LibraryDL.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("LibraryUnopened.viewmode", startAdvanced ? 1 : 0);

@@ -107,20 +107,13 @@ public class MainMenu
 		builFileMenu(fileMenu);
 
 		fileMenu.addListener(SWT.Show, new Listener() {
-			private boolean isAZ3_ADV = MenuFactory.isAZ3_ADV;
-
 			public void handleEvent(Event event) {
-				if (isAZ3_ADV != MenuFactory.isAZ3_ADV) {
-
-					MenuItem[] menuItems = fileMenu.getItems();
-					for (int i = 0; i < menuItems.length; i++) {
-						menuItems[i].dispose();
-					}
-
-					builFileMenu(fileMenu);
-
-					isAZ3_ADV = MenuFactory.isAZ3_ADV;
+				MenuItem[] menuItems = fileMenu.getItems();
+				for (int i = 0; i < menuItems.length; i++) {
+					menuItems[i].dispose();
 				}
+
+				builFileMenu(fileMenu);
 			}
 		});
 	}
@@ -139,7 +132,7 @@ public class MainMenu
 
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
 
-		if ( MenuFactory.isAZ3_ADV || userMode > 0 ){
+		if ( userMode > 0 ){
 			Menu shareSubMenu = MenuFactory.createShareMenuItem(fileMenu).getMenu();
 			MenuFactory.addShareFileMenuItem(shareSubMenu);
 			MenuFactory.addShareFolderMenuItem(shareSubMenu);
@@ -539,8 +532,7 @@ public class MainMenu
 	 * Creates the Torrent menu and all its children
 	 */
 	private void addTorrentMenu() {
-		MenuFactory.setEnablementKeys(MenuFactory.createTorrentMenuItem(menuBar),
-				FOR_AZ2 | FOR_AZ3_ADV);
+		MenuFactory.createTorrentMenuItem(menuBar);
 	}
 
 	public Menu getMenu(String id) {

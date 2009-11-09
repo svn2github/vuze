@@ -33,7 +33,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.UISwitcherUtil;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -97,10 +96,6 @@ public class UISwitcherWindow
 					if (ui == 0) {
 						// Full AZ3UI
 						COConfigurationManager.setParameter("ui", "az3");
-						// Anyone switching to az3 gets the "advanced mode"
-						if (!originalUIMode.equals("az3")) {
-							COConfigurationManager.setParameter("v3.Start Advanced", true);
-						}
 					} else if (ui == 1) {
 						COConfigurationManager.setParameter("ui", "az2");
 					}
