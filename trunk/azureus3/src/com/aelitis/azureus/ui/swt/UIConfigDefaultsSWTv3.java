@@ -21,12 +21,12 @@
 package com.aelitis.azureus.ui.swt;
 
 import java.io.File;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
-import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
+import org.gudy.azureus2.core3.config.impl.*;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -183,6 +183,37 @@ public class UIConfigDefaultsSWTv3
 				defaults.addParameter("Plugin.UPnP.upnp.alertdeviceproblems", false);
 			}
 		});
+		
+		// "v3.StartTab" didn't exist before 4209_B49 and is written at startup.
+		// Use it as indicator to reset columns so beta users get correct columns
+		// ("Big View" only).  As a backup (in addition to), reset on first 4210
+		// run
+		if (!COConfigurationManager.hasParameter("v3.StartTab", true)
+				|| (ConfigurationChecker.isNewVersion() && Constants.compareVersions(
+						Constants.getBaseVersion(), "4.2.1.0") == 0)) {
+			// Reset 'big' columns, remove some tables that no longer exist
+			Map map = FileUtil.readResilientConfigFile("tables.config");
+			if (map != null && map.size() > 0) {
+  			Object[] keys = map.keySet().toArray();
+  			boolean removedSome = false;
+  			for (int i = 0; i < keys.length; i++) {
+  				if (keys[i] instanceof String) {
+  					String sKey = (String) keys[i];
+  					if (sKey.endsWith(".big") || sKey.startsWith("Table.library-")
+  							|| sKey.startsWith("Table.Media")
+  							|| sKey.startsWith("Table.activity.table")
+  							|| sKey.equals("Table.Activity.big")
+  							|| sKey.equals("Table.Activity_SB")) {
+  						map.remove(sKey);
+  						removedSome = true;
+  					}
+  				}
+  			}
+  			if (removedSome) {
+  				FileUtil.writeResilientConfigFile("tables.config", map);
+  			}
+			}
+		}
 		
 		if (configNeedsSave) {
 			config.save();

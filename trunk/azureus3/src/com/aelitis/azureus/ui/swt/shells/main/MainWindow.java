@@ -968,6 +968,7 @@ public class MainWindow
 
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
+				final String CFG_STARTTAB = "v3.StartTab";
 				String startTab;
 				boolean showWelcome = COConfigurationManager.getBooleanParameter("v3.Show Welcome");
 
@@ -979,8 +980,11 @@ public class MainWindow
 				if (showWelcome) {
 					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
 				} else {
-					startTab = COConfigurationManager.getStringParameter("v3.StartTab",
-							SideBar.SIDEBAR_SECTION_LIBRARY);
+					if (!COConfigurationManager.hasParameter(CFG_STARTTAB, true)) {
+						COConfigurationManager.setParameter(CFG_STARTTAB,
+								SideBar.SIDEBAR_SECTION_LIBRARY);
+					}
+					startTab = COConfigurationManager.getStringParameter(CFG_STARTTAB);
 					if (!SideBar.entryExists(startTab)) {
 						startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
 					}
