@@ -47,6 +47,7 @@ AEDiagnosticsLogger
 	private int				max_size;
 	private File			debug_dir;
 	private boolean			timestamp_enable				= true;
+	private boolean			force;
 	
 	private boolean			first_file				= true;
 	private boolean			first_write			 	= true;
@@ -102,6 +103,12 @@ AEDiagnosticsLogger
 		}catch( Throwable ignore ){
 			
 		}
+	}
+	
+	protected void
+	setForced()
+	{
+		force = true;
 	}
 	
 	protected String
@@ -237,7 +244,10 @@ AEDiagnosticsLogger
 	{
 		if ( !AEDiagnostics.loggers_enabled ){
 			
-			return;
+			if ( !force ){
+			
+				return;
+			}
 		}
 		
 		StringBuilder str = new StringBuilder( _str.length() + 20 );

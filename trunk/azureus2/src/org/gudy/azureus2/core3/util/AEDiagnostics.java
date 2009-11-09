@@ -189,9 +189,7 @@ AEDiagnostics
 			if ( debug_dir.exists()){
 				
 				long	now = SystemTime.getCurrentTime();
-				
-				debug_save_dir.mkdir();
-				
+								
 				File[] files = debug_dir.listFiles();
 				
 				if ( files != null ){
@@ -209,6 +207,11 @@ AEDiagnostics
 						
 						if ( !was_tidy ){
 				
+							if ( !file_copied ){
+								
+								debug_save_dir.mkdir();
+							}
+							
 							file_copied	= true;
 							
 							FileUtil.copyFile( file, new File( debug_save_dir, now + "_" + file.getName()));

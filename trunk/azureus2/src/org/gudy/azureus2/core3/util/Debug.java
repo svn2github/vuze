@@ -32,6 +32,9 @@ public class Debug {
   
 	private static AEDiagnosticsLogger	diag_logger	= AEDiagnostics.getLogger( "debug" );
 
+	static{
+		diag_logger.setForced();
+	}
   
   /**
    * Prints out the given debug message to System.out,
