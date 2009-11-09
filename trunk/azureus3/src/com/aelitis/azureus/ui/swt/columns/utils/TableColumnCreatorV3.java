@@ -63,10 +63,6 @@ public class TableColumnCreatorV3
 				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
-			ColumnThumbAndName tcName = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
-			if (tcName != null) {
-				tcName.setWidth(140);
-			}
 		}
 
 		// special changes
@@ -117,10 +113,6 @@ public class TableColumnCreatorV3
 			if (tc != null) {
 				tcManager.setDefaultSortColumnName(tableID, ColumnThumbAndName.COLUMN_ID);
 				tc.setSortAscending(true);
-			}
-			ColumnThumbAndName tcName = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
-			if (tcName != null) {
-				tcName.setWidth(220);
 			}
 		}
 
@@ -194,10 +186,6 @@ public class TableColumnCreatorV3
 				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
-			ColumnThumbAndName tcName = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
-			if (tcName != null) {
-				tcName.setWidth(140);
-			}
 		}
 
 		// special changes
@@ -247,10 +235,6 @@ public class TableColumnCreatorV3
 			if (tc != null) {
 				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
-			}
-			ColumnThumbAndName tcName = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
-			if (tcName != null) {
-				tcName.setWidth(265);
 			}
 		}
 
