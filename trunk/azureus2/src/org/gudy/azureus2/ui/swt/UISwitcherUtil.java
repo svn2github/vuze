@@ -99,15 +99,6 @@ public class UISwitcherUtil
 			COConfigurationManager.setParameter("ui", "az3");
 			COConfigurationManager.setParameter("az3.virgin.switch", true);
 
-			// Anyone who wasn't on az3 and had an old version "advanced mode"
-			if (!lastUI.equals("az3")) {
-				String sFirstVersion = COConfigurationManager.getStringParameter(
-						"First Recorded Version", Constants.AZUREUS_VERSION);
-				if (!Constants.getBaseVersion(sFirstVersion).equals(
-						Constants.getBaseVersion(Constants.AZUREUS_VERSION))) {
-					COConfigurationManager.setParameter("v3.Start Advanced", true);
-				}
-			}
 			return "az3";
 		}
 

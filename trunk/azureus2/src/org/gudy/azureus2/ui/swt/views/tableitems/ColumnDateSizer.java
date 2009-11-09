@@ -87,7 +87,8 @@ public abstract class ColumnDateSizer
 			Number nShowTime = (Number) oShowTime;
 			showTime = nShowTime.byteValue() == 1;
 		} else {
-			showTime = COConfigurationManager.getBooleanParameter("v3.Start Advanced");
+	    int userMode = COConfigurationManager.getIntParameter("User Mode");
+			showTime = userMode > 1;
 		}
 	}
 

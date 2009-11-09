@@ -61,8 +61,6 @@ public class MenuFactory
 	implements IMenuConstants
 {
 
-	public static boolean isAZ3_ADV = COConfigurationManager.getBooleanParameter("v3.Start Advanced");
-
 	private static boolean isAZ3 = "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"));
 
 	public static MenuItem createFileMenuItem(Menu menuParent) {
@@ -1346,8 +1344,6 @@ public class MenuFactory
 		int keys = getEnablementKeys(widget);
 		if (keys <= 0) {
 			return true;
-		} else if (true == isAZ3_ADV) {
-			return ((keys & FOR_AZ3_ADV) != 0);
 		} else if (true == isAZ3) {
 			return ((keys & FOR_AZ3) != 0);
 		} else {

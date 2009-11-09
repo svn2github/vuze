@@ -31,11 +31,6 @@ public interface IMenuConstants
 	public static int FOR_AZ3 = 1 << 1;
 
 	/**
-	 * Bit mask for az3 advanced
-	 */
-	public static int FOR_AZ3_ADV = 1 << 2;
-
-	/**
 	 * A key used to store key/value pairs for menu ids;
 	 * currently used for setting the menu id for menus and menu items.
 	 * <p><b>NOTE:</b> This is not a localization key

@@ -93,11 +93,6 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
     new BooleanParameter(cStart, "Open Transfer Bar On Start", "ConfigView.label.open_transfer_bar_on_start");
     new BooleanParameter(cStart, "Start Minimized", "ConfigView.label.startminimized");
     
-    if (isAZ3) {
-			new BooleanParameter(cStart, "v3.Start Advanced",
-					"ConfigView.interface.start.library");
-		}
-  
 	// UI switcher window.
     Composite cUISwitcher = new Composite(cStart, SWT.NONE);
     layout = new GridLayout(2, false);
