@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -43,6 +44,7 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -51,6 +53,7 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
+import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -265,6 +268,39 @@ public class SearchResultsTabArea
 														}
 													}
 												});						
+										}
+									});
+							}
+							
+							if ( Constants.IS_CVS_VERSION ){
+								
+								MenuItem copy_mi = menuManager.addMenuItem( engine_menu, "ConfigView.copy.to.clipboard.tooltip" );
+	
+								copy_mi.addListener(
+									new MenuItemListener()
+									{
+										public void 
+										selected(
+											MenuItem menu, 
+											Object target) 
+										{
+											final Shell shell = Utils.findAnyShell();
+											
+											shell.getDisplay().asyncExec(
+												new AERunnable() 
+												{
+													public void 
+													runSupport()
+													{
+														try{
+															ClipboardCopy.copyToClipBoard( engine.exportToJSONString());
+															
+														}catch( Throwable e ){
+															
+															Debug.out( e );
+														}
+													}
+												});
 										}
 									});
 							}
