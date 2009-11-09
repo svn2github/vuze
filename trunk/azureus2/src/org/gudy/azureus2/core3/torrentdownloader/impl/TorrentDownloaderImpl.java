@@ -33,6 +33,8 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.InflaterInputStream;
 
 import javax.net.ssl.*;
 
@@ -529,6 +531,22 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 			}
 		}
 			
+			// handle some servers that return gzip'd torrents even though we don't request it!
+		
+		String encoding = con.getHeaderField( "content-encoding");
+			
+		if ( encoding != null ){
+
+			if ( encoding.equalsIgnoreCase( "gzip" )){
+
+				in = new GZIPInputStream( in );
+
+			}else if ( encoding.equalsIgnoreCase( "deflate" )){
+
+				in = new InflaterInputStream( in );
+			}
+		}
+		
 	    if ( this.state != STATE_ERROR ){
 		    	
 	    	this.file = new File(this.directoryname, filename);
