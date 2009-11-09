@@ -202,13 +202,13 @@ BuddyPluginView
 			
 			status.setImageEnabled( true );
 			
-			status.setVisible( tracker.isEnabled());
-			label.setVisible( tracker.isEnabled());
-		
 			tracker.addListener( this );
 			
 			has_buddies = plugin.getBuddies().size() > 0;
 			
+			status.setVisible( tracker.isEnabled() && has_buddies);
+			label.setVisible( tracker.isEnabled() && has_buddies);
+		
 			/*
 			MenuItem mi = plugin.getPluginInterface().getUIManager().getMenuManager().addMenuItem(
 									status.getMenuContext(),
@@ -344,7 +344,7 @@ BuddyPluginView
 		protected synchronized void
 		updateStatus()
 		{
-			if ( tracker.isEnabled()){
+			if ( tracker.isEnabled() && has_buddies ){
 				
 				status.setVisible( true );
 				label.setVisible( true );
