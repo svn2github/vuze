@@ -147,7 +147,7 @@ public class ColumnThumbAndName
 		Rectangle cellBounds = cell.getBounds();
 
 		Image[] imgThumbnail = TorrentUIUtilsV3.getContentImage(ds,
-				cellBounds.width >= 20 && cellBounds.height >= 20,
+				cellBounds.height >= 20,
 				new ContentImageLoadedListener() {
 					public void contentImageLoaded(Image image, boolean wasReturned) {
 						if (!wasReturned) {
@@ -162,6 +162,7 @@ public class ColumnThumbAndName
 			// don't need to release a null image
 			return;
 		}
+		
 
 		if (cellBounds.height > 30) {
 			cellBounds.y += 1;
@@ -198,18 +199,20 @@ public class ColumnThumbAndName
 		}
 		int x = cellBounds.x;
 		int textX = x + dstWidth + 3;
+		int minWidth = dstHeight * 7 / 4;
+		int imgPad = 0;
 		if (dstHeight > 25) {
-  		int minWidth = dstHeight * 7 / 4;
   		if (dstWidth < minWidth) {
-  			x = cellBounds.x + ((minWidth - dstWidth + 1) / 2);
+  			imgPad = ((minWidth - dstWidth + 1) / 2);
+  			x = cellBounds.x + imgPad;
   			textX = cellBounds.x + minWidth + 3;
   		}
 		}
-		if (cellBounds.width - dstWidth < 100 && dstWidth > 32) {
-			x = cellBounds.x;
-			dstWidth = 32;
+		if (cellBounds.width - dstWidth - (imgPad * 2) < 100 && dstHeight > 18) {
+			dstWidth = Math.min(32, dstHeight);
+			x = cellBounds.x + ((32 - dstWidth + 1) / 2);
 			dstHeight = imgBounds.height * dstWidth / imgBounds.width;
-			textX = cellBounds.x + 35;
+			textX = cellBounds.x + dstWidth + 3;
 		}
 		int y = cellBounds.y + ((cellBounds.height - dstHeight + 1) / 2);
 		if (dstWidth > 0 && dstHeight > 0 && !imgBounds.isEmpty()) {
