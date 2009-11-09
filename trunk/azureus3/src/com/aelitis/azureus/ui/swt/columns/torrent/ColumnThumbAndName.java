@@ -256,7 +256,7 @@ public class ColumnThumbAndName
 
 		GCStringPrinter.printString(gc, name, new Rectangle(textX,
 				cellBounds.y, cellBounds.x + cellBounds.width - textX, cellBounds.height),
-				false, true, SWT.WRAP);
+				true, true, SWT.WRAP);
 
 		TorrentUIUtilsV3.releaseContentImage(ds);
 	}
