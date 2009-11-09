@@ -565,7 +565,8 @@ public class MainWindow
 				}
 			}
 
-			boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
+			boolean isContent = PlatformTorrentUtils.isContent(torrent, true)
+					|| PlatformTorrentUtils.getContentNetworkID(torrent) == ContentNetwork.CONTENT_NETWORK_VHDNL;
 
 			if (!oneIsNotPlatform && !isContent
 					&& !dmState.getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
