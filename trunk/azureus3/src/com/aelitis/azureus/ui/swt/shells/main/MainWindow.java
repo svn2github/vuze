@@ -979,9 +979,21 @@ public class MainWindow
 				if (showWelcome) {
 					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
 				} else {
-					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
+					startTab = COConfigurationManager.getStringParameter("v3.StartTab",
+							SideBar.SIDEBAR_SECTION_LIBRARY);
+					if (!SideBar.entryExists(startTab)) {
+						startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
+					}
 				}
 				sidebar.showEntryByTabID(startTab);
+			}
+		});
+		
+		sidebar.addListener(new SideBarListener() {
+			public void sidebarItemSelected(SideBarEntrySWT newSideBarEntry,
+					SideBarEntrySWT oldSideBarEntry) {
+				COConfigurationManager.setParameter("v3.StartTab",
+						newSideBarEntry.getId());
 			}
 		});
 
