@@ -20,7 +20,9 @@
 
 package com.aelitis.azureus.core.metasearch;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -152,11 +154,37 @@ public abstract class Result {
 		String name = getName();
 		if(queryString != null && name != null) {
 			name = name.toLowerCase();
-			//TODO :  METASEARCH Change this as soon as Gouss sends a non escaped string
-			StringTokenizer st = new StringTokenizer(queryString, " ");
-			while(st.hasMoreElements()) {
-				String match = st.nextToken().toLowerCase();
-				if(name.indexOf(match) == -1) {
+			
+			String	token = "";
+			
+			List<String>	tokens = new ArrayList<String>();
+			
+			char[] chars = queryString.toCharArray();
+			
+			for ( char c: chars ){
+			
+				if ( Character.isLetterOrDigit( c )){
+					
+					token += Character.toLowerCase( c );
+					
+				}else{
+					
+					if ( token.length() > 0 ){
+						
+						tokens.add( token );
+						
+						token = "";
+					}
+				}
+			}
+
+			if ( token.length() > 0 ){
+				
+				tokens.add( token );
+			}
+			
+			for ( String s: tokens ){
+				if( !name.contains( s )){
 					rank /= 2;
 				}
 			}
