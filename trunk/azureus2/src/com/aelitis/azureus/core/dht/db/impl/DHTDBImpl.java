@@ -941,8 +941,11 @@ DHTDBImpl
 					}
 				}
 
-				if ( survey_enabled && all_rf_values ){
-							
+				if ( all_rf_values ){
+					
+						// if surveying is disabled then we swallow values here to prevent them
+						// from being replicated using the existing technique and muddying the waters
+					
 					values.clear();	// handled by the survey process
 					
 					republish_via_survey.add( mapping );
