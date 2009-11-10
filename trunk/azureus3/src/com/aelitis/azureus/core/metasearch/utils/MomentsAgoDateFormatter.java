@@ -66,8 +66,6 @@ public class MomentsAgoDateFormatter {
        CONVERSION_MAP.put(ID_WEEK_OF_YEAR, MS_IN_WEEK);
        CONVERSION_MAP.put(ID_DAY, MS_IN_DAY);
        CONVERSION_MAP.put(ID_HOUR_OF_DAY, MS_IN_HOUR);
-       CONVERSION_MAP.put(ID_MINUTE, MS_IN_MINUTE);
-       CONVERSION_MAP.put(ID_SECOND, MS_IN_SECOND);
    }
 
    private static final Map UNIT_MAP =
@@ -75,13 +73,11 @@ public class MomentsAgoDateFormatter {
 
    // Build the map at system start
    static {
-       UNIT_MAP.put(ID_YEAR, " year");
-       UNIT_MAP.put(ID_MONTH, " month");
-       UNIT_MAP.put(ID_WEEK_OF_YEAR, " week");
-       UNIT_MAP.put(ID_DAY, " day");
-       UNIT_MAP.put(ID_HOUR_OF_DAY, " hour");
-       UNIT_MAP.put(ID_MINUTE, " minute");
-       UNIT_MAP.put(ID_SECOND, " second");
+       UNIT_MAP.put(ID_YEAR, " y");
+       UNIT_MAP.put(ID_MONTH, " m");
+       UNIT_MAP.put(ID_WEEK_OF_YEAR, " w");
+       UNIT_MAP.put(ID_DAY, " d");
+       UNIT_MAP.put(ID_HOUR_OF_DAY, " h");
    }
 
    /**
@@ -123,11 +119,7 @@ public class MomentsAgoDateFormatter {
                    if (result == null) {
                        result = handleUnit(then, now, ID_HOUR_OF_DAY);
                        if (result == null) {
-                           result = handleUnit(then, now, ID_MINUTE);
-                           if (result == null) {
-                               result = handleUnit(then, now, ID_SECOND);
-                               if (result == null) result = new String();
-                           }
+                           return "< 1 h";
                        }
                    }
                }
@@ -154,8 +146,8 @@ public class MomentsAgoDateFormatter {
        if (diff > comparison) {
            long timeAgo = diff / comparison;
            result = String.valueOf(timeAgo).concat((String)UNIT_MAP.get(field));
-           if (timeAgo > 1) result = result.concat(PLURAL);
-           result = result.concat(AGO);
+           //if (timeAgo > 1) result = result.concat(PLURAL);
+           //result = result.concat(AGO);
        }
        return result;
    }
