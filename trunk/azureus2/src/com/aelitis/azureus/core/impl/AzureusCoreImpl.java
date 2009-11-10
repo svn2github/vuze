@@ -1091,7 +1091,7 @@ AzureusCoreImpl
 			}
 		}
 		
-		Debug.out("Core Start Complete");
+		// Debug.out("Core Start Complete");
 	}
 
 	public boolean
