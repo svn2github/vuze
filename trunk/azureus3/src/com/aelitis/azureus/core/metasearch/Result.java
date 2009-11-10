@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.metasearch;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -153,7 +154,7 @@ public abstract class Result {
 		String queryString = getSearchQuery();
 		String name = getName();
 		if(queryString != null && name != null) {
-			name = name.toLowerCase();
+			name = name.toLowerCase( Locale.ENGLISH );
 			
 			String	token = "";
 			
@@ -165,7 +166,7 @@ public abstract class Result {
 			
 				if ( Character.isLetterOrDigit( c )){
 					
-					token += Character.toLowerCase( c );
+					token += String.valueOf(c).toLowerCase( Locale.ENGLISH );
 					
 				}else{
 					
