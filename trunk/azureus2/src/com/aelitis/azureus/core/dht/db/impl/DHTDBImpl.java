@@ -58,6 +58,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportQueryStoreReply;
 import com.aelitis.azureus.core.dht.transport.DHTTransportReplyHandlerAdapter;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
@@ -166,7 +167,11 @@ DHTDBImpl
 		cache_republish_interval		= _cache_republish_interval;
 		logger							= _logger;
 			
-		survey_enabled = _protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL3;
+		survey_enabled = 
+			_protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL3 &&
+			(	adapter == null || 
+				adapter.getNetwork() == DHT.NW_CVS || 
+				FeatureAvailability.isDHTRepV2Enabled());
 		
 		if ( ENABLE_PRECIOUS_STUFF ){
 			
