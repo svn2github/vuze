@@ -117,6 +117,13 @@ public class DateParserRegex extends DateParser {
 		//Remove the time information in order to not confuse the date parsing
 		s = matcher.replaceFirst("").trim();
 		
+			// handle date with format "2009-01-12 at 03:36:38" by removing trailing " at";
+		
+		if ( s.endsWith( " at" )){
+			
+			s = s.substring(0,s.length()-3).trim();
+		}
+		
 		//Find if the date contains letters
 		matcher = hasLettersPattern.matcher(s);
 		if(matcher.find()) {
@@ -448,7 +455,7 @@ public class DateParserRegex extends DateParser {
 		dateParser.parseDate("2008.04.28");	//
 		dateParser.parseDate("16/04/08");	//
 		dateParser.parseDate("20-Dec-07");	//
-		
+		dateParser.parseDate("2009-01-12 at 03:36:38" );
 	}
 	
 
