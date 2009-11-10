@@ -2386,6 +2386,12 @@ TRTrackerBTAnnouncerImpl
 								}
 								min_interval = 0;
 							}
+						} else {
+							// tracker owners complain we announce too much but then never
+							// implement "min interval".  So take it into our own hands
+							// and enforce a min_interval of interval when there is no
+							// "min interval"
+							min_interval = time_to_wait > 30 ? time_to_wait - 10 : time_to_wait;
 						}
 						
 						if(userMinInterval != 0)
