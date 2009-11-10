@@ -242,7 +242,7 @@ AzureusCoreImpl
 			});
 		
 			//ensure early initialization
-		
+				
 		CustomizationManagerFactory.getSingleton();
 		
 		NetworkManager.getSingleton();
@@ -916,6 +916,8 @@ AzureusCoreImpl
 		   global_manager.resumeDownloads();
 	   }
 	    
+	   VersionCheckClient.getSingleton().initialise();
+
 	   instance_manager.initialize();
 
 	   NetworkManager.getSingleton().initialize(this); 

@@ -42,6 +42,8 @@ import org.gudy.azureus2.core3.stats.transfer.*;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -148,6 +150,44 @@ public class VersionCheckClient {
 					 prefer_v6 = COConfigurationManager.getBooleanParameter( name );
 				 } 
 			  });
+  }
+  
+  public void
+  initialise()
+  {
+	  DelayedTask delayed_task = 
+		  UtilitiesImpl.addDelayedTask(
+	   		"VersionCheck", 
+	   		new Runnable()
+	   		{
+	   			public void
+	   			run()
+	   			{
+	   				final AESemaphore sem = new AESemaphore( "VCC:init" );
+	   				
+	   				new AEThread2( "VCC:init", true )
+	   				{
+	   					public void 
+	   					run()
+	   					{
+	   						try{
+	   							getVersionCheckInfo( REASON_UPDATE_CHECK_START );
+	   							
+	   						}finally{
+	   							
+	   							sem.release();
+	   						}
+	   					}
+	   				}.start();
+	   				
+	   				if ( !sem.reserve( 5000 )){
+	   					
+	   					Debug.out( "Timeout waiting for version check to complete" );
+	   				}
+	   			}
+	   		});
+	  
+	  delayed_task.queue();
   }
   
   
@@ -316,6 +356,8 @@ public class VersionCheckClient {
 	    finally {  check_mon.exit();  }
 	    
 	    if( last_check_data_v4 == null )  last_check_data_v4 = new HashMap();
+	    
+	    last_feature_flag_cache_time = 0;
 	    
 	    return last_check_data_v4;
   	}
