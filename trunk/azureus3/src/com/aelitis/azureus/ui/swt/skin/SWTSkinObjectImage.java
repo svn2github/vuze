@@ -160,7 +160,7 @@ public class SWTSkinObjectImage
 		int style = SWT.WRAP | SWT.DOUBLE_BUFFERED;
 
 		String sAlign = properties.getStringValue(sConfigID + ".align");
-		if (sAlign != null) {
+		if (sAlign != null && !Constants.isUnix) {
 			h_align = SWTSkinUtils.getAlignment(sAlign, SWT.NONE);
 			if (h_align != SWT.NONE) {
 				style |= h_align;
