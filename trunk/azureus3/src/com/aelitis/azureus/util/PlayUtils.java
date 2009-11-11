@@ -57,6 +57,8 @@ public class PlayUtils
 	private static boolean triedLoadingEmpPluginClass = false;
 
 	private static Method methodIsExternallyPlayable;
+
+	private static PluginInterface piEmp;
 	
 	//private static Method methodIsExternalPlayerInstalled;
 
@@ -283,19 +285,25 @@ public class PlayUtils
 	}*/
 	
 	private static synchronized final boolean loadEmpPluginClass() {
+		if (piEmp != null && piEmp.getPluginState().isUnloaded()) {
+			piEmp = null;
+			triedLoadingEmpPluginClass = false;
+			methodIsExternallyPlayable = null;
+		}
+
 		if (!triedLoadingEmpPluginClass) {
 			triedLoadingEmpPluginClass = true;
 
   		try {
-  			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+  			piEmp = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
   					"azemp");
   
-  			if (pi == null) {
+  			if (piEmp == null) {
   
   				return (false);
   			}
   
-  			Class empPluginClass = pi.getPlugin().getClass();
+  			Class empPluginClass = piEmp.getPlugin().getClass();
 
   			methodIsExternallyPlayable = empPluginClass.getMethod("isExternallyPlayabale", new Class[] {
   				TOTorrent.class
