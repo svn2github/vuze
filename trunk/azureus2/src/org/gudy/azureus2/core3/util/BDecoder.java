@@ -434,7 +434,27 @@ public class BDecoder
 			return(0);
 		}
 
-		return( parseLong( numberChars, 0, pos ));
+		try{
+			return( parseLong( numberChars, 0, pos ));
+			
+		}catch( NumberFormatException e ){
+			
+			String temp = new String( numberChars, 0, pos );
+			
+			try{
+				double d = Double.parseDouble( temp );
+				
+				long l = (long)d;
+				
+				Debug.out( "Invalid number '" + temp + "' - decoding as " + l + " and attempting recovery" );
+					
+				return( l );
+				
+			}catch( Throwable f ){
+			}
+			
+			throw( e );
+		}
 	}
 
 	// This is similar to Long.parseLong(String) source
