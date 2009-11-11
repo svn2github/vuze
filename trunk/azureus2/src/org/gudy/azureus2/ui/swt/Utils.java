@@ -472,7 +472,10 @@ public class Utils
 	 * @param shell
 	 */
 	public static void setShellIcon(Shell shell) {
-		if (Constants.isOSX && false) {
+		if (Constants.isOSX) {
+			if (true) {
+				return;
+			}
 			if (icon128 == null) {
   			ImageLoader imageLoader = ImageLoader.getInstance();
   			icon128 = imageLoader.getImage("azureus128");
