@@ -774,9 +774,22 @@ SubscriptionImpl
 	
 		throws SubscriptionException
 	{
-		SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );
+		try{
+			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );
 
-		return( body.getJSON());
+			return( body.getJSON());
+			
+		}catch( Throwable e ){
+			
+			history.setFatalError( Debug.getNestedExceptionMessage(e));
+			
+			if ( e instanceof SubscriptionException ){
+				
+				throw((SubscriptionException)e );
+			}
+			
+			throw( new SubscriptionException( "Failed to read subscription", e ));
+		}
 	}
 	
 	public boolean

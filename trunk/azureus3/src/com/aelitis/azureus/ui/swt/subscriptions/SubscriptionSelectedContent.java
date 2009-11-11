@@ -97,29 +97,35 @@ SubscriptionSelectedContent
 				
 					VuzeFile vf = subs.getVuzeFile();
 				
-					File f1 = AETemporaryFileHandler.createTempFile();
+						// if not corrupt....
 					
-					File f = new File( f1.getParent(), "Update Vuze to access this share_" + f1.getName());
-					
-					f1.delete();
-					
-					try{
-					
-						vf.write( f );
-					
-						TOTorrentCreator cr = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( f, new URL( "dht://" ));
+					if ( vf != null ){
 						
-						TOTorrent temp = cr.create();
+						File f1 = AETemporaryFileHandler.createTempFile();
 						
-						Map	vuze_map 	= vf.exportToMap();
-						Map	torrent_map = temp.serialiseToMap();
+						File f = new File( f1.getParent(), "Update Vuze to access this share_" + f1.getName());
 						
-						torrent_map.putAll( vuze_map );
+						f1.delete();
 						
-						torrent = TOTorrentFactory.deserialiseFromMap( torrent_map );
-					}finally{
+						try{
 						
-						f.delete();
+							vf.write( f );
+						
+							TOTorrentCreator cr = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( f, new URL( "dht://" ));
+							
+							TOTorrent temp = cr.create();
+							
+							Map	vuze_map 	= vf.exportToMap();
+							Map	torrent_map = temp.serialiseToMap();
+							
+							torrent_map.putAll( vuze_map );
+							
+							torrent = TOTorrentFactory.deserialiseFromMap( torrent_map );
+							
+						}finally{
+							
+							f.delete();
+						}
 					}
 				}catch( Throwable e ){
 					

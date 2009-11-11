@@ -199,6 +199,13 @@ PluginResult
 		}
 		
 		long	l_rank = getLongProperty( SearchResult.PR_RANK );
+
+			// if we have seeds/peers just use the usual mechanism
+		
+		if ( getLongProperty( SearchResult.PR_SEED_COUNT ) >= 0 && getLongProperty( SearchResult.PR_LEECHER_COUNT ) >= 0 ){
+			
+			l_rank = Long.MIN_VALUE;
+		}
 		
 		if ( l_rank == Long.MIN_VALUE ){
 			

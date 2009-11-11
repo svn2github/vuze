@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.util.*;
 
+import org.eclipse.swt.internal.ole.win32.COSERVERINFO;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.Base32;
@@ -839,6 +840,14 @@ SubscriptionHistoryImpl
 	isAutoDownloadSupported()
 	{
 		return( auto_dl_supported );
+	}
+	
+	protected void
+	setFatalError(
+		String		_error )
+	{
+		last_error		= _error;
+		consec_fails	= 1024;
 	}
 	
 	protected void

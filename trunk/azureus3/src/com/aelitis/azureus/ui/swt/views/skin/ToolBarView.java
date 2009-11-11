@@ -46,6 +46,7 @@ import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedVuzeFileContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -746,11 +747,12 @@ public class ToolBarView
 		}
 		item = getToolBarItem("play");
 		if (item != null) {
-			item.setEnabled(has1Selection && PlayUtils.canPlayDS(currentContent[0]));
+			item.setEnabled(has1Selection && (!(currentContent[0] instanceof ISelectedVuzeFileContent )) && PlayUtils.canPlayDS(currentContent[0]));
 		}
 		item = getToolBarItem("download");
 		if (item != null) {
 			boolean enabled = has1Selection
+					&& (!(currentContent[0] instanceof ISelectedVuzeFileContent ))
 					&& currentContent[0].getDownloadManager() == null
 					&& (currentContent[0].getHash() != null || currentContent[0].getDownloadInfo() != null);
 			item.setEnabled(enabled);

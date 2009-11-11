@@ -2279,7 +2279,9 @@ RelatedContentManager
 											
 										}else if ( property_name == SearchResult.PR_RANK ){
 											
-											return( new Long( c.getRank()));
+												// this rank isn't that accurate, scale down
+											
+											return( new Long( c.getRank() / 4 ));
 											
 										}else if ( property_name == SearchResult.PR_SEED_COUNT ){
 											
@@ -2554,7 +2556,7 @@ RelatedContentManager
 									
 								}else if ( property_name == SearchResult.PR_RANK ){
 									
-									return( ImportExportUtils.importLong( map, "r" ));
+									return( ImportExportUtils.importLong( map, "r" ) / 4 );
 									
 								}else if ( property_name == SearchResult.PR_SUPER_SEED_COUNT ){
 									
