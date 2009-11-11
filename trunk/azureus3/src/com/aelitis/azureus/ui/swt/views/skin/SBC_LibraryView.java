@@ -155,10 +155,10 @@ public class SBC_LibraryView
 					public void paintControl(PaintEvent e) {
 						Control c = (Control) e.widget;
 						Point size = c.getSize();
-						e.gc.setBackground(ColorCache.getColor(e.display, "#0000ff"));
+						e.gc.setBackground(ColorCache.getColor(e.display, "#23a7df"));
 						int breakX = size.x * waitProgress / 100;
 						e.gc.fillRectangle(0, 0, breakX, size.y);
-						e.gc.setBackground(ColorCache.getColor(e.display, "#808080"));
+						e.gc.setBackground(ColorCache.getColor(e.display, "#cccccc"));
 						e.gc.fillRectangle(breakX, 0, size.x - breakX, size.y);
 					}
 				});

@@ -865,13 +865,13 @@ public class UIFunctionsImpl
 				public void paintControl(PaintEvent e) {
 					Control c = (Control) e.widget;
 					Point size = c.getSize();
-					e.gc.setBackground(ColorCache.getColor(e.display, "#0000ff"));
+					e.gc.setBackground(ColorCache.getColor(e.display, "#23a7df"));
 					Object data = soWaitProgress.getData("progress");
 					if (data instanceof Long) {
 						int waitProgress = ((Long) data).intValue();
 						int breakX = size.x * waitProgress / 100;
 						e.gc.fillRectangle(0, 0, breakX, size.y);
-						e.gc.setBackground(ColorCache.getColor(e.display, "#808080"));
+						e.gc.setBackground(ColorCache.getColor(e.display, "#cccccc"));
 						e.gc.fillRectangle(breakX, 0, size.x - breakX, size.y);
 					}
 				}
