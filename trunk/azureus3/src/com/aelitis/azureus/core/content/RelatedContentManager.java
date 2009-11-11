@@ -2302,8 +2302,15 @@ RelatedContentManager
 												return( new Long( 0 ));
 											}
 										}else if ( property_name == SearchResult.PR_PUB_DATE ){
-																						
-											return( new Date( c.getPublishDate()));
+												
+											long	date = c.getPublishDate();
+											
+											if ( date <= 0 ){
+												
+												return( null );
+											}
+											
+											return( new Date( date ));
 											
 										}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
 													property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
@@ -2581,6 +2588,11 @@ RelatedContentManager
 								}else if ( property_name == SearchResult.PR_PUB_DATE ){
 									
 									long date = ImportExportUtils.importLong( map, "p", 0 )*60*60*1000L;
+									
+									if ( date <= 0 ){
+										
+										return( null );
+									}
 									
 									return( new Date( date ));
 									
