@@ -73,11 +73,11 @@ public class MomentsAgoDateFormatter {
 
    // Build the map at system start
    static {
-       UNIT_MAP.put(ID_YEAR, " y");
-       UNIT_MAP.put(ID_MONTH, " m");
-       UNIT_MAP.put(ID_WEEK_OF_YEAR, " w");
-       UNIT_MAP.put(ID_DAY, " d");
-       UNIT_MAP.put(ID_HOUR_OF_DAY, " h");
+       UNIT_MAP.put(ID_YEAR, " yr");
+       UNIT_MAP.put(ID_MONTH, " mo");
+       UNIT_MAP.put(ID_WEEK_OF_YEAR, " wk");
+       UNIT_MAP.put(ID_DAY, " day");
+       UNIT_MAP.put(ID_HOUR_OF_DAY, " hr");
    }
 
    /**
