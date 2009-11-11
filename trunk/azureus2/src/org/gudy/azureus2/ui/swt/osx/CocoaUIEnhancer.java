@@ -21,6 +21,9 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 
@@ -303,8 +306,12 @@ public class CocoaUIEnhancer
 		return 0;
 	}
 
-	protected static void fileOpen(String[] files) {
-		TorrentOpener.openTorrents(files);
+	protected static void fileOpen(final String[] files) {
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				TorrentOpener.openTorrents(files);
+			}
+		});
 	}
 
 	public static CocoaUIEnhancer getInstance() {

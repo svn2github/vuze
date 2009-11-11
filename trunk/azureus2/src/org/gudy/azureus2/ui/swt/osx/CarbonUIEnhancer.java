@@ -30,6 +30,9 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.apple.cocoa.application.NSApplication;
@@ -598,7 +601,11 @@ public class CarbonUIEnhancer
 					//System.out.println(fileNames[i]);
 				}
 
-				TorrentOpener.openTorrents(fileNames);
+				AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						TorrentOpener.openTorrents(fileNames);
+					}
+				});
 			}
 
 			return OS.noErr;
