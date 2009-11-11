@@ -87,7 +87,12 @@ public interface PluginState {
 	  public void uninstall() throws PluginException;
 	
 	  public boolean isShared();
+	  
 	  public boolean isUnloadable();
+	  
+	  public boolean isUnloaded();
+	  
 	  public void unload() throws PluginException;
+	  
 	  public void reload() throws PluginException;
 }

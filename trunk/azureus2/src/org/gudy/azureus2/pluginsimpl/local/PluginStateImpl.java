@@ -122,6 +122,12 @@ public class PluginStateImpl implements PluginState {
 		PluginInstallerImpl.getSingleton(pi.getPluginManager()).uninstall(this.pi);
 	}
 
+	public boolean 
+	isUnloaded() 
+	{
+		return( pi.class_loader == null );
+	}
+	
 	public void unload() throws PluginException {
 		unload( false );
 	}
