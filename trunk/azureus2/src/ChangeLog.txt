@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2009.09.xx | Vuze 4.2.0.9
+2009.11.11 | Vuze 4.3.0.0
 
 FEATURE: Core | Added support for UPnP based offline-downloader services [Parg]
 FEATURE: Core | Obfuscated lookups for the DHT to prevent leakage of key values during lookup stage [Parg]
@@ -74,6 +74,7 @@ BUGFIX: UI    | Fix missing icons for pause/resume in all-transfers bar [Parg]
 BUGFIX: UI    | Fix invalid thread access in parameter change logic [Parg]
 BUGFIX: UI    | Fix progress-dialog feedback for magnet downloads [Parg]
 BUGFIX: UI    | Fix cases on OSX where a modal dialog box ended up under main window [TuxPaper]
+
 
 
 2009.08.27 | Vuze 4.2.0.8
