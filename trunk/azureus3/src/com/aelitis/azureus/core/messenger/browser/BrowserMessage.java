@@ -97,6 +97,14 @@ public class BrowserMessage
 		this.sFullMessage = sMsg;
 		parse();
 	}
+	
+	public BrowserMessage(String listenerId, String operationId, Map<?, ?> params) {
+		this.listenerId = listenerId;
+		this.operationId = operationId;
+		paramType = OBJECT_PARAM;
+		decodedParams = params;
+		sequence = -1;
+	}
 
 	public void addCompletionListener(MessageCompletionListener l) {
 		completionListeners.add(l);
@@ -158,10 +166,6 @@ public class BrowserMessage
 		return (Map) decodedParams;
 	}
 
-	public String getFullMessage() {
-		return sFullMessage;
-	}
-
 	public String getListenerId() {
 		return listenerId;
 	}
@@ -170,36 +174,10 @@ public class BrowserMessage
 		return operationId;
 	}
 
-	public String getParams() {
-		return params;
-	}
-
 	public String getReferer() {
 		return referer;
 	}
 
-	/*
-	    public StatusTextEvent getMessage( ) {
-	        return event;
-	    }
-
-
-	    public Browser getBrowser ( ) {
-	        return (Browser) event.widget;
-	    }
-
-	    public Object getBrowserData ( String key ) {
-	        return getBrowser().getData(key);
-	    }
-
-	    public void setBrowserData ( String key , Object value ) {
-	        getBrowser().setData(key, value);
-	    }
-
-	    public void executeInBrowser ( String javascript ) {
-	        getBrowser().execute(javascript);
-	    }
-	*/
 	public int getSequence() {
 		return sequence;
 	}
@@ -307,7 +285,7 @@ public class BrowserMessage
 
 	public String toString() {
 		return "[" + sequence + "] " + listenerId + "." + operationId + "("
-				+ params + ")";
+				+ (params == null ? decodedParams : params) + ")";
 	}
 
 	private void triggerCompletionListeners(boolean success, Object data) {
