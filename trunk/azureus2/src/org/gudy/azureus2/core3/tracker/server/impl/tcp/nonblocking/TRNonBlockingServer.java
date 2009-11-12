@@ -82,7 +82,7 @@ TRNonBlockingServer
 
 	private VirtualServerChannelSelector accept_server;
 	
-	private boolean immediate_close;
+	private boolean immediate_close = COConfigurationManager.getBooleanParameter( "Tracker TCP NonBlocking Immediate Close" );
 	
 	private volatile boolean	closed;
 	
