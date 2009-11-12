@@ -54,7 +54,7 @@ Constants
   public static final String PAIRING_URL			= "http://pair.vuze.com/pairing";
 
   
-  public static final String[] AZUREUS_DOMAINS = { "vuze.com" };
+  public static final String[] AZUREUS_DOMAINS = { "azureusplatform.com", "azureus.com", "aelitis.com", "vuze.com" };
   
   public static final String DEFAULT_ENCODING 	= "UTF8";
   public static final String BYTE_ENCODING 		= "ISO-8859-1";
