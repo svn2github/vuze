@@ -130,4 +130,11 @@ public interface PeerStats
 	 * @since 2.4.0.0
 	 */
 	public long getTimeSinceConnectionEstablished();
+	
+	public void
+	setDownloadRateLimit(
+		int	bytes_per_sec );
+	
+	public int
+	getDownloadRateLimit();
 }

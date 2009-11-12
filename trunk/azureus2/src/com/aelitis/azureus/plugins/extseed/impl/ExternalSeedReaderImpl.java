@@ -92,7 +92,8 @@ ExternalSeedReaderImpl
 	
 	private boolean		fast_activate;
 	private int			min_availability;
-	private int			min_speed;
+	private int			min_download_speed;
+	private int			max_peer_speed;
 	private long		valid_until;
 	private boolean		transient_seed;
 	
@@ -119,7 +120,8 @@ ExternalSeedReaderImpl
 				
 		fast_activate 		= getBooleanParam( _params, "fast_start", false );
 		min_availability 	= getIntParam( _params, "min_avail", 1 );	// default is avail based
-		min_speed			= getIntParam( _params, "min_speed", 0 );
+		min_download_speed	= getIntParam( _params, "min_speed", 0 );
+		max_peer_speed		= getIntParam( _params, "max_speed", 0 );
 		valid_until			= getIntParam( _params, "valid_ms", 0 );
 		
 		if ( valid_until > 0 ){
@@ -385,9 +387,9 @@ ExternalSeedReaderImpl
 					}
 				}
 					
-				if ( min_speed > 0 ){
+				if ( min_download_speed > 0 ){
 										
-					if ( peer_manager.getStats().getDownloadAverage() < min_speed ){
+					if ( peer_manager.getStats().getDownloadAverage() < min_download_speed ){
 						
 						log( getName() + ": activating as speed is slow" );
 						
@@ -443,13 +445,13 @@ ExternalSeedReaderImpl
 				}
 			}
 			
-			if ( min_speed > 0 ){
+			if ( min_download_speed > 0 ){
 				
 				long	my_speed 		= peer.getStats().getDownloadAverage();
 				
 				long	overall_speed 	= peer_manager.getStats().getDownloadAverage();
 				
-				if ( overall_speed - my_speed > 2 * min_speed ){
+				if ( overall_speed - my_speed > 2 * min_download_speed ){
 					
 					reason += (reason.length()==0?"":", ") + "speed is good";
 
@@ -498,13 +500,35 @@ ExternalSeedReaderImpl
 					
 					if ( now - peer_manager_change_time > INITIAL_DELAY && readyToDeactivate( peer_manager, peer )){
 													
-						setActive( peer_manager, false );			
+						setActive( peer_manager, false );
+						
+					}else{
+						
+						if ( max_peer_speed > 0 ){
+							
+							PeerStats ps = peer.getStats();
+							
+							if ( ps != null && ps.getDownloadRateLimit() != max_peer_speed ){
+								
+								ps.setDownloadRateLimit( max_peer_speed );
+							}
+						}
 					}
 				}else{
 					
 					if ( !isPermanentlyUnavailable()){
 					
 						if ( readyToActivate( peer_manager, peer, time_since_started )){
+							
+							if ( max_peer_speed > 0 ){
+								
+								PeerStats ps = peer.getStats();
+								
+								if ( ps != null ){
+								
+									ps.setDownloadRateLimit( max_peer_speed );
+								}
+							}
 							
 							setActive( peer_manager, true );				
 						}

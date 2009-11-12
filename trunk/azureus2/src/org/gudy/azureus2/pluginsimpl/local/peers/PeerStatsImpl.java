@@ -120,4 +120,17 @@ PeerStatsImpl
 	{
 		return( peer_manager.getTimeSinceConnectionEstablished( owner ));
 	}
+	
+	public int 
+	getDownloadRateLimit() 
+	{
+		return( delegate.getDownloadRateLimitBytesPerSecond());
+	}
+	
+	public void 
+	setDownloadRateLimit( 
+		int bytes ) 
+	{
+		delegate.setDownloadRateLimitBytesPerSecond( bytes );
+	}
 }

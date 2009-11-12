@@ -205,8 +205,12 @@ ExternalSeedReaderFactoryGetRight
 			
 			map.put( "url-list-params2", params2 );
 						
+			Map x_map = new HashMap();
+			
+			x_map.put( "max_speed", new Long(5*1024));
+			
 			params2.add( new Long(0));
-			params2.add( new HashMap());
+			params2.add( x_map );
 			
 			torrent = TOTorrentFactory.deserialiseFromMap( map );
 			
