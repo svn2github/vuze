@@ -167,6 +167,11 @@ AEDiagnostics
 						logging_enabled = COConfigurationManager.getBooleanParameter( "Logger.Enabled" );
 						
 						loggers_enabled = logging_enabled && COConfigurationManager.getBooleanParameter( "Logger.DebugFiles.Enabled");
+						
+						if ( !loggers_enabled ){
+							
+							loggers_enabled = Constants.IS_CVS_VERSION || COConfigurationManager.getBooleanParameter( "Logger.DebugFiles.Enabled.Force" );
+						}
 					}
 				});
 			

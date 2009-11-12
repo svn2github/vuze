@@ -248,6 +248,7 @@ public class ConfigurationDefaults {
       for (int j = 0; j <= 3; j++)
         def.put("bLog" + logComponents[i] + "-" + j, TRUE);
     def.put("Logger.DebugFiles.Enabled", TRUE);
+    def.put("Logger.DebugFiles.Enabled.Force", FALSE );
     def.put("Logging Enable UDP Transport", FALSE); 
 
     
@@ -375,6 +376,8 @@ public class ConfigurationDefaults {
     def.put( "Tracker TCP NonBlocking", FALSE);
     def.put( "Tracker TCP NonBlocking Restrict Request Types", TRUE);
     def.put( "Tracker TCP NonBlocking Conc Max", new Long(2048));
+    def.put( "Tracker TCP NonBlocking Immediate Close", FALSE );
+    
     def.put( "Tracker Client Scrape Enable", TRUE);
     def.put( "Tracker Client Scrape Total Disable", FALSE );
     def.put( "Tracker Client Scrape Stopped Enable", TRUE);
