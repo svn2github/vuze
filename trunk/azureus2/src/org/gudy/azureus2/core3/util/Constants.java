@@ -85,8 +85,8 @@ Constants
   
   public static String APP_NAME = "Vuze";
   public static final String AZUREUS_NAME	  = "Azureus";
-  public static final String AZUREUS_VERSION  = "4.2.1.2";  //4.3.0.1_CVS
-  public static final byte[] VERSION_ID       = ("-" + "AZ" + "4212" + "-").getBytes();  //MUST be 8 chars long!
+  public static final String AZUREUS_VERSION  = "4.3.0.0";  //4.3.0.1_CVS
+  public static final byte[] VERSION_ID       = ("-" + "AZ" + "4300" + "-").getBytes();  //MUST be 8 chars long!
 
   private static final boolean FORCE_NON_CVS = System.getProperty( "az.force.noncvs", "0" ).equals( "1" );
   
