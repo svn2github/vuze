@@ -45,6 +45,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
+import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
@@ -115,19 +116,12 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(org.gudy.azureus2.plugins.PluginView)
 	public void addPluginView(PluginView view) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				pluginViews_mon.enter();
-				try {
-					mapPluginViews.put(view, null);
-				} finally {
-					pluginViews_mon.exit();
-				}
-				return;
+			pluginViews_mon.enter();
+			try {
+				mapPluginViews.put(view, null);
+			} finally {
+				pluginViews_mon.exit();
 			}
-
-			uiFunctions.addPluginView(view);
-
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "addPluginView", e));
 		}
@@ -153,19 +147,12 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(org.gudy.azureus2.ui.swt.plugins.UISWTPluginView)
 	public void addPluginView(UISWTPluginView view) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				pluginViews_mon.enter();
-				try {
-					mapPluginViews.put(view, null);
-				} finally {
-					pluginViews_mon.exit();
-				}
-				return;
+			pluginViews_mon.enter();
+			try {
+				mapPluginViews.put(view, null);
+			} finally {
+				pluginViews_mon.exit();
 			}
-
-			uiFunctions.addPluginView(view);
-
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "addPluginView", e));
 		}
@@ -196,12 +183,11 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closeDownloadBars()
 	public void closeDownloadBars() {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			uiFunctions.closeDownloadBars();
+			Utils.execSWTThreadLater(0, new AERunnable() {
+				public void runSupport() {
+					MiniBarManager.getManager().closeAll();
+				}
+			});
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "closeDownloadBars", e));
@@ -212,11 +198,6 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closePluginView(org.gudy.azureus2.ui.swt.views.IView)
 	public void closePluginView(IView view) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions != null) {
-				uiFunctions.closePluginView(view);
-			}
-
 			SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
 			if (sideBarView instanceof SideBar) {
 				SideBar sideBar = (SideBar) sideBarView;
@@ -242,11 +223,6 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closePluginViews(java.lang.String)
 	public void closePluginViews(String sViewID) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions != null) {
-				uiFunctions.closePluginViews(sViewID);
-			}
-
 			SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
 			if (sideBarView instanceof SideBar) {
 				SideBar sideBar = (SideBar) sideBarView;
@@ -285,13 +261,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getPluginViews()
 	public UISWTView[] getPluginViews() {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return new UISWTView[0];
-			}
-
-			return uiFunctions.getPluginViews();
-
+			return new UISWTView[0];
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "getPluginViews", e));
 		}
@@ -369,11 +339,6 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#refreshIconBar()
 	public void refreshIconBar() {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions != null) {
-				uiFunctions.refreshIconBar();
-			}
-
 			ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 			if (tb != null) {
 				tb.refreshCoreToolBarItems();
@@ -390,13 +355,6 @@ public class UIFunctionsImpl
 		try {
 			mainWindow.setSelectedLanguageItem();
 			
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			uiFunctions.refreshLanguage();
-
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "refreshLanguage", e));
 		}
@@ -406,13 +364,8 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#removeManagerView(org.gudy.azureus2.core3.download.DownloadManager)
 	public void removeManagerView(DownloadManager dm) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			uiFunctions.removeManagerView(dm);
-
+			// TODO: ????!
+			
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "removeManagerView", e));
 		}
@@ -422,19 +375,14 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#removePluginView(java.lang.String)
 	public void removePluginView(String viewID) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				pluginViews_mon.enter();
-				try {
-					mapPluginViews.remove(viewID);
-				} finally {
-					pluginViews_mon.exit();
-				}
-				PluginsMenuHelper.getInstance().removePluginViews(viewID);
-				return;
-			}
 
-			uiFunctions.removePluginView(viewID);
+			pluginViews_mon.enter();
+			try {
+				mapPluginViews.remove(viewID);
+			} finally {
+				pluginViews_mon.exit();
+			}
+			PluginsMenuHelper.getInstance().removePluginViews(viewID);
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "removePluginView", e));
@@ -445,19 +393,14 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#removePluginView(org.gudy.azureus2.ui.swt.plugins.UISWTPluginView)
 	public void removePluginView(UISWTPluginView view) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				pluginViews_mon.enter();
-				try {
-					mapPluginViews.remove(view);
-				} finally {
-					pluginViews_mon.exit();
-				}
-				PluginsMenuHelper.getInstance().removePluginView(view, view.getPluginViewName());
-				return;
-			}
 
-			uiFunctions.removePluginView(view);
+			pluginViews_mon.enter();
+			try {
+				mapPluginViews.remove(view);
+			} finally {
+				pluginViews_mon.exit();
+			}
+			PluginsMenuHelper.getInstance().removePluginView(view, view.getPluginViewName());
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "removePluginView", e));
@@ -510,14 +453,6 @@ public class UIFunctionsImpl
 	}
 		
 	private void _openView(int viewID, Object data) {
-		if (mainWindow.isOnAdvancedView()) {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions != null) {
-				uiFunctions.openView(viewID, data);
-				return;
-			}
-		}
-
 		switch (viewID) {
 			case VIEW_CONSOLE:
 				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, LoggerView.class,
@@ -725,15 +660,6 @@ public class UIFunctionsImpl
 
 	public void refreshTorrentMenu() {
 		try {
-			if (mainWindow.isOnAdvancedView()) {
-				UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-
-				if (uiFunctions != null) {
-					uiFunctions.refreshTorrentMenu();
-				}
-				return;
-			}
-
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					final MenuItem torrentItem = MenuFactory.findMenuItem(
@@ -788,12 +714,6 @@ public class UIFunctionsImpl
 	
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closeAllDetails()
 	public void closeAllDetails() {
-		UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-		if (uiFunctions != null) {
-			uiFunctions.closeAllDetails();
-			return;
-		}
-
 		SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
 		if (sideBarView instanceof SideBar) {
 			SideBar sideBar = (SideBar) sideBarView;
@@ -811,10 +731,6 @@ public class UIFunctionsImpl
 	
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#hasDetailViews()
 	public boolean hasDetailViews() {
-		UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-		if (uiFunctions != null) {
-			return uiFunctions.hasDetailViews();
-		}
 		SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
 		if (sideBarView instanceof SideBar) {
 			SideBar sideBar = (SideBar) sideBarView;

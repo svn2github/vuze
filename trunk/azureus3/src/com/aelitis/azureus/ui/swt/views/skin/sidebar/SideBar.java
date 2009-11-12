@@ -146,8 +146,6 @@ public class SideBar
 	
 	public static final String SIDEBAR_SECTION_RELATED_CONTENT = "RelatedContent";
 
-	public static final String SIDEBAR_SECTION_ADVANCED = "Advanced";
-
 	public static final boolean SHOW_ALL_PLUGINS = false;
 
 	public static final boolean SHOW_TOOLS = false;
@@ -1628,11 +1626,6 @@ public class SideBar
 
 		loadCloseables();
 
-		if (System.getProperty("v3.sidebar.advanced", "0").equals("1")) {
-			createEntryFromSkinRef(null, SIDEBAR_SECTION_ADVANCED,
-					"main.area.advancedtab", "Advanced", null, null, false, -1);
-		}
-
 		Composite parent = tree.getParent();
 
 		if (parent.isVisible()) {
@@ -2884,13 +2877,7 @@ public class SideBar
 			itemSelected(entry.treeItem);
 			return true;
 		}
-		if (id.equals(SIDEBAR_SECTION_ADVANCED)) {
-			SideBarEntrySWT entryAdv = createEntryFromSkinRef(null,
-					SIDEBAR_SECTION_ADVANCED, "main.area.advancedtab", "Advanced", null,
-					null, false, -1);
-			itemSelected(entryAdv.treeItem);
-			return true;
-		} else if (id.equals(SIDEBAR_SECTION_WELCOME)) {
+		if (id.equals(SIDEBAR_SECTION_WELCOME)) {
 			SideBarEntrySWT entryWelcome = createWelcomeSection();
 			itemSelected(entryWelcome.treeItem);
 			return true;

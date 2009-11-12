@@ -113,12 +113,6 @@ public class MainWindow
 
 	private SWTSkin skin;
 
-	private org.gudy.azureus2.ui.swt.mainwindow.MainWindow oldMW_tab;
-
-	private org.gudy.azureus2.ui.swt.mainwindow.MainWindow oldMW_SB;
-
-	private org.gudy.azureus2.ui.swt.mainwindow.MainWindow oldMainWindow;
-
 	private MainMenu menu;
 
 	private UISWTInstanceImpl uiSWTInstanceImpl;
@@ -1054,23 +1048,13 @@ public class MainWindow
 		isReady = false;
 
 		disposedOrDisposing = true;
-		if (oldMainWindow != null) {
-			boolean res = oldMainWindow.dispose(bForRestart, bCloseAlreadyInProgress);
-			oldMainWindow = null;
-
-			if (res == false) {
-				disposedOrDisposing = false;
-				return false;
-			}
-		} else {
-			if (core != null
-					&& !UIExitUtilsSWT.canClose(core.getGlobalManager(), bForRestart)) {
-				disposedOrDisposing = false;
-				return false;
-			}
-
-			UIExitUtilsSWT.uiShutdown();
+		if (core != null
+				&& !UIExitUtilsSWT.canClose(core.getGlobalManager(), bForRestart)) {
+			disposedOrDisposing = false;
+			return false;
 		}
+
+		UIExitUtilsSWT.uiShutdown();
 
 		if (systemTraySWT != null) {
 			systemTraySWT.dispose();
@@ -1255,10 +1239,6 @@ public class MainWindow
 	}
 
 	private void showMainWindow() {
-		if (oldMainWindow != null) {
-			//oldMainWindow.postPluginSetup(-1, 0);
-		}
-
 		boolean isOSX = org.gudy.azureus2.core3.util.Constants.isOSX;
 		boolean bEnableTray = COConfigurationManager.getBooleanParameter("Enable System Tray");
 		boolean bPassworded = COConfigurationManager.getBooleanParameter("Password enabled");
@@ -2038,46 +2018,6 @@ public class MainWindow
 		}
 	}
 
-	/**
-	 * 
-	 */
-	private org.gudy.azureus2.ui.swt.mainwindow.MainWindow createOldMainWindow() {
-		if (oldMainWindow != null || disposedOrDisposing) {
-			return oldMainWindow;
-		}
-
-		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (sideBar != null) {
-			sideBar.showEntryByID(SideBar.SIDEBAR_SECTION_ADVANCED);
-		}
-
-		SkinView skinView = SkinViewManager.getByClass(SBC_AdvancedView.class);
-		if (skinView instanceof SBC_AdvancedView) {
-			oldMainWindow = ((SBC_AdvancedView) skinView).getOldMainWindow();
-		}
-		return oldMainWindow;
-	}
-
-	public org.gudy.azureus2.ui.swt.mainwindow.MainWindow getOldMainWindow(
-			boolean bForceCreate) {
-		if (oldMW_SB == null && bForceCreate) {
-			oldMainWindow = createOldMainWindow();
-		}
-		oldMainWindow = oldMW_SB;
-
-		return oldMainWindow;
-	}
-
-	public UIFunctionsSWT getOldUIFunctions(boolean bCreateOld) {
-		if (oldMainWindow == null && bCreateOld) {
-			createOldMainWindow();
-		}
-		if (oldMainWindow != null) {
-			return oldMainWindow.getUIFunctions();
-		}
-		return null;
-	}
-
 	public UISWTInstance getUISWTInstanceImpl() {
 		return uiSWTInstanceImpl;
 	}
@@ -2166,12 +2106,6 @@ public class MainWindow
 
 	public boolean isVisible(int windowElement) {
 		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
-			/*
-			 * Only the (embedded) old main window has a toolbar which is available only in Vuze Advanced
-			 */
-			if (null != oldMainWindow) {
-				return oldMainWindow.isVisible(windowElement);
-			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
 			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
 			if (skinObject != null) {
@@ -2193,12 +2127,6 @@ public class MainWindow
 
 	public void setVisible(int windowElement, boolean value) {
 		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
-			if (null != oldMainWindow) {
-				/*
-				 * Only the (embedded) old main window has a toolbar which is available only in Vuze Advanced
-				 */
-				oldMainWindow.setVisible(windowElement, value);
-			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
 
 			SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR
@@ -2217,12 +2145,6 @@ public class MainWindow
 
 	public Rectangle getMetrics(int windowElement) {
 		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
-			if (null != oldMainWindow) {
-				/*
-				 * Only the (embedded) old main window has a toolbar which is available only in Vuze Advanced
-				 */
-				return oldMainWindow.getMetrics(windowElement);
-			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
 
 			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
@@ -2305,6 +2227,9 @@ public class MainWindow
 	public void openView(final String parentID, final Class cla, String id,
 			final Object data, final boolean closeable) {
 		final SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		if (sideBar == null) {
+			return;
+		}
 
 		if (id == null) {
 			id = cla.getName();
@@ -2323,54 +2248,25 @@ public class MainWindow
 		Utils.execSWTThreadLater(0, new AERunnable() {
 
 			public void runSupport() {
-				if (sideBar != null) {
-					if (isOnAdvancedView()) {
-						try {
-							final IView view = (IView) cla.newInstance();
-
-							Tab mainTabSet = oldMainWindow.getMainTabSet();
-							mainTabSet.createTabItem(view, true);
-						} catch (Exception e) {
-							Debug.out(e);
-						}
-					} else {
-						if (sideBar.showEntryByID(_id)) {
-							return;
-						}
-						if (UISWTViewEventListener.class.isAssignableFrom(cla)) {
-							try {
-								UISWTViewEventListener l = (UISWTViewEventListener) cla.newInstance();
-								sideBar.createTreeItemFromEventListener(parentID, null, l, _id,
-										closeable, data);
-							} catch (Exception e) {
-								Debug.out(e);
-							}
-						} else {
-							sideBar.createTreeItemFromIViewClass(parentID, _id, null, cla,
-									null, null, data, null, true);
-						}
-						sideBar.showEntryByID(_id);
-					}
+				if (sideBar.showEntryByID(_id)) {
+					return;
 				}
+				if (UISWTViewEventListener.class.isAssignableFrom(cla)) {
+					try {
+						UISWTViewEventListener l = (UISWTViewEventListener) cla.newInstance();
+						sideBar.createTreeItemFromEventListener(parentID, null, l, _id,
+								closeable, data);
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+				} else {
+					sideBar.createTreeItemFromIViewClass(parentID, _id, null, cla,
+							null, null, data, null, true);
+				}
+				sideBar.showEntryByID(_id);
 			}
 		});
 
-	}
-
-	public boolean isOnAdvancedView() {
-		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (sideBar == null) {
-			return false;
-		}
-		SideBarEntrySWT currentSB = sideBar.getCurrentEntry();
-		if (currentSB == null) {
-			return false;
-		}
-		if (oldMainWindow != null && currentSB.id != null
-				&& currentSB.id.equals(SideBar.SIDEBAR_SECTION_ADVANCED)) {
-			return true;
-		}
-		return false;
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener#sidebarItemSelected(com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarInfoSWT, com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarInfoSWT)
@@ -2393,20 +2289,6 @@ public class MainWindow
 			}
 
 			updateMapTrackUsage(id2);
-		}
-
-		if (newSideBarEntry.id.equals(SideBar.SIDEBAR_SECTION_ADVANCED)
-				&& oldMW_SB == null) {
-			SkinView[] advViews = SkinViewManager.getMultiByClass(SBC_AdvancedView.class);
-			if (advViews != null) {
-				for (int i = 0; i < advViews.length; i++) {
-					SBC_AdvancedView advView = (SBC_AdvancedView) advViews[i];
-					if (oldMW_tab == null || advView.getOldMainWindow() != oldMW_tab) {
-						oldMW_SB = advView.getOldMainWindow();
-					}
-				}
-			}
-			oldMainWindow = oldMW_SB;
 		}
 
 		if (mapTrackUsage != null) {
