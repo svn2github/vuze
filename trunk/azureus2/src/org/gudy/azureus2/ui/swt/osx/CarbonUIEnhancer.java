@@ -569,7 +569,7 @@ public class CarbonUIEnhancer
 			OS.AECountItems(aeDesc, count);
 			//System.out.println("COUNT: " + count[0]);
 			if (count[0] > 0) {
-				String[] fileNames = new String[count[0]];
+				final String[] fileNames = new String[count[0]];
 				int maximumSize = 80; // size of FSRef
 				int dataPtr = OS.NewPtr(maximumSize);
 				int[] aeKeyword = new int[1];
