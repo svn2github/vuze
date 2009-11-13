@@ -2719,7 +2719,12 @@ DHTTrackerPlugin
 			this_mon.exit();
 		}
 		
-		checkDownloadForRegistration( download, false );
+			// don't do anything if paused as we want things to just continue as they are (we would force an announce here otherwise)
+		
+		if ( !download.isPaused()){
+		
+			checkDownloadForRegistration( download, false );
+		}
 	}
  
 	public void
