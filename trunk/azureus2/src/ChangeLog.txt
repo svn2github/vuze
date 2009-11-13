@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+2009.11.xx | Vuze 4.3.0.1
+
+
 2009.11.11 | Vuze 4.3.0.0
 
 FEATURE: Core | Added support for UPnP based offline-downloader services [Parg]
