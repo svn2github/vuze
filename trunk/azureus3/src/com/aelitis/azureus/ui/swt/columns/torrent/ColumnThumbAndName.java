@@ -127,18 +127,16 @@ public class ColumnThumbAndName
 	}
 
 	public void refresh(TableCell cell, boolean sortOnlyRefresh) {
-		if (sortOnlyRefresh) {
-			String name = null;
-			DownloadManager dm = (DownloadManager) cell.getDataSource();
-			if (dm != null) {
-				name = dm.getDisplayName();
-			}
-			if (name == null) {
-				name = "";
-			}
-			
-			cell.setSortValue(name);
+		String name = null;
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		if (dm != null) {
+			name = dm.getDisplayName();
 		}
+		if (name == null) {
+			name = "";
+		}
+		
+		cell.setSortValue(name);
 	}
 
 	public void cellPaint(GC gc, final TableCellSWT cell) {
