@@ -43,7 +43,6 @@ ExternalSeedReaderWebSeed
 	extends ExternalSeedReaderImpl
 {
 	private URL			url;
-	private String		ip;
 	private int			port;
 	private String		url_prefix;
 	
@@ -56,13 +55,12 @@ ExternalSeedReaderWebSeed
 		URL						_url,
 		Map						_params )
 	{
-		super( _plugin, _torrent, _params );
+		super( _plugin, _torrent, _url.getHost(), _params );
 
 		supports_503		= getBooleanParam( _params, "supports_503", true );
 		
 		url		= _url;
 		
-		ip		= url.getHost();
 		port	= url.getPort();
 		
 		if ( port == -1 ){
@@ -98,13 +96,7 @@ ExternalSeedReaderWebSeed
 	{
 		return( "WS: " + url );
 	}
-	
-	public String
-	getIP()
-	{
-		return( ip );
-	}
-	
+		
 	public int
 	getPort()
 	{

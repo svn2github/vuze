@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
@@ -64,6 +65,9 @@ ExternalSeedReaderImpl
 
 	private ExternalSeedPlugin	plugin;
 	private Torrent				torrent;
+	
+	private String			host;
+	private String			ip_use_accessor;
 	
 	private String			status;
 	
@@ -113,11 +117,13 @@ ExternalSeedReaderImpl
 	ExternalSeedReaderImpl(
 		ExternalSeedPlugin 		_plugin,
 		Torrent					_torrent,
+		String					_host,
 		Map						_params )
 	{
 		plugin	= _plugin;
 		torrent	= _torrent;
-				
+		host	= _host;
+		
 		fast_activate 		= getBooleanParam( _params, "fast_start", false );
 		min_availability 	= getIntParam( _params, "min_avail", 1 );	// default is avail based
 		min_download_speed	= getIntParam( _params, "min_speed", 0 );
@@ -153,6 +159,28 @@ ExternalSeedReaderImpl
 		}
 			
 		setActive( null, false );
+	}
+	
+	public String
+	getIP()
+	{
+		synchronized( host ){
+			
+			if ( ip_use_accessor == null ){
+				
+				try{
+					ip_use_accessor = HostNameToIPResolver.syncResolve( host ).getHostAddress();
+					
+				}catch( Throwable e ){
+					
+					ip_use_accessor = host;
+					
+					Debug.out( e );
+				}
+			}
+			
+			return( ip_use_accessor );
+		}
 	}
 	
 	public Torrent

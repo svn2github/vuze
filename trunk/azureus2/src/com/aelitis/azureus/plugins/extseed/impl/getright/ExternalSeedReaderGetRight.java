@@ -53,7 +53,6 @@ ExternalSeedReaderGetRight
 	private static final int	TARGET_REQUEST_SIZE_DEFAULT	= 256*1024;
 	
 	private URL			url;
-	private String		ip;
 	private int			port;
 	
 	private ExternalSeedHTTPDownloader[]	http_downloaders;
@@ -76,7 +75,7 @@ ExternalSeedReaderGetRight
 	
 		throws Exception
 	{
-		super( _plugin, _torrent, _params );
+		super( _plugin, _torrent, _url.getHost(), _params );
 				
 		int target_request_size	= getIntParam( _params, "req_size", TARGET_REQUEST_SIZE_DEFAULT );
 		
@@ -84,7 +83,6 @@ ExternalSeedReaderGetRight
 
 		url		= _url;
 		
-		ip		= url.getHost();
 		port	= url.getPort();
 		
 		if ( port == -1 ){
@@ -178,13 +176,7 @@ ExternalSeedReaderGetRight
 	{
 		return( "GR: " + url );
 	}
-	
-	public String
-	getIP()
-	{
-		return( ip );
-	}
-	
+		
 	public int
 	getPort()
 	{

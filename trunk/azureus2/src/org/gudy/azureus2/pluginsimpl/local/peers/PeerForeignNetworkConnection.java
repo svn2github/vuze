@@ -46,7 +46,6 @@ public class
 PeerForeignNetworkConnection
 	extends NetworkConnectionHelper
 {
-	private ConnectionEndpoint	endpoint;
 	private Peer				peer;
 	
 	private OutgoingMessageQueue	outgoing_message_queue = new omq();
@@ -59,16 +58,14 @@ PeerForeignNetworkConnection
 		Peer		_peer )
 	{
 		peer	= _peer;
-		
-			// make up a vaguely usable endpoint
-		
-		endpoint = new ConnectionEndpoint(new InetSocketAddress( peer.getIp(), peer.getPort()));
 	}
 	
 	public ConnectionEndpoint
 	getEndpoint()
 	{
-		return( endpoint );
+			// make up a vaguely usable endpoint
+
+		return( new ConnectionEndpoint(new InetSocketAddress( peer.getIp(), peer.getPort())));
 	}
 	
 	public void 
