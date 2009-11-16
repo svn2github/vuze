@@ -637,22 +637,34 @@ public class TableColumnManager {
 		if (listener != null) {
 			mapColumnIDsToListener.put(forDataSourceType + "." + columnID, listener);
 		}
-		List list = (List) mapDataSourceTypeToColumnIDs.get(forDataSourceType);
-		if (list == null) {
-			list = new ArrayList(1);
-			mapDataSourceTypeToColumnIDs.put(forDataSourceType, list);
-		}
-		if (!list.contains(columnID)) {
-			list.add(columnID);
+		try {
+			items_mon.enter();
+
+  		List list = (List) mapDataSourceTypeToColumnIDs.get(forDataSourceType);
+  		if (list == null) {
+  			list = new ArrayList(1);
+  			mapDataSourceTypeToColumnIDs.put(forDataSourceType, list);
+  		}
+  		if (!list.contains(columnID)) {
+  			list.add(columnID);
+  		}
+		} finally {
+			items_mon.exit();
 		}
 	}
 	
 	public void unregisterColumn(Class forDataSourceType, String columnID,
 			TableColumnCreationListener listener) {
-		mapColumnIDsToListener.remove(forDataSourceType + "." + columnID);
-		List list = (List) mapDataSourceTypeToColumnIDs.get(forDataSourceType);
-		if (list != null) {
-			list.remove(columnID);
+		try {
+			items_mon.enter();
+
+			mapColumnIDsToListener.remove(forDataSourceType + "." + columnID);
+			List list = (List) mapDataSourceTypeToColumnIDs.get(forDataSourceType);
+			if (list != null) {
+				list.remove(columnID);
+			}
+		} finally {
+			items_mon.exit();
 		}
 	}
 
