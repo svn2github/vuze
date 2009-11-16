@@ -105,10 +105,10 @@ COConfigurationManager
 			    	
 			    		// things seem good in 10.6
 			    	
-			    	if ( !Constants.isOSX_10_6_OrHigher ){
+			    	//if ( !Constants.isOSX_10_6_OrHigher ){
 			        
 			    		System.setProperty( "java.nio.preferSelect", "true" );
-			    	}
+			    	//}
 			    }
 			    
 			    SystemProperties.determineApplicationName();
