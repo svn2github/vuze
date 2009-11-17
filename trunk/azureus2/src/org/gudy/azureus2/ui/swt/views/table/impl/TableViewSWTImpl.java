@@ -1859,7 +1859,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 			column.setAlignment(TableColumnSWTUtils.convertColumnAlignmentToSWT(tableColumns[i].getAlignment()));
 			Messages.setLanguageText(column, tableColumns[i].getTitleLanguageKey());
-			column.setWidth(tableColumns[i].getWidth());
+			if (!Constants.isUnix) {
+				column.setWidth(tableColumns[i].getWidth());
+			} else {
+				column.setData("widthOffset", new Long(1));
+				column.setWidth(tableColumns[i].getWidth() + 1);
+			}
 			if (tableColumns[i].getMinWidth() == tableColumns[i].getMaxWidth()
 					&& tableColumns[i].getMinWidth() > 0) {
 				column.setResizable(false);
@@ -2893,15 +2898,22 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			for (int i = 0; i < len; i++) {
 				TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
 				if (tc != null) {
+					boolean foundOne = false;
+
 					Rectangle bounds = item.getBounds(i);
 					int tcWidth = tc.getWidth();
 					if (tcWidth != 0 && bounds.width != 0) {
-						int ofs = tc.getWidth() - bounds.width;
-						if (ofs > 0) {
+						Object oOldOfs = tableColumnsSWT[i].getData("widthOffset");
+						int oldOfs = (oOldOfs instanceof Number) ? ((Number)oOldOfs).intValue() : 0;
+						int ofs = tc.getWidth() - bounds.width + oldOfs;
+						if (ofs > 0 && ofs != oldOfs) {
+							foundOne = true;
 							tableColumnsSWT[i].setResizable(true);
-							tableColumnsSWT[i].setData("widthOffset", new Long(ofs));
-							tc.triggerColumnSizeChange();
+							tableColumnsSWT[i].setData("widthOffset", new Long(ofs + oldOfs));
 						}
+					}
+					if (foundOne) {
+						tc.triggerColumnSizeChange();
 					}
 				}
 			}
