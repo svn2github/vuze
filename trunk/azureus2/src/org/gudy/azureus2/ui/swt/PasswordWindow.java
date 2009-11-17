@@ -67,7 +67,9 @@ public class PasswordWindow {
 			public void runSupport() {
 				if (window == null) {
 					window = new PasswordWindow(display);
+					window.open();
 				} else {
+					window.shell.setVisible(true);
 					window.shell.forceActive();
 				}
 
@@ -85,6 +87,9 @@ public class PasswordWindow {
 		return bOk;
 	}
   protected PasswordWindow(Display display) {
+  }
+  
+  private void open() {
   	bOk = false;
 
     shell = ShellFactory.createMainShell(SWT.APPLICATION_MODAL | SWT.TITLE | SWT.CLOSE);
@@ -177,23 +182,24 @@ public class PasswordWindow {
     });
 
     shell.pack();
-    
+        
     Utils.centreWindow(shell);
-    
+
     shell.open();
   }
   
   protected void run() {
     while (!shell.isDisposed()) {
-    	if (!shell.getDisplay().readAndDispatch()) {
-    		shell.getDisplay().sleep();
+    	Display d = shell.getDisplay();
+    	if (!d.readAndDispatch() && !shell.isDisposed()) {
+    		d.sleep();
     	}
     }
   }
   
   private void close() {
     shell.dispose();
-    if(Constants.isOSX) {
+    if(Utils.isCarbon) {
     	UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
     	if (uiFunctions != null) {
 				Shell mainShell = uiFunctions.getMainShell();
