@@ -74,10 +74,6 @@ public class TableColumnCreatorV3
 				tcStatusItem.setShowTrackerErrors( true );
 			}
 		}
-		ColumnThumbAndName tcColumnNameIcon = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
-		if (tcColumnNameIcon != null) {
-			tcColumnNameIcon.setShowIcon(false);
-		}
 		if (big) {
 			ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
 			if (tcShareRatioItem != null) {
@@ -123,10 +119,6 @@ public class TableColumnCreatorV3
 			if (big) {
 				tcStatusItem.setChangeCellFG(false);
 			}
-		}
-		ColumnThumbAndName tcColumnNameIcon = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
-		if (tcColumnNameIcon != null) {
-			tcColumnNameIcon.setShowIcon(false);
 		}
 		
 		if (big) {
@@ -196,10 +188,6 @@ public class TableColumnCreatorV3
 				tcStatusItem.setChangeCellFG(false);
 			}
 		}
-		ColumnThumbAndName tcColumnNameIcon = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
-		if (tcColumnNameIcon != null) {
-			tcColumnNameIcon.setShowIcon(false);
-		}
 		if (big) {
 			ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
 			if (tcShareRatioItem != null) {
@@ -245,10 +233,6 @@ public class TableColumnCreatorV3
 			if (big) {
 				tcStatusItem.setChangeCellFG(false);
 			}
-		}
-		ColumnThumbAndName tcColumnNameIcon = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
-		if (tcColumnNameIcon != null) {
-			tcColumnNameIcon.setShowIcon(false);
 		}
 		if (big) {
 			ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
