@@ -202,15 +202,15 @@ NetworkAdminImpl
 				perform(
 					TimerEvent event )
 				{
-					checkNetworkInterfaces( false );
+					checkNetworkInterfaces( false, false );
 				}
 			});
 		
 			// populate initial values
 		
-		checkNetworkInterfaces(true);
+		checkNetworkInterfaces( true, true );
 		
-		checkDefaultBindAddress(true);
+		checkDefaultBindAddress( true );
 		
 		AEDiagnostics.addEvidenceGenerator( this );
 		
@@ -228,7 +228,7 @@ NetworkAdminImpl
 
 		if ( initialised ){
 			
-			checkNetworkInterfaces( false );
+			checkNetworkInterfaces( false, true );
 			
 			checkDefaultBindAddress( false );
 		}
@@ -236,7 +236,8 @@ NetworkAdminImpl
 	
 	protected void
 	checkNetworkInterfaces(
-		boolean	first_time )
+		boolean		first_time,
+		boolean		force )
 	{
 		try{
 			Enumeration 	nis = NetworkInterface.getNetworkInterfaces();
@@ -290,9 +291,8 @@ NetworkAdminImpl
 				old_network_interfaces = new_network_interfaces;
 			}
 			
-			if ( changed ){
-				
-				
+			if ( changed || force ){
+							
 				boolean newV6 = false;
 				boolean newV4 = false;
 				
@@ -464,7 +464,7 @@ NetworkAdminImpl
 	
 	private InetAddress[] calcBindAddresses(final String addressString, boolean enforceBind)
 	{
-		ArrayList addrs = new ArrayList();
+		ArrayList<InetAddress> addrs = new ArrayList<InetAddress>();
 		
 		Pattern addressSplitter = Pattern.compile(";");
 		Pattern interfaceSplitter = Pattern.compile("[\\]\\[]");
@@ -525,7 +525,7 @@ addressLoop:
 			Enumeration interfaceAddresses = netInterface.getInetAddresses();
 			if(ifaces.length != 2)
 				while(interfaceAddresses.hasMoreElements())
-					addrs.add(interfaceAddresses.nextElement());
+					addrs.add((InetAddress)interfaceAddresses.nextElement());
 			else
 			{
 				int selectedAddress = 0;
@@ -534,7 +534,7 @@ addressLoop:
 				for(int j=0;interfaceAddresses.hasMoreElements();j++,interfaceAddresses.nextElement())
 					if(j==selectedAddress)
 					{
-						addrs.add(interfaceAddresses.nextElement());
+						addrs.add((InetAddress)interfaceAddresses.nextElement());
 						continue addressLoop;						
 					}
 			}
@@ -553,30 +553,12 @@ addressLoop:
 			}
 		}
 		
-		if( addrs.size() < 1 ){
-			
-			InetAddress result;
-			
-			if ( enforceBind ){
-				
-				result = localhostV4;
-				
-			}else if ( hasIPV4Potential() && !hasIPV6Potential()){
-				
-				result = anyLocalAddressIPv4;
-				
-			}else if ( hasIPV6Potential() && !hasIPV4Potential()){
-				
-				result = anyLocalAddressIPv6;
-			}else{
-				
-				result = anyLocalAddress;
-			}
-					
-			return( new InetAddress[]{ result } );
+		if(addrs.size() < 1){
+			return new InetAddress[] {enforceBind ? localhostV4 : (hasIPV6Potential() ? anyLocalAddressIPv6 : anyLocalAddressIPv4)};
 		}
 		
-		return (InetAddress[])addrs.toArray(new InetAddress[addrs.size()]);
+		return( addrs.toArray(new InetAddress[addrs.size()]));
+
 	}
 	
 	
