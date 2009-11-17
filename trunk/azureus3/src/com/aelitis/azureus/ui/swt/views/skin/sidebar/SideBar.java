@@ -179,6 +179,8 @@ public class SideBar
 
 	private Font fontHeader;
 
+	private Font font;
+
 	private SideBarEntrySWT currentSideBarEntry;
 
 	private static Map mapTitleInfoToEntry = new LightHashMap();
@@ -557,12 +559,17 @@ public class SideBar
 
 		tree.setBackground(bg);
 		tree.setForeground(fg);
+		
+		int fontHeight = 13 + (tree.getItemHeight() > 18 ? tree.getItemHeight() - 18 : 0); 
 
 		FontData[] fontData = tree.getFont().getFontData();
+		Utils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
+		font = new Font(tree.getDisplay(), fontData);
+		tree.setFont(font);
 		//fontData[0].setHeight(fontData[0].getHeight() + 1);
 		fontData[0].setStyle(SWT.BOLD);
 		//fontData[0].setName("Helvetica");
-		Utils.getFontHeightFromPX(tree.getDisplay(), fontData, null, 13);
+		Utils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
 		fontHeader = new Font(tree.getDisplay(), fontData);
 
 		Listener treeListener = new Listener() {
@@ -753,6 +760,7 @@ public class SideBar
 
 					case SWT.Dispose: {
 						fontHeader.dispose();
+						font.dispose();
 						if (dropTarget != null && !dropTarget.isDisposed()) {
 							dropTarget.dispose();
 						}
