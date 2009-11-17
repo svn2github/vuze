@@ -55,6 +55,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
@@ -2319,7 +2320,7 @@ RelatedContentManager
 											
 											if ( hash != null ){
 												
-												return( TorrentUtils.getMagnetURI( hash ));
+												return( UrlUtils.getMagnetURI( hash ));
 											}
 										}
 										
@@ -2603,7 +2604,7 @@ RelatedContentManager
 									
 									if ( hash != null ){
 										
-										return( TorrentUtils.getMagnetURI( hash ));
+										return( UrlUtils.getMagnetURI( hash ));
 									}
 								}
 							}catch( Throwable e ){

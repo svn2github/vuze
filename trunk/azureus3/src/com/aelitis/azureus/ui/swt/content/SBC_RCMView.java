@@ -405,7 +405,7 @@ SBC_RCMView
 								public DownloadUrlInfo 
 								getDownloadInfo() 
 								{
-									return(	new DownloadUrlInfo( TorrentUtils.getMagnetURI( rc.getHash())));
+									return(	new DownloadUrlInfo( UrlUtils.getMagnetURI( rc.getHash())));
 								}
 							});
 					}
