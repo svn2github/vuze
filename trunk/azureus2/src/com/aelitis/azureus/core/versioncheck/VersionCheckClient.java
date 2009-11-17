@@ -122,6 +122,7 @@ public class VersionCheckClient {
 	  return( instance );
   }
   
+  private boolean	enable_v6;
   private boolean	prefer_v6;
 
   private Map last_check_data_v4 = null;
@@ -139,15 +140,16 @@ public class VersionCheckClient {
   private 
   VersionCheckClient()
   {
-	  COConfigurationManager.addAndFireParameterListener(
-			  "IPV6 Prefer Addresses",
+	  COConfigurationManager.addAndFireParameterListeners(
+			  new String[]{ "IPV6 Prefer Addresses", "IPV6 Enable Support" },
 			  new ParameterListener()
 			  {
 				 public void 
 				 parameterChanged(
 					String 	name )
 				 {
-					 prefer_v6 = COConfigurationManager.getBooleanParameter( name );
+					 enable_v6	= COConfigurationManager.getBooleanParameter( "IPV6 Enable Support" );
+					 prefer_v6 	= COConfigurationManager.getBooleanParameter( "IPV6 Prefer Addresses" );
 				 } 
 			  });
   }
@@ -243,47 +245,50 @@ public class VersionCheckClient {
   {
   	if ( v6 ){
 
-	    try {  check_mon.enter();
-	    
-	      long time_diff = SystemTime.getCurrentTime() - last_check_time_v6;
-	     
-	      force = force || time_diff > CACHE_PERIOD || time_diff < 0;
-	      
-	      if( last_check_data_v6 == null || last_check_data_v6.size() == 0 || force ) {
-	    	  // if we've never checked before then we go ahead even if the "only_if_cached"
-	    	  // flag is set as its had not chance of being cached yet!
-	    	if ( only_if_cached && last_check_data_v6 != null ){
-	    		return( new HashMap() );
-	    	}
-	        try {
-	          last_check_data_v6 = performVersionCheck( constructVersionCheckMessage( reason ), true, true, true );
-	          
-	          if ( last_check_data_v6 != null && last_check_data_v6.size() > 0 ){
-	       
-	        	  COConfigurationManager.setParameter( "versioncheck.cache.v6", last_check_data_v6 );
-	          }
-	        }
-	        catch(SocketException t) {
-	        	// internet is broken
-	        	// Debug.out(t.getClass().getName() + ": " + t.getMessage());
-	        }
-	        catch(UnknownHostException t) {
-	        	// dns is broken
-	        	// Debug.out(t.getClass().getName() + ": " + t.getMessage());
-	        }
-	        catch( Throwable t ) {
-	        	Debug.out(t);
-	          last_check_data_v6 = new HashMap();
-	        }
-	      }
-	      else {
-	      	Logger.log(new LogEvent(LOGID, "VersionCheckClient is using "
-							+ "cached version check info. Using " + last_check_data_v6.size()
-							+ " reply keys.")); 
-	      }
-	    }
-	    finally {  check_mon.exit();  }
-	    
+  		if ( enable_v6 ){
+  			
+	 	    try {  check_mon.enter();
+		    
+		      long time_diff = SystemTime.getCurrentTime() - last_check_time_v6;
+		     
+		      force = force || time_diff > CACHE_PERIOD || time_diff < 0;
+		      
+		      if( last_check_data_v6 == null || last_check_data_v6.size() == 0 || force ) {
+		    	  // if we've never checked before then we go ahead even if the "only_if_cached"
+		    	  // flag is set as its had not chance of being cached yet!
+		    	if ( only_if_cached && last_check_data_v6 != null ){
+		    		return( new HashMap() );
+		    	}
+		        try {
+		          last_check_data_v6 = performVersionCheck( constructVersionCheckMessage( reason ), true, true, true );
+		          
+		          if ( last_check_data_v6 != null && last_check_data_v6.size() > 0 ){
+		       
+		        	  COConfigurationManager.setParameter( "versioncheck.cache.v6", last_check_data_v6 );
+		          }
+		        }
+		        catch(SocketException t) {
+		        	// internet is broken
+		        	// Debug.out(t.getClass().getName() + ": " + t.getMessage());
+		        }
+		        catch(UnknownHostException t) {
+		        	// dns is broken
+		        	// Debug.out(t.getClass().getName() + ": " + t.getMessage());
+		        }
+		        catch( Throwable t ) {
+		        	Debug.out(t);
+		          last_check_data_v6 = new HashMap();
+		        }
+		      }
+		      else {
+		      	Logger.log(new LogEvent(LOGID, "VersionCheckClient is using "
+								+ "cached version check info. Using " + last_check_data_v6.size()
+								+ " reply keys.")); 
+		      }
+		    }
+		    finally {  check_mon.exit();  }
+  		}
+  		
 	    if( last_check_data_v6 == null )  last_check_data_v6 = new HashMap();
 	    
 	    return last_check_data_v6;
@@ -638,6 +643,11 @@ public class VersionCheckClient {
   
   	throws Exception
   {
+	  if ( v6 && !enable_v6 ){
+		  
+		  throw( new Exception( "IPv6 is disabled" ));
+	  }
+
 	  String	host = v6?AZ_MSG_SERVER_ADDRESS_V6:AZ_MSG_SERVER_ADDRESS_V4;
 	  
 	  if (Logger.isEnabled())
@@ -674,6 +684,11 @@ public class VersionCheckClient {
   
   	throws Exception
   {
+	  if ( v6 && !enable_v6 ){
+		  
+		  throw( new Exception( "IPv6 is disabled" ));
+	  }
+	  
 	  String	host = v6?HTTP_SERVER_ADDRESS_V6:HTTP_SERVER_ADDRESS_V4;
 
 	  if (Logger.isEnabled())
@@ -743,6 +758,11 @@ public class VersionCheckClient {
   
   	throws Exception
   {
+	  if ( v6 && !enable_v6 ){
+		  
+		  throw( new Exception( "IPv6 is disabled" ));
+	  }
+
 	  String	host = v6?TCP_SERVER_ADDRESS_V6:TCP_SERVER_ADDRESS_V4;
 
 	  if (Logger.isEnabled())
@@ -881,6 +901,11 @@ public class VersionCheckClient {
   
   	throws Exception
   {
+	  if ( v6 && !enable_v6 ){
+		  
+		  throw( new Exception( "IPv6 is disabled" ));
+	  }
+
 	  String	host = v6?UDP_SERVER_ADDRESS_V6:UDP_SERVER_ADDRESS_V4;
 
 	  PRUDPReleasablePacketHandler handler = PRUDPPacketHandlerFactory.getReleasableHandler( bind_port );
