@@ -72,14 +72,59 @@ NetworkAdminImpl
 	
 	private static final boolean	FULL_INTF_PROBE	= false;
 	
-	private Set<NetworkInterface>			old_network_interfaces;
+	private static InetAddress anyLocalAddress;
+	private static InetAddress anyLocalAddressIPv4;
+	private static InetAddress anyLocalAddressIPv6;
+	private static InetAddress localhostV4;
+	private static InetAddress localhostV6;
+	
+	static
+	{
+		try
+		{
+			anyLocalAddressIPv4 	= InetAddress.getByAddress(new byte[] { 0,0,0,0 });
+			anyLocalAddressIPv6  	= InetAddress.getByAddress(new byte[] {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0});
+			anyLocalAddress			= new InetSocketAddress(0).getAddress();
+			localhostV4 = InetAddress.getByAddress(new byte[] {127,0,0,1});
+			localhostV6 = InetAddress.getByAddress(new byte[] {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1});
+		} catch (UnknownHostException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	
+	
+	
+	private Set<NetworkInterface>		old_network_interfaces;
 	private InetAddress[]				currentBindIPs			= new InetAddress[] { null };
 	private boolean						supportsIPv6withNIO		= true;
 	private boolean						supportsIPv6 = true;
 	private boolean						supportsIPv4 = true;
 	
+	private boolean						IPv6_enabled;
+	
+	{
+		COConfigurationManager.addAndFireParameterListener(
+				"IPV6 Enable Support",
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String parameterName )
+					{
+						setIPv6Enabled( COConfigurationManager.getBooleanParameter("IPV6 Enable Support"));
+					}
+				});
+	}
+	
+	private int roundRobinCounterV4 = 0;
+	private int roundRobinCounterV6 = 0;
+	
+
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
-		
+	
+	
 	private NetworkAdminRouteListener
 		trace_route_listener = new NetworkAdminRouteListener()
 		{
@@ -131,6 +176,8 @@ NetworkAdminImpl
 			}
 		};
 		
+	private boolean 	initialised;
+	
 	public
 	NetworkAdminImpl()
 	{
@@ -166,6 +213,25 @@ NetworkAdminImpl
 		checkDefaultBindAddress(true);
 		
 		AEDiagnostics.addEvidenceGenerator( this );
+		
+		initialised = true;
+	}
+	
+	protected void
+	setIPv6Enabled(
+		boolean enabled )
+	{
+		IPv6_enabled	= enabled;
+		
+		supportsIPv6withNIO		= enabled;
+		supportsIPv6 			= enabled;
+
+		if ( initialised ){
+			
+			checkNetworkInterfaces( false );
+			
+			checkDefaultBindAddress( false );
+		}
 	}
 	
 	protected void
@@ -242,12 +308,16 @@ NetworkAdminImpl
 						{
 							InetAddress ia = (InetAddress) addresses.nextElement();
 
-							if (ia.isLoopbackAddress())
+							if (ia.isLoopbackAddress()){
 								continue;
-							if (ia instanceof Inet6Address && !ia.isLinkLocalAddress())
-								newV6 = true;
-							else if (ia instanceof Inet4Address)
+							}
+							if (ia instanceof Inet6Address && !ia.isLinkLocalAddress()){
+								if ( IPv6_enabled ){
+									newV6 = true;
+								}
+							}else if (ia instanceof Inet4Address){
 								newV4 = true;
+							}
 						}
 					}
 				}
@@ -293,9 +363,6 @@ NetworkAdminImpl
 		}
 	}
 	
-	private int roundRobinCounterV4 = 0;
-	private int roundRobinCounterV6 = 0;
-	
 	public InetAddress getMultiHomedOutgoingRoundRobinBindAddress(InetAddress target)
 	{
 		InetAddress[]	addresses = currentBindIPs;
@@ -325,26 +392,7 @@ NetworkAdminImpl
 			roundRobinCounterV4 = i;
 		return toReturn != null ? toReturn : (v6 ? localhostV6 : localhostV4);
 	}
-	
-	private static InetAddress anyLocalAddressIPv4;
-	private static InetAddress anyLocalAddressIPv6;
-	private static InetAddress localhostV4;
-	private static InetAddress localhostV6;
-	
-	static
-	{
-		try
-		{
-			anyLocalAddressIPv4 = InetAddress.getByAddress(new byte[] { 0,0,0,0 });
-			anyLocalAddressIPv6  = InetAddress.getByAddress(new byte[] {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0});
-			localhostV4 = InetAddress.getByAddress(new byte[] {127,0,0,1});
-			localhostV6 = InetAddress.getByAddress(new byte[] {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1});
-		} catch (UnknownHostException e)
-		{
-			e.printStackTrace();
-		}
-	}
-	
+		
 	public InetAddress[] getMultiHomedServiceBindAddresses(boolean nio)
 	{
 		InetAddress[] bindIPs = currentBindIPs;
@@ -423,70 +471,112 @@ NetworkAdminImpl
 		
 		String[] tokens = addressSplitter.split(addressString);
 
-			addressLoop: for(int i=0;i<tokens.length;i++)
+addressLoop: 
+		for(int i=0;i<tokens.length;i++)
+		{
+			String currentAddress = tokens[i];
+			
+			currentAddress = currentAddress.trim();
+			
+			if ( currentAddress.length() == 0 ){
+				continue;
+			}
+			
+			InetAddress parsedAddress = null;
+			
+			try
+			{ // literal ipv4 or ipv6 address
+				if(currentAddress.indexOf('.') != -1 || currentAddress.indexOf(':') != -1)
+					parsedAddress = InetAddress.getByName(currentAddress);
+			} catch (Exception e)
+			{ // ignore, could be an interface name containing a ':'
+			}
+			
+			if(parsedAddress != null)
 			{
-				String currentAddress = tokens[i];
-				InetAddress parsedAddress = null;
-				
 				try
-				{ // literal ipv4 or ipv6 address
-					if(currentAddress.indexOf('.') != -1 || currentAddress.indexOf(':') != -1)
-						parsedAddress = InetAddress.getByName(currentAddress);
-				} catch (Exception e)
-				{ // ignore, could be an interface name containing a ':'
-				}
-				
-				if(parsedAddress != null)
 				{
-					try
-					{
-						// allow wildcard address as 1st address, otherwise only interface addresses
-						if((!parsedAddress.isAnyLocalAddress() || addrs.size() > 0) && NetworkInterface.getByInetAddress(parsedAddress) == null)
-							continue;
-					} catch (SocketException e)
-					{
-						Debug.printStackTrace(e);
+					// allow wildcard address as 1st address, otherwise only interface addresses
+					if((!parsedAddress.isAnyLocalAddress() || addrs.size() > 0) && NetworkInterface.getByInetAddress(parsedAddress) == null)
 						continue;
-					}
-					addrs.add(parsedAddress);
-					continue;
-				}
-					
-				// interface name
-				String[] ifaces = interfaceSplitter.split(currentAddress);
-
-				NetworkInterface netInterface = null;
-				try
-				{
-					netInterface = NetworkInterface.getByName(ifaces[0]);
 				} catch (SocketException e)
 				{
-					e.printStackTrace(); // should not happen
-				}
-				if(netInterface == null)
+					Debug.printStackTrace(e);
 					continue;
+				}
+				addrs.add(parsedAddress);
+				continue;
+			}
+				
+			// interface name
+			String[] ifaces = interfaceSplitter.split(currentAddress);
 
-				Enumeration interfaceAddresses = netInterface.getInetAddresses();
-				if(ifaces.length != 2)
-					while(interfaceAddresses.hasMoreElements())
+			NetworkInterface netInterface = null;
+			try
+			{
+				netInterface = NetworkInterface.getByName(ifaces[0]);
+			} catch (SocketException e)
+			{
+				e.printStackTrace(); // should not happen
+			}
+			if(netInterface == null)
+				continue;
+
+			Enumeration interfaceAddresses = netInterface.getInetAddresses();
+			if(ifaces.length != 2)
+				while(interfaceAddresses.hasMoreElements())
+					addrs.add(interfaceAddresses.nextElement());
+			else
+			{
+				int selectedAddress = 0;
+				try { selectedAddress = Integer.parseInt(ifaces[1]); }
+				catch (NumberFormatException e) {} // ignore, user could by typing atm
+				for(int j=0;interfaceAddresses.hasMoreElements();j++,interfaceAddresses.nextElement())
+					if(j==selectedAddress)
+					{
 						addrs.add(interfaceAddresses.nextElement());
-				else
-				{
-					int selectedAddress = 0;
-					try { selectedAddress = Integer.parseInt(ifaces[1]); }
-					catch (NumberFormatException e) {} // ignore, user could by typing atm
-					for(int j=0;interfaceAddresses.hasMoreElements();j++,interfaceAddresses.nextElement())
-						if(j==selectedAddress)
-						{
-							addrs.add(interfaceAddresses.nextElement());
-							continue addressLoop;						
-						}
+						continue addressLoop;						
+					}
+			}
+		}
+		
+		if ( !IPv6_enabled ){
+			
+			Iterator<InetAddress> it = addrs.iterator();
+			
+			while( it.hasNext()){
+				
+				if ( it.next() instanceof Inet6Address ){
+					
+					it.remove();
 				}
 			}
+		}
 		
-		if(addrs.size() < 1)
-			return new InetAddress[] {enforceBind ? localhostV4 : (hasIPV6Potential() ? anyLocalAddressIPv6 : anyLocalAddressIPv4)};
-		return (InetAddress[])addrs.toArray(new InetAddress[0]);
+		if( addrs.size() < 1 ){
+			
+			InetAddress result;
+			
+			if ( enforceBind ){
+				
+				result = localhostV4;
+				
+			}else if ( hasIPV4Potential() && !hasIPV6Potential()){
+				
+				result = anyLocalAddressIPv4;
+				
+			}else if ( hasIPV6Potential() && !hasIPV4Potential()){
+				
+				result = anyLocalAddressIPv6;
+			}else{
+				
+				result = anyLocalAddress;
+			}
+					
+			return( new InetAddress[]{ result } );
+		}
+		
+		return (InetAddress[])addrs.toArray(new InetAddress[addrs.size()]);
 	}
 	
 	
@@ -526,8 +616,13 @@ NetworkAdminImpl
 			Enumeration addresses = ni.getInetAddresses();
 			str+=ni.getName()+"\t("+ni.getDisplayName()+")\n";
 			int i = 0;
-			while(addresses.hasMoreElements())
-				str+="\t"+ni.getName()+"["+(i++)+"]\t"+((InetAddress)addresses.nextElement()).getHostAddress()+"\n";
+			while(addresses.hasMoreElements()){
+				InetAddress address = (InetAddress)addresses.nextElement();
+				if ((address instanceof Inet6Address ) && !IPv6_enabled ){
+					continue;
+				}
+				str+="\t"+ni.getName()+"["+(i++)+"]\t"+(address).getHostAddress()+"\n";
+			}
 		}
 		return (str);
 	}
@@ -2063,6 +2158,8 @@ NetworkAdminImpl
 				
 				writer.println( "bindable: " + getString( getBindableAddresses()));
 				
+				writer.println( "ipv6_enabled=" + IPv6_enabled );
+
 				writer.println( "ipv4_potential=" + hasIPV4Potential());
 				writer.println( "ipv6_potential=" + hasIPV6Potential(false) + "/" + hasIPV6Potential(true));
 	
@@ -2468,7 +2565,14 @@ NetworkAdminImpl
 			
 			while( e.hasMoreElements()){
 				
-				addresses.add( new networkAddress((InetAddress)e.nextElement()));
+				InetAddress address = (InetAddress)e.nextElement();
+				
+				if ((address instanceof Inet6Address) && !IPv6_enabled ){
+					
+					continue;
+				}
+				
+				addresses.add( new networkAddress(address));
 			}
 	
 			return((NetworkAdminNetworkInterfaceAddress[])addresses.toArray( new NetworkAdminNetworkInterfaceAddress[addresses.size()]));

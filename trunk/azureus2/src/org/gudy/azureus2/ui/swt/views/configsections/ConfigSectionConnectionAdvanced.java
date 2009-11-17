@@ -268,7 +268,8 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData = new GridData();
 		write_select_min.setLayoutData(gridData);
 
-		
+		new BooleanParameter( cSection, "IPV6 Enable Support", "network.ipv6.enable.support"  );
+
 		
 		new BooleanParameter( cSection, "IPV6 Prefer Addresses", "network.ipv6.prefer.addresses"  );
 		
