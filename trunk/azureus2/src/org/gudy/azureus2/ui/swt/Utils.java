@@ -813,7 +813,7 @@ public class Utils
 			return;
 		}
 		
-		if (new File(sFile).isDirectory()) {
+		if (!Constants.isWindows && new File(sFile).isDirectory()) {
 			PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
 			if (mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
 				try {
@@ -825,8 +825,7 @@ public class Utils
 		}
 
 		boolean launched = Program.launch(sFile);
-		if (!launched && Constants.isUnix
-				&& (UrlUtils.isURL(sFile) || sFile.startsWith("mailto:"))) {
+		if (!launched && Constants.isUnix) {
 			if (!Program.launch("xdg-open " + sFile)) {
 				Program.launch("htmlview " + sFile);
 			}
