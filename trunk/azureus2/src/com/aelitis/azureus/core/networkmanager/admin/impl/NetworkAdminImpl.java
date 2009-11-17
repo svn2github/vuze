@@ -618,9 +618,6 @@ addressLoop:
 			int i = 0;
 			while(addresses.hasMoreElements()){
 				InetAddress address = (InetAddress)addresses.nextElement();
-				if ((address instanceof Inet6Address ) && !IPv6_enabled ){
-					continue;
-				}
 				str+="\t"+ni.getName()+"["+(i++)+"]\t"+(address).getHostAddress()+"\n";
 			}
 		}
