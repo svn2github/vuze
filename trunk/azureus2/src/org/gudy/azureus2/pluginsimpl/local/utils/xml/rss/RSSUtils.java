@@ -62,12 +62,23 @@ RSSUtils
 		}catch( ParseException e ){
 			
 			String[]	fallbacks =
-			{	"EEE MMM dd hh:mm:ss z yyyy",			// Fri Sep 26 00:00:00 EDT 2008
-				"EEE MMM dd hh:mm z yyyy",				// Fri Sep 26 00:00 EDT 2008	
-				"EEE MMM dd hh z yyyy",					// Fri Sep 26 00 EDT 2008	
-				"yyyy-MM-dd hh:mm:ss",					// 2009-02-08 22:56:45	
+			{	
+				"dd MMM yyyy HH:mm:ss z",				// As above but laxer
+				"EEE dd MMM yyyy HH:mm:ss z",			// As above but laxer
+				"EEE MMM dd HH:mm:ss z yyyy",			// Fri Sep 26 00:00:00 EDT 2008
+				"EEE MMM dd HH:mm z yyyy",				// Fri Sep 26 00:00 EDT 2008	
+				"EEE MMM dd HH z yyyy",					// Fri Sep 26 00 EDT 2008	
+				"yyyy-MM-dd HH:mm:ss",					// 2009-02-08 22:56:45	
 				"yyyy-MM-dd",							// 2009-02-08	
 			};
+			
+				// remove commas as these keep popping up in silly places
+			
+			date_str = date_str.replace( ',', ' ' );
+			
+				// remove duplicate white space
+			
+			date_str = date_str.replaceAll( "(\\s)+", " " );
 			
 			for (int i=0;i<fallbacks.length;i++){
 				
