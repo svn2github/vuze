@@ -20,6 +20,7 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.*;
@@ -1263,9 +1264,9 @@ public class MainWindow
 			if (!isOSX) {
 				shell.forceActive();
 			}
-		} else if (isOSX) {
-			shell.setMinimized(true);
+		} else if (Utils.isCarbon) {
 			shell.setVisible(true);
+			shell.setMinimized(true);
 		}
 		
 
@@ -2252,8 +2253,20 @@ public class MainWindow
 					return;
 				}
 				if (UISWTViewEventListener.class.isAssignableFrom(cla)) {
+					UISWTViewEventListener l = null;
 					try {
-						UISWTViewEventListener l = (UISWTViewEventListener) cla.newInstance();
+						Constructor<?> constructor = cla.getConstructor(new Class[] {
+							data.getClass()
+						});
+						l = (UISWTViewEventListener) constructor.newInstance(new Object[] {
+							data
+						});
+					} catch (Exception e) {
+					}
+					try {
+						if (l == null) {
+							l = (UISWTViewEventListener) cla.newInstance();
+						}
 						sideBar.createTreeItemFromEventListener(parentID, null, l, _id,
 								closeable, data);
 					} catch (Exception e) {
