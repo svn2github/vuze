@@ -27,6 +27,7 @@ import java.net.*;
 import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.encoders.Hex;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -496,7 +497,7 @@ MagnetURIHandlerImpl
 
 				pw.flush();
 								
-				String	base_32 = urn.substring(9);
+				String	encoded = urn.substring(9);
 				
 				List	sources = new ArrayList();
 				
@@ -526,9 +527,13 @@ MagnetURIHandlerImpl
 				
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, "MagnetURIHandler: download of '"
-							+ base_32 + "' starts (initial sources=" + s.length + ")"));
+							+ encoded + "' starts (initial sources=" + s.length + ")"));
 
-				byte[] sha1 = Base32.decode( base_32 );
+				byte[] sha1;
+				if(encoded.length() == 40)
+					sha1 = Hex.decode(encoded);
+				else
+					sha1 = Base32.decode(encoded);
 				
 				byte[]	data = null;
 				
@@ -577,7 +582,7 @@ MagnetURIHandlerImpl
 				
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, "MagnetURIHandler: download of '"
-							+ base_32
+							+ encoded
 							+ "' completes, data "
 							+ (data == null ? "not found"
 									: ("found, length = " + data.length))));

@@ -3,6 +3,7 @@ VUZE CHANGELOG
 
 2009.11.xx | Vuze 4.3.0.1
 
+CHANGE: Core  | Parse hex-encoded magnet URIs too [The 8472]
 
 2009.11.11 | Vuze 4.3.0.0
 
