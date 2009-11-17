@@ -21,7 +21,6 @@
  */
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
@@ -1065,6 +1064,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (bar != null) {
 			bar.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
+					calculateClientArea();
 					visibleRowsChanged();
 					// Bug: Scroll is slow when table is not focus
 					if (!table.isFocusControl()) {
