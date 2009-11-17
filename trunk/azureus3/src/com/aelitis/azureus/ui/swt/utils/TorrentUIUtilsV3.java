@@ -436,9 +436,9 @@ public class TorrentUIUtilsV3
 			}
 
 			if (image == null) {
-				imageLoader.addImage(id, ImageLoader.noImage);
+				imageLoader.addImageNoDipose(id, ImageLoader.noImage);
 			} else {
-				imageLoader.addImage(id, image);
+				imageLoader.addImageNoDipose(id, image);
 			}
 		} else {
 			//System.out.println("has mystery image");
