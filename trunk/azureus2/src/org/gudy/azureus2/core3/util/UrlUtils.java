@@ -68,6 +68,69 @@ public class UrlUtils
 		new String[] { "'", "&apos;" },
 	};
 
+	public static String
+	getMagnetURI(
+		byte[]		hash )
+	{
+		return( "magnet:?xt=urn:btih:" + Base32.encode( hash ));
+	}
+
+		/**
+		 * returns magnet uri if input is base 32 or base 16 encoded sha1 hash, null otherwise
+		 * @param base_hash
+		 * @return
+		 */
+	
+	public static String
+	normaliseMagnetURI(
+		String		base_hash )
+	{
+		byte[]	hash = decodeSHA1Hash( base_hash );
+		
+		if ( hash != null ){
+			
+			return( getMagnetURI( hash ));
+		}
+		
+		return( null );
+	}
+	
+	public static byte[]
+	decodeSHA1Hash(
+		String	str )
+	{
+		if ( str == null ){
+			
+			return( null );
+		}
+		
+		str = str.trim();
+		
+		byte[] hash = null;
+		
+		try{
+			if ( str.length() == 40 ){
+				
+				hash = ByteFormatter.decodeString( str );
+				
+			}else if ( str.length() == 32 ){
+				
+				hash = Base32.decode( str );
+			}
+		}catch( Throwable e ){
+		}
+		
+		if ( hash != null ){
+			
+			if ( hash.length != 20 ){
+								
+				hash = null;
+			}
+		}
+		
+		return( hash );
+	}
+	
 	/**
 	 * test string for possibility that it's an URL.  Considers 40 byte hex 
 	 * strings as URLs

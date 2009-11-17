@@ -529,13 +529,14 @@ MagnetURIHandlerImpl
 					Logger.log(new LogEvent(LOGID, "MagnetURIHandler: download of '"
 							+ encoded + "' starts (initial sources=" + s.length + ")"));
 
-				byte[] sha1;
-				if(encoded.length() == 40)
-					sha1 = Hex.decode(encoded);
-				else
-					sha1 = Base32.decode(encoded);
+				byte[] sha1 = UrlUtils.decodeSHA1Hash( encoded );
+					
+				if ( sha1 == null ){
+					
+					throw( new Exception( "Invalid info hash '" + encoded + "'" ));
+				}
 				
-				byte[]	data = null;
+				byte[] data = null;
 				
 				
 				for (int i=0;i<listeners.size();i++){

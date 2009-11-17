@@ -244,41 +244,12 @@ StartServer
         
         if ( !file.exists() && !isURI( file_name )){
         	
-        		// handle hex info hashes
-	        
-	        if ( file_name.length() == 40 ){
-	        
-	        	byte[]	hash = null;
-	        	
-	        	try{
-	        		hash = ByteFormatter.decodeString( file_name );
-	        		
-	        	}catch( Throwable e ){
-	        	}
-	        	
-	        	if ( hash != null && hash.length == 20 ){
-	        		
-	        		file_name = "magnet:?xt=urn:btih:" + Base32.encode( hash );
-	        	}
-	        }
-	        
-	        	// handle base32 info hash
-	       
-	        if ( file_name.length() == 32 ){
-	            
-	        	byte[]	hash = null;
-	        	
-	        	try{
-	        		hash = Base32.decode( file_name );
-	        		
-	        	}catch( Throwable e ){
-	        	}
-	        	
-	        	if ( hash != null && hash.length == 20 ){
-	        		
-	        		file_name = "magnet:?xt=urn:btih:" +file_name;
-	        	}
-	        }
+        	String	magnet_uri = UrlUtils.normaliseMagnetURI( file_name );
+        	
+        	if ( magnet_uri != null ){
+        		
+        		file_name = magnet_uri;
+        	}
         }
         
         if ( isURI( file_name )) {

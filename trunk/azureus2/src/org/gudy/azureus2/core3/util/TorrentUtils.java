@@ -2472,14 +2472,7 @@ TorrentUtils
 			}
 		}
 	}
-	
-	public static String
-	getMagnetURI(
-		byte[]		hash )
-	{
-		return( "magnet:?xt=urn:btih:" + Base32.encode( hash ));
-	}
-	
+		
 	private static void
 	fireAttributeListener(
 		TOTorrent		torrent,	

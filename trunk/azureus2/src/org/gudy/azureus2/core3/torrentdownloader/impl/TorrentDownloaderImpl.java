@@ -142,14 +142,14 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   		new URL( url_str );  //determine if this is already a proper URL
   	}
   	catch( Throwable t ) {  //it's not
-  		//check if the string is just a hex-encoded torrent infohash
-  		if( url_str.length() == 40 ) {
-  			try{
-  				//if so, convert to magnet:?xt=urn:btih:ZFQ7PUPQ2QMPFSD6AP4JASDDACA5MZU7 format		
-  				byte[] infohash = ByteFormatter.decodeString( url_str.toUpperCase() );  //convert from HEX to raw bytes
-  				url_str = "magnet:?xt=urn:btih:" +Base32.encode( infohash );  //convert to BASE32
-  			}
-  			catch( Throwable e ) {  /*e.printStackTrace();*/		}
+  		
+  			//check if the string is just a base32/hex-encoded torrent infohash
+  		
+  		String magnet_uri = UrlUtils.normaliseMagnetURI( url_str );
+  		
+  		if ( magnet_uri != null ){
+  			
+  			url_str = magnet_uri;
   		}
   	}
  

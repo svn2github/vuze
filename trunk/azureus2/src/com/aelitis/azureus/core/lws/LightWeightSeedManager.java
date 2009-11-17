@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
@@ -209,7 +210,7 @@ LightWeightSeedManager
 							});
 			}
 			
-			log( "Added LWS: " + name + ", " + TorrentUtils.getMagnetURI( hash.getBytes()));
+			log( "Added LWS: " + name + ", " + UrlUtils.getMagnetURI( hash.getBytes()));
 		}
 		
 		lws.start();
@@ -270,7 +271,7 @@ LightWeightSeedManager
 			}
 		}
 		
-		log( "Added LWS: " + lws.getName() + ", " + TorrentUtils.getMagnetURI( lws.getHash().getBytes()));
+		log( "Added LWS: " + lws.getName() + ", " + UrlUtils.getMagnetURI( lws.getHash().getBytes()));
 	}
 	
 	protected void
