@@ -393,6 +393,7 @@ public class TorrentUIUtilsV3
 						}
 					}, 500);
 		}
+/**
 		if ((image == null || image.isDisposed()) && thumbnailUrl != null) {
 			//System.out.println("get image from " + thumbnailUrl);
 			image = imageLoader.getUrlImage(thumbnailUrl,
@@ -403,8 +404,9 @@ public class TorrentUIUtilsV3
 						}
 					});
 			//System.out.println("returning " + image + " (url loading)");
-			return new Image[] { image };
+			return image == null ? null : new Image[] { image };
 		}
+**/
 		if (image == null || image.isDisposed()) {
 			//System.out.println("build image from files");
 			DownloadManager dm = DataSourceUtils.getDM(datasource);
