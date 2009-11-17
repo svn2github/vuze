@@ -46,6 +46,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3.ContentImageLoadedListener;
 
@@ -143,6 +144,13 @@ public class ColumnThumbAndName
 		Object ds = cell.getDataSource();
 
 		Rectangle cellBounds = cell.getBounds();
+		
+		int textX = cellBounds.x;
+
+		if (!showIcon) {
+			cellPaintName(cell, gc, cellBounds, textX);
+			return;
+		}
 
 		Image[] imgThumbnail = TorrentUIUtilsV3.getContentImage(ds,
 				cellBounds.height >= 20,
@@ -156,98 +164,105 @@ public class ColumnThumbAndName
 					}
 				});
 
-		if (imgThumbnail == null) {
-			// don't need to release a null image
-			return;
-		}
-		
-
-		if (cellBounds.height > 30) {
-			cellBounds.y += 1;
-			cellBounds.height -= 3;
-		}
-		Rectangle imgBounds = imgThumbnail[0].getBounds();
-
-		int dstWidth;
-		int dstHeight;
-		if (imgBounds.height > cellBounds.height) {
-			dstHeight = cellBounds.height;
-			dstWidth = imgBounds.width * cellBounds.height / imgBounds.height;
-		} else if (imgBounds.width > cellBounds.width) {
-			dstWidth = cellBounds.width - 4;
-			dstHeight = imgBounds.height * cellBounds.width / imgBounds.width;
-		} else {
-			dstWidth = imgBounds.width;
-			dstHeight = imgBounds.height;
-		}
-
-		if (cellBounds.height <= 18) {
-			dstWidth = Math.min(dstWidth, cellBounds.height);
-			dstHeight = Math.min(dstHeight, cellBounds.height);
-			if (imgBounds.width > 16) {
-				cellBounds.y++;
-				dstHeight -= 2;
-			}
-		}
-		
-		try {
-			gc.setAdvanced(true);
-			gc.setInterpolation(SWT.HIGH);
-		} catch (Exception e) {
-		}
-		int x = cellBounds.x;
-		int textX = x + dstWidth + 3;
-		int minWidth = dstHeight * 7 / 4;
-		int imgPad = 0;
-		if (dstHeight > 25) {
-  		if (dstWidth < minWidth) {
-  			imgPad = ((minWidth - dstWidth + 1) / 2);
-  			x = cellBounds.x + imgPad;
-  			textX = cellBounds.x + minWidth + 3;
-  		}
-		}
-		if (cellBounds.width - dstWidth - (imgPad * 2) < 100 && dstHeight > 18) {
-			dstWidth = Math.min(32, dstHeight);
-			x = cellBounds.x + ((32 - dstWidth + 1) / 2);
-			dstHeight = imgBounds.height * dstWidth / imgBounds.width;
-			textX = cellBounds.x + dstWidth + 3;
-		}
-		int y = cellBounds.y + ((cellBounds.height - dstHeight + 1) / 2);
-		if (dstWidth > 0 && dstHeight > 0 && !imgBounds.isEmpty()) {
-			Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
-			Rectangle lastClipping = gc.getClipping();
+		if (imgThumbnail != null && ImageLoader.isRealImage(imgThumbnail[0])) {
 			try {
-				gc.setClipping(cellBounds);
-
-				for (int i = 0; i < imgThumbnail.length; i++) {
-					Image image = imgThumbnail[i];
-					if (image == null || image.isDisposed()) {
-						continue;
-					}
-					Rectangle srcBounds = image.getBounds();
-					if (i == 0) {
-						int w = dstWidth;
-						int h = dstHeight;
-						if (imgThumbnail.length > 1) {
-							w = w * 9 / 10;
-							h = h * 9 / 10;
-						}
-						gc.drawImage(image, srcBounds.x, srcBounds.y, srcBounds.width,
-								srcBounds.height, x, y, w, h);
-					} else {
-						int w = dstWidth * 3 / 8;
-						int h = dstHeight * 3 / 8;
-						gc.drawImage(image, srcBounds.x, srcBounds.y, srcBounds.width,
-								srcBounds.height, x + dstWidth - w, y + dstHeight - h, w, h);
+		
+				if (cellBounds.height > 30) {
+					cellBounds.y += 1;
+					cellBounds.height -= 3;
+				}
+				Rectangle imgBounds = imgThumbnail[0].getBounds();
+		
+				int dstWidth;
+				int dstHeight;
+				if (imgBounds.height > cellBounds.height) {
+					dstHeight = cellBounds.height;
+					dstWidth = imgBounds.width * cellBounds.height / imgBounds.height;
+				} else if (imgBounds.width > cellBounds.width) {
+					dstWidth = cellBounds.width - 4;
+					dstHeight = imgBounds.height * cellBounds.width / imgBounds.width;
+				} else {
+					dstWidth = imgBounds.width;
+					dstHeight = imgBounds.height;
+				}
+		
+				if (cellBounds.height <= 18) {
+					dstWidth = Math.min(dstWidth, cellBounds.height);
+					dstHeight = Math.min(dstHeight, cellBounds.height);
+					if (imgBounds.width > 16) {
+						cellBounds.y++;
+						dstHeight -= 2;
 					}
 				}
-			} catch (Exception e) {
-				Debug.out(e);
-			} finally {
-				gc.setClipping(lastClipping);
+				
+				try {
+					gc.setAdvanced(true);
+					gc.setInterpolation(SWT.HIGH);
+				} catch (Exception e) {
+				}
+				int x = cellBounds.x;
+				textX = x + dstWidth + 3;
+				int minWidth = dstHeight * 7 / 4;
+				int imgPad = 0;
+				if (dstHeight > 25) {
+		  		if (dstWidth < minWidth) {
+		  			imgPad = ((minWidth - dstWidth + 1) / 2);
+		  			x = cellBounds.x + imgPad;
+		  			textX = cellBounds.x + minWidth + 3;
+		  		}
+				}
+				if (cellBounds.width - dstWidth - (imgPad * 2) < 100 && dstHeight > 18) {
+					dstWidth = Math.min(32, dstHeight);
+					x = cellBounds.x + ((32 - dstWidth + 1) / 2);
+					dstHeight = imgBounds.height * dstWidth / imgBounds.width;
+					textX = cellBounds.x + dstWidth + 3;
+				}
+				int y = cellBounds.y + ((cellBounds.height - dstHeight + 1) / 2);
+				if (dstWidth > 0 && dstHeight > 0 && !imgBounds.isEmpty()) {
+					Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
+					Rectangle lastClipping = gc.getClipping();
+					try {
+						gc.setClipping(cellBounds);
+		
+						for (int i = 0; i < imgThumbnail.length; i++) {
+							Image image = imgThumbnail[i];
+							if (image == null || image.isDisposed()) {
+								continue;
+							}
+							Rectangle srcBounds = image.getBounds();
+							if (i == 0) {
+								int w = dstWidth;
+								int h = dstHeight;
+								if (imgThumbnail.length > 1) {
+									w = w * 9 / 10;
+									h = h * 9 / 10;
+								}
+								gc.drawImage(image, srcBounds.x, srcBounds.y, srcBounds.width,
+										srcBounds.height, x, y, w, h);
+							} else {
+								int w = dstWidth * 3 / 8;
+								int h = dstHeight * 3 / 8;
+								gc.drawImage(image, srcBounds.x, srcBounds.y, srcBounds.width,
+										srcBounds.height, x + dstWidth - w, y + dstHeight - h, w, h);
+							}
+						}
+					} catch (Exception e) {
+						Debug.out(e);
+					} finally {
+						gc.setClipping(lastClipping);
+					}
+				}
+		
+				TorrentUIUtilsV3.releaseContentImage(ds);
+			} catch (Throwable t) {
+				Debug.out(t);
 			}
 		}
+		
+		cellPaintName(cell, gc, cellBounds, textX);
+	}
 
+	private void cellPaintName(TableCell cell, GC gc, Rectangle cellBounds, int textX) {
 		String name = null;
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 		if (dm != null)
@@ -258,8 +273,6 @@ public class ColumnThumbAndName
 		GCStringPrinter.printString(gc, name, new Rectangle(textX,
 				cellBounds.y, cellBounds.x + cellBounds.width - textX, cellBounds.height),
 				true, true, SWT.WRAP);
-
-		TorrentUIUtilsV3.releaseContentImage(ds);
 	}
 
 	public String getObfusticatedText(TableCell cell) {
