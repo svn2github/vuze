@@ -130,7 +130,7 @@ public class Win32UIEnhancer
 				mOS_memmove_byte = claOS.getMethod("memmove", new Class[] {
 					byte[].class,
 					long.class,
-					int.class
+					long.class
 				});
 				mOS_memmove_int = claOS.getMethod("memmove", new Class[] {
 					int[].class,
