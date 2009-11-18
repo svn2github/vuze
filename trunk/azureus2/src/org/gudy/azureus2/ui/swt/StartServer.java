@@ -204,7 +204,9 @@ StartServer
     	return;
     }
     
-    if (args.length == 1
+    // 1 Param usually means a torrent, so don't show main window we add torrents
+    // silentyl
+    if (args.length != 1
 				|| !COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
 			showMainWindow();
 		}
