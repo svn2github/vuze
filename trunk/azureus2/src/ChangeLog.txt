@@ -5,6 +5,7 @@ VUZE CHANGELOG
 
 FEATURE: Core | Support per-url config for http seeds and max_speed setting [Parg]
 FEATURE: Plug | Start of a fallback magnet lookup service [Parg]
+FEATURE: UI    | Clicking on dock icon always opens main window [TuxPaper]
 
 CHANGE: Core  | Parse hex-encoded magnet URIs too [The 8472]
 CHANGE: Core  | Immediate-close option for tracker socket connections [Parg]
@@ -16,6 +17,17 @@ BUGFIX: Core  | Reverted socket handling to initial 1.6 fix status to fix with n
 BUGFIX: Core  | Added option to disable all IPv6 support and defaulted to 'disable' on OSX as some users experiencing crash when enabled [Parg] 
 BUGFIX: Plug  | Don't cause all dht torrents to perform an 'announce' when 'pause-all' selected [Parg]
 BUGFIX: Plug  | Webplugin config section override was using the wrong variable prefix [Parg]
+BUGFIX: UI    | Fixed name column sort [TuxPaper]
+BUGFIX: UI    | (OSX) Fixed opening .vuze files when client isn't running [TuxPaper]
+BUGFIX: UI    | Fixed table view not loading (showing gray area) sometimes [TuxPaper]
+BUGFIX: UI    | (Windows) "Open Containing Folder" in default "folder association" app [TuxPaper]
+BUGFIX: UI    | (*nix) Fixed name column blanking [TuxPaper]
+BUGFIX: UI    | (OSX) Fixed Password option hanging UI [TuxPaper]
+BUGFIX: UI    | Fixed sidebar font sizes (mostly for *nix) [TuxPaper]
+BUGFIX: UI    | (OSX) Opening .torrent file when "Add Silently" is enable should no longer activate the main window [TuxPaper]
+BUGFIX: UI    | Fix losing cursor indication on Sashes (and other widgets) [TuxPaper]
+BUGFIX: UI    | Sidebar now accepts dropping torrents [TuxPaper] 
+
 
 2009.11.11 | Vuze 4.3.0.0
 
