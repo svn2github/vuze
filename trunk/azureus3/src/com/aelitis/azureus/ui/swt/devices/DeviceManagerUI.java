@@ -2082,12 +2082,12 @@ DeviceManagerUI
 										entry.addListener(
 											new SideBarDropListener()
 											{
-												public void 
+												public boolean 
 												sideBarEntryDrop(
 													SideBarEntry 		entry, 
 													Object 				payload  )
 												{
-													handleDrop((TranscodeTarget)device, payload );
+													return handleDrop((TranscodeTarget)device, payload );
 												}
 											});
 									}
@@ -2589,11 +2589,14 @@ DeviceManagerUI
 		}
 	}
 	
-	public static void
+	public static boolean
 	handleDrop(
 		TranscodeTarget			target,
 		final Object			payload )
 	{
+		if (!(payload instanceof String[]) && !(payload instanceof String)) {
+			return false;
+		}
 		TranscodeChooser deviceChooser = new TranscodeChooser(target) {
 			
 			public void 
@@ -2611,6 +2614,7 @@ DeviceManagerUI
 		};
 		
 		deviceChooser.show();
+		return true;
 	}
 
 	protected static void
@@ -2960,12 +2964,12 @@ DeviceManagerUI
 		entry.addListener(
 				new SideBarDropListener()
 				{
-					public void 
+					public boolean 
 					sideBarEntryDrop(
 						SideBarEntry 		entry, 
 						Object 				payload  )
 					{
-						handleDrop(null, payload);
+						return handleDrop(null, payload);
 					}
 				});
 	}

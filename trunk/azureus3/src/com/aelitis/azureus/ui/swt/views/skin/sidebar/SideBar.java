@@ -50,9 +50,7 @@ import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
-import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -822,29 +820,26 @@ public class SideBar
 
 			// @see org.eclipse.swt.dnd.DropTargetAdapter#dragOver(org.eclipse.swt.dnd.DropTargetEvent)
 			public void dragOver(DropTargetEvent event) {
-				if (!(event.item instanceof TreeItem)) {
-					event.detail = DND.DROP_NONE;
-					return;
-				}
-				TreeItem treeItem = (TreeItem) event.item;
+				TreeItem treeItem = (event.item instanceof TreeItem)
+						? (TreeItem) event.item : null;
 
-				String id = (String) treeItem.getData("Plugin.viewID");
-				SideBarEntrySWT entry = getEntry(id);
-
-				if (entry.hasDropListeners()) {
-					draggingOver = entry;
-					if (Constants.isOSX) {
-						tree.redraw();
-					}
-					if ((event.operations & DND.DROP_LINK) > 0)
-						event.detail = DND.DROP_LINK;
-					else if ((event.operations & DND.DROP_DEFAULT) > 0)
-						event.detail = DND.DROP_DEFAULT;
-					else if ((event.operations & DND.DROP_COPY) > 0)
-						event.detail = DND.DROP_COPY;
+				if (treeItem != null) {
+  				String id = (String) treeItem.getData("Plugin.viewID");
+  				SideBarEntrySWT entry = getEntry(id);
+  
+  				draggingOver = entry;
 				} else {
-					event.detail = DND.DROP_NONE;
+					draggingOver = null;
 				}
+				if (Constants.isOSX) {
+					tree.redraw();
+				}
+				if ((event.operations & DND.DROP_LINK) > 0)
+					event.detail = DND.DROP_LINK;
+				else if ((event.operations & DND.DROP_DEFAULT) > 0)
+					event.detail = DND.DROP_DEFAULT;
+				else if ((event.operations & DND.DROP_COPY) > 0)
+					event.detail = DND.DROP_COPY;
 			}
 			
 			// @see org.eclipse.swt.dnd.DropTargetAdapter#dragLeave(org.eclipse.swt.dnd.DropTargetEvent)
@@ -857,6 +852,7 @@ public class SideBar
 				draggingOver = null;
 				tree.redraw();
 				if (!(event.item instanceof TreeItem)) {
+					defaultDrop(event);
 					return;
 				}
 				TreeItem treeItem = (TreeItem) event.item;
@@ -864,7 +860,10 @@ public class SideBar
 				String id = (String) treeItem.getData("Plugin.viewID");
 				SideBarEntrySWT entry = getEntry(id);
 
-				entry.triggerDropListeners(event.data);
+				boolean handled = entry.triggerDropListeners(event.data);
+				if (!handled) {
+					defaultDrop(event);
+				}
 			}
 		});
 
@@ -991,6 +990,13 @@ public class SideBar
 			}
 
 		}
+	}
+
+	/**
+	 * @param event
+	 */
+	protected void defaultDrop(DropTargetEvent event) {
+		TorrentOpener.openDroppedTorrents(event, false);
 	}
 
 	/**
@@ -1515,8 +1521,6 @@ public class SideBar
 		entry.setImageLeftID("image.sidebar.library");
 		entry.disableCollapse = true;
 
-		addDropTest(entry);
-
 		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, SIDEBAR_SECTION_LIBRARY_DL,
 				"library", MessageText.getString("sidebar.LibraryDL"), null, null,
 				false, -1);
@@ -1693,7 +1697,7 @@ public class SideBar
 			return;
 		}
 		entry.addListener(new SideBarDropListener() {
-			public void sideBarEntryDrop(SideBarEntry entry, Object droppedObject) {
+			public boolean sideBarEntryDrop(SideBarEntry entry, Object droppedObject) {
 				String s = "You just dropped " + droppedObject.getClass() + "\n"
 						+ droppedObject + "\n\n";
 				if (droppedObject.getClass().isArray()) {
@@ -1710,6 +1714,7 @@ public class SideBar
 					}
 				}
 				new MessageBoxShell(SWT.OK, "test", s).open(null);
+				return true;
 			}
 		});
 
@@ -1727,6 +1732,7 @@ public class SideBar
 						"v3.MainWindow.menu.getting_started").replaceAll("&", ""), null,
 				null, true, 0);
 		entry.setImageLeftID("image.sidebar.welcome");
+		addDropTest(entry);
 		return entry;
 	}
 

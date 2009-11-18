@@ -412,12 +412,22 @@ public class SideBarEntrySWT implements SideBarEntry
 		return listDropListeners != null && listDropListeners.size() > 0;
 	}
 
-	protected void triggerDropListeners(Object o) {
+	/**
+	 * 
+	 * @param o
+	 * @return true: handled; false: not handled
+	 */
+	protected boolean triggerDropListeners(Object o) {
+		boolean handled = false;
 		Object[] list = listDropListeners.toArray();
 		for (int i = 0; i < list.length; i++) {
 			SideBarDropListener l = (SideBarDropListener) list[i];
-			l.sideBarEntryDrop(this, o);
+			handled = l.sideBarEntryDrop(this, o);
+			if (handled) {
+				break;
+			}
 		}
+		return handled;
 	}
 
 	public String getLogID() {
