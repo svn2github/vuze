@@ -728,7 +728,7 @@ MagnetPlugin
 													ResourceDownloader			downloader,
 													ResourceDownloaderException e )
 												{
-													listener.reportActivity( getMessageText( "report.secondarylookup.fail", Debug.getNestedExceptionMessage( e ) ));
+													listener.reportActivity( getMessageText( "report.secondarylookup.fail" ));
 												}
 											});
 										
