@@ -88,6 +88,8 @@ public class CocoaUIEnhancer
 	private static long sel_application_openFiles_;
 
 	private static long sel_preferencesMenuItemSelected_;
+	
+	private static long sel_applicationShouldHandleReopen_;
 
 	private static long sel_toolbarButtonClicked_;
 
@@ -281,6 +283,18 @@ public class CocoaUIEnhancer
 				}
 			}
 			fileOpen(files);
+		} else if (sel == sel_applicationShouldHandleReopen_) {
+			Event event = new Event ();
+			event.detail = 1;
+			if (display != null) {
+				invoke(Display.class, display, "sendEvent", new Class[] {
+					int.class,
+					Event.class
+				}, new Object[] {
+					SWT.Activate,
+					event
+				});
+			}
 		}
 		return 0;
 	}
@@ -352,7 +366,8 @@ public class CocoaUIEnhancer
 	private static Object invoke(Class<?> clazz, Object target,
 			String methodName, Class[] signature, Object[] args) {
 		try {
-			Method method = clazz.getMethod(methodName, signature);
+			Method method = clazz.getDeclaredMethod(methodName, signature);
+			method.setAccessible(true);
 			return method.invoke(target, args);
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
@@ -514,6 +529,7 @@ public class CocoaUIEnhancer
 			sel_natMenuSelected_ = registerName(osCls, "natMenuItemSelected:");
 			sel_speedMenuSelected_ = registerName(osCls, "speedMenuItemSelected:");
 			sel_wizardMenuSelected_ = registerName(osCls, "wizardMenuItemSelected:");
+			sel_applicationShouldHandleReopen_ = registerName(osCls, "applicationShouldHandleReopen:hasVisibleWindows:");
 		}
 
 		// Add the action callbacks for Preferences and About menu items.
@@ -552,6 +568,12 @@ public class CocoaUIEnhancer
 			wrapPointer(sel_natMenuSelected_),
 			wrapPointer(callBack3Addr),
 			"@:@"
+		});
+		invoke(osCls, "class_addMethod", new Object[] {
+			wrapPointer(delegateIdSWTApplication),
+			wrapPointer(sel_applicationShouldHandleReopen_),
+			wrapPointer(callBack4Addr),
+			"@:@c"
 		});
 
 		// Get the Mac OS X Application menu.
