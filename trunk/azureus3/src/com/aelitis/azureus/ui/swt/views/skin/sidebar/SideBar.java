@@ -563,7 +563,7 @@ public class SideBar
 		int fontHeight = 13 + (tree.getItemHeight() > 18 ? tree.getItemHeight() - 18 : 0); 
 
 		FontData[] fontData = tree.getFont().getFontData();
-		Utils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
+		Utils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight - 1);
 		font = new Font(tree.getDisplay(), fontData);
 		tree.setFont(font);
 		//fontData[0].setHeight(fontData[0].getHeight() + 1);
