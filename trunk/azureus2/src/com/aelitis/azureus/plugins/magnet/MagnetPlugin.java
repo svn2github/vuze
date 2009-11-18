@@ -653,6 +653,8 @@ MagnetPlugin
 			long 	overall_start 			= SystemTime.getMonotonousTime();
 			boolean	secondary_lookup_done 	= false;
 			
+			long last_found = -1;
+			
 			final InputStream[] secondary_result = { null };
 			
 			while( remaining > 0 ){
@@ -678,10 +680,14 @@ MagnetPlugin
 
 					boolean got_sem = potential_contacts_sem.reserve( 1000 );
 		
-					remaining -= ( SystemTime.getMonotonousTime() - wait_start );
+					long now = SystemTime.getMonotonousTime();
+					
+					remaining -= ( now - wait_start );
 				
 					if ( got_sem ){
 					
+						last_found = now;
+						
 						break;
 						
 					}else{
@@ -690,7 +696,18 @@ MagnetPlugin
 							
 							if ( !secondary_lookup_done ){
 							
-								long	time_so_far = SystemTime.getMonotonousTime() - overall_start;
+								long	base_time;
+								
+								if ( last_found == -1 || now - overall_start > 60*1000 ){
+									
+									base_time = overall_start;
+									
+								}else{
+									
+									base_time = last_found;
+								}
+								
+								long	time_so_far = now - base_time;
 								
 								if ( time_so_far > SECONDARY_LOOKUP_DELAY ){
 									
