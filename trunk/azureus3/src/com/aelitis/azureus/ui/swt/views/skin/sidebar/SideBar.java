@@ -733,6 +733,7 @@ public class SideBar
 						SideBarEntrySWT entry = getEntry(id);
 
 						Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
+						System.out.println("hit " + closeArea + " with " + event.x + "," + event.y + "?");
 						if (closeArea != null && closeArea.contains(event.x, event.y)) {
 							treeItem.dispose();
 						} else if (currentSideBarEntry != entry && Constants.isOSX) {
@@ -1185,7 +1186,7 @@ public class SideBar
 
 				int textOffsetY = 0;
 
-				int height = textSize.y + 3;
+				int height = textSize.y + 2;
 				int startY = itemBounds.y + (itemBounds.height - height) / 2;
 
 				//gc.fillRectangle(startX, startY, width, height);
@@ -1240,7 +1241,9 @@ public class SideBar
 			//gc.setBackground(treeItem.getBackground());
 			//gc.fillRectangle(closeArea);
 
-			gc.drawImage(img, closeArea.x, closeArea.y);
+			gc.setClipping((Rectangle)null);
+			gc.drawImage(img, 0, 0);
+			System.out.println("close area = " + closeArea);
 			treeItem.setData("closeArea", closeArea);
 		}
 
@@ -1441,6 +1444,7 @@ public class SideBar
 				if (closeArea != null) {
 					closeArea.y = itemBounds.y + (itemBounds.height - closeArea.height)
 							/ 2;
+					System.out.println("close area (y) = " + closeArea);
 				}
 			}
 
