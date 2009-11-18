@@ -32,15 +32,20 @@ import java.util.Map;
 import java.util.Set;
 import java.net.InetSocketAddress;
 import org.eclipse.swt.graphics.Image;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
@@ -54,14 +59,22 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.net.magneturi.*;
 
 /**
@@ -72,17 +85,25 @@ import com.aelitis.net.magneturi.*;
 public class 
 MagnetPlugin
 	implements Plugin
-{
+{	
+	private static final String	SECONDARY_LOOKUP 		= "http://magnet.vuze.com/";
+	private static final int	SECONDARY_LOOKUP_DELAY	= 20*1000;
+	
+	private static final String	PLUGIN_NAME				= "Magnet URI Handler";
+	private static final String PLUGIN_CONFIGSECTION_ID = "plugins.magnetplugin";
+
 	private PluginInterface		plugin_interface;
 		
 	private CopyOnWriteList		listeners = new CopyOnWriteList();
+	
+	private BooleanParameter secondary_lookup;
 	
 	public static void
 	load(
 		PluginInterface		plugin_interface )
 	{
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Magnet URI Handler" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", PLUGIN_NAME );
 	}
 	
 	public void
@@ -90,6 +111,12 @@ MagnetPlugin
 		PluginInterface	_plugin_interface )
 	{
 		plugin_interface	= _plugin_interface;
+		
+		BasicPluginConfigModel	config = 
+			plugin_interface.getUIManager().createBasicPluginConfigModel( ConfigSection.SECTION_PLUGINS, 
+					PLUGIN_CONFIGSECTION_ID);
+		
+		secondary_lookup = config.addBooleanParameter2( "MagnetPlugin.use.lookup.service", "MagnetPlugin.use.lookup.service", true );
 		
 		MenuItemListener	listener = 
 			new MenuItemListener()
@@ -623,6 +650,11 @@ MagnetPlugin
 			
 			long	remaining	= timeout;
 			
+			long 	overall_start 			= SystemTime.getMonotonousTime();
+			boolean	secondary_lookup_done 	= false;
+			
+			final InputStream[] secondary_result = { null };
+			
 			while( remaining > 0 ){
 					
 				try{
@@ -638,12 +670,104 @@ MagnetPlugin
 					
 					potential_contacts_mon.exit();
 				}
+								
 				
-				long start = SystemTime.getCurrentTime();
+				while( remaining > 0 ){
 				
-				potential_contacts_sem.reserve( remaining );
+					long wait_start = SystemTime.getMonotonousTime();
+
+					boolean got_sem = potential_contacts_sem.reserve( 1000 );
+		
+					remaining -= ( SystemTime.getMonotonousTime() - wait_start );
 				
-				remaining -= ( SystemTime.getCurrentTime() - start );
+					if ( got_sem ){
+					
+						break;
+						
+					}else{
+						
+						if ( secondary_lookup.getValue() && FeatureAvailability.isMagnetSLEnabled()){
+							
+							if ( !secondary_lookup_done ){
+							
+								long	time_so_far = SystemTime.getMonotonousTime() - overall_start;
+								
+								if ( time_so_far > SECONDARY_LOOKUP_DELAY ){
+									
+									secondary_lookup_done = true;
+									
+									listener.reportActivity( getMessageText( "report.secondarylookup", null ));
+									
+									try{
+										ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
+									
+										URL sl_url = new URL( SECONDARY_LOOKUP + "magnetLookup?hash=" + Base32.encode( hash ));
+										
+										ResourceDownloader rd = rdf.create( sl_url );
+										
+										rd.addListener(
+											new ResourceDownloaderAdapter()
+											{
+												public boolean
+												completed(
+													ResourceDownloader	downloader,
+													InputStream			data )
+												{
+													listener.reportActivity( getMessageText( "report.secondarylookup.ok", null ));
+	
+													synchronized( secondary_result ){
+													
+														secondary_result[0] = data;
+													}
+													
+													return( true );
+												}
+												
+												public void
+												failed(
+													ResourceDownloader			downloader,
+													ResourceDownloaderException e )
+												{
+													listener.reportActivity( getMessageText( "report.secondarylookup.fail", Debug.getNestedExceptionMessage( e ) ));
+												}
+											});
+										
+										rd.asyncDownload();
+										
+									}catch( Throwable e ){
+										
+										listener.reportActivity( getMessageText( "report.secondarylookup.fail", Debug.getNestedExceptionMessage( e ) ));
+									}
+								}
+							}else{
+									
+								InputStream is;
+									
+								synchronized( secondary_result ){
+									
+									is = secondary_result[0];
+									
+									secondary_result[0] = null;
+								}
+									
+								if ( is != null ){
+										
+									try{
+										TOTorrent t = TOTorrentFactory.deserialiseFromBEncodedInputStream( is );
+										
+										TorrentUtils.setPeerCacheValid( t );
+								
+										return( BEncoder.encode( t.serialiseToMap()));
+										
+									}catch( Throwable e ){							
+									}
+								}
+							}
+						}
+
+						continue;
+					}
+				}
 				
 				DistributedDatabaseContact	contact;
 				boolean						live_contact;

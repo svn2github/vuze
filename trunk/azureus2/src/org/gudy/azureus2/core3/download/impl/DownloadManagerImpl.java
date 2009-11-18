@@ -782,7 +782,23 @@ DownloadManagerImpl
 						download_manager_state.setFlag( DownloadManagerState.FLAG_LOW_NOISE, true );
 					}
 							
-				 	download_manager_state.setTrackerResponseCache( new HashMap());
+					Map peer_cache = TorrentUtils.getPeerCache( torrent );
+					
+					if ( peer_cache != null ){
+						
+						try{
+							download_manager_state.setTrackerResponseCache( peer_cache );
+							
+						}catch( Throwable e ){
+						
+							Debug.out( e );
+							
+							download_manager_state.setTrackerResponseCache( new HashMap());
+						}
+					}else{
+					
+						download_manager_state.setTrackerResponseCache( new HashMap());
+					}
 				 	
 				 		// also remove resume data incase someone's published a torrent with resume
 				 		// data in it

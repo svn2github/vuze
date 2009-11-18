@@ -53,9 +53,12 @@ TorrentUtils
 	private static final String		TORRENT_AZ_PROP_PLUGINS					= "plugins";
 	
 	public static final String		TORRENT_AZ_PROP_OBTAINED_FROM			= "obtained_from";
+	public static final String		TORRENT_AZ_PROP_PEER_CACHE				= "peer_cache";
+	public static final String		TORRENT_AZ_PROP_PEER_CACHE_VALID		= "peer_cache_valid";
 	
 	private static final String		MEM_ONLY_TORRENT_PATH		= "?/\\!:mem_only:!\\/?";
 	
+	private static final long		PC_MARKER = RandomUtils.nextLong();
 	
 	private static final List	created_torrents;
 	private static final Set	created_torrents_set;
@@ -1100,6 +1103,61 @@ TorrentUtils
 			
 				Debug.printStackTrace(e);
 			}
+		}
+		
+		return( null );
+	}
+	
+	public static void
+	setPeerCache(
+		TOTorrent		torrent,
+		Map				pc )
+	{
+		Map	m = getAzureusPrivateProperties( torrent );
+			
+		try{
+			m.put( TORRENT_AZ_PROP_PEER_CACHE, pc );
+						
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	public static void
+	setPeerCacheValid(
+		TOTorrent		torrent )
+	{
+		Map	m = getAzureusPrivateProperties( torrent );
+			
+		try{
+			m.put( TORRENT_AZ_PROP_PEER_CACHE_VALID, new Long( PC_MARKER ));
+						
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	public static Map
+	getPeerCache(
+		TOTorrent		torrent )
+	{
+		try{
+			Map	m = getAzureusPrivateProperties( torrent );
+	
+			Long value = (Long)m.get( TORRENT_AZ_PROP_PEER_CACHE_VALID );
+			
+			if ( value != null && value == PC_MARKER ){
+			
+				Map	pc = (Map)m.get( TORRENT_AZ_PROP_PEER_CACHE );
+	
+				return( pc );
+			}
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
 		}
 		
 		return( null );
