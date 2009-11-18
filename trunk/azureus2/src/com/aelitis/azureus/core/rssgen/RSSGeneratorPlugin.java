@@ -119,12 +119,8 @@ RSSGeneratorPlugin
 	    defaults.put( WebPlugin.PR_ENABLE_KEEP_ALIVE, new Boolean(true));
 	    defaults.put( WebPlugin.PR_HIDE_RESOURCE_CONFIG, new Boolean(true));
 	    defaults.put( WebPlugin.PR_PAIRING_SID, "rss" );
-
-	    BasicPluginConfigModel config = 
-	    	plugin_interface.getUIManager().createBasicPluginConfigModel(
-	    		ConfigSection.SECTION_ROOT, "rss" );
 	    
-	    defaults.put( WebPlugin.PR_CONFIG_MODEL, config );
+	    defaults.put( WebPlugin.PR_CONFIG_MODEL_PARAMS, new String[]{ ConfigSection.SECTION_ROOT, "rss" });
 	}
 	
 	public static RSSGeneratorPlugin

@@ -58,7 +58,7 @@ WebPlugin
 	public static final String	PR_ROOT_DIR					= "Root Dir";					// String
 	public static final String	PR_ACCESS					= "Access";						// String
 	public static final String	PR_LOG						= "DefaultLoggerChannel";		// LoggerChannel
-	public static final String	PR_CONFIG_MODEL				= "DefaultConfigModel";			// BasicPluginConfigModel
+	public static final String	PR_CONFIG_MODEL_PARAMS		= "DefaultConfigModelParams";	// String[] params to use when creating config model
 	public static final String	PR_VIEW_MODEL				= "DefaultViewModel";			// BasicPluginViewModel
 	public static final String	PR_HIDE_RESOURCE_CONFIG		= "DefaultHideResourceConfig";	// Boolean
 	public static final String	PR_ENABLE_KEEP_ALIVE		= "DefaultEnableKeepAlive";		// Boolean
@@ -237,11 +237,19 @@ WebPlugin
 		
 		PluginConfig	plugin_config = plugin_interface.getPluginconfig();
 		
-		config_model = (BasicPluginConfigModel)properties.get( PR_CONFIG_MODEL );
+		String[] cm_params = (String[])properties.get( PR_CONFIG_MODEL_PARAMS );
 
-		if ( config_model == null ){
+		if ( cm_params == null || cm_params.length == 0 ){
 			
 			config_model = ui_manager.createBasicPluginConfigModel(ConfigSection.SECTION_PLUGINS, sConfigSectionID);
+			
+		}else if ( cm_params.length == 1 ){
+			
+			config_model = ui_manager.createBasicPluginConfigModel( cm_params[0] );
+
+		}else{
+			
+			config_model = ui_manager.createBasicPluginConfigModel( cm_params[0], cm_params[1] );
 		}
 		
 		boolean	save_needed = false;
