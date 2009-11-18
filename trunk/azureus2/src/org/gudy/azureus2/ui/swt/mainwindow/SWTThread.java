@@ -168,6 +168,9 @@ public class SWTThread {
 
 		display.addListener(SWT.Activate, new Listener() {
 			public void handleEvent(Event event) {
+				if (event.detail != 1) {
+					return;
+				}
 				UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 				if (uif != null) {
 					uif.bringToFront(false);
