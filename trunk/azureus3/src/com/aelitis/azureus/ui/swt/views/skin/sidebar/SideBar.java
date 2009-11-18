@@ -1186,7 +1186,7 @@ public class SideBar
 
 				int textOffsetY = 0;
 
-				int height = textSize.y + 2;
+				int height = textSize.y + (Constants.isWindows ? 3 : 2);
 				int startY = itemBounds.y + (itemBounds.height - height) / 2;
 
 				//gc.fillRectangle(startX, startY, width, height);
