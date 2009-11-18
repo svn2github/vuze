@@ -1241,9 +1241,7 @@ public class SideBar
 			//gc.setBackground(treeItem.getBackground());
 			//gc.fillRectangle(closeArea);
 
-			gc.setClipping((Rectangle)null);
-			gc.drawImage(img, 0, 0);
-			System.out.println("close area = " + closeArea);
+			gc.drawImage(img, closeArea.x, closeArea.y);
 			treeItem.setData("closeArea", closeArea);
 		}
 
@@ -1444,7 +1442,6 @@ public class SideBar
 				if (closeArea != null) {
 					closeArea.y = itemBounds.y + (itemBounds.height - closeArea.height)
 							/ 2;
-					System.out.println("close area (y) = " + closeArea);
 				}
 			}
 
