@@ -569,7 +569,8 @@ SpeedManagerImpl
 						boolean	miss = false;
 						
 						int	worst_value	= -1;
-						
+						int	min_value	= Integer.MAX_VALUE;
+
 						int	num_values	= 0;
 						int	total		= 0;
 						
@@ -583,11 +584,16 @@ SpeedManagerImpl
 									
 									int	rtt = round_trip_times[i];
 									
-									if ( rtt > 0 ){
+									if ( rtt >= 0 ){
 										
 										if ( rtt > worst_value ){
 											
 											worst_value = rtt;
+										}
+										
+										if ( rtt < min_value ){
+											
+											min_value = rtt;
 										}
 										
 										num_values++;
@@ -620,9 +626,15 @@ SpeedManagerImpl
 								num_values--;
 							}
 
-							if ( num_values> 0 ){
+							if ( num_values > 0 ){
+																
+								int	average = total/num_values;
 								
-								addPingHistory( total/num_values, sources_changed );
+									// bias towards min
+
+								average = ( average + min_value ) / 2;
+		
+								addPingHistory( average, sources_changed );
 							}
 						}
 					}

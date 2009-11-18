@@ -246,7 +246,7 @@ SpeedManagerAlgorithmProviderV3
 			
 			int	rtt =  sources[i].getPingTime();
 
-			if ( rtt > 0 && rtt < min_rtt ){
+			if ( rtt >= 0 && rtt < min_rtt ){
 				
 				min_rtt	= rtt;
 			}
@@ -301,7 +301,11 @@ SpeedManagerAlgorithmProviderV3
 		}
 		
 		int	ping_average = ping_total/ping_count;
-				
+			
+			// bias towards min
+		
+		ping_average = ( ping_average + min_rtt ) / 2;
+
 		int	running_average = (int)ping_average_history.update( ping_average );
 		
 		if ( ping_average > max_ping ){
