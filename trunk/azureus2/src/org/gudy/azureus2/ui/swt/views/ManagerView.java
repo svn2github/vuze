@@ -269,25 +269,28 @@ public class ManagerView
     folder.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent e) {
       	folder.getShell().setCursor(e.display.getSystemCursor(SWT.CURSOR_WAIT));
-      	// Send one last refresh to previous tab, just in case it
-      	// wants to do something when view goes invisible
-        refresh();
-
-        CTabItem item = (CTabItem)e.item;
-        if (item != null) {
-        	IView view = (IView)item.getData("IView");
-          activeView = view;
-        	
-        	if (item.getControl() == null) {
-          	view.initialize(folder);
-          	item.setControl(view.getComposite());
-        	}
-        	
-        	item.getControl().setFocus();
-        }
-        refresh();
-    		ViewTitleInfoManager.refreshTitleInfo(ManagerView.this);
-      	folder.getShell().setCursor(e.display.getSystemCursor(SWT.CURSOR_ARROW));
+      	try {
+        	// Send one last refresh to previous tab, just in case it
+        	// wants to do something when view goes invisible
+          refresh();
+  
+          CTabItem item = (CTabItem)e.item;
+          if (item != null) {
+          	IView view = (IView)item.getData("IView");
+            activeView = view;
+          	
+          	if (item.getControl() == null) {
+            	view.initialize(folder);
+            	item.setControl(view.getComposite());
+          	}
+          	
+          	item.getControl().setFocus();
+          }
+          refresh();
+      		ViewTitleInfoManager.refreshTitleInfo(ManagerView.this);
+      	} finally {
+      		folder.getShell().setCursor(null);
+      	}
       }
     });
     
