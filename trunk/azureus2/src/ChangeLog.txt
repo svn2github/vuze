@@ -3,7 +3,19 @@ VUZE CHANGELOG
 
 2009.11.xx | Vuze 4.3.0.1
 
+FEATURE: Core | Support per-url config for http seeds and max_speed setting [Parg]
+FEATURE: Plug | Start of a fallback magnet lookup service [Parg]
+
 CHANGE: Core  | Parse hex-encoded magnet URIs too [The 8472]
+CHANGE: Core  | Immediate-close option for tracker socket connections [Parg]
+CHANGE: Core  | Return IP address instead of DNS names for external seeds [Parg]
+CHANGE: Core  | Support more non-conformant RSS feed dates [PArg]
+CHANGE: Core  | Auto-speed bias towards min ping times rather than pure average [Parg]
+
+BUGFIX: Core  | Reverted socket handling to initial 1.6 fix status to fix with network binding/stall problems [Parg]
+BUGFIX: Core  | Added option to disable all IPv6 support and defaulted to 'disable' on OSX as some users experiencing crash when enabled [Parg] 
+BUGFIX: Plug  | Don't cause all dht torrents to perform an 'announce' when 'pause-all' selected [Parg]
+BUGFIX: Plug  | Webplugin config section override was using the wrong variable prefix [Parg]
 
 2009.11.11 | Vuze 4.3.0.0
 
