@@ -257,7 +257,11 @@ EnhancedDownloadManager
 			
 			Map meta_data = PlatformTorrentUtils.getFileMetaData( torrent );
 
-			Map files_info = meta_data==null?null:(Map)meta_data.get( "files" );
+				// dunno why but I have a user with an ArrayList being returned here...
+			
+			Object o_files_info = meta_data==null?null:meta_data.get( "files" );
+			
+			Map files_info = o_files_info instanceof Map?(Map)o_files_info:null;
 			
 			long	offset = 0;
 			
