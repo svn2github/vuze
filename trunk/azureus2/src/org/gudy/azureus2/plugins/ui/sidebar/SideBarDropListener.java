@@ -25,5 +25,10 @@ package org.gudy.azureus2.plugins.ui.sidebar;
  */
 public interface SideBarDropListener
 {
-	public void sideBarEntryDrop(SideBarEntry entry, Object droppedObject);
+	/**
+	 * @param entry
+	 * @param droppedObject
+	 * @return true if you handled it, false if you didn't
+	 */
+	public boolean sideBarEntryDrop(SideBarEntry entry, Object droppedObject);
 }
