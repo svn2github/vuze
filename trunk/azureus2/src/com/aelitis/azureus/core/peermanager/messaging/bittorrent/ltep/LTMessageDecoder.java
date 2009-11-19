@@ -20,6 +20,9 @@
  */
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
@@ -32,6 +35,8 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageDecode
  *
  */
 public class LTMessageDecoder extends BTMessageDecoder {
+	
+	private Map<Byte,byte[]>	entension_handlers = new HashMap<Byte, byte[]>();
 	
 	public LTMessageDecoder() {}
 
@@ -52,10 +57,29 @@ public class LTMessageDecoder extends BTMessageDecoder {
 			case 1:
 				return MessageManager.getSingleton().createMessage(LTMessage.ID_UT_PEX_BYTES, ref_buff, (byte)1);
 			default: {
+			  byte[]	message_id;
+			  synchronized( entension_handlers ){
+					
+				  message_id = entension_handlers.get( id );
+			  }
+			  
+			  if ( message_id != null ){
+				return MessageManager.getSingleton().createMessage( message_id, ref_buff, (byte)1);
+			  }
 		      System.out.println( "Unknown LTEP message id [" +id+ "]" );
 		      throw new MessageException( "Unknown LTEP message id [" +id+ "]" );
 			}
 		}
 	}
-
+	
+	public void
+	addExtensionHandler(
+		byte		id,
+		byte[]		message_id )
+	{
+		synchronized( entension_handlers ){
+		
+			entension_handlers.put( id, message_id );
+		}
+	}
 }
