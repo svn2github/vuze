@@ -10,7 +10,7 @@ FEATURE: UI   | Clicking on dock icon always opens main window [TuxPaper]
 CHANGE: Core  | Parse hex-encoded magnet URIs too [The 8472]
 CHANGE: Core  | Immediate-close option for tracker socket connections [Parg]
 CHANGE: Core  | Return IP address instead of DNS names for external seeds [Parg]
-CHANGE: Core  | Support more non-conformant RSS feed dates [PArg]
+CHANGE: Core  | Support more non-conformant RSS feed dates [Parg]
 CHANGE: Core  | Auto-speed bias towards min ping times rather than pure average [Parg]
 
 BUGFIX: Core  | Reverted socket handling to initial 1.6 fix status to fix with network binding/stall problems [Parg]
