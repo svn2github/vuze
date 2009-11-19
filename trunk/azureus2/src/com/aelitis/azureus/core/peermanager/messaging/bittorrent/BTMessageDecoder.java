@@ -37,7 +37,7 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  */
 public class BTMessageDecoder implements MessageStreamDecoder {
   private static final int MIN_MESSAGE_LENGTH = 1;  //for type id
-  private static final int MAX_MESSAGE_LENGTH = 16393;  //should never be > 16KB+9B, as we never request chunks > 16KB
+  private static final int MAX_MESSAGE_LENGTH = 16*1024+128;  //should never be > 16KB+9B, as we never request chunks > 16KB - update, some LT extensions can be bigger
   private static final int HANDSHAKE_FAKE_LENGTH = 323119476;  //(byte)19 + "Bit" readInt() value of header
 
   private static final byte SS = DirectByteBuffer.SS_MSG;
