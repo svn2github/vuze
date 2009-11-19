@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2009.11.xx | Vuze 4.3.0.1
+2009.11.19 | Vuze 4.3.0.2
 
 FEATURE: Core | Support per-url config for http seeds and max_speed setting [Parg]
 FEATURE: Plug | Start of a fallback magnet lookup service [Parg]
@@ -27,6 +27,7 @@ BUGFIX: UI    | Fixed sidebar font sizes (mostly for *nix) [TuxPaper]
 BUGFIX: UI    | (OSX) Opening .torrent file when "Add Silently" is enable should no longer activate the main window [TuxPaper]
 BUGFIX: UI    | Fix losing cursor indication on Sashes (and other widgets) [TuxPaper]
 BUGFIX: UI    | Sidebar now accepts dropping torrents [TuxPaper] 
+
 
 
 2009.11.11 | Vuze 4.3.0.0
