@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+2009.xx.xx | Vuze 4.3.0.3
+
+
 2009.11.19 | Vuze 4.3.0.2
 
 FEATURE: Core | Support per-url config for http seeds and max_speed setting [Parg]
