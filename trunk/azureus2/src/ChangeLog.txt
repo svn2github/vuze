@@ -5,7 +5,7 @@ VUZE CHANGELOG
 
 FEATURE: Core | Support per-url config for http seeds and max_speed setting [Parg]
 FEATURE: Plug | Start of a fallback magnet lookup service [Parg]
-FEATURE: UI    | Clicking on dock icon always opens main window [TuxPaper]
+FEATURE: UI   | Clicking on dock icon always opens main window [TuxPaper]
 
 CHANGE: Core  | Parse hex-encoded magnet URIs too [The 8472]
 CHANGE: Core  | Immediate-close option for tracker socket connections [Parg]
