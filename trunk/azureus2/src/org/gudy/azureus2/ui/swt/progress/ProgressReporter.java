@@ -184,7 +184,7 @@ public class ProgressReporter
 		/*
 		 * Notifies listeners
 		 */
-		notifyListeners();
+		notifyListeners( getProgressReport());
 
 		/*
 		 * Then dispose all listeners to let GC do it's magic.
@@ -223,7 +223,7 @@ public class ProgressReporter
 	 * this optimization is designed to prevent dangling/orphaned listeners, and also reduces the
 	 * number of listeners to notify upon the next event 
 	 */
-	private void notifyListeners() {
+	private void notifyListeners( IProgressReport report) {
 		if (null == reporterListeners || reporterListeners.size() < 1) {
 			return;
 		}
@@ -237,7 +237,7 @@ public class ProgressReporter
 				/*
 				 * If the listener returned RETVAL_OK_TO_DISPOSE then it has indicated that it is no longer needed so we release it
 				 */
-				if (RETVAL_OK_TO_DISPOSE == listener.report(getProgressReport())) {
+				if (RETVAL_OK_TO_DISPOSE == listener.report( report )) {
 					removalList.add(listener);
 				}
 			} catch (Throwable e) {
@@ -283,7 +283,7 @@ public class ProgressReporter
 		/*
 		 * Now we can notify listeners for this specific reporter
 		 */
-		notifyListeners();
+		notifyListeners( latestProgressReport );
 	}
 
 	/* (non-Javadoc)
