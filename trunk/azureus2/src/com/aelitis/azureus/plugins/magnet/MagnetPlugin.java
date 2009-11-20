@@ -43,7 +43,6 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
-import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -87,8 +86,9 @@ public class
 MagnetPlugin
 	implements Plugin
 {	
-	private static final String	SECONDARY_LOOKUP 		= "http://magnet.vuze.com/";
-	private static final int	SECONDARY_LOOKUP_DELAY	= 20*1000;
+	private static final String	SECONDARY_LOOKUP 			= "http://magnet.vuze.com/";
+	private static final int	SECONDARY_LOOKUP_DELAY		= 20*1000;
+	private static final int	SECONDARY_LOOKUP_MAX_TIME	= 2*60*1000;
 	
 	private static final String	PLUGIN_NAME				= "Magnet URI Handler";
 	private static final String PLUGIN_CONFIGSECTION_ID = "plugins.magnetplugin";
@@ -655,11 +655,13 @@ MagnetPlugin
 			long	remaining	= timeout;
 			
 			long 	overall_start 			= SystemTime.getMonotonousTime();
-			boolean	secondary_lookup_done 	= false;
+			boolean	sl_enabled				= secondary_lookup.getValue() && FeatureAvailability.isMagnetSLEnabled();
+
+			long	secondary_lookup_time 	= -1;
 			
 			long last_found = -1;
 			
-			final InputStream[] secondary_result = { null };
+			final Object[] secondary_result = { null };
 			
 			while( remaining > 0 ){
 					
@@ -696,9 +698,9 @@ MagnetPlugin
 						
 					}else{
 						
-						if ( secondary_lookup.getValue() && FeatureAvailability.isMagnetSLEnabled()){
+						if ( sl_enabled ){
 							
-							if ( !secondary_lookup_done ){
+							if ( secondary_lookup_time == -1 ){
 							
 								long	base_time;
 								
@@ -715,73 +717,22 @@ MagnetPlugin
 								
 								if ( time_so_far > SECONDARY_LOOKUP_DELAY ){
 									
-									secondary_lookup_done = true;
+									secondary_lookup_time = SystemTime.getMonotonousTime();
 									
-									listener.reportActivity( getMessageText( "report.secondarylookup", null ));
-									
-									try{
-										ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
-									
-										URL sl_url = new URL( SECONDARY_LOOKUP + "magnetLookup?hash=" + Base32.encode( hash ) + (args.length()==0?"":("&args=" + UrlUtils.encode( args ))));
-										
-										ResourceDownloader rd = rdf.create( sl_url );
-										
-										rd.addListener(
-											new ResourceDownloaderAdapter()
-											{
-												public boolean
-												completed(
-													ResourceDownloader	downloader,
-													InputStream			data )
-												{
-													listener.reportActivity( getMessageText( "report.secondarylookup.ok", null ));
-	
-													synchronized( secondary_result ){
-													
-														secondary_result[0] = data;
-													}
-													
-													return( true );
-												}
-												
-												public void
-												failed(
-													ResourceDownloader			downloader,
-													ResourceDownloaderException e )
-												{
-													listener.reportActivity( getMessageText( "report.secondarylookup.fail" ));
-												}
-											});
-										
-										rd.asyncDownload();
-										
-									}catch( Throwable e ){
-										
-										listener.reportActivity( getMessageText( "report.secondarylookup.fail", Debug.getNestedExceptionMessage( e ) ));
-									}
+									doSecondaryLookup( listener, secondary_result, hash, args );
 								}
 							}else{
-									
-								InputStream is;
-									
-								synchronized( secondary_result ){
-									
-									is = secondary_result[0];
-									
-									secondary_result[0] = null;
-								}
-									
-								if ( is != null ){
-										
-									try{
-										TOTorrent t = TOTorrentFactory.deserialiseFromBEncodedInputStream( is );
-										
-										TorrentUtils.setPeerCacheValid( t );
 								
-										return( BEncoder.encode( t.serialiseToMap()));
+								try{
+									byte[] torrent = getSecondaryLookupResult( secondary_result );
+									
+									if ( torrent != null ){
 										
-									}catch( Throwable e ){							
+										return( torrent );
 									}
+								}catch( ResourceDownloaderException e ){
+									
+									// ignore, we just continue processing
 								}
 							}
 						}
@@ -875,6 +826,34 @@ MagnetPlugin
 				}
 			}
 		
+			if ( sl_enabled ){
+				
+				if ( secondary_lookup_time == -1 ){
+					
+					secondary_lookup_time = SystemTime.getMonotonousTime();
+					
+					doSecondaryLookup(listener, secondary_result, hash, args );
+				}
+				
+				while( SystemTime.getMonotonousTime() - secondary_lookup_time < SECONDARY_LOOKUP_MAX_TIME ){
+					
+					try{
+						byte[] torrent = getSecondaryLookupResult( secondary_result );
+						
+						if ( torrent != null ){
+							
+							return( torrent );
+						}
+						
+						Thread.sleep( 500 );
+						
+					}catch( ResourceDownloaderException e ){
+						
+						break;
+					}
+				}
+			}
+			
 			return( null );		// nothing found
 			
 		}catch( Throwable e ){
@@ -885,6 +864,98 @@ MagnetPlugin
 
 			throw( new MagnetURIHandlerException( "MagnetURIHandler failed", e ));
 		}
+	}
+	
+	protected void
+	doSecondaryLookup(
+		final MagnetPluginProgressListener		listener,
+		final Object[]							result,
+		byte[]									hash,
+		String									args )
+	{
+		listener.reportActivity( getMessageText( "report.secondarylookup", null ));
+		
+		try{
+			ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
+		
+			URL sl_url = new URL( SECONDARY_LOOKUP + "magnetLookup?hash=" + Base32.encode( hash ) + (args.length()==0?"":("&args=" + UrlUtils.encode( args ))));
+			
+			ResourceDownloader rd = rdf.create( sl_url );
+			
+			rd.addListener(
+				new ResourceDownloaderAdapter()
+				{
+					public boolean
+					completed(
+						ResourceDownloader	downloader,
+						InputStream			data )
+					{
+						listener.reportActivity( getMessageText( "report.secondarylookup.ok", null ));
+
+						synchronized( result ){
+						
+							result[0] = data;
+						}
+						
+						return( true );
+					}
+					
+					public void
+					failed(
+						ResourceDownloader			downloader,
+						ResourceDownloaderException e )
+					{
+						synchronized( result ){
+							
+							result[0] = e;
+						}
+						
+						listener.reportActivity( getMessageText( "report.secondarylookup.fail" ));
+					}
+				});
+			
+			rd.asyncDownload();
+			
+		}catch( Throwable e ){
+			
+			listener.reportActivity( getMessageText( "report.secondarylookup.fail", Debug.getNestedExceptionMessage( e ) ));
+		}
+	}
+	
+	protected byte[]
+	getSecondaryLookupResult(
+		final Object[]	result )
+	
+		throws ResourceDownloaderException
+	{
+		Object x;
+		
+		synchronized( result ){
+			
+			x = result[0];
+			
+			result[0] = null;
+		}
+			
+		if ( x instanceof InputStream ){
+			
+			InputStream is = (InputStream)x;
+				
+			try{
+				TOTorrent t = TOTorrentFactory.deserialiseFromBEncodedInputStream( is );
+				
+				TorrentUtils.setPeerCacheValid( t );
+		
+				return( BEncoder.encode( t.serialiseToMap()));
+				
+			}catch( Throwable e ){							
+			}
+		}else if ( x instanceof ResourceDownloaderException ){
+			
+			throw((ResourceDownloaderException)x);
+		}
+		
+		return( null );
 	}
 	
 	protected String
