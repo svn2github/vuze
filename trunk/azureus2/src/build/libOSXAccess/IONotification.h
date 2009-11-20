@@ -1,6 +1,6 @@
 #import <Cocoa/Cocoa.h>
 
-//#define fprintf
+#define fprintf
 
 NSMutableDictionary *map;
 Boolean useNSWorkspace;

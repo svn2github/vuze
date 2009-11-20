@@ -18,6 +18,7 @@
 #import "IONotification.h"
 
 extern void notify(const char *mount, io_service_t service, struct statfs *fs, bool added);
+extern void notifyURL(const char *url);
 
 // When a device is added, call IOServiceAddInterestNotification
 // and monitor device removal.  Not really needed since NSWorkspaceDidUnmountNotification
@@ -124,6 +125,13 @@ void DeviceRemoved(void *refCon, io_iterator_t iterator) {
 
 - (void) setup
 {
+	
+	NSAppleEventManager *appleEventManager = [NSAppleEventManager sharedAppleEventManager];
+	if (appleEventManager) {
+		[appleEventManager setEventHandler:self andSelector:@selector(handleGetURLEvent:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
+	}
+
+	
 
 	SInt32 majorVersion,minorVersion;
 
@@ -412,6 +420,16 @@ void DeviceNotification(void *refCon, io_service_t service, natural_t messageTyp
 	if (service) {
 		IOObjectRelease(service);
 	}
+}
+
+- (void)handleGetURLEvent:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent
+{
+	NSAppleEventDescriptor *desc = [event paramDescriptorForKeyword:keyDirectObject];
+	NSString *urlstring = [desc stringValue];
+	
+	const char *cUrl = [urlstring UTF8String];
+	fprintf(stderr, "handleGetURL! %s\n", cUrl);
+	notifyURL(cUrl);
 }
 
 @end

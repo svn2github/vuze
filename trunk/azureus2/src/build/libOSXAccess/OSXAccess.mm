@@ -14,13 +14,14 @@
 
 #include "IONotification.h"
 
-#define VERSION "1.07"
+#define VERSION "1.08"
 
 #define assertNot0(a) if (a == 0) { fprintf(stderr, "%s is 0\n", #a); return; }
 void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethodID methPut);
 
 extern "C" {
 	void notify(const char *mount, io_service_t service, struct statfs *fs, bool added);
+	void notifyURL(const char *url);
 }
 
 /**
@@ -42,6 +43,7 @@ static JavaVM *gjvm = 0;
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 	gjvm = vm;
+
 	return JNI_VERSION_1_4;
 }
 
@@ -478,4 +480,39 @@ void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethod
 		IOObjectRelease(device);
 	}
 	
+}
+
+void notifyURL(const char *url) {
+	if (url == NULL) {
+		return;
+	}
+	assertNot0(gCallBackClass);
+	assertNot0(gjvm);
+	
+	JNIEnv* env = NULL;
+	gjvm->AttachCurrentThread((void **) &env, NULL);
+	assertNot0(env);
+
+	jclass clsTorrentOpener = env->FindClass("org/gudy/azureus2/ui/swt/mainwindow/TorrentOpener");
+	assertNot0(clsTorrentOpener);
+	
+	jmethodID methOpenTorrent = env->GetStaticMethodID(clsTorrentOpener, "openTorrent", "(Ljava/lang/String;)V");
+	assertNot0(methOpenTorrent);
+	
+	jstring str = (jstring) env->NewStringUTF(url);
+	
+	env->CallStaticVoidMethod(clsTorrentOpener, methOpenTorrent, str);
+	/*
+	jclass clsCocoaUIEnh = env->FindClass("org/gudy/azureus2/ui/swt/osx/CocoaUIEnhancer");
+	assertNot0(clsCocoaUIEnh);
+
+	jmethodID methFileOpen = env->GetStaticMethodID(clsCocoaUIEnh, "fileOpen", "([Ljava/lang/String;)V");
+	assertNot0(methFileOpen);
+
+	jstring str = (jstring) env->NewStringUTF(url);
+	
+    jobjectArray ret= (jobjectArray)env->NewObjectArray(1, env->FindClass("java/lang/String"), str);
+
+	env->CallStaticVoidMethod(clsCocoaUIEnh, methFileOpen, ret);
+	 */
 }
