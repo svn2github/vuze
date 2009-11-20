@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
@@ -342,8 +343,9 @@ public class BrowserContext
 				if (!event.top) {
 					return;
 				}
-				boolean isWebURL = event.location.startsWith("http://")
-						|| event.location.startsWith("https://");
+				String location = event.location.toLowerCase();
+				boolean isWebURL = location.startsWith("http://")
+						|| location.startsWith("https://");
 				if (!isWebURL) {
 					if (event.location.startsWith("res://")) {
 						fillWithRetry(event.location, "top changed");
@@ -382,8 +384,20 @@ public class BrowserContext
 					return;
 				}
 
-				boolean isWebURL = event_location.startsWith("http://")
-						|| event_location.startsWith("https://");
+				
+				String lowerLocation = event_location.toLowerCase();
+				boolean isOurURI = lowerLocation.startsWith("magnet:")
+						|| lowerLocation.startsWith("vuze:")
+						|| lowerLocation.startsWith("dht:");
+
+				if (isOurURI) {
+					event.doit = false;
+					TorrentOpener.openTorrent(event_location);
+					return;
+				}
+
+				boolean isWebURL = lowerLocation.startsWith("http://")
+						|| lowerLocation.startsWith("https://");
 				if (!isWebURL) {
 					// we don't get a changed state on non URLs (mailto, javascript, etc)
 					return;
