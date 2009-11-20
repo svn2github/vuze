@@ -41,6 +41,7 @@ MagnetURIHandlerListener
 	download(
 		MagnetURIHandlerProgressListener	progress,
 		byte[]								hash,
+		String								args,
 		InetSocketAddress[]					sources,
 		long								timeout )
 	

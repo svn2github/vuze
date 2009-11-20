@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
@@ -248,6 +249,7 @@ MagnetPlugin
 				download(
 					final MagnetURIHandlerProgressListener		muh_listener,
 					final byte[]								hash,
+					final String								args,
 					final InetSocketAddress[]					sources,
 					final long									timeout )
 				
@@ -303,6 +305,7 @@ MagnetPlugin
 								}
 							},
 							hash,
+							args,
 							sources,
 							timeout ));
 				}
@@ -459,6 +462,7 @@ MagnetPlugin
 	download(
 		final MagnetPluginProgressListener		listener,
 		final byte[]							hash,
+		final String							args,
 		final InetSocketAddress[]				sources,
 		final long								timeout )
 	
@@ -718,7 +722,7 @@ MagnetPlugin
 									try{
 										ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
 									
-										URL sl_url = new URL( SECONDARY_LOOKUP + "magnetLookup?hash=" + Base32.encode( hash ));
+										URL sl_url = new URL( SECONDARY_LOOKUP + "magnetLookup?hash=" + Base32.encode( hash ) + (args.length()==0?"":("&args=" + UrlUtils.encode( args ))));
 										
 										ResourceDownloader rd = rdf.create( sl_url );
 										

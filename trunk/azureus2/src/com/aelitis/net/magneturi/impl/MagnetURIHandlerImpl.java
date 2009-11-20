@@ -278,9 +278,17 @@ MagnetURIHandlerImpl
 		
 		int	pos	= get.indexOf( '?' );
 		
-		if ( pos != -1 ){
-					
-			StringTokenizer	tok = new StringTokenizer( get.substring( pos+1 ), "&" );
+		String	arg_str;
+		
+		if ( pos == -1 ){
+			
+			arg_str = "";
+			
+		}else{
+			
+			arg_str = get.substring( pos+1 );
+			
+			StringTokenizer	tok = new StringTokenizer( arg_str, "&" );
 			if (DEBUG) {
 				System.out.println("params:" + get.substring( pos+1 ));
 			}
@@ -572,6 +580,7 @@ MagnetURIHandlerImpl
 								}
 							},
 							sha1, 
+							arg_str,
 							s,
 							DOWNLOAD_TIMEOUT );
 					
