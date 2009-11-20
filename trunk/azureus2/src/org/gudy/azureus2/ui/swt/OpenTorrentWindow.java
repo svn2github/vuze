@@ -172,7 +172,7 @@ public class OpenTorrentWindow
 	/** List of torrents being downloaded.  Stored so we don't close window
 	 * until they are done/aborted.
 	 */
-	private ArrayList downloaders = new ArrayList();
+	private ArrayList<TorrentDownloader> downloaders = new ArrayList<TorrentDownloader>();
 
 	private boolean bOverrideStartModeToStopped = false;
 
@@ -1042,15 +1042,24 @@ public class OpenTorrentWindow
 
 		Utils.disposeSWTObjects(disposeList);
 
-		if (downloaders.size() > 0) {
-			for (Iterator iter = downloaders.iterator(); iter.hasNext();) {
-				TorrentDownloader element = (TorrentDownloader) iter.next();
-				element.cancel();
-			}
-			downloaders.clear();
-		}
-
 		if (bCancel) {
+			
+			List<TorrentDownloader> to_cancel;
+			
+			synchronized( downloaders ){
+				
+				to_cancel = new ArrayList<TorrentDownloader>( downloaders );
+				
+				downloaders.clear(); 
+			}
+			
+			if (to_cancel.size() > 0){
+				for (Iterator iter = to_cancel.iterator(); iter.hasNext();) {
+					TorrentDownloader element = (TorrentDownloader) iter.next();
+					element.cancel();
+				}
+			}
+
 			for (Iterator iter = torrentList.iterator(); iter.hasNext();) {
 				TorrentInfo info = (TorrentInfo) iter.next();
 				if (info.bDeleteFileOnCancel) {
@@ -2340,10 +2349,16 @@ public class OpenTorrentWindow
 
 			activeTorrentCount--;
 			enableControl(ok, activeTorrentCount < 1);
-			if (!downloaders.contains(inf))
-				return;
-			downloaders.remove(inf);
-
+			
+				// PARG - yes, this code sucks, added some sync here to prvent some errors but obviously
+				// it needs a complete rewrite
+			
+			synchronized( downloaders ){
+				if (!downloaders.contains(inf))
+					return;
+				downloaders.remove(inf);
+			}
+			
 			File file = inf.getFile();
 			// we already know it isn't a torrent.. we are just using the call
 			// to popup the message
@@ -2357,16 +2372,20 @@ public class OpenTorrentWindow
 		if (state == TorrentDownloader.STATE_INIT) {
 			activeTorrentCount++;
 			enableControl(ok, activeTorrentCount < 1);
-			downloaders.add(inf);
+			synchronized( downloaders ){
+				downloaders.add(inf);
+			}
 		} else if (state == TorrentDownloader.STATE_FINISHED) {
 			activeTorrentCount--;
 			enableControl(ok, activeTorrentCount < 1);
 
 			// This can be called more than once for each inf..
-			if (!downloaders.contains(inf))
-				return;
-			downloaders.remove(inf);
-
+			synchronized( downloaders ){
+				if (!downloaders.contains(inf))
+					return;
+				downloaders.remove(inf);
+			}
+			
 			File file = inf.getFile();
 			if (addTorrent(file.getAbsolutePath(), inf.getURL()) == null) {
 				// addTorrent may not delete it on error if the downloader saved it
@@ -2410,7 +2429,9 @@ public class OpenTorrentWindow
 				|| state == TorrentDownloader.STATE_DUPLICATE) {
 			activeTorrentCount--;
 			enableControl(ok, activeTorrentCount < 1);
-			downloaders.remove(inf);
+			synchronized( downloaders ){
+				downloaders.remove(inf);
+			}
 		} else if (state == TorrentDownloader.STATE_DOWNLOADING) {
 			int count = inf.getLastReadCount();
 			int numRead = inf.getTotalRead();
