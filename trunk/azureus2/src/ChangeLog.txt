@@ -6,6 +6,7 @@ VUZE CHANGELOG
 BUGFIX: UI    | Prevent main window from popping up when adding a torrent and "Add Torrent Silently" set [TuxPaper]
 BUGFIX: UI    | Ensure that the correct progress reports are passed to listeners [Parg]
 BUGFIX: UI    | Fixed bug whereby the destruction of the torrent-open window was cancelling torrent download dialogs [Parg]
+BUGFIX: UI    | (OSX) Fixed bug where scrollers on some mice would cause table to blank [TuxPaper]
 BUGFIX: UIvz  | Handle magnet links within internal browser [TuxPaper]
 BUGFIX: Plug  | Improved the fallback lookup service by passing the all params [Parg]
 BUGFIX: Plug  | Verify that downloaded torrents are valid before passing to caller [Parg]
