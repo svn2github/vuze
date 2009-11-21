@@ -3,6 +3,10 @@ VUZE CHANGELOG
 
 2009.xx.xx | Vuze 4.3.0.3
 
+BUGFIX: UI    | Prevent main window from popping up when adding a torrent and "Add Torrent Silently" set [TuxPaper]
+BUGFIX: UIvz  | Handle magnet links within internal browser [TuxPaper]
+
+
 
 2009.11.19 | Vuze 4.3.0.2
 
