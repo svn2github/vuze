@@ -502,6 +502,7 @@ public class ProgressReporterPanel
 			case REPORT_TYPE_RETRY:
 				getDisplay().asyncExec(new Runnable() {
 					public void run() {
+						lastStatusError = null;
 						updateStatusLabel(pReport.getMessage(), false);
 						appendToDetail(
 								MessageText.getString("Progress.reporting.status.retrying"),
