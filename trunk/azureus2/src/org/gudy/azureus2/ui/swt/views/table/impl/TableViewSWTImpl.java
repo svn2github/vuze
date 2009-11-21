@@ -1060,6 +1060,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 
+		if (Utils.isCocoa) {
+			table.addListener(SWT.MouseVerticalWheel, new Listener() {
+				public void handleEvent(Event event) {
+					calculateClientArea();
+					visibleRowsChanged();
+				}
+			});
+		}
+		
 		ScrollBar bar = table.getVerticalBar();
 		if (bar != null) {
 			bar.addSelectionListener(new SelectionAdapter() {
