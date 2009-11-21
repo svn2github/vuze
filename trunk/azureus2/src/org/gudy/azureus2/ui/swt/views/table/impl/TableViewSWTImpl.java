@@ -4376,6 +4376,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
 		if (lastTopIndex != iTopIndex) {
+			if (Utils.isCocoa) {
+				calculateClientArea();
+			}
 			int tmpIndex = lastTopIndex;
 			lastTopIndex = iTopIndex;
 
