@@ -204,12 +204,8 @@ StartServer
     	return;
     }
     
-    // 1 Param usually means a torrent, so don't show main window we add torrents
-    // silently
-    if (args.length != 1
-				|| !COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
-			showMainWindow();
-		}
+    boolean addSilent = COConfigurationManager.getBooleanParameter("add_torrents_silently");
+    boolean showMainWindow = !addSilent;
 
     boolean	open	= true;
     
@@ -230,10 +226,14 @@ StartServer
 	  	    	
 	  	    }else if ( arg.equalsIgnoreCase( "--open" )){
 	  	    	
+	  	    	showMainWindow = true;
+
 	  	    	continue;
 	  	    	
 	  	    }else if ( arg.equalsIgnoreCase( "--share" )){
 	  	    	
+	  	    	showMainWindow = true;
+
 	  	    	open	= false;
 	  	    	
 	  	    	continue;
@@ -304,6 +304,10 @@ StartServer
         	handleFile( file_name, open );
         }
       }
+
+    if (showMainWindow) {
+			showMainWindow();
+		}
   }
   
   protected boolean
