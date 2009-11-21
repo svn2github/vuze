@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -814,9 +815,27 @@ MagnetPlugin
 										
 					if ( value != null ){
 						
-						listener.reportContributor( contact.getAddress());
+							// let's verify the torrent
 						
-						return( (byte[])value.getValue(byte[].class));
+						byte[]	data = (byte[])value.getValue(byte[].class);
+
+						try{
+							TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray( data );
+							
+							if ( Arrays.equals( hash, torrent.getHash())){
+							
+								listener.reportContributor( contact.getAddress());
+						
+								return( data );
+								
+							}else{
+								
+								listener.reportActivity( getMessageText( "report.error", "torrent invalid (hash mismatch)" ));
+							}
+						}catch( Throwable e ){
+							
+							listener.reportActivity( getMessageText( "report.error", "torrent invalid (decode failed)" ));
+						}
 					}
 				}catch( Throwable e ){
 					
