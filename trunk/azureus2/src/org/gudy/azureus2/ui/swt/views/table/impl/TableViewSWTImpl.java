@@ -1059,7 +1059,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				Utils.disposeSWTObjects(new Object[] { slider } );
 			}
 		});
-
+/*
 		if (Utils.isCocoa) {
 			table.addListener(SWT.MouseVerticalWheel, new Listener() {
 				public void handleEvent(Event event) {
@@ -1068,7 +1068,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 			});
 		}
-		
+*/		
 		ScrollBar bar = table.getVerticalBar();
 		if (bar != null) {
 			bar.addSelectionListener(new SelectionAdapter() {
