@@ -29,6 +29,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.FileUtil;
 
@@ -194,11 +195,12 @@ FMFileAccessCompact
 	
 		throws FMFileManagerException
 	{
-		if(length != current_length)
+		if ( length != current_length ){
+					
+			current_length	= length;
+			
 			write_required = true;
-		
-		current_length	= length;
-		
+		}
 	}
 	
 	protected void
@@ -317,7 +319,14 @@ FMFileAccessCompact
 		
 			read( raf, buffer, position );
 			
-			position += len;
+			int	rem = buffers[i].remaining( SS );
+			
+			position += len - rem;
+			
+			if ( rem > 0 ){
+				
+				break;
+			}
 		}
 		
 		if ( position > current_length ){

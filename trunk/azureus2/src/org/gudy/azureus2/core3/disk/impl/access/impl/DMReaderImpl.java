@@ -339,7 +339,7 @@ DMReaderImpl
 			List	chunks = new ArrayList();
 			
 			int	buffer_position = 0;
-			
+						
 			while ( buffer_position < length && currentFile < pieceList.size()) {
 	     
 				DMPieceMapEntry map_entry = pieceList.get( currentFile );
@@ -493,6 +493,7 @@ DMReaderImpl
 		private int	buffer_length;
 		
 		private int	chunk_index;
+		private int	chunk_limit;
 		
 		protected
 		requestDispatcher(
@@ -624,10 +625,16 @@ DMReaderImpl
 		doRequest(
 			DiskAccessRequestListener	l )
 		{
-			
 			Object[]	stuff = (Object[])chunks.get( chunk_index++ );
 			
-			buffer.limit( DirectByteBuffer.SS_DR, ((Integer)stuff[2]).intValue());
+			if ( chunk_index > 0 ){
+				
+				buffer.position( DirectByteBuffer.SS_DR, chunk_limit );
+			}
+			
+			chunk_limit = ((Integer)stuff[2]).intValue();
+			
+			buffer.limit( DirectByteBuffer.SS_DR, chunk_limit );
 			
 			short	cache_policy = dm_request.getUseCache()?CacheFile.CP_READ_CACHE:CacheFile.CP_NONE;
 			
