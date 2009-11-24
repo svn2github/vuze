@@ -32,7 +32,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -508,12 +507,7 @@ public class FileUtil {
 						  
 						  if ( !file.delete()){
 							  
-							  Logger.log(
-								 new LogAlert(
-										 LogAlert.UNREPEATABLE, 
-										 LogAlert.AT_ERROR,
-										 "Save of '" + file_name + "' fails - couldn't delete " + file.getAbsolutePath()));
- 
+							  Debug.out( "Save of '" + file_name + "' fails - couldn't delete " + file.getAbsolutePath());
 						  }
 					  }
 					  
@@ -523,11 +517,7 @@ public class FileUtil {
 						  
 					  }else{
 						  
-						  Logger.log(
-							 new LogAlert(
-									 LogAlert.UNREPEATABLE, 
-									 LogAlert.AT_ERROR,
-									 "Save of '" + file_name + "' fails - couldn't rename " + temp.getAbsolutePath() + " to " + file.getAbsolutePath()));
+						 Debug.out( "Save of '" + file_name + "' fails - couldn't rename " + temp.getAbsolutePath() + " to " + file.getAbsolutePath());
 
 					  }
 				  }
@@ -536,8 +526,7 @@ public class FileUtil {
 
 			  }catch( Throwable e ){
 				  
-				  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, "Save of '"
-						  + file_name + "' fails", e));
+				  Debug.out( "Save of '" + file_name + "' fails", e );
 
 				  return( false );
 				  
@@ -549,8 +538,8 @@ public class FileUtil {
 						  baos.close();
 					  }
 				  }catch( Exception e){
-					  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, "Save of '"
-							  + file_name + "' fails", e)); 
+					  
+					  Debug.out( "Save of '" + file_name + "' fails", e ); 
 					  
 					  return( false );
 				  }
@@ -653,9 +642,7 @@ public class FileUtil {
  		 		
 	 		if ( res != null ){
 	 			
-	 			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
-						"Backup file '" + backup_file
-								+ "' has been used for recovery purposes"));
+	 			Debug.out( "Backup file '" + backup_file + "' has been used for recovery purposes" );
 				
 					// rewrite the good data, don't use backups here as we want to
 					// leave the original backup in place for the moment
@@ -708,9 +695,8 @@ public class FileUtil {
 	  				res = readResilientFile( file_name, parent_dir, file_name, 0, true, intern_keys );
 	  				
 	  				if ( res != null ){
-	  					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
-								"File '" + file_name + "' has been partially recovered, "
-										+ "information may have been lost!"));
+	  					
+	  					Debug.out( "File '" + file_name + "' has been partially recovered, information may have been lost!" );
 	  				}
 	  			}
 	  			
@@ -759,10 +745,8 @@ public class FileUtil {
   					
 	  				if ( fail_count == 1 ){
 	  					
-	  					// we only alert the user if at least one file was found and failed
-	  					// otherwise it could be start of day when neither file exists yet
-	  					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-								"Load of '" + original_file_name + "' fails, no usable file or backup"));
+	  					Debug.out( "Load of '" + original_file_name + "' fails, no usable file or backup" );
+	  					
 	  				}else{
 	  					// drop this log, it doesn't really help to inform about the failure to 
 	  					// find a .saving file
@@ -826,9 +810,7 @@ public class FileUtil {
 	    	
 	    	if ( using_backup && !recovery_mode ){
   		
-	    		Logger.log(
-	    				new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
-						"Load of '" + original_file_name + "' had to revert to backup file")); 
+	    		Debug.out( "Load of '" + original_file_name + "' had to revert to backup file" ); 
 	    	}
 	    	
 	    	return( res );
@@ -887,8 +869,8 @@ public class FileUtil {
 	    	if ( using_backup ){
 		
 	    		if ( !recovery_mode ){
-	    			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-							"Load of '" + original_file_name + "' fails, no usable file or backup")); 
+	    			
+	    			Debug.out( "Load of '" + original_file_name + "' fails, no usable file or backup" ); 
 	    		}
 	    			
 	    		return( null );
@@ -1396,10 +1378,8 @@ public class FileUtil {
     ) {
     
     	if ( !from_file.exists()){
-    		Logger
-					.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-							"renameFile: source file '" + from_file
-									+ "' doesn't exist, failing"));
+    		
+    		Debug.out( "renameFile: source file '" + from_file + "' doesn't exist, failing" );
     		
     		return( false );
     	}
@@ -1408,8 +1388,8 @@ public class FileUtil {
          * If the destination exists, we only fail if requested.
          */
         if (to_file.exists() && (fail_on_existing_directory || from_file.isFile() || to_file.isFile())) {
-            Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-                    "renameFile: target file '" + to_file + "' already exists, failing"));
+            
+        	Debug.out( "renameFile: target file '" + to_file + "' already exists, failing" );
 
             return( false );
         }
@@ -1449,9 +1429,8 @@ public class FileUtil {
     				}
     			}catch( Throwable e ){
     				
-    				Logger.log(new LogAlert(LogAlert.REPEATABLE,
-							"renameFile: failed to rename file '" + ff.toString() + "' to '"
-									+ tf.toString() + "'", e));
+    				Debug.out( "renameFile: failed to rename file '" + ff.toString() + "' to '"
+									+ tf.toString() + "'", e );
 
     				break;
     			}
@@ -1465,9 +1444,8 @@ public class FileUtil {
     				// This might be important or not. We'll make it a debug message if we had a filter,
     				// or log it normally otherwise.
     				if (file_filter == null) {
-    					Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-							"renameFile: files remain in '" + from_file.toString()
-									+ "', not deleting"));
+    					Debug.out( "renameFile: files remain in '" + from_file.toString()
+									+ "', not deleting");
     				}
     				else {
     					/* Should we log this? How should we log this? */
@@ -1477,8 +1455,7 @@ public class FileUtil {
     			}else{
     				
     				if ( !from_file.delete()){
-    					Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-								"renameFile: failed to delete '" + from_file.toString() + "'"));
+    					Debug.out( "renameFile: failed to delete '" + from_file.toString() + "'" );
     				}
     			}
     			
@@ -1495,14 +1472,12 @@ public class FileUtil {
     			try{
     				// null - We don't want to use the file filter, it only refers to source paths.
                     if ( !renameFile( tf, ff, false, null )){
-    					Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-								"renameFile: recovery - failed to move file '" + tf.toString()
-										+ "' to '" + ff.toString() + "'"));
+    					Debug.out( "renameFile: recovery - failed to move file '" + tf.toString()
+										+ "' to '" + ff.toString() + "'" );
     				}
     			}catch( Throwable e ){
-    				Logger.log(new LogAlert(LogAlert.REPEATABLE,
-							"renameFile: recovery - failed to move file '" + tf.toString()
-									+ "' to '" + ff.toString() + "'", e));
+    				Debug.out("renameFile: recovery - failed to move file '" + tf.toString()
+									+ "' to '" + ff.toString() + "'", e);
    	   			    				
     			}
       		}
@@ -1552,9 +1527,8 @@ public class FileUtil {
 					fis = null;
 					
 					if ( !from_file.delete()){
-						Logger.log(new LogAlert(LogAlert.REPEATABLE,
-								LogAlert.AT_ERROR, "renameFile: failed to delete '"
-										+ from_file.toString() + "'"));
+						Debug.out( "renameFile: failed to delete '"
+										+ from_file.toString() + "'" );
 						
 						throw( new Exception( "Failed to delete '" + from_file.toString() + "'"));
 					}
@@ -1565,9 +1539,8 @@ public class FileUtil {
 					
 				}catch( Throwable e ){		
 	
-					Logger.log(new LogAlert(LogAlert.REPEATABLE,
-							"renameFile: failed to rename '" + from_file.toString()
-									+ "' to '" + to_file.toString() + "'", e));
+					Debug.out( "renameFile: failed to rename '" + from_file.toString()
+									+ "' to '" + to_file.toString() + "'", e );
 					
 					return( false );
 					
