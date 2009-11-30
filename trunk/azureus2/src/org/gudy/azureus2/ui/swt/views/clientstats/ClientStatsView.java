@@ -10,8 +10,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerListener;
@@ -34,6 +33,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
@@ -218,6 +218,82 @@ public class ClientStatsView
 					}
 					sb.append(DisplayFormatters.formatByteCountToKiBEtc(
 							stat.bytesReceived / stat.count, false, true, 0));
+					sb.append(" per ");
+					sb.append(stat.client);
+					sb.append("(x");
+					sb.append(stat.count);
+					sb.append(")");
+					if (--top <= 0) {
+						break;
+					}
+				}
+				
+				Arrays.sort(stats, new Comparator<ClientStatsDataSource>() {
+					public int compare(ClientStatsDataSource o1, ClientStatsDataSource o2) {
+						float v1 = (float) o1.bytesDiscarded / o1.count;
+						float v2 = (float) o2.bytesDiscarded / o2.count;
+						if (v1 == v2) {
+							return 0;
+						}
+						return v1 > v2 ? -1 : 1;
+					}
+				});
+				top = 5;
+				first = true;
+				sb.append("\nMost Discarded (");
+				total = 0;
+				for (ClientStatsDataSource stat : stats) {
+					total += stat.bytesDiscarded;
+				}
+				sb.append(DisplayFormatters.formatByteCountToKiBEtc(total, false, true,
+						0));
+				sb.append(" Discarded): ");
+				for (ClientStatsDataSource stat : stats) {
+					if (first) {
+						first = false;
+					} else {
+						sb.append(", ");
+					}
+					sb.append(DisplayFormatters.formatByteCountToKiBEtc(
+							stat.bytesDiscarded / stat.count, false, true, 0));
+					sb.append(" per ");
+					sb.append(stat.client);
+					sb.append("(x");
+					sb.append(stat.count);
+					sb.append(")");
+					if (--top <= 0) {
+						break;
+					}
+				}
+
+				Arrays.sort(stats, new Comparator<ClientStatsDataSource>() {
+					public int compare(ClientStatsDataSource o1, ClientStatsDataSource o2) {
+						float v1 = (float) o1.bytesSent / o1.count;
+						float v2 = (float) o2.bytesSent / o2.count;
+						if (v1 == v2) {
+							return 0;
+						}
+						return v1 > v2 ? -1 : 1;
+					}
+				});
+				top = 5;
+				first = true;
+				sb.append("\nMost Fed (");
+				total = 0;
+				for (ClientStatsDataSource stat : stats) {
+					total += stat.bytesSent;
+				}
+				sb.append(DisplayFormatters.formatByteCountToKiBEtc(total, false, true,
+						0));
+				sb.append(" Sent): ");
+				for (ClientStatsDataSource stat : stats) {
+					if (first) {
+						first = false;
+					} else {
+						sb.append(", ");
+					}
+					sb.append(DisplayFormatters.formatByteCountToKiBEtc(
+							stat.bytesSent / stat.count, false, true, 0));
 					sb.append(" per ");
 					sb.append(stat.client);
 					sb.append("(x");
@@ -428,7 +504,9 @@ public class ClientStatsView
 	}
 
 	public void downloadManagerAdded(DownloadManager dm) {
-		dm.addPeerListener(this, true);
+		if (!dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
+			dm.addPeerListener(this, true);
+		}
 	}
 
 	public void downloadManagerRemoved(DownloadManager dm) {
