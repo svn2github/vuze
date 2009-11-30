@@ -368,6 +368,12 @@ public class ClientStatsView
 					}
 				});
 		tableManager.registerColumn(ClientStatsDataSource.class,
+				ColumnCS_ReceivedPer.COLUMN_ID, new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnCS_ReceivedPer(column);
+					}
+				});
+		tableManager.registerColumn(ClientStatsDataSource.class,
 				ColumnCS_Sent.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnCS_Sent(column);
