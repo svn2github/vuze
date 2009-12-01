@@ -375,6 +375,9 @@ RegexEngine
 											case FIELD_VOTES_DOWN :
 												result.setVotesDownFromHTML(groupContent);
 												break;
+											case FIELD_HASH :
+												result.setHash(groupContent);
+												break;
 											default:
 												fields_matched--;
 												break;

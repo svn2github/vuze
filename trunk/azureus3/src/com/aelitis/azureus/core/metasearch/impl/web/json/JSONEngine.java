@@ -343,6 +343,9 @@ JSONEngine
 									case FIELD_VOTES_DOWN :
 										result.setVotesDownFromHTML(fieldContent);
 										break;
+									case FIELD_HASH :
+										result.setHash(fieldContent);
+										break;
 									default:
 										break;
 									}
