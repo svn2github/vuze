@@ -365,7 +365,7 @@ WebPlugin
 			plugin_config.save();
 		}
 		
-		LabelParameter param_info = config_model.addLabelParameter2( "webui.restart.info" );
+		final LabelParameter param_info = config_model.addLabelParameter2( "webui.restart.info" );
 
 		Boolean	disablable = (Boolean)properties.get( PR_DISABLABLE );
 		
@@ -519,19 +519,72 @@ WebPlugin
 				pw_enable, user_name, password,
 			});
 			    
-		if ( !enabled ){
+		if ( param_enable != null){
+						
+			final List<Parameter> changed_params = new ArrayList<Parameter>();
 			
-			Parameter[] params = config_model.getParameters();
-			
-			for ( Parameter param: params ){
+			if ( !enabled ){
 				
-				if ( param == param_enable || param == param_info ){
+				Parameter[] params = config_model.getParameters();
+
+				for ( Parameter param: params ){
 					
-					continue;
+					if ( param == param_enable || param == param_info ){
+						
+						continue;
+					}
+					
+					if ( param.isEnabled()){
+						
+						changed_params.add( param );
+					
+						param.setEnabled( false );
+					}
 				}
-				
-				param.setEnabled( false );
 			}
+			
+			param_enable.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter e_p )
+					{
+							// this doesn't quite work as tne enabler/disabler parameter logic is implemented
+							// badly and only toggles the UI component, not the enabled state of the
+							// underlying parameter. grr. better than nothing though
+						
+						boolean	is_enabled = ((BooleanParameter)e_p).getValue();
+						
+						if ( is_enabled ){
+						
+							for ( Parameter p: changed_params ){
+								
+								p.setEnabled( true );
+							}
+						}else{
+							
+							changed_params.clear();
+							
+							Parameter[] params = config_model.getParameters();
+							
+							for ( Parameter param: params ){
+								
+								if ( param == e_p || param == param_info ){
+									
+									continue;
+								}
+								
+								if ( param.isEnabled()){
+									
+									changed_params.add( param );
+								
+									param.setEnabled( false );
+								}
+							}
+						}
+					}
+				});
 			
 			return;
 		}
