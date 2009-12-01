@@ -798,11 +798,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					event.width = preferredWidth;
 				}
 
-				if (slider == null) {
-  				int defaultHeight = getRowDefaultHeight();
-  				if (event.height < defaultHeight) {
-  					event.height = defaultHeight;
-  				}
+				int defaultHeight = getRowDefaultHeight();
+				if (event.height < defaultHeight) {
+					event.height = defaultHeight;
 				}
 			}
 		});
