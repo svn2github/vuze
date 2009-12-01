@@ -499,21 +499,12 @@ public class TorrentUtil {
 					return;
 				}
 				
-				List getright = torrent.getAdditionalListProperty( "url-list" );
-				List webseeds = torrent.getAdditionalListProperty( "httpseeds" );
+				List getright = getURLList( torrent, "url-list" );
+				List webseeds = getURLList( torrent, "httpseeds" );
 				
 				Map ws = new HashMap();
-				
-				if ( getright == null ){
-					getright = new ArrayList();
-				}
-				
-				ws.put( "getright", getright );
-				
-				if ( webseeds == null ){
-					webseeds = new ArrayList();
-				}
-				
+								
+				ws.put( "getright", getright );								
 				ws.put( "webseeds", webseeds );
 				
 				ws = BDecoder.decodeStrings( ws );
@@ -572,6 +563,31 @@ public class TorrentUtil {
 						},
 						true );
 
+			}
+			
+			protected List
+			getURLList(
+				TOTorrent	torrent,
+				String		key )
+			{
+				Object obj = torrent.getAdditionalProperty( key );
+				
+				if ( obj instanceof byte[] ){
+					
+	                List l = new ArrayList();
+	                
+			        l.add(obj);
+			        
+			        return( l );
+			        
+				}else if ( obj instanceof List ){
+					
+					return((List)obj);
+					
+				}else{
+					
+					return( new ArrayList());
+				}
 			}
 		});
 		

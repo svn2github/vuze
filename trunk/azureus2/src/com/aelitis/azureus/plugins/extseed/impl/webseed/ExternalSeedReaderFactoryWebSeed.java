@@ -82,6 +82,17 @@ ExternalSeedReaderFactoryWebSeed
 		try{
 			Object	obj = config.get( "httpseeds" );
 			
+				// might as well handle case where there's a single entry rather than a list
+			
+			if ( obj instanceof byte[] ){
+				
+                List l = new ArrayList();
+                
+		        l.add(obj);
+		        
+		        obj = l;
+			}
+			
 			if ( obj instanceof List ){
 				
 				List	urls = (List)obj;
