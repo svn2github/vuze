@@ -1081,6 +1081,19 @@ addressLoop:
 		return null;
 	}
 	
+	public boolean
+	hasDHTIPV6()
+	{
+		if ( hasIPV6Potential(false)){
+			
+			InetAddress v6 = getDefaultPublicAddressV6();
+			
+			return( v6 != null && !AddressUtils.isTeredo( v6 ));
+		}
+		
+		return( false );
+	}
+	
 	protected void
 	firePropertyChange(
 		String	property )

@@ -114,7 +114,7 @@ public class StatsView extends AbstractIView {
     dhts.add( new DHTView( DHTView.DHT_TYPE_MAIN ));  
     vivaldis.add( new VivaldiView( VivaldiView.DHT_TYPE_MAIN ));  
 
-    if ( NetworkAdmin.getSingleton().hasIPV6Potential(false)){
+    if ( NetworkAdmin.getSingleton().hasDHTIPV6()){
   
     	dhts.add(  new DHTView( DHTView.DHT_TYPE_MAIN_V6 ));
     	vivaldis.add(  new VivaldiView( VivaldiView.DHT_TYPE_MAIN_V6 ));

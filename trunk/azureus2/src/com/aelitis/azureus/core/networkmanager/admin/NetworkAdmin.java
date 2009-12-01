@@ -198,6 +198,8 @@ NetworkAdmin
 	
 	public abstract InetAddress getDefaultPublicAddressV6();
 	
+	public abstract boolean	hasDHTIPV6();
+	
 	public abstract void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener );

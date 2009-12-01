@@ -871,8 +871,8 @@ DHTPlugin
 												
 												if ( MAIN_DHT_V6_ENABLE ){
 													
-													if ( NetworkAdmin.getSingleton().hasIPV6Potential(false)){
-														
+													if ( NetworkAdmin.getSingleton().hasDHTIPV6()){
+															
 														main_v6_dht = 
 															new DHTPluginImpl(
 																plugin_interface,
