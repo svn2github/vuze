@@ -51,6 +51,7 @@ import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.clientmessageservice.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
+import com.aelitis.azureus.core.util.DNSUtils;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 import com.aelitis.net.udp.uc.PRUDPReleasablePacketHandler;
@@ -648,7 +649,7 @@ public class VersionCheckClient {
 		  throw( new Exception( "IPv6 is disabled" ));
 	  }
 
-	  String	host = v6?AZ_MSG_SERVER_ADDRESS_V6:AZ_MSG_SERVER_ADDRESS_V4;
+	  String	host = getHost( v6, AZ_MSG_SERVER_ADDRESS_V6, AZ_MSG_SERVER_ADDRESS_V4 );
 	  
 	  if (Logger.isEnabled())
 		  Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
@@ -689,13 +690,13 @@ public class VersionCheckClient {
 		  throw( new Exception( "IPv6 is disabled" ));
 	  }
 	  
-	  String	host = v6?HTTP_SERVER_ADDRESS_V6:HTTP_SERVER_ADDRESS_V4;
+	  String	host = getHost(v6, HTTP_SERVER_ADDRESS_V6, HTTP_SERVER_ADDRESS_V4 );
 
 	  if (Logger.isEnabled())
 		  Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
 				  + "version information from " + host + ":" + HTTP_SERVER_PORT + " via HTTP" )); 
 
-	  String	url_str = "http://" + host + (HTTP_SERVER_PORT==80?"":(":" + HTTP_SERVER_PORT)) + "/version?";
+	  String	url_str = "http://" + (v6?UrlUtils.convertIPV6Host(host):host) + (HTTP_SERVER_PORT==80?"":(":" + HTTP_SERVER_PORT)) + "/version?";
 
 	  url_str += URLEncoder.encode( new String( BEncoder.encode( data_to_send ), "ISO-8859-1" ), "ISO-8859-1" );
 	  
@@ -734,9 +735,9 @@ public class VersionCheckClient {
 	boolean	for_proxy,
 	boolean	v6 )
   {
-	  String	host = v6?HTTP_SERVER_ADDRESS_V6:HTTP_SERVER_ADDRESS_V4;
+	  String	host = getHost( v6, HTTP_SERVER_ADDRESS_V6, HTTP_SERVER_ADDRESS_V4 );
 
-	  String	get_str = "GET " + (for_proxy?("http://" + host + ":" + HTTP_SERVER_PORT ):"") +"/version?";
+	  String	get_str = "GET " + (for_proxy?("http://" + (v6?UrlUtils.convertIPV6Host( host ):host ) + ":" + HTTP_SERVER_PORT ):"") +"/version?";
 
 	  try{
 		  get_str += URLEncoder.encode( new String( BEncoder.encode( content ), "ISO-8859-1" ), "ISO-8859-1" );
@@ -763,7 +764,7 @@ public class VersionCheckClient {
 		  throw( new Exception( "IPv6 is disabled" ));
 	  }
 
-	  String	host = v6?TCP_SERVER_ADDRESS_V6:TCP_SERVER_ADDRESS_V4;
+	  String	host = getHost(v6, TCP_SERVER_ADDRESS_V6, TCP_SERVER_ADDRESS_V4 );
 
 	  if (Logger.isEnabled())
 		  Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
@@ -906,7 +907,7 @@ public class VersionCheckClient {
 		  throw( new Exception( "IPv6 is disabled" ));
 	  }
 
-	  String	host = v6?UDP_SERVER_ADDRESS_V6:UDP_SERVER_ADDRESS_V4;
+	  String	host = getHost( v6, UDP_SERVER_ADDRESS_V6, UDP_SERVER_ADDRESS_V4 );
 
 	  PRUDPReleasablePacketHandler handler = PRUDPPacketHandlerFactory.getReleasableHandler( bind_port );
 	  	  
@@ -1103,6 +1104,33 @@ public class VersionCheckClient {
 	  byte[] address = (byte[])reply.get( "source_ip_address" );
 	  
 	  return( InetAddress.getByName( new String( address )));
+  }
+  
+  protected String
+  getHost(
+	boolean		v6,
+	String		v6_address,
+	String		v4_address )
+  {
+	 if ( v6 ){
+		 
+		 try{
+			 return( InetAddress.getByName( v6_address ).getHostAddress());
+			 
+		 }catch( UnknownHostException e ){
+			 
+			 try{
+				 return( DNSUtils.getIPV6ByName(v6_address ).getHostAddress());
+				 
+			 }catch( UnknownHostException f ){
+				 
+				 return( v6_address );
+			 }
+		 }
+	 }else{
+		 
+		 return( v4_address );
+	 }
   }
   
   /**
@@ -1328,13 +1356,13 @@ public class VersionCheckClient {
 	  try{
 		  COConfigurationManager.initialise();
 		  
-		  boolean v6= false;
+		  boolean v6= true;
 		  
 		  // Test connectivity.
 		  if (true) {
-			//  System.out.println( "UDP:  " + getSingleton().getExternalIpAddressUDP(null,0,v6));
-			  System.out.println( "TCP:  " + getSingleton().getExternalIpAddressTCP(null,0,v6));
-			//  System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP(v6));
+			 // System.out.println( "UDP:  " + getSingleton().getExternalIpAddressUDP(null,0,v6));
+			 // System.out.println( "TCP:  " + getSingleton().getExternalIpAddressTCP(null,0,v6));
+			  System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP(v6));
 		  }
 		  
 		  Map data = constructVersionCheckMessage(VersionCheckClient.REASON_UPDATE_CHECK_START);

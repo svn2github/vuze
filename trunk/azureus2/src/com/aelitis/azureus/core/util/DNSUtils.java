@@ -21,9 +21,17 @@
 
 package com.aelitis.azureus.core.util;
 
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 
@@ -43,9 +51,67 @@ DNSUtils
 	{
 		Hashtable env = new Hashtable();
 		
-		env.put("java.naming.factory.initial", getFactory());
+		env.put ("java.naming.factory.initial", getFactory());
 		
-		return( new InitialDirContext(env));
+		return( new InitialDirContext( env ));
 
+	}
+	
+	public static Inet6Address
+	getIPV6ByName(
+		String		host )
+	
+		throws UnknownHostException
+	{
+		List<Inet6Address>	all = getAllIPV6ByName( host );
+	
+		return( all.get(0));
+	}
+	
+	public static List<Inet6Address>
+	getAllIPV6ByName(
+		String		host )
+		
+		throws UnknownHostException
+	{
+		List<Inet6Address>	result = new ArrayList<Inet6Address>();
+
+		try{			
+			DirContext context = getInitialDirContext();
+			
+			Attributes attrs = context.getAttributes( host, new String[]{ "AAAA" });
+			
+			if ( attrs != null ){
+			
+				Attribute attr = attrs.get( "aaaa" );
+			
+				if ( attr != null ){
+					
+					NamingEnumeration values = attr.getAll();
+			
+					while( values.hasMore()){
+					
+						Object value = values.next();
+						
+						if ( value instanceof String ){
+							
+							try{
+								result.add( (Inet6Address)InetAddress.getByName((String)value));
+								
+							}catch( Throwable e ){
+							}
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+		}
+		
+		if ( result.size() > 0 ){
+		
+			return( result );
+		}
+		
+		throw( new UnknownHostException( host ));
 	}
 }
