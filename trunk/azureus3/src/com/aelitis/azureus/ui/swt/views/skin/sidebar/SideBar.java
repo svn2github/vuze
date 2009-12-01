@@ -112,11 +112,11 @@ public class SideBar
 {
 	private static final boolean END_INDENT = Constants.isLinux || Constants.isWindows2000 || Constants.isWindows9598ME;
 	
-	private static final boolean USE_PAINTITEM = Utils.isCocoa;
+	private static final boolean USE_PAINTITEM = Utils.isCocoa || Constants.isWindows;
 	
 	// Need to use paint even on Cocoa, because there's cases where an area
 	// will become invalidated and we don't get a paintitem :(
-	private static final boolean USE_PAINT = true;
+	private static final boolean USE_PAINT = !Constants.isWindows;
 	
 	private static final boolean HIDE_NATIVE_EXPANDER = false;
 
@@ -587,6 +587,10 @@ public class SideBar
 							event.width = size.x + event.x; // tree.getClientArea().width;
 							event.x = 0;
 						}
+						
+						if (Constants.isWindows) {
+							event.width = clientWidth - event.x;
+						}
 						int padding = 4;
 						//String id = (String) treeItem.getData("Plugin.viewID");
 						//SideBarEntrySWT entry = getSideBarInfo(id);
@@ -601,7 +605,7 @@ public class SideBar
 					case SWT.PaintItem: {
 						if (USE_PAINTITEM) {
 							String id = (String) ((TreeItem) event.item).getData("Plugin.viewID");
-							//System.out.println(event.item + ";" + event.index + ";" + event.detail + ";" + id);
+							//System.out.println("PaintItem: " + event.item + ";" + event.index + ";" + event.detail + ";" + id + ";" + event.getBounds() + ";" + event.gc.getClipping());
 							SideBarEntrySWT entry = getEntry(id);
 							paintSideBar(event, entry);
 						}
@@ -1137,7 +1141,10 @@ public class SideBar
 	protected void paintSideBar(Event event, SideBarEntrySWT sideBarEntry) {
 		TreeItem treeItem = (TreeItem) event.item;
 		Rectangle itemBounds = treeItem.getBounds();
-		Rectangle drawBounds = Utils.isCocoa ? event.gc.getClipping() : event.getBounds();
+		Rectangle drawBounds = Utils.isCocoa || Constants.isWindows ? event.gc.getClipping() : event.getBounds();
+		if (drawBounds.isEmpty()) {
+			return;
+		}
 		
 		String text = (String) treeItem.getData("text");
 		if (text == null)
@@ -1174,7 +1181,7 @@ public class SideBar
 		int x1IndicatorOfs = SIDEBAR_SPACING;
 		int x0IndicatorOfs = itemBounds.x;
 
-		//System.out.println(System.currentTimeMillis() + "] refhres " + sideBarInfo.getId());
+		//System.out.println(System.currentTimeMillis() + "] refresh " + sideBarEntry.getId() + "; " + itemBounds + ";clip=" + event.gc.getClipping() + ";eb=" + event.getBounds());
 		if (sideBarEntry.titleInfo != null) {
 			String textIndicator = (String) sideBarEntry.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT);
 			if (textIndicator != null) {
