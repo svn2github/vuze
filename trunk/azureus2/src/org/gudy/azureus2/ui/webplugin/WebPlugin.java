@@ -51,6 +51,7 @@ public class
 WebPlugin
 	implements Plugin, TrackerWebPageGenerator
 {
+	public static final String	PR_ENABLE					= "Enable";						// Boolean
 	public static final String	PR_DISABLABLE				= "Disablable";					// Boolean
 	public static final String	PR_PORT						= "Port";						// Integer
 	public static final String	PR_BIND_IP					= "Bind IP";					// String
@@ -68,19 +69,19 @@ WebPlugin
 	public static final String	CONFIG_MIGRATED			= "Config Migrated";
 	
 	public static final String	CONFIG_PASSWORD_ENABLE			= "Password Enable";
-	public        final boolean	CONFIG_PASSWORD_ENABLE_DEFAULT	= false;
+	public static final boolean	CONFIG_PASSWORD_ENABLE_DEFAULT	= false;
 	
 	public static final String	CONFIG_PAIRING_ENABLE			= "Pairing Enable";
-	public        final boolean	CONFIG_PAIRING_ENABLE_DEFAULT	= true;
+	public static final boolean	CONFIG_PAIRING_ENABLE_DEFAULT	= true;
 
-	public static final String	CONFIG_ENABLE					= "Enable";
-	public static final boolean	CONFIG_ENABLE_DEFAULT			= true;
+	public static final String	CONFIG_ENABLE					= PR_ENABLE;
+	public  			boolean	CONFIG_ENABLE_DEFAULT			= true;
 	
 	public static final String	CONFIG_USER						= "User";
-	public        final String	CONFIG_USER_DEFAULT				= "";
+	public static final String	CONFIG_USER_DEFAULT				= "";
 	
 	public static final String	CONFIG_PASSWORD					= "Password";
-	public        final byte[]	CONFIG_PASSWORD_DEFAULT			= {};
+	public static final byte[]	CONFIG_PASSWORD_DEFAULT			= {};
 	
 	public static final String 	CONFIG_PORT						= PR_PORT;
 	public int			 		CONFIG_PORT_DEFAULT				= 8089;
@@ -89,13 +90,13 @@ WebPlugin
 	public String		 		CONFIG_BIND_IP_DEFAULT			= "";
 
 	public static final String 	CONFIG_PROTOCOL					= "Protocol";
-	public 		  final String 	CONFIG_PROTOCOL_DEFAULT			= "HTTP";
+	public static final String 	CONFIG_PROTOCOL_DEFAULT			= "HTTP";
 
 	public static final String	CONFIG_UPNP_ENABLE				= "UPnP Enable";
-	public    	  final boolean	CONFIG_UPNP_ENABLE_DEFAULT		= true;
+	public static final boolean	CONFIG_UPNP_ENABLE_DEFAULT		= true;
 
 	public static final String 	CONFIG_HOME_PAGE				= "Home Page";
-	public        final String 	CONFIG_HOME_PAGE_DEFAULT		= "index.html";
+	public static final String 	CONFIG_HOME_PAGE_DEFAULT		= "index.html";
 	
 	public static final String 	CONFIG_ROOT_DIR					= PR_ROOT_DIR;
 	public        		String 	CONFIG_ROOT_DIR_DEFAULT			= "";
@@ -105,7 +106,7 @@ WebPlugin
 	
 	public static final String 	CONFIG_MODE						= "Mode";
 	public static final String 	CONFIG_MODE_FULL				= "full";
-	public        final String 	CONFIG_MODE_DEFAULT				= CONFIG_MODE_FULL;
+	public static final String 	CONFIG_MODE_DEFAULT				= CONFIG_MODE_FULL;
 	
 	public static final String 	CONFIG_ACCESS					= PR_ACCESS;
 	public        		String 	CONFIG_ACCESS_DEFAULT			= "all";
@@ -153,6 +154,13 @@ WebPlugin
 		throws PluginException
 	{	
 		plugin_interface	= _plugin_interface;
+		
+		Boolean	pr_enable = (Boolean)properties.get(PR_ENABLE);
+		
+		if ( pr_enable != null ){
+		
+			CONFIG_ENABLE_DEFAULT	= pr_enable.booleanValue();
+		}
 		
 		Integer	pr_port = (Integer)properties.get(PR_PORT);
 		

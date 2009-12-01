@@ -112,6 +112,7 @@ RSSGeneratorPlugin
 			COConfigurationManager.setParameter( "rss.internal.migrated", true );	
 		}
 		
+		defaults.put( WebPlugin.PR_ENABLE, new Boolean( COConfigurationManager.getBooleanParameter( "Plugin.default.device.rss.enable", false )));
 		defaults.put( WebPlugin.PR_DISABLABLE, new Boolean( true ));
 	    defaults.put( WebPlugin.PR_PORT, rss_port );
 	    defaults.put( WebPlugin.PR_ACCESS, rss_access );
