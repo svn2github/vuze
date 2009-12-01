@@ -1422,10 +1422,13 @@ public class TorrentUtil {
 					boolean found = dm.filesExist(true);
 					if (!found && dm.getTorrent() != null
 							&& !dm.getTorrent().isSimpleTorrent()) {
-						sSavePath = fSavePath.getParent();
-						if (sSavePath != null) {
-							dm.setTorrentSaveDir(sSavePath);
+						String parentPath = fSavePath.getParent();
+						if (parentPath != null) {
+							dm.setTorrentSaveDir(parentPath);
 							found = dm.filesExist(true);
+							if (!found) {
+								dm.setTorrentSaveDir(sSavePath);
+							}
 						}
 					}
 
