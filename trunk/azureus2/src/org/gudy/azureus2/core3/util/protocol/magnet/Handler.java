@@ -35,7 +35,11 @@ Handler
 {
 	public URLConnection 
 	openConnection(URL u)
-	{			
-		return( new MagnetConnection( u ));
+	{		
+			// some anti-virus apps blocking loopback connection we initially used
+			// in MagnetConnection so created variant based on direct communication to
+			// the magnet handler
+		
+		return( new MagnetConnection2( u ));
 	}
 }

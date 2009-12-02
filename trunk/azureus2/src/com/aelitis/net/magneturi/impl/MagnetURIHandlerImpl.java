@@ -27,7 +27,6 @@ import java.net.*;
 import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
-import org.bouncycastle.util.encoders.Hex;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -257,6 +256,64 @@ MagnetURIHandlerImpl
 			
 			t.start();
 		}
+	}
+	
+	public void
+	process(
+		final String			get,
+		final InputStream		is,
+		final OutputStream		os )
+	
+		throws IOException
+	{
+		new AEThread2( "MagnetProcessor", true )
+		{
+			public void
+			run()
+			{
+				boolean	close = false;
+				
+				try{
+					close = process( get, new BufferedReader( new InputStreamReader( is )), os );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( "Magnet processing failed", e );
+					
+				}finally{
+					
+					if ( close ){
+						
+						try{
+							is.close();
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+					
+					try{
+						os.flush();
+												
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+					
+					if ( close ){
+						
+						try{
+							os.close();
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			}
+		}.start();
 	}
 	
 	protected boolean

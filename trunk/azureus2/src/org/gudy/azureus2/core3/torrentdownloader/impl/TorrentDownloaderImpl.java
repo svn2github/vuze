@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterf
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection;
+import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection2;
 import org.gudy.azureus2.core3.torrent.*;
 
 
@@ -132,6 +133,8 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   	}finally{
   		
   		this_mon.exit();
+  		
+  		closeConnection();
   	}
   }
 
@@ -417,6 +420,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 				runSupport()
         		{
         			boolean changed_status	= false;
+        			String	last_status		= "";
         			
         			while( true ){
         				
@@ -437,7 +441,9 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         					
         					String	s = con.getResponseMessage();
         					  
-        					if ( !s.equals( getStatus())){
+        					if ( !s.equals( last_status )){
+        						
+        						last_status = s;
         						
         						if ( !s.toLowerCase().startsWith("error:")){
         							
@@ -749,11 +755,17 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 
   public void cancel() {
     this.cancel = true;
-    if ( con instanceof MagnetConnection ){
-    	con.disconnect();
-    }
+    closeConnection();
   }
 
+  protected void
+  closeConnection()
+  {
+	if ( con instanceof MagnetConnection || con instanceof MagnetConnection2 ){
+	  	con.disconnect();
+	}
+  }
+  
   public void setDownloadPath(String path, String file) {
     if (!this.isAlive()) {
       if (path != null)
