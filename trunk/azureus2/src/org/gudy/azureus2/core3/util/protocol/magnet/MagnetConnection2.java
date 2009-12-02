@@ -46,7 +46,7 @@ public class
 MagnetConnection2
 	extends HttpURLConnection
 {
-	private static final String	NL			= "\015\012";
+	private static final String	NL			= "\r\n";
 	
 	private OutputStream 	output_stream;
 	private InputStream 	input_stream;
@@ -65,7 +65,7 @@ MagnetConnection2
 		throws IOException
 		
 	{				
-		String	get = "/download/" + getURL().toString().substring( 7 ) + " HTTP/1.0\r\n";
+		String	get = "/download/" + getURL().toString().substring( 7 ) + " HTTP/1.0" + NL + NL;
 		
 		PipedOutputStream 	pos = new PipedOutputStream();
 		PipedInputStream 	pis = new PipedInputStream();
