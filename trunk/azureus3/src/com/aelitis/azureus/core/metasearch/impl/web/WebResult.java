@@ -211,7 +211,8 @@ public class WebResult extends Result {
 	getRank()
 	{
 		if ( rank != -1 ){
-			return( rank );
+			
+			return( applyRankBias( rank ));
 		}
 		
 		return( super.getRank());
