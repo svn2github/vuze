@@ -162,7 +162,7 @@ DHTTransportUDPImpl
 			}
 		};
 		
-	private static final int ROUTABLE_CONTACT_HISTORY_MAX 		= 64;
+	private static final int ROUTABLE_CONTACT_HISTORY_MAX 		= 128;
 
 	private Map<InetSocketAddress,DHTTransportContact>	routable_contact_history = 
 		new LinkedHashMap<InetSocketAddress,DHTTransportContact>(ROUTABLE_CONTACT_HISTORY_MAX,0.75f,true)
