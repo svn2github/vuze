@@ -434,11 +434,9 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			String subscriptionId  = null;
 			
 			try {
-				if(message.isParamObject()) {
-					final Map decodedMap = message.getDecodedMap();
+				final Map decodedMap = message.getDecodedMap();
 
-					subscriptionId		= ((String)decodedMap.get("subs_id"));
-				}
+				subscriptionId		= ((String)decodedMap.get("subs_id"));
 			} catch(Exception e) {
 				//No parameters
 			}
@@ -1059,17 +1057,14 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				});
 		}else if ( OP_OPEN_SEARCH_RESULTS.equals(opid)){
 			
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
-					: new HashMap();
+			Map decodedMap = message.getDecodedMap();
 			openCloseSearchDetailsListener.openSearchResults(decodedMap);
 		}else if ( OP_CLOSE_SEARCH_RESULTS.equals(opid)){
 			
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
-					: new HashMap();
+			Map decodedMap = message.getDecodedMap();
 			openCloseSearchDetailsListener.closeSearchResults(decodedMap);
 		}else if(OP_LOAD_TORRENT.equals(opid)) {
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
-					: new HashMap();			
+			Map decodedMap = message.getDecodedMap();
 			
 			String torrentUrl		= (String) decodedMap.get( "torrent_url" );
 			String referer_str	= (String) decodedMap.get( "referer_url" );
@@ -1177,7 +1172,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 		}else if(OP_CREATE_SUBSCRIPTION.equals(opid)) {
 			
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			Map decodedMap = message.getDecodedMap();
 			
 			Long	 tid = (Long) decodedMap.get("tid");
 
@@ -1221,7 +1216,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			}
 		}else if( OP_READ_SUBSCRIPTION.equals(opid)){
 			
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			Map decodedMap = message.getDecodedMap();
 			
 			final Long	 tid = (Long) decodedMap.get("tid");
 
@@ -1290,7 +1285,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			}
 		}else if (OP_UPDATE_SUBSCRIPTION.equals(opid)) {
 			
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			Map decodedMap = message.getDecodedMap();
 			
 			final Long	 tid = (Long) decodedMap.get("tid");
 			
@@ -1360,7 +1355,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 		}else if (OP_SUBSCRIPTION_SET_AUTODL.equals(opid)){
 			
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			Map decodedMap = message.getDecodedMap();
 			
 			String 	sid = (String)decodedMap.get("id");
 			
@@ -1396,7 +1391,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 		}else if(OP_READ_SUBSCRIPTION_RESULTS.equals(opid)) {
 			
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			Map decodedMap = message.getDecodedMap();
 			
 			final Long	 tid = (Long) decodedMap.get("tid");
 			
@@ -1472,7 +1467,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			}
 		}else if( OP_DELETE_SUBSCRIPTION_RESULTS.equals(opid)){
 			
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			Map decodedMap = message.getDecodedMap();
 						
 			String sid = (String)decodedMap.get("id");
 			
@@ -1511,7 +1506,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			}
 		}else if( OP_MARK_SUBSCRIPTION_RESULTS.equals(opid)){
 			
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			Map decodedMap = message.getDecodedMap();
 						
 			String sid = (String)decodedMap.get("id");
 			
@@ -1555,7 +1550,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			}
 		}else if( OP_DOWNLOAD_SUBSCRIPTION.equals(opid)) {
 			
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			Map decodedMap = message.getDecodedMap();
 			
 			final Long	 tid = (Long) decodedMap.get("tid");
 

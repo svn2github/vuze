@@ -2029,23 +2029,6 @@ public class MainWindow
 	 */
 	public void showURL(final String url, String target) {
 
-		if (url.startsWith("AZMSG%3B") && false) {
-			try {
-				BrowserMessage browserMsg;
-				browserMsg = new BrowserMessage(URLDecoder.decode(url, "utf-8"));
-				ClientMessageContext context = PlatformMessenger.getClientMessageContext();
-				BrowserMessageDispatcher dispatcher = context.getDispatcher();
-				if (dispatcher != null) {
-					dispatcher.dispatch(browserMsg);
-					dispatcher.resetSequence();
-				} else {
-					browserMsg.debug("no dispatcher for showURL action");
-				}
-			} catch (UnsupportedEncodingException e) {
-			}
-			return;
-		}
-
 		if ("_blank".equalsIgnoreCase(target)) {
 			Utils.launch(url);
 			return;

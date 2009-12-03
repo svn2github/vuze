@@ -58,26 +58,6 @@ public interface BrowserMessageDispatcher
 	public abstract BrowserMessageListener getListener(String id);
 
 	/**
-	 * Handles operations intended for the dispatcher.
-	 * 
-	 * @param message holds all message information
-	 */
-	public abstract void handleMessage(BrowserMessage message);
-
-	/**
-	 * Determines whether or not the given sequence number is still valid
-	 * for the given {@link org.eclipse.swt.browser.Browser}. If the number is valid, it is stored
-	 * as the last seen sequence number.
-	 * 
-	 * @param browser {@link org.eclipse.swt.browser.Browser} to test
-	 * @param sequence the sequence number from an incoming message
-	 * 
-	 * @return <code>true</code> if the sequence number is valid
-	 *          (greater than the last seen sequence number); <code>false</code> otherwise
-	 */
-	public abstract boolean isValidSequence(BrowserMessage message);
-
-	/**
 	 * Deregisters the listener with the given ID.
 	 * 
 	 * @param id unique identifier of the listener to be removed
@@ -90,11 +70,4 @@ public interface BrowserMessageDispatcher
 	 * @param id unique identifier of the listener to be removed
 	 */
 	void removeListener(String id);
-
-	/**
-	 * Resets the sequence number for the given {@link org.eclipse.swt.browser.Browser} to 0.
-	 * 
-	 * @param browser {@link org.eclipse.swt.browser.Browser} to reset
-	 */
-	public void resetSequence();
 }

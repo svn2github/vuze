@@ -19,61 +19,35 @@
  */
 package com.aelitis.azureus.ui.swt.browser.msg;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.browser.*;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
+import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.UrlFilter;
 
 /**
- * Dispatches messages to listeners registered with unique IDs. Each message sent
- * from the browser must be given a message sequence number that is different
- * from that of the previous message to detect duplicate events.
- *   <p/>
- * Messages are in the form
- * <pre>  PREFIX DELIM <em>&lt;seq-no&gt;</em> DELIM <em>&lt;listener-id&gt;</em> DELIM <em>&lt;operation-id&gt;</em> DELIM <em>&lt;params&gt;</em> . . .</pre>
- * 
- * For example,
- * <pre>  "AZMSG;37;publish;choose-files"</pre>
- * 
- * Sequence numbers are unique to each {@link Browser} instance in the UI,
- * and they start at 1, being reset each time an HTML page loads.
- * 
- * @author dharkness
- * @created Jul 18, 2006
+ * Dispatches messages to listeners registered with unique IDs.
  */
 public class MessageDispatcherSWT
-	implements StatusTextListener, TitleListener, BrowserMessageDispatcher
+	implements BrowserMessageDispatcher
 {
-	public static final String LISTENER_ID = "dispatcher";
-
-	public static final String OP_RESET_SEQUENCE = "reset-sequence";
-
-	public static final String CONTEXT_LISTENER_ID = "context";
-
-	private static final int INITIAL_LAST_SEQUENCE = -1;
-
 	private ClientMessageContext context;
 
-	private Map listeners = new HashMap();
-
-	private int lastSequence = INITIAL_LAST_SEQUENCE;
-
-	private String sLastEventText;
-
-	private AEMonitor class_mon = new AEMonitor("MessageDispatcher");
+	private Map<String, BrowserMessageListener> listeners = new HashMap<String, BrowserMessageListener>();
 
 	private Browser browser;
+
+	private BrowserFunction browserFunction;
 
 	/**
 	 * Registers itself as a listener to receive sequence number reset message.
@@ -82,10 +56,44 @@ public class MessageDispatcherSWT
 		this.context = context;
 	}
 
-	public void registerBrowser(Browser browser) {
+	public void registerBrowser(final Browser browser) {
 		this.browser = browser;
-		browser.addStatusTextListener(this);
-		browser.addTitleListener(this);
+		
+		browserFunction = new BrowserFunction(browser, "sendMessageToAZ") {
+			public Object function(Object[] args) {
+				if (args == null) {
+					context.debug("sendMessageToAZ: arguments null on " + browser.getUrl());
+					return null;
+				}
+				if (args.length != 3 && args.length != 2) {
+					context.debug("sendMessageToAZ: # arguments not 2 or 3 (" + args.length + ") on " + browser.getUrl());
+					return null;
+				}
+				
+				if (!(args[0] instanceof String)) {
+					context.debug("sendMessageToAZ: Param 1 not String");
+					return null;
+				}
+				if (!(args[1] instanceof String)) {
+					context.debug("sendMessageToAZ: Param 2 not String");
+					return null;
+				}
+				Map params = Collections.EMPTY_MAP;
+				if (args.length == 3) {
+  				if (!(args[2] instanceof String)) {
+  					context.debug("sendMessageToAZ: Param 3 not String");
+  					return null;
+  				}
+ 
+  				params = JSONUtils.decodeJSON((String)args[2]);
+				}
+				
+
+				BrowserMessage message = new BrowserMessage((String) args[0], (String) args[1], params);
+				dispatch(message);
+				return null;
+			}
+		};
 	}
 
 	/**
@@ -96,8 +104,9 @@ public class MessageDispatcherSWT
 	 * @param browser {@link Browser} which will no longer send messages
 	 */
 	public void deregisterBrowser(Browser browser) {
-		browser.removeStatusTextListener(this);
-		browser.removeTitleListener(this);
+		if (browserFunction != null && !browserFunction.isDisposed()) {
+			browserFunction.dispose();
+		}
 	}
 
 	/**
@@ -111,7 +120,7 @@ public class MessageDispatcherSWT
 	 */
 	public synchronized void addListener(BrowserMessageListener listener) {
 		String id = listener.getId();
-		BrowserMessageListener registered = (BrowserMessageListener) listeners.get(id);
+		BrowserMessageListener registered = listeners.get(id);
 		if (registered != null) {
 			if (registered != listener) {
 				throw new IllegalStateException("Listener "
@@ -139,7 +148,7 @@ public class MessageDispatcherSWT
 	 * @param id unique identifier of the listener to be removed
 	 */
 	public synchronized void removeListener(String id) {
-		BrowserMessageListener removed = (BrowserMessageListener) listeners.remove(id);
+		BrowserMessageListener removed = listeners.remove(id);
 		if (removed == null) {
 			//            throw new IllegalStateException("No listener is registered for ID " + id);
 		} else {
@@ -149,56 +158,7 @@ public class MessageDispatcherSWT
 
 	// @see com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher#getListener(java.lang.String)
 	public BrowserMessageListener getListener(String id) {
-		return (BrowserMessageListener) listeners.get(id);
-	}
-
-	/**
-	 * Parses the event to see if it's a valid message and dispatches it.
-	 * 
-	 * @param event contains the message
-	 * 
-	 * @see org.eclipse.swt.browser.StatusTextListener#changed(org.eclipse.swt.browser.StatusTextEvent)
-	 */
-	public void changed(StatusTextEvent event) {
-		if (event.widget.isDisposed() || ((Browser) event.widget).getShell().isDisposed()) {
-			return;
-		}
-		processIncomingMessage(event.text, ((Browser) event.widget).getUrl());
-	}
-
-	// @see org.eclipse.swt.browser.TitleListener#changed(org.eclipse.swt.browser.TitleEvent)
-	public void changed(TitleEvent event) {
-		if (event.widget.isDisposed() || ((Browser) event.widget).getShell().isDisposed()) {
-			return;
-		}
-		processIncomingMessage(event.title, ((Browser) event.widget).getUrl());
-	}
-
-	private void processIncomingMessage(String msg, String referer) {
-		if (msg == null) {
-			return;
-		}
-
-		try {
-			class_mon.enter();
-			if (sLastEventText != null && msg.equals(sLastEventText)) {
-				return;
-			}
-
-			sLastEventText = msg;
-		} finally {
-			class_mon.exit();
-		}
-
-		if (msg.startsWith(BrowserMessage.MESSAGE_PREFIX)) {
-			try {
-				BrowserMessage browserMessage = new BrowserMessage(msg);
-				browserMessage.setReferer(referer);
-				dispatch(browserMessage);
-			} catch (Exception e) {
-				Debug.out(e);
-			}
-		}
+		return listeners.get(id);
 	}
 
 	// @see com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher#dispatch(com.aelitis.azureus.core.messenger.browser.BrowserMessage)
@@ -223,61 +183,17 @@ public class MessageDispatcherSWT
 		if ("lightbox-browser".equals(listenerId)) {
 			listenerId = "display";
 		}
-		if (LISTENER_ID.equals(listenerId)) {
-			handleMessage(message);
+
+		final BrowserMessageListener listener = getListener(listenerId);
+		if (listener == null) {
+			context.debug("No listener registered with ID " + listenerId);
 		} else {
-			if (!isValidSequence(message)) {
-				context.debug("Ignoring duplicate: " + message);
-			} else {
-				final BrowserMessageListener listener = getListener(listenerId);
-				if (listener == null) {
-					context.debug("No listener registered with ID " + listenerId);
-				} else {
-					new AEThread2("dispatch for " + listenerId, true) {
-						public void run() {
-							listener.handleMessage(message);
-							message.complete(true, true, null);
-						}
-					}.start();
+			new AEThread2("dispatch for " + listenerId, true) {
+				public void run() {
+					listener.handleMessage(message);
+					message.complete(true, true, null);
 				}
-			}
+			}.start();
 		}
-	}
-
-	// @see com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher#handleMessage(com.aelitis.azureus.core.messenger.browser.BrowserMessage)
-	public void handleMessage(BrowserMessage message) {
-		String operationId = message.getOperationId();
-		if (OP_RESET_SEQUENCE.equals(operationId)) {
-			resetSequence();
-		} else {
-			throw new IllegalArgumentException("Unknown operation: " + operationId);
-		}
-	}
-
-	// @see com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher#isValidSequence(com.aelitis.azureus.core.messenger.browser.BrowserMessage)
-	public boolean isValidSequence(BrowserMessage message) {
-		int sequence = message.getSequence();
-		if (sequence < 0) {
-			return true;
-		}
-
-		if (sequence <= lastSequence) {
-			context.debug("Duplicate sequence number: " + sequence + ", last: "
-					+ lastSequence);
-			return false;
-		}
-
-		lastSequence = sequence;
-		return true;
-	}
-
-	/**
-	 * Resets the sequence number for the given {@link Browser} to 0.
-	 * 
-	 * @param browser {@link Browser} to reset
-	 */
-	public void resetSequence() {
-		context.debug("Reseting sequence number");
-		lastSequence = INITIAL_LAST_SEQUENCE;
 	}
 }

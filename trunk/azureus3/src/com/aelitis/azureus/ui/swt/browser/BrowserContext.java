@@ -119,25 +119,7 @@ public class BrowserContext
 		browser 				= _browser;
 		forceVisibleAfterLoad 	= _forceVisibleAfterLoad;
 		widgetWaitIndicator 	= _widgetWaitingIndicator;
-/*		
-		BrowserFunction browserFunction = new BrowserFunction(browser, "sendMessageToClient") {
-			// @see org.eclipse.swt.browser.BrowserFunction#function(java.lang.Object[])
-			public Object function(Object[] arguments) {
-				if (arguments == null) {
-					debug("sendMessageToClient: arguments null on " + browser.getUrl());
-					return null;
-				}
-				if (arguments.length != 3) {
-					debug("sendMessageToClient: # arguments not 3 (" + arguments.length + ") on " + browser.getUrl());
-					return null;
-				}
 
-				BrowserMessage message = new BrowserMessage((String) arguments[0], (String) arguments[1], (Map<?, ?>) arguments[2]);
-				messageDispatcherSWT.dispatch(message);
-				return null;
-			}
-		};
-*/
 		// System.out.println( "Registered browser context: id=" + getID());
 		
 		messageDispatcherSWT = new MessageDispatcherSWT(this);

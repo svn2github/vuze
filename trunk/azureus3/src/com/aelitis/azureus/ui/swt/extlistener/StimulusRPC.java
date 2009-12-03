@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.extlistener;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -85,13 +86,20 @@ public class StimulusRPC
 					if (context == null) {
 						return false;
 					}
-					BrowserMessage browserMsg = new BrowserMessage(value);
-					context.debug("Received External message: " + browserMsg);
-					String opId = browserMsg.getOperationId();
-					String lId = browserMsg.getListenerId();
+					
+					// AZMSG;x;listener-id;op-id;params
+					String[] splitVal = value.split(";", 5);
+					if (splitVal.length != 5) {
+						return false;
+					}
+					String lId = splitVal[2];
+					String opId = splitVal[3];
+					Map decodedMap = JSONUtils.decodeJSON(splitVal[4]);
+					if (decodedMap == null) {
+						decodedMap = Collections.EMPTY_MAP;
+					}
 
 					if (opId.equals(DisplayListener.OP_OPEN_URL)) {
-						Map decodedMap = browserMsg.getDecodedMap();
 						String url = MapUtils.getMapString(decodedMap, "url", null);
 						if (!decodedMap.containsKey("target")) {
 							context.debug("no target for url: " + url);
@@ -110,8 +118,7 @@ public class StimulusRPC
 							// and return the boolean result if we wanted/needed
 							BrowserMessageDispatcher dispatcher = context.getDispatcher();
 							if (dispatcher != null) {
-								dispatcher.dispatch(browserMsg);
-								dispatcher.resetSequence();
+								dispatcher.dispatch(new BrowserMessage(lId, opId, decodedMap));
 							} else {
 								context.debug("No dispatcher for StimulusRPC" + opId);
 							}
@@ -120,7 +127,6 @@ public class StimulusRPC
 						}
 
 					} else if (opId.equals(TorrentListener.OP_LOAD_TORRENT)) {
-						Map decodedMap = browserMsg.getDecodedMap();
 						if (decodedMap.containsKey("b64")) {
 							String b64 = MapUtils.getMapString(decodedMap, "b64", null);
 							return TorrentListener.loadTorrentByB64(core, b64);
@@ -165,7 +171,6 @@ public class StimulusRPC
 						// determines this by the is-ready function
 						return mainWindow.isReady();
 					} else if (opId.equals("is-version-ge")) {
-						Map decodedMap = browserMsg.getDecodedMap();
 						if (decodedMap.containsKey("version")) {
 							String id = MapUtils.getMapString(decodedMap, "id", "client");
 							String version = MapUtils.getMapString(decodedMap, "version", "");
@@ -178,7 +183,6 @@ public class StimulusRPC
 						return false;
 
 					} else if (opId.equals("is-active-tab")) {
-						Map decodedMap = browserMsg.getDecodedMap();
 						if (decodedMap.containsKey("tab")) {
 							String tabID = MapUtils.getMapString(decodedMap, "tab", "");
 							if (tabID.length() > 0) {
@@ -205,17 +209,14 @@ public class StimulusRPC
 						}
 					} else if (DisplayListener.DEFAULT_LISTENER_ID.equals(lId)) {
 						if (DisplayListener.OP_REFRESH_TAB.equals(opId)) {
-							Map decodedMap = browserMsg.getDecodedMap();
 							DisplayListener.refreshTab(MapUtils.getMapString(decodedMap, "browser-id", ""));
 						} else if (DisplayListener.OP_SWITCH_TO_TAB.equals(opId)) {
-							Map decodedMap = browserMsg.getDecodedMap();
 							DisplayListener.switchToTab(MapUtils.getMapString(decodedMap,
 									"target", ""), MapUtils.getMapString(decodedMap,
 									"source-ref", null));
 						}
 
 					} else if (DisplayListener.OP_SHOW_DONATION_WINDOW.equals(lId)) {
-						Map decodedMap = browserMsg.getDecodedMap();
 						DonationWindow.open(true, MapUtils.getMapString(decodedMap,
 								"source-ref", "SRPC"));
 					}
@@ -227,11 +228,11 @@ public class StimulusRPC
 
 						BrowserMessageDispatcher dispatcher = context.getDispatcher();
 						if (dispatcher != null) {
-							dispatcher.dispatch(browserMsg);
+							dispatcher.dispatch(new BrowserMessage(lId, opId, decodedMap));
 						}
 					} else {
 
-						System.err.println("Unhandled external stimulus: " + browserMsg);
+						System.err.println("Unhandled external stimulus: " + value);
 					}
 				} catch (Exception e) {
 					Debug.out(e);
