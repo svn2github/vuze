@@ -178,6 +178,13 @@ Engine
 	public String
 	getReferer();
 	
+	public float
+	getRankBias();
+	
+	public void
+	setRankBias(
+		float		bias );
+	
 	public boolean
 	supportsField(
 		int		field_id );

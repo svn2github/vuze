@@ -108,6 +108,7 @@ MetaSearchImpl
 		int			type,
 		long		id,
 		long		last_updated,
+		float		rank_bias,
 		String		name,
 		String		content )
 	
@@ -458,6 +459,7 @@ MetaSearchImpl
 						details.getType()==PlatformMetaSearchMessenger.templateDetails.ENGINE_TYPE_JSON?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX,
 						details.getId(),
 						details.getModifiedDate(),
+						details.getRankBias(),
 						details.getName(),
 						details.getValue());
 				

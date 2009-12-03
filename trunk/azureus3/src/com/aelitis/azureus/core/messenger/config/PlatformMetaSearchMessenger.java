@@ -23,6 +23,8 @@ package com.aelitis.azureus.core.messenger.config;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerException;
 
@@ -188,6 +190,20 @@ PlatformMetaSearchMessenger
 		Boolean	show	= (Boolean)m.get( "show" );
 		Long	date 	= (Long)m.get( "modified_dt" );
 
+		float	rank_bias = 1;
+		
+		try{
+			String	str = (String)m.get( "rank_bias" );
+			
+			if ( str != null ){
+				
+				rank_bias = Float.parseFloat( str );
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
 		if ( show == null ){
 			
 			show = new Boolean( true );
@@ -199,7 +215,7 @@ PlatformMetaSearchMessenger
 
 		}else{
 
-			return( new templateInfo( id.longValue(), date.longValue(), show.booleanValue()));
+			return( new templateInfo( id.longValue(), date.longValue(), show.booleanValue(), rank_bias ));
 
 			/*
 			SimpleDateFormat format = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss.S");
@@ -255,16 +271,19 @@ PlatformMetaSearchMessenger
 		private long		id;
 		private long		date;
 		private boolean		visible;
+		private float		rank_bias;
 		
 		protected
 		templateInfo(
 			long		_id,
 			long		_date,
-			boolean		_visible )
+			boolean		_visible,
+			float		_rank_bias )
 		{
 			id			= _id;
 			date		= _date;
 			visible		= _visible;
+			rank_bias	= _rank_bias;
 		}
 		
 		public long
@@ -283,6 +302,12 @@ PlatformMetaSearchMessenger
 		isVisible()
 		{
 			return( visible );
+		}
+		
+		public float
+		getRankBias()
+		{
+			return( rank_bias );
 		}
 	}
 	
@@ -327,6 +352,12 @@ PlatformMetaSearchMessenger
 		getModifiedDate()
 		{
 			return( info.getModifiedDate());
+		}
+		
+		public float
+		getRankBias()
+		{
+			return( info.getRankBias());
 		}
 		
 		public boolean

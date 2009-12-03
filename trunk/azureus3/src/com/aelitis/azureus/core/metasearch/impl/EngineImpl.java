@@ -180,6 +180,8 @@ EngineImpl
 	
 	private int			source	= ENGINE_SOURCE_UNKNOWN;
 	
+	private float		rank_bias	= 1;
+	
 		// first mappings used to canonicalise names and map field to same field
 		// typically used for categories (musak->music)
 	
@@ -241,6 +243,8 @@ EngineImpl
 		
 		source			= (int)ImportExportUtils.importLong( map, "source", ENGINE_SOURCE_UNKNOWN );
 		
+		rank_bias		= ImportExportUtils.importFloat( map, "rank_bias", 1.0f );
+		
 		first_level_mapping 	= importBEncodedMappings( map, "l1_map" );
 		second_level_mapping 	= importBEncodedMappings( map, "l2_map" );
 		
@@ -283,6 +287,8 @@ EngineImpl
 		ImportExportUtils.exportBoolean( map, "select_rec", selection_state_recorded );
 		
 		map.put( "source", new Long( source ));
+		
+		ImportExportUtils.exportFloat( map, "rank_bias", rank_bias );
 		
 		exportBEncodedMappings( map, "l1_map", first_level_mapping );
 		exportBEncodedMappings( map, "l2_map", second_level_mapping );
@@ -644,7 +650,17 @@ EngineImpl
 			Map	m1 = exportToBencodedMap();
 			Map	m2 = other.exportToBencodedMap();
 		
-			String[]	to_remove = {"type","id","last_updated","selected","select_rec","source", "version", "az_version", "uid" };
+			String[]	to_remove = 
+				{	"type", 
+					"id", 
+					"last_updated",
+					"selected",
+					"select_rec",
+					"source",
+					"rank_bias",
+					"version", 
+					"az_version", 
+					"uid" };
 			
 			for (int i=0;i<to_remove.length;i++){
 				
@@ -1112,6 +1128,24 @@ EngineImpl
 		}
 	}
 	
+	public float
+	getRankBias()
+	{
+		return( rank_bias );
+	}
+	
+	public void
+	setRankBias(
+		float	_rank_bias )
+	{
+		if ( rank_bias != _rank_bias ){
+			
+			rank_bias	= _rank_bias;
+		
+			configDirty();
+		}
+	}
+	
 	public boolean
 	isMine()
 	{
@@ -1471,7 +1505,7 @@ EngineImpl
 	public String
 	getString()
 	{
-		return( "id=" + getId() + ", name=" + getName() + ", source=" + ENGINE_SOURCE_STRS[getSource()] + ", selected=" + SEL_STATE_STRINGS[getSelectionState()]);
+		return( "id=" + getId() + ", name=" + getName() + ", source=" + ENGINE_SOURCE_STRS[getSource()] + ", selected=" + SEL_STATE_STRINGS[getSelectionState()] + ", rb=" + rank_bias );
 	}
 	
 	public String

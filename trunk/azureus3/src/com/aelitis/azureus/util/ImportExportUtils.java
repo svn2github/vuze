@@ -160,6 +160,35 @@ public final class ImportExportUtils {
 	}
 	
 	public final static void
+	exportFloat(
+		Map		map,
+		String	key,
+		float	value )
+	
+		throws IOException
+	{
+		exportString( map, key, String.valueOf( value ));
+	}
+	
+	public final static float
+	importFloat(
+		Map		map,
+		String	key,
+		float	def )
+	
+		throws IOException
+	{
+		String	str = importString( map, key );
+		
+		if ( str == null ){
+			
+			return( def );
+		}
+		
+		return( Float.parseFloat( str ));
+	}
+	
+	public final static void
 	exportBoolean(
 		Map		map,
 		String	key,

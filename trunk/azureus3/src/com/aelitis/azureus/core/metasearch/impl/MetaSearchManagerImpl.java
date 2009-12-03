@@ -53,7 +53,6 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
 import com.aelitis.azureus.core.metasearch.MetaSearchException;
 import com.aelitis.azureus.core.metasearch.MetaSearchManager;
-import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
@@ -478,12 +477,12 @@ MetaSearchManagerImpl
 				// popular ones are selected if in 'auto' mode
 				// manually selected ones are, well, manually selected
 			
-			Map		vuze_selected_ids 		= new HashMap();
-			Map		vuze_preload_ids 		= new HashMap();
+			Map<Long,PlatformMetaSearchMessenger.templateInfo>		vuze_selected_ids 		= new HashMap<Long, PlatformMetaSearchMessenger.templateInfo>();
+			Map<Long,PlatformMetaSearchMessenger.templateInfo>		vuze_preload_ids 		= new HashMap<Long,PlatformMetaSearchMessenger.templateInfo>();
 			
-			Set		featured_ids 			= new HashSet();
-			Set		popular_ids 			= new HashSet();
-			Set		manual_vuze_ids 		= new HashSet();
+			Set<Long>		featured_ids 			= new HashSet<Long>();
+			Set<Long>		popular_ids 			= new HashSet<Long>();
+			Set<Long>		manual_vuze_ids 		= new HashSet<Long>();
 			
 			boolean		auto_mode = isAutoMode();
 					
@@ -505,9 +504,7 @@ MetaSearchManagerImpl
 					
 					Long key = new Long( template.getId());
 					
-					vuze_selected_ids.put( 
-						key, 
-						new Long( template.getModifiedDate()));
+					vuze_selected_ids.put( key,	template );
 					
 					featured_ids.add( key );
 					
@@ -538,9 +535,7 @@ MetaSearchManagerImpl
 							
 							if ( !vuze_selected_ids.containsKey( key )){
 								
-								vuze_selected_ids.put( 
-									key, 
-									new Long( template.getModifiedDate()));
+								vuze_selected_ids.put( key,	template );
 								
 								popular_ids.add( key );
 								
@@ -550,9 +545,7 @@ MetaSearchManagerImpl
 							
 							if ( !vuze_preload_ids.containsKey( key )){
 								
-								vuze_preload_ids.put( 
-									key, 
-									new Long( template.getModifiedDate()));
+								vuze_preload_ids.put( key, template );
 																
 								preload_str += (preload_str.length()==0?"":",") + key;
 							}
@@ -589,13 +582,13 @@ MetaSearchManagerImpl
 					
 					long[]	manual_ids = new long[manual_vuze_ids.size()];
 					
-					Iterator it = manual_vuze_ids.iterator();
+					Iterator<Long> it = manual_vuze_ids.iterator();
 					
 					int	pos = 0;
 					
 					while( it.hasNext()){
 						
-						manual_ids[pos++] = ((Long)it.next()).longValue();
+						manual_ids[pos++] = it.next().longValue();
 					}
 					
 					PlatformMetaSearchMessenger.templateInfo[] manual = PlatformMetaSearchMessenger.getTemplateDetails( manual_ids );
@@ -611,9 +604,7 @@ MetaSearchManagerImpl
 						
 						Long	key = new Long( template.getId());
 													
-						vuze_selected_ids.put( 
-							key, 
-							new Long( template.getModifiedDate()));
+						vuze_selected_ids.put( key, template );
 														
 						manual_str += (manual_str.length()==0?"":",") + key;
 					}
@@ -621,7 +612,7 @@ MetaSearchManagerImpl
 				
 				log( "Manual templates: " + manual_str );
 				
-				Map existing_engine_map = new HashMap();
+				Map<Long,Engine> existing_engine_map = new HashMap<Long,Engine>();
 				
 				String existing_str = "";
 				
@@ -645,16 +636,19 @@ MetaSearchManagerImpl
 				
 					// update any that are out of date
 				
-				Iterator it = vuze_selected_ids.entrySet().iterator();
+				Iterator<Map.Entry<Long,PlatformMetaSearchMessenger.templateInfo>> it = vuze_selected_ids.entrySet().iterator();
 				
 				while( it.hasNext()){
 					
-					Map.Entry entry = (Map.Entry)it.next();
+					Map.Entry<Long,PlatformMetaSearchMessenger.templateInfo> entry = it.next();
 					
 					vuze_preload_ids.remove( entry.getKey());
 					
-					long	id 			= ((Long)entry.getKey()).longValue();
-					long	modified 	= ((Long)entry.getValue()).longValue();
+					long	id 			= entry.getKey().longValue();
+					
+					PlatformMetaSearchMessenger.templateInfo template = entry.getValue();
+					
+					long	modified 	= template.getModifiedDate();
 									
 					Engine this_engine = (Engine)existing_engine_map.get( new Long(id));
 					
@@ -675,18 +669,25 @@ MetaSearchManagerImpl
 										details.getType()==PlatformMetaSearchMessenger.templateDetails.ENGINE_TYPE_JSON?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX,
 										details.getId(),
 										details.getModifiedDate(),
+										details.getRankBias(),
 										details.getName(),
 										details.getValue());
 								
 								this_engine.setSource( Engine.ENGINE_SOURCE_VUZE );
-								
+																
 								meta_search.addEngine( this_engine );
 								
 							}catch( Throwable e ){
 								
 								log( "Failed to import engine '" + details.getValue() + "'", e );
 							}
-						}			
+						}	
+					}else if ( this_engine.getRankBias() != template.getRankBias()){
+						
+						this_engine.setRankBias( template.getRankBias());
+						
+						log( "Updating rank bias for " + this_engine.getString() + " to " + template.getRankBias());
+
 					}else{
 						
 						log( "Not updating " + this_engine.getString() + " as unchanged" );
@@ -709,7 +710,7 @@ MetaSearchManagerImpl
 				
 				while( it.hasNext()){
 					
-					Map.Entry entry = (Map.Entry)it.next();
+					Map.Entry<Long,PlatformMetaSearchMessenger.templateInfo> entry = it.next();
 					
 					long	id 			= ((Long)entry.getKey()).longValue();
 									
@@ -730,13 +731,14 @@ MetaSearchManagerImpl
 										details.getType()==PlatformMetaSearchMessenger.templateDetails.ENGINE_TYPE_JSON?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX,
 										details.getId(),
 										details.getModifiedDate(),
+										details.getRankBias(),
 										details.getName(),
 										details.getValue());
 								
 								this_engine.setSource( Engine.ENGINE_SOURCE_VUZE );
 								
 								this_engine.setSelectionState( Engine.SEL_STATE_DESELECTED );
-								
+																
 								meta_search.addEngine( this_engine );
 								
 							}catch( Throwable e ){
@@ -843,14 +845,14 @@ MetaSearchManagerImpl
 
 			Engine[]	engines = meta_search.getEngines( false, false );
 			
-			Map	engine_map = new HashMap();
+			Map<Long,Engine>	engine_map = new HashMap<Long,Engine>();
 			
 			for( int i=0;i<engines.length;i++){
 				
 				engine_map.put( new Long( engines[i].getId()), engines[i] );
 			}
 				
-			Set selected_engine_set = new HashSet();
+			Set<Engine> selected_engine_set = new HashSet<Engine>();
 			
 			for (int i=0;i<ids.length;i++){
 				
@@ -892,6 +894,7 @@ MetaSearchManagerImpl
 							details.getType()==PlatformMetaSearchMessenger.templateDetails.ENGINE_TYPE_JSON?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX,
 							details.getId(),
 							details.getModifiedDate(),
+							details.getRankBias(),
 							details.getName(),
 							details.getValue());
 							
@@ -947,7 +950,9 @@ MetaSearchManagerImpl
 		}
 		
 		try{
-			Engine engine = meta_search.importFromJSONString( type,	id,	SystemTime.getCurrentTime(),name, json_value );
+			Engine engine = 
+				meta_search.importFromJSONString( 
+					type, id, SystemTime.getCurrentTime(), 1, name, json_value );
 			
 			engine.setSource( Engine.ENGINE_SOURCE_LOCAL );
 			
@@ -1087,7 +1092,7 @@ MetaSearchManagerImpl
 	loadFromVuzeFile(
 		VuzeFile		vf )
 	{
-		List	result = new ArrayList();
+		List<Engine>	result = new ArrayList<Engine>();
 		
 		VuzeFileComponent[] comps = vf.getComponents();
 		
@@ -1107,7 +1112,7 @@ MetaSearchManagerImpl
 			}
 		}
 		
-		return((Engine[])result.toArray(new Engine[result.size()]));
+		return(result.toArray(new Engine[result.size()]));
 	}
 	
 	public long

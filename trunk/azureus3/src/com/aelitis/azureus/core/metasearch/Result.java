@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
-import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.json.simple.JSONObject;
@@ -191,7 +190,12 @@ public abstract class Result {
 			}
 		}
 		
-		if(rank > 1f) rank = 1f;
+		rank *= engine.getRankBias();
+		
+		if ( rank > 1f ){
+			
+			rank = 1f;
+		}
 		
 		return rank;
 	}
