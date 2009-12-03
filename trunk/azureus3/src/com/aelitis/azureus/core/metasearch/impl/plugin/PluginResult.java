@@ -195,7 +195,7 @@ PluginResult
 	{
 		if (((PluginEngine)getEngine()).useAccuracyForRank()){
 			
-			return( getAccuracy());
+			return( applyRankBias( getAccuracy()));
 		}
 		
 		long	l_rank = getLongProperty( SearchResult.PR_RANK );
@@ -223,7 +223,7 @@ PluginResult
 			rank = 0;
 		}
 		
-		return( rank / 100 );
+		return( applyRankBias( rank / 100 ));
 	}
 	
 	public float 

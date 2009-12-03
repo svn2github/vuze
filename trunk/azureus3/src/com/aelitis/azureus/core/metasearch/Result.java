@@ -190,14 +190,22 @@ public abstract class Result {
 			}
 		}
 		
-		rank *= engine.getRankBias();
-		
-		if ( rank > 1f ){
-			
-			rank = 1f;
-		}
+		rank = applyRankBias( rank );
 		
 		return rank;
+	}
+	
+	protected float
+	applyRankBias(
+		float	rank )
+	{
+		rank *= engine.getRankBias();
+		
+		rank = Math.min( rank, 1.0f );
+		
+		rank = Math.max( rank, 0.1f );
+		
+		return( rank );
 	}
 	
 	public Map toJSONMap() {
