@@ -106,6 +106,8 @@ RelatedContentManager
 	private static final int	MAX_TITLE_LENGTH			= 80;
 	private static final int	MAX_CONCURRENT_PUBLISH		= 2;
 	private static final int	MAX_REMOTE_SEARCH_RESULTS	= 30;
+	private static final int	MAX_REMOTE_SEARCH_CONTACTS	= 50;
+	private static final int	MAX_REMOTE_SEARCH_MILLIS	= 25*1000;
 	
 	private static final int	TEMPORARY_SPACE_DELTA	= 50;
 	
@@ -2333,8 +2335,6 @@ RelatedContentManager
 					}finally{
 						
 						try{
-							int	max_contacts = 20;
-							
 							DHT[]	dhts = dht_plugin.getDHTs();
 	
 							Set<InetSocketAddress>	addresses = new HashSet<InetSocketAddress>();
@@ -2352,7 +2352,7 @@ RelatedContentManager
 								}
 							}
 							
-							if ( addresses.size() < max_contacts ){
+							if ( addresses.size() < MAX_REMOTE_SEARCH_CONTACTS ){
 								
 								for ( DHT dht: dhts ){
 									
@@ -2364,14 +2364,14 @@ RelatedContentManager
 											
 											addresses.add( c.getAddress());
 											
-											if ( addresses.size() >= max_contacts ){
+											if ( addresses.size() >= MAX_REMOTE_SEARCH_CONTACTS ){
 												
 												break;
 											}
 										}
 									}
 									
-									if ( addresses.size() >= max_contacts ){
+									if ( addresses.size() >= MAX_REMOTE_SEARCH_CONTACTS ){
 										
 										break;
 									}
@@ -2384,7 +2384,7 @@ RelatedContentManager
 							
 							List<DistributedDatabaseContact>	ddb_contacts = new ArrayList<DistributedDatabaseContact>();
 							
-							for (int i=0;i<Math.min( list.size(), max_contacts );i++){
+							for (int i=0;i<Math.min( list.size(), MAX_REMOTE_SEARCH_CONTACTS );i++){
 								
 								try{				
 									ddb_contacts.add( ddb.importContact( list.get(i), DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ));
@@ -2394,7 +2394,7 @@ RelatedContentManager
 							}
 							
 							long	start		= SystemTime.getMonotonousTime();
-							long	max			= 25*1000;
+							long	max			= MAX_REMOTE_SEARCH_MILLIS;
 							
 							final AESemaphore	sem = new AESemaphore( "RCM:rems" );
 							
@@ -2439,10 +2439,10 @@ RelatedContentManager
 									}
 								}
 								
-								if ( i > 5 ){
+								if ( i > 10 ){
 									
 									try{
-										Thread.sleep( 500 );
+										Thread.sleep( 250 );
 										
 									}catch( Throwable e ){
 									}
@@ -2451,7 +2451,7 @@ RelatedContentManager
 							
 							for (int i=0;i<sent;i++){
 								
-								if ( done[0] > sent*2/3 ){
+								if ( done[0] > sent*4/5 ){
 									
 									break;
 								}
@@ -2468,7 +2468,7 @@ RelatedContentManager
 								}
 							}
 						}finally{
-													
+															
 							observer.complete();
 						}
 					}
