@@ -22,97 +22,67 @@
 package com.aelitis.azureus.core.util;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class
+
+public class 
 Java15Utils 
 {
-	private static volatile Java15UtilsProvider	provider;
+	private static ThreadMXBean	thread_bean;
 	
-	public static boolean
-	isAvailable()
-	{
-		return( provider != null );
+	static{
+		try{
+			thread_bean = ManagementFactory.getThreadMXBean();
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
-	
-	public static void
-	setProvider(
-		Java15UtilsProvider		_provider )
-	{
-		provider	= _provider;
-	}
-	
+
 	public static void
 	setConnectTimeout(
-		URLConnection	con,
-		int				timeout )
+		URLConnection		con,
+		int					timeout )
 	{
-		if ( provider != null ){
-			
-			provider.setConnectTimeout( con, timeout );
-		}
+		con.setConnectTimeout( timeout );
 	}
 	
 	public static void
 	setReadTimeout(
-		URLConnection	con,
-		int				timeout )
+		URLConnection		con,
+		int					timeout )
 	{
-		if ( provider != null ){
-			
-			provider.setReadTimeout( con, timeout );
-		}
+		con.setReadTimeout( timeout );
 	}
 	
 	public static long
 	getThreadCPUTime()
 	{
-		if ( provider != null ){
+		if ( thread_bean == null ){
 			
-			return( provider.getThreadCPUTime());
+			return( 0 );
 		}
 		
-		return( 0 );
+		return( thread_bean.getCurrentThreadCpuTime());
 	}
 	
 	public static void
 	dumpThreads()
 	{
-		if ( provider != null ){
-			
-			provider.dumpThreads();
-		}
+		AEThreadMonitor.dumpThreads();
 	}
 	
-	public static URLConnection openConnectionForceNoProxy(URL url) throws IOException {
-		if (provider != null) {
-			return provider.openConnectionForceNoProxy(url);
-		}
-		else {
-			return url.openConnection();
-		}
-	}
+	public static URLConnection 
+	openConnectionForceNoProxy(
+		URL url) 
 	
-	public interface
-	Java15UtilsProvider
+		throws IOException 
 	{
-		public void
-		setConnectTimeout(
-			URLConnection	con,
-			int				timeout );
-		
-		public void
-		setReadTimeout(
-			URLConnection	con,
-			int				timeout );
-		
-		public long
-		getThreadCPUTime();
-		
-		public void
-		dumpThreads();
-		
-		public URLConnection openConnectionForceNoProxy(URL url) throws IOException;
+		return url.openConnection(Proxy.NO_PROXY);
 	}
 }

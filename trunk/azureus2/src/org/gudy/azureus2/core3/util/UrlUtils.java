@@ -398,81 +398,17 @@ public class UrlUtils
 	
 		throws IOException
 	{
-		if ( Java15Utils.isAvailable()){
-			
-			if ( connect_timeout != -1 ){
+		if ( connect_timeout != -1 ){
 				
-				Java15Utils.setConnectTimeout( connection, (int)connect_timeout );	
-			}
-			
-			if ( read_timeout != -1 ){
-				
-				Java15Utils.setReadTimeout( connection, (int)read_timeout );	
-			}
-			
-			connection.connect();
-			
-		}else{
-			
-				// TODO: No read timeout support here yet...
-			
-			final AESemaphore sem = new AESemaphore( "URLUtils:cwt" );
-			
-			final Throwable[] res = { null };
-			
-			//long	start = SystemTime.getMonotonousTime();
-			
-			if ( connect_pool.isFull()){
-				
-				Debug.out( "Connect pool is full, forcing timeout" );
-				
-				throw( new IOException( "Timeout" ));
-			}
-			
-			connect_pool.run(
-				new AERunnable()
-				{
-					public void
-					runSupport()
-					{
-						try{
-							connection.connect();
-							
-						}catch( Throwable e ){
-							
-							res[0] = e;
-							
-						}finally{
-							
-							sem.release();
-						}
-					}
-				});
-			
-			boolean ok = sem.reserve( connect_timeout );
-			
-			//long	duration = SystemTime.getMonotonousTime() - start;
-			
-			//System.out.println( connection.getURL() + ": time=" + duration + ", ok=" + ok );
-			
-			if ( ok ){
-	
-				Throwable error = res[0];
-				
-				if ( error != null ){
-					
-					if ( error instanceof IOException ){
-						
-						throw((IOException)error);
-					}
-					
-					throw( new IOException( Debug.getNestedExceptionMessage( error )));
-				}
-			}else{
-				
-				throw( new IOException( "Timeout" ));
-			}
+			Java15Utils.setConnectTimeout( connection, (int)connect_timeout );	
 		}
+			
+		if ( read_timeout != -1 ){
+				
+			Java15Utils.setReadTimeout( connection, (int)read_timeout );	
+		}
+			
+		connection.connect();
 	}
 	
 	private static String	last_headers = COConfigurationManager.getStringParameter( "metasearch.web.last.headers", null );

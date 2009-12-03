@@ -30,7 +30,9 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
+import com.aelitis.azureus.core.util.AEThreadMonitor;
 import com.aelitis.azureus.core.util.Java15Utils;
+
 
 /**
  * @author parg
@@ -121,9 +123,7 @@ AEDiagnostics
 	protected static boolean	loggers_enabled;
 	
 	private static List		evidence_generators	= new ArrayList();
-	
-	private static boolean load_15_tried;
-	
+		
 	public static synchronized void
 	startup(
 		boolean	_enable_pending )
@@ -138,14 +138,18 @@ AEDiagnostics
 		enable_pending_writes = _enable_pending;
 		
 		try{
-			// Minimize risk of loading to much when in transitory startup mode
+				// Minimize risk of loading to much when in transitory startup mode
+			
 			boolean transitoryStartup = System.getProperty("transitory.startup", "0").equals("1");
-			if (transitoryStartup) {
-				// no vivaldi and Thread monitor for you!
-				load_15_tried = true;
-				// no xxx_?.log logging for you!
+			
+			if ( transitoryStartup ){
+				
+					// no xxx_?.log logging for you!
+				
 				loggers_enabled = false;
-				// skip tidy check and more!
+				
+					// skip tidy check and more!
+				
 				return;
 			}
 
@@ -234,6 +238,9 @@ AEDiagnostics
 				
 				debug_dir.mkdir();
 			}
+			
+			AEThreadMonitor.initialise();
+			
 		}catch( Throwable e ){
 			
 				// with webui we don't have the file stuff so this fails with class not found
@@ -245,43 +252,9 @@ AEDiagnostics
 		}finally{
 			
 			startup_complete	= true;
-			
-			load15Stuff();
 		}
 	}
-	
-	protected static void
-	load15Stuff()
-	{
-		if ( load_15_tried ){
-			
-			return;
-		}
 		
-		load_15_tried = true;
-		
-		// pull in the JDK1.5 monitoring stuff if present
-			
-		try{
-			Class c = Class.forName( "com.aelitis.azureus.jdk15.Java15Initialiser" );
-					
-			if ( c != null ){
-				
-				Method m = c.getDeclaredMethod( "getUtilsProvider", new Class[0] );
-				
-				Java15Utils.Java15UtilsProvider provider = (Java15Utils.Java15UtilsProvider)m.invoke( null, new Object[0] );
-				
-				if ( provider != null ){
-					
-					 Java15Utils.setProvider( provider );
-				}
-			}
-			// System.out.println( "**** AEThread debug on ****" );
-
-		}catch( Throwable e ){
-		}
-	}
-	
 	public static void
 	dumpThreads()
 	{
