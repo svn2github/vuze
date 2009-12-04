@@ -171,6 +171,12 @@ public class MainStatusBar
 
 	private String lastSRimageID = null;
 
+	private int last_dl_limit;
+
+	private long last_rec_data = - 1;
+
+	private long last_rec_prot;
+
 	/**
 	 * 
 	 */
@@ -402,7 +408,7 @@ public class MainStatusBar
 
 		statusDown = new CLabelPadding(statusBar, borderFlag);
 		statusDown.setImage(imageLoader.getImage("down"));
-		statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/"n/a");
+		//statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/"n/a");
 		Messages.setLanguageText(statusDown,
 				"MainWindow.status.updowndetails.tooltip");
 
@@ -414,7 +420,7 @@ public class MainStatusBar
 
 		statusUp = new CLabelPadding(statusBar, borderFlag);
 		statusUp.setImage(imageLoader.getImage("up"));
-		statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/"n/a");
+		//statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/"n/a");
 		Messages.setLanguageText(statusUp,
 				"MainWindow.status.updowndetails.tooltip");
 
@@ -844,12 +850,20 @@ public class MainStatusBar
 			GlobalManagerStats stats = gm.getStats();
 
 			int dl_limit = NetworkManager.getMaxDownloadRateBPS() / 1024;
+			long rec_data = stats.getDataReceiveRate();
+			long rec_prot = stats.getProtocolReceiveRate();
+			
+			if (last_dl_limit != dl_limit || last_rec_data != rec_data || last_rec_prot != rec_prot) {
+				last_dl_limit = dl_limit;
+				last_rec_data = rec_data;
+				last_rec_prot = rec_prot;
 
-			statusDown.setText((dl_limit == 0 ? "" : "[" + dl_limit + "K] ")
-					+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
-							stats.getDataReceiveRate(), stats.getProtocolReceiveRate()));
+				statusDown.setText((dl_limit == 0 ? "" : "[" + dl_limit + "K] ")
+						+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(rec_data, rec_prot));
+			}
 
-			boolean auto_up = COConfigurationManager.getBooleanParameter(TransferSpeedValidator.getActiveAutoUploadParameter(gm))
+
+			boolean auto_up = TransferSpeedValidator.isAutoSpeedActive(gm)
 					&& TransferSpeedValidator.isAutoUploadAvailable(core);
 
 			int ul_limit_norm = NetworkManager.getMaxUploadRateBPSNormal() / 1024;
@@ -873,9 +887,6 @@ public class MainStatusBar
 					+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
 							stats.getDataSendRate(), stats.getProtocolSendRate()));
 		}
-
-		// End of Status Sections
-		statusBar.layout();
 	}
 
 	/**
@@ -1202,6 +1213,28 @@ public class MainStatusBar
 					| GridData.VERTICAL_ALIGN_FILL);
 			setLayoutData(gridData);
 			setForeground(parent.getForeground());
+		}
+		
+		public void setText(String text) {
+			if (text == null) {
+				text = "";
+			}
+			if (text.equals(getText())) {
+				return;
+			}
+			super.setText(text);
+			int oldWidth = lastWidth;
+			Point pt = super.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+			pt.x += 4;
+			if (pt.x > oldWidth && oldWidth > 0) {
+				statusBar.layout();
+			} else if (pt.x < oldWidth) {
+				Utils.execSWTThreadLater(KEEPWIDTHFOR_MS, new AERunnable() {
+					public void runSupport() {
+						statusBar.layout();
+					}
+				});
+			}
 		}
 
 		/* (non-Javadoc)
