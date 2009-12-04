@@ -98,6 +98,8 @@ MagnetPlugin
 		
 	private CopyOnWriteList		listeners = new CopyOnWriteList();
 	
+	private boolean			first_download	= true;
+	
 	private BooleanParameter secondary_lookup;
 	
 	public static void
@@ -304,6 +306,12 @@ MagnetPlugin
 									InetSocketAddress	address )
 								{
 								}
+								
+								public boolean 
+								verbose() 
+								{
+									return( muh_listener.verbose());
+								}
 							},
 							hash,
 							args,
@@ -470,8 +478,13 @@ MagnetPlugin
 		throws MagnetURIHandlerException
 	{
 		try{
-			listener.reportActivity( getMessageText( "report.waiting_ddb" ));
-
+			if ( first_download ){
+			
+				listener.reportActivity( getMessageText( "report.waiting_ddb" ));
+				
+				first_download = false;
+			}
+			
 			final DistributedDatabase db = plugin_interface.getDistributedDatabase();
 			
 			final List			potential_contacts 		= new ArrayList();
@@ -520,6 +533,8 @@ MagnetPlugin
 						}else if (	type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ||
 									type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ){
 								
+							listener.reportActivity( getMessageText( "report.found", String.valueOf( found_set.size())));
+							
 								// now inject any explicit sources
 
 							addExplicitSources();
@@ -569,8 +584,11 @@ MagnetPlugin
 							found_set.add( key );
 						}
 						
-						listener.reportActivity( getMessageText( "report.found", contact.getName()));
-				
+						if ( listener.verbose()){
+						
+							listener.reportActivity( getMessageText( "report.found", contact.getName()));
+						}
+						
 						try{
 							potential_contacts_mon.enter();													
 
@@ -591,9 +609,12 @@ MagnetPlugin
 								{
 									try{
 										boolean	alive = event.getType() == DistributedDatabaseEvent.ET_OPERATION_COMPLETE;
-																						
-										listener.reportActivity( 
+											
+										if ( listener.verbose()){
+										
+											listener.reportActivity( 
 												getMessageText( alive?"report.alive":"report.dead",	contact.getName()));
+										}
 										
 										try{
 											potential_contacts_mon.enter();

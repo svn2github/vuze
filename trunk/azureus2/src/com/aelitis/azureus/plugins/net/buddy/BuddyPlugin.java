@@ -3709,11 +3709,7 @@ BuddyPlugin
 								reportActivity(
 									String	str )
 								{
-									if ( 	str.indexOf( " found " ) == -1 &&
-											str.indexOf( " is dead " ) == -1 ){
-						
-										log( "    MagnetDownload: " + str );
-									}
+									log( "    MagnetDownload: " + str );
 								}
 								
 								public void
@@ -3726,6 +3722,12 @@ BuddyPlugin
 								reportContributor(
 									InetSocketAddress	address )
 								{
+								}
+								
+								public boolean 
+								verbose() 
+								{
+									return( false );
 								}
 							},
 							hash,

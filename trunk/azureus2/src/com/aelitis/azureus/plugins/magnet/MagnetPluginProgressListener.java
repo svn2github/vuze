@@ -47,4 +47,7 @@ MagnetPluginProgressListener
 	public void
 	reportContributor(
 		InetSocketAddress	address );
+	
+	public boolean
+	verbose();
 }

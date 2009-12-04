@@ -564,7 +564,7 @@ MagnetURIHandlerImpl
 								
 				String	encoded = urn.substring(9);
 				
-				List	sources = new ArrayList();
+				List<InetSocketAddress>	sources = new ArrayList<InetSocketAddress>();
 				
 				for (int i=0;i<source_params.size();i++){
 					
@@ -586,9 +586,7 @@ MagnetURIHandlerImpl
 					}
 				}
 					
-				InetSocketAddress[]	s = new InetSocketAddress[ sources.size()];
-				
-				sources.toArray( s );
+				InetSocketAddress[]	s = sources.toArray( new InetSocketAddress[ sources.size()] );
 				
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, "MagnetURIHandler: download of '"
@@ -603,6 +601,9 @@ MagnetURIHandlerImpl
 				
 				byte[] data = null;
 				
+				String verbose_str = lc_params.get( "verbose" );
+				
+				final boolean verbose = verbose_str != null && verbose_str.equalsIgnoreCase( "true" );
 				
 				for (int i=0;i<listeners.size();i++){
 				
@@ -634,6 +635,12 @@ MagnetURIHandlerImpl
 									pw.print( "X-Report: " + getMessageText( "percent", String.valueOf(percent)) + NL );
 									
 									pw.flush();
+								}
+								
+								public boolean 
+								verbose()
+								{
+									return( verbose );
 								}
 							},
 							sha1, 
