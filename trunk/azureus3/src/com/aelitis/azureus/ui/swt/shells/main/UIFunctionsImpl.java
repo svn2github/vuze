@@ -177,7 +177,6 @@ public class UIFunctionsImpl
 
 	// @see com.aelitis.azureus.ui.UIFunctions#bringToFront(boolean)
 	public void bringToFront(final boolean tryTricks) {
-		System.out.println("BTF: " + Debug.getCompressedStackTrace());
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {
