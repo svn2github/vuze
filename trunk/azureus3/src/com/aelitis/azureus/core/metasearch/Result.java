@@ -199,11 +199,7 @@ public abstract class Result {
 	applyRankBias(
 		float	rank )
 	{
-		rank *= engine.getRankBias();
-		
-		rank = Math.min( rank, 1.0f );
-		
-		rank = Math.max( rank, 0.1f );
+		rank = engine.applyRankBias( rank );
 		
 		return( rank );
 	}

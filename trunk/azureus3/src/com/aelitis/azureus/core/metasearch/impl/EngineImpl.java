@@ -181,7 +181,7 @@ EngineImpl
 	private int			source	= ENGINE_SOURCE_UNKNOWN;
 	
 	private float		rank_bias		= 1;
-	private int			preferred_count	= 0;
+	private float		preferred_count	= 0;
 	
 	
 		// first mappings used to canonicalise names and map field to same field
@@ -246,7 +246,7 @@ EngineImpl
 		source			= (int)ImportExportUtils.importLong( map, "source", ENGINE_SOURCE_UNKNOWN );
 		
 		rank_bias		= ImportExportUtils.importFloat( map, "rank_bias", 1.0f );
-		preferred_count	= ImportExportUtils.importInt( map, "pref_count", 0 );
+		preferred_count	= ImportExportUtils.importFloat( map, "pref_count", 0.0f );
 		
 		first_level_mapping 	= importBEncodedMappings( map, "l1_map" );
 		second_level_mapping 	= importBEncodedMappings( map, "l2_map" );
@@ -292,7 +292,7 @@ EngineImpl
 		map.put( "source", new Long( source ));
 		
 		ImportExportUtils.exportFloat( map, "rank_bias", rank_bias );
-		ImportExportUtils.exportInt( map, "pref_count", preferred_count );
+		ImportExportUtils.exportFloat( map, "pref_count", preferred_count );
 		
 		exportBEncodedMappings( map, "l1_map", first_level_mapping );
 		exportBEncodedMappings( map, "l2_map", second_level_mapping );
@@ -1155,7 +1155,7 @@ EngineImpl
 	setPreferred(
 		boolean	pref )
 	{
-		int	new_pref = pref?(preferred_count+1):(preferred_count-1);
+		float	new_pref = pref?(preferred_count+1):(preferred_count-0.5f);
 		
 		new_pref = Math.max( 0, new_pref );
 		new_pref = Math.min( 10, new_pref );
@@ -1166,6 +1166,21 @@ EngineImpl
 			
 			configDirty();
 		}
+	}
+	
+	public float
+	applyRankBias(
+		float	rank )
+	{
+		rank *= rank_bias;
+				
+		rank *= (1 + 0.05 * preferred_count );
+		
+		rank = Math.min( rank, 1.0f );
+		
+		rank = Math.max( rank, 0.1f );
+		
+		return( rank );
 	}
 	
 	public boolean
@@ -1527,7 +1542,7 @@ EngineImpl
 	public String
 	getString()
 	{
-		return( "id=" + getId() + ", name=" + getName() + ", source=" + ENGINE_SOURCE_STRS[getSource()] + ", selected=" + SEL_STATE_STRINGS[getSelectionState()] + ", rb=" + rank_bias );
+		return( "id=" + getId() + ", name=" + getName() + ", source=" + ENGINE_SOURCE_STRS[getSource()] + ", selected=" + SEL_STATE_STRINGS[getSelectionState()] + ", rb=" + rank_bias + ", pref=" + preferred_count );
 	}
 	
 	public String
