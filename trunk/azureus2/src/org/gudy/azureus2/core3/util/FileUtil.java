@@ -1621,9 +1621,10 @@ public class FileUtil {
     
 	public static boolean
 	deleteWithRecycle(
-		File		file )
+		File		file,
+		boolean		force_no_recycle )
 	{
-		if ( COConfigurationManager.getBooleanParameter("Move Deleted Data To Recycle Bin" )){
+		if ( COConfigurationManager.getBooleanParameter("Move Deleted Data To Recycle Bin" ) && !force_no_recycle ){
 			
 			try{
 			    final PlatformManager	platform  = PlatformManagerFactory.getPlatformManager();

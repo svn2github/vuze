@@ -2287,7 +2287,8 @@ DiskManagerImpl
     deleteDataFiles(
         TOTorrent   torrent,
         String      torrent_save_dir,       // enclosing dir, not for deletion
-        String      torrent_save_file )     // file or dir for torrent
+        String      torrent_save_file, 		// file or dir for torrent
+        boolean		force_no_recycle )    
     {
         if (torrent == null || torrent_save_file == null ){
 
@@ -2301,15 +2302,17 @@ DiskManagerImpl
 
                 target = FMFileManagerFactory.getSingleton().getFileLink( torrent, target.getCanonicalFile());
 
-                FileUtil.deleteWithRecycle( target );
+                FileUtil.deleteWithRecycle( target, force_no_recycle );
 
             }else{
 
                 PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
-                if( Constants.isOSX &&
-                      torrent_save_file.length() > 0 &&
-                      COConfigurationManager.getBooleanParameter("Move Deleted Data To Recycle Bin" ) &&
-                      mgr.hasCapability(PlatformManagerCapabilities.RecoverableFileDelete) ) {
+                
+                if( 	Constants.isOSX &&
+                		torrent_save_file.length() > 0 &&
+                		COConfigurationManager.getBooleanParameter("Move Deleted Data To Recycle Bin" ) &&
+                		(! force_no_recycle ) &&
+                		mgr.hasCapability(PlatformManagerCapabilities.RecoverableFileDelete) ) {
 
                     try
                     {
@@ -2323,16 +2326,16 @@ DiskManagerImpl
 
                         }else{
 
-                            deleteDataFileContents( torrent, torrent_save_dir, torrent_save_file );
+                            deleteDataFileContents( torrent, torrent_save_dir, torrent_save_file, force_no_recycle );
                     }
                     }
                     catch(PlatformManagerException ex)
                     {
-                        deleteDataFileContents( torrent, torrent_save_dir, torrent_save_file );
+                        deleteDataFileContents( torrent, torrent_save_dir, torrent_save_file, force_no_recycle );
                     }
                 }
                 else{
-                    deleteDataFileContents(torrent, torrent_save_dir, torrent_save_file);
+                    deleteDataFileContents(torrent, torrent_save_dir, torrent_save_file, force_no_recycle);
                 }
 
             }
@@ -2427,9 +2430,10 @@ DiskManagerImpl
 
     private static void
     deleteDataFileContents(
-        TOTorrent torrent,
-        String torrent_save_dir,
-        String torrent_save_file )
+        TOTorrent 	torrent,
+        String 		torrent_save_dir,
+        String 		torrent_save_file,
+        boolean		force_no_recycle )
 
             throws TOTorrentException, UnsupportedEncodingException, LocaleUtilEncodingException
     {
@@ -2503,7 +2507,7 @@ DiskManagerImpl
             if ( delete && file.exists() && !file.isDirectory()){
 
                 try{
-                    FileUtil.deleteWithRecycle( file );
+                    FileUtil.deleteWithRecycle( file, force_no_recycle );
 
                 }catch (Exception e){
 
@@ -2784,7 +2788,9 @@ DiskManagerImpl
 
             }else{
 
-                if ( FileUtil.deleteWithRecycle( existing_file )){
+                if ( FileUtil.deleteWithRecycle( 
+                		existing_file,
+                		download_manager.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE ))){
 
                         // new file, recheck
 

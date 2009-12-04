@@ -2998,11 +2998,16 @@ DownloadManagerImpl
 	protected void 
 	deleteDataFiles() 
 	{
-		DiskManagerFactory.deleteDataFiles(torrent, torrent_save_location.getParent(), torrent_save_location.getName());
+		DiskManagerFactory.deleteDataFiles(
+			torrent, 
+			torrent_save_location.getParent(), 
+			torrent_save_location.getName(),
+			getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE ));
 		
 		// Attempted fix for bug 1572356 - apparently sometimes when we perform removal of a download's data files,
 		// it still somehow gets processed by the move-on-removal rules. I'm making the assumption that this method
 		// is only called when a download is about to be removed.
+		
 		this.getDownloadState().setFlag(DownloadManagerState.FLAG_DISABLE_AUTO_FILE_MOVE, true);
 	}
   
@@ -3011,7 +3016,7 @@ DownloadManagerImpl
 	{
 		if ( torrentFileName != null ){
   		
-			TorrentUtils.delete( new File(torrentFileName));
+			TorrentUtils.delete( new File(torrentFileName),getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE ));
 		}
 	}
   

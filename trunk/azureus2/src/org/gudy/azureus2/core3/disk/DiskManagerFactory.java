@@ -103,9 +103,10 @@ DiskManagerFactory
 	deleteDataFiles(
 		TOTorrent 	torrent, 
 		String		torrent_save_dir,
-		String		torrent_save_file ) 
+		String		torrent_save_file,
+		boolean		force_no_recycle )
 	{
-	  DiskManagerImpl.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file );
+	  DiskManagerImpl.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file, force_no_recycle );
 	}
 	
 	public static DiskManagerFileInfoSet

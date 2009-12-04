@@ -402,9 +402,10 @@ TorrentUtils
 	
 	public static void
 	delete(
-		File 		torrent_file )
+		File 		torrent_file,
+		boolean		force_no_recycle )
 	{
-		if ( !FileUtil.deleteWithRecycle( torrent_file )){
+		if ( !FileUtil.deleteWithRecycle( torrent_file, force_no_recycle )){
 			
     		Debug.out( "TorrentUtils::delete: failed to delete '" + torrent_file + "'" );
     	}
