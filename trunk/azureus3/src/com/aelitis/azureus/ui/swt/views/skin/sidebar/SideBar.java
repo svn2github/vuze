@@ -165,7 +165,7 @@ public class SideBar
 		"#1c2056"
 	};
 
-	private static final boolean DO_OUR_OWN_TREE_INDENT = Utils.isCocoa;
+	private static final boolean DO_OUR_OWN_TREE_INDENT = false;
 
 	private SWTSkin skin;
 
@@ -1198,7 +1198,7 @@ public class SideBar
 
 				int textOffsetY = 0;
 
-				int height = textSize.y + (Constants.isWindows ? 3 : 2);
+				int height = textSize.y + 3;
 				int startY = itemBounds.y + (itemBounds.height - height) / 2;
 
 				//gc.fillRectangle(startX, startY, width, height);
