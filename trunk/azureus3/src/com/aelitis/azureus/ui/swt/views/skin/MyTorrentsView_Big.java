@@ -39,7 +39,7 @@ public class MyTorrentsView_Big
 	
 
 	public boolean isOurDownloadManager(DownloadManager dm) {
-		if (PlatformTorrentUtils.isUpdateDM(dm)) {
+		if (PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 			return false;
 		}
 		

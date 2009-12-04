@@ -26,6 +26,7 @@ import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
@@ -534,49 +535,54 @@ public class PlatformTorrentUtils
 		return false;
 	}
 	
-	public static boolean isUpdateDM(DownloadManager dm) {
-		Boolean oisUpdate = (Boolean) dm.getUserData("isUpdate");
+	public static boolean isAdvancedViewOnly(DownloadManager dm) {
+		Boolean oisUpdate = (Boolean) dm.getUserData("isAdvancedViewOnly");
 		if (oisUpdate != null) {
 			return oisUpdate.booleanValue();
 		}
 
-		boolean isUpdate = true;
-		TOTorrent torrent = dm.getTorrent();
-		if (torrent == null) {
-			isUpdate = false;
-		} else {
-			URL announceURL = torrent.getAnnounceURL();
-
-			if (announceURL != null) {
-				String	host = announceURL.getHost();
-				
-				if (!( host.endsWith(AELITIS_HOST_CORE)|| host.endsWith( VUZE_HOST_CORE ))){
-					isUpdate = false;
-				}
-			}
+		boolean advanced_view = true;
+		
+		if ( !dm.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
 			
-			if (isUpdate) {
-				TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
-
-				for (int i = 0; i < sets.length; i++) {
-
-					URL[] urls = sets[i].getAnnounceURLs();
-
-					for (int j = 0; j < urls.length; j++) {
-
-						String host = urls[j].getHost();
-						
-						if (!( host.endsWith(AELITIS_HOST_CORE)|| host.endsWith( VUZE_HOST_CORE ))){
-							isUpdate = false;
-							break;
+			TOTorrent torrent = dm.getTorrent();
+			if (torrent == null) {
+				advanced_view = false;
+			} else {
+				URL announceURL = torrent.getAnnounceURL();
+	
+				if (announceURL != null) {
+					String	host = announceURL.getHost();
+					
+					if (!( host.endsWith(AELITIS_HOST_CORE)|| host.endsWith( VUZE_HOST_CORE ))){
+						advanced_view = false;
+					}
+				}
+				
+				if (advanced_view) {
+					TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+	
+					for (int i = 0; i < sets.length; i++) {
+	
+						URL[] urls = sets[i].getAnnounceURLs();
+	
+						for (int j = 0; j < urls.length; j++) {
+	
+							String host = urls[j].getHost();
+							
+							if (!( host.endsWith(AELITIS_HOST_CORE)|| host.endsWith( VUZE_HOST_CORE ))){
+								advanced_view = false;
+								break;
+							}
 						}
 					}
 				}
 			}
 		}
-
-		dm.setUserData("isUpdate", new Boolean(isUpdate));
-		return isUpdate;
+		
+		dm.setUserData("isAdvancedViewOnly", new Boolean(advanced_view));
+		
+		return advanced_view;
 	}
 
 	public static boolean isContentProgressive(TOTorrent torrent) {
@@ -743,7 +749,7 @@ public class PlatformTorrentUtils
 			return true;
 		}
 		boolean opened = getContentMapLong(torrent, TOR_AZ_PROP_OPENED, -1) > 0;
-		if (opened || isUpdateDM(dm)) {
+		if (opened || isAdvancedViewOnly(dm)) {
 			return true;
 		}
 

@@ -485,7 +485,7 @@ public class SBC_LibraryView
 		final GlobalManager gm = core.getGlobalManager();
 		final DownloadManagerListener dmListener = new DownloadManagerAdapter() {
 			public void stateChanged(DownloadManager dm, int state) {
-				if (PlatformTorrentUtils.isUpdateDM(dm)) {
+				if (PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 					return;
 				}
 				if (dm.getAssumedComplete()) {
@@ -535,7 +535,7 @@ public class SBC_LibraryView
 			}
 			
 			public void completionChanged(DownloadManager dm, boolean completed) {
-				if (PlatformTorrentUtils.isUpdateDM(dm)) {
+				if (PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 					return;
 				}
 				if (completed) {
@@ -610,7 +610,7 @@ public class SBC_LibraryView
 		
 		gm.addListener(new GlobalManagerAdapter() {
 			public void downloadManagerRemoved(DownloadManager dm) {
-				if (PlatformTorrentUtils.isUpdateDM(dm)) {
+				if (PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 					return;
 				}
 				recountUnopened();
@@ -632,7 +632,7 @@ public class SBC_LibraryView
 			}
 			
 			public void downloadManagerAdded(DownloadManager dm) {
-				if (PlatformTorrentUtils.isUpdateDM(dm)) {
+				if (PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 					return;
 				}
 				dm.addListener(dmListener, false);
@@ -658,7 +658,7 @@ public class SBC_LibraryView
 		List downloadManagers = gm.getDownloadManagers();
 		for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
 			DownloadManager dm = (DownloadManager) iter.next();
-			if (PlatformTorrentUtils.isUpdateDM(dm)) {
+			if (PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 				continue;
 			}
 			dm.addListener(dmListener, false);
