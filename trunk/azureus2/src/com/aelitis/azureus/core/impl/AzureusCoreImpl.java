@@ -901,9 +901,8 @@ AzureusCoreImpl
 						protected void
 						checkConfig()
 						{
-							String	key = TransferSpeedValidator.getActiveAutoUploadParameter( global_manager );
-							
-							speed_manager.setEnabled( COConfigurationManager.getBooleanParameter( key ));
+
+							speed_manager.setEnabled( TransferSpeedValidator.isAutoSpeedActive(global_manager) );
 						}
 						
 					});

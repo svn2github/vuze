@@ -83,7 +83,7 @@ public class SelectableSpeedMenu {
             final String configAutoKey = 
             		TransferSpeedValidator.getActiveAutoUploadParameter(globalManager);
      
-	        auto = COConfigurationManager.getBooleanParameter( configAutoKey );
+	        auto = TransferSpeedValidator.isAutoSpeedActive(globalManager);
 	        
 	        	// auto
 	        final MenuItem auto_item = new MenuItem(parent,SWT.CHECK);
