@@ -100,6 +100,8 @@ Engine
 	public static final String	SC_AZID				= "azid";
 	public static final String	SC_FORCE_FULL		= "force_full";	// ignore if-modified stuff and force a full search
 	public static final String	SC_BATCH_PERIOD		= "batch_millis";
+	public static final String	SC_REMOVE_DUP_HASH	= "remove_dup_hash";
+
 	
 	public static final String	CT_VIDEO	= "video";
 	public static final String	CT_AUDIO	= "audio";

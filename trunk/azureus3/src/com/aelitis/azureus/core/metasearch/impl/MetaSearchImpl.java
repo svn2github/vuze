@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -724,6 +725,10 @@ MetaSearchImpl
 		
 		final long batch_millis = batch_millis_str==null?0:Long.parseLong( batch_millis_str );
 		
+		String rem_dups_str = context.get( Engine.SC_REMOVE_DUP_HASH );
+		
+		final boolean rem_dups = rem_dups_str==null?false:rem_dups_str.equalsIgnoreCase( "true" );
+
 		ResultListener	listener = 
 			new ResultListener()
 			{
@@ -733,7 +738,9 @@ MetaSearchImpl
 
 				final private Map<Engine,List<Result[]>>	pending_results = new HashMap<Engine,List<Result[]>>();
 				
-				public void 
+				final private Map<Engine,Set<String>>	result_hashes = new HashMap<Engine, Set<String>>();
+				
+				public void
 				contentReceived(
 					final Engine engine, 
 					final String content ) 
@@ -869,6 +876,96 @@ MetaSearchImpl
 					}
 				}
 				
+				protected Result[]
+             	truncateResults(
+             		Engine		engine,
+             		Result[] 	a_results,
+             		int			max )
+             	{
+					List<Result>	results;
+					
+					Set<String>	hash_set = result_hashes.get( engine );
+					
+					if ( hash_set == null ){
+						
+						hash_set = new HashSet<String>();
+						
+						result_hashes.put( engine, hash_set );
+					}
+					
+					if ( rem_dups ){
+					
+						results = new ArrayList<Result>( a_results.length );
+						
+						for ( Result r: a_results ){
+							
+							String hash = r.getHash();
+							
+							if ( 	hash == null ||
+									hash.length() == 0 ){
+								
+								results.add( r );
+								
+							}else{
+								
+								if ( !hash_set.contains( hash )){
+									
+									results.add( r );
+									
+									hash_set.add( hash );
+								}
+							}
+						}
+					}else{
+						
+						results = Arrays.asList( a_results );
+					}
+					
+             		if ( max < results.size() ){
+             		
+             			log( "Truncating search results for " + engine.getName() + " from " + results.size() + " to " + max );
+             			
+             			Collections.sort(
+             				results,
+             				new Comparator<Result>()
+             				{
+             					Map<Result,Float>	ranks = new HashMap<Result, Float>();
+             					
+             					public int 
+             					compare(
+             						Result r1, 
+             						Result r2) 
+             					{						
+             						Float	rank1 = (Float)ranks.get(r1);
+             						
+             						if ( rank1 == null ){	
+             							rank1 = new Float(r1.getRank());
+             							ranks.put( r1, rank1 );
+             						}
+             						
+             						Float	rank2 = (Float)ranks.get(r2);
+             						
+             						if ( rank2 == null ){	
+             							rank2 = new Float(r2.getRank());
+             							ranks.put( r2, rank2 );
+             						}
+             						
+             						return( -rank1.compareTo( rank2 ));
+             					}
+             				});
+             		
+             			Result[] x = new Result[max];
+             			
+             			System.arraycopy( results, 0, x, 0, max );
+             			
+             			return( x );
+             			
+             		}else{
+             			
+             			return( results.toArray( new Result[ results.size()] ));
+             		}
+             	}
+				
 				public void 
 				engineFailed(
 					final Engine 	engine,
@@ -924,57 +1021,6 @@ MetaSearchImpl
 		}
 		
 		return( engines );
-	}
-	
-	protected Result[]
-	truncateResults(
-		Engine		engine,
-		Result[] 	results,
-		int			max )
-	{
-		if ( max < results.length ){
-		
-			log( "Truncating search results for " + engine.getName() + " from " + results.length + " to " + max );
-			
-			Arrays.sort(
-				results,
-				new Comparator<Result>()
-				{
-					Map<Result,Float>	ranks = new HashMap<Result, Float>();
-					
-					public int 
-					compare(
-						Result r1, 
-						Result r2) 
-					{						
-						Float	rank1 = (Float)ranks.get(r1);
-						
-						if ( rank1 == null ){	
-							rank1 = new Float(r1.getRank());
-							ranks.put( r1, rank1 );
-						}
-						
-						Float	rank2 = (Float)ranks.get(r2);
-						
-						if ( rank2 == null ){	
-							rank2 = new Float(r2.getRank());
-							ranks.put( r2, rank2 );
-						}
-						
-						return( -rank1.compareTo( rank2 ));
-					}
-				});
-		
-			Result[] x = new Result[max];
-			
-			System.arraycopy( results, 0, x, 0, max );
-			
-			return( x );
-			
-		}else{
-			
-			return( results );
-		}
 	}
 	
 	public void

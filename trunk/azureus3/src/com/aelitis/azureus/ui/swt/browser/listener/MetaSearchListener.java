@@ -1938,6 +1938,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 		
 		context.put( Engine.SC_BATCH_PERIOD, "1000" );
 		
+		context.put( Engine.SC_REMOVE_DUP_HASH, "true" );
+		
 		if ( target == null ){
 		
 			metaSearchManager.getMetaSearch().search( listener, parameters, headers, context, max_per_engine );
