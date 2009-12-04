@@ -113,7 +113,8 @@ TRTrackerBTAnnouncerImpl
 	private static Map			tracker_report_map	= new HashMap();
 	
     
-	private TOTorrent				torrent;
+	private TOTorrent					torrent;
+	private TOTorrentAnnounceURLSet[]	announce_urls;
 	
 	private TimerEvent				current_timer_event;
 	private TimerEventPerformer		timer_event_action;
@@ -202,15 +203,17 @@ TRTrackerBTAnnouncerImpl
 	
   public 
   TRTrackerBTAnnouncerImpl(
-   	TOTorrent		_torrent,
-	String[]		_peer_networks,
-	boolean			_manual ) 
+   	TOTorrent					_torrent,
+   	TOTorrentAnnounceURLSet[]	_announce_urls,
+	String[]					_peer_networks,
+	boolean						_manual ) 
   	
   	throws TRTrackerAnnouncerException
   {
 	super( _torrent );
 	 
 	torrent			= _torrent;
+	announce_urls	= _announce_urls;
   	peer_networks	= _peer_networks;
   	manual_control	= _manual;
   	
@@ -2163,10 +2166,8 @@ TRTrackerBTAnnouncerImpl
 			trackerUrlLists = new ArrayList(1);
 	  
 				//This entry is present on multi-tracker torrents
-	  
-			TOTorrentAnnounceURLSet[]	announce_sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
-	       
-			if ( announce_sets.length == 0 ){
+	  	       
+			if ( announce_urls.length == 0 ){
 	  	
 					//If not present, we use the default specification
 					
@@ -2184,11 +2185,11 @@ TRTrackerBTAnnouncerImpl
 	  			
 					//Ok we have a multi-tracker torrent
 				
-				for(int i = 0 ; i < announce_sets.length ; i++){
+				for(int i = 0 ; i < announce_urls.length ; i++){
 					
 				  	//Each list contains a list of urls
 				  
-					URL[]	urls = announce_sets[i].getAnnounceURLs();
+					URL[]	urls = announce_urls[i].getAnnounceURLs();
 					
 				 	List random_urls = new ArrayList();
 				 	

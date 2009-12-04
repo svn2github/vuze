@@ -59,7 +59,7 @@ TRTrackerAnnouncerFactoryImpl
 			
 		}else{
 			
-			client = new TRTrackerBTAnnouncerImpl( torrent, networks, manual );
+			client = new TRTrackerAnnouncerMuxer( torrent, networks, manual );
 		}
 		
 		if ( !manual ){
