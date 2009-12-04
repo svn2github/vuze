@@ -180,7 +180,9 @@ EngineImpl
 	
 	private int			source	= ENGINE_SOURCE_UNKNOWN;
 	
-	private float		rank_bias	= 1;
+	private float		rank_bias		= 1;
+	private int			preferred_count	= 0;
+	
 	
 		// first mappings used to canonicalise names and map field to same field
 		// typically used for categories (musak->music)
@@ -244,6 +246,7 @@ EngineImpl
 		source			= (int)ImportExportUtils.importLong( map, "source", ENGINE_SOURCE_UNKNOWN );
 		
 		rank_bias		= ImportExportUtils.importFloat( map, "rank_bias", 1.0f );
+		preferred_count	= ImportExportUtils.importInt( map, "pref_count", 0 );
 		
 		first_level_mapping 	= importBEncodedMappings( map, "l1_map" );
 		second_level_mapping 	= importBEncodedMappings( map, "l2_map" );
@@ -289,6 +292,7 @@ EngineImpl
 		map.put( "source", new Long( source ));
 		
 		ImportExportUtils.exportFloat( map, "rank_bias", rank_bias );
+		ImportExportUtils.exportInt( map, "pref_count", preferred_count );
 		
 		exportBEncodedMappings( map, "l1_map", first_level_mapping );
 		exportBEncodedMappings( map, "l2_map", second_level_mapping );
@@ -658,6 +662,7 @@ EngineImpl
 					"select_rec",
 					"source",
 					"rank_bias",
+					"pref_count",
 					"version", 
 					"az_version", 
 					"uid" };
@@ -1142,6 +1147,23 @@ EngineImpl
 			
 			rank_bias	= _rank_bias;
 		
+			configDirty();
+		}
+	}
+	
+	public void
+	setPreferred(
+		boolean	pref )
+	{
+		int	new_pref = pref?(preferred_count+1):(preferred_count-1);
+		
+		new_pref = Math.max( 0, new_pref );
+		new_pref = Math.min( 10, new_pref );
+		
+		if ( new_pref != preferred_count ){
+			
+			preferred_count = new_pref;
+			
 			configDirty();
 		}
 	}

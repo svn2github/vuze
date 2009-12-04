@@ -46,7 +46,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
-import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.metasearch.*;
@@ -77,6 +76,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 		
 	public static final String OP_GET_ENGINES 			= "get-engines";
 	public static final String OP_GET_ALL_ENGINES 		= "get-all-engines";
+	public static final String OP_ENGINE_PREFERRED		= "engine-preferred";
 
 	public static final String OP_CHANGE_ENGINE_SELECTION 	= "change-engine-selection";
 	
@@ -252,6 +252,19 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 
 			search( decodedMap, null );
+
+		}else if ( OP_ENGINE_PREFERRED.equals( opid )){
+			
+			final Map decodedMap = message.getDecodedMap();
+			
+			long engine_id = ((Long)decodedMap.get("engine_id")).longValue();
+
+			Engine engine = getEngineFromId( engine_id );
+
+			if ( engine != null ){
+				
+				metaSearchManager.getMetaSearch().enginePreferred( engine );
+			}
 
 		} else if(OP_ENGINE_LOGIN.equals(opid)) {
 			

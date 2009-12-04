@@ -103,6 +103,10 @@ MetaSearch
 	getEngineCount();
 	
 	public void
+	enginePreferred(
+		Engine		engine );
+	
+	public void
 	addListener(
 		MetaSearchListener		listener );
 	

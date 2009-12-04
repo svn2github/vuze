@@ -703,6 +703,25 @@ MetaSearchImpl
 		return( search( engines, listener, search_parameters, headers, new HashMap<String,String>(), max_results_per_engine ));
 	}
 	
+	public void
+	enginePreferred(
+		Engine		engine )
+	{
+		Engine[] engines = getEngines( true, false );
+		
+		for ( Engine e: engines ){
+			
+			if ( e.getId() == engine.getId()){
+				
+				e.setPreferred( true );
+				
+			}else{
+				
+				e.setPreferred( false );
+			}
+		}
+	}
+	
 	public Engine[] 
   	search(
   		Engine[]				engines,

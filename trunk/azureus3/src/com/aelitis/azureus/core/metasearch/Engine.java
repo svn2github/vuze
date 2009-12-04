@@ -187,6 +187,10 @@ Engine
 	setRankBias(
 		float		bias );
 	
+	public void
+	setPreferred(
+		boolean	pref );
+	
 	public boolean
 	supportsField(
 		int		field_id );
