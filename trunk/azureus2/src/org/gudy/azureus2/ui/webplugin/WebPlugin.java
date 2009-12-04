@@ -130,7 +130,7 @@ WebPlugin
 	private String				resource_root;
 	
 	private boolean				ip_range_all	= false;
-	private IPRange				ip_range;
+	private List<IPRange>		ip_ranges;
 	
 	private Properties	properties;
 	
@@ -519,7 +519,7 @@ WebPlugin
 				pw_enable, user_name, password,
 			});
 			    
-		if ( param_enable != null){
+		if ( param_enable != null ){
 						
 			final List<Parameter> changed_params = new ArrayList<Parameter>();
 			
@@ -586,7 +586,10 @@ WebPlugin
 					}
 				});
 			
-			return;
+			if ( !enabled ){
+				
+				return;
+			}
 		}
 		
 			// end config
@@ -718,32 +721,55 @@ WebPlugin
 		
 		String	access_str = param_access.getValue().trim();
 		
+		String ip_ranges_str = "";
+		
 		if ( access_str.length() > 7 && Character.isDigit(access_str.charAt(0))){
 			
-			ip_range	= plugin_interface.getIPFilter().createRange(true);
+			String[] ranges = access_str.replace( ';', ',' ).split( "," );
 			
-			int	sep = access_str.indexOf("-");
+			ip_ranges = new ArrayList<IPRange>();
+			
+			for ( String range: ranges ){
 				
-			if ( sep == -1 ){
+				range = range.trim();
 				
-				ip_range.setStartIP( access_str );
+				if ( range.length() > 7 ){
+					
+					IPRange ip_range	= plugin_interface.getIPFilter().createRange(true);
+			
+					int	sep = range.indexOf("-");
 				
-				ip_range.setEndIP( access_str );
+					if ( sep == -1 ){
 				
-			}else{				
+						ip_range.setStartIP( range );
 				
-				ip_range.setStartIP( access_str.substring(0,sep).trim());
+						ip_range.setEndIP( range );
 				
-				ip_range.setEndIP( access_str.substring( sep+1 ).trim());
+					}else{				
+				
+						ip_range.setStartIP( range.substring(0,sep).trim());
+				
+						ip_range.setEndIP( range.substring( sep+1 ).trim());
+					}
+			
+					ip_range.checkValid();
+			
+					if (!ip_range.isValid()){
+			
+						log.log( LoggerChannel.LT_ERROR, "Access parameter '" + range + "' is invalid" );
+						
+					}else{
+						
+						ip_ranges.add( ip_range );
+						
+						ip_ranges_str += (ip_ranges_str.length()==0?"":", ") + ip_range.getStartIP() + " - " + ip_range.getEndIP();
+					}
+				}
 			}
 			
-			ip_range.checkValid();
-			
-			if (!ip_range.isValid()){
-			
-				log.log( LoggerChannel.LT_ERROR, "Access parameter '" + access_str + "' is invalid" );
-			
-				ip_range	= null;
+			if ( ip_ranges.size() == 0 ){
+				
+				ip_ranges = null;
 			}
 		}else{
 			
@@ -755,9 +781,9 @@ WebPlugin
 		
 		log.log( 	LoggerChannel.LT_INFORMATION, 
 					"Acceptable IP range = " +
-						( ip_range==null?
+						( ip_ranges==null?
 							(ip_range_all?"all":"local"):
-							(ip_range.getStartIP() + " - " + ip_range.getEndIP())));
+							(ip_ranges_str)));
 				
 							
 		try{
@@ -967,7 +993,7 @@ WebPlugin
 				boolean valid_ip = true;
 				InetAddress ia = InetAddress.getByName( client );
 				
-				if ( ip_range == null ){
+				if ( ip_ranges == null ){
 					
 					if ( !ia.isLoopbackAddress()){
 				
@@ -976,7 +1002,17 @@ WebPlugin
 					}
 				}else{
 					
-					if ( !ip_range.isInRange( ia.getHostAddress())){
+					boolean ok = false;
+					
+					for ( IPRange range: ip_ranges ){
+						
+						if ( range.isInRange( ia.getHostAddress())){
+						
+							ok = true;
+						}
+					}
+					
+					if ( !ok ){
 						
 						log.log( LoggerChannel.LT_ERROR, "Client '" + client + "' (" + ia.getHostAddress() + ") is not in range, rejecting" );
 						valid_ip = false;

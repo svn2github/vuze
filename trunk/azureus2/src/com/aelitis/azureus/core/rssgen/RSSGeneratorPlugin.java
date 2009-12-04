@@ -36,7 +36,6 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageGenerator;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.ui.webplugin.WebPlugin;
 
 
@@ -44,7 +43,7 @@ public class
 RSSGeneratorPlugin
 	extends WebPlugin
 {
-	public static final String	PLUGIN_NAME		= "Internal RSS";
+	public static final String	PLUGIN_NAME		= "Local RSS etc.";
 	public static final int 	DEFAULT_PORT    = 6905;
 	public static final String	DEFAULT_ACCESS	= "all";
 	
