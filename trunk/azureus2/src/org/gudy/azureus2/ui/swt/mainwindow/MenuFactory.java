@@ -1211,6 +1211,10 @@ public class MenuFactory
 	 * @return may return <code>null</code> if not found
 	 */
 	public static MenuItem findMenuItem(Menu menuToStartWith, String idToMatch) {
+		return findMenuItem(menuToStartWith, idToMatch, true);
+	}
+
+	public static MenuItem findMenuItem(Menu menuToStartWith, String idToMatch, boolean deep) {
 		/*
 		 * This is a recursive method; it will start at the given menuToStartWith
 		 * and recursively traverse to all its sub menus until a matching
@@ -1229,12 +1233,14 @@ public class MenuFactory
 				return item;
 			}
 
-			/*
-			 * Go deeper into each child to try and find it
-			 */
-			MenuItem menuItemToFind = findMenuItem(item.getMenu(), idToMatch);
-			if (null != menuItemToFind) {
-				return menuItemToFind;
+			if (deep) {
+  			/*
+  			 * Go deeper into each child to try and find it
+  			 */
+  			MenuItem menuItemToFind = findMenuItem(item.getMenu(), idToMatch);
+  			if (null != menuItemToFind) {
+  				return menuItemToFind;
+  			}
 			}
 		}
 
