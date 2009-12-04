@@ -2256,14 +2256,21 @@ RelatedContentManager
 				public void
 				run()
 				{
-					final Set<String>	titles_or_hashes = new HashSet<String>();
+					final Set<String>	hashes = new HashSet<String>();
 					
 					try{				
 						List<RelatedContent>	matches = matchContent( term );
 							
 						for ( final RelatedContent c: matches ){
 							
-							titles_or_hashes.add( c.getHash()==null?c.getTitle():Base32.encode(c.getHash()));
+							final byte[] hash = c.getHash();
+							
+							if ( hash == null ){
+								
+								continue;
+							}
+							
+							hashes.add( Base32.encode( hash ));
 							
 							SearchResult result = 
 								new SearchResult()
@@ -2279,6 +2286,10 @@ RelatedContentManager
 										}else if ( property_name == SearchResult.PR_SIZE ){
 											
 											return( c.getSize());
+											
+										}else if ( property_name == SearchResult.PR_HASH ){
+											
+											return( hash );
 											
 										}else if ( property_name == SearchResult.PR_RANK ){
 											
@@ -2412,7 +2423,7 @@ RelatedContentManager
 									run()
 									{
 										try{
-											sendRemoteSearch( si, titles_or_hashes, c, term, observer );
+											sendRemoteSearch( si, hashes, c, term, observer );
 																						
 										}finally{
 											
@@ -2482,7 +2493,7 @@ RelatedContentManager
 	protected void
 	sendRemoteSearch(
 		SearchInstance					si,
-		Set<String>						titles_or_hashes,
+		Set<String>						hashes,
 		DistributedDatabaseContact		contact,
 		String							term,
 		SearchObserver					observer )
@@ -2535,16 +2546,21 @@ RelatedContentManager
 				
 				final String title = ImportExportUtils.importString( map, "n" );
 				
-				byte[] hash = (byte[])map.get( "h" );
+				final byte[] hash = (byte[])map.get( "h" );
 				
-				String	title_or_hash = hash==null?title:Base32.encode( hash );
-					
-				if ( titles_or_hashes.contains( title_or_hash )){
+				if ( hash == null ){
 					
 					continue;
 				}
 				
-				titles_or_hashes.add( title_or_hash );
+				String	hash_str = Base32.encode( hash );
+					
+				if ( hashes.contains( hash_str )){
+					
+					continue;
+				}
+				
+				hashes.add( hash_str );
 
 				SearchResult result = 
 					new SearchResult()
@@ -2561,6 +2577,10 @@ RelatedContentManager
 								}else if ( property_name == SearchResult.PR_SIZE ){
 									
 									return( ImportExportUtils.importLong( map, "s" ));
+									
+								}else if ( property_name == SearchResult.PR_HASH ){
+									
+									return( hash );
 									
 								}else if ( property_name == SearchResult.PR_RANK ){
 									
