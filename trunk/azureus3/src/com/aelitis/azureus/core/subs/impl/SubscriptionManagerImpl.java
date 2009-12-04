@@ -4217,12 +4217,7 @@ SubscriptionManagerImpl
 					reportActivity(
 						String	str )
 					{
-						if ( 	str.indexOf( "found " ) == -1 &&
-								str.indexOf( " is dead" ) == -1 &&
-								str.indexOf( " is alive" ) == -1){
-			
-							log( "    MagnetDownload: " + str );
-						}
+						log( "    MagnetDownload: " + str );
 					}
 					
 					public void
@@ -4239,6 +4234,12 @@ SubscriptionManagerImpl
 						
 							sender[0] = address;
 						}
+					}
+
+					public boolean 
+					verbose() 
+					{
+						return( false );
 					}
 				},
 				hash,
