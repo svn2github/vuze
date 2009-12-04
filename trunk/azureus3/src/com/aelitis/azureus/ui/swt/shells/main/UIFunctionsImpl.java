@@ -29,6 +29,8 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -105,12 +107,21 @@ public class UIFunctionsImpl
 	 */
 	private SWTSkin skin = null;
 
+	protected boolean isTorrentMenuVisible;
+
 	/**
 	 * @param window
 	 */
 	public UIFunctionsImpl(
 			com.aelitis.azureus.ui.swt.shells.main.MainWindow window) {
 		this.mainWindow = window;
+		
+		COConfigurationManager.addAndFireParameterListener(
+				"Menu.show.torrent.menu", new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						isTorrentMenuVisible = COConfigurationManager.getBooleanParameter("Menu.show.torrent.menu");
+					}
+				});
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(org.gudy.azureus2.plugins.PluginView)
@@ -166,6 +177,7 @@ public class UIFunctionsImpl
 
 	// @see com.aelitis.azureus.ui.UIFunctions#bringToFront(boolean)
 	public void bringToFront(final boolean tryTricks) {
+		System.out.println("BTF: " + Debug.getCompressedStackTrace());
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {
@@ -659,12 +671,15 @@ public class UIFunctionsImpl
 	}
 
 	public void refreshTorrentMenu() {
+		if (!isTorrentMenuVisible) {
+			return;
+		}
 		try {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					final MenuItem torrentItem = MenuFactory.findMenuItem(
 							mainWindow.getMainMenu().getMenu(IMenuConstants.MENU_ID_MENU_BAR),
-							MenuFactory.MENU_ID_TORRENT);
+							MenuFactory.MENU_ID_TORRENT, false);
 
 					if (null != torrentItem) {
 
