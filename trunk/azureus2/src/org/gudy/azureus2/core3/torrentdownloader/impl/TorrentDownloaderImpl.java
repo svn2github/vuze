@@ -422,10 +422,17 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         			boolean changed_status	= false;
         			String	last_status		= "";
         			
+        			boolean	sleep = false;
+        			
         			while( true ){
         				
         				try{
-        					Thread.sleep(100);
+        					if ( sleep ){
+        					
+        						Thread.sleep(50);
+        						
+        						sleep = false;
+        					}
         					
         					try{
         						this_mon.enter();
@@ -441,7 +448,11 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         					
         					String	s = con.getResponseMessage();
         					  
-        					if ( !s.equals( last_status )){
+        					if ( s.equals( last_status )){
+        						
+        						sleep = true;
+        						
+        					}else{
         						
         						last_status = s;
         						
@@ -489,10 +500,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         						}
         						
         						changed_status	= true;
-        					}
-   
-        					
- 
+        					} 
         				}catch( Throwable e ){
         					
         					break;
@@ -589,7 +597,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	            
 	            this.readTotal += bufBytes;
 	            
-	            if (size != 0){
+	            if (size > 0){
 	              this.percentDone = (100 * this.readTotal) / size;
 	            }
 	            

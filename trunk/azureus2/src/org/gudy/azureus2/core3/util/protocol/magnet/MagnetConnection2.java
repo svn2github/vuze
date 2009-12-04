@@ -119,10 +119,19 @@ MagnetConnection2
 					line = line.substring( 9 );
 										
 					line = line.trim();
-					
+										
 					synchronized( status_list ){
 		
-						status_list.addLast( Character.toUpperCase( line.charAt(0)) + line.substring(1));
+						String str = Character.toUpperCase( line.charAt(0)) + line.substring(1);
+						
+						if ( status_list.size() == 0 ){
+							
+							status_list.addLast( str );
+							
+						}else if ( !status_list.getLast().equals( str )){
+							
+							status_list.addLast( str );
+						}
 					}
 				}
 				
