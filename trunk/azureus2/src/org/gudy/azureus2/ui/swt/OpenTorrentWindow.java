@@ -35,9 +35,7 @@ import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -100,7 +98,7 @@ public class OpenTorrentWindow
 	 */
 	//private final static int MIN_NODOWNLOAD_SIZE = 64 * 1024;
 	//private final static int MAX_NODOWNLOAD_COUNT = 3;
-	private final static int MIN_BUTTON_HEIGHT = Constants.isWindows ? 24 : -1;
+	private final static int MIN_BUTTON_HEIGHT = -1;
 
 	private final static String PARAM_DEFSAVEPATH = "Default save path";
 
@@ -510,9 +508,6 @@ public class OpenTorrentWindow
 		});
 
 		updateDataDirCombo();
-		if (sDestDir != null && sDestDir.length() > 0) {
-			cmbDataDir.add(sDestDir);
-		}
 		dirList = COConfigurationManager.getStringListParameter("saveTo_list");
 		StringIterator iter = dirList.iterator();
 		while (iter.hasNext()) {
@@ -903,6 +898,9 @@ public class OpenTorrentWindow
 			int[] indexes = torrentTable.getSelectionIndices();
 
 			if (indexes.length == 0) {
+				if (cmbDataDir.getItemCount() == 0) {
+					cmbDataDir.add(sDestDir);
+				}
 				cmbDataDir.setText(sDestDir);
 				return;
 			}
