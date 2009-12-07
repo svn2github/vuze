@@ -298,10 +298,10 @@ public class Hack extends TorrentCommand
 			}
 			TRTrackerAnnouncer client = dm.getTrackerClient();
 			try {
-				URI uold = new URI(client.getTrackerUrl().toString());
+				URI uold = new URI(client.getTrackerURL().toString());
 				String portStr = (String) args.get(0);
 				URI unew = new URI(uold.getScheme(), uold.getUserInfo(), uold.getHost(), Integer.parseInt(portStr), uold.getPath(), uold.getQuery(), uold.getFragment());
-				client.setTrackerUrl(new URL(unew.toString()));
+				client.setTrackerURL(new URL(unew.toString()));
 				ci.out.println("> Set Tracker URL for '"+dm.getSaveLocation()+"' to '"+unew.toString()+"'");
 			} catch (Exception e) {
 				ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
@@ -327,9 +327,9 @@ public class Hack extends TorrentCommand
 			}
 			TRTrackerAnnouncer client = dm.getTrackerClient();
 			try {
-				URI uold = new URI(client.getTrackerUrl().toString());
+				URI uold = new URI(client.getTrackerURL().toString());
 				URI unew = new URI(uold.getScheme(), uold.getUserInfo(), (String)args.get(0), uold.getPort(), uold.getPath(), uold.getQuery(), uold.getFragment());
-				client.setTrackerUrl(new URL(unew.toString()));
+				client.setTrackerURL(new URL(unew.toString()));
 				ci.out.println("> Set Tracker URL for '"+dm.getSaveLocation()+"' to '"+unew.toString()+"'");
 			} catch (Exception e) {
 				ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
@@ -358,7 +358,7 @@ public class Hack extends TorrentCommand
 			try {
 				String uriStr = (String) args.get(0); 
 				URI uri = new URI(uriStr);
-				client.setTrackerUrl(new URL(uri.toString()));
+				client.setTrackerURL(new URL(uri.toString()));
 				ci.out.println("> Set Tracker URL for '"+dm.getSaveLocation()+"' to '"+uri+"'");
 			} catch (Exception e) {
 				ci.out.println("> Command 'hack': Parsing tracker url failed: "+e.getMessage());

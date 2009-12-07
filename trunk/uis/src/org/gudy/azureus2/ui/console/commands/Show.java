@@ -529,7 +529,7 @@ public class Show extends IConsoleCommand {
 		out.println("- Tracker Info -");
 		TRTrackerAnnouncer trackerclient = dm.getTrackerClient();
 		if (trackerclient != null) {
-			out.println("URL: " + trackerclient.getTrackerUrl());
+			out.println("URL: " + trackerclient.getTrackerURL());
 			String timestr;
 			try {
 				int time = trackerclient.getTimeUntilNextUpdate();
