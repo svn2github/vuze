@@ -336,8 +336,6 @@ public class MainStatusBar
 			}
 		});
 
-		statusBar.layout();
-
 		this.plugin_label_composite = new Composite(statusBar, SWT.NONE);
 		this.plugin_label_composite.setForeground(fgColor);
 		GridLayout gridLayout = new GridLayout();
@@ -569,6 +567,8 @@ public class MainStatusBar
 			}
 		}
 		
+		statusBar.layout(true);
+
 		return statusBar;
 	}
 
@@ -1226,7 +1226,7 @@ public class MainStatusBar
 			int oldWidth = lastWidth;
 			Point pt = super.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 			pt.x += 4;
-			if (pt.x > oldWidth && oldWidth > 0) {
+			if (pt.x > oldWidth && text.length() > 0) {
 				statusBar.layout();
 			} else if (pt.x < oldWidth) {
 				Utils.execSWTThreadLater(KEEPWIDTHFOR_MS, new AERunnable() {
