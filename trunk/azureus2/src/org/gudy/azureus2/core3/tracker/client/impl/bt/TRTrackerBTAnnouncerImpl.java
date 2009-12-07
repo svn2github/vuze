@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.security.SESecurityManager;
@@ -76,9 +77,9 @@ import com.aelitis.net.udp.uc.*;
  */
 public class 
 TRTrackerBTAnnouncerImpl
-	extends TRTrackerAnnouncerImpl
+	implements TRTrackerAnnouncer
 {
-	
+	public final static LogIDs LOGID = LogIDs.TRACKER;
 		
 	private static final int OVERRIDE_PERIOD			= 10*1000;
 	 
@@ -116,10 +117,12 @@ TRTrackerBTAnnouncerImpl
 	private TOTorrent					torrent;
 	private TOTorrentAnnounceURLSet[]	announce_urls;
 	
+	private TRTrackerAnnouncerImpl.Helper	helper;
+	
 	private TimerEvent				current_timer_event;
 	private TimerEventPerformer		timer_event_action;
 	
-	protected int				tracker_state 			= TS_INITIALISED;
+	protected int				tracker_state 			= TRTrackerAnnouncer.TS_INITIALISED;
 	private String				tracker_status_str		= "";
 	private TRTrackerAnnouncerResponseImpl	last_response			= null;
 	private long				last_update_time_secs;
@@ -203,19 +206,19 @@ TRTrackerBTAnnouncerImpl
 	
   public 
   TRTrackerBTAnnouncerImpl(
-   	TOTorrent					_torrent,
-   	TOTorrentAnnounceURLSet[]	_announce_urls,
-	String[]					_peer_networks,
-	boolean						_manual ) 
+   	TOTorrent						_torrent,
+   	TOTorrentAnnounceURLSet[]		_announce_urls,
+	String[]						_peer_networks,
+	boolean							_manual,
+	TRTrackerAnnouncerImpl.Helper	_helper )
   	
   	throws TRTrackerAnnouncerException
   {
-	super( _torrent );
-	 
 	torrent			= _torrent;
 	announce_urls	= _announce_urls;
   	peer_networks	= _peer_networks;
   	manual_control	= _manual;
+  	helper			= _helper;
   	
 		//Get the Tracker url
 		
@@ -293,7 +296,7 @@ TRTrackerBTAnnouncerImpl
 						
 					current_time_to_wait_secs	= secs_to_wait;
 							
-					if ( tracker_state == TS_STOPPED ){
+					if ( tracker_state == TRTrackerAnnouncer.TS_STOPPED ){
 						
 						// System.out.println( "\tperform: stopped so no more events");
 						
@@ -418,7 +421,7 @@ TRTrackerBTAnnouncerImpl
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(torrent, LOGID,
 							"MIN INTERVAL CALC: override, perc = 0"));
-      	return REFRESH_MINIMUM_SECS;
+      	return TRTrackerAnnouncer.REFRESH_MINIMUM_SECS;
       }
 
       if (rd_override_percentage != 100) {
@@ -429,9 +432,9 @@ TRTrackerBTAnnouncerImpl
     		}
       }
 									
-      if ( secs_to_wait < REFRESH_MINIMUM_SECS ){
+      if ( secs_to_wait < TRTrackerAnnouncer.REFRESH_MINIMUM_SECS ){
 	  			
-        secs_to_wait = REFRESH_MINIMUM_SECS;
+        secs_to_wait = TRTrackerAnnouncer.REFRESH_MINIMUM_SECS;
       }
       
       //use 'min interval' for calculation
@@ -567,7 +570,7 @@ TRTrackerBTAnnouncerImpl
         
         if ( now < last_update_time_secs )  force = true;  //time went backwards
 
-        long	effective_min = min_interval_override>0?min_interval_override:REFRESH_MINIMUM_SECS;
+        long	effective_min = min_interval_override>0?min_interval_override:TRTrackerAnnouncer.REFRESH_MINIMUM_SECS;
         
 		if ( manual_control || force || ( now - last_update_time_secs >= effective_min )){
 			
@@ -665,29 +668,29 @@ TRTrackerBTAnnouncerImpl
 					// if manual control then we assume that a stop request is required, even if we
 					// are in an init state. needed for explicit stop based on URL
 				
-				if ( tracker_state == TS_INITIALISED && !manual_control ){
+				if ( tracker_state == TRTrackerAnnouncer.TS_INITIALISED && !manual_control ){
 					
 						// never started
 					
-					tracker_state = TS_STOPPED;
+					tracker_state = TRTrackerAnnouncer.TS_STOPPED;
 					
-				}else if ( tracker_state != TS_STOPPED ){
+				}else if ( tracker_state != TRTrackerAnnouncer.TS_STOPPED ){
 			
 					response = stopSupport();
 					
 					if ( response.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
 												
-						tracker_state = TS_STOPPED;
+						tracker_state = TRTrackerAnnouncer.TS_STOPPED;
 						
 					}else{
 						
 							// just have one go at sending a stop event as we don't want to sit here
 							// forever trying to send stop to a stuffed tracker
 							
-						tracker_state = TS_STOPPED;
+						tracker_state = TRTrackerAnnouncer.TS_STOPPED;
 					}
 				}	
-			}else if ( tracker_state == TS_INITIALISED ){
+			}else if ( tracker_state == TRTrackerAnnouncer.TS_INITIALISED ){
 							
 					// always go through the "start" phase, even if we're already complete
 					// as some trackers insist on the initial "start"
@@ -696,7 +699,7 @@ TRTrackerBTAnnouncerImpl
 					
 				if ( response.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
 						
-					tracker_state = TS_DOWNLOADING;
+					tracker_state = TRTrackerAnnouncer.TS_DOWNLOADING;
 				}
 			}else if ( completed ){
 				
@@ -713,10 +716,10 @@ TRTrackerBTAnnouncerImpl
 						
 						complete_reported	= true;
 				
-						tracker_state = TS_COMPLETED;
+						tracker_state = TRTrackerAnnouncer.TS_COMPLETED;
 					}
 				}else{
-					tracker_state = TS_COMPLETED;
+					tracker_state = TRTrackerAnnouncer.TS_COMPLETED;
 					
 					response = updateSupport();
 				}
@@ -743,7 +746,7 @@ TRTrackerBTAnnouncerImpl
 						// will fail peers that don't start with a "started" event after a 
 						// tracker restart
 					
-					tracker_state	= TS_INITIALISED;
+					tracker_state	= TRTrackerAnnouncer.TS_INITIALISED;
 					
 				}else{
 	    	       	    
@@ -767,7 +770,7 @@ TRTrackerBTAnnouncerImpl
 				
 				last_response = response;
 				
-				listeners.dispatch( LDT_TRACKER_RESPONSE, response );
+				helper.informResponse( response );
 				
 				return( response.getTimeToWait());
 			}
@@ -1055,7 +1058,7 @@ TRTrackerBTAnnouncerImpl
 	  int	num_want = calculateNumWant() * 4;
 
 
-      TRTrackerAnnouncerResponsePeer[]	cached_peers = getPeersFromCache(num_want);      
+      TRTrackerAnnouncerResponsePeer[]	cached_peers = helper.getPeersFromCache(num_want);      
       
       if ( cached_peers.length > 0 ){
 
@@ -2090,13 +2093,13 @@ TRTrackerBTAnnouncerImpl
 	}
 	
 	public URL 
-	getTrackerUrl() 
+	getTrackerURL() 
 	{
 		return( lastUsedUrl );
 	} 
   
 	public void 
-	setTrackerUrl(
+	setTrackerURL(
 		URL new_url ) 
 	{
 		try{
@@ -2118,6 +2121,13 @@ TRTrackerBTAnnouncerImpl
 		}
 	}
   
+	public void
+	setTrackerURLs(
+		TOTorrentAnnounceURLSet[]		_set )
+	{
+		announce_urls = _set;
+	}
+	
 	public void
 	resetTrackerUrl(
 		boolean		shuffle )
@@ -2686,7 +2696,7 @@ TRTrackerBTAnnouncerImpl
 					    		
 					    		int		tcp_port 	= ((tcp_bytes[0]&0xff) << 8 ) + (tcp_bytes[1]&0xff );
 	                
-					    		byte[]	peer_peer_id = getAnonymousPeerId( ip, tcp_port );
+					    		byte[]	peer_peer_id = TRTrackerAnnouncerImpl.getAnonymousPeerId( ip, tcp_port );
 	
 					    		int		udp_port 	= 0;
 					    		
@@ -2846,7 +2856,7 @@ TRTrackerBTAnnouncerImpl
 	                
 									// Debug.out(ip + ": tracker did not give peerID in reply");
 
-									peer_peer_id = getAnonymousPeerId( ip, peer_port );
+									peer_peer_id = TRTrackerAnnouncerImpl.getAnonymousPeerId( ip, peer_port );
 									
 									// System.out.println("generated peer id" + new String(peerId) + "/" + ByteFormatter.nicePrint( peerId, true ));
 								}else{
@@ -2937,7 +2947,7 @@ TRTrackerBTAnnouncerImpl
 				    			continue;
 				    		}
                 
-				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, tcp_port );
+				    		byte[]	peer_peer_id = TRTrackerAnnouncerImpl.getAnonymousPeerId( ip, tcp_port );
 							
 				    		short 	protocol;
 				    		int		udp_port;
@@ -3034,7 +3044,7 @@ TRTrackerBTAnnouncerImpl
 								continue;
 							}
 							
-							byte[] peer_peer_id = getAnonymousPeerId( ip, tcp_port );
+							byte[] peer_peer_id = TRTrackerAnnouncerImpl.getAnonymousPeerId( ip, tcp_port );
 							
 							short protocol = DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
 							
@@ -3054,7 +3064,7 @@ TRTrackerBTAnnouncerImpl
 					
 					valid_meta_peers.toArray(peers);
 					
-					addToTrackerCache( peers);
+					helper.addToTrackerCache( peers);
 					
 					TRTrackerAnnouncerResponseImpl resp = new TRTrackerAnnouncerResponseImpl( url, torrent_hash, TRTrackerAnnouncerResponse.ST_ONLINE, time_to_wait, peers );
           
@@ -3114,7 +3124,7 @@ TRTrackerBTAnnouncerImpl
 							TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
 
 							if (scraper != null) {
-								TRTrackerScraperResponse scrapeResponse = scraper.scrape(this);
+								TRTrackerScraperResponse scrapeResponse = scraper.scrape( torrent, getTrackerURL());
 								if (scrapeResponse != null) {
 									long lNextScrapeTime = scrapeResponse.getNextScrapeStartTime();
 									long lNewNextScrapeTime = TRTrackerScraperResponseImpl.calcScrapeIntervalSecs(
@@ -3176,14 +3186,13 @@ TRTrackerBTAnnouncerImpl
 		URL		new_url,
 		boolean	explicit  )
 	{
-		listeners.dispatch(	LDT_URL_CHANGED,
-							new Object[]{old_url, new_url, new Boolean(explicit)});
+		helper.informURLChange( old_url, new_url, explicit );
 	}
 	
 	protected void
 	informURLRefresh()
 	{
-		listeners.dispatch( LDT_URL_REFRESH, null );		
+		helper.informURLRefresh();	
 	}
 	
 	public TRTrackerAnnouncerResponse
@@ -3207,9 +3216,7 @@ TRTrackerBTAnnouncerImpl
 	destroy()
 	{       
 		destroyed	= true;
-		
-		TRTrackerAnnouncerFactoryImpl.destroy( this );
-		
+				
 		try{
 			this_mon.enter();
 			
@@ -3368,7 +3375,7 @@ TRTrackerBTAnnouncerImpl
 
 			l_peers.toArray( peers );
 			
-			addToTrackerCache( peers);
+			helper.addToTrackerCache( peers);
 		
 			if ( ps_enabled || peers.length > 0 || ext_peers.length == 0 ){
 				
@@ -3399,7 +3406,41 @@ TRTrackerBTAnnouncerImpl
 			tracker_status_str	= status + " (" + result.getURL() + ")";
 		}
 		
-		listeners.dispatch( LDT_TRACKER_RESPONSE, response );
+		helper.informResponse( response );
+	}
+	
+	public void 
+	addListener(
+		TRTrackerAnnouncerListener l )
+	{
+		helper.addListener( l );
+	}
+	
+	public void 
+	removeListener(
+		TRTrackerAnnouncerListener l )
+	{
+		helper.removeListener( l );
+	}
+	
+	public void 
+	setTrackerResponseCache(
+		Map map	)
+	{
+		helper.setTrackerResponseCache( map );
+	}
+	
+	public void 
+	removeFromTrackerResponseCache(
+		String ip, int tcpPort) 
+	{
+		helper.removeFromTrackerResponseCache( ip, tcpPort );
+	}
+	
+	public Map 
+	getTrackerResponseCache() 
+	{
+		return( helper.getTrackerResponseCache());
 	}
 	
 	public void 

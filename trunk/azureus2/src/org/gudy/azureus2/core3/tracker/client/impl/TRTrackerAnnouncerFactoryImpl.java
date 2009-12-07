@@ -31,15 +31,13 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
-import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
-import org.gudy.azureus2.core3.tracker.client.impl.dht.TRTrackerDHTAnnouncerImpl;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
 TRTrackerAnnouncerFactoryImpl 
 {
-	protected static List	listeners 	= new ArrayList();
-	protected static List	clients		= new ArrayList();
+	protected static List<TRTrackerAnnouncerFactoryListener>	listeners 	= new ArrayList<TRTrackerAnnouncerFactoryListener>();
+	protected static List<TRTrackerAnnouncerImpl>				clients		= new ArrayList<TRTrackerAnnouncerImpl>();
 	
 	protected static AEMonitor 		class_mon 	= new AEMonitor( "TRTrackerClientFactory" );
 
@@ -51,16 +49,7 @@ TRTrackerAnnouncerFactoryImpl
 		
 		throws TRTrackerAnnouncerException
 	{
-		TRTrackerAnnouncer	client;
-		
-		if ( TorrentUtils.isDecentralised( torrent )){
-			
-			client	= new TRTrackerDHTAnnouncerImpl( torrent, networks, manual );
-			
-		}else{
-			
-			client = new TRTrackerAnnouncerMuxer( torrent, networks, manual );
-		}
+		TRTrackerAnnouncerImpl	client = new TRTrackerAnnouncerMuxer( torrent, networks, manual );
 		
 		if ( !manual ){
 			

@@ -31,6 +31,7 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
@@ -631,7 +632,7 @@ TRTrackerUtils
 		Map		map1,
 		Map		map2 )
 	{
-		return( TRTrackerBTAnnouncerImpl.mergeResponseCache( map1, map2 ));
+		return( TRTrackerAnnouncerImpl.mergeResponseCache( map1, map2 ));
 	}
 		
  	public static String

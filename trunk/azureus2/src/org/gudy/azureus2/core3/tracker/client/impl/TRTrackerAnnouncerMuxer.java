@@ -22,22 +22,23 @@
 package org.gudy.azureus2.core3.tracker.client.impl;
 
 import java.net.URL;
-import java.util.Map;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
+import org.gudy.azureus2.core3.tracker.client.impl.dht.TRTrackerDHTAnnouncerImpl;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 
 public class 
 TRTrackerAnnouncerMuxer
-	implements TRTrackerAnnouncer
+	extends TRTrackerAnnouncerImpl
 {
 	private TRTrackerAnnouncer	main_announcer;
 	
@@ -49,9 +50,19 @@ TRTrackerAnnouncerMuxer
 	
 		throws TRTrackerAnnouncerException
 	{
+		super( torrent );
+		
 		TOTorrentAnnounceURLSet[]	sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
 		
-		main_announcer = new TRTrackerBTAnnouncerImpl( torrent, sets, networks, manual );
+		if ( TorrentUtils.isDecentralised( torrent )){
+			
+			main_announcer	= new TRTrackerDHTAnnouncerImpl( torrent, networks, manual, getHelper());
+			
+		}else{
+			
+
+			main_announcer = new TRTrackerBTAnnouncerImpl( torrent, sets, networks, manual, getHelper());
+		}
 	}
 	
 	public void
@@ -59,6 +70,8 @@ TRTrackerAnnouncerMuxer
 		TRTrackerAnnouncerDataProvider		provider )
 	{
 		main_announcer.setAnnounceDataProvider( provider );
+		
+		//System.out.println( "announcer set" );
 	}
 	
 	public TOTorrent
@@ -68,22 +81,31 @@ TRTrackerAnnouncerMuxer
 	}
 	
 	public URL
-	getTrackerUrl()
+	getTrackerURL()
 	{
-		return( main_announcer.getTrackerUrl());
+		return( main_announcer.getTrackerURL());
 	}
 	
 	public void
-	setTrackerUrl(
+	setTrackerURL(
 		URL		url )
 	{
-		main_announcer.setTrackerUrl( url );
+		main_announcer.setTrackerURL( url );
 	}
 		
+	public void 
+	setTrackerURLs(
+		TOTorrentAnnounceURLSet[] 	sets ) 
+	{
+		Debug.out( "Not implemented" );
+	}
+	
 	public void
 	resetTrackerUrl(
 		boolean	shuffle )
 	{
+		main_announcer.setTrackerURLs( getTorrent().getAnnounceURLGroup().getAnnounceURLSets());
+		
 		main_announcer.resetTrackerUrl( shuffle );
 	}
 	
@@ -137,6 +159,8 @@ TRTrackerAnnouncerMuxer
 		boolean	force )
 	{
 		main_announcer.update(force);
+		
+		//System.out.println( "update" );
 	}
 	
 	public void
@@ -144,6 +168,8 @@ TRTrackerAnnouncerMuxer
 		boolean	already_reported )
 	{
 		main_announcer.complete(already_reported);
+		
+		//System.out.println( "complete" );
 	}
 	
 	public void
@@ -151,12 +177,18 @@ TRTrackerAnnouncerMuxer
 		boolean	for_queue )
 	{
 		main_announcer.stop( for_queue );
+		
+		//System.out.println( "stop" );
 	}
 	
 	public void
 	destroy()
 	{
+		TRTrackerAnnouncerFactoryImpl.destroy( this );
+
 		main_announcer.destroy();
+		
+		//System.out.println( "destroy" );
 	}
 	
 	public int
@@ -184,29 +216,6 @@ TRTrackerAnnouncerMuxer
 	}
 	
 	
-	public Map
-	getTrackerResponseCache()
-	{
-		return( main_announcer.getTrackerResponseCache());
-	}
-	
-	public void
-	setTrackerResponseCache(
-		Map		map )
-	{
-		main_announcer.setTrackerResponseCache(map);
-	}
-	
-	
-	public void
-	removeFromTrackerResponseCache(
-		String		ip,
-		int			tcp_port )
-	{
-		main_announcer.removeFromTrackerResponseCache(ip, tcp_port);
-	}
-	
-	
 	public void
 	refreshListeners()
 	{
@@ -219,21 +228,7 @@ TRTrackerAnnouncerMuxer
 	{
 		main_announcer.setAnnounceResult(result);
 	}
-	
-	public void
-	addListener(
-		TRTrackerAnnouncerListener	l )
-	{
-		main_announcer.addListener(l);
-	}
 		
-	public void
-	removeListener(
-		TRTrackerAnnouncerListener	l )
-	{
-		main_announcer.removeListener(l);
-	}
-	
 	public void 
 	generateEvidence(
 		IndentWriter writer )

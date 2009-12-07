@@ -93,7 +93,7 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
   	TRTrackerAnnouncer tracker_client) 
   {
     try {
-      return getHashData(tracker_client.getTrackerUrl(), 
+      return getHashData(tracker_client.getTrackerURL(), 
                          tracker_client.getTorrent().getHashWrapper());
 
     } catch (TOTorrentException e) {

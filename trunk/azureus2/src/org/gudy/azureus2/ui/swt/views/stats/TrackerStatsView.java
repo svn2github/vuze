@@ -30,7 +30,7 @@ public class TrackerStatsView
 		
 		TRTrackerAnnouncerFactory.addListener(new TRTrackerAnnouncerFactoryListener() {
 			public void clientDestroyed(TRTrackerAnnouncer client) {
-				System.out.println("ADD " + client.getTrackerUrl().toString());
+				System.out.println("ADD " + client.getTrackerURL().toString());
 			}
 			
 			public void clientCreated(TRTrackerAnnouncer client) {

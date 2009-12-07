@@ -57,12 +57,16 @@ TRTrackerAnnouncer
 	getTorrent();
 	
 	public URL
-	getTrackerUrl();
+	getTrackerURL();
 	
 	public void
-	setTrackerUrl(
+	setTrackerURL(
 		URL		url );
 		
+	public void
+	setTrackerURLs(
+		TOTorrentAnnounceURLSet[]		sets );
+	
 	public void
 	resetTrackerUrl(
 		boolean	shuffle );

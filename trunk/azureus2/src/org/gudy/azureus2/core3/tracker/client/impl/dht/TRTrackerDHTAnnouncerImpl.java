@@ -23,15 +23,18 @@
 package org.gudy.azureus2.core3.tracker.client.impl.dht;
 
 import java.net.URL;
+import java.util.Map;
 
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponsePeer;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerImpl;
@@ -53,10 +56,15 @@ import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 public class 
 TRTrackerDHTAnnouncerImpl
-	extends TRTrackerAnnouncerImpl
+	implements TRTrackerAnnouncer
 {
+	public final static LogIDs LOGID = LogIDs.TRACKER;
+
 	private TOTorrent		torrent;
 	private HashWrapper		torrent_hash;
+	
+	private TRTrackerAnnouncerImpl.Helper		helper;
+	
 	private byte[]			data_peer_id;
 	
 	private String						tracker_status_str;
@@ -70,16 +78,16 @@ TRTrackerDHTAnnouncerImpl
 	
 	public
 	TRTrackerDHTAnnouncerImpl(
-		TOTorrent		_torrent,
-		String[]		_networks,
-		boolean			_manual )
+		TOTorrent						_torrent,
+		String[]						_networks,
+		boolean							_manual,
+		TRTrackerAnnouncerImpl.Helper	_helper )
 	
 		throws TRTrackerAnnouncerException
-	{
-		super( _torrent );
-		
+	{		
 		torrent		= _torrent;
 		manual		= _manual;
+		helper		= _helper;
 		
 		try{
 			torrent_hash	= torrent.getHashWrapper();
@@ -125,18 +133,25 @@ TRTrackerDHTAnnouncerImpl
 	}
 	
 	public URL
-	getTrackerUrl()
+	getTrackerURL()
 	{
 		return( torrent.getAnnounceURL());
 	}
 	
 	public void
-	setTrackerUrl(
+	setTrackerURL(
 		URL		url )
 	{
-		Debug.out( "setTrackerURL not supported for DHT" );
+		Debug.out( "Not implemented" );
 	}
 		
+	public void 
+	setTrackerURLs(
+		TOTorrentAnnounceURLSet[] 	sets ) 
+	{
+		Debug.out( "Not implemented" );
+	}
+	
 	public void
 	resetTrackerUrl(
 		boolean	shuffle )
@@ -297,7 +312,7 @@ TRTrackerDHTAnnouncerImpl
 									(short)0 );
 			}
 			
-			addToTrackerCache( peers);
+			helper.addToTrackerCache( peers);
 		
 			tracker_status_str = MessageText.getString("PeerManager.status.ok");
 
@@ -306,7 +321,7 @@ TRTrackerDHTAnnouncerImpl
 		
 		last_response = response;
 				
-		listeners.dispatch( LDT_TRACKER_RESPONSE, response );
+		helper.informResponse( response );
 	}
 	
 	protected void
@@ -314,15 +329,49 @@ TRTrackerDHTAnnouncerImpl
 	{
 		if ( last_response.getStatus() != TRTrackerAnnouncerResponse.ST_ONLINE ){
 			
-		     TRTrackerAnnouncerResponsePeer[]	cached_peers = getPeersFromCache(100);
+		     TRTrackerAnnouncerResponsePeer[]	cached_peers = helper.getPeersFromCache(100);
 
 		     if ( cached_peers.length > 0 ){
 		     	
 		     	last_response.setPeers( cached_peers );
 		     	
-				listeners.dispatch( LDT_TRACKER_RESPONSE, last_response );
+				helper.informResponse( last_response );
 		     }
 		}
+	}
+	
+	public void 
+	addListener(
+		TRTrackerAnnouncerListener l )
+	{
+		helper.addListener( l );
+	}
+	
+	public void 
+	removeListener(
+		TRTrackerAnnouncerListener l )
+	{
+		helper.removeListener( l );
+	}
+	
+	public void 
+	setTrackerResponseCache(
+		Map map	)
+	{
+		helper.setTrackerResponseCache( map );
+	}
+	
+	public void 
+	removeFromTrackerResponseCache(
+		String ip, int tcpPort) 
+	{
+		helper.removeFromTrackerResponseCache( ip, tcpPort );
+	}
+	
+	public Map 
+	getTrackerResponseCache() 
+	{
+		return( helper.getTrackerResponseCache());
 	}
 	
 	public void 

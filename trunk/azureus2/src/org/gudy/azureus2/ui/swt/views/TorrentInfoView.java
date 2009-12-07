@@ -210,7 +210,7 @@ TorrentInfoView
 			
 			if ( announcer != null ){
 				
-				active_url = announcer.getTrackerUrl();
+				active_url = announcer.getTrackerURL();
 				
 			}else{
 				

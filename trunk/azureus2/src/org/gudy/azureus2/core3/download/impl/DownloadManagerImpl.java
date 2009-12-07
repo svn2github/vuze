@@ -414,7 +414,7 @@ DownloadManagerImpl
 										
 										an.cloneFrom( announcer );
 										
-										an.setTrackerUrl( old_url );
+										an.setTrackerURL( old_url );
 										
 										an.stop( false );
 										

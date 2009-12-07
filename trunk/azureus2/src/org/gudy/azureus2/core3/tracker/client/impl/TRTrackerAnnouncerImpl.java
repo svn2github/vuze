@@ -65,18 +65,16 @@ TRTrackerAnnouncerImpl
 	protected static final int LDT_URL_CHANGED			= 2;
 	protected static final int LDT_URL_REFRESH			= 3;
 	
-	protected ListenerManager	listeners 	= ListenerManager.createManager(
+	protected ListenerManager<TRTrackerAnnouncerListener>	listeners 	= ListenerManager.createManager(
 			"TrackerClient:ListenDispatcher",
-			new ListenerManagerDispatcher()
+			new ListenerManagerDispatcher<TRTrackerAnnouncerListener>()
 			{
 				public void
 				dispatch(
-					Object		_listener,
-					int			type,
-					Object		value )
+					TRTrackerAnnouncerListener		listener,
+					int								type,
+					Object							value )
 				{
-					TRTrackerAnnouncerListener	listener = (TRTrackerAnnouncerListener)_listener;
-					
 					if ( type == LDT_TRACKER_RESPONSE ){
 						
 						listener.receivedTrackerResponse((TRTrackerAnnouncerResponse)value);
@@ -109,10 +107,128 @@ TRTrackerAnnouncerImpl
 	{
 		torrent	= _torrent;
 	}
- 	
+
+	public Helper
+	getHelper()
+	{
+		return(
+			new Helper()
+			{
+				public void
+				addToTrackerCache(
+					TRTrackerAnnouncerResponsePeerImpl[]		peers )
+				{
+					TRTrackerAnnouncerImpl.this.addToTrackerCache( peers );
+				}
+
+				public TRTrackerAnnouncerResponsePeer[]
+		      	getPeersFromCache(
+		      		int			num_want )
+				{
+					return( TRTrackerAnnouncerImpl.this.getPeersFromCache(num_want));
+				}
+				
+				public void
+				setTrackerResponseCache(
+					Map 		map	)
+				{
+					TRTrackerAnnouncerImpl.this.setTrackerResponseCache( map );
+				}
+					
+				public void 
+				removeFromTrackerResponseCache(
+					String ip, int tcpPort )
+				{
+					TRTrackerAnnouncerImpl.this.removeFromTrackerResponseCache( ip,tcpPort );
+				}
+					
+				public Map 
+				getTrackerResponseCache()
+				{
+					return( TRTrackerAnnouncerImpl.this.getTrackerResponseCache());
+				}
+					
+				public void
+				informResponse(
+					TRTrackerAnnouncerResponse		response )
+				{
+					listeners.dispatch( LDT_TRACKER_RESPONSE, response );
+				}
+				
+				public void
+				informURLChange(
+					URL		old_url,
+					URL		new_url,
+					boolean	explicit )
+				{
+					listeners.dispatch(	LDT_URL_CHANGED,
+							new Object[]{old_url, new_url, new Boolean(explicit)});
+				}
+				
+				public void
+				informURLRefresh()
+				{
+					listeners.dispatch( LDT_URL_REFRESH, null );
+				}
+				
+			 	public void
+				addListener(
+					TRTrackerAnnouncerListener	l )
+			 	{
+			 		TRTrackerAnnouncerImpl.this.addListener( l );
+			 	}
+					
+				public void
+				removeListener(
+					TRTrackerAnnouncerListener	l )
+				{
+					TRTrackerAnnouncerImpl.this.removeListener( l );
+				}
+			});
+	}
+	
+ 	public static byte[]
+	getAnonymousPeerId(
+		String	my_ip,
+		int		my_port )
+	{
+  		byte[] anon_peer_id = new byte[20];
+	
+  		// unique initial two bytes to identify this as fake
+
+  		anon_peer_id[0] = (byte)'[';
+  		anon_peer_id[1] = (byte)']';
+
+  		try{
+	  		byte[]	ip_bytes 	= my_ip.getBytes( Constants.DEFAULT_ENCODING );
+	  		int		ip_len		= ip_bytes.length;
+	
+	  		if ( ip_len > 18 ){
+		
+	  			ip_len = 18;
+	  		}
+	
+	  		System.arraycopy( ip_bytes, 0, anon_peer_id, 2, ip_len );
+									
+	  		int	port_copy = my_port;
+		
+	  		for (int j=2+ip_len;j<20;j++){
+			
+	  			anon_peer_id[j] = (byte)(port_copy&0xff);
+			
+	  			port_copy >>= 8;
+	  		}
+  		}catch( UnsupportedEncodingException e ){
+  			
+  			Debug.printStackTrace( e );
+  		}
+  		
+  		return( anon_peer_id );
+   }
+					
 		// NOTE: tracker_cache is cleared out in DownloadManager when opening a torrent for the
 		// first time as a DOS prevention measure
-
+	
 	public Map
 	getTrackerResponseCache()
 	{				
@@ -130,7 +246,7 @@ TRTrackerAnnouncerImpl
 			Logger.log(new LogEvent(getTorrent(), LOGID, "TRTrackerClient: imported "
 					+ num + " cached peers"));
 	}
-
+	
 	protected Map
 	exportTrackerCache()
 	{
@@ -188,46 +304,7 @@ TRTrackerAnnouncerImpl
 		
 		return( res );
 	}
-
- 	protected byte[]
-	getAnonymousPeerId(
-		String	my_ip,
-		int		my_port )
-	{
-  		byte[] anon_peer_id = new byte[20];
 	
-  		// unique initial two bytes to identify this as fake
-
-  		anon_peer_id[0] = (byte)'[';
-  		anon_peer_id[1] = (byte)']';
-
-  		try{
-	  		byte[]	ip_bytes 	= my_ip.getBytes( Constants.DEFAULT_ENCODING );
-	  		int		ip_len		= ip_bytes.length;
-	
-	  		if ( ip_len > 18 ){
-		
-	  			ip_len = 18;
-	  		}
-	
-	  		System.arraycopy( ip_bytes, 0, anon_peer_id, 2, ip_len );
-									
-	  		int	port_copy = my_port;
-		
-	  		for (int j=2+ip_len;j<20;j++){
-			
-	  			anon_peer_id[j] = (byte)(port_copy&0xff);
-			
-	  			port_copy >>= 8;
-	  		}
-  		}catch( UnsupportedEncodingException e ){
-  			
-  			Debug.printStackTrace( e );
-  		}
-  		
-  		return( anon_peer_id );
-   }
-					
 	protected int
 	importTrackerCache(
 		Map		map )
@@ -272,7 +349,7 @@ TRTrackerAnnouncerImpl
 					byte	az_ver			= l_az_ver==null?TRTrackerAnnouncer.AZ_TRACKER_VERSION_1:l_az_ver.byteValue();
 				
 					//System.out.println( "recovered " + ip_address + ":" + port );
-
+	
 					TRTrackerAnnouncerResponsePeerImpl	entry =
 						new TRTrackerAnnouncerResponsePeerImpl(
 							peer_source, 
@@ -301,7 +378,7 @@ TRTrackerAnnouncerImpl
 			return( tracker_peer_cache.size());
 		}
 	}
-
+	
 	protected void
 	addToTrackerCache(
 		TRTrackerAnnouncerResponsePeerImpl[]		peers )
@@ -345,7 +422,7 @@ TRTrackerAnnouncerImpl
 			tracker_peer_cache_mon.exit();
 		}
 	}
-
+	
 	public void
 	removeFromTrackerResponseCache(
 		String		ip,
@@ -452,16 +529,16 @@ TRTrackerAnnouncerImpl
 				}
 			}
 			
-    		if (Logger.isEnabled()){
-    			
-    			for (int i=0;i<res.length;i++){
+			if (Logger.isEnabled()){
+				
+				for (int i=0;i<res.length;i++){
 						
 					Logger.log(new LogEvent(getTorrent(), LOGID, "CACHED PEER: " + res[i].getString()));
-    			}
+				}
 			
 				Logger.log(new LogEvent(getTorrent(), LOGID,
 						"TRTrackerClient: returned " + res.length + " cached peers"));
-    		}
+			}
 		    
 			return( res );
 			
@@ -470,7 +547,7 @@ TRTrackerAnnouncerImpl
 			tracker_peer_cache_mon.exit();
 		}
 	} 
-
+	
  	public void
 	addListener(
 		TRTrackerAnnouncerListener	l )
@@ -485,4 +562,47 @@ TRTrackerAnnouncerImpl
 		listeners.removeListener(l);
 	}
 
+	public interface
+	Helper
+	{
+		public void
+		addToTrackerCache(
+			TRTrackerAnnouncerResponsePeerImpl[]		peers );
+
+		public TRTrackerAnnouncerResponsePeer[]
+      	getPeersFromCache(
+      		int			num_want );
+		
+		public void 
+		setTrackerResponseCache(
+			Map map	);
+		
+		public void 
+		removeFromTrackerResponseCache(
+			String ip, int tcpPort );
+		
+		public Map 
+		getTrackerResponseCache();
+		
+		public void
+		informResponse(
+			TRTrackerAnnouncerResponse		response );
+		
+		public void
+		informURLChange(
+			URL			old_url,
+			URL			new_url,
+			boolean		explicit );
+		
+		public void
+		informURLRefresh();
+		
+	 	public void
+		addListener(
+			TRTrackerAnnouncerListener	l );
+			
+		public void
+		removeListener(
+			TRTrackerAnnouncerListener	l );
+	}
 }
