@@ -901,8 +901,6 @@ MetaSearchImpl
              		Result[] 	a_results,
              		int			max )
              	{
-					List<Result>	results;
-					
 					Set<String>	hash_set = result_hashes.get( engine );
 					
 					if ( hash_set == null ){
@@ -911,13 +909,20 @@ MetaSearchImpl
 						
 						result_hashes.put( engine, hash_set );
 					}
-					
-					if ( rem_dups ){
-					
-						results = new ArrayList<Result>( a_results.length );
 						
-						for ( Result r: a_results ){
+					List<Result>	results = new ArrayList<Result>( a_results.length );
+					
+					for ( Result r: a_results ){
 							
+						String name = r.getName();
+							
+						if ( name == null || name.trim().length() == 0 ){
+								
+							continue;
+						}
+					
+						if ( rem_dups ){
+
 							String hash = r.getHash();
 							
 							if ( 	hash == null ||
@@ -934,10 +939,10 @@ MetaSearchImpl
 									hash_set.add( hash );
 								}
 							}
+						}else{
+							
+							results.add( r );
 						}
-					}else{
-						
-						results = Arrays.asList( a_results );
 					}
 					
              		if ( max < results.size() ){
