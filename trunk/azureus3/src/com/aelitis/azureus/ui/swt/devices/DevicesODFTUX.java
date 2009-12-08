@@ -397,8 +397,8 @@ DevicesODFTUX
 		FormData data;
 			
 		data = new FormData();
-		data.left = new FormAttachment(0,50);
-		data.width = 100;
+		data.left = new FormAttachment(0,45);
+		data.right = new FormAttachment(turnOnButton);
 		dont_ask_again.setLayoutData(data);
 
 		data = new FormData();
