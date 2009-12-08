@@ -127,6 +127,16 @@ implements Iterable<T>
 		}
 	}
 	
+	public T
+	get(
+		int		index )
+	{
+		synchronized( this ){
+			
+			return( list.get(index));
+		}
+	}
+	
 	public boolean
 	remove(
 		T	obj )
