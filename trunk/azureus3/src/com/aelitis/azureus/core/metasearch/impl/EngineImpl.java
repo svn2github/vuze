@@ -1178,7 +1178,7 @@ EngineImpl
 		
 		rank = Math.min( rank, 1.0f );
 		
-		rank = Math.max( rank, 0.1f );
+		rank = Math.max( rank, 0.0f );
 		
 		return( rank );
 	}
