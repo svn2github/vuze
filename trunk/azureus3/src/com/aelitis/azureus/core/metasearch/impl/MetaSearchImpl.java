@@ -980,7 +980,14 @@ MetaSearchImpl
              		
              			Result[] x = new Result[max];
              			
-             			System.arraycopy( results, 0, x, 0, max );
+             			int	pos = 0;
+             			
+             			while( pos < max ){
+             			
+             				x[pos] = results.get( pos );
+             				
+             				pos++;
+             			}
              			
              			return( x );
              			
