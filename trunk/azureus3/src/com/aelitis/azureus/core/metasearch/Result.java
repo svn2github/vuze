@@ -197,9 +197,16 @@ public abstract class Result {
 	
 	protected float
 	applyRankBias(
-		float	rank )
+		float	_rank )
 	{
-		rank = engine.applyRankBias( rank );
+		float rank = engine.applyRankBias( _rank );
+		
+		/*
+		if ( rank != _rank ){
+			
+			System.out.println( "bias applied for " + engine.getName() + ": " + _rank + "-> " + rank );
+		}
+		*/
 		
 		return( rank );
 	}
