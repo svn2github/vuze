@@ -205,7 +205,7 @@ public class PlatformManagerUnixPlugin
 								FileUtil.writeBytesAsFile(oldFilePathString,
 										startupScript.getBytes());
 								Runtime.getRuntime().exec(new String[] {
-									"chmod",
+									findCommand( "chmod" ),
 									"+x",
 									oldStartupScript
 								});
@@ -233,6 +233,25 @@ public class PlatformManagerUnixPlugin
 		}
 	}
 	
+	  private String
+	  findCommand(
+		String	name )
+	  {
+		final String[]  locations = { "/bin", "/usr/bin" };
+		
+		for ( String s: locations ){
+			
+			File f = new File( s, name );
+			
+			if ( f.exists() && f.canRead()){
+				
+				return( f.getAbsolutePath());
+			}
+		}
+		
+		return( name );
+	  }
+	  
 	private void showScriptManualUpdateDialog(String newFilePath,
 			String oldFilePath, final int version) {
 		final UIFunctions uif = UIFunctionsManager.getUIFunctions();
