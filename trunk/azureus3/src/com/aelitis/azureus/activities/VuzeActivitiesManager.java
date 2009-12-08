@@ -18,8 +18,11 @@
 
 package com.aelitis.azureus.activities;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -167,6 +170,71 @@ public class VuzeActivitiesManager
 				}
 			}
 		});
+		
+		final String id_str = cn.getServiceURL( ContentNetwork.SERVICE_IDENTIFY );
+		
+		if ( id_str != null && id_str.length() > 0 ){
+			
+			try{
+				SimpleTimer.addPeriodicEvent(
+					"act:id",
+					23*60*60*1000,
+					new TimerEventPerformer()
+					{
+						public void 
+						perform(
+							TimerEvent event ) 
+						{
+							identify( cn, id_str );
+						}
+					});
+				
+				identify( cn, id_str );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	private static void
+	identify(
+		ContentNetwork		cn,
+		String				str )
+	{
+		try{
+			URL	url = new URL( str );
+			
+			HttpURLConnection con = (HttpURLConnection)url.openConnection();
+			
+			String	key = "cn." + cn.getID() + ".identify.cookie";
+			
+			String cookie = COConfigurationManager.getStringParameter( key, null );
+			
+			if ( cookie != null ){
+				
+				con.setRequestProperty( "Cookie", cookie + ";" );
+			}
+			
+			con.setRequestProperty( "Connection", "close" );
+			
+			con.getResponseCode();
+			
+			cookie = con.getHeaderField( "Set-Cookie" );
+			
+			if ( cookie != null ){
+				
+				String[] bits = cookie.split( ";" );
+				
+				if ( bits.length > 0 && bits[0].length() > 0 ){
+					
+					COConfigurationManager.setParameter( key, bits[0] );
+				}
+			}
+		}catch( Throwable e ){
+			
+		}
 	}
 
 	/**

@@ -224,6 +224,7 @@ ContentNetworkVuzeGeneric
 		addService( SERVICE_PREPLAYBACK,		URL_PREFIX + "emp/load/" );
 		addService( SERVICE_POSTPLAYBACK, 		URL_PREFIX + "emp/recommend/" );
 		addService( SERVICE_SIDEBAR_CLOSE, 		URL_PREFIX + "sidebar.close" );
+		addService( SERVICE_IDENTIFY,			"http://pixel.quantserve.com/pixel/p-64Ix1G_SXwOa-.gif" );
 		
 		if ( URL_RELAY_RPC != null ){
 			 
