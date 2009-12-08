@@ -51,6 +51,7 @@ import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.clientmessageservice.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
+import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.util.DNSUtils;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
@@ -1188,8 +1189,16 @@ public class VersionCheckClient {
     String id = COConfigurationManager.getStringParameter( "ID", null );
 
     if( id != null && send_info ) {    	
-      message.put( "id", id );      
+      message.put( "id", id );    
+      
+      try{
+    	  byte[] id2 = CryptoManagerFactory.getSingleton().getSecureID();
     
+    	  message.put( "id2", id2 );
+    	  
+      }catch( Throwable e ){
+      }
+      
       if ( last_send_time != -1 && last_send_time < current_send_time ){    	  
     	  // time since last    	  
     	  message.put( "tsl", new Long(current_send_time-last_send_time));
