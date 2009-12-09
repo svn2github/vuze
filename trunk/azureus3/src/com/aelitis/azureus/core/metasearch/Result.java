@@ -132,7 +132,10 @@ public abstract class Result {
 		
 		int votes = getVotes();
 		if(votes > 0) {
-			totalVirtualPeers += 10 * votes;
+			if(votes > 50) {
+				votes = 50;
+			}
+			totalVirtualPeers += 5 * votes;
 		}
 		
 		int votesDown = getVotesDown();
