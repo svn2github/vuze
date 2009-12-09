@@ -1299,11 +1299,12 @@ DeviceOfflineDownloaderImpl
 	}
 	
 	public long
-	getSpaceAvailable()
+	getSpaceAvailable(
+		boolean		force )
 	
 		throws DeviceManagerException
 	{
-		if ( space_on_device >= 0 ){
+		if ( space_on_device >= 0 && !force ){
 			
 			return( space_on_device );
 		}

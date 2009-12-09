@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.ui.swt.Utils;
@@ -64,7 +65,8 @@ DevicesODFTUX
 	private Font subTitleFont;
 	private Font textInputFont;
 	
-	private Button turnOnButton;
+	private Button	turnOnButton;
+	private Label	noSpaceWarning;
 	
 	private String		dev_image_key;
 	private ImageLoader imageLoader;
@@ -77,7 +79,7 @@ DevicesODFTUX
 	{
 		device	= _device;
 		
-		final long avail = device.getSpaceAvailable();
+		final long avail = device.getSpaceAvailable( false );
 			
 		Utils.execSWTThread(
 			new AERunnable() 
@@ -196,7 +198,7 @@ DevicesODFTUX
 		
 		populateMain( main, no_space_available );
 		
-		populateFooter(footer);
+		populateFooter( footer, no_space_available );
 			
 		shell.setDefaultButton(turnOnButton);
 
@@ -268,12 +270,12 @@ DevicesODFTUX
 		text2.setFont( textInputFont );
 		text2.setText( MessageText.getString("devices.od.turnon.text2", new String[]{ router_text }));
 		
-		Label text3 = new Label(main, SWT.WRAP);
-		text3.setBackground( Colors.white );
-		text3.setFont( textInputFont );
-		text3.setText( MessageText.getString("devices.od.turnon.text3", new String[]{ router_text }));
-		text3.setForeground( Colors.red );
-		text3.setVisible( no_space_available );
+		noSpaceWarning = new Label(main, SWT.WRAP);
+		noSpaceWarning.setBackground( Colors.white );
+		noSpaceWarning.setFont( textInputFont );
+		noSpaceWarning.setText( MessageText.getString("devices.od.turnon.text3", new String[]{ router_text }));
+		noSpaceWarning.setForeground( Colors.red );
+		noSpaceWarning.setVisible( no_space_available );
 
 		Label link = new Label(main, SWT.WRAP);
 		link.setBackground( Colors.white );
@@ -322,10 +324,10 @@ DevicesODFTUX
 		data.top = new FormAttachment(text2, 10 );
 		data.left = new FormAttachment(0);
 		data.right = new FormAttachment(100);
-		text3.setLayoutData(data);
+		noSpaceWarning.setLayoutData(data);
 		
 		data = new FormData();
-		data.top = new FormAttachment(text3, 10 );
+		data.top = new FormAttachment(noSpaceWarning, 10 );
 		data.left = new FormAttachment(0);
 		link.setLayoutData(data);
 	}
@@ -375,7 +377,8 @@ DevicesODFTUX
 	
 	private void 
 	populateFooter(
-		Composite footer) 
+		Composite 				footer,
+		final boolean			no_space_available )
 	{
 		final Button	dont_ask_again = new Button( footer, SWT.CHECK );
 		dont_ask_again.setText(MessageText.getString("general.dont.ask.again"));
@@ -429,7 +432,51 @@ DevicesODFTUX
 					shell.close();
 				}
 			});
-				
+			
+		turnOnButton.setEnabled( !no_space_available );
+					
+		new AEThread2( "scanner", true )
+		{
+			private long	last_avail = no_space_available?0:Long.MAX_VALUE;
+			
+			public void
+			run()
+			{
+				while( !shell.isDisposed()){
+					
+					try{
+						Thread.sleep(10*1000);
+						
+						final long avail = device.getSpaceAvailable( true );
+						
+						if ( avail != last_avail ){
+							
+							last_avail = avail;
+							
+							Utils.execSWTThread(
+								new AERunnable() 
+								{
+									public void
+									runSupport()
+									{
+										if ( !turnOnButton.isDisposed()){
+											
+											turnOnButton.setEnabled( avail > 0  );
+										}
+										
+										if ( !noSpaceWarning.isDisposed()){
+											
+											noSpaceWarning.setVisible( avail <= 0 );
+										}
+									}
+								});
+						}
+					}catch( Throwable e ){					
+					}
+				}
+			}
+		}.start();
+		
 		cancelButton.addListener(
 			SWT.Selection, 
 			new Listener() 

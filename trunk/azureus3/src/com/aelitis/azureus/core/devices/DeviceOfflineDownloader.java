@@ -42,7 +42,8 @@ DeviceOfflineDownloader
 	getManufacturer();
 	
 	public long
-	getSpaceAvailable()
+	getSpaceAvailable(
+		boolean		force )
 	
 		throws DeviceManagerException;
 	
