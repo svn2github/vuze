@@ -188,8 +188,11 @@ Engine
 		float		bias );
 	
 	public void
-	setPreferred(
-		boolean	pref );
+	setPreferredDelta(
+		float	delta  );
+	
+	public float
+	getPreferredWeighting();
 	
 	public float
 	applyRankBias(

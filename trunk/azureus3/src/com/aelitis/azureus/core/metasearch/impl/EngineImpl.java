@@ -1152,10 +1152,10 @@ EngineImpl
 	}
 	
 	public void
-	setPreferred(
-		boolean	pref )
+	setPreferredDelta(
+		float	 delta )
 	{
-		float	new_pref = pref?(preferred_count+1):(preferred_count-0.5f);
+		float new_pref = preferred_count + delta;
 		
 		new_pref = Math.max( 0, new_pref );
 		new_pref = Math.min( 10, new_pref );
@@ -1169,12 +1169,18 @@ EngineImpl
 	}
 	
 	public float
+	getPreferredWeighting()
+	{
+		return( preferred_count );
+	}
+	
+	public float
 	applyRankBias(
 		float	rank )
 	{
 		rank *= rank_bias;
 				
-		rank *= (1 + 0.05 * preferred_count );
+		rank *= (1 + 0.025 * preferred_count );
 		
 		rank = Math.min( rank, 1.0f );
 		

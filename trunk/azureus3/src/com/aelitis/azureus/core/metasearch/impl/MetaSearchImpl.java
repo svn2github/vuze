@@ -709,15 +709,33 @@ MetaSearchImpl
 	{
 		Engine[] engines = getEngines( true, false );
 		
+		int	num_other_preferred = 0;
+		
 		for ( Engine e: engines ){
 			
 			if ( e.getId() == engine.getId()){
 				
-				e.setPreferred( true );
+				e.setPreferredDelta( +1 );
 				
 			}else{
 				
-				e.setPreferred( false );
+				if ( e.getPreferredWeighting() > 0 ){
+					
+					num_other_preferred++;
+				}
+			}
+		}
+				
+		if ( num_other_preferred > 0 ){
+			
+			float negative_weighting = -1 / num_other_preferred;
+		
+			for ( Engine e: engines ){
+			
+				if ( e.getId() != engine.getId() && e.getPreferredWeighting() > 0 ){
+				
+					e.setPreferredDelta( negative_weighting );
+				}
 			}
 		}
 	}
