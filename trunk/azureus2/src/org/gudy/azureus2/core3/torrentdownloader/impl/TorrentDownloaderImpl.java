@@ -27,8 +27,6 @@ package org.gudy.azureus2.core3.torrentdownloader.impl;
 import java.io.*;
 
 import java.net.HttpURLConnection;
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Iterator;
@@ -328,18 +326,32 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     		filename += ".tmp";
     		
         }else{
-	        if (tmp.lastIndexOf('/') != -1)
-	          tmp = tmp.substring(tmp.lastIndexOf('/') + 1);
+        		// might be /sdsdssd/ffgfgffgfg/ so remove trailing /
+        	
+        	while( tmp.endsWith( "/" )){
+        		
+        		tmp = tmp.substring(0,tmp.length()-1);
+        	}
+        	
+	        if (tmp.lastIndexOf('/') != -1){
+	         
+	        	tmp = tmp.substring(tmp.lastIndexOf('/') + 1);
+	        }
 	        
-	        // remove any params in the url
+	        	// remove any params in the url
 	        
 	        int	param_pos = tmp.indexOf('?');
 	        
 	        if ( param_pos != -1 ){
-	          tmp = tmp.substring(0,param_pos);
+	        	tmp = tmp.substring(0,param_pos);
 	        }
 	        
 	        filename = URLDecoder.decode(tmp, Constants.DEFAULT_ENCODING );
+	        
+	        if ( filename.length() == 0 ){
+	        	
+	        	filename = "Torrent" + (long)(Math.random()*Long.MAX_VALUE);
+	        }
         }
       } else {
         filename = filename.substring(filename.indexOf('=') + 1);
