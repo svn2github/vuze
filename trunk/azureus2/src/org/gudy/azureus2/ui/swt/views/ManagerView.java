@@ -235,7 +235,7 @@ public class ManagerView
   		iviews_to_use.add(new LoggerView(true));
   	}
   	
-  	IView[] views = (IView[])iviews_to_use.toArray(new IView[iviews_to_use.size()]);
+  	final IView[] views = (IView[])iviews_to_use.toArray(new IView[iviews_to_use.size()]);
 
   	for (int i = 0; i < views.length; i++)
 		addSection(views[i], manager);
@@ -294,14 +294,17 @@ public class ManagerView
       }
     });
     
-    
-    views[0].initialize(folder);
-    folder.getItem(0).setControl(views[0].getComposite());
-    views[0].refresh();
-    views[0].getComposite().layout(true);
-    views[0].getComposite().setFocus();
-    activeView = views[0];
-		ViewTitleInfoManager.refreshTitleInfo(this);
+    Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				views[0].initialize(folder);
+				folder.getItem(0).setControl(views[0].getComposite());
+				views[0].refresh();
+				views[0].getComposite().layout(true);
+				views[0].getComposite().setFocus();
+				activeView = views[0];
+				ViewTitleInfoManager.refreshTitleInfo(ManagerView.this);
+			}
+		});
   }
   
   private IView getActiveView() {
