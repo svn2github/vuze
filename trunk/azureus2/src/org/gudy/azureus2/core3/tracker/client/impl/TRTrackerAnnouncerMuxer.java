@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
@@ -1146,6 +1147,7 @@ TRTrackerAnnouncerMuxer
 			new TrackerPeerSource()
 			{
 				private StatusSummary		_summary;
+				private boolean				enabled;
 				private long				fixup_time;
 				
 				private StatusSummary
@@ -1174,6 +1176,8 @@ TRTrackerAnnouncerMuxer
 								}
 							}	
 						}
+						
+						enabled = provider.isPeerSourceEnabled( PEPeerSource.PS_BT_TRACKER );
 						
 						if ( summary != null ){
 							
@@ -1219,6 +1223,11 @@ TRTrackerAnnouncerMuxer
 				{
 					StatusSummary summary = fixup();
 					
+					if ( !enabled ){
+						
+						return( ST_DISABLED );
+					}
+					
 					if ( summary != null ){
 						
 						return( summary.getStatus());
@@ -1232,7 +1241,7 @@ TRTrackerAnnouncerMuxer
 				{
 					StatusSummary summary = fixup();
 					
-					if ( summary != null ){
+					if ( summary != null && enabled ){
 						
 						return( summary.getStatusString());
 					}
@@ -1310,7 +1319,7 @@ TRTrackerAnnouncerMuxer
 				{
 					StatusSummary summary = fixup();
 					
-					if ( summary != null ){
+					if ( summary != null && enabled ){
 						
 						return( summary.getMinInterval());
 					}
@@ -1323,7 +1332,7 @@ TRTrackerAnnouncerMuxer
 				{
 					StatusSummary summary = fixup();
 					
-					if ( summary != null ){
+					if ( summary != null && enabled  ){
 						
 						return( summary.isUpdating());
 					}

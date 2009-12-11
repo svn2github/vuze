@@ -49,6 +49,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
@@ -2832,7 +2833,7 @@ DownloadManagerImpl
 		  
 			int nbSeeds = getNbSeeds();
 			int nbPeers = getNbPeers();
-			int nbRemotes = peerManager.getNbRemoteConnectionsExcludingUDP();
+			int nbRemotes = peerManager.getNbRemoteTCPConnections();
 			
 			TRTrackerAnnouncerResponse	announce_response = tc.getLastResponse();
 			
@@ -2904,7 +2905,7 @@ DownloadManagerImpl
 	  
 		if ( tc != null && peerManager != null && (state == STATE_DOWNLOADING || state == STATE_SEEDING)) {
 		  			
-			if ( peerManager.getNbRemoteConnectionsExcludingUDP() > 0 ){
+			if ( peerManager.getNbRemoteTCPConnections() > 0 ){
 				
 				return( ConnectionManager.NAT_OK );
 			}
@@ -3775,6 +3776,7 @@ DownloadManagerImpl
 								private TrackerPeerSource _delegate;
 								
 			 					private TRTrackerAnnouncer		ta;
+			 					private boolean					enabled;
 			  					private long					ta_fixup;
 
 								private TrackerPeerSource
@@ -3806,6 +3808,8 @@ DownloadManagerImpl
 											ta = current_ta;
 										}
 										
+										enabled = controller.isPeerSourceEnabled( PEPeerSource.PS_BT_TRACKER );
+										
 										ta_fixup	= now;
 									}
 									
@@ -3836,6 +3840,11 @@ DownloadManagerImpl
 								{
 									TrackerPeerSource delegate = fixup();
 									
+									if ( !enabled ){
+										
+										return( ST_DISABLED );
+									}
+									
 									if ( delegate == null ){
 									
 										return( ST_STOPPED );
@@ -3849,7 +3858,7 @@ DownloadManagerImpl
 								{
 									TrackerPeerSource delegate = fixup();
 									
-									if ( delegate == null ){
+									if ( delegate == null || !enabled ){
 									
 										return( -1 );
 									}
@@ -3903,6 +3912,17 @@ DownloadManagerImpl
 			}catch( Throwable e ){
 				
 			}
+			
+				// Plugin
+			
+			try{
+			
+				tps.add( PluginCoreUtils.wrap( this ).getTrackerPeerSource());
+				
+			}catch( Throwable e ){
+				
+			}
+			
 				// PEX...
 			
 			tps.add(
@@ -3918,7 +3938,8 @@ DownloadManagerImpl
 						
 						if ( pm == null ){
 							
-							_delegate = null;
+							_delegate 	= null;
+							_pm			= null;
 							
 						}else if ( pm != _pm ){
 							
@@ -3982,6 +4003,101 @@ DownloadManagerImpl
 					}
 				});
 			
+				// incoming
+			
+			tps.add(
+					new TrackerPeerSourceAdapter()
+					{
+						private long				fixup_time;
+					
+						private PEPeerManager		_pm;
+						private int					tcp;
+						private int					udp;
+						private int					total;
+						private boolean				enabled;
+						
+						private PEPeerManager 
+						fixup()
+						{
+							long	now = SystemTime.getMonotonousTime();
+							
+							if ( now - fixup_time > 1000 ){
+
+								PEPeerManager pm = _pm = getPeerManager();
+								
+								if ( pm != null ){
+									
+									tcp 	= pm.getNbRemoteTCPConnections();
+									udp		= pm.getNbRemoteUDPConnections();
+									total	= pm.getStats().getTotalIncomingConnections();
+								}
+								
+								enabled = controller.isPeerSourceEnabled( PEPeerSource.PS_INCOMING );
+								
+								fixup_time = now;
+							}
+							
+							return( _pm );
+						}
+						
+						public int
+						getType()
+						{
+							return( TP_INCOMING );
+						}
+						
+						public int
+						getStatus()
+						{
+							PEPeerManager delegate = fixup();
+							
+							if ( delegate == null ){
+								
+								return( ST_STOPPED );
+								
+							}else if ( !enabled ){
+								
+								return( ST_DISABLED );
+									
+							}else{
+							
+								return( ST_ONLINE );
+							}
+						}
+						
+						public String 
+						getName() 
+						{
+							PEPeerManager delegate = fixup();
+							
+							if ( delegate == null || !enabled ){
+								
+								return( "" );
+								
+							}else{
+								
+								return( 
+									MessageText.getString( 
+										"tps.incoming.details",
+										new String[]{ String.valueOf( tcp ), String.valueOf( udp ), String.valueOf( total )} ));
+							}	
+						}
+						
+						public int 
+						getPeers() 
+						{
+							PEPeerManager delegate = fixup();
+							
+							if ( delegate == null || !enabled ){
+								
+								return( -1 );
+								
+							}else{
+								
+								return( tcp + udp );
+							}	
+						}
+					});
   			return( tps );
 
   		}finally{

@@ -30,6 +30,8 @@ TrackerPeerSource
 	public static final int TP_DHT			= 3;
 	public static final int TP_LAN			= 4;
 	public static final int TP_PEX			= 5;
+	public static final int TP_INCOMING		= 6;
+	public static final int TP_PLUGIN		= 7;
 	
 	public static final int ST_UNKNOWN		= 0;
 	public static final int ST_DISABLED		= 1;

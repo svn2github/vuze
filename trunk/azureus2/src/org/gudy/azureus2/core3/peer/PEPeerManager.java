@@ -145,7 +145,8 @@ PEPeerManager
   public boolean
   seedPieceRecheck();
   
-  public int getNbRemoteConnectionsExcludingUDP();
+  public int getNbRemoteTCPConnections();
+  public int getNbRemoteUDPConnections();
   
   public long getLastRemoteConnectionTime();
   

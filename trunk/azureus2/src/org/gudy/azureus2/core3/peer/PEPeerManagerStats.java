@@ -37,6 +37,8 @@ PEPeerManagerStats
   
   	public void haveNewPiece(int pieceLength);
   
+  	public void haveNewConnection( boolean incoming );
+  	
 	public long getDataReceiveRate();
 	public long getProtocolReceiveRate();
   
@@ -62,4 +64,7 @@ PEPeerManagerStats
 	
 	public int getTimeSinceLastDataReceivedInSeconds();
 	public int getTimeSinceLastDataSentInSeconds();
+	
+	public int getTotalIncomingConnections();
+	public int getTotalOutgoingConnections();
 }

@@ -3328,7 +3328,7 @@ DHTTrackerPlugin
 									updating = true;
 								}
 								
-								status = TrackerPeerSource.ST_ONLINE;
+								status = initialised_sem.isReleasedForever()?ST_ONLINE:ST_STOPPED;
 								
 								Long l_next_time = query_map.get( download );
 								
@@ -3338,20 +3338,34 @@ DHTTrackerPlugin
 								}
 							}else if ( interesting_downloads.containsKey( download )){
 								
-								status = TrackerPeerSource.ST_STOPPED;
+								status = ST_STOPPED;
 								
 							}else{
 								
-								status = TrackerPeerSource.ST_DISABLED;
+								status = ST_DISABLED;
 							}
 						}finally{
 							
 							this_mon.exit();
 						}
+											
+						String[]	sources = download.getListAttribute( ta_peer_sources );
+
+						boolean	ok = false;
 						
-						if ( !initialised_sem.isReleasedForever()){
+						for (int i=0;i<sources.length;i++){
+							
+							if ( sources[i].equalsIgnoreCase( "DHT")){
+								
+								ok	= true;
+								
+								break;
+							}
+						}
 						
-							status = TrackerPeerSource.ST_INITIALISING;
+						if ( !ok ){
+							
+							status = ST_DISABLED;
 						}
 						
 						last_fixup = now;
@@ -3433,12 +3447,26 @@ DHTTrackerPlugin
 				public int
 				getInterval()
 				{
+					fixup();
+					
+					if ( run_data == null ){
+						
+						return( -1 );
+					}
+					
 					return((int)(current_announce_interval/1000));
 				}
 				
 				public int
 				getMinInterval()
 				{
+					fixup();
+					
+					if ( run_data == null ){
+						
+						return( -1 );
+					}
+					
 					return( ANNOUNCE_MIN_DEFAULT/1000 );
 				}
 				

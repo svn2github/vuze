@@ -191,7 +191,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private PEPeerManagerStats        _stats;
 	//private final TRTrackerAnnouncer _tracker;
 	//  private int _maxUploads;
-	private int		_seeds, _peers,_remotesNoUdpNoLan;
+	private int		_seeds, _peers,_remotesTCPNoLan, _remotesUDPNoLan;
 	private long last_remote_time;
 	private long	_timeStarted;
 	private long	_timeStartedSeeding = -1;
@@ -1799,8 +1799,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		int	new_seeds = 0;
 		int new_peers = 0;
-		int newTcpRemotes = 0;
-
+		int new_tcp_incoming 	= 0;
+		int new_udp_incoming  	= 0;
+		
 		for (Iterator it=peer_transports.iterator();it.hasNext();){
 			final PEPeerTransport pc = (PEPeerTransport) it.next();
 			if (pc.getPeerState() == PEPeer.TRANSFERING) {
@@ -1809,15 +1810,24 @@ DiskManagerCheckRequestListener, IPFilterListener
 				else
 					new_peers++;
 
-				if(pc.isIncoming() && pc.isTCP() && !pc.isLANLocal()) {
-					newTcpRemotes++;
+				if ( pc.isIncoming() && !pc.isLANLocal()){
+										
+					if ( pc.isTCP() ) {
+				
+						new_tcp_incoming++;
+						
+					}else{
+						
+						new_udp_incoming++;
+					}
 				}
 			}
 		}
 
 		_seeds = new_seeds;
 		_peers = new_peers;
-		_remotesNoUdpNoLan = newTcpRemotes;
+		_remotesTCPNoLan = new_tcp_incoming;
+		_remotesUDPNoLan = new_tcp_incoming;
 	}
 	/**
 	 * The way to unmark a request as being downloaded, or also 
@@ -2228,11 +2238,16 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return _seeds;
 	}
 
-	public int getNbRemoteConnectionsExcludingUDP() 
+	public int getNbRemoteTCPConnections() 
 	{
-		return _remotesNoUdpNoLan;
+		return _remotesTCPNoLan;
 	}
 
+	public int getNbRemoteUDPConnections() 
+	{
+		return _remotesUDPNoLan;
+	}
+	
 	public long getLastRemoteConnectionTime()
 	{
 		return( last_remote_time );
@@ -2373,7 +2388,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 
 		if( added ) {
-			if ( peer.isIncoming()){
+			boolean incoming = peer.isIncoming();
+			
+			_stats.haveNewConnection( incoming );
+			
+			if ( incoming ){
 				long	connect_time = SystemTime.getCurrentTime();
 
 				if ( connect_time > last_remote_time ){

@@ -57,7 +57,8 @@ PEPeerManagerStatsImpl
   
 	private final Average overallSpeed = Average.getInstance(5000, 100); //average over 100s, update every 5s
 
-
+	private int	total_incoming;
+	private int total_outgoing;
 
 	public 
 	PEPeerManagerStatsImpl(
@@ -238,5 +239,31 @@ PEPeerManagerStatsImpl
 		}
 		
 		return( now - last_data_sent_seconds );
+	}
+	
+ 	public void 
+ 	haveNewConnection( 
+ 		boolean incoming )
+ 	{
+ 		if ( incoming ){
+ 			
+ 			total_incoming++;
+ 			
+ 		}else{
+ 			
+ 			total_outgoing++;
+ 		}
+ 	}
+
+	public int 
+	getTotalIncomingConnections()
+	{
+		return( total_incoming );
+	}
+	
+	public int 
+	getTotalOutgoingConnections()
+	{
+		return( total_outgoing );
 	}
 }

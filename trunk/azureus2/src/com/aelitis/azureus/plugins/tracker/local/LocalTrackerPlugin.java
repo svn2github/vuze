@@ -736,8 +736,10 @@ LocalTrackerPlugin
 		return(
 			new TrackerPeerSourceAdapter()
 			{
-				private long[] 	_last_data;
-				private long	fixup_time;
+				private long[] 		_last_data;
+				private boolean		enabled;
+				private boolean		running;
+				private long		fixup_time;
 				
 				private long[]
 				fixup()
@@ -754,6 +756,19 @@ LocalTrackerPlugin
 						}finally{
 							
 							mon.exit();
+						}
+						
+						enabled = LocalTrackerPlugin.this.enabled.getValue();
+						
+						if ( enabled ){
+							
+							int ds = download.getState();
+							
+							running = ds == Download.ST_DOWNLOADING || ds == Download.ST_SEEDING;
+							
+						}else{
+							
+							running = false;
 						}
 						
 						fixup_time = now;
@@ -779,15 +794,12 @@ LocalTrackerPlugin
 				{
 					long[] last_data = fixup();
 					
-					if ( last_data == null ){
+					if ( last_data == null || !enabled ){
 						
 						return( ST_DISABLED );
 					}
 					
-					int ds = download.getState();
-					
-					if ( 	ds == Download.ST_DOWNLOADING ||
-							ds == Download.ST_SEEDING ){
+					if ( running ){
 						
 						return( ST_ONLINE );
 					}
@@ -800,7 +812,7 @@ LocalTrackerPlugin
 				{
 					long[] last_data = fixup();
 					
-					if ( last_data == null ){
+					if ( last_data == null || !running ){
 						
 						return( -1 );
 					}
@@ -813,7 +825,7 @@ LocalTrackerPlugin
 				{
 					long[] last_data = fixup();
 					
-					if ( last_data == null ){
+					if ( last_data == null || !running ){
 						
 						return( -1 );
 					}
@@ -826,7 +838,7 @@ LocalTrackerPlugin
 				{
 					long[] last_data = fixup();
 					
-					if ( last_data == null ){
+					if ( last_data == null || !running ){
 						
 						return( -1 );
 					}
@@ -839,7 +851,7 @@ LocalTrackerPlugin
 				{
 					long[] last_data = fixup();
 					
-					if ( last_data == null ){
+					if ( last_data == null || !running ){
 						
 						return( Integer.MIN_VALUE );
 					}
@@ -850,13 +862,23 @@ LocalTrackerPlugin
 				public int 
 				getInterval() 
 				{
-					return((int)( ANNOUNCE_PERIOD/1000 ));
+					if ( running ){
+					
+						return((int)( ANNOUNCE_PERIOD/1000 ));
+					}
+					
+					return( -1 );
 				}
 				
 				public int 
 				getMinInterval() 
 				{
-					return((int)( RE_ANNOUNCE_PERIOD/1000 ));
+					if ( running ){
+					
+						return((int)( RE_ANNOUNCE_PERIOD/1000 ));
+					}
+					
+					return( -1 );
 				}
 				
 				public boolean

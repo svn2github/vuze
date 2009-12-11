@@ -47,6 +47,8 @@ TypeItem
 		"tps.type.dht",
 		"ConfigView.section.transfer.lan",
 		"tps.type.pex",
+		"tps.type.incoming",
+		"tps.type.plugin",
 	};
 
 	private static String[] js_resources = new String[js_resource_keys.length];

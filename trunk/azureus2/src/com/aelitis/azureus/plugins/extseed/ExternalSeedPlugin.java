@@ -509,6 +509,7 @@ ExternalSeedPlugin
 				private long	fixup_time;
 				
 				private ExternalSeedManualPeer[]	peers;						
+				private boolean						running;
 				
 				public int
 				getType()
@@ -521,7 +522,14 @@ ExternalSeedPlugin
 				{
 					fixup();
 					
-					return( peers.length==0?ST_UNAVAILABLE:ST_AVAILABLE );
+					if ( running ){
+					
+						return( peers.length==0?ST_UNAVAILABLE:ST_AVAILABLE );
+						
+					}else{
+						
+						return( ST_STOPPED );
+					}
 				}
 				
 				public String
@@ -563,7 +571,14 @@ ExternalSeedPlugin
 				{
 					fixup();
 					
-					return( peers.length );
+					if ( running ){
+					
+						return( peers.length );
+						
+					}else{
+						
+						return( -1 );
+					}
 				}
 				
 				protected void
@@ -576,6 +591,10 @@ ExternalSeedPlugin
 						fixup_time = now;
 						
 						peers = getManualWebSeeds(download);
+						
+						int	state = download.getState();
+						
+						running = state == Download.ST_DOWNLOADING || state == Download.ST_SEEDING;
 					}
 				}
 			});

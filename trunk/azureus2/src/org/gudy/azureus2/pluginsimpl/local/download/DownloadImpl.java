@@ -52,6 +52,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadActivationEvent;
 import org.gudy.azureus2.plugins.download.DownloadActivationListener;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
 import org.gudy.azureus2.plugins.download.DownloadCompletionListener;
 import org.gudy.azureus2.plugins.download.DownloadListener;
@@ -70,6 +71,8 @@ import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogRelation;
 
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.CopyOnWriteMap;
 
@@ -110,6 +113,8 @@ DownloadImpl
 	private DownloadActivationEvent	activation_state;
 	
 	private HashMap property_to_attribute_map = null;
+	
+	private Map<String,int[]>	announce_response_map;
 	
 	protected
 	DownloadImpl(
@@ -1084,10 +1089,240 @@ DownloadImpl
 		}
 	}
 	
+	public TrackerPeerSource
+	getTrackerPeerSource()
+	{
+		return( 
+			new TrackerPeerSourceAdapter()
+			{
+				private long	fixup;
+				private int		state;
+				private String 	details = "";
+				private int		seeds;
+				private int		leechers;
+				private int		peers;
+				
+				private void
+				fixup()
+				{
+					long	now = SystemTime.getCurrentTime();
+					
+					if ( now - fixup > 1000 ){
+					
+						if ( !download_manager.getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_PLUGIN )){
+							
+							state = ST_DISABLED;
+							
+						}else{
+						
+							int s = getState();
+							
+							if ( s == ST_DOWNLOADING || s == ST_SEEDING ){
+								
+								state = ST_ONLINE;
+								
+							}else{
+								
+								state = ST_STOPPED;
+							}
+						}
+						
+						if ( state == ST_ONLINE ){
+							
+							try{
+								peer_listeners_mon.enter();
+		
+								int	s	= 0;
+								int	l	= 0;
+								int p 	= 0;
+								
+								String	str = "";
+								
+								if ( announce_response_map != null ){
+								
+									for (Map.Entry<String, int[]> entry: announce_response_map.entrySet()){
+										
+										String 	cn 		= entry.getKey();
+										int[]	data 	= entry.getValue();
+										
+										str += (str.length()==0?"":", ") + cn;
+										
+										str += " " + data[0] + "/" + data[1] + "/" + data[2];
+										
+										s += data[0];
+										l += data[1];
+										p += data[2];
+									}
+								}
+								
+								details 	= str;
+								seeds		= s;
+								leechers	= l;
+								peers		= p;
+								
+							}finally{
+								
+								peer_listeners_mon.exit();
+							}
+						}else{
+							
+							details = "";
+						}
+						
+						fixup = now;
+					}
+				}
+				
+				public int
+				getType()
+				{
+					return( TP_PLUGIN );
+				}
+				
+				public int
+				getStatus()
+				{
+					fixup();
+					
+					return( state );
+				}
+				
+				public String
+				getName()
+				{
+					fixup();
+				
+					if ( state == ST_ONLINE ){
+						
+						return( details );
+					}
+					
+					return( "" );
+				}
+				
+				public int
+				getSeedCount()
+				{
+					fixup();
+					
+					if ( state == ST_ONLINE ){
+						
+						return( seeds );
+					}
+					
+					return( -1 );
+				}
+				
+				public int
+				getLeecherCount()
+				{
+					fixup();
+					
+					if ( state == ST_ONLINE ){
+						
+						return( leechers );
+					}
+					
+					return( -1 );
+				}
+				
+				public int
+				getPeers()
+				{
+					fixup();
+					
+					if ( state == ST_ONLINE ){
+						
+						return( peers );
+					}
+					
+					return( -1 );
+				}
+			});
+	}
+	
+	private String
+	getTrackingName(
+		Object		obj )
+	{
+		String	name = obj.getClass().getName();
+		
+		int	pos = name.lastIndexOf( '.' );
+		
+		name = name.substring( pos+1 );
+		
+		pos = name.indexOf( '$' );
+		
+		if ( pos != -1 ){
+			
+			name = name.substring( 0, pos );
+		}
+		
+			// hack alert - could use classloader to find plugin I guess
+		
+		if ( name.equals( "DHTTrackerPlugin" )){
+			
+			name = null;
+			
+		}else if ( name.equals( "DHTAnnounceResult")){
+			
+			name = "mlDHT";
+		}
+		
+		return( name );
+	}
+	
 	public void
 	setAnnounceResult(
 		DownloadAnnounceResult	result )
 	{
+		String class_name = getTrackingName( result );
+		
+		if ( class_name != null ){
+			
+			int	seeds 		= result.getSeedCount();
+			int	leechers 	= result.getNonSeedCount();
+			
+			DownloadAnnounceResultPeer[] peers = result.getPeers();
+			
+			int	peer_count = peers==null?0:peers.length;
+			
+			try{
+				peer_listeners_mon.enter();
+				
+				if ( announce_response_map == null ){
+					
+					announce_response_map = new HashMap<String, int[]>();
+					
+				}else{
+					
+					if ( announce_response_map.size() > 32 ){
+						
+						Debug.out( "eh?" );
+						
+						announce_response_map.clear();
+					}
+				}
+				
+				int[]	data = (int[])announce_response_map.get( class_name );
+				
+				if ( data == null ){
+					
+					data = new int[3];
+					
+					announce_response_map.put( class_name, data );
+				}
+				
+				data[0]	= seeds;
+				data[1]	= leechers;
+				data[2]	= peer_count;
+				
+			}finally{
+				
+				peer_listeners_mon.exit();
+			}
+		}
+		
 		download_manager.setAnnounceResult( result );
 	}
 	
@@ -1095,6 +1330,48 @@ DownloadImpl
 	setScrapeResult(
 		DownloadScrapeResult	result )
 	{
+		String class_name = getTrackingName( result );
+		
+		if ( class_name != null ){
+			
+			int	seeds 		= result.getSeedCount();
+			int	leechers 	= result.getNonSeedCount();
+					
+			try{
+				peer_listeners_mon.enter();
+				
+				if ( announce_response_map == null ){
+					
+					announce_response_map = new HashMap<String, int[]>();
+					
+				}else{
+					
+					if ( announce_response_map.size() > 32 ){
+						
+						Debug.out( "eh?" );
+						
+						announce_response_map.clear();
+					}
+				}
+				
+				int[]	data = (int[])announce_response_map.get( class_name );
+				
+				if ( data == null ){
+					
+					data = new int[3];
+					
+					announce_response_map.put( class_name, data );
+				}
+				
+				data[0]	= seeds;
+				data[1]	= leechers;
+				
+			}finally{
+				
+				peer_listeners_mon.exit();
+			}
+		}
+		
 		download_manager.setScrapeResult( result );
 	}
 	
