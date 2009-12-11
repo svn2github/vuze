@@ -121,6 +121,7 @@ EngineImpl
 		int				type,
 		long			id,
 		long			last_updated,
+		float			rank_bias,
 		String			name,
 		String			content )
 	
@@ -130,15 +131,15 @@ EngineImpl
 		
 		if ( type == Engine.ENGINE_TYPE_JSON ){
 			
-			return( JSONEngine.importFromJSONString( meta_search, id, last_updated, name, map ));
+			return( JSONEngine.importFromJSONString( meta_search, id, last_updated, rank_bias, name, map ));
 			
 		}else if ( type == Engine.ENGINE_TYPE_REGEX ){
 			
-			return( RegexEngine.importFromJSONString( meta_search, id, last_updated, name, map ));
+			return( RegexEngine.importFromJSONString( meta_search, id, last_updated, rank_bias, name, map ));
 			
 		}else if ( type == Engine.ENGINE_TYPE_RSS ){
 			
-			return( RSSEngine.importFromJSONString( meta_search, id, last_updated, name, map ));
+			return( RSSEngine.importFromJSONString( meta_search, id, last_updated, rank_bias, name, map ));
 			
 		}else{
 			
@@ -209,12 +210,14 @@ EngineImpl
 		int 			_type, 
 		long 			_id,
 		long			_last_updated,
+		float			_rank_bias,
 		String 			_name )
 	{
 		meta_search		= _meta_search;
 		type			= _type;
 		id				= _id;
 		last_updated	= _last_updated;
+		rank_bias		= _rank_bias;
 		name			= _name;
 		
 		version			= 1;
@@ -317,12 +320,13 @@ EngineImpl
 		int				type,
 		long			id,
 		long			last_updated,
+		float			rank_bias,
 		String			name,
 		JSONObject		map )
 	
 		throws IOException
 	{
-		this( meta_search, type, id, last_updated, name );
+		this( meta_search, type, id, last_updated, rank_bias, name );
 		
 		first_level_mapping 	= importJSONMappings( map, "value_map", true );
 		second_level_mapping 	= importJSONMappings( map, "ctype_map", false );
@@ -1176,15 +1180,17 @@ EngineImpl
 	
 	public float
 	applyRankBias(
-		float	rank )
+		float	_rank )
 	{
-		rank *= rank_bias;
+		float rank = _rank*rank_bias;
 				
 		rank *= (1 + 0.025 * preferred_count );
 		
 		rank = Math.min( rank, 1.0f );
 		
 		rank = Math.max( rank, 0.0f );
+		
+		// System.out.println( getName() + " (" + rank_bias+"/"+preferred_count + "): " + _rank + " -> " + rank );
 		
 		return( rank );
 	}

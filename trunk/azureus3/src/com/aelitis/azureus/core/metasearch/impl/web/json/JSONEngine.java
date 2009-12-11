@@ -66,12 +66,13 @@ JSONEngine
 		MetaSearchImpl	meta_search,
 		long			id,
 		long			last_updated,
+		float			rank_bias,
 		String			name,
 		JSONObject		map )
 	
 		throws IOException
 	{
-		return( new JSONEngine( meta_search, id, last_updated, name, map ));
+		return( new JSONEngine( meta_search, id, last_updated, rank_bias, name, map ));
 	}
 	
 	private String resultsEntryPath;
@@ -84,6 +85,7 @@ JSONEngine
 		MetaSearchImpl		meta_search,
 		long 				id,
 		long 				last_updated,
+		float				rank_bias,
 		String 				name,
 		String 				searchURLFormat,
 		String 				timeZone,
@@ -100,6 +102,7 @@ JSONEngine
 				Engine.ENGINE_TYPE_JSON, 
 				id,
 				last_updated,
+				rank_bias,
 				name,
 				searchURLFormat,
 				timeZone,
@@ -139,12 +142,13 @@ JSONEngine
 		MetaSearchImpl	meta_search,
 		long			id,
 		long			last_updated,
+		float			rank_bias,
 		String			name,
 		JSONObject		map )
 	
 		throws IOException
 	{
-		super( meta_search, Engine.ENGINE_TYPE_JSON, id, last_updated, name, map );
+		super( meta_search, Engine.ENGINE_TYPE_JSON, id, last_updated, rank_bias, name, map );
 				
 		resultsEntryPath = ImportExportUtils.importString( map, "json_result_key" );
 	}

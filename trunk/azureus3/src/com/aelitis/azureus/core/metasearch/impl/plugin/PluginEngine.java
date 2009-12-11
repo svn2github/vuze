@@ -77,7 +77,7 @@ PluginEngine
 		long				_id,
 		SearchProvider		_provider )
 	{
-		super( _meta_search, Engine.ENGINE_TYPE_PLUGIN, _id, 0, (String)_provider.getProperty( SearchProvider.PR_NAME ));
+		super( _meta_search, Engine.ENGINE_TYPE_PLUGIN, _id, 0, 0.0f, (String)_provider.getProperty( SearchProvider.PR_NAME ));
 		
 		provider	= _provider;
 		

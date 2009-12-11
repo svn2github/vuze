@@ -63,12 +63,13 @@ RegexEngine
 		MetaSearchImpl		meta_search,
 		long				id,
 		long				last_updated,
+		float				rank_bias,
 		String				name,
 		JSONObject			map )
 	
 		throws IOException
 	{
-		return( new RegexEngine( meta_search, id, last_updated, name, map ));
+		return( new RegexEngine( meta_search, id, last_updated, rank_bias, name, map ));
 	}
 
 	private String	pattern_str;
@@ -82,6 +83,7 @@ RegexEngine
 		MetaSearchImpl		meta_search,
 		long 				id,
 		long 				last_updated,
+		float				rank_bias,
 		String 				name,
 		String 				searchURLFormat,
 		String 				resultPattern,
@@ -98,6 +100,7 @@ RegexEngine
 				Engine.ENGINE_TYPE_REGEX, 
 				id,
 				last_updated,
+				rank_bias,
 				name,
 				searchURLFormat,
 				timeZone,
@@ -139,12 +142,13 @@ RegexEngine
 		MetaSearchImpl		meta_search,
 		long				id,
 		long				last_updated,
+		float				rank_bias,
 		String				name,
 		JSONObject			map )
 	
 		throws IOException
 	{
-		super( meta_search, Engine.ENGINE_TYPE_REGEX, id, last_updated, name, map );
+		super( meta_search, Engine.ENGINE_TYPE_REGEX, id, last_updated, rank_bias, name, map );
 		
 		String	resultPattern = ImportExportUtils.importString( map, "regexp" );
 

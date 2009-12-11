@@ -53,12 +53,13 @@ RSSEngine
 		MetaSearchImpl		meta_search,
 		long				id,
 		long				last_updated,
+		float				rank_bias,
 		String				name,
 		JSONObject			map )
 	
 		throws IOException
 	{
-		return( new RSSEngine( meta_search, id, last_updated, name, map ));
+		return( new RSSEngine( meta_search, id, last_updated, rank_bias, name, map ));
 	}
 	
 		// explicit constructor
@@ -68,6 +69,7 @@ RSSEngine
 		MetaSearchImpl		meta_search,
 		long 				id,
 		long 				last_updated,
+		float				rank_bias,
 		String 				name,
 		String 				searchURLFormat,
 		boolean				needs_auth,
@@ -79,6 +81,7 @@ RSSEngine
 				Engine.ENGINE_TYPE_RSS, 
 				id,
 				last_updated,
+				rank_bias,
 				name,
 				searchURLFormat,
 				"GMT",
@@ -108,12 +111,13 @@ RSSEngine
 		MetaSearchImpl		meta_search,
 		long				id,
 		long				last_updated,
+		float				rank_bias,
 		String				name,
 		JSONObject			map )
 	
 		throws IOException
 	{
-		super( meta_search, Engine.ENGINE_TYPE_REGEX, id, last_updated, name, map );
+		super( meta_search, Engine.ENGINE_TYPE_REGEX, id, last_updated, rank_bias, name, map );
 	}
 	
 	

@@ -92,6 +92,7 @@ WebEngine
 		int 			type, 
 		long 			id, 
 		long 			last_updated, 
+		float			rank_bias,
 		String 			name,
 		String 			searchURLFormat,
 		String 			timeZone,
@@ -103,7 +104,7 @@ WebEngine
 		String			login_url,
 		String[]		required_cookies )
 	{	
-		super( meta_search, type, id, last_updated, name );
+		super( meta_search, type, id, last_updated, rank_bias, name );
 
 		this.searchURLFormat 		= searchURLFormat;
 		this.timeZone 				= timeZone;
@@ -203,12 +204,13 @@ WebEngine
 		int				type,
 		long			id,
 		long			last_updated,
+		float			rank_bias,
 		String			name,
 		JSONObject		map )
 	
 		throws IOException
 	{
-		super( meta_search, type, id, last_updated, name, map );
+		super( meta_search, type, id, last_updated, rank_bias, name, map );
 		
 		searchURLFormat 	= ImportExportUtils.importURL( map, "searchURL" );
 		timeZone			= ImportExportUtils.importString( map, "timezone" );

@@ -115,7 +115,7 @@ MetaSearchImpl
 	
 		throws IOException
 	{
-		return( EngineImpl.importFromJSONString( this, type, id, last_updated, name, content ));
+		return( EngineImpl.importFromJSONString( this, type, id, last_updated, rank_bias, name, content ));
 	}
 	
 	public EngineImpl
@@ -190,6 +190,7 @@ MetaSearchImpl
 					this, 
 					manager.getLocalTemplateID(), 
 					SystemTime.getCurrentTime(), 
+					1.0f,
 					name, 
 					url.toExternalForm(), 
 					false,
@@ -1252,6 +1253,7 @@ MetaSearchImpl
 					ms, 
 					Integer.MAX_VALUE + 9991,
 					SystemTime.getCurrentTime(),
+					1.0f,
 					"UpdateTest",
 					"http://localhost:1234/search=%s",
 					"",
