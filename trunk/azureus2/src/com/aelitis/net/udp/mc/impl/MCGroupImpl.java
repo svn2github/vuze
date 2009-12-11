@@ -655,9 +655,7 @@ MCGroupImpl
 				byte[] buf = new byte[PACKET_SIZE];
 				
 				DatagramPacket packet = new DatagramPacket(buf, buf.length );
-					
-				System.out.println( "receiving on " + socket.getInetAddress());
-				
+									
 				socket.receive( packet );
 					
 				successful_accepts++;
