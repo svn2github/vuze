@@ -1,9 +1,11 @@
 VUZE CHANGELOG
 -----------------
 
-2009.xx.xx | Vuze 4.3.0.5
+2009.12.10 | Vuze 4.3.0.6
 
 BUGFIX: Core  | Fixed bug where compact file types could lead to spurious 'file length too large' errors [Parg]
+
+
 
 2009.11.20 | Vuze 4.3.0.4
 
