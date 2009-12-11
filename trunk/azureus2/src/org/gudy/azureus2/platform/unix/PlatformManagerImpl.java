@@ -200,6 +200,23 @@ public class PlatformManagerImpl implements PlatformManager
 		// No Listener Functionality
 	}
 
+	public String[]
+	getExplicitVMOptions()
+	          	
+	 	throws PlatformManagerException
+	{
+		throw new PlatformManagerException(ERR_UNSUPPORTED);
+	}
+	 
+	public void
+	setExplicitVMOptions(
+		String[]		options )
+	          	
+		throws PlatformManagerException
+	{
+		throw new PlatformManagerException(ERR_UNSUPPORTED);
+	}
+	          	
 	// @see org.gudy.azureus2.platform.PlatformManager#setTCPTOSEnabled(boolean)
 	public void setTCPTOSEnabled(boolean enabled) throws PlatformManagerException {
 		throw new PlatformManagerException(ERR_UNSUPPORTED);

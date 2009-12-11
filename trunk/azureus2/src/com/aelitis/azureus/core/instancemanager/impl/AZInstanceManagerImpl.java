@@ -419,7 +419,7 @@ AZInstanceManagerImpl
 	{
 		try{
 			Map	map = BDecoder.decode( data, 0, length );
-			
+						
 			long	version = ((Long)map.get( "ver" )).longValue();
 			long	type	= ((Long)map.get( "type" )).longValue();
 			
@@ -638,6 +638,22 @@ AZInstanceManagerImpl
 	{
 		sendRequest( MT_REQUEST_SEARCH );
 	}
+	
+	public int
+  	getOtherInstanceCount()
+  	{
+  		initial_search_sem.reserve();
+  		
+  		try{
+  			this_mon.enter();
+
+  			return( other_instances.size());
+  			
+  		}finally{
+  			
+  			this_mon.exit();
+  		}
+  	}
 	
 	public AZInstance[]
 	getOtherInstances()

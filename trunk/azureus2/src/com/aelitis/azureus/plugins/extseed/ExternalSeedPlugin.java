@@ -27,6 +27,7 @@ import java.io.StringWriter;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -41,6 +42,8 @@ import org.gudy.azureus2.plugins.ui.components.UITextField;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.*;
 
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.plugins.extseed.impl.getright.ExternalSeedReaderFactoryGetRight;
 import com.aelitis.azureus.plugins.extseed.impl.webseed.ExternalSeedReaderFactoryWebSeed;
 
@@ -476,6 +479,11 @@ ExternalSeedPlugin
 		
 			List	peers = (List)download_map.get( download );
 	
+			if ( peers == null ){
+				
+				return( new ExternalSeedManualPeer[0] );
+			}
+			
 			ExternalSeedManualPeer[]	result = new ExternalSeedManualPeer[peers.size()];
 			
 			for (int i=0;i<peers.size();i++){
@@ -489,6 +497,88 @@ ExternalSeedPlugin
 			
 			download_mon.exit();
 		}	
+	}
+	
+	public TrackerPeerSource
+	getTrackerPeerSource(
+		final Download		download )
+	{
+		return(
+			new TrackerPeerSourceAdapter()
+			{
+				private long	fixup_time;
+				
+				private ExternalSeedManualPeer[]	peers;						
+				
+				public int
+				getType()
+				{
+					return( TP_HTTP_SEED );
+				}
+				
+				public int
+				getStatus()
+				{
+					fixup();
+					
+					return( peers.length==0?ST_UNAVAILABLE:ST_AVAILABLE );
+				}
+				
+				public String
+				getName()
+				{
+					fixup();
+					
+					if ( peers.length == 0 ){
+						
+						return( "" );
+					}
+					
+					StringBuffer sb = new StringBuffer();
+					
+					for ( ExternalSeedManualPeer peer: peers ){
+						
+						if ( sb.length() > 0 ){
+							
+							sb.append( ", " );
+						}
+						
+						String str = peer.getDelegate().getURL().toExternalForm();
+						
+						int pos = str.indexOf( '?' );
+						
+						if ( pos != -1 ){
+							
+							str = str.substring( 0, pos );
+						}
+						
+						sb.append( str );
+					}
+					
+					return( sb.toString());
+				}
+				
+				public int
+				getPeers()
+				{
+					fixup();
+					
+					return( peers.length );
+				}
+				
+				protected void
+				fixup()
+				{
+					long	now = SystemTime.getMonotonousTime();
+					
+					if ( now - fixup_time > 10*1000 ){
+					
+						fixup_time = now;
+						
+						peers = getManualWebSeeds(download);
+					}
+				}
+			});
 	}
 	
 	public int

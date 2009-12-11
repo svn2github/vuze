@@ -74,7 +74,7 @@ DownloadManagerController
 	private static ExternalSeedPlugin	ext_seed_plugin;
 	private static boolean				ext_seed_plugin_tried;
 	
-	private static ExternalSeedPlugin
+	protected static ExternalSeedPlugin
 	getExternalSeedPlugin()
 	{
 		if ( !ext_seed_plugin_tried ){
@@ -398,6 +398,12 @@ DownloadManagerController
 					getMaxNewConnectionsAllowed()
 					{
 						return( temp.getMaxNewConnectionsAllowed());
+					}
+					
+					public int 
+					getPendingConnectionCount() 
+					{
+						return( temp.getPendingPeerCount());
 					}
 					
 					public int 

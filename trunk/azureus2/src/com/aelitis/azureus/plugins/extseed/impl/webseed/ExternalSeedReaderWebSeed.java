@@ -96,7 +96,13 @@ ExternalSeedReaderWebSeed
 	{
 		return( "WS: " + url );
 	}
-		
+	
+	public URL 
+	getURL() 
+	{
+		return( url );
+	}
+	
 	public int
 	getPort()
 	{

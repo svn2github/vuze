@@ -189,11 +189,11 @@ TRTrackerServerProcessorTCP
 					
 					if ( redirect.length() > 0 ){
 						
-						os.write( ("HTTP/1.1 301 Moved Permanently" + NL + "Location: " + redirect + NL + NL).getBytes() );
+						os.write( ("HTTP/1.1 301 Moved Permanently" + NL + "Location: " + redirect + NL + "Connection: close" + NL +  "Content-Length: 0" + NL + NL).getBytes() );
 						
 					}else{
 						
-						os.write( ("HTTP/1.1 404 Not Found" + NL + NL + "Page not found." + NL).getBytes() );
+						os.write( ("HTTP/1.1 404 Not Found" + NL + "Connection: close" + NL + "Content-Length: 0" + NL + NL ).getBytes() );
 					}
 					
 					os.flush();
@@ -596,8 +596,19 @@ TRTrackerServerProcessorTCP
 							String	key 	= (String)entry.getKey();
 							String	value 	= (String)entry.getValue();
 							
+							if ( key.equalsIgnoreCase( "connection" )){
+								
+								if ( !value.equalsIgnoreCase( "close" )){
+									
+									Debug.out( "Ignoring 'Connection' header" );
+									
+									continue;
+								}
+							}
 							resp += key + ": " + value + NL;
 						}
+
+						resp += "Connection: close" + NL;
 
 						byte[]	payload = null;
 						
@@ -606,8 +617,11 @@ TRTrackerServerProcessorTCP
 							payload = BEncoder.encode( error_entries );
 							
 							resp += "Content-Length: " + payload.length + NL;
+						}else{
+							
+							resp += "Content-Length: 0" + NL;
 						}
-						
+												
 						resp += NL;
 
 						os.write( resp.getBytes());

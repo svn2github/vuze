@@ -51,6 +51,9 @@ TRTrackerAnnouncerDataProvider
 	getMaxNewConnectionsAllowed();
 	
 	public int
+	getPendingConnectionCount();
+	
+	public int
 	getUploadSpeedKBSec(
 		boolean	estimate );
 	

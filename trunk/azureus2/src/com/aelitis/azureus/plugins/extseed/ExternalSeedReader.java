@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.plugins.extseed;
 
+import java.net.URL;
 import java.util.List;
 
 import org.gudy.azureus2.plugins.peers.Peer;
@@ -48,6 +49,9 @@ ExternalSeedReader
 	
 	public boolean
 	isPermanentlyUnavailable();
+	
+	public URL
+	getURL();
 	
 	public String
 	getIP();

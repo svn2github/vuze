@@ -28,6 +28,7 @@ import java.net.UnknownHostException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
@@ -35,7 +36,6 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -73,6 +73,8 @@ import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.plugins.dht.*;
 
 /**
@@ -143,9 +145,9 @@ DHTTrackerPlugin
 		}
 	}
 	
-	private PluginInterface		plugin_interface;
-	
-	private DHTPlugin			dht;
+	private PluginInterface			plugin_interface;
+	private BasicPluginViewModel 	model;
+	private DHTPlugin				dht;
 	
 	private TorrentAttribute 	ta_networks;
 	private TorrentAttribute 	ta_peer_sources;
@@ -153,7 +155,7 @@ DHTTrackerPlugin
 	private Map<Download,Long>		interesting_downloads 	= new HashMap<Download,Long>();
 	private int						interesting_published	= 0;
 	private int						interesting_pub_max		= INTERESTING_PUB_MAX_DEFAULT;
-	private Map<Download,Integer>	running_downloads 		= new HashMap<Download,Integer>();
+	private Map<Download,int[]>		running_downloads 		= new HashMap<Download,int[]>();
 	private Map<Download,RegistrationDetails>	registered_downloads 	= new HashMap<Download,RegistrationDetails>();
 	
 	private Map<Download,Boolean>	limited_online_tracking	= new HashMap<Download,Boolean>();
@@ -167,6 +169,8 @@ DHTTrackerPlugin
 	
 	private BooleanParameter	track_normal_when_offline;
 	private BooleanParameter	track_limited_when_online;
+	
+	private long				current_announce_interval = ANNOUNCE_MIN_DEFAULT;
 	
 	private LoggerChannel		log;
 	
@@ -203,7 +207,7 @@ DHTTrackerPlugin
 
 		UIManager	ui_manager = plugin_interface.getUIManager();
 
-		final BasicPluginViewModel model = 
+		model = 
 			ui_manager.createBasicPluginViewModel( PLUGIN_RESOURCE_ID );
 		
 		model.setConfigSectionID(PLUGIN_CONFIGSECTION_ID);
@@ -279,7 +283,7 @@ DHTTrackerPlugin
 					}
 				});
 
-		model.getStatus().setText( "Initialising" );
+		model.getStatus().setText( MessageText.getString( "ManagerItem.initializing" ));
 		
 		log.log( "Waiting for Distributed Database initialisation" );
 		
@@ -320,7 +324,7 @@ DHTTrackerPlugin
 															
 																log.log( "DDB Available" );
 																	
-																model.getStatus().setText( "Running" );
+																model.getStatus().setText( MessageText.getString( "DHTView.activity.status.false" ));
 																
 																initialise();
 																	
@@ -328,7 +332,7 @@ DHTTrackerPlugin
 																
 																log.log( "DDB Disabled" );
 																
-																model.getStatus().setText( "Disabled, Distributed database not available" );
+																model.getStatus().setText( MessageText.getString( "dht.status.disabled" ));
 																	
 																notRunning();
 															}
@@ -336,7 +340,7 @@ DHTTrackerPlugin
 																
 															log.log( "DDB Failed", e );
 																
-															model.getStatus().setText( "Failed" );
+															model.getStatus().setText( MessageText.getString( "DHTView.operations.failed" ));
 																
 															notRunning();
 															
@@ -359,7 +363,7 @@ DHTTrackerPlugin
 							
 							log.log( "DDB Plugin missing" );
 							
-							model.getStatus().setText( "Failed" );
+							model.getStatus().setText( MessageText.getString( "DHTView.operations.failed" ) );
 							
 							notRunning();
 						}
@@ -1004,28 +1008,32 @@ DHTTrackerPlugin
 			try{
 				this_mon.enter();
 	
-				Integer	existing_type = (Integer)running_downloads.get( download );
+				int[] run_data = running_downloads.get( download );
 			
 				if ( register_type != REG_TYPE_NONE ){
 				
-					if ( existing_type == null ){
+					if ( run_data == null ){
 						
 						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
 								"Monitoring '" + download.getName() + "': " + register_reason);
 						
-						running_downloads.put( download, new Integer( register_type ));
+						running_downloads.put( download, new int[]{ register_type, 0, 0, 0 });
 						
-					}else if ( 	existing_type.intValue() == REG_TYPE_DERIVED &&
+					}else{
+						
+						Integer	existing_type = run_data[0];
+
+						if ( 	existing_type.intValue() == REG_TYPE_DERIVED &&
 								register_type == REG_TYPE_FULL ){
 						
-							// upgrade
+								// upgrade
 						
-						running_downloads.put( download, new Integer( register_type ));
-
+							run_data[0] = register_type;
+						}
 					}
 				}else{
 					
-					if ( existing_type  != null ){
+					if ( run_data  != null ){
 						
 						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
 								"Not monitoring '" + download.getName() + "': "	+ register_reason);
@@ -1172,11 +1180,11 @@ DHTTrackerPlugin
 				try{ 
 					this_mon.enter();
 				
-					Integer x = (Integer)running_downloads.get( dl );
+					int[] run_data = running_downloads.get( dl );
 					
-					if ( x != null ){
+					if ( run_data != null ){
 						
-						reg_type = x.intValue();
+						reg_type = run_data[0];
 					}
 				}finally{
 					
@@ -1274,11 +1282,11 @@ DHTTrackerPlugin
 			try{ 
 				this_mon.enter();
 			
-				Integer x = (Integer)running_downloads.get( dl );
+				int[] run_data = running_downloads.get( dl );
 				
-				if ( x != null ){
+				if ( run_data != null ){
 					
-					reg_type = x.intValue();
+					reg_type = run_data[0];
 				}
 			}finally{
 				
@@ -1415,11 +1423,11 @@ DHTTrackerPlugin
 		
 					query_map.remove( dl );
 					
-					Integer x = (Integer)running_downloads.get( dl );
+					int[] run_data = running_downloads.get( dl );
 					
-					if ( x != null ){
+					if ( run_data != null ){
 						
-						reg_type = x.intValue();
+						reg_type = run_data[0];
 					}
 				}finally{
 					
@@ -1838,14 +1846,30 @@ DHTTrackerPlugin
 							int	announce_max = derived_only?ANNOUNCE_MAX_DERIVED_ONLY:ANNOUNCE_MAX;
 							
 							announce_min = Math.min( announce_min, announce_max );
-							
+								
+							current_announce_interval = announce_min;
+
 							final long	retry = announce_min + peers_found*(announce_max-announce_min)/NUM_WANT;
-																
+							
+							int download_state = download.getState();
+							
+							boolean	we_are_seeding = download_state == Download.ST_SEEDING;
+
 							try{
 								this_mon.enter();
 							
-								if ( running_downloads.containsKey( download )){
+								int[] run_data = running_downloads.get( download );
+								
+								if ( run_data != null ){
 
+									boolean full = target.getType() == REG_TYPE_FULL;
+									
+									int peer_count = we_are_seeding?leecher_count:(seed_count+leecher_count);
+									
+									run_data[1] = full?seed_count:Math.max( run_data[1], seed_count);
+									run_data[2]	= full?leecher_count:Math.max( run_data[2], leecher_count);
+									run_data[3] = full?peer_count:Math.max( run_data[3], peer_count);
+										
 									long	absolute_retry = SystemTime.getCurrentTime() + retry;
 								
 									if ( absolute_retry > max_retry[0] ){
@@ -1870,11 +1894,7 @@ DHTTrackerPlugin
 								
 								this_mon.exit();
 							}
-							
-							int download_state = download.getState();
-							
-							boolean	we_are_seeding = download_state == Download.ST_SEEDING;
-							
+														
 							putDetails put_details = details.getPutDetails();
 							
 							String	ext_address = put_details.getIPOverride();
@@ -2377,9 +2397,9 @@ DHTTrackerPlugin
 					continue;
 				}
 				
-				Integer state = running_downloads.get( download );
+				int[] run_data = running_downloads.get( download );
 
-				if ( state == null || state.intValue() == REG_TYPE_DERIVED ){
+				if ( run_data == null || run_data[0] == REG_TYPE_DERIVED ){
 					
 						// looks like we'll need the scrape below
 					
@@ -2416,9 +2436,9 @@ DHTTrackerPlugin
 					continue;
 				}
 				
-				Integer state = running_downloads.get( download );
+				int[] run_data = running_downloads.get( download );
 				
-				if ( state == null || state.intValue() == REG_TYPE_DERIVED ){
+				if ( run_data == null || run_data[0] == REG_TYPE_DERIVED ){
 					
 					boolean	force =  torrent.wasCreatedByUs();
 					
@@ -2625,6 +2645,22 @@ DHTTrackerPlugin
 													}
 												});
 	
+									}
+									
+									
+									try{
+										this_mon.enter();
+									
+										int[] run_data = running_downloads.get( f_ready_download );
+										
+										if ( run_data != null ){
+
+											run_data[1] = seeds;
+											run_data[2]	= leechers;
+										}
+									}finally{
+										
+										this_mon.exit();
 									}
 									
 									f_ready_download.setScrapeResult(
@@ -3255,6 +3291,163 @@ DHTTrackerPlugin
 		}
 		
 		return( res );
+	}
+	
+	public TrackerPeerSource
+	getTrackerPeerSource(
+		final Download		download )
+	{
+		return(
+			new TrackerPeerSourceAdapter()
+			{
+				private long	last_fixup;
+				private boolean	updating;
+				private int		status		= ST_UNKNOWN;
+				private long	next_time	= -1;
+				private int[]	run_data;
+				
+				private void
+				fixup()
+				{
+					long now = SystemTime.getMonotonousTime();
+					
+					if ( now - last_fixup > 5*1000 ){
+				
+						try{
+							this_mon.enter();
+							
+							updating 	= false;
+							next_time	= -1;
+							
+							run_data = running_downloads.get( download );
+							
+							if ( run_data != null ){
+								
+								if ( in_progress.containsKey( download )){
+									
+									updating = true;
+								}
+								
+								status = TrackerPeerSource.ST_ONLINE;
+								
+								Long l_next_time = query_map.get( download );
+								
+								if ( l_next_time != null ){
+									
+									next_time = l_next_time.longValue();
+								}
+							}else if ( interesting_downloads.containsKey( download )){
+								
+								status = TrackerPeerSource.ST_STOPPED;
+								
+							}else{
+								
+								status = TrackerPeerSource.ST_DISABLED;
+							}
+						}finally{
+							
+							this_mon.exit();
+						}
+						
+						if ( !initialised_sem.isReleasedForever()){
+						
+							status = TrackerPeerSource.ST_INITIALISING;
+						}
+						
+						last_fixup = now;
+					}
+				}
+				
+				public int
+				getType()
+				{
+					return( TP_DHT );
+				}
+				
+				public String
+				getName()
+				{
+					return( "DHT: " + model.getStatus().getText());
+				}
+				
+				public int
+				getStatus()
+				{
+					fixup();
+					
+					return( status );
+				}
+				
+				public int
+				getSeedCount()
+				{
+					fixup();
+					
+					if ( run_data == null ){
+						
+						return( -1 );
+					}
+					
+					return( run_data[1] );
+				}
+				
+				public int
+				getLeecherCount()
+				{
+					fixup();
+					
+					if ( run_data == null ){
+						
+						return( -1 );
+					}
+					
+					return( run_data[2] );
+				}
+				
+				public int
+				getPeers()
+				{
+					fixup();
+					
+					if ( run_data == null ){
+						
+						return( -1 );
+					}
+					
+					return( run_data[3] );
+				}
+				
+				public int
+				getSecondsToUpdate()
+				{
+					fixup();
+					
+					if ( next_time < 0 ){
+						
+						return( -1 );
+					}
+					
+					return((int)(( next_time - SystemTime.getCurrentTime())/1000 ));
+				}
+				
+				public int
+				getInterval()
+				{
+					return((int)(current_announce_interval/1000));
+				}
+				
+				public int
+				getMinInterval()
+				{
+					return( ANNOUNCE_MIN_DEFAULT/1000 );
+				}
+				
+				public boolean
+				isUpdating()
+				{
+					return( updating );
+				}
+			});
 	}
 	
 	public static List<Object[]>

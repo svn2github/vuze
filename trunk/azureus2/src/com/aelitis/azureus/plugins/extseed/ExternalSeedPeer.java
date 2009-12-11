@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.plugins.extseed;
 
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -342,6 +343,12 @@ ExternalSeedPeer
 		return( peer_id );
 	}
   
+	public URL
+	getURL()
+	{
+		return( reader.getURL());
+	}
+	
 	public String 
 	getIp()
 	{

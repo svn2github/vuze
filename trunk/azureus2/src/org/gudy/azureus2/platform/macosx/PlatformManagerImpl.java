@@ -137,9 +137,13 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         if (OSXAccess.isLoaded()) {
 	        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
         }
+ 
         AEDiagnostics.addEvidenceGenerator(this);
         
-        checkPList();
+        if ( checkPList()){
+        	
+            capabilitySet.add(PlatformManagerCapabilities.AccessExplicitVMOptions);
+        }
     }
 
     /**
@@ -180,13 +184,15 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 		return( editor );
     }
     
-    protected void
+    protected boolean
     checkPList()
     {
     	try{
     		PListEditor editor = getPList();
+    		
     		if (editor == null) {
-    			return;
+    			
+    			return( false );
     		}
     		
     		editor.setFileTypeExtensions(new String[] {"torrent","tor","vuze","vuz"});
@@ -197,11 +203,19 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 			editor.setSimpleStringValue("CFBundleVersion",Constants.AZUREUS_VERSION);
 			editor.setArrayValues("CFBundleURLSchemes", "string", new String[] { "magnet", "dht", "vuze"});
 			
+				// always touch it, see if it helps ensure we are registered as magnet
+				// handler
+			
+			editor.touchFile();
+			
+			return( true );
+			
     	}catch( Throwable e ){
     		
     		Debug.out( "Failed to update plist", e );
+    		
+    		return( false );
     	}
-	
     }
     
     protected void
@@ -217,6 +231,23 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     		Debug.out( "Failed to touch plist", e );
     	}
     }
+    
+	public String[]
+   	getExplicitVMOptions()
+  	          	
+     	throws PlatformManagerException
+  	{
+        throw new PlatformManagerException("Unsupported capability called on platform manager");
+  	}
+  	 
+  	public void
+  	setExplicitVMOptions(
+  		String[]		options )
+  	          	
+  		throws PlatformManagerException
+  	{
+        throw new PlatformManagerException("Unsupported capability called on platform manager");	
+  	}
     
     /**
      * {@inheritDoc}

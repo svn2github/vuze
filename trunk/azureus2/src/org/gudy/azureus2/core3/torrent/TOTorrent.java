@@ -338,6 +338,14 @@ TOTorrent
 		  
 	   throws TOTorrentException;
 
+   public void
+   addListener(
+	  TOTorrentListener		l );
+   
+   public void
+   removeListener(
+	  TOTorrentListener		l );
+   
    public AEMonitor
    getMonitor();
 

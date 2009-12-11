@@ -71,6 +71,17 @@ PlatformManager
 		
 		throws PlatformManagerException;
 
+	public String[]
+	getExplicitVMOptions()
+	
+		throws PlatformManagerException;
+	
+	public void
+	setExplicitVMOptions(
+		String[]		options )
+	
+		throws PlatformManagerException;
+	
 	public void
 	createProcess(
 		String	command_line,

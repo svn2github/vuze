@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.download;
 
 import java.io.File;
+import java.util.List;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -38,6 +39,7 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 
 public interface
 DownloadManager
@@ -564,6 +566,9 @@ DownloadManager
     public PEPeer[]
     getCurrentPeers();
 
+    public List<TrackerPeerSource>
+    getTrackerPeerSources();
+    
     	/**
     	 * Gives the download an opportunity to schedule seeding mode piece rechecks if desired
     	 * @return true if a piece has been rechecked
@@ -663,6 +668,13 @@ DownloadManager
     removeActivationListener(
     	DownloadManagerActivationListener listener );
 
+    public void
+    addTPSListener(
+    	DownloadManagerTPSListener		listener );
+    
+    public void
+    removeTPSListener(
+    	DownloadManagerTPSListener		listener );
     
     public void
     generateEvidence(

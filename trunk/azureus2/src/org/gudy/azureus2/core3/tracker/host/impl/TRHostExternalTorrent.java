@@ -444,6 +444,18 @@ TRHostExternalTorrent
 		throw( new TOTorrentException("External Torrent", TOTorrentException.RT_WRITE_FAILS ));
 	}
 
+ 	public void
+	addListener(
+		TOTorrentListener		l )
+	{
+	}
+
+	public void
+	removeListener(
+		TOTorrentListener		l )
+	{
+	}
+	
    	public AEMonitor
 	getMonitor()
    	{

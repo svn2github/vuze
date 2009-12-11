@@ -33,6 +33,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
@@ -69,6 +70,8 @@ import com.aelitis.azureus.core.peermanager.unchoker.UnchokerFactory;
 import com.aelitis.azureus.core.peermanager.unchoker.UnchokerUtil;
 import com.aelitis.azureus.core.peermanager.uploadslots.UploadHelper;
 import com.aelitis.azureus.core.peermanager.uploadslots.UploadSlotManager;
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
@@ -654,6 +657,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return( result );
 	}
 
+	public int
+	getPendingPeerCount()
+	{
+		return( peer_database.getDiscoveredPeerCount());
+	}
+	
 	public PeerDescriptor[]
   	getPendingPeers()
   	{
@@ -4472,6 +4481,43 @@ DiskManagerCheckRequestListener, IPFilterListener
 				Debug.printStackTrace(e);
 			}
 		}
+	}
+	
+	public TrackerPeerSource
+	getTrackerPeerSource()
+	{
+		return(
+			new TrackerPeerSourceAdapter()
+			{
+				public int
+				getType()
+				{
+					return( TP_PEX );
+				}
+				
+				public int
+				getStatus()
+				{
+					return( isPeerExchangeEnabled()?ST_ONLINE:ST_DISABLED );
+				}
+				
+				public String
+				getName()
+				{
+					return( 
+						MessageText.getString( "tps.pex.details", 
+							new String[]{ 
+								String.valueOf( peer_transports_cow.size()), 
+								String.valueOf( peer_database.getExchangedPeerCount()),
+								String.valueOf( peer_database.getDiscoveredPeerCount())}));
+				}
+				
+				public int
+				getPeers()
+				{
+					return( peer_database.getExchangedPeersUsed());
+				}
+			});
 	}
 	
 	public void

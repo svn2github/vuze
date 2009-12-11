@@ -53,20 +53,32 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentListener;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedManualPeer;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedPeer;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
+import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
+import com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin;
 
 /**
  * @author Olivier
@@ -203,18 +215,16 @@ DownloadManagerImpl
 	
 		// one static async manager for them all
 	
-	private static ListenerManager	peer_listeners_aggregator 	= ListenerManager.createAsyncManager(
+	private static ListenerManager<DownloadManagerPeerListener>	peer_listeners_aggregator 	= ListenerManager.createAsyncManager(
 			"DM:PeerListenAggregatorDispatcher",
-			new ListenerManagerDispatcher()
+			new ListenerManagerDispatcher<DownloadManagerPeerListener>()
 			{
 				public void
 				dispatch(
-					Object		_listener,
-					int			type,
-					Object		value )
+					DownloadManagerPeerListener		listener,
+					int								type,
+					Object							value )
 				{
-					DownloadManagerPeerListener	listener = (DownloadManagerPeerListener)_listener;
-					
 					if ( type == LDT_PE_PEER_ADDED ){
 						
 						listener.peerAdded((PEPeer)value);
@@ -234,13 +244,15 @@ DownloadManagerImpl
 				}
 			});
 
-	private ListenerManager	peer_listeners 	= ListenerManager.createManager(
+	private static Object TPS_Key = new Object();
+	
+	private ListenerManager<DownloadManagerPeerListener>	peer_listeners 	= ListenerManager.createManager(
 			"DM:PeerListenDispatcher",
-			new ListenerManagerDispatcher()
+			new ListenerManagerDispatcher<DownloadManagerPeerListener>()
 			{
 				public void
 				dispatch(
-					Object		listener,
+					DownloadManagerPeerListener		listener,
 					int			type,
 					Object		value )
 				{
@@ -295,6 +307,8 @@ DownloadManagerImpl
 					piece_listeners_aggregator.dispatch( listener, type, value );
 				}
 			});	
+	
+	private List<DownloadManagerTPSListener>	tps_listeners;
 	
 	private AEMonitor	piece_listeners_mon	= new AEMonitor( "DM:DownloadManager:PeiceL" );
 	
@@ -395,34 +409,16 @@ DownloadManagerImpl
 								peer_listeners_mon.exit();
 							}
 															
-							new AEThread( "DM:torrentChangeFlusher", true )
+							new AEThread2( "DM:torrentChangeFlusher", true )
 							{
 								public void
-								runSupport()
+								run()
 								{
 									for (int i=0;i<peers.size();i++){
 										
 										PEPeer	peer = (PEPeer)peers.get(i);
 										
 										peer.getManager().removePeer( peer, "Private torrent: tracker changed" );
-									}
-									
-										// force through a stop on old url
-									
-									try{
-										TRTrackerAnnouncer an = TRTrackerAnnouncerFactory.create( torrent, true );
-										
-										an.cloneFrom( announcer );
-										
-										an.setTrackerURL( old_url );
-										
-										an.stop( false );
-										
-										an.destroy();
-										
-									}catch( Throwable e ){
-										
-										Debug.printStackTrace(e);
 									}
 								}
 							}.start();
@@ -3502,6 +3498,554 @@ DownloadManagerImpl
 		return( false );
   }
   
+  	public List<TrackerPeerSource> 
+  	getTrackerPeerSources() 
+  	{	  
+  		try{
+  			this_mon.enter();
+
+  			Object[] tps_data = (Object[])getUserData( TPS_Key );
+
+  			List<TrackerPeerSource>	tps;
+  			
+  			if ( tps_data == null ){
+
+  				tps = new ArrayList<TrackerPeerSource>();
+
+  				TOTorrentListener tol =
+  					new TOTorrentListener()
+					{
+						public void 
+						torrentChanged(
+							TOTorrent	torrent,
+							int 		type ) 
+						{
+							if ( type == TOTorrentListener.CT_ANNOUNCE_URLS ){
+
+								List<DownloadManagerTPSListener>	to_inform = null;
+								
+						 		try{
+						  			this_mon.enter();
+
+						  			torrent.removeListener( this );
+						  			
+						  			setUserData( TPS_Key, null );
+
+						  			if ( tps_listeners != null ){
+						  				
+						  				to_inform = new ArrayList<DownloadManagerTPSListener>( tps_listeners );
+						  			}
+						  		}finally{
+
+						  			this_mon.exit();
+						  		}
+						  		
+						  		if ( to_inform != null ){
+						  			
+						  			for ( DownloadManagerTPSListener l: to_inform ){
+						  				
+						  				try{
+						  				
+						  					l.trackerPeerSourcesChanged();
+						  					
+						  				}catch( Throwable e ){
+						  					
+						  					Debug.out(e);
+						  				}
+						  			}
+						  		}
+							}
+						}
+					};
+					
+  				setUserData( TPS_Key, new Object[]{ tps, tol });
+
+  					// tracker peer sources
+  				
+  				TOTorrent t = getTorrent();
+
+  				if ( t != null ){
+
+  					t.addListener( tol );
+  					
+  					TOTorrentAnnounceURLSet[] sets = t.getAnnounceURLGroup().getAnnounceURLSets();
+  					
+  					if ( sets.length == 0 ){
+  						
+  						sets = new TOTorrentAnnounceURLSet[]{ t.getAnnounceURLGroup().createAnnounceURLSet( new URL[]{ torrent.getAnnounceURL()})};
+  					}
+  					  
+  						// source per set
+  					
+					for ( final TOTorrentAnnounceURLSet set: sets ){
+						
+						final URL[] urls = set.getAnnounceURLs();
+						
+						if ( urls.length == 0 || TorrentUtils.isDecentralised( urls[0] )){
+							
+							continue;
+						}
+						
+						tps.add( 
+							new TrackerPeerSource()
+							{
+								private TrackerPeerSource _delegate;
+								
+			 					private TRTrackerAnnouncer		ta;
+			  					private long					ta_fixup;
+
+								private TrackerPeerSource
+								fixup()
+								{
+									long	now = SystemTime.getMonotonousTime();
+									
+									if ( now - ta_fixup > 1000 ){
+										
+										TRTrackerAnnouncer current_ta = getTrackerClient();
+										
+										if ( current_ta == ta ){
+											
+											if ( current_ta != null && _delegate == null ){
+												
+												_delegate = current_ta.getTrackerPeerSource( set );
+											}
+										}else{
+											
+											if ( current_ta == null ){
+												
+												_delegate = null;
+												
+											}else{
+												
+												_delegate = current_ta.getTrackerPeerSource( set );
+											}
+											
+											ta = current_ta;
+										}
+										
+										ta_fixup	= now;
+									}
+									
+									return( _delegate );
+								}
+								
+								public int
+								getType()
+								{
+									return( TrackerPeerSource.TP_TRACKER );
+								}
+								
+								public String
+								getName()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( urls[0].toExternalForm());
+									}
+									
+									return( delegate.getName());
+								}
+								
+								public int 
+								getStatus()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( ST_STOPPED );
+									}
+									
+									return( delegate.getStatus());
+								}
+								
+								public String 
+								getStatusString()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( null );
+									}
+									
+									return( delegate.getStatusString());
+								}
+								
+								public int
+								getSeedCount()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( -1 );
+									}
+									
+									return( delegate.getSeedCount());
+								}
+								
+								public int
+								getLeecherCount()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( -1 );
+									}
+									
+									return( delegate.getLeecherCount());							
+								}
+	
+								public int
+								getPeers()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( -1 );
+									}
+									
+									return( delegate.getPeers());							
+								}
+
+								public int
+								getInterval()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( -1 );
+									}
+									
+									return( delegate.getInterval());							
+								}
+								
+								public int
+								getMinInterval()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( -1 );
+									}
+									
+									return( delegate.getMinInterval());							
+								}
+								
+								public boolean
+								isUpdating()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( false );
+									}
+									
+									return( delegate.isUpdating());							
+								}
+								
+								public int
+								getSecondsToUpdate()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( -1 );
+									}
+									
+									return( delegate.getSecondsToUpdate());
+								}
+							});
+					}
+					
+						// cache peer source
+					
+					tps.add( 
+							new TrackerPeerSourceAdapter()
+							{
+								private TrackerPeerSource _delegate;
+								
+			 					private TRTrackerAnnouncer		ta;
+			  					private long					ta_fixup;
+
+								private TrackerPeerSource
+								fixup()
+								{
+									long	now = SystemTime.getMonotonousTime();
+									
+									if ( now - ta_fixup > 1000 ){
+										
+										TRTrackerAnnouncer current_ta = getTrackerClient();
+										
+										if ( current_ta == ta ){
+											
+											if ( current_ta != null && _delegate == null ){
+												
+												_delegate = current_ta.getCacheTrackerPeerSource();
+											}
+										}else{
+											
+											if ( current_ta == null ){
+												
+												_delegate = null;
+												
+											}else{
+												
+												_delegate = current_ta.getCacheTrackerPeerSource();
+											}
+											
+											ta = current_ta;
+										}
+										
+										ta_fixup	= now;
+									}
+									
+									return( _delegate );
+								}
+								
+								public int
+								getType()
+								{
+									return( TrackerPeerSource.TP_TRACKER );
+								}
+								
+								public String
+								getName()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( MessageText.getString( "tps.tracker.cache" ));
+									}
+									
+									return( delegate.getName());
+								}
+								
+								public int 
+								getStatus()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( ST_STOPPED );
+									}
+									
+									return( ST_ONLINE );
+								}
+	
+								public int
+								getPeers()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( -1 );
+									}
+									
+									return( delegate.getPeers());							
+								}
+							});
+  				}
+  			}else{
+  				
+  				tps = (List<TrackerPeerSource>)tps_data[0];
+  			}
+  			
+  				// http seeds
+  			
+  			try{
+  				ExternalSeedPlugin esp = DownloadManagerController.getExternalSeedPlugin();
+  				
+  				if ( esp != null ){
+  					  					
+					tps.add( esp.getTrackerPeerSource( PluginCoreUtils.wrap( this ) ));
+ 				}
+  			}catch( Throwable e ){
+  			}
+  			
+  				// dht
+  			
+  			try{
+  				
+				PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(DHTTrackerPlugin.class);
+
+  			    if ( dht_pi != null ){
+  			    	
+  			    	tps.add(((DHTTrackerPlugin)dht_pi.getPlugin()).getTrackerPeerSource( PluginCoreUtils.wrap( this )));
+  			    }
+			}catch( Throwable e ){
+  			}
+  			
+				// LAN
+			
+			try{
+				
+				PluginInterface lt_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(LocalTrackerPlugin.class);
+
+				if ( lt_pi != null ){
+					
+  			    	tps.add(((LocalTrackerPlugin)lt_pi.getPlugin()).getTrackerPeerSource( PluginCoreUtils.wrap( this )));
+				
+				}
+				
+			}catch( Throwable e ){
+				
+			}
+				// PEX...
+			
+			tps.add(
+				new TrackerPeerSourceAdapter()
+				{
+					private PEPeerManager		_pm;
+					private TrackerPeerSource	_delegate;
+					
+					private TrackerPeerSource 
+					fixup()
+					{
+						PEPeerManager pm = getPeerManager();
+						
+						if ( pm == null ){
+							
+							_delegate = null;
+							
+						}else if ( pm != _pm ){
+							
+							_pm	= pm;
+							
+							_delegate = pm.getTrackerPeerSource();
+						}
+						
+						return( _delegate );
+					}
+					
+					public int
+					getType()
+					{
+						return( TP_PEX );
+					}
+					
+					public int
+					getStatus()
+					{
+						TrackerPeerSource delegate = fixup();
+						
+						if ( delegate == null ){
+							
+							return( ST_STOPPED );
+							
+						}else{
+							
+							return( delegate.getStatus());
+						}
+					}
+					
+					public String 
+					getName() 
+					{
+						TrackerPeerSource delegate = fixup();
+						
+						if ( delegate == null ){
+							
+							return( "" );
+							
+						}else{
+							
+							return( delegate.getName());
+						}	
+					}
+					
+					public int 
+					getPeers() 
+					{
+						TrackerPeerSource delegate = fixup();
+						
+						if ( delegate == null ){
+							
+							return( -1 );
+							
+						}else{
+							
+							return( delegate.getPeers());
+						}	
+					}
+				});
+			
+  			return( tps );
+
+  		}finally{
+
+  			this_mon.exit();
+  		}
+  	}
+
+    public void
+    addTPSListener(
+    	DownloadManagerTPSListener		listener )
+    {
+    	try{
+    		this_mon.enter();
+    		
+    		if ( tps_listeners == null ){
+    			
+    			tps_listeners = new ArrayList<DownloadManagerTPSListener>(1);
+    		}
+    		
+    		tps_listeners.add( listener );
+    		
+    	}finally{
+    		
+    		this_mon.exit();
+    	}
+    }	
+    
+    public void
+    removeTPSListener(
+    	DownloadManagerTPSListener		listener )
+    {
+       	try{
+    		this_mon.enter();
+    		
+    		if ( tps_listeners != null ){
+    		 		
+    			tps_listeners.remove( listener );
+    			
+    			if ( tps_listeners.size() == 0 ){
+    				
+    				tps_listeners = null;
+    				
+    	  			Object[] tps_data = (Object[])getUserData( TPS_Key );
+
+    	  			if ( tps_data != null ){
+		  			
+    	 				TOTorrent t = getTorrent();
+
+    	 				if ( t != null ){
+    	 					
+    	 					t.removeListener( (TOTorrentListener)tps_data[1] );
+    	 				}
+    	 				
+    	  				setUserData( TPS_Key, null );
+    	  			}
+    			}
+    		}
+    	}finally{
+    		
+    		this_mon.exit();
+    	}
+    }
+    
   private byte[]
   getIdentity()
   {

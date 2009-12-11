@@ -3764,6 +3764,26 @@ DownloadManagerStateImpl
    	   		throw( fixup_failure );
        	}
 
+       public void
+       addListener(
+    	  TOTorrentListener		l )
+       {
+    	   if ( fixup()){
+    		   
+    		   delegate.addListener( l );
+    	   }
+       }
+       
+       public void
+       removeListener(
+    	  TOTorrentListener		l )
+       {
+    	   if ( fixup()){
+    		   
+    		   delegate.removeListener( l );
+    	   }
+       }
+       
        public AEMonitor
        getMonitor()
       	{

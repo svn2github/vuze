@@ -22,7 +22,10 @@
 package org.gudy.azureus2.core3.tracker.client.impl;
 
 import java.net.URL;
+import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
@@ -31,154 +34,988 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.client.impl.dht.TRTrackerDHTAnnouncerImpl;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
+
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 TRTrackerAnnouncerMuxer
 	extends TRTrackerAnnouncerImpl
 {
-	private TRTrackerAnnouncer	main_announcer;
+	private String[]			networks;
+	private boolean				is_manual;
+	
+	private long				create_time = SystemTime.getMonotonousTime();
+	
+	private CopyOnWriteList<TRTrackerAnnouncerHelper>	announcers 	= new CopyOnWriteList<TRTrackerAnnouncerHelper>();
+	private Set<TRTrackerAnnouncerHelper>				activated	= new HashSet<TRTrackerAnnouncerHelper>();
+	private Set<String>									failed_urls	= new HashSet<String>();
+	
+	private TRTrackerAnnouncerDataProvider		provider;
+	private String								ip_override;
+	private boolean								complete;
+	private boolean								stopped;
+	private boolean								destroyed;
+	
+	private Map<String,StatusSummary>			recent_responses = new HashMap<String,StatusSummary>();
+	
 	
 	protected
 	TRTrackerAnnouncerMuxer(
-		TOTorrent		torrent,
-		String[]		networks,
-		boolean			manual )
+		TOTorrent		_torrent,
+		String[]		_networks,
+		boolean			_manual )
 	
 		throws TRTrackerAnnouncerException
 	{
-		super( torrent );
+		super( _torrent );
 		
-		TOTorrentAnnounceURLSet[]	sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+		networks	= _networks;
+		is_manual 	= _manual;
+			
+		split();
+	}
+	
+	protected void
+	split()
+	
+		throws TRTrackerAnnouncerException
+	{
+		TRTrackerAnnouncerHelper to_activate = null;
 		
-		if ( TorrentUtils.isDecentralised( torrent )){
+		synchronized( this ){
 			
-			main_announcer	= new TRTrackerDHTAnnouncerImpl( torrent, networks, manual, getHelper());
+			if ( stopped || destroyed ){
+				
+				return;
+			}
 			
-		}else{
+			TOTorrent torrent = getTorrent();
+					
+			TOTorrentAnnounceURLSet[]	sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
 			
+				// sanitise dht entries
+			
+			if ( sets.length == 0 ){
+				
+				sets = new TOTorrentAnnounceURLSet[]{ torrent.getAnnounceURLGroup().createAnnounceURLSet( new URL[]{ torrent.getAnnounceURL()})};
+				
+			}else{
+				
+				boolean	found_decentralised = false;
+				boolean	modified			= false;
+				
+				for ( int i=0;i<sets.length;i++ ){
+					
+					TOTorrentAnnounceURLSet set = sets[i];
+					
+					URL[] urls = set.getAnnounceURLs().clone();
+					
+					for (int j=0;j<urls.length;j++){
+						
+						URL u = urls[j];
+						
+						if ( u != null && TorrentUtils.isDecentralised( u )){
+														
+							if ( found_decentralised ){
+								
+								modified = true;
+								
+								urls[j] = null;
+								
+							}else{
+								
+								found_decentralised = true;
+							}
+						}
+					}
+				}
+				
+				if ( modified ){
+					
+					List<TOTorrentAnnounceURLSet> s_list = new ArrayList<TOTorrentAnnounceURLSet>();
+					
+					for ( TOTorrentAnnounceURLSet set: sets ){
+						
+						URL[] urls = set.getAnnounceURLs();
+						
+						List<URL> u_list = new ArrayList<URL>( urls.length );
+						
+						for ( URL u: urls ){
+							
+							if ( u != null ){
+								
+								u_list.add( u );
+							}
+						}
+						
+						if ( u_list.size() > 0 ){
+							
+							s_list.add( torrent.getAnnounceURLGroup().createAnnounceURLSet( u_list.toArray( new URL[ u_list.size() ])));
+						}
+					}
+					
+					sets = s_list.toArray( new TOTorrentAnnounceURLSet[ s_list.size() ]);
+				}
+			}
+			
+			List<TOTorrentAnnounceURLSet[]>	new_sets = new ArrayList<TOTorrentAnnounceURLSet[]>();
+			
+			if ( is_manual || sets.length < 2 ){
+					
+				new_sets.add( sets );
+				
+			}else{
+				
+				List<TOTorrentAnnounceURLSet> list = new ArrayList<TOTorrentAnnounceURLSet>( Arrays.asList( sets ));
+				
+					// often we have http:/xxxx/ and udp:/xxxx/ as separate groups - keep these together
+								
+				while( list.size() > 0 ){
+					
+					TOTorrentAnnounceURLSet set1 = list.remove(0);
+					
+					boolean	done = false;
+					
+					URL[] urls1 = set1.getAnnounceURLs();
+					
+					if ( urls1.length == 1 ){
+						
+						URL url1 = urls1[0];
+						
+						String prot1 = url1.getProtocol().toLowerCase();
+						String host1	= url1.getHost();
+						
+						for (int i=0;i<list.size();i++){
+							
+							TOTorrentAnnounceURLSet set2 = list.get(i);
+							
+							URL[] urls2 = set2.getAnnounceURLs();
+							
+							if ( urls2.length == 1 ){
+								
+								URL url2 = urls2[0];
+								
+								String prot2 = url2.getProtocol().toLowerCase();
+								String host2 = url2.getHost();
+				
+								if ( host1.equals( host2 )){
+									
+									if (	( prot1.equals( "udp" ) && prot2.startsWith( "http" )) ||
+											( prot2.equals( "udp" ) && prot1.startsWith( "http" ))){
+										
+										list.remove( i );
+										
+										new_sets.add( new TOTorrentAnnounceURLSet[]{ set1, set2 });
+										
+										done	= true;
+									}
+								}
+							}
+						}
+					}
+					
+					if ( !done ){
+						
+						new_sets.add( new TOTorrentAnnounceURLSet[]{ set1 });
+					}
+				}
+			}
+			
+				// work out the difference
+			
+			Iterator<TOTorrentAnnounceURLSet[]> ns_it = new_sets.iterator();
+			
+			List<TRTrackerAnnouncerHelper> existing_announcers 	= announcers.getList();
+			List<TRTrackerAnnouncerHelper> new_announcers 		= new ArrayList<TRTrackerAnnouncerHelper>();
+			
+				// first look for unchanged sets
+			
+			while( ns_it.hasNext()){
+				
+				TOTorrentAnnounceURLSet[] ns = ns_it.next();
+				
+				Iterator<TRTrackerAnnouncerHelper> a_it = existing_announcers.iterator();
+					
+				while( a_it.hasNext()){
+					
+					TRTrackerAnnouncerHelper a = a_it.next();
+					
+					TOTorrentAnnounceURLSet[] os = a.getAnnounceSets();
+					
+					if ( same( ns, os )){
+						
+						ns_it.remove();
+						a_it.remove();
+						
+						new_announcers.add( a );
+						
+						break;
+					}
+				}
+			}
+					
+				// reuse existing announcers
+			
+				// first remove dht ones from the equation
+			
+			TRTrackerAnnouncerHelper 	existing_dht_announcer 	= null;
+			TOTorrentAnnounceURLSet[]	new_dht_set				= null;
 
-			main_announcer = new TRTrackerBTAnnouncerImpl( torrent, sets, networks, manual, getHelper());
+			ns_it = new_sets.iterator();
+			
+			while( ns_it.hasNext()){
+				
+				TOTorrentAnnounceURLSet[] x = ns_it.next();
+				
+				if ( TorrentUtils.isDecentralised( x[0].getAnnounceURLs()[0])){
+					
+					new_dht_set = x;
+						
+					ns_it.remove();
+					
+					break;
+				}
+			}
+			
+			Iterator<TRTrackerAnnouncerHelper>	an_it = existing_announcers.iterator();
+			
+			while( an_it.hasNext()){
+				
+				TRTrackerAnnouncerHelper a = an_it.next();
+				
+				TOTorrentAnnounceURLSet[] x = a.getAnnounceSets();
+				
+				if ( TorrentUtils.isDecentralised( x[0].getAnnounceURLs()[0])){
+					
+					existing_dht_announcer = a;
+						
+					an_it.remove();
+					
+					break;
+				}
+			}
+	
+			if ( existing_dht_announcer != null && new_dht_set != null ){
+				
+				new_announcers.add( existing_dht_announcer );
+				
+			}else if ( existing_dht_announcer != null ){
+				
+				activated.remove( existing_dht_announcer );
+				
+				existing_dht_announcer.destroy();
+				
+			}else if ( new_dht_set != null ){
+				
+				TRTrackerAnnouncerHelper a = create( torrent, new_dht_set );
+				
+				new_announcers.add( a );
+			}
+
+				// now do the non-dht ones
+			
+			ns_it = new_sets.iterator();
+
+			while( ns_it.hasNext() && existing_announcers.size() > 0 ){
+				
+				TRTrackerAnnouncerHelper a = existing_announcers.remove(0);
+				
+				TOTorrentAnnounceURLSet[] s = ns_it.next();
+				
+				ns_it.remove();
+				
+				if ( 	activated.contains( a ) &&
+						torrent.getPrivate() && 
+						a instanceof TRTrackerBTAnnouncerImpl ){
+					
+					URL url = a.getTrackerURL();
+				
+					if ( url != null ){
+						
+						forceStop((TRTrackerBTAnnouncerImpl)a, url );
+					}
+				}
+				
+				a.setAnnounceSets( s );
+				
+				new_announcers.add( a );
+			}
+			
+				// create any new ones required
+			
+			ns_it = new_sets.iterator();
+			
+			while( ns_it.hasNext()){
+				
+				TOTorrentAnnounceURLSet[] s = ns_it.next();
+				
+				TRTrackerAnnouncerHelper a = create( torrent, s );
+				
+				new_announcers.add( a );
+			}
+			
+				// finally fix up the announcer list to represent the new state
+			
+			Iterator<TRTrackerAnnouncerHelper>	a_it = announcers.iterator();
+				
+			while( a_it.hasNext()){
+				
+				TRTrackerAnnouncerHelper a = a_it.next();
+				
+				if ( !new_announcers.contains( a )){
+					
+					a_it.remove();
+					
+					try{
+						if ( 	activated.contains( a ) &&
+								torrent.getPrivate() && 
+								a instanceof TRTrackerBTAnnouncerImpl ){
+							
+							URL url = a.getTrackerURL();
+						
+							if ( url != null ){
+								
+								forceStop((TRTrackerBTAnnouncerImpl)a, url );
+							}
+						}
+					}finally{
+						
+						if (Logger.isEnabled()) {
+							Logger.log(new LogEvent(getTorrent(), LOGID, "Deactivating " + getString( a.getAnnounceSets())));
+						}
+
+						activated.remove( a );
+												
+						a.destroy();
+					}
+				}
+			}
+			
+			a_it = new_announcers.iterator();
+			
+			while( a_it.hasNext()){
+				
+				TRTrackerAnnouncerHelper a = a_it.next();
+				
+				if ( !announcers.contains( a )){
+					
+					announcers.add( a );
+				}
+			}
+			
+			if ( !is_manual && announcers.size() > 0 ){
+				
+				if ( activated.size() == 0 ){
+					
+					TRTrackerAnnouncerHelper a = announcers.get(0);
+					
+					if (Logger.isEnabled()) {
+						Logger.log(new LogEvent(getTorrent(), LOGID, "Activating " + getString( a.getAnnounceSets())));
+					}
+
+					activated.add( a );
+					
+					if ( provider != null ){
+						
+						to_activate = a;
+					}
+				}
+				
+				setupActivationCheck();
+			}
+		}
+		
+		if ( to_activate != null ){
+			
+			if ( complete ){
+				
+				to_activate.complete( true );
+				
+			}else{
+				
+				to_activate.update( false );
+			}
 		}
 	}
 	
-	public void
-	setAnnounceDataProvider(
-		TRTrackerAnnouncerDataProvider		provider )
+	protected void
+	setupActivationCheck()
 	{
-		main_announcer.setAnnounceDataProvider( provider );
-		
-		//System.out.println( "announcer set" );
+		if ( announcers.size() > activated.size()){
+			
+			SimpleTimer.addEvent(
+				"TRMuxer:check",
+				SystemTime.getOffsetTime( 2500 ),
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent event )
+					{
+						checkActivation( false );
+					}
+				});
+		}
 	}
 	
-	public TOTorrent
-	getTorrent()
+	protected void
+	checkActivation(
+		boolean		force )
 	{
-		return( main_announcer.getTorrent());
+		synchronized( this ){
+			
+			if ( 	destroyed || 
+					stopped || 
+					announcers.size() <= activated.size()){
+
+				return;
+			}
+			
+			if ( provider != null ){
+				
+				int	allowed	= provider.getMaxNewConnectionsAllowed();
+				
+				int	pending	= provider.getPendingConnectionCount();
+				
+				boolean	seeding = provider.getRemaining() == 0;
+				
+				int	online = 0;
+				
+				for ( TRTrackerAnnouncerHelper a: activated ){
+					
+					TRTrackerAnnouncerResponse response = a.getLastResponse();
+					
+					if ( 	response != null && 
+							response.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
+						
+						online++;
+					}
+				}
+				
+				System.out.println( 
+					"checkActivation: announcers=" + announcers.size() + 
+					", active=" + activated.size() +
+					", online=" + online +
+					", allowed=" + allowed +
+					", pending=" + pending +
+					", seeding=" + seeding );
+				
+				for ( TRTrackerAnnouncerHelper a: announcers ){
+					
+					if ( !activated.contains( a )){
+						
+						if (Logger.isEnabled()) {
+							Logger.log(new LogEvent(getTorrent(), LOGID, "Activating " + getString( a.getAnnounceSets())));
+						}
+						
+						activated.add( a );
+						
+						if ( complete ){
+							
+							a.complete( true );
+							
+						}else{
+							
+							a.update( false );
+						}
+						
+						break;
+					}
+				}
+			}
+			
+			setupActivationCheck();
+		}
+	}
+	
+	private String
+	getString(
+		TOTorrentAnnounceURLSet[]	sets )
+	{
+		StringBuffer str = new StringBuffer();
+		
+		str.append( "[" );
+		
+		int	num1 = 0;
+		
+		for ( TOTorrentAnnounceURLSet s: sets ){
+			
+			if ( num1++ > 0 ){
+				str.append( ", ");
+			}
+			
+			str.append( "[" );
+
+			URL[]	urls = s.getAnnounceURLs();
+			
+			int	num2 = 0;
+			
+			for ( URL u: urls ){
+				
+				if ( num2++ > 0 ){
+					str.append( ", ");
+				}
+				
+				str.append( u.toExternalForm());
+			}
+			
+			str.append( "]" );
+		}
+		
+		str.append( "]" );
+		
+		return( str.toString());
+	}
+	
+	private boolean
+	same(
+		TOTorrentAnnounceURLSet[]	s1,
+		TOTorrentAnnounceURLSet[]	s2 )
+	{
+		boolean	res = sameSupport( s1, s2 );
+		
+		// System.out.println( "same->" + res + ": " + getString(s1) + "/" + getString(s2));
+		
+		return( res );
+	}
+	
+	private boolean
+	sameSupport(
+		TOTorrentAnnounceURLSet[]	s1,
+		TOTorrentAnnounceURLSet[]	s2 )
+	{
+		if ( s1.length != s2.length ){
+			
+			return( false );
+		}
+		
+		for (int i=0;i<s1.length;i++){
+			
+			URL[] u1 = s1[i].getAnnounceURLs();
+			URL[] u2 = s2[i].getAnnounceURLs();
+			
+			if ( u1.length != u2.length ){
+				
+				return( false );
+			}
+			
+			if ( u1.length == 1 ){
+				
+				return( u1[0].toExternalForm().equals( u2[0].toExternalForm()));
+			}
+			
+			Set<String> set1 = new HashSet<String>();
+			
+			for ( URL u: u1 ){
+				
+				set1.add( u.toExternalForm());
+			}
+			
+			Set<String> set2 = new HashSet<String>();
+			
+			for ( URL u: u2 ){
+				
+				set2.add( u.toExternalForm());
+			}
+			
+			if ( !set1.equals( set2 )){
+				
+				return( false );
+			}
+		}
+		
+		return( true );
+	}
+	
+	protected void
+	forceStop(
+		final TRTrackerBTAnnouncerImpl		announcer,
+		final URL							url )
+	{
+		if (Logger.isEnabled()) {
+			Logger.log(new LogEvent(getTorrent(), LOGID, "Force stopping " + url + " as private torrent" ));
+		}
+		
+		new AEThread2( "TRMux:fs", true )
+		{
+			public void
+			run()
+			{
+				try{
+					TRTrackerBTAnnouncerImpl an = 
+						new TRTrackerBTAnnouncerImpl( getTorrent(), new TOTorrentAnnounceURLSet[0], networks, true, getHelper());
+					
+					an.cloneFrom( announcer );
+					
+					an.setTrackerURL( url );
+					
+					an.stop( false );
+					
+					an.destroy();
+					
+				}catch( Throwable e ){
+					
+				}
+			}
+		}.start();
+	}
+	
+	
+	protected TRTrackerAnnouncerHelper
+	create(
+		TOTorrent						torrent,
+		TOTorrentAnnounceURLSet[]		sets )
+	
+		throws TRTrackerAnnouncerException
+	{
+		TRTrackerAnnouncerHelper announcer;
+		
+		boolean	decentralised;
+		
+		if ( sets.length == 0 ){
+			
+			decentralised = TorrentUtils.isDecentralised( torrent.getAnnounceURL());
+			
+		}else{
+			
+			decentralised = TorrentUtils.isDecentralised( sets[0].getAnnounceURLs()[0]);
+		}
+		
+		if ( decentralised ){
+			
+			announcer	= new TRTrackerDHTAnnouncerImpl( torrent, networks, is_manual, getHelper());
+			
+		}else{
+			
+			announcer = new TRTrackerBTAnnouncerImpl( torrent, sets, networks, is_manual, getHelper());
+		}
+		
+		for ( TOTorrentAnnounceURLSet set: sets ){
+			
+			URL[] urls = set.getAnnounceURLs();
+			
+			for ( URL u: urls ){
+				
+				String key = u.toExternalForm();
+				
+				StatusSummary summary = recent_responses.get( key );
+				
+				if ( summary == null ){
+					
+					summary = new StatusSummary( announcer, u );
+										
+					recent_responses.put( key, summary );
+					
+				}else{
+					
+					summary.setHelper( announcer );
+				}
+			}
+		}
+		
+		if ( provider != null ){
+			
+			announcer.setAnnounceDataProvider( provider );
+		}
+		
+		if ( ip_override != null ){
+			
+			announcer.setIPOverride( ip_override );
+		}
+		
+		return( announcer );
+	}
+	
+	@Override
+	protected void
+	informResponse(
+		TRTrackerAnnouncerHelper		helper,
+		TRTrackerAnnouncerResponse		response )
+	{
+		URL	url = response.getURL();
+		
+			// can be null for external plugins (e.g. mldht...)
+		
+		if ( url != null ){
+			
+			synchronized( this ){
+				
+				String key = url.toExternalForm();
+				
+				StatusSummary summary = recent_responses.get( key );
+			
+				if ( summary != null ){
+				
+					summary.updateFrom( response );
+				}
+			}
+		}
+		
+		super.informResponse( helper, response );
+		
+		if ( response.getStatus() != TRTrackerAnnouncerResponse.ST_ONLINE ){
+			
+			URL	u = response.getURL();
+			
+			if ( u != null ){
+				
+				String s = u.toExternalForm();
+				
+				synchronized( failed_urls ){
+					
+					if ( failed_urls.contains( s )){
+						
+						return;
+					}
+					
+					failed_urls.add( s );
+				}
+			}
+			
+			checkActivation( true );
+		}
+	}
+	
+	public boolean
+	isManual()
+	{
+		return( is_manual );
+	}
+
+	public void
+	setAnnounceDataProvider(
+		TRTrackerAnnouncerDataProvider		_provider )
+	{
+		List<TRTrackerAnnouncerHelper>	to_set;
+		
+		synchronized( this ){
+			
+			provider	= _provider;
+			
+			to_set = announcers.getList();
+		}
+		
+		for ( TRTrackerAnnouncer announcer: to_set ){
+		
+			announcer.setAnnounceDataProvider( provider );
+		}
 	}
 	
 	public URL
 	getTrackerURL()
 	{
-		return( main_announcer.getTrackerURL());
+		List<TRTrackerAnnouncerHelper> x = announcers.getList();
+		
+		TRTrackerAnnouncer error_resp = null;
+		
+		for ( TRTrackerAnnouncer announcer: x ){
+			
+			TRTrackerAnnouncerResponse response = announcer.getLastResponse();
+			
+			if ( response != null ){
+				
+				int	resp_status = response.getStatus();
+				
+				if ( resp_status == TRTrackerAnnouncerResponse.ST_ONLINE ){
+					
+					return( announcer.getTrackerURL());
+					
+				}else if ( error_resp == null && resp_status == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR ){
+					
+					error_resp = announcer;
+				}
+			}
+		}
+		
+		if ( error_resp != null ){
+			
+			return( error_resp.getTrackerURL());
+		}
+		
+		if ( x.size() > 0 ){
+			
+			return( x.get(0).getTrackerURL());
+		}
+		
+		return( null );
 	}
 	
 	public void
 	setTrackerURL(
 		URL		url )
 	{
-		main_announcer.setTrackerURL( url );
-	}
+		List<List<String>> groups = new ArrayList<List<String>>();
 		
-	public void 
-	setTrackerURLs(
-		TOTorrentAnnounceURLSet[] 	sets ) 
-	{
-		Debug.out( "Not implemented" );
+		List<String> group = new ArrayList<String>();
+		
+		group.add( url.toExternalForm());
+		
+		groups.add( group );
+		
+		TorrentUtils.listToAnnounceGroups( groups, getTorrent());
+		
+		resetTrackerUrl( false );
 	}
 	
 	public void
 	resetTrackerUrl(
 		boolean	shuffle )
 	{
-		main_announcer.setTrackerURLs( getTorrent().getAnnounceURLGroup().getAnnounceURLSets());
+		try{
+			split();
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
 		
-		main_announcer.resetTrackerUrl( shuffle );
+		for ( TRTrackerAnnouncer announcer: announcers ){
+		
+			announcer.resetTrackerUrl( shuffle );
+		}
 	}
 	
 	public void
 	setIPOverride(
 		String		override )
 	{
-		main_announcer.setIPOverride( override );
-	}
-	
-	public void
-	cloneFrom(
-		TRTrackerAnnouncer	other )
-	{
-		main_announcer.cloneFrom( other );
+		List<TRTrackerAnnouncerHelper>	to_set;
+		
+		synchronized( this ){
+			
+			to_set	= announcers.getList();
+			
+			ip_override	= override;
+		}
+		
+		for ( TRTrackerAnnouncer announcer: to_set ){
+		
+			announcer.setIPOverride( override );
+		}
 	}
 	
 	public void
 	clearIPOverride()
 	{
-		main_announcer.clearIPOverride();
-	}
-	
-	public byte[]
-	getPeerId()
-	{
-		return( main_announcer.getPeerId());
+		List<TRTrackerAnnouncerHelper>	to_clear;
+		
+		synchronized( this ){
+			
+			to_clear	= announcers.getList();
+			
+			ip_override	= null;
+		}
+		
+		for ( TRTrackerAnnouncer announcer: to_clear ){
+		
+			announcer.clearIPOverride();
+		}
 	}
 	
 	public void
 	setRefreshDelayOverrides(
 		int		percentage )
 	{
-		main_announcer.setRefreshDelayOverrides( percentage );
+		for ( TRTrackerAnnouncer announcer: announcers ){
+		
+			announcer.setRefreshDelayOverrides( percentage );
+		}
 	}
 	
 	public int
 	getTimeUntilNextUpdate()
 	{
-		return( main_announcer.getTimeUntilNextUpdate());
+		int	min = Integer.MAX_VALUE;
+		
+		for ( TRTrackerAnnouncer announcer: announcers ){
+		
+			min = Math.min( min, announcer.getTimeUntilNextUpdate());
+		}
+		
+		return( min );
 	}
 	
 	public int
 	getLastUpdateTime()
 	{
-		return( main_announcer.getLastUpdateTime());
+		int	min = Integer.MAX_VALUE;
+		
+		for ( TRTrackerAnnouncer announcer: announcers ){
+		
+			min = Math.min( min, announcer.getLastUpdateTime());
+		}
+		
+		return( min );
 	}
-			
+		
+	
+	
+	
 	public void
 	update(
 		boolean	force )
 	{
-		main_announcer.update(force);
+		List<TRTrackerAnnouncerHelper> to_update;
 		
-		//System.out.println( "update" );
+		synchronized( this ){
+						
+			to_update = is_manual?announcers.getList():new ArrayList<TRTrackerAnnouncerHelper>( activated );
+		}
+		
+		for ( TRTrackerAnnouncer announcer: to_update ){
+		
+			announcer.update(force);
+		}
 	}
 	
 	public void
 	complete(
 		boolean	already_reported )
 	{
-		main_announcer.complete(already_reported);
+		List<TRTrackerAnnouncerHelper> to_complete;
 		
-		//System.out.println( "complete" );
+		synchronized( this ){
+			
+			complete	= true;
+			
+			to_complete = is_manual?announcers.getList():new ArrayList<TRTrackerAnnouncerHelper>( activated );
+		}
+		
+		for ( TRTrackerAnnouncer announcer: to_complete ){
+		
+			announcer.complete( already_reported );
+		}
 	}
 	
 	public void
 	stop(
 		boolean	for_queue )
 	{
-		main_announcer.stop( for_queue );
+		List<TRTrackerAnnouncerHelper> to_stop;
 		
-		//System.out.println( "stop" );
+		synchronized( this ){
+			
+			stopped	= true;
+			
+			to_stop = is_manual?announcers.getList():new ArrayList<TRTrackerAnnouncerHelper>( activated );
+			
+			activated.clear();
+		}
+		
+		for ( TRTrackerAnnouncer announcer: to_stop ){
+		
+			announcer.stop( for_queue );
+		}
 	}
 	
 	public void
@@ -186,53 +1023,451 @@ TRTrackerAnnouncerMuxer
 	{
 		TRTrackerAnnouncerFactoryImpl.destroy( this );
 
-		main_announcer.destroy();
+		List<TRTrackerAnnouncerHelper> to_destroy;
 		
-		//System.out.println( "destroy" );
+		synchronized( this ){
+			
+			destroyed = true;
+			
+			to_destroy = announcers.getList();
+		}
+		
+		for ( TRTrackerAnnouncer announcer: to_destroy ){
+		
+			announcer.destroy();
+		}
 	}
 	
 	public int
 	getStatus()
 	{
-		return( main_announcer.getStatus());
+		int	max = -1;
+				
+		for ( TRTrackerAnnouncer announcer: announcers ){
+			
+			int	status = announcer.getStatus();
+			
+			if ( status > max ){
+				
+				max				= status;
+			}
+		}
+		
+		return( max );
 	}
-	
-	public boolean
-	isManual()
-	{
-		return( main_announcer.isManual());
-	}
-	
+		
 	public String
 	getStatusString()
 	{
-		return( main_announcer.getStatusString());
+		int	max = -1;
+		
+		TRTrackerAnnouncer	max_announcer = null;
+		
+		for ( TRTrackerAnnouncer announcer: announcers ){
+			
+			int	status = announcer.getStatus();
+			
+			if ( status > max ){
+				
+				max_announcer 	= announcer;
+				max				= status;
+			}
+		}
+		
+		return( max_announcer==null?"":max_announcer.getStatusString());
 	}
-	
-	public TRTrackerAnnouncerResponse
-	getLastResponse()
-	{
-		return( main_announcer.getLastResponse());
-	}
-	
 	
 	public void
 	refreshListeners()
 	{
-		main_announcer.refreshListeners();	
+		informURLRefresh();
 	}
 	
 	public void
 	setAnnounceResult(
 		DownloadAnnounceResult	result )
 	{
-		main_announcer.setAnnounceResult(result);
+			// this is only used for setting DHT results
+		
+		for ( TRTrackerAnnouncer announcer: announcers ){
+			
+			if ( announcer instanceof TRTrackerDHTAnnouncerImpl ){
+				
+				announcer.setAnnounceResult( result );
+				
+				return;
+			}
+		}
+		
+			// TODO: we should always create a DHT entry and have it denote DHT tracking for all circustances
+			// have the DHT plugin set it to offline if disabled
+		
+		List<TRTrackerAnnouncerHelper> x = announcers.getList();
+		
+		if ( x.size() > 0 ){
+			
+			x.get(0).setAnnounceResult( result );
+		}
 	}
 		
+	protected int
+	getPeerCacheLimit()
+	{
+		synchronized( this ){
+			
+			if ( activated.size() < announcers.size()){
+				
+				return( 0 );
+			}
+		}
+		
+		if ( SystemTime.getMonotonousTime() - create_time < 15*1000 ){
+			
+			return( 0 );
+		}
+		
+		return( 10 );
+	}
+	
+	public TrackerPeerSource 
+	getTrackerPeerSource(
+		final TOTorrentAnnounceURLSet		set )
+	{
+		URL[]	urls = set.getAnnounceURLs();
+		
+		final String[] url_strs = new String[ urls.length ];
+		
+		for ( int i=0;i<urls.length;i++ ){
+			
+			url_strs[i] = urls[i].toExternalForm();
+		}
+		
+		return( 
+			new TrackerPeerSource()
+			{
+				private StatusSummary		_summary;
+				private long				fixup_time;
+				
+				private StatusSummary
+				fixup()
+				{
+					long now = SystemTime.getMonotonousTime();
+					
+					if ( now - fixup_time > 1000 ){
+												
+						long			most_recent	= 0;
+						StatusSummary	summary	 	= null;
+						
+						synchronized( TRTrackerAnnouncerMuxer.this ){
+						
+							for ( String str: url_strs ){
+							
+								StatusSummary s = recent_responses.get( str );
+								
+								if ( s != null ){
+									
+									if ( summary == null || s.getTime() > most_recent ){
+										
+										summary		= s;
+										most_recent	= s.getTime();
+									}
+								}
+							}	
+						}
+						
+						if ( summary != null ){
+							
+							_summary = summary;
+						}
+						
+						fixup_time = now;
+					}
+					
+					return( _summary );
+				}
+				
+				public int
+				getType()
+				{
+					return( TrackerPeerSource.TP_TRACKER );
+				}
+				
+				public String
+				getName()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						String str =summary.getURL().toExternalForm();
+						
+						int pos = str.indexOf( '?' );
+						
+						if ( pos != -1 ){
+							
+							str = str.substring( 0, pos );
+						}
+						
+						return( str );
+					}
+					
+					return( url_strs[0] );
+				}
+				
+				public int
+				getStatus()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						return( summary.getStatus());
+					}
+					
+					return( ST_QUEUED );
+				}
+				
+				public String
+				getStatusString()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						return( summary.getStatusString());
+					}
+					
+					return( null );
+				}
+						
+				public int
+				getSeedCount()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						return( summary.getSeedCount());
+					}
+					
+					return( -1 );
+				}
+				
+				public int
+				getLeecherCount()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						return( summary.getLeecherCount());
+					}
+					
+					return( -1 );
+				}			
+				
+				public int
+				getPeers()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						return( summary.getPeers());
+					}
+					
+					return( -1 );
+				}			
+
+				public int
+				getSecondsToUpdate()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						return( summary.getSecondsToUpdate());
+					}
+					
+					return( -1 );
+				}
+				
+				public int
+				getInterval()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						return( summary.getInterval());
+					}
+					
+					return( -1 );
+				}
+				
+				public int
+				getMinInterval()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						return( summary.getMinInterval());
+					}
+					
+					return( -1 );
+				}
+				
+				public boolean
+				isUpdating()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						return( summary.isUpdating());
+					}
+					
+					return( false );
+				}
+			});
+	}
+	
 	public void 
 	generateEvidence(
 		IndentWriter writer )
 	{
-		main_announcer.generateEvidence(writer);
+		for ( TRTrackerAnnouncer announcer: announcers ){
+		
+			announcer.generateEvidence(writer);
+		}
+	}
+	
+	private static class
+	StatusSummary
+	{
+		private TRTrackerAnnouncerHelper		helper;
+		
+		private long		time;
+		private URL			url;
+		private int			status;
+		private String		status_str;
+		private int			seeds		= -1;
+		private int			leechers	= -1;
+		private int			peers		= -1;
+		
+		private int			interval;
+		private int			min_interval;
+		
+		protected 
+		StatusSummary(
+			TRTrackerAnnouncerHelper		_helper,
+			URL								_url )
+		{
+			helper	= _helper;
+			url		= _url;
+			
+			status = TrackerPeerSource.ST_QUEUED;
+		}
+		
+		protected void
+		setHelper(
+			TRTrackerAnnouncerHelper		_helper )
+		{
+			helper	= _helper;
+		}
+		
+		protected void
+		updateFrom(
+			TRTrackerAnnouncerResponse		response )
+		{			
+			time	= SystemTime.getMonotonousTime();
+			
+			int	state = response.getStatus();
+			
+			if ( state == TRTrackerAnnouncerResponse.ST_ONLINE ){
+				
+				status = TrackerPeerSource.ST_ONLINE;
+			
+				seeds		= response.getScrapeCompleteCount();
+				leechers	= response.getScrapeIncompleteCount();
+				peers		= response.getPeers().length;
+				
+			}else{
+				
+				status = TrackerPeerSource.ST_ERROR;
+				
+				status_str = response.getStatusString();
+			}
+			
+			interval 		= (int)helper.getInterval();
+			min_interval 	= (int)helper.getMinInterval();
+		}
+		
+		public long
+		getTime()
+		{
+			return( time );
+		}
+		
+		public URL
+		getURL()
+		{
+			return( url );
+		}
+		
+		public int
+		getStatus()
+		{
+			return( status );
+		}
+		
+		public String
+		getStatusString()
+		{
+			return( status_str );
+		}
+		
+		public int
+		getSeedCount()
+		{
+			return( seeds );
+		}
+		
+		public int
+		getLeecherCount()
+		{
+			return( leechers );
+		}
+		
+		public int
+		getPeers()
+		{
+			return( peers );
+		}
+		
+		public boolean
+		isUpdating()
+		{
+			return( helper.isUpdating());
+		}
+		
+		public int
+		getInterval()
+		{
+			return( interval );
+		}
+		
+		public int
+		getMinInterval()
+		{
+			return( min_interval );
+		}
+		
+		public int
+		getSecondsToUpdate()
+		{
+			return( helper.getTimeUntilNextUpdate());
+		}
 	}
 }

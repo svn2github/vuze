@@ -43,6 +43,9 @@ AZInstanceManager
 	public AZInstance
 	getMyInstance();
 	
+	public int
+	getOtherInstanceCount();
+	
 	public AZInstance[]
 	getOtherInstances();
 	

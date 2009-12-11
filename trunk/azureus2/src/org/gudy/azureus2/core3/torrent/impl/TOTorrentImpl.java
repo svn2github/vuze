@@ -93,6 +93,8 @@ TOTorrentImpl
 	private boolean				created;
 	private boolean				serialising;
 	
+	private List<TOTorrentListener>	listeners;
+	
 	protected AEMonitor this_mon 	= new AEMonitor( "TOTorrent" );
 
 	/** 
@@ -540,6 +542,9 @@ TOTorrentImpl
 			return false;
 		
 		announce_url	= StringInterner.internURL(newURL);
+		
+		fireChanged( TOTorrentListener.CT_ANNOUNCE_URLS );
+		
 		return true;
 	}
 
@@ -1212,6 +1217,81 @@ TOTorrentImpl
 		}catch( TOTorrentException e ){
 			
 			Debug.printStackTrace( e );
+		}
+	}
+	
+	protected void
+	fireChanged(
+		int	type )
+	{
+		List<TOTorrentListener> to_fire = null;
+		
+		try{
+			this_mon.enter();
+			
+			if ( listeners != null ){
+				
+				to_fire = new ArrayList<TOTorrentListener>( listeners );
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		if ( to_fire != null ){
+			
+			for ( TOTorrentListener l: to_fire ){
+				
+				try{
+					l.torrentChanged( this, type );
+					
+				}catch( Throwable e ){
+					
+					Debug.out(e);
+				}
+			}
+		}
+	}
+	
+ 	public void
+	addListener(
+		TOTorrentListener		l )
+	{
+ 		try{
+			this_mon.enter();
+			
+			if ( listeners == null ){
+				
+				listeners = new ArrayList<TOTorrentListener>();
+			}
+			
+			listeners.add( l );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+
+	public void
+	removeListener(
+		TOTorrentListener		l )
+	{
+ 		try{
+			this_mon.enter();
+			
+			if ( listeners != null ){
+				
+				listeners.remove( l );
+				
+				if ( listeners.size() == 0 ){
+					
+					listeners = null;
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	

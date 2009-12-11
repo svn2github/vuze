@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.torrent.TOTorrentListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
@@ -385,6 +386,20 @@ LWSTorrent
 		throws TOTorrentException
 	{
 		getDelegate().serialiseToBEncodedFile( file );
+	}
+	
+	public void
+	addListener(
+		TOTorrentListener		l )
+	{
+		getDelegate().addListener( l );
+	}
+
+	public void
+	removeListener(
+		TOTorrentListener		l )
+	{
+		getDelegate().removeListener( l );
 	}
 	
 	public Map

@@ -102,6 +102,23 @@ public class PlatformManagerImpl implements PlatformManager
 	    return( null );
 	}
 	
+	public String[]
+   	getExplicitVMOptions()
+	          	
+   		throws PlatformManagerException
+	{
+        throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	 
+	public void
+	setExplicitVMOptions(
+		String[]		options )
+	          	
+		throws PlatformManagerException
+	{
+        throw new PlatformManagerException("Unsupported capability called on platform manager");	
+	}
+	
 	public boolean
 	isAdditionalFileTypeRegistered(
 		String		name,				// e.g. "BitTorrent"

@@ -32,10 +32,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponsePeer;
@@ -45,7 +48,12 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
+import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
+
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 
 /**
  * @author parg
@@ -98,22 +106,59 @@ TRTrackerAnnouncerImpl
 
 	private Map	tracker_peer_cache		= new LinkedHashMap();	// insertion order - most recent at end
 	private AEMonitor tracker_peer_cache_mon 	= new AEMonitor( "TRTrackerClientClassic:PC" );
+	private int	cache_peers_used;
 	
-	private TOTorrent		torrent;
+	final private TOTorrent						torrent;
+	final private byte[]						peer_id;
+	
+	private TRTrackerAnnouncerResponse	last_response;
+	
 	
 	protected
 	TRTrackerAnnouncerImpl(
 		TOTorrent	_torrent )
+	
+		throws TRTrackerAnnouncerException
 	{
 		torrent	= _torrent;
+		
+		try{	
+			last_response = new TRTrackerAnnouncerResponseImpl( null, torrent.getHashWrapper(), TRTrackerAnnouncerResponse.ST_OFFLINE, TRTrackerAnnouncer.REFRESH_MINIMUM_SECS, "Initialising" );
+			
+		}catch( TOTorrentException e ){
+			
+			Logger.log(new LogEvent(torrent, LOGID, "Torrent hash retrieval fails", e));
+			
+			throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));	
+		}
+		
+		try{
+			peer_id		= ClientIDManagerImpl.getSingleton().generatePeerID( torrent, false );
+		
+		}catch( ClientIDException e ){
+
+			 throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: Peer ID generation fails", e ));
+		}
 	}
 
+	public TOTorrent
+	getTorrent()
+	{
+		return( torrent );
+	}
+	
 	public Helper
 	getHelper()
 	{
 		return(
 			new Helper()
 			{
+				public byte[]
+				getPeerID()
+				{
+					return( peer_id );
+				}
+				
 				public void
 				addToTrackerCache(
 					TRTrackerAnnouncerResponsePeerImpl[]		peers )
@@ -150,9 +195,10 @@ TRTrackerAnnouncerImpl
 					
 				public void
 				informResponse(
+					TRTrackerAnnouncerHelper		helper,
 					TRTrackerAnnouncerResponse		response )
 				{
-					listeners.dispatch( LDT_TRACKER_RESPONSE, response );
+					TRTrackerAnnouncerImpl.this.informResponse( helper, response );
 				}
 				
 				public void
@@ -168,7 +214,7 @@ TRTrackerAnnouncerImpl
 				public void
 				informURLRefresh()
 				{
-					listeners.dispatch( LDT_URL_REFRESH, null );
+					TRTrackerAnnouncerImpl.this.informURLRefresh();
 				}
 				
 			 	public void
@@ -185,6 +231,12 @@ TRTrackerAnnouncerImpl
 					TRTrackerAnnouncerImpl.this.removeListener( l );
 				}
 			});
+	}
+	
+	public byte[]
+	getPeerId()
+	{
+		return( peer_id );
 	}
 	
  	public static byte[]
@@ -490,10 +542,25 @@ TRTrackerAnnouncerImpl
 		return( res );
 	}
 	
+	protected abstract int
+	getPeerCacheLimit();
+	
 	protected TRTrackerAnnouncerResponsePeer[]
 	getPeersFromCache(
 		int	num_want )
 	{
+		int	limit = getPeerCacheLimit();
+		
+		if ( limit <= 0 ){
+			
+			return( new TRTrackerAnnouncerResponsePeer[0] );
+		}
+		
+			// limit peers returned to avoid multi-tracker torrents from getting swamped
+			// by out-of-date peers from a failed tracker
+		
+		num_want = Math.min( limit, num_want );
+		
 		try{
 			tracker_peer_cache_mon.enter();
 	
@@ -540,6 +607,8 @@ TRTrackerAnnouncerImpl
 						"TRTrackerClient: returned " + res.length + " cached peers"));
 			}
 		    
+			cache_peers_used += res.length;
+			
 			return( res );
 			
 		}finally{
@@ -547,6 +616,48 @@ TRTrackerAnnouncerImpl
 			tracker_peer_cache_mon.exit();
 		}
 	} 
+	
+	public TrackerPeerSource 
+	getCacheTrackerPeerSource()
+	{
+		return(
+			new TrackerPeerSourceAdapter()
+			{
+				public String
+				getName()
+				{
+					return( MessageText.getString( "tps.tracker.cache1", new String[]{ String.valueOf( tracker_peer_cache.size())}));
+				}
+				
+				public int
+				getPeers()
+				{
+					return( cache_peers_used );
+				}
+			});
+	}
+
+	public TRTrackerAnnouncerResponse
+	getLastResponse()
+	{
+		return( last_response );
+	}
+	
+	protected void
+	informResponse(
+		TRTrackerAnnouncerHelper		helper,
+		TRTrackerAnnouncerResponse		response )
+	{
+		last_response = response;
+		
+		listeners.dispatch( LDT_TRACKER_RESPONSE, response );
+	}
+
+	protected void
+	informURLRefresh()
+	{
+		listeners.dispatch( LDT_URL_REFRESH, null );
+	}
 	
  	public void
 	addListener(
@@ -565,6 +676,9 @@ TRTrackerAnnouncerImpl
 	public interface
 	Helper
 	{
+		public byte[]
+		getPeerID();
+		
 		public void
 		addToTrackerCache(
 			TRTrackerAnnouncerResponsePeerImpl[]		peers );
@@ -586,6 +700,7 @@ TRTrackerAnnouncerImpl
 		
 		public void
 		informResponse(
+			TRTrackerAnnouncerHelper		helper,
 			TRTrackerAnnouncerResponse		response );
 		
 		public void

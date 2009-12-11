@@ -193,6 +193,16 @@ PlatformManagerImpl
 	            capabilitySet.add(PlatformManagerCapabilities.PingAvailability);
 	        }
 
+	        try{
+	        	getUserDataDirectory();
+	        	
+	        		// if we can access the user dir then we're good to access vmoptions
+	        	
+	        	capabilitySet.add(PlatformManagerCapabilities.AccessExplicitVMOptions );
+	        	
+	        }catch( Throwable e ){
+	        	
+	        }
     	}else{
     		
     			// disabled -> only available capability is that to get the version
@@ -208,7 +218,7 @@ PlatformManagerImpl
 		try{
 			File	exe_loc = getApplicationEXELocation();
 			
-			String	az_exe_string = exe_loc.toString();
+			String	az_exe_string = exe_loc.getAbsolutePath();
 			
 			//int	icon_index = getIconIndex();
 			
@@ -444,6 +454,23 @@ PlatformManagerImpl
 	    }
 	}
 	
+	public String[]
+   	getExplicitVMOptions()
+  	          	
+     		throws PlatformManagerException
+  	{
+		throw new PlatformManagerException("Unsupported capability called on platform manager");
+  	}
+  	 
+  	public void
+  	setExplicitVMOptions(
+  		String[]		options )
+  	          	
+  		throws PlatformManagerException
+  	{
+  		throw new PlatformManagerException("Unsupported capability called on platform manager");	
+  	}
+  	
 	public String
 	getApplicationCommandLine()
 	{

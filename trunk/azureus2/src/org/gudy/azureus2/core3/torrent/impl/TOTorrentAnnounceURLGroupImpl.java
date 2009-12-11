@@ -52,6 +52,8 @@ TOTorrentAnnounceURLGroupImpl
 		new_sets[new_sets.length-1] = set;
 		
 		sets = new_sets;
+		
+		torrent.fireChanged( TOTorrentListener.CT_ANNOUNCE_URLS );
 	}
 	
 	public TOTorrentAnnounceURLSet[]
@@ -65,6 +67,8 @@ TOTorrentAnnounceURLGroupImpl
 		TOTorrentAnnounceURLSet[]	_sets )
 	{
 		sets = _sets;	
+		
+		torrent.fireChanged( TOTorrentListener.CT_ANNOUNCE_URLS );
 	}
 		
 	

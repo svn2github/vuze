@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponsePeer;
+import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerHelper;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerResponseImpl;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerResponsePeerImpl;
@@ -44,10 +45,13 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
+
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 
 /**
  * @author parg
@@ -56,7 +60,7 @@ import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 public class 
 TRTrackerDHTAnnouncerImpl
-	implements TRTrackerAnnouncer
+	implements TRTrackerAnnouncerHelper
 {
 	public final static LogIDs LOGID = LogIDs.TRACKER;
 
@@ -116,8 +120,7 @@ TRTrackerDHTAnnouncerImpl
 	public void
 	setAnnounceDataProvider(
 		TRTrackerAnnouncerDataProvider		provider )
-	{
-		
+	{	
 	}
 	
 	public boolean
@@ -135,7 +138,7 @@ TRTrackerDHTAnnouncerImpl
 	public URL
 	getTrackerURL()
 	{
-		return( torrent.getAnnounceURL());
+		return( TorrentUtils.getDecentralisedURL( torrent ));
 	}
 	
 	public void
@@ -144,12 +147,20 @@ TRTrackerDHTAnnouncerImpl
 	{
 		Debug.out( "Not implemented" );
 	}
-		
-	public void 
-	setTrackerURLs(
-		TOTorrentAnnounceURLSet[] 	sets ) 
+	
+	public void
+	setAnnounceSets(
+		TOTorrentAnnounceURLSet[]		_set )
 	{
 		Debug.out( "Not implemented" );
+	}
+	
+	public TOTorrentAnnounceURLSet[]
+	getAnnounceSets()
+	{
+		return( new TOTorrentAnnounceURLSet[]{
+					torrent.getAnnounceURLGroup().createAnnounceURLSet( 
+							new URL[]{ TorrentUtils.getDecentralisedURL( torrent )})} );
 	}
 	
 	public void
@@ -157,14 +168,7 @@ TRTrackerDHTAnnouncerImpl
 		boolean	shuffle )
 	{
 	}
-	
-	public void
-	cloneFrom(
-		TRTrackerAnnouncer	other )
-	{
-		data_peer_id	= other.getPeerId();
-	}
-	
+		
 	public void
 	setIPOverride(
 		String		override )
@@ -254,6 +258,24 @@ TRTrackerDHTAnnouncerImpl
 		return( last_response );
 	}
 	
+	public boolean 
+	isUpdating() 
+	{
+		return( false );
+	}
+	
+	public long
+	getInterval()
+	{
+		return( -1 );
+	}
+	
+	public long
+	getMinInterval()
+	{
+		return( -1 );
+	}
+	
 	public void
 	refreshListeners()
 	{	
@@ -321,7 +343,7 @@ TRTrackerDHTAnnouncerImpl
 		
 		last_response = response;
 				
-		helper.informResponse( response );
+		helper.informResponse( this, response );
 	}
 	
 	protected void
@@ -335,7 +357,7 @@ TRTrackerDHTAnnouncerImpl
 		     	
 		     	last_response.setPeers( cached_peers );
 		     	
-				helper.informResponse( last_response );
+				helper.informResponse( this, last_response );
 		     }
 		}
 	}
@@ -372,6 +394,23 @@ TRTrackerDHTAnnouncerImpl
 	getTrackerResponseCache() 
 	{
 		return( helper.getTrackerResponseCache());
+	}
+	
+	public TrackerPeerSource 
+	getTrackerPeerSource(
+		TOTorrentAnnounceURLSet set) 
+	{
+		Debug.out( "not implemented" );
+		
+		return null;
+	}
+	
+	public TrackerPeerSource 
+	getCacheTrackerPeerSource()
+	{
+		Debug.out( "not implemented" );
+		
+		return null;
 	}
 	
 	public void 

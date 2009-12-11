@@ -976,19 +976,26 @@ TorrentUtils
 		}
 	}
 	
+	public static URL
+	getDecentralisedURL(
+		TOTorrent	torrent )
+	{
+		try{
+			return( new URL( "dht://" + ByteFormatter.encodeString( torrent.getHash()) + ".dht/announce" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( getDecentralisedEmptyURL());
+		}
+	}
+
 	public static void
 	setDecentralised(
 		TOTorrent	torrent )
 	{
-	   	try{
-	   		byte[]	hash = torrent.getHash();
-	     		
-	   		torrent.setAnnounceURL( new URL( "dht://" + ByteFormatter.encodeString( hash ) + ".dht/announce" ));
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-		}
+   		torrent.setAnnounceURL( getDecentralisedURL( torrent ));
 	}
 		
 	public static boolean
@@ -2249,6 +2256,20 @@ TorrentUtils
 			}
 		}
 
+	 	public void
+		addListener(
+			TOTorrentListener		l )
+		{
+	 		delegate.addListener( l );
+		}
+
+		public void
+		removeListener(
+			TOTorrentListener		l )
+		{
+	 		delegate.removeListener( l );
+		}
+		
 		public AEMonitor
 		getMonitor()
 		{

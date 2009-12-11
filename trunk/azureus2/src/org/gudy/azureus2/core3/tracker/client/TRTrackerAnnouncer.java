@@ -28,6 +28,8 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+
 public interface 
 TRTrackerAnnouncer 
 {
@@ -62,11 +64,7 @@ TRTrackerAnnouncer
 	public void
 	setTrackerURL(
 		URL		url );
-		
-	public void
-	setTrackerURLs(
-		TOTorrentAnnounceURLSet[]		sets );
-	
+			
 	public void
 	resetTrackerUrl(
 		boolean	shuffle );
@@ -74,11 +72,7 @@ TRTrackerAnnouncer
 	public void
 	setIPOverride(
 		String		override );
-	
-	public void
-	cloneFrom(
-		TRTrackerAnnouncer	other );
-	
+		
 	public void
 	clearIPOverride();
 	
@@ -152,7 +146,19 @@ TRTrackerAnnouncer
 		String		ip,
 		int			tcp_port );
 	
+		/**
+		 * Gets a delegate tracker peer source for reporting against
+		 * @param set
+		 * @return
+		 */
+		
+	public TrackerPeerSource 
+	getTrackerPeerSource(
+		TOTorrentAnnounceURLSet		set );
 	
+	public TrackerPeerSource 
+	getCacheTrackerPeerSource();
+
 	/**
 	 * This method forces all listeners to get an explicit "urlChanged" event to get them
 	 * to re-examine the tracker

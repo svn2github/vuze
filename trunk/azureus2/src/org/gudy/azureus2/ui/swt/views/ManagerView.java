@@ -225,6 +225,7 @@ public class ManagerView
   	
   	ArrayList iviews_to_use = new ArrayList();
   	iviews_to_use.add(new GeneralView());
+  	iviews_to_use.add(new TrackerView());
   	iviews_to_use.add(new PeersView());
   	iviews_to_use.add(new PeersGraphicView());
   	iviews_to_use.add(new PiecesView());

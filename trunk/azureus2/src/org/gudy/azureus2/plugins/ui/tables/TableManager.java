@@ -50,6 +50,9 @@ public interface TableManager
   public static final String TABLE_TORRENT_PIECES        = "Pieces";
   /** Visible for Torrent Files table */
   public static final String TABLE_TORRENT_FILES         = "Files";
+  
+  public static final String TABLE_TORRENT_TRACKERS      = "Trackers";
+
   /** Visible for My Tracker table */
   public static final String TABLE_MYTRACKER             = "MyTracker";
   /** Visible for My Shares table */

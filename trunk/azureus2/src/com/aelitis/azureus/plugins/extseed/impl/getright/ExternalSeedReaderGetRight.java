@@ -176,7 +176,13 @@ ExternalSeedReaderGetRight
 	{
 		return( "GR: " + url );
 	}
-		
+	
+	public URL 
+	getURL() 
+	{
+		return( url );
+	}
+	
 	public int
 	getPort()
 	{

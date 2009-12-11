@@ -65,6 +65,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.net.udp.uc.*;
 
 
@@ -77,7 +78,7 @@ import com.aelitis.net.udp.uc.*;
  */
 public class 
 TRTrackerBTAnnouncerImpl
-	implements TRTrackerAnnouncer
+	implements TRTrackerAnnouncerHelper
 {
 	public final static LogIDs LOGID = LogIDs.TRACKER;
 		
@@ -129,7 +130,11 @@ TRTrackerBTAnnouncerImpl
 	private long				current_time_to_wait_secs;
 	private boolean				manual_control;
   
-	private long min_interval = 0;
+	private long		tracker_interval;
+	private long		tracker_min_interval;
+	
+	
+	private long 		min_interval = 0;
 	
 	private int  failure_added_time = 0;
     private long failure_time_last_updated = 0;
@@ -227,15 +232,15 @@ TRTrackerBTAnnouncerImpl
 		//Create our unique peerId
 	
 	try{
-	    tracker_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, true );
+		data_peer_id = helper.getPeerID();
 	
 	    if ( COConfigurationManager.getBooleanParameter("Tracker Separate Peer IDs")){
-	    	
-	    	data_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, false );
+	       	
+	    	tracker_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, true );
 	    	
 	    }else{
 	    	
-	    	data_peer_id	= tracker_peer_id;
+	    	tracker_peer_id	= data_peer_id;
 	    }
 	}catch( ClientIDException e ){
 
@@ -362,24 +367,16 @@ TRTrackerBTAnnouncerImpl
   	
 	public void
 	cloneFrom(
-		TRTrackerAnnouncer	_other )
+		TRTrackerBTAnnouncerImpl	other )
 	{
-		if ( _other instanceof TRTrackerBTAnnouncerImpl ){
-			
-			TRTrackerBTAnnouncerImpl	other = (TRTrackerBTAnnouncerImpl)_other;
-			
-			data_peer_id			= other.data_peer_id;
-			tracker_peer_id			= other.tracker_peer_id;
-			tracker_peer_id_str		= other.tracker_peer_id_str;
-			tracker_id				= other.tracker_id;
-			key_id					= other.key_id;
-			key_udp					= other.key_udp;
-	
-			announce_data_provider	= other.announce_data_provider;
-		}else{
-			
-			Debug.out( "Incompatible type" );
-		}
+		data_peer_id			= other.data_peer_id;
+		tracker_peer_id			= other.tracker_peer_id;
+		tracker_peer_id_str		= other.tracker_peer_id_str;
+		tracker_id				= other.tracker_id;
+		key_id					= other.key_id;
+		key_udp					= other.key_udp;
+
+		announce_data_provider	= other.announce_data_provider;
 	}
 	
 	protected long
@@ -533,6 +530,24 @@ TRTrackerBTAnnouncerImpl
 				this_mon.exit();
 			}
 		}
+	}
+	
+	public boolean
+	isUpdating()
+	{
+		return( update_in_progress );
+	}
+	
+	public long
+	getInterval()
+	{
+		return( tracker_interval );
+	}
+	
+	public long
+	getMinInterval()
+	{
+		return( tracker_min_interval );
 	}
 	
 	public int
@@ -770,7 +785,7 @@ TRTrackerBTAnnouncerImpl
 				
 				last_response = response;
 				
-				helper.informResponse( response );
+				helper.informResponse( this, response );
 				
 				return( response.getTimeToWait());
 			}
@@ -929,6 +944,13 @@ TRTrackerBTAnnouncerImpl
 		  }
 		  
 		  URL	request_url = null;
+		  
+		  if ( last_failure_resp != null ){
+			  
+			  	// report this now as it is about to be lost
+			  
+			  helper.informResponse( this, last_failure_resp );
+		  }
 		  
 		  try{
 		  
@@ -2122,10 +2144,16 @@ TRTrackerBTAnnouncerImpl
 	}
   
 	public void
-	setTrackerURLs(
+	setAnnounceSets(
 		TOTorrentAnnounceURLSet[]		_set )
 	{
 		announce_urls = _set;
+	}
+	
+	public TOTorrentAnnounceURLSet[]
+	getAnnounceSets()
+	{
+		return( announce_urls );
 	}
 	
 	public void
@@ -2352,7 +2380,7 @@ TRTrackerBTAnnouncerImpl
 					long	time_to_wait;
 										
 					try {
-						time_to_wait = ((Long) metaData.get("interval")).longValue();
+						tracker_interval = time_to_wait = ((Long) metaData.get("interval")).longValue();
 						
 						Long raw_min_interval = (Long) metaData.get("min interval");
 
@@ -2368,7 +2396,7 @@ TRTrackerBTAnnouncerImpl
 						}
 
 						if (raw_min_interval != null) {
-							min_interval = raw_min_interval.longValue();
+							tracker_min_interval = min_interval = raw_min_interval.longValue();
 							
 							// ignore useless values
 							// Note: Many trackers set min_interval and interval the same.
@@ -3406,7 +3434,7 @@ TRTrackerBTAnnouncerImpl
 			tracker_status_str	= status + " (" + result.getURL() + ")";
 		}
 		
-		helper.informResponse( response );
+		helper.informResponse( this, response );
 	}
 	
 	public void 
@@ -3443,6 +3471,23 @@ TRTrackerBTAnnouncerImpl
 		return( helper.getTrackerResponseCache());
 	}
 	
+	public TrackerPeerSource 
+	getTrackerPeerSource(
+		TOTorrentAnnounceURLSet set) 
+	{
+		Debug.out( "not implemented" );
+		
+		return null;
+	}
+	
+	public TrackerPeerSource 
+	getCacheTrackerPeerSource()
+	{
+		Debug.out( "not implemented" );
+		
+		return null;
+	}
+	
 	public void 
 	generateEvidence(
 		IndentWriter writer )
@@ -3461,6 +3506,10 @@ TRTrackerBTAnnouncerImpl
 			writer.println( "last_update_secs: " + last_update_time_secs );
 			
 			writer.println( "secs_to_wait: " + current_time_to_wait_secs  + (manual_control?" - manual":""));
+			
+			writer.println( "t_interval: " + tracker_interval );
+			
+			writer.println( "t_min_interval: " + tracker_min_interval );
 			
 			writer.println( "min_interval: " + min_interval );
 			

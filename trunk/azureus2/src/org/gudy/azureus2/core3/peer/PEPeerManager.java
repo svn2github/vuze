@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerExchangerItem;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
+import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 
 
 public interface 
@@ -195,6 +196,9 @@ PEPeerManager
 	public List<PEPeer>
 	getPeers(
 		String	address );
+	
+	public int
+	getPendingPeerCount();
 	
 	public PeerDescriptor[]
    	getPendingPeers();
@@ -367,6 +371,9 @@ PEPeerManager
 	removeRateLimiter(
 		LimitedRateGroup	group,
 		boolean				upload );
+	
+	public TrackerPeerSource
+	getTrackerPeerSource();
 	
 	public boolean
 	isPeerSourceEnabled(

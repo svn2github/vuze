@@ -55,7 +55,9 @@ public class PeerDatabase {
   private BloomFilter filter_one = null;
   private BloomFilter filter_two = BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
   
-  
+  private long 	pex_count_last_time;
+  private int	pex_count_last;
+  private int 	pex_used_count;
   
   
   
@@ -298,6 +300,7 @@ public class PeerDatabase {
       if( cached_peer_popularities != null && cached_peer_popularities.length > 0 ) {
         peer = cached_peer_popularities[ popularity_pos ];
         popularity_pos++;
+        pex_used_count++;
         last_rebuild_time = SystemTime.getCurrentTime();  //ensure rebuild waits min rebuild time after the cache is depleted before trying attempts again
       }
     }
@@ -360,7 +363,27 @@ public class PeerDatabase {
   }
   
 
+  public int
+  getExchangedPeerCount()
+  {
+	  long	now = SystemTime.getMonotonousTime();
+	  
+	  if ( now - pex_count_last_time >= 10*1000 ){
+		  
+		  PeerItem[] peers = getExchangedPeersSortedByLeastPopularFirst();
+		  
+		  pex_count_last = peers==null?0:peers.length;
+		  pex_count_last_time = now;
+  	  }
+	  
+	  return( pex_count_last );
+  }
   
+  public int
+  getExchangedPeersUsed()
+  {
+	 return( pex_used_count );
+  }
   
   private PeerItem[] getExchangedPeersSortedByLeastPopularFirst() {
     HashMap popularity_counts = new HashMap();
