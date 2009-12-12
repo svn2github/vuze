@@ -204,7 +204,7 @@ RelatedContentUI
 		try{	
 			manager 	= RelatedContentManager.getSingleton();
 
-			if ( !manager.isUIEnabled()){
+			if ( RelatedContentManager.DISABLE_ALL_UI ){
 				
 				return;
 			}

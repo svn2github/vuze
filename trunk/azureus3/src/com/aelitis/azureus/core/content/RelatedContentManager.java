@@ -100,7 +100,7 @@ RelatedContentManager
 	implements DistributedDatabaseTransferHandler
 {
 	private static final boolean 	TRACE = false;
-	private static final boolean	DISABLE_ALL_UI	= !Constants.isCVSVersion();
+	public static final boolean	DISABLE_ALL_UI	= !Constants.isCVSVersion();
 
 	private static final int	MAX_HISTORY					= 16;
 	private static final int	MAX_TITLE_LENGTH			= 80;
@@ -398,6 +398,11 @@ RelatedContentManager
 								
 											dht_plugin = (DHTPlugin)dht_pi.getPlugin();
 		
+											if ( !dht_plugin.isEnabled()){
+												
+												return;
+											}
+											
 											DownloadManager dm = plugin_interface.getDownloadManager();
 											
 											Download[] downloads = dm.getDownloads();
