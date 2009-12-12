@@ -74,6 +74,8 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminHTTPProxy;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.pairing.*;
 import com.aelitis.azureus.core.security.CryptoManager;
@@ -138,6 +140,9 @@ PairingManagerImpl
 	
 	private InetAddress		current_v4;
 	private InetAddress		current_v6;
+	
+	private String			local_v4	= "";
+	private String			local_v6	= "";
 	
 	private boolean	update_outstanding;
 	private boolean	updates_enabled;
@@ -549,19 +554,74 @@ PairingManagerImpl
 			InetAddress latest_v6 = network_admin.getDefaultPublicAddressV6();
 	
 			InetAddress temp_v6 = updateAddress( current_v6, latest_v6, true );
-	
+			
+			TreeSet<String>	latest_v4_locals = new TreeSet<String>();
+			TreeSet<String>	latest_v6_locals = new TreeSet<String>();
+			
+			NetworkAdminNetworkInterface[] interfaces = network_admin.getInterfaces();
+			
+			for ( NetworkAdminNetworkInterface intf: interfaces ){
+				
+				NetworkAdminNetworkInterfaceAddress[] addresses = intf.getAddresses();
+				
+				for ( NetworkAdminNetworkInterfaceAddress address: addresses ){
+					
+					InetAddress ia = address.getAddress();
+					
+					if ( ia.isLoopbackAddress()){
+						
+						continue;
+					}
+					
+					if ( ia.isLinkLocalAddress() || ia.isSiteLocalAddress()){
+						
+						if ( ia instanceof Inet4Address ){
+							
+							latest_v4_locals.add( ia.getHostAddress());
+							
+						}else{
+							
+							latest_v6_locals.add( ia.getHostAddress());
+						}
+					}
+				}
+			}
+			
+			String v4_locals_str = getString( latest_v4_locals );
+			String v6_locals_str = getString( latest_v6_locals );
+			
+			
 			if (	temp_v4 != current_v4 ||
-					temp_v6 != current_v6 ){
+					temp_v6 != current_v6 ||
+					!v4_locals_str.equals( local_v4 ) ||
+					!v6_locals_str.equals( local_v6 )){
 				
 				current_v4	= temp_v4;
 				current_v6	= temp_v6;
+				local_v4	= v4_locals_str;
+				local_v6	= v6_locals_str;
 				
 				if ( !is_updating ){
 				
 					updateNeeded();
 				}
 			}
+
 		}
+	}
+	
+	protected String
+	getString(
+		Set<String>	set )
+	{
+		String	str = "";
+		
+		for ( String s: set ){
+			
+			str += (str.length()==0?"":",") + s;
+		}
+		
+		return( str );
 	}
 	
 	protected void
@@ -725,6 +785,16 @@ PairingManagerImpl
 					payload.put( "c_v6", current_v6.getHostAddress());
 				}
 			
+				if ( local_v4.length() > 0 ){
+					
+					payload.put( "l_v4", local_v4 );
+				}
+				
+				if ( local_v6.length() > 0 ){
+					
+					payload.put( "l_v6", local_v6 );
+				}
+				
 				if ( param_e_enable.getValue()){
 				
 					String host = param_host.getValue().trim();
