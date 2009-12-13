@@ -1827,7 +1827,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		_seeds = new_seeds;
 		_peers = new_peers;
 		_remotesTCPNoLan = new_tcp_incoming;
-		_remotesUDPNoLan = new_tcp_incoming;
+		_remotesUDPNoLan = new_udp_incoming;
 	}
 	/**
 	 * The way to unmark a request as being downloaded, or also 
