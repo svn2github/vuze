@@ -38,8 +38,8 @@ Constants
   public static final String EMPTY_STRING = "";
   public static final String SF_WEB_SITE			= "http://azureus.sourceforge.net/";
  
-  public static final String AELITIS_TORRENTS		= "http://torrent.vuze.com:88/torrents/";
-  public static final String AELITIS_FILES			= "http://torrent.vuze.com:88/files/";
+  public static final String AELITIS_TORRENTS		= "http://torrent.vuze.com/torrents/";
+  public static final String AELITIS_FILES			= "http://torrent.vuze.com/files/";
   public static final String AZUREUS_WIKI 			= "http://wiki.vuze.com/index.php/";
   
   public static final String  VERSION_SERVER_V4 	= "version.vuze.com";
