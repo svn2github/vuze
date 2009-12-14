@@ -144,7 +144,7 @@ Constants
 			  	
 			  isWindowsVista			= f_ver == 6;
 			  isWindowsVistaOrHigher 	= f_ver >= 6;
-			  isWindows7OrHigher	 	= f_ver >= 6.1;
+			  isWindows7OrHigher	 	= f_ver >= 6.1f;
 		  
 			  if ( isWindowsVista ){
 			  
