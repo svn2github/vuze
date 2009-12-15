@@ -67,6 +67,9 @@ TRTrackerAnnouncerMuxer
 	private boolean								stopped;
 	private boolean								destroyed;
 	
+	private TRTrackerAnnouncerHelper			last_best_active;
+	private long								last_best_active_set_time;
+	
 	private Map<String,StatusSummary>			recent_responses = new HashMap<String,StatusSummary>();
 	
 	
@@ -812,14 +815,31 @@ TRTrackerAnnouncerMuxer
 		}
 	}
 	
-	public URL
-	getTrackerURL()
+	protected TRTrackerAnnouncerHelper
+	getBestActive()
+	{
+		long	now = SystemTime.getMonotonousTime();
+		
+		if ( now - last_best_active_set_time < 1000 ){
+			
+			return( last_best_active );
+		}
+		
+		last_best_active = getBestActiveSupport();
+		
+		last_best_active_set_time = now;
+		
+		return( last_best_active );
+	}
+	
+	protected TRTrackerAnnouncerHelper
+	getBestActiveSupport()
 	{
 		List<TRTrackerAnnouncerHelper> x = announcers.getList();
 		
-		TRTrackerAnnouncer error_resp = null;
+		TRTrackerAnnouncerHelper error_resp = null;
 		
-		for ( TRTrackerAnnouncer announcer: x ){
+		for ( TRTrackerAnnouncerHelper announcer: x ){
 			
 			TRTrackerAnnouncerResponse response = announcer.getLastResponse();
 			
@@ -829,7 +849,7 @@ TRTrackerAnnouncerMuxer
 				
 				if ( resp_status == TRTrackerAnnouncerResponse.ST_ONLINE ){
 					
-					return( announcer.getTrackerURL());
+					return( announcer );
 					
 				}else if ( error_resp == null && resp_status == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR ){
 					
@@ -840,12 +860,25 @@ TRTrackerAnnouncerMuxer
 		
 		if ( error_resp != null ){
 			
-			return( error_resp.getTrackerURL());
+			return( error_resp );
 		}
 		
 		if ( x.size() > 0 ){
 			
-			return( x.get(0).getTrackerURL());
+			return( x.get(0));
+		}
+		
+		return( null );
+	}
+	
+	public URL
+	getTrackerURL()
+	{
+		TRTrackerAnnouncerHelper	active = getBestActive();
+		
+		if ( active != null ){
+			
+			return( active.getTrackerURL());
 		}
 		
 		return( null );
@@ -936,31 +969,28 @@ TRTrackerAnnouncerMuxer
 	public int
 	getTimeUntilNextUpdate()
 	{
-		int	min = Integer.MAX_VALUE;
-		
-		for ( TRTrackerAnnouncer announcer: announcers ){
-		
-			min = Math.min( min, announcer.getTimeUntilNextUpdate());
+		TRTrackerAnnouncerHelper	active = getBestActive();
+
+		if ( active != null ){
+			
+			return( active.getTimeUntilNextUpdate());
 		}
 		
-		return( min );
+		return( Integer.MAX_VALUE );
 	}
 	
 	public int
 	getLastUpdateTime()
 	{
-		int	min = Integer.MAX_VALUE;
-		
-		for ( TRTrackerAnnouncer announcer: announcers ){
-		
-			min = Math.min( min, announcer.getLastUpdateTime());
+		TRTrackerAnnouncerHelper	active = getBestActive();
+
+		if ( active != null ){
+			
+			return( active.getLastUpdateTime());
 		}
 		
-		return( min );
-	}
-		
-	
-	
+		return( 0 );
+	}	
 	
 	public void
 	update(
@@ -1127,6 +1157,21 @@ TRTrackerAnnouncerMuxer
 			return( 0 );
 		}
 		
+		TRTrackerAnnouncer active = getBestActive();
+		
+		if ( active != null && provider != null && active.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
+			
+			if ( 	provider.getMaxNewConnectionsAllowed() > 0 &&
+					provider.getPendingConnectionCount() == 0 ){
+				
+				return( 5 );
+				
+			}else{
+				
+				return( 0 );
+			}
+		}
+		
 		return( 10 );
 	}
 	
@@ -1177,7 +1222,10 @@ TRTrackerAnnouncerMuxer
 							}	
 						}
 						
-						enabled = provider.isPeerSourceEnabled( PEPeerSource.PS_BT_TRACKER );
+						if ( provider != null ){
+						
+							enabled = provider.isPeerSourceEnabled( PEPeerSource.PS_BT_TRACKER );
+						}
 						
 						if ( summary != null ){
 							
