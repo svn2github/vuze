@@ -157,7 +157,7 @@ public class PeerDatabase {
       if( !discovered_peers.contains( peer ) ) {
         discovered_peers.addLast( peer );  //add unknown peer
 
-        int max_cache_size = PeerUtils.MAX_CONNECTIONS_PER_TORRENT;
+        int max_cache_size = PeerUtils.MAX_CONNECTIONS_PER_TORRENT * 2;	// cache twice the amount to allow for failures
         if( max_cache_size < 1 || max_cache_size > MAX_DISCOVERED_PEERS )  max_cache_size = MAX_DISCOVERED_PEERS;
         
         if( discovered_peers.size() > max_cache_size ) {
@@ -376,7 +376,7 @@ public class PeerDatabase {
 		  pex_count_last_time = now;
   	  }
 	  
-	  return( pex_count_last );
+	  return( Math.max( 0, pex_count_last - popularity_pos ));
   }
   
   public int

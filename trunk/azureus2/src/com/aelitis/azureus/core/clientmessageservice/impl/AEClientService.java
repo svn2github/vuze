@@ -105,7 +105,7 @@ public class AEClientService implements ClientMessageService {
     final AESemaphore connect_block = new AESemaphore( "AEClientService:C" );
     
     ce.connectOutbound( false, false, null, null, ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM, new Transport.ConnectListener() {  //NOTE: async operation!
-    	public void connectAttemptStarted() {  /*nothing*/ }
+    	public int connectAttemptStarted( int default_connect_timeout ) { return( default_connect_timeout ); }
       
     	public void connectSuccess(Transport transport, ByteBuffer remaining_initial_data ){
     		conn = new ClientConnection((TCPTransportImpl)transport );

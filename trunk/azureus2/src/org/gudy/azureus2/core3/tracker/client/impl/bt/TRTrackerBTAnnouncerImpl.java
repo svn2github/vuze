@@ -2078,7 +2078,9 @@ TRTrackerBTAnnouncerImpl
 
     int MAX_PEERS = 100;
     
-    int maxAllowed = announce_data_provider.getMaxNewConnectionsAllowed();
+    	// ask for a bit more than our max to allow for connections failures
+    
+    int maxAllowed = 3*announce_data_provider.getMaxNewConnectionsAllowed()/2;
     
     if ( maxAllowed < 0 || maxAllowed > MAX_PEERS ) {
       maxAllowed = MAX_PEERS;

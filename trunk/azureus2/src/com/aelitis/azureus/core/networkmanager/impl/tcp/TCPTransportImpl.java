@@ -176,8 +176,9 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     final InetSocketAddress	address = protocol_endpoint.getAddress();
     
     TCPConnectionManager.ConnectListener connect_listener = new TCPConnectionManager.ConnectListener() {
-      public void connectAttemptStarted() {
-        listener.connectAttemptStarted();
+      public int connectAttemptStarted(
+    		  int default_connect_timeout ) {
+        return( listener.connectAttemptStarted( default_connect_timeout ));
       }
       
       public void connectSuccess( final SocketChannel channel ) {

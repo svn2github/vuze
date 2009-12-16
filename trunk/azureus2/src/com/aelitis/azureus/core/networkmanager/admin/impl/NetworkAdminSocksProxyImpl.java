@@ -198,9 +198,11 @@ NetworkAdminSocksProxyImpl
 			TCPConnectionManager.ConnectListener connect_listener = 
 				new TCPConnectionManager.ConnectListener() 
 			{
-				public void 
-				connectAttemptStarted() 
+				public int 
+				connectAttemptStarted(
+					int default_connect_timeout )
 				{	
+					return( default_connect_timeout );
 				}
 	
 				public void 

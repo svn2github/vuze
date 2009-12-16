@@ -54,7 +54,7 @@ public class TCPConnectionManager {
   private static final LogIDs LOGID = LogIDs.NWMAN;
 
   private static int MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = 3;  
-  public static int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = 5;  //NOTE: WinXP SP2 limits to 10 max at any given time
+  public static int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS;
   
   private static int max_outbound_connections;
   
@@ -98,7 +98,7 @@ public class TCPConnectionManager {
   }
   
   
-  private static final int CONNECT_ATTEMPT_TIMEOUT = 30*1000;  //30sec
+  private static final int CONNECT_ATTEMPT_TIMEOUT = 15*1000;  // parg: reduced from 30 sec as almost never see worthwhile connections take longer that this
   private static final int CONNECT_ATTEMPT_STALL_TIME = 3*1000;  //3sec
   private static final boolean SHOW_CONNECT_STATS = false;
   
@@ -260,7 +260,7 @@ public class TCPConnectionManager {
   addNewRequest( 
 	final ConnectionRequest request ) 
   {
-	  request.listener.connectAttemptStarted();
+	  request.setConnectTimeout( request.listener.connectAttemptStarted( request.getConnectTimeout()));
 
 
 	  boolean ipv6problem = false;
@@ -337,7 +337,7 @@ public class TCPConnectionManager {
 		  }
 
 		  request.channel.configureBlocking( false );
-		  request.connect_start_time = SystemTime.getCurrentTime();
+		  request.connect_start_time = SystemTime.getMonotonousTime();
 
 		  if ( request.channel.connect( request.address ) ) {  //already connected
 
@@ -356,7 +356,7 @@ public class TCPConnectionManager {
 
 				  new_canceled_mon.exit();
 			  }
-
+			  
 			  connect_selector.register( 
 					  request.channel, 
 					  new VirtualChannelSelector.VirtualSelectorListener() 
@@ -366,7 +366,7 @@ public class TCPConnectionManager {
 								  VirtualChannelSelector 	selector, 
 								  SocketChannel 			sc, 
 								  Object 					attachment ) 
-						  {       
+						  {    
 							  try{
 								  new_canceled_mon.enter();
 
@@ -464,7 +464,7 @@ public class TCPConnectionManager {
 
 			  if( SHOW_CONNECT_STATS ) {
 				  long queue_wait_time = request.connect_start_time - request.request_start_time;
-				  long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
+				  long connect_time = SystemTime.getMonotonousTime() - request.connect_start_time;
 				  int num_queued = new_requests.size();
 				  int num_connecting = pending_attempts.size();
 				  System.out.println("S: queue_wait_time="+queue_wait_time+
@@ -509,7 +509,7 @@ public class TCPConnectionManager {
 
 		  if( SHOW_CONNECT_STATS ) {
 			  long queue_wait_time = request.connect_start_time - request.request_start_time;
-			  long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
+			  long connect_time = SystemTime.getMonotonousTime() - request.connect_start_time;
 			  int num_queued = new_requests.size();
 			  int num_connecting = pending_attempts.size();
 			  System.out.println("F: queue_wait_time="+queue_wait_time+
@@ -570,7 +570,7 @@ public class TCPConnectionManager {
     //do connect attempt timeout checks
     int num_stalled_requests =0;
     
-    final long now =SystemTime.getCurrentTime();
+    final long now =SystemTime.getMonotonousTime();
     
     List<ConnectionRequest> timeouts = null;
     try{
@@ -667,7 +667,7 @@ public class TCPConnectionManager {
     try{
     	pending_closes_mon.enter();
     
-    	long	now = SystemTime.getCurrentTime();
+    	long	now = SystemTime.getMonotonousTime();
     	
     	if ( delayed_closes.size() > 0 ){
     		   		
@@ -725,7 +725,7 @@ public class TCPConnectionManager {
   requestNewConnection( 
 	  InetSocketAddress 	address, 
 	  ConnectListener 		listener, 
-	  long					connect_timeout, 
+	  int					connect_timeout, 
 	  int 					priority )
   {    
 	  List<ConnectionRequest>	kicked = null;
@@ -824,7 +824,7 @@ public class TCPConnectionManager {
 			  }
 		  }else{
 
-			  delayed_closes.put( channel, new Long( SystemTime.getCurrentTime() + delay ));
+			  delayed_closes.put( channel, new Long( SystemTime.getMonotonousTime() + delay ));
 		  }
 	  }finally{
 
@@ -859,26 +859,41 @@ public class TCPConnectionManager {
   
   
 
-  private static class ConnectionRequest {
+  private static class 
+  ConnectionRequest 
+  {
     private final InetSocketAddress address;
     private final ConnectListener listener;
     private final long request_start_time;
     private long connect_start_time;
-    private final long connect_timeout;
+    private int connect_timeout;
     private SocketChannel channel;
     private final short		rand;
     private final int		priority;
     private final long		id;
         
-    private ConnectionRequest( long _id, InetSocketAddress _address, ConnectListener _listener, long _connect_timeout, int _priority  ) {
+    private ConnectionRequest( long _id, InetSocketAddress _address, ConnectListener _listener, int _connect_timeout, int _priority  ) {
 
       id	= _id;
       address = _address;
       listener = _listener;
       connect_timeout	= _connect_timeout;
-      request_start_time = SystemTime.getCurrentTime();
+      request_start_time = SystemTime.getMonotonousTime();
       rand = (short)( Short.MAX_VALUE*Math.random());
       priority = _priority;
+    }
+    
+    private int
+    getConnectTimeout()
+    {
+    	return( connect_timeout );
+    }
+    
+    private void
+    setConnectTimeout(
+    	int		_ct )
+    {
+    	connect_timeout = _ct;
     }
     
     private long
@@ -910,8 +925,9 @@ public class TCPConnectionManager {
      /**
       * The connection establishment process has started,
       * i.e. the connection is actively being attempted.
+      * @return adjusted connect timeout
       */
-     public void connectAttemptStarted();    
+     public int connectAttemptStarted( int default_timeout );    
      
      /**
       * The connection attempt succeeded.

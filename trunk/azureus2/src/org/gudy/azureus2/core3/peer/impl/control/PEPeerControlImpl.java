@@ -52,6 +52,7 @@ import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
@@ -192,6 +193,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	//private final TRTrackerAnnouncer _tracker;
 	//  private int _maxUploads;
 	private int		_seeds, _peers,_remotesTCPNoLan, _remotesUDPNoLan;
+	private int 	_tcpPendingConnections, _tcpConnectingConnections;
 	private long last_remote_time;
 	private long	_timeStarted;
 	private long	_timeStartedSeeding = -1;
@@ -513,9 +515,15 @@ DiskManagerCheckRequestListener, IPFilterListener
 	public void
 	schedule()
 	{
-		try {
+		try{
+				// first off update the stats so they can be used by subsequent steps
+			
+			updateStats();
+
 			updateTrackerAnnounceInterval();
+			
 			doConnectionChecks();
+			
 			processPieceChecks();
 
 			// note that seeding_mode -> torrent totally downloaded, not just non-dnd files
@@ -528,8 +536,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 			}
 
 			checkBadPieces();
-
-			updateStats();
 
 			checkInterested();      // see if need to recheck Interested on all peers
 
@@ -1795,16 +1801,21 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 
 		//calculate seeds vs peers
-		final ArrayList peer_transports = peer_transports_cow;
+		final ArrayList<PEPeer> peer_transports = peer_transports_cow;
 
+		int	new_pending_tcp_connections 	= 0;
+		int new_connecting_tcp_connections	= 0;
+		
 		int	new_seeds = 0;
 		int new_peers = 0;
 		int new_tcp_incoming 	= 0;
 		int new_udp_incoming  	= 0;
 		
-		for (Iterator it=peer_transports.iterator();it.hasNext();){
+		for ( Iterator<PEPeer> it=peer_transports.iterator();it.hasNext();){
+			
 			final PEPeerTransport pc = (PEPeerTransport) it.next();
-			if (pc.getPeerState() == PEPeer.TRANSFERING) {
+						
+			if ( pc.getPeerState() == PEPeer.TRANSFERING) {
 				if (pc.isSeed())
 					new_seeds++;
 				else
@@ -1821,6 +1832,20 @@ DiskManagerCheckRequestListener, IPFilterListener
 						new_udp_incoming++;
 					}
 				}
+			}else{				
+				if ( pc.isTCP()){
+					
+					int c_state = pc.getConnectionState();
+
+					if ( c_state == PEPeerTransport.CONNECTION_PENDING ){
+						
+						new_pending_tcp_connections++;
+						
+					}else if ( c_state == PEPeerTransport.CONNECTION_CONNECTING ){
+						
+						new_connecting_tcp_connections++;
+					}
+				}
 			}
 		}
 
@@ -1828,6 +1853,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 		_peers = new_peers;
 		_remotesTCPNoLan = new_tcp_incoming;
 		_remotesUDPNoLan = new_udp_incoming;
+		_tcpPendingConnections = new_pending_tcp_connections;
+		_tcpConnectingConnections = new_connecting_tcp_connections;
 	}
 	/**
 	 * The way to unmark a request as being downloaded, or also 
@@ -1838,8 +1865,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 	{
 		final int pieceNumber =request.getPieceNumber();  //get the piece number
 		PEPiece pe_piece = pePieces[pieceNumber];
-		if (pe_piece != null )
+		if (pe_piece != null ){
 			pe_piece.clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
+		}
 	}
 
 
@@ -1850,8 +1878,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	}
 
 	public byte[][]
-	              getSecrets(
-	            		  int	crypto_level )
+	getSecrets(
+		int	crypto_level )
 	{
 		return( adapter.getSecrets( crypto_level ));
 	}
@@ -3663,7 +3691,85 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 	}
 
-
+	public int
+	getConnectTimeout(
+		int		ct_def )
+	{
+		if ( ct_def <= 0 ){
+			
+			return( ct_def );
+		}
+		
+		if ( seeding_mode ){
+			
+				// seeding mode connections are already de-prioritised so nothing to do
+			
+			return( ct_def );
+		}
+		
+		int max_sim_con = TCPConnectionManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS;
+		
+			// high, let's not mess with things
+		
+		if ( max_sim_con >= 50 ){
+			
+			return( ct_def );
+		}
+		
+			// we have somewhat limited outbound connection limits, see if it makes sense to
+			// reduce the connect timeout to prevent connection stall due to a bunch getting
+			// stuck 'connecting' for a long time and stalling us
+		
+		int	connected			= _seeds + _peers;
+		int	connecting			= _tcpConnectingConnections;
+		int queued				= _tcpPendingConnections;
+		
+		int	not_yet_connected 	= peer_database.getDiscoveredPeerCount();
+		
+		int	max = getMaxConnections();
+		
+		int	potential = connecting + queued + not_yet_connected;
+		
+		/*
+		System.out.println( 
+				"connected=" + connected + 
+				", queued=" + queued +
+				", connecting=" + connecting +
+				", queued=" + queued +
+				", not_yet=" + not_yet_connected +
+				", max=" + max );
+		*/
+		
+			// not many peers -> don't amend
+		
+		int	lower_limit = max/4;
+		
+		if ( potential <= lower_limit || max == lower_limit ){
+		
+			return( ct_def );
+		}
+		
+			// if we got lots of potential, use minimum delay
+		
+		final int MIN_CT = 7500;
+		
+		if ( potential >= max ){
+			
+			return( MIN_CT );
+		}
+	
+			// scale between MIN and ct_def
+		
+		int pos 	= potential - lower_limit;
+		int	scale 	= max - lower_limit;
+			
+		int res =  MIN_CT + ( ct_def - MIN_CT )*(scale - pos )/scale;
+		
+		// System.out.println( "scaled->" + res );
+		
+		return( res );
+	}
+	
 	private void doConnectionChecks() 
 	{
 		//every 1 second

@@ -393,9 +393,10 @@ implements PEPeerTransport
 				ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM,
 				new NetworkConnection.ConnectionListener() 
 				{
-					public final void 
-					connectStarted() {
+					public final int 
+					connectStarted( int ct ){
 						connection_state = PEPeerTransport.CONNECTION_CONNECTING;
+						return( ct );
 					}
 
 					public final void connectSuccess( ByteBuffer remaining_initial_data ) {  //will be called immediately
@@ -625,10 +626,18 @@ implements PEPeerTransport
 				{
 					private boolean	connect_ok;
 					
-					public final void 
-					connectStarted() 
+					public final int 
+					connectStarted(
+						int		default_connect_timeout ) 
 					{
 						connection_state = PEPeerTransport.CONNECTION_CONNECTING;
+												
+						if ( default_connect_timeout <= 0 ){
+							
+							return( default_connect_timeout );
+						}
+						
+						return( manager.getConnectTimeout( default_connect_timeout ));
 					}
 
 					public final void 

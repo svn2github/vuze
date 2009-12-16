@@ -53,7 +53,7 @@ public class ConnectionImpl implements Connection {
   
   public void connect( final ConnectionListener listener ) {
     core_connection.connect( ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM, new com.aelitis.azureus.core.networkmanager.NetworkConnection.ConnectionListener() {
-      public void connectStarted() { listener.connectStarted();  }
+      public int connectStarted( int ct ) { listener.connectStarted(); return( ct ); }
       
       public void connectSuccess( ByteBuffer remaining_initial_data) { listener.connectSuccess();  }
       

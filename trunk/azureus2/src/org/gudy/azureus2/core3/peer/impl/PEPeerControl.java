@@ -78,6 +78,10 @@ PEPeerControl
 	public void addPeerTransport( PEPeerTransport transport );
 	
 	public int
+	getConnectTimeout(
+		int		ct_def );
+	
+	public int
 	getMaxConnections();
     
     public boolean 

@@ -136,7 +136,12 @@ UDPConnectionManager
 		UDPTransportHelper	helper = null;
 
 		try{
-			listener.connectAttemptStarted();
+			int time = listener.connectAttemptStarted( -1 );
+			
+			if ( time != -1 ){
+				
+				Debug.out( "UDP connect time override not supported" );
+			}
 			
 			helper = new UDPTransportHelper( this, address, udp_transport );
 	 		

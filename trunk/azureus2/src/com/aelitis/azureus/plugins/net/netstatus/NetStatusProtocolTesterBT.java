@@ -517,12 +517,15 @@ NetStatusProtocolTesterBT
 					{
 						final String	type = initiator?"Outbound":"Inbound";
 						
-						public final void 
-						connectStarted() 
-						{
+						public int 
+						connectStarted(
+							int default_connect_timeout )
+						{	
 							log( type + " connect start" );
-						}
 
+							return( default_connect_timeout );
+						}
+						
 						public final void 
 						connectSuccess( 
 							ByteBuffer remaining_initial_data ) 

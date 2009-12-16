@@ -257,11 +257,13 @@ GenericMessageConnectionDirect
 				ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM,
 				new NetworkConnection.ConnectionListener()
 				{
-					public void 
-					connectStarted()
-					{
+					public int 
+					connectStarted(
+						int default_connect_timeout )
+					{	
+						return( default_connect_timeout );
 					}
-	
+					
 					public void 
 					connectSuccess(
 						ByteBuffer remaining_initial_data )
@@ -366,11 +368,13 @@ GenericMessageConnectionDirect
 				ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM,
 				new NetworkConnection.ConnectionListener()
 				{
-					public void 
-					connectStarted()
-					{
+					public int 
+					connectStarted(
+						int default_connect_timeout )
+					{	
+						return( default_connect_timeout );
 					}
-	
+					
 					public void 
 					connectSuccess(
 						ByteBuffer remaining_initial_data )

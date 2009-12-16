@@ -120,7 +120,7 @@ NetworkConnectionImpl
     
     if( is_connected ){
     	
-      connection_listener.connectStarted();
+      connection_listener.connectStarted( -1 );
       
       connection_listener.connectSuccess( initial_outbound_data );
       
@@ -144,8 +144,8 @@ NetworkConnectionImpl
     			initial_outbound_data,
     			priority,
     			new Transport.ConnectListener() {
-			      public void connectAttemptStarted() {
-			        connection_listener.connectStarted();
+			      public int connectAttemptStarted( int default_connect_timeout ){
+			        return( connection_listener.connectStarted( default_connect_timeout ));
 			      }
 			      
 			      public void connectSuccess( Transport	_transport, ByteBuffer remaining_initial_data ) {

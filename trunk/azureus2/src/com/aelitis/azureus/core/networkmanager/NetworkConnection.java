@@ -87,8 +87,9 @@ NetworkConnection
     /**
      * The connection establishment process has started,
      * i.e. the connection is actively being attempted.
+     * @return modified connect timeout
      */
-    public void connectStarted();    
+    public int connectStarted( int default_connect_timeout );    
     
     /**
      * The connection attempt succeeded.
