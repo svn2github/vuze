@@ -52,6 +52,11 @@ public class
 TRTrackerAnnouncerMuxer
 	extends TRTrackerAnnouncerImpl
 {
+	private static final int ACT_CHECK_INIT_DELAY			= 2500;
+	private static final int ACT_CHECK_INTERIM_DELAY		= 10*1000;
+	private static final int ACT_CHECK_IDLE_DELAY			= 30*1000;
+	
+	
 	private String[]			networks;
 	private boolean				is_manual;
 	
@@ -435,7 +440,7 @@ TRTrackerAnnouncerMuxer
 					}
 				}
 				
-				setupActivationCheck();
+				setupActivationCheck( ACT_CHECK_INIT_DELAY );
 			}
 		}
 		
@@ -453,13 +458,14 @@ TRTrackerAnnouncerMuxer
 	}
 	
 	protected void
-	setupActivationCheck()
+	setupActivationCheck(
+		int		delay )
 	{
 		if ( announcers.size() > activated.size()){
 			
 			SimpleTimer.addEvent(
 				"TRMuxer:check",
-				SystemTime.getOffsetTime( 2500 ),
+				SystemTime.getOffsetTime( delay ),
 				new TimerEventPerformer()
 				{
 					public void 
@@ -478,6 +484,8 @@ TRTrackerAnnouncerMuxer
 	{
 		synchronized( this ){
 			
+			int	next_check_delay;
+			
 			if ( 	destroyed || 
 					stopped || 
 					announcers.size() <= activated.size()){
@@ -485,60 +493,117 @@ TRTrackerAnnouncerMuxer
 				return;
 			}
 			
-			if ( provider != null ){
+			if ( provider == null ){
 				
-				int	allowed	= provider.getMaxNewConnectionsAllowed();
+				next_check_delay = ACT_CHECK_INIT_DELAY;
 				
-				int	pending	= provider.getPendingConnectionCount();
-				
+			}else{
+
+				boolean	activate = force;
+														
 				boolean	seeding = provider.getRemaining() == 0;
+
+				if ( seeding && activated.size() > 0 ){
 				
-				int	online = 0;
-				
-				for ( TRTrackerAnnouncerHelper a: activated ){
+						// when seeding we only activate on tracker fail
 					
-					TRTrackerAnnouncerResponse response = a.getLastResponse();
-					
-					if ( 	response != null && 
-							response.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
-						
-						online++;
-					}
-				}
+					next_check_delay = 0;
 				
-				System.out.println( 
-					"checkActivation: announcers=" + announcers.size() + 
-					", active=" + activated.size() +
-					", online=" + online +
-					", allowed=" + allowed +
-					", pending=" + pending +
-					", seeding=" + seeding );
-				
-				for ( TRTrackerAnnouncerHelper a: announcers ){
+				}else{
 					
-					if ( !activated.contains( a )){
+					int	allowed		= provider.getMaxNewConnectionsAllowed();	
+					int	pending		= provider.getPendingConnectionCount();
+					int	connected	= provider.getConnectedConnectionCount();
+					
+					int	online = 0;
+					
+					for ( TRTrackerAnnouncerHelper a: activated ){
 						
-						if (Logger.isEnabled()) {
-							Logger.log(new LogEvent(getTorrent(), LOGID, "Activating " + getString( a.getAnnounceSets())));
-						}
+						TRTrackerAnnouncerResponse response = a.getLastResponse();
 						
-						activated.add( a );
-						
-						if ( complete ){
+						if ( 	response != null && 
+								response.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
 							
-							a.complete( true );
+							online++;
+						}
+					}
+					
+					System.out.println( 
+						"checkActivation: announcers=" + announcers.size() + 
+						", active=" + activated.size() +
+						", online=" + online +
+						", allowed=" + allowed +
+						", pending=" + pending +
+						", connected=" + connected +
+						", seeding=" + seeding );
+					
+					if ( online == 0 ){
+						
+						activate = true;
+						
+							// no trackers online, start next and recheck soon
+						
+						next_check_delay = ACT_CHECK_INIT_DELAY;
+						
+					}else{
+						
+						int	potential = connected + pending;
+						
+						if ( potential < 10 ){
+							
+								// minimal connectivity 
+							
+							activate = true;
+							
+							next_check_delay = ACT_CHECK_INIT_DELAY;
+
+						}else if ( allowed >= 5 && pending < 3*allowed/4 ){
+							
+								// not enough to fulfill our needs
+							
+							activate = true;
+							
+							next_check_delay = ACT_CHECK_INTERIM_DELAY;
 							
 						}else{
+								// things look good, recheck in a bit
 							
-							a.update( false );
+							next_check_delay = ACT_CHECK_IDLE_DELAY;
 						}
+					}
+				}
+					
+				if ( activate ){
+					
+					for ( TRTrackerAnnouncerHelper a: announcers ){
 						
-						break;
+						if ( !activated.contains( a )){
+							
+							if (Logger.isEnabled()) {
+								Logger.log(new LogEvent(getTorrent(), LOGID, "Activating " + getString( a.getAnnounceSets())));
+							}
+							
+							activated.add( a );
+							
+							if ( complete ){
+								
+								a.complete( true );
+								
+							}else{
+								
+								a.update( false );
+							}
+							
+							break;
+						}
 					}
 				}
 			}
 			
-			setupActivationCheck();
+			if ( next_check_delay > 0 ){
+			
+				setupActivationCheck( next_check_delay );
+			}
 		}
 	}
 	

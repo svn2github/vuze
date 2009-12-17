@@ -406,6 +406,12 @@ DownloadManagerController
 						return( temp.getPendingPeerCount());
 					}
 					
+					public int
+					getConnectedConnectionCount()
+					{
+						return( temp.getNbPeers() + temp.getNbSeeds());
+					}
+					
 					public int 
 					getUploadSpeedKBSec(
 						boolean estimate ) 
