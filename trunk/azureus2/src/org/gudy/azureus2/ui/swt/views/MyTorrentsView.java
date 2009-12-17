@@ -427,6 +427,7 @@ public class MyTorrentsView
     cFilterArea = new Composite(cHeader, SWT.NONE);
     cFilterArea.setVisible(hasLastSearch);
     GridLayout layout = new GridLayout();
+    layout.marginHeight = 0;
     layout.numColumns = 5;
     cFilterArea.setLayout(layout);
             
@@ -465,7 +466,7 @@ public class MyTorrentsView
     fd = new FormData();
     fd.right = new FormAttachment(cSizer, -2); 
     fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
-    fd.bottom = new FormAttachment(cFilterArea, 0, SWT.BOTTOM); 
+    fd.bottom = new FormAttachment(cFilterArea, 0, SWT.BOTTOM);
     cCategories.setLayoutData(fd);
 
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
@@ -526,7 +527,7 @@ public class MyTorrentsView
     lblSep.setLayoutData(gridData);
     
     cHeader.moveAbove(null);
-    parent.layout(true);
+    parent.layout(true, true);
 
     tv.enableFilterCheck(txtFilter, this);
 	}
