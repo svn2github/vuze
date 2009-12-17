@@ -3379,6 +3379,8 @@ implements PEPeerTransport
 				//check for peer exchange support
 				if(ut_pex_enabled || peerSupportsMessageType(AZMessage.ID_AZ_PEER_EXCHANGE)) {
 					peer_exchange_supported = true;
+					
+					peer_exchange_item.enableStateMaintenance();
 				}
 				else {  //no need to maintain internal states as we wont be sending/receiving peer exchange messages
 					peer_exchange_item.disableStateMaintenance();
