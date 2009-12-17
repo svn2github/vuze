@@ -64,6 +64,7 @@ import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreOperation;
@@ -3917,7 +3918,7 @@ DownloadManagerImpl
 			
 			try{
 			
-				tps.add( PluginCoreUtils.wrap( this ).getTrackerPeerSource());
+				tps.add(((DownloadImpl)PluginCoreUtils.wrap( this )).getTrackerPeerSource());
 				
 			}catch( Throwable e ){
 				

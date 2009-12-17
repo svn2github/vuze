@@ -83,7 +83,7 @@ PluginCoreUtils
 	 * @return may be null
 	 */
 	
-	public static DownloadImpl
+	public static Download
 	wrap(
 		org.gudy.azureus2.core3.download.DownloadManager	dm )
 	{
