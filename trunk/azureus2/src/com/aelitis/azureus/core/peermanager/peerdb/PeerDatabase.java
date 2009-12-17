@@ -34,12 +34,16 @@ import com.aelitis.azureus.core.util.bloom.*;
  *
  */
 public class PeerDatabase {
+  private static final int STARTUP_MIN_REBUILD_WAIT_TIME = 10*1000;
+  private static final int STARTUP_MILLIS = 120*1000;
+  
   private static final int MIN_REBUILD_WAIT_TIME = 60*1000;
   private static final int MAX_DISCOVERED_PEERS = 500;
   
   private static final int BLOOM_ROTATION_PERIOD = 7*60*1000;
   private static final int BLOOM_FILTER_SIZE = 10000;
   
+  private long start_time = SystemTime.getMonotonousTime();
   
   private final HashMap peer_connections = new HashMap();
   private final LinkedList discovered_peers = new LinkedList();
@@ -47,8 +51,8 @@ public class PeerDatabase {
   
   private PeerItem[] cached_peer_popularities = null;
   private int popularity_pos = 0;
-  private long last_rebuild_time = 0;
-  private long last_rotation_time = 0;
+  private long last_rebuild_time 	= Integer.MIN_VALUE;
+  private long last_rotation_time 	= Integer.MIN_VALUE;
   
   private PeerItem self_peer;
   
@@ -59,6 +63,7 @@ public class PeerDatabase {
   private int	pex_count_last;
   private int 	pex_used_count;
   
+  private int	total_peers_returned;
   
   
   protected PeerDatabase() {
@@ -269,52 +274,59 @@ public class PeerDatabase {
 	  return(getNextOptimisticConnectPeer(0));
   }
   
-  protected PeerItem getNextOptimisticConnectPeer( int recursion_count ) {
-    PeerItem peer = null;
-    boolean	 discovered_peer = false;
+  private PeerItem getNextOptimisticConnectPeer( final int recursion_count ) {
+    long now = SystemTime.getMonotonousTime();
+
+    boolean	starting_up = now - start_time <= STARTUP_MILLIS;
     
-    //first see if there are any unknown peers to try
-    try{  map_mon.enter();
-      if( !discovered_peers.isEmpty() ) {
-        peer = (PeerItem)discovered_peers.removeFirst();
-        
-        discovered_peer	= true;
-      }
+    PeerItem 	peer 			= null;
+    boolean	 	discovered_peer = false;
+    boolean		tried_pex 		= false;
+    
+    if ( starting_up && total_peers_returned % 5 == 0 ){
+    	
+    		// inject a few PEX peers during startup as we know they're live and can help bootstrap the torrent
+    	
+    	peer = getPeerFromPEX( now, starting_up );
+    	
+    	tried_pex = true;
     }
-    finally{  map_mon.exit();  }
     
-    //pick one from those obtained via peer exchange if needed
-    if( peer == null ) {
-      if( cached_peer_popularities == null || popularity_pos == cached_peer_popularities.length ) {  //rebuild needed
-        cached_peer_popularities = null;  //clear cache
-        
-        long time_since_rebuild = SystemTime.getCurrentTime() - last_rebuild_time;
-        //only allow exchange list rebuild every few min, otherwise we'll spam attempts endlessly
-        if( time_since_rebuild > MIN_REBUILD_WAIT_TIME || time_since_rebuild < 0 ) {
-          cached_peer_popularities = getExchangedPeersSortedByLeastPopularFirst();
-          popularity_pos = 0;
-          last_rebuild_time = SystemTime.getCurrentTime();
-        }
-      }
-      
-      if( cached_peer_popularities != null && cached_peer_popularities.length > 0 ) {
-        peer = cached_peer_popularities[ popularity_pos ];
-        popularity_pos++;
-        pex_used_count++;
-        last_rebuild_time = SystemTime.getCurrentTime();  //ensure rebuild waits min rebuild time after the cache is depleted before trying attempts again
-      }
+    if ( peer == null ){
+    
+	    	//first see if there are any unknown peers to try
+    	
+	    try{  
+	    	map_mon.enter();
+	    	
+	    	if( !discovered_peers.isEmpty() ) {
+	    		
+	    		peer = (PeerItem)discovered_peers.removeFirst();
+	        
+	    		discovered_peer	= true;
+	    	}
+	    }finally{
+	    	map_mon.exit();  
+	    }
+    }
+    
+    	//pick one from those obtained via peer exchange if needed
+    
+    if ( peer == null && !tried_pex ) {
+  
+    	peer = getPeerFromPEX( now, starting_up );
     }
 
     //to reduce the number of wasted outgoing attempts, we limit how frequently we hand out the same optimistic peer in a given time period
     if( peer != null ) {
     	//check if it's time to rotate the bloom filters
     	
-      long diff = SystemTime.getCurrentTime() - last_rotation_time;
+      long diff = now - last_rotation_time;
       
-      if( diff < 0 || diff > BLOOM_ROTATION_PERIOD ) {
+      if ( diff > BLOOM_ROTATION_PERIOD ) {
         filter_one = filter_two;
         filter_two = BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
-        last_rotation_time = SystemTime.getCurrentTime();
+        last_rotation_time = now;
       }
       
       	//check to see if we've already given this peer out optimistically in the last 5-10min
@@ -323,7 +335,7 @@ public class PeerDatabase {
       
       byte[]	peer_serialisation = peer.getSerialization();
       
-      if( filter_one.contains( peer_serialisation ) && recursion_count < 100 ) {
+      if ( filter_one.contains( peer_serialisation ) && recursion_count < 100 ) {
     	  
     	  	// we've recently given this peer, so recursively find another peer to try
       
@@ -359,10 +371,45 @@ public class PeerDatabase {
       }
     }
     
+    if ( recursion_count == 0 && peer != null ){
+    	
+    	total_peers_returned++;
+    }
+    
     return peer;
   }
   
+  private PeerItem
+  getPeerFromPEX(
+	long		now,
+	boolean		starting_up )
+  {
+	  PeerItem	peer;
+	  
+	  if( cached_peer_popularities == null || popularity_pos == cached_peer_popularities.length ) {  //rebuild needed
+		  cached_peer_popularities = null;  //clear cache
+		  long time_since_rebuild = now - last_rebuild_time;
+		  //only allow exchange list rebuild every few min, otherwise we'll spam attempts endlessly
+		  if( time_since_rebuild > (starting_up?STARTUP_MIN_REBUILD_WAIT_TIME:MIN_REBUILD_WAIT_TIME )) {
+			  cached_peer_popularities = getExchangedPeersSortedByLeastPopularFirst();
+			  popularity_pos = 0;
+			  last_rebuild_time = now;
+		  }
+	  }
 
+	  if ( cached_peer_popularities != null && cached_peer_popularities.length > 0 ) {
+		  peer = cached_peer_popularities[ popularity_pos ];
+		  popularity_pos++;
+		  pex_used_count++;
+		  last_rebuild_time = now;  //ensure rebuild waits min rebuild time after the cache is depleted before trying attempts again
+	  }else{
+		  
+		  peer = null;
+	  }
+	  
+	  return( peer );
+  }
+  
   public int
   getExchangedPeerCount()
   {
