@@ -527,6 +527,12 @@ PeerForeignDelegate
 	}
 	
 	public void 
+	sendRejectRequest(
+		DiskManagerReadRequest request) 
+	{
+	}
+	
+	public void 
 	sendBadPiece(
 		int piece_number) 
 	{

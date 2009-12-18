@@ -2940,26 +2940,47 @@ implements PEPeerTransport
 			return;
 		}
 		
-		if( !choking_other_peer ) {
-			outgoing_piece_message_handler.addPieceRequest( number, offset, length );
+		if ( !choking_other_peer ){
+			
+			if ( !outgoing_piece_message_handler.addPieceRequest( number, offset, length )){
+				
+				sendRejectRequest( number, offset, length );
+			}
+			
 			allowReconnect = true;
-		}
-		else {
+			
+		}else{
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(this, LOGID, "decodeRequest(): peer request for piece #"
 						+ number + ":" + offset + "->" + (offset + length -1)
 						+ " ignored as peer is currently choked."));
 			
-			if ( fast_extension_enabled ){
-				
-		 		  BTRejectRequest	reject = new BTRejectRequest( number, offset, length, other_peer_reject_request_version );
-		  		  
-		  		  connection.getOutgoingMessageQueue().addMessage( reject, false );
-			}
+
 		}
 	}
 
-
+	public void
+	sendRejectRequest(
+		DiskManagerReadRequest	request )
+	{
+		sendRejectRequest( request.getPieceNumber(), request.getOffset(), request.getLength());
+	}
+	
+	private void
+	sendRejectRequest(
+		int		number,
+		int		offset,
+		int		length )
+	{
+		if ( fast_extension_enabled && !closing ){
+			
+			// System.out.println( "Sending reject request " + number + "/" + offset + "/" + length + " to " + getIp());
+			
+			BTRejectRequest	reject = new BTRejectRequest( number, offset, length, other_peer_reject_request_version );
+	  		  
+	  		connection.getOutgoingMessageQueue().addMessage( reject, false );
+		}
+	}
 
 	protected void decodePiece( BTPiece piece ) {
 		final int pieceNumber = piece.getPieceNumber();

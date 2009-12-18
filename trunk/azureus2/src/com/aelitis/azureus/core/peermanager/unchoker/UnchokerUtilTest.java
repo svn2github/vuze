@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.peermanager.unchoker;
 import java.net.InetAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -192,6 +193,10 @@ public class UnchokerUtilTest {
 		public void
 		clearRequestHint()
 		{
+		}
+		public void sendRejectRequest(DiskManagerReadRequest request) {
+			// TODO Auto-generated method stub
+			
 		}
 		public void setUploadRateLimitBytesPerSecond( int bytes ){}
 		public void setDownloadRateLimitBytesPerSecond( int bytes ){}

@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.peer;
 
 import java.net.InetAddress;
 
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.plugins.network.Connection;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
@@ -363,6 +364,10 @@ PEPeer
 	        		 
 	public void
 	clearRequestHint();
+	
+	public void
+	sendRejectRequest(
+		DiskManagerReadRequest	request );
 	
 	public void
 	setHaveAggregationEnabled(
