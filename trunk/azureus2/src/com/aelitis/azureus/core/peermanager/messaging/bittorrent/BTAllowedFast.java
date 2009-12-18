@@ -83,7 +83,7 @@ public class BTAllowedFast implements BTMessage {
       throw new MessageException( "[" +getID() +"] decode error: data == null" );
     }
     
-    if( data.remaining( DirectByteBuffer.SS_MSG ) != 12 ) {
+    if( data.remaining( DirectByteBuffer.SS_MSG ) != 4 ) {
       throw new MessageException( "[" +getID() +  "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 12" );
     }
     

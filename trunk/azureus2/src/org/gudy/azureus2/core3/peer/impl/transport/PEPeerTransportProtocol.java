@@ -2634,6 +2634,8 @@ implements PEPeerTransport
 				checkSeed();
 				
 				checkInterested();
+				
+				checkFast( tempHavePieces );
 			}
 		}finally{
 			
@@ -2695,6 +2697,8 @@ implements PEPeerTransport
 
 				checkSeed();
 				checkInterested();
+				
+				checkFast( tempHavePieces );
 			}
 		}
 		finally{
@@ -2702,6 +2706,37 @@ implements PEPeerTransport
 		}
 	}
 
+	protected void
+	checkFast(
+		BitFlags	flags )
+	{
+			// until other clients fully support fast allowed we restrict to 	
+			// AZ only to avoid giving them unfair advantage (specifically uTorrent
+			// will currently use fast pieces but won't offer them)
+		
+		if ( 	fast_extension_enabled &&
+				!(isSeed() || isRelativeSeed()) &&
+				messaging_mode == MESSAGING_AZMP ){
+			
+				// if already has enough pieces then bail
+			
+			if ( flags.nbSet >= 10 ){
+				
+				return;
+			}
+			
+			List<Integer> pieces = generateFastSet();
+			
+			for ( int i: pieces ){
+				
+				if ( !flags.flags[i] ){
+				
+					sendAllowFast( i );
+				}
+			}
+		}
+	}
+	
 	protected void decodeMainlineDHTPort(BTDHTPort port) {
 		int i_port = port.getDHTPort();
 		port.destroy();
@@ -2982,6 +3017,20 @@ implements PEPeerTransport
 		}
 	}
 
+	private void
+	sendAllowFast(
+		int		number )
+	{
+		if ( fast_extension_enabled ){
+			
+			System.out.println( "Sending allow-fast request " + number + " to " + getIp());
+			
+			BTAllowedFast	af = new BTAllowedFast( number, other_peer_reject_request_version );
+	  		  
+	  		connection.getOutgoingMessageQueue().addMessage( af, false );
+		}
+	}
+	
 	protected void decodePiece( BTPiece piece ) {
 		final int pieceNumber = piece.getPieceNumber();
 		final int offset = piece.getPieceOffset();
@@ -3170,7 +3219,7 @@ implements PEPeerTransport
 		
 		allowed.destroy();
 		
-		System.out.println( "received allowed_fast: " + allowed );
+		System.out.println( "received allowed_fast: " + piece );
 	}
 	
 	private void registerForMessageHandling() {
@@ -3951,7 +4000,64 @@ implements PEPeerTransport
 			return( priority_connection );
 		}
 	}
+		
+	protected static List<Integer>
+	generateFastSet(
+		byte[]		hash,
+		String		ip,
+		int			num_pieces,
+		int			num_required )
+	{
+		List<Integer>	res = new ArrayList<Integer>();
+							
+		try{
+			byte[]	address = InetAddress.getByName( ip ).getAddress();
 			
+				// no IPv6 support yet
+
+			if ( address.length == 4 ){
+				
+				byte[]	bytes = new byte[24];
+				
+				System.arraycopy( address, 0, bytes, 0, 3 );
+				System.arraycopy( hash, 0, bytes, 4, 20 );
+				
+				while( res.size() < num_required ){
+					
+					bytes = new SHA1Simple().calculateHash( bytes );
+					
+					int	pos = 0;
+				
+					while( pos < 20 && res.size() < num_required ){
+						
+						long	index = (bytes[pos++] << 24 )&0xff000000L | 
+										(bytes[pos++] << 16 )&0x00ff0000L | 
+										(bytes[pos++] << 8  )&0x0000ff00L | 
+										bytes[pos++]&0x000000ffL;
+		
+						Integer i = new Integer((int)( index%num_pieces ));
+						
+						if ( !res.contains(i)){
+						
+							res.add( i );
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( "Fast set generation failed", e );
+		}
+		
+		return( res );
+	}
+	
+	protected List<Integer>
+	generateFastSet()
+	{
+		return( generateFastSet( manager.getHash(), getIp(), nbPieces, 10 ));	
+	}
+	
 	public void
 	generateEvidence(
 			IndentWriter	writer )
@@ -4009,6 +4115,25 @@ implements PEPeerTransport
 				return value == ((MutableInteger)obj).value;
 			}
 			return false;
+		}
+	}
+	
+	public static void
+	main(
+		String[]		args )
+	{
+		byte[]	 hash = new byte[20];
+		
+		Arrays.fill( hash, (byte)0xAA );
+
+		try{
+			List<Integer> res = generateFastSet( hash, "80.4.4.200", 1313, 9 );
+
+			System.out.println( res );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
 		}
 	}
 }

@@ -118,7 +118,7 @@ public class BTMessageFactory {
     legacy_data.put( BTMessage.ID_BT_REJECT_REQUEST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null, (byte)16 ) );
     id_to_name[16] = BTMessage.ID_BT_REJECT_REQUEST;
     
-    legacy_data.put( BTMessage.ID_BT_ALLOWED_FAST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null, (byte)17 ) );
+    legacy_data.put( BTMessage.ID_BT_ALLOWED_FAST, new LegacyData( RawMessage.PRIORITY_LOW, false, null, (byte)17 ) );
     id_to_name[17] = BTMessage.ID_BT_ALLOWED_FAST;
  
     legacy_data.put( BTMessage.ID_BT_LT_EXT_MESSAGE, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)20 ) );
