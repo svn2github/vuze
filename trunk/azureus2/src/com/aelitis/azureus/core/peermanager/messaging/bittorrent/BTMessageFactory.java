@@ -59,6 +59,11 @@ public class BTMessageFactory {
       MessageManager.getSingleton().registerMessageType( new BTRequest( -1, -1 , -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTUnchoke( MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTUninterested( MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTSuggestPiece( -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTHaveAll( MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTHaveNone( MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTRejectRequest( -1, -1, -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTAllowedFast( -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTLTMessage( null, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new BTDHTPort(-1));
     }
@@ -101,6 +106,21 @@ public class BTMessageFactory {
     legacy_data.put( BTMessage.ID_BT_DHT_PORT, new LegacyData( RawMessage.PRIORITY_LOW, true, null, (byte)9 ) );
     id_to_name[9] = BTMessage.ID_BT_DHT_PORT;
     
+    legacy_data.put( BTMessage.ID_BT_SUGGEST_PIECE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null, (byte)13 ) );
+    id_to_name[13] = BTMessage.ID_BT_SUGGEST_PIECE;
+    
+    legacy_data.put( BTMessage.ID_BT_HAVE_ALL, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)14 ) );
+    id_to_name[14] = BTMessage.ID_BT_HAVE_ALL;
+    
+    legacy_data.put( BTMessage.ID_BT_HAVE_NONE, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)15 ) );
+    id_to_name[15] = BTMessage.ID_BT_HAVE_NONE;
+    
+    legacy_data.put( BTMessage.ID_BT_REJECT_REQUEST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null, (byte)16 ) );
+    id_to_name[16] = BTMessage.ID_BT_REJECT_REQUEST;
+    
+    legacy_data.put( BTMessage.ID_BT_ALLOWED_FAST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null, (byte)17 ) );
+    id_to_name[17] = BTMessage.ID_BT_ALLOWED_FAST;
+ 
     legacy_data.put( BTMessage.ID_BT_LT_EXT_MESSAGE, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)20 ) );
     id_to_name[20] = BTMessage.ID_BT_LT_EXT_MESSAGE;
   }
@@ -150,6 +170,21 @@ public class BTMessageFactory {
         
       case 9:
     	return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_DHT_PORT_BYTES, stream_payload, (byte)1 );
+
+      case 13:
+      	return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_SUGGEST_PIECE_BYTES, stream_payload, (byte)1 );
+
+      case 14:
+      	return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HAVE_ALL_BYTES, stream_payload, (byte)1 );
+
+      case 15:
+      	return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HAVE_NONE_BYTES, stream_payload, (byte)1 );
+
+      case 16:
+      	return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_REJECT_REQUEST_BYTES, stream_payload, (byte)1 );
+
+      case 17:
+      	return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_ALLOWED_FAST_BYTES, stream_payload, (byte)1 );
 
       case 20:
     	  //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.

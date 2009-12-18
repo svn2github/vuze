@@ -73,14 +73,32 @@ public interface BTMessage extends Message {
   public static final String ID_BT_HANDSHAKE    	= "BT_HANDSHAKE";
   public static final byte[] ID_BT_HANDSHAKE_BYTES  = ID_BT_HANDSHAKE.getBytes();
   public static final int SUBID_BT_HANDSHAKE		= 10;
-  
+
   public static final String ID_BT_KEEP_ALIVE   	= "BT_KEEP_ALIVE";
   public static final byte[] ID_BT_KEEP_ALIVE_BYTES = ID_BT_KEEP_ALIVE.getBytes();
   public static final int SUBID_BT_KEEP_ALIVE		= 11;
+
+  public static final String ID_BT_SUGGEST_PIECE   	= "BT_SUGGEST_PIECE";
+  public static final byte[] ID_BT_SUGGEST_PIECE_BYTES = ID_BT_SUGGEST_PIECE.getBytes();
+  public static final int SUBID_BT_SUGGEST_PIECE	= 13;
+  
+  public static final String ID_BT_HAVE_ALL   		= "BT_HAVE_ALL";
+  public static final byte[] ID_BT_HAVE_ALL_BYTES 	= ID_BT_HAVE_ALL.getBytes();
+  public static final int SUBID_BT_HAVE_ALL			= 14;
+
+  public static final String ID_BT_HAVE_NONE	   	= "BT_HAVE_NONE";
+  public static final byte[] ID_BT_HAVE_NONE_BYTES = ID_BT_HAVE_NONE.getBytes();
+  public static final int SUBID_BT_HAVE_NONE		= 15;
+
+  public static final String ID_BT_REJECT_REQUEST  	= "BT_REJECT_REQUEST";
+  public static final byte[] ID_BT_REJECT_REQUEST_BYTES = ID_BT_REJECT_REQUEST.getBytes();
+  public static final int SUBID_BT_REJECT_REQUEST	= 16;
+
+  public static final String ID_BT_ALLOWED_FAST   	= "BT_ALLOWED_FAST";
+  public static final byte[] ID_BT_ALLOWED_FAST_BYTES = ID_BT_ALLOWED_FAST.getBytes();
+  public static final int SUBID_BT_ALLOWED_FAST		= 17;
   
   public static final String ID_BT_LT_EXT_MESSAGE        = "BT_LT_EXT_MESSAGE";
   public static final byte[] ID_BT_LT_EXT_MESSAGE_BYTES  = ID_BT_LT_EXT_MESSAGE.getBytes();
   public static final int SUBID_BT_LT_EXT_MESSAGE	= 20;
-
-
 }

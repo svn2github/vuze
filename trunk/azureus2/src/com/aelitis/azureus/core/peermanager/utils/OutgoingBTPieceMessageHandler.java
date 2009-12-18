@@ -196,6 +196,8 @@ public class OutgoingBTPieceMessageHandler {
     try{
       lock_mon.enter();
     
+      System.out.println( "TODO: ensure piece/reject" );
+      
       requests.addLast( dmr );
       
     }finally{

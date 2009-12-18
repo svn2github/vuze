@@ -57,6 +57,23 @@ public class BTHandshake implements BTMessage, RawMessage {
 	  }
   }
   
+  public static final boolean FAST_EXTENSION_ENABLED = true;
+  
+  public static void setFastExtensionEnabled(boolean enabled) {
+	  if (enabled) {
+		  //BT_RESERVED[7] = (byte)(BT_RESERVED[7] | 0x04);
+		  AZ_RESERVED[7] = (byte)(AZ_RESERVED[7] | 0x04);
+	  }
+	  else {
+		  //BT_RESERVED[7] = (byte)(BT_RESERVED[7] & 0xF3);
+		  AZ_RESERVED[7] = (byte)(AZ_RESERVED[7] & 0xF3);		  
+	  }
+  }
+  
+  static{
+	  setFastExtensionEnabled( FAST_EXTENSION_ENABLED );
+  }
+  
   private DirectByteBuffer buffer = null;
   private String description = null;
   

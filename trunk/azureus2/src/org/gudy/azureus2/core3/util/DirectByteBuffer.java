@@ -70,7 +70,10 @@ DirectByteBuffer
     public static final byte        AL_MSG_LT_EXT_MESSAGE = 27;
     public static final byte        AL_MSG_LT_HANDSHAKE   = 28;
     public static final byte        AL_MSG_UT_PEX         = 29;
-    public static final byte        AL_MSG_BT_DHT_PORT    = 30;
+    public static final byte        AL_MSG_BT_DHT_PORT    		= 30;
+    public static final byte        AL_MSG_BT_REJECT_REQUEST    = 31;
+    public static final byte        AL_MSG_BT_SUGGEST_PIECE   	= 32;
+    public static final byte        AL_MSG_BT_ALLOWED_FAST    	= 33;
     
 	public static final String[] AL_DESCS =
 	{ "None", "Ext", "Other", "PeerRead", "PeerLen",
@@ -90,7 +93,13 @@ DirectByteBuffer
     "AZPayload",
     "File",
     "MsgCrypt",
-    "LTExtMsg","LTExtHandshake","UTPEX", "BTDHTPort"};
+    "LTExtMsg",
+    "LTExtHandshake",
+    "UTPEX", 
+    "BTDHTPort",
+    "BTRejectRequest",
+    "BTSuggestPiece",
+    "BTAllowedFast" };
 	 
     
     

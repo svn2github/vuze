@@ -172,25 +172,31 @@ implements PEPeerTransport
 
 	private int messaging_mode = MESSAGING_BT_ONLY;
 	private Message[] supported_messages = null;
-	private byte	other_peer_bitfield_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_cancel_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_choke_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_handshake_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_bt_have_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_az_have_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_interested_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_keep_alive_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_pex_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_unchoke_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_uninterested_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte	other_peer_request_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-	private byte  	other_peer_bt_lt_ext_version    = BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_bitfield_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_cancel_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_choke_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_handshake_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_bt_have_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_az_have_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_interested_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_keep_alive_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_pex_version				= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_piece_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_unchoke_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_uninterested_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_request_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_suggest_piece_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_have_all_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_have_none_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_reject_request_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_allowed_fast_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte  	other_peer_bt_lt_ext_version    	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_az_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   
-	private boolean ut_pex_enabled = false;
-	private boolean ml_dht_enabled = false;
+	private boolean ut_pex_enabled 			= false;
+	private boolean fast_extension_enabled 	= false;
+	private boolean ml_dht_enabled 			= false;
 
 	private final AEMonitor closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
 	private final AEMonitor general_mon  	= new AEMonitor( "PEPeerTransportProtocol:data" );
@@ -1197,9 +1203,10 @@ implements PEPeerTransport
 		try{
 			requested_mon.enter();
 
-			if (!requested.contains(request))
-			{
+			if (!requested.contains(request)){
+				
 				requested.add(request);
+				
 				added =true;
 			}
 		}finally{
@@ -1838,23 +1845,6 @@ implements PEPeerTransport
 		finally{  requested_mon.exit();  }
 	}
 
-	/** @deprecated no longer used by CVS code
-	 */		
-	protected void
-	addRequest(
-			DiskManagerReadRequest	request )
-	{
-		try{
-			requested_mon.enter();
-
-			requested.add(request);
-		}finally{
-
-			requested_mon.exit();
-		}
-		_lastPiece =request.getPieceNumber();
-	}
-
 	protected void
 	removeRequest(
 			DiskManagerReadRequest	request )
@@ -2234,7 +2224,10 @@ implements PEPeerTransport
       }
 		 */
 		
-		this.ml_dht_enabled = (handshake_reserved_bytes[7] & 1) == 1; 
+		this.ml_dht_enabled = (handshake_reserved_bytes[7] & 0x01 ) == 1; 
+		
+		fast_extension_enabled = BTHandshake.FAST_EXTENSION_ENABLED && (handshake_reserved_bytes[7] & 0x04) != 0;
+				
 		messaging_mode = decideExtensionProtocol(handshake);
 
 		//extended protocol processing
@@ -2506,6 +2499,16 @@ implements PEPeerTransport
 					other_peer_uninterested_version = supported_version;
 				else if (id == BTMessage.ID_BT_REQUEST)
 					other_peer_request_version = supported_version;
+				else if (id == BTMessage.ID_BT_SUGGEST_PIECE)
+					other_peer_suggest_piece_version = supported_version;
+				else if (id == BTMessage.ID_BT_HAVE_ALL)
+					other_peer_have_all_version = supported_version;
+				else if (id == BTMessage.ID_BT_HAVE_NONE)
+					other_peer_have_none_version = supported_version;
+				else if (id == BTMessage.ID_BT_REJECT_REQUEST)
+					other_peer_reject_request_version = supported_version;
+				else if (id == BTMessage.ID_BT_ALLOWED_FAST)
+					other_peer_allowed_fast_version = supported_version;
 				else if (id == AZMessage.ID_AZ_PEER_EXCHANGE)
 					other_peer_pex_version = supported_version;
 				else if (id == AZMessage.ID_AZ_REQUEST_HINT)
@@ -2547,7 +2550,97 @@ implements PEPeerTransport
 		sendMainlineDHTPort();
   	}
 
+	protected void 
+	decodeHaveAll( 
+		BTHaveAll have_all )
+	{
+		have_all.destroy();
+		
+		received_bitfield = true;
 
+		try{
+			closing_mon.enter();
+			
+			if ( !closing ){
+			
+				final BitFlags tempHavePieces;
+				
+				if ( peerHavePieces ==null ){
+				
+					tempHavePieces = new BitFlags(nbPieces);
+					
+				}else{
+				
+					tempHavePieces = peerHavePieces;
+					
+					removeAvailability();
+				}
+				
+				tempHavePieces.setAll();
+				
+				for ( int i=0; i<nbPieces; i++ ){
+					
+					manager.updateSuperSeedPiece( this, i );
+				}
+
+				peerHavePieces = tempHavePieces;
+				
+				addAvailability();
+
+				checkSeed();
+				
+				checkInterested();
+			}
+		}finally{
+			
+			closing_mon.exit();
+		}
+	}
+
+	protected void 
+	decodeHaveNone( 
+		BTHaveNone have_none )
+	{
+		have_none.destroy();
+		
+		received_bitfield = true;
+
+		try{
+			closing_mon.enter();
+			
+			if ( !closing ){
+			
+				final BitFlags tempHavePieces;
+				
+				if ( peerHavePieces ==null ){
+				
+					tempHavePieces = new BitFlags(nbPieces);
+					
+				}else{
+				
+					tempHavePieces = peerHavePieces;
+					
+					removeAvailability();
+				}
+				
+				tempHavePieces.clear();
+				
+				peerHavePieces = tempHavePieces;
+				
+					//some of these kinda pointless but whatever
+				
+				addAvailability();
+
+				checkSeed();
+				
+				checkInterested();
+			}
+		}finally{
+			
+			closing_mon.exit();
+		}
+	}
+	
 	protected void decodeBitfield( BTBitfield bitfield )
 	{
 		received_bitfield = true;
@@ -2856,6 +2949,13 @@ implements PEPeerTransport
 				Logger.log(new LogEvent(this, LOGID, "decodeRequest(): peer request for piece #"
 						+ number + ":" + offset + "->" + (offset + length -1)
 						+ " ignored as peer is currently choked."));
+			
+			if ( fast_extension_enabled ){
+				
+		 		  BTRejectRequest	reject = new BTRejectRequest( number, offset, length, other_peer_reject_request_version );
+		  		  
+		  		  connection.getOutgoingMessageQueue().addMessage( reject, false );
+			}
 		}
 	}
 
@@ -3010,7 +3110,10 @@ implements PEPeerTransport
 
 
 
-	protected void decodeCancel( BTCancel cancel ) {
+	protected void 
+	decodeCancel( 
+		BTCancel cancel ) 
+	{
 		int number = cancel.getPieceNumber();
 		int offset = cancel.getPieceOffset();
 		int length = cancel.getLength();
@@ -3019,155 +3122,211 @@ implements PEPeerTransport
 			outgoing_piece_message_handler.removePieceRequest( number, offset, length );
 	}
 
+	protected void 
+	decodeRejectRequest( 
+		BTRejectRequest reject ) 
+	{
+		int number = reject.getPieceNumber();
+		int offset = reject.getPieceOffset();
+		int length = reject.getLength();
+		reject.destroy();
+		
+		final DiskManagerReadRequest request = manager.createDiskManagerRequest( number, offset, length );
 
+		if ( hasBeenRequested( request )){
+			
+			removeRequest( request );
+			
+			manager.requestCanceled( request );
+		}
+	}
 
+	protected void 
+	decodeAllowedFast( 
+		BTAllowedFast	allowed ) 
+	{
+		int	piece = allowed.getPieceNumber();
+		
+		allowed.destroy();
+		
+		System.out.println( "received allowed_fast: " + allowed );
+	}
+	
 	private void registerForMessageHandling() {
 
 		//INCOMING MESSAGES
-		connection.getIncomingMessageQueue().registerQueueListener( new IncomingMessageQueue.MessageQueueListener() {
-			public final boolean messageReceived( Message message ) {      
-
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(PEPeerTransportProtocol.this, LogIDs.NET,
-							"Received [" + message.getDescription() + "] message"));
-				final long now =SystemTime.getCurrentTime();
-				last_message_received_time =now;
-				if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
-					last_data_message_received_time =now;
-				}
-            
-        String	message_id = message.getID();
-
-        if( message_id.equals( BTMessage.ID_BT_PIECE ) ) {
-					decodePiece( (BTPiece)message );
-					return true;
-				}
-
-				if( closing ) {
-					message.destroy();
-					return true;
-				}
-
-        if(message_id.equals( BTMessage.ID_BT_KEEP_ALIVE ) ) {
-					message.destroy();
-
-					//make sure they're not spamming us
-					if( !message_limiter.countIncomingMessage( message.getID(), 6, 60*1000 ) ) {  //allow max 6 keep-alives per 60sec
-						System.out.println( manager.getDisplayName() + ": Incoming keep-alive message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
-						closeConnectionInternally( "Incoming keep-alive message flood detected, dropping spamming peer connection." );
+		connection.getIncomingMessageQueue().registerQueueListener( 
+			new IncomingMessageQueue.MessageQueueListener() 
+			{
+				public final boolean 
+				messageReceived( 
+					Message message ) 
+				{      
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(PEPeerTransportProtocol.this, LogIDs.NET,
+								"Received [" + message.getDescription() + "] message"));
+					final long now =SystemTime.getCurrentTime();
+					last_message_received_time =now;
+					if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
+						last_data_message_received_time =now;
 					}
 
-					return true;
-				}
+					String	message_id = message.getID();
 
-
-        if( message_id.equals( BTMessage.ID_BT_HANDSHAKE ) ) {
-					decodeBTHandshake( (BTHandshake)message );
-					return true;
-				}
-
-        if( message_id.equals( AZMessage.ID_AZ_HANDSHAKE ) ) {
-					decodeAZHandshake( (AZHandshake)message );
-					return true;
-				}
-        
-        if (message_id.equals(LTMessage.ID_LT_HANDSHAKE)) {
-        	decodeLTHandshake((LTHandshake)message);
-        	return true;
-        }
-
-        if( message_id.equals( BTMessage.ID_BT_BITFIELD ) ) {
-					decodeBitfield( (BTBitfield)message );
-					return true;
-				}
-
-        if( message_id.equals( BTMessage.ID_BT_CHOKE ) ) {
-					decodeChoke( (BTChoke)message );
-					if( choking_other_peer ) {
-						connection.enableEnhancedMessageProcessing( false, manager.getPartitionID());  //downgrade back to normal handler
+					if( message_id.equals( BTMessage.ID_BT_PIECE ) ) {
+						decodePiece( (BTPiece)message );
+						return true;
 					}
-					return true;
+
+					if( closing ) {
+						message.destroy();
+						return true;
+					}
+
+					if(message_id.equals( BTMessage.ID_BT_KEEP_ALIVE ) ) {
+						message.destroy();
+
+						//make sure they're not spamming us
+						if( !message_limiter.countIncomingMessage( message.getID(), 6, 60*1000 ) ) {  //allow max 6 keep-alives per 60sec
+							System.out.println( manager.getDisplayName() + ": Incoming keep-alive message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
+							closeConnectionInternally( "Incoming keep-alive message flood detected, dropping spamming peer connection." );
+						}
+
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_HANDSHAKE ) ) {
+						decodeBTHandshake( (BTHandshake)message );
+						return true;
+					}
+
+					if( message_id.equals( AZMessage.ID_AZ_HANDSHAKE ) ) {
+						decodeAZHandshake( (AZHandshake)message );
+						return true;
+					}
+
+					if (message_id.equals(LTMessage.ID_LT_HANDSHAKE)) {
+						decodeLTHandshake((LTHandshake)message);
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_BITFIELD ) ) {
+						decodeBitfield( (BTBitfield)message );
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_CHOKE ) ) {
+						decodeChoke( (BTChoke)message );
+						if( choking_other_peer ) {
+							connection.enableEnhancedMessageProcessing( false, manager.getPartitionID());  //downgrade back to normal handler
+						}
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_UNCHOKE ) ) {
+						decodeUnchoke( (BTUnchoke)message );
+						connection.enableEnhancedMessageProcessing( true, manager.getPartitionID() );  //make sure we use a fast handler for the resulting download
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_INTERESTED ) ) {
+						decodeInterested( (BTInterested)message );
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_UNINTERESTED ) ) {
+						decodeUninterested( (BTUninterested)message );
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_HAVE ) ) {
+						decodeHave( (BTHave)message );
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_REQUEST ) ) {
+						decodeRequest( (BTRequest)message );
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_CANCEL ) ) {
+						decodeCancel( (BTCancel)message );
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_SUGGEST_PIECE ) ) {
+						decodeSuggestPiece( (BTSuggestPiece)message );
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_HAVE_ALL ) ) {
+						decodeHaveAll( (BTHaveAll)message );
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_HAVE_NONE ) ) {
+						decodeHaveNone( (BTHaveNone)message );
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_REJECT_REQUEST ) ) {
+						decodeRejectRequest( (BTRejectRequest)message );
+						return true;
+					}
+
+					if( message_id.equals( BTMessage.ID_BT_ALLOWED_FAST ) ) {
+						decodeAllowedFast( (BTAllowedFast)message );
+						return true;
+					}
+
+					if (message_id.equals(BTMessage.ID_BT_DHT_PORT)) {
+						decodeMainlineDHTPort((BTDHTPort)message);
+						return true;
+					}
+
+					if( message_id.equals( AZMessage.ID_AZ_PEER_EXCHANGE ) ) {
+						decodePeerExchange( (AZPeerExchange)message );
+						return true;
+					}
+
+					if (message_id.equals(LTMessage.ID_UT_PEX)) {
+						decodePeerExchange((UTPeerExchange)message);
+						return true;
+					}
+
+					if( message_id.equals( AZMessage.ID_AZ_REQUEST_HINT ) ) {        	
+						decodeAZRequestHint( (AZRequestHint)message );
+						return true;
+					}
+
+					if( message_id.equals( AZMessage.ID_AZ_HAVE ) ) {        	
+						decodeAZHave((AZHave)message );
+						return true;
+					}
+
+					if( message_id.equals( AZMessage.ID_AZ_BAD_PIECE ) ) {        	
+						decodeAZBadPiece((AZBadPiece)message );
+						return true;
+					}
+					return false;
 				}
 
-        if( message_id.equals( BTMessage.ID_BT_UNCHOKE ) ) {
-					decodeUnchoke( (BTUnchoke)message );
-					connection.enableEnhancedMessageProcessing( true, manager.getPartitionID() );  //make sure we use a fast handler for the resulting download
-					return true;
+				public final void protocolBytesReceived( int byte_count ) {
+					//update stats
+					peer_stats.protocolBytesReceived( byte_count );
+					manager.protocolBytesReceived( PEPeerTransportProtocol.this, byte_count );
 				}
 
-        if( message_id.equals( BTMessage.ID_BT_INTERESTED ) ) {
-					decodeInterested( (BTInterested)message );
-					return true;
+				public final void dataBytesReceived( int byte_count ) {
+					// Observe that the peer is sending data so that if theyre so slow that the whole
+					// data block times out, we don't think theyre not sending anything at all
+					last_data_message_received_time =SystemTime.getCurrentTime();
+
+					//update stats
+					peer_stats.dataBytesReceived( byte_count );
+
+					manager.dataBytesReceived( PEPeerTransportProtocol.this, byte_count );
 				}
-
-        if( message_id.equals( BTMessage.ID_BT_UNINTERESTED ) ) {
-					decodeUninterested( (BTUninterested)message );
-					return true;
-				}
-
-        if( message_id.equals( BTMessage.ID_BT_HAVE ) ) {
-					decodeHave( (BTHave)message );
-					return true;
-				}
-
-        if( message_id.equals( BTMessage.ID_BT_REQUEST ) ) {
-					decodeRequest( (BTRequest)message );
-					return true;
-				}
-
-        if( message_id.equals( BTMessage.ID_BT_CANCEL ) ) {
-					decodeCancel( (BTCancel)message );
-					return true;
-				}
-        
-        if (message_id.equals(BTMessage.ID_BT_DHT_PORT)) {
-        	decodeMainlineDHTPort((BTDHTPort)message);
-        	return true;
-        }
-
-        if( message_id.equals( AZMessage.ID_AZ_PEER_EXCHANGE ) ) {
-					decodePeerExchange( (AZPeerExchange)message );
-					return true;
-				}
-        
-        if (message_id.equals(LTMessage.ID_UT_PEX)) {
-        	decodePeerExchange((UTPeerExchange)message);
-        	return true;
-        }
-
-        if( message_id.equals( AZMessage.ID_AZ_REQUEST_HINT ) ) {        	
-					decodeAZRequestHint( (AZRequestHint)message );
-            return true;
-        }
-        
-        if( message_id.equals( AZMessage.ID_AZ_HAVE ) ) {        	
-            decodeAZHave((AZHave)message );
-            return true;
-        }
-        
-        if( message_id.equals( AZMessage.ID_AZ_BAD_PIECE ) ) {        	
-            decodeAZBadPiece((AZBadPiece)message );
-					return true;
-				}
-				return false;
-			}
-
-			public final void protocolBytesReceived( int byte_count ) {
-				//update stats
-				peer_stats.protocolBytesReceived( byte_count );
-				manager.protocolBytesReceived( PEPeerTransportProtocol.this, byte_count );
-			}
-
-			public final void dataBytesReceived( int byte_count ) {
-				// Observe that the peer is sending data so that if theyre so slow that the whole
-				// data block times out, we don't think theyre not sending anything at all
-				last_data_message_received_time =SystemTime.getCurrentTime();
-
-				//update stats
-				peer_stats.dataBytesReceived( byte_count );
-
-				manager.dataBytesReceived( PEPeerTransportProtocol.this, byte_count );
-			}
 		});
 
 
@@ -3515,8 +3674,36 @@ implements PEPeerTransport
 	}
 
 	protected void
+	decodeSuggestPiece(
+		BTSuggestPiece	hint )
+	{
+		int	piece_number 	= hint.getPieceNumber();
+		int	offset			= 0;
+		int	length			= manager.getPieceLength( piece_number );
+		int	life			= REQUEST_HINT_MAX_LIFE;
+
+		hint.destroy();
+
+		if ( life > REQUEST_HINT_MAX_LIFE ){
+
+			life = REQUEST_HINT_MAX_LIFE;
+		}
+
+		if ( manager.validateHintRequest( this, piece_number, offset, length )){
+
+			if ( request_hint == null ){ 
+
+				// we ignore life time currently as once hinted we don't accept another hint
+				// until that one is satisfied. This is to prevent too many pieces starting
+
+				request_hint = new int[]{ piece_number, offset, length };
+			}
+		}
+	}
+	
+	protected void
 	decodeAZRequestHint(
-			AZRequestHint	hint )
+		AZRequestHint	hint )
 	{
 		int	piece_number 	= hint.getPieceNumber();
 		int	offset			= hint.getOffset();

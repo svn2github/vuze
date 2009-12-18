@@ -54,20 +54,25 @@ public class AZMessageFactory {
   
   
   
-  private static final Map legacy_data = new HashMap();
+  private static final Map<String,LegacyData> legacy_data = new HashMap<String,LegacyData>();
   static {
-    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke((byte)0), new BTPiece(-1, -1, null,(byte)0 )} ) );
+    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke((byte)0)})); // with support for fast extension we don't cancel outstanding piece data, new BTPiece(-1, -1, null,(byte)0 )} ) );
     legacy_data.put( BTMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, new Message[]{new BTChoke((byte)0)} ) );
     legacy_data.put( BTMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUninterested((byte)0)} ) );
     legacy_data.put( BTMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, new Message[]{new BTInterested((byte)0)} ) );
     legacy_data.put( BTMessage.ID_BT_HAVE, new LegacyData( RawMessage.PRIORITY_LOW, false, null ) );
     legacy_data.put( BTMessage.ID_BT_BITFIELD, new LegacyData( RawMessage.PRIORITY_HIGH, true, null ) );
+    legacy_data.put( BTMessage.ID_BT_HAVE_ALL, new LegacyData( RawMessage.PRIORITY_HIGH, true, null ) );
+    legacy_data.put( BTMessage.ID_BT_HAVE_NONE, new LegacyData( RawMessage.PRIORITY_HIGH, true, null ) );
     legacy_data.put( BTMessage.ID_BT_REQUEST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null ) );
+    legacy_data.put( BTMessage.ID_BT_REJECT_REQUEST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null ) );
     legacy_data.put( BTMessage.ID_BT_PIECE, new LegacyData( RawMessage.PRIORITY_LOW, false, null ) );
     legacy_data.put( BTMessage.ID_BT_CANCEL, new LegacyData( RawMessage.PRIORITY_HIGH, true, null ) );
     legacy_data.put( BTMessage.ID_BT_HANDSHAKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, null ) );
     legacy_data.put( BTMessage.ID_BT_KEEP_ALIVE, new LegacyData( RawMessage.PRIORITY_LOW, false, null ) );
     legacy_data.put( BTMessage.ID_BT_DHT_PORT, new LegacyData( RawMessage.PRIORITY_LOW, false, null ) );
+    legacy_data.put( BTMessage.ID_BT_SUGGEST_PIECE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null ) );
+    legacy_data.put( BTMessage.ID_BT_ALLOWED_FAST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null ) );
   }
   
   
