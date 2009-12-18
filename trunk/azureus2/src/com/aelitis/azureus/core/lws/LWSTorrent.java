@@ -47,26 +47,43 @@ LWSTorrent
 	private static TOTorrentAnnounceURLGroup announce_group = 
 		new TOTorrentAnnounceURLGroup()
 		{
+			private TOTorrentAnnounceURLSet[]	sets = new TOTorrentAnnounceURLSet[0];
+			
 			public TOTorrentAnnounceURLSet[]
            	getAnnounceURLSets()
 			{
-				return( new TOTorrentAnnounceURLSet[0]);
+				return( sets );
 			}           	
  
            	public void
            	setAnnounceURLSets(
-           		TOTorrentAnnounceURLSet[]	sets )
+           		TOTorrentAnnounceURLSet[]	_sets )
            	{
-           		notSupported();
+           		sets	= _sets;
            	}
            		
            	public TOTorrentAnnounceURLSet
            	createAnnounceURLSet(
-           		URL[]	urls )
+           		final URL[]	_urls )
            	{
-           		notSupported();
-           		
-           		return( null );
+           		return( 
+           			new TOTorrentAnnounceURLSet()
+           			{
+           				private URL[] urls = _urls;
+           				
+           				public URL[]
+           				getAnnounceURLs()
+           				{
+           					return( urls );
+           				}
+           				    	
+           				public void
+           				setAnnounceURLs(
+           					URL[]		_urls )
+           				{
+           					urls = _urls;
+           				}
+           			});
            	}
 		};
 		
