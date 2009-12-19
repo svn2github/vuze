@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -273,7 +274,12 @@ DeviceUPnPImpl
 				locs.add( new browseLocationImpl( "device.upnp.present_url", presentation ));
 			}
 			
-			locs.add( new browseLocationImpl( "device.upnp.desc_url", device.getRootDevice().getLocation()));
+			int userMode = COConfigurationManager.getIntParameter("User Mode");
+			
+			if ( userMode > 1 ){
+			
+				locs.add( new browseLocationImpl( "device.upnp.desc_url", device.getRootDevice().getLocation()));
+			}
 		}
 		
 		return( locs.toArray( new browseLocation[ locs.size() ]));
