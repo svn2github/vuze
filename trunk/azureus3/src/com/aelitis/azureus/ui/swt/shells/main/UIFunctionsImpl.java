@@ -117,9 +117,9 @@ public class UIFunctionsImpl
 		this.mainWindow = window;
 		
 		COConfigurationManager.addAndFireParameterListener(
-				"Menu.show.torrent.menu", new ParameterListener() {
+				"show_torrents_menu", new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						isTorrentMenuVisible = COConfigurationManager.getBooleanParameter("Menu.show.torrent.menu");
+						isTorrentMenuVisible = COConfigurationManager.getBooleanParameter("show_torrents_menu");
 					}
 				});
 	}
