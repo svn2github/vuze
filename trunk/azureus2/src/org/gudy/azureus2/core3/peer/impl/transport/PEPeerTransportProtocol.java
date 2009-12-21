@@ -198,7 +198,7 @@ implements PEPeerTransport
 	private byte	other_peer_az_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   
-	private static final boolean DEBUG_FAST = true;
+	private static final boolean DEBUG_FAST = false;
 	
 	private boolean ut_pex_enabled 			= false;
 	private boolean fast_extension_enabled 	= false;
