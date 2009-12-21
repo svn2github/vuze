@@ -469,7 +469,7 @@ public class MessageSlideShell
 		lblCloseIn = new Label(cShell, SWT.TRAIL);
 		lblCloseIn.setForeground(colorFG);
 		// Ensure computeSize computes for 2 lined label
-		lblCloseIn.setText("\n");
+		lblCloseIn.setText(" \n ");
 		gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
 		gridData.horizontalSpan = 3;
 		lblCloseIn.setLayoutData(gridData);
