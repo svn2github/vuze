@@ -283,8 +283,8 @@ public class MainMenu
 							ToolBarItem item = tb.getToolBarItem("modeBig");
 							if (item != null && item.isEnabled()) {
 								itemShowAsSimple.setEnabled(true);
-								itemShowAsSimple.setSelection(!item.getSkinButton().getSkinObject().getSuffix().equals(
-										""));
+								itemShowAsSimple.setSelection(item.getSkinButton().getSkinObject().getSuffix().contains(
+										"-down"));
 							} else {
 								itemShowAsSimple.setEnabled(false);
 								itemShowAsSimple.setSelection(false);
@@ -299,8 +299,8 @@ public class MainMenu
 							ToolBarItem item = tb.getToolBarItem("modeSmall");
 							if (item != null && item.isEnabled()) {
 								itemShowAsAdv.setEnabled(true);
-								itemShowAsAdv.setSelection(!item.getSkinButton().getSkinObject().getSuffix().equals(
-										""));
+								itemShowAsAdv.setSelection(item.getSkinButton().getSkinObject().getSuffix().contains(
+										"-down"));
 							} else {
 								itemShowAsAdv.setSelection(false);
 								itemShowAsAdv.setEnabled(false);
