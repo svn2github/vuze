@@ -198,6 +198,8 @@ implements PEPeerTransport
 	private byte	other_peer_az_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   
+	private static final boolean DEBUG_FAST = true;
+	
 	private boolean ut_pex_enabled 			= false;
 	private boolean fast_extension_enabled 	= false;
 	private boolean ml_dht_enabled 			= false;
@@ -1229,9 +1231,11 @@ implements PEPeerTransport
             connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength, other_peer_request_version ), false );
 			_lastPiece =pieceNumber;
 
-			if ( really_choked_by_other_peer ){
+			if ( DEBUG_FAST ){
+				if ( really_choked_by_other_peer ){
 				
-				System.out.println( "sending fast-allowed request" );		
+					System.out.println( "Sending allow-fast request for " + pieceNumber + "/" + pieceOffset + "/" + pieceLength + " to " + getIp());		
+				}
 			}
 			
 			try{
@@ -2991,7 +2995,9 @@ implements PEPeerTransport
 								
 								 pieces[i][1] -= length;
 								 
-								 System.out.println( "permitting fast-allowed request" );
+								 if ( DEBUG_FAST ){
+									 System.out.println( "Permitting fast-allowed request for " + number + "/" + offset + "/" + length + " to " + getIp());
+								 }
 								 
 								 request_ok = true;
 								 
@@ -3264,7 +3270,7 @@ implements PEPeerTransport
 		}
 	}
 
-	protected void 
+	private void 
 	decodeAllowedFast( 
 		BTAllowedFast	allowed ) 
 	{
@@ -3279,8 +3285,10 @@ implements PEPeerTransport
 			return;
 		}
 		
-		System.out.println( "received allowed_fast: " + piece );
-
+		if ( DEBUG_FAST ){
+			System.out.println( "Received allow-fast " + piece + " from " + getIp());
+		}
+		
 		try{
 			general_mon.enter();
 			
@@ -3313,9 +3321,11 @@ implements PEPeerTransport
 	{
 		if ( fast_extension_enabled ){
 			
-			System.out.println( "Sending allow-fast request " + number + " to " + getIp());
+			if ( DEBUG_FAST ){
+				System.out.println( "Sending allow-fast " + number + " to " + getIp());
+			}
 			
-			BTAllowedFast	af = new BTAllowedFast( number, other_peer_reject_request_version );
+			BTAllowedFast	af = new BTAllowedFast( number, other_peer_allowed_fast_version );
 	  		  
 	  		connection.getOutgoingMessageQueue().addMessage( af, false );
 		}
@@ -3441,7 +3451,9 @@ implements PEPeerTransport
 
 				if ( pieces != null ){
 					
-					System.out.println( "Clearing down fast received" );
+					if ( DEBUG_FAST ){
+						System.out.println( "Clearing down fast received for " + getIp());
+					}
 					
 					setUserData( KEY_ALLOWED_FAST_RECEIVED, null );
 					
@@ -3457,7 +3469,9 @@ implements PEPeerTransport
 
 				if ( pieces != null ){
 					
-					System.out.println( "Clearing down fast sent" );
+					if ( DEBUG_FAST ){
+						System.out.println( "Clearing down fast sent for " + getIp());
+					}
 					
 					setUserData( KEY_ALLOWED_FAST_SENT, null );
 				}
