@@ -1229,7 +1229,7 @@ ExternalSeedReaderImpl
 				request.cancel();
 			}
 			
-			if ( dangling_requests != null & dangling_requests.contains( request ) && !request.isCancelled()){
+			if ( dangling_requests != null && dangling_requests.contains( request ) && !request.isCancelled()){
 				
 				request.cancel();
 			}
