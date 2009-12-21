@@ -22,11 +22,12 @@ package org.gudy.azureus2.ui.swt.win32;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.internal.win32.*;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
@@ -45,6 +46,12 @@ public class Win32UIEnhancer
 
 	public static final boolean DEBUG = false;
 
+	public static final int SHGFI_ICON = 0x000000100;
+	
+	public static final int SHGFI_SMALLICON= 0x1;
+	
+	public static final int SHGFI_USEFILEATTRIBUTES = 0x000000010;
+
 	public static final int SHGFI_LARGEICON = 0x2;
 
 	public static final int WM_DEVICECHANGE = 0x219;
@@ -54,6 +61,8 @@ public class Win32UIEnhancer
 	public static final int DBT_DEVICEREMOVECOMPLETE = 0x8004;
 
 	public static final int DBT_DEVTYP_VOLUME = 0x2;
+
+	public static final int FILE_ATTRIBUTE_NORMAL = 0x00000080; 
 
 	private static int messageProcInt;
 
@@ -81,9 +90,55 @@ public class Win32UIEnhancer
 
 	private static Method mOS_memmove_int;
 
+	private static boolean isUnicode;
+
+	private static Class<?> claSHFILEINFO;
+
+	private static Class<?> claSHFILEINFOA;
+
+	private static Class<?> claSHFILEINFOW;
+
+	private static Class<?> claTCHAR;
+
+	private static Method mSHGetFileInfo;
+
+	private static Method mImage_win32_new;
+
+	private static Constructor<?> constTCHAR3;
+
+	private static int SHFILEINFO_sizeof;
+
 	static {
 		try {
 			claOS = Class.forName("org.eclipse.swt.internal.win32.OS");
+			
+			isUnicode = claOS.getDeclaredField("IsUnicode").getBoolean(null);
+						
+			claSHFILEINFO = Class.forName("org.eclipse.swt.internal.win32.SHFILEINFO");
+			
+			SHFILEINFO_sizeof = claSHFILEINFO.getField("sizeof").getInt(null);
+			
+			claSHFILEINFOA = Class.forName("org.eclipse.swt.internal.win32.SHFILEINFOA");
+			claSHFILEINFOW = Class.forName("org.eclipse.swt.internal.win32.SHFILEINFOW");
+			
+			claTCHAR = Class.forName("org.eclipse.swt.internal.win32.TCHAR");
+			
+			// public TCHAR (int codePage, String string, boolean terminate) {
+			constTCHAR3 = claTCHAR.getConstructor(new Class[] {
+				int.class,
+				String.class,
+				boolean.class
+			});
+			
+			//public static long /*int*/ SHGetFileInfo (TCHAR pszPath, int dwFileAttributes, SHFILEINFO psfi, int cbFileInfo, int uFlags)
+			mSHGetFileInfo = claOS.getMethod("SHGetFileInfo", new Class<?>[] {
+				claTCHAR,
+				int.class,
+				claSHFILEINFO,
+				int.class,
+				int.class,
+			});
+
 
 			// public Callback (Object object, String method, int argCount)
 			claCallback = Class.forName("org.eclipse.swt.internal.Callback");
@@ -117,6 +172,12 @@ public class Win32UIEnhancer
 					int.class,
 					int.class
 				});
+				
+				mImage_win32_new = Image.class.getMethod("win32_new", new Class[] {
+					Device.class,
+					int.class,
+					int.class
+				});
 			} catch (Exception e) {
 				//e.printStackTrace();
 				mSetWindowLongPtr = claOS.getMethod("SetWindowLongPtr",
@@ -137,6 +198,12 @@ public class Win32UIEnhancer
 					long.class,
 					long.class
 				});
+
+				mImage_win32_new = Image.class.getMethod("win32_new", new Class[] {
+					Device.class,
+					int.class,
+					long.class
+				});
 			}
 
 			//OS.GWLP_WNDPROC
@@ -147,22 +214,49 @@ public class Win32UIEnhancer
 	}
 
 	public static Image getFileIcon(File file, boolean big) {
-		int flags = OS.SHGFI_ICON;
-		flags |= big ? SHGFI_LARGEICON : OS.SHGFI_SMALLICON;
-		if (!file.exists()) {
-			flags |= OS.SHGFI_USEFILEATTRIBUTES;
+		try {
+  		int flags = SHGFI_ICON;
+  		flags |= big ? SHGFI_LARGEICON : SHGFI_SMALLICON;
+  		if (!file.exists()) {
+  			flags |= SHGFI_USEFILEATTRIBUTES;
+  		}
+  		Object shfi;
+  		if (isUnicode) {
+  			shfi = claSHFILEINFOW.newInstance();
+  		} else {
+  			shfi = claSHFILEINFOA.newInstance();
+  		}
+  		Object pszPath = constTCHAR3.newInstance(0, file.getAbsolutePath(), true);
+  		
+  		mSHGetFileInfo.invoke(null, new Object[] {
+  			pszPath,
+  			file.isDirectory() ? 16
+  					: FILE_ATTRIBUTE_NORMAL, shfi, SHFILEINFO_sizeof, flags
+  		});
+  
+  		Field fldHIcon = claSHFILEINFO.getField("hIcon");
+  		if (fldHIcon.getLong(shfi) == 0) {
+  			return null;
+  		}
+  		Image image = null;
+  		if (useLong) {
+  			image = (Image) mImage_win32_new.invoke(null, new Object[] {
+  				null,
+  				SWT.ICON,
+  				fldHIcon.getLong(shfi)
+  			});
+  		} else {
+  			image = (Image) mImage_win32_new.invoke(null, new Object[] {
+  				null,
+  				SWT.ICON,
+  				fldHIcon.getInt(shfi)
+  			});
+  		}
+  		
+  		return image;
+		} catch (Exception e) {
+			return null;
 		}
-		SHFILEINFO shfi = OS.IsUnicode ? (SHFILEINFO) new SHFILEINFOW()
-				: new SHFILEINFOA();
-		TCHAR pszPath = new TCHAR(0, file.getAbsolutePath(), true);
-		OS.SHGetFileInfo(pszPath, file.isDirectory() ? 16
-				: OS.FILE_ATTRIBUTE_NORMAL, shfi, SHFILEINFO.sizeof, flags);
-		if (shfi.hIcon != 0) {
-			Image image = Image.win32_new(null, SWT.ICON, shfi.hIcon);
-			return image;
-		}
-
-		return null;
 	}
 
 	public static void initMainShell(Shell shell) {
