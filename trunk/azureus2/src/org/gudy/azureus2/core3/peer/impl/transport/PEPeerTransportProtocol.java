@@ -106,7 +106,9 @@ implements PEPeerTransport
 
 	private long lastNeededUndonePieceChange;
 
-	protected boolean choked_by_other_peer = true;
+	protected boolean really_choked_by_other_peer = true;
+	protected boolean effectively_choked_by_other_peer = true;
+	
 	/** total time the other peer has unchoked us while not snubbed */
 	protected long unchokedTimeTotal;
 	/** the time at which the other peer last unchoked us when not snubbed */
@@ -121,6 +123,8 @@ implements PEPeerTransport
 	private volatile boolean	availabilityAdded =false;
 	private volatile boolean	received_bitfield;
 
+	private int[]	piece_priority_offsets;
+	
 	private boolean handshake_sent;
 
 	private boolean seeding = false;
@@ -198,6 +202,12 @@ implements PEPeerTransport
 	private boolean fast_extension_enabled 	= false;
 	private boolean ml_dht_enabled 			= false;
 
+	private static final int	ALLOWED_FAST_PIECE_OFFERED_NUM		= 10;
+	private static final int	ALLOWED_FAST_OTHER_PEER_PIECE_MAX	= 10;
+	
+	private static final Object	KEY_ALLOWED_FAST_RECEIVED 	= new Object();
+	private static final Object	KEY_ALLOWED_FAST_SENT 		= new Object();
+	
 	private final AEMonitor closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
 	private final AEMonitor general_mon  	= new AEMonitor( "PEPeerTransportProtocol:data" );
 
@@ -1095,7 +1105,7 @@ implements PEPeerTransport
 
 	public boolean isDownloadPossible()
 	{
-		if (!closing &&!choked_by_other_peer)
+		if (!closing &&!effectively_choked_by_other_peer)
 		{
 			if (lastNeededUndonePieceChange <piecePicker.getNeededUndonePieceChange())
 			{
@@ -1117,7 +1127,7 @@ implements PEPeerTransport
 	}
 
 	public boolean transferAvailable() {
-		return (!choked_by_other_peer && interested_in_other_peer);
+		return (!effectively_choked_by_other_peer && interested_in_other_peer);
 	}
 
 
@@ -1219,6 +1229,11 @@ implements PEPeerTransport
             connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength, other_peer_request_version ), false );
 			_lastPiece =pieceNumber;
 
+			if ( really_choked_by_other_peer ){
+				
+				System.out.println( "sending fast-allowed request" );		
+			}
+			
 			try{
 				recent_outgoing_requests_mon.enter();
 
@@ -1275,12 +1290,7 @@ implements PEPeerTransport
 		choking_other_peer = true;
 		is_optimistic_unchoke = false;
 		
-		if(outgoing_piece_message_handler != null)
-		{
-			outgoing_piece_message_handler.removeAllPieceRequests();
-			outgoing_piece_message_handler.destroy();
-			outgoing_piece_message_handler = null;
-		}
+		destroyPieceMessageHandler();
 	}
 
 
@@ -1288,8 +1298,20 @@ implements PEPeerTransport
 		if ( current_peer_state != TRANSFERING ) return;
 
 		//System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " unchoked");
-		if(outgoing_piece_message_handler == null)
-		{
+
+		createPieceMessageHandler();
+
+		choking_other_peer = false;	// set this first as with pseudo peers we can effectively synchronously act
+		// on the unchoke advice and we don't want that borking with choked still set
+
+    connection.getOutgoingMessageQueue().addMessage( new BTUnchoke(other_peer_unchoke_version), false );
+	}
+
+	private void
+	createPieceMessageHandler()
+	{
+		if ( outgoing_piece_message_handler == null ){
+			
 			outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler(
 				this,
 				connection.getOutgoingMessageQueue(),
@@ -1304,15 +1326,17 @@ implements PEPeerTransport
 			},
 			other_peer_piece_version);
 		}
-
-
-
-		choking_other_peer = false;	// set this first as with pseudo peers we can effectively synchronously act
-		// on the unchoke advice and we don't want that borking with choked still set
-
-    connection.getOutgoingMessageQueue().addMessage( new BTUnchoke(other_peer_unchoke_version), false );
 	}
-
+	
+	private void
+	destroyPieceMessageHandler()
+	{
+		if (outgoing_piece_message_handler != null ){
+			outgoing_piece_message_handler.removeAllPieceRequests();
+			outgoing_piece_message_handler.destroy();
+			outgoing_piece_message_handler = null;
+		}
+	}
 
 	private void sendKeepAlive() {
 		if ( current_peer_state != TRANSFERING ) return;
@@ -1577,16 +1601,14 @@ implements PEPeerTransport
 	public PEPeerStats getStats() {  return peer_stats;  }
 
 	public int[]
-	           getPriorityOffsets()
+	getPriorityOffsets()
 	{
-		// normal peer has no special priority requirements
-
-		return( null );
+		return( piece_priority_offsets );
 	}
 
 	public boolean
 	requestAllocationStarts(
-			int[]	base_priorities )
+		int[]	base_priorities )
 	{
 		return( false );
 	}
@@ -1611,7 +1633,7 @@ implements PEPeerTransport
 		return false;
 	}
 
-	public boolean isChokingMe() {  return choked_by_other_peer;  }
+	public boolean isChokingMe() {  return effectively_choked_by_other_peer;  }
 	public boolean isChokedByMe() {  return choking_other_peer;  }
 	/**
 	 * @return true if the peer is interesting to us
@@ -1662,14 +1684,14 @@ implements PEPeerTransport
 				{
 					snubbed =0;
 					manager.decNbPeersSnubbed();
-					if (!choked_by_other_peer)
+					if (!effectively_choked_by_other_peer)
 						unchokedTime =now;
 				}
 			} else if (snubbed ==0)
 			{
 				snubbed =now;
 				manager.incNbPeersSnubbed();
-				if (!choked_by_other_peer)
+				if (!effectively_choked_by_other_peer)
 				{
 					final long unchoked =now -unchokedTime;
 					if (unchoked >0)
@@ -1917,6 +1939,11 @@ implements PEPeerTransport
 		//PEPeerTransport.CONNECTION_CONNECTING are handled by the ConnectDisconnectManager
 		//so we don't need to deal with them here.
 
+		if ( fast_extension_enabled ){
+			
+			checkAllowedFast();
+		}
+		
 		final long now =SystemTime.getCurrentTime();
 		//make sure we time out stalled connections
 		if( connection_state == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
@@ -2705,37 +2732,6 @@ implements PEPeerTransport
 			closing_mon.exit();
 		}
 	}
-
-	protected void
-	checkFast(
-		BitFlags	flags )
-	{
-			// until other clients fully support fast allowed we restrict to 	
-			// AZ only to avoid giving them unfair advantage (specifically uTorrent
-			// will currently use fast pieces but won't offer them)
-		
-		if ( 	fast_extension_enabled &&
-				!(isSeed() || isRelativeSeed()) &&
-				messaging_mode == MESSAGING_AZMP ){
-			
-				// if already has enough pieces then bail
-			
-			if ( flags.nbSet >= 10 ){
-				
-				return;
-			}
-			
-			List<Integer> pieces = generateFastSet();
-			
-			for ( int i: pieces ){
-				
-				if ( !flags.flags[i] ){
-				
-					sendAllowFast( i );
-				}
-			}
-		}
-	}
 	
 	protected void decodeMainlineDHTPort(BTDHTPort port) {
 		int i_port = port.getDHTPort();
@@ -2751,9 +2747,10 @@ implements PEPeerTransport
 
 	protected void decodeChoke( BTChoke choke ) {    
 		choke.destroy();
-		if (!choked_by_other_peer)
+		if (!really_choked_by_other_peer)
 		{
-			choked_by_other_peer = true;
+			really_choked_by_other_peer = true;
+			calculatePiecePriorities();
 			cancelRequests();
 			final long unchoked =SystemTime.getCurrentTime() -unchokedTime;
 			if (unchoked >0 &&!isSnubbed())
@@ -2764,14 +2761,14 @@ implements PEPeerTransport
 
 	protected void decodeUnchoke( BTUnchoke unchoke ) {
 		unchoke.destroy();
-		if (choked_by_other_peer)
+		if (really_choked_by_other_peer)
 		{
-			choked_by_other_peer = false;
+			really_choked_by_other_peer = false;
+			calculatePiecePriorities();
 			if (!isSnubbed())
 				unchokedTime =SystemTime.getCurrentTime();
 		}
 	}
-
 
 	protected void 
 	decodeInterested( 
@@ -2975,9 +2972,48 @@ implements PEPeerTransport
 			return;
 		}
 		
-		if ( !choking_other_peer ){
+		boolean	request_ok = false;
+		
+		if ( choking_other_peer ){
 			
-			if ( !outgoing_piece_message_handler.addPieceRequest( number, offset, length )){
+			try{
+				general_mon.enter();
+				
+				int[][] pieces = (int[][])getUserData( KEY_ALLOWED_FAST_SENT );
+				
+				if ( pieces != null ){
+				
+					for (int i=0;i<pieces.length;i++){
+						
+						if ( pieces[i][0] == number ){
+							
+							if ( pieces[i][1] >= length ){
+								
+								 pieces[i][1] -= length;
+								 
+								 System.out.println( "permitting fast-allowed request" );
+								 
+								 request_ok = true;
+								 
+								 createPieceMessageHandler();
+								 
+								 break;
+							}
+						}
+					}			
+				}
+			}finally{
+				
+				general_mon.exit();
+			}
+		}else{
+			
+			request_ok = true;
+		}
+		
+		if ( request_ok ){
+		
+			if ( outgoing_piece_message_handler == null || !outgoing_piece_message_handler.addPieceRequest( number, offset, length )){
 				
 				sendRejectRequest( number, offset, length );
 			}
@@ -2990,7 +3026,7 @@ implements PEPeerTransport
 						+ number + ":" + offset + "->" + (offset + length -1)
 						+ " ignored as peer is currently choked."));
 			
-
+			sendRejectRequest( number, offset, length );
 		}
 	}
 
@@ -3014,20 +3050,6 @@ implements PEPeerTransport
 			BTRejectRequest	reject = new BTRejectRequest( number, offset, length, other_peer_reject_request_version );
 	  		  
 	  		connection.getOutgoingMessageQueue().addMessage( reject, false );
-		}
-	}
-
-	private void
-	sendAllowFast(
-		int		number )
-	{
-		if ( fast_extension_enabled ){
-			
-			System.out.println( "Sending allow-fast request " + number + " to " + getIp());
-			
-			BTAllowedFast	af = new BTAllowedFast( number, other_peer_reject_request_version );
-	  		  
-	  		connection.getOutgoingMessageQueue().addMessage( af, false );
 		}
 	}
 	
@@ -3208,6 +3230,37 @@ implements PEPeerTransport
 			removeRequest( request );
 			
 			manager.requestCanceled( request );
+		
+				// if fast-allowed block rejected, remove from set so we don't re-request it
+			
+			try{
+				general_mon.enter();
+				
+				List<Integer> pieces = (List<Integer>)getUserData( KEY_ALLOWED_FAST_RECEIVED );
+				
+				if ( pieces != null ){
+					
+					pieces.remove( new Integer( number ));
+					
+					if ( pieces.size() == 0 ){
+						
+						setUserData( KEY_ALLOWED_FAST_RECEIVED, null );
+					}
+				}
+				
+				int[]	priorities = piece_priority_offsets;
+	
+				if ( priorities != null ){
+					
+					priorities[number] = Integer.MIN_VALUE;
+				}
+				
+				calculatePiecePriorities();
+				
+			}finally{
+				
+				general_mon.exit();
+			}
 		}
 	}
 
@@ -3218,8 +3271,201 @@ implements PEPeerTransport
 		int	piece = allowed.getPieceNumber();
 		
 		allowed.destroy();
+				
+		if ( piecePicker.getNbPiecesDone() > ALLOWED_FAST_OTHER_PEER_PIECE_MAX ){
+			
+				// we have too many pieces already, ignore
+			
+			return;
+		}
 		
 		System.out.println( "received allowed_fast: " + piece );
+
+		try{
+			general_mon.enter();
+			
+			List<Integer> pieces = (List<Integer>)getUserData( KEY_ALLOWED_FAST_RECEIVED );
+			
+			if ( pieces == null ){
+			
+				pieces = new ArrayList<Integer>( ALLOWED_FAST_OTHER_PEER_PIECE_MAX );
+				
+				setUserData( KEY_ALLOWED_FAST_RECEIVED, pieces );
+			}
+			
+			Integer i = new Integer( piece );
+					
+			if ( !pieces.contains( i ) && i >=0 && i < nbPieces ){
+				
+				pieces.add( i );
+			
+				calculatePiecePriorities();
+			}
+		}finally{
+			
+			general_mon.exit();
+		}
+	}
+	
+	private void
+	sendAllowFast(
+		int		number )
+	{
+		if ( fast_extension_enabled ){
+			
+			System.out.println( "Sending allow-fast request " + number + " to " + getIp());
+			
+			BTAllowedFast	af = new BTAllowedFast( number, other_peer_reject_request_version );
+	  		  
+	  		connection.getOutgoingMessageQueue().addMessage( af, false );
+		}
+	}
+
+	protected void
+	calculatePiecePriorities()
+	{
+		try{
+			general_mon.enter();
+			
+			if ( really_choked_by_other_peer ){
+				
+				List<Integer> pieces = (List<Integer>)getUserData( KEY_ALLOWED_FAST_RECEIVED );
+
+				if ( pieces == null ){
+					
+					effectively_choked_by_other_peer = true;
+					
+					piece_priority_offsets	= null;
+					
+				}else{
+										
+					int[]	priorities = piece_priority_offsets;
+					
+					if ( priorities == null ){
+						
+						priorities = new int[nbPieces];
+					
+						Arrays.fill( priorities, Integer.MIN_VALUE );
+					}
+					
+					for ( int i: pieces ){
+						
+						priorities[i] = 0;
+					}
+										
+					piece_priority_offsets = priorities;
+					
+					effectively_choked_by_other_peer = false;
+				}
+			}else{
+				
+				effectively_choked_by_other_peer = false;
+				
+				piece_priority_offsets = null;
+			}
+		}finally{
+			
+			general_mon.exit();
+		}
+	}
+
+	protected void
+	checkFast(
+		BitFlags	flags )
+	{
+			// until other clients fully support fast allowed we restrict to 	
+			// AZ only to avoid giving them unfair advantage (specifically uTorrent
+			// will currently use fast pieces but won't offer them)
+		
+		if ( 	fast_extension_enabled &&
+				!(isSeed() || isRelativeSeed()) &&
+				messaging_mode == MESSAGING_AZMP ){
+			
+				// if already has enough pieces then bail
+			
+			if ( flags.nbSet >= ALLOWED_FAST_OTHER_PEER_PIECE_MAX ){
+				
+				return;
+			}
+			
+			int[][] pieces;
+			
+			try{
+				general_mon.enter();
+				
+				pieces = (int[][])getUserData( KEY_ALLOWED_FAST_SENT );
+				
+				if ( pieces == null ){
+				
+					List<Integer> l_pieces = generateFastSet( ALLOWED_FAST_PIECE_OFFERED_NUM );
+					
+					pieces = new int[l_pieces.size()][2];
+					
+					int	piece_size = diskManager.getPieceLength();
+					
+					for ( int i=0;i<l_pieces.size(); i++ ){
+						
+						int	piece_number = l_pieces.get(i);
+						
+						pieces[i] = new int[]{ piece_number, piece_size*2 };
+					}
+					
+					setUserData( KEY_ALLOWED_FAST_SENT, pieces );
+				}
+			}finally{
+				
+				general_mon.exit();
+			}
+			
+			for ( int i=0;i<pieces.length;i++){
+				
+				int	piece_number = pieces[i][0];
+				
+				if ( !flags.flags[ piece_number ] ){
+				
+					sendAllowFast( piece_number );
+				}
+			}
+		}
+	}
+	
+	private void
+	checkAllowedFast()
+	{
+		try{
+			general_mon.enter();
+
+			if ( piecePicker.getNbPiecesDone() > ALLOWED_FAST_OTHER_PEER_PIECE_MAX ){
+		
+				List<Integer> pieces = (List<Integer>)getUserData( KEY_ALLOWED_FAST_RECEIVED );
+
+				if ( pieces != null ){
+					
+					System.out.println( "Clearing down fast received" );
+					
+					setUserData( KEY_ALLOWED_FAST_RECEIVED, null );
+					
+					calculatePiecePriorities();
+				}
+			}
+		
+			BitFlags flags = peerHavePieces;
+		
+			if ( flags != null && flags.nbSet >= ALLOWED_FAST_OTHER_PEER_PIECE_MAX ){
+				
+				int[][] pieces = (int[][])getUserData( KEY_ALLOWED_FAST_SENT );
+
+				if ( pieces != null ){
+					
+					System.out.println( "Clearing down fast sent" );
+					
+					setUserData( KEY_ALLOWED_FAST_SENT, null );
+				}
+			}
+		}finally{
+			
+			general_mon.exit();
+		}
 	}
 	
 	private void registerForMessageHandling() {
@@ -3421,7 +3667,7 @@ implements PEPeerTransport
 					connection.enableEnhancedMessageProcessing( true, manager.getPartitionID() );  //so make sure we use a fast handler
 				}
 				else if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) { // is done sending piece data
-					if( choked_by_other_peer ) {
+					if( effectively_choked_by_other_peer ) {
 						connection.enableEnhancedMessageProcessing( false, manager.getPartitionID() );  //so downgrade back to normal handler
 					}
 				}
@@ -3952,7 +4198,7 @@ implements PEPeerTransport
 
 	public long getUnchokedTimeTotal()
 	{
-		if (choked_by_other_peer)
+		if (effectively_choked_by_other_peer)
 			return unchokedTimeTotal;
 		return unchokedTimeTotal +(SystemTime.getCurrentTime() -unchokedTime);
 	}
@@ -4053,9 +4299,10 @@ implements PEPeerTransport
 	}
 	
 	protected List<Integer>
-	generateFastSet()
+	generateFastSet(
+		int		num )
 	{
-		return( generateFastSet( manager.getHash(), getIp(), nbPieces, 10 ));	
+		return( generateFastSet( manager.getHash(), getIp(), nbPieces, num ));	
 	}
 	
 	public void
@@ -4065,7 +4312,7 @@ implements PEPeerTransport
 		writer.println( 
 				"ip=" + getIp() + ",in=" + isIncoming() + ",port=" + getPort() + ",cli=" + client + ",tcp=" + getTCPListenPort() + ",udp=" + getUDPListenPort() + 
 				",oudp=" + getUDPNonDataListenPort() + ",p_state=" + getPeerState() + ",c_state=" + getConnectionState() + ",seed=" + isSeed() + "partialSeed=" + isRelativeSeed() + ",pex=" + peer_exchange_supported + ",closing=" + closing );
-		writer.println( "    choked=" + choked_by_other_peer + ",choking=" + choking_other_peer + ",unchoke_time=" + unchokedTime + ", unchoke_total=" + unchokedTimeTotal + ",is_opt=" + is_optimistic_unchoke ); 
+		writer.println( "    choked=" + effectively_choked_by_other_peer + "/" + really_choked_by_other_peer + ",choking=" + choking_other_peer + ",unchoke_time=" + unchokedTime + ", unchoke_total=" + unchokedTimeTotal + ",is_opt=" + is_optimistic_unchoke ); 
 		writer.println( "    interested=" + interested_in_other_peer + ",interesting=" + other_peer_interested_in_me + ",snubbed=" + snubbed );
 		writer.println( "    lp=" + _lastPiece + ",up=" + uniquePiece + ",rp=" + reservedPiece );
 		writer.println( 

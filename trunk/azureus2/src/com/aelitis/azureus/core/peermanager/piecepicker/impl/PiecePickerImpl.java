@@ -1828,6 +1828,9 @@ implements PiecePicker
         						startCandidates.setOnly(i);
         					} else if (priority ==startMaxPriority)
         					{   // continuing same priority level
+        						if (startCandidates ==null)
+        							startCandidates =new BitFlags(nbPieces);
+
         						if (avail <startMinAvail)
         						{   // same priority, new availability level
         							startMinAvail =avail;
