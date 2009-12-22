@@ -921,7 +921,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			int	http_port = peer.getHTTPPort();
 
-			if ( http_port != 0 ){
+			if ( http_port != 0 && !seeding_mode ){
 
 				adapter.addHTTPSeed( peer.getAddress(), http_port );
 			}
