@@ -73,6 +73,23 @@ TRTrackerAnnouncerImpl
 	protected static final int LDT_URL_CHANGED			= 2;
 	protected static final int LDT_URL_REFRESH			= 3;
 	
+	private static final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+	private static final int	   	key_id_length	= 8;
+
+	private static String
+	createKeyID()
+	{
+		String	key_id = "";
+		
+		for (int i = 0; i < key_id_length; i++) {
+			int pos = (int) ( Math.random() * chars.length());
+		    key_id +=  chars.charAt(pos);
+		}
+		
+		return( key_id );
+	}
+	
 	protected ListenerManager<TRTrackerAnnouncerListener>	listeners 	= ListenerManager.createManager(
 			"TrackerClient:ListenDispatcher",
 			new ListenerManagerDispatcher<TRTrackerAnnouncerListener>()
@@ -110,6 +127,8 @@ TRTrackerAnnouncerImpl
 	
 	final private TOTorrent						torrent;
 	final private byte[]						peer_id;
+	final private String						tracker_key;
+	final private int							udp_key;
 	
 	private TRTrackerAnnouncerResponse	last_response;
 	
@@ -122,6 +141,10 @@ TRTrackerAnnouncerImpl
 	{
 		torrent	= _torrent;
 		
+		tracker_key	= createKeyID();
+	    
+		udp_key	= (int)(Math.random() *  0xFFFFFFFFL );
+
 		try{	
 			last_response = new TRTrackerAnnouncerResponseImpl( null, torrent.getHashWrapper(), TRTrackerAnnouncerResponse.ST_OFFLINE, TRTrackerAnnouncer.REFRESH_MINIMUM_SECS, "Initialising" );
 			
@@ -157,6 +180,18 @@ TRTrackerAnnouncerImpl
 				getPeerID()
 				{
 					return( peer_id );
+				}
+				
+				public String
+				getTrackerKey()
+				{
+					return( tracker_key );
+				}
+				
+				public int
+				getUDPKey()
+				{
+					return( udp_key );
 				}
 				
 				public void
@@ -678,6 +713,12 @@ TRTrackerAnnouncerImpl
 	{
 		public byte[]
 		getPeerID();
+		
+		public String
+		getTrackerKey();
+		
+		public int
+		getUDPKey();
 		
 		public void
 		addToTrackerCache(

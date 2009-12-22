@@ -165,12 +165,7 @@ TRTrackerBTAnnouncerImpl
 	private String tracker_peer_id_str = "&peer_id=";
 	
 	private byte[] data_peer_id;
-	
-	private String 					key_id			= "";
-	private static final int	   	key_id_length	= 8;
-	private int						key_udp;
-	
-	
+		
 	
 	private int announceCount;
 	private int announceFailCount;
@@ -193,21 +188,6 @@ TRTrackerBTAnnouncerImpl
 	private boolean	destroyed;
 		
 
-
-	static final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-	public static String
-	createKeyID()
-	{
-		String	key_id = "";
-		
-		for (int i = 0; i < key_id_length; i++) {
-			int pos = (int) ( Math.random() * chars.length());
-		    key_id +=  chars.charAt(pos);
-		}
-		
-		return( key_id );
-	}
 	
   public 
   TRTrackerBTAnnouncerImpl(
@@ -246,10 +226,6 @@ TRTrackerBTAnnouncerImpl
 
 		 throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: Peer ID generation fails", e ));
 	}
-
-    key_id	= createKeyID();
-    
-	key_udp	= (int)(Math.random() *  0xFFFFFFFFL );
 	
 	try {
 	
@@ -369,12 +345,11 @@ TRTrackerBTAnnouncerImpl
 	cloneFrom(
 		TRTrackerBTAnnouncerImpl	other )
 	{
+		helper					= other.helper;
 		data_peer_id			= other.data_peer_id;
 		tracker_peer_id			= other.tracker_peer_id;
 		tracker_peer_id_str		= other.tracker_peer_id_str;
 		tracker_id				= other.tracker_id;
-		key_id					= other.key_id;
-		key_udp					= other.key_udp;
 
 		announce_data_provider	= other.announce_data_provider;
 	}
@@ -1654,7 +1629,7 @@ TRTrackerBTAnnouncerImpl
 								getLongURLParam( url_str, "downloaded" ), 
 								event,
 								ip,
-								key_udp,
+								helper.getUDPKey(),
 								(int)getLongURLParam( url_str, "numwant" ), 
 								getLongURLParam( url_str, "left" ), 
 								(short)getLongURLParam( url_str, "port" ),
@@ -2012,7 +1987,7 @@ TRTrackerBTAnnouncerImpl
 	
     if ( COConfigurationManager.getBooleanParameter("Tracker Key Enable Client", true )){
       	
-      	request.append( "&key=").append(key_id);
+      	request.append( "&key=").append( helper.getTrackerKey());
     }
     
 	String	ext = announce_data_provider.getExtensions();

@@ -528,6 +528,7 @@ TRTrackerAnnouncerMuxer
 						}
 					}
 					
+					/*
 					System.out.println( 
 						"checkActivation: announcers=" + announcers.size() + 
 						", active=" + activated.size() +
@@ -536,6 +537,7 @@ TRTrackerAnnouncerMuxer
 						", pending=" + pending +
 						", connected=" + connected +
 						", seeding=" + seeding );
+					*/
 					
 					if ( online == 0 ){
 						
