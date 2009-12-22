@@ -3302,13 +3302,16 @@ implements PEPeerTransport
 				setUserData( KEY_ALLOWED_FAST_RECEIVED, pieces );
 			}
 			
-			Integer i = new Integer( piece );
-					
-			if ( !pieces.contains( i ) && i >=0 && i < nbPieces ){
+			if ( pieces.size() < ALLOWED_FAST_OTHER_PEER_PIECE_MAX * 2 ){
 				
-				pieces.add( i );
-			
-				calculatePiecePriorities();
+				Integer i = new Integer( piece );
+						
+				if ( !pieces.contains( i ) && i >=0 && i < nbPieces ){
+					
+					pieces.add( i );
+				
+					calculatePiecePriorities();
+				}
 			}
 		}finally{
 			
