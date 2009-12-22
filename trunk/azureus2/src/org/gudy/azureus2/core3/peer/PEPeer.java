@@ -146,6 +146,8 @@ PEPeer
    * @return true if I am choked by the peer, false if not
    */
 	public boolean isChokingMe();
+	
+	public boolean isUnchokeOverride();
 
   /**
    * Am I choking the peer.

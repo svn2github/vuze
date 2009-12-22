@@ -1638,6 +1638,7 @@ implements PEPeerTransport
 	}
 
 	public boolean isChokingMe() {  return effectively_choked_by_other_peer;  }
+	public boolean isUnchokeOverride() {return really_choked_by_other_peer && !effectively_choked_by_other_peer; }
 	public boolean isChokedByMe() {  return choking_other_peer;  }
 	/**
 	 * @return true if the peer is interesting to us

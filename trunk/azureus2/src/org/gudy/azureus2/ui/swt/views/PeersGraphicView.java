@@ -236,7 +236,11 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
       
       
       if(! peer.isChokedByMe() || ! peer.isChokingMe()) {
-        gcBuffer.setForeground(Colors.blues[Colors.BLUES_MIDLIGHT]);
+    	if ( peer.isUnchokeOverride()){
+  		  	gcBuffer.setForeground(Colors.green);
+    	}else{
+    		gcBuffer.setForeground(Colors.blues[Colors.BLUES_MIDLIGHT]);
+    	}
         int x1 = x0 + (int) ( r * deltaYXs[iAngle] );
         int y1 = y0 + (int) ( r * deltaYYs[iAngle] );        
         gcBuffer.drawLine(x0,y0,x1,y1);

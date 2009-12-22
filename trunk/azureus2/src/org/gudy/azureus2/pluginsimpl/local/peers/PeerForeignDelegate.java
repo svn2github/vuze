@@ -461,6 +461,11 @@ PeerForeignDelegate
 		return( foreign.isChoking());
 	}
 
+	public boolean 
+	isUnchokeOverride() 
+	{
+		return( false );
+	}
 
 	public boolean 
 	isInteresting()
