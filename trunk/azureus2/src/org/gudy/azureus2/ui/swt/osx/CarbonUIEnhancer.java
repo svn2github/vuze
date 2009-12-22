@@ -9,12 +9,10 @@
  *******************************************************************************/
 package org.gudy.azureus2.ui.swt.osx;
 
-import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.internal.Callback;
-import org.eclipse.swt.internal.carbon.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -35,12 +33,59 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.apple.cocoa.application.NSApplication;
-
-//import com.apple.eawt.*; //Application and ApplicationAdapter
 
 public class CarbonUIEnhancer
 {
+	// Most of these constants come from SWT OS.java.  Could have used reflection
+	// to get them, but I assume they are truly constant (will never change)
+	private static final int noErr = 0;
+
+	private static final int eventNotHandledErr = -9874;
+
+	private static final int kEventWindowToolbarSwitchMode = 150;
+
+	private static final int kWindowToolbarButtonAttribute = (1 << 6);
+
+	private static final int kEventAppleEvent = 1;
+
+	private static final int kEventProcessCommand = 1;
+
+	private static final int kCFAllocatorDefault = 0;
+
+	private static final int kMenuItemAttrSeparator = 64;
+
+	private static final int kCFURLPOSIXPathStyle = 0;
+
+	private static final int kEventClassWindow = ('w' << 24) + ('i' << 16)
+			+ ('n' << 8) + 'd';
+
+	private static final int kAEQuitApplication = ('q' << 24) + ('u' << 16)
+			+ ('i' << 8) + 't';
+
+	private static final int kEventClassAppleEvent = ('e' << 24) + ('p' << 16)
+			+ ('p' << 8) + 'c';
+
+	private static final int kEventParamDirectObject = ('-' << 24) + ('-' << 16)
+			+ ('-' << 8) + '-';
+
+	private static final int kEventClassCommand = ('c' << 24) + ('m' << 16)
+			+ ('d' << 8) + 's';
+
+	private static final int kEventParamAEEventID = ('e' << 24) + ('v' << 16)
+			+ ('t' << 8) + 'i';
+
+	private static final int typeHICommand = ('h' << 24) + ('c' << 16)
+			+ ('m' << 8) + 'd';
+
+	private static final int typeFSRef = ('f' << 24) + ('s' << 16) + ('r' << 8)
+			+ 'f';
+
+	private static final int typeWindowRef = ('w' << 24) + ('i' << 16)
+			+ ('n' << 8) + 'd';
+
+	private static final int typeType = ('t' << 24) + ('y' << 16) + ('p' << 8)
+			+ 'e';
+
 	private static final int kHICommandPreferences = ('p' << 24) + ('r' << 16)
 			+ ('e' << 8) + 'f';
 
@@ -83,8 +128,6 @@ public class CarbonUIEnhancer
 	private static final int typeText = ('T' << 24) + ('E' << 16) + ('X' << 8)
 			+ 'T';
 
-	private static final String RESOURCE_BUNDLE = "org.eclipse.ui.carbon.Messages"; //$NON-NLS-1$
-
 	private static String fgAboutActionName;
 
 	private static String fgWizardActionName;
@@ -104,9 +147,55 @@ public class CarbonUIEnhancer
 	 */
 	private boolean isAZ3 = "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"));
 
-	public static final int BOUNCE_SINGLE = NSApplication.UserAttentionRequestInformational;
+	private static Class<?> claCallback;
 
-	public static final int BOUNCE_CONTINUOUS = NSApplication.UserAttentionRequestCritical;
+	private static Constructor<?> constCallback3;
+
+	private static Method mCallback_getAddress;
+
+	private static Method mCallback_dispose;
+
+	private static Class<?> claOS;
+
+	private static Class<?> claHICommand;
+
+	private static Class<?> claCFRange;
+
+	private static Class<?> claAEDesc;
+
+	private static Class<?> claEventRecord;
+
+	//public static final int BOUNCE_SINGLE = NSApplication.UserAttentionRequestInformational;
+
+	//public static final int BOUNCE_CONTINUOUS = NSApplication.UserAttentionRequestCritical;
+
+	static {
+		try {
+			claCallback = Class.forName("org.eclipse.swt.internal.Callback");
+			//public Callback (Object object, String method, int argCount) {
+			constCallback3 = claCallback.getConstructor(new Class[] {
+				Object.class,
+				String.class,
+				int.class,
+			});
+			// public int /*long*/ getAddress () {
+			mCallback_getAddress = claCallback.getMethod("getAddress", new Class[] {});
+			// public void dispose () {
+			mCallback_dispose = claCallback.getMethod("dispose", new Class[] {});
+
+			claOS = Class.forName("org.eclipse.swt.internal.carbon.OS");
+
+			claHICommand = Class.forName("org.eclipse.swt.internal.carbon.HICommand");
+
+			claCFRange = Class.forName("org.eclipse.swt.internal.carbon.CFRange");
+
+			claAEDesc = Class.forName("org.eclipse.swt.internal.carbon.AEDesc");
+
+			claEventRecord = Class.forName("org.eclipse.swt.internal.carbon.EventRecord");
+		} catch (Exception e) {
+		}
+
+	}
 
 	public CarbonUIEnhancer() {
 		if (fgAboutActionName == null) {
@@ -139,122 +228,213 @@ public class CarbonUIEnhancer
 	}
 
 	public static void registerToolbarToggle(Shell shell) {
-		final Callback toolbarToggleCB = new Callback(target, "toolbarToggle", 3);
-		int toolbarToggle = toolbarToggleCB.getAddress();
-		if (toolbarToggle == 0) {
-			Debug.out("OSX: Could not find callback 'toolbarToggle'");
-			toolbarToggleCB.dispose();
-			return;
-		}
-
-		shell.getDisplay().disposeExec(new Runnable() {
-			public void run() {
-				toolbarToggleCB.dispose();
+		try {
+			final Object toolbarToggleCB = constCallback3.newInstance(
+					CarbonUIEnhancer.class, "toolbarToggle", 3);
+			int toolbarToggle = ((Number) mCallback_getAddress.invoke(
+					toolbarToggleCB, new Object[] {})).intValue();
+			if (toolbarToggle == 0) {
+				Debug.out("OSX: Could not find callback 'toolbarToggle'");
+				mCallback_dispose.invoke(toolbarToggleCB, new Object[] {});
+				return;
 			}
-		});
 
-		//	 add the button to the window trim
-		int windowHandle = OS.GetControlOwner(shell.handle);
-		OS.ChangeWindowAttributes(windowHandle, OS.kWindowToolbarButtonAttribute, 0);
+			shell.getDisplay().disposeExec(new Runnable() {
+				public void run() {
+					try {
+						mCallback_dispose.invoke(toolbarToggleCB, new Object[] {});
+					} catch (Exception e) {
+					}
+				}
+			});
 
-		int[] mask = new int[] {
-			OS.kEventClassWindow,
-			OS.kEventWindowToolbarSwitchMode
-		};
-		// register the handler with the OS
-		OS.InstallEventHandler(OS.GetApplicationEventTarget(), toolbarToggle,
-				mask.length / 2, mask, 0, null);
+			//	 add the button to the window trim
+			int windowHandle = ((Number) invoke(claOS, null, "GetControlOwner",
+					new Object[] {
+						shell.handle
+					})).intValue();
+			invoke(claOS, null, "ChangeWindowAttributes", new Object[] {
+				windowHandle,
+				kWindowToolbarButtonAttribute,
+				0
+			});
+
+			int[] mask = new int[] {
+				kEventClassWindow,
+				kEventWindowToolbarSwitchMode
+			};
+			// register the handler with the OS
+			int applicationEventTarget = ((Number) invoke(claOS, null,
+					"GetApplicationEventTarget", new Object[] {})).intValue();
+			// int InstallEventHandler(int inTarget, int inHandler, int inNumTypes, int[] inList, int inUserData, int[] outRef);
+			invoke(claOS, null, "InstallEventHandler", new Class[] {
+				int.class,
+				int.class,
+				int.class,
+				int[].class,
+				int.class,
+				int[].class
+			}, new Object[] {
+				applicationEventTarget,
+				toolbarToggle,
+				mask.length / 2,
+				mask,
+				0,
+				null
+			});
+		} catch (Throwable e) {
+			Debug.out("RegisterToolbarToggle failed", e);
+		}
 	}
 
 	private void registerTorrentFile() {
-		int result;
+		try {
+			int result;
 
-		Callback clickDockIconCallback = new Callback(target, "clickDockIcon", 3);
-		int clickDocIcon = clickDockIconCallback.getAddress();
-		if (clickDocIcon == 0) {
-			clickDockIconCallback.dispose();
-		} else {
-			result = OS.AEInstallEventHandler(kCoreEventClass, kAEReopenApplication,
-					clickDocIcon, 0, false);
+			Object clickDockIconCallback = constCallback3.newInstance(
+					CarbonUIEnhancer.class, "clickDockIcon", 3);
+			int clickDocIcon = ((Number) mCallback_getAddress.invoke(
+					clickDockIconCallback, new Object[] {})).intValue();
+			if (clickDocIcon == 0) {
+				mCallback_dispose.invoke(clickDockIconCallback, new Object[] {});
+			} else {
+				result = ((Number) invoke(claOS, null, "AEInstallEventHandler",
+						new Object[] {
+							kCoreEventClass,
+							kAEReopenApplication,
+							clickDocIcon,
+							(int) 0,
+							false
+						})).intValue();
 
-			if (result != OS.noErr) {
-				Debug.out("OSX: Could Install ReopenApplication Event Handler. Error: "
-						+ result);
+				if (result != noErr) {
+					Debug.out("OSX: Could Install ReopenApplication Event Handler. Error: "
+							+ result);
+				}
 			}
-		}
 
-		Callback openContentsCallback = new Callback(target, "openContents", 3);
-		int openContents = openContentsCallback.getAddress();
-		if (openContents == 0) {
-			openContentsCallback.dispose();
-		} else {
-			result = OS.AEInstallEventHandler(kCoreEventClass, kAEOpenContents,
-					openContents, 0, false);
+			Object openContentsCallback = constCallback3.newInstance(
+					CarbonUIEnhancer.class, "openContents", 3);
+			int openContents = ((Number) mCallback_getAddress.invoke(
+					openContentsCallback, new Object[] {})).intValue();
+			if (openContents == 0) {
+				mCallback_dispose.invoke(openContentsCallback, new Object[] {});
+			} else {
+				result = ((Number) invoke(claOS, null, "AEInstallEventHandler",
+						new Object[] {
+							kCoreEventClass,
+							kAEOpenContents,
+							openContents,
+							(int) 0,
+							false
+						})).intValue();
 
-			if (result != OS.noErr) {
-				Debug.out("OSX: Could Install OpenContents Event Handler. Error: "
-						+ result);
+				if (result != noErr) {
+					Debug.out("OSX: Could Install OpenContents Event Handler. Error: "
+							+ result);
+				}
 			}
-		}
 
-		Callback openDocCallback = new Callback(target, "openDocProc", 3);
-		int openDocProc = openDocCallback.getAddress();
-		if (openDocProc == 0) {
-			Debug.out("OSX: Could not find Callback 'openDocProc'");
-			openDocCallback.dispose();
-			return;
-		}
-
-		result = OS.AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments,
-				openDocProc, 0, false);
-
-		if (result != OS.noErr) {
-			Debug.out("OSX: Could not Install OpenDocs Event Handler. Error: "
-					+ result);
-			return;
-		}
-
-		result = OS.AEInstallEventHandler(kURLEventClass, kURLEventClass,
-				openDocProc, 0, false);
-		if (result != OS.noErr) {
-			Debug.out("OSX: Could not Install URLEventClass Event Handler. Error: "
-					+ result);
-			return;
-		}
-
-		///
-
-		Callback quitAppCallback = new Callback(target, "quitAppProc", 3);
-		int quitAppProc = quitAppCallback.getAddress();
-		if (quitAppProc == 0) {
-			Debug.out("OSX: Could not find Callback 'quitApp'");
-			quitAppCallback.dispose();
-		} else {
-			result = OS.AEInstallEventHandler(kCoreEventClass, OS.kAEQuitApplication,
-					quitAppProc, 0, false);
-			if (result != OS.noErr) {
-				Debug.out("OSX: Could not install QuitApplication Event Handler. Error: "
-						+ result);
+			Object openDocCallback = constCallback3.newInstance(
+					CarbonUIEnhancer.class, "openDocProc", 3);
+			int openDocProc = ((Number) mCallback_getAddress.invoke(openDocCallback,
+					new Object[] {})).intValue();
+			if (openDocProc == 0) {
+				Debug.out("OSX: Could not find Callback 'openDocProc'");
+				mCallback_dispose.invoke(openDocCallback, new Object[] {});
+				return;
 			}
-		}
 
-		///
+			result = ((Number) invoke(claOS, null, "AEInstallEventHandler",
+					new Object[] {
+						kCoreEventClass,
+						kAEOpenDocuments,
+						openDocProc,
+						(int) 0,
+						false
+					})).intValue();
 
-		int appTarget = OS.GetApplicationEventTarget();
-		Callback appleEventCallback = new Callback(this, "appleEventProc", 3);
-		int appleEventProc = appleEventCallback.getAddress();
-		int[] mask3 = new int[] {
-			OS.kEventClassAppleEvent,
-			OS.kEventAppleEvent,
-			kURLEventClass,
-			kAEReopenApplication,
-			kAEOpenContents,
-		};
-		result = OS.InstallEventHandler(appTarget, appleEventProc,
-				mask3.length / 2, mask3, 0, null);
-		if (result != OS.noErr) {
-			Debug.out("OSX: Could Install Event Handler. Error: " + result);
-			return;
+			if (result != noErr) {
+				Debug.out("OSX: Could not Install OpenDocs Event Handler. Error: "
+						+ result);
+				return;
+			}
+
+			result = ((Number) invoke(claOS, null, "AEInstallEventHandler",
+					new Object[] {
+						kURLEventClass,
+						kURLEventClass,
+						openDocProc,
+						(int) 0,
+						false
+					})).intValue();
+			if (result != noErr) {
+				Debug.out("OSX: Could not Install URLEventClass Event Handler. Error: "
+						+ result);
+				return;
+			}
+
+			///
+
+			Object quitAppCallback = constCallback3.newInstance(
+					CarbonUIEnhancer.class, "quitAppProc", 3);
+			int quitAppProc = ((Number) mCallback_getAddress.invoke(quitAppCallback,
+					new Object[] {})).intValue();
+			if (quitAppProc == 0) {
+				Debug.out("OSX: Could not find Callback 'quitApp'");
+				mCallback_dispose.invoke(quitAppCallback, new Object[] {});
+			} else {
+				result = ((Number) invoke(claOS, null, "AEInstallEventHandler",
+						new Object[] {
+							kCoreEventClass,
+							kAEQuitApplication,
+							quitAppProc,
+							(int) 0,
+							false
+						})).intValue();
+				if (result != noErr) {
+					Debug.out("OSX: Could not install QuitApplication Event Handler. Error: "
+							+ result);
+				}
+			}
+
+			///
+
+			int appTarget = ((Number) invoke(claOS, null,
+					"GetApplicationEventTarget", new Object[] {})).intValue();
+			Object appleEventCallback = constCallback3.newInstance(this,
+					"appleEventProc", 3);
+			int appleEventProc = ((Number) mCallback_getAddress.invoke(
+					appleEventCallback, new Object[] {})).intValue();
+			int[] mask3 = new int[] {
+				kEventClassAppleEvent,
+				kEventAppleEvent,
+				kURLEventClass,
+				kAEReopenApplication,
+				kAEOpenContents,
+			};
+			result = ((Number) invoke(claOS, null, "InstallEventHandler",
+					new Class[] {
+						int.class,
+						int.class,
+						int.class,
+						int[].class,
+						int.class,
+						int[].class
+					}, new Object[] {
+						appTarget,
+						appleEventProc,
+						mask3.length / 2,
+						mask3,
+						0,
+						null
+					})).intValue();
+			if (result != noErr) {
+				Debug.out("OSX: Could Install Event Handler. Error: " + result);
+				return;
+			}
+		} catch (Throwable e) {
+			Debug.out("registerTorrentFile failed", e);
 		}
 	}
 
@@ -275,197 +455,252 @@ public class CarbonUIEnhancer
 	* Also http://developer.apple.com/documentation/Carbon/Reference/Menu_Manager/menu_mgr_ref/function_group_10.html
 	*/
 	public void hookApplicationMenu(final Display display) {
-		// Callback target
-		Object target = new Object() {
-			int commandProc(int nextHandler, int theEvent, int userData) {
-				if (OS.GetEventKind(theEvent) == OS.kEventProcessCommand) {
-					HICommand command = new HICommand();
-					OS.GetEventParameter(theEvent, OS.kEventParamDirectObject,
-							OS.typeHICommand, null, HICommand.sizeof, null, command);
-					switch (command.commandID) {
-						case kHICommandPreferences: {
-							UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-							if (uiFunctions != null) {
-								uiFunctions.openView(UIFunctions.VIEW_CONFIG, null);
-							}
-							return OS.noErr;
-						}
-						case kHICommandAbout:
-							AboutWindow.show();
-							return OS.noErr;
-						case kHICommandRestart: {
-							UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-							if (uiFunctions != null) {
-								uiFunctions.dispose(true, false);
-							}
-							return OS.noErr;
-						}
-						case kHICommandWizard:
-							new ConfigureWizard(false);
-							return OS.noErr;
-						case kHICommandNatTest:
-							new NatTestWindow();
-							return OS.noErr;
-						case kHICommandSpeedTest:
-							new SpeedTestWizard();
-							return OS.noErr;
+		try {
+			final Object commandCallback = constCallback3.newInstance(
+					CarbonUIEnhancer.class, "commandProc", 3); //$NON-NLS-1$
+			int commandProc = ((Number) mCallback_getAddress.invoke(commandCallback,
+					new Object[] {})).intValue();
+			if (commandProc == 0) {
+				mCallback_dispose.invoke(commandCallback, new Object[] {});
+				return; // give up
+			}
 
-						case OS.kAEQuitApplication:
-							UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-							if (uiFunctions != null) {
-								uiFunctions.dispose(false, false);
-								return OS.noErr;
-							} else {
-								UIExitUtilsSWT.setSkipCloseCheck(true);
-							}
-						default:
-							break;
-					}
+			// Install event handler for commands
+			int[] mask = new int[] {
+				kEventClassCommand,
+				kEventProcessCommand
+			};
+			int appTarget = ((Number) invoke(claOS, null,
+					"GetApplicationEventTarget", new Object[] {})).intValue();
+			invoke(claOS, null, "InstallEventHandler", new Class[] {
+				int.class,
+				int.class,
+				int.class,
+				int[].class,
+				int.class,
+				int[].class
+			}, new Object[] {
+				appTarget,
+				commandProc,
+				mask.length / 2,
+				mask,
+				0,
+				null
+			});
+
+			// create About menu command
+			int[] outMenu = new int[1];
+			short[] outIndex = new short[1];
+			// int GetIndMenuItemWithCommandID(int mHandle, int commandId, int index, int[] outMenu, short[] outIndex);
+			int ind = ((Number) invoke(claOS, null, "GetIndMenuItemWithCommandID",
+					new Class[] {
+						int.class,
+						int.class,
+						int.class,
+						int[].class,
+						short[].class
+					}, new Object[] {
+						0,
+						kHICommandPreferences,
+						1,
+						outMenu,
+						outIndex
+					})).intValue();
+			if (ind == noErr && outMenu[0] != 0) {
+				int menu = outMenu[0];
+
+				int l = fgAboutActionName.length();
+				char buffer[] = new char[l];
+				fgAboutActionName.getChars(0, l, buffer, 0);
+				int str = CFStringCreateWithCharacters(kCFAllocatorDefault, buffer, l);
+				InsertMenuItemTextWithCFString(menu, str, (short) 0, 0, kHICommandAbout);
+				invoke(claOS, null, "CFRelease", new Object[] {
+					str
+				});
+				// add separator between About & Preferences
+				InsertMenuItemTextWithCFString(menu, 0, (short) 1,
+						kMenuItemAttrSeparator, 0);
+
+				// enable pref menu
+				invoke(claOS, null, "EnableMenuCommand", new Object[] {
+					menu,
+					kHICommandPreferences
+				});
+				// disable services menu
+				invoke(claOS, null, "DisableMenuCommand", new Object[] {
+					menu,
+					kHICommandServices
+				});
+
+				if (!isAZ3) {
+					// wizard menu
+					l = fgWizardActionName.length();
+					buffer = new char[l];
+					fgWizardActionName.getChars(0, l, buffer, 0);
+					str = CFStringCreateWithCharacters(kCFAllocatorDefault, buffer, l);
+					InsertMenuItemTextWithCFString(menu, str, (short) 3, 0,
+							kHICommandWizard);
+					invoke(claOS, null, "CFRelease", new Object[] {
+						str
+					});
+
+					// NAT test menu
+					l = fgNatTestActionName.length();
+					buffer = new char[l];
+					fgNatTestActionName.getChars(0, l, buffer, 0);
+					str = CFStringCreateWithCharacters(kCFAllocatorDefault, buffer, l);
+					InsertMenuItemTextWithCFString(menu, str, (short) 4, 0,
+							kHICommandNatTest);
+					invoke(claOS, null, "CFRelease", new Object[] {
+						str
+					});
+
+					//SpeedTest
+					l = fgSpeedTestActionName.length();
+					buffer = new char[l];
+					fgSpeedTestActionName.getChars(0, l, buffer, 0);
+					str = CFStringCreateWithCharacters(kCFAllocatorDefault, buffer, l);
+					InsertMenuItemTextWithCFString(menu, str, (short) 5, 0,
+							kHICommandSpeedTest);
+					invoke(claOS, null, "CFRelease", new Object[] {
+						str
+					});
 				}
-				return OS.eventNotHandledErr;
+
+				InsertMenuItemTextWithCFString(menu, 0, (short) 6,
+						kMenuItemAttrSeparator, 0);
+
+				// restart menu
+				l = fgRestartActionName.length();
+				buffer = new char[l];
+				fgRestartActionName.getChars(0, l, buffer, 0);
+				str = CFStringCreateWithCharacters(kCFAllocatorDefault, buffer, l);
+				InsertMenuItemTextWithCFString(menu, str, (short) 7, 0,
+						kHICommandRestart);
+				invoke(claOS, null, "CFRelease", new Object[] {
+					str
+				});
+
+				InsertMenuItemTextWithCFString(menu, 0, (short) 8,
+						kMenuItemAttrSeparator, 0);
 			}
-		};
-		final Callback commandCallback = new Callback(target, "commandProc", 3); //$NON-NLS-1$
-		int commandProc = commandCallback.getAddress();
-		if (commandProc == 0) {
-			commandCallback.dispose();
-			return; // give up
+
+			// schedule disposal of callback object
+			display.disposeExec(new AERunnable() {
+				public void runSupport() {
+					try {
+						mCallback_dispose.invoke(commandCallback, new Object[] {});
+					} catch (Throwable e) {
+					}
+					//               stopSidekick();
+				}
+			});
+		} catch (Throwable e) {
+			Debug.out("Failed hookApplicatioMenu", e);
 		}
+	}
 
-		// Install event handler for commands
-		int[] mask = new int[] {
-			OS.kEventClassCommand,
-			OS.kEventProcessCommand
-		};
-		OS.InstallEventHandler(OS.GetApplicationEventTarget(), commandProc,
-				mask.length / 2, mask, 0, null);
-
-		// create About menu command
-		int[] outMenu = new int[1];
-		short[] outIndex = new short[1];
-		if (OS.GetIndMenuItemWithCommandID(0, kHICommandPreferences, 1, outMenu,
-				outIndex) == OS.noErr
-				&& outMenu[0] != 0) {
-			int menu = outMenu[0];
-
-			int l = fgAboutActionName.length();
-			char buffer[] = new char[l];
-			fgAboutActionName.getChars(0, l, buffer, 0);
-			int str = OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer,
-					l);
-			OS.InsertMenuItemTextWithCFString(menu, str, (short) 0, 0,
-					kHICommandAbout);
-			OS.CFRelease(str);
-			// add separator between About & Preferences
-			OS.InsertMenuItemTextWithCFString(menu, 0, (short) 1,
-					OS.kMenuItemAttrSeparator, 0);
-
-			// enable pref menu
-			OS.EnableMenuCommand(menu, kHICommandPreferences);
-			// disable services menu
-			OS.DisableMenuCommand(menu, kHICommandServices);
-
-			if (false == isAZ3) {
-				// wizard menu
-				l = fgWizardActionName.length();
-				buffer = new char[l];
-				fgWizardActionName.getChars(0, l, buffer, 0);
-				str = OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-				OS.InsertMenuItemTextWithCFString(menu, str, (short) 3, 0,
-						kHICommandWizard);
-				OS.CFRelease(str);
-
-				// NAT test menu
-				l = fgNatTestActionName.length();
-				buffer = new char[l];
-				fgNatTestActionName.getChars(0, l, buffer, 0);
-				str = OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-				OS.InsertMenuItemTextWithCFString(menu, str, (short) 4, 0,
-						kHICommandNatTest);
-				OS.CFRelease(str);
-
-				//SpeedTest
-				l = fgSpeedTestActionName.length();
-				buffer = new char[l];
-				fgSpeedTestActionName.getChars(0, l, buffer, 0);
-				str = OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-				OS.InsertMenuItemTextWithCFString(menu, str, (short) 5, 0,
-						kHICommandSpeedTest);
-				OS.CFRelease(str);
-			}
-
-			OS.InsertMenuItemTextWithCFString(menu, 0, (short) 6,
-					OS.kMenuItemAttrSeparator, 0);
-
-			// restart menu
-			l = fgRestartActionName.length();
-			buffer = new char[l];
-			fgRestartActionName.getChars(0, l, buffer, 0);
-			str = OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-			OS.InsertMenuItemTextWithCFString(menu, str, (short) 7, 0,
-					kHICommandRestart);
-			OS.CFRelease(str);
-
-			OS.InsertMenuItemTextWithCFString(menu, 0, (short) 8,
-					OS.kMenuItemAttrSeparator, 0);
-		}
-
-		// schedule disposal of callback object
-		display.disposeExec(new AERunnable() {
-			public void runSupport() {
-				commandCallback.dispose();
-				//               stopSidekick();
-			}
+	private void InsertMenuItemTextWithCFString(int mHandle, int sHandle,
+			short index, int attributes, int commandID) {
+		//OS.InsertMenuItemTextWithCFString(mHandle, sHandle, index, attributes, commandID);
+		invoke(claOS, null, "InsertMenuItemTextWithCFString", new Class[] {
+			int.class,
+			int.class,
+			short.class,
+			int.class,
+			int.class
+		}, new Object[] {
+			mHandle,
+			sHandle,
+			index,
+			attributes,
+			commandID
 		});
 	}
 
-	private static void stopSidekick() {
-		try {
-			Runtime.getRuntime().exec(new String[] {
-				"osascript",
-				"-e",
-				"tell application \"Azureus\" to quit"
-			});
-		} catch (IOException e) {
-			Debug.printStackTrace(e);
-		}
+	private int CFStringCreateWithCharacters(int alloc, char[] buffer,
+			int numChars) {
+		//return OS.CFStringCreateWithCharacters(alloc, buffer, numChars);
+		return ((Number) invoke(claOS, null, "CFStringCreateWithCharacters",
+				new Object[] {
+					alloc,
+					buffer,
+					numChars
+				})).intValue();
 	}
 
 	int appleEventProc(int nextHandler, int theEvent, int userData) {
-		int eventClass = OS.GetEventClass(theEvent);
-		//int eventKind = OS.GetEventKind(theEvent);
+		try {
+			int eventClass = ((Number) invoke(claOS, null, "GetEventClass",
+					new Object[] {
+						theEvent
+					})).intValue();
+			//int eventKind = OS.GetEventKind(theEvent);
 
-		//System.out.println("appleEventProc " + OSXtoString(eventClass) + ";"
-		//		+ OS.GetEventKind(theEvent) + ";" + OSXtoString(theEvent) + ";"
-		//		+ OSXtoString(userData));
+			//System.out.println("appleEventProc " + OSXtoString(eventClass) + ";"
+			//		+ OS.GetEventKind(theEvent) + ";" + OSXtoString(theEvent) + ";"
+			//		+ OSXtoString(userData));
 
-		// Process teh odoc event
-		if (eventClass == OS.kEventClassAppleEvent) {
-			int[] aeEventID = new int[1];
-			if (OS.GetEventParameter(theEvent, OS.kEventParamAEEventID, OS.typeType,
-					null, 4, null, aeEventID) != OS.noErr) {
-				return OS.eventNotHandledErr;
+			// Process the odoc event
+			if (eventClass == kEventClassAppleEvent) {
+				int[] aeEventID = new int[1];
+				// int GetEventParameter(int inEvent, int inName, int inDesiredType, 
+				// int[] outActualType, int inBufferSize, int[] outActualSize, int[] outData);
+
+				int ret = ((Number) invoke(claOS, null, "GetEventParameter",
+						new Class[] {
+							int.class,
+							int.class,
+							int.class,
+							int[].class,
+							int.class,
+							int[].class,
+							int[].class
+						}, new Object[] {
+							theEvent,
+							kEventParamAEEventID,
+							typeType,
+							null,
+							4,
+							null,
+							aeEventID
+						})).intValue();
+
+				if (ret != noErr) {
+					return eventNotHandledErr;
+				}
+				//System.out.println("EventID = " + OSXtoString(aeEventID[0]));
+				if (aeEventID[0] != kAEOpenDocuments && aeEventID[0] != kURLEventClass
+						&& aeEventID[0] != kAEReopenApplication
+						&& aeEventID[0] != kAEOpenContents
+						&& aeEventID[0] != kAEQuitApplication) {
+					return eventNotHandledErr;
+				}
+
+				// Handle Event
+				Object eventRecord = claEventRecord.newInstance();
+				invoke(claOS, null, "ConvertEventRefToEventRecord", new Class[] {
+					int.class,
+					claEventRecord
+				}, new Object[] {
+					theEvent,
+					eventRecord
+				});
+				invoke(claOS, null, "AEProcessAppleEvent", new Object[] {
+					eventRecord
+				});
+
+				// Tell Mac we are handling this event
+				return noErr;
 			}
-			//System.out.println("EventID = " + OSXtoString(aeEventID[0]));
-			if (aeEventID[0] != kAEOpenDocuments && aeEventID[0] != kURLEventClass
-					&& aeEventID[0] != kAEReopenApplication
-					&& aeEventID[0] != kAEOpenContents
-					&& aeEventID[0] != OS.kAEQuitApplication) {
-				return OS.eventNotHandledErr;
-			}
 
-			// Handle Event
-			EventRecord eventRecord = new EventRecord();
-			OS.ConvertEventRefToEventRecord(theEvent, eventRecord);
-			OS.AEProcessAppleEvent(eventRecord);
-
-			// Tell Mac we are handling this event
-			return OS.noErr;
+		} catch (Throwable e) {
+			Debug.out(e);
 		}
-
-		return OS.eventNotHandledErr;
+		return eventNotHandledErr;
 	}
 
+	/*
 	private static String OSXtoString(int i) {
 		char[] c = new char[4];
 		c[0] = (char) ((i >> 24) & 0xff);
@@ -474,6 +709,7 @@ public class CarbonUIEnhancer
 		c[3] = (char) (i & 0xff);
 		return new String(c);
 	}
+	*/
 
 	private static void memmove(byte[] dest, int src, int size) {
 		switch (memmove_type) {
@@ -488,7 +724,7 @@ public class CarbonUIEnhancer
 
 			case 1:
 				try {
-					Class cMemMove = Class.forName("org.eclipse.swt.internal.carbon.OS");
+					Class<?> cMemMove = Class.forName("org.eclipse.swt.internal.carbon.OS");
 
 					Method method = cMemMove.getMethod("memmove", new Class[] {
 						byte[].class,
@@ -509,7 +745,7 @@ public class CarbonUIEnhancer
 				// FALL THROUGH
 			case 2:
 				try {
-					Class cMemMove = Class.forName("org.eclipse.swt.internal.carbon.OS");
+					Class<?> cMemMove = Class.forName("org.eclipse.swt.internal.carbon.OS");
 
 					Method method = cMemMove.getMethod("memcpy", new Class[] {
 						byte[].class,
@@ -537,67 +773,214 @@ public class CarbonUIEnhancer
 		memmove_type = 3;
 	}
 
-	final static Object target = new Object() {
-		int quitAppProc(int theAppleEvent, int reply, int handlerRefcon) {
-			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-			if (uiFunctions != null) {
-				uiFunctions.dispose(false, false);
-			} else {
-				UIExitUtilsSWT.setSkipCloseCheck(true);
-				Display.getDefault().dispose();
-			}
-			return OS.noErr;
-		}
+	final static int commandProc(int nextHandler, int theEvent, int userData) {
+		try {
+			int kind = ((Number) invoke(claOS, null, "GetEventKind", new Object[] {
+				theEvent
+			})).intValue();
+			if (kind == kEventProcessCommand) {
+				Object command = claHICommand.newInstance();
+				// int GetEventParameter(int inEvent, int inName, int inDesiredType, 
+				// int[] outActualType, int inBufferSize, int[] outActualSize, HICommand outData);
+				invoke(claOS, null, "GetEventParameter", new Class[] {
+					int.class,
+					int.class,
+					int.class,
+					int[].class,
+					int.class,
+					int[].class,
+					claHICommand
+				}, new Object[] {
+					theEvent,
+					kEventParamDirectObject,
+					typeHICommand,
+					null,
+					claHICommand.getField("sizeof").getInt(command),
+					null,
+					command
+				});
+				int commandID = claHICommand.getField("commandID").getInt(command);
+				switch (commandID) {
+					case kHICommandPreferences: {
+						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						if (uiFunctions != null) {
+							uiFunctions.openView(UIFunctions.VIEW_CONFIG, null);
+						}
+						return noErr;
+					}
+					case kHICommandAbout:
+						AboutWindow.show();
+						return noErr;
+					case kHICommandRestart: {
+						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						if (uiFunctions != null) {
+							uiFunctions.dispose(true, false);
+						}
+						return noErr;
+					}
+					case kHICommandWizard:
+						new ConfigureWizard(false);
+						return noErr;
+					case kHICommandNatTest:
+						new NatTestWindow();
+						return noErr;
+					case kHICommandSpeedTest:
+						new SpeedTestWizard();
+						return noErr;
 
-		int openDocProc(int theAppleEvent, int reply, int handlerRefcon) {
-			AEDesc aeDesc = new AEDesc();
-			EventRecord eventRecord = new EventRecord();
-			OS.ConvertEventRefToEventRecord(theAppleEvent, eventRecord);
+					case kAEQuitApplication:
+						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						if (uiFunctions != null) {
+							uiFunctions.dispose(false, false);
+							return noErr;
+						} else {
+							UIExitUtilsSWT.setSkipCloseCheck(true);
+						}
+					default:
+						break;
+				}
+			}
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
+		return eventNotHandledErr;
+	}
+
+	final static int quitAppProc(int theAppleEvent, int reply, int handlerRefcon) {
+		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		if (uiFunctions != null) {
+			uiFunctions.dispose(false, false);
+		} else {
+			UIExitUtilsSWT.setSkipCloseCheck(true);
+			Display.getDefault().dispose();
+		}
+		return noErr;
+	}
+
+	final static int openDocProc(int theAppleEvent, int reply, int handlerRefcon) {
+		try {
+			Object aeDesc = claAEDesc.newInstance();
+			Object eventRecord = claEventRecord.newInstance();
+			invoke(claOS, null, "ConvertEventRefToEventRecord", new Class[] {
+				int.class,
+				claEventRecord
+			}, new Object[] {
+				theAppleEvent,
+				eventRecord
+			});
 			try {
 				int result = OSXAccess.AEGetParamDesc(theAppleEvent,
-						OS.kEventParamDirectObject, typeAEList, aeDesc);
-				if (result != OS.noErr) {
+						kEventParamDirectObject, typeAEList, aeDesc);
+				if (result != noErr) {
 					Debug.out("OSX: Could call AEGetParamDesc. Error: " + result);
-					return OS.noErr;
+					return noErr;
 				}
 			} catch (java.lang.UnsatisfiedLinkError e) {
 				Debug.out("OSX: AEGetParamDesc not available.  Can't open sent file");
-				return OS.noErr;
+				return noErr;
 			}
 
 			int[] count = new int[1];
-			OS.AECountItems(aeDesc, count);
+			invoke(claOS, null, "AECountItems", new Class[] {
+				claAEDesc,
+				int[].class
+			}, new Object[] {
+				aeDesc,
+				count
+			});
 			//System.out.println("COUNT: " + count[0]);
 			if (count[0] > 0) {
 				final String[] fileNames = new String[count[0]];
 				int maximumSize = 80; // size of FSRef
-				int dataPtr = OS.NewPtr(maximumSize);
+				int dataPtr = ((Number) invoke(claOS, null, "NewPtr", new Object[] {
+					maximumSize
+				})).intValue();
 				int[] aeKeyword = new int[1];
 				int[] typeCode = new int[1];
 				int[] actualSize = new int[1];
 				for (int i = 0; i < count[0]; i++) {
-					if (OS.AEGetNthPtr(aeDesc, i + 1, OS.typeFSRef, aeKeyword, typeCode,
-							dataPtr, maximumSize, actualSize) == OS.noErr) {
-						byte[] fsRef = new byte[actualSize[0]];
-						memmove(fsRef, dataPtr, actualSize[0]);
-						int dirUrl = OS.CFURLCreateFromFSRef(OS.kCFAllocatorDefault, fsRef);
-						int dirString = OS.CFURLCopyFileSystemPath(dirUrl,
-								OS.kCFURLPOSIXPathStyle);
-						int length = OS.CFStringGetLength(dirString);
-						char[] buffer = new char[length];
-						CFRange range = new CFRange();
-						range.length = length;
-						OS.CFStringGetCharacters(dirString, range, buffer);
-						fileNames[i] = new String(buffer);
-						OS.CFRelease(dirString);
-						OS.CFRelease(dirUrl);
-					} else if (OS.AEGetNthPtr(aeDesc, i + 1, typeText, aeKeyword, typeCode,
-							dataPtr, 2048, actualSize) == OS.noErr) {
-						byte[] urlRef = new byte[actualSize[0]];
-						memmove(urlRef, dataPtr, actualSize[0]);
-						fileNames[i] = new String(urlRef);
-					}
+					try {
+						// int AEGetNthPtr(AEDesc theAEDescList, int index, int desiredType, 
+						// int[] theAEKeyword, int[] typeCode, int dataPtr, int maximumSize, int[] actualSize);
+						Class<?>[] sigAEGetNthPtr = new Class[] {
+							claAEDesc,
+							int.class,
+							int.class,
+							int[].class,
+							int[].class,
+							int.class,
+							int.class,
+							int[].class
+						};
+						int ret = ((Number) invoke(claOS, null, "AEGetNthPtr",
+								sigAEGetNthPtr, new Object[] {
+									aeDesc,
+									i + 1,
+									typeFSRef,
+									aeKeyword,
+									typeCode,
+									dataPtr,
+									maximumSize,
+									actualSize
+								})).intValue();
+						if (ret == noErr) {
+							byte[] fsRef = new byte[actualSize[0]];
+							memmove(fsRef, dataPtr, actualSize[0]);
+							int dirUrl = ((Number) invoke(claOS, null,
+									"CFURLCreateFromFSRef", new Object[] {
+										kCFAllocatorDefault,
+										fsRef
+									})).intValue();
+							int dirString = ((Number) invoke(claOS, null,
+									"CFURLCopyFileSystemPath", new Object[] {
+										dirUrl,
+										kCFURLPOSIXPathStyle
+									})).intValue();
+							int length = ((Number) invoke(claOS, null, "CFStringGetLength",
+									new Object[] {
+										dirString
+									})).intValue();
+							char[] buffer = new char[length];
+							Object range = claCFRange.newInstance();
+							claCFRange.getField("length").setInt(range, length);
+							invoke(claOS, null, "CFStringGetCharacters", new Class[] {
+								String.class,
+								claCFRange,
+								char[].class
+							}, new Object[] {
+								dirString,
+								range,
+								buffer
+							});
+							fileNames[i] = new String(buffer);
+							invoke(claOS, null, "CFRelease", new Object[] {
+								dirString
+							});
+							invoke(claOS, null, "CFRelease", new Object[] {
+								dirUrl
+							});
+						} else {
+							ret = ((Number) invoke(claOS, null, "AEGetNthPtr",
+									sigAEGetNthPtr, new Object[] {
+										aeDesc,
+										i + 1,
+										typeText,
+										aeKeyword,
+										typeCode,
+										dataPtr,
+										2048,
+										actualSize
+									})).intValue();
 
+							if (ret == noErr) {
+								byte[] urlRef = new byte[actualSize[0]];
+								memmove(urlRef, dataPtr, actualSize[0]);
+								fileNames[i] = new String(urlRef);
+							}
+						}
+					} catch (Throwable t) {
+						Debug.out(t);
+					}
 					//System.out.println(fileNames[i]);
 				}
 
@@ -608,65 +991,125 @@ public class CarbonUIEnhancer
 				});
 			}
 
-			return OS.noErr;
+			return noErr;
+		} catch (Throwable e) {
+			Debug.out(e);
+		}
+		return eventNotHandledErr;
+	}
+
+	final static int clickDockIcon(int nextHandler, int theEvent, int userData) {
+		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		if (uiFunctions != null) {
+			uiFunctions.bringToFront();
+			return noErr;
+		}
+		return eventNotHandledErr;
+	}
+
+	final static int openContents(int nextHandler, int theEvent, int userData) {
+		Debug.out("openDocContents");
+		return noErr;
+	}
+
+	final static int toolbarToggle(int nextHandler, int theEvent, int userData) {
+		int eventKind = ((Number) invoke(claOS, null, "GetEventKind", new Object[] {
+			theEvent
+		})).intValue();
+		if (eventKind != kEventWindowToolbarSwitchMode) {
+			return eventNotHandledErr;
 		}
 
-		int clickDockIcon(int nextHandler, int theEvent, int userData) {
-			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-			if (uiFunctions != null) {
-				uiFunctions.bringToFront();
-				return OS.noErr;
-			}
-			return OS.eventNotHandledErr;
+		int[] theWindow = new int[1];
+		//int GetEventParameter(int inEvent, int inName, int inDesiredType, 
+		// int[] outActualType, int inBufferSize, int[] outActualSize, int[] outData);
+		invoke(claOS, null, "GetEventParameter", new Class[] {
+			int.class,
+			int.class,
+			int.class,
+			int[].class,
+			int.class,
+			int[].class,
+			int[].class
+		}, new Object[] {
+			theEvent,
+			kEventParamDirectObject,
+			typeWindowRef,
+			null,
+			4,
+			null,
+			theWindow
+		});
+
+		int[] theRoot = new int[1];
+		invoke(claOS, null, "GetRootControl", new Object[] {
+			theWindow[0],
+			theRoot
+		});
+		final Widget widget = Display.getCurrent().findWidget(theRoot[0]);
+
+		if (!(widget instanceof Shell)) {
+			return eventNotHandledErr;
 		}
+		final Shell shellAffected = (Shell) widget;
 
-		int openContents(int nextHandler, int theEvent, int userData) {
-			Debug.out("openDocContents");
-			return OS.noErr;
-		}
-
-		int toolbarToggle(int nextHandler, int theEvent, int userData) {
-			int eventKind = OS.GetEventKind(theEvent);
-			if (eventKind != OS.kEventWindowToolbarSwitchMode) {
-				return OS.eventNotHandledErr;
-			}
-
-			int[] theWindow = new int[1];
-			OS.GetEventParameter(theEvent, OS.kEventParamDirectObject,
-					OS.typeWindowRef, null, 4, null, theWindow);
-
-			int[] theRoot = new int[1];
-			OS.GetRootControl(theWindow[0], theRoot);
-			final Widget widget = Display.getCurrent().findWidget(theRoot[0]);
-
-			if (!(widget instanceof Shell)) {
-				return OS.eventNotHandledErr;
-			}
-			final Shell shellAffected = (Shell) widget;
-
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					int type;
-					Long l = (Long) shellAffected.getData("OSX.ToolBarToggle");
-					if (l == null || l.longValue() == 0) {
-						type = SWT.Collapse;
-					} else {
-						type = SWT.Expand;
-					}
-
-					Event event = new Event();
-					event.type = type;
-					event.display = widget.getDisplay();
-					event.widget = widget;
-					shellAffected.notifyListeners(type, event);
-
-					shellAffected.setData("OSX.ToolBarToggle", new Long(
-							type == SWT.Collapse ? 1 : 0));
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				int type;
+				Long l = (Long) shellAffected.getData("OSX.ToolBarToggle");
+				if (l == null || l.longValue() == 0) {
+					type = SWT.Collapse;
+				} else {
+					type = SWT.Expand;
 				}
-			});
 
-			return OS.noErr;
+				Event event = new Event();
+				event.type = type;
+				event.display = widget.getDisplay();
+				event.widget = widget;
+				shellAffected.notifyListeners(type, event);
+
+				shellAffected.setData("OSX.ToolBarToggle", new Long(
+						type == SWT.Collapse ? 1 : 0));
+			}
+		});
+
+		return noErr;
+	}
+
+	private static Object invoke(Class<?> clazz, Object target,
+			String methodName, Object[] args) {
+		try {
+			Class<?>[] signature = new Class<?>[args.length];
+			for (int i = 0; i < args.length; i++) {
+				Class<?> thisClass = args[i].getClass();
+				if (thisClass == Integer.class)
+					signature[i] = int.class;
+				else if (thisClass == Long.class)
+					signature[i] = long.class;
+				else if (thisClass == Byte.class)
+					signature[i] = byte.class;
+				else if (thisClass == Boolean.class)
+					signature[i] = boolean.class;
+				else
+					signature[i] = thisClass;
+			}
+			Method method = clazz.getMethod(methodName, signature);
+			return method.invoke(target, args);
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
 		}
-	};
+	}
+
+	private static Object invoke(Class<?> clazz, Object target,
+			String methodName, Class<?>[] signature, Object[] args) {
+		try {
+			Method method = clazz.getDeclaredMethod(methodName, signature);
+			method.setAccessible(true);
+			return method.invoke(target, args);
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+	}
 
 }
