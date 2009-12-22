@@ -1172,7 +1172,7 @@ implements PiecePicker
 	 */
 	protected final int findPieceToDownload(PEPeerTransport pt, int nbWanted)
 	{
-		final int pieceNumber =getRequestCandidate(pt);
+		final int pieceNumber = getRequestCandidate(pt);
 		if (pieceNumber <0)
 		{
 			// probaly should have found something since chose to try; probably not interested anymore
@@ -1188,10 +1188,10 @@ implements PiecePicker
 			peerSpeed = 0;
 
 		final PEPiece pePiece;
-		if (pePieces[pieceNumber] != null)
+		if (pePieces[pieceNumber] != null){
 			pePiece = pePieces[pieceNumber];
-		else
-		{	//create piece manually
+		}else{
+				//create piece manually
 			int[]	peer_priority_offsets = pt.getPriorityOffsets();
 
 			int	this_offset = peer_priority_offsets==null?0:peer_priority_offsets[pieceNumber];
@@ -1661,22 +1661,33 @@ implements PiecePicker
         	request_hint_piece_number = -1;
         }
         
-		// Try to continue a piece already loaded, according to priority
-        for (i =startI; i <=endI; i++)
-        {
-        	// is the piece available from this peer?
-        	if (peerHavePieces.flags[i])
-        	{
-        		priority =startPriorities[i];
-        		final DiskManagerPiece dmPiece =dmPieces[i];
+			// Try to continue a piece already loaded, according to priority
+        
+        for (i =startI; i <=endI; i++){
+        
+        		// is the piece available from this peer?
+        	
+        	if ( peerHavePieces.flags[i]){
+        	
+        		priority = startPriorities[i];
+        		
+        		final DiskManagerPiece dmPiece = dmPieces[i];
 
-        		if ( priority >=0 && dmPiece.isDownloadable())
-        		{
-        			if ( peerPriorities != null )
-        				priority += peerPriorities[i];
-
-        			if ( enable_request_hints && i == request_hint_piece_number )
-        			{
+        		if ( priority >=0 && dmPiece.isDownloadable()){
+        		
+        			if ( peerPriorities != null ){
+        				
+           				int peer_priority = peerPriorities[i];
+           				
+           				if ( peer_priority < 0 ){
+           					
+           					continue;
+           				}
+           				
+           				priority += peer_priority;
+        			}
+        			
+        			if ( enable_request_hints && i == request_hint_piece_number ){
 
         				priority += PRIORITY_REQUEST_HINT;
 
