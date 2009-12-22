@@ -188,21 +188,22 @@ StringInterner
 			{
 				managedSetLock.readLock().unlock();
 				managedSetLock.writeLock().lock();
-				
-				sanitize(false);
-				
-				// get again, weakrefs might have expired and been added by another thread concurrently
-				internedEntry = (WeakStringEntry) managedInterningSet.get(checkEntry);
-
-				if (internedEntry != null && (internedString = internedEntry.getString()) != null)
-					hit = true;
-				else {
-					managedInterningSet.add(checkEntry);
-					internedString = toIntern;
+				try{
+					sanitize(false);
+					
+					// get again, weakrefs might have expired and been added by another thread concurrently
+					internedEntry = (WeakStringEntry) managedInterningSet.get(checkEntry);
+	
+					if (internedEntry != null && (internedString = internedEntry.getString()) != null)
+						hit = true;
+					else {
+						managedInterningSet.add(checkEntry);
+						internedString = toIntern;
+					}
+				}finally{
+					managedSetLock.readLock().lock();
+					managedSetLock.writeLock().unlock();
 				}
-				managedSetLock.readLock().lock();
-				managedSetLock.writeLock().unlock();
-
 			}
 		} finally {
 			managedSetLock.readLock().unlock();
@@ -240,18 +241,21 @@ StringInterner
 			{
 				managedSetLock.readLock().unlock();
 				managedSetLock.writeLock().lock();
-				sanitize(false);
-				// get again, weakrefs might have expired and been added by another thread concurrently
-				internedEntry = (WeakByteArrayEntry) managedInterningSet.get(checkEntry);
-				if (internedEntry != null && (internedArray = internedEntry.getArray()) != null)
-					hit = true;
-				else
-				{
-					managedInterningSet.add(checkEntry);
-					internedArray = toIntern;
+				try{
+					sanitize(false);
+					// get again, weakrefs might have expired and been added by another thread concurrently
+					internedEntry = (WeakByteArrayEntry) managedInterningSet.get(checkEntry);
+					if (internedEntry != null && (internedArray = internedEntry.getArray()) != null)
+						hit = true;
+					else
+					{
+						managedInterningSet.add(checkEntry);
+						internedArray = toIntern;
+					}
+				}finally{
+					managedSetLock.readLock().lock();
+					managedSetLock.writeLock().unlock();
 				}
-				managedSetLock.readLock().lock();
-				managedSetLock.writeLock().unlock();
 			}
 		} finally
 		{
@@ -297,18 +301,21 @@ StringInterner
 			{
 				managedSetLock.readLock().unlock();
 				managedSetLock.writeLock().lock();
-				sanitize(false);
-				// get again, weakrefs might have expired and been added by another thread concurrently
-				internedEntry = (WeakFileEntry) managedInterningSet.get(checkEntry);
-				if (internedEntry != null && (internedFile = internedEntry.getFile()) != null)
-					hit = true;
-				else
-				{
-					managedInterningSet.add(checkEntry);
-					internedFile = toIntern;
+				try{
+					sanitize(false);
+					// get again, weakrefs might have expired and been added by another thread concurrently
+					internedEntry = (WeakFileEntry) managedInterningSet.get(checkEntry);
+					if (internedEntry != null && (internedFile = internedEntry.getFile()) != null)
+						hit = true;
+					else
+					{
+						managedInterningSet.add(checkEntry);
+						internedFile = toIntern;
+					}
+				}finally{
+					managedSetLock.readLock().lock();
+					managedSetLock.writeLock().unlock();
 				}
-				managedSetLock.readLock().lock();
-				managedSetLock.writeLock().unlock();
 			}
 		} finally
 		{
@@ -351,19 +358,21 @@ StringInterner
 			{
 				managedSetLock.readLock().unlock();
 				managedSetLock.writeLock().lock();
-				sanitize(false);
-				// get again, weakrefs might have expired and been added by another thread concurrently
-				internedEntry = (WeakURLEntry) managedInterningSet.get(checkEntry);
-				if (internedEntry != null && (internedURL = internedEntry.getURL()) != null)
-					hit = true;
-				else
-				{
-					managedInterningSet.add(checkEntry);
-					internedURL = toIntern;
+				try{
+					sanitize(false);
+					// get again, weakrefs might have expired and been added by another thread concurrently
+					internedEntry = (WeakURLEntry) managedInterningSet.get(checkEntry);
+					if (internedEntry != null && (internedURL = internedEntry.getURL()) != null)
+						hit = true;
+					else
+					{
+						managedInterningSet.add(checkEntry);
+						internedURL = toIntern;
+					}
+				}finally{
+					managedSetLock.readLock().lock();
+					managedSetLock.writeLock().unlock();
 				}
-				
-				managedSetLock.readLock().lock();
-				managedSetLock.writeLock().unlock();
 			}
 		} finally
 		{
