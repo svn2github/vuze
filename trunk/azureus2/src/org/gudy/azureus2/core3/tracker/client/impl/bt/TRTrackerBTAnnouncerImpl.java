@@ -2478,8 +2478,9 @@ TRTrackerBTAnnouncerImpl
 				   
 				   	//System.out.println("Response from Announce: " + new String(data));
 				   
-				   Long incomplete_l 	= (Long)metaData.get("incomplete");
-				   Long complete_l 		= (Long)metaData.get("complete");
+				   Long incomplete_l 	= getLong( metaData, "incomplete");
+				   Long complete_l 		= getLong( metaData, "complete");
+				   Long downloaded_l 	= getLong( metaData, "downloaded");
 				   
 				   if ( incomplete_l != null || complete_l != null  ){
 				   
@@ -3148,7 +3149,7 @@ TRTrackerBTAnnouncerImpl
 													? MessageText.getString("MyTorrentsView.peers")
 															+ " == " + incomplete + ". " : "") }));
 						} else {
-
+							
 							resp.setScrapeResult( complete, incomplete );
 
 							TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
@@ -3170,6 +3171,11 @@ TRTrackerBTAnnouncerImpl
 										scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
 
 									scrapeResponse.setSeedsPeers(complete, incomplete);
+
+									if ( downloaded_l != null ){
+										
+										scrapeResponse.setCompleted( downloaded_l.intValue());
+									}
 								}
 							}
 						}
@@ -3208,6 +3214,21 @@ TRTrackerBTAnnouncerImpl
   		}
 
 		return( new TRTrackerAnnouncerResponseImpl( url, torrent_hash, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval(), failure_reason ));
+  	}
+  	
+  	private Long
+  	getLong(
+  		Map		map,
+  		String	key )
+  	{
+  		Object o = map.get( key );
+  		
+  		if ( o instanceof Long ){
+  			
+  			return((Long)o);
+  		}
+  		
+  		return( null );
   	}
   	
 	protected void
