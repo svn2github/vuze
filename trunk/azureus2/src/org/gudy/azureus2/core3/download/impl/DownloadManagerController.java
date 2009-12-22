@@ -59,6 +59,7 @@ import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedPeer;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 
 public class 
@@ -191,6 +192,8 @@ DownloadManagerController
 	
 	private long		priority_connection_count;
 	
+	private static final int				HTTP_SEEDS_MAX	= 64;
+	private LinkedList<ExternalSeedPeer>	http_seeds = new LinkedList<ExternalSeedPeer>();
 	
 	protected
 	DownloadManagerController(
@@ -961,6 +964,20 @@ DownloadManagerController
 					   download_manager.deleteTorrentFile();
 				   }
          
+				   List<ExternalSeedPeer> to_remove = new ArrayList<ExternalSeedPeer>();
+
+				   synchronized( http_seeds ){
+
+					   to_remove.addAll( http_seeds );
+					   
+					   http_seeds.clear();
+				   }
+					
+				   for ( ExternalSeedPeer peer: to_remove ){
+					   
+					   peer.remove();
+				   }
+				   
 				   		// only update the state if things haven't gone wrong
 				   
 				   if ( getState() == DownloadManager.STATE_STOPPING ){
@@ -2083,7 +2100,29 @@ DownloadManagerController
 	
 				config.put("httpseeds-params", params);
 	
-				plugin.addSeed( org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl.getDownloadStatic( download_manager ), config);
+				List<ExternalSeedPeer> new_seeds = plugin.addSeed( org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl.getDownloadStatic( download_manager ), config);
+				
+				if ( new_seeds.size() > 0 ){
+					
+					List<ExternalSeedPeer> to_remove = new ArrayList<ExternalSeedPeer>();
+					
+					synchronized( http_seeds ){
+						
+						http_seeds.addAll( new_seeds );
+						
+						while( http_seeds.size() > HTTP_SEEDS_MAX ){
+							
+							ExternalSeedPeer x = http_seeds.removeFirst();
+							
+							to_remove.add( x );
+						}
+					}
+					
+					for (ExternalSeedPeer peer: to_remove ){
+						
+						peer.remove();
+					}
+				}
 			}
 		}catch( Throwable e ){
 			

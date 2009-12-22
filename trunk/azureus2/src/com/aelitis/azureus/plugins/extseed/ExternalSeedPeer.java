@@ -668,6 +668,11 @@ ExternalSeedPeer
 		}
 	}
 	
+	public void
+	remove()
+	{
+		plugin.removePeer( this );
+	}
 
 	public void	
 	addListener( 

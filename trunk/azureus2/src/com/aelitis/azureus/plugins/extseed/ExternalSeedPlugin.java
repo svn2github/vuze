@@ -239,35 +239,35 @@ ExternalSeedPlugin
 		downloadAdded( download );
 	}
 	
-	public void
+	public List<ExternalSeedPeer>
 	addSeed(
 		Download	download,
 		Map			config )
 	{
 		Torrent	torrent = download.getTorrent();
 		
-		if ( torrent == null ){
-			
-			return;
-		}
-		
-		List	peers = new ArrayList();
-		
-		for (int i=0;i<factories.length;i++){
-			
-			ExternalSeedReader[]	x = factories[i].getSeedReaders( this, download, config );
-			
-			for (int j=0;j<x.length;j++){
+		List<ExternalSeedPeer>	peers = new ArrayList<ExternalSeedPeer>();
+		 
+		if ( torrent != null ){
+						
+			for (int i=0;i<factories.length;i++){
 				
-				ExternalSeedReader	reader = x[j];
+				ExternalSeedReader[]	x = factories[i].getSeedReaders( this, download, config );
 				
-				ExternalSeedPeer	peer = new ExternalSeedPeer( this, download, reader );
-				
-				peers.add( peer );
+				for (int j=0;j<x.length;j++){
+					
+					ExternalSeedReader	reader = x[j];
+					
+					ExternalSeedPeer	peer = new ExternalSeedPeer( this, download, reader );
+					
+					peers.add( peer );
+				}
 			}
+			
+			addPeers( download, peers );
 		}
 		
-		addPeers( download, peers );
+		return( peers );
 	}
 	
 	protected void
