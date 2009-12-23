@@ -59,7 +59,10 @@ public class SWTVersionGetter {
   SWTVersionGetter(
   		UpdateChecker	_checker ) 
   {
-    this.platform 		= SWT.getPlatform();
+    this.platform 		= COConfigurationManager.getStringParameter("ConfigView.section.style.swt.library.selection");
+    if (this.platform == null || this.platform.length() == 0) {
+    	this.platform = SWT.getPlatform();
+    }
     this.currentVersion = SWT.getVersion();
     
 
