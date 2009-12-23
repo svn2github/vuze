@@ -281,7 +281,9 @@ ResourceDownloaderTorrentImpl
 	downloadTorrent()
 	{
 		try{
-			informActivity( getLogIndent() + "Downloading: " + new String( torrent_holder[0].getName(), Constants.DEFAULT_ENCODING ));
+			String name = new String( torrent_holder[0].getName(), Constants.DEFAULT_ENCODING );
+			
+			informActivity( getLogIndent() + "Downloading: " + name );
 			
 				// we *don't* want this temporary file to be deleted automatically as we're
 				// going to use it across Azureus restarts to hold the download data and
@@ -301,7 +303,26 @@ ResourceDownloaderTorrentImpl
 			TorrentUtils.setFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
 
 			torrent.serialiseToBEncodedFile( torrent_file );
-				
+			
+				// see if already there in an error state and delete if so
+			
+			try{
+				Download existing = download_manager.getDownload( torrent.getHash());
+			
+				if ( existing != null ){
+					
+					int	existing_state = existing.getState();
+					
+					if ( existing_state == Download.ST_ERROR || existing_state == Download.ST_STOPPED ){
+						
+						informActivity( getLogIndent() + "Deleting existing stopped/error state download for " + name );
+
+						existing.remove( true, true );
+					}
+				}
+			}catch( Throwable e ){	
+			}
+			
 			if ( persistent ){
 				
 				download = download_manager.addDownload( new TorrentImpl(torrent), torrent_file, data_dir );
