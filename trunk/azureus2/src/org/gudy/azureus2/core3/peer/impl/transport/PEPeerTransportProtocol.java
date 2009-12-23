@@ -106,13 +106,10 @@ implements PEPeerTransport
 
 	private long lastNeededUndonePieceChange;
 
-	protected boolean really_choked_by_other_peer = true;
-	protected boolean effectively_choked_by_other_peer = true;
+	private boolean really_choked_by_other_peer = true;
+	private boolean effectively_choked_by_other_peer = true;
+	private long	effectively_unchoked_time = -1;
 	
-	/** total time the other peer has unchoked us while not snubbed */
-	protected long unchokedTimeTotal;
-	/** the time at which the other peer last unchoked us when not snubbed */
-	protected long unchokedTime;
 	protected boolean choking_other_peer = true;
 	private boolean interested_in_other_peer = false;
 	private boolean other_peer_interested_in_me = false;
@@ -935,8 +932,6 @@ implements PEPeerTransport
 			peerSessionID = oldTransport.peerSessionID;
 			peer_stats = oldTransport.peer_stats;
 			peer_stats.setPeer(this);
-			unchokedTimeTotal += oldTransport.unchokedTimeTotal;
-			unchokedTime += oldTransport.unchokedTime;
 			setSnubbed(oldTransport.isSnubbed());
 			snubbed = oldTransport.snubbed;
 			last_good_data_time = oldTransport.last_good_data_time;
@@ -1689,19 +1684,11 @@ implements PEPeerTransport
 				{
 					snubbed =0;
 					manager.decNbPeersSnubbed();
-					if (!effectively_choked_by_other_peer)
-						unchokedTime =now;
 				}
 			} else if (snubbed ==0)
 			{
 				snubbed =now;
 				manager.incNbPeersSnubbed();
-				if (!effectively_choked_by_other_peer)
-				{
-					final long unchoked =now -unchokedTime;
-					if (unchoked >0)
-						unchokedTimeTotal +=unchoked;
-				}
 			}
 		}
 	}
@@ -2757,9 +2744,6 @@ implements PEPeerTransport
 			really_choked_by_other_peer = true;
 			calculatePiecePriorities();
 			cancelRequests();
-			final long unchoked =SystemTime.getCurrentTime() -unchokedTime;
-			if (unchoked >0 &&!isSnubbed())
-				unchokedTimeTotal +=unchoked;
 		}
 	}
 
@@ -2770,8 +2754,6 @@ implements PEPeerTransport
 		{
 			really_choked_by_other_peer = false;
 			calculatePiecePriorities();
-			if (!isSnubbed())
-				unchokedTime =SystemTime.getCurrentTime();
 		}
 	}
 
@@ -3375,11 +3357,21 @@ implements PEPeerTransport
 										
 					piece_priority_offsets = priorities;
 					
-					effectively_choked_by_other_peer = false;
+					if ( effectively_choked_by_other_peer ){
+						
+						effectively_choked_by_other_peer = false;
+					
+						effectively_unchoked_time	= SystemTime.getMonotonousTime();
+					}
 				}
 			}else{
 				
-				effectively_choked_by_other_peer = false;
+				if ( effectively_choked_by_other_peer ){
+				
+					effectively_choked_by_other_peer = false;
+				
+					effectively_unchoked_time	= SystemTime.getMonotonousTime();
+				}
 				
 				piece_priority_offsets = null;
 			}
@@ -3771,6 +3763,19 @@ implements PEPeerTransport
 		return( received_bitfield );
 	}
 
+	public long
+	getUnchokedForMillis()
+	{
+		long	time = effectively_unchoked_time;
+		
+		if ( effectively_choked_by_other_peer || time < 0 ){
+			
+			return( -1 );
+		}
+		
+		return( SystemTime.getMonotonousTime() - time );
+	}
+	
 	public String
 	getEncryption()
 	{
@@ -4216,12 +4221,6 @@ implements PEPeerTransport
 		return( connection.getEndpoint().getProtocols()[0].getType() == ProtocolEndpoint.PROTOCOL_TCP );
 	}
 
-	public long getUnchokedTimeTotal()
-	{
-		if (effectively_choked_by_other_peer)
-			return unchokedTimeTotal;
-		return unchokedTimeTotal +(SystemTime.getCurrentTime() -unchokedTime);
-	}
 
 	public void setUploadRateLimitBytesPerSecond( int bytes ){ connection.setUploadLimit( bytes ); }
 	public void setDownloadRateLimitBytesPerSecond( int bytes ){ connection.setDownloadLimit( bytes ); }
@@ -4332,7 +4331,7 @@ implements PEPeerTransport
 		writer.println( 
 				"ip=" + getIp() + ",in=" + isIncoming() + ",port=" + getPort() + ",cli=" + client + ",tcp=" + getTCPListenPort() + ",udp=" + getUDPListenPort() + 
 				",oudp=" + getUDPNonDataListenPort() + ",p_state=" + getPeerState() + ",c_state=" + getConnectionState() + ",seed=" + isSeed() + "partialSeed=" + isRelativeSeed() + ",pex=" + peer_exchange_supported + ",closing=" + closing );
-		writer.println( "    choked=" + effectively_choked_by_other_peer + "/" + really_choked_by_other_peer + ",choking=" + choking_other_peer + ",unchoke_time=" + unchokedTime + ", unchoke_total=" + unchokedTimeTotal + ",is_opt=" + is_optimistic_unchoke ); 
+		writer.println( "    choked=" + effectively_choked_by_other_peer + "/" + really_choked_by_other_peer + ",choking=" + choking_other_peer + ",is_opt=" + is_optimistic_unchoke ); 
 		writer.println( "    interested=" + interested_in_other_peer + ",interesting=" + other_peer_interested_in_me + ",snubbed=" + snubbed );
 		writer.println( "    lp=" + _lastPiece + ",up=" + uniquePiece + ",rp=" + reservedPiece );
 		writer.println( 

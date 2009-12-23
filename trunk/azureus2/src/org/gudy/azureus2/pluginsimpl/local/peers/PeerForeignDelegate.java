@@ -346,6 +346,11 @@ PeerForeignDelegate
   		return 0;
   	}
 
+  	public long
+  	getUnchokedForMillis()
+  	{
+  		return( 0 );
+  	}
   	 public int 
   	 getConsecutiveNoRequestCount()
   	 {

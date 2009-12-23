@@ -869,7 +869,19 @@ implements PiecePicker
 				}else{
 					if (!pt.isSnubbed()){
 						if (!endGameMode){
-							maxRequests =REQUESTS_MIN +(int) (pt.getStats().getDataReceiveRate() /SLOPE_REQUESTS);
+							
+							int	peer_requests_min;
+							
+							if ( pt.getUnchokedForMillis() < 10*1000 ){
+								
+								peer_requests_min = REQUESTS_MIN;
+								
+							}else{
+								
+								peer_requests_min = REQUESTS_MIN_MIN;
+							}
+							
+							maxRequests =peer_requests_min +(int) (pt.getStats().getDataReceiveRate() /SLOPE_REQUESTS);
 							if (maxRequests >REQUESTS_MAX ||maxRequests <0)
 								maxRequests =REQUESTS_MAX;
 						}else{

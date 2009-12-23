@@ -185,6 +185,8 @@ PEPeerTransport
   public long getTimeSinceLastDataMessageSent();
   
   
+  public long getUnchokedForMillis();
+  
   /**
    * Do any peer exchange processing/updating.
    */
