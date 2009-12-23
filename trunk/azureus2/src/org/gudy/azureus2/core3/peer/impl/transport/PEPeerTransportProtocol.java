@@ -117,7 +117,7 @@ implements PEPeerTransport
 	private boolean interested_in_other_peer = false;
 	private boolean other_peer_interested_in_me = false;
 	private long snubbed =0;
-
+	
 	/** lazy allocation; null until needed */
 	private volatile BitFlags	peerHavePieces =null; 
 	private volatile boolean	availabilityAdded =false;
@@ -1302,7 +1302,7 @@ implements PEPeerTransport
 		if ( current_peer_state != TRANSFERING ) return;
 
 		//System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " unchoked");
-
+		
 		createPieceMessageHandler();
 
 		choking_other_peer = false;	// set this first as with pseudo peers we can effectively synchronously act
@@ -3105,6 +3105,12 @@ implements PEPeerTransport
 			return;
 		}
 
+	  if ( DEBUG_FAST ){
+		  if ( fast_extension_enabled && really_choked_by_other_peer ){
+
+			  System.out.println( "Received allow-fast piece for " + pieceNumber + "/" + offset + "/" + length + " from " + getIp());
+		  }
+	  }
 		final DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, offset, length );
 		boolean piece_error = true;
 
@@ -3386,14 +3392,10 @@ implements PEPeerTransport
 	protected void
 	checkFast(
 		BitFlags	flags )
-	{
-			// until other clients fully support fast allowed we restrict to 	
-			// AZ only to avoid giving them unfair advantage (specifically uTorrent
-			// will currently use fast pieces but won't offer them)
-		
+	{		
 		if ( 	fast_extension_enabled &&
 				!(isSeed() || isRelativeSeed()) &&
-				messaging_mode == MESSAGING_AZMP ){
+				PeerClassifier.fullySupportsFE( client_peer_id )){
 			
 				// if already has enough pieces then bail
 			

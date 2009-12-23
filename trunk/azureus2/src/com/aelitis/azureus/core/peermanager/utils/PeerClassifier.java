@@ -31,6 +31,8 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.IPToHostNameResolver;
 
+import com.aelitis.azureus.core.util.FeatureAvailability;
+
 /**
  * Handles peer client identification and banning.
  */
@@ -69,7 +71,19 @@ public class PeerClassifier {
     return true;
   }
   
-
+  public static boolean fullySupportsFE( String client_description ){
+	  
+	  if ( FeatureAvailability.allowAllFEClients()){
+		  
+		  return( true );
+	  }
+	  
+	  	// some clients don't ever offer any fast-allow pieces so we reciprocate
+	  
+	  boolean res = !(client_description.startsWith( "\u00B5" ) || client_description.startsWith( "Trans" ));
+	  	  
+	  return( res );
+  }
   
 	private static Set	platform_ips = Collections.synchronizedSet(new HashSet());
 

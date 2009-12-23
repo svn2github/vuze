@@ -96,7 +96,8 @@ implements PiecePicker
 	private static final int PRIORITY_REALTIME		= 9999999;
 
 	/** Min number of requests sent to a peer */
-	private static final int REQUESTS_MIN	=2;
+	private static final int REQUESTS_MIN_MIN	= 2;
+	private static final int REQUESTS_MIN_MAX	= 8;
 	/** Max number of request sent to a peer */
 	private static final int REQUESTS_MAX	=256;
 	/** Default number of requests sent to a peer, (for each X B/s another request will be used) */
@@ -643,17 +644,20 @@ implements PiecePicker
 
 		final int uploadersSize =bestUploaders.size();
 
-		if ( uploadersSize ==0 ){
+		if ( uploadersSize == 0 ){
 
 			// no usable peers, bail out early
 			return;
 		}
 
+		int REQUESTS_MIN;
+				
 		boolean	done_priorities = false;
 
 		if ( priorityRTAexists ){
 		
-		
+			REQUESTS_MIN = REQUESTS_MIN_MIN;
+			
 			final Map[] peer_randomiser = { null };
 
 				// to keep the ordering consistent we need to use a fixed metric unless
@@ -828,6 +832,16 @@ implements PiecePicker
 					((PEPeerTransport)it.next()).requestAllocationComplete();
 				}
 			}
+		}else{
+			
+			int	required_blocks = (int)( diskManager.getRemainingExcludingDND()/DiskManager.BLOCK_SIZE );
+
+			int	blocks_per_uploader = required_blocks / uploadersSize;
+			
+				// if we have plenty of blocks outstanding we can afford to be more generous in the
+				// minimum number of requests we allocate
+			
+			REQUESTS_MIN = Math.max( REQUESTS_MIN_MIN, Math.min( REQUESTS_MIN_MAX, blocks_per_uploader/2 ));
 		}
 
 		checkEndGameMode();
@@ -922,7 +936,7 @@ implements PiecePicker
 
 						if ( no_req_count < NO_REQUEST_BACKOFF_MAX_LOOPS ){
 
-							pt.setConsecutiveNoRequestCount( no_req_count + 2 );
+							pt.setConsecutiveNoRequestCount( no_req_count + 1 );
 						}
 
 						// System.out.println( pt.getIp() + ": nb=" + pt.getNbRequests() + ",max=" + maxRequests + ",nrc=" + no_req_count +",loop=" + allocate_request_loop_count); 
