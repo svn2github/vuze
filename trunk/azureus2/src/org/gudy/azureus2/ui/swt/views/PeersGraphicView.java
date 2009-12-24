@@ -231,69 +231,84 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
             
       angle = (4 * i - nbPeers) * Math.PI  / (2 * nbPeers) - Math.PI / 2;
       
-      int[] rectangle = new int[8];
+      int[] triangle = new int[6];
       
       
+      int percent_received 	= peer.getPercentDoneOfCurrentIncomingRequest();
+      int percent_sent 		= peer.getPercentDoneOfCurrentOutgoingRequest();
+
+      	// set up base line state
       
-      if(! peer.isChokedByMe() || ! peer.isChokingMe()) {
-    	if ( peer.isUnchokeOverride()){
-  		  	gcBuffer.setForeground(Colors.green);
-    	}else{
-    		gcBuffer.setForeground(Colors.blues[Colors.BLUES_MIDLIGHT]);
-    	}
-        int x1 = x0 + (int) ( r * deltaYXs[iAngle] );
-        int y1 = y0 + (int) ( r * deltaYYs[iAngle] );        
-        gcBuffer.drawLine(x0,y0,x1,y1);
-        /*
-        rectangle[0] = x0 + (int) (deltaXXs[iAngle] * 3 + 0.5);
-        rectangle[1] = y0 + (int) (deltaXYs[iAngle] * 3 + 0.5);
-        rectangle[2] = x0 - (int) (deltaXXs[iAngle] * 3 + 0.5);
-        rectangle[3] = y0 - (int) (deltaXYs[iAngle] * 3 + 0.5);
-        
-        
-        rectangle[4] = x0 - (int) (deltaXXs[iAngle] * 3 - r * deltaYXs[iAngle]+ 0.5);
-        rectangle[5] = y0 - (int) (deltaXYs[iAngle] * 3 - r * deltaYYs[iAngle] + 0.5);
-        rectangle[6] = x0 + (int) (deltaXXs[iAngle] * 3 + r * deltaYXs[iAngle] + 0.5);
-        rectangle[7] = y0 + (int) (deltaXYs[iAngle] * 3 + r * deltaYYs[iAngle] + 0.5);
-        gcBuffer.drawPolygon(rectangle);        
-        */
+
+      boolean	drawLine = false;
+      
+      	// unchoked
+      
+      if ( !peer.isChokingMe() || percent_received >= 0 ){
+      	gcBuffer.setForeground(Colors.blues[1] );
+     	drawLine = true;
+      }
+
+      	// unchoking
+      
+      if ( !peer.isChokedByMe() || percent_sent >= 0 ){
+  		gcBuffer.setForeground(Colors.blues[3]);
+  		drawLine = true;
+      }
+         
+      	// receiving from choked peer (fast request in)
+      
+      if ( !peer.isChokingMe() && peer.isUnchokeOverride() && peer.isInteresting()){
+  		gcBuffer.setForeground(Colors.green);
+  		drawLine = true;
+      }
+      
+      	// sending to choked peer (fast request out)
+      
+      if ( peer.isChokedByMe() && percent_sent >= 0 ){
+    	gcBuffer.setForeground(Colors.green);
+    	drawLine = true;
+      }
+      
+      if ( drawLine ){
+		int x1 = x0 + (int) ( r * deltaYXs[iAngle] );
+		int y1 = y0 + (int) ( r * deltaYYs[iAngle] );        
+		gcBuffer.drawLine(x0,y0,x1,y1);
       }    
       
       
-      int percentSent = peer.getPercentDoneOfCurrentIncomingRequest();
-      if(percentSent >= 0) {
+      
+      if(percent_received >= 0) {
         gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
-        double r1 = r - r * percentSent / 100;
-        rectangle[0] = (int) (x0 + r1 * deltaYXs[iAngle] + 0.5);
-        rectangle[1] = (int) (y0 + r1 * deltaYYs[iAngle] + 0.5);
-        rectangle[2] = (int) (x0 + deltaXXs[iAngle] * 4 + r1 * deltaYXs[iAngle] + 0.5);
-        rectangle[3] = (int) (y0 + deltaXYs[iAngle] * 4 + r1 * deltaYYs[iAngle] + 0.5);
+        double r1 = r - r * percent_received / 100;
+        triangle[0] = (int) (x0 + (r1-10) * deltaYXs[iAngle] + 0.5);
+        triangle[1] = (int) (y0 + (r1-10) * deltaYYs[iAngle] + 0.5);
+        
+        triangle[2] =  (int) (x0 + deltaXXs[iAngle] * 4 + (r1) * deltaYXs[iAngle] + 0.5);
+        triangle[3] =  (int) (y0 + deltaXYs[iAngle] * 4 + (r1) * deltaYYs[iAngle] + 0.5);
         
         
-        rectangle[4] =  (int) (x0 + deltaXXs[iAngle] * 4 + (r1-10) * deltaYXs[iAngle] + 0.5);
-        rectangle[5] =  (int) (y0 + deltaXYs[iAngle] * 4 + (r1-10) * deltaYYs[iAngle] + 0.5);
-        rectangle[6] =  (int) (x0 + (r1-10) * deltaYXs[iAngle] + 0.5);
-        rectangle[7] =  (int) (y0 + (r1-10) * deltaYYs[iAngle] + 0.5);
-        gcBuffer.fillPolygon(rectangle); 
+        triangle[4] =  (int) (x0 - deltaXXs[iAngle] * 4 + (r1) * deltaYXs[iAngle] + 0.5);
+        triangle[5] =  (int) (y0 - deltaXYs[iAngle] * 4 + (r1) * deltaYYs[iAngle] + 0.5);
+        
+        gcBuffer.fillPolygon(triangle); 
       }
       
       
       
-      percentSent = peer.getPercentDoneOfCurrentOutgoingRequest();
-      if(percentSent >= 0) {
+      if(percent_sent >= 0) {
         gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDLIGHT]);
-        double r1 = r * percentSent / 100;
-        rectangle[0] =  (int) (x0 + r1 * deltaYXs[iAngle] + 0.5);
-        rectangle[1] =  (int) (y0 + r1 * deltaYYs[iAngle] + 0.5);
-        rectangle[2] =  (int) (x0 - deltaXXs[iAngle] * 4 + r1 * deltaYXs[iAngle] + 0.5);
-        rectangle[3] =  (int) (y0 - deltaXYs[iAngle] * 4 + r1 * deltaYYs[iAngle] + 0.5);
+        double r1 = r * percent_sent / 100;
+        triangle[0] = (int) (x0 + r1 * deltaYXs[iAngle] + 0.5);
+        triangle[1] = (int) (y0 + r1 * deltaYYs[iAngle] + 0.5);
+        
+        triangle[2] =  (int) (x0 + deltaXXs[iAngle] * 4 + (r1-10) * deltaYXs[iAngle] + 0.5);
+        triangle[3] =  (int) (y0 + deltaXYs[iAngle] * 4 + (r1-10) * deltaYYs[iAngle] + 0.5);
         
         
-        rectangle[4] =  (int) (x0 - deltaXXs[iAngle] * 4 + (r1-10) * deltaYXs[iAngle] + 0.5);
-        rectangle[5] =  (int) (y0 - deltaXYs[iAngle] * 4 + (r1-10) * deltaYYs[iAngle] + 0.5);
-        rectangle[6] =  (int) (x0 + (r1-10) * deltaYXs[iAngle] + 0.5);
-        rectangle[7] =  (int) (y0 + (r1-10) * deltaYYs[iAngle] + 0.5);
-        gcBuffer.fillPolygon(rectangle); 
+        triangle[4] =  (int) (x0 - deltaXXs[iAngle] * 4 + (r1-10) * deltaYXs[iAngle] + 0.5);
+        triangle[5] =  (int) (y0 - deltaXYs[iAngle] * 4 + (r1-10) * deltaYYs[iAngle] + 0.5);
+        gcBuffer.fillPolygon(triangle); 
       }
       
       
