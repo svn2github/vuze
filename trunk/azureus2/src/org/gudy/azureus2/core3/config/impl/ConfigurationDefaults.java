@@ -186,6 +186,7 @@ public class ConfigurationDefaults {
     def.put( "AutoSpeed Forced Min KBs", new Long(4));
     def.put( "Auto Upload Speed Debug Enabled", FALSE );
     
+    def.put( "Auto Adjust Transfer Defaults", TRUE );	// modified by config checker if user has set own values
     def.put( "ASN Autocheck Performed Time", ZERO );
 
     

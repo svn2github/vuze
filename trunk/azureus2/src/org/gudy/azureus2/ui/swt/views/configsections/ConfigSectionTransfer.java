@@ -29,7 +29,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
@@ -38,7 +40,6 @@ import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
@@ -188,8 +189,8 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		final IntParameter paramMaxDownSpeed = new IntParameter(cSection,
 				"Max Download Speed KBs", 0, -1);
 		paramMaxDownSpeed.setLayoutData(gridData);
-		
-		// max upload/download limit dependencies
+				
+			// max upload/download limit dependencies
 		
 		Listener l = new Listener() {
 	
@@ -306,21 +307,46 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 		if (userMode > 0) {
 			
+				// AUTO GROUP
+			
+			Group auto_group = new Group(cSection, SWT.NULL);
+			
+			Messages.setLanguageText(auto_group, "group.auto");
+			
+			GridLayout auto_layout = new GridLayout();
+			
+			auto_layout.numColumns = 2;
+
+			auto_group.setLayout(auto_layout);
+
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalSpan = 2;
+			auto_group.setLayoutData(gridData);
+
+			BooleanParameter auto_adjust = new BooleanParameter(
+					auto_group, 
+					"Auto Adjust Transfer Defaults",
+					"ConfigView.label.autoadjust" );
+			
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+
+			auto_adjust.setLayoutData( gridData );
 
 			// max uploads
 			gridData = new GridData();
-			label = new Label(cSection, SWT.NULL);
+			label = new Label(auto_group, SWT.NULL);
 			label.setLayoutData(gridData);
 			Messages.setLanguageText(label, "ConfigView.label.maxuploads");
 
 			gridData = new GridData();
-			IntParameter paramMaxUploads = new IntParameter(cSection, "Max Uploads",
+			IntParameter paramMaxUploads = new IntParameter(auto_group, "Max Uploads",
 					2, -1);
 			paramMaxUploads.setLayoutData(gridData);
 
 				// max uploads when seeding
 			
-			final Composite cMaxUploadsOptionsArea = new Composite(cSection, SWT.NULL);
+			final Composite cMaxUploadsOptionsArea = new Composite(auto_group, SWT.NULL);
 			layout = new GridLayout();
 			layout.numColumns = 3;
 			layout.marginWidth = 0;
@@ -343,23 +369,21 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			enable_seeding_uploads.setLayoutData(gridData);
 
 			gridData = new GridData();
-			IntParameter paramMaxUploadsSeeding = new IntParameter(
+			final IntParameter paramMaxUploadsSeeding = new IntParameter(
 					cMaxUploadsOptionsArea, "Max Uploads Seeding", 2, -1);
 			paramMaxUploadsSeeding.setLayoutData(gridData);
-			enable_seeding_uploads
-					.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-							paramMaxUploadsSeeding.getControl()));
+
 			
 			
 			////
 
 			gridData = new GridData();
-			label = new Label(cSection, SWT.NULL);
+			label = new Label(auto_group, SWT.NULL);
 			label.setLayoutData(gridData);
 			Messages.setLanguageText(label, "ConfigView.label.max_peers_per_torrent");
 
 			gridData = new GridData();
-			IntParameter paramMaxClients = new IntParameter(cSection,
+			IntParameter paramMaxClients = new IntParameter(auto_group,
 					"Max.Peer.Connections.Per.Torrent");
 			paramMaxClients.setLayoutData(gridData);
 
@@ -368,7 +392,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			
 				// max peers when seeding
 			
-			final Composite cMaxPeersOptionsArea = new Composite(cSection, SWT.NULL);
+			final Composite cMaxPeersOptionsArea = new Composite(auto_group, SWT.NULL);
 			layout = new GridLayout();
 			layout.numColumns = 3;
 			layout.marginWidth = 0;
@@ -391,34 +415,71 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			enable_max_peers_seeding.setLayoutData(gridData);
 
 			gridData = new GridData();
-			IntParameter paramMaxPeersSeeding = new IntParameter(
+			final IntParameter paramMaxPeersSeeding = new IntParameter(
 					cMaxPeersOptionsArea, "Max.Peer.Connections.Per.Torrent.When.Seeding", 0, -1);
-			paramMaxPeersSeeding.setLayoutData(gridData);
-			enable_max_peers_seeding
-					.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-							paramMaxPeersSeeding.getControl()));
-	
+			paramMaxPeersSeeding.setLayoutData(gridData);	
 			
 			/////
 
 			gridData = new GridData();
-			label = new Label(cSection, SWT.NULL);
+			label = new Label(auto_group, SWT.NULL);
 			label.setLayoutData(gridData);
 			Messages.setLanguageText(label, "ConfigView.label.max_peers_total");
 
 			gridData = new GridData();
-			IntParameter paramMaxClientsTotal = new IntParameter(cSection,
+			IntParameter paramMaxClientsTotal = new IntParameter(auto_group,
 					"Max.Peer.Connections.Total");
 			paramMaxClientsTotal.setLayoutData(gridData);
 			
 			gridData = new GridData();
-			label = new Label(cSection, SWT.NULL);
+			label = new Label(auto_group, SWT.NULL);
 			label.setLayoutData(gridData);
 			Messages.setLanguageText(label, "ConfigView.label.maxseedspertorrent");
 
 			gridData = new GridData();
-			new IntParameter(cSection,"Max Seeds Per Torrent").setLayoutData(gridData);
+			IntParameter max_seeds_per_torrent = new IntParameter(auto_group,"Max Seeds Per Torrent");
+			max_seeds_per_torrent.setLayoutData(gridData);
 
+			final Parameter[] parameters = {
+					paramMaxUploads, enable_seeding_uploads, paramMaxUploadsSeeding,
+					paramMaxClients, enable_max_peers_seeding, paramMaxPeersSeeding,
+					paramMaxClientsTotal, max_seeds_per_torrent,
+			};
+			
+		    IAdditionalActionPerformer f_enabler =
+		        new GenericActionPerformer( new Control[0])
+		    	{
+		        	public void 
+		        	performAction()
+		        	{
+		        		boolean auto = COConfigurationManager.getBooleanParameter( "Auto Adjust Transfer Defaults" );
+		        		
+		        		for ( Parameter p: parameters ){
+		        			
+		        			Control[] c = p.getControls();
+		        			
+		        			for ( Control x: c ){
+		        				
+		        				x.setEnabled( !auto );
+		        			}
+		        		}
+		        			
+		        		if ( !auto ){
+		        			
+		        			paramMaxUploadsSeeding.getControl().setEnabled( COConfigurationManager.getBooleanParameter( "enable.seedingonly.maxuploads" ));
+		        			
+		        			paramMaxPeersSeeding.getControl().setEnabled(  COConfigurationManager.getBooleanParameter( "Max.Peer.Connections.Per.Torrent.When.Seeding.Enable" ));
+		        		}
+		        	}
+		        };
+			
+		    f_enabler.performAction();
+		    
+			enable_seeding_uploads.setAdditionalActionPerformer( f_enabler );
+			enable_max_peers_seeding.setAdditionalActionPerformer( f_enabler );
+			auto_adjust.setAdditionalActionPerformer( f_enabler );
+			
+				// END AUTO GROUP
 			
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;

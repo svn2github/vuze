@@ -88,6 +88,9 @@ SpeedManagerImpl
 
 	private static final int SAVE_PERIOD_SECS	= 15*60;
 	private static final int SAVE_PERIOD_TICKS 	= SAVE_PERIOD_SECS / CONTACT_PING_SECS;
+	
+	private static final int AUTO_ADJUST_PERIOD_SECS	= 60;
+	private static final int AUTO_ADJUST_PERIOD_TICKS 	= AUTO_ADJUST_PERIOD_SECS / CONTACT_PING_SECS;
 
 	private static final int SPEED_AVERAGE_PERIOD	= 3000;
 	
@@ -304,6 +307,23 @@ SpeedManagerImpl
 						
 						ping_mapper.saveHistory();
 					}
+					
+					if ( tick_count % AUTO_ADJUST_PERIOD_TICKS == 0 ){
+						
+						autoAdjust();
+					}
+				}
+			});
+		
+		COConfigurationManager.addAndFireParameterListener(
+			"Auto Adjust Transfer Defaults",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					autoAdjust();
 				}
 			});
 		
@@ -880,6 +900,83 @@ SpeedManagerImpl
         return( adapter.getCurrentProtocolDownloadSpeed(-1) );
     }
 
+    private void
+    autoAdjust()
+    {
+    	if ( COConfigurationManager.getBooleanParameter( "Auto Adjust Transfer Defaults" )){
+    		
+       		int	up_limit_bytes_per_sec 		= getEstimatedUploadCapacityBytesPerSec().getBytesPerSec();
+       		int	down_limit_bytes_per_sec 	= getEstimatedDownloadCapacityBytesPerSec().getBytesPerSec();
+    		       		
+       		int up_kbs = up_limit_bytes_per_sec/1024;
+       		
+        		
+       		final int[][] settings = {
+       				
+       				{ 56, 		2, 		20, 	40  },		// 56 k/bit
+       				{ 96, 		3, 		30, 	60 },
+       				{ 128, 		3, 		40, 	80 },
+       				{ 192, 		4, 		50, 	100 },		// currently we don't go lower than this
+       				{ 256, 		4, 		60, 	200 },
+       				{ 512, 		5, 		70, 	300 },
+       				{ 1024,		6, 		80, 	400 },		// 1Mbit
+       				{ 2*1024,	8, 		90, 	500 },
+       				{ 5*1024,	10, 	100, 	600 },
+      				{ 10*1024,	20,		110, 	750 },		// 10Mbit
+      				{ 20*1024,	30, 	120, 	900 },
+      				{ 50*1024,	40, 	130, 	1100 },
+      				{ 100*1024,	50, 	140, 	1300 },
+      				{ -1, 		60, 	150, 	1500 },
+       		};
+       		
+       		int[] selected = settings[ settings.length-1 ];
+       		
+       			// note, we start from 3 to avoid over-restricting things when we don't have
+       			// a reasonable speed estimate
+       		
+       		for ( int i=3;i<settings.length;i++ ){
+       		
+       			int[]	setting = settings[i];
+       			
+       			int	line_kilobit_sec = setting[0];
+       			
+       				// convert to upload kbyte/sec assuming 80% achieved
+       			
+       			int	limit = (line_kilobit_sec/8)*4/5;
+       			
+       			if ( up_kbs <= limit ){
+       				
+       				selected = setting;
+       				
+       				break;
+       			}
+       		}
+       		
+      		int	upload_slots			= selected[1];
+       		int	connections_torrent		= selected[2];
+       		int connections_global		= selected[3];
+
+       		
+      		if ( upload_slots != COConfigurationManager.getIntParameter( "Max Uploads" )){
+       			
+      			COConfigurationManager.setParameter( "Max Uploads", upload_slots );
+      			COConfigurationManager.setParameter( "Max Uploads Seeding", upload_slots );
+       		}
+       		
+      		if ( connections_torrent != COConfigurationManager.getIntParameter( "Max.Peer.Connections.Per.Torrent" )){
+       			
+    			COConfigurationManager.setParameter( "Max.Peer.Connections.Per.Torrent", connections_torrent );
+    			
+    			COConfigurationManager.setParameter( "Max.Peer.Connections.Per.Torrent.When.Seeding", connections_torrent );
+       		}
+       		
+      		if ( connections_global != COConfigurationManager.getIntParameter( "Max.Peer.Connections.Total" )){
+       			
+       			COConfigurationManager.setParameter( "Max.Peer.Connections.Total", connections_global );
+       		}
+    	}
+    }
+    
 	public void
 	setLoggingEnabled(
 		boolean	enabled )

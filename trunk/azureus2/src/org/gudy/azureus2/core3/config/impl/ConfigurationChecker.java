@@ -620,6 +620,43 @@ ConfigurationChecker
 	    
 	    	ConfigurationDefaults.getInstance().addParameter( SpeedManagerImpl.CONFIG_VERSION, 1 );	// 1 == classic, 2 == beta
 	    }
+	    
+	    if ( COConfigurationManager.getIntParameter( "config.checker.level", 0 ) == 0 ){
+	    	
+	    	COConfigurationManager.setParameter( "config.checker.level", 1 );
+	    	
+	    	changed = true;
+	    	
+		    	// initial setting of auto-config for upload slots etc
+		    
+			String[]	params = { 
+					"Max Uploads", 
+					"enable.seedingonly.maxuploads", 
+					"Max Uploads Seeding",
+					"Max.Peer.Connections.Per.Torrent",
+					"Max.Peer.Connections.Per.Torrent.When.Seeding.Enable",
+					"Max.Peer.Connections.Per.Torrent.When.Seeding",
+					"Max.Peer.Connections.Total",
+					"Max Seeds Per Torrent"
+			};
+			
+			boolean	has_been_set = false;
+			
+			for ( String param: params ){
+			
+				if ( COConfigurationManager.doesParameterNonDefaultExist( param )){
+					
+					has_been_set = true;
+					
+					break;
+				}
+			}
+			
+			if ( has_been_set ){
+				
+				COConfigurationManager.setParameter( "Auto Adjust Transfer Defaults", false );
+			}
+	    }
 	
 	    if(changed) {
 	      COConfigurationManager.save();
