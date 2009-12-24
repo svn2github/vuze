@@ -130,6 +130,7 @@ OutgoingMessageQueueImpl
     total_size = 0;
     prev_sent.clear();
     listeners = new ArrayList();
+    percent_complete = -1;
     urgent_message = null;
   }
   
@@ -295,6 +296,10 @@ OutgoingMessageQueueImpl
         	}
         }
       }
+      
+      if ( queue.isEmpty()){
+    	  percent_complete = -1;
+      }
     }finally{
       queue_mon.exit();
     }
@@ -357,6 +362,10 @@ OutgoingMessageQueueImpl
           
           break;
         }
+      }
+      
+      if ( queue.isEmpty()){
+    	  percent_complete = -1;
       }
     }finally{
       queue_mon.exit();
@@ -422,6 +431,7 @@ OutgoingMessageQueueImpl
 
 	  ArrayList messages_sent = null;
 
+	  //System.out.println( "deliver: %=" + percent_complete + ", queue=" + queue.size());
 	  try{
 		  queue_mon.enter();
 
