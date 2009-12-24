@@ -115,20 +115,27 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
     this.peerComparator = new PeerComparator();
   } 
   
-	public void dataSourceChanged(Object newDataSource) {
-  	if (manager != null)
-  		manager.removePeerListener(this);
+  public void dataSourceChanged(Object newDataSource) {
+	  if (manager != null)
+		  manager.removePeerListener(this);
 
-		if (newDataSource == null)
-			manager = null;
-		else if (newDataSource instanceof Object[])
-			manager = (DownloadManager)((Object[])newDataSource)[0];
-		else
-			manager = (DownloadManager)newDataSource;
+	  if (newDataSource == null)
+		  manager = null;
+	  else if (newDataSource instanceof Object[])
+		  manager = (DownloadManager)((Object[])newDataSource)[0];
+	  else
+		  manager = (DownloadManager)newDataSource;
 
-    if (manager != null)
-    	manager.addPeerListener(this);
-	}
+	  try {
+		  peers_mon.enter();
+		  
+		  peers.clear();
+	  } finally {
+		  peers_mon.exit();
+	  }
+	  if (manager != null)
+		  manager.addPeerListener(this);
+  }
 
   public void delete() {
   	if (manager != null)
