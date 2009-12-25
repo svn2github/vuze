@@ -208,6 +208,8 @@ public class VuzeActivitiesManager
 			
 			HttpURLConnection con = (HttpURLConnection)url.openConnection();
 			
+			UrlUtils.setBrowserHeaders( con, null );
+			
 			String	key = "cn." + cn.getID() + ".identify.cookie";
 			
 			String cookie = COConfigurationManager.getStringParameter( key, null );
