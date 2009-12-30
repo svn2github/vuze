@@ -302,6 +302,7 @@ public class ManagerView
 				views[0].refresh();
 				views[0].getComposite().layout(true);
 				views[0].getComposite().setFocus();
+				folder.setSelection(0);
 				activeView = views[0];
 				ViewTitleInfoManager.refreshTitleInfo(ManagerView.this);
 			}
