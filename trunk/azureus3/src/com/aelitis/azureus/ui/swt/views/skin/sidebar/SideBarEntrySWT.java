@@ -264,10 +264,15 @@ public class SideBarEntrySWT implements SideBarEntry
 				if (treeItem == null || treeItem.isDisposed()) {
 					return;
 				}
-				Tree tree = treeItem.getParent();
-				Rectangle bounds = treeItem.getBounds();
-				Rectangle treeBounds = tree.getBounds();
-				tree.redraw(0, bounds.y, treeBounds.width, bounds.height, true);
+				try {
+  				Tree tree = treeItem.getParent();
+  				Rectangle bounds = treeItem.getBounds();
+  				Rectangle treeBounds = tree.getBounds();
+  				tree.redraw(0, bounds.y, treeBounds.width, bounds.height, true);
+				} catch (NullPointerException npe) {
+					// ignore NPE. OSX seems to be spewing this when the tree size is 0
+					// or is invisible or something like that
+				}
 				//tree.update();
 			}
 		});
