@@ -22,14 +22,10 @@
 
 package org.gudy.azureus2.platform.macosx;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.InetAddress;
 import java.text.MessageFormat;
-import java.util.HashSet;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -256,7 +252,62 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   	
   		throws PlatformManagerException 
   	{
-  		return( false );
+  		File f = getLoginPList();
+  		
+  		if ( !f.exists()){
+  			
+  			return( false );
+  		}
+  		
+  		File	bundle_file = getAbsoluteBundleFile();
+  		
+  		if ( !bundle_file.exists()){
+  			
+  			return( false );
+  		}
+  		
+  		try{
+  			LineNumberReader lnr = new LineNumberReader( new InputStreamReader(new FileInputStream( f ), "UTF-8" ));
+  			
+  			int	state = 0;
+  			
+  			String	target = bundle_file.getAbsolutePath();
+  			
+  			try{
+  				while( true ){
+  					
+  					String line = lnr.readLine();
+  					
+  					if ( line == null ){
+  						
+  						break;
+  					}
+  				
+  					if ( state == 0 ){
+  					
+  						if ( containsTag( line, "AutoLaunchedApplicationDictionary" )){
+  						
+  							state = 1;
+  						}
+  					}else{
+  						
+  						if ( line.contains( target )){
+  							
+  							return( true );
+  						}
+  					}
+  				}
+  				
+  				return( false );
+  				
+  			}finally{
+  				
+  				lnr.close();
+  			}
+  		}catch( Throwable e ){
+  			
+  			throw( new PlatformManagerException( "Failed to read input file", e ));
+  		}
   	}
   	
   	public void 
@@ -265,8 +316,217 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   	
   		throws PlatformManagerException 
   	{
+  		if ( getRunAtLogin() == run ){
+  			
+  			return;
+  		}
+  		
+		File	bundle_file = getAbsoluteBundleFile();
+  		
+  		if ( !bundle_file.exists()){
+  			
+ 			throw( new PlatformManagerException( "Failed to write set run-at-login, bundle not found" ));
+  		}
+  		
+  		File f = getLoginPList();
+  		
+  		if ( !f.exists()){
+  			
+  			try{
+  				PrintWriter pw = new PrintWriter( new OutputStreamWriter( new FileOutputStream( f ), "UTF-8" ));
+  				
+  				try{
+  				
+  					pw.println( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
+  					pw.println( "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" );
+  					pw.println( "<plist version=\"1.0\">" );
+  					pw.println( "<dict>" );
+  					
+  					pw.println( "</dict>" );
+  					pw.println( "</plist>" );
+
+  				}finally{
+  					
+  					pw.close();
+  				}
+  			}catch( Throwable e ){
+  				
+  				throw( new PlatformManagerException( "Failed to write output file", e ));
+  			}
+  		}
+  		
+  
+  		try{
+  			List<String>	lines = new ArrayList<String>();
+  			
+  			LineNumberReader lnr = new LineNumberReader( new InputStreamReader(new FileInputStream( f ), "UTF-8" ));
+  			
+  			int	dict_line 			= -1;
+  			int	auto_launch_line 	= -1;
+  			int	target_index		= -1;
+  			
+  			String	target = bundle_file.getAbsolutePath();
+  			
+  			try{
+  				while( true ){
+  					
+  					String line = lnr.readLine();
+  					
+  					if ( line == null ){
+  						
+  						break;
+  					}
+  				
+ 					lines.add( line );
+ 					 
+  					if ( dict_line == -1 && containsTag( line, "<dict>" )){
+  						
+  						dict_line = lines.size();
+  					}
+  					
+  					if ( auto_launch_line == -1 && containsTag( line, "AutoLaunchedApplicationDictionary" )){
+  						
+  						auto_launch_line = lines.size();
+  					}
+  					
+  					if ( line.contains( target )){
+  						
+  						target_index = lines.size();
+  					}
+  				}
+  					
+  				if ( dict_line == -1 ){
+  					
+  					throw( new PlatformManagerException( "Malformed plist - no 'dict' entry" ));
+  				}
+  				
+  				if ( auto_launch_line == -1 ){
+  					
+  					lines.add( dict_line, "\t<key>AutoLaunchedApplicationDictionary</key>" );
+  					
+  					auto_launch_line = dict_line+1;
+  					
+  					lines.add( auto_launch_line, "\t<array>" );
+  					lines.add( auto_launch_line+1, "\t</array>" );
+  				}
+  			}finally{
+  				
+  				lnr.close();
+  			}
+  			
+  			if ( run ){
+  				
+  				if ( target_index != -1 || auto_launch_line == -1 ){
+  					
+  					return;
+  				}
+  				
+  				target_index = auto_launch_line+1;
+  				
+ 				lines.add( target_index++, "\t\t<dict>" );
+				lines.add( target_index++, "\t\t\t<key>Path</key>" );
+				lines.add( target_index++, "\t\t\t<string>" + target + "</string>" );
+ 				lines.add( target_index++, "\t\t</dict>" );
+  				
+  			}else{
+  				
+  				if ( target_index == -1 ){
+  					
+  					return;
+  				}
+  				
+  				while( !containsTag( lines.get( target_index ), "</dict>" )){
+  					
+  					lines.remove( target_index );
+  				}
+  				
+  				lines.remove( target_index );
+  				
+  				target_index--;
+  				
+  				while( !containsTag( lines.get( target_index ), "<dict>" )){
+  					
+  					lines.remove( target_index );
+  					
+  					target_index--;
+  				}
+  				
+  				lines.remove( target_index );
+  			}
+  			
+  			File	backup = new File( f.getParentFile(), f.getName() + ".bak" );
+  			
+  			if ( backup.exists()){
+  				
+  				backup.delete();
+  			}
+  			
+  			if ( !f.renameTo( backup )){
+  				
+  				throw( new PlatformManagerException( "Failed to backup " + f ));
+  			}
+  			
+			boolean	ok = false;
+			
+			try{
+				PrintWriter pw = new PrintWriter( new OutputStreamWriter( new FileOutputStream( f ), "UTF-8" ));
+				
+				try{
+				
+					for ( String line: lines ){
+						
+						pw.println( line );
+					}
+				}finally{
+					
+					pw.close();
+					
+					if ( pw.checkError()){
+						
+						throw( new PlatformManagerException( "Failed to write output file" ));
+					}
+					
+					ok = true;
+				}
+			}finally{
+				
+				if ( !ok ){
+					
+					backup.renameTo( f );
+				}
+			}
+ 	
+  		}catch( PlatformManagerException e ){
+  			
+  			throw( e );
+  			
+  		}catch( Throwable e ){
+  			
+  			throw( new PlatformManagerException( "Failed to write output file", e ));
+  		}
    	}
     
+  	private boolean
+  	containsTag(
+  		String	line,
+  		String	tag )
+  	{
+  		line 	= line.trim().toLowerCase( Locale.US );
+  		tag		= tag.toLowerCase( Locale.US );
+  		
+  		StringBuffer line2 = new StringBuffer( line.length());
+  		
+  		for (char c:line.toCharArray()){
+  			
+  			if ( !Character.isWhitespace( c )){
+  				
+  				line2.append( c );
+  			}
+  		}
+  		
+  		return( line2.toString().contains( tag ));
+  	}
+  	
     private File 
     getLoginPList() 
     
@@ -433,15 +693,24 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         return true;
     }
 
+    private String
+    getBundlePath()
+    {
+		return( System.getProperty("user.dir") +SystemProperties.SEP+ SystemProperties.getApplicationName() + ".app" );
+    }
+    
+    private File
+    getAbsoluteBundleFile()
+    {
+    	return( new File( getBundlePath()).getAbsoluteFile());
+    }
     
 	public String
 	getApplicationCommandLine()
 		throws PlatformManagerException
 	{
 		try{	    
-			String	bundle_path = System.getProperty("user.dir") +SystemProperties.SEP+ SystemProperties.getApplicationName() + ".app";
-
-			File osx_app_bundle = new File( bundle_path ).getAbsoluteFile();
+			File osx_app_bundle = getAbsoluteBundleFile();
 			
 			if( !osx_app_bundle.exists() ) {
 				String msg = "OSX app bundle not found: [" +osx_app_bundle.toString()+ "]";
