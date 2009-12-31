@@ -94,6 +94,16 @@ Parameter
  		}
 	}
 	
+	public void
+	setEnabled(
+		boolean	enabled )
+	{
+		for ( Control c: getControls()){
+			
+			c.setEnabled(enabled);
+		}
+	}
+	
 	public boolean
 	isDisposed()
 	{

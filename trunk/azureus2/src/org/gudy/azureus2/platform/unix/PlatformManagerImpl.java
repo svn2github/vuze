@@ -216,6 +216,23 @@ public class PlatformManagerImpl implements PlatformManager
 	{
 		throw new PlatformManagerException(ERR_UNSUPPORTED);
 	}
+	
+  	public boolean 
+  	getRunAtLogin() 
+  	
+  		throws PlatformManagerException 
+  	{
+  		throw new PlatformManagerException(ERR_UNSUPPORTED);
+  	}
+  	
+  	public void 
+  	setRunAtLogin(
+  		boolean run ) 
+  	
+  		throws PlatformManagerException 
+  	{
+  		throw new PlatformManagerException(ERR_UNSUPPORTED);
+   	}
 	          	
 	// @see org.gudy.azureus2.platform.PlatformManager#setTCPTOSEnabled(boolean)
 	public void setTCPTOSEnabled(boolean enabled) throws PlatformManagerException {

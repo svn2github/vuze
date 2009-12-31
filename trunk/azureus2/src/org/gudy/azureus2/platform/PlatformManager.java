@@ -81,7 +81,18 @@ PlatformManager
 		String[]		options )
 	
 		throws PlatformManagerException;
-	
+
+	public boolean
+	getRunAtLogin()
+	          	
+	 	throws PlatformManagerException;
+
+	public void
+	setRunAtLogin(
+		boolean		run )
+	          	
+	 	throws PlatformManagerException;
+
 	public void
 	createProcess(
 		String	command_line,

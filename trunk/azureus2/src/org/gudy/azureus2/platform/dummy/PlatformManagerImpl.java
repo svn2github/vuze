@@ -110,6 +110,23 @@ public class PlatformManagerImpl implements PlatformManager
         throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
 	 
+	public boolean
+	getRunAtLogin()
+	          	
+	 	throws PlatformManagerException
+	{
+		 throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+
+	public void
+	setRunAtLogin(
+		boolean		run )
+	          	
+	 	throws PlatformManagerException
+	{
+		 throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
 	public void
 	setExplicitVMOptions(
 		String[]		options )

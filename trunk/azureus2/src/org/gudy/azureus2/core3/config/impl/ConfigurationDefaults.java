@@ -219,6 +219,8 @@ public class ConfigurationDefaults {
     def.put("Ip Filter Autoload File", "");
     def.put("Allow Same IP Peers",FALSE);
     def.put("Use Super Seeding",FALSE);
+    
+    def.put( "Start On Login", FALSE );
     def.put("Pause Downloads On Exit", FALSE );
     def.put("Resume Downloads On Start", FALSE );
         

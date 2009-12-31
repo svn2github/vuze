@@ -144,6 +144,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         	
             capabilitySet.add(PlatformManagerCapabilities.AccessExplicitVMOptions);
         }
+        
+        capabilitySet.add(PlatformManagerCapabilities.RunAtLogin);
     }
 
     /**
@@ -248,6 +250,30 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   	{
         throw new PlatformManagerException("Unsupported capability called on platform manager");	
   	}
+  	
+  	public boolean 
+  	getRunAtLogin() 
+  	
+  		throws PlatformManagerException 
+  	{
+  		return( false );
+  	}
+  	
+  	public void 
+  	setRunAtLogin(
+  		boolean run ) 
+  	
+  		throws PlatformManagerException 
+  	{
+   	}
+    
+    private File 
+    getLoginPList() 
+    
+    	throws PlatformManagerException
+    {
+    	return( new File(System.getProperty("user.home"), "/Library/Preferences/loginwindow.plist" )); 
+    }
     
     /**
      * {@inheritDoc}

@@ -201,8 +201,10 @@ PlatformManagerImpl
 	        	capabilitySet.add(PlatformManagerCapabilities.AccessExplicitVMOptions );
 	        	
 	        }catch( Throwable e ){
-	        	
 	        }
+	        
+	        capabilitySet.add(PlatformManagerCapabilities.RunAtLogin);
+	        
     	}else{
     		
     			// disabled -> only available capability is that to get the version
@@ -471,6 +473,61 @@ PlatformManagerImpl
   		throw new PlatformManagerException("Unsupported capability called on platform manager");	
   	}
   	
+ 	public boolean 
+  	getRunAtLogin() 
+  	
+  		throws PlatformManagerException 
+  	{
+		File exe = getApplicationEXELocation();
+
+		if ( exe != null && exe.exists()){
+			
+	 		try{
+				String value = access.readStringValue(
+						AEWin32Access.HKEY_CURRENT_USER,
+						"Software\\Microsoft\\Windows\\CurrentVersion\\Run", app_name );
+				
+				return( value.equals( exe.getAbsolutePath()));
+				
+			}catch( Throwable e ){
+				
+				return( false );
+			}
+		}else{
+			
+			return( false );
+		}
+  	}
+  	
+  	public void 
+  	setRunAtLogin(
+  		boolean run ) 
+  	
+  		throws PlatformManagerException 
+  	{
+  		File exe = getApplicationEXELocation();
+  		
+  		if ( exe != null && exe.exists()){
+ 
+	  		try{
+	  			String key = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+	  			
+	  			if ( run ){
+	  				
+					access.writeStringValue(
+						AEWin32Access.HKEY_CURRENT_USER,
+						key, app_name, exe.getAbsolutePath());
+	  			}else{
+	  				
+	  				access.deleteValue( AEWin32Access.HKEY_CURRENT_USER, key, app_name );
+	  			}
+			}catch( Throwable e ){
+				
+				throw( new PlatformManagerException( "Failed to write 'run at login' key", e ));
+			}
+  		}
+   	}
+  		
 	public String
 	getApplicationCommandLine()
 	{

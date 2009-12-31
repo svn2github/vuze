@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
@@ -96,12 +97,82 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		layout.marginHeight = 0;
 		cDisplay.setLayout(layout);
 
-		/////////////
-    Group gAutoOpen = new Group(cDisplay, SWT.NULL);
-    Messages.setLanguageText(gAutoOpen, LBLKEY_PREFIX + "autoopen");
-    layout = new GridLayout(3, false);
-    gAutoOpen.setLayout(layout);
-    gAutoOpen.setLayoutData(new GridData());
+		final PlatformManager platform = PlatformManagerFactory.getPlatformManager();
+		
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+		
+			// ***** start/stop group
+		
+		boolean can_ral = platform.hasCapability(PlatformManagerCapabilities.RunAtLogin );
+		
+		if ( can_ral || userMode > 0 ){
+			
+			Group gStartStop = new Group(cDisplay, SWT.NULL);
+			Messages.setLanguageText(gStartStop, LBLKEY_PREFIX + "startstop");
+			layout = new GridLayout(2, false);
+			gStartStop.setLayout(layout);
+			gStartStop.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+	
+			if ( can_ral ){
+	
+				gridData = new GridData();
+				gridData.horizontalSpan = 2;
+				BooleanParameter start_on_login = new BooleanParameter(gStartStop, "Start On Login", LBLKEY_PREFIX + "start.onlogin");
+				
+				try{
+					start_on_login.setSelected( platform.getRunAtLogin());
+					
+					start_on_login.addChangeListener(
+						new ParameterChangeAdapter()
+						{
+							public void 
+							booleanParameterChanging(
+								Parameter p,
+								boolean toValue) 
+							{
+								try{
+									platform.setRunAtLogin( toValue );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						});
+					
+				}catch( Throwable e ){
+					
+					start_on_login.setEnabled( false );
+					
+					Debug.out( e );
+				}
+				
+				start_on_login.setLayoutData(gridData);
+			}
+			
+			if ( userMode > 0 ){
+				
+				gridData = new GridData();
+				gridData.horizontalSpan = 2;
+				BooleanParameter pauseOnExit = new BooleanParameter(gStartStop,
+						"Pause Downloads On Exit", "ConfigView.label.pause.downloads.on.exit");
+				pauseOnExit.setLayoutData(gridData);
+		
+				gridData = new GridData();
+				gridData.horizontalSpan = 2;
+				BooleanParameter resumeOnStart = new BooleanParameter(gStartStop,
+						"Resume Downloads On Start", "ConfigView.label.resume.downloads.on.start");
+				resumeOnStart.setLayoutData(gridData);
+			}
+		}
+		
+			// ***** auto open group
+		
+		Group gAutoOpen = new Group(cDisplay, SWT.NULL);
+		Messages.setLanguageText(gAutoOpen, LBLKEY_PREFIX + "autoopen");
+		layout = new GridLayout(3, false);
+		gAutoOpen.setLayout(layout);
+		gAutoOpen.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
 
 
 		label = new Label(gAutoOpen, SWT.NULL);
@@ -117,7 +188,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		new BooleanParameter(gAutoOpen, "Open Bar Incomplete", LBLKEY_PREFIX + "autoopen.dl");
 		new BooleanParameter(gAutoOpen, "Open Bar Complete", LBLKEY_PREFIX + "autoopen.cd");
 		
-		/////////////
+			// **** 
 		
 		new BooleanParameter(cDisplay, "Remember transfer bar location", LBLKEY_PREFIX + "transferbar.remember_location");
 
@@ -125,7 +196,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		Messages.setLanguageText(gSysTray, LBLKEY_PREFIX + "systray");
 		layout = new GridLayout();
 		gSysTray.setLayout(layout);
-		gSysTray.setLayoutData(new GridData());
+		gSysTray.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
 
 		BooleanParameter est = new BooleanParameter(gSysTray, "Enable System Tray",
 				KEY_PREFIX + "enabletray");
@@ -331,11 +402,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 
 		// reset associations
 
-		final PlatformManager platform = PlatformManagerFactory
-				.getPlatformManager();
-
-		if (platform
-				.hasCapability(PlatformManagerCapabilities.RegisterFileAssociations)) {
+		if (platform.hasCapability(PlatformManagerCapabilities.RegisterFileAssociations)) {
 
 			Composite cResetAssoc = new Composite(cArea, SWT.NULL);
 			layout = new GridLayout();
