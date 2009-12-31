@@ -43,7 +43,7 @@ PluginConfigImpl
 	implements PluginConfig 
 {
 
-	protected static Map	external_to_internal_key_map = new HashMap();
+	protected static Map<String,String>	external_to_internal_key_map = new HashMap<String,String>();
 	private PluginConfigSourceImpl external_source = null;
 
 	static{
@@ -60,7 +60,8 @@ PluginConfigImpl
 		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_UPLOADS_SEEDING, "Max Uploads Seeding");
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_MAX_UPLOAD_SPEED_SEEDING, "enable.seedingonly.upload.rate");
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_MAX_ACTIVE_SEEDING, "StartStopManager_bMaxActiveTorrentsWhenSeedingEnabled");
-		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_AUTO_SPEED_ON, "Auto Upload Speed Enabled");
+		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_AUTO_SPEED_ON, CORE_PARAM_BOOLEAN_AUTO_SPEED_ON);
+		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_AUTO_SPEED_SEEDING_ON, CORE_PARAM_BOOLEAN_AUTO_SPEED_SEEDING_ON );
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_SOCKS_PROXY_NO_INWARD_CONNECTION, 	"Proxy.Data.SOCKS.inform" );
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP, 			CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP );
 		external_to_internal_key_map.put( CORE_PARAM_STRING_LOCAL_BIND_IP, 						"Bind IP" );
