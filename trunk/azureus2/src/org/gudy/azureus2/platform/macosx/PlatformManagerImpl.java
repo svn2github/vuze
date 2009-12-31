@@ -267,6 +267,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   		}
   		
   		try{
+  			convertToXML( f );
+  			
   			LineNumberReader lnr = new LineNumberReader( new InputStreamReader(new FileInputStream( f ), "UTF-8" ));
   			
   			int	state = 0;
@@ -330,7 +332,11 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   		
   		File f = getLoginPList();
   		
-  		if ( !f.exists()){
+  		if ( f.exists()){
+  			
+  			convertToXML( f );
+  			
+  		}else{
   			
   			try{
   				PrintWriter pw = new PrintWriter( new OutputStreamWriter( new FileOutputStream( f ), "UTF-8" ));
@@ -506,6 +512,65 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   		}
    	}
     
+  	private void
+  	convertToXML(
+  		File		file )
+  	
+  		throws PlatformManagerException
+  	{
+ 		try{
+			LineNumberReader lnr = new LineNumberReader( new InputStreamReader(new FileInputStream( file ), "UTF-8" ));
+	
+			try{
+				String 	line = lnr.readLine();
+				
+				if ( line == null ){
+					
+					return;
+				}
+				
+				if ( line.trim().toLowerCase().startsWith( "<?xml" )){
+					
+					return;
+				}
+			
+	 			Runtime.getRuntime().exec(
+					new String[]{
+						findCommand( "plutil" ),
+						"-convert",
+						"xml1",
+						file.getAbsolutePath()
+					}).waitFor();
+				
+	  		}finally{
+	  			
+	  			lnr.close();
+	  		}
+  		}catch( Throwable e ){
+  			
+  			throw( new PlatformManagerException( "Failed to convert plist to xml" ));
+  		}
+  	}
+  	
+  	private String
+  	findCommand(
+  		String	name )
+  	{
+  		final String[]  locations = { "/bin", "/usr/bin" };
+
+  		for ( String s: locations ){
+
+  			File f = new File( s, name );
+
+  			if ( f.exists() && f.canRead()){
+
+  				return( f.getAbsolutePath());
+  			}
+  		}
+
+  		return( name );
+  	}
+  	
   	private boolean
   	containsTag(
   		String	line,
