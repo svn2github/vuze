@@ -77,13 +77,13 @@ public final class TransferSpeedValidator
         				String parameterName)
         			{
         				if (parameterName == null || parameterName.equals(UPLOAD_SEEDING_ENABLED_CONFIGKEY)) {
-        					seeding_upload_enabled = COConfigurationManager.getBooleanParameter( parameterName );
+        					seeding_upload_enabled = COConfigurationManager.getBooleanParameter( UPLOAD_SEEDING_ENABLED_CONFIGKEY );
         				}
         				if (parameterName == null || parameterName.equals(AUTO_UPLOAD_ENABLED_CONFIGKEY)) {
-        					auto_upload_enabled = COConfigurationManager.getBooleanParameter(parameterName);
+        					auto_upload_enabled = COConfigurationManager.getBooleanParameter(AUTO_UPLOAD_ENABLED_CONFIGKEY);
         				}
         				if (parameterName == null || parameterName.equals(AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY)) {
-        					auto_upload_seeding_enabled = COConfigurationManager.getBooleanParameter(parameterName);
+        					auto_upload_seeding_enabled = COConfigurationManager.getBooleanParameter(AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY);
         				}
         			}
         		});	
