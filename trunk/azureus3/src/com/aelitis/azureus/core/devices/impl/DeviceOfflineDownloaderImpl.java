@@ -63,6 +63,7 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.DownloadUtils;
 import com.aelitis.net.upnp.UPnPDevice;
+import com.aelitis.net.upnp.UPnPException;
 import com.aelitis.net.upnp.UPnPRootDevice;
 import com.aelitis.net.upnp.services.UPnPOfflineDownloader;
 
@@ -731,8 +732,7 @@ DeviceOfflineDownloaderImpl
 									}
 									
 									String add_result = 
-										service.addDownload( 
-											client_id, 
+										addTorrent( 										
 											hash_str,
 											ByteFormatter.encodeStringFully( BEncoder.encode( torrent.serialiseToMap())));
 									
@@ -951,6 +951,45 @@ DeviceOfflineDownloaderImpl
 		}
 	}
 
+	private String
+	addTorrent(
+		String		hash_str,
+		String		torrent_data )
+	
+		throws UPnPException
+	{
+		int	chunk_size = 40*1024;
+		
+		int	length = torrent_data.length();
+		
+		if ( length < chunk_size ){
+		
+			return( service.addDownload( client_id,	hash_str, torrent_data ));
+			
+		}else{
+			
+			String status = "";
+			
+			int	rem = length;
+			
+			for( int i=0; i<length; i+=chunk_size ){
+			
+				int	size = Math.min( rem, chunk_size );
+				
+				status = service.addDownloadChunked(
+					client_id,	
+					hash_str,
+					torrent_data.substring( i, i+size ),
+					i,
+					length );
+					
+				rem -= size;
+			}
+			
+			return( status );
+		}
+	}
+	
 	protected void
 	updateError(
 		String	str )
