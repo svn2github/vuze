@@ -212,6 +212,50 @@ UPnPSSOfflineDownloaderImpl
 		}
 	}
 	
+	public String 
+	addDownloadChunked(
+		String 	client_id, 
+		String 	hash,
+		String	chunk,
+		int		offset,
+		int		total_size )
+			
+		throws UPnPException 
+	{
+		UPnPAction act = service.getAction( "AddDownloadChunked" );
+		
+		if ( act == null ){
+						
+			throw( new UPnPException( "AddDownloadChunked not supported" ));
+			
+		}else{
+					
+			UPnPActionInvocation inv = act.getInvocation();
+						
+			inv.addArgument( "NewClientID", client_id );
+			inv.addArgument( "NewTorrentHash", hash );
+			inv.addArgument( "NewTorrentData", chunk );
+			inv.addArgument( "NewChunkOffset", String.valueOf( offset ));
+			inv.addArgument( "NewTotalLength", String.valueOf( total_size ));
+			
+			UPnPActionArgument[]	args = inv.invoke();
+						
+			for (int i=0;i<args.length;i++){
+				
+				UPnPActionArgument	arg = args[i];
+			
+				String	name = arg.getName();
+				
+				if ( name.equalsIgnoreCase("NewStatus")){
+					
+					return( arg.getValue());
+				}
+			}
+			
+			throw( new UPnPException( "result not found" ));
+		}
+	}
+	
 	public String[] 
   	updateDownload(
   		String 	client_id, 

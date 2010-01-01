@@ -53,6 +53,16 @@ UPnPOfflineDownloader
 	
 		throws UPnPException;
 	
+	public String
+	addDownloadChunked(
+		String		client_id,
+		String		hash_list,
+		String		torrent_chunk,
+		int			offset,
+		int			total_size )
+	
+		throws UPnPException;
+	
 	public String[]
 	updateDownload(
 		String		client_id,
