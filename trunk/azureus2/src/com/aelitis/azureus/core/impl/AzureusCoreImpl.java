@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.ipfilter.*;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -1662,23 +1663,45 @@ AzureusCoreImpl
 			
 			int state = manager.getState();
 			
-			if ( state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_FINISHING ){
-				
+			if ( state == DownloadManager.STATE_FINISHING ){
+
 				is_downloading = true;
 				
-			}else if ( state == DownloadManager.STATE_SEEDING ){
+			}else{
+			
+				if ( state == DownloadManager.STATE_DOWNLOADING ){
+					
+					PEPeerManager pm = manager.getPeerManager();
+					
+					if ( pm != null ){
+						
+						if ( pm.hasDownloadablePiece()){
+							
+							is_downloading = true;
+							
+						}else{
 				
-				DiskManager disk_manager = manager.getDiskManager();
-
-				if ( disk_manager != null && disk_manager.getCompleteRecheckStatus() != -1 ){
+								// its effectively seeding, change so logic about recheck obeyed below
+							
+							state = DownloadManager.STATE_SEEDING;
+						}
+					}
+				}
 				
-						// wait until recheck is complete before we mark as downloading-complete
+				if ( state == DownloadManager.STATE_SEEDING ){
+				
+					DiskManager disk_manager = manager.getDiskManager();
+	
+					if ( disk_manager != null && disk_manager.getCompleteRecheckStatus() != -1 ){
 					
-					is_downloading	= true;
-					
-				}else{
-					
-					is_seeding		= true;
+							// wait until recheck is complete before we mark as downloading-complete
+						
+						is_downloading	= true;
+						
+					}else{
+						
+						is_seeding		= true;
+					}
 				}
 			}
 		}
