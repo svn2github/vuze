@@ -105,7 +105,9 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		
 		boolean can_ral = platform.hasCapability(PlatformManagerCapabilities.RunAtLogin );
 		
-		if ( can_ral || userMode > 0 ){
+		boolean	can_close = true;
+		
+		if ( can_close || can_ral || userMode > 0 ){
 			
 			Group gStartStop = new Group(cDisplay, SWT.NULL);
 			Messages.setLanguageText(gStartStop, LBLKEY_PREFIX + "startstop");
@@ -164,6 +166,44 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 						"Resume Downloads On Start", "ConfigView.label.resume.downloads.on.start");
 				resumeOnStart.setLayoutData(gridData);
 			}
+			
+		
+				// done downloading
+			
+			gridData = new GridData();
+			label = new Label(gStartStop, SWT.NULL);
+		    Messages.setLanguageText(label, "ConfigView.label.stop.downcomp");
+		    label.setLayoutData( gridData );
+			
+			String[]	dl_values = {
+					"Nothing", 
+					"QuitVuze" };
+			
+		    String[]	dl_descs = { 
+		    		MessageText.getString( "ConfigView.label.stop.nothing" ),
+		    		MessageText.getString( "ConfigView.label.stop.close" ),
+		    };
+		    
+			new StringListParameter(gStartStop, "On Downloading Complete Do", "Nothing", dl_descs, dl_values );
+
+				// done seeding
+			
+			gridData = new GridData();
+		    label = new Label(gStartStop, SWT.NULL);
+		    Messages.setLanguageText(label, "ConfigView.label.stop.seedcomp");
+		    label.setLayoutData( gridData );
+			
+			String[]	se_values = {
+					"Nothing", 
+					"QuitVuze" };
+			
+		    String[]	se_descs = { 
+		    		MessageText.getString( "ConfigView.label.stop.nothing" ),
+		    		MessageText.getString( "ConfigView.label.stop.close" ),
+		    };
+		    
+			new StringListParameter(gStartStop, "On Seeding Complete Do", "Nothing", se_descs, se_values );
+
 		}
 		
 			// ***** auto open group

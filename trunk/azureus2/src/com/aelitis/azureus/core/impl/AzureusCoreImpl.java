@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
@@ -181,6 +182,9 @@ AzureusCoreImpl
 	
 	public static boolean SUPPRESS_CLASSLOADER_ERRORS = false;
 	
+	private long	ca_last_time_downloading 	= -1;
+	private long	ca_last_time_seeding 		= -1;
+	
 	protected
 	AzureusCoreImpl()
 	{
@@ -220,7 +224,7 @@ AzureusCoreImpl
 							Logger.log(new LogEvent(LOGID, "Platform manager requested shutdown"));
 						}
 						
-						stop();
+						requestStop();
 						
 					}else if ( type == ET_SUSPEND ){
 						
@@ -1012,6 +1016,8 @@ AzureusCoreImpl
 			   									}
 			   								}
 			   							});
+			   					
+			   					setupCloseActions();
 	   						}
 	   					}.start();
 	   				}
@@ -1574,6 +1580,156 @@ AzureusCoreImpl
 	getNATTraverser()
 	{
 		return( nat_traverser );
+	}
+	
+	private void
+	setupCloseActions()
+	{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+					"On Downloading Complete Do",
+					"On Seeding Complete Do"
+			},
+			new ParameterListener()
+			{
+				private TimerEventPeriodic timer_event;
+				
+				public void 
+				parameterChanged(
+					String parameterName )
+				{
+					String	dl_act = COConfigurationManager.getStringParameter( "On Downloading Complete Do" );
+					String	se_act = COConfigurationManager.getStringParameter( "On Seeding Complete Do" );
+					
+					synchronized( this ){
+						
+						boolean	dl_nothing 	= dl_act.equals( "Nothing" );
+						boolean se_nothing	= se_act.equals( "Nothing" );
+						
+						if ( dl_nothing ){
+							
+							ca_last_time_downloading	= -1;
+						}
+						
+						if ( se_nothing ){
+							
+							ca_last_time_seeding	= -1;
+						}
+				
+						if ( dl_nothing && se_nothing ){
+							
+							if ( timer_event != null ){
+								
+								timer_event.cancel();
+								
+								timer_event = null;
+							}
+						}else{
+						
+							if ( timer_event == null ){
+								
+								timer_event = 
+									SimpleTimer.addPeriodicEvent(
+											"core:closeAct",
+											30*1000,
+											new TimerEventPerformer()
+											{
+												public void 
+												perform(
+													TimerEvent event )
+												{
+													checkCloseActions();
+												}
+											});
+							}
+							
+							checkCloseActions();
+						}
+					}
+				}
+			});
+	}
+
+	protected void
+	checkCloseActions()
+	{
+		List<DownloadManager> managers = getGlobalManager().getDownloadManagers();
+		
+		boolean	is_downloading 	= false;
+		boolean is_seeding		= false;
+		
+		for ( DownloadManager manager: managers ){
+			
+			int state = manager.getState();
+			
+			if ( state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_FINISHING ){
+				
+				is_downloading = true;
+				
+			}else if ( state == DownloadManager.STATE_SEEDING ){
+				
+				DiskManager disk_manager = manager.getDiskManager();
+
+				if ( disk_manager != null && disk_manager.getCompleteRecheckStatus() != -1 ){
+				
+						// wait until recheck is complete before we mark as downloading-complete
+					
+					is_downloading	= true;
+					
+				}else{
+					
+					is_seeding		= true;
+				}
+			}
+		}
+		
+		long	now = SystemTime.getMonotonousTime();
+		
+		if ( is_downloading ){
+			
+			ca_last_time_downloading = now;
+		}
+		
+		if ( is_seeding ){
+			
+			ca_last_time_seeding = now;
+		}
+		
+		String	dl_act = COConfigurationManager.getStringParameter( "On Downloading Complete Do" );
+		
+		if ( !dl_act.equals( "Nothing" )){
+		
+			if ( ca_last_time_downloading >= 0 && !is_downloading && now - ca_last_time_downloading >= 30*1000 ){
+				
+				executeCloseAction( dl_act );
+			}
+		}
+		
+		String	se_act = COConfigurationManager.getStringParameter( "On Seeding Complete Do" );
+
+		if ( !se_act.equals( "Nothing" )){
+			
+			if ( ca_last_time_seeding >= 0 && !is_seeding && now - ca_last_time_seeding >= 30*1000 ){
+				
+				executeCloseAction( se_act );
+			}
+		}
+	}
+	
+	private void
+	executeCloseAction(
+		String	action )
+	{
+		Logger.log(new LogEvent(LOGID, "Executing close action '" + action + "'" ));
+		
+		if ( action.equals( "QuitVuze" )){
+			
+			requestStop();
+			
+		}else{
+			
+			Debug.out( "Unknown close action '" + action + "'" );
+		}
 	}
 	
 	public AzureusCoreOperation

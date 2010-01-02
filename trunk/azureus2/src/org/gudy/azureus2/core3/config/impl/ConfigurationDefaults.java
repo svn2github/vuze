@@ -220,9 +220,11 @@ public class ConfigurationDefaults {
     def.put("Allow Same IP Peers",FALSE);
     def.put("Use Super Seeding",FALSE);
     
-    def.put( "Start On Login", FALSE );
+    def.put("Start On Login", FALSE );
     def.put("Pause Downloads On Exit", FALSE );
     def.put("Resume Downloads On Start", FALSE );
+    def.put("On Downloading Complete Do", "Nothing" );
+    def.put("On Seeding Complete Do", "Nothing" );
         
     // SWT GUI Settings
     
