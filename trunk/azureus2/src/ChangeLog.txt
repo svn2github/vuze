@@ -2,9 +2,27 @@ VUZE CHANGELOG
 -----------------
 
 
-2009.12.xx | Vuze 4.3.0.7
+2010.01.xx | Vuze 4.3.0.7
 
+FEATURE: Core | Option to auto-start Vuze on login on Windows and OSX [Parg]
+FEATURE: Core | Option to close Vuze when downloads/seeding complete [Parg]
+FEATURE: Core | Sources details view and tracking enhancements [Parg]
+FEATURE: Core | Option to automatically set upload slots and connections limits based on measured line speed [Parg]
+FEATURE: Core | Added support for fast-allowed pieces [Parg]
+FEATURE: Core | Extract downloaded values if returned by tracker [Parg]
 
+CHANGE: UI    | Added arrows to swarm view and differentiate unchokes/fast requests [Parg]
+CHANGE: Core  | Added local network interfaces to pairing details [Parg]
+CHANGE: Core  | Drop the half-open TCP socket limits for Vista SP2+ and Windows 7 [Parg]
+CHANGE: Core  | Modify connection timeouts if sufficient peers available [Parg]
+CHANGE: Core  | Ignore HTTP seeds if we're seeding [Parg]
+CHANGE: Core  | Vary min requests when starting up [Parg] 
+
+BUGFIX: Core  | Fix remembering of auto-speed settings on restart [Parg]
+BUGFIX: Core  | Fix initial storing of search engine rank bias [Parg]
+BUGFIX: Core  | Fix LT Peer-Exchange bug [Parg]
+BUGFIX: Core  | Remove HTTP seeds when stopping download [Parg]
+BUGFIX: UI    | Remove cached peers from swarm view on data source change [Parg]
 
 2009.12.10 | Vuze 4.3.0.6
 
