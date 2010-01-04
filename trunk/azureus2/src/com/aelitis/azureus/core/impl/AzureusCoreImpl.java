@@ -1724,7 +1724,7 @@ AzureusCoreImpl
 		
 			if ( ca_last_time_downloading >= 0 && !is_downloading && now - ca_last_time_downloading >= 30*1000 ){
 				
-				executeCloseAction( dl_act );
+				executeCloseAction( true, dl_act );
 			}
 		}
 		
@@ -1734,25 +1734,53 @@ AzureusCoreImpl
 			
 			if ( ca_last_time_seeding >= 0 && !is_seeding && now - ca_last_time_seeding >= 30*1000 ){
 				
-				executeCloseAction( se_act );
+				executeCloseAction( false, se_act );
 			}
 		}
 	}
 	
 	private void
 	executeCloseAction(
-		String	action )
+		final boolean	download_trigger,
+		final String	action )
 	{
-		Logger.log(new LogEvent(LOGID, "Executing close action '" + action + "'" ));
+		String type_str		= MessageText.getString( "core.shutdown." + (download_trigger?"dl":"se"));
+		String action_str 	= MessageText.getString( "ConfigView.label.stop." + action );
+				
+		String message = 
+			MessageText.getString( 
+				"core.shutdown.alert",
+				new String[]{
+					action_str,
+					type_str,
+				});
 		
-		if ( action.equals( "QuitVuze" )){
-			
-			requestStop();
-			
-		}else{
-			
-			Debug.out( "Unknown close action '" + action + "'" );
-		}
+		Logger.log( 
+			new LogAlert( 
+				LogAlert.UNREPEATABLE, 
+				LogEvent.LT_INFORMATION,
+				message ));
+
+		new DelayedEvent(
+			"CoreShutdown",
+			10*1000,
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					Logger.log( new LogEvent(LOGID, "Executing close action '" + action + "' due to " + (download_trigger?"downloading":"seeding") + " completion" ));					
+					
+					if ( action.equals( "QuitVuze" )){
+						
+						requestStop();
+						
+					}else{
+						
+						Debug.out( "Unknown close action '" + action + "'" );
+					}
+				}
+			});
 	}
 	
 	public AzureusCoreOperation

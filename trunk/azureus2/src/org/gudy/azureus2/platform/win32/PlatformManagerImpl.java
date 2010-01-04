@@ -528,6 +528,21 @@ PlatformManagerImpl
   		}
    	}
   		
+	public int
+	getShutdownTypes()
+	{
+		return( SD_HIBERNATE | SD_SLEEP | SD_SHUTDOWN );
+	}
+	
+	public void
+	shutdown(
+		int			type )
+	
+		throws PlatformManagerException
+	{	
+		 throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
 	public String
 	getApplicationCommandLine()
 	{

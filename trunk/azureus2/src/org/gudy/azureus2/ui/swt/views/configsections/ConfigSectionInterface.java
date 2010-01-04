@@ -175,16 +175,16 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		    Messages.setLanguageText(label, "ConfigView.label.stop.downcomp");
 		    label.setLayoutData( gridData );
 			
-			String[]	dl_values = {
+			String[]	action_values = {
 					"Nothing", 
 					"QuitVuze" };
 			
-		    String[]	dl_descs = { 
-		    		MessageText.getString( "ConfigView.label.stop.nothing" ),
-		    		MessageText.getString( "ConfigView.label.stop.close" ),
+		    String[]	action_descs = { 
+		    		MessageText.getString( "ConfigView.label.stop.Nothing" ),
+		    		MessageText.getString( "ConfigView.label.stop.QuitVuze" ),
 		    };
 		    
-			new StringListParameter(gStartStop, "On Downloading Complete Do", "Nothing", dl_descs, dl_values );
+			new StringListParameter(gStartStop, "On Downloading Complete Do", "Nothing", action_descs, action_values );
 
 				// done seeding
 			
@@ -192,17 +192,8 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		    label = new Label(gStartStop, SWT.NULL);
 		    Messages.setLanguageText(label, "ConfigView.label.stop.seedcomp");
 		    label.setLayoutData( gridData );
-			
-			String[]	se_values = {
-					"Nothing", 
-					"QuitVuze" };
-			
-		    String[]	se_descs = { 
-		    		MessageText.getString( "ConfigView.label.stop.nothing" ),
-		    		MessageText.getString( "ConfigView.label.stop.close" ),
-		    };
-		    
-			new StringListParameter(gStartStop, "On Seeding Complete Do", "Nothing", se_descs, se_values );
+					    
+			new StringListParameter(gStartStop, "On Seeding Complete Do", "Nothing", action_descs, action_values );
 
 		}
 		

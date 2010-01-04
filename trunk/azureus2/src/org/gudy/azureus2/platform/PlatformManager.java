@@ -37,11 +37,15 @@ PlatformManager
 	public static final int	PT_WINDOWS		= 1;
 	public static final int PT_OTHER		= 2;
     public static final int PT_MACOSX 		= 3;
-  	public static final int PT_UNIX		= 4;
+  	public static final int PT_UNIX			= 4;
 
-  	public static final int USER_REQUEST_INFO = 1;
-  	public static final int USER_REQUEST_WARNING = 2;
-  	public static final int USER_REQUEST_QUESTION = 3;  	
+  	public static final int USER_REQUEST_INFO 		= 1;
+  	public static final int USER_REQUEST_WARNING 	= 2;
+  	public static final int USER_REQUEST_QUESTION 	= 3;  	
+  	
+ 	public static final int	SD_SHUTDOWN		= 0x00000001;
+ 	public static final int	SD_HIBERNATE	= 0x00000002;
+ 	public static final int	SD_SLEEP		= 0x00000004;
   	
 	public int
 	getPlatformType();
@@ -93,6 +97,15 @@ PlatformManager
 	          	
 	 	throws PlatformManagerException;
 
+	public int
+	getShutdownTypes();
+	
+	public void
+	shutdown(
+		int			type )
+	
+		throws PlatformManagerException;
+	
 	public void
 	createProcess(
 		String	command_line,

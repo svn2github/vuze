@@ -233,7 +233,22 @@ public class PlatformManagerImpl implements PlatformManager
   	{
   		throw new PlatformManagerException(ERR_UNSUPPORTED);
    	}
-	          	
+	  
+	public int
+	getShutdownTypes()
+	{
+		return( 0 );
+	}
+	
+	public void
+	shutdown(
+		int			type )
+	
+		throws PlatformManagerException
+	{	
+		 throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
 	// @see org.gudy.azureus2.platform.PlatformManager#setTCPTOSEnabled(boolean)
 	public void setTCPTOSEnabled(boolean enabled) throws PlatformManagerException {
 		throw new PlatformManagerException(ERR_UNSUPPORTED);
