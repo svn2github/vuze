@@ -40,7 +40,15 @@ FMFileAccessController
 	implements FMFileAccess
 {
 	private static final String REORDER_SUFFIX = ".2";
+
+	private static final boolean TEST_PIECE_REORDER = System.getProperty( "azureus.file.piece.reorder.force", "0" ).equals( "1" );
 	
+	static{
+		if ( TEST_PIECE_REORDER ){
+			
+			Debug.out( "*** Piece reordering storage forced ***" );
+		}
+	}
 	private FMFileImpl	owner;
 	
 	private int		type		= FMFile.FT_LINEAR;
@@ -57,7 +65,10 @@ FMFileAccessController
 	
 		throws FMFileManagerException
 	{
-		// _target_type = FMFile.FT_PIECE_REORDER;
+		if ( TEST_PIECE_REORDER ){
+	
+			_target_type = FMFile.FT_PIECE_REORDER;
+		}
 		
 		owner		= _file;
 		
