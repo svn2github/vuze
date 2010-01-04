@@ -47,7 +47,9 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class ConfigSectionInterface implements UISWTConfigSection {
 	private final static String KEY_PREFIX = "ConfigView.section.interface.";
@@ -175,15 +177,36 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		    Messages.setLanguageText(label, "ConfigView.label.stop.downcomp");
 		    label.setLayoutData( gridData );
 			
-			String[]	action_values = {
-					"Nothing", 
-					"QuitVuze" };
-			
-		    String[]	action_descs = { 
-		    		MessageText.getString( "ConfigView.label.stop.Nothing" ),
-		    		MessageText.getString( "ConfigView.label.stop.QuitVuze" ),
-		    };
+		    int	shutdown_types = platform.getShutdownTypes();
 		    
+			List<String>	l_action_values = new ArrayList<String>();
+			List<String>	l_action_descs 	= new ArrayList<String>();
+
+			l_action_values.add( "Nothing" ); 
+			l_action_values.add( "QuitVuze" );
+			
+			if (( shutdown_types | PlatformManager.SD_SLEEP ) != 0 ){
+				
+				l_action_values.add( "Sleep" );
+			}
+			if (( shutdown_types | PlatformManager.SD_HIBERNATE ) != 0 ){
+				
+				l_action_values.add( "Hibernate" );
+			}
+			if (( shutdown_types | PlatformManager.SD_SHUTDOWN ) != 0 ){
+				
+				l_action_values.add( "Shutdown" );
+			}
+			
+			String[] action_values = l_action_values.toArray( new String[ l_action_values.size()]);
+					
+			for ( String s: action_values ){
+				
+				l_action_descs.add( MessageText.getString( "ConfigView.label.stop." + s ));
+			}
+			
+			String[] action_descs = l_action_descs.toArray( new String[ l_action_descs.size()]);
+
 			new StringListParameter(gStartStop, "On Downloading Complete Do", "Nothing", action_descs, action_values );
 
 				// done seeding
