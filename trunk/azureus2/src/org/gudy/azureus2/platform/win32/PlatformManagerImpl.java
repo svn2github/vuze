@@ -547,40 +547,48 @@ PlatformManagerImpl
 	canHibernate()
 	{
 		try{
-			Process p = Runtime.getRuntime().exec(
-				new String[]{
-					"cmd.exe",
-					"/C",
-					"reg query \"HKLM\\System\\CurrentControlSet\\Control\\Session Manager\\Power\" /v Heuristics"
-					});
+			if ( Constants.isWindows7OrHigher ){
+				
+				int enabled = access.readWordValue( AEWin32Access.HKEY_LOCAL_MACHINE, "System\\CurrentControlSet\\Control\\Power", "HibernateEnabled" );
+				
+				return( enabled != 0 );
+				
+			}else{
+				Process p = Runtime.getRuntime().exec(
+					new String[]{
+						"cmd.exe",
+						"/C",
+						"reg query \"HKLM\\System\\CurrentControlSet\\Control\\Session Manager\\Power\" /v Heuristics"
+						});
+							
+				LineNumberReader lnr = new LineNumberReader( new InputStreamReader( p.getInputStream()));
+				
+				while( true ){
+					
+					String	line = lnr.readLine();
+					
+					if ( line == null ){
 						
-			LineNumberReader lnr = new LineNumberReader( new InputStreamReader( p.getInputStream()));
-			
-			while( true ){
-				
-				String	line = lnr.readLine();
-				
-				if ( line == null ){
+						break;
+					}
+										
+					line = line.trim();
 					
-					break;
-				}
-				
-				line = line.trim();
-				
-				if ( line.startsWith( "Heuristics" )){
-					
-					line = line.replace( '\t', ' ' );
-					
-					byte[] value = ByteFormatter.decodeString( line.split( " ")[2].trim());
-					
-					return(( value[6] &0x01 ) != 0 );
+					if ( line.startsWith( "Heuristics" )){
+												
+						String[] bits =  line.split( "[\\s]+");
+												
+						byte[] value = ByteFormatter.decodeString( bits[2].trim());
+												
+						return(( value[6] & 0x01 ) != 0 );
+					}
 				}
 			}
 			
 			return( false );
 			
 		}catch( Throwable e ){
-			
+						
 			return( false );
 		}
 	}
@@ -593,7 +601,7 @@ PlatformManagerImpl
 	{	
 		String windir = System.getenv( "windir" );
 		
-		boolean win7_or_higher = Constants.isWindows7OrHigher;
+		boolean vista_or_higher = Constants.isWindowsVistaOrHigher;
 		
 		try{
 			if ( type == SD_SLEEP ){
@@ -606,7 +614,7 @@ PlatformManagerImpl
 				
 			}else if ( type == SD_HIBERNATE ){
 				
-				if ( win7_or_higher ){
+				if ( vista_or_higher ){
 					
 					Runtime.getRuntime().exec(
 							new String[]{
