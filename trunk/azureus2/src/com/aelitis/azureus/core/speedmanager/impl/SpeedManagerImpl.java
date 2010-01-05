@@ -967,7 +967,7 @@ SpeedManagerImpl
        			
     			COConfigurationManager.setParameter( "Max.Peer.Connections.Per.Torrent", connections_torrent );
     			
-    			COConfigurationManager.setParameter( "Max.Peer.Connections.Per.Torrent.When.Seeding", connections_torrent );
+    			COConfigurationManager.setParameter( "Max.Peer.Connections.Per.Torrent.When.Seeding", connections_torrent / 2 );
        		}
        		
       		if ( connections_global != COConfigurationManager.getIntParameter( "Max.Peer.Connections.Total" )){
