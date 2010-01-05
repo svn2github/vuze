@@ -33,12 +33,16 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemProperties;
+
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
+import com.aelitis.azureus.core.speedmanager.impl.v2.SMConst;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitConfidence;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitMonitor;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SMConst;
 
 /**
  *
@@ -150,8 +154,8 @@ public class ConfigurationDefaults {
     def.put("Newly Seeding Torrents Get First Priority", TRUE);
     
     def.put("Max.Peer.Connections.Per.Torrent", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT));
-    def.put("Max.Peer.Connections.Per.Torrent.When.Seeding", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT));
-    def.put("Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", FALSE );
+    def.put("Max.Peer.Connections.Per.Torrent.When.Seeding", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT/2));
+    def.put("Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", TRUE );
     def.put("Max.Peer.Connections.Total", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL));
 
     def.put( "Peer.Fast.Initial.Unchoke.Enabled", FALSE );
