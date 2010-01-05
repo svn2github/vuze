@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.*;
@@ -183,8 +184,9 @@ AzureusCoreImpl
 	
 	public static boolean SUPPRESS_CLASSLOADER_ERRORS = false;
 	
-	private long	ca_last_time_downloading 	= -1;
-	private long	ca_last_time_seeding 		= -1;
+	private boolean ca_shutdown_computer_after_stop	= false;
+	private long	ca_last_time_downloading 		= -1;
+	private long	ca_last_time_seeding 			= -1;
 	
 	protected
 	AzureusCoreImpl()
@@ -1357,14 +1359,36 @@ AzureusCoreImpl
 			}
 			
 			try {
-	      Class c = Class.forName( "sun.awt.AWTAutoShutdown" );
+				Class c = Class.forName( "sun.awt.AWTAutoShutdown" );
 	      
-	      if (c != null) {
-		      c.getMethod( "notifyToolkitThreadFree", new Class[]{} ).invoke( null, new Object[]{} );
-	      }
+				if (c != null) {
+					c.getMethod( "notifyToolkitThreadFree", new Class[]{} ).invoke( null, new Object[]{} );
+				}
 			} catch (Throwable t) {
 			}
 			
+			if ( ca_shutdown_computer_after_stop ){
+				
+				if ( apply_updates ){
+					
+						// best we can do here is wait a while for updates to be applied
+					try{
+						Thread.sleep( 10*1000 );
+						
+					}catch( Throwable e ){
+						
+					}
+				}
+				
+				try{
+					PlatformManagerFactory.getPlatformManager().shutdown( PlatformManager.SD_SHUTDOWN );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( "PlatformManager: shutdown failed", e );
+				}
+			}
+		
 			try{
 				ThreadGroup	tg = Thread.currentThread().getThreadGroup();
 				
@@ -1401,6 +1425,8 @@ AzureusCoreImpl
 				}
 			}catch( Throwable e ){
 			}
+			
+	
 		}finally{
 			
 			stopping_sem.releaseForever();
@@ -1744,6 +1770,11 @@ AzureusCoreImpl
 		final boolean	download_trigger,
 		final String	action )
 	{
+			// prevent retriggering on resume from standby
+		
+		ca_last_time_downloading	= -1;
+		ca_last_time_seeding		= -1;
+		
 		String type_str		= MessageText.getString( "core.shutdown." + (download_trigger?"dl":"se"));
 		String action_str 	= MessageText.getString( "ConfigView.label.stop." + action );
 				
@@ -1771,7 +1802,30 @@ AzureusCoreImpl
 				{
 					Logger.log( new LogEvent(LOGID, "Executing close action '" + action + "' due to " + (download_trigger?"downloading":"seeding") + " completion" ));					
 					
+						// quit vuze -> quit
+						// shutdown computer -> quit vuze + shutdown
+						// sleep/hibernate = announceAll and then sleep/hibernate with Vuze still running
+					
 					if ( action.equals( "QuitVuze" )){
+						
+						requestStop();
+					
+					}else if ( action.equals( "Sleep" ) || action.equals( "Hibernate" )){
+
+						announceAll( true );
+						
+						try{
+							PlatformManagerFactory.getPlatformManager().shutdown( 
+									action.equals( "Sleep" )?PlatformManager.SD_SLEEP:PlatformManager.SD_HIBERNATE );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( "PlatformManager: shutdown failed", e );
+						}
+						
+					}else if ( action.equals( "Shutdown" )){
+
+						ca_shutdown_computer_after_stop = true;
 						
 						requestStop();
 						

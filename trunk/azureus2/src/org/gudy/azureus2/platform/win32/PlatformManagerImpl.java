@@ -28,6 +28,8 @@ package org.gudy.azureus2.platform.win32;
  */
 
 import java.io.File;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.net.InetAddress;
 import java.util.*;
 
@@ -531,7 +533,56 @@ PlatformManagerImpl
 	public int
 	getShutdownTypes()
 	{
-		return( SD_HIBERNATE | SD_SLEEP | SD_SHUTDOWN );
+		int	result = SD_SLEEP | SD_SHUTDOWN;
+		
+		if ( canHibernate()){
+			
+			result |= SD_HIBERNATE;
+		}
+		
+		return( result );
+	}
+	
+	private boolean
+	canHibernate()
+	{
+		try{
+			Process p = Runtime.getRuntime().exec(
+				new String[]{
+					"cmd.exe",
+					"/C",
+					"reg query \"HKLM\\System\\CurrentControlSet\\Control\\Session Manager\\Power\" /v Heuristics"
+					});
+						
+			LineNumberReader lnr = new LineNumberReader( new InputStreamReader( p.getInputStream()));
+			
+			while( true ){
+				
+				String	line = lnr.readLine();
+				
+				if ( line == null ){
+					
+					break;
+				}
+				
+				line = line.trim();
+				
+				if ( line.startsWith( "Heuristics" )){
+					
+					line = line.replace( '\t', ' ' );
+					
+					byte[] value = ByteFormatter.decodeString( line.split( " ")[2].trim());
+					
+					return(( value[6] &0x01 ) != 0 );
+				}
+			}
+			
+			return( false );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
 	}
 	
 	public void
@@ -540,7 +591,57 @@ PlatformManagerImpl
 	
 		throws PlatformManagerException
 	{	
-		 throw new PlatformManagerException("Unsupported capability called on platform manager");
+		String windir = System.getenv( "windir" );
+		
+		boolean win7_or_higher = Constants.isWindows7OrHigher;
+		
+		try{
+			if ( type == SD_SLEEP ){
+				
+				Runtime.getRuntime().exec(
+					new String[]{
+						windir + "\\system32\\rundll32.exe",
+						"powrprof.dll,SetSuspendState"	
+					});
+				
+			}else if ( type == SD_HIBERNATE ){
+				
+				if ( win7_or_higher ){
+					
+					Runtime.getRuntime().exec(
+							new String[]{
+								"shutdown",
+								"-h"	
+							});
+					
+				}else{
+					
+					Runtime.getRuntime().exec(
+							new String[]{
+								windir + "system32\\rundll32.exe",
+								"powrprof.dll,SetSuspendState Hibernate"	
+							});
+				}
+			}else if ( type == SD_SHUTDOWN ){
+				
+				Runtime.getRuntime().exec(
+						new String[]{
+							"shutdown",
+							"-s"	
+						});
+			}else{
+				
+				throw new PlatformManagerException("Unsupported capability called on platform manager");
+			}
+			
+		}catch( PlatformManagerException e ){
+			
+			throw( e );
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "shutdown failed", e ));
+		}
 	}
 	
 	public String

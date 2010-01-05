@@ -185,15 +185,15 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 			l_action_values.add( "Nothing" ); 
 			l_action_values.add( "QuitVuze" );
 			
-			if (( shutdown_types | PlatformManager.SD_SLEEP ) != 0 ){
+			if (( shutdown_types & PlatformManager.SD_SLEEP ) != 0 ){
 				
 				l_action_values.add( "Sleep" );
 			}
-			if (( shutdown_types | PlatformManager.SD_HIBERNATE ) != 0 ){
+			if (( shutdown_types & PlatformManager.SD_HIBERNATE ) != 0 ){
 				
 				l_action_values.add( "Hibernate" );
 			}
-			if (( shutdown_types | PlatformManager.SD_SHUTDOWN ) != 0 ){
+			if (( shutdown_types & PlatformManager.SD_SHUTDOWN ) != 0 ){
 				
 				l_action_values.add( "Shutdown" );
 			}
