@@ -331,19 +331,6 @@ ConfigurationChecker
 		    		changed	= true;
 	    		}
 	    	}
-	    	
-	    		// also, if we now have a default data dir enabled (either explicitly or by
-	    		// above migration fix), and there's no value defined for the dir, then
-	    		// set it to what it would have been before the default was changed to blank
-	    	
-	    	if ( 	COConfigurationManager.getBooleanParameter( "Use default data dir" ) &&
-	    			!COConfigurationManager.doesParameterNonDefaultExist( "Default save path" )){	
-	    		
-	    		COConfigurationManager.setParameter( "Default save path", SystemProperties.getUserPath()+"downloads" );
-	    		
-	    		changed	= true;
-	    	}
-	    	
 	    		    	
 	    	//enable Beginner user mode for first time
 	    	if( !COConfigurationManager.doesParameterNonDefaultExist( "User Mode" ) ) {
