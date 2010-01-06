@@ -78,6 +78,7 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfac
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.pairing.*;
+import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -1000,11 +1001,24 @@ PairingManagerImpl
 			
 			String request_str = Base32.encode( BEncoder.encode( request ));
 			
+			String	sig = null;
+			
+			try{
+				sig = Base32.encode( cman.getECCHandler().sign( request_str.getBytes( "UTF-8" ), "pairing" ));
+				
+			}catch( Throwable e ){
+			}
+			
 			String other_params = 
 				"&ver=" + UrlUtils.encode( Constants.AZUREUS_VERSION ) + 
 				"&app=" + UrlUtils.encode( SystemProperties.getApplicationName()) +
 				"&locale=" + UrlUtils.encode( MessageText.getCurrentLocale().toString());
 
+			if ( sig != null ){
+				
+				other_params += "&sig=" + sig;
+			}
+			
 			URL target = new URL( SERVICE_URL + "/client/" + command + "?request=" + request_str + other_params );
 			
 			HttpURLConnection connection = (HttpURLConnection)target.openConnection();
