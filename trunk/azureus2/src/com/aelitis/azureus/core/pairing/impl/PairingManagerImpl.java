@@ -355,6 +355,13 @@ PairingManagerImpl
 		return( param_enable.getValue());
 	}
 	
+	public void
+	setEnabled(
+		boolean	enabled )
+	{
+		param_enable.setValue( enabled );
+	}
+	
 	protected void
 	setStatus(
 		String		str )
@@ -362,6 +369,18 @@ PairingManagerImpl
 		param_status_info.setValue( str );
 	}
 	
+	public String
+	getStatus()
+	{
+		return( param_status_info.getValue());
+	}
+	
+	public String
+	getLastServerError()
+	{
+		return( last_server_error );
+	}
+
 	protected String
 	readAccessCode()
 	{
@@ -428,6 +447,30 @@ PairingManagerImpl
 		}
 		
 		return( ac );
+	}
+	
+	public void
+	getAccessCode(
+		final PairingManagerListener 	listener )
+	
+		throws PairingException
+	{
+		new AEThread2( "PM:gac", true )
+		{
+			public void
+			run()
+			{
+				try{
+					getAccessCode();
+					
+				}catch( Throwable e ){
+					
+				}finally{
+					
+					listener.somethingChanged( PairingManagerImpl.this );
+				}
+			}
+		}.start();
 	}
 	
 	public String
@@ -1118,13 +1161,7 @@ PairingManagerImpl
 			}
 		}
 	}
-	
-	public String
-	getLastServerError()
-	{
-		return( last_server_error );
-	}
-	
+		
 	public void
 	addListener(
 		PairingManagerListener		l )
