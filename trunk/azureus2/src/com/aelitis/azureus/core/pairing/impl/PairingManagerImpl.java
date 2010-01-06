@@ -162,6 +162,7 @@ PairingManagerImpl
 	private long			last_update_time		= -1;
 	private int				consec_update_fails;
 	
+	private String			last_server_error;
 	private String			last_message;
 	
 	private CopyOnWriteList<PairingManagerListener>	listeners = new CopyOnWriteList<PairingManagerListener>();
@@ -1086,9 +1087,18 @@ PairingManagerImpl
 				throw( new PairingException( error ));
 			}
 			
+			last_server_error = null;
+			
 			return((Map<String,Object>)response.get( "rep" ));
 			
 		}catch( Throwable e ){
+			
+			last_server_error = Debug.getNestedExceptionMessage( e );
+			
+			if ( e instanceof PairingException ){
+				
+				throw((PairingException)e);
+			}
 			
 			throw( new PairingException( "invocation failed", e ));
 		}
@@ -1107,6 +1117,12 @@ PairingManagerImpl
 				Debug.out( e );
 			}
 		}
+	}
+	
+	public String
+	getLastServerError()
+	{
+		return( last_server_error );
 	}
 	
 	public void
