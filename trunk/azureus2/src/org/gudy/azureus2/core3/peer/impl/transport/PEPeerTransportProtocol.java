@@ -4274,53 +4274,46 @@ implements PEPeerTransport
 		int			num_required )
 	{
 		List<Integer>	res = new ArrayList<Integer>();
+							
+		try{
+			byte[]	address = InetAddress.getByName( ip ).getAddress();
 			
-		if ( num_pieces <= num_required ){
-		
-			for ( int i=0; i<num_pieces; i++ ){
-			
-				res.add( i );
-			}
-		}else{
-		
-			try{
-				byte[]	address = InetAddress.getByName( ip ).getAddress();
+				// no IPv6 support yet
+
+			if ( address.length == 4 ){
 				
-					// no IPv6 support yet
-	
-				if ( address.length == 4 ){
+				byte[]	bytes = new byte[24];
+				
+				System.arraycopy( address, 0, bytes, 0, 3 );
+				System.arraycopy( hash, 0, bytes, 4, 20 );
+				
+				num_required = Math.min( num_required, num_pieces );
+				
+				while( res.size() < num_required ){
 					
-					byte[]	bytes = new byte[24];
+					bytes = new SHA1Simple().calculateHash( bytes );
 					
-					System.arraycopy( address, 0, bytes, 0, 3 );
-					System.arraycopy( hash, 0, bytes, 4, 20 );
-					
-					while( res.size() < num_required ){
+					int	pos = 0;
+				
+					while( pos < 20 && res.size() < num_required ){
 						
-						bytes = new SHA1Simple().calculateHash( bytes );
+						long	index = (bytes[pos++] << 24 )&0xff000000L | 
+										(bytes[pos++] << 16 )&0x00ff0000L | 
+										(bytes[pos++] << 8  )&0x0000ff00L | 
+										bytes[pos++]&0x000000ffL;
+		
+						Integer i = new Integer((int)( index%num_pieces ));
 						
-						int	pos = 0;
-					
-						while( pos < 20 && res.size() < num_required ){
-							
-							long	index = (bytes[pos++] << 24 )&0xff000000L | 
-											(bytes[pos++] << 16 )&0x00ff0000L | 
-											(bytes[pos++] << 8  )&0x0000ff00L | 
-											bytes[pos++]&0x000000ffL;
-			
-							Integer i = new Integer((int)( index%num_pieces ));
-							
-							if ( !res.contains(i)){
-							
-								res.add( i );
-							}
+						if ( !res.contains(i)){
+						
+							res.add( i );
 						}
 					}
 				}
-			}catch( Throwable e ){
-				
-				Debug.out( "Fast set generation failed", e );
 			}
+		}catch( Throwable e ){
+			
+			Debug.out( "Fast set generation failed", e );
 		}
 		
 		return( res );
@@ -4402,7 +4395,7 @@ implements PEPeerTransport
 		Arrays.fill( hash, (byte)0xAA );
 
 		try{
-			List<Integer> res = generateFastSet( hash, "80.4.4.200", 1313, 9 );
+			List<Integer> res = generateFastSet( hash, "80.4.4.200", 9, 5 );
 
 			System.out.println( res );
 			
