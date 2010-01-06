@@ -126,6 +126,7 @@ PairingManagerImpl
 	
 	private InfoParameter		param_ac_info;
 	private InfoParameter		param_status_info;
+	private InfoParameter		param_last_error;
 	private HyperlinkParameter	param_view;
 	
 	private BooleanParameter 	param_e_enable;
@@ -185,7 +186,9 @@ PairingManagerImpl
 		
 		param_ac_info = configModel.addInfoParameter2( "pairing.accesscode", access_code);
 		
-		param_status_info = configModel.addInfoParameter2( "pairing.status.info", "" );
+		param_status_info 	= configModel.addInfoParameter2( "pairing.status.info", "" );
+		
+		param_last_error	= configModel.addInfoParameter2( "pairing.last.error", "" );
 		
 		param_view = configModel.addHyperlinkParameter2( "pairing.view.registered", SERVICE_URL + "/web/view?ac=" + access_code);
 
@@ -1132,11 +1135,15 @@ PairingManagerImpl
 			
 			last_server_error = null;
 			
+			param_last_error.setValue( "" );
+			
 			return((Map<String,Object>)response.get( "rep" ));
 			
 		}catch( Throwable e ){
 			
 			last_server_error = Debug.getNestedExceptionMessage( e );
+			
+			param_last_error.setValue( last_server_error );
 			
 			if ( e instanceof PairingException ){
 				
