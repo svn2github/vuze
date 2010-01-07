@@ -1170,7 +1170,7 @@ TRTrackerAnnouncerMuxer
 			}
 		}
 		
-		return( max_announcer );
+		return( max_announcer==null?this:max_announcer );
 	}
 	
 	public void
