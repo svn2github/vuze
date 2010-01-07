@@ -938,9 +938,11 @@ CoreUpdateChecker
 		checker.getCheckInstance().setProperty( UpdateCheckInstance.PT_CLOSE_OR_RESTART_ALREADY_IN_PROGRESS, true );
 
 		final File f_update_file = update_file;
-				
+			
+		boolean	silent = update_properties.getProperty( "launch.silent", "false" ).equals( "true" );
+		
 		uif.performAction( 
-			UIFunctions.ACTION_FULL_UPDATE,
+			silent?UIFunctions.ACTION_UPDATE_RESTART_REQUEST:UIFunctions.ACTION_FULL_UPDATE,
 			info_url,
 			new UIFunctions.actionListener()
 			{

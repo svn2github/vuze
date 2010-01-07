@@ -641,25 +641,24 @@ public class UpdateMonitor
 	handleRestart()
  {
 		final UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-		if (uiFunctions != null) {
-			String title = MessageText.getString(MSG_PREFIX + "restart.title");
-			String text = MessageText.getString(MSG_PREFIX + "restart.text");
-			uiFunctions.bringToFront();
-			int timeout = 180000;
-			if (azCore != null && !azCore.getPluginManager().isSilentRestartEnabled()) {
-				timeout = -1;
-			}
-			uiFunctions.promptUser(title, text, new String[] {
-				MessageText.getString("UpdateWindow.restart"),
-				MessageText.getString("UpdateWindow.restartLater")
-			}, 0, null, null, false, timeout, new UserPrompterResultListener() {
-
-				public void prompterClosed(int result) {
-					if (result == 0) {
-						uiFunctions.dispose(true, false);
-					}
-				}
-			});
+		
+		if ( uiFunctions != null ){
+			
+			uiFunctions.performAction( 
+					UIFunctions.ACTION_UPDATE_RESTART_REQUEST,
+					null,
+					new UIFunctions.actionListener()
+					{
+						public void
+						actionComplete(
+							Object	result )
+						{
+							if ((Boolean)result){
+								
+								uiFunctions.dispose(true, false);
+							}
+						}
+					});
 		}
 	}
 		
