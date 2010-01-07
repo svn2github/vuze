@@ -70,6 +70,7 @@ DeviceManagerImpl
 	private static final String OD_IS_AUTO_CONFIG_KEY			= "devices.config.od.auto";
 	private static final String OD_INCLUDE_PRIVATE_CONFIG_KEY	= "devices.config.od.inc_priv";
 	
+	private static final String TRANSCODE_DIR_DEFAULT	= "transcodes";
 	
 	private static final String CONFIG_DEFAULT_WORK_DIR	= "devices.config.def_work_dir";
 	
@@ -1164,13 +1165,26 @@ DeviceManagerImpl
 			
 			String	def_dir = COConfigurationManager.getStringParameter( "Default save path" );
 
-			def = def_dir + File.separator + "transcodes";
+			def = def_dir + File.separator + TRANSCODE_DIR_DEFAULT;
 		}
 		
 		File f = new File( def );
 		
 		if ( !f.exists()){
 		
+				// migration from Azureus Downloads to Vuze Downloads
+			
+			if ( f.getName().equals( TRANSCODE_DIR_DEFAULT )){
+				
+				String	parent = f.getParentFile().getName();
+				
+				if ( parent.equals( "Azureus Downloads" ) || parent.equals( "Vuze Downloads" )){
+					
+					String	def_dir = COConfigurationManager.getStringParameter( "Default save path" );
+
+					f = new File( def_dir, TRANSCODE_DIR_DEFAULT );
+				}
+			}
 			if ( persist ){
 			
 				f.mkdirs();
