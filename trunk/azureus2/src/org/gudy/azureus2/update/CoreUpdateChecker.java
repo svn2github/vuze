@@ -45,6 +45,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
+import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.versioncheck.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -913,7 +914,20 @@ CoreUpdateChecker
 			
 			throw( new Exception( "Update property 'info.url' missing" ));
 		}
+			
+		String	s_args = update_properties.getProperty( "launch.args", "" ).trim();
 				
+		final String[] args;
+		
+		if ( s_args.length() > 0 ){
+			
+			args = GeneralUtils.splitQuotedTokens( s_args );
+			
+		}else{
+			
+			args = new String[0];
+		}
+		
 		UIFunctions uif = UIFunctionsManager.getUIFunctions();
 
 		if ( uif == null ){
@@ -936,7 +950,7 @@ CoreUpdateChecker
 				{
 					if ((Boolean)result){
 						
-						launchUpdate( f_update_file );
+						launchUpdate( f_update_file, args );
 					}
 				}
 			});
@@ -944,7 +958,8 @@ CoreUpdateChecker
 	
 	protected void
 	launchUpdate(
-		File		file )
+		File		file,
+		String[]	args )
 	{
 		try{
 				// hack here to allow testing of osx on windows (parg) - should replace with
@@ -957,10 +972,22 @@ CoreUpdateChecker
 					
 					// accessor.createProcess( , false );
 					
+					String	s_args = null;
+					
+					if ( args.length > 0 ){
+					
+						s_args = "";
+						
+						for ( String s: args ){
+							
+							s_args += (s_args.length()==0?"":" ") + s;
+						}
+					}
+					
 					accessor.shellExecute( 
 						null, 
 						file.getAbsolutePath(), 
-						null,
+						s_args,
 						SystemProperties.getApplicationPath(),
 						AEWin32Access.SW_NORMAL );
 					
@@ -968,7 +995,20 @@ CoreUpdateChecker
 					
 					Logger.log( new LogEvent( LogIDs.LOGGER, "AEWin32Access failed", e  ));
 
-					Runtime.getRuntime().exec( file.getAbsolutePath() );
+					if ( args.length > 0 ){
+					
+						String[] s_args = new String[args.length+1];
+						
+						s_args[0] = file.getAbsolutePath();
+						
+						System.arraycopy( args, 0, s_args, 1, args.length );
+						
+						Runtime.getRuntime().exec( s_args );
+						
+					}else{
+					
+						Runtime.getRuntime().exec( file.getAbsolutePath() );
+					}
 				}
 			}else{
 					// osx, need to unzip .app and launch
@@ -1065,7 +1105,20 @@ CoreUpdateChecker
 		    		if ( f.getName().endsWith( ".app" )){
 		    	
 		    			String[] to_run = { "/bin/sh", "-c", "open \"" + f.getAbsolutePath() + "\""};
-			  		
+		    			
+		    			if ( args.length > 0 ){
+		    				
+		    				String[] new_to_run = new String[ to_run.length + args.length + 1 ];
+		    				
+		    				System.arraycopy( to_run, 0, new_to_run, 0, to_run.length );
+		    				
+		    				new_to_run[ to_run.length ] = "--args";
+		    				
+		    				System.arraycopy( args, 0, new_to_run, to_run.length + 1 , args.length );
+		    				
+		    				to_run = new_to_run;
+		    			}
+		    			
 		    			runCommand( to_run, false );
 		    			
 		    			launched = true;
@@ -1095,7 +1148,7 @@ CoreUpdateChecker
 			
 			for ( String s: command ){
 				
-				str += (str.length()==0?"":", ") + s;
+				str += (str.length()==0?"":" ") + s;
 			}
 			
 			System.out.println( "running " + str );

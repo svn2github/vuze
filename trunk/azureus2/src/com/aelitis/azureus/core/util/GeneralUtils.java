@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class 
@@ -152,5 +154,102 @@ GeneralUtils
 		return Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
 				message).replaceAll("$2");
 	}
+	
+		/**
+		 * splits space separated tokens respecting quotes (either " or ' )
+		 * @param str
+		 * @return
+		 */
 		
+	public static String[]
+	splitQuotedTokens(
+		String		str )
+	{
+		List<String>	bits = new ArrayList<String>();
+		
+		char	quote 				= ' ';
+		boolean	escape 				= false;
+		boolean	bit_contains_quotes = false;
+			
+		String	bit = "";
+		
+		char[] chars = str.toCharArray();
+		
+		for (int i=0;i<chars.length;i++){
+			
+			char c = chars[i];
+			
+			if ( Character.isWhitespace(c)){
+				
+				c = ' ';
+			}
+			
+			if ( escape ){
+				
+				bit += c;
+				
+				escape = false;
+				
+				continue;
+				
+			}else if ( c == '\\' ){
+				
+				escape = true;
+				
+				continue;
+			}
+			
+			if ( c == '"' || c == '\'' && ( i == 0 || chars[ i-1 ] != '\\' )){
+				
+				if ( quote == ' ' ){
+						
+					bit_contains_quotes = true;
+					
+					quote = c;
+					
+				}else if ( quote == c ){
+										
+					quote = ' ';
+					
+				}else{
+					
+					bit += c;
+				}
+			}else{
+				
+				if ( quote == ' ' ){
+					
+					if ( c == ' ' ){
+						
+						if ( bit.length() > 0 || bit_contains_quotes ){
+							
+							bit_contains_quotes = false;
+							
+							bits.add( bit );
+							
+							bit = "";
+						}
+					}else{
+					
+						bit += c;
+					}
+				}else{
+					
+					bit += c;
+				}
+			}
+		}	
+		
+		if ( quote != ' ' ){
+			
+			bit += quote;
+		}
+		
+		if ( bit.length() > 0 || bit_contains_quotes ){
+			
+			bits.add( bit );
+		}
+		
+		return( bits.toArray( new String[bits.size()]));
+	}
 }
