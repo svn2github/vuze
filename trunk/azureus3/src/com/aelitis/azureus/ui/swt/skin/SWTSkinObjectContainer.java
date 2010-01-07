@@ -49,6 +49,17 @@ public class SWTSkinObjectContainer
 
 	boolean bPropogateDown = false;
 
+	private String[] sTypeParams = null;
+
+	private int minWidth;
+
+	public SWTSkinObjectContainer(SWTSkin skin, SWTSkinProperties properties,
+			String sID, String sConfigID, String[] sTypeParams, SWTSkinObject parent) {
+		super(skin, properties, sID, sConfigID, "container", parent);
+		this.sTypeParams = sTypeParams;
+		createComposite();
+	}
+
 	public SWTSkinObjectContainer(SWTSkin skin, SWTSkinProperties properties,
 			String sID, String sConfigID, SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, "container", parent);
@@ -83,7 +94,7 @@ public class SWTSkinObjectContainer
 			createOn = (Composite) parent.getControl();
 		}
 
-		final int minWidth = properties.getIntValue(sConfigID + ".minwidth", -1);
+		minWidth = properties.getIntValue(sConfigID + ".minwidth", -1);
 
 		Composite parentComposite;
 		if (SWTSkin.DEBUGLAYOUT) {
@@ -93,50 +104,39 @@ public class SWTSkinObjectContainer
 			((Group) parentComposite).setText(sConfigID == null ? sID : sConfigID);
 			parentComposite.setData("DEBUG", "1");
 		} else {
-			// Lovely SWT has a default size of 64x64 if no children have sizes.
-			// Let's fix that..
-			parentComposite = new Composite(createOn, style) {
-				// @see org.eclipse.swt.widgets.Composite#computeSize(int, int, boolean)
-				public Point computeSize(int wHint, int hHint, boolean changed) {
-					Point size = super.computeSize(wHint, hHint, changed);
-					if (getChildren().length == 0 && (size.x == 64 || size.y == 64)) {
-						Object ld = getLayoutData();
-						if (ld instanceof FormData) {
-							FormData fd = (FormData) ld;
-							if (fd.width != 0 && fd.height != 0) {
-								Rectangle trim = computeTrim (0, 0, fd.width, fd.height);
-								return new Point(trim.width, trim.height);
-							}
-						}
-						return new Point(1, 1);
-					}
-					if (minWidth > 0 && size.x < minWidth) {
-						size.x = minWidth;
-					}
-					return size;
-				}
-				
-				// @see org.eclipse.swt.widgets.Control#computeSize(int, int)
-				public Point computeSize(int wHint, int hHint) {
-					Point size = super.computeSize(wHint, hHint);
-					if (getChildren().length == 0 && (size.x == 64 || size.y == 64)) {
-						Object ld = getLayoutData();
-						if (ld instanceof FormData) {
-							FormData fd = (FormData) ld;
-							if (fd.width != 0 && fd.height != 0) {
-								Rectangle trim = computeTrim (0, 0, fd.width, fd.height);
-								return new Point(trim.width, trim.height);
-							}
-						}
-						return new Point(1, 1);
-					}
-					if (minWidth > 0 && size.x < minWidth) {
-						size.x = minWidth;
-					}
-					return size;
-				}
-			};
+			if (sTypeParams == null || sTypeParams.length < 2
+					|| !sTypeParams[1].equalsIgnoreCase("group")) {
+  			// Lovely SWT has a default size of 64x64 if no children have sizes.
+  			// Let's fix that..
+  			parentComposite = new Composite(createOn, style) {
+  				public Point computeSize(int wHint, int hHint, boolean changed) {
+  					Point size = super.computeSize(wHint, hHint, changed);
+  					return betterComputeSize(this, size, wHint, hHint, changed);
+  				}
+  				
+  				public Point computeSize(int wHint, int hHint) {
+  					Point size = super.computeSize(wHint, hHint);
+  					return betterComputeSize(this, size, wHint, hHint);
+  				}
+  			};
+			} else {
+  			parentComposite = new Group(createOn, style) {
+  				protected void checkSubclass() {};
+  				
+  				public Point computeSize(int wHint, int hHint, boolean changed) {
+  					Point size = super.computeSize(wHint, hHint, changed);
+  					return betterComputeSize(this, size, wHint, hHint, changed);
+  				}
+  				
+  				public Point computeSize(int wHint, int hHint) {
+  					Point size = super.computeSize(wHint, hHint);
+  					return betterComputeSize(this, size, wHint, hHint);
+  				}
+  			};
+			}
 		}
+		
+		//parentComposite.setBackgroundMode(SWT.INHERIT_FORCE);
 
 		parentComposite.setLayout(new FormLayout());
 		control = parentComposite;
@@ -144,6 +144,43 @@ public class SWTSkinObjectContainer
 		setControl(control);
 	}
 	
+	protected Point betterComputeSize(Composite c, Point size, int wHint,
+			int hHint) {
+		if (getChildren().length == 0 && (size.x == 64 || size.y == 64)) {
+			Object ld = c.getLayoutData();
+			if (ld instanceof FormData) {
+				FormData fd = (FormData) ld;
+				if (fd.width != 0 && fd.height != 0) {
+					Rectangle trim = c.computeTrim (0, 0, fd.width, fd.height);
+					return new Point(trim.width, trim.height);
+				}
+			}
+			return new Point(1, 1);
+		}
+		if (minWidth > 0 && size.x < minWidth) {
+			size.x = minWidth;
+		}
+		return size;
+	}
+
+	protected Point betterComputeSize(Composite c, Point size, int wHint, int hHint, boolean changed) {
+		if (getChildren().length == 0 && (size.x == 64 || size.y == 64)) {
+			Object ld = c.getLayoutData();
+			if (ld instanceof FormData) {
+				FormData fd = (FormData) ld;
+				if (fd.width != 0 && fd.height != 0) {
+					Rectangle trim = c.computeTrim (0, 0, fd.width, fd.height);
+					return new Point(trim.width, trim.height);
+				}
+			}
+			return new Point(1, 1);
+		}
+		if (minWidth > 0 && size.x < minWidth) {
+			size.x = minWidth;
+		}
+		return size;
+	}
+
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setControl(org.eclipse.swt.widgets.Control)
 	public void setControl(Control control) {
 		bPropogateDown = properties.getIntValue(sConfigID + ".propogateDown", 1) == 1;

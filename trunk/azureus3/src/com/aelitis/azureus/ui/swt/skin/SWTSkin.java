@@ -933,7 +933,7 @@ public class SWTSkin
 	}
 
 	private SWTSkinObject createContainer(final SWTSkinProperties properties,
-			String sID, final String sConfigID, SWTSkinObject parentSkinObject,
+			String sID, final String sConfigID, String[] sTypeParams, SWTSkinObject parentSkinObject,
 			boolean bForceCreate, boolean bPropogate, SWTSkinObject intoSkinObject) {
 		String[] sItems = properties.getStringArray(sConfigID + ".widgets");
 		final String[] sItemsLater = null; // properties.getStringArray(sConfigID + ".widgets-onshow");
@@ -951,7 +951,7 @@ public class SWTSkin
 		if (skinObject == null) {
 			if (intoSkinObject == null) {
 				skinObject = new SWTSkinObjectContainer(this, properties, sID,
-						sConfigID, parentSkinObject);
+						sConfigID, sTypeParams, parentSkinObject);
 				addToControlMap(skinObject);
 			} else {
 				skinObject = intoSkinObject;
@@ -1152,7 +1152,7 @@ public class SWTSkin
 
 		SWTSkinObjectTab skinObjectTab = new SWTSkinObjectTab(this, properties,
 				sID, sConfigID, parentSkinObject);
-		createContainer(properties, sID, sConfigID, parentSkinObject, true, true,
+		createContainer(properties, sID, sConfigID, null, parentSkinObject, true, true,
 				skinObjectTab);
 
 		addToControlMap(skinObjectTab);
@@ -1429,15 +1429,15 @@ public class SWTSkin
 			}
 
 			if (sType.equals("image")) {
-				skinObject = createImageLabel(properties, sID, sConfigID, null,
-						sTypeParams, parentSkinObject);
+				skinObject = createImageLabel(properties, sID, sConfigID, sTypeParams,
+						parentSkinObject);
 			} else if (sType.equals("image2")) {
 				skinObject = createImageLabel2(properties, sID, parentSkinObject);
 			} else if (sType.equals("container2")) {
 				skinObject = createContainer2(properties, sID, sConfigID,
 						parentSkinObject, bForceCreate, false, null);
 			} else if (sType.equals("container")) {
-				skinObject = createContainer(properties, sID, sConfigID,
+				skinObject = createContainer(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject, bForceCreate, false, null);
 			} else if (sType.equals("text")) {
 				skinObject = createTextLabel(properties, sID, sConfigID, sTypeParams,
@@ -1596,17 +1596,13 @@ public class SWTSkin
 	}
 
 	private SWTSkinObject createImageLabel(SWTSkinProperties properties,
-			String sID, String sConfigID, String sImageID, String[] typeParams,
+			String sID, String sConfigID, String[] typeParams,
 			SWTSkinObject parentSkinObject) {
-		if (sImageID == null) {
-			sImageID = sConfigID;
-			if (typeParams.length > 1) {
-				properties.addProperty(sConfigID + ".image", typeParams[1]);
-				sImageID = typeParams[1];
-			}
+		if (typeParams.length > 1) {
+			properties.addProperty(sConfigID + ".image", typeParams[1]);
 		}
 		SWTSkinObjectImage skinObject = new SWTSkinObjectImage(this, properties,
-				sID, sConfigID, sImageID, parentSkinObject);
+				sID, sConfigID, sConfigID, parentSkinObject);
 		addToControlMap(skinObject);
 
 		return skinObject;
