@@ -438,7 +438,8 @@ public class SWTSkinObjectBasic
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (control != null && !control.isDisposed()) {
-					boolean changed = visible != control.isVisible();
+					boolean changed = visible != control.isVisible()
+							|| visible != isVisible;
 
 					Object ld = control.getLayoutData();
 					if (ld instanceof FormData) {
@@ -469,7 +470,7 @@ public class SWTSkinObjectBasic
   						Utils.relayout(control);
 						}
 					}
-					if (changed) {
+					if (changed || true) { // For some reason this is required even when !changed (on Windows)
 						control.setVisible(visible);
 					}
 					// still need to call setIsVisible to walk up/down
