@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
@@ -763,14 +764,52 @@ public class UIFunctionsImpl
 	
 	public void 
 	performAction(
-		int 			action_id, 
-		Object 			args, 
-		actionListener 	listener )
+		int 					action_id, 
+		Object 					args, 
+		final actionListener 	listener )
 	{
 		if ( action_id == ACTION_FULL_UPDATE ){
 			
 			FullUpdateWindow.handleUpdate((String)args, listener );
 			
+		}else if ( action_id == ACTION_UPDATE_RESTART_REQUEST ){
+			
+			String MSG_PREFIX = "UpdateMonitor.messagebox.";
+			
+			String title = MessageText.getString(MSG_PREFIX + "restart.title" );
+			
+			String text = MessageText.getString(MSG_PREFIX + "restart.text" );
+			
+			bringToFront();
+			
+			int timeout = 180000;
+			
+			if (PluginInitializer.getDefaultInterface().getPluginManager().isSilentRestartEnabled()){
+				
+				timeout = -1;
+			}
+			
+			promptUser(
+				title, 
+				text, 
+				new String[] {
+					MessageText.getString("UpdateWindow.restart"),
+					MessageText.getString("UpdateWindow.restartLater")
+				}, 
+				0, 
+				null, 
+				null, 
+				false, 
+				timeout, 
+				new UserPrompterResultListener() 
+				{
+					public void 
+					prompterClosed(
+						int result ) 
+					{
+						listener.actionComplete( result == 0 );
+					}
+				});
 		}else{
 			
 			Debug.out( "Unknown action " + action_id );
