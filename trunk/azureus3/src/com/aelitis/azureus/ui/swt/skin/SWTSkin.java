@@ -582,6 +582,8 @@ public class SWTSkin
 			shell.setSize(width, height);
 		}
 		
+		// We handle cases where width || height < 0 later in layout()
+		
 		String title = skinProperties.getStringValue(startID + ".title",
 				(String) null);
 		if (title != null) {
@@ -671,11 +673,16 @@ public class SWTSkin
 
 		int width = skinProperties.getIntValue(startID + ".width", -1);
 		int height = skinProperties.getIntValue(startID + ".height", -1);
-		if (width > 0 && height <= 0) {
-			shell.pack();
-			shell.setSize(shell.computeSize(width, SWT.DEFAULT));
+		if (width > 0 && height == -1) {
+			Point computeSize = shell.computeSize(width, SWT.DEFAULT);
+			Rectangle rectangle = shell.computeTrim(0, 0, computeSize.x, computeSize.y);
+			shell.setSize(rectangle.width, rectangle.height);
+		} else if (height > 0 && width == -1) {
+			Point computeSize = shell.computeSize(SWT.DEFAULT, height);
+			Rectangle rectangle = shell.computeTrim(0, 0, computeSize.x, computeSize.y);
+			shell.setSize(rectangle.width, rectangle.height);
 		}
-		
+
 		for (SWTSkinLayoutCompleteListener l : listenersLayoutComplete) {
 			l.skinLayoutCompleted();
 		}
