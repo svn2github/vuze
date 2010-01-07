@@ -915,6 +915,9 @@ CoreUpdateChecker
 			throw( new Exception( "Update property 'info.url' missing" ));
 		}
 			
+			// update_properties.setProperty( "launch.args" , "-silent" );
+			// update_properties.setProperty( "launch.silent" , "true" );
+		
 		String	s_args = update_properties.getProperty( "launch.args", "" ).trim();
 				
 		final String[] args;
