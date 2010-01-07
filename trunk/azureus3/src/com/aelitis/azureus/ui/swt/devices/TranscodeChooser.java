@@ -265,7 +265,8 @@ public abstract class TranscodeChooser
 			cmbXCode.setVisible(false);
 		}
 
-		Point computeSize = shell.computeSize(300, SWT.DEFAULT, true);
+		Point computeSize = shell.computeSize(shell.getClientArea().width,
+				SWT.DEFAULT, true);
 		shell.setSize(computeSize);
 	}
 
