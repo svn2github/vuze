@@ -181,8 +181,12 @@ public class SWTSkinObjectBasic
 					gc.dispose();
 				}
 				if (painter == null) {
+					// Use TILE_BOTH because a gradient should never set the size of the control
+					// Rather, the gradient image is made based on the control size.  If
+					// we used TILE_X, SWTBGImagePainter would force the height to the
+					// current image, thus preventing any auto-resizing
 					painter = new SWTBGImagePainter(control, null, null,
-							bgImage, SWTSkinUtils.TILE_X);
+							bgImage, SWTSkinUtils.TILE_BOTH);
 				} else {
 					painter.setImage(null, null, bgImage);
 				}
@@ -434,12 +438,15 @@ public class SWTSkinObjectBasic
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (control != null && !control.isDisposed()) {
+					boolean changed = visible != control.isVisible();
+
 					Object ld = control.getLayoutData();
 					if (ld instanceof FormData) {
 						FormData fd = (FormData) ld;
 						if (!visible) {
 							if (fd.width != 0 && fd.height != 0) {
 								control.setData("oldSize", new Point(fd.width, fd.height));
+								changed = true;
 							}
 							fd.width = 0;
 							fd.height = 0;
@@ -448,17 +455,24 @@ public class SWTSkinObjectBasic
 							Point oldSizePoint = (oldSize instanceof Point) ? (Point) oldSize
 									: new Point(SWT.DEFAULT, SWT.DEFAULT);
 							if (fd.width <= 0) {
+								changed = true;
 								fd.width = oldSizePoint.x;
 							}
 							if (fd.height <= 0) {
+								changed = true;
 								fd.height = oldSizePoint.y;
 							}
 						}
-						control.setLayoutData(fd);
-						control.getParent().layout(true);
-						Utils.relayout(control);
+						if (changed) {
+  						control.setLayoutData(fd);
+  						control.getParent().layout(true);
+  						Utils.relayout(control);
+						}
 					}
-					control.setVisible(visible);
+					if (changed) {
+						control.setVisible(visible);
+					}
+					// still need to call setIsVisible to walk up/down
 					setIsVisible(visible, true);
 				}
 			}
