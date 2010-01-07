@@ -784,7 +784,7 @@ public class UIFunctionsImpl
 			
 			int timeout = 180000;
 			
-			if (PluginInitializer.getDefaultInterface().getPluginManager().isSilentRestartEnabled()){
+			if ( !PluginInitializer.getDefaultInterface().getPluginManager().isSilentRestartEnabled()){
 				
 				timeout = -1;
 			}
