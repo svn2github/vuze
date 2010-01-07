@@ -146,7 +146,7 @@ public class SWTSkinObjectContainer
 	
 	protected Point betterComputeSize(Composite c, Point size, int wHint,
 			int hHint) {
-		if (getChildren().length == 0 && (size.x == 64 || size.y == 64)) {
+		if (c.getChildren().length == 0 && (size.x == 64 || size.y == 64)) {
 			Object ld = c.getLayoutData();
 			if (ld instanceof FormData) {
 				FormData fd = (FormData) ld;
@@ -164,7 +164,7 @@ public class SWTSkinObjectContainer
 	}
 
 	protected Point betterComputeSize(Composite c, Point size, int wHint, int hHint, boolean changed) {
-		if (getChildren().length == 0 && (size.x == 64 || size.y == 64)) {
+		if (c.getChildren().length == 0 && (size.x == 64 || size.y == 64)) {
 			Object ld = c.getLayoutData();
 			if (ld instanceof FormData) {
 				FormData fd = (FormData) ld;
