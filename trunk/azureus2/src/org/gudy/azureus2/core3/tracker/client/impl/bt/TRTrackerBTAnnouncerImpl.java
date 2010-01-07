@@ -444,6 +444,12 @@ TRTrackerBTAnnouncerImpl
   		return( tracker_status_str );
   	}
   	
+	public TRTrackerAnnouncer
+	getBestAnnouncer()
+	{
+		return( this );
+	}
+	
 	public void
 	setRefreshDelayOverrides(
 		int		percentage )

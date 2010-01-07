@@ -113,6 +113,9 @@ TRTrackerAnnouncer
 	public String
 	getStatusString();
 	
+	public TRTrackerAnnouncer
+	getBestAnnouncer();
+	
 	public TRTrackerAnnouncerResponse
 	getLastResponse();
 	

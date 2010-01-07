@@ -252,6 +252,12 @@ TRTrackerDHTAnnouncerImpl
 		return( tracker_status_str );
 	}
 	
+	public TRTrackerAnnouncer
+	getBestAnnouncer()
+	{
+		return( this );
+	}
+	
 	public TRTrackerAnnouncerResponse
 	getLastResponse()
 	{

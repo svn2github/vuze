@@ -1139,23 +1139,21 @@ TRTrackerAnnouncerMuxer
 	public int
 	getStatus()
 	{
-		int	max = -1;
-				
-		for ( TRTrackerAnnouncer announcer: announcers ){
-			
-			int	status = announcer.getStatus();
-			
-			if ( status > max ){
-				
-				max				= status;
-			}
-		}
+		TRTrackerAnnouncer	max_announcer = getBestAnnouncer();
 		
-		return( max );
+		return( max_announcer==null?-1:max_announcer.getStatus());
 	}
 		
 	public String
 	getStatusString()
+	{		
+		TRTrackerAnnouncer	max_announcer = getBestAnnouncer();
+		
+		return( max_announcer==null?"":max_announcer.getStatusString());
+	}
+	
+	public TRTrackerAnnouncer
+	getBestAnnouncer()
 	{
 		int	max = -1;
 		
@@ -1172,7 +1170,7 @@ TRTrackerAnnouncerMuxer
 			}
 		}
 		
-		return( max_announcer==null?"":max_announcer.getStatusString());
+		return( max_announcer );
 	}
 	
 	public void
