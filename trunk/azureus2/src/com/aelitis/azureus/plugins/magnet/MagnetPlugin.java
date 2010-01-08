@@ -469,6 +469,105 @@ MagnetPlugin
 	
 	public byte[]
 	download(
+		MagnetPluginProgressListener		listener,
+		byte[]								hash,
+		String								args,
+		InetSocketAddress[]					sources,
+		long								timeout )
+	
+		throws MagnetURIHandlerException
+	{
+		byte[]	torrent_data = downloadSupport( listener, hash, args, sources, timeout );
+		
+		if ( args != null ){
+			
+			String[] bits = args.split( "&" );
+			
+			List<String>	new_web_seeds = new ArrayList<String>();
+
+			for ( String bit: bits ){
+				
+				String[] x = bit.split( "=" );
+				
+				if ( x.length == 2 ){
+					
+					if ( x[0].equalsIgnoreCase( "ws" )){
+						
+						try{
+							new_web_seeds.add( new URL( UrlUtils.decode( x[1] )).toExternalForm());
+							
+						}catch( Throwable e ){							
+						}
+					}
+				}
+			}
+			
+			if ( new_web_seeds.size() > 0 ){
+				
+				try{
+					TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray( torrent_data );
+	
+					Object obj = torrent.getAdditionalProperty( "url-list" );
+					
+					List<String> existing = new ArrayList<String>();
+					
+					if ( obj instanceof byte[] ){
+		                
+						try{
+							new_web_seeds.remove( new URL( new String((byte[])obj, "UTF-8" )).toExternalForm());
+							
+						}catch( Throwable e ){							
+						}
+					}else if ( obj instanceof List ){
+						
+						List<byte[]> l = (List<byte[]>)obj;
+						
+						for ( byte[] b: l ){
+							
+							try{
+								existing.add( new URL( new String((byte[])b, "UTF-8" )).toExternalForm());
+								
+							}catch( Throwable e ){							
+							}
+						}
+					}
+					
+					boolean update = false;
+					
+					for ( String e: new_web_seeds ){
+						
+						if ( !existing.contains( e )){
+							
+							existing.add( e );
+							
+							update = true;
+						}
+					}
+					
+					if ( update ){
+					
+						List<byte[]>	l = new ArrayList<byte[]>();
+						
+						for ( String s: existing ){
+							
+							l.add( s.getBytes( "UTF-8" ));
+						}
+						
+						torrent.setAdditionalProperty( "url-list", l );
+						
+						torrent_data = BEncoder.encode( torrent.serialiseToMap());
+					}
+					
+				}catch( Throwable e ){
+				}
+			}
+		}
+		
+		return( torrent_data );
+	}
+	
+	private byte[]
+	downloadSupport(
 		final MagnetPluginProgressListener		listener,
 		final byte[]							hash,
 		final String							args,

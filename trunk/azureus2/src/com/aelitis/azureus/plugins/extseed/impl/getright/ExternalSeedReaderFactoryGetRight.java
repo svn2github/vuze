@@ -131,7 +131,7 @@ ExternalSeedReaderFactoryGetRight
 					}
 					
 					try{	
-						String	url_str = new String((byte[])urls.get(i));
+						String	url_str = new String((byte[])urls.get(i), "UTF-8" );
 						
 							// avoid java encoding ' ' as '+' as this is not conformant with Apache (for example)
 						
