@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -114,7 +115,7 @@ public class RemotePairingWindow implements PairingManagerListener
 			control = soCodeArea.getControl();
 			Font font = control.getFont();
 			GC gc = new GC(control);
-			fontCode = Utils.getFontWithHeight(font, gc, 18, SWT.BOLD);
+			fontCode = Utils.getFontWithHeight(font, gc, Constants.isWindows ? 20 : 18, SWT.BOLD);
 			gc.dispose();
 			control.setFont(fontCode);
 
