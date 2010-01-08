@@ -17,7 +17,10 @@ import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
@@ -461,8 +464,18 @@ public class MainMenu
 		MenuFactory.addSeparatorMenuItem(toolsMenu);
 		MenuFactory.createPluginsMenuItem(toolsMenu, true);
 
+		addPairingMenu(toolsMenu);
+		
 		MenuFactory.addOptionsMenuItem(toolsMenu);
 
+	}
+
+	private void addPairingMenu(Menu menu) {
+		MenuFactory.addMenuItem(menu, MENU_ID_PAIRING, new Listener() {
+			public void handleEvent(Event e) {
+				RemotePairingWindow.open();
+			}
+		});
 	}
 
 	/**
