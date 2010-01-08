@@ -114,7 +114,7 @@ public class RemotePairingWindow implements PairingManagerListener
 			control = soCodeArea.getControl();
 			Font font = control.getFont();
 			GC gc = new GC(control);
-			fontCode = Utils.getFontWithHeight(font, gc, 23, SWT.BOLD);
+			fontCode = Utils.getFontWithHeight(font, gc, 18, SWT.BOLD);
 			gc.dispose();
 			control.setFont(fontCode);
 
@@ -174,7 +174,8 @@ public class RemotePairingWindow implements PairingManagerListener
 		}
 		skinnedDialog.addCloseListener(new SkinnedDialogClosedListener() {
 			public void skinDialogClosed(SkinnedDialog dialog) {
-				pairingManager.addListener(RemotePairingWindow.this);
+				pairingManager.removeListener(RemotePairingWindow.this);
+				Utils.disposeSWTObjects(new Object[] { fontCode });
 			}
 		});
 		skinnedDialog.open();
