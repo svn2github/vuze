@@ -675,12 +675,10 @@ public class SWTSkin
 		int height = skinProperties.getIntValue(startID + ".height", -1);
 		if (width > 0 && height == -1) {
 			Point computeSize = shell.computeSize(width, SWT.DEFAULT);
-			Rectangle rectangle = shell.computeTrim(0, 0, computeSize.x, computeSize.y);
-			shell.setSize(rectangle.width, rectangle.height);
+			shell.setSize(computeSize);
 		} else if (height > 0 && width == -1) {
 			Point computeSize = shell.computeSize(SWT.DEFAULT, height);
-			Rectangle rectangle = shell.computeTrim(0, 0, computeSize.x, computeSize.y);
-			shell.setSize(rectangle.width, rectangle.height);
+			shell.setSize(computeSize);
 		}
 
 		for (SWTSkinLayoutCompleteListener l : listenersLayoutComplete) {
