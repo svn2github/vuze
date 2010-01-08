@@ -37,7 +37,6 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
@@ -85,6 +84,8 @@ public class SWTSkinObjectText2
 	private GCStringPrinter lastStringPrinter;
 
 	private Color colorUrl;
+
+	private int alpha = 255;
 
 	public SWTSkinObjectText2(SWTSkin skin,
 			final SWTSkinProperties skinProperties, String sID,
@@ -165,6 +166,8 @@ public class SWTSkinObjectText2
 						// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 					}
 				}
+
+				gc.setAlpha(alpha);
 
 				GCStringPrinter sp = new GCStringPrinter(gc, sDisplayText,
 						new Rectangle(0, 0, wHint == -1 ? 999999 : wHint, hHint == -1
@@ -320,6 +323,8 @@ public class SWTSkinObjectText2
 		if (color != null) {
 			canvas.setData("color", color);
 		}
+		
+		alpha  = properties.getIntValue(sConfigID + ".alpha", 255);
 
 		hpadding = properties.getIntValue(sPrefix + ".h-padding", 0);
 		vpadding = properties.getIntValue(sPrefix + ".v-padding", 0);
@@ -556,10 +561,10 @@ public class SWTSkinObjectText2
 			gc.setForeground(color);
 			gc.setAlpha(64);
 			GCStringPrinter.printString(gc, sDisplayText, r, true, false, style);
-			gc.setAlpha(255);
 			gc.setForeground(foreground);
 		}
 
+		gc.setAlpha(alpha);
 		lastStringPrinter = new GCStringPrinter(gc, sDisplayText, clientArea, true,
 				false, style);
 		if (colorUrl != null) {
