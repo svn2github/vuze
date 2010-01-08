@@ -137,6 +137,8 @@ public interface IMenuConstants
 
 	public static final String MENU_ID_OPTIONS = "MainWindow.menu.view.configuration";
 
+	public static final String MENU_ID_PAIRING = "MainWindow.menu.pairing";
+
 	public static final String MENU_ID_WINDOW_MINIMIZE = "MainWindow.menu.window.minimize";
 
 	public static final String MENU_ID_WINDOW_ALL_TO_FRONT = "MainWindow.menu.window.alltofront";
