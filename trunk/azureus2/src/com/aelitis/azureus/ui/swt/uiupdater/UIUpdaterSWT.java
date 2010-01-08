@@ -37,6 +37,7 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * @author TuxPaper
@@ -279,7 +280,8 @@ public class UIUpdaterSWT
 		}
 		//System.out.println(SystemTime.getCurrentTime() + "] Refresh " + ttl + "ms");
 
-		MainStatusBar mainStatusBar = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainStatusBar();
+		UIFunctionsSWT uiFunctionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		MainStatusBar mainStatusBar = uiFunctionsSWT == null ? null : uiFunctionsSWT.getMainStatusBar();
 		if (mainStatusBar != null && mainStatusBar.isMouseOver()) {
 			StringBuffer sb = new StringBuffer();
 			for (Iterator iter = averageTimes.keySet().iterator(); iter.hasNext();) {
