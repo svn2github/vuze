@@ -38,6 +38,9 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 
+import com.aelitis.azureus.core.update.AzureusRestarter;
+import com.aelitis.azureus.core.update.AzureusRestarterFactory;
+
 public class 
 UpdateInstallerImpl
 	implements UpdateInstaller
@@ -49,12 +52,12 @@ UpdateInstallerImpl
 	
 	protected static AEMonitor	class_mon 	= new AEMonitor( "UpdateInstaller:class" );
 
-	private UpdateManager	manager;
-	private File			install_dir;
+	private UpdateManagerImpl	manager;
+	private File				install_dir;
 	
 	protected static void
 	checkForFailedInstalls(
-		UpdateManager	manager )
+		UpdateManagerImpl	manager )
 	{
 		try{
 			File	update_dir = new File( manager.getUserDir() + File.separator + UPDATE_DIR );
@@ -104,7 +107,7 @@ UpdateInstallerImpl
 	
 	protected
 	UpdateInstallerImpl(
-		UpdateManager	_manager )
+		UpdateManagerImpl	_manager )
 	
 		throws UpdateException
 	{
@@ -212,11 +215,15 @@ UpdateInstallerImpl
 				parent.mkdirs();
 			}
 			
+			boolean	log_perm_set_fail = true;
+			
 			if ( parent != null ){
 				
 				// we're going to need write access to the parent, let's try
 				
 				if ( !parent.canWrite()){
+					
+					log_perm_set_fail = false;
 					
 						// Vista install process goes through permissions elevation process
 						// so don't warn about lack of write permissions
@@ -244,7 +251,10 @@ UpdateInstallerImpl
 				}
 			}catch( Throwable e ){
 					
-				Debug.out( e );
+				if ( log_perm_set_fail ){
+					
+					Debug.out( e );
+				}
 			}
 		}catch( Throwable e ){
 			
@@ -304,6 +314,142 @@ UpdateInstallerImpl
 					throw( new UpdateException( "Failed to write actions file", e ));
 				}
 			}
+		}
+	}
+	
+	public void 
+	installNow(
+		final UpdateInstallerListener		listener )
+	
+		throws UpdateException 
+	{
+		try{
+			UpdateInstaller[] installers = manager.getInstallers();
+			
+			if ( installers.length != 1 || installers[0] != this ){
+				
+				throw( new UpdateException( "Other installers exist - aborting" ));
+			}
+						
+			listener.reportProgress( "Update starts" );
+			
+			AzureusRestarter ar = AzureusRestarterFactory.create( manager.getCore());
+			
+			ar.updateNow();
+			
+			new AEThread2( "installNow:waiter", true )
+			{
+				public void
+				run()
+				{
+					try{
+						long	start = SystemTime.getMonotonousTime();
+						
+						UpdateException pending_error = null;
+						
+						while( true ){
+							
+							Thread.sleep( 1000 );
+					
+							listener.reportProgress( "Checking progress" );
+							
+							if ( !install_dir.exists()){
+								
+								break;
+							}
+							
+							File	fail_file = new File( install_dir, "install.fail" );
+							
+							if ( fail_file.exists()){
+							
+								try{
+									String error = FileUtil.readFileAsString( fail_file, 1024 );
+									
+									throw( new UpdateException( error ));
+									
+								}catch( Throwable e ){
+									
+									if ( e instanceof UpdateException ){
+										
+										throw( e );
+									}
+									
+									if ( pending_error != null ){
+										
+										throw( pending_error );
+									}
+									
+									pending_error = new UpdateException( "Install failed, reason unknown" );
+								}
+							}
+							
+							if ( SystemTime.getMonotonousTime() - start >= 5*60*1000 ){
+								
+								listener.reportProgress( "Timeout" );
+								
+								throw( new UpdateException( "Timeout waiting for update to apply" ));
+							}
+						}
+						
+						listener.reportProgress( "Complete" );
+						
+						listener.complete();
+						
+					}catch( Throwable e ){
+						
+						UpdateException fail;
+						
+						if ( e instanceof UpdateException ){
+							
+							fail = (UpdateException)e;
+							
+						}else{
+							
+							fail = new UpdateException( "install failed", e );
+						}
+						
+						listener.reportProgress( fail.getMessage());
+						
+						listener.failed( fail );
+						
+					}finally{
+						
+						deleteInstaller();	
+					}
+				}
+			}.start();
+			
+		}catch( Throwable e ){
+			
+			deleteInstaller();	
+			
+			UpdateException fail;
+			
+			if ( e instanceof UpdateException ){
+				
+				fail = (UpdateException)e;
+				
+			}else{
+				
+				fail = new UpdateException( "install failed", e );
+			}
+			
+			listener.reportProgress( fail.getMessage());
+			
+			listener.failed( fail );
+			
+			throw( fail );
+		}
+	}
+	
+	private void
+	deleteInstaller()
+	{
+		manager.removeInstaller( this );
+
+		if ( install_dir.exists()){
+			
+			FileUtil.recursiveDelete( install_dir );
 		}
 	}
 }

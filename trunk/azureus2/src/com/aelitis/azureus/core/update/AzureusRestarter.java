@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.update;
 
+import com.aelitis.azureus.core.AzureusCoreException;
+
 /**
  * @author parg
  *
@@ -33,4 +35,9 @@ AzureusRestarter
 	public void
 	restart(
 		boolean	update_only );
+	
+	public void
+	updateNow()
+	
+		throws AzureusCoreException;
 }

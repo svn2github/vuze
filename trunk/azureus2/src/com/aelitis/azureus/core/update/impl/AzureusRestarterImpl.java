@@ -38,6 +38,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.update.UpdaterUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreException;
 import com.aelitis.azureus.core.update.AzureusRestarter;
 
 public class 
@@ -84,13 +85,37 @@ AzureusRestarterImpl
 		
 		restarted	= true;
 		
+		try{
+		
+			runUpdateProcess( update_only, false );
+			
+		}catch( Throwable e ){
+			// already logged
+		}
+	}
+	
+	public void
+	updateNow()
+	
+		throws AzureusCoreException
+	{
+		runUpdateProcess( true, true );
+	}
+	
+	private void
+	runUpdateProcess(
+		boolean		update_only,
+		boolean		no_wait )
+	
+		throws AzureusCoreException
+	{
 		PluginInterface pi = azureus_core.getPluginManager().getPluginInterfaceByID( "azupdater" );
 		
 		if ( pi == null ){
 			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-					"Can't restart, mandatory plugin 'azupdater' not found"));
+					"Can't update/restart, mandatory plugin 'azupdater' not found"));
 			
-			return;
+			throw( new AzureusCoreException( "mandatory plugin 'azupdater' not found" ));
 		}
 		
 		String	updater_dir = pi.getPluginDirectoryName();
@@ -128,13 +153,13 @@ AzureusRestarterImpl
 	  	FileOutputStream	fos	= null;
 	  	
 	  	try{
-	  		Properties	restart_properties = new Properties();
+	  		Properties	update_properties = new Properties();
 	  	
 	  		long	max_mem = Runtime.getRuntime().maxMemory();
 	  			  			  			
-	  		restart_properties.put( "max_mem", ""+max_mem );
-	  		restart_properties.put( "app_name", SystemProperties.getApplicationName());
-	  		restart_properties.put( "app_entry", SystemProperties.getApplicationEntryPoint());
+	  		update_properties.put( "max_mem", ""+max_mem );
+	  		update_properties.put( "app_name", SystemProperties.getApplicationName());
+	  		update_properties.put( "app_entry", SystemProperties.getApplicationEntryPoint());
 	  		
 	  		if ( System.getProperty( "azureus.nativelauncher" ) != null || Constants.isOSX ){
 	  			//NOTE: new 2306 osx bundle now sets azureus.nativelauncher=1, but older bundles dont
@@ -144,7 +169,7 @@ AzureusRestarterImpl
 		  			
 		  			if ( cmd != null ){
 		  				
-		  				restart_properties.put( "app_cmd", cmd );
+		  				update_properties.put( "app_cmd", cmd );
 		  			}
 	  			}catch( Throwable e ){
 	  				
@@ -152,12 +177,16 @@ AzureusRestarterImpl
 	  			}
 	  		}	  		
 	  		
+	  		if ( no_wait ){
+	  			
+	  			update_properties.put( "no_wait", "1" );
+	  		}
 	  		
 	  		fos	= new FileOutputStream( new File( user_path, UPDATE_PROPERTIES ));
 	  		
 	  			// this handles unicode chars by writing \\u escapes
 	  		
-	  		restart_properties.store(fos, "Azureus restart properties" );
+	  		update_properties.store(fos, "Azureus restart properties" );
 	  		
 	  	}catch( Throwable e ){
 	  		
@@ -196,7 +225,7 @@ AzureusRestarterImpl
 		
 		if ( bytes.length > 0 ){
 			
-			Logger.log(new LogEvent(LOGID, "AzureusRestarter: extra log - "
+			Logger.log(new LogEvent(LOGID, "AzureusUpdater: extra log - "
 					+ new String(bytes)));
 		}
 	}

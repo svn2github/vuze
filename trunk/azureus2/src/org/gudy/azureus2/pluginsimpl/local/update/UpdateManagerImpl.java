@@ -90,6 +90,12 @@ UpdateManagerImpl
 		}
 	}
 	
+	protected AzureusCore
+	getCore()
+	{
+		return( azureus_core );
+	}
+	
 	public void
 	registerUpdatableComponent(
 		UpdatableComponent		component,
@@ -195,6 +201,13 @@ UpdateManagerImpl
 		installers.toArray( res );
 		
 		return( res );
+	}
+	
+	protected void
+	removeInstaller(
+		UpdateInstaller	installer )
+	{
+		installers.remove( installer );
 	}
 	
 	public String

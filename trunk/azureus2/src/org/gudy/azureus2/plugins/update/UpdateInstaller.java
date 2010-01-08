@@ -119,4 +119,15 @@ UpdateInstaller
 		String    file )
 
     	throws UpdateException;
+	
+		/**
+		 * Runs the action now, not as part of a shutdown/restart of Vuze
+		 * @throws UpdateException
+		 */
+	
+	public void
+	installNow(
+		UpdateInstallerListener		listener )
+	
+		throws UpdateException;
 }
