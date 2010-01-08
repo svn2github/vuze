@@ -90,7 +90,7 @@ public class RemotePairingWindow implements PairingManagerListener
 		pairingManager = PairingManagerFactory.getSingleton();
 		if (skinnedDialog == null || skinnedDialog.isDisposed()) {
 			skinnedDialog = new SkinnedDialog("skin3_dlg_remotepairing", "shell",
-					SWT.SHELL_TRIM);
+					SWT.DIALOG_TRIM);
 
 			skin = skinnedDialog.getSkin();
 			soEnablePairing = (SWTSkinObjectCheckbox) skin.getSkinObject("enable-pairing");
