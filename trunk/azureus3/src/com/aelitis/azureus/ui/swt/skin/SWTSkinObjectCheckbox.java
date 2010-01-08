@@ -120,4 +120,15 @@ public class SWTSkinObjectCheckbox
 	public boolean isChecked() {
 		return checked;
 	}
+	
+	public void setChecked(boolean b) {
+		checked = b;
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (button != null && !button.isDisposed()) {
+					button.setSelection(checked);
+				}
+			}
+		});
+	}
 }
