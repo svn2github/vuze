@@ -297,6 +297,7 @@ public class ConfigView extends AbstractIView {
 
     ConfigSection[] internalSections = { 
                                          new ConfigSectionMode(),
+                                         new ConfigSectionStartShutdown(),
                                          new ConfigSectionConnection(),
                                          new ConfigSectionConnectionProxy(),
                                          new ConfigSectionConnectionAdvanced(),
@@ -322,7 +323,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionIPFilter(),
                                          new ConfigSectionPlugins(this),
                                          new ConfigSectionStats(),
-                                         new ConfigSectionTracker(),
+                                          new ConfigSectionTracker(),
                                          new ConfigSectionTrackerClient(),
                                          new ConfigSectionTrackerServer(),
                                          new ConfigSectionSecurity(),
@@ -368,18 +369,25 @@ public class ConfigView extends AbstractIView {
          	section_key = sSectionPrefix + name;
          }
          
+         String	section_name = MessageText.getString( section_key );
+         
          try {
           TreeItem treeItem;
           String location = section.configSectionGetParentSection();
   
-          if (location.equalsIgnoreCase(ConfigSection.SECTION_ROOT))
-        	  treeItem = new TreeItem(tree, SWT.NULL);
-          else if (location != "") {
+          if ( location.length() == 0 || location.equalsIgnoreCase(ConfigSection.SECTION_ROOT)){
+        	  //int position = findInsertPointFor(section_name, tree);
+        	  //if ( position == -1 ){
+        		  treeItem = new TreeItem(tree, SWT.NULL);
+        	  // }else{
+        	  //	  treeItem = new TreeItem(tree, SWT.NULL, position); 
+        	  //}
+         }else{
         	  TreeItem treeItemFound = findTreeItem(tree, location);
         	  if (treeItemFound != null){
         		  if (location.equalsIgnoreCase(ConfigSection.SECTION_PLUGINS)) {
         			  // Force ordering by name here.
-        			  int position = findInsertPointFor(MessageText.getString(section_key), treeItemFound);
+        			  int position = findInsertPointFor(section_name, treeItemFound);
         			  if (position == -1) {
         				  treeItem = new TreeItem(treeItemFound, SWT.NULL);
         			  }
@@ -393,8 +401,6 @@ public class ConfigView extends AbstractIView {
         	  }else{
         		  treeItem = new TreeItem(tree, SWT.NULL);
         	  }
-          }else{
-        	  treeItem = new TreeItem(tree, SWT.NULL); 
           }
   
           ScrolledComposite sc = new ScrolledComposite(cConfigSection, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -652,14 +658,6 @@ public class ConfigView extends AbstractIView {
 		lHeader.getParent().layout(true, true);
 	}
 
-
-  private Composite createConfigSection(String sNameID) {
-    return createConfigSection(null, sNameID, -1, true);
-  }
-
-  private Composite createConfigSection(String sNameID, int position) {
-    return createConfigSection(null, sNameID, position, true);
-  }
 
   public Composite createConfigSection(TreeItem treeItemParent, 
                                         String sNameID, 
