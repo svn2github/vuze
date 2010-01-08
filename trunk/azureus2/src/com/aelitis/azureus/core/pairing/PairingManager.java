@@ -52,4 +52,11 @@ PairingManager
 	public void
 	removeListener(
 		PairingManagerListener	l );
+
+	public void 
+	setEnabled(
+		boolean enabled );
+
+	public String
+	getStatus();
 }
