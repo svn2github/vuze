@@ -370,6 +370,7 @@ PairingManagerImpl
 		String		str )
 	{
 		param_status_info.setValue( str );
+		fireChanged();
 	}
 	
 	public String
