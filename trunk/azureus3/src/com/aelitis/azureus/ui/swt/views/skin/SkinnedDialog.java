@@ -135,4 +135,8 @@ public class SkinnedDialog
 	public Shell getShell() {
 		return shell;
 	}
+	
+	public boolean isDisposed() {
+		return shell == null || shell.isDisposed();
+	}
 }
