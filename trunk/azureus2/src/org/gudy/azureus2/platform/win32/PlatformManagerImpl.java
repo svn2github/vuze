@@ -622,6 +622,8 @@ PlatformManagerImpl
 			if ( fail_count >= 3 ){
 				
 				Debug.out( "Not attempting vmoption migration due to previous failures, please perform a full install to fix this" );
+				
+				return;
 			}
 			
 				// we need an up-to-date version of this to do the migration...
