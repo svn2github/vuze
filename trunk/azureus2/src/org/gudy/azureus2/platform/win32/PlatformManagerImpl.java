@@ -27,6 +27,7 @@ package org.gudy.azureus2.platform.win32;
  *
  */
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
@@ -34,6 +35,7 @@ import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
@@ -42,7 +44,17 @@ import org.gudy.azureus2.platform.win32.access.AEWin32Access;
 import org.gudy.azureus2.platform.win32.access.AEWin32AccessListener;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.update.UpdateException;
+import org.gudy.azureus2.plugins.update.UpdateInstaller;
+import org.gudy.azureus2.plugins.update.UpdateInstallerListener;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 
 public class 
@@ -172,25 +184,26 @@ PlatformManagerImpl
 	        capabilitySet.add(PlatformManagerCapabilities.SetTCPTOSEnabled);
 	        capabilitySet.add(PlatformManagerCapabilities.ComputerIDAvailability);
 	        
+	        String plugin_version = access.getVersion();
 	        
-	        if ( Constants.compareVersions( access.getVersion(), "1.11" ) >= 0 &&
+	        if ( Constants.compareVersions( plugin_version, "1.11" ) >= 0 &&
 	        		!Constants.isWindows9598ME ){
 	        	
 	            capabilitySet.add(PlatformManagerCapabilities.CopyFilePermissions);
 	            
 	        }
 	        
-	        if ( Constants.compareVersions( access.getVersion(), "1.12" ) >= 0 ){
+	        if ( Constants.compareVersions( plugin_version, "1.12" ) >= 0 ){
 	        	
 	            capabilitySet.add(PlatformManagerCapabilities.TestNativeAvailability);
 	        }
 	        
-	        if ( Constants.compareVersions( access.getVersion(), "1.14" ) >= 0 ){
+	        if ( Constants.compareVersions( plugin_version, "1.14" ) >= 0 ){
 	        	
 	            capabilitySet.add(PlatformManagerCapabilities.TraceRouteAvailability);
 	        }
 
-	        if ( Constants.compareVersions( access.getVersion(), "1.15" ) >= 0 ){
+	        if ( Constants.compareVersions( plugin_version, "1.15" ) >= 0 ){
 	        	
 	            capabilitySet.add(PlatformManagerCapabilities.PingAvailability);
 	        }
@@ -200,8 +213,10 @@ PlatformManagerImpl
 	        	
 	        		// if we can access the user dir then we're good to access vmoptions
 	        	
-	        	capabilitySet.add(PlatformManagerCapabilities.AccessExplicitVMOptions );
+	        	if ( Constants.compareVersions( plugin_version, "1.19" ) >= 0 ){
 	        	
+	        		capabilitySet.add(PlatformManagerCapabilities.AccessExplicitVMOptions );
+	        	}
 	        }catch( Throwable e ){
 	        }
 	        
@@ -461,7 +476,7 @@ PlatformManagerImpl
 	public String[]
    	getExplicitVMOptions()
   	          	
-     		throws PlatformManagerException
+     	throws PlatformManagerException
   	{
 		throw new PlatformManagerException("Unsupported capability called on platform manager");
   	}
@@ -590,6 +605,191 @@ PlatformManagerImpl
 		}catch( Throwable e ){
 						
 			return( false );
+		}
+	}
+	
+	public void
+	startup(
+		final AzureusCore		azureus_core )
+	
+		throws PlatformManagerException
+	{
+		if ( 	hasCapability( PlatformManagerCapabilities.AccessExplicitVMOptions ) &&
+				!COConfigurationManager.getBooleanParameter( "platform.win32.vmo.migrated", false )){
+			
+			final int	fail_count = COConfigurationManager.getIntParameter( "platform.win32.vmo.migrated.fails", 0 );
+			
+			if ( fail_count >= 3 ){
+				
+				Debug.out( "Not attempting vmoption migration due to previous failures, please perform a full install to fix this" );
+			}
+			
+				// we need an up-to-date version of this to do the migration...
+			
+			PluginInterface pi = azureus_core.getPluginManager().getPluginInterfaceByID( "azupdater" );
+						
+			if ( pi != null && Constants.compareVersions( pi.getPluginVersion(), "1.8.15" ) >= 0 ){
+							
+				new AEThread2( "win32.vmo", true )
+				{
+					public void
+					run()
+					{
+						try{
+							String redirect = "-include-options ${APPDATA}\\" + SystemProperties.getApplicationName() + "\\java.vmoptions";
+
+							File exe = getApplicationEXELocation();
+
+							File shared_options 		= new File( exe.getParent(), exe.getName() + ".vmoptions" );
+							File old_shared_options 	= new File( exe.getParent(), exe.getName() + ".vmoptions.old" );
+							File local_options 			= new File( SystemProperties.getUserPath(), "java.vmoptions" );
+
+							if ( shared_options.exists()){
+
+								String options = FileUtil.readFileAsString( shared_options, -1 ).trim();
+
+								if ( !options.contains( redirect )){
+
+										// if they're already linking somewhere then abandon
+									
+									if ( !options.contains( "-include-options" )){
+
+										if ( FileUtil.canReallyWriteToAppDirectory()){
+
+											if ( old_shared_options.exists()){
+
+												old_shared_options.delete();
+											}
+
+											if ( shared_options.renameTo( old_shared_options )){
+
+												if ( !local_options.exists()){
+
+													if ( !FileUtil.copyFile( old_shared_options, local_options )){
+
+														Debug.out( "Failed to copy " + old_shared_options + " to " + local_options );
+													}
+
+													if ( !FileUtil.writeStringAsFile( shared_options, redirect + "\r\n" )){
+														
+														Debug.out( "Failed to write to " + shared_options );
+													}
+
+												}else{
+
+													Debug.out( "Rename of " + shared_options + " to " + old_shared_options + " failed" );
+												}
+
+											}else{
+
+
+													// insufficient perms
+
+
+												UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+
+												String details = MessageText.getString(
+														"subscript.add.desc",
+														new String[]{ "asas" });
+
+												long res = ui_manager.showMessageBox(
+														"subscript.add.title",
+														"!" + details + "!",
+														UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+
+												if ( res != UIManagerEvent.MT_YES ){	
+
+												}
+											}
+										}
+									}
+								}else{
+										// redirect in place, might be second user so migrate if needed
+
+									if ( old_shared_options.exists() && !local_options.exists()){
+
+										if ( !FileUtil.copyFile( old_shared_options, local_options )){
+
+											Debug.out( "Failed to copy " + old_shared_options + " to " + local_options );
+										}
+									}
+								}
+							}else{
+
+									// no options
+								
+								if ( FileUtil.canReallyWriteToAppDirectory()){
+									
+									if ( !FileUtil.writeStringAsFile( shared_options, redirect + "\r\n" )){
+										
+										Debug.out( "Failed to write to " + shared_options );
+									}
+								}else{
+									
+										// insufficient perms
+									
+									PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
+									
+									UpdateInstaller installer = pi.getUpdateManager().createInstaller();
+								
+									installer.addResource( "redirect", new ByteArrayInputStream( redirect.getBytes( "UTF-8" )));
+									
+									installer.addMoveAction( "redirect", shared_options.getAbsolutePath());
+										
+									final AESemaphore sem = new AESemaphore( "vmopt" );
+									
+									final UpdateException[]	error = { null };
+									
+									installer.installNow(
+										new UpdateInstallerListener()
+										{
+											public void
+											reportProgress(
+												String		str )
+											{
+												System.out.println( str );
+											}
+											
+											public void
+											complete()
+											{
+												System.out.println( "complete" );
+												
+												sem.release();
+											}
+											
+											public void
+											failed(
+												UpdateException	e )
+											{
+												error[0] = e;
+												
+												sem.release();
+											}
+										});
+									
+									sem.reserve();
+									
+									if ( error[0] != null ){
+										
+										throw( error[0] );
+									}
+								}
+							}
+							
+							// COConfigurationManager.setParameter( "platform.win32.vmo.migrated", true );
+							
+							Debug.out( "Not setting migrated!!!!" );
+							
+						}catch( Throwable e ){
+							
+							COConfigurationManager.setParameter( "platform.win32.vmo.migrated.fails", fail_count + 1 );
+							
+							Debug.out( "vmoption migration failed", e );
+						}
+					}
+				}.start();
+			}
 		}
 	}
 	

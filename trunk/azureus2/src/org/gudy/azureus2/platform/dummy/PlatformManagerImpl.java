@@ -28,6 +28,8 @@ import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
+import com.aelitis.azureus.core.AzureusCore;
+
 
 
 /**
@@ -125,6 +127,14 @@ public class PlatformManagerImpl implements PlatformManager
 	 	throws PlatformManagerException
 	{
 		 throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
+	public void
+	startup(
+		AzureusCore		azureus_core )
+	
+		throws PlatformManagerException
+	{	
 	}
 	
 	public int

@@ -47,6 +47,7 @@ import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.apple.cocoa.application.NSApplication;
 
 
@@ -136,10 +137,12 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
  
         AEDiagnostics.addEvidenceGenerator(this);
         
+        /* one day soon...
         if ( checkPList()){
         	
             capabilitySet.add(PlatformManagerCapabilities.AccessExplicitVMOptions);
         }
+        */
         
         capabilitySet.add(PlatformManagerCapabilities.RunAtLogin);
     }
@@ -247,6 +250,14 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         throw new PlatformManagerException("Unsupported capability called on platform manager");	
   	}
   	
+	public void
+	startup(
+		AzureusCore		azureus_core )
+	
+		throws PlatformManagerException
+	{	
+	}
+	
 	public int
 	getShutdownTypes()
 	{

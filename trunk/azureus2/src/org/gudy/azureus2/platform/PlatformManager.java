@@ -26,6 +26,8 @@ import java.net.InetAddress;
 
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
+import com.aelitis.azureus.core.AzureusCore;
+
 /**
  * @author parg
  *
@@ -52,6 +54,12 @@ PlatformManager
 	
 	public String
 	getVersion()
+	
+		throws PlatformManagerException;
+	
+	public void
+	startup(
+		AzureusCore		azureus_core )
 	
 		throws PlatformManagerException;
 	

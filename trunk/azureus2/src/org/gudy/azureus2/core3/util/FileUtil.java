@@ -39,6 +39,7 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -1578,7 +1579,21 @@ public class FileUtil {
     	}
     }
     
-    
+    public static boolean
+    writeStringAsFile(
+    	File		file,
+    	String		text )
+    {
+    	try{
+    		return( writeBytesAsFile2( file.getAbsolutePath(), text.getBytes( "UTF-8" )));
+    		
+    	}catch( Throwable e ){
+    		
+    		Debug.out( e );
+    		
+    		return( false );
+    	}
+    }
     
     public static void 
     writeBytesAsFile( 
@@ -1929,5 +1944,92 @@ public class FileUtil {
 		{
 			return -1;
 		}		
+	}
+	
+	public static boolean
+	canReallyWriteToAppDirectory()
+	{
+		if ( true || !FileUtil.getApplicationFile("bogus").getParentFile().canWrite()){
+			
+			return( false );
+		}
+		
+			// handle vista+ madness
+		
+		if ( Constants.isWindowsVistaOrHigher ){
+			
+			try{
+				File write_test = FileUtil.getApplicationFile( "_az_.dll" );
+					
+					// should fail if no perms, but sometimes it's created in
+					// virtualstore (if ran from java(w).exe for example)
+				
+				FileOutputStream fos = new FileOutputStream( write_test );
+				
+				fos.write(32);
+				
+				fos.close();
+
+				write_test.delete();
+
+					// look for a file to try and rename. Unfortunately someone renamed License.txt to GPL.txt and screwed this up in 3020...
+			
+				File rename_test = FileUtil.getApplicationFile( "License.txt" );
+			
+				if ( !rename_test.exists()){
+					
+					rename_test = FileUtil.getApplicationFile( "GPL.txt" );
+				}
+				
+				if ( !rename_test.exists()){
+					
+					File[] files = write_test.getParentFile().listFiles();
+					
+					if ( files != null ){
+						
+						for ( File f: files ){
+							
+							String name = f.getName();
+							
+							if ( name.endsWith( ".txt" ) || name.endsWith( ".log" )){
+								
+								rename_test = f;
+								
+								break;
+							}
+						}
+					}
+				}
+				
+				if ( rename_test.exists()){
+					
+					File target = new File( rename_test.getParentFile(), rename_test.getName() + ".bak" );
+					
+					target.delete();
+					
+					rename_test.renameTo( target );
+
+					if ( rename_test.exists()){
+						
+						return( false );
+					}
+
+					target.renameTo( rename_test );
+					
+				}else{
+					
+					Debug.out( "Failed to find a suitable file for the rename test" );
+					
+						// let's assume we can't to be on the safe side
+					
+					return( false );
+				}
+			}catch ( Throwable e ){
+				
+				return( false );
+			}
+		}
+		
+		return( true );
 	}
 }

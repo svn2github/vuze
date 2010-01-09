@@ -1055,6 +1055,14 @@ AzureusCoreImpl
 			public void
 			run()
 			{
+				try{
+					PlatformManagerFactory.getPlatformManager().startup( AzureusCoreImpl.this );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( "PlatformManager: init failed", e );
+				}
+				
 				Iterator	it = lifecycle_listeners.iterator();
 				
 				while( it.hasNext()){

@@ -136,7 +136,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			}
 			
 		}
-		
+				
 		if ( userMode > 0 ){
 				
 			Group gPR = new Group(cDisplay, SWT.NULL);
@@ -213,9 +213,29 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		    label.setLayoutData( gridData );
 					    
 			new StringListParameter(gStop, "On Seeding Complete Do", "Nothing", action_descs, action_values );
-
 		}
 		
+		if ( userMode > 0 && platform.hasCapability( PlatformManagerCapabilities.AccessExplicitVMOptions )){
+			
+			Group gJVM = new Group(cDisplay, SWT.NULL);
+			Messages.setLanguageText(gJVM, LBLKEY_PREFIX + "jvm");
+			layout = new GridLayout(2, false);
+			gJVM.setLayout(layout);
+			gJVM.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+
+			try{
+				String[] options = platform.getExplicitVMOptions();
+			
+				for ( String option: options ){
+					
+					label = new Label(gJVM, SWT.NULL);
+					label.setText( option );
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
 
 		return cDisplay;
 	}

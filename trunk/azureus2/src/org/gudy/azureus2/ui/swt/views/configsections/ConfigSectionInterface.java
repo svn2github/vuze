@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
@@ -47,9 +46,7 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class ConfigSectionInterface implements UISWTConfigSection {
 	private final static String KEY_PREFIX = "ConfigView.section.interface.";

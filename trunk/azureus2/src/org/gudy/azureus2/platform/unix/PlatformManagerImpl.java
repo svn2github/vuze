@@ -33,6 +33,8 @@ import org.gudy.azureus2.platform.*;
 
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
+import com.aelitis.azureus.core.AzureusCore;
+
 /**
  * @author TuxPaper
  * @created Dec 18, 2006
@@ -234,6 +236,14 @@ public class PlatformManagerImpl implements PlatformManager
   		throw new PlatformManagerException(ERR_UNSUPPORTED);
    	}
 	  
+	public void
+	startup(
+		AzureusCore		azureus_core )
+	
+		throws PlatformManagerException
+	{	
+	}
+	
 	public int
 	getShutdownTypes()
 	{

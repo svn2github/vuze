@@ -270,46 +270,21 @@ AzureusRestarterImpl
 				// Vista test: 	We will need to run an elevated EXE updater if we can't
 				//            	write to the program dir.
 			
-			if (Constants.isWindowsVistaOrHigher ) {
+			if (Constants.isWindowsVistaOrHigher ){
+				
 				if (PluginInitializer.getDefaultInterface().getUpdateManager().getInstallers().length > 0) {
-					log.println("Vista restart w/Updates.. checking if EXE needed");
-					try {
-						final File writeFile = FileUtil.getApplicationFile("write.dll");
-						// should fail if no perms, but sometimes it's created in
-						// virtualstore (if ran from java(w).exe for example)
-						FileOutputStream fos = new FileOutputStream(writeFile);
-						fos.write(32);
-						fos.close();
-
-						writeFile.delete();
-
-						File renameFile = FileUtil.getApplicationFile("License.txt");
-						if (renameFile != null && renameFile.exists()) {
-							File oldFile = FileUtil.getApplicationFile("License.txt");
-							String oldName = renameFile.getName();
-							File newFile = new File(renameFile.getParentFile(), oldName
-									+ ".bak");
-							renameFile.renameTo(newFile);
-
-							if (oldFile.exists()) {
-								log.println("Requiring EXE because rename test failed");
-								return EXE_UPDATER; 
-							}
-
-							newFile.renameTo(oldFile);
-						} else {
-							log.println("Could not try Permission Test 2. File " + renameFile
-									+ " not found");
-						}
-
-					} catch (Exception e) {
-						log.println("Permission Test Failed. " + e.getMessage() + ";"
-								+ Debug.getCompressedStackTrace());
-						return EXE_UPDATER; 
+					
+					log.println( "Vista restart w/Updates.. checking if EXE needed" );
+					
+					if ( !FileUtil.canReallyWriteToAppDirectory()){
+						
+						log.println( "It appears we can't write to the application dir, using the EXE updater" );
+						
+						return( EXE_UPDATER );
 					}
 				}
 			}
-		} catch (Throwable t) {
+		}catch ( Throwable t ){ 
 			// ignore vista test
 		}
 
