@@ -724,14 +724,11 @@ PlatformManagerImpl
 													reportProgress(
 														String		str )
 													{
-														System.out.println( str );
 													}
 													
 													public void
 													complete()
-													{
-														System.out.println( "complete" );
-														
+													{														
 														sem.release();
 													}
 													
@@ -803,14 +800,11 @@ PlatformManagerImpl
 											reportProgress(
 												String		str )
 											{
-												System.out.println( str );
 											}
 											
 											public void
 											complete()
 											{
-												System.out.println( "complete" );
-												
 												sem.release();
 											}
 											
