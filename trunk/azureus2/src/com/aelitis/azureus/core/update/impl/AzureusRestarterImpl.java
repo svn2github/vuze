@@ -99,10 +99,13 @@ AzureusRestarterImpl
 	
 		throws AzureusCoreException
 	{
-		runUpdateProcess( true, true );
+		if ( !runUpdateProcess( true, true )){
+			
+			throw( new AzureusCoreException( "Failed to invoke restart" ));
+		}
 	}
 	
-	private void
+	private boolean
 	runUpdateProcess(
 		boolean		update_only,
 		boolean		no_wait )
@@ -211,7 +214,7 @@ AzureusRestarterImpl
 	  	
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		
-		restartAzureus(new PrintWriter(os) {
+		boolean res = restartAzureus(new PrintWriter(os) {
 			public void println(String str) {
 				// we intercept these logs and log immediately
 				Logger.log(new LogEvent(LOGID, str));
@@ -228,6 +231,8 @@ AzureusRestarterImpl
 			Logger.log(new LogEvent(LOGID, "AzureusUpdater: extra log - "
 					+ new String(bytes)));
 		}
+		
+		return( res );
 	}
   
 	
@@ -432,7 +437,7 @@ AzureusRestarterImpl
   
 
 
-  public void 
+  public boolean 
   restartAzureus(
       PrintWriter log, 
     String    mainClass,
@@ -442,19 +447,19 @@ AzureusRestarterImpl
   {
     if(Constants.isOSX){
     	
-    	restartAzureus_OSX(log,mainClass,properties,parameters);
+    	return( restartAzureus_OSX(log,mainClass,properties,parameters));
     	
     }else if( Constants.isUnix ){
     	
-    	restartAzureus_Unix(log,mainClass,properties,parameters);
+    	return( restartAzureus_Unix(log,mainClass,properties,parameters));
       
     }else{
     	
-    	restartAzureus_win32(log,mainClass,properties,parameters,update_only);
+    	return( restartAzureus_win32(log,mainClass,properties,parameters,update_only));
     }
   }
   
-  private void 
+  private boolean 
   restartAzureus_win32(
       PrintWriter log,
     String    mainClass,
@@ -480,14 +485,16 @@ AzureusRestarterImpl
 		}
 
 		if (exeUpdater != null) {
-			restartViaEXE(log, exeUpdater, properties, parameters, exec, update_only);
+			return( restartViaEXE(log, exeUpdater, properties, parameters, exec, update_only));
 		} else {
 			if (log != null) {
 				log.println("  " + exec);
 			}
 
 			if (!win32NativeRestart(log, exec)) {
-				javaSpawn(log, exec);
+				return( javaSpawn(log, exec));
+			}else{
+				return( true );
 			}
 		}
 	}
@@ -516,7 +523,7 @@ AzureusRestarterImpl
 		}
 	}
 
-	private void 
+	private boolean 
   restartAzureus_OSX(
       PrintWriter log,
     String mainClass,
@@ -536,7 +543,7 @@ AzureusRestarterImpl
     	 exec += " \"" + parameters[i] + "\"";
      }
 
-     runExternalCommandViaUnixShell( log, exec );
+     return( runExternalCommandViaUnixShell( log, exec ));
   }
   
   
@@ -551,7 +558,7 @@ AzureusRestarterImpl
 		return version;
   }
 
-  private void 
+  private boolean 
   restartAzureus_Unix(
     PrintWriter log,
   String    mainClass,
@@ -586,8 +593,10 @@ AzureusRestarterImpl
 					+ "echo \"Restarting Azureus..\"\n"
 					+ "$0\n");
 			ScriptAfterShutdown.setRequiresExit(true);
+			
+			return( true );
   	} else {
-  		runExternalCommandViaUnixShell( log, exec );
+  		return( runExternalCommandViaUnixShell( log, exec ));
   	}
   }
   
@@ -714,7 +723,7 @@ AzureusRestarterImpl
   */
   
   
-  private void runExternalCommandViaUnixShell( PrintWriter log, String command ) {
+  private boolean runExternalCommandViaUnixShell( PrintWriter log, String command ) {
   	String[] to_run = new String[3];
   	to_run[0] = "/bin/sh";
   	to_run[1] = "-c";
@@ -725,6 +734,8 @@ AzureusRestarterImpl
   	try {
   		//NOTE: no logging done here, as we need the method to return right away, before the external process completes
   		Runtime.getRuntime().exec( to_run );	
+  		
+  		return( true );
   	}
   	catch(Throwable t) {
   		if( log != null )  {
@@ -735,6 +746,8 @@ AzureusRestarterImpl
   		else {
   			t.printStackTrace();
   		}
+  		
+  		return( false );
   	}
   }
   
