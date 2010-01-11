@@ -437,7 +437,12 @@ WebPlugin
 						pairing_info.setLabelKey( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
 
 						pairing_enable.setEnabled( pm.isEnabled());
-					}		
+					}
+					
+					public void 
+					lastErrorUpdated(
+						PairingManager pm) {
+					}
 				});
 			
 			setupPairing( p_sid, pairing_enable.getValue());

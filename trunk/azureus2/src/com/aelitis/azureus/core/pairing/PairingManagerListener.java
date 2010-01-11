@@ -21,10 +21,15 @@
 
 package com.aelitis.azureus.core.pairing;
 
+
 public interface 
 PairingManagerListener 
 {
 	public void
 	somethingChanged(
 		PairingManager	pm );
+	
+	public void
+	lastErrorUpdated(
+		PairingManager pm );
 }

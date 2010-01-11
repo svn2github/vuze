@@ -1146,6 +1146,8 @@ PairingManagerImpl
 			
 			param_last_error.setValue( last_server_error );
 			
+			fireChanged();
+
 			if ( e instanceof PairingException ){
 				
 				throw((PairingException)e);
@@ -1162,6 +1164,21 @@ PairingManagerImpl
 			
 			try{
 				l.somethingChanged( this );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+		
+	protected void
+	fireErrorChanged()
+	{
+		for ( PairingManagerListener l: listeners ){
+			
+			try{
+				l.lastErrorUpdated( this );
 				
 			}catch( Throwable e ){
 				

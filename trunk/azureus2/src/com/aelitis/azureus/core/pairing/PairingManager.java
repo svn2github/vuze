@@ -59,4 +59,7 @@ PairingManager
 
 	public String
 	getStatus();
+
+	public String
+	getLastServerError();
 }
