@@ -369,7 +369,7 @@ WebPlugin
 
 		Boolean	disablable = (Boolean)properties.get( PR_DISABLABLE );
 		
-		boolean	enabled = true;
+		final boolean	enabled;
 		
 		BooleanParameter	param_enable = null;
 		
@@ -379,6 +379,10 @@ WebPlugin
 				config_model.addBooleanParameter2( CONFIG_ENABLE, "webui.enable", CONFIG_ENABLE_DEFAULT );
 
 			enabled	= param_enable.getValue();
+			
+		}else{
+			
+			enabled = true;
 		}
 			// connection group
 		
@@ -421,7 +425,7 @@ WebPlugin
 					parameterChanged(
 						Parameter param ) 
 					{
-						setupPairing( p_sid, pairing_enable.getValue());
+						setupPairing( p_sid, pairing_enable.getValue() && enabled );
 					}
 				});
 			
@@ -445,7 +449,7 @@ WebPlugin
 					}
 				});
 			
-			setupPairing( p_sid, pairing_enable.getValue());
+			setupPairing( p_sid, pairing_enable.getValue() && enabled );
 			
 			ParameterListener update_pairing_listener = 
 				new ParameterListener()
