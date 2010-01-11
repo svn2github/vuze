@@ -66,7 +66,7 @@ public class
 MetaSearchManagerImpl
 	implements MetaSearchManager, UtilitiesImpl.searchManager, AEDiagnosticsEvidenceGenerator
 {
-	private static final boolean AUTO_MODE_DEFAULT		= false;
+	private static final boolean AUTO_MODE_DEFAULT		= true;
 	
 	
 	private static final String	LOGGER_NAME = "MetaSearch";
