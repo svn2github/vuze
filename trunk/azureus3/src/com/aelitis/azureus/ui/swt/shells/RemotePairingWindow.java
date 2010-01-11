@@ -101,14 +101,15 @@ public class RemotePairingWindow implements PairingManagerListener
 					pairingManager.setEnabled(checked);
 					try {
 						accessCode = pairingManager.getAccessCode();
-					} catch (PairingException e1) {
+					} catch (PairingException e) {
+						// ignore.. if error, lastErrorUpdates will trigger
 					}
 					control.redraw();
 				}
 			});
 			
 			soStatus = (SWTSkinObjectText) skin.getSkinObject("status");
-			setStatusText(pairingManager.getStatus());
+			updateStatusText();
 			pairingManager.addListener(this);
 
 			soCodeArea = skin.getSkinObject("code-area");
@@ -122,7 +123,7 @@ public class RemotePairingWindow implements PairingManagerListener
 			try {
 				accessCode = pairingManager.getAccessCode();
 			} catch (PairingException e) {
-				setStatusText(e.getMessage());
+				// ignore.. if error, lastErrorUpdates will trigger
 			}
 
 			control.addPaintListener(new PaintListener() {
@@ -167,7 +168,7 @@ public class RemotePairingWindow implements PairingManagerListener
 					try {
 						accessCode = pairingManager.getReplacementAccessCode();
 					} catch (PairingException e) {
-						setStatusText(e.getMessage());
+						// ignore.. if error, lastErrorUpdates will trigger
 					}
 					control.redraw();
 				}
@@ -187,19 +188,29 @@ public class RemotePairingWindow implements PairingManagerListener
 	 *
 	 * @since 4.1.0.5
 	 */
-	private void setStatusText(String status) {
+	private void updateStatusText() {
 		if (soStatus != null) {
-			soStatus.setText("Status: " + status);
+			String s = "Status: " + pairingManager.getStatus();
+			String lastServerError = pairingManager.getLastServerError();
+			if (lastServerError != null && lastServerError.length() > 0) {
+				s += "\nLast Error: " + lastServerError;
+			}
+			soStatus.setText(s);
 		}
 	}
 
 	// @see com.aelitis.azureus.core.pairing.PairingManagerListener#somethingChanged(com.aelitis.azureus.core.pairing.PairingManager)
 	public void somethingChanged(PairingManager pm) {
-		setStatusText(pairingManager.getStatus());
+		updateStatusText();
 		try {
 			accessCode = pairingManager.getAccessCode();
 		} catch (PairingException e) {
-			setStatusText(e.getMessage());
+			// ignore.. if error, lastErrorUpdates will trigger
 		}
+	}
+	
+	// @see com.aelitis.azureus.core.pairing.PairingManagerListener#lastErrorUpdated(com.aelitis.azureus.core.pairing.PairingManager)
+	public void lastErrorUpdated(PairingManager pm) {
+		updateStatusText();
 	}
 }
