@@ -648,7 +648,7 @@ PlatformManagerImpl
 
 							if ( shared_options.exists()){
 
-								String options = FileUtil.readFileAsString( shared_options, -1 ).trim();
+								String options = FileUtil.readFileAsString( shared_options, -1 );
 
 								if ( !options.contains( redirect )){
 
@@ -671,38 +671,87 @@ PlatformManagerImpl
 
 														Debug.out( "Failed to copy " + old_shared_options + " to " + local_options );
 													}
-
-													if ( !FileUtil.writeStringAsFile( shared_options, redirect + "\r\n" )){
-														
-														Debug.out( "Failed to write to " + shared_options );
-													}
-
-												}else{
-
-													Debug.out( "Rename of " + shared_options + " to " + old_shared_options + " failed" );
 												}
-
+												
+												if ( !FileUtil.writeStringAsFile( shared_options, redirect + "\r\n" )){
+														
+													Debug.out( "Failed to write to " + shared_options );
+												}
 											}else{
 
-
-													// insufficient perms
-
-
-												UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-
-												String details = MessageText.getString(
-														"subscript.add.desc",
-														new String[]{ "asas" });
-
-												long res = ui_manager.showMessageBox(
-														"subscript.add.title",
-														"!" + details + "!",
-														UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
-
-												if ( res != UIManagerEvent.MT_YES ){	
-
-												}
+												Debug.out( "Rename of " + shared_options + " to " + old_shared_options + " failed" );
 											}
+										}else{
+
+												// insufficient perms
+
+
+											if ( !informUpdateRequired()){
+												
+												return;
+											}
+											
+											PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
+											
+											UpdateInstaller installer = pi.getUpdateManager().createInstaller();
+										
+											if ( old_shared_options.exists()){
+
+												installer.addRemoveAction( old_shared_options.getAbsolutePath());
+											}
+
+											installer.addMoveAction( shared_options.getAbsolutePath(), old_shared_options.getAbsolutePath());
+											
+											if ( !local_options.exists()){
+
+												installer.addResource( "local_options", new ByteArrayInputStream( options.getBytes( "UTF-8" )));
+												
+												installer.addMoveAction( "local_options", local_options.getAbsolutePath());
+											}														
+
+											installer.addResource( "redirect", new ByteArrayInputStream( ( redirect + "\r\n" ).getBytes( "UTF-8" )));
+											
+											installer.addMoveAction( "redirect", shared_options.getAbsolutePath());
+												
+											final AESemaphore sem = new AESemaphore( "vmopt" );
+											
+											final UpdateException[]	error = { null };
+											
+											installer.installNow(
+												new UpdateInstallerListener()
+												{
+													public void
+													reportProgress(
+														String		str )
+													{
+														System.out.println( str );
+													}
+													
+													public void
+													complete()
+													{
+														System.out.println( "complete" );
+														
+														sem.release();
+													}
+													
+													public void
+													failed(
+														UpdateException	e )
+													{
+														error[0] = e;
+														
+														sem.release();
+													}
+												});
+											
+											sem.reserve();
+											
+											if ( error[0] != null ){
+												
+												throw( error[0] );
+											}
+											
 										}
 									}
 								}else{
@@ -730,11 +779,16 @@ PlatformManagerImpl
 									
 										// insufficient perms
 									
+									if ( !informUpdateRequired()){
+										
+										return;
+									}
+									
 									PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
 									
 									UpdateInstaller installer = pi.getUpdateManager().createInstaller();
 								
-									installer.addResource( "redirect", new ByteArrayInputStream( redirect.getBytes( "UTF-8" )));
+									installer.addResource( "redirect", new ByteArrayInputStream( ( redirect + "\r\n" ).getBytes( "UTF-8" )));
 									
 									installer.addMoveAction( "redirect", shared_options.getAbsolutePath());
 										
@@ -793,6 +847,19 @@ PlatformManagerImpl
 				}.start();
 			}
 		}
+	}
+	
+	private boolean
+	informUpdateRequired()
+	{
+		UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+
+		long res = ui_manager.showMessageBox(
+				"update.now.title",
+				"update.now.desc",
+				UIManagerEvent.MT_OK | UIManagerEvent.MT_CANCEL );
+		
+		return( res == UIManagerEvent.MT_OK );
 	}
 	
 	public void
