@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.pairing.PairingConnectionData;
 import com.aelitis.azureus.core.pairing.PairingManager;
 import com.aelitis.azureus.core.pairing.PairingManagerFactory;
 import com.aelitis.azureus.core.pairing.PairingManagerListener;
+import com.aelitis.azureus.plugins.upnp.UPnPMapping;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 public class 
@@ -117,20 +118,40 @@ WebPlugin
 	protected static File[]				welcome_files;
 	
 	protected PluginInterface			plugin_interface;	// unfortunately this is accessed by webui - fix sometime
+	
 	private LoggerChannel			log;
-	private Tracker					tracker;
 	private BasicPluginViewModel 	view_model;
 	private BasicPluginConfigModel	config_model;
 	
+	private StringParameter			param_home;
+	private StringParameter			param_rootdir;
+	private StringParameter			param_rootres;
+
 	private IntParameter			param_port;
 	private StringListParameter		param_protocol;
+	private StringParameter			param_bind;
+	
+	private StringParameter			param_access;
+	
+	private BooleanParameter		p_upnp_enable;
+	
+	private BooleanParameter		pw_enable;
+	private StringParameter			p_user_name;
+	private PasswordParameter		p_password;
+	
+	private boolean				plugin_enabled;
 	
 	private String				home_page;
 	private String				file_root;
 	private String				resource_root;
 	
+	private String				root_dir;
+	
 	private boolean				ip_range_all	= false;
 	private List<IPRange>		ip_ranges;
+	
+	private TrackerWebContext	tracker_context;
+	private UPnPMapping			upnp_mapping;
 	
 	private Properties	properties;
 	
@@ -365,42 +386,86 @@ WebPlugin
 			plugin_config.save();
 		}
 		
-		final LabelParameter param_info = config_model.addLabelParameter2( "webui.restart.info" );
-
 		Boolean	disablable = (Boolean)properties.get( PR_DISABLABLE );
-		
-		final boolean	enabled;
-		
-		BooleanParameter	param_enable = null;
+				
+		final BooleanParameter	param_enable;
 		
 		if ( disablable != null && disablable ){
 			
 			param_enable = 
 				config_model.addBooleanParameter2( CONFIG_ENABLE, "webui.enable", CONFIG_ENABLE_DEFAULT );
-
-			enabled	= param_enable.getValue();
+			
+			plugin_enabled = param_enable.getValue();
 			
 		}else{
+			param_enable 	= null;
 			
-			enabled = true;
+			plugin_enabled 	= true;
 		}
+		
 			// connection group
 		
 		param_port = config_model.addIntParameter2(		CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
 		
-		StringParameter	param_bind = config_model.addStringParameter2(	CONFIG_BIND_IP, "webui.bindip", CONFIG_BIND_IP_DEFAULT );
+		param_bind = config_model.addStringParameter2(	CONFIG_BIND_IP, "webui.bindip", CONFIG_BIND_IP_DEFAULT );
 		
 		param_protocol = 
 			config_model.addStringListParameter2(
 					CONFIG_PROTOCOL, "webui.protocol", new String[]{ "http", "https" }, CONFIG_PROTOCOL_DEFAULT );
 		
+		ParameterListener update_server_listener = 
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param ) 
+				{
+					setupServer();
+				}
+			};
 		
-		final BooleanParameter	upnp_enable = 
+		param_port.addListener( update_server_listener );
+		param_bind.addListener( update_server_listener );
+		param_protocol.addListener( update_server_listener );		
+		
+		p_upnp_enable = 
 			config_model.addBooleanParameter2( 
 							CONFIG_UPNP_ENABLE, 
 							"webui.upnpenable",
 							CONFIG_UPNP_ENABLE_DEFAULT );
 
+		p_upnp_enable.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param ) 
+				{
+					setupUPnP();
+				}
+			});	
+		
+		plugin_interface.addListener(
+				new PluginListener()
+				{
+					public void
+					initializationComplete()
+					{
+						setupUPnP();
+					}
+					
+					public void
+					closedownInitiated()
+					{
+					}
+					
+					public void
+					closedownComplete()
+					{	
+					}
+				});
+		
+		
 		final String p_sid = (String)properties.get( PR_PAIRING_SID );
 		
 		final LabelParameter	pairing_info;
@@ -425,7 +490,7 @@ WebPlugin
 					parameterChanged(
 						Parameter param ) 
 					{
-						setupPairing( p_sid, pairing_enable.getValue() && enabled );
+						setupPairing( p_sid, pairing_enable.getValue());
 					}
 				});
 			
@@ -441,6 +506,8 @@ WebPlugin
 						pairing_info.setLabelKey( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
 
 						pairing_enable.setEnabled( pm.isEnabled());
+						
+						setupPairing( p_sid, pairing_enable.getValue());
 					}
 					
 					public void 
@@ -449,7 +516,7 @@ WebPlugin
 					}
 				});
 			
-			setupPairing( p_sid, pairing_enable.getValue() && enabled );
+			setupPairing( p_sid, pairing_enable.getValue());
 			
 			ParameterListener update_pairing_listener = 
 				new ParameterListener()
@@ -459,11 +526,15 @@ WebPlugin
 						Parameter param ) 
 					{
 						updatePairing( p_sid );
+						
+						setupUPnP();
 					}
 				};
 				
 			param_port.addListener( update_pairing_listener );
+			
 			param_protocol.addListener( update_pairing_listener );
+			
 		}else{
 			pairing_info	= null;
 			pairing_enable 	= null;
@@ -472,18 +543,35 @@ WebPlugin
 		config_model.createGroup(
 			"ConfigView.section.server",
 			new Parameter[]{
-				param_port, param_bind, param_protocol, upnp_enable, pairing_info, pairing_enable,
+				param_port, param_bind, param_protocol, p_upnp_enable, pairing_info, pairing_enable,
 			});
 		
-		StringParameter	param_home 		= config_model.addStringParameter2(	CONFIG_HOME_PAGE, "webui.homepage", CONFIG_HOME_PAGE_DEFAULT );
-		StringParameter	param_rootdir 	= config_model.addStringParameter2(	CONFIG_ROOT_DIR, "webui.rootdir", CONFIG_ROOT_DIR_DEFAULT );
-		StringParameter	param_rootres	= config_model.addStringParameter2(	CONFIG_ROOT_RESOURCE, "webui.rootres", CONFIG_ROOT_RESOURCE_DEFAULT );
+		param_home 		= config_model.addStringParameter2(	CONFIG_HOME_PAGE, "webui.homepage", CONFIG_HOME_PAGE_DEFAULT );
+		param_rootdir 	= config_model.addStringParameter2(	CONFIG_ROOT_DIR, "webui.rootdir", CONFIG_ROOT_DIR_DEFAULT );
+		param_rootres	= config_model.addStringParameter2(	CONFIG_ROOT_RESOURCE, "webui.rootres", CONFIG_ROOT_RESOURCE_DEFAULT );
 		
 		if ( pr_hide_resource_config != null && pr_hide_resource_config.booleanValue()){
 			
 			param_home.setVisible( false );
 			param_rootdir.setVisible( false );
 			param_rootres.setVisible( false );
+			
+		}else{
+			
+			ParameterListener update_resources_listener = 
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param ) 
+					{
+						setupResources();
+					}
+				};
+				
+			param_home.addListener( update_resources_listener );
+			param_rootdir.addListener( update_resources_listener );
+			param_rootres.addListener( update_resources_listener );
 		}
 		
 			// access group
@@ -495,50 +583,61 @@ WebPlugin
 		
 		
 		LabelParameter a_label2 = config_model.addLabelParameter2( "webui.access.info" );
-		StringParameter	param_access	= config_model.addStringParameter2(	CONFIG_ACCESS, "webui.access", CONFIG_ACCESS_DEFAULT );
 		
+		param_access	= config_model.addStringParameter2(	CONFIG_ACCESS, "webui.access", CONFIG_ACCESS_DEFAULT );
 		
-		final BooleanParameter	pw_enable = 
+		param_access.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param ) 
+				{
+					setupAccess();
+				}		
+			});
+		
+		pw_enable = 
 			config_model.addBooleanParameter2( 
 							CONFIG_PASSWORD_ENABLE, 
 							"webui.passwordenable",
 							CONFIG_PASSWORD_ENABLE_DEFAULT );
 		
-		final StringParameter		user_name = 
+		p_user_name = 
 			config_model.addStringParameter2( 
 							CONFIG_USER, 
 							"webui.user",
 							CONFIG_USER_DEFAULT );
 		
-		final PasswordParameter	password = 
+		p_password = 
 			config_model.addPasswordParameter2( 
 							CONFIG_PASSWORD, 
 							"webui.password",
 							PasswordParameter.ET_SHA1,
 							CONFIG_PASSWORD_DEFAULT );
 		
-		pw_enable.addEnabledOnSelection( user_name );
-		pw_enable.addEnabledOnSelection( password );
+		pw_enable.addEnabledOnSelection( p_user_name );
+		pw_enable.addEnabledOnSelection( p_password );
 		
 
 		config_model.createGroup(
 			"webui.group.access",
 			new Parameter[]{
 				a_label1, param_mode, a_label2, param_access,
-				pw_enable, user_name, password,
+				pw_enable, p_user_name, p_password,
 			});
 			    
 		if ( param_enable != null ){
 						
 			final List<Parameter> changed_params = new ArrayList<Parameter>();
 			
-			if ( !enabled ){
+			if ( !plugin_enabled){
 				
 				Parameter[] params = config_model.getParameters();
 
 				for ( Parameter param: params ){
 					
-					if ( param == param_enable || param == param_info ){
+					if ( param == param_enable ){
 						
 						continue;
 					}
@@ -563,9 +662,9 @@ WebPlugin
 							// badly and only toggles the UI component, not the enabled state of the
 							// underlying parameter. grr. better than nothing though
 						
-						boolean	is_enabled = ((BooleanParameter)e_p).getValue();
+						plugin_enabled = ((BooleanParameter)e_p).getValue();
 						
-						if ( is_enabled ){
+						if ( plugin_enabled ){
 						
 							for ( Parameter p: changed_params ){
 								
@@ -579,7 +678,7 @@ WebPlugin
 							
 							for ( Parameter param: params ){
 								
-								if ( param == e_p || param == param_info ){
+								if ( param == e_p ){
 									
 									continue;
 								}
@@ -592,19 +691,33 @@ WebPlugin
 								}
 							}
 						}
+						
+						setupServer();
+						
+						setupUPnP();
+						
+						if ( p_sid != null ){
+						
+							setupPairing( p_sid, pairing_enable.getValue());
+						}
 					}
 				});
-			
-			if ( !enabled ){
-				
-				return;
-			}
 		}
 		
 			// end config
+				
+		setupResources();
 		
-		tracker = plugin_interface.getTracker();
+			
 		
+		setupAccess();
+												
+		setupServer();
+	}
+	
+	private void
+	setupResources()
+	{
 		home_page = param_home.getValue().trim();
 		
 		if ( home_page.length() == 0 ){
@@ -627,7 +740,7 @@ WebPlugin
 			resource_root = resource_root.substring(1);
 		}
 		
-		String	root_dir	= param_rootdir.getValue().trim();
+		root_dir	= param_rootdir.getValue().trim();
 		
 		if ( root_dir.length() == 0 ){
 			
@@ -681,16 +794,11 @@ WebPlugin
 			
 			log.log( LoggerChannel.LT_ERROR, error );
 			
-			throw( new PluginException( error ));
-		}
-
-		if ( !f_root.isDirectory()){
+		}else if ( !f_root.isDirectory()){
 			
 			String	error = "WebPlugin: root dir '" + file_root + "' isn't a directory";
 			
 			log.log( LoggerChannel.LT_ERROR, error );
-			
-			throw( new PluginException( error ));
 		}
 		
 		welcome_files = new File[welcome_pages.length];
@@ -699,38 +807,17 @@ WebPlugin
 			
 			welcome_files[i] = new File( file_root + File.separator + welcome_pages[i] );
 		}
-		
-					
-		final int port	= param_port.getValue();
-
-		String	protocol_str = param_protocol.getValue().trim();
-		
-		String bind_ip_str = param_bind.getValue().trim();
-		
-		InetAddress	bind_ip = null;
-		
-		if ( bind_ip_str.length() > 0 ){
-			
-			try{
-				bind_ip = InetAddress.getByName( bind_ip_str );
-				
-			}catch( Throwable  e ){
-				
-				log.log( LoggerChannel.LT_ERROR, "Bind IP parameter '" + bind_ip_str + "' is invalid" );
+	}
 	
-			}
-		}
-		
-		int	protocol = protocol_str.equalsIgnoreCase( "HTTP")?Tracker.PR_HTTP:Tracker.PR_HTTPS;
-	
-		log.log( 	LoggerChannel.LT_INFORMATION, 
-					"Initialisation: port = " + port +
-					(bind_ip == null?"":(", bind = " + bind_ip_str + ")")) +
-					", protocol = " + protocol_str + (root_dir.length()==0?"":(", root = " + root_dir )));
-		
+	private void
+	setupAccess()
+	{
 		String	access_str = param_access.getValue().trim();
 		
 		String ip_ranges_str = "";
+		
+		ip_ranges 		= null;
+		ip_range_all	= false;
 		
 		if ( access_str.length() > 7 && Character.isDigit(access_str.charAt(0))){
 			
@@ -789,28 +876,92 @@ WebPlugin
 		}
 		
 		log.log( 	LoggerChannel.LT_INFORMATION, 
-					"Acceptable IP range = " +
-						( ip_ranges==null?
-							(ip_range_all?"all":"local"):
-							(ip_ranges_str)));
-				
-							
+				"Acceptable IP range = " +
+					( ip_ranges==null?
+						(ip_range_all?"all":"local"):
+						(ip_ranges_str)));
+	}
+	
+	protected void
+	setupServer()
+	{
 		try{
-			TrackerWebContext	context = 
-				tracker.createWebContext(
-						plugin_interface.getAzureusName() + " - " + plugin_interface.getPluginName(), 
+			if ( !plugin_enabled ){
+				
+				if ( tracker_context != null ){
+					
+					tracker_context.destroy();
+					
+					tracker_context = null;
+				}
+				
+				return;
+			}
+			
+			final int port	= param_port.getValue();
+
+			String	protocol_str = param_protocol.getValue().trim();
+			
+			String bind_ip_str = param_bind.getValue().trim();
+			
+			InetAddress	bind_ip = null;
+			
+			if ( bind_ip_str.length() > 0 ){
+				
+				try{
+					bind_ip = InetAddress.getByName( bind_ip_str );
+					
+				}catch( Throwable  e ){
+					
+					log.log( LoggerChannel.LT_ERROR, "Bind IP parameter '" + bind_ip_str + "' is invalid" );
+		
+				}
+			}
+			
+			if ( tracker_context != null ){
+				
+				URL	url = tracker_context.getURLs()[0];
+				
+				String		existing_protocol 	= url.getProtocol();
+				int			existing_port		= url.getPort()==-1?url.getDefaultPort():url.getPort();
+				InetAddress existing_bind_ip 	= tracker_context.getBindIP();
+				
+				if ( 	existing_port == port &&
+						existing_protocol.equalsIgnoreCase( protocol_str ) &&
+						sameAddress( bind_ip, existing_bind_ip )){
+					
+					return;
+				}
+				
+				tracker_context.destroy();
+				
+				tracker_context = null;
+			}
+
+			
+
+			int	protocol = protocol_str.equalsIgnoreCase( "HTTP")?Tracker.PR_HTTP:Tracker.PR_HTTPS;
+		
+			log.log( 	LoggerChannel.LT_INFORMATION, 
+						"Server initialisation: port = " + port +
+						(bind_ip == null?"":(", bind = " + bind_ip_str + ")")) +
+						", protocol = " + protocol_str + (root_dir.length()==0?"":(", root = " + root_dir )));
+
+			tracker_context = 
+				plugin_interface.getTracker().createWebContext(
+						Constants.APP_NAME + " - " + plugin_interface.getPluginName(), 
 						port, protocol, bind_ip );
 		
 			Boolean	pr_enable_keep_alive = (Boolean)properties.get( PR_ENABLE_KEEP_ALIVE );
 
 			if ( pr_enable_keep_alive != null && pr_enable_keep_alive ){
 			
-				context.setEnableKeepAlive( true );
+				tracker_context.setEnableKeepAlive( true );
 			}
 			
-			context.addPageGenerator( this );
+			tracker_context.addPageGenerator( this );
 	
-			context.addAuthenticationListener(
+			tracker_context.addAuthenticationListener(
 				new TrackerAuthenticationAdapter()
 				{
 					String	last_pw		= "";
@@ -832,7 +983,7 @@ WebPlugin
 								return( true );
 							}
 							
-							if ( !user.equals(user_name.getValue())){
+							if ( !user.equals( p_user_name.getValue())){
 								
 								return( false );
 							}
@@ -847,7 +998,7 @@ WebPlugin
 								last_hash	= hash;
 							}
 							
-							return( Arrays.equals( hash, password.getValue()));
+							return( Arrays.equals( hash, p_password.getValue()));
 							
 						}finally{
 							
@@ -858,59 +1009,90 @@ WebPlugin
 			
 		}catch( TrackerException e ){
 			
-			log.log( "Plugin Initialisation Fails", e );
+			log.log( "Server initialisation failed", e );
+		}
+	}
+	
+	private boolean
+	sameAddress(
+		InetAddress	a1,
+		InetAddress a2 )
+	{
+		if ( a1 == null && a2 == null ){
+			
+			return( true );
+			
+		}else if ( a1 == null || a2 == null ){
+			
+			return( false );
+			
+		}else{
+			
+			return( a1.equals( a2 ));
+		}
+	}
+	
+	protected void
+	setupUPnP()
+	{
+		if ( !plugin_enabled  || !p_upnp_enable.getValue()){
+			
+			if ( upnp_mapping != null ){
+				
+				log( "Removing UPnP mapping" );
+				
+				upnp_mapping.destroy();
+				
+				upnp_mapping = null;
+			}
+			
+			return;
 		}
 		
-		plugin_interface.addListener(
-			new PluginListener()
-			{
-				public void
-				initializationComplete()
-				{
-					PluginInterface pi_upnp = plugin_interface.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+		PluginInterface pi_upnp = plugin_interface.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+		
+		if ( pi_upnp == null ){
+			
+			log.log( "No UPnP plugin available, not attempting port mapping");
+			
+		}else{
+			
+			int port = param_port.getValue();
+			
+			if ( upnp_mapping != null ){
+				
+				if ( upnp_mapping.getPort() == port ){
 					
-					if ( pi_upnp == null ){
-						
-						log.log( "No UPnP plugin available, not attempting port mapping");
-						
-					}else{
-						
-						if ( upnp_enable.getValue()){
-							
-							((UPnPPlugin)pi_upnp.getPlugin()).addMapping( plugin_interface.getPluginName(), true, port, true );
-							
-						}else{
-							
-							log.log( "UPnP disabled for the plugin, not attempting port mapping");
-							
-						}
-					}
+					return;
 				}
 				
-				public void
-				closedownInitiated()
-				{
-				}
+				log( "Updating UPnP mapping" );
 				
-				public void
-				closedownComplete()
-				{	
-				}
-			});
+				upnp_mapping.destroy();
+				
+			}else{
+				
+				log( "Creating UPnP mapping" );
+			}
+						
+			upnp_mapping = ((UPnPPlugin)pi_upnp.getPlugin()).addMapping( plugin_interface.getPluginName(), true, port, true );
+		}
 	}
 	
 	protected void
 	setupPairing(
 		String		sid,
-		boolean		enable )
+		boolean		pairing_enabled )
 	{
 		PairingManager pm = PairingManagerFactory.getSingleton();
 		
 		PairedService service = pm.getService( sid );
 		
-		if ( enable ){
+		if ( plugin_enabled && pairing_enabled && pm.isEnabled()){
 			
 			if ( service == null ){
+				
+				log( "Adding pairing service" );
 				
 				service =  pm.addService( sid ); 
 				
@@ -928,6 +1110,8 @@ WebPlugin
 			
 			if ( service != null ){
 				
+				log( "Removing pairing service" );
+				
 				service.remove();
 			}
 		}
@@ -944,6 +1128,8 @@ WebPlugin
 		if ( service != null ){
 			
 			PairingConnectionData cd = service.getConnectionData();
+			
+			log( "Updating pairing information" );
 			
 			try{
 				updatePairing( cd );

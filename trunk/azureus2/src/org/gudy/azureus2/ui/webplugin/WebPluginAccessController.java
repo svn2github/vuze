@@ -23,6 +23,8 @@
 package org.gudy.azureus2.ui.webplugin;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.config.ConfigParameter;
+import org.gudy.azureus2.plugins.config.ConfigParameterListener;
 import org.gudy.azureus2.pluginsimpl.remote.*;
 import org.gudy.azureus2.pluginsimpl.remote.rpexceptions.*;
 
@@ -39,7 +41,34 @@ WebPluginAccessController
 
     public
     WebPluginAccessController(
-        PluginInterface     pi )
+        final PluginInterface     pi )
+    {
+        ConfigParameter mode_parameter = pi.getPluginconfig().getPluginParameter( WebPlugin.CONFIG_MODE );
+
+        if ( mode_parameter == null ){
+        	
+        	view_mode = true;
+        	
+        }else{
+        	
+        	mode_parameter.addConfigParameterListener(
+        		new ConfigParameterListener()
+        		{
+        			public void 
+        			configParameterChanged(
+        				ConfigParameter param )
+        			{
+        				setViewMode( pi );
+        			}
+        		});
+        	
+        	setViewMode( pi );
+        }
+    }
+    
+    protected void
+    setViewMode(
+    	PluginInterface		pi )
     {
         String mode_str = pi.getPluginconfig().getPluginStringParameter( WebPlugin.CONFIG_MODE, ((WebPlugin)pi.getPlugin()).CONFIG_MODE_DEFAULT );
 

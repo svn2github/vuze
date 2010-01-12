@@ -115,6 +115,12 @@ TrackerWebContextImpl
 		}
 	}
 	
+	public InetAddress 
+	getBindIP() 
+	{
+		return( server.getBindIP());
+	}
+	
 	public boolean
 	authenticate(
 		URL			resource,

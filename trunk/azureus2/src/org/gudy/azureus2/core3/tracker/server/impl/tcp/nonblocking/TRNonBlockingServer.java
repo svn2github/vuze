@@ -73,6 +73,8 @@ TRNonBlockingServer
 	private long	last_connections;
 	*/
 	
+	private InetAddress	current_bind_ip;
+	
 	private long	total_timeouts;
 	private long	total_connections;
 	
@@ -137,10 +139,14 @@ TRNonBlockingServer
 					
 				}else{
 	
+					current_bind_ip = _bind_ip;
+					
 					address = new InetSocketAddress( _bind_ip, _port );			
 				}
 			}else{
 				
+				current_bind_ip = _bind_ip;
+
 				address = new InetSocketAddress(  _bind_ip, _port );	
 			}
 			
@@ -211,6 +217,12 @@ TRNonBlockingServer
 				destroySupport();
 			}
 		}
+	}
+	
+	public InetAddress 
+	getBindIP()
+	{
+		return( current_bind_ip );
 	}
 	
 	public void

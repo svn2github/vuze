@@ -25,6 +25,8 @@ package org.gudy.azureus2.core3.tracker.host;
  * @author parg
  */
 
+import java.net.InetAddress;
+
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 
@@ -50,6 +52,9 @@ TRHost
 		
 	public String
 	getName();
+	
+	public InetAddress
+	getBindIP();
 	
 	public TRHostTorrent
 	hostTorrent(

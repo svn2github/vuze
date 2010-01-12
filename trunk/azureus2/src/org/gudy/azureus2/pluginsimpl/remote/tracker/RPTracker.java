@@ -276,6 +276,14 @@ RPTracker
 		return( null );				
 	}
 	
+	public InetAddress 
+	getBindIP()
+	{
+	   	notSupported();
+		
+		return( null );		
+	}
+	
 	public void
 	addPageGenerator(
 		TrackerWebPageGenerator	generator )

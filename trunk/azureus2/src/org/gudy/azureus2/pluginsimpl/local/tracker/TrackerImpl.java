@@ -112,6 +112,12 @@ TrackerImpl
 		return( res );
 	}
 
+	public InetAddress
+	getBindIP()
+	{
+		return( host.getBindIP());
+	}
+	
 	public TrackerTorrent
 	host(
 		Torrent		_torrent,

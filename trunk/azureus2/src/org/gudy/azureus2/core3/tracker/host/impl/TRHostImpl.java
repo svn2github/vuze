@@ -518,6 +518,12 @@ TRHostImpl
 		}
 	}
 	
+	public InetAddress 
+	getBindIP()
+	{
+		return( null );
+	}
+	
 	protected TRTrackerServer
 	startServer(
 		int		protocol,

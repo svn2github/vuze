@@ -47,7 +47,8 @@ TRTrackerServerUDP
 
 	private ThreadPool	thread_pool;
 	
-	private int		port;
+	private int				port;
+	private InetAddress		current_bind_ip;
 	
 	private DatagramSocket	dg_socket;
 	
@@ -79,6 +80,8 @@ TRTrackerServerUDP
 				socket = new DatagramSocket( port );
 				
 			}else{
+				
+				current_bind_ip = bind_ip;
 				
 				address = new InetSocketAddress( bind_ip, port);
 
@@ -113,6 +116,12 @@ TRTrackerServerUDP
 			Logger.log(new LogEvent(LOGID, "TRTrackerServerUDP: "
 					+ "DatagramSocket bind failed on port " + port, e)); 
 		}
+	}
+	
+	public InetAddress 
+	getBindIP()
+	{
+		return( current_bind_ip );
 	}
 	
 	protected void

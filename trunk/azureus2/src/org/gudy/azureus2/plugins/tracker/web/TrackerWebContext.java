@@ -26,6 +26,7 @@ package org.gudy.azureus2.plugins.tracker.web;
  *
  */
 
+import java.net.InetAddress;
 import java.net.URL;
 
 public interface 
@@ -41,6 +42,9 @@ TrackerWebContext
 
 	public URL[]
 	getURLs();
+	
+	public InetAddress
+	getBindIP();
 	
 	public void
 	setEnableKeepAlive(

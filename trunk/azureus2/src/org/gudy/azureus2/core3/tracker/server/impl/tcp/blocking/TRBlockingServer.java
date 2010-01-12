@@ -51,6 +51,7 @@ TRBlockingServer
 {
 	private static final LogIDs LOGID = LogIDs.TRACKER;
 
+	private InetAddress		current_bind_ip;
 	private ServerSocket	server_socket;
 	
 	private volatile boolean	closed;
@@ -104,11 +105,19 @@ TRBlockingServer
 					}else{
 						SSLServerSocket ssl_server_socket;
 						
-						if ( bind_ip == null ){
+						if ( _bind_ip != null ){
+							
+							current_bind_ip = _bind_ip;
+							
+							ssl_server_socket = (SSLServerSocket)factory.createServerSocket(  getPort(), 128, _bind_ip );
+
+						}else if ( bind_ip == null ){
 							
 							ssl_server_socket = (SSLServerSocket)factory.createServerSocket( getPort(), 128 );
 							
 						}else{
+							
+							current_bind_ip = bind_ip;
 							
 							ssl_server_socket = (SSLServerSocket)factory.createServerSocket(  getPort(), 128, bind_ip );
 						}
@@ -172,6 +181,8 @@ TRBlockingServer
 					
 					if ( _bind_ip != null ){
 					
+						current_bind_ip = _bind_ip;
+						
 						ss = new ServerSocket(  port, 1024, _bind_ip );
 
 					}else if ( bind_ip == null ){
@@ -179,6 +190,8 @@ TRBlockingServer
 						ss = new ServerSocket(  port, 1024 );
 						
 					}else{
+						
+						current_bind_ip = bind_ip;
 						
 						ss = new ServerSocket(  port, 1024, bind_ip );
 					}
@@ -229,6 +242,12 @@ TRBlockingServer
 		}
 	}
 		
+	public InetAddress
+	getBindIP()
+	{
+		return( current_bind_ip );
+	}
+	
 	protected void
 	acceptLoop(
 		ServerSocket	ss )
