@@ -796,7 +796,7 @@ PairingManagerImpl
 						
 						if ( consec_update_fails == 0 && !must_update_once ){
 					
-							setStatus( MessageText.getString( "pairing.status.disabled" ));
+							setStatus( MessageText.getString( is_enabled?"pairing.status.noservices":"pairing.status.disabled" ));
 							
 							return;
 						}
@@ -948,7 +948,7 @@ PairingManagerImpl
 
 				if ( global_update_event == null ){
 					
-					setStatus( MessageText.getString( "pairing.status.disabled" ));
+					setStatus( MessageText.getString( is_enabled?"pairing.status.noservices":"pairing.status.disabled" ));
 					
 				}else{
 					
