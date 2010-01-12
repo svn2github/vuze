@@ -75,6 +75,9 @@ UpdateManager
 		int			check_type,
 		String		name );
 
+	public UpdateCheckInstance[]
+	getCheckInstances();
+	
 		/**
 		 * create a stand alone update installer. you will need to restart Azureus for it to
 		 * be installed

@@ -52,14 +52,15 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateException;
 import org.gudy.azureus2.plugins.update.UpdateInstaller;
 import org.gudy.azureus2.plugins.update.UpdateInstallerListener;
+import org.gudy.azureus2.plugins.update.UpdateManager;
+import org.gudy.azureus2.plugins.update.UpdateManagerListener;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-
 
 public class 
 PlatformManagerImpl
@@ -855,17 +856,22 @@ PlatformManagerImpl
 										}else{
 
 												// insufficient perms
-
+											
+											UpdateInstaller installer = getInstaller( azureus_core );
+											
+												// retry later
+											
+											if ( installer == null ){
+												
+												return;
+											}
+											
 
 											if ( !informUpdateRequired()){
 												
 												return;
 											}
-											
-											PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
-											
-											UpdateInstaller installer = pi.getUpdateManager().createInstaller();
-										
+
 											if ( old_shared_options.exists()){
 
 												installer.addRemoveAction( old_shared_options.getAbsolutePath());
@@ -946,16 +952,22 @@ PlatformManagerImpl
 								}else{
 									
 										// insufficient perms
+																		
+									UpdateInstaller installer = getInstaller( azureus_core );
+								
+										// retry later
+									
+									if ( installer == null ){
+										
+										return;
+									}
+									
 									
 									if ( !informUpdateRequired()){
 										
 										return;
 									}
-									
-									PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
-									
-									UpdateInstaller installer = pi.getUpdateManager().createInstaller();
-								
+
 									installer.addResource( "redirect", new ByteArrayInputStream( ( redirect + "\r\n" ).getBytes( "UTF-8" )));
 									
 									installer.addMoveAction( "redirect", shared_options.getAbsolutePath());
@@ -1012,6 +1024,89 @@ PlatformManagerImpl
 				}.start();
 			}
 		}
+	}
+	
+	private UpdateInstaller
+	getInstaller(
+		AzureusCore		azureus_core )
+	
+		throws Exception
+	{
+			// we don't want our update to interfere with the normal update process so
+			// hang around until it completes
+		
+		PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
+		
+		UpdateManager update_manager = pi.getUpdateManager();
+		
+		final List<UpdateCheckInstance>	l_instances = new ArrayList<UpdateCheckInstance>();
+		
+		update_manager.addListener( 
+			new UpdateManagerListener()
+			{
+				public void
+				checkInstanceCreated(
+					UpdateCheckInstance	instance )
+				{
+					synchronized( l_instances ){
+						
+						l_instances.add( instance );
+					}
+				}
+			});
+		
+		UpdateCheckInstance[] instances = update_manager.getCheckInstances();
+		
+		l_instances.addAll( Arrays.asList( instances ));
+		
+		long start = SystemTime.getMonotonousTime();
+		
+		while( true ){
+			
+			if ( SystemTime.getMonotonousTime() - start >= 5*60*1000 ){
+				
+				break;
+			}
+			
+			try{
+				Thread.sleep(5000);
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+				
+				return( null );
+			}
+			
+			if ( l_instances.size() > 0 ){
+			
+				boolean	all_done = true;
+				
+				for ( UpdateCheckInstance instance: l_instances ){
+					
+					if ( !instance.isCompleteOrCancelled()){
+						
+						all_done = false;
+						
+						break;
+					}
+				}
+				
+				if ( all_done ){
+					
+					break;
+				}
+			}
+		}
+		
+		if ( update_manager.getInstallers().length > 0 ){
+			
+			return( null );
+		}
+		
+		UpdateInstaller installer = pi.getUpdateManager().createInstaller();
+	
+		return( installer );
 	}
 	
 	private boolean

@@ -113,6 +113,9 @@ UpdateCheckInstance
 	public boolean
 	isLowNoise();
 	
+	public boolean
+	isCompleteOrCancelled();
+	
 	public Object
 	getProperty(
 		int		property_name );

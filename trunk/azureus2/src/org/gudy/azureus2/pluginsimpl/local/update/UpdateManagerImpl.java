@@ -48,7 +48,7 @@ public class
 UpdateManagerImpl
 	implements UpdateManager
 {
-	protected static UpdateManagerImpl		singleton;
+	private static UpdateManagerImpl		singleton;
 		
 	public static UpdateManager
 	getSingleton(
@@ -62,13 +62,15 @@ UpdateManagerImpl
 		return( singleton );
 	}
 
-	protected AzureusCore	azureus_core;
+	private AzureusCore	azureus_core;
 		
-	protected List	components 				= new ArrayList();
-	protected List	listeners				= new ArrayList();
-	protected List	verification_listeners	= new ArrayList();
+	private List<UpdateCheckInstanceImpl>	checkers = new ArrayList<UpdateCheckInstanceImpl>();
 	
-	protected List	installers	= new ArrayList();
+	private List<UpdatableComponentImpl>	components 				= new ArrayList<UpdatableComponentImpl>();
+	private List	listeners				= new ArrayList();
+	private List	verification_listeners	= new ArrayList();
+	
+	private List<UpdateInstaller>	installers	= new ArrayList<UpdateInstaller>();
 	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UpdateManager" );
 
@@ -111,6 +113,19 @@ UpdateManagerImpl
 		}
 	}
 	
+	public UpdateCheckInstance[] 
+	getCheckInstances() 
+	{
+		try{
+			this_mon.enter();
+
+			return( checkers.toArray( new UpdateCheckInstance[ checkers.size()]));
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
 	
 	public UpdateCheckInstance
 	createUpdateCheckInstance()
@@ -130,7 +145,9 @@ UpdateManagerImpl
 			
 			components.toArray( comps );
 			
-			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( this, type, name, comps );
+			UpdateCheckInstanceImpl	res = new UpdateCheckInstanceImpl( this, type, name, comps );
+			
+			checkers.add( res );
 			
 			for (int i=0;i<listeners.size();i++){
 				
@@ -167,6 +184,8 @@ UpdateManagerImpl
 			UpdateCheckInstanceImpl	res = new UpdateCheckInstanceImpl( this, type, name, comps );
 			
 			res.setLowNoise( low_noise );
+			
+			checkers.add( res );
 			
 			for (int i=0;i<listeners.size();i++){
 				

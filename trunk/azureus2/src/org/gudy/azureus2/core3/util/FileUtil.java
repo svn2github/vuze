@@ -1948,9 +1948,7 @@ public class FileUtil {
 	
 	public static boolean
 	canReallyWriteToAppDirectory()
-	{
-		Debug.out( "FIX ME" );
-		
+	{		
 		if ( !FileUtil.getApplicationFile("bogus").getParentFile().canWrite()){
 			
 			return( false );

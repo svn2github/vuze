@@ -361,6 +361,19 @@ UpdateCheckInstanceImpl
 		return( manager.createInstaller());
 	}
 	
+	public boolean 
+	isCompleteOrCancelled() 
+	{
+		try{
+			this_mon.enter();
+
+			return( completed || cancelled );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
 	public void
 	cancel()
 	{
