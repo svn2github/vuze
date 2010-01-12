@@ -1951,7 +1951,7 @@ public class FileUtil {
 	{
 		Debug.out( "FIX ME" );
 		
-		if ( true || !FileUtil.getApplicationFile("bogus").getParentFile().canWrite()){
+		if ( !FileUtil.getApplicationFile("bogus").getParentFile().canWrite()){
 			
 			return( false );
 		}

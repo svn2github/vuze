@@ -29,8 +29,12 @@ package org.gudy.azureus2.platform.win32;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.util.*;
 
@@ -473,12 +477,127 @@ PlatformManagerImpl
 	    }
 	}
 	
+	private String
+	getJVMOptionRedirect()
+	{
+		return( "-include-options ${APPDATA}\\" + SystemProperties.getApplicationName() + "\\java.vmoptions" );
+	}
+	
+	private File[]
+	getJVMOptionFiles()
+	{
+		try{
+			File exe = getApplicationEXELocation();
+	
+			File shared_options 		= new File( exe.getParent(), exe.getName() + ".vmoptions" );
+			File local_options 			= new File( SystemProperties.getUserPath(), "java.vmoptions" );
+			
+			return( new File[]{ shared_options, local_options });
+			
+		}catch( Throwable e ){
+			
+			return( new File[0] );
+		}
+	}
+	
+	private File
+	checkAndGetLocalVMOptionFile()
+	
+		throws PlatformManagerException
+	{
+		String vendor = System.getProperty( "java.vendor", "<unknown>" );
+		
+		if ( !vendor.toLowerCase().startsWith( "sun " )){
+			
+			throw( new PlatformManagerException( 
+						MessageText.getString( 
+							"platform.jvmopt.sunonly",
+							new String[]{ vendor })));
+		}
+		
+		File[] option_files = getJVMOptionFiles();
+		
+		if ( option_files.length != 2 ){
+			
+			throw( new PlatformManagerException( 
+					MessageText.getString( "platform.jvmopt.configerror" )));
+		}
+		
+		File shared_options = option_files[0];
+		
+		if ( shared_options.exists()){
+
+			try{
+				String s_options = FileUtil.readFileAsString( shared_options, -1 );
+	
+				if ( s_options.contains( getJVMOptionRedirect() )){
+									
+					File local_options = option_files[1];
+					
+					return( local_options );
+					
+				}else{
+					
+					throw( new PlatformManagerException( MessageText.getString( "platform.jvmopt.nolink" )));
+				}
+			}catch( Throwable e ){
+				
+				throw( new PlatformManagerException( MessageText.getString( "platform.jvmopt.accesserror", new String[]{ Debug.getNestedExceptionMessage(e) } )));
+			}
+		}else{
+			
+			throw( new PlatformManagerException( MessageText.getString( "platform.jvmopt.nolinkfile" )));
+		}			
+	}
+	
 	public String[]
    	getExplicitVMOptions()
   	          	
      	throws PlatformManagerException
   	{
-		throw new PlatformManagerException("Unsupported capability called on platform manager");
+		checkCapability( PlatformManagerCapabilities.AccessExplicitVMOptions );
+			
+		
+		File local_options = checkAndGetLocalVMOptionFile();
+
+		try{
+					
+			List<String>	list = new ArrayList<String>();
+			
+			if ( local_options.exists()){
+				
+				LineNumberReader lnr = new LineNumberReader( new InputStreamReader( new FileInputStream( local_options ), "UTF-8" ));
+					
+				try{
+					while( true ){
+						
+						String	line = lnr.readLine();
+						
+						if ( line == null ){
+							
+							break;
+						}
+						
+						line = line.trim();
+						
+						if ( line.length() > 0 ){
+							
+							list.add( line );
+						}
+					}
+					
+				}finally{
+					
+					lnr.close();
+				}
+			}
+			
+			return( list.toArray( new String[list.size()]));
+					
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( MessageText.getString( "platform.jvmopt.accesserror", new String[]{ Debug.getNestedExceptionMessage(e) } )));
+		}
   	}
   	 
   	public void
@@ -487,8 +606,55 @@ PlatformManagerImpl
   	          	
   		throws PlatformManagerException
   	{
-  		throw new PlatformManagerException("Unsupported capability called on platform manager");	
-  	}
+		checkCapability( PlatformManagerCapabilities.AccessExplicitVMOptions );
+
+		File local_options = checkAndGetLocalVMOptionFile();
+
+		try{				
+			List<String>	list = new ArrayList<String>();
+			
+			if ( local_options.exists()){
+				
+				File backup = new File( local_options.getParentFile(), local_options.getName() + ".bak" );
+				
+				if ( !local_options.renameTo( backup )){
+				
+					throw( new Exception( "Failed to move " + local_options + " to " + backup ));
+				}
+				
+				boolean	ok = false;
+				
+				try{
+					
+					PrintWriter pw = new PrintWriter( new OutputStreamWriter( new FileOutputStream( local_options ), "UTF-8" ));
+					
+					try{
+						for ( String option: options ){
+							
+							pw.println( option );
+						}
+					
+						ok = true;
+						
+					}finally{
+						
+						pw.close();
+					}
+				}finally{
+					
+					if ( !ok ){
+						
+						local_options.delete();
+						
+						backup.renameTo( local_options );
+					}
+				}
+			}					
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( MessageText.getString( "platform.jvmopt.accesserror", new String[]{ Debug.getNestedExceptionMessage(e) } )));
+		}
+	}
   	
  	public boolean 
   	getRunAtLogin() 
@@ -638,13 +804,18 @@ PlatformManagerImpl
 					run()
 					{
 						try{
-							String redirect = "-include-options ${APPDATA}\\" + SystemProperties.getApplicationName() + "\\java.vmoptions";
+							String redirect = getJVMOptionRedirect();
+							
+							File[] option_files = getJVMOptionFiles();
 
-							File exe = getApplicationEXELocation();
-
-							File shared_options 		= new File( exe.getParent(), exe.getName() + ".vmoptions" );
-							File old_shared_options 	= new File( exe.getParent(), exe.getName() + ".vmoptions.old" );
-							File local_options 			= new File( SystemProperties.getUserPath(), "java.vmoptions" );
+							if ( option_files.length != 2 ){
+								
+								return;
+							}
+							
+							File shared_options 		= option_files[0];
+							File old_shared_options 	= new File( shared_options.getParentFile(), shared_options.getName() + ".old" );
+							File local_options 			= option_files[1];
 
 							if ( shared_options.exists()){
 
@@ -1608,6 +1779,18 @@ PlatformManagerImpl
             PlatformManagerCapabilities capability)
     {
         return capabilitySet.contains(capability);
+    }
+    
+    private void
+    checkCapability(
+    	PlatformManagerCapabilities capability )
+    
+    	throws PlatformManagerException
+    {
+    	if ( !hasCapability(capability)){
+    		
+    		throw( new PlatformManagerException( "Capability " + capability + " not supported" ));
+    	}
     }
 
     /**
