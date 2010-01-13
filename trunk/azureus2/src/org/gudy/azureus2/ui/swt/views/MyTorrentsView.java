@@ -459,6 +459,7 @@ public class MyTorrentsView
     lblSep.setLayoutData(fd);
 
     fd = new FormData();
+    fd.top = new FormAttachment(0, 2);
     fd.left = new FormAttachment(btnFilter, 0);
     fd.right = new FormAttachment(cCategories, -10);
     cFilterArea.setLayoutData(fd);
@@ -477,7 +478,7 @@ public class MyTorrentsView
     fd.right = new FormAttachment(100, -2); 
     fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
     fd.width = enableSizer ? 100 : 1;
-    fd.height = enableSizer ? 18 : 1;
+    fd.height = enableSizer ? -1 : 1;
     cSizer.setLayoutData(fd);
 
     if (enableSizer) {
@@ -611,6 +612,7 @@ public class MyTorrentsView
 				cCategories.setLayoutData(fd);
 
         fd = new FormData();
+        fd.top = new FormAttachment(0, 2);
         fd.left = new FormAttachment(btnFilter, 0);
         fd.right = new FormAttachment(cCategories, -10);
         cFilterArea.setLayoutData(fd);
@@ -632,6 +634,7 @@ public class MyTorrentsView
 				cCategories.setLayoutData(fd);
 
 				fd = new FormData();
+		    fd.top = new FormAttachment(0, 2);
         fd.left = new FormAttachment(btnFilter, 0);
         fd.right = new FormAttachment(cSizer, -10);
         cFilterArea.setLayoutData(fd);
