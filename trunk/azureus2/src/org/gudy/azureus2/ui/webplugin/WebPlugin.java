@@ -960,7 +960,7 @@ WebPlugin
 			}
 		}else{
 			
-			if ( access_str.equalsIgnoreCase( "all" )){
+			if ( access_str.equalsIgnoreCase( "all" ) || access_str.length() == 0 ){
 								
 				ip_range_all	= true;				
 			}
