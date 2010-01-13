@@ -165,8 +165,8 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
 
 	if (bResult) 
 	{
-		ULONG diskSize = pdg.Cylinders.QuadPart * (ULONG)pdg.TracksPerCylinder *
-			(ULONG)pdg.SectorsPerTrack * (ULONG)pdg.BytesPerSector;
+		LONGLONG diskSize = pdg.Cylinders.QuadPart * pdg.TracksPerCylinder *
+			pdg.SectorsPerTrack * pdg.BytesPerSector;
 		addToMap(env, hashMap, methPut, clsLong, longInit, "MediaType", (jlong) pdg.MediaType);
 		addToMap(env, hashMap, methPut, clsLong, longInit, "DiskSize", (jlong) diskSize);
 	}
