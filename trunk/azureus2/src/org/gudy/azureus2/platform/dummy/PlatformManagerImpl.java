@@ -104,6 +104,14 @@ public class PlatformManagerImpl implements PlatformManager
 	    return( null );
 	}
 	
+	public File 
+	getVMOptionFile() 
+	
+		throws PlatformManagerException 
+	{
+        throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
 	public String[]
    	getExplicitVMOptions()
 	          	

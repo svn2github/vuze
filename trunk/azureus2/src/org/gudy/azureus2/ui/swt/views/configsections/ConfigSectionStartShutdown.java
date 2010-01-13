@@ -25,6 +25,8 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -38,7 +40,9 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -222,18 +226,83 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			layout = new GridLayout(2, false);
 			gJVM.setLayout(layout);
 			gJVM.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
-
+			
+				// info
+			
+			label = new Label(gJVM, SWT.NULL);
+			Messages.setLanguageText(label, "jvm.info");
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			label.setLayoutData( gridData );
+			
 			try{
+				final File option_file = platform.getVMOptionFile();
+			 	
 				String[] options = platform.getExplicitVMOptions();
 			
 				for ( String option: options ){
 					
 					label = new Label(gJVM, SWT.NULL);
 					label.setText( option );
+					gridData = new GridData();
+					gridData.horizontalSpan = 2;
+					label.setLayoutData( gridData );
 				}
+				
+					// show option file
+				
+				label = new Label(gJVM, SWT.NULL);
+				Messages.setLanguageText(label, "jvm.show.file", new String[]{ option_file.getAbsolutePath() });
+
+				Button show_folder_button = new Button( gJVM, SWT.PUSH );
+				
+			 	Messages.setLanguageText( show_folder_button, "MyTorrentsView.menu.explore");
+			 	
+			 	show_folder_button.addSelectionListener(
+			 		new SelectionAdapter()
+			 		{
+			 			public void
+			 			widgetSelected(
+			 				SelectionEvent e )
+			 			{
+			 				
+			 				ManagerUtils.open( option_file );
+			 			}
+			 		});
+
+			 	label = new Label(gJVM, SWT.NULL);			
+				Messages.setLanguageText(label, "jvm.reset");
+
+				Button reset_button = new Button( gJVM, SWT.PUSH );
+				
+			 	Messages.setLanguageText( reset_button, "Button.reset");
+			 	
+			 	reset_button.addSelectionListener(
+			 		new SelectionAdapter()
+			 		{
+			 			public void
+			 			widgetSelected(
+			 				SelectionEvent event )
+			 			{
+			 				try{
+			 					platform.setExplicitVMOptions( new String[0] );
+			 					
+			 				}catch( Throwable e ){
+			 					
+			 					Debug.out( e );
+			 				}
+			 			}
+			 		});
+			 	
 			}catch( Throwable e ){
 				
 				Debug.out( e );
+				
+				label = new Label(gJVM, SWT.NULL);
+				Messages.setLanguageText(label, "jvm.error", new String[]{ Debug.getNestedExceptionMessage(e) });
+				gridData = new GridData();
+				gridData.horizontalSpan = 2;
+				label.setLayoutData( gridData );
 			}
 		}
 

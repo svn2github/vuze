@@ -233,6 +233,14 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     	}
     }
     
+	public File 
+	getVMOptionFile() 
+	
+		throws PlatformManagerException 
+	{
+        throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
 	public String[]
    	getExplicitVMOptions()
   	          	

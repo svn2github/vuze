@@ -202,6 +202,14 @@ public class PlatformManagerImpl implements PlatformManager
 		// No Listener Functionality
 	}
 
+	public File 
+	getVMOptionFile() 
+	
+		throws PlatformManagerException 
+	{
+		throw new PlatformManagerException(ERR_UNSUPPORTED);
+	}
+	
 	public String[]
 	getExplicitVMOptions()
 	          	

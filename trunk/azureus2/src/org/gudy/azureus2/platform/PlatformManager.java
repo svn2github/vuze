@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.platform;
 
+import java.io.File;
 import java.net.InetAddress;
 
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
@@ -83,6 +84,11 @@ PlatformManager
 		
 		throws PlatformManagerException;
 
+	public File
+	getVMOptionFile()
+	
+		throws PlatformManagerException;
+	
 	public String[]
 	getExplicitVMOptions()
 	

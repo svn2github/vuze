@@ -64,7 +64,7 @@ import com.aelitis.azureus.core.AzureusCore;
 
 public class 
 PlatformManagerImpl
-	implements PlatformManager, AEWin32AccessListener
+	implements PlatformManager, AEWin32AccessListener, AEDiagnosticsEvidenceGenerator
 {
 	public static final int			RT_NONE		= 0;
 	public static final int			RT_AZ 		= 1;
@@ -551,6 +551,27 @@ PlatformManagerImpl
 		}			
 	}
 	
+	public File 
+	getVMOptionFile() 
+	
+		throws PlatformManagerException 
+	{
+		checkCapability( PlatformManagerCapabilities.AccessExplicitVMOptions );
+		
+		File local_options = checkAndGetLocalVMOptionFile();
+
+		if ( !local_options.exists()){
+			
+			try{
+				local_options.createNewFile();
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		return( local_options );
+	}
+	
 	public String[]
    	getExplicitVMOptions()
   	          	
@@ -781,8 +802,33 @@ PlatformManagerImpl
 	
 		throws PlatformManagerException
 	{
-		if ( 	hasCapability( PlatformManagerCapabilities.AccessExplicitVMOptions ) &&
-				!COConfigurationManager.getBooleanParameter( "platform.win32.vmo.migrated", false )){
+		AEDiagnostics.addEvidenceGenerator( this );
+		
+		if ( !hasCapability( PlatformManagerCapabilities.AccessExplicitVMOptions )){
+			
+			return;
+		}
+		
+		if ( COConfigurationManager.getBooleanParameter( "platform.win32.vmo.migrated", false )){
+			
+			try{
+				File local_options = checkAndGetLocalVMOptionFile();
+				
+				if ( local_options.exists()){
+					
+					File last_good = new File( local_options.getParentFile(), local_options.getName() + ".lastgood" );
+					
+					if ( 	!last_good.exists() ||
+							local_options.lastModified() > last_good.lastModified()){
+						
+						FileUtil.copyFile( local_options, last_good );
+					}
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}else{
 			
 			final int	fail_count = COConfigurationManager.getIntParameter( "platform.win32.vmo.migrated.fails", 0 );
 			
@@ -1010,10 +1056,8 @@ PlatformManagerImpl
 								}
 							}
 							
-							// COConfigurationManager.setParameter( "platform.win32.vmo.migrated", true );
-							
-							Debug.out( "Not setting migrated!!!!" );
-							
+							COConfigurationManager.setParameter( "platform.win32.vmo.migrated", true );
+														
 						}catch( Throwable e ){
 							
 							COConfigurationManager.setParameter( "platform.win32.vmo.migrated.fails", fail_count + 1 );
@@ -2038,5 +2082,41 @@ PlatformManagerImpl
 
 	public void requestUserAttention(int type, Object data) throws PlatformManagerException {
 		throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Platform" );
+		
+		try{
+			writer.indent();
+		
+			try{
+				String[] options = getExplicitVMOptions();
+				
+				writer.println( "VM Options" );
+				
+				try{
+					writer.indent();
+					
+					for ( String option: options ){
+						
+						writer.println( option );
+					}
+				}finally{
+					
+					writer.exdent();
+				}
+			}catch( Throwable e ){
+				
+				writer.println( "VM options not available: " + Debug.getNestedExceptionMessage(e));
+			}
+			
+		}finally{
+			
+			writer.exdent();
+		}
 	}
 }
