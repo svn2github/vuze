@@ -68,6 +68,7 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -182,6 +183,8 @@ PairingManagerImpl
 		
 		BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
 				ConfigSection.SECTION_CONNECTION, "Pairing");
+
+		configModel.addHyperlinkParameter2( "ConfigView.label.please.visit.here", MessageText.getString( "ConfigView.section.connection.pairing.url" ));
 
 		param_enable = configModel.addBooleanParameter2( "pairing.enable", "pairing.enable", false );
 		
@@ -386,6 +389,7 @@ PairingManagerImpl
 		String		str )
 	{
 		param_status_info.setValue( str );
+		
 		fireChanged();
 	}
 	
@@ -401,6 +405,15 @@ PairingManagerImpl
 		return( last_server_error );
 	}
 
+	public boolean 
+	hasActionOutstanding() 
+	{
+		synchronized( this ){
+			
+			return( update_outstanding || deferred_update_event != null );
+		}
+	}
+	
 	protected String
 	readAccessCode()
 	{
@@ -412,7 +425,11 @@ PairingManagerImpl
 		String		ac )
 	{
 		COConfigurationManager.setParameter( "pairing.accesscode", ac );
-		 
+		
+			// try not to loose this!
+		
+		COConfigurationManager.save();
+		
 		param_ac_info.setValue( ac );
 		 
 		param_view.setHyperlink( SERVICE_URL + "/web/view?ac=" + ac );
@@ -444,6 +461,8 @@ PairingManagerImpl
 				updateNeeded();
 			}
 			
+			fireChanged();
+			
 			return( code );
 			
 		}catch( Throwable e ){
@@ -452,6 +471,12 @@ PairingManagerImpl
 		}
 	}
 
+	public String
+	peekAccessCode()
+	{
+		return( readAccessCode());
+	}
+	
 	public String
 	getAccessCode()
 	
@@ -1021,13 +1046,6 @@ PairingManagerImpl
 		
 		long target = SystemTime.getOffsetTime( millis );
 		
-		setStatus( 
-			MessageText.getString( 
-				"pairing.status.pending", 
-				new String[]{ new SimpleDateFormat().format(new Date( target ))}));
-
-		COConfigurationManager.setParameter( "pairing.updateoutstanding", true );
-		
 		deferred_update_event = 
 			SimpleTimer.addEvent(
 				"PM:defer",
@@ -1048,6 +1066,13 @@ PairingManagerImpl
 						updateNeeded();
 					}
 				});
+		
+		setStatus( 
+				MessageText.getString( 
+					"pairing.status.pending", 
+					new String[]{ new SimpleDateFormat().format(new Date( target ))}));
+
+		COConfigurationManager.setParameter( "pairing.updateoutstanding", true );
 	}
 	
 	

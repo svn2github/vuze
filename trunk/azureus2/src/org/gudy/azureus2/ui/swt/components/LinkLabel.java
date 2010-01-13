@@ -73,7 +73,7 @@ LinkLabel
 		// We only set a tooltip if one isn't set already and it isn't
 		// identical to the label text.
 		if (tooltip == null && !hyperlink.equals(label.getText())) {
-			label.setToolTipText(hyperlink);
+			label.setToolTipText(hyperlink==null?null:hyperlink.replaceAll("&", "&&"));
 		}
 	    label.setCursor(Cursors.handCursor);
 	    label.setForeground(Colors.blue);

@@ -33,6 +33,9 @@ PairingManager
 		throws PairingException;
 	
 	public String
+	peekAccessCode();
+	
+	public String
 	getReplacementAccessCode()
 	
 		throws PairingException;
@@ -45,14 +48,6 @@ PairingManager
 	getService(
 		String		sid );
 	
-	public void
-	addListener(
-		PairingManagerListener	l );
-	
-	public void
-	removeListener(
-		PairingManagerListener	l );
-
 	public void 
 	setEnabled(
 		boolean enabled );
@@ -62,4 +57,16 @@ PairingManager
 
 	public String
 	getLastServerError();
+
+	public boolean
+	hasActionOutstanding();
+	
+	public void
+	addListener(
+		PairingManagerListener	l );
+	
+	public void
+	removeListener(
+		PairingManagerListener	l );
+
 }

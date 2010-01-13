@@ -151,8 +151,9 @@ WebPlugin
 	private boolean				ip_range_all	= false;
 	private List<IPRange>		ip_ranges;
 	
-	private TrackerWebContext	tracker_context;
-	private UPnPMapping			upnp_mapping;
+	private TrackerWebContext			tracker_context;
+	private UPnPMapping					upnp_mapping;
+	private PairingManagerListener		pairing_listener;
 	
 	private Properties	properties;
 	
@@ -474,12 +475,14 @@ WebPlugin
 		
 		final String p_sid = (String)properties.get( PR_PAIRING_SID );
 		
-		final LabelParameter	pairing_info;
-		final BooleanParameter	pairing_enable;
+		final LabelParameter		pairing_info;
+		final BooleanParameter		pairing_enable;
+		final HyperlinkParameter	pairing_test;
+		final HyperlinkParameter	connection_test;
 		
 		if ( p_sid != null ){
 			
-			PairingManager pm = PairingManagerFactory.getSingleton();
+			final PairingManager pm = PairingManagerFactory.getSingleton();
 
 			pairing_info = config_model.addLabelParameter2( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
 				
@@ -489,6 +492,10 @@ WebPlugin
 								"webui.pairingenable",
 								CONFIG_PAIRING_ENABLE_DEFAULT );
 
+			connection_test = config_model.addHyperlinkParameter2( "webui.connectiontest", getConnectionTestURL( p_sid ));
+
+			pairing_test = config_model.addHyperlinkParameter2( "webui.pairingtest", "http://remote.vuze.com/pairing/?sid=" + p_sid );
+
 			pairing_enable.addListener(
 				new ParameterListener()
 				{
@@ -496,13 +503,18 @@ WebPlugin
 					parameterChanged(
 						Parameter param ) 
 					{
-						setupPairing( p_sid, pairing_enable.getValue());
+						boolean enabled = pairing_enable.getValue();
+						
+						boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
+
+						pairing_test.setEnabled( test_ok );
+						connection_test.setEnabled( test_ok );
+
+						setupPairing( p_sid, enabled );
 					}
 				});
-			
-			pairing_enable.setEnabled( pm.isEnabled());
-			
-			pm.addListener(
+						
+			pairing_listener = 
 				new PairingManagerListener()
 				{
 					public void 
@@ -510,8 +522,15 @@ WebPlugin
 						PairingManager pm ) 
 					{
 						pairing_info.setLabelKey( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
-
+	
 						pairing_enable.setEnabled( pm.isEnabled());
+						
+						boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
+						
+						pairing_test.setEnabled( test_ok );
+						connection_test.setEnabled( test_ok );
+						
+						connection_test.setHyperlink( getConnectionTestURL( p_sid ));
 						
 						setupPairing( p_sid, pairing_enable.getValue());
 					}
@@ -520,8 +539,12 @@ WebPlugin
 					lastErrorUpdated(
 						PairingManager pm) {
 					}
-				});
+				};
+				
+			pairing_listener.somethingChanged( pm );
 			
+			pm.addListener( pairing_listener );
+
 			setupPairing( p_sid, pairing_enable.getValue());
 			
 			ParameterListener update_pairing_listener = 
@@ -544,12 +567,14 @@ WebPlugin
 		}else{
 			pairing_info	= null;
 			pairing_enable 	= null;
+			pairing_test	= null;
+			connection_test	= null;
 		}
 			
 		config_model.createGroup(
 			"ConfigView.section.server",
 			new Parameter[]{
-				param_port, param_bind, param_protocol, p_upnp_enable, pairing_info, pairing_enable,
+				param_port, param_bind, param_protocol, p_upnp_enable, pairing_info, pairing_enable, connection_test, pairing_test,
 			});
 		
 		param_home 		= config_model.addStringParameter2(	CONFIG_HOME_PAGE, "webui.homepage", CONFIG_HOME_PAGE_DEFAULT );
@@ -719,6 +744,27 @@ WebPlugin
 		setupServer();
 	}
 	
+	private String
+	getConnectionTestURL(
+		String		sid )
+	{
+		String res = "http://pair.vuze.com/pairing/web/test?sid=" + sid;
+		
+		PairingManager pm = PairingManagerFactory.getSingleton();
+		
+		if ( pm.isEnabled()){
+			
+			String ac = pm.peekAccessCode();
+			
+			if ( ac != null ){
+				
+				res += "&ac=" + ac;
+			}
+		}
+		
+		return( res );
+	}
+	
 	protected void
 	unloadPlugin()
 	{
@@ -748,6 +794,15 @@ WebPlugin
 			upnp_mapping.destroy();
 			
 			upnp_mapping = null;
+		}
+		
+		if ( pairing_listener != null ){
+		
+			PairingManager pm = PairingManagerFactory.getSingleton();
+			
+			pm.removeListener( pairing_listener );
+			
+			pairing_listener = null;
 		}
 	}
 	
