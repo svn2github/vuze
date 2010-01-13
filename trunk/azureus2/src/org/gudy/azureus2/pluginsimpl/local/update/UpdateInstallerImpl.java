@@ -442,6 +442,12 @@ UpdateInstallerImpl
 		}
 	}
 	
+	public void
+	destroy()
+	{
+		deleteInstaller();
+	}
+	
 	private void
 	deleteInstaller()
 	{

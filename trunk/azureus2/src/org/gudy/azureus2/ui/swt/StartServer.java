@@ -38,6 +38,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.plugins.update.UpdateInstaller;
+import org.gudy.azureus2.plugins.update.UpdateManager;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
@@ -117,7 +119,7 @@ StartServer
 		    		public void 
 		    		runSupport()
 					{
-		    			pollForConnectionsSupport();
+		    			pollForConnectionsSupport( azureus_core );
 		    		}
 				};
 		    
@@ -128,7 +130,8 @@ StartServer
 	}
     
   private void 
-  pollForConnectionsSupport() 
+  pollForConnectionsSupport(
+		 final AzureusCore		core )
   {
     bContinue = true;
     while (bContinue) {
@@ -153,7 +156,7 @@ StartServer
         			  debug_str += " ; " + args[i];
         		  }
         		  Logger.log(new LogEvent(LOGID, "Main::startServer: decoded to '" + debug_str + "'"));
-        		  processArgs(args);
+        		  processArgs(core,args);
         	  }
           }
         }
@@ -197,6 +200,7 @@ StartServer
   
   protected void 
   processArgs(
+    AzureusCore		core,
    	String 			args[]) 
   {
     if (args.length < 1 || !args[0].equals( "args" )){
@@ -217,8 +221,25 @@ StartServer
     		
 	  	    if ( arg.equalsIgnoreCase( "--closedown" )){
 	
+	  	    		// discard any pending updates as we need to shutdown immediately (this
+	  	    		// is called from installer to close running instance)
+	  	    	
+	  	    	try{
+	  	    		UpdateManager um = core.getPluginManager().getDefaultPluginInterface().getUpdateManager();
+	  	    		
+	  	    		UpdateInstaller[] installers = um.getInstallers();
+	  	    		
+	  	    		for ( UpdateInstaller installer: installers ){
+	  	    			
+	  	    			installer.destroy();
+	  	    		}
+	  	    	}catch( Throwable e ){
+	  	    	}
+	  	    	
 	  	    	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-	  	    	if (uiFunctions != null) {
+	  	    	
+	  	    	if ( uiFunctions != null ){
+	  	    		
 	  	    		uiFunctions.dispose(false, false);
 	  	    	}
 	  	    	

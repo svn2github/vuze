@@ -130,4 +130,7 @@ UpdateInstaller
 		UpdateInstallerListener		listener )
 	
 		throws UpdateException;
+	
+	public void
+	destroy();
 }
