@@ -130,10 +130,13 @@ PairingManagerImpl
 	private HyperlinkParameter	param_view;
 	
 	private BooleanParameter 	param_e_enable;
-	private StringParameter		param_ipv4;
-	private StringParameter		param_ipv6;
+	private StringParameter		param_public_ipv4;
+	private StringParameter		param_public_ipv6;
 	private StringParameter		param_host;
 	
+	private StringParameter		param_local_ipv4;
+	private StringParameter		param_local_ipv6;
+
 	private Map<String,PairedServiceImpl>		services = new HashMap<String, PairedServiceImpl>();
 	
 	private AESemaphore	init_sem = new AESemaphore( "PM:init" );
@@ -244,12 +247,18 @@ PairingManagerImpl
 		
 		param_e_enable = configModel.addBooleanParameter2( "pairing.explicit.enable", "pairing.explicit.enable", false );
 		
-		param_ipv4	= configModel.addStringParameter2( "pairing.ipv4", "pairing.ipv4", "" );
-		param_ipv6	= configModel.addStringParameter2( "pairing.ipv6", "pairing.ipv6", "" );
-		param_host	= configModel.addStringParameter2( "pairing.host", "pairing.host", "" );
+		param_public_ipv4	= configModel.addStringParameter2( "pairing.ipv4", "pairing.ipv4", "" );
+		param_public_ipv6	= configModel.addStringParameter2( "pairing.ipv6", "pairing.ipv6", "" );
+		param_host			= configModel.addStringParameter2( "pairing.host", "pairing.host", "" );
 		
-		param_ipv4.setGenerateIntermediateEvents( false );
-		param_ipv6.setGenerateIntermediateEvents( false );
+		LabelParameter spacer = configModel.addLabelParameter2( "blank.resource" );
+		
+		param_local_ipv4	= configModel.addStringParameter2( "pairing.local.ipv4", "pairing.local.ipv4", "" );
+		param_local_ipv6	= configModel.addStringParameter2( "pairing.local.ipv6", "pairing.local.ipv6", "" );
+
+		
+		param_public_ipv4.setGenerateIntermediateEvents( false );
+		param_public_ipv6.setGenerateIntermediateEvents( false );
 		param_host.setGenerateIntermediateEvents( false );
 		
 		ParameterListener change_listener = 
@@ -270,12 +279,16 @@ PairingManagerImpl
 			
 		param_enable.addListener( change_listener );
 		param_e_enable.addListener(	change_listener );
-		param_ipv4.addListener(	change_listener );
-		param_ipv6.addListener(	change_listener );
+		param_public_ipv4.addListener(	change_listener );
+		param_public_ipv6.addListener(	change_listener );
+		param_local_ipv4.addListener(	change_listener );
+		param_local_ipv6.addListener(	change_listener );
 		param_host.addListener(	change_listener );
 		
-		param_e_enable.addEnabledOnSelection( param_ipv4 );
-		param_e_enable.addEnabledOnSelection( param_ipv6 );
+		param_e_enable.addEnabledOnSelection( param_public_ipv4 );
+		param_e_enable.addEnabledOnSelection( param_public_ipv6 );
+		param_e_enable.addEnabledOnSelection( param_local_ipv4 );
+		param_e_enable.addEnabledOnSelection( param_local_ipv6 );
 		param_e_enable.addEnabledOnSelection( param_host );
 		
 		configModel.createGroup(
@@ -283,9 +296,12 @@ PairingManagerImpl
 			new Parameter[]{
 				param_e_info,
 				param_e_enable,
-				param_ipv4,	
-				param_ipv6,
+				param_public_ipv4,	
+				param_public_ipv6,
 				param_host,
+				spacer,
+				param_local_ipv4,	
+				param_local_ipv6,
 			});
 		
 		AzureusCoreFactory.addCoreRunningListener(
@@ -853,18 +869,32 @@ PairingManagerImpl
 						payload.put( "e_h", host );
 					}
 					
-					String v4 = param_ipv4.getValue().trim();
+					String v4 = param_public_ipv4.getValue().trim();
 					
 					if ( v4.length() > 0 ){
 						
 						payload.put( "e_v4", v4 );
 					}
 					
-					String v6 = param_ipv6.getValue().trim();
+					String v6 = param_public_ipv6.getValue().trim();
 					
 					if ( v6.length() > 0 ){
 						
-						payload.put( "e_v4", v6 );
+						payload.put( "e_v6", v6 );
+					}
+					
+					String l_v4 = param_local_ipv4.getValue().trim();
+					
+					if ( l_v4.length() > 0 ){
+						
+						payload.put( "e_l_v4", l_v4 );
+					}
+					
+					String l_v6 = param_local_ipv6.getValue().trim();
+					
+					if ( l_v6.length() > 0 ){
+						
+						payload.put( "e_l_v6", l_v6 );
 					}
 				}
 				
