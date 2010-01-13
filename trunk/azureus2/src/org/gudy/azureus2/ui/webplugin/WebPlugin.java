@@ -713,12 +713,42 @@ WebPlugin
 			// end config
 				
 		setupResources();
-		
 			
-		
 		setupAccess();
 												
 		setupServer();
+	}
+	
+	protected void
+	unloadPlugin()
+	{
+		if ( view_model != null ){
+		
+			view_model.destroy();
+		
+			view_model = null;
+		}
+		
+		if ( config_model != null ){
+			
+			config_model.destroy();
+			
+			config_model = null;
+		}
+	
+		if ( tracker_context != null ){
+			
+			tracker_context.destroy();
+			
+			tracker_context = null;
+		}
+		
+		if ( upnp_mapping != null ){
+			
+			upnp_mapping.destroy();
+			
+			upnp_mapping = null;
+		}
 	}
 	
 	private void
