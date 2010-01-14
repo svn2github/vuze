@@ -639,6 +639,11 @@ PlatformManagerImpl
 				
 				File backup = new File( local_options.getParentFile(), local_options.getName() + ".bak" );
 				
+				if ( backup.exists()){
+					
+					backup.delete();
+				}
+				
 				if ( !local_options.renameTo( backup )){
 				
 					throw( new Exception( "Failed to move " + local_options + " to " + backup ));
