@@ -330,22 +330,9 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		
 		String[] options = platform.getExplicitVMOptions();
 		
-		long	max_mem = -1;
+			// max mem
 		
-		for ( String option: options ){
-			
-			try{
-				if ( option.startsWith( "-Xmx" )){
-					
-					String	val = option.substring( 4 );
-					
-					max_mem = decodeJVMLong( val );
-				}
-			}catch( Throwable e ){
-					
-				Debug.out( "Failed to process option '" + option + "'", e );
-			}
-		}
+		long	max_mem = getJVMLongOption( options, "-Xmx" );
 		
 		final int MIN_MAX_JVM = 32*1024*1024;
 
@@ -356,7 +343,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 
 		gridData = new GridData();
 		gridData.widthHint = 125;
-		final StringParameter max_vm = new StringParameter(area, "_jvm.max.mem", "", false );
+		final StringParameter max_vm = new StringParameter(area, "jvm.max.mem", "", false );
 		max_vm.setLayoutData(gridData);
 			
 		max_vm.setValue( max_mem == -1?"":encodeDisplayLong( max_mem ));
@@ -371,6 +358,13 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 					Parameter	p,
 					boolean		caused_internally )
 				{
+					if ( max_vm.isDisposed()){
+						
+						max_vm.removeChangeListener( this );
+						
+						return;
+					}
+					
 					String val = max_vm.getValue();
 					
 					if ( last_value != null && last_value.equals( val )){
@@ -381,18 +375,123 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 					last_value = val;
 										
 					try{
-						long l_val = decodeDisplayLong( val );
+						long max_mem = decodeDisplayLong( val );
 						
-						if ( l_val < MIN_MAX_JVM ){
+						if ( max_mem < MIN_MAX_JVM ){
 							
-							throw( new Exception( "Min=" + encodeDisplayLong(MIN_MAX_JVM)));
+							throw( new Exception( "Min=" + encodeDisplayLong( MIN_MAX_JVM )));
 						}
+												
+						String[] options = platform.getExplicitVMOptions();
+						
+						options = setJVMLongOption( options, "-Xmx", max_mem );
+
+						long	min_mem = getJVMLongOption( options, "-Xms" );
+
+						if ( min_mem == -1 || min_mem > max_mem ){
+							
+							options = setJVMLongOption( options, "-Xms", max_mem );
+						}
+						
+						platform.setExplicitVMOptions( options );
 						
 						buildOptions( parent, platform, area, true );
 						
 					}catch( Throwable e ){
 						
-						String param_name =MessageText.getString( "jvm.max.mem" );
+						String param_name = MessageText.getString( "jvm.max.mem" );
+						
+						int	pos = param_name.indexOf( '[' );
+						
+						if ( pos != -1 ){
+							
+							param_name = param_name.substring( 0, pos ).trim();
+						}
+						
+						MessageBoxShell mb = 
+							new MessageBoxShell( 
+								SWT.ICON_ERROR | SWT.OK,
+								MessageText.getString( "ConfigView.section.invalid.value.title"),
+								MessageText.getString( 
+									"ConfigView.section.invalid.value", 
+									new String[]{ val, param_name, Debug.getNestedExceptionMessage(e)}));
+	  				
+								mb.setParent( parent.getShell());
+								mb.open(null);
+					}
+				}
+			});
+		
+			// min mem
+		
+		final int MIN_MIN_JVM = 8*1024*1024;
+
+		long	min_mem = getJVMLongOption( options, "-Xms" );
+
+		gridData = new GridData();
+		label = new Label(area, SWT.NULL);
+		label.setLayoutData(gridData);
+		Messages.setLanguageText(label,	"jvm.min.mem", new String[]{encodeDisplayLong(MIN_MIN_JVM)});
+
+		gridData = new GridData();
+		gridData.widthHint = 125;
+		final StringParameter min_vm = new StringParameter(area, "jvm.min.mem", "", false );
+		min_vm.setLayoutData(gridData);
+			
+		min_vm.setValue( min_mem == -1?"":encodeDisplayLong( min_mem ));
+		
+		min_vm.addChangeListener(
+			new ParameterChangeAdapter()
+			{
+				private String	last_value;
+				
+				public void
+				parameterChanged(
+					Parameter	p,
+					boolean		caused_internally )
+				{
+					if ( min_vm.isDisposed()){
+						
+						min_vm.removeChangeListener( this );
+						
+						return;
+					}
+					
+					String val = min_vm.getValue();
+					
+					if ( last_value != null && last_value.equals( val )){
+						
+						return;
+					}
+					
+					last_value = val;
+										
+					try{
+						long min_mem = decodeDisplayLong( val );
+						
+						if ( min_mem < MIN_MIN_JVM ){
+							
+							throw( new Exception( "Min=" + encodeDisplayLong( MIN_MIN_JVM )));
+						}
+												
+						String[] options = platform.getExplicitVMOptions();
+						
+						options = setJVMLongOption( options, "-Xms", min_mem );
+
+						long	max_mem = getJVMLongOption( options, "-Xmx" );
+
+						if ( max_mem == -1 || max_mem < min_mem ){
+							
+							options = setJVMLongOption( options, "-Xmx", min_mem );
+						}
+						
+						platform.setExplicitVMOptions( options );
+						
+						buildOptions( parent, platform, area, true );
+						
+					}catch( Throwable e ){
+						
+						String param_name = MessageText.getString( "jvm.min.mem" );
 						
 						int	pos = param_name.indexOf( '[' );
 						
@@ -428,6 +527,65 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			
 			parent.layout( true, true );
 		}
+	}
+	
+	private long
+	getJVMLongOption(
+		String[]	options,
+		String		prefix )
+	{		
+		long	value = -1;
+		
+		for ( String option: options ){
+			
+			try{
+				if ( option.startsWith( prefix )){
+					
+					String	val = option.substring( prefix.length());
+					
+					value = decodeJVMLong( val );
+				}
+			}catch( Throwable e ){
+					
+				Debug.out( "Failed to process option '" + option + "'", e );
+			}
+		}
+		
+		return( value );
+	}
+	
+	private String[]
+	setJVMLongOption(
+		String[]	options,
+		String		prefix,
+		long		val )
+	{
+		String new_option = prefix + encodeJVMLong( val );
+				
+		for (int i=0;i<options.length;i++){
+			
+			String option = options[i];
+			
+			if ( option.startsWith( prefix )){
+			
+				options[i] = new_option;
+				
+				new_option = null;
+			}
+		}
+		
+		if ( new_option != null ){
+		
+			String[] new_options = new String[options.length+1];
+		
+			System.arraycopy( options, 0, new_options, 0, options.length );
+			
+			new_options[options.length] = new_option;
+			
+			options = new_options;
+		}
+		
+		return( options );
 	}
 	
 	private String
@@ -555,5 +713,33 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		}
 		
 		return( Long.parseLong( val ) * mult );
+	}
+	
+	private String
+	encodeJVMLong(
+		long	val )
+	{
+		if ( val < 1024 ){
+			
+			return( String.valueOf( val ));
+		}
+		
+		val = val/1024;
+		
+		if ( val < 1024 ){
+			
+			return( String.valueOf( val ) + "k" );
+		}
+		
+		val = val/1024;
+		
+		if ( val < 1024 ){
+			
+			return( String.valueOf( val ) + "m" );
+		}
+		
+		val = val/1024;
+		
+		return( String.valueOf( val ) + "g" );
 	}
 }
