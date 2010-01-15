@@ -89,8 +89,8 @@ public class MessageSlideShell
 	private final static AEMonitor monitor = new AEMonitor("slidey_mon");
 
 	/** List of all popups ever created */
-	private static ArrayList historyList = new ArrayList();
-
+	private static ArrayList<PopupParams> historyList = new ArrayList<PopupParams>();
+	
 	/** Current popup being displayed */
 	private static int currentPopupIndex = -1;
 
@@ -195,7 +195,7 @@ public class MessageSlideShell
 
 			PopupParams popupParams = new PopupParams(iconID, title, text, details,
 					relatedObjects, timeoutSecs );
-			historyList.add(popupParams);
+			addToHistory(popupParams);
 			if (currentPopupIndex < 0) {
 				create(display, popupParams, true);
 			}
@@ -203,6 +203,20 @@ public class MessageSlideShell
 			Logger.log(new LogEvent(LogIDs.GUI, "Mr. Slidey Init", e));
 			disposeShell(shell);
 			Utils.disposeSWTObjects(disposeList);
+		} finally {
+			monitor.exit();
+		}
+	}
+
+	/**
+	 * @param popupParams
+	 *
+	 * @since 4.1.0.5
+	 */
+	private static void addToHistory(PopupParams popupParams) {
+		monitor.enter();
+		try {
+			historyList.add(popupParams);
 		} finally {
 			monitor.exit();
 		}
@@ -227,8 +241,7 @@ public class MessageSlideShell
 				if (!last_unread || msg_index == -1) {
 					msg_index = historyList.size() - 1;
 				}
-				new MessageSlideShell(display,
-						(PopupParams) historyList.get(msg_index), true);
+				new MessageSlideShell(display, historyList.get(msg_index), true);
 			}
 		});
 	}
@@ -241,7 +254,7 @@ public class MessageSlideShell
 			String details, Object[] relatedTo, int timeoutSecs ) {
 		try {
 			monitor.enter();
-			historyList.add(new PopupParams(iconID, title, text, details, relatedTo, timeoutSecs));
+			addToHistory(new PopupParams(iconID, title, text, details, relatedTo, timeoutSecs));
 			if (firstUnreadMessage == -1) {
 				firstUnreadMessage = historyList.size() - 1;
 			}
@@ -340,7 +353,9 @@ public class MessageSlideShell
 			// ignore
 		}
 		Utils.setShellIcon(shell);
-		shell.setText(popupParams.title);
+		if (popupParams.title != null) {
+			shell.setText(popupParams.title);
+		}
 
 		// Disable BG Image on OSX
 		if (imgPopup == null) {
@@ -399,20 +414,22 @@ public class MessageSlideShell
 		lblIcon.setImage(imgIcon);
 		lblIcon.setLayoutData(new GridData());
 
-		Label lblTitle = new Label(cShell, SWT.getVersion() < 3100 ? SWT.NONE
-				: SWT.WRAP);
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		if (SWT.getVersion() < 3100)
-			gridData.widthHint = 140;
-		lblTitle.setLayoutData(gridData);
-		lblTitle.setForeground(colorFG);
-		lblTitle.setText(popupParams.title);
-		FontData[] fontData = lblTitle.getFont().getFontData();
-		fontData[0].setStyle(SWT.BOLD);
-		fontData[0].setHeight((int) (fontData[0].getHeight() * 1.5));
-		Font boldFont = new Font(display, fontData);
-		disposeList.add(boldFont);
-		lblTitle.setFont(boldFont);
+		if (popupParams.title != null) {
+  		Label lblTitle = new Label(cShell, SWT.getVersion() < 3100 ? SWT.NONE
+  				: SWT.WRAP);
+  		gridData = new GridData(GridData.FILL_HORIZONTAL);
+  		if (SWT.getVersion() < 3100)
+  			gridData.widthHint = 140;
+  		lblTitle.setLayoutData(gridData);
+  		lblTitle.setForeground(colorFG);
+  		lblTitle.setText(popupParams.title);
+  		FontData[] fontData = lblTitle.getFont().getFontData();
+  		fontData[0].setStyle(SWT.BOLD);
+  		fontData[0].setHeight((int) (fontData[0].getHeight() * 1.5));
+  		Font boldFont = new Font(display, fontData);
+  		disposeList.add(boldFont);
+  		lblTitle.setFont(boldFont);
+		}
 
 		final Button btnDetails = new Button(cShell, SWT.TOGGLE);
 		btnDetails.setForeground(colorFG);
@@ -531,8 +548,7 @@ public class MessageSlideShell
 					System.out.println("Next Pressed");
 
 				if (idxHistory + 1 < historyList.size()) {
-					showPopup(display, (PopupParams) historyList.get(idxHistory + 1),
-							false);
+					showPopup(display, historyList.get(idxHistory + 1), false);
 				}
 
 				disposeShell(shell);
@@ -1038,7 +1054,7 @@ public class MessageSlideShell
 				// and that it has handled whether to show the next popup or not
 				if (shell != null && !shell.isDisposed()) {
 					if (idx + 1 < historyList.size()) {
-						showPopup(display, (PopupParams) historyList.get(idx + 1), true);
+						showPopup(display, historyList.get(idx + 1), true);
 					}
 
 					// slide out current popup
@@ -1077,21 +1093,21 @@ public class MessageSlideShell
 		}
 	}
 
-	private static class PopupParams
+	public static class PopupParams
 	{
-		int iconID;
+		public int iconID;
 
-		String title;
+		public String title;
 
-		String text;
+		public String text;
 
-		String details;
+		public String details;
 
-		long addedOn;
+		public long addedOn;
 
-		Object[] relatedTo;
+		public Object[] relatedTo;
 
-		int	timeoutSecs;
+		public int	timeoutSecs;
 		
 		/**
 		 * @param iconID

@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
+import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
@@ -45,6 +46,7 @@ import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.Alerts.AlertHistoryListener;
 import org.gudy.azureus2.ui.swt.progress.*;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
@@ -176,6 +178,8 @@ public class MainStatusBar
 	private long last_rec_data = - 1;
 
 	private long last_rec_prot;
+
+	private CLabelPadding statusWarnings;
 
 	/**
 	 * 
@@ -546,6 +550,44 @@ public class MainStatusBar
 			});
 		}
 
+		statusWarnings = new CLabelPadding(statusBar, borderFlag);
+		statusWarnings.setImage(imageLoader.getImage("image.sidebar.vitality.alert"));
+		updateStatusWarnings();
+		Messages.setLanguageText(statusWarnings,
+				"MainWindow.status.warning.tooltip");
+		Alerts.addMessageHistoryListener(new AlertHistoryListener() {
+			public void alertHistoryAdded(LogAlert params) {
+				updateStatusWarnings();
+			}
+			public void alertHistoryRemoved(LogAlert alert) {
+				updateStatusWarnings();
+			}
+		});
+		statusWarnings.addMouseListener(new MouseListener() {
+			public void mouseUp(MouseEvent e) {
+				if (SystemWarningWindow.numWarningWindowsOpen > 0) {
+					return;
+				}
+				ArrayList<LogAlert> alerts = Alerts.getUnviewedLogAlerts();
+				if (alerts.size() == 0) {
+					return;
+				}
+
+				Shell shell = statusWarnings.getShell();
+				Rectangle bounds = statusWarnings.getClientArea();
+				Point ptBottomRight = statusWarnings.toDisplay(bounds.x + bounds.width, bounds.y);
+				new SystemWarningWindow(alerts.get(0), ptBottomRight, shell, 0);
+			}
+			
+			public void mouseDown(MouseEvent e) {
+			}
+			
+			public void mouseDoubleClick(MouseEvent e) {
+			}
+		});
+		
+		/////////
+		
 		PRManager.addListener(new ProgressListener());
 		setProgressImage();
 		
@@ -570,6 +612,22 @@ public class MainStatusBar
 		statusBar.layout(true);
 
 		return statusBar;
+	}
+
+	protected void updateStatusWarnings() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (statusWarnings == null || statusWarnings.isDisposed()) {
+					return;
+				}
+				
+				ArrayList<LogAlert> alerts = Alerts.getUnviewedLogAlerts();
+				int count = alerts.size();
+				statusWarnings.setVisible(count > 0);
+				statusWarnings.setText("" + count);
+				statusWarnings.layoutNow();
+			}
+		});
 	}
 
 	private void addFeedBack() {
@@ -1235,6 +1293,11 @@ public class MainStatusBar
 					}
 				});
 			}
+		}
+		
+		public void layoutNow() {
+			widthSetOn = 0;
+			statusBar.layout();
 		}
 
 		/* (non-Javadoc)

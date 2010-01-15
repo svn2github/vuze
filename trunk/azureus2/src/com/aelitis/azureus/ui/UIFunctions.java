@@ -19,6 +19,7 @@
  */
 package com.aelitis.azureus.ui;
 
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
@@ -156,5 +157,8 @@ public interface UIFunctions
 		public void
 		actionComplete(
 			Object		result );
-	}		
+	}
+
+	void forceNotify(int iconID, String title, String text, String details,
+			Object[] relatedObjects, int timeoutSecs);		
 }

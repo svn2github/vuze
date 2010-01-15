@@ -145,7 +145,8 @@ UserAlerts
 					DownloadManager dm = file.getDownloadManager();
 				
 					if ( 	old_mode == DiskManagerFileInfo.WRITE &&
-							new_mode == DiskManagerFileInfo.READ ){
+							new_mode == DiskManagerFileInfo.READ &&
+							file.getDownloaded() == file.getLength()){
 						
 						if( dm == null || !dm.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
 
@@ -201,7 +202,11 @@ UserAlerts
 							String popup_text = MessageText.getString("popup.download.added",
 										new String[] { manager.getDisplayName()
 									});
-								Logger.log(new LogAlert(manager, true, LogAlert.AT_INFORMATION, popup_text));
+							UIFunctionsManager.getUIFunctions().forceNotify(
+									UIFunctions.STATUSICON_NONE, null, popup_text, null,
+									new Object[] {
+										manager
+									}, -1);
 						}
 					}
 				}
@@ -266,7 +271,11 @@ UserAlerts
   			
   			if (COConfigurationManager.getBooleanParameter(popup_enabler)) {
   				String popup_text = MessageText.getString(popup_def_text, new String[]{item_name});
-  				Logger.log(new LogAlert(relatedObject, true, LogAlert.AT_INFORMATION, popup_text));
+					UIFunctionsManager.getUIFunctions().forceNotify(
+							UIFunctions.STATUSICON_NONE, null, popup_text, null,
+							new Object[] {
+								relatedObject
+							}, -1);
   			}
 
             if(Constants.isOSX) { // OS X cannot concurrently use SWT and AWT

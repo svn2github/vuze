@@ -54,6 +54,8 @@ public class LogAlert implements org.gudy.azureus2.plugins.logging.LogAlert {
 		// -1 -> default
 	public int	timeoutSecs	= -1;
 	
+	public String details;
+	
 	/**
 	 * @param type
 	 * @param text

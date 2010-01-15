@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
@@ -408,9 +410,8 @@ public class ManagerUtils {
 							bDeleteData);
 				} catch (GlobalManagerDownloadRemovalVetoException f) {
 					if (!f.isSilent()) {
-						Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
-							dm
-						}, "globalmanager.download.remove.veto", f, 0 );
+						Logger.log(new LogAlert(dm, false,
+								"{globalmanager.download.remove.veto}", f));
 					}
 					if (deleteFailed != null) {
 						deleteFailed.runSupport();

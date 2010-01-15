@@ -415,43 +415,13 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 		// Auto-hide popup setting.
 		Label label = new Label(cArea, SWT.WRAP);
 		Messages.setLanguageText(label, LBLKEY_PREFIX + "popup.autohide");
-		label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
+		label.setLayoutData(new GridData());
 		IntParameter auto_hide_alert = new IntParameter(cArea,
 				"Message Popup Autoclose in Seconds", 0, 86400);
 		gridData = new GridData();
 		gridData.horizontalSpan = 1;
 		auto_hide_alert.setLayoutData(gridData);
 		
-		// Use popup boxes rather than Mr Slidey.
-		BooleanParameter use_popup_boxes = new BooleanParameter(cArea,
-				"Use Message Box For Popups", LBLKEY_PREFIX + "popup.use_message_boxes");
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		use_popup_boxes.setLayoutData(gridData);
-		
-		// Suppress alerts.
-		BooleanParameter suppress_alerts = new BooleanParameter(cArea,
-				"Suppress Alerts", LBLKEY_PREFIX + "popup.suppress_alerts");
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		suppress_alerts.setLayoutData(gridData);
-		
-		// Show alerts.
-		label = new Label(cArea, SWT.NULL);
-		Messages.setLanguageText(label, LBLKEY_PREFIX + "popup.show");
-		ButtonParameter show_alerts = new ButtonParameter(cArea, LBLKEY_PREFIX + "popup.show.button");
-		show_alerts.addChangeListener(new ParameterChangeAdapter() {
-			public void parameterChanged(Parameter p, boolean b) {
-				Display display = parent.getDisplay();
-				if (display.isDisposed()) {return;}
-				MessageSlideShell.displayLastMessage(display, true);
-			}
-		});
-		gridData = new GridData();
-		gridData.horizontalSpan = 1;
-		gridData.widthHint = 60;
-		show_alerts.setLayoutData(gridData);
-
 		return cSection;
 	}
 }

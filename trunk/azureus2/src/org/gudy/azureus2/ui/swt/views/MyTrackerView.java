@@ -39,6 +39,8 @@ import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.CategoryManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostListener;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
@@ -435,9 +437,8 @@ public class MyTrackerView
       		
       	}catch( TRHostTorrentRemovalVetoException f ){
       		
-      		Alerts.showErrorMessageBoxUsingResourceString(
-					new Object[] { torrent },
-      				"globalmanager.download.remove.veto", f, 0 );
+  				Logger.log(new LogAlert(torrent, false,
+  						"{globalmanager.download.remove.veto}", f));
       	}
       }
     });
