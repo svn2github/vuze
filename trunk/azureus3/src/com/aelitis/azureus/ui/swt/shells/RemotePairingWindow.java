@@ -309,15 +309,7 @@ public class RemotePairingWindow implements PairingManagerListener
 	// @see com.aelitis.azureus.core.pairing.PairingManagerListener#somethingChanged(com.aelitis.azureus.core.pairing.PairingManager)
 	public void somethingChanged(PairingManager pm) {
 		updateStatusText();
-		try {
-			accessCode = pairingManager.getAccessCode();
-		} catch (PairingException e) {
-			// ignore.. if error, lastErrorUpdates will trigger
-		}
-	}
-	
-	// @see com.aelitis.azureus.core.pairing.PairingManagerListener#lastErrorUpdated(com.aelitis.azureus.core.pairing.PairingManager)
-	public void lastErrorUpdated(PairingManager pm) {
-		updateStatusText();
+		
+		accessCode = pairingManager.peekAccessCode();
 	}
 }
