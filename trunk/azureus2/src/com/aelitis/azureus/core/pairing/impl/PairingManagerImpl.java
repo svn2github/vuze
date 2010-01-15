@@ -169,9 +169,10 @@ PairingManagerImpl
 	private long			last_update_time		= -1;
 	private int				consec_update_fails;
 	
-	private String			last_server_error;
 	private String			last_message;
 	
+	private Map<String,Object[]>	local_address_checks = new HashMap<String, Object[]>();
+
 	private CopyOnWriteList<PairingManagerListener>	listeners = new CopyOnWriteList<PairingManagerListener>();
 	
 	protected
@@ -390,9 +391,14 @@ PairingManagerImpl
 	setStatus(
 		String		str )
 	{
-		param_status_info.setValue( str );
+		String last_status = param_status_info.getValue();
 		
-		fireChanged();
+		if ( !last_status.equals( str )){
+			
+			param_status_info.setValue( str );
+		
+			fireChanged();
+		}
 	}
 	
 	public String
@@ -401,10 +407,36 @@ PairingManagerImpl
 		return( param_status_info.getValue());
 	}
 	
+	protected void
+	setLastServerError(
+		String	error )
+	{
+		String last_error = param_last_error.getValue();
+	
+		if ( error == null ){
+			
+			error = "";
+		}
+		
+		if ( !last_error.equals( error )){
+			
+			param_last_error.setValue( error );
+			
+			fireChanged();
+		}
+	}
+	
 	public String
 	getLastServerError()
 	{
-		return( last_server_error );
+		String last_error = param_last_error.getValue();
+
+		if ( last_error.length() == 0 ){
+			
+			last_error = null;
+		}
+		
+		return( last_error );
 	}
 
 	public boolean 
@@ -629,11 +661,7 @@ PairingManagerImpl
 		}
 		
 		return( current );
-	}
-	
-	
-	private Map<String,Object[]>	local_address_checks = new HashMap<String, Object[]>();
-	
+	}	
 	
 	protected void
 	updateGlobals(
@@ -1297,20 +1325,14 @@ PairingManagerImpl
 				throw( new PairingException( error ));
 			}
 			
-			last_server_error = null;
-			
-			param_last_error.setValue( "" );
-			
+			setLastServerError( null );
+						
 			return((Map<String,Object>)response.get( "rep" ));
 			
 		}catch( Throwable e ){
+						
+			setLastServerError( Debug.getNestedExceptionMessage( e ));
 			
-			last_server_error = Debug.getNestedExceptionMessage( e );
-			
-			param_last_error.setValue( last_server_error );
-			
-			fireChanged();
-
 			if ( e instanceof PairingException ){
 				
 				throw((PairingException)e);
