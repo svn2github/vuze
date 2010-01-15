@@ -28,8 +28,4 @@ PairingManagerListener
 	public void
 	somethingChanged(
 		PairingManager	pm );
-	
-	public void
-	lastErrorUpdated(
-		PairingManager pm );
 }

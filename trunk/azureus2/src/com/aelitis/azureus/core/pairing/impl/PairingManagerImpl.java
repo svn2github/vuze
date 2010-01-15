@@ -155,7 +155,7 @@ PairingManagerImpl
 	private boolean	update_outstanding;
 	private boolean	updates_enabled;
 
-	private static final int MIN_UPDATE_PERIOD_DEFAULT	= 60*1000;
+	private static final int MIN_UPDATE_PERIOD_DEFAULT	= 10*1000;
 	private static final int MAX_UPDATE_PERIOD_DEFAULT	= 60*60*1000;
 		
 	private int min_update_period	= MIN_UPDATE_PERIOD_DEFAULT;
@@ -1327,21 +1327,6 @@ PairingManagerImpl
 			
 			try{
 				l.somethingChanged( this );
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-			}
-		}
-	}
-		
-	protected void
-	fireErrorChanged()
-	{
-		for ( PairingManagerListener l: listeners ){
-			
-			try{
-				l.lastErrorUpdated( this );
 				
 			}catch( Throwable e ){
 				

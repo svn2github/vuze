@@ -534,11 +534,6 @@ WebPlugin
 						
 						setupPairing( p_sid, pairing_enable.getValue());
 					}
-					
-					public void 
-					lastErrorUpdated(
-						PairingManager pm) {
-					}
 				};
 				
 			pairing_listener.somethingChanged( pm );
