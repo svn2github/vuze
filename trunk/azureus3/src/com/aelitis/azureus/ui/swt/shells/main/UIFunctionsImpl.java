@@ -54,6 +54,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
@@ -897,5 +898,28 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#doSearch(java.lang.String)
 	public void doSearch(String searchText) {
 		mainWindow.doSearch(searchText);
+	}
+	
+	public void forceNotify(final int iconID, final String title, final String text,
+			final String details, final Object[] relatedObjects, final int timeoutSecs) {
+		
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				int swtIconID = SWT.ICON_INFORMATION;
+				switch (iconID) {
+					case STATUSICON_WARNING:
+						swtIconID = SWT.ICON_WARNING;
+						break;
+						
+					case STATUSICON_ERROR:
+						swtIconID = SWT.ICON_ERROR;
+						break;
+				}
+				
+				new MessageSlideShell(SWTThread.getInstance().getDisplay(), swtIconID,
+						title, text, details, relatedObjects, timeoutSecs);
+				
+			}
+		});
 	}
 }

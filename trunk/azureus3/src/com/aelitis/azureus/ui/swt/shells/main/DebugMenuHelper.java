@@ -5,10 +5,14 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
@@ -189,6 +193,25 @@ public class DebugMenuHelper
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				UIFunctionsManager.getUIFunctions().viewURL(ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("facebookshare.start", true), null, null);
+			}
+		});
+
+		item = new MenuItem(menuDebug, SWT.NONE);
+		item.setText("Alerts");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				String text = "This is a  long message with lots of information and "
+						+ "stuff you really should read.  Are you still reading? Good, because "
+						+ "reading <a href=\"http://moo.com\">stimulates</a> the mind.\n\nYeah Baby.";
+
+				LogAlert logAlert = new LogAlert(true, LogAlert.AT_INFORMATION, "Simple");
+				Logger.log(logAlert);
+				logAlert = new LogAlert(true, LogAlert.AT_WARNING, text);
+				logAlert.details = "Details: \n\n" + text;
+				Logger.log(logAlert);
+				logAlert = new LogAlert(true, LogAlert.AT_ERROR, "ShortText");
+				logAlert.details = "Details";
+				Logger.log(logAlert);
 			}
 		});
 		
