@@ -28,6 +28,8 @@ import java.net.HttpURLConnection;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -68,7 +70,6 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.components.LinkLabel;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -79,7 +80,6 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfac
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.pairing.*;
-import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -119,6 +119,8 @@ PairingManagerImpl
 	private static final int	GLOBAL_UPDATE_PERIOD	= 60*1000;
 	private static final int	CD_REFRESH_PERIOD		= 23*60*60*1000;
 	private static final int	CD_REFRESH_TICKS		= CD_REFRESH_PERIOD / GLOBAL_UPDATE_PERIOD;
+	
+	private static final int	CONNECT_TEST_PERIOD_MILLIS	= 30*60*1000;
 	
 	private AzureusCore	azureus_core;
 	
@@ -629,10 +631,16 @@ PairingManagerImpl
 		return( current );
 	}
 	
+	
+	private Map<String,Object[]>	local_address_checks = new HashMap<String, Object[]>();
+	
+	
 	protected void
 	updateGlobals(
 		boolean	is_updating )	
 	{
+		final long now = SystemTime.getMonotonousTime();
+		
 		synchronized( this ){
 						
 			NetworkAdmin network_admin = NetworkAdmin.getSingleton();
@@ -645,10 +653,14 @@ PairingManagerImpl
 	
 			InetAddress temp_v6 = updateAddress( current_v6, latest_v6, true );
 			
-			TreeSet<String>	latest_v4_locals = new TreeSet<String>();
-			TreeSet<String>	latest_v6_locals = new TreeSet<String>();
+			final TreeSet<String>	latest_v4_locals = new TreeSet<String>();
+			final TreeSet<String>	latest_v6_locals = new TreeSet<String>();
 			
 			NetworkAdminNetworkInterface[] interfaces = network_admin.getInterfaces();
+			
+			List<Runnable>	to_do = new ArrayList<Runnable>();
+			
+			Set<String> existing_checked = new HashSet<String>( local_address_checks.keySet());
 			
 			for ( NetworkAdminNetworkInterface intf: interfaces ){
 				
@@ -656,7 +668,7 @@ PairingManagerImpl
 				
 				for ( NetworkAdminNetworkInterfaceAddress address: addresses ){
 					
-					InetAddress ia = address.getAddress();
+					final InetAddress ia = address.getAddress();
 					
 					if ( ia.isLoopbackAddress()){
 						
@@ -665,16 +677,112 @@ PairingManagerImpl
 					
 					if ( ia.isLinkLocalAddress() || ia.isSiteLocalAddress()){
 						
-						if ( ia instanceof Inet4Address ){
-							
-							latest_v4_locals.add( ia.getHostAddress());
+						final String a_str = ia.getHostAddress();
+						
+						existing_checked.remove( a_str );
+						
+						Object[] check;
+						
+						synchronized( local_address_checks ){
+						
+							check = local_address_checks.get( a_str );
+						}
+						
+						boolean run_check = check == null || now - ((Long)check[0]) > CONNECT_TEST_PERIOD_MILLIS;
+						
+						if ( run_check ){
+						
+							to_do.add(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										Socket socket = new Socket();
+										
+										String	result = a_str;
+										
+										try{
+											socket.bind( new InetSocketAddress( ia, 0 ));
+																								
+											socket.connect(  new InetSocketAddress( "www.google.com", 80 ), 10*1000 );
+											
+											result += "*";
+											
+										}catch( Throwable e ){
+											
+										}finally{
+											try{
+												socket.close();
+											}catch( Throwable e ){
+											}
+											
+										}
+										
+										synchronized( local_address_checks ){
+											
+											local_address_checks.put( a_str, new Object[]{ new Long(now), result });
+											
+											if ( ia instanceof Inet4Address ){
+												
+												latest_v4_locals.add( result );
+												
+											}else{
+												
+												latest_v6_locals.add( result );
+											}
+										}
+									}
+								});
 							
 						}else{
 							
-							latest_v6_locals.add( ia.getHostAddress());
+							synchronized( local_address_checks ){
+						
+								if ( ia instanceof Inet4Address ){
+								
+									latest_v4_locals.add((String)check[1]);
+									
+								}else{
+									
+									latest_v6_locals.add((String)check[1]);
+								}
+							}
 						}
 					}
 				}
+			}
+			
+			if ( to_do.size() > 0 ){
+				
+				final AESemaphore	sem = new AESemaphore( "PM:check" );
+				
+				for ( final Runnable r: to_do ){
+					
+					new AEThread2( "PM:check:", true )
+					{
+						public void
+						run()
+						{
+							try{
+								r.run();
+							}finally{
+								
+								sem.release();
+							}
+						}
+					}.start();
+				}
+				
+				for (int i=0;i<to_do.size();i++){
+					
+					sem.reserve();
+				}
+			}
+			
+			for ( String excess: existing_checked ){
+				
+				local_address_checks.remove( excess );
 			}
 			
 			String v4_locals_str = getString( latest_v4_locals );
