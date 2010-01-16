@@ -45,48 +45,50 @@ PasswordParameterImpl
 	public 
 	PasswordParameterImpl(
 		PluginConfigImpl 	config,
-		String 			key, 
-		String 			label,
-		int				_encoding_type,
-		byte[] 			_defaultValue)
+		String 				key, 
+		String 				label,
+		int					_encoding_type,
+		byte[] 				_default_value)
 	{ 
 		super(config,key, label);
 		
-		if ( _defaultValue == null ){
+		encoding_type	= _encoding_type;
+		
+		if ( _default_value == null ){
 			
 			defaultValue = new byte[0];
 			
 		}else{
 			
-			defaultValue = _defaultValue;
-
-			if ( _encoding_type == ET_SHA1 ){
-				
-		        SHA1Hasher hasher = new SHA1Hasher();
-		        
-		        defaultValue = hasher.calculateHash(defaultValue);
-		        
-			}else if ( _encoding_type == ET_MD5 ){
-				
-				try{
-					defaultValue = MessageDigest.getInstance( "md5").digest( defaultValue );
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
-			}
+			defaultValue = encode( _default_value );
 		}
 	
 		config.notifyParamExists(getKey());
+		
 		COConfigurationManager.setByteDefault( getKey(), defaultValue );
-
-		encoding_type	= _encoding_type;
 	}
 	
 	public byte[] getDefaultValue()
 	{
-		return defaultValue;
+		return( defaultValue );
+	}
+	
+	public void
+	setValue(
+		String	plain_password )
+	{
+		byte[] encoded;
+		
+		if ( plain_password == null || plain_password.length() == 0){
+		
+			encoded = new byte[0];
+			
+		}else{
+			
+			encoded = encode( plain_password );
+		}
+		
+		config.setUnsafeByteParameter( getKey(), encoded );
 	}
 	
 	public int
@@ -99,5 +101,47 @@ PasswordParameterImpl
 	getValue()
 	{
 		return config.getUnsafeByteParameter(getKey(), getDefaultValue());
+	}
+	
+	protected byte[]
+   	encode(
+   		String		str )
+   	{
+		// bit of a mess here as all other than md5 use default char set whereas md5 uses utf-8
+		
+		try{
+		
+			return( encode( encoding_type == ET_MD5?str.getBytes( "UTF-8" ):str.getBytes()));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( null );
+		}
+   	}
+	
+	protected byte[]
+	encode(
+		byte[]		bytes )
+	{
+		if ( encoding_type == ET_SHA1 ){
+			
+	        SHA1Hasher hasher = new SHA1Hasher();
+	        
+	        return( hasher.calculateHash( bytes ));
+	        
+		}else if ( encoding_type == ET_MD5 ){
+			
+			try{
+				return( MessageDigest.getInstance( "md5" ).digest( bytes ));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		return( bytes );
 	}
 }

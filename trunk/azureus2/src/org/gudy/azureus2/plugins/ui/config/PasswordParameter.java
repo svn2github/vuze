@@ -40,4 +40,8 @@ PasswordParameter
 	
 	public byte[]
 	getValue();
+	
+	public void
+	setValue(
+		String	plain_password );
 }

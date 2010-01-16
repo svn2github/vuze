@@ -494,7 +494,7 @@ WebPlugin
 
 			connection_test = config_model.addHyperlinkParameter2( "webui.connectiontest", getConnectionTestURL( p_sid ));
 
-			pairing_test = config_model.addHyperlinkParameter2( "webui.pairingtest", "http://remote.vuze.com/pairing/?sid=" + p_sid );
+			pairing_test = config_model.addHyperlinkParameter2( "webui.pairingtest", "http://remote.vuze.com/?sid=" + p_sid );
 
 			pairing_enable.addListener(
 				new ParameterListener()
@@ -1247,6 +1247,22 @@ WebPlugin
 		return( param_protocol.getValue());
 	}
 	
+	public void
+	setUserAndPassword(
+		String		user,
+		String		password )
+	{
+		p_user_name.setValue( user );
+		p_password.setValue( password );
+		pw_enable.setValue( true );
+	}
+	
+	public void
+	unsetUserAndPassword()
+	{
+		pw_enable.setValue( false );
+	}
+			
 	public boolean
 	generateSupport(
 		TrackerWebPageRequest		request,
