@@ -53,4 +53,18 @@ public interface SWTSkinObjectText
 	 * @since 4.1.0.5
 	 */
 	public String getText();
+
+	/**
+	 * @param l
+	 *
+	 * @since 4.2.0.7
+	 */
+	void addUrlClickedListener(SWTSkinObjectText_UrlClickedListener l);
+
+	/**
+	 * @param l
+	 *
+	 * @since 4.2.0.7
+	 */
+	void removeUrlClickedListener(SWTSkinObjectText_UrlClickedListener l);
 }

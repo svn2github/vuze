@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.skin;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
@@ -86,6 +87,8 @@ public class SWTSkinObjectText2
 	private Color colorUrl;
 
 	private int alpha = 255;
+	
+	private java.util.List<SWTSkinObjectText_UrlClickedListener> listUrlClickedListeners = new ArrayList<SWTSkinObjectText_UrlClickedListener>();
 
 	public SWTSkinObjectText2(SWTSkin skin,
 			final SWTSkinProperties skinProperties, String sID,
@@ -235,6 +238,14 @@ public class SWTSkinObjectText2
 				if (lastStringPrinter != null) {
 					URLInfo hitUrl = lastStringPrinter.getHitUrl(e.x, e.y);
 					if (hitUrl != null) {
+						
+						SWTSkinObjectText_UrlClickedListener[] listeners = listUrlClickedListeners.toArray(new SWTSkinObjectText_UrlClickedListener[0]);
+						for (SWTSkinObjectText_UrlClickedListener l : listeners) {
+							if (l.urlClicked(hitUrl)) {
+								return;
+							}
+						}
+
 						String url = hitUrl.url;
 						try {
   						ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL(url);
@@ -502,6 +513,8 @@ public class SWTSkinObjectText2
 				: sText;
 		this.sKey = null;
 		bIsTextDefault = false;
+
+		lastStringPrinter = null;
 		// Doing execSWTThreadLater delays the relayout for too long at skin startup
 		// Since there are a lot of async execs at skin startup, we generally
 		// see the window a second or two before this async call would get called
@@ -512,6 +525,9 @@ public class SWTSkinObjectText2
 					canvas.redraw();
 					if (relayoutOnTextChange) {
 						Utils.relayout(canvas);
+					}
+					if (lastStringPrinter == null) {
+						canvas.setCursor(canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 					}
 				}
 			}
@@ -655,5 +671,13 @@ public class SWTSkinObjectText2
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText#getText()
 	public String getText() {
 		return sDisplayText;
+	}
+	
+	public void addUrlClickedListener(SWTSkinObjectText_UrlClickedListener l) {
+		listUrlClickedListeners.add(l);
+	}
+	
+	public void removeUrlClickedListener(SWTSkinObjectText_UrlClickedListener l) {
+		listUrlClickedListeners.remove(l);
 	}
 }

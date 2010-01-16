@@ -354,4 +354,16 @@ public class SWTSkinObjectText1
 	public String getText() {
 		return sText;
 	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText#addUrlClickedListener(com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText_UrlClickedListener)
+	public void addUrlClickedListener(SWTSkinObjectText_UrlClickedListener l) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText#removeUrlClickedListener(com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText_UrlClickedListener)
+	public void removeUrlClickedListener(SWTSkinObjectText_UrlClickedListener l) {
+		// TODO Auto-generated method stub
+		
+	}
 }
