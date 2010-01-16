@@ -444,7 +444,12 @@ PairingManagerImpl
 	{
 		synchronized( this ){
 			
-			return( update_outstanding || deferred_update_event != null );
+			if ( !isEnabled()){
+				
+				return( false );
+			}
+			
+			return( !updates_enabled || update_outstanding || deferred_update_event != null );
 		}
 	}
 	
