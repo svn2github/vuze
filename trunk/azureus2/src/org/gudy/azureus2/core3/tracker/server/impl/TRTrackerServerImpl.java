@@ -467,6 +467,7 @@ TRTrackerServerImpl
 	
 	public boolean
 	performExternalAuthorisation(
+		String		headers,
 		URL			resource,
 		String		user,
 		String		password )
@@ -475,7 +476,7 @@ TRTrackerServerImpl
 			
 			try{
 				
-				if ( ((TRTrackerServerAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user, password )){
+				if ( ((TRTrackerServerAuthenticationListener)auth_listeners.get(i)).authenticate( headers, resource, user, password )){
 					
 					return( true );
 				}

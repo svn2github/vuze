@@ -840,7 +840,7 @@ TRTrackerServerProcessorTCP
 						
 						URL	resource = new URL( resource_str );
 					
-						if ( server.performExternalAuthorisation( resource, "", "" )){
+						if ( server.performExternalAuthorisation( header, resource, "", "" )){
 							
 							return( "" );
 						}
@@ -878,7 +878,7 @@ TRTrackerServerProcessorTCP
 						
 						URL	resource = new URL( resource_str );
 					
-						if ( server.performExternalAuthorisation( resource, user, pw )){
+						if ( server.performExternalAuthorisation( header, resource, user, pw )){
 							
 							return( user );
 						}

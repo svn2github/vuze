@@ -34,6 +34,7 @@ TRHostAuthenticationListener
 {
 	public boolean
 	authenticate(
+		String		headers,
 		URL			resource,
 		String		user,
 		String		password );

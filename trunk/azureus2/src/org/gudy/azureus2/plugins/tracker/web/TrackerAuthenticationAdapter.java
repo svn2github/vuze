@@ -42,6 +42,24 @@ TrackerAuthenticationAdapter
 		return( false );
 	}
 
+		/**
+		 * Hack to support header-based auth - not included in listener for compatibility reasons
+		 * @param headers
+		 * @param resource
+		 * @param user
+		 * @param password
+		 * @return
+		 */
+	
+	public boolean
+	authenticate(
+		String		headers,
+		URL			resource,
+		String		user,
+		String		password )
+	{
+		return( authenticate( resource, user, password ));
+	}
 	
 	public byte[]
 	authenticate(

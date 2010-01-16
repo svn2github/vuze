@@ -43,7 +43,7 @@ TrackerWebContextImpl
 {
 	protected TRTrackerServer		server;
 	
-	protected List					auth_listeners	= new ArrayList();
+	protected List<TrackerAuthenticationListener>			auth_listeners	= new ArrayList<TrackerAuthenticationListener>();
 	
 	public 
 	TrackerWebContextImpl(
@@ -123,6 +123,7 @@ TrackerWebContextImpl
 	
 	public boolean
 	authenticate(
+		String		headers,
 		URL			resource,
 		String		user,
 		String		password )
@@ -130,7 +131,18 @@ TrackerWebContextImpl
 		for (int i=0;i<auth_listeners.size();i++){
 			
 			try{
-				boolean res = ((TrackerAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user, password );
+				TrackerAuthenticationListener listener = auth_listeners.get(i);
+				
+				boolean res;
+				
+				if ( listener instanceof TrackerAuthenticationAdapter ){
+					
+					res = ((TrackerAuthenticationAdapter)listener).authenticate( headers, resource, user, password );
+					
+				}else{
+					
+					res = listener.authenticate( resource, user, password );
+				}
 				
 				if ( res ){
 					

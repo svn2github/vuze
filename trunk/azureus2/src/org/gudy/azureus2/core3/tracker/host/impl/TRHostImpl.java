@@ -1224,6 +1224,7 @@ TRHostImpl
 	
 	public boolean
 	authenticate(
+		String		headers,
 		URL			resource,
 		String		user,
 		String		password )
@@ -1231,7 +1232,7 @@ TRHostImpl
 		for (int i=0;i<auth_listeners.size();i++){
 			
 			try{
-				boolean res = auth_listeners.get(i).authenticate( resource, user, password );
+				boolean res = auth_listeners.get(i).authenticate( headers, resource, user, password );
 				
 				if ( res ){
 					

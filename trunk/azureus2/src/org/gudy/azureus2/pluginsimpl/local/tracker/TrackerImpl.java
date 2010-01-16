@@ -51,7 +51,7 @@ TrackerImpl
 	
 	private TRHost		host;
 	
-	private List	auth_listeners	= new ArrayList();
+	private List<TrackerAuthenticationListener>	auth_listeners	= new ArrayList<TrackerAuthenticationListener>();
 	
 	
 	public static Tracker
@@ -310,6 +310,7 @@ TrackerImpl
 	
 	public boolean
 	authenticate(
+		String		headers,
 		URL			resource,
 		String		user,
 		String		password )
@@ -317,7 +318,18 @@ TrackerImpl
 		for (int i=0;i<auth_listeners.size();i++){
 			
 			try{
-				boolean res = ((TrackerAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user, password );
+				TrackerAuthenticationListener listener = auth_listeners.get(i);
+				
+				boolean res;
+				
+				if ( listener instanceof TrackerAuthenticationAdapter ){
+					
+					res = ((TrackerAuthenticationAdapter)listener).authenticate( headers, resource, user, password );
+					
+				}else{
+					
+					res = listener.authenticate( resource, user, password );
+				}
 				
 				if ( res ){
 					
