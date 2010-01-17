@@ -69,6 +69,7 @@ WebPlugin
 	
 	public static final String	PROPERTIES_MIGRATED		= "Properties Migrated";
 	public static final String	CONFIG_MIGRATED			= "Config Migrated";
+	public static final String	PAIRING_MIGRATED		= "Pairing Migrated";
 	
 	public static final String	CONFIG_PASSWORD_ENABLE			= "Password Enable";
 	public static final boolean	CONFIG_PASSWORD_ENABLE_DEFAULT	= false;
@@ -508,7 +509,21 @@ WebPlugin
 			pairing_info = config_model.addLabelParameter2( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
 				
 			pairing_enable = config_model.addBooleanParameter2( CONFIG_PAIRING_ENABLE, "webui.pairingenable", CONFIG_PAIRING_ENABLE_DEFAULT );
-
+			
+			if ( !plugin_config.getPluginBooleanParameter( PAIRING_MIGRATED, false )){
+			
+					// if they already have a password, don't override it by setting auto-auth
+				
+				boolean	has_pw_enabled = plugin_config.getPluginBooleanParameter( CONFIG_PASSWORD_ENABLE, CONFIG_PASSWORD_ENABLE_DEFAULT );
+				
+				if ( has_pw_enabled ){
+					
+					plugin_config.setPluginParameter( CONFIG_PAIRING_AUTO_AUTH, false );
+				}
+				
+				plugin_config.setPluginParameter( PAIRING_MIGRATED, true );
+			}
+			
 			param_auto_auth = config_model.addBooleanParameter2( CONFIG_PAIRING_AUTO_AUTH, "webui.pairing.autoauth", CONFIG_PAIRING_AUTO_AUTH_DEFAULT );
 			
 			param_auto_auth.addListener(
