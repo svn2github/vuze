@@ -540,9 +540,15 @@ WebPlugin
 		}
 			
 		config_model.createGroup(
+				"ConfigView.section.Pairing",
+				new Parameter[]{
+					pairing_info, pairing_enable, param_auto_auth, connection_test, pairing_test,
+				});
+		
+		config_model.createGroup(
 			"ConfigView.section.server",
 			new Parameter[]{
-				param_port, param_bind, param_protocol, p_upnp_enable, pairing_info, pairing_enable, param_auto_auth, connection_test, pairing_test,
+				param_port, param_bind, param_protocol, p_upnp_enable,
 			});
 		
 		param_home 		= config_model.addStringParameter2(	CONFIG_HOME_PAGE, "webui.homepage", CONFIG_HOME_PAGE_DEFAULT );
