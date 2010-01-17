@@ -1382,6 +1382,11 @@ WebPlugin
 						
 						p_password.setValue( pairing_access_code );
 					}
+					
+					if ( !pw_enable.getValue()){
+						
+						pw_enable.setValue( true );
+					}
 				}finally{
 					
 					setting_auto_auth = false;
