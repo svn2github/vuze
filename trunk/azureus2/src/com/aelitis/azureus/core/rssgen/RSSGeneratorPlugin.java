@@ -182,7 +182,7 @@ RSSGeneratorPlugin
 			url = url.substring( 1 );
 		}
 	
-		if ( url.length() == 0 ){
+		if ( url.length() == 0 || url.charAt(0) == '?' ){
 			
 			response.setContentType( "text/html; charset=UTF-8" );
 			
