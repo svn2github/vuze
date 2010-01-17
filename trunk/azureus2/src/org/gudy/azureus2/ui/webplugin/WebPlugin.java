@@ -148,6 +148,7 @@ WebPlugin
 	private BooleanParameter		param_auto_auth;
 	private boolean					setting_auto_auth;
 	private String					pairing_access_code;
+	private String					pairing_session_code;
 	
 	private boolean				plugin_enabled;
 	
@@ -166,6 +167,16 @@ WebPlugin
 	
 	private Properties	properties;
 	
+	private static ThreadLocal<String>		tls	= 
+		new ThreadLocal<String>()
+		{
+			public String
+			initialValue()
+			{
+				return( null );
+			}
+		};
+		
 	public 
 	WebPlugin()
 	{
@@ -518,72 +529,7 @@ WebPlugin
 
 			pairing_test = config_model.addHyperlinkParameter2( "webui.pairingtest", "http://remote.vuze.com/?sid=" + p_sid );
 
-			pairing_enable.addListener(
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-						Parameter param ) 
-					{
-						boolean enabled = pairing_enable.getValue();
-						
-						param_auto_auth.setEnabled( pm.isEnabled() && enabled );
-						
-						boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
-
-						pairing_test.setEnabled( test_ok );
-						connection_test.setEnabled( test_ok );
-
-						setupPairing( p_sid, enabled );
-					}
-				});
-						
-			pairing_listener = 
-				new PairingManagerListener()
-				{
-					public void 
-					somethingChanged(
-						PairingManager pm ) 
-					{
-						pairing_info.setLabelKey( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
-	
-						pairing_enable.setEnabled( pm.isEnabled());
-							
-						param_auto_auth.setEnabled( pm.isEnabled() && pairing_enable.getValue() );
-						
-						boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
-						
-						pairing_test.setEnabled( test_ok );
-						connection_test.setEnabled( test_ok );
-						
-						connection_test.setHyperlink( getConnectionTestURL( p_sid ));
-												
-						setupPairing( p_sid, pairing_enable.getValue());
-					}
-				};
-				
-			pairing_listener.somethingChanged( pm );
-			
-			pm.addListener( pairing_listener );
-
-			setupPairing( p_sid, pairing_enable.getValue());
-			
-			ParameterListener update_pairing_listener = 
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-						Parameter param ) 
-					{
-						updatePairing( p_sid );
-						
-						setupUPnP();
-					}
-				};
-				
-			param_port.addListener( update_pairing_listener );
-			
-			param_protocol.addListener( update_pairing_listener );
+				// listeners setup later as they depend on userame params etc
 			
 		}else{
 			pairing_info	= null;
@@ -702,6 +648,78 @@ WebPlugin
 				pw_enable, p_user_name, p_password,
 			});
 			    
+		if ( p_sid != null ){
+			
+			final PairingManager pm = PairingManagerFactory.getSingleton();
+
+			pairing_enable.addListener(
+					new ParameterListener()
+					{
+						public void 
+						parameterChanged(
+							Parameter param ) 
+						{
+							boolean enabled = pairing_enable.getValue();
+							
+							param_auto_auth.setEnabled( pm.isEnabled() && enabled );
+							
+							boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
+
+							pairing_test.setEnabled( test_ok );
+							connection_test.setEnabled( test_ok );
+
+							setupPairing( p_sid, enabled );
+						}
+					});
+							
+			pairing_listener = 
+				new PairingManagerListener()
+				{
+					public void 
+					somethingChanged(
+						PairingManager pm ) 
+					{
+						pairing_info.setLabelKey( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
+	
+						pairing_enable.setEnabled( pm.isEnabled());
+							
+						param_auto_auth.setEnabled( pm.isEnabled() && pairing_enable.getValue() );
+						
+						boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
+						
+						pairing_test.setEnabled( test_ok );
+						connection_test.setEnabled( test_ok );
+						
+						connection_test.setHyperlink( getConnectionTestURL( p_sid ));
+												
+						setupPairing( p_sid, pairing_enable.getValue());
+					}
+				};
+				
+			pairing_listener.somethingChanged( pm );
+			
+			pm.addListener( pairing_listener );
+
+			setupPairing( p_sid, pairing_enable.getValue());
+			
+			ParameterListener update_pairing_listener = 
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param ) 
+					{
+						updatePairing( p_sid );
+						
+						setupUPnP();
+					}
+				};
+				
+			param_port.addListener( update_pairing_listener );
+			
+			param_protocol.addListener( update_pairing_listener );
+		}
+		
 		if ( param_enable != null ){
 						
 			final List<Parameter> changed_params = new ArrayList<Parameter>();
@@ -1140,7 +1158,34 @@ WebPlugin
 								result = Arrays.equals( hash, p_password.getValue());
 							}
 							
-							if ( !result ){
+							if ( !result && param_auto_auth.getValue() && pairing_access_code != null ){
+								
+									// either the ac is in the url or we have a cookie set
+								
+								String query = resource.getQuery();
+								
+								if ( query != null ){
+									
+									int p1 = query.indexOf( "vuze_pairing_ac=" );
+									
+									if ( p1 != -1 ){
+										
+										int p2 = query.indexOf( '&', p1 );
+										
+										String ac = query.substring( p1+16, p2==-1?query.length():p2 ).trim();
+										
+										if ( ac.equalsIgnoreCase( pairing_access_code )){
+									
+											tls.set( pairing_session_code );
+											
+											return( true );
+											
+										}else{
+											
+											return( false );
+										}
+									}
+								}
 								
 								String lc_headers = headers.toLowerCase();
 								
@@ -1152,18 +1197,33 @@ WebPlugin
 									
 									if ( p2 != -1 ){
 										
-										String	cookie = headers.substring( p1+7, p2 ).trim();
+										String	cookies = headers.substring( p1+7, p2 ).trim();
 										
-										System.out.println( cookie );
+										String[] cookie_list = cookies.split( ";" );
+																				
+										for ( String cookie: cookie_list ){
+											
+											String[] bits = cookie.split( "=" );
+											
+											if ( bits.length == 2 ){
+												
+												if ( bits[0].trim().equals( "vuze_pairing_sc" )){
+													
+													if ( bits[1].trim().equals( pairing_session_code )){
+														
+														result = true;
+														
+														break;
+													}
+												}
+											}
+										}
 									}
 								}
-								
-									// TODO!
-								
-								//result = true;
 							}
 							
 							return( result );
+							
 						}finally{
 							
 							this_mon.exit();
@@ -1274,7 +1334,8 @@ WebPlugin
 			}
 		}else{
 			
-			pairing_access_code = null;
+			pairing_access_code 	= null;
+			pairing_session_code	= null;
 			
 			if ( service != null ){
 				
@@ -1290,7 +1351,14 @@ WebPlugin
 	{
 		PairingManager pm = PairingManagerFactory.getSingleton();
 
-		pairing_access_code = pm.peekAccessCode();
+		String ac = pm.peekAccessCode();
+		
+		if ( ac != null && ( pairing_access_code == null || !ac.equals( pairing_access_code ))){
+			
+			pairing_session_code = Base32.encode( RandomUtils.nextSecureHash());
+		}
+		
+		pairing_access_code = ac;
 		
 			// good time to check the default pairing auth settings
 		
@@ -1461,9 +1529,16 @@ WebPlugin
 			System.out.println( "WebPlugin::generate:" + url );
 		}
 	
-			// set session cookie
+		String	cookie_to_set = tls.get();
 		
-		response.setHeader( "Set-Cookie", "vuze_pairing_sc=1234" );
+		if ( cookie_to_set != null ){
+			
+				// set session cookie
+		
+			response.setHeader( "Set-Cookie", "vuze_pairing_sc=" + cookie_to_set );
+			
+			tls.set( null );
+		}
 		
 		if ( generateSupport( request, response )){
 			
