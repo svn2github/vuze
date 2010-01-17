@@ -76,6 +76,10 @@ WebPlugin
 	public static final String	CONFIG_PAIRING_ENABLE			= "Pairing Enable";
 	public static final boolean	CONFIG_PAIRING_ENABLE_DEFAULT	= true;
 
+	public static final String	CONFIG_PAIRING_AUTO_AUTH			= "Pairing Auto Auth";
+	public static final boolean	CONFIG_PAIRING_AUTO_AUTH_DEFAULT	= true;
+
+	
 	public static final String	CONFIG_ENABLE					= PR_ENABLE;
 	public  			boolean	CONFIG_ENABLE_DEFAULT			= true;
 	
@@ -121,6 +125,7 @@ WebPlugin
 	protected PluginInterface			plugin_interface;	// unfortunately this is accessed by webui - fix sometime
 	
 	private LoggerChannel			log;
+	private PluginConfig			plugin_config;
 	private BasicPluginViewModel 	view_model;
 	private BasicPluginConfigModel	config_model;
 	
@@ -139,6 +144,10 @@ WebPlugin
 	private BooleanParameter		pw_enable;
 	private StringParameter			p_user_name;
 	private PasswordParameter		p_password;
+	
+	private BooleanParameter		param_auto_auth;
+	private boolean					setting_auto_auth;
+	private String					pairing_access_code;
 	
 	private boolean				plugin_enabled;
 	
@@ -178,6 +187,8 @@ WebPlugin
 	{	
 		plugin_interface	= _plugin_interface;
 		
+		plugin_config = plugin_interface.getPluginconfig();
+
 		Boolean	pr_enable = (Boolean)properties.get(PR_ENABLE);
 		
 		if ( pr_enable != null ){
@@ -266,7 +277,6 @@ WebPlugin
 				}
 			});
 		
-		PluginConfig	plugin_config = plugin_interface.getPluginconfig();
 		
 		config_model = (BasicPluginConfigModel)properties.get( PR_CONFIG_MODEL );
 		
@@ -486,12 +496,24 @@ WebPlugin
 
 			pairing_info = config_model.addLabelParameter2( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
 				
-			pairing_enable = 
-				config_model.addBooleanParameter2( 
-						CONFIG_PAIRING_ENABLE, 
-								"webui.pairingenable",
-								CONFIG_PAIRING_ENABLE_DEFAULT );
+			pairing_enable = config_model.addBooleanParameter2( CONFIG_PAIRING_ENABLE, "webui.pairingenable", CONFIG_PAIRING_ENABLE_DEFAULT );
 
+			param_auto_auth = config_model.addBooleanParameter2( CONFIG_PAIRING_AUTO_AUTH, "webui.pairing.autoauth", CONFIG_PAIRING_AUTO_AUTH_DEFAULT );
+			
+			param_auto_auth.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param ) 
+					{
+						if ( pairing_enable.getValue() && pm.isEnabled()){
+					
+							setupAutoAuth();
+						}
+					}
+				});
+						
 			connection_test = config_model.addHyperlinkParameter2( "webui.connectiontest", getConnectionTestURL( p_sid ));
 
 			pairing_test = config_model.addHyperlinkParameter2( "webui.pairingtest", "http://remote.vuze.com/?sid=" + p_sid );
@@ -504,6 +526,8 @@ WebPlugin
 						Parameter param ) 
 					{
 						boolean enabled = pairing_enable.getValue();
+						
+						param_auto_auth.setEnabled( pm.isEnabled() && enabled );
 						
 						boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
 
@@ -524,6 +548,8 @@ WebPlugin
 						pairing_info.setLabelKey( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
 	
 						pairing_enable.setEnabled( pm.isEnabled());
+							
+						param_auto_auth.setEnabled( pm.isEnabled() && pairing_enable.getValue() );
 						
 						boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
 						
@@ -531,7 +557,7 @@ WebPlugin
 						connection_test.setEnabled( test_ok );
 						
 						connection_test.setHyperlink( getConnectionTestURL( p_sid ));
-						
+												
 						setupPairing( p_sid, pairing_enable.getValue());
 					}
 				};
@@ -562,6 +588,7 @@ WebPlugin
 		}else{
 			pairing_info	= null;
 			pairing_enable 	= null;
+			param_auto_auth	= null;
 			pairing_test	= null;
 			connection_test	= null;
 		}
@@ -569,7 +596,7 @@ WebPlugin
 		config_model.createGroup(
 			"ConfigView.section.server",
 			new Parameter[]{
-				param_port, param_bind, param_protocol, p_upnp_enable, pairing_info, pairing_enable, connection_test, pairing_test,
+				param_port, param_bind, param_protocol, p_upnp_enable, pairing_info, pairing_enable, param_auto_auth, connection_test, pairing_test,
 			});
 		
 		param_home 		= config_model.addStringParameter2(	CONFIG_HOME_PAGE, "webui.homepage", CONFIG_HOME_PAGE_DEFAULT );
@@ -645,7 +672,29 @@ WebPlugin
 		pw_enable.addEnabledOnSelection( p_user_name );
 		pw_enable.addEnabledOnSelection( p_password );
 		
+		ParameterListener auth_change_listener = 
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param ) 
+				{
+					if ( param_auto_auth != null ){
+						
+						if ( !setting_auto_auth ){
+							
+							log( "Disabling pairing auto-authentication as overridden by user" );
+							
+							param_auto_auth.setValue( false );
+						}
+					}
+				}
+			};
 
+		p_user_name.addListener( auth_change_listener );
+		p_password.addListener( auth_change_listener );
+		pw_enable.addListener( auth_change_listener );
+			
 		config_model.createGroup(
 			"webui.group.access",
 			new Parameter[]{
@@ -1070,23 +1119,51 @@ WebPlugin
 								return( true );
 							}
 							
+							boolean	result;
+							
 							if ( !user.equals( p_user_name.getValue())){
 								
-								return( false );
-							}
-							
-							byte[]	hash = last_hash;
-							
-							if (  !last_pw.equals( pw )){
-															
-								hash = plugin_interface.getUtilities().getSecurityManager().calculateSHA1( pw.getBytes());
+								result = false;
 								
-								last_pw		= pw;
-								last_hash	= hash;
+							}else{
+							
+								byte[]	hash = last_hash;
+								
+								if (  !last_pw.equals( pw )){
+																
+									hash = plugin_interface.getUtilities().getSecurityManager().calculateSHA1( pw.getBytes());
+									
+									last_pw		= pw;
+									last_hash	= hash;
+								}
+								
+								result = Arrays.equals( hash, p_password.getValue());
 							}
 							
-							return( Arrays.equals( hash, p_password.getValue()));
+							if ( !result ){
+								
+								String lc_headers = headers.toLowerCase();
+								
+								int p1 = lc_headers.indexOf( "cookie:" );
+								
+								if ( p1 != -1 ){
+								
+									int	p2 = lc_headers.indexOf( '\n', p1 );
+									
+									if ( p2 != -1 ){
+										
+										String	cookie = headers.substring( p1+7, p2 ).trim();
+										
+										System.out.println( cookie );
+									}
+								}
+								
+									// TODO!
+								
+								//result = true;
+							}
 							
+							return( result );
 						}finally{
 							
 							this_mon.exit();
@@ -1177,6 +1254,8 @@ WebPlugin
 		
 		if ( plugin_enabled && pairing_enabled && pm.isEnabled()){
 			
+			setupAutoAuth();
+			
 			if ( service == null ){
 				
 				log( "Adding pairing service" );
@@ -1195,6 +1274,8 @@ WebPlugin
 			}
 		}else{
 			
+			pairing_access_code = null;
+			
 			if ( service != null ){
 				
 				log( "Removing pairing service" );
@@ -1204,6 +1285,42 @@ WebPlugin
 		}
 	}
 		
+	protected void
+	setupAutoAuth()
+	{
+		PairingManager pm = PairingManagerFactory.getSingleton();
+
+		pairing_access_code = pm.peekAccessCode();
+		
+			// good time to check the default pairing auth settings
+		
+		if ( pairing_access_code != null ){
+			
+			if ( param_auto_auth.getValue()){
+				
+				try{
+					setting_auto_auth = true;
+					
+					if ( !p_user_name.getValue().equals( "vuze" )){
+						
+						p_user_name.setValue( "vuze" );
+					}
+					
+			        SHA1Hasher hasher = new SHA1Hasher();
+			        
+			        byte[] encoded = hasher.calculateHash( pairing_access_code.getBytes());
+			        
+					if ( !Arrays.equals( p_password.getValue(), encoded )){
+						
+						p_password.setValue( pairing_access_code );
+					}
+				}finally{
+					
+					setting_auto_auth = false;
+				}
+			}
+		}
+	}
 	protected void
 	updatePairing(
 		String		sid )
@@ -1336,21 +1453,28 @@ WebPlugin
 			}
 		}
 		
-		if ( request.getURL().toString().endsWith(".class")){
+		String url = request.getURL();
+		
+	
+		if ( url.toString().endsWith(".class")){
 			
-			System.out.println( "WebPlugin::generate:" + request.getURL());
+			System.out.println( "WebPlugin::generate:" + url );
 		}
-			
+	
+			// set session cookie
+		
+		response.setHeader( "Set-Cookie", "vuze_pairing_sc=1234" );
+		
 		if ( generateSupport( request, response )){
 			
 			return(true);
 		}
-		
-		String	url = request.getURL();
-		
-		if (url.equals("/")){
+				
+		if ( url.equals("/") || url.startsWith( "/?" )){
 			
-			if (home_page != null ){
+			url = "/";
+			
+			if ( home_page != null ){
 				
 				url = home_page;
 				
