@@ -478,7 +478,7 @@ public class MyTorrentsView
     fd.right = new FormAttachment(100, -2); 
     fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
     fd.width = enableSizer ? 100 : 1;
-    fd.height = enableSizer ? -1 : 1;
+    fd.height = enableSizer ? 20 : 1;
     cSizer.setLayoutData(fd);
 
     if (enableSizer) {
@@ -1659,6 +1659,7 @@ public class MyTorrentsView
     }
 
     boolean bForceSort = tv.getSortColumn().getName().equals("#");
+    System.out.println("forcesort? " + bForceSort);
     tv.columnInvalidate("#");
     tv.refreshTable(bForceSort);
   }
