@@ -200,7 +200,7 @@ public class RemotePairingWindow implements PairingManagerListener
 						// ignore.. if error, lastErrorUpdates will trigger
 					}
 					control.redraw();
-					//soResetPair.setText("");
+					soResetPair.setText("");
 					
 					return true;
 				}
