@@ -112,6 +112,7 @@ public class FilesView
   private MenuItem path_item;
 
   private TableViewSWT<DiskManagerFileInfo> tv;
+	private final boolean allowTabViews;
   
 
   /**
@@ -119,6 +120,12 @@ public class FilesView
    */
 	public FilesView() {
 		super("FilesView");
+		allowTabViews = true;
+	}
+
+	public FilesView(boolean allowTabViews) {
+		super("FilesView");
+		this.allowTabViews = allowTabViews;
 	}
 
 	public TableViewSWT<DiskManagerFileInfo> initYourTableView() {
@@ -127,9 +134,11 @@ public class FilesView
 				TableManager.TABLE_TORRENT_FILES, getPropertiesPrefix(), basicItems,
 				"firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		tv.setRowDefaultIconSize(new Point(16, 16));
-		tv.setEnableTabViews(true);
-		tv.setCoreTabViews(new IView[] { new FileInfoView()
-		});
+		if (allowTabViews) {
+  		tv.setEnableTabViews(true);
+  		tv.setCoreTabViews(new IView[] { new FileInfoView()
+  		});
+		}
 
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addRefreshListener(this, true);

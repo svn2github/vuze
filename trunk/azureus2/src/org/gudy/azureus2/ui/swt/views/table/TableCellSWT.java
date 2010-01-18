@@ -76,6 +76,8 @@ public interface TableCellSWT extends com.aelitis.azureus.ui.common.table.TableC
 
 	public Rectangle getBounds();
 
+	public Rectangle getBoundsOnDisplay();
+
 	public boolean setGraphic(Image img);
 
 	public Image getGraphicSWT();

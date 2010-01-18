@@ -33,6 +33,7 @@ import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -1576,4 +1577,11 @@ public class TableCellImpl
 		this.textAlpha = textOpacity;
 	}
 
+	public Rectangle getBoundsOnDisplay() {
+		Rectangle bounds = getBounds();
+		Point pt = ((TableViewSWT) tableRow.getView()).getTableComposite().toDisplay(bounds.x, bounds.y);
+		bounds.x = pt.x;
+		bounds.y = pt.y;
+		return bounds;
+	}
 }

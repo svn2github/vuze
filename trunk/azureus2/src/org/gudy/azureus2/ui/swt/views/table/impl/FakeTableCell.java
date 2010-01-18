@@ -1419,4 +1419,12 @@ public class FakeTableCell
 		// TODO Auto-generated method stub
 		
 	}
+
+	public Rectangle getBoundsOnDisplay() {
+		Rectangle bounds = getBounds();
+		Point pt = composite.toDisplay(bounds.x, bounds.y);
+		bounds.x = pt.x;
+		bounds.y = pt.y;
+		return bounds;
+	}
 }
