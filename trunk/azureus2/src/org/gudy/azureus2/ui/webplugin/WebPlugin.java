@@ -1138,10 +1138,12 @@ WebPlugin
 			tracker_context.addAuthenticationListener(
 				new TrackerAuthenticationAdapter()
 				{
-					String	last_pw		= "";
-					byte[]	last_hash	= {};
+					private String	last_pw		= "";
+					private byte[]	last_hash	= {};
 					
-					AEMonitor	this_mon = new AEMonitor( "WebPlugin:auth" );
+					private final int DELAY = 10*1000;
+					
+					private Map<String,Object[]>	fail_map = new HashMap<String, Object[]>();
 					
 					public boolean
 					authenticate(
@@ -1150,105 +1152,161 @@ WebPlugin
 						String		user,
 						String		pw )
 					{
-						try{
-							this_mon.enter();
+						boolean	result = authenticateSupport(headers, resource, user, pw);
+																				
+						if ( !result ){
 						
-							if ( !pw_enable.getValue()){
-								
-								return( true );
-							}
+							long	now = SystemTime.getMonotonousTime();
+
+							AESemaphore waiter = null;
 							
-							boolean	result;
-							
-							if ( !user.equals( p_user_name.getValue())){
+							synchronized( fail_map ){
+
+								String	client_address = "";
 								
-								result = false;
-								
-							}else{
-							
-								byte[]	hash = last_hash;
-								
-								if (  !last_pw.equals( pw )){
-																
-									hash = plugin_interface.getUtilities().getSecurityManager().calculateSHA1( pw.getBytes());
-									
-									last_pw		= pw;
-									last_hash	= hash;
-								}
-								
-								result = Arrays.equals( hash, p_password.getValue());
-							}
-							
-							if ( !result && param_auto_auth.getValue() && pairing_access_code != null ){
-								
-									// either the ac is in the url or we have a cookie set
-								
-								String query = resource.getQuery();
-								
-								if ( query != null ){
-									
-									int p1 = query.indexOf( "vuze_pairing_ac=" );
-									
-									if ( p1 != -1 ){
-										
-										int p2 = query.indexOf( '&', p1 );
-										
-										String ac = query.substring( p1+16, p2==-1?query.length():p2 ).trim();
-										
-										if ( ac.equalsIgnoreCase( pairing_access_code )){
-									
-											tls.set( pairing_session_code );
-											
-											return( true );
-											
-										}else{
-											
-											return( false );
-										}
-									}
-								}
-								
-								String lc_headers = headers.toLowerCase();
-								
-								int p1 = lc_headers.indexOf( "cookie:" );
+								int	p1 = headers.indexOf( "X-Real-IP:" );
 								
 								if ( p1 != -1 ){
-								
-									int	p2 = lc_headers.indexOf( '\n', p1 );
 									
-									if ( p2 != -1 ){
+									int	p2 = headers.indexOf( '\n', p1 );
+									
+									client_address = headers.substring( p1+10, p2==-1?headers.length():p2).trim();
+								}
+								
+								Object[] x = fail_map.get( client_address );
+							
+								if ( x == null ){
+									
+									x = new Object[]{ new AESemaphore( "af:waiter" ), new Long(-1), new Long(-1), now };
+									
+									fail_map.put( client_address, x );
+									
+								}else{
+									
+									x[1] = x[2];
+									x[2] = x[3];
+									x[3] = now;
+									
+									long t = (Long)x[1];
+									
+									if ( now - t < 10*1000 ){
 										
-										String	cookies = headers.substring( p1+7, p2 ).trim();
+										log( "Too many recent authentication failures from '" + client_address + "' - rate limiting" );
+
+										x[2] = now+DELAY;
 										
-										String[] cookie_list = cookies.split( ";" );
-																				
-										for ( String cookie: cookie_list ){
+										waiter = (AESemaphore)x[0];
+									}
+								}
+							}
+							
+							if ( waiter != null ){
+								
+								waiter.reserve( DELAY );
+							}
+						}
+						
+						return( result );
+					}
+					
+					private boolean
+					authenticateSupport(
+						String		headers,
+						URL			resource,
+						String		user,
+						String		pw )
+					{
+						if ( !pw_enable.getValue()){
+							
+							return( true );
+						}
+						
+						boolean	result;
+						
+						if ( !user.equals( p_user_name.getValue())){
+							
+							result = false;
+							
+						}else{
+						
+							byte[]	hash = last_hash;
+							
+							if (  !last_pw.equals( pw )){
+															
+								hash = plugin_interface.getUtilities().getSecurityManager().calculateSHA1( pw.getBytes());
+								
+								last_pw		= pw;
+								last_hash	= hash;
+							}
+							
+							result = Arrays.equals( hash, p_password.getValue());
+						}
+						
+						if ( !result && param_auto_auth.getValue() && pairing_access_code != null ){
+							
+								// either the ac is in the url or we have a cookie set
+							
+							String query = resource.getQuery();
+							
+							if ( query != null ){
+								
+								int p1 = query.indexOf( "vuze_pairing_ac=" );
+								
+								if ( p1 != -1 ){
+									
+									int p2 = query.indexOf( '&', p1 );
+									
+									String ac = query.substring( p1+16, p2==-1?query.length():p2 ).trim();
+									
+									if ( ac.equalsIgnoreCase( pairing_access_code )){
+								
+										tls.set( pairing_session_code );
+										
+										return( true );
+										
+									}else{
+										
+										return( false );
+									}
+								}
+							}
+							
+							String lc_headers = headers.toLowerCase();
+							
+							int p1 = lc_headers.indexOf( "cookie:" );
+							
+							if ( p1 != -1 ){
+							
+								int	p2 = lc_headers.indexOf( '\n', p1 );
+								
+								if ( p2 != -1 ){
+									
+									String	cookies = headers.substring( p1+7, p2 ).trim();
+									
+									String[] cookie_list = cookies.split( ";" );
+																			
+									for ( String cookie: cookie_list ){
+										
+										String[] bits = cookie.split( "=" );
+										
+										if ( bits.length == 2 ){
 											
-											String[] bits = cookie.split( "=" );
-											
-											if ( bits.length == 2 ){
+											if ( bits[0].trim().equals( "vuze_pairing_sc" )){
 												
-												if ( bits[0].trim().equals( "vuze_pairing_sc" )){
+												if ( bits[1].trim().equals( pairing_session_code )){
 													
-													if ( bits[1].trim().equals( pairing_session_code )){
-														
-														result = true;
-														
-														break;
-													}
+													result = true;
+													
+													break;
 												}
 											}
 										}
 									}
 								}
 							}
-							
-							return( result );
-							
-						}finally{
-							
-							this_mon.exit();
 						}
+						
+						return( result );
 					}
 				});
 			

@@ -172,7 +172,7 @@ TRTrackerServerProcessorTCP
 						
 							// check non-tracker authentication
 							
-						String user = doAuthentication( url_path, input_header, os, false );
+						String user = doAuthentication( remote_address, url_path, input_header, os, false );
 						
 						if ( user == null ){
 							
@@ -205,7 +205,7 @@ TRTrackerServerProcessorTCP
 				
 					// check tracker authentication
 					
-				if ( doAuthentication( url_path, input_header, os, true ) == null ){
+				if ( doAuthentication( remote_address, url_path, input_header, os, true ) == null ){
 					
 					return ( false );
 				}
@@ -799,10 +799,11 @@ TRTrackerServerProcessorTCP
 	
 	protected String
 	doAuthentication(
-		String			url_path,
-		String			header,
-		OutputStream	os,
-		boolean			tracker )
+		InetSocketAddress	remote_ip,
+		String				url_path,
+		String				header,
+		OutputStream		os,
+		boolean				tracker )
 		
 		throws IOException
 	{
@@ -840,7 +841,7 @@ TRTrackerServerProcessorTCP
 						
 						URL	resource = new URL( resource_str );
 					
-						if ( server.performExternalAuthorisation( header, resource, "", "" )){
+						if ( server.performExternalAuthorisation( remote_ip, header, resource, "", "" )){
 							
 							return( "" );
 						}
@@ -878,7 +879,7 @@ TRTrackerServerProcessorTCP
 						
 						URL	resource = new URL( resource_str );
 					
-						if ( server.performExternalAuthorisation( header, resource, user, pw )){
+						if ( server.performExternalAuthorisation( remote_ip, header, resource, user, pw )){
 							
 							return( user );
 						}

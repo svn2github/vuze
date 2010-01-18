@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 
 
 import java.util.*;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLDecoder;
 
@@ -467,11 +468,14 @@ TRTrackerServerImpl
 	
 	public boolean
 	performExternalAuthorisation(
-		String		headers,
-		URL			resource,
-		String		user,
-		String		password )
+		InetSocketAddress	remote_ip,
+		String				headers,
+		URL					resource,
+		String				user,
+		String				password )
 	{
+		headers = headers.trim() + "\r\nX-Real-IP: " + remote_ip.getAddress().getHostAddress() + "\r\n\r\n";
+		
 		for (int i=0;i<auth_listeners.size();i++){
 			
 			try{
