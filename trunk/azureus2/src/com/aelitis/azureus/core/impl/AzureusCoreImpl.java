@@ -1744,10 +1744,10 @@ AzureusCoreImpl
 		
 		if ( is_downloading ){
 			
-			ca_last_time_downloading = now;
-		}
-		
-		if ( is_seeding ){
+			ca_last_time_downloading 	= now;
+			ca_last_time_seeding		= -1;
+			
+		}else if ( is_seeding ){
 			
 			ca_last_time_seeding = now;
 		}
