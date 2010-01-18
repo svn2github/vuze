@@ -199,6 +199,7 @@ public class ClientStatsView
 						return v1 > v2 ? -1 : 1;
 					}
 				});
+				/*
 				int top = 5;
 				first = true;
 				sb.append("\nBest Seeders (");
@@ -302,7 +303,7 @@ public class ClientStatsView
 						break;
 					}
 				}
-
+				*/
 				ClipboardCopy.copyToClipBoard(sb.toString());
 			}
 		});
@@ -354,6 +355,7 @@ public class ClientStatsView
 						new ColumnCS_Count(column);
 					}
 				});
+		/*
 		tableManager.registerColumn(ClientStatsDataSource.class,
 				ColumnCS_Discarded.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
@@ -378,6 +380,7 @@ public class ClientStatsView
 						new ColumnCS_Sent(column);
 					}
 				});
+		*/
 		tableManager.registerColumn(ClientStatsDataSource.class,
 				ColumnCS_Pct.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
@@ -390,9 +393,11 @@ public class ClientStatsView
 			ColumnCS_Name.COLUMN_ID,
 			ColumnCS_Pct.COLUMN_ID,
 			ColumnCS_Count.COLUMN_ID,
+			/*
 			ColumnCS_Received.COLUMN_ID,
 			ColumnCS_Sent.COLUMN_ID,
 			ColumnCS_Discarded.COLUMN_ID,
+			*/
 		});
 	}
 
