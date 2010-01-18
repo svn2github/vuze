@@ -70,7 +70,8 @@ WebPlugin
 	public static final String	PROPERTIES_MIGRATED		= "Properties Migrated";
 	public static final String	CONFIG_MIGRATED			= "Config Migrated";
 	public static final String	PAIRING_MIGRATED		= "Pairing Migrated";
-	
+	public static final String	PAIRING_SESSION_KEY		= "Pairing Session Key";
+
 	public static final String	CONFIG_PASSWORD_ENABLE			= "Password Enable";
 	public static final boolean	CONFIG_PASSWORD_ENABLE_DEFAULT	= false;
 	
@@ -1152,10 +1153,10 @@ WebPlugin
 						String		user,
 						String		pw )
 					{
-						boolean	result = authenticateSupport(headers, resource, user, pw);
+						boolean	result = authenticateSupport( headers, resource, user, pw );
 																				
 						if ( !result ){
-						
+													
 							long	now = SystemTime.getMonotonousTime();
 
 							AESemaphore waiter = null;
@@ -1434,7 +1435,23 @@ WebPlugin
 		
 		if ( ac != null && ( pairing_access_code == null || !ac.equals( pairing_access_code ))){
 			
-			pairing_session_code = Base32.encode( RandomUtils.nextSecureHash());
+			synchronized( this ){
+			
+				String existing_key = plugin_config.getPluginStringParameter( PAIRING_SESSION_KEY, "" );
+			
+				String[]	bits = existing_key.split( "=" );
+				
+				if ( bits.length == 2 && bits[0].equals( ac )){
+					
+					pairing_session_code = bits[1];
+					
+				}else{
+			
+					pairing_session_code = Base32.encode( RandomUtils.nextSecureHash());
+					
+					plugin_config.setPluginParameter( PAIRING_SESSION_KEY, ac + "=" + pairing_session_code );
+				}
+			}
 		}
 		
 		pairing_access_code = ac;
@@ -1619,9 +1636,53 @@ WebPlugin
 			
 				// set session cookie
 		
-			response.setHeader( "Set-Cookie", "vuze_pairing_sc=" + cookie_to_set );
+			response.setHeader( "Set-Cookie", "vuze_pairing_sc=" + cookie_to_set + "; HttpOnly" );
 			
 			tls.set( null );
+		}
+		
+		URL full_url = request.getAbsoluteURL();
+		
+		if ( full_url.getPath().equals( "/isPairedServiceAvailable" )){
+			
+			String query = full_url.getQuery();
+			
+			if ( query != null ){
+				
+				String	callback = null;
+				
+				String[] args = query.split( "&" );
+				
+				for ( String arg: args ){
+					
+					String [] x = arg.split( "=" );
+					
+					if ( x.length == 2 ){
+						
+						if ( x[0].equals( "jsoncallback" )){
+							
+							callback = x[1];
+							
+							break;
+						}
+					}
+				}
+				
+				if ( callback != null ){
+					
+					response.setContentType( "text/plain" );
+	
+					PrintWriter pw = new PrintWriter( response.getOutputStream());
+					
+					pw.println( callback + "( {'pairedserviceavailable':true} )");
+					
+					pw.flush();
+					
+					pw.close();
+				
+					return( true );
+				}
+			}
 		}
 		
 		if ( generateSupport( request, response )){
