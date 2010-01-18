@@ -285,7 +285,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
 
 		if (mgr.hasCapability(PlatformManagerCapabilities.SetTCPTOSEnabled)) { 
-			//see http://www.azureuswiki.com/index.php/AdvancedNetworkSettings
+			//see http://wiki.vuze.com/w/AdvancedNetworkSettings
 			try {
 				mgr.setTCPTOSEnabled(enable);
 			} catch (PlatformManagerException pe) {

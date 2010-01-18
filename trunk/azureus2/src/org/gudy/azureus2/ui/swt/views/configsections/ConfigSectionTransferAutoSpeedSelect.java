@@ -575,7 +575,7 @@ public class ConfigSectionTransferAutoSpeedSelect
 
         final Label linkLabel = new Label(azWiki, SWT.NULL);
         linkLabel.setText( Constants.APP_NAME + " Wiki AutoSpeed (beta)" );
-        linkLabel.setData("http://www.azureuswiki.com/index.php/Auto_Speed");
+        linkLabel.setData("http://wiki.vuze.com/w/Auto_Speed");
         linkLabel.setCursor(Cursors.handCursor);
         linkLabel.setForeground(Colors.blue);
         gridData = new GridData();

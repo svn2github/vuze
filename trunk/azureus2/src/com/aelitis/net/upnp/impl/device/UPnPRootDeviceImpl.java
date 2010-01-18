@@ -209,7 +209,7 @@ UPnPRootDeviceImpl
 						upnp.logAlert( 
 								"Device '" + model + "', version '" + version + 
 								"' has known problems with UPnP. Please update to the latest software version (see " + 
-								(url==null?"the manufacturer's web site":url) + ") and refer to http://www.azureuswiki.com/index.php/UPnP",
+								(url==null?"the manufacturer's web site":url) + ") and refer to http://wiki.vuze.com/w/UPnP",
 								false,
 								UPnPLogListener.TYPE_ONCE_EVER );
 					}

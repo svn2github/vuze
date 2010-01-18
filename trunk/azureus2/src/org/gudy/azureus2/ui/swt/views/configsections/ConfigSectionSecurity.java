@@ -218,7 +218,7 @@ ConfigSectionSecurity
 			
 			final Label linkLabel = new Label(crypto_group, SWT.NULL);
 			linkLabel.setText(MessageText.getString("ConfigView.label.please.visit.here"));
-			linkLabel.setData("http://www.azureuswiki.com/index.php?title=Public_Private_Keys");
+			linkLabel.setData("http://wiki.vuze.com/w/Public_Private_Keys");
 			linkLabel.setCursor(Cursors.handCursor);
 			linkLabel.setForeground(Colors.blue);
 			gridData = new GridData();

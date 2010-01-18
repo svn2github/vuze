@@ -63,10 +63,10 @@ public class WelcomePanel extends AbstractWizardPanel {
     		"ConfigView.section.mode.advanced.wiki.main",
     		"ConfigView.section.mode.intermediate.wiki.publish"
     };
-    final String[] links = {"http://www.azureuswiki.com/index.php/This_funny_word",
-    		"http://www.azureuswiki.com/index.php/HostingFiles",
-    		"http://www.azureuswiki.com/index.php/Main_Page",
-    		"http://www.azureuswiki.com/index.php/PublishingFiles"
+    final String[] links = {"http://wiki.vuze.com/w/This_funny_word",
+    		"http://wiki.vuze.com/w/HostingFiles",
+    		"http://wiki.vuze.com/w/Main_Page",
+    		"http://wiki.vuze.com/w/PublishingFiles"
     };
     
     Composite rootPanel = wizard.getPanel();

@@ -151,7 +151,7 @@ UPnPPlugin
 					Parameter	param )
 				{
 					try{
-						plugin_interface.getUIManager().openURL( new URL( "http://www.azureuswiki.com/index.php/NATPMP" ));
+						plugin_interface.getUIManager().openURL( new URL( "http://wiki.vuze.com/w/NATPMP" ));
 						
 					}catch( Throwable e ){
 						
@@ -181,7 +181,7 @@ UPnPPlugin
 			// UPNP
 		
 		upnp_config.addLabelParameter2( "upnp.info" );
-		upnp_config.addHyperlinkParameter2("upnp.wiki_link", "http://www.azureuswiki.com/index.php/UPnP");
+		upnp_config.addHyperlinkParameter2("upnp.wiki_link", "http://wiki.vuze.com/w/UPnP");
 		
 		
 		upnp_enable_param = 

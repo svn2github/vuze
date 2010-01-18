@@ -94,7 +94,7 @@ FEATURE: UI   | Advanced menu option for editing http seeds [Parg]
 
 CHANGE: Core  | Remove replicate-on-join from DHT as causing excessive key storage [Parg]
 CHANGE: Core  | Roll up subscription warnings when not expanded [Parg]
-CHANGE: Core  | Improved IPv6-handshaking and reconnects with other clients (see http://www.azureuswiki.com/index.php/IPv6_compatibility for supported systems) [The 8472]
+CHANGE: Core  | Improved IPv6-handshaking and reconnects with other clients (see http://wiki.vuze.com/w/IPv6_compatibility for supported systems) [The 8472]
 CHANGE: Core  | Switch back to k-select on OSX [Nolar]
 CHANGE: Core  | Reduce CPU used for node-id calculation via MRU cache [Parg]
 CHANGE: Core  | Remove LAN transfer totals from data reported to tracker [Parg]
@@ -551,7 +551,7 @@ FEATURE: UIv3 | Vuze Login from client [knguyen]
 FEATURE: Plug | Added Network Status plugin to perform some basic network tests [Parg]
 FEATURE: Plug | Allow plugins to specify their minimum JDK requirements [Parg]
 
-CHANGE: Core  | Further memory footprint reductions; for additional tweaks see http://www.azureuswiki.com/index.php/Reduce_memory_usage [The 8472]
+CHANGE: Core  | Further memory footprint reductions; for additional tweaks see http://wiki.vuze.com/w/Reduce_memory_usage [The 8472]
 CHANGE: Core  | Reimplemented LT extension protocol code [amc1]
 CHANGE: Core  | DND/Compact (aka Delete) priority now deletes all files that do not share pieces with normal/high priority files [The 8472]
 CHANGE: Core  | Queuing rules now don't start any further torrents if the global up/download speed limits are reached [The 8472]
@@ -643,7 +643,7 @@ BUGFIX: Core  | Fixed update restart bug [Parg]
 
 FEATURE: Core | Added experimental support for LibTorrent extension protocol handshake [amc1]
 FEATURE: Core | Providing some experimental options for possible workarounds for a particular traffic shaping method
-                 See http://www.azureuswiki.com/index.php/Avoid_traffic_shaping#Level_5 for further details 
+                 See http://wiki.vuze.com/w/Avoid_traffic_shaping#Level_5 for further details 
 FEATURE: UI   | Added available disk space indicators to the torrent open dialog (requires Java 1.6) [The 8472]
 FEATURE: UI   | Added "handshake reserved bytes" column in peer view [amc1]
 FEATURE: UI   | Added "Open Transfer Bar on start" and "Remember Transfer Bar" location options [amc1]

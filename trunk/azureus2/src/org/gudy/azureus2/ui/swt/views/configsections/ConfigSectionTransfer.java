@@ -165,7 +165,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			gridData.horizontalIndent = 10;
 			gridData.horizontalSpan = 2;
 			new LinkLabel(cWiki, gridData, "ConfigView.section.transfer.speeds.wiki",
-					"http://www.azureuswiki.com/index.php/Good_settings");
+					"http://wiki.vuze.com/w/Good_settings");
 		}
 
 		if ( userMode > 1 ){

@@ -190,7 +190,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		new LinkLabel(cArea, LBLKEY_PREFIX + "version.info.link",
-				"http://www.azureuswiki.com/index.php/Version.azureusplatform.com");
+				"http://wiki.vuze.com/w/Version.azureusplatform.com");
 
 		if (!Constants.isOSX) {
 
