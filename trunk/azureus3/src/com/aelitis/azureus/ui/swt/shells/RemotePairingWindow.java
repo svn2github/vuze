@@ -109,6 +109,7 @@ public class RemotePairingWindow implements PairingManagerListener
 		pairingManager = PairingManagerFactory.getSingleton();
 		piWebUI = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
 				PLUGINID_WEBUI, true);
+		boolean showFTUX = piWebUI == null || !pairingManager.isEnabled();
 		if (skinnedDialog == null || skinnedDialog.isDisposed()) {
 			skinnedDialog = new SkinnedDialog("skin3_dlg_remotepairing", "shell",
 					SWT.DIALOG_TRIM);
@@ -231,13 +232,13 @@ public class RemotePairingWindow implements PairingManagerListener
 			soCode = skin.getSkinObject("pairing-code");
 			
 			
-			if (piWebUI == null) {
+			if (showFTUX) {
 				soFTUX.getControl().moveAbove(null);
 			}
 		}
 		skinnedDialog.open();
 
-		if (piWebUI == null) {
+		if (showFTUX) {
 			switchToFTUX();
 		} else {
 			switchToCode();
