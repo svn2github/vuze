@@ -1044,6 +1044,8 @@ CoreUpdateChecker
 		    		
 			   	Throwable unzip_error = null;
 			   	
+			   	String chmod_command = findCommand( "chmod" );
+			   	
 		    	try{
 					while( true ){
 												
@@ -1099,7 +1101,7 @@ CoreUpdateChecker
 								if ( name.endsWith( ".jnilib" ) || name.endsWith( "JavaApplicationStub" )){
 										
 									try{
-										String[] to_run = { "/bin/sh", "-c", "chmod a+x \"" + entry_file.getAbsolutePath() + "\""};
+										String[] to_run = { chmod_command, "a+x", entry_file.getAbsolutePath() };
 									  	
 										runCommand( to_run, true );
 												
