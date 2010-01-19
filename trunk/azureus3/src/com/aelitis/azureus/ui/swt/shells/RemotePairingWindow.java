@@ -46,11 +46,13 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.pairing.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
+import com.aelitis.azureus.util.ConstantsVuze;
 
 /**
  * @author TuxPaper
@@ -75,8 +77,6 @@ public class RemotePairingWindow implements PairingManagerListener
 
 	private Font fontCode;
 
-	private SWTSkinObjectText soResetPair;
-
 	private String accessCode;
 
 	private Control control;
@@ -89,7 +89,7 @@ public class RemotePairingWindow implements PairingManagerListener
 
 	private PluginInterface piWebUI;
 
-	private SWTSkinObject soToClipboard;
+	private SWTSkinObjectText soToClipboard;
 
 	public static void open() {
 		synchronized (RemotePairingWindow.class) {
@@ -191,27 +191,32 @@ public class RemotePairingWindow implements PairingManagerListener
 				}
 			});
 
-			soResetPair = (SWTSkinObjectText) skin.getSkinObject("reset-pair-area");
-			soResetPair.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
+			soToClipboard = (SWTSkinObjectText) skin.getSkinObject("pair-clipboard");
+			
+			soToClipboard.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
 				public boolean urlClicked(URLInfo urlInfo) {
-					try {
-						accessCode = pairingManager.getReplacementAccessCode();
-					} catch (PairingException e) {
-						// ignore.. if error, lastErrorUpdates will trigger
+					if (urlInfo.url.equals("new")) {
+						try {
+							accessCode = pairingManager.getReplacementAccessCode();
+						} catch (PairingException e) {
+							// ignore.. if error, lastErrorUpdates will trigger
+						}
+						control.redraw();
+						String s = soToClipboard.getText();
+						int i = s.indexOf("|");
+						if (i > 0) {
+							soToClipboard.setText(s.substring(0, i - 1));
+						}
+					} else if (urlInfo.url.equals("clip")) {
+						ClipboardCopy.copyToClipBoard(accessCode);
 					}
-					control.redraw();
-					soResetPair.setText("");
-					
 					return true;
 				}
 			});
-			
-			soToClipboard = skin.getSkinObject("pair-clipboard");
 			SWTSkinButtonUtility btnToClipboard  = new SWTSkinButtonUtility(soToClipboard);
 			btnToClipboard.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility,
 						SWTSkinObject skinObject, int stateMask) {
-					ClipboardCopy.copyToClipBoard(accessCode);
 				}
 			});
 
@@ -293,6 +298,10 @@ public class RemotePairingWindow implements PairingManagerListener
 			switchToFTUX();
 
 			final SWTSkinObject soInstall = skin.getSkinObject("pairing-install");
+			final SWTSkinObject soLearnMore = skin.getSkinObject("learn-more");
+			if (soLearnMore != null) {
+				soLearnMore.setVisible(false);
+			}
 
 			Map<Integer, Object> properties = new HashMap<Integer, Object>();
 
@@ -307,6 +316,9 @@ public class RemotePairingWindow implements PairingManagerListener
 			installer.install(new InstallablePlugin[] { vuze_plugin }, false, properties,
 					new PluginInstallationListener() {
 						public void completed() {
+							if (soLearnMore != null) {
+								soLearnMore.setVisible(true);
+							}
 							switchToCode();
 						}
 
