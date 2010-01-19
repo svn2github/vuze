@@ -944,21 +944,41 @@ CoreUpdateChecker
 			
 		boolean	silent = update_properties.getProperty( "launch.silent", "false" ).equals( "true" );
 		
-		uif.performAction( 
-			silent?UIFunctions.ACTION_UPDATE_RESTART_REQUEST:UIFunctions.ACTION_FULL_UPDATE,
-			info_url,
-			new UIFunctions.actionListener()
-			{
-				public void
-				actionComplete(
-					Object	result )
+		if ( silent ){
+			
+			uif.performAction( 
+					UIFunctions.ACTION_UPDATE_RESTART_REQUEST,
+					!FileUtil.canReallyWriteToAppDirectory(),
+					new UIFunctions.actionListener()
+					{
+						public void
+						actionComplete(
+							Object	result )
+						{
+							if ((Boolean)result){
+								
+								launchUpdate( f_update_file, args );
+							}
+						}
+					});
+		}else{
+			
+			uif.performAction( 
+				UIFunctions.ACTION_FULL_UPDATE,
+				info_url,
+				new UIFunctions.actionListener()
 				{
-					if ((Boolean)result){
-						
-						launchUpdate( f_update_file, args );
+					public void
+					actionComplete(
+						Object	result )
+					{
+						if ((Boolean)result){
+							
+							launchUpdate( f_update_file, args );
+						}
 					}
-				}
-			});
+				});
+		}
 	}
 	
 	protected void

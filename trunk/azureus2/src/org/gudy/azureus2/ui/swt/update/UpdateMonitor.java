@@ -646,7 +646,7 @@ public class UpdateMonitor
 			
 			uiFunctions.performAction( 
 					UIFunctions.ACTION_UPDATE_RESTART_REQUEST,
-					null,
+					false,
 					new UIFunctions.actionListener()
 					{
 						public void

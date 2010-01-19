@@ -545,9 +545,11 @@ public class UIFunctionsImpl
 			
 			bringToFront();
 			
+			boolean no_timeout = args instanceof Boolean && ((Boolean)args).booleanValue();
+
 			int timeout = 180000;
 			
-			if ( !PluginInitializer.getDefaultInterface().getPluginManager().isSilentRestartEnabled()){
+			if ( no_timeout || !PluginInitializer.getDefaultInterface().getPluginManager().isSilentRestartEnabled()){
 				
 				timeout = -1;
 			}
