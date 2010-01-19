@@ -33,8 +33,11 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -89,6 +92,10 @@ public class SWTSkinObjectText2
 	private int alpha = 255;
 	
 	private java.util.List<SWTSkinObjectText_UrlClickedListener> listUrlClickedListeners = new ArrayList<SWTSkinObjectText_UrlClickedListener>();
+
+	private Color colorUrl2;
+
+	protected boolean mouseDown;
 
 	public SWTSkinObjectText2(SWTSkin skin,
 			final SWTSkinProperties skinProperties, String sID,
@@ -234,7 +241,10 @@ public class SWTSkinObjectText2
 		}
 
 		canvas.addMouseListener(new MouseListener() {
+			private String lastDownURL;
+
 			public void mouseUp(MouseEvent e) {
+				mouseDown = false;
 				if (lastStringPrinter != null) {
 					URLInfo hitUrl = lastStringPrinter.getHitUrl(e.x, e.y);
 					if (hitUrl != null) {
@@ -270,6 +280,16 @@ public class SWTSkinObjectText2
 			}
 
 			public void mouseDown(MouseEvent e) {
+				mouseDown = true;
+				if (lastStringPrinter != null) {
+					URLInfo hitUrl = lastStringPrinter.getHitUrl(e.x, e.y);
+					String curURL = hitUrl == null ? "" : hitUrl.url;
+					
+					if (curURL.equals(lastDownURL)) {
+						lastDownURL = curURL;
+						canvas.redraw();
+					}
+				}
 			}
 
 			public void mouseDoubleClick(MouseEvent e) {
@@ -285,6 +305,21 @@ public class SWTSkinObjectText2
 				}
 			}
 		});
+		
+		if (skinProperties.getBooleanValue(sConfigID + ".clipboardmenu", false)) {
+			Menu menu = new Menu(canvas);
+			MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
+			Messages.setLanguageText(menuItem, "MyTorrentsView.menu.thisColumn.toClipboard");
+			menuItem.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) {
+					ClipboardCopy.copyToClipBoard(getText());
+				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+			canvas.setMenu(menu);
+		}
 
 		setAlwaysHookPaintListener(true);
 
@@ -328,6 +363,12 @@ public class SWTSkinObjectText2
 		if (newColorURL != null) {
 			colorUrl = newColorURL;
 		}
+
+		Color newColorURL2 = properties.getColor(sPrefix + ".urlcolor-pressed");
+		if (newColorURL2 != null) {
+			colorUrl2 = newColorURL2;
+		}
+
 
 		Color color = properties.getColor(sPrefix + ".color" + suffix);
 		//System.out.println(this + "; " + sPrefix + ";" + suffix + "; " + color + "; " + text);
@@ -586,6 +627,16 @@ public class SWTSkinObjectText2
 		if (colorUrl != null) {
 			lastStringPrinter.setUrlColor(colorUrl);
 		}
+		if (colorUrl2 != null && mouseDown) {
+			lastStringPrinter.calculateMetrics();
+			Display display = Display.getCurrent();
+			Point cursorLocation = canvas.toControl(display.getCursorLocation());
+			URLInfo hitUrl = lastStringPrinter.getHitUrl(cursorLocation.x, cursorLocation.y);
+			if (hitUrl != null) {
+				hitUrl.urlColor = colorUrl2;
+			}
+		}
+		
 		lastStringPrinter.printString();
 	}
 
