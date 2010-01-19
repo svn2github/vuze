@@ -219,6 +219,17 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		    label.setLayoutData( gridData );
 					    
 			new StringListParameter(gStop, "On Seeding Complete Do", "Nothing", action_descs, action_values );
+			
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			BooleanParameter resetOnTrigger = 
+				new BooleanParameter( 
+					gStop, "Stop Triggers Auto Reset",
+					"!" + MessageText.getString( 
+						"ConfigView.label.stop.autoreset",
+						new String[]{ MessageText.getString( "ConfigView.label.stop.Nothing" )})+ "!");
+				
+			resetOnTrigger.setLayoutData(gridData);
 		}
 		
 		if ( userMode > 0 && platform.hasCapability( PlatformManagerCapabilities.AccessExplicitVMOptions )){

@@ -1783,6 +1783,20 @@ AzureusCoreImpl
 		ca_last_time_downloading	= -1;
 		ca_last_time_seeding		= -1;
 		
+		boolean reset = COConfigurationManager.getBooleanParameter( "Stop Triggers Auto Reset" );
+		
+		if ( reset ){
+			
+			if ( download_trigger ){
+			
+				COConfigurationManager.setParameter( "On Downloading Complete Do", "Nothing" );
+				
+			}else{
+				
+				COConfigurationManager.setParameter( "On Seeding Complete Do", "Nothing" );
+			}
+		}
+		
 		String type_str		= MessageText.getString( "core.shutdown." + (download_trigger?"dl":"se"));
 		String action_str 	= MessageText.getString( "ConfigView.label.stop." + action );
 				

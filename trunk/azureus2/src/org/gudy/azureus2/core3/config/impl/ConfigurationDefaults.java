@@ -229,7 +229,8 @@ public class ConfigurationDefaults {
     def.put("Resume Downloads On Start", FALSE );
     def.put("On Downloading Complete Do", "Nothing" );
     def.put("On Seeding Complete Do", "Nothing" );
-        
+    def.put("Stop Triggers Auto Reset", TRUE );
+    
     // SWT GUI Settings
     
     def.put("User Mode", ZERO);
