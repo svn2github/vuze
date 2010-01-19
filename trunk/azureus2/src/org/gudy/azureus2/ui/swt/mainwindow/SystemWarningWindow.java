@@ -34,6 +34,7 @@ import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -129,6 +130,10 @@ public class SystemWarningWindow
 			text = MessageText.getString(logAlert.text);
 		} else {
 			text = logAlert.text;
+		}
+		
+		if (logAlert.details != null) {
+			text += "\n<A HREF=\"details\">" + MessageText.getString("v3.MainWindow.button.viewdetails") + "</A>";
 		}
 
 		Utils.execSWTThread(new AERunnable() {
@@ -278,7 +283,16 @@ public class SystemWarningWindow
 				}
 				URLInfo hitUrl = spText.getHitUrl(e.x, e.y);
 				if (hitUrl != null) {
-					Utils.launch(hitUrl.url);
+					if (hitUrl.url.equals("details")) {
+						MessageBoxShell mb = new MessageBoxShell(Constants.APP_NAME,
+								logAlert.details, new String[] {
+									MessageText.getString("Button.ok")
+								}, 0);
+						mb.setParent(Utils.findAnyShell());
+						mb.open(null);
+					} else {
+						Utils.launch(hitUrl.url);
+					}
 				}
 			}
 
