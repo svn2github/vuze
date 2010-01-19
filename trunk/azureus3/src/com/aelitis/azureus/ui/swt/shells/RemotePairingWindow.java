@@ -28,6 +28,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -161,8 +162,9 @@ public class RemotePairingWindow implements PairingManagerListener
 					Rectangle printArea = ((Composite) e.widget).getClientArea();
 					int fullWidth = printArea.width;
 					int fullHeight = printArea.height;
-					GCStringPrinter sp = new GCStringPrinter(e.gc, "Access Code:",
-							printArea, false, false, SWT.NONE);
+					GCStringPrinter sp = new GCStringPrinter(e.gc,
+							MessageText.getString("remote.pairing.accesscode"), printArea,
+							false, false, SWT.NONE);
 					sp.calculateMetrics();
 					Point sizeAccess = sp.getCalculatedSize();
 
