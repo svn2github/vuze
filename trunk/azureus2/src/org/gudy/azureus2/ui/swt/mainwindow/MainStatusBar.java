@@ -1289,6 +1289,9 @@ public class MainStatusBar
 			} else if (pt.x < oldWidth) {
 				Utils.execSWTThreadLater(KEEPWIDTHFOR_MS, new AERunnable() {
 					public void runSupport() {
+						if (statusBar == null || statusBar.isDisposed()) {
+							return;
+						}
 						statusBar.layout();
 					}
 				});
