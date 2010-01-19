@@ -1129,19 +1129,21 @@ CoreUpdateChecker
 		    		
 		    		if ( f.getName().endsWith( ".app" )){
 		    	
-		    			String[] to_run = { "/bin/sh", "-c", "open \"" + f.getAbsolutePath() + "\""};
+		    			String[] to_run;
 		    			
-		    			if ( args.length > 0 ){
+		    			if ( args.length == 0 ){
 		    				
-		    				String[] new_to_run = new String[ to_run.length + args.length + 1 ];
+			    			to_run = new String[]{ "/bin/sh", "-c", "open \"" + f.getAbsolutePath() + "\""};
+			    			
+		    			}else{
 		    				
-		    				System.arraycopy( to_run, 0, new_to_run, 0, to_run.length );
+		    				to_run = new String[ 3 + args.length ];
 		    				
-		    				new_to_run[ to_run.length ] = "--args";
+		    				to_run[0] = findCommand( "open" );
+		    				to_run[1] = f.getAbsolutePath();		    				
+		    				to_run[2] = "--args";
 		    				
-		    				System.arraycopy( args, 0, new_to_run, to_run.length + 1 , args.length );
-		    				
-		    				to_run = new_to_run;
+		    				System.arraycopy( args, 0, to_run, 3, args.length );
 		    			}
 		    			
 		    			runCommand( to_run, false );
@@ -1161,6 +1163,25 @@ CoreUpdateChecker
 		}
 	}
 	
+	private static String
+	findCommand(
+		String	name )
+	{
+		final String[]  locations = { "/bin", "/usr/bin" };
+
+		for ( String s: locations ){
+
+			File f = new File( s, name );
+
+			if ( f.exists() && f.canRead()){
+
+				return( f.getAbsolutePath());
+			}
+		}
+
+		return( name );
+	}
+	  
 	private static void
 	runCommand(
 		String[]	command,
