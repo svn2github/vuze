@@ -225,7 +225,6 @@ public class Alerts
 	}
 
 	public static void stopInitiated() {
-		System.out.println("stopping");
 		stopping = true;
 	}
 
