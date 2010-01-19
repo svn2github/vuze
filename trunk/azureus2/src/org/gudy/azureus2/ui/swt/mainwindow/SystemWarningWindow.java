@@ -24,9 +24,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
@@ -148,6 +146,21 @@ public class SystemWarningWindow
 		shell.setLayout(new FormLayout());
 		shell.setBackground(display.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 		shell.setForeground(display.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+		
+		Menu menu = new Menu(shell);
+		MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(menuItem, "MyTorrentsView.menu.thisColumn.toClipboard");
+		menuItem.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				ClipboardCopy.copyToClipBoard(logAlert.text
+						+ (logAlert.details == null ? "" : "\n" + logAlert.details));
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		shell.setMenu(menu);
+
 
 		ImageLoader imageLoader = ImageLoader.getInstance();
 		imgClose = imageLoader.getImage("image.sidebar.closeitem");
