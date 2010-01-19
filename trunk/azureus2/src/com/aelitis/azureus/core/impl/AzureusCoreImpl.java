@@ -86,6 +86,8 @@ import com.aelitis.azureus.launcher.classloading.PrimaryClassloader;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 /**
  * @author parg
@@ -1807,6 +1809,13 @@ AzureusCoreImpl
 					action_str,
 					type_str,
 				});
+		
+		UIFunctions ui_functions = UIFunctionsManager.getUIFunctions();
+		
+		if ( ui_functions != null ){
+		
+			ui_functions.forceNotify( UIFunctions.STATUSICON_NONE, null, message, null, new Object[0], -1 );
+		}
 		
 		Logger.log( 
 			new LogAlert( 
