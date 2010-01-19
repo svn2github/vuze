@@ -56,6 +56,15 @@ public class TimeFormatter {
 		http_date_format.setTimeZone(TimeZone.getTimeZone("GMT"));
 	}
 	
+	private static final SimpleDateFormat cookie_date_format = 
+		new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z", Locale.US );
+
+	static{
+			// see http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1
+		
+		cookie_date_format.setTimeZone(TimeZone.getTimeZone("GMT"));
+	}
+	
 	/**
 	 * Format time into two time sections, the first chunk trimmed, the second
 	 * with always with 2 digits.  Sections are *d, **h, **m, **s.  Section
@@ -209,6 +218,16 @@ public class TimeFormatter {
     		
     		return( 0 );
     	}
+    }
+    
+    public static String
+    getCookieDate(
+    	long		millis )
+    {
+		synchronized( cookie_date_format ){
+			
+			return( cookie_date_format.format(new Date( millis )));
+		}
     }
     
     public static String

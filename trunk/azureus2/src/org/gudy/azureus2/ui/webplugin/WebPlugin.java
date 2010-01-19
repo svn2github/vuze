@@ -1284,24 +1284,9 @@ WebPlugin
 									
 									String	cookies = headers.substring( p1+7, p2 ).trim();
 									
-									String[] cookie_list = cookies.split( ";" );
-																			
-									for ( String cookie: cookie_list ){
+									if (  hasOurCookie( cookies )){
 										
-										String[] bits = cookie.split( "=" );
-										
-										if ( bits.length == 2 ){
-											
-											if ( bits[0].trim().equals( "vuze_pairing_sc" )){
-												
-												if ( bits[1].trim().equals( pairing_session_code )){
-													
-													result = true;
-													
-													break;
-												}
-											}
-										}
+										return( true );
 									}
 								}
 							}
@@ -1315,6 +1300,31 @@ WebPlugin
 			
 			log.log( "Server initialisation failed", e );
 		}
+	}
+	
+	private boolean
+	hasOurCookie(
+		String		cookies )
+	{
+		String[] cookie_list = cookies.split( ";" );
+		
+		for ( String cookie: cookie_list ){
+			
+			String[] bits = cookie.split( "=" );
+			
+			if ( bits.length == 2 ){
+				
+				if ( bits[0].trim().equals( "vuze_pairing_sc" )){
+					
+					if ( bits[1].trim().equals( pairing_session_code )){
+						
+						return( true );
+					}
+				}
+			}
+		}
+		
+		return( false );
 	}
 	
 	private boolean
@@ -1603,15 +1613,11 @@ WebPlugin
 					}
 				}
 				
-				if (!valid_ip) {
-					response.setReplyStatus(403);
-					response.setContentType("text/plain");
-
-					PrintWriter pw = new PrintWriter(response.getOutputStream());
-					pw.println("Cannot access resource from this IP address.");
-					pw.flush();
-					pw.close();
-					return true;
+				if ( !valid_ip ){
+					
+					response.setReplyStatus( 403 );
+					
+					return( returnTextPlain( response, "Cannot access resource from this IP address." ));
 				}
 				
 			}catch( Throwable e ){
@@ -1643,48 +1649,65 @@ WebPlugin
 		
 		URL full_url = request.getAbsoluteURL();
 		
-		if ( full_url.getPath().equals( "/isPairedServiceAvailable" )){
+		String	full_url_path = full_url.getPath();
+		
+		if ( full_url_path.equals( "/isPairedServiceAvailable" )){
 			
-			String query = full_url.getQuery();
+			String callback = getArgumentFromURL( full_url, "jsoncallback" );
+				
+			if ( callback != null ){
+					
+				return( returnTextPlain( response,  callback + "( {'pairedserviceavailable':true} )"));
+			}
+		}else if ( full_url_path.equals( "/isServicePaired" )){
 			
-			if ( query != null ){
+			boolean paired = hasOurCookie((String)request.getHeaders().get( "cookie" ));
+			
+			return( returnJSON( response, "{ 'servicepaired': " + ( paired?"true":"false" ) + " }" ));
+			
+		}else if ( full_url_path.equals( "/pairedServiceLogout")){
+			
+			response.setHeader( "Set-Cookie", "vuze_pairing_sc=<deleted>, expires=" + TimeFormatter.getCookieDate(0));
+			
+			String redirect = getArgumentFromURL( full_url, "redirect_to" );
+			
+			if ( redirect != null ){
 				
-				String	callback = null;
-				
-				String[] args = query.split( "&" );
-				
-				for ( String arg: args ){
+				try{
+					URL target = new URL( redirect );
 					
-					String [] x = arg.split( "=" );
+					String	host = target.getHost();
 					
-					if ( x.length == 2 ){
-						
-						if ( x[0].equals( "jsoncallback" )){
+					if ( !Constants.isAzureusDomain( host )){
+					
+						if ( !InetAddress.getByName(host).isLoopbackAddress()){
 							
-							callback = x[1];
+							log( "Invalid redirect host: " + host );
 							
-							break;
+							redirect = null;
 						}
 					}
-				}
-				
-				if ( callback != null ){
+				}catch( Throwable e ){
 					
-					response.setContentType( "text/plain" );
-	
-					PrintWriter pw = new PrintWriter( response.getOutputStream());
+					Debug.out( e );
 					
-					pw.println( callback + "( {'pairedserviceavailable':true} )");
-					
-					pw.flush();
-					
-					pw.close();
-				
-					return( true );
+					redirect = null;
 				}
 			}
+			if ( redirect == null ){
+					
+				return( returnTextPlain( response, "" ));
+				
+			}else{
+				
+				response.setReplyStatus( 302 );
+				
+				response.setHeader( "Location", redirect );
+				
+				return( true );
+			}
 		}
-		
+	
 		if ( generateSupport( request, response )){
 			
 			return(true);
@@ -1767,6 +1790,69 @@ WebPlugin
 		}
 		
 		return( false );
+	}
+	
+	private String
+	getArgumentFromURL(
+		URL			url,
+		String		argument )
+	{
+		String query = url.getQuery();
+		
+		if ( query != null ){
+						
+			String[] args = query.split( "&" );
+			
+			for ( String arg: args ){
+				
+				String [] x = arg.split( "=" );
+				
+				if ( x.length == 2 ){
+					
+					if ( x[0].equals( argument )){
+						
+						return( UrlUtils.decode( x[1] ));
+					}
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
+	private boolean
+	returnTextPlain(
+		TrackerWebPageResponse		response,
+		String						str )
+	{
+		return( returnStuff( response, "text/plain", str ));
+	}
+	
+	private boolean
+	returnJSON(
+		TrackerWebPageResponse		response,
+		String						str )
+	{
+		return( returnStuff( response, "text/plain", str ));
+	}
+	
+	private boolean
+	returnStuff(
+		TrackerWebPageResponse		response,
+		String						content_type,
+		String						str )
+	{
+		response.setContentType( content_type );
+		
+		PrintWriter pw = new PrintWriter( response.getOutputStream());
+		
+		pw.println( str );
+		
+		pw.flush();
+		
+		pw.close();
+	
+		return( true );
 	}
 	
 	protected BasicPluginConfigModel
