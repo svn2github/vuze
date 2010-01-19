@@ -72,7 +72,6 @@ public class Alerts
 	 * @since 3.0.0.9
 	 */
 	protected static void showAlert(LogAlert alert) {
-		System.out.println("showlare " + alert.getText());
 		final Display display = SWTThread.getInstance().getDisplay();
 
 		if (alert.err != null) {
