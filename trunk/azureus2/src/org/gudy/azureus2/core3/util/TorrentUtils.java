@@ -959,7 +959,11 @@ TorrentUtils
 	{
 		Map	m = (Map)obj;
 		
-		((Map)tls.get()).putAll(m);
+		Map tls_map = (Map)tls.get();
+		
+		tls_map.clear();
+		
+		tls_map.putAll(m);
 	}
 	
 	public static URL
