@@ -292,7 +292,14 @@ public class SystemTraySWT
 		
 		itemExit.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
-    		uiFunctions.dispose(false, false);
+				// User got a stack overflow (all SWT code) because of this dispose,
+				// so execute it outside of the selection trigger and hope it doesn't
+				// overflow there.
+				Utils.execSWTThreadLater(0, new AERunnable() {
+					public void runSupport() {
+						uiFunctions.dispose(false, false);
+					}
+				});
 			}
 		});
 	}
