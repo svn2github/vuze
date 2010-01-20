@@ -63,13 +63,13 @@ TorrentUtils
 	private static final List	created_torrents;
 	private static final Set	created_torrents_set;
 	
-	private static ThreadLocal		tls	= 
-		new ThreadLocal()
+	private static ThreadLocal<Map<String,Object>>		tls	= 
+		new ThreadLocal<Map<String,Object>>()
 		{
-			public Object
+			public Map<String,Object>
 			initialValue()
 			{
-				return( new HashMap());
+				return( new HashMap<String,Object>());
 			}
 		};
 		
@@ -901,13 +901,13 @@ TorrentUtils
 	setTLSTorrentHash(
 		HashWrapper		hash )
 	{
-		((Map)tls.get()).put( "hash", hash );
+		tls.get().put( "hash", hash );
 	}
 	
 	public static TOTorrent
 	getTLSTorrent()
 	{
-		HashWrapper	hash = (HashWrapper)((Map)tls.get()).get("hash");
+		HashWrapper	hash = (HashWrapper)(tls.get()).get("hash");
 		
 		if ( hash != null ){
 			
@@ -933,13 +933,13 @@ TorrentUtils
 	setTLSDescription(
 		String		desc )
 	{
-		((Map)tls.get()).put( "desc", desc );
+		tls.get().put( "desc", desc );
 	}
 	
 	public static String
 	getTLSDescription()
 	{
-		return((String)((Map)tls.get()).get( "desc" ));
+		return((String)tls.get().get( "desc" ));
 	}
 	
 		/**
@@ -950,16 +950,16 @@ TorrentUtils
 	public static Object
 	getTLS()
 	{
-		return( tls.get());
+		return( new HashMap<String,Object>(tls.get()));
 	}
 	
 	public static void
 	setTLS(
 		Object	obj )
 	{
-		Map	m = (Map)obj;
+		Map<String,Object>	m = (Map<String,Object>)obj;
 		
-		Map tls_map = (Map)tls.get();
+		Map<String,Object> tls_map = tls.get();
 		
 		tls_map.clear();
 		
