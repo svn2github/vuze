@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManager;
@@ -295,8 +296,10 @@ SubscriptionSchedulerImpl
 								retry = false;
 							
 								try{
+									TorrentUtils.setTLSDescription( "Subscription: " + subs.getName());
+
 									URL url = new URL(dl);
-									
+																		
 									ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
 									
 									ResourceDownloader url_rd = rdf.create( url );
@@ -369,6 +372,9 @@ SubscriptionSchedulerImpl
 										
 										log( subs.getName() + ": Retrying " + (use_ref?"with referer":"without referer" ));
 									}
+								}finally{
+									
+									TorrentUtils.setTLSDescription( null );
 								}
 							}
 						}finally{

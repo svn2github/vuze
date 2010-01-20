@@ -35,6 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
@@ -484,6 +485,7 @@ WebEngine
 	{
 		
 		try {
+			TorrentUtils.setTLSDescription( "Search: " + getName());
 			
 			if ( requiresLogin()){
 				
@@ -976,6 +978,10 @@ WebEngine
 			debugLog( "Failed to load page: " + Debug.getNestedExceptionMessageAndStack(e));
 			
 			throw( new SearchException( "Failed to load page", e ));
+			
+		}finally{
+			
+			TorrentUtils.setTLSDescription( null );
 		}
 	}
 
