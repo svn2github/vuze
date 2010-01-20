@@ -17,7 +17,7 @@
  */
 
 package org.gudy.azureus2.ui.swt.donations;
-
+ 
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
@@ -68,10 +68,13 @@ public class DonationWindow
 			return;
 		}
 
+		long maxDate = COConfigurationManager.getLongParameter("donations.maxDate", 0);
+		boolean force = maxDate > 0 && SystemTime.getCurrentTime() > maxDate ? true : false;	
+		
 		//Check if user has already donated first
 		boolean alreadyDonated = COConfigurationManager.getBooleanParameter(
 				"donations.donated", false);
-		if (alreadyDonated) {
+		if (alreadyDonated && !force) {
 			if (DEBUG) {
 				new MessageBoxShell(SWT.OK, "Donations Test",
 						"Already Donated! I like you.").open(null);
@@ -103,7 +106,7 @@ public class DonationWindow
 			return;
 		}
 
-		if (hours < nextAsk) {
+		if (hours < nextAsk && !force) {
 			if (DEBUG) {
 				new MessageBoxShell(SWT.OK, "Donations Test", "Wait "
 						+ (nextAsk - hours) + ".").open(null);
@@ -302,6 +305,7 @@ public class DonationWindow
 	 */
 	protected static void  neverAskAgain() {
 		COConfigurationManager.setParameter("donations.donated", true);
+		updateMinDate();
 		COConfigurationManager.save();
 	}
 
@@ -319,21 +323,22 @@ public class DonationWindow
 		int hours = (int) (upTime / (60 * 60)); //secs * mins
 		int nextAsk = hours + askEveryHours;
 		COConfigurationManager.setParameter("donations.nextAskHours", nextAsk);
-		COConfigurationManager.setParameter("donations.lastVersion",
-				Constants.AZUREUS_VERSION);
+		COConfigurationManager.setParameter("donations.lastVersion", Constants.AZUREUS_VERSION);
+		updateMinDate();
 		COConfigurationManager.save();
 	}
 
 	public static void updateMinDate() {
-		COConfigurationManager.setParameter("donations.minDate",
-				SystemTime.getOffsetTime(1000l * 3600 * 24 * 30));
-		COConfigurationManager.save();
+		COConfigurationManager.setParameter("donations.minDate", SystemTime.getOffsetTime(1000 * 3600 * 24 * 30));  //30d ahead
+		COConfigurationManager.setParameter("donations.maxDate", SystemTime.getOffsetTime(1000 * 3600 * 24 * 120));  //4mo ahead
+		//COConfigurationManager.save();
 	}
-
-	public static void setMinDate(long timestamp) {
-		COConfigurationManager.setParameter("donations.minDate", timestamp);
-		COConfigurationManager.save();
-	}
+	
+   //unused
+	//public static void setMinDate(long timestamp) {
+	//	COConfigurationManager.setParameter("donations.minDate", timestamp);
+	//	COConfigurationManager.save();
+	//}
 
 	public static int getInitialAskHours() {
 		return initialAskHours;
