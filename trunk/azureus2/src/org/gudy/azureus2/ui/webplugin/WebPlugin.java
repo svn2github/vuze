@@ -178,7 +178,12 @@ WebPlugin
 				return( null );
 			}
 		};
-		
+	
+	private static final int	LOGOUT_GRACE_MILLIS	= 5*1000;
+	private static final String	GRACE_PERIOD_MARKER	= "<grace_period>";
+	
+	private Map<String,Long>	logout_timer 		= new HashMap<String, Long>();
+	
 	public 
 	WebPlugin()
 	{
@@ -1153,26 +1158,35 @@ WebPlugin
 						String		user,
 						String		pw )
 					{
+						long	now = SystemTime.getMonotonousTime();
+
+						String	client_address = getHeaderField( headers, "X-Real-IP" );
+						
+						if ( client_address == null ){
+							
+							client_address = "<unknown>";
+						}
+
+						synchronized( logout_timer ){
+							
+							Long logout_time = logout_timer.get( client_address );
+							
+							if ( logout_time != null && now - logout_time <= LOGOUT_GRACE_MILLIS ){
+																
+								tls.set( GRACE_PERIOD_MARKER );
+								
+								return( true );
+							}
+						}
+						
 						boolean	result = authenticateSupport( headers, resource, user, pw );
 																				
 						if ( !result ){
-													
-							long	now = SystemTime.getMonotonousTime();
-
+							
 							AESemaphore waiter = null;
 							
 							synchronized( fail_map ){
 
-								String	client_address = "";
-								
-								int	p1 = headers.indexOf( "X-Real-IP:" );
-								
-								if ( p1 != -1 ){
-									
-									int	p2 = headers.indexOf( '\n', p1 );
-									
-									client_address = headers.substring( p1+10, p2==-1?headers.length():p2).trim();
-								}
 								
 								Object[] x = fail_map.get( client_address );
 							
@@ -1224,6 +1238,13 @@ WebPlugin
 						
 						boolean	result;
 						
+						boolean	auto_auth =  param_auto_auth.getValue();
+						
+						if ( auto_auth ){
+							
+							user = user.trim().toLowerCase();
+						}
+						
 						if ( !user.equals( p_user_name.getValue())){
 							
 							result = false;
@@ -1234,7 +1255,8 @@ WebPlugin
 							
 							if (  !last_pw.equals( pw )){
 															
-								hash = plugin_interface.getUtilities().getSecurityManager().calculateSHA1( pw.getBytes());
+								hash = plugin_interface.getUtilities().getSecurityManager().calculateSHA1( 
+										auto_auth?pw.toUpperCase().getBytes():pw.getBytes());
 								
 								last_pw		= pw;
 								last_hash	= hash;
@@ -1243,56 +1265,72 @@ WebPlugin
 							result = Arrays.equals( hash, p_password.getValue());
 						}
 						
-						if ( !result && param_auto_auth.getValue() && pairing_access_code != null ){
+						if ( !result && auto_auth && pairing_access_code != null ){
 							
-								// either the ac is in the url or we have a cookie set
+								// either the ac is in the url, referer or we have a cookie set
+														
+							String[]	locations = { resource.getQuery(), getHeaderField( headers, "Referer" )};
 							
-							String query = resource.getQuery();
+							for ( String location: locations ){
 							
-							if ( query != null ){
-								
-								int p1 = query.indexOf( "vuze_pairing_ac=" );
-								
-								if ( p1 != -1 ){
+								if ( location != null ){
 									
-									int p2 = query.indexOf( '&', p1 );
+									int p1 = location.indexOf( "vuze_pairing_ac=" );
 									
-									String ac = query.substring( p1+16, p2==-1?query.length():p2 ).trim();
+									if ( p1 != -1 ){
+										
+										int p2 = location.indexOf( '&', p1 );
+										
+										String ac = location.substring( p1+16, p2==-1?location.length():p2 ).trim();
+										
+										if ( ac.equalsIgnoreCase( pairing_access_code )){
 									
-									if ( ac.equalsIgnoreCase( pairing_access_code )){
-								
-										tls.set( pairing_session_code );
-										
-										return( true );
-										
-									}else{
-										
-										return( false );
+											tls.set( pairing_session_code );
+											
+											return( true );
+											
+										}else{
+											
+											return( false );
+										}
 									}
 								}
 							}
 							
-							String lc_headers = headers.toLowerCase();
+							String cookies = getHeaderField( headers, "Cookie" );
 							
-							int p1 = lc_headers.indexOf( "cookie:" );
+							if ( cookies != null ){
 							
-							if ( p1 != -1 ){
-							
-								int	p2 = lc_headers.indexOf( '\n', p1 );
-								
-								if ( p2 != -1 ){
-									
-									String	cookies = headers.substring( p1+7, p2 ).trim();
-									
-									if (  hasOurCookie( cookies )){
+								if (  hasOurCookie( cookies )){
 										
-										return( true );
-									}
+									return( true );
 								}
 							}
 						}
 						
 						return( result );
+					}
+					
+					private String
+					getHeaderField(
+						String	headers,
+						String	field )
+					{
+						String lc_headers = headers.toLowerCase();
+						
+						int p1 = lc_headers.indexOf( field.toLowerCase() + ":" );
+						
+						if ( p1 != -1 ){
+						
+							int	p2 = lc_headers.indexOf( '\n', p1 );
+							
+							if ( p2 != -1 ){
+								
+								return( headers.substring( p1+field.length()+1, p2 ).trim());
+							}
+						}
+						
+						return( null );
 					}
 				});
 			
@@ -1577,10 +1615,10 @@ WebPlugin
 	
 		throws IOException
 	{
+		String	client = request.getClientAddress();
+
 		if ( !ip_range_all ){
-		
-			String	client = request.getClientAddress();
-			
+					
 			// System.out.println( "client = " + client );
 			
 			try{
@@ -1638,6 +1676,11 @@ WebPlugin
 	
 		String	cookie_to_set = tls.get();
 		
+		if ( cookie_to_set == GRACE_PERIOD_MARKER ){
+			
+			return( returnTextPlain( response, "Logout in progress, please try again later." ));
+		}
+		
 		if ( cookie_to_set != null ){
 			
 				// set session cookie
@@ -1661,11 +1704,16 @@ WebPlugin
 			}
 		}else if ( full_url_path.equals( "/isServicePaired" )){
 			
-			boolean paired = hasOurCookie((String)request.getHeaders().get( "cookie" ));
+			boolean paired = cookie_to_set != null || hasOurCookie((String)request.getHeaders().get( "cookie" ));
 			
 			return( returnJSON( response, "{ 'servicepaired': " + ( paired?"true":"false" ) + " }" ));
 			
 		}else if ( full_url_path.equals( "/pairedServiceLogout")){
+			
+			synchronized( logout_timer ){
+				
+				logout_timer.put( client, SystemTime.getMonotonousTime());
+			}
 			
 			response.setHeader( "Set-Cookie", "vuze_pairing_sc=<deleted>, expires=" + TimeFormatter.getCookieDate(0));
 			
