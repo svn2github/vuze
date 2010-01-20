@@ -1148,6 +1148,7 @@ public class VersionCheckClient {
 
     //always send
     message.put( "appid",   SystemProperties.getApplicationIdentifier());
+    message.put( "appname", SystemProperties.getApplicationName());
     message.put( "version", Constants.AZUREUS_VERSION );
     message.put( "ui",      COConfigurationManager.getStringParameter( "ui", "unknown" ) );
     message.put( "os",      Constants.OSName );
