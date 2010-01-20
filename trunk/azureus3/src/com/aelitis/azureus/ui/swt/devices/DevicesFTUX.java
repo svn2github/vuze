@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.installer.*;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
@@ -43,6 +44,7 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceManager;
@@ -130,6 +132,18 @@ public class DevicesFTUX
 		checkITunes.setSelection(true);
 		Messages.setLanguageText(checkITunes, "devices.turnon.itunes");
 
+		PluginInterface itunes_plugin = null;
+		try {
+			itunes_plugin = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+					"azitunes", true);
+
+		} catch (Throwable e) {
+		}
+		if (itunes_plugin != null && itunes_plugin.getPluginState().isOperational()) {
+			checkITunes.setVisible(false);
+		}
+
+		
 		checkQOS = new Button(shell, SWT.CHECK);
 		checkQOS.setSelection(true);
 		Messages.setLanguageText(checkQOS, "devices.turnon.qos");
