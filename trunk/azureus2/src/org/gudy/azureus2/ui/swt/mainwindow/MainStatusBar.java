@@ -216,6 +216,14 @@ public class MainStatusBar
 		statusBar.setForeground(fgColor);
 		isAZ3 = "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"));
 		
+		statusBar.getShell().addListener(SWT.Deiconify, new Listener() {
+			public void handleEvent(Event event) {
+				if (!statusBar.isDisposed()) {
+					statusBar.layout(true);
+				}
+			}
+		});
+		
 		GridLayout layout_status = new GridLayout();
 		layout_status.numColumns = 20;
 		layout_status.horizontalSpacing = 0;
