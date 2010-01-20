@@ -195,7 +195,7 @@ public class SystemWarningWindow
 		Rectangle printArea = new Rectangle(BORDER_X, 0, WIDTH - (BORDER_X * 2),
 				5000);
 		spText = new GCStringPrinter(gc, text, printArea, true, false, SWT.WRAP);
-		spText.setUrlColor(Colors.blue);
+		spText.setUrlColor(Colors.blues[Colors.FADED_DARKEST]);
 		spText.calculateMetrics();
 
 		gc.setFont(fontCount);
