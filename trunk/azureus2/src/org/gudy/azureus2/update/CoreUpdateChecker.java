@@ -37,12 +37,16 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.html.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 
 import org.gudy.azureus2.platform.win32.access.AEWin32Access;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.update.*;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 import com.aelitis.azureus.core.util.GeneralUtils;
@@ -946,6 +950,30 @@ CoreUpdateChecker
 		
 		if ( silent ){
 			
+				// problem on OSX if they have renamed their app and we're running silently as it
+				// installs to Vuze.app regardless
+			
+			if ( Constants.isOSX ){
+				
+				String app_name = SystemProperties.getApplicationName();
+				
+				if ( !( app_name.equals( "Vuze" ) || app_name.equals( "Azureus" ))){
+					
+					UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+					
+					String details = MessageText.getString(
+							"update.fail.app.changed",
+							new String[]{ app_name });
+					
+					ui_manager.showMessageBox(
+							"update.fail.app.changed.title",
+							"!" + details + "!",
+							UIManagerEvent.MT_OK );
+					
+					return;
+				}
+			}
+			
 			uif.performAction( 
 					UIFunctions.ACTION_UPDATE_RESTART_REQUEST,
 					!FileUtil.canReallyWriteToAppDirectory(),
@@ -1133,7 +1161,11 @@ CoreUpdateChecker
 		    	
 		    			String[] to_run;
 		    			
-		    			if ( args.length == 0 ){
+		    				// can't pass args unless using 'open' on 10.6 or higher. Update process
+		    				// has been changed to avoid arg passing on OSX anyway, but leaving this
+		    				// in in case needed in the future
+		    			
+		    			if ( args.length == 0 || !Constants.isOSX_10_6_OrHigher){
 		    				
 			    			to_run = new String[]{ "/bin/sh", "-c", "open \"" + f.getAbsolutePath() + "\""};
 			    			
