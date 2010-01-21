@@ -1644,7 +1644,7 @@ WebPlugin
 	
 		throws IOException
 	{
-		System.out.println( request.getURL());
+		// System.out.println( request.getURL());
 		
 		String	client = request.getClientAddress();
 
