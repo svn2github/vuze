@@ -137,17 +137,20 @@ ExternalSeedReaderFactoryGetRight
 						
 						url_str = url_str.replaceAll( " ", "%20");
 
-						URL	url = new URL( url_str );
-						
-						String	protocol = url.getProtocol().toLowerCase();
-																		
-						if ( protocol.equals( "http" )){
+						if ( url_str.length() > 0 ){
 							
-							readers.add( new ExternalSeedReaderGetRight(plugin, download.getTorrent(), url, my_params ));
+							URL	url = new URL( url_str );
 							
-						}else{
-							
-							plugin.log( download.getName() + ": GR unsupported protocol: " + url );
+							String	protocol = url.getProtocol().toLowerCase();
+																			
+							if ( protocol.equals( "http" )){
+								
+								readers.add( new ExternalSeedReaderGetRight(plugin, download.getTorrent(), url, my_params ));
+								
+							}else{
+								
+								plugin.log( download.getName() + ": GR unsupported protocol: " + url );
+							}
 						}
 					}catch( Throwable e ){
 						
