@@ -24,11 +24,12 @@ package com.aelitis.azureus.core.pairing;
 public interface 
 PairingConnectionData 
 {
-	public static final String ATTR_IP_V4		= "ip4";
-	public static final String ATTR_IP_V6		= "ip6";
-	public static final String ATTR_PORT		= "port";
-	public static final String ATTR_PROTOCOL	= "protocol";
-	public static final String ATTR_HOST		= "host";
+	public static final String ATTR_IP_V4			= "ip4";
+	public static final String ATTR_IP_V6			= "ip6";
+	public static final String ATTR_PORT			= "port";
+	public static final String ATTR_PORT_OVERRIDE	= "port_or";
+	public static final String ATTR_PROTOCOL		= "protocol";
+	public static final String ATTR_HOST			= "host";
 	
 	public void
 	setAttribute(

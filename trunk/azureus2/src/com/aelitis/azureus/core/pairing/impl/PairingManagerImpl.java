@@ -1436,7 +1436,14 @@ PairingManagerImpl
 					System.out.println( "PS: " + sid + ": " + name + " -> " + value );
 				}
 				
-				attributes.put( name, value );
+				if  ( value == null ){
+					
+					attributes.remove( name );
+					
+				}else{
+					
+					attributes.put( name, value );
+				}
 			}
 		}
 		

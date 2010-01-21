@@ -78,6 +78,8 @@ WebPlugin
 	public static final String	CONFIG_PAIRING_ENABLE			= "Pairing Enable";
 	public static final boolean	CONFIG_PAIRING_ENABLE_DEFAULT	= true;
 
+	public static final String	CONFIG_PORT_OVERRIDE			= "Port Override";
+	
 	public static final String	CONFIG_PAIRING_AUTO_AUTH			= "Pairing Auto Auth";
 	public static final boolean	CONFIG_PAIRING_AUTO_AUTH_DEFAULT	= true;
 
@@ -148,6 +150,7 @@ WebPlugin
 	private PasswordParameter		p_password;
 	
 	private BooleanParameter		param_auto_auth;
+	private IntParameter			param_port_or;
 	private boolean					setting_auto_auth;
 	private String					pairing_access_code;
 	private String					pairing_session_code;
@@ -530,6 +533,8 @@ WebPlugin
 				plugin_config.setPluginParameter( PAIRING_MIGRATED, true );
 			}
 			
+			param_port_or	=  config_model.addIntParameter2( CONFIG_PORT_OVERRIDE, "webui.port.override", 0 );
+
 			param_auto_auth = config_model.addBooleanParameter2( CONFIG_PAIRING_AUTO_AUTH, "webui.pairing.autoauth", CONFIG_PAIRING_AUTO_AUTH_DEFAULT );
 			
 			param_auto_auth.addListener(
@@ -556,6 +561,7 @@ WebPlugin
 			pairing_info	= null;
 			pairing_enable 	= null;
 			param_auto_auth	= null;
+			param_port_or	= null;
 			pairing_test	= null;
 			connection_test	= null;
 		}
@@ -563,7 +569,7 @@ WebPlugin
 		config_model.createGroup(
 				"ConfigView.section.Pairing",
 				new Parameter[]{
-					pairing_info, pairing_enable, param_auto_auth, connection_test, pairing_test,
+					pairing_info, pairing_enable, param_port_or, param_auto_auth, connection_test, pairing_test,
 				});
 		
 		config_model.createGroup(
@@ -689,6 +695,7 @@ WebPlugin
 							boolean enabled = pairing_enable.getValue();
 							
 							param_auto_auth.setEnabled( pm.isEnabled() && enabled );
+							param_port_or.setEnabled( pm.isEnabled() && enabled );
 							
 							boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
 
@@ -711,6 +718,7 @@ WebPlugin
 						pairing_enable.setEnabled( pm.isEnabled());
 							
 						param_auto_auth.setEnabled( pm.isEnabled() && pairing_enable.getValue() );
+						param_port_or.setEnabled( pm.isEnabled() && pairing_enable.getValue() );
 						
 						boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
 						
@@ -743,6 +751,8 @@ WebPlugin
 				};
 				
 			param_port.addListener( update_pairing_listener );
+			
+			param_port_or.addListener( update_pairing_listener );
 			
 			param_protocol.addListener( update_pairing_listener );
 		}
@@ -1574,6 +1584,18 @@ WebPlugin
 		PairingConnectionData		cd )
 	{
 		cd.setAttribute( PairingConnectionData.ATTR_PORT, 		String.valueOf( param_port.getValue()));
+		
+		int	override = param_port_or==null?0:param_port_or.getValue();
+		
+		if ( override > 0 ){
+			
+			cd.setAttribute( PairingConnectionData.ATTR_PORT_OVERRIDE, 	String.valueOf( override ));
+			
+		}else{
+			
+			cd.setAttribute( PairingConnectionData.ATTR_PORT_OVERRIDE, null );
+		}
+		
 		cd.setAttribute( PairingConnectionData.ATTR_PROTOCOL, 	param_protocol.getValue());
 	}
 
@@ -1622,6 +1644,8 @@ WebPlugin
 	
 		throws IOException
 	{
+		System.out.println( request.getURL());
+		
 		String	client = request.getClientAddress();
 
 		if ( !ip_range_all ){
