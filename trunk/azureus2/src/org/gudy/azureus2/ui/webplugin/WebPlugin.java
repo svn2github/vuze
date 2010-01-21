@@ -1283,6 +1283,13 @@ WebPlugin
 										
 										String ac = location.substring( p1+16, p2==-1?location.length():p2 ).trim();
 										
+										p2 = ac.indexOf( '#' );
+										
+										if ( p2 != -1 ){
+											
+											ac = ac.substring( 0, p2 );
+										}
+																	
 										if ( ac.equalsIgnoreCase( pairing_access_code )){
 									
 											tls.set( pairing_session_code );
