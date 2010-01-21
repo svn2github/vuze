@@ -132,6 +132,8 @@ public class RemotePairingWindow implements PairingManagerListener
 					}
 					if (piWebUI == null) {
 						installWebUI();
+					} else {
+						switchToCode();
 					}
 					control.redraw();
 				}
