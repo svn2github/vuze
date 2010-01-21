@@ -1,8 +1,8 @@
 /*
- * Created on Oct 5, 2009
+ * Created on Jan 21, 2010
  * Created by Paul Gardner
  * 
- * Copyright 2009 Vuze, Inc.  All rights reserved.
+ * Copyright 2010 Vuze, Inc.  All rights reserved.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,58 +22,14 @@
 package com.aelitis.azureus.core.pairing;
 
 public interface 
-PairingManager 
+PairingTestListener 
 {
-	public boolean
-	isEnabled();
-	
-	public String
-	getAccessCode()
-	
-		throws PairingException;
-	
-	public String
-	peekAccessCode();
-	
-	public String
-	getReplacementAccessCode()
-	
-		throws PairingException;
-	
-	public PairedService
-	addService(
-		String		sid );
-	
-	public PairedService
-	getService(
-		String		sid );
-	
-	public void 
-	setEnabled(
-		boolean enabled );
-
-	public String
-	getStatus();
-
-	public String
-	getLastServerError();
-
-	public boolean
-	hasActionOutstanding();
-	
-	public PairingTest
-	testService(
-		String					sid,
-		PairingTestListener		listener )
-	
-		throws PairingException;
+	public void
+	testStarted(
+		PairingTest		test );
 	
 	public void
-	addListener(
-		PairingManagerListener	l );
-	
-	public void
-	removeListener(
-		PairingManagerListener	l );
+	testComplete(
+		PairingTest		test );
 
 }

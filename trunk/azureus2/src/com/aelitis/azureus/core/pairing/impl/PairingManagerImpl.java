@@ -1347,6 +1347,18 @@ PairingManagerImpl
 		}
 	}
 	
+	
+	public PairingTest 
+	testService(
+		String 					sid, 
+		PairingTestListener 	listener )
+	
+		throws PairingException 
+	{
+		
+		return( null );
+	}
+	
 	protected void
 	fireChanged()
 	{

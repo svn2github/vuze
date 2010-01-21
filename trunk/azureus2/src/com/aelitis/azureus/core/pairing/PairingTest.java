@@ -1,8 +1,8 @@
 /*
- * Created on Oct 5, 2009
+ * Created on Jan 21, 2010
  * Created by Paul Gardner
  * 
- * Copyright 2009 Vuze, Inc.  All rights reserved.
+ * Copyright 2010 Vuze, Inc.  All rights reserved.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,58 +22,21 @@
 package com.aelitis.azureus.core.pairing;
 
 public interface 
-PairingManager 
+PairingTest 
 {
-	public boolean
-	isEnabled();
+	public static final int	OT_SUCCESS				= 1;	// yay
+	public static final int	OT_FAILED				= 2;	// server did its stuff, couldn't connect
+	public static final int	OT_SERVER_UNAVAILABLE	= 3;	// server not running
+	public static final int	OT_SERVER_OVERLOADED	= 4;	// server too busy
+	public static final int	OT_SERVER_FAILED		= 5;	// server failed (e.g. db down)
+	public static final int	OT_CANCELLED			= 6;	// you cancelled the test
+	
+	public int
+	getOutcome();
 	
 	public String
-	getAccessCode()
-	
-		throws PairingException;
-	
-	public String
-	peekAccessCode();
-	
-	public String
-	getReplacementAccessCode()
-	
-		throws PairingException;
-	
-	public PairedService
-	addService(
-		String		sid );
-	
-	public PairedService
-	getService(
-		String		sid );
-	
-	public void 
-	setEnabled(
-		boolean enabled );
-
-	public String
-	getStatus();
-
-	public String
-	getLastServerError();
-
-	public boolean
-	hasActionOutstanding();
-	
-	public PairingTest
-	testService(
-		String					sid,
-		PairingTestListener		listener )
-	
-		throws PairingException;
+	getErrorMessage();
 	
 	public void
-	addListener(
-		PairingManagerListener	l );
-	
-	public void
-	removeListener(
-		PairingManagerListener	l );
-
+	cancel();
 }
