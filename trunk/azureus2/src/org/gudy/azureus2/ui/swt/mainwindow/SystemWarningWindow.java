@@ -127,7 +127,7 @@ public class SystemWarningWindow
 				: MessageText.getString("AlertMessageBox." + amb_key_suffix);
 
 		if (logAlert.text.startsWith("{")) {
-			text = MessageText.getString(logAlert.text);
+			text = MessageText.expandValue(logAlert.text);
 		} else {
 			text = logAlert.text;
 		}
