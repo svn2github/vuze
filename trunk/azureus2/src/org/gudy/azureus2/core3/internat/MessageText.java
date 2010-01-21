@@ -317,11 +317,15 @@ public class MessageText {
 
 		String value = RESOURCE_BUNDLE.getString(key);
 
+		return expandValue(value);
+	}
+  
+  public static String expandValue(String value) {
 		// Replace {*} with a lookup of *
 		if (value != null && value.indexOf('}') > 0) {
 			Matcher matcher = PAT_PARAM_ALPHA.matcher(value);
 			while (matcher.find()) {
-				key = matcher.group(1);
+				String key = matcher.group(1);
 		    try {
 		    	String text = getResourceBundleString(key);
 					if (text != null) {
@@ -332,9 +336,8 @@ public class MessageText {
 		    }
 			}
 		}
-
 		return value;
-	}
+  }
 
   /**
    * Gets the localization key suffix for the running platform
