@@ -181,6 +181,28 @@ public class SWTSkinObjectImage
 		canvas = new Canvas(createOn, style);
 		canvas.setData("SkinObject", this);
 
+//		 {
+//				public Point computeSize(int wHint, int hHint) {
+//					Object image = canvas.getData("image");
+//					Object imageID = canvas.getData("ImageID");
+//					if (image == null
+//							&& (imageID == null || ((String) imageID).length() == 0)) {
+//						return new Point(0, 0);
+//					}
+//					return super.computeSize(wHint, hHint);
+//				};
+//
+//				public Point computeSize(int wHint, int hHint, boolean changed) {
+//					Object image = canvas.getData("image");
+//					Object imageID = canvas.getData("ImageID");
+//					if (image == null
+//							&& (imageID == null || ((String) imageID).length() == 0)) {
+//						return new Point(0, 0);
+//					}
+//					return super.computeSize(wHint, hHint, changed);
+//				};
+//			};
+
 		Color color = properties.getColor(sConfigID + ".color");
 		if (color != null) {
 			canvas.setBackground(color);
@@ -404,20 +426,43 @@ public class SWTSkinObjectImage
 
 		if (imageExists) {
 			setCanvasImage(currentImageID, null);
+		} else {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					FormData fd = (FormData) canvas.getLayoutData();
+					if (fd == null) {
+						fd = new FormData(0, 0);
+					} else {
+						fd.width = 0;
+						fd.height = 0;
+					}
+					canvas.setLayoutData(fd);
+					Utils.relayout(canvas);
+				}
+			});
 		}
 	}
 
-	public void setImage(Image image) {
-		customImage = true;
-		customImageID = null;
-		canvas.setData("image", image);
-		canvas.setData("image-left", null);
-		canvas.setData("image-right", null);
-		canvas.redraw();
-		Utils.relayout(canvas);
+	public void setImage(final Image image) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				customImage = true;
+				customImageID = null;
+				canvas.setData("image", image);
+				canvas.setData("ImageID", null);
+				canvas.setData("image-left", null);
+				canvas.setData("image-right", null);
+
+				canvas.removePaintListener(paintListener);
+				canvas.addPaintListener(paintListener);
+
+				Utils.relayout(canvas);
+				canvas.redraw();
+			}
+		});
 	}
 
-	protected void setImageByID(String sConfigID, AECallback callback) {
+	public void setImageByID(String sConfigID, AECallback callback) {
 		if (customImage == false && customImageID != null
 				&& customImageID.equals(sConfigID)) {
 			if (callback != null) {
