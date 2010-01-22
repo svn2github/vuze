@@ -207,6 +207,7 @@ DeviceManagerImpl
 	
 	private int						getMimeType_fails;
 	
+	private Object					logger_lock = new Object();
 	private AEDiagnosticsLogger		logger;
 	
 	private AsyncDispatcher	async_dispatcher = new AsyncDispatcher( 10*1000 );
@@ -738,14 +739,13 @@ DeviceManagerImpl
 			return( true );
 		}
 		
-		synchronized( this ){
-			
-			for ( DeviceImpl device: device_list ){
-				
-				if ( device.isBusy()){
+		DeviceImpl[] devices = getDevices();
 					
-					return( true );
-				}
+		for ( DeviceImpl device: devices ){
+			
+			if ( device.isBusy()){
+				
+				return( true );
 			}
 		}
 		
@@ -1201,16 +1201,14 @@ DeviceManagerImpl
 		File existing = getDefaultWorkingDirectory( false );
 		
 		if ( !existing.getAbsolutePath().equals( dir.getAbsolutePath())){
-		
-			// default has changed, reset all device save locations so that they pick up the change
 			
-			
-			synchronized( this ){
+				// default has changed, reset all device save locations so that they pick up the change
 				
-				for ( DeviceImpl d: device_list ){
-
-					d.resetWorkingDirectory();
-				}
+			DeviceImpl[] devices = getDevices();
+			
+			for ( DeviceImpl device: devices ){
+		
+				device.resetWorkingDirectory();
 			}
 		}
 		
@@ -1248,15 +1246,18 @@ DeviceManagerImpl
   		listeners.removeListener( listener );
   	}
   	
-	protected synchronized AEDiagnosticsLogger
+	protected AEDiagnosticsLogger
 	getLogger()
 	{
-		if ( logger == null ){
+		synchronized( logger_lock ){
 			
-			logger = AEDiagnostics.getLogger( LOGGER_NAME );
+			if ( logger == null ){
+				
+				logger = AEDiagnostics.getLogger( LOGGER_NAME );
+			}
+			
+			return( logger );
 		}
-		
-		return( logger );
 	}
 	
 	public void 
