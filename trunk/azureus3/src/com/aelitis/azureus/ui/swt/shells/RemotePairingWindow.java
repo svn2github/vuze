@@ -384,6 +384,7 @@ public class RemotePairingWindow
 
 					hideCode = false;
 					final String fIconID = iconID;
+					somethingChanged(pairingManager);
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
 							control.redraw();
@@ -410,6 +411,7 @@ public class RemotePairingWindow
 		
 		if (pairingTest == null) {
 			hideCode = false;
+			somethingChanged(pairingManager);
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					control.redraw();
