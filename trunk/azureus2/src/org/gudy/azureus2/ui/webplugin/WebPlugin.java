@@ -729,18 +729,21 @@ WebPlugin
 					{
 						pairing_info.setLabelKey( "webui.pairing.info." + (pm.isEnabled()?"y":"n"));
 	
-						pairing_enable.setEnabled( pm.isEnabled());
+						if ( plugin_enabled ){
 							
-						param_auto_auth.setEnabled( pm.isEnabled() && pairing_enable.getValue() );
-						param_port_or.setEnabled( pm.isEnabled() && pairing_enable.getValue() );
-						
-						boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
-						
-						pairing_test.setEnabled( test_ok );
-						connection_test.setEnabled( test_ok );
+							pairing_enable.setEnabled( pm.isEnabled());
+								
+							param_auto_auth.setEnabled( pm.isEnabled() && pairing_enable.getValue() );
+							param_port_or.setEnabled( pm.isEnabled() && pairing_enable.getValue() );
+							
+							boolean test_ok = pm.isEnabled() && pairing_enable.getValue() && pm.peekAccessCode() != null && !pm.hasActionOutstanding();
+							
+							pairing_test.setEnabled( test_ok );
+							connection_test.setEnabled( test_ok );
+						}
 						
 						connection_test.setHyperlink( getConnectionTestURL( p_sid ));
-												
+								  				
 						setupPairing( p_sid, pairing_enable.getValue());
 					}
 				};
