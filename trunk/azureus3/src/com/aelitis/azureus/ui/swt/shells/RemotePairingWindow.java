@@ -523,13 +523,16 @@ public class RemotePairingWindow
 			String lastServerError = pairingManager.getLastServerError();
 			if (lastServerError != null && lastServerError.length() > 0) {
 				if (s.length() > 0) {
-					s += "\n";
+					s += ";";
 				}
 				s += "Last Error: " + lastServerError;
 			}
 			if (s.length() == 0) {
 				s = fallBackStatusText;
 			} else {
+				if (s.length() > 150) {
+					s = s.substring(0, 150);
+				}
 				soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(),
 						"#666666"));
 			}
