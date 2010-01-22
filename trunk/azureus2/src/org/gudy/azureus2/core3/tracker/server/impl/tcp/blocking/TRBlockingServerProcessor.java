@@ -32,8 +32,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerException;
@@ -85,9 +83,17 @@ TRBlockingServerProcessor
 				
 				setTaskState( "entry" );
 				
-				try{										
-					socket.setSoTimeout( SOCKET_TIMEOUT );
-											
+				try{	
+					if ( keep_alive ){
+						
+						socket.setSoTimeout( KEEP_ALIVE_SOCKET_TIMEOUT );
+						
+						setTimeoutsDisabled( true );
+						
+					}else{
+					
+						socket.setSoTimeout( SOCKET_TIMEOUT );
+					}					
 				}catch ( Throwable e ){
 														
 					// e.printStackTrace();
@@ -375,17 +381,7 @@ TRBlockingServerProcessor
 					 // e.printStackTrace();
 				}
 				
-				if ( keep_alive ){
-					
-					try{				
-						socket.setSoTimeout( KEEP_ALIVE_SOCKET_TIMEOUT );
-												
-					}catch ( Throwable e ){
-					}
-											
-					setTimeoutsDisabled( true );
-					
-				}else{
+				if ( !keep_alive ){
 					
 					break;
 				}
