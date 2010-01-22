@@ -412,7 +412,11 @@ public class RemotePairingWindow
 		
 		if (pairingTest == null) {
 			hideCode = false;
-			control.redraw();
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					control.redraw();
+				}
+			});
 			updateStatusText();
 		}
 	}
