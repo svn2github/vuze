@@ -101,6 +101,8 @@ public class RemotePairingWindow
 	
 	private PairingTest pairingTest;
 
+	private boolean alreadyTested = false;
+
 
 	public static void open() {
 		if (DEBUG) {
@@ -126,6 +128,7 @@ public class RemotePairingWindow
 	}
 
 	private void _open() {
+		alreadyTested = false;
 		pairingManager = PairingManagerFactory.getSingleton();
 		piWebUI = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
 				PLUGINID_WEBUI, true);
@@ -176,6 +179,7 @@ public class RemotePairingWindow
 						if (DEBUG) {
 							testPairingClass.inc();
 						}
+						alreadyTested = false;
 						testPairing();
 						return true;
 					}
@@ -205,8 +209,10 @@ public class RemotePairingWindow
 							false, false, SWT.NONE);
 					sp.calculateMetrics();
 					Point sizeAccess = sp.getCalculatedSize();
+					
+					String drawAccessCode = accessCode == null ? "      " : accessCode;
 
-					int numBoxes = accessCode == null ? 0 : accessCode.length();
+					int numBoxes = drawAccessCode == null ? 0 : drawAccessCode.length();
 					int boxSize = 25;
 					int boxSizeAndPadding = 30;
 					int allBoxesWidth = numBoxes * boxSizeAndPadding;
@@ -228,8 +234,8 @@ public class RemotePairingWindow
 						e.gc.drawRectangle(r);
 						if (!hideCode) {
 							e.gc.setForeground(oldColor);
-							GCStringPrinter.printString(e.gc, "" + accessCode.charAt(i), r,
-									false, false, SWT.CENTER);
+							GCStringPrinter.printString(e.gc, "" + drawAccessCode.charAt(i),
+									r, false, false, SWT.CENTER);
 						}
 					}
 				}
@@ -301,6 +307,8 @@ public class RemotePairingWindow
 	}
 
 	public void switchToCode() {
+		testPairing();
+
 		Utils.execSWTThread(new AERunnable() {
 
 			public void runSupport() {
@@ -315,13 +323,18 @@ public class RemotePairingWindow
 				}
 				soFTUX.setVisible(false);
 				soCode.setVisible(true);
-				
-				testPairing();
 			}
 		});
 	}
 
 	protected void testPairing() {
+		if (alreadyTested) {
+			return;
+		}
+		
+		alreadyTested = true;
+
+		final String soToClipboardText = soToClipboard.getText();
 		try {
 			hideCode = true;
 			Utils.execSWTThread(new AERunnable() {
@@ -335,6 +348,7 @@ public class RemotePairingWindow
 			});
 			soStatusText.setTextID("remote.pairing.test.running");
 			soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(), "#000000"));
+			soToClipboard.setText(" ");
 
 			PairingTestListener testListener = new PairingTestListener() {
 				public void testStarted(PairingTest test) {
@@ -400,6 +414,7 @@ public class RemotePairingWindow
 					});
 					soStatusText.setText(fallBackStatusText);
 					soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(), colorID));
+					soToClipboard.setText(soToClipboardText);
 				}
 			};
 			pairingTest = pairingManager.testService(PLUGINID_WEBUI, testListener);
@@ -421,6 +436,7 @@ public class RemotePairingWindow
 					control.redraw();
 				}
 			});
+			soToClipboard.setText(soToClipboardText);
 			updateStatusText();
 		}
 	}
