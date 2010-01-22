@@ -211,7 +211,7 @@ public class RemotePairingWindow
 					Point sizeAccess = sp.getCalculatedSize();
 					
 					String drawAccessCode = accessCode == null ? "      " : accessCode;
-
+					
 					int numBoxes = drawAccessCode == null ? 0 : drawAccessCode.length();
 					int boxSize = 25;
 					int boxSizeAndPadding = 30;
@@ -288,7 +288,9 @@ public class RemotePairingWindow
 				soFTUX.getControl().moveAbove(null);
 			}
 		}
+		hideCode = true;
 		skinnedDialog.open();
+		hideCode = false;
 
 		if (showFTUX) {
 			switchToFTUX();
