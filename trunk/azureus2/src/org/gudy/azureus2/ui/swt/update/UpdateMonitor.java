@@ -646,7 +646,8 @@ public class UpdateMonitor
 			
 			uiFunctions.performAction( 
 					UIFunctions.ACTION_UPDATE_RESTART_REQUEST,
-					false,
+					Constants.isWindows7OrHigher,		// no timer for in 7 as they always get an elevation prompt so we don't want to shutdown and then leave\
+														// Vuze down pending user authorisation of the update
 					new UIFunctions.actionListener()
 					{
 						public void
