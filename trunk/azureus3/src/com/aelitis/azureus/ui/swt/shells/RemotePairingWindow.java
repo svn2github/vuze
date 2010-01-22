@@ -323,21 +323,20 @@ public class RemotePairingWindow
 		});
 	}
 
-	/**
-	 * 
-	 *
-	 * @since 4.1.0.5
-	 */
 	protected void testPairing() {
 		try {
 			hideCode = true;
-			control.redraw();
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					control.redraw();
+					SWTSkinObjectImage soImage = (SWTSkinObjectImage) skin.getSkinObject("status-image");
+					if (soImage != null) {
+						soImage.setImageByID("icon.spin", null);
+					}
+				}
+			});
 			soStatusText.setTextID("remote.pairing.test.running");
 			soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(), "#000000"));
-			SWTSkinObjectImage soImage = (SWTSkinObjectImage) skin.getSkinObject("status-image");
-			if (soImage != null) {
-				soImage.setImageByID("icon.spin", null);
-			}
 
 			PairingTestListener testListener = new PairingTestListener() {
 				public void testStarted(PairingTest test) {
