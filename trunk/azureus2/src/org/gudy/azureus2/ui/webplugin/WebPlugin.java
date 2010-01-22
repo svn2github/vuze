@@ -212,6 +212,18 @@ WebPlugin
 		
 		plugin_config = plugin_interface.getPluginconfig();
 
+		Properties plugin_properties = plugin_interface.getPluginProperties();
+		
+		if ( plugin_properties != null ){
+			
+			Object o = plugin_properties.get( "plugin." + PR_ROOT_DIR.replaceAll( " ", "_" ));
+			
+			if ( o instanceof String ){
+				
+				properties.put( PR_ROOT_DIR, o );
+			}
+		}
+		
 		Boolean	pr_enable = (Boolean)properties.get(PR_ENABLE);
 		
 		if ( pr_enable != null ){
