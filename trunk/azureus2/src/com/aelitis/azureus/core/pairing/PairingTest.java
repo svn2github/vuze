@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.pairing;
 public interface 
 PairingTest 
 {
+	public static final int	OT_PENDING				= 0;	// waiting to start
 	public static final int	OT_SUCCESS				= 1;	// yay
 	public static final int	OT_FAILED				= 2;	// server did its stuff, couldn't connect
 	public static final int	OT_SERVER_UNAVAILABLE	= 3;	// server not running

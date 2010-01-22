@@ -45,6 +45,8 @@ import com.aelitis.azureus.core.pairing.PairingConnectionData;
 import com.aelitis.azureus.core.pairing.PairingManager;
 import com.aelitis.azureus.core.pairing.PairingManagerFactory;
 import com.aelitis.azureus.core.pairing.PairingManagerListener;
+import com.aelitis.azureus.core.pairing.PairingTest;
+import com.aelitis.azureus.core.pairing.PairingTestListener;
 import com.aelitis.azureus.plugins.upnp.UPnPMapping;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
@@ -755,6 +757,41 @@ WebPlugin
 			param_port_or.addListener( update_pairing_listener );
 			
 			param_protocol.addListener( update_pairing_listener );
+			
+			/*
+			config_model.addActionParameter2( "test", "test" ).addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param )
+					{
+						try{
+							pm.testService( 
+								p_sid,
+								new PairingTestListener()
+								{
+									public void 
+									testStarted(
+										PairingTest test )
+									{
+										System.out.println( "Test starts" );
+									}
+									
+									public void 
+									testComplete(
+										PairingTest test) 
+									{
+										System.out.println( "Test complete: " + test.getOutcome() + "/" + test.getErrorMessage());
+									}
+								});
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				});
+			*/
 		}
 		
 		if ( param_enable != null ){

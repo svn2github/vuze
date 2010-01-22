@@ -30,6 +30,7 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -1267,6 +1268,8 @@ PairingManagerImpl
 			
 			HttpURLConnection connection = (HttpURLConnection)target.openConnection();
 			
+			connection.setConnectTimeout( 30*1000 );
+			
 			InputStream is = connection.getInputStream();
 			
 			Map<String,Object> response = (Map<String,Object>)BDecoder.decode( new BufferedInputStream( is ));
@@ -1355,8 +1358,7 @@ PairingManagerImpl
 	
 		throws PairingException 
 	{
-		
-		return( null );
+		return( new TestServiceImpl( sid, listener ));
 	}
 	
 	protected void
@@ -1403,6 +1405,165 @@ PairingManagerImpl
 		}
 		
 		return( new String( bytes, "UTF-8" ));
+	}
+	
+	protected class
+	TestServiceImpl
+		implements PairingTest
+	{
+		final private String					sid;
+		final private PairingTestListener		listener;
+		
+		private volatile int		outcome = OT_PENDING;
+		private volatile String		error_message;
+		
+		private volatile boolean	cancelled;
+		
+		protected
+		TestServiceImpl(
+			String 					_sid, 
+			PairingTestListener 	_listener )
+		{
+			sid			= _sid;
+			listener	= _listener;
+			
+			new AEThread2( "PM:test" )
+			{
+				public void
+				run()
+				{
+					try{
+						String	access_code	= null;
+						
+						while( true ){
+							
+							if ( !isEnabled()){
+								
+								throw( new Exception( "Pairing is disabled" ));
+							}
+							
+							access_code = peekAccessCode();
+							
+							if ( access_code != null ){
+								
+								if ( !hasActionOutstanding()){
+									
+									break;
+								}
+							}
+							
+							Thread.sleep( 500 );
+							
+							if ( cancelled ){
+								
+								outcome = OT_CANCELLED;
+								
+								return;
+							}
+						}
+						
+						PairedService service = getService( sid );
+						
+						if ( service == null ){
+							
+							throw( new Exception( "Service not found" ));
+						}
+						
+						listener.testStarted( TestServiceImpl.this );
+						
+						String other_params = 
+							"&ver=" + UrlUtils.encode( Constants.AZUREUS_VERSION ) + 
+							"&app=" + UrlUtils.encode( SystemProperties.getApplicationName()) +
+							"&locale=" + UrlUtils.encode( MessageText.getCurrentLocale().toString());
+						
+						URL target = new URL( SERVICE_URL + "/web/test?sid=" + sid + "&ac=" + access_code + "&format=bencode" + other_params );
+						
+						HttpURLConnection connection = (HttpURLConnection)target.openConnection();
+						
+						connection.setConnectTimeout( 10*1000 );
+						
+						try{
+							InputStream is = connection.getInputStream();
+							
+							Map<String,Object> response = (Map<String,Object>)BDecoder.decode( new BufferedInputStream( is ));
+							
+							response = BDecoder.decodeStrings( response );
+							
+							Long code = (Long)response.get( "code" );
+							
+							if ( code == null ){
+								
+								throw( new Exception( "Code missing from reply" ));
+							}
+												
+							error_message = (String)response.get( "msg" );
+							
+							if ( code == 1 ){
+								
+								outcome = OT_SUCCESS;
+								
+							}else if ( code == 2 ){
+								
+								outcome = OT_SERVER_OVERLOADED;
+								
+							}else if ( code == 3 ){
+								
+								outcome = OT_SERVER_FAILED;
+								
+							}else if ( code == 4 ){
+								
+								outcome = OT_FAILED;
+								
+								error_message = "Connect timeout";
+								
+							}else if ( code == 5 ){
+								
+								outcome = OT_FAILED;
+								
+							}else{
+								
+								outcome = OT_SERVER_FAILED;;
+								
+								error_message = "Unknown response code " + code;
+							}
+						}catch( SocketTimeoutException e ){
+							
+							outcome = OT_SERVER_UNAVAILABLE;
+							
+							error_message = "Connect timeout";
+							
+						}
+					}catch( Throwable e ){
+						
+						outcome = OT_SERVER_UNAVAILABLE;
+						
+						error_message = Debug.getNestedExceptionMessage( e );
+						
+					}finally{
+						
+						listener.testComplete( TestServiceImpl.this );
+					}
+				}
+			}.start();
+		}
+		
+		public int
+		getOutcome()
+		{
+			return( outcome );
+		}
+		
+		public String
+		getErrorMessage()
+		{
+			return( error_message );
+		}
+		
+		public void
+		cancel()
+		{
+			cancelled	= true;
+		}
 	}
 	
 	protected class

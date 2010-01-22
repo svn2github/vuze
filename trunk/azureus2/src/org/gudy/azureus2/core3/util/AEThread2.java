@@ -60,6 +60,13 @@ AEThread2
 	
 	public
 	AEThread2(
+		String		_name )
+	{
+		this( _name, true );
+	}
+	
+	public
+	AEThread2(
 		String		_name,
 		boolean		_daemon )
 	{
