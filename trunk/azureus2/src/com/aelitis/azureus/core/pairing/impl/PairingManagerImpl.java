@@ -344,7 +344,7 @@ PairingManagerImpl
 					{
 						new DelayedEvent( 
 							"PM:delayinit",
-							30*1000,
+							10*1000,
 							new AERunnable()
 							{
 								public void
