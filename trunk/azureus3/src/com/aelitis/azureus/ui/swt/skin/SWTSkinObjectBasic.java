@@ -23,6 +23,7 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.util.StringCompareUtils;
 
 /**
@@ -197,7 +198,7 @@ public class SWTSkinObjectBasic
 		control.setData("SkinObject", this);
 
 		SWTSkinUtils.addMouseImageChangeListeners(control);
-		switchSuffix("", 1, false);
+		switchSuffix(null, 0, false);
 
 		// setvisible is one time only
 		if (!properties.getBooleanValue(sConfigID + ".visible", true)) {
@@ -259,8 +260,6 @@ public class SWTSkinObjectBasic
 				String id = getTooltipID(true);
 				if (id == null) {
 					control.setToolTipText(null);
-				} else if (id.startsWith("!") && id.endsWith("!")) {
-					control.setToolTipText(id.substring(1, id.length() - 1));
 				} else {
 					control.setToolTipText(MessageText.getString(id, (String) null));
 				}
@@ -448,15 +447,10 @@ public class SWTSkinObjectBasic
 						if (!visible) {
 							if (fd.width != 0 && fd.height != 0) {
 								control.setData("oldSize", new Point(fd.width, fd.height));
-							}
-							if (fd.width != 0) {
 								changed = true;
-								fd.width = 0;
 							}
-							if (fd.height != 0) {
-								changed = true;
-								fd.height = 0;
-							}
+							fd.width = 0;
+							fd.height = 0;
 						} else {
 							Object oldSize = control.getData("oldSize");
 							Point oldSizePoint = (oldSize instanceof Point) ? (Point) oldSize
@@ -536,10 +530,12 @@ public class SWTSkinObjectBasic
 				return null;
 			}
 		}
+		String old = getSuffix();
 
 		if (level > 0) {
   		//System.out.println(SystemTime.getCurrentTime() + ": " + this + suffix + "; switchy");
   		if (suffixes == null) {
+  			old = null;
   			suffixes = new String[level];
   		} else if (suffixes.length < level) {
   			String[] newSuffixes = new String[level];
@@ -549,13 +545,16 @@ public class SWTSkinObjectBasic
   		suffixes[level - 1] = newSuffixEntry;
 		}
 
-		newSuffixEntry = getSuffix();
+		String fullSuffix = getSuffix();
 
-		if (sConfigID == null || control == null || control.isDisposed() || !isVisible) {
-			return newSuffixEntry;
+		if (newSuffixEntry != null) {
+  		if (sConfigID == null || control == null || control.isDisposed()
+  				|| !isVisible || (newSuffixEntry != null && fullSuffix.equals(old))) {
+  			return fullSuffix;
+  		}
 		}
 
-		final String sSuffix = newSuffixEntry;
+		final String sSuffix = fullSuffix;
 
 		Utils.execSWTThread(new AERunnable() {
 
@@ -570,9 +569,6 @@ public class SWTSkinObjectBasic
 					control.removeListener(SWT.Resize, resizeGradientBGListener);
 
 					Color color = properties.getColor(sConfigID + ".color" + sSuffix);
-					if (color == null) {
-						color = properties.getColor(sConfigID + ".color");
-					}
 					bgColor = color;
 					String colorStyle = properties.getStringValue(sConfigID
 							+ ".color.style" + sSuffix);
@@ -681,11 +677,14 @@ public class SWTSkinObjectBasic
 			}
 
 		});
-		return newSuffixEntry;
+		return fullSuffix;
 	}
 
 	public String getSuffix() {
 		String suffix = "";
+		if (suffixes == null) {
+			return suffix;
+		}
 		for (int i = 0; i < suffixes.length; i++) {
 			if (suffixes[i] != null) {
 				suffix += suffixes[i];
