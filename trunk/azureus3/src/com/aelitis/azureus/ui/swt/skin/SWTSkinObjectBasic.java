@@ -260,6 +260,8 @@ public class SWTSkinObjectBasic
 				String id = getTooltipID(true);
 				if (id == null) {
 					control.setToolTipText(null);
+				} else if (id.startsWith("!") && id.endsWith("!")) {
+					control.setToolTipText(id.substring(1, id.length() - 1));
 				} else {
 					control.setToolTipText(MessageText.getString(id, (String) null));
 				}
