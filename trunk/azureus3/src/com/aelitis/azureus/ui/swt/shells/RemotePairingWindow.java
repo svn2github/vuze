@@ -385,12 +385,16 @@ public class RemotePairingWindow
 					hideCode = false;
 					final String fIconID = iconID;
 					somethingChanged(pairingManager);
+					final String pairingText = pairingTest.getErrorMessage();
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
 							control.redraw();
 							SWTSkinObjectImage soImage = (SWTSkinObjectImage) skin.getSkinObject("status-image");
 							if (soImage != null) {
 								soImage.setImageByID(fIconID, null);
+								if (pairingText != null) {
+									soImage.setTooltipID("!" + pairingText + "!");
+								}
 							}
 						}
 					});
