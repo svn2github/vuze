@@ -145,22 +145,29 @@ public class RemotePairingWindow
 				public void pressed(SWTSkinButtonUtility buttonUtility,
 						SWTSkinObject skinObject, int stateMask) {
 					skinObject.getControl().setEnabled(false);
+
 					if (!pairingManager.isEnabled()) {
 						pairingManager.setEnabled(true);
 						try {
-							accessCode = pairingManager.getAccessCode();
+							// used to be needed to get initial access code.. may not be
+							// needed anymore (setEnabled might do it for us)
+							pairingManager.getAccessCode();
 						} catch (PairingException e) {
 							// ignore.. if error, lastErrorUpdates will trigger
 						}
 					}
+					control.redraw();
+
 					if (piWebUI == null) {
 						installWebUI();
 					} else {
 						switchToCode();
 					}
-					control.redraw();
 				}
 			});
+
+			soFTUX = skin.getSkinObject("pairing-ftux");
+			soCode = skin.getSkinObject("pairing-code");
 
 			soStatusText = (SWTSkinObjectText) skin.getSkinObject("status-text");
 			soStatusText.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
@@ -185,12 +192,6 @@ public class RemotePairingWindow
 					: 18, SWT.BOLD);
 			gc.dispose();
 			control.setFont(fontCode);
-
-			try {
-				accessCode = pairingManager.getAccessCode();
-			} catch (PairingException e) {
-				// ignore.. if error, lastErrorUpdates will trigger
-			}
 
 			control.addPaintListener(new PaintListener() {
 				public void paintControl(PaintEvent e) {
@@ -277,9 +278,6 @@ public class RemotePairingWindow
 				}
 			});
 
-			soFTUX = skin.getSkinObject("pairing-ftux");
-			soCode = skin.getSkinObject("pairing-code");
-
 			if (showFTUX) {
 				soFTUX.getControl().moveAbove(null);
 			}
@@ -317,7 +315,7 @@ public class RemotePairingWindow
 				}
 				soFTUX.setVisible(false);
 				soCode.setVisible(true);
-
+				
 				testPairing();
 			}
 		});
@@ -529,7 +527,7 @@ public class RemotePairingWindow
 		}
 		if (!newAccessCode.equals(accessCode)) {
 			accessCode = newAccessCode;
-			if (accessCode.length() > 0) {
+			if (accessCode.length() > 0 && !soFTUX.isVisible()) {
 				testPairing();
 			}
 		}
