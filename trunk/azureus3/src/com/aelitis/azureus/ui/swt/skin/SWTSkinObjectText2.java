@@ -563,12 +563,10 @@ public class SWTSkinObjectText2
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (canvas != null && !canvas.isDisposed()) {
+					canvas.setCursor(null);
 					canvas.redraw();
 					if (relayoutOnTextChange) {
 						Utils.relayout(canvas);
-					}
-					if (lastStringPrinter == null) {
-						canvas.setCursor(canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 					}
 				}
 			}
@@ -730,5 +728,15 @@ public class SWTSkinObjectText2
 	
 	public void removeUrlClickedListener(SWTSkinObjectText_UrlClickedListener l) {
 		listUrlClickedListeners.remove(l);
+	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText#setTextColor(org.eclipse.swt.graphics.Color)
+	public void setTextColor(final Color color) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				canvas.setData("color", color);
+				canvas.redraw();
+			}
+		});
 	}
 }

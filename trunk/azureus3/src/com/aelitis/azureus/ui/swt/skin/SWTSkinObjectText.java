@@ -19,6 +19,8 @@
  */
 package com.aelitis.azureus.ui.swt.skin;
 
+import org.eclipse.swt.graphics.Color;
+
 /**
  * @author TuxPaper
  * @created Aug 4, 2006
@@ -67,4 +69,6 @@ public interface SWTSkinObjectText
 	 * @since 4.2.0.7
 	 */
 	void removeUrlClickedListener(SWTSkinObjectText_UrlClickedListener l);
+
+	public void setTextColor(Color color);
 }

@@ -366,4 +366,10 @@ public class SWTSkinObjectText1
 		// TODO Auto-generated method stub
 		
 	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText#setTextColor(org.eclipse.swt.graphics.Color)
+	public void setTextColor(Color color) {
+		// TODO Auto-generated method stub
+		
+	}
 }
