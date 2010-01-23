@@ -2,7 +2,7 @@ VUZE CHANGELOG
 -----------------
 
 
-2010.01.xx | Vuze 4.3.0.7
+2010.01.23 | Vuze 4.3.1.0
 
 FEATURE: Core | Option to auto-start Vuze on login on Windows and OSX [Parg]
 FEATURE: Core | Option to close Vuze when downloads/seeding complete [Parg]
