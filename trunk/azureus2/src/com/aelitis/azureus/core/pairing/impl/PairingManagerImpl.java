@@ -166,6 +166,7 @@ PairingManagerImpl
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
 	private boolean			must_update_once;
+	private boolean			update_in_progress;
 	private TimerEvent		deferred_update_event;
 	private long			last_update_time		= -1;
 	private int				consec_update_fails;
@@ -450,7 +451,7 @@ PairingManagerImpl
 				return( false );
 			}
 			
-			return( !updates_enabled || update_outstanding || deferred_update_event != null );
+			return( !updates_enabled || update_outstanding || deferred_update_event != null || update_in_progress );
 		}
 	}
 	
@@ -889,7 +890,15 @@ PairingManagerImpl
 						public void
 						runSupport()
 						{
-							doUpdate();
+							try{
+								update_in_progress = true;
+								
+								doUpdate();
+								
+							}finally{
+								
+								update_in_progress = false;
+							}
 						}
 					});
 						
@@ -1433,7 +1442,8 @@ PairingManagerImpl
 				run()
 				{
 					try{
-						String	access_code	= null;
+						String	access_code		= null;
+						long	sid_wait_start	= -1;
 						
 						while( true ){
 							
@@ -1448,7 +1458,26 @@ PairingManagerImpl
 								
 								if ( !hasActionOutstanding()){
 									
-									break;
+									if ( getService( sid ) != null ){
+									
+										break;
+										
+									}else{
+										
+										long	now = SystemTime.getMonotonousTime();
+										
+										if ( sid_wait_start == -1 ){
+											
+											sid_wait_start = now;
+											
+										}else{
+											
+											if ( now - sid_wait_start > 5000 ){
+												
+												break;
+											}
+										}
+									}
 								}
 							}
 							
