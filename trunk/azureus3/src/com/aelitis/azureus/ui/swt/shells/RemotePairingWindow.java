@@ -28,9 +28,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.installer.*;
@@ -52,6 +51,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
+import com.aelitis.azureus.util.StringCompareUtils;
 
 /**
  * @author TuxPaper
@@ -62,7 +62,9 @@ public class RemotePairingWindow
 	implements PairingManagerListener
 {
 	private static final String PLUGINID_WEBUI = "xmwebui";
-	
+
+	private static final boolean SHOW_SPEW = false;
+
 	private static final boolean DEBUG = false;
 
 	static RemotePairingWindow instance = null;
@@ -89,20 +91,19 @@ public class RemotePairingWindow
 
 	private SWTSkinObject soCode;
 
-	private PluginInterface piWebUI;
-
 	private SWTSkinObjectText soToClipboard;
 
 	private boolean hideCode = true;
-	
+
 	private String fallBackStatusText = "";
 
 	private static testPairingClass testPairingClass;
-	
+
 	private PairingTest pairingTest;
 
-	private boolean alreadyTested = false;
+	private boolean alreadyTested;
 
+	private String storedToClipboardText;
 
 	public static void open() {
 		if (DEBUG) {
@@ -127,12 +128,19 @@ public class RemotePairingWindow
 				});
 	}
 
+	private PluginInterface getWebUI() {
+		return AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+				PLUGINID_WEBUI, true);
+	}
+
 	private void _open() {
 		alreadyTested = false;
+
 		pairingManager = PairingManagerFactory.getSingleton();
-		piWebUI = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-				PLUGINID_WEBUI, true);
+		PluginInterface piWebUI = getWebUI();
+
 		boolean showFTUX = piWebUI == null || !pairingManager.isEnabled();
+
 		if (skinnedDialog == null || skinnedDialog.isDisposed()) {
 			skinnedDialog = new SkinnedDialog("skin3_dlg_remotepairing", "shell",
 					SWT.DIALOG_TRIM);
@@ -150,18 +158,22 @@ public class RemotePairingWindow
 					skinObject.getControl().setEnabled(false);
 
 					if (!pairingManager.isEnabled()) {
+						// enabling will automatically get access code and trigger
+						// somethingChanged
 						pairingManager.setEnabled(true);
-						try {
-							// used to be needed to get initial access code.. may not be
-							// needed anymore (setEnabled might do it for us)
-							pairingManager.getAccessCode();
-						} catch (PairingException e) {
-							// ignore.. if error, lastErrorUpdates will trigger
+						if (SHOW_SPEW) {
+							System.out.println("PAIR] SetEnabled");
 						}
+					} else {
+						// fire something changed ourselves, so that accesscode gets
+						// picked up
+						if (SHOW_SPEW) {
+							System.out.println("PAIR] AlreadyEnabled");
+						}
+						somethingChanged(pairingManager);
 					}
-					control.redraw();
 
-					if (piWebUI == null) {
+					if (getWebUI() == null) {
 						installWebUI();
 					} else {
 						switchToCode();
@@ -180,14 +192,14 @@ public class RemotePairingWindow
 							testPairingClass.inc();
 						}
 						alreadyTested = false;
-						testPairing();
+						testPairing(false);
 						return true;
 					}
 					return false;
 				}
 			});
 			updateStatusText();
-			
+
 			pairingManager.addListener(this);
 
 			Font font = control.getFont();
@@ -209,9 +221,9 @@ public class RemotePairingWindow
 							false, false, SWT.NONE);
 					sp.calculateMetrics();
 					Point sizeAccess = sp.getCalculatedSize();
-					
+
 					String drawAccessCode = accessCode == null ? "      " : accessCode;
-					
+
 					int numBoxes = drawAccessCode == null ? 0 : drawAccessCode.length();
 					int boxSize = 25;
 					int boxSizeAndPadding = 30;
@@ -309,7 +321,8 @@ public class RemotePairingWindow
 	}
 
 	public void switchToCode() {
-		testPairing();
+		// use somethingChanged to trigger testPairing if needed
+		somethingChanged(pairingManager);
 
 		Utils.execSWTThread(new AERunnable() {
 
@@ -329,14 +342,19 @@ public class RemotePairingWindow
 		});
 	}
 
-	protected void testPairing() {
+	protected void testPairing(boolean delay) {
+		if (SHOW_SPEW) {
+			System.out.println("PAIR] Want testPairing; alreadyTested="
+					+ alreadyTested + ";Delay?" + delay + ";"
+					+ Debug.getCompressedStackTrace());
+		}
 		if (alreadyTested) {
 			return;
 		}
-		
+
 		alreadyTested = true;
 
-		final String soToClipboardText = soToClipboard.getText();
+		storedToClipboardText = soToClipboard.getText();
 		try {
 			hideCode = true;
 			Utils.execSWTThread(new AERunnable() {
@@ -349,10 +367,11 @@ public class RemotePairingWindow
 				}
 			});
 			soStatusText.setTextID("remote.pairing.test.running");
-			soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(), "#000000"));
+			soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(),
+					"#000000"));
 			soToClipboard.setText(" ");
 
-			PairingTestListener testListener = new PairingTestListener() {
+			final PairingTestListener testListener = new PairingTestListener() {
 				public void testStarted(PairingTest test) {
 				}
 
@@ -376,12 +395,12 @@ public class RemotePairingWindow
 							iconID = "icon.warning";
 							colorID = "#A97000";
 							break;
-							
+
 						case PairingTest.OT_SERVER_FAILED:
 						case PairingTest.OT_SERVER_OVERLOADED:
 						case PairingTest.OT_SERVER_UNAVAILABLE:
-							fallBackStatusText = MessageText.getString("remote.pairing.test.unavailable",
-									new String[] {
+							fallBackStatusText = MessageText.getString(
+									"remote.pairing.test.unavailable", new String[] {
 										test.getErrorMessage()
 									});
 							iconID = "icon.warning";
@@ -389,8 +408,8 @@ public class RemotePairingWindow
 							break;
 
 						default:
-							fallBackStatusText = MessageText.getString("remote.pairing.test.fail",
-									new String[] {
+							fallBackStatusText = MessageText.getString(
+									"remote.pairing.test.fail", new String[] {
 										test.getErrorMessage()
 									});
 							iconID = "icon.failure";
@@ -415,32 +434,54 @@ public class RemotePairingWindow
 						}
 					});
 					soStatusText.setText(fallBackStatusText);
-					soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(), colorID));
-					soToClipboard.setText(soToClipboardText);
+					soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(),
+							colorID));
+					soToClipboard.setText(storedToClipboardText);
 				}
 			};
-			pairingTest = pairingManager.testService(PLUGINID_WEBUI, testListener);
-			
+			SimpleTimer.addEvent("testPairing", SystemTime.getOffsetTime(delay ? 5000
+					: 0), new TimerEventPerformer() {
+				public void perform(TimerEvent event) {
+					try {
+						pairingTest = pairingManager.testService(PLUGINID_WEBUI,
+								testListener);
+					} catch (PairingException e) {
+						finishFailedTest();
+
+						soStatusText.setText(Debug.getNestedExceptionMessage(e));
+						Debug.out(e);
+					}
+
+					if (pairingTest == null) {
+						finishFailedTest();
+					}
+				}
+			});
+
 			if (DEBUG) {
 				testListener.testComplete(testPairingClass);
 				return;
 			}
-		} catch (PairingException e) {
+		} catch (Exception e) {
+			finishFailedTest();
+
 			soStatusText.setText(Debug.getNestedExceptionMessage(e));
 			Debug.out(e);
 		}
-		
-		if (pairingTest == null) {
-			hideCode = false;
-			somethingChanged(pairingManager);
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					control.redraw();
-				}
-			});
-			soToClipboard.setText(soToClipboardText);
-			updateStatusText();
+	}
+
+	private void finishFailedTest() {
+		hideCode = false;
+		somethingChanged(pairingManager);
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				control.redraw();
+			}
+		});
+		if (storedToClipboardText != null && storedToClipboardText.length() > 0) {
+			soToClipboard.setText(storedToClipboardText);
 		}
+		updateStatusText();
 	}
 
 	protected void installWebUI() {
@@ -533,6 +574,7 @@ public class RemotePairingWindow
 				if (s.length() > 150) {
 					s = s.substring(0, 150);
 				}
+				s.replaceAll("\n", ";");
 				soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(),
 						"#666666"));
 			}
@@ -547,47 +589,60 @@ public class RemotePairingWindow
 		}
 
 		updateStatusText();
-		
-		String newAccessCode = pairingManager.peekAccessCode();
-		if (newAccessCode == null) {
-			newAccessCode = "";
-		}
-		if (!newAccessCode.equals(accessCode)) {
-			accessCode = newAccessCode;
-			if (accessCode.length() > 0 && !soFTUX.isVisible()) {
-				testPairing();
+
+		String lastAccessCode = accessCode;
+
+		accessCode = pairingManager.peekAccessCode();
+		if (accessCode != null && getWebUI() != null && !alreadyTested
+				&& !pm.hasActionOutstanding()) {
+			if (!StringCompareUtils.equals(lastAccessCode, accessCode)) {
+				// pause while registering..
+				testPairing(true);
+			} else {
+				testPairing(false);
 			}
 		}
 	}
-	
-	public static class testPairingClass implements PairingTest {
-			int curOutcome = 0;
-			int[] testOutcomes = { OT_SUCCESS, OT_FAILED, OT_CANCELLED, OT_SERVER_FAILED, OT_SERVER_OVERLOADED, OT_SERVER_UNAVAILABLE };
-			String[] testErrs = {
-				"Success",
-				"Could Not Connect blah blah technical stuff",
-				"You Cancelled (unpossible!)",
-				"Server Failed",
-				"Server Overloaded",
-				"Server Unavailable",
-			};
-			
-			public void inc() {
-				curOutcome++;
-				if (curOutcome == testOutcomes.length) {
-					curOutcome = 0;
-				}
+
+	public static class testPairingClass
+		implements PairingTest
+	{
+		int curOutcome = 0;
+
+		int[] testOutcomes = {
+			OT_SUCCESS,
+			OT_FAILED,
+			OT_CANCELLED,
+			OT_SERVER_FAILED,
+			OT_SERVER_OVERLOADED,
+			OT_SERVER_UNAVAILABLE
+		};
+
+		String[] testErrs = {
+			"Success",
+			"Could Not Connect blah blah technical stuff",
+			"You Cancelled (unpossible!)",
+			"Server Failed",
+			"Server Overloaded",
+			"Server Unavailable",
+		};
+
+		public void inc() {
+			curOutcome++;
+			if (curOutcome == testOutcomes.length) {
+				curOutcome = 0;
 			}
-			
-			public int getOutcome() {
-				return testOutcomes[curOutcome];
-			}
-			
-			public String getErrorMessage() {
-				return testErrs[curOutcome];
-			}
-			
-			public void cancel() {
-			}
+		}
+
+		public int getOutcome() {
+			return testOutcomes[curOutcome];
+		}
+
+		public String getErrorMessage() {
+			return testErrs[curOutcome];
+		}
+
+		public void cancel() {
+		}
 	}
 }
