@@ -840,6 +840,8 @@ ConfigurationManager
 		try{
 			writer.indent();
 		
+			writer.println( "version=" + Constants.AZUREUS_VERSION + ", subver=" + Constants.AZUREUS_SUBVER );
+			
 			writer.println( "System Properties" );
 			
 			try{

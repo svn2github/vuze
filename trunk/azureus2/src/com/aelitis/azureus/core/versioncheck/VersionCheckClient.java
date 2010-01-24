@@ -1150,6 +1150,13 @@ public class VersionCheckClient {
     message.put( "appid",   SystemProperties.getApplicationIdentifier());
     message.put( "appname", SystemProperties.getApplicationName());
     message.put( "version", Constants.AZUREUS_VERSION );
+    
+    String	sub_ver = Constants.AZUREUS_SUBVER;
+    
+    if ( sub_ver.length() > 0 ){
+        message.put( "subver", sub_ver );
+    }
+    
     message.put( "ui",      COConfigurationManager.getStringParameter( "ui", "unknown" ) );
     message.put( "os",      Constants.OSName );
     message.put( "os_version", System.getProperty( "os.version" ) );

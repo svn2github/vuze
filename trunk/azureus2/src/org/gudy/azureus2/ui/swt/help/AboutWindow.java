@@ -199,7 +199,7 @@ public class AboutWindow {
 				+ System.getProperty("os.name") + " v"
 				+ System.getProperty("os.version") + ", "
 				+ System.getProperty("os.arch") + "\n"
-				+ Constants.APP_NAME.charAt(0) + Constants.AZUREUS_VERSION + "/" + CorePatchLevel.getCurrentPatchLevel() + " " 
+				+ Constants.APP_NAME.charAt(0) + Constants.AZUREUS_VERSION + (Constants.AZUREUS_SUBVER.length()==0?"":("-"+Constants.AZUREUS_SUBVER)) + "/" + CorePatchLevel.getCurrentPatchLevel() + " " 
 				+ COConfigurationManager.getStringParameter("ui"));
     txtSysInfo.setLayoutData(gridData = new GridData(GridData.FILL_BOTH));
     if (window.getCaret() != null)
