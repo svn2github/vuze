@@ -24,6 +24,7 @@
 package org.gudy.azureus2.ui.swt.views.utils;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -47,6 +48,10 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
+import org.gudy.azureus2.plugins.sharing.ShareResource;
+import org.gudy.azureus2.plugins.sharing.ShareResourceDir;
+import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -54,6 +59,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 
 /**
@@ -409,6 +415,52 @@ public class ManagerUtils {
 					dm.getGlobalManager().removeDownloadManager(dm, bDeleteTorrent,
 							bDeleteData);
 				} catch (GlobalManagerDownloadRemovalVetoException f) {
+					
+						// see if we can delete a corresponding share as users frequently share
+						// stuff by mistake and then don't understand how to delete the share
+						// properly
+					
+					try{
+						ShareManager sm = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getShareManager();
+						
+						ShareResource[] shares = sm.getShares();
+						
+						byte[] target_hash = dm.getTorrent().getHash();
+						
+						for ( ShareResource share: shares ){
+							
+							int type = share.getType();
+							
+							byte[] hash;
+							
+							if ( type == ShareResource.ST_DIR ){
+								
+								hash = ((ShareResourceDir)share).getItem().getTorrent().getHash();
+								
+							}else if ( type == ShareResource.ST_FILE ){
+								
+								hash = ((ShareResourceFile)share).getItem().getTorrent().getHash();
+								
+							}else{
+								
+								hash = null;
+							}
+							
+							if ( hash != null ){
+								
+								if ( Arrays.equals( target_hash, hash )){
+									
+									share.delete();
+									
+									return;
+								}
+							}
+						}
+						
+					}catch( Throwable e ){
+						
+					}
+					
 					if (!f.isSilent()) {
 						Logger.log(new LogAlert(dm, false,
 								"{globalmanager.download.remove.veto}", f));
