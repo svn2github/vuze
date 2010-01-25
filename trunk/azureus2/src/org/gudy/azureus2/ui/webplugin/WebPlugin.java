@@ -1779,6 +1779,41 @@ WebPlugin
 		
 		if ( full_url_path.equals( "/isPairedServiceAvailable" )){
 			
+			String redirect = getArgumentFromURL( full_url, "redirect_to" );
+			
+			if ( redirect != null ){
+				
+				try{
+					URL target = new URL( redirect );
+					
+					String	host = target.getHost();
+					
+					if ( !Constants.isAzureusDomain( host )){
+					
+						if ( !InetAddress.getByName(host).isLoopbackAddress()){
+							
+							log( "Invalid redirect host: " + host );
+							
+							redirect = null;
+						}
+					}
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+					
+					redirect = null;
+				}
+			}
+			
+			if ( redirect != null ){
+								
+				response.setReplyStatus( 302 );
+				
+				response.setHeader( "Location", redirect );
+				
+				return( true );
+			}
+			
 			String callback = getArgumentFromURL( full_url, "jsoncallback" );
 				
 			if ( callback != null ){
