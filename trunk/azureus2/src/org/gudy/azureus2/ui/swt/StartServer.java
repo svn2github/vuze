@@ -209,7 +209,7 @@ StartServer
     }
     
     boolean addSilent = COConfigurationManager.getBooleanParameter("add_torrents_silently");
-    boolean showMainWindow = !addSilent;
+    boolean showMainWindow = !addSilent || args.length == 1;
 
     boolean	open	= true;
     
