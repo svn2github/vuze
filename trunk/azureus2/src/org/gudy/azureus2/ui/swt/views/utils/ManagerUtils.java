@@ -47,11 +47,15 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.sharing.ShareResource;
 import org.gudy.azureus2.plugins.sharing.ShareResourceDir;
 import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
+import org.gudy.azureus2.plugins.tracker.Tracker;
+import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -421,11 +425,17 @@ public class ManagerUtils {
 						// properly
 					
 					try{
-						ShareManager sm = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getShareManager();
+						PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
+						
+						ShareManager sm = pi.getShareManager();
+						
+						Tracker	tracker = pi.getTracker();
 						
 						ShareResource[] shares = sm.getShares();
 						
-						byte[] target_hash = dm.getTorrent().getHash();
+						TOTorrent torrent = dm.getTorrent();
+						
+						byte[] target_hash = torrent.getHash();
 						
 						for ( ShareResource share: shares ){
 							
@@ -449,6 +459,23 @@ public class ManagerUtils {
 							if ( hash != null ){
 								
 								if ( Arrays.equals( target_hash, hash )){
+									
+									try{
+										dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
+										
+									}catch( Throwable e ){
+									}
+									
+									
+									try{
+						        		TrackerTorrent	tracker_torrent = tracker.getTorrent( PluginCoreUtils.wrap( torrent ));
+
+						        		if ( tracker_torrent != null ){
+						        			
+						        			tracker_torrent.stop();
+						        		}
+									}catch( Throwable e ){
+									}
 									
 									share.delete();
 									
