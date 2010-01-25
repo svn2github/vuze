@@ -505,6 +505,8 @@ public class MainMenu
 				helpMenu,
 				ContentNetworkUtils.getUrl(
 				ConstantsVuze.getDefaultContentNetwork(), ContentNetwork.SERVICE_SUPPORT));
+		
+		MenuFactory.addHealthMenuItem(helpMenu);
 
 		MenuFactory.addReleaseNotesMenuItem(helpMenu);
 
