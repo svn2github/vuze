@@ -105,6 +105,8 @@ public class RemotePairingWindow
 
 	private String storedToClipboardText;
 
+	private String lastPairingTestError;
+
 	public static void open() {
 		if (DEBUG) {
 			if (testPairingClass == null) {
@@ -198,7 +200,6 @@ public class RemotePairingWindow
 					return false;
 				}
 			});
-			updateStatusText();
 
 			pairingManager.addListener(this);
 
@@ -332,6 +333,11 @@ public class RemotePairingWindow
 					return;
 				}
 
+				SWTSkinObjectImage soImage = (SWTSkinObjectImage) skin.getSkinObject("status-image");
+				if (soImage != null) {
+					soImage.setImageByID("icon.spin", null);
+				}
+
 				SWTSkinObject soPairArea = skin.getSkinObject("reset-pair-area");
 				if (soPairArea != null) {
 					soPairArea.getControl().moveAbove(null);
@@ -352,6 +358,7 @@ public class RemotePairingWindow
 			return;
 		}
 
+		lastPairingTestError = "";
 		alreadyTested = true;
 
 		storedToClipboardText = soToClipboard.getText();
@@ -420,19 +427,17 @@ public class RemotePairingWindow
 					hideCode = false;
 					final String fIconID = iconID;
 					somethingChanged(pairingManager);
-					final String pairingText = pairingTest.getErrorMessage();
+					lastPairingTestError = pairingTest.getErrorMessage();
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
 							control.redraw();
 							SWTSkinObjectImage soImage = (SWTSkinObjectImage) skin.getSkinObject("status-image");
 							if (soImage != null) {
 								soImage.setImageByID(fIconID, null);
-								if (pairingText != null) {
-									soImage.setTooltipID("!" + pairingText + "!");
-								}
 							}
 						}
 					});
+					updateToolTip();
 					soStatusText.setText(fallBackStatusText);
 					soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(),
 							colorID));
@@ -470,6 +475,37 @@ public class RemotePairingWindow
 		}
 	}
 
+	/**
+	 * 
+	 *
+	 * @since 4.1.0.5
+	 */
+	protected void updateToolTip() {
+		SWTSkinObjectImage soImage = (SWTSkinObjectImage) skin.getSkinObject("status-image");
+		if (soImage != null) {
+			String s = lastPairingTestError;
+			if (s == null) {
+				s = "";
+			}
+			
+			String status = pairingManager.getStatus();
+			if (status != null && status.length() > 0) {
+				if (s.length() > 0) {
+					s += "\n";
+				}
+				s += "Pairing Status: " + status;
+			}
+			String lastPairingErr = pairingManager.getLastServerError();
+			if (lastPairingErr != null && lastPairingErr.length() > 0) {
+				if (s.length() > 0) {
+					s += "\n";
+				}
+				s += "Pairing Error: " + lastPairingErr;
+			}
+			soImage.setTooltipID("!" + s + "!");
+		}
+	}
+
 	private void finishFailedTest() {
 		hideCode = false;
 		somethingChanged(pairingManager);
@@ -481,7 +517,6 @@ public class RemotePairingWindow
 		if (storedToClipboardText != null && storedToClipboardText.length() > 0) {
 			soToClipboard.setText(storedToClipboardText);
 		}
-		updateStatusText();
 	}
 
 	protected void installWebUI() {
@@ -563,55 +598,33 @@ public class RemotePairingWindow
 		}
 	}
 
-	private void updateStatusText() {
-		if (hideCode || soStatusText.isDisposed()) {
-			return;
-		}
-		if (soStatusText != null) {
-			String s = "";
-			if (pairingManager.hasActionOutstanding()) {
-				s += "Status: " + pairingManager.getStatus();
-			}
-			String lastServerError = pairingManager.getLastServerError();
-			if (lastServerError != null && lastServerError.length() > 0) {
-				if (s.length() > 0) {
-					s += ";";
-				}
-				s += "Last Error: " + lastServerError;
-			}
-			if (s.length() == 0) {
-				s = fallBackStatusText;
-			} else {
-				if (s.length() > 150) {
-					s = s.substring(0, 150);
-				}
-				s.replaceAll("\n", ";");
-				soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(),
-						"#666666"));
-			}
-			soStatusText.setText(s);
-		}
-	}
-
 	// @see com.aelitis.azureus.core.pairing.PairingManagerListener#somethingChanged(com.aelitis.azureus.core.pairing.PairingManager)
 	public void somethingChanged(PairingManager pm) {
 		if (skinnedDialog.isDisposed()) {
 			return;
 		}
 
-		updateStatusText();
+		updateToolTip();
 
 		String lastAccessCode = accessCode;
 
 		accessCode = pairingManager.peekAccessCode();
+		boolean newAccessCode = !StringCompareUtils.equals(lastAccessCode, accessCode);
 		if (accessCode != null && getWebUI() != null && !alreadyTested
 				&& !pm.hasActionOutstanding()) {
-			if (!StringCompareUtils.equals(lastAccessCode, accessCode)) {
+			if (newAccessCode) {
 				// pause while registering..
 				testPairing(true);
 			} else {
 				testPairing(false);
 			}
+		}
+		if (newAccessCode) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					control.redraw();
+				}
+			});
 		}
 	}
 
