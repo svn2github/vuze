@@ -46,6 +46,7 @@ import com.aelitis.azureus.core.util.NetUtils;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.net.udp.mc.MCGroup;
 import com.aelitis.net.udp.mc.MCGroupAdapter;
+import com.aelitis.net.udp.mc.MCGroupException;
 import com.aelitis.net.udp.mc.MCGroupFactory;
 
 public class 
@@ -187,14 +188,22 @@ AZInstanceManagerImpl
 		try{
 			initialised = true;
 			
-			mc_group = 
-				MCGroupFactory.getSingleton(
-					this,
-					MC_GROUP_ADDRESS,
-					MC_GROUP_PORT,
-					MC_CONTROL_PORT,
-					null );
-					
+			boolean	enable = System.getProperty( "az.instance.manager.enable", "1" ).equals( "1" );
+			
+			if ( enable ){
+				
+				mc_group = 
+					MCGroupFactory.getSingleton(
+						this,
+						MC_GROUP_ADDRESS,
+						MC_GROUP_PORT,
+						MC_CONTROL_PORT,
+						null );
+			}else{
+				
+				mc_group = getDummyMCGroup();
+			}
+			
 			adapter.addListener(
 				new AZInstanceManagerAdapter.StateListener()
 				{
@@ -229,6 +238,11 @@ AZInstanceManagerImpl
 		
 		}catch( Throwable e ){
 			
+			if ( mc_group == null ){
+				
+				mc_group = getDummyMCGroup();
+			}
+			
 			initial_search_sem.releaseForever();
 			
 			Debug.printStackTrace(e);
@@ -252,6 +266,45 @@ AZInstanceManagerImpl
 				}
 			}
 		}.start();
+	}
+	
+	private MCGroup
+	getDummyMCGroup()
+	{
+		return( 
+			new MCGroup()
+			{
+				public int
+				getControlPort()
+				{
+					return( MC_CONTROL_PORT );
+				}
+				
+				public void
+				sendToGroup(
+					byte[]	data )
+				
+					throws MCGroupException
+				{
+				}
+								
+				public void
+				sendToGroup(
+					String	param_data )
+				
+					throws MCGroupException
+				{	
+				}
+				
+				public void
+				sendToMember(
+					InetSocketAddress	address,
+					byte[]				data )
+				
+					throws MCGroupException
+				{
+				}
+			});
 	}
 	
 	public long 
