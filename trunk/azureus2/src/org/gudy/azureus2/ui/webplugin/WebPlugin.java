@@ -1293,91 +1293,120 @@ WebPlugin
 						String		user,
 						String		pw )
 					{
-						if ( !pw_enable.getValue()){
-							
-							return( true );
-						}
-						
 						boolean	result;
 						
 						boolean	auto_auth =  param_auto_auth.getValue();
-						
-						if ( auto_auth ){
-							
-							user = user.trim().toLowerCase();
-						}
-						
-						if ( !user.equals( p_user_name.getValue())){
-							
-							result = false;
+
+						if ( !pw_enable.getValue()){
+														
+							result = true;
 							
 						}else{
-						
-							byte[]	hash = last_hash;
-							
-							if (  !last_pw.equals( pw )){
-															
-								hash = plugin_interface.getUtilities().getSecurityManager().calculateSHA1( 
-										auto_auth?pw.toUpperCase().getBytes():pw.getBytes());
+													
+							if ( auto_auth ){
 								
-								last_pw		= pw;
-								last_hash	= hash;
+								user = user.trim().toLowerCase();
 							}
 							
-							result = Arrays.equals( hash, p_password.getValue());
+							if ( !user.equals( p_user_name.getValue())){
+								
+								result = false;
+								
+							}else{
+							
+								byte[]	hash = last_hash;
+								
+								if (  !last_pw.equals( pw )){
+																
+									hash = plugin_interface.getUtilities().getSecurityManager().calculateSHA1( 
+											auto_auth?pw.toUpperCase().getBytes():pw.getBytes());
+									
+									last_pw		= pw;
+									last_hash	= hash;
+								}
+								
+								result = Arrays.equals( hash, p_password.getValue());
+							}
 						}
 						
-						if ( !result && auto_auth && pairing_access_code != null ){
+						if ( result ){
+						
+								// user name and password match, see if we've come from the pairing process 
+							
+							checkCookieSet( headers, resource );
+							
+						}else if ( auto_auth  ){
 							
 								// either the ac is in the url, referer or we have a cookie set
 														
-							String[]	locations = { resource.getQuery(), getHeaderField( headers, "Referer" )};
+							int x = checkCookieSet( headers, resource );
 							
-							for ( String location: locations ){
-							
-								if ( location != null ){
-									
-									int p1 = location.indexOf( "vuze_pairing_ac=" );
-									
-									if ( p1 != -1 ){
-										
-										int p2 = location.indexOf( '&', p1 );
-										
-										String ac = location.substring( p1+16, p2==-1?location.length():p2 ).trim();
-										
-										p2 = ac.indexOf( '#' );
-										
-										if ( p2 != -1 ){
-											
-											ac = ac.substring( 0, p2 );
-										}
-																	
-										if ( ac.equalsIgnoreCase( pairing_access_code )){
-									
-											tls.set( pairing_session_code );
-											
-											return( true );
-											
-										}else{
-											
-											return( false );
-										}
-									}
-								}
-							}
-							
-							String cookies = getHeaderField( headers, "Cookie" );
-							
-							if ( cookies != null ){
-							
-								if (  hasOurCookie( cookies )){
-										
-									return( true );
-								}
+							if ( x == 1 ){
+								
+								result = true;
+								
+							}else if ( x == 0 ){
+														
+								result = hasOurCookie( getHeaderField( headers, "Cookie" ));
 							}
 						}
 						
 						return( result );
+					}
+					
+						/**
+						 * 
+						 * @param headers
+						 * @param resource
+						 * @return 0 = unknown, 1 = ok, 2 = bad
+						 */
+					
+					private int
+					checkCookieSet(
+						String		headers,
+						URL			resource )
+					{
+						if ( pairing_access_code == null ){
+						
+							return( 2 );
+						}
+						
+						String[]	locations = { resource.getQuery(), getHeaderField( headers, "Referer" )};
+						
+						for ( String location: locations ){
+						
+							if ( location != null ){
+								
+								int p1 = location.indexOf( "vuze_pairing_ac=" );
+								
+								if ( p1 != -1 ){
+									
+									int p2 = location.indexOf( '&', p1 );
+									
+									String ac = location.substring( p1+16, p2==-1?location.length():p2 ).trim();
+									
+									p2 = ac.indexOf( '#' );
+									
+									if ( p2 != -1 ){
+										
+										ac = ac.substring( 0, p2 );
+									}
+																
+									if ( ac.equalsIgnoreCase( pairing_access_code )){
+								
+										tls.set( pairing_session_code );
+										
+										return( 1 );
+										
+									}else{
+										
+										return( 2 );
+									}
+								}
+							}
+						}
+						
+						return( 0 );
 					}
 					
 					private String
@@ -1413,6 +1442,11 @@ WebPlugin
 	hasOurCookie(
 		String		cookies )
 	{
+		if ( cookies == null ){
+			
+			return( false );
+		}
+		
 		String[] cookie_list = cookies.split( ";" );
 		
 		for ( String cookie: cookie_list ){
