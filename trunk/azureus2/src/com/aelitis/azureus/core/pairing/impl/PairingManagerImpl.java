@@ -890,15 +890,7 @@ PairingManagerImpl
 						public void
 						runSupport()
 						{
-							try{
-								update_in_progress = true;
-								
-								doUpdate();
-								
-							}finally{
-								
-								update_in_progress = false;
-							}
+							doUpdate();
 						}
 					});
 						
@@ -932,6 +924,8 @@ PairingManagerImpl
 				
 				return;
 			}
+			
+			update_in_progress = true;
 		}
 		
 		try{
@@ -988,6 +982,8 @@ PairingManagerImpl
 						
 						if ( consec_update_fails == 0 && !must_update_once ){
 					
+							update_in_progress = false;
+							
 							setStatus( MessageText.getString( is_enabled?"pairing.status.noservices":"pairing.status.disabled" ));
 							
 							return;
@@ -1152,6 +1148,8 @@ PairingManagerImpl
 					COConfigurationManager.setParameter( "pairing.updateoutstanding", false );
 				}
 
+				update_in_progress = false;
+				
 				if ( global_update_event == null ){
 					
 					setStatus( MessageText.getString( is_enabled?"pairing.status.noservices":"pairing.status.disabled" ));
@@ -1168,23 +1166,40 @@ PairingManagerImpl
 			
 			synchronized( this ){
 				
-				consec_update_fails++;
-	
-				long back_off = min_update_period;
-				
-				for (int i=0;i<consec_update_fails;i++){
+				try{
+					consec_update_fails++;
+		
+					long back_off = min_update_period;
 					
-					back_off *= 2;
-					
-					if ( back_off > max_update_period ){
-					
-						back_off = max_update_period;
+					for (int i=0;i<consec_update_fails;i++){
 						
-						break;
+						back_off *= 2;
+						
+						if ( back_off > max_update_period ){
+						
+							back_off = max_update_period;
+							
+							break;
+						}
 					}
-				}
+					
+					deferUpdate( back_off );
+					
+				}finally{
 				
-				deferUpdate( back_off );
+					update_in_progress = false;
+				}
+			}
+		}finally{
+			
+			synchronized( this ){
+				
+				if ( update_in_progress ){
+				
+					Debug.out( "Something didn't clear update_in_progress!!!!" );
+					
+					update_in_progress = false;
+				}
 			}
 		}
 	}
