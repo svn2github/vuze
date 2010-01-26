@@ -1,8 +1,8 @@
 /*
- * Created on May 6, 2008
+ * Created on Jan 25, 2010
  * Created by Paul Gardner
  * 
- * Copyright 2008 Vuze, Inc.  All rights reserved.
+ * Copyright 2010 Vuze, Inc.  All rights reserved.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,49 +21,10 @@
 
 package com.aelitis.azureus.core.metasearch;
 
-import java.util.Map;
-
 public interface 
-MetaSearchManager 
+MetaSearchManagerListener 
 {
-	public MetaSearch
-	getMetaSearch();
-	
-	public boolean
-	isAutoMode();
-			
 	public void
-	setSelectedEngines(
-		long[]		ids,
-		boolean		auto )
-	
-		throws MetaSearchException;
-	
-	public Engine
-	addEngine(
-		long		id,
-		int			type,
-		String		name,
-		String		json_value )
-	
-		throws MetaSearchException;
-	
-	public Engine
-	importEngine(
-		Map			map,
-		boolean		warn_user )
-	
-		throws MetaSearchException;
-	
-	public void
-	addListener(
-		MetaSearchManagerListener		listener );
-	
-	public void
-	removeListener(
-		MetaSearchManagerListener		listener );
-	
-	public void
-	log(
-		String		str );
+	searchRequest(
+		String		term );
 }

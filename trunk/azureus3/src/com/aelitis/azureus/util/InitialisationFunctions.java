@@ -31,11 +31,13 @@ import com.aelitis.azureus.core.content.RelatedContentManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
+import com.aelitis.azureus.core.metasearch.MetaSearchManagerListener;
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.AZ3Functions;
+import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -149,6 +151,22 @@ public class InitialisationFunctions
 					try{
 						RelatedContentManager.getSingleton();
 						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+					
+					try{
+						MetaSearchManagerFactory.getSingleton().addListener(
+							new MetaSearchManagerListener()
+							{
+								public void
+								searchRequest(
+									String		term )
+								{
+									MainWindow.doSearch( term );
+								}
+							});
 					}catch( Throwable e ){
 						
 						Debug.out( e );

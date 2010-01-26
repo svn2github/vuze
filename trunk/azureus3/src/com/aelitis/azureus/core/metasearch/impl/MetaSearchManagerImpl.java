@@ -53,6 +53,7 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
 import com.aelitis.azureus.core.metasearch.MetaSearchException;
 import com.aelitis.azureus.core.metasearch.MetaSearchManager;
+import com.aelitis.azureus.core.metasearch.MetaSearchManagerListener;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
@@ -61,6 +62,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
 import com.aelitis.azureus.util.ConstantsVuze;
+import com.aelitis.azureus.util.ImportExportUtils;
 
 public class 
 MetaSearchManagerImpl
@@ -73,7 +75,7 @@ MetaSearchManagerImpl
 	
 	private static final int REFRESH_MILLIS = 23*60*60*1000;
 	
-	private static MetaSearchManager singleton;	
+	private static MetaSearchManagerImpl singleton;	
 	
 	public static void
 	preInitialise()
@@ -96,7 +98,9 @@ MetaSearchManagerImpl
 							
 							VuzeFileComponent comp = comps[j];
 							
-							if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
+							int	comp_type = comp.getType();
+							
+							if ( comp_type == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
 								
 								try{
 									Engine e = 
@@ -114,6 +118,11 @@ MetaSearchManagerImpl
 									
 									Debug.printStackTrace(e);
 								}
+							}else if ( comp_type == VuzeFileComponent.COMP_TYPE_METASEARCH_OPERATION ){
+								
+								getSingleton().addOperation( comp.getContent());
+								
+								comp.setProcessed();
 							}
 						}
 					}
@@ -121,7 +130,7 @@ MetaSearchManagerImpl
 			});		
 	}
 	
-	public static synchronized MetaSearchManager
+	public static synchronized MetaSearchManagerImpl
 	getSingleton()
 	{
 		if ( singleton == null ){
@@ -139,6 +148,10 @@ MetaSearchManagerImpl
 	private AESemaphore	refresh_sem = new AESemaphore( "MetaSearch:refresh", 1 );
 	
 	private boolean	checked_customization;
+	
+	private AsyncDispatcher					op_dispatcher 	= new AsyncDispatcher(5*1000);
+	private List<MetaSearchManagerListener>	listeners 		= new ArrayList<MetaSearchManagerListener>();
+	private List<Map>						operations		= new ArrayList<Map>();
 	
 	protected
 	MetaSearchManagerImpl()
@@ -1134,6 +1147,97 @@ MetaSearchManagerImpl
 		}
 	}
 	
+	public void
+	addListener(
+		MetaSearchManagerListener		listener )
+	{			
+		synchronized( listeners ){
+			
+			listeners.add( listener );
+		}
+			
+		dispatchOps();
+	}
+	
+	public void
+	removeListener(
+		MetaSearchManagerListener		listener )
+	{
+		
+	}
+	
+	private void
+	addOperation(
+		Map		map )
+	{
+		synchronized( listeners ){
+			
+			operations.add( map );
+		}
+		
+		dispatchOps();
+	}
+	
+	private void
+	dispatchOps()
+	{
+		op_dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					List<MetaSearchManagerListener>	l;
+					List<Map>						o;
+					
+					synchronized( listeners ){
+					
+						if ( listeners.size() == 0 || operations.size() == 0 ){
+							
+							return;
+						}
+						
+						l = new ArrayList<MetaSearchManagerListener>( listeners );
+						
+						o = new ArrayList<Map>( operations );
+						
+						operations.clear();
+					}
+					
+					for ( MetaSearchManagerListener listener: l ){
+						
+						for ( Map operation: o ){
+					
+							try{
+
+								int	type = ImportExportUtils.importInt( operation, "type", -1 );
+								
+								if ( type == 1 ){
+									
+									String	term = ImportExportUtils.importString( operation, "term", null );
+								
+									if ( term == null ){
+										
+										Debug.out( "search term missing" );
+										
+									}else{
+										
+										listener.searchRequest( term );
+									}
+								}else{
+								
+									Debug.out( "unknown operation type " + type );
+								}								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					}
+				}
+			});
+	}
+	
 	public void 
 	log(
 		String 		s,
@@ -1695,4 +1799,28 @@ MetaSearchManagerImpl
 			Debug.out( "Not supported" );
 		}
 	}
+    
+    public static void
+    main(
+    	String[]	args )
+    {
+    	try{
+			VuzeFile	vf = VuzeFileHandler.getSingleton().create();
+			
+			Map contents = new HashMap();
+			
+			contents.put( "type", new Long( 1 ));
+			contents.put( "term", "donkey" );
+			
+			vf.addComponent(
+				VuzeFileComponent.COMP_TYPE_METASEARCH_OPERATION,
+				contents);
+			
+			vf.write( new File( "C:\\temp\\search.vuze" ));
+			
+    	}catch( Throwable e ){
+    		
+    		e.printStackTrace();
+    	}
+    }
 }
