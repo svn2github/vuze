@@ -734,6 +734,9 @@ public class SWTSkinObjectText2
 	public void setTextColor(final Color color) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (canvas == null || canvas.isDisposed()) {
+					return;
+				}
 				canvas.setData("color", color);
 				canvas.redraw();
 			}

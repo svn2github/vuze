@@ -328,7 +328,7 @@ public class RemotePairingWindow
 
 			public void runSupport() {
 
-				if (skinnedDialog.isDisposed()) {
+				if (skinnedDialog == null || skinnedDialog.isDisposed()) {
 					return;
 				}
 
@@ -535,7 +535,18 @@ public class RemotePairingWindow
 				}
 
 				public void cancelled() {
-					skinnedDialog.close();
+					Utils.execSWTThread(new AERunnable() {
+
+						public void runSupport() {
+
+							if ( skinnedDialog != null && !skinnedDialog.isDisposed()){
+							
+								skinnedDialog.close();
+								
+								skinnedDialog = null;
+							}
+						}
+					});
 				}
 
 				public void failed(PluginException e) {
