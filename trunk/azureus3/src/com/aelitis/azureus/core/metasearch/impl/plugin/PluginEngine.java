@@ -77,7 +77,7 @@ PluginEngine
 		long				_id,
 		SearchProvider		_provider )
 	{
-		super( _meta_search, Engine.ENGINE_TYPE_PLUGIN, _id, 0, 0.0f, (String)_provider.getProperty( SearchProvider.PR_NAME ));
+		super( _meta_search, Engine.ENGINE_TYPE_PLUGIN, _id, 0, 1.0f, (String)_provider.getProperty( SearchProvider.PR_NAME ));
 		
 		provider	= _provider;
 		
@@ -92,6 +92,13 @@ PluginEngine
 		throws IOException
 	{
 		super( _meta_search, _map );
+		
+			// recovery from when incorrectly defaulted to 0.0
+		
+		if ( getRankBias() == 0.0f ){
+			
+			setRankBias( 1.0f );
+		}
 		
 		setSource( ENGINE_SOURCE_LOCAL );
 	}
