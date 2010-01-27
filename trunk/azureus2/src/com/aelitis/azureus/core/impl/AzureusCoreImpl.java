@@ -1218,6 +1218,8 @@ AzureusCoreImpl
 	{
 		AEDiagnostics.flushPendingLogs();
 		
+		boolean	wait_and_return = false;
+		
 		try{
 			this_mon.enter();
 		
@@ -1228,34 +1230,40 @@ AzureusCoreImpl
 									
 				COConfigurationManager.save();
 				
-				Logger.log(new LogEvent(LOGID, "Waiting for stop to complete"));
+				wait_and_return = true;
 				
-				stopping_sem.reserve();
-				
-				return;
-			}
+			}else{
 			
-			stopped	= true;
-			
-			if ( !started ){
+				stopped	= true;
 				
-				Logger.log(new LogEvent(LOGID, "Core not started"));
-				
-					// might have been marked dirty due to core being created to allow functions to be used but never started...
-				
-				if ( AEDiagnostics.isDirty()){
+				if ( !started ){
 					
-					AEDiagnostics.markClean();
-				}
-				
-				stopping_sem.releaseForever();
-				
-				return;
-			}		
-			
+					Logger.log(new LogEvent(LOGID, "Core not started"));
+					
+						// might have been marked dirty due to core being created to allow functions to be used but never started...
+					
+					if ( AEDiagnostics.isDirty()){
+						
+						AEDiagnostics.markClean();
+					}
+					
+					stopping_sem.releaseForever();
+					
+					return;
+				}		
+			}
 		}finally{
 			
 			this_mon.exit();
+		}
+		
+		if ( wait_and_return ){
+			
+			Logger.log(new LogEvent(LOGID, "Waiting for stop to complete"));
+			
+			stopping_sem.reserve();
+			
+			return;
 		}
 		
 		SimpleTimer.addEvent(
