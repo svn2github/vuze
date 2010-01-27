@@ -763,6 +763,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				paintItem(event);
 			}
 		});
+
+		// OSX SWT (3624) Requires SWT.EraseItem hooking, otherwise foreground
+		// color will not be set correctly when row is selected.
+		// Hook listener for all OSes in case this requirement beomes xplatform
+		table.addListener(SWT.EraseItem, new Listener() {
+			public void handleEvent(Event event) {
+			}
+		});
 		//table.addListener(SWT.Paint, new Listener() {
 		//	public void handleEvent(Event event) {
 		//		System.out.println("paint " + event.getBounds() + ";" + table.getColumnCount());
