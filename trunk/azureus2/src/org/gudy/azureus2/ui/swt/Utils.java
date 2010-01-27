@@ -875,7 +875,7 @@ public class Utils
 				if (i == 4) {
 					Rectangle shellBounds = new Rectangle(values[0], values[1],
 							values[2], values[3]);
-					if (shellBounds.width < 100 || shellBounds.height < 50) {
+					if (shellBounds.width > 100 && shellBounds.height > 50) {
   					shell.setBounds(shellBounds);
   					verifyShellRect(shell, true);
   					bDidResize = true;
