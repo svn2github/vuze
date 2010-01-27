@@ -1004,6 +1004,20 @@ DeviceOfflineDownloaderImpl
 			
 		}else{
 			
+				// if device isn't connectable then replace the error with something more
+				// user-friendly
+			
+			try{
+			
+				if ( !service.getGenericService().isConnectable()){
+					
+					str = MessageText.getString( "device.od.error.notfound" );
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+			
 			consec_errors++;
 			
 			consec_success = 0;
