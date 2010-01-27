@@ -81,6 +81,41 @@ UPnPServiceImpl
 		return( service_type );
 	}
 	
+	public boolean 
+	isConnectable() 
+	{
+		try{
+			URL url = getControlURL();
+			
+			Socket socket = new Socket();
+			
+			try{
+				int	port = url.getPort();
+				
+				if ( port <= 0 ){
+					
+					port = url.getDefaultPort();
+				}
+				
+				socket.connect( new InetSocketAddress( url.getHost(), port ), 5000 );
+				
+				return( true );
+				
+			}finally{
+				
+				try{
+					socket.close();
+					
+				}catch( Throwable e ){
+					
+				}
+			}
+		}catch( Throwable e ){
+						
+			return( false );
+		}
+	}
+	
 	public UPnPAction[]
 	getActions()
 	

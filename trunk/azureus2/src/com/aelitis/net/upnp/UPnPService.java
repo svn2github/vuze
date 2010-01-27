@@ -45,6 +45,9 @@ UPnPService
 	
 		throws UPnPException;
 	
+	public boolean
+	isConnectable();
+	
 	public UPnPAction[]
 	getActions()
 	

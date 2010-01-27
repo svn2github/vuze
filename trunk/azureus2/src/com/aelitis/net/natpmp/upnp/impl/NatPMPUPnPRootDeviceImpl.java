@@ -263,6 +263,12 @@ NatPMPUPnPRootDeviceImpl
 			return( null );
 		}
 		
+		public boolean 
+		isConnectable() 
+		{
+			return( true );
+		}
+		
 		public UPnPAction[]
 		getActions()
 		
