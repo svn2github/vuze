@@ -1258,6 +1258,19 @@ AzureusCoreImpl
 			this_mon.exit();
 		}
 		
+		SimpleTimer.addEvent(
+			"ShutFailLog",
+			SystemTime.getOffsetTime( 30*1000 ),
+			new TimerEventPerformer()
+			{
+				public void 
+				perform(
+					TimerEvent event )
+				{
+					AEDiagnostics.dumpThreads();
+				}
+			});
+				
 		List	sync_listeners 	= new ArrayList();
 		List	async_listeners	= new ArrayList();
 		
@@ -1347,7 +1360,7 @@ AzureusCoreImpl
 						}
 					},
 					10*1000 );
-				
+			
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "Waiting for quiescence"));
 
