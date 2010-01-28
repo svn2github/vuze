@@ -52,9 +52,7 @@ ConfigurationManager
   
   private List<COConfigurationListener>		listenerz 			= new ArrayList<COConfigurationListener>();
   private Map<String,ParameterListener[]> 	parameterListenerz 	= new HashMap<String,ParameterListener[]>();
-  
-  private AEMonitor	this_mon	= new AEMonitor( "ConfigMan");
-  
+    
   private static FrequencyLimitedDispatcher dirty_dispatcher = 
 	  new FrequencyLimitedDispatcher(
 			  new AERunnable()
@@ -236,14 +234,9 @@ ConfigurationManager
     
   	List<COConfigurationListener>	listeners_copy;
   	
-    try{
-    	this_mon.enter();
+  	synchronized( listenerz ){
     
     	listeners_copy = new ArrayList<COConfigurationListener>( listenerz );
-    	
-    }finally{
-    	
-    	this_mon.exit();
     }
     
 	for (int i=0;i<listeners_copy.size();i++){
@@ -758,8 +751,17 @@ ConfigurationManager
     return false;
   }
     
-  private void notifyParameterListeners(String parameter) {
-		ParameterListener[] listeners = parameterListenerz.get(parameter);
+  private void 
+  notifyParameterListeners(
+		String parameter) 
+  {
+	  	ParameterListener[] listeners;
+		
+		synchronized( parameterListenerz ){
+			 
+			 listeners = parameterListenerz.get(parameter);
+		}
+		
 		if ( listeners == null ){
 			return;
 		}
@@ -779,15 +781,18 @@ ConfigurationManager
 		}
 	}
 
-  public void addParameterListener(String parameter, ParameterListener new_listener ){
-  	try{
-  		this_mon.enter();
-  	
-	    if ( parameter == null || new_listener == null ){
+  public void 
+  addParameterListener(
+	String 				parameter, 
+	ParameterListener 	new_listener )
+  {
+    if ( parameter == null || new_listener == null ){
 	    	
 	      return;
-	    }
-	    
+    }
+		    
+	  synchronized( parameterListenerz ){
+  	
 	    ParameterListener[] listeners = parameterListenerz.get( parameter );
 	    
 	    if ( listeners == null ){
@@ -832,19 +837,16 @@ ConfigurationManager
 	    	
 	    	parameterListenerz.put( parameter, new_listeners );
 	    }
-  	}finally{
-  		this_mon.exit();
   	}
   }
 
   public void removeParameterListener(String parameter, ParameterListener listener){
-  	try{
-  		this_mon.enter();
  
-	    if( parameter == null || listener == null ){
-	    	return;
-	    }
-	    
+    if( parameter == null || listener == null ){
+    	return;
+    }
+    
+    synchronized( parameterListenerz ){
 	    ParameterListener[] listeners = parameterListenerz.get( parameter );
 	    
 	    if ( listeners == null ){
@@ -886,32 +888,21 @@ ConfigurationManager
 	    	
 	    	parameterListenerz.put( parameter, new_listeners );
 	    }
-  	}finally{
-  		
-  		this_mon.exit();
-  	}
+    }
   }
 
   public void addListener(COConfigurationListener listener) {
-  	try{
-  		this_mon.enter();
+  	synchronized( listenerz ){
 
   		listenerz.add(listener);
   		
-  	}finally{
-  		
-  		this_mon.exit();
   	}
   }
 
   public void removeListener(COConfigurationListener listener) {
-  	try{
-  		this_mon.enter();
+	  synchronized( listenerz ){
   	
   		listenerz.remove(listener);
-  	}finally{
-  		
-  		this_mon.exit();
   	}
   }
   
