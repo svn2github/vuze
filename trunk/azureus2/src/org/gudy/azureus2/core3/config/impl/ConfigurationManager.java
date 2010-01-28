@@ -40,6 +40,8 @@ public class
 ConfigurationManager 
 	implements AEDiagnosticsEvidenceGenerator
 {
+  private static final boolean DEBUG_PARAMETER_LISTENERS = false;
+  
   private static ConfigurationManager 	config_temp = null;
   private static ConfigurationManager 	config 		= null;
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigMan:class" );
@@ -48,8 +50,8 @@ ConfigurationManager
   private Map propertiesMap;	// leave this NULL - it picks up errors caused by initialisation sequence errors
   private List transient_properties     = new ArrayList();
   
-  private List		listeners 			= new ArrayList();
-  private Hashtable parameterListeners 	= new Hashtable();
+  private List<COConfigurationListener>		listenerz 			= new ArrayList<COConfigurationListener>();
+  private Map<String,ParameterListener[]> 	parameterListenerz 	= new HashMap<String,ParameterListener[]>();
   
   private AEMonitor	this_mon	= new AEMonitor( "ConfigMan");
   
@@ -232,12 +234,12 @@ ConfigurationManager
 	
   	FileUtil.writeResilientConfigFile( filename, properties_clone );
     
-  	List	listeners_copy;
+  	List<COConfigurationListener>	listeners_copy;
   	
     try{
     	this_mon.enter();
     
-    	listeners_copy = new ArrayList( listeners );
+    	listeners_copy = new ArrayList<COConfigurationListener>( listenerz );
     	
     }finally{
     	
@@ -757,37 +759,79 @@ ConfigurationManager
   }
     
   private void notifyParameterListeners(String parameter) {
-		LightHashSet parameterListener = (LightHashSet) parameterListeners.get(parameter);
-		if (parameterListener == null) {
+		ParameterListener[] listeners = parameterListenerz.get(parameter);
+		if ( listeners == null ){
 			return;
 		}
 
-		for (Iterator it = parameterListener.iterator(); it.hasNext();) {
-			ParameterListener listener = (ParameterListener) it.next();
+		for ( ParameterListener listener: listeners ) {
 
-			if (listener != null) {
-				try {
-					listener.parameterChanged(parameter);
-				} catch (Throwable e) {
-					// we're not synchronized so possible but unlikely error here
+			if ( listener != null ){
+				
+				try{
+					listener.parameterChanged( parameter );
+					
+				}catch (Throwable e) {
+					
 					Debug.printStackTrace(e);
 				}
 			}
 		}
 	}
 
-  public void addParameterListener(String parameter, ParameterListener listener){
+  public void addParameterListener(String parameter, ParameterListener new_listener ){
   	try{
   		this_mon.enter();
   	
-	    if(parameter == null || listener == null)
+	    if ( parameter == null || new_listener == null ){
+	    	
 	      return;
-	    LightHashSet parameterListener = (LightHashSet) parameterListeners.get(parameter);
-	    if(parameterListener == null) {
-	      parameterListeners.put(parameter, parameterListener = new LightHashSet(1));
 	    }
-	    if(!parameterListener.contains(listener))
-	      parameterListener.add(listener); 
+	    
+	    ParameterListener[] listeners = parameterListenerz.get( parameter );
+	    
+	    if ( listeners == null ){
+	    		     
+	    	parameterListenerz.put(parameter, new ParameterListener[]{ new_listener } );
+	    	
+	    }else{
+	    
+	    	ParameterListener[]	new_listeners = new ParameterListener[ listeners.length + 1 ];
+	    	
+	    	int	pos;
+	    	
+	    	if ( new_listener instanceof PriorityParameterListener ){
+	    		
+	    		new_listeners[0] = new_listener;
+	    		
+	    		pos = 1;
+	    		
+	    	}else{
+	    		
+	    		new_listeners[ listeners.length ] = new_listener;
+	    		
+	    		pos = 0;
+	    	}
+	    	
+	    	for ( int i=0;i<listeners.length;i++){
+	    		
+	    		ParameterListener existing_listener = listeners[i];
+	    		
+	    		if ( existing_listener == new_listener ){
+	    			
+	    			return;
+	    		}
+	    		
+	    		new_listeners[pos++] = existing_listener;
+	    	}
+	    	
+	    	if ( DEBUG_PARAMETER_LISTENERS ){
+	    	
+	    		System.out.println( parameter + "->" + new_listeners.length );
+	    	}
+	    	
+	    	parameterListenerz.put( parameter, new_listeners );
+	    }
   	}finally{
   		this_mon.exit();
   	}
@@ -797,13 +841,53 @@ ConfigurationManager
   	try{
   		this_mon.enter();
  
-	    if(parameter == null || listener == null)
-	      return;
-	    LightHashSet parameterListener = (LightHashSet) parameterListeners.get(parameter);
-	    if(parameterListener != null) {
-	    	parameterListener.remove(listener);
+	    if( parameter == null || listener == null ){
+	    	return;
+	    }
+	    
+	    ParameterListener[] listeners = parameterListenerz.get( parameter );
+	    
+	    if ( listeners == null ){
+	    	
+	    	return;
+	    }
+	    
+	    if ( listeners.length == 1 ){
+	    	
+	    	if ( listeners[0] == listener ){
+	    		
+	    		parameterListenerz.remove( parameter );
+	    	}
+	    }else{
+	    	
+	    	ParameterListener[] new_listeners = new ParameterListener[ listeners.length - 1 ];
+	    	
+	    	int	pos = 0;
+	    	
+	    	for ( int i=0;i<listeners.length;i++){
+	    		
+	    		ParameterListener existing_listener = listeners[i];
+
+	    		if ( existing_listener != listener ){
+	    			
+	    			if ( pos == new_listeners.length ){
+	    				
+	    				return;
+	    			}
+	    			
+	    			new_listeners[pos++] = existing_listener;
+	    		}
+	    	}
+	    	
+	    	if ( DEBUG_PARAMETER_LISTENERS ){
+	    	
+	    		System.out.println( parameter + "->" + new_listeners.length );
+	    	}
+	    	
+	    	parameterListenerz.put( parameter, new_listeners );
 	    }
   	}finally{
+  		
   		this_mon.exit();
   	}
   }
@@ -812,7 +896,7 @@ ConfigurationManager
   	try{
   		this_mon.enter();
 
-  		listeners.add(listener);
+  		listenerz.add(listener);
   		
   	}finally{
   		
@@ -824,7 +908,7 @@ ConfigurationManager
   	try{
   		this_mon.enter();
   	
-  		listeners.remove(listener);
+  		listenerz.remove(listener);
   	}finally{
   		
   		this_mon.exit();

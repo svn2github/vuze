@@ -70,7 +70,7 @@ public final class TransferSpeedValidator
     				AUTO_UPLOAD_ENABLED_CONFIGKEY,
     				AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY
     			},
-    			new ParameterListener()
+    			new PriorityParameterListener()
         		{
         			public void 
         			parameterChanged(
@@ -214,7 +214,7 @@ public final class TransferSpeedValidator
     public static boolean
     isAutoSpeedActive(
     		GlobalManager gm )
-    {
+    {    	
   		// if downloading+seeding is set then we always use this regardless of
   		// only seeding status
 
