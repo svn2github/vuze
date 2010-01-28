@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -132,6 +133,10 @@ public class SystemWarningWindow
 			text = logAlert.text;
 		}
 		
+		if (logAlert.err != null) {
+			text += "\n" + Debug.getExceptionMessage(logAlert.err);
+		}
+
 		if (logAlert.details != null) {
 			text += "\n<A HREF=\"details\">" + MessageText.getString("v3.MainWindow.button.viewdetails") + "</A>";
 		}
