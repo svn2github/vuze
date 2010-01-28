@@ -1295,7 +1295,7 @@ WebPlugin
 					{
 						boolean	result;
 						
-						boolean	auto_auth =  param_auto_auth.getValue();
+						boolean	auto_auth =  param_auto_auth != null && param_auto_auth.getValue();
 
 						if ( !pw_enable.getValue()){
 														
