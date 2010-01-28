@@ -34,8 +34,12 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
+import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.peers.PeerManagerStats;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeException;
@@ -224,13 +228,16 @@ TranscodeJobImpl
 			long	downloaded 	= file.getDownloaded();
 			long	length		= file.getLength();
 			
-			if ( 	download == null || downloaded == length ){
+			if ( download == null || downloaded == length ){
 				
 				download_ok = true;
 				
 			}else{
 
-				if ( PlatformTorrentUtils.isContent( download.getTorrent(), false )){
+				Torrent torrent = download.getTorrent();
+						
+				if ( 	PlatformTorrentUtils.isContent( torrent, false ) || 
+						PlatformTorrentUtils.getContentNetworkID( PluginCoreUtils.unwrap( torrent )) == ContentNetwork.CONTENT_NETWORK_VHDNL ){
 					
 					download_ok = true;
 					
@@ -241,6 +248,24 @@ TranscodeJobImpl
 					if ( percent_done >= TRANSCODE_OK_DL_PERCENT ){
 						
 						download_ok = true;
+						
+					}else{
+						
+						PeerManager pm = download.getPeerManager();
+						
+						if ( pm != null ){
+							
+							PeerManagerStats stats = pm.getStats();
+							
+							int connected_seeds 	= stats.getConnectedSeeds();
+							int connected_leechers	= stats.getConnectedLeechers();
+							
+							
+							if ( connected_seeds > 10 && connected_seeds > connected_leechers ){
+								
+								download_ok = true;
+							}
+						}
 					}
 				}
 			}
