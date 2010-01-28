@@ -3069,7 +3069,9 @@ DiskManagerImpl
                 FileSkeleton info = new FileSkeleton() {
 
                 	private CacheFile   read_cache_file;
-                	// do not access this field directly, use lazyGetFile() instead 
+                	
+                		// do not access this field directly, use lazyGetFile() instead
+                	
                 	private WeakReference dataFile = new WeakReference(null);
 
                 	public void
@@ -3263,17 +3265,23 @@ DiskManagerImpl
                 		 * If we a simple torrent, then we'll redirect the call to the download and move the
                 		 * data files that way - that'll keep everything in sync.
                 		 */  
-                		if (download_manager.getTorrent().isSimpleTorrent()) {
-                			try {
-                				download_manager.moveDataFiles(link_destination.getParentFile(), link_destination.getName());
+                		
+                		if ( download_manager.getTorrent().isSimpleTorrent()){
+                			
+                			try{		
+                				download_manager.moveDataFiles( link_destination.getParentFile(), link_destination.getName());
+                				
                 				return true;
-                			}
-                			catch (DownloadManagerException e) {
-                				// What should we do with the error?
+                				
+                			}catch( DownloadManagerException e ){
+                				
+                					// What should we do with the error?
+                				
                 				return false;
                 			}
                 		}
-                		return setLinkAtomic(link_destination);
+                		
+                		return( setLinkAtomic( link_destination ));
                 	}
 
                 	public boolean
@@ -3289,9 +3297,14 @@ DiskManagerImpl
                 		return( download_manager.getDownloadState().getFileLink( lazyGetFile() ));
                 	}
 
-                	public boolean setStorageType(int type) {
+                	public boolean 
+                	setStorageType(
+                		int type) 
+                	{
                 		boolean[] change = new boolean[res.length];
+                		
                 		change[file_index] = true;
+                		
                 		return fileSetSkeleton.setStorageTypes(change, type)[file_index];
                 	}
 
@@ -3311,16 +3324,36 @@ DiskManagerImpl
                 		long    offset,
                 		int     length )
 
-                	throws IOException
+                		throws IOException
                 	{
+                		CacheFile	cache_file;
+                		
                 		try{
                 			cache_read_mon.enter();
 
-                			if ( read_cache_file == null ){
+               				if ( download_manager.isDestroyed()){
+            					
+               					if ( read_cache_file != null ){
+               						
+               						try{
+               							read_cache_file.close();
+               							
+               						}catch( Throwable e ){
+               							
+               							Debug.out( e );
+               						}
+               						
+               						read_cache_file = null;
+               					}
+               					
+            					throw( new IOException( "Download has been remnoved" ));
+            				}
 
+                			if ( read_cache_file == null ){
+            				
                 				try{
                 					int type = DiskManagerImpl.getStorageType(download_manager, file_index).equals( "L")?ST_LINEAR:ST_COMPACT;
-
+                					
                 					read_cache_file =
                 						CacheFileManagerFactory.getSingleton().createFile(
                 							new CacheFileOwner()
@@ -3358,6 +3391,9 @@ DiskManagerImpl
                 					throw( new IOException( e.getMessage()));
                 				}
                 			}
+                			
+                			cache_file = read_cache_file;
+                			
                 		}finally{
 
                 			cache_read_mon.exit();
@@ -3367,7 +3403,7 @@ DiskManagerImpl
                 			DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ, length );
 
                 		try{
-                			read_cache_file.read( buffer, offset, CacheFile.CP_READ_CACHE );
+                			cache_file.read( buffer, offset, CacheFile.CP_READ_CACHE );
 
                 		}catch( Throwable e ){
 
@@ -3384,17 +3420,29 @@ DiskManagerImpl
                 	public void
                 	close()
                 	{
-                		if ( read_cache_file != null ){
+                		CacheFile	cache_file;
+                		
+                		try{
+                			cache_read_mon.enter();
 
-                			try{
-                				read_cache_file.close();
+                			cache_file = read_cache_file;
+                			
+                			read_cache_file = null;
+                			
+                		}finally{
+                			
+                			cache_read_mon.exit();
+                		}
+                		
+                		if ( cache_file != null ){
+
+                 			try{
+                 				cache_file.close();
 
                 			}catch( Throwable e ){
 
                 				Debug.printStackTrace(e);
                 			}
-
-                			read_cache_file = null;
                 		}
                 	}
 

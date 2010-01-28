@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.disk;
 
 import java.io.File;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -163,12 +164,7 @@ public class DiskManagerFileInfoImpl
 	public DiskManagerChannel
 	createChannel()
 	 	throws DownloadException
-	{
-		if ( core.getDownloadManager().getTorrent() == null ){
-			
-			throw( new DownloadException( "Torrent invalid" ));
-		}
-		
+	 	{	
 		return( new DiskManagerChannelImpl( download, this ));
 	}
 	

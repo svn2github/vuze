@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -43,6 +44,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
@@ -203,11 +205,27 @@ DiskManagerChannelImpl
 	DiskManagerChannelImpl(
 		DownloadImpl															_download,
 		org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl		_plugin_file )
+	
+		throws DownloadException
 	{
 		download		= _download;
 		plugin_file		= _plugin_file;
 		
 		core_file		= plugin_file.getCore();
+
+		DownloadManager core_download = core_file.getDownloadManager();
+		
+		if ( core_download.getTorrent() == null ){
+			
+			throw( new DownloadException( "Torrent invalid" ));
+		}
+		
+		if ( core_download.isDestroyed()){
+			
+			Debug.out( "Download has been removed" );
+			
+			throw( new DownloadException( "Download has been removed" ));
+		}
 		
 		synchronized( DiskManagerChannelImpl.class ){
 			
@@ -222,7 +240,7 @@ DiskManagerChannelImpl
 
 		rtas	= new long[torrent.getNumberOfPieces()];
 		
-		core_file.getDownloadManager().addPeerListener(this);
+		core_download.addPeerListener( this );
 			
 		for (int i=0;i<core_file.getIndex();i++){
 				
@@ -471,6 +489,7 @@ DiskManagerChannelImpl
 	{
 		buffer_millis = millis;
 	}
+	
 	public String
 	getUserAgent()
 	{
@@ -747,8 +766,18 @@ DiskManagerChannelImpl
 						
 						try{
 
-							wait_sem.reserve();
+							while( true ){
 							
+								if ( wait_sem.reserve( 500 )){
+									
+									break;
+								}
+								
+								if ( core_file.getDownloadManager().isDestroyed()){
+									
+									throw( new Exception( "Download has been removed" ));
+								}
+							}
 						}finally{
 							
 							synchronized( data_written ){
