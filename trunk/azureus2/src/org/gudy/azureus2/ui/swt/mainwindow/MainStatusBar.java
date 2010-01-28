@@ -218,9 +218,13 @@ public class MainStatusBar
 		
 		statusBar.getShell().addListener(SWT.Deiconify, new Listener() {
 			public void handleEvent(Event event) {
-				if (!statusBar.isDisposed()) {
-					statusBar.layout(true);
-				}
+				Utils.execSWTThreadLater(0, new AERunnable() {
+					public void runSupport() {
+						if (!statusBar.isDisposed()) {
+							statusBar.layout();
+						}
+					}
+				});
 			}
 		});
 		
