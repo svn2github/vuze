@@ -1267,15 +1267,28 @@ AzureusCoreImpl
 		}
 		
 		SimpleTimer.addEvent(
-			"ShutFailLog",
+			"ShutFail",
 			SystemTime.getOffsetTime( 30*1000 ),
 			new TimerEventPerformer()
 			{
+				boolean	die_die_die;
+				
 				public void 
 				perform(
 					TimerEvent event )
 				{
 					AEDiagnostics.dumpThreads();
+					
+					if ( die_die_die ){
+					
+						Debug.out( "Shutdown blocked, force exiting" );
+						
+						SESecurityManager.exitVM(0);
+					}
+					
+					die_die_die = true;
+					
+					SimpleTimer.addEvent( "ShutFail", SystemTime.getOffsetTime( 30*1000 ), this );
 				}
 			});
 				
