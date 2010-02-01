@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+2010.xx.xx | Vuze 4.3.1.3
+
+
 
 2010.02.01 | Vuze 4.3.1.2
 
@@ -22,7 +25,6 @@ BUGFIX: UI    | OSX - Text in table views are now the correct color (white) when
 BUGFIX: UI    | Protect against case where Main Window's stored dimensions area invalid or stupidly small [TuxPaper]
 BUGFIX: UI    | Fix invalid thread access and NPE when closing pairing dialog [Parg]
 BUGFIX: UI    | Fixed case where status bar was blank after deiconifying [TuxPaper]
-
 
 
 
