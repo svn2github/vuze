@@ -7,20 +7,24 @@ VUZE CHANGELOG
 FEATURE: Core | Added .vuze file format to trigger a search operation [Parg]
 
 CHANGE: Core  | Disable IPv6 under Windows by default, as it needs Java7 to work properly [Nolar]
-CHANGE: UI    | Permit deletion of classicaly shared content from download/seeding views [Parg]
 CHANGE: Core  | Added system property to disable instance manager [Parg]
 CHANGE: Core  | Give user friendlier error message when offline-downloader disconnected [Parg]
 CHANGE: Core  | Auto-dump threads if shutdown takes > 30 seconds [Parg]
+CHANGE: UI    | Permit deletion of classicaly shared content from download/seeding views [Parg]
 
+BUGFIX: Core  | Wait until sid registered before attempting pairing test [Parg]
+BUGFIX: Core  | Various pairing HTTPS fixes [Parg]
+BUGFIX: Core  | Fix missing 'logout' button when paired with no authentication [Parg]
 BUGFIX: UI    | Windows - Vuze now pops up if closed to system tray and user launches exe [TuxPaper]
 BUGFIX: UI    | Fixup some Remote Pairing dialog edge case bugs [TuxPaper]
 BUGFIX: UI    | OSX - Fix sidebar animations sometimes not animating [TuxPaper]
 BUGFIX: UI    | OSX - Text in table views are now the correct color (white) when selected [TuxPaper]
 BUGFIX: UI    | Protect against case where Main Window's stored dimensions area invalid or stupidly small [TuxPaper]
 BUGFIX: UI    | Fix invalid thread access and NPE when closing pairing dialog [Parg]
-BUGFIX: Core  | Wait until sid registered before attempting pairing test [Parg]
-BUGFIX: Core  | Various pairing HTTPS fixes [Parg]
-BUGFIX: Core  | Fix missing 'logout' button when paired with no authentication [Parg]
+BUGFIX: UI    | Fixed case where status bar was blank after deiconifying [TuxPaper]
+
+
+
 
 2010.01.23 | Vuze 4.3.1.0
 
