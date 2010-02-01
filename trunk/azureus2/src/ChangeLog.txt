@@ -2,7 +2,7 @@ VUZE CHANGELOG
 -----------------
 
 
-2010.01.xx | Vuze 4.3.1.1
+2010.02.01 | Vuze 4.3.1.2
 
 FEATURE: Core | Added .vuze file format to trigger a search operation [Parg]
 
