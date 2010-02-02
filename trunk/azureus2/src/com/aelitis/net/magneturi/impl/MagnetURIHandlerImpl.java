@@ -345,9 +345,17 @@ MagnetURIHandlerImpl
 			
 			arg_str = get.substring( pos+1 );
 			
+			pos = arg_str.lastIndexOf( ' ' );
+			
+			if ( pos >= 0 ){
+				
+				arg_str = arg_str.substring( 0, pos ).trim();
+			}
+			
 			StringTokenizer	tok = new StringTokenizer( arg_str, "&" );
+			
 			if (DEBUG) {
-				System.out.println("params:" + get.substring( pos+1 ));
+				System.out.println("params:" + arg_str );
 			}
 			
 			while( tok.hasMoreTokens()){
