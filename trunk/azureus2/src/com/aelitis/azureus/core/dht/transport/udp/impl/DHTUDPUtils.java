@@ -88,7 +88,38 @@ DHTUDPUtils
 			
 			String	key;
 			
-			if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID_PORTS2 ){
+			if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID3 ){
+				
+				byte[] bytes = ia.getAddress();
+				
+				if ( bytes.length == 4 ){
+					
+					//final long K0	= Long.MAX_VALUE;	
+					//final long K1	= Long.MAX_VALUE;	
+					
+						// restrictions suggested by UoW researchers as effective at reducing Sybil opportunity but 
+						// not so restrictive as to impact DHT performance
+					
+					final long K2	= 2500;
+					final long K3	= 50;
+					final long K4	= 5;
+
+					long	result = address.getPort() % K4;
+					
+					result = ((((long)bytes[3] << 8 ) &0x000000ff00L ) | result ) % K3;
+					result = ((((long)bytes[2] << 16 )&0x0000ff0000L ) | result ) % K2;
+					result = ((((long)bytes[1] << 24 )&0x00ff000000L ) | result ); // % K1;
+					result = ((((long)bytes[0] << 32 )&0xff00000000L ) | result ); // % K0;
+
+					key = String.valueOf( result );
+					
+				}else{
+
+						// stick with existing approach for IPv6 at the moment
+					
+					key = ia.getHostAddress() + ":" + ( address.getPort() % 8 );
+				}
+			}else if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID_PORTS2 ){
 
 					// more draconian limit, analysis shows that of 500,000 node addresses only
 					// 0.01% had >= 8 ports active. ( 1% had 2 ports, 0.1% 3)

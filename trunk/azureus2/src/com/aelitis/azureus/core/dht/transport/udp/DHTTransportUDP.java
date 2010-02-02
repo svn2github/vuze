@@ -85,6 +85,8 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2Y	= 35;	// another one to track fix to broken rep factor handling
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS2Z	= 36;	// hopefully last one - needed to excluded nodes that don't support replication frequency
 	
+	public static final byte PROTOCOL_VERSION_RESTRICT_ID3			= 50;	// ip and port based restrictions 
+
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;

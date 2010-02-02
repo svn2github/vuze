@@ -28,6 +28,7 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -46,6 +47,7 @@ import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -3633,6 +3635,8 @@ outer:
 					
 					if ( bootstrap_node ){
 						
+							// log( originating_contact );
+						
 							// let bad originators through to aid bootstrapping with bad IP
 						
 						acceptable = bad_originator || Arrays.equals( find_request.getID(), originating_contact.getID());
@@ -4167,6 +4171,50 @@ outer:
 			}
 		}
 	}
+	
+	/*
+	private PrintWriter	contact_log;
+	private int			contact_log_entries;
+	private SimpleDateFormat	contact_log_format = new SimpleDateFormat( "dd/MM/yyyy HH:mm:ss");
+	{
+		contact_log_format.setTimeZone( TimeZone.getTimeZone( "UTC" ));
+	}
+	
+	protected void
+	log(
+		DHTTransportUDPContactImpl		contact )
+	{
+		if ( network == DHT.NW_MAIN ){
+			
+			synchronized( this ){
+		
+				try{
+					if ( contact_log == null ){
+						
+						contact_log = new PrintWriter( new FileWriter( new File( SystemProperties.getUserPath(), "contact_log" )));
+					}
+					
+					contact_log_entries++;
+					
+					InetSocketAddress address = contact.getAddress();
+					
+					contact_log.println( contact_log_format.format( new Date()) + ", " + address.getAddress().getHostAddress() + ", " + address.getPort());
+					
+					if ( contact_log_entries % 1000 == 0 ){
+						
+						System.out.println( "contact-log: " + contact_log_entries );
+						
+						contact_log.flush();
+					}
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+	}
+	*/
 	
 	protected class
 	transferHandlerInterceptor
