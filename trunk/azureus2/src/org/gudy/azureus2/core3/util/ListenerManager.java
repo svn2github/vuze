@@ -109,6 +109,12 @@ ListenerManager<T>
 	addListener(
 		T		listener )
 	{
+		if (listener == null) {
+
+			Debug.out("Trying to add null listener to " + name);
+			return;
+		}
+
 		synchronized( this ){
 			
 			ArrayList<T>	new_listeners	= new ArrayList<T>( listeners );
