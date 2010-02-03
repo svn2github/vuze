@@ -29,6 +29,7 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 
 /**
  * @author TuxPaper
@@ -38,10 +39,6 @@ import com.aelitis.azureus.ui.UIFunctions;
 public interface UIFunctionsSWT
 	extends UIFunctions
 {
-	public static int MAIN_MENU_BAR = MainMenu.MENU_BAR;
-
-	public static int MAIN_MENU_TRANSFER = MainMenu.MENU_TRANSFER;
-
 	public Shell getMainShell();
 
 	/**
@@ -121,16 +118,6 @@ public interface UIFunctionsSWT
 
 	public void closePluginViews(String sViewID);
 
-	/**
-	 * @deprecated This method has been deprecated; menus should be retrieved directly
-	 * from an instance of IMainMenu.  Because there may be multiple instances of IMainMenu
-	 * in the application this method will not be able to discern which menu to work with.
-	 * This is especially true for OSX where each shell has its own instance of IMainMenu.
-	 * @param id
-	 * @return
-	 */
-	public Menu getMenu(int id);
-
 	public UISWTInstance getUISWTInstance();
 
 	public void refreshTorrentMenu();
@@ -164,4 +151,6 @@ public interface UIFunctionsSWT
 	public boolean hasDetailViews();
 	
 	public Shell showCoreWaitDlg();
+	
+	public MultipleDocumentInterfaceSWT getMDISWT();
 }

@@ -32,7 +32,6 @@ import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 
 public class 
 LinkLabel 
@@ -75,7 +74,7 @@ LinkLabel
 		if (tooltip == null && !hyperlink.equals(label.getText())) {
 			label.setToolTipText(hyperlink==null?null:hyperlink.replaceAll("&", "&&"));
 		}
-	    label.setCursor(Cursors.handCursor);
+	    label.setCursor(label.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 	    label.setForeground(Colors.blue);
 	    label.addMouseListener(new MouseAdapter() {
 	      public void mouseDoubleClick(MouseEvent arg0) {

@@ -510,6 +510,7 @@ BufferedTableRow
       return null;
 		
 		if (isSelected()) {
+			// XXX This isn't the right color on Cocoa when in focus
 			return table.getDisplay().getSystemColor(
 					table.isFocusControl() ? SWT.COLOR_LIST_SELECTION
 							: SWT.COLOR_WIDGET_BACKGROUND);

@@ -78,10 +78,6 @@ public class UIMagnetHandler
 											return false;
 										}
 
-										if (!UISwitcherUtil.isAZ3Avail()) {
-											return false;
-										}
-
 										UIFunctions uif = UIFunctionsManager.getUIFunctions();
 										if (uif == null) {
 											core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {

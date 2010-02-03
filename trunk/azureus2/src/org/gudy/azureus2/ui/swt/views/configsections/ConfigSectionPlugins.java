@@ -46,7 +46,6 @@ import org.gudy.azureus2.ui.swt.config.DualChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.IAdditionalActionPerformer;
 import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.views.ConfigView;
 
@@ -359,7 +358,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		label.setLayoutData(gridData);
 		label.setText(sUserPluginDir.replaceAll("&", "&&"));
 		label.setForeground(Colors.blue);
-		label.setCursor(Cursors.handCursor);
+		label.setCursor(label.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 
 		final String _sUserPluginDir = sUserPluginDir;
 
@@ -388,7 +387,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		label.setLayoutData(gridData);
 		label.setText(sAppPluginDir.replaceAll("&", "&&"));
 		label.setForeground(Colors.blue);
-		label.setCursor(Cursors.handCursor);
+		label.setCursor(label.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 
 		final String _sAppPluginDir = sAppPluginDir;
 

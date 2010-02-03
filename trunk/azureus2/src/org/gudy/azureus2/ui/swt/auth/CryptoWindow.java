@@ -36,9 +36,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
-import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -46,7 +44,6 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
-import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler.passwordDetails;
 
 public class 
 CryptoWindow 
@@ -338,7 +335,7 @@ CryptoWindow
 			final Label linkLabel = new Label(shell, SWT.NULL);
 			linkLabel.setText(MessageText.getString("ConfigView.label.please.visit.here"));
 			linkLabel.setData("http://wiki.vuze.com/w/Public_Private_Keys");
-			linkLabel.setCursor(Cursors.handCursor);
+			linkLabel.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
 			linkLabel.setForeground(Colors.blue);
 			gridData = new GridData();
 			gridData.horizontalSpan = 3;

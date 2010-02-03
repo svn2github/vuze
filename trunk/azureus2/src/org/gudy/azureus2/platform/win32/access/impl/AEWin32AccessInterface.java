@@ -55,7 +55,11 @@ AEWin32AccessInterface
 	private static AEWin32AccessCallback		cb;
 	
 	static{
-		System.loadLibrary( PlatformManagerImpl.DLL_NAME );
+		try {
+			System.loadLibrary( PlatformManagerImpl.DLL_NAME );
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	protected static boolean

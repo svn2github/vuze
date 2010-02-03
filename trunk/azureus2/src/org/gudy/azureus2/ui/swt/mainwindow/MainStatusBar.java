@@ -699,7 +699,7 @@ public class MainStatusBar
 					};
 					
 					feedback.setToolTipText(MessageText.getString("statusbar.feedback.tooltip"));
-					feedback.setCursor(Cursors.handCursor);
+					feedback.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
 					feedback.setForeground(Colors.blue);
 					feedback.addListener(SWT.MouseUp, feedback_listener);
 					feedback.addListener(SWT.MouseDoubleClick, feedback_listener);
@@ -798,7 +798,7 @@ public class MainStatusBar
 			statusTextKey = "MainWindow.status.unofficialversion ("
 					+ Constants.AZUREUS_VERSION + ")";
 			setStatusImageKey(STATUS_ICON_WARN);
-		} else if (!Constants.isOSX) { //don't show official version numbers for OSX L&F
+		} else if (!Constants.isOSX && COConfigurationManager.getStringParameter("ui").equals("az2")) { //don't show official version numbers for OSX L&F
 			statusTextKey = Constants.APP_NAME + " " + Constants.AZUREUS_VERSION;
 			setStatusImageKey(null);
 		}
@@ -870,7 +870,7 @@ public class MainStatusBar
 	public void setUpdateNeeded(UpdateWindow updateWindow) {
 		this.updateWindow = updateWindow;
 		if (updateWindow != null) {
-			statusText.setCursor(Cursors.handCursor);
+			statusText.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
 			statusText.setForeground(Colors.colorWarning);
 			updateStatusText();
 		} else {

@@ -28,10 +28,20 @@ import java.util.List;
  */
 public class ViewTitleInfoManager
 {
-	public static List listeners = new ArrayList();
+	public static List<ViewTitleInfoListener> listeners = new ArrayList<ViewTitleInfoListener>();
 	
 	public static void addListener(ViewTitleInfoListener l) {
-		listeners.add(l);
+		synchronized (listeners) {
+			if (!listeners.contains(l)) {
+				listeners.add(l);
+			}
+		}
+	}
+	
+	public static void removeListener(ViewTitleInfoListener l) {
+		synchronized (listeners) {
+			listeners.remove(l);
+		}
 	}
 	
 	public static void refreshTitleInfo(ViewTitleInfo titleinfo) {

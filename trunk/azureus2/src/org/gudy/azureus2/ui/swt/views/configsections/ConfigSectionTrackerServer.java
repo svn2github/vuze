@@ -43,7 +43,6 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class 
@@ -235,7 +234,7 @@ ConfigSectionTrackerServer
     ssl_faq_label.setLayoutData(gridData);
     Messages.setLanguageText(ssl_faq_label, CFG_PREFIX + "tracker.sslport.info");
     final String linkFAQ = "http://azureus.sourceforge.net/faq.php#19";
-    ssl_faq_label.setCursor(Cursors.handCursor);
+    ssl_faq_label.setCursor(ssl_faq_label.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
     ssl_faq_label.setForeground(Colors.blue);
     ssl_faq_label.addMouseListener(new MouseAdapter() {
        public void mouseDoubleClick(MouseEvent arg0) {

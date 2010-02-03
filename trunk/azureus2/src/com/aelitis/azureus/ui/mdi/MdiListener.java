@@ -1,5 +1,5 @@
 /**
- * Created on Feb 13, 2009
+ * Created on Jul 17, 2008
  *
  * Copyright 2008 Vuze, Inc.  All rights reserved.
  * This program is free software; you can redistribute it and/or modify
@@ -15,20 +15,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
-package org.gudy.azureus2.plugins.ui.sidebar;
+
+package com.aelitis.azureus.ui.mdi;
+
+
 
 /**
  * @author TuxPaper
- * @created Feb 13, 2009
+ * @created Jul 17, 2008
  *
  */
-public interface SideBarDropListener
+public interface MdiListener
 {
-	/**
-	 * @param entry
-	 * @param droppedObject
-	 * @return true if you handled it, false if you didn't
-	 */
-	public boolean sideBarEntryDrop(SideBarEntry entry, Object droppedObject);
+	public void mdiEntrySelected(MdiEntry newEntry,
+			MdiEntry oldEntry);
 }

@@ -16,14 +16,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
  
-package org.gudy.azureus2.plugins.ui.sidebar;
+package com.aelitis.azureus.ui.mdi;
+
 
 /**
  * @author TuxPaper
  * @created Dec 3, 2008
- *
  */
-public interface SideBarOpenListener
+public interface MdiEntryOpenListener
 {
-	public void sideBarEntryOpen(SideBarEntry entry);
+	public void mdiEntryOpen(MdiEntry entry);
 }

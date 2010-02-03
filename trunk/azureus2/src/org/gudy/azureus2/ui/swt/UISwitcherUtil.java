@@ -68,10 +68,6 @@ public class UISwitcherUtil
 	}
 
 	public static String calcUIMode() {
-		if (!isAZ3Avail()) {
-			return "az2";
-		}
-
 		// Can't use Constants.isSafeMode - it's not set by the time we
 		// get here.
 		if ("1".equals(System.getProperty("azureus.safemode"))) {
@@ -180,15 +176,5 @@ public class UISwitcherUtil
 		}
 
 		return;
-	}
-
-	public static boolean isAZ3Avail() {
-		Class uiswClass = null;
-		try {
-			uiswClass = Class.forName("com.aelitis.azureus.ui.swt.shells.uiswitcher.UISwitcherWindow");
-			return true;
-		} catch (ClassNotFoundException e1) {
-		}
-		return false;
 	}
 }

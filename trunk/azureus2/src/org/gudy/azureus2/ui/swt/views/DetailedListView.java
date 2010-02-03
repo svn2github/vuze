@@ -36,6 +36,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 
@@ -55,8 +56,6 @@ public class DetailedListView extends AbstractIView implements
 
 	final static TableColumnCore[] tableIncompleteItems = TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE);
 	
-	private AzureusCore	azureus_core;
-  
   private MyTorrentsView torrentview;
   private UISWTViewImpl managerview;
   private Composite managerview_parent;
@@ -65,9 +64,7 @@ public class DetailedListView extends AbstractIView implements
 
 	private MyTorrentsView lastSelectedView;
 
-  public DetailedListView(AzureusCore	_azureus_core) {
-  	azureus_core		= _azureus_core;
-
+  public DetailedListView() {
     TableColumnManager tcManager = TableColumnManager.getInstance();
     tcManager.addColumns(tableIncompleteItems);
   }
@@ -107,7 +104,7 @@ public class DetailedListView extends AbstractIView implements
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     child1.setLayout(layout);
-    torrentview = new MyTorrentsView(azureus_core, "DetailedTorrentList",
+    torrentview = new MyTorrentsView(AzureusCoreFactory.getSingleton(), "DetailedTorrentList",
 				false, tableIncompleteItems);
     torrentview.initialize(child1);
     

@@ -1431,7 +1431,15 @@ public class TorrentUtil {
 			File fSavePath = new File(sSavePath);
 			for (int i = 0; i < dms.length; i++) {
 				DownloadManager dm = dms[i];
-				if (dm.getState() == DownloadManager.STATE_ERROR) {
+				
+				int state = dm.getState();
+				if (state == DownloadManager.STATE_STOPPED) {
+					if (!dm.filesExist(true)) {
+						state = DownloadManager.STATE_ERROR;
+					}
+				}
+
+				if (state == DownloadManager.STATE_ERROR) {
 					
 					dm.setTorrentSaveDir(sSavePath);
 					

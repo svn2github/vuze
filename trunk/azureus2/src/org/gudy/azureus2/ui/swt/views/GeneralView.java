@@ -64,7 +64,6 @@ import org.gudy.azureus2.ui.swt.components.BufferedTruncatedLabel;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 
@@ -378,7 +377,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     hash.setLayoutData(gridData);
     	// click on hash -> copy to clipboard
-    hash.setCursor(Cursors.handCursor);
+    hash.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
     hash.setForeground(Colors.blue);
     label.addMouseListener(new MouseAdapter() {
     	public void mouseDoubleClick(MouseEvent arg0) {
@@ -407,7 +406,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
-    label.setCursor(Cursors.handCursor);
+    label.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
     label.setForeground(Colors.blue);
     label.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
@@ -637,7 +636,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 
     
     label = new Label(gInfo, SWT.LEFT);
-    label.setCursor(Cursors.handCursor);
+    label.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
     label.setForeground(Colors.blue);
     Messages.setLanguageText(label, "GeneralView.label.user_comment");
 
@@ -1234,7 +1233,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 	
 	if ( show_cdp_link ){
 		tracker_status.setForeground(Colors.colorError);
-		tracker_status.setCursor(Cursors.handCursor);
+		tracker_status.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
 	}else{
 		tracker_status.setForeground(null);
 		tracker_status.setCursor(null);
@@ -1279,7 +1278,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 				
 		if((trackerURL.startsWith("http://")||trackerURL.startsWith("https://"))) {
 		  trackerUrlValue.setForeground(Colors.blue);
-		  trackerUrlValue.setCursor(Cursors.handCursor);
+		  trackerUrlValue.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
 		  Messages.setLanguageText(trackerUrlValue.getWidget(), "GeneralView.label.trackerurlopen.tooltip", true);
 		} else {
 		  trackerUrlValue.setForeground(null);

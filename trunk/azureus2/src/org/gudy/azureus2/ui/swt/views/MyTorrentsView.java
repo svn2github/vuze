@@ -465,7 +465,7 @@ public class MyTorrentsView
     cFilterArea.setLayoutData(fd);
 
     fd = new FormData();
-    fd.right = new FormAttachment(cSizer, -2); 
+    fd.right = new FormAttachment(cSizer, -5); 
     fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
     fd.bottom = new FormAttachment(cFilterArea, 0, SWT.BOTTOM);
     cCategories.setLayoutData(fd);
@@ -475,9 +475,9 @@ public class MyTorrentsView
 		boolean enableSizer = userMode >= 2 && Constants.IS_CVS_VERSION;
 		
     fd = new FormData();
-    fd.right = new FormAttachment(100, -2); 
+    fd.right = new FormAttachment(100, -1); 
     fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
-    fd.width = enableSizer ? 100 : 1;
+    fd.width = enableSizer ? 20 : 1;
     fd.height = enableSizer ? 20 : 1;
     cSizer.setLayoutData(fd);
 
@@ -548,8 +548,8 @@ public class MyTorrentsView
 				
 				FormData fd = (FormData) cSizer.getLayoutData();
 				if (isAdvanced) {
-					if (fd.width < 100) {
-						fd.width = 100;
+					if (fd.width < 20) {
+						fd.width = 20;
 						fd.height = 16;
 			    	tv.enableSizeSlider(cSizer, 16, 96);
 			    	cSizer.setVisible(false);

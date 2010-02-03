@@ -249,9 +249,10 @@ public class CarbonUIEnhancer
 			});
 
 			//	 add the button to the window trim
+			Object oHandle = shell.getClass().getField("handle").get(shell);
 			int windowHandle = ((Number) invoke(claOS, null, "GetControlOwner",
 					new Object[] {
-						shell.handle
+						oHandle
 					})).intValue();
 			invoke(claOS, null, "ChangeWindowAttributes", new Object[] {
 				windowHandle,

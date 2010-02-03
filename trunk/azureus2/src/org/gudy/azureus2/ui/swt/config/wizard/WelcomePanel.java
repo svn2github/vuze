@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 
@@ -55,6 +54,8 @@ public class WelcomePanel extends AbstractWizardPanel {
   public void show() {
     wizard.setTitle(MessageText.getString("configureWizard.welcome.title"));
     
+    Display display = wizard.getDisplay();
+
     String initsMode = "";
     final String[] text = {""};
     int userMode = COConfigurationManager.getIntParameter("User Mode");
@@ -153,7 +154,7 @@ public class WelcomePanel extends AbstractWizardPanel {
 	    final Label linkLabel = new Label(gWiki, SWT.NULL);
 	    linkLabel.setText( MessageText.getString( messTexts[userMode] ) );
 	    linkLabel.setData( links[userMode] );
-	    linkLabel.setCursor(Cursors.handCursor);
+	    linkLabel.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
 	    linkLabel.setForeground(Colors.blue);
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.horizontalIndent = 10;
@@ -170,7 +171,7 @@ public class WelcomePanel extends AbstractWizardPanel {
 	    final Label linkLabel1 = new Label(gWiki, SWT.NULL);
 	    linkLabel1.setText( (userMode == 1)?MessageText.getString(messTexts[3]):"");
 	    linkLabel1.setData( links[3] );
-	    linkLabel1.setCursor(Cursors.handCursor);
+	    linkLabel1.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
 	    linkLabel1.setForeground(Colors.blue);
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.horizontalIndent = 10;

@@ -39,23 +39,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 public class MainMenu
 	implements IMainMenu
 {
-	/**
-	 * @deprecated
-	 */
-	public static int MENU_BAR = 0;
-
-	/**
-	 * @deprecated
-	 */
-	public static int MENU_TRANSFER = 1;
-
-	/**
-	 * @deprecated
-	 */
-	public static int MENU_VIEW = 2;
-
-	private MainWindow mainWindow;
-
 	private Menu menuBar;
 
 	/**
@@ -63,12 +46,7 @@ public class MainMenu
 	 * @param shell A shell
 	 */
 	public MainMenu(Shell shell) {
-		mainWindow = MainWindow.getWindow();
 		createMenus(shell);
-	}
-
-	public void setMainWindow(MainWindow mainWindow) {
-		this.mainWindow = mainWindow;
 	}
 
 	public void linkMenuBar(Shell parent) {
@@ -179,7 +157,7 @@ public class MainMenu
 
 		MenuFactory.addSeparatorMenuItem(fileMenu);
 		MenuFactory.addCloseWindowMenuItem(fileMenu);
-		MenuFactory.addCloseTabMenuItem(fileMenu, mainWindow);
+		//MenuFactory.addCloseTabMenuItem(fileMenu, mainWindow);
 		MenuFactory.addCloseDetailsMenuItem(fileMenu);
 		MenuFactory.addCloseDownloadBarsToMenu(fileMenu);
 
@@ -223,9 +201,9 @@ public class MainMenu
 			indent(MenuFactory.addTransferBarToMenu(viewMenu));
 			indent(MenuFactory.addAllPeersMenuItem(viewMenu));
 			indent(MenuFactory.addClientStatsMenuItem(viewMenu));
-			if (Constants.isCVSVersion()) {
-				indent(MenuFactory.addDetailedListMenuItem(viewMenu));
-			}
+			indent(MenuFactory.addDetailedListMenuItem(viewMenu));
+			indent(MenuFactory.addRCMMenuItem(viewMenu));
+			//indent(MenuFactory.addDeviceManagerMenuItem(viewMenu));
 
 			/*
 			 * These 2 menus resides on the Tools menu on non-OSX platforms;
@@ -323,31 +301,6 @@ public class MainMenu
 	private static final void indent(MenuItem item) {
 		item.setData("IndentItem", "YES");
 		item.setText("  " + item.getText());
-	}
-
-	/**
-	 * @deprecated This method has been replaced with {@link #getMenu(String)};
-	 * use {@link #getMenu(IMenuConstants.MENU_ID_MENU_BAR)} ,
-	 *     {@link #getMenu(IMenuConstants.MENU_ID_TRANSFERS)}, or
-	 *     {@link #getMenu(IMenuConstants.MENU_ID_VIEW)} instead
-	 * @param id
-	 * @return
-	 */
-	public Menu getMenu(int id) {
-		/*
-		 * KN: Retrofitted to use the new getMenu(String) method
-		 */
-		if (id == MENU_BAR) {
-			return getMenu(IMenuConstants.MENU_ID_MENU_BAR);
-		}
-		if (id == MENU_TRANSFER) {
-			return getMenu(IMenuConstants.MENU_ID_TRANSFERS);
-		}
-		if (id == MENU_VIEW) {
-			return getMenu(IMenuConstants.MENU_ID_VIEW);
-		}
-
-		return null;
 	}
 
 	public Menu getMenu(String id) {

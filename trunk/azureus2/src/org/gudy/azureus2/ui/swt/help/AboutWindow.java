@@ -219,7 +219,7 @@ public class AboutWindow {
       final CLabel linkLabel = new CLabel(gInternet, SWT.NULL);
       linkLabel.setText(MessageText.getString("MainWindow.about.internet." + link[0][i]));
       linkLabel.setData(link[1][i]);
-      linkLabel.setCursor(Cursors.handCursor);
+      linkLabel.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
       linkLabel.setForeground(Colors.blue);
       gridData = new GridData(GridData.FILL_HORIZONTAL);
       gridData.horizontalSpan = 1;

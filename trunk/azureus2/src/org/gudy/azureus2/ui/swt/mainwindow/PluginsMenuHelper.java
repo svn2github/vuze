@@ -30,7 +30,7 @@ public class PluginsMenuHelper
 
 	private Map plugin_logs_view_info_map = new TreeMap();
 	
-	private List pluginAddedViewListener = new ArrayList();
+	private List<PluginAddedViewListener> pluginAddedViewListener = new ArrayList<PluginAddedViewListener>();
 
 	private PluginsMenuHelper() {
 		//Making this private
@@ -241,17 +241,56 @@ public class PluginsMenuHelper
 	
 	public void addPluginAddedViewListener(PluginAddedViewListener l) {
 		pluginAddedViewListener.add(l);
+
+		IViewInfo[] viewsInfo = getPluginViewsInfo();
+		for (IViewInfo info : viewsInfo) {
+			l.pluginViewAdded(info);
+		}
+		viewsInfo = getPluginLogViewsInfo();
+		for (IViewInfo info : viewsInfo) {
+			l.pluginViewAdded(info);
+		}
 	}
 	
-	public void triggerPluginAddedViewListeners(IViewInfo viewInfo) {
-		Object[] listeners = pluginAddedViewListener.toArray();
-		for (int i = 0; i < listeners.length; i++) {
-			PluginAddedViewListener l = (PluginAddedViewListener) listeners[i];
-			l.pluginViewAdded(viewInfo);
+	public void triggerPluginAddedViewListeners(final IViewInfo viewInfo) {
+		final Object[] listeners = pluginAddedViewListener.toArray();
+		if (pluginAddedViewListener.size() > 0) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					for (int i = 0; i < listeners.length; i++) {
+						PluginAddedViewListener l = (PluginAddedViewListener) listeners[i];
+						l.pluginViewAdded(viewInfo);
+					}
+				}
+			});
 		}
 	}
 	
 	public static interface PluginAddedViewListener {
 		public void pluginViewAdded(IViewInfo viewInfo);
+	}
+
+	public IViewInfo findIViewInfo(UISWTViewEventListener l) {
+		IViewInfo foundViewInfo = null;
+
+		IViewInfo[] pluginViewsInfo = getPluginViewsInfo();
+		for (int i = 0; i < pluginViewsInfo.length; i++) {
+			IViewInfo viewInfo = pluginViewsInfo[i];
+			if (viewInfo.event_listener == l) {
+				foundViewInfo = viewInfo;
+				break;
+			}
+		}
+		if (foundViewInfo == null) {
+			pluginViewsInfo = getPluginLogViewsInfo();
+			for (int i = 0; i < pluginViewsInfo.length; i++) {
+				IViewInfo viewInfo = pluginViewsInfo[i];
+				if (viewInfo.event_listener == l) {
+					foundViewInfo = viewInfo;
+					break;
+				}
+			}
+		}
+		return foundViewInfo;
 	}
 }

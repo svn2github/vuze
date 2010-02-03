@@ -24,6 +24,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 /**
  * @author TuxPaper
@@ -53,6 +54,7 @@ public interface UIFunctions
 	public static final int VIEW_ALLPEERS = 10;
 	public static final int VIEW_DETAILED_LISTVIEW = 11;
 	public static final int VIEW_PEERS_STATS = 12;
+	public static final int VIEW_RCM = 13;
 	
 	public static final int ACTION_FULL_UPDATE				= 1;	// arg: String - url; response Boolean - ok
 	public static final int ACTION_UPDATE_RESTART_REQUEST	= 2;	// arg: Boolean - true->no auto-select response Boolean - ok
@@ -158,6 +160,8 @@ public interface UIFunctions
 		actionComplete(
 			Object		result );
 	}
+
+	public MultipleDocumentInterface getMDI();		
 
 	void forceNotify(int iconID, String title, String text, String details,
 			Object[] relatedObjects, int timeoutSecs);		

@@ -28,6 +28,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
@@ -36,14 +37,13 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.ListenerNeedingCoreRunning;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -65,7 +65,6 @@ public class TrayWindow
   protected AEMonitor managers_mon 	= new AEMonitor(ID);
 
 
-  MainWindow main;
   Display display;
   Shell minimized;
   Label label;
@@ -77,9 +76,8 @@ public class TrayWindow
   private int yPressed;
   private boolean moving;
 
-  public TrayWindow(MainWindow _main) {
+  public TrayWindow() {
     this.managers = new ArrayList();
-    this.main = _main;
     UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
     Shell mainShell = uif == null ? Utils.findAnyShell() : uif.getMainShell();
     this.display = mainShell.getDisplay();
@@ -192,7 +190,7 @@ public class TrayWindow
     Messages.setLanguageText(file_exit, "TrayWindow.menu.exit"); //$NON-NLS-1$
     file_exit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        main.dispose(false,false);
+      	UIFunctionsManager.getUIFunctions().dispose(false, false);
       }
     });
 

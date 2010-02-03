@@ -34,7 +34,6 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 
 
 public class 
@@ -51,7 +50,7 @@ LinkParameter
   	super(name_resource);
     link_label = new Label(composite, SWT.NULL);
     Messages.setLanguageText(link_label, name_resource);
-    link_label.setCursor(Cursors.handCursor);
+    link_label.setCursor(link_label.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
     link_label.setForeground(Colors.blue);
     link_label.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {

@@ -99,8 +99,6 @@ public class UIConfigDefaultsSWT
 		def.addParameter("ui.toolbar.uiswitcher", false);
 		def.addParameter("ui.systray.tooltip.enable", false);
 		
-		def.addParameter("ui", "az2");
-		
 		def.addParameter("Remember transfer bar location", true);
 		
 		if ( COConfigurationManager.getBooleanParameter( "Open Bar" )){
@@ -127,5 +125,19 @@ public class UIConfigDefaultsSWT
 		def.addParameter("MyTorrentsView.alwaysShowHeader", true);
 		
 		def.addParameter("ConfigView.section.style.swt.library.selection", "cocoa");
+		def.addParameter("v3.topbar.height", 60);
+		def.addParameter("v3.topbar.show.plugin", false);
+		def.addParameter("pluginbar.visible", false);
+		def.addParameter("ui.toolbar.uiswitcher", false);
+
+		if ("az2".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui", "az3"))) {
+			def.addParameter("v3.Show Welcome", false);
+
+			def.addParameter("list.dm.dblclick", "1");
+			def.addParameter("Library.viewmode", 1);
+  		def.addParameter("LibraryDL.viewmode", 1);
+  		def.addParameter("LibraryUnopened.viewmode", 1);
+  		def.addParameter("LibraryCD.viewmode", 1);
+		}
 	}
 }

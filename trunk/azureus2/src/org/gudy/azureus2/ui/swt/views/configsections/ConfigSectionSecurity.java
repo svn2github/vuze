@@ -45,7 +45,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
@@ -219,7 +218,7 @@ ConfigSectionSecurity
 			final Label linkLabel = new Label(crypto_group, SWT.NULL);
 			linkLabel.setText(MessageText.getString("ConfigView.label.please.visit.here"));
 			linkLabel.setData("http://wiki.vuze.com/w/Public_Private_Keys");
-			linkLabel.setCursor(Cursors.handCursor);
+			linkLabel.setCursor(linkLabel.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 			linkLabel.setForeground(Colors.blue);
 			gridData = new GridData();
 			gridData.horizontalSpan = 3;
@@ -255,7 +254,7 @@ ConfigSectionSecurity
 			
 		    Messages.setLanguageText(public_key_value, "ConfigView.copy.to.clipboard.tooltip", true);
 
-		    public_key_value.setCursor(Cursors.handCursor);
+		    public_key_value.setCursor(public_key_value.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 		    public_key_value.setForeground(Colors.blue);
 		    public_key_value.addMouseListener(new MouseAdapter() {
 		    	public void mouseDoubleClick(MouseEvent arg0) {

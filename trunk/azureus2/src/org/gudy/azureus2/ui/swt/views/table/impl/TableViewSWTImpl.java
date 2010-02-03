@@ -63,6 +63,7 @@ import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
@@ -106,6 +107,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	TableStructureModificationListener<DATASOURCETYPE>, ObfusticateImage,
 	KeyListener
 {
+	private final static boolean DRAW_VERTICAL_LINES = false;
+
+	protected static final boolean DRAW_FULL_ROW = false; // Constants.isOSX;
+
 	private final static LogIDs LOGID = LogIDs.GUI;
 
 	/** Virtual Tables still a work in progress */
@@ -327,7 +332,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	};
 	
 	filter filter;
-	
+
 
 	/**
 	 * Main Initializer
@@ -759,8 +764,40 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		table.addListener(SWT.PaintItem, new Listener() {
 			public void handleEvent(Event event) {
+				Rectangle bounds = ((TableItem)event.item).getBounds(event.index);
+
 				//visibleRowsChanged();
 				paintItem(event);
+
+				// Vertical lines between columns
+				if (DRAW_VERTICAL_LINES ) {
+					Color fg = event.gc.getForeground();
+					event.gc.setForeground(Colors.black);
+					event.gc.setAlpha(40);
+					event.gc.setClipping((Rectangle)null);
+					event.gc.drawLine(bounds.x + bounds.width, bounds.y - 1, bounds.x
+							+ bounds.width, bounds.y + bounds.height);
+					event.gc.setForeground(fg);
+				}
+			}
+		});
+		
+		// OSX SWT (3624) Requires SWT.EraseItem hooking, otherwise foreground
+		// color will not be set correctly when row is selected.
+		// Hook listener for all OSes in case this requirement beomes xplatform
+		table.addListener(SWT.EraseItem, new Listener() {
+			public void handleEvent(Event event) {
+				// extend the row color for OSX only, since it uses a solid color.
+				// Windows using a pretty bubble thing, and we can't really duplicate
+				// that
+				if (DRAW_FULL_ROW && event.index == table.getColumnCount() - 1) { // && (event.detail & SWT.BACKGROUND) > 0) {
+					//System.out.println("erase bg " + event.gc.getClipping());
+  				Rectangle clipping = event.gc.getClipping();
+  				clipping.width = clientArea.width - clipping.x;
+  				event.gc.setClipping(clipping);
+  				event.gc.fillRectangle(clipping);
+  				event.detail &= ~SWT.BACKGROUND;
+				}
 			}
 		});
 
@@ -1062,7 +1099,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					filter.widget.removeKeyListener(TableViewSWTImpl.this);
 					filter.widget.removeModifyListener(filter.widgetModifyListener);
 				}
-				Utils.disposeSWTObjects(new Object[] { slider } );
+				Utils.disposeSWTObjects(new Object[] { sliderArea } );
 			}
 		});
 /*
@@ -1326,7 +1363,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private SourceReplaceListener cellEditNotifier;
 
-	private Scale slider;
+	private Control sliderArea;
 
 	private void editCell(final int column, final int row) {
 		Text oldInput = (Text) editor.getEditor();
@@ -5092,10 +5129,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		refilter();
 	}
 
-	public boolean enableSizeSlider(Composite composite, int min, int max) {
+	public boolean enableSizeSlider(Composite composite, final int min, final int max) {
 		try {
-			if (slider != null && !slider.isDisposed()) {
-				slider.dispose();
+			if (sliderArea != null && !sliderArea.isDisposed()) {
+				sliderArea.dispose();
 			}
 			final Method method = Table.class.getDeclaredMethod("setItemHeight", new Class<?>[] {
 				int.class
@@ -5103,29 +5140,70 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			method.setAccessible(true);
 
 			composite.setLayout(new FormLayout());
-			slider = new Scale(composite, SWT.HORIZONTAL);
-			slider.setMinimum(min);
-			slider.setMaximum(max);
-			slider.setSelection(getRowDefaultHeight());
-			try {
-				method.invoke(table, new Object[] { slider.getSelection() } );
-			} catch (Throwable e1) {
-			}
-			slider.addSelectionListener(new SelectionListener() {
-				public void widgetSelected(SelectionEvent e) {
-					setRowDefaultHeight(slider.getSelection());
+			sliderArea = new Label(composite, SWT.NONE);
+			((Label)sliderArea).setImage(ImageLoader.getInstance().getImage("zoom"));
+			sliderArea.addListener(SWT.MouseUp, new Listener() {
+				public void handleEvent(Event event) {
+					final Shell shell = new Shell(sliderArea.getShell(), SWT.BORDER);
+					Listener l = new Listener() {
+						public void handleEvent(Event event) {
+							if (event.type == SWT.MouseExit) {
+								Control curControl = event.display.getCursorControl();
+								Point curPos = event.display.getCursorLocation();
+								Point curPosRelShell = shell.toControl(curPos);
+								Rectangle bounds = shell.getBounds();
+								bounds.x = bounds.y = 0;
+								if (!bounds.contains(curPosRelShell)) {
+									shell.dispose();
+									return;
+								}
+								if (curControl != null
+										&& (curControl == shell || curControl.getParent() == shell)) {
+									return;
+								}
+							}
+							shell.dispose();
+						}
+					};
+					shell.setBackgroundMode(SWT.INHERIT_FORCE);
+					shell.setBackground(shell.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+					shell.addListener(SWT.MouseExit, l);
+					shell.addListener(SWT.Deactivate, l);
+					FillLayout fillLayout = new FillLayout();
+					fillLayout.marginHeight = 4;
+					shell.setLayout(fillLayout);
+					final Scale slider = new Scale(shell, SWT.VERTICAL);
+					slider.addListener(SWT.MouseExit, l);
+					slider.addListener(SWT.Deactivate, l);
+					slider.setMinimum(min);
+					slider.setMaximum(max);
+					slider.setSelection(getRowDefaultHeight());
 					try {
 						method.invoke(table, new Object[] { slider.getSelection() } );
 					} catch (Throwable e1) {
-						e1.printStackTrace();
 					}
-					tableInvalidate();
-				}
-				
-				public void widgetDefaultSelected(SelectionEvent e) {
+					slider.addSelectionListener(new SelectionListener() {
+						public void widgetSelected(SelectionEvent e) {
+							setRowDefaultHeight(slider.getSelection());
+							try {
+								method.invoke(table, new Object[] { slider.getSelection() } );
+							} catch (Throwable e1) {
+								e1.printStackTrace();
+							}
+							tableInvalidate();
+						}
+						
+						public void widgetDefaultSelected(SelectionEvent e) {
+						}
+					});
+					Point pt = sliderArea.toDisplay(event.x - 2, event.y - 5);
+					int width = Constants.isOSX ? 20 : 50;
+					shell.setBounds(pt.x - (width / 2), pt.y, width, 120);
+					shell.open();
 				}
 			});
-			slider.setLayoutData(Utils.getFilledFormData());
+			
+			sliderArea.setLayoutData(Utils.getFilledFormData());
 			composite.layout();
 		} catch (Throwable t) {
 			return false;
@@ -5134,6 +5212,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 	
 	public void disableSizeSlider() {
-		Utils.disposeSWTObjects(new Object[] { slider });
+		Utils.disposeSWTObjects(new Object[] { sliderArea });
 	}
 }

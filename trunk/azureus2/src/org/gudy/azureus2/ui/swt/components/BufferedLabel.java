@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.components;
  */
 
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -40,7 +41,6 @@ import org.eclipse.swt.layout.GridData;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 
 public class 
 BufferedLabel
@@ -163,7 +163,7 @@ BufferedLabel
 
 			label.setToolTipText(url);
 		
-		    label.setCursor(Cursors.handCursor);
+		    label.setCursor(label.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 		    label.setForeground(Colors.blue);
 		    label.addMouseListener(new MouseAdapter() {
 		      public void mouseDoubleClick(MouseEvent arg0) {

@@ -42,7 +42,6 @@ import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTest;
@@ -133,7 +132,7 @@ SpeedTestPanel
         final Label linkLabel = new Label(azWiki, SWT.NULL);
         linkLabel.setText( Constants.APP_NAME + " Wiki Speed Test" );
         linkLabel.setData("http://wiki.vuze.com/w/Speed_Test_FAQ");
-        linkLabel.setCursor(Cursors.handCursor);
+        linkLabel.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
         linkLabel.setForeground(Colors.blue);
         azwGridData = new GridData();
         azwGridData.horizontalIndent = 10;

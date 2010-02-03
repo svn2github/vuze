@@ -1,5 +1,6 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+
 /**
  * Constants for working with menus
  * 
@@ -114,6 +115,10 @@ public interface IMenuConstants
 	public static final String MENU_ID_ALL_PEERS = "MainWindow.menu.view.allpeers";
 
 	public static final String MENU_ID_CLIENT_STATS = "MainWindow.menu.view.clientstats";
+	
+	public static final String MENU_ID_RCM = "rcm.view.heading";
+	
+	public static final String MENU_ID_DEVICEMANAGER = "MainWindow.menu.view.devicemanager";
 
 	public static final String MENU_ID_MY_TRACKERS = "MainWindow.menu.view.mytracker";
 

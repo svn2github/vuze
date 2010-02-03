@@ -10,16 +10,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
@@ -47,15 +39,19 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
 
 public class MenuFactory
 	implements IMenuConstants
@@ -394,18 +390,6 @@ public class MenuFactory
 		return closeWindow;
 	}
 
-	public static MenuItem addCloseTabMenuItem(Menu menu,
-			final MainWindow mainWindow) {
-		return addMenuItem(menu, MENU_ID_CLOSE_TAB, new Listener() {
-			public void handleEvent(Event event) {
-				if (MainWindow.isAlreadyDead) {
-					return;
-				}
-				mainWindow.closeViewOrWindow();
-			}
-		});
-	}
-
 	public static MenuItem addCloseDetailsMenuItem(Menu menu) {
 		final MenuItem item = addMenuItem(menu, MENU_ID_CLOSE_ALL_DETAIL,
 				new Listener() {
@@ -572,6 +556,26 @@ public class MenuFactory
 				if (uiFunctions != null) {
 					uiFunctions.openView(UIFunctions.VIEW_PEERS_STATS, null);
 				}
+			}
+		});
+	}
+
+	public static MenuItem addRCMMenuItem(Menu menu) {
+		return addMenuItem(menu, MENU_ID_RCM, new Listener() {
+			public void handleEvent(Event e) {
+				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+				if (uiFunctions != null) {
+					uiFunctions.openView(UIFunctions.VIEW_RCM, null);
+				}
+			}
+		});
+	}
+
+	public static MenuItem addDeviceManagerMenuItem(Menu menu) {
+		return addMenuItem(menu, MENU_ID_DEVICEMANAGER, new Listener() {
+			public void handleEvent(Event e) {
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_DEVICES);
 			}
 		});
 	}

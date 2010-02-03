@@ -16,14 +16,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
  
-package org.gudy.azureus2.plugins.ui.sidebar;
+package com.aelitis.azureus.ui.mdi;
+
 
 /**
  * @author TuxPaper
  * @created Sep 15, 2008
- *
  */
-public interface SideBarVitalityImageListener
+public interface MdiEntryVitalityImage
 {
-	public void sbVitalityImage_clicked(int x, int y);
+	public String getImageID();
+
+	public void setImageID(String id );
+	
+	public MdiEntry getMdiEntry();
+	
+	public void addListener(MdiEntryVitalityImageListener l);
+	
+	public void setToolTip(String tooltip);
+	
+	public void setVisible(boolean visible);
+	
+	public boolean isVisible();
+
+	public void triggerClickedListeners(int x, int y);
+
+	public int getAlignment();
+	
+	public void setAlignment(int a);
 }

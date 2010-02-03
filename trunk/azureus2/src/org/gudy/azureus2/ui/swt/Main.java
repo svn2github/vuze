@@ -21,15 +21,17 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.io.File;
-
-import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.launcher.Launcher;
+import java.lang.reflect.Constructor;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreException;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.launcher.Launcher;
 
 /**
  * @author Olivier
@@ -56,6 +58,24 @@ Main
   			// This *has* to be done first as it sets system properties that are read and cached by Java
   		
   		COConfigurationManager.preInitialise();
+
+			Constructor constructor = null;
+			try {
+				Class az3Class = Class.forName("com.aelitis.azureus.ui.swt.Initializer");
+
+				constructor = az3Class.getConstructor(new Class[] {
+						AzureusCore.class,
+						StartServer.class,
+						String[].class
+				});
+			} catch (ClassNotFoundException cnfe) {
+				System.err.println(cnfe.toString() + "\nDid you include the azureus3 module?");
+				return;
+			} catch (Throwable t) {
+				System.err.println(t.toString());
+				return;
+			}
+
   		
 	  	String	mi_str = System.getProperty( PR_MULTI_INSTANCE );
 	  	
@@ -73,8 +93,12 @@ Main
 	    	
 		  AzureusCore		core = AzureusCoreFactory.create();
 
-	      new Initializer(core,startServer,args);
-	      
+  			constructor.newInstance(new Object[] {
+  				core,
+  				startServer,
+  				args
+  			});
+
 	      return;
 	    }
 	    
@@ -85,13 +109,22 @@ Main
 	    	
 	    	startServer.pollForConnections(core);
 	
-	    	new Initializer(core,startServer,args);
+  			constructor.newInstance(new Object[] {
+  				core,
+  				startServer,
+  				args
+  			});
 	      
 	    }
 	    
   	}catch( AzureusCoreException e ){
   		
   		Logger.log(new LogEvent(LOGID, "Start failed", e));
+
+  	}catch( Throwable t ){
+
+  		System.err.println(t.toString());
+ 
   	}
   }
   

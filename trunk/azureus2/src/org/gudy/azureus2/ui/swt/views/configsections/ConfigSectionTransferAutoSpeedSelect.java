@@ -5,7 +5,6 @@ import org.gudy.azureus2.ui.swt.views.stats.TransferStatsView;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -576,7 +575,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         final Label linkLabel = new Label(azWiki, SWT.NULL);
         linkLabel.setText( Constants.APP_NAME + " Wiki AutoSpeed (beta)" );
         linkLabel.setData("http://wiki.vuze.com/w/Auto_Speed");
-        linkLabel.setCursor(Cursors.handCursor);
+        linkLabel.setCursor(linkLabel.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
         linkLabel.setForeground(Colors.blue);
         gridData = new GridData();
         linkLabel.setLayoutData( gridData );

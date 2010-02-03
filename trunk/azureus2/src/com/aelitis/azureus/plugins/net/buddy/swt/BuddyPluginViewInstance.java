@@ -47,7 +47,6 @@ import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import com.aelitis.azureus.core.security.*;
@@ -203,7 +202,7 @@ BuddyPluginViewInstance
 		
 	    Messages.setLanguageText(control_val_pk, "ConfigView.copy.to.clipboard.tooltip", true);
 
-	    control_val_pk.setCursor(Cursors.handCursor);
+	    control_val_pk.setCursor(main.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 	    control_val_pk.setForeground(Colors.blue);
 	    control_val_pk.addMouseListener(new MouseAdapter() {
 	    	public void mouseDoubleClick(MouseEvent arg0) {

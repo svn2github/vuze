@@ -1,5 +1,5 @@
 /**
- * Created on Sep 24, 2008
+ * Created on Sep 15, 2008
  *
  * Copyright 2008 Vuze, Inc.  All rights reserved.
  * This program is free software; you can redistribute it and/or modify
@@ -16,15 +16,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
  
-package org.gudy.azureus2.plugins.ui.sidebar;
-
+package com.aelitis.azureus.ui.mdi;
 
 /**
  * @author TuxPaper
- * @created Sep 24, 2008
+ * @created Sep 15, 2008
  *
  */
-public interface SideBarCloseListener
+public interface MdiEntryVitalityImageListener
 {
-	public void sidebarClosed(SideBarEntry entry);
+	public void mdiEntryVitalityImage_clicked(int x, int y);
 }

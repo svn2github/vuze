@@ -1,5 +1,5 @@
 /**
- * Created on Jul 8, 2008
+ * Created on Sep 24, 2008
  *
  * Copyright 2008 Vuze, Inc.  All rights reserved.
  * This program is free software; you can redistribute it and/or modify
@@ -16,40 +16,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
  
-package com.aelitis.azureus.ui.common.viewtitleinfo;
+package com.aelitis.azureus.ui.mdi;
 
 
-/**
- * @author TuxPaper
- * @created Jul 8, 2008
- *
- */
-public interface ViewTitleInfo
+public interface MdiCloseListener
 {
-	public static int TITLE_TEXT = 5;
-
-	public static int TITLE_INDICATOR_TEXT = 0;
-	
-	public static int TITLE_INDICATOR_COLOR = 8;
-
-	
-	public static int TITLE_ACTIVE_STATE = 9;	// -> Long: 0 - not supported; 1 - active; 2 - inactive
-
-	public static int TITLE_INDICATOR_TEXT_TOOLTIP = 1;
-	
-	public static int TITLE_IMAGEID = 2;
-	
-	public static int TITLE_IMAGE_TOOLTIP = 3;
-
-	public static int TITLE_LOGID	= 7;
-	
-
 	/**
+	 * Triggered when a {@link MdiEntry} is closed
 	 * 
-	 * @param propertyID TITLE_*
-	 * @return value, or null if you don't want to set it
-	 *
-	 * @since 3.1.1.1
+	 * @param entry {@link MdiEntry} that is closed
+	 * @param userClosed true if the user closed the entry; false if programmically closed (App close)
 	 */
-	public Object getTitleInfoProperty(int propertyID);
+	public void mdiEntryClosed(MdiEntry entry, boolean userClosed);
 }

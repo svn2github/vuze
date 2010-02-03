@@ -32,7 +32,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.IUIIntializer;
@@ -202,7 +201,7 @@ public class SplashWindow
 		}
 	}
 
-	public static void create(final Display display, final Initializer initializer) {
+	public static void create(final Display display, final IUIIntializer initializer) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (display == null || display.isDisposed())

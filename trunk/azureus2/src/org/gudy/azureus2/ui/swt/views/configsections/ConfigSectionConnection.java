@@ -40,7 +40,6 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -267,7 +266,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 					.getString(CFG_PREFIX + "serverport.wiki"));
 			linkLabel
 					.setData("http://wiki.vuze.com/w/Why_ports_like_6881_are_no_good_choice");
-			linkLabel.setCursor(Cursors.handCursor);
+			linkLabel.setCursor(linkLabel.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 			linkLabel.setForeground(Colors.blue);
 			gridData = new GridData();
 			linkLabel.setLayoutData(gridData);

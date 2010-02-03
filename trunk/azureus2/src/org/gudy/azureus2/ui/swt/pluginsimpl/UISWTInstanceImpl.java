@@ -679,6 +679,9 @@ UISWTInstanceImpl
 	}
 
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTInstance#addView(java.lang.String, java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener)
+	 */
 	public void addView(String sParentID, final String sViewID,
 			final UISWTViewEventListener l) {
 		Map<String,UISWTViewEventListener> subViews = views.get(sParentID);

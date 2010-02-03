@@ -41,7 +41,6 @@ import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -157,7 +156,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
 	    final Label linkLabel = new Label(gWiki, SWT.NULL);
 	    linkLabel.setText( MessageText.getString( messTexts[userMode] ) );
 	    linkLabel.setData( links[userMode] );
-	    linkLabel.setCursor(Cursors.handCursor);
+	    linkLabel.setCursor(linkLabel.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 	    linkLabel.setForeground(Colors.blue);
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.horizontalIndent = 10;
@@ -174,7 +173,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
 	    final Label linkLabel1 = new Label(gWiki, SWT.NULL);
 	    linkLabel1.setText( (userMode == 1)?MessageText.getString(messTexts[3]):"");
 	    linkLabel1.setData( links[3] );
-	    linkLabel1.setCursor(Cursors.handCursor);
+	    linkLabel1.setCursor(linkLabel1.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 	    linkLabel1.setForeground(Colors.blue);
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.horizontalIndent = 10;
