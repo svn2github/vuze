@@ -434,8 +434,12 @@ public class MainWindow
 		if (core == null) {
 			return;
 		}
-		
-		VuzeActivitiesManager.initialize(core);
+
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+
+		if (!uiClassic) {
+			VuzeActivitiesManager.initialize(core);
+		}
 		
 		if (!Constants.isSafeMode) {
 			if (core.getTrackerHost().getTorrents().length > 0) {
