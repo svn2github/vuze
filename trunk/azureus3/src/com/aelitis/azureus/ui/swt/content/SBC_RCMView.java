@@ -88,6 +88,8 @@ SBC_RCMView
 	
 	private Text txtFilter;
 
+	private RelatedContentManagerListener current_rcm_listener;
+
 	public Object 
 	skinObjectInitialShow(
 		SWTSkinObject skinObject, Object params ) 
@@ -302,8 +304,15 @@ SBC_RCMView
 				
 				tv_related_content = null;
 			}
+			
+			if (manager != null && current_rcm_listener != null) {
+				
+				manager.removeListener( current_rcm_listener );
+				
+				current_rcm_listener = null;
+			}
 		}
-		
+
 		Utils.disposeSWTObjects(new Object[] {
 			table_parent,
 		});
@@ -323,6 +332,13 @@ SBC_RCMView
 				tv_related_content.delete();
 				
 				tv_related_content = null;
+			}
+
+			if (manager != null && current_rcm_listener != null) {
+				
+				manager.removeListener( current_rcm_listener );
+				
+				current_rcm_listener = null;
 			}
 		}
 		
@@ -434,9 +450,6 @@ SBC_RCMView
 				
 				private int liveness_marker;
 				
-				private RelatedContentManagerListener current_rcm_listener;
-				
-				
 				public void 
 				tableViewInitialized() 
 				{
@@ -455,6 +468,10 @@ SBC_RCMView
 							contentChanged(
 								RelatedContent[]	content )
 							{
+								if (tv_related_content == null) {
+									return;
+								}
+
 								final java.util.List<RelatedContent> hits = new ArrayList<RelatedContent>( content.length );
 
 								synchronized( content_set ){
