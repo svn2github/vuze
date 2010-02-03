@@ -119,7 +119,7 @@ UtilitiesImpl
 	private static List<searchManager>		search_managers 	= new ArrayList<searchManager>();
 	private static List<Object[]>			search_providers	= new ArrayList<Object[]>();
 	
-	private static CopyOnWriteList<FeatureEnabler>	feature_enablers = new CopyOnWriteList<FeatureEnabler>();
+	private static CopyOnWriteList<Object[]>	feature_enablers = new CopyOnWriteList<Object[]>();
 	
 	public
 	UtilitiesImpl(
@@ -1058,20 +1058,26 @@ UtilitiesImpl
 	public boolean 
 	isFeatureEnabled(
 		String 					feature_id,
-		Map<String, Object> 	feature_properties) 
+		Map<String, Object> 	feature_properties ) 
 	{
-		String pid = pi.getPluginID();
-		
-		if ( !pid.endsWith( "_v" )){
+		for ( Object[] entry: feature_enablers ){
 			
-			return( false );
-		}
-		
-		for ( FeatureEnabler fe: feature_enablers ){
+			PluginInterface enabler_pi 		= (PluginInterface)entry[0];
+			Plugin			enabler_plugin 	= (Plugin)entry[1];
+			FeatureEnabler	enabler 		= (FeatureEnabler)entry[2];
 			
-			if ( fe.isFeatureEnabled( pid, feature_id, feature_properties)){
+			if ( PluginInitializer.isVerified( enabler_pi, enabler_plugin )){
 				
-				return( true );
+				File f1 = FileUtil.getJarFileFromClass( enabler_plugin.getClass());
+				File f2 = FileUtil.getJarFileFromClass( enabler.getClass());
+				
+				if ( f1 != null && f1.equals( f2 )){
+			
+					if ( enabler.isFeatureEnabled( pi.getPluginID(), feature_id, feature_properties)){
+				
+						return( true );
+					}
+				}
 			}
 		}
 		
@@ -1082,19 +1088,31 @@ UtilitiesImpl
 	registerFeatureEnabler(
 		FeatureEnabler	enabler )
 	{
-		if ( !pi.getPluginID().endsWith( "_v" )){
-						
+		Plugin plugin = pi.getPlugin();
+		
+		if ( !PluginInitializer.isVerified( pi, plugin )){
+				
+			Debug.out( "Feature enabler not registered as plugin unverified" );
+			
 			return;
 		}
 		
-		feature_enablers.add( enabler );
+		feature_enablers.add( new Object[]{ pi, plugin, enabler });
 	}
 	
 	public void
 	unregisterFeatureEnabler(
 		FeatureEnabler	enabler )
 	{
-		feature_enablers.remove( enabler );
+		for ( Object[] entry: feature_enablers ){
+			
+			if ( entry[2] == enabler ){
+				
+				feature_enablers.remove( entry );
+				
+				return;
+			}
+		}
 	}
 	
 	public interface

@@ -36,7 +36,6 @@ import org.gudy.azureus2.pluginsimpl.local.dht.mainline.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.installer.PluginInstallerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ipc.IPCInterfaceImpl;
 import org.gudy.azureus2.pluginsimpl.local.ipfilter.IPFilterImpl;
 import org.gudy.azureus2.pluginsimpl.local.logging.LoggerImpl;
@@ -79,7 +78,7 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
  * @author Olivier
  *
  */
-public class 
+public final class 
 PluginInterfaceImpl 
 	implements PluginInterface, AzureusCoreComponent
 {
@@ -120,31 +119,78 @@ PluginInterfaceImpl
    */
   private String                plugin_id_to_use;
   
-  public 
+  protected 
   PluginInterfaceImpl(
   		Plugin				_plugin,
   		PluginInitializer	_initialiser,
 		Object				_initialiser_key,
 		ClassLoader			_class_loader,
+		List<File>			_verified_files,
 		String 				_key,
 		Properties 			_props,
 		String 				_pluginDir,
 		String				_plugin_id,
 		String				_plugin_version ) 
+  
+  	throws PluginException
   {
-  	plugin				= _plugin;
-  	initialiser			= _initialiser;
-  	initialiser_key		= _initialiser_key;
-  	class_loader		= _class_loader;
-  	key					= _key;
-  	pluginConfigKey 	= "Plugin." + _key;
-    props 				= new propertyWrapper(_props );
-    pluginDir 			= _pluginDir;
-    config 				= new PluginConfigImpl(this,pluginConfigKey);
-    given_plugin_id     = _plugin_id;
-    plugin_version		= _plugin_version;
-    ipc_interface		= new IPCInterfaceImpl( initialiser, plugin );
-    state               = new PluginStateImpl(this, initialiser);
+	  	// check we're being created by the core
+	  
+	  StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+	  
+	  String caller_class = stack[3].getClassName();
+	  
+	  if ( !(	caller_class.equals( "org.gudy.azureus2.pluginsimpl.local.PluginInitializer" ) ||
+			  	caller_class.equals( "org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl" ))){
+		  
+		  throw( new PluginException( "Invalid caller" ));
+	  }
+	  
+	  	// check we haven't been subclassed
+	  
+	  String class_name = getClass().getCanonicalName();
+	  
+	  if ( !class_name.equals( "org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl" )){
+		  
+		  throw( new PluginException( "Subclassing not permitted" ));
+	  }
+	  
+	  plugin				= _plugin;
+	  initialiser			= _initialiser;
+	  initialiser_key		= _initialiser_key;
+	  class_loader			= _class_loader;
+	  key					= _key;
+	  pluginConfigKey 		= "Plugin." + _key;
+	  props 				= new propertyWrapper(_props );
+	  pluginDir 			= _pluginDir;
+	  config 				= new PluginConfigImpl(this,pluginConfigKey);
+	  given_plugin_id    	= _plugin_id;
+	  plugin_version		= _plugin_version;
+	  ipc_interface			= new IPCInterfaceImpl( initialiser, plugin );
+	  state               	= new PluginStateImpl(this, initialiser);
+	  
+	  boolean verified = false;
+	  
+	  if ( _plugin_id.endsWith( "_v" )){
+		  
+	      if ( _verified_files != null  ){
+		    	
+    		  File jar = FileUtil.getJarFileFromClass( plugin.getClass());
+    		  
+    		  if ( jar != null ){
+    			  
+    			  for ( File file: _verified_files ){
+    				  
+    				  if ( file.equals( jar )){
+    					
+    					  verified = true;
+    				  }
+    			  }
+    		  }
+	      }
+	  }
+	  
+	  PluginInitializer.setVerified( this, plugin, verified );
   }
   
   	public Plugin
@@ -627,12 +673,19 @@ PluginInterfaceImpl
 			Properties local_props = new Properties(props);
 			local_props.remove("plugin.id");
 	
+			
+	 		if( id.endsWith( "_v" )){
+	  			
+	  			throw( new Exception( "Verified plugins must be loaded from a jar" ));
+	  		}
+	 		
 			PluginInterfaceImpl pi =
 				new PluginInterfaceImpl(
 			  		p,
 			  		initialiser,
 					initialiser_key,
 					class_loader,
+					null,
 					key + "." + id,
 					local_props,
 					pluginDir,

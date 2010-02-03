@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.launch.PluginLauncherImpl;
@@ -44,6 +45,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl.runnableWithException;
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
 import org.gudy.azureus2.update.UpdaterUtils;
+
 
 import com.aelitis.azureus.core.*;
 
@@ -184,6 +186,15 @@ PluginInitializer
 					"false" },
 			*/
         }; 
+  
+  static VerifiedPluginHolder verified_plugin_holder;
+  
+  static{
+	  synchronized( PluginInitializer.class ){
+		  
+		  verified_plugin_holder = new VerifiedPluginHolder();
+	  }
+  }
   
   	// these can be removed one day
   
@@ -1082,7 +1093,11 @@ PluginInitializer
 	      
 	      String pid = plugin_id[0]==null?directory.getName():plugin_id[0];
 	      
+	      List<File>	verified_files = null;
+	      
 	      if ( pid.endsWith( "_v" )){
+	    	  
+	    	  verified_files = new ArrayList<File>();
 	    	  
 	    	  	// re-verify jar files
 	    	  
@@ -1098,6 +1113,8 @@ PluginInitializer
 	    	    			log( "    verifying " + jar_file );
 	    	    			
 	    	    			AEVerifier.verifyData( jar_file );
+	    	    			
+	    	    			verified_files.add( jar_file );
 	    	    			
 	    	    			log( "    OK" );
 	    	    		}catch( Throwable e ){
@@ -1142,7 +1159,7 @@ PluginInitializer
 	    	  
 	    	  plugin_class_loader = plugin.getClass().getClassLoader();
 	      }
-	      
+	      	      
 	      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),plugin_class_loader);
 
 	      PluginInterfaceImpl plugin_interface = 
@@ -1151,6 +1168,7 @@ PluginInitializer
 							this, 
 							directory, 
 							plugin_class_loader,
+							verified_files,
 							directory.getName(),	// key for config values
 							new_props,
 							directory.getAbsolutePath(),
@@ -1577,7 +1595,6 @@ PluginInitializer
   	}
   	    
   	try{
-  	
   		final Plugin plugin = (Plugin) plugin_class.newInstance();
   		
   		String	plugin_name;
@@ -1610,6 +1627,7 @@ PluginInitializer
 						this,
 						plugin_class,
 						plugin_class.getClassLoader(),
+						null,
 						plugin_config_key,
 						properties,
 						"",
@@ -1704,13 +1722,14 @@ PluginInitializer
   
   	throws PluginException
   {
-  	try{  		
+  	try{  	
   		final PluginInterfaceImpl plugin_interface = 
   			new PluginInterfaceImpl(
   						plugin, 
 						this,
 						plugin.getClass(),
 						plugin.getClass().getClassLoader(),
+						null,
 						plugin_config_key,
 						new Properties(),
 						"",
@@ -1839,24 +1858,31 @@ PluginInitializer
   
   	if ( default_plugin == null ){
   		
-  		default_plugin = 
-  			new PluginInterfaceImpl(
-  					new Plugin()
-					{
-  						public void
-						initialize(
-							PluginInterface pi)
-  						{
-  						}
-					},
-					this,
-					getClass(),
-					getClass().getClassLoader(),
-					"default",
-					new Properties(),
-					null,
-					INTERNAL_PLUGIN_ID,
-					null );
+  		try{
+	  		default_plugin = 
+	  			new PluginInterfaceImpl(
+	  					new Plugin()
+						{
+	  						public void
+							initialize(
+								PluginInterface pi)
+	  						{
+	  						}
+						},
+						this,
+						getClass(),
+						getClass().getClassLoader(),
+						null,
+						"default",
+						new Properties(),
+						null,
+						INTERNAL_PLUGIN_ID,
+						null );
+	  		
+  		}catch( Throwable e ){
+  			
+  			Debug.out( e );
+  		}
   	}
   	
   	return( default_plugin );
@@ -2123,5 +2149,163 @@ PluginInitializer
 			writer.exdent();
 		}
 	}
+	
+	protected static void
+	setVerified(
+		PluginInterfaceImpl		pi,
+		Plugin					plugin,
+		boolean					v )
+	
+		throws PluginException
+	{
+		System.out.print( "setVerified: " + pi.getPluginID() + " -> " + v );
+		
+		Object[] existing = (Object[])verified_plugin_holder.setValue( pi, new Object[]{ plugin, v });
+		
+		if ( existing != null && ( existing[0] != plugin || (Boolean)existing[1] != v )){
+			
+			throw( new PluginException( "Verified status change not permitted" ));
+		}
+	}
+	
+	public static boolean
+	isVerified(
+		PluginInterface		pi,
+		Plugin				plugin )
+	{
+		if ( !( pi instanceof PluginInterfaceImpl )){
+			
+			return( false );
+		}
+		
+		VerifiedPluginHolder holder = verified_plugin_holder;
+		
+		if ( holder.getClass() !=  VerifiedPluginHolder.class ){
+		
+			Debug.out( "class mismatch" );
+			
+			return( false );
+		}
+		
+		Object[] ver = (Object[])verified_plugin_holder.getValue( pi );
+		
+		return( ver != null && ver[0] == plugin && (Boolean)ver[1] );
+	}
+	
+	private static final class
+	VerifiedPluginHolder
+	{		
+		private AESemaphore	request_sem = new AESemaphore( "ValueHolder" );
+		
+		private List<Object[]>	request_queue = new ArrayList<Object[]>();
+				
+		private
+		VerifiedPluginHolder()
+		{
+			StackTraceElement[] stack = Thread.currentThread().getStackTrace();
 
+			String caller_class = stack[4].getClassName();
+
+			if ( !caller_class.equals( "org.gudy.azureus2.pluginsimpl.local.PluginInitializer" )){
+				
+				Debug.out( "Illegal operation" );
+				
+				return;
+			}
+
+			String class_name = getClass().getCanonicalName();
+
+			if ( !class_name.equals( "org.gudy.azureus2.pluginsimpl.local.PluginInitializer.VerifiedPluginHolder" )){
+
+				Debug.out( "Illegal operation" );
+				
+				return;
+			}
+			
+			AEThread2 t = 
+				new AEThread2( "PluginVerifier" )
+				{
+					public void
+					run()
+					{
+						Map<Object,Object> values = new IdentityHashMap<Object,Object>();
+												
+						while( true ){
+														
+							request_sem.reserve();
+							
+							Object[] req;
+							
+							synchronized( request_queue ){
+								
+								req = request_queue.remove(0);
+							}
+							
+							if ( req[1] == null ){
+								
+								req[1] = values.get( req[0] );
+								
+							}else{
+								
+								Object existing = values.get( req[0] );
+								
+								if ( existing != null){
+									
+									req[1] = existing;
+									
+								}else{
+									
+									values.put( req[0], req[1] );
+								}
+							}
+							
+							((AESemaphore)req[2]).release();
+						}
+					}
+				};
+			
+			t.start();	
+		}
+		
+		public Object
+		setValue(
+			Object	key,
+			Object	value )
+		{	
+			AESemaphore sem = new AESemaphore( "ValueHolder:set" );
+			
+			Object[] request = new Object[]{ key, value, sem };
+			
+			synchronized( request_queue ){
+				
+				request_queue.add( request );
+			}
+			
+			request_sem.release();
+			
+			sem.reserve();
+			
+			return(request[1]);
+		}
+		
+		public Object
+		getValue(
+			Object	key )
+		{	
+			AESemaphore sem = new AESemaphore( "ValueHolder:get" );
+			
+			Object[] request = new Object[]{ key, null, sem };
+
+			synchronized( request_queue ){
+				
+				request_queue.add( request );
+			}
+			
+			request_sem.release();
+			
+			sem.reserve();
+			
+			return( request[1] );
+		}
+	}
 }
