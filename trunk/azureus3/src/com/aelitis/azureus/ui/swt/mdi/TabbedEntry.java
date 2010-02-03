@@ -238,7 +238,8 @@ public class TabbedEntry
 					//container.getParent().relayout();
 					composite.getParent().layout();
 				}
-				container.triggerListeners(SWTSkinObjectListener.EVENT_SHOW);
+				// This causes double show because createSkinObject already calls show
+				//container.triggerListeners(SWTSkinObjectListener.EVENT_SHOW);
 			}
 			if (iview != null) {
 				Composite c = iview.getComposite();
