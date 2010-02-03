@@ -31,9 +31,9 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
-import org.gudy.azureus2.plugins.ui.sidebar.*;
 
 /**
  * @author TuxPaper
@@ -41,11 +41,11 @@ import org.gudy.azureus2.plugins.ui.sidebar.*;
  *
  */
 public class SideBarVitalityImageSWT
-	implements SideBarVitalityImage
+	implements MdiEntryVitalityImage
 {
 	private String imageID;
 
-	private final SideBarEntrySWT sideBarEntry;
+	private final MdiEntry mdiEntry;
 
 	private List listeners = Collections.EMPTY_LIST;
 
@@ -76,7 +76,7 @@ public class SideBarVitalityImageSWT
 	 */
 	public 
 	SideBarVitalityImageSWT(
-		SideBarEntrySWT entry, 
+		final MdiEntry mdiEntry, 
 		String 			imageID )
 	{
 		performer = 
@@ -118,23 +118,27 @@ public class SideBarVitalityImageSWT
 								if (currentAnimationIndex >= images.length) {
 									currentAnimationIndex = 0;
 								}
-								TreeItem treeItem = sideBarEntry.getTreeItem();
-								if (treeItem == null || treeItem.isDisposed()) {
-									return;
+								if (mdiEntry instanceof SideBarEntrySWT) {
+									SideBarEntrySWT sbEntry = (SideBarEntrySWT) mdiEntry;
+									
+									TreeItem treeItem = sbEntry.getTreeItem();
+									if (treeItem == null || treeItem.isDisposed()) {
+										return;
+									}
+									Tree parent = treeItem.getParent();
+									parent.redraw(hitArea.x, hitArea.y, hitArea.width, hitArea.height, true);
+									parent.update();
 								}
-								Tree parent = treeItem.getParent();
-								parent.redraw(hitArea.x, hitArea.y, hitArea.width, hitArea.height, true);
-								parent.update();
 							}
 						});
 				}
 			};
 
-		this.sideBarEntry = entry;
+		this.mdiEntry = mdiEntry;
 		
-		entry.addListener(new SideBarCloseListener() {
+		mdiEntry.addListener(new MdiCloseListener() {
 		
-			public void sidebarClosed(SideBarEntry entry) {
+			public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
 				ImageLoader imageLoader = ImageLoader.getInstance();
 				if (fullImageID != null) {
 					imageLoader.releaseImage(fullImageID);
@@ -153,12 +157,12 @@ public class SideBarVitalityImageSWT
 	/**
 	 * @return the sideBarEntry
 	 */
-	public SideBarEntry getSideBarEntry() {
-		return sideBarEntry;
+	public MdiEntry getMdiEntry() {
+		return mdiEntry;
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage#addListener(org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener)
-	public void addListener(SideBarVitalityImageListener l) {
+	public void addListener(MdiEntryVitalityImageListener l) {
 		if (listeners == Collections.EMPTY_LIST) {
 			listeners = new ArrayList(1);
 		}
@@ -168,9 +172,9 @@ public class SideBarVitalityImageSWT
 	public void triggerClickedListeners(int x, int y) {
 		Object[] list = listeners.toArray();
 		for (int i = 0; i < list.length; i++) {
-			SideBarVitalityImageListener l = (SideBarVitalityImageListener) list[i];
+			MdiEntryVitalityImageListener l = (MdiEntryVitalityImageListener) list[i];
 			try {
-				l.sbVitalityImage_clicked(x, y);
+				l.mdiEntryVitalityImage_clicked(x, y);
 			} catch (Exception e) {
 				Debug.out(e);
 			}
@@ -219,8 +223,8 @@ public class SideBarVitalityImageSWT
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (sideBarEntry != null) {
-					sideBarEntry.redraw();
+				if (mdiEntry != null) {
+					mdiEntry.redraw();
 				}
 			}
 		});
@@ -269,25 +273,29 @@ public class SideBarVitalityImageSWT
 		setImageID(imageID);
 	}
 
-	public void setImageID(String id) {
-		ImageLoader imageLoader = ImageLoader.getInstance();
-		String newFullImageID = id + suffix;
-		if (newFullImageID.equals(fullImageID)) {
-			return;
-		}
-		if (fullImageID != null) {
-			imageLoader.releaseImage(fullImageID);
-		}
-		this.imageID = id;
-		images = imageLoader.getImages(newFullImageID);
-		if (images == null || images.length == 0) {
-			imageLoader.releaseImage(newFullImageID);
-			newFullImageID = id;
-			images = imageLoader.getImages(id);
-		}
-		fullImageID = newFullImageID;
-		currentAnimationIndex = 0;
-		createTimerEvent();
+	public void setImageID(final String id) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				String newFullImageID = id + suffix;
+				if (newFullImageID.equals(fullImageID)) {
+					return;
+				}
+				if (fullImageID != null) {
+					imageLoader.releaseImage(fullImageID);
+				}
+				imageID = id;
+				images = imageLoader.getImages(newFullImageID);
+				if (images == null || images.length == 0) {
+					imageLoader.releaseImage(newFullImageID);
+					newFullImageID = id;
+					images = imageLoader.getImages(id);
+				}
+				fullImageID = newFullImageID;
+				currentAnimationIndex = 0;
+				createTimerEvent();
+			}
+		});
 	}
 
 	/**

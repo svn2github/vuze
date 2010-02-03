@@ -23,6 +23,10 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.mdi.MdiCloseListener;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -32,8 +36,6 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarCloseListener;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 
 /**
  * @author TuxPaper
@@ -70,12 +72,13 @@ public class WelcomeView
 			browserSkinObject.setURL(sURL);
 		}
 
-		SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_WELCOME);
-		entry.addListener(new SideBarCloseListener() {
-			public void sidebarClosed(SideBarEntry entry) {
-				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-				if (sidebar != null) {
-					sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		MdiEntry entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_WELCOME);
+		entry.addListener(new MdiCloseListener() {
+			public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				if (mdi != null) {
+					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 				}
 			}
 		});

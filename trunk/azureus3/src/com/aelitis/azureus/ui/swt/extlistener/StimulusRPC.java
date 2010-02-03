@@ -36,6 +36,8 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
@@ -187,10 +189,10 @@ public class StimulusRPC
 							String tabID = MapUtils.getMapString(decodedMap, "tab", "");
 							if (tabID.length() > 0) {
 								// 3.2 TODO: Should we be checking for partial matches?
-								SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-								SideBarEntrySWT entry = sidebar.getCurrentEntry();
+								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+								MdiEntry entry = mdi.getCurrentEntry();
 								if (entry != null) {
-									return entry.id.equals(tabID);
+									return entry.getId().equals(tabID);
 								}
 							}
 						}

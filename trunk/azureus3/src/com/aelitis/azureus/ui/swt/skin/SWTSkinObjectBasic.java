@@ -23,7 +23,6 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.util.StringCompareUtils;
 
 /**
@@ -208,11 +207,9 @@ public class SWTSkinObjectBasic
 		final Listener lShowHide = new Listener() {
 			public void handleEvent(final Event event) {
 				final boolean toBeVisible = event.type == SWT.Show;
-				if (toBeVisible == control.isVisible() && isVisible == toBeVisible) {
-					return;
-				}
-
+				//System.out.println(">>show/hide " + ((event.widget).getData("SkinObject")) + ";tobe/is=" + toBeVisible + "/" + isVisible + " via " + Debug.getCompressedStackTrace());
 				//System.out.println(SWTSkinObjectBasic.this + ">show/hide " + ((event.widget).getData("SkinObject")) + ";" + ((Control)event.widget).isVisible() + ";" + Debug.getCompressedStackTrace());
+
 				// wait until show or hide event is processed to guarantee
 				// isVisible will be correct for listener triggers
 				Utils.execSWTThreadLater(0, new AERunnable() {
@@ -220,6 +217,10 @@ public class SWTSkinObjectBasic
 						//System.out.println(">>show/hide " + ((event.widget).getData("SkinObject")) + ";" + ((Control) event.widget).isVisible());
 						if (control == null || control.isDisposed()) {
 							setIsVisible(false, true);
+							return;
+						}
+
+						if (toBeVisible == control.isVisible() && isVisible == toBeVisible) {
 							return;
 						}
 
@@ -268,8 +269,8 @@ public class SWTSkinObjectBasic
 			}
 		});
 		
-		if (skin.isLayoutComplete()) {
-			skin.attachControl(this);
+		if (parent instanceof SWTSkinObjectContainer) {
+			((SWTSkinObjectContainer)parent).childAdded(this);
 		}
 	}
 
@@ -755,6 +756,9 @@ public class SWTSkinObjectBasic
 	}
 
 	public void triggerListeners(final int eventType, final Object params) {
+		//if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
+		//	System.out.println("Show " + this + " via " + Debug.getCompressedStackTrace());
+		//}
 		// delay show and hide events while not initialized
 		if (eventType == SWTSkinObjectListener.EVENT_SHOW
 				|| eventType == SWTSkinObjectListener.EVENT_HIDE) {
@@ -764,8 +768,10 @@ public class SWTSkinObjectBasic
 			}
 
 			if (eventType == SWTSkinObjectListener.EVENT_SHOW && !isVisible) {
+				//System.out.println("Warning: Show Event when not visible " + this + " via " + Debug.getCompressedStackTrace());
 				return;
 			} else if (eventType == SWTSkinObjectListener.EVENT_HIDE && isVisible) {
+				//System.out.println("Warning: Hide Event when visible " + this + " via " + Debug.getCompressedStackTrace());
 				return;
 			}
 		} else if (eventType == SWTSkinObjectListener.EVENT_CREATED) {
@@ -837,9 +843,10 @@ public class SWTSkinObjectBasic
 		if (disposed) {
 			return;
 		}
-		if (control != null && !control.isDisposed()) {
-			control.dispose();
-		}
+		Utils.disposeSWTObjects(new Object[] {
+			control
+		});
+
 		if (skinView != null) {
 			removeListener(skinView);
 

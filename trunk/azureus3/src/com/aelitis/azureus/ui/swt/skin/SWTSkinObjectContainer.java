@@ -71,9 +71,8 @@ public class SWTSkinObjectContainer
 			SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, type, parent);
 
-		triggerListeners(SWTSkinObjectListener.EVENT_CREATED);
-
 		if (control != null) {
+			triggerListeners(SWTSkinObjectListener.EVENT_CREATED);
 			setControl(control);
 		}
 	}
@@ -293,7 +292,12 @@ public class SWTSkinObjectContainer
 			}
 		}
 	}
-	
+
+	protected boolean superSetIsVisible(boolean visible, boolean walkup) {
+		boolean changed = super.setIsVisible(visible, walkup);
+		return changed;
+	}
+
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setIsVisible(boolean)
 	protected boolean setIsVisible(boolean visible, boolean walkup) {
 		boolean changed = super.setIsVisible(visible, walkup);
@@ -314,5 +318,8 @@ public class SWTSkinObjectContainer
   		}
 		}
 		return changed;
+	}
+
+	public void childAdded(SWTSkinObject soChild) {
 	}
 }

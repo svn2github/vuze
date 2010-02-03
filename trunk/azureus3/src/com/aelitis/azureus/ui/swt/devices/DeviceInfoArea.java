@@ -30,22 +30,20 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.installer.*;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
-import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-
-import org.gudy.azureus2.plugins.PluginException;
-import org.gudy.azureus2.plugins.installer.*;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 
 /**
  * @author TuxPaper
@@ -55,7 +53,7 @@ import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 public class DeviceInfoArea
 	extends SkinView
 {
-	private SideBarEntrySWT sidebarEntry;
+	private MdiEntry sidebarEntry;
 	private DeviceMediaRenderer device;
 	private Composite main;
 	private Composite parent;
@@ -63,9 +61,9 @@ public class DeviceInfoArea
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
-		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (sidebar != null) {
-			sidebarEntry = sidebar.getCurrentEntry();
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi != null) {
+			sidebarEntry = mdi.getCurrentEntry();
 			device = (DeviceMediaRenderer) sidebarEntry.getDatasource();
 		}
 		

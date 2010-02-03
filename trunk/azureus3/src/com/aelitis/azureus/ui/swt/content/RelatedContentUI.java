@@ -18,10 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
 package com.aelitis.azureus.ui.swt.content;
-
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,9 +46,6 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarCloseListener;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
@@ -73,6 +67,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -101,7 +96,6 @@ RelatedContentUI
 	private RelatedContentManager	manager;
 	
 	private boolean			ui_setup;
-	private SideBar			side_bar;
 	private boolean			root_menus_added;
 	private MainViewInfo 	main_view_info;
 	
@@ -157,11 +151,11 @@ RelatedContentUI
 				public void 
 				runSupport() 
 				{
-					SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 					
-					if ( sideBar != null ){
+					if ( mdi != null ){
 						
-						setupUI(sideBar);
+						setupUI(mdi);
 						
 					} else {
 						
@@ -187,7 +181,7 @@ RelatedContentUI
 	
 	protected void
 	setupUI(
-		SideBar			_side_bar )	
+		MultipleDocumentInterface			mdi )	
 	{
 		synchronized( this ){
 			
@@ -199,7 +193,7 @@ RelatedContentUI
 			ui_setup = true;
 		}
 		
-		side_bar		= _side_bar;
+		mdi		= mdi;
 
 		try{	
 			manager 	= RelatedContentManager.getSingleton();
@@ -413,171 +407,159 @@ RelatedContentUI
 	{		
 		final String parent_id = "sidebar." + SideBar.SIDEBAR_SECTION_RELATED_CONTENT;
 
-		final SideBarEntrySWT main_sb_entry = SideBar.getEntry( SideBar.SIDEBAR_SECTION_RELATED_CONTENT );
-
-		if ( main_sb_entry != null ){
-				
-			SideBarEntrySWT subs_entry = SideBar.getEntry( SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS );
-
-			int index = side_bar.getIndexOfEntryRelativeToParent( subs_entry );
-			
-			if ( index >= 0 ){
-				
-				index++;
-			}
-			
-			if ( main_sb_entry.getTreeItem() == null ){
-				
-				if ( manager.isUIEnabled()){
-										
-					side_bar.createEntryFromSkinRef(
-							null,
-							SideBar.SIDEBAR_SECTION_RELATED_CONTENT, "rcmview",
-							main_view_info.getTitle(),
-							main_view_info, null, false, index  );
-					
-					main_sb_entry.setImageLeftID( "image.sidebar.rcm" );
-					
-					main_sb_entry.setDatasource(
-						new RelatedContentEnumerator()
-						{
-							private RelatedContentManagerListener base_listener;
-							
-							private RelatedContentEnumeratorListener current_listener;
-							
-							public void
-							enumerate(
-								RelatedContentEnumeratorListener	listener )
-							{
-								current_listener = listener;
-								
-								if ( base_listener == null ){
-									
-									base_listener = 
-										new RelatedContentManagerListener()
-										{
-											public void
-											contentFound(
-												RelatedContent[]	content )
-											{
-												current_listener.contentFound( content );
-											}
-											
-											public void
-											contentChanged(
-												RelatedContent[]	content )
-											{
-											}
-											
-											public void 
-											contentRemoved(
-												RelatedContent[] 	content ) 
-											{
-											}
-											
-											public void 
-											contentChanged() 
-											{
-											}
-											
-											public void
-											contentReset()
-											{
-											}
-										};
-										
-									manager.addListener( base_listener );
-								}
-								
-								RelatedContent[] current_content = manager.getRelatedContent();
-								
-								listener.contentFound( current_content );
-							}
-						});
-				}else{
-					
-					return;
+		final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		mdi.registerEntry(SideBar.SIDEBAR_SECTION_RELATED_CONTENT, new MdiEntryCreationListener() {
+			public MdiEntry createMDiEntry(String id) {
+				if ( !manager.isUIEnabled()){
+					return null;
 				}
-			}else if ( !manager.isUIEnabled()){
 				
-				main_sb_entry.getTreeItem().dispose();
-				
-				return;
-			}
-			
-			if ( !root_menus_added ){
-				
-				root_menus_added = true;
-				
-				MenuManager menu_manager = ui_manager.getMenuManager();
-	
-				MenuItem menu_item = menu_manager.addMenuItem( parent_id, "v3.activity.button.readall" );
-				
-				menu_item.addListener( 
-						new MenuItemListener() 
-						{
-							public void 
-							selected(
-								MenuItem menu, Object target ) 
-							{
-						      	manager.setAllRead();
-							}
-						});
-				
-				menu_item = menu_manager.addMenuItem( parent_id, "Subscription.menu.deleteall");
-				
-				menu_item.addListener(
-						new MenuItemListener() 
-						{
-							public void 
-							selected(
-								MenuItem menu, Object target ) 
-							{
-						      	manager.deleteAll();
-							}
-						});
-				
-				menu_item = menu_manager.addMenuItem( parent_id, "Subscription.menu.reset" );
-				
-				menu_item.addListener( 
-						new MenuItemListener() 
-						{
-							public void 
-							selected(
-								MenuItem menu, Object target ) 
-							{
-								for ( RCMItem item: rcm_item_map.values()){
-									
-									item.getTreeItem().dispose();
-								}
-								
-						      	manager.reset();
-							}
-						});
-				
-				
-				menu_item = menu_manager.addMenuItem( parent_id, "sep" );
+				MdiEntry mdiEntry = mdi.createEntryFromSkinRef(
+						null,
+						SideBar.SIDEBAR_SECTION_RELATED_CONTENT, "rcmview",
+						main_view_info.getTitle(),
+						main_view_info, null, true, -1  );
 
-				menu_item.setStyle( MenuItem.STYLE_SEPARATOR );
+				mdiEntry.setImageLeftID( "image.sidebar.rcm" );
 				
-				menu_item = menu_manager.addMenuItem( parent_id, "ConfigView.title.short" );
-				
-				menu_item.addListener( 
-						new MenuItemListener() 
+				mdiEntry.setDatasource(
+					new RelatedContentEnumerator()
+					{
+						private RelatedContentManagerListener base_listener;
+						
+						private RelatedContentEnumeratorListener current_listener;
+						
+						public void
+						enumerate(
+							RelatedContentEnumeratorListener	listener )
 						{
-							public void 
-							selected(
-								MenuItem menu, Object target ) 
-							{
-						      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
-						      	 
-						      	 if ( uif != null ){
-						      		 
-						      		 uif.openView( UIFunctions.VIEW_CONFIG, "Associations" );
-						      	 }
+							current_listener = listener;
+							
+							if ( base_listener == null ){
+								
+								base_listener = 
+									new RelatedContentManagerListener()
+									{
+										public void
+										contentFound(
+											RelatedContent[]	content )
+										{
+											current_listener.contentFound( content );
+										}
+										
+										public void
+										contentChanged(
+											RelatedContent[]	content )
+										{
+										}
+										
+										public void 
+										contentRemoved(
+											RelatedContent[] 	content ) 
+										{
+										}
+										
+										public void 
+										contentChanged() 
+										{
+										}
+										
+										public void
+										contentReset()
+										{
+										}
+									};
+									
+								manager.addListener( base_listener );
 							}
-						});
+							
+							RelatedContent[] current_content = manager.getRelatedContent();
+							
+							listener.contentFound( current_content );
+						}
+					});
+
+				return mdiEntry;
 			}
+		});
+				
+		if ( !manager.isUIEnabled()){
+			
+			return;
+		}
+			
+		if ( !root_menus_added ){
+			
+			root_menus_added = true;
+			
+			MenuManager menu_manager = ui_manager.getMenuManager();
+
+			MenuItem menu_item = menu_manager.addMenuItem( parent_id, "v3.activity.button.readall" );
+			
+			menu_item.addListener( 
+					new MenuItemListener() 
+					{
+						public void 
+						selected(
+							MenuItem menu, Object target ) 
+						{
+					      	manager.setAllRead();
+						}
+					});
+			
+			menu_item = menu_manager.addMenuItem( parent_id, "Subscription.menu.deleteall");
+			
+			menu_item.addListener(
+					new MenuItemListener() 
+					{
+						public void 
+						selected(
+							MenuItem menu, Object target ) 
+						{
+					      	manager.deleteAll();
+						}
+					});
+			
+			menu_item = menu_manager.addMenuItem( parent_id, "Subscription.menu.reset" );
+			
+			menu_item.addListener( 
+					new MenuItemListener() 
+					{
+						public void 
+						selected(
+							MenuItem menu, Object target ) 
+						{
+							for ( RCMItem item: rcm_item_map.values()){
+								
+								item.getTreeItem().dispose();
+							}
+							
+					      	manager.reset();
+						}
+					});
+			
+			
+			menu_item = menu_manager.addMenuItem( parent_id, "sep" );
+
+			menu_item.setStyle( MenuItem.STYLE_SEPARATOR );
+			
+			menu_item = menu_manager.addMenuItem( parent_id, "ConfigView.title.short" );
+			
+			menu_item.addListener( 
+					new MenuItemListener() 
+					{
+						public void 
+						selected(
+							MenuItem menu, Object target ) 
+						{
+					      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
+					      	 
+					      	 if ( uif != null ){
+					      		 
+					      		 uif.openView( UIFunctions.VIEW_CONFIG, "Associations" );
+					      	 }
+						}
+					});
 		}
 	}
 	
@@ -631,13 +613,16 @@ RelatedContentUI
 								
 								String key = "RCM_" + ByteFormatter.encodeString( hash );
 								
-								SideBarEntrySWT	entry = side_bar.createEntryFromSkinRef(
+								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+								MdiEntry	entry = mdi.createEntryFromSkinRef(
 										SideBar.SIDEBAR_SECTION_RELATED_CONTENT,
 										key, "rcmview",
 										view.getTitle(),
 										view, null, true, -1 );
 								
-								new_si.setTreeItem( entry.getTreeItem(), entry );
+								if (entry instanceof SideBarEntrySWT) {
+									new_si.setTreeItem( ((SideBarEntrySWT)entry).getTreeItem(), entry );
+								}
 								
 								/*
 								TreeItem  tree_item = 
@@ -678,11 +663,12 @@ RelatedContentUI
 							{
 								ViewTitleInfoManager.refreshTitleInfo( existing_si.getView());
 								
-								SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_RELATED_CONTENT );
+								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+								MdiEntry mainEntry = mdi.getEntry(SideBar.SIDEBAR_SECTION_RELATED_CONTENT );
 								
-								if ( mainSBEntry != null ){
+								if ( mainEntry != null ){
 									
-									ViewTitleInfoManager.refreshTitleInfo( mainSBEntry.getTitleInfo());
+									ViewTitleInfoManager.refreshTitleInfo( mainEntry.getViewTitleInfo());
 								}
 								
 								existing_si.activate();
@@ -792,7 +778,7 @@ RelatedContentUI
 
 	protected static void
 	hideIcon(
-		SideBarVitalityImage	x )
+		MdiEntryVitalityImage	x )
 	{
 		if ( x == null ){
 			return;
@@ -804,7 +790,7 @@ RelatedContentUI
 	
 	protected static void
 	showIcon(
-		SideBarVitalityImage	x ,
+		MdiEntryVitalityImage	x ,
 		String					t )
 	{
 		if ( x == null ){
@@ -817,16 +803,16 @@ RelatedContentUI
 	
 	public class
 	RCMItem
-		implements RelatedContentEnumerator, SideBarCloseListener
+		implements RelatedContentEnumerator, MdiCloseListener
 	{	
 		private byte[]				hash;
 		
 		private RCMView				view;
-		private SideBarEntrySWT		sb_entry;
+		private MdiEntry		sb_entry;
 		private TreeItem			tree_item;
 		private boolean				destroyed;
 		
-		private SideBarVitalityImage	spinner;
+		private MdiEntryVitalityImage	spinner;
 		
 		private List<RelatedContent>	content_list = new ArrayList<RelatedContent>();
 		
@@ -846,7 +832,7 @@ RelatedContentUI
 		protected void
 		setTreeItem(
 			TreeItem		_tree_item,
-			SideBarEntrySWT	_sb_entry )
+			MdiEntry	_sb_entry )
 		{
 			tree_item	= _tree_item;
 			sb_entry	= _sb_entry;
@@ -1019,7 +1005,7 @@ RelatedContentUI
 			return( tree_item );
 		}
 		
-		protected SideBarEntrySWT
+		protected MdiEntry
 		getSideBarEntry()
 		{
 			return( sb_entry );
@@ -1045,8 +1031,9 @@ RelatedContentUI
 		}
 		
 		public void 
-		sidebarClosed(
-			SideBarEntry entry )
+		mdiEntryClosed(
+			MdiEntry entry,
+			boolean userClosed )
 		{
 			destroy();
 		}
@@ -1070,11 +1057,11 @@ RelatedContentUI
 		public void 
 		activate() 
 		{
-			SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 			
-			if ( sideBar != null && sb_entry != null ){
+			if ( mdi != null && sb_entry != null ){
 				
-				sideBar.showEntryByID(sb_entry.getId());
+				mdi.showEntryByID(sb_entry.getId());
 			}
 		}
 	}

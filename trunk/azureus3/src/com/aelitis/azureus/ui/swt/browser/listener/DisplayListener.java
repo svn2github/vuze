@@ -3,20 +3,13 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 import java.util.*;
 
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.ui.UIInstance;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow;
@@ -32,15 +25,18 @@ import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.util.ContentNetworkUtils;
-import com.aelitis.azureus.util.JSONUtils;
-import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.*;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.ui.*;
 
 public class DisplayListener
 	extends AbstractBrowserMessageListener
@@ -136,37 +132,6 @@ public class DisplayListener
 			bringToFront();
 		} else if (OP_SWITCH_TO_TAB.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
-			/*
-			final String viewMode = MapUtils.getMapString(decodedMap, "view-mode",
-					null);
-			if (viewMode != null && viewMode.equals("small")) {
-				final SideBar sb = (SideBar) SkinViewManager.getByClass(SideBar.class);
-				if (sb != null) {
-					sb.addListener(new SideBarListener() {
-						public void sidebarItemSelected(SideBarEntrySWT newSideBarEntry,
-								SideBarEntrySWT oldSideBarEntry) {
-
-							Utils.execSWTThreadLater(0, new AERunnable() {
-
-								public void runSupport() {
-									ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-									if (tb != null) {
-										System.out.println("roar2");
-										ToolBarItem tbSmall = tb.getToolBarItem("modeSmall");
-										if (tbSmall != null && tbSmall.isEnabled()) {
-											tbSmall.triggerToolBarItem();
-										}
-									}
-								}
-							});
-
-							sb.removeListener(this);
-						}
-					});
-				}
-			}
-			*/
-
 			switchToTab(MapUtils.getMapString(decodedMap, "target", ""),
 					MapUtils.getMapString(decodedMap, "source-ref", message.getReferer()));
 		} else if (OP_REFRESH_TAB.equals(opid)) {
@@ -338,14 +303,14 @@ public class DisplayListener
 	 * @since 3.0.0.7
 	 */
 	public static void switchToTab(String tabID, String sourceRef) {
-		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (sideBar == null) {
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
 			return;
 		}
 		if (sourceRef != null) {
 			ContentNetworkUtils.setSourceRef(tabID, sourceRef, false);
 		}
-		sideBar.showEntryByTabID(tabID);
+		mdi.showEntryByID(tabID);
 	}
 
 	/**
@@ -424,9 +389,10 @@ public class DisplayListener
 	private static void refreshBrowser(final String browserID) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+				MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 
-				SideBarEntrySWT entry = SideBar.getEntry(browserID);
+				BaseMdiEntry entry = (BaseMdiEntry) mdi.getEntrySWT(browserID);
+				//MdiEntrySWT entry = mdi.getEntrySWT(browserID);  // Use when UIs merged
 				SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
 
 				if (soBrowser != null) {

@@ -19,15 +19,13 @@
  */
 package com.aelitis.azureus.ui.swt.shells.main;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -38,15 +36,12 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.*;
@@ -59,7 +54,6 @@ import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -67,15 +61,21 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
+import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -92,17 +92,6 @@ public class UIFunctionsImpl
 	private final static LogIDs LOGID = LogIDs.GUI;
 
 	private final com.aelitis.azureus.ui.swt.shells.main.MainWindow mainWindow;
-
-	/**
-	 * This isn't presently populated.
-	 * mapPluginViews stores the plugin views that need to be added once the
-	 * oldMainWindow is created.  Currently, we create the oldMainWindow
-	 * at startup.  Once we swtich to delayed oldMainWindow creation, in theory
-	 * the code will work.
-	 */
-	private final Map mapPluginViews = new HashMap();
-
-	private final AEMonitor pluginViews_mon = new AEMonitor("v3.uif.pluginViews");
 
 	/**
 	 * Stores the current <code>SWTSkin</code> so it can be used by {@link #createMenu(Shell)}
@@ -127,18 +116,10 @@ public class UIFunctionsImpl
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(org.gudy.azureus2.plugins.PluginView)
+	@SuppressWarnings("deprecation")
 	public void addPluginView(PluginView view) {
-		try {
-			pluginViews_mon.enter();
-			try {
-				mapPluginViews.put(view, null);
-			} finally {
-				pluginViews_mon.exit();
-			}
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "addPluginView", e));
-		}
-
+		PluginsMenuHelper.getInstance().addPluginView(view,
+				view.getPluginViewName());
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener)
@@ -158,18 +139,10 @@ public class UIFunctionsImpl
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(org.gudy.azureus2.ui.swt.plugins.UISWTPluginView)
+	@SuppressWarnings("deprecation")
 	public void addPluginView(UISWTPluginView view) {
-		try {
-			pluginViews_mon.enter();
-			try {
-				mapPluginViews.put(view, null);
-			} finally {
-				pluginViews_mon.exit();
-			}
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "addPluginView", e));
-		}
-
+		PluginsMenuHelper.getInstance().addPluginView(view,
+				view.getPluginViewName());
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#bringToFront()
@@ -211,21 +184,21 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closePluginView(org.gudy.azureus2.ui.swt.views.IView)
 	public void closePluginView(IView view) {
 		try {
-			SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
-			if (sideBarView instanceof SideBar) {
-				SideBar sideBar = (SideBar) sideBarView;
-				String id;
-				if (view instanceof UISWTViewImpl) {
-					id = ((UISWTViewImpl)view).getViewID();
-				} else {
-  				id = view.getClass().getName();
-  				int i = id.lastIndexOf('.');
-  				if (i > 0) {
-  					id = id.substring(i + 1);
-  				}
-				}
-				sideBar.closeEntry(id);
+			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+			if (mdi == null) {
+				return;
 			}
+			String id;
+			if (view instanceof UISWTViewImpl) {
+				id = ((UISWTViewImpl)view).getViewID();
+			} else {
+				id = view.getClass().getName();
+				int i = id.lastIndexOf('.');
+				if (i > 0) {
+					id = id.substring(i + 1);
+				}
+			}
+			mdi.closeEntry(id);
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "closePluginView", e));
@@ -236,11 +209,11 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closePluginViews(java.lang.String)
 	public void closePluginViews(String sViewID) {
 		try {
-			SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
-			if (sideBarView instanceof SideBar) {
-				SideBar sideBar = (SideBar) sideBarView;
-				sideBar.closeEntry(sViewID);
+			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+			if (mdi == null) {
+				return;
 			}
+			mdi.closeEntry(sViewID);
 			
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "closePluginViews", e));
@@ -261,14 +234,6 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getMainShell()
 	public Shell getMainShell() {
 		return mainWindow.shell;
-	}
-
-	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getMenu(int)
-	public Menu getMenu(int id) {
-		// TODO Auto-generated method stub
-		// XXX Don't use oldMainWindow, menu is global and oldMainWindow
-		//     shouldn't need to be initialized
-		return null;
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getPluginViews()
@@ -296,14 +261,13 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.ui.swt.views.AbstractIView, java.lang.String)
 	public void openPluginView(AbstractIView view, String name) {
 		try {
-			SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
-			if (sideBarView instanceof SideBar) {
-				SideBar sideBar = (SideBar) sideBarView;
-
-				if (sideBar.createTreeItemFromIView(null, view, name, null, true, true,
-						true) != null) {
-					return;
-				}
+			MultipleDocumentInterfaceSWT mdi = getMDISWT();
+			if (mdi == null) {
+				return;
+			}
+			if (mdi.createEntryFromIView(null, view, name, null, true, true,
+					true) != null) {
+				return;
 			}
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "openPluginView", e));
@@ -312,6 +276,7 @@ public class UIFunctionsImpl
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.plugins.PluginView)
+	@SuppressWarnings("deprecation")
 	public void openPluginView(PluginView view) {
 		openPluginView(view, view.getPluginViewName());
 	}
@@ -320,9 +285,9 @@ public class UIFunctionsImpl
 	public void openPluginView(String sParentID, String sViewID,
 			UISWTViewEventListener l, Object dataSource, boolean bSetFocus) {
 		try {
-			SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+			MultipleDocumentInterfaceSWT mdi = getMDISWT();
 
-			if (sideBar != null) {
+			if (mdi != null) {
 				
 				String sidebarParentID = null;
 				
@@ -332,10 +297,10 @@ public class UIFunctionsImpl
 					System.err.println("Can't find parent " + sParentID + " for " + sViewID);
 				}
 				
-				sideBar.createTreeItemFromEventListener(sidebarParentID, null, l, sViewID,
+				mdi.createEntryFromEventListener(sidebarParentID, l, sViewID,
 						true, dataSource);
 				if (bSetFocus) {
-					sideBar.showEntryByID(sViewID);
+					mdi.showEntryByID(sViewID);
 				}
 			}
 		} catch (Exception e) {
@@ -345,6 +310,7 @@ public class UIFunctionsImpl
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.ui.swt.plugins.UISWTPluginView)
+	@SuppressWarnings("deprecation")
 	public void openPluginView(UISWTPluginView view) {
 		openPluginView(view, view.getPluginViewName());
 	}
@@ -376,25 +342,14 @@ public class UIFunctionsImpl
 
 	// @see com.aelitis.azureus.ui.UIFunctions#removeManagerView(org.gudy.azureus2.core3.download.DownloadManager)
 	public void removeManagerView(DownloadManager dm) {
-		try {
-			// TODO: ????!
-			
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "removeManagerView", e));
-		}
-
+		// TODO: Remove me
+		// old main window used to keep a list of manager views.  New one doesn't
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#removePluginView(java.lang.String)
 	public void removePluginView(String viewID) {
 		try {
 
-			pluginViews_mon.enter();
-			try {
-				mapPluginViews.remove(viewID);
-			} finally {
-				pluginViews_mon.exit();
-			}
 			PluginsMenuHelper.getInstance().removePluginViews(viewID);
 
 		} catch (Exception e) {
@@ -404,15 +359,10 @@ public class UIFunctionsImpl
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#removePluginView(org.gudy.azureus2.ui.swt.plugins.UISWTPluginView)
+	@SuppressWarnings("deprecation")
 	public void removePluginView(UISWTPluginView view) {
 		try {
 
-			pluginViews_mon.enter();
-			try {
-				mapPluginViews.remove(view);
-			} finally {
-				pluginViews_mon.exit();
-			}
 			PluginsMenuHelper.getInstance().removePluginView(view, view.getPluginViewName());
 
 		} catch (Exception e) {
@@ -422,18 +372,22 @@ public class UIFunctionsImpl
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#setStatusText(java.lang.String)
-	public void setStatusText(String string) {
-		// TODO Auto-generated method stub
-
-		// XXX Don't use oldMainWindow, status bar is global and oldMainWindow
-		//     shouldn't need to be initialized
+	public void setStatusText(final String string) {
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				getMainStatusBar().setStatusText(string);
+			}
+		});
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#setStatusText(int, java.lang.String, com.aelitis.azureus.ui.UIStatusTextClickListener)
-	public void setStatusText(int statustype, String string,
-			UIStatusTextClickListener l) {
-		// TODO Auto-generated method stub
-
+	public void setStatusText(final int statustype, final String string,
+			final UIStatusTextClickListener l) {
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				getMainStatusBar().setStatusText(statustype, string, l);
+			}
+		});
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getMainStatusBar()
@@ -515,10 +469,9 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_MYTORRENTS: {
-				SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-
-				if (sideBar != null) {
-					sideBar.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				if (mdi != null) {
+					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 				}
 			}
 				break;
@@ -537,6 +490,14 @@ public class UIFunctionsImpl
 				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS,
 						DetailedListView.class, null, data, true);
 				break;
+				
+			case VIEW_RCM: {
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				if (mdi != null) {
+					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_RELATED_CONTENT);
+				}
+				break;
+			}
 
 			default:
 				break;
@@ -604,31 +565,6 @@ public class UIFunctionsImpl
 		return true;
 	}
 
-	public void oldMainWindowInitialized(MainWindow oldMainWindow) {
-		UIFunctionsSWT uiFunctions = oldMainWindow.getUIFunctions();
-		if (uiFunctions == null) {
-			return;
-		}
-
-		pluginViews_mon.enter();
-		try {
-			for (Iterator iterator = mapPluginViews.keySet().iterator(); iterator.hasNext();) {
-				Object key = iterator.next();
-				if (key instanceof PluginView) {
-					uiFunctions.addPluginView((PluginView) key);
-				} else if (key instanceof UISWTPluginView) {
-					uiFunctions.addPluginView((UISWTPluginView) key);
-				} else if (key instanceof String) {
-					UISWTViewEventListener value = (UISWTViewEventListener) mapPluginViews.get(key);
-					uiFunctions.addPluginView((String) key, value);
-				}
-			}
-			mapPluginViews.clear();
-		} finally {
-			pluginViews_mon.exit();
-		}
-	}
-
 	// @see com.aelitis.azureus.ui.UIFunctions#promptUser(java.lang.String, java.lang.String, java.lang.String[], int, java.lang.String, java.lang.String, boolean, int)
 	public void promptUser(String title, String text, String[] buttons,
 			int defaultOption, String rememberID, String rememberText,
@@ -687,13 +623,11 @@ public class UIFunctionsImpl
 						DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 
 						final DownloadManager[] dm_final = dms;
-						final TableViewSWT tv_final = null;
 						final boolean detailed_view_final = false;
 						if (null == dm_final) {
 							torrentItem.setEnabled(false);
 						} else {
 							torrentItem.setData("downloads", dm_final);
-							torrentItem.setData("TableView", tv_final);
 							torrentItem.setData("is_detailed_view",
 									Boolean.valueOf(detailed_view_final));
 							torrentItem.setEnabled(true);
@@ -708,7 +642,14 @@ public class UIFunctionsImpl
 	}
 
 	public IMainMenu createMainMenu(Shell shell) {
-		return new MainMenu(getSkin(), shell);
+		IMainMenu menu;
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+		if (uiClassic) {
+			menu = new org.gudy.azureus2.ui.swt.mainwindow.MainMenu(shell);
+		} else {
+			menu = new MainMenu(skin, shell);
+		}
+		return menu;
 	}
 
 	public SWTSkin getSkin() {
@@ -730,16 +671,16 @@ public class UIFunctionsImpl
 	
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closeAllDetails()
 	public void closeAllDetails() {
-		SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
-		if (sideBarView instanceof SideBar) {
-			SideBar sideBar = (SideBar) sideBarView;
-			SideBarEntry[] sideBarEntries = sideBar.getEntries();
-			for (int i = 0; i < sideBarEntries.length; i++) {
-				SideBarEntry entry = sideBarEntries[i];
-				String id = entry.getId();
-				if (id != null && id.startsWith("DMDetails_")) {
-					sideBar.closeEntry(id);
-				}
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
+			return;
+		}
+		MdiEntry[] sideBarEntries = mdi.getEntries();
+		for (int i = 0; i < sideBarEntries.length; i++) {
+			MdiEntry entry = sideBarEntries[i];
+			String id = entry.getId();
+			if (id != null && id.startsWith("DMDetails_")) {
+				mdi.closeEntry(id);
 			}
 		}
 
@@ -747,16 +688,17 @@ public class UIFunctionsImpl
 	
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#hasDetailViews()
 	public boolean hasDetailViews() {
-		SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
-		if (sideBarView instanceof SideBar) {
-			SideBar sideBar = (SideBar) sideBarView;
-			SideBarEntry[] sideBarEntries = sideBar.getEntries();
-			for (int i = 0; i < sideBarEntries.length; i++) {
-				SideBarEntry entry = sideBarEntries[i];
-				String id = entry.getId();
-				if (id != null && id.startsWith("DMDetails_")) {
-					return true;
-				}
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
+			return false;
+		}
+
+		MdiEntry[] sideBarEntries = mdi.getEntries();
+		for (int i = 0; i < sideBarEntries.length; i++) {
+			MdiEntry entry = sideBarEntries[i];
+			String id = entry.getId();
+			if (id != null && id.startsWith("DMDetails_")) {
+				return true;
 			}
 		}
 
@@ -850,7 +792,6 @@ public class UIFunctionsImpl
 			});
 		}
 		
-		AzureusCore core = AzureusCoreFactory.getSingleton();
 		if (!AzureusCoreFactory.isCoreRunning()) {
 			final Initializer initializer = Initializer.getLastInitializer();
 			if (initializer != null) {
@@ -899,9 +840,17 @@ public class UIFunctionsImpl
 	
 	// @see com.aelitis.azureus.ui.UIFunctions#doSearch(java.lang.String)
 	public void doSearch(String searchText) {
-		mainWindow.doSearch(searchText);
+		MainWindow.doSearch(searchText);
 	}
-	
+
+	public MultipleDocumentInterface getMDI() {
+		return (MultipleDocumentInterface) SkinViewManager.getByViewID(SkinConstants.VIEWID_MDI);
+	}
+
+	public MultipleDocumentInterfaceSWT getMDISWT() {
+		return (MultipleDocumentInterfaceSWT) SkinViewManager.getByViewID(SkinConstants.VIEWID_MDI);
+	}
+
 	public void forceNotify(final int iconID, final String title, final String text,
 			final String details, final Object[] relatedObjects, final int timeoutSecs) {
 		

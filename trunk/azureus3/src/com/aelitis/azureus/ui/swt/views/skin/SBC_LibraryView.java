@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -46,8 +45,12 @@ import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.InitializerListener;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.Initializer;
@@ -58,7 +61,6 @@ import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemListener;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarVitalityImageSWT;
 
 /**
@@ -170,6 +172,7 @@ public class SBC_LibraryView
 		if (!AzureusCoreFactory.isCoreRunning()) {
 			if (soWait != null) {
 				soWait.setVisible(true);
+				//soWait.getControl().getParent().getParent().getParent().layout(true, true);
 			}
 			final Initializer initializer = Initializer.getLastInitializer();
 			if (initializer != null) {
@@ -384,7 +387,8 @@ public class SBC_LibraryView
 		}
 		
 		if (entryID != null) {
-  		SideBarEntrySWT entry = SideBar.getEntry(entryID);
+			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+			MdiEntry entry = mdi.getEntry(entryID);
   		if (entry != null) {
   			entry.setLogID(entryID + "-" + viewMode);
   		}
@@ -408,24 +412,26 @@ public class SBC_LibraryView
 				return null;
 			}
 		};
-		SideBarEntrySWT infoDL = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		MdiEntry infoDL = mdi.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
 		if (infoDL != null) {
-			SideBarVitalityImage vitalityImage = infoDL.addVitalityImage(ID_VITALITY_ACTIVE);
+			MdiEntryVitalityImage vitalityImage = infoDL.addVitalityImage(ID_VITALITY_ACTIVE);
 			vitalityImage.setVisible(false);
 
 			vitalityImage = infoDL.addVitalityImage(ID_VITALITY_ALERT);
 			vitalityImage.setVisible(false);
 
-			infoDL.setTitleInfo(titleInfoDownloading);
+			infoDL.setViewTitleInfo(titleInfoDownloading);
 
 			if (!DL_VITALITY_CONSTANT) {
   			SimpleTimer.addPeriodicEvent("DLVitalityRefresher",
   					DL_VITALITY_REFRESH_RATE, new TimerEventPerformer() {
   						public void perform(TimerEvent event) {
-  							SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
-  							SideBarVitalityImage[] vitalityImages = entry.getVitalityImages();
+  							MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+  							MdiEntry entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
+  							MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
   							for (int i = 0; i < vitalityImages.length; i++) {
-  								SideBarVitalityImage vitalityImage = vitalityImages[i];
+  								MdiEntryVitalityImage vitalityImage = vitalityImages[i];
   								if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
   									refreshDLSpinner((SideBarVitalityImageSWT) vitalityImage);
   								}
@@ -448,17 +454,17 @@ public class SBC_LibraryView
 				return null;
 			}
 		};
-		SideBarEntrySWT infoCD = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
+		MdiEntry infoCD = mdi.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
 		if (infoCD != null) {
-			SideBarVitalityImage vitalityImage = infoCD.addVitalityImage(ID_VITALITY_ALERT);
+			MdiEntryVitalityImage vitalityImage = infoCD.addVitalityImage(ID_VITALITY_ALERT);
 			vitalityImage.setVisible(false);
 
-			infoCD.setTitleInfo(titleInfoSeeding);
+			infoCD.setViewTitleInfo(titleInfoSeeding);
 		}
 
-		SideBarEntrySWT infoLibraryUn = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
+		MdiEntry infoLibraryUn = mdi.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
 		if (infoLibraryUn != null) {
-			infoLibraryUn.setTitleInfo(new ViewTitleInfo() {
+			infoLibraryUn.setViewTitleInfo(new ViewTitleInfo() {
 				public Object getTitleInfoProperty(int propertyID) {
 					if (propertyID == TITLE_INDICATOR_TEXT && numUnOpened > 0) {
 						return "" + numUnOpened;
@@ -702,38 +708,48 @@ public class SBC_LibraryView
 	 * @since 3.1.1.1
 	 */
 	protected static void refreshAllLibraries() {
-		SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
-		SideBarVitalityImage[] vitalityImages = entry.getVitalityImages();
-		for (int i = 0; i < vitalityImages.length; i++) {
-			SideBarVitalityImage vitalityImage = vitalityImages[i];
-			if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
-				vitalityImage.setVisible(numDownloading > 0);
-
-				refreshDLSpinner((SideBarVitalityImageSWT) vitalityImage);
-
-			} else if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
-				vitalityImage.setVisible(numErrorInComplete > 0);
-				if (numErrorInComplete > 0) {
-					vitalityImage.setToolTip(errorInCompleteTooltip);
-				}
-			}
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
+			return;
 		}
-		ViewTitleInfoManager.refreshTitleInfo(entry.getTitleInfo());
-
-		entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
-		vitalityImages = entry.getVitalityImages();
-		for (int i = 0; i < vitalityImages.length; i++) {
-			SideBarVitalityImage vitalityImage = vitalityImages[i];
-			if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
-				vitalityImage.setVisible(numErrorComplete > 0);
-				if (numErrorComplete > 0) {
-					vitalityImage.setToolTip(errorCompleteTooltip);
-				}
-			}
+		MdiEntry entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
+		if (entry != null) {
+  		MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
+  		for (int i = 0; i < vitalityImages.length; i++) {
+  			MdiEntryVitalityImage vitalityImage = vitalityImages[i];
+  			if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
+  				vitalityImage.setVisible(numDownloading > 0);
+  
+  				refreshDLSpinner((SideBarVitalityImageSWT) vitalityImage);
+  
+  			} else if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
+  				vitalityImage.setVisible(numErrorInComplete > 0);
+  				if (numErrorInComplete > 0) {
+  					vitalityImage.setToolTip(errorInCompleteTooltip);
+  				}
+  			}
+  		}
+  		ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
 		}
 
-		entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
-		ViewTitleInfoManager.refreshTitleInfo(entry.getTitleInfo());
+		entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
+		if (entry != null) {
+  		MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
+  		for (int i = 0; i < vitalityImages.length; i++) {
+  			MdiEntryVitalityImage vitalityImage = vitalityImages[i];
+  			if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
+  				vitalityImage.setVisible(numErrorComplete > 0);
+  				if (numErrorComplete > 0) {
+  					vitalityImage.setToolTip(errorCompleteTooltip);
+  				}
+  			}
+  		}
+		}
+
+		entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
+		if (entry != null) {
+			ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
+		}
 	}
 
 	public static void refreshDLSpinner(SideBarVitalityImageSWT vitalityImage) {

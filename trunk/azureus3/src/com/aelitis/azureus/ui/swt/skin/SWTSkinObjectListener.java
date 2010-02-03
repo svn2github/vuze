@@ -65,6 +65,8 @@ public interface SWTSkinObjectListener
 	 */
 	public static int EVENT_LANGUAGE_CHANGE = 6;
 
+	public static int EVENT_DATASOURCE_CHANGED = 7;
+
 	
 	/**
 	 * Friendly names of events, useful for debug
@@ -76,7 +78,8 @@ public interface SWTSkinObjectListener
 		"Destroy",
 		"Created",
 		"Create Request",
-		"Lang Change"
+		"Lang Change",
+		"DS Change"
 	};
 
 	/**

@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.installer.*;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -50,6 +49,10 @@ import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
@@ -352,9 +355,10 @@ public class DevicesFTUX
 						public void completed() {
 							close();
 
-							SideBarEntrySWT sb = SideBar.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
-							SideBarVitalityImage[] vitalityImages = sb.getVitalityImages();
-							for (SideBarVitalityImage vi : vitalityImages) {
+							MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+							MdiEntry entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_DEVICES);
+							MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
+							for (MdiEntryVitalityImage vi : vitalityImages) {
 								if (vi.getImageID().contains("turnon")) {
 									vi.setVisible(false);
 								}

@@ -25,9 +25,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.*;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
@@ -42,6 +40,10 @@ public class UIConfigDefaultsSWTv3
 {
 	public static void initialize(AzureusCore core) {
 		ConfigurationManager config = ConfigurationManager.getInstance();
+		
+		if ("az2".equalsIgnoreCase(config.getStringParameter("ui", "az3"))) {
+			return;
+		}
 
 		boolean configNeedsSave = false;
 
@@ -148,11 +150,7 @@ public class UIConfigDefaultsSWTv3
 
 
 		defaults.addParameter("v3.topbar.show.frog", false);
-		defaults.addParameter("v3.topbar.show.plugin", false);
-		defaults.addParameter("ui.toolbar.uiswitcher", false);
-		defaults.addParameter(SkinConstants.VIEWID_PLUGINBAR + ".visible", false);
 		config.removeParameter("v3.home-tab.starttab");
-		defaults.addParameter("v3.topbar.height", 60);
 		defaults.addParameter("MyTorrentsView.table.style", 0);
 		defaults.addParameter("v3.Show Welcome", true);
 		
@@ -167,7 +165,6 @@ public class UIConfigDefaultsSWTv3
 
 		//=== defaults used by MainWindow
 		defaults.addParameter("vista.adminquit", false);
-		defaults.addParameter("Password enabled", false);
 		defaults.addParameter("Start Minimized", false);
 		defaults.addParameter("Password enabled", false);
 		defaults.addParameter("ToolBar.showText", true);

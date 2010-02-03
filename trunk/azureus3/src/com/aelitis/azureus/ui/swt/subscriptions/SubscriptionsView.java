@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -23,14 +24,15 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.*;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
@@ -260,8 +262,11 @@ public class SubscriptionsView
 					
 					Subscription sub = (Subscription) row.getDataSource();
 					if(sub != null) {
-						sideBarItem item = (sideBarItem) sub.getUserData(SubscriptionManagerUI.SUB_IVIEW_KEY);
-						item.activate();
+						String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
+						MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+						if (mdi != null) {
+							mdi.showEntryByID(key);
+						}
 					}
 				}
 				

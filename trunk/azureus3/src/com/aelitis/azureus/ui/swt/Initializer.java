@@ -28,7 +28,6 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
@@ -54,7 +53,6 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -71,6 +69,32 @@ import com.aelitis.azureus.util.InitialisationFunctions;
  * @author TuxPaper
  * @created May 29, 2006
  *
+ * @notes
+ * The old Initializer would store up LogEvents if the UI had the console set
+ * to auto-open, and send the events to the mainwindow when it was initialized 
+ * This Initializer doesn't do this (yet)
+ 	    final ArrayList logEvents = new ArrayList();
+	    ILogEventListener logListener = null;
+	    if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
+	    	logListener = new ILogEventListener() {
+					public void log(LogEvent event) {
+						logEvents.add(event);
+					}
+	    	};
+	    	Logger.addListener(logListener);
+	    }
+	    final ILogEventListener finalLogListener = logListener;
+ *
+ * The old initializer sets a semaphore when it starts loading IPFilters,
+ * and on AzureusCoreListener.coreStarted would:
+						IpFilterManager ipFilterManager = azureus_core.getIpFilterManager();
+						if (ipFilterManager != null) {
+							String s = MessageText.getString("splash.loadIpFilters");
+	  					do {
+	  						reportCurrentTask(s);
+	  						s += ".";
+	  					} while (!semFilterLoader.reserve(3000));
+						}
  */
 public class Initializer
 	implements IUIIntializer
@@ -81,7 +105,7 @@ public class Initializer
 	// Used in debug to find out how long initialization took
 	public static final long startTime = System.currentTimeMillis();
 
-	private static StartServer startServer;
+	private StartServer startServer;
 
 	private final AzureusCore core;
 
@@ -93,52 +117,43 @@ public class Initializer
 
 	private int curPercent = 0;
 
+  private AESemaphore semFilterLoader = new AESemaphore("filter loader");
+  
 	private AESemaphore init_task = new AESemaphore("delayed init");
 
 	private MainWindow mainWindow;
 	
 	private static Initializer lastInitializer;
 
-	public static void main(final String args[]) {
-		if (Launcher.checkAndLaunch(Initializer.class, args))
-			return;
-
-		if (System.getProperty("ui.temp") == null) {
-			System.setProperty("ui.temp", "az3");
-		}
-
-		org.gudy.azureus2.ui.swt.Main.main(args);
-	}
-
 	/**
-	 * Main Initializer.  Usually called by reflection
+	 * Main Initializer.  Usually called by reflection via
+	 * org.gudy.azureus2.ui.swt.Main(String[])
 	 * @param core
 	 * @param args
 	 */
-	public Initializer(AzureusCore core, boolean createSWTThreadAndRun,
-			String[] args) {
+	public Initializer(final AzureusCore core, StartServer startServer, String[] args) {
 		this.core = core;
 		this.args = args;
+		this.startServer = startServer;
 		lastInitializer = this;
 
-		if (createSWTThreadAndRun) {
-			try {
-				SWTThread.createInstance(this);
-			} catch (SWTThreadAlreadyInstanciatedException e) {
-				Debug.printStackTrace(e);
-			}
-		} else {
-
-			initializePlatformClientMessageContext();
-			new AEThread2("cleanupOldStuff", true) {
-				public void run() {
-					cleanupOldStuff();
+    Thread filterLoaderThread = new AEThread("filter loader", true) {
+			public void runSupport() {
+				try {
+					core.getIpFilterManager().getIPFilter();
+				} finally {
+					semFilterLoader.releaseForever();
 				}
-			}.start();
+			}
+		};
+		filterLoaderThread.setPriority(Thread.MIN_PRIORITY);
+		filterLoaderThread.start();
 
-			PlatformConfigMessenger.login(ContentNetwork.CONTENT_NETWORK_VUZE, 0);
-			// typically the caller will call run() now 
-		}
+    try {
+      SWTThread.createInstance(this);
+    } catch(SWTThreadAlreadyInstanciatedException e) {
+    	Debug.printStackTrace( e );
+    }
 	}
 	
 	private void cleanupOldStuff() {
@@ -199,6 +214,17 @@ public class Initializer
 	}
 
 	public void runInSWTThread() {
+		UISwitcherUtil.calcUIMode();
+		
+		initializePlatformClientMessageContext();
+		new AEThread2("cleanupOldStuff", true) {
+			public void run() {
+				cleanupOldStuff();
+			}
+		}.start();
+
+		PlatformConfigMessenger.login(ContentNetwork.CONTENT_NETWORK_VUZE, 0);
+
 		COConfigurationManager.setBooleanDefault("ui.startfirst", true);
 		STARTUP_UIFIRST = STARTUP_UIFIRST
 				&& COConfigurationManager.getBooleanParameter("ui.startfirst", true);
@@ -345,9 +371,6 @@ public class Initializer
 					reportCurrentTaskByKey("splash.initializeGui");
 	
 					Initializer.this.reportPercent(curPercent + 1);
-					Cursors.init();
-	
-					Initializer.this.reportPercent(curPercent + 1);
 					
 					main_window_will_report_complete = true;
 					
@@ -409,11 +432,11 @@ public class Initializer
 			
 			public boolean stopRequested(AzureusCore _core)
 					throws AzureusCoreException {
-				return org.gudy.azureus2.ui.swt.mainwindow.Initializer.handleStopRestart(false);
+				return handleStopRestart(false);
 			}
 
 			public boolean restartRequested(final AzureusCore core) {
-				return org.gudy.azureus2.ui.swt.mainwindow.Initializer.handleStopRestart(true);
+				return handleStopRestart(true);
 			}
 
 		});
@@ -631,6 +654,8 @@ public class Initializer
 	{
 		core.getPluginManager().firePluginEvent( PluginEvent.PEV_INITIALISATION_UI_COMPLETES );
 
+		// Old Initializer would delay 8500
+
 		  new DelayedEvent( 
 				  "SWTInitComplete:delay",
 				  2500,
@@ -661,6 +686,18 @@ public class Initializer
 		}
 	}
 
+  public static boolean
+  handleStopRestart(
+  	final boolean	restart )
+  {
+		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (functionsSWT != null) {
+			return functionsSWT.dispose(restart, true);
+		}
+
+		return false;
+	}
+	
 	public static Initializer getLastInitializer() {
 		return lastInitializer;
 	}

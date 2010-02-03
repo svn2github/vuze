@@ -24,11 +24,14 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
 
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
  * @author TuxPaper
@@ -48,7 +51,7 @@ public class SideBarToolTips
 
 	private final SideBar sidebar;
 
-	private SideBarEntrySWT sidebarEntry;
+	private MdiEntry mdiEntry;
 
 	private Point lastMouseHoverPos;
 
@@ -108,8 +111,7 @@ public class SideBarToolTips
 		if (treeItem == null) {
 			return;
 		}
-		String id = (String) treeItem.getData("Plugin.viewID");
-		sidebarEntry = SideBar.getEntry(id);
+		mdiEntry = (MdiEntry) treeItem.getData("MdiEntry");
 
 		String sToolTip = getToolTip(mousePos);
 		if (sToolTip == null) {
@@ -190,7 +192,7 @@ public class SideBarToolTips
 	 * @since 3.1.1.1
 	 */
 	private String getToolTip(Point mousePos) {
-		SideBarVitalityImage[] vitalityImages = sidebarEntry.getVitalityImages();
+		MdiEntryVitalityImage[] vitalityImages = mdiEntry.getVitalityImages();
 		for (int i = 0; i < vitalityImages.length; i++) {
 			SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
 			String indicatorToolTip = vitalityImage.getToolTip();
@@ -206,8 +208,8 @@ public class SideBarToolTips
 			}
 		}
 
-		if (sidebarEntry.titleInfo != null) {
-			return (String) sidebarEntry.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+		if (mdiEntry.getViewTitleInfo() != null) {
+			return (String) mdiEntry.getViewTitleInfo().getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
 		}
 
 		return null;
@@ -223,7 +225,7 @@ public class SideBarToolTips
 		if (toolTipLabel == null || toolTipLabel.isDisposed()) {
 			return;
 		}
-		if (sidebarEntry == null || sidebarEntry.titleInfo == null) {
+		if (mdiEntry == null || mdiEntry.getViewTitleInfo() == null) {
 			return;
 		}
 		String sToolTip = getToolTip(lastMouseHoverPos);

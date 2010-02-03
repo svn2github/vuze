@@ -47,6 +47,8 @@ public class SkinViewManager
 	 */
 	private static Map<String, SkinView> skinIDs = new HashMap<String, SkinView>();
 	
+	private static Map<String, SkinView> skinViewIDs = new HashMap<String, SkinView>();
+
 	private static List listeners = new ArrayList();
 	
 	/**
@@ -69,6 +71,10 @@ public class SkinViewManager
 		SWTSkinObject mainSkinObject = skinView.getMainSkinObject();
 		if (mainSkinObject != null) {
 			skinIDs.put(mainSkinObject.getSkinObjectID(), skinView);
+			String viewID = mainSkinObject.getViewID();
+			if (viewID != null && viewID.length() > 0) {
+				skinViewIDs.put(viewID, skinView);
+			}
 		}
 
 		triggerViewAddedListeners(skinView);
@@ -95,6 +101,7 @@ public class SkinViewManager
 		SWTSkinObject mainSkinObject = skinView.getMainSkinObject();
 		if (mainSkinObject != null) {
 			skinIDs.remove(mainSkinObject.getSkinObjectID());
+			skinViewIDs.remove(mainSkinObject.getViewID());
 		}
 	}
 
@@ -148,6 +155,24 @@ public class SkinViewManager
 	 */
 	public static SkinView getBySkinObjectID(String id) {
 		SkinView sv = skinIDs.get(id);
+		if (sv != null) {
+  		SWTSkinObject so = sv.getMainSkinObject();
+  		if (so != null && so.isDisposed()) {
+  			remove(sv);
+  			return null;
+  		}
+		}
+		return sv;
+	}
+	
+	/**
+	 * Get the SkinView related to a View ID
+	 *  
+	 * @param viewID
+	 * @return
+	 */
+	public static SkinView getByViewID(String viewID) {
+		SkinView sv = skinViewIDs.get(viewID);
 		if (sv != null) {
   		SWTSkinObject so = sv.getMainSkinObject();
   		if (so != null && so.isDisposed()) {

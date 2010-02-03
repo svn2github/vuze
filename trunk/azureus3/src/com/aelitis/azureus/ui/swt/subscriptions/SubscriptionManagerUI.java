@@ -21,101 +21,50 @@
 
 package com.aelitis.azureus.ui.swt.subscriptions;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.category.Category;
-import org.gudy.azureus2.core3.category.CategoryManager;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+
+import com.aelitis.azureus.core.subs.*;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+
 import org.gudy.azureus2.plugins.PluginConfigListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.*;
-import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.HyperlinkParameter;
-import org.gudy.azureus2.plugins.ui.config.IntParameter;
-import org.gudy.azureus2.plugins.ui.config.Parameter;
-import org.gudy.azureus2.plugins.ui.config.ParameterListener;
+import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.menus.*;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.Utilities;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
-import org.gudy.azureus2.ui.swt.PropertiesWindow;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import org.gudy.azureus2.ui.swt.views.IView;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.core.metasearch.Engine;
-import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
-import com.aelitis.azureus.core.subs.*;
-import com.aelitis.azureus.core.vuzefile.VuzeFile;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.UserPrompterResultListener;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.browser.BrowserContext;
-import com.aelitis.azureus.ui.swt.browser.CookiesListener;
-import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
-import com.aelitis.azureus.ui.swt.browser.listener.*;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
-import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
-import com.aelitis.azureus.util.ConstantsVuze;
-import com.aelitis.azureus.util.MapUtils;
-import com.aelitis.azureus.util.UrlFilter;
 
 public class 
 SubscriptionManagerUI 
 {
-	public static final Object	SUB_IVIEW_KEY 		= new Object();
+	public static final Object	SUB_ENTRYINFO_KEY 		= new Object();
 	public static final Object	SUB_EDIT_MODE_KEY 	= new Object();
 	
-	public static final String ALERT_IMAGE_ID	= "image.sidebar.vitality.alert";
-	public static final String AUTH_IMAGE_ID	= "image.sidebar.vitality.auth";
+	private static final String ALERT_IMAGE_ID	= "image.sidebar.vitality.alert";
 	
 
-	private static final String EDIT_MODE_MARKER	= "&editMode=1";
+	static final String EDIT_MODE_MARKER	= "&editMode=1";
 	
 	private Graphic	icon_rss_big;
 	private Graphic	icon_rss_small;
@@ -127,19 +76,6 @@ SubscriptionManagerUI
 	
 	private SubscriptionManager	subs_man;
 	
-	private MenuItemListener markAllResultsListener;
-	private MenuItemListener unmarkAllResultsListener;
-	private MenuItemListener deleteAllResultsListener;
-	private MenuItemListener resetAuthListener;
-	private MenuItemListener setCookieListener;
-	private MenuItemListener resetResultsListener;
-	private MenuItemListener exportListener;
-	private MenuItemListener renameListener;
-	private MenuItemListener removeListener;
-	private MenuItemListener forceCheckListener;
-	private MenuItemListener upgradeListener;
-	private MenuItemListener propertiesListener;
-	
 	
 	private boolean		side_bar_setup;
 
@@ -147,6 +83,7 @@ SubscriptionManagerUI
 	protected UISWTInstance swt;
 	private UIManager ui_manager;
 	private PluginInterface default_pi;
+	private MdiEntry mainSBEntry;
 	
 	public
 	SubscriptionManagerUI()
@@ -356,26 +293,7 @@ SubscriptionManagerUI
 						
 						swt = (UISWTInstance)instance;
 						
-						SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
-						
-						if ( sideBar != null ){
-							
-							uiQuickInit(sideBar);
-						} else {
-							SkinViewManager.addListener(
-									new SkinViewManagerListener() 
-									{
-										public void 
-										skinViewAdded(
-											SkinView skinview) 
-										{
-											if ( skinview instanceof SideBar ){
-												SkinViewManager.RemoveListener(this);
-												uiQuickInit((SideBar) skinview);
-											}
-										}
-									});
-						}
+						uiQuickInit();
 
         		Utilities utilities = default_pi.getUtilities();
         		
@@ -403,20 +321,21 @@ SubscriptionManagerUI
 				});
 	}
 	
-	void uiQuickInit(final SideBar side_bar) {
-		final SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
-		mainSBEntry.setImageLeftID("image.sidebar.subscriptions");
-		if (!mainSBEntry.isInTree()) {
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					side_bar.createTreeItemFromIViewClass(null,
-							SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS,
-							MessageText.getString("subscriptions.view.title"),
-							SubscriptionsView.class, null, null, null, null, false);
-				}
-			});
-		}
+	void uiQuickInit() {
+		subs_man = SubscriptionManagerFactory.getSingleton();
 		
+		final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
+			Debug.out("No MDI");
+			return;
+		}
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						setupSideBar( swt );
+						return mainSBEntry;
+					}
+				});
 	}
 
 	void delayedInit() {
@@ -434,8 +353,6 @@ SubscriptionManagerUI
 		// icon_rss_some_add_small	= loadGraphic( swt, "btn_rss_subscribe_green_30x14.png" );
 		icon_rss_some_add_small	= loadGraphic( swt, "btn_rss_subscribed_gray_30x14.png" );
 		icon_rss_some_add_big	= icon_rss_some_add_small;
-		
-		subs_man = SubscriptionManagerFactory.getSingleton();
 		
 		subs_man.addListener(
 			new SubscriptionManagerListener()
@@ -472,7 +389,10 @@ SubscriptionManagerUI
 				}
 			});	
 		
+		createConfigModel();
+	}
 
+	private void createConfigModel() {
 		BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
 				ConfigSection.SECTION_ROOT, "Subscriptions");
 
@@ -568,28 +488,6 @@ SubscriptionManagerUI
 			{
 					rss_enable, rss_view,
 			});
-		
-		SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
-		
-		if ( sideBar != null ){
-			
-			setupSideBar( sideBar, swt );
-		} else {
-			SkinViewManager.addListener(
-					new SkinViewManagerListener() 
-					{
-						public void 
-						skinViewAdded(
-							SkinView skinview) 
-						{
-							if ( skinview instanceof SideBar ){
-								
-								setupSideBar((SideBar) skinview, swt);
-								SkinViewManager.RemoveListener(this);
-							}
-						}
-					});
-		}
 	}
 
 	private void 
@@ -821,16 +719,12 @@ SubscriptionManagerUI
 									
 									if ( sub.hasAssociation( hash )){
 										
-										sideBarItem item = (sideBarItem) sub.getUserData(SubscriptionManagerUI.SUB_IVIEW_KEY);
-										
-										if ( item != null ){
-										
-											event.skipCoreFunctionality	= true;
-
-											item.activate();
-											
-											break;
+										String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
+										MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+										if (mdi != null) {
+											mdi.showEntryByID(key);
 										}
+										break;
 									}
 								}
 							}
@@ -857,10 +751,9 @@ SubscriptionManagerUI
 					}
 				});
 	}
-
+	
 	protected void
 	setupSideBar(
-		final SideBar			side_bar,
 		final UISWTInstance		swt_ui )		
 	{
 		synchronized( this ){
@@ -872,28 +765,46 @@ SubscriptionManagerUI
 			
 			side_bar_setup = true;
 		}
+
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
+			return;
+		}
 		
-		final SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
+		MdiEntry existingEntry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS);
 		
+		if (existingEntry == null || !existingEntry.isAdded()) {
+			mdi.createEntryFromIViewClass(null,
+					MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
+					MessageText.getString("subscriptions.view.title"),
+					SubscriptionsView.class, null, null, null, null, false);
+		}
+
+		mainSBEntry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS);
+
 		if (mainSBEntry != null) {
 			
-			SideBarVitalityImage addSub 	= mainSBEntry.addVitalityImage("image.sidebar.subs.add");
+			MdiEntryVitalityImage addSub 	= mainSBEntry.addVitalityImage("image.sidebar.subs.add");
 			
-			addSub.setToolTip("Add Subscription");
+			if (addSub != null) {
+				addSub.setToolTip("Add Subscription");
 			
-			addSub.addListener(new SideBarVitalityImageListener() {
-				public void sbVitalityImage_clicked(int x, int y) {
-					new SubscriptionWizard();
-				}
-			});
+  			addSub.addListener(new MdiEntryVitalityImageListener() {
+  				public void mdiEntryVitalityImage_clicked(int x, int y) {
+  					new SubscriptionWizard();
+  				}
+  			});
+			}
 			
-			final SideBarVitalityImage warnSub 	= mainSBEntry.addVitalityImage( ALERT_IMAGE_ID );
+			final MdiEntryVitalityImage warnSub 	= mainSBEntry.addVitalityImage( ALERT_IMAGE_ID );
 			
-			warnSub.setVisible( false );
+			if (warnSub != null) {
+				warnSub.setVisible( false );
+			}
 			
 			mainSBEntry.setImageLeftID("image.sidebar.subscriptions");
 
-			mainSBEntry.setTitleInfo(
+			mainSBEntry.setViewTitleInfo(
 				new ViewTitleInfo() 
 				{
 					public Object 
@@ -906,7 +817,7 @@ SubscriptionManagerUI
 							
 						}else if ( propertyID == TITLE_INDICATOR_TEXT ){
 
-							boolean expanded = mainSBEntry.getTreeItem().getExpanded();
+							boolean expanded = mainSBEntry.isExpanded();
 
 							if ( expanded ){
 								
@@ -951,7 +862,7 @@ SubscriptionManagerUI
 					}
 				});
 
-			String parentID = "sidebar." + SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS;
+			String parentID = "sidebar." + MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS;
 
 			MenuManager menu_manager = ui_manager.getMenuManager();
 			
@@ -972,303 +883,8 @@ SubscriptionManagerUI
 					      	 }
 						}
 					});
-			if (!mainSBEntry.isInTree()) {
-  			
-				side_bar.createTreeItemFromIViewClass(null,
-  					SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS,
-  					MessageText.getString("subscriptions.view.title"),
-  					SubscriptionsView.class, null, null, null, null, false);
-			}
 		}
 		
-		markAllResultsListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					Subscription subs = (Subscription) info.getDatasource();
-					subs.getHistory().markAllResultsRead();
-					refreshView( subs );
-				}
-			}
-		};
-		
-		unmarkAllResultsListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					Subscription subs = (Subscription) info.getDatasource();
-					subs.getHistory().markAllResultsUnread();
-					refreshView( subs );
-				}
-			}
-		};
-		
-		deleteAllResultsListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					Subscription subs = (Subscription) info.getDatasource();
-					subs.getHistory().deleteAllResults();
-					refreshView( subs );
-				}
-			}
-		};
-		
-		
-		resetAuthListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					Subscription subs = (Subscription) info.getDatasource();
-					try{
-						Engine engine = subs.getEngine();
-						
-						if ( engine instanceof WebEngine ){
-							
-							((WebEngine)engine).setCookies( null );
-						}
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace(e);
-					}
-					
-					try{
-						subs.getManager().getScheduler().downloadAsync(subs, true);
-						
-					}catch( Throwable e ){
-						
-						Debug.out(e);
-					}
-				}
-			}
-		};
-		
-		setCookieListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					final Subscription subs = (Subscription) info.getDatasource();
-					try{
-						Engine engine = subs.getEngine();
-						
-						if ( engine instanceof WebEngine ){
-							
-							final WebEngine we = (WebEngine)engine;
-							
-							UISWTInputReceiver entry = (UISWTInputReceiver)swt_ui.getInputReceiver();
-							
-							String[] req = we.getRequiredCookies();
-							
-							String	req_str = "";
-							
-							for ( String r:req ){
-								
-								req_str += (req_str.length()==0?"":";") + r + "=?";
-							}
-							entry.setPreenteredText( req_str, true );
-							entry.maintainWhitespace(false);
-							entry.allowEmptyInput( false );
-							entry.setTitle("general.enter.cookies");
-							entry.prompt(new UIInputReceiverListener() {
-								public void UIInputReceiverClosed(UIInputReceiver entry) {
-									if (!entry.hasSubmittedInput()){
-										
-										return;
-									}
-
-									try {
-  									String input = entry.getSubmittedInput().trim();
-  									
-  									if ( input.length() > 0 ){
-  										
-  										we.setCookies( input );
-  										
-  										subs.getManager().getScheduler().downloadAsync(subs, true);
-  									}
-									}catch( Throwable e ){
-										
-										Debug.printStackTrace(e);
-									}
-								}
-							});
-						}
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace(e);
-					}
-				}
-			}
-		};
-		
-		resetResultsListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					Subscription subs = (Subscription) info.getDatasource();
-					subs.getHistory().reset();
-					try{
-						subs.getEngine().reset();
-					}catch( Throwable e ){
-						Debug.printStackTrace(e);
-					}
-					try{
-						subs.getManager().getScheduler().downloadAsync(subs, true);
-						
-					}catch( Throwable e ){
-						
-						Debug.out(e);
-					}
-				}
-			}
-		};
-		
-		exportListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					final Subscription subs = (Subscription) info.getDatasource();
-					
-					final Shell shell = Utils.findAnyShell();
-					
-					shell.getDisplay().asyncExec(
-						new AERunnable() 
-						{
-							public void 
-							runSupport()
-							{
-								FileDialog dialog = 
-									new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
-								
-								dialog.setFilterPath( TorrentOpener.getFilterPathData() );
-														
-								dialog.setText(MessageText.getString("subscript.export.select.template.file"));
-								
-								dialog.setFilterExtensions(new String[] {
-										"*.vuze",
-										"*.vuz",
-										Constants.FILE_WILDCARD
-									});
-								dialog.setFilterNames(new String[] {
-										"*.vuze",
-										"*.vuz",
-										Constants.FILE_WILDCARD
-									});
-								
-								String path = TorrentOpener.setFilterPathData( dialog.open());
-			
-								if ( path != null ){
-									
-									String lc = path.toLowerCase();
-									
-									if ( !lc.endsWith( ".vuze" ) && !lc.endsWith( ".vuz" )){
-										
-										path += ".vuze";
-									}
-									
-									try{
-										VuzeFile vf = subs.getVuzeFile();
-										
-										vf.write( new File( path ));
-										
-
-									}catch( Throwable e ){
-										
-										Debug.out( e );
-									}
-								}
-							}
-						});
-				}
-			}
-		};
-		
-		renameListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					final Subscription subs = (Subscription) info.getDatasource();
-					
-					UISWTInputReceiver entry = (UISWTInputReceiver)swt_ui.getInputReceiver();
-					entry.setPreenteredText(subs.getName(), false );
-					entry.maintainWhitespace(false);
-					entry.allowEmptyInput( false );
-					entry.setLocalisedTitle(MessageText.getString("label.rename",
-							new String[] {
-								subs.getName()
-							}));
-					entry.prompt(new UIInputReceiverListener() {
-						public void UIInputReceiverClosed(UIInputReceiver entry) {
-							if (!entry.hasSubmittedInput()){
-								
-								return;
-							}
-							
-							String input = entry.getSubmittedInput().trim();
-							
-							if ( input.length() > 0 ){
-								
-								try{
-									subs.setName( input );
-									
-								}catch( Throwable e ){
-									
-									Debug.printStackTrace(e);
-								}
-							}
-						}
-					});
-				}
-			}
-		};
-		
-		removeListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					Subscription subs = (Subscription) info.getDatasource();
-					removeWithConfirm( subs );
-				}
-			}
-		};
-		
-		forceCheckListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					Subscription subs = (Subscription) info.getDatasource();
-					try{
-						
-						subs.getManager().getScheduler().downloadAsync( subs, true );
-						
-					}catch( Throwable e ){
-						
-						Debug.out( e );
-					}
-				}
-			}
-		};
-		
-		upgradeListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					Subscription subs = (Subscription) info.getDatasource();
-				
-					subs.resetHighestVersion();
-				}
-			}
-		};
-		
-		propertiesListener = new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				if (target instanceof SideBarEntry) {
-					SideBarEntry info = (SideBarEntry) target;
-					Subscription subs = (Subscription) info.getDatasource();
-				
-					showProperties( subs );
-				}
-			}
-		};
 		
 		subs_man.addListener(
 			new SubscriptionManagerListener()
@@ -1277,25 +893,25 @@ SubscriptionManagerUI
 				subscriptionAdded(
 					Subscription 		subscription ) 
 				{
-					addSubscription( side_bar, subscription, true );
+					addSubscription( subscription, true );
 				}
 	
 				public void
 				subscriptionChanged(
 					Subscription		subscription )
 				{
-					changeSubscription( side_bar, subscription );
+					changeSubscription( subscription );
 				}
 				
 				public void 
 				subscriptionSelected(
-					Subscription subscription )
+					Subscription sub )
 				{	
-					sideBarItem item = (sideBarItem)subscription.getUserData(SubscriptionManagerUI.SUB_IVIEW_KEY);
 					
-					if (item != null ){
-					
-						item.activate();
+					String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+					if (mdi != null) {
+						mdi.showEntryByID(key);
 					}
 				}
 				
@@ -1303,7 +919,7 @@ SubscriptionManagerUI
 				subscriptionRemoved(
 					Subscription 		subscription ) 
 				{
-					removeSubscription( side_bar, subscription );
+					removeSubscription( subscription );
 				}
 				
 				public void
@@ -1330,30 +946,30 @@ SubscriptionManagerUI
 		
 		for (int i=0;i<subs.length;i++){
 			
-			addSubscription( side_bar, subs[i], false );
+			addSubscription( subs[i], false );
 		}
 		
-		side_bar.addListener(
-			new SideBarListener() 
+		mdi.addListener(
+			new MdiListener() 
 			{
 				private long last_select = 0;
 				
 				public void 
-				sidebarItemSelected(
-					SideBarEntrySWT new_entry,
-					SideBarEntrySWT old_entry ) 
+				mdiEntrySelected(
+					MdiEntry new_entry,
+					MdiEntry old_entry ) 
 				{
-					if ( new_entry == old_entry ){
+					if ( new_entry == old_entry && (new_entry instanceof MdiEntrySWT) ){
 						
-						IView view = new_entry.getIView();
+						IView view = ((MdiEntrySWT)new_entry).getIView();
 						
-						if ( view instanceof subscriptionView ){
+						if ( view instanceof SubscriptionView ){
 							
 							try{
 								
 								if ( SystemTime.getMonotonousTime() - last_select > 1000 ){
 									
-									((subscriptionView)view).updateBrowser( false );
+									((SubscriptionView)view).updateBrowser( false );
 								}
 							}finally{
 								
@@ -1367,22 +983,20 @@ SubscriptionManagerUI
 	
 	protected void
 	changeSubscription(
-		SideBar				side_bar,
 		final Subscription	subs )
 	{
 		if ( subs.isSubscribed()){
 			
-			addSubscription( side_bar, subs, false );
+			addSubscription( subs, false );
 			
 		}else{
 			
-			removeSubscription( side_bar, subs);
+			removeSubscription( subs);
 		}
 	}
 	
 	protected void
 	addSubscription(
-		final SideBar			side_bar,
 		final Subscription		subs,
 		final boolean			show )
 	{
@@ -1393,398 +1007,100 @@ SubscriptionManagerUI
 		
 		refreshColumns();
 		
-		synchronized( this ){
-				
-			final sideBarItem existing_si = (sideBarItem)subs.getUserData( SUB_IVIEW_KEY );
-			
-			if (  existing_si == null ){
-	
-				final sideBarItem new_si = new sideBarItem();
-				
-				subs.setUserData( SUB_IVIEW_KEY, new_si );
+		final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());				
 
-				// GetEngine used to be near menu item created, but was moved here
-				// since it takes time on first start and we don't want it stalling
-				// the UI Thread
-				Engine e = null;
-				try{
-					e = subs.getEngine();
-					
-				}catch( Throwable ex ){
-					
-					Debug.printStackTrace(ex);
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+		if (uiClassic && !show) {
+			mdi.registerEntry(key, new MdiEntryCreationListener() {
+				public MdiEntry createMDiEntry(String id) {
+					return createSubsEntry(subs);
 				}
-				final Engine engine = e;
-				
-				Utils.execSWTThread(
-					new Runnable()
-					{
-						public void
-						run()
-						{
-							synchronized( SubscriptionManagerUI.this ){
-
-								if ( new_si.isDestroyed()){
-									
-									return;
-								}
-								
-								subscriptionView view = new subscriptionView( subs );
-								
-								new_si.setView( view );
-								
-								String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
-								
-								TreeItem  tree_item = 
-									side_bar.createTreeItemFromIView(
-										SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS, 
-										view,
-										key, 
-										subs, 
-										false, 
-										show,
-										false );
-								
-								SideBarEntrySWT	entry = SideBar.getEntry( key );
-																
-								new_si.setTreeItem( tree_item, entry );
-								
-								setStatus( subs, new_si );
-								
-								PluginInterface pi = PluginInitializer.getDefaultInterface();
-								UIManager uim = pi.getUIManager();
-								
-								final MenuManager menuManager = uim.getMenuManager();
-								
-								MenuItem menuItem;
-								
-								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.forcecheck");
-								menuItem.setText(MessageText.getString("Subscription.menu.forcecheck"));
-								menuItem.addListener(forceCheckListener);
-								
-								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.clearall");
-								menuItem.addListener(markAllResultsListener);
-								
-								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.dirtyall");
-								menuItem.addListener(unmarkAllResultsListener);
-
-								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.deleteall");
-								menuItem.addListener(deleteAllResultsListener);
-								
-								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.reset");
-								menuItem.addListener(resetResultsListener);
-
-								try{
-									if ( engine instanceof WebEngine ){
-										
-										if (((WebEngine)engine).isNeedsAuth()){
-											
-											menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.resetauth");
-											menuItem.addListener(resetAuthListener);
-											
-											menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.setcookies");
-											menuItem.addListener(setCookieListener);
-										}
-									}
-								}catch( Throwable e ){
-									
-									Debug.printStackTrace(e);
-								}
-								
-									// sep
-								
-								menuManager.addMenuItem("sidebar." + key,"s1").setStyle( MenuItem.STYLE_SEPARATOR );
-
-									// category
-								
-								menuItem = menuManager.addMenuItem("sidebar." + key, "MyTorrentsView.menu.setCategory");
-								menuItem.setStyle( MenuItem.STYLE_MENU );
-								
-								menuItem.addFillListener(
-										new MenuItemFillListener()
-										{
-											public void 
-											menuWillBeShown(
-												MenuItem 	menu, 
-												Object 		data ) 
-											{		
-												addCategorySubMenu( menuManager, menu, subs );
-											}
-										});
-								
-								
-								if ( subs.isUpdateable()){
-									
-									menuItem = menuManager.addMenuItem("sidebar." + key,"MyTorrentsView.menu.rename");
-									menuItem.addListener(renameListener);
-								}
-								
-								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.upgrade");
-								menuItem.addListener(upgradeListener);
-									
-								menuItem.addFillListener(
-									new MenuItemFillListener()
-									{
-										public void 
-										menuWillBeShown(
-											MenuItem 	menu, 
-											Object 		data ) 
-										{									
-											menu.setVisible( subs.getHighestVersion() > subs.getVersion());
-										}
-									});
-								
-								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.export");
-								menuItem.addListener(exportListener);
-								
-									// sep
-								
-								menuManager.addMenuItem("sidebar." + key,"s2").setStyle( MenuItem.STYLE_SEPARATOR );
-								
-								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.remove");
-								menuItem.addListener(removeListener);
-								
-								menuManager.addMenuItem("sidebar." + key,"s3").setStyle( MenuItem.STYLE_SEPARATOR );
-
-								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.properties");
-								menuItem.addListener(propertiesListener);
-							}
-						}
-					});
-			}else{
-				
-				Utils.execSWTThread(
-						new Runnable()
-						{
-							public void
-							run()
-							{
-								ViewTitleInfoManager.refreshTitleInfo( existing_si.getView());
-								
-								SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
-								
-								if ( mainSBEntry != null ){
-									
-									ViewTitleInfoManager.refreshTitleInfo( mainSBEntry.getTitleInfo());
-								}
-								
-								setStatus( subs, existing_si );
-							}
-						});
-			}
+			});
+			return;
 		}
+		
+		if (mdi.entryExists(key)) {
+			return;
+		}
+
+		createSubsEntry(subs);
 	}
 	
-	
-	private void 
-	addCategorySubMenu(
-		MenuManager				menu_manager,
-		MenuItem				menu,
-		final Subscription		subs )
-	{
-		menu.removeAllChildItems();
-
-		Category[] categories = CategoryManager.getCategories();
+	private MdiEntry createSubsEntry(final Subscription subs) {
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		
-		Arrays.sort( categories );
-
-		MenuItem m;
-
-		if ( categories.length > 0 ){
-			
-			String	assigned_category = subs.getCategory();
-			
-			final Category uncat = CategoryManager.getCategory( Category.TYPE_UNCATEGORIZED );
+		ViewTitleInfo viewTitleInfo = new ViewTitleInfo() {
+			public Object 
+			getTitleInfoProperty(
+				int propertyID ) 
+			{
+				switch( propertyID ){
+				
+					case ViewTitleInfo.TITLE_TEXT:{
 						
-			if ( uncat != null ){
-				
-				m = menu_manager.addMenuItem( menu, uncat.getName());
-				
-				m.setStyle( MenuItem.STYLE_RADIO );
-								
-				m.setData( new Boolean( assigned_category == null ));
-				
-				m.addListener(
-					new MenuItemListener() 
-					{
-						public void
-						selected(
-							MenuItem			menu,
-							Object 				target )
-						{
-							assignSelectedToCategory( uncat, subs );
-						}
-					});
-				
-
-				m = menu_manager.addMenuItem( menu, "sep1" );
-				
-				m.setStyle( MenuItem.STYLE_SEPARATOR );
-			}
-
-			for ( int i=0; i<categories.length; i++ ){
-				
-				final Category cat = categories[i];
-				
-				if ( cat.getType() == Category.TYPE_USER) {
-					
-					m = menu_manager.addMenuItem( menu, "!" + cat.getName() + "!" );
-					
-					m.setStyle( MenuItem.STYLE_RADIO );
-										
-					m.setData( new Boolean( assigned_category != null && assigned_category.equals( cat.getName())));
-					
-					m.addListener(
-						new MenuItemListener() 
-						{
-							public void
-							selected(
-								MenuItem			menu,
-								Object 				target )
-							{
-								assignSelectedToCategory( cat, subs );
-							}
-						});
-				}
-			}
-
-			m = menu_manager.addMenuItem( menu, "sep2" );
-			
-			m.setStyle( MenuItem.STYLE_SEPARATOR );
-		}
-
-		m = menu_manager.addMenuItem( menu, "MyTorrentsView.menu.setCategory.add" );
-		
-		m.addListener(
-				new MenuItemListener() 
-				{
-					public void
-					selected(
-						MenuItem			menu,
-						Object 				target )
-					{
-						addCategory( subs );
+						return( subs.getName());
 					}
-				});
-
-	}
-
-	private void 
-	addCategory(
-		Subscription subs  )	
-	{
-		CategoryAdderWindow adderWindow = new CategoryAdderWindow(Display.getDefault());
-		
-		Category newCategory = adderWindow.getNewCategory();
-		
-		if ( newCategory != null ){
-		
-			assignSelectedToCategory( newCategory, subs );
-		}
-	}
-	
-	private void 
-	assignSelectedToCategory(
-		Category 			category,
-		Subscription		subs )
-	{
-		if ( category.getType() == Category.TYPE_UNCATEGORIZED ){
-		
-			subs.setCategory( null );
-			
-		}else{
-			
-			subs.setCategory( category.getName());
-		}
-	}
-	
-	protected void
-	setStatus(
-		Subscription	subs,
-		sideBarItem		sbi )
-	{
-		sbi.setWarning( subs );
-	}
-	
-	protected static void
-	removeWithConfirm(
-		final Subscription	subs )
-	{
-		MessageBoxShell mb = 
-			new MessageBoxShell(
-				MessageText.getString("message.confirm.delete.title"),
-				MessageText.getString("message.confirm.delete.text",
-						new String[] {
-							subs.getName()
-						}), 
-				new String[] {
-					MessageText.getString("Button.yes"),
-					MessageText.getString("Button.no")
-				},
-				1 );
-		
-		mb.open(new UserPrompterResultListener() {
-			public void prompterClosed(int result) {
-				if (result == 0) {
-					subs.remove();
+					case ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP:{
+					
+						long	pop = subs.getCachedPopularity();
+						
+						String res = subs.getName();
+						
+						if ( pop > 1 ){
+							
+							res += " (" + MessageText.getString("subscriptions.listwindow.popularity").toLowerCase() + "=" + pop + ")";
+						}
+						
+						return( res );
+					}
+					case ViewTitleInfo.TITLE_INDICATOR_TEXT :{
+						if(subs.getHistory().getNumUnread() > 0) {
+							return ( "" + subs.getHistory().getNumUnread());
+						}
+						return null;
+					}
 				}
+				
+				return( null );
 			}
-		});
+		};
+
+		final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
+		
+		MdiEntry entry = mdi.createEntryFromIViewClass(
+				MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS, key, null,
+				SubscriptionView.class, new Class[] {
+					Subscription.class
+				}, new Object[] {
+					subs
+				}, subs, viewTitleInfo, false);
+		entry.setExpanded(false);
+		// This sets up the entry (menu, etc)
+		SubscriptionMDIEntry entryInfo = new SubscriptionMDIEntry(subs, entry);
+		subs.setUserData(SUB_ENTRYINFO_KEY, entryInfo);
+
+		return entry;
 	}
 	
+	
+
 	protected void
 	removeSubscription(
-		SideBar				side_bar,
 		final Subscription	subs )
 	{
 		synchronized( this ){
-			
-			final sideBarItem existing = (sideBarItem)subs.getUserData( SUB_IVIEW_KEY );
-			
-			if ( existing != null ){
-				
-				subs.setUserData( SUB_IVIEW_KEY, null );
-				
-				existing.destroy();
-				
-				Utils.execSWTThread(
-						new Runnable()
-						{
-							public void
-							run()
-							{
-								synchronized( SubscriptionManagerUI.this ){
 
-									TreeItem ti = existing.getTreeItem();
-									
-									if ( ti != null ){
-										
-										ti.dispose();
-									}
-								}
-							}
-						});
+			String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
+			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+			if (mdi != null) {
+				mdi.closeEntry(key);
 			}
+
 		}
 		
 		refreshColumns();
-	}
-	
-	protected void
-	refreshView(
-		Subscription	subs )
-	{		
-		sideBarItem item = (sideBarItem)subs.getUserData( SUB_IVIEW_KEY );
-		
-		if ( item != null ){
-			
-			subscriptionView view = item.getView();
-			
-			if ( view != null ){
-				
-				view.updateBrowser( false );
-			}
-		}
 	}
 	
 	protected void
@@ -1796,114 +1112,6 @@ SubscriptionManagerUI
 			
 			column.invalidateCells();
 		}
-	}
-	
-	protected void
-	showProperties(
-		Subscription		subs )
-	{
-		SubscriptionHistory history = subs.getHistory();
-		
-		SimpleDateFormat df = new SimpleDateFormat();
-		
-		String last_error = history.getLastError();
-		
-		if ( last_error == null ){
-			last_error = "";
-		}
-		
-		String	engine_str;
-		String	auth_str	= String.valueOf(false);
-		
-		try{
-			Engine engine = subs.getEngine();
-			
-			engine_str = engine.getNameEx();
-			
-			if ( engine instanceof WebEngine ){
-			
-				WebEngine web_engine = (WebEngine)engine;
-				
-				if ( web_engine.isNeedsAuth()){
-					
-					auth_str = String.valueOf(true) + ": cookies=" + toString( web_engine.getRequiredCookies());
-				}
-			}
-		}catch( Throwable e ){
-			
-			engine_str 	= "Unknown";
-			auth_str	= "";
-		}
-		
-		String[] keys = {
-				"subs.prop.enabled",
-				"subs.prop.is_public",
-				"subs.prop.is_auto",
-				"subs.prop.is_auto_ok",
-				"subs.prop.update_period",
-				"subs.prop.last_scan",
-				"subs.prop.last_result",
-				"subs.prop.next_scan",
-				"subs.prop.last_error",
-				"subs.prop.num_read",
-				"subs.prop.num_unread",
-				"subs.prop.assoc",
-				"subs.prop.version",
-				"subs.prop.high_version",
-				"subscriptions.listwindow.popularity",
-				"subs.prop.template",
-				"subs.prop.auth",
-				"TableColumn.header.category",
-			};
-		
-		String	category_str;
-		
-		String category = subs.getCategory();
-		
-		if ( category == null ){
-			
-			category_str = MessageText.getString( "Categories.uncategorized" );
-			
-		}else{
-			
-			category_str = category;
-		}
-		
-		String[] values = { 
-				String.valueOf( history.isEnabled()),
-				String.valueOf( subs.isPublic()),
-				String.valueOf( history.isAutoDownload()),
-				String.valueOf( subs.isAutoDownloadSupported()),
-				String.valueOf( history.getCheckFrequencyMins() + " " + MessageText.getString( "ConfigView.text.minutes")),
-				df.format(new Date( history.getLastScanTime())),
-				df.format(new Date( history.getLastNewResultTime())),
-				df.format(new Date( history.getNextScanTime())),
-				(last_error.length()==0?MessageText.getString("PeersView.uniquepiece.none"):last_error),
-				String.valueOf( history.getNumRead()),
-				String.valueOf( history.getNumUnread()),
-				String.valueOf( subs.getAssociationCount()),
-				String.valueOf( subs.getVersion()),
-				subs.getHighestVersion() > subs.getVersion()?String.valueOf( subs.getHighestVersion()):null,
-				subs.getCachedPopularity()<=1?null:String.valueOf( subs.getCachedPopularity()),
-				engine_str,
-				auth_str,
-				category_str,
-			};
-		
-		new PropertiesWindow( subs.getName(), keys, values );
-	}
-	
-	private String
-	toString(
-		String[]	strs )
-	{
-		String	res = "";
-		
-		for(int i=0;i<strs.length;i++){
-			res += (i==0?"":",") + strs[i];
-		}
-		
-		return( res );
 	}
 	
 	protected Graphic
@@ -1918,724 +1126,5 @@ SubscriptionManagerUI
 		icon_list.add( graphic );
 		
 		return( graphic );
-	}
-	
-	protected static class
-	subscriptionView
-		extends 	AbstractIView
-		implements 	ViewTitleInfo,OpenCloseSearchDetailsListener
-	{
-		private Subscription	subs;
-		
-		private Composite		parent_composite;
-		private Composite		composite;
-				
-		//private Label			info_lab;
-		//private Label			info_lab2;
-		//private StyledText	json_area;
-		//private Composite 		controls;
-		
-		private Browser			mainBrowser;
-		private Browser			detailsBrowser;
-
-		private SideBarVitalityImage spinnerImage;
-		
-		protected
-		subscriptionView(
-			Subscription		_subs )
-		{
-			subs = _subs;
-		}
-		
-		public void delete() {
-			super.delete();
-		}
-		
-		public Object 
-		getTitleInfoProperty(
-			int propertyID ) 
-		{
-			switch( propertyID ){
-			
-				case ViewTitleInfo.TITLE_TEXT:{
-					
-					return( subs.getName());
-				}
-				case ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP:{
-				
-					long	pop = subs.getCachedPopularity();
-					
-					String res = subs.getName();
-					
-					if ( pop > 1 ){
-						
-						res += " (" + MessageText.getString("subscriptions.listwindow.popularity").toLowerCase() + "=" + pop + ")";
-					}
-					
-					return( res );
-				}
-				case ViewTitleInfo.TITLE_INDICATOR_TEXT :{
-					if(subs.getHistory().getNumUnread() > 0) {
-						return ( "" + subs.getHistory().getNumUnread());
-					}
-					return null;
-				}
-			}
-			
-			return( null );
-		}
-
-		public void 
-		initialize(
-			Composite _parent_composite )
-		{  
-			parent_composite	= _parent_composite;
-			
-			parent_composite.addListener(
-				SWT.Show,
-				new Listener()
-				{
-					public void 
-					handleEvent(
-						Event arg0 )
-					{
-						createBrowsers();
-					}				
-				});
-			
-			parent_composite.addListener(
-					SWT.Hide,
-					new Listener()
-					{
-						public void 
-						handleEvent(
-							Event arg0 )
-						{
-							if (spinnerImage != null) {
-								spinnerImage.setVisible(false);
-							}
-							destroyBrowsers();
-						}				
-					});
-			
-			composite = new Composite( parent_composite, SWT.NULL );
-			
-			composite.setLayout(new FormLayout());
-			
-			//GridData grid_data = new GridData(GridData.FILL_BOTH );
-			//composite.setLayoutData(grid_data);
-			//FormData data;
-
-				// control area
-			
-			/*
-			controls = new Composite(composite, SWT.NONE);
-			GridLayout layout = new GridLayout();
-			layout.numColumns = 1;
-			layout.marginHeight = 0;
-			layout.marginWidth = 0;
-			controls.setLayout(layout);
-			
-			data = new FormData();
-			data.left = new FormAttachment(0,0);
-			data.right = new FormAttachment(100,0);
-			data.top = new FormAttachment(0,0);
-			controls.setLayoutData(data);
-			
-			GridData grid_data;
-
-			info_lab = new Label( controls, SWT.NULL );
-			grid_data = new GridData(GridData.FILL_HORIZONTAL);
-			info_lab.setLayoutData(grid_data);
-		
-				
-			info_lab2 = new Label( controls, SWT.NULL );
-			grid_data = new GridData(GridData.FILL_HORIZONTAL);
-			info_lab2.setLayoutData(grid_data);
-			
-			json_area = new StyledText(controls,SWT.BORDER);
-			grid_data = new GridData(GridData.FILL_HORIZONTAL);
-			grid_data.heightHint = 50;
-			json_area.setLayoutData(grid_data);
-			json_area.setWordWrap(true);
-			*/
-			
-			subs.addListener(
-				new SubscriptionListener()
-				{
-					public void 
-					subscriptionChanged(
-						Subscription subs ) 
-					{
-						Utils.execSWTThread(
-							new Runnable()
-							{
-								public void
-								run()
-								{
-									updateInfo();
-								}
-							});
-					}
-					
-					public void
-					subscriptionDownloaded(
-						Subscription		subs,
-						boolean				auto )
-					{
-						if ( auto ){
-							
-							updateBrowser( true );
-						}
-					}
-				});
-						
-			updateInfo();
-		}
-		  
-		
-		protected void
-		createBrowsers()
-		{
-			try{
-				mainBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
-				mainBrowser.addDisposeListener(new DisposeListener() {
-					public void widgetDisposed(DisposeEvent e) {
-						((Browser)e.widget).setUrl("about:blank");
-						((Browser)e.widget).setVisible(false);
-						while (!e.display.isDisposed() && e.display.readAndDispatch());
-					}
-				});
-				BrowserContext context = 
-					new BrowserContext("browser-window"	+ Math.random(), mainBrowser, null, true);
-				
-				context.addListener(new BrowserContext.loadingListener(){
-					public void browserLoadingChanged(boolean loading, String url) {
-						if (spinnerImage != null) {
-							spinnerImage.setVisible(loading);
-						}
-					}
-				});
-				
-				context.addMessageListener(new TorrentListener());
-				context.addMessageListener(new VuzeListener());
-				context.addMessageListener(new DisplayListener(mainBrowser));
-				context.addMessageListener(new ConfigListener(mainBrowser));
-				context.addMessageListener(
-						new MetaSearchListener( this ));
-				
-				ContentNetwork contentNetwork = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
-						context.getContentNetworkID());
-				// contentNetwork won't be null because a new browser context
-				// has the default content network
-				
-				String url = contentNetwork.getSubscriptionURL(subs.getID());
-					
-				Boolean	edit_mode = (Boolean)subs.getUserData( SUB_EDIT_MODE_KEY );
-				
-				if ( edit_mode != null ){
-				
-					if ( edit_mode.booleanValue()){
-						
-						url += EDIT_MODE_MARKER;
-					}
-					
-					subs.setUserData( SUB_EDIT_MODE_KEY, null );
-				}
-								
-				mainBrowser.setUrl(url);
-				mainBrowser.setData("StartURL", url);
-				
-				FormData data = new FormData();
-				data.left = new FormAttachment(0,0);
-				data.right = new FormAttachment(100,0);
-				data.top = new FormAttachment(composite,0);
-				data.bottom = new FormAttachment(100,0);
-				mainBrowser.setLayoutData(data);
-				
-				detailsBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
-				detailsBrowser.addDisposeListener(new DisposeListener() {
-					public void widgetDisposed(DisposeEvent e) {
-						((Browser)e.widget).setUrl("about:blank");
-						((Browser)e.widget).setVisible(false);
-						while (!e.display.isDisposed() && e.display.readAndDispatch());
-					}
-				});
-				BrowserContext detailsContext = 
-					new BrowserContext("browser-window"	+ Math.random(), detailsBrowser, null, false);
-				detailsContext.addListener(new BrowserContext.loadingListener(){
-					public void browserLoadingChanged(boolean loading, String url) {
-						if (spinnerImage != null) {
-							spinnerImage.setVisible(loading);
-						}
-					}
-				});
-				
-				ClientMessageContext.torrentURLHandler url_handler =
-					new ClientMessageContext.torrentURLHandler()
-					{
-						public void 
-						handleTorrentURL(
-							final String url ) 
-						{
-							Utils.execSWTThreadWithObject(
-								"SMUI",
-								new AERunnableObject()
-								{
-									public Object
-									runSupport()
-									{
-										String subscriptionId 		= (String)detailsBrowser.getData("subscription_id");
-										String subscriptionResultId = (String)detailsBrowser.getData("subscription_result_id");
-				
-										if ( subscriptionId != null && subscriptionResultId != null ){
-											
-											Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( subscriptionId );
-										
-											if ( subs != null ){
-												
-												subs.addPotentialAssociation( subscriptionResultId, url );
-											}
-										}
-										
-										return( null );
-									}
-								},
-								10*1000 );
-						}
-					};
-					
-				detailsContext.setTorrentURLHandler( url_handler );
-				
-				TorrentListener torrent_listener = new TorrentListener();
-				
-				torrent_listener.setTorrentURLHandler( url_handler );
-				
-				detailsContext.addMessageListener( torrent_listener );
-				detailsContext.addMessageListener(new VuzeListener());
-				detailsContext.addMessageListener(new DisplayListener(detailsBrowser));
-				detailsContext.addMessageListener(new ConfigListener(detailsBrowser));
-				url = "about:blank";
-				detailsBrowser.setUrl(url);
-				detailsBrowser.setData("StartURL", url);
-				
-				final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
-					public void cookiesFound(String cookies) {
-						detailsBrowser.setData("current-cookies", cookies);
-					}
-				},detailsBrowser);
-				
-				cookieListener.hook();
-				
-				data = new FormData();
-				data.left = new FormAttachment(0,0);
-				data.right = new FormAttachment(100,0);
-				data.top = new FormAttachment(mainBrowser,0);
-				data.bottom = new FormAttachment(100,0);
-				detailsBrowser.setLayoutData(data);
-								
-				mainBrowser.setVisible( true );
-				detailsBrowser.setVisible( false );
-				//detailsBrowser.set
-				mainBrowser.getParent().layout(true,true);
-				
-				
-				ISelectedContent[] sels = {
-					new SubscriptionSelectedContent( 
-						new ToolBarEnabler()
-						{
-							  public boolean 
-							  isEnabled(
-								  String itemKey )
-							  {
-								  return( "share".equals(itemKey) || "remove".equals(itemKey));
-							  }
-							  
-							  public boolean 
-							  isSelected(
-								  String itemKey )
-							  {
-								  return( false );
-							  }
-							  
-							  public void 
-							  itemActivated(
-								String itemKey )
-							  {
-								  removeWithConfirm( subs );
-							  }
-						}, 
-						subs )};
-								
-				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler", sels );
-				
-			}catch( Throwable e ){
-			
-				Debug.printStackTrace(e);
-			}
-		}
-		
-		protected void
-		destroyBrowsers()
-		{
-			if ( mainBrowser != null ){
-			
-				mainBrowser.dispose();
-				
-				mainBrowser = null;
-			}
-			
-			if ( detailsBrowser != null ){
-				
-				detailsBrowser.dispose();
-
-				detailsBrowser = null;
-			}
-		}
-		
-		public void closeSearchResults(final Map params) {
-			Utils.execSWTThread(new AERunnable() {
-
-				public void runSupport() {
-					detailsBrowser.setVisible(false);
-					
-					FormData gd = (FormData) mainBrowser.getLayoutData();
-					gd.bottom = new FormAttachment(100, 0);
-					mainBrowser.setLayoutData(gd);
-		
-					mainBrowser.getParent().layout(true);
-					detailsBrowser.setUrl("about:blank");
-					//mainBrowser.setUrl( (String)mainBrowser.getData( "StartURL" ));
-				}
-			});
-		}
-		
-		public void openSearchResults(final Map params) {
-			Utils.execSWTThread(new AERunnable() {
-
-				public void runSupport() {
-					String url = MapUtils.getMapString(params, "url",
-							"http://google.com/search?q=" + Math.random());
-					if (UrlFilter.getInstance().urlCanRPC(url)) {
-						url = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(url, false, true);
-					}
-					
-					//Gudy, Not Tux, Listener Added
-					String listenerAdded = (String) detailsBrowser.getData("g.nt.la");
-					if(listenerAdded == null) {
-						detailsBrowser.setData("g.nt.la","");
-						detailsBrowser.addProgressListener(new ProgressListener() {
-							public void changed(ProgressEvent event) {}
-							
-							public void completed(ProgressEvent event) {
-								Browser search = (Browser) event.widget;
-								String execAfterLoad = (String) search.getData("execAfterLoad");
-								//Erase it, so that it's only used once after the page loads
-								search.setData("execAfterLoad",null);
-								if(execAfterLoad != null && ! execAfterLoad.equals("")) {
-									//String execAfterLoadDisplay = execAfterLoad.replaceAll("'","\\\\'");
-									//search.execute("alert('injecting script : " + execAfterLoadDisplay + "');");
-									boolean result = search.execute(execAfterLoad);
-									//System.out.println("Injection : " + execAfterLoad + " (" + result + ")");
-								}
-		
-							}
-						});
-					}
-					
-					
-					//Store the "css" match string in the search cdp browser object
-					String execAfterLoad = MapUtils.getMapString(params, "execAfterLoad", null);
-					
-					detailsBrowser.setData("execAfterLoad",execAfterLoad);
-					
-					
-					detailsBrowser.setData("subscription_id", MapUtils.getMapString(params, "subs_id", null));
-					detailsBrowser.setData("subscription_result_id", MapUtils.getMapString(params, "subs_rid", null));
-								
-					detailsBrowser.setUrl(url);
-					detailsBrowser.setData("StartURL", url);
-					detailsBrowser.setVisible(true);
-		
-					FormData data = (FormData) mainBrowser.getLayoutData();
-					data.bottom = null;
-					data.height = MapUtils.getMapInt(params, "top-height", 120);
-					//mainBrowser.setLayoutData(data);
-		
-					mainBrowser.getParent().layout(true,true);
-				}
-			});
-				
-		}
-		
-		protected void
-		updateBrowser(
-			final boolean	is_auto )
-		{
-			if ( mainBrowser != null ){
-				
-				Utils.execSWTThread(
-					new Runnable()
-					{
-						public void
-						run()
-						{
-							if ( mainBrowser != null && mainBrowser.isVisible()){
-							
-								String url = (String)mainBrowser.getData( "StartURL" );
-
-									// see if end of edit process indicated by the subscription being
-									// re-downloaded on auto-mode
-								
-								if ( is_auto && url.endsWith( EDIT_MODE_MARKER )){
-									
-									url = url.substring(0,url.lastIndexOf( EDIT_MODE_MARKER ));
-								
-									mainBrowser.setData( "StartURL", url );
-								}
-								
-								mainBrowser.setUrl( url );
-							}
-						}
-					});
-			}
-		}
-		
-		protected void
-		updateInfo()
-		{
-			/*
-			String	engine_str = "";
-			
-			try{
-				Engine engine = subs.getEngine();
-				
-				engine_str = engine.getString();
-				
-			}catch( Throwable e ){
-				
-				engine_str = Debug.getNestedExceptionMessage(e);
-				
-				Debug.out(e);
-			}
-			
-			info_lab.setText( 
-					"ID=" + subs.getID() +
-					", version=" + subs.getVersion() +
-					", subscribed=" + subs.isSubscribed() +
-					", public=" + subs.isPublic() +
-					", mine=" + subs.isMine() +
-					", popularity=" + subs.getCachedPopularity() +
-					", associations=" + subs.getAssociationCount() +
-					", engine=" + engine_str );
-			
-			SubscriptionHistory history = subs.getHistory();
-			
-			info_lab2.setText( 
-					"History: " + 
-					"enabled=" + history.isEnabled() +
-					", auto=" + history.isAutoDownload() +
-					", last_scan=" + new SimpleDateFormat().format(new Date( history.getLastScanTime())) +
-					", next_scan=" + new SimpleDateFormat().format(new Date( history.getNextScanTime())) +
-					", last_new=" + new SimpleDateFormat().format(new Date( history.getLastNewResultTime())) +
-					", read=" + history.getNumRead() +
-					" ,unread=" + history.getNumUnread() +
-					", error=" + history.getLastError() + " [af=" + history.isAuthFail() + "]" );
-					
-			try{
-			
-				json_area.setText( subs.getJSON());
-				
-			}catch( Throwable e ){
-				
-				e.printStackTrace();
-			}
-			*/
-		}
-		
-		public Composite 
-		getComposite()
-		{ 
-			return( composite );
-		}
-		
-		public String 
-		getFullTitle() 
-		{
-			return( subs.getName());
-		}
-		
-		public void resizeMainBrowser() {
-			if ( mainBrowser != null ){
-				
-				Utils.execSWTThreadLater(0,
-					new Runnable()
-					{
-						public void
-						run()
-						{
-							if ( mainBrowser != null && ! mainBrowser.isDisposed() && mainBrowser.isVisible()){
-							
-								FormData data = (FormData) mainBrowser.getLayoutData();
-								data.bottom = new FormAttachment(100,-1);
-								mainBrowser.getParent().layout(true);
-								Utils.execSWTThreadLater(0,
-										new Runnable() {
-									public void run() {
-										if ( mainBrowser != null && ! mainBrowser.isDisposed() && mainBrowser.isVisible()){
-											
-											FormData data = (FormData) mainBrowser.getLayoutData();
-											data.bottom = new FormAttachment(100,0);
-											mainBrowser.getParent().layout(true);
-										}
-									}
-								}
-								);
-							}
-						}
-					});
-			}
-			
-		}
-		
-		public void resizeSecondaryBrowser() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		/**
-		 * @param spinnerImage
-		 *
-		 * @since 3.1.1.1
-		 */
-		public void setSpinnerImage(SideBarVitalityImage spinnerImage) {
-			this.spinnerImage = spinnerImage;
-		}
-	}
-	
-	public static class
-	sideBarItem
-	{
-		private subscriptionView	view;
-		private SideBarEntrySWT		sb_entry;
-		private TreeItem			tree_item;
-		private boolean				destroyed;
-		
-		private SideBarVitalityImage	warning;
-		private SideBarVitalityImage 	spinnerImage;
-		
-		protected
-		sideBarItem()
-		{
-		}
-		
-		protected void
-		setTreeItem(
-			TreeItem		_tree_item,
-			SideBarEntrySWT	_sb_entry )
-		{
-			tree_item	= _tree_item;
-			sb_entry	= _sb_entry;
-			
-			warning = sb_entry.addVitalityImage( ALERT_IMAGE_ID );
-			
-			spinnerImage = sb_entry.addVitalityImage("image.sidebar.vitality.dots");
-			
-			spinnerImage.setVisible(false);
-			
-			if ( view != null ){
-				
-				view.setSpinnerImage(spinnerImage);
-			}
-		}
-		
-		protected TreeItem
-		getTreeItem()
-		{
-			return( tree_item );
-		}
-		
-		protected void
-		setView(
-			subscriptionView		_view )
-		{
-			view	= _view;
-			
-			if (view != null) {
-				
-				view.setSpinnerImage( spinnerImage );
-			}
-		}
-		
-		protected subscriptionView
-		getView()
-		{
-			return( view );
-		}
-		
-		protected void
-		setWarning(
-			Subscription	subs )
-		{
-				// possible during initialisation, status will be shown again on complete
-			
-			if ( warning == null ){
-				
-				return;
-			}
-			
-			SubscriptionHistory history = subs.getHistory();
-			
-			String	last_error = history.getLastError();
-
-			boolean	auth_fail = history.isAuthFail();
-			
-				// don't report problem until its happened a few times, but not for auth fails as this is a perm error
-			
-			if ( history.getConsecFails() < 3 && !auth_fail ){
-				
-				last_error = null;
-			}
-			
-			boolean	trouble = last_error != null;
-			
-			if ( trouble ){
-			 
-				warning.setToolTip( last_error );
-				
-				warning.setImageID( auth_fail?AUTH_IMAGE_ID:ALERT_IMAGE_ID );
-				
-				warning.setVisible( true );
-				
-			}else{
-				
-				warning.setVisible( false );
-				
-				warning.setToolTip( "" );
-			}
-		}
-		
-		protected boolean
-		isDestroyed()
-		{
-			return( destroyed );
-		}
-		
-		protected void
-		destroy()
-		{
-			destroyed = true;
-		}
-		
-		public void 
-		activate() 
-		{
-			SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
-			
-			if ( sideBar != null && sb_entry != null ){
-				
-				sideBar.showEntryByID(sb_entry.getId());
-			}
-		}
 	}
 }

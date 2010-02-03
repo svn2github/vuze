@@ -18,9 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
 package com.aelitis.azureus.ui.swt.devices;
-
 
 
 import java.io.File;
@@ -29,14 +27,46 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+
+import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.devices.DeviceManager.DeviceManufacturer;
+import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
+import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
+import com.aelitis.azureus.ui.*;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser;
+import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser;
+import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser.DeviceTemplateClosedListener;
+import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser.ClosedListener;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
+import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
@@ -47,46 +77,7 @@ import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
-import org.gudy.azureus2.plugins.ui.sidebar.*;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.plugins.ui.tables.TableRow;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
-
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.devices.*;
-import com.aelitis.azureus.core.devices.DeviceManager.DeviceManufacturer;
-import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
-import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
-import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.UserPrompterResultListener;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser;
-import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser;
-import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser.DeviceTemplateClosedListener;
-import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser.ClosedListener;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
-import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 public class 
 DeviceManagerUI 
@@ -121,7 +112,7 @@ DeviceManagerUI
 	
 	private boolean		ui_setup;
 	
-	private SideBar		side_bar;
+	private MultipleDocumentInterfaceSWT		mdi;
 	private boolean		sidebar_built;
 	
 	private static final int SBV_SIMPLE		= 0;
@@ -149,6 +140,10 @@ DeviceManagerUI
 	private MenuItemFillListener will_browse_listener;
 	
 	private boolean	offline_menus_setup;
+
+	private MdiEntry main_sb_entry;
+
+	private boolean needsAddAllDevices;
 	
 	
 	static {
@@ -214,11 +209,11 @@ DeviceManagerUI
 	private void uiAttachedAndCoreRunning(AzureusCore core) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+				MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 				
-				if (sideBar != null) {
+				if (mdi != null) {
 					
-					setupUI(sideBar);
+					setupUI(mdi);
 				} else {
 					
 					SkinViewManager.addListener(new SkinViewManagerListener() {
@@ -292,7 +287,7 @@ DeviceManagerUI
 	
 	protected void
 	setupUI(
-		SideBar			_side_bar )	
+		MultipleDocumentInterfaceSWT			mdi )	
 	{
 		synchronized( this ){
 			
@@ -304,9 +299,26 @@ DeviceManagerUI
 			ui_setup = true;
 		}
 		
-		side_bar		= _side_bar;
+		this.mdi		= mdi;
 
 		device_manager 	= DeviceManagerFactory.getSingleton();
+		
+		mdi.registerEntry(SideBar.SIDEBAR_SECTION_DEVICES,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						if ( sidebar_built ){
+							removeAllDevices();
+							
+							buildSideBar( true );
+						} else {
+							buildSideBar(false);
+						}
+							
+						addAllDevices();
+						return main_sb_entry;
+					}
+				});
+
 		
 		device_manager.addListener(new DeviceManagerListener() {
 		
@@ -410,11 +422,12 @@ DeviceManagerUI
 						
 						if ( job_count == 0 || last_job_count == 0 ){
 													
-							SideBarEntrySWT main_sb_entry = SideBar.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+							MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+							MdiEntry main_entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
 	
-							if ( main_sb_entry != null ){
+							if ( main_entry != null ){
 						
-								ViewTitleInfoManager.refreshTitleInfo( main_sb_entry.getTitleInfo());
+								ViewTitleInfoManager.refreshTitleInfo( main_entry.getViewTitleInfo());
 							}
 						}
 						
@@ -425,8 +438,19 @@ DeviceManagerUI
 		
 		setupListeners();
 		
-		buildSideBar( false );
+		//buildSideBar( false );
 		
+		setupConfigUI(); // MDIEntry not required
+
+		if (needsAddAllDevices) {
+  		addAllDevices();
+  		needsAddAllDevices = false;
+		}
+		
+		setupTranscodeMenus(); // MDIEntry not required
+	}
+	
+	public void setupConfigUI() {
 		BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
 				ConfigSection.SECTION_ROOT, "Devices");
 
@@ -633,7 +657,7 @@ DeviceManagerUI
 				{
 					dodm.setOfflineDownloadingEnabled( od_enable.getValue());
 					
-					rebuildSideBar();
+					rebuildSideBarIfExists();
 				}
 			});
 		
@@ -697,13 +721,10 @@ DeviceManagerUI
 				{
 					device_manager.setTiVoEnabled( tivo_enable.getValue());
 					
-					rebuildSideBar();
+					rebuildSideBarIfExists();
 				}
 			});
 		
-		addAllDevices();
-	
-		setupTranscodeMenus();
 	}
 	
 	protected String
@@ -724,8 +745,8 @@ DeviceManagerUI
 					MenuItem menu, 
 					Object target) 
 				{
-					if (target instanceof SideBarEntry) {
-						SideBarEntry info = (SideBarEntry) target;
+					if (target instanceof MdiEntry) {
+						MdiEntry info = (MdiEntry) target;
 						Device device = (Device)info.getDatasource();
 					
 						showProperties( device );
@@ -741,9 +762,9 @@ DeviceManagerUI
 					MenuItem menu, 
 					Object target) 
 				{
-					if (target instanceof SideBarEntry){
+					if (target instanceof MdiEntry){
 						
-						SideBarEntry info = (SideBarEntry) target;
+						MdiEntry info = (MdiEntry) target;
 						
 						Device device = (Device)info.getDatasource();
 					
@@ -760,9 +781,9 @@ DeviceManagerUI
 						MenuItem menu, 
 						Object target) 
 					{
-						if (target instanceof SideBarEntry){
+						if (target instanceof MdiEntry){
 							
-							SideBarEntry info = (SideBarEntry) target;
+							MdiEntry info = (MdiEntry) target;
 							
 							final Device device = (Device)info.getDatasource();
 							
@@ -815,9 +836,9 @@ DeviceManagerUI
 							rows = new Object[]{ targets };
 						}
 						
-						if ( rows.length > 0 && rows[0] instanceof SideBarEntry ){
+						if ( rows.length > 0 && rows[0] instanceof MdiEntry ){
 													
-							SideBarEntry info = (SideBarEntry)rows[0];
+							MdiEntry info = (MdiEntry)rows[0];
 						
 							Device device = (Device)info.getDatasource();
 							
@@ -838,9 +859,9 @@ DeviceManagerUI
 					MenuItem menu, 
 					Object target) 
 				{
-					if (target instanceof SideBarEntry){
+					if (target instanceof MdiEntry){
 						
-						SideBarEntry info = (SideBarEntry) target;
+						MdiEntry info = (MdiEntry) target;
 						
 						Device device = (Device)info.getDatasource();
 					
@@ -872,9 +893,9 @@ DeviceManagerUI
 							rows = new Object[]{ targets };
 						}
 						
-						if ( rows.length > 0 && rows[0] instanceof SideBarEntry ){
+						if ( rows.length > 0 && rows[0] instanceof MdiEntry ){
 													
-							SideBarEntry info = (SideBarEntry)rows[0];
+							MdiEntry info = (MdiEntry)rows[0];
 						
 							Device device = (Device)info.getDatasource();
 					
@@ -914,9 +935,9 @@ DeviceManagerUI
 					MenuItem menu, 
 					Object target) 
 				{
-					if ( target instanceof SideBarEntry ){
+					if ( target instanceof MdiEntry ){
 						
-						SideBarEntry info = (SideBarEntry)target;
+						MdiEntry info = (MdiEntry)target;
 												
 						Object ds = info.getDatasource();
 						
@@ -970,9 +991,9 @@ DeviceManagerUI
 						
 						for ( Object row: rows ){
 							
-							if ( row instanceof SideBarEntry ){
+							if ( row instanceof MdiEntry ){
 								
-								SideBarEntry info = (SideBarEntry)row;
+								MdiEntry info = (MdiEntry)row;
 														
 								Object ds = info.getDatasource();
 								
@@ -1003,13 +1024,13 @@ DeviceManagerUI
 					}
 			
 				};
-		side_bar.addListener(
-			new SideBarListener()
+		mdi.addListener(
+			new MdiListener()
 			{
 				public void 
-				sidebarItemSelected(
-					SideBarEntrySWT new_entry,
-					SideBarEntrySWT old_entry	)
+				mdiEntrySelected(
+					MdiEntry new_entry,
+					MdiEntry old_entry	)
 				{
 					Object data_source = new_entry.getDatasource();
 					
@@ -1082,14 +1103,14 @@ DeviceManagerUI
 					
 					side_bar_hide_rend_gen = COConfigurationManager.getBooleanParameter( CONFIG_VIEW_HIDE_REND_GENERIC, true );
 
-					rebuildSideBar();
+					rebuildSideBarIfExists();
 				}
 			});
 	}
 	
 	protected static void
 	hideIcon(
-		SideBarVitalityImage	x )
+		MdiEntryVitalityImage	x )
 	{
 		if ( x == null ){
 			return;
@@ -1101,7 +1122,7 @@ DeviceManagerUI
 	
 	protected static void
 	showIcon(
-		SideBarVitalityImage	x ,
+		MdiEntryVitalityImage	x ,
 		String					t )
 	{
 		if ( x == null ){
@@ -1113,45 +1134,58 @@ DeviceManagerUI
 	}
 	
 	protected void
+	rebuildSideBarIfExists()
+	{
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		MdiEntry entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+		if (entry != null) {
+			rebuildSideBar();
+		}
+	}
+
+	protected void
 	rebuildSideBar()
 	{
-		if ( sidebar_built ){
 			
-			Utils.execSWTThread(
-					new Runnable()
+		Utils.execSWTThread(
+				new Runnable()
+				{
+					public void
+					run()
 					{
-						public void
-						run()
-						{
+						if ( sidebar_built ){
 							removeAllDevices();
 							
 							buildSideBar( true );
-							
-							addAllDevices();
+						} else {
+							buildSideBar(false);
 						}
-					});
-		}
+							
+						addAllDevices();
+					}
+				});
 	}
 	
-	protected void
+	protected MdiEntry
 	buildSideBar(
 		boolean			rebuild )	
 	{		
-		final SideBarEntrySWT main_sb_entry = SideBar.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		main_sb_entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
 
-		if ( main_sb_entry != null ){
 				
 			MenuManager menu_manager = ui_manager.getMenuManager();
 
-			if ( !rebuild ){
+			if ( main_sb_entry == null ){
 
-				addDefaultDropListener( main_sb_entry );
 				
-				side_bar.createEntryFromSkinRef(null,
+				main_sb_entry = mdi.createEntryFromSkinRef(null,
 						SideBar.SIDEBAR_SECTION_DEVICES, "devicesview",
 						MessageText.getString("devices.view.title"),
 						null, null, false, -1);
+				main_sb_entry.setExpanded(true);
 
+				addDefaultDropListener( main_sb_entry );
 
 				/* and away you go!
 				SideBarVitalityImage addDevice = main_sb_entry.addVitalityImage("image.sidebar.subs.add");
@@ -1172,27 +1206,31 @@ DeviceManagerUI
 				*/
 				
 				if (device_manager.getTranscodeManager().getProviders().length == 0) {
-					SideBarVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
-					turnon.addListener(new SideBarVitalityImageListener() {
-						public void sbVitalityImage_clicked(int x, int y) {
-							DevicesFTUX.ensureInstalled();
-						}
-					});
+					MdiEntryVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
+					if (turnon != null) {
+  					turnon.addListener(new MdiEntryVitalityImageListener() {
+  						public void mdiEntryVitalityImage_clicked(int x, int y) {
+  							DevicesFTUX.ensureInstalled();
+  						}
+  					});
+					}
 				}
-				SideBarVitalityImage beta = main_sb_entry.addVitalityImage("image.sidebar.beta");
-				beta.setAlignment(SWT.LEFT);
+				MdiEntryVitalityImage beta = main_sb_entry.addVitalityImage("image.sidebar.beta");
+				if (beta != null) {
+					beta.setAlignment(SWT.LEFT);
+				}
 				
 				main_sb_entry.setImageLeftID( "image.sidebar.devices" );
 					
 				
-				main_sb_entry.setTitleInfo(
+				main_sb_entry.setViewTitleInfo(
 					new ViewTitleInfo() 
 					{
 						private int last_indicator = 0;
 						
-						SideBarVitalityImage spinner = main_sb_entry.addVitalityImage( SPINNER_IMAGE_ID );
-						SideBarVitalityImage warning = main_sb_entry.addVitalityImage( ALERT_IMAGE_ID );
-						SideBarVitalityImage info	 = main_sb_entry.addVitalityImage( INFO_IMAGE_ID );
+						MdiEntryVitalityImage spinner = main_sb_entry.addVitalityImage( SPINNER_IMAGE_ID );
+						MdiEntryVitalityImage warning = main_sb_entry.addVitalityImage( ALERT_IMAGE_ID );
+						MdiEntryVitalityImage info	 = main_sb_entry.addVitalityImage( INFO_IMAGE_ID );
 
 						{
 							hideIcon( spinner );
@@ -1204,7 +1242,7 @@ DeviceManagerUI
 						getTitleInfoProperty(
 							int propertyID ) 
 						{
-							boolean expanded = main_sb_entry.getTreeItem().getExpanded();
+							boolean expanded = main_sb_entry.isExpanded();
 														
 							if ( propertyID == TITLE_TEXT ){
 								
@@ -1492,9 +1530,9 @@ DeviceManagerUI
 				
 				categories.add( internet_category );
 			}
-		}
 		
 		sidebar_built = true;
+		return main_sb_entry;
 	}
 	
 	
@@ -1978,18 +2016,19 @@ DeviceManagerUI
 										
 									String key = parent + "/" + device.getID() + ":" + nextSidebarID();
 
-									final SideBarEntrySWT	entry;
+									final MdiEntry	entry;
 									
 									int	device_type = device.getType();
 									
 									if ( device_type == Device.DT_MEDIA_RENDERER ){
 
 										entry = 
-											side_bar.createEntryFromSkinRef(
+											mdi.createEntryFromSkinRef(
 												parent,
 												key, "devicerendererview",
 												device.getName(),
 												view, null, false, -1);
+										entry.setExpanded(true);
 										
 										String id = null;
 										
@@ -2027,12 +2066,13 @@ DeviceManagerUI
 									}else if ( device_type == Device.DT_OFFLINE_DOWNLOADER ){
 										
 										entry = 
-											side_bar.createEntryFromSkinRef(
+											mdi.createEntryFromSkinRef(
 												parent,
 												key, "devicesodview",
 												device.getName(),
 												view, null, false, -1);
-										
+										entry.setExpanded(true);
+
 											
 										DeviceOfflineDownloader dod = (DeviceOfflineDownloader)device;
 										
@@ -2057,34 +2097,33 @@ DeviceManagerUI
 
 									}else{
 										
-										side_bar.createTreeItemFromIView(
+										entry = mdi.createEntryFromIView(
 												parent, 
 												view,
 												key, 
 												device, 
 												false, 
 												false,
-												false );
-
-										entry = SideBar.getEntry( key );
+												true );
+										entry.setExpanded(true);
 									}
 									
 									entry.setDatasource( device );
 									
 									entry.setLogID(parent + "-" + device.getName());
 
-									new_di.setTreeItem( entry.getTreeItem(), entry );
+									new_di.setMdiEntry( entry );
 									
 									setStatus( device, new_di );
 																			
 									if ( device instanceof TranscodeTarget ){
 										
 										entry.addListener(
-											new SideBarDropListener()
+											new MdiEntryDropListener()
 											{
 												public boolean 
-												sideBarEntryDrop(
-													SideBarEntry 		entry, 
+												mdiEntryDrop(
+													MdiEntry 		entry, 
 													Object 				payload  )
 												{
 													return handleDrop((TranscodeTarget)device, payload );
@@ -2246,7 +2285,7 @@ DeviceManagerUI
 												selected(
 													MenuItem menu, Object target) 
 												{
-													Shell shell = entry.getTreeItem().getDisplay().getActiveShell();
+													Shell shell = Utils.findAnyShell();
 													
 													DirectoryDialog dd = new DirectoryDialog( shell );
 													
@@ -2559,32 +2598,8 @@ DeviceManagerUI
 
 			if ( existing_di != null ){
 				
-				Utils.execSWTThread(
-						new Runnable()
-						{
-							public void
-							run()
-							{
-								synchronized( DeviceManagerUI.this ){
-
-									TreeItem ti = existing_di.getTreeItem();
-									
-									if ( ti != null ){
-										
-										TreeItem x = ti;
-										
-										while( x != null ){
-											
-											x.setExpanded( true );
-											
-											x = x.getParentItem();
-										}
-																				
-										ti.getParent().setSelection( ti );
-									}
-								}
-							}
-						});
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				mdi.showEntry(existing_di.getMdiEntry());
 			}
 		}
 	}
@@ -2848,6 +2863,10 @@ DeviceManagerUI
 	protected void
 	addAllDevices()
 	{
+		if (device_manager_listener == null) {
+			needsAddAllDevices = true;
+			return;
+		}
 		device_manager.addListener( device_manager_listener );
 			
 		Utils.execSWTThread(
@@ -2936,8 +2955,8 @@ DeviceManagerUI
 			view = new categoryViewGeneric( this, device_type, category_title );
 		}
 		
-		TreeItem item = 
-			side_bar.createTreeItemFromIView(
+		MdiEntry	entry = 
+			mdi.createEntryFromIView(
 				SideBar.SIDEBAR_SECTION_DEVICES, 
 				view,
 				key, 
@@ -2945,28 +2964,27 @@ DeviceManagerUI
 				false, 
 				false,
 				true );
-
-		SideBarEntrySWT	entry = SideBar.getEntry( key );
+		entry.setExpanded(true);
 
 		addDefaultDropListener( entry );
 		
 		entry.setImageLeftID( category_image_id );
 				
-		view.setDetails( entry, item, key );
+		view.setDetails( entry, key );
 		
 		return( view );
 	}
 	
 	protected void
 	addDefaultDropListener(
-		SideBarEntrySWT		entry )
+		MdiEntry		mainSbEntry )
 	{
-		entry.addListener(
-				new SideBarDropListener()
+		mainSbEntry.addListener(
+				new MdiEntryDropListener()
 				{
 					public boolean 
-					sideBarEntryDrop(
-						SideBarEntry 		entry, 
+					mdiEntryDrop(
+						MdiEntry 		entry, 
 						Object 				payload  )
 					{
 						return handleDrop(null, payload);
@@ -3001,14 +3019,14 @@ DeviceManagerUI
 		private int				device_type;
 		private String			title;
 			
-		private TreeItem		tree_item;
 		private String			key;
 			
-		private SideBarVitalityImage spinner;
-		private SideBarVitalityImage warning;
-		private SideBarVitalityImage info;
+		private MdiEntryVitalityImage spinner;
+		private MdiEntryVitalityImage warning;
+		private MdiEntryVitalityImage info;
 		
 		private int				last_indicator;
+		private MdiEntry mdiEntry;
 		
 		protected
 		categoryView(
@@ -3023,22 +3041,22 @@ DeviceManagerUI
 		
 		protected void
 		setDetails(
-			SideBarEntrySWT	_entry,
-			TreeItem		_ti,
+			MdiEntry	entry,
 			String			_key )
 		{
-			tree_item 	= _ti;
+			mdiEntry = entry;
+			
 			key			= _key;
 			
-			spinner = _entry.addVitalityImage( SPINNER_IMAGE_ID );
+			spinner = entry.addVitalityImage( SPINNER_IMAGE_ID );
 
 			hideIcon( spinner );
 			
-			warning = _entry.addVitalityImage( ALERT_IMAGE_ID );
+			warning = entry.addVitalityImage( ALERT_IMAGE_ID );
 
 			hideIcon( warning );
 			
-			info = _entry.addVitalityImage( INFO_IMAGE_ID );
+			info = entry.addVitalityImage( INFO_IMAGE_ID );
 
 			hideIcon( info );
 		}
@@ -3066,7 +3084,7 @@ DeviceManagerUI
 		getTitleInfoProperty(
 			int propertyID ) 
 		{
-			boolean expanded = tree_item != null && tree_item.getExpanded();
+			boolean expanded = mdiEntry != null && mdiEntry.isExpanded();
 			
 			if ( propertyID == TITLE_TEXT ){
 				
@@ -3174,7 +3192,7 @@ DeviceManagerUI
 		{
 			if ( Utils.isThisThreadSWT()){
 				
-				tree_item.dispose();
+				mdiEntry.close(false);
 				
 				delete();
 				
@@ -3186,8 +3204,8 @@ DeviceManagerUI
 							public void
 							run()
 							{
-								tree_item.dispose();
-								
+								mdiEntry.close(false);
+																
 								delete();
 							}
 						});
@@ -3407,13 +3425,16 @@ DeviceManagerUI
 			
 			while( key != null ){
 			
-				SideBarEntrySWT parent = SideBar.getEntry( key );
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				MdiEntry parent = mdi.getEntry( key );
 			
 				if ( parent != null ){
 				
-					ViewTitleInfoManager.refreshTitleInfo(parent.getTitleInfo());
+					ViewTitleInfoManager.refreshTitleInfo(parent.getViewTitleInfo());
 					
 					key = parent.getParentID();
+				} else {
+					key = null;
 				}
 			}
 		}
@@ -3442,13 +3463,12 @@ DeviceManagerUI
 	deviceItem
 	{		
 		private deviceView			view;
-		private SideBarEntrySWT		sb_entry;
-		private TreeItem			tree_item;
+		private MdiEntry		sb_entry;
 		private boolean				destroyed;
 		
-		private SideBarVitalityImage	warning;
-		private SideBarVitalityImage	spinner;
-		private SideBarVitalityImage	info;
+		private MdiEntryVitalityImage	warning;
+		private MdiEntryVitalityImage	spinner;
+		private MdiEntryVitalityImage	info;
 		
 		protected
 		deviceItem()
@@ -3456,11 +3476,9 @@ DeviceManagerUI
 		}
 		
 		protected void
-		setTreeItem(
-			TreeItem		_tree_item,
-			SideBarEntrySWT	_sb_entry )
+		setMdiEntry(
+			MdiEntry	_sb_entry )
 		{
-			tree_item	= _tree_item;
 			sb_entry	= _sb_entry;
 			
 			warning = sb_entry.addVitalityImage( ALERT_IMAGE_ID );
@@ -3476,14 +3494,8 @@ DeviceManagerUI
 			hideIcon( info );
 		}
 		
-		protected TreeItem
-		getTreeItem()
-		{
-			return( tree_item );
-		}
-		
-		protected SideBarEntrySWT
-		getSideBarEntry()
+		protected MdiEntry
+		getMdiEntry()
 		{
 			return( sb_entry );
 		}
@@ -3560,33 +3572,19 @@ DeviceManagerUI
 		{
 			destroyed = true;
 			
-			Utils.execSWTThread(
-					new Runnable()
-					{
-						public void
-						run()
-						{
-							synchronized( DeviceManagerUI.this ){
-								
-								if ( tree_item != null && !tree_item.isDisposed()){
-									
-									tree_item.dispose();
-								}
-							}
-							
-							view.delete();
-						}
-					});
+			if (sb_entry != null) {
+				sb_entry.close(false);
+			}
 		}
 		
 		public void 
 		activate() 
 		{
-			SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 			
-			if ( sideBar != null && sb_entry != null ){
+			if ( mdi != null && sb_entry != null ){
 				
-				sideBar.showEntryByID(sb_entry.getId());
+				mdi.showEntryByID(sb_entry.getId());
 			}
 		}
 	}

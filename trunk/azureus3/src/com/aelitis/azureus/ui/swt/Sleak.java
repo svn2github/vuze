@@ -36,8 +36,9 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.widgets.List;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.launcher.Launcher;
-import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 
 /**
  * Code to detect swt leak
@@ -458,7 +459,9 @@ public class Sleak
 		Display display = new Display(data);
 		Sleak sleak = new Sleak();
 		sleak.open();
-		Initializer.main(args);
+
+		AzureusCore		core = AzureusCoreFactory.create();
+	 	new Initializer( core, null,args);
 		
 		while (!sleak.shell.isDisposed()) {
 			if (!display.readAndDispatch()) {

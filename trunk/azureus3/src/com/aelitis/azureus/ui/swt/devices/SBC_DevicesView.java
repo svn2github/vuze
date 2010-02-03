@@ -25,10 +25,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
@@ -38,10 +35,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -51,27 +44,25 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.devices.*;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
 import com.aelitis.azureus.ui.swt.devices.columns.*;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 /**
  * @author TuxPaper
@@ -106,7 +97,7 @@ public class SBC_DevicesView
 	
 	private TableViewSWTImpl<TranscodeFile> tvFiles;
 
-	private SideBarEntrySWT sidebarEntry;
+	private MdiEntrySWT mdiEntry;
 
 	private Composite tableJobsParent;
 
@@ -128,11 +119,11 @@ public class SBC_DevicesView
 
 		transcode_queue = transcode_manager.getQueue();
 
-		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (sidebar != null) {
-			sidebarEntry = sidebar.getCurrentEntry();
-			sidebarEntry.setIconBarEnabler(this);
-			device = (Device) sidebarEntry.getDatasource();
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi != null) {
+			mdiEntry = mdi.getCurrentEntrySWT();
+			mdiEntry.setIconBarEnabler(this);
+			device = (Device) mdiEntry.getDatasource();
 		}
 
 		if (device instanceof TranscodeTarget) {
@@ -582,7 +573,7 @@ public class SBC_DevicesView
 		
 		tvFiles.initialize(tableJobsParent);
 
-		control.layout(true);
+		control.layout(true, true);
 	}
 
 	/**

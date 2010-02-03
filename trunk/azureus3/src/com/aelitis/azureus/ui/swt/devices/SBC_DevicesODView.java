@@ -19,47 +19,38 @@
 package com.aelitis.azureus.ui.swt.devices;
 
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
-
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.*;
-
+import org.gudy.azureus2.ui.swt.IconBarEnabler;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.devices.Device;
-import com.aelitis.azureus.core.devices.DeviceListener;
-import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
-import com.aelitis.azureus.core.devices.DeviceOfflineDownloader;
-import com.aelitis.azureus.core.devices.DeviceOfflineDownloaderListener;
+import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
 import com.aelitis.azureus.ui.swt.devices.columns.*;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 
 public class 
@@ -75,7 +66,7 @@ SBC_DevicesODView
 	
 	private TableViewSWTImpl<DeviceOfflineDownload> tv_downloads;
 
-	private SideBarEntrySWT 	sidebar_entry;
+	private MdiEntrySWT 	mdi_entry;
 	private Composite			control_parent;
 	
 
@@ -94,15 +85,15 @@ SBC_DevicesODView
 				}
 			});
 
-		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		
-		if ( sidebar != null ){
+		if ( mdi != null ){
 			
-			sidebar_entry = sidebar.getCurrentEntry();
+			mdi_entry = mdi.getCurrentEntrySWT();
 			
-			sidebar_entry.setIconBarEnabler( this );
+			mdi_entry.setIconBarEnabler( this );
 			
-			device = (DeviceOfflineDownloader)sidebar_entry.getDatasource();
+			device = (DeviceOfflineDownloader)mdi_entry.getDatasource();
 		}
 		
 		return null;

@@ -646,6 +646,21 @@ public class SWTSkin
 		}
 	}
 	*/
+	
+	public void layout(SWTSkinObject soStart) {
+		if (soStart instanceof SWTSkinObjectContainer) {
+			SWTSkinObjectContainer soContainer = (SWTSkinObjectContainer) soStart;
+			SWTSkinObject[] children = soContainer.getChildren();
+			for (SWTSkinObject so : children) {
+				layout(so);
+			}
+		}
+	
+		if (DEBUGLAYOUT) {
+			System.out.println("attachControl " + soStart.toString());
+		}
+		attachControl(soStart);
+	}
 
 	public void layout() {
 		if (DEBUGLAYOUT) {
@@ -669,6 +684,9 @@ public class SWTSkin
 		// Disabled due to Browser flickering
 		//addPaintListenerToAll(shell);
 
+		if (DEBUGLAYOUT) {
+			System.out.println("====  Applied Layout");
+		}
 		bLayoutComplete = true;
 
 		int width = skinProperties.getIntValue(startID + ".width", -1);
@@ -987,7 +1005,6 @@ public class SWTSkin
 						Object params) {
 					if (eventType == EVENT_SHOW) {
 						skinObject.removeListener(this);
-						bLayoutComplete = false;
 						addContainerChildren(skinObject, sItemsLater, properties);
 						layout();
 					}
@@ -996,11 +1013,6 @@ public class SWTSkin
 			});
 		}
 		
-
-		if (bLayoutComplete) {
-			attachControl(skinObject);
-		}
-
 		return skinObject;
 	}
 
@@ -1025,9 +1037,18 @@ public class SWTSkin
 			properties = new SWTSkinPropertiesParamImpl(properties, paramValues);
 		}
 
+		SWTSkinObject[] soChildren = new SWTSkinObject[sItems.length];
 		for (int i = 0; i < sItems.length; i++) {
 			String sItemID = sItems[i];
-			linkIDtoParent(properties, sItemID, sItemID, skinObject, false, true);
+			soChildren[i] = linkIDtoParent(properties, sItemID, sItemID, skinObject, false, true);
+		}
+		if (bLayoutComplete) {
+			// attach only after all children are added
+			for (SWTSkinObject so : soChildren) {
+				if (so != null) {
+					attachControl(so);
+				}
+			}
 		}
 	}
 
@@ -1090,10 +1111,6 @@ public class SWTSkin
 			}
 		}
 
-		if (bLayoutComplete) {
-			attachControl(skinObject);
-		}
-
 		return skinObject;
 	}
 
@@ -1103,10 +1120,6 @@ public class SWTSkin
 		SWTSkinObject skinObject = new SWTSkinObjectSash(this, properties, sID,
 				sConfigID, typeParams, parentSkinObject, bVertical);
 		addToControlMap(skinObject);
-
-		if (bLayoutComplete) {
-			attachControl(skinObject);
-		}
 
 		return skinObject;
 	}
@@ -1177,10 +1190,6 @@ public class SWTSkin
 			System.out.println("Tab " + sID + " added");
 		}
 
-		if (bLayoutComplete) {
-			attachControl(skinObjectTab);
-		}
-
 		return skinObjectTab;
 	}
 
@@ -1191,10 +1200,6 @@ public class SWTSkin
 				sConfigID, typeParams, parentSkinObject);
 		addToControlMap(skinObject);
 
-		if (bLayoutComplete) {
-			attachControl(skinObject);
-		}
-
 		return skinObject;
 	}
 
@@ -1203,10 +1208,6 @@ public class SWTSkin
 		SWTSkinObject skinObject = new SWTSkinObjectSlider(this, properties, sID,
 				sConfigID, typeParams, parentSkinObject);
 		addToControlMap(skinObject);
-
-		if (bLayoutComplete) {
-			attachControl(skinObject);
-		}
 
 		return skinObject;
 	}
@@ -1298,19 +1299,12 @@ public class SWTSkin
 		try {
 			shell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 
-			boolean b = bLayoutComplete;
-			bLayoutComplete = false;
-
 			skinObject = linkIDtoParent(skinProperties, sID, sConfigID,
 					parentSkinObject, true, true, creationParams);
-			if (b && skinObject != null) {
-				layout();
-				Control control = skinObject.getParent().getControl();
-				if (control instanceof Composite) {
-					((Composite) control).layout(true);
-				}
-			}
-			bLayoutComplete = b;
+
+			if (bLayoutComplete) {
+				layout(skinObject);
+    	}
 		} catch (Exception e) {
 			Debug.out("Trying to create " + sID + "." + sConfigID + " on "
 					+ parentSkinObject, e);
@@ -1480,6 +1474,9 @@ public class SWTSkin
 			} else if (sType.equals("checkbox")) {
 				skinObject = createCheckbox(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject);
+			} else if (sType.equals("tabfolder")) {
+				skinObject = createTabFolder(properties, sID, sConfigID, sTypeParams,
+						parentSkinObject);
 			} else {
 				System.err.println(sConfigID + ": Invalid type of " + sType);
 			}
@@ -1493,9 +1490,6 @@ public class SWTSkin
 				}
 			}
 
-			if (bLayoutComplete) {
-				attachControl(skinObject);
-			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -1526,10 +1520,6 @@ public class SWTSkin
 				configID, parentSkinObject);
 		addToControlMap(skinObject);
 
-		if (bLayoutComplete) {
-			attachControl(skinObject);
-		}
-
 		return skinObject;
 	}
 
@@ -1540,8 +1530,32 @@ public class SWTSkin
 				configID, parentSkinObject);
 		addToControlMap(skinObject);
 
-		if (bLayoutComplete) {
-			attachControl(skinObject);
+		return skinObject;
+	}
+
+	private SWTSkinObject createTabFolder(SWTSkinProperties properties, String id,
+			String configID, String[] typeParams, SWTSkinObject parentSkinObject) {
+		String[] sItems = properties.getStringArray(configID + ".widgets");
+
+		if (DEBUGLAYOUT) {
+			System.out.println("createContainer: " + id + ";"
+					+ properties.getStringValue(configID + ".widgets"));
+		}
+
+		SWTSkinObject skinObject = getSkinObjectByID(id, parentSkinObject);
+
+		if (skinObject == null) {
+			skinObject = new SWTSkinObjectTabFolder(this, properties, id,
+					configID, parentSkinObject);
+			addToControlMap(skinObject);
+		} else {
+			if (!(skinObject instanceof SWTSkinObjectContainer)) {
+				return skinObject;
+			}
+		}
+
+		if (sItems != null) {
+			addContainerChildren(skinObject, sItems, properties);
 		}
 
 		return skinObject;
@@ -1560,10 +1574,6 @@ public class SWTSkin
 		SWTSkinObject skinObject = new SWTSkinObjectBrowser(this, properties, sID,
 				sConfigID, parentSkinObject);
 		addToControlMap(skinObject);
-
-		if (bLayoutComplete) {
-			attachControl(skinObject);
-		}
 
 		return skinObject;
 	}
@@ -1679,10 +1689,6 @@ public class SWTSkin
 			}
 		}
 
-		if (bLayoutComplete) {
-			attachControl(skinObject);
-		}
-
 		return skinObject;
 	}
 
@@ -1732,10 +1738,6 @@ public class SWTSkin
 		SWTSkinObject skinObject = new SWTSkinObjectSeparator(this, properties,
 				sID, sConfigID, parentSkinObject);
 		addToControlMap(skinObject);
-
-		if (bLayoutComplete) {
-			attachControl(skinObject);
-		}
 
 		return skinObject;
 	}

@@ -17,8 +17,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
@@ -263,9 +263,9 @@ public class MainMenu
 					MenuItem sidebarMenuItem = MenuFactory.findMenuItem(viewMenu,
 							PREFIX_V3 + ".view.sidebar");
 					if (sidebarMenuItem != null) {
-						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-						if (sidebar != null) {
-							sidebarMenuItem.setSelection(sidebar.isVisible());
+						MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+						if (mdi != null) {
+							sidebarMenuItem.setSelection(mdi.isVisible());
 						}
 					}
 
@@ -430,15 +430,15 @@ public class MainMenu
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".browse", new Listener() {
 			public void handleEvent(Event event) {
-				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-				sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_BROWSE);
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				mdi.showEntryByID(SideBar.SIDEBAR_SECTION_BROWSE);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".library", new Listener() {
 			public void handleEvent(Event event) {
-				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-				sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 			}
 		});
 
@@ -450,6 +450,8 @@ public class MainMenu
 	private void addToolsMenu() {
 		MenuItem toolsItem = MenuFactory.createToolsMenuItem(menuBar);
 		Menu toolsMenu = toolsItem.getMenu();
+
+		MenuFactory.addRCMMenuItem(toolsMenu);
 
 		MenuFactory.addMyTrackerMenuItem(toolsMenu);
 		MenuFactory.addMySharesMenuItem(toolsMenu);
@@ -496,8 +498,10 @@ public class MainMenu
 		MenuFactory.addMenuItem(helpMenu, PREFIX_V3 + ".getting_started",
 				new Listener() {
 					public void handleEvent(Event event) {
-						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-						sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_WELCOME);
+						MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+						if (mdi != null) {
+							mdi.showEntryByID(SideBar.SIDEBAR_SECTION_WELCOME);
+						}
 					}
 				});
 

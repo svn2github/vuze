@@ -19,61 +19,43 @@
 package com.aelitis.azureus.ui.swt.content;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
-
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
-
-import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
-
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.content.RelatedContent;
-import com.aelitis.azureus.core.content.RelatedContentManager;
-import com.aelitis.azureus.core.content.RelatedContentManagerListener;
+import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.content.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.selectedcontent.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.content.columns.*;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 
 public class 
@@ -99,7 +81,7 @@ SBC_RCMView
 	
 	private TableViewSWT<RelatedContent> tv_related_content;
 
-	private SideBarEntrySWT 	sidebar_entry;
+	private MdiEntrySWT 	mdi_entry;
 	private Composite			table_parent;
 	private boolean				space_reserved;
 	
@@ -122,15 +104,15 @@ SBC_RCMView
 			});
 
 
-		SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		
-		if ( sidebar != null ){
+		if ( mdi != null ){
 			
-			sidebar_entry = sidebar.getCurrentEntry();
+			mdi_entry = mdi.getCurrentEntrySWT();
 			
-			sidebar_entry.setIconBarEnabler(this);
+			mdi_entry.setIconBarEnabler(this);
 
-			if ( !sidebar_entry.getId().equals( SideBar.SIDEBAR_SECTION_RELATED_CONTENT )){
+			if ( !mdi_entry.getId().equals( SideBar.SIDEBAR_SECTION_RELATED_CONTENT )){
 		
 				manager.reserveTemporarySpace();
 				
@@ -562,7 +544,7 @@ SBC_RCMView
 						
 					manager.addListener( current_rcm_listener );
 				
-					Object data_source = sidebar_entry.getDatasource();
+					Object data_source = mdi_entry.getDatasource();
 					
 					if ( data_source instanceof RelatedContentEnumerator ){
 						

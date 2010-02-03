@@ -19,10 +19,10 @@
  */
 package com.aelitis.azureus.ui.swt.shells.main;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.net.URLDecoder;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -32,6 +32,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -43,9 +44,11 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Constants;
-
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarOpenListener;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginListener;
+import org.gudy.azureus2.plugins.sharing.ShareException;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
@@ -56,34 +59,35 @@ import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.core.messenger.PlatformMessenger;
-import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
-import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
-import com.aelitis.azureus.core.messenger.config.*;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
-import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
-import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
+import com.aelitis.azureus.ui.swt.mdi.TabbedMDI;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PlayNowList;
@@ -96,10 +100,17 @@ import com.aelitis.azureus.util.*;
  * @author TuxPaper
  * @created May 29, 2006
  *
+ *
+ * TODO:
+ * - MainStatusBar and sidebar components should update when:
+		if (parameterName.equals("config.style.useSIUnits") || parameterName.equals("config.style.forceSIValues")) {
+			updateComponents();
+		}
+ * - IconBarEnabler for "new" and "open"
  */
 public class MainWindow
-	implements IMainWindow, ObfusticateShell, SideBarListener,
-	AEDiagnosticsEvidenceGenerator, SideBarLogIdListener
+	implements IMainWindow, ObfusticateShell, MdiListener,
+	AEDiagnosticsEvidenceGenerator, MdiEntryLogIdListener
 {
 
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -114,7 +125,7 @@ public class MainWindow
 
 	private SWTSkin skin;
 
-	private MainMenu menu;
+	private IMainMenu menu;
 
 	private UISWTInstanceImpl uiSWTInstanceImpl;
 
@@ -122,7 +133,7 @@ public class MainWindow
 
 	private SystemTraySWT systemTraySWT;
 
-	private static Map mapTrackUsage = null;
+	private static Map<String, Long> mapTrackUsage = null;
 
 	private final static AEMonitor mapTrackUsage_mon = new AEMonitor(
 			"mapTrackUsage");
@@ -149,12 +160,7 @@ public class MainWindow
 	
 	private boolean delayedCore;
 
-	public static void main(String args[]) {
-		if (Launcher.checkAndLaunch(MainWindow.class, args))
-			return;
-		Initializer.main(new String[0]);
-		//org.gudy.azureus2.ui.swt.Main.main(args);
-	}
+	private TrayWindow downloadBasket;
 
 	/**
 	 * Old Initializer.  AzureusCore is required to be started
@@ -173,46 +179,6 @@ public class MainWindow
 
 		disposedOrDisposing = false;
 
-		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
-		// user after restart.
-		if (Constants.isWindows
-				&& System.getProperty("os.name").indexOf("Vista") > 0
-				&& !COConfigurationManager.getBooleanParameter("vista.adminquit")) {
-			File fileFromInstall = FileUtil.getApplicationFile("license.txt");
-			if (fileFromInstall.exists()
-					&& fileFromInstall.lastModified() < new GregorianCalendar(2007, 06,
-							13).getTimeInMillis()) {
-				// install older than 3016
-				GlobalManager gm = core.getGlobalManager();
-				if (gm != null
-						&& gm.getDownloadManagers().size() == 0
-						&& gm.getStats().getTotalProtocolBytesReceived() < 1024 * 1024 * 100) {
-					File fileTestWrite = FileUtil.getApplicationFile("testwrite.dll");
-					fileTestWrite.deleteOnExit();
-					try {
-						FileOutputStream fos = new FileOutputStream(fileTestWrite);
-						fos.write(23);
-						fos.close();
-
-						COConfigurationManager.setParameter("vista.adminquit", true);
-						MessageBoxShell mb = new MessageBoxShell(
-								MessageText.getString("mb.azmustclose.title"),
-								MessageText.getString("mb.azmustclose.text"), new String[] {
-									MessageText.getString("Button.ok")
-								}, 0);
-						mb.open(null);
-						mb.waitUntilClosed();
-						if (uiInitializer != null) {
-							uiInitializer.abortProgress();
-						}
-						dispose(false, false);
-						return;
-					} catch (Exception e) {
-					}
-				}
-			}
-		}
-
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {
@@ -228,7 +194,6 @@ public class MainWindow
 
 		// When a download is added, check for new meta data and
 		// un-"wait state" the rating
-		// TODO: smart refreshing of meta data ("Refresh On" attribute)
 		GlobalManager gm = core.getGlobalManager();
 		dms_Startup = (DownloadManager[]) gm.getDownloadManagers().toArray(
 				new DownloadManager[0]);
@@ -315,13 +280,21 @@ public class MainWindow
 	 * New Initializer.  AzureusCore does not need to be started.
 	 * Use {@link #init(AzureusCore)} when core is available.
 	 * 
+	 * Called for STARTUP_UIFIRST
+	 * 
+	 * 1) Constructor
+	 * 2) createWindow
+	 * 3) init(core)
+	 * 
 	 * @param display
 	 * @param uiInitializer
 	 */
 	public MainWindow(final Display display, final IUIIntializer uiInitializer) {
+		System.out.println("MainWindow: constructor");
 		delayedCore = true;
 		this.display = display;
 		this.uiInitializer = uiInitializer;
+		AEDiagnostics.addEvidenceGenerator(this);
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -340,6 +313,8 @@ public class MainWindow
 	 * Called only on STARTUP_UIFIRST
 	 */
 	public void init(final AzureusCore core) {
+		//System.out.println("MainWindow: _init(core)");
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				_init(core);
@@ -354,65 +329,20 @@ public class MainWindow
 	 * Called only on STARTUP_UIFIRST
 	 */
 	public void _init(AzureusCore core) {
+		//System.out.println("MainWindow: init(core)");
 		this.core = core;
-		AEDiagnostics.addEvidenceGenerator(this);
 
 		disposedOrDisposing = false;
-
-		if (!Constants.isSafeMode && COConfigurationManager.getBooleanParameter("Open Transfer Bar On Start")) {
-			uiFunctions.showGlobalTransferBar();
-		}
-
-		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
-		// user after restart.
-		if (Constants.isWindows
-				&& System.getProperty("os.name").indexOf("Vista") > 0
-				&& !COConfigurationManager.getBooleanParameter("vista.adminquit")) {
-			File fileFromInstall = FileUtil.getApplicationFile("license.txt");
-			if (fileFromInstall.exists()
-					&& fileFromInstall.lastModified() < new GregorianCalendar(2007, 06,
-							13).getTimeInMillis()) {
-				// install older than 3016
-				GlobalManager gm = core.getGlobalManager();
-				if (gm != null
-						&& gm.getDownloadManagers().size() == 0
-						&& gm.getStats().getTotalProtocolBytesReceived() < 1024 * 1024 * 100) {
-					File fileTestWrite = FileUtil.getApplicationFile("testwrite.dll");
-					fileTestWrite.deleteOnExit();
-					try {
-						FileOutputStream fos = new FileOutputStream(fileTestWrite);
-						fos.write(23);
-						fos.close();
-
-						COConfigurationManager.setParameter("vista.adminquit", true);
-						MessageBoxShell mb = new MessageBoxShell(
-								MessageText.getString("mb.azmustclose.title"),
-								MessageText.getString("mb.azmustclose.text"), new String[] {
-									MessageText.getString("Button.ok")
-								}, 0);
-						mb.open(null);
-						mb.waitUntilClosed();
-						if (uiInitializer != null) {
-							uiInitializer.abortProgress();
-						}
-						dispose(false, false);
-						return;
-					} catch (Exception e) {
-					}
-				}
-			}
-		}
 
 		StimulusRPC.hookListeners(core, this);
 
 		uiSWTInstanceImpl = new UISWTInstanceImpl(core);
 		uiSWTInstanceImpl.init(uiInitializer);
 
-		VuzeActivitiesManager.initialize(core);
+		postPluginSetup(core);
 
 		// When a download is added, check for new meta data and
 		// un-"wait state" the rating
-		// TODO: smart refreshing of meta data ("Refresh On" attribute)
 		GlobalManager gm = core.getGlobalManager();
 		dms_Startup = (DownloadManager[]) gm.getDownloadManagers().toArray(
 				new DownloadManager[0]);
@@ -499,6 +429,72 @@ public class MainWindow
 		processStartupDMS();
 	}
 
+	private void postPluginSetup(AzureusCore core) {
+		// we pass core in just as reminder that this function needs core
+		if (core == null) {
+			return;
+		}
+		
+		VuzeActivitiesManager.initialize(core);
+		
+		if (!Constants.isSafeMode) {
+			if (core.getTrackerHost().getTorrents().length > 0) {
+				Utils.execSWTThreadLater(0, new Runnable() {
+					public void run() {
+						uiFunctions.openView(UIFunctions.VIEW_MYTRACKER, null);
+					}
+				});
+			}
+
+			// share manager init is async so we need to deal with this
+			PluginInterface default_pi = PluginInitializer.getDefaultInterface();
+			try {
+				final ShareManager share_manager = default_pi.getShareManager();
+
+				default_pi.addListener(new PluginListener() {
+					public void initializationComplete() {
+					}
+
+					public void closedownInitiated() {
+						int share_count = share_manager.getShares().length;
+						COConfigurationManager.setParameter("GUI_SWT_share_count_at_close",
+								share_count);
+					}
+
+					public void closedownComplete() {
+					}
+				});
+
+				if (share_manager.getShares().length > 0
+						|| COConfigurationManager.getIntParameter("GUI_SWT_share_count_at_close") > 0) {
+
+					Utils.execSWTThreadLater(0, new Runnable() {
+						public void run() {
+							uiFunctions.openView(UIFunctions.VIEW_MYSHARES, null);
+						}
+					});
+				}
+			} catch (ShareException e) {
+				Debug.out(e);
+			}
+			
+			
+			if (COConfigurationManager.getBooleanParameter("Open Transfer Bar On Start")) {
+				uiFunctions.showGlobalTransferBar();
+			}
+
+			COConfigurationManager.addAndFireParameterListener("IconBar.enabled",
+					new ParameterListener() {
+						public void parameterChanged(String parameterName) {
+							setVisible(WINDOW_ELEMENT_TOOLBAR, COConfigurationManager.getBooleanParameter(parameterName));
+						}
+					});
+		}
+
+		//  share progress window
+		new ProgressWindow();
+	}
+
 	private void processStartupDMS() {
 		// must be in a new thread because we don't want to block
 		// initilization or any other add listeners
@@ -536,13 +532,6 @@ public class MainWindow
 				continue;
 			}
 
-			String hash = null;
-			try {
-				hash = torrent.getHashWrapper().toBase32String();
-			} catch (TOTorrentException e) {
-				Debug.out(e);
-			}
-
 			String title = PlatformTorrentUtils.getContentTitle(torrent);
 			if (title != null && title.length() > 0
 					&& dmState.getDisplayName() == null) {
@@ -567,8 +556,6 @@ public class MainWindow
 					&& !dmState.getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
 				oneIsNotPlatform = true;
 			}
-
-			final String fHash = hash;
 
 			if (isContent) {
 				long now = SystemTime.getCurrentTime();
@@ -595,8 +582,13 @@ public class MainWindow
 	/**
 	 * @param uiInitializer 
 	 * 
+	 * called in both delayedCore and !delayedCore
 	 */
 	protected void createWindow(IUIIntializer uiInitializer) {
+		//System.out.println("MainWindow: createWindow)");
+
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+		
 		long startTime = SystemTime.getCurrentTime();
 
 		uiFunctions = new UIFunctionsImpl(this);
@@ -615,7 +607,7 @@ public class MainWindow
 
 		if (Constants.isWindows) {
 			try {
-				Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.win32.Win32UIEnhancer");
+				Class<?> ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.win32.Win32UIEnhancer");
 				Method method = ehancerClass.getMethod("initMainShell",
 						new Class[] {
 							Shell.class
@@ -673,14 +665,19 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			skin.initialize(shell, "main.shell", uiInitializer);
+			String startID = uiClassic ? "classic.shell" : "main.shell";
+			skin.initialize(shell, startID, uiInitializer);
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 			System.out.println("skin init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			menu = new MainMenu(skin, shell);
+			if (uiClassic) {
+				menu = new org.gudy.azureus2.ui.swt.mainwindow.MainMenu(shell);
+			} else {
+				menu = new MainMenu(skin, shell);
+			}
 			shell.setData("MainMenu", menu);
 
 			System.out.println("MainMenu init took "
@@ -812,6 +809,32 @@ public class MainWindow
 					}
 				}
 			});
+			
+			display.addFilter(SWT.KeyDown, new Listener() {
+				public void handleEvent(Event event) {
+					// Another window has control, skip filter
+					Control focus_control = display.getFocusControl();
+					if (focus_control != null && focus_control.getShell() != shell)
+						return;
+
+					int key = event.character;
+					if ((event.stateMask & SWT.MOD1) != 0 && event.character <= 26
+							&& event.character > 0)
+						key += 'a' - 1;
+
+					if (key == 'l' && (event.stateMask & SWT.MOD1) != 0) {
+						// Ctrl-L: Open URL
+						if (core == null) {
+							return;
+						}
+						GlobalManager gm = core.getGlobalManager();
+						if (gm != null) {
+							OpenTorrentWindow.invokeURLPopup(shell, gm);
+							event.doit = false;
+						}
+					}
+				}
+			});
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 			System.out.println("pre skin widgets init took "
@@ -838,14 +861,14 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-			if (sidebar != null) {
-				setupSideBar(sidebar);
+			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+			if (mdi != null) {
+				setupSideBar(mdi);
 			} else {
 				SkinViewManager.addListener(new SkinViewManagerListener() {
 					public void skinViewAdded(SkinView skinview) {
-						if (skinview instanceof SideBar) {
-							setupSideBar((SideBar) skinview);
+						if (skinview instanceof MultipleDocumentInterface) {
+							setupSideBar((MultipleDocumentInterface) skinview);
 						}
 					}
 				});
@@ -891,7 +914,8 @@ public class MainWindow
 					COConfigurationManager.getBooleanParameter(configID)
 							&& COConfigurationManager.getIntParameter("User Mode") > 1);
 
-			setVisible(WINDOW_ELEMENT_TABBAR, true);
+			setVisible(WINDOW_ELEMENT_TOOLBAR,
+					COConfigurationManager.getBooleanParameter("IconBar.enabled"));
 
 			shell.layout(true, true);
 
@@ -916,7 +940,7 @@ public class MainWindow
 			startTime = SystemTime.getCurrentTime();
 
 			if (core != null) {
-				VuzeActivitiesManager.initialize(core);
+				postPluginSetup(core);
 			}
 
 			System.out.println("vuzeactivities init took "
@@ -931,12 +955,12 @@ public class MainWindow
 							UIFunctions uif = UIFunctionsManager.getUIFunctions();
 
 							if (type == NavigationHelper.COMMAND_SWITCH_TO_TAB) {
-								SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-								if (sideBar == null) {
+								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+								if (mdi == null) {
 									return;
 								}
 								ContentNetworkUtils.setSourceRef(args[0], "menu", false);
-								sideBar.showEntryByTabID(args[0]);
+								mdi.showEntryByID(args[0]);
 
 								if (uif != null) {
 
@@ -956,10 +980,8 @@ public class MainWindow
 	 *
 	 * @since 3.1.1.1
 	 */
-	protected void setupSideBar(final SideBar sidebar) {
-		// 3.2 TODO: set default sidebar item
-
-		sidebar.addListener(this);
+	protected void setupSideBar(final MultipleDocumentInterface mdi) {
+		mdi.addListener(this);
 
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
@@ -980,19 +1002,21 @@ public class MainWindow
 								SideBar.SIDEBAR_SECTION_LIBRARY);
 					}
 					startTab = COConfigurationManager.getStringParameter(CFG_STARTTAB);
-					if (!SideBar.entryExists(startTab)) {
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+
+					if (mdi == null || !mdi.entryExists(startTab)) {
 						startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
 					}
 				}
-				sidebar.showEntryByTabID(startTab);
+				mdi.showEntryByID(startTab);
 			}
 		});
 		
-		sidebar.addListener(new SideBarListener() {
-			public void sidebarItemSelected(SideBarEntrySWT newSideBarEntry,
-					SideBarEntrySWT oldSideBarEntry) {
+		mdi.addListener(new MdiListener() {
+			public void mdiEntrySelected(MdiEntry newEntry,
+					MdiEntry oldEntry) {
 				COConfigurationManager.setParameter("v3.StartTab",
-						newSideBarEntry.getId());
+						newEntry.getId());
 			}
 		});
 
@@ -1028,6 +1052,7 @@ public class MainWindow
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public boolean dispose(final boolean for_restart,
 			final boolean close_already_in_progress) {
 		if (disposedOrDisposing) {
@@ -1086,7 +1111,7 @@ public class MainWindow
 					updateMapTrackUsage(lastShellStatus);
 				}
 
-				Map map = new HashMap();
+				Map<String, Object> map = new HashMap<String, Object>();
 				map.put("version",
 						org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION);
 				map.put("statsmap", mapTrackUsage);
@@ -1107,9 +1132,9 @@ public class MainWindow
 
 	private String getUsageActiveTabID() {
 		try {
-			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-			if (sidebar != null) {
-				SideBarEntrySWT curEntry = sidebar.getCurrentEntry();
+			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+			if (mdi != null) {
+				MdiEntry curEntry = mdi.getCurrentEntry();
 				if (curEntry == null) {
 					return "none";
 				} else {
@@ -1139,13 +1164,13 @@ public class MainWindow
 			if (COConfigurationManager.getBooleanParameter("Send Version Info")
 					&& PlatformConfigMessenger.allowSendStats()) {
 
-				mapTrackUsage = new HashMap();
+				mapTrackUsage = new HashMap<String, Long>();
 
 				if (f.exists()) {
-					Map oldMapTrackUsage = FileUtil.readResilientFile(f);
+					Map<?, ?> oldMapTrackUsage = FileUtil.readResilientFile(f);
 					String version = MapUtils.getMapString(oldMapTrackUsage, "version",
 							null);
-					Map map = MapUtils.getMapMap(oldMapTrackUsage, "statsmap", null);
+					Map<?, ?> map = MapUtils.getMapMap(oldMapTrackUsage, "statsmap", null);
 					if (version != null && map != null) {
 						PlatformConfigMessenger.sendUsageStats(map, f.lastModified(),
 								version, null);
@@ -1240,6 +1265,12 @@ public class MainWindow
 	}
 
 	private void showMainWindow() {
+		COConfigurationManager.addAndFireParameterListener("Show Download Basket", new ParameterListener() {
+			public void parameterChanged(String parameterName) {
+				configureDownloadBasket();
+			}
+		});
+
 		boolean isOSX = org.gudy.azureus2.core3.util.Constants.isOSX;
 		boolean bEnableTray = COConfigurationManager.getBooleanParameter("Enable System Tray");
 		boolean bPassworded = COConfigurationManager.getBooleanParameter("Password enabled");
@@ -1274,9 +1305,13 @@ public class MainWindow
 			// max 5 seconds of dispatching.  We don't display.sleep here because
 			// we only want to clear the backlog of SWT events, and sleep would
 			// add new ones
-			long endSWTDispatchOn = SystemTime.getOffsetTime(5000);
-			while (SystemTime.getCurrentTime() < endSWTDispatchOn
-					&& !display.isDisposed() && display.readAndDispatch());
+			try {
+  			long endSWTDispatchOn = SystemTime.getOffsetTime(5000);
+  			while (SystemTime.getCurrentTime() < endSWTDispatchOn
+  					&& !display.isDisposed() && display.readAndDispatch());
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 
 			System.out.println("---------DONE DISPATCH AT "
   				+ SystemTime.getCurrentTime() + ";"
@@ -1317,11 +1352,16 @@ public class MainWindow
 
 			uiInitializer.initializationComplete();
 		}
+		
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+		if (uiClassic) {
+			checkForWhatsNewWindow();
+		}
 
 		AssociationChecker.checkAssociations();
 
 		// Donation stuff
-		Map map = VersionCheckClient.getSingleton().getMostRecentVersionCheckData();
+		Map<?, ?> map = VersionCheckClient.getSingleton().getMostRecentVersionCheckData();
 		DonationWindow.setInitialAskHours(MapUtils.getMapInt(map,
 				"donations.askhrs", DonationWindow.getInitialAskHours()));
 
@@ -1341,6 +1381,68 @@ public class MainWindow
 		//SESecurityManagerImpl.getSingleton().exitVM(0);
 	}
 
+	private void configureDownloadBasket() {
+		if (COConfigurationManager.getBooleanParameter("Show Download Basket")) {
+			if (downloadBasket == null) {
+				downloadBasket = new TrayWindow();
+				downloadBasket.setVisible(true);
+			}
+		} else if (downloadBasket != null) {
+			downloadBasket.setVisible(false);
+			downloadBasket = null;
+		}
+	}
+
+	private void checkForWhatsNewWindow() {
+		final String CONFIG_LASTSHOWN = "welcome.version.lastshown";
+
+		// Config used to store int, such as 2500.  Now, it stores a string
+		// getIntParameter will return default value if parameter is string (user
+		// downgraded)
+		// getStringParameter will bork if parameter isn't really a string
+
+		try {
+			String lastShown = "";
+			boolean bIsStringParam = true;
+			try {
+				lastShown = COConfigurationManager.getStringParameter(CONFIG_LASTSHOWN,
+						"");
+			} catch (Exception e) {
+				bIsStringParam = false;
+			}
+
+			if (lastShown.length() == 0) {
+				// check if we have an old style version
+				int latestDisplayed = COConfigurationManager.getIntParameter(
+						CONFIG_LASTSHOWN, 0);
+				if (latestDisplayed > 0) {
+					bIsStringParam = false;
+					String s = "" + latestDisplayed;
+					for (int i = 0; i < s.length(); i++) {
+						if (i != 0) {
+							lastShown += ".";
+						}
+						lastShown += s.charAt(i);
+					}
+				}
+			}
+
+			if (Constants.compareVersions(lastShown, Constants.getBaseVersion()) < 0) {
+				new WelcomeWindow(shell);
+				if (!bIsStringParam) {
+					// setting parameter to a different value type makes az unhappy
+					COConfigurationManager.removeParameter(CONFIG_LASTSHOWN);
+				}
+				COConfigurationManager.setParameter(CONFIG_LASTSHOWN,
+						Constants.getBaseVersion());
+				COConfigurationManager.save();
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+	}
+
+
 	public void setVisible(final boolean visible) {
 		setVisible(visible, true);
 	}
@@ -1358,12 +1460,12 @@ public class MainWindow
 					}
 				}
 
-				ArrayList wasVisibleList = null;
+				ArrayList<Shell> wasVisibleList = null;
 				boolean bHideAndShow = false;
 				// temp disabled
 				//tryTricks && visible && Constants.isWindows && display.getActiveShell() != shell;
 				if (bHideAndShow) {
-					wasVisibleList = new ArrayList();
+					wasVisibleList = new ArrayList<Shell>();
 					// We don't want the window to just flash and not open, so:
 					// -Minimize main shell
 					// -Set all shells invisible
@@ -1441,16 +1543,8 @@ public class MainWindow
 				new UISkinnableSWTListener() {
 					public void skinBeforeComponents(Composite composite,
 							Object skinnableObject, Object[] relatedObjects) {
-						Color colorBG = skin.getSkinProperties().getColor("color.mainshell");
-						Color colorLink = skin.getSkinProperties().getColor(
-								"color.links.normal");
-						Color colorText = skin.getSkinProperties().getColor("color.text.fg");
-
-						//composite.setBackground(colorBG);
-						//composite.setForeground(colorText);
 
 						MessageBoxShell shell = (MessageBoxShell) skinnableObject;
-						//shell.setUrlColor(colorLink);
 
 						TOTorrent torrent = null;
 						DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
@@ -1596,19 +1690,20 @@ public class MainWindow
 	private void initWidgets() {
 		SWTSkinObject skinObject;
 
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 		/*
 		 * Directly loading the buddies viewer since we need to access it
 		 * before it's even shown for the first time
 		 */
-		Class[] forceInits = new Class[] {
-			SideBar.class,
+		Class<?>[] forceInits = new Class[] {
+			uiClassic ? TabbedMDI.class : SideBar.class,
 		};
 		String[] forceInitsIDs = new String[] {
-			SkinConstants.VIEWID_SIDEBAR,
+			SkinConstants.VIEWID_MDI,
 		};
 
 		for (int i = 0; i < forceInits.length; i++) {
-			Class cla = forceInits[i];
+			Class<?> cla = forceInits[i];
 			String id = forceInitsIDs[i];
 
 			try {
@@ -1931,24 +2026,39 @@ public class MainWindow
 			return;
 		}
 
-		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		SearchResultsTabArea.SearchQuery sq = new SearchResultsTabArea.SearchQuery();
+		sq.term = sSearchText;
+		sq.toSubscribe = toSubscribe;
+
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		String id = "Search";
-		SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
-		if (searchClass != null) {
-			searchClass.anotherSearch(sSearchText, toSubscribe);
-		} else {
-
-			SearchResultsTabArea.SearchQuery sq = new SearchResultsTabArea.SearchQuery();
-			sq.term = sSearchText;
-			sq.toSubscribe = toSubscribe;
-
-			SideBarEntrySWT entry = sidebar.createEntryFromSkinRef(null, id,
-					"main.area.searchresultstab", sSearchText, null, sq, true, -1);
-			if (entry != null) {
-				entry.setImageLeftID("image.sidebar.search");
+		MdiEntry existingEntry = mdi.getEntry(id);
+		if (existingEntry != null && existingEntry.isAdded()) {
+			SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
+			if (searchClass != null) {
+				searchClass.anotherSearch(sSearchText, toSubscribe);
 			}
+			return;
 		}
-		sidebar.showEntryByID(id);
+
+		final MdiEntry entry = mdi.createEntryFromSkinRef(null, id, "main.area.searchresultstab",
+				sSearchText, null, sq, true, -1);
+		if (entry != null) {
+			entry.setImageLeftID("image.sidebar.search");
+			entry.setDatasource(sq);
+			entry.setViewTitleInfo(new ViewTitleInfo() {
+				public Object getTitleInfoProperty(int propertyID) {
+					if (propertyID == TITLE_TEXT) {
+						SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
+						if (searchClass != null) {
+							return searchClass.searchText;
+						}
+					}
+					return null;
+				}
+			});
+		}
+		mdi.showEntryByID(id);
 	}
 
 	/**
@@ -1960,7 +2070,7 @@ public class MainWindow
 			mapTrackUsage_mon.enter();
 			try {
 				if (lCurrentTrackTime > 0) {
-					Long currentLength = (Long) mapTrackUsage.get(sTabID);
+					Long currentLength = mapTrackUsage.get(sTabID);
 					long newLength;
 					if (currentLength == null) {
 						newLength = lCurrentTrackTime;
@@ -1975,7 +2085,7 @@ public class MainWindow
 
 				if (lCurrentTrackTimeIdle > 0) {
 					String id = "idle-" + sTabID;
-					Long currentLengthIdle = (Long) mapTrackUsage.get(id);
+					Long currentLengthIdle = mapTrackUsage.get(id);
 					long newLengthIdle = currentLengthIdle == null
 							? lCurrentTrackTimeIdle : currentLengthIdle.longValue()
 									+ lCurrentTrackTimeIdle;
@@ -2038,21 +2148,20 @@ public class MainWindow
 			target = target.substring(4);
 		}
 
-		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 
 		// Note; We don't setSourceRef on ContentNetwork here like we do
 		// everywhere else because the source ref should already be set
 		// by the caller
-		String id = sideBar.showEntryByTabID(target);
-		if (id == null) {
+		if (mdi == null || !mdi.showEntryByID(target)) {
 			Utils.launch(url);
 			return;
 		}
 
-		SideBarEntrySWT entry = SideBar.getEntry(id);
-		entry.addListener(new SideBarOpenListener() {
+		MdiEntry entry = mdi.getEntry(target);
+		entry.addListener(new MdiEntryOpenListener() {
 
-			public void sideBarEntryOpen(SideBarEntry entry) {
+			public void mdiEntryOpen(MdiEntry entry) {
 				entry.removeListener(this);
 
 				setVisible(true);
@@ -2090,13 +2199,12 @@ public class MainWindow
 
 	public boolean isVisible(int windowElement) {
 		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
-			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
+			SWTSkinObject skinObject = skin.getSkinObject("tabbar");
 			if (skinObject != null) {
 				return skinObject.isVisible();
 			}
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
-			SWTSkinObject skinObject = skin.getSkinObject("tabbar");
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
+			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
 			if (skinObject != null) {
 				return skinObject.isVisible();
 			}
@@ -2111,6 +2219,8 @@ public class MainWindow
 
 	public void setVisible(int windowElement, boolean value) {
 		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
+			SWTSkinUtils.setVisibility(skin, "IconBar.enabled",
+					SkinConstants.VIEWID_TAB_BAR, value, true, true);
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
 
 			SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR
@@ -2120,9 +2230,6 @@ public class MainWindow
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
 			//TODO:
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
-			SWTSkinUtils.setVisibility(skin, "TabBar.visible",
-					SkinConstants.VIEWID_TAB_BAR, value, true, true);
 		}
 
 	}
@@ -2132,13 +2239,6 @@ public class MainWindow
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
 
 			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
-			if (skinObject != null) {
-				return skinObject.getControl().getBounds();
-			}
-
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
-
-			SWTSkinObject skinObject = skin.getSkinObject("tabbar");
 			if (skinObject != null) {
 				return skinObject.getControl().getBounds();
 			}
@@ -2155,7 +2255,7 @@ public class MainWindow
 
 			Rectangle r = getMetrics(IMainWindow.WINDOW_CLIENT_AREA);
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_TOPBAR).height;
-			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_TABBAR).height;
+			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_TOOLBAR).height;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
 			return r;
 
@@ -2208,10 +2308,10 @@ public class MainWindow
 	 *
 	 * @since 3.1.1.1
 	 */
-	public void openView(final String parentID, final Class cla, String id,
+	public void openView(final String parentID, final Class<?> cla, String id,
 			final Object data, final boolean closeable) {
-		final SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (sideBar == null) {
+		final MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi == null) {
 			return;
 		}
 
@@ -2223,16 +2323,16 @@ public class MainWindow
 			}
 		}
 
-		IView viewFromID = sideBar.getIViewFromID(id);
+		IView viewFromID = mdi.getIViewFromID(id);
 		if (viewFromID != null) {
-			sideBar.showEntryByID(id);
+			mdi.showEntryByID(id);
 		}
 
 		final String _id = id;
 		Utils.execSWTThreadLater(0, new AERunnable() {
 
 			public void runSupport() {
-				if (sideBar.showEntryByID(_id)) {
+				if (mdi.showEntryByID(_id)) {
 					return;
 				}
 				if (UISWTViewEventListener.class.isAssignableFrom(cla)) {
@@ -2250,51 +2350,51 @@ public class MainWindow
 						if (l == null) {
 							l = (UISWTViewEventListener) cla.newInstance();
 						}
-						sideBar.createTreeItemFromEventListener(parentID, null, l, _id,
-								closeable, data);
+						mdi.createEntryFromEventListener(parentID, l, _id, closeable,
+								data);
 					} catch (Exception e) {
 						Debug.out(e);
 					}
 				} else {
-					sideBar.createTreeItemFromIViewClass(parentID, _id, null, cla,
+					mdi.createEntryFromIViewClass(parentID, _id, null, cla,
 							null, null, data, null, true);
 				}
-				sideBar.showEntryByID(_id);
+				mdi.showEntryByID(_id);
 			}
 		});
 
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener#sidebarItemSelected(com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarInfoSWT, com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarInfoSWT)
-	public void sidebarItemSelected(SideBarEntrySWT newSideBarEntry,
-			SideBarEntrySWT oldSideBarEntry) {
-		if (newSideBarEntry == null) {
+	public void mdiEntrySelected(MdiEntry newEntry,
+			MdiEntry oldEntry) {
+		if (newEntry == null) {
 			return;
 		}
 
-		if (mapTrackUsage != null && oldSideBarEntry != null) {
-			oldSideBarEntry.removeListener((SideBarLogIdListener) this);
+		if (mapTrackUsage != null && oldEntry != null) {
+			oldEntry.removeListener((MdiEntryLogIdListener) this);
 
 			String id2 = null;
-			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-			if (sidebar != null) {
-				id2 = oldSideBarEntry.getLogID();
+			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+			if (mdi != null) {
+				id2 = oldEntry.getLogID();
 			}
 			if (id2 == null) {
-				id2 = oldSideBarEntry.id;
+				id2 = oldEntry.getId();
 			}
 
 			updateMapTrackUsage(id2);
 		}
 
 		if (mapTrackUsage != null) {
-			newSideBarEntry.addListener((SideBarLogIdListener) this);
+			newEntry.addListener((MdiEntryLogIdListener) this);
 		}
 	}
 
-	// @see com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarLogIdListener#sidebarLogIdChanged(com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT, java.lang.String, java.lang.String)
-	public void sidebarLogIdChanged(SideBarEntrySWT sideBarEntrySWT,
-			String oldID, String newID) {
+	// @see com.aelitis.azureus.ui.swt.views.skin.sidebar.MdiLogIdListener#sidebarLogIdChanged(com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT, java.lang.String, java.lang.String)
+	public void mdiEntryLogIdChanged(MdiEntry sideBarEntrySWT, String oldID,
+			String newID) {
 		if (oldID == null) {
 			oldID = "null";
 		}
@@ -2339,7 +2439,7 @@ public class MainWindow
 		}
 	}
 
-	protected MainMenu getMainMenu() {
+	protected IMainMenu getMainMenu() {
 		return menu;
 	}
 

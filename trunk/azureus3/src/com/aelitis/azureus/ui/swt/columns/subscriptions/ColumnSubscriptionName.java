@@ -28,11 +28,10 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
-import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -110,9 +109,10 @@ public class ColumnSubscriptionName
 				Subscription sub = (Subscription) cell.getDataSource();
 				if(sub != null) {
 					String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
-					SideBarEntrySWT entry = SideBar.getEntry(key);
-					if (entry.isInTree()) {
-						entry.getSidebar().showEntryByID(key);
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+					MdiEntry entry = mdi.getEntry(key);
+					if (entry.isAdded()) {
+						entry.getMDI().showEntryByID(key);
 					}
 				}
 			}

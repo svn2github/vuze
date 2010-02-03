@@ -33,34 +33,25 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.ui.swt.IconBarEnabler;
-import org.gudy.azureus2.ui.swt.TorrentUtil;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RankItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.devices.DeviceManager;
-import com.aelitis.azureus.core.devices.DeviceManagerFactory;
-import com.aelitis.azureus.core.devices.TranscodeException;
+import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableView;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedVuzeFileContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
 import com.aelitis.azureus.ui.swt.devices.TranscodeChooser;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.PlayUtils;
 
@@ -587,14 +578,14 @@ public class ToolBarView
 		TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
 		boolean hasRealDM = tv != null;
 		if (!hasRealDM) {
-			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-			if (sidebar != null) {
-				SideBarEntrySWT entry = sidebar.getCurrentEntry();
+			MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+			if (mdi != null) {
+				MdiEntrySWT entry = mdi.getCurrentEntrySWT();
 				if (entry != null) {
-					if (entry.datasource instanceof DownloadManager) {
+					if (entry.getDatasource() instanceof DownloadManager) {
 						hasRealDM = true;
-					} else if ((entry.iview instanceof UIPluginView)
-							&& (((UIPluginView) entry.iview).getDataSource() instanceof DownloadManager)) {
+					} else if ((entry.getIView() instanceof UIPluginView)
+							&& (((UIPluginView) entry.getIView()).getDataSource() instanceof DownloadManager)) {
 						hasRealDM = true;
 					}
 				}
@@ -779,11 +770,11 @@ public class ToolBarView
 	 * @since 3.1.1.1
 	 */
 	protected void activateViaSideBar(ToolBarItem toolBarItem) {
-		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (sidebar != null) {
-			SideBarEntrySWT entry = sidebar.getCurrentEntry();
-			if (entry.iview != null) {
-				entry.iview.itemActivated(toolBarItem.getId());
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi != null) {
+			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
+			if (entry.getIView() != null) {
+				entry.getIView().itemActivated(toolBarItem.getId());
 			}
 		}
 	}
@@ -816,14 +807,14 @@ public class ToolBarView
 		if (sv != null) {
 			updateCoreItems(sc, sv);
 		} else {
-			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-			if (sidebar != null) {
+			MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+			if (mdi != null) {
 				ToolBarItem[] allToolBarItems = getAllToolBarItems();
-				SideBarEntrySWT entry = sidebar.getCurrentEntry();
+				MdiEntrySWT entry = mdi.getCurrentEntrySWT();
 				IconBarEnabler enabler = entry.getIconBarEnabler();
 				if (enabler == null) {
-					if (entry.iview != null) {
-						enabler = entry.iview;
+					if (entry.getIView() != null) {
+						enabler = entry.getIView();
 					} else {
 						for (int i = 0; i < allToolBarItems.length; i++) {
 							ToolBarItem toolBarItem = allToolBarItems[i];
@@ -842,12 +833,12 @@ public class ToolBarView
 	}
 
 	private boolean triggerIViewToolBar(String id) {
-		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (sidebar != null) {
-			SideBarEntrySWT entry = sidebar.getCurrentEntry();
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi != null) {
+			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
 			IconBarEnabler enabler = entry.getIconBarEnabler();
-			if (enabler == null && entry.iview != null) {
-				enabler = entry.iview;
+			if (enabler == null && entry.getIView() != null) {
+				enabler = entry.getIView();
 			}
 			enabler.itemActivated(id);
 			return true;

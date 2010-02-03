@@ -21,54 +21,44 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.menus.*;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
-import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.browser.BrowserContext;
-import com.aelitis.azureus.ui.swt.browser.CookiesListener;
-import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.browser.*;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.browser.listener.ExternalLoginCookieListener;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.util.ConstantsVuze;
-import com.aelitis.azureus.util.MapUtils;
-import com.aelitis.azureus.util.UrlFilter;
+import com.aelitis.azureus.util.*;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.*;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 
 /**
  * @author TuxPaper
@@ -77,13 +67,13 @@ import com.aelitis.azureus.util.UrlFilter;
  */
 public class SearchResultsTabArea
 	extends SkinView
-	implements ViewTitleInfo, OpenCloseSearchDetailsListener
+	implements OpenCloseSearchDetailsListener
 {
 	private SWTSkinObjectBrowser browserSkinObject;
 
 	private SWTSkin skin;
 
-	private String searchText;
+	public String searchText;
 
 	private boolean searchResultsInitialized = false;
 
@@ -91,7 +81,7 @@ public class SearchResultsTabArea
 
 	private MenuItem menuItem;
 
-	private SideBarVitalityImage vitalityImage;
+	private MdiEntryVitalityImage vitalityImage;
 
 	public static class SearchQuery {
 		public String term;
@@ -409,9 +399,9 @@ public class SearchResultsTabArea
 		browserSkinObject.getContext().addMessageListener(
 				new MetaSearchListener(this));
 		
-		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (sidebar != null) {
-			final SideBarEntrySWT entry = sidebar.getEntryBySkinView(this);
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi != null) {
+			final MdiEntry entry = mdi.getEntryBySkinView(this);
 			if (entry != null) {
 				vitalityImage = entry.addVitalityImage("image.sidebar.vitality.dots");
 				vitalityImage.setVisible(false);
@@ -597,6 +587,15 @@ public class SearchResultsTabArea
 		
 	}
 
+	public Object dataSourceChanged(SWTSkinObject skinObject, Object params) {
+		if (params instanceof SearchQuery) {
+			SearchQuery sq = (SearchQuery) params;
+			anotherSearch(sq.term, sq.toSubscribe);
+		}
+
+		return null;
+	}
+
 	public void anotherSearch(String searchText) {
 		anotherSearch(searchText,false);
 	}
@@ -613,17 +612,12 @@ public class SearchResultsTabArea
 
 		closeSearchResults(null);
 		browserSkinObject.setURL(url);
-		ViewTitleInfoManager.refreshTitleInfo(this);
-	}
 
-	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoProperty(int)
-	public Object getTitleInfoProperty(int propertyID) {
-		if (propertyID == TITLE_SKINVIEW) {
-			return this;
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		String id = "Search";
+		MdiEntry entry = mdi.getEntry(id);
+		if (entry != null) {
+			ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
 		}
-		if (propertyID == TITLE_TEXT) {
-			return searchText;
-		}
-		return null;
 	}
 }

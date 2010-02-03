@@ -23,13 +23,13 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 /**
  * @author TuxPaper
@@ -169,7 +169,8 @@ public class SBC_ActivityView
 		}
 
 		
-		SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_ACTIVITIES);
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		MdiEntry entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_ACTIVITIES);
 		if (entry != null) {
 			entry.setLogID(SideBar.SIDEBAR_SECTION_ACTIVITIES + "-" + viewMode);
 		}

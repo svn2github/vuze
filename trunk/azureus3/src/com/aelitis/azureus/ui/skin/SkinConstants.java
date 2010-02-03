@@ -55,7 +55,7 @@ public class SkinConstants
 
 	public static final String VIEWID_SIDEBAR_ACTIVITY_SMALL = "activity-small-area";
 
-	public static final String VIEWID_SIDEBAR = "sidebar";
+	public static final String VIEWID_MDI = "mdi";
 
 	public static final String VIEWID_LIBRARY_TOOLBAR = "library-list-button-smalltable";
 	public static final String VIEWID_LIBRARY_TOOLBAR_BIG = "library-list-button-bigtable";

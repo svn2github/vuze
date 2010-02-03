@@ -24,24 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.browser.*;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.UIInputReceiver;
-import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarCloseListener;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -49,17 +37,20 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
+import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.menus.*;
 
 /**
  * @author TuxPaper
@@ -68,7 +59,7 @@ import com.aelitis.azureus.util.ContentNetworkUtils;
  */
 public class Browse
 	extends SkinView
-	implements SideBarCloseListener
+	implements MdiCloseListener
 {
 	protected static final String CFG_SHOWCLOSE = "contentnetwork.close.reminder";
 
@@ -82,7 +73,7 @@ public class Browse
 
 	private SWTSkinObject soMain;
 
-	private SideBarVitalityImage vitalityImage;
+	private MdiEntryVitalityImage vitalityImage;
 
 	private ContentNetwork contentNetwork;
 	
@@ -91,9 +82,9 @@ public class Browse
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
-		final SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (sidebar != null) {
-			final SideBarEntrySWT entry = sidebar.getEntryBySkinView(this);
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi != null) {
+			MdiEntry entry = mdi.getEntryBySkinView(this);
 			if (entry != null) {
 				entry.addListener(this);
 			}
@@ -128,20 +119,20 @@ public class Browse
 
 		browserSkinObject = SWTSkinUtils.findBrowserSO(soMain);
 
-		final SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (sidebar != null) {
-			final SideBarEntrySWT entry = sidebar.getEntryBySkinView(this);
+		final MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi != null) {
+			final MdiEntry entry = mdi.getEntryBySkinView(this);
 			if (entry != null) {
 				vitalityImage = entry.addVitalityImage("image.sidebar.vitality.dots");
 				vitalityImage.setVisible(false);
 
-				sidebar.addListener(new SideBarListener() {
+				mdi.addListener(new MdiListener() {
 					long lastSelect = 0;
 
-					public void sidebarItemSelected(SideBarEntrySWT newSideBarEntry,
-							SideBarEntrySWT oldSideBarEntry) {
-						if (entry == newSideBarEntry) {
-							if (entry == oldSideBarEntry) {
+					public void mdiEntrySelected(MdiEntry newEntry,
+							MdiEntry oldEntry) {
+						if (entry == newEntry) {
+							if (entry == oldEntry) {
 								if (lastSelect < SystemTime.getOffsetTime(-1000)) {
 									if (browserSkinObject != null) {
 										browserSkinObject.restart();
@@ -234,12 +225,12 @@ public class Browse
 				menuItem = menuManager.addMenuItem(parent, "Remove HD Network");
 				menuItem.addListener(new MenuItemListener() {
 					public void selected(MenuItem menu, Object target) {
-						if (sidebar != null) {
-							final SideBarEntrySWT entry = sidebar.getEntryBySkinView(Browse.this);
+						if (mdi != null) {
+							MdiEntry entry = mdi.getEntryBySkinView(Browse.this);
 							if (entry != null) {
 								entry.removeListener(Browse.this);
 							}
-							sidebar.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
+							mdi.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
 						}
 						contentNetwork.remove();
 					}
@@ -250,12 +241,12 @@ public class Browse
 					public void selected(MenuItem menu, Object target) {
 						contentNetwork.setPersistentProperty(
 								ContentNetwork.PP_AUTH_PAGE_SHOWN, Boolean.FALSE);
-						if (sidebar != null) {
-							final SideBarEntrySWT entry = sidebar.getEntryBySkinView(Browse.this);
+						if (mdi != null) {
+							MdiEntry entry = mdi.getEntryBySkinView(Browse.this);
 							if (entry != null) {
 								entry.removeListener(Browse.this);
 							}
-							sidebar.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
+							mdi.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
 						}
 					}
 				});
@@ -268,7 +259,7 @@ public class Browse
 		return null;
 	}
 
-	public void sidebarClosed(SideBarEntry entry) {
+	public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
 		boolean wasActive = false;
 		Object prop = contentNetwork.getPersistentProperty(ContentNetwork.PP_ACTIVE);
 		if (prop instanceof Boolean) {
@@ -328,38 +319,40 @@ public class Browse
 			return;
 		}
 
-		int decision = RememberedDecisionsManager.getRememberedDecision(CFG_SHOWCLOSE);
-		if (decision != 1) {
-			final SkinnedDialog closeDialog = new SkinnedDialog(
-					"skin3_close_notification", "close-notification.body");
-			
-			closeDialog.setTitle(MessageText.getString("v3.dialog.cnclose.title",
-					new String[] {
-						contentNetwork.getName()
-					}));
-			SWTSkin skin = closeDialog.getSkin();
-			SWTSkinObjectButton soButton = (SWTSkinObjectButton) skin.getSkinObject("close");
+		if (userClosed) {
+			int decision = RememberedDecisionsManager.getRememberedDecision(CFG_SHOWCLOSE);
+			if (decision != 1) {
+				final SkinnedDialog closeDialog = new SkinnedDialog(
+						"skin3_close_notification", "close-notification.body");
 
-			if (soButton != null) {
-				soButton.addSelectionListener(new ButtonListenerAdapter() {
-					public void pressed(SWTSkinButtonUtility buttonUtility,
-							SWTSkinObject skinObject, int stateMask) {
-						closeDialog.close();
+				closeDialog.setTitle(MessageText.getString("v3.dialog.cnclose.title",
+						new String[] {
+							contentNetwork.getName()
+						}));
+				SWTSkin skin = closeDialog.getSkin();
+				SWTSkinObjectButton soButton = (SWTSkinObjectButton) skin.getSkinObject("close");
+
+				if (soButton != null) {
+					soButton.addSelectionListener(new ButtonListenerAdapter() {
+						public void pressed(SWTSkinButtonUtility buttonUtility,
+								SWTSkinObject skinObject, int stateMask) {
+							closeDialog.close();
+						}
+					});
+				}
+
+				closeDialog.addCloseListener(new SkinnedDialogClosedListener() {
+					public void skinDialogClosed(SkinnedDialog dialog) {
+						SWTSkin skin = closeDialog.getSkin();
+						SWTSkinObjectCheckbox soCheck = (SWTSkinObjectCheckbox) skin.getSkinObject("noshowagain");
+						if (soCheck != null && soCheck.isChecked()) {
+							RememberedDecisionsManager.setRemembered(CFG_SHOWCLOSE, 1);
+						}
 					}
 				});
+
+				closeDialog.open();
 			}
-
-			closeDialog.addCloseListener(new SkinnedDialogClosedListener() {
-				public void skinDialogClosed(SkinnedDialog dialog) {
-					SWTSkin skin = closeDialog.getSkin();
-					SWTSkinObjectCheckbox soCheck = (SWTSkinObjectCheckbox) skin.getSkinObject("noshowagain");
-					if (soCheck != null && soCheck.isChecked()) {
-						RememberedDecisionsManager.setRemembered(CFG_SHOWCLOSE, 1);
-					}
-				}
-			});
-
-			closeDialog.open();
 		}
 	}
 }
