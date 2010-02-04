@@ -45,6 +45,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_3111					= 17;	
 	public static final byte PROTOCOL_VERSION_4204					= 22;	// min -> 17
 	public static final byte PROTOCOL_VERSION_4208					= 23;	
+	public static final byte PROTOCOL_VERSION_4310					= 26;	// somewhere min has gone to 22
 
 	public static final byte PROTOCOL_VERSION_DIV_AND_CONT			= 6;
 	public static final byte PROTOCOL_VERSION_ANTI_SPOOF			= 7;
@@ -94,7 +95,7 @@ DHTTransportUDP
 		// current versions
 	
 	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_REPLICATION_CONTROL3;
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_RESTRICT_ID_PORTS2Z;
+	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_RESTRICT_ID3;
 
 	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_MORE_NODE_STATUS;
 	public static final byte PROTOCOL_VERSION_MIN_CVS				= PROTOCOL_VERSION_RESTRICT_ID_PORTS2Z;
