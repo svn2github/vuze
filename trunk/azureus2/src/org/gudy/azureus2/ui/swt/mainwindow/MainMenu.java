@@ -204,7 +204,7 @@ public class MainMenu
 			indent(MenuFactory.addDetailedListMenuItem(viewMenu));
 			indent(MenuFactory.addRCMMenuItem(viewMenu));
 			//indent(MenuFactory.addDeviceManagerMenuItem(viewMenu));
-			indent(MenuFactory.addSubscriptionMenuItem(viewMenu));
+			//indent(MenuFactory.addSubscriptionMenuItem(viewMenu));
 
 			/*
 			 * These 2 menus resides on the Tools menu on non-OSX platforms;
