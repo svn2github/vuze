@@ -580,6 +580,15 @@ public class MenuFactory
 		});
 	}
 
+	public static MenuItem addSubscriptionMenuItem(Menu menu) {
+		return addMenuItem(menu, MENU_ID_SUBSCRIPTIONS, new Listener() {
+			public void handleEvent(Event e) {
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS);
+			}
+		});
+	}
+
 	public static MenuItem addMyTrackerMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_MY_TRACKERS, new Listener() {
 			public void handleEvent(Event e) {

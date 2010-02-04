@@ -120,6 +120,8 @@ public interface IMenuConstants
 	
 	public static final String MENU_ID_DEVICEMANAGER = "MainWindow.menu.view.devicemanager";
 
+	public static final String MENU_ID_SUBSCRIPTIONS = "subscriptions.view.title";
+
 	public static final String MENU_ID_MY_TRACKERS = "MainWindow.menu.view.mytracker";
 
 	public static final String MENU_ID_MY_SHARES = "MainWindow.menu.view.myshares";
