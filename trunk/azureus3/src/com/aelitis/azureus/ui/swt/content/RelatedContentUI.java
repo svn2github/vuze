@@ -620,8 +620,9 @@ RelatedContentUI
 										view.getTitle(),
 										view, null, true, -1 );
 								
+								new_si.setMdiEntry(entry);
 								if (entry instanceof SideBarEntrySWT) {
-									new_si.setTreeItem( ((SideBarEntrySWT)entry).getTreeItem(), entry );
+									new_si.setTreeItem( ((SideBarEntrySWT)entry).getTreeItem() );
 								}
 								
 								/*
@@ -830,11 +831,9 @@ RelatedContentUI
 		}
 		
 		protected void
-		setTreeItem(
-			TreeItem		_tree_item,
-			MdiEntry	_sb_entry )
+		setMdiEntry(
+				MdiEntry _sb_entry )
 		{
-			tree_item	= _tree_item;
 			sb_entry	= _sb_entry;
 			
 			sb_entry.setDatasource( this );
@@ -842,7 +841,7 @@ RelatedContentUI
 			sb_entry.addListener( this );
 			
 			spinner = sb_entry.addVitalityImage( SPINNER_IMAGE_ID );
-			
+
 			try{
 				showIcon( spinner, null );
 				
@@ -913,6 +912,14 @@ RelatedContentUI
 				
 				hideIcon( spinner );
 			}
+		}
+		
+		protected void
+		setTreeItem(
+			TreeItem		_tree_item )
+		{
+			tree_item	= _tree_item;
+
 		}
 		
 		protected void 
