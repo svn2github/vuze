@@ -78,6 +78,8 @@ import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.plugins.utils.Utilities;
 
 public class 
 DeviceManagerUI 
@@ -1205,16 +1207,26 @@ DeviceManagerUI
 					});
 				*/
 				
-				if (device_manager.getTranscodeManager().getProviders().length == 0) {
-					MdiEntryVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
-					if (turnon != null) {
-  					turnon.addListener(new MdiEntryVitalityImageListener() {
-  						public void mdiEntryVitalityImage_clicked(int x, int y) {
-  							DevicesFTUX.ensureInstalled();
-  						}
-  					});
-					}
-				}
+    		Utilities utilities = plugin_interface.getUtilities();
+    		
+    		// need to delay until all CoreAvailable listeners are triggered
+    		// otherwise getTranscodeManager will return null
+    		final DelayedTask dt = utilities.createDelayedTask(new AERunnable() {
+    			public void runSupport() {
+    				if (device_manager.getTranscodeManager().getProviders().length == 0) {
+    					MdiEntryVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
+    					if (turnon != null) {
+    						turnon.addListener(new MdiEntryVitalityImageListener() {
+    							public void mdiEntryVitalityImage_clicked(int x, int y) {
+    								DevicesFTUX.ensureInstalled();
+    							}
+    						});
+    					}
+    				}
+    			}
+    		});
+    		dt.queue();
+
 				MdiEntryVitalityImage beta = main_sb_entry.addVitalityImage("image.sidebar.beta");
 				if (beta != null) {
 					beta.setAlignment(SWT.LEFT);
