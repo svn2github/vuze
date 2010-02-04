@@ -114,11 +114,6 @@ public class PlatformMessenger
 	public static void queueMessage(PlatformMessage message,
 			PlatformMessengerListener listener, boolean addToBottom) {
 		
-		if ( COConfigurationManager.getStringParameter( "ui", "az3" ).equals( "az2" )){
-			
-			Debug.out( "**** PlatformMessenger shouldn't be used with az2 UI ****" );
-		}
-		
 		if (!initialized) {
 			init();
 		}
