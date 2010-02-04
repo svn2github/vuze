@@ -77,8 +77,6 @@ SubscriptionManagerUI
 	private SubscriptionManager	subs_man;
 	
 	
-	private boolean		side_bar_setup;
-
 	private List<TableColumn> columns = new ArrayList<TableColumn>();
 	protected UISWTInstance swt;
 	private UIManager ui_manager;
@@ -336,6 +334,10 @@ SubscriptionManagerUI
 						return mainSBEntry;
 					}
 				});
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+		if (uiClassic) {
+			addAllSubscriptions();
+		}
 	}
 
 	void delayedInit() {
@@ -756,15 +758,7 @@ SubscriptionManagerUI
 	setupSideBar(
 		final UISWTInstance		swt_ui )		
 	{
-		synchronized( this ){
-			
-			if ( side_bar_setup ){
-				
-				return;
-			}
-			
-			side_bar_setup = true;
-		}
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		if (mdi == null) {
@@ -893,7 +887,7 @@ SubscriptionManagerUI
 				subscriptionAdded(
 					Subscription 		subscription ) 
 				{
-					addSubscription( subscription, true );
+					addSubscription( subscription, false );
 				}
 	
 				public void
@@ -930,25 +924,10 @@ SubscriptionManagerUI
 				}
 			});
 		
-		Subscription[]	subs = subs_man.getSubscriptions();
-		
-		Arrays.sort(
-			subs,
-			new Comparator<Subscription>()
-			{
-				public int 
-				compare(
-					Subscription o1, Subscription o2 )
-				{
-					return( o1.getName().compareToIgnoreCase( o2.getName()));
-				}
-			});
-		
-		for (int i=0;i<subs.length;i++){
-			
-			addSubscription( subs[i], false );
+		if (!uiClassic) {
+			addAllSubscriptions();
 		}
-		
+
 		mdi.addListener(
 			new MdiListener() 
 			{
@@ -981,6 +960,27 @@ SubscriptionManagerUI
 			});
 	}
 	
+	private void addAllSubscriptions() {
+		Subscription[]	subs = subs_man.getSubscriptions();
+		
+		Arrays.sort(
+			subs,
+			new Comparator<Subscription>()
+			{
+				public int 
+				compare(
+					Subscription o1, Subscription o2 )
+				{
+					return( o1.getName().compareToIgnoreCase( o2.getName()));
+				}
+			});
+		
+		for (int i=0;i<subs.length;i++){
+			
+			addSubscription( subs[i], false );
+		}
+	}
+
 	protected void
 	changeSubscription(
 		final Subscription	subs )
