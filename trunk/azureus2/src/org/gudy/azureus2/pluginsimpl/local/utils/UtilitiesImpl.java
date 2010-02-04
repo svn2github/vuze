@@ -1055,8 +1055,8 @@ UtilitiesImpl
 		}
 	}
 	
-	public boolean 
-	isFeatureEnabled(
+	public FeatureDetails 
+	getFeatureDetails(
 		String 					feature_id,
 		Map<String, Object> 	feature_properties ) 
 	{
@@ -1073,15 +1073,17 @@ UtilitiesImpl
 				
 				if ( f1 != null && f1.equals( f2 )){
 			
-					if ( enabler.isFeatureEnabled( pi.getPluginID(), feature_id, feature_properties)){
+					FeatureDetails details = enabler.getFeatureDetails( pi.getPluginID(), feature_id, feature_properties );
 				
-						return( true );
+					if ( details != null ){
+							
+						return( details );
 					}
 				}
 			}
 		}
 		
-		return false;
+		return( null );
 	}
 	
 	public void

@@ -137,8 +137,15 @@ PluginInterfaceImpl
 	  	// check we're being created by the core
 	  
 	  StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+
+	  int	pos = 0;
+
+	  while( !stack[pos].getClassName().equals( PluginInterfaceImpl.class.getName())){
+
+		  pos++;
+	  }	  
 	  
-	  String caller_class = stack[3].getClassName();
+	  String caller_class = stack[pos+1].getClassName();
 	  
 	  if ( !(	caller_class.equals( "org.gudy.azureus2.pluginsimpl.local.PluginInitializer" ) ||
 			  	caller_class.equals( "org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl" ))){

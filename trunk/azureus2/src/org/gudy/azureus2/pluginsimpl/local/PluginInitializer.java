@@ -2194,7 +2194,9 @@ PluginInitializer
 	
 	private static final class
 	VerifiedPluginHolder
-	{		
+	{	
+		private volatile boolean initialised;
+		
 		private AESemaphore	request_sem = new AESemaphore( "ValueHolder" );
 		
 		private List<Object[]>	request_queue = new ArrayList<Object[]>();
@@ -2204,9 +2206,14 @@ PluginInitializer
 		{
 			StackTraceElement[] stack = Thread.currentThread().getStackTrace();
 
-			String caller_class = stack[4].getClassName();
-
-			if ( !caller_class.equals( "org.gudy.azureus2.pluginsimpl.local.PluginInitializer" )){
+			int	pos = 0;
+			
+			while( !stack[pos].getClassName().equals( VerifiedPluginHolder.class.getName())){
+				
+				pos++;
+			}
+			
+			if ( !stack[pos+2].getClassName().equals( "org.gudy.azureus2.pluginsimpl.local.PluginInitializer" )){
 				
 				Debug.out( "Illegal operation" );
 				
@@ -2265,6 +2272,8 @@ PluginInitializer
 				};
 			
 			t.start();	
+			
+			initialised = true;
 		}
 		
 		public Object
@@ -2272,6 +2281,11 @@ PluginInitializer
 			Object	key,
 			Object	value )
 		{	
+			if ( !initialised ){
+				
+				return( null );
+			}
+			
 			AESemaphore sem = new AESemaphore( "ValueHolder:set" );
 			
 			Object[] request = new Object[]{ key, value, sem };
@@ -2292,6 +2306,11 @@ PluginInitializer
 		getValue(
 			Object	key )
 		{	
+			if ( !initialised ){
+				
+				return( null );
+			}
+			
 			AESemaphore sem = new AESemaphore( "ValueHolder:get" );
 			
 			Object[] request = new Object[]{ key, null, sem };
