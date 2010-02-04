@@ -112,7 +112,7 @@ DHTUDPUtils
 					result = ((((long)bytes[0] << 32 )&0xff00000000L ) | result ); // % K0;
 
 					key = String.valueOf( result );
-					
+										
 				}else{
 
 						// stick with existing approach for IPv6 at the moment
