@@ -41,7 +41,7 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
-import org.gudy.azureus2.plugins.utils.Utilities.FeatureEnabler;
+import org.gudy.azureus2.plugins.utils.FeatureManager.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
 import org.gudy.azureus2.plugins.utils.search.Search;
@@ -97,7 +97,7 @@ import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 public class 
 UtilitiesImpl
-	implements Utilities
+	implements Utilities, FeatureManager
 {
 	private static InetAddress		last_public_ip_address;
 	private static long				last_public_ip_address_time;
@@ -1053,6 +1053,24 @@ UtilitiesImpl
 			
 			manager.addProvider((PluginInterface)entry[0],(SearchProvider)entry[1]);
 		}
+	}
+	
+	public FeatureManager 
+	getFeatureManager()
+	{
+		return( this );
+	}
+	
+	public void 
+	addLicence(
+		String licenceKey ) 
+	{
+	}
+	
+	public Licence[] 
+	getLicences() 
+	{
+		return( new Licence[0] );
 	}
 	
 	public FeatureDetails 

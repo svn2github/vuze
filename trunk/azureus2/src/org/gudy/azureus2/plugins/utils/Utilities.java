@@ -356,50 +356,8 @@ Utilities
 	
 		throws SubscriptionException;
 	
-	public FeatureDetails
-	getFeatureDetails(
-		String					feature_id,
-		Map<String,Object>		feature_properties );
-	
-	public void
-	registerFeatureEnabler(
-		FeatureEnabler	enabler );
-	
-	public void
-	unregisterFeatureEnabler(
-		FeatureEnabler	enabler );
-	
-	public interface
-	FeatureEnabler
-	{
-		public FeatureDetails
-		getFeatureDetails(
-			String					requester_id,
-			String					feature_id,
-			Map<String,Object>		feature_properties );
-	}
-	
-	public interface
-	FeatureDetails
-	{
-		public String	PR_VALID_UNTIL				= "ValidUntil";				// Long
-		public String	PR_VALID_UNTIL_SIGNATURE	= "ValidUntilSignature";	// byte[]
-		
-		public String
-		getID();
-		
-		public boolean
-		isEnabled();
-		
-		public Object
-		getProperty(
-			String		propery_name );
-		
-		public void
-		setProperty(
-			String		property_name,
-			Object		property_value );
-	}
+	public FeatureManager
+	getFeatureManager();
 }
 
 
