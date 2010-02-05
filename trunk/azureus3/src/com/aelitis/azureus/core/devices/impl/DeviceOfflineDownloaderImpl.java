@@ -282,7 +282,8 @@ DeviceOfflineDownloaderImpl
 			return;
 		}
 
-		String	error_status = null;
+		String	error_status 	= null;
+		boolean	force_status	= false;
 		
 		Map<String,DownloadManager>			new_offline_downloads 	= new HashMap<String,DownloadManager>();
 		Map<String,TransferableDownload>	new_transferables 		= new HashMap<String,TransferableDownload>();
@@ -295,10 +296,6 @@ DeviceOfflineDownloaderImpl
 					
 					update_space_outstanding = false;
 					
-					if ( space_on_device == 0 ){
-						
-						error_status = MessageText.getString( "device.od.error.nospace" );
-					}
 				}catch( Throwable e ){
 					
 					error_status = MessageText.getString( "device.od.error.opfailexcep", new String[]{ "GetFreeSpace", Debug.getNestedExceptionMessage( e )});
@@ -308,6 +305,12 @@ DeviceOfflineDownloaderImpl
 				}
 			}
 			
+			if ( space_on_device == 0 ){
+				
+				error_status 	= MessageText.getString( "device.od.error.nospace" );
+				force_status	= true;
+			}
+
 			Map<String,byte[]>	old_cache 	= (Map<String,byte[]>)getPersistentMapProperty( PP_OD_STATE_CACHE, new HashMap<String,byte[]>());
 			
 			Map<String,byte[]>	new_cache 	= new HashMap<String, byte[]>();
@@ -947,7 +950,7 @@ DeviceOfflineDownloaderImpl
 				}
 			}
 			
-			updateError( error_status );
+			updateError( error_status, force_status );
 		}
 	}
 
@@ -992,7 +995,8 @@ DeviceOfflineDownloaderImpl
 	
 	protected void
 	updateError(
-		String	str )
+		String	str,
+		boolean	force )
 	{
 		if ( str == null ){
 			
@@ -1022,7 +1026,7 @@ DeviceOfflineDownloaderImpl
 			
 			consec_success = 0;
 			
-			if ( consec_errors > 2 ){
+			if ( consec_errors > 2 || force ){
 				
 				setError( ERROR_KEY_OD, str );
 			}
