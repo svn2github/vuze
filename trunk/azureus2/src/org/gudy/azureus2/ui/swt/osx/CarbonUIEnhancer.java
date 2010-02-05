@@ -945,7 +945,7 @@ public class CarbonUIEnhancer
 							Object range = claCFRange.newInstance();
 							claCFRange.getField("length").setInt(range, length);
 							invoke(claOS, null, "CFStringGetCharacters", new Class[] {
-								String.class,
+								int.class,
 								claCFRange,
 								char[].class
 							}, new Object[] {
