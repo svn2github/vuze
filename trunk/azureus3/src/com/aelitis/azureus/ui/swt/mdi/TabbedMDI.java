@@ -52,14 +52,22 @@ public class TabbedMDI
 	}
 
 	private void setupDefaultItems() {
-		MdiEntry entry;
-		entry = getEntry(SIDEBAR_SECTION_LIBRARY);
-		if (entry == null) {
-			entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
-					MessageText.getString("sidebar." + SIDEBAR_SECTION_LIBRARY), null,
-					null, false, -1);
-			entry.setImageLeftID("image.sidebar.library");
-		}
+		registerEntry(SIDEBAR_SECTION_LIBRARY, new MdiEntryCreationListener() {
+			
+			public MdiEntry createMDiEntry(String id) {
+				boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals(
+						"az2");
+				String title = MessageText.getString(uiClassic
+						? "MyTorrentsView.mytorrents" : "sidebar."
+								+ SIDEBAR_SECTION_LIBRARY);
+				MdiEntry entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY,
+						"library", title, null, null, false, -1);
+				entry.setImageLeftID("image.sidebar.library");
+				return entry;
+			}
+		});
+		
+		showEntryByID(SIDEBAR_SECTION_LIBRARY);
 
 		// building plugin views needs UISWTInstance, which needs core.
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
@@ -208,21 +216,13 @@ public class TabbedMDI
 			showEntry(entry);
 			return true;
 		}
-		if (SideBar.SIDEBAR_SECTION_LIBRARY.equals(id)) {
-			entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
-					MessageText.getString("sidebar." + SIDEBAR_SECTION_LIBRARY), null,
-					null, false, -1);
-			entry.setImageLeftID("image.sidebar.library");
-			showEntry(entry);
-			return true;
-		} else {
-			MdiEntryCreationListener mdiEntryCreationListener = mapIdToCreationListener.get(id);
-			if (mdiEntryCreationListener != null) {
-				entry = mdiEntryCreationListener.createMDiEntry(id);
-				if (entry != null) {
-					showEntry(entry);
-					return true;
-				}
+
+		MdiEntryCreationListener mdiEntryCreationListener = mapIdToCreationListener.get(id);
+		if (mdiEntryCreationListener != null) {
+			entry = mdiEntryCreationListener.createMDiEntry(id);
+			if (entry != null) {
+				showEntry(entry);
+				return true;
 			}
 		}
 		return false;
