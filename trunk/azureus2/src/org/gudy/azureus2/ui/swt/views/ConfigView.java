@@ -76,6 +76,7 @@ public class ConfigView extends AbstractIView {
 	
 	private Image imgSmallX;
 	private Image imgSmallXGray;
+	private String startSection;
 
   public 
   ConfigView() 
@@ -449,6 +450,12 @@ public class ConfigView extends AbstractIView {
     	initApplyCloseButton();
     } else {
     	initSaveButton();
+    }
+    
+    if (startSection != null) {
+    	if (selectSection(startSection)) {
+    		return;
+    	}
     }
 
     TreeItem[] items = { tree.getItems()[0] };
@@ -925,4 +932,14 @@ public class ConfigView extends AbstractIView {
 			}
 		}
 	}
+  
+  public void dataSourceChanged(Object newDataSource) {
+  	super.dataSourceChanged(newDataSource);
+  	
+  	if (newDataSource instanceof String) {
+			String id = (String) newDataSource;
+	  	startSection = id;
+			selectSection(id);
+		}
+  }
 }
