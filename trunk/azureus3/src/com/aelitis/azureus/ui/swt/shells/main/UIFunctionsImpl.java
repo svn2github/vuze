@@ -398,10 +398,12 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#showConfig(java.lang.String)
 	public boolean showConfig(String section) {
 		try {
-			/*
-			 * Show in pop-up in Vuze UI's
-			 */
-			ConfigShell.getInstance().open(section);
+			boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+			if (uiClassic) {
+				mainWindow.openView(null, ConfigView.class, null, section, true);
+			} else {
+				ConfigShell.getInstance().open(section);
+			}
 			return true;
 
 		} catch (Exception e) {
