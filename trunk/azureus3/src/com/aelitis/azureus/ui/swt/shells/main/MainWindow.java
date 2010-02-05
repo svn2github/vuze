@@ -2042,6 +2042,7 @@ public class MainWindow
 			if (searchClass != null) {
 				searchClass.anotherSearch(sSearchText, toSubscribe);
 			}
+			mdi.showEntry(existingEntry);
 			return;
 		}
 
