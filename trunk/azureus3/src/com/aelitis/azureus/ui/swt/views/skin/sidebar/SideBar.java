@@ -1278,11 +1278,16 @@ public class SideBar
 		}
 
 		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id);
-		entry.setParentID(parentID);
-		entry.setDatasource(datasource);
-		entry.setEventListener(l);
-
-		setupNewEntry(entry, id, -1, false, closeable);
+		try {
+  		entry.setParentID(parentID);
+  		entry.setDatasource(datasource);
+  		entry.setEventListener(l);
+  
+  		setupNewEntry(entry, id, -1, false, closeable);
+		} catch (Exception e) {
+			Debug.out(e);
+			entry.close(true);
+		}
 
 		return entry;
 	}
@@ -1427,7 +1432,7 @@ public class SideBar
 
 		String name = cn.getName();
 		SideBarEntrySWT entryBrowse = (SideBarEntrySWT) getEntry(SIDEBAR_SECTION_BROWSE);
-		int position = entryBrowse == null ? 3
+		int position = entryBrowse == null || entryBrowse.getTreeItem() == null ? 3
 				: tree.indexOf(entryBrowse.getTreeItem()) + 1;
 
 		Object prop = cn.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
