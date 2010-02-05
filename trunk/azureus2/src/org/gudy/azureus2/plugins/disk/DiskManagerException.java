@@ -1,6 +1,6 @@
 /*
- * File    : DiskManager.java
- * Created : 22-Mar-2004
+ * File    : DownloadException.java
+ * Created : 08-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -21,20 +21,28 @@
 
 package org.gudy.azureus2.plugins.disk;
 
-/**
- * @author parg
+/** Throws by various Download methods to indicate errors
  *
+ * @author parg
+ * @since 2.0.7.0
  */
 
-public interface 
-DiskManager 
+public class 
+DiskManagerException 
+	extends Exception
 {
-	public DiskManagerReadRequest
-	read(
-		int								piece_number,
-		int								offset,
-		int								length,
-		DiskManagerReadRequestListener	listener )
+	public
+	DiskManagerException(
+			String	str )
+	{
+		super(str);
+	}
 	
-		throws DiskManagerException;
+	public
+	DiskManagerException(
+		String		str,
+		Throwable 	cause )
+	{
+		super(str,cause);
+	}
 }

@@ -27,7 +27,9 @@ package org.gudy.azureus2.pluginsimpl.local.disk;
  */
 
 
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.disk.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 public class 
 DiskManagerImpl
@@ -46,5 +48,95 @@ DiskManagerImpl
 	getDiskmanager()
 	{
 		return( disk_manager );	
+	}
+	
+	public DiskManagerReadRequest 
+	read(
+		int 									piece_number, 
+		int 									offset, 
+		int 									length,
+		final DiskManagerReadRequestListener	listener )
+	
+		throws DiskManagerException 
+	{
+		if ( !disk_manager.checkBlockConsistencyForRead( "plugin", piece_number, offset, length )){
+			
+			throw( new DiskManagerException( "read invalid - parameters incorrect or piece incomplete" ));
+		}
+		
+		final DMRR request = new DMRR( disk_manager.createReadRequest( piece_number, offset, length ));
+		
+		disk_manager.enqueueReadRequest( 
+			request.getDelegate(),
+			new org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener()
+			{
+				public void 
+				readCompleted( 
+					org.gudy.azureus2.core3.disk.DiskManagerReadRequest 	_request, 
+					DirectByteBuffer 										_data )
+				{
+					listener.complete( request, new PooledByteBufferImpl( _data ));
+				}
+
+				public void 
+				readFailed( 
+					org.gudy.azureus2.core3.disk.DiskManagerReadRequest 	_request, 
+					Throwable		 										_cause )
+				{
+					listener.failed( request, new DiskManagerException( "read failed", _cause ));
+				}
+
+				public int
+				getPriority()
+				{
+					return( 0 );
+				}
+				
+				public void 
+				requestExecuted(
+					long 	bytes )
+				{					
+				}
+			});
+		
+		return( request );
+	}
+	
+	private class
+	DMRR
+		implements org.gudy.azureus2.plugins.disk.DiskManagerReadRequest
+	{
+		private org.gudy.azureus2.core3.disk.DiskManagerReadRequest		request;
+		
+		private
+		DMRR(
+			org.gudy.azureus2.core3.disk.DiskManagerReadRequest	_request )
+		{
+			request = _request;
+		}
+		
+		private org.gudy.azureus2.core3.disk.DiskManagerReadRequest
+		getDelegate()
+		{
+			return( request );
+		}
+		
+		public int
+		getPieceNumber()
+		{
+			return( request.getPieceNumber());
+		}
+		
+		public int
+		getOffset()
+		{
+			return( request.getOffset());
+		}
+		
+		public int
+		getLength()
+		{
+			return( request.getLength());
+		}
 	}
 }
