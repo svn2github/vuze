@@ -25,7 +25,6 @@ import com.aelitis.azureus.ui.mdi.MdiEntryCreationListener;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTabFolder;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 
 public class TabbedMDI
 	extends BaseMDI
