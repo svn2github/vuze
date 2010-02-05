@@ -684,6 +684,9 @@ UISWTInstanceImpl
 	 */
 	public void addView(String sParentID, final String sViewID,
 			final UISWTViewEventListener l) {
+		if (sParentID == null) {
+			sParentID = UISWTInstance.VIEW_MAIN;
+		}
 		Map<String,UISWTViewEventListener> subViews = views.get(sParentID);
 		if (subViews == null) {
 			subViews = new HashMap<String,UISWTViewEventListener>();
