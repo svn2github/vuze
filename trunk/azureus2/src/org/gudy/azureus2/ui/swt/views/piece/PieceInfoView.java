@@ -226,9 +226,17 @@ public class PieceInfoView
 
 		pieceInfoCanvas.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
+				synchronized (PieceInfoView.this) {
+  				if (alreadyFilling) {
+  					return;
+  				}
+  				
+  				alreadyFilling = true;
+				}
+
 				// wrap in asyncexec because sc.setMinWidth (called later) doesn't work
 				// too well inside a resize (the canvas won't size isn't always updated)
-				e.widget.getDisplay().asyncExec(new AERunnable() {
+				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
 						if (img != null) {
 							int iOldColCount = img.getBounds().width / BLOCK_SIZE;
@@ -236,6 +244,9 @@ public class PieceInfoView
 									/ BLOCK_SIZE;
 							if (iOldColCount != iNewColCount)
 								refreshInfoCanvas();
+						}
+						synchronized (PieceInfoView.this) {
+							alreadyFilling = false;
 						}
 					}
 				});
@@ -267,10 +278,13 @@ public class PieceInfoView
 	private boolean alreadyFilling = false;
 
 	public void fillPieceInfoSection() {
-		if (alreadyFilling) {
-			return;
+		synchronized (this) {
+			if (alreadyFilling) {
+				return;
+			}
+			alreadyFilling = true;
 		}
-		alreadyFilling = true;
+
 		Utils.execSWTThreadLater(100, new AERunnable() {
 			public void runSupport() {
 				if (!alreadyFilling) {
@@ -289,7 +303,9 @@ public class PieceInfoView
 
   				refreshInfoCanvas();
 				} finally {
-					alreadyFilling = false;
+					synchronized (PieceInfoView.this) {
+						alreadyFilling = false;
+					}
 				}
 			}
 		});
@@ -304,7 +320,9 @@ public class PieceInfoView
 	}
 
 	protected void refreshInfoCanvas() {
-		alreadyFilling = false;
+		synchronized (PieceInfoView.this) {
+			alreadyFilling = false;
+		}
 		
 		if (!pieceInfoCanvas.isVisible()) {
 			return;
