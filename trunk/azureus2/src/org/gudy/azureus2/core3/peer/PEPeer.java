@@ -284,14 +284,16 @@ PEPeer
   public Message[] getSupportedMessages();
   
   /**
-   * Sets the reserved piece for piece picking by this peer
+   * adds the reserved piece for piece picking by this peer
    */
-  public void setReservedPieceNumber(int pieceNumber);
+  public void addReservedPieceNumber(int pieceNumber);
+  
+  public void removeReservedPieceNumber(int pieceNumber);
   
   /**
-   * Get the reserved piece for piece picking by this peer
+   * Get the reserved pieces for piece picking by this peer
    */
-  public int getReservedPieceNumber();
+  public int[] getReservedPieceNumbers();
   
   public int getIncomingRequestCount();
   public int getOutgoingRequestCount();

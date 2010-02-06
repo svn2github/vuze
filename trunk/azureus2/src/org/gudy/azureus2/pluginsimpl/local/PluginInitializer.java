@@ -2157,9 +2157,7 @@ PluginInitializer
 		boolean					v )
 	
 		throws PluginException
-	{
-		System.out.print( "setVerified: " + pi.getPluginID() + " -> " + v );
-		
+	{		
 		Object[] existing = (Object[])verified_plugin_holder.setValue( pi, new Object[]{ plugin, v });
 		
 		if ( existing != null && ( existing[0] != plugin || (Boolean)existing[1] != v )){

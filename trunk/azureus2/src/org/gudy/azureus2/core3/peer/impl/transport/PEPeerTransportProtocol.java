@@ -156,7 +156,7 @@ implements PEPeerTransport
 	private int uniquePiece = -1;
 
 	//When downloading a piece in exclusivity mode the piece number being downloaded
-	private int reservedPiece = -1;
+	private int[] reserved_pieces = null;
 
 	//Spread time (0 secs , fake default)
 	private int spreadTimeHint = 0 * 1000;
@@ -4084,14 +4084,77 @@ implements PEPeerTransport
 
 	public PeerItem getPeerItemIdentity() {  return peer_item_identity;  }
 
-	public int getReservedPieceNumber() {
-		return reservedPiece;
-	}
+	public int[]
+   	getReservedPieceNumbers() 
+   	{
+   		return( reserved_pieces );
+   	}
+    
+ 	public void 
+ 	addReservedPieceNumber(int piece_number) 
+ 	{
+ 		int[]	existing = reserved_pieces;
+ 		
+ 		if ( existing == null ){
+ 			
+ 			reserved_pieces = new int[]{ piece_number };
+ 			
+ 		}else{
+ 			
+ 			int[] updated = new int[existing.length+1];
+ 			
+ 			System.arraycopy( existing, 0, updated, 0, existing.length );
+ 					
+ 			updated[existing.length] = piece_number;
+ 			
+ 			reserved_pieces = updated;
+ 		}
+ 	}
 
-	public void setReservedPieceNumber(int pieceNumber) {
-		reservedPiece = pieceNumber;
-	}
-
+ 	public void 
+ 	removeReservedPieceNumber(int piece_number) 
+ 	{
+ 		int[]	existing = reserved_pieces;
+ 		
+ 		if ( existing != null ){
+ 			
+ 			if ( existing.length == 1 ){
+ 				
+ 				if ( existing[0] == piece_number ){
+ 				
+ 					reserved_pieces = null;
+ 				}
+ 			}else{
+ 				
+ 				int[] updated = new int[existing.length-1];
+ 				
+ 				int		pos 	= 0;
+ 				boolean	found 	= false;
+ 				
+ 				for (int i=0;i<existing.length;i++){
+ 				
+ 					int	pn = existing[i];
+ 					
+ 					if ( found || pn != piece_number ){
+ 						
+ 						if ( pos == updated.length ){
+ 							
+ 							return;
+ 						}
+ 						
+ 						updated[pos++] = pn;
+ 						
+ 					}else{
+ 						
+ 						found = true;
+ 					}
+ 				}
+ 				
+ 				reserved_pieces = updated;
+ 			}
+ 		}
+ 	}
+ 	
 	public int 
 	getIncomingRequestCount()
 	{
@@ -4335,7 +4398,7 @@ implements PEPeerTransport
 				",oudp=" + getUDPNonDataListenPort() + ",p_state=" + getPeerState() + ",c_state=" + getConnectionState() + ",seed=" + isSeed() + "partialSeed=" + isRelativeSeed() + ",pex=" + peer_exchange_supported + ",closing=" + closing );
 		writer.println( "    choked=" + effectively_choked_by_other_peer + "/" + really_choked_by_other_peer + ",choking=" + choking_other_peer + ",is_opt=" + is_optimistic_unchoke ); 
 		writer.println( "    interested=" + interested_in_other_peer + ",interesting=" + other_peer_interested_in_me + ",snubbed=" + snubbed );
-		writer.println( "    lp=" + _lastPiece + ",up=" + uniquePiece + ",rp=" + reservedPiece );
+		writer.println( "    lp=" + _lastPiece + ",up=" + uniquePiece + ",rp=" + reserved_pieces );
 		writer.println( 
 				"    last_sent=" + last_message_sent_time + "/" + last_data_message_sent_time + 
 				",last_recv=" + last_message_received_time + "/" + last_data_message_received_time + "/" + last_good_data_time );

@@ -46,6 +46,17 @@ PEPeerManagerListener
    */
   public void peerRemoved( PEPeerManager manager, PEPeer peer );
   
+  /**
+   * piece activated
+   * @param peice
+   * @param for_peer maybe null if not for a particular peer
+   */
+  
+  public void pieceAdded( PEPeerManager manager, PEPiece piece, PEPeer for_peer );
+  
+  public void pieceRemoved( PEPeerManager manager, PEPiece piece );
+  
+  
   public void peerDiscovered( PEPeerManager manager, PeerItem peer, PEPeer finder );
   
   public void peerSentBadData( PEPeerManager manager, PEPeer peer, int piece_number );

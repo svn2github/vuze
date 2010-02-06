@@ -68,7 +68,7 @@ PeerForeignDelegate
 	private long	create_time		= SystemTime.getCurrentTime();
 	private long	last_data_received_time =-1;
 	private long	last_data_message_received_time =-1;
-	private int		reserved_piece	= -1;
+	private int[]	reserved_pieces	= null;
 	private int		consecutive_no_requests;
 	
 	private BitFlags	bit_flags;
@@ -821,18 +821,77 @@ PeerForeignDelegate
   
   
   
-	public int 
-	getReservedPieceNumber() 
+	public int[]
+	getReservedPieceNumbers() 
 	{
-		return( reserved_piece );
+		return( reserved_pieces );
 	}
  
   	public void 
-  	setReservedPieceNumber(int pieceNumber) 
+  	addReservedPieceNumber(int piece_number) 
   	{
-  		reserved_piece	= pieceNumber;
+  		int[]	existing = reserved_pieces;
+  		
+  		if ( existing == null ){
+  			
+  			reserved_pieces = new int[]{ piece_number };
+  			
+  		}else{
+  			
+  			int[] updated = new int[existing.length+1];
+  			
+  			System.arraycopy( existing, 0, updated, 0, existing.length );
+  					
+  			updated[existing.length] = piece_number;
+  			
+  			reserved_pieces = updated;
+  		}
   	}
 
+  	public void 
+  	removeReservedPieceNumber(int piece_number) 
+  	{
+  		int[]	existing = reserved_pieces;
+  		
+  		if ( existing != null ){
+  			
+  			if ( existing.length == 1 ){
+  				
+  				if ( existing[0] == piece_number ){
+  				
+  					reserved_pieces = null;
+  				}
+  			}else{
+  				
+  				int[] updated = new int[existing.length-1];
+  				
+  				int		pos 	= 0;
+  				boolean	found 	= false;
+  				
+  				for (int i=0;i<existing.length;i++){
+  				
+  					int	pn = existing[i];
+  					
+  					if ( found || pn != piece_number ){
+  						
+  						if ( pos == updated.length ){
+  							
+  							return;
+  						}
+  						
+  						updated[pos++] = pn;
+  						
+  					}else{
+  						
+  						found = true;
+  					}
+  				}
+  				
+  				reserved_pieces = updated;
+  			}
+  		}
+  	}
+  	
 	public int[] 
 	getIncomingRequestedPieceNumbers() 
 	{

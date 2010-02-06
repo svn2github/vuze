@@ -126,7 +126,7 @@ PEPeerManager
 	removeListener(
 		PEPeerManagerListener	l );
   
-	public void addPiece(PEPiece piece, int pieceNumber);
+	public void addPiece(PEPiece piece, int pieceNumber, PEPeer for_peer );
   
   public boolean needsMD5CheckOnCompletion(int pieceNumber);
   

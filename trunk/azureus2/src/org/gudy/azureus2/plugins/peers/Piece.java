@@ -50,4 +50,21 @@ Piece
 	
 	public int
 	getAllocatableRequestCount();
+	
+		/**
+		 * Reserve this peice for a given peer - no other peer will be asked for the piece
+		 * @return
+		 */
+	
+	public Peer
+	getReservedFor();
+	
+		/**
+		 * Set the peer that will be responsible for downloading the piece
+		 * @param peer
+		 */
+	
+	public void
+	setReservedFor(
+		Peer	peer );
 }

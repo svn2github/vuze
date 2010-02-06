@@ -160,7 +160,9 @@ public class UnchokerUtilTest {
         public Message[] getSupportedMessages(){ return null; }
         public String getEncryption(){ return( "" ); }
         public int getReservedPieceNumber() { return -1; }
-        public void setReservedPieceNumber(int pieceNumber) {}
+        public void addReservedPieceNumber(int pieceNumber) {}
+        public void removeReservedPieceNumber(int pieceNumber) {}
+        public int[] getReservedPieceNumbers() { return null; }
 		public int[] getIncomingRequestedPieceNumbers() { return null; }
 		public int[] getOutgoingRequestedPieceNumbers() { return null; }
 		public int getPercentDoneOfCurrentIncomingRequest(){ return 0; }  

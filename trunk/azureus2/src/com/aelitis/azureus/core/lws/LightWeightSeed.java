@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerManagerFactory;
 import org.gudy.azureus2.core3.peer.PEPeerManagerListener;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
@@ -412,7 +413,22 @@ LightWeightSeed
 							PEPeer finder) 
 						{
 						}
-						 
+						  
+						public void 
+						pieceAdded( 
+							PEPeerManager 	manager, 
+							PEPiece 		peice, 
+							PEPeer 			for_peer )
+						{
+						}
+						  
+						public void 
+						pieceRemoved( 
+							PEPeerManager 	manager, 
+							PEPiece 		peice )
+						{
+						}
+
 						public void 
 						peerSentBadData(
 							PEPeerManager 	manager,

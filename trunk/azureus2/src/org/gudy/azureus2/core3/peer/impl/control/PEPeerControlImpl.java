@@ -386,7 +386,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			final DiskManagerPiece dmPiece =dm_pieces[i];
 			if (!dmPiece.isDone() &&dmPiece.getNbWritten() >0)
 			{
-				addPiece(new PEPieceImpl(this, dmPiece, 0), i, true );
+				addPiece(new PEPieceImpl(this, dmPiece, 0), i, true, null );
 			}
 		}
 
@@ -2714,19 +2714,22 @@ DiskManagerCheckRequestListener, IPFilterListener
 			superSeedPieces[piece].peerLeft();
 		}
 
-		int	reserved_piece = pc.getReservedPieceNumber();
+		int[]	reserved_pieces = pc.getReservedPieceNumbers();
 
-		if ( reserved_piece >= 0 ){
+		if ( reserved_pieces != null ){
 
-			PEPiece	pe_piece = pePieces[reserved_piece];
-
-			if ( pe_piece != null ){
-
-				String	reserved_by = pe_piece.getReservedBy();
-
-				if ( reserved_by != null && reserved_by.equals( pc.getIp())){
-
-					pe_piece.setReservedBy( null );
+			for ( int reserved_piece: reserved_pieces ){
+				
+				PEPiece	pe_piece = pePieces[reserved_piece];
+	
+				if ( pe_piece != null ){
+	
+					String	reserved_by = pe_piece.getReservedBy();
+	
+					if ( reserved_by != null && reserved_by.equals( pc.getIp())){
+	
+						pe_piece.setReservedBy( null );
+					}
 				}
 			}
 		}
@@ -2745,18 +2748,30 @@ DiskManagerCheckRequestListener, IPFilterListener
 	 * @param piece PEPiece invoked; notifications of it's invocation need to be done
 	 * @param pieceNumber of the PEPiece 
 	 */
-	public void addPiece(final PEPiece piece, final int pieceNumber)
+	public void addPiece(final PEPiece piece, final int pieceNumber, PEPeer for_peer )
 	{
-		addPiece( piece, pieceNumber, false );
+		addPiece( piece, pieceNumber, false, for_peer );
 	}
 
-	protected void addPiece(final PEPiece piece, final int pieceNumber, final boolean force_add )
+	protected void addPiece(final PEPiece piece, final int pieceNumber, final boolean force_add, PEPeer for_peer )
 	{
 		pePieces[pieceNumber] =(PEPieceImpl)piece;
 		nbPiecesActive++;
 		if ( is_running || force_add ){
 			// deal with possible piece addition by scheduler loop after closdown started
 			adapter.addPiece(piece);
+		}
+		
+		final ArrayList peer_manager_listeners = peer_manager_listeners_cow;
+
+		for( int i=0; i < peer_manager_listeners.size(); i++ ) {
+			try{
+				((PEPeerManagerListener)peer_manager_listeners.get(i)).pieceAdded(this, piece, for_peer );
+						
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 
@@ -2771,6 +2786,18 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 		pePieces[pieceNumber] =null;
 		nbPiecesActive--;
+		
+		final ArrayList peer_manager_listeners = peer_manager_listeners_cow;
+
+		for( int i=0; i < peer_manager_listeners.size(); i++ ) {
+			try{
+				((PEPeerManagerListener)peer_manager_listeners.get(i)).pieceRemoved(this, pePiece );
+						
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 
 	public int getNbActivePieces()
@@ -3072,7 +3099,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 									PEPeerTransport pt =getTransportFromAddress(writer);
 									
 									if (	pt !=null &&
-											pt.getReservedPieceNumber() ==-1 &&
+											pt.getReservedPieceNumbers() == null &&
 											!ip_filter.isInRange(writer, getDisplayName(),getTorrentHash())){
 									
 									bestWriter = writer;
@@ -3085,11 +3112,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 							
 							if ( bestWriter !=null ){
 	
-							pePiece.setReservedBy(bestWriter);
+								pePiece.setReservedBy(bestWriter);
 								
-								bestWriter_transport.setReservedPieceNumber(pePiece.getPieceNumber());
+								bestWriter_transport.addReservedPieceNumber(pePiece.getPieceNumber());
 								
-							pePiece.setRequestable();
+								pePiece.setRequestable();
 								
 								for (int i =0; i <pePiece.getNbBlocks(); i++ ){
 								

@@ -139,6 +139,21 @@ PeerManagerImpl
 				 {
 				 }
 				 
+				 public void 
+				 pieceAdded( 
+					 PEPeerManager 	manager, 
+					 PEPiece 		peice, 
+					 PEPeer 		for_peer )
+				 {
+				 }
+
+				 public void 
+				 pieceRemoved( 
+					 PEPeerManager 	manager, 
+					 PEPiece 		peice )
+				 {
+				 }
+					
 				 public void
 				 destroyed()
 				 {	
@@ -577,6 +592,21 @@ PeerManagerImpl
 				}
 				
 				public void 
+				pieceAdded( 
+					PEPeerManager 	manager, 
+					PEPiece 		peice, 
+					PEPeer 			for_peer )
+				{
+				}
+				  
+				public void 
+				pieceRemoved( 
+					PEPeerManager 	manager, 
+					PEPiece 		peice )
+				{
+				}
+				
+				public void 
 				peerSentBadData(PEPeerManager manager, PEPeer peer,	int pieceNumber) 
 				{
 				}
@@ -684,6 +714,33 @@ PeerManagerImpl
 						pi,
 						peer_item,
 						null );
+				}
+				
+				public void 
+				pieceAdded( 
+					PEPeerManager 	manager, 
+					PEPiece 		peice, 
+					PEPeer 			for_peer )
+				{
+					PeerImpl pi = for_peer==null?null:getPeerForPEPeer( for_peer );
+
+					fireEvent(
+							PeerManagerEvent.ET_PIECE_ACTIVATED,
+							pi,
+							null,
+							new pieceFacade( peice.getPieceNumber()));
+				}
+				  
+				public void 
+				pieceRemoved( 
+					PEPeerManager 	manager, 
+					PEPiece 		peice )
+				{
+					fireEvent(
+							PeerManagerEvent.ET_PIECE_DEACTIVATED,
+							null,
+							null,
+							new pieceFacade( peice.getPieceNumber()));
 				}
 				
 				public void 
@@ -837,6 +894,45 @@ PeerManagerImpl
 			}
 			
 			return( 0 );
+		}
+		
+		public Peer
+		getReservedFor()
+		{
+			PEPiece piece = pe_pieces[index];
+
+			if ( piece != null ){
+							
+				String ip = piece.getReservedBy();
+				
+				if ( ip != null ){
+					
+					List<PEPeer> peers = manager.getPeers( ip );
+					
+					if ( peers.size() > 0 ){
+						
+						return( getPeerForPEPeer( peers.get(0)));
+					}
+				}
+			}
+			
+			return( null );
+		}
+		
+		public void
+		setReservedFor(
+			Peer	peer )
+		{
+			PEPiece piece = pe_pieces[index];
+			
+			PEPeer mapped_peer = mapForeignPeer( peer );
+			
+			if ( piece != null && mapped_peer != null ){
+				
+				piece.setReservedBy( peer.getIp());
+			
+				mapped_peer.addReservedPieceNumber( index );
+			}
 		}
 	}
 }

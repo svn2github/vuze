@@ -1227,7 +1227,7 @@ implements PiecePicker
 			pePiece =new PEPieceImpl(pt.getManager(), dmPieces[pieceNumber], peerSpeed >>1);
 
 			// Assign the created piece to the pieces array.
-			peerControl.addPiece(pePiece, pieceNumber);
+			peerControl.addPiece(pePiece, pieceNumber, pt);
 			if (startPriorities !=null){
 				pePiece.setResumePriority(startPriorities[pieceNumber] + this_offset);
 			}else{
@@ -1501,7 +1501,7 @@ implements PiecePicker
 		
 						// Assign the created piece to the pieces array.
 		
-						peerControl.addPiece(pePiece, piece_min_rta_index);
+						peerControl.addPiece(pePiece, piece_min_rta_index, pt);
 		
 						pePiece.setResumePriority( PRIORITY_REALTIME );
 		
@@ -1597,47 +1597,41 @@ implements PiecePicker
 
 		// piece number and its block number that we'll try to DL
 
-		int reservedPieceNumber = pt.getReservedPieceNumber();
+		int[] reservedPieceNumbers = pt.getReservedPieceNumbers();
 
 		// If there's a piece seserved to this peer resume it and only it (if possible)
 
-		if ( reservedPieceNumber >=0 ){
+		if ( reservedPieceNumbers != null ){
 
-			PEPiece pePiece = pePieces[reservedPieceNumber];
-
-			if ( pePiece != null ){
-
-				String peerReserved = pePiece.getReservedBy();
-
-				if ( peerReserved != null && peerReserved.equals( pt.getIp())){
-
-					if ( peerHavePieces.flags[reservedPieceNumber] &&pePiece.isRequestable()){
-
-						return reservedPieceNumber;
+			for ( int reservedPieceNumber: reservedPieceNumbers ){
+				
+				PEPiece pePiece = pePieces[reservedPieceNumber];
+	
+				if ( pePiece != null ){
+	
+					String peerReserved = pePiece.getReservedBy();
+	
+					if ( peerReserved != null && peerReserved.equals( pt.getIp())){
+	
+						if ( peerHavePieces.flags[reservedPieceNumber] &&pePiece.isRequestable()){
+	
+							return reservedPieceNumber;
+						}else{
+							
+							pePiece.setReservedBy( null );
+						}
 					}
 				}
+			
+					// reserved piece is no longer valid, dump it
+				
+				pt.removeReservedPieceNumber( reservedPieceNumber );
 			}
-
-			// reserved piece is no longer valid, dump it
-			pt.setReservedPieceNumber(-1);
-
-			// clear the reservation if the piece is still allocated to the peer
-			if ( pePiece != null )
-			{
-				String peerReserved = pePiece.getReservedBy();
-				if ( peerReserved != null )
-				{
-					if ( peerReserved.equals(pt.getIp()))
-					{
-						pePiece.setReservedBy( null );
-					}
-				}
-			}
-
+			
 			// note, pieces reserved to peers that get disconnected are released in pepeercontrol
-
-			reservedPieceNumber	= -1;
 		}
+		
+		int	reservedPieceNumber	= -1;
 
 		final int			peerSpeed =(int) pt.getStats().getDataReceiveRate() /1024;	// how many KB/s has the peer has been sending
 		final int			lastPiece =pt.getLastPiece();
@@ -1722,10 +1716,8 @@ implements PiecePicker
         				if ( pePiece == null ){
         					forceStart	= true;
         				}else{
-        					if ( reservedPieceNumber != i ){
-        						pePiece.setReservedBy( pt.getIp());
-        						pt.setReservedPieceNumber( i );
-        					}
+       						pePiece.setReservedBy( pt.getIp());
+       						pt.addReservedPieceNumber( i );
         				}
         			}
 
@@ -1772,7 +1764,7 @@ implements PiecePicker
         						if (!peerReserved.equals(pt.getIp()))
         							continue;   //reserved to somebody else
         						// the peer forgot this is reserved to him; re-associate it
-        						pt.setReservedPieceNumber(i);
+        						pt.addReservedPieceNumber(i);
         						return i;
         					}
 
@@ -2085,7 +2077,7 @@ implements PiecePicker
 					
 					pePiece = new PEPieceImpl(peerControl,dmPiece,0);
 					
-					peerControl.addPiece(pePiece,i);
+					peerControl.addPiece(pePiece,i, null);
 				}
 
 				final boolean written[] =dmPiece.getWritten();
@@ -2571,6 +2563,21 @@ implements PiecePicker
 		}
 
 		public void peerDiscovered(PEPeerManager manager, PeerItem peer, PEPeer finder) {
+		}
+		
+		public void 
+		pieceAdded( 
+			PEPeerManager 	manager, 
+			PEPiece 		piece, 
+			PEPeer 			for_peer )
+		{
+		}
+		  
+		public void 
+		pieceRemoved( 
+			PEPeerManager 	manager, 
+			PEPiece 		piece )
+		{
 		}
 		
 		public void 

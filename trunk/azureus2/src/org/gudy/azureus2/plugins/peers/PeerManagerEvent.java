@@ -29,6 +29,8 @@ PeerManagerEvent
 	public static final int ET_PEER_DISCOVERED		= 3;		// getPeerDescriptor; opt getPeer if discovered from a Peer
 	public static final int ET_PEER_SENT_BAD_DATA	= 4;		// getPeer; getData -> Integer piece number
 
+	public static final int ET_PIECE_ACTIVATED		= 5;		// opt getPeer; getData -> Piece object
+	public static final int ET_PIECE_DEACTIVATED	= 6;		// getData -> Piece object
 	
 	public PeerManager
 	getPeerManager();
