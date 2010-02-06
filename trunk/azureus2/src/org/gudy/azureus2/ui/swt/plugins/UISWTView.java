@@ -65,6 +65,14 @@ public interface UISWTView extends UIPluginView {
 	 */
 	public void setControlType(int iControlType);
 
+	/**
+	 * 
+	 * @return CONTROLTYPE_*
+	 * 
+	 * @since 4.3.1.3
+	 */
+	int getControlType();
+
 	/** 
 	 * Retrieve the data sources related to this view.
 	 *   

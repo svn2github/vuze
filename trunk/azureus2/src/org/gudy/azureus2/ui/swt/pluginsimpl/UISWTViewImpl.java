@@ -37,10 +37,9 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.IViewExtension;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -56,8 +55,10 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
  * @author TuxPaper
  *
  */
-public class UISWTViewImpl extends AbstractIView implements UISWTView {
+public class UISWTViewImpl extends AbstractIView implements UISWTViewCore, IViewExtension {
 	public static final String CFG_PREFIX = "Views.plugins.";
+
+	private PluginUISWTSkinObject skinObject;
 
 	private Object dataSource = null;
 	
@@ -80,6 +81,8 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	private final String sParentID;
 	
 	private String sTitle = null;
+	
+	private Boolean hasFocus = null;
 
 	public UISWTViewImpl(String sParentID, String sViewID,
 			UISWTViewEventListener eventListener) throws Exception {
@@ -131,12 +134,24 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	}
 
 	public void setControlType(int iControlType) {
-		if (iControlType == UISWTView.CONTROLTYPE_AWT
-				|| iControlType == UISWTView.CONTROLTYPE_SWT)
+		if (iControlType == CONTROLTYPE_AWT
+				|| iControlType == CONTROLTYPE_SWT
+				|| iControlType == CONTROLTYPE_SKINOBJECT)
 			this.iControlType = iControlType;
 	}
 
+	public int getControlType() {
+		return iControlType;
+	}
+
 	public void triggerEvent(int eventType, Object data) {
+		// prevent double fire of focus gained/lost
+		if (eventType == UISWTViewEvent.TYPE_FOCUSGAINED && hasFocus != null && hasFocus) {
+			return;
+		}
+		if (eventType == UISWTViewEvent.TYPE_FOCUSLOST && hasFocus != null && !hasFocus) {
+			return;
+		}
 		try {
 			eventListener.eventOccurred(new UISWTViewEventImpl(this, eventType, data));
 		} catch (Throwable t) {
@@ -166,6 +181,10 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 		dataSource = PluginCoreUtils.convert(newDataSource, useCoreDataSource);
 
 		triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, dataSource);
+	}
+	
+	public void setDataSource(Object ds) {
+		dataSourceChanged(ds);
 	}
 
 	public void delete() {
@@ -236,7 +255,7 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 					}
 				}
 			}
-		} else {
+		} else if (iControlType == UISWTView.CONTROLTYPE_AWT) {
 			composite = new Composite(parent, SWT.EMBEDDED);
 			FillLayout layout = new FillLayout();
 			layout.marginHeight = 0;
@@ -252,6 +271,8 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 			f.add(pan);
 
 			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, pan);
+		} else if (iControlType == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
+			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, getSkinObject());
 		}
 		
 		if (composite != null) {
@@ -299,5 +320,26 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 
 		this.useCoreDataSource = useCoreDataSource;
 		dataSourceChanged(dataSource);
+	}
+
+	public PluginUISWTSkinObject getSkinObject() {
+		return skinObject;
+	}
+
+	public void setSkinObject(PluginUISWTSkinObject skinObject, Composite c) {
+		this.skinObject = skinObject;
+		this.composite = c;
+	}
+
+	public Menu getPrivateMenu() {
+		return null;
+	}
+
+	public void viewActivated() {
+		triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+	}
+
+	public void viewDeactivated() {
+		triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
 	}
 }
