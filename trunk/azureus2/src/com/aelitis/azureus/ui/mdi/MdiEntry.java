@@ -18,8 +18,6 @@
  
 package com.aelitis.azureus.ui.mdi;
 
-import org.gudy.azureus2.ui.swt.IconBarEnabler;
-
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 
 
@@ -86,6 +84,8 @@ public interface MdiEntry
 	public void setLogID(String logID);
 
 	public boolean isAdded();
+
+	public boolean isDisposed();
 
 	public ViewTitleInfo getViewTitleInfo();
 
