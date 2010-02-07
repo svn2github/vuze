@@ -86,6 +86,15 @@ public class ToolBarView
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(final SWTSkinObject skinObject,
 			Object params) {
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+
+		if (uiClassic) {
+			SWTSkinProperties skinProperties = skin.getSkinProperties();
+			skinProperties.addProperty("toolbar.area.sitem.imagearea.background", "");
+			skinProperties.addProperty("toolbar.area.sitem.r.imagearea.background", "");
+			skinProperties.addProperty("toolbar.area.sitem.l.imagearea.background", "");
+		}
+
 		this.skinObject = skinObject;
 		buttonListener = new toolbarButtonListener();
 		so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
@@ -144,7 +153,7 @@ public class ToolBarView
 		};
 		addToolBarItem(item);
 
-		addSeperator("toolbar.area.item.sep", soMain);
+		addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep", soMain);
 
 		lastControl = null;
 		
@@ -445,7 +454,7 @@ public class ToolBarView
 
 		///////////////////////
 
-		addSeperator("toolbar.area.item.sep3", so2nd);
+		addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep3", so2nd);
 
 		addNonToolBar("toolbar.area.sitem.left2", so2nd);
 
