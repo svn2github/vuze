@@ -437,7 +437,7 @@ TorrentOptionsView
 	public String 
 	getData() 
 	{
-		return MessageText.getString( multi_view?"TorrentOptionsView.multi.title.short":"TorrentOptionsView.title.short");
+		return multi_view?"TorrentOptionsView.multi.title.short":"TorrentOptionsView.title.short";
 	}
 	
 	public void 
