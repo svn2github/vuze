@@ -27,14 +27,31 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.installer.PluginInstaller;
+import org.gudy.azureus2.plugins.installer.StandardPlugin;
+import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.config.*;
+import org.gudy.azureus2.plugins.ui.menus.*;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.PropertiesWindow;
+import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -42,13 +59,17 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.devices.DeviceManager.DeviceManufacturer;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
-import com.aelitis.azureus.ui.*;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
@@ -66,20 +87,6 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.installer.PluginInstaller;
-import org.gudy.azureus2.plugins.installer.StandardPlugin;
-import org.gudy.azureus2.plugins.ui.*;
-import org.gudy.azureus2.plugins.ui.config.*;
-import org.gudy.azureus2.plugins.ui.menus.*;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
-import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.plugins.utils.DelayedTask;
-import org.gudy.azureus2.plugins.utils.Utilities;
 
 public class 
 DeviceManagerUI 
@@ -1206,26 +1213,39 @@ DeviceManagerUI
 						}
 					});
 				*/
+
 				
-    		Utilities utilities = plugin_interface.getUtilities();
-    		
-    		// need to delay until all CoreAvailable listeners are triggered
-    		// otherwise getTranscodeManager will return null
-    		final DelayedTask dt = utilities.createDelayedTask(new AERunnable() {
-    			public void runSupport() {
-    				if (device_manager.getTranscodeManager().getProviders().length == 0) {
-    					MdiEntryVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
-    					if (turnon != null) {
-    						turnon.addListener(new MdiEntryVitalityImageListener() {
-    							public void mdiEntryVitalityImage_clicked(int x, int y) {
-    								DevicesFTUX.ensureInstalled();
-    							}
-    						});
-    					}
-    				}
-    			}
-    		});
-    		dt.queue();
+				device_manager.addListener(new DeviceManagerListener() {
+					
+					public void deviceRemoved(Device device) {
+					}
+
+					public void deviceManagerLoaded() {
+						device_manager.removeListener(this);
+						if (main_sb_entry == null || main_sb_entry.isDisposed()) {
+							return;
+						}
+						if (device_manager.getTranscodeManager().getProviders().length == 0) {
+							MdiEntryVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
+							if (turnon != null) {
+								turnon.addListener(new MdiEntryVitalityImageListener() {
+									public void mdiEntryVitalityImage_clicked(int x, int y) {
+										DevicesFTUX.ensureInstalled();
+									}
+								});
+							}
+						}
+					}
+
+					public void deviceChanged(Device device) {
+					}
+					
+					public void deviceAttentionRequest(Device device) {
+					}
+					
+					public void deviceAdded(Device device) {
+					}
+				});
 
 				MdiEntryVitalityImage beta = main_sb_entry.addVitalityImage("image.sidebar.beta");
 				if (beta != null) {
