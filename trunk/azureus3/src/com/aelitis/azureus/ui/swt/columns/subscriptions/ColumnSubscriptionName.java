@@ -110,9 +110,8 @@ public class ColumnSubscriptionName
 				if(sub != null) {
 					String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
 					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-					MdiEntry entry = mdi.getEntry(key);
-					if (entry.isAdded()) {
-						entry.getMDI().showEntryByID(key);
+					if (mdi != null) {
+						mdi.showEntryByID(key);
 					}
 				}
 			}
