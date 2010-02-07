@@ -586,8 +586,9 @@ public abstract class BaseMdiEntry
 	}
 
 	public void hide() {
-		if (skinObject instanceof SWTSkinObjectContainer) {
-			SWTSkinObjectContainer container = (SWTSkinObjectContainer) skinObject;
+		SWTSkinObject skinObjectMaster = getSkinObjectMaster();
+		if (skinObjectMaster instanceof SWTSkinObjectContainer) {
+			SWTSkinObjectContainer container = (SWTSkinObjectContainer) skinObjectMaster;
 			if (container != null) {
 				Control oldComposite = container.getControl();
 
