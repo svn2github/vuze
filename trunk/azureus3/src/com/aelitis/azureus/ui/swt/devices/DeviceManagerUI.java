@@ -312,6 +312,8 @@ DeviceManagerUI
 
 		device_manager 	= DeviceManagerFactory.getSingleton();
 		
+		setupMenuListeners();
+
 		mdi.registerEntry(SideBar.SIDEBAR_SECTION_DEVICES,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
@@ -744,7 +746,7 @@ DeviceManagerUI
 	}
 	
 	protected void
-	setupListeners()
+	setupMenuListeners()
 	{
 		properties_listener = 
 			new MenuItemListener() 
@@ -1033,6 +1035,12 @@ DeviceManagerUI
 					}
 			
 				};
+	}
+
+	
+	protected void
+	setupListeners()
+	{
 		mdi.addListener(
 			new MdiListener()
 			{
