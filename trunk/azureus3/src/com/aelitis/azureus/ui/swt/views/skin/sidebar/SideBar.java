@@ -509,6 +509,9 @@ public class SideBar
 					}
 
 					case SWT.Selection: {
+						if (treeItem == null) {
+							return;
+						}
 						SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
 						if (entry != null) {
 							showEntry(entry);
@@ -1279,7 +1282,14 @@ public class SideBar
 
 		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id);
 		try {
-  		entry.setParentID(parentID);
+			// hack: setEventListner will create the UISWTView.
+			// We need to have the entry available for the view to use
+			// if it wants
+			synchronized (mapIdToEntry) {
+				mapIdToEntry.put(id, entry);
+			}
+
+			entry.setParentID(parentID);
   		entry.setDatasource(datasource);
   		entry.setEventListener(l);
   

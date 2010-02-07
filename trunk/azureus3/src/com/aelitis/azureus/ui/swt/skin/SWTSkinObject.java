@@ -6,13 +6,15 @@ package com.aelitis.azureus.ui.swt.skin;
 import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
+import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 
 /**
  * @author TuxPaper
  * @created Jun 12, 2006
  *
  */
-public interface SWTSkinObject extends ObfusticateShell
+public interface SWTSkinObject
+	extends ObfusticateShell, PluginUISWTSkinObject
 {
 	/**
 	 * Retrieve the associated SWT Control used by the skin object

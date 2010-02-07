@@ -13,24 +13,35 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.IViewExtension;
 
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
@@ -92,6 +103,8 @@ public abstract class BaseMdiEntry
 
 	private boolean collapseDisabled;
 
+	private SWTSkinObject soMaster;
+
 	@SuppressWarnings("unused")
 	private BaseMdiEntry() {
 		mdi = null;
@@ -127,15 +140,15 @@ public abstract class BaseMdiEntry
 	 * @see com.aelitis.azureus.ui.mdi.MdiEntry#close()
 	 */
 	public boolean close(boolean forceClose) {
-    if (!forceClose && iview instanceof UISWTViewImpl) {
-    	if (!((UISWTViewImpl)iview).requestClose()) {
-    		return false;
-    	}
-    }
+		if (!forceClose && iview instanceof UISWTViewImpl) {
+			if (!((UISWTViewImpl) iview).requestClose()) {
+				return false;
+			}
+		}
 
-    disposed = true;
+		disposed = true;
 		ViewTitleInfoManager.removeListener(this);
-		
+
 		return true;
 	}
 
@@ -432,23 +445,36 @@ public abstract class BaseMdiEntry
 		return skinObject;
 	}
 
-	public void setSkinObject(SWTSkinObject skinObject) {
+	public void setSkinObject(SWTSkinObject skinObject, SWTSkinObject soMaster) {
 		this.skinObject = skinObject;
-		if (skinObject != null && datasource != null) {
-			skinObject.triggerListeners(
-					SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED, datasource);
+		this.soMaster = soMaster;
+		if (datasource != null) {
+			if (skinObject != null) {
+				skinObject.triggerListeners(
+						SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED, datasource);
+			}
+			if (iview != null) {
+				iview.dataSourceChanged(datasource);
+			}
 		}
 	}
-	
+
+	public SWTSkinObject getSkinObjectMaster() {
+		if (soMaster == null) {
+			return skinObject;
+		}
+		return soMaster;
+	}
+
 	public void setSkinRef(String configID, Object params) {
 		skinRef = configID;
 		skinRefParams = params;
 	}
-	
+
 	public String getSkinRef() {
 		return skinRef;
 	}
-	
+
 	public Object getSkinRefParams() {
 		return skinRefParams;
 	}
@@ -468,8 +494,97 @@ public abstract class BaseMdiEntry
 		redraw();
 	}
 
-	public abstract void show();
-	
+	public void show() {
+		if (skinObject == null) {
+			return;
+		}
+
+		if (iview instanceof ToolBarEnabler) {
+			ISelectedContent[] sels = new ISelectedContent[1];
+			sels[0] = new ToolBarEnablerSelectedContent((ToolBarEnabler) iview);
+			TableView<?> tv = null;
+			if (iview instanceof TableView<?>) {
+				tv = (TableView<?>) iview;
+			}
+			SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler",
+					sels, tv);
+
+		} else {
+
+			SelectedContentManager.clearCurrentlySelectedContent();
+
+		}
+
+		disableViewModes();
+
+		UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uif != null) {
+			//uif.refreshIconBar(); // needed?
+			uif.refreshTorrentMenu();
+		}
+
+		// bit of hackery to change currently selected content when
+		// moving to an iview that has Download(Manager) as a datasource
+		// Unsure if needed as view activation should take care of this..
+		if (iview instanceof UISWTViewImpl) {
+			Object ds = ((UISWTViewImpl) iview).getDataSource();
+			DownloadManager dm = null;
+			if (ds instanceof DownloadManager) {
+				dm = (DownloadManager) ds;
+			} else if (ds instanceof Download) {
+				dm = PluginCoreUtils.unwrap((Download) ds);
+			}
+			if (dm != null) {
+				try {
+					TableView<?> tv = null;
+					if (iview instanceof TableView<?>) {
+						tv = (TableView<?>) iview;
+					}
+					SelectedContentManager.changeCurrentlySelectedContent(id,
+							new ISelectedContent[] {
+								new SelectedContentV3(dm)
+							}, tv);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
+		SWTSkinObject skinObject = getSkinObjectMaster();
+		if (skinObject instanceof SWTSkinObjectContainer) {
+			SWTSkinObjectContainer container = (SWTSkinObjectContainer) skinObject;
+			//container.setVisible(true);
+			Composite composite = container.getComposite();
+			if (composite != null && !composite.isDisposed()) {
+				composite.setVisible(true);
+				composite.moveAbove(null);
+				//composite.setFocus();
+				//container.getParent().relayout();
+				composite.getParent().layout();
+			}
+			// This causes double show because createSkinObject already calls show
+			//container.triggerListeners(SWTSkinObjectListener.EVENT_SHOW);
+		}
+		if (iview != null) {
+			Composite c = iview.getComposite();
+			if (c != null && !c.isDisposed()) {
+				c.setVisible(true);
+				c.getParent().layout();
+			}
+		}
+
+		try {
+			if (iview instanceof IViewExtension) {
+				((IViewExtension) iview).viewActivated();
+			} else if (iview instanceof UISWTView) {
+				((UISWTView) iview).triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+	}
+
 	public void hide() {
 		if (skinObject instanceof SWTSkinObjectContainer) {
 			SWTSkinObjectContainer container = (SWTSkinObjectContainer) skinObject;
@@ -491,27 +606,53 @@ public abstract class BaseMdiEntry
 			}
 		}
 
-		if (iview instanceof IViewExtension) {
-			try {
+		try {
+			if (iview instanceof IViewExtension) {
 				((IViewExtension) iview).viewDeactivated();
-			} catch (Exception e) {
-				Debug.out(e);
+			} else if (iview instanceof UISWTView) {
+				((UISWTView) iview).triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
 			}
+		} catch (Exception e) {
+			Debug.out(e);
 		}
 	}
-
 
 	public UISWTViewEventListener getEventListener() {
 		return eventListener;
 	}
 
-	public void setEventListener(UISWTViewEventListener eventListener) {
-		this.eventListener = eventListener;
+	public void setEventListener(UISWTViewEventListener _eventListener) {
+		this.eventListener = _eventListener;
+
+		UISWTViewEventListener eventListenerDelegate = _eventListener;
+		/*
+		UISWTViewEventListener eventListenerDelegate = new UISWTViewEventListener() {
+			public boolean eventOccurred(UISWTViewEvent event) {
+				switch (event.getType()) {
+					case UISWTViewEvent.TYPE_CREATE:
+						break;
+
+					case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+						if (skinObject != null) {
+							skinObject.triggerListeners(
+									SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED,
+									event.getData());
+						}
+						break;
+
+					default:
+						break;
+				}
+				return eventListener.eventOccurred(event);
+			}
+		};
+		*/
 		if (iview != null) {
 			return;
 		}
 		try {
-			IView iview = new UISWTViewImpl(parentID, id, eventListener, datasource);
+			IView iview = new UISWTViewImpl(parentID, id, eventListenerDelegate,
+					datasource);
 			setIView(iview);
 
 			IViewInfo foundViewInfo = PluginsMenuHelper.getInstance().findIViewInfo(
@@ -553,7 +694,7 @@ public abstract class BaseMdiEntry
 	public void setPullTitleFromIView(boolean pullTitleFromIView) {
 		this.pullTitleFromIView = pullTitleFromIView;
 	}
-	
+
 	public void updateUI() {
 		if (iview == null) {
 			return;
@@ -570,7 +711,7 @@ public abstract class BaseMdiEntry
 		});
 	}
 
-	public  boolean isDisposed() {
+	public boolean isDisposed() {
 		return disposed;
 	}
 
@@ -612,15 +753,15 @@ public abstract class BaseMdiEntry
 	public boolean isExpanded() {
 		return isExpanded;
 	}
-	
+
 	public void setExpanded(boolean expanded) {
 		isExpanded = expanded;
 	}
-	
+
 	public boolean isAdded() {
 		return !isDisposed();
 	}
-	
+
 	public void setDisposed(boolean b) {
 		disposed = b;
 	}
@@ -668,7 +809,7 @@ public abstract class BaseMdiEntry
 			ImageLoader.getInstance().releaseImage(imageLeftID + suffix);
 		}
 	}
-	
+
 	public void viewTitleInfoRefresh(ViewTitleInfo titleInfoToRefresh) {
 		if (titleInfoToRefresh == null || this.viewTitleInfo != titleInfoToRefresh) {
 			return;

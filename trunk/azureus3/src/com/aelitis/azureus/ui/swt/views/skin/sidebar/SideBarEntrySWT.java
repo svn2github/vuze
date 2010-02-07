@@ -19,7 +19,8 @@
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
 import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -31,12 +32,17 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.IView;
@@ -170,7 +176,7 @@ public class SideBarEntrySWT
 					}
 				}
 			});
-			
+
 			setExpanded(isExpanded());
 		}
 		if (showonSWTItemSet) {
@@ -239,10 +245,10 @@ public class SideBarEntrySWT
 			return null;
 		}
 		try {
-  		Tree tree = swtItem.getParent();
-  		Rectangle bounds = swtItem.getBounds();
-  		Rectangle treeBounds = tree.getBounds();
-  		return new Rectangle(0, bounds.y, treeBounds.width, bounds.height);
+			Tree tree = swtItem.getParent();
+			Rectangle bounds = swtItem.getBounds();
+			Rectangle treeBounds = tree.getBounds();
+			return new Rectangle(0, bounds.y, treeBounds.width, bounds.height);
 		} catch (Exception e) {
 			Debug.out(e);
 		}
@@ -327,7 +333,7 @@ public class SideBarEntrySWT
 					control = skinObject.getControl();
 					control.setLayoutData(Utils.getFilledFormData());
 					control.getParent().layout(true, true);
-					setSkinObject(soContents);
+					setSkinObject(skinObject, soContents);
 				} finally {
 					shell.setCursor(cursor);
 				}
@@ -341,15 +347,28 @@ public class SideBarEntrySWT
 					parent.setBackgroundMode(SWT.INHERIT_NONE);
 
 					Composite viewComposite = soContents.getComposite();
-//					viewComposite.setBackground(parent.getDisplay().getSystemColor(
-//							SWT.COLOR_WIDGET_BACKGROUND));
-//					viewComposite.setForeground(parent.getDisplay().getSystemColor(
-//							SWT.COLOR_WIDGET_FOREGROUND));
-					GridLayout gridLayout = new GridLayout();
-					gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;
-					viewComposite.setLayout(gridLayout);
-					viewComposite.setLayoutData(Utils.getFilledFormData());
+					boolean doGridLayout = true;
+					if (iview instanceof UISWTView) {
+						UISWTView swtView = (UISWTView) iview;
+						if (swtView.getControlType() == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
+							doGridLayout = false;
+						}
+					}
+					//					viewComposite.setBackground(parent.getDisplay().getSystemColor(
+					//							SWT.COLOR_WIDGET_BACKGROUND));
+					//					viewComposite.setForeground(parent.getDisplay().getSystemColor(
+					//							SWT.COLOR_WIDGET_FOREGROUND));
+					if (doGridLayout) {
+						GridLayout gridLayout = new GridLayout();
+						gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;
+						viewComposite.setLayout(gridLayout);
+						viewComposite.setLayoutData(Utils.getFilledFormData());
+					}
 
+					if (iview instanceof UISWTViewCore) {
+						UISWTViewCore uiViewCore = (UISWTViewCore) iview;
+						uiViewCore.setSkinObject(soContents, soContents.getComposite());
+					}
 					iview.initialize(viewComposite);
 					swtItem.setText(iview.getFullTitle());
 
@@ -358,16 +377,20 @@ public class SideBarEntrySWT
 					// force layout data of IView's composite to GridData, since we set
 					// the parent to GridLayout (most plugins use grid, so we stick with
 					// that instead of form)
-					Object existingLayout = iviewComposite.getLayoutData();
-					Object existingParentLayout = iviewComposite.getParent().getLayoutData();
-					if (existingLayout == null || !(existingLayout instanceof GridData) && (existingParentLayout instanceof GridLayout)) {
-						GridData gridData = new GridData(GridData.FILL_BOTH);
-						iviewComposite.setLayoutData(gridData);
+					if (doGridLayout) {
+						Object existingLayoutData = iviewComposite.getLayoutData();
+						Object existingParentLayoutData = iviewComposite.getParent().getLayoutData();
+						if (existingLayoutData == null
+								|| !(existingLayoutData instanceof GridData)
+								&& (existingParentLayoutData instanceof GridLayout)) {
+							GridData gridData = new GridData(GridData.FILL_BOTH);
+							iviewComposite.setLayoutData(gridData);
+						}
 					}
 
 					parent.layout(true, true);
 
-					setSkinObject(soContents);
+					setSkinObject(soContents, soContents);
 				} catch (Exception e) {
 					Debug.out("Error creating sidebar content area for " + id, e);
 					if (iview != null) {
@@ -401,102 +424,21 @@ public class SideBarEntrySWT
 				}
 			}
 
-			if (control != null) {
+			if (control != null && !control.isDisposed()) {
 				control.addDisposeListener(new DisposeListener() {
 					public void widgetDisposed(DisposeEvent e) {
 						close(true);
 					}
 				});
+			} else {
+				return;
 			}
 		} // control == null
 
 		swtItem.getParent().select(swtItem);
 		swtItem.getParent().showItem(swtItem);
 
-		if (getSkinObject() != null) {
-			if (iview instanceof ToolBarEnabler) {
-
-				ISelectedContent[] sels = new ISelectedContent[1];
-				sels[0] = new ToolBarEnablerSelectedContent((ToolBarEnabler) iview);
-				TableView<?> tv = null;
-				if (iview instanceof TableView<?>) {
-					tv = (TableView<?>) iview;
-				}
-				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler",
-						sels, tv);
-
-			} else {
-
-				SelectedContentManager.clearCurrentlySelectedContent();
-
-			}
-
-			disableViewModes();
-
-			UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
-			if (uif != null) {
-				//uif.refreshIconBar(); // needed?
-				uif.refreshTorrentMenu();
-			}
-
-			// bit of hackery to change currently selected content when
-			// moving to an iview that has Download(Manager) as a datasource
-			// Unsure if needed as view activation should take care of this..
-			if (iview instanceof UISWTViewImpl) {
-				Object ds = ((UISWTViewImpl) iview).getDataSource();
-				DownloadManager dm = null;
-				if (ds instanceof DownloadManager) {
-					dm = (DownloadManager) ds;
-				} else if (ds instanceof Download) {
-					dm = PluginCoreUtils.unwrap((Download) ds);
-				}
-				if (dm != null) {
-					try {
-						TableView<?> tv = null;
-						if (iview instanceof TableView<?>) {
-							tv = (TableView<?>) iview;
-						}
-						SelectedContentManager.changeCurrentlySelectedContent(id,
-								new ISelectedContent[] {
-									new SelectedContentV3(dm)
-								}, tv);
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-
-			SWTSkinObject skinObject = getSkinObject();
-			if (skinObject instanceof SWTSkinObjectContainer) {
-				SWTSkinObjectContainer container = (SWTSkinObjectContainer) skinObject;
-				//container.setVisible(true);
-				Composite composite = container.getComposite();
-				if (composite != null && !composite.isDisposed()) {
-					composite.setVisible(true);
-					composite.moveAbove(null);
-					//composite.setFocus();
-					//container.getParent().relayout();
-					composite.getParent().layout();
-				}
-				container.triggerListeners(SWTSkinObjectListener.EVENT_SHOW);
-			}
-			if (iview != null) {
-				Composite c = iview.getComposite();
-				if (c != null && !c.isDisposed()) {
-					c.setVisible(true);
-					c.getParent().layout();
-				}
-			}
-
-			if (iview instanceof IViewExtension) {
-				try {
-					((IViewExtension) iview).viewActivated();
-				} catch (Exception e) {
-					Debug.out(e);
-				}
-			}
-		}
+		super.show();
 	}
 
 	protected void swt_paintSideBar(Event event) {
@@ -883,7 +825,7 @@ public class SideBarEntrySWT
 		}
 		SWTSkinObject so = getSkinObject();
 		if (so != null) {
-			setSkinObject(null);
+			setSkinObject(null, null);
 			so.getSkin().removeSkinObject(so);
 		}
 
