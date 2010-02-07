@@ -652,6 +652,25 @@ public class MainWindow
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
 			skin = SWTSkinFactory.getInstance();
+			if (uiClassic) {
+  			SWTSkinProperties skinProperties = skin.getSkinProperties();
+  			String[] ids = {
+  				"image.toolbar.2nd.m-bg",
+  				"image.toolbar.2nd.r-bg",
+  				"image.toolbar.2nd.l-bg",
+  				"image.toolbar.2nd-view.l-bg",
+  				"image.toolbar.2nd-view.r-bg",
+  				"image.toolbar.start",
+  				"image.toolbar.stop",
+  				"image.toolbar.remove"
+  			};
+  			for (String id : ids) {
+  				String s = skinProperties.getStringValue(id);
+  				if (s != null) {
+  					skinProperties.addProperty(id, s.replaceAll("/tb/", "/tb/c/"));
+  				}
+  			}
+			}
 
 			/*
 			 * KN: passing the skin to the uifunctions so it can be used by UIFunctionsSWT.createMenu()

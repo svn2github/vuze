@@ -88,13 +88,6 @@ public class ToolBarView
 			Object params) {
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 
-		if (uiClassic) {
-			SWTSkinProperties skinProperties = skin.getSkinProperties();
-			skinProperties.addProperty("toolbar.area.sitem.imagearea.background", "");
-			skinProperties.addProperty("toolbar.area.sitem.r.imagearea.background", "");
-			skinProperties.addProperty("toolbar.area.sitem.l.imagearea.background", "");
-		}
-
 		this.skinObject = skinObject;
 		buttonListener = new toolbarButtonListener();
 		so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
