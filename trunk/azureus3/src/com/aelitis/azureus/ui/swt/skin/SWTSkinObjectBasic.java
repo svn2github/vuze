@@ -100,6 +100,8 @@ public class SWTSkinObjectBasic
 	private Listener resizeGradientBGListener;
 
 	private SkinView skinView;
+
+	private Object datasource;
 	
 	/**
 	 * @param properties TODO
@@ -725,6 +727,11 @@ public class SWTSkinObjectBasic
 			listener.eventOccured(this, SWTSkinObjectListener.EVENT_CREATED, null);
 		}
 
+		if (datasource != null) {
+  		listener.eventOccured(SWTSkinObjectBasic.this,
+  				SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED, datasource);
+		}
+
 		if (isVisible && initialized) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
@@ -777,6 +784,8 @@ public class SWTSkinObjectBasic
 		} else if (eventType == SWTSkinObjectListener.EVENT_CREATED) {
 			//System.out.println("INITIALIZED! " + SWTSkinObjectBasic.this + ";;;" + Debug.getCompressedStackTrace());
 			initialized = true;
+		} else if (eventType == SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED) {
+			datasource = params;
 		}
 		
 		// process listeners added locally
