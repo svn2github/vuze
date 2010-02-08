@@ -1337,6 +1337,21 @@ DeviceOfflineDownloaderImpl
 		}
 	}
 
+	@Override
+	public boolean 
+	isAlive() 
+	{
+		if ( super.isAlive()){
+			
+				// more restrictive test here to sync alive state with 'appears to be offline'
+				// error messages
+			
+			return( service.getGenericService().isConnectable());
+		}
+		
+		return( false );
+	}
+	
 	public boolean
 	hasShownFTUX()
 	{
