@@ -23,25 +23,15 @@
 package org.gudy.azureus2.pluginsimpl.local.clientid;
 
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.ThreadPool;
-import org.gudy.azureus2.core3.util.ThreadPoolTask;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.PluginManagerDefaults;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.clientid.ClientIDManager;
@@ -509,7 +499,8 @@ ClientIDManagerImpl
 				
 				Socket	target = new Socket();
 				
-			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
+				InetSocketAddress targetSockAddress = new InetSocketAddress(  InetAddress.getByName(target_host) , target_port  );
+			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
 			    
 		        if ( bindIP != null ){
 		        	
@@ -518,7 +509,7 @@ ClientIDManagerImpl
 
 		        // System.out.println( "filtering " + target_host + ":" + target_port );
 		        
-		        target.connect( new InetSocketAddress(  target_host, target_port  ));
+		        target.connect( targetSockAddress);
 		        
 				target.getOutputStream().write( header_out.getBytes(Constants.BYTE_ENCODING ));
 				
