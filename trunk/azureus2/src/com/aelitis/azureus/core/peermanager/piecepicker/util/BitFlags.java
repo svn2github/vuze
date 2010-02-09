@@ -179,7 +179,7 @@ public class BitFlags
 	{
 		start =0;
 		end =flags.length -1;
-		Arrays.fill(flags, start, end, true);
+		Arrays.fill(flags, true);
 		nbSet =flags.length;
 	}
 	
