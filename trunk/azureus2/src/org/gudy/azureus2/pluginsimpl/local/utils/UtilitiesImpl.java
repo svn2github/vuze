@@ -34,6 +34,7 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -1061,16 +1062,40 @@ UtilitiesImpl
 		return( this );
 	}
 	
-	public void 
+	public Licence 
 	addLicence(
-		String licenceKey ) 
+		String licence_key ) 
 	{
+		List<FeatureEnabler>	enablers = getVerifiedEnablers();
+		
+		for ( FeatureEnabler enabler: enablers ){
+			
+			Licence licence = enabler.addLicence( licence_key );
+			
+			if ( licence != null ){
+				
+				return( licence );
+			}
+		}
+		
+		return( null );
 	}
 	
 	public Licence[] 
 	getLicences() 
 	{
-		return( new Licence[0] );
+		List<Licence> all_licences = new ArrayList<Licence>();
+		
+		List<FeatureEnabler>	enablers = getVerifiedEnablers();
+		
+		for ( FeatureEnabler enabler: enablers ){
+			
+			Licence[] licence = enabler.getLicences();
+			
+			all_licences.addAll( Arrays.asList( licence ));
+		}
+		
+		return( all_licences.toArray( new Licence[ all_licences.size()]));
 	}
 	
 	public FeatureDetails 
@@ -1078,6 +1103,26 @@ UtilitiesImpl
 		String 					feature_id,
 		Map<String, Object> 	feature_properties ) 
 	{
+		List<FeatureEnabler>	enablers = getVerifiedEnablers();
+			
+		for ( FeatureEnabler enabler: enablers ){
+			
+			FeatureDetails details = enabler.getFeatureDetails( pi.getPluginID(), feature_id, feature_properties );
+				
+			if ( details != null ){
+							
+				return( details );
+			}
+		}
+		
+		return( null );
+	}
+	
+	private final List<FeatureEnabler>
+	getVerifiedEnablers()
+	{
+		List<FeatureEnabler>	enablers = new ArrayList<FeatureEnabler>();
+		
 		for ( Object[] entry: feature_enablers ){
 			
 			PluginInterface enabler_pi 		= (PluginInterface)entry[0];
@@ -1086,22 +1131,24 @@ UtilitiesImpl
 			
 			if ( PluginInitializer.isVerified( enabler_pi, enabler_plugin )){
 				
-				File f1 = FileUtil.getJarFileFromClass( enabler_plugin.getClass());
-				File f2 = FileUtil.getJarFileFromClass( enabler.getClass());
+				if ( PluginInitializer.DISABLE_PLUGIN_VERIFICATION ){
+					
+					enablers.add( enabler );
+					
+				}else{
+					
+					File f1 = FileUtil.getJarFileFromClass( enabler_plugin.getClass());
+					File f2 = FileUtil.getJarFileFromClass( enabler.getClass());
+					
+					if ( f1 != null && f1.equals( f2 )){
 				
-				if ( f1 != null && f1.equals( f2 )){
-			
-					FeatureDetails details = enabler.getFeatureDetails( pi.getPluginID(), feature_id, feature_properties );
-				
-					if ( details != null ){
-							
-						return( details );
+						enablers.add( enabler );
 					}
 				}
 			}
 		}
 		
-		return( null );
+		return( enablers );
 	}
 	
 	public void

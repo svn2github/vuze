@@ -30,7 +30,7 @@ FeatureManager
 	public Licence[]
 	getLicences();
 	
-	public void
+	public Licence
 	addLicence(
 		String		licence_key );
 	
@@ -60,6 +60,13 @@ FeatureManager
 	public interface
 	FeatureEnabler
 	{
+		public Licence[]
+       	getLicences();
+       	
+       	public Licence
+       	addLicence(
+       		String		licence_key );
+		           	
 		public FeatureDetails
 		getFeatureDetails(
 			String					requester_id,

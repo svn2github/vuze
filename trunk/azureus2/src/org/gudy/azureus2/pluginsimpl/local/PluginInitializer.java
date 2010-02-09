@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.launch.PluginLauncherImpl;
@@ -59,6 +58,8 @@ public class
 PluginInitializer
 	implements GlobalManagerListener, AEDiagnosticsEvidenceGenerator
 {
+	public static final boolean DISABLE_PLUGIN_VERIFICATION = true;
+	
 	private static final LogIDs LOGID = LogIDs.CORE;
 	public static final String	INTERNAL_PLUGIN_ID = "<internal>";
 	
@@ -2183,6 +2184,13 @@ PluginInitializer
 			Debug.out( "class mismatch" );
 			
 			return( false );
+		}
+		
+		if ( DISABLE_PLUGIN_VERIFICATION ){
+			
+			Debug.out( " **************************** VERIFICATION DISABLED ******************" );
+			
+			return( true );
 		}
 		
 		Object[] ver = (Object[])verified_plugin_holder.getValue( pi );
