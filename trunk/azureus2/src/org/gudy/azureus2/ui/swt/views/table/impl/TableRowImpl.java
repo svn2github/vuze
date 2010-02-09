@@ -537,7 +537,7 @@ public class TableRowImpl
 			dataList = new HashMap(1);
 		}
 		if (data == null) {
-			dataList.remove("id");
+			dataList.remove(id);
 		} else {
 			dataList.put(id, data);
 		}
