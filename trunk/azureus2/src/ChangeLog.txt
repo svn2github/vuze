@@ -1,7 +1,13 @@
 VUZE CHANGELOG
 -----------------
 
-2010.xx.xx | Vuze 4.3.1.3
+2010.xx.xx | Vuze 4.3.1.5
+
+
+
+2010.02.09 | Vuze 4.3.1.4
+
+BUGFIX: Core  | Fixed bug whereby HAVE_ALL messages were failing to set the last bit of the bit-flags [Parg] 
 
 
 
