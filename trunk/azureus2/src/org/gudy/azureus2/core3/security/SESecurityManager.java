@@ -229,4 +229,10 @@ SESecurityManager
 	{
 		SESecurityManagerImpl.getSingleton().removeCertificateListener(l);
 	}
+	
+	public static Class[]
+	getClassContext()
+	{
+		return( SESecurityManagerImpl.getSingleton().getClassContext());
+	}
 }

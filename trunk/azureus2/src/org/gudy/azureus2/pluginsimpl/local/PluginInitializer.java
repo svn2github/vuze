@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.launch.PluginLauncherImpl;
@@ -2179,7 +2180,7 @@ PluginInitializer
 		
 		VerifiedPluginHolder holder = verified_plugin_holder;
 		
-		if ( holder.getClass() !=  VerifiedPluginHolder.class ){
+		if ( holder.getClass() != VerifiedPluginHolder.class ){
 		
 			Debug.out( "class mismatch" );
 			
@@ -2210,26 +2211,10 @@ PluginInitializer
 		private
 		VerifiedPluginHolder()
 		{
-			StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-
-			int	pos = 0;
+			Class[] context = SESecurityManager.getClassContext();
 			
-			while( !stack[pos].getClassName().equals( VerifiedPluginHolder.class.getName())){
+			if ( context[2] != PluginInitializer.class ){
 				
-				pos++;
-			}
-			
-			if ( !stack[pos+2].getClassName().equals( "org.gudy.azureus2.pluginsimpl.local.PluginInitializer" )){
-				
-				Debug.out( "Illegal operation" );
-				
-				return;
-			}
-
-			String class_name = getClass().getCanonicalName();
-
-			if ( !class_name.equals( "org.gudy.azureus2.pluginsimpl.local.PluginInitializer.VerifiedPluginHolder" )){
-
 				Debug.out( "Illegal operation" );
 				
 				return;

@@ -113,6 +113,7 @@ SESecurityManagerImpl
 	
 	protected boolean	 exit_vm_permitted	= false;
 	
+	private	AzureusSecurityManager	my_sec_man;
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "SESecurityManager" );
 	
@@ -246,75 +247,10 @@ SESecurityManagerImpl
 		try{
 			final SecurityManager	old_sec_man	= System.getSecurityManager();
 			
-			System.setSecurityManager(
-				new SecurityManager()
-				{
-					public void checkAccept(String host, int port) {
-						// do nothing
-					}
-					
-					public void checkRead(String file) {
-						// do nothing
-					}
-					
-					public void checkWrite(String file) {
-						// do nothing
-					}
-					
-					public void 
-					checkExit(int status) 
-					{
-						if ( old_sec_man != null ){
-						
-							old_sec_man.checkExit( status );
-						}
-						
-						if ( !exit_vm_permitted ){
-							
-							throw( new SecurityException( "VM exit operation prohibited"));
-						}
-					}
-					
-					public void 
-					checkPermission(Permission perm)
-					{						
-						if ( perm instanceof RuntimePermission && perm.getName().equals( "stopThread")){
-							
-							synchronized( stoppable_threads ){
-								
-								if ( stoppable_threads.contains( Thread.currentThread())){
-									
-									return;
-								}
-							}
-							
-							throw( new SecurityException( "Thread.stop operation prohibited"));
-						}
-						
-						if ( old_sec_man != null ){
-							
-							old_sec_man.checkPermission( perm );
-						}
-					}
-					
-					public void 
-					checkPermission(
-						Permission 	perm, 
-						Object 		context) 
-					{
-						
-						if ( perm instanceof RuntimePermission && perm.getName().equals( "stopThread")){
-							
-							throw( new SecurityException( "Thread.stop operation prohibited"));
-						}
-						
-						if ( old_sec_man != null ){
-							
-							old_sec_man.checkPermission( perm, context );
-						}
-					}
-	
-				});
+			my_sec_man = new AzureusSecurityManager( old_sec_man );
+			
+			System.setSecurityManager( my_sec_man );
+
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
@@ -1288,6 +1224,122 @@ SESecurityManagerImpl
 			this_mon.exit();
 		}
 	}
+	
+	public Class[]
+	getClassContext()
+	{
+		if ( my_sec_man == null ){
+			
+			return( new Class[0] );
+		}
+		
+		return( my_sec_man.getClassContext());
+	}
+	
+	private final class
+	AzureusSecurityManager
+		extends SecurityManager
+	{
+		private SecurityManager	old_sec_man;
+		
+		private
+		AzureusSecurityManager(
+			SecurityManager		_old_sec_man )
+		{
+			old_sec_man 	= _old_sec_man;
+		}
+		
+		public void checkAccept(String host, int port) {
+			// do nothing
+		}
+		
+		public void checkRead(String file) {
+			// do nothing
+		}
+		
+		public void checkWrite(String file) {
+			// do nothing
+		}
+		
+		public void 
+		checkExit(int status) 
+		{
+			if ( old_sec_man != null ){
+			
+				old_sec_man.checkExit( status );
+			}
+			
+			if ( !exit_vm_permitted ){
+				
+				throw( new SecurityException( "VM exit operation prohibited"));
+			}
+		}
+		
+		public void 
+		checkPermission(
+			Permission perm )
+		{						
+			checkPermission( perm, null );
+		}
+		
+		public void 
+		checkPermission(
+			Permission 	perm, 
+			Object 		context) 
+		{
+			if ( perm instanceof RuntimePermission ){
+				
+				String name = perm.getName();
+			
+				if ( name.equals( "stopThread")){
+				
+					synchronized( stoppable_threads ){
+						
+						if ( stoppable_threads.contains( Thread.currentThread())){
+							
+							return;
+						}
+					}
+					
+					throw( new SecurityException( "Thread.stop operation prohibited"));
+					
+				}else if ( name.equals( "setSecurityManager" )){
+					
+					throw( new SecurityException( "Permission Denied"));
+				}
+			}
+			
+			if ( old_sec_man != null ){
+				
+				if ( context == null ){
+				
+					old_sec_man.checkPermission( perm );
+					
+				}else{
+					
+					old_sec_man.checkPermission( perm, context );
+				}
+			}
+		}
+
+		public Class[]
+		getClassContext()
+		{
+			Class[] res = super.getClassContext();
+			
+			if ( res.length <= 3 ){
+				
+				return( new Class[0] );
+			}
+			
+			Class[] trimmed = new Class[res.length-3];
+			
+			System.arraycopy( res, 3, trimmed, 0, trimmed.length );
+			
+			return( trimmed );
+		}
+		
+	};
 	
 	public static void
 	main(

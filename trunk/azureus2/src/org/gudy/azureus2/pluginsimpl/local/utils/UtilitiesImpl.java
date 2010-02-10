@@ -1098,24 +1098,33 @@ UtilitiesImpl
 		return( all_licences.toArray( new Licence[ all_licences.size()]));
 	}
 	
-	public FeatureDetails 
+	public FeatureDetails[]
 	getFeatureDetails(
-		String 					feature_id,
-		Map<String, Object> 	feature_properties ) 
+		String 					feature_id )
 	{
+		List<FeatureDetails>	result = new ArrayList<FeatureDetails>();
+	
 		List<FeatureEnabler>	enablers = getVerifiedEnablers();
 			
 		for ( FeatureEnabler enabler: enablers ){
 			
-			FeatureDetails details = enabler.getFeatureDetails( pi.getPluginID(), feature_id, feature_properties );
+			Licence[] licences = enabler.getLicences();
 				
-			if ( details != null ){
-							
-				return( details );
+			for ( Licence licence: licences ){
+				
+				FeatureDetails[] details = licence.getFeatures();
+				
+				for ( FeatureDetails detail: details ){
+					
+					if ( detail.getID().equals( feature_id )){
+						
+						result.add( detail );
+					}
+				}
 			}
 		}
 		
-		return( null );
+		return( result.toArray( new FeatureDetails[ result.size() ]));
 	}
 	
 	private final List<FeatureEnabler>

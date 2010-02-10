@@ -21,8 +21,6 @@
 
 package org.gudy.azureus2.plugins.utils;
 
-import java.util.Map;
-
 
 public interface 
 FeatureManager 
@@ -34,10 +32,9 @@ FeatureManager
 	addLicence(
 		String		licence_key );
 	
-	public FeatureDetails
+	public FeatureDetails[]
 	getFeatureDetails(
-		String					feature_id,
-		Map<String,Object>		feature_properties );
+		String					feature_id );
 	
 	public void
 	registerFeatureEnabler(
@@ -66,25 +63,17 @@ FeatureManager
        	public Licence
        	addLicence(
        		String		licence_key );
-		           	
-		public FeatureDetails
-		getFeatureDetails(
-			String					requester_id,
-			String					feature_id,
-			Map<String,Object>		feature_properties );
 	}
 	
 	public interface
 	FeatureDetails
 	{
+		public String	PR_PUBLIC_KEY				= "PublicKey";				// String
 		public String	PR_VALID_UNTIL				= "ValidUntil";				// Long
 		
 		public String
 		getID();
-		
-		public boolean
-		isEnabled();
-		
+				
 		public byte[]
 		getEncodedProperties();
 		
