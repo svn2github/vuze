@@ -37,6 +37,9 @@ FeatureManager
 		String					feature_id );
 	
 	public void
+	refreshLicences();
+	
+	public void
 	registerFeatureEnabler(
 		FeatureEnabler	enabler );
 	
@@ -44,14 +47,35 @@ FeatureManager
 	unregisterFeatureEnabler(
 		FeatureEnabler	enabler );
 	
+	public void
+	addListener(
+		FeatureManagerListener		listener );
+	
+	public void
+	removeListener(
+		FeatureManagerListener		listener );
+
+	
 	public interface
 	Licence
 	{
+		public final int LS_PENDING_AUTHENTICATION	= 1;
+		public final int LS_AUTHENTICATED			= 2;
+		public final int LS_INVAID_KEY				= 3;
+		public final int LS_CANCELLED				= 4;
+		public final int LS_REVOKED					= 5;
+		
+		public int
+		getState();
+		
 		public String
 		getKey();
 		
 		public FeatureDetails[]
 		getFeatures();
+		
+		public void
+		remove();
 	}
 	
 	public interface
@@ -63,6 +87,17 @@ FeatureManager
        	public Licence
        	addLicence(
        		String		licence_key );
+       	
+       	public void
+       	refreshLicences();
+       	
+    	public void
+    	addListener(
+    		FeatureManagerListener		listener );
+    	
+    	public void
+    	removeListener(
+    		FeatureManagerListener		listener );
 	}
 	
 	public interface
@@ -70,6 +105,10 @@ FeatureManager
 	{
 		public String	PR_PUBLIC_KEY				= "PublicKey";				// String
 		public String	PR_VALID_UNTIL				= "ValidUntil";				// Long
+		public String	PR_TRIAL_USES_REMAINING		= "TrialUsesRemaining";		// Long
+		
+		public Licence
+		getLicence();
 		
 		public String
 		getID();
@@ -88,5 +127,21 @@ FeatureManager
 		setProperty(
 			String		property_name,
 			Object		property_value );
+	}
+	
+	public interface
+	FeatureManagerListener
+	{
+		public void
+		licenceAdded(
+			Licence	licence );
+		
+		public void
+		licenceChanged(
+			Licence	licence );
+		
+		public void
+		licenceRemoved(
+			Licence	licence );
 	}
 }

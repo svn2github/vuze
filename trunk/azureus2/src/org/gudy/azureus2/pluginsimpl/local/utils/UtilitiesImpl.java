@@ -120,8 +120,61 @@ UtilitiesImpl
 	private static List<searchManager>		search_managers 	= new ArrayList<searchManager>();
 	private static List<Object[]>			search_providers	= new ArrayList<Object[]>();
 	
-	private static CopyOnWriteList<Object[]>	feature_enablers = new CopyOnWriteList<Object[]>();
+	private static CopyOnWriteList<Object[]>				feature_enablers 	= new CopyOnWriteList<Object[]>();
+	private static CopyOnWriteList<FeatureManagerListener>	feature_listeners	= new CopyOnWriteList<FeatureManagerListener>();
 	
+	private static FeatureManagerListener 
+		feature_listener = new FeatureManagerListener()
+		{
+			public void
+			licenceAdded(
+				Licence	licence )
+			{
+				for ( FeatureManagerListener listener: feature_listeners ){
+					
+					try{
+						listener.licenceAdded(licence);
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+			
+			public void
+			licenceChanged(
+				Licence	licence )
+			{
+				for ( FeatureManagerListener listener: feature_listeners ){
+					
+					try{
+						listener.licenceChanged(licence);
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}				
+			}
+			
+			public void
+			licenceRemoved(
+				Licence	licence )
+			{
+				for ( FeatureManagerListener listener: feature_listeners ){
+					
+					try{
+						listener.licenceRemoved(licence);
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}				
+			}
+		};
+		
 	public
 	UtilitiesImpl(
 		AzureusCore			_core,
@@ -1070,11 +1123,16 @@ UtilitiesImpl
 		
 		for ( FeatureEnabler enabler: enablers ){
 			
-			Licence licence = enabler.addLicence( licence_key );
-			
-			if ( licence != null ){
+			try{
+				Licence licence = enabler.addLicence( licence_key );
 				
-				return( licence );
+				if ( licence != null ){
+					
+					return( licence );
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
 			}
 		}
 		
@@ -1090,12 +1148,35 @@ UtilitiesImpl
 		
 		for ( FeatureEnabler enabler: enablers ){
 			
-			Licence[] licence = enabler.getLicences();
-			
-			all_licences.addAll( Arrays.asList( licence ));
+			try{
+				Licence[] licence = enabler.getLicences();
+				
+				all_licences.addAll( Arrays.asList( licence ));
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
 		}
 		
 		return( all_licences.toArray( new Licence[ all_licences.size()]));
+	}
+	
+	public void
+	refreshLicences()
+	{
+		List<FeatureEnabler>	enablers = getVerifiedEnablers();
+		
+		for ( FeatureEnabler enabler: enablers ){
+			
+			try{
+				enabler.refreshLicences();
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
 	}
 	
 	public FeatureDetails[]
@@ -1108,23 +1189,48 @@ UtilitiesImpl
 			
 		for ( FeatureEnabler enabler: enablers ){
 			
-			Licence[] licences = enabler.getLicences();
-				
-			for ( Licence licence: licences ){
-				
-				FeatureDetails[] details = licence.getFeatures();
-				
-				for ( FeatureDetails detail: details ){
+			try{
+				Licence[] licences = enabler.getLicences();
 					
-					if ( detail.getID().equals( feature_id )){
+				for ( Licence licence: licences ){
+					
+					FeatureDetails[] details = licence.getFeatures();
+					
+					for ( FeatureDetails detail: details ){
 						
-						result.add( detail );
+						if ( detail.getID().equals( feature_id )){
+							
+							result.add( detail );
+						}
 					}
 				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
 			}
 		}
 		
 		return( result.toArray( new FeatureDetails[ result.size() ]));
+	}
+	
+   	public void
+	addListener(
+		FeatureManagerListener		listener )
+	{
+   		synchronized( feature_enablers ){
+   			
+   			feature_listeners.add( listener );
+   		}
+	}
+   	
+	public void
+	removeListener(
+		FeatureManagerListener		listener )
+	{
+ 		synchronized( feature_enablers ){
+   			
+ 			feature_listeners.remove( listener );
+   		}
 	}
 	
 	private final List<FeatureEnabler>
@@ -1173,20 +1279,28 @@ UtilitiesImpl
 			return;
 		}
 		
-		feature_enablers.add( new Object[]{ pi, plugin, enabler });
+		synchronized( feature_enablers ){
+			
+			feature_enablers.add( new Object[]{ pi, plugin, enabler });
+			
+			enabler.addListener( feature_listener );
+		}
 	}
 	
 	public void
 	unregisterFeatureEnabler(
 		FeatureEnabler	enabler )
 	{
-		for ( Object[] entry: feature_enablers ){
+		synchronized( feature_enablers ){
 			
-			if ( entry[2] == enabler ){
+			for ( Object[] entry: feature_enablers ){
 				
-				feature_enablers.remove( entry );
-				
-				return;
+				if ( entry[2] == enabler ){
+					
+					feature_enablers.remove( entry );
+					
+					return;
+				}
 			}
 		}
 	}
