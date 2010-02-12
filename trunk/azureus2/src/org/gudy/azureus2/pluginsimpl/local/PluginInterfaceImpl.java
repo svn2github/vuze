@@ -388,6 +388,33 @@ PluginInterfaceImpl
     return pluginDir;
   }
 
+  public String getPerUserPluginDirectoryName(){
+	String name;
+	if ( pluginDir == null ){
+		name = getPluginID();
+	}else{
+		name = new File( pluginDir).getName();
+	}
+	
+	String str = new File(new File(SystemProperties.getUserPath(),"plugins"),name).getAbsolutePath();
+	
+	if ( pluginDir == null ){
+		
+		return( str );
+	}
+	
+	try{
+		if ( new File( pluginDir ).getCanonicalPath().equals( new File( str ).getCanonicalPath())){
+			
+			return( pluginDir );
+		}
+	}catch( Throwable e ){
+		
+	}
+	
+	return( str );
+  }
+  
   public void
   setPluginDirectoryName(
   	String		name )

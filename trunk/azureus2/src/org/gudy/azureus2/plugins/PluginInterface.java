@@ -269,6 +269,15 @@ public interface PluginInterface {
   public String getPluginDirectoryName();
   
   /**
+   * gives access to the per-user plugin directory. Useful for shared plugins that need to store
+   * per-user state. Will be same as getPluginDirectoryName for per-user installed plugins
+   * directory may not yet exist 
+   * @return
+   */
+  
+  public String getPerUserPluginDirectoryName();
+  
+  /**
    * Returns the value of "plugin.name" if it exists in the properties file, otherwise the directory name is returned.
    * @since 2.1.0.0
    */

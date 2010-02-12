@@ -363,6 +363,13 @@ RPPluginInterface
 		return( null );
 	}
 	
+	public String getPerUserPluginDirectoryName()
+	{
+		notSupported();
+		
+		return( null );
+	}
+
 	public boolean
 	isShared()
 	{
