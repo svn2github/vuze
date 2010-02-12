@@ -140,7 +140,7 @@ DeviceMediaRendererTemplateImpl
 			throw( new DeviceManagerException( "Device can't be added manually" ));
 		}
 		
-		Device res = manager.createDevice( Device.DT_MEDIA_RENDERER, classification, name );
+		Device res = manager.createDevice( Device.DT_MEDIA_RENDERER, null, classification, name );
 		
 		return( res );
 	}

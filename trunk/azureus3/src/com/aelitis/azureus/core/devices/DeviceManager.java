@@ -38,6 +38,15 @@ DeviceManager
 	public Device[]
 	getDevices();
 	
+	public Device
+	addVirtualDevice(
+		int					type,
+		String				uid,
+		String				classification,
+		String				name )
+	
+		throws DeviceManagerException;
+	
 	public void
 	search(
 		int						max_millis,

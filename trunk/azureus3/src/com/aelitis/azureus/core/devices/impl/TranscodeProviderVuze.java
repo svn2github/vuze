@@ -43,6 +43,8 @@ public class
 TranscodeProviderVuze 
 	implements TranscodeProvider
 {
+	private static final String PROFILE_PREFIX = "vuzexcode:";
+	
 	private TranscodeManagerImpl	manager;
 	private PluginInterface			plugin_interface;
 	
@@ -55,6 +57,12 @@ TranscodeProviderVuze
 	{
 		manager					= _manager;
 		plugin_interface		= _plugin_interface;
+	}
+	
+	public int
+	getID()
+	{
+		return( TP_VUZE );
 	}
 	
 	protected void
@@ -87,7 +95,7 @@ TranscodeProviderVuze
 			
 			for ( Map.Entry<String, Map<String,String>> entry : profiles_map.entrySet()){
 				
-				res[ index++] = new TranscodeProfileImpl( this, "vuzexcode:" + entry.getKey(), entry.getKey(), entry.getValue());
+				res[ index++] = new TranscodeProfileImpl( this, PROFILE_PREFIX + entry.getKey(), entry.getKey(), entry.getValue());
 			}
 			
 			profiles	= res;
@@ -117,6 +125,25 @@ TranscodeProviderVuze
 		}
 		
 		return( null );
+	}
+	
+	public TranscodeProfile 
+	addProfile(
+		File 		file ) 
+	
+		throws TranscodeException
+	{
+		try{
+			String uid = PROFILE_PREFIX + (String)plugin_interface.getIPC().invoke( "addProfile", new Object[]{ file } );
+			
+			profiles = null;
+			
+			return( getProfile( uid ));
+			
+		}catch( Throwable e ){
+			
+			throw( new TranscodeException( "Failed to add profile", e ));
+		}
 	}
 	
 	public TranscodeProviderAnalysis

@@ -29,6 +29,11 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 public interface 
 TranscodeProvider 
 {
+	public static final int TP_VUZE	= 1;
+	
+	public int
+	getID();
+	
 	public String
 	getName();
 	
@@ -38,6 +43,12 @@ TranscodeProvider
 	public TranscodeProfile
 	getProfile(
 		String		UID );
+	
+	public TranscodeProfile
+	addProfile(
+		File		file )
+	
+		throws TranscodeException;
 	
 	public TranscodeProviderAnalysis
 	analyse( 

@@ -148,12 +148,13 @@ DeviceUPnPImpl
 	DeviceUPnPImpl(
 		DeviceManagerImpl	_manager,
 		int					_type,
+		String				_uuid,
 		String				_classification,
 		boolean				_manual,
 		String				_name )
 
 	{
-		super( _manager, _type, UUIDGenerator.generateUUIDString(), _classification, _manual, _name );
+		super( _manager, _type, _uuid==null?UUIDGenerator.generateUUIDString():_uuid, _classification, _manual, _name );
 		
 		upnp_manager		= _manager.getUPnPManager();
 		

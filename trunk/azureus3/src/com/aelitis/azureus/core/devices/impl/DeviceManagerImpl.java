@@ -203,7 +203,7 @@ DeviceManagerImpl
 	
 	private int		explicit_search;
 	
-	private TranscodeManagerImpl	transcode_manager;
+	private volatile TranscodeManagerImpl	transcode_manager;
 	
 	private int						getMimeType_fails;
 	
@@ -212,6 +212,8 @@ DeviceManagerImpl
 	
 	private AsyncDispatcher	async_dispatcher = new AsyncDispatcher( 10*1000 );
 
+	private AESemaphore			init_sem = new AESemaphore( "dm:init" );
+	
 	private volatile boolean initialized = false;
 	
 	protected
@@ -226,140 +228,162 @@ DeviceManagerImpl
 		});
 	}
 	
+	private void
+	ensureInitialised()
+	{
+		initWithCore( AzureusCoreFactory.getSingleton());
+		
+		init_sem.reserve();
+	}
+	
 	private void 
 	initWithCore(
 		final AzureusCore core ) 
 	{
-		azureus_core = core;
-		
-		od_manual_ta = PluginInitializer.getDefaultInterface().getTorrentManager().getPluginAttribute( "device.manager.od.ta.manual" );
-		
-		rss_publisher = new DeviceManagerRSSFeed( this );
-
-			// need to pick up auto-search early on
-		
-		COConfigurationManager.addAndFireParameterListeners(
-				new String[]{
-					AUTO_SEARCH_CONFIG_KEY,
-				},
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-						String name ) 
-					{
-						auto_search = COConfigurationManager.getBooleanParameter( AUTO_SEARCH_CONFIG_KEY, true );
-					}
-				});
-		
-		COConfigurationManager.addAndFireParameterListeners(
-				new String[]{
-					OD_ENABLED_CONFIG_KEY,
-					OD_IS_AUTO_CONFIG_KEY,
-					OD_INCLUDE_PRIVATE_CONFIG_KEY
-				},
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-						String name ) 
-					{
-						boolean	new_od_enabled 				= COConfigurationManager.getBooleanParameter( OD_ENABLED_CONFIG_KEY, true );
-						boolean	new_od_is_auto 				= COConfigurationManager.getBooleanParameter( OD_IS_AUTO_CONFIG_KEY, true );
-						boolean	new_od_include_private_priv	= COConfigurationManager.getBooleanParameter( OD_INCLUDE_PRIVATE_CONFIG_KEY, false );
-						
-						if ( new_od_enabled != od_enabled || new_od_is_auto != od_is_auto || new_od_include_private_priv != od_include_private ){
-							
-							od_enabled			= new_od_enabled;
-							od_is_auto			= new_od_is_auto;
-							od_include_private	= new_od_include_private_priv;
-							
-							manageOD();
-						}
-					}
-				});
-		
-			// init tivo before upnp as upnp init completion starts up tivo
-		
-		tivo_manager = new DeviceTivoManager( this );
-
-		upnp_manager = new DeviceManagerUPnPImpl( this );
-
-		loadConfig();
+		synchronized( this ){
+			
+			if ( azureus_core != null ){
 				
-		new DeviceiTunesManager( this );
-				
-		drive_manager = new DeviceDriveManager( this );
+				return;
+			}
 		
-		transcode_manager = new TranscodeManagerImpl( this );
+			azureus_core = core;
+		}
 		
-		core.addLifecycleListener(
-			new AzureusCoreLifecycleAdapter()
-			{
-				public void
-				stopping(
-					AzureusCore		core )
-				{					
-					synchronized( DeviceManagerImpl.this ){
-				
-						if ( config_dirty || config_unclean ){
-							
-							saveConfig();
-						}
-						
-						closing	= true;
-						
-						transcode_manager.close();
-						
-						DeviceImpl[] devices = getDevices();
-						
-						for ( DeviceImpl device: devices ){
-							
-							device.close();
-						}
-					}
-				}
-			});
-		
-		upnp_manager.initialise();
-		
-		SimpleTimer.addPeriodicEvent(
-				"DeviceManager:update",
-				DEVICE_UPDATE_PERIOD,
-				new TimerEventPerformer()
-				{
-					private int tick_count = 0;
-					
-					public void 
-					perform(
-						TimerEvent event ) 
+		try{
+			od_manual_ta = PluginInitializer.getDefaultInterface().getTorrentManager().getPluginAttribute( "device.manager.od.ta.manual" );
+			
+			rss_publisher = new DeviceManagerRSSFeed( this );
+	
+				// need to pick up auto-search early on
+			
+			COConfigurationManager.addAndFireParameterListeners(
+					new String[]{
+						AUTO_SEARCH_CONFIG_KEY,
+					},
+					new ParameterListener()
 					{
-						List<DeviceImpl> copy;
-						
-						tick_count++;
-						
-						transcode_manager.updateStatus( tick_count );
-						
-						synchronized( DeviceManagerImpl.this ){
-
-							if( device_list.size() == 0 ){
+						public void 
+						parameterChanged(
+							String name ) 
+						{
+							auto_search = COConfigurationManager.getBooleanParameter( AUTO_SEARCH_CONFIG_KEY, true );
+						}
+					});
+			
+			COConfigurationManager.addAndFireParameterListeners(
+					new String[]{
+						OD_ENABLED_CONFIG_KEY,
+						OD_IS_AUTO_CONFIG_KEY,
+						OD_INCLUDE_PRIVATE_CONFIG_KEY
+					},
+					new ParameterListener()
+					{
+						public void 
+						parameterChanged(
+							String name ) 
+						{
+							boolean	new_od_enabled 				= COConfigurationManager.getBooleanParameter( OD_ENABLED_CONFIG_KEY, true );
+							boolean	new_od_is_auto 				= COConfigurationManager.getBooleanParameter( OD_IS_AUTO_CONFIG_KEY, true );
+							boolean	new_od_include_private_priv	= COConfigurationManager.getBooleanParameter( OD_INCLUDE_PRIVATE_CONFIG_KEY, false );
+							
+							if ( new_od_enabled != od_enabled || new_od_is_auto != od_is_auto || new_od_include_private_priv != od_include_private ){
 								
-								return;
+								od_enabled			= new_od_enabled;
+								od_is_auto			= new_od_is_auto;
+								od_include_private	= new_od_include_private_priv;
+								
+								manageOD();
+							}
+						}
+					});
+			
+				// init tivo before upnp as upnp init completion starts up tivo
+			
+			tivo_manager = new DeviceTivoManager( this );
+	
+			upnp_manager = new DeviceManagerUPnPImpl( this );
+	
+			loadConfig();
+					
+			new DeviceiTunesManager( this );
+					
+			drive_manager = new DeviceDriveManager( this );
+			
+			transcode_manager = new TranscodeManagerImpl( this );
+			
+			core.addLifecycleListener(
+				new AzureusCoreLifecycleAdapter()
+				{
+					public void
+					stopping(
+						AzureusCore		core )
+					{					
+						synchronized( DeviceManagerImpl.this ){
+					
+							if ( config_dirty || config_unclean ){
+								
+								saveConfig();
 							}
 							
-							copy = new ArrayList<DeviceImpl>( device_list );
-						}
-						
-						for ( DeviceImpl device: copy ){
+							closing	= true;
 							
-							device.updateStatus( tick_count );
+							transcode_manager.close();
+							
+							DeviceImpl[] devices = getDevices();
+							
+							for ( DeviceImpl device: devices ){
+								
+								device.close();
+							}
 						}
 					}
 				});
-		
-		initialized = true;
-		
-		listeners.dispatch( LT_INITIALIZED, null );
+			
+			upnp_manager.initialise();
+			
+			SimpleTimer.addPeriodicEvent(
+					"DeviceManager:update",
+					DEVICE_UPDATE_PERIOD,
+					new TimerEventPerformer()
+					{
+						private int tick_count = 0;
+						
+						public void 
+						perform(
+							TimerEvent event ) 
+						{
+							List<DeviceImpl> copy;
+							
+							tick_count++;
+							
+							transcode_manager.updateStatus( tick_count );
+							
+							synchronized( DeviceManagerImpl.this ){
+	
+								if( device_list.size() == 0 ){
+									
+									return;
+								}
+								
+								copy = new ArrayList<DeviceImpl>( device_list );
+							}
+							
+							for ( DeviceImpl device: copy ){
+								
+								device.updateStatus( tick_count );
+							}
+						}
+					});
+			
+			initialized = true;
+			
+			listeners.dispatch( LT_INITIALIZED, null );
+			
+		}finally{
+			
+			init_sem.releaseForever();
+		}
 	}
 	
 	protected void
@@ -502,9 +526,22 @@ DeviceManagerImpl
 		return( map.values().toArray( new DeviceManufacturer[ map.size() ] ));
 	}
 	
+	public Device 
+	addVirtualDevice(
+		int 		type, 
+		String		uid,
+		String		classification,
+		String		name )
+	
+		throws DeviceManagerException
+	{
+		return( createDevice( type, uid, classification, name ));
+	}
+	
 	protected Device
 	createDevice(
 		int						device_type,
+		String					uid,
 		String					classification,
 		String					name )
 	
@@ -512,7 +549,7 @@ DeviceManagerImpl
 	{
 		if ( device_type == Device.DT_MEDIA_RENDERER ){
 			
-			DeviceImpl res = new DeviceMediaRendererManual( this, classification, true, name );
+			DeviceImpl res = new DeviceMediaRendererManual( this, uid, classification, true, name );
 			
 			addDevice( res );
 			
@@ -1218,6 +1255,11 @@ DeviceManagerImpl
 	public TranscodeManagerImpl
 	getTranscodeManager()
 	{
+		if ( transcode_manager == null ){
+			
+			ensureInitialised();
+		}
+		
 		return( transcode_manager );
 	}
 	
