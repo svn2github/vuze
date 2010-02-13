@@ -35,6 +35,8 @@ public class SWTSkinObjectImage
 
 	protected static final Long DRAW_HCENTER = new Long(5);
 
+	protected static final Long DRAW_ANIMATE = new Long(6);
+
 	private Canvas canvas;
 
 	private boolean customImage;
@@ -50,21 +52,43 @@ public class SWTSkinObjectImage
 	static {
 		paintListener = new PaintListener() {
 			public void paintControl(PaintEvent e) {
-				SWTSkinObject so = (SWTSkinObject) e.widget.getData("SkinObject");
+				//SWTSkinObject so = (SWTSkinObject) e.widget.getData("SkinObject");
 				try {
 					e.gc.setAdvanced(true);
 					e.gc.setInterpolation(SWT.HIGH);
 				} catch (Exception ex) {
 				}
 
-				Canvas control = (Canvas) e.widget;
+				final Canvas control = (Canvas) e.widget;
 				Image imgSrc = (Image) control.getData("image");
+
+				Long drawMode = (Long) control.getData("drawmode");
+				if (drawMode == DRAW_ANIMATE) {
+					Image[] images = (Image[]) control.getData("images");
+					int idx = ((Number) control.getData("ImageIndex")).intValue();
+					imgSrc = images[idx];
+					idx++;
+					if (idx >= images.length) {
+						idx = 0;
+					}
+					control.setData("ImageIndex", new Long(idx));
+
+					int animationDelay = ((Number) control.getData("delay")).intValue();
+					Utils.execSWTThreadLater(animationDelay, new AERunnable() {
+						public void runSupport() {
+							if (!control.isDisposed()) {
+								control.redraw();
+							}
+						}
+					});
+				}
+
 				Image imgRight = null;
 				Image imgLeft = null;
 				String idToRelease = null;
 				ImageLoader imageLoader = null;
 
-				if (imgSrc == null) {
+				if (imgSrc == null || imgSrc.isDisposed()) {
 					SWTSkinObjectImage soImage = (SWTSkinObjectImage) control.getData("SkinObject");
 					imageLoader = soImage.getSkin().getImageLoader(
 							soImage.getProperties());
@@ -86,12 +110,10 @@ public class SWTSkinObjectImage
 				Rectangle imgSrcBounds = imgSrc.getBounds();
 				Point size = control.getSize();
 
-				Long drawMode = (Long) control.getData("drawmode");
-
 				if (drawMode == DRAW_STRETCH) {
 					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
 							0, 0, size.x, size.y);
-				} else if (drawMode == DRAW_CENTER || drawMode == DRAW_NORMAL) {
+				} else if (drawMode == DRAW_CENTER || drawMode == DRAW_NORMAL || drawMode == DRAW_ANIMATE) {
 					e.gc.drawImage(imgSrc, (size.x - imgSrcBounds.width) / 2,
 							(size.y - imgSrcBounds.height) / 2);
 				} else if (drawMode == DRAW_HCENTER) {
@@ -285,9 +307,39 @@ public class SWTSkinObjectImage
 				Image[] images = sImageID == null || sImageID.length() == 0 ? null
 						: imageLoader.getImages(sImageID);
 
+				String sDrawMode = properties.getStringValue(sConfigID + ".drawmode");
+				if (sDrawMode == null) {
+					sDrawMode = properties.getStringValue(
+							SWTSkinObjectImage.this.sConfigID + ".drawmode", "");
+				}
+
+				Long drawMode;
+				if (sDrawMode.equals("scale")) {
+					drawMode = DRAW_SCALE;
+				} else if (sDrawMode.equals("stretch")) {
+					drawMode = DRAW_STRETCH;
+				} else if (sDrawMode.equals("center")) {
+					drawMode = DRAW_CENTER;
+				} else if (sDrawMode.equals("h-center")) {
+					drawMode = DRAW_HCENTER;
+				} else if (sDrawMode.equalsIgnoreCase("tile")) {
+					drawMode = DRAW_TILE;
+				} else if (sDrawMode.equalsIgnoreCase("animate")
+						|| (sDrawMode.length() == 0 && images != null && images.length > 3)) {
+					drawMode = DRAW_ANIMATE;
+				} else {
+					drawMode = DRAW_NORMAL;
+				}
+				canvas.setData("drawmode", drawMode);
+
 				Image image = null;
 
-				if (images.length == 3) {
+				if (drawMode == DRAW_ANIMATE) {
+					canvas.setData("images", images);
+					canvas.setData("ImageIndex", Long.valueOf(0));
+					canvas.setData("delay", ImageLoader.getInstance().getAnimationDelay(sImageID));
+					image = images[0];
+				} else if (images.length == 3) {
 					Image imageLeft = images[0];
 					if (ImageLoader.isRealImage(imageLeft)) {
 						canvas.setData("image-left", imageLeft);
@@ -307,29 +359,9 @@ public class SWTSkinObjectImage
 					image = ImageLoader.noImage;
 				}
 
-				String sDrawMode = properties.getStringValue(sConfigID + ".drawmode");
-				if (sDrawMode == null) {
-					sDrawMode = properties.getStringValue(
-							SWTSkinObjectImage.this.sConfigID + ".drawmode", "");
-				}
 
 				//allowImageDimming = sDrawMode.equalsIgnoreCase("dim");
 
-				Long drawMode;
-				if (sDrawMode.equals("scale")) {
-					drawMode = DRAW_SCALE;
-				} else if (sDrawMode.equals("stretch")) {
-					drawMode = DRAW_STRETCH;
-				} else if (sDrawMode.equals("center")) {
-					drawMode = DRAW_CENTER;
-				} else if (sDrawMode.equals("h-center")) {
-					drawMode = DRAW_HCENTER;
-				} else if (sDrawMode.equalsIgnoreCase("tile")) {
-					drawMode = DRAW_TILE;
-				} else {
-					drawMode = DRAW_NORMAL;
-				}
-				canvas.setData("drawmode", drawMode);
 
 				Rectangle imgBounds = image.getBounds();
 				if (drawMode != DRAW_CENTER && drawMode != DRAW_HCENTER
@@ -338,7 +370,8 @@ public class SWTSkinObjectImage
 				}
 				//canvas.setData("image", image);
 
-				if (drawMode == DRAW_TILE || drawMode == DRAW_NORMAL) {
+				if (drawMode == DRAW_TILE || drawMode == DRAW_NORMAL
+						|| drawMode == DRAW_ANIMATE) {
 					// XXX Huh? A tile of one? :)
 					FormData fd = (FormData) canvas.getLayoutData();
 					if (fd == null) {
@@ -360,7 +393,9 @@ public class SWTSkinObjectImage
 				canvas.redraw();
 
 				SWTSkinUtils.addMouseImageChangeListeners(canvas);
-				imageLoader.releaseImage(sImageID);
+				if (drawMode != DRAW_ANIMATE) {
+					imageLoader.releaseImage(sImageID);
+				}
 				return null;
 			}
 		});
