@@ -135,7 +135,7 @@ public class MessageBoxShell
 			final String text, final String[] buttons, final int defaultOption) {
 		this.title = title;
 		this.text = text;
-		this.buttons = buttons;
+		this.buttons = buttons == null ? new String[0] : buttons;
 		this.defaultButtonPos = defaultOption;
 	}
 
