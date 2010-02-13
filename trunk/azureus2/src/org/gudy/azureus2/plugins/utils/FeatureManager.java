@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.plugins.utils;
 
+import org.gudy.azureus2.plugins.PluginException;
+
 
 public interface 
 FeatureManager 
@@ -74,8 +76,44 @@ FeatureManager
 		public FeatureDetails[]
 		getFeatures();
 		
+		public boolean
+		isFullyInstalled();
+		
+		public void
+		addInstallationListener(
+			LicenceInstallationListener	listener );
+		
+		public void
+		removeInstallationListener(
+			LicenceInstallationListener	listener );
+		
 		public void
 		remove();
+		
+		public interface
+		LicenceInstallationListener
+		{
+			public void
+			reportActivity(
+				String		licence_key,
+				String		install,
+				String		activity );
+			
+			public void
+			reportProgress(
+				String		licence_key,
+				String		install,
+				int			percent );
+			
+			public void
+			complete(
+				String		licence_key );
+			
+			public void
+			failed(
+				String				licence_key,
+				PluginException		error );
+		}
 	}
 	
 	public interface
@@ -108,6 +146,7 @@ FeatureManager
 		public String	PR_IS_INSTALL_TIME			= "IsInstallTime";			// Long (0=false)
 		public String	PR_IS_TRIAL					= "IsTrial";				// Long (0=false)
 		public String	PR_TRIAL_USES_REMAINING		= "TrialUsesRemaining";		// Long
+		public String	PR_REQUIRED_PLUGINS			= "Plugins";				// String: comma separated plugin ids
 		
 		public Licence
 		getLicence();

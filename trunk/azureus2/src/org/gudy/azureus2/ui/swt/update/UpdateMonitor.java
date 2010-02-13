@@ -533,6 +533,12 @@ public class UpdateMonitor
 				new SimpleInstallUI( this, instance );
 				
 				return;
+				
+			}else if ( ui == UpdateCheckInstance.PT_UI_STYLE_NONE ){
+				
+				new SilentInstallUI( this, instance );
+				
+				return;
 			}
 			
 		}catch( Throwable e ){

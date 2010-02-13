@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 
 /**
  * @author parg
@@ -77,7 +78,7 @@ PluginInstaller
 	
 		throws PluginException;
 	
-	public void
+	public UpdateCheckInstance
 	install(
 		InstallablePlugin[]			plugins,
 		boolean						shared,

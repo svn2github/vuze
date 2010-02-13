@@ -37,6 +37,7 @@ UpdateCheckInstance
 	public static final int	PT_UI_STYLE				= 1;	//Integer
 	public static final int	PT_UI_STYLE_DEFAULT		= 1;
 	public static final int	PT_UI_STYLE_SIMPLE		= 2;
+	public static final int	PT_UI_STYLE_NONE		= 3;
 	
 	public static final int	PT_UI_PARENT_SWT_COMPOSITE					= 2;	// SWT Composite
 	

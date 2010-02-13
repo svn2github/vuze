@@ -441,7 +441,7 @@ PluginInstallerImpl
 		install( plugins, shared, false, null, null );
 	}
 	
-	public void
+	public UpdateCheckInstance
 	install(
 		InstallablePlugin[]					plugins,
 		boolean								shared,
@@ -450,10 +450,10 @@ PluginInstallerImpl
 	
 		throws PluginException
 	{
-		install( plugins, shared, false, properties, listener );
+		return( install( plugins, shared, false, properties, listener ));
 	}
 	
-	protected void
+	protected UpdateCheckInstance
 	install(
 		InstallablePlugin[]					plugins,
 		boolean								shared,
@@ -664,6 +664,8 @@ PluginInstallerImpl
 			}
 		
 			inst.start();
+			
+			return( inst );
 			
 		}catch( Throwable e ){
 			
