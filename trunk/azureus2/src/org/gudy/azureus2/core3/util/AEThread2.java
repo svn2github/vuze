@@ -170,6 +170,11 @@ AEThread2
 	}
 	
 	public boolean
+	isAlive() {
+		return wrapper == null ? false : wrapper.isAlive();
+	}
+	
+	public boolean
 	isCurrentThread()
 	{
 		return( wrapper == Thread.currentThread());
