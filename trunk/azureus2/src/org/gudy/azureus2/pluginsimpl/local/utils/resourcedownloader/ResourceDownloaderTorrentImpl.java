@@ -62,6 +62,8 @@ ResourceDownloaderTorrentImpl
 	protected Download					download;
 	
 	protected boolean					cancelled;
+	protected boolean					completed;
+	
 	protected ResourceDownloader		current_downloader;
 	protected Object					result;
 	protected AESemaphore				done_sem	= new AESemaphore("RDTorrent");
@@ -374,11 +376,16 @@ ResourceDownloaderTorrentImpl
 							
 							download.removeListener( this );
 							
-							PluginInitializer.getDefaultInterface().getUtilities().createThread("resource complete event dispatcher", new Runnable() {
-								public void run() {
-									downloadSucceeded( download, torrent_file, data_dir );
-								}
-							});
+							PluginInitializer.getDefaultInterface().getUtilities().createThread(
+								"resource complete event dispatcher", 
+								new Runnable()
+								{
+									public void 
+									run()
+									{
+										downloadSucceeded( download, torrent_file, data_dir );
+									}
+								});
 							
 						}
 					}
@@ -402,7 +409,7 @@ ResourceDownloaderTorrentImpl
 						
 						while( result == null ){
 														
-							int	this_percentage = download.getStats().getCompleted()/10;
+							int	this_percentage = download.getStats().getDownloadCompleted(false)/10;
 							
 							long	total	= torrent.getSize();
 														
@@ -446,9 +453,20 @@ ResourceDownloaderTorrentImpl
 		File		torrent_file,
 		File		data_dir )
 	{
+		synchronized( this ){
+			
+			if ( completed ){
+				
+				return;
+			}
+			
+			completed = true;
+		}
+		
 		reportActivity("Torrent download complete");
 		
-		// assumption is that this is a SIMPLE torrent
+			// assumption is that this is a SIMPLE torrent
+		
 		File target_file = 
 			new File( data_dir,	new String(torrent_holder[0].getFiles()[0].getPathComponents()[0]));
 					
