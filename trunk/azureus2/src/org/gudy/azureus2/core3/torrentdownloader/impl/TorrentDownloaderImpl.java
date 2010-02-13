@@ -436,6 +436,8 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         			
         			boolean	sleep = false;
         			
+        			long	last_progress_update = SystemTime.getMonotonousTime();
+        			
         			while( true ){
         				
         				try{
@@ -468,7 +470,9 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         						
         						last_status = s;
         						
-        						if ( !s.toLowerCase().startsWith("error:")){
+        						String lc_s = s.toLowerCase();
+        						
+        						if ( !lc_s.startsWith("error:")){
         							
         							if ( s.toLowerCase().indexOf( "alive" ) != -1 ){
         								
@@ -477,6 +481,8 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         									percentDone++;
         								}
         							}
+        							
+        							boolean progress_update = false;
         							
         	     					int	pos = s.indexOf( '%' );
                 					
@@ -499,13 +505,31 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
                 						try{
                 							percentDone = Integer.parseInt( s.substring( i, pos ).trim());
                 							
+                							progress_update = true;
+                							
                 						}catch( Throwable e ){
                 							
                 						}
                 					}
                 					
+                					if ( lc_s.startsWith("received")){
+                						
+                						progress_update = true;
+                					}
+                					
+                					if ( progress_update ){
+                						
+                						long now = SystemTime.getMonotonousTime();
+                						
+                						if ( now - last_progress_update < 250 ){
+                							
+                							continue;
+                						}
+                					
+                						last_progress_update = now;
+                					}
+                					
         							setStatus(s);
-        							
         						}else{
         							
         							error(con.getResponseCode(), s.substring(6));
