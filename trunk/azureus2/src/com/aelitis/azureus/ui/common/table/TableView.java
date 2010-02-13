@@ -367,4 +367,6 @@ public interface TableView<DATASOURCETYPE>
 	 * @since 3.1.1.1
 	 */
 	TableColumn getTableColumn(String columnName);
+	
+	void setEnabled(boolean enable);
 }

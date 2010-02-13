@@ -5214,4 +5214,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	public void disableSizeSlider() {
 		Utils.disposeSWTObjects(new Object[] { sliderArea });
 	}
+	
+	public void setEnabled(final boolean enable) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (!isDisposed()) {
+					table.setEnabled(enable);
+				}
+			}
+		});
+	}
 }
