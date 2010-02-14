@@ -73,8 +73,6 @@ public class SearchResultsTabArea
 
 	private SWTSkin skin;
 
-	public String searchText;
-
 	private boolean searchResultsInitialized = false;
 
 	protected String title;
@@ -83,7 +81,14 @@ public class SearchResultsTabArea
 
 	private MdiEntryVitalityImage vitalityImage;
 
+	public SearchQuery sq;
+
 	public static class SearchQuery {
+		public SearchQuery(String term, boolean toSubscribe) {
+			this.term = term;
+			this.toSubscribe = toSubscribe;
+		}
+
 		public String term;
 		public boolean toSubscribe;
 	}
@@ -139,17 +144,8 @@ public class SearchResultsTabArea
 			}
 		});
 		
-		if (browserSkinObject != null) {
-			Object o = skinObject.getData("CreationParams");
-
-			if(o instanceof String) {
-				anotherSearch((String) o);
-			}
-			
-			if(o instanceof SearchQuery) {
-				SearchQuery sq = (SearchQuery) o;
-				anotherSearch(sq.term,sq.toSubscribe);
-			}
+		if (sq != null) {
+			anotherSearch(sq);
 		}
 		
 		closeSearchResults(null);
@@ -589,25 +585,27 @@ public class SearchResultsTabArea
 
 	public Object dataSourceChanged(SWTSkinObject skinObject, Object params) {
 		if (params instanceof SearchQuery) {
-			SearchQuery sq = (SearchQuery) params;
-			anotherSearch(sq.term, sq.toSubscribe);
+			sq = (SearchQuery) params;
+			if (browserSkinObject != null) {
+				anotherSearch(sq.term, sq.toSubscribe);
+			}
 		}
 
 		return null;
 	}
 
-	public void anotherSearch(String searchText) {
-		anotherSearch(searchText,false);
+	public void anotherSearch(String searchText,boolean toSubscribe) {
+		anotherSearch(new SearchQuery(searchText, toSubscribe));
 	}
 	
-	public void anotherSearch(String searchText,boolean toSubscribe) {
-		this.searchText = searchText;
+	public void anotherSearch(SearchQuery sq) {
+		this.sq = sq;
 		String url = 
-			ConstantsVuze.getDefaultContentNetwork().getSearchService( searchText );
+			ConstantsVuze.getDefaultContentNetwork().getSearchService( sq.term );
 
 		if (System.getProperty("metasearch", "1").equals("1")) {
 			
-			url = ConstantsVuze.getDefaultContentNetwork().getXSearchService( searchText, toSubscribe );
+			url = ConstantsVuze.getDefaultContentNetwork().getXSearchService( sq.term, sq.toSubscribe );
 		}
 
 		closeSearchResults(null);

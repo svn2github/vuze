@@ -2049,9 +2049,8 @@ public class MainWindow
 			return;
 		}
 
-		SearchResultsTabArea.SearchQuery sq = new SearchResultsTabArea.SearchQuery();
-		sq.term = sSearchText;
-		sq.toSubscribe = toSubscribe;
+		SearchResultsTabArea.SearchQuery sq = new SearchResultsTabArea.SearchQuery(
+				sSearchText, toSubscribe);
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		String id = "Search";
@@ -2074,8 +2073,8 @@ public class MainWindow
 				public Object getTitleInfoProperty(int propertyID) {
 					if (propertyID == TITLE_TEXT) {
 						SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
-						if (searchClass != null) {
-							return searchClass.searchText;
+						if (searchClass != null && searchClass.sq != null) {
+							return searchClass.sq.term;
 						}
 					}
 					return null;
