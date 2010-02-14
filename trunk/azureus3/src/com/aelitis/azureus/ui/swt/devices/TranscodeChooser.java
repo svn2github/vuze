@@ -527,6 +527,9 @@ public abstract class TranscodeChooser
 					new ImageDownloaderListener() {
 						public void imageDownloaded(Image image, boolean returnedImmediately) {
 							if (!returnedImmediately) {
+								if (lblImage.isDisposed()) {
+									return;
+								}
 								lblImage.setData("Image", image);
 								Rectangle bounds = image.getBounds();
 								GridData gridData = (GridData) lblImage.getLayoutData();
