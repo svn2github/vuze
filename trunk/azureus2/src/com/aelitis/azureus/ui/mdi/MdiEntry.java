@@ -91,8 +91,6 @@ public interface MdiEntry
 
 	public void setViewTitleInfo(ViewTitleInfo viewTitleInfo);
 
-	public boolean isExpanded();
-
 	public String getLogID();
 
 	public MultipleDocumentInterface getMDI();
@@ -117,7 +115,11 @@ public interface MdiEntry
 
 	public String getImageLeftID();
 
+	public boolean isExpanded();
+
 	public void setExpanded(boolean expanded);
+	
+	public void expandTo();
 
 	public void setParentID(String id);
 }
