@@ -839,4 +839,7 @@ public abstract class BaseMdiEntry
 		}
 	}
 
+	public boolean build() {
+		return true;
+	}
 }

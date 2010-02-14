@@ -67,6 +67,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -297,10 +298,15 @@ public class UIFunctionsImpl
 					System.err.println("Can't find parent " + sParentID + " for " + sViewID);
 				}
 				
-				mdi.createEntryFromEventListener(sidebarParentID, l, sViewID,
+				MdiEntry entry = mdi.createEntryFromEventListener(sidebarParentID, l, sViewID,
 						true, dataSource);
 				if (bSetFocus) {
 					mdi.showEntryByID(sViewID);
+				} else if (entry instanceof BaseMdiEntry) {
+					// Some plugins (CVS Updater) want their view's composite initialized
+					// on OpenPluginView, otherwise they won't do logic users expect
+					// (like check for new snapshots).  So, enforce loading entry.
+					((BaseMdiEntry) entry).build();
 				}
 			}
 		} catch (Exception e) {

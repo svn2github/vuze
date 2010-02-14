@@ -34,6 +34,8 @@ public class TabbedEntry
 
 	private boolean showonSWTItemSet;
 
+	private boolean buildonSWTItemSet;
+
 	private static long uniqueNumber = 0;
 
 	public TabbedEntry(TabbedMDI mdi, SWTSkin skin, String id) {
@@ -42,17 +44,16 @@ public class TabbedEntry
 	}
 
 	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#show()
-	 * 
 	 * @note SideBarEntrySWT is neary identical to this one.  Please keep them
 	 *       in sync until commonalities are placed in BaseMdiEntry
 	 */
-	public void show() {
+	public boolean build() {
 		if (swtItem == null) {
-			showonSWTItemSet = true;
-			return;
+			buildonSWTItemSet = true;
+			return true;
 		}
-		showonSWTItemSet = false;
+		buildonSWTItemSet = false;
+
 		Control control = swtItem.getControl();
 		if (control == null) {
 			Composite parent = swtItem.getParent();
@@ -159,11 +160,10 @@ public class TabbedEntry
 					if (view != null) {
 						setIView(view);
 						// now that we have an IView, go through show one more time
-						show();
-					} else {
-						close(true);
+						return build();
 					}
-					return;
+					close(true);
+					return false;
 				} catch (Exception e) {
 					Debug.out(e);
 					close(true);
@@ -177,8 +177,23 @@ public class TabbedEntry
 					}
 				});
 			} else {
-				return;
+				return false;
 			}
+		}
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#show()
+	 */
+	public void show() {
+		if (swtItem == null) {
+			showonSWTItemSet = true;
+			return;
+		}
+		showonSWTItemSet = false;
+		if (!build()) {
+			return;
 		}
 
 		if (swtItem.getParent().getSelection() != swtItem) {
@@ -217,6 +232,9 @@ public class TabbedEntry
 			swtItem.setText(escapeAccelerators(title));
 		} else if (iviewClass != null) {
 			swtItem.setText(iviewClass.getSimpleName());
+		}
+		if (buildonSWTItemSet) {
+			build();
 		}
 		if (showonSWTItemSet) {
 			show();

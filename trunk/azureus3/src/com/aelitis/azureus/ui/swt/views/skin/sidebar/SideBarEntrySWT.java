@@ -103,6 +103,8 @@ public class SideBarEntrySWT
 
 	private SWTSkinObjectContainer soParent;
 
+	private boolean buildonSWTItemSet;
+
 	public SideBarEntrySWT(SideBar sidebar, SWTSkin skin, String id) {
 		super(sidebar, id);
 		this.skin = skin;
@@ -173,6 +175,9 @@ public class SideBarEntrySWT
 			}
 
 			setExpanded(isExpanded());
+		}
+		if (buildonSWTItemSet) {
+			build();
 		}
 		if (showonSWTItemSet) {
 			show();
@@ -303,15 +308,13 @@ public class SideBarEntrySWT
 		return true;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#show()
-	 */
-	public void show() {
+	public boolean build() {
 		if (swtItem == null) {
-			showonSWTItemSet = true;
-			return;
+			buildonSWTItemSet = true;
+			return true;
 		}
-		showonSWTItemSet = false;
+		buildonSWTItemSet = false;
+
 		if (getSkinObject() == null) {
 			Control control = null;
 
@@ -419,11 +422,10 @@ public class SideBarEntrySWT
 					if (view != null) {
 						setIView(view);
 						// now that we have an IView, go through show one more time
-						show();
-					} else {
-						close(true);
+						return build();
 					}
-					return;
+					close(true);
+					return false;
 				} catch (Throwable e) {
 					Debug.out(e);
 					close(true);
@@ -437,9 +439,24 @@ public class SideBarEntrySWT
 					}
 				});
 			} else {
-				return;
+				return false;
 			}
 		} // control == null
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#show()
+	 */
+	public void show() {
+		if (swtItem == null) {
+			showonSWTItemSet = true;
+			return;
+		}
+		showonSWTItemSet = false;
+		if (!build()) {
+			return;
+		}
 
 		swtItem.getParent().select(swtItem);
 		swtItem.getParent().showItem(swtItem);
