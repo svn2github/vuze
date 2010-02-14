@@ -565,6 +565,25 @@ public class ImageLoader
 		}
 	}
 
+	public void addImage(String key, Image[] images) {
+		if (!Utils.isThisThreadSWT()) {
+			Debug.out("addImage called on non-SWT thread");
+			return;
+		}
+		ImageLoaderRefInfo existing = mapImages.putIfAbsent(key,
+				new ImageLoaderRefInfo(images));
+		if (existing != null) {
+			// should probably fail if refcount > 0
+			existing.setImages(images);
+			existing.addref();
+		}
+	}
+	
+	public void removeImage(String key) {
+		// EEP!
+		mapImages.remove(key);
+	}
+
 	public void addImageNoDipose(String key, Image image) {
 		if (!Utils.isThisThreadSWT()) {
 			Debug.out("addImageNoDispose called on non-SWT thread");
