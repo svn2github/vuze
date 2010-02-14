@@ -181,7 +181,7 @@ public class Debug {
 		int frames_to_skip, 
 		int iMaxLines) 
 	{
-		String sStackTrace = "";
+		String sStackTrace = t.toString() + "; ";
 		StackTraceElement[]	st = t.getStackTrace();
 
 		int iMax = Math.min(st.length, iMaxLines + frames_to_skip);
