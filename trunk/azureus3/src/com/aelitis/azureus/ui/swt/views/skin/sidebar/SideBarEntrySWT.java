@@ -466,6 +466,9 @@ public class SideBarEntrySWT
 
 	protected void swt_paintSideBar(Event event) {
 		TreeItem treeItem = (TreeItem) event.item;
+		if (treeItem.isDisposed() || isDisposed()) {
+			return;
+		}
 		Rectangle itemBounds = treeItem.getBounds();
 		Rectangle drawBounds = Utils.isCocoa || Constants.isWindows
 				? event.gc.getClipping() : event.getBounds();
