@@ -620,7 +620,7 @@ public class MainWindow
 					shell
 				});
 			} catch (Exception e) {
-				Debug.printStackTrace(e);
+				Debug.out(Debug.getCompressedStackTrace(e, 0, 30));
 			}
 		}
 
