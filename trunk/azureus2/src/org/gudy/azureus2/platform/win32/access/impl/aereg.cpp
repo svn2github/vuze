@@ -864,9 +864,9 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createP
 		return;
 	}
 
-	memset( &start_info, 0, sizeof( STARTUPINFO ));
+	memset( &start_info, 0, sizeof( STARTUPINFOW ));
 
-	start_info.cb = sizeof( STARTUPINFO );
+	start_info.cb = sizeof( STARTUPINFOW );
 
 	if ( CreateProcessW(
 			NULL,				// LPCTSTR lpApplicationName,
@@ -911,9 +911,9 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellEx
 		return(0);
 	}
 
-    SHELLEXECUTEINFO shExecInfo;
+    SHELLEXECUTEINFOW shExecInfo;
 
-    shExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+    shExecInfo.cbSize = sizeof(SHELLEXECUTEINFOW);
 
     shExecInfo.fMask		= SEE_MASK_NOCLOSEPROCESS | SEE_MASK_FLAG_DDEWAIT;
     shExecInfo.hwnd			= NULL;

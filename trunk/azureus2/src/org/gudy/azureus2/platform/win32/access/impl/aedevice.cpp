@@ -1,9 +1,10 @@
 
 #include "stdafx.h"
-
+#include "ntddstor.h"
 #include <windows.h>
 #include <winioctl.h>
 #include <stdio.h>
+
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 BOOL GetDriveGeometry(HANDLE hDevice, DISK_GEOMETRY *pdg)
@@ -138,8 +139,8 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
 
 	WCHAR drive[100];
 
-	wsprintf(drive, L"\\\\.\\%C:", driveLetter);
-	hDevice = CreateFile((LPCWSTR) drive,  // drive to open
+	wsprintfW(drive, L"\\\\.\\%C:", driveLetter);
+	hDevice = CreateFileW((LPCWSTR) drive,  // drive to open
 		0,                // no access to the drive
 		FILE_SHARE_READ | // share mode
 		FILE_SHARE_WRITE, 
@@ -149,8 +150,8 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
 		NULL);            // do not copy file attributes
 
 	WCHAR drive2[4];
-	wsprintf(drive2, L"%C:\\", driveLetter);
-	DWORD uType = GetDriveType(drive2);
+	wsprintfW(drive2, L"%C:\\", driveLetter);
+	DWORD uType = GetDriveTypeW(drive2);
 
 
 	addToMap(env, hashMap, methPut, clsLong, longInit, "DriveType", (jlong) uType);
