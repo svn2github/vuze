@@ -778,6 +778,8 @@ SubscriptionManagerUI
 
 		if (mainSBEntry != null) {
 			
+			mainSBEntry.setExpanded(false);
+
 			MdiEntryVitalityImage addSub 	= mainSBEntry.addVitalityImage("image.sidebar.subs.add");
 			
 			if (addSub != null) {
@@ -1076,7 +1078,6 @@ SubscriptionManagerUI
 				}, new Object[] {
 					subs
 				}, subs, viewTitleInfo, false);
-		entry.setExpanded(false);
 		// This sets up the entry (menu, etc)
 		SubscriptionMDIEntry entryInfo = new SubscriptionMDIEntry(subs, entry);
 		subs.setUserData(SUB_ENTRYINFO_KEY, entryInfo);

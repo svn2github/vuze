@@ -91,7 +91,7 @@ public abstract class BaseMdiEntry
 
 	private boolean closeable;
 
-	private boolean isExpanded = true;
+	private boolean isExpanded = false;
 
 	private boolean disposed;
 
@@ -227,6 +227,7 @@ public abstract class BaseMdiEntry
 
 	public void setCollapseDisabled(boolean collapseDisabled) {
 		this.collapseDisabled = collapseDisabled;
+		setExpanded(true);
 	}
 
 	public void addListener(MdiCloseListener l) {

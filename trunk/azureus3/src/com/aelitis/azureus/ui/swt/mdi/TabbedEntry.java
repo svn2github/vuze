@@ -322,4 +322,7 @@ public class TabbedEntry
 
 		return str.replaceAll("&", "&&");
 	}
+	
+	public void expandTo() {
+	}
 }

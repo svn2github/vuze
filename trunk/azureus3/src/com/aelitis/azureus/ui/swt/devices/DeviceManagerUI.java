@@ -2068,7 +2068,6 @@ DeviceManagerUI
 												key, "devicerendererview",
 												device.getName(),
 												view, null, false, -1);
-										entry.setExpanded(true);
 										
 										String id = null;
 										
@@ -3004,7 +3003,6 @@ DeviceManagerUI
 				false, 
 				false,
 				true );
-		entry.setExpanded(true);
 
 		addDefaultDropListener( entry );
 		

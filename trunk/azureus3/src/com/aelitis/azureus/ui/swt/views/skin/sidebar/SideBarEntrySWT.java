@@ -19,8 +19,7 @@
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -31,36 +30,21 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.IView;
-import org.gudy.azureus2.ui.swt.views.IViewExtension;
 
-import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
@@ -176,6 +160,17 @@ public class SideBarEntrySWT
 					}
 				}
 			});
+			
+			// Some/All OSes will auto-set treeitem's expanded flag to false if there
+			// is no children.  To workaround, we store expanded state internally and
+			// set parent to expanded when a child is added
+			TreeItem parentItem = treeItem.getParentItem();
+			if (parentItem != null) {
+				MdiEntry parentEntry = (MdiEntry) parentItem.getData("MdiEntry");
+				if (parentEntry.isExpanded()) {
+					parentItem.setExpanded(true);
+				}
+			}
 
 			setExpanded(isExpanded());
 		}
@@ -262,12 +257,23 @@ public class SideBarEntrySWT
 		super.setExpanded(expanded);
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				TreeItem item = swtItem;
+				if (swtItem != null && !isDisposed()) {
+					swtItem.setExpanded(expanded);
+				}
+			}
+		});
+	}
+
+	public void expandTo() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (swtItem == null || isDisposed()) {
+					return;
+				}
+
+				TreeItem item = swtItem.getParentItem();
 				while (item != null) {
-					item.setExpanded(expanded);
-					if (!expanded) {
-						break;
-					}
+					item.setExpanded(true);
 					// walk up and make sure parents are expanded
 					item = item.getParentItem();
 				}
