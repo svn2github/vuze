@@ -54,8 +54,6 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 
 public class WelcomeWindow {
 	
-	private static final String URL_WHATSNEW = "http://www.vuze.com/releasenotes";
-  
   private static final String lineSeparator = System.getProperty ("line.separator");
   
   Display display;
@@ -279,10 +277,6 @@ public class WelcomeWindow {
 				getWhatsNew(2);
 				return;
 			}
-  	} else if (phase == 2) {
-  		helpFile = URL_WHATSNEW + "?version=" + Constants.AZUREUS_VERSION
-			+ "&locale=" + Locale.getDefault().toString() + "&ui="
-			+ COConfigurationManager.getStringParameter("ui");
   	} else {
   		helpFile = MessageText.getString("window.welcome.file");
 
