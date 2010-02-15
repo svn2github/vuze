@@ -239,7 +239,9 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		addToolBarItem(item, first ? "toolbar.area.sitem.left" : "toolbar.area.sitem", so2nd);
+		first = false;
+		//addToolBarItem(item, "toolbar.area.sitem", so2nd);
 		addSeperator(so2nd);
 
 		// ==UP
