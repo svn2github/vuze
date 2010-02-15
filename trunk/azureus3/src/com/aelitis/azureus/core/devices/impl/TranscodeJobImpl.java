@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.devices.TranscodeAnalysisListener;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeException;
@@ -589,6 +590,15 @@ TranscodeJobImpl
 		}
 		
 		return( getDevice().getTranscodeRequirement());
+	}
+	
+	public void
+	analyseNow(
+		TranscodeAnalysisListener	listener )
+	
+		throws TranscodeException
+	{
+		queue.analyse( this, listener );
 	}
 	
 	protected DeviceImpl

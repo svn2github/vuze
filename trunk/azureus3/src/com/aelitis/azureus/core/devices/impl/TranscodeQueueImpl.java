@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
@@ -70,6 +71,8 @@ TranscodeQueueImpl
 	private AEThread2					queue_thread;
 	
 	private volatile TranscodeJobImpl	current_job;
+	
+	private AsyncDispatcher	anaylsis_dispatcher = new AsyncDispatcher();
 	
 	private CopyOnWriteList<TranscodeQueueListener>	listeners = new CopyOnWriteList<TranscodeQueueListener>();
 	
@@ -137,109 +140,16 @@ TranscodeQueueImpl
 			job.starts();
 			
 			TranscodeProvider provider = job.getProfile().getProvider();
-
 			
-			final Throwable[] error = { null };
-
-				
+			final TranscodeException[] error = { null };
+			
 			TranscodeProfile profile = job.getProfile();
-				
-			final AESemaphore analysis_sem = new AESemaphore( "analysis:proc" );
-			
 
-			TranscodeProviderAdapter analysis_adapter = 
-				new TranscodeProviderAdapter()
-				{
-					public void
-					updateProgress(
-						int		percent,
-						int		eta_secs,
-						int		width,
-						int		height )
-					{
-					}
-					
-					public void
-					streamStats(
-						long					connect_rate,
-						long					write_speed )
-					{
-					}
-					
-					public void
-					failed(
-						TranscodeException		e )
-					{
-						error[0] = e;
-						
-						analysis_sem.release();
-					}
-					
-					public void 
-					complete() 
-					{
-						analysis_sem.release();
-					}
-				};
-				
-			final TranscodeProviderAnalysis provider_analysis =	provider.analyse( analysis_adapter, job.getFile(), profile );
-			
-			TranscodeQueueListener analysis_q_listener = 
-				new TranscodeQueueListener()
-				{
-					public void
-					jobAdded(
-						TranscodeJob		job )
-					{					
-					}
-					
-					public void
-					jobChanged(
-						TranscodeJob		changed_job )
-					{
-						if ( changed_job == job ){
-							
-							int	state = job.getState();
-							
-							if ( 	state == TranscodeJob.ST_CANCELLED ||
-									state == TranscodeJob.ST_STOPPED ){
-							
-								provider_analysis.cancel();
-							}
-						}
-					}
-					
-					public void
-					jobRemoved(
-						TranscodeJob		removed_job )
-					{	
-						if ( removed_job == job ){
-							
-							provider_analysis.cancel();
-						}
-					}
-				};
-				
-			try{
-				addListener( analysis_q_listener );
-			
-				analysis_sem.reserve();
-				
-			}finally{
-				
-				removeListener( analysis_q_listener );
-			}
-			
-			if ( error[0] != null ){
-				
-				throw( error[0] );
-			}
+			TranscodeProviderAnalysis provider_analysis = analyse( job );
 			
 			boolean xcode_required 	= provider_analysis.getBooleanProperty( TranscodeProviderAnalysis.PT_TRANSCODE_REQUIRED );
 			
 			final TranscodeFileImpl		transcode_file = job.getTranscodeFile();
-
-			transcode_file.update( provider_analysis );
 			
 			int	tt_req;
 			
@@ -1249,6 +1159,145 @@ TranscodeQueueImpl
 		throws TranscodeException
 	{
 		return( manager.lookupFile( hash, index ));
+	}
+	
+	protected void
+	analyse(
+		final TranscodeJobImpl			job,
+		final TranscodeAnalysisListener	listener )
+	
+		throws TranscodeException
+	{
+		anaylsis_dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void 
+				runSupport() 
+				{
+					try{
+						analyse( job );
+		
+						listener.analysisComplete( job );
+						
+					}catch( TranscodeException e ){
+						
+						listener.analysisFailed( job, e );
+						
+					}catch( Throwable e ){
+						
+						listener.analysisFailed( job, new TranscodeException( "Analysis failed", e ));
+					}
+				}
+			});
+	}
+	
+	protected TranscodeProviderAnalysis
+	analyse(
+		final TranscodeJobImpl			job )
+	
+		throws TranscodeException
+	{
+		TranscodeProvider provider = job.getProfile().getProvider();
+	
+		final TranscodeException[] error = { null };
+		
+		TranscodeProfile profile = job.getProfile();
+			
+		final AESemaphore analysis_sem = new AESemaphore( "analysis:proc" );		
+
+		TranscodeProviderAdapter analysis_adapter = 
+			new TranscodeProviderAdapter()
+			{
+				public void
+				updateProgress(
+					int		percent,
+					int		eta_secs,
+					int		width,
+					int		height )
+				{
+				}
+				
+				public void
+				streamStats(
+					long					connect_rate,
+					long					write_speed )
+				{
+				}
+				
+				public void
+				failed(
+					TranscodeException		e )
+				{
+					error[0] = e;
+					
+					analysis_sem.release();
+				}
+				
+				public void 
+				complete() 
+				{
+					analysis_sem.release();
+				}
+			};
+			
+		final TranscodeProviderAnalysis provider_analysis =	provider.analyse( analysis_adapter, job.getFile(), profile );
+		
+		TranscodeQueueListener analysis_q_listener = 
+			new TranscodeQueueListener()
+			{
+				public void
+				jobAdded(
+					TranscodeJob		job )
+				{					
+				}
+				
+				public void
+				jobChanged(
+					TranscodeJob		changed_job )
+				{
+					if ( changed_job == job ){
+						
+						int	state = job.getState();
+						
+						if ( 	state == TranscodeJob.ST_CANCELLED ||
+								state == TranscodeJob.ST_STOPPED ){
+						
+							provider_analysis.cancel();
+						}
+					}
+				}
+				
+				public void
+				jobRemoved(
+					TranscodeJob		removed_job )
+				{	
+					if ( removed_job == job ){
+						
+						provider_analysis.cancel();
+					}
+				}
+			};
+			
+		try{
+			addListener( analysis_q_listener );
+		
+			analysis_sem.reserve();
+			
+		}finally{
+			
+			removeListener( analysis_q_listener );
+		}
+		
+		if ( error[0] != null ){
+			
+			throw( error[0] );
+		}
+				
+		TranscodeFileImpl		transcode_file = job.getTranscodeFile();
+
+		transcode_file.update( provider_analysis );
+		
+		return( provider_analysis );
 	}
 	
 	protected void

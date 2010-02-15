@@ -100,4 +100,10 @@ TranscodeJob
 
 	public long
 	getProcessTime();
+	
+	public void
+	analyseNow(
+		TranscodeAnalysisListener	listener )
+	
+		throws TranscodeException;
 }
