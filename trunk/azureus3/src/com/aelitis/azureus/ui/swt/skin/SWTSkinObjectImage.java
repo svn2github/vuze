@@ -67,20 +67,6 @@ public class SWTSkinObjectImage
 					Image[] images = (Image[]) control.getData("images");
 					int idx = ((Number) control.getData("ImageIndex")).intValue();
 					imgSrc = images[idx];
-					idx++;
-					if (idx >= images.length) {
-						idx = 0;
-					}
-					control.setData("ImageIndex", new Long(idx));
-
-					int animationDelay = ((Number) control.getData("delay")).intValue();
-					Utils.execSWTThreadLater(animationDelay, new AERunnable() {
-						public void runSupport() {
-							if (!control.isDisposed()) {
-								control.redraw();
-							}
-						}
-					});
 				}
 
 				Image imgRight = null;
@@ -334,11 +320,19 @@ public class SWTSkinObjectImage
 
 				Image image = null;
 
+				canvas.setData("delay", null);
 				if (drawMode == DRAW_ANIMATE) {
+					int animationDelay = ImageLoader.getInstance().getAnimationDelay(sImageID);
+					boolean hasExistingDelay = canvas.getData("delay") != null;
+
 					canvas.setData("images", images);
 					canvas.setData("ImageIndex", Long.valueOf(0));
-					canvas.setData("delay", ImageLoader.getInstance().getAnimationDelay(sImageID));
+					canvas.setData("delay", new Long(animationDelay));
 					image = images[0];
+
+					if (!hasExistingDelay) {
+						setupAnimationTrigger(animationDelay);
+					}
 				} else if (images.length == 3) {
 					Image imageLeft = images[0];
 					if (ImageLoader.isRealImage(imageLeft)) {
@@ -397,6 +391,31 @@ public class SWTSkinObjectImage
 					imageLoader.releaseImage(sImageID);
 				}
 				return null;
+			}
+		});
+	}
+
+	protected void setupAnimationTrigger(int animationDelay) {
+		Utils.execSWTThreadLater(animationDelay, new AERunnable() {
+			public void runSupport() {
+				if (!control.isDisposed()) {
+					Object data = control.getData("delay");
+					if (data == null) {
+						return;
+					}
+
+					Image[] images = (Image[]) control.getData("images");
+					int idx = ((Number) control.getData("ImageIndex")).intValue();
+					idx++;
+					if (idx >= images.length) {
+						idx = 0;
+					}
+					control.setData("ImageIndex", new Long(idx));
+					control.redraw();
+					
+					int delay = ((Number) control.getData("delay")).intValue();
+					setupAnimationTrigger(delay);
+				}
 			}
 		});
 	}
