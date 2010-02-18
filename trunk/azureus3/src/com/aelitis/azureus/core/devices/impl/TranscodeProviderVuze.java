@@ -288,6 +288,14 @@ TranscodeProviderVuze
 								
 								return( getLongProperty( "video_height", 0 ));
 	
+							}else if ( property == PT_SOURCE_SIZE ){
+								
+								return( getLongProperty( "source_size", 0 ));
+
+							}else if ( property == PT_ESTIMATED_XCODE_SIZE ){
+								
+								return( getLongProperty( "estimated_transcoded_size", 0 ));
+
 							}else{
 								
 								Debug.out( "Unknown property: " + property );

@@ -82,6 +82,9 @@ TranscodeFile
 	public long
 	getVideoHeight();
 	
+	public long
+	getEstimatedTranscodeSize();
+	
 	public String[]
 	getCategories();
 	

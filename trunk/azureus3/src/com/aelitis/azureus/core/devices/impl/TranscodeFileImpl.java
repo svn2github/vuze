@@ -63,6 +63,7 @@ TranscodeFileImpl
 	private static final String			KEY_DURATION			= "at_dur";
 	private static final String			KEY_VIDEO_WIDTH			= "at_vw";
 	private static final String			KEY_VIDEO_HEIGHT		= "at_vh";
+	private static final String			KEY_XCODE_SIZE			= "at_xs";
 	private static final String			KEY_DATE				= "at_dt";
 	private static final String			KEY_CATEGORIES			= PT_CATEGORY;
 	private static final String			KEY_COPY_TO_OVERRIDE	= "ct_over";
@@ -434,6 +435,7 @@ TranscodeFileImpl
 		long	duration		= analysis.getLongProperty( TranscodeProviderAnalysis.PT_DURATION_MILLIS );
 		long	video_width		= analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_WIDTH );
 		long	video_height	= analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_HEIGHT );
+		long	xcode_size		= analysis.getLongProperty( TranscodeProviderAnalysis.PT_ESTIMATED_XCODE_SIZE );
 
 		if ( duration > 0 ){
 			
@@ -445,6 +447,11 @@ TranscodeFileImpl
 			setLong( KEY_VIDEO_WIDTH, video_width );
 			
 			setLong( KEY_VIDEO_HEIGHT, video_height );
+		}
+		
+		if ( xcode_size > 0 ){
+			
+			setLong( KEY_XCODE_SIZE, xcode_size );
 		}
 	}
 	
@@ -477,6 +484,12 @@ TranscodeFileImpl
 	getVideoHeight()
 	{
 		return( getLong( KEY_VIDEO_HEIGHT ));
+	}
+	
+	public long
+	getEstimatedTranscodeSize()
+	{
+		return( getLong( KEY_XCODE_SIZE ));
 	}
 	
 	public String[] 
