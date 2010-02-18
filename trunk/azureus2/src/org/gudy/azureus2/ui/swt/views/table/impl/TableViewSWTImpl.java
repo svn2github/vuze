@@ -978,6 +978,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			int lastCursorID = 0;
 
 			public void mouseMove(MouseEvent e) {
+				if (isDragging) {
+					return;
+				}
 				try {
 					TableCellSWT cell = getTableCell(e.x, e.y);
 					
@@ -1365,6 +1368,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private Control sliderArea;
 
+	private boolean isDragging;
+
 	private void editCell(final int column, final int row) {
 		Text oldInput = (Text) editor.getEditor();
 		if (column >= table.getColumnCount() || row < 0
@@ -1690,7 +1695,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			if (cell.needsPainting()) {
 				cell.doPaint(event.gc);
-			} else if (text.length() > 0) {
+			}
+			if (text.length() > 0) {
 				int ofsx = 0;
 				Image image = item.getImage(event.index);
 				if (image != null && !image.isDisposed()) {
@@ -4706,6 +4712,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#createDragSource(int)
 	public DragSource createDragSource(int style) {
 		final DragSource dragSource = new DragSource(table, style);
+		dragSource.addDragListener(new DragSourceAdapter() {
+			public void dragStart(DragSourceEvent event) {
+				table.setCursor(null);
+				isDragging = true;
+			}
+			
+			public void dragFinished(DragSourceEvent event) {
+				isDragging = false;
+			}
+		});
 		table.addDisposeListener(new DisposeListener() {
 			// @see org.eclipse.swt.events.DisposeListener#widgetDisposed(org.eclipse.swt.events.DisposeEvent)
 			public void widgetDisposed(DisposeEvent e) {
