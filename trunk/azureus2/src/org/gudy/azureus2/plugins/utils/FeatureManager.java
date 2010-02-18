@@ -143,6 +143,7 @@ FeatureManager
 	{
 		public String	PR_PUBLIC_KEY				= "PublicKey";				// String
 		public String	PR_VALID_UNTIL				= "ValidUntil";				// Long
+		public String	PR_OFFLINE_VALID_UNTIL		= "OfflineValidUntil";		// Long
 		public String	PR_IS_INSTALL_TIME			= "IsInstallTime";			// Long (0=false)
 		public String	PR_IS_TRIAL					= "IsTrial";				// Long (0=false)
 		public String	PR_TRIAL_USES_REMAINING		= "TrialUsesRemaining";		// Long
