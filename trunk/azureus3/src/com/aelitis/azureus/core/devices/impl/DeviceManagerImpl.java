@@ -551,7 +551,7 @@ DeviceManagerImpl
 			
 			DeviceImpl res = new DeviceMediaRendererManual( this, uid, classification, true, name );
 			
-			addDevice( res );
+			res = addDevice( res );
 			
 			return( res );
 			
