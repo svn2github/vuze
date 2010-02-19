@@ -129,7 +129,7 @@ public class SWTSkinButtonUtility
 	}
 
 	private boolean inSetDisabled = false;
-	public void setDisabled(boolean disabled) {
+	public void setDisabled(final boolean disabled) {
 		if (inSetDisabled) {
 			return;
 		}
@@ -137,6 +137,13 @@ public class SWTSkinButtonUtility
 		try {
   		if (disabled == isDisabled()) {
   			return;
+  		}
+  		if (skinObject instanceof SWTSkinObjectButton) {
+  			Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						((SWTSkinObjectButton) skinObject).getControl().setEnabled(!disabled);
+					}
+				});
   		}
   		String suffix = disabled ? "-disabled" : "";
   		skinObject.switchSuffix(suffix, 1, false);
