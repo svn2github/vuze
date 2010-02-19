@@ -320,10 +320,10 @@ public class SWTSkinObjectImage
 
 				Image image = null;
 
+				boolean hasExistingDelay = canvas.getData("delay") != null;
 				canvas.setData("delay", null);
 				if (drawMode == DRAW_ANIMATE) {
 					int animationDelay = ImageLoader.getInstance().getAnimationDelay(sImageID);
-					boolean hasExistingDelay = canvas.getData("delay") != null;
 
 					canvas.setData("images", images);
 					canvas.setData("ImageIndex", Long.valueOf(0));
