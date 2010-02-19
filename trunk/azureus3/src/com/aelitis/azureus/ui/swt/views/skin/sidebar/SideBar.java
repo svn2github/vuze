@@ -612,9 +612,11 @@ public class SideBar
 
 		// to disable collapsing
 		tree.addListener(SWT.Collapse, treeListener);
+		
+		//DragSource dragSource = new DragSource(tree, DND.DROP_COPY | DND.DROP_MOVE);
+		//dragSource.setTransfer(new Transfer[] { TextTransfer.getInstance() });
 
-		dropTarget = new DropTarget(tree, DND.DROP_DEFAULT | DND.DROP_MOVE
-				| DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
+		dropTarget = new DropTarget(tree, DND.DROP_COPY);
 		dropTarget.setTransfer(new Transfer[] {
 			URLTransfer.getInstance(),
 			FileTransfer.getInstance(),
@@ -625,6 +627,12 @@ public class SideBar
 			public void dropAccept(DropTargetEvent event) {
 				event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
 						event.currentDataType);
+			}
+
+			public void dragEnter(DropTargetEvent event) {
+			}
+			
+			public void dragOperationChanged(DropTargetEvent event) {
 			}
 
 			// @see org.eclipse.swt.dnd.DropTargetAdapter#dragOver(org.eclipse.swt.dnd.DropTargetEvent)
@@ -644,9 +652,9 @@ public class SideBar
 				}
 				if ((event.operations & DND.DROP_LINK) > 0)
 					event.detail = DND.DROP_LINK;
-				else if ((event.operations & DND.DROP_DEFAULT) > 0)
-					event.detail = DND.DROP_DEFAULT;
 				else if ((event.operations & DND.DROP_COPY) > 0)
+					event.detail = DND.DROP_COPY;
+				else if ((event.operations & DND.DROP_DEFAULT) > 0)
 					event.detail = DND.DROP_COPY;
 			}
 
@@ -1290,9 +1298,10 @@ public class SideBar
 
 			entry.setParentID(parentID);
 			entry.setDatasource(datasource);
-			entry.setEventListener(l);
 
 			setupNewEntry(entry, id, -1, false, closeable);
+
+			entry.setEventListener(l);
 		} catch (Exception e) {
 			Debug.out(e);
 			entry.close(true);
