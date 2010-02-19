@@ -306,7 +306,7 @@ public abstract class BaseMdiEntry
 			listOpenListeners.add(l);
 		}
 
-		if (isAdded()) {
+		if (iview != null) {
 			l.mdiEntryOpen(this);
 		}
 	}
@@ -319,7 +319,7 @@ public abstract class BaseMdiEntry
 		}
 	}
 
-	protected void triggerOpenListeners() {
+	public void triggerOpenListeners() {
 		Object[] list;
 		synchronized (this) {
 			if (listOpenListeners == null) {
@@ -330,7 +330,11 @@ public abstract class BaseMdiEntry
 		}
 		for (int i = 0; i < list.length; i++) {
 			MdiEntryOpenListener l = (MdiEntryOpenListener) list[i];
-			l.mdiEntryOpen(this);
+			try {
+				l.mdiEntryOpen(this);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 		}
 	}
 
