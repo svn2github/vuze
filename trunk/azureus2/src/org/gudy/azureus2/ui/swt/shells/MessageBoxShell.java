@@ -295,7 +295,7 @@ public class MessageBoxShell
 			public void runSupport() {
 				_open();
 			}
-		}, false);
+		});
 
 		return;
 	}
@@ -1119,6 +1119,16 @@ public class MessageBoxShell
 
 	public void setParent(Shell parent) {
 		this.parent = parent;
+	}
+
+	public void close() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (shell != null && !shell.isDisposed()) {
+					shell.dispose();
+				}
+			}
+		});
 	}
 
 }
