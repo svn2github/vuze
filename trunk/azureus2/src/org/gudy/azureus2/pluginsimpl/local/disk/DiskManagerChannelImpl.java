@@ -85,17 +85,14 @@ DiskManagerChannelImpl
 	
 	private static final int MAX_READ_CHUNK_DEFAULT	= 64*1024;
 	
-	private static final Comparator comparator = new
-		Comparator()
+	private static final Comparator<dataEntry> comparator = new
+		Comparator<dataEntry>()
 		{
 			public int 
 		   	compare(
-		   		Object _o1, 
-				Object _o2)
+		   		dataEntry o1, 
+		   		dataEntry o2)
 			{
-				dataEntry	o1 = (dataEntry)_o1;
-				dataEntry	o2 = (dataEntry)_o2;
-				
 				long	offset1 = o1.getOffset();
 				long	length1	= o1.getLength();
 				
@@ -129,7 +126,7 @@ DiskManagerChannelImpl
 	
 		// hack to allow other components to be informed when channels are created
 	
-	private static CopyOnWriteList	listeners = new CopyOnWriteList();
+	private static CopyOnWriteList<channelCreateListener>	listeners = new CopyOnWriteList<channelCreateListener>();
 	
 	public static void 
 	addListener(
@@ -149,12 +146,12 @@ DiskManagerChannelImpl
 	reportCreated(
 		DiskManagerChannel	channel )
 	{
-		Iterator it = listeners.iterator();
+		Iterator<channelCreateListener> it = listeners.iterator();
 		
 		while( it.hasNext()){
 			
 			try{
-				((channelCreateListener)it.next()).channelCreated( channel );
+				it.next().channelCreated( channel );
 				
 			}catch( Throwable e ){
 				
@@ -176,11 +173,11 @@ DiskManagerChannelImpl
 	private org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl	plugin_file;
 	private org.gudy.azureus2.core3.disk.DiskManagerFileInfo					core_file;
 	
-	private Set	data_written = new TreeSet( comparator );
+	private Set<dataEntry>	data_written = new TreeSet<dataEntry>( comparator );
 	
 	private int compact_delay	= COMPACT_DELAY;
 	
-	private List	waiters	= new ArrayList();
+	private List<AESemaphore>	waiters	= new ArrayList<AESemaphore>();
 
 	private long	file_offset_in_torrent;
 	private long	piece_size;
@@ -318,13 +315,13 @@ DiskManagerChannelImpl
 				
 				compact_delay	= COMPACT_DELAY;
 				
-				Iterator	it = data_written.iterator();
+				Iterator<dataEntry>	it = data_written.iterator();
 				
 				dataEntry	prev_e	= null;
 				
 				while( it.hasNext()){
 					
-					dataEntry	this_e = (dataEntry)it.next();
+					dataEntry	this_e = it.next();
 					
 					if ( prev_e == null ){
 						
@@ -361,7 +358,7 @@ DiskManagerChannelImpl
 		
 			for (int i=0;i<waiters.size();i++){
 					
-				((AESemaphore)waiters.get(i)).release();
+				waiters.get(i).release();
 			}
 		}
 	}
@@ -545,7 +542,7 @@ DiskManagerChannelImpl
 		private int		request_type;
 		private long	request_offset;
 		private long	request_length;
-		private List	listeners	= new ArrayList();
+		private List<DiskManagerListener>	listeners	= new ArrayList<DiskManagerListener>();
 		
 		private String	user_agent;
 		
@@ -638,7 +635,7 @@ DiskManagerChannelImpl
 			
 			synchronized( data_written ){
 
-				Iterator	it = data_written.iterator();
+				Iterator<dataEntry>	it = data_written.iterator();
 				
 					// may not have been compacted to we need to aggregate contigous entry lengths 
 				
@@ -646,7 +643,7 @@ DiskManagerChannelImpl
 				
 				while( it.hasNext()){
 					
-					dataEntry	entry = (dataEntry)it.next();
+					dataEntry	entry = it.next();
 					
 					long	entry_offset = entry.getOffset();
 					long	entry_length = entry.getLength();
@@ -697,17 +694,17 @@ DiskManagerChannelImpl
 
 				while( rem > 0 && !cancelled ){
 					
-					int	len = 0;
+					long	len = 0;
 					
 					synchronized( data_written ){
 						
 						current_position = pos;
 						
-						Iterator	it = data_written.iterator();
+						Iterator<dataEntry>	it = data_written.iterator();
 						
 						while( it.hasNext()){
 							
-							dataEntry	entry = (dataEntry)it.next();
+							dataEntry	entry = it.next();
 							
 							long	entry_offset = entry.getOffset();
 							
@@ -722,7 +719,7 @@ DiskManagerChannelImpl
 							
 							if ( available > 0 ){
 								
-								len = (int)available;
+								len = available;
 								
 								break;
 							}
@@ -730,10 +727,10 @@ DiskManagerChannelImpl
 					}				
 					
 					if ( len > 0 ){
-						
+												
 						if ( len > rem ){
 							
-							len = (int)rem;
+							len = rem;
 						}
 						
 						if ( len > max_read_chunk ){
@@ -741,9 +738,9 @@ DiskManagerChannelImpl
 							len = max_read_chunk;
 						}
 						
-						DirectByteBuffer buffer = core_file.read( pos, len );
+						DirectByteBuffer buffer = core_file.read( pos, (int)len );
 	
-						inform( new event( new PooledByteBufferImpl( buffer ), pos, len ));
+						inform( new event( new PooledByteBufferImpl( buffer ), pos, (int)len ));
 						
 						pos += len;
 						
@@ -756,7 +753,7 @@ DiskManagerChannelImpl
 							current_position = pos;
 						}
 					}else{
-	
+							
 						inform( new event( pos ));
 						
 						synchronized( data_written ){
