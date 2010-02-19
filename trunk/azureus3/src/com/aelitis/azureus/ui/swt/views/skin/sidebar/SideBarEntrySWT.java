@@ -457,6 +457,8 @@ public class SideBarEntrySWT
 		if (!build()) {
 			return;
 		}
+		
+		triggerOpenListeners();
 
 		swtItem.getParent().select(swtItem);
 		swtItem.getParent().showItem(swtItem);

@@ -195,6 +195,9 @@ public class TabbedEntry
 		if (!build()) {
 			return;
 		}
+		
+		triggerOpenListeners();
+
 
 		if (swtItem.getParent().getSelection() != swtItem) {
 			swtItem.getParent().setSelection(swtItem);
