@@ -2339,6 +2339,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			if (bWillSort) {
 				if (bForceSort && sortColumn != null) {
+					lLastSortedOn = 0;
 					sortColumn.setLastSortValueChange(SystemTime.getCurrentTime());
 				}
 				_sortColumn(true, false, false);
@@ -3434,6 +3435,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 			}
 		});
+		lLastSortedOn = 0;
+		tableColumn.setLastSortValueChange(SystemTime.getCurrentTime());
 	}
 
 	public void cellInvalidate(TableColumnCore tableColumn,
@@ -4224,7 +4227,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						Collections.sort(sortedRows, sortColumn);
 						if (DEBUG_SORTER) {
 							long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
-							if (lTimeDiff > 150) {
+							if (lTimeDiff >= 0) {
 								System.out.println("--- Build & Sort took " + lTimeDiff + "ms");
 							}
 						}
