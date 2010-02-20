@@ -16,6 +16,9 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.pluginsimpl.local.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -825,7 +828,19 @@ public class SWTSkinObjectBasic
 			String initClass = properties.getStringValue(sConfigID + ".onshow.skinviewclass");
 			if (initClass != null) {
 				try {
-					Class<SkinView> cla = (Class<SkinView>) Class.forName(initClass);
+					String[] initClassItems = initClass.split(",");
+					ClassLoader claLoader = this.getClass().getClassLoader();
+					if (initClassItems.length > 1) {
+						try {
+  						PluginInterface pi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByID(initClassItems[1]);
+  						if (pi != null) {
+  							claLoader = pi.getPluginClassLoader();
+  						}
+						} catch (Exception e) {
+							Debug.out(e);
+						}
+					}
+					Class<SkinView> cla = (Class<SkinView>) Class.forName(initClassItems[0], true, claLoader);
 
 					skinView = cla.newInstance();
 					skinView.setMainSkinObject(this);
