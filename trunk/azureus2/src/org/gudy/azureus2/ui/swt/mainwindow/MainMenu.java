@@ -151,6 +151,8 @@ public class MainMenu
 		MenuFactory.addShareFolderContentMenuItem(shareSubMenu);
 		MenuFactory.addShareFolderContentRecursiveMenuItem(shareSubMenu);
 
+		MenuFactory.addSearchMenuItem(fileMenu);
+		
 		MenuFactory.addSeparatorMenuItem(fileMenu);
 		MenuFactory.addImportMenuItem(fileMenu);
 		MenuFactory.addExportMenuItem(fileMenu);

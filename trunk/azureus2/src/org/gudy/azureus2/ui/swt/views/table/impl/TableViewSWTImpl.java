@@ -765,6 +765,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		table.addListener(SWT.PaintItem, new Listener() {
 			public void handleEvent(Event event) {
 				Rectangle bounds = ((TableItem)event.item).getBounds(event.index);
+				
+				if (!table.isEnabled()) {
+					// added disable affect
+					event.gc.setAlpha(127);
+				}
 
 				//visibleRowsChanged();
 				paintItem(event);
@@ -1049,14 +1054,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				Arrays.sort(selectedRowIndexes);
 				int x = 0;
-				for (int i = 0; x < wasSelected.length && i < selectedRowIndexes.length; i++) {
-					int index = selectedRowIndexes[i];
-					if (wasSelected[x] == index) {
+				for (int i = 0; i < wasSelected.length; i++) {
+					int index = wasSelected[i];
+					if (x < selectedRowIndexes.length && selectedRowIndexes[x] == index) {
 						x++;
 						continue;
 					} else {
 						triggerDeselectionListeners(new TableRowCore[] {
-							getRow(wasSelected[x])
+							getRow(index)
 						});
 					}
 				}

@@ -22,13 +22,13 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -37,9 +37,10 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
@@ -47,6 +48,7 @@ import org.gudy.azureus2.ui.swt.config.generic.GenericBooleanParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
@@ -93,24 +95,34 @@ TorrentOptionsView
 	{
 		this.parent = composite;
 		
-		if (managers == null) {
-			return;
-		}
-
+		GridLayout layout;
+		
 		// cheap trick to allow datasource changes.  Normally we'd just
 		// refill the components with new info, but I didn't write this and
 		// I don't want to waste my time :) [tux]
 		if (panel != null && !panel.isDisposed()) {
-			panel.dispose();
+			Utils.disposeComposite(panel, false);
+		} else {
+			panel = new Composite(composite, SWT.NULL);
+
+			layout = new GridLayout();
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			layout.numColumns = 1;
+			panel.setLayout(layout);
+			
+			Layout parentLayout = parent.getLayout();
+			if (parentLayout instanceof FormLayout) {
+				panel.setLayoutData(Utils.getFilledFormData());
+			} else {
+				panel.setLayoutData(new GridData(GridData.FILL_BOTH));
+			}
 		}
 
-		panel = new Composite(composite, SWT.NULL);
 		
-		GridLayout layout = new GridLayout();
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
-		layout.numColumns = 1;
-		panel.setLayout(layout);
+		if (managers == null) {
+			return;
+		}
 
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
 
@@ -361,6 +373,8 @@ TorrentOptionsView
 	    for (int i=0;i<managers.length;i++){		
 	    	managers[i].getDownloadState().addListener(this, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN);
 	    }
+	    
+	    panel.layout(true, true);
 	}
 	
 	protected void
@@ -644,7 +658,11 @@ TorrentOptionsView
 			managers = (DownloadManager[]) newDataSource;
 		}
 		if (parent != null) {
-			initialize(parent);
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					initialize(parent);
+				}
+			});
 		}
 	}
 }

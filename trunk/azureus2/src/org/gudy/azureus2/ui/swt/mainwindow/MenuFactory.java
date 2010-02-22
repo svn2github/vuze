@@ -265,6 +265,17 @@ public class MenuFactory
 				});
 		return file_new_torrent_for_tracking;
 	}
+	
+	public static MenuItem addSearchMenuItem(Menu menuParent) {
+		MenuItem item = addMenuItem(menuParent,
+				"Button.search", new Listener() {
+					public void handleEvent(Event e) {
+						UIFunctionsManagerSWT.getUIFunctionsSWT().promptForSearch();
+					}
+				});
+		return item;
+	}
+
 
 	public static MenuItem addOpenVuzeFileMenuItem(final Menu menuParent) {
 		return addMenuItem(menuParent, MENU_ID_OPEN_VUZE_FILE, new Listener() {

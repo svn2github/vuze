@@ -63,6 +63,8 @@ public class StatsView extends AbstractIView {
   DHTView[] viewDHTs;
   IView[] viewVivaldis;
   UpdateThread updateThread;
+
+	private Object dataSource;
   
   public StatsView() {
    }
@@ -204,6 +206,8 @@ public class StatsView extends AbstractIView {
     updateThread = new UpdateThread(); 
     updateThread.setDaemon(true);
     updateThread.start();
+    
+    dataSourceChanged(dataSource);
   }
   
   public void refresh() {
@@ -298,6 +302,10 @@ public class StatsView extends AbstractIView {
   
   // @see org.gudy.azureus2.ui.swt.views.AbstractIView#dataSourceChanged(java.lang.Object)
   public void dataSourceChanged(Object newDataSource) {
+  	dataSource = newDataSource;
+  	if (folder == null) {
+  		return;
+  	}
   	if (newDataSource instanceof String) {
   		if ("dht".equals(newDataSource)) {
   			showDHT();

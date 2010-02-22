@@ -19,10 +19,12 @@
  */
 package com.aelitis.azureus.ui.swt;
 
-import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
@@ -153,4 +155,6 @@ public interface UIFunctionsSWT
 	public Shell showCoreWaitDlg();
 	
 	public MultipleDocumentInterfaceSWT getMDISWT();
+
+	public void promptForSearch();
 }

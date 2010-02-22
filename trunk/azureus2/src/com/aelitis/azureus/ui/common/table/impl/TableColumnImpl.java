@@ -1154,6 +1154,7 @@ public class TableColumnImpl
 	}
 
 	public void setLastSortValueChange(long lastSortValueChange) {
+		//System.out.println(getName() + "] setlastSortValueChange via " + Debug.getCompressedStackTrace());
 		lLastSortValueChange = lastSortValueChange;
 	}
 
