@@ -662,7 +662,9 @@ public class MainWindow
   				"image.toolbar.2nd-view.r-bg",
   				"image.toolbar.start",
   				"image.toolbar.stop",
-  				"image.toolbar.remove"
+  				"image.toolbar.remove",
+  				"image.toolbar.up",
+  				"image.toolbar.down",
   			};
   			for (String id : ids) {
   				String s = skinProperties.getStringValue(id);
