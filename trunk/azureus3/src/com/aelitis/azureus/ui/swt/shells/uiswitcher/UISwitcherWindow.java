@@ -261,20 +261,12 @@ public class UISwitcherWindow
 			radioListener.handleEvent(eventSelectFirst);
 			
 			Composite cBottom = new Composite(shell, SWT.NONE);
-			layout = new GridLayout(2, false);
+			layout = new GridLayout(1, false);
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
 			cBottom.setLayout(layout);
 			cBottom.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			
-			Label lblBottom = new Label(cBottom, SWT.WRAP);
-			Messages.setLanguageText(lblBottom, "window.uiswitcher.bottom.text");
-			gd = Utils.getWrappableLabelGridData(1,
-					GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
-			gd.horizontalIndent = 10;
-			lblBottom.setLayoutData(gd);
-			
-
 			btnOk = new Button(cBottom, SWT.PUSH);
 			Messages.setLanguageText(btnOk, "Button.ok");
 			shell.setDefaultButton(btnOk);

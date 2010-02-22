@@ -10,6 +10,7 @@ import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
@@ -441,7 +442,11 @@ public abstract class BaseMdiEntry
 				setTitle(iview.getFullTitle());
 			}
 			if (datasource != null) {
-				iview.dataSourceChanged(datasource);
+				try {
+					iview.dataSourceChanged(datasource);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 			}
 		}
 	}
@@ -745,6 +750,16 @@ public abstract class BaseMdiEntry
 							((DownloadManager) datasource).getTorrent().getHashWrapper().toBase32String());
 				} catch (Throwable t) {
 				}
+			} else if (datasource instanceof DownloadManager[]) {
+				DownloadManager[] dms = (DownloadManager[]) datasource;
+				List list = new ArrayList();
+				for (DownloadManager dm : dms) {
+					try {
+						list.add(dm.getTorrent().getHashWrapper().toBase32String());
+					} catch (Throwable e) {
+					}
+				}
+				autoOpenInfo.put("dms", list);
 			} else if (datasource != null) {
 				autoOpenInfo.put("datasource", datasource.toString());
 			}

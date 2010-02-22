@@ -20,6 +20,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.views.IView;
 
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -135,9 +136,11 @@ public class TabbedEntry
 						}
 					}
 
-					if (iviewComposite.isVisible()) {
-						parent.layout(true, true);
-					}
+					//soContents is invisible, so of course iviwComposite is invisible
+					//We should do the one time layout on the first show..
+					//if (iviewComposite.isVisible()) {
+					//	parent.layout(true, true);
+					//}
 
 					swtItem.getParent().setSelection(swtItem);
 					swtItem.setControl(soContents.getControl());
@@ -345,5 +348,38 @@ public class TabbedEntry
 	}
 	
 	public void expandTo() {
+	}
+	
+	public void viewTitleInfoRefresh(ViewTitleInfo titleInfoToRefresh) {
+		super.viewTitleInfoRefresh(titleInfoToRefresh);
+
+		if (titleInfoToRefresh == null || this.viewTitleInfo != titleInfoToRefresh) {
+			return;
+		}
+		if (isDisposed()) {
+			return;
+		}
+
+		String textIndicator = null;
+		try {
+			textIndicator = (String) viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+		if (textIndicator != null) {
+			setPullTitleFromIView(false);
+		}
+		
+		String newText = (String) viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_TEXT);
+		if (newText != null) {
+			if (textIndicator != null) {
+				newText += " (" + textIndicator + ")";
+			}
+			setPullTitleFromIView(false);
+			setTitle(newText);
+		} else if (iview != null && textIndicator != null) {
+			newText = iview.getShortTitle() + " (" + textIndicator + ")";
+			setTitle(newText);
+		}
 	}
 }

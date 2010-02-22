@@ -29,17 +29,21 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RankItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -55,6 +59,8 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerList
 import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.PlayUtils;
 
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
@@ -109,56 +115,77 @@ public class ToolBarView
 
 		ToolBarItem item;
 
-		// ==download
-		item = new ToolBarItem("download", "image.button.download",
-				"v3.MainWindow.button.download") {
-			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-			public void triggerToolBarItem() {
-				String viewID = SelectedContentManager.getCurrentySelectedViewID();
-				if (viewID == null && triggerIViewToolBar(getId())) {
-					return;
-				}
-				// This is for our CDP pages
-				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-				if (sc != null && sc.length == 1
-						&& (sc[0].getHash() != null || sc[0].getDownloadInfo() != null)) {
-					TorrentListViewsUtils.downloadDataSource(sc[0], false,
-							DLReferals.DL_REFERAL_TOOLBAR);
-				}
-			}
-		};
-		addToolBarItem(item);
+		if (!uiClassic) {
+  		// ==download
+  		item = new ToolBarItem("download", "image.button.download",
+  				"v3.MainWindow.button.download") {
+  			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+  			public void triggerToolBarItem() {
+  				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+  				if (viewID == null && triggerIViewToolBar(getId())) {
+  					return;
+  				}
+  				// This is for our CDP pages
+  				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+  				if (sc != null && sc.length == 1
+  						&& (sc[0].getHash() != null || sc[0].getDownloadInfo() != null)) {
+  					TorrentListViewsUtils.downloadDataSource(sc[0], false,
+  							DLReferals.DL_REFERAL_TOOLBAR);
+  				}
+  			}
+  		};
+  		addToolBarItem(item);
+  
+  		// ==play
+  		item = new ToolBarItem("play", "image.button.play", "iconBar.play") {
+  			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+  			public void triggerToolBarItem() {
+  				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+  				if (viewID == null && triggerIViewToolBar(getId())) {
+  					return;
+  				}
+  				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+  				if (sc != null) {
+  					TorrentListViewsUtils.playOrStreamDataSource(sc[0],
+  							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR);
+  				}
+  			}
+  		};
+  		addToolBarItem(item);
 
-		// ==play
-		item = new ToolBarItem("play", "image.button.play", "iconBar.play") {
-			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-			public void triggerToolBarItem() {
-				String viewID = SelectedContentManager.getCurrentySelectedViewID();
-				if (viewID == null && triggerIViewToolBar(getId())) {
-					return;
-				}
-				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-				if (sc != null) {
-					TorrentListViewsUtils.playOrStreamDataSource(sc[0],
-							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR);
-				}
-			}
-		};
-		addToolBarItem(item);
+  		addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep", soMain);
 
-		addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep", soMain);
+  		lastControl = null;
 
-		lastControl = null;
-		
+		} else {
+
+  		lastControl = null;
+
+			// ==OPEN
+			item = new ToolBarItem("open", "image.toolbar.open", "Button.add") {
+				public void triggerToolBarItem() {
+					TorrentOpener.openTorrentWindow();
+				}
+			};
+			addToolBarItem(item, "toolbar.area.sitem.left", so2nd);
+
+  		addSeperator(so2nd);
+
+  		// ==SEARCH
+			item = new ToolBarItem("search", "search", "Button.search") {
+				public void triggerToolBarItem() {
+					UIFunctionsManagerSWT.getUIFunctionsSWT().promptForSearch();
+				}
+			};
+			addToolBarItem(item, "toolbar.area.sitem.right", so2nd);
+
+			addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep3", so2nd);
+
+			addNonToolBar("toolbar.area.sitem.left2", so2nd);
+		}
+
+
 		boolean first = true; 
-
-		// ==OPEN
-		//		item = new ToolBarItem("open", "image.toolbar.open", "iconBar.open") {
-		//			public void triggerToolBarItem() {
-		//				TorrentOpener.openTorrentWindow();
-		//			}
-		//		};
-		//		addToolBarItem(item);
 
 		// ==transcode
 		if (!DeviceManagerUI.DISABLED) {
@@ -204,9 +231,9 @@ public class ToolBarView
   				deviceChooser.show();
   			}
   		};
-  		addToolBarItem(item, "toolbar.area.sitem.left", so2nd);
-  		addSeperator(so2nd);
+  		addToolBarItem(item, first ? "toolbar.area.sitem.left" : "toolbar.area.sitem", so2nd);
   		first = false;
+  		addSeperator(so2nd);
 		}
 
 		// ==run
@@ -243,6 +270,21 @@ public class ToolBarView
 		first = false;
 		//addToolBarItem(item, "toolbar.area.sitem", so2nd);
 		addSeperator(so2nd);
+
+		if (uiClassic) {
+			// ==TOP
+			item = new ToolBarItem("top", "image.toolbar.top", "iconBar.top") {
+				public void triggerToolBarItem() {
+					moveTop();
+				}
+
+				public boolean triggerToolBarItemHold() {
+					return false;
+				}
+			};
+			addToolBarItem(item, "toolbar.area.sitem", so2nd);
+			addSeperator(so2nd);
+		}
 
 		// ==UP
 		item = new ToolBarItem("up", "image.toolbar.up", "v3.iconBar.up") {
@@ -285,15 +327,7 @@ public class ToolBarView
 
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItemHold()
 			public boolean triggerToolBarItemHold() {
-				if (!AzureusCoreFactory.isCoreRunning()) {
-					return false;
-				}
-				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-				if (dms != null) {
-					gm.moveTop(dms);
-				}
-				return true;
+				return moveTop();
 			}
 		};
 		addToolBarItem(item, "toolbar.area.sitem", so2nd);
@@ -341,20 +375,26 @@ public class ToolBarView
 
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItemHold()
 			public boolean triggerToolBarItemHold() {
-				if (!AzureusCoreFactory.isCoreRunning()) {
-					return false;
-				}
-
-				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-				if (dms != null) {
-					gm.moveEnd(dms);
-				}
-				return true;
+				return moveBottom();
 			}
 		};
 		addToolBarItem(item, "toolbar.area.sitem", so2nd);
 		addSeperator(so2nd);
+
+		if (uiClassic) {
+			// ==BOTTOM
+			item = new ToolBarItem("bottom", "image.toolbar.bottom", "iconBar.bottom") {
+				public void triggerToolBarItem() {
+					moveBottom();
+				}
+
+				public boolean triggerToolBarItemHold() {
+					return false;
+				}
+			};
+			addToolBarItem(item, "toolbar.area.sitem", so2nd);
+			addSeperator(so2nd);
+		}
 
 		// ==start
 		item = new ToolBarItem("start", "image.toolbar.start", "iconBar.start") {
@@ -507,6 +547,31 @@ public class ToolBarView
 		return null;
 	}
 
+	protected boolean moveBottom() {
+		if (!AzureusCoreFactory.isCoreRunning()) {
+			return false;
+		}
+
+		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+		if (dms != null) {
+			gm.moveEnd(dms);
+		}
+		return true;
+	}
+
+	protected boolean moveTop() {
+		if (!AzureusCoreFactory.isCoreRunning()) {
+			return false;
+		}
+		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+		if (dms != null) {
+			gm.moveTop(dms);
+		}
+		return true;
+	}
+
 	/**
 	 * 
 	 *
@@ -638,8 +703,10 @@ public class ToolBarView
 					"download",
 					"play",
 					"run",
+					"top",
 					"up",
 					"down",
+					"bottom",
 					"start",
 					"stop",
 					"remove"

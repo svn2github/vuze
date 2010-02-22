@@ -848,8 +848,8 @@ public class SideBarEntrySWT
 
 		IView iview = getIView();
 		if (iview != null) {
-			setIView(null);
 			iview.delete();
+			setIView(null);
 		}
 		SWTSkinObject so = getSkinObject();
 		if (so != null) {

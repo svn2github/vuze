@@ -128,7 +128,7 @@ public class TabbedMDI
 
 		tabFolder.setSimple(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
 
-		tabFolder.setMinimumCharacters(75);
+		tabFolder.setMinimumCharacters(25);
 
 		tabFolder.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {

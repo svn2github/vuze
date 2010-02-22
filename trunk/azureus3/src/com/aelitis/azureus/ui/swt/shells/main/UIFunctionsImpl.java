@@ -39,7 +39,10 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
@@ -849,6 +852,17 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#doSearch(java.lang.String)
 	public void doSearch(String searchText) {
 		MainWindow.doSearch(searchText);
+	}
+	
+	public void promptForSearch() {
+		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow("Button.search", "search.dialog.text");
+		entryWindow.prompt(new UIInputReceiverListener() {
+			public void UIInputReceiverClosed(UIInputReceiver receiver) {
+				if (receiver.hasSubmittedInput()) {
+					doSearch(receiver.getSubmittedInput());
+				}
+			}
+		});
 	}
 
 	public MultipleDocumentInterface getMDI() {

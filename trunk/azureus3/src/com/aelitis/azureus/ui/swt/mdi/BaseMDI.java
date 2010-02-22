@@ -18,7 +18,9 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.IView;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.*;
@@ -373,19 +375,48 @@ public abstract class BaseMDI
 			Class<?> cla = Class.forName(MapUtils.getMapString(autoOpenInfo,
 					"iviewClass", ""));
 			if (cla != null) {
-				String dmHash = MapUtils.getMapString(autoOpenInfo, "dm", null);
-				if (dmHash != null) {
-					HashWrapper hw = new HashWrapper(Base32.decode(dmHash));
-					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-					DownloadManager dm = gm.getDownloadManager(hw);
-					if (dm != null) {
-						datasource = dm;
-					}
-					// XXX Skip auto open DM for now
-					return false;
-				}
 				entry = createEntryFromIViewClass(parentID, id, title, cla, null, null,
 						datasource, null, true);
+
+				if (datasource == null) {
+					final MdiEntry fEntry = entry;
+					final String dmHash = MapUtils.getMapString(autoOpenInfo, "dm", null);
+					if (dmHash != null) {
+						AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+							public void azureusCoreRunning(AzureusCore core) {
+								GlobalManager gm = core.getGlobalManager();
+								HashWrapper hw = new HashWrapper(Base32.decode(dmHash));
+								DownloadManager dm = gm.getDownloadManager(hw);
+								if (dm != null) {
+									fEntry.setDatasource(dm);
+								}
+							}
+						});
+					} else {
+						final List listHashes = MapUtils.getMapList(autoOpenInfo, "dms",
+								null);
+						if (listHashes != null) {
+							AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+								public void azureusCoreRunning(AzureusCore core) {
+									List<DownloadManager> listDMS = new ArrayList<DownloadManager>(
+											1);
+									GlobalManager gm = core.getGlobalManager();
+									for (Object oDM : listHashes) {
+										if (oDM instanceof String) {
+											String hash = (String) oDM;
+											DownloadManager dm = gm.getDownloadManager(new HashWrapper(
+													Base32.decode(hash)));
+											if (dm != null) {
+												listDMS.add(dm);
+											}
+										}
+										fEntry.setDatasource(listDMS.toArray(new DownloadManager[0]));
+									}
+								}
+							});
+						}
+					}
+				}
 			}
 		} catch (ClassNotFoundException ce) {
 			// ignore
