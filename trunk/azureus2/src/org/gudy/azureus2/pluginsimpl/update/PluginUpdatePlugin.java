@@ -847,6 +847,8 @@ PluginUpdatePlugin
 				final File	user_dir	= new File( plugin_interface.getUtilities().getAzureusUserDir());
 				final File	prog_dir	= new File( plugin_interface.getUtilities().getAzureusProgramDir());
 	
+				Map<String,List<String[]>> install_properties = new HashMap<String, List<String[]>>();
+				
 					// .jar files get copied straight in with the right version number
 					// .zip files need to be unzipped. There are various possibilities for
 					// target dir depending on the contents of the zip file. Basically we
@@ -948,7 +950,61 @@ PluginUpdatePlugin
 							
 							String	name = entry.getName();
 							
-							if ( !( name.equals( "azureus.sig" ) || name.endsWith("/"))){
+							
+							if ( name.equals( "plugin_install.properties" )){
+								
+								ByteArrayOutputStream baos = new ByteArrayOutputStream( 32*1024 );
+								
+								byte[]	buffer = new byte[65536];
+								
+								while( true ){
+								
+									int	len = zis.read( buffer );
+									
+									if ( len <= 0 ){
+										
+										break;
+									}
+																			
+									baos.write( buffer, 0, len );
+								}
+										
+								try{
+									LineNumberReader lnr = new LineNumberReader( new InputStreamReader( new ByteArrayInputStream( baos.toByteArray()), "UTF-8"));
+									
+									while( true ){
+										
+										String	line = lnr.readLine();
+										
+										if ( line == null ){
+											
+											break;
+										}
+										
+										String[] command = line.split( "," );
+										
+										if ( command.length > 1 ){
+											
+											List<String[]> commands = install_properties.get( command[0] );
+											
+											if ( commands == null ){
+												
+												commands = new ArrayList<String[]>();
+												
+												install_properties.put( command[0], commands );
+											}
+											
+											commands.add( command );
+										}
+									}
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+								
+								continue;
+								
+							}else if ( !( name.equals( "azureus.sig" ) || name.endsWith("/"))){
 								
 								if ( common_prefix == null ){
 									
@@ -1482,7 +1538,7 @@ PluginUpdatePlugin
 											
 											throw( new IOException( "Failed to rename '" + tmp_file.toString() + "' to '" + initial_target.toString() + "'" ));
 										}
-										
+																				
 										bak_file.delete();
 									}
 									
@@ -1562,20 +1618,26 @@ PluginUpdatePlugin
 						// create installation move actions for the files that have been installed
 						// into temp location
 					
-					addInstallationActions( installer, target_plugin_dir, plugin_dir );
-					addInstallationActions( installer, target_prog_dir, prog_dir );
-					addInstallationActions( installer, target_user_dir, user_dir );					
+					addInstallationActions( installer, install_properties, "%plugin%", target_plugin_dir, plugin_dir );
+					addInstallationActions( installer, install_properties, "%app%", target_prog_dir, prog_dir );
+					addInstallationActions( installer, install_properties, "%user%", target_user_dir, user_dir );					
 				
 						// don't delete temp store, it'll get deleted on restart
 					
-				}else if ( unloadable ){
+				}else{
 					
-					log.log( "Plugin initialising, please wait... " );
+					applyInstallProperties( install_properties, "%plugin%", plugin_dir );
+					applyInstallProperties( install_properties, "%app%", prog_dir );
+					applyInstallProperties( install_properties, "%user%", user_dir );
 					
-					plugin.getPluginState().reload();	// this will reload all if > 1 defined
+					if ( unloadable ){
 					
-					log.log( "... initialisation complete." );
-	
+						log.log( "Plugin initialising, please wait... " );
+						
+						plugin.getPluginState().reload();	// this will reload all if > 1 defined
+						
+						log.log( "... initialisation complete." );
+					}
 				}	
 			}
 			
@@ -1605,12 +1667,14 @@ PluginUpdatePlugin
 			update.complete();
 		}
 	}
-	
+		
 	protected void
 	addInstallationActions(
-		UpdateInstaller		installer,
-		File				from_file,
-		File				to_file )
+		UpdateInstaller				installer,
+		Map<String,List<String[]>>	install_properties,
+		String						prefix,
+		File						from_file,
+		File						to_file )
 	
 		throws UpdateException
 	{
@@ -1621,14 +1685,131 @@ PluginUpdatePlugin
 			if ( files != null ){
 				
 				for (int i=0;i<files.length;i++){
-					
-					addInstallationActions( installer, files[i], new File( to_file, files[i].getName()));
+										
+					addInstallationActions( installer, install_properties, prefix + "/" + files[i].getName(), files[i], new File( to_file, files[i].getName()));
 				}
 			}
 		}else{
 			
 			installer.addMoveAction( from_file.getAbsolutePath(), to_file.getAbsolutePath());
+			
+			List<String[]> commands = install_properties.get( prefix );
+			
+			if ( commands != null ){
+				
+				for( String[] command: commands ){
+					
+					String	cmd = command[1];
+					
+					if ( cmd.equals( "chmod" )){
+						
+						if ( !Constants.isWindows ){
+							
+							log.log( "Applying " + cmd + " " + command[2] + " to " + to_file );
+							
+							installer.addChangeRightsAction( command[2], to_file.getAbsolutePath());
+						}
+					}else if ( cmd.equals( "rm" )){
+						
+						log.log( "Deleting " + to_file );
+						
+						installer.addRemoveAction( to_file.getAbsolutePath());
+					}
+				}
+			}
 		}
+	}
+		
+	protected void
+	applyInstallProperties(
+		Map<String,List<String[]>>	install_properties,
+		String						prefix,
+		File						to_file )
+	{
+		if ( to_file.isDirectory()){
+			
+			File[]	files = to_file.listFiles();
+			
+			if ( files != null ){
+				
+				for (int i=0;i<files.length;i++){
+										
+					applyInstallProperties( install_properties, prefix + "/" + files[i].getName(), files[i] );
+				}
+			}
+		}else{
+						
+			List<String[]> commands = install_properties.get( prefix );
+
+			if ( commands != null ){
+				
+				for( String[] command: commands ){
+					
+					String	cmd = command[1];
+					
+					if ( cmd.equals( "chmod" )){
+						
+						if ( !Constants.isWindows ){
+							
+							runCommand(
+								new String[]{
+									"chmod",
+									command[2],
+									to_file.getAbsolutePath().replaceAll(" ", "\\ ")
+								});
+						}
+					}else if ( cmd.equals( "rm" )){
+						
+						log.log( "Deleting " + to_file );
+						
+						to_file.delete();
+					}
+				}
+			}
+		}	
+	}
+	
+	private void
+	runCommand(
+		String[]	command )
+	{
+		try{
+			command[0] = findCommand( command[0] );
+		
+			String	str = "";
+			
+			for ( String s: command ){
+				
+				str += " " + s;
+			}
+			
+			log.log( "Executing" + str );
+			
+			Runtime.getRuntime().exec( command ).waitFor();
+			
+		}catch( Throwable e ){
+			
+			log.log( "Failed to execute command", e );
+		}
+	}
+	
+	private String
+	findCommand(
+		String	name )
+	{
+		final String[]  locations = { "/bin", "/usr/bin" };
+
+		for ( String s: locations ){
+
+			File f = new File( s, name );
+
+			if ( f.exists() && f.canRead()){
+
+				return( f.getAbsolutePath());
+			}
+		}
+
+		return( name );
 	}
 	
 	protected boolean
