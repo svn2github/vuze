@@ -73,6 +73,9 @@ FeatureManager
 		public String
 		getKey();
 		
+		public String
+		getShortID();
+		
 		public FeatureDetails[]
 		getFeatures();
 		
@@ -148,6 +151,7 @@ FeatureManager
 		public String	PR_IS_TRIAL					= "IsTrial";				// Long (0=false)
 		public String	PR_TRIAL_USES_REMAINING		= "TrialUsesRemaining";		// Long
 		public String	PR_REQUIRED_PLUGINS			= "Plugins";				// String: comma separated plugin ids
+		public String	PR_FINGERPRINT				= "Fingerprint";			// String
 		
 		public Licence
 		getLicence();
