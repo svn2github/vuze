@@ -178,6 +178,18 @@ public class SystemProperties {
 		return( APPLICATION_ENTRY_POINT );
 	}
 	
+		/**
+		 * This is used by third-party apps that want explicit control over the user-path
+		 * @param _path
+		 */
+	
+	public static void
+	setUserPath(
+		String		_path )
+	{
+		user_path	= _path;
+	}
+	
   /**
    * Returns the full path to the user's home azureus directory.
    * Under unix, this is usually ~/.azureus/
