@@ -629,7 +629,16 @@ public class MessageText {
         // Get the jarURL
         // XXX Is there a better way to get the JAR name?
         ClassLoader cl = MessageText.class.getClassLoader();
-        String sJar = cl.getResource(bundleFolder + extension).toString();
+       
+        URL u = cl.getResource(bundleFolder + extension);
+
+        if ( u == null ){
+        	
+        		// might be missing entirely
+        	
+        	return( false );
+        }
+        String sJar = u.toString();
         sJar = sJar.substring(0, sJar.length() - prefix.length() - extension.length());
         URL jarURL = new URL(sJar);
 
