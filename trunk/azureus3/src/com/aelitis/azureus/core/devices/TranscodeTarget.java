@@ -27,6 +27,7 @@ import java.io.File;
 public interface 
 TranscodeTarget 
 {
+	public static final int TRANSCODE_UNKNOWN			= -1;
 	public static final int TRANSCODE_NEVER				= 1;
 	public static final int TRANSCODE_WHEN_REQUIRED		= 2;
 	public static final int TRANSCODE_ALWAYS			= 3;

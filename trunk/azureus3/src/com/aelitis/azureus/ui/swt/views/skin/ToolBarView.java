@@ -219,7 +219,8 @@ public class ToolBarView
   												selectedTranscodeTarget,
   												selectedProfile,
   												(org.gudy.azureus2.plugins.disk.DiskManagerFileInfo) PluginCoreUtils.convert(
-  														file, false));
+  														file, false),
+  												false );
   									} catch (TranscodeException e) {
   										Debug.out(e);
   									}

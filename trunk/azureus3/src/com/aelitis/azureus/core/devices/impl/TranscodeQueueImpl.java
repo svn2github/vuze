@@ -800,11 +800,12 @@ TranscodeQueueImpl
 	add(
 		TranscodeTarget			target,
 		TranscodeProfile		profile,
-		DiskManagerFileInfo		file )
+		DiskManagerFileInfo		file,
+		boolean					add_stopped )
 	
 		throws TranscodeException
 	{
-		return( add( target, profile, file, false ));
+		return( add( target, profile, file, add_stopped, false, TranscodeTarget.TRANSCODE_UNKNOWN ));
 	}
 	
 	public TranscodeJobImpl
@@ -812,11 +813,12 @@ TranscodeQueueImpl
 		TranscodeTarget			target,
 		TranscodeProfile		profile,
 		DiskManagerFileInfo		file,
-		int						transcode_requirement )
+		int						transcode_requirement,
+		boolean					add_stopped )
 	
 		throws TranscodeException
 	{
-		return( add( target, profile, file, false, transcode_requirement ));
+		return( add( target, profile, file, add_stopped, false, transcode_requirement ));
 	}
 	
 	public TranscodeJobImpl
@@ -824,18 +826,7 @@ TranscodeQueueImpl
 		TranscodeTarget			target,
 		TranscodeProfile		profile,
 		DiskManagerFileInfo		file,
-		boolean					stream )
-	
-		throws TranscodeException
-	{
-		return( add( target, profile, file, stream, -1 ));
-	}
-	
-	public TranscodeJobImpl
-	add(
-		TranscodeTarget			target,
-		TranscodeProfile		profile,
-		DiskManagerFileInfo		file,
+		boolean					add_stopped,
 		boolean					stream,
 		int						transcode_requirement )
 	
@@ -869,7 +860,7 @@ TranscodeQueueImpl
 			}
 		}
 		
-		TranscodeJobImpl job = new TranscodeJobImpl( this, target, profile, file, transcode_requirement, stream );
+		TranscodeJobImpl job = new TranscodeJobImpl( this, target, profile, file, add_stopped, transcode_requirement, stream );
 		
 		try{
 			synchronized( this ){

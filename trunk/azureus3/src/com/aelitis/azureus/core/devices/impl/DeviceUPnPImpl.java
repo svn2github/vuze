@@ -594,7 +594,9 @@ DeviceUPnPImpl
 										(TranscodeTarget)DeviceUPnPImpl.this,
 										profile, 
 										source, 
-										true );
+										false,
+										true,
+										TranscodeTarget.TRANSCODE_UNKNOWN );
 									
 								synchronized( this ){
 								

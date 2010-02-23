@@ -2737,7 +2737,8 @@ DeviceManagerUI
 				target,
 				profile,
 				file,
-				transcode_requirement);
+				transcode_requirement,
+				false );
 			
 		}catch( Throwable e ){
 			
@@ -2796,7 +2797,8 @@ DeviceManagerUI
 					target,
 					profile,
 					new DiskManagerFileInfoFile( file ),
-					transcode_requirement );
+					transcode_requirement,
+					false );
 				
 			}catch( Throwable e ){
 				

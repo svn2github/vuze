@@ -30,7 +30,8 @@ TranscodeQueue
 	add(
 		TranscodeTarget			target,
 		TranscodeProfile		profile,
-		DiskManagerFileInfo		file )
+		DiskManagerFileInfo		file,
+		boolean					add_stopped )
 	
 		throws TranscodeException;
 	
@@ -39,7 +40,8 @@ TranscodeQueue
 		TranscodeTarget			target,
 		TranscodeProfile		profile,
 		DiskManagerFileInfo		file,
-		int						transcode_requirement )	// from target.TRANSCODE_<x>
+		int						transcode_requirement,		// from target.TRANSCODE_<x>
+		boolean					add_stopped )
 	
 		throws TranscodeException;
 	

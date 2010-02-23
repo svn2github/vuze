@@ -90,6 +90,7 @@ TranscodeJobImpl
 		TranscodeTarget			_target,
 		TranscodeProfile		_profile,
 		DiskManagerFileInfo		_file,
+		boolean					_add_stopped,
 		int						_transcode_requirement,
 		boolean					_is_stream )
 	
@@ -101,6 +102,11 @@ TranscodeJobImpl
 		file					= _file;
 		transcode_requirement	= _transcode_requirement;
 		is_stream				= _is_stream;
+		
+		if ( _add_stopped ){
+			
+			state = ST_STOPPED;
+		}
 		
 		init();
 	}
@@ -145,7 +151,7 @@ TranscodeJobImpl
 			file = new DiskManagerFileInfoFile( new File( file_str ));
 		}
 		
-		transcode_requirement	= ImportExportUtils.importInt( map, "trans_req", -1 );
+		transcode_requirement	= ImportExportUtils.importInt( map, "trans_req", TranscodeTarget.TRANSCODE_UNKNOWN );
 		
 		init();
 	}
