@@ -1235,7 +1235,7 @@ public class SideBar
 			if (tree.isDisposed()) {
 				return null;
 			}
-			if (index >= 0) {
+			if (index >= 0 && index < tree.getItemCount()) {
 				treeItem = new TreeItem(tree, SWT.NONE, index);
 			} else {
 				treeItem = new TreeItem(tree, SWT.NONE);
