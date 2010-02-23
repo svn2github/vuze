@@ -1271,7 +1271,12 @@ SESecurityManagerImpl
 			
 			if ( !exit_vm_permitted ){
 				
-				throw( new SecurityException( "VM exit operation prohibited"));
+				String	prop = System.getProperty( "azureus.security.manager.permitexit", "0" );
+
+				if ( prop.equals( "0" )){
+				
+					throw( new SecurityException( "VM exit operation prohibited"));
+				}
 			}
 		}
 		
