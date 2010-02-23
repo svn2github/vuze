@@ -24,6 +24,9 @@ package com.aelitis.azureus.core.messenger.config;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.utils.FeatureManager;
+import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerException;
@@ -114,11 +117,17 @@ PlatformMetaSearchMessenger
    	}
 	
 	public static templateInfo[] 
-	listTopPopularTemplates()
+	listTopPopularTemplates(
+		String		extension_key )
 	
 		throws PlatformMessengerException
-	{
+	{		
 		Map parameters = new HashMap();
+	
+		if ( extension_key != null ){
+			
+			parameters.put( "extension_key", extension_key );
+		}
 		
 		Map reply = dispatcher.syncInvoke(	OP_LIST_POPULAR_TEMPLATES, parameters ); 
 
@@ -126,12 +135,18 @@ PlatformMetaSearchMessenger
 	}
 	
 	public static templateInfo[] 
-   	listAllPopularTemplates()
+   	listAllPopularTemplates(
+   		String		extension_key )
    	
    		throws PlatformMessengerException
    	{
    		Map parameters = new HashMap();
    		
+		if ( extension_key != null ){
+			
+			parameters.put( "extension_key", extension_key );
+		}
+		
    		parameters.put( "page-num", new Long( 1 ));
    		parameters.put( "items-per-page", new Long( MAX_TEMPLATE_LIST ));
 
@@ -141,11 +156,17 @@ PlatformMetaSearchMessenger
    	}
 	
 	public static templateInfo[] 
-	listFeaturedTemplates()
+	listFeaturedTemplates(
+		String		extension_key )
 	
 		throws PlatformMessengerException
 	{
 		Map parameters = new HashMap();
+		
+		if ( extension_key != null ){
+			
+			parameters.put( "extension_key", extension_key );
+		}
 		
 		parameters.put( "page-num", new Long( 1 ));
 		parameters.put( "items-per-page", new Long( MAX_TEMPLATE_LIST ));
@@ -264,7 +285,7 @@ PlatformMetaSearchMessenger
 
 		return( parameters );
 	}
-	
+
 	public static class
 	templateInfo
 	{

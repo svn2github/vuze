@@ -33,7 +33,10 @@ import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
+import org.gudy.azureus2.plugins.utils.FeatureManager.Licence;
 import org.gudy.azureus2.plugins.utils.search.Search;
 import org.gudy.azureus2.plugins.utils.search.SearchException;
 import org.gudy.azureus2.plugins.utils.search.SearchInitiator;
@@ -43,6 +46,7 @@ import org.gudy.azureus2.plugins.utils.search.SearchObserver;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.search.SearchProviderResults;
 import org.gudy.azureus2.plugins.utils.search.SearchResult;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.custom.Customization;
@@ -153,12 +157,16 @@ MetaSearchManagerImpl
 	private List<MetaSearchManagerListener>	listeners 		= new ArrayList<MetaSearchManagerListener>();
 	private List<Map>						operations		= new ArrayList<Map>();
 	
+	private String		extension_key;
+	
 	protected
 	MetaSearchManagerImpl()
 	{
 		meta_search = new MetaSearchImpl( this );
 		
 		AEDiagnostics.addEvidenceGenerator( this );
+		
+		setupExtensions();
 		
 		SimpleTimer.addPeriodicEvent(
 			"MetaSearchRefresh",
@@ -502,7 +510,7 @@ MetaSearchManagerImpl
 			Engine[]	engines = meta_search.getEngines( false, false );
 	
 			try{
-				PlatformMetaSearchMessenger.templateInfo[] featured = PlatformMetaSearchMessenger.listFeaturedTemplates();
+				PlatformMetaSearchMessenger.templateInfo[] featured = PlatformMetaSearchMessenger.listFeaturedTemplates( extension_key );
 				
 				String featured_str = "";
 				
@@ -528,7 +536,7 @@ MetaSearchManagerImpl
 				
 				if ( auto_mode || first_run ){
 					
-					PlatformMetaSearchMessenger.templateInfo[] popular = PlatformMetaSearchMessenger.listTopPopularTemplates();
+					PlatformMetaSearchMessenger.templateInfo[] popular = PlatformMetaSearchMessenger.listTopPopularTemplates( extension_key );
 					
 					String popular_str = "";
 					String preload_str = "";
@@ -1236,6 +1244,75 @@ MetaSearchManagerImpl
 					}
 				}
 			});
+	}
+	
+	private void
+	setupExtensions()
+	{
+		final FeatureManager fm = PluginInitializer.getDefaultInterface().getUtilities().getFeatureManager();
+					
+		fm.addListener(
+			new FeatureManager.FeatureManagerListener()
+			{
+				public void
+				licenceAdded(
+					Licence	licence )
+				{
+					getExtensions( fm, false );
+				}
+				
+				public void
+				licenceChanged(
+					Licence	licence )
+				{
+					getExtensions( fm, false );
+				}
+				
+				public void
+				licenceRemoved(
+					Licence	licence )
+				{
+					getExtensions( fm, false );
+				}
+			});
+		
+		getExtensions( fm, true );
+	}
+	
+	private void
+	getExtensions(
+		FeatureManager		fm,
+		boolean				init )
+	{
+		String	existing_ext 	= extension_key;
+		String	latest_ext		= null;
+		
+		FeatureDetails[] fds = fm.getFeatureDetails( "core" );
+		
+		for ( FeatureDetails fd: fds ){
+				
+			String finger_print = (String)fd.getProperty( FeatureDetails.PR_FINGERPRINT );
+				
+			if ( finger_print != null ){
+			
+				latest_ext = fd.getLicence().getShortID() + "-" + finger_print;
+				
+				break;
+			}
+		}
+
+		if ( existing_ext != latest_ext ){
+			
+			if ( existing_ext == null || latest_ext == null || !existing_ext.equals( latest_ext )){
+				
+				extension_key	= latest_ext;
+				
+				if ( !init ){
+					
+					refresh();
+				}
+			}
+		}
 	}
 	
 	public void 

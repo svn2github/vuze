@@ -30,6 +30,9 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.plugins.utils.FeatureManager;
+import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.util.ImportExportUtils;
@@ -365,6 +368,13 @@ ContentNetworkVuzeGeneric
 					url_str += "&createSubscription=1";
 				}
 				
+				String	extension_key = getExtensionKey();
+				
+				if ( extension_key != null ){
+					
+					url_str += "&extension_key=" + UrlUtils.encode( extension_key );
+				}
+				
 				return( url_str );
 			}
 			case SERVICE_CONTENT_DETAILS:{
@@ -551,5 +561,25 @@ ContentNetworkVuzeGeneric
 				return( url_in + "?" + suffix );
 			}
 		}
+	}
+	
+	private String
+	getExtensionKey()
+	{
+		FeatureManager fm = PluginInitializer.getDefaultInterface().getUtilities().getFeatureManager();
+		
+		FeatureDetails[] fds = fm.getFeatureDetails( "core" );
+		
+		for ( FeatureDetails fd: fds ){
+				
+			String finger_print = (String)fd.getProperty( FeatureDetails.PR_FINGERPRINT );
+				
+			if ( finger_print != null ){
+			
+				return( fd.getLicence().getShortID() + "-" + finger_print );
+			}
+		}
+		
+		return( null );
 	}
 }
