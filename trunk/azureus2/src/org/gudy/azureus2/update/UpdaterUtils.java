@@ -43,6 +43,7 @@ public class UpdaterUtils
 	public static String AZUPDATERPATCHER_PLUGIN_ID 	= "azupdaterpatcher";
 	
 	protected static String AZUPNPAV_PLUGIN_ID 			= "azupnpav";
+	protected static String AEFEATMAN_PLUGIN_ID 		= "aefeatman_v";
 
 	public static boolean 
 	disableNativeCode(
@@ -107,6 +108,21 @@ public class UpdaterUtils
 						"plugin.name=UPnP Media Server",
 						"plugin.id=azupnpav" });
 			}
+			
+				// user-dir is better anyway
+			
+			target_props = getPropsIfNotPresent( AEFEATMAN_PLUGIN_ID, false );
+			
+			if ( target_props != null ){
+				
+				writePluginProperties(
+					target_props,
+					new String[]{
+						"plugin.class=com.aelitis.azureus.plugins.featman.FeatManPlugin",
+						"plugin.name=Vuze Feature Manager",
+						"plugin.id=aefeatman_v" });
+			}
+			
 		}catch( Throwable e){
 			
 			Debug.printStackTrace(e);
