@@ -33,6 +33,9 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.utils.FeatureManager;
+import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -66,6 +69,18 @@ public class DonationWindow
 				new MessageBoxShell(SWT.OK, "Donations Test", "Already Open").open(null);
 			}
 			return;
+		}
+		
+		FeatureManager fm = PluginInitializer.getDefaultInterface().getUtilities().getFeatureManager();
+		
+		FeatureDetails[] fds = fm.getFeatureDetails( "core" );
+		
+		for ( FeatureDetails fd: fds ){
+			
+			if ( !fd.hasExpired()){
+				
+				return;
+			}
 		}
 
 		long maxDate = COConfigurationManager.getLongParameter("donations.maxDate", 0);

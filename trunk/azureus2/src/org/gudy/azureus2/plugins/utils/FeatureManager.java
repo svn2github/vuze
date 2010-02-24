@@ -158,7 +158,17 @@ FeatureManager
 		
 		public String
 		getID();
-				
+		
+			/**
+			 * Returns true if offline expired or overall expired. 
+			 * NOT to be used by verified plugins, they must do the check explicitly using the
+			 * signed properties
+			 * @return
+			 */
+		
+		public boolean
+		hasExpired();
+		
 		public byte[]
 		getEncodedProperties();
 		
