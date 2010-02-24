@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.FeatureManager;
@@ -165,6 +166,13 @@ MetaSearchManagerImpl
 		meta_search = new MetaSearchImpl( this );
 		
 		AEDiagnostics.addEvidenceGenerator( this );
+		
+		extension_key = COConfigurationManager.getStringParameter( "metasearch.extkey.latest", "" );
+
+		if ( extension_key.length() == 0 ){
+			
+			extension_key = null;
+		}
 		
 		setupExtensions();
 		
@@ -1249,7 +1257,9 @@ MetaSearchManagerImpl
 	private void
 	setupExtensions()
 	{
-		final FeatureManager fm = PluginInitializer.getDefaultInterface().getUtilities().getFeatureManager();
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
+		
+		final FeatureManager fm = pi.getUtilities().getFeatureManager();
 					
 		fm.addListener(
 			new FeatureManager.FeatureManagerListener()
@@ -1276,7 +1286,32 @@ MetaSearchManagerImpl
 				}
 			});
 		
-		getExtensions( fm, true );
+		if ( pi.getPluginState().isInitialisationComplete()){
+			
+			getExtensions( fm, true );
+			
+		}else{
+			
+			pi.addListener(
+				new PluginListener()
+				{
+					public void
+					initializationComplete()
+					{
+						getExtensions( fm, false );
+					}
+					
+					public void
+					closedownInitiated()
+					{
+					}
+					
+					public void
+					closedownComplete()
+					{	
+					}
+				});
+		}
 	}
 	
 	private void
@@ -1309,6 +1344,8 @@ MetaSearchManagerImpl
 			if ( existing_ext == null || latest_ext == null || !existing_ext.equals( latest_ext )){
 				
 				extension_key	= latest_ext;
+				
+				COConfigurationManager.setParameter( "metasearch.extkey.latest", latest_ext==null?"":latest_ext );
 				
 				if ( !init ){
 					
