@@ -70,13 +70,6 @@ public class ColumnSubscriptionName
 		if (!cell.setSortValue(name) && cell.isValid()) {
 			return;
 		}
-
-		if (!cell.isShown()) {
-			return;
-		}
-		
-		cell.setText(name);
-		return;
 	}
 	
 	public void cellPaint(GC gc, TableCellSWT cell) {
@@ -91,7 +84,7 @@ public class ColumnSubscriptionName
 		
 		bounds.width -= (imageWidth + 5);
 		
-		GCStringPrinter.printString(gc, cell.getText(), bounds,true,false,SWT.LEFT);
+		GCStringPrinter.printString(gc, cell.getSortValue().toString(), bounds,true,false,SWT.LEFT);
 		gc.drawImage(viewImage, bounds.x + bounds.width, bounds.y + bounds.height / 2 - imageHeight / 2);
 
 		imageLoader.releaseImage("ic_view");
