@@ -572,11 +572,14 @@ ContentNetworkVuzeGeneric
 		
 		for ( FeatureDetails fd: fds ){
 				
-			String finger_print = (String)fd.getProperty( FeatureDetails.PR_FINGERPRINT );
+			if ( !fd.hasExpired()){
 				
-			if ( finger_print != null ){
-			
-				return( fd.getLicence().getShortID() + "-" + finger_print );
+				String finger_print = (String)fd.getProperty( FeatureDetails.PR_FINGERPRINT );
+					
+				if ( finger_print != null ){
+				
+					return( fd.getLicence().getShortID() + "-" + finger_print );
+				}
 			}
 		}
 		

@@ -24,9 +24,6 @@ package com.aelitis.azureus.core.messenger.config;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.utils.FeatureManager;
-import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerException;
