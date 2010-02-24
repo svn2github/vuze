@@ -30,9 +30,17 @@ FeatureManager
 	public Licence[]
 	getLicences();
 	
+	public Licence[]
+	createLicences(
+		String[]				feature_ids )
+	
+		throws PluginException;
+	
 	public Licence
 	addLicence(
-		String		licence_key );
+		String		licence_key )
+	
+		throws PluginException;
 	
 	public FeatureDetails[]
 	getFeatureDetails(
@@ -124,7 +132,13 @@ FeatureManager
 	{
 		public Licence[]
        	getLicences();
-       	
+		
+		public Licence[]
+		createLicences(
+			String[]				feature_ids )
+		
+			throws PluginException;
+		
        	public Licence
        	addLicence(
        		String		licence_key );

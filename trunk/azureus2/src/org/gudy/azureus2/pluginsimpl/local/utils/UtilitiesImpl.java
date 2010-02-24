@@ -1115,9 +1115,37 @@ UtilitiesImpl
 		return( this );
 	}
 	
+	public Licence[]
+	createLicences(
+		String[]				feature_ids )
+	
+		throws PluginException
+	{
+		List<FeatureEnabler>	enablers = getVerifiedEnablers();
+		
+		for ( FeatureEnabler enabler: enablers ){
+			
+			try{
+				Licence[] licences = enabler.createLicences( feature_ids );
+				
+				if ( licences != null ){
+					
+					return( licences );
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		throw( new PluginException( "No enablers returned a licence" ));
+	}
+	
 	public Licence 
 	addLicence(
 		String licence_key ) 
+	
+		throws PluginException
 	{
 		List<FeatureEnabler>	enablers = getVerifiedEnablers();
 		
@@ -1136,7 +1164,7 @@ UtilitiesImpl
 			}
 		}
 		
-		return( null );
+		throw( new PluginException( "No enablers returned a licence" ));
 	}
 	
 	public Licence[] 
