@@ -80,6 +80,8 @@ public interface PluginState {
 	   */
 	  public boolean isOperational();
 	  
+	  public boolean isInitialisationComplete();
+	  
 	  /**
 	   * Uninstall this plugin if it has been loaded from a plugin directory.
 	   * Deletes the plugin directory.

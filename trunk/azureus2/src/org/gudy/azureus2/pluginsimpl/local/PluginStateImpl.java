@@ -111,6 +111,12 @@ public class PluginStateImpl implements PluginState {
 		return plugin_dir.startsWith(shared_dir);
 	}
 
+	public boolean
+	isInitialisationComplete()
+	{
+		return( initialiser.isInitialisationComplete());
+	}
+	
 	public void reload() throws PluginException {
 		// we use the "reload" method to load disabled plugins regardless of whether they are
 		// unloadable. If currently disabled then no unloading to do anyway  
