@@ -768,7 +768,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				
 				if (!table.isEnabled()) {
 					// added disable affect
-					event.gc.setAlpha(127);
+					event.gc.setAlpha(192);
 				}
 
 				//visibleRowsChanged();
