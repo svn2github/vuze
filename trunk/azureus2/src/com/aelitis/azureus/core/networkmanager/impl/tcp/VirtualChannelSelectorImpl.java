@@ -744,31 +744,61 @@ public class VirtualChannelSelectorImpl {
 	        	// rm_type = 1;
 	        	  
 	            data.non_progress_count++;
+
+	            boolean	loopback_connection = false;
+	            
+	        	if ( INTEREST_OP != VirtualChannelSelector.OP_ACCEPT ){
 	            	
-	            if ( 	data.non_progress_count == 10 ||
-	            		data.non_progress_count %100 == 0 && data.non_progress_count > 0 ){
-	            		
-	              Debug.out( 
-	                  "VirtualChannelSelector: No progress for op " + INTEREST_OP + 
-	                  	": listener = " + data.listener.getClass() + 
-	                  	", count = " + data.non_progress_count +
-	                  	", socket: open = " + data.channel.isOpen() + 
-	                  		(INTEREST_OP==VirtualChannelSelector.OP_ACCEPT?"":
-	                  			(", connected = " + ((SocketChannel)data.channel).isConnected())));
-	                			  
-	            		
-	              if ( data.non_progress_count == 1000 ){
-	                
-	                Debug.out( "No progress for " + data.non_progress_count + ", closing connection" );
-	            			
-	                try{
-	                  data.channel.close();
-	            				
-	                }catch( Throwable e ){
-	            				e.printStackTrace();
-	                }
-	              }
-	            }
+	        		SocketChannel sc = (SocketChannel)data.channel;
+	        		
+	        		loopback_connection = sc.socket().getInetAddress().isLoopbackAddress();
+	        	}
+	        	
+	        		// we get no progress triggers when looping back for transcoding due to 
+	        		// high CPU usage of xcode process - remove debug spew and be more tolerant
+	        	
+	        	if ( loopback_connection ){
+	        		
+	        		if ( data.non_progress_count == 10000 ){
+
+	        			Debug.out( "No progress for " + data.non_progress_count + ", closing connection" );
+
+	        			try{
+	        				data.channel.close();
+
+	        			}catch( Throwable e ){
+
+	        				e.printStackTrace();
+	        			}
+	        		}
+	        	}else{
+	        		
+	        		if ( 	data.non_progress_count == 10 ||
+	        				data.non_progress_count %100 == 0 && data.non_progress_count > 0 ){
+
+	        			Debug.out( 
+	        					"VirtualChannelSelector: No progress for op " + INTEREST_OP + 
+	        					": listener = " + data.listener.getClass() + 
+	        					", count = " + data.non_progress_count +
+	        					", socket: open = " + data.channel.isOpen() + 
+	        					(INTEREST_OP==VirtualChannelSelector.OP_ACCEPT?"":
+	        						(", connected = " + ((SocketChannel)data.channel).isConnected())));
+
+
+	        			if ( data.non_progress_count == 1000 ){
+
+	        				Debug.out( "No progress for " + data.non_progress_count + ", closing connection" );
+
+	        				try{
+	        					data.channel.close();
+
+	        				}catch( Throwable e ){
+	        					
+	        					e.printStackTrace();
+	        				}
+	        			}
+	        		}
+	        	}
 	          }
 	        }
         }else{
