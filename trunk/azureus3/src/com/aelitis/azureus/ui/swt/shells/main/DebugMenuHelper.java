@@ -16,6 +16,10 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
+import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBox;
+import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBoxListener;
 import com.aelitis.azureus.util.ConstantsVuze;
 
 /**
@@ -211,6 +215,24 @@ public class DebugMenuHelper
 				Logger.log(logAlert);
 			}
 		});
+
+		item = new MenuItem(menuDebug, SWT.NONE);
+		item.setText("MsgBox");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				VuzeMessageBox box = new VuzeMessageBox("Title", "Text", new String[] { "Ok", "Cancel" }, 0);
+				box.setListener(new VuzeMessageBoxListener() {
+					public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
+						SWTSkin skin = soExtra.getSkin();
+						skin.createSkinObject("dlg.generic.test", "dlg.generic.test", soExtra);
+						skin.layout(soExtra);
+						shell.layout(true, true);
+					}
+				});
+				box.open(null);
+			}
+		});
+
 		
 		return item;
 	}
