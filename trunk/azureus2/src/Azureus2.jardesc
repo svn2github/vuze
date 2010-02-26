@@ -89,6 +89,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager.peerdb"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.security.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.diskmanager.test"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.images.tb.c"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.net.buddy.swt"/>
         <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.core3.torrentdownloader.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.stats.impl"/>
@@ -176,6 +177,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.diskmanager.access.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.diskmanager.access"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.subs"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.mdi"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.db"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.test"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.ui.swt.mdi"/>
