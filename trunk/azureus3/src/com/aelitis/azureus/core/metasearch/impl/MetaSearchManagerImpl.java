@@ -620,7 +620,7 @@ MetaSearchManagerImpl
 						manual_ids[pos++] = it.next().longValue();
 					}
 					
-					PlatformMetaSearchMessenger.templateInfo[] manual = PlatformMetaSearchMessenger.getTemplateDetails( manual_ids );
+					PlatformMetaSearchMessenger.templateInfo[] manual = PlatformMetaSearchMessenger.getTemplateDetails( extension_key, manual_ids );
 										
 					for (int i=0;i<manual.length;i++){
 						
@@ -685,7 +685,7 @@ MetaSearchManagerImpl
 	
 					if ( update ){
 						
-						PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( id );
+						PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( extension_key, id );
 	
 						log( "Downloading definition of template " + id );
 						log( details.getValue());
@@ -747,7 +747,7 @@ MetaSearchManagerImpl
 						
 					if ( this_engine == null ){
 						
-						PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( id );
+						PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( extension_key, id );
 	
 						log( "Downloading pre-load definition of template " + id );
 						log( details.getValue());
@@ -913,7 +913,7 @@ MetaSearchManagerImpl
 				
 				if ( existing == null ){
 														
-					PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( id );
+					PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( extension_key, id );
 	
 					log( "Downloading definition of template " + id );
 					log( details.getValue());
@@ -1353,6 +1353,12 @@ MetaSearchManagerImpl
 				}
 			}
 		}
+	}
+	
+	protected String
+	getExtensionKey()
+	{
+		return( extension_key );
 	}
 	
 	public void 

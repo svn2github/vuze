@@ -22,7 +22,6 @@
 package com.aelitis.azureus.core.metasearch.impl;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -36,7 +35,6 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -51,9 +49,7 @@ import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
-import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
-import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -90,9 +86,10 @@ MetaSearchImpl
 		loadConfig();
 	}
 	
-	protected 
-	MetaSearchImpl()
+	protected MetaSearchManagerImpl
+	getManager()
 	{
+		return( manager );
 	}
 	
 	public Engine
@@ -449,7 +446,7 @@ MetaSearchImpl
 	{
 		try{
 
-			PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( id );
+			PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( manager.getExtensionKey(), id );
 		
 			log( "Downloading definition of template " + id );
 			log( details.getValue());
@@ -1240,54 +1237,5 @@ MetaSearchImpl
 			
 			writer.println( e.getString( true ));
 		}	
-	}
-	
-	public static void
-	main(
-		String[]		args )
-	{
-		try{
-			MetaSearchImpl ms = new MetaSearchImpl();
-			
-			EngineImpl e = new RegexEngine(
-					ms, 
-					Integer.MAX_VALUE + 9991,
-					SystemTime.getCurrentTime(),
-					1.0f,
-					"UpdateTest",
-					"http://localhost:1234/search=%s",
-					"",
-					"GMT",
-					true,
-					null,
-					new FieldMapping[] {
-						new FieldMapping("1",Engine.FIELD_CATEGORY),
-						new FieldMapping("2",Engine.FIELD_CDPLINK),
-						new FieldMapping("3",Engine.FIELD_NAME),
-						new FieldMapping("4",Engine.FIELD_TORRENTLINK),
-						new FieldMapping("5",Engine.FIELD_COMMENTS),
-						new FieldMapping("6",Engine.FIELD_DATE),
-						new FieldMapping("7",Engine.FIELD_SIZE),
-						new FieldMapping("8",Engine.FIELD_VOTES),
-						new FieldMapping("9",Engine.FIELD_SEEDS),
-						new FieldMapping("10",Engine.FIELD_PEERS),
-						},
-					false,
-					WebEngine.AM_TRANSPARENT,
-					"",
-					new String[] {""} );
-					
-			e.setUpdateURL( "http://localhost:5678/update" );
-			
-			e.setDefaultUpdateCheckSecs( 60 );
-			
-			e.setVersion( 2 );
-			
-			e.exportToVuzeFile( new File( "c:\\temp\\updatetest.vuze" ));
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
 	}
 }

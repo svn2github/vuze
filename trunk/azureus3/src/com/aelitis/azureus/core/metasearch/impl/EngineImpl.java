@@ -1108,7 +1108,7 @@ EngineImpl
 				
 				log( "Marking template id " + getId() + " as selected=" + selected );
 				
-				PlatformMetaSearchMessenger.setTemplatetSelected( getId(), ConstantsVuze.AZID, selected);
+				PlatformMetaSearchMessenger.setTemplatetSelected( meta_search.getManager().getExtensionKey(), getId(), ConstantsVuze.AZID, selected);
 				
 				selection_state_recorded = true;
 				

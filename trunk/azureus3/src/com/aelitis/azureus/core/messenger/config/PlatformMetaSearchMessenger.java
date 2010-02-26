@@ -45,11 +45,19 @@ PlatformMetaSearchMessenger
 
 	public static templateDetails 
 	getTemplate(
-		long	template_id )
+		String		extension_key,
+		long		template_id )
 	
 		throws PlatformMessengerException
 	{
-		Map reply = dispatcher.syncInvoke(	OP_GET_TEMPLATE, getParameter( template_id ) ); 
+		Map parameters = getParameter( template_id );
+		
+		if ( extension_key != null ){
+			
+			parameters.put( "extension_key", extension_key );
+		}
+		
+		Map reply = dispatcher.syncInvoke(	OP_GET_TEMPLATE, parameters ); 
 
 		templateInfo info = getTemplateInfo( reply );
 		
@@ -88,6 +96,7 @@ PlatformMetaSearchMessenger
 	
 	public static templateInfo[] 
    	getTemplateDetails(
+   		String		extension_key,
    		long[]		ids )
    	
    		throws PlatformMessengerException
@@ -106,6 +115,11 @@ PlatformMetaSearchMessenger
 		
    		Map parameters = new HashMap();
    		
+		if ( extension_key != null ){
+			
+			parameters.put( "extension_key", extension_key );
+		}
+		
    		parameters.put( "templateIds", str );
 
    		Map reply = dispatcher.syncInvoke(	OP_GET_TEMPLATES, parameters ); 
@@ -258,6 +272,7 @@ PlatformMetaSearchMessenger
 	                         	
 	public static void 
 	setTemplatetSelected(
+		String		extension_key,
 		long		template_id,
 		String		user_id,
 		boolean		is_selected )
@@ -265,6 +280,11 @@ PlatformMetaSearchMessenger
 		throws PlatformMessengerException
 	{
 		Map	parameters = getParameter( template_id );
+		
+		if ( extension_key != null ){
+			
+			parameters.put( "extension_key", extension_key );
+		}
 		
 		parameters.put( "userId", user_id );
 		parameters.put( "selected", new Boolean( is_selected ));
