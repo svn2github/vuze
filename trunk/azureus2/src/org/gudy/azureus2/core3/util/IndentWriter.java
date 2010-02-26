@@ -27,10 +27,13 @@ import java.io.PrintWriter;
 public class 
 IndentWriter 
 {
-	private static final String	INDENT_STRING	= "    ";
+	private static final String	INDENT_STRING		= "    ";
+	private static final String	INDENT_STRING_HTML	= "&nbsp;&nbsp;&nbsp;&nbsp;";
 	
 	private PrintWriter		pw;
 	private String			indent	= "";
+	
+	private boolean			html;
 	
 	private boolean			force;
 	
@@ -42,10 +45,24 @@ IndentWriter
 	}
 	
 	public void
+	setHTML(
+		boolean	_html )
+	{
+		html = _html;
+	}
+	
+	public void
 	println(
 		String	str )
 	{
-		pw.println( indent + str );
+		if ( html ){
+			
+			pw.print( indent + str + "<br>" );
+
+		}else{
+			
+			pw.println( indent + str );
+		}
 		
 		if ( force ){
 			
@@ -56,7 +73,7 @@ IndentWriter
 	public void
 	indent()
 	{
-		indent += INDENT_STRING;
+		indent += html?INDENT_STRING_HTML:INDENT_STRING;
 	}
 	
 	public void
@@ -64,8 +81,14 @@ IndentWriter
 	{
 		if ( indent.length() > 0 ){
 			
-			indent = indent.substring(INDENT_STRING.length());
+			indent = indent.substring((html?INDENT_STRING_HTML:INDENT_STRING).length());
 		}
+	}
+	
+	public String
+	getTab()
+	{
+		return( html?INDENT_STRING_HTML:INDENT_STRING );
 	}
 	
 	public void
