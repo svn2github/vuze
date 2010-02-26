@@ -48,6 +48,8 @@ public class SkinnedDialog
 
 	private List<SkinnedDialogClosedListener> closeListeners = new CopyOnWriteArrayList<SkinnedDialogClosedListener>();
 
+	private Shell mainShell;
+
 	public SkinnedDialog(String skinFile, String shellSkinObjectID) {
 		this(skinFile, shellSkinObjectID, SWT.DIALOG_TRIM | SWT.RESIZE);
 	}
@@ -55,7 +57,7 @@ public class SkinnedDialog
 	public SkinnedDialog(String skinFile, String shellSkinObjectID, int style) {
 		this.shellSkinObjectID = shellSkinObjectID;
 
-		Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
+		mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
 		shell = ShellFactory.createShell(mainShell, style);
 
 		Utils.setShellIcon(shell);
@@ -87,12 +89,13 @@ public class SkinnedDialog
 			}
 		});
 
-		skin.layout();
-
-		Utils.centerWindowRelativeTo(shell, mainShell);
 	}
 
 	public void open() {
+		skin.layout();
+
+		Utils.centerWindowRelativeTo(shell, mainShell);
+
 		shell.open();
 	}
 
