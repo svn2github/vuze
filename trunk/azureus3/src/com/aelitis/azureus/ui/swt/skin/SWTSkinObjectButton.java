@@ -45,6 +45,7 @@ public class SWTSkinObjectButton
 {
 	private Button button;
 	private ArrayList buttonListeners = new ArrayList(1);
+	private boolean textOverride;
 
 	public SWTSkinObjectButton(SWTSkin skin, final SWTSkinProperties properties,
 			String id, String configID, SWTSkinObject parentSkinObject) {
@@ -87,7 +88,7 @@ public class SWTSkinObjectButton
 		String sPrefix = sConfigID + ".text";
 		String text = properties.getStringValue(sPrefix + suffix);
 		if (text != null) {
-			setText(text);
+			setText(text, true);
 		}
 		
 		return suffix;
@@ -100,12 +101,22 @@ public class SWTSkinObjectButton
 		buttonListeners.add(listener);
 	}
 
+	public void setText(final String text) {
+		setText(text, false);
+	}
+
 	/**
 	 * @param text
 	 *
 	 * @since 3.1.1.1
 	 */
-	public void setText(final String text) {
+	private void setText(final String text, boolean auto) {
+		if (!auto) {
+			textOverride = true;
+		} else if (textOverride) {
+			return;
+		}
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (button != null && !button.isDisposed()) {
