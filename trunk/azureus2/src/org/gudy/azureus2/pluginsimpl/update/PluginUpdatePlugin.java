@@ -1733,8 +1733,34 @@ PluginUpdatePlugin
 			if ( files != null ){
 				
 				for (int i=0;i<files.length;i++){
-										
-					applyInstallProperties( install_properties, prefix + "/" + files[i].getName(), files[i] );
+							
+					File file = files[i];
+					
+					String	file_name = file.getName();
+					
+					if ( file_name.equals( "." ) || file_name.equals( ".." )){
+						
+						continue;
+					}
+					
+					String	new_prefix = prefix + "/" + file_name;
+					
+					boolean	match = false;
+					
+					for ( String s: install_properties.keySet()){
+					
+						if ( s.startsWith( new_prefix )){
+							
+							match = true;
+							
+							break;
+						}
+					}
+					
+					if ( match ){
+					
+						applyInstallProperties( install_properties, new_prefix, files[i] );
+					}
 				}
 			}
 		}else{
