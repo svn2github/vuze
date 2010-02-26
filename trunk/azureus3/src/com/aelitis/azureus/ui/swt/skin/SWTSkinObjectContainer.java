@@ -53,6 +53,8 @@ public class SWTSkinObjectContainer
 
 	private int minWidth;
 
+	private int minHeight;
+
 	public SWTSkinObjectContainer(SWTSkin skin, SWTSkinProperties properties,
 			String sID, String sConfigID, String[] sTypeParams, SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, "container", parent);
@@ -94,6 +96,7 @@ public class SWTSkinObjectContainer
 		}
 
 		minWidth = properties.getIntValue(sConfigID + ".minwidth", -1);
+		minHeight = properties.getIntValue(sConfigID + ".minheight", -1);
 
 		Composite parentComposite;
 		if (SWTSkin.DEBUGLAYOUT) {
@@ -159,6 +162,9 @@ public class SWTSkinObjectContainer
 		if (minWidth > 0 && size.x < minWidth) {
 			size.x = minWidth;
 		}
+		if (minHeight > 0 && size.y < minHeight) {
+			size.y = minHeight;
+		}
 		return size;
 	}
 
@@ -176,6 +182,9 @@ public class SWTSkinObjectContainer
 		}
 		if (minWidth > 0 && size.x < minWidth) {
 			size.x = minWidth;
+		}
+		if (minHeight > 0 && size.y < minHeight) {
+			size.y = minHeight;
 		}
 		return size;
 	}
