@@ -24,7 +24,6 @@ package org.gudy.azureus2.pluginsimpl.local.disk;
 
 import java.io.File;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;

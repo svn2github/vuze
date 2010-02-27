@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 
+import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -96,6 +97,15 @@ PluginCoreUtils
 			
 			return( null );
 		}
+	}
+	
+	public static org.gudy.azureus2.plugins.disk.DiskManagerFileInfo
+	wrap(
+		DiskManagerFileInfo		info )
+	
+		throws DownloadException
+	{
+		return( new DiskManagerFileInfoImpl( DownloadManagerImpl.getDownloadStatic( info.getDownloadManager()), info ));
 	}
 	
 	public static Object
