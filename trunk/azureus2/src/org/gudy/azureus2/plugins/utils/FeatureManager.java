@@ -163,6 +163,7 @@ FeatureManager
 		public String	PR_OFFLINE_VALID_UNTIL		= "OfflineValidUntil";		// Long
 		public String	PR_IS_INSTALL_TIME			= "IsInstallTime";			// Long (0=false)
 		public String	PR_IS_TRIAL					= "IsTrial";				// Long (0=false)
+		public String	PR_TRIAL_USES_LIMIT			= "TrialUsesLimit";		// Long
 		public String	PR_TRIAL_USES_REMAINING		= "TrialUsesRemaining";		// Long
 		public String	PR_REQUIRED_PLUGINS			= "Plugins";				// String: comma separated plugin ids
 		public String	PR_FINGERPRINT				= "Fingerprint";			// String
