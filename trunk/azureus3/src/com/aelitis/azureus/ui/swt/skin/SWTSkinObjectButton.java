@@ -25,10 +25,11 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -58,8 +59,25 @@ public class SWTSkinObjectButton
 			createOn = (Composite) parent.getControl();
 		}
 
+		Control c = null;
+		
+		if (Constants.isWindows) {
+			// Windows SWT Bug: button BG won't draw properly without INHERIT FORCE
+			// create a intermediate composite with forced inherit and put button
+			// in that.
+			createOn = new Composite(createOn, SWT.NONE);
+			createOn.setLayout(new FormLayout());
+			createOn.setBackgroundMode(SWT.INHERIT_FORCE);
+			c = createOn;
+		}
 
 		button = new Button(createOn, SWT.PUSH);
+		
+		if (Constants.isWindows) {
+			button.setLayoutData(Utils.getFilledFormData());
+		} else {
+			c = button;
+		}
 		
 		button.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
@@ -74,7 +92,7 @@ public class SWTSkinObjectButton
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
-		setControl(button);
+		setControl(c);
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#switchSuffix(java.lang.String, int, boolean)
@@ -143,5 +161,9 @@ public class SWTSkinObjectButton
 			}
 		});
 		
+	}
+	
+	public Button getButton() {
+		return button;
 	}
 }

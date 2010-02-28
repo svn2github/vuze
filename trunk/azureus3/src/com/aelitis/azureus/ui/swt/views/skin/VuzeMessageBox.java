@@ -109,19 +109,28 @@ public class VuzeMessageBox
 
 		SWTSkinObjectContainer soBottomArea = (SWTSkinObjectContainer) skin.getSkinObject("bottom-area");
 		if (soBottomArea != null) {
-			Composite cBottomArea = soBottomArea.getComposite();
-			Composite cCenter = new Composite(cBottomArea, SWT.NONE);
 			FormData fd;
+			Composite cBottomArea = soBottomArea.getComposite();
+			Composite cCenterH = new Composite(cBottomArea, SWT.NONE);
 			fd = new FormData();
-			fd.height = 2;
+			fd.height = 1;
 			fd.left = new FormAttachment(0);
 			fd.right = new FormAttachment(100);
-			cCenter.setLayoutData(fd);
+			cCenterH.setLayoutData(fd);
+
+			Composite cCenterV = new Composite(cBottomArea, SWT.NONE);
+			fd = new FormData();
+			fd.height = 1;
+			fd.top = new FormAttachment(0);
+			fd.bottom = new FormAttachment(100);
+			cCenterV.setLayoutData(fd);
 
 			Composite cButtonArea = new Composite(cBottomArea, SWT.NONE);
+			// Fix button BG not right on Win7
+			cButtonArea.setBackgroundMode(SWT.INHERIT_FORCE);
 			fd = new FormData();
-			fd.top = new FormAttachment(cCenter, 0);
-			fd.left = new FormAttachment(cCenter, 0, SWT.CENTER);
+			fd.top = new FormAttachment(cCenterV, 0, SWT.CENTER);
+			fd.left = new FormAttachment(cCenterH, 0, SWT.CENTER);
 			cButtonArea.setLayoutData(fd);
 
 			RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);

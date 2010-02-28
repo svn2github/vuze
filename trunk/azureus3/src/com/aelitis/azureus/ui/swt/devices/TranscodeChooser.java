@@ -681,7 +681,7 @@ public abstract class TranscodeChooser
 
 			SWTSkinObjectButton soOk = (SWTSkinObjectButton) skin.getSkinObject("ok");
 			if (soOk != null) {
-				shell.setDefaultButton((Button) soOk.getControl());
+				shell.setDefaultButton(soOk.getButton());
 				soOk.addSelectionListener(new ButtonListenerAdapter() {
 					public void pressed(SWTSkinButtonUtility buttonUtility,
 							SWTSkinObject skinObject, int stateMask) {
