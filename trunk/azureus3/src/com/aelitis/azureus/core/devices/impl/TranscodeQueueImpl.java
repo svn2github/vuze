@@ -1166,9 +1166,9 @@ TranscodeQueueImpl
 				runSupport() 
 				{
 					try{
-						analyse( job );
+						TranscodeProviderAnalysis analysis = analyse( job );
 		
-						listener.analysisComplete( job );
+						listener.analysisComplete( job, analysis );
 						
 					}catch( TranscodeException e ){
 						

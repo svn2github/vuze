@@ -26,7 +26,8 @@ TranscodeAnalysisListener
 {
 	public void
 	analysisComplete(
-		TranscodeJob		file );
+		TranscodeJob					file,
+		TranscodeProviderAnalysis		analysis );
 	
 	public void
 	analysisFailed(

@@ -38,6 +38,9 @@ TranscodeProviderAnalysis
 	cancel();
 	
 	public boolean
+	foundVideoStream();
+	
+	public boolean
 	getBooleanProperty(
 		int		property );
 	

@@ -241,6 +241,12 @@ TranscodeProviderVuze
 							}
 						}
 						
+						public boolean 
+						foundVideoStream() 
+						{
+							return( getLongProperty( PT_VIDEO_WIDTH ) > 0 );
+						}
+						
 						public boolean
 						getBooleanProperty(
 							int		property )
