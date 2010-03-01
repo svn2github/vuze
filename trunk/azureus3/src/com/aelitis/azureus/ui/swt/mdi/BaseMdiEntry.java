@@ -369,7 +369,14 @@ public abstract class BaseMdiEntry
 	 */
 	public boolean triggerDropListeners(Object o) {
 		boolean handled = false;
-		Object[] list = listDropListeners.toArray();
+		Object[] list;
+		synchronized (this) {
+			if (listDropListeners == null) {
+				return handled;
+			}
+
+			list = listDropListeners.toArray();
+		}
 		for (int i = 0; i < list.length; i++) {
 			MdiEntryDropListener l = (MdiEntryDropListener) list[i];
 			handled = l.mdiEntryDrop(this, o);
