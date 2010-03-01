@@ -2437,7 +2437,7 @@ DeviceManagerUI
 
 										}
 										
-										TranscodeProfile[] transcodeProfiles = renderer.getTranscodeProfiles();
+										final TranscodeProfile[] transcodeProfiles = renderer.getTranscodeProfiles();
 										
 										if (transcodeProfiles.length > 0) {
 											
@@ -2456,15 +2456,21 @@ DeviceManagerUI
 													renderer.setDefaultTranscodeProfile(null);
 												}
 											});
+											
 											menu_profile_none.addFillListener(new MenuItemFillListener() {
 												public void menuWillBeShown(MenuItem menu, Object data) {
-													TranscodeProfile profile = null;
-													try {
-														profile = renderer.getDefaultTranscodeProfile();
-													} catch (TranscodeException e) {
+													if ( transcodeProfiles.length <= 1 ){
+														menu.setData( Boolean.FALSE );
+														menu.setEnabled( false );
+													}else{
+														TranscodeProfile profile = null;
+														try {
+															profile = renderer.getDefaultTranscodeProfile();
+														} catch (TranscodeException e) {
+														}
+														menu.setData((profile == null) ? Boolean.TRUE
+																: Boolean.FALSE);
 													}
-													menu.setData((profile == null) ? Boolean.TRUE
-															: Boolean.FALSE);
 												}
 											});
 
@@ -2480,13 +2486,18 @@ DeviceManagerUI
 												});
 												menuItem.addFillListener(new MenuItemFillListener() {
 													public void menuWillBeShown(MenuItem menu, Object data) {
-														TranscodeProfile dprofile = null;
-														try {
-															dprofile = renderer.getDefaultTranscodeProfile();
-														} catch (TranscodeException e) {
+														if ( transcodeProfiles.length <= 1 ){
+															menu.setData( Boolean.TRUE );
+															menu.setEnabled( false );
+														}else{
+															TranscodeProfile dprofile = null;
+															try {
+																dprofile = renderer.getDefaultTranscodeProfile();
+															} catch (TranscodeException e) {
+															}
+															menu.setData((profile.equals(dprofile))
+																	? Boolean.TRUE : Boolean.FALSE);
 														}
-														menu.setData((profile.equals(dprofile))
-																? Boolean.TRUE : Boolean.FALSE);
 													}
 												});
 											}
