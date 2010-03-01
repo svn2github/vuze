@@ -249,6 +249,15 @@ public class SideBarEntrySWT
 			Rectangle bounds = swtItem.getBounds();
 			Rectangle treeBounds = tree.getBounds();
 			return new Rectangle(0, bounds.y, treeBounds.width, bounds.height);
+		} catch (NullPointerException e) {
+			// On OSX, we get erroneous NPE here:
+			//at org.eclipse.swt.widgets.Tree.sendMeasureItem(Tree.java:2443)
+			//at org.eclipse.swt.widgets.Tree.cellSize(Tree.java:274)
+			//at org.eclipse.swt.widgets.Display.windowProc(Display.java:4750)
+			//at org.eclipse.swt.internal.cocoa.OS.objc_msgSend_stret(Native Method)
+			//at org.eclipse.swt.internal.cocoa.NSCell.cellSize(NSCell.java:34)
+			//at org.eclipse.swt.widgets.TreeItem.getBounds(TreeItem.java:467)
+			Debug.outNoStack("NPE @ " + Debug.getCompressedStackTrace(), true);
 		} catch (Exception e) {
 			Debug.out(e);
 		}
