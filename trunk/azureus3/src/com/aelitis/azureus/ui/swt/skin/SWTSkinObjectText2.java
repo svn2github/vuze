@@ -30,14 +30,11 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -97,6 +94,8 @@ public class SWTSkinObjectText2
 
 	protected boolean mouseDown;
 
+	private Color colorShadow;
+
 	public SWTSkinObjectText2(SWTSkin skin,
 			final SWTSkinProperties skinProperties, String sID,
 			final String sConfigID, String[] typeParams, SWTSkinObject parent) {
@@ -126,8 +125,9 @@ public class SWTSkinObjectText2
 			style |= SWT.TOP;
 		}
 
+		int canvasStyle = SWT.DOUBLE_BUFFERED;
 		if (skinProperties.getIntValue(sConfigID + ".border", 0) == 1) {
-			style |= SWT.BORDER;
+			canvasStyle |= SWT.BORDER;
 		}
 
 		String sAntiAlias = skinProperties.getStringValue(sConfigID + ".antialias",
@@ -147,7 +147,7 @@ public class SWTSkinObjectText2
 			createOn = (Composite) parent.getControl();
 		}
 
-		canvas = new Canvas(createOn, SWT.DOUBLE_BUFFERED) {
+		canvas = new Canvas(createOn, canvasStyle) {
 			Point ptMax = new Point(0, 0);
 
 			// @see org.eclipse.swt.widgets.Composite#computeSize(int, int, boolean)
@@ -466,6 +466,12 @@ public class SWTSkinObjectText2
 				this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase()
 						: sText;
 			}
+			
+			colorShadow = properties.getColor(sPrefix + ".shadow", null);
+			if (colorShadow != null) {
+				hasShadow = true;
+			}
+
 
 			if (iFontWeight >= 0) {
 				tempFontData[0].setStyle(iFontWeight);
@@ -583,6 +589,7 @@ public class SWTSkinObjectText2
 
 		Composite composite = (Composite) control;
 		Rectangle clientArea = composite.getClientArea();
+		
 		clientArea.x += hpadding;
 		clientArea.width -= hpadding * 2;
 		clientArea.y += vpadding;
@@ -612,9 +619,13 @@ public class SWTSkinObjectText2
 					clientArea.width, clientArea.height);
 
 			Color foreground = gc.getForeground();
-			Color color = ColorCache.getColor(gc.getDevice(), 0, 0, 0);
-			gc.setForeground(color);
-			gc.setAlpha(64);
+			if (colorShadow == null) {
+  			Color color = ColorCache.getColor(gc.getDevice(), 0, 0, 0);
+  			gc.setForeground(color);
+  			gc.setAlpha(64);
+			} else {
+				gc.setForeground(colorShadow);
+			}
 			GCStringPrinter.printString(gc, sDisplayText, r, true, false, style);
 			gc.setForeground(foreground);
 		}
