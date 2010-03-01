@@ -76,6 +76,10 @@ public interface TableColumn {
   public static final String CAT_CONNECTION = "connection";
   public static final String CAT_PROGRESS = "progress";
 
+  	// user-data properties
+  
+  public static final String UD_FORCE_VISIBLE = "ud_fv";	// Boolean
+  
   /** Initialize a group of variables all at once.  Saves on individual setXxx.
    *
    * @param iAlignment See {@link #setAlignment(int)}
