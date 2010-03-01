@@ -115,7 +115,7 @@ IntegratedResourceBundle
 
 	private final int initCapacity;
 	
-
+	private Map<String,String>	added_strings;
 	
 	public 
 	IntegratedResourceBundle(
@@ -455,48 +455,59 @@ IntegratedResourceBundle
 				return( messages );
 			}
 			
+			Map	result;
+			
 			if ( scratch_file_is == null ){
 				
-				return( new LightHashMap());
-			}
+				result = new LightHashMap();
+				
+			}else{
 			
-			Properties p = new Properties();
-			
-			InputStream	fis = scratch_file_is;
-			
-			try{
-								
-				p.load( fis );
+				Properties p = new Properties();
 				
-				fis.close();
+				InputStream	fis = scratch_file_is;
 				
-				scratch_file_is = new FileInputStream( scratch_file_name );
-				
-				messages = new LightHashMap();
-				
-				messages.putAll( p );
-				
-				return( messages );
-				
-			}catch( Throwable e ){
-				
-				if ( fis != null ){
+				try{
+									
+					p.load( fis );
 					
-					try{
-						fis.close();
+					fis.close();
+					
+					scratch_file_is = new FileInputStream( scratch_file_name );
+					
+					messages = new LightHashMap();
+					
+					messages.putAll( p );
+					
+					result = messages;
+					
+				}catch( Throwable e ){
+					
+					if ( fis != null ){
 						
-					}catch( Throwable f ){
+						try{
+							fis.close();
+							
+						}catch( Throwable f ){
+						}
 					}
+					
+					Debug.out( "Failed to load message bundle scratch file", e );
+					
+					scratch_file_name.delete();
+					
+					scratch_file_is = null;
+					
+					result = new LightHashMap();
 				}
-				
-				Debug.out( "Failed to load message bundle scratch file", e );
-				
-				scratch_file_name.delete();
-				
-				scratch_file_is = null;
-				
-				return( new LightHashMap());
 			}
+			
+			if ( added_strings != null ){
+				
+				result.putAll( added_strings );
+			}
+			
+			return( result );
 		}
 	}
 	
@@ -504,12 +515,24 @@ IntegratedResourceBundle
 	getString()
 	{
 		return( locale + ": use=" + used_messages.size() + ",map=" + (messages==null?"":String.valueOf(messages.size())) 
-				+ (null_values == null ? "" : ",null=" + null_values.size()));
+				+ (null_values == null ? "" : ",null=" + null_values.size()) + ",added=" + (added_strings==null?"":added_strings.size()));
 	}
 	
 	public void
 	addString(String key, String value) {
-		messages.put(key, value);
+		synchronized( bundle_map ){
+			if ( added_strings == null ){
+				
+				added_strings = new HashMap<String, String>();
+			}
+			
+			added_strings.put( key, value );
+			
+			if ( messages != null ){
+				
+				messages.put( key, value );
+			}
+		}
 	}
 
 	public boolean getUseNullList() {
