@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.eclipse.swt.program.Program;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
@@ -55,6 +56,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -217,7 +219,7 @@ public class TorrentListViewsUtils
 	}
 
 
-	public static void playOrStreamDataSource(Object ds, SWTSkinButtonUtility btn) {
+	public static void playOrStreamDataSource(Object ds, SWTSkinButtonUtility btn, boolean launch_already_checked) {
 		String referal = DLReferals.DL_REFERAL_UNKNOWN;
 		if (ds instanceof VuzeActivitiesEntry) {
 			referal = DLReferals.DL_REFERAL_PLAYDASHACTIVITY;
@@ -226,17 +228,17 @@ public class TorrentListViewsUtils
 		} else if (ds instanceof ISelectedContent) {
 			referal = DLReferals.DL_REFERAL_SELCONTENT;
 		}
-		playOrStreamDataSource(ds, btn, referal);
+		playOrStreamDataSource(ds, btn, referal, launch_already_checked);
 	}
 
 	public static void playOrStreamDataSource(Object ds,
-			SWTSkinButtonUtility btn, String referal) {
+			SWTSkinButtonUtility btn, String referal, boolean launch_already_checked ) {
 
 		DownloadManager dm = DataSourceUtils.getDM(ds);
 		if (dm == null) {
 			downloadDataSource(ds, true, referal);
 		} else {
-			playOrStream(dm, btn);
+			playOrStream(dm, btn, launch_already_checked);
 		}
 
 	}
@@ -298,8 +300,40 @@ public class TorrentListViewsUtils
 	}
 
 	public static void playOrStream(final DownloadManager dm,
-			final SWTSkinButtonUtility btn) {
-		_playOrStream(dm, btn);
+			final SWTSkinButtonUtility btn, boolean launch_already_checked ) {
+			
+		if (dm == null) {
+			return;
+		}
+		
+		if ( launch_already_checked ){
+		
+			_playOrStream(dm, btn);
+			
+		}else{
+			
+			LaunchManager	launch_manager = LaunchManager.getManager();
+			
+			LaunchManager.LaunchTarget target = launch_manager.createTarget( dm );
+				
+			launch_manager.launchRequest(
+				target,
+				new LaunchManager.LaunchAction()
+				{
+					public void
+					actionAllowed()
+					{
+						_playOrStream(dm, btn);
+					}
+					
+					public void
+					actionDenied(
+						Throwable		reason )
+					{
+						Debug.out( "Launch request denied", reason );
+					}
+				});
+		}
 	}
 
 	private static void _playOrStream(final DownloadManager dm,
@@ -840,6 +874,6 @@ public class TorrentListViewsUtils
 	}
 
 	public static void playOrStream(final DownloadManager dm) {
-		playOrStream(dm, null);
+		playOrStream(dm, null, false );
 	}
 }

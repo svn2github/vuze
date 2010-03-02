@@ -147,7 +147,7 @@ public class ToolBarView
   				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
   				if (sc != null) {
   					TorrentListViewsUtils.playOrStreamDataSource(sc[0],
-  							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR);
+  							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR, false );
   				}
   			}
   		};

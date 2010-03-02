@@ -353,8 +353,9 @@ public class SBC_LibraryTableView
 					
 					// fallback
 					if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
-						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-								DLReferals.DL_REFERAL_DBLCLICK);
+						TorrentListViewsUtils.playOrStreamDataSource(
+								ds, null,
+								DLReferals.DL_REFERAL_DBLCLICK, true );
 					}
 				}
 			};
