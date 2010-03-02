@@ -307,8 +307,8 @@ RSSEngine
 									}
 								}
 							}else if(lc_child_name.equals( "category" )) {
-								
-								result.setCategory( value );
+																
+								result.setCategoryFromHTML( value );
 								
 							}else if(lc_child_name.equals( "comments" )){
 								
