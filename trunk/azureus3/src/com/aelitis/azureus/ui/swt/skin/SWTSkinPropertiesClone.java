@@ -343,8 +343,8 @@ public class SWTSkinPropertiesClone
 	}
 	
 	// @see com.aelitis.azureus.ui.skin.SkinProperties#addResourceBundle(java.util.ResourceBundle)
-	public void addResourceBundle(ResourceBundle subBundle) {
-		properties.addResourceBundle(subBundle);
+	public void addResourceBundle(ResourceBundle subBundle, String skinPath) {
+		properties.addResourceBundle(subBundle, skinPath);
 	}
 	
 	// @see com.aelitis.azureus.ui.skin.SkinProperties#getClassLoader()
