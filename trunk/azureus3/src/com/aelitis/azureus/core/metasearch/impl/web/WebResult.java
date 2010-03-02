@@ -35,9 +35,6 @@ import com.aelitis.azureus.core.metasearch.impl.DateParser;
 public class WebResult extends Result {
 	
 	
-	private static final String HTML_TAGS = "(\\<(/?[^\\>]+)\\>)" ;
-	private static final String DUPLICATE_SPACES = "\\s{2,}";
-	
 	
 	String searchQuery;
 	
@@ -80,12 +77,7 @@ public class WebResult extends Result {
 		this.dateParser = dateParser;
 		this.searchQuery = searchQuery;
 	}
-	
-	private static final String removeHTMLTags(String input) {
-		String result = input.replaceAll(HTML_TAGS, " ");
-		return result.replaceAll(DUPLICATE_SPACES, " ").trim();
-	}
-	
+		
 	public void setName(String name) {
 		if(name != null) {
 			this.name = name;

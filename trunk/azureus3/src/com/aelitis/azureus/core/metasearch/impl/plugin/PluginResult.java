@@ -343,7 +343,7 @@ PluginResult
 				return( def );
 			}
 			
-			return( l );
+			return( unescapeEntities( removeHTMLTags( l )));
 			
 		}catch( Throwable e ){
 			

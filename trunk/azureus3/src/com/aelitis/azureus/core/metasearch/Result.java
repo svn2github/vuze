@@ -27,12 +27,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.commons.lang.Entities;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.metasearch.utils.MomentsAgoDateFormatter;
 
 public abstract class Result {
+	private static final String HTML_TAGS = "(\\<(/?[^\\>]+)\\>)" ;
+	private static final String DUPLICATE_SPACES = "\\s{2,}";
 
 	private Engine		engine;
 	
@@ -354,5 +357,21 @@ public abstract class Result {
 
 			}
 		}
+	}
+	
+	protected static final String removeHTMLTags(String input) {
+		if ( input == null ){
+			return( null );
+		}
+		String result = input.replaceAll(HTML_TAGS, " ");
+		return result.replaceAll(DUPLICATE_SPACES, " ").trim();
+	}
+
+	protected static final String unescapeEntities( String input )
+	{
+		if ( input == null ){
+			return( null );
+		}
+		return( Entities.HTML40.unescape( input ));
 	}
 }
