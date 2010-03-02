@@ -28,6 +28,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -53,6 +54,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
@@ -308,39 +310,91 @@ public class SBC_LibraryTableView
 		viewComposite.getParent().layout(true);
 	}
 
-	public static void doDefaultClick(TableRowCore[] rows, int stateMask,
-			boolean neverPlay) {
+	public static void 
+	doDefaultClick(
+		final TableRowCore[] 	rows, 
+		final int 				stateMask,
+		final boolean 			neverPlay) 
+	{
 		if (rows == null || rows.length != 1) {
 			return;
 		}
-		Object ds = rows[0].getDataSource(true);
+		
+		final Object ds = rows[0].getDataSource(true);
 
-		String mode = COConfigurationManager.getStringParameter("list.dm.dblclick");
-		if (mode.equals("1")) {
-			// OMG! Show Details! I <3 you!
-			DownloadManager dm = DataSourceUtils.getDM(ds);
-			if (dm != null) {
-				UIFunctionsManager.getUIFunctions().openView(UIFunctions.VIEW_DM_DETAILS, dm);
-				return;
-			}
-		} else if (mode.equals("2")) {
-			// Show in explorer
-			DownloadManager dm = DataSourceUtils.getDM(ds);
-			if (dm != null) {
-  			boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
-  			ManagerUtils.open(dm, openMode);
-  			return;
-			}
+		
+		final Runnable action = 
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					String mode = COConfigurationManager.getStringParameter("list.dm.dblclick");
+					if (mode.equals("1")) {
+						// OMG! Show Details! I <3 you!
+						DownloadManager dm = DataSourceUtils.getDM(ds);
+						if (dm != null) {
+							UIFunctionsManager.getUIFunctions().openView(UIFunctions.VIEW_DM_DETAILS, dm);
+							return;
+						}
+					} else if (mode.equals("2")) {
+						// Show in explorer
+						DownloadManager dm = DataSourceUtils.getDM(ds);
+						if (dm != null) {
+			  			boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
+			  			ManagerUtils.open(dm, openMode);
+			  			return;
+						}
+					}
+					
+					if (neverPlay) {
+						return;
+					}
+					
+					// fallback
+					if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
+						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+								DLReferals.DL_REFERAL_DBLCLICK);
+					}
+				}
+			};
+			
+		LaunchManager	launch_manager = LaunchManager.getManager();
+		
+		LaunchManager.LaunchTarget target = null;
+		
+		if ( ds instanceof DownloadManager ){
+		
+			target = launch_manager.createTarget((DownloadManager)ds );
+			
+		}else if ( ds instanceof DiskManagerFileInfo ){
+			
+			target = launch_manager.createTarget((DiskManagerFileInfo)ds );
 		}
 		
-		if (neverPlay) {
-			return;
-		}
-		
-		// fallback
-		if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
-			TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-					DLReferals.DL_REFERAL_DBLCLICK);
+		if ( target == null ){
+			
+			action.run();
+			
+		}else{
+			
+			launch_manager.launchRequest(
+				target,
+				new LaunchManager.LaunchAction()
+				{
+					public void
+					actionAllowed()
+					{
+						action.run();
+					}
+					
+					public void
+					actionDenied(
+						Throwable		reason )
+					{
+						Debug.out( "Launch request denied", reason );
+					}
+				});
 		}
 	}
 
