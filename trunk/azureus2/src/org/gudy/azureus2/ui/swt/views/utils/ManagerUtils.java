@@ -65,6 +65,7 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.util.LaunchManager;
 
 /**
  * @author Olivier
@@ -82,15 +83,34 @@ public class ManagerUtils {
 		ManagerUtils.run = run;
 	}
   
-  public static void run(DownloadManager dm) {
-	System.out.println( "AV:check launch - " + dm );
-    if(dm != null) {
-    	if (run != null) {
-    		run.run(dm);
-    	} else {
-    		Utils.launch(dm.getSaveLocation().toString());
-    	}
-    }
+  public static void run( final DownloadManager dm) {
+	if(dm != null) {
+		LaunchManager	launch_manager = LaunchManager.getManager();
+		
+		LaunchManager.LaunchTarget target = launch_manager.createTarget( dm );
+		
+		launch_manager.launchRequest(
+			target,
+			new LaunchManager.LaunchAction()
+			{
+				public void
+				actionAllowed()
+				{
+				   	if (run != null) {
+			    		run.run(dm);
+			    	} else {
+			    		Utils.launch(dm.getSaveLocation().toString());
+			    	}
+				}
+				
+				public void
+				actionDenied(
+					Throwable			reason )
+				{
+					Debug.out( "Launch request denied", reason );
+				}
+			});
+	}
   }
   
  /**
@@ -99,9 +119,33 @@ public class ManagerUtils {
   */
 	public static void open(DownloadManager dm) {open(dm, false);}
 	
-	public static void open(DownloadManager dm, boolean open_containing_folder_mode) {
-		System.out.println( "AV:check launch - " + dm );
-		if (dm != null) {open(dm.getSaveLocation(), open_containing_folder_mode);}
+	public static void open(final DownloadManager dm, final boolean open_containing_folder_mode) {
+
+		if ( dm != null ){
+			
+			LaunchManager	launch_manager = LaunchManager.getManager();
+			
+			LaunchManager.LaunchTarget target = launch_manager.createTarget( dm );
+			
+			launch_manager.launchRequest(
+				target,
+				new LaunchManager.LaunchAction()
+				{
+					public void
+					actionAllowed()
+					{
+						open(dm.getSaveLocation(), open_containing_folder_mode);
+					}
+					
+					public void
+					actionDenied(
+						Throwable			reason )
+					{
+						Debug.out( "Launch request denied", reason );
+					}
+				});
+			
+		}		
 	}
 
 	public static void open(File f, boolean open_containing_folder_mode) {
