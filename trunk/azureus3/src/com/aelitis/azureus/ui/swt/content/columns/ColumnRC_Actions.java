@@ -74,7 +74,10 @@ public class ColumnRC_Actions
 	}
 
 	public void cellPaint(GC gc, TableCellSWT cell) {
-		String text = cell.getText();
+		String text = (String) cell.getSortValue();
+		if (text == null) {
+			return;
+		}
 
 		if (text != null && text.length() > 0) {
 			if (font == null) {
@@ -133,17 +136,16 @@ public class ColumnRC_Actions
 		}
 		boolean downloadable = rc.getHash() != null;
 
-		if (!cell.setSortValue(downloadable ? 1 : 0) && cell.isValid()) {
-			return;
-		}
-
 		String s;
 		s = "<A HREF=\"search\">" + MessageText.getString("Button.search") + "</A>";
 		if (downloadable) {
 			s += " | <A HREF=\"dl\">"
-					+ MessageText.getString("v3.MainWindow.button.download") + "</A>";
+				+ MessageText.getString("v3.MainWindow.button.download") + "</A>";
 		}
-		cell.setText(s);
+
+		if (!cell.setSortValue(s) && cell.isValid()) {
+			return;
+		}
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
@@ -156,7 +158,10 @@ public class ColumnRC_Actions
 		boolean invalidateAndRefresh = event.eventType == event.EVENT_MOUSEEXIT;
 
 		Rectangle bounds = ((TableCellSWT) event.cell).getBounds();
-		String text = event.cell.getText();
+		String text = (String) event.cell.getSortValue();
+		if (text == null) {
+			return;
+		}
 
 		GCStringPrinter sp = null;
 		GC gc = new GC(Display.getDefault());
