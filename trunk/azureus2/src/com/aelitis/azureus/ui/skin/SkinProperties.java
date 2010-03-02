@@ -103,10 +103,11 @@ public interface SkinProperties
 
 	/**
 	 * @param subBundle
+	 * @param skinPath TODO
 	 *
 	 * @since 4.0.0.5
 	 */
-	void addResourceBundle(ResourceBundle subBundle);
+	void addResourceBundle(ResourceBundle subBundle, String skinPath);
 
 	/**
 	 * @return

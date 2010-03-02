@@ -101,10 +101,29 @@ public class SkinPropertiesImpl
 		}
 	}
 	
-	public void addResourceBundle(ResourceBundle subBundle) {
+	public void addResourceBundle(ResourceBundle subBundle, String skinPath) {
 		try {
 			rb.addResourceMessages(subBundle);
-  	} catch (Throwable t) {
+
+			if (subBundle.containsKey("skin.include") && skinPath != null) {
+  			String sFiles = subBundle.getString("skin.include");
+  			if (sFiles != null) {
+  				String[] sFilesArray = sFiles.split(",");
+  				for (int i = 0; i < sFilesArray.length; i++) {
+  					String sFile = (sFilesArray[i].startsWith("/")
+  							? sFilesArray[i].substring(1) : skinPath + sFilesArray[i]);
+  					sFile = sFile.replaceAll("/", ".");
+  					try {
+  						ResourceBundle incBundle = ResourceBundle.getBundle(sFile,
+  								Locale.getDefault(), classLoader);
+  						rb.addResourceMessages(incBundle);
+  					} catch (Throwable t) {
+  						Debug.out("Err loading skin include: " + sFile, t);
+  					}
+  				}
+  			}
+			}
+		} catch (Throwable t) {
   		Debug.out("Err loading skin include: " + subBundle, t);
   	}
 	}
