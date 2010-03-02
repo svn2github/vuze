@@ -83,6 +83,7 @@ public class ManagerUtils {
 	}
   
   public static void run(DownloadManager dm) {
+	System.out.println( "AV:check launch - " + dm );
     if(dm != null) {
     	if (run != null) {
     		run.run(dm);
@@ -99,6 +100,7 @@ public class ManagerUtils {
 	public static void open(DownloadManager dm) {open(dm, false);}
 	
 	public static void open(DownloadManager dm, boolean open_containing_folder_mode) {
+		System.out.println( "AV:check launch - " + dm );
 		if (dm != null) {open(dm.getSaveLocation(), open_containing_folder_mode);}
 	}
 

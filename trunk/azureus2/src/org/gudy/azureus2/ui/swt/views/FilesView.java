@@ -187,7 +187,7 @@ public class FilesView
 		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tv.getFirstSelectedDataSource();
 		if (fileInfo != null
 				&& fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
-			Utils.launch(fileInfo.getFile(true).toString());
+			Utils.launch(fileInfo);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWTMenuFillListener#fillMenu(org.eclipse.swt.widgets.Menu)
@@ -338,7 +338,7 @@ public class FilesView
 		public void run(TableRowCore row) {
 			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
 			if (fileInfo.getAccessMode() == DiskManagerFileInfo.READ) {
-				Utils.launch(fileInfo.getFile(true).toString());
+				Utils.launch(fileInfo);
 			}
 		}
 	});
