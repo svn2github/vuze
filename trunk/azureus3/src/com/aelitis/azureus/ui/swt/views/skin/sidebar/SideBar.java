@@ -435,7 +435,11 @@ public class SideBar
 									paintArea.width = 17;
 									selected = tree.getSelectionCount() == 1
 											&& tree.getSelection()[0].equals(treeItem);
-									entry.swt_paintEntryBG(selected, event.gc, paintArea);
+									int detail = 0;
+									if (selected) {
+										detail |= SWT.SELECTED;
+									}
+									entry.swt_paintEntryBG(detail, event.gc, paintArea);
 									y = itemBounds.y + itemBounds.height + 1;
 								} else {
 									y += tree.getItemHeight();

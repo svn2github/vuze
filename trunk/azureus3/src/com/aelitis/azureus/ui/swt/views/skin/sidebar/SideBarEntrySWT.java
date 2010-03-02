@@ -500,7 +500,7 @@ public class SideBarEntrySWT
 		//gc.setClipping((Rectangle) null);
 
 		boolean selected = (event.detail & SWT.SELECTED) > 0;
-		Color fgText = swt_paintEntryBG(selected, gc, drawBounds);
+		Color fgText = swt_paintEntryBG(event.detail, gc, drawBounds);
 
 		Tree tree = (Tree) event.widget;
 
@@ -782,8 +782,11 @@ public class SideBarEntrySWT
 		}
 	}
 
-	protected Color swt_paintEntryBG(boolean selected, GC gc, Rectangle drawBounds) {
+	protected Color swt_paintEntryBG(int detail, GC gc, Rectangle drawBounds) {
 		Color fgText = Colors.black;
+		boolean selected = (detail & SWT.SELECTED) > 0;
+		//boolean focused = (detail & SWT.FOCUSED) > 0;
+		//boolean hot = (detail & SWT.HOT) > 0;
 		if (selected) {
 			//System.out.println("gmmm" + drawBounds + ": " + Debug.getCompressedStackTrace());
 			gc.setClipping((Rectangle) null);
@@ -823,10 +826,18 @@ public class SideBarEntrySWT
 			}
 
 			if (this == sidebar.draggingOver) {
-				gc.setBackground(ColorCache.getColor(gc.getDevice(), "#2688aa"));
+				Color c = skin.getSkinProperties().getColor("color.sidebar.drag.bg");
+				gc.setBackground(c);
 			}
 
 			gc.fillRectangle(drawBounds);
+
+			if (this == sidebar.draggingOver) {
+				Color c = skin.getSkinProperties().getColor("color.sidebar.drag.fg");
+				gc.setForeground(c);
+				gc.setLineWidth(5);
+				gc.drawRectangle(drawBounds);
+			}
 		}
 		return fgText;
 	}
