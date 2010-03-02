@@ -65,8 +65,10 @@ public class SWTSkinObjectImage
 				Long drawMode = (Long) control.getData("drawmode");
 				if (drawMode == DRAW_ANIMATE) {
 					Image[] images = (Image[]) control.getData("images");
-					int idx = ((Number) control.getData("ImageIndex")).intValue();
-					imgSrc = images[idx];
+					if (images != null) {
+  					int idx = ((Number) control.getData("ImageIndex")).intValue();
+  					imgSrc = images[idx];
+					}
 				}
 
 				Image imgRight = null;
@@ -322,7 +324,9 @@ public class SWTSkinObjectImage
 
 				boolean hasExistingDelay = canvas.getData("delay") != null;
 				canvas.setData("delay", null);
-				if (drawMode == DRAW_ANIMATE) {
+				if (images == null) {
+					image = null;
+				} else if (drawMode == DRAW_ANIMATE) {
 					int animationDelay = ImageLoader.getInstance().getAnimationDelay(sImageID);
 
 					canvas.setData("images", images);
@@ -526,6 +530,11 @@ public class SWTSkinObjectImage
 		}
 		customImage = false;
 		customImageID = sConfigID;
+		
+		if (sConfigID == null) {
+			setCanvasImage(this.sConfigID, null, null);
+			return;
+		}
 
 		String sImageID = sConfigID + getSuffix();
 		ImageLoader imageLoader = skin.getImageLoader(properties);
