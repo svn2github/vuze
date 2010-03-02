@@ -385,7 +385,7 @@ public class SBC_LibraryTableView
 					public void
 					actionAllowed()
 					{
-						action.run();
+						Utils.execSWTThread( action );
 					}
 					
 					public void
