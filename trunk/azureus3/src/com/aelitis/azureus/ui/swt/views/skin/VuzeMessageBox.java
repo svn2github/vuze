@@ -36,6 +36,8 @@ public class VuzeMessageBox
 
 	private SkinnedDialog dlg;
 
+	private String iconResource;
+
 	public VuzeMessageBox(final String title, final String text,
 			final String[] buttons, final int defaultOption) {
 		this.title = title;
@@ -106,7 +108,14 @@ public class VuzeMessageBox
 		if (soText != null) {
 			soText.setText(text);
 		}
-
+		
+		if (iconResource != null) {
+  		SWTSkinObjectImage soTopLogo = (SWTSkinObjectImage) dlg.getSkin().getSkinObject("top-logo");
+  		if (soTopLogo != null) {
+  			soTopLogo.setImageByID(iconResource, null);
+  		}
+		}
+		
 		SWTSkinObjectContainer soBottomArea = (SWTSkinObjectContainer) skin.getSkinObject("bottom-area");
 		if (soBottomArea != null) {
 			FormData fd;
@@ -180,6 +189,13 @@ public class VuzeMessageBox
 	 * @see com.aelitis.azureus.ui.UIFunctionsUserPrompter#setIconResource(java.lang.String)
 	 */
 	public void setIconResource(String resource) {
+		this.iconResource = resource;
+		if (dlg != null) {
+  		SWTSkinObjectImage soTopLogo = (SWTSkinObjectImage) dlg.getSkin().getSkinObject("top-logo");
+  		if (soTopLogo != null) {
+  			soTopLogo.setImageByID(iconResource, null);
+  		}
+		}
 	}
 
 	/* (non-Javadoc)
