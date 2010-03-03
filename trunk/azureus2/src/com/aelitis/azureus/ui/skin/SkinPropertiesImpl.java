@@ -102,28 +102,35 @@ public class SkinPropertiesImpl
 	}
 	
 	public void addResourceBundle(ResourceBundle subBundle, String skinPath) {
+		addResourceBundle( subBundle, skinPath, classLoader );
+	}
+	
+	public void addResourceBundle(ResourceBundle subBundle, String skinPath, ClassLoader loader ) {
 		try {
 			rb.addResourceMessages(subBundle);
 
-			String sFiles = subBundle.getString("skin.include");
-			
-			if (sFiles != null && skinPath != null) {
-  			
-				String[] sFilesArray = sFiles.split(",");
-				for (int i = 0; i < sFilesArray.length; i++) {
-					String sFile = (sFilesArray[i].startsWith("/")
-							? sFilesArray[i].substring(1) : skinPath + sFilesArray[i]);
-					sFile = sFile.replaceAll("/", ".");
-					try {
-						ResourceBundle incBundle = ResourceBundle.getBundle(sFile,
-								Locale.getDefault(), classLoader);
-						rb.addResourceMessages(incBundle);
-					} catch (Throwable t) {
-						Debug.out("Err loading skin include: " + sFile, t);
+			try{
+				String sFiles = subBundle.getString("skin.include");
+				
+				if (sFiles != null && skinPath != null) {
+	  			
+					String[] sFilesArray = sFiles.split(",");
+					for (int i = 0; i < sFilesArray.length; i++) {
+						String sFile = (sFilesArray[i].startsWith("/")
+								? sFilesArray[i].substring(1) : skinPath + sFilesArray[i]);
+						sFile = sFile.replaceAll("/", ".");
+						try {
+							ResourceBundle incBundle = ResourceBundle.getBundle(sFile,
+									Locale.getDefault(), loader);
+							rb.addResourceMessages(incBundle);
+						} catch (Throwable t) {
+							Debug.out("Err loading skin include: " + sFile, t);
+						}
 					}
 				}
+			}catch( MissingResourceException e ){
+				// get this if skin.include not defined, which is entirely possible
 			}
-		} catch (MissingResourceException mre) {
 		} catch (Throwable t) {
   		Debug.out("Err loading skin include: " + subBundle, t);
   	}

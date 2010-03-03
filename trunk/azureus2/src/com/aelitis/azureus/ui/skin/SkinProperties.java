@@ -110,6 +110,15 @@ public interface SkinProperties
 	void addResourceBundle(ResourceBundle subBundle, String skinPath);
 
 	/**
+	 * @param subBundle
+	 * @param skinPath
+	 * @param loader
+	 * @since 4315
+	 */
+	
+	void addResourceBundle(ResourceBundle subBundle, String skinPath, ClassLoader loader );
+
+	/**
 	 * @return
 	 *
 	 * @since 4.0.0.5
