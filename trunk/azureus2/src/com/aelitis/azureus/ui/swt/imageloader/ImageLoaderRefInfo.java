@@ -21,6 +21,8 @@ package com.aelitis.azureus.ui.swt.imageloader;
 
 import org.eclipse.swt.graphics.Image;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 /**
  * @author TuxPaper
  * @created Jan 1, 2009
@@ -35,6 +37,11 @@ public class ImageLoaderRefInfo
 
 	protected ImageLoaderRefInfo(Image[] images) {
 		this.images = images;
+		for (Image image : images) {
+			if (image == ImageLoader.noImage) {
+				System.err.println("WTF, who's adding noImage!? " + Debug.getCompressedStackTrace());
+			}
+		}
 		refcount = 1;
 	}
 
@@ -42,6 +49,9 @@ public class ImageLoaderRefInfo
 		this.images = new Image[] {
 			image
 		};
+		if (image == ImageLoader.noImage) {
+			System.err.println("WTF, who's adding noImage!? " + Debug.getCompressedStackTrace());
+		}
 		refcount = 1;
 	}
 	
