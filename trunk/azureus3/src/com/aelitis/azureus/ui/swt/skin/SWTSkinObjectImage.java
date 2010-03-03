@@ -520,32 +520,35 @@ public class SWTSkinObjectImage
 		});
 	}
 
-	public void setImageByID(String sConfigID, AECallback callback) {
+	public void setImageByID(final String imageID, final AECallback callback) {
 		if (customImage == false && customImageID != null
-				&& customImageID.equals(sConfigID)) {
+				&& customImageID.equals(imageID)) {
 			if (callback != null) {
 				callback.callbackFailure(null);
 			}
 			return;
 		}
 		customImage = false;
-		customImageID = sConfigID;
+		customImageID = imageID;
 		
-		if (sConfigID == null) {
+		if (imageID == null) {
 			setCanvasImage(this.sConfigID, null, null);
 			return;
 		}
 
-		String sImageID = sConfigID + getSuffix();
-		ImageLoader imageLoader = skin.getImageLoader(properties);
-		Image image = imageLoader.getImage(sImageID);
-		if (ImageLoader.isRealImage(image)) {
-			setCanvasImage(sConfigID, sImageID, callback);
-		} else {
-			setCanvasImage(sConfigID, sConfigID, callback);
-		}
-		imageLoader.releaseImage(sImageID);
-		return;
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				String fullImageID = imageID + getSuffix();
+				ImageLoader imageLoader = skin.getImageLoader(properties);
+				Image image = imageLoader.getImage(fullImageID);
+				if (ImageLoader.isRealImage(image)) {
+					setCanvasImage(imageID, fullImageID, callback);
+				} else {
+					setCanvasImage(imageID, imageID, callback);
+				}
+				imageLoader.releaseImage(fullImageID);
+			}
+		});
 	}
 
 	public void setImageUrl(final String url) {
