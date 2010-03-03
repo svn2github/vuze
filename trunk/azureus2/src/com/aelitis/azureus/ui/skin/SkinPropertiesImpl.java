@@ -123,6 +123,7 @@ public class SkinPropertiesImpl
 					}
 				}
 			}
+		} catch (MissingResourceException mre) {
 		} catch (Throwable t) {
   		Debug.out("Err loading skin include: " + subBundle, t);
   	}
