@@ -392,8 +392,8 @@ public class ImageLoader
 				if (images != null) {
 					for (int i = 0; i < images.length; i++) {
 						Image image = images[i];
-						if (image != null && !image.isDisposed()) {
-							System.out.println("dispose " + image + ";" + key);
+						if (isRealImage(image)) {
+							//System.out.println("dispose " + image + ";" + key);
 							image.dispose();
 						}
 					}
@@ -405,7 +405,7 @@ public class ImageLoader
 				if (images != null) {
 					for (int i = 0; i < images.length; i++) {
 						Image image = images[i];
-						if (image != null && !image.isDisposed()) {
+						if (isRealImage(image)) {
 							image.dispose();
 						}
 					}
@@ -832,7 +832,7 @@ public class ImageLoader
 						Image[] images = info.getImages();
 						for (int j = 0; j < images.length; j++) {
 							Image image = images[j];
-							if (image != null && !image.isDisposed()) {
+							if (isRealImage(image)) {
 								image.dispose();
 							}
 						}
