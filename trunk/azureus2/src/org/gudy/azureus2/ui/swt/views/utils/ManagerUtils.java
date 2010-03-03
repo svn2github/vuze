@@ -97,11 +97,19 @@ public class ManagerUtils {
 				public void
 				actionAllowed()
 				{
-				   	if (run != null) {
-			    		run.run(dm);
-			    	} else {
-			    		Utils.launch(dm.getSaveLocation().toString());
-			    	}
+					Utils.execSWTThread(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+							   	if (run != null) {
+						    		run.run(dm);
+						    	} else {
+						    		Utils.launch(dm.getSaveLocation().toString());
+						    	}
+							}
+						});
 				}
 				
 				public void
@@ -135,7 +143,15 @@ public class ManagerUtils {
 					public void
 					actionAllowed()
 					{
-						open( dm.getSaveLocation(), open_containing_folder_mode );
+						Utils.execSWTThread(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									open( dm.getSaveLocation(), open_containing_folder_mode );
+								}
+							});
 					}
 					
 					public void
@@ -166,11 +182,19 @@ public class ManagerUtils {
 					public void
 					actionAllowed()
 					{
-						File this_file = file.getFile(true);
-						
-						File parent_file = (open_containing_folder_mode) ? this_file.getParentFile() : null;
-						
-						open((parent_file == null) ? this_file : parent_file);					
+						Utils.execSWTThread(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									File this_file = file.getFile(true);
+									
+									File parent_file = (open_containing_folder_mode) ? this_file.getParentFile() : null;
+									
+									open((parent_file == null) ? this_file : parent_file);		
+								}
+							});
 					}
 					
 					public void

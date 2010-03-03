@@ -827,7 +827,15 @@ public class Utils
 				public void
 				actionAllowed()
 				{
-					launch(fileInfo.getFile(true).toString());
+					Utils.execSWTThread(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								launch(fileInfo.getFile(true).toString());
+							}
+						});
 				}
 				
 				public void
@@ -857,8 +865,14 @@ public class Utils
 
 		boolean launched = Program.launch(sFile);
 		if (!launched && Constants.isUnix) {
+			
+			sFile = sFile.replaceAll( " ", "\\ " );
+			
 			if (!Program.launch("xdg-open " + sFile)) {
-				Program.launch("htmlview " + sFile);
+				if ( !Program.launch("htmlview " + sFile)){
+					
+					Debug.out( "Failed to launch '" + sFile + "'" );
+				}
 			}
 		}
 	}
