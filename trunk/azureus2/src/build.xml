@@ -2,7 +2,7 @@
 
 <!--
 	
-NOTE:  You may need to set the  ANT_OPTS="-Xmx512m"  env prop in order to compile this project successfully.
+NOTE:  You will need to set the  ANT_OPTS="-Xmx512m"  env prop in order to compile this project successfully.
 
 -->
 
@@ -36,7 +36,7 @@ NOTE:  You may need to set the  ANT_OPTS="-Xmx512m"  env prop in order to compil
          <fileset dir="${root.dir}/${libs.dir}" includes="**/*.jar" />
       </path>
    
-   	<javac srcdir="${root.dir}" destdir="${root.dir}" nowarn="yes" source="1.4" target="1.4" includeAntRuntime="no" debug="true" debuglevel="lines,vars,source" >
+   	<javac srcdir="${root.dir}" destdir="${root.dir}" nowarn="yes" source="1.5" target="1.5" includeAntRuntime="no" debug="true" debuglevel="lines,vars,source" >
          <classpath refid="libs.classpath" />
       </javac>
    </target>
