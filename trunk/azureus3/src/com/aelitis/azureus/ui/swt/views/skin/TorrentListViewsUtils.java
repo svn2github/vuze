@@ -323,7 +323,15 @@ public class TorrentListViewsUtils
 					public void
 					actionAllowed()
 					{
-						_playOrStream(dm, btn);
+						Utils.execSWTThread(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									_playOrStream(dm, btn);
+								}
+							});
 					}
 					
 					public void
