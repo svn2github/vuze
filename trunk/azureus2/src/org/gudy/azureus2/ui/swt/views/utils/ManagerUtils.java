@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
@@ -134,7 +135,7 @@ public class ManagerUtils {
 					public void
 					actionAllowed()
 					{
-						open(dm.getSaveLocation(), open_containing_folder_mode);
+						open( dm.getSaveLocation(), open_containing_folder_mode );
 					}
 					
 					public void
@@ -144,10 +145,45 @@ public class ManagerUtils {
 						Debug.out( "Launch request denied", reason );
 					}
 				});
-			
 		}		
 	}
 
+	public static void 
+	open(
+		final DiskManagerFileInfo		file,
+		final boolean					open_containing_folder_mode )
+	{
+		if ( file != null ){
+			
+			LaunchManager	launch_manager = LaunchManager.getManager();
+			
+			LaunchManager.LaunchTarget target = launch_manager.createTarget( file );
+			
+			launch_manager.launchRequest(
+				target,
+				new LaunchManager.LaunchAction()
+				{
+					public void
+					actionAllowed()
+					{
+						File this_file = file.getFile(true);
+						
+						File parent_file = (open_containing_folder_mode) ? this_file.getParentFile() : null;
+						
+						open((parent_file == null) ? this_file : parent_file);					
+					}
+					
+					public void
+					actionDenied(
+						Throwable			reason )
+					{
+						Debug.out( "Launch request denied", reason );
+					}
+				});
+		}
+	}
+	
+	
 	public static void open(File f, boolean open_containing_folder_mode) {
 		if (open_containing_folder_mode) {
 			Utils.launch(f.getParent());

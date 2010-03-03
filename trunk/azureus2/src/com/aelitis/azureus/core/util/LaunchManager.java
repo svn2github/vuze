@@ -112,6 +112,19 @@ LaunchManager
 			DiskManagerFileInfo		_file_info )
 		{
 			file_info	= _file_info;	
+			dm			= file_info.getDownloadManager();
+		}
+		
+		public DownloadManager
+		getDownload()
+		{
+			return( dm );
+		}
+		
+		public DiskManagerFileInfo
+		getFile()
+		{
+			return( file_info );
 		}
 	}
 	

@@ -212,9 +212,7 @@ public class FilesView
 		    for (int i = dataSources.length - 1; i >= 0; i--) {
 		    	DiskManagerFileInfo info = (DiskManagerFileInfo)dataSources[i];
 		    	if (info != null) {
-		    		File this_file = info.getFile(true);
-		    		File parent_file = (use_open_containing_folder) ? this_file.getParentFile() : null;
-		    		ManagerUtils.open((parent_file == null) ? this_file : parent_file);
+		    		ManagerUtils.open( info, use_open_containing_folder );
 		    	}
 		    }
 		}

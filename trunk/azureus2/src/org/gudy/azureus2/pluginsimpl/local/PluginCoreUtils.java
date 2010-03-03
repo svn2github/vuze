@@ -105,6 +105,11 @@ PluginCoreUtils
 	
 		throws DownloadException
 	{
+		if ( info == null ){
+			
+			return( null );
+		}
+		
 		return( new DiskManagerFileInfoImpl( DownloadManagerImpl.getDownloadStatic( info.getDownloadManager()), info ));
 	}
 	
