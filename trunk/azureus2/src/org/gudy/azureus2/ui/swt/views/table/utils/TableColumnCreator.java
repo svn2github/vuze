@@ -141,7 +141,11 @@ public class TableColumnCreator
 	private static void setVisibility(Map mapTCs, String[] defaultVisibleOrder) {
 		for (Iterator iter = mapTCs.values().iterator(); iter.hasNext();) {
 			TableColumnCore tc = (TableColumnCore) iter.next();
-			tc.setVisible(false);
+			Boolean force_visible = (Boolean)tc.getUserData( TableColumn.UD_FORCE_VISIBLE );
+			if ( force_visible == null || !force_visible ){
+			
+				tc.setVisible(false);
+			}
 		}
 
 		for (int i = 0; i < defaultVisibleOrder.length; i++) {
