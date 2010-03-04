@@ -2156,7 +2156,8 @@ PluginInitializer
 	setVerified(
 		PluginInterfaceImpl		pi,
 		Plugin					plugin,
-		boolean					v )
+		boolean					v,
+		boolean					bad )
 	
 		throws PluginException
 	{		
@@ -2166,6 +2167,11 @@ PluginInitializer
 			
 			throw( new PluginException( "Verified status change not permitted" ));
 		}
+		
+  	  	if ( bad && !DISABLE_PLUGIN_VERIFICATION ){
+		  
+		  throw( new RuntimeException( "Plugin verification failed" ));
+	  }
 	}
 	
 	public static boolean

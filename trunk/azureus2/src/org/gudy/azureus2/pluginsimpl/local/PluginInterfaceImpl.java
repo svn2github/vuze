@@ -176,7 +176,8 @@ PluginInterfaceImpl
 	  ipc_interface			= new IPCInterfaceImpl( initialiser, plugin );
 	  state               	= new PluginStateImpl(this, initialiser);
 	  
-	  boolean verified = false;
+	  boolean verified 	= false;
+	  boolean bad		= false;
 	  
 	  if ( _plugin_id.endsWith( "_v" )){
 		  
@@ -195,9 +196,14 @@ PluginInterfaceImpl
     			  }
     		  }
 	      }
+	      
+	      if ( !verified ){
+	    	  
+	    	  bad = true;
+	      }
 	  }
 	  
-	  PluginInitializer.setVerified( this, plugin, verified );
+	  PluginInitializer.setVerified( this, plugin, verified, bad );
   }
   
   	public Plugin
