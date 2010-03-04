@@ -93,10 +93,7 @@ DeviceMediaRendererManual
 				fileAdded(
 					TranscodeFile		file )
 				{
-					if ( file.isComplete() && !file.isCopiedToDevice()){
-						
-						setCopyOutstanding();
-					}
+					updateStatus( file );
 				}
 				
 				public void
@@ -105,17 +102,24 @@ DeviceMediaRendererManual
 					int					type,
 					Object				data )
 				{
-					if ( file.isComplete() && !file.isCopiedToDevice()){
-						
-						setCopyOutstanding();
-					}
+					updateStatus( file );
 				}
 				
 				public void
 				fileRemoved(
 					TranscodeFile		file )
 				{
-					copy_sem.release();
+					updateStatus( file );
+				}
+				
+				private void
+				updateStatus(
+					TranscodeFile		file )
+				{
+					if ( file.isComplete() && !file.isCopiedToDevice()){
+						
+						setCopyOutstanding();
+					}
 				}
 			});
 	}
