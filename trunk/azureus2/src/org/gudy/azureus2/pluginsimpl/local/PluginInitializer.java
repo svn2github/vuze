@@ -255,6 +255,20 @@ PluginInitializer
 	}  	
   }
   
+  private static PluginInitializer
+  peekSingleton()
+  {
+  	try{
+  		class_mon.enter();
+  		 	
+	  	return( singleton );
+	 	 
+	}finally{
+	  		
+		class_mon.exit();
+	}  	
+  }
+  
   protected static void
   queueRegistration(
   	Class	_class )
@@ -2203,6 +2217,52 @@ PluginInitializer
 		Object[] ver = (Object[])verified_plugin_holder.getValue( pi );
 		
 		return( ver != null && ver[0] == plugin && (Boolean)ver[1] );
+	}
+	
+	public static boolean
+	isCoreOrVerifiedPlugin()
+	{
+		Class<?>[] stack = SESecurityManager.getClassContext();
+		
+		ClassLoader core = PluginInitializer.class.getClassLoader();
+		
+		PluginInitializer singleton = peekSingleton();
+		
+		PluginInterface[] pis = singleton==null?new PluginInterface[0]:singleton.getPlugins();
+
+		for ( Class<?> c: stack ){
+			
+			ClassLoader cl = c.getClassLoader();
+			
+			if ( cl != null && cl != core ){
+				
+				boolean ok = false;
+				
+				for ( PluginInterface pi: pis ){
+					
+					Plugin plugin = pi.getPlugin();
+					
+					if ( plugin.getClass().getClassLoader() == cl ){
+						
+						if ( isVerified( pi, plugin )){
+							
+							ok = true;
+							
+							break;
+						}
+					}
+				}
+				
+				if ( !ok ){
+					
+					Debug.out( "Class " + c.getCanonicalName() + " with loader " + cl + " isn't trusted" );
+					
+					return( false );
+				}
+			}
+		}
+		
+		return( true );
 	}
 	
 	private static final class
