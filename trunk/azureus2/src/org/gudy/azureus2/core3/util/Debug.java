@@ -175,13 +175,25 @@ public class Debug {
 		return getCompressedStackTrace(t, frames_to_skip, 200);
 	}
 
+
 	public static String 
 	getCompressedStackTrace(
 		Throwable t,
 		int frames_to_skip, 
 		int iMaxLines) 
 	{
-		String sStackTrace = t.toString() + "; ";
+		return getCompressedStackTrace(t, frames_to_skip, iMaxLines, true);
+	}
+
+	
+	public static String 
+	getCompressedStackTrace(
+		Throwable t,
+		int frames_to_skip, 
+		int iMaxLines,
+		boolean showErrString) 
+	{
+		String sStackTrace = showErrString ? (t.toString() + "; ") : "; ";
 		StackTraceElement[]	st = t.getStackTrace();
 
 		int iMax = Math.min(st.length, iMaxLines + frames_to_skip);
@@ -226,7 +238,7 @@ public class Debug {
 		try {
 			throw new Exception();
 		} catch (Exception e) {
-			trace_trace_tail = getCompressedStackTrace(e, frames_to_skip, iMaxLines);
+			trace_trace_tail = getCompressedStackTrace(e, frames_to_skip, iMaxLines, false);
 		}
 
 		return (trace_trace_tail);
@@ -401,7 +413,7 @@ public class Debug {
 	public static String
 	getCompressedStackTrace(int iMaxLines)
 	{
-		return( getCompressedStackTrace( new Throwable(), 2, iMaxLines ));
+		return( getCompressedStackTrace( new Throwable(), 2, iMaxLines, false ));
 	}
 
 	public static String
