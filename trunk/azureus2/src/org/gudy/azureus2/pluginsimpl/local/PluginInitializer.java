@@ -2230,11 +2230,15 @@ PluginInitializer
 		
 		PluginInterface[] pis = singleton==null?new PluginInterface[0]:singleton.getPlugins();
 
+		Set<ClassLoader>	ok_loaders = new HashSet<ClassLoader>();
+		
+		ok_loaders.add( core );
+		
 		for ( Class<?> c: stack ){
 			
 			ClassLoader cl = c.getClassLoader();
 			
-			if ( cl != null && cl != core ){
+			if ( cl != null && !ok_loaders.contains( cl )){
 				
 				boolean ok = false;
 				
@@ -2245,6 +2249,8 @@ PluginInitializer
 					if ( plugin.getClass().getClassLoader() == cl ){
 						
 						if ( isVerified( pi, plugin )){
+							
+							ok_loaders.add( cl );
 							
 							ok = true;
 							
