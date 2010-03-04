@@ -100,7 +100,7 @@ public class Debug {
       methodName = first_line.getMethodName() + "::";
       lineNumber = first_line.getLineNumber();
       
-    	trace_trace_tail = getCompressedStackTrace(e, 3, 200);
+    	trace_trace_tail = getCompressedStackTrace(e, 3, 200, false);
     }
     
     diagLoggerLogAndOut(header+className+(methodName)+lineNumber+":", true);
@@ -193,7 +193,7 @@ public class Debug {
 		int iMaxLines,
 		boolean showErrString) 
 	{
-		String sStackTrace = showErrString ? (t.toString() + "; ") : "; ";
+		String sStackTrace = showErrString ? (t.toString() + "; ") : "";
 		StackTraceElement[]	st = t.getStackTrace();
 
 		int iMax = Math.min(st.length, iMaxLines + frames_to_skip);
