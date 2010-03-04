@@ -7,6 +7,7 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -44,6 +45,11 @@ public class VuzeMessageBox
 		this.text = text;
 		this.buttons = buttons == null ? new String[0] : buttons;
 		this.defaultButtonPos = defaultOption;
+		
+		if ( !PluginInitializer.isCoreOrVerifiedPlugin()){
+			
+			throw( new RuntimeException( "Untrusted" ));
+		}
 	}
 
 	/* (non-Javadoc)
