@@ -78,7 +78,7 @@ public interface TableColumn {
 
   	// user-data properties
   
-  public static final String UD_FORCE_VISIBLE = "ud_fv";	// Boolean
+  public static final String UD_FORCE_VISIBLE = "ud_fv";	// Long
   
   /** Initialize a group of variables all at once.  Saves on individual setXxx.
    *
