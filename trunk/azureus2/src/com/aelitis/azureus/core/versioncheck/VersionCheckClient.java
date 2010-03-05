@@ -563,6 +563,21 @@ public class VersionCheckClient {
 	  return( res );
   }
   
+  	public String
+    getCountryCode()
+    {
+  	  Map reply = getVersionCheckInfo( REASON_EXTERNAL_IP, AT_EITHER );
+
+	  byte[] address = (byte[])reply.get( "source_country_code" );
+
+  	  if ( address == null ){
+  		  
+  		  return( "?" );
+  	  }else{
+  		  return( new String( address ));
+  	  }
+    }
+  
   /**
    * Perform the actual version check by connecting to the version server.
    * @param data_to_send version message
