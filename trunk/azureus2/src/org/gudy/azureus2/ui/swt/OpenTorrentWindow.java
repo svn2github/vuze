@@ -2028,6 +2028,28 @@ public class OpenTorrentWindow
 				return null;
 			}
 
+			if (fOriginal.length() > 20*1024*1024) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (shell == null)
+							new MessageSlideShell(Display.getCurrent(), SWT.ICON_ERROR,
+									"OpenTorrentWindow.mb.openError", fOriginal.toString(), new String[] {
+										UrlUtils.decode(sOriginatingLocation),
+										"Too large to be a torrent"
+									}, -1 );
+						else {
+							MessageBoxShell mb = new MessageBoxShell(SWT.OK,
+									"OpenTorrentWindow.mb.openError", new String[] {
+										sOriginatingLocation,
+										"Too large to be a torrent"
+									});
+							mb.open(null);
+						}
+					}
+				});
+				return null;
+			}
+
 			torrentFile = TorrentUtils.copyTorrentFileToSaveDir(fOriginal, true);
 			bDeleteFileOnCancel = !fOriginal.equals(torrentFile);
 			// TODO if the files are still equal, and it isn't in the save
