@@ -107,6 +107,8 @@ public class MessageBoxShell
 	private Shell shell;
 
 	private boolean opened;
+
+	private boolean useTextBox;
 	
 	public static void open(Shell parent, String title, String text,
 			String[] buttons, int defaultOption, String rememberID,
@@ -377,7 +379,11 @@ public class MessageBoxShell
 
 		Control linkControl;
 		if ( text != null && text.length() > 0 ){
-			linkControl = createLinkLabel(textComposite, text);
+			if (useTextBox()) {
+				linkControl = createTextBox(textComposite, text);
+			} else {
+				linkControl = createLinkLabel(textComposite, text);
+			}
 		}else{
 			linkControl = null;
 		}
@@ -706,6 +712,19 @@ public class MessageBoxShell
 
 
 		return;
+	}
+
+	/**
+	 * @param textComposite
+	 * @param text2
+	 * @return
+	 */
+	private Control createTextBox(Composite textComposite, String text2) {
+		Text tb = new Text(textComposite, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL
+				| SWT.V_SCROLL | SWT.READ_ONLY);
+		tb.setText(text2);
+		
+		return tb;
 	}
 
 	/**
@@ -1129,6 +1148,20 @@ public class MessageBoxShell
 				}
 			}
 		});
+	}
+
+	/**
+	 * @param useTextBox The useTextBox to set.
+	 */
+	public void setUseTextBox(boolean useTextBox) {
+		this.useTextBox = useTextBox;
+	}
+
+	/**
+	 * @return Returns the useTextBox.
+	 */
+	public boolean useTextBox() {
+		return useTextBox;
 	}
 
 }
