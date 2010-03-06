@@ -9,8 +9,10 @@ import org.gudy.azureus2.plugins.utils.FeatureManager.Licence.LicenceInstallatio
 public class FeatureManagerUIListener
 	implements FeatureManagerListener
 {
+	private final static boolean DEBUG = true;
 
 	private final FeatureManager featman;
+
 	private boolean hasPendingAuth;
 
 	public FeatureManagerUIListener(FeatureManager featman) {
@@ -19,9 +21,12 @@ public class FeatureManagerUIListener
 	}
 
 	public void licenceAdded(final Licence licence) {
-		System.out.println("FEAT: Licence Added");
+		if (DEBUG) {
+			System.out.println("FEAT: Licence Added");
+		}
 
 		if (licence.getState() == Licence.LS_PENDING_AUTHENTICATION) {
+			hasPendingAuth = true;
 			FeatureManagerUI.openLicenceValidatingWindow();
 		}
 
@@ -30,12 +35,18 @@ public class FeatureManagerUIListener
 		}
 		licence.addInstallationListener(new LicenceInstallationListener() {
 
+			public void start(String licence_key) {
+				new FeatureManagerInstallWindow(licence).open();
+			}
+
 			public void reportProgress(String licenceKey, String install, int percent) {
 			}
 
 			public void reportActivity(String licenceKey, String install,
 					String activity) {
-				System.out.println("FEAT: ACTIVITY: " + install + ": " + activity);
+				if (DEBUG) {
+					System.out.println("FEAT: ACTIVITY: " + install + ": " + activity);
+				}
 			}
 
 			public void failed(String licenceKey, PluginException error) {
@@ -43,12 +54,15 @@ public class FeatureManagerUIListener
 
 			public void complete(String licenceKey) {
 			}
+
 		});
 	}
 
 	public void licenceChanged(Licence licence) {
 		int state = licence.getState();
-		System.out.println("FEAT: License State Changed: " + state);
+		if (DEBUG) {
+			System.out.println("FEAT: License State Changed: " + state);
+		}
 		if (state == Licence.LS_PENDING_AUTHENTICATION) {
 			hasPendingAuth = true;
 			FeatureManagerUI.openLicenceValidatingWindow();
