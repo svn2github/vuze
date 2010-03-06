@@ -105,6 +105,10 @@ FeatureManager
 		LicenceInstallationListener
 		{
 			public void
+			start(
+				String		licence_key );
+			
+			public void
 			reportActivity(
 				String		licence_key,
 				String		install,
