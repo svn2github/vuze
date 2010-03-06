@@ -51,7 +51,7 @@ public class SkinPropertiesImpl
 {
 	private static final LogIDs LOGID = LogIDs.UI3;
 
-	private static final String PATH_SKIN_DEFS = "com/aelitis/azureus/ui/skin/";
+	public static final String PATH_SKIN_DEFS = "com/aelitis/azureus/ui/skin/";
 
 	private static final String FILE_SKIN_DEFS = "skin3.properties";
 

@@ -268,8 +268,14 @@ public class ImageLoader
 				for (int i = 0; i < images.length; i++) {
 					Image imgBG = Utils.createAlphaImage(display, splitX, bounds.height,
 							(byte) 0);
-					images[i] = Utils.blitImage(display, image, new Rectangle(i * splitX,
-							0, splitX, bounds.height), imgBG, new Point(0, 0));
+					int pos = i * splitX;
+					try {
+					images[i] = Utils.blitImage(display, image, new Rectangle(pos, 0,
+							Math.min(splitX, bounds.width - pos), bounds.height), imgBG,
+							new Point(0, 0));
+					} catch (Exception e) {
+						Debug.out(e);
+					}
 					imgBG.dispose();
 				}
 			}
