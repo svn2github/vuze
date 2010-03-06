@@ -293,6 +293,7 @@ public class SystemWarningWindow
 								logAlert.details, new String[] {
 									MessageText.getString("Button.ok")
 								}, 0);
+						mb.setUseTextBox(true);
 						mb.setParent(Utils.findAnyShell());
 						mb.open(null);
 					} else {
