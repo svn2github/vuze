@@ -265,7 +265,7 @@ BEncoder
     	   	// ideally we'd bork here but I don't want to run the risk of breaking existing stuff so just log
     	   
     	   
-    	   Debug.out( "Attempt to encode a null value" );
+    	   Debug.out( "Attempt to encode a null value: sofar=" + getEncodedSoFar());
     	   return false;
     	   
        }else{
@@ -411,6 +411,12 @@ BEncoder
     	writeBytes( bb.array(), bb.arrayOffset() + bb.position(), bb.remaining());
     }
 
+    private String
+    getEncodedSoFar()
+    {
+    	return( new String( toByteArray()));
+    }
+    
     private byte[]
     toByteArray()
     {
