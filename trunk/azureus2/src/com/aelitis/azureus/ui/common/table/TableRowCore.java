@@ -141,22 +141,6 @@ public interface TableRowCore extends TableRow
 	public boolean isMouseOver();
 
 	/**
-	 * @param id
-	 * @return
-	 *
-	 * @since 3.0.4.3
-	 */
-	Object getData(String id);
-
-	/**
-	 * @param id
-	 * @param data
-	 *
-	 * @since 3.0.4.3
-	 */
-	void setData(String id, Object data);
-
-	/**
 	 * @param height
 	 * @return
 	 *

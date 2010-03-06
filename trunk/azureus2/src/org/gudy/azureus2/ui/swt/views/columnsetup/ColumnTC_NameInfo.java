@@ -106,7 +106,7 @@ public class ColumnTC_NameInfo
 				+ 5, bounds.width - 15, bounds.height - 20);
 		GCStringPrinter.printString(gc, info, infoBounds, true, false);
 
-		TableColumnInfo columnInfo = (TableColumnInfo) cell.getTableRowCore().getData(
+		TableColumnInfo columnInfo = (TableColumnInfo) cell.getTableRow().getData(
 				"columninfo");
 		if (columnInfo == null) {
 			final TableColumnManager tcm = TableColumnManager.getInstance();
@@ -165,8 +165,7 @@ public class ColumnTC_NameInfo
 		if (event.button == 1
 				&& event.eventType == TableRowMouseEvent.EVENT_MOUSEUP
 				&& (event.cell instanceof TableCellCore)) {
-			Object data = ((TableCellCore) event.cell).getTableRowCore().getData(
-					"AddHitArea");
+			Object data = event.cell.getTableRow().getData("AddHitArea");
 			if (data instanceof Rectangle) {
 				Rectangle hitArea = (Rectangle) data;
 				if (hitArea.contains(event.x, event.y)) {
@@ -179,8 +178,7 @@ public class ColumnTC_NameInfo
 				}
 			}
 		} else if (event.eventType == TableRowMouseEvent.EVENT_MOUSEMOVE) {
-			Object data = ((TableCellCore) event.cell).getTableRowCore().getData(
-					"AddHitArea");
+			Object data = event.cell.getTableRow().getData("AddHitArea");
 			if (data instanceof Rectangle) {
 				Rectangle hitArea = (Rectangle) data;
 				if (hitArea.contains(event.x, event.y)) {

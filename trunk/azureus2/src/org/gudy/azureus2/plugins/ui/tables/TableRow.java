@@ -117,4 +117,25 @@ public interface TableRow {
 	 * @since 3.0.1.7
 	 */
 	public void removeMouseListener(TableRowMouseListener listener);
+
+	/**
+	 * Get a previously stored value
+	 * 
+	 * @param id
+	 * @return
+	 *
+	 * @since 4.3.1.5
+	 */
+	Object getData(String id);
+
+	/**
+	 * Store a value against the table row
+	 * 
+	 * @param id
+	 * @param data
+	 *
+	 * @since 4.3.1.5
+	 */
+	void setData(String id, Object data);
+
 }

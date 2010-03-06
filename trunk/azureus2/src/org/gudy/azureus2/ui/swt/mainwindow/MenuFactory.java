@@ -1407,6 +1407,8 @@ public class MenuFactory
 			  public boolean isSelected()  {notSupported(); return false;}
 			  public void addMouseListener(TableRowMouseListener listener) {notSupported();}
 			  public void removeMouseListener(TableRowMouseListener listener) {notSupported();}
+			  public Object getData(String id) {return null;}
+			  public void setData(String id, Object data) {}
 		};
 	}
 

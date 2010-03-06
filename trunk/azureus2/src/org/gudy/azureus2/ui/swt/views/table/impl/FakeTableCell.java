@@ -22,6 +22,7 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -37,9 +38,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -612,6 +611,8 @@ public class FakeTableCell
 	public TableRow getTableRow() {
 		if (fakeRow == null) {
 			fakeRow = new TableRow() {
+				Map<String, Object> data = new LightHashMap<String,Object>(1);
+
 				public void setForegroundToErrorColor() {
 				}
 
@@ -645,6 +646,18 @@ public class FakeTableCell
 				}
 
 				public void addMouseListener(TableRowMouseListener listener) {
+				}
+
+				public Object getData(String id) {
+					synchronized (data) {
+						return data.get(id);
+					}
+				}
+
+				public void setData(String id, Object val) {
+					synchronized (data) {
+						data.put(id, val);
+					}
 				}
 			};
 		}
