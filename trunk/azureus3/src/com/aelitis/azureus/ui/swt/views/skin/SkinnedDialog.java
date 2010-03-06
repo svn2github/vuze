@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -109,7 +110,11 @@ public class SkinnedDialog
 	 * @since 4.0.0.5
 	 */
 	public void close() {
-		shell.close();
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				shell.close();
+			}
+		});
 	}
 
 	public void addCloseListener(SkinnedDialogClosedListener l) {

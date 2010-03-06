@@ -60,6 +60,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.content.RelatedContentUI;
 import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
+import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
@@ -225,6 +226,8 @@ public class Initializer
 
 		PlatformConfigMessenger.login(ContentNetwork.CONTENT_NETWORK_VUZE, 0);
 
+		FeatureManagerUI.registerWithFeatureManager();
+
 		COConfigurationManager.setBooleanDefault("ui.startfirst", true);
 		STARTUP_UIFIRST = STARTUP_UIFIRST
 				&& COConfigurationManager.getBooleanParameter("ui.startfirst", true);
@@ -266,6 +269,9 @@ public class Initializer
 		new UIMagnetHandler(core);
 		
 		if (!STARTUP_UIFIRST) {
+			// Ensure colors initialized
+			Colors.getInstance();
+
 			UIConfigDefaultsSWT.initialize();
 			UIConfigDefaultsSWTv3.initialize(core);
 		} else {

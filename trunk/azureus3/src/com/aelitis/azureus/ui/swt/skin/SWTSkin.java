@@ -98,6 +98,8 @@ public class SWTSkin
 	private ImageLoader imageLoader;
 
 	private String startID;
+	
+	private boolean autoSizeOnLayout = true;
 
 	/**
 	 * 
@@ -691,12 +693,23 @@ public class SWTSkin
 
 		int width = skinProperties.getIntValue(startID + ".width", -1);
 		int height = skinProperties.getIntValue(startID + ".height", -1);
-		if (width > 0 && height == -1) {
-			Point computeSize = shell.computeSize(width, SWT.DEFAULT);
-			shell.setSize(computeSize);
-		} else if (height > 0 && width == -1) {
-			Point computeSize = shell.computeSize(SWT.DEFAULT, height);
-			shell.setSize(computeSize);
+		if (autoSizeOnLayout) {
+  		if (width > 0 && height == -1) {
+  			Point computeSize = shell.computeSize(width, SWT.DEFAULT);
+  			shell.setSize(computeSize);
+  		} else if (height > 0 && width == -1) {
+  			Point computeSize = shell.computeSize(SWT.DEFAULT, height);
+  			shell.setSize(computeSize);
+  		}
+		} else {
+			Point size = shell.getSize();
+			if (width > 0) {
+				size.x = width;
+			}
+			if (height > 0) {
+				size.y = height;
+			}
+			shell.setSize(size);
 		}
 
 		for (SWTSkinLayoutCompleteListener l : listenersLayoutComplete) {
@@ -1474,6 +1487,9 @@ public class SWTSkin
 			} else if (sType.equals("checkbox")) {
 				skinObject = createCheckbox(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject);
+			} else if (sType.equals("textbox")) {
+				skinObject = createTextbox(properties, sID, sConfigID, sTypeParams,
+						parentSkinObject);
 			} else if (sType.equals("tabfolder")) {
 				skinObject = createTabFolder(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject);
@@ -1527,6 +1543,16 @@ public class SWTSkin
 			String configID, String[] typeParams, SWTSkinObject parentSkinObject) {
 
 		SWTSkinObject skinObject = new SWTSkinObjectCheckbox(this, properties, id,
+				configID, parentSkinObject);
+		addToControlMap(skinObject);
+
+		return skinObject;
+	}
+
+	private SWTSkinObject createTextbox(SWTSkinProperties properties, String id,
+			String configID, String[] typeParams, SWTSkinObject parentSkinObject) {
+
+		SWTSkinObject skinObject = new SWTSkinObjectTextbox(this, properties, id,
 				configID, parentSkinObject);
 		addToControlMap(skinObject);
 
@@ -1840,6 +1866,14 @@ public class SWTSkin
 				}
 			}
 		}
+	}
+
+	public void setAutoSizeOnLayout(boolean autoSizeOnLayout) {
+		this.autoSizeOnLayout = autoSizeOnLayout;
+	}
+
+	public boolean isAutoSizeOnLayout() {
+		return autoSizeOnLayout;
 	}
 
 }
