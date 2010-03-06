@@ -1,11 +1,14 @@
 package org.gudy.azureus2.plugins.ui.tables;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.Utils;
+
+import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 
 
 /**
@@ -47,6 +50,11 @@ public class TableCellRefresher {
   						//cc.cell.invalidate();
   						if (column instanceof TableCellRefreshListener) {
   							((TableCellRefreshListener) column).refresh(cell);
+  						}else if ( column instanceof TableColumnImpl ){
+  							List<TableCellRefreshListener> listeners =((TableColumnImpl)column).getCellRefreshListeners();
+  							for ( TableCellRefreshListener listener: listeners ){
+  								listener.refresh(cell);
+  							}
   						}
   
   					} catch (Throwable t) {

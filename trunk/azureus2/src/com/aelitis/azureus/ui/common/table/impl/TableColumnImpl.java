@@ -87,7 +87,7 @@ public class TableColumnImpl
 
 	private boolean bCoreDataSource;
 
-	private ArrayList cellRefreshListeners;
+	private ArrayList<TableCellRefreshListener> cellRefreshListeners;
 
 	private ArrayList cellAddedListeners;
 
@@ -339,7 +339,7 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (cellRefreshListeners == null) {
-				cellRefreshListeners = new ArrayList(1);
+				cellRefreshListeners = new ArrayList<TableCellRefreshListener>(1);
 			}
 
 			cellRefreshListeners.add(listener);
@@ -351,15 +351,15 @@ public class TableColumnImpl
 		}
 	}
 
-	public List getCellRefreshListeners() {
+	public List<TableCellRefreshListener> getCellRefreshListeners() {
 		try {
 			this_mon.enter();
 
 			if (cellRefreshListeners == null) {
-				return (new ArrayList(0));
+				return (new ArrayList<TableCellRefreshListener>(0));
 			}
 
-			return (new ArrayList(cellRefreshListeners));
+			return (new ArrayList<TableCellRefreshListener>(cellRefreshListeners));
 
 		} finally {
 
