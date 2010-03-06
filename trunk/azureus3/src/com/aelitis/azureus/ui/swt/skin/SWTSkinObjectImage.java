@@ -29,6 +29,8 @@ public class SWTSkinObjectImage
 
 	protected static final Long DRAW_NORMAL = new Long(0);
 
+	protected static final Long DRAW_LEFT = new Long(7);
+
 	protected static final Long DRAW_TILE = new Long(3);
 
 	protected static final Long DRAW_CENTER = new Long(4);
@@ -61,6 +63,9 @@ public class SWTSkinObjectImage
 
 				final Canvas control = (Canvas) e.widget;
 				Image imgSrc = (Image) control.getData("image");
+				
+				Long hpadding_obj = (Long) control.getData("hpadding");
+				int hpadding = hpadding_obj == null ? 0 : hpadding_obj.intValue();
 
 				Long drawMode = (Long) control.getData("drawmode");
 				if (drawMode == DRAW_ANIMATE) {
@@ -101,7 +106,9 @@ public class SWTSkinObjectImage
 				if (drawMode == DRAW_STRETCH) {
 					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
 							0, 0, size.x, size.y);
-				} else if (drawMode == DRAW_CENTER || drawMode == DRAW_NORMAL || drawMode == DRAW_ANIMATE) {
+				} else if (drawMode == DRAW_LEFT) {
+					e.gc.drawImage(imgSrc, 0, 0);
+				} else if (drawMode == DRAW_CENTER || drawMode == DRAW_ANIMATE) {
 					e.gc.drawImage(imgSrc, (size.x - imgSrcBounds.width) / 2,
 							(size.y - imgSrcBounds.height) / 2);
 				} else if (drawMode == DRAW_HCENTER) {
@@ -291,6 +298,10 @@ public class SWTSkinObjectImage
 				if (oldImageID != null && canvas.getData("image") != null) {
 					imageLoader.releaseImage(oldImageID);
 				}
+				
+				int hpadding = properties.getIntValue(sConfigID + ".h-padding", 0);
+				canvas.setData("hpadding", new Long(hpadding));
+
 
 				Image[] images = sImageID == null || sImageID.length() == 0 ? null
 						: imageLoader.getImages(sImageID);
@@ -315,6 +326,8 @@ public class SWTSkinObjectImage
 				} else if (sDrawMode.equalsIgnoreCase("animate")
 						|| (sDrawMode.length() == 0 && images != null && images.length > 3)) {
 					drawMode = DRAW_ANIMATE;
+				} else if (sDrawMode.equalsIgnoreCase("left")) {
+					drawMode = DRAW_LEFT;
 				} else {
 					drawMode = DRAW_NORMAL;
 				}
@@ -364,18 +377,18 @@ public class SWTSkinObjectImage
 				Rectangle imgBounds = image.getBounds();
 				if (drawMode != DRAW_CENTER && drawMode != DRAW_HCENTER
 						&& drawMode != DRAW_STRETCH) {
-					canvas.setSize(imgBounds.width, imgBounds.height);
+					canvas.setSize(imgBounds.width + hpadding, imgBounds.height);
 				}
 				//canvas.setData("image", image);
 
-				if (drawMode == DRAW_TILE || drawMode == DRAW_NORMAL
+				if (drawMode == DRAW_TILE || drawMode == DRAW_NORMAL || drawMode == DRAW_LEFT
 						|| drawMode == DRAW_ANIMATE) {
 					// XXX Huh? A tile of one? :)
 					FormData fd = (FormData) canvas.getLayoutData();
 					if (fd == null) {
-						fd = new FormData(imgBounds.width, imgBounds.height);
+						fd = new FormData(imgBounds.width  + hpadding, imgBounds.height);
 					} else {
-						fd.width = imgBounds.width;
+						fd.width = imgBounds.width + hpadding;
 						fd.height = imgBounds.height;
 					}
 					canvas.setLayoutData(fd);
@@ -542,9 +555,9 @@ public class SWTSkinObjectImage
 				ImageLoader imageLoader = skin.getImageLoader(properties);
 				Image image = imageLoader.getImage(fullImageID);
 				if (ImageLoader.isRealImage(image)) {
-					setCanvasImage(imageID, fullImageID, callback);
+					setCanvasImage(sConfigID, fullImageID, callback);
 				} else {
-					setCanvasImage(imageID, imageID, callback);
+					setCanvasImage(sConfigID, imageID, callback);
 				}
 				imageLoader.releaseImage(fullImageID);
 			}
