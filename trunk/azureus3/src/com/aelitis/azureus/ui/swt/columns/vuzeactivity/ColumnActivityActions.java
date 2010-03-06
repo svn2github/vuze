@@ -33,6 +33,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
@@ -169,7 +170,7 @@ public class ColumnActivityActions
 			sb.append("<A HREF=\"launch\">Launch</A>");
 		}
 
-		cell.setText(sb.toString());
+		cell.getTableRow().setData("text", sb.toString());
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
@@ -180,7 +181,10 @@ public class ColumnActivityActions
 		boolean invalidateAndRefresh = false;
 
 		Rectangle bounds = ((TableCellSWT) event.cell).getBounds();
-		String text = event.cell.getText();
+		String text = (String) event.cell.getTableRow().getData("text");
+		if (text == null) {
+			return;
+		}
 
 		GCStringPrinter sp = null;
 		GC gc = new GC(Display.getDefault());
