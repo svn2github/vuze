@@ -20,6 +20,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -517,6 +518,14 @@ public class MainMenu
 		if (false == SystemProperties.isJavaWebStartInstance()) {
 			MenuFactory.addSeparatorMenuItem(helpMenu);
 			MenuFactory.addCheckUpdateMenuItem(helpMenu);
+		}
+		
+		if (FeatureManagerUI.enabled) {
+  		MenuFactory.addMenuItem(helpMenu, "menu.register", new Listener() {
+  			public void handleEvent(Event event) {
+  				FeatureManagerUI.openLicenceEntryWindow(false);
+  			}
+  		});
 		}
 		
 		MenuFactory.addDonationMenuItem(helpMenu);
