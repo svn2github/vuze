@@ -108,8 +108,10 @@ DeviceMediaRendererManual
 				public void
 				fileRemoved(
 					TranscodeFile		file )
-				{
-					updateStatus( file );
+				{	
+						// do this to pick up change in copy-to-device state caused by removal
+					
+					setCopyOutstanding();
 				}
 				
 				private void
