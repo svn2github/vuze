@@ -45,6 +45,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListene
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 
 /**
@@ -609,8 +610,8 @@ public abstract class TranscodeChooser
 			}
 		});
 
-		fontDevice = Utils.getFontWithHeight(parent.getFont(), null, 16, SWT.BOLD);
-		fontDeviceDesc = Utils.getFontWithHeight(parent.getFont(), null, 16,
+		fontDevice = FontUtils.getFontWithHeight(parent.getFont(), null, 16, SWT.BOLD);
+		fontDeviceDesc = FontUtils.getFontWithHeight(parent.getFont(), null, 16,
 				SWT.NONE);
 
 		/**

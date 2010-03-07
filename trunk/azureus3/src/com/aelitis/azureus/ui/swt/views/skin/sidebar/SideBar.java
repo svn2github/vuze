@@ -58,6 +58,7 @@ import com.aelitis.azureus.ui.swt.shells.AuthorizeWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView;
 import com.aelitis.azureus.util.ConstantsVuze;
@@ -366,13 +367,13 @@ public class SideBar
 				? tree.getItemHeight() - 18 : 0);
 
 		FontData[] fontData = tree.getFont().getFontData();
-		Utils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight - 1);
+		FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight - 1);
 		font = new Font(tree.getDisplay(), fontData);
 		tree.setFont(font);
 		//fontData[0].setHeight(fontData[0].getHeight() + 1);
 		fontData[0].setStyle(SWT.BOLD);
 		//fontData[0].setName("Helvetica");
-		Utils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
+		FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
 		fontHeader = new Font(tree.getDisplay(), fontData);
 
 		Listener treeListener = new Listener() {

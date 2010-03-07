@@ -1,13 +1,10 @@
 package com.aelitis.azureus.ui.swt.feature;
 
-import java.beans.FeatureDescriptor;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.FeatureManager;
-import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
 import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureManagerListener;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence.LicenceInstallationListener;

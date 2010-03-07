@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
+
 /**
  * Text Skin Object.  This one uses a label widget.
  * 
@@ -119,7 +121,7 @@ public class SWTSkinObjectText1
 			label.setFont(existingFont);
 		} else {
 			boolean bNewFont = false;
-			int iFontSize = -1;
+			float fontSize = -1;
 			int iFontWeight = -1;
 			String sFontFace = null;
 
@@ -136,15 +138,15 @@ public class SWTSkinObjectText1
 					int iSize = NumberFormat.getInstance(Locale.US).parse(sSize).intValue();
 
 					if (firstChar == '+') {
-						iFontSize = (int) (fd[0].height + iSize);
+						fontSize = (int) (fd[0].height + iSize);
 					} else if (firstChar == '-') {
-						iFontSize = (int) (fd[0].height - iSize);
+						fontSize = (int) (fd[0].height - iSize);
 					} else {
-						iFontSize = iSize;
+						fontSize = iSize;
 					}
 
 					if (sSize.endsWith("px")) {
-						iFontSize = Utils.getFontHeightFromPX(label.getFont(), null, iSize);
+						fontSize = FontUtils.getFontHeightFromPX(label.getFont(), null, iSize);
 					}
 
 					bNewFont = true;
@@ -208,8 +210,8 @@ public class SWTSkinObjectText1
 			if (bNewFont) {
 				FontData[] fd = label.getFont().getFontData();
 
-				if (iFontSize > 0) {
-					fd[0].setHeight(iFontSize);
+				if (fontSize > 0) {
+					FontUtils.setFontDataHeight(fd, fontSize);
 				}
 
 				if (iFontWeight >= 0) {

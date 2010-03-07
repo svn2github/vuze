@@ -90,6 +90,7 @@ import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.mdi.TabbedMDI;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 import com.aelitis.azureus.ui.swt.utils.PlayNowList;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -1844,7 +1845,7 @@ public class MainWindow
 				Text text = (Text) event.widget;
 
 				int h = text.getClientArea().height - 2;
-				Font font = Utils.getFontWithHeight(text.getFont(), null, h);
+				Font font = FontUtils.getFontWithHeight(text.getFont(), null, h);
 				if (font != null) {
 					text.setFont(font);
 

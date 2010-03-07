@@ -49,6 +49,7 @@ import com.aelitis.azureus.core.pairing.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.util.StringCompareUtils;
@@ -205,7 +206,7 @@ public class RemotePairingWindow
 
 			Font font = control.getFont();
 			GC gc = new GC(control);
-			fontCode = Utils.getFontWithHeight(font, gc, Constants.isWindows ? 20
+			fontCode = FontUtils.getFontWithHeight(font, gc, Constants.isWindows ? 20
 					: 18, SWT.BOLD);
 			gc.dispose();
 			control.setFont(fontCode);

@@ -25,7 +25,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
@@ -34,6 +33,7 @@ import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -160,7 +160,7 @@ TableCellDisposeListener, TableCellSWTPaintListener
 		gcImage.setForeground(textColor);
 
 		if (fontText == null) {
-			fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 10);
+			fontText = FontUtils.getFontWithHeight(gcImage.getFont(), gcImage, 10);
 		}
 		
 		gcImage.setFont(fontText);

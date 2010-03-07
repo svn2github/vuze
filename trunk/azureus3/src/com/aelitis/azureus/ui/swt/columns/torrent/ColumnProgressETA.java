@@ -28,6 +28,7 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -286,7 +287,7 @@ public class ColumnProgressETA
 			}
 
 			if (fontText == null) {
-				fontText = Utils.getFontWithHeight(gc.getFont(), gc, 11);
+				fontText = FontUtils.getFontWithHeight(gc.getFont(), gc, 11);
 			}
 
 			gc.setTextAntialias(SWT.ON);

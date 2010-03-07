@@ -40,6 +40,7 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 /**
  * Text Skin Object.  This one paints text on parent.
@@ -386,7 +387,7 @@ public class SWTSkinObjectText2
 			canvas.setData("font", existingFont);
 		} else {
 			boolean bNewFont = false;
-			int iFontSize = -1;
+			float fontSize = -1;
 			int iFontWeight = -1;
 			String sFontFace = null;
 			FontData[] tempFontData = canvas.getFont().getFontData();
@@ -481,26 +482,35 @@ public class SWTSkinObjectText2
 			if (sSize != null) {
 				FontData[] fd = canvas.getFont().getFontData();
 
+				sSize = sSize.trim();
 				try {
 					char firstChar = sSize.charAt(0);
+					char lastChar = sSize.charAt(sSize.length() - 1);
 					if (firstChar == '+' || firstChar == '-') {
 						sSize = sSize.substring(1);
+					} else if (lastChar == '%') {
+						sSize = sSize.substring(0, sSize.length() - 1);
 					}
 
-					double dSize = NumberFormat.getInstance(Locale.US).parse(sSize).doubleValue();
+					float dSize = NumberFormat.getInstance(Locale.US).parse(sSize).floatValue();
 
-					if (firstChar == '+') {
-						iFontSize = (int) (fd[0].height + dSize);
+					if (lastChar == '%') {
+						fontSize = FontUtils.getHeight(fd) * (dSize / 100);
+					} else if (firstChar == '+') {
+						//int curPX = FontUtils.getFontHeightInPX(tempFontData);
+						//fontSize = FontUtils.getFontHeightFromPX(canvas.getDisplay(),
+						//		tempFontData, null, (int) (curPX + dSize));
+						fontSize = (int) (fd[0].height + dSize);
 					} else if (firstChar == '-') {
-						iFontSize = (int) (fd[0].height - dSize);
+						fontSize = (int) (fd[0].height - dSize);
 					} else {
 						if (sSize.endsWith("px")) {
 							//iFontSize = Utils.getFontHeightFromPX(canvas.getFont(), null, (int) dSize);
-							iFontSize = Utils.getFontHeightFromPX(canvas.getDisplay(),
+							fontSize = FontUtils.getFontHeightFromPX(canvas.getDisplay(),
 									tempFontData, null, (int) dSize);
 							//iFontSize = Utils.pixelsToPoint(dSize, canvas.getDisplay().getDPI().y);
 						} else {
-							iFontSize = (int) dSize;
+							fontSize = (int) dSize;
 						}
 					}
 
@@ -516,8 +526,8 @@ public class SWTSkinObjectText2
 			if (bNewFont) {
 				FontData[] fd = canvas.getFont().getFontData();
 
-				if (iFontSize > 0) {
-					fd[0].setHeight(iFontSize);
+				if (fontSize > 0) {
+					FontUtils.setFontDataHeight(fd, fontSize);
 				}
 
 				if (iFontWeight >= 0) {
