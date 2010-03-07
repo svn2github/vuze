@@ -58,7 +58,6 @@ public class FontUtils
 		try {
 			mFontData_GetHeightF = FontData.class.getDeclaredMethod("getHeightF",
 					new Class[] {
-						float.class
 					});
 			mFontData_GetHeightF.setAccessible(true);
 		} catch (Throwable e) {
