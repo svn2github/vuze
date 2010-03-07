@@ -48,11 +48,7 @@ public class FeatureManagerUIListener
 		if (licence.isFullyInstalled()) {
 			return;
 		}
-		FeatureDetails[] features = licence.getFeatures();
-		for (FeatureDetails fd : features) {
-			Object property = fd.getProperty(FeatureDetails.PR_REQUIRED_PLUGINS);
-			System.out.println("FEAT: " + fd.getID() + " needs " + property);
-		}
+
 		licence.addInstallationListener(new LicenceInstallationListener() {
 
 			public void start(String licence_key) {
