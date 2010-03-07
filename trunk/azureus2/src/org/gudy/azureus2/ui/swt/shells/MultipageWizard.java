@@ -20,6 +20,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
+
 abstract public class MultipageWizard
 {
 
@@ -86,7 +88,7 @@ abstract public class MultipageWizard
 
 		titleLabel = new Label(topPanel, SWT.NONE);
 		titleLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-		Utils.setFontHeight(titleLabel, 16, SWT.NORMAL);
+		FontUtils.setFontHeight(titleLabel, 16, SWT.NORMAL);
 
 		descriptionLabel = new Label(topPanel, SWT.WRAP);
 		GridData gData = new GridData(SWT.FILL, SWT.FILL, true, true);

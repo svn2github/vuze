@@ -29,15 +29,17 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.dnd.*;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
@@ -1235,154 +1237,6 @@ public class Utils
 	}
 
 	/**
-	 * 
-	 * @param baseFont
-	 * @param gc Can be null
-	 * @param heightInPixels
-	 * @return
-	 *
-	 * @since 3.0.0.7
-	 */
-	public static int getFontHeightFromPX(Font baseFont, GC gc, int heightInPixels) {
-		Font font = null;
-		Device device = baseFont.getDevice();
-
-		// hack..
-		heightInPixels++;
-
-		// This isn't accurate, but gets us close
-		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y) + 1;
-		if (size <= 0) {
-			return 0;
-		}
-
-		boolean bOurGC = gc == null || gc.isDisposed();
-		try {
-			if (bOurGC) {
-				gc = new GC(device);
-			}
-			FontData[] fontData = baseFont.getFontData();
-
-			do {
-				if (font != null) {
-					size--;
-					font.dispose();
-				}
-				fontData[0].setHeight(size);
-
-				font = new Font(device, fontData);
-
-				gc.setFont(font);
-
-			} while (gc.textExtent(GOOD_STRING).y > heightInPixels && size > 1);
-
-		} finally {
-			if (bOurGC) {
-				gc.dispose();
-			}
-			if (font != null && !font.isDisposed()) {
-				font.dispose();
-			}
-		}
-		return size;
-	}
-
-	public static int getFontHeightFromPX(Device device, FontData[] fontData,
-			GC gc, int heightInPixels) {
-		Font font = null;
-
-		// hack..
-		heightInPixels++;
-
-		// This isn't accurate, but gets us close
-		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y) + 1;
-		if (size <= 0) {
-			return 0;
-		}
-
-		boolean bOurGC = gc == null || gc.isDisposed();
-		try {
-			if (bOurGC) {
-				gc = new GC(device);
-			}
-
-			do {
-				if (font != null) {
-					size--;
-					font.dispose();
-				}
-				fontData[0].setHeight(size);
-
-				font = new Font(device, fontData);
-
-				gc.setFont(font);
-
-			} while (font != null && gc.textExtent(GOOD_STRING).y > heightInPixels
-					&& size > 1);
-
-		} finally {
-			if (bOurGC) {
-				gc.dispose();
-			}
-			if (font != null && !font.isDisposed()) {
-				font.dispose();
-			}
-		}
-		return size;
-	}
-
-	public static Font getFontWithHeight(Font baseFont, GC gc, int heightInPixels) {
-		return getFontWithHeight(baseFont, gc, heightInPixels, SWT.DEFAULT);
-	}
-
-	public static Font getFontWithHeight(Font baseFont, GC gc,
-			int heightInPixels, int style) {
-		Font font = null;
-		Device device = baseFont.getDevice();
-
-		// hack..
-		heightInPixels++;
-
-		// This isn't accurate, but gets us close
-		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y) + 1;
-		if (size <= 0) {
-			size = 2;
-		}
-
-		boolean bOurGC = gc == null || gc.isDisposed();
-		try {
-			if (bOurGC) {
-				gc = new GC(device);
-			}
-			FontData[] fontData = baseFont.getFontData();
-
-			do {
-				if (font != null) {
-					size--;
-					font.dispose();
-				}
-				fontData[0].setHeight(size);
-				if (style != SWT.DEFAULT) {
-					fontData[0].setStyle(style);
-				}
-
-				font = new Font(device, fontData);
-
-				gc.setFont(font);
-
-			} while (font != null && gc.textExtent(GOOD_STRING).y > heightInPixels
-					&& size > 1);
-
-		} finally {
-			if (bOurGC) {
-				gc.dispose();
-			}
-		}
-
-		return font;
-	}
-
-	/**
 	 * @deprecated Use {@link #execSWTThread(AERunnableWithCallback)} to avoid
 	 *             thread locking issues
 	 */
@@ -1958,31 +1812,6 @@ public class Utils
 		return style | browserStyle;
 	}
 
-	/**
-	 * Change the height of the installed <code>Font</code> and takes care of disposing
-	 * the new font when the control is disposed
-	 * @param control
-	 * @param height
-	 * @param style one or both of SWT.BOLD, SWT.ITALIC, or SWT.NORMAL
-	 */
-	public static void setFontHeight(Control control, int height, int style) {
-		FontData[] fDatas = control.getFont().getFontData();
-		for (int i = 0; i < fDatas.length; i++) {
-			fDatas[i].height = height;
-			fDatas[i].setStyle(style);
-		}
-		final Font newFont = new Font(control.getDisplay(), fDatas);
-		control.setFont(newFont);
-		control.addDisposeListener(new DisposeListener() {
-
-			public void widgetDisposed(DisposeEvent e) {
-				if (null != newFont && false == newFont.isDisposed()) {
-					newFont.dispose();
-				}
-			}
-		});
-	}
-	
 	public static final long IMMEDIATE_ADDREMOVE_DELAY = 150;
 
 	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 2000;
