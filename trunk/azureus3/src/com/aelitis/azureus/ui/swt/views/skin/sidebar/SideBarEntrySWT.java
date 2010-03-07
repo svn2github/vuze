@@ -859,6 +859,8 @@ public class SideBarEntrySWT
 		}
 
 		if (swtItem != null) {
+			// In theory, the disposal of swtItem will trigger the disposal of the
+			// children.  Let's force it just in case
 			TreeItem[] children = swtItem.getItems();
 			for (TreeItem child : children) {
 				MdiEntry entry = (MdiEntry) child.getData("MdiEntry");
