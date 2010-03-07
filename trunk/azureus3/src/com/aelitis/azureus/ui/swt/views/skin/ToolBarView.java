@@ -167,6 +167,7 @@ public class ToolBarView
 					TorrentOpener.openTorrentWindow();
 				}
 			};
+			item.setAlwaysAvailable(true);
 			addToolBarItem(item, "toolbar.area.sitem.left", so2nd);
 
   		addSeperator(so2nd);
@@ -177,6 +178,7 @@ public class ToolBarView
 					UIFunctionsManagerSWT.getUIFunctionsSWT().promptForSearch();
 				}
 			};
+			item.setAlwaysAvailable(true);
 			addToolBarItem(item, "toolbar.area.sitem.right", so2nd);
 
 			addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep3", so2nd);
@@ -890,7 +892,7 @@ public class ToolBarView
 					} else {
 						for (int i = 0; i < allToolBarItems.length; i++) {
 							ToolBarItem toolBarItem = allToolBarItems[i];
-							toolBarItem.setEnabled(false);
+							toolBarItem.setEnabled(toolBarItem.isAlwaysAvailable() ? true : false);
 						}
 						return;
 					}
@@ -898,7 +900,7 @@ public class ToolBarView
 
 				for (int i = 0; i < allToolBarItems.length; i++) {
 					ToolBarItem toolBarItem = allToolBarItems[i];
-					toolBarItem.setEnabled(enabler.isEnabled(toolBarItem.getId()));
+					toolBarItem.setEnabled(toolBarItem.isAlwaysAvailable() ? true : enabler.isEnabled(toolBarItem.getId()));
 				}
 			}
 		}

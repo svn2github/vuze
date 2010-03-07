@@ -44,6 +44,8 @@ public class ToolBarItem
 	private String tooltipID;
 	
 	private List listeners = Collections.EMPTY_LIST;
+	
+	private boolean alwaysAvailable = false;
 
 	/**
 	 * @param id
@@ -157,5 +159,13 @@ public class ToolBarItem
 		synchronized (ToolBarItem.class) {
   		listeners.remove(l);
 		}
+	}
+
+	public void setAlwaysAvailable(boolean alwaysAvailable) {
+		this.alwaysAvailable = alwaysAvailable;
+	}
+
+	public boolean isAlwaysAvailable() {
+		return alwaysAvailable;
 	}
 }
