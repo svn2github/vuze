@@ -52,6 +52,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.shells.AuthorizeWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -983,21 +984,24 @@ public class SideBar
 		});
 
 		MdiEntry entry;
-
+		
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
 				MessageText.getString("sidebar." + SIDEBAR_SECTION_LIBRARY), null,
 				null, false, -1);
 		entry.setImageLeftID("image.sidebar.library");
 		entry.setCollapseDisabled(true);
 
-		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, SIDEBAR_SECTION_LIBRARY_DL,
-				"library", MessageText.getString("sidebar.LibraryDL"), null, null,
-				false, -1);
+		{
+			createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY,
+					SIDEBAR_SECTION_LIBRARY_DL, "library",
+					MessageText.getString("sidebar.LibraryDL"), null, null, false, -1);
 
-		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY,
-				SIDEBAR_SECTION_LIBRARY_UNOPENED, "library",
-				MessageText.getString("sidebar.LibraryUnopened"), null, null, false, -1);
-		addMenuUnwatched();
+			createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY,
+					SIDEBAR_SECTION_LIBRARY_UNOPENED, "library",
+					MessageText.getString("sidebar.LibraryUnopened"), null, null, false,
+					-1);
+			addMenuUnwatched();
+		}
 
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_BROWSE,
 				"main.area.browsetab", MessageText.getString("sidebar.VuzeHDNetwork"),
@@ -1039,7 +1043,7 @@ public class SideBar
 		if (Constants.IS_CVS_VERSION) {
 			loadEntryByID(SIDEBAR_SECTION_RELATED_CONTENT, false);
 		}
-
+		
 		if (SHOW_TOOLS) {
 			createEntryFromSkinRef(null, SIDEBAR_SECTION_TOOLS, "main.area.hood",
 					"Under The Hood", null, null, false, -1);
@@ -1103,6 +1107,21 @@ public class SideBar
 			public void azureusCoreRunning(AzureusCore core) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
+						if (FeatureManagerUI.enabled) {
+							// blah, can't add until plugin initialization is done
+							String title = MessageText.getString(FeatureManagerUI.hasFullLicence()
+									? "mdi.entry.plus.full" : "mdi.entry.plus.free");
+							int index = getEntry(SIDEBAR_SECTION_WELCOME) == null ? 0 : 1;
+							MdiEntry entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_PLUS,
+									"main.area.plus", title, null, null, false, index);
+							entry.setImageLeftID("image.sidebar.plus");
+
+						
+							if (!FeatureManagerUI.hasFullBurn()) {
+								loadEntryByID(SIDEBAR_SECTION_BURN_INFO, false);
+							}
+						}
+
 						setupPluginViews();
 					}
 				});

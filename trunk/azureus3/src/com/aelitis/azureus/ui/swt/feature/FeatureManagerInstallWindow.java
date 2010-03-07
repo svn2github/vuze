@@ -90,6 +90,7 @@ public class FeatureManagerInstallWindow
 							SWT.HORIZONTAL);
 					progressBar.setMinimum(0);
 					progressBar.setMaximum(100);
+					progressBar.setLayoutData(Utils.getFilledFormData());
 				}
 				
 				soProgressText = (SWTSkinObjectText) skin.getSkinObject("progress-text");

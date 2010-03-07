@@ -50,6 +50,8 @@ public class VuzeMessageBox
 
 	private String textIconResource;
 
+	private boolean closed;
+
 	public VuzeMessageBox(final String title, final String text,
 			final String[] buttons, final int defaultOption) {
 		this.title = title;
@@ -103,7 +105,13 @@ public class VuzeMessageBox
 	public void open(final UserPrompterResultListener l) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				_open(l);
+				// catch someone calling close() while we are opening
+				if (closed) {
+					return;
+				}
+				synchronized (VuzeMessageBox.this) {
+					_open(l);
+				}
 			}
 		});
 	}
@@ -161,6 +169,9 @@ public class VuzeMessageBox
 			vuzeMessageBoxListener.shellReady(dlg.getShell(), soExtra);
 		}
 
+		if (closed) {
+			return;
+		}
 		dlg.open();
 	}
 
@@ -289,8 +300,13 @@ public class VuzeMessageBox
 	}
 
 	public void close(int result) {
-		this.result = result;
-		dlg.close();
+		synchronized (VuzeMessageBox.this) {
+  		this.closed = true;
+  		this.result = result;
+  		if (dlg != null) {
+  			dlg.close();
+  		}
+		}
 	}
 	
 	public void addResourceBundle(Class cla, String path, String name) {
