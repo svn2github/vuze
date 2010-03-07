@@ -22,11 +22,15 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_SECTION_WELCOME = "Welcome";
 
+	public static final String SIDEBAR_SECTION_PLUS = "Plus";
+
 	public static final String SIDEBAR_SECTION_SUBSCRIPTIONS = "Subscriptions";
 
 	public static final String SIDEBAR_SECTION_DEVICES = "Devices";
 
 	public static final String SIDEBAR_SECTION_RELATED_CONTENT = "RelatedContent";
+	
+	public static final String SIDEBAR_SECTION_BURN_INFO = "BurnInfo";
 	
 	public MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
