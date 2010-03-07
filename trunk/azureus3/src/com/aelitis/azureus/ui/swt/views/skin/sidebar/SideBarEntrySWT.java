@@ -302,7 +302,8 @@ public class SideBarEntrySWT
 		if (!super.close(force)) {
 			return false;
 		}
-
+		
+		// dispose will trigger dispose listener, which removed it from BaseMDI
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (swtItem != null) {
@@ -857,6 +858,16 @@ public class SideBarEntrySWT
 			return;
 		}
 
+		if (swtItem != null) {
+			TreeItem[] children = swtItem.getItems();
+			for (TreeItem child : children) {
+				MdiEntry entry = (MdiEntry) child.getData("MdiEntry");
+				if (entry != null) {
+					entry.close(true);
+				}
+			}
+		}
+		
 		final Tree tree = sidebar.getTree();
 		if (tree.isDisposed() || swtItem.isDisposed()) {
 			return;
