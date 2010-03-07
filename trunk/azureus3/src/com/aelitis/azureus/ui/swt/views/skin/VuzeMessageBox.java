@@ -5,9 +5,8 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -21,6 +20,10 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedLi
 public class VuzeMessageBox
 	implements UIFunctionsUserPrompter, SkinnedDialogClosedListener
 {
+
+	private static final int BUTTON_PADDING = 2;
+
+	private static final int MIN_BUTTON_WIDTH = 50;
 
 	private String title;
 
@@ -209,6 +212,16 @@ public class VuzeMessageBox
 			String buttonText = buttons[i];
 			Button button = new Button(cButtonArea, SWT.PUSH);
 			button.setText(buttonText);
+
+			RowData rowData = new RowData();
+			Point size = button.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			size.x += BUTTON_PADDING;
+			if (size.x < MIN_BUTTON_WIDTH) {
+				size.x = MIN_BUTTON_WIDTH;
+			}
+			rowData.width = size.x;
+			button.setLayoutData(rowData);
+
 			if (defaultButtonPos == i) {
 				button.getShell().setDefaultButton(button);
 			}
