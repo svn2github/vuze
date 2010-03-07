@@ -362,19 +362,23 @@ public class SideBar
 
 		tree.setBackground(bg);
 		tree.setForeground(fg);
+		FontData[] fontData = tree.getFont().getFontData();
 
 		int fontHeight = 13 + (tree.getItemHeight() > 18
 				? tree.getItemHeight() - 18 : 0);
 
-		FontData[] fontData = tree.getFont().getFontData();
-		FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight - 1);
-		font = new Font(tree.getDisplay(), fontData);
-		tree.setFont(font);
-		//fontData[0].setHeight(fontData[0].getHeight() + 1);
 		fontData[0].setStyle(SWT.BOLD);
-		//fontData[0].setName("Helvetica");
 		FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
+		//FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
 		fontHeader = new Font(tree.getDisplay(), fontData);
+		
+		fontData[0].setStyle(SWT.NORMAL);
+		FontUtils.setFontDataHeight(fontData, FontUtils.getHeight(fontData) * 0.92f);
+		//FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
+		font = new Font(tree.getDisplay(), fontData);
+
+		tree.setFont(font);
+
 
 		Listener treeListener = new Listener() {
 			TreeItem lastTopItem = null;
