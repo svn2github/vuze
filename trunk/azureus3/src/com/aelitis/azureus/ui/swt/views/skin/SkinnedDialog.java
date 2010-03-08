@@ -112,7 +112,9 @@ public class SkinnedDialog
 	public void close() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				shell.close();
+				if (shell != null && !shell.isDisposed()) {
+					shell.close();
+				}
 			}
 		});
 	}
