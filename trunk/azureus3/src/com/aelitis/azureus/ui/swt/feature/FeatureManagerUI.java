@@ -297,6 +297,31 @@ public class FeatureManagerUI
 		return full;
 	}
 
+	public static boolean hasTrialLicence(Licence licence) {
+		if (featman == null) {
+			return false;
+		}
+
+		// if any of the FeatureDetails is a trial, return true
+
+		boolean trial = false;
+		FeatureDetails[] featureDetails = licence.getFeatures();
+		for (FeatureDetails fd : featureDetails) {
+			trial = isTrial(fd);
+			if (trial) {
+				break;
+			}
+		}
+
+		return trial;
+	}
+
+
+	public static boolean isTrial(FeatureDetails fd) {
+		Long lIsTrial = (Long) fd.getProperty(FeatureDetails.PR_IS_TRIAL);
+		return lIsTrial == null ? false : lIsTrial.longValue() != 0;
+	}
+
 	/**
 	 * @return
 	 */

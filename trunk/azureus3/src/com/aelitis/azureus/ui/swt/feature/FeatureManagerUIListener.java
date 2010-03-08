@@ -98,7 +98,9 @@ public class FeatureManagerUIListener
 			if (state == Licence.LS_AUTHENTICATED) {
 				if (hasPendingAuth && licence.isFullyInstalled()) {
 					hasPendingAuth = false;
-					FeatureManagerUI.openLicenceSuccessWindow();
+					if (!FeatureManagerUI.hasTrialLicence(licence)) {
+						FeatureManagerUI.openLicenceSuccessWindow();
+					}
 				}
 			}
 		}
