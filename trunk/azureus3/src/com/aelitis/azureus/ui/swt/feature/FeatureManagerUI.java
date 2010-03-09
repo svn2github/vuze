@@ -72,8 +72,8 @@ public class FeatureManagerUI
 								new MdiEntryCreationListener() {
 									public MdiEntry createMDiEntry(String id) {
 										MdiEntry mainMdiEntry = mdi.createEntryFromSkinRef(null,
-												"burn-free-ftux", "burn.ftux", "DVD Burn", null, null,
-												true, -1);
+												MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
+												"burn.ftux", "DVD Burn", null, null, true, -1);
 										mainMdiEntry.setImageLeftID("image.sidebar.dvdburn");
 										mainMdiEntry.setExpanded(true);
 										mainMdiEntry.addListener(new MdiEntryOpenListener() {
@@ -87,8 +87,9 @@ public class FeatureManagerUI
 										});
 
 										MdiEntry entryAddDVD = mdi.createEntryFromSkinRef(
-												"burn-free-ftux", "burn-free-new", "burn.ftux",
-												"Create New DVD", null, null, false, -1);
+												MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
+												"burn-free-new", "burn.ftux", "Create New DVD", null,
+												null, false, -1);
 										entryAddDVD.setImageLeftID("image.sidebar.dvdburn.add");
 										entryAddDVD.setExpanded(true);
 										entryAddDVD.addListener(new MdiEntryOpenListener() {
@@ -127,7 +128,9 @@ public class FeatureManagerUI
 
 	private static void createTrial() {
 		try {
-			Licence[] trial = featman.createLicences(new String[] { "dvdburn_trial" });
+			Licence[] trial = featman.createLicences(new String[] {
+				"dvdburn_trial"
+			});
 		} catch (PluginException e) {
 			Logger.log(new LogAlert(true, "Creating Trial", e));
 		}
@@ -316,7 +319,6 @@ public class FeatureManagerUI
 		return trial;
 	}
 
-
 	public static boolean isTrial(FeatureDetails fd) {
 		Long lIsTrial = (Long) fd.getProperty(FeatureDetails.PR_IS_TRIAL);
 		return lIsTrial == null ? false : lIsTrial.longValue() != 0;
@@ -328,6 +330,6 @@ public class FeatureManagerUI
 	public static boolean hasFullBurn() {
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
 				"azburn_v");
-		return pi != null && false;
+		return pi != null && pi.getPluginState().isOperational();
 	}
 }
