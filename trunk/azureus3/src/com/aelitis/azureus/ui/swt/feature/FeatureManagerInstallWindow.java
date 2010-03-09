@@ -112,7 +112,7 @@ public class FeatureManagerInstallWindow
 	public void reportActivity(String licence_key, String install, String activity) {
 		if (FAKE_DELAY) {
   		try {
-  			Thread.sleep(1000);
+  			Thread.sleep(300);
   		} catch (InterruptedException e) {
   		}
 		}
@@ -127,7 +127,7 @@ public class FeatureManagerInstallWindow
 	public void reportProgress(String licence_key, String install, final int percent) {
 		if (FAKE_DELAY) {
   		try {
-  			Thread.sleep(1000);
+  			Thread.sleep(300);
   		} catch (InterruptedException e) {
   		}
 		}
