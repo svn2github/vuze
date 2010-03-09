@@ -28,7 +28,6 @@ import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
 
-
 /**
  * @author TuxPaper
  * @created Oct 1, 2006
@@ -38,17 +37,21 @@ public class PlusFTUXView
 	extends SkinView
 {
 	private SWTSkinObjectBrowser browserSkinObject;
+
 	private boolean hasFullLicence;
+
 	private String url;
+
+	private String sRef;
 
 	public Object skinObjectInitialShow(final SWTSkinObject skinObject,
 			Object params) {
-		
+
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		MdiEntry entry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
-		
-		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
-				"plus-ftux", soMain);
+
+		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject("plus-ftux",
+				soMain);
 
 		browserSkinObject.addListener(new loadingListener() {
 
@@ -59,10 +62,10 @@ public class PlusFTUXView
 			}
 		});
 
-		boolean b = FeatureManagerUI.hasFullLicence();
-		hasFullLicence = !b; // so we get URL change
-		setHasFullLicence(b);
-		
+		setSourceRef("user");
+		this.hasFullLicence = FeatureManagerUI.hasFullLicence();
+		buildURL();
+
 		return null;
 	}
 
@@ -74,9 +77,19 @@ public class PlusFTUXView
 			return;
 		}
 		this.hasFullLicence = hasFullLicence;
-		url = "http://www2.vuze.com/plus-ftux.start?full=" + hasFullLicence;
+		buildURL();
+	}
+
+	private void buildURL() {
+		url = "http://www2.vuze.com/plus-ftux.start?full=" + hasFullLicence
+				+ "&sourceRef=" + sRef;
 		if (browserSkinObject != null) {
 			browserSkinObject.setURL(url);
 		}
+	}
+
+	public void setSourceRef(String sRef) {
+		this.sRef = sRef;
+		buildURL();
 	}
 }
