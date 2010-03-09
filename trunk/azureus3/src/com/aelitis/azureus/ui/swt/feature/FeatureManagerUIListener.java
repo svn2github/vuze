@@ -75,7 +75,9 @@ public class FeatureManagerUIListener
 			public void complete(String licenceKey) {
 				if (hasPendingAuth) {
 					hasPendingAuth = false;
-					FeatureManagerUI.openLicenceSuccessWindow();
+					if (FeatureManagerUI.hasFullLicence()) {
+						FeatureManagerUI.openLicenceSuccessWindow();
+					}
 				}
 			}
 
