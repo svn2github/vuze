@@ -29,8 +29,7 @@ import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBox;
-import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBoxListener;
+import com.aelitis.azureus.ui.swt.views.skin.*;
 
 public class FeatureManagerUI
 {
@@ -234,7 +233,12 @@ public class FeatureManagerUI
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == 0) {
-					// TODO
+  				PlusFTUXView sv = (PlusFTUXView) SkinViewManager.getByClass(PlusFTUXView.class);
+  				if (sv != null) {
+  					sv.setSourceRef("plus-success");
+  				}
+  				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+  				mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
 				}
 			}
 		});
