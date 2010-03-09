@@ -26,8 +26,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
+import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -145,6 +144,20 @@ public class MainMenu
 		}
 
 		MenuFactory.addCreateMenuItem(fileMenu);
+
+		if (FeatureManagerUI.enabled) {
+			MenuFactory.addSeparatorMenuItem(fileMenu);
+  		MenuFactory.addMenuItem(fileMenu, "menu.plus", new Listener() {
+  			public void handleEvent(Event event) {
+  				PlusFTUXView sv = (PlusFTUXView) SkinViewManager.getByClass(PlusFTUXView.class);
+  				if (sv != null) {
+  					sv.setSourceRef("Menu");
+  				}
+  				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+  				mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+  			}
+  		});
+		}
 
 		MenuFactory.addSeparatorMenuItem(fileMenu);
 		MenuFactory.addCloseWindowMenuItem(fileMenu);
