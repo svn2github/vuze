@@ -563,18 +563,20 @@ public class VersionCheckClient {
 	  return( res );
   }
   
-  	public String
-    getCountryCode()
+  	public Map<String,Object>
+    getCountryInfo()
     {
   	  Map reply = getVersionCheckInfo( REASON_EXTERNAL_IP, AT_EITHER );
 
-	  byte[] address = (byte[])reply.get( "source_country_code" );
+  	  Map<String,Object> info = (Map<String,Object>)reply.get( "source_info" );
 
-  	  if ( address == null ){
+  	  if ( info == null ){
   		  
-  		  return( "?" );
+  		  return( new HashMap<String,Object>());
+  		  
   	  }else{
-  		  return( new String( address ));
+  		  
+  		  return( BDecoder.decodeStrings( info ));
   	  }
     }
   
@@ -1394,7 +1396,7 @@ public class VersionCheckClient {
 		  if (true) {
 			 // System.out.println( "UDP:  " + getSingleton().getExternalIpAddressUDP(null,0,v6));
 			 // System.out.println( "TCP:  " + getSingleton().getExternalIpAddressTCP(null,0,v6));
-			  System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP(v6));
+			 // System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP(v6));
 		  }
 		  
 		  Map data = constructVersionCheckMessage(VersionCheckClient.REASON_UPDATE_CHECK_START);
