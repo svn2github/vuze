@@ -181,22 +181,28 @@ PluginInterfaceImpl
 	  
 	  if ( _plugin_id.endsWith( "_v" )){
 		  
-	      if ( _verified_files != null  ){
-		    	
-    		  File jar = FileUtil.getJarFileFromClass( plugin.getClass());
-    		  
-    		  if ( jar != null ){
-    			  
-    			  for ( File file: _verified_files ){
-    				  
-    				  if ( file.equals( jar )){
-    					
-    					  verified = true;
-    				  }
-    			  }
-    		  }
-	      }
-	      
+		  if ( plugin.getClass() == FailedPlugin.class ){
+			  
+			  verified = true;
+			  
+		  }else{
+		      if ( _verified_files != null  ){
+			    	
+	    		  File jar = FileUtil.getJarFileFromClass( plugin.getClass());
+	    		  
+	    		  if ( jar != null ){
+	    			  
+	    			  for ( File file: _verified_files ){
+	    				  
+	    				  if ( file.equals( jar )){
+	    					
+	    					  verified = true;
+	    				  }
+	    			  }
+	    		  }
+		      }
+		  }
+		  
 	      if ( !verified ){
 	    	  
 	    	  bad = true;
