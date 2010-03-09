@@ -47,6 +47,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 public class FeatureManagerInstallWindow
 	implements LicenceInstallationListener
 {
+	private final static boolean FAKE_DELAY = true;
+
 	private VuzeMessageBox box;
 
 	private ProgressBar progressBar;
@@ -55,7 +57,7 @@ public class FeatureManagerInstallWindow
 
 	private SWTSkinObjectText soProgressText;
 
-	private String activity;
+	private String progressText;
 
 	public FeatureManagerInstallWindow(Licence licence) {
 		if (!FeatureManagerUI.enabled) {
@@ -94,8 +96,8 @@ public class FeatureManagerInstallWindow
 				}
 				
 				soProgressText = (SWTSkinObjectText) skin.getSkinObject("progress-text");
-				if (soProgressText != null && activity != null) {
-					soProgressText.setText(activity);
+				if (soProgressText != null && progressText != null) {
+					soProgressText.setText(progressText);
 				}
 			}
 		});
@@ -108,17 +110,33 @@ public class FeatureManagerInstallWindow
 	}
 
 	public void reportActivity(String licence_key, String install, String activity) {
-		this.activity = activity;
+		if (FAKE_DELAY) {
+  		try {
+  			Thread.sleep(1000);
+  		} catch (InterruptedException e) {
+  		}
+		}
+
 		if (soProgressText != null) {
-			soProgressText.setText(activity);
+			String[] split = install.split("/", 2);
+			this.progressText = split.length == 2 ? split[1] : split[0];
+			soProgressText.setText(this.progressText);
 		}
 	}
 
 	public void reportProgress(String licence_key, String install, final int percent) {
+		if (FAKE_DELAY) {
+  		try {
+  			Thread.sleep(1000);
+  		} catch (InterruptedException e) {
+  		}
+		}
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (progressBar != null && !progressBar.isDisposed()) {
-					progressBar.setSelection(percent);
+					// never reach 100%!
+					progressBar.setSelection(percent == 100 ? 99 : percent);
 				}
 			}
 		});
