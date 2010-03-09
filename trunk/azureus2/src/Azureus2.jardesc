@@ -66,7 +66,6 @@
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.extlistener"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.util.encoders"/>
-        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.ui.sidebar"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.ipchecker"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.upnp.impl.services"/>
         <file path="/azureus2/ChangeLog.txt"/>
@@ -180,8 +179,8 @@
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.mdi"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.db"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.test"/>
-        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.ui.swt.mdi"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.networkmanager.impl.tcp"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.ui.swt.mdi"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.extseed.impl.webseed"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.update"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.torrent"/>
@@ -257,8 +256,8 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.updater.snippets"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.messenger.browser.listeners"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.messenger"/>
-        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.tableitems.tracker"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.dht.impl"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.tableitems.tracker"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.crypto.engines"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.browser.listener"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.crypto.encodings"/>
@@ -522,6 +521,7 @@
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.util"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.tableitems.myshares"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.natpmp.upnp.impl"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.feature"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.ui.swt.utils"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.clientmessageservice"/>
     </selectedElements>
