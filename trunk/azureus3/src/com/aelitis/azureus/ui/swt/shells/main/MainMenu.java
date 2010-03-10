@@ -149,7 +149,7 @@ public class MainMenu
 			MenuFactory.addSeparatorMenuItem(fileMenu);
   		MenuFactory.addMenuItem(fileMenu, "menu.plus", new Listener() {
   			public void handleEvent(Event event) {
-  				PlusFTUXView sv = (PlusFTUXView) SkinViewManager.getByClass(PlusFTUXView.class);
+  				SBC_PlusFTUX sv = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
   				if (sv != null) {
   					sv.setSourceRef("Menu");
   				}

@@ -27,7 +27,6 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
-import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 
@@ -70,48 +69,25 @@ public class FeatureManagerUI
 								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
 								new MdiEntryCreationListener() {
 									public MdiEntry createMDiEntry(String id) {
+										// TODO: i18n
 										MdiEntry mainMdiEntry = mdi.createEntryFromSkinRef(null,
 												MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
-												"burn.ftux", "DVD Burn", null, null, true, -1);
+												"main.burn.ftux", "DVD Burn", null, null, true, -1);
 										mainMdiEntry.setImageLeftID("image.sidebar.dvdburn");
 										mainMdiEntry.setExpanded(true);
-										mainMdiEntry.addListener(new MdiEntryOpenListener() {
-											public void mdiEntryOpen(MdiEntry entry) {
-												SWTSkinObject so = ((BaseMdiEntry) entry).getSkinObject();
-												if (so instanceof SWTSkinObjectBrowser) {
-													SWTSkinObjectBrowser soBrowser = (SWTSkinObjectBrowser) so;
-													soBrowser.setURL("http://www2.vuze.com/client/plus/burn.php?view=main");
-												}
-											}
-										});
 
+										// TODO: i18n
 										MdiEntry entryAddDVD = mdi.createEntryFromSkinRef(
 												MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
-												"burn-free-new", "burn.ftux", "Create New DVD", null,
+												"burn-new", "main.burn.ftux", "Create New DVD", null,
 												null, false, -1);
 										entryAddDVD.setImageLeftID("image.sidebar.dvdburn.add");
 										entryAddDVD.setExpanded(true);
-										entryAddDVD.addListener(new MdiEntryOpenListener() {
-											public void mdiEntryOpen(MdiEntry entry) {
-												SWTSkinObject so = ((BaseMdiEntry) entry).getSkinObject();
-												if (so instanceof SWTSkinObjectBrowser) {
-													SWTSkinObjectBrowser soBrowser = (SWTSkinObjectBrowser) so;
-													soBrowser.setURL("http://www2.vuze.com/client/plus/burn.php?view=add");
-												}
-											}
-										});
 
 										entryAddDVD.addListener(new MdiEntryDropListener() {
 											public boolean mdiEntryDrop(MdiEntry entry,
 													Object droppedObject) {
-												new VuzeMessageBox("Foo", "Bar", new String[] {
-													"Trial",
-													"Button2"
-												}, 0).open(new UserPrompterResultListener() {
-													public void prompterClosed(int result) {
-														createTrial();
-													}
-												});
+												openTrialAskWindow();
 												return true;
 											}
 										});
@@ -125,7 +101,20 @@ public class FeatureManagerUI
 		});
 	}
 
-	private static void createTrial() {
+	public static void openTrialAskWindow() {
+		new VuzeMessageBox("Foo", "Bar", new String[] {
+			"Trial",
+			"No Way!"
+		}, 0).open(new UserPrompterResultListener() {
+			public void prompterClosed(int result) {
+				if (result == 0) {
+					createTrial();
+				}
+			}
+		});
+	}
+
+	public static void createTrial() {
 		try {
 			Licence[] trial = featman.createLicences(new String[] {
 				"dvdburn_trial"
@@ -233,7 +222,7 @@ public class FeatureManagerUI
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == 0) {
-  				PlusFTUXView sv = (PlusFTUXView) SkinViewManager.getByClass(PlusFTUXView.class);
+  				SBC_PlusFTUX sv = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
   				if (sv != null) {
   					sv.setSourceRef("plus-success");
   				}
@@ -304,7 +293,7 @@ public class FeatureManagerUI
 		return full;
 	}
 
-	public static boolean hasTrialLicence(Licence licence) {
+	public static boolean isTrialLicence(Licence licence) {
 		if (featman == null) {
 			return false;
 		}

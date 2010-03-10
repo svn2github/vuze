@@ -13,8 +13,7 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.ui.swt.views.skin.PlusFTUXView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.*;
 
 public class FeatureManagerUIListener
 	implements FeatureManagerListener
@@ -34,7 +33,7 @@ public class FeatureManagerUIListener
 		updateSidebar();
 
 		if (DEBUG) {
-			System.out.println("FEAT: Licence Added");
+			System.out.println("FEAT: Licence Added with state " + licence.getState());
 		}
 
 		if (licence.getState() == Licence.LS_PENDING_AUTHENTICATION) {
@@ -98,10 +97,19 @@ public class FeatureManagerUIListener
 		} else {
 			FeatureManagerUI.closeLicenceValidatingWindow();
 			if (state == Licence.LS_AUTHENTICATED) {
-				if (hasPendingAuth && licence.isFullyInstalled()) {
+				if (hasPendingAuth) {
 					hasPendingAuth = false;
-					if (!FeatureManagerUI.hasTrialLicence(licence)) {
-						FeatureManagerUI.openLicenceSuccessWindow();
+					if (licence.isFullyInstalled()) {
+						if (FeatureManagerUI.isTrialLicence(licence)) {
+							FeatureManagerUI.openLicenceSuccessWindow();
+						}
+					} else {
+						Logger.log(new LogAlert(true, LogAlert.AT_ERROR,
+								"Licence did not fully install"));
+						if (FeatureManagerUI.hasFullLicence()
+								&& FeatureManagerUI.hasFullBurn()) {
+							FeatureManagerUI.openLicenceSuccessWindow();
+						}
 					}
 				}
 			}
@@ -120,9 +128,15 @@ public class FeatureManagerUIListener
 				String title = MessageText.getString(hasFullLicence
 						? "mdi.entry.plus.full" : "mdi.entry.plus.free");
 				entry.setTitle(title);
-				PlusFTUXView view = (PlusFTUXView) SkinViewManager.getByClass(PlusFTUXView.class);
+				SBC_PlusFTUX view = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
 				if (view != null) {
 					view.updateLicenceInfo();
+				}
+				SkinView[] views = SkinViewManager.getMultiByClass(SBC_BurnFTUX.class);
+				if (views != null) {
+					for (SkinView bview : views) {
+						((SBC_BurnFTUX) bview).updateLicenceInfo();
+					}
 				}
 			}
 		}

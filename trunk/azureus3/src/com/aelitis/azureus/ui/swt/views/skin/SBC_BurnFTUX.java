@@ -20,6 +20,8 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -33,7 +35,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
  * @created Oct 1, 2006
  *
  */
-public class PlusFTUXView
+public class SBC_BurnFTUX
 	extends SkinView
 {
 	private SWTSkinObjectBrowser browserSkinObject;
@@ -42,13 +44,19 @@ public class PlusFTUXView
 
 	private String sRef;
 
+	private String entryID;
+
+	private MdiEntry entry;
+
 	public Object skinObjectInitialShow(final SWTSkinObject skinObject,
 			Object params) {
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		MdiEntry entry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+		entry = mdi.getCurrentEntry();
+		
+		entryID = entry.getId();
 
-		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject("plus-ftux",
+		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject("browser",
 				soMain);
 
 		browserSkinObject.addListener(new loadingListener() {
@@ -65,6 +73,20 @@ public class PlusFTUXView
 
 		return null;
 	}
+	
+	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
+		if (browserSkinObject != null) {
+			browserSkinObject.setURL(url);
+		}
+		return super.skinObjectShown(skinObject, params);
+	}
+	
+	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
+		if (browserSkinObject != null) {
+			browserSkinObject.setURL("about:blank");
+		}
+		return super.skinObjectHidden(skinObject, params);
+	}
 
 	/**
 	 * @param hasFullLicence
@@ -76,9 +98,14 @@ public class PlusFTUXView
 	private void buildURL() {
 		boolean isFull = FeatureManagerUI.hasFullLicence();
 		boolean isTrial = FeatureManagerUI.hasFullBurn() && !isFull;
-		url = "http://www2.vuze.com/plus-ftux.start?mode="
+		url = "http://www2.vuze.com/client/plus/burn.php?view=" + entryID + "&mode="
 				+ (isFull ? "plus" : isTrial ? "trial" : "free") + "&sourceRef=" + sRef;
-		if (browserSkinObject != null) {
+		System.out.println("URL is now " + url + " via " + Debug.getCompressedStackTrace());
+
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		MdiEntry currentEntry = mdi.getCurrentEntry();
+
+		if (browserSkinObject != null && entry == currentEntry) {
 			browserSkinObject.setURL(url);
 		}
 	}
