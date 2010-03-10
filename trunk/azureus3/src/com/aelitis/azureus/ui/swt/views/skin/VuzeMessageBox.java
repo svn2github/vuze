@@ -184,6 +184,7 @@ public class VuzeMessageBox
 		Composite cCenterH = new Composite(cBottomArea, SWT.NONE);
 		fd = new FormData();
 		fd.height = 1;
+		fd.width = 1;
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100);
 		cCenterH.setLayoutData(fd);
@@ -191,6 +192,7 @@ public class VuzeMessageBox
 		Composite cCenterV = new Composite(cBottomArea, SWT.NONE);
 		fd = new FormData();
 		fd.width = 1;
+		fd.height = 1;
 		fd.top = new FormAttachment(0);
 		fd.bottom = new FormAttachment(100);
 		cCenterV.setLayoutData(fd);
