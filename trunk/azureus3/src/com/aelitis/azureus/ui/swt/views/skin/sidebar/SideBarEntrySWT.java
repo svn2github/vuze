@@ -303,6 +303,9 @@ public class SideBarEntrySWT
 			return false;
 		}
 		
+		// remove immediately from MDI because disposal is on a delay
+		mdi.removeItem(SideBarEntrySWT.this);
+		
 		// dispose will trigger dispose listener, which removed it from BaseMDI
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {

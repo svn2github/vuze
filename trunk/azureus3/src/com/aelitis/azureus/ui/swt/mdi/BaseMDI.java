@@ -430,6 +430,23 @@ public abstract class BaseMDI
 		String id = entry.getId();
 		synchronized (mapIdToEntry) {
 			mapIdToEntry.remove(id);
+			
+			removeChildrenOf(id);
+		}
+	}
+
+	private void removeChildrenOf(String id) {
+		if (id == null) {
+			return;
+		}
+		synchronized (mapIdToEntry) {
+			MdiEntrySWT[] entriesSWT = getEntriesSWT();
+			for (MdiEntrySWT entry : entriesSWT) {
+				if (id.equals(entry.getParentID())) {
+					mapIdToEntry.remove(entry);
+					removeChildrenOf(entry.getId());
+				}
+			}
 		}
 	}
 
