@@ -104,8 +104,6 @@ public class FeatureManagerUIListener
 							FeatureManagerUI.openLicenceSuccessWindow();
 						}
 					} else {
-						Logger.log(new LogAlert(true, LogAlert.AT_ERROR,
-								"Licence did not fully install"));
 						if (FeatureManagerUI.hasFullLicence()
 								&& FeatureManagerUI.hasFullBurn()) {
 							FeatureManagerUI.openLicenceSuccessWindow();
