@@ -407,7 +407,7 @@ public class Debug {
 	public static String
 	getCompressedStackTrace()
 	{
-		return( getCompressedStackTrace( new Throwable(), 2 ));
+		return( getCompressedStackTrace( new Throwable(), 2, 200, false ));
 	}
 
 	public static String
