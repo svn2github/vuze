@@ -122,7 +122,7 @@ public class FeatureManagerUIListener
 				entry.setTitle(title);
 				PlusFTUXView view = (PlusFTUXView) SkinViewManager.getByClass(PlusFTUXView.class);
 				if (view != null) {
-					view.setHasFullLicence(hasFullLicence);
+					view.updateLicenceInfo();
 				}
 			}
 		}

@@ -38,8 +38,6 @@ public class PlusFTUXView
 {
 	private SWTSkinObjectBrowser browserSkinObject;
 
-	private boolean hasFullLicence;
-
 	private String url;
 
 	private String sRef;
@@ -63,7 +61,6 @@ public class PlusFTUXView
 		});
 
 		setSourceRef("user");
-		this.hasFullLicence = FeatureManagerUI.hasFullLicence();
 		buildURL();
 
 		return null;
@@ -72,17 +69,15 @@ public class PlusFTUXView
 	/**
 	 * @param hasFullLicence
 	 */
-	public void setHasFullLicence(boolean hasFullLicence) {
-		if (this.hasFullLicence == hasFullLicence) {
-			return;
-		}
-		this.hasFullLicence = hasFullLicence;
+	public void updateLicenceInfo() {
 		buildURL();
 	}
 
 	private void buildURL() {
-		url = "http://www2.vuze.com/plus-ftux.start?full=" + hasFullLicence
-				+ "&sourceRef=" + sRef;
+		boolean isFull = FeatureManagerUI.hasFullLicence();
+		boolean isTrial = FeatureManagerUI.hasFullBurn() && !isFull;
+		url = "http://www2.vuze.com/plus-ftux.start?mode="
+				+ (isFull ? "plus" : isTrial ? "trial" : "free") + "&sourceRef=" + sRef;
 		if (browserSkinObject != null) {
 			browserSkinObject.setURL(url);
 		}

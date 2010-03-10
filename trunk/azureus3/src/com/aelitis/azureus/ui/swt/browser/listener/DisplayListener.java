@@ -28,6 +28,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
@@ -69,6 +70,8 @@ public class DisplayListener
 	public static final String OP_SHOW_DONATION_WINDOW = "show-donation-window";
 
 	public static final String OP_OPEN_SEARCH = "open-search";
+
+	public static final String OP_REGISTER = "open-register";
 
 	private Browser browser;
 
@@ -157,6 +160,8 @@ public class DisplayListener
 			if (uif != null) {
 				uif.doSearch(MapUtils.getMapString(decodedMap, "search-text", ""));
 			}
+		} else if (OP_REGISTER.equals(opid)) {
+			FeatureManagerUI.openLicenceEntryWindow(false);
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
 		}
