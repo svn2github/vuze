@@ -61,6 +61,7 @@ public class UrlFilter
 
 	public UrlFilter() {
 		listUrlWhitelist.add(DEFAULT_RPC_WHITELIST);
+		listUrlWhitelist.add("https?://[^/]*\\.vuze\\.com:?[0-9]*/.*");
 
 		ContentNetworkManager cmn = ContentNetworkManagerFactory.getSingleton();
 		ContentNetwork[] contentNetworks = cmn.getContentNetworks();
