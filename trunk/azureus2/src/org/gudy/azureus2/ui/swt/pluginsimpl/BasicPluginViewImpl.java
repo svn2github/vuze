@@ -100,6 +100,23 @@ BasicPluginViewImpl
 				delete();
 				isCreated = false;
 				break;
+			
+			case UISWTViewEvent.TYPE_FOCUSGAINED:
+		   	String	text = model.getLogArea().getText().trim();
+		   	
+		   	if (log != null && !log.isDisposed()) {
+  	    	log.setText( text);
+  	    	
+  	    	log.setTopIndex(log.getLineCount());
+		   	}
+				break;
+				
+			case UISWTViewEvent.TYPE_FOCUSLOST:
+		   	if (log != null && !log.isDisposed()) {
+		   		log.setText("");
+		   	}
+				break;
+				
 		}
 		return true;
 	}
@@ -310,34 +327,7 @@ BasicPluginViewImpl
 		});
 
     }
-    
-	composite.addListener(
-			SWT.Hide,
-			new Listener()
-			{
-				public void 
-				handleEvent(
-					Event arg0 )
-				{
-					log.setText("");
-				}
-			});
 	
-	composite.addListener(
-			SWT.Show,
-			new Listener()
-			{
-				public void 
-				handleEvent(
-					Event arg0 )
-				{
-				   	String	text = model.getLogArea().getText().trim();
-				   	
-			    	log.setText( text);
-			    	
-			    	log.setTopIndex(log.getLineCount());
-				}
-			});
   }
   
   private void refresh() {
