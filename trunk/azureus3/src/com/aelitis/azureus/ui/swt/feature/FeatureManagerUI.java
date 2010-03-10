@@ -29,6 +29,7 @@ import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.util.ConstantsVuze;
 
 public class FeatureManagerUI
 {
@@ -161,7 +162,8 @@ public class FeatureManagerUI
 					link.setText(MessageText.getString("dlg.auth.enter.link"));
 					link.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
 						public boolean urlClicked(URLInfo urlInfo) {
-							Utils.launch("http://google.com");
+							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("upgrade.start", false);
+							Utils.launch(url);
 							return true;
 						}
 					});
