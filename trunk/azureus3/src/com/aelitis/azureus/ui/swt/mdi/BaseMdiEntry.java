@@ -602,6 +602,14 @@ public abstract class BaseMdiEntry
 	}
 
 	public void hide() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_hide();
+			}
+		});
+	}
+
+	private void swt_hide() {
 		SWTSkinObject skinObjectMaster = getSkinObjectMaster();
 		if (skinObjectMaster instanceof SWTSkinObjectContainer) {
 			SWTSkinObjectContainer container = (SWTSkinObjectContainer) skinObjectMaster;

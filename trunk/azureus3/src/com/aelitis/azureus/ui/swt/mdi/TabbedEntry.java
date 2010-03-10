@@ -198,6 +198,14 @@ public class TabbedEntry
 	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#show()
 	 */
 	public void show() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_show();
+			}
+		});
+	}
+
+	private void swt_show() {
 		if (swtItem == null) {
 			showonSWTItemSet = true;
 			return;
