@@ -318,7 +318,15 @@ public class SideBarEntrySWT
 		return true;
 	}
 
-	public boolean build() {
+	public void build() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_build();
+			}
+		});
+	}
+
+	public boolean swt_build() {
 		if (swtItem == null) {
 			buildonSWTItemSet = true;
 			return true;
@@ -432,7 +440,7 @@ public class SideBarEntrySWT
 					if (view != null) {
 						setIView(view);
 						// now that we have an IView, go through show one more time
-						return build();
+						return swt_build();
 					}
 					close(true);
 					return false;
@@ -459,12 +467,20 @@ public class SideBarEntrySWT
 	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#show()
 	 */
 	public void show() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_show();
+			}
+		});
+	}
+
+	private void swt_show() {
 		if (swtItem == null) {
 			showonSWTItemSet = true;
 			return;
 		}
 		showonSWTItemSet = false;
-		if (!build()) {
+		if (!swt_build()) {
 			return;
 		}
 		

@@ -48,7 +48,15 @@ public class TabbedEntry
 	 * @note SideBarEntrySWT is neary identical to this one.  Please keep them
 	 *       in sync until commonalities are placed in BaseMdiEntry
 	 */
-	public boolean build() {
+	public void build() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_build();
+			}
+		});
+	}
+	
+	public boolean swt_build() {
 		if (swtItem == null) {
 			buildonSWTItemSet = true;
 			return true;
@@ -163,7 +171,7 @@ public class TabbedEntry
 					if (view != null) {
 						setIView(view);
 						// now that we have an IView, go through show one more time
-						return build();
+						return swt_build();
 					}
 					close(true);
 					return false;
@@ -195,7 +203,7 @@ public class TabbedEntry
 			return;
 		}
 		showonSWTItemSet = false;
-		if (!build()) {
+		if (!swt_build()) {
 			return;
 		}
 		

@@ -10,7 +10,6 @@ import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
@@ -865,7 +864,6 @@ public abstract class BaseMdiEntry
 		}
 	}
 
-	public boolean build() {
-		return true;
+	public void build() {
 	}
 }
