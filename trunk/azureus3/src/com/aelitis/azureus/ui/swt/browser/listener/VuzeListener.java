@@ -9,6 +9,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.util.MapUtils;
 
 
@@ -18,7 +19,9 @@ public class VuzeListener
 	public static final String DEFAULT_LISTENER_ID = "vuze";
 
 	public static final String OP_LOAD_VUZE_FILE = "load-vuze-file";
-	
+
+	public static final String OP_INSTALL_TRIAL = "install-trial";
+
 	public 
 	VuzeListener() 
 	{
@@ -58,7 +61,8 @@ public class VuzeListener
 					vfh.handleFiles( new VuzeFile[]{ vf }, 0 );
 				}
 			}
-			
+		}else if (OP_INSTALL_TRIAL.equals(opid)) {
+			FeatureManagerUI.createTrial();
 		}else{
 			
 			throw new IllegalArgumentException("Unknown operation: " + opid);
