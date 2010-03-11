@@ -52,6 +52,7 @@ public class FeatureManagerUI
 				PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
 				featman = pi.getUtilities().getFeatureManager();
 
+				// TODO: Fire for existing licences
 				featman.addListener(new FeatureManagerUIListener(featman));
 
 				UIManager ui_manager = pi.getUIManager();
@@ -96,6 +97,21 @@ public class FeatureManagerUI
 										return mainMdiEntry;
 									}
 								});
+						
+						mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
+								new MdiEntryCreationListener() {
+									public MdiEntry createMDiEntry(String id) {
+										String title = MessageText.getString(FeatureManagerUI.hasFullLicence()
+												? "mdi.entry.plus.full" : "mdi.entry.plus.free");
+										int index = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME) == null
+												? 0 : 1;
+										MdiEntry entry = mdi.createEntryFromSkinRef(null,
+												MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
+												"main.area.plus", title, null, null, true, index);
+										entry.setImageLeftID("image.sidebar.plus");
+										return entry;
+									}
+								});
 					}
 				});
 			}
@@ -103,10 +119,17 @@ public class FeatureManagerUI
 	}
 
 	public static void openTrialAskWindow() {
-		new VuzeMessageBox("Foo", "Bar", new String[] {
-			"Trial",
-			"No Way!"
-		}, 0).open(new UserPrompterResultListener() {
+		VuzeMessageBox box = new VuzeMessageBox(
+				MessageText.getString("dlg.try.trial.title"),
+				MessageText.getString("dlg.try.trial.text"), new String[] {
+					MessageText.getString("Button.install"),
+					MessageText.getString("Button.cancel")
+				}, 0);
+		box.addResourceBundle(FeatureManagerUI.class,
+				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
+		box.setIconResource("image.burn.dlg.header");
+
+		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == 0) {
 					createTrial();
@@ -143,10 +166,7 @@ public class FeatureManagerUI
 				+ tryNo));
 		box.addResourceBundle(FeatureManagerUI.class,
 				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
-		box.setIconResource("image.vp");
-		if (trytwo) {
-			box.setTextIconResource("image.warn.big");
-		}
+		box.setIconResource(trytwo ? "image.warn.big" : "image.vp" );
 
 		box.setListener(new VuzeMessageBoxListener() {
 			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
@@ -162,7 +182,8 @@ public class FeatureManagerUI
 					link.setText(MessageText.getString("dlg.auth.enter.link"));
 					link.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
 						public boolean urlClicked(URLInfo urlInfo) {
-							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("upgrade.start", false);
+							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+									"upgrade.start", false);
 							Utils.launch(url);
 							return true;
 						}
@@ -199,7 +220,56 @@ public class FeatureManagerUI
 		if (!enabled) {
 			return;
 		}
+		
+		if (hasFullLicence()) {
+			openFullLicenceSuccessWindow();
+		} else {
+			openTrialLicenceSuccessWindow();
+		}
+	}
 
+	/**
+	 * 
+	 *
+	 * @since 4.1.0.5
+	 */
+	private static void openTrialLicenceSuccessWindow() {
+		final VuzeMessageBox box = new VuzeMessageBox(
+				MessageText.getString("dlg.auth.trial.title"),
+				MessageText.getString("dlg.auth.trial.success.line1"), new String[] {
+					MessageText.getString("Button.goLibary"),
+				}, 0);
+		box.setSubTitle(MessageText.getString("dlg.auth.trial.success.subtitle"));
+		box.addResourceBundle(FeatureManagerUI.class,
+				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
+		box.setIconResource("image.burn.dlg.header");
+
+		box.setListener(new VuzeMessageBoxListener() {
+			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
+				shell.setSize(shell.getSize().x, DLG_HEIGHT);
+
+				SWTSkin skin = soExtra.getSkin();
+				skin.setAutoSizeOnLayout(false);
+				skin.createSkinObject("dlg.register.trial.success", "dlg.register.trial.success",
+						soExtra);
+			}
+		});
+
+		box.open(new UserPrompterResultListener() {
+			public void prompterClosed(int result) {
+				if (result == 0) {
+					SBC_PlusFTUX sv = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
+					if (sv != null) {
+						sv.setSourceRef("plus-success");
+					}
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+					mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+				}
+			}
+		});
+	}
+
+	private static void openFullLicenceSuccessWindow() {
 		final VuzeMessageBox box = new VuzeMessageBox(
 				MessageText.getString("dlg.auth.title"),
 				MessageText.getString("dlg.auth.success.line1"), new String[] {
@@ -224,12 +294,12 @@ public class FeatureManagerUI
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == 0) {
-  				SBC_PlusFTUX sv = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
-  				if (sv != null) {
-  					sv.setSourceRef("plus-success");
-  				}
-  				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-  				mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+					SBC_PlusFTUX sv = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
+					if (sv != null) {
+						sv.setSourceRef("plus-success");
+					}
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+					mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
 				}
 			}
 		});

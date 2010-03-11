@@ -3,6 +3,7 @@ package com.aelitis.azureus.ui.swt.feature;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureManagerListener;
@@ -29,7 +30,7 @@ public class FeatureManagerUIListener
 		this.featman = featman;
 	}
 
-	public void licenceAdded(final Licence licence) {
+	public void licenceAdded(Licence licence) {
 		updateSidebar();
 
 		if (DEBUG) {
@@ -51,7 +52,12 @@ public class FeatureManagerUIListener
 				if (DEBUG) {
 					System.out.println("FEATINST: START!");
 				}
-				new FeatureManagerInstallWindow(licence).open();
+				try {
+					Licence licence = featman.addLicence(licence_key);
+					new FeatureManagerInstallWindow(licence).open();
+				} catch (PluginException e) {
+					Debug.out(e);
+				}
 			}
 
 			public void reportProgress(String licenceKey, String install, int percent) {
@@ -68,15 +74,12 @@ public class FeatureManagerUIListener
 			}
 
 			public void failed(String licenceKey, PluginException error) {
-				Logger.log(new LogAlert(true, "Error Installing " + licenceKey, error));
 			}
 
 			public void complete(String licenceKey) {
 				if (hasPendingAuth) {
 					hasPendingAuth = false;
-					if (FeatureManagerUI.hasFullLicence()) {
-						FeatureManagerUI.openLicenceSuccessWindow();
-					}
+					FeatureManagerUI.openLicenceSuccessWindow();
 				}
 			}
 
@@ -100,14 +103,7 @@ public class FeatureManagerUIListener
 				if (hasPendingAuth) {
 					hasPendingAuth = false;
 					if (licence.isFullyInstalled()) {
-						if (FeatureManagerUI.isTrialLicence(licence)) {
-							FeatureManagerUI.openLicenceSuccessWindow();
-						}
-					} else {
-						if (FeatureManagerUI.hasFullLicence()
-								&& FeatureManagerUI.hasFullBurn()) {
-							FeatureManagerUI.openLicenceSuccessWindow();
-						}
+						FeatureManagerUI.openLicenceSuccessWindow();
 					}
 				}
 			}

@@ -1114,13 +1114,8 @@ public class SideBar
 					public void runSupport() {
 						if (FeatureManagerUI.enabled) {
 							// blah, can't add until plugin initialization is done
-							String title = MessageText.getString(FeatureManagerUI.hasFullLicence()
-									? "mdi.entry.plus.full" : "mdi.entry.plus.free");
-							int index = getEntry(SIDEBAR_SECTION_WELCOME) == null ? 0 : 1;
-							MdiEntry entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_PLUS,
-									"main.area.plus", title, null, null, false, index);
-							entry.setImageLeftID("image.sidebar.plus");
 
+							loadEntryByID(SIDEBAR_SECTION_PLUS, false);
 						
 							if (!FeatureManagerUI.hasFullBurn()) {
 								loadEntryByID(SIDEBAR_SECTION_BURN_INFO, false);

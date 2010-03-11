@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
@@ -47,7 +48,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 public class FeatureManagerInstallWindow
 	implements LicenceInstallationListener
 {
-	private final static boolean FAKE_DELAY = true;
+	private final static boolean FAKE_DELAY = Constants.IS_CVS_VERSION;
 
 	private VuzeMessageBox box;
 
@@ -72,12 +73,14 @@ public class FeatureManagerInstallWindow
 			return;
 		}
 
+		boolean isTrial = FeatureManagerUI.isTrialLicence(licence);
 		box = new VuzeMessageBox(MessageText.getString("dlg.auth.title"),
-				MessageText.getString("dlg.auth.install"), null, 0);
-		box.setSubTitle(MessageText.getString("dlg.auth.install.subtitle"));
+				"", null, 0);
+		box.setSubTitle(MessageText.getString(isTrial ? "dlg.auth.install.subtitle.trial"
+				: "dlg.auth.install.subtitle.plus"));
 		box.addResourceBundle(FeatureManagerUI.class,
 				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
-		box.setIconResource("image.vp");
+		box.setIconResource(isTrial ? "image.burn.dlg.header" : "image.vp");
 
 		box.setListener(new VuzeMessageBoxListener() {
 
@@ -94,7 +97,7 @@ public class FeatureManagerInstallWindow
 					progressBar.setMaximum(100);
 					progressBar.setLayoutData(Utils.getFilledFormData());
 				}
-				
+
 				soProgressText = (SWTSkinObjectText) skin.getSkinObject("progress-text");
 				if (soProgressText != null && progressText != null) {
 					soProgressText.setText(progressText);
@@ -104,32 +107,34 @@ public class FeatureManagerInstallWindow
 
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
-				licence.removeInstallationListener(FeatureManagerInstallWindow.this);				
+				licence.removeInstallationListener(FeatureManagerInstallWindow.this);
 			}
 		});
 	}
 
 	public void reportActivity(String licence_key, String install, String activity) {
 		if (FAKE_DELAY) {
-  		try {
-  			Thread.sleep(300);
-  		} catch (InterruptedException e) {
-  		}
+			try {
+				Thread.sleep(80);
+			} catch (InterruptedException e) {
+			}
 		}
 
 		if (soProgressText != null) {
 			String[] split = install.split("/", 2);
-			this.progressText = split.length == 2 ? split[1] : split[0];
+			this.progressText = MessageText.getString("dlg.auth.install.progress",
+					new String[] { split.length == 2 ? split[1] : split[0] });
 			soProgressText.setText(this.progressText);
 		}
 	}
 
-	public void reportProgress(String licence_key, String install, final int percent) {
+	public void reportProgress(String licence_key, String install,
+			final int percent) {
 		if (FAKE_DELAY) {
-  		try {
-  			Thread.sleep(300);
-  		} catch (InterruptedException e) {
-  		}
+			try {
+				Thread.sleep(80);
+			} catch (InterruptedException e) {
+			}
 		}
 
 		Utils.execSWTThread(new AERunnable() {
