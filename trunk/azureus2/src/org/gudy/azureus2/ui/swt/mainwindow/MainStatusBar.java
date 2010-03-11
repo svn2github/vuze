@@ -676,7 +676,8 @@ public class MainStatusBar
 		} else if (secs_uptime - last_uptime > 15 * 60) {
 
 			createStatusEntry(new CLabelUpdater() {
-				public void update(CLabel label) {
+				public boolean update(CLabel label) {
+					return( false );
 				}
 
 				public void created(CLabel feedback) {
@@ -1250,7 +1251,7 @@ public class MainStatusBar
 	public static interface CLabelUpdater
 	{
 		public void created(CLabel label);
-		public void update(CLabel label);
+		public boolean update(CLabel label);
 	}
 
 	/**
@@ -1310,6 +1311,13 @@ public class MainStatusBar
 			}
 		}
 		
+		public void
+		reset()
+		{
+			widthSetOn 	= 0;
+			lastWidth	= 0;
+		}
+		
 		public void layoutNow() {
 			widthSetOn = 0;
 			statusBar.layout();
@@ -1355,7 +1363,9 @@ public class MainStatusBar
 		}
 
 		private void checkForRefresh() {
-			updater.update(this);
+			if ( updater.update(this)){
+				layoutPluginComposite();
+			}
 		}
 	}
 
@@ -1365,6 +1375,7 @@ public class MainStatusBar
 				UpdateableCLabel result = new UpdateableCLabel(plugin_label_composite, borderFlag,
 						updater);
 				result.setLayoutData(new GridData(GridData.FILL_BOTH));
+				layoutPluginComposite();
 				updater.created(result);
 			}
 		};
@@ -1381,6 +1392,17 @@ public class MainStatusBar
 		Utils.execSWTThread(r);
 	}
 
+	private void
+	layoutPluginComposite()
+	{
+		Control[] plugin_elements = this.plugin_label_composite.getChildren();
+		for (int i = 0; i < plugin_elements.length; i++) {
+			if (plugin_elements[i] instanceof UpdateableCLabel) {
+				((UpdateableCLabel) plugin_elements[i]).reset();
+			}
+		}
+		statusBar.layout();
+	}
 	// =============================================================
 	// Below code are ProgressBar/Status text specific
 	// =============================================================	

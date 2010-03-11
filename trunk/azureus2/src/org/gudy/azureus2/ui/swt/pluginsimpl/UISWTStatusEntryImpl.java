@@ -63,7 +63,7 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 		return this.menu_context;
 	}
 	
-	public void update(CLabel label) {
+	public boolean update(CLabel label) {
 		if (needs_disposing && !label.isDisposed()) {
 			if (menu != null && !menu.isDisposed()) {
 				menu.dispose();
@@ -76,11 +76,11 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 			}
 			releaseOldImages();
 			
-			return;
+			return( true );
 		}
 		
 		if (menu_context.is_dirty) {needs_update = true; menu_context.is_dirty = false;} 
-		if (!needs_update) {return;}
+		if (!needs_update) {return false;}
 		
 		// This is where we do a big update.
 		try {
@@ -90,6 +90,8 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 		finally {
 			this_mon.exit();
 		}
+		
+		return false;
 	}
 	
 	/**
