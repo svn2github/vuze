@@ -56,6 +56,7 @@ UpdateImpl
 	private CopyOnWriteList			listeners = new CopyOnWriteList();
 	private volatile boolean		cancelled;
 	private volatile boolean		complete;
+	private volatile boolean		succeeded;
 	
 	protected
 	UpdateImpl(
@@ -215,9 +216,11 @@ UpdateImpl
 	}
 	
 	public void
-	complete()
+	complete(
+		boolean	success )
 	{
 		complete	= true;
+		succeeded	= success;
 		
 		Iterator it = listeners.iterator();
 		
@@ -243,6 +246,12 @@ UpdateImpl
 	isComplete()
 	{
 		return( complete );
+	}
+	
+	public boolean
+	wasSuccessful()
+	{
+		return( succeeded );
 	}
 	
 	public Object

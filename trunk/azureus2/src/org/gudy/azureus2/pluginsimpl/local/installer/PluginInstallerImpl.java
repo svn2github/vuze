@@ -531,11 +531,18 @@ PluginInstallerImpl
 										protected void
 										check()
 										{
-											for (int i=0;i<updates.length;i++){
+											Update failed_update = null;
+											
+											for ( Update update: updates ){
 												
-												if ( !updates[i].isCancelled() && !updates[i].isComplete()){
+												if ( !update.isCancelled() && !update.isComplete()){
 													
 													return;
+												}
+												
+												if ( !update.wasSuccessful()){
+													
+													failed_update = update;
 												}
 											}
 											
@@ -545,7 +552,16 @@ PluginInstallerImpl
 												
 											}else{
 												
-												listener.completed();
+												if ( failed_update == null ){
+													
+													listener.completed();
+													
+												}else{
+												
+													listener.failed(
+														new PluginException(
+															"Install of " + failed_update.getName() + " failed" ));
+												}
 											}
 										}
 									});

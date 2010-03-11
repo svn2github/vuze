@@ -97,7 +97,8 @@ Update
 		 */
 	
 	public void
-	complete();
+	complete(
+		boolean	success );
 	
 		/**
 		 * cancel this update
@@ -111,6 +112,9 @@ Update
 	
 	public boolean
 	isComplete();
+	
+	public boolean
+	wasSuccessful();
 	
 	public UpdateCheckInstance
 	getCheckInstance();

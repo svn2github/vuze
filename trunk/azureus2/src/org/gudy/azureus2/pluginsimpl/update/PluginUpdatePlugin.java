@@ -819,6 +819,8 @@ PluginUpdatePlugin
 
 		UpdateInstaller	installer	= null;
 		
+		boolean	update_successful = false;
+		
 		try{
 		
 			data = update.verifyData( data, verify );
@@ -1655,6 +1657,9 @@ PluginUpdatePlugin
 				
 				log.logAlertRepeatable( update_txt_found?LoggerChannel.LT_WARNING:LoggerChannel.LT_INFORMATION, msg );			
 			}
+			
+			update_successful = true;
+			
 		}catch( Throwable e ){
 					
 			String msg =   "Version " + version + " of plugin '" + 	update.getName() + "' " +
@@ -1664,7 +1669,7 @@ PluginUpdatePlugin
 			
 		}finally{
 			
-			update.complete();
+			update.complete( update_successful );
 		}
 	}
 		
