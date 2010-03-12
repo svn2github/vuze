@@ -3403,7 +3403,7 @@ DiskManagerImpl
                 			DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ, length );
 
                 		try{
-                			cache_file.read( buffer, offset, CacheFile.CP_READ_CACHE );
+                			cache_file.read( buffer, offset, CacheFile.CP_NONE );
 
                 		}catch( Throwable e ){
 
