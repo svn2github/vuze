@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.skin;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -55,8 +56,25 @@ public class SWTSkinObjectTextbox
 		} else {
 			createOn = (Composite) parent.getControl();
 		}
+		
+		int style = SWT.BORDER;
+		
+		String styleString = properties.getStringValue(sConfigID + ".style");
+		if (styleString != null) {
+			String[] styles = styleString.toLowerCase().split(",");
+			Arrays.sort(styles);
+			if (Arrays.binarySearch(styles, "readonly") >= 0) {
+				style |= SWT.READ_ONLY;
+			}
+			if (Arrays.binarySearch(styles, "multiline") >= 0) {
+				style |= SWT.MULTI;
+			} else {
+				style |= SWT.SINGLE;
+			}
+		}
 
-		textWidget = new Text(createOn, SWT.BORDER);
+
+		textWidget = new Text(createOn, style);
 		
 		textWidget.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
@@ -89,7 +107,7 @@ public class SWTSkinObjectTextbox
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (textWidget != null && !textWidget.isDisposed()) {
-					textWidget.setText(val);
+					textWidget.setText(val == null ? "" : val);
 					text = val;
 				}
 			}
