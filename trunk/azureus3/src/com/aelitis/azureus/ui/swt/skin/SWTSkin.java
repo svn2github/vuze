@@ -1643,7 +1643,7 @@ public class SWTSkin
 			properties.addProperty(sConfigID + ".image", typeParams[1]);
 		}
 		SWTSkinObjectImage skinObject = new SWTSkinObjectImage(this, properties,
-				sID, sConfigID, sConfigID, parentSkinObject);
+				sID, sConfigID, parentSkinObject);
 		addToControlMap(skinObject);
 
 		return skinObject;

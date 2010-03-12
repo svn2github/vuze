@@ -166,15 +166,20 @@ public class SWTSkinObjectImage
 	 * 
 	 */
 	public SWTSkinObjectImage(SWTSkin skin, SWTSkinProperties skinProperties,
-			String sID, String sConfigID, String sImageID, SWTSkinObject parent) {
+			String sID, String sConfigID, SWTSkinObject parent) {
 		super(skin, skinProperties, sID, sConfigID, "image", parent);
-		setControl(createImageWidget(sConfigID, sImageID));
 		customImage = false;
 		customImageID = null;
+		setControl(createImageWidget(sConfigID));
 	}
 
-	private Canvas createImageWidget(String sConfigID, String sImageID) {
-		currentImageID = sImageID;
+	private Canvas createImageWidget(String sConfigID) {
+		String propImageID = properties.getStringValue(sConfigID + ".imageid");
+		if (propImageID != null) {
+			currentImageID = customImageID = propImageID;
+		} else {
+			currentImageID = sConfigID;
+		}
 		int style = SWT.WRAP | SWT.DOUBLE_BUFFERED;
 
 		String sAlign = properties.getStringValue(sConfigID + ".align");
