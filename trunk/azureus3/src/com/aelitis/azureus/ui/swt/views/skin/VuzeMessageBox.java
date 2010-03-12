@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableBoolean;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -36,7 +37,7 @@ public class VuzeMessageBox
 
 	private int result = -1;
 
-	private UserPrompterResultListener resultListener;
+	private ArrayList<UserPrompterResultListener> resultListeners = new ArrayList<UserPrompterResultListener>(1);
 
 	private VuzeMessageBoxListener vuzeMessageBoxListener;
 
@@ -124,20 +125,26 @@ public class VuzeMessageBox
 	}
 
 	protected void _open(UserPrompterResultListener l) {
-		this.resultListener = l;
-		dlg = new SkinnedDialog("skin3_dlg_generic", "shell");
+		synchronized (resultListeners) {
+			resultListeners.add(l);
+		}
+		dlg = new SkinnedDialog("skin3_dlg_generic", "shell") {
+			protected void setSkin(SWTSkin skin) {
+				super.setSkin(skin);
+				
+				VuzeMessageBox.this.skin = skin;
+				synchronized (listRBs) {
+					for (rbInfo rb : listRBs) {
+						addResourceBundle(rb.cla, rb.path, rb.name);
+					}
+					listRBs.clear();
+				}
+
+			}
+		};
 		dlg.setTitle(title);
 		dlg.addCloseListener(this);
 
-		skin = dlg.getSkin();
-		
-		synchronized (listRBs) {
-			for (rbInfo rb : listRBs) {
-				addResourceBundle(rb.cla, rb.path, rb.name);
-			}
-			listRBs.clear();
-		}
-		
 		SWTSkinObjectText soTopTitle = (SWTSkinObjectText) skin.getSkinObject("top-title");
 		if (soTopTitle != null) {
 			soTopTitle.setText(subtitle == null ? title : subtitle);
@@ -330,8 +337,14 @@ public class VuzeMessageBox
 	 * @see com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener#skinDialogClosed(com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog)
 	 */
 	public void skinDialogClosed(SkinnedDialog dialog) {
-		if (resultListener != null) {
-			resultListener.prompterClosed(result);
+		synchronized (resultListeners) {
+			for (UserPrompterResultListener l : resultListeners) {
+				try {
+					l.prompterClosed(result);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
 		}
 	}
 
@@ -375,6 +388,12 @@ public class VuzeMessageBox
   		if (soIcon != null) {
   			soIcon.setImageByID(textIconResource, null);
   		}
+		}
+	}
+	
+	public void addListener(UserPrompterResultListener l) {
+		synchronized (resultListeners) {
+			resultListeners.add(l);
 		}
 	}
 
