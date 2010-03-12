@@ -63,9 +63,11 @@ public class SkinnedDialog
 
 		Utils.setShellIcon(shell);
 
-		skin = SWTSkinFactory.getNonPersistentInstance(
+		SWTSkin skin = SWTSkinFactory.getNonPersistentInstance(
 				SkinnedDialog.class.getClassLoader(), "com/aelitis/azureus/ui/skin/",
 				skinFile + ".properties");
+		
+		setSkin(skin);
 
 		skin.initialize(shell, shellSkinObjectID);
 
@@ -90,6 +92,10 @@ public class SkinnedDialog
 			}
 		});
 
+	}
+
+	protected void setSkin(SWTSkin _skin) {
+		skin = _skin;
 	}
 
 	public void open() {
