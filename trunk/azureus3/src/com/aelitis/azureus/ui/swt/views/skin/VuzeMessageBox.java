@@ -10,6 +10,7 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AERunnableBoolean;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -54,6 +55,8 @@ public class VuzeMessageBox
 	private String textIconResource;
 
 	private boolean closed;
+
+	private boolean opened;
 
 	public VuzeMessageBox(final String title, final String text,
 			final String[] buttons, final int defaultOption) {
@@ -106,6 +109,7 @@ public class VuzeMessageBox
 	 * @see com.aelitis.azureus.ui.UIFunctionsUserPrompter#open(com.aelitis.azureus.ui.UserPrompterResultListener)
 	 */
 	public void open(final UserPrompterResultListener l) {
+		opened = true;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				// catch someone calling close() while we are opening
@@ -212,6 +216,9 @@ public class VuzeMessageBox
 		cButtonArea.setLayout(rowLayout);
 		for (int i = 0; i < buttons.length; i++) {
 			String buttonText = buttons[i];
+			if (buttonText == null) {
+				continue;
+			}
 			Button button = new Button(cButtonArea, SWT.PUSH);
 			button.setText(buttonText);
 
@@ -298,7 +305,25 @@ public class VuzeMessageBox
 	 * @see com.aelitis.azureus.ui.UIFunctionsUserPrompter#waitUntilClosed()
 	 */
 	public int waitUntilClosed() {
-		return 0;
+		Utils.execSWTThreadWithBool("waitUntilClose", new AERunnableBoolean() {
+			public boolean runSupport() {
+				if (dlg == null) {
+					return false;
+				}
+				if (!opened) {
+					dlg.open();
+				}
+				Shell shell = dlg.getShell();
+				while (shell != null && !shell.isDisposed()) {
+					if (shell.getDisplay() != null && !shell.getDisplay().readAndDispatch()) {
+						shell.getDisplay().sleep();
+					}
+				}
+				return true;
+			}
+		});
+
+		return result;
 	}
 
 	/* (non-Javadoc)
@@ -348,7 +373,7 @@ public class VuzeMessageBox
 		if (dlg != null) {
   		SWTSkinObjectImage soIcon = (SWTSkinObjectImage) dlg.getSkin().getSkinObject("text-icon");
   		if (soIcon != null) {
-  			soIcon.setImageByID(iconResource, null);
+  			soIcon.setImageByID(textIconResource, null);
   		}
 		}
 	}
