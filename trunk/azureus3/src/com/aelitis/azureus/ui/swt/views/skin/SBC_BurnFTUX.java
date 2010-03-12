@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -42,11 +43,13 @@ public class SBC_BurnFTUX
 
 	private String url;
 
-	private String sRef;
+	private static String sRef;
 
 	private String entryID;
 
 	private MdiEntry entry;
+
+	private static boolean DEBUG = Constants.IS_CVS_VERSION;
 
 	public Object skinObjectInitialShow(final SWTSkinObject skinObject,
 			Object params) {
@@ -68,22 +71,27 @@ public class SBC_BurnFTUX
 			}
 		});
 
-		setSourceRef("user");
-		buildURL();
+		sRef = "user";
+		if (DEBUG) {
+			System.out.println("BurnFTUX sourceRef is now " + sRef);
+		}
 
 		return null;
 	}
 	
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
-		if (browserSkinObject != null) {
-			browserSkinObject.setURL(url);
-		}
-		return super.skinObjectShown(skinObject, params);
+		super.skinObjectShown(skinObject, params);
+		buildURL();
+		return null;
 	}
 	
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
 		if (browserSkinObject != null) {
 			browserSkinObject.setURL("about:blank");
+		}
+		sRef = "user";
+		if (DEBUG) {
+			System.out.println("BurnFTUX sourceRef is now " + sRef);
 		}
 		return super.skinObjectHidden(skinObject, params);
 	}
@@ -100,7 +108,9 @@ public class SBC_BurnFTUX
 		boolean isTrial = FeatureManagerUI.hasFullBurn() && !isFull;
 		url = "http://www2.vuze.com/client/plus/burn.php?view=" + entryID + "&mode="
 				+ (isFull ? "plus" : isTrial ? "trial" : "free") + "&sourceRef=" + sRef;
-		System.out.println("URL is now " + url + " via " + Debug.getCompressedStackTrace());
+		if (DEBUG) {
+			System.out.println("URL is now " + url + " via " + Debug.getCompressedStackTrace());
+		}
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		MdiEntry currentEntry = mdi.getCurrentEntry();
@@ -110,8 +120,17 @@ public class SBC_BurnFTUX
 		}
 	}
 
-	public void setSourceRef(String sRef) {
-		this.sRef = sRef;
-		buildURL();
+	public static void setSourceRef(String _sRef) {
+		sRef = _sRef;
+		if (DEBUG) {
+			System.out.println("BurnFTUX sourceRef is now " + sRef);
+		}
+
+		SkinView[] views = SkinViewManager.getMultiByClass(SBC_BurnFTUX.class);
+		if (views != null) {
+			for (SkinView bview : views) {
+				((SBC_BurnFTUX) bview).buildURL();
+			}
+		}
 	}
 }

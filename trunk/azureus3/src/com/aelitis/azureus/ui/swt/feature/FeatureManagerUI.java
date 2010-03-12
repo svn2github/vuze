@@ -36,7 +36,8 @@ public class FeatureManagerUI
 	protected static final int DLG_HEIGHT = 320;
 
 	public static boolean enabled = !Constants.isUnix
-			&& FeatureAvailability.areInternalFeaturesEnabled();
+			&& FeatureAvailability.areInternalFeaturesEnabled()
+			|| System.getProperty("fm.ui", "0").equals("1");
 
 	private static FeatureManager featman;
 
@@ -97,7 +98,7 @@ public class FeatureManagerUI
 										return mainMdiEntry;
 									}
 								});
-						
+
 						mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
 								new MdiEntryCreationListener() {
 									public MdiEntry createMDiEntry(String id) {
@@ -166,7 +167,7 @@ public class FeatureManagerUI
 				+ tryNo));
 		box.addResourceBundle(FeatureManagerUI.class,
 				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
-		box.setIconResource(trytwo ? "image.warn.big" : "image.vp" );
+		box.setIconResource(trytwo ? "image.warn.big" : "image.vp");
 
 		box.setListener(new VuzeMessageBoxListener() {
 			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
@@ -220,7 +221,7 @@ public class FeatureManagerUI
 		if (!enabled) {
 			return;
 		}
-		
+
 		if (hasFullLicence()) {
 			openFullLicenceSuccessWindow();
 		} else {
@@ -237,7 +238,7 @@ public class FeatureManagerUI
 		final VuzeMessageBox box = new VuzeMessageBox(
 				MessageText.getString("dlg.auth.trial.title"),
 				MessageText.getString("dlg.auth.trial.success.line1"), new String[] {
-					MessageText.getString("Button.goLibary"),
+					MessageText.getString("Button.goLibrary"),
 				}, 0);
 		box.setSubTitle(MessageText.getString("dlg.auth.trial.success.subtitle"));
 		box.addResourceBundle(FeatureManagerUI.class,
@@ -250,8 +251,8 @@ public class FeatureManagerUI
 
 				SWTSkin skin = soExtra.getSkin();
 				skin.setAutoSizeOnLayout(false);
-				skin.createSkinObject("dlg.register.trial.success", "dlg.register.trial.success",
-						soExtra);
+				skin.createSkinObject("dlg.register.trial.success",
+						"dlg.register.trial.success", soExtra);
 			}
 		});
 
@@ -260,10 +261,10 @@ public class FeatureManagerUI
 				if (result == 0) {
 					SBC_PlusFTUX sv = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
 					if (sv != null) {
-						sv.setSourceRef("plus-success");
+						sv.setSourceRef("trial-success");
 					}
 					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-					mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+					mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY);
 				}
 			}
 		});
@@ -294,11 +295,9 @@ public class FeatureManagerUI
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == 0) {
-					SBC_PlusFTUX sv = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
-					if (sv != null) {
-						sv.setSourceRef("plus-success");
-					}
-					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+  				SBC_PlusFTUX.setSourceRef("plus-success");
+
+  				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 					mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
 				}
 			}

@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
@@ -59,6 +60,8 @@ public class FeatureManagerInstallWindow
 	private SWTSkinObjectText soProgressText;
 
 	private String progressText;
+
+	private SWTSkinObjectText soInstallPct;
 
 	public FeatureManagerInstallWindow(Licence licence) {
 		if (!FeatureManagerUI.enabled) {
@@ -97,6 +100,8 @@ public class FeatureManagerInstallWindow
 					progressBar.setMaximum(100);
 					progressBar.setLayoutData(Utils.getFilledFormData());
 				}
+				
+				soInstallPct = (SWTSkinObjectText) skin.getSkinObject("install-pct");
 
 				soProgressText = (SWTSkinObjectText) skin.getSkinObject("progress-text");
 				if (soProgressText != null && progressText != null) {
@@ -139,9 +144,16 @@ public class FeatureManagerInstallWindow
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				int pct = percent == 100 ? 99 : percent;
+				if (soInstallPct != null) {
+					soInstallPct.setText(MessageText.getString("dlg.auth.install.pct",
+							new String[] {
+								"" + pct
+							}));
+				}
 				if (progressBar != null && !progressBar.isDisposed()) {
 					// never reach 100%!
-					progressBar.setSelection(percent == 100 ? 99 : percent);
+					progressBar.setSelection(pct);
 				}
 			}
 		});

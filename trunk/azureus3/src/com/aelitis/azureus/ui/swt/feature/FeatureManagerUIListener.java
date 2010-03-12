@@ -50,7 +50,7 @@ public class FeatureManagerUIListener
 
 			public void start(String licence_key) {
 				if (DEBUG) {
-					System.out.println("FEATINST: START!");
+					System.out.println("FEATINST: START! " + licence_key);
 				}
 				try {
 					Licence licence = featman.addLicence(licence_key);
@@ -74,6 +74,9 @@ public class FeatureManagerUIListener
 			}
 
 			public void failed(String licenceKey, PluginException error) {
+				if (DEBUG) {
+					System.out.println("FEAT: FAIL: " + licenceKey + ": " + error.toString());
+				}
 			}
 
 			public void complete(String licenceKey) {
@@ -101,10 +104,10 @@ public class FeatureManagerUIListener
 			FeatureManagerUI.closeLicenceValidatingWindow();
 			if (state == Licence.LS_AUTHENTICATED) {
 				if (hasPendingAuth) {
-					hasPendingAuth = false;
 					if (licence.isFullyInstalled()) {
+						hasPendingAuth = false;
 						FeatureManagerUI.openLicenceSuccessWindow();
-					}
+					} // else assumed install process is taking place
 				}
 			}
 		}
