@@ -23,13 +23,20 @@
 
 package org.gudy.azureus2.pluginsimpl.local;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerTorrent;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -111,6 +118,212 @@ PluginCoreUtils
 		}
 		
 		return( new DiskManagerFileInfoImpl( DownloadManagerImpl.getDownloadStatic( info.getDownloadManager()), info ));
+	}
+	
+	public static DiskManagerFileInfo
+	unwrap(
+		final org.gudy.azureus2.plugins.disk.DiskManagerFileInfo		info )
+	
+		throws DownloadException
+	{
+		if ( info == null ){
+			
+			return( null );
+		}
+
+		try{
+			Download dl = info.getDownload();
+			
+			if ( dl != null ){
+				
+				org.gudy.azureus2.core3.download.DownloadManager dm = unwrap( dl );
+				
+				return( dm.getDiskManagerFileInfo()[ info.getIndex()]);
+			}
+		}catch( Throwable e ){
+		}
+		
+			// no underlying download, lash something up
+		
+		return(
+			new DiskManagerFileInfo()
+			{
+				public void 
+				setPriority(
+					boolean b )
+				{
+					info.setPriority(b);
+				}
+				
+				public void 
+				setSkipped(
+					boolean b)
+				{
+					info.setSkipped(b);
+				}
+
+				public boolean
+				setLink(
+					File	link_destination )
+				{	
+					info.setLink(link_destination);
+					
+					return( true );
+				}
+				
+				public boolean 
+				setLinkAtomic(
+					File link_destination )
+				{	
+					info.setLink(link_destination);
+					
+					return( true );
+				}
+				
+				public File
+				getLink()
+				{
+					return( info.getLink());
+				}
+				
+				public boolean 
+				setStorageType(
+					int type )
+				{
+					return( false );
+				}
+				
+				public int
+				getStorageType()
+				{
+					return( ST_LINEAR );
+				}
+				
+				public int 
+				getAccessMode()
+				{
+					return( info.getAccessMode());
+				}
+				
+				public long 
+				getDownloaded()
+				{
+					return( info.getDownloaded());
+				}
+				
+				public String 
+				getExtension()
+				{
+					return( "" );
+				}
+					
+				public int 
+				getFirstPieceNumber()
+				{
+					return( info.getFirstPieceNumber());
+				}
+			  
+				public int 
+				getLastPieceNumber()
+				{
+					return((int)(( info.getLength() + info.getPieceSize()-1 )/info.getPieceSize()));
+				}
+				
+				public long 
+				getLength()
+				{
+					return( info.getLength());
+				}
+					
+				public int 
+				getNbPieces()
+				{
+					return( info.getNumPieces());
+				}
+						
+				public boolean 
+				isPriority()
+				{
+					return( info.isPriority());
+				}
+				
+				public boolean 
+				isSkipped()
+				{
+					return( info.isSkipped());
+				}
+				
+				public int	
+				getIndex()
+				{
+					return( info.getIndex());
+				}
+				
+				public DownloadManager	
+				getDownloadManager()
+				{
+					return( null );
+				}
+				
+				public org.gudy.azureus2.core3.disk.DiskManager 
+				getDiskManager()
+				{
+					return( null );
+				}
+				
+				public File 
+				getFile( boolean follow_link )
+				{
+					if ( follow_link ){
+						
+						return( info.getLink());
+						
+					}else{
+						
+						return( info.getFile());
+					}
+				}
+				
+				public TOTorrentFile
+				getTorrentFile()
+				{
+					return( null );
+				}
+				
+				public DirectByteBuffer
+				read(
+					long	offset,
+					int		length )
+				
+					throws IOException
+				{
+					throw( new IOException( "unsupported" ));
+				}
+				
+				public void
+				flushCache()
+				
+					throws	Exception
+				{	
+				}
+				
+				public void
+				close()
+				{
+				}
+				
+				public void
+				addListener(
+					DiskManagerFileInfoListener	listener )
+				{
+				}
+				
+				public void
+				removeListener(
+					DiskManagerFileInfoListener	listener )
+				{
+				}
+			});
 	}
 	
 	public static Object
