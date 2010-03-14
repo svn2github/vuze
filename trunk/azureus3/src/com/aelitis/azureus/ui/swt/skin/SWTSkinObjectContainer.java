@@ -99,7 +99,7 @@ public class SWTSkinObjectContainer
 		minHeight = properties.getIntValue(sConfigID + ".minheight", -1);
 
 		Composite parentComposite;
-		if (SWTSkin.DEBUGLAYOUT) {
+		if (skin.DEBUGLAYOUT) {
 			System.out.println("linkIDtoParent: Create Composite " + sID + " on "
 					+ createOn);
 			parentComposite = new Group(createOn, style);
@@ -161,6 +161,9 @@ public class SWTSkinObjectContainer
 			}
 			return new Point(1, 1);
 		}
+		if (size.x == 0 && size.y == 0) {
+			return size;
+		}
 		if (minWidth > 0 && size.x < minWidth) {
 			size.x = minWidth;
 		}
@@ -182,6 +185,9 @@ public class SWTSkinObjectContainer
 			}
 			return new Point(1, 1);
 		}
+		if (size.x == 0 && size.y == 0) {
+			return size;
+		}
 		if (minWidth > 0 && size.x < minWidth) {
 			size.x = minWidth;
 		}
@@ -200,7 +206,7 @@ public class SWTSkinObjectContainer
 
 	protected void setViewID(String viewID) {
 		super.setViewID(viewID);
-		if (SWTSkin.DEBUGLAYOUT && control != null) {
+		if (skin.DEBUGLAYOUT && control != null) {
 			((Group) control).setText("[" + viewID + "]");
 		}
 	}
@@ -282,7 +288,7 @@ public class SWTSkinObjectContainer
 
 	public void setPropogation(boolean propogate) {
 		bPropogate = propogate;
-		if (SWTSkin.DEBUGLAYOUT) {
+		if (skin.DEBUGLAYOUT) {
 			((Group) control).setText(((Group) control).getText()
 					+ (bPropogate ? ";P" : ""));
 		}
