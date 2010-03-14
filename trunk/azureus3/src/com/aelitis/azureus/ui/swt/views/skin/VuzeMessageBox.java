@@ -33,6 +33,8 @@ public class VuzeMessageBox
 
 	private String[] buttons;
 
+	private Integer[] buttonVals;
+
 	private int defaultButtonPos;
 
 	private int result = -1;
@@ -66,6 +68,21 @@ public class VuzeMessageBox
 		this.buttons = buttons == null ? new String[0] : buttons;
 		this.defaultButtonPos = defaultOption;
 	}
+	
+	public void setButtonVals(Integer[] buttonVals) {
+		this.buttonVals = buttonVals;
+	}
+	
+	private int getButtonVal(int buttonPos) {
+		if (buttonVals == null) {
+			return buttonPos;
+		}
+		if (buttonPos < 0 || buttonPos >= buttonVals.length) {
+			return SWT.CANCEL;
+		}
+		return buttonVals[buttonPos].intValue();
+	}
+
 	
 	public void setSubTitle(String s) {
 		subtitle = s;
@@ -131,6 +148,8 @@ public class VuzeMessageBox
 		dlg = new SkinnedDialog("skin3_dlg_generic", "shell") {
 			protected void setSkin(SWTSkin skin) {
 				super.setSkin(skin);
+				
+				//skin.DEBUGLAYOUT = true;
 				
 				VuzeMessageBox.this.skin = skin;
 				synchronized (listRBs) {
@@ -330,7 +349,7 @@ public class VuzeMessageBox
 			}
 		});
 
-		return result;
+		return getButtonVal(result);
 	}
 
 	/* (non-Javadoc)
@@ -338,9 +357,10 @@ public class VuzeMessageBox
 	 */
 	public void skinDialogClosed(SkinnedDialog dialog) {
 		synchronized (resultListeners) {
+			int realResult = getButtonVal(result);
 			for (UserPrompterResultListener l : resultListeners) {
 				try {
-					l.prompterClosed(result);
+					l.prompterClosed(realResult);
 				} catch (Exception e) {
 					Debug.out(e);
 				}
@@ -352,10 +372,10 @@ public class VuzeMessageBox
 		this.vuzeMessageBoxListener = l;
 	}
 
-	public void close(int result) {
+	public void close(int buttonNo) {
 		synchronized (VuzeMessageBox.this) {
   		this.closed = true;
-  		this.result = result;
+  		this.result = buttonNo;
   		if (dlg != null) {
   			dlg.close();
   		}
