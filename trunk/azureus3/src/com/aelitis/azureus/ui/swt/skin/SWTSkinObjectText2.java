@@ -127,7 +127,7 @@ public class SWTSkinObjectText2
 		}
 
 		int canvasStyle = SWT.DOUBLE_BUFFERED;
-		if (skinProperties.getIntValue(sConfigID + ".border", 0) == 1) {
+		if (skinProperties.getIntValue(sConfigID + ".border", 0) == 1 || skin.DEBUGLAYOUT) {
 			canvasStyle |= SWT.BORDER;
 		}
 

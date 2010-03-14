@@ -53,7 +53,7 @@ public class SWTSkin
 {
 	private static final SWTSkinObjectListener[] NOLISTENERS = new SWTSkinObjectListener[0];
 
-	static boolean DEBUGLAYOUT = System.getProperty("debuglayout") != null;
+	public boolean DEBUGLAYOUT = System.getProperty("debuglayout") != null;
 	
 	private static int numSkins = 0;
 
