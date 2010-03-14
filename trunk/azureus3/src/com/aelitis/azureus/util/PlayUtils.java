@@ -43,6 +43,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 
@@ -53,6 +54,10 @@ import org.gudy.azureus2.plugins.download.DownloadException;
  */
 public class PlayUtils
 {
+	
+	public static final int fileSizeThreshold = 90;
+	public static final String playableFileExtensions = ".mpg .avi .flv .flc .mp4 .mpeg .divx .h264 .mkv .wmv .mov .mp2 .m2v .m4v .mp3 .ts .mts";
+	
 	
 	private static boolean triedLoadingEmpPluginClass = false;
 
@@ -318,13 +323,66 @@ public class PlayUtils
 		return true;
 	}
 	
-	private static final boolean canPlayViaExternalEMP(TOTorrent torrent) {
-		if(!loadEmpPluginClass()) {
+	public static File getPrimaryFile(Download d) {
+		long size = d.getTorrent().getSize();
+		DiskManagerFileInfo[] infos = d.getDiskManagerFileInfo();
+		for(int i = 0; i < infos.length ; i++) {
+			if(infos[i].getLength() > (long)fileSizeThreshold * size / 100l) {
+				return infos[i].getFile();
+			}
+		}
+		return null;
+	}
+	
+	public static boolean isExternallyPlayable(Download d) {
+		if (!d.isComplete()) {
 			return false;
 		}
+		
+		File primaryFile = getPrimaryFile(d);
 
-		if (methodIsExternallyPlayable == null) {
+		if(primaryFile == null) {
 			return false;
+		}
+		
+		String name = primaryFile.getName();
+		
+		if(name == null) {
+			return false;
+		}
+		
+		int extIndex = name.lastIndexOf(".");
+		if(extIndex > -1) {
+			String ext = name.substring(extIndex);
+			
+			if(ext == null) {
+				return false;
+			}
+			
+			if(playableFileExtensions.indexOf(ext) > -1) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public static boolean isExternallyPlayable(TOTorrent torrent) {
+		try {
+			Download download = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().getDownload(torrent.getHash());
+			if (download != null) {
+				return isExternallyPlayable(download);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+	private static final boolean canPlayViaExternalEMP(TOTorrent torrent) {
+		if(!loadEmpPluginClass() || methodIsExternallyPlayable == null) {
+			return isExternallyPlayable(torrent);
 		}
 		
 		//Data is passed to the openWindow via download manager.
