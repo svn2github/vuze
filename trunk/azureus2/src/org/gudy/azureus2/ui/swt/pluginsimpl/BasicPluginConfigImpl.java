@@ -248,7 +248,7 @@ BasicPluginConfigImpl
 								public String 
 								getText() 
 								{
-									return( f_label.getText());
+									return( f_label.getText().trim());
 								}
 							});
 				}
