@@ -57,8 +57,8 @@ import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.plugins.UISWTParameterContext;
 
@@ -208,7 +208,7 @@ BasicPluginConfigImpl
 				}
 			}
 			
-			BufferedLabel label = null;
+			Label label = null;
 			
 			String	label_key = param.getLabelKey();
 			
@@ -226,21 +226,40 @@ BasicPluginConfigImpl
 					hyperlink = ((HyperlinkParameterImpl)param).getHyperlink();
 				}
 
-				label = new BufferedLabel(current_composite, (param instanceof LabelParameterImpl) ? SWT.WRAP : SWT.NULL);
+				label = new Label(current_composite, (param instanceof LabelParameterImpl) ? SWT.WRAP : SWT.NULL);
 	
+				boolean	add_copy;
+				
 				if ( label_key == null ){	
 					label.setText( param.getLabelText());
+					add_copy = true;
 				}else{
-					Messages.setLanguageText(label.getControl(), label_key );
+					Messages.setLanguageText(label, label_key );
+					add_copy = label_key.startsWith( "!" );
+				}
+				
+				if ( add_copy ){
+					final Label f_label = label;
+					
+					ClipboardCopy.addCopyToClipMenu(
+							label,
+							new ClipboardCopy.copyToClipProvider()
+							{
+								public String 
+								getText() 
+								{
+									return( f_label.getText());
+								}
+							});
 				}
 				
 				if (hyperlink != null) {
-					LinkLabel.makeLinkedLabel( label.getControl(), hyperlink);
+					LinkLabel.makeLinkedLabel(label, hyperlink);
 				}
 				
 				if (param instanceof HyperlinkParameterImpl) {
 					
-					final BufferedLabel f_label = label;
+					final Label f_label = label;
 					
 					param.addListener(
 							new ParameterListener()
@@ -264,7 +283,7 @@ BasicPluginConfigImpl
 													public void
 													run()
 													{
-														LinkLabel.updateLinkedLabel(f_label.getControl(), hyperlink);
+														LinkLabel.updateLinkedLabel(f_label, hyperlink);
 													}
 												});
 										}

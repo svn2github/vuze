@@ -98,7 +98,7 @@ BufferedLabel
 		label.setLayoutData( ld );
 	}
 	
-	public Label
+	public Control
 	getControl()
 	{
 		return( label );
