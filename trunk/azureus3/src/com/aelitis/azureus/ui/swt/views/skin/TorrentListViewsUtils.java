@@ -90,6 +90,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.player.PlayerInstallWindow;
+import com.aelitis.azureus.ui.swt.player.PlayerInstaller;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -579,132 +581,27 @@ public class TorrentListViewsUtils
 	}
 	
 	
-	private static boolean installEMP() {
-		try{
-			
-			PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
-
-	 		StandardPlugin sp = installer.getStandardPlugin( "azemp" );
- 					
-			Map<Integer, Object> properties = new HashMap<Integer, Object>();
-
-			properties.put( UpdateCheckInstance.PT_UI_STYLE, UpdateCheckInstance.PT_UI_STYLE_NONE );
-				
-			properties.put(UpdateCheckInstance.PT_UI_DISABLE_ON_SUCCESS_SLIDEY, true);
-
-			final AESemaphore sem = new AESemaphore("emp install");
-			final boolean[] result = new boolean[1];
-			
-			final Shell shell = new Shell(SWT.TITLE | SWT.BORDER);
-			shell.setLayout(new FillLayout(SWT.VERTICAL));
-			final Display display = shell.getDisplay();
-			Label label = new Label(shell,SWT.NONE);
-			label.setText("Installing a small additional playback component.");
-			final ProgressBar pb = new ProgressBar(shell, SWT.NONE);
-			pb.setMinimum(0);
-			pb.setMaximum(100);
-			pb.setSelection(0);
-			
-			shell.setSize(shell.computeSize(400, SWT.DEFAULT));
-			Utils.centerWindowRelativeTo(shell, Utils.findAnyShell());
-			shell.open();
-			
-			UpdateCheckInstance instance = 
-				installer.install(
-					new InstallablePlugin[]{ sp },
-					false,
-					properties,
-					new PluginInstallationListener() {
-
-						public void
-						completed()
-						{
-							result[0] = true;
-							sem.release();
-						}
+	private static void installEMP(final DownloadManager dm) {
+		final PlayerInstaller installer = new PlayerInstaller();
+		final PlayerInstallWindow window = new PlayerInstallWindow(installer);
+		window.open();
+		AEThread2 installerThread = new AEThread2("player installer",true) {
+			public void run() {
+				if(installer.install()) {
+					Utils.execSWTThread(new AERunnable() {
 						
-						public void
-						cancelled()
-						{
-							result[0] = false;
-							sem.release();
-						}
-						
-						public void
-						failed(
-							PluginException	e )
-						{
-							result[0] = false;
-							sem.release();
+						@Override
+						public void runSupport() {
+							openInEMP(dm);
+							
 						}
 					});
- 				
-			instance.addListener(
-				new UpdateCheckInstanceListener() {
-
-					public void
-					cancelled(
-						UpdateCheckInstance		instance )
-					{							
-					}
 					
-					public void
-					complete(
-						UpdateCheckInstance		instance )
-					{
-	  					Update[] updates = instance.getUpdates();
-	 					
-	 					for ( final Update update: updates ){
-	 						
-	 						ResourceDownloader[] rds = update.getDownloaders();
-	 					
-	 						for ( ResourceDownloader rd: rds ){
-	 							
-	 							rd.addListener(
-	 								new ResourceDownloaderAdapter()
-	 								{
-	 									public void
-	 									reportActivity(
-	 										ResourceDownloader	downloader,
-	 										String				activity )
-	 									{
-	 										
-	 									}
-	 									
-	 									public void
-	 									reportPercentComplete(
-	 										ResourceDownloader	downloader,
-	 										final int					percentage )
-	 									{
-	 										display.asyncExec(new Runnable() {
-												
-												public void run() {
-													pb.setSelection(percentage);
-												}
-											});
-	 									}
-	 								});
-	 						}
-	 					}
-					}
-				});
-					
-			while(!sem.reserveIfAvailable()) {
-				if(!display.readAndDispatch()) {
-					display.sleep();
 				}
 			}
-			
-			shell.close();
-			shell.dispose();
-			
-			return result[0];
-			
-		}catch( Throwable e ){
-			
-
-		}
-		return false;
+		};
+		installerThread.start();
+		
 	}
 
 	/**
@@ -727,11 +624,8 @@ public class TorrentListViewsUtils
 
 			if (pi == null) {
 
-				//We need to install emp
-				if(installEMP()) {
-					pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-					"azemp");
-				}
+				installEMP(dm);
+				return true;
 				
 			}
 
