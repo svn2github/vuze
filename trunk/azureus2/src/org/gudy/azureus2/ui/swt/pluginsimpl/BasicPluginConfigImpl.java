@@ -57,6 +57,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.plugins.UISWTParameterContext;
@@ -207,7 +208,7 @@ BasicPluginConfigImpl
 				}
 			}
 			
-			Label label = null;
+			BufferedLabel label = null;
 			
 			String	label_key = param.getLabelKey();
 			
@@ -225,21 +226,21 @@ BasicPluginConfigImpl
 					hyperlink = ((HyperlinkParameterImpl)param).getHyperlink();
 				}
 
-				label = new Label(current_composite, (param instanceof LabelParameterImpl) ? SWT.WRAP : SWT.NULL);
+				label = new BufferedLabel(current_composite, (param instanceof LabelParameterImpl) ? SWT.WRAP : SWT.NULL);
 	
 				if ( label_key == null ){	
 					label.setText( param.getLabelText());
 				}else{
-					Messages.setLanguageText(label, label_key );
+					Messages.setLanguageText(label.getControl(), label_key );
 				}
 				
 				if (hyperlink != null) {
-					LinkLabel.makeLinkedLabel(label, hyperlink);
+					LinkLabel.makeLinkedLabel( label.getControl(), hyperlink);
 				}
 				
 				if (param instanceof HyperlinkParameterImpl) {
 					
-					final Label f_label = label;
+					final BufferedLabel f_label = label;
 					
 					param.addListener(
 							new ParameterListener()
@@ -263,7 +264,7 @@ BasicPluginConfigImpl
 													public void
 													run()
 													{
-														LinkLabel.updateLinkedLabel(f_label, hyperlink);
+														LinkLabel.updateLinkedLabel(f_label.getControl(), hyperlink);
 													}
 												});
 										}
