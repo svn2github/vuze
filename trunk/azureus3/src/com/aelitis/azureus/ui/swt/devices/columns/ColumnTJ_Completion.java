@@ -18,6 +18,7 @@
  
 package com.aelitis.azureus.ui.swt.devices.columns;
 
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -63,6 +64,11 @@ TableCellDisposeListener, TableCellSWTPaintListener
 	
 	Color textColor;
 	
+	NumberFormat percentage_format = NumberFormat.getPercentInstance();
+	{
+		percentage_format.setMinimumFractionDigits(0);
+		percentage_format.setMaximumFractionDigits(0);
+	}
 
 	public ColumnTJ_Completion(final TableColumn column) {
 		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 145);
@@ -180,7 +186,7 @@ TableCellDisposeListener, TableCellSWTPaintListener
 			
 		}else{
 			
-			sText = DisplayFormatters.formatPercentFromThousands(perThouDone);
+			sText = percentage_format.format( perThouDone/1000.0 ); // DisplayFormatters.formatPercentFromThousands(perThouDone);
 			
 			if ( tf != null && perThouDone < 1000 ){
 				
