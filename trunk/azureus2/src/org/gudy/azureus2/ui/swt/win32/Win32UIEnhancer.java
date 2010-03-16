@@ -30,6 +30,7 @@ import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
 
@@ -300,12 +301,19 @@ public class Win32UIEnhancer
 		}
 
 		if (!Constants.isWindows7OrHigher) {
-  		File[] drives = AEWin32Manager.getAccessor(false).getUSBDrives();
-  		if (drives != null) {
-  			for (File file : drives) {
-  				DriveDetectorFactory.getDeviceDetector().driveDetected(file);
-  			}
-  		}
+			new AEThread2( "Async:USB" )
+			{
+				public void
+				run()
+				{
+			  		File[] drives = AEWin32Manager.getAccessor(false).getUSBDrives();
+			  		if (drives != null) {
+			  			for (File file : drives) {
+			  				DriveDetectorFactory.getDeviceDetector().driveDetected(file);
+			  			}
+			  		}
+				}
+			}.start();
 		}
 	}
 
