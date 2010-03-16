@@ -142,8 +142,10 @@ public class VuzeMessageBox
 	}
 
 	protected void _open(UserPrompterResultListener l) {
-		synchronized (resultListeners) {
-			resultListeners.add(l);
+		if (l != null) {
+  		synchronized (resultListeners) {
+  			resultListeners.add(l);
+  		}
 		}
 		dlg = new SkinnedDialog("skin3_dlg_generic", "shell") {
 			protected void setSkin(SWTSkin skin) {
@@ -412,6 +414,9 @@ public class VuzeMessageBox
 	}
 	
 	public void addListener(UserPrompterResultListener l) {
+		if (l == null) {
+			return;
+		}
 		synchronized (resultListeners) {
 			resultListeners.add(l);
 		}
