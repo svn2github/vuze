@@ -57,6 +57,13 @@ public class UIExitUtilsSWT
 		listeners.add( l );
 	}
 	
+	public static void
+	removeListener(
+		canCloseListener	l )
+	{
+		listeners.remove( l );
+	}
+	
 	public static void setSkipCloseCheck(boolean b) {
 		skipCloseCheck = b;
 	}
