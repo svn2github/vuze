@@ -67,6 +67,8 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.util.LaunchManager;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 /**
  * @author Olivier
@@ -595,8 +597,13 @@ public class ManagerUtils {
 					}
 					
 					if (!f.isSilent()) {
-						Logger.log(new LogAlert(dm, false,
-								"{globalmanager.download.remove.veto}", f));
+						UIFunctionsManager.getUIFunctions().forceNotify(
+							UIFunctions.STATUSICON_WARNING, 
+							MessageText.getString( "globalmanager.download.remove.veto" ), 
+							f.getMessage(), null, null, -1 );
+						
+						//Logger.log(new LogAlert(dm, false,
+						//		"{globalmanager.download.remove.veto}", f));
 					}
 					if (deleteFailed != null) {
 						deleteFailed.runSupport();
