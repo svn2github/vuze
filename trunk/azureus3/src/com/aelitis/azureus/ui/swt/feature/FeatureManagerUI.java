@@ -167,7 +167,10 @@ public class FeatureManagerUI
 				+ tryNo));
 		box.addResourceBundle(FeatureManagerUI.class,
 				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
-		box.setIconResource(trytwo ? "image.warn.big" : "image.vp");
+		box.setIconResource("image.vp");
+		if (trytwo) {
+			box.setTextIconResource("image.warn.big");
+		}
 
 		box.setListener(new VuzeMessageBoxListener() {
 			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
@@ -236,11 +239,10 @@ public class FeatureManagerUI
 	 */
 	private static void openTrialLicenceSuccessWindow() {
 		final VuzeMessageBox box = new VuzeMessageBox(
-				MessageText.getString("dlg.auth.trial.title"),
+				MessageText.getString("dlg.auth.trial.success.subtitle"),
 				MessageText.getString("dlg.auth.trial.success.line1"), new String[] {
 					MessageText.getString("Button.goLibrary"),
 				}, 0);
-		box.setSubTitle(MessageText.getString("dlg.auth.trial.success.subtitle"));
 		box.addResourceBundle(FeatureManagerUI.class,
 				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
 		box.setIconResource("image.burn.dlg.header");
