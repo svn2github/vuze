@@ -17,8 +17,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.pluginsimpl.local.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -105,6 +104,10 @@ public class SWTSkinObjectBasic
 	private SkinView skinView;
 
 	private Object datasource;
+
+	private boolean firstVisibility;
+
+	private boolean layoutComplete;
 	
 	/**
 	 * @param properties TODO
@@ -131,6 +134,9 @@ public class SWTSkinObjectBasic
 	}
 
 	public void setControl(final Control control) {
+		
+		firstVisibility = properties.getBooleanValue(sConfigID + ".visible", true);
+		
 		if (!Utils.isThisThreadSWT()) {
 			Debug.out("Warning: setControl not called in SWT thread for " + this);
 			Utils.execSWTThread(new AERunnable() {
@@ -443,6 +449,10 @@ public class SWTSkinObjectBasic
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#setVisible(boolean)
 	public void setVisible(final boolean visible) {
+		if (!layoutComplete) {
+			firstVisibility = visible;
+			return;
+		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (control != null && !control.isDisposed()) {
@@ -503,7 +513,7 @@ public class SWTSkinObjectBasic
 	}
 
 	public boolean getDefaultVisibility() {
-		return properties.getBooleanValue(sConfigID + ".visible", true);
+		return firstVisibility;
 	}
 
 	public boolean isVisible() {
@@ -1031,6 +1041,15 @@ public class SWTSkinObjectBasic
 					});
 				}
 			});
+		}
+	}
+	
+	public void layoutComplete() {
+		if (!layoutComplete) {
+			layoutComplete = true;
+			if (control != null && !control.isDisposed()) {
+				control.setVisible(firstVisibility);
+			}
 		}
 	}
 	

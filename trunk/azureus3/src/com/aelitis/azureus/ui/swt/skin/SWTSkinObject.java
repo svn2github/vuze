@@ -174,4 +174,6 @@ public interface SWTSkinObject
 	public void setDebug(boolean b);
 	
 	public void relayout();
+
+	public void layoutComplete();
 }

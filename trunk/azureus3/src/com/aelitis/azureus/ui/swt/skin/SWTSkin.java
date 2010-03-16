@@ -952,26 +952,25 @@ public class SWTSkin
 			}
 		}
 
-		if (skinObject.isVisible()) {
+		if (!skinObject.getDefaultVisibility()) {
+  		controlToLayout.setData("oldSize", new Point(properties.getIntValue(sConfigID + ".width",
+  				SWT.DEFAULT), properties.getIntValue(sConfigID + ".height",
+  						SWT.DEFAULT)));
+//			if (newFormData.width != 0 && newFormData.height != 0) {
+//				controlToLayout.setData("oldSize", new Point(newFormData.width,
+//						newFormData.height));
+//			}
+			newFormData.width = 0;
+			newFormData.height = 0;
+		} else {
   		newFormData.height = properties.getIntValue(sConfigID + ".height",
   				newFormData.height);
   		newFormData.width = properties.getIntValue(sConfigID + ".width",
   				newFormData.width);
-		} else {
-  		controlToLayout.setData("oldSize", new Point(properties.getIntValue(sConfigID + ".width",
-  				SWT.DEFAULT), properties.getIntValue(sConfigID + ".height",
-  						SWT.DEFAULT)));
-		}
-		if (!skinObject.getDefaultVisibility()) {
-			if (newFormData.width != 0 && newFormData.height != 0) {
-				controlToLayout.setData("oldSize", new Point(newFormData.width,
-						newFormData.height));
-			}
-			newFormData.width = 0;
-			newFormData.height = 0;
 		}
 		controlToLayout.setLayoutData(newFormData);
 		controlToLayout.setData("skin.layedout", "");
+		skinObject.layoutComplete();
 	}
 
 	private SWTSkinObject createContainer(final SWTSkinProperties properties,
