@@ -1,5 +1,8 @@
 package com.aelitis.azureus.ui.swt.feature;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -23,7 +26,9 @@ public class FeatureManagerUIListener
 
 	private final FeatureManager featman;
 
-	private boolean hasPendingAuth;
+	private String pendingAuthForKey;
+	
+	private Map<String, Licence> mapKeyToLicence = new HashMap<String, Licence>();
 
 	public FeatureManagerUIListener(FeatureManager featman) {
 		System.out.println("FEAT:");
@@ -32,13 +37,17 @@ public class FeatureManagerUIListener
 
 	public void licenceAdded(Licence licence) {
 		updateSidebar();
+		
+		synchronized (mapKeyToLicence) {
+			mapKeyToLicence.put(licence.getKey(), licence);
+		}
 
 		if (DEBUG) {
 			System.out.println("FEAT: Licence Added with state " + licence.getState());
 		}
 
 		if (licence.getState() == Licence.LS_PENDING_AUTHENTICATION) {
-			hasPendingAuth = true;
+			pendingAuthForKey = licence.getKey();
 			FeatureManagerUI.openLicenceValidatingWindow();
 		}
 
@@ -80,8 +89,8 @@ public class FeatureManagerUIListener
 			}
 
 			public void complete(String licenceKey) {
-				if (hasPendingAuth) {
-					hasPendingAuth = false;
+				if (licenceKey.equals(pendingAuthForKey)) {
+					pendingAuthForKey = null;
 					FeatureManagerUI.openLicenceSuccessWindow();
 				}
 			}
@@ -90,24 +99,42 @@ public class FeatureManagerUIListener
 	}
 
 	public void licenceChanged(Licence licence) {
-		updateSidebar();
 		int state = licence.getState();
-		if (DEBUG) {
-			System.out.println("FEAT: License State Changed: " + state);
+
+		boolean stateChanged = true;
+		synchronized (mapKeyToLicence) {
+			Licence lastLicence = mapKeyToLicence.put(licence.getKey(), licence);
+			if (lastLicence != null) {
+				stateChanged = lastLicence.getState() != licence.getState();
+			}
 		}
+
+		updateSidebar();
+		if (DEBUG) {
+			System.out.println("FEAT: License " + licence.getKey()
+					+ " State Changed: " + state + "; changed? " + stateChanged);
+		}
+		
+		if (!stateChanged) {
+			return;
+		}
+	
 		if (state == Licence.LS_PENDING_AUTHENTICATION) {
-			hasPendingAuth = true;
+			pendingAuthForKey = licence.getKey();
 			FeatureManagerUI.openLicenceValidatingWindow();
-		} else if (state == Licence.LS_INVAID_KEY) {
-			FeatureManagerUI.openLicenceFailedWindow(state);
 		} else {
 			FeatureManagerUI.closeLicenceValidatingWindow();
 			if (state == Licence.LS_AUTHENTICATED) {
-				if (hasPendingAuth) {
+				if (licence.getKey().equals(pendingAuthForKey)) {
 					if (licence.isFullyInstalled()) {
-						hasPendingAuth = false;
+						pendingAuthForKey = null;
 						FeatureManagerUI.openLicenceSuccessWindow();
 					} // else assumed install process is taking place
+				}
+			} else if (state == Licence.LS_INVAID_KEY) {
+				FeatureManagerUI.openLicenceFailedWindow(state);
+				if (licence.getKey().equals(pendingAuthForKey)) {
+					pendingAuthForKey = null;
 				}
 			}
 		}
@@ -140,6 +167,10 @@ public class FeatureManagerUIListener
 	}
 
 	public void licenceRemoved(Licence licence) {
+		synchronized (mapKeyToLicence) {
+			mapKeyToLicence.remove(licence.getKey());
+		}
+
 		updateSidebar();
 	}
 
