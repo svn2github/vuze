@@ -1354,6 +1354,8 @@ public class SBC_DevicesView
 						UIFunctions.STATUSICON_WARNING, 
 						MessageText.getString( "globalmanager.download.remove.veto" ), 
 						e.getMessage(), null, null, -1 );
+				
+				return;
 			}
 		}
 
