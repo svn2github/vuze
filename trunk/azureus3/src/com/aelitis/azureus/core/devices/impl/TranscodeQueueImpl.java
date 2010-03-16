@@ -74,7 +74,8 @@ TranscodeQueueImpl
 	
 	private AsyncDispatcher	anaylsis_dispatcher = new AsyncDispatcher();
 	
-	private CopyOnWriteList<TranscodeQueueListener>	listeners = new CopyOnWriteList<TranscodeQueueListener>();
+	private CopyOnWriteList<TranscodeQueueListener>			listeners = new CopyOnWriteList<TranscodeQueueListener>();
+	private CopyOnWriteList<TranscodeQueueActionListener>	action_listeners = new CopyOnWriteList<TranscodeQueueActionListener>();
 	
 	private volatile boolean 	paused;
 	private volatile int		max_bytes_per_sec;
@@ -739,7 +740,13 @@ TranscodeQueueImpl
 									
 										if ( process( job )){
 										
-											remove( job );
+											try{
+												remove( job, true );
+												
+											}catch( TranscodeActionVetoException e ){
+												
+												Debug.out( e );
+											}
 										}																			
 									}
 								}
@@ -851,7 +858,7 @@ TranscodeQueueImpl
 			
 			for ( TranscodeJobImpl job: to_remove ){
 	
-				job.remove();
+				job.removeForce();
 			}
 			
 			if ( !stream ){
@@ -902,8 +909,37 @@ TranscodeQueueImpl
 	
 	protected void
 	remove(
-		TranscodeJobImpl		job )
+		TranscodeJobImpl		job,
+		boolean					force )
+	
+		throws TranscodeActionVetoException
 	{
+		synchronized( this ){
+			
+			if ( !queue.contains( job )){
+				
+				return;
+			}
+		}
+		
+		if ( !force ){
+			
+			for ( TranscodeQueueActionListener l: action_listeners ){
+				
+				try{
+					l.jobWillBeActioned( job, TranscodeQueueActionListener.ACT_REMOVE );
+					
+				}catch( TranscodeActionVetoException e ){
+					
+					throw( e );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e);
+				}
+			}
+		}
+		
 		synchronized( this ){
 			
 			if ( !queue.remove( job )){
@@ -1429,6 +1465,20 @@ TranscodeQueueImpl
 		TranscodeQueueListener		listener )
 	{
 		listeners.remove( listener );	
+	}
+	
+	public void
+	addActionListener(
+		TranscodeQueueActionListener		listener )
+	{
+		action_listeners.add( listener );
+	}
+	
+	public void
+	removeActionListener(
+		TranscodeQueueActionListener		listener )
+	{
+		action_listeners.remove( listener );	
 	}
 	
 	protected void

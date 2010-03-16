@@ -80,4 +80,12 @@ TranscodeQueue
 	public void
 	removeListener(
 		TranscodeQueueListener		listener );
+	
+	public void
+	addActionListener(
+		TranscodeQueueActionListener		listener );
+	
+	public void
+	removeActionListener(
+		TranscodeQueueActionListener		listener );
 }

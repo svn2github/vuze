@@ -90,7 +90,12 @@ TranscodeJob
 	stop();
 	
 	public void
-	remove();
+	remove()
+	
+		throws TranscodeActionVetoException;
+	
+	public void
+	removeForce();
 	
 	public void
 	moveUp();

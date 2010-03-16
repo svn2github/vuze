@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.devices.TranscodeAnalysisListener;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeException;
+import com.aelitis.azureus.core.devices.TranscodeActionVetoException;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
@@ -817,8 +818,22 @@ TranscodeJobImpl
 	
 	public void
 	remove()
+	
+		throws TranscodeActionVetoException
 	{
-		queue.remove( this );
+		queue.remove( this, false );
+	}
+	
+	public void
+	removeForce()
+	{
+		try{
+			queue.remove( this, true );
+			
+		}catch( TranscodeActionVetoException e ){
+			
+			Debug.out( e );
+		}
 	}
 	
 	protected void
