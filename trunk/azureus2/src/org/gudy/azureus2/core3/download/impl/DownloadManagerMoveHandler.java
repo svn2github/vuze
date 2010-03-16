@@ -71,7 +71,7 @@ public class DownloadManagerMoveHandler extends DownloadManagerMoveHandlerUtils 
 		}
 	}
 	
-	public static SaveLocationChange onCompletion(DownloadManager dm) {
+	public static SaveLocationChange onCompletion(DownloadManager dm, MoveCallback callback ) {
 		if (!isApplicableDownload(dm)) {return null;}
 		
 		if (dm.getDownloadState().getFlag(DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE)) {
@@ -84,6 +84,14 @@ public class DownloadManagerMoveHandler extends DownloadManagerMoveHandlerUtils 
 		catch (Exception e) {
 			logError("Error trying to determine on-completion location.", dm, e);
 			return null;
+		}
+		
+			// give caller the opportunity to perform the action *before* we set the completion-done
+			// flag...
+		
+		if ( callback != null && sc != null ){
+			
+			callback.perform( sc );
 		}
 		
 		logInfo("Setting completion flag on " + describe(dm) + ", may have been set before.", dm);
@@ -148,4 +156,11 @@ public class DownloadManagerMoveHandler extends DownloadManagerMoveHandlerUtils 
 		if (s != null && s.trim().length()!=0) {addFile(l, new File(s));}
 	}
 	
+	public interface
+	MoveCallback
+	{
+		public void
+		perform(
+			SaveLocationChange		details );
+	}
 }

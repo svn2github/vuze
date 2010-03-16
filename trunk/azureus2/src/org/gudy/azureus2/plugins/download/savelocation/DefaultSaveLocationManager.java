@@ -26,5 +26,6 @@ import org.gudy.azureus2.plugins.download.Download;
  * <p><b>Note:</b> Only for implementation by Azureus, not plugins.</p>
  */
 public interface DefaultSaveLocationManager extends SaveLocationManager {
+	public SaveLocationChange testOnCompletion(Download download, boolean for_move, boolean on_event);
 	public boolean isInDefaultSaveDir(Download d);
 }

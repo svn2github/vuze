@@ -1843,14 +1843,32 @@ DiskManagerImpl
         }
 
         SaveLocationChange move_details;
-        if (removing) {
+        
+        if ( removing){
+        	
         	move_details = DownloadManagerMoveHandler.onRemoval(this.download_manager);
-        }
-        else {
-        	move_details = DownloadManagerMoveHandler.onCompletion(this.download_manager);
+        	
+        }else{
+        	DownloadManagerMoveHandler.onCompletion(
+        		this.download_manager,
+        		new DownloadManagerMoveHandler.MoveCallback()
+        		{
+        			public void 
+        			perform(
+        				SaveLocationChange move_details ) 
+        			{
+        				moveFiles( move_details, true );
+        			}
+        		});
+        	
+        	move_details = null;
         }
         
-        if (move_details != null) {moveFiles(move_details, true);}
+        if ( move_details != null ){
+        	
+        	moveFiles(move_details, true);
+        }
+        
         return true;
 
       }
