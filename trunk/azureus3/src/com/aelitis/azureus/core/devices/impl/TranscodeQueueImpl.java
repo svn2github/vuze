@@ -876,7 +876,7 @@ TranscodeQueueImpl
 				
 				queue_sem.release();
 				
-				saveConfig();
+				configDirty();
 			}
 			
 			// I'd rather do qos from a listener trigger, but for now this ensures
@@ -948,7 +948,7 @@ TranscodeQueueImpl
 			}
 		}
 		
-		saveConfig();
+		configDirty();
 
 		job.destroy();
 		
