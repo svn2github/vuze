@@ -66,11 +66,18 @@ public class SWTSkinObjectTextbox
 			if (Arrays.binarySearch(styles, "readonly") >= 0) {
 				style |= SWT.READ_ONLY;
 			}
+			if (Arrays.binarySearch(styles, "wrap") >= 0) {
+				style |= SWT.WRAP;
+			}
 			if (Arrays.binarySearch(styles, "multiline") >= 0) {
-				style |= SWT.MULTI;
+				style |= SWT.MULTI | SWT.V_SCROLL;
 			} else {
 				style |= SWT.SINGLE;
 			}
+		}
+		
+		if ((style & SWT.WRAP) == 0 && (style & SWT.MULTI) > 0) {
+			style |= SWT.H_SCROLL;
 		}
 
 
