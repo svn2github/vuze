@@ -79,6 +79,10 @@ DeviceMediaRenderer
 	public boolean
 	canCopyToFolder();
 	
+	public void
+	setCanCopyToFolder(
+		boolean		can );
+	
 	public File
 	getCopyToFolder();
 	

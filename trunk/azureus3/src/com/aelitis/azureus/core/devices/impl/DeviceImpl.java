@@ -138,6 +138,7 @@ DeviceImpl
 	
 	private boolean			hidden;
 	private long			last_seen;
+	private boolean			can_remove = true;
 	
 	private int				busy_count;
 	private boolean			online;
@@ -1197,10 +1198,17 @@ DeviceImpl
 		addDP( dp, name, names);
 	}
 	
+	public void
+	setCanRemove(
+		boolean	can )
+	{
+		can_remove = can;
+	}
+	
 	public boolean
 	canRemove()
 	{
-		return( true );
+		return( can_remove );
 	}
 	
 	public boolean

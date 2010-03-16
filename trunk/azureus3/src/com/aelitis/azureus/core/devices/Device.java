@@ -100,6 +100,10 @@ Device
 	public void
 	remove();
 	
+	public void
+	setCanRemove(
+		boolean	can );
+	
 	public boolean
 	canRemove();
 	

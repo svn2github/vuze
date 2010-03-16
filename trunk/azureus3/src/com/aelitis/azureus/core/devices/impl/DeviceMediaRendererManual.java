@@ -49,6 +49,7 @@ DeviceMediaRendererManual
 	private static final Object	COPY_ERROR_KEY 		= new Object();
 	private static final Object	COPY_PENDING_KEY 	= new Object();
 
+	private boolean				can_copy_to_folder	= true;
 	private boolean				copy_outstanding;
 	private boolean				copy_outstanding_set;
 	private AEThread2			copy_thread;
@@ -147,7 +148,14 @@ DeviceMediaRendererManual
 	public boolean
 	canCopyToFolder()
 	{
-		return( true );
+		return( can_copy_to_folder );
+	}
+	
+	public void
+	setCanCopyToFolder(
+		boolean		can )
+	{
+		can_copy_to_folder = can;
 	}
 	
 	public File

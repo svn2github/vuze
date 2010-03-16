@@ -157,6 +157,13 @@ DeviceMediaRendererImpl
 		return( false );
 	}
 	
+	public void
+	setCanCopyToFolder(
+		boolean		can )
+	{
+		// nothing to do
+	}
+	
 	public File
 	getCopyToFolder()
 	{
