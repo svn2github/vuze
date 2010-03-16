@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -442,7 +443,9 @@ TranscodeJobImpl
 			
 		}else{
 			
-			throw( new DownloadRemovalVetoException( "Transcode in progress, removal refused" ));
+			throw( new DownloadRemovalVetoException( 
+					MessageText.getString( "devices.xcode.remove.vetoed",
+						new String[]{ download.getName()})));
 		}
 	}
 	
