@@ -676,7 +676,9 @@ DeviceImpl
 							
 					result.setSourceFile( file );
 					
-					saveDeviceFile();
+					device_files_last_mod = SystemTime.getMonotonousTime();
+					
+					device_files_dirty	= true;
 					
 				}else{
 					
@@ -1897,7 +1899,7 @@ DeviceImpl
 	
 	protected void
 	saveDeviceFile()
-	{
+	{			
 		device_files_dirty = false;
 		
 		try{
