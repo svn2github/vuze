@@ -1834,6 +1834,21 @@ DeviceImpl
 		if ( remove ){
 			
 			try{
+					// fire the listeners FIRST as this gives listeners a chance to extract data
+					// from the file before it is deleted (otherwise operations fail with 'file has been
+					// deleted'
+				
+				for ( TranscodeTargetListener l: listeners ){
+					
+					try{
+						l.fileRemoved( file );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+				
 				synchronized( this ){
 					
 					if ( device_files == null ){
@@ -1850,16 +1865,7 @@ DeviceImpl
 					device_files_dirty	= true;
 				}
 				
-				for ( TranscodeTargetListener l: listeners ){
-					
-					try{
-						l.fileRemoved( file );
-						
-					}catch( Throwable e ){
-						
-						Debug.out( e );
-					}
-				}
+
 			}catch( Throwable e ){
 				
 				throw( new TranscodeException( "Delete failed", e ));
