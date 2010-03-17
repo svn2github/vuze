@@ -81,6 +81,11 @@ public class SWTSkinPropertiesImpl
 		return color;
 	}
 
+	public void clearCache() {
+		super.clearCache();
+		colorMap.clear();
+	}
+	
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinProperties#getColor(java.lang.String, org.eclipse.swt.graphics.Color)
 	public Color getColor(String name, Color def) {
 		Color color = getColor(name);
