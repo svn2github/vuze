@@ -107,6 +107,7 @@ public class SkinPropertiesImpl
 	
 	public void addResourceBundle(ResourceBundle subBundle, String skinPath, ClassLoader loader ) {
 		try {
+			clearCache();
 			rb.addResourceMessages(subBundle);
 
 			try{
