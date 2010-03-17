@@ -446,12 +446,12 @@ public class ManagerUtils {
 		}
 	}
 
-  public static void remove(final DownloadManager dm, Shell shell,
+  public static void remove(final DownloadManager dm, Shell unused_shell,
 			final boolean bDeleteTorrent, final boolean bDeleteData) {
-  	remove(dm, shell, bDeleteTorrent, bDeleteData, null);
+  	remove(dm, unused_shell, bDeleteTorrent, bDeleteData, null);
 	}
   
-  public static void remove(final DownloadManager dm, Shell shell,
+  public static void remove(final DownloadManager dm, Shell unused_shell,
 			final boolean bDeleteTorrent, final boolean bDeleteData,
 			final AERunnable deleteFailed) {
 
