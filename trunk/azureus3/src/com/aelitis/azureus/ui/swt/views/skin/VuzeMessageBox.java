@@ -35,6 +35,8 @@ public class VuzeMessageBox
 
 	private Integer[] buttonVals;
 
+	private Button def_button;
+
 	private int defaultButtonPos;
 
 	private int result = -1;
@@ -162,7 +164,20 @@ public class VuzeMessageBox
 				}
 
 			}
+			
+			public void open() {
+				
+				super.open();
+				
+					// need to defer setting the default button to here as otherwise it doesn't
+					// work (on windows at least...)
+				
+				if( def_button != null ){
+					def_button.getShell().setDefaultButton(def_button);
+				}
+			}
 		};
+		
 		dlg.setTitle(title);
 		dlg.addCloseListener(this);
 
@@ -242,6 +257,7 @@ public class VuzeMessageBox
 		rowLayout.spacing = 8;
 		rowLayout.pack = false;
 		cButtonArea.setLayout(rowLayout);
+				
 		for (int i = 0; i < buttons.length; i++) {
 			String buttonText = buttons[i];
 			if (buttonText == null) {
@@ -260,7 +276,7 @@ public class VuzeMessageBox
 			button.setLayoutData(rowData);
 
 			if (defaultButtonPos == i) {
-				button.getShell().setDefaultButton(button);
+				def_button = button;
 			}
 			button.setData("ButtonNo", new Integer(i));
 			button.addListener(SWT.Selection, new Listener() {
@@ -271,6 +287,8 @@ public class VuzeMessageBox
 		}
 
 		cBottomArea.getParent().layout(true, true);
+		
+
 	}
 
 	/* (non-Javadoc)
