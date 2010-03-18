@@ -251,10 +251,7 @@ public class FeatureManagerUI
 
 		box.setListener(new VuzeMessageBoxListener() {
 			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
-				shell.setSize(shell.getSize().x, DLG_HEIGHT);
-
 				SWTSkin skin = soExtra.getSkin();
-				skin.setAutoSizeOnLayout(false);
 				skin.createSkinObject("dlg.register.trial.success",
 						"dlg.register.trial.success", soExtra);
 			}
