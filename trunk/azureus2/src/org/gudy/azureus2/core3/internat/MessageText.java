@@ -743,8 +743,12 @@ public class MessageText {
   //         - function to add another ResourceBundle, adds to hashtable
   public static boolean integratePluginMessages(String localizationPath, ClassLoader classLoader) {
 		boolean integratedSuccessfully = false;
-		if (null != localizationPath && localizationPath.length() != 0 && !pluginLocalizationPaths.containsKey(localizationPath))
-		{
+		
+			// allow replacement of localisation paths so that updates of unloadable plugins
+			// replace messages
+		
+		if ( localizationPath != null && localizationPath.length() != 0 ){
+		
 			synchronized (pluginLocalizationPaths)
 			{
 				pluginLocalizationPaths.put(localizationPath, classLoader);
