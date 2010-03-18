@@ -201,7 +201,7 @@ DeviceMediaRendererManual
 	{
 		synchronized( this ){
 			
-			if ( !copy_outstanding ){
+			if ( !( copy_outstanding || can_copy_to_folder )){
 				
 				return( 0 );
 			}
@@ -253,6 +253,11 @@ DeviceMediaRendererManual
 	protected void
 	setCopyOutstanding()
 	{
+		if ( !can_copy_to_folder ){
+			
+			return;
+		}
+		
 		synchronized( this ){
 			
 			copy_outstanding_set = true;
@@ -378,6 +383,11 @@ DeviceMediaRendererManual
 	protected boolean
 	doCopy()
 	{
+		if ( !can_copy_to_folder ){
+			
+			return( true );
+		}
+		
 		setInfo( COPY_PENDING_KEY, null );
 		
 		File	copy_to = getCopyToFolder();
