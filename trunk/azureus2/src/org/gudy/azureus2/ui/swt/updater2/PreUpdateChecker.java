@@ -44,6 +44,7 @@ public class PreUpdateChecker
 	{
 		if ( ui.equals( "az3") && !"0".equals(System.getProperty("azureus.loadplugins"))) {
 			
+			/* EMP is no longer auto-install
 			if ( UpdaterUtils.ensurePluginPresent(
 					"azemp",
 					"com.azureus.plugins.azemp.EmbeddedMediaPlayerPlugin",
@@ -53,6 +54,7 @@ public class PreUpdateChecker
 				
 				core.getPluginManager().refreshPluginList();
 			}
+			*/
 		}
 	}
 }
