@@ -243,7 +243,7 @@ TranscodeFileImpl
 					
 					int index = (int)getLong( KEY_SOURCE_FILE_INDEX );
 					
-					return( download.getDiskManagerFileInfo()[index] );
+					return( download.getDiskManagerFileInfo(index) );
 				}
 				
 			}catch( Throwable e ){
