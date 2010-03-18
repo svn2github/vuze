@@ -127,4 +127,7 @@ TranscodeFile
 	public Object
 	getTransientProperty(
 		Object		key );
+
+	public boolean 
+	isDeleted();
 }
