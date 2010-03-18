@@ -25,6 +25,8 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -65,10 +67,9 @@ public class SWTSkinPropertiesImpl
 		try {
 			int[] rgb = getColorValue(sID);
 			if (rgb[0] > -1) {
-				color = ColorCache.getColor(Display.getCurrent(), rgb[0], rgb[1],
-						rgb[2]);
+				color = ColorCache.getColor(Utils.getDisplay(), rgb[0], rgb[1], rgb[2]);
 			} else {
-				color = ColorCache.getColor(Display.getCurrent(), getStringValue(sID));
+				color = ColorCache.getColor(Utils.getDisplay(), getStringValue(sID));
 			}
 		} catch (Exception e) {
 			//				IMP.getLogger().log(LoggerChannel.LT_ERROR,
