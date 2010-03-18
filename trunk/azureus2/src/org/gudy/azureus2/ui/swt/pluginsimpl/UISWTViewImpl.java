@@ -274,20 +274,6 @@ public class UISWTViewImpl extends AbstractIView implements UISWTViewCore, IView
 		} else if (iControlType == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
 			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, getSkinObject());
 		}
-		
-		if (composite != null) {
-			composite.addListener(SWT.Activate, new Listener() {
-				public void handleEvent(Event event) {
-					triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
-				}
-			});
-	
-			composite.addListener(SWT.Deactivate, new Listener() {
-				public void handleEvent(Event event) {
-					triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
-				}
-			});
-		}
 	}
 
 	public void refresh() {
