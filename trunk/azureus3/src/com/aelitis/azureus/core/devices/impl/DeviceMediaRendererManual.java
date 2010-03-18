@@ -156,6 +156,14 @@ DeviceMediaRendererManual
 		boolean		can )
 	{
 		can_copy_to_folder = can;
+		
+		if ( !can ){
+			
+			setPersistentBooleanProperty( PP_COPY_OUTSTANDING, false );
+			
+			copy_outstanding 		= false;
+			copy_outstanding_set	= false;
+		}
 	}
 	
 	public File
@@ -199,9 +207,14 @@ DeviceMediaRendererManual
 	public int
 	getCopyToFolderPending()
 	{
+		if ( !can_copy_to_folder ){
+			
+			return( 0 );
+		}
+		
 		synchronized( this ){
 			
-			if ( !( copy_outstanding || can_copy_to_folder )){
+			if ( !copy_outstanding ){
 				
 				return( 0 );
 			}
@@ -313,6 +326,11 @@ DeviceMediaRendererManual
 	protected void
 	performCopy()
 	{
+		if ( !can_copy_to_folder ){
+			
+			return;
+		}
+		
 		synchronized( this ){
 
 			copy_outstanding = true;
