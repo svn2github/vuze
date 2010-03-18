@@ -379,8 +379,13 @@ public class TorrentListViewsUtils
 		if (PlayUtils.canUseEMP(torrent)) {
 			debug("Can use EMP");
 
-			if (openInEMP(dm)) {
+			int open_result = openInEMP(dm);
+			
+			if ( open_result == 0 ){
 				PlatformTorrentUtils.setHasBeenOpened(dm, true);
+				return;
+			}else if ( open_result == 2 ){
+				debug( "Open in EMP abandoned" );
 				return;
 			} else {
 				debug("Open EMP Failed");
@@ -580,27 +585,84 @@ public class TorrentListViewsUtils
 		thread.start();
 	}
 	
+	private static boolean	emp_installing;
 	
-	private static void installEMP(final DownloadManager dm) {
-		final PlayerInstaller installer = new PlayerInstaller();
-		final PlayerInstallWindow window = new PlayerInstallWindow(installer);
-		window.open();
-		AEThread2 installerThread = new AEThread2("player installer",true) {
-			public void run() {
-				if(installer.install()) {
-					Utils.execSWTThread(new AERunnable() {
-						
-						@Override
-						public void runSupport() {
-							openInEMP(dm);
-							
+	/**
+	 * 
+	 * @param dm
+	 * @return 0=good, 1 = fail, 2 = abandon
+	 */
+	private static int 
+	installEMP(
+		final DownloadManager dm) 
+	{
+		synchronized( TorrentListViewsUtils.class ){
+			
+			if ( emp_installing ){
+				
+				Debug.out( "EMP is already being installed, secondary launch for " + dm.getDisplayName() + " ignored" );
+				
+				return( 2 );
+			}
+			
+			emp_installing = true;
+		}
+		
+		boolean	running = false;
+		
+		try{
+			final PlayerInstaller installer = new PlayerInstaller();
+			
+			final PlayerInstallWindow window = new PlayerInstallWindow(installer);
+			
+			window.open();
+			
+			AEThread2 installerThread = new AEThread2("player installer",true) {
+				public void 
+				run() 
+				{
+					try{
+						if(installer.install()) {
+							Utils.execSWTThread(new AERunnable() {
+								
+								public void runSupport() {
+									openInEMP(dm);
+									
+								}
+							});
 						}
-					});
+					}finally{
+						
+						synchronized( TorrentListViewsUtils.class ){
+							
+							emp_installing = false;
+						}
+					}
+				}
+			};
+			
+			installerThread.start();
+			
+			running = true;
+			
+			return( 0 );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( 1 );
+			
+		}finally{
+			
+			if ( !running ){
+				
+				synchronized( TorrentListViewsUtils.class ){
 					
+					emp_installing = false;
 				}
 			}
-		};
-		installerThread.start();
+		}
 		
 	}
 
@@ -610,10 +672,10 @@ public class TorrentListViewsUtils
 	 *
 	 *
 	 * @param dm - DownloadManager
-	 * @return - boolean
+	 * @return - int: 0 = ok, 1 = fail, 2 = abandon, installation in progress
 	 * @since 3.0.4.4 -
 	 */
-	private static boolean openInEMP(DownloadManager dm) {
+	private static int openInEMP(DownloadManager dm) {
 
 		Class epwClass = null;
 		try {
@@ -624,16 +686,14 @@ public class TorrentListViewsUtils
 
 			if (pi == null) {
 
-				installEMP(dm);
-				return true;
-				
+				return (installEMP(dm));
 			}
 
 			epwClass = pi.getPlugin().getClass().getClassLoader().loadClass(
 					"com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT");
 
 		} catch (ClassNotFoundException e1) {
-			return false;
+			return 1;
 		}
 
 		//Data is passed to the openWindow via download manager.
@@ -647,7 +707,7 @@ public class TorrentListViewsUtils
 				dm
 			});
 
-			return true;
+			return 0;
 		} catch (Throwable e) {
 			e.printStackTrace();
 			if (e.getMessage() == null
@@ -656,7 +716,7 @@ public class TorrentListViewsUtils
 			}
 		}
 
-		return false;
+		return 1;
 	}//openInEMP
 
 	/**

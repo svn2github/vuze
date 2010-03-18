@@ -25,11 +25,8 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogAlert;
-import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
@@ -37,9 +34,6 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBox;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBoxListener;
 
-import org.gudy.azureus2.plugins.PluginException;
-import org.gudy.azureus2.plugins.utils.FeatureManager.Licence;
-import org.gudy.azureus2.plugins.utils.FeatureManager.Licence.LicenceInstallationListener;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /**
@@ -108,9 +102,7 @@ public class PlayerInstallWindow
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				installer.setListener(null);
-				if(!installer.isDone()) {
-					installer.cancel();
-				}
+				installer.cancel();
 			}
 		});
 	}

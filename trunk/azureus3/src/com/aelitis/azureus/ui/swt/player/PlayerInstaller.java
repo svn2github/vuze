@@ -3,12 +3,6 @@ package com.aelitis.azureus.ui.swt.player;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.installer.InstallablePlugin;
@@ -20,7 +14,6 @@ import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
-import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 
@@ -28,7 +21,9 @@ public class PlayerInstaller {
 	
 	private PlayerInstallerListener listener;
 	private PluginInstaller installer;
-	private UpdateCheckInstance instance;
+	private volatile UpdateCheckInstance instance;
+	
+	private boolean	cancelled;
 	
 	public PlayerInstaller() {
 	}
@@ -37,21 +32,24 @@ public class PlayerInstaller {
 		this.listener = listener;
 	}
 	
-	public void cancel() {
-		if(instance != null) {
-			if(!instance.isCompleteOrCancelled()) {
-				instance.cancel();
-			}
+	public void 
+	cancel() 
+	{
+		UpdateCheckInstance to_cancel = null;
+		
+		synchronized( this ){
+			
+			cancelled = true;
+			
+			to_cancel = instance;
+		}
+		
+		if ( to_cancel != null ){
+			
+			to_cancel.cancel();
 		}
 	}
-	
-	public boolean isDone() {
-		if(instance != null) {
-			return instance.isCompleteOrCancelled();
-		}
-		return false;
-	}
-	
+		
 	public boolean install() {
 		
 		try{
@@ -68,7 +66,7 @@ public class PlayerInstaller {
 
 			final AESemaphore sem = new AESemaphore("emp install");
 			final boolean[] result = new boolean[1];
-
+		
 			instance = 
 				installer.install(
 					new InstallablePlugin[]{ sp },
@@ -107,7 +105,21 @@ public class PlayerInstaller {
 							sem.release();
 						}
 					});
- 				
+		
+			boolean kill_it;
+			
+			synchronized( this ){
+				
+				kill_it = cancelled;
+			}
+
+			if ( kill_it ){
+				
+				instance.cancel();
+				
+				return( false );
+			}
+			
 			instance.addListener(
 				new UpdateCheckInstanceListener() {
 
