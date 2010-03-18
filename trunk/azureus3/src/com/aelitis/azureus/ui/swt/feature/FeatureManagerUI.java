@@ -426,6 +426,30 @@ public class FeatureManagerUI
 		Long lIsTrial = (Long) fd.getProperty(FeatureDetails.PR_IS_TRIAL);
 		return lIsTrial == null ? false : lIsTrial.longValue() != 0;
 	}
+	
+	public static long getRemaining() {
+		FeatureDetails[] featureDetails = featman.getFeatureDetails("dvdburn_trial");
+		if (featureDetails == null) {
+			return 0;
+		}
+		for (FeatureDetails fd : featureDetails) {
+			long remainingUses = getRemainingUses(fd);
+			if (remainingUses >= 0) {
+				return remainingUses;
+			}
+		}
+		return 0;
+	}
+
+	private static long getRemainingUses(FeatureDetails fd) {
+		if (fd == null) {
+			return 0;
+		}
+		Long lRemainingUses = (Long) fd.getProperty(FeatureDetails.PR_TRIAL_USES_REMAINING);
+		long remainingUses = lRemainingUses == null ? -1
+				: lRemainingUses.longValue();
+		return remainingUses;
+	}
 
 	/**
 	 * @return

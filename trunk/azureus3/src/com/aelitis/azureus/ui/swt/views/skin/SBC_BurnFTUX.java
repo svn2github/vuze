@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
@@ -30,6 +31,7 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
+import com.aelitis.azureus.util.ConstantsVuze;
 
 /**
  * @author TuxPaper
@@ -106,8 +108,13 @@ public class SBC_BurnFTUX
 	private void buildURL() {
 		boolean isFull = FeatureManagerUI.hasFullLicence();
 		boolean isTrial = FeatureManagerUI.hasFullBurn() && !isFull;
-		url = "http://www2.vuze.com/client/plus/burn.php?view=" + entryID + "&mode="
-				+ (isFull ? "plus" : isTrial ? "trial" : "free") + "&sourceRef=" + sRef;
+		long remainingUses = FeatureManagerUI.getRemaining();
+
+		String suffix = "?view=" + entryID + "&mode="
+				+ (isFull ? "plus" : isTrial ? "trial" : "free") + "&sourceRef="
+				+ UrlUtils.encode(sRef) + "&remaining=" + remainingUses;
+		url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+				"burn_ftux.start" + suffix, false);
 		if (DEBUG) {
 			System.out.println("URL is now " + url + " via " + Debug.getCompressedStackTrace());
 		}
