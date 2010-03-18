@@ -347,6 +347,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager.messaging.bittorrent"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.ui"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.minibar"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.player"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.proxy.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.udp.uc"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.util.protocol.dht"/>
