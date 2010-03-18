@@ -344,6 +344,7 @@ public class SWTSkinObjectImage
 				boolean hasExistingDelay = canvas.getData("delay") != null;
 				canvas.setData("delay", null);
 				if (images == null) {
+					canvas.setData("images", null);
 					image = null;
 				} else if (drawMode == DRAW_ANIMATE) {
 					int animationDelay = ImageLoader.getInstance().getAnimationDelay(sImageID);
@@ -405,7 +406,7 @@ public class SWTSkinObjectImage
 				canvas.removePaintListener(paintListener);
 
 				canvas.addPaintListener(paintListener);
-				canvas.setData("ImageID", sImageID);
+				canvas.setData("ImageID", sImageID); 
 
 				canvas.redraw();
 
