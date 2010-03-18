@@ -855,7 +855,26 @@ RPDownload
 		
 		return( resp );
 	}
-	
+
+	public DiskManagerFileInfo
+	getDiskManagerFileInfo(int index)
+	{
+		// TODO: Make it only return the index one
+
+		RPDiskManagerFileInfo[] resp = (RPDiskManagerFileInfo[])_dispatcher.dispatch( 
+				new RPRequest( 
+						this, 
+						"getDiskManagerFileInfo", 
+						null)).getResponse();
+
+		if (index >= 0 && index < resp.length) {
+			resp[index]._setRemote( _dispatcher );
+			return resp[index];
+		}
+		
+		return( null );
+	}
+
 	public long
 	getCreationTime()
 	{

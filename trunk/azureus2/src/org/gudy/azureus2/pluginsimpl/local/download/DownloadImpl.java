@@ -1815,6 +1815,18 @@ DownloadImpl
 	}
 	
 	
+	public DiskManagerFileInfo getDiskManagerFileInfo(int index) {
+		org.gudy.azureus2.core3.disk.DiskManagerFileInfo[] info = download_manager.getDiskManagerFileInfo();
+
+		if (info == null) {
+			return null;
+		}
+		if (index < 0 || index >= info.length) {
+			return null;
+		}
+
+		return new DiskManagerFileInfoImpl(this, info[index]);
+	}
 	
 	public DiskManagerFileInfo[]
 	getDiskManagerFileInfo()

@@ -851,6 +851,16 @@ Download extends DownloadEventNotifier
 	public DiskManagerFileInfo[]
 	getDiskManagerFileInfo();
 	
+	/**
+	 * Returns file info for the given index. Note that this will return "stub" values if the 
+	 * download isn't running (not including info such as completion status)
+	 * @return null if index is invalid
+	 * @since 4.3.1.5
+	 */
+
+  public DiskManagerFileInfo
+  getDiskManagerFileInfo(int index);
+
   		/**
   		 * request a tracker announce 
   		 * @since 2.1.0.5

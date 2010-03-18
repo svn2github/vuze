@@ -671,6 +671,12 @@ LWSDownload
 	{
 		return( null );
 	}
+	
+	public DiskManagerFileInfo
+	getDiskManagerFileInfo(int i)
+	{
+		return( null );
+	}
 
   	public void
 	requestTrackerAnnounce()
