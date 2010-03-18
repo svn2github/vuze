@@ -7,6 +7,7 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInstance;
@@ -33,7 +34,7 @@ import com.aelitis.azureus.util.ConstantsVuze;
 
 public class FeatureManagerUI
 {
-	protected static final int DLG_HEIGHT = 320;
+	protected static final int DLG_HEIGHT = 290;
 
 	public static boolean enabled = !Constants.isUnix
 			&& FeatureAvailability.areInternalFeaturesEnabled()
@@ -207,9 +208,10 @@ public class FeatureManagerUI
 						if (initialState == Licence.LS_AUTHENTICATED) {
 							openLicenceSuccessWindow();
 						} else if (initialState == Licence.LS_CANCELLED
-								|| initialState == Licence.LS_INVAID_KEY
-								|| initialState == Licence.LS_REVOKED) {
+								|| initialState == Licence.LS_INVAID_KEY) {
 							openLicenceFailedWindow(initialState);
+						} else if (initialState == Licence.LS_REVOKED) {
+							openLicenceRevokedWindow(licence);
 						}
 					} catch (PluginException e) {
 						Logger.log(new LogAlert(true, LogAlert.AT_ERROR, "Adding Licence",
@@ -261,10 +263,8 @@ public class FeatureManagerUI
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == 0) {
-					SBC_PlusFTUX sv = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
-					if (sv != null) {
-						sv.setSourceRef("trial-success");
-					}
+					SBC_PlusFTUX.setSourceRef("trial-success");
+
 					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 					mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY);
 				}
@@ -305,6 +305,43 @@ public class FeatureManagerUI
 			}
 		});
 	}
+	
+	public static void openLicenceRevokedWindow(final Licence licence) {
+		final VuzeMessageBox box = new VuzeMessageBox(
+				MessageText.getString("dlg.auth.revoked"),
+				MessageText.getString("dlg.auth.revoked.line1"), new String[] {
+					MessageText.getString("Button.close"),
+				}, 0);
+		box.addResourceBundle(FeatureManagerUI.class,
+				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
+		box.setIconResource("image.vp");
+		box.setTextIconResource("image.warn.big");
+
+		box.setListener(new VuzeMessageBoxListener() {
+			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
+				SWTSkin skin = soExtra.getSkin();
+				SWTSkinObject so = skin.createSkinObject("dlg.register.revoked",
+						"dlg.register.revoked", soExtra);
+
+				SWTSkinObjectText soLink = (SWTSkinObjectText) skin.getSkinObject(
+						"link", so);
+				if (soLink != null) {
+					soLink.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
+						public boolean urlClicked(URLInfo urlInfo) {
+							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+									"licence_revoked.start?key="
+											+ UrlUtils.encode(licence.getKey()), false);
+							Utils.launch(url);
+							return true;
+						}
+					});
+				}
+			}
+		});
+
+		box.open(null);
+	}
+
 
 	protected static void openLicenceFailedWindow(int licenceState) {
 		openLicenceEntryWindow(true);

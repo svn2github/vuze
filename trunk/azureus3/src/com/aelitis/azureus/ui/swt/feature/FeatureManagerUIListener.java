@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogAlert;
-import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.FeatureManager;
@@ -136,6 +134,8 @@ public class FeatureManagerUIListener
 				if (licence.getKey().equals(pendingAuthForKey)) {
 					pendingAuthForKey = null;
 				}
+			} else if (state == Licence.LS_REVOKED) {
+				FeatureManagerUI.openLicenceRevokedWindow(licence);
 			}
 		}
 	}
