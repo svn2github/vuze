@@ -79,6 +79,7 @@ DownloadManagerState
 	public static final long FLAG_LOW_NOISE								= Download.FLAG_LOW_NOISE;
 	public static final long FLAG_ALLOW_PERMITTED_PEER_SOURCE_CHANGES	= Download.FLAG_ALLOW_PERMITTED_PEER_SOURCE_CHANGES;
 	public static final long FLAG_DO_NOT_DELETE_DATA_ON_REMOVE  		= Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE;
+	public static final long FLAG_FORCE_DIRECT_DELETE			  		= Download.FLAG_FORCE_DIRECT_DELETE;
 	
 	
 	public static final String	PARAM_MAX_PEERS							= "max.peers";

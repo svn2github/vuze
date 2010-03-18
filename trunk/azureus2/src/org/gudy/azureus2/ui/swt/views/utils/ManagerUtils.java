@@ -455,7 +455,9 @@ public class ManagerUtils {
 			final boolean bDeleteTorrent, final boolean bDeleteData,
 			final AERunnable deleteFailed) {
 
-		if (!dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
+	  	DownloadManagerState state = dm.getDownloadState();
+	  
+		if (!( state.getFlag(DownloadManagerState.FLAG_LOW_NOISE) || state.getFlag(DownloadManagerState.FLAG_FORCE_DIRECT_DELETE ))){
 			if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
 
 				String title = MessageText.getString("deletedata.title");

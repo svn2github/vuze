@@ -156,6 +156,14 @@ Download extends DownloadEventNotifier
      */
     public static final long FLAG_DO_NOT_DELETE_DATA_ON_REMOVE = 0x00000040;
     
+    /**
+     * Force direct delete of download data when delete requested, rather than recoverable delete,
+     * and no user prompt
+     * @since 4.3.1.5
+     */
+    
+    public static final long FLAG_FORCE_DIRECT_DELETE = 0x00000080;
+
 	/** get state from above ST_ set
    * @return ST_ constant
    *
