@@ -594,6 +594,9 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getSortValue()
 	public Comparable getSortValue() {
+		if ( sortValue == null ){
+			return( "" );
+		}
 		return sortValue;
 	}
 
