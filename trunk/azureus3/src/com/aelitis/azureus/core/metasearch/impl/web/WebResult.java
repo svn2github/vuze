@@ -27,6 +27,7 @@ import org.apache.commons.lang.*;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
@@ -373,6 +374,13 @@ public class WebResult extends Result {
 			Debug.printStackTrace(e);
 			
 			hash = null;
+		}
+		
+		if(hash != null && downloadButtonLink == null) {
+			setDownloadButtonLink(UrlUtils.normaliseMagnetURI(hash));			
+		}
+		if(hash != null && torrentLink == null) {
+			setTorrentLink(UrlUtils.normaliseMagnetURI(hash));			
 		}
 	}
 	
