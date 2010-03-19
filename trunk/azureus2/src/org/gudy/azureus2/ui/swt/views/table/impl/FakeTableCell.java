@@ -943,9 +943,10 @@ public class FakeTableCell
 		return true;
 	}
 
-	public void setDataSource(Object datasource) {
-		coreDataSource = datasource;
-		if (datasource != null && !isDisposed()) {
+	public void setDataSources(Object _coreDataSource, Object _pluginDataSource ) {
+		coreDataSource = _coreDataSource;
+		pluginDataSource = _pluginDataSource;
+		if (_coreDataSource != null && !isDisposed()) {
 			invokeVisibilityListeners(TableCellVisibilityListener.VISIBILITY_SHOWN,
 					true);
 		}

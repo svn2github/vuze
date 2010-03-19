@@ -86,7 +86,9 @@ public class ColumnTC_Sample
 			Rectangle bounds = ((TableCellImpl)parentCell).getBounds();
 			sampleCell.setCellArea(bounds);
 			if (sampleRow != null) {
-				sampleCell.setDataSource(((TableRowCore)sampleRow).getDataSource(true));
+				sampleCell.setDataSources(
+					((TableRowCore)sampleRow).getDataSource(true),
+					((TableRowCore)sampleRow).getDataSource(false));
 			}
 		}
 

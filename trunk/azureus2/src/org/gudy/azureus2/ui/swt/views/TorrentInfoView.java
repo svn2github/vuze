@@ -53,6 +53,7 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 public class 
 TorrentInfoView
@@ -290,7 +291,7 @@ TorrentInfoView
 				try {
   				fakeTableCell = new FakeTableCell(col);
   				fakeTableCell.setOrentation(SWT.LEFT);
-  				fakeTableCell.setDataSource(download_manager);
+  				fakeTableCell.setDataSources(download_manager, PluginCoreUtils.convert( download_manager, false ));
 					col.invokeCellAddedListeners(fakeTableCell);
   				// One refresh to see if it throws up
   				fakeTableCell.refresh();
