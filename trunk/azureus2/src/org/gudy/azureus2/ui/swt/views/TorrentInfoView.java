@@ -291,7 +291,7 @@ TorrentInfoView
 				try {
   				fakeTableCell = new FakeTableCell(col);
   				fakeTableCell.setOrentation(SWT.LEFT);
-  				fakeTableCell.setDataSources(download_manager, PluginCoreUtils.convert( download_manager, false ));
+  				fakeTableCell.setDataSource(download_manager);
 					col.invokeCellAddedListeners(fakeTableCell);
   				// One refresh to see if it throws up
   				fakeTableCell.refresh();

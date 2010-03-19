@@ -476,6 +476,11 @@ public class FakeTableCell
 				pluginDataSource = new TrackerTorrentImpl(item);
 			}
 		}
+		
+		if (pluginDataSource == null) {
+			// No translation available, make pluginDataSource the same as core
+			pluginDataSource = coreDataSource;
+		}
 
 		return pluginDataSource;
 	}
@@ -946,9 +951,8 @@ public class FakeTableCell
 		return true;
 	}
 
-	public void setDataSources(Object _coreDataSource, Object _pluginDataSource ) {
+	public void setDataSource(Object _coreDataSource) {
 		coreDataSource = _coreDataSource;
-		pluginDataSource = _pluginDataSource;
 		if (_coreDataSource != null && !isDisposed()) {
 			invokeVisibilityListeners(TableCellVisibilityListener.VISIBILITY_SHOWN,
 					true);
