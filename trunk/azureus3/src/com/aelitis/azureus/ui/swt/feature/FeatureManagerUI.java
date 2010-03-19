@@ -1,5 +1,8 @@
 package com.aelitis.azureus.ui.swt.feature;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -213,16 +216,27 @@ public class FeatureManagerUI
 				}
 
 				key[0] = (SWTSkinObjectTextbox) skin.getSkinObject("key", soExtra);
-				if (key[0] != null) {
+				if (key[0] != null && !trytwo) {
 					licenceDetails details = getFullFeatureDetails();
 					if (details != null) {
 						key[0].setText(details.key);
-						SWTSkinObjectText soExpirey = (SWTSkinObjectText) skin.getSkinObject("register-expirey");
-						if (soExpirey != null && details.expirey > 0) {
-							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
-									new String[] {
-										DisplayFormatters.formatCustomDateOnly(details.expirey)
-									}));
+						final SWTSkinObjectText soExpirey = (SWTSkinObjectText) skin.getSkinObject("register-expirey");
+						if (soExpirey != null) {
+							key[0].getControl().addListener(SWT.Modify, new Listener() {
+								public void handleEvent(Event event) {
+									soExpirey.setText("");
+								}
+							});
+							if (details.state == Licence.LS_CANCELLED) {
+								soExpirey.setText(MessageText.getString("dlg.auth.enter.cancelled"));
+							} else if (details.state == Licence.LS_REVOKED) {
+								soExpirey.setText(MessageText.getString("dlg.auth.enter.revoked"));
+							} else {
+  							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
+  									new String[] {
+  										DisplayFormatters.formatCustomDateOnly(details.expirey)
+  									}));
+							} 
 						}
 					}
 				}
@@ -458,12 +472,14 @@ public class FeatureManagerUI
 	}
 
 	public static class licenceDetails {
-		public licenceDetails(long expirey, String key) {
+		public licenceDetails(long expirey, String key, int state) {
 			this.expirey = expirey;
 			this.key = key;
+			this.state = state;
 		}
 		long expirey;
 		String key;
+		int state;
 	}
 
 	public static licenceDetails getFullFeatureDetails() {
@@ -476,22 +492,49 @@ public class FeatureManagerUI
 		// if any of the feature details are still valid, we have a full
 		for (FeatureDetails fd : featureDetails) {
 			long now = SystemTime.getCurrentTime();
-			// PARG Q: Valid until still set even when licence is revoked or cancelled?
 			Long lValidUntil = (Long) fd.getProperty(FeatureDetails.PR_VALID_UNTIL);
 			if (lValidUntil != null && lValidUntil.longValue() >= now) {
 				return new licenceDetails(lValidUntil.longValue(),
-						fd.getLicence().getKey());
+						fd.getLicence().getKey(), fd.getLicence().getState());
 			}
 			Long lValidOfflineUntil = (Long) fd.getProperty(FeatureDetails.PR_OFFLINE_VALID_UNTIL);
 			if (lValidOfflineUntil != null && lValidOfflineUntil.longValue() >= now) {
 				return new licenceDetails(lValidOfflineUntil.longValue(),
-						fd.getLicence().getKey());
+						fd.getLicence().getKey(), fd.getLicence().getState());
 			}
+		}
+
+		Licence bestLicence = null;
+		Licence[] licences = featman.getLicences();
+		for (Licence licence : licences) {
+			FeatureDetails[] details = licence.getFeatures();
+			boolean isTrial = false;
+			for (FeatureDetails fd : details) {
+				Object property = fd.getProperty(FeatureDetails.PR_IS_TRIAL);
+				if ((property instanceof Number) && ((Number)property).intValue() == 1) {
+					isTrial = true;
+					break;
+				}
+			}
+			if (isTrial) {
+				continue;
+			}
+			int state = licence.getState();
+			if (state == Licence.LS_AUTHENTICATED) {
+				bestLicence = licence;
+				break;
+			} else {
+				bestLicence = licence;
+			}
+		}
+
+		if (bestLicence != null) {
+			return new licenceDetails(0, bestLicence.getKey(), bestLicence.getState());
 		}
 
 		return null;
 	}
-
+	
 	public static boolean isTrialLicence(Licence licence) {
 		if (featman == null) {
 			return false;
