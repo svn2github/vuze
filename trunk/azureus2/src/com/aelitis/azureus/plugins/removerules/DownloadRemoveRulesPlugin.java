@@ -141,7 +141,7 @@ DownloadRemoveRulesPlugin
 					// completed only
 				
 				if ( 	file.getDownloaded() == file.getLength() &&
-						!files[0].getFile().exists()){
+						!file.getFile().exists()){
 				
 					log.log( "Removing low-noise download '" + download.getName() + " as data missing" );
 				
