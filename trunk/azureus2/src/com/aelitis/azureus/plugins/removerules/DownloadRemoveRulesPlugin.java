@@ -134,11 +134,19 @@ DownloadRemoveRulesPlugin
 			
 			DiskManagerFileInfo[] files = download.getDiskManagerFileInfo();
 			
-			if ( files.length == 1 && !files[0].getFile().exists()){
+			if ( files.length == 1 ){
 				
-				log.log( "Removing low-noise download '" + download.getName() + " as data missing" );
+				DiskManagerFileInfo file = files[0];
 				
-				removeDownload( download, false );
+					// completed only
+				
+				if ( 	file.getDownloaded() == file.getLength() &&
+						!files[0].getFile().exists()){
+				
+					log.log( "Removing low-noise download '" + download.getName() + " as data missing" );
+				
+					removeDownload( download, false );
+				}
 			}
 		}
 		
