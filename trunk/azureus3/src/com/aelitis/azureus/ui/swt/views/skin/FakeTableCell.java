@@ -303,8 +303,8 @@ public class FakeTableCell implements TableCell
 		cell.setCursorID(cursorID);
 	}
 
-	public void setDataSources(Object cds, Object pds) {
-		cell.setDataSources(cds, pds);
+	public void setDataSource(Object cds) {
+		cell.setDataSource(cds);
 	}
 
 	public void setFillCell(boolean fillCell) {
