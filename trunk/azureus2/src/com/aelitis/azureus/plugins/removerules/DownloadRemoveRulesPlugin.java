@@ -31,6 +31,7 @@ import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.torrent.*;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.config.*;
@@ -125,6 +126,20 @@ DownloadRemoveRulesPlugin
 		if ( !download.isPersistent()){
 			
 			return;
+		}
+		
+			// auto remove low noise torrents if their data is missing
+		
+		if ( download.getFlag( Download.FLAG_LOW_NOISE )){
+			
+			DiskManagerFileInfo[] files = download.getDiskManagerFileInfo();
+			
+			if ( files.length == 1 && !files[0].getFile().exists()){
+				
+				log.log( "Removing low-noise download '" + download.getName() + " as data missing" );
+				
+				removeDownload( download, false );
+			}
 		}
 		
 		DownloadTrackerListener	listener = 
