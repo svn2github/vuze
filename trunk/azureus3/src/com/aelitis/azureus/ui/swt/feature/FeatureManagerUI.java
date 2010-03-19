@@ -5,17 +5,19 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
@@ -29,7 +31,9 @@ import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.SBC_PlusFTUX;
+import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBox;
+import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBoxListener;
 import com.aelitis.azureus.util.ConstantsVuze;
 
 public class FeatureManagerUI
@@ -54,8 +58,12 @@ public class FeatureManagerUI
 				PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
 				featman = pi.getUtilities().getFeatureManager();
 
-				// TODO: Fire for existing licences
-				featman.addListener(new FeatureManagerUIListener(featman));
+				FeatureManagerUIListener fml = new FeatureManagerUIListener(featman);
+				featman.addListener(fml);
+				Licence[] licences = featman.getLicences();
+				for (Licence licence : licences) {
+					fml.licenceChanged(licence);
+				}
 
 				UIManager ui_manager = pi.getUIManager();
 
@@ -73,17 +81,18 @@ public class FeatureManagerUI
 								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
 								new MdiEntryCreationListener() {
 									public MdiEntry createMDiEntry(String id) {
-										// TODO: i18n
 										MdiEntry mainMdiEntry = mdi.createEntryFromSkinRef(null,
 												MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
-												"main.burn.ftux", "DVD Burn", null, null, true, -1);
+												"main.burn.ftux",
+												MessageText.getString("mdi.entry.dvdburn"), null, null,
+												true, -1);
 										mainMdiEntry.setImageLeftID("image.sidebar.dvdburn");
 										mainMdiEntry.setExpanded(true);
 
-										// TODO: i18n
 										MdiEntry entryAddDVD = mdi.createEntryFromSkinRef(
 												MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
-												"burn-new", "main.burn.ftux", "Create New DVD", null,
+												"burn-new", "main.burn.ftux",
+												MessageText.getString("mdi.entry.dvdburn.new"), null,
 												null, false, -1);
 										entryAddDVD.setImageLeftID("image.sidebar.dvdburn.add");
 										entryAddDVD.setExpanded(true);
@@ -93,6 +102,14 @@ public class FeatureManagerUI
 													Object droppedObject) {
 												openTrialAskWindow();
 												return true;
+											}
+										});
+										
+										MenuManager menuManager = PluginInitializer.getDefaultInterface().getUIManager().getMenuManager();
+										MenuItem menuHide = menuManager.addMenuItem(MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO, "popup.error.hide");
+										menuHide.addListener(new MenuItemListener() {
+											public void selected(MenuItem menu, Object target) {
+												mdi.closeEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO);
 											}
 										});
 
@@ -196,6 +213,19 @@ public class FeatureManagerUI
 				}
 
 				key[0] = (SWTSkinObjectTextbox) skin.getSkinObject("key", soExtra);
+				if (key[0] != null) {
+					licenceDetails details = getFullFeatureDetails();
+					if (details != null) {
+						key[0].setText(details.key);
+						SWTSkinObjectText soExpirey = (SWTSkinObjectText) skin.getSkinObject("register-expirey");
+						if (soExpirey != null && details.expirey > 0) {
+							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
+									new String[] {
+										DisplayFormatters.formatCustomDateOnly(details.expirey)
+									}));
+						}
+					}
+				}
 			}
 		});
 
@@ -339,6 +369,28 @@ public class FeatureManagerUI
 		box.open(null);
 	}
 
+	public static void openLicenceCancelledWindow(final Licence licence) {
+		final VuzeMessageBox box = new VuzeMessageBox(
+				MessageText.getString("dlg.auth.cancelled"),
+				MessageText.getString("dlg.auth.cancelled.line1"), new String[] {
+					MessageText.getString("Button.close"),
+				}, 0);
+		box.addResourceBundle(FeatureManagerUI.class,
+				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
+		box.setIconResource("image.vp");
+		box.setTextIconResource("image.warn.big");
+
+		box.setListener(new VuzeMessageBoxListener() {
+			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
+				SWTSkin skin = soExtra.getSkin();
+				SWTSkinObject so = skin.createSkinObject("dlg.register.cancelled",
+						"dlg.register.cancelled", soExtra);
+			}
+		});
+
+		box.open(null);
+	}
+
 
 	protected static void openLicenceFailedWindow(int licenceState) {
 		openLicenceEntryWindow(true);
@@ -377,6 +429,7 @@ public class FeatureManagerUI
 
 	public static boolean hasFullLicence() {
 		if (featman == null) {
+			Debug.out("featman null");
 			return false;
 		}
 
@@ -384,6 +437,10 @@ public class FeatureManagerUI
 		FeatureDetails[] featureDetails = featman.getFeatureDetails("dvdburn");
 		// if any of the feature details are still valid, we have a full
 		for (FeatureDetails fd : featureDetails) {
+			int state = fd.getLicence().getState();
+			if (state == Licence.LS_CANCELLED || state == Licence.LS_REVOKED) {
+				continue;
+			}
 			long now = SystemTime.getCurrentTime();
 			Long lValidUntil = (Long) fd.getProperty(FeatureDetails.PR_VALID_UNTIL);
 			if (lValidUntil != null && lValidUntil.longValue() >= now) {
@@ -398,6 +455,41 @@ public class FeatureManagerUI
 		}
 
 		return full;
+	}
+
+	public static class licenceDetails {
+		public licenceDetails(long expirey, String key) {
+			this.expirey = expirey;
+			this.key = key;
+		}
+		long expirey;
+		String key;
+	}
+
+	public static licenceDetails getFullFeatureDetails() {
+		if (featman == null) {
+			Debug.out("featman null");
+			return null;
+		}
+
+		FeatureDetails[] featureDetails = featman.getFeatureDetails("dvdburn");
+		// if any of the feature details are still valid, we have a full
+		for (FeatureDetails fd : featureDetails) {
+			long now = SystemTime.getCurrentTime();
+			// PARG Q: Valid until still set even when licence is revoked or cancelled?
+			Long lValidUntil = (Long) fd.getProperty(FeatureDetails.PR_VALID_UNTIL);
+			if (lValidUntil != null && lValidUntil.longValue() >= now) {
+				return new licenceDetails(lValidUntil.longValue(),
+						fd.getLicence().getKey());
+			}
+			Long lValidOfflineUntil = (Long) fd.getProperty(FeatureDetails.PR_OFFLINE_VALID_UNTIL);
+			if (lValidOfflineUntil != null && lValidOfflineUntil.longValue() >= now) {
+				return new licenceDetails(lValidOfflineUntil.longValue(),
+						fd.getLicence().getKey());
+			}
+		}
+
+		return null;
 	}
 
 	public static boolean isTrialLicence(Licence licence) {

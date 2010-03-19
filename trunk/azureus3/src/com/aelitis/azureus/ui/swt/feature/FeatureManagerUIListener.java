@@ -104,6 +104,13 @@ public class FeatureManagerUIListener
 			Licence lastLicence = mapKeyToLicence.put(licence.getKey(), licence);
 			if (lastLicence != null) {
 				stateChanged = lastLicence.getState() != licence.getState();
+			} else {
+				// licenceChanged gets fired for all licences after listener is added
+				// (via code in FeatureManagerUI)
+				// skip case where licence is already cancelled
+				if (state == Licence.LS_CANCELLED) {
+					stateChanged = false;
+				}
 			}
 		}
 
