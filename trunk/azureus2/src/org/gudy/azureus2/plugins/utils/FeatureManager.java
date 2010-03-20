@@ -74,6 +74,7 @@ FeatureManager
 		public final int LS_INVAID_KEY				= 3;
 		public final int LS_CANCELLED				= 4;
 		public final int LS_REVOKED					= 5;
+		public final int LS_ACTIVATION_DENIED		= 6;
 		
 		public int
 		getState();
