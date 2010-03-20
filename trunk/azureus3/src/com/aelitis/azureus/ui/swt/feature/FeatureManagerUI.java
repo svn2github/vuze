@@ -258,7 +258,7 @@ public class FeatureManagerUI
 						if (initialState == Licence.LS_AUTHENTICATED) {
 							openLicenceSuccessWindow();
 						} else if (initialState == Licence.LS_CANCELLED
-								|| initialState == Licence.LS_INVAID_KEY) {
+								|| initialState == Licence.LS_INVALID_KEY) {
 							openLicenceFailedWindow(initialState);
 						} else if (initialState == Licence.LS_REVOKED) {
 							openLicenceRevokedWindow(licence);

@@ -136,7 +136,7 @@ public class FeatureManagerUIListener
 						FeatureManagerUI.openLicenceSuccessWindow();
 					} // else assumed install process is taking place
 				}
-			} else if (state == Licence.LS_INVAID_KEY) {
+			} else if (state == Licence.LS_INVALID_KEY) {
 				FeatureManagerUI.openLicenceFailedWindow(state);
 				if (licence.getKey().equals(pendingAuthForKey)) {
 					pendingAuthForKey = null;
