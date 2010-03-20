@@ -355,12 +355,12 @@ public abstract class BaseMdiEntry
 		}
 	}
 
-	protected boolean hasDropListeners() {
+	public boolean hasDropListeners() {
 		synchronized (this) {
 			return listDropListeners != null && listDropListeners.size() > 0;
 		}
 	}
-
+	
 	/**
 	 * 
 	 * @param o
