@@ -41,7 +41,7 @@ import com.aelitis.azureus.util.ConstantsVuze;
 
 public class FeatureManagerUI
 {
-	protected static final int DLG_HEIGHT = 290;
+	protected static final int DLG_HEIGHT = 300;
 
 	public static boolean enabled = !Constants.isUnix
 			&& FeatureAvailability.areInternalFeaturesEnabled()
@@ -201,19 +201,25 @@ public class FeatureManagerUI
 				skin.setAutoSizeOnLayout(false);
 				skin.createSkinObject("dlg.register", "dlg.register", soExtra);
 
-				if (trytwo) {
-					SWTSkinObjectText link = (SWTSkinObjectText) skin.getSkinObject(
-							"register-link", soExtra);
-					link.setText(MessageText.getString("dlg.auth.enter.link"));
-					link.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
-						public boolean urlClicked(URLInfo urlInfo) {
-							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
-									"upgrade.start", false);
-							Utils.launch(url);
-							return true;
+				SWTSkinObjectText link = (SWTSkinObjectText) skin.getSkinObject(
+						"register-link", soExtra);
+				link.setText(MessageText.getString(trytwo ? "dlg.auth.enter.link.try.2" : "dlg.auth.enter.link.try.1"));
+				link.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
+					public boolean urlClicked(URLInfo urlInfo) {
+						if (trytwo) {
+  						String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+  								"upgrade.start", false);
+  						Utils.launch(url);
+						} else {
+		  				SBC_PlusFTUX.setSourceRef("licence-entry");
+
+		  				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+							mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+							box.close(-2);
 						}
-					});
-				}
+						return true;
+					}
+				});
 
 				key[0] = (SWTSkinObjectTextbox) skin.getSkinObject("key", soExtra);
 				if (key[0] != null && !trytwo) {
