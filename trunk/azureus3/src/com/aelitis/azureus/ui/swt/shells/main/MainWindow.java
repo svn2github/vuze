@@ -2003,6 +2003,7 @@ public class MainWindow
 	 * @since 4.0.0.1
 	 */
 	protected void fixupActionBarSize() {
+		final int MAXWIDTH = 350;
 		Rectangle clientArea = shell.getClientArea();
 		SWTSkinObject soSearch = skin.getSkinObject("topbar-area-search");
 		if (soSearch == null) {
@@ -2012,7 +2013,7 @@ public class MainWindow
 		if (fd == null || fd.width <= 0) {
 			return;
 		}
-		if (clientArea.width > 1024 && fd.width == 195) {
+		if (clientArea.width > 1024 && fd.width == MAXWIDTH) {
 			return;
 		}
 		SWTSkinObject soTabBar = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
@@ -2024,8 +2025,8 @@ public class MainWindow
 		fd.width = clientArea.width - (size.x - oldWidth) - 5;
 		if (fd.width < 100) {
 			fd.width = 100;
-		} else if (fd.width > 195) {
-			fd.width = 195;
+		} else if (fd.width > MAXWIDTH) {
+			fd.width = MAXWIDTH;
 		}
 
 		if (oldWidth != fd.width) {
