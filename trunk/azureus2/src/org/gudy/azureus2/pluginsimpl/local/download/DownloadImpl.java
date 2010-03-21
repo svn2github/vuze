@@ -29,47 +29,39 @@ package org.gudy.azureus2.pluginsimpl.local.download;
 import java.io.File;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.category.*;
-import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerMoveHandler;
-import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.tracker.client.*;
-
-import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
-
-import org.gudy.azureus2.plugins.peers.*;
-import org.gudy.azureus2.pluginsimpl.local.deprecate.PluginDeprecation;
-import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
-import org.gudy.azureus2.pluginsimpl.local.peers.*;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
-import org.gudy.azureus2.plugins.disk.DiskManager;
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadActivationEvent;
-import org.gudy.azureus2.plugins.download.DownloadActivationListener;
-import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
-import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
-import org.gudy.azureus2.plugins.download.DownloadCompletionListener;
-import org.gudy.azureus2.plugins.download.DownloadListener;
-import org.gudy.azureus2.plugins.download.DownloadPeerListener;
-import org.gudy.azureus2.plugins.download.DownloadPropertyListener;
-import org.gudy.azureus2.plugins.download.DownloadPropertyEvent;
-import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
-import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
-import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
-import org.gudy.azureus2.plugins.download.DownloadStats;
-import org.gudy.azureus2.plugins.download.DownloadException;
-import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
-import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
-import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
-
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogRelation;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.disk.DiskManager;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
+import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.pluginsimpl.local.deprecate.PluginDeprecation;
+import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
+import org.gudy.azureus2.pluginsimpl.local.peers.PeerManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
@@ -1038,8 +1030,10 @@ DownloadImpl
 	getLastScrapeResult()
 	{		
 		TRTrackerScraperResponse response = download_manager.getTrackerScrapeResponse();
-	
-		last_scrape_result.setContent( response );
+
+		// don't notify plugins of intermediate (initializing, scraping) states as they would be picked up as errors 
+		if(response.getStatus() == TRTrackerScraperResponse.ST_ERROR || response.getStatus() == TRTrackerScraperResponse.ST_ONLINE)
+			last_scrape_result.setContent( response );
 		
 		return( last_scrape_result );
 	}
@@ -1049,6 +1043,10 @@ DownloadImpl
 	scrapeResult(
 		TRTrackerScraperResponse	response )
 	{
+		// don't notify plugins of intermediate (initializing, scraping) states as they would be picked up as errors 
+		if(response.getStatus() != TRTrackerScraperResponse.ST_ERROR && response.getStatus() != TRTrackerScraperResponse.ST_ONLINE)
+			return;
+		
 		last_scrape_result.setContent( response );
 		
 		for (int i=0;i<tracker_listeners.size();i++){
