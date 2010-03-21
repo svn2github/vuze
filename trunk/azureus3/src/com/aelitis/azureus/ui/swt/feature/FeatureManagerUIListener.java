@@ -108,7 +108,8 @@ public class FeatureManagerUIListener
 				// licenceChanged gets fired for all licences after listener is added
 				// (via code in FeatureManagerUI)
 				// skip case where licence is already cancelled
-				if (state == Licence.LS_CANCELLED || state == Licence.LS_REVOKED) {
+				if (state == Licence.LS_CANCELLED || state == Licence.LS_REVOKED
+						|| state == Licence.LS_ACTIVATION_DENIED) {
 					stateChanged = false;
 				}
 			}
@@ -143,6 +144,8 @@ public class FeatureManagerUIListener
 				}
 			} else if (state == Licence.LS_REVOKED) {
 				FeatureManagerUI.openLicenceRevokedWindow(licence);
+			} else if (state == Licence.LS_ACTIVATION_DENIED) {
+				FeatureManagerUI.openLicenceActivationDeniedWindow(licence);
 			}
 		}
 	}
