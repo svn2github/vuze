@@ -62,6 +62,7 @@ public class PlayUtils
 	private static boolean triedLoadingEmpPluginClass = false;
 
 	private static Method methodIsExternallyPlayable;
+	private static Method methodIsExternallyPlayable2;
 
 	private static PluginInterface piEmp;
 	
@@ -294,6 +295,7 @@ public class PlayUtils
 			piEmp = null;
 			triedLoadingEmpPluginClass = false;
 			methodIsExternallyPlayable = null;
+			methodIsExternallyPlayable2 = null;
 		}
 
 		if (!triedLoadingEmpPluginClass) {
@@ -310,10 +312,18 @@ public class PlayUtils
   
   			Class empPluginClass = piEmp.getPlugin().getClass();
 
-  			methodIsExternallyPlayable = empPluginClass.getMethod("isExternallyPlayabale", new Class[] {
+  			methodIsExternallyPlayable = empPluginClass.getMethod("isExternallyPlayable", new Class[] {
   				TOTorrent.class
   			});
   			
+  			try{
+  				methodIsExternallyPlayable2 = empPluginClass.getMethod("isExternallyPlayable", new Class[] {
+  						TOTorrent.class, int.class
+ 	  				});
+  			}catch( Throwable e ){
+  				Logger.log(new LogEvent(LogIDs.UI3, "isExternallyPlayable with file_index not found"));
+  			}
+ 			
   			//methodIsExternalPlayerInstalled = empPluginClass.getMethod("isExternalPlayerInstalled", new Class[] {});
   			
   		} catch (Exception e1) {
@@ -388,7 +398,16 @@ public class PlayUtils
 		//Data is passed to the openWindow via download manager.
 		try {
 
-			System.out.println( "Ask EMP is playable: " + torrent + "/" + file_index );
+			if ( file_index != -1 && methodIsExternallyPlayable2 != null ){
+				
+				try{
+					Object retObj = methodIsExternallyPlayable2.invoke(null, new Object[] {
+							torrent, file_index
+						});
+				}catch( Throwable e ){
+					Logger.log(new LogEvent(LogIDs.UI3, "isExternallyPlayable with file_index failed", e ));
+				}
+			}
 			
 			Object retObj = methodIsExternallyPlayable.invoke(null, new Object[] {
 				torrent

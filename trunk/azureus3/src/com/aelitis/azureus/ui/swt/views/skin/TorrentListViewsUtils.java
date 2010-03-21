@@ -701,7 +701,23 @@ public class TorrentListViewsUtils
 		try {
 			debug("EmbeddedPlayerWindowSWT - openWindow");
 			
-			System.out.println( "Ask EMP to play " + dm.getDisplayName() + "/" + file_index );
+			if ( file_index != -1 ){
+				
+				try{
+					Method method = epwClass.getMethod("openWindow", new Class[] {
+							DownloadManager.class, int.class
+						});
+
+						method.invoke(null, new Object[] {
+							dm, file_index
+						});
+						
+						return( 0 );
+						
+				}catch( Throwable e ){
+					debug( "file-index open method missing" );
+				}
+			}
 			Method method = epwClass.getMethod("openWindow", new Class[] {
 				DownloadManager.class
 			});
