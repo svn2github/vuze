@@ -582,7 +582,7 @@ public class VuzeActivitiesEntry
 			return true;
 		}
 		// use torrent so we don't recurse
-		return PlayUtils.canPlayDS(DataSourceUtils.getTorrent(this));
+		return PlayUtils.canPlayDS(DataSourceUtils.getTorrent(this), -1);
 	}
 
 	public void setPlayable(boolean playable) {

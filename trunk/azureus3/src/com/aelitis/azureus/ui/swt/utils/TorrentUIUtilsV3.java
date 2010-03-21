@@ -117,7 +117,7 @@ public class TorrentUIUtilsV3
 									Debug.outNoStack("loadTorrent already exists.. playing",
 											false);
 
-									TorrentListViewsUtils.playOrStream(dm);
+									TorrentListViewsUtils.playOrStream(dm, -1);
 								} else {
 									Debug.outNoStack("loadTorrent already exists.. preparing",
 											false);
@@ -230,7 +230,7 @@ public class TorrentUIUtilsV3
 											DownloadManager existingDM = gm.getDownloadManager(hw);
 											if (existingDM != null) {
 												if (playNow) {
-													TorrentListViewsUtils.playOrStream(existingDM);
+													TorrentListViewsUtils.playOrStream(existingDM, -1);
 												} else {
 													PlayUtils.prepareForPlay(existingDM);
 												}
@@ -282,7 +282,7 @@ public class TorrentUIUtilsV3
 
 					if (playNow || playPrepare) {
 						if (playNow) {
-							TorrentListViewsUtils.playOrStream(dm);
+							TorrentListViewsUtils.playOrStream(dm, -1);
 						} else {
 							PlayUtils.prepareForPlay(dm);
 						}

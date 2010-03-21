@@ -111,8 +111,8 @@ public class PlayUtils
 		return true;
 	}
 
-	public static boolean canUseEMP(TOTorrent torrent) {
-		if (canPlayViaExternalEMP(torrent)) {
+	public static boolean canUseEMP(TOTorrent torrent, int file_index) {
+		if (canPlayViaExternalEMP(torrent, file_index)) {
 			return true;
 		}
 		
@@ -124,15 +124,15 @@ public class PlayUtils
 		return canProgressiveOrIsComplete(torrent);
 	}
 
-	private static boolean canPlay(DownloadManager dm) {
+	private static boolean canPlay(DownloadManager dm, int file_index) {
 		if (dm == null) {
 			return false;
 		}
 		TOTorrent torrent = dm.getTorrent();
-		return canUseEMP(torrent);
+		return canUseEMP(torrent,file_index);
 	}
 
-	private static boolean canPlay(TOTorrent torrent) {
+	private static boolean canPlay(TOTorrent torrent, int file_index) {
 		if (!PlatformTorrentUtils.isContent(torrent, false)) {
 			return false;
 		}
@@ -146,12 +146,12 @@ public class PlayUtils
 	
 	
 		if (dm != null) {
-			return dm.getAssumedComplete() || canUseEMP(torrent);
+			return dm.getAssumedComplete() || canUseEMP(torrent, file_index);
 		}
-		return canUseEMP(torrent);
+		return canUseEMP(torrent, file_index);
 	}
 
-	public static boolean canPlayDS(Object ds) {
+	public static boolean canPlayDS(Object ds, int file_index ) {
 		if (ds == null) {
 			return false;
 		}
@@ -159,11 +159,11 @@ public class PlayUtils
 	
 		DownloadManager dm = DataSourceUtils.getDM(ds);
 		if (dm != null) {
-			return canPlay(dm);
+			return canPlay(dm, file_index);
 		}
 		TOTorrent torrent = DataSourceUtils.getTorrent(ds);
 		if (torrent != null) {
-			return canPlay(torrent);
+			return canPlay(torrent, file_index);
 		}
 		if (ds instanceof VuzeActivitiesEntry) {
 			return ((VuzeActivitiesEntry) ds).isPlayable();
@@ -334,12 +334,12 @@ public class PlayUtils
 		return null;
 	}
 	
-	public static boolean isExternallyPlayable(Download d) {
+	public static boolean isExternallyPlayable(Download d, int file_index ) {
 		if (!d.isComplete()) {
 			return false;
 		}
 		
-		File primaryFile = getPrimaryFile(d);
+		File primaryFile = file_index==-1?getPrimaryFile(d):d.getDiskManagerFileInfo( file_index ).getFile();
 
 		if(primaryFile == null) {
 			return false;
@@ -367,11 +367,11 @@ public class PlayUtils
 		return false;
 	}
 	
-	public static boolean isExternallyPlayable(TOTorrent torrent) {
+	public static boolean isExternallyPlayable(TOTorrent torrent, int file_index ) {
 		try {
 			Download download = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().getDownload(torrent.getHash());
 			if (download != null) {
-				return isExternallyPlayable(download);
+				return isExternallyPlayable(download, file_index);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -380,14 +380,16 @@ public class PlayUtils
 		return false;
 	}
 	
-	private static final boolean canPlayViaExternalEMP(TOTorrent torrent) {
+	private static final boolean canPlayViaExternalEMP(TOTorrent torrent, int file_index ) {
 		if(!loadEmpPluginClass() || methodIsExternallyPlayable == null) {
-			return isExternallyPlayable(torrent);
+			return isExternallyPlayable(torrent, file_index );
 		}
 		
 		//Data is passed to the openWindow via download manager.
 		try {
 
+			System.out.println( "Ask EMP is playable: " + torrent + "/" + file_index );
+			
 			Object retObj = methodIsExternallyPlayable.invoke(null, new Object[] {
 				torrent
 			});

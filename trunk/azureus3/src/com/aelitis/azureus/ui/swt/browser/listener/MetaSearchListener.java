@@ -221,7 +221,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			public void
 			run()
 			{
-				TorrentListViewsUtils.playOrStream( download );
+				TorrentListViewsUtils.playOrStream( download, -1 );
 			}
 		}.start();
 	}

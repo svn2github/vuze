@@ -239,7 +239,7 @@ public class TorrentListViewsUtils
 	}
 
 
-	public static void playOrStreamDataSource(Object ds, SWTSkinButtonUtility btn, boolean launch_already_checked) {
+	public static void playOrStreamDataSource(Object ds, int file_index, SWTSkinButtonUtility btn, boolean launch_already_checked) {
 		String referal = DLReferals.DL_REFERAL_UNKNOWN;
 		if (ds instanceof VuzeActivitiesEntry) {
 			referal = DLReferals.DL_REFERAL_PLAYDASHACTIVITY;
@@ -248,17 +248,17 @@ public class TorrentListViewsUtils
 		} else if (ds instanceof ISelectedContent) {
 			referal = DLReferals.DL_REFERAL_SELCONTENT;
 		}
-		playOrStreamDataSource(ds, btn, referal, launch_already_checked);
+		playOrStreamDataSource(ds, file_index, btn, referal, launch_already_checked);
 	}
 
-	public static void playOrStreamDataSource(Object ds,
+	public static void playOrStreamDataSource(Object ds, int file_index,
 			SWTSkinButtonUtility btn, String referal, boolean launch_already_checked ) {
 
 		DownloadManager dm = DataSourceUtils.getDM(ds);
 		if (dm == null) {
 			downloadDataSource(ds, true, referal);
 		} else {
-			playOrStream(dm, btn, launch_already_checked);
+			playOrStream(dm, file_index, btn, launch_already_checked);
 		}
 
 	}
@@ -319,7 +319,7 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	public static void playOrStream(final DownloadManager dm,
+	public static void playOrStream(final DownloadManager dm, final int file_index,
 			final SWTSkinButtonUtility btn, boolean launch_already_checked ) {
 			
 		if (dm == null) {
@@ -328,7 +328,7 @@ public class TorrentListViewsUtils
 		
 		if ( launch_already_checked ){
 		
-			_playOrStream(dm, btn);
+			_playOrStream(dm, file_index, btn);
 			
 		}else{
 			
@@ -349,7 +349,7 @@ public class TorrentListViewsUtils
 								public void
 								run()
 								{
-									_playOrStream(dm, btn);
+									_playOrStream(dm, file_index, btn);
 								}
 							});
 					}
@@ -364,7 +364,7 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	private static void _playOrStream(final DownloadManager dm,
+	private static void _playOrStream(final DownloadManager dm, final int file_index,
 			final SWTSkinButtonUtility btn) {
 
 		if (dm == null) {
@@ -376,10 +376,10 @@ public class TorrentListViewsUtils
 		//		}
 
 		final TOTorrent torrent = dm.getTorrent();
-		if (PlayUtils.canUseEMP(torrent)) {
+		if (PlayUtils.canUseEMP(torrent, file_index)) {
 			debug("Can use EMP");
 
-			int open_result = openInEMP(dm);
+			int open_result = openInEMP(dm,file_index);
 			
 			if ( open_result == 0 ){
 				PlatformTorrentUtils.setHasBeenOpened(dm, true);
@@ -517,13 +517,13 @@ public class TorrentListViewsUtils
     				if (btn != null) {
     					btn.setDisabled(false);
     				}
-    				runFile(dm.getTorrent(), sfFile);
+    				runFile(dm.getTorrent(), file_index, sfFile);
     			} else {
     				if (btn != null) {
     					btn.setDisabled(false);
     				}
     				try {
-    					playViaMediaServer(DownloadManagerImpl.getDownloadStatic(dm));
+    					playViaMediaServer(DownloadManagerImpl.getDownloadStatic(dm), file_index );
     				} catch (DownloadException e) {
     					Debug.out(e);
     				}
@@ -550,11 +550,11 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	private static void runFile(TOTorrent torrent, String runFile) {
-		runFile(torrent, runFile, false);
+	private static void runFile(TOTorrent torrent, int file_index, String runFile) {
+		runFile(torrent, file_index, runFile, false);
 	}
 
-	private static void runFile(final TOTorrent torrent, final String runFile,
+	private static void runFile(final TOTorrent torrent, final int file_index, final String runFile,
 			final boolean forceWMP) {
 
 		AEThread2 thread = new AEThread2("runFile", true) {
@@ -563,7 +563,7 @@ public class TorrentListViewsUtils
 				Utils.execSWTThread(new AERunnable() {
 
 					public void runSupport() {
-						if (PlayUtils.canUseEMP(torrent)) {
+						if (PlayUtils.canUseEMP(torrent, file_index)) {
 							Debug.out("Shouldn't call runFile with EMP torrent.");
 						}
 
@@ -594,7 +594,8 @@ public class TorrentListViewsUtils
 	 */
 	private static int 
 	installEMP(
-		final DownloadManager dm) 
+		final DownloadManager 	dm,
+		final int 				file_index ) 
 	{
 		synchronized( TorrentListViewsUtils.class ){
 			
@@ -626,7 +627,7 @@ public class TorrentListViewsUtils
 							Utils.execSWTThread(new AERunnable() {
 								
 								public void runSupport() {
-									openInEMP(dm);
+									openInEMP(dm,file_index);
 									
 								}
 							});
@@ -675,7 +676,7 @@ public class TorrentListViewsUtils
 	 * @return - int: 0 = ok, 1 = fail, 2 = abandon, installation in progress
 	 * @since 3.0.4.4 -
 	 */
-	private static int openInEMP(DownloadManager dm) {
+	private static int openInEMP(DownloadManager dm, int file_index) {
 
 		Class epwClass = null;
 		try {
@@ -686,7 +687,7 @@ public class TorrentListViewsUtils
 
 			if (pi == null) {
 
-				return (installEMP(dm));
+				return (installEMP(dm, file_index ));
 			}
 
 			epwClass = pi.getPlugin().getClass().getClassLoader().loadClass(
@@ -699,6 +700,8 @@ public class TorrentListViewsUtils
 		//Data is passed to the openWindow via download manager.
 		try {
 			debug("EmbeddedPlayerWindowSWT - openWindow");
+			
+			System.out.println( "Ask EMP to play " + dm.getDisplayName() + "/" + file_index );
 			Method method = epwClass.getMethod("openWindow", new Class[] {
 				DownloadManager.class
 			});
@@ -793,13 +796,13 @@ public class TorrentListViewsUtils
 	/**
 	 * 
 	 */
-	public static void playViaMediaServer(Download download) {
+	public static void playViaMediaServer(Download download, int file_index ) {
 
 		try {
 			final DownloadManager dm = ((DownloadImpl) download).getDownload();
 
 			TOTorrent torrent = dm.getTorrent();
-			runFile(torrent, PlayUtils.getContentUrl(dm), true);
+			runFile(torrent, file_index, PlayUtils.getContentUrl(dm), true);
 		} catch (Throwable e) {
 			Logger.log(new LogEvent(LogIDs.UI3, "IPC to media server plugin failed",
 					e));
@@ -987,7 +990,7 @@ public class TorrentListViewsUtils
 	public static void showHomeHint(final DownloadManager dm) {
 	}
 
-	public static void playOrStream(final DownloadManager dm) {
-		playOrStream(dm, null, false );
+	public static void playOrStream(final DownloadManager dm, int file_index ) {
+		playOrStream(dm, file_index, null, false );
 	}
 }

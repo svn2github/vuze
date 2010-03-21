@@ -19,6 +19,10 @@ public class ToolBarEnablerSelectedContent implements ISelectedContent {
 		return null;
 	}
 
+	public int getFileIndex(){ 
+		return( -1 );
+	}
+	
 	public TOTorrent getTorrent() {
 		return null;
 	}

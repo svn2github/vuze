@@ -140,7 +140,7 @@ public class SBC_ActivityTableView
 			
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 				if (rows.length == 1) {
-					TorrentListViewsUtils.playOrStreamDataSource(rows[0].getDataSource(), null, false);
+					TorrentListViewsUtils.playOrStreamDataSource(rows[0].getDataSource(), -1, null, false);
 				}
 			}
 

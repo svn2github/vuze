@@ -146,7 +146,7 @@ public class ToolBarView
   				}
   				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
   				if (sc != null) {
-  					TorrentListViewsUtils.playOrStreamDataSource(sc[0],
+  					TorrentListViewsUtils.playOrStreamDataSource(sc[0], sc[0].getFileIndex(),
   							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR, false );
   				}
   			}
@@ -812,7 +812,7 @@ public class ToolBarView
 		}
 		item = getToolBarItem("play");
 		if (item != null) {
-			item.setEnabled(has1Selection && (!(currentContent[0] instanceof ISelectedVuzeFileContent )) && PlayUtils.canPlayDS(currentContent[0]));
+			item.setEnabled(has1Selection && (!(currentContent[0] instanceof ISelectedVuzeFileContent )) && PlayUtils.canPlayDS(currentContent[0], currentContent[0].getFileIndex()));
 		}
 		item = getToolBarItem("download");
 		if (item != null) {

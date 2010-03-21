@@ -140,7 +140,7 @@ public class ColumnActivityActions
 		}
 
 		DownloadManager dm = entry.getDownloadManger();
-		boolean canPlay = PlayUtils.canPlayDS(entry);
+		boolean canPlay = PlayUtils.canPlayDS(entry, -1);
 		boolean canDL = dm == null && entry.getDownloadManger() == null
 				&& (entry.getTorrent() != null || entry.getAssetHash() != null);
 		boolean canRun = !canPlay && dm != null;
@@ -239,12 +239,12 @@ public class ColumnActivityActions
 							referal = DLReferals.DL_REFERAL_PLAYDASHACTIVITY + "-"
 									+ ((VuzeActivitiesEntry) ds).getTypeID();
 						}
-						TorrentListViewsUtils.playOrStreamDataSource(ds, null, referal, false );
+						TorrentListViewsUtils.playOrStreamDataSource(ds, -1, null, referal, false );
 						
 					} else if (hitUrl.url.equals("launch")) {
 						// run via play or stream so we get the security warning
 						Object ds = event.cell.getDataSource();
-						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+						TorrentListViewsUtils.playOrStreamDataSource(ds, -1, null,
 								DLReferals.DL_REFERAL_LAUNCH, false);
 						
 					} else if (!UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {

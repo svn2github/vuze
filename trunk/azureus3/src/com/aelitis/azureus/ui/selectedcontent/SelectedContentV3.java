@@ -79,6 +79,9 @@ public class SelectedContentV3
 		return content.getDownloadManager();
 	}
 
+	public int getFileIndex() {
+		return -1;
+	}
 	public TOTorrent getTorrent(){
 		return content.getTorrent();
 	}
@@ -115,7 +118,7 @@ public class SelectedContentV3
 			}
 			setPlatformContent(PlatformTorrentUtils.isContent(torrent, true));
 			setDisplayName(PlatformTorrentUtils.getContentTitle( torrent ));
-			setCanPlay(PlayUtils.canUseEMP(torrent));
+			setCanPlay(PlayUtils.canUseEMP(torrent, -1));
 			setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));
 		}
 	}
