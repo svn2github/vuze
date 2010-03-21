@@ -60,6 +60,9 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 
 /**
  * @author Olivier
@@ -180,6 +183,23 @@ public class FilesView
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void selected(TableRowCore[] rows) {
+		
+		List<DiskManagerFileInfo> ds = tv.getSelectedDataSources();
+			
+		if ( ds.size() != 1 ){
+			
+			SelectedContent selected = new SelectedContent( manager );
+			
+			SelectedContentManager.changeCurrentlySelectedContent( "IconBarEnabler", new ISelectedContent[]{ selected }, null );
+			
+		}else{
+				
+			DiskManagerFileInfo info = ds.get(0);
+			
+			SelectedContent selected = new SelectedContent( info.getDownloadManager(), info.getIndex()); 
+				
+			SelectedContentManager.changeCurrentlySelectedContent( "IconBarEnabler", new ISelectedContent[]{ selected }, null );
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])

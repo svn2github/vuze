@@ -39,6 +39,7 @@ public class SelectedContent implements ISelectedContent
 	private String hash;
 
 	private DownloadManager dm;
+	private int				file_index = -1;
 	private TOTorrent		torrent;
 
 	private String displayName;
@@ -53,6 +54,11 @@ public class SelectedContent implements ISelectedContent
 		setDownloadManager(dm);
 	}
 
+	public SelectedContent(DownloadManager dm, int _file_index ){
+		setDownloadManager(dm);
+		file_index = _file_index;
+	}
+	
 	/**
 	 * 
 	 */
@@ -96,6 +102,9 @@ public class SelectedContent implements ISelectedContent
 		}
 	}
 
+	public int getFileIndex() {
+		return file_index;
+	}
 	
 	public TOTorrent getTorrent() {
 		return( torrent );

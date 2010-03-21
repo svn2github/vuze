@@ -35,6 +35,8 @@ public interface ISelectedContent
 
 	public abstract DownloadManager getDownloadManager();
 
+	public abstract int getFileIndex(); 
+		
 	public abstract void setDownloadManager(DownloadManager dm);
 
 	public abstract TOTorrent getTorrent();
