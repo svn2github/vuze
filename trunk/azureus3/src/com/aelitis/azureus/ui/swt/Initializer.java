@@ -449,27 +449,32 @@ public class Initializer
 
 		reportCurrentTaskByKey("splash.initializeCore");
 
-		try{
-			new SubscriptionManagerUI();
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+
+		if (!uiClassic) {
+  		try{
+  			new SubscriptionManagerUI();
+  			
+  		}catch( Throwable e ){
+  			
+  			Debug.printStackTrace(e);
+  		}
+
+  		
+  		try{
+  			new DeviceManagerUI( core );
+  				
+  		}catch( Throwable e ){
+  				
+  			Debug.printStackTrace(e);
+  		}
 		}
-		
+
 		try{
 			RelatedContentUI.getSingleton();
 			
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace(e);
-		}
-		
-		try{
-			new DeviceManagerUI( core );
-				
-		}catch( Throwable e ){
-				
 			Debug.printStackTrace(e);
 		}
 		
