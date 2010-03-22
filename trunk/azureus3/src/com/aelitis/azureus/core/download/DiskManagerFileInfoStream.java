@@ -147,6 +147,13 @@ DiskManagerFileInfoStream
 		return( save_to );
 	}
 		
+	public File
+	getFile(
+		boolean	follow_link )
+	{
+		return( save_to );
+	}
+	
 	public int
 	getIndex()
 	{

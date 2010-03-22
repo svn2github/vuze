@@ -606,7 +606,7 @@ public class SBC_DevicesView
 		try {
 			if (files.length == 1) {
 
-				target_file = files[0].getTargetFile().getFile();
+				target_file = files[0].getTargetFile().getFile( true );
 
 				if (!target_file.exists()) {
 
@@ -621,7 +621,7 @@ public class SBC_DevicesView
 		try {
 			if (files.length == 1) {
 
-				source_file = files[0].getSourceFile().getFile();
+				source_file = files[0].getSourceFile().getFile( true );
 
 				if (!source_file.exists()) {
 
@@ -1423,7 +1423,7 @@ public class SBC_DevicesView
 							if ( file.isComplete()){
 								
 								try{
-									eventData += file.getTargetFile().getFile().getAbsolutePath() + "\n";
+									eventData += file.getTargetFile().getFile( true ).getAbsolutePath() + "\n";
 									
 								}catch( Throwable e ){
 									

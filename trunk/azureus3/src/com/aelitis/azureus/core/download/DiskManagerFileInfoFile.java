@@ -115,7 +115,14 @@ DiskManagerFileInfoFile
 	{
 		return( file );
 	}
-		
+	
+	public File 
+	getFile(
+		boolean follow_link ) 
+	{
+		return( file );
+	}
+	
 	public int
 	getIndex()
 	{

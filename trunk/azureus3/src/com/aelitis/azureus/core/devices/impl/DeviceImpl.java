@@ -653,7 +653,7 @@ DeviceImpl
 							
 					String ext = profile.getFileExtension();
 					
-					String	target_file = file.getFile().getName();
+					String	target_file = file.getFile( true ).getName();
 					
 					if ( ext != null && !no_xcode ){
 						
@@ -754,7 +754,7 @@ DeviceImpl
 			return;
 		}
 		
-		File source_file = tf.getSourceFile().getFile();
+		File source_file = tf.getSourceFile().getFile( true );
 		
 		String	original_name = source_file.getName();
 		
