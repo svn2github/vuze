@@ -794,6 +794,18 @@ public class Utils
 				//					+ iBottomIndex + ";ti=" + iTopIndex + ";"
 				//					+ (clientArea.height + clientArea.y - bounds.y - 1));
 				return iBottomIndex;
+			} catch (ArrayIndexOutOfBoundsException e) {
+				// OSX bug where item.getBounds() throws OOB
+				//	at org.eclipse.swt.widgets.Table._getItem(Table.java:188)
+				//	at org.eclipse.swt.widgets.Table.cellSize(Table.java:211)
+				//	at org.eclipse.swt.widgets.Display.windowProc(Display.java:4750)
+				//	at org.eclipse.swt.internal.cocoa.OS.objc_msgSend_stret(Native Method)
+				//	at org.eclipse.swt.internal.cocoa.NSCell.cellSize(NSCell.java:34)
+				///	at org.eclipse.swt.widgets.TableItem.getBounds(TableItem.java:296)
+				return Math.min(
+						iTopIndex
+								+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / table.getItemHeight())
+								+ 1, table.getItemCount() - 1);
 			} catch (NoSuchMethodError e) {
 				// item.getBounds is 3.2
 				return Math.min(
