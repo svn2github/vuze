@@ -431,7 +431,11 @@ TranscodeFileImpl
 	protected void
 	update(
 		TranscodeProviderAnalysis		analysis )
+	
+		throws TranscodeException
 	{
+		checkDeleted();
+		
 		long	duration		= analysis.getLongProperty( TranscodeProviderAnalysis.PT_DURATION_MILLIS );
 		long	video_width		= analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_WIDTH );
 		long	video_height	= analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_HEIGHT );
