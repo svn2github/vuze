@@ -1336,6 +1336,11 @@ public class SBC_DevicesView
 			} else {
 
 				deleteNoCheck(file);
+
+				int nextIndex = startIndex + 1;
+				if (nextIndex < toRemove.length) {
+					deleteFiles(toRemove, nextIndex);
+				}
 			}
 		} catch (Throwable e) {
 
