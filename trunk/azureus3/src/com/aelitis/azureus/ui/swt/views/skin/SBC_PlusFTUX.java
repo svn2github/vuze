@@ -45,7 +45,7 @@ public class SBC_PlusFTUX
 
 	private String url;
 
-	private static String sRef;
+	private static String sRef = "user";
 
 	private static boolean DEBUG = Constants.IS_CVS_VERSION;
 
@@ -69,7 +69,6 @@ public class SBC_PlusFTUX
 			}
 		});
 
-		sRef = "user";
 		if (DEBUG) {
 			System.out.println("PlusFTUX sourceRef is now " + sRef);
 		}

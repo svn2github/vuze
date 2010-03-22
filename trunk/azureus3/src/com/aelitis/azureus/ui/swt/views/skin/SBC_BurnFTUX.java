@@ -45,7 +45,7 @@ public class SBC_BurnFTUX
 
 	private String url;
 
-	private static String sRef;
+	private static String sRef = "user";
 
 	private String entryID;
 
@@ -73,7 +73,6 @@ public class SBC_BurnFTUX
 			}
 		});
 
-		sRef = "user";
 		if (DEBUG) {
 			System.out.println("BurnFTUX sourceRef is now " + sRef);
 		}
