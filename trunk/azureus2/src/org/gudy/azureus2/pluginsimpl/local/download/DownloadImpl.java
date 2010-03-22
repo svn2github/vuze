@@ -1031,9 +1031,15 @@ DownloadImpl
 	{		
 		TRTrackerScraperResponse response = download_manager.getTrackerScrapeResponse();
 
-		// don't notify plugins of intermediate (initializing, scraping) states as they would be picked up as errors 
-		if(response.getStatus() == TRTrackerScraperResponse.ST_ERROR || response.getStatus() == TRTrackerScraperResponse.ST_ONLINE)
-			last_scrape_result.setContent( response );
+		if ( response != null ){
+			
+				// don't notify plugins of intermediate (initializing, scraping) states as they would be picked up as errors
+			
+			if ( response.getStatus() == TRTrackerScraperResponse.ST_ERROR || response.getStatus() == TRTrackerScraperResponse.ST_ONLINE ){
+				
+				last_scrape_result.setContent( response );
+			}
+		}
 		
 		return( last_scrape_result );
 	}
