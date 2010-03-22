@@ -109,6 +109,13 @@ public class DiskManagerFileInfoImpl
 	  return core.getFile(false);
 	}
 	
+	public File
+	getFile(
+		boolean	follow_link )
+	{
+		return( core.getFile( follow_link ));
+	}
+	
 	public int getFirstPieceNumber() {
 	  return core.getFirstPieceNumber();
 	}

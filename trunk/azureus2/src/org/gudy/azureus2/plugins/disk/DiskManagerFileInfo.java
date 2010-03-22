@@ -82,7 +82,18 @@ DiskManagerFileInfo
 	
 	public File 
 	getFile();
-		
+	
+		/**
+		 * returns liked file if it exists, direct otherwise
+		 * @param follow_link
+		 * @return
+		 * @since 4.3.1.5
+		 */
+	
+	public File
+	getFile(
+		boolean	follow_link );
+	
 	public int
 	getIndex();
 	

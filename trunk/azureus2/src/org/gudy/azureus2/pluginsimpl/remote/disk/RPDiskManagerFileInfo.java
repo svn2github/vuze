@@ -151,6 +151,18 @@ RPDiskManagerFileInfo
 		return( file );
 	}
 		
+	public File
+	getFile(
+		boolean	follow_link )
+	{
+		if ( follow_link ){
+			
+			notSupported();
+		}
+
+		return( file );
+	}		
+	
 	public int getFirstPieceNumber()
 	{
 		return( first_piece_number );
