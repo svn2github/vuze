@@ -558,7 +558,10 @@ public class SBC_DevicesView
 							}
 						}
 						
-						deleteFiles(selected, 0);
+						if ( selected.length > 0 ){
+						
+							deleteFiles(selected, 0);
+						}
 						
 						e.doit = false;
 					}
