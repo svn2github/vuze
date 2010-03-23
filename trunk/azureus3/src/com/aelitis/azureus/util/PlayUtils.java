@@ -56,7 +56,7 @@ public class PlayUtils
 {
 	
 	public static final int fileSizeThreshold = 90;
-	public static final String playableFileExtensions = ".mpg .avi .flv .flc .mp4 .mpeg .divx .h264 .mkv .wmv .mov .mp2 .m2v .m4v .mp3 .ts .mts";
+	public static final String playableFileExtensions = ".mpg .avi .flv .flc .mp4 .mpeg .divx .h264 .mkv .wmv .mov .mp2 .m2v .m4v .mp3 .ts .mts .aac";
 	
 	
 	private static boolean triedLoadingEmpPluginClass = false;
@@ -368,6 +368,8 @@ public class PlayUtils
 			if(ext == null) {
 				return false;
 			}
+			
+			ext = ext.toLowerCase();
 			
 			if(playableFileExtensions.indexOf(ext) > -1) {
 				return true;
