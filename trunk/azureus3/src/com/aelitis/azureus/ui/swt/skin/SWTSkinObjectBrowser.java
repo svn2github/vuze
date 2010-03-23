@@ -133,11 +133,18 @@ public class SWTSkinObjectBrowser
 		forceVisibleAfterLoad = properties.getBooleanValue(sConfigID + ".forceVisibleAfterLoad", true);
 		context = new BrowserContext(browserID, browser, widgetIndicator, forceVisibleAfterLoad);
 
-		context.addMessageListener(new TorrentListener());
-		context.addMessageListener(new VuzeListener());
-		context.addMessageListener(new DisplayListener(browser));
-		context.addMessageListener(new ConfigListener(browser));
+		boolean noListeners = properties.getBooleanValue(sConfigID + ".browser.nolisteners", false);
+		
+		if (!noListeners) {
+  		context.addMessageListener(new TorrentListener());
+  		context.addMessageListener(new VuzeListener());
+  		context.addMessageListener(new DisplayListener(browser));
+  		context.addMessageListener(new ConfigListener(browser));
+		}
 
+		boolean popouts = properties.getBooleanValue(sConfigID + ".browser.allowPopouts", true);
+		context.setAllowPopups(popouts);
+		
 		context.addListener(new loadingListener() {
 			public void browserLoadingChanged(boolean loading, String url) {
 				if (loading && browser.isVisible()) {

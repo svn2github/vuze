@@ -45,7 +45,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
-import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -100,6 +99,8 @@ public class BrowserContext
 	private AEMonitor mon_listJS = new AEMonitor("listJS");
 	
 	private List<String> listJS = new ArrayList<String>(1);
+	
+	private boolean allowPopups = true;
 	
 	/**
 	 * Creates a context and registers the given browser.
@@ -285,9 +286,10 @@ public class BrowserContext
   					}
   					public void changing(LocationEvent event) {
   						event.doit = false;
-  						if (UrlFilter.getInstance().urlCanRPC(event.location)
-  								&& (event.location.startsWith("http://") || event.location.startsWith("https://"))) {
-  							debug("open sub browser: " + event.location);
+							if (allowPopups()
+									&& !UrlFilter.getInstance().urlIsBlocked(event.location)
+									&& (event.location.startsWith("http://") || event.location.startsWith("https://"))) {
+								debug("open sub browser: " + event.location);
   							Program.launch(event.location);
   						} else {
   							debug("blocked open sub browser: " + event.location);
@@ -826,5 +828,13 @@ public class BrowserContext
 
 	public void setContentNetworkID(long contentNetworkID) {
 		this.contentNetworkID = contentNetworkID;
+	}
+
+	public void setAllowPopups(boolean allowPopups) {
+		this.allowPopups = allowPopups;
+	}
+
+	public boolean allowPopups() {
+		return allowPopups;
 	}
 }
