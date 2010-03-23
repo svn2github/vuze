@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -54,6 +55,7 @@ import org.gudy.azureus2.plugins.download.DownloadException;
  */
 public class PlayUtils
 {
+	public static final boolean DISABLE_INCOMPLETE_PLAY = true;
 	
 	public static final int fileSizeThreshold = 90;
 	public static final String playableFileExtensions = ".mpg .avi .flv .flc .mp4 .mpeg .divx .h264 .mkv .wmv .mov .mp2 .m2v .m4v .mp3 .ts .mts .aac";
@@ -261,6 +263,46 @@ public class PlayUtils
 		return null;
 	}
 	
+	public static String getMediaServerContentURL(DiskManagerFileInfo file) {
+		
+		//TorrentListViewsUtils.debugDCAD("enter - getMediaServerContentURL");
+	
+		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+		PluginInterface pi = pm.getPluginInterfaceByID("azupnpav", false);
+	
+		if (pi == null) {
+			Logger.log(new LogEvent(LogIDs.UI3, "Media server plugin not found"));
+			return null;
+		}
+	
+		if (!pi.getPluginState().isOperational()) {
+			Logger.log(new LogEvent(LogIDs.UI3, "Media server plugin not operational"));
+			return null;
+		}
+	
+		try {
+			Program program = Program.findProgram(".qtl");
+			boolean hasQuickTime = program == null ? false
+					: (program.getName().toLowerCase().indexOf("quicktime") != -1);
+	
+			pi.getIPC().invoke("setQuickTimeAvailable", new Object[] {
+				new Boolean(hasQuickTime)
+			});
+	
+			Object url = pi.getIPC().invoke("getContentURL", new Object[] {
+					file
+			});
+			if (url instanceof String) {
+				return (String) url;
+			}
+		} catch (Throwable e) {
+			Logger.log(new LogEvent(LogIDs.UI3, LogEvent.LT_WARNING,
+					"IPC to media server plugin failed", e));
+		}
+	
+		return null;
+	}
+	
 	/*
 	private static final boolean isExternalEMPInstalled() {
 		if(!loadEmpPluginClass()) {
@@ -334,44 +376,109 @@ public class PlayUtils
 	}
 	
 	public static File getPrimaryFile(Download d) {
+		DiskManagerFileInfo info = getPrimaryFileInfo(d);
+
+		if ( info == null ){
+			return( null );
+		}else{
+			return( info.getFile( true ));
+		}
+	}
+	
+	public static int getPrimaryFileIndex(DownloadManager dm ){
+		return( getPrimaryFileIndex( PluginCoreUtils.wrap( dm )));
+	}
+	
+	public static int getPrimaryFileIndex(Download d) {
+		DiskManagerFileInfo info = getPrimaryFileInfo(d);
+		
+		if ( info == null ){
+			return( -1 );
+		}else{
+			return( info.getIndex());
+		}
+	}
+	
+	public static DiskManagerFileInfo getPrimaryFileInfo(Download d) {
 		long size = d.getTorrent().getSize();
 		DiskManagerFileInfo[] infos = d.getDiskManagerFileInfo();
 		for(int i = 0; i < infos.length ; i++) {
-			if(infos[i].getLength() > (long)fileSizeThreshold * size / 100l) {
-				return infos[i].getFile();
+			DiskManagerFileInfo info = infos[i];
+			if ( info.isSkipped() || info.isDeleted()){
+				continue;
+			}
+			if( info.getLength() > (long)fileSizeThreshold * size / 100l) {
+				return info;
 			}
 		}
 		return null;
 	}
 	
 	public static boolean isExternallyPlayable(Download d, int file_index ) {
-		if (!d.isComplete()) {
-			return false;
-		}
 		
-		File primaryFile = file_index==-1?getPrimaryFile(d):d.getDiskManagerFileInfo( file_index ).getFile();
+		File primaryFile;
 
-		if(primaryFile == null) {
+		if ( file_index == -1 ){
+			
+			DiskManagerFileInfo file = getPrimaryFileInfo( d );
+			
+			if ( file == null ){
+				
+				return( false );
+			}
+						
+			if ( file.getDownloaded() != file.getLength()) {
+				
+				if ( DISABLE_INCOMPLETE_PLAY || getMediaServerContentURL( file ) == null ){
+					
+					return( false );
+				}
+			}
+			
+			primaryFile = getPrimaryFile(d);
+
+		}else{
+			
+			DiskManagerFileInfo file = d.getDiskManagerFileInfo( file_index );
+			
+			if ( file.getDownloaded() != file.getLength()) {
+				
+				if ( DISABLE_INCOMPLETE_PLAY || getMediaServerContentURL( file ) == null ){
+					
+					return( false );
+				}
+			}
+			
+			primaryFile = file.getFile( true );
+		}
+
+		if ( primaryFile == null ){
+			
 			return false;
 		}
 		
 		String name = primaryFile.getName();
 		
-		if(name == null) {
+		if ( name == null ){
+			
 			return false;
 		}
 		
 		int extIndex = name.lastIndexOf(".");
-		if(extIndex > -1) {
+		
+		if ( extIndex > -1 ){
+			
 			String ext = name.substring(extIndex);
 			
-			if(ext == null) {
+			if ( ext == null ){
+				
 				return false;
 			}
 			
 			ext = ext.toLowerCase();
 			
-			if(playableFileExtensions.indexOf(ext) > -1) {
+			if ( playableFileExtensions.indexOf(ext) > -1 ){
+				
 				return true;
 			}
 		}

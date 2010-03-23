@@ -23,16 +23,12 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
+import java.net.URL;
+
 import java.util.Map;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
+
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -43,25 +39,15 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.UrlUtils;
-import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
-import org.gudy.azureus2.plugins.installer.InstallablePlugin;
-import org.gudy.azureus2.plugins.installer.PluginInstallationListener;
-import org.gudy.azureus2.plugins.installer.PluginInstaller;
-import org.gudy.azureus2.plugins.installer.StandardPlugin;
-import org.gudy.azureus2.plugins.update.Update;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -701,23 +687,63 @@ public class TorrentListViewsUtils
 		try {
 			debug("EmbeddedPlayerWindowSWT - openWindow");
 			
-			if ( file_index != -1 ){
+			if ( file_index == -1 ){
 				
+				file_index = PlayUtils.getPrimaryFileIndex( dm );
+			}
+			
+			if ( file_index == -1 ){
+				
+				return( 1 );
+			}
+			
+			String	url = null;
+			
+			org.gudy.azureus2.plugins.disk.DiskManagerFileInfo file = PluginCoreUtils.wrap( dm ).getDiskManagerFileInfo()[ file_index ];
+				
+			if ((! PlayUtils.DISABLE_INCOMPLETE_PLAY ) && file.getDownloaded() != file.getLength()){
+					
+				url = PlayUtils.getMediaServerContentURL( file );
+			}
+				
+			if ( url == null ){
+							
 				try{
 					Method method = epwClass.getMethod("openWindow", new Class[] {
-							DownloadManager.class, int.class
+							File.class, String.class
 						});
 
-						method.invoke(null, new Object[] {
-							dm, file_index
+					File f = file.getFile( true );
+					
+					method.invoke(null, new Object[] {
+							f, f.getName()
 						});
 						
-						return( 0 );
+					return( 0 );
 						
 				}catch( Throwable e ){
-					debug( "file-index open method missing" );
+					debug( "file/name open method missing" );
+				}
+			}else{
+			
+				try{
+					Method method = epwClass.getMethod("openWindow", new Class[] {
+							URL.class, String.class
+						});
+					
+					method.invoke(null, new Object[] {
+							new URL( url ), file.getFile( true ).getName()
+						});
+						
+					return( 0 );
+						
+				}catch( Throwable e ){
+					debug( "file/name open method missing" );
 				}
 			}
+			
+				// fall through here if old emp
+			
 			Method method = epwClass.getMethod("openWindow", new Class[] {
 				DownloadManager.class
 			});
