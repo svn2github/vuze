@@ -68,5 +68,15 @@ AZ3Functions
 		public String
 		getCDPURL(
 			DownloadManager		dm );
+		
+		public boolean
+		canPlay(
+			DownloadManager		dm,
+			int					file_index );
+		
+		public void
+		play(
+			DownloadManager		dm,
+			int					file_index );
 	}
 }

@@ -59,10 +59,12 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
+import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+
 
 /**
  * @author Olivier
@@ -205,9 +207,29 @@ public class FilesView
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void defaultSelected(TableRowCore[] rows, int stateMask) {
 		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tv.getFirstSelectedDataSource();
-		if (fileInfo != null
-				&& fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
+		
+		if ( fileInfo == null ){
+			return;
+		}
+		
+		AZ3Functions.provider az3 = AZ3Functions.getProvider();
+		
+		if ( az3 != null ){
+			
+			DownloadManager dm = fileInfo.getDownloadManager();
+			
+			if ( az3.canPlay(dm, fileInfo.getIndex()) || (stateMask & SWT.CONTROL) > 0 ){
+				
+				az3.play( dm, fileInfo.getIndex() );
+				
+				return;
+			}
+		}
+		
+		if ( fileInfo.getAccessMode() == DiskManagerFileInfo.READ ){
+			
 			Utils.launch(fileInfo);
+		}
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWTMenuFillListener#fillMenu(org.eclipse.swt.widgets.Menu)
