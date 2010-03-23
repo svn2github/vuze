@@ -285,7 +285,7 @@ public class BrowserContext
   					}
   					public void changing(LocationEvent event) {
   						event.doit = false;
-  						if (!UrlFilter.getInstance().urlIsBlocked(event.location)
+  						if (UrlFilter.getInstance().urlCanRPC(event.location)
   								&& (event.location.startsWith("http://") || event.location.startsWith("https://"))) {
   							debug("open sub browser: " + event.location);
   							Program.launch(event.location);
