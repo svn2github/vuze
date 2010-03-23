@@ -129,6 +129,23 @@ public class InitialisationFunctions
 				{
 					return( TorrentListViewsUtils.getDetailsURL( dm ));
 				}
+				
+				public boolean
+				canPlay(
+					org.gudy.azureus2.core3.download.DownloadManager		dm,
+					int														file_index )
+				{
+					return( PlayUtils.canPlayDS(dm, file_index));
+				}
+				
+				public void
+				play(
+					org.gudy.azureus2.core3.download.DownloadManager		dm,
+					int														file_index )
+				{
+					TorrentListViewsUtils.playOrStreamDataSource(
+							dm, -1, null, DLReferals.DL_REFERAL_PLAYDM, false );
+				}				
 			});
 	}
 
