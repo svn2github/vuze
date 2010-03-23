@@ -216,7 +216,11 @@ public class VuzeMessageBox
 
 		if (vuzeMessageBoxListener != null) {
 			soExtra = (SWTSkinObjectContainer) skin.getSkinObject("middle-extra");
-			vuzeMessageBoxListener.shellReady(dlg.getShell(), soExtra);
+			try {
+				vuzeMessageBoxListener.shellReady(dlg.getShell(), soExtra);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 		}
 
 		if (closed) {
