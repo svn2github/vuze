@@ -60,6 +60,9 @@ TranscodeTarget
 	setDefaultTranscodeProfile(
 		TranscodeProfile		profile );
 	
+	public TranscodeProfile
+	getBlankProfile();
+	
 	public int
 	getTranscodeRequirement();
 	

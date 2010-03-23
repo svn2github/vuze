@@ -55,6 +55,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
+import com.aelitis.net.upnp.UPnPDevice;
 
 public class 
 DeviceManagerImpl 
@@ -721,6 +722,8 @@ DeviceManagerImpl
 			// so there's no need to blindly fire a change event here
 			// deviceChanged( existing, false );
 			
+			applyUpdates( existing );
+			
 			return( existing );
 		}
 					
@@ -731,11 +734,47 @@ DeviceManagerImpl
 			device.alive();
 		}
 		
+		applyUpdates( device );
+		
 		deviceAdded( device );
 		
 		configDirty();
 		
 		return( device );
+	}
+	
+	protected void
+	applyUpdates(
+		DeviceImpl		device )
+	{
+		if ( device.getType() == Device.DT_MEDIA_RENDERER ){
+			
+			DeviceMediaRenderer renderer = (DeviceMediaRenderer)device;
+			
+			if ( renderer instanceof DeviceUPnPImpl ){
+				
+				UPnPDevice upnp_device = ((DeviceUPnPImpl)renderer).getUPnPDevice();
+				
+				if ( upnp_device != null ){
+					
+					if ( upnp_device.getManufacturer().toLowerCase().startsWith( "samsung" )){
+						
+						device.setPersistentStringProperty( DeviceImpl.PP_REND_CLASSIFICATION, "samsung.generic" );
+						
+						TranscodeProfile[] profiles = device.getTranscodeProfiles();
+						
+						if ( profiles.length == 0 ){
+							
+							device.setTranscodeRequirement( TranscodeTarget.TRANSCODE_NEVER );
+							
+						}else{
+							
+							device.setTranscodeRequirement( TranscodeTarget.TRANSCODE_WHEN_REQUIRED );
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	protected void

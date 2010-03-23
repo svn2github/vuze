@@ -60,6 +60,64 @@ DeviceImpl
 {
 	private static final String MY_PACKAGE = "com.aelitis.azureus.core.devices.impl";
 	
+	private static final TranscodeProfile blank_profile = 
+		new TranscodeProfile()
+		{
+			public String
+			getUID()
+			{
+				return( null );
+			}
+			
+			public String
+			getName()
+			{
+				return( "blank" );
+			}
+			
+			public String
+			getDescription()
+			{
+				return( "blank" );
+			}
+			
+			public boolean
+			isStreamable()
+			{
+				return( false );
+			}
+			
+			public String
+			getIconURL()
+			{
+				return( null );
+			}
+			
+			public String
+			getFileExtension()
+			{
+				return( null );
+			}
+			
+			public String
+			getDeviceClassification()
+			{
+				return( null );
+			}
+			
+			public TranscodeProvider
+			getProvider()
+			{
+				return( null );
+			}
+			
+			public File
+			getAssetDirectory()
+			{
+				return( null );
+			}
+		};
+		
 	protected static DeviceImpl
 	importFromBEncodedMapStatic(
 		DeviceManagerImpl	manager,
@@ -97,8 +155,9 @@ DeviceImpl
 	private static final String PP_REND_TRANS_CACHE		= "tt_always_cache";
 	private static final String PP_REND_RSS_PUB			= "tt_rss_pub";
 	
-	protected static final String PP_REND_SHOW_CAT		= "tt_show_cat";
-	
+	protected static final String PP_REND_SHOW_CAT			= "tt_show_cat";
+	protected static final String PP_REND_CLASSIFICATION	= "tt_rend_class";
+
 	protected static final String	PP_IP_ADDRESS 		= "rend_ip";	
 	protected static final String	TP_IP_ADDRESS 		= "DeviceUPnPImpl:ip";	// transient
 	protected static final String	PP_FILTER_FILES 	= "rend_filter";
@@ -121,9 +180,10 @@ DeviceImpl
 	protected static final String	PP_OD_XFER_CACHE		= "od_xfer_cache";
 	protected static final String	PP_OD_UPNP_DISC_CACHE	= "od_upnp_cache";
 
-	
 	protected static final boolean	PR_AUTO_START_DEFAULT	= true;
 	protected static final boolean	PP_AUTO_COPY_DEFAULT	= false;
+
+
 	
 	private static final String	GENERIC = "generic";
 	
@@ -387,6 +447,13 @@ DeviceImpl
 	public String
 	getClassification()
 	{
+		String explicit_classification = getPersistentStringProperty( PP_REND_CLASSIFICATION, null );
+		
+		if ( explicit_classification != null ){
+			
+			return( explicit_classification );
+		}
+		
 		return( classification );
 	}
 	
@@ -471,6 +538,13 @@ DeviceImpl
 					
 					return( classification );	
 				}
+				
+				String str = getPersistentStringProperty( PP_REND_CLASSIFICATION, null );
+				
+				if ( str != null ){
+					
+					return( str );
+				}
 	
 				return( GENERIC );
 			}
@@ -487,7 +561,7 @@ DeviceImpl
 	{
 		return( getDeviceClassification() == GENERIC );
 	}
-	
+		
 	public boolean
 	isManual()
 	{
@@ -995,6 +1069,12 @@ DeviceImpl
 			
 			setPersistentStringProperty( PP_REND_DEF_TRANS_PROF, profile.getUID());
 		}
+	}
+	
+	public TranscodeProfile
+	getBlankProfile()
+	{
+		return( blank_profile );
 	}
 	
 	protected void

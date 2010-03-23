@@ -2088,8 +2088,13 @@ DeviceManagerUI
 											}else if ( classification.startsWith( "tivo.")){
 												
 												id = "tivo";
+											
+											}else if ( classification.startsWith( "samsung.")){
+
+												id = "samsung";
 												
 											}else{
+												
 												
 												id = String.valueOf( species );
 											}

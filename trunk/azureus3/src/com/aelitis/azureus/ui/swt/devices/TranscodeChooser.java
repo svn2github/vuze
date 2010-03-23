@@ -304,6 +304,11 @@ public abstract class TranscodeChooser
 		}
 
 		if (transcodeProfiles.length == 0) {
+			if ( selectedTranscodeTarget != null && selectedTranscodeTarget.getTranscodeRequirement() == TranscodeTarget.TRANSCODE_NEVER ){
+				selectedProfile = selectedTranscodeTarget.getBlankProfile();
+				shell.dispose();
+				return;
+			}
 			new MessageBoxShell(SWT.OK, "No Profiles", "No Profiles for "
 					+ selectedTranscodeTarget.getDevice().getName()).open(null);
 			shell.dispose();

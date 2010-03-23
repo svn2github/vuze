@@ -146,51 +146,64 @@ TranscodeQueueImpl
 			
 			TranscodeProfile profile = job.getProfile();
 
-			TranscodeProviderAnalysis provider_analysis = analyse( job );
-			
-			boolean xcode_required 	= provider_analysis.getBooleanProperty( TranscodeProviderAnalysis.PT_TRANSCODE_REQUIRED );
-			
 			final TranscodeFileImpl		transcode_file = job.getTranscodeFile();
+
+			TranscodeProviderAnalysis 	provider_analysis;
 			
-			int	tt_req;
+			boolean xcode_required;
 			
-			if ( job.isStream()){
-				
-					// already advertised as a transcoded asset so no option not to
-					// transcode (as name/format would change if decided not to transcode and then
-					// this would confuse the clients)
-				
-				tt_req = TranscodeTarget.TRANSCODE_ALWAYS;
-				
-			}else{
-				
-				tt_req = job.getTranscodeRequirement();
-				
-					// audio hack for PSP audio
-				
-				if ( device instanceof TranscodeTarget ){
-					
-					if ( provider_analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_HEIGHT ) == 0 ){
-						
-						if (((TranscodeTarget)device).isAudioCompatible( transcode_file )){
-					
-							tt_req = TranscodeTarget.TRANSCODE_NEVER;
-						}
-					}
-				}
-			}
-						
-			if ( tt_req == TranscodeTarget.TRANSCODE_NEVER ){
+			if ( provider == null ){
 				
 				xcode_required = false;
 				
-			}else if ( tt_req == TranscodeTarget.TRANSCODE_ALWAYS ){
+				provider_analysis = null;
 				
-				xcode_required 	= true;
+			}else{
 				
-				provider_analysis.setBooleanProperty( TranscodeProviderAnalysis.PT_FORCE_TRANSCODE, true );
-			}
+				provider_analysis = analyse( job );
+				
+				xcode_required 	= provider_analysis.getBooleanProperty( TranscodeProviderAnalysis.PT_TRANSCODE_REQUIRED );
+								
+				int	tt_req;
+
+				if ( job.isStream()){
+					
+						// already advertised as a transcoded asset so no option not to
+						// transcode (as name/format would change if decided not to transcode and then
+						// this would confuse the clients)
+					
+					tt_req = TranscodeTarget.TRANSCODE_ALWAYS;
+					
+				}else{
+					
+					tt_req = job.getTranscodeRequirement();
+					
+						// audio hack for PSP audio
+					
+					if ( device instanceof TranscodeTarget ){
+						
+						if ( provider_analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_HEIGHT ) == 0 ){
 							
+							if (((TranscodeTarget)device).isAudioCompatible( transcode_file )){
+						
+								tt_req = TranscodeTarget.TRANSCODE_NEVER;
+							}
+						}
+					}
+				}
+							
+				if ( tt_req == TranscodeTarget.TRANSCODE_NEVER ){
+					
+					xcode_required = false;
+					
+				}else if ( tt_req == TranscodeTarget.TRANSCODE_ALWAYS ){
+					
+					xcode_required 	= true;
+					
+					provider_analysis.setBooleanProperty( TranscodeProviderAnalysis.PT_FORCE_TRANSCODE, true );
+				}
+			}
+			
 			if ( xcode_required ){
 				
 				final AESemaphore xcode_sem = new AESemaphore( "xcode:proc" );
@@ -640,6 +653,8 @@ TranscodeQueueImpl
 		}catch( Throwable e ){
 			
 			job.failed( e );
+			
+			e.printStackTrace();
 			
 			if ( !job.isStream() && job.getAutoRetryCount() == 0 && job.canUseDirectInput() && !job.useDirectInput()){
 				
