@@ -950,7 +950,7 @@ DiskManagerImpl
                 		//we need to allocate it
                         //make sure it hasn't previously been allocated
 
-                    if ( download_manager.isDataAlreadyAllocated() ){
+                    if ( download_manager.isDataAlreadyAllocated() && !compact ){
 
                         this.errorMessage = "Data file missing: " + data_file.getAbsolutePath();
 
