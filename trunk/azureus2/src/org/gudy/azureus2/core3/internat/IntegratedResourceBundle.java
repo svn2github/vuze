@@ -107,8 +107,9 @@ IntegratedResourceBundle
 	private Map	used_messages;
 	private List null_values;
 	
-	private int		clean_count	= 0;
-	private boolean	one_off_discard_done;
+	private boolean		messages_dirty;
+	private int			clean_count	= 0;
+	private boolean		one_off_discard_done;
 	
 	private File		scratch_file_name;
 	private InputStream	scratch_file_is;
@@ -335,6 +336,8 @@ IntegratedResourceBundle
 			
 			if ( bundle != null ){
 				
+				messages_dirty = true;
+				
 				if ( bundle instanceof IntegratedResourceBundle ){
 					
 					messages.putAll(((IntegratedResourceBundle)bundle).getMessages());
@@ -365,19 +368,45 @@ IntegratedResourceBundle
 			return( true );
 		}
 		
-		if ( scratch_file_is == null ){
+		if ( scratch_file_is == null || messages_dirty ){
 			
 			File temp_file = null;
 			
 			FileOutputStream	fos = null;
+			
+				// we have a previous cache, discard 
+			
+			if ( scratch_file_is != null ){
+				
+					// System.out.println( "discard cache file " + scratch_file_name + " for " + this );
+				
+				try{
+					scratch_file_is.close();
+										
+				}catch( Throwable e ){	
+					
+					scratch_file_name = null;
+					
+				}finally{
+					
+					scratch_file_is = null;
+				}
+			}
 			
 			try{
 				Properties props = new Properties();
 				
 				props.putAll( messages );
 				
-				temp_file = AETemporaryFileHandler.createTempFile();
-
+				if ( scratch_file_name == null ){
+				
+					temp_file = AETemporaryFileHandler.createTempFile();
+					
+				}else{
+					
+					temp_file = scratch_file_name;
+				}
+				
 				fos = new FileOutputStream( temp_file );
 				
 				props.store( fos, "message cache" );
@@ -386,8 +415,12 @@ IntegratedResourceBundle
 				
 				fos = null;
 				
+					// System.out.println( "wrote cache file " + temp_file + " for " + this );
+				
 				scratch_file_name	= temp_file;
 				scratch_file_is 	= new FileInputStream( temp_file );
+				
+				messages_dirty		= false;
 				
 			}catch( Throwable e ){
 				
@@ -412,7 +445,13 @@ IntegratedResourceBundle
 			
 			if ( clean_count >= 2 ){
 		
-			
+				/*
+				if ( messages != null ){
+				
+					System.out.println( "messages discarded  " + scratch_file_name + " for " + this );
+				}
+				*/
+				
 					// throw away full message map after 2 ticks
 			
 				messages = null;
@@ -420,6 +459,8 @@ IntegratedResourceBundle
 		
 			if ( clean_count == 5 && !one_off_discard_done){
 
+					// System.out.println( "used discard " + scratch_file_name + " for " + this );
+				
 				one_off_discard_done = true;
 				
 					// one off discard of used_messages to clear out any that were
@@ -463,6 +504,9 @@ IntegratedResourceBundle
 				
 			}else{
 			
+					// System.out.println( "read cache file " + scratch_file_name + " for " + this );
+
+				
 				Properties p = new Properties();
 				
 				InputStream	fis = scratch_file_is;
