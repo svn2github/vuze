@@ -271,10 +271,12 @@ public class FeatureManagerUI
   						int initialState = licence.getState();
   						if (initialState == Licence.LS_AUTHENTICATED) {
   							if ( !licence.isFullyInstalled()){
-  								fml.licenceAdded(licence);
+  								fml.licenceAdded(licence);	// open installing window
   							}else{
   								openLicenceSuccessWindow();
   							}
+  						}else if (initialState == Licence.LS_PENDING_AUTHENTICATION ) {
+  							fml.licenceAdded(licence);	// open validating window
   						} else if (initialState == Licence.LS_INVALID_KEY) {
   							openLicenceFailedWindow(initialState);
   						} else if (initialState == Licence.LS_ACTIVATION_DENIED) {
@@ -497,7 +499,16 @@ public class FeatureManagerUI
 			}
 		});
 
-		validatingBox.open(null);
+		validatingBox.open(
+			new UserPrompterResultListener()
+			{
+				public void 
+				prompterClosed(
+					int result ) 
+				{
+					validatingBox = null;
+				}
+			});
 	}
 
 	public static void closeLicenceValidatingWindow() {

@@ -104,6 +104,13 @@ public class FeatureManagerUIListener
 			Licence lastLicence = mapKeyToLicence.put(licence.getKey(), licence);
 			if (lastLicence != null) {
 				stateChanged = lastLicence.getState() != licence.getState();
+				
+				if ( 	( !stateChanged ) && 
+						licence.getState() == Licence.LS_AUTHENTICATED &&
+						lastLicence.isFullyInstalled() != licence.isFullyInstalled()){
+						
+						stateChanged = true;
+					}
 			} else {
 				// licenceChanged gets fired for all licences after listener is added
 				// (via code in FeatureManagerUI)
