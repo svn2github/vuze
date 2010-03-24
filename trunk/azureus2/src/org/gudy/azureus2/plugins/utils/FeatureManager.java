@@ -92,6 +92,9 @@ FeatureManager
 		isFullyInstalled();
 		
 		public void
+		retryInstallation();
+		
+		public void
 		addInstallationListener(
 			LicenceInstallationListener	listener );
 		
