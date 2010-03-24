@@ -179,6 +179,9 @@ public class MainStatusBar
 
 	private long last_rec_prot;
 
+	private Image	warningIcon;
+	private Image	infoIcon;
+	
 	private CLabelPadding statusWarnings;
 
 	/**
@@ -563,7 +566,8 @@ public class MainStatusBar
 		}
 
 		statusWarnings = new CLabelPadding(statusBar, borderFlag);
-		statusWarnings.setImage(imageLoader.getImage("image.sidebar.vitality.alert"));
+		warningIcon = imageLoader.getImage("image.sidebar.vitality.alert");
+		infoIcon 	= imageLoader.getImage("image.sidebar.vitality.info");
 		updateStatusWarnings();
 		Messages.setLanguageText(statusWarnings,
 				"MainWindow.status.warning.tooltip");
@@ -635,6 +639,24 @@ public class MainStatusBar
 				
 				ArrayList<LogAlert> alerts = Alerts.getUnviewedLogAlerts();
 				int count = alerts.size();
+				
+				Image icon = infoIcon;
+				
+				for ( LogAlert alert: alerts ){
+					int type = alert.getType();
+					
+					if ( type == LogAlert.LT_ERROR || type == LogAlert.LT_WARNING ){
+						
+						icon = warningIcon;
+						
+						break;
+					}
+				}
+				
+				if ( statusWarnings.getImage() != icon ){
+					statusWarnings.setImage( icon );
+				}
+				
 				statusWarnings.setVisible(count > 0);
 				statusWarnings.setText("" + count);
 				statusWarnings.layoutNow();
