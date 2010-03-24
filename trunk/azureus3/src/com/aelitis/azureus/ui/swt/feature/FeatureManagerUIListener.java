@@ -90,7 +90,7 @@ public class FeatureManagerUIListener
 		}
 		
 		if (DEBUG) {
-			System.out.println("FEAT: Licence Added with state " + licence.getState());
+			System.out.println("FEAT: Licence " + licence.getKey() + " Added with state " + licence.getState());
 		}
 
 		if (licence.getState() == Licence.LS_PENDING_AUTHENTICATION) {
