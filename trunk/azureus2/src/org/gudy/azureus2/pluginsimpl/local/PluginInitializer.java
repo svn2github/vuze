@@ -1111,6 +1111,8 @@ PluginInitializer
 	      
 	      List<File>	verified_files = null;
 	      
+	      Plugin plugin = null;
+	      
 	      if ( pid.endsWith( "_v" )){
 	    	  
 	    	  verified_files = new ArrayList<File>();
@@ -1133,47 +1135,54 @@ PluginInitializer
 	    	    			verified_files.add( jar_file );
 	    	    			
 	    	    			log( "    OK" );
+	    	    			
 	    	    		}catch( Throwable e ){
 	    	    			
-	    	    			log( "    Failed" );
+	    	    	    	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
+	    	    	    	 
+	    	    	    	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, e));
 	    	    			
-	    	    			throw( e );
+	    	    			plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
 	    	    		}
 	    	    	}
 	    	   }
 	      }
-	      Plugin plugin = PluginLauncherImpl.getPreloadedPlugin( plugin_class );
 	      
 	      if ( plugin == null ){
 	    	  
-	    	  try{
-	    		  Class c = plugin_class_loader.loadClass(plugin_class);
+		      plugin = PluginLauncherImpl.getPreloadedPlugin( plugin_class );
 		      
-	    		  plugin	= (Plugin) c.newInstance();
-	    		  
-	    	  }catch (java.lang.UnsupportedClassVersionError e) {
-	    		  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
-	    		  
-	    		  // shorten stack trace
-	    		  load_failure	= new UnsupportedClassVersionError(e.getMessage());
-	    		  
-	    	  }catch( Throwable e ){
-	      	
-	    		  if ( 	e instanceof ClassNotFoundException &&
-	    				props.getProperty( "plugin.install_if_missing", "no" ).equalsIgnoreCase( "yes" )){
-	    			  
-	    			  // don't report the failure
-	    			  
-	    		  }else{
-	    			  
-	    			  load_failure	= e;
-	    		  }
-	      	
-	    		  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
-	    	  }
-	      }else{
-	    	  
-	    	  plugin_class_loader = plugin.getClass().getClassLoader();
+		      if ( plugin == null ){
+		    	  
+		    	  try{
+		    		  Class c = plugin_class_loader.loadClass(plugin_class);
+			      
+		    		  plugin	= (Plugin) c.newInstance();
+		    		  
+		    	  }catch (java.lang.UnsupportedClassVersionError e) {
+		    		  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
+		    		  
+		    		  // shorten stack trace
+		    		  load_failure	= new UnsupportedClassVersionError(e.getMessage());
+		    		  
+		    	  }catch( Throwable e ){
+		      	
+		    		  if ( 	e instanceof ClassNotFoundException &&
+		    				props.getProperty( "plugin.install_if_missing", "no" ).equalsIgnoreCase( "yes" )){
+		    			  
+		    			  // don't report the failure
+		    			  
+		    		  }else{
+		    			  
+		    			  load_failure	= e;
+		    		  }
+		      	
+		    		  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
+		    	  }
+		      }else{
+		    	  
+		    	  plugin_class_loader = plugin.getClass().getClassLoader();
+		      }
 	      }
 	      	      
 	      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),plugin_class_loader);
