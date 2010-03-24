@@ -51,6 +51,8 @@ public class FeatureManagerUI
 
 	private static VuzeMessageBox entryWindow;
 
+	private static FeatureManagerUIListener fml;
+	
 	public static void registerWithFeatureManager() {
 		if (!enabled) {
 			return;
@@ -61,11 +63,11 @@ public class FeatureManagerUI
 				PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
 				featman = pi.getUtilities().getFeatureManager();
 
-				FeatureManagerUIListener fml = new FeatureManagerUIListener(featman);
+				fml = new FeatureManagerUIListener(featman);
 				featman.addListener(fml);
 				Licence[] licences = featman.getLicences();
 				for (Licence licence : licences) {
-					fml.licenceChanged(licence);
+					fml.licenceAdded(licence);
 				}
 
 				UIManager ui_manager = pi.getUIManager();
@@ -268,7 +270,11 @@ public class FeatureManagerUI
   						Licence licence = featman.addLicence(key[0].getText());
   						int initialState = licence.getState();
   						if (initialState == Licence.LS_AUTHENTICATED) {
-  							openLicenceSuccessWindow();
+  							if ( !licence.isFullyInstalled()){
+  								fml.licenceAdded(licence);
+  							}else{
+  								openLicenceSuccessWindow();
+  							}
   						} else if (initialState == Licence.LS_INVALID_KEY) {
   							openLicenceFailedWindow(initialState);
   						} else if (initialState == Licence.LS_ACTIVATION_DENIED) {

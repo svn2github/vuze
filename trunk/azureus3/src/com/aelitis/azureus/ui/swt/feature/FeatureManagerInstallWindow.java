@@ -28,11 +28,14 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence.LicenceInstallationListener;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
@@ -163,12 +166,23 @@ public class FeatureManagerInstallWindow
 		if (box != null) {
 			box.close(0);
 		}
+		licence.removeInstallationListener(this);
 	}
 
 	public void failed(String licence_key, PluginException error) {
+		
+		UIFunctionsManager.getUIFunctions().promptUser(
+				MessageText.getString( "dlg.auth.install.failed.title" ), 
+				MessageText.getString( "dlg.auth.install.failed.text", new String[]{ licence_key, Debug.getNestedExceptionMessage( error )}),
+				new String[] {
+					MessageText.getString("Button.ok")
+				}, 0, null, null, false, 0, null);
+				
+		
 		Logger.log(new LogAlert(true, "Error while installing " + licence_key,
 				error));
 		box.close(0);
+		licence.removeInstallationListener(this);
 	}
 
 	public void start(String licence_key) {
