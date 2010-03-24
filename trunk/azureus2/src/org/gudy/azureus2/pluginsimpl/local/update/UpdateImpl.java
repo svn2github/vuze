@@ -42,6 +42,7 @@ UpdateImpl
 	implements Update
 {
 	private UpdateCheckInstanceImpl	instance;
+	private UpdatableComponentImpl	component;
 	private String					name;
 	private String[]				description;
 	private String					relative_url_base	= "";
@@ -61,6 +62,7 @@ UpdateImpl
 	protected
 	UpdateImpl(
 		UpdateCheckInstanceImpl	_instance,
+		UpdatableComponentImpl	_component,
 		String					_name,
 		String[]				_desc,
 		String					_new_version,
@@ -69,6 +71,7 @@ UpdateImpl
 		int						_restart_required )
 	{
 		instance			= _instance;
+		component			= _component;
 		name				= _name;
 		description			= _desc;
 		new_version			= _new_version;
@@ -100,6 +103,12 @@ UpdateImpl
 	getCheckInstance()
 	{
 		return( instance );
+	}
+	
+	protected UpdatableComponentImpl
+	getComponent()
+	{
+		return( component );
 	}
 	
 	public String

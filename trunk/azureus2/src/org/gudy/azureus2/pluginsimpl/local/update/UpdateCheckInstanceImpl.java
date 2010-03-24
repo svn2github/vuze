@@ -282,7 +282,44 @@ UpdateCheckInstanceImpl
 						}
 					}
 
-					updates	= target_updates;
+						// maintain order here as we apply updates in the order we
+						// were requested to
+					
+					Collections.sort( 
+						target_updates,
+						new Comparator<UpdateImpl>()
+						{
+							public int 
+							compare(
+								UpdateImpl o1, UpdateImpl o2)
+							{
+								int i1 = getIndex( o1 );
+								int i2 = getIndex( o2 );
+								
+								return( i1 - i2 );
+							}
+							
+							private int
+							getIndex(
+								UpdateImpl	update )
+							{
+								UpdatableComponentImpl component = update.getComponent();
+								
+								for (int i=0;i<components.length;i++){
+									
+									if ( components[i] == component ){
+										
+										return( i );
+									}
+								}
+								
+								Debug.out( "Missing component!" );
+								
+								return( 0 );
+							}
+						});
+
+					updates	= target_updates;					
 					
 					for (int i=0;i<listeners.size();i++){
 					
@@ -311,7 +348,7 @@ UpdateCheckInstanceImpl
 			this_mon.enter();
 		
 			UpdateImpl	update = 
-				new UpdateImpl( this, update_name, desc, new_version, 
+				new UpdateImpl( this, comp, update_name, desc, new_version, 
 								downloaders, comp.isMandatory(), restart_required );
 			
 			updates.add( update );
