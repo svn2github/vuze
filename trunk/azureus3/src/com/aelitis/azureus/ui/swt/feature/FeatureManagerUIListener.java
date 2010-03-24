@@ -28,33 +28,9 @@ public class FeatureManagerUIListener
 	
 	private Map<String, Licence> mapKeyToLicence = new HashMap<String, Licence>();
 
-	public FeatureManagerUIListener(FeatureManager featman) {
-		System.out.println("FEAT:");
-		this.featman = featman;
-	}
-
-	public void licenceAdded(Licence licence) {
-		updateSidebar();
-		
-		synchronized (mapKeyToLicence) {
-			mapKeyToLicence.put(licence.getKey(), licence);
-		}
-
-		if (DEBUG) {
-			System.out.println("FEAT: Licence Added with state " + licence.getState());
-		}
-
-		if (licence.getState() == Licence.LS_PENDING_AUTHENTICATION) {
-			pendingAuthForKey = licence.getKey();
-			FeatureManagerUI.openLicenceValidatingWindow();
-		}
-
-		if (licence.isFullyInstalled()) {
-			return;
-		}
-
-		licence.addInstallationListener(new LicenceInstallationListener() {
-
+	private LicenceInstallationListener installation_listener = 
+		new LicenceInstallationListener()
+		{
 			public void start(String licence_key) {
 				if (DEBUG) {
 					System.out.println("FEATINST: START! " + licence_key);
@@ -66,34 +42,67 @@ public class FeatureManagerUIListener
 					Debug.out(e);
 				}
 			}
-
+	
 			public void reportProgress(String licenceKey, String install, int percent) {
 				if (DEBUG) {
 					System.out.println("FEATINST: " + install + ": " + percent);
 				}
 			}
-
+	
 			public void reportActivity(String licenceKey, String install,
 					String activity) {
 				if (DEBUG) {
 					System.out.println("FEAT: ACTIVITY: " + install + ": " + activity);
 				}
 			}
-
+	
 			public void failed(String licenceKey, PluginException error) {
 				if (DEBUG) {
 					System.out.println("FEAT: FAIL: " + licenceKey + ": " + error.toString());
 				}
 			}
-
+	
 			public void complete(String licenceKey) {
 				if (licenceKey.equals(pendingAuthForKey)) {
 					pendingAuthForKey = null;
 					FeatureManagerUI.openLicenceSuccessWindow();
 				}
 			}
+	};
+	
+	public FeatureManagerUIListener(FeatureManager featman) {
+		System.out.println("FEAT:");
+		this.featman = featman;
+	}
 
-		});
+	public void licenceAdded(Licence licence) {
+		updateSidebar();
+		
+		boolean	new_licence;
+		
+		synchronized (mapKeyToLicence) {
+			new_licence = mapKeyToLicence.put(licence.getKey(), licence) == null;
+		}
+
+		if ( new_licence ){
+			
+			licence.addInstallationListener( installation_listener );
+		}
+		
+		if (DEBUG) {
+			System.out.println("FEAT: Licence Added with state " + licence.getState());
+		}
+
+		if (licence.getState() == Licence.LS_PENDING_AUTHENTICATION) {
+			pendingAuthForKey = licence.getKey();
+			FeatureManagerUI.openLicenceValidatingWindow();
+		}
+
+		if (licence.isFullyInstalled()) {
+			return;
+		}else{
+			licence.retryInstallation();
+		}
 	}
 
 	public void licenceChanged(Licence licence) {
@@ -188,6 +197,8 @@ public class FeatureManagerUIListener
 			mapKeyToLicence.remove(licence.getKey());
 		}
 
+		licence.removeInstallationListener( installation_listener );
+		
 		updateSidebar();
 	}
 
