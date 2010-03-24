@@ -39,7 +39,7 @@ import com.aelitis.azureus.util.ConstantsVuze;
 
 public class FeatureManagerUI
 {
-	protected static final int DLG_HEIGHT = 325;
+	protected static final int DLG_HEIGHT = 330;
 
 	public static boolean enabled = !Constants.isUnix
 			&& FeatureAvailability.areInternalFeaturesEnabled()
@@ -146,12 +146,33 @@ public class FeatureManagerUI
 		VuzeMessageBox box = new VuzeMessageBox(
 				MessageText.getString("dlg.try.trial.title"),
 				MessageText.getString("dlg.try.trial.text"), new String[] {
-					MessageText.getString("Button.install"),
+					MessageText.getString("Button.agree"),
 					MessageText.getString("Button.cancel")
 				}, 0);
 		box.addResourceBundle(FeatureManagerUI.class,
 				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
 		box.setIconResource("image.burn.dlg.header");
+
+		box.setListener(new VuzeMessageBoxListener() {
+			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
+				SWTSkin skin = soExtra.getSkin();
+				String id = "dlg.register.trialask";
+				SWTSkinObject so = skin.createSkinObject(id, id, soExtra);
+
+				SWTSkinObjectText soLink = (SWTSkinObjectText) skin.getSkinObject(
+						"link", so);
+				if (soLink != null) {
+					soLink.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
+						public boolean urlClicked(URLInfo urlInfo) {
+							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+									"plus_tos.start", false);
+							Utils.launch(url);
+							return true;
+						}
+					});
+				}
+			}
+		});
 
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
@@ -188,7 +209,7 @@ public class FeatureManagerUI
   				MessageText.getString("dlg.auth.title"),
   				MessageText.getString("dlg.auth.enter.line.try." + tryNo),
   				new String[] {
-  					MessageText.getString("Button.validate"),
+  					MessageText.getString("Button.agree"),
   					MessageText.getString("Button.cancel")
   				}, 0);
   
@@ -228,6 +249,19 @@ public class FeatureManagerUI
   						return true;
   					}
   				});
+  
+  				SWTSkinObjectText linkTOS = (SWTSkinObjectText) skin.getSkinObject(
+  						"tos-link", soExtra);
+  				if (linkTOS != null) {
+    				linkTOS.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
+  						public boolean urlClicked(URLInfo urlInfo) {
+  							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+  									"plus_tos.start", false);
+  							Utils.launch(url);
+  							return true;
+  						}
+    				});
+  				}
   
   				key[0] = (SWTSkinObjectTextbox) skin.getSkinObject("key", soExtra);
   				if (key[0] != null && !trytwo) {
