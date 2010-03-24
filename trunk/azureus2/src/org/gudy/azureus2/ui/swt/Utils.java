@@ -1368,7 +1368,7 @@ public class Utils
 			}
 		} catch (Throwable e) {
 			if (sem != null) {
-				sem.release();
+				sem.releaseForever();
 			}
 			Debug.out(ID, e);
 		}

@@ -44,7 +44,7 @@ public abstract class AERunnableObject
 			Debug.out(id, e);
 		} finally {
 			if (sem != null) {
-				sem.release();
+				sem.releaseForever();
 			}
 		}
 	}
