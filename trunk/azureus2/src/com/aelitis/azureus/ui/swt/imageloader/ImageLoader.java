@@ -341,7 +341,10 @@ public class ImageLoader
 				}
 
 				if (img == null) {
-					if (sKey.endsWith("-disabled") || sKey.endsWith("_disabled")) {
+					// don't do on sKey.endsWith("-disabled") because caller parseValueString
+					// requires a failure so it can retry with _disabled.  If that fails,
+					// we'll get here (stupid, I know)
+					if (sKey.endsWith("_disabled")) {
 						String id = sKey.substring(0, sKey.length() - 9);
 						Image imgToFade = getImage(id);
 						if (isRealImage(imgToFade)) {
