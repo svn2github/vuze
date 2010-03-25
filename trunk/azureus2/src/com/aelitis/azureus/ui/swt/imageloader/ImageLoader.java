@@ -288,10 +288,6 @@ public class ImageLoader
 			String sKey) {
 		Image img = null;
 		
-		if (sKey.endsWith("-disabled")) {
-			System.out.println("BREAK");
-		}
-
 		//System.out.println("LoadImage " + sKey + " - " + res);
 		if (res == null) {
 			for (int i = 0; i < sSuffixChecks.length; i++) {
