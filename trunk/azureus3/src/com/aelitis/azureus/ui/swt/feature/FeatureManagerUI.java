@@ -240,7 +240,7 @@ public class FeatureManagerUI
     								"upgrade.start", false);
     						Utils.launch(url);
   						} else {
-  		  				SBC_PlusFTUX.setSourceRef("licence-entry");
+  		  				SBC_PlusFTUX.setSourceRef("dlg-activation");
   
   		  				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
   							mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
@@ -370,7 +370,7 @@ public class FeatureManagerUI
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == 0) {
-					SBC_PlusFTUX.setSourceRef("trial-success");
+					SBC_PlusFTUX.setSourceRef("dlg-trial-installed");
 
 					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 					mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY);
@@ -404,7 +404,7 @@ public class FeatureManagerUI
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == 0) {
-  				SBC_PlusFTUX.setSourceRef("plus-success");
+  				SBC_PlusFTUX.setSourceRef("dlg-plus-installed");
 
   				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 					mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);

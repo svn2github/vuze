@@ -149,7 +149,7 @@ public class MainMenu
 			MenuFactory.addSeparatorMenuItem(fileMenu);
   		MenuFactory.addMenuItem(fileMenu, "menu.plus", new Listener() {
   			public void handleEvent(Event event) {
-  				SBC_PlusFTUX.setSourceRef("Menu");
+  				SBC_PlusFTUX.setSourceRef("menu-file");
 
   				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
   				mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
