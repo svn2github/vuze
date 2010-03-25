@@ -192,8 +192,15 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    gridData.horizontalAlignment = (Constants.isOSX) ? SWT.END : SWT.CENTER;
 	    panel.setLayoutData(gridData);
 
-	    Button ok = createAlertButton(panel, "Button.ok");
-	    Button cancel = createAlertButton(panel, "Button.cancel");
+	    Button ok; 
+	    Button cancel; 
+	    if (Constants.isOSX) {
+	    	cancel = createAlertButton(panel, "Button.cancel");
+	    	ok = createAlertButton(panel, "Button.ok");
+	    } else {
+	    	ok = createAlertButton(panel, "Button.ok");
+	    	cancel = createAlertButton(panel, "Button.cancel");
+	    }
 
 	    ok.addListener(SWT.Selection, new Listener() {
 	    	
