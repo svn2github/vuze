@@ -149,6 +149,10 @@ public class FeatureManagerUI
 					MessageText.getString("Button.agree"),
 					MessageText.getString("Button.cancel")
 				}, 0);
+		box.setButtonVals(new Integer[] {
+			SWT.OK,
+			SWT.CANCEL,
+		});
 		box.addResourceBundle(FeatureManagerUI.class,
 				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
 		box.setIconResource("image.burn.dlg.header");
@@ -176,7 +180,7 @@ public class FeatureManagerUI
 
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
-				if (result == 0) {
+				if (result == SWT.OK) {
 					createTrial();
 				}
 			}
@@ -212,6 +216,10 @@ public class FeatureManagerUI
   					MessageText.getString("Button.agree"),
   					MessageText.getString("Button.cancel")
   				}, 0);
+			entryWindow.setButtonVals(new Integer[] {
+				SWT.OK,
+				SWT.CANCEL,
+			});
   
   		entryWindow.setSubTitle(MessageText.getString("dlg.auth.enter.subtitle.try."
   				+ tryNo));
@@ -299,7 +307,7 @@ public class FeatureManagerUI
   		entryWindow.open(new UserPrompterResultListener() {
   			public void prompterClosed(int result) {
   				entryWindow = null;
-  				if (result == 0) {
+  				if (result == SWT.OK) {
   					try {
   						Licence licence = featman.addLicence(key[0].getText());
   						int initialState = licence.getState();

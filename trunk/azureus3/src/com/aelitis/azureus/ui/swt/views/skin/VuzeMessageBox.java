@@ -1,17 +1,13 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AERunnableBoolean;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -73,6 +69,37 @@ public class VuzeMessageBox
 	
 	public void setButtonVals(Integer[] buttonVals) {
 		this.buttonVals = buttonVals;
+		int cancelPos = -1;
+		for (int i = 0; i < buttonVals.length; i++) {
+			Integer val = buttonVals[i];
+			if (val == SWT.CANCEL) {
+				cancelPos = i;
+				break;
+			}
+		}
+		if (cancelPos > 0) {
+  		if (Constants.isOSX && cancelPos != 0) {
+				String cancelButton = buttons[cancelPos];
+
+				int pos = buttons.length - 2;
+				for (int i = buttons.length - 1; i > 0; i--) {
+					if (defaultButtonPos == i) {
+						defaultButtonPos = pos;
+					}
+					this.buttons[i] = this.buttons[pos];
+					this.buttonVals[i] = this.buttonVals[pos];
+					pos--;
+					if (pos == cancelPos) {
+						pos--;
+					}
+				}
+				if (defaultButtonPos == 0) {
+					defaultButtonPos = 1;
+				}
+				buttons[0] = cancelButton;
+				buttonVals[0] = SWT.CANCEL;
+			} // else if (cancelPos != buttons.length - 1) { // TODO: move to end
+		}
 	}
 	
 	private int getButtonVal(int buttonPos) {
