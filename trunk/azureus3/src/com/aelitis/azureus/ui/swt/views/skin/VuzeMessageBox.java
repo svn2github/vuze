@@ -77,7 +77,7 @@ public class VuzeMessageBox
 				break;
 			}
 		}
-		if (cancelPos > 0) {
+		if (cancelPos >= 0) {
   		if (Constants.isOSX && cancelPos != 0) {
 				String cancelButton = buttons[cancelPos];
 
