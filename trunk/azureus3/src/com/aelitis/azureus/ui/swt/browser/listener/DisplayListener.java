@@ -161,7 +161,7 @@ public class DisplayListener
 				uif.doSearch(MapUtils.getMapString(decodedMap, "search-text", ""));
 			}
 		} else if (OP_REGISTER.equals(opid)) {
-			FeatureManagerUI.openLicenceEntryWindow(false);
+			FeatureManagerUI.openLicenceEntryWindow(false, null);
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
 		}

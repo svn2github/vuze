@@ -4,23 +4,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureManagerListener;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence.LicenceInstallationListener;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 
 public class FeatureManagerUIListener
 	implements FeatureManagerListener
 {
-	private final static boolean DEBUG = true;
+	private final static boolean DEBUG = Constants.IS_CVS_VERSION;
 
 	private final FeatureManager featman;
 
@@ -76,7 +82,7 @@ public class FeatureManagerUIListener
 	}
 
 	public void licenceAdded(Licence licence) {
-		updateSidebar();
+		updateUI();
 		
 		boolean	new_licence;
 		
@@ -131,7 +137,7 @@ public class FeatureManagerUIListener
 			}
 		}
 
-		updateSidebar();
+		updateUI();
 		if (DEBUG) {
 			System.out.println("FEAT: License " + licence.getKey()
 					+ " State Changed: " + state + "; changed? " + stateChanged);
@@ -154,7 +160,7 @@ public class FeatureManagerUIListener
 					} // else assumed install process is taking place
 				}
 			} else if (state == Licence.LS_INVALID_KEY) {
-				FeatureManagerUI.openLicenceFailedWindow(state);
+				FeatureManagerUI.openLicenceFailedWindow(state, licence.getKey());
 				if (licence.getKey().equals(pendingAuthForKey)) {
 					pendingAuthForKey = null;
 				}
@@ -169,12 +175,28 @@ public class FeatureManagerUIListener
 	/**
 	 * 
 	 */
-	private void updateSidebar() {
+	private void updateUI() {
+		boolean hasFullLicence = FeatureManagerUI.hasFullLicence();
+
+		if (hasFullLicence) {
+			final SWTSkin skin = SWTSkinFactory.getInstance();
+			if (skin != null) {
+				SWTSkinObject soHeader = skin.getSkinObject("plus-header");
+				if (soHeader != null) {
+					soHeader.setVisible(true);
+				}
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						skin.getShell().setText("Vuze Plus");
+					}
+				});
+			}
+		}
+		
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi != null) {
 			MdiEntrySWT entry = mdi.getEntrySWT(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
 			if (entry != null) {
-				boolean hasFullLicence = FeatureManagerUI.hasFullLicence();
 				String title = MessageText.getString(hasFullLicence
 						? "mdi.entry.plus.full" : "mdi.entry.plus.free");
 				entry.setTitle(title);
@@ -199,7 +221,7 @@ public class FeatureManagerUIListener
 
 		licence.removeInstallationListener( installation_listener );
 		
-		updateSidebar();
+		updateUI();
 	}
 
 }

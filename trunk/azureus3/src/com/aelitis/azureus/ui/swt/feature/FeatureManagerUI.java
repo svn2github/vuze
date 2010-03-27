@@ -39,8 +39,6 @@ import com.aelitis.azureus.util.ConstantsVuze;
 
 public class FeatureManagerUI
 {
-	protected static final int DLG_HEIGHT = 330;
-
 	public static boolean enabled = !Constants.isUnix
 			&& FeatureAvailability.areInternalFeaturesEnabled()
 			|| System.getProperty("fm.ui", "0").equals("1");
@@ -197,7 +195,8 @@ public class FeatureManagerUI
 		}
 	}
 
-	public static void openLicenceEntryWindow(final boolean trytwo) {
+	public static void openLicenceEntryWindow(final boolean trytwo, 
+			final String prefillWith) {
 		if (!enabled) {
 			return;
 		}
@@ -232,10 +231,7 @@ public class FeatureManagerUI
   
   		entryWindow.setListener(new VuzeMessageBoxListener() {
   			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
-  				shell.setSize(shell.getSize().x, DLG_HEIGHT);
-  
   				SWTSkin skin = soExtra.getSkin();
-  				skin.setAutoSizeOnLayout(false);
   				skin.createSkinObject("dlg.register", "dlg.register", soExtra);
   
   				SWTSkinObjectText link = (SWTSkinObjectText) skin.getSkinObject(
@@ -272,33 +268,37 @@ public class FeatureManagerUI
   				}
   
   				key[0] = (SWTSkinObjectTextbox) skin.getSkinObject("key", soExtra);
-  				if (key[0] != null && !trytwo) {
-  					licenceDetails details = getFullFeatureDetails();
-  					if (details != null) {
-  						key[0].setText(details.key);
-  						if (key[0].getControl() instanceof Text) {
-  							((Text)key[0].getControl()).selectAll();
-  						}
-  						final SWTSkinObjectText soExpirey = (SWTSkinObjectText) skin.getSkinObject("register-expirey");
-  						if (soExpirey != null) {
-  							key[0].getControl().addListener(SWT.Modify, new Listener() {
-  								public void handleEvent(Event event) {
-  									soExpirey.setText("");
-  								}
-  							});
-  							if (details.state == Licence.LS_CANCELLED) {
-  								soExpirey.setText(MessageText.getString("dlg.auth.enter.cancelled"));
-  							} else if (details.state == Licence.LS_REVOKED) {
-  								soExpirey.setText(MessageText.getString("dlg.auth.enter.revoked"));
-  							} else if (details.state == Licence.LS_ACTIVATION_DENIED) {
-  								soExpirey.setText(MessageText.getString("dlg.auth.enter.denied"));
-  							} else {
-    							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
-    									new String[] {
-    										DisplayFormatters.formatCustomDateOnly(details.expirey)
-    									}));
-  							} 
-  						}
+  				if (key[0] != null) {
+  					if (prefillWith != null) {
+  						key[0].setText(prefillWith);
+  					} else if (!trytwo) {
+    					licenceDetails details = getFullFeatureDetails();
+    					if (details != null && details.state != Licence.LS_INVALID_KEY) {
+    						key[0].setText(details.key);
+    						if (key[0].getControl() instanceof Text) {
+    							((Text)key[0].getControl()).selectAll();
+    						}
+    						final SWTSkinObjectText soExpirey = (SWTSkinObjectText) skin.getSkinObject("register-expirey");
+    						if (soExpirey != null) {
+    							key[0].getControl().addListener(SWT.Modify, new Listener() {
+    								public void handleEvent(Event event) {
+    									soExpirey.setText("");
+    								}
+    							});
+    							if (details.state == Licence.LS_CANCELLED) {
+    								soExpirey.setText(MessageText.getString("dlg.auth.enter.cancelled"));
+    							} else if (details.state == Licence.LS_REVOKED) {
+    								soExpirey.setText(MessageText.getString("dlg.auth.enter.revoked"));
+    							} else if (details.state == Licence.LS_ACTIVATION_DENIED) {
+    								soExpirey.setText(MessageText.getString("dlg.auth.enter.denied"));
+    							} else {
+      							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
+      									new String[] {
+      										DisplayFormatters.formatCustomDateOnly(details.expirey)
+      									}));
+    							} 
+    						}
+    					}
   					}
   				}
   			}
@@ -320,7 +320,7 @@ public class FeatureManagerUI
   						}else if (initialState == Licence.LS_PENDING_AUTHENTICATION ) {
   							fml.licenceAdded(licence);	// open validating window
   						} else if (initialState == Licence.LS_INVALID_KEY) {
-  							openLicenceFailedWindow(initialState);
+  							openLicenceFailedWindow(initialState, key[0].getText());
   						} else if (initialState == Licence.LS_ACTIVATION_DENIED) {
   							openLicenceActivationDeniedWindow(licence);
   						} else if (initialState == Licence.LS_CANCELLED) {
@@ -400,10 +400,7 @@ public class FeatureManagerUI
 
 		box.setListener(new VuzeMessageBoxListener() {
 			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
-				shell.setSize(shell.getSize().x, DLG_HEIGHT);
-
 				SWTSkin skin = soExtra.getSkin();
-				skin.setAutoSizeOnLayout(false);
 				skin.createSkinObject("dlg.register.success", "dlg.register.success",
 						soExtra);
 			}
@@ -516,8 +513,8 @@ public class FeatureManagerUI
 	}
 
 
-	protected static void openLicenceFailedWindow(int licenceState) {
-		openLicenceEntryWindow(true);
+	protected static void openLicenceFailedWindow(int licenceState, String code) {
+		openLicenceEntryWindow(true, code);
 	}
 
 	public static void openLicenceValidatingWindow() {
@@ -536,8 +533,6 @@ public class FeatureManagerUI
 				SWTSkin skin = soExtra.getSkin();
 				skin.createSkinObject("dlg.register.validating",
 						"dlg.register.validating", soExtra);
-				shell.setSize(shell.getSize().x, DLG_HEIGHT);
-				skin.setAutoSizeOnLayout(false);
 			}
 		});
 
@@ -558,6 +553,12 @@ public class FeatureManagerUI
 			validatingBox.close(0);
 			validatingBox = null;
 		}
+	}
+	
+	public static String getMode() {
+		boolean isFull = FeatureManagerUI.hasFullLicence();
+		boolean isTrial = FeatureManagerUI.hasFullBurn() && !isFull;
+		return isFull ? "plus" : isTrial ? "trial" : "free";
 	}
 
 	public static boolean hasFullLicence() {

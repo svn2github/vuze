@@ -534,7 +534,7 @@ public class MainMenu
 		if (FeatureManagerUI.enabled) {
   		MenuFactory.addMenuItem(helpMenu, "menu.register", new Listener() {
   			public void handleEvent(Event event) {
-  				FeatureManagerUI.openLicenceEntryWindow(false);
+  				FeatureManagerUI.openLicenceEntryWindow(false, null);
   			}
   		});
 		}

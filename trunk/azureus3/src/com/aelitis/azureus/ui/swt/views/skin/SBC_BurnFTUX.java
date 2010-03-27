@@ -110,10 +110,16 @@ public class SBC_BurnFTUX
 		long remainingUses = FeatureManagerUI.getRemaining();
 
 		String suffix = "?view=" + entryID + "&mode="
-				+ (isFull ? "plus" : isTrial ? "trial" : "free") + "&sourceRef="
+				+ FeatureManagerUI.getMode() + "&sourceRef="
 				+ UrlUtils.encode(sRef) + "&remaining=" + remainingUses;
-		url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+		String newUrl = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
 				"burn_ftux.start" + suffix, false);
+		if (newUrl.equals(url)) {
+			return;
+		}
+		
+		url = newUrl;
+
 		if (DEBUG) {
 			System.out.println("URL is now " + url + " via " + Debug.getCompressedStackTrace());
 		}

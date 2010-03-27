@@ -101,14 +101,17 @@ public class SBC_PlusFTUX
 	}
 
 	private void buildURL() {
-		boolean isFull = FeatureManagerUI.hasFullLicence();
-		boolean isTrial = FeatureManagerUI.hasFullBurn() && !isFull;
 		long remainingUses = FeatureManagerUI.getRemaining();
 
-		String suffix = "?mode=" + (isFull ? "plus" : isTrial ? "trial" : "free")
+		String suffix = "?mode=" + FeatureManagerUI.getMode()
 				+ "&sourceRef=" + UrlUtils.encode(sRef) + "&remaining=" + remainingUses;
-		url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+		String newUrl = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
 				"plus-ftux.start" + suffix, false);
+		if (newUrl.equals(url)) {
+			return;
+		}
+		
+		url = newUrl;
 
 		if (DEBUG) {
   		System.out.println("URL is now " + url + " via "
