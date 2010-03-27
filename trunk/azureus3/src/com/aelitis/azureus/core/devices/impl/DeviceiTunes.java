@@ -613,6 +613,23 @@ DeviceiTunes
 		}
 	}
 	
+	public String
+	getStatus()
+	{
+		if ( is_running ){
+			
+			return( MessageText.getString( "device.itunes.status.running" ));
+			
+		}else if ( is_installed ){
+			
+			return( MessageText.getString( "device.itunes.status.notrunning" ));
+
+		}else{
+			
+			return( MessageText.getString( "device.itunes.status.notinstalled" ));
+		}     
+	}
+	
 	public void
 	generate(
 		IndentWriter		writer )

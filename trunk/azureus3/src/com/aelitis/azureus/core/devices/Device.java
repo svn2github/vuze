@@ -113,6 +113,9 @@ Device
 	public String
 	getError();
 	
+	public String
+	getStatus();
+	
 	public void
 	addListener(
 		DeviceListener		listener );

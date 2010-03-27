@@ -1234,13 +1234,36 @@ DeviceManagerUI
 							return;
 						}
 						if (device_manager.getTranscodeManager().getProviders().length == 0) {
-							MdiEntryVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
+							final MdiEntryVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
 							if (turnon != null) {
 								turnon.addListener(new MdiEntryVitalityImageListener() {
 									public void mdiEntryVitalityImage_clicked(int x, int y) {
 										DevicesFTUX.ensureInstalled();
 									}
 								});
+								
+								device_manager.getTranscodeManager().addListener(
+									new TranscodeManagerListener()
+									{
+										public void
+										providerAdded(
+											TranscodeProvider	provider )
+										{
+											turnon.setVisible( false );
+										}
+										
+										public void
+										providerUpdated(
+											TranscodeProvider	provider )
+										{											
+										}
+										
+										public void
+										providerRemoved(
+											TranscodeProvider	provider )
+										{
+										}
+									});
 							}
 						}
 					}
@@ -2092,6 +2115,12 @@ DeviceManagerUI
 											}else if ( classification.startsWith( "samsung.")){
 
 												id = "samsung";
+												
+											}else if ( classification.startsWith( "ms_wmp.")){
+
+													// update skin3_constants.properties!
+												
+												id = "mswmp";
 												
 											}else{
 												
@@ -3442,6 +3471,9 @@ DeviceManagerUI
 				
 					return( new Long( device.isAlive()?1:2 ));
 				}
+			}else if ( propertyID == TITLE_INDICATOR_TEXT_TOOLTIP){
+
+				return( device.getStatus());
 			}
 			
 			return null;

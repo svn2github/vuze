@@ -362,19 +362,21 @@ TranscodeProviderVuze
 									
 									if ( state == 0 ){
 	
-										// running
-																				
+											// running
+										
+										Thread.sleep(50);
+										
 									}else if ( state == 1 ){
 										
 										_adapter.failed( new TranscodeException( "Analysis cancelled" ));
 										
-										return;
+										break;
 										
 									}else if ( state == 2 ){
 										
 										_adapter.failed( new TranscodeException( "Analysis failed", (Throwable)status.get( "error" )));
 										
-										return;
+										break;
 										
 									}else{
 										
@@ -382,11 +384,13 @@ TranscodeProviderVuze
 										
 										_adapter.complete();
 										
-										return;
+										break;
 									}
 								}catch( Throwable e ){
 									
 									_adapter.failed( new TranscodeException( "Failed to get status", e ));
+									
+									break;
 								}
 							}
 						}finally{

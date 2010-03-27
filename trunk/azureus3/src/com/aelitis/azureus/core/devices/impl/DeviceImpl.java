@@ -1603,6 +1603,24 @@ DeviceImpl
 		}
 	}
 	
+	public String
+	getStatus()
+	{
+		if ( isLivenessDetectable()){
+			
+			if ( isAlive()){
+				
+				return( MessageText.getString( "device.status.online" ));
+				
+			}else{
+				
+				return( MessageText.getString( "device.od.error.notfound" ));
+			}
+		}
+		
+		return( null );
+	}
+	
 	public boolean
 	getPersistentBooleanProperty(
 		String		prop,

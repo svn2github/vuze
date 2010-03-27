@@ -757,7 +757,10 @@ DeviceManagerImpl
 				
 				if ( upnp_device != null ){
 					
-					if ( upnp_device.getManufacturer().toLowerCase().startsWith( "samsung" )){
+					String lc_manufacturer 	= getOptionalLC( upnp_device.getManufacturer());
+					String lc_model			= getOptionalLC( upnp_device.getModelName());
+					
+					if ( lc_manufacturer.startsWith( "samsung" )){
 						
 						device.setPersistentStringProperty( DeviceImpl.PP_REND_CLASSIFICATION, "samsung.generic" );
 						
@@ -771,10 +774,50 @@ DeviceManagerImpl
 							
 							device.setTranscodeRequirement( TranscodeTarget.TRANSCODE_WHEN_REQUIRED );
 						}
+					}else if ( lc_model.equals( "windows media player" )){
+						
+						String model_number = upnp_device.getModelNumber();
+						
+						if ( model_number != null ){
+							
+							try{
+								int num = Integer.parseInt( model_number );
+								
+								if ( num >= 12 ){
+									
+									device.setPersistentStringProperty( DeviceImpl.PP_REND_CLASSIFICATION, "ms_wmp.generic" );
+									
+									TranscodeProfile[] profiles = device.getTranscodeProfiles();
+									
+									if ( profiles.length == 0 ){
+										
+										device.setTranscodeRequirement( TranscodeTarget.TRANSCODE_NEVER );
+										
+									}else{
+										
+										device.setTranscodeRequirement( TranscodeTarget.TRANSCODE_WHEN_REQUIRED );
+									}
+								}
+							}catch( Throwable e ){
+								
+							}
+						}
 					}
 				}
 			}
 		}
+	}
+	
+	private String
+	getOptionalLC(
+		String	str )
+	{
+		if ( str == null ){
+			
+			return( "" );
+		}
+		
+		return( str.toLowerCase().trim());
 	}
 	
 	protected void
