@@ -105,9 +105,9 @@ public class SideBarEntrySWT
 
 	private boolean buildonSWTItemSet;
 
-	public SideBarEntrySWT(SideBar sidebar, SWTSkin skin, String id) {
+	public SideBarEntrySWT(SideBar sidebar, SWTSkin _skin, String id) {
 		super(sidebar, id);
-		this.skin = skin;
+		this.skin = _skin;
 
 		if (id == null) {
 			logID = "null";
@@ -122,12 +122,16 @@ public class SideBarEntrySWT
 
 		this.sidebar = sidebar;
 
-		SWTSkinProperties skinProperties = skin.getSkinProperties();
-		bg = skinProperties.getColor("color.sidebar.bg");
-		fg = skinProperties.getColor("color.sidebar.fg");
-		bgSel = skinProperties.getColor("color.sidebar.selected.bg");
-		fgSel = skinProperties.getColor("color.sidebar.selected.fg");
-		//colorFocus = skinProperties.getColor("color.sidebar.focus");
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				SWTSkinProperties skinProperties = skin.getSkinProperties();
+				bg = skinProperties.getColor("color.sidebar.bg");
+				fg = skinProperties.getColor("color.sidebar.fg");
+				bgSel = skinProperties.getColor("color.sidebar.selected.bg");
+				fgSel = skinProperties.getColor("color.sidebar.selected.fg");
+				//colorFocus = skinProperties.getColor("color.sidebar.focus");
+			}
+		});
 	}
 
 	public TreeItem getTreeItem() {
