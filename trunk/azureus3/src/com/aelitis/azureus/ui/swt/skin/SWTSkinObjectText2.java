@@ -154,6 +154,9 @@ public class SWTSkinObjectText2
 			// @see org.eclipse.swt.widgets.Composite#computeSize(int, int, boolean)
 			public Point computeSize(int wHint, int hHint, boolean changed) {
 				int border = getBorderWidth() * 2;
+				if (border == 0 && (canvas.getStyle() & SWT.BORDER) > 0) {
+					border = 2;
+				}
 				Point pt = new Point(border, border);
 
 				if (sDisplayText == null) {
