@@ -51,6 +51,8 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
@@ -2156,6 +2158,13 @@ public class OpenTorrentWindow
   								}, new Object[] {
   									fExistingDownload
   								}, -1 );
+						} else {
+							Logger.log(new LogAlert(true, LogAlert.AT_INFORMATION,
+									MessageText.getString(MSG_ALREADY_EXISTS + ".text", new String[] {
+										":" + sOriginatingLocation,
+										sfExistingName,
+										MessageText.getString(MSG_ALREADY_EXISTS_NAME),
+									})));
 						}
 					} else {
 						MessageBoxShell mb = new MessageBoxShell(SWT.OK, MSG_ALREADY_EXISTS,
