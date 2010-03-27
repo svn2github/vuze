@@ -1037,7 +1037,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 							// listener might have changed it
 
-							lastCursorID = cell.getCursorID();
+							int cellCursorID = cell.getCursorID();
+							if (cellCursorID != -1) {
+								lastCursorID = cellCursorID;
+							}
 						}
 					}
 				} catch (Exception ex) {
