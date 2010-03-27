@@ -266,7 +266,7 @@ public class SWTSkinObjectImage
 		});
 
 		// needed to set paint listener and canvas size
-		reallySetImage();
+		swt_reallySetImage();
 
 		return canvas;
 	}
@@ -275,7 +275,11 @@ public class SWTSkinObjectImage
 		super.setVisible(visible);
 
 		if (visible) {
-			reallySetImage();
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					swt_reallySetImage();
+				}
+			});
 		}
 	}
 
@@ -379,12 +383,12 @@ public class SWTSkinObjectImage
 
 
 				//allowImageDimming = sDrawMode.equalsIgnoreCase("dim");
-
-
+ 
 				Rectangle imgBounds = image.getBounds();
 				if (drawMode != DRAW_CENTER && drawMode != DRAW_HCENTER
 						&& drawMode != DRAW_STRETCH) {
 					canvas.setSize(imgBounds.width + hpadding, imgBounds.height);
+					canvas.setData("oldSize", canvas.getSize());
 				}
 				//canvas.setData("image", image);
 
@@ -398,6 +402,7 @@ public class SWTSkinObjectImage
 						fd.width = imgBounds.width + hpadding;
 						fd.height = imgBounds.height;
 					}
+					canvas.setData("oldSize", new Point(fd.width, fd.height));
 					canvas.setLayoutData(fd);
 					Utils.relayout(canvas);
 				}
@@ -469,7 +474,7 @@ public class SWTSkinObjectImage
 						: customImageID)
 						+ fSuffix;
 				if (isVisible()) {
-					reallySetImage();
+					swt_reallySetImage();
 				}
 			}
 		});
@@ -477,11 +482,11 @@ public class SWTSkinObjectImage
 		return suffix;
 	}
 
-	protected void reallySetImage() {
+	protected void swt_reallySetImage() {
 		if (currentImageID == null || customImage) {
 			return;
 		}
-
+		
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		boolean imageExists = imageLoader.imageExists(currentImageID);
 		if (!imageExists && imageLoader.imageExists(currentImageID + ".image")) {
