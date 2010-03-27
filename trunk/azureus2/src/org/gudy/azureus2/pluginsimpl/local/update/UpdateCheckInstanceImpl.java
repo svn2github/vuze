@@ -40,6 +40,10 @@ UpdateCheckInstanceImpl
 	implements UpdateCheckInstance
 {
 	private static final LogIDs LOGID = LogIDs.CORE;
+	
+	private static UpdateCheckInstanceImpl	active_checker;
+	
+	
 	private List<UpdateCheckInstanceListener>	listeners			= new ArrayList<UpdateCheckInstanceListener>();
 	private List<UpdateImpl>					updates 			= new ArrayList<UpdateImpl>();
 	private List<UpdateManagerDecisionListener>	decision_listeners	= new ArrayList<UpdateManagerDecisionListener>();
@@ -176,6 +180,123 @@ UpdateCheckInstanceImpl
 	public void
 	start()
 	{
+			// only run one at a time - easiest approach is just to use a couple of threads
+			// to backoff + check for completion
+		
+		boolean	run_now;
+				
+		synchronized( UpdateCheckInstanceImpl.class ){
+			
+			if ( active_checker == null ){
+				
+				active_checker = this;
+				
+				run_now = true;
+				
+				new AEThread2( "UCI:clearer" )
+				{
+					public void
+					run()
+					{
+							// wait until the process completes then clear down the 'active' one
+						
+						while( true ){
+														
+							try{
+								Thread.sleep(1000);
+								
+							}catch( Throwable e ){
+							}
+							
+							if ( isCompleteOrCancelled()){
+								
+								boolean	done = true;
+								
+								if ( completed ){
+									
+									Update[] updates = getUpdates();
+																		
+									for ( Update update: updates ){
+										
+										if ( !( update.isCancelled() || update.isComplete())){
+											
+											done = false;
+											
+											break;
+										}
+									}
+								}
+								
+								if ( done ){
+								
+									try{
+										Thread.sleep( 5000 );
+										
+									}catch( Throwable e ){
+									}
+									
+									synchronized( UpdateCheckInstanceImpl.class ){
+										
+										active_checker = null;
+									}
+									
+									break;
+								}
+							}
+						}	
+					}
+				}.start();
+				
+			}else{
+				
+				run_now = false;
+				
+				new AEThread2( "UCI:waiter" )
+				{
+					public void
+					run()
+					{
+							// wait until inactive then re-attempt
+						
+						while( true ){
+														
+							try{
+								Thread.sleep(1000);
+								
+							}catch( Throwable e ){
+							}
+							
+							boolean	retry = false;
+							
+							synchronized( UpdateCheckInstanceImpl.class ){
+								
+								if ( active_checker == null ){
+									
+									retry = true;
+								}
+							}
+							
+							if ( retry ){
+								
+								UpdateCheckInstanceImpl.this.start();
+									
+								break;
+							}
+						}
+					}
+				}.start();
+			}
+		}
+		
+		if ( run_now ){
+			
+			startSupport();
+		}
+	}
+	
+	private void
+	startSupport()
+	{
 		for (int i=0;i<components.length;i++){
 			
 			final UpdateCheckerImpl			checker = checkers[i];
@@ -211,115 +332,120 @@ UpdateCheckInstanceImpl
 					}
 					
 					try{
-						this_mon.enter();
+						boolean	mandatory_failed = false;
 						
-						if ( cancelled ){
+						for (int i=0;i<checkers.length;i++){
 							
-							return;
-						}
-					
-						completed	= true;
-						
-					}finally{
-						
-						this_mon.exit();
-					}
-					
-					boolean	mandatory_failed = false;
-					
-					for (int i=0;i<checkers.length;i++){
-						
-						if ( components[i].isMandatory() && checkers[i].getFailed()){
-							
-							mandatory_failed	= true;
-							
-							break;
-						}
-					}
-					
-					List<UpdateImpl>	target_updates = new ArrayList<UpdateImpl>();
-					
-						// if any mandatory checks failed then we can't do any more
-					
-					if ( mandatory_failed ){
-						
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-										"Dropping all updates as a mandatory update check failed"));
-
-					}else{
-							// If there are any manadatory updates then we just go ahead with them and drop the rest
-						
-						boolean	mandatory_only	= false;
-						
-						for (int i=0;i<updates.size();i++){
-							
-							UpdateImpl	update = (UpdateImpl)updates.get(i);
-							
-							if ( update.isMandatory()){
+							if ( components[i].isMandatory() && checkers[i].getFailed()){
 								
-								mandatory_only	= true;
+								mandatory_failed	= true;
 								
 								break;
 							}
 						}
 						
-						for (int i=0;i<updates.size();i++){
+						List<UpdateImpl>	target_updates = new ArrayList<UpdateImpl>();
+						
+							// if any mandatory checks failed then we can't do any more
+						
+						if ( mandatory_failed ){
 							
-							UpdateImpl	update = (UpdateImpl)updates.get(i);
-														
-							if ( update.isMandatory() || !mandatory_only ){
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+											"Dropping all updates as a mandatory update check failed"));
+	
+						}else{
+								// If there are any manadatory updates then we just go ahead with them and drop the rest
+							
+							boolean	mandatory_only	= false;
+							
+							for (int i=0;i<updates.size();i++){
 								
-								target_updates.add( update );
+								UpdateImpl	update = (UpdateImpl)updates.get(i);
 								
-							}else{
-								if (Logger.isEnabled())
-								  Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-								                          "Dropping update '" + update.getName()
-                                            + "' as non-mandatory and "
-                                            + "mandatory updates found"));
+								if ( update.isMandatory()){
+									
+									mandatory_only	= true;
+									
+									break;
+								}
+							}
+							
+							for (int i=0;i<updates.size();i++){
+								
+								UpdateImpl	update = (UpdateImpl)updates.get(i);
+															
+								if ( update.isMandatory() || !mandatory_only ){
+									
+									target_updates.add( update );
+									
+								}else{
+									if (Logger.isEnabled())
+									  Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+									                          "Dropping update '" + update.getName()
+	                                            + "' as non-mandatory and "
+	                                            + "mandatory updates found"));
+								}
 							}
 						}
-					}
-
-						// maintain order here as we apply updates in the order we
-						// were requested to
-					
-					Collections.sort( 
-						target_updates,
-						new Comparator<UpdateImpl>()
-						{
-							public int 
-							compare(
-								UpdateImpl o1, UpdateImpl o2)
+	
+							// maintain order here as we apply updates in the order we
+							// were requested to
+						
+						Collections.sort( 
+							target_updates,
+							new Comparator<UpdateImpl>()
 							{
-								int i1 = getIndex( o1 );
-								int i2 = getIndex( o2 );
-								
-								return( i1 - i2 );
-							}
-							
-							private int
-							getIndex(
-								UpdateImpl	update )
-							{
-								UpdatableComponentImpl component = update.getComponent();
-								
-								for (int i=0;i<components.length;i++){
+								public int 
+								compare(
+									UpdateImpl o1, UpdateImpl o2)
+								{
+									int i1 = getIndex( o1 );
+									int i2 = getIndex( o2 );
 									
-									if ( components[i] == component ){
-										
-										return( i );
-									}
+									return( i1 - i2 );
 								}
 								
-								Debug.out( "Missing component!" );
+								private int
+								getIndex(
+									UpdateImpl	update )
+								{
+									UpdatableComponentImpl component = update.getComponent();
+									
+									for (int i=0;i<components.length;i++){
+										
+										if ( components[i] == component ){
+											
+											return( i );
+										}
+									}
+									
+									Debug.out( "Missing component!" );
+									
+									return( 0 );
+								}
+							});
+	
+						updates	= target_updates;					
+					
+					}finally{
+						
+						try{
+							this_mon.enter();
+							
+							if ( cancelled ){
 								
-								return( 0 );
+								return;
 							}
-						});
-
-					updates	= target_updates;					
+						
+							completed	= true;
+							
+						}finally{
+							
+							this_mon.exit();
+						}
+						
+					}
 					
 					for (int i=0;i<listeners.size();i++){
 					

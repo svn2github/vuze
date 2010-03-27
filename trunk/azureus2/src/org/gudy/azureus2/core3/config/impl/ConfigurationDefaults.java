@@ -221,6 +221,8 @@ public class ConfigurationDefaults {
     def.put("Ip Filter Banning Persistent", TRUE);
     def.put("Ip Filter Enable Description Cache", TRUE);
     def.put("Ip Filter Autoload File", "");
+    def.put("Ip Filter Clear On Reload", TRUE );
+    
     def.put("Allow Same IP Peers",FALSE);
     def.put("Use Super Seeding",FALSE);
     

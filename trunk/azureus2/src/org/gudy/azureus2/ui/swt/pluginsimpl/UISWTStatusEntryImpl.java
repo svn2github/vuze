@@ -42,6 +42,7 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	
 	// Used by "update".
 	private boolean needs_update = false;
+	private boolean needs_layout = false;
 	private String text = null;
 	private String tooltip = null;
 	private boolean image_enabled = false;
@@ -79,8 +80,12 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 			return( true );
 		}
 		
+		boolean do_layout = needs_layout;
+		
+		needs_layout = false;
+		
 		if (menu_context.is_dirty) {needs_update = true; menu_context.is_dirty = false;} 
-		if (!needs_update) {return false;}
+		if (!needs_update) {return do_layout;}
 		
 		// This is where we do a big update.
 		try {
@@ -91,7 +96,7 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 			this_mon.exit();
 		}
 		
-		return false;
+		return do_layout;
 	}
 	
 	/**
@@ -194,6 +199,9 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	public void setImage(Image image) {
 		checkDestroyed();
 		this_mon.enter();
+		if( image != this.image ){
+			needs_layout = true;
+		}
 		this.image = image;
 		this.needs_update = true;
 		this_mon.exit();
@@ -202,6 +210,9 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	public void setImageEnabled(boolean enabled) {
 		checkDestroyed();
 		this_mon.enter();
+		if ( enabled != image_enabled ){
+			needs_layout = true;
+		}
 		this.image_enabled = enabled;
 		this.needs_update = true;
 		this_mon.exit();

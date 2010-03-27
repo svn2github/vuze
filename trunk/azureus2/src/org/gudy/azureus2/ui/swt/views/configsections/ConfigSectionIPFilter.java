@@ -349,9 +349,14 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     Messages.setLanguageText(lblAutoLoadInfo, "ConfigView.section.ipfilter.autoload.info");
     lblAutoLoadInfo.setLayoutData(Utils.getWrappableLabelGridData(4, 0));
 
-    
-    
-    // description scratch file
+    BooleanParameter clear_on_reload = new BooleanParameter(gAutoLoad, "Ip Filter Clear On Reload" );
+    gridData = new GridData();
+    clear_on_reload.setLayoutData(gridData);
+	Messages.setLanguageText(clear_on_reload.getControl(),
+		"ConfigView.section.ipfilter.clear.on.reload");
+	
+    	// description scratch file
+	
     if (userMode > 0) {
     	gridData = new GridData();
     	BooleanParameter enableDesc = new BooleanParameter(gFilter,

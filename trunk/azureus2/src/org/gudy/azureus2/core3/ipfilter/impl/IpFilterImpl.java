@@ -180,7 +180,9 @@ IpFilterImpl
 	reload(boolean allowAsyncDownloading)
 		throws Exception
 	{
-		range_manager.clearAllEntries();
+		if ( COConfigurationManager.getBooleanParameter( "Ip Filter Clear On Reload" )){	
+			range_manager.clearAllEntries();
+		}
 		markAsUpToDate();
 		loadFilters(allowAsyncDownloading, false);
 	}

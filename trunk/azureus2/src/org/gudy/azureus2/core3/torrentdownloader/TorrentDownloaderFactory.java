@@ -22,12 +22,14 @@
 
 package org.gudy.azureus2.core3.torrentdownloader;
 
+import java.io.File;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderImpl;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 
 /**
  *
@@ -63,12 +65,9 @@ public class TorrentDownloaderFactory {
 	String 								url,
 	String								referrer,
 	String 								fileordir, 
-	boolean 							logged) 
+	boolean 							logged ) 
   {
-    TorrentDownloaderImpl dl = getClass(logged);
-    if (dl!=null)
-      dl.init(callback, url, referrer, null, fileordir);
-    return dl;
+	  return( create( callback, url, referrer, null, fileordir, logged ));
   }
   
   public static TorrentDownloader 
@@ -76,9 +75,9 @@ public class TorrentDownloaderFactory {
   		TorrentDownloaderCallBackInterface 	callback, 
 		String 								url,
 		String								referrer,
-		String 								fileordir) 
+		String 								fileordir ) 
   {
-    return create(callback, url, referrer, fileordir, false);
+    return create(callback, url, referrer, fileordir, false );
   }
   
   public static TorrentDownloader 
@@ -89,10 +88,19 @@ public class TorrentDownloaderFactory {
 		Map									request_properties,
 		String 								fileordir) 
   {
-	   TorrentDownloaderImpl dl = getClass(false);
-	    if (dl!=null)
-	      dl.init(callback, url, referrer, request_properties, fileordir);
-	    return dl;
+	  return( create( callback, url, referrer, request_properties, fileordir, false ));
+  }
+  
+  private static TorrentDownloader 
+  create(
+  		TorrentDownloaderCallBackInterface 	callback, 
+		String 								url,
+		String								referrer,
+		Map									request_properties,
+		String 								fileordir,
+		boolean								logged )
+  {
+	  return( new TorrentDownloadRetrier( callback, url, referrer, request_properties, fileordir, logged ));
   }
   
   public static TorrentDownloader create(TorrentDownloaderCallBackInterface callback, String url, boolean logged) {
@@ -138,4 +146,281 @@ public class TorrentDownloaderFactory {
   public static TorrentDownloader downloadManaged(String url) {
     return TorrentDownloaderManager.getInstance().download(url);
   }
+  
+  	private static class
+  	TorrentDownloadRetrier
+  		implements TorrentDownloader
+  	{
+		final private String 								url;
+		final private String								referrer;
+		final private Map									request_properties;
+		final private String 								fileordir;
+		final private boolean								logged;
+  		
+		private volatile TorrentDownloaderImpl	delegate;
+		
+		private volatile boolean	cancelled;
+		
+		private volatile boolean	sdp_set;
+		private volatile String		sdp_path;
+		private volatile String		sdp_file;
+		
+		private volatile boolean	dfoc_set;
+		private volatile boolean	dfoc;
+		private volatile boolean	irc_set;
+		private volatile boolean	irc;
+		
+  		private
+  		TorrentDownloadRetrier(
+  			final TorrentDownloaderCallBackInterface 	_callback, 
+  			String 										_url,
+  			String										_referrer,
+  			Map											_request_properties,
+  			String 										_fileordir,
+  			boolean										_logged )
+  		{
+  			url					= _url;
+  			referrer			= _referrer;
+  			request_properties	= _request_properties;
+  			fileordir			= _fileordir;
+  			logged				= _logged;
+
+  			TorrentDownloaderCallBackInterface callback			= 
+  				new TorrentDownloaderCallBackInterface()
+  				{
+  					private TorrentDownloaderCallBackInterface	original_callback = _callback;
+  					
+  					private boolean no_retry = original_callback == null;
+  					
+  					private boolean	init_reported 	= false;
+  					private boolean	start_reported	= false;
+  					
+  					public void 
+  					TorrentDownloaderEvent(
+  						int 				state, 
+  						TorrentDownloader 	_delegate )
+  					{
+  						if ( _delegate != delegate ){
+  							
+  							return;
+  						}
+  						
+  						if ( state == STATE_INIT ){
+  							
+  							if ( init_reported ){
+  								
+  								return;
+  							}
+  							
+  							init_reported = true;
+  						}
+  						
+ 						if ( state == STATE_START ){
+  							
+  							if ( start_reported ){
+  								
+  								return;
+  							}
+  							
+  							start_reported = true;
+  						}
+ 						
+  						if ( cancelled ){
+  							
+  							no_retry = true;
+  						}
+  						
+  						if ( no_retry ){
+  							
+  							if ( original_callback != null ){
+  								
+  								original_callback.TorrentDownloaderEvent( state, TorrentDownloadRetrier.this );
+  							}
+  							
+  							return;
+  						}
+  					
+  						if ( 	state == STATE_FINISHED ||
+  								state == STATE_DUPLICATE ||
+  								state == STATE_CANCELLED ){
+  					
+							if ( original_callback != null ){
+  								
+  								original_callback.TorrentDownloaderEvent( state, TorrentDownloadRetrier.this );
+  							}
+							
+  							no_retry = true;
+  							
+  							return;
+  						}
+  						
+  						if ( state == STATE_ERROR ){
+  							
+  							String lc_url = url.toLowerCase().trim();
+  							
+  							String	retry_url = null;
+  							
+  							if ( lc_url.startsWith( "http" )){
+  							
+  								retry_url = UrlUtils.parseTextForURL( url.substring( 5 ), true );
+  							}
+  							
+  							if ( retry_url != null ){
+  													
+	  				 			delegate = TorrentDownloaderFactory.getClass( logged );  		  
+	  				  			
+	  				 			if ( sdp_set ){
+	  				 				
+	  				 				delegate.setDownloadPath( sdp_path, sdp_file );
+	  				 			}
+	  				 			
+	  				 			if ( dfoc_set ){
+	  				 				
+	  				 				delegate.setDeleteFileOnCancel( dfoc );
+	  				 			}
+	  				 			
+	  				 			if ( irc_set ){
+	  				 				
+	  				 				delegate.setIgnoreReponseCode( irc );
+	  				 			}
+	  				 			
+	  				  			delegate.init( this, "DC1ADD710FC546AFA8B0EC63794F92FCEDD2ABC0", referrer, request_properties, fileordir );
+	  				  			
+	  							no_retry	= true;
+	  							
+	  							delegate.start();
+	  							
+	  							return;
+	  							
+  							}else{
+  								
+	  							no_retry	= true;
+  							}
+  						}						
+  						
+						if ( original_callback != null ){
+								
+							original_callback.TorrentDownloaderEvent( state, TorrentDownloadRetrier.this );
+						}
+  					}
+  					 
+  				};
+
+  			delegate = TorrentDownloaderFactory.getClass( logged );  		  
+  			
+  			delegate.init( callback, url, referrer, request_properties, fileordir );
+  		}
+  		
+  		public void 
+  		start()
+  		{
+  			delegate.start();
+  		}
+
+  		public void 
+  		cancel()
+  		{
+  			cancelled = true;
+  			
+  			delegate.cancel();
+  		}
+
+  		public void 
+  		setDownloadPath(
+  			String path, 
+  			String file)
+  		{
+  			sdp_set			= true;
+ 			sdp_path		= path;
+  			sdp_file		= file;
+
+  			delegate.setDownloadPath(path, file); 			
+   		}
+
+  		public int 
+  		getDownloadState()
+  		{
+  			return( delegate.getDownloadState());
+  		}
+
+  		public File 
+  		getFile()
+  		{
+  			return( delegate.getFile());
+  		}
+
+  		public int 
+  		getPercentDone()
+  		{
+  			return( delegate.getPercentDone());
+  		}
+  		
+  		public int 
+  		getTotalRead()
+  		{
+  			return( delegate.getTotalRead());
+  		}
+  		
+  		public String 
+  		getError()
+  		{
+  			return( delegate.getError());
+  		}
+  		
+  		public String 
+  		getStatus()
+  		{
+  			return( delegate.getStatus());
+  		}
+
+  		public String 
+  		getURL()
+  		{
+  			return( delegate.getURL());
+  		}
+  		
+  		public int 
+  		getLastReadCount()
+  		{
+  			return( delegate.getLastReadCount());
+  		}
+  		
+  		public byte[] 
+  		getLastReadBytes()
+  		{
+  			return( delegate.getLastReadBytes());
+  		}
+  		
+  		public boolean 
+  		getDeleteFileOnCancel()
+  		{
+  			return( delegate.getDeleteFileOnCancel());
+  		}
+  		
+  		public void 
+  		setDeleteFileOnCancel(
+  			boolean deleteFileOnCancel )
+  		{
+  			dfoc_set	= true;
+  			dfoc		= deleteFileOnCancel;
+  			
+  			delegate.setDeleteFileOnCancel( deleteFileOnCancel );
+  		}
+  		
+  		public boolean 
+  		isIgnoreReponseCode()
+  		{
+  			return( delegate.isIgnoreReponseCode());
+  		}
+  		
+  		public void 
+  		setIgnoreReponseCode(
+  			boolean ignoreReponseCode)
+  		{
+  			irc_set	= true;
+  			irc		= ignoreReponseCode;
+  			
+  			delegate.setIgnoreReponseCode( ignoreReponseCode );
+  		}
+  	}
 }

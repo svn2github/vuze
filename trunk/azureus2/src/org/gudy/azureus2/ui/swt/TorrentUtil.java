@@ -69,8 +69,10 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableView;
+import com.sun.jndi.toolkit.url.UrlUtil;
 
 /**
  * @author Allan Crooks
@@ -1678,20 +1680,49 @@ public class TorrentUtil {
 
 		if (!sFirstChunk.startsWith("d")) {
 			if (parentShell != null) {
-  			boolean isHTML = sFirstChunk.indexOf("<html") >= 0;
-  			MessageBoxShell boxShell = new MessageBoxShell(
-  					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
-  					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text",
-  							new String[] {
-									torrentName,
-									isHTML ? "" : MessageText.getString("OpenTorrentWindow.mb.notTorrent.cannot.display")
-  							}), new String[] {
-  						MessageText.getString("Button.ok")
-  					}, 0);
-  			if (isHTML) {
-  				boxShell.setHtml(sFirstChunk);
-  			}
-  			boxShell.open(null);
+				boolean isHTML = sFirstChunk.indexOf("<html") >= 0;
+				
+				final String retry_url = UrlUtils.parseTextForMagnets( torrentName );
+				
+				String[] buttons;
+				
+				if ( retry_url == null ){
+					
+					buttons = new String[]{ MessageText.getString("Button.ok") };
+				}else{
+					
+					buttons = 
+						new String[]{
+							MessageText.getString( "OpenTorrentWindow.mb.notTorrent.retry" ),
+							MessageText.getString( "Button.cancel" )};
+				}
+				
+				MessageBoxShell boxShell = new MessageBoxShell(
+						MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
+						MessageText.getString("OpenTorrentWindow.mb.notTorrent.text",
+								new String[] {
+								torrentName,
+								isHTML ? "" : MessageText.getString("OpenTorrentWindow.mb.notTorrent.cannot.display")
+						}),
+						buttons
+						, 0 );
+				
+				if (isHTML) {
+					boxShell.setHtml(sFirstChunk);
+				}
+				boxShell.open(
+					new UserPrompterResultListener()
+					{
+						public void 
+						prompterClosed(
+							int result )
+						{
+							if ( result == 0 && retry_url != null ){
+								
+								TorrentOpener.openTorrent( retry_url );
+							}
+						}
+					});
 			}
 
 			return false;

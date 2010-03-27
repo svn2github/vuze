@@ -39,7 +39,7 @@ import java.util.Map;
  */
 public class BDecoder 
 {
-	private static final int MAX_BYTE_ARRAY_SIZE	= 8*1024*1024;
+	private static final int MAX_BYTE_ARRAY_SIZE	= 16*1024*1024;
 	private static final int MAX_MAP_KEY_SIZE		= 64*1024;
 	
 	private static final boolean TRACE	= false;

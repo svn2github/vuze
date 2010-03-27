@@ -29,6 +29,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -168,97 +169,102 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     	}
 	  
     	for (int i=0;i<2;i++){
-      	try{
-      
-	      if ( protocol.equals("https")){
-	      	
-	      	// see ConfigurationChecker for SSL client defaults
-	      	
-	      	HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
-	      	
-	      	// allow for certs that contain IP addresses rather than dns names
-	      	
-	      	ssl_con.setHostnameVerifier(
-	      			new HostnameVerifier()
-	      			{
-	      				public boolean
-	      				verify(
-	      					String		host,
-							SSLSession	session )
-	      				{
-	      					return( true );
-	      				}
-	      			});
-	      	
-	      	con = ssl_con;
-	      	
-	      }else{
-	      	
-	      	con = (HttpURLConnection) url.openConnection();
-	      	
-	      }
-	      
-	      con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
-	      
-	      if ( referrer != null && referrer.length() > 0 ){
-	      
-	      	con.setRequestProperty( "Referer", referrer );
-	      }
-	      
-	      if ( request_properties != null ){
-	    	  
-	    	  Iterator it = request_properties.entrySet().iterator();
-	    	  
-	    	  while( it.hasNext()){
-	    		
-	    		  Map.Entry	entry = (Map.Entry)it.next();
-	    		  
-	    		  String	key 	= (String)entry.getKey();
-	    		  String	value	= (String)entry.getValue();
-	    		  
-	    		  	// currently this code doesn't support gzip/deflate...
-	    		  
-	    		  if ( !key.equalsIgnoreCase( "Accept-Encoding" )){
-	    			  	    			    			  
-	    			  con.setRequestProperty( key, value );
-	    		  }
-	    	  }
-	      }
-	      
-	      this.con.connect();
-	      
-	      break;
-	      
-      	}catch( SSLException e ){
-      		
-      		if ( i == 0 ){
-				
-      			if ( SESecurityManager.installServerCertificates( url ) != null ){
-      				
-      				// certificate has been installed
-					
-      				continue;	// retry with new certificate
-      			}
-      		}
+    		try{
 
-      		throw( e );
-      		
-      	}catch( IOException e ){
-      		
-      		if ( i == 0 ){
-      			
-      			URL retry_url = UrlUtils.getIPV4Fallback( url );
-      			
-      			if ( retry_url != null ){
-      				
-      				url = retry_url;
-      				
-      			}else{
-      				
-      				throw( e );
-      			}
-      		}
-      	}
+    			if ( protocol.equals("https")){
+
+    				// see ConfigurationChecker for SSL client defaults
+
+    				HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+
+    				// allow for certs that contain IP addresses rather than dns names
+
+    				ssl_con.setHostnameVerifier(
+    						new HostnameVerifier()
+    						{
+    							public boolean
+    							verify(
+    									String		host,
+    									SSLSession	session )
+    							{
+    								return( true );
+    							}
+    						});
+
+    				con = ssl_con;
+
+    			}else{
+
+    				con = (HttpURLConnection) url.openConnection();
+
+    			}
+
+    			con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+
+    			if ( referrer != null && referrer.length() > 0 ){
+
+    				con.setRequestProperty( "Referer", referrer );
+    			}
+
+    			if ( request_properties != null ){
+
+    				Iterator it = request_properties.entrySet().iterator();
+
+    				while( it.hasNext()){
+
+    					Map.Entry	entry = (Map.Entry)it.next();
+
+    					String	key 	= (String)entry.getKey();
+    					String	value	= (String)entry.getValue();
+
+    					// currently this code doesn't support gzip/deflate...
+
+    					if ( !key.equalsIgnoreCase( "Accept-Encoding" )){
+
+    						con.setRequestProperty( key, value );
+    					}
+    				}
+    			}
+
+    			this.con.connect();
+
+    			break;
+
+    		}catch( SSLException e ){
+
+    			if ( i == 0 ){
+
+    				if ( SESecurityManager.installServerCertificates( url ) != null ){
+
+    					// certificate has been installed
+
+    					continue;	// retry with new certificate
+    				}
+    			}
+
+    			throw( e );
+
+    		}catch( IOException e ){
+
+    			if ( i == 0 ){
+
+    				URL retry_url = UrlUtils.getIPV4Fallback( url );
+
+    				if ( retry_url != null ){
+
+    					url = retry_url;
+
+    				}else{
+
+    					throw( e );
+    				}
+    			}
+    			
+    			if ( e instanceof UnknownHostException ){
+    				
+    				throw( e );
+    			}
+    		}
       }
       
   		int response = this.con.getResponseCode();
