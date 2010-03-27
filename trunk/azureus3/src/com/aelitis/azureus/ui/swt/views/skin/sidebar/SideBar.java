@@ -417,6 +417,9 @@ public class SideBar
 							SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
 							//System.out.println("PaintItem: " + event.item + ";" + event.index + ";" + event.detail + ";" + id + ";" + event.getBounds() + ";" + event.gc.getClipping());
 							if (entry != null) {
+								if (getCurrentEntry() != entry) {
+									event.detail &= ~SWT.SELECTED;
+								}
 								entry.swt_paintSideBar(event);
 							}
 						}
