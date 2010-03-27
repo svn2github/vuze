@@ -463,7 +463,7 @@ public class SWTSkinObjectBasic
 					if (ld instanceof FormData) {
 						FormData fd = (FormData) ld;
 						if (!visible) {
-							if (fd.width != 0 && fd.height != 0) {
+							if (fd.width > 0 && fd.height > 0) {
 								control.setData("oldSize", new Point(fd.width, fd.height));
 								changed = true;
 							}

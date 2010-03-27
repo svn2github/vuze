@@ -953,9 +953,11 @@ public class SWTSkin
 		}
 
 		if (!skinObject.getDefaultVisibility()) {
-  		controlToLayout.setData("oldSize", new Point(properties.getIntValue(sConfigID + ".width",
-  				SWT.DEFAULT), properties.getIntValue(sConfigID + ".height",
-  						SWT.DEFAULT)));
+			if (controlToLayout.getData("oldSize") == null) {
+    		controlToLayout.setData("oldSize", new Point(properties.getIntValue(sConfigID + ".width",
+    				SWT.DEFAULT), properties.getIntValue(sConfigID + ".height",
+    						SWT.DEFAULT)));
+			}
 //			if (newFormData.width != 0 && newFormData.height != 0) {
 //				controlToLayout.setData("oldSize", new Point(newFormData.width,
 //						newFormData.height));
