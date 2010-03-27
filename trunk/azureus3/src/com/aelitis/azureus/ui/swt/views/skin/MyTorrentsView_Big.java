@@ -29,11 +29,33 @@ public class MyTorrentsView_Big
 	public MyTorrentsView_Big(AzureusCore _azureus_core, int torrentFilterMode,
 			TableColumnCore[] basicItems) {
 		this.torrentFilterMode = torrentFilterMode;
+		Class forDataSourceType;
+		switch (torrentFilterMode) {
+			case SBC_LibraryView.TORRENTS_COMPLETE:
+				forDataSourceType = DownloadTypeComplete.class;
+				break;
+
+			case SBC_LibraryView.TORRENTS_INCOMPLETE:
+				forDataSourceType = DownloadTypeIncomplete.class;
+				break;
+				
+			case SBC_LibraryView.TORRENTS_UNOPENED:
+				forDataSourceType = Download.class;
+				break;
+				
+			case SBC_LibraryView.TORRENTS_ALL:
+				forDataSourceType = Download.class;
+				break;
+
+			default:
+				forDataSourceType = null;
+				break;
+		}
 		init(
 				_azureus_core,
 				SBC_LibraryView.getTableIdFromFilterMode(torrentFilterMode, true),
 				torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE ? false : true,
-				basicItems);
+				forDataSourceType, basicItems);
 		//setForceHeaderVisible(true);
 	}
 	
