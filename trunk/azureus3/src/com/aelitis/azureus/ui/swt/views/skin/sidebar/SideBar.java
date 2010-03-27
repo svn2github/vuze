@@ -657,12 +657,8 @@ public class SideBar
 				} else {
 					draggingOver = null;
 				}
-				if (Constants.isOSX) {
-					tree.redraw();
-				}
 				if (draggingOver == null || !draggingOver.hasDropListeners()) {
 					event.detail = DND.DROP_NONE;
-					event.operations = DND.DROP_NONE;
 					draggingOver = null;
 				} else if ((event.operations & DND.DROP_LINK) > 0)
 					event.detail = DND.DROP_LINK;
@@ -670,6 +666,10 @@ public class SideBar
 					event.detail = DND.DROP_COPY;
 				else if ((event.operations & DND.DROP_DEFAULT) > 0)
 					event.detail = DND.DROP_COPY;
+
+				if (Constants.isOSX) {
+					tree.redraw();
+				}
 			}
 
 			// @see org.eclipse.swt.dnd.DropTargetAdapter#dragLeave(org.eclipse.swt.dnd.DropTargetEvent)
