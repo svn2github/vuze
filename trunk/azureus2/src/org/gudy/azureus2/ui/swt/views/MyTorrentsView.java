@@ -154,7 +154,8 @@ public class MyTorrentsView
       TableColumnCore[]	basicItems) 
   {
 		super("MyTorrentsView");
-  	init(_azureus_core, tableID, isSeedingView, basicItems);
+		init(_azureus_core, tableID, isSeedingView, isSeedingView
+				? DownloadTypeComplete.class : DownloadTypeIncomplete.class, basicItems);
   }
   
   // @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
@@ -163,12 +164,11 @@ public class MyTorrentsView
   }
   
   public void init(AzureusCore _azureus_core, String tableID,
-			boolean isSeedingView, TableColumnCore[] basicItems) {
+			boolean isSeedingView, Class forDataSourceType, TableColumnCore[] basicItems) {
 
   	this.isSeedingView 	= isSeedingView;
   	
-    tv = createTableView(isSeedingView ? DownloadTypeComplete.class
-				: DownloadTypeIncomplete.class, tableID, basicItems);
+    tv = createTableView(forDataSourceType, tableID, basicItems);
     tv.setRowDefaultIconSize(new Point(16, 16));
     
     /*
