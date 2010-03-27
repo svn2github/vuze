@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Base32;
 
-
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -21,6 +20,8 @@ public class VuzeListener
 	public static final String OP_LOAD_VUZE_FILE = "load-vuze-file";
 
 	public static final String OP_INSTALL_TRIAL = "install-trial";
+
+	public static final String OP_GET_MODE = "get-mode";
 
 	public 
 	VuzeListener() 
@@ -63,6 +64,20 @@ public class VuzeListener
 			}
 		}else if (OP_INSTALL_TRIAL.equals(opid)) {
 			FeatureManagerUI.createTrial();
+
+		}else if (OP_GET_MODE.equals(opid)) {
+			Map decodedMap = message.getDecodedMap();
+
+			String callback = MapUtils.getMapString(decodedMap, "callback", null);
+			
+			if (callback != null) {
+				
+				context.executeInBrowser(callback + "('" + FeatureManagerUI.getMode() + "')");
+				
+			} else {
+				
+				message.debug("bad or no callback param");
+			}
 		}else{
 			
 			throw new IllegalArgumentException("Unknown operation: " + opid);
