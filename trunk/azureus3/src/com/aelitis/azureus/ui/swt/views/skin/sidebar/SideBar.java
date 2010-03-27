@@ -662,6 +662,8 @@ public class SideBar
 				}
 				if (draggingOver == null || !draggingOver.hasDropListeners()) {
 					event.detail = DND.DROP_NONE;
+					event.operations = DND.DROP_NONE;
+					draggingOver = null;
 				} else if ((event.operations & DND.DROP_LINK) > 0)
 					event.detail = DND.DROP_LINK;
 				else if ((event.operations & DND.DROP_COPY) > 0)
