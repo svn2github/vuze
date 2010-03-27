@@ -344,8 +344,8 @@ public class DonationWindow
 	}
 
 	public static void updateMinDate() {
-		COConfigurationManager.setParameter("donations.minDate", SystemTime.getOffsetTime(1000 * 3600 * 24 * 30));  //30d ahead
-		COConfigurationManager.setParameter("donations.maxDate", SystemTime.getOffsetTime(1000 * 3600 * 24 * 120));  //4mo ahead
+		COConfigurationManager.setParameter("donations.minDate", SystemTime.getOffsetTime(1000l * 3600 * 24 * 30));  //30d ahead
+		COConfigurationManager.setParameter("donations.maxDate", SystemTime.getOffsetTime(1000l * 3600 * 24 * 120));  //4mo ahead
 		//COConfigurationManager.save();
 	}
 	
