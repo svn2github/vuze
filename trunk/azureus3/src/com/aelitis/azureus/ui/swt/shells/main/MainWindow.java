@@ -2003,7 +2003,7 @@ public class MainWindow
 	 * @since 4.0.0.1
 	 */
 	protected void fixupActionBarSize() {
-		final int MAXWIDTH = 350;
+		final int MAXWIDTH = 320;
 		Rectangle clientArea = shell.getClientArea();
 		SWTSkinObject soSearch = skin.getSkinObject("topbar-area-search");
 		if (soSearch == null) {
