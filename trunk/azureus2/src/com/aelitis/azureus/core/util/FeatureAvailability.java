@@ -41,6 +41,8 @@ FeatureAvailability
 	
 	private static VersionCheckClient vcc = VersionCheckClient.getSingleton();
 	
+	public static final boolean ENABLE_PLUS = true;
+	
 	public static boolean
 	areInternalFeaturesEnabled()
 	{
