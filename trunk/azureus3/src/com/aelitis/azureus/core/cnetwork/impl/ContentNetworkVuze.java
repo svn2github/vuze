@@ -38,7 +38,7 @@ ContentNetworkVuze
 	private static final String DEFAULT_RELAY_PORT = "80";
  
 	static{
-		if ( FeatureAvailability.ENABLE_PLUS ){
+		if ( FeatureAvailability.ENABLE_PLUS()){
 			System.setProperty( "platform_address", "www2.vuze.com" );
 		}
 	}
