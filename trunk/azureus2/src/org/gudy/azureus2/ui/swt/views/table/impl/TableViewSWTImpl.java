@@ -775,7 +775,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				paintItem(event);
 
 				// Vertical lines between columns
-				if (DRAW_VERTICAL_LINES ) {
+				if (DRAW_VERTICAL_LINES) {
 					Color fg = event.gc.getForeground();
 					event.gc.setForeground(Colors.black);
 					event.gc.setAlpha(40);
@@ -806,13 +806,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 
-		// OSX SWT (3624) Requires SWT.EraseItem hooking, otherwise foreground
-		// color will not be set correctly when row is selected.
-		// Hook listener for all OSes in case this requirement beomes xplatform
-		table.addListener(SWT.EraseItem, new Listener() {
-			public void handleEvent(Event event) {
-			}
-		});
 		//table.addListener(SWT.Paint, new Listener() {
 		//	public void handleEvent(Event event) {
 		//		System.out.println("paint " + event.getBounds() + ";" + table.getColumnCount());
@@ -5247,6 +5240,25 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			public void runSupport() {
 				if (!isDisposed()) {
 					table.setEnabled(enable);
+					if (enable) {
+						Image oldImage = table.getBackgroundImage();
+						table.setBackgroundImage(null);
+						Utils.disposeSWTObjects(new Object[] { oldImage } );
+					} else {
+						final Image image = new Image(table.getDisplay(), 50, 50);
+						
+						GC gc = new GC(image);
+						gc.setBackground(ColorCache.getColor(gc.getDevice(), 0xff, 0xff, 0xff));
+						gc.fillRectangle(0, 0, 50, 50);
+						gc.dispose();
+						table.addDisposeListener(new DisposeListener() {
+							public void widgetDisposed(DisposeEvent e) {
+								Utils.disposeSWTObjects(new Object[] { image } );
+							}
+						});
+						
+						table.setBackgroundImage(image);
+					}
 				}
 			}
 		});
