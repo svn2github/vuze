@@ -40,7 +40,7 @@ import com.aelitis.azureus.util.ConstantsVuze;
 public class FeatureManagerUI
 {
 	public static boolean enabled = !Constants.isUnix
-			&& FeatureAvailability.areInternalFeaturesEnabled()
+			&& FeatureAvailability.ENABLE_PLUS
 			|| System.getProperty("fm.ui", "0").equals("1");
 
 	private static FeatureManager featman;

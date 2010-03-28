@@ -36,9 +36,9 @@ ContentNetworkVuze
 	private static final String DEFAULT_RELAY_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  use the -Drelay_address=ip override instead
 
 	private static final String DEFAULT_RELAY_PORT = "80";
-
+ 
 	static{
-		if ( FeatureAvailability.areInternalFeaturesEnabled()){
+		if ( FeatureAvailability.ENABLE_PLUS ){
 			System.setProperty( "platform_address", "www2.vuze.com" );
 		}
 	}
