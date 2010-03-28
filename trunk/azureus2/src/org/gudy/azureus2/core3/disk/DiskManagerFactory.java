@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.disk;
 
 
 import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerUtil;
 import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -114,7 +115,7 @@ DiskManagerFactory
 		DownloadManager			download_manager,
 		DiskManagerListener		listener )
 	{
-		return( DiskManagerImpl.getFileInfoSkeleton( download_manager, listener ));
+		return( DiskManagerUtil.getFileInfoSkeleton( download_manager, listener ));
 	}
 
 	public static void

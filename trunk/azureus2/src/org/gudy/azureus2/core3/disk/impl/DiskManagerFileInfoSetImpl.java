@@ -23,7 +23,6 @@ import java.util.Arrays;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
-import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl.FileSkeleton;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -78,7 +77,7 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 		try	{
 			dmState.suppressStateSave(true);
 			
-			if (!setSkipped && !Arrays.equals(toChange, setStorageTypes(toChange, FileSkeleton.ST_LINEAR)))
+			if (!setSkipped && !Arrays.equals(toChange, setStorageTypes(toChange, DiskManagerFileInfo.ST_LINEAR)))
 				return;
 			
 			for (int i = 0; i < files.length; i++)
