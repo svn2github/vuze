@@ -191,7 +191,7 @@ DiskManagerUtil
 				{
 					if(types[i].equals("C"))
 						currentFile.delete();
-				} else if(allowAlloction && types[i].equals("L") && !currentFile.exists())	{
+				} else if(allowAlloction && !currentFile.exists())	{
 					/*
 					 * file must exist, does not exist and we probably just changed to linear
 					 * mode, assume that (re)allocation of adjacent files is necessary
