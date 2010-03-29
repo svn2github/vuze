@@ -46,6 +46,9 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
@@ -90,7 +93,33 @@ public class ConfigView extends AbstractIView {
   	// need to initalize composite now, since getComposite can
   	// be called at any time
     cConfig = new Composite(composite, SWT.NONE);
-		_initialize(composite);
+
+    GridLayout configLayout = new GridLayout();
+    configLayout.marginHeight = 0;
+    configLayout.marginWidth = 0;
+    cConfig.setLayout(configLayout);
+    GridData gridData = new GridData(GridData.FILL_BOTH);
+    cConfig.setLayoutData(gridData);
+
+    final Label label = new Label(cConfig, SWT.CENTER);
+    Messages.setLanguageText(label, "view.waiting.core");
+    gridData = new GridData(GridData.FILL_BOTH);
+    label.setLayoutData(gridData);
+    
+    // Need to delay initialation until core is done so we can guarantee
+    // all config sections are loaded (ie. plugin ones).
+    // TODO: Maybe add them on the fly?
+    AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						_initialize(composite);
+						label.dispose();
+						composite.layout(true, true);
+					}
+				});
+			}
+		});
   }
   	
   public void _initialize(Composite composite) {
@@ -116,13 +145,7 @@ public class ConfigView extends AbstractIView {
     */
     try {
       Display d = composite.getDisplay();
-
-      GridLayout configLayout = new GridLayout();
-      configLayout.marginHeight = 0;
-      configLayout.marginWidth = 0;
-      cConfig.setLayout(configLayout);
-      gridData = new GridData(GridData.FILL_BOTH);
-      cConfig.setLayoutData(gridData);
+      GridLayout configLayout;
   
       SashForm form = new SashForm(cConfig,SWT.HORIZONTAL);
       gridData = new GridData(GridData.FILL_BOTH);
