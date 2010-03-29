@@ -1014,6 +1014,9 @@ public class MainWindow
 				final String CFG_STARTTAB = "v3.StartTab";
 				String startTab;
 				boolean showWelcome = COConfigurationManager.getBooleanParameter("v3.Show Welcome");
+				if (ConfigurationChecker.isNewVersion()) {
+					showWelcome = true;
+				}
 
 				ContentNetwork startupCN = ContentNetworkManagerFactory.getSingleton().getStartupContentNetwork();
 				if (!startupCN.isServiceSupported(ContentNetwork.SERVICE_WELCOME)) {
