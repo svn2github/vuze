@@ -361,7 +361,7 @@ public class SideBarEntrySWT
 					skin.addSkinObject(soContents);
 
 					SWTSkinObject skinObject = skin.createSkinObject(id, skinRef,
-							soContents, getSkinRefParams());
+							soContents, getDatasourceCore());
 					skin.addSkinObject(soContents);
 
 					control = skinObject.getControl();

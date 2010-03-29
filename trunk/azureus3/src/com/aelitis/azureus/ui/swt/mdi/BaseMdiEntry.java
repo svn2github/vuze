@@ -484,15 +484,13 @@ public abstract class BaseMdiEntry
 
 	public void setSkinRef(String configID, Object params) {
 		skinRef = configID;
-		skinRefParams = params;
+		if (params != null) {
+			setDatasource(params);
+		}
 	}
 
 	public String getSkinRef() {
 		return skinRef;
-	}
-
-	public Object getSkinRefParams() {
-		return skinRefParams;
 	}
 
 	public String getTitle() {

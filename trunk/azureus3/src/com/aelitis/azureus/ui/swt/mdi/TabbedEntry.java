@@ -82,7 +82,7 @@ public class TabbedEntry
 
 					
 					SWTSkinObject skinObject = skin.createSkinObject(id, skinRef,
-							soParent, getSkinRefParams());
+							soParent, getDatasourceCore());
 					
 					control = skinObject.getControl();
 					control.setLayoutData(Utils.getFilledFormData());

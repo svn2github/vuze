@@ -1313,14 +1313,14 @@ public class SWTSkin
 	 * @return new skin object
 	 */
 	public SWTSkinObject createSkinObject(String sID, String sConfigID,
-			SWTSkinObject parentSkinObject, Object creationParams) {
+			SWTSkinObject parentSkinObject, Object datasource) {
 		SWTSkinObject skinObject = null;
 		Cursor cursor = shell.getCursor();
 		try {
 			shell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 
 			skinObject = linkIDtoParent(skinProperties, sID, sConfigID,
-					parentSkinObject, true, true, creationParams);
+					parentSkinObject, true, true, datasource);
 
 			if (bLayoutComplete) {
 				layout(skinObject);
@@ -1403,7 +1403,7 @@ public class SWTSkin
 
 	private SWTSkinObject linkIDtoParent(SWTSkinProperties properties,
 			String sID, String sConfigID, SWTSkinObject parentSkinObject,
-			boolean bForceCreate, boolean bAddView, Object creationParams) {
+			boolean bForceCreate, boolean bAddView, Object datasource) {
 		currentSkinObjectcreationCount++;
 
 		SWTSkinObject skinObject = null;
@@ -1504,7 +1504,11 @@ public class SWTSkin
 				System.err.println(sConfigID + ": Invalid type of " + sType);
 			}
 
-			skinObject.setData("CreationParams", creationParams);
+			skinObject.setData("CreationParams", datasource);
+			if (datasource != null) {
+				skinObject.triggerListeners(
+						SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED, datasource);
+			}
 
 			if (bAddView) {
 				String sViewID = skinObject.getViewID();
