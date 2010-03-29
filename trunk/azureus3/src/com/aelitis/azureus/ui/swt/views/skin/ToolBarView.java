@@ -29,21 +29,24 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.IconBarEnabler;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RankItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.devices.DeviceManager;
+import com.aelitis.azureus.core.devices.DeviceManagerFactory;
+import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
-import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -51,18 +54,15 @@ import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
 import com.aelitis.azureus.ui.swt.devices.TranscodeChooser;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.PlayUtils;
-
-import org.gudy.azureus2.plugins.ui.UIInputReceiver;
-import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
-import org.gudy.azureus2.plugins.ui.UIPluginView;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 /**
  * @author TuxPaper
@@ -88,6 +88,8 @@ public class ToolBarView
 	private SWTSkinObject soGap;
 
 	private boolean initComplete = false;
+	
+	private ArrayList<ToolBarViewListener> listeners = new ArrayList<ToolBarViewListener>(1);
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(final SWTSkinObject skinObject,
@@ -547,6 +549,16 @@ public class ToolBarView
 
 		initComplete = true;
 
+		synchronized (listeners) {
+			for (ToolBarViewListener l : listeners) {
+				try {
+					l.toolbarViewInitialized(this);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+		}
+		
 		return null;
 	}
 
@@ -1086,6 +1098,30 @@ public class ToolBarView
 		} catch (Exception e) {
 			Debug.out(e);
 		}
+	}
+	
+	public void addListener(ToolBarViewListener l) {
+		synchronized (listeners) {
+			listeners.add(l);
+			
+			if (initComplete) {
+				try {
+					l.toolbarViewInitialized(this);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+		}
+	}
+	
+	public void removeListener(ToolBarViewListener l) {
+		synchronized (listeners) {
+			listeners.remove(l);
+		}
+	}
+	
+	public interface ToolBarViewListener {
+		public void toolbarViewInitialized(ToolBarView tbv);
 	}
 
 }

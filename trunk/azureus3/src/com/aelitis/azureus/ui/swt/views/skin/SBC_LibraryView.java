@@ -60,6 +60,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemListener;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.views.skin.ToolBarView.ToolBarViewListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarVitalityImageSWT;
 
@@ -253,18 +254,19 @@ public class SBC_LibraryView
 			});
 		}
 		
-		SkinViewManager.addListener(new SkinViewManager.SkinViewManagerListener() {
+		SkinViewManager.addListener(ToolBarView.class,
+				new SkinViewManager.SkinViewManagerListener() {
 			public void skinViewAdded(SkinView skinview) {
 				if (skinview instanceof ToolBarView) {
-					initToolBarView((ToolBarView) skinview);
+					ToolBarView tbv = (ToolBarView) skinview;
+					tbv.addListener(new ToolBarViewListener() {
+						public void toolbarViewInitialized(ToolBarView tbv) {
+							initToolBarView(tbv);
+						}
+					});
 				}
 			}
 		});
-
-		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-		if (tb != null) {
-			initToolBarView(tb);
-		}
 
 		return null;
 	}
@@ -298,12 +300,21 @@ public class SBC_LibraryView
 				}
 			});
 		}
+		
+		if (isVisible()) {
+			setupModeButtons();
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
 		
+		setupModeButtons();
+		return null;
+	}
+	
+	private void setupModeButtons() {
 		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 		if (tb != null) {
 			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
@@ -319,7 +330,6 @@ public class SBC_LibraryView
 						viewMode == MODE_BIGTABLE ? "-down" : "");
 			}
 		}
-		return null;
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
