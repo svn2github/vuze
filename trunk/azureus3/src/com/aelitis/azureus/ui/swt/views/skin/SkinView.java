@@ -120,6 +120,11 @@ public abstract class SkinView
 	public SWTSkinObject getMainSkinObject() {
 		return soMain;
 	}
+	
+	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
+		SkinViewManager.add(this);
+		return super.skinObjectCreated(skinObject, params);
+	}
 
 	final public void setMainSkinObject(SWTSkinObject main) {
 		if (soMain != null) {
@@ -129,7 +134,6 @@ public abstract class SkinView
 		if (soMain != null) {
 			skin = soMain.getSkin();
 		}
-		SkinViewManager.add(this);
 	}
 
 	final public SWTSkin getSkin() {
