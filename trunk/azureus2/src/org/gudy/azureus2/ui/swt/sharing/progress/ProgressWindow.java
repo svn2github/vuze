@@ -41,7 +41,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.animations.Animator;
 import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
 import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.PopupShell;
 
 import org.gudy.azureus2.plugins.sharing.ShareException;
@@ -53,6 +52,8 @@ public class
 ProgressWindow
 	implements ShareManagerListener
 {
+	private boolean	DO_ANIMATION	= false;	// broken so I'm turning off
+	
 	private ShareManager	share_manager;
 	private progressDialog	dialog = null;
 	
@@ -67,18 +68,14 @@ ProgressWindow
 	private boolean			manually_hidden;
 	
 	public
-	ProgressWindow()
+	ProgressWindow(
+		Display		_display )
 	{
 		try{
 			share_manager	= PluginInitializer.getDefaultInterface().getShareManager();
 			
-			display = SWTThread.getInstance().getDisplay();
-			
-			if ( display.isDisposed()){
-				
-				return;
-			}
-		
+			display = _display;
+					
 			share_manager.addListener(this);
 			
 		}catch( ShareException e ){
@@ -183,23 +180,31 @@ ProgressWindow
 			});
 
 			
-	      Rectangle bounds = dialog_display.getClientArea();    
+	      Rectangle bounds = shell.getMonitor().getClientArea();    
 	      x0 = bounds.x + bounds.width - 255;
 	      x1 = bounds.x + bounds.width;
 	
 	      y0 = bounds.y + bounds.height;
 	      y1 = bounds.y + bounds.height - 155;
-					
-			shell.setLocation(x0,y0);
+				
+	      if ( DO_ANIMATION ){
+	    	  shell.setLocation(x0,y0);
+	      }else{
+	    	  shell.setLocation(x0,y1);
+	      }
 		}
 		
 		protected void
 		hidePanel()
 		{		
 			manually_hidden	= true;
-			currentAnimator = new LinearAnimator(this,new Point(x0,y1),new Point(x1,y1),15,30);
-			currentAnimator.start();
-			hideAfter = true;
+			if ( DO_ANIMATION ){
+				currentAnimator = new LinearAnimator(this,new Point(x0,y1),new Point(x1,y1),15,30);
+				currentAnimator.start();
+				hideAfter = true;
+			}else{
+				shell.setVisible( false );
+			}
 		}
 		
 		protected void
@@ -214,7 +219,7 @@ ProgressWindow
 				
 				shell.open();	
 				
-				animate = true ;
+				animate = DO_ANIMATION ;
 			}
       
       
@@ -226,7 +231,7 @@ ProgressWindow
 			
 			if ( !shell.isVisible()){				
 				shell.setVisible(true);
-				animate = true ;
+				animate = DO_ANIMATION ;
 			}
 			
 			if(animate && currentAnimator == null) {
