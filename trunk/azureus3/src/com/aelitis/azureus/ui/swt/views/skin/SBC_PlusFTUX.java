@@ -78,7 +78,7 @@ public class SBC_PlusFTUX
 
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
-		buildURL();
+		buildURL(true);
 		return null;
 	}
 
@@ -97,17 +97,17 @@ public class SBC_PlusFTUX
 	 * @param hasFullLicence
 	 */
 	public void updateLicenceInfo() {
-		buildURL();
+		buildURL(false);
 	}
 
-	private void buildURL() {
+	private void buildURL(boolean forceSet) {
 		long remainingUses = FeatureManagerUI.getRemaining();
 
 		String suffix = "?mode=" + FeatureManagerUI.getMode()
 				+ "&sourceRef=" + UrlUtils.encode(sRef) + "&remaining=" + remainingUses;
 		String newUrl = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
 				"plus-ftux.start" + suffix, false);
-		if (newUrl.equals(url)) {
+		if (!forceSet && newUrl.equals(url)) {
 			return;
 		}
 		
@@ -121,7 +121,7 @@ public class SBC_PlusFTUX
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		MdiEntry currentEntry = mdi.getCurrentEntry();
 
-		if (browserSkinObject != null && entry == currentEntry) {
+		if (browserSkinObject != null && (forceSet || entry == currentEntry)) {
 			browserSkinObject.setURL(url);
 		}
 	}
@@ -135,7 +135,7 @@ public class SBC_PlusFTUX
 
 		SBC_PlusFTUX sv = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
 		if (sv != null) {
-			sv.buildURL();
+			sv.buildURL(false);
 		}
 	}
 }

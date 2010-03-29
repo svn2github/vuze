@@ -82,7 +82,7 @@ public class SBC_BurnFTUX
 	
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
-		buildURL();
+		buildURL(true);
 		return null;
 	}
 	
@@ -101,12 +101,10 @@ public class SBC_BurnFTUX
 	 * @param hasFullLicence
 	 */
 	public void updateLicenceInfo() {
-		buildURL();
+		buildURL(false);
 	}
 
-	private void buildURL() {
-		boolean isFull = FeatureManagerUI.hasFullLicence();
-		boolean isTrial = FeatureManagerUI.hasFullBurn() && !isFull;
+	private void buildURL(boolean forceSet) {
 		long remainingUses = FeatureManagerUI.getRemaining();
 
 		String suffix = "?view=" + entryID + "&mode="
@@ -114,7 +112,7 @@ public class SBC_BurnFTUX
 				+ UrlUtils.encode(sRef) + "&remaining=" + remainingUses;
 		String newUrl = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
 				"burn_ftux.start" + suffix, false);
-		if (newUrl.equals(url)) {
+		if (!forceSet && newUrl.equals(url)) {
 			return;
 		}
 		
@@ -127,7 +125,7 @@ public class SBC_BurnFTUX
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		MdiEntry currentEntry = mdi.getCurrentEntry();
 
-		if (browserSkinObject != null && entry == currentEntry) {
+		if (browserSkinObject != null && (forceSet || entry == currentEntry)) {
 			browserSkinObject.setURL(url);
 		}
 	}
@@ -141,7 +139,7 @@ public class SBC_BurnFTUX
 		SkinView[] views = SkinViewManager.getMultiByClass(SBC_BurnFTUX.class);
 		if (views != null) {
 			for (SkinView bview : views) {
-				((SBC_BurnFTUX) bview).buildURL();
+				((SBC_BurnFTUX) bview).buildURL(false);
 			}
 		}
 	}
