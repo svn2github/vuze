@@ -171,7 +171,7 @@ public class VuzeMessageBox
   			resultListeners.add(l);
   		}
 		}
-		dlg = new SkinnedDialog("skin3_dlg_generic", "shell") {
+		dlg = new SkinnedDialog("skin3_dlg_generic", "shell", SWT.DIALOG_TRIM) {
 			protected void setSkin(SWTSkin skin) {
 				super.setSkin(skin);
 				
