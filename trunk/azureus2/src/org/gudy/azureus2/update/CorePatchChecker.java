@@ -28,6 +28,7 @@ package org.gudy.azureus2.update;
  */
 
 import java.io.*;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -46,6 +47,8 @@ CorePatchChecker
 	public static final boolean	TESTING	= false;
 	
 	protected PluginInterface	plugin_interface;
+	
+	private Map<UpdateCheckInstance,Update>	my_updates = new HashMap<UpdateCheckInstance, Update>(1);
 	
 	public void 
 	initialize(
@@ -91,9 +94,11 @@ CorePatchChecker
 		
 			inst.addListener( this );
 		
-			checker.addUpdate( "Core Patch Checker", new String[0], "",
+			my_updates.put(
+				inst,
+				checker.addUpdate( "Core Patch Checker", new String[0], "",
 								new ResourceDownloader[0],
-								Update.RESTART_REQUIRED_MAYBE );
+								Update.RESTART_REQUIRED_MAYBE ));
 		}finally{
 			
 			checker.completed();
@@ -104,12 +109,25 @@ CorePatchChecker
 	cancelled(
 		UpdateCheckInstance		instance )
 	{
+		Update update = my_updates.remove( instance );
+		
+		if ( update != null ){
+			
+			update.cancel();
+		}
 	}
 	
 	public void
 	complete(
 		final UpdateCheckInstance		instance )
 	{
+		Update my_update = my_updates.remove( instance );
+		
+		if ( my_update != null ){
+			
+			my_update.complete( true );
+		}
+		
 		Update[]	updates = instance.getUpdates();
 		
 		final PluginInterface updater_plugin = plugin_interface.getPluginManager().getPluginInterfaceByClass( UpdaterUpdateChecker.class );

@@ -786,52 +786,6 @@ PluginInstallerImpl
 							try{
 								ResourceDownloader rd = 
 									manager.getDefaultPluginInterface().getUtilities().getResourceDownloaderFactory().create( new File( plugin_dir ));
-								
-								rd.addListener(
-									new ResourceDownloaderAdapter()
-									{
-										public boolean
-										completed(
-											ResourceDownloader	downloader,
-											InputStream			data )
-										{
-											try{
-												if ( pi.getPluginState().isUnloadable()){
-											
-													pi.getPluginState().unload();
-													
-													FileUtil.recursiveDelete( new File( plugin_dir ));
-												
-												}
-																
-												UpdateInstaller installer = checker.createInstaller();
-													
-												installer.addRemoveAction( new File( plugin_dir ).getCanonicalPath());
-											
-												
-											}catch( Throwable e ){
-												
-												Debug.printStackTrace(e);
-												Logger.log(new LogAlert(LogAlert.REPEATABLE,
-														"Plugin uninstall failed", e));
-											}
-											
-												// don't close the stream as we process it later
-												
-											return( true );
-										}
-										
-										public void
-										failed(
-											ResourceDownloader			downloader,
-											ResourceDownloaderException e )
-										{
-											if ( !downloader.isCancelled()){
-												Logger.log(new LogAlert(LogAlert.REPEATABLE,
-														"Plugin uninstall failed", e));
-											}
-										}
-									});
 	
 									// the plugin may have > 1 plugin interfaces, make the name up appropriately
 								
@@ -860,13 +814,65 @@ PluginInstallerImpl
 									}
 								}
 								
-								checker.addUpdate(
+								final Update update = checker.addUpdate(
 									update_name,
 									new String[]{ "Uninstall: " + plugin_dir},
 									pi.getPluginVersion(),
 									rd,
 									pi.getPluginState().isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
 									
+								rd.addListener(
+										new ResourceDownloaderAdapter()
+										{
+											public boolean
+											completed(
+												ResourceDownloader	downloader,
+												InputStream			data )
+											{
+												try{
+													if ( pi.getPluginState().isUnloadable()){
+												
+														pi.getPluginState().unload();
+														
+														FileUtil.recursiveDelete( new File( plugin_dir ));
+													
+													}
+																	
+													UpdateInstaller installer = checker.createInstaller();
+														
+													installer.addRemoveAction( new File( plugin_dir ).getCanonicalPath());
+												
+													update.complete( true );
+													
+												}catch( Throwable e ){
+													
+													update.complete( false );
+													
+													Debug.printStackTrace(e);
+													
+													Logger.log(new LogAlert(LogAlert.REPEATABLE,
+															"Plugin uninstall failed", e));
+												}
+												
+													// don't close the stream as we process it later
+													
+												return( true );
+											}
+											
+											public void
+											failed(
+												ResourceDownloader			downloader,
+												ResourceDownloaderException e )
+											{
+												update.complete( false );
+												
+												if ( !downloader.isCancelled()){
+													
+													Logger.log(new LogAlert(LogAlert.REPEATABLE,
+															"Plugin uninstall failed", e));
+												}
+											}
+										});
 							}finally{
 								
 								checker.completed();

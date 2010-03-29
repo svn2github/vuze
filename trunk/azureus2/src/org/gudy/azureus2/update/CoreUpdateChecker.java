@@ -438,6 +438,16 @@ CoreUpdateChecker
 									
 							return( true );
 						}
+						
+						public void
+						failed(
+							ResourceDownloader			downloader,
+							ResourceDownloaderException e )
+						{
+							Debug.out( downloader.getName() + " failed", e );
+							
+							update.complete( false );
+						}
 					});
 		}catch( Throwable e ){
 			
@@ -838,7 +848,12 @@ CoreUpdateChecker
 						installer.getInstallDir() + File.separator + target_jar_name );
 				}
 			}
+			
+			update.complete( true );
+			
 		}catch( Throwable e ){
+			
+			update.complete( false );
 			
 			rd.reportActivity("Update install failed:" + e.getMessage());
 		}

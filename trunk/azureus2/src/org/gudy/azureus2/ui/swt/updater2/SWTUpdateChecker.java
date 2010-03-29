@@ -222,10 +222,25 @@ public class SWTUpdateChecker implements UpdatableComponent
 	      
 	      swtDownloader.addListener(new ResourceDownloaderAdapter() {
 		        
-		        public boolean completed(ResourceDownloader downloader, InputStream data) {
-		          //On completion, process the InputStream to store temp files
+		        public boolean 
+		        completed(
+		        	ResourceDownloader downloader, 
+		        	InputStream data) 
+		        {
+		        		//On completion, process the InputStream to store temp files
+		        	
 		          return processData(checker,update,downloader,data);
 		        }
+		        
+				public void
+				failed(
+					ResourceDownloader			downloader,
+					ResourceDownloaderException e )
+				{
+					Debug.out( downloader.getName() + " failed", e );
+					
+					update.complete( false );
+				}
 		      });
 	    }
   	}catch( Throwable e ){
@@ -313,7 +328,13 @@ public class SWTUpdateChecker implements UpdatableComponent
     	   Debug.outNoStack( "SWTUpdate: ignoring zip entry '" + name + "'" );
        }
       }     
-    } catch(Exception e) {
+      
+      update.complete( true );
+      
+    } catch(Throwable e) {
+    	
+    	update.complete( false );
+    	
   		Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
 				"SWT Update failed", e));
       return false;

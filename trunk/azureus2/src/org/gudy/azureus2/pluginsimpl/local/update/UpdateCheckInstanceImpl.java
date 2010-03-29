@@ -189,6 +189,8 @@ UpdateCheckInstanceImpl
 			
 			if ( active_checker == null ){
 				
+				// System.out.println( "UCI: starting " + getName());
+				
 				active_checker = this;
 				
 				run_now = true;
@@ -235,6 +237,8 @@ UpdateCheckInstanceImpl
 									}catch( Throwable e ){
 									}
 									
+									// System.out.println( "UCI: done " + getName());
+									
 									synchronized( UpdateCheckInstanceImpl.class ){
 										
 										active_checker = null;
@@ -250,6 +254,8 @@ UpdateCheckInstanceImpl
 			}else{
 				
 				run_now = false;
+				
+				// System.out.println( "UCI: waiting " + getName());
 				
 				new AEThread2( "UCI:waiter" )
 				{

@@ -795,6 +795,16 @@ PluginUpdatePlugin
 						log.removeListener( list );
 					}
 				}
+				
+				public void
+				failed(
+					ResourceDownloader			downloader,
+					ResourceDownloaderException e )
+				{
+					Debug.out( downloader.getName() + " failed", e );
+					
+					update.complete( false );
+				}
 			});	
 		
 		return( update );
