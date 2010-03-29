@@ -419,4 +419,11 @@ public interface TableCell {
 	 * @since 3.0.4.3
 	 */
 	public int[] getMouseOffset();
+
+	/**
+	 * Returns text that's meant for the clipboard
+	 * 
+	 * @since 4.3.1.5
+	 */
+	public String getClipboardText();
 }

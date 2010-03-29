@@ -101,6 +101,8 @@ public class TableColumnImpl
 
 	private ArrayList cellVisibilityListeners;
 	
+	private ArrayList cellClipboardListeners;
+	
 	private ArrayList<TableColumnExtraInfoListener> columnExtraInfoListeners;
 
 	private Map mapOtherCellListeners;
@@ -604,6 +606,36 @@ public class TableColumnImpl
 		}
 	}
 
+	public void addCellClipboardListener(TableCellClipboardListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellClipboardListeners == null) {
+				cellClipboardListeners = new ArrayList(1);
+			}
+
+			cellClipboardListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void removeCellClipboardListener(TableCellClipboardListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellClipboardListeners == null) {
+				return;
+			}
+
+			cellClipboardListeners.remove(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
 	public void addCellVisibilityListener(TableCellVisibilityListener listener) {
 		try {
 			this_mon.enter();
@@ -718,8 +750,13 @@ public class TableColumnImpl
 		if (listenerObject instanceof TableCellVisibilityListener) {
 			addCellVisibilityListener((TableCellVisibilityListener) listenerObject);
 		}
+
 		if (listenerObject instanceof TableColumnExtraInfoListener) {
 			addColumnExtraInfoListener((TableColumnExtraInfoListener) listenerObject);
+		}
+
+		if (listenerObject instanceof TableCellClipboardListener) {
+			addCellClipboardListener((TableCellClipboardListener) listenerObject);
 		}
 	}
 
@@ -802,6 +839,27 @@ public class TableColumnImpl
 				Debug.printStackTrace(e);
 			}
 		}
+	}
+
+	public String getClipboardText(TableCell cell) {
+		if (cellClipboardListeners == null) {
+			return null;
+		}
+		for (int i = 0; i < cellClipboardListeners.size(); i++) {
+			try {
+				String text = ((TableCellClipboardListener) (cellClipboardListeners.get(i))).getClipboardText(cell);
+				
+				if (text != null) {
+					return text;
+				}
+
+			} catch (Throwable e) {
+
+				Debug.printStackTrace(e);
+			}
+		}
+
+		return null;
 	}
 
 	public void invokeCellToolTipListeners(TableCellCore cell, int type) {

@@ -2086,7 +2086,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					TableRowCore row = (TableRowCore) tis[i].getData("TableRow");
 					TableCellCore cell = row.getTableCellCore(columnName);
 					if (cell != null) {
-						sToClipboard += cell.getText();
+						sToClipboard += cell.getClipboardText();
 					}
 				}
 				if (sToClipboard.length() == 0) {
@@ -3876,11 +3876,19 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		TableItem[] tis = table.getSelection();
 		for (int i = 0; i < tis.length; i++) {
 			sToClipboard += "\n";
-			for (int j = 0; j < table.getColumnCount(); j++) {
-				if (j != 0) {
-					sToClipboard += "\t";
+			TableRowCore row = getRow(tis[i]);
+			TableColumnCore[] visibleColumns = getVisibleColumns();
+			for (int j = 0; j < visibleColumns.length; j++) {
+				TableColumnCore column = visibleColumns[j];
+				if (column.isVisible()) {
+  				if (j != 0) {
+  					sToClipboard += "\t";
+  				}
+  				TableCellCore cell = row.getTableCellCore(column.getName());
+  				if (cell != null) {
+  					sToClipboard += cell.getClipboardText();
+  				}
 				}
-				sToClipboard += tis[i].getText(j);
 			}
 		}
 		new Clipboard(getComposite().getDisplay()).setContents(new Object[] {

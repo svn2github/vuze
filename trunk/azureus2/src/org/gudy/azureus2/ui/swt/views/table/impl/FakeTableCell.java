@@ -88,6 +88,8 @@ public class FakeTableCell
 
 	private ArrayList cellVisibilityListeners;
 
+	private ArrayList<TableCellClipboardListener> cellClipboardListeners;
+
 	private Image image;
 
 	private Rectangle imageBounds;
@@ -364,7 +366,46 @@ public class FakeTableCell
 			}
 		}
 	}
+	
+	private void addCellClipboardListener(TableCellClipboardListener listener) {
+		try {
+			this_mon.enter();
 
+			if (cellClipboardListeners == null)
+				cellClipboardListeners = new ArrayList<TableCellClipboardListener>(1);
+
+			cellClipboardListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public String getClipboardText() {
+		String text = null;
+		try {
+			this_mon.enter();
+
+			if (cellClipboardListeners != null) {
+				for (TableCellClipboardListener l : cellClipboardListeners) {
+					try {
+						text = l.getClipboardText(this);
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+					if (text != null) {
+						break;
+					}
+				}
+			}
+		} finally {
+			this_mon.exit();
+		}
+		if (text == null) {
+			text = this.getText();
+		}
+		return text;
+	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#addListeners(java.lang.Object)
 	public void addListeners(Object listenerObject) {
@@ -390,6 +431,10 @@ public class FakeTableCell
 
 		if (listenerObject instanceof TableCellSWTPaintListener) {
 			addSWTPaintListener((TableCellSWTPaintListener) listenerObject);
+		}
+
+		if (listenerObject instanceof TableCellClipboardListener) {
+			addCellClipboardListener((TableCellClipboardListener) listenerObject);
 		}
 	}
 

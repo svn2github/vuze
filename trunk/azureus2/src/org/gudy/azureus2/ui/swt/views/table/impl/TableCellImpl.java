@@ -113,6 +113,7 @@ public class TableCellImpl
 	private ArrayList cellMouseMoveListeners;
 	private ArrayList cellVisibilityListeners;
 	private ArrayList cellSWTPaintListeners;
+	private ArrayList<TableCellClipboardListener> cellClipboardListeners;
   private TableColumnCore tableColumn;
   private byte refreshErrLoopCount;
   private byte tooltipErrLoopCount;
@@ -948,7 +949,51 @@ public class TableCellImpl
 			}
 		}
 	}
-	
+
+	private void addCellClipboardListener(TableCellClipboardListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellClipboardListeners == null)
+				cellClipboardListeners = new ArrayList<TableCellClipboardListener>(1);
+
+			cellClipboardListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public String getClipboardText() {
+		String text = tableColumn.getClipboardText(this);
+		if (text != null) {
+			return text;
+		}
+
+		try {
+			this_mon.enter();
+
+			if (cellClipboardListeners != null) {
+				for (TableCellClipboardListener l : cellClipboardListeners) {
+					try {
+						text = l.getClipboardText(this);
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+					if (text != null) {
+						break;
+					}
+				}
+			}
+		} finally {
+			this_mon.exit();
+		}
+		if (text == null) {
+			text = this.getText();
+		}
+		return text;
+	}
+
 	public void addListeners(Object listenerObject) {
 		if (listenerObject instanceof TableCellDisposeListener) {
 			addDisposeListener((TableCellDisposeListener)listenerObject);
@@ -973,6 +1018,9 @@ public class TableCellImpl
 
 		if (listenerObject instanceof TableCellSWTPaintListener)
 			addSWTPaintListener((TableCellSWTPaintListener)listenerObject);
+
+		if (listenerObject instanceof TableCellClipboardListener)
+			addCellClipboardListener((TableCellClipboardListener)listenerObject);
 	}
 
 	/**

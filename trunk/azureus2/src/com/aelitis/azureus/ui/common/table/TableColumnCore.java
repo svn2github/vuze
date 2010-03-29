@@ -354,4 +354,6 @@ public interface TableColumnCore
 	List<TableColumnExtraInfoListener> getColumnExtraInfoListeners();
 
 	void reset();
+
+	String getClipboardText(TableCell cell);
 }
