@@ -44,7 +44,7 @@ FeatureAvailability
 	public static final boolean 
 	ENABLE_PLUS()
 	{
-		return( areInternalFeaturesEnabled());
+		return( true );
 	}
 	
 	public static boolean
