@@ -420,7 +420,7 @@ public class SideBar
 							//System.out.println("PaintItem: " + event.item + ";" + event.index + ";" + event.detail + ";" + id + ";" + event.getBounds() + ";" + event.gc.getClipping());
 							if (entry != null) {
 								TreeItem[] selection = tree.getSelection();
-								if (selection == null || selection[0] != treeItem) {
+								if (selection == null || selection.length == 0 || selection[0] != treeItem) {
 									event.detail &= ~SWT.SELECTED;
 								}
 								entry.swt_paintSideBar(event);
