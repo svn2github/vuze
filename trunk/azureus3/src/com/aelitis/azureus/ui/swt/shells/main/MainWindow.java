@@ -497,7 +497,7 @@ public class MainWindow
 		}
 
 		//  share progress window
-		new ProgressWindow();
+		new ProgressWindow( display );
 	}
 
 	private void processStartupDMS() {
@@ -524,7 +524,7 @@ public class MainWindow
 	}
 
 	private void downloadAdded(final DownloadManager[] dms) {
-		boolean oneIsNotPlatform = false;
+		boolean oneIsNotPlatformAndPersistent = false;
 		for (final DownloadManager dm : dms) {
 			if (dm == null) {
 				continue;
@@ -557,9 +557,9 @@ public class MainWindow
 			boolean isContent = PlatformTorrentUtils.isContent(torrent, true)
 					|| PlatformTorrentUtils.getContentNetworkID(torrent) == ContentNetwork.CONTENT_NETWORK_VHDNL;
 
-			if (!oneIsNotPlatform && !isContent
-					&& !dmState.getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
-				oneIsNotPlatform = true;
+			if (!oneIsNotPlatformAndPersistent && !isContent
+					&& !dmState.getFlag(DownloadManagerState.FLAG_LOW_NOISE) && dm.isPersistent()) {
+				oneIsNotPlatformAndPersistent = true;
 			}
 
 			if (isContent) {
@@ -579,7 +579,7 @@ public class MainWindow
 			} // isContent
 		}
 
-		if (oneIsNotPlatform && dms_Startup == null) {
+		if (oneIsNotPlatformAndPersistent && dms_Startup == null) {
 			DonationWindow.checkForDonationPopup();
 		}
 	}
