@@ -163,6 +163,7 @@ DeviceManagerUI
   		} else {
   			DISABLED = Constants.isUnix;
   		}
+  		DISABLED |= Utils.isAZ2UI();
 		} catch (Throwable t) {
 			// Benefit of the doubt?
 			DISABLED = false;
