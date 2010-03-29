@@ -261,7 +261,7 @@ TorrentInfoView
 		layout.numColumns = 4;
 		gColumns.setLayout(layout);
 		
-		Map	usable_cols = new HashMap();
+		Map<String, FakeTableCell>	usable_cols = new HashMap<String, FakeTableCell>();
 		
 		TableColumnManager col_man = TableColumnManager.getInstance();
 		
@@ -309,7 +309,7 @@ TorrentInfoView
 			}
 		}
 		
-		Collection values = usable_cols.values();
+		Collection<FakeTableCell> values = usable_cols.values();
 		
 		cells = new FakeTableCell[values.size()];
 		
@@ -317,15 +317,11 @@ TorrentInfoView
 		
 		Arrays.sort( 
 				cells,
-				new Comparator()
+				new Comparator<FakeTableCell>()
 				{
-					public int
-					compare(
-						Object	o1,
-						Object	o2 )
-					{
-						TableColumnCore	c1 = (TableColumnCore) ((TableCellCore)o1).getTableColumn();
-						TableColumnCore	c2 = (TableColumnCore) ((TableCellCore)o2).getTableColumn();
+					public int compare(FakeTableCell o1, FakeTableCell o2) {
+						TableColumnCore	c1 = (TableColumnCore) o1.getTableColumn();
+						TableColumnCore	c2 = (TableColumnCore) o2.getTableColumn();
 
 						String key1 = MessageText.getString(c1.getTitleLanguageKey());
 						String key2 = MessageText.getString(c2.getTitleLanguageKey());
@@ -350,7 +346,7 @@ TorrentInfoView
 
 			final Composite c = new Composite(gColumns, SWT.NONE);
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
-			gridData.heightHint = 16;
+			gridData.heightHint = 32;
 			c.setLayoutData(gridData);
 			cell.setControl(c);
 			cell.invalidate();
