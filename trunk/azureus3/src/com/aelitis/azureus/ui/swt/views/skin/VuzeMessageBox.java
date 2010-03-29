@@ -81,17 +81,12 @@ public class VuzeMessageBox
   		if (Constants.isOSX && cancelPos != 0) {
 				String cancelButton = buttons[cancelPos];
 
-				int pos = buttons.length - 2;
-				for (int i = buttons.length - 1; i > 0; i--) {
+				for (int i = cancelPos; i > 0; i--) {
 					if (defaultButtonPos == i) {
-						defaultButtonPos = pos;
+						defaultButtonPos = i - 1;
 					}
-					this.buttons[i] = this.buttons[pos];
-					this.buttonVals[i] = this.buttonVals[pos];
-					pos--;
-					if (pos == cancelPos) {
-						pos--;
-					}
+					this.buttons[i] = this.buttons[i - 1];
+					this.buttonVals[i] = this.buttonVals[i - 1];
 				}
 				if (defaultButtonPos == 0) {
 					defaultButtonPos = 1;
