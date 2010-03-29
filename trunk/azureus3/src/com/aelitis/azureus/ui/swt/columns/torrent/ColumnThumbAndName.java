@@ -58,7 +58,8 @@ import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3.ContentImageLoadedListe
 public class ColumnThumbAndName
 	extends CoreTableColumn
 	implements TableCellLightRefreshListener, ObfusticateCellText,
-	TableCellDisposeListener, TableCellSWTPaintListener
+	TableCellDisposeListener, TableCellSWTPaintListener,
+	TableCellClipboardListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
@@ -309,4 +310,13 @@ public class ColumnThumbAndName
 		return showIcon;
 	}
 
+	public String getClipboardText(TableCell cell) {
+		String name = null;
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		if (dm != null)
+			name = dm.getDisplayName();
+		if (name == null)
+			name = "";
+		return name;
+	}
 }
