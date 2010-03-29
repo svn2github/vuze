@@ -134,6 +134,8 @@ public class SideBar
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
+		super.skinObjectCreated(skinObject, params);
+
 		skin = skinObject.getSkin();
 
 		soSideBarContents = (SWTSkinObjectContainer) skin.getSkinObject("sidebar-contents");
