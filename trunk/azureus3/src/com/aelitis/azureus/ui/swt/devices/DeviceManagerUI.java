@@ -245,36 +245,50 @@ DeviceManagerUI
 				public boolean 
 				canClose() 
 				{
-					try {
-  					final TranscodeJob job = device_manager.getTranscodeManager().getQueue().getCurrentJob();
-  					
-  					if ( job == null || job.getState() != TranscodeJob.ST_RUNNING ){
-  						
-  						return( true );
-  					}
+					try{
+						final TranscodeJob job = device_manager.getTranscodeManager().getQueue().getCurrentJob();
 
+						if ( job == null || job.getState() != TranscodeJob.ST_RUNNING ){
+
+							return( true );
+						}
+
+						if ( job.getTranscodeFile().getDevice().isHidden()){
+							
+							// The assumption here is that if the device is hidden either the user shouldn't be concerned
+							// about the loss of active transcode as either it is something that they don't know about or
+							// alternative canClose listeners have been registered to handle the situation (e.g. burn-in-progress)
+
+							return( true );
+						}
+						
 						String title = MessageText.getString("device.quit.transcoding.title");
 						String text = MessageText.getString(
 								"device.quit.transcoding.text",
 								new String[] {
-									job.getName(),
-									job.getTarget().getDevice().getName(),
-									String.valueOf( job.getPercentComplete())
+										job.getName(),
+										job.getTarget().getDevice().getName(),
+										String.valueOf( job.getPercentComplete())
 								});
 
 						MessageBoxShell mb = new MessageBoxShell(
 								title,
 								text,
 								new String[] {
-									MessageText.getString("UpdateWindow.quit"),
-									MessageText.getString("Content.alert.notuploaded.button.abort")
+										MessageText.getString("UpdateWindow.quit"),
+										MessageText.getString("Content.alert.notuploaded.button.abort")
 								}, 1);
+						
 						mb.open(null);
+						
 						mb.waitUntilClosed();
+						
 						return mb.getResult() == 0;
 
-					} catch (Exception e) {
+					}catch ( Throwable e ){
+						
 						Debug.out(e);
+						
 						return true;
 					}
 				}
