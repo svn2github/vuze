@@ -79,65 +79,70 @@ public class FeatureManagerUI
 							return;
 						}
 
-						final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-						mdi.registerEntry(
-								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
-								new MdiEntryCreationListener() {
-									public MdiEntry createMDiEntry(String id) {
-										MdiEntry mainMdiEntry = mdi.createEntryFromSkinRef(null,
-												MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
-												"main.burn.ftux",
-												MessageText.getString("mdi.entry.dvdburn"), null, null,
-												true, -1);
-										mainMdiEntry.setImageLeftID("image.sidebar.dvdburn");
-										mainMdiEntry.setExpanded(true);
-
-										MdiEntry entryAddDVD = mdi.createEntryFromSkinRef(
-												MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
-												"burn-new", "main.burn.ftux",
-												MessageText.getString("mdi.entry.dvdburn.new"), null,
-												null, false, -1);
-										entryAddDVD.setImageLeftID("image.sidebar.dvdburn.add");
-										entryAddDVD.setExpanded(true);
-
-										entryAddDVD.addListener(new MdiEntryDropListener() {
-											public boolean mdiEntryDrop(MdiEntry entry,
-													Object droppedObject) {
-												openTrialAskWindow();
-												return true;
-											}
-										});
-										
-										MenuManager menuManager = PluginInitializer.getDefaultInterface().getUIManager().getMenuManager();
-										MenuItem menuHide = menuManager.addMenuItem(MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO, "popup.error.hide");
-										menuHide.addListener(new MenuItemListener() {
-											public void selected(MenuItem menu, Object target) {
-												mdi.closeEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO);
-											}
-										});
-
-										return mainMdiEntry;
-									}
-								});
-
-						mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
-								new MdiEntryCreationListener() {
-									public MdiEntry createMDiEntry(String id) {
-										String title = MessageText.getString(FeatureManagerUI.hasFullLicence()
-												? "mdi.entry.plus.full" : "mdi.entry.plus.free");
-										int index = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME) == null
-												? 0 : 1;
-										MdiEntry entry = mdi.createEntryFromSkinRef(null,
-												MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
-												"main.area.plus", title, null, null, true, index);
-										entry.setImageLeftID("image.sidebar.plus");
-										return entry;
-									}
-								});
+						if (!Utils.isAZ2UI()) {
+							addFreeBurnUI();
+						}
 					}
 				});
 			}
 		});
+	}
+
+	private static void addFreeBurnUI() {
+		final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry mainMdiEntry = mdi.createEntryFromSkinRef(null,
+								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
+								"main.burn.ftux", MessageText.getString("mdi.entry.dvdburn"),
+								null, null, true, -1);
+						mainMdiEntry.setImageLeftID("image.sidebar.dvdburn");
+						mainMdiEntry.setExpanded(true);
+
+						MdiEntry entryAddDVD = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
+								"burn-new", "main.burn.ftux",
+								MessageText.getString("mdi.entry.dvdburn.new"), null, null,
+								false, -1);
+						entryAddDVD.setImageLeftID("image.sidebar.dvdburn.add");
+						entryAddDVD.setExpanded(true);
+
+						entryAddDVD.addListener(new MdiEntryDropListener() {
+							public boolean mdiEntryDrop(MdiEntry entry, Object droppedObject) {
+								openTrialAskWindow();
+								return true;
+							}
+						});
+
+						MenuManager menuManager = PluginInitializer.getDefaultInterface().getUIManager().getMenuManager();
+						MenuItem menuHide = menuManager.addMenuItem(
+								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
+								"popup.error.hide");
+						menuHide.addListener(new MenuItemListener() {
+							public void selected(MenuItem menu, Object target) {
+								mdi.closeEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO);
+							}
+						});
+
+						return mainMdiEntry;
+					}
+				});
+
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						String title = MessageText.getString(FeatureManagerUI.hasFullLicence()
+								? "mdi.entry.plus.full" : "mdi.entry.plus.free");
+						int index = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME) == null
+								? 0 : 1;
+						MdiEntry entry = mdi.createEntryFromSkinRef(null,
+								MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
+								"main.area.plus", title, null, null, true, index);
+						entry.setImageLeftID("image.sidebar.plus");
+						return entry;
+					}
+				});
 	}
 
 	public static void openTrialAskWindow() {
