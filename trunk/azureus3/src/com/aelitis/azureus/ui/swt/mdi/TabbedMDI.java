@@ -38,6 +38,8 @@ public class TabbedMDI
 	}
 
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
+		super.skinObjectCreated(skinObject, params);
+
 		creatMDI();
 		setupDefaultItems();
 
