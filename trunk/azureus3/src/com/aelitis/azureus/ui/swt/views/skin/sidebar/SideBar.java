@@ -500,7 +500,11 @@ public class SideBar
 							if (y > bounds.y + bounds.height) {
 								break;
 							}
+							TreeItem oldTreeItem = treeItem;
 							treeItem = tree.getItem(new Point(indent, y));
+							if (oldTreeItem == treeItem) {
+								break;
+							}
 						}
 
 						if (tree.getTopItem() != lastTopItem) {
