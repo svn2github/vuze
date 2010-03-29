@@ -26,7 +26,6 @@ import org.gudy.azureus2.core3.util.AEMonitor2;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
 
 /**
  * Manages a list of SkinViews currently in use by the app
@@ -192,6 +191,21 @@ public class SkinViewManager
 		synchronized (SkinViewManager.class) {
 			if (!listeners.contains(l)) {
 				listeners.add(l);
+			}
+		}
+	}
+	
+	public static void addListener(Class cla, SkinViewManagerListener l) {
+		synchronized (SkinViewManager.class) {
+			if (!listeners.contains(l)) {
+				listeners.add(l);
+			}
+		}
+
+		SkinView[] svs = SkinViewManager.getMultiByClass(cla);
+		if (svs != null) {
+			for (SkinView skinView : svs) {
+				l.skinViewAdded(skinView);
 			}
 		}
 	}
