@@ -33,7 +33,7 @@ public interface MultipleDocumentInterface
 	public static final String SIDEBAR_SECTION_BURN_INFO = "BurnInfo";
 	
 	public MdiEntry createEntryFromSkinRef(String parentID, String id,
-			String configID, String title, ViewTitleInfo titleInfo, Object params,
+			String configID, String title, ViewTitleInfo titleInfo, Object datasource,
 			boolean closeable, int index);
 
 	public boolean showEntryByID(String id);
