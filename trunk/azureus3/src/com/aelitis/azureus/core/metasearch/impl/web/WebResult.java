@@ -247,13 +247,19 @@ public class WebResult extends Result {
 					multiplier = KB_UNIT*KB_UNIT;
 				} else if("mib".equals(unit)) {
 					multiplier = KIB_UNIT*KIB_UNIT;
+				} else if("m".equals(unit)) {
+					multiplier = KIB_UNIT*KIB_UNIT;
 				} else if("gb".equals(unit)) {
 					multiplier = KB_UNIT*KB_UNIT*KB_UNIT;
 				} else if("gib".equals(unit)) {
 					multiplier = KIB_UNIT*KIB_UNIT*KIB_UNIT;
+				} else if("g".equals(unit)) {
+					multiplier = KIB_UNIT*KIB_UNIT*KIB_UNIT;
 				} else if("kb".equals(unit)) {
 					multiplier = KB_UNIT;
 				} else if("kib".equals(unit)) {
+					multiplier = KIB_UNIT;
+				} else if("k".equals(unit)) {
 					multiplier = KIB_UNIT;
 				}
 				
