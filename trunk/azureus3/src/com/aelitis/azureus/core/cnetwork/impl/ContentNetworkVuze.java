@@ -39,7 +39,11 @@ ContentNetworkVuze
  
 	static{
 		if ( FeatureAvailability.ENABLE_PLUS()){
-			System.setProperty( "platform_address", "www2.vuze.com" );
+			
+			if ( System.getProperty( "platform_address", "" ).length() == 0 ){
+			
+				System.setProperty( "platform_address", "www2.vuze.com" );
+			}
 		}
 	}
 	
