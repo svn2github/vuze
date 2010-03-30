@@ -1187,6 +1187,10 @@ public class SideBar
 
 		setupNewEntry(entry, id, -1, expand, closeable);
 
+		if (iview instanceof IViewAlwaysInitialize) {
+			entry.build();
+		}
+
 		if (show) {
 			showEntry(entry);
 		}
@@ -1257,6 +1261,11 @@ public class SideBar
 		entry.setParentID(parent);
 
 		setupNewEntry(entry, id, -1, false, closeable);
+		
+		if (IViewAlwaysInitialize.class.isAssignableFrom(iviewClass)) {
+			entry.build();
+		}
+		
 		return entry;
 	}
 

@@ -14,6 +14,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -306,6 +307,11 @@ public class TabbedMDI
 		entry.setCloseable(closeable);
 
 		setupNewEntry(entry, id, -1);
+
+		if (IViewAlwaysInitialize.class.isAssignableFrom(iviewClass)) {
+			entry.build();
+		}
+
 		return entry;
 	}
 
@@ -334,6 +340,10 @@ public class TabbedMDI
 
 		setupNewEntry(entry, id, -1);
 
+		if (iview instanceof IViewAlwaysInitialize) {
+			entry.build();
+		}
+		
 		if (show) {
 			showEntry(entry);
 		}
