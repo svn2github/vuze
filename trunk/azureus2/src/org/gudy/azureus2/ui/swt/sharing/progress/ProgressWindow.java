@@ -224,16 +224,14 @@ ProgressWindow
       
       
             
-			Shell otherShell = Utils.findAnyShell();
-			if (otherShell != null) {
-				shell.moveAbove(otherShell);
-			}
 			
 			if ( !shell.isVisible()){				
 				shell.setVisible(true);
 				animate = DO_ANIMATION ;
 			}
 			
+			shell.moveAbove(null);
+
 			if(animate && currentAnimator == null) {
 		        currentAnimator = new LinearAnimator(this,new Point(x0,y0),new Point(x0,y1),15,30);
 		        currentAnimator.start();
