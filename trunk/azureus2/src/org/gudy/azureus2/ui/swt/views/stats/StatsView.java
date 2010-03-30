@@ -39,6 +39,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -47,7 +48,7 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 /**
  * 
  */
-public class StatsView extends AbstractIView {
+public class StatsView extends AbstractIView implements IViewAlwaysInitialize {
   
   TabFolder folder;
   
