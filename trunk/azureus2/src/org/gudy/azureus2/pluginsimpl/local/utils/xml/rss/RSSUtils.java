@@ -104,18 +104,21 @@ RSSUtils
 		final String[]	formats = {
 				"yyyy-MM-dd'T'kk:mm:ss'Z'",
 				"yyyy-MM-dd'T'kk:mm:ssz", 
+				"yyyy-MM-dd'T'kk:mm:ssZ", 
 				"yyyy-MM-dd'T'kk:mm:ss" };
 		
-		try{
-			for (int i=0;i<formats.length;i++){
+		for (int i=0;i<formats.length;i++){
+
+			try{
 				
 				SimpleDateFormat format = new SimpleDateFormat( formats[i], Locale.US );
 							
 				return( format.parse( date_str ));
-			}
-		}catch( ParseException e ){
+
+			}catch( ParseException e ){
 			
-			Debug.printStackTrace(e);
+				// Debug.printStackTrace(e);
+			}
 		}
 		
 		return( null );
