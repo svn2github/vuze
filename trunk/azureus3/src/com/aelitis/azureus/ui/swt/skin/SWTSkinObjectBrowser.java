@@ -178,6 +178,9 @@ public class SWTSkinObjectBrowser
 		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (browser.isDisposed()) {
+					return;
+				}
 				if (url == null) {
 					browser.setText("");
 				} else {
