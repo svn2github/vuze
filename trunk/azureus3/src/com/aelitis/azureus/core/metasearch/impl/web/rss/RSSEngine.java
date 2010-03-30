@@ -351,6 +351,29 @@ RSSEngine
 										}
 									}
 								}catch( Throwable e ){
+									
+										// see if this is an atom feed 
+										//  <link rel="alternate" type="application/x-bittorrent" href="http://asdasd/ 
+									
+									SimpleXMLParserDocumentAttribute typeAtt = child.getAttribute( "type" );
+									
+									if ( typeAtt != null && typeAtt.getValue().equalsIgnoreCase("application/x-bittorrent")) {
+									
+										SimpleXMLParserDocumentAttribute hrefAtt = child.getAttribute( "href" );
+										
+										if ( hrefAtt != null ){
+											
+											String	href = hrefAtt.getValue().trim();
+											
+											try{
+												
+												result.setTorrentLink( new URL( href ).toExternalForm() );
+												
+											}catch( Throwable f ){
+												
+											}
+										}
+									}
 								}
 							}else if ( lc_child_name.equals( "content" ) && rssFeed.isAtomFeed()){
 								
