@@ -935,8 +935,9 @@ public class SideBarEntrySWT
 					if (Constants.isOSX && !tree.isDisposed()
 							&& tree.getSelectionCount() == 0) {
 
-						if (getParentID() != null) {
-							mdi.showEntryByID(getParentID());
+						String parentid = getParentID();
+						if (parentid != null && mdi.getEntry(parentid) != null) {
+							mdi.showEntryByID(parentid);
 						} else {
 							mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 						}
