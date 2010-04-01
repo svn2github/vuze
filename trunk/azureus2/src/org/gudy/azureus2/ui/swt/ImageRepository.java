@@ -299,28 +299,31 @@ public class ImageRepository
 
 			java.awt.Image awtImage = null;
 
-			final Class sfClass = Class.forName("sun.awt.shell.ShellFolder");
-			if (sfClass != null && file != null) {
-				Method method = sfClass.getMethod("getShellFolder", new Class[] {
-					File.class
-				});
-				if (method != null) {
-					Object sfInstance = method.invoke(null, new Object[] {
-						file
-					});
-
-					if (sfInstance != null) {
-						method = sfClass.getMethod("getIcon", new Class[] {
-							Boolean.TYPE
-						});
-						if (method != null) {
-							awtImage = (java.awt.Image) method.invoke(sfInstance,
-									new Object[] {
-										new Boolean(bBig)
-									});
-						}
-					}
-				}
+			try {
+  			final Class sfClass = Class.forName("sun.awt.shell.ShellFolder");
+  			if (sfClass != null && file != null) {
+  				Method method = sfClass.getMethod("getShellFolder", new Class[] {
+  					File.class
+  				});
+  				if (method != null) {
+  					Object sfInstance = method.invoke(null, new Object[] {
+  						file
+  					});
+  
+  					if (sfInstance != null) {
+  						method = sfClass.getMethod("getIcon", new Class[] {
+  							Boolean.TYPE
+  						});
+  						if (method != null) {
+  							awtImage = (java.awt.Image) method.invoke(sfInstance,
+  									new Object[] {
+  										new Boolean(bBig)
+  									});
+  						}
+  					}
+  				}
+  			}
+			} catch (Throwable e) {
 			}
 
 			if (awtImage != null) {
