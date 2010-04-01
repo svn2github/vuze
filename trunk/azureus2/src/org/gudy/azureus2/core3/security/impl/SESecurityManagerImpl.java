@@ -1261,6 +1261,9 @@ SESecurityManagerImpl
 			// do nothing
 		}
 		
+		public void checkConnect(String host, int port) {
+		}
+
 		public void 
 		checkExit(int status) 
 		{
