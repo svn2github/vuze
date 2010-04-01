@@ -22,6 +22,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.IViewExtension;
@@ -691,6 +692,11 @@ public abstract class BaseMdiEntry
 			setTitle(title);
 		} catch (Exception e) {
 			Debug.out(e);
+		}
+		
+		if ((_eventListener instanceof BasicPluginViewImpl)
+				&& getImageLeftID() == null) {
+			setImageLeftID("image.sidebar.logview");
 		}
 	}
 
