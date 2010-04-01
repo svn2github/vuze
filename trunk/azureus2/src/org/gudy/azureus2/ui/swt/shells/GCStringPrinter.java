@@ -34,6 +34,7 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -250,6 +251,10 @@ public class GCStringPrinter
 		
 		while (string.indexOf('\t') >= 0) {
 			string = string.replace('\t', ' ');
+		}
+		
+		if (string.indexOf("  ") > 0) {
+			string = string.replaceAll("  +", " ");
 		}
 
 		boolean fullLinesOnly = (printFlags & FLAG_FULLLINESONLY) > 0;
