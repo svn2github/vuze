@@ -212,7 +212,7 @@ public class TableColumnCreator
 		c.put(SwarmAverageSpeed.COLUMN_ID, new cInfo(SwarmAverageSpeed.class, SwarmAverageSpeed.DATASOURCE_TYPE));
 		c.put(SwarmAverageCompletion.COLUMN_ID, new cInfo(SwarmAverageCompletion.class, SwarmAverageCompletion.DATASOURCE_TYPE));
 		c.put(BadAvailTimeItem.COLUMN_ID, new cInfo(BadAvailTimeItem.class, BadAvailTimeItem.DATASOURCE_TYPE));
-		c.put(ColumnFileCount.COLUMN_ID, new cInfo(ColumnFileCount.class, ColumnFileCount.DATASOURCE_TYPE));
+		//c.put(ColumnFiles.COLUMN_ID, new cInfo(ColumnFiles.class, ColumnFiles.DATASOURCE_TYPE));
 
 		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, DateCompletedItem.DATASOURCE_TYPE));
 		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, DateAddedItem.DATASOURCE_TYPE));
