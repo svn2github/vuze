@@ -88,6 +88,8 @@ public class DevicesFTUX
 
 	private Composite install_area_parent;
 
+	private List<Runnable>	to_fire_on_complete = new ArrayList<Runnable>();
+	
 	/**
 	 * @return
 	 *
@@ -102,12 +104,23 @@ public class DevicesFTUX
 	 *
 	 * @since 4.1.0.5
 	 */
-	private void setFocus() {
+	private void setFocus( Runnable fire_on_install ) {
+		
+		synchronized( to_fire_on_complete ){
+			
+			to_fire_on_complete.add( fire_on_install );
+		}
 		shell.forceActive();
 		shell.forceFocus();
 	}
 
-	private void open() {
+	private void open( Runnable fire_on_install) {
+		
+		synchronized( to_fire_on_complete ){
+			
+			to_fire_on_complete.add( fire_on_install );
+		}
+		
 		// This is a simple dialog box, so instead of using SkinnedDialog, we'll
 		// just built it old school
 		shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM);
@@ -364,6 +377,28 @@ public class DevicesFTUX
 								}
 							}
 							
+							List<Runnable> to_fire;
+							
+							synchronized( to_fire_on_complete ){
+								
+								to_fire = new ArrayList<Runnable>( to_fire_on_complete );
+								
+								to_fire_on_complete.clear();
+							}
+							
+							for ( Runnable r: to_fire ){
+								
+								if ( r != null ){
+									
+									try{
+										Utils.execSWTThread( r );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}
 						}
 
 						public void 
@@ -406,7 +441,7 @@ public class DevicesFTUX
 	 *
 	 * @since 4.1.0.5
 	 */
-	public static boolean ensureInstalled() {
+	public static boolean ensureInstalled( final Runnable fire_on_install ) {
 		DeviceManager device_manager = DeviceManagerFactory.getSingleton();
 
 		if (device_manager.getTranscodeManager().getProviders().length == 0) {
@@ -414,9 +449,9 @@ public class DevicesFTUX
 				public void runSupport() {
 					if (instance == null || instance.isDisposed()) {
 						instance = new DevicesFTUX();
-						instance.open();
+						instance.open( fire_on_install );
 					} else {
-						instance.setFocus();
+						instance.setFocus( fire_on_install );
 					}
 				}
 			});
@@ -430,9 +465,9 @@ public class DevicesFTUX
 			public void runSupport() {
 				if (instance == null || instance.isDisposed()) {
 					instance = new DevicesFTUX();
-					instance.open();
+					instance.open( null );
 				} else {
-					instance.setFocus();
+					instance.setFocus( null );
 				}
 			}
 		});

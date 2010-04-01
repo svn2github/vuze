@@ -201,39 +201,12 @@ public class ToolBarView
   				if (viewID == null && triggerIViewToolBar(getId())) {
   					return;
   				}
-  				final ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+  				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
   				if (contents.length == 0) {
   					return;
   				}
-  				TranscodeChooser deviceChooser = new TranscodeChooser() {
-  					public void closed() {
-  						DeviceManager deviceManager = DeviceManagerFactory.getSingleton();
-  						if (selectedTranscodeTarget != null && selectedProfile != null) {
-  							for (int i = 0; i < contents.length; i++) {
-  								ISelectedContent selectedContent = contents[i];
-  
-  								DownloadManager dm = selectedContent.getDownloadManager();
-  								if (dm == null) {
-  									continue;
-  								}
-  								DiskManagerFileInfo[] files = dm.getDiskManagerFileInfo();
-  								for (DiskManagerFileInfo file : files) {
-  									try {
-  										deviceManager.getTranscodeManager().getQueue().add(
-  												selectedTranscodeTarget,
-  												selectedProfile,
-  												(org.gudy.azureus2.plugins.disk.DiskManagerFileInfo) PluginCoreUtils.convert(
-  														file, false),
-  												false );
-  									} catch (TranscodeException e) {
-  										Debug.out(e);
-  									}
-  								}
-  							}
-  						}
-  					}
-  				};
-  				deviceChooser.show();
+ 
+  				deviceSelected( contents, true );
   			}
   		};
   		addToolBarItem(item, first ? "toolbar.area.sitem.left" : "toolbar.area.sitem", so2nd);
@@ -575,6 +548,54 @@ public class ToolBarView
 		return true;
 	}
 
+	protected void
+	deviceSelected(
+		final ISelectedContent[]	contents,
+		final boolean				allow_retry )
+	{
+		TranscodeChooser deviceChooser = new TranscodeChooser() {
+			public void closed() {
+				DeviceManager deviceManager = DeviceManagerFactory.getSingleton();
+				if (selectedTranscodeTarget != null && selectedProfile != null) {
+					for (int i = 0; i < contents.length; i++) {
+						ISelectedContent selectedContent = contents[i];
+
+						DownloadManager dm = selectedContent.getDownloadManager();
+						if (dm == null) {
+							continue;
+						}
+						DiskManagerFileInfo[] files = dm.getDiskManagerFileInfo();
+						for (DiskManagerFileInfo file : files) {
+							try {
+								deviceManager.getTranscodeManager().getQueue().add(
+										selectedTranscodeTarget,
+										selectedProfile,
+										(org.gudy.azureus2.plugins.disk.DiskManagerFileInfo) PluginCoreUtils.convert(
+												file, false),
+												false );
+							} catch (TranscodeException e) {
+								Debug.out(e);
+							}
+						}
+					}
+				}
+			}
+		};
+		
+		deviceChooser.show(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					if ( allow_retry ){
+					
+						deviceSelected( contents, false );
+					}
+				}
+			});
+	}
+	
 	protected boolean moveTop() {
 		if (!AzureusCoreFactory.isCoreRunning()) {
 			return false;

@@ -73,7 +73,6 @@ DeviceUPnPImpl
 		
 	private static final Map<String,AzureusContentFile>	acf_map = new WeakHashMap<String,AzureusContentFile>();
 	
-	
 	protected static String
 	getDisplayName(
 		UPnPDevice		device )

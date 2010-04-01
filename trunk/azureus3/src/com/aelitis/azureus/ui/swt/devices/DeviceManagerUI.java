@@ -1253,7 +1253,7 @@ DeviceManagerUI
 							if (turnon != null) {
 								turnon.addListener(new MdiEntryVitalityImageListener() {
 									public void mdiEntryVitalityImage_clicked(int x, int y) {
-										DevicesFTUX.ensureInstalled();
+										DevicesFTUX.ensureInstalled( null );
 									}
 								});
 								
@@ -2705,8 +2705,17 @@ DeviceManagerUI
 	
 	public static boolean
 	handleDrop(
-		TranscodeTarget			target,
-		final Object			payload )
+		final TranscodeTarget		target,
+		final Object				payload )
+	{
+		return( handleDropSupport( target, payload, true ));
+	}
+	
+	private static boolean
+	handleDropSupport(
+		final TranscodeTarget		target,
+		final Object				payload,
+		final boolean				allow_retry )
 	{
 		if (!(payload instanceof String[]) && !(payload instanceof String)) {
 			return false;
@@ -2727,7 +2736,18 @@ DeviceManagerUI
 			}
 		};
 		
-		deviceChooser.show();
+		deviceChooser.show(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					if ( allow_retry ){
+					
+						handleDropSupport( target, payload, false );
+					}
+				}
+			});
 		return true;
 	}
 

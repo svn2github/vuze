@@ -28,6 +28,8 @@ import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -149,6 +151,39 @@ DeviceImpl
 		}
 	}
 	
+	
+	private static List<Pattern> device_renames = new ArrayList<Pattern>();
+	
+	static{
+		try{
+			device_renames.add( Pattern.compile( "TV\\s*+\\(([^\\)]*)\\)", Pattern.CASE_INSENSITIVE ));
+		
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+	
+	private static String
+	modifyDeviceDisplayName(
+		String		name )
+	{
+		for ( Pattern p: device_renames ){
+		
+			Matcher m = p.matcher( name );
+		
+			if ( m.find()){
+			
+				String	new_name = m.group(1);
+								
+				return( new_name );
+			}
+		}
+		
+		return( name );
+	}
+	
 	private static final String PP_REND_WORK_DIR		= "tt_work_dir"; 
 	private static final String PP_REND_DEF_TRANS_PROF	= "tt_def_trans_prof";
 	private static final String PP_REND_TRANS_REQ		= "tt_req";
@@ -246,7 +281,7 @@ DeviceImpl
 		type			= _type;
 		uid				= _uid;
 		classification	= _classification;
-		name			= _name;
+		name			= modifyDeviceDisplayName( _name );
 		manual			= _manual;
 	}
 	
@@ -267,6 +302,11 @@ DeviceImpl
 		if ( name == null ){
 			
 			name = classification;
+		}
+		
+		if ( ImportExportUtils.importLong( map, "_rn", 0 ) == 0 ){
+		
+			name = modifyDeviceDisplayName( name );
 		}
 		
 		secondary_uid		= ImportExportUtils.importString( map, "_suid" );
@@ -298,6 +338,7 @@ DeviceImpl
 		ImportExportUtils.exportLong( map, "_type", new Long( type ));
 		ImportExportUtils.exportString( map, "_uid", uid );
 		ImportExportUtils.exportString( map, "_name", classification );
+		ImportExportUtils.exportLong( map, "_rn", 1 );
 		ImportExportUtils.exportString( map, "_lname", name );
 		
 		if ( secondary_uid != null ){

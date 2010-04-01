@@ -103,9 +103,9 @@ public abstract class TranscodeChooser
 		this.transcodeProfiles = transcodeProfiles;
 	}
 
-	public void show() {
+	public void show( Runnable fire_on_install ) {
 		// Check if plugin is installed
-		if (!DevicesFTUX.ensureInstalled()) {
+		if (!DevicesFTUX.ensureInstalled( fire_on_install )) {
 			return;
 		}
 
