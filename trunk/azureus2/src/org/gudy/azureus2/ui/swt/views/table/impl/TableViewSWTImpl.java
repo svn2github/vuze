@@ -4637,7 +4637,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				size += dataSourcesToAdd.size();
 			}
 			if (dataSourcesToRemove != null) {
-				size += dataSourcesToRemove.size();
+				size -= dataSourcesToRemove.size();
 			}
 		}
 		return size;
