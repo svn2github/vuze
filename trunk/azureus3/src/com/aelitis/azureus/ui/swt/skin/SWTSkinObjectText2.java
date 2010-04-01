@@ -184,8 +184,8 @@ public class SWTSkinObjectText2
 				gc.setAlpha(alpha);
 
 				GCStringPrinter sp = new GCStringPrinter(gc, sDisplayText,
-						new Rectangle(0, 0, wHint == -1 ? 999999 : wHint, hHint == -1
-								? 999999 : hHint), true, false, style & SWT.WRAP);
+						new Rectangle(0, 0, wHint == -1 ? 3000 : wHint, hHint == -1
+								? 3000 : hHint), true, false, style & SWT.WRAP);
 				sp.calculateMetrics();
 				pt = sp.getCalculatedSize();
 				pt.x += border + hpadding * 2;
