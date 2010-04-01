@@ -34,6 +34,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.TableColumn;
 
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
@@ -66,9 +67,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 
@@ -2174,6 +2173,94 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @param iColumn Column # that tasks apply to.
 	 */
 	private void fillColumnMenu(final TableColumn tcColumn) {
+		if (tcColumn != null) {
+			String sColumnName = (String) tcColumn.getData("Name");
+			if (sColumnName != null) {
+				Object[] listeners = listenersMenuFill.toArray();
+				for (int i = 0; i < listeners.length; i++) {
+					TableViewSWTMenuFillListener l = (TableViewSWTMenuFillListener) listeners[i];
+					l.addThisColumnSubMenu(sColumnName, menu);
+				}
+			}
+			
+			MenuItem item = new MenuItem(menu, SWT.PUSH);
+			Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.sort");
+			item.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					tcColumn.notifyListeners(SWT.Selection, new Event());
+				}
+			});
+			
+			final MenuItem at_item = new MenuItem(menu, SWT.CHECK);
+			Messages.setLanguageText(at_item,
+			"MyTorrentsView.menu.thisColumn.autoTooltip");
+			at_item.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					TableColumn tc = (TableColumn) menu.getData("column");
+					TableColumnCore tcc = (TableColumnCore) tc.getData("TableColumnCore");
+					tcc.setAutoTooltip(at_item.getSelection());
+					tcc.invalidateCells();
+				}
+			});
+			at_item.setSelection(((TableColumnCore) tcColumn.getData("TableColumnCore")).doesAutoTooltip());
+			
+			item = new MenuItem(menu, SWT.PUSH);
+			Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.remove");
+			
+			item.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					TableColumn tc = (TableColumn) menu.getData("column");
+					if (tc == null) {
+						return;
+					}
+					String columnName = (String) tcColumn.getData("Name");
+					if (columnName == null) {
+						return;
+					}
+					for (int i = 0; i < tableColumns.length; i++) {
+						if (tableColumns[i].getName().equals(columnName)) {
+							tableColumns[i].setVisible(false);
+						}
+					}
+					
+					tableStructureChanged(false, null);
+				}
+			});
+			
+			// Add Plugin Context menus..
+			TableColumnCore tc = (TableColumnCore) tcColumn.getData("TableColumnCore");
+			TableContextMenuItem[] items = tc.getContextMenuItems(TableColumnCore.MENU_STYLE_HEADER);
+			if (items.length > 0) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				
+				MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu,
+						true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
+								getSelectedDataSources(true)));
+				
+			}
+			
+			if (menu.getItemCount() > 0) {
+				new MenuItem(menu, SWT.SEPARATOR);
+			}
+			
+		}
+		
+		for (int i = 0; i < tableColumns.length; i++) {
+			TableColumnCore tc = tableColumns[i];
+			TableColumnManager tcm = TableColumnManager.getInstance();
+			TableColumnInfo info = tcm.getColumnInfo(classPluginDataSourceType,
+					sTableID, tc.getName());
+			if (info.getProficiency() == TableColumnInfo.PROFICIENCY_BEGINNER) {
+				MenuItem menuItem = new MenuItem(menu, SWT.CHECK);
+				String title = MessageText.getString(
+						tc.getTitleLanguageKey(), tc.getName());
+				menuItem.setText(title);
+				if (isColumnVisible(tc)) {
+					menuItem.setSelection(true);
+				}
+			}
+		}
+		new MenuItem(menu, SWT.SEPARATOR);
 		
 		final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemChangeTable,
@@ -2189,80 +2276,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (menu != null) {
 			menu.setData("column", tcColumn);
 		}
-		
-		if (tcColumn == null) {
-			return;
-		}
-
-		String sColumnName = (String) tcColumn.getData("Name");
-		if (sColumnName != null) {
-			Object[] listeners = listenersMenuFill.toArray();
-			for (int i = 0; i < listeners.length; i++) {
-				TableViewSWTMenuFillListener l = (TableViewSWTMenuFillListener) listeners[i];
-				l.addThisColumnSubMenu(sColumnName, menu);
-			}
-		}
-
-		if (menu.getItemCount() > 0) {
-			new MenuItem(menu, SWT.SEPARATOR);
-		}
-
-		MenuItem item = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.sort");
-		item.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				tcColumn.notifyListeners(SWT.Selection, new Event());
-			}
-		});
-
-		final MenuItem at_item = new MenuItem(menu, SWT.CHECK);
-		Messages.setLanguageText(at_item,
-				"MyTorrentsView.menu.thisColumn.autoTooltip");
-		at_item.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				TableColumn tc = (TableColumn) menu.getData("column");
-				TableColumnCore tcc = (TableColumnCore) tc.getData("TableColumnCore");
-				tcc.setAutoTooltip(at_item.getSelection());
-				tcc.invalidateCells();
-			}
-		});
-		at_item.setSelection(((TableColumnCore) tcColumn.getData("TableColumnCore")).doesAutoTooltip());
-
-		item = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.remove");
-
-		item.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				TableColumn tc = (TableColumn) menu.getData("column");
-				if (tc == null) {
-					return;
-				}
-				String columnName = (String) tcColumn.getData("Name");
-				if (columnName == null) {
-					return;
-				}
-				for (int i = 0; i < tableColumns.length; i++) {
-					if (tableColumns[i].getName().equals(columnName)) {
-						tableColumns[i].setVisible(false);
-					}
-				}
-
-				tableStructureChanged(false, null);
-			}
-		});
-
-		// Add Plugin Context menus..
-		TableColumnCore tc = (TableColumnCore) tcColumn.getData("TableColumnCore");
-		TableContextMenuItem[] items = tc.getContextMenuItems(TableColumnCore.MENU_STYLE_HEADER);
-		if (items.length > 0) {
-			new MenuItem(menu, SWT.SEPARATOR);
-
-			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu,
-					true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
-							getSelectedDataSources(true)));
-
-		}
 	}
+
 
 	/** IView.getComposite()
 	 * @return the composite for this TableView
@@ -4637,7 +4652,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				size += dataSourcesToAdd.size();
 			}
 			if (dataSourcesToRemove != null) {
-				size += dataSourcesToRemove.size();
+				size -= dataSourcesToRemove.size();
 			}
 		}
 		return size;
