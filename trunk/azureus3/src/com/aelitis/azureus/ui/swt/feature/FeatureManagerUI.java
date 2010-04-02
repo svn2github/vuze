@@ -184,7 +184,12 @@ public class FeatureManagerUI
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == SWT.OK) {
-					createTrial();
+					SimpleTimer.addEvent("createTrial", SystemTime.getCurrentTime(),
+							new TimerEventPerformer() {
+								public void perform(TimerEvent event) {
+									createTrial();
+								}
+							});
 				}
 			}
 		});
