@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
+import com.aelitis.azureus.util.ConstantsVuze;
 
 /**
  * Text Skin Object.  This one paints text on parent.
@@ -252,7 +253,7 @@ public class SWTSkinObjectText2
 				if (lastStringPrinter != null) {
 					URLInfo hitUrl = lastStringPrinter.getHitUrl(e.x, e.y);
 					if (hitUrl != null) {
-						
+
 						SWTSkinObjectText_UrlClickedListener[] listeners = listUrlClickedListeners.toArray(new SWTSkinObjectText_UrlClickedListener[0]);
 						for (SWTSkinObjectText_UrlClickedListener l : listeners) {
 							if (l.urlClicked(hitUrl)) {
@@ -262,19 +263,24 @@ public class SWTSkinObjectText2
 
 						String url = hitUrl.url;
 						try {
-  						ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL(url);
-  						if (cn != null) {
-  							url = cn.appendURLSuffix(url, false, false);
-  						}
-  						if (url.contains("?")) {
-  							url += "&";
-  						} else {
-  							url += "?";
-  						}
-  						url += "fromWeb=false&os.name=" + UrlUtils.encode(Constants.OSName)
-  								+ "&os.version="
-  								+ UrlUtils.encode(System.getProperty("os.version"))
-  								+ "&java.version=" + UrlUtils.encode(Constants.JAVA_VERSION); 
+							if (url.startsWith("/")) {
+								url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+										url, false);
+							}
+
+							ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL(
+									url);
+							if (cn != null) {
+								url = cn.appendURLSuffix(url, false, false);
+							}
+							if (url.contains("?")) {
+								url += "&";
+							} else {
+								url += "?";
+							}
+							url += "fromWeb=false&os.version="
+									+ UrlUtils.encode(System.getProperty("os.version"))
+									+ "&java.version=" + UrlUtils.encode(Constants.JAVA_VERSION);
 						} catch (Throwable t) {
 							// ignore
 						}
