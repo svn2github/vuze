@@ -1123,6 +1123,8 @@ UtilitiesImpl
 	{
 		List<FeatureEnabler>	enablers = getVerifiedEnablers();
 		
+		Throwable last_error = null;
+		
 		for ( FeatureEnabler enabler: enablers ){
 			
 			try{
@@ -1135,10 +1137,19 @@ UtilitiesImpl
 			}catch( Throwable e ){
 				
 				Debug.out( e );
+				
+				last_error = e;
 			}
 		}
 		
-		throw( new PluginException( "No enablers returned a licence" ));
+		if ( last_error == null ){
+			
+			throw( new PluginException( "No handlers returned a licence" ));
+			
+		}else{
+			
+			throw( new PluginException( "Licence handler failed", last_error ));
+		}
 	}
 	
 	public Licence 
