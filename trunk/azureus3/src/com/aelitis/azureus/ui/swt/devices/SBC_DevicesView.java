@@ -1243,18 +1243,19 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.core.devices.TranscodeTargetListener#fileChanged(com.aelitis.azureus.core.devices.TranscodeFile, int, java.lang.Object)
 	public void fileChanged(TranscodeFile file, int type, Object data) {
+		TableRowCore row;
 		synchronized (this) {
 			if (tvFiles == null) {
 				return;
 			}
-			TableRowCore row = tvFiles.getRow(file);
-			if (row != null) {
-				row.invalidate();
-				if (row.isVisible()) {
-					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-					if (uiFunctions != null) {
-						uiFunctions.refreshIconBar();
-					}
+			row = tvFiles.getRow(file);
+		}
+		if (row != null) {
+			row.invalidate();
+			if (row.isVisible()) {
+				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+				if (uiFunctions != null) {
+					uiFunctions.refreshIconBar();
 				}
 			}
 		}
