@@ -149,7 +149,7 @@ public class FeatureManagerUI
 		VuzeMessageBox box = new VuzeMessageBox(
 				MessageText.getString("dlg.try.trial.title"),
 				MessageText.getString("dlg.try.trial.text"), new String[] {
-					MessageText.getString("Button.agree"),
+					MessageText.getString("Button.turnon"),
 					MessageText.getString("Button.cancel")
 				}, 0);
 		box.setButtonVals(new Integer[] {
