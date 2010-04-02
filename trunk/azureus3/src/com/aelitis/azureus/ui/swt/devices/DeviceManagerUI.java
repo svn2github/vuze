@@ -2107,50 +2107,14 @@ DeviceManagerUI
 												device.getName(),
 												view, null, false, -1);
 										
-										String id = null;
-										
-										int	species = ((DeviceMediaRenderer)device).getRendererSpecies();
-										
-										if ( species != DeviceMediaRenderer.RS_OTHER ){
-										
-											id = "image.sidebar.device." + species + ".small";
-											
-										}else{
-											
-											String	classification = device.getClassification();
-											
-											if ( classification.equals( "sony.PSP")){
-												
-												id = "psp";
-												
-											}else if ( classification.startsWith( "tivo.")){
-												
-												id = "tivo";
-											
-											}else if ( classification.startsWith( "samsung.")){
-
-												id = "samsung";
-												
-											}else if ( classification.startsWith( "ms_wmp.")){
-
-													// update skin3_constants.properties!
-												
-												id = "mswmp";
-												
-											}else{
-												
-												
-												id = String.valueOf( species );
-											}
-											
-											id = "image.sidebar.device." + id + ".small";
-										}
-										
+										String id = getDeviceImageID( device );
+																			
 										if ( id != null ){
 										
+											id = "image.sidebar.device." + id + ".small";
+											
 											entry.setImageLeftID(id);
-										}
-										
+										}									
 									}else if ( device_type == Device.DT_OFFLINE_DOWNLOADER ){
 										
 										entry = 
@@ -2685,6 +2649,50 @@ DeviceManagerUI
 						});
 			}
 		}
+	}
+	
+	protected static String
+	getDeviceImageID(
+		Device		device )
+	{
+		int	species = ((DeviceMediaRenderer)device).getRendererSpecies();
+		
+		String	id;
+		
+		if ( species != DeviceMediaRenderer.RS_OTHER ){
+		
+			id = String.valueOf( species );
+			
+		}else{
+			
+			String	classification = device.getClassification();
+			
+			if ( classification.equals( "sony.PSP")){
+				
+				id = "psp";
+				
+			}else if ( classification.startsWith( "tivo.")){
+				
+				id = "tivo";
+			
+			}else if ( classification.startsWith( "samsung.")){
+
+				id = "samsung";
+				
+			}else if ( classification.startsWith( "ms_wmp.")){
+
+					// update skin3_constants.properties!
+				
+				id = "mswmp";
+				
+			}else{
+				
+				
+				id = String.valueOf( species );
+			}
+		}
+		
+		return( id );
 	}
 	
 	protected void

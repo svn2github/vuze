@@ -652,13 +652,16 @@ public abstract class TranscodeChooser
 			TranscodeTarget transcodeTarget = (TranscodeTarget) device;
 
 			if (transcodeTarget.getTranscodeProfiles().length == 0) {
-				continue;
+				
+				if ( transcodeTarget.getTranscodeRequirement() != TranscodeTarget.TRANSCODE_NEVER ){
+				
+					continue;
+				}
 			}
 
 			String imageID = null;
 			if (device instanceof DeviceMediaRenderer) {
-				imageID = "image.sidebar.device."
-						+ ((DeviceMediaRenderer) device).getRendererSpecies() + ".big";
+				imageID = "image.sidebar.device." + DeviceManagerUI.getDeviceImageID( device ) + ".big";
 			}
 
 			lastButton = createDeviceButton(parent, device, device.getName(),

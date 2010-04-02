@@ -503,7 +503,7 @@ DeviceImpl
 	{
 		if ( getRendererSpecies() == DeviceMediaRenderer.RS_ITUNES ){
 			
-			return( "iPhone, iPod, Apple TV" );
+			return( "iPad, iPhone, iPod, Apple TV" );
 		}
 		
 		return( null );
