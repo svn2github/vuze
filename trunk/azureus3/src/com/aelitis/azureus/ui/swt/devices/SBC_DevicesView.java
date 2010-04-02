@@ -951,16 +951,18 @@ public class SBC_DevicesView
 	deviceChanged(
 		Device		device )
 	{
-		if ( !device.getName().equals( device_name )){
+		String name = device.getName();
+		
+		if ( !name.equals( device_name )){
 			
-			device_name = device.getName();
+			device_name = name;
 			
 			// ensure name is up to date
 			SWTSkinObject soTitle = getSkinObject("title");
 			if (soTitle instanceof SWTSkinObjectText) {
 				((SWTSkinObjectText) soTitle).setTextID("device.view.heading",
 						new String[] {
-							device.getName()
+							name
 						});
 			}
 		}
