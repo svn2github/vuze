@@ -21,6 +21,7 @@ import org.gudy.azureus2.plugins.utils.FeatureManager.Licence;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -201,7 +202,9 @@ public class FeatureManagerUI
 				"dvdburn_trial"
 			});
 		} catch (PluginException e) {
-			Logger.log(new LogAlert(true, "Creating Trial", e));
+			String s = "Creating Trial: " + Debug.getNestedExceptionMessage(e);
+			new MessageBoxShell("Trial Error", s).open(null);
+			Logger.log(new LogAlert(true, s, e));
 		}
 	}
 
