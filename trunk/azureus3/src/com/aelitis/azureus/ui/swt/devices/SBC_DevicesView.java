@@ -72,7 +72,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 public class SBC_DevicesView
 	extends SkinView
 	implements TranscodeQueueListener, IconBarEnabler, UIUpdatable,
-	TranscodeTargetListener
+	TranscodeTargetListener, DeviceListener
 {
 	public static final String TABLE_DEVICES = "Devices";
 
@@ -101,7 +101,8 @@ public class SBC_DevicesView
 
 	private Composite tableJobsParent;
 
-	private Device device;
+	private Device 	device;
+	private String	device_name;
 
 	private TranscodeTarget transTarget;
 
@@ -194,11 +195,13 @@ public class SBC_DevicesView
 		}
 
 		if (device != null) {
+			device_name = device.getName();
+			
 			SWTSkinObject soTitle = getSkinObject("title");
 			if (soTitle instanceof SWTSkinObjectText) {
 				((SWTSkinObjectText) soTitle).setTextID("device.view.heading",
 						new String[] {
-							device.getName()
+							device_name
 						});
 			}
 		}
@@ -333,6 +336,11 @@ public class SBC_DevicesView
 			initTranscodeQueueTable((Composite) soTranscodeQueue.getControl());
 		}
 
+		if ( device != null ){
+
+			device.addListener( this );
+		}
+		
 		if (device instanceof TranscodeTarget){
 		
 			createDragDrop( tvFiles!=null?tvFiles:tvDevices);
@@ -403,6 +411,11 @@ public class SBC_DevicesView
 			transTarget.removeListener(this);
 		}
 
+		if ( device != null ){
+			
+			device.removeListener( this );
+		}
+		
 		synchronized (this) {
 			if (tvFiles != null) {
 				tvFiles.delete();
@@ -934,7 +947,24 @@ public class SBC_DevicesView
 		}
 	}
 
-
+	public void
+	deviceChanged(
+		Device		device )
+	{
+		if ( !device.getName().equals( device_name )){
+			
+			device_name = device.getName();
+			
+			// ensure name is up to date
+			SWTSkinObject soTitle = getSkinObject("title");
+			if (soTitle instanceof SWTSkinObjectText) {
+				((SWTSkinObjectText) soTitle).setTextID("device.view.heading",
+						new String[] {
+							device.getName()
+						});
+			}
+		}
+	}
 	
 	
 	/**
