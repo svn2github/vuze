@@ -66,9 +66,9 @@ import com.aelitis.azureus.util.ConstantsVuze;
  */
 public class DevicesFTUX
 {
-	private static final String URL_LEARN_MORE = "http://www.vuze.com/devices/qos.start";
+	private static final String URL_LEARN_MORE = "/devices/qos.start";
 
-	private static final String URL_DEVICES_INFO = "http://www.vuze.com/devices/turnon.start";
+	private static final String URL_DEVICES_INFO = "/devices/turnon.start";
 
 	public static DevicesFTUX instance;
 
@@ -169,7 +169,9 @@ public class DevicesFTUX
 				+ MessageText.getString("label.learnmore") + "</A>");
 		lblLearnMore.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				Utils.launch(e.text);
+				String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(e.text, false);
+				url = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(url, false, false);
+				Utils.launch(url);
 			}
 		});
 
@@ -264,8 +266,8 @@ public class DevicesFTUX
 		fd.right = new FormAttachment(100, -12);
 		install_area.setLayoutData(fd);
 
-		String url = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(
-				URL_DEVICES_INFO, false, true);
+		String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+				URL_DEVICES_INFO, true);
 		browser.setUrl(url);
 		
 		shell.pack();

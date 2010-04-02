@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import com.aelitis.azureus.core.devices.DeviceManagerException;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownloader;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.util.ConstantsVuze;
 
 /**
  * @author TuxPaper
@@ -52,7 +53,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 public class 
 DevicesODFTUX
 {
-	private static final String URL_LEARN_MORE = "http://www.vuze.com/devices/offlinedownloader.start";
+	private static final String URL_LEARN_MORE = "/devices/offlinedownloader.start";
 
 	private DeviceOfflineDownloader		device;
 	
@@ -291,7 +292,10 @@ DevicesODFTUX
 			
 			Debug.out( e );
 		}
-		
+
+		url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(url, false);
+		url = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(url, false, false);
+
 		LinkLabel.makeLinkedLabel( link, url );
 		
 		
