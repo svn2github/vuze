@@ -81,7 +81,7 @@ TranscodeTarget
 	isTranscoding();
 	
 	public boolean
-	isGeneric();
+	isNonSimple();
 	
 	public boolean
 	isAudioCompatible(

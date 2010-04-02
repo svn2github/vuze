@@ -2025,7 +2025,7 @@ DeviceManagerUI
 			
 			DeviceMediaRenderer rend = (DeviceMediaRenderer)device;
 			
-			if ( rend.isGeneric()){
+			if ( rend.isNonSimple()){
 				
 				hide_device = true;
 			}

@@ -645,7 +645,7 @@ public abstract class TranscodeChooser
 
 			DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
 
-			if (hide_generic && renderer.isGeneric()) {
+			if (hide_generic && renderer.isNonSimple()) {
 				continue;
 			}
 

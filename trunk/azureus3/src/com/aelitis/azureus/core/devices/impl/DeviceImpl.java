@@ -598,9 +598,11 @@ DeviceImpl
 	}
 	
 	public boolean
-	isGeneric()
+	isNonSimple()
 	{
-		return( getDeviceClassification() == GENERIC );
+			// apparently wmp isn't ready for the right chasm
+		
+		return( getDeviceClassification() == GENERIC || getClassification().startsWith( "ms_wmp." ));
 	}
 		
 	public boolean
