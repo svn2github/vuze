@@ -21,12 +21,12 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIInputValidator;
@@ -41,6 +41,9 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	
 	private Display display;
 	private Shell shell;
+	private int textLimit;
+	private Combo text_entry_combo;
+	private Text text_entry_text;
 	
 	public SimpleTextEntryWindow() {
 	}
@@ -91,6 +94,7 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 		Utils.setShellIcon(shell);
 		
 	    GridLayout layout = new GridLayout();
+	    layout.verticalSpacing = 10;
 	    shell.setLayout(layout);
 	    
 	    // Default width hint is 330.
@@ -111,8 +115,6 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    
 	    // Create Text object with pre-entered text.
 	    final Scrollable text_entry;
-	    final Combo text_entry_combo;
-	    final Text text_entry_text;
 	    if (this.choices != null) {
 	    	int text_entry_flags = SWT.DROP_DOWN;
 	    	if (!this.choices_allow_edit) {
@@ -121,6 +123,9 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    	
 	    	text_entry_combo = new Combo(shell, text_entry_flags);
 	    	text_entry_combo.setItems(this.choices);
+	    	if (textLimit > 0) {
+	    		text_entry_combo.setTextLimit(textLimit);
+	    	}
 	    	text_entry_text = null;
 	    	text_entry = text_entry_combo;
 	    }
@@ -137,6 +142,9 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    	
 	    	text_entry_text = new Text(shell, text_entry_flags);
 	    	
+	    	if (textLimit > 0) {
+	    		text_entry_text.setTextLimit(textLimit);
+	    	}
 	    	text_entry_combo = null;
 	    	text_entry = text_entry_text;
 	    }
@@ -159,6 +167,26 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    			e.doit = true;
 	    		}
 	    	}
+	    });
+	    
+	    text_entry.addKeyListener(new KeyListener() {
+
+				public void keyPressed(KeyEvent e) {
+					int key = e.character;
+					if (key <= 26 && key > 0) {
+						key += 'a' - 1;
+					}
+					
+					if (key == 'a' && e.stateMask == SWT.MOD1) {
+						if (text_entry_text != null) {
+							text_entry_text.selectAll();
+						}
+					}
+				}
+
+				public void keyReleased(KeyEvent e) {
+				}
+	    	
 	    });
 	    
 	    // Default behaviour - single mode results in default height of 1 line,
@@ -226,10 +254,14 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    		  else if (text_entry_combo != null) {
 	    			  entered_data = text_entry_combo.getText();
 	    		  }
-	    		  
+
 	    		  
 	    		  if (!SimpleTextEntryWindow.this.maintain_whitespace) {
 	    			  entered_data = entered_data.trim();
+	    		  }
+	    		  
+	    		  if (textLimit > 0 && entered_data.length() > textLimit) {
+	    		  	entered_data = entered_data.substring(0, textLimit);
 	    		  }
 	    		  
 	    		  if (!SimpleTextEntryWindow.this.allow_empty_input && entered_data.length() == 0) {
@@ -302,4 +334,17 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
       return button;
   }
 
+  public void setTextLimit(int limit) {
+  	textLimit = limit;
+  	Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (text_entry_combo != null && !text_entry_combo.isDisposed()) {
+					text_entry_combo.setTextLimit(textLimit);
+				}
+				if (text_entry_text != null && !text_entry_text.isDisposed()) {
+					text_entry_text.setTextLimit(textLimit);
+				}
+			}
+		});
+  }
 }

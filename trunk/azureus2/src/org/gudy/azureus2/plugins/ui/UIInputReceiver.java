@@ -206,4 +206,11 @@ public interface UIInputReceiver {
 	 * for this by calling {@link #hasSubmittedInput()} first.
 	 */
 	public String getSubmittedInput();
+	
+	/**
+	 * set the maximum number of characters the user can type
+	 * 
+	 * @since 4.3.1.5
+	 */
+	public void setTextLimit(int limit);
 }
