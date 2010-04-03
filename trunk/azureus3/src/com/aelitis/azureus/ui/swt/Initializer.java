@@ -224,7 +224,11 @@ public class Initializer
 			}
 		}.start();
 
-		PlatformConfigMessenger.login(ContentNetwork.CONTENT_NETWORK_VUZE, 0);
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+
+		if (!uiClassic) {
+			PlatformConfigMessenger.login(ContentNetwork.CONTENT_NETWORK_VUZE, 0);
+		}
 
 		FeatureManagerUI.registerWithFeatureManager();
 
