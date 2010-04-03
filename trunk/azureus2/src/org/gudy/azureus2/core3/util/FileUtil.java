@@ -1939,7 +1939,7 @@ public class FileUtil {
 	{
 		try
 		{
-			return ((Long)reflectOnUsableSpace.invoke(f, null)).longValue();
+			return ((Long)reflectOnUsableSpace.invoke(f, (Object)null)).longValue();
 		} catch (Exception e)
 		{
 			return -1;
