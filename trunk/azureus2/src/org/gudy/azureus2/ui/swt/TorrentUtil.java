@@ -72,7 +72,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableView;
-import com.sun.jndi.toolkit.url.UrlUtil;
+
 
 /**
  * @author Allan Crooks
