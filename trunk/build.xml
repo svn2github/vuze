@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- TODO
+repack jar
+non-shipped files in src
+verify  source="1.5" target="1.5 is really based on jdk1.5 bin
+move elsewhere anything needed to be exluded from bin copy
+verify plugin.inc is not missing anything
+build javadoc (both core + pluginapi one)
+extract messagebundles
+javadoc link and linksource to core
+-->
+
+
+<project basedir="." default="run" name="VuzeClient">
+
+	<!-- VARIABLES -->
+	<property name="build.ver" value="4.4.0.1-01"/>
+	
+	<property name="azureus2.dir" value="azureus2"/>
+	<property name="azureus3.dir" value="azureus3"/>
+	<property name="uis.dir" value="uis"/>
+	
+	<property name="build.dir" value="build"/>
+	<property name="dist.dir" value="dist"/>
+	
+
+	<path id="build.classpath">
+		<fileset dir="${azureus2.dir}/lib">
+		    <include name="*.jar"/>
+		 </fileset>
+		
+		<fileset dir="${azureus3.dir}/lib">
+			 <include name="*.jar"/>
+		</fileset>
+		
+		<fileset dir="${uis.dir}/lib">
+			 <include name="*.jar"/>
+		</fileset>
+	</path>
+
+	<!-- METHODS -->
+
+	<target name="init">
+		<echo message="BUILDING: ${ant.project.name} [${ant.file}]"/>
+		
+		<mkdir dir="${build.dir}"/>
+		<mkdir dir="${dist.dir}"/>
+	</target>
+	
+
+	<target name="clean">
+		<delete dir="${build.dir}"/>
+		<delete dir="${dist.dir}"/>
+	</target>
+	
+
+	<target name="run" depends="clean,package,docs"/>
+	   
+	
+	<target name="build" depends="init">
+		<!-- Grab non-compileable assets -->
+		<copy includeemptydirs="false" todir="${build.dir}">
+			<fileset dir="${azureus2.dir}/src">
+				<exclude name="**/*.java"/>
+				<exclude name="**/*.dll"/>
+			</fileset>
+					
+			<fileset dir="${azureus3.dir}/src">
+				<exclude name="**/*.java"/>
+			</fileset>
+					
+			<fileset dir="${uis.dir}/src">
+				<exclude name="**/*.java"/>
+			</fileset>
+		</copy>
+		
+		<!-- Compile source code -->
+		<javac encoding="8859_1" includeAntRuntime="no" debug="true" debuglevel="source,lines,vars" destdir="${build.dir}" source="1.5" target="1.5">
+			<src path="${azureus2.dir}/src"/>
+			<src path="${azureus3.dir}/src"/>
+			<src path="${uis.dir}/src"/>
+			<classpath refid="build.classpath"/>
+		</javac>
+	</target>
+	
+
+	<target name="package" depends="build">	
+		<!-- Package client core jar -->
+	 	<jar destfile="${dist.dir}/Vuze_${build.ver}.jar" basedir="${build.dir}" level="9" >
+	       <manifest>
+	          <attribute name="Main-Class" value="org.gudy.azureus2.ui.common.Main" />
+	          <attribute name="Class-Path" value="apple-extensions.jar AppleJavaExtensions.jar swt.jar commons-cli.jar log4j.jar junit.jar" />
+	       	 <attribute name="Built-By" value="VZCB:${ant.project.name}:build.xml"/>
+	       	 <attribute name="Build-Version" value="${build.ver}"/>
+	       </manifest>
+	   </jar>
+		  
+		<!-- Package linkable plugin api jar, with embedded sources -->
+		<jar destfile="${dist.dir}/Vuze_${build.ver}_pluginapi.jar" level="9" >
+			<fileset dir="${build.dir}" >
+				<include name="org/gudy/azureus2/plugins/**"/>
+				<include name="org/gudy/azureus2/ui/swt/plugins/**"/>
+				<include name="org/gudy/azureus2/ui/swt/views/*IView*"/>
+				<include name="org/gudy/azureus2/ui/swt/IconBarEnabler*"/>
+			</fileset>
+			
+			<fileset dir="${azureus2.dir}/src" >
+				<include name="org/gudy/azureus2/plugins/**/*.java"/>
+				<include name="org/gudy/azureus2/ui/swt/plugins/**/*.java"/>
+				<include name="org/gudy/azureus2/ui/swt/views/*IView*.java"/>
+				<include name="org/gudy/azureus2/ui/swt/IconBarEnabler*.java"/>
+			</fileset>
+		</jar>
+	 		
+		<!-- Package source assets -->
+		<zip destfile="${dist.dir}/Vuze_${build.ver}_source.zip" level="9" >
+			<fileset dir="${azureus2.dir}/src">
+				 <exclude name="**/*.dll"/>
+			</fileset>
+								
+			<fileset dir="${azureus3.dir}/src" />
+			<fileset dir="${uis.dir}/src" />
+		</zip>		
+	</target>
+	
+	
+	<target name="docs" depends="init" description="Make javadocs" >
+		<!-- Make core javadoc -->
+		<javadoc destdir="${dist.dir}/Vuze_${build.ver}_javadoc" useexternalfile="yes" >
+			 <fileset dir="${azureus2.dir}/src" />
+			 <fileset dir="${azureus3.dir}/src" />
+			 <fileset dir="${uis.dir}/src" />
+			
+			 <classpath refid="build.classpath"/>
+			 <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+		</javadoc>
+		
+		<!-- Make plugin api javadoc -->
+		<javadoc destdir="${dist.dir}/Vuze_${build.ver}_plugindoc" useexternalfile="yes" >
+			 <fileset dir="${azureus2.dir}/src" >
+				 <include name="org/gudy/azureus2/plugins/**"/>
+				 <include name="org/gudy/azureus2/ui/swt/plugins/**"/>
+				 <include name="org/gudy/azureus2/ui/swt/views/*IView*"/>
+				 <include name="org/gudy/azureus2/ui/swt/IconBarEnabler*"/>
+			 </fileset>
+			
+			 <classpath refid="build.classpath"/>
+			 <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
+		</javadoc>
+   </target>
+	
+	
+	
+	<!-- 
+	<target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects">
+		<ant antfile="${svn_azureus3.location}/build.xml" dir="${svn_azureus3.location}" inheritAll="false" target="clean"/>
+		<ant antfile="${svn_azureus3.location}/build.xml" dir="${svn_azureus3.location}" inheritAll="false" target="build"/>
+		<ant antfile="${svn_uis.location}/build.xml" dir="${svn_uis.location}" inheritAll="false" target="clean"/>
+		<ant antfile="${svn_uis.location}/build.xml" dir="${svn_uis.location}" inheritAll="false" target="build"/>
+	</target>
+	-->
+
+</project>
+
