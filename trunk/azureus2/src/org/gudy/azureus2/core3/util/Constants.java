@@ -87,10 +87,10 @@ Constants
   
   public static String APP_NAME = "Vuze";
   public static final String AZUREUS_NAME	  = "Azureus";
-  public static final String AZUREUS_VERSION  = "4.3.1.5_CVS";  //4.3.1.5_CVS
+  public static final String AZUREUS_VERSION  = "4.4.0.0";  //4.4.0.1_CVS
   public static final String BUILD_VERSION  = "@@build.version@@";   //Ant replace
   public static final String AZUREUS_SUBVER	  = "";
-  public static final byte[] VERSION_ID       = ("-" + "AZ" + "4315" + "-").getBytes();  //MUST be 8 chars long!
+  public static final byte[] VERSION_ID       = ("-" + "AZ" + "4400" + "-").getBytes();  //MUST be 8 chars long!
 
   private static final boolean FORCE_NON_CVS = System.getProperty( "az.force.noncvs", "0" ).equals( "1" );
   
