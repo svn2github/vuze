@@ -113,16 +113,16 @@ javadoc link and linksource to core
 		<!-- Grab non-compileable assets -->
 		<copy includeemptydirs="false" todir="${build.dir}">
 			<fileset dir="${azureus2.dir}/src">
-				<exclude name="**/*.java"/>				
-				<exclude name="**/*.jardesc"/>
+				<exclude name="*.java"/>				
+				<exclude name="*.jardesc"/>
 			</fileset>
 					
 			<fileset dir="${azureus3.dir}/src">
-				<exclude name="**/*.java"/>
+				<exclude name="*.java"/>
 			</fileset>
 					
 			<fileset dir="${uis.dir}/src">
-				<exclude name="**/*.java"/>
+				<exclude name="*.java"/>
 			</fileset>
 		</copy>
 		
