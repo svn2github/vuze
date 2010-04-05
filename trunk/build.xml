@@ -73,10 +73,40 @@ javadoc link and linksource to core
 	
 	
 	<target name="postprocess" >
+		<!-- Pickup subversion revision -->
+		<exec executable="svn" outputproperty="svn.revision.new" >
+		   <arg value="info" />
+		   <arg value="." />
+		   <arg value="|" />
+			<arg value="grep" />
+			<arg value="Revision" />
+			<arg value="|" />
+			<arg value="sed" />
+			<arg value="s/Revision: //" />
+		</exec>
+		
+		<echo message="svn.revision.new=${svn.revision.new}" />
+		
+		
+      <exec executable="${svn2cl.exec}" outputproperty="commitlog.text" >
+      	<arg value="--stdout" />
+      	<arg value="--strip-prefix=&quot;&quot;" />
+      	<arg value="--break-before-msg" />
+      	<arg value="-i" />
+      	<arg value="-a" />
+      	<arg value="-r" />
+      	<arg value="${svn.revision}:${svn.revision.new}" />
+      	<arg value="." />
+      </exec>
+		
+		<echo message="commitlog.text = ${commitlog.text}" />
+		
+		
 		 <!-- Increment build info -->
 		 <propertyfile file="${build.properties}" >
 		 	  <entry key="minor.ver" type="int" operation="+" value="1" pattern="00" />
-		 	  <entry key="log.prev.date" type="date" value="now" pattern="dd-MM-yyyy HH:mm:ss" />
+		 	  <entry key="svn.revision" value="${svn.revision.new}" />
+		 	  <entry key="build.date" type="date" value="now" pattern="dd-MM-yyyy HH:mm:ss" />
 		 </propertyfile>
 	</target>
 	
