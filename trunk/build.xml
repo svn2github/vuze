@@ -82,7 +82,7 @@ javadoc link and linksource to core
 		<!-- Pickup subversion revision -->
 		<exec executable="sh" dir="." outputproperty="svn.revision.new" >
 			<arg value="-c" />
-			<arg value="svn info . | grep Revision | sed s/Revision: //" />
+			<arg value="svn info . | grep Revision | sed &quot;s/Revision: //&quot;" />
 		</exec>
 		
 		<echo message="svn.revision.new=${svn.revision.new}" />
