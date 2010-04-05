@@ -90,7 +90,7 @@ javadoc link and linksource to core
 		<!-- Generate changelog -->
       <exec executable="${svn2cl.exec}" dir="." outputproperty="changelog.text" >
       	<arg value="--stdout" />
-      	<arg value="--strip-prefix=&quot;&quot;" />
+      	<arg value="--strip-prefix=" />
       	<arg value="--break-before-msg" />
       	<arg value="-i" />
       	<arg value="-a" />
