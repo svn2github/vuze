@@ -24,7 +24,7 @@ javadoc link and linksource to core
 	<echo message="using.ext.props = ${using.ext.props}" />
 	
 	<!-- Default variables -->
-	<property name="major.ver" value="0.0.0.0"/>
+	<property name="major.ver" value="0000"/>
 	<property name="minor.ver" value="00"/>
 	<property name="build.ver" value="${major.ver}-${minor.ver}"/>
 	
@@ -83,8 +83,7 @@ javadoc link and linksource to core
 		<exec executable="sh" dir="." outputproperty="svn.revision.new" >
 			<arg value="-c" />
 			<arg value="svn info . | grep Revision | sed &quot;s/Revision: //&quot;" />
-		</exec>
-		
+		</exec>		
 		<echo message="svn.revision.new=${svn.revision.new}" />
 		
 		<!-- Generate changelog -->
@@ -97,10 +96,8 @@ javadoc link and linksource to core
       	<arg value="-r" />
       	<arg value="${svn.revision}:${svn.revision.new}" />
       	<arg value="${basedir}" />
-      </exec>
-		
+      </exec>		
 		<echo message="changelog.text = ${changelog.text}" />
-		
 		
 		 <!-- Increment build info -->
 		 <propertyfile file="${build.properties}" >
@@ -115,8 +112,9 @@ javadoc link and linksource to core
 		<!-- Grab non-compileable assets -->
 		<copy includeemptydirs="false" todir="${build.dir}">
 			<fileset dir="${azureus2.dir}/src">
-				<exclude name="**/*.java"/>
-				<exclude name="**/*.dll"/>
+				<exclude name="**/*.java"/>				
+				<exclude name="**/*.jardesc"/>
+				<!-- <exclude name="**/*.dll"/> -->
 			</fileset>
 					
 			<fileset dir="${azureus3.dir}/src">
