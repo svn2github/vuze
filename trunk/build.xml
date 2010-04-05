@@ -80,21 +80,15 @@ javadoc link and linksource to core
 	
 	<target name="postprocess" if="using.ext.props" >
 		<!-- Pickup subversion revision -->
-		<exec executable="svn" dir="." outputproperty="svn.revision.new" >
-		   <arg value="info" />
-		   <arg value="." />
-		   <arg value="|" />
-			<arg value="grep" />
-			<arg value="Revision" />
-			<arg value="|" />
-			<arg value="sed" />
-			<arg value="s/Revision: //" />
+		<exec executable="sh" dir="." outputproperty="svn.revision.new" >
+			<arg value="-c" />
+			<arg value="svn info . | grep Revision | sed s/Revision: //" />
 		</exec>
 		
 		<echo message="svn.revision.new=${svn.revision.new}" />
 		
 		<!-- Generate changelog -->
-      <exec executable="${svn2cl.exec}" dir="." outputproperty="commitlog.text" >
+      <exec executable="${svn2cl.exec}" dir="." outputproperty="changelog.text" >
       	<arg value="--stdout" />
       	<arg value="--strip-prefix=&quot;&quot;" />
       	<arg value="--break-before-msg" />
@@ -105,7 +99,7 @@ javadoc link and linksource to core
       	<arg value="." />
       </exec>
 		
-		<echo message="commitlog.text = ${commitlog.text}" />
+		<echo message="changelog.text = ${changelog.text}" />
 		
 		
 		 <!-- Increment build info -->
