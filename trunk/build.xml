@@ -13,10 +13,14 @@ javadoc link and linksource to core
 
 <project basedir="." default="run" name="VuzeClient">
 
-	<!-- VARIABLES -->
-	<property name="build.mag" value="4.4.0.1"/>
-	<property name="build.min" value="01"/>
-	<property name="build.ver" value="${build.mag}-${build.min}"/>
+	<!-- Load vars from external properties file -->
+	<property name="build.properties" value="${build.props.file}"/>
+	<property file="${build.properties}" />
+	
+	<!-- Default variables -->
+	<property name="major.ver" value="0.0.0.0"/>
+	<property name="minor.ver" value="00"/>
+	<property name="build.ver" value="${major.ver}-${minor.ver}"/>
 	
 	<property name="azureus2.dir" value="azureus2"/>
 	<property name="azureus3.dir" value="azureus3"/>
@@ -24,6 +28,8 @@ javadoc link and linksource to core
 	
 	<property name="build.dir" value="build"/>
 	<property name="dist.dir" value="dist"/>
+	
+	
 	
 
 	<path id="build.classpath">
@@ -56,13 +62,22 @@ javadoc link and linksource to core
 	</target>
 	
 
-	<target name="run" depends="clean,preprocess,package,docs" description="Make everything"/>
+	<target name="run" depends="clean,preprocess,build,package,docs,postprocess" description="Make everything"/>
 	   
-	<target name="preprocess" >
+	<target name="preprocess" >	
 		 <!-- Tag source with version info -->
 		 <property name="constants.file" value="${azureus2.dir}/src/org/gudy/azureus2/core3/util/Constants.java"/>
-		 <replace file="${constants.file}" token="_CVS&quot;" value="_B${build.min}&quot;" summary="true" />
+		 <replace file="${constants.file}" token="_CVS&quot;" value="_B${minor.ver}&quot;" summary="true" />
 		 <replace file="${constants.file}" token="@@build.version@@" value="${build.ver}" summary="true" />
+	</target>
+	
+	
+	<target name="postprocess" >
+		 <!-- Increment build info -->
+		 <propertyfile file="${build.properties}" >
+		 	  <entry key="minor.ver" type="int" operation="+" value="1" pattern="00" />
+		 	  <entry key="log.prev.date" type="date" value="now" pattern="dd-MM-yyyy HH:mm:ss" />
+		 </propertyfile>
 	</target>
 	
 	
@@ -157,17 +172,6 @@ javadoc link and linksource to core
 			 <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
 		</javadoc>
    </target>
-	
-	
-	
-	<!-- 
-	<target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects">
-		<ant antfile="${svn_azureus3.location}/build.xml" dir="${svn_azureus3.location}" inheritAll="false" target="clean"/>
-		<ant antfile="${svn_azureus3.location}/build.xml" dir="${svn_azureus3.location}" inheritAll="false" target="build"/>
-		<ant antfile="${svn_uis.location}/build.xml" dir="${svn_uis.location}" inheritAll="false" target="clean"/>
-		<ant antfile="${svn_uis.location}/build.xml" dir="${svn_uis.location}" inheritAll="false" target="build"/>
-	</target>
-	-->
 
 </project>
 
