@@ -79,7 +79,9 @@ TranscodeJobImpl
 	private long					process_time;
 	
 	private boolean					use_direct_input;
+	private boolean					prefer_direct_input;
 	
+	private boolean					auto_retry_enabled	= true;
 	private boolean					auto_retry;
 	private int						auto_retry_count;
 	
@@ -155,6 +157,10 @@ TranscodeJobImpl
 		
 		transcode_requirement	= ImportExportUtils.importInt( map, "trans_req", TranscodeTarget.TRANSCODE_UNKNOWN );
 		
+		auto_retry_enabled = ImportExportUtils.importBoolean( map, "ar_enable", true );
+		
+		prefer_direct_input = ImportExportUtils.importBoolean( map, "pdi", false );
+		
 		init();
 	}
 
@@ -188,7 +194,11 @@ TranscodeJobImpl
 			}
 		
 			ImportExportUtils.exportInt( map, "trans_req", transcode_requirement );
-					
+				
+			ImportExportUtils.exportBoolean( map, "ar_enable", auto_retry_enabled );
+			
+			ImportExportUtils.exportBoolean( map, "pdi", prefer_direct_input );
+			
 			return( map );
 			
 		}catch( Throwable e ){
@@ -343,7 +353,8 @@ TranscodeJobImpl
 	{
 		synchronized( this ){
 
-			return( use_direct_input );
+			return( use_direct_input || 
+					( getPreferDirectInput() && canUseDirectInput()));
 		}
 	}
 	
@@ -353,6 +364,25 @@ TranscodeJobImpl
 		synchronized( this ){
 
 			use_direct_input = true;
+		}
+	}
+	
+	public void
+	setPreferDirectInput(
+		boolean		prefer )
+	{
+		synchronized( this ){
+		
+			prefer_direct_input = prefer;
+		}
+	}
+	
+	public boolean
+	getPreferDirectInput()
+	{
+		synchronized( this ){
+		
+			return( prefer_direct_input );
 		}
 	}
 	
@@ -391,6 +421,19 @@ TranscodeJobImpl
 
 			return( auto_retry_count );
 		}
+	}
+	
+	public void
+	setEnableAutoRetry(
+		boolean		enabled )
+	{
+		auto_retry_enabled = enabled;
+	}
+	
+	public boolean 
+	getEnableAutoRetry() 
+	{
+		return( auto_retry_enabled );
 	}
 	
 	protected boolean

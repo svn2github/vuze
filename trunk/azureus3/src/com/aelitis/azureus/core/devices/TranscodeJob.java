@@ -74,6 +74,20 @@ TranscodeJob
 	public String
 	getError();
 	
+	public void
+	setEnableAutoRetry(
+		boolean		enabled );
+	
+	public boolean
+	getEnableAutoRetry();
+	
+	public void
+	setPreferDirectInput(
+		boolean		prefer );
+	
+	public boolean
+	getPreferDirectInput();
+	
 	public boolean
 	canPause();
 	

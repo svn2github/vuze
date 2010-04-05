@@ -282,7 +282,10 @@ TranscodeQueueImpl
 								// and eventually failing - try and spot this behaviour and revert
 								// to direct input if needed
 							
-							if ( Constants.isOSX && job.canUseDirectInput() && job.getAutoRetryCount() == 0 ){
+							if ( 	Constants.isOSX &&
+									job.getEnableAutoRetry() && 
+									job.canUseDirectInput() && 
+									job.getAutoRetryCount() == 0 ){
 								
 								if ( connect_rate > 5 && last_percent < 100 ){
 									
@@ -656,7 +659,11 @@ TranscodeQueueImpl
 			
 			e.printStackTrace();
 			
-			if ( !job.isStream() && job.getAutoRetryCount() == 0 && job.canUseDirectInput() && !job.useDirectInput()){
+			if ( 	!job.isStream() &&
+					job.getEnableAutoRetry() && 
+					job.getAutoRetryCount() == 0 && 
+					job.canUseDirectInput() && 
+					!job.useDirectInput()){
 				
 				log( "Auto-retrying transcode with direct input" );
 				
