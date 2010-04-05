@@ -14,7 +14,9 @@ javadoc link and linksource to core
 <project basedir="." default="run" name="VuzeClient">
 
 	<!-- VARIABLES -->
-	<property name="build.ver" value="4.4.0.1-01"/>
+	<property name="build.mag" value="4.4.0.1"/>
+	<property name="build.min" value="01"/>
+	<property name="build.ver" value="${build.mag}-${build.min}"/>
 	
 	<property name="azureus2.dir" value="azureus2"/>
 	<property name="azureus3.dir" value="azureus3"/>
@@ -54,10 +56,17 @@ javadoc link and linksource to core
 	</target>
 	
 
-	<target name="run" depends="clean,package,docs"/>
+	<target name="run" depends="clean,preprocess,package,docs" description="Make everything"/>
 	   
+	<target name="preprocess" >
+		 <!-- Tag source with version info -->
+		 <property name="constants.file" value="${azureus2.dir}/src/org/gudy/azureus2/core3/util/Constants.java"/>
+		 <replace file="${constants.file}" token="_CVS&quot;" value="_B${build.min}&quot;" summary="true" />
+		 <replace file="${constants.file}" token="@@build.version@@" value="${build.ver}" summary="true" />
+	</target>
 	
-	<target name="build" depends="init">
+	
+	<target name="build" depends="init" description="Make (class) build files">
 		<!-- Grab non-compileable assets -->
 		<copy includeemptydirs="false" todir="${build.dir}">
 			<fileset dir="${azureus2.dir}/src">
@@ -84,7 +93,7 @@ javadoc link and linksource to core
 	</target>
 	
 
-	<target name="package" depends="build">	
+	<target name="package" depends="build" description="Make jar and zip bundles">	
 		<!-- Package client core jar -->
 	 	<jar destfile="${dist.dir}/Vuze_${build.ver}.jar" basedir="${build.dir}" level="9" >
 	       <manifest>
