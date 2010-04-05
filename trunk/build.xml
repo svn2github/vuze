@@ -16,6 +16,9 @@ javadoc link and linksource to core
 	<!-- Load vars from external properties file -->
 	<property name="build.properties" value="${build.props.file}"/>
 	<property file="${build.properties}" />
+	<condition property="using.ext.props" >
+	    <isset property="${build.props.file}" />
+	</condition>
 	
 	<!-- Default variables -->
 	<property name="major.ver" value="0.0.0.0"/>
@@ -49,7 +52,7 @@ javadoc link and linksource to core
 	<!-- METHODS -->
 
 	<target name="init">
-		<echo message="BUILDING: ${ant.project.name} [${ant.file}]"/>
+		<echo message="BUILDING: ${ant.project.name} [${ant.file}] [${build.props.file}]"/>
 		
 		<mkdir dir="${build.dir}"/>
 		<mkdir dir="${dist.dir}"/>
@@ -72,9 +75,9 @@ javadoc link and linksource to core
 	</target>
 	
 	
-	<target name="postprocess" >
+	<target name="postprocess" if="using.ext.props" >
 		<!-- Pickup subversion revision -->
-		<exec executable="svn" outputproperty="svn.revision.new" >
+		<exec executable="svn" dir="." outputproperty="svn.revision.new" >
 		   <arg value="info" />
 		   <arg value="." />
 		   <arg value="|" />
@@ -87,8 +90,8 @@ javadoc link and linksource to core
 		
 		<echo message="svn.revision.new=${svn.revision.new}" />
 		
-		
-      <exec executable="${svn2cl.exec}" outputproperty="commitlog.text" >
+		<!-- Generate changelog -->
+      <exec executable="${svn2cl.exec}" dir="." outputproperty="commitlog.text" >
       	<arg value="--stdout" />
       	<arg value="--strip-prefix=&quot;&quot;" />
       	<arg value="--break-before-msg" />
