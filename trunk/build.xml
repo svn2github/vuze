@@ -14,11 +14,12 @@ javadoc link and linksource to core
 <project basedir="." default="run" name="VuzeClient">
 
 	<!-- Load vars from external properties file -->
+	<condition property="using.ext.props" >
+	    <isset property="build.props.file" />
+	</condition>
 	<property name="build.properties" value="${build.props.file}"/>
 	<property file="${build.properties}" />
-	<condition property="using.ext.props" >
-	    <isset property="${build.props.file}" />
-	</condition>
+	
 	
 	<echo message="using.ext.props = ${using.ext.props}" />
 	
