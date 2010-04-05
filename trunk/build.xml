@@ -37,8 +37,8 @@ extrapolate plugniapi fileset to ref
 	<property name="dist.dir" value="dist"/>
 	
 	
+	<!-- Reusable References -->
 	
-
 	<path id="build.classpath">
 		<fileset dir="${azureus2.dir}/lib">
 		    <include name="*.jar"/>
@@ -52,6 +52,16 @@ extrapolate plugniapi fileset to ref
 			 <include name="*.jar"/>
 		</fileset>
 	</path>
+	
+	
+	<patternset id="pluginapi.inc">
+		<include name="org/gudy/azureus2/plugins/**" />
+		<include name="org/gudy/azureus2/ui/swt/plugins/**" />
+		<include name="org/gudy/azureus2/ui/swt/views/*IView*" />
+		<include name="org/gudy/azureus2/ui/swt/IconBarEnabler*" />
+	</patternset>
+	
+	
 
 	<!-- METHODS -->
 
@@ -151,17 +161,11 @@ extrapolate plugniapi fileset to ref
 		<!-- Package linkable plugin api jar, with embedded sources -->
 		<jar destfile="${dist.dir}/Vuze_${build.ver}_pluginapi.jar" level="9" >
 			<fileset dir="${build.dir}" >
-				<include name="org/gudy/azureus2/plugins/**"/>
-				<include name="org/gudy/azureus2/ui/swt/plugins/**"/>
-				<include name="org/gudy/azureus2/ui/swt/views/*IView*"/>
-				<include name="org/gudy/azureus2/ui/swt/IconBarEnabler*"/>
+				 <patternset refid="pluginapi.inc"/>
 			</fileset>
 			
 			<fileset dir="${azureus2.dir}/src" >
-				<include name="org/gudy/azureus2/plugins/**"/>
-				<include name="org/gudy/azureus2/ui/swt/plugins/**"/>
-				<include name="org/gudy/azureus2/ui/swt/views/*IView*"/>
-				<include name="org/gudy/azureus2/ui/swt/IconBarEnabler*"/>
+				 <patternset refid="pluginapi.inc"/>
 			</fileset>
 		</jar>
 	 		
@@ -188,10 +192,7 @@ extrapolate plugniapi fileset to ref
 		<!-- Make plugin api javadoc -->
 		<javadoc destdir="${dist.dir}/Vuze_${build.ver}_plugindoc" useexternalfile="yes" maxmemory="256m" Encoding="8859_1">
 			 <fileset dir="${azureus2.dir}/src" >
-				 <include name="org/gudy/azureus2/plugins/**"/>
-				 <include name="org/gudy/azureus2/ui/swt/plugins/**"/>
-				 <include name="org/gudy/azureus2/ui/swt/views/*IView*"/>
-				 <include name="org/gudy/azureus2/ui/swt/IconBarEnabler*"/>
+			 	 <patternset refid="pluginapi.inc"/>
 			 </fileset>
 			
 			 <classpath refid="build.classpath"/>
