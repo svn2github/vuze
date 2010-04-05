@@ -65,7 +65,7 @@ javadoc link and linksource to core
 	</target>
 	
 
-	<target name="run" depends="clean,preprocess,build,package,docs,postprocess" description="Make everything"/>
+	<target name="run" depends="clean,preprocess,build,package,postprocess" description="Make everything"/>
 	   
 	<target name="preprocess" >	
 		 <!-- Tag source with version info -->
