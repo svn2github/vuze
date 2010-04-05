@@ -23,7 +23,7 @@ package com.aelitis.azureus.core.cnetwork.impl;
 
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.util.FeatureAvailability;
+// import com.aelitis.azureus.core.util.FeatureAvailability;
 
 public class 
 ContentNetworkVuze 
@@ -37,6 +37,7 @@ ContentNetworkVuze
 
 	private static final String DEFAULT_RELAY_PORT = "80";
  
+	/*
 	static{
 		if ( FeatureAvailability.ENABLE_PLUS()){
 			
@@ -46,6 +47,7 @@ ContentNetworkVuze
 			}
 		}
 	}
+	*/
 	
 	private static final String URL_ADDRESS = System.getProperty( "platform_address", DEFAULT_ADDRESS );
 

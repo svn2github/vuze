@@ -27,7 +27,7 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.util.FeatureAvailability;
+//import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.mdi.*;
@@ -41,7 +41,7 @@ import com.aelitis.azureus.util.ConstantsVuze;
 public class FeatureManagerUI
 {
 	public static boolean enabled = !Constants.isUnix
-			&& FeatureAvailability.ENABLE_PLUS()
+			//&& FeatureAvailability.ENABLE_PLUS()
 			|| System.getProperty("fm.ui", "0").equals("1");
 
 	private static FeatureManager featman;
