@@ -8,6 +8,7 @@ verify plugin.inc is not missing anything
 build javadoc (both core + pluginapi one)
 extract messagebundles
 javadoc link and linksource to core
+extrapolate plugniapi fileset to ref
 -->
 
 
@@ -113,16 +114,16 @@ javadoc link and linksource to core
 		<!-- Grab non-compileable assets -->
 		<copy includeemptydirs="false" todir="${build.dir}">
 			<fileset dir="${azureus2.dir}/src">
-				<exclude name="*.java"/>				
-				<exclude name="*.jardesc"/>
+				<exclude name="**/*.java"/>				
+				<exclude name="**/*.jardesc"/>
 			</fileset>
-					
+
 			<fileset dir="${azureus3.dir}/src">
-				<exclude name="*.java"/>
+				<exclude name="**/*.java"/>
 			</fileset>
 					
 			<fileset dir="${uis.dir}/src">
-				<exclude name="*.java"/>
+				<exclude name="**/*.java"/>
 			</fileset>
 		</copy>
 		
@@ -157,10 +158,10 @@ javadoc link and linksource to core
 			</fileset>
 			
 			<fileset dir="${azureus2.dir}/src" >
-				<include name="org/gudy/azureus2/plugins/**/*.java"/>
-				<include name="org/gudy/azureus2/ui/swt/plugins/**/*.java"/>
-				<include name="org/gudy/azureus2/ui/swt/views/*IView*.java"/>
-				<include name="org/gudy/azureus2/ui/swt/IconBarEnabler*.java"/>
+				<include name="org/gudy/azureus2/plugins/**"/>
+				<include name="org/gudy/azureus2/ui/swt/plugins/**"/>
+				<include name="org/gudy/azureus2/ui/swt/views/*IView*"/>
+				<include name="org/gudy/azureus2/ui/swt/IconBarEnabler*"/>
 			</fileset>
 		</jar>
 	 		
