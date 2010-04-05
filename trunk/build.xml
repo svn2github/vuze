@@ -20,6 +20,8 @@ javadoc link and linksource to core
 	    <isset property="${build.props.file}" />
 	</condition>
 	
+	<echo message="using.ext.props = ${using.ext.props}" />
+	
 	<!-- Default variables -->
 	<property name="major.ver" value="0.0.0.0"/>
 	<property name="minor.ver" value="00"/>
