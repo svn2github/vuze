@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- TODO
 repack jar
-non-shipped files in src
 verify  source="1.5" target="1.5 is really based on jdk1.5 bin
-move elsewhere anything needed to be exluded from bin copy
-verify plugin.inc is not missing anything
-build javadoc (both core + pluginapi one)
 extract messagebundles
 javadoc link and linksource to core
-extrapolate plugniapi fileset to ref
 -->
 
 
@@ -37,49 +32,44 @@ extrapolate plugniapi fileset to ref
 	<property name="dist.dir" value="dist"/>
 	
 	
-	<!-- Reusable References -->
+	<!-- REUSABLE REFERENCES -->
 	
 	<path id="build.classpath">
-		<fileset dir="${azureus2.dir}/lib">
-		    <include name="*.jar"/>
-		 </fileset>
-		
-		<fileset dir="${azureus3.dir}/lib">
-			 <include name="*.jar"/>
-		</fileset>
-		
-		<fileset dir="${uis.dir}/lib">
-			 <include name="*.jar"/>
-		</fileset>
-	</path>
-	
+		<fileset dir="${azureus2.dir}/lib" includes="*.jar" />
+		<fileset dir="${azureus3.dir}/lib" includes="*.jar" />
+		<fileset dir="${uis.dir}/lib" includes="*.jar" />
+	</path>	
 	
 	<patternset id="pluginapi.inc">
 		<include name="org/gudy/azureus2/plugins/**" />
 		<include name="org/gudy/azureus2/ui/swt/plugins/**" />
 		<include name="org/gudy/azureus2/ui/swt/views/*IView*" />
 		<include name="org/gudy/azureus2/ui/swt/IconBarEnabler*" />
-	</patternset>
+	</patternset>	
 	
+	<patternset id="sourcecode.exc">
+		 <exclude name="**/*.java"/>				
+		 <exclude name="**/*.jardesc"/>
+	</patternset>	
 	
 
 	<!-- METHODS -->
 
-	<target name="init">
-		<echo message="BUILDING: ${ant.project.name} [${ant.file}] [${build.props.file}]"/>
-		
-		<mkdir dir="${build.dir}"/>
-		<mkdir dir="${dist.dir}"/>
-	</target>
-	
-
-	<target name="clean">
-		<delete dir="${build.dir}"/>
-		<delete dir="${dist.dir}"/>
-	</target>
-	
-
 	<target name="run" depends="clean,preprocess,build,package,docs,postprocess" description="Make everything"/>
+	
+	
+	<target name="clean">
+		 <delete dir="${build.dir}"/>
+		 <delete dir="${dist.dir}"/>
+	</target>
+	
+	
+	<target name="init">
+		 <echo message="BUILDING: ${ant.project.name} [${ant.file}] [${build.props.file}]"/>
+	 		
+		 <mkdir dir="${build.dir}"/>
+	 	 <mkdir dir="${dist.dir}"/>
+	</target>
 	   
 	
 	<target name="preprocess" >	
@@ -90,51 +80,12 @@ extrapolate plugniapi fileset to ref
 	</target>
 	
 	
-	<target name="postprocess" if="using.ext.props" >
-		<!-- Pickup subversion revision -->
-		<exec executable="sh" dir="." outputproperty="svn.revision.new" >
-			<arg value="-c" />
-			<arg value="svn info . | grep Revision | sed &quot;s/Revision: //&quot;" />
-		</exec>		
-		<echo message="svn.revision.new=${svn.revision.new}" />
-		
-		<!-- Generate changelog -->
-      <exec executable="${svn2cl.exec}" dir="." outputproperty="changelog.text" >
-      	<arg value="--stdout" />
-      	<arg value="--strip-prefix=" />
-      	<arg value="--break-before-msg" />
-      	<arg value="-i" />
-      	<arg value="-a" />
-      	<arg value="-r" />
-      	<arg value="${svn.revision}:${svn.revision.new}" />
-      	<arg value="${basedir}" />
-      </exec>		
-		<echo message="changelog.text = ${changelog.text}" />
-		
-		 <!-- Increment build info -->
-		 <propertyfile file="${build.properties}" >
-		 	  <entry key="minor.ver" type="int" operation="+" value="1" pattern="00" />
-		 	  <entry key="svn.revision" value="${svn.revision.new}" />
-		 	  <entry key="build.date" type="date" value="now" pattern="dd-MM-yyyy HH:mm:ss" />
-		 </propertyfile>
-	</target>
-	
-	
 	<target name="build" depends="init" description="Make (class) build files">
 		<!-- Grab non-compileable assets -->
 		<copy includeemptydirs="false" todir="${build.dir}">
-			<fileset dir="${azureus2.dir}/src">
-				<exclude name="**/*.java"/>				
-				<exclude name="**/*.jardesc"/>
-			</fileset>
-
-			<fileset dir="${azureus3.dir}/src">
-				<exclude name="**/*.java"/>
-			</fileset>
-					
-			<fileset dir="${uis.dir}/src">
-				<exclude name="**/*.java"/>
-			</fileset>
+			<fileset dir="${azureus2.dir}/src"> <patternset refid="sourcecode.exc"/> </fileset>
+		   <fileset dir="${azureus3.dir}/src"> <patternset refid="sourcecode.exc"/> </fileset>
+			<fileset dir="${uis.dir}/src"> 		<patternset refid="sourcecode.exc"/> </fileset>
 		</copy>
 		
 		<!-- Compile source code -->
@@ -199,6 +150,36 @@ extrapolate plugniapi fileset to ref
 			 <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
 		</javadoc>
    </target>
-
+	
+	
+	<target name="postprocess" if="using.ext.props" >
+			<!-- Pickup subversion revision -->
+			<exec executable="sh" dir="." outputproperty="svn.revision.new" >
+				<arg value="-c" />
+				<arg value="svn info . | grep Revision | sed &quot;s/Revision: //&quot;" />
+			</exec>		
+			<echo message="svn.revision.new=${svn.revision.new}" />
+			
+			<!-- Generate changelog -->
+	      <exec executable="${svn2cl.exec}" dir="." outputproperty="changelog.text" >
+	      	<arg value="--stdout" />
+	      	<arg value="--strip-prefix=" />
+	      	<arg value="--break-before-msg" />
+	      	<arg value="-i" />
+	      	<arg value="-a" />
+	      	<arg value="-r" />
+	      	<arg value="${svn.revision}:${svn.revision.new}" />
+	      	<arg value="${basedir}" />
+	      </exec>		
+			<echo message="changelog.text = ${changelog.text}" />
+			
+			 <!-- Increment build info -->
+			 <propertyfile file="${build.properties}" >
+			 	  <entry key="minor.ver" type="int" operation="+" value="1" pattern="00" />
+			 	  <entry key="svn.revision" value="${svn.revision.new}" />
+			 	  <entry key="build.date" type="date" value="now" pattern="dd-MM-yyyy HH:mm:ss" />
+			 </propertyfile>
+		</target>
+	
 </project>
 
