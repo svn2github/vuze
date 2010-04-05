@@ -128,7 +128,7 @@ extrapolate plugniapi fileset to ref
 		</copy>
 		
 		<!-- Compile source code -->
-		<javac encoding="8859_1" includeAntRuntime="no" debug="true" debuglevel="source,lines,vars" destdir="${build.dir}" source="1.5" target="1.5">
+		<javac encoding="8859_1" includeAntRuntime="no" debug="true" debuglevel="source,lines,vars" destdir="${build.dir}" source="1.5" target="1.5" fork="yes" memoryMaximumSize="256m" >
 			<src path="${azureus2.dir}/src"/>
 			<src path="${azureus3.dir}/src"/>
 			<src path="${uis.dir}/src"/>
