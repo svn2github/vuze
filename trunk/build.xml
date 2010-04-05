@@ -68,8 +68,9 @@ javadoc link and linksource to core
 	</target>
 	
 
-	<target name="run" depends="clean,preprocess,build,package,postprocess" description="Make everything"/>
+	<target name="run" depends="clean,preprocess,build,package,docs,postprocess" description="Make everything"/>
 	   
+	
 	<target name="preprocess" >	
 		 <!-- Tag source with version info -->
 		 <property name="constants.file" value="${azureus2.dir}/src/org/gudy/azureus2/core3/util/Constants.java"/>
