@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2010.xx.xx | Vuze 4.3.1.5
+2010.04.xx | Vuze 4.3.1.5
 
 FEATURE: Core | Feature manager [Parg]
 FEATURE: Core | Added mechanism to add virtual devices [Parg]
@@ -16,6 +16,8 @@ FEATURE: Plug | Added mechanism for plugins to specify executable properties of 
 FEATURE: Plug | Added method for testing if move-on-complete actions are active [Parg]
 FEATURE: UI   | Toolbar support for selecting files in file-view [Parg]
 FEATURE: UI   | Feature Manager UI [TuxPaper]
+FEATURE: UI   | Better Drag&Drop indication on sidebar [TuxPaper]
+FEATURE: UI   | Better pop-out/pop-up supression from Search Results pages [TuxPaper]
 
 CHANGE: Core  | Added ability to add xcodes in stopped state [Parg]
 CHANGE: Core  | When there's only one transcode profile available, don't allow user to make a (non-existant) choice [Parg]
@@ -30,6 +32,7 @@ CHANGE: Plug  | Added swt info to update check to allow different plugin version
 CHANGE: UI    | Limit max torrent file size to prevent bad behaviour when large files dropped onto UI [Parg]
 CHANGE: UI    | Truncation percentages shown for xcode to avoid useless ".0" [Parg]
 CHANGE: UI    | Restructure Sidebar/Tab system into a common MDI structure [TuxPaper]
+CHANGE: UI    | Some dialogs now switch Ok/Cancel to Cancel/Ok on OSX [TuxPaper]
 
 BUGFIX: Core  | Fix 'no space' display for offline downloaders [Parg] 
 BUGFIX: Core  | Fixed opening torrent from Finder bug under OSX 10.4 [TuxPaper]
@@ -39,12 +42,16 @@ BUGFIX: Core  | File channel support for 2GB+ files [Parg]
 BUGFIX: Core  | Update pending files in xcode view when files deletes [Parg]
 BUGFIX: Core  | Fix relayout bug in status bar [Parg]
 BUGFIX: Core  | Fix various places where linked files were being ignored [Parg]
+BUGFIX: Core  | Fix rare case where Donation window was popping up too often [TuxPaper]
 BUGFIX: Plug  | Ensure that reloaded plugin's message resources are loaded [Parg] 
 BUGFIX: Plug  | Ensure installation failures are reported [Parg]
 BUGFIX: UI    | Extend cell refresh logic to include those with refresh listeners [Parg]
 BUGFIX: UI    | Fix rare case where table sort order is incorrect after raid data updates [TuxPaper]
 BUGFIX: UI    | Patch case where Vuze prevents Windows 7 from shutting down [TuxPaper]
 BUGFIX: UI    | Fix buttons having ugly BG on Win7 [TuxPaper]
+BUGFIX: UI    | Fix some columns not showing up in "All Torrents" views [TuxPaper]
+BUGFIX: UI    | Fix clipboard menu not working for some columns (Torrent Name Column) [TuxPaper]
+
 
 
 2010.02.09 | Vuze 4.3.1.4
