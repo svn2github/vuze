@@ -96,9 +96,7 @@ javadoc link and linksource to core
       	<arg value="-a" />
       	<arg value="-r" />
       	<arg value="${svn.revision}:${svn.revision.new}" />
-      	
-      	<property environment="env" />
-      	<arg value="${env.WORKSPACE}/trunk" />
+      	<arg value="${basedir}" />
       </exec>
 		
 		<echo message="changelog.text = ${changelog.text}" />
