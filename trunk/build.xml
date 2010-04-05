@@ -176,7 +176,7 @@ extrapolate plugniapi fileset to ref
 	
 	<target name="docs" depends="init" description="Make javadocs" >
 		<!-- Make core javadoc -->
-		<javadoc destdir="${dist.dir}/Vuze_${build.ver}_javadoc" useexternalfile="yes" maxmemory="256m" >
+		<javadoc destdir="${dist.dir}/Vuze_${build.ver}_javadoc" useexternalfile="yes" maxmemory="256m" Encoding="8859_1" >
 			 <fileset dir="${azureus2.dir}/src" />
 			 <fileset dir="${azureus3.dir}/src" />
 			 <fileset dir="${uis.dir}/src" />
@@ -186,7 +186,7 @@ extrapolate plugniapi fileset to ref
 		</javadoc>
 		
 		<!-- Make plugin api javadoc -->
-		<javadoc destdir="${dist.dir}/Vuze_${build.ver}_plugindoc" useexternalfile="yes" maxmemory="256m">
+		<javadoc destdir="${dist.dir}/Vuze_${build.ver}_plugindoc" useexternalfile="yes" maxmemory="256m" Encoding="8859_1">
 			 <fileset dir="${azureus2.dir}/src" >
 				 <include name="org/gudy/azureus2/plugins/**"/>
 				 <include name="org/gudy/azureus2/ui/swt/plugins/**"/>
