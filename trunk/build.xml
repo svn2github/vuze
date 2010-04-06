@@ -79,7 +79,7 @@ javadoc link and linksource to core
 		 <!-- Tag source with version info -->
 		 <property name="constants.file" value="${azureus2.dir}/src/org/gudy/azureus2/core3/util/Constants.java"/>
 		 <replace file="${constants.file}" token="_CVS&quot;" value="_B${minor.ver}&quot;" summary="true" />
-		 <replace file="${constants.file}" token="@@build.version@@" value="${build.ver}" summary="true" />
+		 <replace file="${constants.file}" token="@build.version@" value="${build.ver}" summary="true" />
 	</target>
 	
 	
@@ -182,9 +182,9 @@ javadoc link and linksource to core
 		     <tstamp> <format property="timestamp" pattern="dd MMM yyyy hh:mm:ss aa" /> </tstamp>
 		     <property name="jar.name" value="Azureus${major.ver}-B${minor.ver}.jar" />
 			  <replace dir="${docs.dir}" >
-			  	  <replacefilter token="@@timestamp@@"      value="${timestamp}" />
-			  	  <replacefilter token="@@jar.name@@"       value="${jar.name}" />
-			  	  <replacefilter token="@@changelog.text@@" value="${changelog.text}" />
+			  	  <replacefilter token="@timestamp@"      value="${timestamp}" />
+			  	  <replacefilter token="@jar.name@"       value="${jar.name}" />
+			  	  <replacefilter token="@changelog.text@" value="${changelog.text}" />
 			  </replace>			  	
 		     
 		</target>
