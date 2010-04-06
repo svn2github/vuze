@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" ?>
+
 <!-- TODO
 repack jar
 verify  source="1.5" target="1.5 is really based on jdk1.5 bin
@@ -37,12 +38,6 @@ javadoc link and linksource to core
 		<fileset dir="${azureus2.dir}/lib" includes="*.jar" />
 		<fileset dir="${azureus3.dir}/lib" includes="*.jar" />
 		<fileset dir="${uis.dir}/lib" includes="*.jar" />
-	</path>
-	
-	<path id="source.paths">
-		<fileset dir="${azureus2.dir}/src" />
-		<fileset dir="${azureus3.dir}/src" />
-		<fileset dir="${uis.dir}/src" />
 	</path>
 	
 	<patternset id="pluginapi.inc">
@@ -123,7 +118,9 @@ javadoc link and linksource to core
 	 		
 		<!-- Package source assets -->
 		<zip destfile="${dist.dir}/Vuze_${build.ver}_source.zip" level="9" >
-			<fileset refid="source.paths" />
+			<fileset dir="${azureus2.dir}/src" />
+			<fileset dir="${azureus3.dir}/src" />
+			<fileset dir="${uis.dir}/src" />
 		</zip>		
 	</target>
 	
@@ -131,7 +128,9 @@ javadoc link and linksource to core
 	<target name="docs" depends="init" description="Make javadocs" >
 		<!-- Make core javadoc -->
 		<javadoc destdir="${dist.dir}/Vuze_${build.ver}_javadoc" useexternalfile="yes" maxmemory="256m" Encoding="8859_1" >
-			 <fileset refid="source.paths" />
+			 <fileset dir="${azureus2.dir}/src" />
+			 <fileset dir="${azureus3.dir}/src" />
+			 <fileset dir="${uis.dir}/src" />
 			 <classpath refid="build.classpath"/>
 			 <link href="http://java.sun.com/j2se/1.5.0/docs/api/"/>
 		</javadoc>
