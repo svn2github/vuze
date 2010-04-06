@@ -47,7 +47,7 @@ public abstract class NativeInvocationBridge
 		if (instance == null) {
 			try {
 				Object newInstance = Class.forName(
-						"org.gudy.azureus2.platform.macosx.access.cocoa.CocoaJavaBridge").getConstructor().newInstance((Object)null);
+						"org.gudy.azureus2.platform.macosx.access.cocoa.CocoaJavaBridge").getConstructor().newInstance();
 				instance = (NativeInvocationBridge) newInstance;
 			} catch (Throwable e) {
 				Debug.out(e);
