@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2010.04.xx | Vuze 4.4.0.1
+
+
+
 2010.04.05 | Vuze 4.4.0.0
 
 FEATURE: Core | Feature manager [Parg]
