@@ -11,9 +11,7 @@ javadoc link and linksource to core
 <project basedir="." default="package" name="VuzeClient">
 
 	<!-- Load vars from external properties file -->
-	<condition property="using.ext.props" >
-	    <isset property="build.props.file" />
-	</condition>
+	<condition property="using.ext.props" > <isset property="build.props.file" /> </condition>
 	<property name="build.properties" value="${build.props.file}"/>
 	<property file="${build.properties}" />	
 	<echo message="using.ext.props = ${using.ext.props}" />
@@ -75,7 +73,7 @@ javadoc link and linksource to core
 	</target>
 	   
 	
-	<target name="preprocess" >	
+	<target name="preprocess" if="using.ext.props" >	
 		 <!-- Tag source with version info -->
 		 <property name="constants.file" value="${azureus2.dir}/src/org/gudy/azureus2/core3/util/Constants.java"/>
 		 <replace file="${constants.file}" token="_CVS&quot;" value="_B${minor.ver}&quot;" summary="true" />
