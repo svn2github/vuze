@@ -8,7 +8,7 @@ javadoc link and linksource to core
 -->
 
 
-<project basedir="." default="run" name="VuzeClient">
+<project basedir="." default="package" name="VuzeClient">
 
 	<!-- Load vars from external properties file -->
 	<condition property="using.ext.props" >
@@ -57,7 +57,7 @@ javadoc link and linksource to core
 
 	<!-- METHODS -->
 
-	<target name="run" depends="clean,preprocess,build,package,docs,postprocess" description="Make everything">
+	<target name="run" depends="clean,preprocess,package,postprocess" description="For automated builds">
 		<echo message="Build DONE."/>
 	</target>
 	
