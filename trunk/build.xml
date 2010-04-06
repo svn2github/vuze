@@ -27,6 +27,8 @@ javadoc link and linksource to core
 	<property name="azureus2.dir" value="azureus2"/>
 	<property name="azureus3.dir" value="azureus3"/>
 	<property name="uis.dir" value="uis"/>
+	<property name="docs.dir" value="docs"/>
+			
 	
 	<property name="build.dir" value="build"/>
 	<property name="dist.dir" value="dist"/>
@@ -153,20 +155,7 @@ javadoc link and linksource to core
 				<arg value="-c" />
 				<arg value="svn info . | grep Revision | sed &quot;s/Revision: //&quot;" />
 			</exec>		
-			<echo message="svn.revision.new=${svn.revision.new}" />
-			
-			<!-- Generate changelog -->
-	      <exec executable="${svn2cl.exec}" dir="." outputproperty="changelog.text" >
-	      	<arg value="--stdout" />
-	      	<arg value="--strip-prefix=" />
-	      	<arg value="--break-before-msg" />
-	      	<arg value="-i" />
-	      	<arg value="-a" />
-	      	<arg value="-r" />
-	      	<arg value="${svn.revision}:${svn.revision.new}" />
-	      	<arg value="${basedir}" />
-	      </exec>		
-			<echo message="changelog.text = ${changelog.text}" />
+			<echo message="svn.revision.new=${svn.revision.new}" />			
 			
 			 <!-- Increment build info -->
 			 <propertyfile file="${build.properties}" >
@@ -174,6 +163,30 @@ javadoc link and linksource to core
 			 	  <entry key="svn.revision" value="${svn.revision.new}" />
 			 	  <entry key="build.date" type="date" value="now" pattern="dd-MM-yyyy HH:mm:ss" />
 			 </propertyfile>
+		
+		    <!-- Generate changelog -->
+			 <exec executable="${svn2cl.exec}" dir="." outputproperty="changelog.text" >
+			      	<arg value="--stdout" />
+			      	<arg value="--strip-prefix=" />
+			      	<arg value="--break-before-msg" />
+			      	<arg value="-i" />
+			      	<arg value="-a" />
+			      	<arg value="-r" />
+			      	<arg value="${svn.revision}:${svn.revision.new}" />
+			      	<arg value="${basedir}" />
+			  </exec>
+			  <echo message="changelog.text = ${changelog.text}" />
+		     <echo file="${dist.dir}/Vuze_${build.ver}_changelog.txt" message="${changelog.text}" />
+		
+			  <!-- Fill in templates -->
+		     <tstamp> <format property="timestamp" pattern="dd MMM yyyy hh:mm:ss aa" /> </tstamp>
+		     <property name="jar.name" value="Azureus${major.ver}-B${minor.ver}.jar" />
+			  <replace dir="${docs.dir}" >
+			  	  <replacefilter token="@@timestamp@@"      value="${timestamp}" />
+			  	  <replacefilter token="@@jar.name@@"       value="${jar.name}" />
+			  	  <replacefilter token="@@changelog.text@@" value="${changelog.text}" />
+			  </replace>			  	
+		     
 		</target>
 	
 </project>
