@@ -181,7 +181,7 @@ javadoc link and linksource to core
 			  <!-- Fill in templates -->
 		     <tstamp> <format property="timestamp" pattern="dd MMM yyyy hh:mm:ss aa" /> </tstamp>
 		     <property name="jar.name" value="Azureus${major.ver}-B${minor.ver}.jar" />
-			  <replace dir="${docs.dir}" >
+			  <replace dir="${docs.dir}" summary="true" >
 			  	  <replacefilter token="@timestamp@"      value="${timestamp}" />
 			  	  <replacefilter token="@jar.name@"       value="${jar.name}" />
 			  	  <replacefilter token="@changelog.text@" value="${changelog.text}" />
