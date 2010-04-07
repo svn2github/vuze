@@ -156,7 +156,7 @@ javadoc link and linksource to core
 			<echo message="svn.revision.new=${svn.revision.new}" />			
 			
 			 <!-- Increment build info -->
-			 <propertyfile file="${build.properties}" >
+			 <propertyfile file="${build.properties}" comment="BUILD-PROPS" >
 			 	  <entry key="minor.ver" type="int" operation="+" value="1" pattern="00" />
 			 	  <entry key="svn.revision" value="${svn.revision.new}" />
 			 	  <entry key="svn.revision" type="int" operation="+" value="1" />  <!-- inc to next -->
@@ -188,6 +188,7 @@ javadoc link and linksource to core
 			  </replace>
 		
 	    	  <!-- Run deployment script -->
+		     <echo message="Running external deploy script: ${deploy.exec}" />
 		     <exec executable="${deploy.exec}" dir="." >
 		     	   <arg value="${basedir}/${docs.dir}" />
 		      	<arg value="${basedir}/${dist.dir}" />
