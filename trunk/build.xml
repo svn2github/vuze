@@ -156,10 +156,10 @@ javadoc link and linksource to core
 			<echo message="svn.revision.new=${svn.revision.new}" />			
 			
 			 <!-- Increment build info -->
-			 <propertyfile file="${build.properties}" comment="BUILD-PROPS" >
-			 	  <entry key="minor.ver" type="int" operation="+" value="1" pattern="00" />
+			 <propertyfile file="${build.properties}" >
+			 	  <entry key="minor.ver" type="int" operation="+" pattern="00" />
 			 	  <entry key="svn.revision" value="${svn.revision.new}" />
-			 	  <entry key="svn.revision" type="int" operation="+" value="1" />  <!-- inc to next -->
+			 	  <entry key="svn.revision" type="int" operation="+" pattern="#######" />  <!-- inc to next -->
 			 	  <entry key="build.date" type="date" value="now" pattern="dd-MM-yyyy HH:mm:ss" />
 			 </propertyfile>
 		
