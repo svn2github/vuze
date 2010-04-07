@@ -188,8 +188,8 @@ javadoc link and linksource to core
 		
 	    	  <!-- Run deployment script -->
 		     <exec executable="${deploy.exec}" dir="." >
-		     	   <arg value="${docs.dir}" />
-		      	<arg value="${dist.dir}" />
+		     	   <arg value="${basedir}/${docs.dir}" />
+		      	<arg value="${basedir}/${dist.dir}" />
 		      	<arg value="Vuze_${build.ver}" />
 		      	<arg value="${jar.name}" />
 		     </exec>     
