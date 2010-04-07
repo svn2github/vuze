@@ -88,6 +88,8 @@ public class PlatformMessenger
 	private static boolean allowMulti = false;
 
 	private static AsyncDispatcher	dispatcher = new AsyncDispatcher(5000);
+
+	private static Map<String, Object> mapExtra = new HashMap<String, Object>();
 	
 	public static synchronized void init() {
 		if (initialized) {
@@ -263,6 +265,7 @@ public class PlatformMessenger
 		Map<String, Object> mapPayload = new HashMap<String, Object>();
 		mapPayload.put("azid", ConstantsVuze.AZID);
 		mapPayload.put("azv", Constants.AZUREUS_VERSION);
+		mapPayload.putAll(mapExtra);
 		List<Map> listCommands = new ArrayList<Map>();
 		mapPayload.put("commands", listCommands);
 
@@ -560,6 +563,12 @@ public class PlatformMessenger
 
 	public static boolean getAllowMulti() {
 		return allowMulti;
+	}
+	
+	public static void addExtraParam(String key, Object value) {
+		synchronized (mapExtra) {
+			mapExtra.put(key, value);
+		}
 	}
 
 	private static class fakeContext
