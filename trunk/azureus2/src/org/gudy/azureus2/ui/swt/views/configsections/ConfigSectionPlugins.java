@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -461,27 +462,43 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		Messages.setLanguageText(btnUnload, "ConfigView.pluginlist.unloadSelected");
 		btnUnload.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				int[] items = table.getSelectionIndices();
-				for (int i = 0; i < items.length; i++) {
-					int index = items[i];
-					if (index >= 0 && index < pluginIFs.size()) {
-						PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
-						if (pluginIF.getPluginState().isOperational()) {
-							if (pluginIF.getPluginState().isUnloadable()) {
-								try {
-									pluginIF.getPluginState().unload();
-								} catch (PluginException e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
+				final int[] items = table.getSelectionIndices();
+
+				new AEThread2( "unload" ){
+					public void
+					run()
+					{
+						for (int i = 0; i < items.length; i++) {
+							int index = items[i];
+							if (index >= 0 && index < pluginIFs.size()) {
+								PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
+								if (pluginIF.getPluginState().isOperational()) {
+									if (pluginIF.getPluginState().isUnloadable()) {
+										try {
+											pluginIF.getPluginState().unload();
+										} catch (PluginException e1) {
+											// TODO Auto-generated catch block
+											e1.printStackTrace();
+										}
+									}
 								}
+								
+								Utils.execSWTThread(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											pluginIFs = rebuildPluginIFs();
+											table.setItemCount(pluginIFs.size());
+											Collections.sort(pluginIFs, comparator);
+											table.clearAll();
+										}
+									});
 							}
 						}
-						pluginIFs = rebuildPluginIFs();
-						table.setItemCount(pluginIFs.size());
-						Collections.sort(pluginIFs, comparator);
-						table.clearAll();
 					}
-				}
+				}.start();
 			}
 		});
 		btnUnload.setEnabled( false );
@@ -491,34 +508,49 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		Messages.setLanguageText(btnLoad, "ConfigView.pluginlist.loadSelected");
 		btnLoad.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				int[] items = table.getSelectionIndices();
-				for (int i = 0; i < items.length; i++) {
-					int index = items[i];
-					if (index >= 0 && index < pluginIFs.size()) {
-						
-						PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
-						if (pluginIF.getPluginState().isOperational()) {continue;} // Already loaded. 
+				final int[] items = table.getSelectionIndices();
 
-						// Re-enable disabled plugins, as long as they haven't failed on
-						// initialise.
-						if (pluginIF.getPluginState().isDisabled()) {
-							if (pluginIF.getPluginState().hasFailed()) {continue;}
-							pluginIF.getPluginState().setDisabled(false);
+				new AEThread2( "load" ){
+					public void
+					run()
+					{
+						for (int i = 0; i < items.length; i++) {
+							int index = items[i];
+							if (index >= 0 && index < pluginIFs.size()) {
+								
+								PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
+								if (pluginIF.getPluginState().isOperational()) {continue;} // Already loaded. 
+		
+								// Re-enable disabled plugins, as long as they haven't failed on
+								// initialise.
+								if (pluginIF.getPluginState().isDisabled()) {
+									if (pluginIF.getPluginState().hasFailed()) {continue;}
+									pluginIF.getPluginState().setDisabled(false);
+								}
+								
+								try {
+									pluginIF.getPluginState().reload();
+								} catch (PluginException e1) {
+									// TODO Auto-generated catch block
+									Debug.printStackTrace(e1);
+								}
+								
+								Utils.execSWTThread(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											pluginIFs = rebuildPluginIFs();
+											table.setItemCount(pluginIFs.size());
+											Collections.sort(pluginIFs, comparator);
+											table.clearAll();
+										}
+									});
+							}
 						}
-						
-						try {
-							pluginIF.getPluginState().reload();
-						} catch (PluginException e1) {
-							// TODO Auto-generated catch block
-							Debug.printStackTrace(e1);
-						}
-						
-						pluginIFs = rebuildPluginIFs();
-						table.setItemCount(pluginIFs.size());
-						Collections.sort(pluginIFs, comparator);
-						table.clearAll();
 					}
-				}
+				}.start();
 			}
 		});
 		btnLoad.setEnabled( false );
