@@ -27,6 +27,7 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.messenger.PlatformMessenger;
 //import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
@@ -62,12 +63,15 @@ public class FeatureManagerUI
 				PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
 				featman = pi.getUtilities().getFeatureManager();
 
+				PlatformMessenger.addExtraParam("mode", getMode());
+
 				fml = new FeatureManagerUIListener(featman);
 				featman.addListener(fml);
 				Licence[] licences = featman.getLicences();
 				for (Licence licence : licences) {
 					fml.licenceAdded(licence);
 				}
+				
 
 				UIManager ui_manager = pi.getUIManager();
 
