@@ -463,7 +463,9 @@ public class MainMenu
 		MenuItem toolsItem = MenuFactory.createToolsMenuItem(menuBar);
 		Menu toolsMenu = toolsItem.getMenu();
 
-		MenuFactory.addRCMMenuItem(toolsMenu);
+		if (Constants.IS_CVS_VERSION) {
+			MenuFactory.addRCMMenuItem(toolsMenu);
+		}
 
 		MenuFactory.addMyTrackerMenuItem(toolsMenu);
 		MenuFactory.addMySharesMenuItem(toolsMenu);
