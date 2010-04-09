@@ -100,7 +100,7 @@ RelatedContentManager
 	implements DistributedDatabaseTransferHandler
 {
 	private static final boolean 	TRACE = false;
-	public static final boolean	DISABLE_ALL_UI	= !Constants.isCVSVersion();
+	public static final boolean	DISABLE_ALL_UI	= !Constants.isCVSVersion() && COConfigurationManager.getStringParameter("ui", "az3").equals("az3");
 
 	private static final int	MAX_HISTORY					= 16;
 	private static final int	MAX_TITLE_LENGTH			= 80;

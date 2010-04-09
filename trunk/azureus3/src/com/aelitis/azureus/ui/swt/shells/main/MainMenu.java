@@ -17,6 +17,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.content.RelatedContentManager;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -463,7 +464,7 @@ public class MainMenu
 		MenuItem toolsItem = MenuFactory.createToolsMenuItem(menuBar);
 		Menu toolsMenu = toolsItem.getMenu();
 
-		if (Constants.IS_CVS_VERSION) {
+		if (!RelatedContentManager.DISABLE_ALL_UI) {
 			MenuFactory.addRCMMenuItem(toolsMenu);
 		}
 
