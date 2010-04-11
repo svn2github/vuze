@@ -212,6 +212,12 @@ public class UIConfigDefaultsSWTv3
 			}
 		}
 		
+		// AZ3 doesn't have a View->Toolbar, so force enable
+		if (!config.getBooleanParameter("IconBar.enabled")) {
+			config.setParameter("IconBar.enabled", true);
+		}
+
+		
 		if (configNeedsSave) {
 			config.save();
 		}
