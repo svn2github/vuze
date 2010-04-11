@@ -29,7 +29,6 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
-import com.aelitis.azureus.ui.skin.SkinConstants;
 
 /**
  * @author TuxPaper
@@ -85,7 +84,7 @@ public class UIConfigDefaultsSWTv3
 			}
 		}
 
-		boolean virginSwitch = config.getBooleanParameter("az3.virgin.switch", false);
+		//boolean virginSwitch = config.getBooleanParameter("az3.virgin.switch", false);
 		boolean immediateSwitch = config.getBooleanParameter(
 				"az3.switch.immediate", false);
 		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0
@@ -189,7 +188,7 @@ public class UIConfigDefaultsSWTv3
 				|| (ConfigurationChecker.isNewVersion() && Constants.compareVersions(
 						Constants.getBaseVersion(), "4.2.1.0") == 0)) {
 			// Reset 'big' columns, remove some tables that no longer exist
-			Map map = FileUtil.readResilientConfigFile("tables.config");
+			Map<?, ?> map = FileUtil.readResilientConfigFile("tables.config");
 			if (map != null && map.size() > 0) {
   			Object[] keys = map.keySet().toArray();
   			boolean removedSome = false;
