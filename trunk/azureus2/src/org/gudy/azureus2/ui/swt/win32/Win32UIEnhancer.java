@@ -273,7 +273,7 @@ public class Win32UIEnhancer
 				4
 			});
 
-			Object oHandle = subshell.getClass().getDeclaredField("handle").get(subshell);
+			Object oHandle = subshell.getClass().getField("handle").get(subshell);
 			if (useLong) {
 				Number n = (Number) mCallback_getAddress.invoke(messageCallback,
 						new Object[] {});
