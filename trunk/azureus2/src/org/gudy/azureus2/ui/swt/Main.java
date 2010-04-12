@@ -72,7 +72,9 @@ Main
 				System.err.println(cnfe.toString() + "\nDid you include the azureus3 module?");
 				return;
 			} catch (Throwable t) {
-				System.err.println(t.toString());
+
+				t.printStackTrace();
+
 				return;
 			}
 
@@ -123,7 +125,7 @@ Main
 
   	}catch( Throwable t ){
 
-  		System.err.println(t.toString());
+			t.printStackTrace();
  
   	}
   }
