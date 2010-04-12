@@ -273,13 +273,14 @@ public class Win32UIEnhancer
 				4
 			});
 
+			Object oHandle = subshell.getClass().getDeclaredField("handle").get(subshell);
 			if (useLong) {
 				Number n = (Number) mCallback_getAddress.invoke(messageCallback,
 						new Object[] {});
 				messageProcLong = n.longValue();
 				if (messageProcLong != 0) {
 					mSetWindowLongPtr.invoke(null, new Object[] {
-						subshell.handle,
+						oHandle,
 						OS_GWLP_WNDPROC,
 						messageProcLong
 					});
@@ -290,7 +291,7 @@ public class Win32UIEnhancer
 				messageProcInt = n.intValue();
 				if (messageProcInt != 0) {
 					mSetWindowLongPtr.invoke(null, new Object[] {
-						subshell.handle,
+						oHandle,
 						OS_GWLP_WNDPROC,
 						messageProcInt
 					});
