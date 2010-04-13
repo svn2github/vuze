@@ -293,8 +293,7 @@ DevicesODFTUX
 			Debug.out( e );
 		}
 
-		url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(url, false);
-		url = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(url, false, false);
+		url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(url, true);
 
 		LinkLabel.makeLinkedLabel( link, url );
 		

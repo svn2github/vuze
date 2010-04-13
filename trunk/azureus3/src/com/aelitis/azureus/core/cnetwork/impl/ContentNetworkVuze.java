@@ -36,7 +36,9 @@ ContentNetworkVuze
 	private static final String DEFAULT_RELAY_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  use the -Drelay_address=ip override instead
 
 	private static final String DEFAULT_RELAY_PORT = "80";
- 
+
+	private static final String DEFAULT_EXT_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  
+
 	/*
 	static{
 		if ( FeatureAvailability.ENABLE_PLUS()){
@@ -55,8 +57,10 @@ ContentNetworkVuze
 
 	private static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/";
 
-	
-	
+	private static final String URL_EXT_PREFIX = "http://" 
+		+ System.getProperty( "platform_address_ext", DEFAULT_EXT_ADDRESS ) + ":"
+		+ System.getProperty( "platform_port_ext", DEFAULT_PORT ) + "/";
+
 	private static final String DEFAULT_AUTHORIZED_RPC = "https://" + URL_ADDRESS + ":443/rpc";
 
 	private static String URL_RELAY_RPC = System.getProperty("relay_url",
@@ -94,6 +98,7 @@ ContentNetworkVuze
 				URL_FAQ,
 				URL_BLOG,
 				URL_FORUMS,
-				URL_WIKI );
+				URL_WIKI,
+				URL_EXT_PREFIX );
 	}
 }

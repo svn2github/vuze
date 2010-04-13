@@ -190,14 +190,6 @@ public class DebugMenuHelper
 		});
 
 		item = new MenuItem(menuDebug, SWT.NONE);
-		item.setText("FB");
-		item.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				UIFunctionsManager.getUIFunctions().viewURL(ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("facebookshare.start", true), null, null);
-			}
-		});
-
-		item = new MenuItem(menuDebug, SWT.NONE);
 		item.setText("Alerts");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {

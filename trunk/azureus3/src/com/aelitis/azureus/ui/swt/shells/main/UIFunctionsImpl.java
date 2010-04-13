@@ -534,7 +534,11 @@ public class UIFunctionsImpl
 				String realURL = url;
 				ContentNetwork cn = ContentNetworkUtils.getContentNetworkFromTarget(target);
 				if ( !realURL.startsWith( "http" )){
-					realURL = cn.getSiteRelativeURL(realURL, false );
+					if ("_blank".equals(target)) {
+						realURL = cn.getExternalSiteRelativeURL(realURL, false );
+					} else {
+						realURL = cn.getSiteRelativeURL(realURL, false );
+					}
 				}
 				if (target == null) {
 					if (UrlFilter.getInstance().urlCanRPC(realURL)) {
@@ -559,7 +563,11 @@ public class UIFunctionsImpl
 				String realURL = url;
 				ContentNetwork cn = ContentNetworkUtils.getContentNetworkFromTarget(target);
 				if ( !realURL.startsWith( "http" )){
-					realURL = cn.getSiteRelativeURL(realURL, false );
+					if ("_blank".equals(target)) {
+						realURL = cn.getExternalSiteRelativeURL(realURL, false );
+					} else {
+						realURL = cn.getSiteRelativeURL(realURL, false );
+					}
 				}
 				if (target == null) {
 					if (UrlFilter.getInstance().urlCanRPC(realURL)) {

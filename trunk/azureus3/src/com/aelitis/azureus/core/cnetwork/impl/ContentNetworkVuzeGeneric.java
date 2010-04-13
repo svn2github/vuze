@@ -73,6 +73,7 @@ ContentNetworkVuzeGeneric
 	
 	private String	SITE_HOST;
 	private String	URL_PREFIX;
+	private String	URL_EXT_PREFIX;
 	private String	URL_ICON;
 	private String	URL_RELAY_RPC;
 	private String	URL_AUTHORIZED_RPC;
@@ -81,6 +82,7 @@ ContentNetworkVuzeGeneric
 	private String	URL_FORUMS;
 	private String	URL_WIKI;
 
+	// Keeping this around for safetly, since it's a 4402 release
 	public
 	ContentNetworkVuzeGeneric(
 		ContentNetworkManagerImpl	_manager,
@@ -99,6 +101,31 @@ ContentNetworkVuzeGeneric
 		String						_url_forums,
 		String						_url_wiki )
 	{
+		this(_manager, _content_network, _version, _name, _pprop_defaults,
+				_service_exclusions, _site_host, _url_prefix, _url_icon,
+				_url_relay_rpc, _url_authorised_rpc, _url_faq, _url_blog, _url_forums,
+				_url_wiki, null);
+	}
+
+	public
+	ContentNetworkVuzeGeneric(
+		ContentNetworkManagerImpl	_manager,
+		long						_content_network,
+		long						_version,
+		String						_name,
+		Map<String,Object>			_pprop_defaults,
+		Set<Integer>				_service_exclusions,
+		String						_site_host,
+		String						_url_prefix,
+		String						_url_icon,
+		String						_url_relay_rpc,
+		String						_url_authorised_rpc,
+		String						_url_faq,
+		String						_url_blog,
+		String						_url_forums,
+		String						_url_wiki,
+		String						_url_ext_prefix )
+	{
 		super( _manager, TYPE_VUZE_GENERIC, _content_network, _version, _name, _pprop_defaults );
 		 
 		SITE_HOST				= _site_host;
@@ -110,6 +137,7 @@ ContentNetworkVuzeGeneric
 		URL_BLOG				= _url_blog;
 		URL_FORUMS				= _url_forums;
 		URL_WIKI				= _url_wiki;
+		URL_EXT_PREFIX = _url_ext_prefix;
 		 
 		service_exclusions		= _service_exclusions;
 		
@@ -138,6 +166,10 @@ ContentNetworkVuzeGeneric
 		
 		SITE_HOST				= ImportExportUtils.importString(map, "vg_site" );
 		URL_PREFIX 				= ImportExportUtils.importString(map, "vg_prefix" );
+		URL_EXT_PREFIX 				= ImportExportUtils.importString(map, "vg_ext_prefix" );
+		if (URL_EXT_PREFIX == null) {
+			URL_EXT_PREFIX = URL_PREFIX;
+		}
 		URL_ICON 				= ImportExportUtils.importString(map, "vg_icon" );
 		URL_RELAY_RPC			= ImportExportUtils.importString(map, "vg_relay_rpc" );
 		URL_AUTHORIZED_RPC		= ImportExportUtils.importString(map, "vg_auth_rpc" );
@@ -171,6 +203,7 @@ ContentNetworkVuzeGeneric
 		
 		ImportExportUtils.exportString(map, "vg_site", 		SITE_HOST );
 		ImportExportUtils.exportString(map, "vg_prefix", 	URL_PREFIX );
+		ImportExportUtils.exportString(map, "vg_ext_prefix", 	URL_EXT_PREFIX );
 		ImportExportUtils.exportString(map, "vg_icon", 		URL_ICON );
 		ImportExportUtils.exportString(map, "vg_relay_rpc", URL_RELAY_RPC );
 		ImportExportUtils.exportString(map, "vg_auth_rpc", 	URL_AUTHORIZED_RPC );
@@ -218,6 +251,7 @@ ContentNetworkVuzeGeneric
 		addService( SERVICE_MY_PROFILE,			URL_PREFIX + "profile.start?" );
 		addService( SERVICE_MY_ACCOUNT,			URL_PREFIX + "account.start?" );
 		addService( SERVICE_SITE_RELATIVE,		URL_PREFIX );
+		addService( SERVICE_EXT_SITE_RELATIVE,		URL_EXT_PREFIX );
 		addService( SERVICE_ADD_FRIEND,			URL_PREFIX + "user/AddFriend.html?" );
 		addService( SERVICE_SUBSCRIPTION,		URL_PREFIX + "xsearch/index.php?" );
 		 		
@@ -469,6 +503,20 @@ ContentNetworkVuzeGeneric
 				if ( append_suffix ){
 
 					base = appendURLSuffix( base, false, true );
+				}
+				
+				return( base );
+			}
+			case SERVICE_EXT_SITE_RELATIVE:{
+				
+				String	relative_url 	= (String)params[0];
+				boolean	append_suffix	= (Boolean)params[1];
+				
+				base += relative_url.startsWith("/")?relative_url.substring(1):relative_url;
+				
+				if ( append_suffix ){
+
+					base = appendURLSuffix( base, false, false );
 				}
 				
 				return( base );

@@ -176,7 +176,7 @@ public class FeatureManagerUI
 				if (soLink != null) {
 					soLink.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
 						public boolean urlClicked(URLInfo urlInfo) {
-							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+							String url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
 									"plus_tos.start", false);
 							Utils.launch(url);
 							return true;
@@ -257,8 +257,8 @@ public class FeatureManagerUI
   				link.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
   					public boolean urlClicked(URLInfo urlInfo) {
   						if (trytwo) {
-    						String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
-    								"upgrade.start", false);
+    						String url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
+    								"upgrade.start", true);
     						Utils.launch(url);
   						} else {
   		  				SBC_PlusFTUX.setSourceRef("dlg-activation");
@@ -276,9 +276,9 @@ public class FeatureManagerUI
   				if (linkTOS != null) {
     				linkTOS.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
   						public boolean urlClicked(URLInfo urlInfo) {
-  							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
-  									"plus_tos.start", false);
-  							Utils.launch(url);
+								String url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
+										"plus_tos.start", false);
+								Utils.launch(url);
   							return true;
   						}
     				});
@@ -457,7 +457,7 @@ public class FeatureManagerUI
 				if (soLink != null) {
 					soLink.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
 						public boolean urlClicked(URLInfo urlInfo) {
-							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+							String url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
 									"licence_revoked.start?key="
 											+ UrlUtils.encode(licence.getKey()), false);
 							Utils.launch(url);
@@ -493,7 +493,7 @@ public class FeatureManagerUI
 				if (soLink != null) {
 					soLink.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
 						public boolean urlClicked(URLInfo urlInfo) {
-							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
+							String url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
 									"licence_denied.start?key="
 											+ UrlUtils.encode(licence.getKey()), false);
 							Utils.launch(url);

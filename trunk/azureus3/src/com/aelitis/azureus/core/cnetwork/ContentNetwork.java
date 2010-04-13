@@ -83,6 +83,7 @@ ContentNetwork
 	public static final int		SERVICE_SIDEBAR_CLOSE  		= 34;
 	public static final int		SERVICE_ABOUT				= 35;
 	public static final int		SERVICE_IDENTIFY			= 36;	
+	public static final int		SERVICE_EXT_SITE_RELATIVE		= 37;	// String - relative URL
 
 		// content network properties
 	
@@ -203,6 +204,11 @@ ContentNetwork
 	
 	public String
 	getSiteRelativeURL(
+		String		relative_url,
+		boolean		append_suffix );
+	
+	public String
+	getExternalSiteRelativeURL(
 		String		relative_url,
 		boolean		append_suffix );
 	

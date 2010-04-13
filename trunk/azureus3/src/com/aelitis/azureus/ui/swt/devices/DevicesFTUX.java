@@ -169,8 +169,7 @@ public class DevicesFTUX
 				+ MessageText.getString("label.learnmore") + "</A>");
 		lblLearnMore.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(e.text, false);
-				url = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(url, false, false);
+				String url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(e.text, true);
 				Utils.launch(url);
 			}
 		});

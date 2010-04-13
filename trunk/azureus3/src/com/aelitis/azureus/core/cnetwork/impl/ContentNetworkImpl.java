@@ -253,6 +253,14 @@ ContentNetworkImpl
 	}
 	
 	public String 
+	getExternalSiteRelativeURL(
+		String 		relative_url,
+		boolean		append_suffix )
+	{
+		return( getServiceURL( SERVICE_EXT_SITE_RELATIVE, new Object[]{ relative_url, append_suffix }));
+	}
+	
+	public String 
 	getAddFriendURL(
 		String 	colour )
 	{

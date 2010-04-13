@@ -264,15 +264,10 @@ public class SWTSkinObjectText2
 						String url = hitUrl.url;
 						try {
 							if (url.startsWith("/")) {
-								url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
-										url, false);
+								url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
+										url, true);
 							}
 
-							ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL(
-									url);
-							if (cn != null) {
-								url = cn.appendURLSuffix(url, false, false);
-							}
 							if (url.contains("?")) {
 								url += "&";
 							} else {
