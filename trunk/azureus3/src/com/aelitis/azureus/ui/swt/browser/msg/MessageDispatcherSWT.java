@@ -26,6 +26,7 @@ import java.util.Map;
 import org.eclipse.swt.browser.*;
 
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -59,41 +60,45 @@ public class MessageDispatcherSWT
 	public void registerBrowser(final Browser browser) {
 		this.browser = browser;
 		
-		browserFunction = new BrowserFunction(browser, "sendMessageToAZ") {
-			public Object function(Object[] args) {
-				if (args == null) {
-					context.debug("sendMessageToAZ: arguments null on " + browser.getUrl());
-					return null;
-				}
-				if (args.length != 3 && args.length != 2) {
-					context.debug("sendMessageToAZ: # arguments not 2 or 3 (" + args.length + ") on " + browser.getUrl());
-					return null;
-				}
-				
-				if (!(args[0] instanceof String)) {
-					context.debug("sendMessageToAZ: Param 1 not String");
-					return null;
-				}
-				if (!(args[1] instanceof String)) {
-					context.debug("sendMessageToAZ: Param 2 not String");
-					return null;
-				}
-				Map params = Collections.EMPTY_MAP;
-				if (args.length == 3) {
-  				if (!(args[2] instanceof String)) {
-  					context.debug("sendMessageToAZ: Param 3 not String");
+		try {
+  		browserFunction = new BrowserFunction(browser, "sendMessageToAZ") {
+  			public Object function(Object[] args) {
+  				if (args == null) {
+  					context.debug("sendMessageToAZ: arguments null on " + browser.getUrl());
   					return null;
   				}
- 
-  				params = JSONUtils.decodeJSON((String)args[2]);
-				}
-				
-
-				BrowserMessage message = new BrowserMessage((String) args[0], (String) args[1], params);
-				dispatch(message);
-				return null;
-			}
-		};
+  				if (args.length != 3 && args.length != 2) {
+  					context.debug("sendMessageToAZ: # arguments not 2 or 3 (" + args.length + ") on " + browser.getUrl());
+  					return null;
+  				}
+  				
+  				if (!(args[0] instanceof String)) {
+  					context.debug("sendMessageToAZ: Param 1 not String");
+  					return null;
+  				}
+  				if (!(args[1] instanceof String)) {
+  					context.debug("sendMessageToAZ: Param 2 not String");
+  					return null;
+  				}
+  				Map params = Collections.EMPTY_MAP;
+  				if (args.length == 3) {
+    				if (!(args[2] instanceof String)) {
+    					context.debug("sendMessageToAZ: Param 3 not String");
+    					return null;
+    				}
+   
+    				params = JSONUtils.decodeJSON((String)args[2]);
+  				}
+  				
+  
+  				BrowserMessage message = new BrowserMessage((String) args[0], (String) args[1], params);
+  				dispatch(message);
+  				return null;
+  			}
+  		};
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
 	}
 
 	/**
