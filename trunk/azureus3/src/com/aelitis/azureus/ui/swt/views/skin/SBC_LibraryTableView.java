@@ -322,6 +322,15 @@ public class SBC_LibraryTableView
 		
 		final Object ds = rows[0].getDataSource(true);
 
+		String mode = COConfigurationManager.getStringParameter("list.dm.dblclick");
+		if (mode.equals("1")) {
+			// OMG! Show Details! I <3 you!
+			DownloadManager dm = DataSourceUtils.getDM(ds);
+			if (dm != null) {
+				UIFunctionsManager.getUIFunctions().openView(UIFunctions.VIEW_DM_DETAILS, dm);
+				return;
+			}
+		}
 		
 		final Runnable action = 
 			new Runnable()
