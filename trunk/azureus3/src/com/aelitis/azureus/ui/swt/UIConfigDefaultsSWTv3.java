@@ -167,6 +167,7 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("Start Minimized", false);
 		defaults.addParameter("Password enabled", false);
 		defaults.addParameter("ToolBar.showText", true);
+		defaults.addParameter("burninfo.shownonce", false);
 		
 
 		// by default, turn off some slidey warning

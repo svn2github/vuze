@@ -28,6 +28,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -1122,25 +1123,31 @@ public class SideBar
 		SBC_LibraryView.setupViewTitle();
 
 		// building plugin views needs UISWTInstance, which needs core.
-		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-			public void azureusCoreRunning(AzureusCore core) {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						if (FeatureManagerUI.enabled) {
-							// blah, can't add until plugin initialization is done
-
-							loadEntryByID(SIDEBAR_SECTION_PLUS, false);
-						
-							if (!FeatureManagerUI.hasFullBurn()) {
-								loadEntryByID(SIDEBAR_SECTION_BURN_INFO, false);
-							}
-						}
-
-						setupPluginViews();
-					}
-				});
-			}
-		});
+		boolean shownOnce = COConfigurationManager.getBooleanParameter("burninfo.shownonce");
+		if (!shownOnce) {
+  		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+  			public void azureusCoreRunning(AzureusCore core) {
+  				Utils.execSWTThread(new AERunnable() {
+  					public void runSupport() {
+  						if (FeatureManagerUI.enabled) {
+  							// blah, can't add until plugin initialization is done
+  
+  							
+  							loadEntryByID(SIDEBAR_SECTION_PLUS, false);
+  						
+  							if (!FeatureManagerUI.hasFullBurn()) {
+  								loadEntryByID(SIDEBAR_SECTION_BURN_INFO, false);
+  							}
+  							
+  							COConfigurationManager.setParameter("burninfo.shownonce", true);
+  						}
+  
+  						setupPluginViews();
+  					}
+  				});
+  			}
+  		});
+		}
 
 		try {
 			loadCloseables();
