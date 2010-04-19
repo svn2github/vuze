@@ -669,11 +669,15 @@ public class TorrentListViewsUtils
 			// Assumed we have a core, since we are passed a
 			// DownloadManager
 			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-					"azemp");
+					"azemp", false );
 
 			if (pi == null) {
 
 				return (installEMP(dm, file_index ));
+				
+			}else if ( !pi.getPluginState().isOperational()){
+				
+				return( 1 );
 			}
 
 			epwClass = pi.getPlugin().getClass().getClassLoader().loadClass(
