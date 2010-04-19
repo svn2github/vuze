@@ -42,6 +42,18 @@ public class PluginsMenuHelper
 		}
 		return INSTANCE;
 	}
+	
+	public void buildPluginLogsMenu(Menu parentMenu) {
+		try {
+
+			plugin_helper_mon.enter();
+
+			createIViewInfoMenuItems(parentMenu, plugin_logs_view_info_map);
+
+		} finally {
+			plugin_helper_mon.exit();
+		}
+	}
 
 	public void buildPluginMenu(Menu pluginMenu, Shell parent,
 			boolean includeGetPluginsMenu) {
