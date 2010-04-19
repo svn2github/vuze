@@ -65,7 +65,7 @@ DHTControlImpl
 {
 	private static final boolean DISABLE_REPLICATE_ON_JOIN	= true;
 	
-	private static final int EXTERNAL_LOOKUP_CONCURRENCY	= 16;
+	public  static 		 int EXTERNAL_LOOKUP_CONCURRENCY	= 16;
 	private static final int EXTERNAL_PUT_CONCURRENCY		= 8;
 	
 	private static final int RANDOM_QUERY_PERIOD			= 5*60*1000;
