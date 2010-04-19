@@ -107,7 +107,7 @@ public class UIDebugGenerator
 				}
 
 				if (image != null) {
-					File file = new File(path, "image-" + i + ".jpg");
+					File file = new File(path, "image-" + i + ".vpg");
 					String sFileName = file.getAbsolutePath();
 
 					ImageLoader imageLoader = new ImageLoader();
