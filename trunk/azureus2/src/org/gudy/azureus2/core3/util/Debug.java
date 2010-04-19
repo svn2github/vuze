@@ -33,7 +33,7 @@ public class Debug {
 	private static AEDiagnosticsLogger	diag_logger	= AEDiagnostics.getLogger( "debug" );
 
 	static{
-		diag_logger.setForced();
+		diag_logger.setForced( true );
 	}
   
   /**

@@ -89,6 +89,19 @@ LoggerChannelImpl
 		setDiagnostic( 0, true );
 	}
 	
+	public void 
+	setForce(
+		boolean forceToFile) 
+	{
+		diagnostic_logger.setForced( forceToFile );
+	}
+	
+	public boolean
+	getForce()
+	{
+		return( diagnostic_logger.isForced());
+	}
+	
 	public void
 	setDiagnostic(
 		long	max_file_size,

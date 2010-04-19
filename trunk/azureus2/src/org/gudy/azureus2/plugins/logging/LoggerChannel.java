@@ -74,6 +74,21 @@ public interface LoggerChannel {
 	public void setDiagnostic( long max_file_size, boolean timestamp );
 
 	/**
+	 * logging to file is disabled by default in non-beta builds. This forces writing to file
+	 * regardless
+	 * @param force_to_file
+	 * @since 4401
+	 */
+	public void setForce( boolean force_to_file );
+
+	/**
+	 * @since 4401
+	 * @return
+	 */
+	
+	public boolean getForce();
+	
+	/**
 	 * Log a message of a specific type to this channel's logger
 	 * 
 	 * @param log_type LT_* constant

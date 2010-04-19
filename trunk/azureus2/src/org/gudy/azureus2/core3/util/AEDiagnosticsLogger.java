@@ -105,10 +105,17 @@ AEDiagnosticsLogger
 		}
 	}
 	
-	protected void
-	setForced()
+	public void
+	setForced(
+		boolean		_force )
 	{
-		force = true;
+		force = _force;
+	}
+	
+	public boolean
+	isForced()
+	{
+		return( force );
 	}
 	
 	protected String
