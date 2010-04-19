@@ -51,6 +51,8 @@ public class SkinnedDialog
 
 	private Shell mainShell;
 
+	protected boolean disposed;
+
 	public SkinnedDialog(String skinFile, String shellSkinObjectID) {
 		this(skinFile, shellSkinObjectID, SWT.DIALOG_TRIM | SWT.RESIZE);
 	}
@@ -82,16 +84,22 @@ public class SkinnedDialog
 		shell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				//skin.destroy;
-				for (SkinnedDialogClosedListener l : closeListeners) {
-					try {
-						l.skinDialogClosed(SkinnedDialog.this);
-					} catch (Exception e2) {
-						Debug.out(e2);
+				disposed = true;
+				Utils.execSWTThreadLater(0, new AERunnable() {
+					public void runSupport() {
+						for (SkinnedDialogClosedListener l : closeListeners) {
+							try {
+								l.skinDialogClosed(SkinnedDialog.this);
+							} catch (Exception e2) {
+								Debug.out(e2);
+							}
+						}
 					}
-				}
+				});
 			}
 		});
 
+		disposed = false;
 	}
 
 	protected void setSkin(SWTSkin _skin) {
@@ -99,6 +107,10 @@ public class SkinnedDialog
 	}
 
 	public void open() {
+		if (disposed) {
+			Debug.out("can't opened disposed skinnedialog");
+			return;
+		}
 		skin.layout();
 
 		Utils.centerWindowRelativeTo(shell, mainShell);
@@ -118,6 +130,9 @@ public class SkinnedDialog
 	public void close() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (disposed) {
+					return;
+				}
 				if (shell != null && !shell.isDisposed()) {
 					shell.close();
 				}
@@ -140,7 +155,7 @@ public class SkinnedDialog
 	 * @since 4.0.0.5
 	 */
 	public void setTitle(String string) {
-		if (shell != null && !shell.isDisposed()) {
+		if (!disposed && shell != null && !shell.isDisposed()) {
 			shell.setText(string);
 		}
 	}
@@ -153,6 +168,6 @@ public class SkinnedDialog
 	}
 	
 	public boolean isDisposed() {
-		return shell == null || shell.isDisposed();
+		return disposed || shell == null || shell.isDisposed();
 	}
 }
