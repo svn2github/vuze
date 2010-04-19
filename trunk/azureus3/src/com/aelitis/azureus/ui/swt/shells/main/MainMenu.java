@@ -12,9 +12,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
-import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
-import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.content.RelatedContentManager;
@@ -89,8 +87,24 @@ public class MainMenu
 
 		// ===== Debug menu (development only)====
 		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
-			Menu menuDebug = org.gudy.azureus2.ui.swt.mainwindow.DebugMenuHelper.createDebugMenuItem(menuBar);
-			DebugMenuHelper.createDebugMenuItem(menuDebug);
+			final Menu menuDebug = org.gudy.azureus2.ui.swt.mainwindow.DebugMenuHelper.createDebugMenuItem(menuBar);
+			menuDebug.addMenuListener(new MenuListener() {
+				
+				public void menuShown(MenuEvent e) {
+					MenuItem[] items = menuDebug.getItems();
+					Utils.disposeSWTObjects(items);
+					
+					DebugMenuHelper.createDebugMenuItem(menuDebug);
+					MenuFactory.addSeparatorMenuItem(menuDebug);
+					MenuItem menuItem = new MenuItem(menuDebug, SWT.PUSH);
+					menuItem.setText("Log Views");
+					menuItem.setEnabled(false);
+					PluginsMenuHelper.getInstance().buildPluginLogsMenu(menuDebug);
+				}
+				
+				public void menuHidden(MenuEvent e) {
+				}
+			});
 		}
 
 		addV3HelpMenu();
