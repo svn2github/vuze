@@ -1294,7 +1294,7 @@ public class FileUtil {
 	
 	        		File jar_file = FileUtil.getJarFileFromURL(url_str);
 	        		
-	        		if ( jar_file.exists()){
+	        		if ( jar_file != null && jar_file.exists()){
 	        			
 	        			return( jar_file );
 	        		}
@@ -1338,7 +1338,21 @@ public class FileUtil {
         		
         			//        System.out.println("jarName: " + jarName);
         		
-        		URI uri = URI.create(jarName);
+        		URI uri;
+        		
+        		try{
+        			uri = URI.create(jarName);
+        			
+        			if ( !new File(uri).exists()){
+        				
+        				throw( new FileNotFoundException());
+        			}
+        		}catch( Throwable e ){
+
+        			jarName = "file:/" + UrlUtils.encode( jarName.substring( 6 ));
+        		
+        			uri = URI.create(jarName);
+        		}
         		
         		File jar = new File(uri);
         		
