@@ -157,13 +157,12 @@ public class UIDebugGenerator
 										try {
 
 											File fEvidence = new File(path, "evidence.log");
-											FileWriter fw;
-											fw = new FileWriter(fEvidence);
-											PrintWriter pw = new PrintWriter(fw);
+											
+											PrintWriter pw = new PrintWriter(fEvidence, "UTF-8" );
 
 											AEDiagnostics.generateEvidence(pw);
 
-											fw.close();
+											pw.close();
 
 										} catch (IOException e) {
 
