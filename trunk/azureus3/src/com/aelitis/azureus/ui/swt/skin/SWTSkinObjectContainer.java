@@ -112,13 +112,25 @@ public class SWTSkinObjectContainer
   			// Let's fix that..
   			parentComposite = new Composite(createOn, style) {
   				public Point computeSize(int wHint, int hHint, boolean changed) {
-  					Point size = super.computeSize(wHint, hHint, changed);
-  					return betterComputeSize(this, size, wHint, hHint, changed);
+  					try {
+    					Point size = super.computeSize(wHint, hHint, changed);
+    					return betterComputeSize(this, size, wHint, hHint, changed);
+  					} catch (Throwable t) {
+  						Debug.out(t);
+							return new Point(wHint == -1 ? 10 : wHint, hHint == -1 ? 10
+									: hHint);
+  					}
   				}
   				
   				public Point computeSize(int wHint, int hHint) {
-  					Point size = super.computeSize(wHint, hHint);
-  					return betterComputeSize(this, size, wHint, hHint);
+  					try {
+    					Point size = super.computeSize(wHint, hHint);
+    					return betterComputeSize(this, size, wHint, hHint);
+  					} catch (Throwable t) {
+  						Debug.out(t);
+							return new Point(wHint == -1 ? 10 : wHint, hHint == -1 ? 10
+									: hHint);
+  					}
   				}
   			};
 			} else {
@@ -126,13 +138,25 @@ public class SWTSkinObjectContainer
   				protected void checkSubclass() {};
   				
   				public Point computeSize(int wHint, int hHint, boolean changed) {
-  					Point size = super.computeSize(wHint, hHint, changed);
-  					return betterComputeSize(this, size, wHint, hHint, changed);
+  					try {
+    					Point size = super.computeSize(wHint, hHint, changed);
+    					return betterComputeSize(this, size, wHint, hHint, changed);
+  					} catch (Throwable t) {
+  						Debug.out(t);
+							return new Point(wHint == -1 ? 10 : wHint, hHint == -1 ? 10
+									: hHint);
+  					}
   				}
   				
   				public Point computeSize(int wHint, int hHint) {
-  					Point size = super.computeSize(wHint, hHint);
-  					return betterComputeSize(this, size, wHint, hHint);
+  					try {
+    					Point size = super.computeSize(wHint, hHint);
+    					return betterComputeSize(this, size, wHint, hHint);
+  					} catch (Throwable t) {
+  						Debug.out(t);
+							return new Point(wHint == -1 ? 10 : wHint, hHint == -1 ? 10
+									: hHint);
+  					}
   				}
   			};
 			}
