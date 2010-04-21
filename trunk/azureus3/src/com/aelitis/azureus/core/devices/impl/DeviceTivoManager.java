@@ -504,10 +504,13 @@ DeviceTivoManager
 															
 							}catch( Throwable e ){
 								
-								failed_accepts++;
+								if ( control_socket != null && !search_destroyed && !manager_destroyed ){
 								
-								log( "UDP receive on port " + CONTROL_PORT + " failed", e );
-		
+									failed_accepts++;
+								
+									log( "UDP receive on port " + CONTROL_PORT + " failed", e );
+								}
+								
 								if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){
 									
 									log( "    too many failures, abandoning" );
