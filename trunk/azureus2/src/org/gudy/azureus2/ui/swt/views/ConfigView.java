@@ -192,6 +192,14 @@ public class ConfigView extends AbstractIView {
       	}
       });
       
+      lblX.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent arg0) {
+			    ImageLoader imageLoader = ImageLoader.getInstance();
+			    imageLoader.releaseImage("smallx-gray");
+			    imageLoader.releaseImage("smallx");
+				}
+			});
+      
       Label lblSearch = new Label(cFilterArea, SWT.NONE);
       imageLoader.setLabelImage(lblSearch, "search");
   
@@ -900,10 +908,6 @@ public class ConfigView extends AbstractIView {
   	Utils.disposeSWTObjects(new Object[] { headerFont, filterFoundFont });
 		headerFont = null;
 		filterFoundFont = null;
-
-    ImageLoader imageLoader = ImageLoader.getInstance();
-    imageLoader.releaseImage("smallx-gray");
-    imageLoader.releaseImage("smallx");
   }
 
   public String getFullTitle() {
