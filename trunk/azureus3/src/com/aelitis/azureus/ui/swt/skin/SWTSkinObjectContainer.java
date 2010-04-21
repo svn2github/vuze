@@ -247,7 +247,7 @@ public class SWTSkinObjectContainer
 							return new SWTSkinObject[0];
 						}
 						Control[] swtChildren = ((Composite) control).getChildren();
-						ArrayList list = new ArrayList(swtChildren.length);
+						ArrayList<SWTSkinObject> list = new ArrayList<SWTSkinObject>(swtChildren.length);
 						for (int i = 0; i < swtChildren.length; i++) {
 							Control childControl = swtChildren[i];
 							SWTSkinObject so = (SWTSkinObject) childControl.getData("SkinObject");
@@ -256,7 +256,7 @@ public class SWTSkinObjectContainer
 							}
 						}
 
-						return (SWTSkinObject[]) list.toArray(new SWTSkinObject[list.size()]);
+						return list.toArray(new SWTSkinObject[list.size()]);
 					}
 				}, 2000);
 		if (so == null) {
