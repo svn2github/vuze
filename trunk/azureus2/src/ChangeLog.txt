@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2010.04.xx | Vuze 4.4.0.1
+2010.04.2x | Vuze 4.4.0.1
 
 BUGFIX: UIvz  | Fix bug where toolbar was hidden with no way of showing it [TuxPaper]
 BUGFIX: UIvz  | Fix bug where DVD Burn sidebar entry would reappear after removing it and restarting [TuxPaper]
