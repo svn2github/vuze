@@ -81,9 +81,7 @@ public class ConfigView extends AbstractIView {
 	private Image imgSmallXGray;
 	private String startSection;
 
-  public 
-  ConfigView() 
-  {
+	public ConfigView() {
   }
   
   /* (non-Javadoc)
