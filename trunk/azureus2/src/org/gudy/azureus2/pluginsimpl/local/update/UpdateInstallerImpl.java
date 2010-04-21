@@ -253,7 +253,10 @@ UpdateInstallerImpl
 					
 				if ( log_perm_set_fail ){
 					
-					Debug.out( e );
+					if ( !Constants.isWindowsVistaOrHigher ){
+					
+						Debug.out( e );
+					}
 				}
 			}
 		}catch( Throwable e ){
