@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -2045,5 +2046,56 @@ public class FileUtil {
 		}
 		
 		return( true );
+	}
+	
+		/**
+		 * Gets the encoding that should be used when writing script files (currently only
+		 * tested for windows as this is where an issue can arise...)
+		 * We also only test based on the user-data directory name to see if an explicit
+		 * encoding switch is requried...
+		 * @return null - use default
+		 */
+	
+	private static boolean 	sce_checked;
+	private static String	script_encoding;
+	
+	public static String
+	getScriptCharsetEncoding()
+	{
+		synchronized( FileUtil.class ){
+		
+			if ( sce_checked ){
+				
+				return( script_encoding );
+			}
+			
+			sce_checked = true;
+			
+			String	file_encoding 	= System.getProperty( "file.encoding", null );
+			String	jvm_encoding	= System.getProperty( "sun.jnu.encoding", null );
+			
+			if ( file_encoding == null || jvm_encoding == null || file_encoding.equals( jvm_encoding )){
+				
+				return( null );
+			}
+			
+			try{
+				
+				String	test_str = SystemProperties.getUserPath();
+								
+				if ( !new String( test_str.getBytes( file_encoding ), file_encoding ).equals( test_str )){
+			
+					if ( new String( test_str.getBytes( jvm_encoding ), jvm_encoding ).equals( test_str )){
+						
+						Debug.out( "Script encoding determined to be " + jvm_encoding + " instead of " + file_encoding );
+						
+						script_encoding = jvm_encoding;
+					}
+				}
+			}catch( Throwable e ){
+			}
+			
+			return( script_encoding );
+		}
 	}
 }

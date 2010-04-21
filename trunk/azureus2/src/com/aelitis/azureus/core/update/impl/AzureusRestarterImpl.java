@@ -332,7 +332,23 @@ AzureusRestarterImpl
 					}
 					s += "\r\n";
 					s += "start \"\" \"" + azRunner + "\"";
-					FileUtil.writeBytesAsFile(fileRestart.getAbsolutePath(), s.getBytes());
+					
+					byte[]	bytes;
+					
+					String	encoding = FileUtil.getScriptCharsetEncoding();
+					
+					if ( encoding == null ){
+						bytes = s.getBytes();
+					}else{
+						try{
+							bytes = s.getBytes( encoding );
+						}catch( Throwable e){
+							e.printStackTrace();
+							
+							bytes = s.getBytes();
+						}
+					}
+					FileUtil.writeBytesAsFile(fileRestart.getAbsolutePath(),bytes);
 
 					result = accessor.shellExecute(null, fileRestart.getAbsolutePath(),
 							null, SystemProperties.getApplicationPath(),
