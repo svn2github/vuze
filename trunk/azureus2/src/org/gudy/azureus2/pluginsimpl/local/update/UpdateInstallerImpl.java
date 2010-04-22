@@ -47,8 +47,9 @@ UpdateInstallerImpl
 {
 		// change these and you'll need to change the Updater!!!!
 	
-	protected static final String	UPDATE_DIR 	= "updates";
-	protected static final String	ACTIONS		= "install.act";
+	protected static final String	UPDATE_DIR 		= "updates";
+	protected static final String	ACTIONS_LEGACY	= "install.act";
+	protected static final String	ACTIONS_UTF8	= "install.act.utf8";
 	
 	protected static AEMonitor	class_mon 	= new AEMonitor( "UpdateInstaller:class" );
 
@@ -292,13 +293,13 @@ UpdateInstallerImpl
 	
 		throws UpdateException
 	{
-		PrintWriter	pw = null;
+		PrintWriter	pw_legacy = null;
 	
 		try{		
 			
-			pw = new PrintWriter(new FileWriter( install_dir.toString() + File.separator + ACTIONS, true ));
+			pw_legacy = new PrintWriter(new FileWriter( install_dir.toString() + File.separator + ACTIONS_LEGACY, true ));
 
-			pw.println( data );
+			pw_legacy.println( data );
 			
 		}catch( Throwable e ){
 			
@@ -306,11 +307,36 @@ UpdateInstallerImpl
 			
 		}finally{
 			
-			if ( pw != null ){
+			if ( pw_legacy != null ){
 		
-				try{
+				try{	
+					pw_legacy.close();
+					
+				}catch( Throwable e ){
+	
+					throw( new UpdateException( "Failed to write actions file", e ));
+				}
+			}
+		}
 		
-					pw.close();
+		PrintWriter	pw_utf8 = null;
+		
+		try{		
+			
+			pw_utf8 = new PrintWriter( new OutputStreamWriter( new FileOutputStream( install_dir.toString() + File.separator + ACTIONS_UTF8, true ), "UTF-8" ));
+
+			pw_utf8.println( data );
+			
+		}catch( Throwable e ){
+			
+			throw( new UpdateException( "Failed to write actions file", e ));
+			
+		}finally{
+			
+			if ( pw_utf8 != null ){
+		
+				try{		
+					pw_utf8.close();
 					
 				}catch( Throwable e ){
 	
