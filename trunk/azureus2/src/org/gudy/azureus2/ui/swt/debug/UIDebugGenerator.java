@@ -180,6 +180,8 @@ public class UIDebugGenerator
 				outFile.delete();
 			}
 
+			AEDiagnostics.flushPendingLogs();
+
 			ZipOutputStream out = new ZipOutputStream(new FileOutputStream(outFile));
 
 			// %USERDIR%\logs
