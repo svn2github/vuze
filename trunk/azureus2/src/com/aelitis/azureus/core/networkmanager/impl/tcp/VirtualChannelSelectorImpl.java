@@ -835,10 +835,17 @@ public class VirtualChannelSelectorImpl {
     	    
     	      RegistrationData data = (RegistrationData)key.attachment();
  
-        	  if (( key.interestOps() & INTEREST_OP) == 0 ) { 
-
-        		  continue;
-        	  }
+    	      try{
+	        	  if (( key.interestOps() & INTEREST_OP) == 0 ) { 
+	
+	        		  continue;
+	        	  }
+    	      }catch( CancelledKeyException e ){
+    	    	  
+    	    	  		// get quite a few of these exceptions, ignore the key
+    	    	  
+    	    	  continue;
+    	      }
         	  
     	      long	stall_time = now - data.last_select_success_time;
     	      
