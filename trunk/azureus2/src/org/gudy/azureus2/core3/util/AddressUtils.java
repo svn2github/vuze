@@ -26,6 +26,7 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -298,6 +299,8 @@ AddressUtils
 		
 		try {
 			is_lan_local = isLANLocalAddress( HostNameToIPResolver.syncResolve( address ));
+			
+		}catch( UnknownHostException e ){
 			
 		}catch( Throwable t ){
 			
