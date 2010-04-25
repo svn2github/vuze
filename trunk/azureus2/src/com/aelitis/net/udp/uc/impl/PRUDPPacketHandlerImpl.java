@@ -1301,7 +1301,12 @@ PRUDPPacketHandlerImpl
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			if ( e instanceof NoRouteToHostException ){
+				
+			}else{
+			
+				e.printStackTrace();
+			}
 			
 			Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "PRUDPPacketHandler: send to " + destination_address + " failed: " + Debug.getNestedExceptionMessage(e)));
 			
