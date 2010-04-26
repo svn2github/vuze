@@ -648,7 +648,11 @@ public class MainWindow
 				}
 			});
 			
-			PlatformDevicesMessenger.setupDeviceSender();
+			try {
+				PlatformDevicesMessenger.setupDeviceSender();
+			} catch (Exception e) {
+				Debug.out("failed to setup device sender ", e);
+			}
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
