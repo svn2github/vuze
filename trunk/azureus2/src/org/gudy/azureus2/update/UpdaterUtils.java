@@ -161,6 +161,8 @@ public class UpdaterUtils
 			PrintWriter pw = null;
 			
 			try{
+				target.getParentFile().mkdirs();
+				
 				pw = new PrintWriter(new FileWriter(target));
 	
 				for (int i=0;i<lines.length;i++){
