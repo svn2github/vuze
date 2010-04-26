@@ -190,7 +190,7 @@ javadoc link and linksource to core
 			  </replace>
 		
 	        <!-- Save some build properties -->
-			  <propertyfile file="${dist.dir}\vzbuild.properties" >
+			  <propertyfile file="${vzbuild.props}" >
 				  <entry key="timestamp" value="${timestamp}" />
 			  	  <entry key="build.name" value="${build.name}" />
 				  <entry key="jar.name" value="${jar.name}" />	
