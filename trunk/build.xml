@@ -189,6 +189,14 @@ javadoc link and linksource to core
 			  	  <replacefilter token="@changelog.text@" value="${changelog.text}" />
 			  </replace>
 		
+	        <!-- Save some build properties -->
+			  <propertyfile file="${dist.dir}\vzbuild.properties" >
+				  <entry key="timestamp" value="${timestamp}" />
+			  	  <entry key="build.name" value="${build.name}" />
+				  <entry key="jar.name" value="${jar.name}" />	
+			  </propertyfile>
+			  	
+		
 	    	  <!-- Run deployment script -->
 		     <echo message="Running external deploy script: ${deploy.exec}" />
 		     <exec executable="${deploy.exec}" dir="." >
