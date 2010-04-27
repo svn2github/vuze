@@ -141,8 +141,9 @@ DownloadManagerController
 	
 	private AEMonitor	disk_listeners_mon	= new AEMonitor( "DownloadManagerController:DL" );
 	
-	protected AEMonitor	this_mon		= new AEMonitor( "DownloadManagerController" );
-	protected AEMonitor	state_mon		= new AEMonitor( "DownloadManagerController:State" );
+	private AEMonitor	control_mon		= new AEMonitor( "DownloadManagerController" );
+	private AEMonitor	state_mon		= new AEMonitor( "DownloadManagerController:State" );
+	private AEMonitor	facade_mon		= new AEMonitor( "DownloadManagerController:Facade" );
 	
 	private DownloadManagerImpl			download_manager;
 	private DownloadManagerStatsImpl	stats;
@@ -253,7 +254,7 @@ DownloadManagerController
 		DiskManager	dm;
 		
 		try{
-			this_mon.enter();
+			control_mon.enter();
 		
 			if ( getState() != DownloadManager.STATE_READY ){
 			
@@ -302,7 +303,7 @@ DownloadManagerController
 		
 		}finally{
 			
-			this_mon.exit();
+			control_mon.exit();
 	
 		}
 		
@@ -546,7 +547,7 @@ DownloadManagerController
 		List	limiters;
 		
 		try{
-			this_mon.enter();
+			control_mon.enter();
 		
 			peer_manager = temp;
 
@@ -554,7 +555,7 @@ DownloadManagerController
 			
 		}finally{
 			
-			this_mon.exit();
+			control_mon.exit();
 		}
 		
 		if ( limiters != null ){
@@ -598,7 +599,7 @@ DownloadManagerController
 	  					DiskManager	dm;
 	  					
 	  					try{
-	  						this_mon.enter();
+	  						control_mon.enter();
 	  					
 		  					dm = getDiskManager();
 
@@ -610,7 +611,7 @@ DownloadManagerController
 		  					}
 		  					
 	  					}finally{
-	  						this_mon.exit();
+	  						control_mon.exit();
 	  					}
 	  					
 	  					try{
@@ -718,7 +719,7 @@ DownloadManagerController
 		DiskManagerListener		listener ) 
 	{
 		try{
-			this_mon.enter();
+			control_mon.enter();
 		
 			int	entry_state = getState();
 				
@@ -757,7 +758,7 @@ DownloadManagerController
 	  	  			  	  	
 		}finally{
 			
-			this_mon.exit();
+			control_mon.exit();
 		
 			download_manager.informStateChanged();
 		}
@@ -780,7 +781,7 @@ DownloadManagerController
 	forceRecheck(final ForceRecheckListener l) 
 	{
 		try{
-			this_mon.enter();
+			control_mon.enter();
 		
 			if ( getDiskManager() != null || !canForceRecheck() ){
 				
@@ -814,7 +815,7 @@ DownloadManagerController
 	  		
 		}finally{
 			
-			this_mon.exit();
+			control_mon.exit();
 		}
 	}  	  
   
@@ -855,7 +856,7 @@ DownloadManagerController
 		final int stateAfterStopping	= _stateAfterStopping;
 		
 		try{
-			this_mon.enter();
+			control_mon.enter();
 		
 			int	state = getState();
 		  
@@ -996,7 +997,7 @@ DownloadManagerController
 		
 		}finally{
 		
-			this_mon.exit();
+			control_mon.exit();
 			
 			download_manager.informStateChanged();
 		}
@@ -1126,7 +1127,7 @@ DownloadManagerController
   		boolean		_inform_changed )
   	{   
   			// we bring this call out of the monitor block to prevent a potential deadlock whereby we chain
-  			// state_mon -> this_mon (there exist numerous dependencies this_mon -> state_mon...
+  			// state_mon -> control_mon (there exist numerous dependencies control_mon -> state_mon...
   		
   		boolean	call_filesExist	= false;
   		
@@ -1357,7 +1358,7 @@ DownloadManagerController
 		PEPeerManager	pm;
 		
 		try{
-			this_mon.enter();
+			control_mon.enter();
 			
 			ArrayList	new_limiters = new ArrayList( external_rate_limiters_cow==null?1:external_rate_limiters_cow.size()+1);
 			
@@ -1374,7 +1375,7 @@ DownloadManagerController
 			
 		}finally{
 			
-			this_mon.exit();
+			control_mon.exit();
 		}	
 		
 		if ( pm != null ){
@@ -1391,7 +1392,7 @@ DownloadManagerController
 		PEPeerManager	pm;
 		
 		try{
-			this_mon.enter();
+			control_mon.enter();
 			
 			if ( external_rate_limiters_cow != null ){
 				
@@ -1421,7 +1422,7 @@ DownloadManagerController
 			
 		}finally{
 			
-			this_mon.exit();
+			control_mon.exit();
 		}	
 	
 		if ( pm != null ){
@@ -2235,7 +2236,7 @@ DownloadManagerController
 			final List delayed_prio_changes = new ArrayList(0);
 			
 			try {
-				this_mon.enter();
+				facade_mon.enter();
 				if (files_facade_destroyed)	return;
 
 				DiskManager dm = DownloadManagerController.this.getDiskManager();
@@ -2287,7 +2288,7 @@ DownloadManagerController
 				delegate = active;
 				
 			} finally {
-				this_mon.exit();
+				facade_mon.exit();
 			}
 			
 			fileFacadeSet.facadeFiles = info;
@@ -2316,7 +2317,7 @@ DownloadManagerController
 		
 		protected void destroyFileInfo() {
 			try {
-				this_mon.enter();
+				facade_mon.enter();
 				if (fileFacadeSet == null || files_facade_destroyed)
 					return;
 
@@ -2325,7 +2326,7 @@ DownloadManagerController
 				for (int i = 0; i < facadeFiles.length; i++)
 					facadeFiles[i].close();
 			} finally {
-				this_mon.exit();
+				facade_mon.exit();
 			}
 		}
 	}
@@ -2509,13 +2510,13 @@ DownloadManagerController
 			throws	Exception
 		{
 			try{
-				this_mon.enter();
+				facade_mon.enter();
 				
 				delegate.flushCache();
 				
 			}finally{
 				
-				this_mon.exit();
+				facade_mon.exit();
 			}
 		}
 		
@@ -2527,13 +2528,13 @@ DownloadManagerController
 			throws IOException
 		{
 			try{
-				this_mon.enter();
+				facade_mon.enter();
 			
 				return( delegate.read( offset, length ));
 				
 			}finally{
 				
-				this_mon.exit();
+				facade_mon.exit();
 			}
 		}
 		
@@ -2541,13 +2542,13 @@ DownloadManagerController
 		close()
 		{
 			try{
-				this_mon.enter();
+				facade_mon.enter();
 
 				delegate.close();
 				
 			}finally{
 				
-				this_mon.exit();
+				facade_mon.exit();
 			}
 		}
 		
@@ -2617,7 +2618,7 @@ DownloadManagerController
 
 		public void stateChanged(int oldDMState, int newDMState) {
 			try {
-				this_mon.enter();
+				control_mon.enter();
 
 				if (getDiskManager() == null) {
 
@@ -2633,7 +2634,7 @@ DownloadManagerController
 				}
 			} finally {
 
-				this_mon.exit();
+				control_mon.exit();
 			}
 
 			
@@ -2655,7 +2656,7 @@ DownloadManagerController
 						boolean update_only_seeding = false;
 
 						try {
-							this_mon.enter();
+							control_mon.enter();
 
 							DiskManager dm = getDiskManager();
 
@@ -2680,7 +2681,7 @@ DownloadManagerController
 							}
 						} finally {
 
-							this_mon.exit();
+							control_mon.exit();
 
 							download_manager.informStateChanged();
 						}
@@ -2701,7 +2702,7 @@ DownloadManagerController
 				} else { // Faulty
 
 					try {
-						this_mon.enter();
+						control_mon.enter();
 
 						DiskManager dm = getDiskManager();
 
@@ -2715,7 +2716,7 @@ DownloadManagerController
 						}
 					} finally {
 
-						this_mon.exit();
+						control_mon.exit();
 					}
 
 					download_manager.setAssumedComplete(false);
