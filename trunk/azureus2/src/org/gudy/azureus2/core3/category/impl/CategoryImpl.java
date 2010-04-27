@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.category.impl;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryListener;
@@ -40,6 +41,8 @@ public class CategoryImpl implements Category, Comparable {
   private int upload_speed;
   private int download_speed;
 
+  private final Map<String,String>	attributes;
+  
   private LimitedRateGroup upload_limiter = 
 	  new LimitedRateGroup()
 	  {
@@ -90,16 +93,18 @@ public class CategoryImpl implements Category, Comparable {
 			}
 		});
 
-  public CategoryImpl(String sName, int maxup, int maxdown ) {
+  public CategoryImpl(String sName, int maxup, int maxdown, Map<String,String> _attributes ) {
     this.sName = sName;
     this.type = Category.TYPE_USER;
     upload_speed	= maxup;
     download_speed	= maxdown;
+    attributes = _attributes;
   }
 
-  public CategoryImpl(String sName, int type) {
+  public CategoryImpl(String sName, int type, Map<String,String> _attributes) {
     this.sName = sName;
     this.type = type;
+    attributes = _attributes;
   }
 
 	public void addCategoryListener(CategoryListener l) {
@@ -218,6 +223,41 @@ public class CategoryImpl implements Category, Comparable {
   getUploadSpeed()
   {
 	  return( upload_speed );
+  }
+  
+  protected void
+  setAttributes(
+	Map<String,String> a )
+  {
+	  attributes.clear();
+	  attributes.putAll( a );
+  }
+  
+  protected Map<String,String>
+  getAttributes()
+  {
+	  return( attributes );
+  }
+  
+  public String
+  getStringAttribute(
+	String		name )
+  {
+	  return( attributes.get(name));
+  }
+  
+  public void
+  setStringAttribute(
+	String		name,
+	String		value )
+  {
+	  String old = attributes.put( name, value );
+	  
+	  if ( old == null || !old.equals( value )){
+	  
+		  CategoryManagerImpl.getInstance().saveCategories();
+	  }
+
   }
   
   public int compareTo(Object b)

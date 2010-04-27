@@ -78,5 +78,28 @@ AZ3Functions
 		play(
 			DownloadManager		dm,
 			int					file_index );
+		
+		public TranscodeTarget[]
+		getTranscodeTargets();
+		
+		public interface
+		TranscodeTarget
+		{
+			public String
+			getName();
+			
+			public TranscodeProfile[]
+			getProfiles();
+		}
+		
+		public interface
+		TranscodeProfile
+		{
+			public String
+			getUID();
+			
+			public String
+			getName();
+		}
 	}
 }

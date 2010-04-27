@@ -40,12 +40,12 @@ public class CategoryManagerImpl  {
   private static final String UNCAT_NAME = "__uncategorised__";
   
   private static CategoryManagerImpl catMan;
-  private static Category catAll = null;
-  private static Category catUncategorized = null;
+  private static CategoryImpl catAll = null;
+  private static CategoryImpl catUncategorized = null;
   private static boolean doneLoading = false;
   private static AEMonitor	class_mon	= new AEMonitor( "CategoryManager:class" );
   
-  private Map categories 			= new HashMap();
+  private Map<String,CategoryImpl> categories 			= new HashMap<String,CategoryImpl>();
   private AEMonitor	categories_mon	= new AEMonitor( "Categories" );
   
   private static final int LDT_CATEGORY_ADDED     = 1;
@@ -122,18 +122,26 @@ public class CategoryManagerImpl  {
           
           Long l_maxup 		= (Long)mCategory.get( "maxup" );
           Long l_maxdown 	= (Long)mCategory.get( "maxdown" );
+          Map<String,String>	attributes = BDecoder.decodeStrings((Map)mCategory.get( "attr" ));
+          
+          if ( attributes == null ){
+        	  
+        	  attributes = new HashMap<String, String>();
+          }
           
           if ( catName.equals( UNCAT_NAME )){
         	  
         	  catUncategorized.setUploadSpeed(l_maxup==null?0:l_maxup.intValue());
         	  catUncategorized.setDownloadSpeed(l_maxdown==null?0:l_maxdown.intValue());
+        	  catUncategorized.setAttributes( attributes );
           }else{
 	          categories.put( 
 	        	catName,
 	        	  new CategoryImpl( 
 	        		  catName, 
 	        		  l_maxup==null?0:l_maxup.intValue(),
-	        		  l_maxdown==null?0:l_maxdown.intValue()));
+	        		  l_maxdown==null?0:l_maxdown.intValue(),
+	        			attributes ));
           }
         }
         catch (UnsupportedEncodingException e1) {
@@ -168,15 +176,16 @@ public class CategoryManagerImpl  {
       Map map = new HashMap();
       List list = new ArrayList(categories.size());
 
-      Iterator iter = categories.values().iterator();
+      Iterator<CategoryImpl> iter = categories.values().iterator();
       while (iter.hasNext()) {
-        Category cat = (Category) iter.next();
+        CategoryImpl cat = iter.next();
 
         if (cat.getType() == Category.TYPE_USER) {
           Map catMap = new HashMap();
           catMap.put( "name", cat.getName());
           catMap.put( "maxup", new Long(cat.getUploadSpeed()));
           catMap.put( "maxdown", new Long(cat.getDownloadSpeed()));
+          catMap.put( "attr", cat.getAttributes());
           list.add(catMap);
         }
       }
@@ -185,6 +194,7 @@ public class CategoryManagerImpl  {
       uncat.put( "name", UNCAT_NAME );
       uncat.put( "maxup", new Long(catUncategorized.getUploadSpeed()));
       uncat.put( "maxdown", new Long(catUncategorized.getDownloadSpeed()));
+      uncat.put( "attr", catUncategorized.getAttributes());
       list.add( uncat );
       
       map.put("categories", list);
@@ -233,9 +243,9 @@ public class CategoryManagerImpl  {
 
   public Category createCategory(String name) {
     makeSpecialCategories();
-    Category newCategory = getCategory(name);
+    CategoryImpl newCategory = getCategory(name);
     if (newCategory == null) {
-      newCategory = new CategoryImpl(name, 0, 0);
+      newCategory = new CategoryImpl(name, 0, 0, new HashMap<String,String>());
       categories.put(name, newCategory);
       saveCategories();
 
@@ -259,8 +269,8 @@ public class CategoryManagerImpl  {
     return (new Category[0]);
   }
 
-  public Category getCategory(String name) {
-    return (Category)categories.get(name);
+  public CategoryImpl getCategory(String name) {
+    return categories.get(name);
   }
 
   public Category getCategory(int type) {
@@ -273,12 +283,12 @@ public class CategoryManagerImpl  {
 
   private void makeSpecialCategories() {
     if (catAll == null) {
-      catAll = new CategoryImpl("Categories.all", Category.TYPE_ALL);
+      catAll = new CategoryImpl("Categories.all", Category.TYPE_ALL, new HashMap<String,String>());
       categories.put("Categories.all", catAll);
     }
     
     if (catUncategorized == null) {
-      catUncategorized = new CategoryImpl("Categories.uncategorized", Category.TYPE_UNCATEGORIZED);
+      catUncategorized = new CategoryImpl("Categories.uncategorized", Category.TYPE_UNCATEGORIZED, new HashMap<String,String>());
       categories.put("Categories.uncategorized", catUncategorized);
     }
   }

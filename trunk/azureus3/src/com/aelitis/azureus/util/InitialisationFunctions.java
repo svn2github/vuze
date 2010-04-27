@@ -23,12 +23,19 @@
 package com.aelitis.azureus.util;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
 import com.aelitis.azureus.core.content.RelatedContentManager;
+import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
+import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerListener;
@@ -37,11 +44,15 @@ import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.AZ3Functions;
+import com.aelitis.azureus.core.util.AZ3Functions.provider.TranscodeProfile;
+import com.aelitis.azureus.core.util.AZ3Functions.provider.TranscodeTarget;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -145,7 +156,124 @@ public class InitialisationFunctions
 				{
 					TorrentListViewsUtils.playOrStreamDataSource(
 							dm, -1, null, DLReferals.DL_REFERAL_PLAYDM, false );
-				}				
+				}	
+				
+				public TranscodeTarget[]
+           		getTranscodeTargets()
+				{
+					List<TranscodeTarget> result = new ArrayList<TranscodeTarget>();
+					
+					try{
+						DeviceManager dm = DeviceManagerFactory.getSingleton();
+					
+						Device[] devices = dm.getDevices();
+						
+						for ( final Device d: devices ){
+							
+							if ( d instanceof DeviceMediaRenderer ){
+								
+								final DeviceMediaRenderer dmr = (DeviceMediaRenderer)d;							
+
+								boolean	hide_device = d.isHidden();
+								
+								if ( COConfigurationManager.getBooleanParameter( "device.sidebar.ui.rend.hidegeneric", true ) ){
+																		
+									if ( dmr.isNonSimple()){
+										
+										hide_device = true;
+									}
+								}
+								
+								if ( hide_device ){
+									
+									continue;
+								}
+								
+								result.add( 
+									new TranscodeTarget()
+									{
+										public String
+										getName()
+										{
+											return( d.getName());
+										}
+										
+										public TranscodeProfile[]
+										getProfiles()
+										{		
+											List<TranscodeProfile>	ps = new ArrayList<TranscodeProfile>(); 
+
+											com.aelitis.azureus.core.devices.TranscodeProfile[] profs = dmr.getTranscodeProfiles();	
+											
+											if ( profs.length == 0 ){
+												
+												if ( dmr.getTranscodeRequirement() == com.aelitis.azureus.core.devices.TranscodeTarget.TRANSCODE_NEVER ){
+													
+													ps.add(
+															new TranscodeProfile()
+															{
+																public String
+																getUID()
+																{
+																	return( dmr.getID() + "/" + dmr.getBlankProfile().getName());
+																}
+																
+																public String
+																getName()
+																{
+																	return( MessageText.getString( "devices.profile.direct" ));
+																}
+															});												}
+											}else{
+											
+												for ( final com.aelitis.azureus.core.devices.TranscodeProfile prof: profs ){
+										
+													ps.add(
+														new TranscodeProfile()
+														{
+															public String
+															getUID()
+															{
+																return( prof.getUID());
+															}
+															
+															public String
+															getName()
+															{
+																return( prof.getName());
+															}
+														});
+												}
+											}
+											
+											return( ps.toArray( new TranscodeProfile[ ps.size()]));
+										}
+									});					
+							}
+						}
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+					
+					Collections.sort(
+						result,
+						new Comparator<TranscodeTarget>()
+						{
+							public int 
+							compare(
+								TranscodeTarget o1,
+								TranscodeTarget o2)
+							{
+								return( o1.getName().compareTo( o2.getName()));
+							}
+						});
+					
+					return( result.toArray( new TranscodeTarget[result.size()]));
+				}
+				               		
+
 			});
 	}
 

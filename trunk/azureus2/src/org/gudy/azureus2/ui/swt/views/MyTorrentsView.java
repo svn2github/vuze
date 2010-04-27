@@ -63,6 +63,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -1070,6 +1071,59 @@ public class MyTorrentsView
 											}
 										});
 									
+								}
+							}
+						}
+					}
+					
+						// auto-transcode
+					
+					AZ3Functions.provider provider = AZ3Functions.getProvider();
+					
+					if ( provider != null ){
+						
+						AZ3Functions.provider.TranscodeTarget[] tts = provider.getTranscodeTargets();
+						 
+						if ( tts.length > 0 ){
+							
+							final Menu t_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
+							final MenuItem t_item = new MenuItem(menu, SWT.CASCADE);
+							Messages.setLanguageText(t_item, "cat.autoxcode" );
+							t_item.setMenu(t_menu);
+						
+							String existing = category.getStringAttribute( Category.AT_AUTO_TRANSCODE_TARGET );
+							
+							for ( AZ3Functions.provider.TranscodeTarget tt: tts ){
+							
+								AZ3Functions.provider.TranscodeProfile[] profiles = tt.getProfiles();
+							
+								if ( profiles.length > 0 ){
+									
+									final Menu tt_menu = new Menu(t_menu.getShell(), SWT.DROP_DOWN);
+									final MenuItem tt_item = new MenuItem(t_menu, SWT.CASCADE);
+									tt_item.setText( tt.getName());
+									tt_item.setMenu(tt_menu);
+									
+									for ( final AZ3Functions.provider.TranscodeProfile tp: profiles ){
+
+										final MenuItem p_item = new MenuItem(tt_menu, SWT.CHECK );
+										
+										p_item.setText(tp.getName());
+										
+										p_item.setSelection( existing != null && existing.equals( tp.getUID()));
+										
+										p_item.addListener(
+											SWT.Selection, 
+											new Listener() 
+											{
+												public void 
+												handleEvent(
+													Event event) 
+												{	
+													category.setStringAttribute( Category.AT_AUTO_TRANSCODE_TARGET, p_item.getSelection()?tp.getUID():null );
+												}
+											});
+									}
 								}
 							}
 						}

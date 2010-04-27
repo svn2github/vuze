@@ -97,4 +97,15 @@ public interface Category {
   
   public int
   getUploadSpeed();
+  
+  public static final String AT_AUTO_TRANSCODE_TARGET = "at_att";
+  
+  public String
+  getStringAttribute(
+	String		name );
+  
+  public void
+  setStringAttribute(
+	String		name,
+	String		value );
 }
