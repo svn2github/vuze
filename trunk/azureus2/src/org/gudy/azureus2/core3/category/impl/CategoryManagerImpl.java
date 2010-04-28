@@ -50,6 +50,7 @@ public class CategoryManagerImpl  {
   
   private static final int LDT_CATEGORY_ADDED     = 1;
   private static final int LDT_CATEGORY_REMOVED   = 2;
+  private static final int LDT_CATEGORY_CHANGED   = 3;
   private ListenerManager category_listeners = ListenerManager.createManager(
     "CatListenDispatcher",
     new ListenerManagerDispatcher()
@@ -64,8 +65,10 @@ public class CategoryManagerImpl  {
         if ( type == LDT_CATEGORY_ADDED )
           target.categoryAdded((Category)value);
         else if ( type == LDT_CATEGORY_REMOVED )
-          target.categoryRemoved((Category)value);
-      }
+            target.categoryRemoved((Category)value);
+        else if ( type == LDT_CATEGORY_CHANGED )
+            target.categoryChanged((Category)value);
+        }
     });
 
 
@@ -169,7 +172,12 @@ public class CategoryManagerImpl  {
     }
   }
 
-  public void saveCategories() {
+  protected void saveCategories(Category category ){
+	  saveCategories();
+	  
+      category_listeners.dispatch( LDT_CATEGORY_CHANGED, category );
+  }
+  protected void saveCategories() {
     try{
     	categories_mon.enter();
     

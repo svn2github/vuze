@@ -44,4 +44,8 @@ CategoryManagerListener
 	public void
 	categoryRemoved(
 		Category category );
+	
+	public void
+	categoryChanged(
+		Category category );
 }

@@ -529,6 +529,8 @@ public class MyTrackerView
 		});
   }
 
+  public void categoryChanged(Category category) {	
+  }
   
   private void addCategory() {
     CategoryAdderWindow adderWindow = new CategoryAdderWindow(SWTThread.getInstance().getDisplay());

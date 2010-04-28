@@ -1080,7 +1080,7 @@ public class MyTorrentsView
 					
 					AZ3Functions.provider provider = AZ3Functions.getProvider();
 					
-					if ( provider != null ){
+					if ( provider != null && category.getType() != Category.TYPE_ALL ){
 						
 						AZ3Functions.provider.TranscodeTarget[] tts = provider.getTranscodeTargets();
 						 
@@ -2088,6 +2088,9 @@ public class MyTorrentsView
 	  				createTabs();
 	  			}
 			});
+  }
+  
+  public void categoryChanged(Category category) {	
   }
 
   // globalmanagerlistener Functions

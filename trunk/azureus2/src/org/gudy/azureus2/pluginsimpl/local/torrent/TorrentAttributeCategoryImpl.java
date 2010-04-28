@@ -74,6 +74,9 @@ public class TorrentAttributeCategoryImpl extends BaseTorrentAttributeImpl {
 							TorrentAttributeCategoryImpl.this.notifyListeners(ev);
 					}
 						
+					public void categoryChanged(Category category) {	
+					}
+					
 					public void
 					categoryRemoved(
 						final Category category )

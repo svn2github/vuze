@@ -21,10 +21,22 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryListener;
+import org.gudy.azureus2.core3.category.CategoryManager;
+import org.gudy.azureus2.core3.category.CategoryManagerListener;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -46,6 +58,12 @@ TranscodeManagerImpl
 	private TranscodeQueueImpl		queue = new TranscodeQueueImpl( this );
 	
 	private AESemaphore	init_sem = new AESemaphore( "TM:init" );
+
+	private boolean hooked_categories;
+	
+	private Map<Category,Object[]> 	category_map = new HashMap<Category, Object[]>();
+	private CategoryListener		category_listener;
+	private TorrentAttribute		category_ta;
 	
 	protected
 	TranscodeManagerImpl(
@@ -55,7 +73,11 @@ TranscodeManagerImpl
 		
 		azureus_core = AzureusCoreFactory.getSingleton();
 		
-		PluginInitializer.getDefaultInterface().addListener(
+		PluginInterface default_pi = PluginInitializer.getDefaultInterface();
+		
+		category_ta = default_pi.getTorrentManager().getPluginAttribute( "xcode.cat.done" );
+		
+		default_pi.addListener(
 			new PluginListener()
 			{
 				public void
@@ -218,6 +240,247 @@ TranscodeManagerImpl
 		if ( queue != null ){
 			
 			queue.updateStatus( tick_count );
+			
+			if ( !hooked_categories ){
+				
+				hooked_categories = true;
+				
+				CategoryManager.addCategoryManagerListener(
+					new CategoryManagerListener()
+					{
+						public void
+						categoryAdded(
+							Category category )
+						{
+						}
+							
+						public void
+						categoryRemoved(
+							Category category )
+						{
+						}
+						
+						public void
+						categoryChanged(
+							Category category )
+						{
+							checkCategories();
+						}
+					});
+				
+				checkCategories();
+			}
+		}
+	}
+	
+	private void
+	checkCategories()
+	{
+		Category[] cats = CategoryManager.getCategories();
+		
+		Map<Category,Object[]> active_map = new HashMap<Category, Object[]>();
+		
+		for ( Category cat: cats ){
+			
+			String target = cat.getStringAttribute( Category.AT_AUTO_TRANSCODE_TARGET );
+			
+			if ( target != null ){
+				
+				String device_id = null;
+				
+				if ( target.endsWith( "/blank" )){
+					
+					device_id = target.substring( 0, target.length() - 6 );
+				}
+				
+				DeviceMediaRenderer		target_dmr			= null;
+				TranscodeProfile		target_profile 		= null;
+				
+				for ( DeviceImpl device: device_manager.getDevices()){
+				
+					if ( !( device instanceof DeviceMediaRenderer )){
+						
+						continue;
+					}
+					
+					DeviceMediaRenderer dmr = (DeviceMediaRenderer)device;
+					
+					if ( device_id != null ){
+						
+						if ( device.getID().equals( device_id )){
+							
+							target_dmr		 	= dmr;
+							target_profile		= device.getBlankProfile();
+							
+							break;
+						}
+					}else{
+						
+						TranscodeProfile[] profs = device.getTranscodeProfiles();
+						
+						for ( TranscodeProfile prof: profs ){
+							
+							if ( prof.getUID().equals( target )){
+								
+								target_dmr	= dmr;
+								target_profile	= prof;
+								
+								break;
+							}
+						}
+					}
+				}
+			
+				if ( target_dmr != null ){
+					
+					active_map.put( cat, new Object[]{ target_dmr, target_profile });					
+				}
+			}
+		}
+		
+		Map<Category,Object[]> to_process = new HashMap<Category, Object[]>();
+		
+		synchronized( category_map ){
+			
+			if ( category_listener == null ){
+				
+				category_listener = 
+					new CategoryListener()
+					{
+						public void	
+						downloadManagerAdded(
+							Category 			cat, 
+							DownloadManager 	manager )
+						{
+							Object[]	details;
+							
+							synchronized( category_map ){
+
+								details = category_map.get( cat );
+							}
+							
+							if ( details != null ){
+								
+								processCategory( cat, details, manager );
+							}
+						}
+					
+						public void	
+						downloadManagerRemoved(
+							Category 			cat, 
+							DownloadManager 	removed )
+						{							
+						}
+					};
+			}
+			
+			Iterator<Category>	it = category_map.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Category c = it.next();
+				
+				if ( !active_map.containsKey( c )){
+					
+					c.removeCategoryListener( category_listener );
+					
+					it.remove();
+				}
+			}
+			
+			for ( Category c: active_map.keySet()){
+				
+				if ( !category_map.containsKey( c )){
+					
+					to_process.put( c, active_map.get(c));
+					
+					c.addCategoryListener( category_listener );
+					
+					category_map.put( c, active_map.get(c));
+				}
+			}
+		}
+		
+		if ( to_process.size() > 0 ){
+			
+			List<DownloadManager> downloads = azureus_core.getGlobalManager().getDownloadManagers();
+			
+			for ( Map.Entry<Category, Object[]> entry: to_process.entrySet()){
+				
+				Category 	c 		= entry.getKey();
+				Object[]	details = entry.getValue();
+				
+				List<DownloadManager> list = c.getDownloadManagers( downloads );
+				
+				for( DownloadManager dm: list ){
+					
+					processCategory( c, details, dm );
+				}
+			}
+		}
+	}
+	
+	private void
+	processCategory(
+		Category		cat,
+		Object[]		details,
+		DownloadManager	dm )
+	{
+		Download download = PluginCoreUtils.wrap( dm );
+		
+		String str = download.getAttribute( category_ta );
+		
+		String cat_name = cat.getName();
+		
+		if ( cat.getType() == Category.TYPE_UNCATEGORIZED ){
+			
+			cat_name = "<none>";
+		}
+		
+		String	cat_tag = cat_name + ";";
+		
+		if ( str != null && str.contains( cat_tag )){
+			
+			return;
+		}
+		
+		try{
+			DeviceMediaRenderer		device 	= (DeviceMediaRenderer)details[0];
+			TranscodeProfile		profile	= (TranscodeProfile)details[1];
+						
+			log( "Category " + cat_name + " - adding " + download.getName() + " to " + device.getName() + "/" + profile.getName());
+			
+			DiskManagerFileInfo[] dm_files = download.getDiskManagerFileInfo();
+			
+			int	num_added = 0;
+			
+			for ( DiskManagerFileInfo dm_file: dm_files ){
+				
+					// limit number of files we can add to avoid crazyness
+				
+				if ( num_added > 64 ){
+					
+					break;
+				}
+				
+					// could be smarter here and check extension or whatever
+				
+				if ( dm_files.length == 1 || dm_file.getLength() >= 128*1024 ){
+					
+					try{
+						queue.add( device, profile, dm_file, false  );
+					
+						num_added++;
+						
+					}catch( Throwable e ){
+						
+						log( "    add failed", e );
+					}
+				}
+			}
+		}finally{
+			
+			download.setAttribute( category_ta, str==null?cat_tag:(str+cat_tag));
 		}
 	}
 	

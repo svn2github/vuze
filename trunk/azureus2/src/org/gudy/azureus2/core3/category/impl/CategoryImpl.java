@@ -197,7 +197,7 @@ public class CategoryImpl implements Category, Comparable {
 		  
 		  download_speed = speed;
 		  
-		  CategoryManagerImpl.getInstance().saveCategories();
+		  CategoryManagerImpl.getInstance().saveCategories(this);
 	  }
   }
   
@@ -215,7 +215,7 @@ public class CategoryImpl implements Category, Comparable {
 		  
 		  upload_speed	= speed;
 	  
-		  CategoryManagerImpl.getInstance().saveCategories();
+		  CategoryManagerImpl.getInstance().saveCategories(this);
 	  }
   }
   
@@ -255,7 +255,7 @@ public class CategoryImpl implements Category, Comparable {
 	  
 	  if ( old == null || !old.equals( value )){
 	  
-		  CategoryManagerImpl.getInstance().saveCategories();
+		  CategoryManagerImpl.getInstance().saveCategories(this);
 	  }
 
   }
