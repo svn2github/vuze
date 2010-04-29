@@ -133,4 +133,10 @@ PeerStatsImpl
 	{
 		delegate.setDownloadRateLimitBytesPerSecond( bytes );
 	}
+	
+	public long
+	getOverallBytesRemaining()
+	{
+		return( delegate.getPeer().getBytesRemaining());
+	}
 }

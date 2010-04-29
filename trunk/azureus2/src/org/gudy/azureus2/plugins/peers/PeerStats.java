@@ -137,4 +137,11 @@ public interface PeerStats
 	
 	public int
 	getDownloadRateLimit();
+	
+	/**
+	 * @since 4.4.0.1
+	 * @return
+	 */
+	public long
+	getOverallBytesRemaining();
 }
