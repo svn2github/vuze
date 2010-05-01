@@ -576,7 +576,7 @@ public class VirtualChannelSelectorImpl {
     		
     		String msg = t.getMessage();
     		
-    		if ( !msg.equalsIgnoreCase( "bad file descriptor" )){
+    		if ( msg == null || !msg.equalsIgnoreCase( "bad file descriptor" )){
     		
     			Debug.out( "Caught exception on selector.select() op: " +msg, t );
     		}
