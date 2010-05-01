@@ -574,7 +574,12 @@ public class VirtualChannelSelectorImpl {
     		
     		last_select_debug = now;
     		
-    		Debug.out( "Caught exception on selector.select() op: " +t.getMessage(), t );
+    		String msg = t.getMessage();
+    		
+    		if ( !msg.equalsIgnoreCase( "bad file descriptor" )){
+    		
+    			Debug.out( "Caught exception on selector.select() op: " +msg, t );
+    		}
     	}
         try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
       }
