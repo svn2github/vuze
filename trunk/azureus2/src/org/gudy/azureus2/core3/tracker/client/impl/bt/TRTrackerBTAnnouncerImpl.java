@@ -81,7 +81,9 @@ TRTrackerBTAnnouncerImpl
 	implements TRTrackerAnnouncerHelper
 {
 	public final static LogIDs LOGID = LogIDs.TRACKER;
-		
+
+	public static boolean	TEST_SEED_MODE	= false;
+	
 	private static final int OVERRIDE_PERIOD			= 10*1000;
 	 
 	protected static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
@@ -1837,7 +1839,15 @@ TRTrackerBTAnnouncerImpl
   	request.append(port_details);
   	request.append("&uploaded=").append(announce_data_provider.getTotalSent());
   	request.append("&downloaded=").append(announce_data_provider.getTotalReceived());
-  	request.append("&left=").append(announce_data_provider.getRemaining());
+  	
+  	if ( TEST_SEED_MODE ){
+  		
+  	 	request.append("&left=0");
+  	  
+  	}else{
+  	
+  		request.append("&left=").append(announce_data_provider.getRemaining());
+  	}
   	
   		// 3017: added at request of tracker admins who want to be able to monitor swarm poisoning
   	
