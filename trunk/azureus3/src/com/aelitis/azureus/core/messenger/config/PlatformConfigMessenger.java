@@ -36,8 +36,6 @@ import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.*;
 
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
-
 /**
  * @author TuxPaper
  * @created Sep 26, 2006
@@ -63,11 +61,6 @@ public class PlatformConfigMessenger
 	
 	public static void login(long contentNetworkID, long maxDelayMS) {
 		PlatformManager pm = PlatformManagerFactory.getPlatformManager();
-		String azComputerID = "";
-		try {
-			azComputerID = pm.getAzComputerID();
-		} catch (PlatformManagerException e) {
-		}
 		
 		String sourceRef = null;
 		if (contentNetworkID != ConstantsVuze.DEFAULT_CONTENT_NETWORK_ID) {
@@ -83,8 +76,6 @@ public class PlatformConfigMessenger
 			org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
 			"locale",
 			Locale.getDefault().toString(),
-			"azCID",
-			azComputerID,
 			"vid",
 			COConfigurationManager.getStringParameter("ID"),
 			"source-ref",

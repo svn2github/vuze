@@ -203,12 +203,6 @@ PlatformManager
     	PlatformManagerListener		listener );
 
 		/**
-		 * @return
-		 * @throws PlatformManagerException 
-		 */
-		String getAzComputerID() throws PlatformManagerException;
-		
-		/**
 		 * Requests the user's attention such as bouncing the application icon on OSX
 		 *  
 		 * @param type
