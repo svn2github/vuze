@@ -730,8 +730,14 @@ public class VirtualChannelSelectorImpl {
         	// rm_type = 2;
           }else{            
             
-	          if( pause_after_select ) { 
-	            key.interestOps( key.interestOps() & ~INTEREST_OP );
+	          if( pause_after_select ) {
+	        	  
+	        	try{
+	        		key.interestOps( key.interestOps() & ~INTEREST_OP );
+	        		
+	        	}catch( CancelledKeyException e ){
+	        		
+	        	}
 	          }
 	                        
 	          boolean	progress_indicator = parent.selectSuccess( data.listener, data.channel, data.attachment );
