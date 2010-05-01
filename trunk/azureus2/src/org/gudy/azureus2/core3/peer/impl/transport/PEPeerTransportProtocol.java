@@ -1654,9 +1654,11 @@ implements PEPeerTransport
 
 			seeding	= s;
 
-			if ( peer_exchange_item != null && s){
+		    PeerExchangerItem pex_item = peer_exchange_item;
 
-				peer_exchange_item.seedStatusChanged();
+			if ( pex_item != null && s){
+
+				pex_item.seedStatusChanged();
 			}
 		}
 	}
@@ -3871,19 +3873,21 @@ implements PEPeerTransport
 		//peer exchange registration
 		if( manager.isPeerExchangeEnabled()) {
 			//try and register all connections for their peer exchange info
-			if(peer_exchange_item == null && canBePeerExchanged()){
-				peer_exchange_item = manager.createPeerExchangeConnection( this );
+		    PeerExchangerItem pex_item = peer_exchange_item;
+
+			if(pex_item == null && canBePeerExchanged()){
+				pex_item = manager.createPeerExchangeConnection( this );
 			}
 			
-			if( peer_exchange_item != null ) {
+			if( pex_item != null ) {
 				//check for peer exchange support
 				if(ut_pex_enabled || peerSupportsMessageType(AZMessage.ID_AZ_PEER_EXCHANGE)) {
 					peer_exchange_supported = true;
 					
-					peer_exchange_item.enableStateMaintenance();
+					pex_item.enableStateMaintenance();
 				}
 				else {  //no need to maintain internal states as we wont be sending/receiving peer exchange messages
-					peer_exchange_item.disableStateMaintenance();
+					pex_item.disableStateMaintenance();
 				}
 			}
 		}
@@ -3927,10 +3931,11 @@ implements PEPeerTransport
 	public void updatePeerExchange() {
 		if ( current_peer_state != TRANSFERING ) return;
 		if( !peer_exchange_supported )  return;
+	    PeerExchangerItem pex_item = peer_exchange_item;
 
-		if( peer_exchange_item != null && manager.isPeerExchangeEnabled()) {
-			final PeerItem[] adds = peer_exchange_item.getNewlyAddedPeerConnections();
-			final PeerItem[] drops = peer_exchange_item.getNewlyDroppedPeerConnections();  
+		if( pex_item != null && manager.isPeerExchangeEnabled()) {
+			final PeerItem[] adds = pex_item.getNewlyAddedPeerConnections();
+			final PeerItem[] drops = pex_item.getNewlyDroppedPeerConnections();  
 
 			if( (adds != null && adds.length > 0) || (drops != null && drops.length > 0) ) {
 				if (ut_pex_enabled) {
@@ -3968,20 +3973,22 @@ implements PEPeerTransport
 			return;
 		}
     
-    this.has_received_initial_pex = true;
+    	this.has_received_initial_pex = true;
 
-		if( peer_exchange_supported && peer_exchange_item != null && manager.isPeerExchangeEnabled()){
+    	PeerExchangerItem pex_item = peer_exchange_item;
+    
+		if( peer_exchange_supported && pex_item != null && manager.isPeerExchangeEnabled()){
 			if( added != null ) {
 				for( int i=0; i < added.length; i++ ) {
 					PeerItem pi = added[i];
 					manager.peerDiscovered( this, pi );
-					peer_exchange_item.addConnectedPeer( pi );
+					pex_item.addConnectedPeer( pi );
 				}
 			}
 
 			if( dropped != null ) {
 				for( int i=0; i < dropped.length; i++ ) {
-					peer_exchange_item.dropConnectedPeer( dropped[i] );
+					pex_item.dropConnectedPeer( dropped[i] );
 				}
 			}
 		}
