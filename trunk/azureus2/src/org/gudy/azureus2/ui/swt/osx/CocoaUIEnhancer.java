@@ -123,6 +123,8 @@ public class CocoaUIEnhancer
 
 	private Object delegate;
 
+	private static boolean initialized = false;
+
 	private static Class<?> osCls = classForName("org.eclipse.swt.internal.cocoa.OS");
 	private static Class<?> nsmenuCls = classForName("org.eclipse.swt.internal.cocoa.NSMenu");
 	private static Class<?> nsmenuitemCls = classForName("org.eclipse.swt.internal.cocoa.NSMenuItem");
@@ -677,6 +679,8 @@ public class CocoaUIEnhancer
 		addMenuItem(menuId, numOfItems - 1, (int) sel_restartMenuSelected_,
 				MessageText.getString("MainWindow.menu.file.restart").replaceAll("&",
 						""));
+		
+		initialized = true;
 	}
 
 	private void addMenuItem(Object menuId, int index, int selector, String title) {
@@ -877,4 +881,8 @@ public class CocoaUIEnhancer
 		return null;
 	}
 
+
+	public static boolean isInitialized() {
+		return initialized;
+	}
 }

@@ -23,6 +23,7 @@
 package org.gudy.azureus2.platform.macosx;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.text.MessageFormat;
 import java.util.*;
@@ -48,7 +49,6 @@ import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.apple.cocoa.application.NSApplication;
 
 
 /**
@@ -72,6 +72,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 
     private volatile String		computer_name;
     private volatile boolean	computer_name_tried;
+
+		private Class<?> claFileManager;
     
     /**
      * Gets the platform manager singleton, which was already initialized
@@ -86,7 +88,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
      */
     static
     {
-        initializeSingleton();
+      initializeSingleton();
     }
 
     /**
@@ -881,6 +883,24 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
             throw new PlatformManagerException("Failed to create process", e);
         }
     }
+    
+    private Class<?> getFileManagerClass() {
+    	if (claFileManager != null) {
+    		return claFileManager;
+    	}
+    	
+			try {
+				// We can only use FileManager after CocoaUIEnhancer has been initialized
+				// because refering to FileManager earlier will prevent our main menu from
+				// working
+				Class<?> claCocoaUIEnhancer = Class.forName("org.gudy.azureus2.ui.swt.osx.CocoaUIEnhancer");
+				if (((Boolean) claCocoaUIEnhancer.getMethod("isInitialized").invoke(null)).booleanValue()) {
+					claFileManager = Class.forName("com.apple.eio.FileManager");
+				}
+			} catch (Exception e) {
+			}
+			return claFileManager;
+    }
 
     /**
      * {@inheritDoc}
@@ -895,6 +915,29 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 									+ file.getName()));
             return;
         }
+
+				
+				try {
+					Class<?> claFileManager = getFileManagerClass();
+
+					if (claFileManager != null) {
+  					Method methMoveToTrash = claFileManager.getMethod("moveToTrash",
+    						new Class[] {
+    							File.class
+    						});
+    				if (methMoveToTrash != null) {
+  						Object result = methMoveToTrash.invoke(null, new Object[] {
+  							file
+  						});
+  						if (result instanceof Boolean) {
+  							if (((Boolean) result).booleanValue()) {
+  								return;
+  							}
+  						}
+    				}
+					}
+ 				} catch (Throwable e) {
+				}
 
         boolean useOSA = !NativeInvocationBridge.sharedInstance().isEnabled() || !NativeInvocationBridge.sharedInstance().performRecoverableFileDelete(file);
 
@@ -1001,6 +1044,28 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
      */
     public void showInFinder(File path)
     {
+			
+			try {
+				Class<?> claFileManager = getFileManagerClass();
+				if (claFileManager != null && getFileBrowserName().equals("Finder")) {
+  				Method methRevealInFinder = claFileManager.getMethod("revealInFinder",
+  						new Class[] {
+  							File.class
+  						});
+  				if (methRevealInFinder != null) {
+						Object result = methRevealInFinder.invoke(null, new Object[] {
+							path
+						});
+						if (result instanceof Boolean) {
+							if (((Boolean) result).booleanValue()) {
+								return;
+							}
+						}
+  				}
+				}
+			} catch (Throwable e) {
+			}
+
         boolean useOSA = !NativeInvocationBridge.sharedInstance().isEnabled() || !NativeInvocationBridge.sharedInstance().showInFinder(path,fileBrowserName);
 
         if(useOSA)
@@ -1346,14 +1411,22 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	 */
 	public void requestUserAttention(int type, Object data)
 			throws PlatformManagerException {
+		if (type == USER_REQUEST_QUESTION) {
+			return;
+		}
 		try {
-			NSApplication app = NSApplication.sharedApplication();
+			Class<?> claNSApplication = Class.forName("com.apple.eawt.Application");
+			Method methGetApplication = claNSApplication.getMethod("getApplication");
+			Object app = methGetApplication.invoke(null);
+			
+			Method methRequestUserAttention = claNSApplication.getMethod(
+					"requestUserAttention", new Class[] {
+						Boolean.class
+					});
 			if (type == USER_REQUEST_INFO) {
-				app.requestUserAttention(NSApplication.UserAttentionRequestInformational);
+				methRequestUserAttention.invoke(app, false);
 			} else if (type == USER_REQUEST_WARNING) {
-				app.requestUserAttention(NSApplication.UserAttentionRequestCritical);
-			} else if (type == USER_REQUEST_QUESTION) {
-				// not applicable
+				methRequestUserAttention.invoke(app, true);
 			}
 
 		} catch (Exception e) {
