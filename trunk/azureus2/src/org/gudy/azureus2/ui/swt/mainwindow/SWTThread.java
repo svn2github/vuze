@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.eclipse.swt.SWT;
@@ -35,6 +36,9 @@ import org.gudy.azureus2.ui.swt.UISwitcherListener;
 import org.gudy.azureus2.ui.swt.UISwitcherUtil;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -165,6 +169,24 @@ public class SWTThread {
 				});
 			}
 		});
+    
+    // SWT.OpenDocument is only available on 3637
+		try {
+			Field fldOpenDoc = SWT.class.getDeclaredField("OpenDocument");
+			int SWT_OpenDocument = fldOpenDoc.getInt(null);
+
+			display.addListener(SWT_OpenDocument, new Listener() {
+				public void handleEvent(final Event event) {
+					AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+						public void azureusCoreRunning(AzureusCore core) {
+							TorrentOpener.openTorrents(new String[] { event.text } );
+						}
+					});
+				}
+			});
+		} catch (Throwable t) {
+		}
+
 
 		display.addListener(SWT.Activate, new Listener() {
 			public void handleEvent(Event event) {

@@ -100,6 +100,8 @@ public class CocoaUIEnhancer
 	private static long sel_natMenuSelected_;
 
 	private static long sel_speedMenuSelected_;
+	
+	private static boolean alreadyHaveOpenDoc;
 
 	static final byte[] SWT_OBJECT = {
 		'S',
@@ -135,8 +137,16 @@ public class CocoaUIEnhancer
 	private static Class<?> nssizeCls = classForName("org.eclipse.swt.internal.cocoa.NSSize");
 
 	static {
+		
 		Class<CocoaUIEnhancer> clazz = CocoaUIEnhancer.class;
 		Class<?> callbackCls = classForName("org.eclipse.swt.internal.Callback");
+
+		try {
+			SWT.class.getDeclaredField("OpenDocument");
+			alreadyHaveOpenDoc = true;
+		} catch (Throwable t) {
+			alreadyHaveOpenDoc = false;
+		}
 
 		try {
 			Method mGetAddress = callbackCls.getMethod("getAddress", new Class[0]);
@@ -246,7 +256,7 @@ public class CocoaUIEnhancer
 		if (display == null)
 			return 0;
 
-		if (sel == sel_application_openFile_) {
+		if (!alreadyHaveOpenDoc && sel == sel_application_openFile_) {
 			Constructor<?> conNSString = nsstringCls.getConstructor(new Class[] {
 				int.class
 			});
@@ -258,7 +268,7 @@ public class CocoaUIEnhancer
 			fileOpen(new String[] {
 				fileString
 			});
-		} else if (sel == sel_application_openFiles_) {
+		} else if (!alreadyHaveOpenDoc && sel == sel_application_openFiles_) {
 			Constructor<?> conNSArray = nsarrayCls.getConstructor(new Class[] {
 				int.class
 			});
@@ -494,6 +504,10 @@ public class CocoaUIEnhancer
 
 	public void hookDocumentOpen()
 			throws Throwable {
+		
+		if (alreadyHaveOpenDoc) {
+			return;
+		}
 
 		if (sel_application_openFile_ == 0) {
 			sel_application_openFile_ = registerName(osCls, "application:openFile:");
