@@ -149,7 +149,15 @@ public class SplashWindow
     background = imageLoader.getImage(IMG_SPLASH);
     if (ImageLoader.isRealImage(background)) {
     	width = background.getBounds().width;
-    	height = background.getBounds().height;
+    	height = background.getBounds().height - 20;
+
+    	GC gc = new GC(background);
+    	gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_DARK_GRAY));
+    	gc.setLineWidth(2);
+    	gc.drawLine(0, height - 1, width, height - 1);
+    	gc.dispose();
+
+    	current = new Image(display, background, SWT.IMAGE_COPY);
     } else {
     	width = 400;
     	height = 80;
@@ -163,8 +171,8 @@ public class SplashWindow
     	} finally {
     		gc.dispose();
     	}
+    	current = new Image(display, background, SWT.IMAGE_COPY);
     }
-  	current = new Image(display, background, SWT.IMAGE_COPY);
 
 		progressBarColor = new Color(display, 21, 92, 198);
 		textColor = new Color(display, 90, 90, 90);
