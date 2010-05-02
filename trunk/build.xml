@@ -4,7 +4,6 @@
 repack jar
 verify  source="1.5" target="1.5 is really based on jdk1.5 bin
 extract messagebundles
-javadoc link and linksource to core
 -->
 
 
@@ -105,7 +104,7 @@ javadoc link and linksource to core
 	 	<jar destfile="${dist.dir}/${build.name}.jar" basedir="${build.dir}" level="9" >
 	       <manifest>
 	          <attribute name="Main-Class" value="org.gudy.azureus2.ui.common.Main" />
-	          <attribute name="Class-Path" value="apple-extensions.jar AppleJavaExtensions.jar swt.jar commons-cli.jar log4j.jar junit.jar" />
+	          <attribute name="Class-Path" value="swt.jar commons-cli.jar log4j.jar junit.jar" />
 	       	 <attribute name="Built-By" value="VZCB:${ant.project.name}:build.xml"/>
 	       	 <attribute name="Build-Version" value="${build.ver}"/>
 	       </manifest>
