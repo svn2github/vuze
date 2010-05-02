@@ -3953,7 +3953,7 @@ implements PEPeerTransport
 	protected void decodePeerExchange( AZStylePeerExchange exchange ) {
 		
 		// if we're seeding ignore µT-PEXed seeds, Az won't send them in the first place 
-		final PeerItem[] added = exchange instanceof UTPeerExchange ? ((UTPeerExchange)exchange).getAddedPeers(!manager.isSeeding()) : exchange.getAddedPeers();
+		final PeerItem[] added = exchange instanceof UTPeerExchange ? ((UTPeerExchange)exchange).getAddedPeers(!( manager.isSeeding() || Constants.DOWNLOAD_SOURCES_PRETEND_COMPLETE )) : exchange.getAddedPeers();
 		final PeerItem[] dropped = exchange.getDroppedPeers();
 		
 		//make sure they're not spamming us

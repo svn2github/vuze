@@ -81,8 +81,6 @@ TRTrackerBTAnnouncerImpl
 	implements TRTrackerAnnouncerHelper
 {
 	public final static LogIDs LOGID = LogIDs.TRACKER;
-
-	public static boolean	TEST_SEED_MODE	= false;
 	
 	private static final int OVERRIDE_PERIOD			= 10*1000;
 	 
@@ -1840,7 +1838,7 @@ TRTrackerBTAnnouncerImpl
   	request.append("&uploaded=").append(announce_data_provider.getTotalSent());
   	request.append("&downloaded=").append(announce_data_provider.getTotalReceived());
   	
-  	if ( TEST_SEED_MODE ){
+  	if ( Constants.DOWNLOAD_SOURCES_PRETEND_COMPLETE ){
   		
   	 	request.append("&left=0");
   	  

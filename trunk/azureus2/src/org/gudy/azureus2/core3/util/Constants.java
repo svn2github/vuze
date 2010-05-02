@@ -80,6 +80,8 @@ Constants
   public static final int    CRAPPY_INFINITY_AS_INT  = 365*24*3600; // seconds (365days)
   public static final long   CRAPPY_INFINITE_AS_LONG = 10000*365*24*3600; // seconds (10k years)
   
+  public static boolean DOWNLOAD_SOURCES_PRETEND_COMPLETE	= false;
+	  
   	// keep the CVS style constant coz version checkers depend on it!
   	// e.g. 2.0.8.3
     //      2.0.8.3_CVS

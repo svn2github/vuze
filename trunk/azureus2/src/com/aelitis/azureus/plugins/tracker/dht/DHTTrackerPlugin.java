@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -2223,6 +2224,11 @@ DHTTrackerPlugin
 	isComplete(
 		Download	download )
 	{
+		if ( Constants.DOWNLOAD_SOURCES_PRETEND_COMPLETE ){
+			
+			return( true );
+		}
+		
 		boolean	is_complete = download.isComplete();
 		
 		if ( is_complete ){
