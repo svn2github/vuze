@@ -764,7 +764,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		table.addListener(SWT.PaintItem, new Listener() {
 			public void handleEvent(Event event) {
-				Rectangle bounds = ((TableItem)event.item).getBounds(event.index);
 				
 				if (!table.isEnabled()) {
 					// added disable affect
@@ -776,6 +775,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				// Vertical lines between columns
 				if (DRAW_VERTICAL_LINES) {
+					Rectangle bounds = ((TableItem)event.item).getBounds(event.index);
+
 					Color fg = event.gc.getForeground();
 					event.gc.setForeground(Colors.black);
 					event.gc.setAlpha(40);
@@ -1684,7 +1685,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			if (clipping.width <= 0 || clipping.height <= 0) {
-				//System.out.println(row.getIndex() + " clipping="+clipping + ";" + iMinY + ";" + iMaxY + ";tca=" + tableBounds);
+				//System.out.println(row.getIndex() + " clipping="+clipping + ";" );
 				return;
 			}
 
