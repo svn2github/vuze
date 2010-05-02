@@ -504,34 +504,9 @@ public class SBC_LibraryView
 				if (PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 					return;
 				}
-				if (dm.getAssumedComplete()) {
-					boolean isSeeding = dm.getState() == DownloadManager.STATE_SEEDING;
-					Boolean wasSeedingB = (Boolean) dm.getUserData("wasSeeding");
-					boolean wasSeeding = wasSeedingB == null ? false
-							: wasSeedingB.booleanValue();
-					if (isSeeding != wasSeeding) {
-						if (isSeeding) {
-							numSeeding++;
-						} else {
-							numSeeding--;
-						}
-						dm.setUserData("wasSeeding", new Boolean(isSeeding));
-					}
-				} else {
-					boolean isDownloading = dm.getState() == DownloadManager.STATE_DOWNLOADING;
-					Boolean wasDownloadingB = (Boolean) dm.getUserData("wasDownloading");
-					boolean wasDownloading = wasDownloadingB == null ? false
-							: wasDownloadingB.booleanValue();
-					if (isDownloading != wasDownloading) {
-						if (isDownloading) {
-							numDownloading++;
-						} else {
-							numDownloading--;
-						}
-						dm.setUserData("wasDownloading", new Boolean(isDownloading));
-					}
-				}
 				
+				updateDMCounts(dm);
+
 				boolean complete = dm.getAssumedComplete();
 				Boolean wasErrorStateB = (Boolean) dm.getUserData("wasErrorState");
 				boolean wasErrorState = wasErrorStateB == null ? false
@@ -554,6 +529,7 @@ public class SBC_LibraryView
 				if (PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 					return;
 				}
+				updateDMCounts(dm);
 				if (completed) {
 					numComplete++;
 					numIncomplete--;
@@ -562,8 +538,9 @@ public class SBC_LibraryView
 						numErrorInComplete--;
 					}
 				} else {
-					numIncomplete++;
 					numComplete--;
+					numIncomplete++;
+
 					if (dm.getState() == DownloadManager.STATE_ERROR) {
 						numErrorComplete--;
 						numErrorInComplete++;
@@ -695,6 +672,45 @@ public class SBC_LibraryView
 		}
 
 		recountUnopened();
+	}
+
+	protected static void updateDMCounts(DownloadManager dm) {
+		boolean isSeeding;
+		boolean isDownloading;
+
+		Boolean wasSeedingB = (Boolean) dm.getUserData("wasSeeding");
+		boolean wasSeeding = wasSeedingB == null ? false
+				: wasSeedingB.booleanValue();
+		Boolean wasDownloadingB = (Boolean) dm.getUserData("wasDownloading");
+		boolean wasDownloading = wasDownloadingB == null ? false
+				: wasDownloadingB.booleanValue();
+
+		if (dm.getAssumedComplete()) {
+			isSeeding = dm.getState() == DownloadManager.STATE_SEEDING;
+			isDownloading = false;
+		} else {
+			isDownloading = dm.getState() == DownloadManager.STATE_DOWNLOADING;
+			isSeeding = false;
+		}
+
+		if (isDownloading != wasDownloading) {
+			if (isDownloading) {
+				numDownloading++;
+			} else {
+				numDownloading--;
+			}
+			dm.setUserData("wasDownloading", new Boolean(isDownloading));
+		}
+
+		if (isSeeding != wasSeeding) {
+			if (isSeeding) {
+				numSeeding++;
+			} else {
+				numSeeding--;
+			}
+			dm.setUserData("wasSeeding", new Boolean(isSeeding));
+		}
+
 	}
 
 	private static void recountUnopened() {
