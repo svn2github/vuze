@@ -3,10 +3,14 @@ VUZE CHANGELOG
 
 2010.04.xx | Vuze 4.4.0.1
 
+CHANGE: UI    | (OSX) Prep client for SWT 3.6 (M7 and later) [TuxPaper]
+CHANGE: UI    | (OSX) Use Java calls for moveToTrash and showInFinder [TuxPaper] 
+
 BUGFIX: UIvz  | Fix bug where toolbar was hidden with no way of showing it [TuxPaper]
 BUGFIX: UIvz  | Fix bug where DVD Burn sidebar entry would reappear after removing it and restarting [TuxPaper]
 BUGFIX: UIvz  | When doubleclick in Library is set to show details, don't show AntiVirus warning [TuxPaper]
 BUGFIX: UIvz  | Fix OSX case where client could not be started due to old SWT version [TuxPaper]
+BUGFIX: UIvz  | Fix case where there was nothing downloading, but the download spinner in the sidebar was still present [TuxPaper]
 
 
 
