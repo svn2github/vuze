@@ -1,24 +1,4 @@
-/*
- * Created on Sep 10, 2003
- * Copyright (C) 2003, 2004, 2005, 2006 Aelitis, All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * AELITIS, SAS au capital de 46,603.30 euros
- * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
- *
- */
-package org.gudy.azureus2.ui.swt;
+package com.aelitis.azureus.ui.swt;
 
 /*
  * Copyright (c) 2000, 2002 IBM Corp.  All rights reserved.
@@ -29,14 +9,16 @@ package org.gudy.azureus2.ui.swt;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.List;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.launcher.Launcher;
 
 /**
  * Code to detect swt leak
@@ -65,7 +47,7 @@ public class Sleak
 	Object[] objects = new Object[0];
 
 	Error[] errors = new Error[0];
-	
+
 	Map all = new HashMap();
 	
 	ArrayList oldNonResources = new ArrayList();
@@ -346,7 +328,9 @@ public class Sleak
 				gc.drawString("Image disposed", 0, 0);
 				return;
 			}
-			gc.drawImage((Image) object, 0, 0);
+			Image image = (Image) object;
+			gc.drawString(image.getBounds().toString(), 0, 0);
+			gc.drawImage(image, 0, 15);
 			return;
 		}
 		if (object instanceof Region) {
@@ -359,8 +343,14 @@ public class Sleak
 		}
 
 		if (object instanceof Control) {
+			Control control = (Control) object;
+			if (control.isDisposed()) {
+				return;
+			}
+			Rectangle bounds = control.getBounds();
+			
 			gc.drawString(object.toString(), 0, 0);
-			gc.drawString(((Control) object).getBounds().toString(), 0, 20);
+			gc.drawString(bounds.toString(), 0, 20);
 
 			if (object instanceof Widget) {
 				Object data = ((Widget)object).getData("sleak");
@@ -368,6 +358,21 @@ public class Sleak
 					gc.drawString(data.toString(), 0, 35);
 				}
 			}
+
+  		
+  		GC gcControl = new GC(control);
+  		try {
+  			Image img = new Image(control.getDisplay(), bounds.width, bounds.height);
+  			gcControl.copyArea(img, 0, 0);
+  			
+  			gc.drawImage(img, 0, 45);
+  			
+  			img.dispose();
+  		} catch (Exception e) {
+  		} finally {
+  			gcControl.dispose();
+  			
+  		}
 			return;
 		}
 	}
@@ -427,12 +432,17 @@ public class Sleak
 	}
 
 	public static void main(String[] args) {
-    DeviceData data = new DeviceData();
-    data.tracking = true;
-    Display display = new Display (data);
+		if(Launcher.checkAndLaunch(Sleak.class, args))
+			return;
+		DeviceData data = new DeviceData();
+		data.tracking = true;
+		Display display = new Display(data);
 		Sleak sleak = new Sleak();
-    Main.main(args);
 		sleak.open();
+
+		AzureusCore		core = AzureusCoreFactory.create();
+	 	new Initializer( core, null,args);
+		
 		while (!sleak.shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
@@ -442,6 +452,7 @@ public class Sleak
 			if (!display.isDisposed()) {
 				display.dispose();
 			}
+
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
