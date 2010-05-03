@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.lws;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
@@ -230,6 +231,14 @@ LWSPeerManagerAdapter
 		PEPeer		peer,
 		int			bytes )
 	{
+	}
+	
+	public void 
+	statsRequest(
+		PEPeer 	originator, 
+		Map 	request,
+		Map		reply )
+	{		
 	}
 	
 	public void

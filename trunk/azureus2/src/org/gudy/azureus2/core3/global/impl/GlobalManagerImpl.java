@@ -35,6 +35,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
@@ -52,7 +53,9 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtilsListener;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -2933,5 +2936,39 @@ public class GlobalManagerImpl
 	
 	public MainlineDHTProvider getMainlineDHTProvider() {
 		return this.provider;
+	}
+	
+	public void
+	statsRequest(
+		Map		request,
+		Map		reply )
+	{
+		Map	glob = new HashMap();
+		
+		reply.put( "gm", glob );
+		
+		glob.put( "ul_rate", new Long( stats.getDataAndProtocolSendRate()));
+		glob.put( "dl_rate", new Long( stats.getDataAndProtocolReceiveRate()));
+		
+		glob.put( "dl_lim", new Long( TransferSpeedValidator.getGlobalDownloadRateLimitBytesPerSecond()));
+		
+		boolean auto_up = TransferSpeedValidator.isAutoSpeedActive(this) && TransferSpeedValidator.isAutoUploadAvailable( AzureusCoreFactory.getSingleton());
+
+		glob.put( "auto_up", new Long(auto_up?1:0));
+
+		long up_lim = NetworkManager.getMaxUploadRateBPSNormal();
+
+		boolean	seeding_only = NetworkManager.isSeedingOnlyUploadRate();
+		
+		glob.put( "so", new Long(seeding_only?1:0));
+		
+		if ( seeding_only ){
+			
+			up_lim = NetworkManager.getMaxUploadRateBPSSeedingOnly();
+		}
+		
+		glob.put( "ul_lim", new Long( up_lim ));
+		
+		
 	}
 }

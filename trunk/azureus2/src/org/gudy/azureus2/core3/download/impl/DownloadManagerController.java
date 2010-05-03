@@ -2074,6 +2074,17 @@ DownloadManagerController
 		return download_manager.getPosition();
 	}
 	
+	public void 
+	statsRequest(
+		PEPeer 		originator, 
+		Map 		request,
+		Map			reply )
+	{	
+		GlobalManager	gm = download_manager.getGlobalManager();
+
+		gm.statsRequest( request, reply );
+	}
+	
 	public void
 	addHTTPSeed(
 		String	address,

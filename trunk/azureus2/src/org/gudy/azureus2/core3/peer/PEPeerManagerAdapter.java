@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.peer;
 
+import java.util.Map;
+
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
 import org.gudy.azureus2.core3.logging.LogRelation;
@@ -134,6 +136,12 @@ PEPeerManagerAdapter
 		PEPeer		peer,
 		int			bytes );
 	
+	public void 
+	statsRequest(
+		PEPeer			 	originator, 
+		Map 				request,
+		Map					reply );
+
 	public PeerManagerRegistration
 	getPeerManagerRegistration();
 	

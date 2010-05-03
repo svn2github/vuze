@@ -1404,6 +1404,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 		PEPeerTransport 	originator, 
 		Map 				request )
 	{
+		Map		reply = new HashMap();
+		
+		adapter.statsRequest( originator, request, reply );
+		
+		if ( reply.size() > 0 ){
+			
+			originator.sendStatsReply( reply );
+		}
 	}
 	
 	public void 

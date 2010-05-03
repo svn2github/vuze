@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.global;
 
 import java.util.List;
+import java.util.Map;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
 
@@ -406,6 +407,11 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 * @since 3.0.4.3
 	 */
 	MainlineDHTProvider getMainlineDHTProvider();
+
+	public void 
+	statsRequest(
+		Map 		request,
+		Map			reply );
 
 	/**
 	 * @param manager
