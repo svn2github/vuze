@@ -27,6 +27,8 @@ package org.gudy.azureus2.core3.peer.impl;
  */
 
 
+import java.util.Map;
+
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 
@@ -104,6 +106,15 @@ PEPeerControl
 		PEPeerTransport		originator,
 		int					piece_number );
 	
+	public void
+	statsRequest(
+		PEPeerTransport		originator,
+		Map					request );
+	
+	public void
+	statsReply(
+		PEPeerTransport		originator,
+		Map					reply );
 	public boolean isRTA();
 	
 	public void

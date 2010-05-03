@@ -548,6 +548,18 @@ PeerForeignDelegate
 	{
 	}
 	
+	public void
+	sendStatsRequest(
+		Map		request )
+	{
+	}
+	
+	public void
+	sendStatsReply(
+		Map		reply )
+	{
+	}		
+
 	public boolean
 	isTCP()
 	{

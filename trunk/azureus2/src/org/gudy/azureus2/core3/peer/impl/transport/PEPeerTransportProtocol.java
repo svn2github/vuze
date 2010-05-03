@@ -194,6 +194,8 @@ implements PEPeerTransport
 	private byte  	other_peer_bt_lt_ext_version    	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_az_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_az_stats_request_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	private byte	other_peer_az_stats_reply_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   
 	private static final boolean DEBUG_FAST = false;
 	
@@ -357,6 +359,9 @@ implements PEPeerTransport
 
 	private boolean request_hint_supported;
 	private boolean bad_piece_supported;
+	private boolean stats_request_supported;
+	private boolean stats_reply_supported;
+	
 
 	private boolean have_aggregation_disabled;
 
@@ -2538,6 +2543,10 @@ implements PEPeerTransport
 					other_peer_az_have_version = supported_version;
 				else if (id == AZMessage.ID_AZ_BAD_PIECE)
 					other_peer_az_bad_piece_version = supported_version;
+				else if (id == AZMessage.ID_AZ_STAT_REQUEST)
+					other_peer_az_stats_request_version = supported_version;
+				else if (id == AZMessage.ID_AZ_STAT_REPLY)
+					other_peer_az_stats_reply_version = supported_version;
 				else if (id == BTMessage.ID_BT_DHT_PORT)
 					this.ml_dht_enabled = true;
 				else
@@ -2933,6 +2942,7 @@ implements PEPeerTransport
   		  connection.getOutgoingMessageQueue().addMessage( bp, false );
         }
     }
+    
     protected void 
     decodeAZBadPiece( 
     	AZBadPiece bad_piece )
@@ -2944,7 +2954,52 @@ implements PEPeerTransport
         manager.badPieceReported( this, piece_number );
     }
 
+    public void
+    sendStatsRequest(
+  	  Map		request )
+    {
+  	  if ( stats_request_supported ){
+  		  
+  		  AZStatRequest	sr = new AZStatRequest( request, other_peer_az_stats_request_version );
+  		  
+  		  connection.getOutgoingMessageQueue().addMessage( sr, false );
+        }
+    }
 
+    protected void 
+    decodeAZStatsRequest( 
+    	AZStatRequest request )
+    {
+        Map req = request.getRequest();
+        
+        request.destroy();
+    
+        manager.statsRequest( this, req );
+    }
+    
+    public void
+    sendStatsReply(
+  	  Map		reply )
+    {
+  	  if ( stats_reply_supported ){
+  		  
+  		  AZStatReply	sr = new AZStatReply( reply, other_peer_az_stats_reply_version );
+  		  
+  		  connection.getOutgoingMessageQueue().addMessage( sr, false );
+        }
+    }
+
+    protected void 
+    decodeAZStatsReply( 
+    	AZStatReply reply )
+    {
+        Map rep = reply.getReply();
+        
+        reply.destroy();
+    
+        manager.statsReply( this, rep );
+    }
+    
 	protected void decodeRequest( BTRequest request ) {
 		final int number = request.getPieceNumber();
 		final int offset = request.getPieceOffset();
@@ -3892,8 +3947,10 @@ implements PEPeerTransport
 			}
 		}
 
-		request_hint_supported = peerSupportsMessageType( AZMessage.ID_AZ_REQUEST_HINT );
+		request_hint_supported 	= peerSupportsMessageType( AZMessage.ID_AZ_REQUEST_HINT );
 		bad_piece_supported 	= peerSupportsMessageType( AZMessage.ID_AZ_BAD_PIECE );
+		stats_request_supported = peerSupportsMessageType( AZMessage.ID_AZ_STAT_REQUEST );
+		stats_reply_supported 	= peerSupportsMessageType( AZMessage.ID_AZ_STAT_REPLY );
 	}
 
 	private boolean

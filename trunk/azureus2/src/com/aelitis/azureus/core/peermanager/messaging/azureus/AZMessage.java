@@ -54,6 +54,14 @@ public interface AZMessage extends Message {
   public static final byte[] ID_AZ_BAD_PIECE_BYTES 		= ID_AZ_BAD_PIECE.getBytes();
   public static final int SUBID_ID_AZ_BAD_PIECE			= 5;
   
+  public static final String ID_AZ_STAT_REQUEST	    	= "AZ_STAT_REQ";
+  public static final byte[] ID_AZ_STAT_REQUEST_BYTES 	= ID_AZ_STAT_REQUEST.getBytes();
+  public static final int SUBID_ID_AZ_STAT_REQUEST		= 6;
+  
+  public static final String ID_AZ_STAT_REPLY	    	= "AZ_STAT_REP";
+  public static final byte[] ID_AZ_STAT_REPLY_BYTES 	= ID_AZ_STAT_REPLY.getBytes();
+  public static final int SUBID_ID_AZ_STAT_REPLY		= 7;
+  
   //TODO
 
   public static final String ID_AZ_SESSION_SYN      	= "AZ_SESSION_SYN";

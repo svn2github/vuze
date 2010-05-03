@@ -26,6 +26,7 @@
 package org.gudy.azureus2.core3.peer.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.PEPeer;
@@ -68,6 +69,14 @@ PEPeerTransport
 	sendBadPiece(
 		int		piece_number );
 	
+	public void
+	sendStatsRequest(
+		Map		request );
+	
+	public void
+	sendStatsReply(
+		Map		reply );
+			
 		/**
 		 * Two methods that allow a peer to aggregate the individual requests generated during an
 		 * allocation cycle if so desired

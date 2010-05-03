@@ -1398,6 +1398,20 @@ DiskManagerCheckRequestListener, IPFilterListener
 		
 		bad_piece_reported = piece_number;
 	}
+	
+	public void 
+	statsRequest(
+		PEPeerTransport 	originator, 
+		Map 				request )
+	{
+	}
+	
+	public void 
+	statsReply(
+		PEPeerTransport 	originator, 
+		Map 				reply )
+	{		
+	}
 
 	/**
 	 * This method checks if the downloading process is finished.
