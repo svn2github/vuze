@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aereg", "aereg.vcxproj", "{40403E3C-A9FE-6C58-E193-ADC8DD167D9C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aereg", "aereg.vcxproj", "{069DAD27-2960-9CDE-1493-9CD8742D0FCC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{40403E3C-A9FE-6C58-E193-ADC8DD167D9C}.Debug|Win32.ActiveCfg = Debug|Win32
-		{40403E3C-A9FE-6C58-E193-ADC8DD167D9C}.Debug|Win32.Build.0 = Debug|Win32
-		{40403E3C-A9FE-6C58-E193-ADC8DD167D9C}.Release|Win32.ActiveCfg = Release|Win32
-		{40403E3C-A9FE-6C58-E193-ADC8DD167D9C}.Release|Win32.Build.0 = Release|Win32
+		{069DAD27-2960-9CDE-1493-9CD8742D0FCC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{069DAD27-2960-9CDE-1493-9CD8742D0FCC}.Debug|Win32.Build.0 = Debug|Win32
+		{069DAD27-2960-9CDE-1493-9CD8742D0FCC}.Release|Win32.ActiveCfg = Release|Win32
+		{069DAD27-2960-9CDE-1493-9CD8742D0FCC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
