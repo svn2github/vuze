@@ -57,6 +57,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 import org.gudy.azureus2.plugins.network.ConnectionManager;
@@ -2943,16 +2944,18 @@ public class GlobalManagerImpl
 		Map		request,
 		Map		reply )
 	{
+		AzureusCore core = AzureusCoreFactory.getSingleton();
+		
 		Map	glob = new HashMap();
 		
 		reply.put( "gm", glob );
 		
-		glob.put( "ul_rate", new Long( stats.getDataAndProtocolSendRate()));
-		glob.put( "dl_rate", new Long( stats.getDataAndProtocolReceiveRate()));
+		glob.put( "u_rate", new Long( stats.getDataAndProtocolSendRate()));
+		glob.put( "d_rate", new Long( stats.getDataAndProtocolReceiveRate()));
 		
-		glob.put( "dl_lim", new Long( TransferSpeedValidator.getGlobalDownloadRateLimitBytesPerSecond()));
+		glob.put( "d_lim", new Long( TransferSpeedValidator.getGlobalDownloadRateLimitBytesPerSecond()));
 		
-		boolean auto_up = TransferSpeedValidator.isAutoSpeedActive(this) && TransferSpeedValidator.isAutoUploadAvailable( AzureusCoreFactory.getSingleton());
+		boolean auto_up = TransferSpeedValidator.isAutoSpeedActive(this) && TransferSpeedValidator.isAutoUploadAvailable( core );
 
 		glob.put( "auto_up", new Long(auto_up?1:0));
 
@@ -2967,8 +2970,39 @@ public class GlobalManagerImpl
 			up_lim = NetworkManager.getMaxUploadRateBPSSeedingOnly();
 		}
 		
-		glob.put( "ul_lim", new Long( up_lim ));
+		glob.put( "u_lim", new Long( up_lim ));
 		
+		SpeedManager sm = core.getSpeedManager();
 		
+		if ( sm != null ){
+			
+			glob.put( "u_cap", new Long( sm.getEstimatedUploadCapacityBytesPerSec().getBytesPerSec()));
+			glob.put( "d_cap", new Long( sm.getEstimatedDownloadCapacityBytesPerSec().getBytesPerSec()));
+		}
+		
+		List<DownloadManager> dms = getDownloadManagers();
+		
+		int	comp 	= 0;
+		int	incomp	= 0;
+		
+		for ( DownloadManager dm: dms ){
+			
+			int state = dm.getState();
+			
+			if ( state == DownloadManager.STATE_SEEDING || state == DownloadManager.STATE_DOWNLOADING ){
+				
+				if ( dm.isDownloadComplete( false )){
+					
+					comp++;
+					
+				}else{
+					
+					incomp++;
+				}
+			}
+		}
+		
+		glob.put( "dm_i", new Long( incomp ));
+		glob.put( "dm_c", new Long( comp ));
 	}
 }

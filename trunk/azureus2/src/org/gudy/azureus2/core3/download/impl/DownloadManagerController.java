@@ -2083,6 +2083,22 @@ DownloadManagerController
 		GlobalManager	gm = download_manager.getGlobalManager();
 
 		gm.statsRequest( request, reply );
+		
+		Map	info = new HashMap();
+		
+		reply.put( "dl", info );
+		
+		info.put( "u_lim", new Long( getUploadRateLimitBytesPerSecond()));
+		info.put( "d_lim", new Long( getDownloadRateLimitBytesPerSecond()));
+		
+		info.put( "u_rate", new Long( stats.getProtocolSendRate() + stats.getDataSendRate()));
+		info.put( "d_rate", new Long( stats.getProtocolReceiveRate() + stats.getDataReceiveRate()));
+		
+		info.put( "u_slot", new Long( getMaxUploads()));
+		info.put( "c_max", new Long( getMaxConnections()));
+		
+		info.put( "c_leech", new Long( download_manager.getNbPeers()));
+		info.put( "c_seed", new Long( download_manager.getNbSeeds()));
 	}
 	
 	public void
