@@ -1020,6 +1020,8 @@ DHTTrackerPlugin
 						
 						running_downloads.put( download, new int[]{ register_type, 0, 0, 0 });
 						
+						query_map.remove( download );
+						
 					}else{
 						
 						Integer	existing_type = run_data[0];
