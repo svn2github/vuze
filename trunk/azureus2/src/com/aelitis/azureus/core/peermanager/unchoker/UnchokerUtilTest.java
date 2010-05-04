@@ -135,6 +135,7 @@ public class UnchokerUtilTest {
         public boolean isChokedByMe() {  return true;  }
         public void sendChoke(){}
         public void sendUnChoke(){}
+        public void sendStatsRequest(Map request) {}
         public boolean isInteresting(){  return true;  }
         public boolean isInterested(){  return true;  }
         public boolean isRelativeSeed() { return false; }

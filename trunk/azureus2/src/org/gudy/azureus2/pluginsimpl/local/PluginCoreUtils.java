@@ -469,4 +469,11 @@ PluginCoreUtils
 	{
 		return( ((TrackerTorrentImpl)torrent).getHostTorrent().getTrackerTorrent());
 	}
+	
+	public static PEPeer
+	unwrap(
+		Peer		peer )
+	{
+		return(((PeerImpl)peer).getDelegate());
+	}
 }

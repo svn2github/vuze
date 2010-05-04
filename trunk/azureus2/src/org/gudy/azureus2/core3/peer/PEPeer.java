@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.peer;
 
 
 import java.net.InetAddress;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.plugins.network.Connection;
@@ -368,6 +369,10 @@ PEPeer
 	        		 
 	public void
 	clearRequestHint();
+
+	public void
+	sendStatsRequest(
+		Map		request );
 	
 	public void
 	sendRejectRequest(

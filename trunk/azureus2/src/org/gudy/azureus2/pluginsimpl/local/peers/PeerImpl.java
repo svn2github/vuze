@@ -72,7 +72,7 @@ PeerImpl
 		return( manager );
 	}
 	
-	protected PEPeer
+	public PEPeer
 	getDelegate()
 	{
 		return( delegate );
