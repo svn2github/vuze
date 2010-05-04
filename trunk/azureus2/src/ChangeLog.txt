@@ -5,7 +5,17 @@ VUZE CHANGELOG
 
 CHANGE: UI    | (OSX) Prep client for SWT 3.6 (M7 and later) [TuxPaper]
 CHANGE: UI    | (OSX) Use Java calls for moveToTrash and showInFinder [TuxPaper] 
+CHANGE: UI    | Double click in library view on incomplete downloads no longer invokes the launch manager for permission [Parg]
+CHANGE: Core  | Added some new message types to help diagnose connection speed issues [Parg]
+CHANGE: Core  | Removal of various useless debug generation [Parg]
+CHANGE: Core  | Use UTF-8 for debug files [Parg]
 
+BUGFIX: Plug  | If EMP is disabled fall back to default player [Parg]
+BUGFIX: Core  | Fix deadlock condition in devices view [Parg]
+BUGFIX: Core  | Prevent single key failure from exiting select result processing [Parg]
+BUGFIX: Core  | Fix deadlock when download stopped while move-on-complete in progress [Parg]
+BUGFIX: Core  | Various fixes to handle restarts with non-ascii user directory name [Parg]
+BUGFIX: Core  | Ensure plugin verification works with internationalised plugin dir name [Parg]
 BUGFIX: UIvz  | Fix bug where toolbar was hidden with no way of showing it [TuxPaper]
 BUGFIX: UIvz  | Fix bug where DVD Burn sidebar entry would reappear after removing it and restarting [TuxPaper]
 BUGFIX: UIvz  | When doubleclick in Library is set to show details, don't show AntiVirus warning [TuxPaper]
