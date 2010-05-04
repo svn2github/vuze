@@ -1020,7 +1020,7 @@ DHTTrackerPlugin
 						
 						running_downloads.put( download, new int[]{ register_type, 0, 0, 0 });
 						
-						query_map.remove( download );
+						query_map.put( download, new Long( SystemTime.getCurrentTime()));
 						
 					}else{
 						
