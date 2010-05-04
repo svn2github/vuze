@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2010.04.xx | Vuze 4.4.0.1
+2010.05.03 | Vuze 4.4.0.2
 
 CHANGE: UI    | (OSX) Prep client for SWT 3.6 (M7 and later) [TuxPaper]
 CHANGE: UI    | (OSX) Use Java calls for moveToTrash and showInFinder [TuxPaper] 
