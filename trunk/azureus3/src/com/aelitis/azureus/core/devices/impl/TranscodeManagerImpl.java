@@ -517,9 +517,11 @@ TranscodeManagerImpl
 	public TranscodeQueueImpl
 	getQueue() 
 	{
-		if ( !init_sem.reserve(10000)){
+		if ( !init_sem.reserve(30*1000)){
 			
 			Debug.out( "Timeout waiting for init" );
+			
+			AEDiagnostics.dumpThreads();
 		}
 		
 		return( queue );
