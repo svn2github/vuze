@@ -3693,6 +3693,16 @@ implements PEPeerTransport
 						decodeAZBadPiece((AZBadPiece)message );
 						return true;
 					}
+					
+					if( message_id.equals( AZMessage.ID_AZ_STAT_REQUEST ) ) {        	
+						decodeAZStatsRequest((AZStatRequest)message );
+						return true;
+					}
+					
+					if( message_id.equals( AZMessage.ID_AZ_STAT_REPLY ) ) {        	
+						decodeAZStatsReply((AZStatReply)message );
+						return true;
+					}
 					return false;
 				}
 
