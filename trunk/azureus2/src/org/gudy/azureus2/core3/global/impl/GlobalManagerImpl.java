@@ -58,6 +58,7 @@ import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 import org.gudy.azureus2.plugins.network.ConnectionManager;
@@ -2950,59 +2951,80 @@ public class GlobalManagerImpl
 		
 		reply.put( "gm", glob );
 		
-		glob.put( "u_rate", new Long( stats.getDataAndProtocolSendRate()));
-		glob.put( "d_rate", new Long( stats.getDataAndProtocolReceiveRate()));
-		
-		glob.put( "d_lim", new Long( TransferSpeedValidator.getGlobalDownloadRateLimitBytesPerSecond()));
-		
-		boolean auto_up = TransferSpeedValidator.isAutoSpeedActive(this) && TransferSpeedValidator.isAutoUploadAvailable( core );
-
-		glob.put( "auto_up", new Long(auto_up?1:0));
-
-		long up_lim = NetworkManager.getMaxUploadRateBPSNormal();
-
-		boolean	seeding_only = NetworkManager.isSeedingOnlyUploadRate();
-		
-		glob.put( "so", new Long(seeding_only?1:0));
-		
-		if ( seeding_only ){
+		try{
+			glob.put( "u_rate", new Long( stats.getDataAndProtocolSendRate()));
+			glob.put( "d_rate", new Long( stats.getDataAndProtocolReceiveRate()));
 			
-			up_lim = NetworkManager.getMaxUploadRateBPSSeedingOnly();
-		}
-		
-		glob.put( "u_lim", new Long( up_lim ));
-		
-		SpeedManager sm = core.getSpeedManager();
-		
-		if ( sm != null ){
+			glob.put( "d_lim", new Long( TransferSpeedValidator.getGlobalDownloadRateLimitBytesPerSecond()));
 			
-			glob.put( "u_cap", new Long( sm.getEstimatedUploadCapacityBytesPerSec().getBytesPerSec()));
-			glob.put( "d_cap", new Long( sm.getEstimatedDownloadCapacityBytesPerSec().getBytesPerSec()));
-		}
-		
-		List<DownloadManager> dms = getDownloadManagers();
-		
-		int	comp 	= 0;
-		int	incomp	= 0;
-		
-		for ( DownloadManager dm: dms ){
+			boolean auto_up = TransferSpeedValidator.isAutoSpeedActive(this) && TransferSpeedValidator.isAutoUploadAvailable( core );
+	
+			glob.put( "auto_up", new Long(auto_up?COConfigurationManager.getLongParameter( SpeedManagerImpl.CONFIG_VERSION ):0));
+	
+			long up_lim = NetworkManager.getMaxUploadRateBPSNormal();
+	
+			boolean	seeding_only = NetworkManager.isSeedingOnlyUploadRate();
 			
-			int state = dm.getState();
+			glob.put( "so", new Long(seeding_only?1:0));
 			
-			if ( state == DownloadManager.STATE_SEEDING || state == DownloadManager.STATE_DOWNLOADING ){
+			if ( seeding_only ){
 				
-				if ( dm.isDownloadComplete( false )){
+				up_lim = NetworkManager.getMaxUploadRateBPSSeedingOnly();
+			}
+			
+			glob.put( "u_lim", new Long( up_lim ));
+			
+			SpeedManager sm = core.getSpeedManager();
+			
+			if ( sm != null ){
+				
+				glob.put( "u_cap", new Long( sm.getEstimatedUploadCapacityBytesPerSec().getBytesPerSec()));
+				glob.put( "d_cap", new Long( sm.getEstimatedDownloadCapacityBytesPerSec().getBytesPerSec()));
+			}
+			
+			List<DownloadManager> dms = getDownloadManagers();
+			
+			int	comp 	= 0;
+			int	incomp	= 0;
+			
+			long comp_up 		= 0;
+			long incomp_up		= 0;
+			long incomp_down	= 0;
+			
+			for ( DownloadManager dm: dms ){
+				
+				int state = dm.getState();
+				
+				if ( state == DownloadManager.STATE_SEEDING || state == DownloadManager.STATE_DOWNLOADING ){
 					
-					comp++;
+					DownloadManagerStats stats = dm.getStats();
 					
-				}else{
-					
-					incomp++;
+					if ( dm.isDownloadComplete( false )){
+						
+						comp++;
+						
+						comp_up += stats.getProtocolSendRate() + stats.getDataSendRate();
+						
+					}else{
+						
+						incomp++;
+						
+						incomp_up 	+= stats.getProtocolSendRate() + stats.getDataSendRate();
+						incomp_down += stats.getProtocolReceiveRate() + stats.getDataReceiveRate();
+					}
 				}
 			}
+			
+			glob.put( "dm_i", new Long( incomp ));
+			glob.put( "dm_c", new Long( comp ));
+			
+			glob.put( "dm_i_u", new Long( incomp_up ));
+			glob.put( "dm_i_d", new Long( incomp_down ));
+			glob.put( "dm_c_u", new Long( comp_up ));
+
+			glob.put( "nat", new Long( nat_status ));
+			
+		}catch( Throwable e ){
 		}
-		
-		glob.put( "dm_i", new Long( incomp ));
-		glob.put( "dm_c", new Long( comp ));
 	}
 }
