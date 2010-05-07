@@ -366,9 +366,11 @@ public abstract class BaseMDI
 				if (viewInfo.view != null) {
 					entry = createEntryFromIView(parentID, viewInfo.view, id, datasource,
 							true, false, true);
+					return true;
 				} else if (viewInfo.event_listener != null) {
 					entry = createEntryFromEventListener(parentID,
 							viewInfo.event_listener, id, true, datasource);
+					return true;
 				}
 			}
 
@@ -417,13 +419,14 @@ public abstract class BaseMDI
 						}
 					}
 				}
+				return true;
 			}
 		} catch (ClassNotFoundException ce) {
 			// ignore
 		} catch (Throwable e) {
 			Debug.out(e);
 		}
-		return true;
+		return false;
 	}
 
 	public void removeItem(MdiEntry entry) {
