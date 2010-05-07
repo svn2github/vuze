@@ -2088,17 +2088,43 @@ DownloadManagerController
 		
 		reply.put( "dl", info );
 		
-		info.put( "u_lim", new Long( getUploadRateLimitBytesPerSecond()));
-		info.put( "d_lim", new Long( getDownloadRateLimitBytesPerSecond()));
-		
-		info.put( "u_rate", new Long( stats.getProtocolSendRate() + stats.getDataSendRate()));
-		info.put( "d_rate", new Long( stats.getProtocolReceiveRate() + stats.getDataReceiveRate()));
-		
-		info.put( "u_slot", new Long( getMaxUploads()));
-		info.put( "c_max", new Long( getMaxConnections()));
-		
-		info.put( "c_leech", new Long( download_manager.getNbPeers()));
-		info.put( "c_seed", new Long( download_manager.getNbSeeds()));
+		try{
+			info.put( "u_lim", new Long( getUploadRateLimitBytesPerSecond()));
+			info.put( "d_lim", new Long( getDownloadRateLimitBytesPerSecond()));
+			
+			info.put( "u_rate", new Long( stats.getProtocolSendRate() + stats.getDataSendRate()));
+			info.put( "d_rate", new Long( stats.getProtocolReceiveRate() + stats.getDataReceiveRate()));
+			
+			info.put( "u_slot", new Long( getMaxUploads()));
+			info.put( "c_max", new Long( getMaxConnections()));
+			
+			info.put( "c_leech", new Long( download_manager.getNbPeers()));
+			info.put( "c_seed", new Long( download_manager.getNbSeeds()));
+			
+			PEPeerManager pm = peer_manager;
+			
+			if ( pm != null ){
+				
+				info.put( "c_rem", pm.getNbRemoteTCPConnections());
+				
+				List<PEPeer> peers = pm.getPeers();
+				
+				List<Long>	slot_up = new ArrayList<Long>();
+				
+				info.put( "slot_up", slot_up );
+				
+				for ( PEPeer p: peers ){
+					
+					if ( !p.isChokedByMe()){
+						
+						long up = p.getStats().getDataSendRate() + p.getStats().getProtocolSendRate();
+						
+						slot_up.add( up );
+					}
+				}
+			}
+		}catch( Throwable e ){
+		}
 	}
 	
 	public void
