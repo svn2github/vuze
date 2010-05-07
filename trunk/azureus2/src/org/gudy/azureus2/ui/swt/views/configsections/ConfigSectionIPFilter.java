@@ -32,9 +32,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -285,24 +283,34 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     				discard_min.getControl(), discard_min_label }));
 
 
+    
+    
+    
+    
+    
+    
+    
+    
     Group gAutoLoad = new Group(gFilter, SWT.NONE);
     Messages.setLanguageText(gAutoLoad, "ConfigView.section.ipfilter.autoload.group");
-    layout = new GridLayout();
-    layout.numColumns = 4;
-    gAutoLoad.setLayout(layout);
-    gAutoLoad.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+    FormLayout flayout = new FormLayout();
+    flayout.marginHeight =flayout.marginWidth = 5; 
+    gAutoLoad.setLayout(flayout);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.widthHint = 500;
+    gAutoLoad.setLayoutData(gridData);
+
+    FormData fd;
     
     // Load from file
     sCurConfigID = "Ip Filter Autoload File";
     //allConfigIDs.add(sCurConfigID);
     Label lblDefaultDir = new Label(gAutoLoad, SWT.NONE);
     Messages.setLanguageText(lblDefaultDir, "ConfigView.section.ipfilter.autoload.file");
-    lblDefaultDir.setLayoutData(new GridData());
+    fd = new FormData();
+    lblDefaultDir.setLayoutData(fd);
     
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.minimumWidth = 50;
     final StringParameter pathParameter = new StringParameter(gAutoLoad, sCurConfigID);
-    pathParameter.setLayoutData(gridData);
 
     Button browse = new Button(gAutoLoad, SWT.PUSH);
     browse.setImage(imgOpenFolder);
@@ -325,7 +333,6 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
         }
       }
     });
-    browse.setLayoutData(new GridData());
     
     final Button btnLoadNow = new Button(gAutoLoad, SWT.PUSH);
     Messages.setLanguageText(btnLoadNow, "ConfigView.section.ipfilter.autoload.loadnow");
@@ -343,15 +350,34 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 				}
 			}
 		});
-    btnLoadNow.setLayoutData(new GridData());
+
+    fd = new FormData();
+    fd.right = new FormAttachment(100, 0);
+    btnLoadNow.setLayoutData(fd);
     
+    fd = new FormData();
+    fd.right = new FormAttachment(btnLoadNow, -5);
+    browse.setLayoutData(fd);
+
+    fd = new FormData();
+    fd.left = new FormAttachment(lblDefaultDir, 5);
+    fd.right = new FormAttachment(browse, -5);
+    pathParameter.setLayoutData(fd);
+
     Label lblAutoLoadInfo = new Label(gAutoLoad, SWT.WRAP);
     Messages.setLanguageText(lblAutoLoadInfo, "ConfigView.section.ipfilter.autoload.info");
-    lblAutoLoadInfo.setLayoutData(Utils.getWrappableLabelGridData(4, 0));
+    fd = new FormData();
+    fd.top = new FormAttachment(btnLoadNow, 3);
+    fd.left = new FormAttachment(0, 0);
+    fd.right = new FormAttachment(100, 0);
+    lblAutoLoadInfo.setLayoutData(fd);
 
     BooleanParameter clear_on_reload = new BooleanParameter(gAutoLoad, "Ip Filter Clear On Reload" );
-    gridData = new GridData();
-    clear_on_reload.setLayoutData(gridData);
+    fd = new FormData();
+    fd.top = new FormAttachment(lblAutoLoadInfo, 3);
+    fd.left = new FormAttachment(0, 0);
+    fd.right = new FormAttachment(100, 0);
+    clear_on_reload.setLayoutData(fd);
 	Messages.setLanguageText(clear_on_reload.getControl(),
 		"ConfigView.section.ipfilter.clear.on.reload");
 	
