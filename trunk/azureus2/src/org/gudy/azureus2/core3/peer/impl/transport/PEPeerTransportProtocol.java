@@ -3941,7 +3941,7 @@ implements PEPeerTransport
 		    PeerExchangerItem pex_item = peer_exchange_item;
 
 			if(pex_item == null && canBePeerExchanged()){
-				pex_item = manager.createPeerExchangeConnection( this );
+				pex_item = peer_exchange_item = manager.createPeerExchangeConnection( this );
 			}
 			
 			if( pex_item != null ) {
