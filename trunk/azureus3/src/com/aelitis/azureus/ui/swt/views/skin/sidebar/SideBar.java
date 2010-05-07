@@ -1123,8 +1123,8 @@ public class SideBar
 		SBC_LibraryView.setupViewTitle();
 
 		// building plugin views needs UISWTInstance, which needs core.
-		boolean shownOnce = COConfigurationManager.getBooleanParameter("burninfo.shownonce");
-		if (!shownOnce) {
+		final int burnInfoShown = COConfigurationManager.getIntParameter("burninfo.shown", 0);
+		if (burnInfoShown == 0) {
   		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
   			public void azureusCoreRunning(AzureusCore core) {
   				Utils.execSWTThread(new AERunnable() {
@@ -1139,7 +1139,8 @@ public class SideBar
   								loadEntryByID(SIDEBAR_SECTION_BURN_INFO, false);
   							}
   							
-  							COConfigurationManager.setParameter("burninfo.shownonce", true);
+								COConfigurationManager.setParameter("burninfo.shown",
+										burnInfoShown + 1);
   						}
   
   						setupPluginViews();
