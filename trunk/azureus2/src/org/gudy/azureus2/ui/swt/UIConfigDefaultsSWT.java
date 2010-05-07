@@ -57,7 +57,6 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Colors.progressBar.override", false);
 		def.addParameter("GUI_SWT_DisableAlertSliding", false);
 		def.addParameter("NameColumn.showProgramIcon", !Constants.isWindowsVista);
-		def.addParameter("Open MyTorrents", true);
 		def.addParameter("DND Always In Incomplete", false);
 
 		def.addParameter("Message Popup Autoclose in Seconds", 15);
@@ -73,9 +72,6 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Show Splash", true);
 		def.addParameter("window.maximized", true);
 		def.addParameter("window.rectangle", "");
-		def.addParameter("Open Console", false);
-		def.addParameter("Open Config", false);
-		def.addParameter("Open Stats On Start", false);
 		def.addParameter("Start Minimized", false);
 		def.addParameter("Open Transfer Bar On Start", false);
 		
