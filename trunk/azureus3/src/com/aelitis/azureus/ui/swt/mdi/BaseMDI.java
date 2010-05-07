@@ -348,6 +348,7 @@ public abstract class BaseMDI
 
 	private boolean processAutoOpenMap(String id, Map<?, ?> autoOpenInfo,
 			IViewInfo viewInfo) {
+		//System.out.println("processAutoOpenMap " + id + " via " + Debug.getCompressedStackTrace());
 		try {
 			MdiEntry entry = getEntry(id);
 			if (entry != null) {

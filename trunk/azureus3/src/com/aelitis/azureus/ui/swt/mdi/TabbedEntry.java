@@ -90,8 +90,10 @@ public class TabbedEntry
 					// swtItem.setControl will set the control's visibility based on
 					// whether the control is selected.  To ensure it doesn't set
 					// our control invisible, set selection now
+					CTabItem oldSelection = swtItem.getParent().getSelection();
 					swtItem.getParent().setSelection(swtItem);
 					swtItem.setControl(control);
+					swtItem.getParent().setSelection(oldSelection);
 					setSkinObject(skinObject, skinObject);
 				} finally {
 					shell.setCursor(cursor);
@@ -150,8 +152,10 @@ public class TabbedEntry
 					//	parent.layout(true, true);
 					//}
 
+					CTabItem oldSelection = swtItem.getParent().getSelection();
 					swtItem.getParent().setSelection(swtItem);
 					swtItem.setControl(soContents.getControl());
+					swtItem.getParent().setSelection(oldSelection);
 					setSkinObject(soContents, soContents);
 				} catch (Exception e) {
 					Debug.out("Error creating sidebar content area for " + id, e);
