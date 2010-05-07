@@ -1,9 +1,12 @@
 VUZE CHANGELOG
 -----------------
 
-2010.05.07 | Vuze 4.4.0.4
+2010.05.08 | Vuze 4.4.0.4
 
 BUGFIX: Core  | Fix PEX bug [Parg]
+BUGFIX: Core  | (*nix) Fix client not lauching after launched once [TuxPaper]
+BUGFIX: UI    | Fix late-loading sidebar entries not auto-opening [TuxPaper]
+
 
 
 2010.05.03 | Vuze 4.4.0.2
