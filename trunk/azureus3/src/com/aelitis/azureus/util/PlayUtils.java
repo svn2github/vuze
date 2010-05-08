@@ -487,6 +487,9 @@ public class PlayUtils
 	}
 	
 	public static boolean isExternallyPlayable(TOTorrent torrent, int file_index ) {
+		if (torrent == null) {
+			return false;
+		}
 		try {
 			Download download = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().getDownload(torrent.getHash());
 			if (download != null) {
