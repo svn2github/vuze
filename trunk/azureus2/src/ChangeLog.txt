@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2010.xx.xx | Vuze 4.4.0.5
+
+
+
 2010.05.08 | Vuze 4.4.0.4
 
 BUGFIX: Core  | Fix PEX bug [Parg]
