@@ -115,6 +115,10 @@ public class PlayUtils
 	}
 
 	public static boolean canUseEMP(TOTorrent torrent, int file_index) {
+		if (torrent == null) { 
+			return false;
+		}
+
 		if (canPlayViaExternalEMP(torrent, file_index)) {
 			return true;
 		}
