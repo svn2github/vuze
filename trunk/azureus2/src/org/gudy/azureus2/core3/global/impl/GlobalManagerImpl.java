@@ -1131,6 +1131,7 @@ public class GlobalManagerImpl
   		}
 			GlobalManagerDownloadRemovalVetoException gmv = new GlobalManagerDownloadRemovalVetoException("Error running veto check");
 			gmv.initCause(e);
+			Debug.out(e);
 			throw gmv;
   	}
   }
