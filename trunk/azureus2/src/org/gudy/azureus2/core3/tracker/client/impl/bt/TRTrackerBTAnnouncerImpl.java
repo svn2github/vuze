@@ -2849,9 +2849,10 @@ TRTrackerBTAnnouncerImpl
 								
 								String ip = new String((byte[]) s_ip, Constants.DEFAULT_ENCODING); 
 								
-									//get the peer port number
+									//get the peer port number - should be Long but have seen byte[] on occasion
 								
-								int peer_port = ((Long) s_port).intValue();
+								int peer_port = s_port instanceof byte[]?Integer.parseInt(new String((byte[])s_port)):((Long) s_port).intValue();
+								
                                 // try to repair invalid peer ports; worst that can happen is we
                                 // still can't make outgoing connections that we already can't make
                                 if (peer_port >65535)
