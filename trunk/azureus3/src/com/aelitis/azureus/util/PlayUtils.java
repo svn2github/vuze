@@ -503,6 +503,9 @@ public class PlayUtils
 	}
 	
 	private static final boolean canPlayViaExternalEMP(TOTorrent torrent, int file_index ) {
+		if (torrent == null) {
+			return false;
+		}
 		if(!loadEmpPluginClass() || methodIsExternallyPlayable == null) {
 			return isExternallyPlayable(torrent, file_index );
 		}
