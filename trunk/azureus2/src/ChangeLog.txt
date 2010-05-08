@@ -5,7 +5,7 @@ VUZE CHANGELOG
 
 BUGFIX: Core  | Fix PEX bug [Parg]
 BUGFIX: Core  | Fix "Error Running Veto Check" error [TuxPaper]
-BUGFIX: Core  | (*nix) Fix client not lauching after launched once [TuxPaper]
+BUGFIX: Core  | (*nix) Fix client not launching after launched once [TuxPaper]
 BUGFIX: UI    | Fix late-loading sidebar entries not auto-opening [TuxPaper]
 
 
