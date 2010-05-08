@@ -362,6 +362,9 @@ public class TorrentListViewsUtils
 		//		}
 
 		final TOTorrent torrent = dm.getTorrent();
+		if (torrent == null) {
+			return;
+		}
 		if (PlayUtils.canUseEMP(torrent, file_index)) {
 			debug("Can use EMP");
 
