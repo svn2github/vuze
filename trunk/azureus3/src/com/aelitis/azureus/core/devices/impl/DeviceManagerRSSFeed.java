@@ -69,7 +69,10 @@ DeviceManagerRSSFeed
 		manager 	= _manager;
 		generator	= RSSGeneratorPlugin.getSingleton();
 		
-		generator.registerProvider( PROVIDER, this );
+		if ( generator != null ){
+		
+			generator.registerProvider( PROVIDER, this );
+		}
 	}
 		
 	public boolean
@@ -81,7 +84,7 @@ DeviceManagerRSSFeed
 	public String
 	getFeedURL()
 	{
-		return( generator.getURL() + PROVIDER );
+		return( generator==null?"Feature Disabled":( generator.getURL() + PROVIDER ));
 	}
 	
 	public boolean
