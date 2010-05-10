@@ -343,6 +343,8 @@ DiskManagerUtil
 	
 	        final FileSkeleton[]   res = new FileSkeleton[ torrent_files.length ];
 	        
+			final String incomplete_suffix = download_manager.getDownloadState().getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+
 	        final DiskManagerFileInfoSet fileSetSkeleton = new DiskManagerFileInfoSet() {
 	
 				public DiskManagerFileInfo[] getFiles() {
@@ -605,11 +607,17 @@ DiskManagerUtil
 	            	public String
 	            	getExtension()
 	            	{
-	            		String    data_name   = lazyGetFile().getName();
-	            		int separator = data_name.lastIndexOf(".");
+	            		String    ext   = lazyGetFile().getName();
+	            		
+	                    if ( incomplete_suffix != null && ext.endsWith( incomplete_suffix )){
+	                    	
+	                    	ext = ext.substring( 0, ext.length() - incomplete_suffix.length());
+	                    }
+
+	            		int separator = ext.lastIndexOf(".");
 	            		if (separator == -1)
 	            			separator = 0;
-	            		return data_name.substring(separator);
+	            		return ext.substring(separator);
 	            	}
 	
 	            	public int

@@ -791,6 +791,8 @@ DiskManagerImpl
 
             String[]    storage_types = getStorageTypes();
 
+			String incomplete_suffix = download_manager.getDownloadState().getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+
             for ( int i=0;i<pm_files.length;i++ ){
 
                 final DMPieceMapperFile pm_info = pm_files[i];
@@ -826,7 +828,6 @@ DiskManagerImpl
 
                 CacheFile   cache_file      = fileInfo.getCacheFile();
                 File        data_file       = fileInfo.getFile(true);
-                String      data_file_name  = data_file.getName();
 
                 String  file_key = data_file.getAbsolutePath();
 
@@ -846,14 +847,21 @@ DiskManagerImpl
 
                 file_set.add( file_key );
 
-                int separator = data_file_name.lastIndexOf(".");
+                String      ext  = data_file.getName();
+
+                if ( incomplete_suffix != null && ext.endsWith( incomplete_suffix )){
+                	
+                	ext = ext.substring( 0, ext.length() - incomplete_suffix.length());
+                }
+                
+                int separator = ext.lastIndexOf(".");
 
                 if ( separator == -1 ){
 
                     separator = 0;
                 }
 
-                fileInfo.setExtension(data_file_name.substring(separator));
+                fileInfo.setExtension(ext.substring(separator));
 
                     //Added for Feature Request
                     //[ 807483 ] Prioritize .nfo files in new torrents
