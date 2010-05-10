@@ -387,4 +387,16 @@ PEPeerManager
 	generateEvidence(
 		IndentWriter		writer );
 	
+	public void
+	setStatsReceiver(
+		StatsReceiver	receiver );
+	
+	public interface
+	StatsReceiver
+	{
+		public void
+		receiveStats(
+			PEPeer		peer,
+			Map			stats );
+	}
 }

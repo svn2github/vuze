@@ -174,6 +174,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private final DiskManager           disk_mgr;
 	private final DiskManagerPiece[]    dm_pieces;
 
+	private PEPeerManager.StatsReceiver	stats_receiver;
+	
 	private final PiecePicker	piecePicker;
 	private long				lastNeededUndonePieceChange;
 
@@ -1399,6 +1401,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 		bad_piece_reported = piece_number;
 	}
 	
+	public void
+	setStatsReceiver(
+		PEPeerManager.StatsReceiver	receiver )
+	{
+		stats_receiver = receiver;
+	}
+	
 	public void 
 	statsRequest(
 		PEPeerTransport 	originator, 
@@ -1418,7 +1427,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 	statsReply(
 		PEPeerTransport 	originator, 
 		Map 				reply )
-	{		
+	{	
+		PEPeerManager.StatsReceiver receiver = stats_receiver;
+		
+		if ( receiver != null ){
+			
+			receiver.receiveStats( originator, reply );
+		}
 	}
 
 	/**
