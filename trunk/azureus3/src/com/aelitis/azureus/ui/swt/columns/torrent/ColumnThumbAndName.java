@@ -159,7 +159,9 @@ public class ColumnThumbAndName
 		COConfigurationManager.addAndFireParameterListener(CFG_SHOWPROGRAMICON,
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						setShowIcon(COConfigurationManager.getBooleanParameter(CFG_SHOWPROGRAMICON));
+						setShowIcon(COConfigurationManager.getBooleanParameter(
+								CFG_SHOWPROGRAMICON,
+								COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon")));
 					}
 				});
 	}
