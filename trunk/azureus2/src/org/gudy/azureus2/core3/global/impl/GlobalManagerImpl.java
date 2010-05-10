@@ -2780,7 +2780,11 @@ public class GlobalManagerImpl
 										
 										File existing_link = state.getFileLink( base_file );
 										
-										if ( existing_link == null || !existing_link.exists()){
+										if ( existing_link == null && base_file.exists()){
+											
+												// file already exists, do nothing as probably adding for seeding
+											
+										}else if ( existing_link == null || !existing_link.exists()){
 											
 											File	new_link;
 											
