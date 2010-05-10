@@ -2556,17 +2556,22 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		try {
 			dataSourceToRow_mon.enter();
 
-				boolean alreadyThere = dataSourcesToAdd.contains(dataSource);
-				if (alreadyThere) {
-					// added twice.. ensure it's not in the remove list
-					dataSourcesToRemove.remove(dataSource);
+				if ( dataSourcesToRemove.remove( dataSource )){
+					// we're adding, override any pending removal
 					if (DEBUGADDREMOVE) {
-						debug("AddDS: Already There.  Total Queued: " + dataSourcesToAdd.size());
+						debug("AddDS: Removed from toRemove.  Total Removals Queued: " + dataSourcesToRemove.size());
+					}
+				}
+
+				if ( dataSourcesToAdd.contains(dataSource)){
+					// added twice.. ensure it's not in the remove list
+					if (DEBUGADDREMOVE) {
+						debug("AddDS: Already There.  Total Additions Queued: " + dataSourcesToAdd.size());
 					}
 				} else {
 					dataSourcesToAdd.add(dataSource);
 					if (DEBUGADDREMOVE) {
-						debug("Queued 1 dataSource to add.  Total Queued: " + dataSourcesToAdd.size());
+						debug("Queued 1 dataSource to add.  Total Additions Queued: " + dataSourcesToAdd.size());
 					}
 					refreshenProcessDataSourcesTimer();
 				}
@@ -2619,22 +2624,22 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			int count = 0;
 
 			for (int i = 0; i < dataSources.length; i++) {
-				if (dataSources[i] == null) {
+				DATASOURCETYPE dataSource = dataSources[i];
+				if (dataSource == null) {
 					continue;
 				}
 				if (!skipFilterCheck
 						&& filter != null
-						&& !filter.checker.filterCheck(dataSources[i], filter.text,
+						&& !filter.checker.filterCheck(dataSource, filter.text,
 								filter.regex)) {
 					continue;
 				}
-				boolean alreadyThere = dataSourcesToAdd.contains(dataSources[i]);
-				if (alreadyThere) {
-					// added twice.. ensure it's not in the remove list
-					dataSourcesToRemove.remove(dataSources[i]);
+				dataSourcesToRemove.remove(dataSource);	// may be pending removal, override
+
+				if (dataSourcesToAdd.contains(dataSource)){
 				} else {
 					count++;
-					dataSourcesToAdd.add(dataSources[i]);
+					dataSourcesToAdd.add(dataSource);
 				}
 			}
 
@@ -3007,6 +3012,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		try {
 			dataSourceToRow_mon.enter();
 
+			dataSourcesToAdd.remove(dataSource);	// override any pending addition
 			dataSourcesToRemove.add(dataSource);
 
 			if (DEBUGADDREMOVE) {
@@ -3045,7 +3051,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			dataSourceToRow_mon.enter();
 
 			for (int i = 0; i < dataSources.length; i++) {
-				dataSourcesToRemove.add(dataSources[i]);
+				DATASOURCETYPE dataSource = dataSources[i];
+				dataSourcesToAdd.remove(dataSource);	// override any pending addition
+				dataSourcesToRemove.add(dataSource);
 			}
 
 			if (DEBUGADDREMOVE) {
