@@ -1341,11 +1341,14 @@ DiskManagerImpl
 
                     	// change file modes based on whether or not the file is complete or not
                     
-                    if ( file_done == file_length && this_file.getAccessMode() == DiskManagerFileInfo.WRITE ){
-                        
+                    if ( file_done == file_length ){
+                         
                     	try{
-                    		this_file.setAccessMode(DiskManagerFileInfo.READ);
-                    		
+                           	if ( this_file.getAccessMode() == DiskManagerFileInfo.WRITE ){
+
+                           		this_file.setAccessMode( DiskManagerFileInfo.READ );
+                           	}
+                           	
                     		DownloadManagerState state = download_manager.getDownloadState();
                     		
                     		String suffix = state.getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
