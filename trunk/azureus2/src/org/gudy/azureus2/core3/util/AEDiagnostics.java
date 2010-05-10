@@ -40,7 +40,6 @@ import com.aelitis.azureus.core.util.Java15Utils;
  */
 
 import java.io.*;
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class 
@@ -122,7 +121,7 @@ AEDiagnostics
 	protected static boolean	logging_enabled;
 	protected static boolean	loggers_enabled;
 	
-	private static List		evidence_generators	= new ArrayList();
+	private static List<AEDiagnosticsEvidenceGenerator>		evidence_generators	= new ArrayList<AEDiagnosticsEvidenceGenerator>();
 		
 	public static synchronized void
 	startup(
@@ -323,7 +322,7 @@ AEDiagnostics
 	getLogger(
 		String		name )
 	{
-		AEDiagnosticsLogger	logger = (AEDiagnosticsLogger)loggers.get(name);
+		AEDiagnosticsLogger	logger = loggers.get(name);
 		
 		if ( logger == null ){
 			
@@ -524,7 +523,7 @@ AEDiagnostics
 				
 				String	alcohol_dll = "AxShlex";
 				
-				List	matches = new ArrayList();
+				List<String>	matches = new ArrayList<String>();
 				
 				while( true ){
 					
@@ -569,7 +568,7 @@ AEDiagnostics
 				
 				for (int i=0;i<matches.size();i++){
 					
-					String	dll = (String)matches.get(i);
+					String	dll = matches.get(i);
 					
 					String	detail = MessageText.getString( "platform.win32.baddll." + dll );
 					
@@ -611,7 +610,7 @@ AEDiagnostics
 			for (int i=0;i<evidence_generators.size();i++){
 				
 				try{
-					((AEDiagnosticsEvidenceGenerator)evidence_generators.get(i)).generate( writer );
+					evidence_generators.get(i).generate( writer );
 					
 				}catch( Throwable e ){
 					
