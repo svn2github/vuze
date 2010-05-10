@@ -56,10 +56,11 @@ import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
 import org.gudy.azureus2.ui.swt.views.table.*;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
+import org.gudy.azureus2.ui.swt.views.table.impl.*;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.NameItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -98,7 +99,7 @@ public class MyTorrentsView
                   TableViewSWTMenuFillListener,
                   TableRefreshListener,
                   TableCountChangeListener,
-                  TableViewFilterCheck
+                  TableViewFilterCheck, TableRowSWTPaintListener
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
@@ -125,7 +126,7 @@ public class MyTorrentsView
   private TableRowCore[] drag_drop_rows = null;
 
 	private boolean bDNDalwaysIncomplete;
-	private TableViewSWT tv;
+	private TableViewSWT<DownloadManager> tv;
 	private Composite cTableParentPanel;
 	protected boolean viewActive;
 	private boolean forceHeaderVisible = false;
@@ -190,6 +191,7 @@ public class MyTorrentsView
     tv.addMenuFillListener(this);
     tv.addRefreshListener(this, false);
     tv.addCountChangeListener(this);
+    tv.addRowPaintListener(this);
     
     forceHeaderVisible = COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader");
 
@@ -225,9 +227,9 @@ public class MyTorrentsView
     }
     CategoryManager.addCategoryManagerListener(this);
     globalManager.addListener(this, false);
-    Object[] dms = globalManager.getDownloadManagers().toArray();
+    DownloadManager[] dms = (DownloadManager[]) globalManager.getDownloadManagers().toArray(new DownloadManager[0]);
     for (int i = 0; i < dms.length; i++) {
-			DownloadManager dm = (DownloadManager) dms[i];
+			DownloadManager dm = dms[i];
 			dm.addListener(this);
 			if (!isOurDownloadManager(dm)) {
 				dms[i] = null;
@@ -2019,8 +2021,8 @@ public class MyTorrentsView
 		
 		Object[] managers = globalManager.getDownloadManagers().toArray();
 		Set existing = new HashSet(tv.getDataSources());
-		List listRemoves = new ArrayList();
-		List listAdds = new ArrayList();
+		List<DownloadManager> listRemoves = new ArrayList<DownloadManager>();
+		List<DownloadManager> listAdds = new ArrayList<DownloadManager>();
 		
 		for (int i = 0; i < managers.length; i++) {
 			DownloadManager dm = (DownloadManager) managers[i];
@@ -2036,8 +2038,8 @@ public class MyTorrentsView
 				}
 			}
 		}
-		tv.removeDataSources(listRemoves.toArray());
-		tv.addDataSources(listAdds.toArray());
+		tv.removeDataSources(listRemoves.toArray(new DownloadManager[0]));
+		tv.addDataSources(listAdds.toArray(new DownloadManager[0]));
 		
   	tv.processDataSourceQueue();
 		//tv.refreshTable(false);
@@ -2115,6 +2117,13 @@ public class MyTorrentsView
 
   // @see com.aelitis.azureus.ui.common.table.TableCountChangeListener#rowAdded(com.aelitis.azureus.ui.common.table.TableRowCore)
   public void rowAdded(TableRowCore row) {
+  	DownloadManager dm = (DownloadManager) row.getDataSource(true);
+  	if (dm != null) {
+  		TOTorrent torrent = dm.getTorrent();
+  		if (torrent != null) {
+  			row.setSubItemCount(torrent.getFiles().length);
+  		}
+  	}
 		updateTableLabel();
   }
 
@@ -2191,5 +2200,35 @@ public class MyTorrentsView
 	 */
 	protected int getRowDefaultHeight(){
 		return -1;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWTPaintListener#rowPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableRowSWT)
+	public void rowPaint(GC gc, TableItemOrTreeItem row, TableColumnCore column,
+			Rectangle cellArea) {
+		TableItemOrTreeItem parentItem = row.getParentItem();
+		if (parentItem != null) {
+			TableRowSWT parentRow = (TableRowSWT) parentItem.getData("TableRow");
+			DownloadManager dm = (DownloadManager) parentRow.getDataSource(true);
+			if (dm != null) {
+				DiskManagerFileInfo[] infos = dm.getDiskManagerFileInfo();
+				int i = parentItem.indexOf(row);
+				if (i >= 0 && i < infos.length) {
+					if (column.getName().equals("name")) {
+						//System.out.println(cellArea);
+						int padding = (int) (cellArea.height * 2);
+						cellArea.x += padding;
+						cellArea.width -= padding;
+						GCStringPrinter.printString(gc, infos[i].getFile(true).getName(), cellArea, true, false, SWT.LEFT );
+					} else if (column.getName().equals("size")) {
+						String s = DisplayFormatters.formatByteCountToKiBEtc(infos[i].getLength());
+						cellArea.width -= 3;
+						GCStringPrinter.printString(gc, s, cellArea, true, false, SWT.RIGHT);
+					}
+					//Rectangle bounds = row.getBounds();
+					//bounds.x = 120;
+					//bounds.width = row.getParent().getClientArea().width - bounds.x;
+				}
+			}
+		}
 	}
 }

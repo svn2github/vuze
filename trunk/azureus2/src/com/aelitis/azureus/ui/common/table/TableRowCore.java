@@ -147,4 +147,11 @@ public interface TableRowCore extends TableRow
 	 * @since 3.0.4.3
 	 */
 	public boolean setDrawableHeight(int height);
+
+	/**
+	 * @param length
+	 *
+	 * @since 4.4.0.5
+	 */
+	public void setSubItemCount(int length);
 }

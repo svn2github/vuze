@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Table;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
 /**
  * @author Olivier
@@ -72,7 +73,7 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 						public void runSupport() {
 							Rectangle bounds = getBounds();
 							if (bounds != null) {
-								Table table = row.getTable();
+								TableOrTreeSWT table = row.getTable();
 								Rectangle dirty = table.getClientArea().intersection(bounds);
 								//System.out.println("old = " + this.text + ";new=" + text + ";dirty=" + bounds);
 								
@@ -166,7 +167,7 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		return null;
 	}
 
-	public Table getTable() {
+	public TableOrTreeSWT getTable() {
 		return row.getTable();
 	}
 
@@ -206,7 +207,7 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 	}
 
 	public Image getBackgroundImage() {
-		Table table = row.getTable();
+		TableOrTreeSWT table = row.getTable();
 		
 		Rectangle bounds = getBounds();
 		
@@ -234,7 +235,7 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 			public void runSupport() {
 				Rectangle bounds = getBounds();
 				if (bounds != null) {
-					Table table = row.getTable();
+					TableOrTreeSWT table = row.getTable();
 					Rectangle dirty = table.getClientArea().intersection(bounds);
 					if (!dirty.isEmpty()) {
 						table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
@@ -256,7 +257,7 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 				if (row == null) {
 					return;
 				}
-				Table table = row.getTable();
+				TableOrTreeSWT table = row.getTable();
 				if (table == null || table.isDisposed()) {
 					return;
 				}
@@ -267,7 +268,7 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
   
   // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#isMouseOver()
   public boolean isMouseOver() {
-		Table table = row.getTable();
+		TableOrTreeSWT table = row.getTable();
 		if (table == null || table.isDisposed()) {
 			return false;
 		}

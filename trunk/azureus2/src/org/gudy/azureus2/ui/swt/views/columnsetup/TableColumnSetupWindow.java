@@ -120,7 +120,7 @@ public class TableColumnSetupWindow
 			public void dragStart(DragSourceEvent event) {
 				event.doit = true;
 
-				Table table = (Table) ((DragSource) event.widget).getControl();
+				Control table = ((DragSource) event.widget).getControl();
 				TableView tv = (TableView) table.getData("TableView");
 				// drag start happens a bit after the mouse moves, so the
 				// cursor location isn't accurate
@@ -169,7 +169,7 @@ public class TableColumnSetupWindow
 			}
 
 			public void dragSetData(DragSourceEvent event) {
-				Table table = (Table) ((DragSource) event.widget).getControl();
+				Control table = ((DragSource) event.widget).getControl();
 				TableView tv = (TableView) table.getData("TableView");
 				event.data = "" + (tv == tvChosen ? "c" : "a");
 			}

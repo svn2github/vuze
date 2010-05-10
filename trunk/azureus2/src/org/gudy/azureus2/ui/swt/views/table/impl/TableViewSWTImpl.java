@@ -23,7 +23,6 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,7 +32,19 @@ import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Sash;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Scale;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MenuItem;
+//import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
@@ -42,6 +53,8 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
@@ -65,12 +78,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
-
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 
 /** 
  * An IView with a sortable table.  Handles composite/menu/table creation
@@ -176,9 +183,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	private Composite tableComposite;
 
 	/** Table for SortableTable implementation */
-	private Table table;
+	private TableOrTreeSWT table;
 
-	private TableEditor editor;
+	private ControlEditor editor;
 
 	/** SWT style options for the creation of the Table */
 	protected int iTableStyle;
@@ -264,6 +271,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private List<TableViewSWTMenuFillListener> listenersMenuFill = new ArrayList<TableViewSWTMenuFillListener>(
 			1);
+	
+	private ArrayList<TableRowSWTPaintListener> rowPaintListeners;
+
+  private static AEMonitor mon_RowPaintListener = new AEMonitor( "rpl" );
 
 	private TableViewSWTPanelCreator mainPanelCreator;
 
@@ -332,6 +343,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	};
 	
 	filter filter;
+
+	private boolean useTree = System.getProperty("Table.useTree", "0").equals("1");
 
 
 	/**
@@ -431,7 +444,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		table = createTable(tableComposite);
 		menu = createMenu(table);
 		clientArea = table.getClientArea();
-		editor = new TableEditor(table);
+		editor = TableOrTreeUtils.createTableOrTreeEditor(table);
 		editor.minimumWidth = 80;
 		editor.grabHorizontal = true;
 		initializeTable(table);
@@ -725,8 +738,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 *
 	 * @return The created Table.
 	 */
-	public Table createTable(Composite panel) {
-		table = new Table(panel, iTableStyle);
+	public TableOrTreeSWT createTable(Composite panel) {
+		table = TableOrTreeUtils.createGrid(panel, iTableStyle, useTree);
 		table.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		return table;
@@ -736,7 +749,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 *
 	 * @param table Table to be initialized
 	 */
-	public void initializeTable(final Table table) {
+	public void initializeTable(final TableOrTreeSWT table) {
 		initializeColumnDefs();
 
 		iTableStyle = table.getStyle();
@@ -775,15 +788,18 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				// Vertical lines between columns
 				if (DRAW_VERTICAL_LINES) {
-					Rectangle bounds = ((TableItem)event.item).getBounds(event.index);
-
-					Color fg = event.gc.getForeground();
-					event.gc.setForeground(Colors.black);
-					event.gc.setAlpha(40);
-					event.gc.setClipping((Rectangle)null);
-					event.gc.drawLine(bounds.x + bounds.width, bounds.y - 1, bounds.x
-							+ bounds.width, bounds.y + bounds.height);
-					event.gc.setForeground(fg);
+					TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
+					if (item != null) {
+  					Rectangle bounds = item.getBounds(event.index);
+  
+  					Color fg = event.gc.getForeground();
+  					event.gc.setForeground(Colors.black);
+  					event.gc.setAlpha(40);
+  					event.gc.setClipping((Rectangle)null);
+  					event.gc.drawLine(bounds.x + bounds.width, bounds.y - 1, bounds.x
+  							+ bounds.width, bounds.y + bounds.height);
+  					event.gc.setForeground(fg);
+					}
 				}
 			}
 		});
@@ -942,7 +958,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						if (columnOrder.length == 0) {
 							return;
 						}
-						TableItem ti = table.getItem(table.getItemCount() - 1);
+						TableItemOrTreeItem ti = table.getItem(table.getItemCount() - 1);
 						Rectangle cellBounds = ti.getBounds(columnOrder[columnOrder.length - 1]);
 						// OSX returns 0 size if the cell is not on screen (sometimes? all the time?)
 						if (cellBounds.width <= 0 || cellBounds.height <= 0) {
@@ -959,7 +975,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						 // Bug 103934: Table.getItem(Point) uses incorrect calculation on Motif
 						 //             Fixed 20050718 SWT 3.2M1 (3201) & SWT 3.1.1 (3139)
 						 // TODO: Get Build IDs and use this code (if it works)
-						 TableItem ti = table.getItem(pMousePosition);
+						 TableItemOrTreeItem ti = table.getItem(pMousePosition);
 						 if (ti == null)
 						 table.deselectAll();
 						 */
@@ -1067,8 +1083,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				//System.out.println(table.getSelection().length);
 				if (selectedRowIndexes.length > 0 && event.item != null) {
+					TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
 					triggerSelectionListeners(new TableRowCore[] {
-						getRow((TableItem) event.item)
+						getRow(item)
 					});
 				}
 
@@ -1094,7 +1111,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 
-		new TableTooltips(this, table);
+		new TableTooltips(this, table.getComposite());
 
 		table.addKeyListener(this);
 		
@@ -1194,7 +1211,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				case '+': {
 					if (Constants.isUnix) {
-						TableColumn[] tableColumnsSWT = table.getColumns();
+						TableColumnOrTreeColumn[] tableColumnsSWT = table.getColumns();
 						for (int i = 0; i < tableColumnsSWT.length; i++) {
 							TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
 							if (tc != null) {
@@ -1383,8 +1400,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
-		TableColumn tcColumn = table.getColumn(column);
-		final TableItem item = table.getItem(row);
+		TableColumnOrTreeColumn tcColumn = table.getColumn(column);
+		final TableItemOrTreeItem item = table.getItem(row);
 
 		String cellName = (String) tcColumn.getData("Name");
 		final TableRowSWT rowSWT = (TableRowSWT) getRow(row);
@@ -1392,7 +1409,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		// reuse widget if possible, this way we'll keep the focus all the time on jumping through the rows
 		final Text newInput = oldInput == null || oldInput.isDisposed() ? new Text(
-				table, Constants.isOSX ? SWT.NONE : SWT.BORDER) : oldInput;
+				table.getComposite(), Constants.isOSX ? SWT.NONE : SWT.BORDER) : oldInput;
 		final DATASOURCETYPE datasource = (DATASOURCETYPE) cell.getDataSource();
 		if (cellEditNotifier != null) {
 			cellEditNotifier.cleanup(newInput);
@@ -1502,7 +1519,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				Point sel = newInput.getSelection();
 
-				editor.setEditor(newInput, item, column);
+				TableOrTreeUtils.setEditorItem(editor, newInput, column, item);
 
 				editor.minimumWidth = newInput.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 
@@ -1531,9 +1548,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		l.modifyText(null);
 
-		editor.setEditor(newInput, item, column);
+		TableOrTreeUtils.setEditorItem(editor, newInput, column, item);
 		table.deselectAll();
-		table.select(row);
+		table.select(table.getItem(row));
 		updateSelectedRowIndexes();
 
 		l.resizing = false;
@@ -1586,7 +1603,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   			event.gc.fillRectangle(event.gc.getClipping());
 			}
 
-			TableItem item = (TableItem) event.item;
+			TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
 			if (item == null || item.isDisposed()) {
 				return;
 			}
@@ -1613,6 +1630,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			TableRowSWT row = (TableRowSWT) getRow(item);
 			if (row == null) {
+				Rectangle cellBounds = item.getBounds(event.index);
+				//cellBounds.width = table.getColumn(event.index).getWidth();
+				invokePaintListeners(event.gc, item, columnsOrdered[iColumnNo],
+						cellBounds);
 				//System.out.println("no row");
 				return;
 			}
@@ -1762,13 +1783,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	private void updateColumnVisibilities() {
-		TableColumn[] columns = table.getColumns();
-		int topIdx = table.getTopIndex();
-		if (topIdx < 0 || table.getItemCount() < 1) {
+		TableColumnOrTreeColumn[] columns = table.getColumns();
+		if (table.getItemCount() < 1) {
 			return;
 		}
 		columnVisibilitiesChanged = false;
-		TableItem topRow = table.getItem(topIdx);
+		TableItemOrTreeItem topRow = table.getTopItem();
+		if (topRow == null) {
+			return;
+		}
 		for (int i = 0; i < columns.length; i++) {
 			final TableColumnCore tc = (TableColumnCore) columns[i].getData("TableColumnCore");
 			if (tc == null) {
@@ -1809,8 +1832,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	}
 
-	protected void initializeTableColumns(final Table table) {
-		TableColumn[] oldColumns = table.getColumns();
+	protected void initializeTableColumns(final TableOrTreeSWT table) {
+		TableColumnOrTreeColumn[] oldColumns = table.getColumns();
 
 		for (int i = 0; i < oldColumns.length; i++) {
 			oldColumns[i].removeListener(SWT.Move, columnMoveListener);
@@ -1829,7 +1852,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			private boolean bInFunction = false;
 
 			public void controlResized(ControlEvent e) {
-				TableColumn column = (TableColumn) e.widget;
+				TableColumnOrTreeColumn column = TableOrTreeUtils.getTableColumnEventItem(e.widget);
 				if (column == null || column.isDisposed() || bInFunction) {
 					return;
 				}
@@ -1860,8 +1883,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		bSkipFirstColumn = bSkipFirstColumn && !Constants.isOSX;
 
 		if (bSkipFirstColumn) {
-			TableColumn tc = new TableColumn(table, SWT.NULL);
-			tc.setWidth(0);
+			TableColumnOrTreeColumn tc = table.createNewColumn(SWT.NULL);
+			tc.setWidth(useTree ? 25 : 0);
 			tc.setResizable(false);
 			tc.setMoveable(false);
 		}
@@ -1874,7 +1897,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		for (int i = 0; i < tableColumns.length; i++) {
 			int position = tableColumns[i].getPosition();
 			if (position != -1 && tableColumns[i].isVisible()) {
-				new TableColumn(table, SWT.NULL);
+				table.createNewColumn(SWT.NULL);
 				//System.out.println(i + "] " + tableColumns[i].getName() + ";" + position);
 				tmpColumnsOrdered[columnOrderPos++] = tableColumns[i];
 			}
@@ -1911,14 +1934,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				continue;
 			}
 
-			TableColumn column = table.getColumn(swtColumnPos);
+			TableColumnOrTreeColumn column = table.getColumn(swtColumnPos);
 			try {
 				column.setMoveable(true);
 			} catch (NoSuchMethodError e) {
 				// Ignore < SWT 3.1
 			}
 			column.setAlignment(TableColumnSWTUtils.convertColumnAlignmentToSWT(tableColumns[i].getAlignment()));
-			Messages.setLanguageText(column, tableColumns[i].getTitleLanguageKey());
+			Messages.setLanguageText(column.getColumn(), tableColumns[i].getTitleLanguageKey());
 			if (!Constants.isUnix) {
 				column.setWidth(tableColumns[i].getWidth());
 			} else {
@@ -1960,9 +1983,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		// Add move listener at the very end, so we don't get a bazillion useless 
 		// move triggers
-		TableColumn[] columns = table.getColumns();
+		TableColumnOrTreeColumn[] columns = table.getColumns();
 		for (int i = 0; i < columns.length; i++) {
-			TableColumn column = columns[i];
+			TableColumnOrTreeColumn column = columns[i];
 			column.addListener(SWT.Move, columnMoveListener);
 		}
 
@@ -1979,7 +2002,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (i < 0 || i >= columnOrder.length) {
 				return;
 			}
-			TableColumn swtColumn = table.getColumn(columnOrder[i]);
+			TableColumnOrTreeColumn swtColumn = table.getColumn(columnOrder[i]);
 			if (swtColumn != null) {
 				if (swtColumn.getAlignment() == SWT.RIGHT && sorted) {
 					swtColumn.setText("   " + swtColumn.getText() + "   ");
@@ -1995,7 +2018,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 *
 	 * @return a new Menu object
 	 */
-	private Menu createMenu(final Table table) {
+	private Menu createMenu(final TableOrTreeSWT table) {
 		if (!isMenuEnabled()) {
 			return null;
 		}
@@ -2003,9 +2026,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		final Menu menu = new Menu(tableComposite.getShell(), SWT.POP_UP);
 		table.addListener(SWT.MenuDetect, new Listener() {
 			public void handleEvent(Event event) {
-				Point pt = event.display.map(null, table, new Point(event.x, event.y));
+				Point pt = event.display.map(null, table.getComposite(), new Point(event.x, event.y));
 				boolean header = table.getItem(pt) == null;
-				
+
+				if (!header) {
+					Rectangle clientArea = table.getClientArea();
+					header = clientArea.y <= pt.y && pt.y < (clientArea.y + table.getHeaderHeight());
+				}
+
 				menu.setData("isHeader", new Boolean(header));
 
 				int columnNo = getColumnNo(pt.x);
@@ -2020,7 +2048,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						Object oIsHeader = menu.getData("isHeader");
 						boolean isHeader = (oIsHeader instanceof Boolean) ? ((Boolean)oIsHeader).booleanValue() : false;
 
-						TableColumn tcColumn = (TableColumn) menu.getData("column");
+						TableColumnOrTreeColumn tcColumn = (TableColumnOrTreeColumn) menu.getData("column");
 						
 						if (!isHeader) {
 							fillMenu(menu, tcColumn);
@@ -2040,7 +2068,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @param menu Menu to fill
 	 * @param tcColumn 
 	 */
-	public void fillMenu(final Menu menu, final TableColumn tcColumn) {
+	public void fillMenu(final Menu menu, final TableColumnOrTreeColumn tcColumn) {
 		String columnName = tcColumn == null ? null : (String) tcColumn.getData("Name");
 
 		Object[] listeners = listenersMenuFill.toArray();
@@ -2064,39 +2092,54 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			menu_items = MenuItemManager.getInstance().getAllAsArray((String) null);
 		}
 		
-		MenuItem item = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.toClipboard");
-		item.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				String sToClipboard = "";
-				if (tcColumn == null) {
-					return;
+		if (columnName == null) {
+			MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
+			Messages.setLanguageText(itemChangeTable,
+					"MyTorrentsView.menu.editTableColumns");
+			Utils.setMenuItemImage(itemChangeTable, "columns");
+
+			itemChangeTable.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					showColumnEditor();
 				}
-				String columnName = (String) tcColumn.getData("Name");
-				if (columnName == null) {
-					return;
-				}
-				TableItem[] tis = table.getSelection();
-				for (int i = 0; i < tis.length; i++) {
-					if (i != 0) {
-						sToClipboard += "\n";
-					}
-					TableRowCore row = (TableRowCore) tis[i].getData("TableRow");
-					TableCellCore cell = row.getTableCellCore(columnName);
-					if (cell != null) {
-						sToClipboard += cell.getClipboardText();
-					}
-				}
-				if (sToClipboard.length() == 0) {
-					return;
-				}
-				new Clipboard(mainComposite.getDisplay()).setContents(new Object[] {
-					sToClipboard
-				}, new Transfer[] {
-					TextTransfer.getInstance()
-				});
-			}
-		});
+			});
+
+		} else {
+
+  		MenuItem item = new MenuItem(menu, SWT.PUSH);
+  		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.toClipboard");
+  		item.addListener(SWT.Selection, new Listener() {
+  			public void handleEvent(Event e) {
+  				String sToClipboard = "";
+  				if (tcColumn == null) {
+  					return;
+  				}
+  				String columnName = (String) tcColumn.getData("Name");
+  				if (columnName == null) {
+  					return;
+  				}
+  				TableItemOrTreeItem[] tis = table.getSelection();
+  				for (int i = 0; i < tis.length; i++) {
+  					if (i != 0) {
+  						sToClipboard += "\n";
+  					}
+  					TableRowCore row = (TableRowCore) tis[i].getData("TableRow");
+  					TableCellCore cell = row.getTableCellCore(columnName);
+  					if (cell != null) {
+  						sToClipboard += cell.getClipboardText();
+  					}
+  				}
+  				if (sToClipboard.length() == 0) {
+  					return;
+  				}
+  				new Clipboard(mainComposite.getDisplay()).setContents(new Object[] {
+  					sToClipboard
+  				}, new Transfer[] {
+  					TextTransfer.getInstance()
+  				});
+  			}
+  		});
+		}
 		
 		if (items.length > 0 || menu_items.length > 0) {
 			new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);
@@ -2171,7 +2214,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 *
 	 * @param iColumn Column # that tasks apply to.
 	 */
-	private void fillColumnMenu(final TableColumn tcColumn) {
+	private void fillColumnMenu(final TableColumnOrTreeColumn tcColumn) {
 		
 		final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemChangeTable,
@@ -2218,7 +2261,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				"MyTorrentsView.menu.thisColumn.autoTooltip");
 		at_item.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
-				TableColumn tc = (TableColumn) menu.getData("column");
+				TableColumnOrTreeColumn tc = (TableColumnOrTreeColumn) menu.getData("column");
 				TableColumnCore tcc = (TableColumnCore) tc.getData("TableColumnCore");
 				tcc.setAutoTooltip(at_item.getSelection());
 				tcc.invalidateCells();
@@ -2231,7 +2274,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		item.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
-				TableColumn tc = (TableColumn) menu.getData("column");
+				TableColumnOrTreeColumn tc = (TableColumnOrTreeColumn) menu.getData("column");
 				if (tc == null) {
 					return;
 				}
@@ -2809,7 +2852,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			table.setItemCount(sortedRows.size() + dataSources.length);
 
 			long lStartTime = SystemTime.getCurrentTime();
-
 			int iTopIndex = table.getTopIndex();
 			int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
@@ -2953,8 +2995,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 
 		if (!columnPaddingAdjusted && table.getItemCount() > 0 && bWas0Rows) {
-			TableColumn[] tableColumnsSWT = table.getColumns();
-			TableItem item = table.getItem(0);
+			TableColumnOrTreeColumn[] tableColumnsSWT = table.getColumns();
+			TableItemOrTreeItem item = table.getItem(0);
 			// on *nix, the last column expands to fill remaining space.. let's just not touch it
 			int len = Constants.isUnix ? tableColumnsSWT.length - 1
 					: tableColumnsSWT.length;
@@ -3350,8 +3392,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
-		TableColumn column = null;
-		TableColumn[] tableColumnsSWT = table.getColumns();
+		TableColumnOrTreeColumn column = null;
+		TableColumnOrTreeColumn[] tableColumnsSWT = table.getColumns();
 		for (int i = 0; i < tableColumnsSWT.length; i++) {
 			if (tableColumnsSWT[i].getData("TableColumnCore") == tableColumn) {
 				column = tableColumnsSWT[i];
@@ -3371,7 +3413,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		if (Constants.isUnix) {
 			final int fNewWidth = newWidth;
-			final TableColumn fTableColumn = column;
+			final TableColumnOrTreeColumn fTableColumn = column;
 			column.getDisplay().asyncExec(new AERunnable() {
 				public void runSupport() {
 					if (!fTableColumn.isDisposed()) {
@@ -3552,23 +3594,30 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return i;
 	}
 
-	private TableRowCore getRow(TableItem item) {
+	private TableRowCore getRow(TableItemOrTreeItem item) {
+		if (item == null) {
+			return null;
+		}
 		try {
 			Object o = item.getData("TableRow");
 			if (o instanceof TableRowCore) {
 				return (TableRowCore) o;
-			} else {
-				int iPos = table.indexOf(item);
-				//System.out.println(iPos + " has no table row.. associating. " + Debug.getCompressedStackTrace(4));
-				if (iPos >= 0 && iPos < sortedRows.size()) {
-					TableRowSWT row = sortedRows.get(iPos);
-					//System.out.print(".. associating to " + row);
-					if (row != null) {
-						row.setTableItem(iPos);
-					}
-					//System.out.println(", now " + row);
-					return row;
+			}
+
+			if (item.getParentItem() != null) {
+				return null;
+			}
+			
+			int iPos = table.indexOf(item);
+			//System.out.println(iPos + " has no table row.. associating. " + Debug.getCompressedStackTrace(4));
+			if (iPos >= 0 && iPos < sortedRows.size()) {
+				TableRowSWT row = sortedRows.get(iPos);
+				//System.out.print(".. associating to " + row);
+				if (row != null) {
+					row.setTableItem(iPos);
 				}
+				//System.out.println(", now " + row);
+				return row;
 			}
 		} catch (Exception e) {
 			Debug.out(e);
@@ -3682,7 +3731,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	public List<TableRowCore> getSelectedRowsList() {
 		List<TableRowCore> l = new ArrayList<TableRowCore>();
 		if (table != null && !table.isDisposed()) {
-			TableItem[] tis = table.getSelection();
+			TableItemOrTreeItem[] tis = table.getSelection();
 			for (int i = 0; i < tis.length; i++) {
 				TableRowSWT row = (TableRowSWT) getRow(tis[i]);
 				if (row != null && row.getDataSource(true) != null) {
@@ -3727,7 +3776,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		TableRowSWT[] rows = new TableRowSWT[size];
 		int pos = 0;
 		for (int i = iTopIndex; i <= iBottomIndex; i++) {
-			TableItem item = table.getItem(i);
+			TableItemOrTreeItem item = table.getItem(i);
 			if (item != null && !item.isDisposed()) {
 				TableRowSWT row = (TableRowSWT) getRow(item);
 				if (row != null) {
@@ -3773,7 +3822,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
-		TableItem[] tis = table.getSelection();
+		TableItemOrTreeItem[] tis = table.getSelection();
 		List<TableRowCore> rows_to_use = new ArrayList<TableRowCore>(tis.length);
 		for (int i = 0; i < tis.length; i++) {
 			TableRowCore row = getRow(tis[i]);
@@ -3839,15 +3888,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @param items A list of TableItems that are part of the table view
 	 * @param runner A task
 	 */
-	public void runForTableItems(List<TableItem> items, TableGroupRowRunner runner) {
+	public void runForTableItems(List<TableItemOrTreeItem> items, TableGroupRowRunner runner) {
 		if (table == null || table.isDisposed()) {
 			return;
 		}
 
-		final Iterator<TableItem> iter = items.iterator();
+		final Iterator<TableItemOrTreeItem> iter = items.iterator();
 		List<TableRowCore> rows_to_use = new ArrayList<TableRowCore>(items.size());
 		while (iter.hasNext()) {
-			TableItem tableItem = iter.next();
+			TableItemOrTreeItem tableItem = iter.next();
 			if (tableItem.isDisposed()) {
 				continue;
 			}
@@ -3879,7 +3928,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			sToClipboard += table.getColumn(j).getText();
 		}
 
-		TableItem[] tis = table.getSelection();
+		TableItemOrTreeItem[] tis = table.getSelection();
 		for (int i = 0; i < tis.length; i++) {
 			sToClipboard += "\n";
 			TableRowCore row = getRow(tis[i]);
@@ -3912,7 +3961,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		 * @param event event information
 		 */
 		public void handleEvent(final Event event) {
-			TableColumn column = (TableColumn) event.widget;
+			TableColumnOrTreeColumn column = TableOrTreeUtils.getTableColumnEventItem(event.widget);
 			if (column == null) {
 				return;
 			}
@@ -3933,7 +3982,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		implements Listener
 	{
 		public void handleEvent(Event event) {
-			TableColumn column = (TableColumn) event.widget;
+			TableColumnOrTreeColumn column = TableOrTreeUtils.getTableColumnEventItem(event.widget);
 			if (column == null) {
 				return;
 			}
@@ -3943,12 +3992,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				return;
 			}
 
-			Table table = column.getParent();
+			TableOrTreeSWT table = column.getParent();
 
 			// Get the 'added position' of column
 			// It would have been easier if event (.start, .end) contained the old
 			// and new position..
-			TableColumn[] tableColumns = table.getColumns();
+			TableColumnOrTreeColumn[] tableColumns = table.getColumns();
 			int iAddedPosition;
 			for (iAddedPosition = 0; iAddedPosition < tableColumns.length; iAddedPosition++) {
 				if (column == tableColumns[iAddedPosition]) {
@@ -3999,7 +4048,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (topIndex >= itemCount || topIndex < 0) {
 				topIndex = itemCount - 1;
 			}
-			TableItem ti = table.getItem(topIndex);
+			TableItemOrTreeItem ti = table.getItem(topIndex);
 			if (ti.isDisposed()) {
 				return -1;
 			}
@@ -4025,7 +4074,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return null;
 		}
 
-		TableItem item = table.getItem(new Point(2, y));
+		TableItemOrTreeItem item = table.getItem(new Point(2, y));
 		if (item == null) {
 			return null;
 		}
@@ -4038,7 +4087,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return null;
 		}
 
-		TableItem item = table.getItem(new Point(2, y));
+		TableItemOrTreeItem item = table.getItem(new Point(2, y));
 		if (item == null) {
 			return null;
 		}
@@ -4048,7 +4097,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return null;
 		}
 
-		TableColumn tcColumn = table.getColumn(iColumn);
+		TableColumnOrTreeColumn tcColumn = table.getColumn(iColumn);
 		String sCellName = (String) tcColumn.getData("Name");
 		if (sCellName == null) {
 			return null;
@@ -4058,7 +4107,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	public TableRowSWT getTableRow(int x, int y) {
-		TableItem item = table.getItem(new Point(2, y));
+		TableItemOrTreeItem item = table.getItem(new Point(2, y));
 		if (item == null) {
 			return null;
 		}
@@ -4071,7 +4120,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return null;
 		}
 
-		TableColumn column = table.getColumn(iColumn);
+		TableColumnOrTreeColumn column = table.getColumn(iColumn);
 		return (TableColumnCore) column.getData("TableColumnCore");
 	}
 
@@ -4109,7 +4158,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			writer.println("Columns:");
 			writer.indent();
 			try {
-				TableColumn[] tableColumnsSWT = table.getColumns();
+				TableColumnOrTreeColumn[] tableColumnsSWT = table.getColumns();
 				for (int i = 0; i < tableColumnsSWT.length; i++) {
 					final TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
 					if (tc != null) {
@@ -4398,7 +4447,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			// can't use TableColumnCore.getPosition, because user may have moved
 			// columns around, messing up the SWT column indexes.  
 			// We can either use search columnsOrdered, or search table.getColumns()
-			TableColumn[] tcs = table.getColumns();
+			TableColumnOrTreeColumn[] tcs = table.getColumns();
 			for (int i = 0; i < tcs.length; i++) {
 				String sName = (String) tcs[i].getData("Name");
 				if (sName != null && sortColumn != null
@@ -4538,7 +4587,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return image;
 		}
 
-		TableColumn[] tableColumnsSWT = table.getColumns();
+		TableColumnOrTreeColumn[] tableColumnsSWT = table.getColumns();
 		for (int i = 0; i < tableColumnsSWT.length; i++) {
 			final TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
 
@@ -4552,7 +4601,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 
 				for (int j = iTopIndex; j <= iBottomIndex; j++) {
-					TableItem rowSWT = table.getItem(j);
+					TableItemOrTreeItem rowSWT = table.getItem(j);
 					TableRowSWT row = (TableRowSWT) table.getItem(j).getData("TableRow");
 					if (row != null) {
 						TableCellSWT cell = row.getTableCellSWT(tc.getName());
@@ -4729,7 +4778,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#createDragSource(int)
 	public DragSource createDragSource(int style) {
-		final DragSource dragSource = new DragSource(table, style);
+		final DragSource dragSource = new DragSource(table.getComposite(), style);
 		dragSource.addDragListener(new DragSourceAdapter() {
 			public void dragStart(DragSourceEvent event) {
 				table.setCursor(null);
@@ -4753,7 +4802,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#createDropTarget(int)
 	public DropTarget createDropTarget(int style) {
-		final DropTarget dropTarget = new DropTarget(table, style);
+		final DropTarget dropTarget = new DropTarget(table.getComposite(), style);
 		table.addDisposeListener(new DisposeListener() {
 			// @see org.eclipse.swt.events.DisposeListener#widgetDisposed(org.eclipse.swt.events.DisposeEvent)
 			public void widgetDisposed(DisposeEvent e) {
@@ -4767,8 +4816,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#indexOf(org.eclipse.swt.widgets.Widget)
 	public TableRowCore getRow(DropTargetEvent event) {
-		if (event.item instanceof TableItem) {
-			TableItem ti = (TableItem) event.item;
+		TableItemOrTreeItem ti = TableOrTreeUtils.getEventItem(event.item);
+		if (ti != null) {
 			return (TableRowCore) ti.getData("TableRow");
 		}
 		return null;
@@ -5168,7 +5217,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (sliderArea != null && !sliderArea.isDisposed()) {
 				sliderArea.dispose();
 			}
-			final Method method = Table.class.getDeclaredMethod("setItemHeight", new Class<?>[] {
+			Class<?> claTable = Class.forName("org.eclipse.swt.Table");
+			final Method method = claTable.getDeclaredMethod("setItemHeight", new Class<?>[] {
 				int.class
 			});
 			method.setAccessible(true);
@@ -5277,4 +5327,51 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 	}
+
+	public void addRowPaintListener(TableRowSWTPaintListener listener) {
+		try {
+			mon_RowPaintListener.enter();
+
+			if (rowPaintListeners == null)
+				rowPaintListeners = new ArrayList(1);
+
+			rowPaintListeners.add(listener);
+
+		} finally {
+			mon_RowPaintListener.exit();
+		}
+	}
+
+	public void removeRowPaintListener(TableRowSWTPaintListener listener) {
+		try {
+			mon_RowPaintListener.enter();
+
+			if (rowPaintListeners == null)
+				return;
+
+			rowPaintListeners.remove(listener);
+
+		} finally {
+			mon_RowPaintListener.exit();
+		}
+	}
+
+	private void invokePaintListeners(GC gc, TableItemOrTreeItem item,
+			TableColumnCore column, Rectangle cellArea) {
+		ArrayList listeners = rowPaintListeners;
+		if (listeners == null)
+			return;
+		
+		for (int i = 0; i < listeners.size(); i++) {
+			try {
+				TableRowSWTPaintListener l = (TableRowSWTPaintListener) (listeners.get(i));
+
+				l.rowPaint(gc, item, column, cellArea);
+
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+
 }

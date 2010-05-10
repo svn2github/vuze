@@ -166,4 +166,18 @@ public interface TableViewSWT<DATASOURCETYPE>
 	boolean enableSizeSlider(Composite composite, int min, int max);
 
 	void disableSizeSlider();
+
+	/**
+	 * @param listener
+	 *
+	 * @since 4.2.0.3
+	 */
+	void addRowPaintListener(TableRowSWTPaintListener listener);
+
+	/**
+	 * @param listener
+	 *
+	 * @since 4.2.0.3
+	 */
+	void removeRowPaintListener(TableRowSWTPaintListener listener);
 }

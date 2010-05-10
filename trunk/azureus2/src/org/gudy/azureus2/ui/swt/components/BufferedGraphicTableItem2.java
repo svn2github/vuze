@@ -34,6 +34,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Canvas;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableItemOrTreeItem;
 
 /** Draws an image at a column in a row of a table using a Canvas.
  * In comparison to BufferedGraphicTable, which uses direct paints to table,
@@ -76,7 +78,7 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItemImpl
     if (orientation == SWT.FILL) {
       iStyle |= SWT.NO_REDRAW_RESIZE;
     }
-    cBlockView = new Canvas(getTable(), iStyle);
+    cBlockView = new Canvas(getTable().getComposite(), iStyle);
     cBlockView.setBackground(null);
     cBlockView.addPaintListener(new PaintListener() {
     	public void paintControl(PaintEvent event) {
@@ -89,9 +91,9 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItemImpl
 
     cBlockView.addMouseListener(new MouseAdapter() {
         public void mouseDown(MouseEvent e) {
-          Table table = getTable();
+          TableOrTreeSWT table = getTable();
           Rectangle r = cBlockView.getBounds();
-          TableItem[] item = { table.getItem(new Point(r.x, r.y)) };
+          TableItemOrTreeItem[] item = { table.getItem(new Point(r.x, r.y)) };
           if (item[0] != null) {
             table.setSelection(item);
           }
@@ -173,7 +175,7 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItemImpl
       //debugOut("doPaint(GC): move cBlockView to " + bounds.x + "x" + bounds.y, false);
     }
 
-    Table table = getTable();
+    TableOrTreeSWT table = getTable();
     Rectangle tableBounds = table.getClientArea();
     if (tableBounds.y < table.getHeaderHeight()) {
       tableBounds.y = table.getHeaderHeight();
@@ -198,7 +200,7 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItemImpl
     if (cBlockView == null || cBlockView.isDisposed())
       return;
 
-    Table table = getTable();
+    TableOrTreeSWT table = getTable();
     //Compute bounds ...
     Rectangle bounds = getBoundsForCanvas();
     //In case item isn't displayed bounds is null
@@ -336,7 +338,7 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItemImpl
                      bounds.height - (marginHeight * 2));
   }
 
-  private Color getRowBackground(Table table) {
+  private Color getRowBackground(TableOrTreeSWT table) {
     if (row.isSelected() && false) {
       if (table.isFocusControl())
         return table.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION);

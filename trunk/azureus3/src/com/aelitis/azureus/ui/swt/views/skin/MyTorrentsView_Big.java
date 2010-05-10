@@ -117,7 +117,7 @@ public class MyTorrentsView_Big
 	}
 
 	protected int getRowDefaultHeight() {
-		return 36;
+		return 30;
 	}
 
 }

@@ -51,7 +51,10 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.*;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableDelegate;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableItemDelegate;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableItemOrTreeItem;
 
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -390,6 +393,10 @@ public class Utils
 	}
 
 	public static void alternateRowBackground(TableItem item) {
+		alternateRowBackground(new TableItemDelegate(item));
+	}
+
+	public static void alternateRowBackground(TableItemOrTreeItem item) {
 		if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR) {
 			if (!item.getParent().getLinesVisible())
 				item.getParent().setLinesVisible(true);
@@ -425,7 +432,8 @@ public class Utils
 		if (iTopIndex < 0) {
 			return;
 		}
-		int iBottomIndex = getTableBottomIndex(table, iTopIndex);
+		TableOrTreeSWT tt = new TableDelegate(table);
+		int iBottomIndex = getTableBottomIndex(tt, iTopIndex);
 
 		Color[] colors = {
 			table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
@@ -433,7 +441,7 @@ public class Utils
 		};
 		int iFixedIndex = iTopIndex;
 		for (int i = iTopIndex; i <= iBottomIndex; i++) {
-			TableItem row = table.getItem(i);
+			TableItemOrTreeItem row = tt.getItem(i);
 			// Rows can be disposed!
 			if (!row.isDisposed()) {
 				Color newColor = colors[iFixedIndex % colors.length];
@@ -768,7 +776,7 @@ public class Utils
 	/**
 	 * Bottom Index may be negative. Returns bottom index even if invisible.
 	 */
-	public static int getTableBottomIndex(Table table, int iTopIndex) {
+	public static int getTableBottomIndex(TableOrTreeSWT table, int iTopIndex) {
 		// on Linux, getItemHeight is slow AND WRONG. so is getItem(x).getBounds().y 
 		// getItem(Point) is slow on OSX
 		
@@ -781,7 +789,7 @@ public class Utils
 
 		if (Constants.isOSX || Constants.isWindows) {
 			try {
-				TableItem item = table.getItem(iTopIndex);
+				TableItemOrTreeItem item = table.getItem(iTopIndex);
 				Rectangle bounds = item.getBounds();
 				Rectangle clientArea = table.getClientArea();
 
@@ -822,7 +830,7 @@ public class Utils
 			return -1;
 
 		// 2 offset to be on the safe side
-		TableItem bottomItem = table.getItem(new Point(2,
+		TableItemOrTreeItem bottomItem = table.getItem(new Point(2,
 				table.getClientArea().height - 1));
 		int iBottomIndex = (bottomItem != null) ? table.indexOf(bottomItem)
 				: itemCount - 1;

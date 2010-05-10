@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
 /** Draws an image at a column in a row of a table using direct paints to the 
  *  table.
@@ -116,7 +117,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
 			// images with transparency need their area cleared first, otherwise we 
 			// end up multiplying values (alpha type) or not clearing pixels 
 			// (all types)
-			Table table = getTable();
+			TableOrTreeSWT table = getTable();
 
 			Rectangle bounds = getBoundsForCanvas();
 			//In case item isn't displayed bounds is null
@@ -147,7 +148,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
       return;
     }
     
-    Table table = getTable();
+    TableOrTreeSWT table = getTable();
 
 //    System.out.println("doPnt#" + row.getIndex()+": " + 
 //    		((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())) + 
@@ -183,7 +184,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
         // Enable this for semi-fast visual update with some flicker
         boolean ourGC = (gc == null);
         if (ourGC) {
-          gc = new GC(table);
+          gc = new GC(table.getComposite());
         }
         if (gc != null) {
           gc.drawImage(image, bounds.x, bounds.y);
@@ -233,7 +234,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
 
     boolean ourGC = (gc == null);
     if (ourGC) {
-      gc = new GC(table);
+      gc = new GC(table.getComposite());
     }
     try {
 
@@ -322,7 +323,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
   		return imageCellBG;
   	}
   	
-		Table table = row.getTable();
+		TableOrTreeSWT table = row.getTable();
 		
 		Rectangle bounds = getBounds();
 		

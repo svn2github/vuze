@@ -37,6 +37,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
@@ -66,6 +67,8 @@ public class ColumnThumbAndName
 	public static final String COLUMN_ID = "name";
 
 	private boolean showIcon;
+
+	private boolean wrapText;
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
@@ -116,10 +119,47 @@ public class ColumnThumbAndName
 			}
 		});
 
-		COConfigurationManager.addAndFireParameterListener(
-				"NameColumn.showProgramIcon", new ParameterListener() {
+		TableContextMenuItem menuShowIcon = addContextMenuItem(
+				"ConfigView.section.style.showProgramIcon", MENU_STYLE_HEADER);
+		menuShowIcon.setStyle(TableContextMenuItem.STYLE_CHECK);
+		menuShowIcon.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setData(new Boolean(showIcon));
+			}
+		});
+		final String CFG_SHOWPROGRAMICON = "NameColumn.showProgramIcon."
+				+ getTableID();
+		menuShowIcon.addMultiListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				COConfigurationManager.setParameter(CFG_SHOWPROGRAMICON, ((Boolean) menu.getData()).booleanValue());
+			}
+		});
+
+		TableContextMenuItem menuWrapText = addContextMenuItem("label.wrap.text",
+				MENU_STYLE_HEADER);
+		menuWrapText.setStyle(TableContextMenuItem.STYLE_CHECK);
+		menuWrapText.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setData(new Boolean(wrapText));
+			}
+		});
+		final String CFG_WRAP_TEXT = "NameColumn.wrapText." + getTableID();
+		menuWrapText.addMultiListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				COConfigurationManager.setParameter(CFG_WRAP_TEXT, ((Boolean) menu.getData()).booleanValue());
+			}
+		});
+
+		COConfigurationManager.addAndFireParameterListener(CFG_WRAP_TEXT,
+				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						setShowIcon(COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon"));
+						setWrapText(COConfigurationManager.getBooleanParameter(CFG_WRAP_TEXT));
+					}
+				});
+		COConfigurationManager.addAndFireParameterListener(CFG_SHOWPROGRAMICON,
+				new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						setShowIcon(COConfigurationManager.getBooleanParameter(CFG_SHOWPROGRAMICON));
 					}
 				});
 	}
@@ -137,7 +177,7 @@ public class ColumnThumbAndName
 		if (name == null) {
 			name = "";
 		}
-		
+
 		cell.setSortValue(name);
 	}
 
@@ -145,17 +185,18 @@ public class ColumnThumbAndName
 		Object ds = cell.getDataSource();
 
 		Rectangle cellBounds = cell.getBounds();
-		
+
 		int textX = cellBounds.x;
 
 		if (!showIcon) {
+			cellBounds.x += 2;
+			cellBounds.width -= 4;
 			cellPaintName(cell, gc, cellBounds, textX);
 			return;
 		}
 
 		Image[] imgThumbnail = TorrentUIUtilsV3.getContentImage(ds,
-				cellBounds.height >= 20,
-				new ContentImageLoadedListener() {
+				cellBounds.height >= 20, new ContentImageLoadedListener() {
 					public void contentImageLoaded(Image image, boolean wasReturned) {
 						if (!wasReturned) {
 							// this may be triggered many times, so only invalidate and don't
@@ -167,13 +208,13 @@ public class ColumnThumbAndName
 
 		if (imgThumbnail != null && ImageLoader.isRealImage(imgThumbnail[0])) {
 			try {
-		
+
 				if (cellBounds.height > 30) {
 					cellBounds.y += 1;
 					cellBounds.height -= 3;
 				}
 				Rectangle imgBounds = imgThumbnail[0].getBounds();
-		
+
 				int dstWidth;
 				int dstHeight;
 				if (imgBounds.height > cellBounds.height) {
@@ -186,7 +227,7 @@ public class ColumnThumbAndName
 					dstWidth = imgBounds.width;
 					dstHeight = imgBounds.height;
 				}
-		
+
 				if (cellBounds.height <= 18) {
 					dstWidth = Math.min(dstWidth, cellBounds.height);
 					dstHeight = Math.min(dstHeight, cellBounds.height);
@@ -195,7 +236,7 @@ public class ColumnThumbAndName
 						dstHeight -= 2;
 					}
 				}
-				
+
 				try {
 					gc.setAdvanced(true);
 					gc.setInterpolation(SWT.HIGH);
@@ -206,11 +247,11 @@ public class ColumnThumbAndName
 				int minWidth = dstHeight * 7 / 4;
 				int imgPad = 0;
 				if (dstHeight > 25) {
-		  		if (dstWidth < minWidth) {
-		  			imgPad = ((minWidth - dstWidth + 1) / 2);
-		  			x = cellBounds.x + imgPad;
-		  			textX = cellBounds.x + minWidth + 3;
-		  		}
+					if (dstWidth < minWidth) {
+						imgPad = ((minWidth - dstWidth + 1) / 2);
+						x = cellBounds.x + imgPad;
+						textX = cellBounds.x + minWidth + 3;
+					}
 				}
 				if (cellBounds.width - dstWidth - (imgPad * 2) < 100 && dstHeight > 18) {
 					dstWidth = Math.min(32, dstHeight);
@@ -224,7 +265,7 @@ public class ColumnThumbAndName
 					Rectangle lastClipping = gc.getClipping();
 					try {
 						gc.setClipping(cellBounds);
-		
+
 						for (int i = 0; i < imgThumbnail.length; i++) {
 							Image image = imgThumbnail[i];
 							if (image == null || image.isDisposed()) {
@@ -253,17 +294,18 @@ public class ColumnThumbAndName
 						gc.setClipping(lastClipping);
 					}
 				}
-		
+
 				TorrentUIUtilsV3.releaseContentImage(ds);
 			} catch (Throwable t) {
 				Debug.out(t);
 			}
 		}
-		
+
 		cellPaintName(cell, gc, cellBounds, textX);
 	}
 
-	private void cellPaintName(TableCell cell, GC gc, Rectangle cellBounds, int textX) {
+	private void cellPaintName(TableCell cell, GC gc, Rectangle cellBounds,
+			int textX) {
 		String name = null;
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 		if (dm != null)
@@ -271,9 +313,9 @@ public class ColumnThumbAndName
 		if (name == null)
 			name = "";
 
-		GCStringPrinter.printString(gc, name, new Rectangle(textX,
-				cellBounds.y, cellBounds.x + cellBounds.width - textX, cellBounds.height),
-				true, true, SWT.WRAP);
+		GCStringPrinter.printString(gc, name, new Rectangle(textX, cellBounds.y,
+				cellBounds.x + cellBounds.width - textX, cellBounds.height), true,
+				true, wrapText ? SWT.WRAP : SWT.NONE);
 	}
 
 	public String getObfusticatedText(TableCell cell) {
@@ -301,6 +343,12 @@ public class ColumnThumbAndName
 	 */
 	public void setShowIcon(boolean showIcon) {
 		this.showIcon = showIcon;
+		invalidateCells();
+	}
+
+	public void setWrapText(boolean wrap) {
+		this.wrapText = wrap;
+		invalidateCells();
 	}
 
 	/**

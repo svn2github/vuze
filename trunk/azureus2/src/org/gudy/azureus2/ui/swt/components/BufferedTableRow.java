@@ -30,6 +30,9 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.views.table.*;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableItemOrTreeItem;
+import org.gudy.azureus2.ui.swt.views.table.impl.TreeItemDelegate;
 
 /**
  * A buffered Table Row.
@@ -61,8 +64,8 @@ BufferedTableRow
 	public final static int REQUIRE_TABLEITEM_INITIALIZED = 1;
 	public final static int REQUIRE_VISIBILITY = 2;
 	
-	protected Table table;
-	protected TableItem	item;
+	protected TableOrTreeSWT table;
+	protected TableItemOrTreeItem	item;
 	
 	protected Image[]	image_values	= new Image[0];
 	protected Color[]	foreground_colors	= new Color[0];
@@ -73,6 +76,8 @@ BufferedTableRow
 	private Point ptIconSize = null;
 
 	private Image imageBG;
+
+	private int numSubItems;
 	
 	
 	static {
@@ -88,7 +93,7 @@ BufferedTableRow
 	 * 
 	 * @param _table
 	 */
-	public BufferedTableRow(Table _table)
+	public BufferedTableRow(TableOrTreeSWT _table)
 	{
 		table = _table;
 		item = null;
@@ -99,12 +104,13 @@ BufferedTableRow
 	 *
 	 */
 	public void createSWTRow() {
-    item = new TableItem(table, SWT.NULL);
+    item = table.createNewItem(SWT.NULL);
+		item.setItemCount(numSubItems);
 		setAlternatingBGColor(true);
 	}
 
 	public void createSWTRow(int index) {
-    new TableItem(table, SWT.NULL);
+		table.createNewItem(SWT.NULL);
     setTableItem(index, false);
 	}
 	
@@ -157,9 +163,9 @@ BufferedTableRow
 				// No assigned spot yet, or not our spot:
 				// find a row with no TableRow data
 
-				TableItem[] items = table.getItems();
+				TableItemOrTreeItem[] items = table.getItems();
 				for (int i = items.length - 1; i >= 0; i--) {
-					TableItem item = items[i];
+					TableItemOrTreeItem item = items[i];
 					if (!item.isDisposed()) {
 						Object itemRow = item.getData("TableRow");
 						if (itemRow == null || itemRow == this) {
@@ -501,7 +507,7 @@ BufferedTableRow
 		return r; 
 	}
 
-  protected Table getTable() {
+  protected TableOrTreeSWT getTable() {
   	return table;
   }
   
@@ -530,8 +536,8 @@ BufferedTableRow
     return table.indexOf(item);
   }
   
-  private void copyToItem(TableItem newItem) {
-    Table table = getTable();
+  private void copyToItem(TableItemOrTreeItem newItem) {
+    TableOrTreeSWT table = getTable();
     if (table == null || item == null)
       return;
 
@@ -556,9 +562,9 @@ BufferedTableRow
       }
 		}
     if (isSelected())
-      table.select(table.indexOf(newItem));
+      table.select(newItem);
     else
-      table.deselect(table.indexOf(newItem));
+      table.deselect(newItem);
 
     newItem.setData("TableRow", item.getData("TableRow"));
 	}
@@ -576,9 +582,9 @@ BufferedTableRow
   		return;
 
     if (bSelected)
-      table.select(getIndex());
+      table.select(item);
     else
-      table.deselect(getIndex());
+      table.deselect(item);
   }
 
   /**
@@ -595,7 +601,7 @@ BufferedTableRow
   }
   
   public boolean setTableItem(int newIndex, boolean bCopyFromOld, boolean isVisible) {
-  	TableItem newRow;
+  	TableItemOrTreeItem newRow;
 
   	boolean needsNewAltBG = false;
 		if (alternatingColors != null) {
@@ -632,7 +638,7 @@ BufferedTableRow
   		}
   	}
 
-  	if (newRow.getParent() != table)
+  	if (!newRow.getParent().equalsTableOrTree(table))
   		return false;
 
   	if (bCopyFromOld) {
@@ -676,7 +682,7 @@ BufferedTableRow
     foreground = null;
 
     // unlink old item from tablerow
-    if (item != null && !item.isDisposed() && item.getData("TableRow") == this && newRow != item) {
+    if (item != null && !item.isDisposed() && item.getData("TableRow") == this && !newRow.equals(item)) {
     	item.setData("TableRow", null);
   		int numColumns = table.getColumnCount();
   		for (int i = 0; i < numColumns; i++) {
@@ -689,7 +695,10 @@ BufferedTableRow
   		}
     }
 
+    boolean wasExpanded = item == null || item.isDisposed() ? false : item.getExpanded();
     item = newRow;
+		item.setItemCount(numSubItems);
+		item.setExpanded(wasExpanded);
    	invalidate();
 
     return true;
@@ -761,4 +770,12 @@ BufferedTableRow
   public Image getBackgroundImage() {
   	return imageBG;
   }
+
+	public void setSubItemCount(int i) {
+		numSubItems = i;
+	}
+	
+	public TableItemOrTreeItem[] getSubItems() {
+		return table.getItems();
+	}
 }

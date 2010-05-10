@@ -33,9 +33,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.*;
 
 import com.aelitis.azureus.ui.common.table.*;
 
@@ -89,7 +87,7 @@ public class TableRowImpl
    * @param dataSource
    * @param bSkipFirstColumn
    */
-  public TableRowImpl(TableView tv, Table table, String sTableID,
+  public TableRowImpl(TableView tv, TableOrTreeSWT table, String sTableID,
 			TableColumnCore[] columnsSorted, Object dataSource,
 			boolean bSkipFirstColumn) {
 		super(table);
@@ -622,5 +620,10 @@ public class TableRowImpl
 				return TableRowImpl.super.isSelected();
 			}
 		}, 1000);
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setSubItemCount(int)
+	public void setSubItemCount(int i) {
+		super.setSubItemCount(i);
 	}
 }
