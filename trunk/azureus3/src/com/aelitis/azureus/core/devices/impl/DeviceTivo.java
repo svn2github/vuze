@@ -677,11 +677,46 @@ DeviceTivo
 						
 						long	file_size = file.getTargetSize();
 						
+						String	title 	= escape( file.getName());
+						String	desc	= title;
+							
+						int MAX_TITLE_LENGTH = 30;
+						
+						if ( title.length() > MAX_TITLE_LENGTH ){
+							
+								// TiVo has problems displaying a truncated title if it has
+								// no spaces in it
+							
+							String 	temp = "";
+							
+							for ( int j=0;j<title.length();j++){
+								
+								char c = title.charAt( j );
+								
+								if ( Character.isLetterOrDigit( c )){
+									
+									temp += c;
+								}else{
+									
+									temp += ' ';
+								}
+							}
+							
+							int space_pos = temp.indexOf( ' ' );
+							
+							if ( space_pos == -1 || space_pos > MAX_TITLE_LENGTH ){
+								
+								temp = temp.substring( 0, 30 ) + "...";
+							}
+							
+							title = temp;
+						}
+						
 						reply +=
 						
 						"    <Item>" + NL +
 						"        <Details>" + NL +
-						"            <Title>" + escape( file.getName()) + "</Title>" + NL +
+						"            <Title>" + title + "</Title>" + NL +
 						"            <ContentType>video/x-tivo-mpeg</ContentType>" + NL +
 						"            <SourceFormat>video/x-ms-wmv</SourceFormat>" + NL;
 						
@@ -699,7 +734,7 @@ DeviceTivo
 						
 						reply +=
 						"            <Duration>" + file.getDurationMillis() + "</Duration>" + NL +
-						"            <Description></Description>" + NL +
+						"            <Description>" + desc + "</Description>" + NL +
 						"            <SourceChannel>0</SourceChannel>" + NL +
 						"            <SourceStation></SourceStation>" + NL +
 						"            <SeriesId></SeriesId>" + NL +
