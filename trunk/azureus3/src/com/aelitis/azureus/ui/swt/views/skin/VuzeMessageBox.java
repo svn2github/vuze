@@ -3,6 +3,8 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -377,23 +379,48 @@ public class VuzeMessageBox
 	 * @see com.aelitis.azureus.ui.UIFunctionsUserPrompter#waitUntilClosed()
 	 */
 	public int waitUntilClosed() {
-		Utils.execSWTThreadWithBool("waitUntilClose", new AERunnableBoolean() {
-			public boolean runSupport() {
-				if (dlg == null) {
-					return false;
-				}
-				if (!opened) {
-					dlg.open();
-				}
-				Shell shell = dlg.getShell();
-				while (shell != null && !shell.isDisposed()) {
-					if (shell.getDisplay() != null && !shell.getDisplay().readAndDispatch()) {
-						shell.getDisplay().sleep();
+		if (dlg != null) {
+			final AESemaphore2 sem = new AESemaphore2("waitUntilClosed");
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (dlg == null) {
+						sem.release();
+						return;
 					}
+					if (!opened) {
+						dlg.open();
+					}
+					Shell shell = dlg.getShell();
+					if (shell == null) {
+						sem.release();
+						return;
+					}
+
+					shell.addDisposeListener(new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							sem.release();
+						}
+					});
 				}
-				return true;
+			});
+
+			if (Utils.isThisThreadSWT()) {
+				// on swt thread, so execSWTThread just ran and we should have a shell
+				if (dlg != null) {
+					Shell shell = dlg.getShell();
+					if (shell != null) {
+						Display d = shell.getDisplay();
+						while (!shell.isDisposed()) {
+							if (!d.readAndDispatch()) {
+								d.sleep();
+							}
+						}
+					}
+					return getButtonVal(result);
+				}
 			}
-		});
+			sem.reserve();
+		}
 
 		return getButtonVal(result);
 	}
