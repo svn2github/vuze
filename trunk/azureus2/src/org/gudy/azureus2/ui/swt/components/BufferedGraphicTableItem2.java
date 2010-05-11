@@ -34,8 +34,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Canvas;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableItemOrTreeItem;
 
 /** Draws an image at a column in a row of a table using a Canvas.
  * In comparison to BufferedGraphicTable, which uses direct paints to table,
