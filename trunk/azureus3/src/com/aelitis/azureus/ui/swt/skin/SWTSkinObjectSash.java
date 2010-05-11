@@ -31,6 +31,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -629,5 +630,39 @@ public class SWTSkinObjectSash
 		double want = parentHeight - sashHeight - px;
 		double pct = want / parentHeight;
 		setPercent(pct);
+	}
+
+	public void resetWidth() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				String sPos = properties.getStringValue(sConfigID + ".startpos");
+				COConfigurationManager.removeParameter("v3." + sID + ".splitAt");
+				COConfigurationManager.removeParameter("v3." + sID + ".splitAtPX");
+				if (sPos != null) {
+					sash.setData("PX", null);
+					sash.setData("PCT", null);
+					try {
+						int l = NumberFormat.getInstance().parse(sPos).intValue();
+						if (sPos.endsWith("%")) {
+							sashPct = (double) l / 100;
+							sash.setData("PCT", new Double(sashPct));
+							setPercent(sashPct);
+						} else {
+							sash.setData("PX", new Long(l));
+							double parentHeight = parentComposite.getBounds().height
+									- (parentComposite.getBorderWidth() * 2);
+
+							if (parentHeight != 0) {
+								double want = l;
+								double pct = want / parentHeight;
+								setPercent(pct);
+							}
+						}
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+				}
+			}
+		});
 	}
 }
