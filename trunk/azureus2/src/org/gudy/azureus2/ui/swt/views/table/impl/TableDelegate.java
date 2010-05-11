@@ -24,6 +24,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
+import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
 /**

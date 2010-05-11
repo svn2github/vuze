@@ -23,7 +23,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.ui.swt.views.table.impl.TableItemOrTreeItem;
 
 /**
  * @author TuxPaper

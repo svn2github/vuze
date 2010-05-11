@@ -16,13 +16,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
 
-package org.gudy.azureus2.ui.swt.views.table.impl;
+package org.gudy.azureus2.ui.swt.views.table;
 
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
 /**
  * @author TuxPaper
