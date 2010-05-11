@@ -261,119 +261,6 @@ RelatedContentManager
 					}
 				});
 			
-			if ( enabled ){
-				
-				if ( ui_enabled ){
-
-					try{
-						plugin_interface.getUtilities().registerSearchProvider(
-							new SearchProvider()
-							{
-								private Map<Integer,Object>	properties = new HashMap<Integer, Object>();
-								
-								{
-									properties.put( PR_NAME, MessageText.getString( "rcm.search.provider" ));
-									
-									try{
-										URL url = 
-											MagnetURIHandler.getSingleton().registerResource(
-												new MagnetURIHandler.ResourceProvider()
-												{
-													public String
-													getUID()
-													{
-														return( RelatedContentManager.class.getName() + ".1" );
-													}
-													
-													public String
-													getFileType()
-													{
-														return( "png" );
-													}
-															
-													public byte[]
-													getData()
-													{
-														InputStream is = getClass().getClassLoader().getResourceAsStream( "org/gudy/azureus2/ui/icons/rcm.png" );
-														
-														if ( is == null ){
-															
-															return( null );
-														}
-														
-														try{
-															ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-															
-															try{
-																byte[]	buffer = new byte[8192];
-																
-																while( true ){
-										
-																	int	len = is.read( buffer );
-													
-																	if ( len <= 0 ){
-																		
-																		break;
-																	}
-											
-																	baos.write( buffer, 0, len );
-																}
-															}finally{
-																
-																is.close();
-															}
-															
-															return( baos.toByteArray());
-															
-														}catch( Throwable e ){
-															
-															return( null );
-														}
-													}
-												});
-																				
-										properties.put( PR_ICON_URL, url.toExternalForm());
-										
-									}catch( Throwable e ){
-										
-										Debug.out( e );
-									}
-								}
-								
-								public SearchInstance
-								search(
-									Map<String,Object>	search_parameters,
-									SearchObserver		observer )
-								
-									throws SearchException
-								{
-									initialisation_complete_sem.reserve();
-									
-									return( searchRCM( search_parameters, observer ));
-								}
-								
-								public Object
-								getProperty(
-									int			property )
-								{
-									return( properties.get( property ));
-								}
-								
-								public void
-								setProperty(
-									int			property,
-									Object		value )
-								{
-									properties.put( property, value );
-								}
-							});
-					}catch( Throwable e ){
-						
-						Debug.out( "Failed to register search provider" );
-					}
-				}
-			}
-			
 			SimpleTimer.addEvent(
 				"rcm.delay.init",
 				SystemTime.getOffsetTime( 15*1000 ),
@@ -2231,13 +2118,15 @@ RelatedContentManager
 		return( result );
 	}
 	
-	protected SearchInstance
+	public SearchInstance
 	searchRCM(
 		Map<String,Object>		search_parameters,
 		final SearchObserver	observer )
 	
 		throws SearchException
 	{
+		initialisation_complete_sem.reserve();
+
 		final String	term = (String)search_parameters.get( SearchProvider.SP_SEARCH_TERM );
 		
 		final SearchInstance si = 
