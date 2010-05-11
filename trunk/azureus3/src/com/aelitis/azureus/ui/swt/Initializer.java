@@ -58,7 +58,6 @@ import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
-import com.aelitis.azureus.ui.swt.content.RelatedContentUI;
 import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
@@ -472,14 +471,6 @@ public class Initializer
   				
   			Debug.printStackTrace(e);
   		}
-		}
-
-		try{
-			RelatedContentUI.getSingleton();
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
 		}
 		
 		core.start();
