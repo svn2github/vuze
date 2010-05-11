@@ -478,10 +478,6 @@ public class MainMenu
 		MenuItem toolsItem = MenuFactory.createToolsMenuItem(menuBar);
 		Menu toolsMenu = toolsItem.getMenu();
 
-		if (!RelatedContentManager.DISABLE_ALL_UI) {
-			MenuFactory.addRCMMenuItem(toolsMenu);
-		}
-
 		MenuFactory.addMyTrackerMenuItem(toolsMenu);
 		MenuFactory.addMySharesMenuItem(toolsMenu);
 		MenuFactory.addConsoleMenuItem(toolsMenu);

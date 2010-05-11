@@ -571,17 +571,6 @@ public class MenuFactory
 		});
 	}
 
-	public static MenuItem addRCMMenuItem(Menu menu) {
-		return addMenuItem(menu, MENU_ID_RCM, new Listener() {
-			public void handleEvent(Event e) {
-				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-				if (uiFunctions != null) {
-					uiFunctions.openView(UIFunctions.VIEW_RCM, null);
-				}
-			}
-		});
-	}
-
 	public static MenuItem addDeviceManagerMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_DEVICEMANAGER, new Listener() {
 			public void handleEvent(Event e) {
