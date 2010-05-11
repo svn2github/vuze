@@ -203,10 +203,6 @@ public class TableItemDelegate
 		item.removeDisposeListener(listener);
 	}
 
-	public void reskin(int flags) {
-		item.reskin(flags);
-	}
-
 	public void setForeground(Color color) {
 		item.setForeground(color);
 	}

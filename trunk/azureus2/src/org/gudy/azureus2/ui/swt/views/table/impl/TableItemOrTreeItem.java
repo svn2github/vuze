@@ -110,8 +110,6 @@ public interface TableItemOrTreeItem
 
 	public boolean isListening(int eventType);
 
-	public void reskin(int flags);
-
 	public int indexOf(TableItemOrTreeItem item);
 
 	public void removeAll();

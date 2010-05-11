@@ -205,10 +205,6 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 		return item.isListening(eventType);
 	}
 
-	public void reskin(int flags) {
-		item.reskin(flags);
-	}
-
 	public int indexOf(TableItemOrTreeItem item2) {
 		return item.indexOf((TreeItem) item2.getItem());
 	}
