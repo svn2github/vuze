@@ -2185,7 +2185,7 @@ public class MyTorrentsView
 		int tableExtraStyle = COConfigurationManager.getIntParameter("MyTorrentsView.table.style");
 		return new TableViewSWTImpl(forDataSourceType, tableID, getPropertiesPrefix(),
 				basicItems, "#", tableExtraStyle | SWT.MULTI | SWT.FULL_SELECTION
-						| SWT.VIRTUAL) {
+						| SWT.VIRTUAL | SWT.CASCADE) {
 			protected void setSelectedRowIndexes(int[] newSelectedRowIndices) {
 				super.setSelectedRowIndexes(newSelectedRowIndices);
 				updateSelectedContent();

@@ -38,16 +38,13 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-
 public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 	private final static String MSG_PREFIX = "ConfigView.section.style.";
-	private final static String LBLKEY_PREFIX = "ConfigView.label.";
 
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_INTERFACE;
@@ -168,11 +165,6 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 					+ "osx_small_fonts");
 		}
 
-		if (userMode > 1) {
-  		new BooleanParameter(cLook, "GUI_SWT_bAlternateTablePainting", MSG_PREFIX
-  				+ "alternateTablePainting");
-		}
-
 	if (userMode > 0) {
   		new BooleanParameter(cLook, "config.style.useSIUnits", MSG_PREFIX + "useSIUnits");
   		
@@ -224,29 +216,6 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		IntParameter graphicUpdate = new IntParameter(cArea, "Graphics Update", 1,	-1);
 		graphicUpdate.setLayoutData(gridData);
 
-		label = new Label(cArea, SWT.NULL);
-		Messages.setLanguageText(label, MSG_PREFIX + "reOrderDelay");
-		gridData = new GridData();
-		IntParameter reorderDelay = new IntParameter(cArea, "ReOrder Delay");
-		reorderDelay.setLayoutData(gridData);
-
-		label = new Label(cArea, SWT.NULL);
-		Messages.setLanguageText(label, MSG_PREFIX + "defaultSortOrder");
-		int[] sortOrderValues = { 0, 1, 2 };
-		String[] sortOrderLabels = {
-				MessageText.getString(MSG_PREFIX + "defaultSortOrder.asc"),
-				MessageText.getString(MSG_PREFIX + "defaultSortOrder.desc"),
-				MessageText.getString(MSG_PREFIX + "defaultSortOrder.flip") };
-		new IntListParameter(cArea, "config.style.table.defaultSortOrder",
-				sortOrderLabels, sortOrderValues);
-		
-		new BooleanParameter(cLook, "NameColumn.showProgramIcon", MSG_PREFIX
-				+ "showProgramIcon");
-
-		new BooleanParameter(cLook, "DND Always In Incomplete", MSG_PREFIX
-				+ "DNDalwaysInIncomplete");
-		
-		new BooleanParameter(cLook, "MyTorrentsView.alwaysShowHeader", "ConfigView.label.alwaysShowLibraryHeader");
 		
 		// Reuse the labels of the other menu actions.
 		if (PlatformManagerFactory.getPlatformManager().hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {

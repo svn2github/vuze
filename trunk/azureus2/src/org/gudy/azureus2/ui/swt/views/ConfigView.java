@@ -346,6 +346,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionInterfaceLanguage(),
                                          new ConfigSectionInterfaceStart(),
                                          new ConfigSectionInterfaceDisplay(),
+                                         new ConfigSectionInterfaceTables(),
                                          new ConfigSectionInterfaceColor(),
                                          new ConfigSectionInterfaceAlerts(),
                                          new ConfigSectionInterfacePassword(),

@@ -46,6 +46,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MenuItem;
 //import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -344,7 +345,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	
 	filter filter;
 
-	private boolean useTree = System.getProperty("Table.useTree", "0").equals("1");
+	private boolean useTree;
 
 
 	/**
@@ -362,6 +363,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 */
 	public TableViewSWTImpl(Class pluginDataSourceType, String _sTableID, String _sPropertiesPrefix,
 			TableColumnCore[] _basicItems, String _sDefaultSortOn, int _iTableStyle) {
+		boolean wantTree = (_iTableStyle & SWT.CASCADE) != 0;
+		_iTableStyle &= ~SWT.CASCADE;
+		if (wantTree) {
+			useTree = COConfigurationManager.getBooleanParameter("Table.useTree");
+		}
 		classPluginDataSourceType = pluginDataSourceType;
 		sTableID = _sTableID;
 		basicItems = _basicItems;
