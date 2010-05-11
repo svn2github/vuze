@@ -208,7 +208,7 @@ StartServer
     	return;
     }
     
-    boolean addSilent = COConfigurationManager.getBooleanParameter("add_torrents_silently");
+    boolean addSilent = COConfigurationManager.getBooleanParameter("Use default data dir");
     boolean showMainWindow = !addSilent || args.length == 1;
 
     boolean	open	= true;

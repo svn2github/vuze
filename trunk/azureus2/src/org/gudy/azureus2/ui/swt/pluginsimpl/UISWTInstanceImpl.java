@@ -267,10 +267,6 @@ UISWTInstanceImpl
 						
 						// programmatic request to add a torrent, make sure az is visible
 
-						if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
-							uiFunctions.bringToFront();
-						}
-
 						if (auto_download) {
 							Shell shell = uiFunctions.getMainShell();
 							if (shell != null) {

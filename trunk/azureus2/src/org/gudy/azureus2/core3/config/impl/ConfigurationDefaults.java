@@ -509,7 +509,6 @@ public class ConfigurationDefaults {
     def.put( "network.control.write.processor.count", new Long(1));
     def.put( "peermanager.schedule.time", new Long(100));
     def.put( "confirm_torrent_removal", FALSE );
-    def.put( "add_torrents_silently", FALSE );
     def.put( "enable_small_osx_fonts", TRUE );
     def.put( "Play Download Finished Announcement", FALSE);
     def.put( "Play Download Finished Announcement Text", "Download Complete");
