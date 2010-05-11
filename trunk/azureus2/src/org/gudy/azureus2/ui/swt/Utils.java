@@ -54,7 +54,6 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableDelegate;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableItemDelegate;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableItemOrTreeItem;
 
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
