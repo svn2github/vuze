@@ -21,11 +21,8 @@
 
 package com.aelitis.azureus.core.content;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
-import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
@@ -33,7 +30,6 @@ import java.util.regex.Pattern;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -93,7 +89,6 @@ import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 import com.aelitis.azureus.util.ImportExportUtils;
-import com.aelitis.net.magneturi.MagnetURIHandler;
 
 public class 
 RelatedContentManager
@@ -156,7 +151,6 @@ RelatedContentManager
 	
 	private final boolean	enabled;
 	
-	private boolean	ui_enabled;
 	private int		max_search_level;
 	private int		max_results;
 	
@@ -214,7 +208,6 @@ RelatedContentManager
 		if ( !FeatureAvailability.isRCMEnabled()){
 			
 			enabled		= false;
-			ui_enabled 	= false;
 			
 			return;
 		}
@@ -255,7 +248,6 @@ RelatedContentManager
 					parameterChanged(
 						String name )
 					{
-						ui_enabled 			= COConfigurationManager.getBooleanParameter( "rcm.ui.enabled", true ) && !DISABLE_ALL_UI;
 						max_search_level 	= COConfigurationManager.getIntParameter( "rcm.max_search_level", 3 );
 						max_results		 	= COConfigurationManager.getIntParameter( "rcm.max_results", 500 );
 					}
@@ -406,20 +398,7 @@ RelatedContentManager
 	{
 		return( enabled );
 	}
-	
-	public boolean
-	isUIEnabled()
-	{
-		return( ui_enabled );
-	}
-	
-	public void
-	setUIEnabled(
-		boolean		_ui_enabled )
-	{
-		COConfigurationManager.setParameter( "rcm.ui.enabled", _ui_enabled );
-	}
-	
+		
 	public int
 	getMaxSearchLevel()
 	{
