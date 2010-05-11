@@ -184,10 +184,6 @@ public class TreeColumnDelegate implements TableColumnOrTreeColumn
 		treeColumn.removeDisposeListener(listener);
 	}
 
-	public void reskin(int flags) {
-		treeColumn.reskin(flags);
-	}
-
 	public void setData(Object data) {
 		treeColumn.setData(data);
 	}

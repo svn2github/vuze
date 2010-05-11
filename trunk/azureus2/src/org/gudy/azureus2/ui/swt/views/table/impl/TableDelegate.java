@@ -23,7 +23,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.ui.swt.views.table.TableColumnDelegate;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
@@ -195,10 +194,6 @@ public class TableDelegate implements TableOrTreeSWT
 		return table.dragDetect(event);
 	}
 
-	public void layout(Control[] changed) {
-		table.layout(changed);
-	}
-
 	public boolean isDisposed() {
 		return table.isDisposed();
 	}
@@ -211,10 +206,6 @@ public class TableDelegate implements TableOrTreeSWT
 		return table.dragDetect(event);
 	}
 
-	public void layout(Control[] changed, int flags) {
-		table.layout(changed, flags);
-	}
-
 	public void notifyListeners(int eventType, Event event) {
 		table.notifyListeners(eventType, event);
 	}
@@ -225,10 +216,6 @@ public class TableDelegate implements TableOrTreeSWT
 
 	public void removeDisposeListener(DisposeListener listener) {
 		table.removeDisposeListener(listener);
-	}
-
-	public void reskin(int flags) {
-		table.reskin(flags);
 	}
 
 	public void setBackgroundMode(int mode) {
@@ -693,24 +680,12 @@ public class TableDelegate implements TableOrTreeSWT
 		table.removeAll();
 	}
 
-	public boolean traverse(int traversal) {
-		return table.traverse(traversal);
-	}
-
 	public void removeSelectionListener(SelectionListener listener) {
 		table.removeSelectionListener(listener);
 	}
 
-	public boolean traverse(int traversal, Event event) {
-		return table.traverse(traversal, event);
-	}
-
 	public void select(int[] indices) {
 		table.select(indices);
-	}
-
-	public boolean traverse(int traversal, KeyEvent event) {
-		return table.traverse(traversal, event);
 	}
 
 	public void select(int index) {

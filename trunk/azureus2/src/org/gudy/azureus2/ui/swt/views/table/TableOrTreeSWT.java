@@ -107,21 +107,15 @@ public interface TableOrTreeSWT
 
 	public boolean dragDetect(Event event);
 
-	public void layout(Control[] changed);
-
 	public boolean isListening(int eventType);
 
 	public boolean dragDetect(MouseEvent event);
-
-	public void layout(Control[] changed, int flags);
 
 	public void notifyListeners(int eventType, Event event);
 
 	public void removeListener(int eventType, Listener listener);
 
 	public void removeDisposeListener(DisposeListener listener);
-
-	public void reskin(int flags);
 
 	public void setBackgroundMode(int mode);
 
@@ -311,13 +305,7 @@ public interface TableOrTreeSWT
 
 	public TableItemOrTreeItem getParentItem();
 
-	public boolean traverse(int traversal);
-
 	public TableItemOrTreeItem[] getSelection();
-
-	public boolean traverse(int traversal, Event event);
-
-	public boolean traverse(int traversal, KeyEvent event);
 
 	public int getSelectionCount();
 
@@ -330,10 +318,6 @@ public interface TableOrTreeSWT
 	public int hashCode();
 
 	public boolean isDisposed();
-
-	public int internal_new_GC(GCData data);
-
-	public void internal_dispose_GC(int hDC, GCData data);
 
 	public void update();
 

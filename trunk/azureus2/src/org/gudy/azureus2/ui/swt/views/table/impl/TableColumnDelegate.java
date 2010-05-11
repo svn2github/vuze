@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
  
-package org.gudy.azureus2.ui.swt.views.table;
+package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.DisposeListener;
@@ -24,7 +24,8 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.ui.swt.views.table.impl.TableDelegate;
+import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
+import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
 /**
  * @author TuxPaper
@@ -182,10 +183,6 @@ public class TableColumnDelegate
 
 	public void removeDisposeListener(DisposeListener listener) {
 		column.removeDisposeListener(listener);
-	}
-
-	public void reskin(int flags) {
-		column.reskin(flags);
 	}
 
 	public void setData(Object data) {

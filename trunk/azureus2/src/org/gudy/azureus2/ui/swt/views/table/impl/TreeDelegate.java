@@ -201,20 +201,12 @@ public class TreeDelegate implements TableOrTreeSWT
 		return tree.dragDetect(event);
 	}
 
-	public void layout(Control[] changed) {
-		tree.layout(changed);
-	}
-
 	public boolean isListening(int eventType) {
 		return tree.isListening(eventType);
 	}
 
 	public boolean dragDetect(MouseEvent event) {
 		return tree.dragDetect(event);
-	}
-
-	public void layout(Control[] changed, int flags) {
-		tree.layout(changed, flags);
 	}
 
 	public void notifyListeners(int eventType, Event event) {
@@ -227,10 +219,6 @@ public class TreeDelegate implements TableOrTreeSWT
 
 	public void removeDisposeListener(DisposeListener listener) {
 		tree.removeDisposeListener(listener);
-	}
-
-	public void reskin(int flags) {
-		tree.reskin(flags);
 	}
 
 	public void setBackgroundMode(int mode) {
@@ -612,20 +600,8 @@ public class TreeDelegate implements TableOrTreeSWT
 		return wrapOrNull(tree.getParentItem());
 	}
 
-	public boolean traverse(int traversal) {
-		return tree.traverse(traversal);
-	}
-
 	public TableItemOrTreeItem[] getSelection() {
 		return wrapOrNull(tree.getSelection());
-	}
-
-	public boolean traverse(int traversal, Event event) {
-		return tree.traverse(traversal, event);
-	}
-
-	public boolean traverse(int traversal, KeyEvent event) {
-		return tree.traverse(traversal, event);
 	}
 
 	public int getSelectionCount() {

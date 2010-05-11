@@ -102,8 +102,6 @@ public interface TableColumnOrTreeColumn
 
 	public void removeDisposeListener(DisposeListener listener);
 
-	public void reskin(int flags);
-
 	public void setData(Object data);
 
 	public void setData(String key, Object value);

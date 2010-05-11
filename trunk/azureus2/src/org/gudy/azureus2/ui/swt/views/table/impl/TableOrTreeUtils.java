@@ -23,7 +23,6 @@ import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.ui.swt.views.table.TableColumnDelegate;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
