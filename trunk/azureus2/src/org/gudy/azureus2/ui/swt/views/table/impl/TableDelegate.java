@@ -103,11 +103,6 @@ public class TableDelegate implements TableOrTreeSWT
 		table.addMouseListener(listener);
 	}
 
-	public void drawBackground(GC gc, int x, int y, int width, int height,
-			int offsetX, int offsetY) {
-		table.drawBackground(gc, x, y, width, height, offsetX, offsetY);
-	}
-
 	public void addMouseTrackListener(MouseTrackListener listener) {
 		table.addMouseTrackListener(listener);
 	}

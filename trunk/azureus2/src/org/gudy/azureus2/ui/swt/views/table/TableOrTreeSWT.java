@@ -61,9 +61,6 @@ public interface TableOrTreeSWT
 
 	public void addMouseListener(MouseListener listener);
 
-	public void drawBackground(GC gc, int x, int y, int width, int height,
-			int offsetX, int offsetY);
-
 	public void addSelectionListener(SelectionListener listener);
 
 	public void addMouseTrackListener(MouseTrackListener listener);

@@ -105,11 +105,6 @@ public class TreeDelegate implements TableOrTreeSWT
 		tree.addMouseListener(listener);
 	}
 
-	public void drawBackground(GC gc, int x, int y, int width, int height,
-			int offsetX, int offsetY) {
-		tree.drawBackground(gc, x, y, width, height, offsetX, offsetY);
-	}
-
 	public void addSelectionListener(SelectionListener listener) {
 		tree.addSelectionListener(listener);
 	}
