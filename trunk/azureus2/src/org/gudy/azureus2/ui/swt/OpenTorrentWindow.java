@@ -68,6 +68,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
@@ -2147,25 +2148,16 @@ public class OpenTorrentWindow
 			final DownloadManager fExistingDownload = existingDownload;
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					if (shell == null) {
-						boolean bPopup = COConfigurationManager.getBooleanParameter("Popup Download Added");
-						if (bPopup) {
-  						new MessageSlideShell(Display.getCurrent(), SWT.ICON_INFORMATION,
-  								MSG_ALREADY_EXISTS, null, new String[] {
-  									":" + sOriginatingLocation,
-  									sfExistingName,
-  									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
-  								}, new Object[] {
-  									fExistingDownload
-  								}, -1 );
-						} else {
-							Logger.log(new LogAlert(true, LogAlert.AT_INFORMATION,
-									MessageText.getString(MSG_ALREADY_EXISTS + ".text", new String[] {
-										":" + sOriginatingLocation,
-										sfExistingName,
-										MessageText.getString(MSG_ALREADY_EXISTS_NAME),
-									})));
-						}
+					Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
+					if (Display.getDefault().getActiveShell() == null || !mainShell.isVisible() || mainShell.getMinimized() ) {
+						new MessageSlideShell(Display.getCurrent(), SWT.ICON_INFORMATION,
+								MSG_ALREADY_EXISTS, null, new String[] {
+									":" + sOriginatingLocation,
+									sfExistingName,
+									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
+								}, new Object[] {
+									fExistingDownload
+								}, -1 );
 					} else {
 						MessageBoxShell mb = new MessageBoxShell(SWT.OK, MSG_ALREADY_EXISTS,
 								new String[] {
