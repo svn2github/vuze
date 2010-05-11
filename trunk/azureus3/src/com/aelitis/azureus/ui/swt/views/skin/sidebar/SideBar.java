@@ -29,6 +29,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -142,6 +143,14 @@ public class SideBar
 		soSideBarContents = (SWTSkinObjectContainer) skin.getSkinObject("sidebar-contents");
 		soSideBarList = skin.getSkinObject("sidebar-list");
 		soSideBarPopout = skin.getSkinObject("sidebar-pop");
+
+		if (ConfigurationChecker.isNewVersion()
+				&& Constants.compareVersions(Constants.AZUREUS_VERSION, "4.4.1.0") == 0) {
+			final SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
+			if (soSash != null) {
+				soSash.resetWidth();
+			}
+		}
 
 		// addTestMenus();
 
