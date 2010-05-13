@@ -156,7 +156,7 @@ CacheFileManagerImpl
 		
 			// units are MB
 		
-		int		size			= 1024*1024*COConfigurationManager.getIntParameter( "diskmanager.perf.cache.size" );
+		long		size			= 1024L * 1024L * COConfigurationManager.getIntParameter( "diskmanager.perf.cache.size" );
 		
 			// units are KB
 		
