@@ -2209,7 +2209,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			int 			offset, 
 			int 			length) 
 	{
-		if ( disk_mgr.checkBlockConsistencyForRead(originator.getIp(),pieceNumber, offset, length)){
+		if ( disk_mgr.checkBlockConsistencyForRead(originator.getClient() + ": " + originator.getIp(),pieceNumber, offset, length)){
 
 			if ( enable_seeding_piece_rechecks && isSeeding()){
 
@@ -2239,7 +2239,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			int 			offset, 
 			int 			length) 
 	{
-		return( disk_mgr.checkBlockConsistencyForHint(originator.getIp(),pieceNumber, offset, length ));
+		return( disk_mgr.checkBlockConsistencyForHint(originator.getClient() + ": " + originator.getIp(),pieceNumber, offset, length ));
 	}
 
 	public boolean 
@@ -2249,7 +2249,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		int 				offset, 
 		DirectByteBuffer 	data) 
 	{
-		return disk_mgr.checkBlockConsistencyForWrite(originator.getIp(),pieceNumber, offset, data);
+		return disk_mgr.checkBlockConsistencyForWrite(originator.getClient() + ": " + originator.getIp(),pieceNumber, offset, data);
 	}
 
 	public int getAvailability(int pieceNumber)
