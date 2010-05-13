@@ -47,7 +47,7 @@ COConfigurationManager
 	    long mb_1			= 1*1024*1024;
 	    long mb_32			= 32*mb_1;
 	    int size = (int)(( max_mem_bytes - mb_32 )/mb_1);	    
-	    if( size > 1024 )  size = 1024;  //safety check
+	    if( size > 2000 )  size = 2000;  //safety check
       if( size < 1 )  size = 1;
 	    CONFIG_CACHE_SIZE_MAX_MB = size;
 	}
