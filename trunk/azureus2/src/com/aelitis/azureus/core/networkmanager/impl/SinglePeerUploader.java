@@ -60,23 +60,27 @@ public class SinglePeerUploader implements RateControlledEntity {
     return true;
   }
   
-  public boolean doProcessing(EventWaiter waiter) {
+  public int doProcessing(EventWaiter waiter, int max_bytes ) {
     if( !connection.getTransportBase().isReadyForWrite(waiter) )  {
       //Debug.out("dW:not ready"); happens sometimes, just live with it as non-fatal
-      return false;
+      return 0;
     }
     
     int num_bytes_allowed = rate_handler.getCurrentNumBytesAllowed();
     if( num_bytes_allowed < 1 )  {
-      return false;
+      return 0;
     }
     
+	if ( max_bytes > 0 && max_bytes < num_bytes_allowed ){
+		num_bytes_allowed = max_bytes;
+	}
+	
     int num_bytes_available = connection.getOutgoingMessageQueue().getTotalSize();
     if( num_bytes_available < 1 ) {
       if ( !connection.getOutgoingMessageQueue().isDestroyed()){
     	  //Debug.out("dW:not avail"); happens sometimes, just live with it as non-fatal
       }
-      return false;
+      return 0;
     }
     
     int num_bytes_to_write = num_bytes_allowed > num_bytes_available ? num_bytes_available : num_bytes_allowed;
@@ -111,15 +115,15 @@ public class SinglePeerUploader implements RateControlledEntity {
       }
       
       connection.notifyOfException( e );
-      return false;
+      return 0;
     }
     
     if( written < 1 )  {
-      return false;
+      return 0;
     }
     
     rate_handler.bytesProcessed( written );
-    return true;
+    return written;
   }
   
   public int getPriority() {

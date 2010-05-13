@@ -48,7 +48,7 @@ public interface RateControlledEntity {
    * Attempt to do a processing operation.
    * @return true if >0 bytes were processed (success), false if 0 bytes were processed (failure)
    */
-  public boolean doProcessing( EventWaiter waiter );
+  public int doProcessing( EventWaiter waiter, int max_bytes_permitted );
   
   /**
    * Get this entity's priority level.

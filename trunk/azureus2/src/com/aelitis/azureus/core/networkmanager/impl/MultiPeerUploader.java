@@ -499,11 +499,15 @@ public class MultiPeerUploader implements RateControlledEntity {
     return true;
   }
   
-  public boolean doProcessing( EventWaiter waiter ) {
+  public int doProcessing( EventWaiter waiter, int max_bytes ) {
     int num_bytes_allowed = rate_handler.getCurrentNumBytesAllowed();
-    if( num_bytes_allowed < 1 )  return false;
+    if( num_bytes_allowed < 1 )  return 0;
     
-    return write( waiter, num_bytes_allowed ) > 0 ? true : false;
+	if ( max_bytes > 0 && max_bytes < num_bytes_allowed ){
+		num_bytes_allowed = max_bytes;
+	}
+	
+    return write( waiter, num_bytes_allowed );
   }
 
   public int getPriority() {

@@ -57,16 +57,19 @@ public class SinglePeerDownloader implements RateControlledEntity {
     return true;
   }
     
-  public boolean doProcessing( EventWaiter waiter ) {
+  public int doProcessing( EventWaiter waiter, int max_bytes ) {
     if( connection.getTransportBase().isReadyForRead(waiter) != 0 )  {
-      return false;
+      return 0;
     }
     
     int num_bytes_allowed = rate_handler.getCurrentNumBytesAllowed();
     if( num_bytes_allowed < 1 )  {
-      return false;
+      return 0;
     }
     
+	if ( max_bytes > 0 && max_bytes < num_bytes_allowed ){
+		num_bytes_allowed = max_bytes;
+	}
     
     //int mss = NetworkManager.getTcpMssSize();   
     //if( num_bytes_allowed > mss )  num_bytes_allowed = mss;
@@ -99,16 +102,16 @@ public class SinglePeerDownloader implements RateControlledEntity {
       }
       
       connection.notifyOfException( e );
-      return false;
+      return 0;
     }
 
     if( bytes_read < 1 )  {
-      return false;
+      return 0;
     }
     
     rate_handler.bytesProcessed( bytes_read );
     
-    return true;
+    return bytes_read;
   }
   
   

@@ -130,11 +130,15 @@ public class MultiPeerDownloader implements RateControlledEntity {
 		return( res );
 	}
 
-	public boolean doProcessing( EventWaiter waiter ) {
+	public int doProcessing( EventWaiter waiter, int max_bytes ) {
 
 		int num_bytes_allowed = main_handler.getCurrentNumBytesAllowed();
-		if( num_bytes_allowed < 1 )  return false;
+		if( num_bytes_allowed < 1 )  return 0;
 
+		if ( max_bytes > 0 && max_bytes < num_bytes_allowed ){
+			num_bytes_allowed = max_bytes;
+		}
+		
 		ArrayList connections = connections_cow;
 		int num_checked = 0;
 		int num_bytes_remaining = num_bytes_allowed;
@@ -189,10 +193,10 @@ public class MultiPeerDownloader implements RateControlledEntity {
 		int total_bytes_read = num_bytes_allowed - num_bytes_remaining;
 		if( total_bytes_read > 0 ) {
 			main_handler.bytesProcessed( total_bytes_read );
-			return true;
+			return total_bytes_read;
 		}
 
-		return false;  //zero bytes read
+		return 0;
 	}
 
 

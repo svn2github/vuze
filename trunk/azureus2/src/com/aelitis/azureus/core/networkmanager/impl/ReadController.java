@@ -264,7 +264,7 @@ public class ReadController implements AzureusCoreStatsProvider{
 			  
 			  	// skip over failed readers to find a good one
 			  
-			  if ( ready_entity.doProcessing( read_waiter ) ) {
+			  if ( ready_entity.doProcessing( read_waiter, 0 ) > 0 ) {
 	
 				  progress_count++;
 	
@@ -291,7 +291,7 @@ public class ReadController implements AzureusCoreStatsProvider{
 			  }
 		  }else{
 			  
-			  return( ready_entity.doProcessing( read_waiter ));
+			  return( ready_entity.doProcessing( read_waiter, 0 ) > 0 );
 		  }
 	  }
 	  

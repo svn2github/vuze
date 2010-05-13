@@ -161,9 +161,10 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 		return( res );
 	}
 
-	public boolean 
+	public int 
 	doProcessing( 
-		EventWaiter waiter ) 
+		EventWaiter waiter,
+		int			max_bytes ) 
 	{
 			// Note - this is single threaded
 		
@@ -173,9 +174,14 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 		
 		if ( num_bytes_allowed < 1 ){
 			
-			return false;
+			return 0;
 		}
 
+		if ( max_bytes > 0 && max_bytes < num_bytes_allowed ){
+		
+			num_bytes_allowed = max_bytes;
+		}
+		
 		if ( pending_actions != null ){
 			
 			try{
@@ -314,10 +320,10 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 			
 			main_handler.bytesProcessed( total_bytes_read );
 			
-			return true;
+			return total_bytes_read;
 		}
 
-		return false;  //zero bytes read
+		return 0;  //zero bytes read
 	}
 
 

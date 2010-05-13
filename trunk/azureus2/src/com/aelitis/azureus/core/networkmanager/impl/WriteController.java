@@ -67,9 +67,12 @@ public class WriteController implements AzureusCoreStatsProvider{
   private int next_boost_position = 0;
   private int next_high_position = 0;
   
+  private long	last_normal_processing;
+  
   private int aggressive_np_normal_priority_count;
   private int aggressive_np_high_priority_count;
   
+  private long	process_loop_time;
   private long	wait_count;
   private long	progress_count;
   private long	non_progress_count;
@@ -223,6 +226,8 @@ public class WriteController implements AzureusCoreStatsProvider{
     
     while( true ) {
       
+      process_loop_time = SystemTime.getMonotonousTime();
+
       try {
         if( check_high_first ) {
           check_high_first = false;
@@ -248,12 +253,10 @@ public class WriteController implements AzureusCoreStatsProvider{
       catch( Throwable t ) {
         Debug.out( "writeProcessorLoop() EXCEPTION: ", t );
       }
-      
-      long now = SystemTime.getMonotonousTime();
-      
-      if ( now - last_check > 5000 ){
+            
+      if ( process_loop_time - last_check > 5000 ){
     	  
-    	  last_check = now;
+    	  last_check = process_loop_time;
     	  
     	  boolean	changed = false;
     	  
@@ -333,7 +336,7 @@ public class WriteController implements AzureusCoreStatsProvider{
     RateControlledEntity ready_entity = getNextReadyNormalPriorityEntity();
     if( ready_entity != null ){
     	
-    	if ( ready_entity.doProcessing( write_waiter ) ) {
+    	if ( ready_entity.doProcessing( write_waiter, 0 ) > 0 ) {
     
     		progress_count++;
     		
@@ -363,7 +366,7 @@ public class WriteController implements AzureusCoreStatsProvider{
   private boolean doHighPriorityWrite() {
     RateControlledEntity ready_entity = getNextReadyHighPriorityEntity();
     if( ready_entity != null ){
-    	if ( ready_entity.doProcessing( write_waiter ) ) {
+    	if ( ready_entity.doProcessing( write_waiter, 0 ) > 0 ) {
     
     		progress_count++;
     		
@@ -395,37 +398,88 @@ public class WriteController implements AzureusCoreStatsProvider{
   private RateControlledEntity 
   getNextReadyNormalPriorityEntity() 
   {
+	  ArrayList<RateControlledEntity> boosted_ref = boosted_priority_entities;
 
-	  ArrayList ref = boosted_priority_entities;
+	  int boosted_size = boosted_ref.size();
+	  
+	  if ( boosted_size > 0 ){
+		  
+		  if ( process_loop_time - last_normal_processing > 1000 ){
+		
+			  last_normal_processing = process_loop_time;
+			  
+			  ArrayList<RateControlledEntity> normal_ref = normal_priority_entities;
 
-	  int size = ref.size();
-	  int num_checked = 0;
-
-	  while( num_checked < size ) {
-		  next_boost_position = next_boost_position >= size ? 0 : next_boost_position;  //make circular
-		  RateControlledEntity entity = (RateControlledEntity)ref.get( next_boost_position );
-		  next_boost_position++;
-		  num_checked++;
-		  if( entity.canProcess( write_waiter ) ) {  //is ready
-
-			  System.out.println( "boost: " + entity.getString());
-			  return entity;
+			  int normal_size = normal_ref.size();
+			  
+			  int num_checked = 0;
+			  
+			  int position = next_normal_position;
+			  
+			  List<RateControlledEntity> ready = new ArrayList<RateControlledEntity>();
+			  
+			  while( num_checked < normal_size ) {
+				  position = position >= normal_size ? 0 : position; 
+				  RateControlledEntity entity = normal_ref.get( position );
+				  position++;
+				  num_checked++;
+				  if( entity.canProcess( null )) {
+					 next_normal_position = position;
+					 ready.add( entity );
+				  }
+			  }
+			  	
+			  int	num_ready = ready.size();
+			  
+			  if ( num_ready > 0 ){
+				  
+				  int	gift_remaining	= 5*1000;
+				  
+				  for ( RateControlledEntity r: ready ){
+					  
+					  int	permitted = gift_remaining / num_ready;
+					  
+					  if ( permitted <= 0 ){
+						  
+						  break;
+					  }
+					  
+					  System.out.println( "Gifting " + permitted + " to " + r.getString());
+					  
+					  gift_remaining -= r.doProcessing( write_waiter, permitted );
+					  
+					  num_ready--;
+				  }
+			  }
+		  }
+		  
+		  int num_checked = 0;
+	
+		  while( num_checked < boosted_size ) {
+			  next_boost_position = next_boost_position >= boosted_size ? 0 : next_boost_position;  //make circular
+			  RateControlledEntity entity = boosted_ref.get( next_boost_position );
+			  next_boost_position++;
+			  num_checked++;
+			  if( entity.canProcess( write_waiter ) ) {  //is ready
+				  return entity;
+			  }
 		  }
 	  }
 	  
-	  ref = normal_priority_entities;
+	  last_normal_processing = process_loop_time;
+	  
+	  ArrayList<RateControlledEntity> normal_ref = normal_priority_entities;
 
-	  size = ref.size();
-	  num_checked = 0;
+	  int normal_size = normal_ref.size();
+	  
+	  int num_checked = 0;
 
-	  while( num_checked < size ) {
-		  next_normal_position = next_normal_position >= size ? 0 : next_normal_position;  //make circular
-		  RateControlledEntity entity = (RateControlledEntity)ref.get( next_normal_position );
+	  while( num_checked < normal_size ) {
+		  next_normal_position = next_normal_position >= normal_size ? 0 : next_normal_position;  //make circular
+		  RateControlledEntity entity = (RateControlledEntity)normal_ref.get( next_normal_position );
 		  next_normal_position++;
 		  num_checked++;
 		  if( entity.canProcess( write_waiter ) ) {  //is ready
-
-			  System.out.println( "normal: " + entity.getString());
 			  return entity;
 		  }
 	  }
