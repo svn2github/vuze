@@ -131,4 +131,16 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
   public int getPercentDoneOfCurrentMessage() {
     return core_queue.getPercentDoneOfCurrentMessage();
   }
+  
+  public int
+  getDataQueuedBytes()
+  {
+	  return(core_queue.getDataQueuedBytes());
+  }
+  
+  public int
+  getProtocolQueuedBytes()
+  {
+	  return(core_queue.getProtocolQueuedBytes());
+  }
 }

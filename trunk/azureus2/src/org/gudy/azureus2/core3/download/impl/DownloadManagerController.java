@@ -287,6 +287,8 @@ DownloadManagerController
 				
 				peer_manager.stopAll();
 				
+				DownloadManagerRateController.removePeerManager( peer_manager );
+				
 				peer_manager	= null;
 			}
 			
@@ -551,6 +553,8 @@ DownloadManagerController
 		
 			peer_manager = temp;
 
+			DownloadManagerRateController.addPeerManager( peer_manager );
+			
 			limiters = external_rate_limiters_cow;
 			
 		}finally{
@@ -924,12 +928,14 @@ DownloadManagerController
 					  peer_manager.stopAll(); 
 					  
 					  stats.saveSessionTotals();
+					  
+					  DownloadManagerRateController.removePeerManager( peer_manager );
 					}
 					
 						// do this even if null as it also triggers tracker actions
 					
 					download_manager.informStopped( peer_manager, stateAfterStopping==DownloadManager.STATE_QUEUED );
-						
+											
 					peer_manager	= null;
 
 					DiskManager	dm = getDiskManager();

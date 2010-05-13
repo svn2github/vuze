@@ -323,6 +323,8 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 
 	public int getPriority() {  return RateControlledEntity.PRIORITY_HIGH;  }
 
+	public boolean getPriorityBoost(){ return false; }
+
 	public String
 	getString()
 	{

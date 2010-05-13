@@ -510,6 +510,8 @@ public class MultiPeerUploader implements RateControlledEntity {
     return RateControlledEntity.PRIORITY_HIGH;
   }
   
+  public boolean getPriorityBoost(){ return false; }
+
   public String
   getString()
   {

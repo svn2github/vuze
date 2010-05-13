@@ -62,4 +62,8 @@ public interface OutgoingMessageQueue {
   public void notifyOfExternalSend( Message message );  
   
   public int getPercentDoneOfCurrentMessage();
+  
+  public int getDataQueuedBytes();
+  
+  public int getProtocolQueuedBytes();
 }

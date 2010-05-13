@@ -77,6 +77,13 @@ OutgoingMessageQueue
    */
   public int getTotalSize();
   
+  public int getDataQueuedBytes();
+  
+  public int getProtocolQueuedBytes();
+  
+  public boolean getPriorityBoost();
+	
+  public void setPriorityBoost( boolean	boost );
   
   /**
    * Whether or not an urgent message (one that needs an immediate send, i.e. a no-delay message) is queued.

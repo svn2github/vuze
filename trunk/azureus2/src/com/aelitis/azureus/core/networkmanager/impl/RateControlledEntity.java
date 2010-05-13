@@ -61,6 +61,9 @@ public interface RateControlledEntity {
   	 * @return
   	 */
   
+  public boolean
+  getPriorityBoost();
+  
   public long
   getBytesReadyToWrite();
   

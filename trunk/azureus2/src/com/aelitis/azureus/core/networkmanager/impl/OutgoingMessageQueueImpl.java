@@ -55,6 +55,8 @@ OutgoingMessageQueueImpl
   private final AEMonitor listeners_mon		= new AEMonitor( "OutgoingMessageQueue:L");
   
   private int total_size = 0;
+  private int total_data_size = 0;
+  private boolean	priority_boost = false;
   private RawMessage urgent_message = null;
   private boolean destroyed = false;
   
@@ -128,6 +130,7 @@ OutgoingMessageQueueImpl
       queue_mon.exit();
     }
     total_size = 0;
+    total_data_size = 0;
     prev_sent.clear();
     listeners = new ArrayList();
     percent_complete = -1;
@@ -141,6 +144,30 @@ OutgoingMessageQueueImpl
    */
   public int getTotalSize() {  return total_size;  }
   
+  public int
+  getDataQueuedBytes()
+  {
+	 return( total_data_size );
+  }
+  
+  public int
+  getProtocolQueuedBytes()
+  {
+	  return( total_size - total_data_size );
+  }
+  
+  public boolean 
+  getPriorityBoost()
+  {
+	  return( priority_boost );
+  }
+	
+  public void 
+  setPriorityBoost( 
+	 boolean	boost )
+  {
+	  priority_boost = boost;
+  }
   
   /**
    * Whether or not an urgent message (one that needs an immediate send, i.e. a no-delay message) is queued.
@@ -209,8 +236,13 @@ OutgoingMessageQueueImpl
 	      queue.add( pos, rmesg );
 	      
 	      DirectByteBuffer[] payload = rmesg.getRawData();
+	      int	remaining = 0;
 	      for( int j=0; j < payload.length; j++ ) {
-	        total_size += payload[j].remaining(DirectByteBuffer.SS_NET);
+	    	  remaining += payload[j].remaining(DirectByteBuffer.SS_NET);
+	      }
+	      total_size += remaining;
+	      if ( rmesg.getType() == Message.TYPE_DATA_PAYLOAD ){
+	    	  total_data_size += remaining;
 	      }
 	    }finally{
 	      queue_mon.exit();
@@ -269,10 +301,14 @@ OutgoingMessageQueueImpl
             if( msg == urgent_message ) urgent_message = null;
             
             DirectByteBuffer[] payload = msg.getRawData();
+            int remaining = 0;
             for( int x=0; x < payload.length; x++ ) {
-              total_size -= payload[x].remaining(DirectByteBuffer.SS_NET);
+            	remaining += payload[x].remaining(DirectByteBuffer.SS_NET);
             }
-            
+            total_size -= remaining;
+            if ( msg.getType() == Message.TYPE_DATA_PAYLOAD ){
+            	total_data_size -= remaining;
+            }
             if( manual_listener_notify ) {
               NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_REMOVED );
               item.message = msg;
@@ -352,10 +388,14 @@ OutgoingMessageQueueImpl
             if( raw == urgent_message ) urgent_message = null;  
             
             DirectByteBuffer[] payload = raw.getRawData();
+            int remaining = 0;
             for( int x=0; x < payload.length; x++ ) {
-              total_size -= payload[x].remaining(DirectByteBuffer.SS_NET);
+            	remaining += payload[x].remaining(DirectByteBuffer.SS_NET);
             }
-
+            total_size -= remaining;
+            if ( raw.getType() == Message.TYPE_DATA_PAYLOAD ){
+            	total_data_size -= remaining;
+            }
             queue.remove( raw );
             msg_removed = raw;
           }
@@ -532,10 +572,13 @@ outer:
 					  int bytes_written = (bb.limit() - bb.remaining()) - orig_positions[ pos ];
 					  total_size -= bytes_written;
 
+					  if ( msg.getType() == Message.TYPE_DATA_PAYLOAD ){
+						  total_data_size -= bytes_written;
+					  }
+					  
 					  if( x > 0 && msg.getType() == Message.TYPE_DATA_PAYLOAD ) {  //assumes the first buffer is message header
 						  data_written += bytes_written;
-					  }
-					  else {
+					  }else {
 						  protocol_written += bytes_written;
 					  }
 

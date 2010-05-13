@@ -138,7 +138,7 @@ implements PEPeerTransport
 	protected volatile boolean closing = false;
 	private volatile int current_peer_state;
 
-	protected NetworkConnection connection;
+	final private NetworkConnection connection;
 	private OutgoingBTPieceMessageHandler outgoing_piece_message_handler;
 	private OutgoingBTHaveMessageAggregator outgoing_have_message_aggregator;
 	private Connection	plugin_connection;
@@ -522,6 +522,7 @@ implements PEPeerTransport
 
 		if( port < 0 || port > 65535 ) {
 			closeConnectionInternally( "given remote port is invalid: " + port );
+			connection = null;
 			return;
 		}
 
@@ -1938,6 +1939,11 @@ implements PEPeerTransport
 		//PEPeerTransport.CONNECTION_CONNECTING are handled by the ConnectDisconnectManager
 		//so we don't need to deal with them here.
 
+		if ( connection != null ){
+		
+			connection.getOutgoingMessageQueue().setPriorityBoost( !manager.isSeeding());
+		}
+		
 		if ( fast_extension_enabled ){
 			
 			checkAllowedFast();

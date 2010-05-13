@@ -283,6 +283,30 @@ PeerForeignNetworkConnection
 			return( 0 );
 		}
 		  
+		public int
+		getDataQueuedBytes()
+		{
+			return( 0 );
+		}
+		  
+		public int
+		getProtocolQueuedBytes()
+		{
+			return( 0 );
+		}
+		
+		public boolean 
+		getPriorityBoost()
+		{
+			return( false );
+		}
+			
+		public void 
+		setPriorityBoost( 
+			boolean	boost )
+		{
+		}
+
 		public boolean 
 		hasUrgentMessage()
 		{

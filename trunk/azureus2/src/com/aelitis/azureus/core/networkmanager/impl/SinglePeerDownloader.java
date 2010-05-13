@@ -116,6 +116,8 @@ public class SinglePeerDownloader implements RateControlledEntity {
     return RateControlledEntity.PRIORITY_NORMAL;
   }
 
+  public boolean getPriorityBoost(){ return false; }
+
   public long
   getBytesReadyToWrite()
   {
