@@ -15,8 +15,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package org.eclipse.swt.widgets;
+
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.gudy.azureus2.core3.util.Constants;
 
 /**
  * @author TuxPaper
@@ -26,6 +32,9 @@ package org.eclipse.swt.widgets;
 public class Tree2
 	extends Tree
 {
+	static final Map<Integer, Integer> mapStyleToWidgetStyle = new HashMap<Integer, Integer>(
+			0);
+
 	public Tree2(Composite parent, int style) {
 		super(parent, style);
 	}
@@ -34,7 +43,9 @@ public class Tree2
 		// skip check
 	};
 
-	int widgetStyle () {
+	int widgetStyle() {
+		/* I was going to go with this code, but OSX doesn't ahve widgetStyle,
+		    so compliling breaks on super call
 		int oldStyle = super.widgetStyle();
 		try {
 			Class<?> claOS = Class.forName("org.eclipse.swt.internal.win32.OS");
@@ -47,5 +58,39 @@ public class Tree2
 		} catch (Throwable e) {
 		}
 		return oldStyle;
+		*/
+
+		if (!Constants.isWindows) {
+			return 0;
+		}
+
+		try {
+			Integer widgetStyle = mapStyleToWidgetStyle.get(style);
+			if (widgetStyle != null) {
+				return widgetStyle.intValue();
+			}
+
+			Tree tree = new Tree(parent, style);
+			Method method = Tree.class.getDeclaredMethod("widgetStyle", null);
+			method.setAccessible(true);
+			int oldStyle = ((Number) method.invoke(tree, null)).intValue();
+			tree.dispose();
+
+			Class<?> claOS = Class.forName("org.eclipse.swt.internal.win32.OS");
+			// & ~(OS.TVS_LINESATROOT | OS.TVS_HASBUTTONS)
+			if (claOS != null) {
+				int TVS_LINESATROOT = ((Number) claOS.getField("TVS_LINESATROOT").get(
+						null)).intValue();
+				int TVS_HASBUTTONS = ((Number) claOS.getField("TVS_HASBUTTONS").get(
+						null)).intValue();
+				oldStyle &= ~(TVS_HASBUTTONS | TVS_LINESATROOT);
+			}
+			mapStyleToWidgetStyle.put(style, oldStyle);
+			return oldStyle;
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+
+		return 0;
 	}
 }
