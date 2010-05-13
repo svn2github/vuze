@@ -80,7 +80,7 @@ public class Utils
 	public static final boolean LAST_TABLECOLUMN_EXPANDS = isGTK;
 
 	/** GTK already handles alternating background for tables */
-	public static final boolean TABLE_GRIDLINE_IS_ALTERNATING_COLOR = isGTK;
+	public static final boolean TABLE_GRIDLINE_IS_ALTERNATING_COLOR = isGTK || isCocoa;
 
 	/**
 	 * Debug/Diagnose SWT exec calls.  Provides usefull information like how
