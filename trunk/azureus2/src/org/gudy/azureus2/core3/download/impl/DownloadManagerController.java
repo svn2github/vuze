@@ -287,7 +287,7 @@ DownloadManagerController
 				
 				peer_manager.stopAll();
 				
-				DownloadManagerRateController.removePeerManager( peer_manager );
+				// DownloadManagerRateController.removePeerManager( peer_manager );
 				
 				peer_manager	= null;
 			}
@@ -553,7 +553,7 @@ DownloadManagerController
 		
 			peer_manager = temp;
 
-			DownloadManagerRateController.addPeerManager( peer_manager );
+			// DownloadManagerRateController.addPeerManager( peer_manager );
 			
 			limiters = external_rate_limiters_cow;
 			
@@ -929,7 +929,7 @@ DownloadManagerController
 					  
 					  stats.saveSessionTotals();
 					  
-					  DownloadManagerRateController.removePeerManager( peer_manager );
+					  // DownloadManagerRateController.removePeerManager( peer_manager );
 					}
 					
 						// do this even if null as it also triggers tracker actions
