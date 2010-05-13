@@ -138,7 +138,8 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 	}
 
 	public TableItemOrTreeItem getItem(int index) {
-		return new TreeItemDelegate(item.getItem(index));
+		TreeItem treeItem = item.getItem(index);
+		return treeItem == null ? null : new TreeItemDelegate(treeItem);
 	}
 
 	public int getItemCount() {
@@ -149,7 +150,7 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 		TreeItem[] items = item.getItems();
 		TableItemOrTreeItem[] returnItems = new TableItemOrTreeItem[items.length];
 		for (int i = 0; i < returnItems.length; i++) {
-			returnItems[i] = new TreeItemDelegate(items[i]);
+			returnItems[i] = items[i] == null ? null : new TreeItemDelegate(items[i]);
 		}
 		return returnItems;
 	}
@@ -175,7 +176,8 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 	}
 
 	public TableItemOrTreeItem getParentItem() {
-		return new TreeItemDelegate(item.getParentItem());
+		TreeItem treeItem = item.getParentItem();
+		return treeItem == null ? null : new TreeItemDelegate(treeItem);
 	}
 
 	public String getText() {
