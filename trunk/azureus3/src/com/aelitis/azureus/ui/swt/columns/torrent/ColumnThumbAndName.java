@@ -25,9 +25,7 @@
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -47,6 +45,9 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.ui.common.table.TableCellCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3.ContentImageLoadedListener;
@@ -60,11 +61,13 @@ public class ColumnThumbAndName
 	extends CoreTableColumn
 	implements TableCellLightRefreshListener, ObfusticateCellText,
 	TableCellDisposeListener, TableCellSWTPaintListener,
-	TableCellClipboardListener
+	TableCellClipboardListener, TableCellMouseMoveListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
 	public static final String COLUMN_ID = "name";
+
+	private static final String ID_EXPANDOHITAREA = "expandoHitArea";
 
 	private boolean showIcon;
 
@@ -131,7 +134,8 @@ public class ColumnThumbAndName
 				+ getTableID();
 		menuShowIcon.addMultiListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
-				COConfigurationManager.setParameter(CFG_SHOWPROGRAMICON, ((Boolean) menu.getData()).booleanValue());
+				COConfigurationManager.setParameter(CFG_SHOWPROGRAMICON,
+						((Boolean) menu.getData()).booleanValue());
 			}
 		});
 
@@ -146,7 +150,8 @@ public class ColumnThumbAndName
 		final String CFG_WRAP_TEXT = "NameColumn.wrapText." + getTableID();
 		menuWrapText.addMultiListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
-				COConfigurationManager.setParameter(CFG_WRAP_TEXT, ((Boolean) menu.getData()).booleanValue());
+				COConfigurationManager.setParameter(CFG_WRAP_TEXT,
+						((Boolean) menu.getData()).booleanValue());
 			}
 		});
 
@@ -190,10 +195,53 @@ public class ColumnThumbAndName
 
 		int textX = cellBounds.x;
 
+		TableRowCore rowCore = cell.getTableRowCore();
+		if (rowCore != null) {
+			int numSubItems = rowCore.getSubItemCount();
+			boolean needExpando = numSubItems > 0;
+			if (needExpando) {
+				int paddingX = 3;
+				int middleY = cellBounds.y + (cellBounds.height / 2) - 1;
+				int startX = cellBounds.x + paddingX;
+				int halfHeight = 2;
+				int width = 7;
+				Color bg = gc.getBackground();
+				gc.setBackground(gc.getForeground());
+				gc.setAntialias(SWT.ON);
+				gc.setAdvanced(true);
+				if (rowCore.isExpanded()) {
+					gc.fillPolygon(new int[] {
+						startX,
+						middleY - halfHeight,
+						startX + width,
+						middleY - halfHeight,
+						startX + (width / 2),
+						middleY + (halfHeight * 2) + 1
+					});
+				} else {
+					gc.fillPolygon(new int[] {
+						startX,
+						middleY - halfHeight,
+						startX + width,
+						middleY + halfHeight,
+						startX,
+						middleY + (halfHeight * 2) + 1
+					});
+				}
+				gc.setBackground(bg);
+				Rectangle hitArea = new Rectangle(paddingX, middleY - halfHeight
+						- cellBounds.y, width, (halfHeight * 4) + 1);
+				rowCore.setData(ID_EXPANDOHITAREA, hitArea);
+
+				cellBounds.x += paddingX * 2 + width;
+				cellBounds.width -= paddingX * 2 + width;
+			}
+		}
+
 		if (!showIcon) {
 			cellBounds.x += 2;
 			cellBounds.width -= 4;
-			cellPaintName(cell, gc, cellBounds, textX);
+			cellPaintName(cell, gc, cellBounds, cellBounds.x);
 			return;
 		}
 
@@ -368,5 +416,30 @@ public class ColumnThumbAndName
 		if (name == null)
 			name = "";
 		return name;
+	}
+
+	public void cellMouseTrigger(TableCellMouseEvent event) {
+		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE
+				|| event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN) {
+			TableRow row = event.cell.getTableRow();
+			if (row == null) {
+				return;
+			}
+			Object data = row.getData(ID_EXPANDOHITAREA);
+			if (data instanceof Rectangle) {
+				Rectangle hitArea = (Rectangle) data;
+				boolean inExpando = hitArea.contains(event.x, event.y);
+
+				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE) {
+					((TableCellCore) event.cell).setCursorID(inExpando ? SWT.CURSOR_HAND
+							: SWT.CURSOR_ARROW);
+				} else if (inExpando) { // mousedown
+					if (row instanceof TableRowCore) {
+						TableRowCore rowCore = (TableRowCore) row;
+						rowCore.setExpanded(!rowCore.isExpanded());
+					}
+				}
+			}
+		}
 	}
 }

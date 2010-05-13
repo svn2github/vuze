@@ -154,4 +154,10 @@ public interface TableRowCore extends TableRow
 	 * @since 4.4.0.5
 	 */
 	public void setSubItemCount(int length);
+	
+	public int getSubItemCount();
+
+	public boolean isExpanded();
+
+	public void setExpanded(boolean b);
 }

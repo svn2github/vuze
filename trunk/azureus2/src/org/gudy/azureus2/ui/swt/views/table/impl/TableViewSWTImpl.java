@@ -167,7 +167,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	/** 1st column gap problem (Eclipse Bug 43910).  Set to true when table is 
 	 * using TableItem.setImage 
 	 */
-	private boolean bSkipFirstColumn;
+	private boolean bSkipFirstColumn = true;
 
 	private Point ptIconSize = null;
 
@@ -809,10 +809,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 			}
 		});
-		
+
 		// OSX SWT (3624) Requires SWT.EraseItem hooking, otherwise foreground
 		// color will not be set correctly when row is selected.
 		// Hook listener for all OSes in case this requirement beomes xplatform
+		// See https://bugs.eclipse.org/bugs/show_bug.cgi?id=312734
+		// See https://bugs.eclipse.org/bugs/show_bug.cgi?id=312735
 		table.addListener(SWT.EraseItem, new Listener() {
 			public void handleEvent(Event event) {
 				// extend the row color for OSX only, since it uses a solid color.
@@ -1116,6 +1118,24 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				tableInvalidate();
 			}
 		});
+		
+		if (useTree) {
+  		Listener listenerExpandCollapse = new Listener() {
+  			public void handleEvent(Event event) {
+  				TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
+  				if (item == null) {
+  					return;
+  				}
+  				TableRowCore row = getRow(item);
+  				if (row == null) {
+  					return;
+  				}
+  				row.setExpanded(event.type == SWT.Expand ? true : false);
+  			}
+  		};
+  		table.addListener(SWT.Expand, listenerExpandCollapse);
+  		table.addListener(SWT.Collapse, listenerExpandCollapse);
+		}
 
 		new TableTooltips(this, table.getComposite());
 
@@ -1599,6 +1619,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (event.gc.getClipping().isEmpty()) {
 				return;
 			}
+			
+			//System.out.println(event.gc.getForeground().getRGB().toString());
 			//System.out.println("paintItem " + event.gc.getClipping());
 			if (DEBUG_CELL_CHANGES) {
   			Random random = new Random(SystemTime.getCurrentTime() / 500);
@@ -1886,11 +1908,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		// SWT does not set 0 column width as expected in OS X; see bug 43910
 		// this will be removed when a SWT-provided solution is available to satisfy all platforms with identation issue
-		bSkipFirstColumn = bSkipFirstColumn && !Constants.isOSX;
+		//bSkipFirstColumn = bSkipFirstColumn && !Constants.isOSX;
 
 		if (bSkipFirstColumn) {
 			TableColumnOrTreeColumn tc = table.createNewColumn(SWT.NULL);
-			tc.setWidth(useTree ? 25 : 0);
+			//tc.setWidth(useTree ? 25 : 0);
+			tc.setWidth(0);
 			tc.setResizable(false);
 			tc.setMoveable(false);
 		}

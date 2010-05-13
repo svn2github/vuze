@@ -60,7 +60,6 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.*;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.NameItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -86,7 +85,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
  *         2005/Oct/01: Column moving in SWT >= 3.1
  */
 public class MyTorrentsView
-       extends TableViewTab
+       extends TableViewTab<DownloadManager>
        implements GlobalManagerListener,
                   ParameterListener,
                   DownloadManagerListener,
@@ -99,7 +98,8 @@ public class MyTorrentsView
                   TableViewSWTMenuFillListener,
                   TableRefreshListener,
                   TableCountChangeListener,
-                  TableViewFilterCheck, TableRowSWTPaintListener
+                  TableViewFilterCheck<DownloadManager>,
+                  TableRowSWTPaintListener
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
@@ -1213,9 +1213,8 @@ public class MyTorrentsView
 		return bOurs;
 	}
 
-	public boolean filterCheck(Object odm, String sLastSearch, boolean bRegexSearch) {
+	public boolean filterCheck(DownloadManager dm, String sLastSearch, boolean bRegexSearch) {
 		boolean bOurs = true;
-		DownloadManager dm = (DownloadManager) odm;
 
 		if (sLastSearch.length() > 0) {
 			try {
@@ -1677,7 +1676,7 @@ public class MyTorrentsView
 			if (!e.doit)
 				return;
 		}
-
+		
 		// DEL remove selected Torrents
 		if (e.stateMask == 0 && e.keyCode == SWT.DEL && e.widget != txtFilter) {
 			TorrentUtil.removeTorrents(tv.getSelectedDataSources().toArray(), cTablePanel.getShell());
@@ -2214,8 +2213,12 @@ public class MyTorrentsView
 				int i = parentItem.indexOf(row);
 				if (i >= 0 && i < infos.length) {
 					if (column.getName().equals("name")) {
+						final String CFG_SHOWPROGRAMICON = "NameColumn.showProgramIcon."	+ tv.getTableID();
+						boolean showIcon = COConfigurationManager.getBooleanParameter(
+								CFG_SHOWPROGRAMICON,
+								COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon"));
 						//System.out.println(cellArea);
-						int padding = (int) (cellArea.height * 2);
+						int padding = 10 + 20 + (showIcon ? cellArea.height : 0);
 						cellArea.x += padding;
 						cellArea.width -= padding;
 						GCStringPrinter.printString(gc, infos[i].getFile(true).getName(), cellArea, true, false, SWT.LEFT );

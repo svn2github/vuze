@@ -77,6 +77,8 @@ BufferedTableRow
 	private Image imageBG;
 
 	private int numSubItems;
+
+	private boolean expanded;
 	
 	
 	static {
@@ -105,6 +107,7 @@ BufferedTableRow
 	public void createSWTRow() {
     item = table.createNewItem(SWT.NULL);
 		item.setItemCount(numSubItems);
+		item.setExpanded(expanded);
 		setAlternatingBGColor(true);
 	}
 
@@ -698,6 +701,7 @@ BufferedTableRow
     item = newRow;
 		item.setItemCount(numSubItems);
 		item.setExpanded(wasExpanded);
+		expanded = wasExpanded;
    	invalidate();
 
     return true;
@@ -774,7 +778,22 @@ BufferedTableRow
 		numSubItems = i;
 	}
 	
+	public int getSubItemCount() {
+		return numSubItems;
+	}
+	
 	public TableItemOrTreeItem[] getSubItems() {
 		return table.getItems();
+	}
+
+	public void setExpanded(boolean b) {
+		expanded = b;
+		if (item != null) {
+			item.setExpanded(b);
+		}
+	}
+	
+	public boolean isExpanded() {
+		return expanded;
 	}
 }
