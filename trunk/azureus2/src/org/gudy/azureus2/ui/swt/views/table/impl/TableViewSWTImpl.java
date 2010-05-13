@@ -2080,15 +2080,41 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 						TableColumnOrTreeColumn tcColumn = (TableColumnOrTreeColumn) menu.getData("column");
 						
-						if (!isHeader) {
-							fillMenu(menu, tcColumn);
-						} else {
+						if (isHeader) {
 							fillColumnMenu(tcColumn);
+						} else {
+							Point pt = table.getDisplay().getCursorLocation();
+							pt = table.toControl(pt);
+							TableItemOrTreeItem item = table.getItem(new Point(2, pt.y));
+
+							if (item != null && item.getParentItem() != null) {
+								TableItemOrTreeItem parentItem = item.getParentItem();
+								TableRowCore row = getRow(parentItem);
+								
+								fillLeafMenu(menu, tcColumn, row, parentItem.indexOf(item));
+							} else {
+								fillMenu(menu, tcColumn);
+							}
 						}
+
 					}
 				});
 
 		return menu;
+	}
+
+	private void fillLeafMenu(Menu menu, TableColumnOrTreeColumn tcColumn,
+			TableRow parentRow, int index) {
+		String columnName = tcColumn == null ? null
+				: (String) tcColumn.getData("Name");
+
+		Object[] listeners = listenersMenuFill.toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			if (listeners[i] instanceof TableViewSWTMenuFillListener2) {
+				TableViewSWTMenuFillListener2 l = (TableViewSWTMenuFillListener2) listeners[i];
+				l.fillLeafMenu(columnName, menu, parentRow, index);
+			}
+		}
 	}
 
 	/** Fill the Context Menu with items.  Called when menu is about to be shown.
@@ -2098,7 +2124,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @param menu Menu to fill
 	 * @param tcColumn 
 	 */
-	public void fillMenu(final Menu menu, final TableColumnOrTreeColumn tcColumn) {
+	private void fillMenu(final Menu menu, final TableColumnOrTreeColumn tcColumn) {
 		String columnName = tcColumn == null ? null : (String) tcColumn.getData("Name");
 
 		Object[] listeners = listenersMenuFill.toArray();

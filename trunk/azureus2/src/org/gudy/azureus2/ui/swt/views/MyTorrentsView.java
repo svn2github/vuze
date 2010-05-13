@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -95,7 +96,7 @@ public class MyTorrentsView
                   TableLifeCycleListener, 
                   TableViewSWTPanelCreator,
                   TableSelectionListener,
-                  TableViewSWTMenuFillListener,
+                  TableViewSWTMenuFillListener2,
                   TableRefreshListener,
                   TableCountChangeListener,
                   TableViewFilterCheck<DownloadManager>,
@@ -1420,6 +1421,16 @@ public class MyTorrentsView
 			// ---
 			new MenuItem(menu, SWT.SEPARATOR);
 		}
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener2#fillLeafMenu(java.lang.String, org.eclipse.swt.widgets.Menu, org.gudy.azureus2.plugins.ui.tables.TableRow, int)
+	public void fillLeafMenu(String columnName, Menu menu, TableRow parentRow,
+			int index) {
+		DownloadManager dm = (DownloadManager) ((TableRowCore) parentRow).getDataSource(true);
+		DiskManagerFileInfo fileInfo = dm.getDiskManagerFileInfo()[index];
+		FilesViewMenuUtil.fillMenu(tv, columnName, menu, dm, new Object[] {
+			fileInfo
+		});
 	}
 
 	private void createDragDrop() {
