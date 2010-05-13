@@ -369,4 +369,6 @@ public interface TableView<DATASOURCETYPE>
 	TableColumn getTableColumn(String columnName);
 	
 	void setEnabled(boolean enable);
+
+	boolean canHaveSubItems();
 }

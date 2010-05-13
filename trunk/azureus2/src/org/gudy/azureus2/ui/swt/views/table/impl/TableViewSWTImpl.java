@@ -366,7 +366,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		boolean wantTree = (_iTableStyle & SWT.CASCADE) != 0;
 		_iTableStyle &= ~SWT.CASCADE;
 		if (wantTree) {
-			useTree = COConfigurationManager.getBooleanParameter("Table.useTree");
+			useTree = COConfigurationManager.getBooleanParameter("Table.useTree")
+					&& !Utils.isCarbon;
 		}
 		classPluginDataSourceType = pluginDataSourceType;
 		sTableID = _sTableID;
@@ -5403,4 +5404,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
+	public boolean canHaveSubItems() {
+		return useTree;
+	}
 }

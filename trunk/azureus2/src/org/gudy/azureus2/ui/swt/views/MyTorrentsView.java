@@ -2116,12 +2116,14 @@ public class MyTorrentsView
 
   // @see com.aelitis.azureus.ui.common.table.TableCountChangeListener#rowAdded(com.aelitis.azureus.ui.common.table.TableRowCore)
   public void rowAdded(TableRowCore row) {
-  	DownloadManager dm = (DownloadManager) row.getDataSource(true);
-  	if (dm != null) {
-  		TOTorrent torrent = dm.getTorrent();
-  		if (torrent != null) {
-  			row.setSubItemCount(torrent.getFiles().length);
-  		}
+  	if (tv.canHaveSubItems()) {
+    	DownloadManager dm = (DownloadManager) row.getDataSource(true);
+    	if (dm != null) {
+    		TOTorrent torrent = dm.getTorrent();
+    		if (torrent != null) {
+    			row.setSubItemCount(torrent.getFiles().length);
+    		}
+    	}
   	}
 		updateTableLabel();
   }
