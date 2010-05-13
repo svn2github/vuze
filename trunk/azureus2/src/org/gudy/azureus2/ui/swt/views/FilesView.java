@@ -22,7 +22,6 @@
 package org.gudy.azureus2.ui.swt.views;
 
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,27 +37,22 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.AzureusCoreOperation;
-import com.aelitis.azureus.core.AzureusCoreOperationTask;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -234,463 +228,11 @@ public class FilesView
 
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWTMenuFillListener#fillMenu(org.eclipse.swt.widgets.Menu)
 	public void fillMenu(String sColumnName, final Menu menu) {
-		Shell shell = menu.getShell();
 		Object[] data_sources = tv.getSelectedDataSources().toArray();
-		boolean hasSelection = (data_sources.length > 0);
-
-    final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
-    Messages.setLanguageText(itemOpen, "FilesView.menu.open");
-    Utils.setMenuItemImage(itemOpen, "run");
-    // Invoke open on enter, double click
-    menu.setDefaultItem(itemOpen);
-
-	// Explore  (Copied from MyTorrentsView)
-	final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
-	final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
-	Messages.setLanguageText(itemExplore, "MyTorrentsView.menu." + (use_open_containing_folder ? "open_parent_folder" : "explore"));
-	itemExplore.addListener(SWT.Selection, new Listener() {
-		public void handleEvent(Event event) {
-		    Object[] dataSources = tv.getSelectedDataSources().toArray();
-		    for (int i = dataSources.length - 1; i >= 0; i--) {
-		    	DiskManagerFileInfo info = (DiskManagerFileInfo)dataSources[i];
-		    	if (info != null) {
-		    		ManagerUtils.open( info, use_open_containing_folder );
-		    	}
-		    }
-		}
-	});
-	itemExplore.setEnabled(hasSelection);
-
-	MenuItem itemRenameOrRetarget = null, itemRename = null, itemRetarget = null;
-
-	itemRenameOrRetarget = new MenuItem(menu, SWT.PUSH);
-	Messages.setLanguageText(itemRenameOrRetarget, "FilesView.menu.rename");
-	itemRenameOrRetarget.setData("rename", Boolean.valueOf(true));
-	itemRenameOrRetarget.setData("retarget", Boolean.valueOf(true));
-	
-	itemRename = new MenuItem(menu, SWT.PUSH);
-	itemRetarget = new MenuItem(menu, SWT.PUSH);
-	Messages.setLanguageText(itemRename, "FilesView.menu.rename_only");
-	Messages.setLanguageText(itemRetarget, "FilesView.menu.retarget");
-	
-	itemRename.setData("rename", Boolean.valueOf(true));
-	itemRename.setData("retarget", Boolean.valueOf(false));
-	itemRetarget.setData("rename", Boolean.valueOf(false));
-	itemRetarget.setData("retarget", Boolean.valueOf(true));
-		
-    final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
-    Messages.setLanguageText(itemPriority, "FilesView.menu.setpriority"); //$NON-NLS-1$
-    
-    final Menu menuPriority = new Menu(shell, SWT.DROP_DOWN);
-    itemPriority.setMenu(menuPriority);
-    
-    final MenuItem itemHigh = new MenuItem(menuPriority, SWT.CASCADE);
-    itemHigh.setData("Priority", new Integer(0));
-    Messages.setLanguageText(itemHigh, "FilesView.menu.setpriority.high"); //$NON-NLS-1$
-    
-    final MenuItem itemLow = new MenuItem(menuPriority, SWT.CASCADE);
-    itemLow.setData("Priority", new Integer(1));
-    Messages.setLanguageText(itemLow, "FilesView.menu.setpriority.normal"); //$NON-NLS-1$
-    
-    final MenuItem itemSkipped = new MenuItem(menuPriority, SWT.CASCADE);
-    itemSkipped.setData("Priority", new Integer(2));
-    Messages.setLanguageText(itemSkipped, "FilesView.menu.setpriority.skipped"); //$NON-NLS-1$
-
-    final MenuItem itemDelete = new MenuItem(menuPriority, SWT.CASCADE);
-    itemDelete.setData("Priority", new Integer(3));
-    Messages.setLanguageText(itemDelete, "wizard.multitracker.delete");	// lazy but we're near release
-
-    new MenuItem(menu, SWT.SEPARATOR);
-
-	if (!hasSelection) {
-		itemOpen.setEnabled(false);
-		itemPriority.setEnabled(false);
-		itemRenameOrRetarget.setEnabled(false);
-		itemRename.setEnabled(false);
-		itemRetarget.setEnabled(false);
-		return;
+		FilesViewMenuUtil.fillMenu(tv, sColumnName, menu, manager, data_sources);
 	}
 
-	boolean open 				= true;
-	boolean all_compact 		= true;
-	boolean	all_skipped			= true;
-	boolean	all_priority		= true;
-	boolean	all_not_priority	= true;
-		
-	DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[data_sources.length];
 	
-	System.arraycopy(data_sources, 0, dmi_array, 0, data_sources.length);
-	
-	int[] storage_types = manager.getStorageType(dmi_array);
-		
-	for (int i = 0; i < dmi_array.length; i++) {
-
-		DiskManagerFileInfo file_info = dmi_array[i];
-
-		if (open && file_info.getAccessMode() != DiskManagerFileInfo.READ) {
-
-			open = false;
-		}
-
-		if (all_compact && storage_types[i] != DiskManagerFileInfo.ST_COMPACT) {
-			all_compact = false;
-		}
-
-		if (all_skipped || all_priority || all_not_priority) {
-			if ( file_info.isSkipped()){
-				all_priority		= false;
-				all_not_priority	= false;
-			}else{
-				all_skipped = false;
-
-				// Only do this check if we need to.
-				if (all_not_priority || all_priority) {
-					if (file_info.isPriority()){
-						all_not_priority = false;
-					}else{
-						all_priority = false;
-					}
-				}
-			}
-		}
-	}
-
-	// we can only open files if they are read-only
-
-	itemOpen.setEnabled(open);
-
-	// can't rename files for non-persistent downloads (e.g. shares) as these
-	// are managed "externally"
-
-	itemRenameOrRetarget.setEnabled(manager.isPersistent());
-	itemRename.setEnabled(manager.isPersistent());
-	itemRetarget.setEnabled(manager.isPersistent());
-
-	itemSkipped.setEnabled( !all_skipped );
-
-	itemHigh.setEnabled( !all_priority );
-
-	itemLow.setEnabled( !all_not_priority );
-
-	itemDelete.setEnabled( !all_compact );
-
-	itemOpen.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
-		public void run(TableRowCore row) {
-			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
-			if (fileInfo.getAccessMode() == DiskManagerFileInfo.READ) {
-				Utils.launch(fileInfo);
-			}
-		}
-	});
-    
-    Listener rename_listener = new Listener() {
-    	public void handleEvent(Event event) {
-    		final boolean rename_it = ((Boolean)event.widget.getData("rename")).booleanValue();
-    		final boolean retarget_it = ((Boolean)event.widget.getData("retarget")).booleanValue();
-				final TableRowCore[] selectedRows = tv.getSelectedRows();
-				rename(selectedRows, rename_it, retarget_it);
-    	}
-    };
-    
-   	itemRenameOrRetarget.addListener(SWT.Selection, rename_listener);
-   	itemRename.addListener(SWT.Selection, rename_listener);
-   	itemRetarget.addListener(SWT.Selection, rename_listener);
-    
-    Listener priorityListener = new Listener() {
-			public void handleEvent(Event event) {
-				final int priority = ((Integer) event.widget.getData("Priority")).intValue();
-				final TableRowCore[] selectedRows = tv.getSelectedRows();
-				Utils.getOffOfSWTThread(new AERunnable(){
-					public void runSupport() {
-						changePriority(priority, selectedRows);
-					}
-				});
-			}
-    };
-
-    itemHigh.addListener(SWT.Selection, priorityListener); 
-    itemLow.addListener(SWT.Selection, priorityListener);
-    itemSkipped.addListener(SWT.Selection, priorityListener); 
-    itemDelete.addListener(SWT.Selection, priorityListener);
-	}
-
-	private String askForRenameFilename(DiskManagerFileInfo fileInfo) {
-		SimpleTextEntryWindow dialog = new SimpleTextEntryWindow(
-				"FilesView.rename.filename.title", "FilesView.rename.filename.text");
-		dialog.setPreenteredText(fileInfo.getFile(true).getName(), false); // false -> it's not "suggested", it's a previous value
-		dialog.allowEmptyInput(false);
-		dialog.prompt();
-		if (!dialog.hasSubmittedInput()) {return null;}
-		return dialog.getSubmittedInput();
-	}
-	
-	private String askForRetargetedFilename(DiskManagerFileInfo fileInfo) {
-		FileDialog fDialog = new FileDialog(Utils.findAnyShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
-		File existing_file = fileInfo.getFile(true);
-		fDialog.setFilterPath(existing_file.getParent());
-		fDialog.setFileName(existing_file.getName());
-		fDialog.setText(MessageText.getString("FilesView.rename.choose.path"));
-		return fDialog.open();
-	}
-	
-	private String askForSaveDirectory(DiskManagerFileInfo fileInfo) {
-		DirectoryDialog dDialog = new DirectoryDialog(Utils.findAnyShell(), SWT.SYSTEM_MODAL | SWT.SAVE);
-		File current_dir = fileInfo.getFile(true).getParentFile();
-		dDialog.setFilterPath(current_dir.getPath());
-		dDialog.setText(MessageText.getString("FilesView.rename.choose.path.dir"));
-		return dDialog.open();
-	}
-	
-	private boolean askCanOverwrite(File file) {
-		MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.CANCEL,
-				MessageText.getString("FilesView.rename.confirm.delete.title"),
-				MessageText.getString("FilesView.rename.confirm.delete.text",
-						new String[] {
-							file.toString()
-						}));
-		mb.setDefaultButtonUsingStyle(SWT.OK);
-		mb.setRememberOnlyIfButton(0);
-		mb.setRemember("FilesView.messagebox.rename.id", true, null);
-		mb.setLeftImage(SWT.ICON_WARNING);
-		mb.open(null);
-		return mb.waitUntilClosed() == SWT.OK;
-	}
-	
-	// same code is used in tableitems.files.NameItem
-	private void moveFile(final DiskManagerFileInfo fileInfo, final File target) {
-
-		// this behaviour should be put further down in the core but I'd rather not
-		// do so close to release :(
-		final boolean[] result = { false };
-
-		is_changing_links = true;
-		FileUtil.runAsTask(new AzureusCoreOperationTask() {
-			public void run(AzureusCoreOperation operation) {
-					result[0] = fileInfo.setLink(target);
-				}
-			}
-		);
-		is_changing_links = false;
-
-		if (!result[0]){
-			new MessageBoxShell(SWT.ICON_ERROR | SWT.OK, 
-					MessageText.getString("FilesView.rename.failed.title"),
-					MessageText.getString("FilesView.rename.failed.text")).open(null);
-		}
-
-	}
-  
-	protected void rename(TableRowCore[] rows, boolean rename_it, boolean retarget_it) {
-	 	if (manager == null) {return;}
-	 	if (rows.length == 0) {return;}
-	 	
-	 	String save_dir = null;
-	 	if (!rename_it && retarget_it) {
-	 		save_dir = askForSaveDirectory((DiskManagerFileInfo)rows[0].getDataSource(true));
-	 		if (save_dir == null) {return;}
-	 	}
-	 	
-		boolean	paused = false;
-		try {
-			for (int i=0; i<rows.length; i++) {
-				final TableRowCore row = rows[i];
-				final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)rows[i].getDataSource(true);
-				File existing_file = fileInfo.getFile(true);
-				File f_target = null;
-				if (rename_it && retarget_it) {
-					String s_target = askForRetargetedFilename(fileInfo);
-					if (s_target != null)
-						f_target = new File(s_target);
-				}
-				else if (rename_it) {
-					String s_target = askForRenameFilename(fileInfo);
-					if (s_target != null)
-						f_target = new File(existing_file.getParentFile(), s_target);
-				}
-				else {
-					// Parent directory has changed.
-					f_target = new File(save_dir, existing_file.getName());
-				}
-				
-				// So are we doing a rename?
-				// If the user has decided against it - abort the op.
-				if (f_target == null) {return;}
-			
-			    if (!paused) {paused = manager.pause();}
-			    
-    			if (f_target.exists()){
-    				
-    				// Nothing to do.
-    				if (f_target.equals(existing_file))
-    					continue;
-    					
-    				// A rewrite will occur, so we need to ask the user's permission.
-    				else if (existing_file.exists() && !askCanOverwrite(existing_file))
-    					continue;
-    				
-    				// If we reach here, then it means we are doing a real move, but there is
-    				// no existing file.
-    			}
-    					
-    			final File ff_target = f_target;
-  				Utils.getOffOfSWTThread(new AERunnable(){
-  					public void runSupport() {
-  						moveFile(fileInfo, ff_target);
-  	    			row.invalidate();
-  					}
-  				});
-			}
-		}
-		finally {
-			if (paused){manager.resume();}
-		}
-	}
-	
-	
-  private void
-  changePriority(
-	  int				type ,
-	  TableRowCore[]	rows )
-  {
-	  	if ( manager == null){
-	  		
-	  		return;
-	  	}
-  				
-	  	boolean paused = false;
-		try{
-            DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[rows.length];
-     	 	for (int i=0; i<rows.length; i++) {
-     	 		file_infos[i] = (DiskManagerFileInfo)rows[i].getDataSource(true);
-     	 		if (type == 0 || type == 1) {
-     	 			file_infos[i].setPriority(type==0);
-				}
-     	 	}
-     	 	boolean skipped = (type == 2 || type == 3);
-     	 	boolean delete_action = (type == 3);
-     	 	paused = setSkipped(file_infos, skipped, delete_action);
-		}finally{
-			
-			if ( paused ){
-			
-				manager.resume();
-			}
-		}
-  }
-  
-  // Returns true if it was paused here.
-  private boolean
-  setSkipped(
-	 DiskManagerFileInfo[]	infos,
-	 boolean				skipped,
-	 boolean				delete_action)
-  {
-		// if we're not managing the download then don't do anything other than
-		// change the file's priority
-	
-	if (!manager.isPersistent()){
-		for (int i=0; i<infos.length; i++) {
-			infos[i].setSkipped(skipped);
-		}
-		return false;
-	}
-	
-	int[] existing_storage_types = manager.getStorageType(infos);
-	int nbFiles = manager.getDiskManagerFileInfoSet().nbFiles();
-	boolean[] setLinear = new boolean[nbFiles];
-	boolean[] setCompact = new boolean[nbFiles];
-	int compactCount = 0;
-	int linearCount = 0;
-
-
-	if(infos.length > 1)
-	{
-		
-	}
-	// This should hopefully reduce the number of "exists" checks.
-	File save_location = manager.getAbsoluteSaveLocation();
-	boolean root_exists = save_location.isDirectory() || (infos.length <= 1 && save_location.exists());
-	
-	boolean type_has_been_changed = false;
-	boolean requires_pausing = false;
-
-	for (int i=0; i<infos.length; i++) {
-		int existing_storage_type = existing_storage_types[i];  
-		int new_storage_type = DiskManagerFileInfo.ST_LINEAR;
-		if (skipped) {
-
-			// Check to see if the file exists, but try to avoid doing an
-			// actual disk check if possible.
-			File existing_file = infos[i].getFile(true);
-			
-			// Avoid performing existing_file.exists if we know that it is meant
-			// to reside in the default save location and that location does not
-			// exist.
-			boolean perform_check;
-			if (root_exists) {perform_check = true;}
-			else if (FileUtil.isAncestorOf(save_location, existing_file)) {perform_check = false;}
-			else {perform_check = true;}
-
-			if (perform_check && existing_file.exists()) {
-					if (delete_action) {
-						MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.CANCEL,
-								MessageText.getString("FilesView.rename.confirm.delete.title"),
-								MessageText.getString("FilesView.rename.confirm.delete.text",
-										new String[] {
-											existing_file.toString()
-										}));
-						mb.setDefaultButtonUsingStyle(SWT.OK);
-						mb.setRememberOnlyIfButton(0);
-						mb.setRemember("FilesView.messagebox.delete.id", true, null);
-						mb.setLeftImage(SWT.ICON_WARNING);
-						mb.open(null);
-
-					boolean wants_to_delete = mb.waitUntilClosed() == SWT.OK;
-					
-					if (wants_to_delete) {new_storage_type = DiskManagerFileInfo.ST_COMPACT;}
-				}
-			}
-			// File does not exist.
-			else {new_storage_type = DiskManagerFileInfo.ST_COMPACT;}			
-		}
-		
-		boolean has_changed = existing_storage_type != new_storage_type;
-		type_has_been_changed |= has_changed;
-		requires_pausing |= (has_changed && new_storage_type == DiskManagerFileInfo.ST_COMPACT);
-		
-		type_has_been_changed = 
-			existing_storage_type != new_storage_type;
-		
-		if(new_storage_type == DiskManagerFileInfo.ST_COMPACT)
-		{
-			setCompact[infos[i].getIndex()] = true;
-			compactCount++;
-		} else
-		{
-			setLinear[infos[i].getIndex()] = true;
-			linearCount++;			
-		}
-	}
-	
-	boolean ok = true;
-	boolean paused = false;
-	if (type_has_been_changed) {
-		if (requires_pausing) paused = manager.pause();
-		if(linearCount > 0)
-			ok &= Arrays.equals(setLinear, manager.getDiskManagerFileInfoSet().setStorageTypes(setLinear, DiskManagerFileInfo.ST_LINEAR));
-		if(compactCount > 0)
-			ok &= Arrays.equals(setCompact, manager.getDiskManagerFileInfoSet().setStorageTypes(setCompact, DiskManagerFileInfo.ST_COMPACT));
-	}	
-	
-	if (ok) {
-		for (int i=0; i<infos.length; i++) {
-			infos[i].setSkipped(skipped);
-		}
-	}
-	
-	return paused;
-  }
-
   // @see com.aelitis.azureus.ui.common.table.TableRefreshListener#tableRefresh()
   private boolean force_refresh = false;
   public void tableRefresh() {
@@ -800,9 +342,11 @@ public class FilesView
   
   // Used to notify us of when we need to refresh - normally for external changes to the
   // file links.
-  private boolean is_changing_links = false;
   public void attributeEventOccurred(DownloadManager dm, String attribute_name, int event_type) {
-	  if (is_changing_links) {return;}
+  	Object oIsChangingLinks = dm.getUserData("is_changing_links");
+  	if ((oIsChangingLinks instanceof Boolean) && ((Boolean)oIsChangingLinks).booleanValue()) {
+  		return;
+  	}
 	  this.force_refresh = true;
   }
   
