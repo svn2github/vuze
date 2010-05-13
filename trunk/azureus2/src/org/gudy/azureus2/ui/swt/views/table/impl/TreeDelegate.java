@@ -39,7 +39,7 @@ public class TreeDelegate implements TableOrTreeSWT
 	Tree tree;
 
 	public TreeDelegate(Composite parent, int style) {
-		tree = new Tree(parent, style);
+		tree = new Tree2(parent, style);
 	}
 
 	public TreeDelegate(Tree t) {
