@@ -67,7 +67,12 @@ public class WriteController implements AzureusCoreStatsProvider{
   private int next_boost_position = 0;
   private int next_high_position = 0;
   
-  private long	last_normal_processing;
+  private int	booster_gift = 5*1024;
+  private long	booster_process_time;;
+  private int	booster_normal_written;
+  private int	booster_stat_index;
+  private int[]	booster_normal_writes 	= new int[5];
+  private int[]	booster_gifts 			= new int[5];
   
   private int aggressive_np_normal_priority_count;
   private int aggressive_np_high_priority_count;
@@ -332,34 +337,36 @@ public class WriteController implements AzureusCoreStatsProvider{
   }
   
   
-  private boolean doNormalPriorityWrite() {
-    RateControlledEntity ready_entity = getNextReadyNormalPriorityEntity();
-    if( ready_entity != null ){
-    	
-    	if ( ready_entity.doProcessing( write_waiter, 0 ) > 0 ) {
+  private boolean 
+  doNormalPriorityWrite() 
+  {
+    int result = processNextReadyNormalPriorityEntity();
     
-    		progress_count++;
+    if ( result > 0 ){
+    	   
+    	progress_count++;
     		
-    		return true;
-    	}else{
+    	return true;
+    	
+    }else if ( result == 0 ){
     		
-    		non_progress_count++;
+    	non_progress_count++;
 			
-    		if ( AGGRESIVE_WRITE ){
+    	if ( AGGRESIVE_WRITE ){
     			
-     			aggressive_np_normal_priority_count++;
+    		aggressive_np_normal_priority_count++;
     			     			
-    			if ( aggressive_np_normal_priority_count < ( normal_priority_entities.size() + boosted_priority_entities.size())){
+    		if ( aggressive_np_normal_priority_count < ( normal_priority_entities.size() + boosted_priority_entities.size())){
     				
-    				return( true );
+    			return( true );
     				
-    			}else{
+    		}else{
     				
-    				aggressive_np_normal_priority_count = 0;
-    			}
+    			aggressive_np_normal_priority_count = 0;
     		}
     	}
     }
+    
     return false;
   }
   
@@ -395,8 +402,8 @@ public class WriteController implements AzureusCoreStatsProvider{
   }
   
   
-  private RateControlledEntity 
-  getNextReadyNormalPriorityEntity() 
+  private int 
+  processNextReadyNormalPriorityEntity() 
   {
 	  ArrayList<RateControlledEntity> boosted_ref = boosted_priority_entities;
 
@@ -404,9 +411,35 @@ public class WriteController implements AzureusCoreStatsProvider{
 	  
 	  if ( boosted_size > 0 ){
 		  
-		  if ( process_loop_time - last_normal_processing > 1000 ){
+		  if ( process_loop_time - booster_process_time >= 1000 ){
 		
-			  last_normal_processing = process_loop_time;
+			  booster_process_time = process_loop_time;
+			  
+			  booster_gifts[ booster_stat_index ] 			= booster_gift;
+			  booster_normal_writes[ booster_stat_index]	= booster_normal_written;
+			  
+			  booster_stat_index++;
+			  
+			  if ( booster_stat_index >= booster_gifts.length ){
+				  
+				  booster_stat_index = 0;
+			  }
+			  
+			  booster_normal_written = 0;
+		  }
+		  
+		  int	total_gifts 		= 0;
+		  int	total_normal_writes	= 0;
+			  
+		  for (int i=0;i<booster_gifts.length;i++){
+				  
+			  total_gifts			+= booster_gifts[i];
+			  total_normal_writes 	+= booster_normal_writes[i];
+		  }
+			  
+		  int	effective_gift = total_gifts - total_normal_writes;
+		  
+		  if ( effective_gift > 0 ){
 			  
 			  ArrayList<RateControlledEntity> normal_ref = normal_priority_entities;
 
@@ -423,7 +456,7 @@ public class WriteController implements AzureusCoreStatsProvider{
 				  RateControlledEntity entity = normal_ref.get( position );
 				  position++;
 				  num_checked++;
-				  if( entity.canProcess( null )) {
+				  if( entity.canProcess( write_waiter )) {
 					 next_normal_position = position;
 					 ready.add( entity );
 				  }
@@ -432,23 +465,46 @@ public class WriteController implements AzureusCoreStatsProvider{
 			  int	num_ready = ready.size();
 			  
 			  if ( num_ready > 0 ){
-				  
-				  int	gift_remaining	= 5*1000;
+				  		
+				  int	gift_used = 0;
 				  
 				  for ( RateControlledEntity r: ready ){
 					  
-					  int	permitted = gift_remaining / num_ready;
+					  int	permitted = effective_gift / num_ready;
 					  
 					  if ( permitted <= 0 ){
 						  
-						  break;
+						  permitted = 1;
+					  }
+					  					  
+					  if ( r.canProcess( write_waiter )){
+						  
+						  int	done = r.doProcessing( write_waiter, permitted );
+						  
+						  if ( done > 0 ){
+						  
+							  booster_normal_written += done;
+							  
+							  gift_used += done;
+						  }
 					  }
 					  
-					  System.out.println( "Gifting " + permitted + " to " + r.getString());
-					  
-					  gift_remaining -= r.doProcessing( write_waiter, permitted );
-					  
 					  num_ready--;
+				  }
+					  
+				  for ( int i=booster_stat_index; gift_used > 0 && i<booster_stat_index+booster_gifts.length; i++){
+					  
+					  int	avail = booster_gifts[i%booster_gifts.length];
+					  
+					  if ( avail > 0 ){
+						  
+						  int	temp = Math.min( avail, gift_used );
+						  
+						  avail 	-= temp;
+						  gift_used -= temp;
+						  
+						  booster_gifts[i%booster_gifts.length] = avail;
+					  }
 				  }
 			  }
 		  }
@@ -461,13 +517,14 @@ public class WriteController implements AzureusCoreStatsProvider{
 			  next_boost_position++;
 			  num_checked++;
 			  if( entity.canProcess( write_waiter ) ) {  //is ready
-				  return entity;
+				  return( entity.doProcessing( write_waiter, 0 ));
 			  }
 		  }
+	  }else{
+		  
+		  booster_normal_written = 0;
 	  }
-	  
-	  last_normal_processing = process_loop_time;
-	  
+	  	  
 	  ArrayList<RateControlledEntity> normal_ref = normal_priority_entities;
 
 	  int normal_size = normal_ref.size();
@@ -480,11 +537,15 @@ public class WriteController implements AzureusCoreStatsProvider{
 		  next_normal_position++;
 		  num_checked++;
 		  if( entity.canProcess( write_waiter ) ) {  //is ready
-			  return entity;
+			  int bytes = entity.doProcessing( write_waiter, 0 );
+			  
+			  booster_normal_written += bytes;
+			  
+			  return( bytes );
 		  }
 	  }
 
-	  return null;  //none found ready
+	  return( -1 );
   }
   
   
