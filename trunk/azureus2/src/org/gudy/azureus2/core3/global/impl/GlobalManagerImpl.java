@@ -2755,6 +2755,10 @@ public class GlobalManagerImpl
 							}
 						}
 						
+						if (Constants.isOSX) {
+							fixLongFileName(manager);
+						}
+						
 						if ( COConfigurationManager.getBooleanParameter( "Rename Incomplete Files")){
 							
 							String	ext = COConfigurationManager.getStringParameter( "Rename Incomplete Files Extension" ).trim();
@@ -2812,6 +2816,106 @@ public class GlobalManagerImpl
 				});
 	}
 	
+	private void fixLongFileName(DownloadManager manager) {
+		// "File name too long" test
+		// Note: This only addresses the case where the filename is too
+		//       long, not the parent directory
+		DiskManagerFileInfo[] fileInfos = manager.getDiskManagerFileInfo();
+
+		DownloadManagerState state = manager.getDownloadState();
+
+		try {
+			state.suppressStateSave(true);
+
+			for (int i = 0; i < fileInfos.length; i++) {
+
+				DiskManagerFileInfo fileInfo = fileInfos[i];
+
+				File base_file = fileInfo.getFile(false);
+
+				File existing_link = state.getFileLink(base_file);
+
+				if (existing_link == null && !base_file.exists()) {
+
+					String name = base_file.getName();
+					String ext = FileUtil.getExtension(name);
+					int extLength = ext.length();
+					name = name.substring(0, name.length() - extLength);
+
+					// Java appears to be pretending
+					// each unicode character is 3 bytes long.  If the limit
+					// on a name is 256 two byte characters, then in theory,
+					// the limit is 170 unicode characters.  Instead of assuming
+					// that's the case, let's just walk back until the name
+					// is accepted.
+					// Bail at 50 just for the fun of it (plus most filenames
+					// are short, so we can skip the Canonical call)
+					int origLength = name.length();
+					if (origLength > 50) {
+						File parentFile = base_file.getParentFile();
+
+						// We don't get "File name too long" on getCanonicalPath 
+						// unless the dir is there 
+						// I Wonder if we should remove the dirs after using them
+						// FMFileImpl will create dirs again
+						parentFile.mkdirs();
+
+						File newFile = null;
+						boolean first = true;
+						while (name.length() > 50) {
+							try {
+								newFile = new File(parentFile, name + ext);
+								newFile.getCanonicalPath();
+
+								if (first) {
+									break;
+								}
+
+								// it worked, but the new name might already exist
+								int fixNameID = 0xFF; // always 3 digits :)
+								boolean redo;
+								do {
+									redo = false;
+									for (int j = 0; j < i; j++) {
+										DiskManagerFileInfo convertedFileInfo = fileInfos[j];
+										if (newFile.equals(convertedFileInfo.getFile(true))) {
+											do {
+												fixNameID++;
+												if (fixNameID >= 0xFFF) {
+													// exit, will fail later :(
+													break;
+												}
+												name = name.substring(0, name.length() - 3)
+														+ Integer.toHexString(fixNameID);
+												newFile = new File(parentFile, name + ext);
+											} while (newFile.equals(convertedFileInfo.getFile(true)));
+											redo = fixNameID <= 0xFFF;
+											break;
+										}
+									}
+								} while (redo);
+
+								if (fixNameID <= 0xFFF) {
+									state.setFileLink(base_file, newFile);
+								}
+								break;
+							} catch (IOException e) {
+								first = false;
+								name = name.substring(0, name.length() - 1);
+							} catch (Throwable t) {
+								Debug.out(t);
+							}
+						}
+					}
+
+				}
+			}
+		} finally {
+
+			state.suppressStateSave(false);
+		}
+	}
+
 	public void
 	addDownloadManagerInitialisationAdapter(
 		DownloadManagerInitialisationAdapter	adapter )
