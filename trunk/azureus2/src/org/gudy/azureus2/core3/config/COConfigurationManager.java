@@ -560,6 +560,12 @@ COConfigurationManager
 		return ConfigurationManager.getInstance().removeRGBParameter(parameter);
   }
   
+  public static void
+  resetToDefaults()
+  {
+	  ConfigurationManager.getInstance().resetToDefaults();
+  }
+  
   public interface
   ParameterVerifier
   {

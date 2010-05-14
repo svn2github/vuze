@@ -42,10 +42,13 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 
 
 
@@ -223,6 +226,64 @@ public class ConfigSectionMode implements UISWTConfigSection {
     button1.addListener (SWT.Selection, radioGroup);
     button2.addListener (SWT.Selection, radioGroup);
 
+    Label padding = new Label(cMode, SWT.NULL );
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    padding.setLayoutData( gridData );
+    
+    	// reset to defaults
+    
+	Composite gReset = new Composite(cMode, SWT.WRAP);
+    gridData = new GridData();
+    gridData.horizontalSpan = 4;
+    gReset.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    gReset.setLayout(layout);
+
+    Label reset_label = new Label(gReset, SWT.NULL );
+    Messages.setLanguageText(reset_label, "ConfigView.section.mode.resetdefaults" );
+    
+    Button reset_button = new Button(gReset, SWT.PUSH);
+
+    Messages.setLanguageText(reset_button, "Button.reset" );
+
+    reset_button.addListener(SWT.Selection, 
+		new Listener() 
+		{
+	        public void 
+			handleEvent(Event event) 
+	        {
+	        	MessageBoxShell mb = new MessageBoxShell(
+	        			SWT.ICON_WARNING | SWT.OK | SWT.CANCEL,
+	        			MessageText.getString("resetconfig.warn.title"),
+	        			MessageText.getString("resetconfig.warn"));
+	        	
+	        	mb.setDefaultButtonUsingStyle(SWT.CANCEL);
+	        	
+	        	mb.setParent(parent.getShell());
+
+	        	mb.open(
+	        		new UserPrompterResultListener() 
+	        		{
+	        			public void 
+	        			prompterClosed(
+	        				int returnVal ) 
+	        			{
+							if (returnVal != SWT.OK) {
+								return;
+							}
+
+							COConfigurationManager.resetToDefaults();
+	        			}
+	        		});
+	        }
+	    });
+    
+    padding = new Label(gReset, SWT.NULL );
+    gridData = new GridData();
+    padding.setLayoutData( gridData );
+    
     return cMode;
   }
 }

@@ -304,6 +304,12 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 				});
 			}
 		});
+		
+		if (userMode > 0) {
+			
+				// bias upload to incomplete
+			
+		}
 
 		if (userMode > 0) {
 			

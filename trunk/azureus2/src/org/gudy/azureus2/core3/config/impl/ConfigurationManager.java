@@ -751,6 +751,24 @@ ConfigurationManager
     return false;
   }
     
+  public void
+  resetToDefaults()
+  {
+	  ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+	  
+	  List<String> def_names = new ArrayList<String>((Set<String>)def.getAllowedParameters());
+	  
+	  for ( String s: def_names ){
+	  
+		  if ( propertiesMap.remove( s ) != null ){
+			 
+			  notifyParameterListeners( s );
+		  }
+	  }
+	  
+	  save();
+  }
+  
   private void 
   notifyParameterListeners(
 		String parameter) 
