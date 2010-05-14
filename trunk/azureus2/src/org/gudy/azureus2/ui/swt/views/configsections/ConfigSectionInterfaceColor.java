@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.ColorParameter;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
@@ -101,6 +102,9 @@ public class ConfigSectionInterfaceColor implements UISWTConfigSection {
 		cColorOverride.setLayoutData(gridData);
 
 		for (int i = 0; i < sColorsToOverride.length; i++) {
+			if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR && sColorsToOverride[i].equals("altRow")) {
+				continue;
+			}
 			String sConfigID = "Colors." + sColorsToOverride[i];
 			label = new Label(cColorOverride, SWT.NULL);
 			Messages.setLanguageText(label, "ConfigView.section.style.colorOverride."
