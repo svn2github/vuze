@@ -53,7 +53,7 @@ public class SplashWindow
 	// config 4 : PB_HEIGHT = 3, PB_INVERTED = true, PB_INVERTED_BG_HEIGHT = 1, PB_INVERTED_X_OFFSET = 4
 	
 	protected static final int OFFSET_LEFT = 10;
-	protected static final int OFFSET_RIGHT = 139;
+	protected static final int OFFSET_RIGHT = 10;
 	protected static final int OFFSET_BOTTOM = 12;
 	protected static final int PB_HEIGHT = 2;
 	
@@ -149,13 +149,10 @@ public class SplashWindow
     background = imageLoader.getImage(IMG_SPLASH);
     if (ImageLoader.isRealImage(background)) {
     	width = background.getBounds().width;
-    	height = background.getBounds().height - 20;
-
-    	GC gc = new GC(background);
-    	gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_DARK_GRAY));
-    	gc.setLineWidth(2);
-    	gc.drawLine(0, height - 1, width, height - 1);
-    	gc.dispose();
+    	height = background.getBounds().height;
+    	
+    	width = 500;
+    	height = 250;
 
     	current = new Image(display, background, SWT.IMAGE_COPY);
     } else {
@@ -194,7 +191,56 @@ public class SplashWindow
 				if (current == null) {
 					return;
 				}
-				event.gc.drawImage(current, 0, 0);
+				Rectangle imgBounds = current.getBounds();
+				Rectangle canvasBounds = canvas.getBounds();
+				event.gc.drawImage(current, (canvasBounds.width - imgBounds.width) / 2, (canvasBounds.height - imgBounds.height - 30) / 2);
+
+				GC gc = event.gc;
+				
+				try {
+					gc.setAntialias(SWT.ON);
+					gc.setTextAntialias(SWT.ON);
+				} catch (Exception e) {
+
+				}
+				
+				int y = pbY;
+
+				if (task != null) {
+					gc.setFont(textFont);
+					gc.setForeground(textColor);
+					Point extent = gc.textExtent(task);
+					y = pbY - extent.y - 5;
+					gc.setClipping(OFFSET_LEFT, y, width - (OFFSET_LEFT * 2), extent.y);
+					gc.drawText(task, OFFSET_LEFT, y, true);
+					gc.setClipping((Rectangle) null);
+				}
+
+				if(PB_INVERTED){
+					gc.setForeground(fadedGreyColor);
+					gc.setBackground(fadedGreyColor);
+					gc.fillRectangle(pbX-PB_INVERTED_X_OFFSET, pbY + Math.abs(PB_HEIGHT - PB_INVERTED_BG_HEIGHT) / 2, pbWidth+2*PB_INVERTED_X_OFFSET, PB_INVERTED_BG_HEIGHT);
+					gc.setForeground(progressBarColor);
+					gc.setBackground(progressBarColor);
+					gc.fillRectangle(pbX, pbY, percent * pbWidth / 100, PB_HEIGHT);
+					
+				} else {
+					gc.setForeground(progressBarColor);
+					gc.setBackground(progressBarColor);
+					if(!DISPLAY_BORDER){
+						gc.fillRectangle(pbX, pbY, percent * pbWidth / 100, PB_HEIGHT);
+					}
+				}
+				
+				if(DISPLAY_BORDER){
+					gc.setForeground(fadedGreyColor);
+					gc.setBackground(fadedGreyColor);
+					canvasBounds.height--;
+					canvasBounds.width--;
+					gc.drawRectangle(canvasBounds);
+				}
+
+			
 			}
 		});
 
@@ -293,61 +339,7 @@ public class SplashWindow
 					return;
 				}
 
-				Image newCurrent = new Image(display, background, SWT.IMAGE_COPY);
-				GC gc = new GC(newCurrent);
-
-				try {
-					gc.setAntialias(SWT.ON);
-					gc.setTextAntialias(SWT.ON);
-				} catch (Exception e) {
-
-				}
-				
-				int y = pbY;
-
-				if (task != null) {
-					gc.setFont(textFont);
-					gc.setForeground(textColor);
-					Point extent = gc.textExtent(task);
-					y = pbY - extent.y - 5;
-					gc.setClipping(OFFSET_LEFT, y, width - (OFFSET_LEFT * 2), extent.y);
-					gc.drawText(task, OFFSET_LEFT, y, true);
-					gc.setClipping((Rectangle) null);
-				}
-
-				if(PB_INVERTED){
-					gc.setForeground(fadedGreyColor);
-					gc.setBackground(fadedGreyColor);
-					gc.fillRectangle(pbX-PB_INVERTED_X_OFFSET, pbY + Math.abs(PB_HEIGHT - PB_INVERTED_BG_HEIGHT) / 2, pbWidth+2*PB_INVERTED_X_OFFSET, PB_INVERTED_BG_HEIGHT);
-					gc.setForeground(progressBarColor);
-					gc.setBackground(progressBarColor);
-					gc.fillRectangle(pbX, pbY, percent * pbWidth / 100, PB_HEIGHT);
-					
-				} else {
-					gc.setForeground(progressBarColor);
-					gc.setBackground(progressBarColor);
-					if(DISPLAY_BORDER){
-						gc.fillRectangle(pbX + 1, pbY, percent * (pbWidth - 2) / 100, PB_HEIGHT);
-						gc.setForeground(fadedGreyColor);
-						gc.setBackground(fadedGreyColor);
-						gc.fillRectangle(pbX, pbY - 1, pbWidth, 1);
-						gc.fillRectangle(pbX + pbWidth - 1, pbY, 1, PB_HEIGHT);
-						gc.fillRectangle(pbX, pbY + PB_HEIGHT, pbWidth, 1);
-						gc.fillRectangle(pbX, pbY, 1, PB_HEIGHT);
-					} else {
-						gc.fillRectangle(pbX, pbY, percent * pbWidth / 100, PB_HEIGHT);
-					}
-				}
-				
-				Image old = current;
-				current = newCurrent;
-				if (old != null && !old.isDisposed()) {
-					old.dispose();
-				}
-
-				gc.dispose();
-
-				canvas.redraw(0, y, width, height - y, true);
+				canvas.redraw(0, height - 50, width, height, true);
 				canvas.update();
 			}
 		});
