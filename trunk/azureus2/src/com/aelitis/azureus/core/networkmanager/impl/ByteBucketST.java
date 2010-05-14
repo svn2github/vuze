@@ -35,6 +35,7 @@ ByteBucketST
 	  private long avail_bytes;
 	  private long prev_update_time;
 	  
+	  private boolean frozen;
 	  
 	  /**
 	   * Create a new byte-bucket with the given byte fill (guaranteed) rate.
@@ -132,8 +133,20 @@ ByteBucketST
 	    ensureByteBucketMinBurstRate();
 	  }
 	  
+	  public void
+	  setFrozen(
+			boolean	f )
+	  {
+		  if ( f && frozen ){
+			  Debug.out( "Already frozen!" );
+		  }
+		  frozen = f;
+	  }
 	  
 	  private void update_avail_byte_count() {
+		  if ( frozen ){
+			  return;
+		  }
 	      final long now =SystemTime.getSteppedMonotonousTime();
 	      if (prev_update_time <now) {
 	          avail_bytes +=((now -prev_update_time) * rate) / 1000;

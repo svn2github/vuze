@@ -44,4 +44,8 @@ ByteBucket
 	public void 
 	setBytesUsed( 
 		int bytes_used );
+	
+	public void
+	setFrozen(
+		boolean	frozen );
 }

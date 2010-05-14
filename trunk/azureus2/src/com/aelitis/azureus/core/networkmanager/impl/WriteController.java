@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
 import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 
@@ -83,6 +84,8 @@ public class WriteController implements AzureusCoreStatsProvider{
   private long	non_progress_count;
   
   private EventWaiter 	write_waiter = new EventWaiter();
+  
+  private NetworkManager	net_man;
   
   private int	entity_count = 0;
   
@@ -229,6 +232,8 @@ public class WriteController implements AzureusCoreStatsProvider{
     
     long	last_check = SystemTime.getMonotonousTime();
     
+    net_man = NetworkManager.getSingleton();
+
     while( true ) {
       
       process_loop_time = SystemTime.getMonotonousTime();
@@ -407,145 +412,163 @@ public class WriteController implements AzureusCoreStatsProvider{
   {
 	  ArrayList<RateControlledEntity> boosted_ref = boosted_priority_entities;
 
-	  int boosted_size = boosted_ref.size();
-	  
-	  if ( boosted_size > 0 ){
-		  
-		  if ( process_loop_time - booster_process_time >= 1000 ){
-		
-			  booster_process_time = process_loop_time;
-			  
-			  booster_gifts[ booster_stat_index ] 			= booster_gift;
-			  booster_normal_writes[ booster_stat_index]	= booster_normal_written;
-			  
-			  booster_stat_index++;
-			  
-			  if ( booster_stat_index >= booster_gifts.length ){
+	  final int boosted_size = boosted_ref.size();
+	
+	  try{
+		  if ( boosted_size > 0 ){
+			  			  
+			  if ( process_loop_time - booster_process_time >= 1000 ){
+			
+				  booster_process_time = process_loop_time;
 				  
-				  booster_stat_index = 0;
+				  booster_gifts[ booster_stat_index ] 			= booster_gift;
+				  booster_normal_writes[ booster_stat_index]	= booster_normal_written;
+				  
+				  booster_stat_index++;
+				  
+				  if ( booster_stat_index >= booster_gifts.length ){
+					  
+					  booster_stat_index = 0;
+				  }
+				  
+				  booster_normal_written = 0;
 			  }
+			  
+			  int	total_gifts 		= 0;
+			  int	total_normal_writes	= 0;
+				  
+			  for (int i=0;i<booster_gifts.length;i++){
+					  
+				  total_gifts			+= booster_gifts[i];
+				  total_normal_writes 	+= booster_normal_writes[i];
+			  }
+				  
+			  int	effective_gift = total_gifts - total_normal_writes;
+			  
+			  if ( effective_gift > 0 ){
+				  
+				  ArrayList<RateControlledEntity> normal_ref = normal_priority_entities;
+	
+				  int normal_size = normal_ref.size();
+				  
+				  int num_checked = 0;
+				  
+				  int position = next_normal_position;
+				  
+				  List<RateControlledEntity> ready = new ArrayList<RateControlledEntity>();
+				  
+				  while( num_checked < normal_size ) {
+					  position = position >= normal_size ? 0 : position; 
+					  RateControlledEntity entity = normal_ref.get( position );
+					  position++;
+					  num_checked++;
+					  if( entity.canProcess( write_waiter )) {
+						 next_normal_position = position;
+						 ready.add( entity );
+					  }
+				  }
+				  	
+				  int	num_ready = ready.size();
+				  
+				  if ( num_ready > 0 ){
+					  		
+					  int	gift_used = 0;
+					  
+					  for ( RateControlledEntity r: ready ){
+						  
+						  int	permitted = effective_gift / num_ready;
+						  
+						  if ( permitted <= 0 ){
+							  
+							  permitted = 1;
+						  }
+						  			  
+						  if ( r.canProcess( write_waiter )){
+							  
+							  int	done = r.doProcessing( write_waiter, permitted );
+							  
+							  if ( done > 0 ){
+							  
+								  booster_normal_written += done;
+								  
+								  gift_used += done;
+							  }
+						  }
+						  
+						  num_ready--;
+					  }
+						  
+					  for ( int i=booster_stat_index; gift_used > 0 && i<booster_stat_index+booster_gifts.length; i++){
+						  
+						  int	avail = booster_gifts[i%booster_gifts.length];
+						  
+						  if ( avail > 0 ){
+							  
+							  int	temp = Math.min( avail, gift_used );
+							  
+							  avail 	-= temp;
+							  gift_used -= temp;
+							  
+							  booster_gifts[i%booster_gifts.length] = avail;
+						  }
+					  }
+				  }
+			  }
+			  
+			  int num_checked = 0;
+		
+			  while( num_checked < boosted_size ) {
+				  next_boost_position = next_boost_position >= boosted_size ? 0 : next_boost_position;  //make circular
+				  RateControlledEntity entity = boosted_ref.get( next_boost_position );
+				  next_boost_position++;
+				  num_checked++;
+				  if( entity.canProcess( write_waiter ) ) {  //is ready
+					  return( entity.doProcessing( write_waiter, 0 ));
+				  }
+			  }
+			  
+			  	// give remaining normal peers a chance to use the bandwidth boosted peers couldn't, but prevent
+			  	// more from being allocated while doing so to prevent them from grabbing more than they should
+			  
+			  net_man.getUploadProcessor().setRateLimiterFreezeState( true );
+
+		  }else{
 			  
 			  booster_normal_written = 0;
 		  }
-		  
-		  int	total_gifts 		= 0;
-		  int	total_normal_writes	= 0;
-			  
-		  for (int i=0;i<booster_gifts.length;i++){
-				  
-			  total_gifts			+= booster_gifts[i];
-			  total_normal_writes 	+= booster_normal_writes[i];
-		  }
-			  
-		  int	effective_gift = total_gifts - total_normal_writes;
-		  
-		  if ( effective_gift > 0 ){
-			  
-			  ArrayList<RateControlledEntity> normal_ref = normal_priority_entities;
-
-			  int normal_size = normal_ref.size();
-			  
-			  int num_checked = 0;
-			  
-			  int position = next_normal_position;
-			  
-			  List<RateControlledEntity> ready = new ArrayList<RateControlledEntity>();
-			  
-			  while( num_checked < normal_size ) {
-				  position = position >= normal_size ? 0 : position; 
-				  RateControlledEntity entity = normal_ref.get( position );
-				  position++;
-				  num_checked++;
-				  if( entity.canProcess( write_waiter )) {
-					 next_normal_position = position;
-					 ready.add( entity );
-				  }
-			  }
-			  	
-			  int	num_ready = ready.size();
-			  
-			  if ( num_ready > 0 ){
-				  		
-				  int	gift_used = 0;
-				  
-				  for ( RateControlledEntity r: ready ){
-					  
-					  int	permitted = effective_gift / num_ready;
-					  
-					  if ( permitted <= 0 ){
-						  
-						  permitted = 1;
-					  }
-					  					  
-					  if ( r.canProcess( write_waiter )){
-						  
-						  int	done = r.doProcessing( write_waiter, permitted );
-						  
-						  if ( done > 0 ){
-						  
-							  booster_normal_written += done;
-							  
-							  gift_used += done;
-						  }
-					  }
-					  
-					  num_ready--;
-				  }
-					  
-				  for ( int i=booster_stat_index; gift_used > 0 && i<booster_stat_index+booster_gifts.length; i++){
-					  
-					  int	avail = booster_gifts[i%booster_gifts.length];
-					  
-					  if ( avail > 0 ){
-						  
-						  int	temp = Math.min( avail, gift_used );
-						  
-						  avail 	-= temp;
-						  gift_used -= temp;
-						  
-						  booster_gifts[i%booster_gifts.length] = avail;
-					  }
-				  }
-			  }
-		  }
+		  	  
+		  ArrayList<RateControlledEntity> normal_ref = normal_priority_entities;
+	
+		  int normal_size = normal_ref.size();
 		  
 		  int num_checked = 0;
 	
-		  while( num_checked < boosted_size ) {
-			  next_boost_position = next_boost_position >= boosted_size ? 0 : next_boost_position;  //make circular
-			  RateControlledEntity entity = boosted_ref.get( next_boost_position );
-			  next_boost_position++;
+		  while( num_checked < normal_size ) {
+			  next_normal_position = next_normal_position >= normal_size ? 0 : next_normal_position;  //make circular
+			  RateControlledEntity entity = (RateControlledEntity)normal_ref.get( next_normal_position );
+			  next_normal_position++;
 			  num_checked++;
 			  if( entity.canProcess( write_waiter ) ) {  //is ready
-				  return( entity.doProcessing( write_waiter, 0 ));
+				  int bytes = entity.doProcessing( write_waiter, 0 );
+				  
+				  if ( bytes > 0 ){
+										  
+					  booster_normal_written += bytes;
+				  }
+				  
+				  return( bytes );
 			  }
 		  }
-	  }else{
+	
+		  return( -1 );
 		  
-		  booster_normal_written = 0;
-	  }
-	  	  
-	  ArrayList<RateControlledEntity> normal_ref = normal_priority_entities;
-
-	  int normal_size = normal_ref.size();
-	  
-	  int num_checked = 0;
-
-	  while( num_checked < normal_size ) {
-		  next_normal_position = next_normal_position >= normal_size ? 0 : next_normal_position;  //make circular
-		  RateControlledEntity entity = (RateControlledEntity)normal_ref.get( next_normal_position );
-		  next_normal_position++;
-		  num_checked++;
-		  if( entity.canProcess( write_waiter ) ) {  //is ready
-			  int bytes = entity.doProcessing( write_waiter, 0 );
+	  }finally{
+		  
+		  if ( boosted_size > 0 ){
 			  
-			  booster_normal_written += bytes;
-			  
-			  return( bytes );
+			  net_man.getUploadProcessor().setRateLimiterFreezeState( false );
 		  }
 	  }
-
-	  return( -1 );
   }
   
   

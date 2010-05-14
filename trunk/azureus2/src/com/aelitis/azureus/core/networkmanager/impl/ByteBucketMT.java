@@ -35,6 +35,7 @@ ByteBucketMT
 	  private volatile long avail_bytes;
 	  private volatile long prev_update_time;
 	  
+	  private volatile boolean frozen;
 	  
 	  /**
 	   * Create a new byte-bucket with the given byte fill (guaranteed) rate.
@@ -114,7 +115,13 @@ ByteBucketMT
 	    setRate( rate_bytes_per_sec, rate_bytes_per_sec + (rate_bytes_per_sec/5));
 	  }
 	  
-	  
+	  public void
+	  setFrozen(
+			boolean	f )
+	  {
+		  frozen = f;
+	  }
+
 	  /**
 	   * Set the current fill/guaranteed rate, along with the burst rate.
 	   * @param rate_bytes_per_sec
@@ -139,6 +146,9 @@ ByteBucketMT
 	  
 	  
 	  private void update_avail_byte_count() {
+		  if ( frozen ){
+			  return;
+		  }
 		  synchronized( this ){
 		      final long now =SystemTime.getMonotonousTime();
 		      if (prev_update_time <now) {

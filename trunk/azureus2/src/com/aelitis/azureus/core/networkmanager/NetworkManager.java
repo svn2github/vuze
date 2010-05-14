@@ -538,6 +538,12 @@ public class NetworkManager {
   	}
   }
   
+  public TransferProcessor
+  getUploadProcessor()
+  {
+	  return( upload_processor );
+  }
+  
   public void
   addRateLimiter(
 	NetworkConnectionBase 	peer_connection,

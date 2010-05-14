@@ -189,6 +189,13 @@ public class TransferProcessor {
   }
   
   public void
+  setRateLimiterFreezeState(
+		boolean	frozen )
+  {
+	  main_bucket.setFrozen( frozen );
+  }
+  
+  public void
   addRateLimiter(
 	NetworkConnectionBase 	connection,
 	LimitedRateGroup		group )
