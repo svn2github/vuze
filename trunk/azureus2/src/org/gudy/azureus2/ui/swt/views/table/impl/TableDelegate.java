@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import org.eclipse.swt.accessibility.Accessible;
@@ -32,13 +32,14 @@ import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
  * @created May 5, 2010
  *
  */
-public class TableDelegate implements TableOrTreeSWT
+public class TableDelegate
+	implements TableOrTreeSWT
 {
 	Table table;
 
 	private TableDelegate() {
 	}
-	
+
 	public TableDelegate(Table table) {
 		this.table = table;
 	}
@@ -738,7 +739,7 @@ public class TableDelegate implements TableOrTreeSWT
 	}
 
 	public void setSelection(TableItemOrTreeItem item) {
-		table.setSelection((TableItem) item.getItem());
+		table.setSelection(item == null ? null : (TableItem) item.getItem());
 	}
 
 	public void setSelection(TableItem[] items) {
@@ -754,7 +755,8 @@ public class TableDelegate implements TableOrTreeSWT
 	}
 
 	public void setSortColumn(TableColumnOrTreeColumn column) {
-		table.setSortColumn((TableColumn) column.getColumn());
+		table.setSortColumn(column == null ? null
+				: (TableColumn) column.getColumn());
 	}
 
 	public void setSortDirection(int direction) {
@@ -766,11 +768,11 @@ public class TableDelegate implements TableOrTreeSWT
 	}
 
 	public void showColumn(TableColumnOrTreeColumn column) {
-		table.showColumn((TableColumn) column.getColumn());
+		table.showColumn(column == null ? null : (TableColumn) column.getColumn());
 	}
 
 	public void showItem(TableItemOrTreeItem item) {
-		table.showItem((TableItem) item.getItem());
+		table.showItem(item == null ? null : (TableItem) item.getItem());
 	}
 
 	public void showSelection() {
@@ -778,7 +780,7 @@ public class TableDelegate implements TableOrTreeSWT
 	}
 
 	///////
-	
+
 	private TableItemOrTreeItem wrapOrNull(TableItem item) {
 		if (item == null) {
 			return null;
@@ -796,7 +798,7 @@ public class TableDelegate implements TableOrTreeSWT
 		}
 		return returnItems;
 	}
-	
+
 	private TableColumnOrTreeColumn wrapOrNull(TableColumn item) {
 		if (item == null) {
 			return null;
@@ -814,7 +816,7 @@ public class TableDelegate implements TableOrTreeSWT
 		}
 		return returnItems;
 	}
-	
+
 	private TableItem[] toTableItemArray(TableItemOrTreeItem[] items) {
 		if (items == null) {
 			return null;
@@ -854,13 +856,13 @@ public class TableDelegate implements TableOrTreeSWT
 	// @see org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT#removeTreeListener(org.eclipse.swt.events.TreeListener)
 	public void removeTreeListener(TreeListener listener) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT#setInsertMark(org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem, boolean)
 	public void setInsertMark(TableItemOrTreeItem item, boolean before) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public void select(TableItemOrTreeItem item) {
@@ -878,7 +880,7 @@ public class TableDelegate implements TableOrTreeSWT
 	// @see org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT#setTopItem(org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem)
 	public void setTopItem(TableItemOrTreeItem item) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT#getComposite()
@@ -889,12 +891,12 @@ public class TableDelegate implements TableOrTreeSWT
 	public boolean equalsTableOrTree(TableOrTreeSWT tt) {
 		return table.equals(tt.getComposite());
 	}
-	
+
 	public TableItemOrTreeItem createNewItem(int style) {
 		return new TableItemDelegate(this, style);
 	}
 
-  public TableColumnOrTreeColumn createNewColumn(int style) {
-  	return new TableColumnDelegate(table, style);
-  }
+	public TableColumnOrTreeColumn createNewColumn(int style) {
+		return new TableColumnDelegate(table, style);
+	}
 }
