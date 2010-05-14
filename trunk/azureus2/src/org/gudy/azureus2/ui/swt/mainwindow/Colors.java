@@ -74,6 +74,9 @@ public class Colors implements ParameterListener {
   public static Color red_ConsoleView;
   
   private static AEMonitor	class_mon	= new AEMonitor( "Colors" );
+	public static int diffHue;
+	public static float diffSatPct;
+	public static float diffLumPct;
   
   private void allocateBlues() {    
     int r = 0;
@@ -85,6 +88,16 @@ public class Colors implements ParameterListener {
       b = COConfigurationManager.getIntParameter("Color Scheme.blue", b);
       
       boolean bGrayScale = (r == b) && (b == g);
+      
+      HSLColor hslDefault = new HSLColor();
+      hslDefault.initHSLbyRGB(0, 128, 255);
+      
+      HSLColor hslScheme = new HSLColor();
+      hslScheme.initHSLbyRGB(r, g, b);
+      
+      diffHue = hslScheme.getHue() - hslDefault.getHue();
+      diffSatPct = hslScheme.getSaturation() == 0 ? 0 : (float) hslDefault.getSaturation() / hslScheme.getSaturation();
+      diffLumPct = hslScheme.getLuminence() == 0 ? 0 : (float) hslDefault.getLuminence() / hslScheme.getLuminence();
 
       HSLColor hslColor = new HSLColor();
       Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);

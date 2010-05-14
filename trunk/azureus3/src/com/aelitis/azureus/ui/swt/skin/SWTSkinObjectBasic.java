@@ -620,7 +620,7 @@ public class SWTSkinObjectBasic
 							
 							Device device = Display.getDefault();
 							for (int i = 1; i < split.length; i += 2) {
-								Color colorStop = ColorCache.getColor(device, split[i]);
+								Color colorStop = ColorCache.getSchemedColor(device, split[i]);
 								double posStop = 1;
 								if (i != split.length - 1) {
 									try {
@@ -654,7 +654,7 @@ public class SWTSkinObjectBasic
 				colorBorderParams = null;
 				if (sBorderStyle != null) {
 					String[] split = sBorderStyle.split(",");
-					colorBorder = ColorCache.getColor(control.getDisplay(), split[0]);
+					colorBorder = ColorCache.getSchemedColor(control.getDisplay(), split[0]);
 					needPaintHook |= colorBorder != null;
 
 					if (split.length > 2) {

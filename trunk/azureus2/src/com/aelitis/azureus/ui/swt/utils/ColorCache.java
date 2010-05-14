@@ -25,6 +25,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.RGB;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
@@ -40,7 +41,7 @@ public class ColorCache
 {
 	private final static boolean DEBUG = Constants.isCVSVersion();
 
-	private final static Map mapColors = new HashMap();
+	private final static Map<Long, Color> mapColors = new HashMap<Long, Color>();
 	
 	private final static int SYSTEMCOLOR_INDEXSTART = 17;
 	private final static String[] systemColorNames = {
@@ -72,42 +73,57 @@ public class ColorCache
 		});
 	}
 
-	public static Color getColor(Device device, int red, int green, int blue) {
-		if (mapColors.size() == 0) {
-			for (int i = 1; i <= 16; i++) {
-				Color color = device.getSystemColor(i);
-				Long key = new Long(((long) color.getRed() << 16)
-						+ (color.getGreen() << 8) + color.getBlue());
-				addColor(key, color);
-			}
-			if (DEBUG) {
-				SimpleTimer.addPeriodicEvent("ColorCacheChecker", 60000,
-						new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
-								Utils.execSWTThread(new AERunnable() {
-									public void runSupport() {
-										for (Iterator iter = mapColors.keySet().iterator(); iter.hasNext();) {
-											Long key = (Long) iter.next();
-											Color color = (Color) mapColors.get(key);
-											if (color.isDisposed()) {
-												Logger.log(new LogAlert(false, LogAlert.AT_ERROR,
-														"Someone disposed of color "
-																+ Long.toHexString(key.longValue())
-																+ ". Please report this on the "
-																+ "<A HREF=\"http://forum.vuze.com/forum.jspa?forumID=4\">forum</A>"));
-												iter.remove();
-											}
-										}
-									}
-								});
-							}
-						});
+	public static Color getSchemedColor(Device device, int red, int green, int blue) {
+		ensureMapColorsInitialized(device);
+
+		Long key = new Long(((long) red << 16) + (green << 8) + blue + 0x1000000l);
+
+		Color color = mapColors.get(key);
+		if (color == null || color.isDisposed()) {
+			try {
+				if (red < 0) {
+					red = 0;
+				} else if (red > 255) {
+					red = 255;
+				}
+				if (green < 0) {
+					green = 0;
+				} else if (green > 255) {
+					green = 255;
+				}
+				if (blue < 0) {
+					blue = 0;
+				} else if (blue > 255) {
+					blue = 255;
+				}
+				
+	      RGB rgb = new RGB(red, green, blue);
+	      float[] hsb = rgb.getHSB();
+	      hsb[0] += Colors.diffHue;
+	      if (hsb[0] > 360) {
+	      	hsb[0] -= 360;
+	      } else if (hsb[0] < 0) {
+	      	hsb[0] += 360;
+	      }
+	      hsb[1] *= Colors.diffSatPct;
+	      //hsb[2] *= Colors.diffLumPct;
+	      
+	      color = getColor(device, hsb);
+	      mapColors.put(key, color);
+			} catch (IllegalArgumentException e) {
+				Debug.out("One Invalid: " + red + ";" + green + ";" + blue, e);
 			}
 		}
 
+		return color;
+	}
+
+	public static Color getColor(Device device, int red, int green, int blue) {
+		ensureMapColorsInitialized(device);
+
 		Long key = new Long(((long) red << 16) + (green << 8) + blue);
 
-		Color color = (Color) mapColors.get(key);
+		Color color = mapColors.get(key);
 		if (color == null || color.isDisposed()) {
 			try {
 				if (red < 0) {
@@ -135,7 +151,49 @@ public class ColorCache
 		return color;
 	}
 
+	private static void ensureMapColorsInitialized(Device device) {
+		if (mapColors.size() == 0) {
+			for (int i = 1; i <= 16; i++) {
+				Color color = device.getSystemColor(i);
+				Long key = new Long(((long) color.getRed() << 16)
+						+ (color.getGreen() << 8) + color.getBlue());
+				addColor(key, color);
+			}
+			if (DEBUG) {
+				SimpleTimer.addPeriodicEvent("ColorCacheChecker", 60000,
+						new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										for (Iterator<Long> iter = mapColors.keySet().iterator(); iter.hasNext();) {
+											Long key = iter.next();
+											Color color = mapColors.get(key);
+											if (color.isDisposed()) {
+												Logger.log(new LogAlert(false, LogAlert.AT_ERROR,
+														"Someone disposed of color "
+																+ Long.toHexString(key.longValue())
+																+ ". Please report this on the "
+																+ "<A HREF=\"http://forum.vuze.com/forum.jspa?forumID=4\">forum</A>"));
+												iter.remove();
+											}
+										}
+									}
+								});
+							}
+						});
+			}
+		}
+	}
+
 	public static Color getColor(Device device, String value) {
+		return getColor(device, value, false);
+	}
+
+	public static Color getSchemedColor(Device device, String value) {
+		return getColor(device, value, true);
+	}
+
+	private static Color getColor(Device device, String value, boolean useScheme) {
 		int[] colors = new int[3];
 
 		if (value == null || value.length() == 0) {
@@ -179,7 +237,10 @@ public class ColorCache
 			return null;
 		}
 
-		return getColor(device, colors[0], colors[1], colors[2]);
+		if (!useScheme) {
+			return getColor(device, colors[0], colors[1], colors[2]);
+		}
+		return getSchemedColor(device, colors[0], colors[1], colors[2]);
 	}
 
 	private static void addColor(Long key, Color color) {

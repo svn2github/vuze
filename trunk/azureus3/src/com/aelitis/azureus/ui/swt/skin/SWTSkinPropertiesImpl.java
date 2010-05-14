@@ -67,7 +67,7 @@ public class SWTSkinPropertiesImpl
 		try {
 			int[] rgb = getColorValue(sID);
 			if (rgb[0] > -1) {
-				color = ColorCache.getColor(Utils.getDisplay(), rgb[0], rgb[1], rgb[2]);
+				color = ColorCache.getSchemedColor(Utils.getDisplay(), rgb[0], rgb[1], rgb[2]);
 			} else {
 				color = ColorCache.getColor(Utils.getDisplay(), getStringValue(sID));
 			}
