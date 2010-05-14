@@ -337,6 +337,8 @@ public class ImageLoader
 					InputStream is = cl.getResourceAsStream(res);
 					if (is != null) {
 						img = new Image(display, is);
+						
+						is.close();
 					}
 				}
 
