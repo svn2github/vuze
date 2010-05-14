@@ -5273,7 +5273,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (sliderArea != null && !sliderArea.isDisposed()) {
 				sliderArea.dispose();
 			}
-			Class<?> claTable = Class.forName("org.eclipse.swt.Table");
+			Class<?> claTable = Class.forName("org.eclipse.swt.widgets."
+					+ (useTree ? "Tree" : "Table"));
 			final Method method = claTable.getDeclaredMethod("setItemHeight", new Class<?>[] {
 				int.class
 			});
@@ -5319,14 +5320,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					slider.setMaximum(max);
 					slider.setSelection(getRowDefaultHeight());
 					try {
-						method.invoke(table, new Object[] { slider.getSelection() } );
+						method.invoke(table.getComposite(), new Object[] { slider.getSelection() } );
 					} catch (Throwable e1) {
 					}
 					slider.addSelectionListener(new SelectionListener() {
 						public void widgetSelected(SelectionEvent e) {
 							setRowDefaultHeight(slider.getSelection());
 							try {
-								method.invoke(table, new Object[] { slider.getSelection() } );
+								method.invoke(table.getComposite(), new Object[] { slider.getSelection() } );
 							} catch (Throwable e1) {
 								e1.printStackTrace();
 							}
