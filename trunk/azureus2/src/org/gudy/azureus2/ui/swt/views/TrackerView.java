@@ -62,6 +62,8 @@ public class TrackerView
 	DownloadManager manager;
   
 	private TableViewSWTImpl<TrackerPeerSource> tv;
+
+	private ScrapeInfoView scrapeInfoView;
  
 	/**
 	 * Initialize
@@ -84,6 +86,11 @@ public class TrackerView
 
 		tv.addLifeCycleListener(this);
 		tv.addTableDataSourceChangedListener(this, true);
+		tv.setEnableTabViews(true);
+		scrapeInfoView = new ScrapeInfoView(manager);
+		tv.setCoreTabViews(new IView[] {
+			scrapeInfoView
+		});
 		return tv;
 	}
 
@@ -136,6 +143,9 @@ public class TrackerView
 	  		
 	    	addExistingDatasources();
 	    }
+	  if (scrapeInfoView != null) {
+	  	scrapeInfoView.setDownlaodManager(manager);
+	  }
 	}
 	
 	public void 

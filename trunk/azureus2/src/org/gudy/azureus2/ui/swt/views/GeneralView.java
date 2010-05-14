@@ -20,25 +20,14 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.Iterator;
-import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -52,22 +41,15 @@ import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
-import org.gudy.azureus2.ui.swt.components.BufferedTruncatedLabel;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
-import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
-
-import com.aelitis.azureus.core.util.AZ3Functions;
 
 /**
  * View of General information on the torrent
@@ -114,12 +96,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
   BufferedLabel fileSize;
   BufferedLabel saveIn;
   BufferedLabel hash;
-  BufferedTruncatedLabel tracker_status;
-  BufferedLabel trackerUpdateIn;
-  Menu menuTracker;
-  MenuItem itemSelect;
-  
-  BufferedTruncatedLabel trackerUrlValue;
   
   BufferedLabel pieceNumber;
   BufferedLabel pieceSize;
@@ -129,7 +105,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
   Control user_comment;
   BufferedLabel hashFails;
   BufferedLabel shareRatio;
-  Button		updateButton;
   
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
 
@@ -355,6 +330,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     Messages.setLanguageText(label, "GeneralView.label.savein"); //$NON-NLS-1$
     saveIn = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
     saveIn.setLayoutData(gridData);
 
     label = new Label(gInfo, SWT.LEFT);
@@ -404,158 +380,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     	}
     });
     
-    label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
-    label.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
-    label.setForeground(Colors.blue);
-    label.addMouseListener(new MouseAdapter() {
-      public void mouseDoubleClick(MouseEvent arg0) {
-        String announce = trackerUrlValue.getText();
-        if(announce != null && announce.length() != 0)
-          new Clipboard(display).setContents(new Object[] {announce}, new Transfer[] {TextTransfer.getInstance()});
-      }
-      public void mouseDown(MouseEvent arg0) {
-        String announce = trackerUrlValue.getText();
-        if(announce != null && announce.length() != 0)
-          new Clipboard(display).setContents(new Object[] {announce}, new Transfer[] {TextTransfer.getInstance()});
-      }
-    });
-    
-    menuTracker = new Menu(genComposite.getShell(),SWT.POP_UP);
-    itemSelect = new MenuItem(menuTracker,SWT.CASCADE);
-    Messages.setLanguageText(itemSelect, "GeneralView.menu.selectTracker");
-    MenuItem itemEdit = new MenuItem(menuTracker,SWT.NULL);
-    Messages.setLanguageText(itemEdit, "MyTorrentsView.menu.editTracker");
-     
-    itemEdit.addListener(
-    	SWT.Selection,
-    	new Listener()
-    	{
-    		public void 
-    		handleEvent(Event e)
-    		{
-    			final TOTorrent	torrent = manager.getTorrent();
-    		
-    			if ( torrent == null ){
-    				return;
-    			}
-    			
-	    		List	group = TorrentUtils.announceGroupsToList( torrent );
-	    		
-	    		new MultiTrackerEditor(null,group,
-	    				new TrackerEditorListener()
-	    				{
-	    					public void
-	    					trackersChanged(
-	    							String	str,
-									String	str2,
-									List	_group )
-	    					{
-	    						TorrentUtils.listToAnnounceGroups( _group, torrent );
-	    						
-	    						try{
-	    							TorrentUtils.writeToFile( torrent );
-	    						}catch( Throwable e2 ){
-	    							
-	    							Debug.printStackTrace( e2 );
-	    						}
-	    						
-	    						TRTrackerAnnouncer	tc = manager.getTrackerClient();
-	    						
-	    						if ( tc != null ){
-	    							
-	    							tc.resetTrackerUrl( true );
-	    						}
-	    					}
-	    				}, true);	
-    		}  		
-    	});
-    
-    final Listener menuListener = new Listener() 
-    {
-      public void 
-      handleEvent(Event e)
-      {
-         if( e.widget instanceof MenuItem) {
-        	
-          String text = ((MenuItem)e.widget).getText();
-                   
-          	
-          TOTorrent	torrent = manager.getTorrent();
-          	
-          TorrentUtils.announceGroupsSetFirst(torrent,text);   
-          	
-          try{
-          	TorrentUtils.writeToFile(torrent);
-          	
-          }catch( TOTorrentException f){
-          		
-          	Debug.printStackTrace( f );
-          }
-          	
-          TRTrackerAnnouncer	tc = manager.getTrackerClient();
-          	
-          if ( tc != null ){
-          		
-          	tc.resetTrackerUrl( false );
-          }    	
-        }
-      }
-    };
-    
-    menuTracker.addListener(SWT.Show,new Listener() {
-      public void handleEvent(Event e) {
-    		Menu menuSelect = itemSelect.getMenu();
-    		if(menuSelect != null && ! menuSelect.isDisposed()) {
-    		  menuSelect.dispose();
-    		}
-    		if(manager == null || genComposite == null || genComposite.isDisposed())
-    		  return;
-     		List groups = TorrentUtils.announceGroupsToList(manager.getTorrent());        		
-    		menuSelect = new Menu(genComposite.getShell(),SWT.DROP_DOWN);
-    		itemSelect.setMenu(menuSelect);
-    		Iterator iterGroups = groups.iterator();
-    		while(iterGroups.hasNext()) {
-    		  List trackers = (List) iterGroups.next();
-    		  MenuItem menuItem = new MenuItem(menuSelect,SWT.CASCADE);
-    		  Messages.setLanguageText(menuItem,"wizard.multitracker.group");
-    		  Menu menu = new Menu(genComposite.getShell(),SWT.DROP_DOWN);
-    		  menuItem.setMenu(menu);
-    		  Iterator iterTrackers = trackers.iterator();
-    		  while(iterTrackers.hasNext()) {
-    		    String url = (String) iterTrackers.next();
-    		    MenuItem menuItemTracker = new MenuItem(menu,SWT.CASCADE);
-    		    menuItemTracker.setText(url);
-    		    menuItemTracker.addListener(SWT.Selection,menuListener);
-    		  }
-    		}
-      }
-    });
-    
-    trackerUrlValue = new BufferedTruncatedLabel(gInfo, SWT.LEFT,70);        
-    
-    trackerUrlValue.addMouseListener(new MouseAdapter() {
-			public void mouseDown(MouseEvent event) {
-				if (event.button == 3
-						|| (event.button == 1 && event.stateMask == SWT.CONTROL)) {
-					menuTracker.setVisible(true);
-				} else if (event.button == 1) {
-					String url = trackerUrlValue.getText();
-					if (url.startsWith("http://") || url.startsWith("https://")) {
-						int pos = -1;
-						if ((pos = url.indexOf("/announce")) != -1) {
-							url = url.substring(0, pos + 1);
-						}
-						Utils.launch(url);
-					}
-				}
-			}
-		});
-    
-    
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 1;
-    trackerUrlValue.setLayoutData(gridData);
     
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.size");
@@ -581,59 +405,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     gridData.horizontalSpan = 4;
     label.setLayoutData(gridData);
     
-    
-    
-    label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.tracker");
-    tracker_status = new BufferedTruncatedLabel(gInfo, SWT.LEFT,150);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    tracker_status.setLayoutData(gridData);
-    
-    tracker_status.addMouseListener(new MouseAdapter() {
-		public void mouseDown(MouseEvent event) {
-			if ( event.button == 1 ){
-				if ( manager.isUnauthorisedOnTracker()){
-					
-					AZ3Functions.provider az3 = AZ3Functions.getProvider();
-					
-					if ( az3 != null && az3.canShowCDP( manager )){
-						
-						az3.showCDP( manager, "tracker.unauth" );
-					}
-				}
-			}
-		}
-	});
-    
-    updateButton = new Button(gInfo, SWT.PUSH);
-    Messages.setLanguageText(updateButton, "GeneralView.label.trackerurlupdate");
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-    gridData.verticalSpan = 2;
-    gridData.horizontalSpan = 2;
-    updateButton.setLayoutData(gridData);
-    updateButton.addSelectionListener(new SelectionAdapter()
-    {
-    	public void widgetSelected(SelectionEvent event) {
-    		manager.requestTrackerAnnounce(false);
-    	}
-    });
-        
-    label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.updatein");
-    trackerUpdateIn = new BufferedLabel(gInfo, SWT.LEFT);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    trackerUpdateIn.setLayoutData(gridData);
-    
-
-	// empty row
-    
-    label = new Label(gInfo, SWT.LEFT);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 4;
-    label.setLayoutData(gridData);
-    
-    
-
     
     label = new Label(gInfo, SWT.LEFT);
     label.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
@@ -699,12 +470,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
       }
     });
 
-    genComposite.addDisposeListener(new DisposeListener() {
-    	public void widgetDisposed(DisposeEvent e) {
-    		menuTracker.dispose();
-    	}
-    });
-    
     genComposite.layout();
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
   }
@@ -833,8 +598,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
       	distributedCopies
     );
       
-    setTracker();
-    
     TOTorrent	torrent = manager.getTorrent();
     
     String creation_date = DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000);
@@ -1211,96 +974,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 	shareRatio.setText( share_ratio);     
   }
 
-  private void setTracker(){
-    if (display == null || display.isDisposed())
-      return;
-    
-    String	status 	= manager.getTrackerStatus();
-    int		time	= manager.getTrackerTime();
-     
-    TRTrackerAnnouncer	trackerClient = manager.getTrackerClient();
-	
-	tracker_status.setText( status );
-		
-	boolean show_cdp_link = false;
-	
-	if ( manager.isUnauthorisedOnTracker()){
-		
-		AZ3Functions.provider az3 = AZ3Functions.getProvider();
-		
-		show_cdp_link = az3 != null && az3.canShowCDP( manager );	
-	}
-	
-	if ( show_cdp_link ){
-		tracker_status.setForeground(Colors.colorError);
-		tracker_status.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
-	}else{
-		tracker_status.setForeground(null);
-		tracker_status.setCursor(null);
-	}
-	
-	if ( time < 0 ){
-		
-		trackerUpdateIn.setText( MessageText.getString("GeneralView.label.updatein.querying"));
-		
-	}else{
- 	    
-		trackerUpdateIn.setText(  TimeFormatter.formatColon( time )); 
-	}
-    
-    boolean	update_state;
-    
-    String trackerURL = null;
-    
-    if ( trackerClient != null ){
-    	
-    	URL	temp = trackerClient.getTrackerURL();
-    	
-    	if ( temp != null ){
-    		
-    		trackerURL	= temp.toString();
-    	}
-    }
-    
-    if ( trackerURL == null ){
-    	
-       	TOTorrent	torrent = manager.getTorrent();
-       	
-       	if( torrent != null ){
-       		
-       		trackerURL = torrent.getAnnounceURL().toString();
-       	}
-    }
-    
-    if ( trackerURL != null ){
-    	
-		trackerUrlValue.setText( trackerURL );
-				
-		if((trackerURL.startsWith("http://")||trackerURL.startsWith("https://"))) {
-		  trackerUrlValue.setForeground(Colors.blue);
-		  trackerUrlValue.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
-		  Messages.setLanguageText(trackerUrlValue.getWidget(), "GeneralView.label.trackerurlopen.tooltip", true);
-		} else {
-		  trackerUrlValue.setForeground(null);
-		  trackerUrlValue.setCursor(null);
-		  Messages.setLanguageText(trackerUrlValue.getWidget(), null);	
-		  trackerUrlValue.setToolTipText(null);
-		}
-   	}
-    
-    if ( trackerClient != null ){
-    	
-    	update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerAnnouncer.REFRESH_MINIMUM_SECS ));
-    	
-    }else{
-    	update_state = false;
-    }
-    
-    if ( updateButton.getEnabled() != update_state ){
-    
-    	updateButton.setEnabled( update_state );
-    }
-  }
 
   private void setInfos(
     final String _fileName,
