@@ -313,6 +313,8 @@ implements PEPeerTransport
 	
 	private static final byte[] sessionSecret;
 	
+	private static boolean enable_upload_bias;
+	
 	static {
 		rnd.setSeed(SystemTime.getHighPrecisionCounter());
 		sessionSecret = new byte[20];
@@ -321,7 +323,8 @@ implements PEPeerTransport
 		COConfigurationManager.addAndFireParameterListeners(
 				new String[]{ 
 					"Use Lazy Bitfield",
-					"Peer.Fast.Initial.Unchoke.Enabled" },
+					"Peer.Fast.Initial.Unchoke.Enabled",
+					"Bias Upload Enable" },
 				new ParameterListener()
 				{
 					public final void 
@@ -335,6 +338,8 @@ implements PEPeerTransport
 						ENABLE_LAZY_BITFIELD |= COConfigurationManager.getBooleanParameter( "Use Lazy Bitfield" );
 						
 						fast_unchoke_new_peers 		= COConfigurationManager.getBooleanParameter( "Peer.Fast.Initial.Unchoke.Enabled" );
+						
+						enable_upload_bias 			= COConfigurationManager.getBooleanParameter( "Bias Upload Enable" );
 					}
 				});
 	}
@@ -1941,7 +1946,7 @@ implements PEPeerTransport
 
 		if ( connection != null ){
 		
-			connection.getOutgoingMessageQueue().setPriorityBoost( !manager.isSeeding());
+			connection.getOutgoingMessageQueue().setPriorityBoost( enable_upload_bias && !manager.isSeeding());
 		}
 		
 		if ( fast_extension_enabled ){

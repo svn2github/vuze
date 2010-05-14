@@ -3133,6 +3133,25 @@ public class GlobalManagerImpl
 
 			glob.put( "nat", new Long( nat_status ));
 			
+			boolean	request_limiting = COConfigurationManager.getBooleanParameter( "Use Request Limiting" );
+			
+			glob.put( "req_lim", new Long( request_limiting?1:0 ));
+
+			if ( request_limiting ){
+				
+				glob.put( "req_focus", new Long( COConfigurationManager.getBooleanParameter( "Use Request Limiting Priorities" )?1:0 ));
+			}
+			
+			boolean bias_up = COConfigurationManager.getBooleanParameter( "Bias Upload Enable" );
+			
+			glob.put( "bias_up", new Long( bias_up?1:0 ));
+			
+			if ( bias_up ){
+			
+				glob.put( "bias_slack", new Long( COConfigurationManager.getLongParameter( "Bias Upload Slack KBs" )));
+				
+				glob.put( "bias_ulim", new Long( COConfigurationManager.getBooleanParameter( "Bias Upload Handle No Limit" )?1:0 ));
+			}
 		}catch( Throwable e ){
 		}
 	}

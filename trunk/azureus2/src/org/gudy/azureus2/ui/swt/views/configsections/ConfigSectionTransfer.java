@@ -309,6 +309,61 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			
 				// bias upload to incomplete
 			
+			BooleanParameter bias_upload = new BooleanParameter(
+					cSection, 
+					"Bias Upload Enable",
+					"ConfigView.label.xfer.bias_up" );
+
+			new Label(cSection, SWT.NULL );
+			
+			final Composite bias_slack_area = new Composite(cSection, SWT.NULL);
+			layout = new GridLayout();
+			layout.numColumns = 3;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			bias_slack_area.setLayout(layout);
+			gridData = new GridData();
+			gridData.horizontalIndent = 15;
+			gridData.horizontalSpan = 2;
+			bias_slack_area.setLayoutData(gridData);
+
+			label = new Label(bias_slack_area, SWT.NULL);
+			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+			label.setLayoutData(gridData);
+			label.setImage(img);
+			
+			label = new Label(bias_slack_area, SWT.NULL);
+			Messages.setLanguageText(label, "ConfigView.label.xfer.bias_slack");
+
+			IntParameter bias_slack = new IntParameter(
+					bias_slack_area, "Bias Upload Slack KBs", 1, -1);
+			
+			
+			final Composite bias_unlimited_area = new Composite(cSection, SWT.NULL);
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			bias_unlimited_area.setLayout(layout);
+			gridData = new GridData();
+			gridData.horizontalIndent = 15;
+			gridData.horizontalSpan = 2;
+			bias_unlimited_area.setLayoutData(gridData);
+
+			label = new Label(bias_unlimited_area, SWT.NULL);
+			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+			label.setLayoutData(gridData);
+			label.setImage(img);
+
+			
+			BooleanParameter bias_no_limit = new BooleanParameter(
+					bias_unlimited_area, 
+					"Bias Upload Handle No Limit",
+					"ConfigView.label.xfer.bias_no_limit" );
+						
+			bias_upload.setAdditionalActionPerformer(
+					new ChangeSelectionActionPerformer(
+					new Parameter[]{ bias_slack, bias_no_limit} ));
 		}
 
 		if (userMode > 0) {

@@ -41,12 +41,14 @@ public class WriteController implements AzureusCoreStatsProvider{
   
 	private static int 		IDLE_SLEEP_TIME  	= 50;
 	private static boolean	AGGRESIVE_WRITE		= false;
-	
+	private static int		BOOSTER_GIFT 		= 5*1024;
+
 	static{
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{
 				"network.control.write.idle.time",
 				"network.control.write.aggressive",
+				"Bias Upload Slack KBs",
 			},
 			new ParameterListener()
 			{
@@ -56,6 +58,7 @@ public class WriteController implements AzureusCoreStatsProvider{
 				{
 					IDLE_SLEEP_TIME 	= COConfigurationManager.getIntParameter( "network.control.write.idle.time" );
 					AGGRESIVE_WRITE		= COConfigurationManager.getBooleanParameter( "network.control.write.aggressive" );
+					BOOSTER_GIFT 		= COConfigurationManager.getIntParameter( "Bias Upload Slack KBs" );
 				}
 			});
 	}
@@ -67,8 +70,8 @@ public class WriteController implements AzureusCoreStatsProvider{
   private int next_normal_position = 0;
   private int next_boost_position = 0;
   private int next_high_position = 0;
-  
-  private int	booster_gift = 5*1024;
+    
+
   private long	booster_process_time;;
   private int	booster_normal_written;
   private int	booster_stat_index;
@@ -421,7 +424,7 @@ public class WriteController implements AzureusCoreStatsProvider{
 			
 				  booster_process_time = process_loop_time;
 				  
-				  booster_gifts[ booster_stat_index ] 			= booster_gift;
+				  booster_gifts[ booster_stat_index ] 			= BOOSTER_GIFT;
 				  booster_normal_writes[ booster_stat_index]	= booster_normal_written;
 				  
 				  booster_stat_index++;

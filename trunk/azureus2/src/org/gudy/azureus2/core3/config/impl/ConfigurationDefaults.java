@@ -191,9 +191,13 @@ public class ConfigurationDefaults {
     def.put( "Auto Upload Speed Debug Enabled", FALSE );
     
     def.put( "Auto Adjust Transfer Defaults", TRUE );	// modified by config checker if user has set own values
+    
+    def.put( "Bias Upload Enable", TRUE );
+    def.put( "Bias Upload Slack KBs", new Long( 5 ));
+    def.put( "Bias Upload Handle No Limit", TRUE );
+    
     def.put( "ASN Autocheck Performed Time", ZERO );
 
-    
     def.put( "LAN Speed Enabled", TRUE );
     def.put( "Max LAN Download Speed KBs", ZERO );
     def.put( "Max LAN Upload Speed KBs", ZERO );
