@@ -58,7 +58,7 @@ public class WriteController implements AzureusCoreStatsProvider{
 				{
 					IDLE_SLEEP_TIME 	= COConfigurationManager.getIntParameter( "network.control.write.idle.time" );
 					AGGRESIVE_WRITE		= COConfigurationManager.getBooleanParameter( "network.control.write.aggressive" );
-					BOOSTER_GIFT 		= COConfigurationManager.getIntParameter( "Bias Upload Slack KBs" );
+					BOOSTER_GIFT 		= COConfigurationManager.getIntParameter( "Bias Upload Slack KBs" )*1024;
 				}
 			});
 	}
