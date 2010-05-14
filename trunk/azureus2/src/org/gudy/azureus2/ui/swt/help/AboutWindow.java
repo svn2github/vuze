@@ -90,24 +90,19 @@ public class AboutWindow {
     window.setLayout(new GridLayout(3, false));
 
     ImageLoader imageLoader = ImageLoader.getInstance();
-    image = imageLoader.getImage(IMG_SPLASH);
-    if (image != null) {
-      int w = image.getBounds().width;
+    imgSrc = imageLoader.getImage(IMG_SPLASH);
+    if (imgSrc != null) {
+      int w = imgSrc.getBounds().width;
       int ow = w;
       if (w > 350) {
       	w = 350;
       }
-      int h = image.getBounds().height;
-      h = 220;
-      imgSrc = new Image(display, w, h);
-      GC gc = new GC(imgSrc);
-      gc.drawImage(image, (w - ow) / 2, 0);
-      gc.dispose();
+      int h = imgSrc.getBounds().height;
       
       Image imgGray = new Image(display, imageLoader.getImage(IMG_SPLASH),
 					SWT.IMAGE_GRAY);
       imageLoader.releaseImage(IMG_SPLASH);
-      gc = new GC(imgGray);
+      GC gc = new GC(imgGray);
       if (Constants.isOSX) {
       	gc.drawImage(imgGray, (w - ow) / 2, 0);
       } else {
@@ -117,14 +112,13 @@ public class AboutWindow {
       
       Image image2 = new Image(display, w, h);
       gc = new GC(image2);
-      gc.setBackground(Colors.black);
+      gc.setBackground(window.getBackground());
       gc.fillRectangle(image2.getBounds());
       gc.dispose();
       image = Utils.renderTransparency(display, image2, imgGray, new Point(0, 0), 180);
       image2.dispose();
       imgGray.dispose();
     }
-    imageLoader.releaseImage(IMG_SPLASH);
     
     Group gDevelopers = new Group(window, SWT.NULL);
     gDevelopers.setLayout(new GridLayout());
@@ -138,22 +132,22 @@ public class AboutWindow {
     
     final Canvas labelImage = new Canvas(window, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
     //labelImage.setImage(image);
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
     Rectangle imgBounds = image.getBounds();
-    gridData.widthHint = imgBounds.width;
-    gridData.heightHint = imgBounds.height;
+    gridData.widthHint = 300;
     labelImage.setLayoutData(gridData);
     labelImage.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				Rectangle boundsColor = imgSrc.getBounds();
+				int ofs = (labelImage.getSize().x - boundsColor.width) / 2;
 				if (paintColorTo > 0) {
-					e.gc.drawImage(imgSrc, 0, 0, paintColorTo, boundsColor.height, 0, 0, paintColorTo, boundsColor.height);
+					e.gc.drawImage(imgSrc, 0, 0, paintColorTo, boundsColor.height, ofs, 20, paintColorTo, boundsColor.height);
 				}
 				Rectangle imgBounds = image.getBounds();
 				if (imgBounds.width - paintColorTo - 1 > 0) {
 					e.gc.drawImage(image, 
 							paintColorTo + 1, 0, imgBounds.width - paintColorTo - 1, imgBounds.height, 
-							paintColorTo + 1, 0, imgBounds.width - paintColorTo - 1, imgBounds.height);
+							paintColorTo + 1 + ofs, 20, imgBounds.width - paintColorTo - 1, imgBounds.height);
 				}
 			}
 		});
@@ -278,7 +272,9 @@ public class AboutWindow {
               if(labelImage.isDisposed())
                 return;
               paintColorTo++;
-              labelImage.redraw(paintColorTo - 1, 0, 2, maxY, true);
+      				Rectangle boundsColor = imgSrc.getBounds();
+      				int ofs = (labelImage.getSize().x - boundsColor.width) / 2;
+              labelImage.redraw(paintColorTo - 1 + ofs, 20, 2, maxY, true);
             }
           });
           try {
@@ -296,11 +292,12 @@ public class AboutWindow {
   {
   	try{
   		class_mon.enter();
-	    if(image != null && ! image.isDisposed())
+	    if(image != null && ! image.isDisposed()) {
 	      image.dispose();
+	    }
+	    ImageLoader imageLoader = ImageLoader.getInstance();
+	    imageLoader.releaseImage(IMG_SPLASH);
 	    image = null;
-	    if(imgSrc != null && ! imgSrc.isDisposed())
-	      imgSrc.dispose();
 	    imgSrc = null;
   	}finally{
   		
