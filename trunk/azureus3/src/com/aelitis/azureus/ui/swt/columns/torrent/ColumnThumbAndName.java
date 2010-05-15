@@ -198,13 +198,12 @@ public class ColumnThumbAndName
 		TableRowCore rowCore = cell.getTableRowCore();
 		if (rowCore != null) {
 			int numSubItems = rowCore.getSubItemCount();
-			boolean needExpando = numSubItems > 0;
-			if (needExpando) {
-				int paddingX = 3;
+			int paddingX = 3;
+			int width = 7;
+			if (numSubItems > 1) {
 				int middleY = cellBounds.y + (cellBounds.height / 2) - 1;
 				int startX = cellBounds.x + paddingX;
 				int halfHeight = 2;
-				int width = 7;
 				Color bg = gc.getBackground();
 				gc.setBackground(gc.getForeground());
 				gc.setAntialias(SWT.ON);
@@ -233,6 +232,8 @@ public class ColumnThumbAndName
 						- cellBounds.y, width, (halfHeight * 4) + 1);
 				rowCore.setData(ID_EXPANDOHITAREA, hitArea);
 
+			}
+			if (numSubItems > 0) {
 				cellBounds.x += paddingX * 2 + width;
 				cellBounds.width -= paddingX * 2 + width;
 			}
