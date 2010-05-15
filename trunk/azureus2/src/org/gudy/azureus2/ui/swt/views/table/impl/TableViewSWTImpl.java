@@ -4017,6 +4017,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		 * @param event event information
 		 */
 		public void handleEvent(final Event event) {
+			if (event.stateMask != 0) {
+				return;
+			}
 			TableColumnOrTreeColumn column = TableOrTreeUtils.getTableColumnEventItem(event.widget);
 			if (column == null) {
 				return;
