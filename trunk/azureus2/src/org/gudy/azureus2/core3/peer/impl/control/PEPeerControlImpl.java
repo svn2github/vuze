@@ -239,6 +239,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private int	bytes_queued_for_upload;
 	private int	connections_with_queued_data;
 	private int	connections_with_queued_data_blocked;
+	private int	connections_unchoked;
+	
 
 	private List<PEPeer> sweepList = Collections.emptyList();
 	private int nextPEXSweepIndex = 0;
@@ -1685,6 +1687,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return( connections_with_queued_data_blocked );
 	}
 	
+	public int
+	getNbPeersUnchoked()
+	{
+		return( connections_unchoked );
+	}
+	
 	public int[] getAvailability() 
 	{
 		return piecePicker.getAvailability();
@@ -1873,33 +1881,40 @@ DiskManagerCheckRequestListener, IPFilterListener
 		int	bytes_queued 	= 0;
 		int	con_queued		= 0;
 		int con_blocked		= 0;
+		int con_unchoked	= 0;
 		
 		for ( Iterator<PEPeer> it=peer_transports.iterator();it.hasNext();){
 			
 			final PEPeerTransport pc = (PEPeerTransport) it.next();
-					
-			Connection connection = pc.getPluginConnection();
-			
-			if ( connection != null ){
-				
-				OutgoingMessageQueue mq = connection.getOutgoingMessageQueue();
-				
-				int q = mq.getDataQueuedBytes() + mq.getProtocolQueuedBytes();
-				
-				bytes_queued += q;
-				
-				if ( q > 0 ){
-					
-					con_queued++;
-					
-					if ( mq.isBlocked()){
-						
-						con_blocked++;
-					}
-				}
-			}
 			
 			if ( pc.getPeerState() == PEPeer.TRANSFERING) {
+				
+				if ( !pc.isChokedByMe()){
+					
+					con_unchoked++;
+				}
+				
+				Connection connection = pc.getPluginConnection();
+				
+				if ( connection != null ){
+					
+					OutgoingMessageQueue mq = connection.getOutgoingMessageQueue();
+					
+					int q = mq.getDataQueuedBytes() + mq.getProtocolQueuedBytes();
+					
+					bytes_queued += q;
+					
+					if ( q > 0 ){
+						
+						con_queued++;
+						
+						if ( mq.isBlocked()){
+							
+							con_blocked++;
+						}
+					}
+				}
+				
 				if (pc.isSeed())
 					new_seeds++;
 				else
@@ -1943,6 +1958,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		bytes_queued_for_upload 				= bytes_queued;
 		connections_with_queued_data			= con_queued;
 		connections_with_queued_data_blocked	= con_blocked;
+		connections_unchoked					= con_unchoked;
 	}
 	/**
 	 * The way to unmark a request as being downloaded, or also 

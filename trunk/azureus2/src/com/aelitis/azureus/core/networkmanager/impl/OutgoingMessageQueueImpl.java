@@ -176,7 +176,7 @@ OutgoingMessageQueueImpl
 		 return( false );
 	 }
 	 
-	 return( transport.isReadyForWrite( null ));
+	 return( !transport.isReadyForWrite( null ));
   }
   /**
    * Whether or not an urgent message (one that needs an immediate send, i.e. a no-delay message) is queued.

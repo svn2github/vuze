@@ -44,8 +44,11 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -56,6 +59,7 @@ import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.PingGraphic;
 import org.gudy.azureus2.ui.swt.components.graphics.Plot3D;
+import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.components.graphics.ValueFormater;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
@@ -74,40 +78,47 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
  */
 public class TransferStatsView extends AbstractIView {
 
-  GlobalManagerStats stats = null;
-  SpeedManager speedManager = null;
+	private GlobalManager		global_manager;
+	private GlobalManagerStats 	stats;
+	private SpeedManager 		speedManager;
   
-  OverallStats totalStats;
+	private OverallStats totalStats;
   
-  Composite mainPanel;  
+	private Composite mainPanel;  
   
-  Composite blahPanel;
-  BufferedLabel asn,estUpCap,estDownCap;
+	private Composite blahPanel;
+	private BufferedLabel asn,estUpCap,estDownCap;
 
-  Composite generalPanel;
-  BufferedLabel nowUp, nowDown, sessionDown, sessionUp, session_ratio, sessionTime, totalDown, totalUp, total_ratio, totalTime;
+	private Composite 		connectionPanel;
+	private Label			upload_label, connection_label;
+	private SpeedGraphic	upload_graphic;
+	private SpeedGraphic	connection_graphic;
+	
+	private Composite generalPanel;
+	private BufferedLabel nowUp, nowDown, sessionDown, sessionUp, session_ratio, sessionTime, totalDown, totalUp, total_ratio, totalTime;
   
-  Group autoSpeedPanel;
-  StackLayout autoSpeedPanelLayout;
-  Composite autoSpeedInfoPanel;
-  Composite autoSpeedDisabledPanel;
-  PingGraphic pingGraph;
+	private Group autoSpeedPanel;
+	private StackLayout autoSpeedPanelLayout;
+	private Composite autoSpeedInfoPanel;
+	private Composite autoSpeedDisabledPanel;
+	private PingGraphic pingGraph;
 
-  plotView[]	plot_views;
-  zoneView[] 	zone_views;
+	private plotView[]	plot_views;
+	private zoneView[] 	zone_views;
   
-  limitToTextHelper	limit_to_text = new limitToTextHelper();
+	private limitToTextHelper	limit_to_text = new limitToTextHelper();
   
-  private final DecimalFormat formatter = new DecimalFormat( "##.#" );
+	private final DecimalFormat formatter = new DecimalFormat( "##.#" );
   
   
   
   public TransferStatsView() {
   	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
-				stats = core.getGlobalManager().getStats();
-		    speedManager = core.getSpeedManager();
-		    totalStats = StatsFactory.getStats();
+				global_manager = core.getGlobalManager();
+				stats = global_manager.getStats();
+				speedManager = core.getSpeedManager();
+				totalStats = StatsFactory.getStats();
 			}
 		});
     
@@ -124,7 +135,8 @@ public class TransferStatsView extends AbstractIView {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						createGeneralPanel();
-						createBlahPanel();
+						createConnectionPanel();
+						createCapacityPanel();
 						createAutoSpeedPanel();
 					}
 				});
@@ -222,7 +234,7 @@ public class TransferStatsView extends AbstractIView {
   }
   
   private void
-  createBlahPanel()
+  createCapacityPanel()
   {
 	  blahPanel = new Composite(mainPanel,SWT.NONE);
 	  GridData blahPanelData = new GridData(GridData.FILL_HORIZONTAL);
@@ -258,6 +270,89 @@ public class TransferStatsView extends AbstractIView {
 	  label = new Label(blahPanel,SWT.NONE);
   }
   
+  private void
+  createConnectionPanel()
+  {
+	  connectionPanel = new Composite(mainPanel,SWT.NONE);
+	  GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+	  connectionPanel.setLayoutData(gridData);
+
+	  GridLayout panelLayout = new GridLayout();
+	  panelLayout.numColumns = 2;
+	  connectionPanel.setLayout(panelLayout);
+
+	  Composite conn_area = new Composite( connectionPanel, SWT.NULL );
+	  gridData = new GridData(GridData.FILL_HORIZONTAL);
+	  conn_area.setLayoutData(gridData);
+
+	  panelLayout = new GridLayout();
+	  panelLayout.numColumns = 2;
+	  conn_area.setLayout(panelLayout);
+
+	  Label label = new Label( conn_area, SWT.NULL );
+	  Messages.setLanguageText( label, "SpeedView.stats.con" );
+	  
+	  connection_label = new Label( conn_area, SWT.NULL );
+	  gridData = new GridData(GridData.FILL_HORIZONTAL);
+	  connection_label.setLayoutData(gridData);
+
+	  Composite upload_area = new Composite( connectionPanel, SWT.NULL );
+	  gridData = new GridData(GridData.FILL_HORIZONTAL);
+	  upload_area.setLayoutData(gridData);
+
+	  panelLayout = new GridLayout();
+	  panelLayout.numColumns = 2;
+	  upload_area.setLayout(panelLayout);
+
+	  label = new Label( upload_area, SWT.NULL );
+	  Messages.setLanguageText( label, "SpeedView.stats.upload" );
+
+	  upload_label = new Label( upload_area, SWT.NULL );
+	  gridData = new GridData(GridData.FILL_HORIZONTAL);
+	  upload_label.setLayoutData(gridData);
+
+
+	  	// connections
+	  
+	  Canvas connection_canvas = new Canvas(connectionPanel,SWT.NO_BACKGROUND);
+	  gridData = new GridData(GridData.FILL_BOTH);
+	  gridData.heightHint = 200;
+	  connection_canvas.setLayoutData(gridData);
+	  connection_graphic = 
+		  SpeedGraphic.getInstance(
+			new ValueFormater()
+			{
+			    public String 
+			    format(int value) 
+			    {
+			         return( String.valueOf( value ));
+			    }
+			});
+	  
+	  connection_graphic.initialize(connection_canvas);
+	  Color[] colors = connection_graphic.colors;
+
+	  connection_graphic.setLineColors( colors );
+	  
+	  	// upload queued
+	  
+	  Canvas upload_canvas = new Canvas(connectionPanel,SWT.NO_BACKGROUND);
+	  gridData = new GridData(GridData.FILL_BOTH);
+	  upload_canvas.setLayoutData(gridData);
+	  upload_graphic = 
+		  SpeedGraphic.getInstance(
+			new ValueFormater()
+			{
+			    public String 
+			    format(int value) 
+			    {
+			         return DisplayFormatters.formatByteCountToKiBEtc(value);
+			    }
+			});
+	  
+	  upload_graphic.initialize(upload_canvas);
+	  
+  }
   
   private void createAutoSpeedPanel() {
     autoSpeedPanel = new Group(mainPanel,SWT.NONE);
@@ -375,6 +470,15 @@ public class TransferStatsView extends AbstractIView {
   public void delete() {
 		Utils.disposeComposite(generalPanel);
 		Utils.disposeComposite(blahPanel);
+		
+		if ( upload_graphic != null ){
+			upload_graphic.dispose();
+		}
+		
+		if ( connection_graphic != null ){
+			connection_graphic.dispose();
+		}
+		
 		if (pingGraph != null) {
 			pingGraph.dispose();
 		}
@@ -408,7 +512,9 @@ public class TransferStatsView extends AbstractIView {
 
     refreshGeneral();
     
-    refreshBlahPanel();
+    refreshCapacityPanel();
+    
+    refreshConnectionPanel();
     
     refreshPingPanel();
     
@@ -487,13 +593,59 @@ public class TransferStatsView extends AbstractIView {
   }  
   
   private void
-  refreshBlahPanel()
+  refreshCapacityPanel()
   {
 	  asn.setText(speedManager.getASN());
 
 	  estUpCap.setText(limit_to_text.getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
 
 	  estDownCap.setText(limit_to_text.getLimitText(speedManager.getEstimatedDownloadCapacityBytesPerSec()));
+  }
+  
+  private void
+  refreshConnectionPanel()
+  {
+	  int	total_connections	= 0;
+	  int	total_con_queued	= 0;
+	  int	total_con_blocked	= 0;
+	  int	total_con_unchoked	= 0;
+	  
+	  int	total_data_queued	= 0;
+	  
+	  List<DownloadManager> dms = global_manager.getDownloadManagers();
+	  
+	  for ( DownloadManager dm: dms ){
+		  
+		  PEPeerManager pm = dm.getPeerManager();
+		  
+		  if ( pm != null ){
+			  
+			  total_data_queued += pm.getBytesQueuedForUpload();
+			  
+			  total_connections += pm.getNbPeers() + pm.getNbSeeds();
+			  
+			  total_con_queued 	+= pm.getNbPeersWithUploadQueued();
+			  total_con_blocked	+= pm.getNbPeersWithUploadBlocked();
+			  
+			  total_con_unchoked += pm.getNbPeersUnchoked();
+		  }
+		  
+	  }
+	  
+	  Messages.setLanguageText( 
+			 connection_label, "SpeedView.stats.con_details",
+			 new String[]{ String.valueOf(total_connections), String.valueOf(total_con_unchoked), String.valueOf(total_con_queued), String.valueOf(total_con_blocked) });
+	  
+	  connection_graphic.addIntsValue( new int[]{ total_connections, total_con_unchoked, total_con_queued, total_con_blocked });
+	  
+	  Messages.setLanguageText( 
+			 upload_label, "SpeedView.stats.upload_details",
+			 new String[]{ DisplayFormatters.formatByteCountToKiBEtc( total_data_queued )});
+	  
+	  upload_graphic.addIntValue( total_data_queued );
+	  
+	  upload_graphic.refresh();
+	  connection_graphic.refresh();
   }
   
   private void refreshPingPanel() {
