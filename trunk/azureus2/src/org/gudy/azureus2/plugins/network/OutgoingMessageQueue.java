@@ -66,4 +66,6 @@ public interface OutgoingMessageQueue {
   public int getDataQueuedBytes();
   
   public int getProtocolQueuedBytes();
+  
+  public boolean isBlocked();
 }

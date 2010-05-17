@@ -143,4 +143,10 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
   {
 	  return(core_queue.getProtocolQueuedBytes());
   }
+  
+  public boolean
+  isBlocked()
+  {
+	  return(core_queue.isBlocked());
+  }
 }

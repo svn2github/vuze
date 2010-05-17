@@ -48,6 +48,8 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponsePeer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
+import org.gudy.azureus2.plugins.network.Connection;
+import org.gudy.azureus2.plugins.network.OutgoingMessageQueue;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
@@ -234,7 +236,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private List<Object[]>	external_rate_limiters_cow;
 	
-	
+	private int	bytes_queued_for_upload;
+	private int	connections_with_queued_data;
+	private int	connections_with_queued_data_blocked;
+
 	private List<PEPeer> sweepList = Collections.emptyList();
 	private int nextPEXSweepIndex = 0;
 
@@ -1662,6 +1667,24 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return( piecePicker.hasDownloadablePiece());
 	}
 
+	public int
+	getBytesQueuedForUpload()
+	{
+		return( bytes_queued_for_upload );
+	}
+	
+	public int	
+	getNbPeersWithUploadQueued()
+	{
+		return( connections_with_queued_data );
+	}
+	    
+	public int	
+	getNbPeersWithUploadBlocked()
+	{
+		return( connections_with_queued_data_blocked );
+	}
+	
 	public int[] getAvailability() 
 	{
 		return piecePicker.getAvailability();
@@ -1847,10 +1870,35 @@ DiskManagerCheckRequestListener, IPFilterListener
 		int new_tcp_incoming 	= 0;
 		int new_udp_incoming  	= 0;
 		
+		int	bytes_queued 	= 0;
+		int	con_queued		= 0;
+		int con_blocked		= 0;
+		
 		for ( Iterator<PEPeer> it=peer_transports.iterator();it.hasNext();){
 			
 			final PEPeerTransport pc = (PEPeerTransport) it.next();
+					
+			Connection connection = pc.getPluginConnection();
+			
+			if ( connection != null ){
+				
+				OutgoingMessageQueue mq = connection.getOutgoingMessageQueue();
+				
+				int q = mq.getDataQueuedBytes() + mq.getProtocolQueuedBytes();
+				
+				bytes_queued += q;
+				
+				if ( q > 0 ){
+					
+					con_queued++;
+					
+					if ( mq.isBlocked()){
 						
+						con_blocked++;
+					}
+				}
+			}
+			
 			if ( pc.getPeerState() == PEPeer.TRANSFERING) {
 				if (pc.isSeed())
 					new_seeds++;
@@ -1891,6 +1939,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 		_remotesUDPNoLan = new_udp_incoming;
 		_tcpPendingConnections = new_pending_tcp_connections;
 		_tcpConnectingConnections = new_connecting_tcp_connections;
+		
+		bytes_queued_for_upload 				= bytes_queued;
+		connections_with_queued_data			= con_queued;
+		connections_with_queued_data_blocked	= con_blocked;
 	}
 	/**
 	 * The way to unmark a request as being downloaded, or also 

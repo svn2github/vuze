@@ -168,7 +168,16 @@ OutgoingMessageQueueImpl
   {
 	  priority_boost = boost;
   }
-  
+  public boolean
+  isBlocked()
+  {
+	 if ( transport == null ){
+		 
+		 return( false );
+	 }
+	 
+	 return( transport.isReadyForWrite( null ));
+  }
   /**
    * Whether or not an urgent message (one that needs an immediate send, i.e. a no-delay message) is queued.
    * @return true if there's a message tagged for immediate write

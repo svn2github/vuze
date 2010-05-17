@@ -82,6 +82,9 @@ PEPeerManager
 	
 	public boolean hasDownloadablePiece();
 	
+    public int	getBytesQueuedForUpload();
+    public int	getNbPeersWithUploadQueued();
+    public int	getNbPeersWithUploadBlocked();
     
     /** Often better to use getPiece(pieceNumber)
      */

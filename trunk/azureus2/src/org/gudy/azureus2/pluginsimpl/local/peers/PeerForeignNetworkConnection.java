@@ -307,6 +307,12 @@ PeerForeignNetworkConnection
 		{
 		}
 
+		public boolean
+		isBlocked()
+		{
+			return( false );
+		}
+		
 		public boolean 
 		hasUrgentMessage()
 		{

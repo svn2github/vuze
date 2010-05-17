@@ -89,9 +89,11 @@ DownloadManagerRateController
 						timer = 
 							SimpleTimer.addPeriodicEvent( 
 								"DMRC", 
-								10*1000,
+								1*1000,
 								new TimerEventPerformer()
 								{
+									private int tick_count;
+									
 									public void 
 									perform(
 										TimerEvent event ) 
@@ -102,7 +104,7 @@ DownloadManagerRateController
 												public void
 												runSupport()
 												{
-													update();
+													update( tick_count++ );
 												}
 											});
 									}
@@ -135,7 +137,8 @@ DownloadManagerRateController
 	}
 	
 	private static void
-	update()
+	update(
+		int	tick_count )
 	{
 		for ( Map.Entry<PEPeerManager, Integer> entry: pm_map.entrySet()){
 			
@@ -157,7 +160,7 @@ DownloadManagerRateController
 			
 			int	target_state = pm.hasDownloadablePiece()?0:1;
 			
-			System.out.println( pm.getDisplayName() + ": dl=" + ( target_state==0 ) + ", q_data=" + total_data_queued );
+			System.out.println( pm.getDisplayName() + ": dl=" + ( target_state==0 ) + ", q_data=" + total_data_queued + ", q_con=" + pm.getNbPeersWithUploadQueued() + ", q_con_blocked=" + pm.getNbPeersWithUploadBlocked());
 			
 			if ( entry.getValue() != target_state ){
 			

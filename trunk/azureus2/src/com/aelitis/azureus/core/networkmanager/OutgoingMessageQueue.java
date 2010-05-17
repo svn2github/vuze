@@ -81,6 +81,8 @@ OutgoingMessageQueue
   
   public int getProtocolQueuedBytes();
   
+  public boolean isBlocked();
+  
   public boolean getPriorityBoost();
 	
   public void setPriorityBoost( boolean	boost );
