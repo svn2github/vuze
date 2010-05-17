@@ -110,6 +110,7 @@ public class TransferStatsView extends AbstractIView {
   
 	private final DecimalFormat formatter = new DecimalFormat( "##.#" );
   
+	private boolean	initialised;
   
   
   public TransferStatsView() {
@@ -138,6 +139,8 @@ public class TransferStatsView extends AbstractIView {
 						createConnectionPanel();
 						createCapacityPanel();
 						createAutoSpeedPanel();
+						
+						initialised	= true;
 					}
 				});
 			}
@@ -510,17 +513,23 @@ public class TransferStatsView extends AbstractIView {
   
   public void refresh() {
 
-    refreshGeneral();
-    
-    refreshCapacityPanel();
-    
-    refreshConnectionPanel();
-    
-    refreshPingPanel();
-    
+	  if ( !initialised ){
+		  return;
+	  }
+	  refreshGeneral();
+
+	  refreshCapacityPanel();
+
+	  refreshConnectionPanel();
+
+	  refreshPingPanel();
   }
 
   private void refreshGeneral() {
+	if ( stats == null ){
+		return;
+	}
+	
     int now_prot_down_rate = stats.getProtocolReceiveRate();
     int now_prot_up_rate = stats.getProtocolSendRate();
     
@@ -595,6 +604,10 @@ public class TransferStatsView extends AbstractIView {
   private void
   refreshCapacityPanel()
   {
+	  if ( speedManager == null ){
+		  return;
+	  }
+	  
 	  asn.setText(speedManager.getASN());
 
 	  estUpCap.setText(limit_to_text.getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
@@ -605,6 +618,10 @@ public class TransferStatsView extends AbstractIView {
   private void
   refreshConnectionPanel()
   {
+	  if ( global_manager == null ){
+		  return;
+	  }
+	  
 	  int	total_connections	= 0;
 	  int	total_con_queued	= 0;
 	  int	total_con_blocked	= 0;
