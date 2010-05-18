@@ -669,7 +669,7 @@ public class TransferStatsView extends AbstractIView {
   	if (speedManager == null) {
   		return;
   	}
-    if(speedManager.isAvailable() && speedManager.isEnabled()) {
+    if(speedManager.isAvailable()){// && speedManager.isEnabled()) {
       autoSpeedPanelLayout.topControl = autoSpeedInfoPanel;
       autoSpeedPanel.layout();
    
@@ -694,7 +694,7 @@ public class TransferStatsView extends AbstractIView {
   	if (speedManager == null) {
   		return;
   	}
-    if(speedManager.isAvailable() && speedManager.isEnabled()) {
+    if(speedManager.isAvailable()){// && speedManager.isEnabled()) {
       SpeedManagerPingSource sources[] = speedManager.getPingSources();
       if(sources.length > 0) {
         int[] pings = new int[sources.length];

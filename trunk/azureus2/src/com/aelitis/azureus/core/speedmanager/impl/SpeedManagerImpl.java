@@ -292,7 +292,7 @@ SpeedManagerImpl
 						// if enabled the ping stream drives the stats update for the ping mappers
 						// When not enabled we do it here instead
 					
-					if ( !enabled || contacts_array.length == 0 ){
+					if ( !pm_enabled || contacts_array.length == 0 ){
 											
 						int	x	= (adapter.getCurrentDataUploadSpeed(SPEED_AVERAGE_PERIOD) + adapter.getCurrentProtocolUploadSpeed(SPEED_AVERAGE_PERIOD));
 						int	y 	= (adapter.getCurrentDataDownloadSpeed(SPEED_AVERAGE_PERIOD) + adapter.getCurrentProtocolDownloadSpeed(SPEED_AVERAGE_PERIOD));
