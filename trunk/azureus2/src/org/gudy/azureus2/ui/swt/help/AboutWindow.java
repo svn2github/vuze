@@ -130,7 +130,7 @@ public class AboutWindow {
     label.setText(properties.getProperty("developers")); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
     
-    final Canvas labelImage = new Canvas(window, SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
+    final Canvas labelImage = new Canvas(window, SWT.DOUBLE_BUFFERED);
     //labelImage.setImage(image);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
     Rectangle imgBounds = image.getBounds();
