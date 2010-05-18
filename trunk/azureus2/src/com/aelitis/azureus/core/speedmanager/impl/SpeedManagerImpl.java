@@ -68,7 +68,7 @@ public class
 SpeedManagerImpl 
 	implements SpeedManager, SpeedManagerAlgorithmProviderAdapter, AEDiagnosticsEvidenceGenerator
 {
-	protected static final int UPDATE_PERIOD_MILLIS	= 5000;
+	protected static final int UPDATE_PERIOD_MILLIS	= 3000;
 
 	private static final int CONTACT_NUMBER		= 3;
 	private static final int CONTACT_PING_SECS	= UPDATE_PERIOD_MILLIS/1000;
@@ -138,6 +138,8 @@ SpeedManagerImpl
 	private	int							provider_version	= -1;
 	private boolean						enabled;
 
+	private final boolean				pm_enabled = true;
+	
     private Map							contacts	= new HashMap();
 	private volatile int				total_contacts;
 	private pingContact[]				contacts_array	= new pingContact[0];
@@ -548,7 +550,7 @@ SpeedManagerImpl
 						DHTSpeedTesterContact[]	st_contacts,
 						int[]					round_trip_times )
 					{
-						if ( !enabled ){
+						if ( !pm_enabled ){
 							
 							for (int i=0;i<st_contacts.length;i++){
 								
@@ -660,6 +662,11 @@ SpeedManagerImpl
 					}
 				});
 		
+		if ( pm_enabled ){
+			
+			speed_tester.setContactNumber( CONTACT_NUMBER );
+		}
+		
 		SimpleTimer.addPeriodicEvent(
 			"SpeedManager:stats",
 			SpeedManagerAlgorithmProvider.UPDATE_PERIOD_MILLIS,
@@ -761,7 +768,7 @@ SpeedManagerImpl
 			
 			enabled	= _enabled;
 			
-			if ( speed_tester != null ){
+			if ( speed_tester != null && !pm_enabled ){
 				
 				speed_tester.setContactNumber( enabled?CONTACT_NUMBER:0);
 			}

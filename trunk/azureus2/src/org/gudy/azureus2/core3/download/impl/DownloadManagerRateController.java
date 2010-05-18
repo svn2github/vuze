@@ -23,28 +23,49 @@ package org.gudy.azureus2.core3.download.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
-import org.gudy.azureus2.plugins.network.Connection;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.util.average.Average;
+import com.aelitis.azureus.core.util.average.AverageFactory;
 
 public class 
 DownloadManagerRateController 
 {
-	private static Map<PEPeerManager,Integer>		pm_map = new HashMap<PEPeerManager, Integer>();
+	private static Map<PEPeerManager,PMState>		pm_map = new HashMap<PEPeerManager, PMState>();
 	
 	private static TimerEventPeriodic	timer;
 	
 	private static AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
-	private static int rate_limit	= 0;
+	private static boolean enable_limit_handling;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"Bias Upload Handle No Limit",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameterName) 
+				{
+					enable_limit_handling = COConfigurationManager.getBooleanParameter( "Bias Upload Handle No Limit" );
+				}
+			});
+	}
+	
+	private static volatile int rate_limit	= 0;
 	
 	private static LimitedRateGroup 
 		limiter = 
@@ -63,6 +84,15 @@ DownloadManagerRateController
 				}
 			};
 	
+	private static final int TIMER_MILLIS			= 1000;
+	private static final int AVERAGE_PERIOD_MILLIS	= 25*1000;
+			
+	private static final Average	complete_up_average 	= AverageFactory.MovingImmediateAverage(AVERAGE_PERIOD_MILLIS/TIMER_MILLIS);
+	private static final Average	incomplete_up_average 	= AverageFactory.MovingImmediateAverage(AVERAGE_PERIOD_MILLIS/TIMER_MILLIS);
+	
+	private static int	tick_count				 = 0;
+	private static int	last_tick_processed 	= -1;
+			
 	public static void
 	addPeerManager(
 		final PEPeerManager		pm )
@@ -73,27 +103,27 @@ DownloadManagerRateController
 				public void
 				runSupport()
 				{
-					int	state = 0;
+					boolean	is_complete = !pm.hasDownloadablePiece();
 					
-					if ( !pm.hasDownloadablePiece()){
+					PEPeerManagerStats pm_stats = pm.getStats();
+
+					long	up_bytes = pm_stats.getTotalDataBytesSentNoLan() + pm_stats.getTotalProtocolBytesSentNoLan();
+
+					if ( is_complete ){
 						
 						pm.addRateLimiter( limiter, true );
-						
-						state = 1;
 					}
 					
-					pm_map.put( pm, state );
+					pm_map.put( pm, new PMState( is_complete, up_bytes ));
 										
 					if ( timer == null ){
 						
 						timer = 
 							SimpleTimer.addPeriodicEvent( 
 								"DMRC", 
-								1*1000,
+								TIMER_MILLIS,
 								new TimerEventPerformer()
 								{
-									private int tick_count;
-									
 									public void 
 									perform(
 										TimerEvent event ) 
@@ -104,7 +134,7 @@ DownloadManagerRateController
 												public void
 												runSupport()
 												{
-													update( tick_count++ );
+													update();
 												}
 											});
 									}
@@ -131,50 +161,133 @@ DownloadManagerRateController
 						timer.cancel();
 						
 						timer = null;
+						
+						rate_limit = 0;
 					}
 				}
 			});
 	}
 	
 	private static void
-	update(
-		int	tick_count )
+	update()
 	{
-		for ( Map.Entry<PEPeerManager, Integer> entry: pm_map.entrySet()){
+		tick_count++;
+		
+		if ((!enable_limit_handling) ||  pm_map.size() == 0 ||  NetworkManager.isSeedingOnlyUploadRate()){
 			
-			PEPeerManager	pm = entry.getKey();
+			rate_limit = 0;
 			
-			List<PEPeer> peers = pm.getPeers();
+			return;
+		}
+
+		long up_lim = NetworkManager.getMaxUploadRateBPSNormal();
+		
+		if ( up_lim != 0 ){
 			
-			int total_data_queued = 0;
+			rate_limit = 0;
 			
-			for ( PEPeer peer: peers ){
+			return;
+		}
+		
+		rate_limit = 0;;
+		
+		long	i_up_diff = 0;
+		long	c_up_diff = 0;
+		
+		for ( Map.Entry<PEPeerManager, PMState> entry: pm_map.entrySet()){
+			
+			PEPeerManager	pm 		= entry.getKey();
+			PMState			state 	= entry.getValue();
+			
+			boolean	is_complete = !pm.hasDownloadablePiece();
+			
+			PEPeerManagerStats pm_stats = pm.getStats();
+	
+			long	up_bytes = pm_stats.getTotalDataBytesSentNoLan() + pm_stats.getTotalProtocolBytesSentNoLan();
+						
+			long	diff = state.setBytesUp( up_bytes );
+			
+			if ( is_complete ){
 				
-				Connection connection = peer.getPluginConnection();
+				c_up_diff += diff;
 				
-				if ( connection != null ){
-					
-					total_data_queued += connection.getOutgoingMessageQueue().getDataQueuedBytes();
-				}
+			}else{
+				
+				i_up_diff += diff;
 			}
+				
+			if ( state.isComplete() != is_complete ){
 			
-			int	target_state = pm.hasDownloadablePiece()?0:1;
-			
-			System.out.println( pm.getDisplayName() + ": dl=" + ( target_state==0 ) + ", q_data=" + total_data_queued + ", q_con=" + pm.getNbPeersWithUploadQueued() + ", q_con_blocked=" + pm.getNbPeersWithUploadBlocked());
-			
-			if ( entry.getValue() != target_state ){
-			
-				if ( target_state == 0 ){
+				if ( is_complete ){
 					
-					pm.removeRateLimiter( limiter, true );
+					pm.addRateLimiter( limiter, true );
 					
 				}else{
 					
-					pm.addRateLimiter( limiter, true );
+					pm.removeRateLimiter( limiter, true );
 				}
 				
-				entry.setValue( target_state );
+				state.setComplete( is_complete );
 			}
+		}
+		
+		if ( last_tick_processed != tick_count - 1 ){
+			
+			complete_up_average.reset();
+			
+			incomplete_up_average.reset();
+			
+		}else{
+			
+			complete_up_average.update( c_up_diff  );
+			
+			incomplete_up_average.update( i_up_diff  );
+		}
+		
+		last_tick_processed = tick_count;
+		
+		//System.out.println( 
+		//	"comp=" + DisplayFormatters.formatByteCountToKiBEtcPerSec((long)complete_up_average.getAverage()) +
+		//	", incomp=" + DisplayFormatters.formatByteCountToKiBEtcPerSec((long)incomplete_up_average.getAverage()));		
+	}
+	
+	private static class
+	PMState
+	{
+		private boolean		complete;
+		private long		bytes_up;
+		
+		private
+		PMState(
+			boolean	comp,
+			long	b )
+		{
+			complete 	= comp;
+			bytes_up	= b;
+		}
+		
+		private boolean
+		isComplete()
+		{
+			return( complete );
+		}
+		
+		private void
+		setComplete(
+			boolean	c )
+		{
+			complete = c;
+		}
+		
+		private long
+		setBytesUp(
+			long	b )
+		{
+			long diff = b - bytes_up;
+			
+			bytes_up = b;
+			
+			return( diff );
 		}
 	}
 }
