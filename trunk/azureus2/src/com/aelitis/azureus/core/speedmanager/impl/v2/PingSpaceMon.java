@@ -223,6 +223,7 @@ public class PingSpaceMon
             return new int[0][];
         }
 
+        public long getWhen(){ return(0);}
         public String getString() {
             return "default";
         }

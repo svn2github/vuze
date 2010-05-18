@@ -58,6 +58,9 @@ SpeedManagerLimitEstimate
 	public int[][]
 	getSegments();
 	
+	public long
+	getWhen();
+	
 	public String
 	getString();
 }

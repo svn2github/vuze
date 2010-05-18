@@ -109,6 +109,9 @@ public class SMConfigurationAdapterImpl implements SMConfigurationAdapter
             return new int[0][];
         }
 
+        public long getWhen() {
+        	return 0;
+        }
         /**
          *
          * @return

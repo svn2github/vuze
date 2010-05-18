@@ -31,40 +31,54 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.util.average.Average;
-import com.aelitis.azureus.core.util.average.AverageFactory;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
+
 
 public class 
 DownloadManagerRateController 
 {
+	private static AzureusCore		core;
+	private static SpeedManager		speed_manager;
+	
 	private static Map<PEPeerManager,PMState>		pm_map = new HashMap<PEPeerManager, PMState>();
 	
 	private static TimerEventPeriodic	timer;
 	
 	private static AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
-	private static boolean enable_limit_handling;
+	private static boolean 	enable_limit_handling;
+	private static int		slack_bytes_per_sec;
 	
 	static{
-		COConfigurationManager.addAndFireParameterListener(
-			"Bias Upload Handle No Limit",
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"Bias Upload Handle No Limit",
+				"Bias Upload Slack KBs",
+			},
 			new ParameterListener()
 			{
 				public void 
 				parameterChanged(
 					String parameterName) 
 				{
-					enable_limit_handling = COConfigurationManager.getBooleanParameter( "Bias Upload Handle No Limit" );
+					enable_limit_handling 	= COConfigurationManager.getBooleanParameter( "Bias Upload Handle No Limit" );
+					slack_bytes_per_sec		= COConfigurationManager.getIntParameter( "Bias Upload Slack KBs" )*1024;
 				}
 			});
 	}
 	
+
 	private static volatile int rate_limit	= 0;
 	
 	private static LimitedRateGroup 
@@ -85,13 +99,34 @@ DownloadManagerRateController
 			};
 	
 	private static final int TIMER_MILLIS			= 1000;
-	private static final int AVERAGE_PERIOD_MILLIS	= 25*1000;
 			
-	private static final Average	complete_up_average 	= AverageFactory.MovingImmediateAverage(AVERAGE_PERIOD_MILLIS/TIMER_MILLIS);
-	private static final Average	incomplete_up_average 	= AverageFactory.MovingImmediateAverage(AVERAGE_PERIOD_MILLIS/TIMER_MILLIS);
+	private static final int WAIT_AFTER_CHOKE_PERIOD	= 10*1000;
+	private static final int WAIT_AFTER_CHOKE_TICKS		= WAIT_AFTER_CHOKE_PERIOD/TIMER_MILLIS;
+
+	private static final int DEFAULT_UP_LIMIT	= 250*1024;
+	private static final int MAX_DIFF	= 10*1024;
+	private static final int MIN_DIFF	= 1024;
+				
+	private static final int		SAMPLE_COUNT			= 5;
+	private static int				sample_num;
+	private static double			incomplete_samples;
+	private static double			complete_samples;
 	
-	private static int	tick_count				 = 0;
+	private static int	ticks_to_sample_start;
+	
+	private static int		last_rate_limit;
+	private static double	last_incomplete_average;
+	private static double	last_complete_average;
+	private static double	last_overall_average;
+
+
+	
+	private static int	tick_count				= 0;
 	private static int	last_tick_processed 	= -1;
+	
+	private static long pm_last_bad_limit;
+	private static int	latest_choke;
+	private static int	wait_until_tick;
 			
 	public static void
 	addPeerManager(
@@ -103,6 +138,13 @@ DownloadManagerRateController
 				public void
 				runSupport()
 				{
+					if ( core == null ){
+						
+						core = AzureusCoreFactory.getSingleton();
+						
+						speed_manager = core.getSpeedManager();
+					}
+					
 					boolean	is_complete = !pm.hasDownloadablePiece();
 					
 					PEPeerManagerStats pm_stats = pm.getStats();
@@ -173,26 +215,20 @@ DownloadManagerRateController
 	{
 		tick_count++;
 		
-		if ((!enable_limit_handling) ||  pm_map.size() == 0 ||  NetworkManager.isSeedingOnlyUploadRate()){
+		if ( 	(!enable_limit_handling ) ||  pm_map.size() == 0 ||  
+				NetworkManager.isSeedingOnlyUploadRate() ||  NetworkManager.getMaxUploadRateBPSNormal() != 0 || 
+				core == null || speed_manager == null || speed_manager.getSpeedTester() == null ){
 			
 			rate_limit = 0;
 			
 			return;
 		}
-
-		long up_lim = NetworkManager.getMaxUploadRateBPSNormal();
+						
+		int	num_complete 	= 0;
+		int	num_incomplete 	= 0;
 		
-		if ( up_lim != 0 ){
-			
-			rate_limit = 0;
-			
-			return;
-		}
-		
-		rate_limit = 0;;
-		
-		long	i_up_diff = 0;
-		long	c_up_diff = 0;
+		int i_up_total	= 0;
+		int c_up_total	= 0;
 		
 		for ( Map.Entry<PEPeerManager, PMState> entry: pm_map.entrySet()){
 			
@@ -208,12 +244,16 @@ DownloadManagerRateController
 			long	diff = state.setBytesUp( up_bytes );
 			
 			if ( is_complete ){
+								
+				num_complete++;
 				
-				c_up_diff += diff;
+				c_up_total += diff;
 				
 			}else{
+								
+				num_incomplete++;
 				
-				i_up_diff += diff;
+				i_up_total += diff;
 			}
 				
 			if ( state.isComplete() != is_complete ){
@@ -231,24 +271,237 @@ DownloadManagerRateController
 			}
 		}
 		
+		if ( num_incomplete == 0 || num_complete == 0 ){
+			
+			rate_limit = 0;
+			
+			return;
+		}
+		
+		boolean	skipped_tick = false;
+		
 		if ( last_tick_processed != tick_count - 1 ){
+						
+			pm_last_bad_limit 	= 0;
+			latest_choke		= 0;
+			wait_until_tick		= 0;
+
+			ticks_to_sample_start	= 0;
+			sample_num				= 0;
+			incomplete_samples		= 0;
+			complete_samples		= 0;
 			
-			complete_up_average.reset();
-			
-			incomplete_up_average.reset();
-			
-		}else{
-			
-			complete_up_average.update( c_up_diff  );
-			
-			incomplete_up_average.update( i_up_diff  );
+			skipped_tick = true;
 		}
 		
 		last_tick_processed = tick_count;
 		
-		//System.out.println( 
-		//	"comp=" + DisplayFormatters.formatByteCountToKiBEtcPerSec((long)complete_up_average.getAverage()) +
-		//	", incomp=" + DisplayFormatters.formatByteCountToKiBEtcPerSec((long)incomplete_up_average.getAverage()));		
+		if ( skipped_tick || tick_count < wait_until_tick ){
+			
+			return;
+		}
+		
+		try{
+			long	now = SystemTime.getCurrentTime();
+			
+			SpeedManagerPingMapper mapper = speed_manager.getActiveMapper();
+			
+			if ( rate_limit == 0 ){
+				
+				rate_limit = speed_manager.getEstimatedUploadCapacityBytesPerSec().getBytesPerSec();
+				
+				if ( rate_limit == 0 ){
+					
+					rate_limit = DEFAULT_UP_LIMIT;
+				}
+			}
+			
+			SpeedManagerLimitEstimate last_bad = mapper.getLastBadUploadLimit();
+						
+			if ( last_bad != null ){
+				
+				int last_bad_limit = last_bad.getBytesPerSec();
+								
+				if ( last_bad_limit != pm_last_bad_limit ){
+					
+					pm_last_bad_limit = last_bad_limit;
+			
+					SpeedManagerLimitEstimate[] bad_ups = mapper.getBadUploadHistory();
+		
+					int		total 	= last_bad.getBytesPerSec();
+					int		count	= 1;
+					
+					for ( SpeedManagerLimitEstimate bad: bad_ups ){
+						
+						long	t = bad.getWhen();
+						
+						if ( now - t <= 30*1000 && bad.getBytesPerSec() != last_bad_limit ){
+							
+							total += bad.getBytesPerSec();
+							
+							count++;
+						}
+					}
+					
+					latest_choke = total/count;
+						
+					int	new_rate_limit;
+					
+					if ( rate_limit == 0 ){
+						
+						new_rate_limit = latest_choke/2;
+						
+					}else{
+						
+						new_rate_limit = rate_limit/2;
+					}
+					
+					if ( new_rate_limit < slack_bytes_per_sec ){
+						
+						new_rate_limit = slack_bytes_per_sec;
+					}
+					
+					rate_limit = new_rate_limit;
+					
+					wait_until_tick = tick_count + WAIT_AFTER_CHOKE_TICKS;
+					
+					ticks_to_sample_start 	= 0;
+					sample_num 				= 0;
+					complete_samples		= 0;
+					incomplete_samples		= 0;
+					last_rate_limit			= 0;
+					
+					return;
+				}
+			}
+			
+			if ( ticks_to_sample_start > 0 ){
+				
+				ticks_to_sample_start--;
+				
+			}else if ( sample_num < SAMPLE_COUNT ){
+				
+				complete_samples 	+= c_up_total;
+				incomplete_samples	+= i_up_total;
+				
+				sample_num++;
+				
+			}else{
+					
+				double	incomplete_average 	= incomplete_samples / SAMPLE_COUNT;
+				double	complete_average 	= complete_samples / SAMPLE_COUNT;
+				double	overall_average 	= ( complete_samples + incomplete_samples ) / SAMPLE_COUNT;
+				
+				int	action = -1;
+
+				try{
+					
+					if ( last_rate_limit == 0 ){
+						
+						action = 1;
+						
+					}else{
+						
+						if ( overall_average < last_overall_average ){
+							
+							// System.out.println( "average decreased" );
+							
+							if ( rate_limit < last_rate_limit ){
+							
+								action = 1;
+								
+							}else{
+								
+								action = 0;
+							}
+						}else{
+							
+							double last_ratio 	= last_incomplete_average / last_complete_average;
+							double ratio		= incomplete_average / complete_average;
+							
+							// System.out.println( "rate=" + rate_limit + "/" + last_rate_limit + ", ratio=" + ratio + "/" + last_ratio );
+							
+							if ( rate_limit < last_rate_limit && ratio >= last_ratio ){
+								
+								action = -1;
+								
+							}else if ( rate_limit > last_rate_limit && ratio <= last_ratio ){
+								
+								action = -1;
+								
+							}else{
+								
+								action = 1;
+							}
+						}
+					}
+					
+				}finally{
+															
+					int	new_rate_limit;
+
+					if ( action > 0 ){
+						
+						int	ceiling = latest_choke==0?DEFAULT_UP_LIMIT:latest_choke;
+						
+						int	diff = ( ceiling - rate_limit )/5;
+
+						if ( diff > MAX_DIFF ){
+							
+							diff = MAX_DIFF;
+							
+						}else if ( diff < MIN_DIFF ){
+							
+							diff = MIN_DIFF;
+						}
+
+						new_rate_limit = rate_limit + diff;
+						
+						if ( new_rate_limit > 100*1024*1024 ){
+							
+							new_rate_limit = 100*1024*1024;
+						}
+					}else if ( action < 0 ){
+						
+						int	diff = rate_limit/5;
+
+						if ( diff > MAX_DIFF ){
+							
+							diff = MAX_DIFF;
+							
+						}else if ( diff < MIN_DIFF ){
+							
+							diff = MIN_DIFF;
+						}
+
+						new_rate_limit = rate_limit - diff;
+						
+						if ( new_rate_limit < slack_bytes_per_sec ){
+							
+							new_rate_limit = slack_bytes_per_sec;
+						}
+					}else{
+						
+						new_rate_limit = rate_limit;
+					}
+					
+					last_rate_limit			= rate_limit;
+					last_overall_average 	= overall_average;
+					last_complete_average	= complete_average;
+					last_incomplete_average	= incomplete_average;
+					
+					rate_limit = new_rate_limit;
+					
+					sample_num = 0;
+					complete_samples	= 0;
+					incomplete_samples	= 0;
+				}
+			}
+	
+		}finally{
+			
+			// System.out.println( "rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( rate_limit ) + ", last_choke=" + latest_choke );
+		}
 	}
 	
 	private static class

@@ -90,6 +90,7 @@ public class SMConst
         return new FilteredLimitEstimate(estBytesPerSec,
                                         estimate.getEstimateType(),
                                         estimate.getMetricRating(),
+                                        estimate.getWhen(),
                                         estimate.getString() );
 
     }//filterDownEstimate
@@ -111,12 +112,14 @@ public class SMConst
         int bytesPerSec;
         float type;
         float metric;
+        long when;
         String name;
 
-        public FilteredLimitEstimate(int _bytesPerSec, float _type, float _metric, String _name){
+        public FilteredLimitEstimate(int _bytesPerSec, float _type, float _metric, long _when, String _name){
             bytesPerSec = _bytesPerSec;
             type = _type;
             metric = _metric;
+            when	= _when;
             name = _name;
         }
 
@@ -134,7 +137,9 @@ public class SMConst
         public int[][] getSegments() {
             return new int[0][];
         }
-
+        public long getWhen() {
+        	return when;
+        }
         public String getString() {
             return name;
         }

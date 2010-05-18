@@ -1724,7 +1724,7 @@ SpeedManagerPingMapperImpl
 			return( hits );
 		}
 		
-		protected long
+		public long
 		getWhen()
 		{
 			return( when );
