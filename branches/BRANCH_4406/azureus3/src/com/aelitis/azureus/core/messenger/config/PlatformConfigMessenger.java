@@ -202,6 +202,22 @@ public class PlatformConfigMessenger
 			Debug.out(e);
 		}
 	}
+	
+	public static void sendVersionServerMap(Map mapVerServer) {
+		boolean send_info = COConfigurationManager.getBooleanParameter("Send Version Info");
+		if (!send_info) {
+			return;
+		}
+
+		try {
+			PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+					"send-version-info", mapVerServer, 5000);
+
+			PlatformMessenger.queueMessage(message, null);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+	}
 
 	public static interface GetBrowseSectionsReplyListener
 	{

@@ -53,6 +53,8 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClientListener;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -229,6 +231,16 @@ public class Initializer
 		if (!uiClassic) {
 			PlatformConfigMessenger.login(ContentNetwork.CONTENT_NETWORK_VUZE, 0);
 		}
+		
+		VersionCheckClient.getSingleton().addVersionCheckClientListener(true,
+				new VersionCheckClientListener() {
+					public void versionCheckStarted(String reason) {
+						if (VersionCheckClient.REASON_UPDATE_CHECK_START.equals(reason)
+								|| VersionCheckClient.REASON_UPDATE_CHECK_PERIODIC.equals(reason)) {
+							PlatformConfigMessenger.sendVersionServerMap(VersionCheckClient.constructVersionCheckMessage(reason));
+						}
+					}
+				});
 
 		FeatureManagerUI.registerWithFeatureManager();
 
