@@ -200,6 +200,21 @@ RelatedContentManager
 	private DistributedDatabase		ddb;
 	private RCMSearchXFer			transfer_type = new RCMSearchXFer();
 	
+	private boolean	persist;
+	
+	{
+		COConfigurationManager.addAndFireParameterListener(
+			"rcm.persist",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameterName )
+				{
+					persist = COConfigurationManager.getBooleanParameter( "rcm.persist" );
+				}
+			});
+	}
 	protected
 	RelatedContentManager()
 	
@@ -268,6 +283,11 @@ RelatedContentManager
 								public void
 								initializationComplete()
 								{
+									if ( !persist ){
+										
+										deleteRelatedContent();
+									}
+									
 									try{
 										PluginInterface dht_pi = 
 											plugin_interface.getPluginManager().getPluginInterfaceByClass(
@@ -328,7 +348,7 @@ RelatedContentManager
 																
 															}catch( Throwable e ){
 																
-																Debug.out( e );
+																// Debug.out( e );
 															}
 														}
 														
@@ -667,7 +687,7 @@ RelatedContentManager
 					
 					if ( info2 == null || info1 == info2 ){
 						
-						Debug.out( "Inconsistent!" );
+						// Debug.out( "Inconsistent!" );
 						
 						return;
 					}
@@ -2742,7 +2762,7 @@ RelatedContentManager
 											
 											if ( ids == null || ids.length == 0 ){
 												
-												Debug.out( "Inconsistent - no ids" );
+												// Debug.out( "Inconsistent - no ids" );
 												
 											}else{
 												
@@ -2754,7 +2774,7 @@ RelatedContentManager
 													
 													if ( di == null ){
 														
-														Debug.out( "Inconsistent: id " + id + " missing" );
+														// Debug.out( "Inconsistent: id " + id + " missing" );
 														
 													}else{
 														
@@ -2786,7 +2806,7 @@ RelatedContentManager
 									
 									if ( di.getRelatedToHash() == null ){
 								
-										Debug.out( "Inconsistent: info not referenced" );
+										// Debug.out( "Inconsistent: info not referenced" );
 										
 										if ( di.isUnread()){
 											
@@ -2803,7 +2823,7 @@ RelatedContentManager
 						
 						if ( total_unread.get() != new_total_unread ){
 														
-							Debug.out( "total_unread - inconsistent (" + total_unread + "/" + new_total_unread + ")" );
+							// Debug.out( "total_unread - inconsistent (" + total_unread + "/" + new_total_unread + ")" );
 							
 							total_unread.set( new_total_unread );
 							
@@ -2880,94 +2900,105 @@ RelatedContentManager
 			
 			if ( cc == null ){
 				
-				Debug.out( "RCM: cache inconsistent" );
+				// Debug.out( "RCM: cache inconsistent" );
 				
 			}else{
 
-				if ( TRACE ){
-					System.out.println( "rcm: save" );
-				}
-				
-				Map<String,DownloadInfo>						related_content			= cc.related_content;
-				ByteArrayHashMapEx<ArrayList<DownloadInfo>>		related_content_map		= cc.related_content_map;
-
-				if ( related_content.size() == 0 ){
-					
-					FileUtil.deleteResilientConfigFile( CONFIG_FILE );
-					
-				}else{
-					
-					Map<String,Object>	map = new HashMap<String, Object>();
-					
-					Set<Map.Entry<String,DownloadInfo>> rcs = related_content.entrySet();
-										
-					List<Map<String,Object>> rc_map_list = new ArrayList<Map<String, Object>>( rcs.size());
-					
-					map.put( "rc", rc_map_list );
-					
-					int		id = 0;
-					
-					Map<DownloadInfo,Integer>	info_map = new HashMap<DownloadInfo, Integer>();
-					
-					for ( Map.Entry<String,DownloadInfo> entry: rcs ){
-											
-						DownloadInfo	info = entry.getValue();
-												
-						Map<String,Object> di_map = serialiseDI( info, cc );
-						
-						if ( di_map != null ){
-							
-							info_map.put( info, id );
-
-							di_map.put( "_i", new Long( id ));
-							di_map.put( "_k", entry.getKey());
-							
-							if ( rc_map_list.add( di_map ));
-	
-							id++;	
-						}
+				if ( persist ){
+					if ( TRACE ){
+						System.out.println( "rcm: save" );
 					}
 					
-					Map<String,Object> rcm_map = new HashMap<String, Object>();
-
-					map.put( "rcm", rcm_map );
-										
-					for ( byte[] hash: related_content_map.keys()){
+					Map<String,DownloadInfo>						related_content			= cc.related_content;
+					ByteArrayHashMapEx<ArrayList<DownloadInfo>>		related_content_map		= cc.related_content_map;
+	
+					if ( related_content.size() == 0 ){
 						
-						List<DownloadInfo> dis = related_content_map.get( hash );
+						FileUtil.deleteResilientConfigFile( CONFIG_FILE );
 						
-						int[] ids = new int[dis.size()];
+					}else{
 						
-						int	pos = 0;
+						Map<String,Object>	map = new HashMap<String, Object>();
 						
-						for ( DownloadInfo di: dis ){
+						Set<Map.Entry<String,DownloadInfo>> rcs = related_content.entrySet();
+											
+						List<Map<String,Object>> rc_map_list = new ArrayList<Map<String, Object>>( rcs.size());
+						
+						map.put( "rc", rc_map_list );
+						
+						int		id = 0;
+						
+						Map<DownloadInfo,Integer>	info_map = new HashMap<DownloadInfo, Integer>();
+						
+						for ( Map.Entry<String,DownloadInfo> entry: rcs ){
+												
+							DownloadInfo	info = entry.getValue();
+													
+							Map<String,Object> di_map = serialiseDI( info, cc );
 							
-							Integer	index = info_map.get( di );
-							
-							if ( index == null ){
+							if ( di_map != null ){
 								
-								Debug.out( "inconsistent: info missing for " + di );
+								info_map.put( info, id );
+	
+								di_map.put( "_i", new Long( id ));
+								di_map.put( "_k", entry.getKey());
 								
-								break;
-								
-							}else{
-								
-								ids[pos++] = index;
+								if ( rc_map_list.add( di_map ));
+		
+								id++;	
 							}
 						}
 						
-						if ( pos == ids.length ){
-						
-							ImportExportUtils.exportIntArray( rcm_map, Base32.encode( hash), ids );
+						Map<String,Object> rcm_map = new HashMap<String, Object>();
+	
+						map.put( "rcm", rcm_map );
+											
+						for ( byte[] hash: related_content_map.keys()){
+							
+							List<DownloadInfo> dis = related_content_map.get( hash );
+							
+							int[] ids = new int[dis.size()];
+							
+							int	pos = 0;
+							
+							for ( DownloadInfo di: dis ){
+								
+								Integer	index = info_map.get( di );
+								
+								if ( index == null ){
+									
+									// Debug.out( "inconsistent: info missing for " + di );
+									
+									break;
+									
+								}else{
+									
+									ids[pos++] = index;
+								}
+							}
+							
+							if ( pos == ids.length ){
+							
+								ImportExportUtils.exportIntArray( rcm_map, Base32.encode( hash), ids );
+							}
 						}
+						
+						FileUtil.writeResilientConfigFile( CONFIG_FILE, map );
 					}
+				}else{
 					
-					FileUtil.writeResilientConfigFile( CONFIG_FILE, map );
+					deleteRelatedContent();
 				}
 			}
 		}
 	}
 	
+	private void
+	deleteRelatedContent()
+	{
+		FileUtil.deleteResilientConfigFile( CONFIG_FILE );
+		FileUtil.deleteResilientConfigFile( PERSIST_DEL_FILE );
+	}
 	
 	public int
 	getNumUnread()
@@ -3031,7 +3062,7 @@ RelatedContentManager
 			
 			if ( val < 0 ){
 				
-				Debug.out( "inconsistent" );
+				// Debug.out( "inconsistent" );
 				
 				total_unread.set( 0 );
 			}
