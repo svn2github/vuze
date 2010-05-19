@@ -516,7 +516,7 @@ ContentNetworkVuzeGeneric
 				
 				if ( append_suffix ){
 
-					base = appendURLSuffix( base, false, false );
+					base = appendURLSuffix( base, false, true );
 				}
 				
 				return( base );
@@ -548,9 +548,17 @@ ContentNetworkVuzeGeneric
 
 				return( base );
 			}
+			case SERVICE_WELCOME:{
+				String installID = COConfigurationManager.getStringParameter("install.id", "null");
+				if (installID.length() == 0) {
+					installID = "blank";
+				}
+				base += "iid=" + UrlUtils.encode(installID) + "&" + URL_SUFFIX;
+				return( base );
+			}
+
 			case SERVICE_BIG_BROWSE:
 			case SERVICE_PUBLISH:
-			case SERVICE_WELCOME:
 			case SERVICE_LOGOUT:
 			case SERVICE_REGISTER:{
 				
