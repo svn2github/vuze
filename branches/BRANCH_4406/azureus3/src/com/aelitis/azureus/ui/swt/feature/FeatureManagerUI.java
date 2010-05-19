@@ -1,5 +1,7 @@
 package com.aelitis.azureus.ui.swt.feature;
 
+import java.util.Set;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
 
@@ -19,6 +21,7 @@ import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -62,8 +65,6 @@ public class FeatureManagerUI
 			public void azureusCoreRunning(AzureusCore core) {
 				PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
 				featman = pi.getUtilities().getFeatureManager();
-
-				PlatformMessenger.addExtraParam("mode", getMode());
 
 				fml = new FeatureManagerUIListener(featman);
 				featman.addListener(fml);
@@ -573,15 +574,16 @@ public class FeatureManagerUI
 	}
 	
 	public static String getMode() {
-		boolean isFull = FeatureManagerUI.hasFullLicence();
-		boolean isTrial = FeatureManagerUI.hasFullBurn() && !isFull;
+		boolean isFull = hasFullLicence();
+		boolean isTrial = hasFullBurn() && !isFull;
 		return isFull ? "plus" : isTrial ? "trial" : "free";
 	}
 
 	public static boolean hasFullLicence() {
 		if (featman == null) {
 			Debug.out("featman null");
-			return false;
+			Set<String> featuresInstalled = UtilitiesImpl.getFeaturesInstalled();
+			return featuresInstalled.contains("dvdburn");
 		}
 
 		boolean full = false;
@@ -726,6 +728,11 @@ public class FeatureManagerUI
 	public static boolean hasFullBurn() {
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
 				"azburn_v");
-		return pi != null && pi.getPluginState().isOperational();
+		if (pi == null) {
+			// maybe not added yet.. use featman
+			Set<String> featuresInstalled = UtilitiesImpl.getFeaturesInstalled();
+			return featuresInstalled.contains("dvdburn_trial") && !featuresInstalled.contains("dvdburn");
+		}
+		return pi.getPluginState().isOperational();
 	}
 }
