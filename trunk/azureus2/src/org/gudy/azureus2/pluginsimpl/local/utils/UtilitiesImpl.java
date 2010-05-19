@@ -124,6 +124,8 @@ UtilitiesImpl
 			licenceAdded(
 				Licence	licence )
 			{
+				checkCache();
+				
 				for ( FeatureManagerListener listener: feature_listeners ){
 					
 					try{
@@ -133,15 +135,15 @@ UtilitiesImpl
 						
 						Debug.out( e );
 					}
-				}
-				
-				checkCache();
+				}				
 			}
 			
 			public void
 			licenceChanged(
 				Licence	licence )
 			{
+				checkCache();
+				
 				for ( FeatureManagerListener listener: feature_listeners ){
 					
 					try{
@@ -152,8 +154,6 @@ UtilitiesImpl
 						Debug.out( e );
 					}
 				}	
-				
-				checkCache();
 			}
 			
 			public void
