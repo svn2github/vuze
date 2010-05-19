@@ -1300,9 +1300,17 @@ public class VersionCheckClient {
       }
       message.put("orig_locale", originalLocale);
 
-      if ( UtilitiesImpl.isCoreFeatureInstalled()){
+      Set<String> features = UtilitiesImpl.getFeaturesInstalled();
+      
+      if ( features.size() > 0 ){
     	  
-    	  message.put( "vzfeatures", "core" );
+    	  String str = "";
+    	  
+    	  for ( String f: features ){
+    		  str += (str.length()==0?"":",") + f;
+    	  }
+    	  
+    	  message.put( "vzfeatures", str );
       }
       
       try{

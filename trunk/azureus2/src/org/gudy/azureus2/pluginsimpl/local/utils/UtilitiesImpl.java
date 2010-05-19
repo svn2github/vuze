@@ -33,10 +33,7 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -180,31 +177,67 @@ UtilitiesImpl
 			private void
 			checkCache()
 			{
-				boolean found = false;
+				Set<String> features = new TreeSet<String>();
 				
-				FeatureDetails[] fds = getFeatureDetailsSupport( "core" );
+				List<FeatureEnabler>	enablers = getVerifiedEnablers();
 				
-				for ( FeatureDetails fd: fds ){
+				for ( FeatureEnabler enabler: enablers ){
+					
+					try{
+						Licence[] licences = enabler.getLicences();
+							
+						for ( Licence licence: licences ){
+							
+							int	licence_state = licence.getState();
+							
+							if ( licence_state != Licence.LS_AUTHENTICATED ){
+								
+								continue;
+							}
+							
+							FeatureDetails[] details = licence.getFeatures();
+							
+							for ( FeatureDetails detail: details ){
+								
+								if ( !detail.hasExpired()){
+									
+									features.add( detail.getID());
+								}
+							}
+						}
+					}catch( Throwable e ){
 						
-					if ( !fd.hasExpired()){
-						
-						found = true;
-						
-						break;
+						Debug.out( e );
 					}
 				}
 				
-				if ( isCoreFeatureInstalled() != found ){
+				if ( !getFeaturesInstalled().equals( features )){
 				
-					COConfigurationManager.setParameter( "featman.cache.core.installed", found );
+					String str = "";
+					
+					for ( String f: features ){
+						
+						str += (str.length()==0?"":",") + f;
+					}
+					
+					COConfigurationManager.setParameter( "featman.cache.features.installed", str );
 				}
 			}
 		};
 	
-	public static boolean
-	isCoreFeatureInstalled()
+	public static Set<String>
+	getFeaturesInstalled()
 	{
-		return( COConfigurationManager.getBooleanParameter( "featman.cache.core.installed" ));
+		String str = COConfigurationManager.getStringParameter( "featman.cache.features.installed", "" );
+		
+		Set<String>	result = new TreeSet<String>();
+		
+		if ( str.length() > 0 ){
+		
+			result.addAll( Arrays.asList( str.split( "," )));
+		}
+		
+		return( result );
 	}
 	
 	public
