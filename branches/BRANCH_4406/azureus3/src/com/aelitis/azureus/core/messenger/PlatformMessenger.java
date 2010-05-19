@@ -26,7 +26,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Timer;
@@ -37,6 +36,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.util.*;
 
 /**
@@ -265,6 +265,7 @@ public class PlatformMessenger
 		Map<String, Object> mapPayload = new HashMap<String, Object>();
 		mapPayload.put("azid", ConstantsVuze.AZID);
 		mapPayload.put("azv", Constants.AZUREUS_VERSION);
+		mapPayload.put("mode", FeatureManagerUI.getMode());
 		mapPayload.putAll(mapExtra);
 		List<Map> listCommands = new ArrayList<Map>();
 		mapPayload.put("commands", listCommands);
