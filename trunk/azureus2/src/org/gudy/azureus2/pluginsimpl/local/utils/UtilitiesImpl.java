@@ -42,13 +42,11 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
-import org.gudy.azureus2.plugins.utils.FeatureManager.*;
+import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
-import org.gudy.azureus2.plugins.utils.search.Search;
 import org.gudy.azureus2.plugins.utils.search.SearchException;
 import org.gudy.azureus2.plugins.utils.search.SearchInitiator;
-import org.gudy.azureus2.plugins.utils.search.SearchListener;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.plugins.utils.subscriptions.Subscription;
@@ -65,6 +63,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.security.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.rss.RSSFeedImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPChecker;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerFactory;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
@@ -72,7 +71,6 @@ import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceLi
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -87,7 +85,6 @@ import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -140,6 +137,8 @@ UtilitiesImpl
 						Debug.out( e );
 					}
 				}
+				
+				checkCache();
 			}
 			
 			public void
@@ -155,13 +154,17 @@ UtilitiesImpl
 						
 						Debug.out( e );
 					}
-				}				
+				}	
+				
+				checkCache();
 			}
 			
 			public void
 			licenceRemoved(
 				Licence	licence )
 			{
+				checkCache();
+				
 				for ( FeatureManagerListener listener: feature_listeners ){
 					
 					try{
@@ -173,8 +176,37 @@ UtilitiesImpl
 					}
 				}				
 			}
+			
+			private void
+			checkCache()
+			{
+				boolean found = false;
+				
+				FeatureDetails[] fds = getFeatureDetailsSupport( "core" );
+				
+				for ( FeatureDetails fd: fds ){
+						
+					if ( !fd.hasExpired()){
+						
+						found = true;
+						
+						break;
+					}
+				}
+				
+				if ( isCoreFeatureInstalled() != found ){
+				
+					COConfigurationManager.setParameter( "featman.cache.core.installed", found );
+				}
+			}
 		};
-		
+	
+	public static boolean
+	isCoreFeatureInstalled()
+	{
+		return( COConfigurationManager.getBooleanParameter( "featman.cache.core.installed" ));
+	}
+	
 	public
 	UtilitiesImpl(
 		AzureusCore			_core,
@@ -1219,7 +1251,14 @@ UtilitiesImpl
 	}
 	
 	public FeatureDetails[]
-	getFeatureDetails(
+ 	getFeatureDetails(
+ 		String 					feature_id )
+ 	{
+		return( getFeatureDetailsSupport( feature_id ));
+ 	}
+	
+	private static FeatureDetails[]
+	getFeatureDetailsSupport(
 		String 					feature_id )
 	{
 		List<FeatureDetails>	result = new ArrayList<FeatureDetails>();
@@ -1272,7 +1311,7 @@ UtilitiesImpl
    		}
 	}
 	
-	private final List<FeatureEnabler>
+	private static final List<FeatureEnabler>
 	getVerifiedEnablers()
 	{
 		List<FeatureEnabler>	enablers = new ArrayList<FeatureEnabler>();

@@ -1300,6 +1300,11 @@ public class VersionCheckClient {
       }
       message.put("orig_locale", originalLocale);
 
+      if ( UtilitiesImpl.isCoreFeatureInstalled()){
+    	  
+    	  message.put( "vzfeatures", "core" );
+      }
+      
       try{
 	      if ( AzureusCoreFactory.isCoreAvailable()){
 	      	
