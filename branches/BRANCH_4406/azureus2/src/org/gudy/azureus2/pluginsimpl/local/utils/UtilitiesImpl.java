@@ -33,22 +33,17 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
-import org.gudy.azureus2.plugins.utils.FeatureManager.*;
+import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
-import org.gudy.azureus2.plugins.utils.search.Search;
 import org.gudy.azureus2.plugins.utils.search.SearchException;
 import org.gudy.azureus2.plugins.utils.search.SearchInitiator;
-import org.gudy.azureus2.plugins.utils.search.SearchListener;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.plugins.utils.subscriptions.Subscription;
@@ -65,6 +60,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.security.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.rss.RSSFeedImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPChecker;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerFactory;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
@@ -72,7 +68,6 @@ import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceLi
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -87,7 +82,6 @@ import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -140,6 +134,8 @@ UtilitiesImpl
 						Debug.out( e );
 					}
 				}
+				
+				checkCache();
 			}
 			
 			public void
@@ -155,13 +151,17 @@ UtilitiesImpl
 						
 						Debug.out( e );
 					}
-				}				
+				}	
+				
+				checkCache();
 			}
 			
 			public void
 			licenceRemoved(
 				Licence	licence )
 			{
+				checkCache();
+				
 				for ( FeatureManagerListener listener: feature_listeners ){
 					
 					try{
@@ -173,8 +173,73 @@ UtilitiesImpl
 					}
 				}				
 			}
+			
+			private void
+			checkCache()
+			{
+				Set<String> features = new TreeSet<String>();
+				
+				List<FeatureEnabler>	enablers = getVerifiedEnablers();
+				
+				for ( FeatureEnabler enabler: enablers ){
+					
+					try{
+						Licence[] licences = enabler.getLicences();
+							
+						for ( Licence licence: licences ){
+							
+							int	licence_state = licence.getState();
+							
+							if ( licence_state != Licence.LS_AUTHENTICATED ){
+								
+								continue;
+							}
+							
+							FeatureDetails[] details = licence.getFeatures();
+							
+							for ( FeatureDetails detail: details ){
+								
+								if ( !detail.hasExpired()){
+									
+									features.add( detail.getID());
+								}
+							}
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+				
+				if ( !getFeaturesInstalled().equals( features )){
+				
+					String str = "";
+					
+					for ( String f: features ){
+						
+						str += (str.length()==0?"":",") + f;
+					}
+					
+					COConfigurationManager.setParameter( "featman.cache.features.installed", str );
+				}
+			}
 		};
+	
+	public static Set<String>
+	getFeaturesInstalled()
+	{
+		String str = COConfigurationManager.getStringParameter( "featman.cache.features.installed", "" );
 		
+		Set<String>	result = new TreeSet<String>();
+		
+		if ( str.length() > 0 ){
+		
+			result.addAll( Arrays.asList( str.split( "," )));
+		}
+		
+		return( result );
+	}
+	
 	public
 	UtilitiesImpl(
 		AzureusCore			_core,
@@ -1219,7 +1284,14 @@ UtilitiesImpl
 	}
 	
 	public FeatureDetails[]
-	getFeatureDetails(
+ 	getFeatureDetails(
+ 		String 					feature_id )
+ 	{
+		return( getFeatureDetailsSupport( feature_id ));
+ 	}
+	
+	private static FeatureDetails[]
+	getFeatureDetailsSupport(
 		String 					feature_id )
 	{
 		List<FeatureDetails>	result = new ArrayList<FeatureDetails>();
@@ -1272,7 +1344,7 @@ UtilitiesImpl
    		}
 	}
 	
-	private final List<FeatureEnabler>
+	private static final List<FeatureEnabler>
 	getVerifiedEnablers()
 	{
 		List<FeatureEnabler>	enablers = new ArrayList<FeatureEnabler>();
