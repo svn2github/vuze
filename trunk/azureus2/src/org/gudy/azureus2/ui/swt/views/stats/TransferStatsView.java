@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerRateController;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -88,7 +89,8 @@ public class TransferStatsView extends AbstractIView {
   
 	private Composite blahPanel;
 	private BufferedLabel asn,estUpCap,estDownCap;
-
+	private BufferedLabel uploadBiaser;
+	
 	private Composite 		connectionPanel;
 	private Label			upload_label, connection_label;
 	private SpeedGraphic	upload_graphic;
@@ -271,6 +273,14 @@ public class TransferStatsView extends AbstractIView {
 
 	  label = new Label(blahPanel,SWT.NONE);
 	  label = new Label(blahPanel,SWT.NONE);
+	  
+	  label = new Label(blahPanel,SWT.NONE);
+	  Messages.setLanguageText(label,"SpeedView.stats.upbias");    
+	  uploadBiaser = new BufferedLabel(blahPanel,SWT.NONE);
+	  gridData = new GridData(GridData.FILL_HORIZONTAL);
+	  gridData.horizontalSpan = 7;
+	  uploadBiaser.setLayoutData(gridData);
+
   }
   
   private void
@@ -613,6 +623,8 @@ public class TransferStatsView extends AbstractIView {
 	  estUpCap.setText(limit_to_text.getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
 
 	  estDownCap.setText(limit_to_text.getLimitText(speedManager.getEstimatedDownloadCapacityBytesPerSec()));
+	  
+	  uploadBiaser.setText( DownloadManagerRateController.getString());
   }
   
   private void

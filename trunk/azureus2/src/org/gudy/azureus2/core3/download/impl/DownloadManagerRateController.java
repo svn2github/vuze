@@ -57,12 +57,14 @@ DownloadManagerRateController
 	
 	private static AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
+	private static boolean	enable;
 	private static boolean 	enable_limit_handling;
 	private static int		slack_bytes_per_sec;
 	
 	static{
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{
+				"Bias Upload Enable",
 				"Bias Upload Handle No Limit",
 				"Bias Upload Slack KBs",
 			},
@@ -72,7 +74,8 @@ DownloadManagerRateController
 				parameterChanged(
 					String parameterName) 
 				{
-					enable_limit_handling 	= COConfigurationManager.getBooleanParameter( "Bias Upload Handle No Limit" );
+					enable				 	= COConfigurationManager.getBooleanParameter( "Bias Upload Enable" );
+					enable_limit_handling 	= COConfigurationManager.getBooleanParameter( "Bias Upload Handle No Limit" ) && enable;
 					slack_bytes_per_sec		= COConfigurationManager.getIntParameter( "Bias Upload Slack KBs" )*1024;
 				}
 			});
@@ -104,8 +107,9 @@ DownloadManagerRateController
 	private static final int WAIT_AFTER_CHOKE_TICKS		= WAIT_AFTER_CHOKE_PERIOD/TIMER_MILLIS;
 
 	private static final int DEFAULT_UP_LIMIT	= 250*1024;
-	private static final int MAX_DIFF	= 10*1024;
-	private static final int MIN_DIFF	= 1024;
+	private static final int MAX_UP_DIFF	= 15*1024;
+	private static final int MAX_DOWN_DIFF	= 10*1024;
+	private static final int MIN_DIFF	= 2*1024;
 				
 	private static final int		SAMPLE_COUNT			= 5;
 	private static int				sample_num;
@@ -127,7 +131,33 @@ DownloadManagerRateController
 	private static long pm_last_bad_limit;
 	private static int	latest_choke;
 	private static int	wait_until_tick;
+	
+	public static String
+	getString()
+	{
+		if ( enable ){
 			
+			String	str = "reserved=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( slack_bytes_per_sec );
+			
+			if ( enable_limit_handling ){
+			
+				str += ", limit=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( rate_limit );
+				
+				str += 	", last[choke=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( latest_choke ) + 
+						", ratio=" + DisplayFormatters.formatDecimal(last_incomplete_average/last_complete_average, 2) + "]";
+			
+				return( str );
+				
+			}else{
+				
+				return( str );
+			}
+		}else{
+			
+			return( "Disabled" );
+		}
+	}
+	
 	public static void
 	addPeerManager(
 		final PEPeerManager		pm )
@@ -402,12 +432,14 @@ DownloadManagerRateController
 						
 					}else{
 						
-						if ( overall_average < last_overall_average ){
-							
-							// System.out.println( "average decreased" );
-							
+						double overall_change = overall_average - last_overall_average;
+						
+						if ( overall_change < 0 ){
+														
 							if ( rate_limit < last_rate_limit ){
 							
+								// System.out.println( "average decreased" );
+
 								action = 1;
 								
 							}else{
@@ -427,7 +459,16 @@ DownloadManagerRateController
 								
 							}else if ( rate_limit > last_rate_limit && ratio <= last_ratio ){
 								
-								action = -1;
+								double i_up_change = incomplete_average - last_incomplete_average;
+								
+								if ( i_up_change >= 1024 ){
+								
+									action = -1;
+									
+								}else{
+									
+									action = 1;
+								}
 								
 							}else{
 								
@@ -444,11 +485,11 @@ DownloadManagerRateController
 						
 						int	ceiling = latest_choke==0?DEFAULT_UP_LIMIT:latest_choke;
 						
-						int	diff = ( ceiling - rate_limit )/5;
+						int	diff = ( ceiling - rate_limit )/4;
 
-						if ( diff > MAX_DIFF ){
+						if ( diff > MAX_UP_DIFF ){
 							
-							diff = MAX_DIFF;
+							diff = MAX_UP_DIFF;
 							
 						}else if ( diff < MIN_DIFF ){
 							
@@ -465,9 +506,9 @@ DownloadManagerRateController
 						
 						int	diff = rate_limit/5;
 
-						if ( diff > MAX_DIFF ){
+						if ( diff > MAX_DOWN_DIFF ){
 							
-							diff = MAX_DIFF;
+							diff = MAX_DOWN_DIFF;
 							
 						}else if ( diff < MIN_DIFF ){
 							
