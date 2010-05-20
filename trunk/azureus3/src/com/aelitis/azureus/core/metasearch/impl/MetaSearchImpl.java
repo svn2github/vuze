@@ -747,15 +747,6 @@ MetaSearchImpl
   		Map<String,String>		context,
   		final int				max_results_per_engine )
 	{
-		String	param_str = "";
-		
-		for (int i=0;i<searchParameters.length;i++){
-		
-			SearchParameter param = searchParameters[i];
-			
-			param_str += (i==0?"":",") + param.getMatchPattern() + "->" + param.getValue();
-		}
-		
 		String batch_millis_str = context.get( Engine.SC_BATCH_PERIOD );
 		
 		final long batch_millis = batch_millis_str==null?0:Long.parseLong( batch_millis_str );
@@ -1060,7 +1051,7 @@ MetaSearchImpl
 			engines_str += (i==0?"":",") + engines[i].getId();
 		}
 		
-		log( "Search: params=" + param_str + "; engines=" + engines_str );
+		log( "Search: engines=" + engines_str );
 		
 		for (int i=0;i<engines.length;i++){
 			
