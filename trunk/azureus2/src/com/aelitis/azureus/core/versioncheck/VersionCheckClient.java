@@ -98,6 +98,8 @@ public class VersionCheckClient {
   private static final long		CACHE_PERIOD	= 5*60*1000;
   private static boolean secondary_check_done;
   
+  private final List<VersionCheckClientListener> listeners = new ArrayList<VersionCheckClientListener>(1);
+  private boolean startCheckRan = false;
   
   static{
 	  VersionCheckClientUDPCodecs.registerCodecs();
@@ -245,6 +247,18 @@ public class VersionCheckClient {
 	  boolean 	force,
 	  boolean	v6 )
   {
+  	try {
+  		synchronized (listeners) {
+  			if (REASON_UPDATE_CHECK_START.equals(reason)) {
+  				startCheckRan = true;
+  			}
+				for (VersionCheckClientListener l : listeners) {
+					l.versionCheckStarted(reason);
+				}
+			}
+  	} catch (Throwable t) {
+  		Debug.out(t);
+  	}
   	if ( v6 ){
 
   		if ( enable_v6 ){
@@ -1155,7 +1169,7 @@ public class VersionCheckClient {
    * Construct the default version check message.
    * @return message to send
    */
-  private static Map constructVersionCheckMessage( String reason ) {
+  public static Map constructVersionCheckMessage( String reason ) {
 	  
 	  //only send if anonymous-check flag is not set
 	  
@@ -1395,6 +1409,34 @@ public class VersionCheckClient {
     
     return message;
   }
+  
+  public void
+  addVersionCheckClientListener(
+  		boolean triggerStartListener, 
+  		VersionCheckClientListener l)
+  {
+  	synchronized (listeners) {
+			listeners.add(l);
+
+			if (triggerStartListener && startCheckRan) {
+    		try {
+    			l.versionCheckStarted(REASON_UPDATE_CHECK_START);
+    		} catch (Exception e) {
+    			Debug.out(e);
+    		}
+    	}
+  	}
+  }
+  
+  public void
+  removeVersionCheckClientListener(
+  		VersionCheckClientListener l)
+  {
+  	synchronized (listeners) {
+			listeners.remove(l);
+		}
+  }
+  
   
   public static void
   main(

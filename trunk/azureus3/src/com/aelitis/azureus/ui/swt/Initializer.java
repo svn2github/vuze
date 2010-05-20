@@ -20,6 +20,7 @@
 package com.aelitis.azureus.ui.swt;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -53,6 +54,8 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClientListener;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -63,6 +66,7 @@ import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.InitialisationFunctions;
 
 /**
@@ -228,6 +232,16 @@ public class Initializer
 		if (!uiClassic) {
 			PlatformConfigMessenger.login(ContentNetwork.CONTENT_NETWORK_VUZE, 0);
 		}
+		
+		VersionCheckClient.getSingleton().addVersionCheckClientListener(true,
+				new VersionCheckClientListener() {
+					public void versionCheckStarted(String reason) {
+						if (VersionCheckClient.REASON_UPDATE_CHECK_START.equals(reason)
+								|| VersionCheckClient.REASON_UPDATE_CHECK_PERIODIC.equals(reason)) {
+							PlatformConfigMessenger.sendVersionServerMap(VersionCheckClient.constructVersionCheckMessage(reason));
+						}
+					}
+				});
 
 		FeatureManagerUI.registerWithFeatureManager();
 
@@ -245,8 +259,41 @@ public class Initializer
 		UIConfigDefaultsSWT.initialize();
 
 		UIConfigDefaultsSWTv3.initialize(core);
+		
+		checkInstallID();
 
 		mainWindow = new MainWindow(Display.getDefault(), this);
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 4.4.0.5
+	 */
+	private void checkInstallID() {
+		String storedInstallID = COConfigurationManager.getStringParameter("install.id", null);
+		String installID = "";
+		File file = FileUtil.getApplicationFile("installer.log");
+		if (file != null) {
+			try {
+				String s = FileUtil.readFileAsString(file, 1024);
+				String[] split = s.split("[\r\n]");
+				for (int i = 0; i < split.length; i++) {
+					int posEquals = split[i].indexOf('=');
+					if (posEquals > 0 && split[i].length() > posEquals + 1) {
+						installID = split[i].substring(posEquals + 1);
+					}
+				}
+			} catch (IOException e) {
+			}
+		}
+		
+		if (storedInstallID == null || !storedInstallID.equals(installID)) {
+			COConfigurationManager.setParameter("install.id", installID);
+			// different or new installid
+			Utils.launch(ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
+					"/install/first.start?iid=" + installID, true));
+		}
 	}
 
 	public void run() {

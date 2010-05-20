@@ -41,7 +41,7 @@ import com.aelitis.azureus.util.MapUtils;
  */
 public class VuzeActivitiesManager
 {
-	public static final long MAX_LIFE_MS = 1000L * 60 * 60 * 24 * 30;
+	public static final long MAX_LIFE_MS = 1000L * 60 * 60 * 24 * 365 * 2;
 
 	private static final long DEFAULT_PLATFORM_REFRESH = 60 * 60 * 1000L * 24;
 
