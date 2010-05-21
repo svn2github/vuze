@@ -33,6 +33,8 @@ import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 public class TreeItemDelegate implements TableItemOrTreeItem
 {
 	TreeItem item;
+	
+	int index = -1;
 
 	public TreeItemDelegate(TreeItem treeItem) {
 		this.item = treeItem;
@@ -296,5 +298,13 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 	
 	public Item getItem() {
 		return item;
+	}
+
+	protected int getStoredIndex() {
+		return index;
+	}
+	
+	protected void setStoredIndex(int i) {
+		index = i;
 	}
 }

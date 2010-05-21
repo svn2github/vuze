@@ -899,4 +899,11 @@ public class TableDelegate
 	public TableColumnOrTreeColumn createNewColumn(int style) {
 		return new TableColumnDelegate(table, style);
 	}
+
+  public int indexOf(Widget item) {
+  	if (item instanceof TableItem) {
+  		return table.indexOf((TableItem) item);
+  	}
+  	return -1;
+  }
 }

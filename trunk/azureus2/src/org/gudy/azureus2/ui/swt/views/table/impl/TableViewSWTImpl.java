@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,19 +33,7 @@ import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Sash;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.ScrollBar;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Scale;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.MenuItem;
-//import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -115,16 +104,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	TableStructureModificationListener<DATASOURCETYPE>, ObfusticateImage,
 	KeyListener
 {
-	private final static boolean DRAW_VERTICAL_LINES = false;
+	private final static boolean DRAW_VERTICAL_LINES = Constants.isWindows;
 
-	protected static final boolean DRAW_FULL_ROW = false; // Constants.isOSX;
+	protected static final boolean DRAW_FULL_ROW = Constants.isWindows;
 
 	private final static LogIDs LOGID = LogIDs.GUI;
-
-	/** Virtual Tables still a work in progress */
-	// Non-Virtual tables scroll faster with they keyboard
-	// Virtual tables don't flicker when updating a cell (Windows)
-	private final static boolean DISABLEVIRTUAL = SWT.getVersion() < 3138;
 
 	private static final boolean DEBUG_SORTER = false;
 
@@ -190,9 +174,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	/** SWT style options for the creation of the Table */
 	protected int iTableStyle;
-
-	/** Whether the Table is Virtual */
-	private boolean bTableVirtual;
 
 	/** Context Menu */
 	private Menu menu;
@@ -375,10 +356,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		sPropertiesPrefix = _sPropertiesPrefix;
 		sDefaultSortOn = _sDefaultSortOn;
 		iTableStyle = _iTableStyle | SWT.V_SCROLL;
-		if (DISABLEVIRTUAL) {
-			iTableStyle &= ~(SWT.VIRTUAL);
-		}
-		bTableVirtual = (iTableStyle & SWT.VIRTUAL) != 0;
 
 		mapDataSourceToRow = new LightHashMap<DATASOURCETYPE, TableRowCore>();
 		sortedRows = new ArrayList<TableRowSWT>();
@@ -760,7 +737,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		initializeColumnDefs();
 
 		iTableStyle = table.getStyle();
-		bTableVirtual = (iTableStyle & SWT.VIRTUAL) != 0;
+		if ((iTableStyle & SWT.VIRTUAL) == 0) {
+			throw new Error("Virtual Table Required");
+		}
 
 		table.setLinesVisible(Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR);
 		table.setMenu(menu);
@@ -783,31 +762,34 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		});
 
 		table.addListener(SWT.PaintItem, new Listener() {
+			Widget lastItem;
+
 			public void handleEvent(Event event) {
-				
+
+				if (event.gc.getClipping().isEmpty()) {
+					return;
+				}
+
 				if (!table.isEnabled()) {
 					// added disable affect
 					event.gc.setAlpha(192);
 				}
+				
+				table.setData("inPaintItem", event.item);
+				table.setData("curCellIndex", event.index);
 
+				if (event.item != lastItem) {
+  				table.setData("lastIndex", null);
+  				int i = table.indexOf(event.item);
+  				table.setData("lastIndex", i);
+				}
+				
 				//visibleRowsChanged();
 				paintItem(event);
 
-				// Vertical lines between columns
-				if (DRAW_VERTICAL_LINES) {
-					TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
-					if (item != null) {
-  					Rectangle bounds = item.getBounds(event.index);
-  
-  					Color fg = event.gc.getForeground();
-  					event.gc.setForeground(Colors.black);
-  					event.gc.setAlpha(40);
-  					event.gc.setClipping((Rectangle)null);
-  					event.gc.drawLine(bounds.x + bounds.width, bounds.y - 1, bounds.x
-  							+ bounds.width, bounds.y + bounds.height);
-  					event.gc.setForeground(fg);
-					}
-				}
+				lastItem = event.item;
+				table.setData("inPaintItem", null);
+				table.setData("curCellBounds", null);
 			}
 		});
 
@@ -817,17 +799,48 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		// See https://bugs.eclipse.org/bugs/show_bug.cgi?id=312734
 		// See https://bugs.eclipse.org/bugs/show_bug.cgi?id=312735
 		table.addListener(SWT.EraseItem, new Listener() {
+			final Color[] alternatingColors = new Color[] {
+				table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+				Colors.colorAltRow
+			};
+
 			public void handleEvent(Event event) {
-				// extend the row color for OSX only, since it uses a solid color.
-				// Windows using a pretty bubble thing, and we can't really duplicate
-				// that
-				if (DRAW_FULL_ROW && event.index == table.getColumnCount() - 1) { // && (event.detail & SWT.BACKGROUND) > 0) {
-					//System.out.println("erase bg " + event.gc.getClipping());
-  				Rectangle clipping = event.gc.getClipping();
-  				clipping.width = clientArea.width - clipping.x;
-  				event.gc.setClipping(clipping);
-  				event.gc.fillRectangle(clipping);
-  				event.detail &= ~SWT.BACKGROUND;
+				if (DRAW_FULL_ROW
+						&& (event.detail & (SWT.HOT | SWT.SELECTED | SWT.FOCUSED)) == 0) {
+					
+					TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
+					int pos;
+					TableItemOrTreeItem parentItem = item.getParentItem();
+					if (parentItem != null) {
+						pos = parentItem.indexOf(item) + ((table.indexOf(parentItem) + 1) % 2);
+					} else {
+						pos = table.indexOf(item);
+					}
+					event.gc.setBackground(alternatingColors[pos % 2]);
+					Rectangle drawBounds = event.getBounds();
+					if (event.index == table.getColumnCount() - 1) {
+						drawBounds.width = clientArea.width - drawBounds.x;
+						event.gc.setClipping(drawBounds);
+					}
+					event.gc.fillRectangle(drawBounds);
+					event.detail &= ~SWT.BACKGROUND;
+				}
+
+				// Vertical lines between columns
+				if (DRAW_VERTICAL_LINES) {
+					TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
+					if (item != null) {
+						
+  					Rectangle bounds = event.getBounds(); // item.getBounds(event.index);
+  
+  					Color fg = event.gc.getForeground();
+  					event.gc.setForeground(Colors.black);
+  					event.gc.setAlpha(40);
+  					event.gc.setClipping((Rectangle)null);
+  					event.gc.drawLine(bounds.x + bounds.width - 1, bounds.y - 1, bounds.x
+  							+ bounds.width - 1, bounds.y + bounds.height);
+  					event.gc.setForeground(fg);
+					}
 				}
 			}
 		});
@@ -1617,10 +1630,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 */
 	protected void paintItem(Event event) {
 		try {
-			if (event.gc.getClipping().isEmpty()) {
-				return;
-			}
-			
 			//System.out.println(event.gc.getForeground().getRGB().toString());
 			//System.out.println("paintItem " + event.gc.getClipping());
 			if (DEBUG_CELL_CHANGES) {
@@ -1657,12 +1666,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				return;
 			}
 
+			Rectangle cellBounds = item.getBounds(event.index);
+			table.setData("curCellBounds", cellBounds);
+
+
 			TableRowSWT row = (TableRowSWT) getRow(item);
 			if (row == null) {
-				Rectangle cellBounds = item.getBounds(event.index);
 				//cellBounds.width = table.getColumn(event.index).getWidth();
-				invokePaintListeners(event.gc, item, columnsOrdered[iColumnNo],
-						cellBounds);
+				invokePaintListeners(event.gc, item, columnsOrdered[iColumnNo], cellBounds);
 				//System.out.println("no row");
 				return;
 			}
@@ -1688,9 +1699,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 				event.gc.setFont(fontBold);
 			}
-
-			// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
-			Rectangle cellBounds = item.getBounds(event.index);
 
 			//if (item.getImage(event.index) != null) {
 			//	cellBounds.x += 18;
@@ -3463,6 +3471,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (lOfs != null) {
 			newWidth += lOfs.intValue();
 		}
+		refreshVisibleRows();
 		if (column.isDisposed() || (column.getWidth() == newWidth)) {
 			return;
 		}
@@ -3785,7 +3794,18 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @return an list containing the selected TableRowSWT objects
 	 */
 	public List<TableRowCore> getSelectedRowsList() {
-		List<TableRowCore> l = new ArrayList<TableRowCore>();
+		if (selectedRowIndexes == null) {
+			return new ArrayList<TableRowCore>(0);
+		}
+		final ArrayList<TableRowCore> l = new ArrayList<TableRowCore>(
+				selectedRowIndexes.length);
+		for (int index : selectedRowIndexes) {
+			TableRowCore row = getRowQuick(index);
+			if (row != null) {
+				l.add(row);
+			}
+		}
+		/*
 		if (table != null && !table.isDisposed()) {
 			TableItemOrTreeItem[] tis = table.getSelection();
 			for (int i = 0; i < tis.length; i++) {
@@ -3795,7 +3815,18 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 			}
 		}
+		*/
 		return l;
+	}
+	
+	public boolean isSelected(TableRow row) {
+		TableRowCore[] selectedRows = getSelectedRows();
+		for (TableRowCore selectedRow : selectedRows) {
+			if (selectedRow == row) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getFocusedRow()
@@ -4365,7 +4396,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				if (iBottomIndex >= count) {
 					iBottomIndex = count - 1;
 				}
-				if (bTableVirtual && allSelectedRowsVisible) {
+				if (allSelectedRowsVisible) {
 					for (int i = 0; i < sortedRows.size(); i++) {
 						TableRowSWT row = sortedRows.get(i);
 						boolean visible = i >= iTopIndex && i <= iBottomIndex;
@@ -4526,6 +4557,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#isRowVisible(com.aelitis.azureus.ui.common.table.TableRowCore)
 	public boolean isRowVisible(TableRowCore row) {
+		if (row.isInPaintItem()) {
+			return true;
+		}
 		if (!isVisible()) {
 			return false;
 		}
@@ -4546,6 +4580,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 		//debug("VRC " + Debug.getCompressedStackTrace());
 
+		table.setData("lastBottomIndex", null);
 		boolean bTableUpdate = false;
 		int iTopIndex = table.getTopIndex();
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
@@ -4566,7 +4601,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				try {
 					sortedRows_mon.enter();
 					for (int i = iTopIndex; i < tmpIndex && i < sortedRows.size(); i++) {
-						TableRowSWT row = (TableRowSWT) getRow(i);
+						//TableRowSWT row = (TableRowSWT) getRow(i);
+						TableRowCore row = getRowQuick(i);
 						if (row != null) {
 							row.setAlternatingBGColor(true);
 							row.refresh(true, true);
@@ -4588,7 +4624,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			} else {
 				//System.out.println("Made T.Invisible " + (tmpIndex) + " to " + (iTopIndex - 1));
 				for (int i = tmpIndex; i < iTopIndex; i++) {
-					TableRowSWT row = (TableRowSWT) getRow(i);
+					//TableRowSWT row = (TableRowSWT) getRow(i);
+					TableRowCore row = getRowQuick(i);
 					if (row instanceof TableRowImpl) {
 						((TableRowImpl) row).setShown(false, false);
 					}
@@ -4599,6 +4636,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (lastBottomIndex != iBottomIndex) {
 			int tmpIndex = lastBottomIndex;
 			lastBottomIndex = iBottomIndex;
+			table.setData("lastBottomIndex", Integer.valueOf(lastBottomIndex));
 
 			if (tmpIndex < iTopIndex - 1) {
 				tmpIndex = iTopIndex - 1;
@@ -4609,10 +4647,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				try {
 					sortedRows_mon.enter();
 					for (int i = tmpIndex + 1; i <= iBottomIndex && i < sortedRows.size(); i++) {
-						TableRowSWT row = (TableRowSWT) getRow(i);
+						//TableRowSWT row = (TableRowSWT) getRow(i);
+						TableRowCore row = getRowQuick(i);
 						if (row != null) {
 							row.setAlternatingBGColor(true);
-							row.refresh(true, true);
+							// needed?  we'll get paintitems for each...
+							//row.refresh(true, true);
 							if (row instanceof TableRowImpl) {
 								((TableRowImpl) row).setShown(true, false);
 							}
@@ -4628,7 +4668,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			} else {
 				//System.out.println("Made B.Invisible " + (tmpIndex) + " to " + (iBottomIndex + 1));
 				for (int i = tmpIndex; i <= iBottomIndex; i++) {
-					TableRowSWT row = (TableRowSWT) getRow(i);
+					//TableRowSWT row = (TableRowSWT) getRow(i);
+					TableRowCore row = getRowQuick(i);
 					if (row instanceof TableRowImpl) {
 						((TableRowImpl) row).setShown(false, false);
 					}

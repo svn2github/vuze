@@ -120,7 +120,7 @@ public class TableCellImpl
   private byte loopFactor;
   private Object oToolTip;
   private Object defaultToolTip;
-	private int iCursorID = -1;
+	private int iCursorID = SWT.CURSOR_ARROW;
 	private Graphic graphic = null;
 	
 	private ArrayList childCells;
@@ -130,6 +130,9 @@ public class TableCellImpl
   private static AEMonitor 	this_mon 	= new AEMonitor( "TableCell" );
 
   private static final String CFG_PAINT = "GUI_SWT_bAlternateTablePainting";
+
+  // Getting the cell's bounds can be slow.  QUICK_WIDTH uses TableColumn's width
+	private static final boolean QUICK_WIDTH = true;
   private static boolean bAlternateTablePainting;
 
 	private static int MAX_REFRESHES = 10;
@@ -572,6 +575,9 @@ public class TableCellImpl
   }
 
   public int getWidth() {
+  	if (QUICK_WIDTH) {
+  		return tableColumn.getWidth() - 2;
+  	}
   	Point pt = null;
   	
     if (bufferedTableItem instanceof BufferedGraphicTableItem) {
@@ -1570,6 +1576,9 @@ public class TableCellImpl
 	}
 	
 	public void setCursorID(int cursorID) {
+		if (iCursorID == cursorID) {
+			return;
+		}
 		iCursorID = cursorID;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -1582,6 +1591,9 @@ public class TableCellImpl
 	
 	public boolean isMouseOver() {
 		if (bufferedTableItem == null) {
+			return false;
+		}
+		if (!tableRow.isVisible()) {
 			return false;
 		}
 		return bufferedTableItem.isMouseOver();

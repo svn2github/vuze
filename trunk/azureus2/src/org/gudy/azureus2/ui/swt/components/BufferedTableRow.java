@@ -25,6 +25,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Widget;
+
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -117,7 +119,7 @@ BufferedTableRow
 	}
 	
 	public void setAlternatingBGColor(boolean bEvenIfNotVisible) {
-		if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR)
+		if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR || true)
 			return;
 			
 		if ((table.getStyle() & SWT.VIRTUAL) != 0 && !bEvenIfNotVisible
@@ -294,9 +296,19 @@ BufferedTableRow
 	
 	private boolean _isVisible() {
 		// Least time consuming checks first
+
+		if (inPaintItem()) {
+			return true;
+		}
+
 		if (!table.isVisible()) {
 			return false;
 		}
+		
+		//if (table.getData("inPaintItem") != null) {
+		//	System.out.println(table.indexOf((Widget) table.getData("inPaintItem")) + ";" + table.indexOf(item));
+		//	System.out.println(Debug.getCompressedStackTrace());
+		//}
 		
 		int index = table.indexOf(item);
 		if (index == -1)
@@ -310,6 +322,8 @@ BufferedTableRow
 		if (index > iBottomIndex)
 			return false;
 
+  	//System.out.println("i-" + index + ";top=" + iTopIndex + ";b=" + iBottomIndex);
+		
 		return true;
 	}
 	
@@ -632,7 +646,7 @@ BufferedTableRow
   		return false;
   	}
 
-  	if (newRow == item) {
+  	if (newRow.equals(item)) {
   		if (newRow.getData("TableRow") == this) {
   			if(isVisible && needsNewAltBG)
   				setAlternatingBGColor(true);
@@ -642,6 +656,9 @@ BufferedTableRow
 
   	if (!newRow.getParent().equalsTableOrTree(table))
   		return false;
+  	
+  	boolean lastItemExisted = item != null && !item.isDisposed();
+  	boolean newRowHadItem = newRow.getData("TableRow") != null;
 
   	if (bCopyFromOld) {
   		copyToItem(newRow);
@@ -684,7 +701,7 @@ BufferedTableRow
     foreground = null;
 
     // unlink old item from tablerow
-    if (item != null && !item.isDisposed() && item.getData("TableRow") == this && !newRow.equals(item)) {
+    if (lastItemExisted && item.getData("TableRow") == this && !newRow.equals(item)) {
     	item.setData("TableRow", null);
   		int numColumns = table.getColumnCount();
   		for (int i = 0; i < numColumns; i++) {
@@ -697,12 +714,14 @@ BufferedTableRow
   		}
     }
 
-    boolean wasExpanded = item == null || item.isDisposed() ? false : item.getExpanded();
+    boolean wasExpanded = lastItemExisted ? item.getExpanded() : false;
     item = newRow;
 		item.setItemCount(numSubItems);
 		item.setExpanded(wasExpanded);
 		expanded = wasExpanded;
-   	invalidate();
+		if (newRowHadItem) {
+			invalidate();
+		}
 
     return true;
   }
@@ -795,5 +814,17 @@ BufferedTableRow
 	
 	public boolean isExpanded() {
 		return expanded;
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 4.4.0.5
+	 */
+	public boolean inPaintItem() {
+		if (item != null && !item.isDisposed() && item.equals(table.getData("inPaintItem"))) {
+			return true;
+		}
+		return false;
 	}
 }

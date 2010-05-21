@@ -20,6 +20,7 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.util.Arrays;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.accessibility.Accessible;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
@@ -39,7 +40,7 @@ public class TreeDelegate implements TableOrTreeSWT
 	Tree tree;
 
 	public TreeDelegate(Composite parent, int style) {
-		tree = new Tree2(parent, style);
+		this(new Tree2(parent, style));
 	}
 
 	public TreeDelegate(Tree t) {
@@ -650,6 +651,16 @@ public class TreeDelegate implements TableOrTreeSWT
 		if (ti.isDisposed()) {
 			return -1;
 		}
+
+		if (tree.getData("inPaintItem") == ti) {
+			Object data = tree.getData("lastIndex");
+			if (data instanceof Number) {
+				int idx = ((Number)data).intValue();
+				//System.out.println("yay " + idx);
+				return idx;
+			}
+		}
+
 		return tree.indexOf(ti);
 	}
 
@@ -787,6 +798,7 @@ public class TreeDelegate implements TableOrTreeSWT
 	}
 	
 	public int getTopIndex() {
+		
 		TreeItem topItem = tree.getTopItem();
 		if (topItem == null) {
 			return -1;
@@ -852,6 +864,13 @@ public class TreeDelegate implements TableOrTreeSWT
 
   public TableColumnOrTreeColumn createNewColumn(int style) {
   	return  new TreeColumnDelegate(this, style);
+  }
+  
+  public int indexOf(Widget item) {
+  	if (item instanceof TreeItem) {
+  		return tree.indexOf((TreeItem) item);
+  	}
+  	return -1;
   }
 }
 

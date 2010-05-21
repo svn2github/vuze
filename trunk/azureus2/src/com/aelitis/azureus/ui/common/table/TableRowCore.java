@@ -160,4 +160,11 @@ public interface TableRowCore extends TableRow
 	public boolean isExpanded();
 
 	public void setExpanded(boolean b);
+
+	/**
+	 * @return
+	 *
+	 * @since 4.4.0.5
+	 */
+	public boolean isInPaintItem();
 }

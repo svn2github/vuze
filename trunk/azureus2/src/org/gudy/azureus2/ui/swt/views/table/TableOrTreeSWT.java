@@ -387,4 +387,6 @@ public interface TableOrTreeSWT
 	public TableItemOrTreeItem createNewItem(int style);
 
 	public TableColumnOrTreeColumn createNewColumn(int style);
+
+	public int indexOf(Widget item);
 }

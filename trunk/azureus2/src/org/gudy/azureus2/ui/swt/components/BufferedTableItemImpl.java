@@ -66,7 +66,7 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		return true;
 	}
 	private void dirtyCell() {
-		if (runnableDirtyCell == null) {
+		if (runnableDirtyCell == null && row.getTable().getData("inPaintItem") == null) {
 			synchronized (this) {
 				if (runnableDirtyCell == null) {
 					runnableDirtyCell = new AERunnable(){
@@ -162,9 +162,16 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 	}
 
 	public Rectangle getBounds() {
-		if (position != -1)
-			return row.getBounds(position);
-		return null;
+		if (position == -1) {
+			return null;
+		}
+		if (isInPaintItem()) {
+			Object data = row.getTable().getData("curCellBounds");
+			if (data instanceof Rectangle) {
+				return (Rectangle) data;
+			}
+		}
+		return row.getBounds(position);
 	}
 
 	public TableOrTreeSWT getTable() {
@@ -233,6 +240,9 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 
   	Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (isInPaintItem() || !row.isVisible()) {
+					return;
+				}
 				Rectangle bounds = getBounds();
 				if (bounds != null) {
 					TableOrTreeSWT table = row.getTable();
@@ -278,4 +288,15 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		Rectangle bounds = getBounds();
 		return bounds == null ? false : bounds.contains(pt);
   }
+  
+	public boolean isInPaintItem() {
+		if (row.inPaintItem()) {
+			Object data = row.getTable().getData("curCellIndex");
+			if (data instanceof Number) {
+				Number n = (Number) data;
+				return n.intValue() == position;
+			}
+		}
+		return false;
+	}
 }

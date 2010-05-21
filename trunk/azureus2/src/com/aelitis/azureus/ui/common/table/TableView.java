@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
 
 /**
  * @author TuxPaper
@@ -371,4 +372,12 @@ public interface TableView<DATASOURCETYPE>
 	void setEnabled(boolean enable);
 
 	boolean canHaveSubItems();
+
+	/**
+	 * @param tableRowImpl
+	 * @return
+	 *
+	 * @since 4.4.0.5
+	 */
+	boolean isSelected(TableRow row);
 }

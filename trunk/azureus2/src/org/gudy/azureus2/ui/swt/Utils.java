@@ -776,6 +776,13 @@ public class Utils
 	 * Bottom Index may be negative. Returns bottom index even if invisible.
 	 */
 	public static int getTableBottomIndex(TableOrTreeSWT table, int iTopIndex) {
+
+		// Shortcut: if lastBottomIndex is present, assume it's accurate
+		Object lastBottomIndex = table.getData("lastBottomIndex");
+		if (lastBottomIndex instanceof Number) {
+			return ((Number)lastBottomIndex).intValue();
+		}
+		
 		// on Linux, getItemHeight is slow AND WRONG. so is getItem(x).getBounds().y 
 		// getItem(Point) is slow on OSX
 		
@@ -1451,6 +1458,9 @@ public class Utils
 				0xFF, 0xFF00, 0xFF0000));
 		Arrays.fill(imageData.data, 0, imageData.data.length, (byte) 0);
 		imageData.alphaData = alphaData;
+		if (device == null) {
+			device = Display.getDefault();
+		}
 		Image image = new Image(device, imageData);
 		return image;
 	}

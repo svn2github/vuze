@@ -468,7 +468,7 @@ public class TableRowImpl
     while (iter.hasNext()) {
     	TableCellSWT cell = (TableCellSWT)iter.next();
       if (cell != null)
-        cell.invalidate(true);
+        cell.invalidate(false);
     }
 	}
 	
@@ -515,7 +515,7 @@ public class TableRowImpl
   		return;
   	}
   	wasShown  = b;
-
+  	
     Iterator iter = mTableCells.values().iterator();
     while (iter.hasNext()) {
     	TableCellSWT cell = (TableCellSWT)iter.next();
@@ -525,7 +525,16 @@ public class TableRowImpl
 						: TableCellVisibilityListener.VISIBILITY_HIDDEN, true);
       }
     }
+
+    /* Don't need to refresh; paintItem will trigger a refresh on
+     * !cell.isUpToDate()
+     *
+  	if (b) {
+  		refresh(b, true);
+  	}
+  	/**/
 	}
+
 	public boolean isMouseOver() {
 		return tableView.getTableRowWithCursor() == this;
 	}
@@ -615,15 +624,23 @@ public class TableRowImpl
 	
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#isSelected()
 	public boolean isSelected() {
+		return tableView.isSelected(this);
+		/*
 		return Utils.execSWTThreadWithBool("isSelected", new AERunnableBoolean() {
 			public boolean runSupport() {
 				return TableRowImpl.super.isSelected();
 			}
 		}, 1000);
+		*/
 	}
 	
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setSubItemCount(int)
 	public void setSubItemCount(int i) {
 		super.setSubItemCount(i);
+	}
+	
+	// @see com.aelitis.azureus.ui.common.table.TableRowCore#isInPaintItem()
+	public boolean isInPaintItem() {
+		return super.inPaintItem();
 	}
 }
