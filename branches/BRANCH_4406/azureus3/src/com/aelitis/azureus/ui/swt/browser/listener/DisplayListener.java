@@ -96,8 +96,10 @@ public class DisplayListener
 		} else if (OP_OPEN_URL.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			String target = MapUtils.getMapString(decodedMap, "target", null);
-			if (target == null && !decodedMap.containsKey("width")) {
-				launchUrl(MapUtils.getMapString(decodedMap, "url", null));
+			if ((target == null || "_blank".equals(target))
+					&& !decodedMap.containsKey("width")) {
+				launchUrl(MapUtils.getMapString(decodedMap, "url", null),
+						MapUtils.getMapBoolean(decodedMap, "append-suffix", false));
 			} else {
 				String ref = message.getReferer();
 				if (target != null && target.equals("browse") && ref != null) {
@@ -417,7 +419,13 @@ public class DisplayListener
 		});
 	}
 
-	private void launchUrl(final String url) {
+	private void launchUrl(String url, boolean appendSuffix) {
+		if (appendSuffix) {
+  		ContentNetwork cn = ContentNetworkUtils.getContentNetworkFromTarget(null);
+  		if (url.startsWith("/")){
+  			url = cn.getExternalSiteRelativeURL(url, appendSuffix);
+  		}
+		}
 		if (url.startsWith("http://") || url.startsWith("https://")
 				|| url.startsWith("mailto:")) {
 			Utils.launch(url);
