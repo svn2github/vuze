@@ -204,7 +204,7 @@ SubscriptionManagerImpl
 	
 	private volatile DHTPlugin	dht_plugin;
 	
-	private List		subscriptions	= new ArrayList();
+	private List<Subscription>		subscriptions	= new ArrayList<Subscription>();
 	
 	private boolean	config_dirty;
 	
@@ -904,14 +904,21 @@ SubscriptionManagerImpl
 		SubscriptionImpl existing;
 		
 		synchronized( this ){
-			
-			existing = getSubscriptionFromSID( subs.getShortID());
-			
-			if ( existing == null ){
 
-				subscriptions.add( subs );
+			int index = Collections.binarySearch(subscriptions, subs, new Comparator<Subscription>() {
+				public int compare(Subscription arg0, Subscription arg1) {
+					return arg0.getID().compareTo(arg1.getID());
+				}
+			});
+			if (index < 0) {
+				existing = null;
+				index = -1 * index - 1; // best guess
+
+				subscriptions.add( index, subs );
 			
 				saveConfig();
+			} else {
+				existing = (SubscriptionImpl) subscriptions.get(index);
 			}
 		}
 		
@@ -1573,27 +1580,29 @@ SubscriptionManagerImpl
 	getSubscriptionByID(
 		String		id )
 	{
-		return( getSubscriptionFromSID( Base32.decode( id )));
+		synchronized( this ){
+			
+  		int index = Collections.binarySearch(subscriptions, id, new Comparator() {
+  			public int compare(Object o1, Object o2) {
+  				String id1 = (o1 instanceof Subscription) ? ((Subscription) o1).getID() : o1.toString();
+  				String id2 = (o2 instanceof Subscription) ? ((Subscription) o2).getID() : o2.toString();
+  				return id1.compareTo(id2);
+  			}
+  		});
+  		
+  		if (index >= 0) {
+  			return subscriptions.get(index);
+  		}
+		}
+		
+		return null;
 	}
 	
 	protected SubscriptionImpl
 	getSubscriptionFromSID(
 		byte[]		sid )
 	{
-		synchronized( this ){
-			
-			for (int i=0;i<subscriptions.size();i++){
-				
-				SubscriptionImpl s = (SubscriptionImpl)subscriptions.get(i);
-				
-				if ( Arrays.equals( s.getShortID(), sid )){
-					
-					return( s );
-				}
-			}
-		}
-		
-		return( null );
+		return (SubscriptionImpl) getSubscriptionByID( Base32.encode(sid));
 	}
 	
 	protected File
@@ -5040,9 +5049,18 @@ SubscriptionManagerImpl
 					
 					try{
 						SubscriptionImpl sub = new SubscriptionImpl( this, m );
-						
-						subscriptions.add( sub );
-						
+
+						int index = Collections.binarySearch(subscriptions, sub, new Comparator<Subscription>() {
+							public int compare(Subscription arg0, Subscription arg1) {
+								return arg0.getID().compareTo(arg1.getID());
+							}
+						});
+						if (index < 0) {
+							index = -1 * index - 1; // best guess
+
+							subscriptions.add( index, sub );
+						}
+
 						if ( sub.isMine()){
 							
 							some_are_mine = true;
