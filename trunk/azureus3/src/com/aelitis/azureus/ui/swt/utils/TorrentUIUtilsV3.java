@@ -77,6 +77,8 @@ public class TorrentUIUtilsV3
 	//catches http://www.vuze.com/download/CHJW43PLS277RC7U3S5XRS2PZ4UUG7RS.torrent
 	private static final Pattern hashPattern = Pattern.compile("download/([A-Z0-9]{32})\\.torrent");
 
+	static ImageLoader imageLoaderThumb;
+
 	public static void loadTorrent(	final DownloadUrlInfo dlInfo, 
 			final boolean playNow, // open player
 			final boolean playPrepare, // as for open player but don't actually open it
@@ -347,15 +349,17 @@ public class TorrentUIUtilsV3
 			l.contentImageLoaded(null, true);
 			return null;
 		}
-
-		final ImageLoader imageLoader = ImageLoader.getInstance();
-
+		
+		if (imageLoaderThumb == null) {
+			imageLoaderThumb = new ImageLoader(null, null);
+		}
+		
 		String thumbnailUrl = PlatformTorrentUtils.getContentThumbnailUrl(torrent);
 
 		//System.out.println("thumburl= " + thumbnailUrl);
-		if (thumbnailUrl != null && imageLoader.imageExists(thumbnailUrl)) {
+		if (thumbnailUrl != null && imageLoaderThumb.imageExists(thumbnailUrl)) {
 			//System.out.println("return thumburl");
-			Image image = imageLoader.getImage(thumbnailUrl);
+			Image image = imageLoaderThumb.getImage(thumbnailUrl);
 			l.contentImageLoaded(image, true);
 			return new Image[] { image };
 		}
@@ -372,7 +376,7 @@ public class TorrentUIUtilsV3
 
 		final String id = "Thumbnail." + hash;
 
-		Image image = imageLoader.imageAdded(id) ? imageLoader.getImage(id) : null;
+		Image image = imageLoaderThumb.imageAdded(id) ? imageLoaderThumb.getImage(id) : null;
 		//System.out.println("image = " + image);
 		if (image != null && !image.isDisposed()) {
 			l.contentImageLoaded(image, true);
@@ -438,13 +442,13 @@ public class TorrentUIUtilsV3
 			}
 
 			if (image == null) {
-				imageLoader.addImageNoDipose(id, ImageLoader.noImage);
+				imageLoaderThumb.addImageNoDipose(id, ImageLoader.noImage);
 			} else {
-				imageLoader.addImageNoDipose(id, image);
+				imageLoaderThumb.addImageNoDipose(id, image);
 			}
 		} else {
 			//System.out.println("has mystery image");
-			imageLoader.addImage(id, image);
+			imageLoaderThumb.addImage(id, image);
 		}
 
 		l.contentImageLoaded(image, true);
@@ -452,17 +456,19 @@ public class TorrentUIUtilsV3
 	}
 
 	public static void releaseContentImage(Object datasource) {
+		if (imageLoaderThumb == null) {
+			return;
+		}
+
 		TOTorrent torrent = DataSourceUtils.getTorrent(datasource);
 		if (torrent == null) {
 			return;
 		}
 
-		ImageLoader imageLoader = ImageLoader.getInstance();
-
 		String thumbnailUrl = PlatformTorrentUtils.getContentThumbnailUrl(torrent);
 
 		if (thumbnailUrl != null) {
-			imageLoader.releaseImage(thumbnailUrl);
+			imageLoaderThumb.releaseImage(thumbnailUrl);
 		} else {
 			String hash = null;
 			try {
@@ -474,7 +480,7 @@ public class TorrentUIUtilsV3
 			}
 
 			String id = "Thumbnail." + hash;
-			imageLoader.releaseImage(id);
+			imageLoaderThumb.releaseImage(id);
 		}
 	}
 
