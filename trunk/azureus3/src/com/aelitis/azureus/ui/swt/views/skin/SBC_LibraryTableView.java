@@ -235,13 +235,10 @@ public class SBC_LibraryTableView
 					boolean assumedComplete = dm.getAssumedComplete();
 					if (!assumedComplete) {
 						changed |= rowCore.setAlpha(160);
-						changed |= rowCore.setFontStyle(SWT.NORMAL);
 					} else if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
 						changed |= rowCore.setAlpha(255);
-						changed |= rowCore.setFontStyle(SWT.BOLD);
 					} else {
 						changed |= rowCore.setAlpha(255);
-						changed |= rowCore.setFontStyle(SWT.NORMAL);
 					}
 				}
 			});
