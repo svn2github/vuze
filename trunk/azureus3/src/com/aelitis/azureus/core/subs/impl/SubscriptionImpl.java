@@ -119,7 +119,9 @@ SubscriptionImpl
 	private int				highest_prompted_version;
 	
 	private byte[]			short_id;
-	
+
+	private String			id;
+
 	private List			associations = new ArrayList();
 	
 	private int				fixed_random;
@@ -553,6 +555,7 @@ SubscriptionImpl
 	init()
 	{
 		short_id = SubscriptionBodyImpl.deriveShortID( public_key, singleton_details );
+		id = null;
 	}
 	
 	public boolean
@@ -1085,7 +1088,10 @@ SubscriptionImpl
 	public String
 	getID()
 	{
-		return( Base32.encode(getShortID()));
+		if (id == null) {
+			id = Base32.encode(getShortID());
+		}
+		return( id );
 	}
 	
 	protected byte[]
