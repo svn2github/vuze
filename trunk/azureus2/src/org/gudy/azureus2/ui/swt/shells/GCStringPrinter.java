@@ -256,6 +256,8 @@ public class GCStringPrinter
 		if (string.indexOf("  ") > 0) {
 			string = string.replaceAll("  +", " ");
 		}
+		
+		boolean hasSlashR = string.indexOf('\r') > 0;
 
 		boolean fullLinesOnly = (printFlags & FLAG_FULLLINESONLY) > 0;
 		boolean skipClip = (printFlags & FLAG_SKIPCLIP) > 0;
@@ -330,12 +332,14 @@ public class GCStringPrinter
 			iCurrentHeight = 0;
 			int currentCharPos = 0;
 			
-			int pos1 = string.indexOf('\n');
-			int pos2 = string.indexOf('\r');
-			if (pos2 == -1) {
-				pos2 = pos1;
+			int posNewLine = string.indexOf('\n');
+			if (hasSlashR) {
+  			int posR = string.indexOf('\r');
+  			if (posR == -1) {
+  				posR = posNewLine;
+  			}
+  			posNewLine = Math.min(posNewLine, posR);
 			}
-			int posNewLine = Math.min(pos1, pos2);
 			if (posNewLine < 0) {
 				posNewLine = string.length();
 			}
@@ -455,12 +459,14 @@ public class GCStringPrinter
 				posLastNewLine = posNewLine + 1;
 				currentCharPos = posLastNewLine;
 
-				pos1 = string.indexOf('\n', posLastNewLine);
-				pos2 = string.indexOf('\r', posLastNewLine);
-				if (pos2 == -1) {
-					pos2 = pos1;
+				posNewLine = string.indexOf('\n', posLastNewLine);
+				if (hasSlashR) {
+	  			int posR = string.indexOf('\r', posLastNewLine);
+	  			if (posR == -1) {
+	  				posR = posNewLine;
+	  			}
+	  			posNewLine = Math.min(posNewLine, posR);
 				}
-				posNewLine = Math.min(pos1, pos2);
 				if (posNewLine < 0) {
 					posNewLine = string.length();
 				}
@@ -924,7 +930,7 @@ public class GCStringPrinter
 				if (i > 0 && i > lineStartPos && i <= text.length()) {
 					String s = text.substring(lineStartPos, i);
 					//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
-					x0 += drawText(gc, s, x0, y0, lineInfo.height, null, noDraw).x;
+					x0 += drawText(gc, s, x0, y0, lineInfo.height, null, noDraw, true).x;
 
 					relStartPos += (i - lineStartPos);
 					lineStartPos += (i - lineStartPos);
@@ -951,7 +957,8 @@ public class GCStringPrinter
 
 					if (urlInfo.dropShadowColor != null) {
 						gc.setForeground(urlInfo.dropShadowColor);
-						drawText(gc, s, x0 + 1, y0 + 1, lineInfo.height, null, noDraw);
+						drawText(gc, s, x0 + 1, y0 + 1, lineInfo.height, null, noDraw,
+								false);
 					}
 
 					if (urlInfo.urlColor != null) {
@@ -963,7 +970,8 @@ public class GCStringPrinter
 				if (urlInfo.hitAreas == null) {
 					urlInfo.hitAreas = new ArrayList(1);
 				}
-				pt = drawText(gc, s, x0, y0, lineInfo.height, urlInfo.hitAreas, noDraw);
+				pt = drawText(gc, s, x0, y0, lineInfo.height, urlInfo.hitAreas, noDraw,
+						true);
 				if (!noDraw) {
 					if (urlInfo.urlUnderline) {
 						gc.drawLine(x0, y0 + pt.y - 1, x0 + pt.x - 1, y0 + pt.y - 1); 
@@ -984,14 +992,14 @@ public class GCStringPrinter
 		if (lineStartPos < text.length()) {
 			String s = text.substring(lineStartPos);
 			if (!noDraw) {
-				drawText(gc, s, x0, y0, lineInfo.height, null, noDraw);
+				drawText(gc, s, x0, y0, lineInfo.height, null, noDraw, false);
 			}
 		}
 		printArea.y += drawSize.y;
 	}
 	
 	private Point drawText(GC gc, String s, int x, int y, int height,
-			List hitAreas, boolean nodraw) {
+			List hitAreas, boolean nodraw, boolean calcExtent) {
 		Point textExtent;
 
 		if (images != null) {
@@ -1083,6 +1091,9 @@ public class GCStringPrinter
 
 		if (!nodraw) {
 			gc.drawText(s, x, y, true);
+		}
+		if (!calcExtent && hitAreas == null) {
+			return null;
 		}
 		textExtent = gc.textExtent(s);
 		if (hitAreas != null) {
