@@ -42,9 +42,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerDownloadWillBeRemovedListener
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.download.savelocation.DefaultSaveLocationManager;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
@@ -594,8 +592,16 @@ DownloadManagerImpl
 	getDownload(
 		byte[]	hash )
 	{
-		List	dls = global_manager.getDownloadManagers();
+		DownloadManager manager = global_manager.getDownloadManager(new HashWrapper(hash));
+		if (manager != null) {
+			try {
+				return getDownload(manager);
+			} catch (DownloadException e) {
+			}
+		}
 
+		List	dls = global_manager.getDownloadManagers();
+		
 		for (int i=0;i<dls.size();i++){
 			
 			DownloadManager	man = (DownloadManager)dls.get(i);
