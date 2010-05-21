@@ -420,11 +420,11 @@ public class DisplayListener
 	}
 
 	private void launchUrl(String url, boolean appendSuffix) {
-		if (appendSuffix) {
-  		ContentNetwork cn = ContentNetworkUtils.getContentNetworkFromTarget(null);
-  		if (url.startsWith("/")){
-  			url = cn.getExternalSiteRelativeURL(url, appendSuffix);
-  		}
+		ContentNetwork cn = ContentNetworkUtils.getContentNetworkFromTarget(null);
+		if (url.startsWith("/")){
+			url = cn.getExternalSiteRelativeURL(url, appendSuffix);
+		} else if (appendSuffix) {
+			url = cn.appendURLSuffix(url, false, true);
 		}
 		if (url.startsWith("http://") || url.startsWith("https://")
 				|| url.startsWith("mailto:")) {
