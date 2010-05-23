@@ -99,15 +99,13 @@ BEncoder
             
             boolean	simple = true;
             
-            char[] chars = tempString.toCharArray();
-            
-            int	char_count = chars.length;
+            int	char_count = tempString.length();
             
             byte[]	encoded = new byte[char_count];
             
             for (int i=0;i<char_count;i++){
             	
-            	char c = chars[i];
+            	char c = tempString.charAt(i);
             	
             	if ( c < 0x80 ){
             		
@@ -192,7 +190,7 @@ BEncoder
 							try
 							{
 								encodeObject(Constants.BYTE_CHARSET.encode(key));
-								if (!encodeObject(tempMap.get(key)))
+								if (!encodeObject(value))
 									encodeObject("");
 							} catch (UnsupportedEncodingException e)
 							{
