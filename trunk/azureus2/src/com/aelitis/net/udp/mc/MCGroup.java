@@ -32,22 +32,17 @@ MCGroup
 	
 	public void
 	sendToGroup(
-		byte[]	data )
-	
-		throws MCGroupException;
+		byte[]	data );
 	
 		/**
 		 * Sends to the group but will replace any occurrence of %AZINTERFACE% in the string with the
 		 * interface being used for the send
 		 * @param param_data
-		 * @throws MCGroupException
 		 */
 	
 	public void
 	sendToGroup(
-		String	param_data )
-	
-		throws MCGroupException;
+		String	param_data );
 	
 	public void
 	sendToMember(

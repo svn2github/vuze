@@ -283,16 +283,12 @@ AZInstanceManagerImpl
 				public void
 				sendToGroup(
 					byte[]	data )
-				
-					throws MCGroupException
 				{
 				}
 								
 				public void
 				sendToGroup(
 					String	param_data )
-				
-					throws MCGroupException
 				{	
 				}
 				

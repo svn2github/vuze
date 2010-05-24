@@ -27,8 +27,10 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -133,6 +135,9 @@ MCGroupImpl
 	protected AEMonitor		this_mon	= new AEMonitor( "MCGroup" );
 
 	private Map	current_registrations = new HashMap();
+	
+	private AsyncDispatcher		async_dispatcher = new AsyncDispatcher();
+	
 	
 	public
 	MCGroupImpl(
@@ -442,9 +447,24 @@ MCGroupImpl
 
 	public void
 	sendToGroup(
-		byte[]	data )
+		final byte[]	data )
+	{	
+			// have debugs showing the send-to-group operation hanging and blocking AZ close, make async
+		
+		async_dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					sendToGroupSupport( data );
+				}
+			});
+	}
 	
-		throws MCGroupException
+	private void
+	sendToGroupSupport(
+		byte[]	data )
 	{	
 		try{
 			Enumeration	x = NetworkInterface.getNetworkInterfaces();
@@ -521,16 +541,29 @@ MCGroupImpl
 				}
 			}
 		}catch( Throwable e ){
-			
-			throw( new MCGroupException( "sendToGroup failed", e ));
 		}
 	}
 	
 	public void
 	sendToGroup(
-		String	param_data )
+		final String	param_data )
+	{	
+			// have debugs showing the send-to-group operation hanging and blocking AZ close, make async
+		
+		async_dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					sendToGroupSupport( param_data );
+				}
+			});
+	}
 	
-		throws MCGroupException
+	private void
+	sendToGroupSupport(
+		String	param_data )
 	{	
 		try{
 			Enumeration	x = NetworkInterface.getNetworkInterfaces();
@@ -609,8 +642,6 @@ MCGroupImpl
 				}
 			}
 		}catch( Throwable e ){
-			
-			throw( new MCGroupException( "sendToGroup failed", e ));
 		}
 	}
 	
