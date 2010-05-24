@@ -140,6 +140,11 @@ public interface UIFunctions
 	
 	void doSearch(String searchText);
 	
+	public void
+	installPlugin(
+		String			plugin_id,
+		String			resource_prefix,
+		actionListener	listener );
 	
 	/**
 	 * 
