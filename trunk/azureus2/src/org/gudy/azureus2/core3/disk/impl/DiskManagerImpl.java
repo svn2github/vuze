@@ -527,7 +527,7 @@ DiskManagerImpl
         setState( READY );
     }
 
-    public void
+    public boolean
     stop(
     	boolean	closing )
     {
@@ -536,7 +536,7 @@ DiskManagerImpl
 
             if ( !started ){
 
-                return;
+                return( false );
             }
 
                 // we need to be careful if we're still starting up as this may be
@@ -564,7 +564,7 @@ DiskManagerImpl
                 
                 saveState( false );
                 
-                return;
+                return( true );
             }
 
             started     = false;
@@ -618,8 +618,24 @@ DiskManagerImpl
 
         // can't be used after a stop so we might as well clear down the listeners
         listeners.clear();
+        
+        return( false );
     }
 
+    public boolean 
+    isStopped() 
+    {
+        try{
+            start_stop_mon.enter();
+            
+            return( !( started || starting || stopping ));
+            
+        }finally{
+
+            start_stop_mon.exit();
+        }
+    }
+    
     public boolean
     filesExist()
     {
@@ -795,6 +811,15 @@ DiskManagerImpl
 
             for ( int i=0;i<pm_files.length;i++ ){
 
+            	if ( stopping ){
+            		
+                    this.errorMessage = "File allocation interrupted - download is stopping";
+
+                    setState( FAULTY );
+
+                    return( -1 );
+            	}
+            	
                 final DMPieceMapperFile pm_info = pm_files[i];
 
                 final long target_length = pm_info.getLength();

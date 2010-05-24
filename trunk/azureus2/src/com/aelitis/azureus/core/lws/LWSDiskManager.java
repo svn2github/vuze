@@ -85,6 +85,7 @@ LWSDiskManager
 	private String						internal_name;
 	private DownloadManagerState		download_state;
 	
+	private boolean	started;
 	private int 	state 			= DiskManager.INITIALIZING;
 	private String	error_message	= "";
 	
@@ -155,10 +156,11 @@ LWSDiskManager
 			reader.start();
 			
 			if ( state != DiskManager.FAULTY ){
-				
-				state = DiskManager.READY;
-			}
 			
+				started = true;
+
+				state = DiskManager.READY;
+			}						
 		}catch( Throwable e ){
 			
 			setFailed( "start failed - " + Debug.getNestedExceptionMessage(e));
@@ -250,10 +252,12 @@ LWSDiskManager
 	{
 	}
 	
-	public void
+	public boolean
 	stop(
 		boolean	closing )
 	{
+		started = false;
+		
 		if ( reader != null ){
 		
 			reader.stop();
@@ -274,8 +278,16 @@ LWSDiskManager
 				}
 			}
 		}
+
+		return( false );
 	}
 
+    public boolean 
+    isStopped() 
+    {
+    	return( !started );
+    }
+    
 	public boolean
 	filesExist()
 	{
@@ -645,6 +657,8 @@ LWSDiskManager
 	setFailed(
 		String		reason )
 	{
+		started = false;
+		
 		state	= FAULTY;
 		
 		error_message	= reason;
@@ -655,6 +669,8 @@ LWSDiskManager
 		DiskManagerFileInfo		file,
 		String					reason )
 	{
+		started = false;
+		
 		state	= FAULTY;
 		
 		error_message	= reason;

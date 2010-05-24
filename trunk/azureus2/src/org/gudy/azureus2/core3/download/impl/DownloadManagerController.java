@@ -942,8 +942,31 @@ DownloadManagerController
 					
 					if ( dm != null ){
 						
-						dm.stop( closing );
+						boolean went_async = dm.stop( closing );
 
+						if ( went_async ){
+							
+							int	wait_count = 0;
+							
+							while( !dm.isStopped()){
+							
+								wait_count++;
+								
+								if ( wait_count > 2*60 ){
+									
+									Debug.out( "Download stop took too long to complete" );
+									
+									break;
+									
+								}else if ( wait_count % 20 == 0 ){
+									
+									Debug.out( "Waiting for download to stop - elapsed=" + wait_count + " sec" );
+								}
+								
+								Thread.sleep(1000);
+							}
+						}
+						
 						stats.setCompleted(stats.getCompleted());
 						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 			      

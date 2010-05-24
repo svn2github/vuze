@@ -56,9 +56,18 @@ DiskManager
 	public void
 	start();
 	
-	public void
+		/**
+		 * Stop can go async if the download is in a 'starting' state - if so this method returns true
+		 * @param closing
+		 * @return 
+		 */
+	
+	public boolean
 	stop(
 		boolean	closing );
+	
+	public boolean
+	isStopped();
 	
 	/**
 	  * @return whether all files exist and sizes match
