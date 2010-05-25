@@ -61,6 +61,8 @@ public class Wizard {
   
   int wizardHeight;
   
+  private boolean	completed;
+  
   public 
   Wizard(
   	String 			keyTitle,
@@ -217,7 +219,7 @@ public class Wizard {
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
        */
       public void handleEvent(Event arg0) {
-        wizardWindow.dispose();
+    	  cancelSelected();
       }
     });
 
@@ -246,10 +248,21 @@ public class Wizard {
 
   }
 
-	private void
-   finishSelected()
-   {
-	   if ( currentPanel.isFinishSelectionOK()){      			   
+  private void
+  cancelSelected()
+  {
+	  completed = true;
+	  
+	  currentPanel.cancelled();
+	  
+	  wizardWindow.dispose();
+  }
+  
+  private void
+  finishSelected()
+  {
+	   if ( currentPanel.isFinishSelectionOK()){   
+		   completed = true;
 		   wizardWindow.addListener(SWT.Close, closeCatcher);
 		   clearPanel();
 		   currentPanel = currentPanel.getFinishPanel();
@@ -410,6 +423,13 @@ public class Wizard {
   	for (int i=0;i<listeners.size();i++){
   		
   		listeners.get(i).closed();
+  	}
+  	
+  	if ( !completed ){
+  		
+  		completed = true;
+  		
+  		currentPanel.cancelled();
   	}
   }  
   /**

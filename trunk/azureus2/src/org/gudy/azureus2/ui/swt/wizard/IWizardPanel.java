@@ -45,5 +45,7 @@ public interface IWizardPanel {
    */
   public boolean isFinishSelectionOK();
   
+  public void cancelled();
+  
   public void finish();
 }
