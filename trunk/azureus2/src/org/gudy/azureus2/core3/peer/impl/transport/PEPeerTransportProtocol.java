@@ -370,6 +370,8 @@ implements PEPeerTransport
 
 	private boolean have_aggregation_disabled;
 
+	private volatile boolean	manual_lazy_bitfield_control;
+	private volatile int[]		manual_lazy_haves;
 
 	//INCOMING
 	public 
@@ -1048,7 +1050,7 @@ implements PEPeerTransport
 		data_dict.put("v", client_name);
 		data_dict.put("p", new Integer(localTcpPort));
 		data_dict.put("e", new Long(require_crypto ? 1L : 0L));
-		data_dict.put("upload_only", new Long(manager.isSeeding() && !ENABLE_LAZY_BITFIELD ? 1L : 0L));
+		data_dict.put("upload_only", new Long(manager.isSeeding() && !( ENABLE_LAZY_BITFIELD || manual_lazy_bitfield_control )? 1L : 0L));
 		InetAddress defaultV6 = NetworkAdmin.getSingleton().hasIPV6Potential(true) ? NetworkAdmin.getSingleton().getDefaultPublicAddressV6() : null;
 		if(defaultV6 != null)
 			data_dict.put("ipv6",defaultV6.getAddress());
@@ -1104,7 +1106,7 @@ implements PEPeerTransport
 				avail_vers,
 				require_crypto ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN,
 				other_peer_handshake_version,
-				manager.isSeeding() && !ENABLE_LAZY_BITFIELD);        
+				manager.isSeeding() && ! ( ENABLE_LAZY_BITFIELD || manual_lazy_bitfield_control ));        
 
 		connection.getOutgoingMessageQueue().addMessage( az_handshake, false );
 	}
@@ -1448,7 +1450,7 @@ implements PEPeerTransport
 		HashSet	lazies 		= null;
 		int[]	lazy_haves	= null;
 		
-		if (ENABLE_LAZY_BITFIELD)
+		if (ENABLE_LAZY_BITFIELD || manual_lazy_bitfield_control )
 		{
 			int bits_in_first_byte = Math.min(num_pieces, 8);
 			int last_byte_start_bit = (num_pieces / 8) * 8;
@@ -1560,30 +1562,56 @@ implements PEPeerTransport
 		
 		if ( lazy_haves != null ){
 			
-			final int[]	f_lazy_haves = lazy_haves;
-						
-			SimpleTimer.addEvent("LazyHaveSender", SystemTime.getCurrentTime() + 1000 + rnd.nextInt(2000), new TimerEventPerformer()
-			{
-				int	next_have	= 0;
+			if ( manual_lazy_bitfield_control ){
+				
+				manual_lazy_haves = lazy_haves;
+				
+			}else{
+			
+				sendLazyHaves( lazy_haves, false );
+			}
+		}
+	}
+	
+	protected void
+	sendLazyHaves(
+		final int[]	lazy_haves,
+		boolean		immediate )
+	{
+		if ( immediate ){
+			
+			if ( current_peer_state == TRANSFERING ){
 
-				public void perform(TimerEvent event) {
-					int lazy_have = f_lazy_haves[next_have++];
-					// System.out.println( "LazyDone: " + getIp() + " -> " +
-					// lazy_have );
+				for ( int lazy_have: lazy_haves ){
 					
-					if ( current_peer_state == TRANSFERING ){
+					connection.getOutgoingMessageQueue().addMessage(new BTHave(lazy_have, other_peer_bt_have_version), false);
+				}
+			}
+		}else{
+			
+			SimpleTimer.addEvent(
+				"LazyHaveSender", 
+				SystemTime.getCurrentTime() + 1000 + rnd.nextInt(2000), 
+				new TimerEventPerformer()
+				{
+					int	next_have	= 0;
+		
+					public void perform(TimerEvent event) {
 						
-						connection.getOutgoingMessageQueue().addMessage(new BTHave(lazy_have, other_peer_bt_have_version), false);
+						if ( current_peer_state == TRANSFERING ){
 						
-						if (next_have < f_lazy_haves.length && current_peer_state == TRANSFERING){
-						
-							SimpleTimer.addEvent("LazyHaveSender", SystemTime.getCurrentTime() + rnd.nextInt(2000), this);
+							int lazy_have = lazy_haves[next_have++];
+	
+							connection.getOutgoingMessageQueue().addMessage(new BTHave(lazy_have, other_peer_bt_have_version), false);
+							
+							if ( next_have < lazy_haves.length && current_peer_state == TRANSFERING ){
+							
+								SimpleTimer.addEvent("LazyHaveSender", SystemTime.getCurrentTime() + rnd.nextInt(2000), this);
+							}
 						}
 					}
-				}
-			});
+				});
 		}
-
 	}
 
 
@@ -2747,6 +2775,26 @@ implements PEPeerTransport
 		}
 	}
 	
+	public void
+	setSuspendedLazyBitFieldEnabled(
+		boolean	enable )
+	{
+		manual_lazy_bitfield_control	= enable;
+		
+		if ( !enable ){
+			
+			int[] pending = manual_lazy_haves;
+			
+			manual_lazy_haves = null;
+			
+			if ( pending != null ){
+				
+				sendLazyHaves( pending, true );
+			}
+		}
+	}
+	  
+	  
 	protected void decodeMainlineDHTPort(BTDHTPort port) {
 		int i_port = port.getDHTPort();
 		port.destroy();

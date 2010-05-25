@@ -301,6 +301,12 @@ PeerForeignDelegate
   	{
   	}
   
+    public void
+    setSuspendedLazyBitFieldEnabled(
+  		boolean	enable )
+    {
+    }
+    
   	public long 
   	getTimeSinceConnectionEstablished() 
   	{

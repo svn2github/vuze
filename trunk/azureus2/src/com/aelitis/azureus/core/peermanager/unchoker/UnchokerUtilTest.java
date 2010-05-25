@@ -173,6 +173,8 @@ public class UnchokerUtilTest {
 		public void setLastPiece(int pieceNumber) {}
 		public int getConsecutiveNoRequestCount() {return 0; }
 		public void setConsecutiveNoRequestCount(int num) {}
+		public void setSuspendedLazyBitFieldEnabled(boolean enable) {			
+		}
 		public int getIncomingRequestCount() {
 			// TODO Auto-generated method stub
 			return 0;

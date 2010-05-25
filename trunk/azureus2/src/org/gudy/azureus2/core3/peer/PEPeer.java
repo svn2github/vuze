@@ -328,6 +328,16 @@ PEPeer
   public long
   getBytesRemaining();
   
+  	/**
+  	 * Enable suspended lazy bitfield for this peer - we will appear incomplete until this is disabled, at
+  	 * which point (well, fairly soon after) the bitfield will be completed  
+  	 * @param enable
+  	 */
+  
+  public void
+  setSuspendedLazyBitFieldEnabled(
+		boolean	enable );
+  
   /**
    * Get the time since this connection was first established.
    * NOTE: This method will always return 0 at any time before
