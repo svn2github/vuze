@@ -414,6 +414,17 @@ public class Wizard {
     }
   }
   
+  public void
+  close()
+  {
+	  completed = true;
+	  
+	  if ( !wizardWindow.isDisposed()){
+	  
+		  wizardWindow.dispose();
+	  }
+  }
+  
   public void onClose() {
   	if (titleFont != null && !titleFont.isDisposed()) {
   		titleFont.dispose();
