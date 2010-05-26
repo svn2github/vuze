@@ -37,27 +37,35 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 public class TextViewerWindow {
   public TextViewerWindow(String sTitleID, String sMessageID, String sText) {
     final Display display = SWTThread.getInstance().getDisplay();
-    final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE );
 
     if (sTitleID != null) shell.setText(MessageText.keyExists(sTitleID)?MessageText.getString(sTitleID):sTitleID);
     
     Utils.setShellIcon(shell);
     
     GridLayout layout = new GridLayout();
+    layout.numColumns = 2;
     shell.setLayout(layout);
 
     Label label = new Label(shell, SWT.NONE);
     if (sMessageID != null) label.setText(MessageText.keyExists(sMessageID)?MessageText.getString(sMessageID):sMessageID);
-    GridData gridData = new GridData();
+    GridData gridData = new GridData(  GridData.FILL_HORIZONTAL );
     gridData.widthHint = 200;
+    gridData.horizontalSpan = 2;
     label.setLayoutData(gridData);
 
     final Text txtInfo = new Text(shell, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-    gridData = new GridData();
-    gridData.widthHint = 300;
+    gridData = new GridData(  GridData.FILL_BOTH );
+    gridData.widthHint = 500;
+    gridData.heightHint = 400;
+    gridData.horizontalSpan = 2;
     txtInfo.setLayoutData(gridData);
     txtInfo.setText(sText);
 
+    label = new Label(shell, SWT.NONE);
+    gridData = new GridData( GridData.FILL_HORIZONTAL );
+    label.setLayoutData(gridData);
+    
     Button ok = new Button(shell, SWT.PUSH);
     ok.setText(MessageText.getString("Button.ok"));
     gridData = new GridData();
