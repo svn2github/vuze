@@ -236,7 +236,7 @@ public class WelcomePanel extends AbstractWizardPanel {
    * @see org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel#getNextPanel()
    */
   public IWizardPanel getNextPanel() {
-    return new TransferPanel(((ConfigureWizard)wizard),this);
+    return new TransferPanel2(((ConfigureWizard)wizard),this);
   }
 
 }

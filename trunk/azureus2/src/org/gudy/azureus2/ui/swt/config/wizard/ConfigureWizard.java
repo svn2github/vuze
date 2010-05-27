@@ -40,7 +40,6 @@ public class ConfigureWizard extends Wizard {
   int maxUpSpeed = 40;
   int maxActiveTorrents = 7;
   int maxDownloads = 5;
-  int nbUploadsPerTorrent = 4;
   
   //Server / NAT Settings
   int serverTCPListenPort = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );

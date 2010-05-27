@@ -209,13 +209,13 @@ public class TransferPanel extends AbstractWizardPanel {
 
       ((ConfigureWizard) wizard).maxActiveTorrents = nbMaxActive;
       ((ConfigureWizard) wizard).maxDownloads = nbMaxDownloads;
-      ((ConfigureWizard) wizard).nbUploadsPerTorrent = nbMaxUploads;
+      //((ConfigureWizard) wizard).nbUploadsPerTorrent = nbMaxUploads;
     	
     }
     else {
       ((ConfigureWizard) wizard).maxActiveTorrents = 0;
       ((ConfigureWizard) wizard).maxDownloads = 0;
-      ((ConfigureWizard) wizard).nbUploadsPerTorrent = 4;
+      //((ConfigureWizard) wizard).nbUploadsPerTorrent = 4;
     }
     refresh();
   }
@@ -223,7 +223,7 @@ public class TransferPanel extends AbstractWizardPanel {
   public void refresh() {
     nbMaxActive.setText("" + ((ConfigureWizard) wizard).maxActiveTorrents);
     nbMaxDownloads.setText("" + ((ConfigureWizard) wizard).maxDownloads);
-    nbMaxUploadsPerTorrent.setText("" + ((ConfigureWizard) wizard).nbUploadsPerTorrent);
+    //nbMaxUploadsPerTorrent.setText("" + ((ConfigureWizard) wizard).nbUploadsPerTorrent);
   }
 
   private int findIndex(int value, int values[]) {
