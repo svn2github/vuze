@@ -530,42 +530,18 @@ DisplayFormatters
 
     /**
      * Print the BITS/second in an international format.
-     * @param n -
+     * @param n - always formatted using SI (i.e. decimal) prefixes
      * @return String in an internationalized format.
      */
     public static String
     formatByteCountToBitsPerSec(
-            long n)
+        long n)
     {
-        return formatBitCountToKiBEtcLocalImpl(n,true,true,-1,true);
-    }
-
-    /**
-     * NOTE: This method is a copy of formatByteCountToKiBEtc. Since the "use_units_rate_bits" member is
-     * static it cannot be used in a local context. Thus this method. More refactoring of this area
-     * should be done. Also need testing of the method to make sure units are accurate.
-     *
-     * Takes a long value that is bytes/bits download and converts it into internationalized units.
-     * @param n - value
-     * @param rate - true if in ? per second. Otherwise false.
-     * @param bTruncateZeros - true if truncating zeros.
-     * @param precision - negative value if same as units.
-     * @param useBits - true if using BITS, otherwise using BYTES.
-     * @return String - with units internationalized properly.
-     */
-    public static
-    String formatBitCountToKiBEtcLocalImpl(
-        long	n,
-        boolean	rate,
-        boolean bTruncateZeros,
-        int precision,
-        boolean useBits)
-    {
-        double dbl = (rate && useBits) ? n * 8 : n;
+        double dbl = n * 8;
 
         int unitIndex = UNIT_B;
 
-        long	div = force_si_values?1024:(use_si_units?1024:1000);
+        long	div = 1000;
         
         while (dbl >= div && unitIndex < unitsStopAt){
 
@@ -573,12 +549,9 @@ DisplayFormatters
           unitIndex++;
         }
 
-      if (precision < 0) {
-          precision = UNITS_PRECISION[unitIndex];
-      }
+        int  precision = UNITS_PRECISION[unitIndex];
 
-        return formatDecimal(dbl, precision, bTruncateZeros, rate)
-                + units_bits[unitIndex] + (rate?per_sec:"");
+        return( formatDecimal(dbl, precision, true, true) + units_bits[unitIndex] + per_sec );
     }
 
 
