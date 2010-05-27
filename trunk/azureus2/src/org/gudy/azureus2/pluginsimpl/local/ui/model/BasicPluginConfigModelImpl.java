@@ -31,6 +31,7 @@ import java.util.*;
 
 
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.InfoParameter;
 import org.gudy.azureus2.plugins.ui.config.LabelParameter;
@@ -74,6 +75,10 @@ BasicPluginConfigModelImpl
 
 		key_prefix		= pi.getPluginconfig().getPluginConfigKeyPrefix();
 		configobj       = (PluginConfigImpl)pi.getPluginconfig();
+		
+		String version = pi.getPluginVersion();
+		
+		addLabelParameter2( "!" + MessageText.getString( "ConfigView.pluginlist.column.version" ) + ": " + (version==null?"<local>":version) + "!" );
 	}
 
 	public String
