@@ -36,7 +36,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 public class 
 LinkLabel 
 {
-	
+	private final Label	linkLabel;
 	public
 	LinkLabel(
 		Composite	composite,
@@ -53,10 +53,16 @@ LinkLabel
 		String		resource,
 		String		link )
 	{
-	    Label linkLabel = new Label(composite, SWT.NULL);
+	    linkLabel = new Label(composite, SWT.NULL);
 	    Messages.setLanguageText(linkLabel,resource);
 	    linkLabel.setLayoutData( gridData );
 	    makeLinkedLabel(linkLabel, link);
+	}
+	
+	public Label
+	getlabel()
+	{
+		return( linkLabel );
 	}
 	
 	/**
