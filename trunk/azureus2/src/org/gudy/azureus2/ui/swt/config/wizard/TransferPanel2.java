@@ -55,8 +55,6 @@ public class
 TransferPanel2
 	extends AbstractWizardPanel<ConfigureWizard> 
 {
-	private volatile boolean test_in_progress;
-
 	private static final int kbit = 1000;
 	private static final int mbit = 1000*1000;
 	
@@ -82,53 +80,14 @@ TransferPanel2
 		100 * mbit,
 	};
 		
-  Label nbMaxActive;
-  Label nbMaxDownloads;
 
-  
-  private static final int upRates[] =
-    {
-      0,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      20,
-      25,
-      30,
-      35,
-      40,
-      45,
-      50,
-      55,
-      60,
-      70,
-      80,
-      85,
-      90,
-      100,
-      110,
-      150,
-      200,
-      250,
-      300,
-      350,
-      400,
-      450,
-      500,
-      600,
-      700,
-      800,
-      900,
-      1000 };
+	private volatile boolean test_in_progress;
 
+	private boolean next_disabled;
+	
+	private long	selected_uprate;
+	private Label	uprate_label;
+	
   public TransferPanel2(ConfigureWizard wizard, IWizardPanel previous) {
     super(wizard, previous);
   }
@@ -160,19 +119,30 @@ TransferPanel2
     final Group gRadio = new Group(panel, SWT.WRAP);
     Messages.setLanguageText(gRadio, "configureWizard.transfer2.group");
     gRadio.setLayoutData(gridData);
-    gRadio.setLayout(new RowLayout(SWT.VERTICAL));
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    gRadio.setLayout( layout );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 1;
+    gridData.horizontalSpan = 2;
     gRadio.setLayoutData(gridData);
 
 
+    	// auto button
+    
     Button auto_button = new Button (gRadio, SWT.RADIO);
-    Messages.setLanguageText(auto_button, "wizard.maketorrent.auto");
+    Messages.setLanguageText(auto_button, "auto.mode");
     auto_button.setSelection( true );
     
+    new Label( gRadio, SWT.NULL );
+    
+    	// speed test button
+    
+    label = new Label( gRadio, SWT.NULL );
+    Messages.setLanguageText(label, "configureWizard.transfer2.test.info");
+
     final Button speed_test = new Button( gRadio, SWT.NULL );
     
-    speed_test.setText( "Speed Test!" );
+    Messages.setLanguageText( speed_test, "configureWizard.transfer2.test" );
     
     speed_test.addSelectionListener(
     	new SelectionAdapter()
@@ -185,7 +155,7 @@ TransferPanel2
     			
     			test_in_progress = true;
     			
-				wizard.setNextEnabled( false );
+    			updateNextEnabled();
 				wizard.setPreviousEnabled( false );
 
 				
@@ -229,6 +199,7 @@ TransferPanel2
 		    														public void
 		    														run()
 		    														{
+		    															updateUp( u );
 		    														}								
 		    													});
 		    											}
@@ -290,7 +261,7 @@ TransferPanel2
 											
 											test_in_progress = false;
 											
-											wizard.setNextEnabled( true );
+											updateNextEnabled();
 											wizard.setPreviousEnabled( true );
 											
 										};
@@ -300,10 +271,19 @@ TransferPanel2
     		}
     	});
     
+    
+    	// manual
+    
     final Button manual_button = new Button( gRadio, SWT.RADIO );
     Messages.setLanguageText(manual_button, "manual.mode");
 
+    new Label( gRadio, SWT.NULL );
     
+    	// drop down speed selector
+        
+    final Label manual_label = new Label( gRadio, SWT.NULL );
+    Messages.setLanguageText(manual_label, "configureWizard.transfer2.mselect");
+
     String connection_labels[] = new String[connection_rates.length];
 
     connection_labels[0] = "";
@@ -316,14 +296,13 @@ TransferPanel2
     }
     
     final Combo connection_speed = new Combo(gRadio, SWT.SINGLE | SWT.READ_ONLY);
-    connection_speed.setEnabled( false );
     
     for ( int i=0; i<connection_rates.length; i++ ){
     	
     	connection_speed.add(connection_labels[i]);
     }
     
-    manual_button.addListener(
+    connection_speed.addListener(
     	SWT.Selection,
     	new Listener()
     	{
@@ -331,22 +310,74 @@ TransferPanel2
     		handleEvent(
     			Event arg0 ) 
     		{
-    			boolean is_manual = manual_button.getSelection();
-    				
-    			speed_test.setEnabled( !is_manual );
+    			int index = connection_speed.getSelectionIndex();
     			
-    			connection_speed.setEnabled( is_manual );
-    		}
+    			System.out.println( "index=" + index );
+    			
+    			updateUp( index );
+     		}
     	});
+    
+    final Label manual2_label = new Label( gRadio, SWT.WRAP );
+    Messages.setLanguageText(manual2_label, "configureWizard.transfer2.mselect.info");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    manual2_label.setLayoutData( gridData );
+
+    Listener listener = 
+    	new Listener()
+		{
+			public void 
+			handleEvent(
+				Event arg0 ) 
+			{
+				boolean is_manual = manual_button.getSelection();
+					
+				speed_test.setEnabled( !is_manual );
+				
+				connection_speed.setEnabled( is_manual );
+				manual_label.setEnabled( is_manual );
+				manual2_label.setEnabled( is_manual );
+				
+				next_disabled = !is_manual;
+				
+				updateNextEnabled();
+			}
+		};
+    manual_button.addListener( SWT.Selection, listener );
  
+    listener.handleEvent( null );
+    
+    uprate_label = new Label( panel, SWT.NULL );
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    uprate_label.setLayoutData( gridData );
+
+    
+    
+    next_disabled = true;
+    
+    updateNextEnabled();
   }
 
-
+  private void
+  updateUp(
+	  int		rate )
+  {
+		selected_uprate = rate;
+		
+		uprate_label.setText( DisplayFormatters.formatByteCountToBitsPerSec(selected_uprate));
+  }
+  
+  private void
+  updateNextEnabled()
+  {
+	  wizard.setNextEnabled( isNextEnabled() );
+  }
   
   public boolean 
   isNextEnabled() 
   {
-    return( !test_in_progress );
+    return( !( test_in_progress || next_disabled ));
   }
   
   public boolean 
