@@ -15,7 +15,7 @@ public class CT_ID
 	extends CoreTableColumn
 	implements TableCellAddedListener, TableCellSWTPaintListener
 {
-	public static int id = 0;
+	public static double id = 0;
 	public static String name = new Object() { }.getClass().getEnclosingClass().getSimpleName();
 	
 	public CT_ID() {
@@ -26,9 +26,17 @@ public class CT_ID
 	}
 
 	public void cellAdded(TableCell cell) {
-		id++;
-		cell.setSortValue(id);
-		cell.setText("" + id);
+		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
+		Object mapObject = MapUtils.getMapObject(ds.map, "ID", null, Number.class);
+		if (mapObject instanceof Number) {
+			double overideID = ((Double) mapObject).doubleValue();
+			cell.setSortValue(overideID);
+			cell.setText("" + overideID);
+		} else {
+  		id++;
+  		cell.setSortValue(id);
+  		cell.setText("" + id);
+		}
 	}
 
 	public void cellPaint(GC gc, TableCellSWT cell) {
