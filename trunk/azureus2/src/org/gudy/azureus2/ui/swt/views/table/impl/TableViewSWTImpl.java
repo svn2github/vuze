@@ -708,12 +708,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return mainPanelCreator.createTableViewPanel(composite);
 		}
 		Composite panel = new Composite(composite, SWT.NO_FOCUS);
+		composite.getLayout();
 		GridLayout layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		panel.setLayout(layout);
 
-		panel.setLayoutData(new GridData(GridData.FILL_BOTH));
+		Object parentLayout = composite.getLayout();
+		if (parentLayout == null || (parentLayout instanceof GridLayout)) {
+			panel.setLayoutData(new GridData(GridData.FILL_BOTH));
+		}
 
 		return panel;
 	}
