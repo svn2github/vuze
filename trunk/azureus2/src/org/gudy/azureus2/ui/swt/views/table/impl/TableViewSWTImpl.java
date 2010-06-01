@@ -821,7 +821,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					} else {
 						pos = table.indexOf(item);
 					}
-					event.gc.setBackground(alternatingColors[pos % 2]);
+					Color color = alternatingColors[pos % 2];
+					if (color != null) {
+						event.gc.setBackground(color);
+					}
 					Rectangle drawBounds = event.getBounds();
 					if (event.index == table.getColumnCount() - 1) {
 						drawBounds.width = clientArea.width - drawBounds.x;
