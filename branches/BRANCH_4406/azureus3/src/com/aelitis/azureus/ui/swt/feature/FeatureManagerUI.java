@@ -581,7 +581,7 @@ public class FeatureManagerUI
 
 	public static boolean hasFullLicence() {
 		if (featman == null) {
-			Debug.out("featman null");
+			//Debug.out("featman null");
 			Set<String> featuresInstalled = UtilitiesImpl.getFeaturesInstalled();
 			return featuresInstalled.contains("dvdburn");
 		}
@@ -726,8 +726,10 @@ public class FeatureManagerUI
 	 * @return
 	 */
 	public static boolean hasFullBurn() {
-		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-				"azburn_v");
+		
+		PluginInterface pi = PluginInitializer.getDefaultInterface().getPluginState().isInitialisationComplete()
+				? AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+						"azburn_v") : null;
 		if (pi == null) {
 			// maybe not added yet.. use featman
 			Set<String> featuresInstalled = UtilitiesImpl.getFeaturesInstalled();
