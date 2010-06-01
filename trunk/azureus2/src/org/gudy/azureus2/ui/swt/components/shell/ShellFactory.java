@@ -144,10 +144,11 @@ public final class ShellFactory
 
 		if (Constants.isOSX) {
 			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-			if (uiFunctions == null)
-				throw new IllegalStateException("Main window is not initialized yet");
-
-			uiFunctions.createMainMenu(toRegister);
+			if (uiFunctions == null) {
+				System.err.println("Main window is not initialized yet");
+			} else {
+				uiFunctions.createMainMenu(toRegister);
+			}
 		}
 
 		ShellManager.sharedManager().addWindow(toRegister);
