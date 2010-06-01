@@ -74,7 +74,7 @@ public class LanguagePanel extends AbstractWizardPanel {
 		final List lstLanguage = new List(rootPanel, SWT.BORDER | SWT.V_SCROLL
 				| SWT.SINGLE);
 		gridData = new GridData(GridData.FILL_BOTH);
-		gridData.heightHint = 200;
+		gridData.heightHint = 350;
 		lstLanguage.setLayoutData(gridData);
 
 		final Locale[] locales = MessageText.getLocales(true);

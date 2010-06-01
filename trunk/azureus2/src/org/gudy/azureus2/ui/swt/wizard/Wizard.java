@@ -62,23 +62,46 @@ public class Wizard {
   int wizardHeight;
   
   private boolean	completed;
+
+  public 
+  Wizard(
+	String keyTitle )
+  {
+	this( keyTitle, false );
+  }
   
   public 
   Wizard(
   	String 			keyTitle,
-  	boolean modal) 
+  	boolean 		modal ) 
   {
-    this(modal);
-    setTitleKey(keyTitle);
+    this( modal );
+    
+    setTitleKey( keyTitle );
   }
-
-	public Wizard(String keyTitle) {
-		this(keyTitle, false);
-	}
+  
+  public 
+  Wizard(
+  	String 			keyTitle,
+  	boolean 		modal,
+  	int				width )
+  {
+    this( modal, width );
+    
+    setTitleKey( keyTitle );
+  }
 
   public 
   Wizard(
-  	boolean modal) 
+	boolean modal )
+  {
+	  this( modal, DEFAULT_WIDTH );
+  }
+  
+  public 
+  Wizard(
+  	boolean modal,
+  	int		width )
   {
   	int style = SWT.DIALOG_TRIM | SWT.RESIZE;
   	if (modal) {
@@ -243,8 +266,8 @@ public class Wizard {
 		}
 	});
  	
- 	wizardHeight = wizardWindow.computeSize(DEFAULT_WIDTH,SWT.DEFAULT).y - 50;
- 	wizardWindow.setSize(DEFAULT_WIDTH,400);
+ 	wizardHeight = wizardWindow.computeSize(width,SWT.DEFAULT).y - 50;
+ 	wizardWindow.setSize(width,400);
 
   }
 

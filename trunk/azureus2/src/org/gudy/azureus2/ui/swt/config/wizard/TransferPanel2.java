@@ -27,10 +27,8 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -83,9 +81,8 @@ TransferPanel2
 
 	private volatile boolean test_in_progress;
 
-	private boolean next_disabled;
+	private boolean manual_mode;
 	
-	private long	selected_uprate;
 	private Label	uprate_label;
 	
   public TransferPanel2(ConfigureWizard wizard, IWizardPanel previous) {
@@ -98,7 +95,7 @@ TransferPanel2
   public void show() {
     wizard.setTitle(MessageText.getString("configureWizard.transfer.title"));
     wizard.setCurrentInfo(MessageText.getString("configureWizard.transfer2.hint"));
-    Composite rootPanel = wizard.getPanel();
+    final Composite rootPanel = wizard.getPanel();
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     rootPanel.setLayout(layout);
@@ -116,7 +113,7 @@ TransferPanel2
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "configureWizard.transfer2.message");
 
-    final Group gRadio = new Group(panel, SWT.WRAP);
+    final Group gRadio = new Group(panel, SWT.NULL);
     Messages.setLanguageText(gRadio, "configureWizard.transfer2.group");
     gRadio.setLayoutData(gridData);
     layout = new GridLayout();
@@ -158,6 +155,7 @@ TransferPanel2
     			updateNextEnabled();
 				wizard.setPreviousEnabled( false );
 
+				rootPanel.getShell().setEnabled( false );
 				
     			UIFunctionsManager.getUIFunctions().installPlugin(
     				"mlab",
@@ -264,6 +262,7 @@ TransferPanel2
 											updateNextEnabled();
 											wizard.setPreviousEnabled( true );
 											
+											rootPanel.getShell().setEnabled( true );
 										};
 									});
     					}
@@ -311,10 +310,8 @@ TransferPanel2
     			Event arg0 ) 
     		{
     			int index = connection_speed.getSelectionIndex();
-    			
-    			System.out.println( "index=" + index );
-    			
-    			updateUp( index );
+    			    			
+    			updateUp( connection_rates[index]/8 );
      		}
     	});
     
@@ -339,7 +336,7 @@ TransferPanel2
 				manual_label.setEnabled( is_manual );
 				manual2_label.setEnabled( is_manual );
 				
-				next_disabled = !is_manual;
+				manual_mode = is_manual;
 				
 				updateNextEnabled();
 			}
@@ -348,13 +345,13 @@ TransferPanel2
  
     listener.handleEvent( null );
     
-    uprate_label = new Label( panel, SWT.NULL );
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    uprate_label = new Label( panel, SWT.WRAP );
+    gridData = new GridData(GridData.FILL_BOTH);
+    gridData.verticalIndent=10;
     uprate_label.setLayoutData( gridData );
-
+    updateUp( 0 );
     
-    
-    next_disabled = true;
+    manual_mode = false;
     
     updateNextEnabled();
   }
@@ -363,9 +360,23 @@ TransferPanel2
   updateUp(
 	  int		rate )
   {
-		selected_uprate = rate;
+	wizard.setConnectionUploadLimit( rate );
+	
+	if ( rate == 0 ){
 		
-		uprate_label.setText( DisplayFormatters.formatByteCountToBitsPerSec(selected_uprate));
+		uprate_label.setText( MessageText.getString( "configureWizard.transfer2.rate.unchanged" ));
+		
+	}else{
+	
+		uprate_label.setText(
+			MessageText.getString( "configureWizard.transfer2.rate.changed",
+			new String[]{
+				DisplayFormatters.formatByteCountToBitsPerSec( rate ) + " (" + DisplayFormatters.formatByteCountToKiBEtcPerSec( rate ) + ")" ,
+				DisplayFormatters.formatByteCountToKiBEtcPerSec( wizard.getUploadLimit()),
+				String.valueOf( wizard.maxActiveTorrents ),
+				String.valueOf( wizard.maxDownloads )
+			}));
+	}
   }
   
   private void
@@ -377,7 +388,17 @@ TransferPanel2
   public boolean 
   isNextEnabled() 
   {
-    return( !( test_in_progress || next_disabled ));
+    if ( test_in_progress ){
+    	
+    	return( false );
+    }
+    
+    if ( manual_mode || wizard.getConnectionUploadLimit() > 0 ){
+    	
+    	return( true );
+    }
+    
+    return( false );
   }
   
   public boolean 

@@ -36,10 +36,12 @@ import com.aelitis.azureus.ui.UserPrompterResultListener;
 public class ConfigureWizard extends Wizard {
 
   //Transfer settings
-  int upSpeed = 4;
-  int maxUpSpeed = 40;
-  int maxActiveTorrents = 7;
-  int maxDownloads = 5;
+
+  private int connectionUploadLimit;
+  private int uploadLimit;
+  
+  int maxActiveTorrents;
+  int maxDownloads;
   
   //Server / NAT Settings
   int serverTCPListenPort = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
@@ -120,5 +122,51 @@ public class ConfigureWizard extends Wizard {
   hasDataPathChanged()
   {
 	  return( _dataPathChanged );
+  }
+  
+  protected void
+  setConnectionUploadLimit(
+	int		rate )
+  {
+	  connectionUploadLimit = rate;
+	  
+	  if ( connectionUploadLimit != 0 ){
+
+		  uploadLimit = (connectionUploadLimit/5)*4;
+		  
+		  uploadLimit = (uploadLimit/1024)*1024;
+		  
+		  if ( uploadLimit < 5*1024 ){
+			  
+			  uploadLimit = 5*1024;
+		  }
+		  
+		  int nbMaxActive = (int) (Math.pow(uploadLimit/1024,0.34) * 0.92);
+		  int nbMaxUploads = (int) (Math.pow(uploadLimit/1024,0.25) * 1.68);
+		  int nbMaxDownloads = (nbMaxActive * 4) / 5;
+
+		  if (nbMaxDownloads == 0){
+			  nbMaxDownloads = 1;
+		  }
+		  
+		  if (nbMaxUploads > 50){
+			  nbMaxUploads = 50;
+		  }
+
+		  maxActiveTorrents = nbMaxActive;
+		  maxDownloads = nbMaxDownloads;
+	  }
+  }
+  
+  protected int
+  getConnectionUploadLimit()
+  {
+	  return( connectionUploadLimit );
+  }
+  
+  protected int
+  getUploadLimit()
+  {
+	  return( uploadLimit );
   }
 }

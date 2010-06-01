@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -37,7 +38,7 @@ import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
  * @author Olivier
  * 
  */
-public class FinishPanel extends AbstractWizardPanel {
+public class FinishPanel extends AbstractWizardPanel<ConfigureWizard> {
 
   public FinishPanel(ConfigureWizard wizard, IWizardPanel previous) {
     super(wizard, previous);
@@ -67,28 +68,34 @@ public class FinishPanel extends AbstractWizardPanel {
   }
 
   public void finish() {
-    ConfigureWizard cfWizard = ((ConfigureWizard)wizard);
-    COConfigurationManager.setParameter("Auto Adjust Transfer Defaults", true );
-    COConfigurationManager.setParameter("max active torrents",cfWizard.maxActiveTorrents);
-    COConfigurationManager.setParameter("max downloads",cfWizard.maxDownloads);
-    COConfigurationManager.setParameter("TCP.Listen.Port",cfWizard.serverTCPListenPort);
-    COConfigurationManager.setParameter("UDP.Listen.Port",cfWizard.serverTCPListenPort);
-    COConfigurationManager.setParameter("UDP.NonData.Listen.Port",cfWizard.serverTCPListenPort);
+    int	upLimit = wizard.getUploadLimit();
+    if (upLimit > 0 ){
+    	COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, false );
+    	COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY, false );
+    	COConfigurationManager.setParameter( "Max Upload Speed KBs", upLimit/1024 );
+    	COConfigurationManager.setParameter( "enable.seedingonly.upload.rate", false );
+        COConfigurationManager.setParameter( "Auto Adjust Transfer Defaults", true );
+	    COConfigurationManager.setParameter( "max active torrents",wizard.maxActiveTorrents);
+	    COConfigurationManager.setParameter( "max downloads",wizard.maxDownloads);
+    }
+    COConfigurationManager.setParameter("TCP.Listen.Port",wizard.serverTCPListenPort);
+    COConfigurationManager.setParameter("UDP.Listen.Port",wizard.serverTCPListenPort);
+    COConfigurationManager.setParameter("UDP.NonData.Listen.Port",wizard.serverTCPListenPort);
     //COConfigurationManager.setParameter("Low Port",cfWizard.serverMinPort);
 	//COConfigurationManager.setParameter("High Port",cfWizard.serverMaxPort);
 	//COConfigurationManager.setParameter("Server.shared.port",cfWizard.serverSharePort);
-    COConfigurationManager.setParameter("General_sDefaultTorrent_Directory",cfWizard.torrentPath);
+    COConfigurationManager.setParameter("General_sDefaultTorrent_Directory",wizard.torrentPath);
     //COConfigurationManager.setParameter("Use Resume",cfWizard.fastResume);
     
-    if ( cfWizard.hasDataPathChanged()){
+    if ( wizard.hasDataPathChanged()){
     	COConfigurationManager.setParameter( "Use default data dir", true );
-    	COConfigurationManager.setParameter( "Default save path", cfWizard.getDataPath());
+    	COConfigurationManager.setParameter( "Default save path", wizard.getDataPath());
     }
     
     COConfigurationManager.setParameter("Wizard Completed",true);
     COConfigurationManager.save();
     wizard.switchToClose();
-    cfWizard.completed = true;
+    wizard.completed = true;
   }
   
   public boolean isPreviousEnabled() {
