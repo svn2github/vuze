@@ -18,16 +18,25 @@
 
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
+import java.util.Map;
+
 import org.eclipse.swt.accessibility.Accessible;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
 /**
+ * Delegates a SWT {@link Table} into a {@link TableOrTreeSWT} allowing easy
+ * switching from Table and Tree.
+ * <p>
+ * Uses own map for setData and getData for faster lookups and no SWT thread
+ * checking
+ * 
  * @author TuxPaper
  * @created May 5, 2010
  *
@@ -36,6 +45,8 @@ public class TableDelegate
 	implements TableOrTreeSWT
 {
 	Table table;
+	
+	Map data = new LightHashMap(3);
 
 	private TableDelegate() {
 	}
@@ -161,7 +172,7 @@ public class TableDelegate
 	}
 
 	public Object getData() {
-		return table.getData();
+		return getData(null);
 	}
 
 	public void layout() {
@@ -169,7 +180,9 @@ public class TableDelegate
 	}
 
 	public Object getData(String key) {
-		return table.getData(key);
+		synchronized (data) {
+			return data.get(key);
+		}
 	}
 
 	public void layout(boolean changed) {
@@ -253,7 +266,7 @@ public class TableDelegate
 	}
 
 	public void setData(Object data) {
-		table.setData(data);
+		setData(null, data);
 	}
 
 	public Cursor getCursor() {
@@ -261,7 +274,9 @@ public class TableDelegate
 	}
 
 	public void setData(String key, Object value) {
-		table.setData(key, value);
+		synchronized (data) {
+			data.put(key, value);
+		}
 	}
 
 	public boolean getDragDetect() {
