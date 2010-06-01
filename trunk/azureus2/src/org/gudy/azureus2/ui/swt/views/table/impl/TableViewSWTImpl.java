@@ -797,6 +797,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 
+		if (DRAW_FULL_ROW || DRAW_VERTICAL_LINES) {
 		// OSX SWT (3624) Requires SWT.EraseItem hooking, otherwise foreground
 		// color will not be set correctly when row is selected.
 		// Hook listener for all OSes in case this requirement beomes xplatform
@@ -848,6 +849,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 			}
 		});
+		}
 
 		//table.addListener(SWT.Paint, new Listener() {
 		//	public void handleEvent(Event event) {
