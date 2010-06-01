@@ -877,6 +877,8 @@ public class Utils
 			}
 		}
 
+		sFile = sFile.replaceAll( "&vzemb=1", "" );
+
 		boolean launched = Program.launch(sFile);
 		if (!launched && Constants.isUnix) {
 			
