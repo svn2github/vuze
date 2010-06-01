@@ -379,7 +379,7 @@ public class VuzeMessageBox
 	 * @see com.aelitis.azureus.ui.UIFunctionsUserPrompter#waitUntilClosed()
 	 */
 	public int waitUntilClosed() {
-		if (dlg != null) {
+		if (opened) {
 			final AESemaphore2 sem = new AESemaphore2("waitUntilClosed");
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
