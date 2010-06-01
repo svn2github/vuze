@@ -500,8 +500,6 @@ ContentNetworkVuzeGeneric
 				
 				base += relative_url.startsWith("/")?relative_url.substring(1):relative_url;
 				
-				base += base.indexOf('?') == 0 ? "?vzemb=1" : "&vzemb=1";
-
 				if ( append_suffix ){
 
 					base = appendURLSuffix( base, false, true );
