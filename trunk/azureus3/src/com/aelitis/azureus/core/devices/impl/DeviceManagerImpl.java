@@ -759,6 +759,7 @@ DeviceManagerImpl
 					
 					String lc_manufacturer 	= getOptionalLC( upnp_device.getManufacturer());
 					String lc_model			= getOptionalLC( upnp_device.getModelName());
+					String lc_fname			= getOptionalLC( upnp_device.getFriendlyName());
 					
 					if ( lc_manufacturer.startsWith( "samsung" )){
 						
@@ -774,6 +775,13 @@ DeviceManagerImpl
 							
 							device.setTranscodeRequirement( TranscodeTarget.TRANSCODE_WHEN_REQUIRED );
 						}
+					}else if ( lc_manufacturer.startsWith( "sony" ) && lc_fname.startsWith( "bravia" )){
+							
+						device.setPersistentStringProperty( DeviceImpl.PP_REND_CLASSIFICATION, "sony.bravia" );
+							
+						TranscodeProfile[] profiles = device.getTranscodeProfiles();
+							
+
 					}else if ( lc_model.equals( "windows media player" )){
 						
 						String model_number = upnp_device.getModelNumber();

@@ -2679,6 +2679,10 @@ DeviceManagerUI
 
 				id = "samsung";
 				
+			}else if ( classification.startsWith( "sony.bravia")){
+
+				id = "bravia";
+				
 			}else if ( classification.startsWith( "ms_wmp.")){
 
 					// update skin3_constants.properties!
