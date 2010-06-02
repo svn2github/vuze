@@ -35,7 +35,7 @@ public class CT_ID
 		} else {
   		id++;
   		cell.setSortValue(id);
-  		cell.setText("" + id);
+  		cell.setText(Double.toString(id));
 		}
 	}
 
@@ -44,6 +44,6 @@ public class CT_ID
 
 		int num = MapUtils.getMapInt(ds.map, name + ".numCP", 0) + 1;
 		ds.map.put(name + ".numCP", num);
-		GCStringPrinter.printString(gc, "" + num, cell.getBounds(), true, true, SWT.RIGHT);
+		GCStringPrinter.printString(gc, Integer.toString(num), cell.getBounds(), true, true, SWT.RIGHT);
 	}
 }

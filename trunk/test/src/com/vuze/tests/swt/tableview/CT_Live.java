@@ -33,8 +33,8 @@ public class CT_Live
 		int num = MapUtils.getMapInt(ds.map, name + ".num1", 0) + 1;
 		ds.map.put(name + ".num1", num);
 		
-		cell.setSortValue(0);
-		cell.setText("" + num);
+		cell.setSortValue(num);
+		cell.setText(Integer.toString(num));
 	}
 
 	public void cellPaint(GC gc, TableCellSWT cell) {
@@ -42,6 +42,6 @@ public class CT_Live
 
 		int num = MapUtils.getMapInt(ds.map, name + ".numCP", 0) + 1;
 		ds.map.put(name + ".numCP", num);
-		GCStringPrinter.printString(gc, "" + num, cell.getBounds(), true, true, SWT.RIGHT);
+		GCStringPrinter.printString(gc, Integer.toString(num), cell.getBounds(), true, true, SWT.RIGHT);
 	}
 }
