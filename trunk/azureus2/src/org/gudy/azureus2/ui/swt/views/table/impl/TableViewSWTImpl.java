@@ -97,6 +97,10 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
  *             instead of setting it to the actual space needed for the text.
  *             We should really store the last measured width in TableCell and
  *             use that.
+ *             
+ * @todo Instead of calculating top/bottomindex, call visibleRowsChanged() and 
+ * 				use lastTopIndex and lastBottomIndex.  Need to make sure we don't
+ * 				recurse.
  */
 public class TableViewSWTImpl<DATASOURCETYPE>
 	extends TableViewImpl<DATASOURCETYPE>
@@ -106,7 +110,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 {
 	private final static boolean DRAW_VERTICAL_LINES = Constants.isWindows;
 
-	protected static final boolean DRAW_FULL_ROW = Constants.isWindows;
+	private static final boolean DRAW_FULL_ROW = Constants.isWindows;
 
 	private final static LogIDs LOGID = LogIDs.GUI;
 
@@ -805,15 +809,17 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		// See https://bugs.eclipse.org/bugs/show_bug.cgi?id=312735
 		table.addListener(SWT.EraseItem, new Listener() {
 			final Color[] alternatingColors = new Color[] {
-				table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+				null,
 				Colors.colorAltRow
 			};
 
 			public void handleEvent(Event event) {
+				TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
+				Rectangle bounds = event.getBounds();
+
 				if (DRAW_FULL_ROW
 						&& (event.detail & (SWT.HOT | SWT.SELECTED | SWT.FOCUSED)) == 0) {
 					
-					TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
 					int pos;
 					TableItemOrTreeItem parentItem = item.getParentItem();
 					if (parentItem != null) {
@@ -825,10 +831,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					if (color != null) {
 						event.gc.setBackground(color);
 					}
-					Rectangle drawBounds = event.getBounds();
+					Rectangle drawBounds = bounds;
 					if (event.index == table.getColumnCount() - 1) {
-						drawBounds.width = clientArea.width - drawBounds.x;
+						calculateClientArea();
+						drawBounds = new Rectangle(bounds.x, bounds.y, clientArea.x + clientArea.width - bounds.x, bounds.height);
 						event.gc.setClipping(drawBounds);
+						//System.out.println(bounds.width);
 					}
 					event.gc.fillRectangle(drawBounds);
 					event.detail &= ~SWT.BACKGROUND;
@@ -836,14 +844,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				// Vertical lines between columns
 				if (DRAW_VERTICAL_LINES) {
-					TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
-					if (item != null) {
-						
-  					Rectangle bounds = event.getBounds(); // item.getBounds(event.index);
-  
+					if (item != null && (bounds.width == item.getParent().getColumn(event.index).getWidth())) {
+						//System.out.println(bounds.width + ";" + item.getParent().getColumn(event.index).getWidth());
   					Color fg = event.gc.getForeground();
-  					event.gc.setForeground(Colors.black);
-  					event.gc.setAlpha(40);
+  					event.gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST + 1]);
+  					//event.gc.setAlpha(40);
   					event.gc.setClipping((Rectangle)null);
   					event.gc.drawLine(bounds.x + bounds.width - 1, bounds.y - 1, bounds.x
   							+ bounds.width - 1, bounds.y + bounds.height);
@@ -1767,7 +1772,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 			if (text.length() > 0) {
 				int ofsx = 0;
-				Image image = item.getImage(event.index);
+				Image image = cell.getIcon();
 				if (image != null && !image.isDisposed()) {
 					int ofs = image.getBounds().width;
 					ofsx += ofs;
@@ -3658,6 +3663,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	public int indexOf(TableRowCore row) {
+		if (!Utils.isThisThreadSWT()) {
+			return sortedRows.indexOf(row);
+		}
 		int i = ((TableRowImpl) row).getRealIndex();
 		if (i == -1) {
 			i = sortedRows.indexOf(row);
@@ -3857,12 +3865,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (!isVisible()) {
 			return new TableRowSWT[0];
 		}
-
-		int iTopIndex = table.getTopIndex();
+		
+		visibleRowsChanged(); // updates lastTopIndex and lastBottomIndex
+		int iTopIndex = lastTopIndex;
+		int iBottomIndex = lastBottomIndex;
 		if (iTopIndex < 0) {
 			return new TableRowSWT[0];
 		}
-		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
 		int size = iBottomIndex - iTopIndex + 1;
 		if (size <= 0) {
