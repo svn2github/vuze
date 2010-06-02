@@ -771,6 +771,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		table.addListener(SWT.PaintItem, new Listener() {
 			Widget lastItem;
+			int lastRowIndex = -1;
 
 			public void handleEvent(Event event) {
 
@@ -788,12 +789,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				if (event.item != lastItem) {
   				table.setData("lastIndex", null);
-  				int i = table.indexOf(event.item);
-  				table.setData("lastIndex", i);
+  				lastRowIndex = table.indexOf(event.item);
+  				table.setData("lastIndex", lastRowIndex);
 				}
 				
 				//visibleRowsChanged();
-				paintItem(event);
+				paintItem(event, lastRowIndex);
 
 				lastItem = event.item;
 				table.setData("inPaintItem", null);
@@ -1641,8 +1642,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	/**
 	 * @param event
+	 * @param rowIndex 
 	 */
-	protected void paintItem(Event event) {
+	protected void paintItem(Event event, int rowIndex) {
 		try {
 			//System.out.println(event.gc.getForeground().getRGB().toString());
 			//System.out.println("paintItem " + event.gc.getClipping());
@@ -1654,7 +1656,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   					210 + random.nextInt(45)));
   			event.gc.fillRectangle(event.gc.getClipping());
 			}
-
+			
 			TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
 			if (item == null || item.isDisposed()) {
 				return;
@@ -1680,9 +1682,24 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				return;
 			}
 
-			Rectangle cellBounds = item.getBounds(event.index);
-			table.setData("curCellBounds", cellBounds);
+			if (rowIndex < lastTopIndex || rowIndex > lastBottomIndex) {
+				// this refreshes whole row (perhaps multiple), saving the many
+				// cell.refresh calls later because !cell.isUpToDate()
+				visibleRowsChanged();
+			}
 
+			Rectangle cellBounds = item.getBounds(event.index);
+
+			//System.out.println("cb=" + cellBounds + ";b=" + event.getBounds() + ";clip=" + event.gc.getClipping());
+			Rectangle origClipping = event.gc.getClipping();
+			
+			if (!origClipping.isEmpty() && (origClipping.width < cellBounds.width || origClipping.height < cellBounds.height)) {
+				table.setData("fullPaint", Boolean.TRUE);
+			} else {
+				table.setData("fullPaint", Boolean.FALSE);
+			}
+			
+			table.setData("curCellBounds", cellBounds);
 
 			TableRowSWT row = (TableRowSWT) getRow(item);
 			if (row == null) {
@@ -1690,13 +1707,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				invokePaintListeners(event.gc, item, columnsOrdered[iColumnNo], cellBounds);
 				//System.out.println("no row");
 				return;
-			}
-
-			int rowPos = indexOf(row);
-			if (rowPos < lastTopIndex || rowPos > lastBottomIndex) {
-				// this refreshes whole row (perhaps multiple), saving the many
-				// cell.refresh calls later because !cell.isUpToDate()
-				visibleRowsChanged();
 			}
 
 			int rowAlpha = row.getAlpha();

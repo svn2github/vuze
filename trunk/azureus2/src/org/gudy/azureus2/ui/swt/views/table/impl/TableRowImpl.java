@@ -363,9 +363,10 @@ public class TableRowImpl
 				return lastIndex;
 			}
 		}
-
-		lastIndex = ((TableViewSWTImpl) tableView).indexOf(this);
-		return lastIndex;
+		
+		// don't set directly to lastIndex, so setTableItem will eventually do
+		// its job
+		return tableView.indexOf(this);
 
 		//return super.getIndex();
 	}
@@ -384,12 +385,17 @@ public class TableRowImpl
 		//if (getRealIndex() != newIndex) {
 		//	((TableViewSWTImpl)tableView).debug("sTI " + newIndex + "; via " + Debug.getCompressedStackTrace(4));
 		//}
-		boolean changed = super.setTableItem(newIndex, false, isVisible);
-		if (lastIndex != newIndex) {
+		boolean changedSWTRow = super.setTableItem(newIndex, false, isVisible);
+		boolean changedIndex = lastIndex != newIndex;
+		if (changedIndex) {
+			System.out.println("row " + newIndex + " from " + lastIndex + ";" + tableView.isRowVisible(this) + ";" + changedSWTRow);
 			lastIndex = newIndex;
 		}
-		setShown(tableView.isRowVisible(this), changed);
-		return changed; 
+		setShown(tableView.isRowVisible(this), changedSWTRow);
+		if (changedSWTRow) {
+			invalidate();
+		}
+		return changedSWTRow; 
 	}
 
 	public boolean setTableItem(int newIndex) {

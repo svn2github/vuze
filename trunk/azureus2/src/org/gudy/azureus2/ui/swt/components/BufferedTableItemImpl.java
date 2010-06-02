@@ -63,36 +63,55 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		}
 		this.text = (text == null) ? "" : text;
 		
-		dirtyCell();
+		redraw();
 		
 		return true;
 	}
 
-	private void dirtyCell() {
-		synchronized (this) {
+  // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#redraw()
+  public void redraw() {
+		//System.out.println("redraw via " + Debug.getCompressedStackTrace(5));
+
+  	synchronized (this) {
 			if (isDirty) {
 				return;
 			}
 			isDirty = true;
 		}
+
+		// Might be a good optimization.. haven't tried it
+  	//if (isInPaintItem()) {
+		//		&& row.getTable().getData("fullPaint") == Boolean.TRUE) {
+  	//	return;
+  	//}
+  	
 		if (runnableDirtyCell == null) {
 			synchronized (this) {
 				if (runnableDirtyCell == null) {
-					runnableDirtyCell = new AERunnable(){
+					runnableDirtyCell = new AERunnable() {
 						public void runSupport() {
 							synchronized (this) {
 								isDirty = false;
 							}
-							if (isInPaintItem()) {
+							if (isInPaintItem()
+									&& row.getTable().getData("fullPaint") == Boolean.TRUE) {
 								return;
 							}
+							// row.isVisible is time consuming.  getBounds intersecting 
+							// clientArea will probably be empty when not visible
+							//if (!row.isVisible()) {
+							//	return;
+							//}
 							Rectangle bounds = getBounds();
 							if (bounds != null) {
 								TableOrTreeSWT table = row.getTable();
 								Rectangle dirty = table.getClientArea().intersection(bounds);
 								//System.out.println("old = " + this.text + ";new=" + text + ";dirty=" + bounds);
-								
-								table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
+
+								if (!dirty.isEmpty()) {
+									table.redraw(dirty.x, dirty.y, dirty.width, dirty.height,
+											false);
+								}
 							}
 						}
 					};
@@ -249,31 +268,6 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		return image;
 	}
 
-  // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#redraw()
-  public void redraw() {
-		//System.out.println("redraw via " + Debug.getCompressedStackTrace(5));
-
-  	if (isInPaintItem()) {
-  		return;
-  	}
-  	
-  	Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				if (isInPaintItem() || !row.isVisible()) {
-					return;
-				}
-				Rectangle bounds = getBounds();
-				if (bounds != null) {
-					TableOrTreeSWT table = row.getTable();
-					Rectangle dirty = table.getClientArea().intersection(bounds);
-					if (!dirty.isEmpty()) {
-						table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
-					}
-				}
-			}
-		});
-  }
-  
   // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#getMaxLines()
   public int getMaxLines() {
   	return 1;
