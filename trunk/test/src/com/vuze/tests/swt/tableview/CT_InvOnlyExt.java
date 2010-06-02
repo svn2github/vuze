@@ -3,9 +3,7 @@ package com.vuze.tests.swt.tableview;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -21,6 +19,15 @@ public class CT_InvOnlyExt
 		TableCellAddedListener
 {
 	public static String name = new Object() { }.getClass().getEnclosingClass().getSimpleName();
+	private static Timer timer;
+
+	static {
+		timer = new Timer("Simple Timer", 5000);
+		
+		timer.setIndestructable();
+		
+		timer.setWarnWhenFull();
+	}
 
 	public CT_InvOnlyExt() {
 		super(name, 150, "test");
@@ -50,7 +57,7 @@ public class CT_InvOnlyExt
 	}
 
 	public void cellAdded(final TableCell cell) {
-		SimpleTimer.addPeriodicEvent("updateLiveExt", 1000, new TimerEventPerformer() {
+		timer.addPeriodicEvent("updateLiveExt", 1000, new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
 				if (cell.isDisposed()) {
 					event.cancel();
