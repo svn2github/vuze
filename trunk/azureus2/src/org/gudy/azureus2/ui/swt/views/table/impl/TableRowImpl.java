@@ -388,7 +388,7 @@ public class TableRowImpl
 		boolean changedSWTRow = super.setTableItem(newIndex, false, isVisible);
 		boolean changedIndex = lastIndex != newIndex;
 		if (changedIndex) {
-			System.out.println("row " + newIndex + " from " + lastIndex + ";" + tableView.isRowVisible(this) + ";" + changedSWTRow);
+			//System.out.println("row " + newIndex + " from " + lastIndex + ";" + tableView.isRowVisible(this) + ";" + changedSWTRow);
 			lastIndex = newIndex;
 		}
 		setShown(tableView.isRowVisible(this), changedSWTRow);
