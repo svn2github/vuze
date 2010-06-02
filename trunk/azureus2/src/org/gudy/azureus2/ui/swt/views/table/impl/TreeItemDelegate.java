@@ -18,10 +18,13 @@
  
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
+import java.util.Map;
+
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
@@ -33,14 +36,16 @@ import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 public class TreeItemDelegate implements TableItemOrTreeItem
 {
 	TreeItem item;
-	
+
+	Map data = new LightHashMap(2);
+
 	int index = -1;
 
-	public TreeItemDelegate(TreeItem treeItem) {
+	protected TreeItemDelegate(TreeItem treeItem) {
 		this.item = treeItem;
 	}
 
-	public TreeItemDelegate(TableOrTreeSWT tree, int style) {
+	protected TreeItemDelegate(TableOrTreeSWT tree, int style) {
 		item = new TreeItem((Tree) tree, style);
 	}
 
@@ -88,11 +93,13 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 	}
 
 	public Object getData() {
-		return item.getData();
+		return getData(null);
 	}
-
+	
 	public Object getData(String key) {
-		return item.getData(key);
+		synchronized (data) {
+			return data.get(key);
+		}
 	}
 
 	public Display getDisplay() {
@@ -141,7 +148,7 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 
 	public TableItemOrTreeItem getItem(int index) {
 		TreeItem treeItem = item.getItem(index);
-		return treeItem == null ? null : new TreeItemDelegate(treeItem);
+		return TableOrTreeUtils.getEventItem(treeItem);
 	}
 
 	public int getItemCount() {
@@ -152,7 +159,7 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 		TreeItem[] items = item.getItems();
 		TableItemOrTreeItem[] returnItems = new TableItemOrTreeItem[items.length];
 		for (int i = 0; i < returnItems.length; i++) {
-			returnItems[i] = items[i] == null ? null : new TreeItemDelegate(items[i]);
+			returnItems[i] = TableOrTreeUtils.getEventItem(items[i]);
 		}
 		return returnItems;
 	}
@@ -179,7 +186,7 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 
 	public TableItemOrTreeItem getParentItem() {
 		TreeItem treeItem = item.getParentItem();
-		return treeItem == null ? null : new TreeItemDelegate(treeItem);
+		return TableOrTreeUtils.getEventItem(treeItem);
 	}
 
 	public String getText() {
@@ -227,11 +234,13 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 	}
 
 	public void setData(Object data) {
-		item.setData(data);
+		setData(null, data);
 	}
-
+	
 	public void setData(String key, Object value) {
-		item.setData(key, value);
+		synchronized (data) {
+			data.put(key, value);
+		}
 	}
 
 	public void setChecked(boolean checked) {

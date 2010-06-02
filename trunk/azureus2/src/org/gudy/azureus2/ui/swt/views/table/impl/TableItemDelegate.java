@@ -18,10 +18,13 @@
  
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
+import java.util.Map;
+
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
@@ -35,14 +38,16 @@ public class TableItemDelegate
 {
 	TableItem item;
 
-	public TableItemDelegate(TableItem item2) {
+	Map data = new LightHashMap(2);
+
+	protected TableItemDelegate(TableItem item2) {
 		item = item2;
 		if (item == null) {
 			System.out.println("NULL");
 		}
 	}
 
-	public TableItemDelegate(TableDelegate tableDelegate, int style) {
+	protected TableItemDelegate(TableDelegate tableDelegate, int style) {
 		item = new TableItem(tableDelegate.table, style);
 		if (item == null) {
 			System.out.println("NULL");
@@ -100,16 +105,18 @@ public class TableItemDelegate
 		return item.getForeground();
 	}
 
-	public Object getData() {
-		return item.getData();
-	}
-
 	public Color getForeground(int index) {
 		return item.getForeground(index);
 	}
 
+	public Object getData() {
+		return getData(null);
+	}
+	
 	public Object getData(String key) {
-		return item.getData(key);
+		synchronized (data) {
+			return data.get(key);
+		}
 	}
 
 	public boolean getGrayed() {
@@ -232,16 +239,18 @@ public class TableItemDelegate
 		item.setImageIndent(indent);
 	}
 
-	public void setData(Object data) {
-		item.setData(data);
-	}
-
 	public void setText(String[] strings) {
 		item.setText(strings);
 	}
-
+	
+	public void setData(Object data) {
+		setData(null, data);
+	}
+	
 	public void setData(String key, Object value) {
-		item.setData(key, value);
+		synchronized (data) {
+			data.put(key, value);
+		}
 	}
 
 	public void setText(int index, String string) {
