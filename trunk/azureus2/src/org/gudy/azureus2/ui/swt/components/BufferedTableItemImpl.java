@@ -46,6 +46,8 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 
 	private AERunnable runnableDirtyCell;
 
+	private boolean isDirty;
+
 	public BufferedTableItemImpl(BufferedTableRow row, int position) {
 		this.row = row;
 		this.position = position;
@@ -65,12 +67,25 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		
 		return true;
 	}
+
 	private void dirtyCell() {
-		if (runnableDirtyCell == null && row.getTable().getData("inPaintItem") == null) {
+		synchronized (this) {
+			if (isDirty) {
+				return;
+			}
+			isDirty = true;
+		}
+		if (runnableDirtyCell == null) {
 			synchronized (this) {
 				if (runnableDirtyCell == null) {
 					runnableDirtyCell = new AERunnable(){
 						public void runSupport() {
+							synchronized (this) {
+								isDirty = false;
+							}
+							if (isInPaintItem()) {
+								return;
+							}
 							Rectangle bounds = getBounds();
 							if (bounds != null) {
 								TableOrTreeSWT table = row.getTable();
@@ -238,6 +253,10 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
   public void redraw() {
 		//System.out.println("redraw via " + Debug.getCompressedStackTrace(5));
 
+  	if (isInPaintItem()) {
+  		return;
+  	}
+  	
   	Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (isInPaintItem() || !row.isVisible()) {
