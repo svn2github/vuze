@@ -264,56 +264,58 @@ public class GCStringPrinter
 		boolean noDraw = (printFlags & FLAG_NODRAW) > 0;
 		wrap = (swtFlags & SWT.WRAP) > 0;
 
-		if ((printFlags & FLAG_KEEP_URL_INFO) == 0) {
-			Matcher htmlMatcher = patHREF.matcher(string);
-			boolean hasURL = htmlMatcher.find();
-			if (hasURL) {
-				listUrlInfo = new ArrayList(1);
-
-				while (hasURL) {
-					URLInfo urlInfo = new URLInfo();
-
-					// Store the full ahref string once, then use substring which doesn't
-					// create real strings :)
-					urlInfo.fullString = htmlMatcher.group();
-					urlInfo.relStartPos = htmlMatcher.start(0);
-
-					urlInfo.url = string.substring(htmlMatcher.start(1),
-							htmlMatcher.end(1));
-					urlInfo.text = string.substring(htmlMatcher.start(2),
-							htmlMatcher.end(2));
-					urlInfo.titleLength = urlInfo.text.length();
-
-					Matcher matcherTitle = patAHREF_TITLE.matcher(urlInfo.fullString);
-					if (matcherTitle.find()) {
-						urlInfo.title = string.substring(urlInfo.relStartPos
-								+ matcherTitle.start(1), urlInfo.relStartPos
-								+ matcherTitle.end(1));
-					}
-
-					Matcher matcherTarget = patAHREF_TARGET.matcher(urlInfo.fullString);
-					if (matcherTarget.find()) {
-						urlInfo.target = string.substring(urlInfo.relStartPos
-								+ matcherTarget.start(1), urlInfo.relStartPos
-								+ matcherTarget.end(1));
-					}
-
-					//System.out.println("URLINFO! " + urlInfo.fullString 
-					//		+ "\ntarget="
-					//		+ urlInfo.target + "\ntt=" + urlInfo.title + "\nurl="
-					//		+ urlInfo.url + "\ntext=" + urlInfo.text + "\n\n");
-
-					string = htmlMatcher.replaceFirst(urlInfo.text.replaceAll("\\$",
-							"\\\\\\$"));
-					
-					listUrlInfo.add(urlInfo);
-					htmlMatcher = patHREF.matcher(string);
-					hasURL = htmlMatcher.find(urlInfo.relStartPos);
-				}
-			}
-		} else {
-			Matcher htmlMatcher = patHREF.matcher(string);
-			string = htmlMatcher.replaceAll("$2");
+		if (string.indexOf('<') > 0) {
+  		if ((printFlags & FLAG_KEEP_URL_INFO) == 0) {
+  			Matcher htmlMatcher = patHREF.matcher(string);
+  			boolean hasURL = htmlMatcher.find();
+  			if (hasURL) {
+  				listUrlInfo = new ArrayList(1);
+  
+  				while (hasURL) {
+  					URLInfo urlInfo = new URLInfo();
+  
+  					// Store the full ahref string once, then use substring which doesn't
+  					// create real strings :)
+  					urlInfo.fullString = htmlMatcher.group();
+  					urlInfo.relStartPos = htmlMatcher.start(0);
+  
+  					urlInfo.url = string.substring(htmlMatcher.start(1),
+  							htmlMatcher.end(1));
+  					urlInfo.text = string.substring(htmlMatcher.start(2),
+  							htmlMatcher.end(2));
+  					urlInfo.titleLength = urlInfo.text.length();
+  
+  					Matcher matcherTitle = patAHREF_TITLE.matcher(urlInfo.fullString);
+  					if (matcherTitle.find()) {
+  						urlInfo.title = string.substring(urlInfo.relStartPos
+  								+ matcherTitle.start(1), urlInfo.relStartPos
+  								+ matcherTitle.end(1));
+  					}
+  
+  					Matcher matcherTarget = patAHREF_TARGET.matcher(urlInfo.fullString);
+  					if (matcherTarget.find()) {
+  						urlInfo.target = string.substring(urlInfo.relStartPos
+  								+ matcherTarget.start(1), urlInfo.relStartPos
+  								+ matcherTarget.end(1));
+  					}
+  
+  					//System.out.println("URLINFO! " + urlInfo.fullString 
+  					//		+ "\ntarget="
+  					//		+ urlInfo.target + "\ntt=" + urlInfo.title + "\nurl="
+  					//		+ urlInfo.url + "\ntext=" + urlInfo.text + "\n\n");
+  
+  					string = htmlMatcher.replaceFirst(urlInfo.text.replaceAll("\\$",
+  							"\\\\\\$"));
+  					
+  					listUrlInfo.add(urlInfo);
+  					htmlMatcher = patHREF.matcher(string);
+  					hasURL = htmlMatcher.find(urlInfo.relStartPos);
+  				}
+  			}
+  		} else {
+  			Matcher htmlMatcher = patHREF.matcher(string);
+  			string = htmlMatcher.replaceAll("$2");
+  		}
 		}
 
 		Rectangle rectDraw = new Rectangle(printArea.x, printArea.y,
@@ -538,11 +540,12 @@ public class GCStringPrinter
 			return lineInfo;
 		}
 		
-		StringBuffer outputLine = new StringBuffer();
+		StringBuffer outputLine = null;
 		int excessPos = -1;
 
 		if (images != null || lineInfo.originalLine.length() > MAX_LINE_LEN
 				|| gc.stringExtent(lineInfo.originalLine).x > printArea.width) {
+			outputLine = new StringBuffer();
 			if (DEBUG) {
 				System.out.println("Line to process: " + lineInfo.originalLine);
 			}
@@ -616,11 +619,12 @@ public class GCStringPrinter
 					}
 				}
 			}
-		} else {
-			outputLine.append(lineInfo.originalLine);
 		}
 
 		if (!wrap && hasMoreElements && excessPos >= 0) {
+			if (outputLine == null) {
+				outputLine = new StringBuffer(lineInfo.originalLine);
+			}
 			int len = outputLine.length();
 			if (len > 2) {
 				len -= 2;
@@ -634,7 +638,7 @@ public class GCStringPrinter
 		//			return hasMoreElements;
 		//		}
 		lineInfo.excessPos = excessPos;
-		lineInfo.lineOutputed = outputLine.toString();
+		lineInfo.lineOutputed = outputLine == null ? lineInfo.originalLine : outputLine.toString();
 		return lineInfo;
 	}
 
