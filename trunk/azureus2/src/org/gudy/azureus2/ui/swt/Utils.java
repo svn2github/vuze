@@ -53,7 +53,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableDelegate;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableItemDelegate;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
 
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -392,7 +392,7 @@ public class Utils
 	}
 
 	public static void alternateRowBackground(TableItem item) {
-		alternateRowBackground(new TableItemDelegate(item));
+		alternateRowBackground(TableOrTreeUtils.getEventItem(item));
 	}
 
 	public static void alternateRowBackground(TableItemOrTreeItem item) {
@@ -751,7 +751,7 @@ public class Utils
 		SWTThread swt = SWTThread.getInstance();
 
 		if (swt == null) {
-			System.err.println("WARNING: SWT Thread not started yet");
+			//System.err.println("WARNING: SWT Thread not started yet");
 		}
 
 		Display display = (swt == null) ? Display.getCurrent() : swt.getDisplay();
@@ -890,6 +890,8 @@ public class Utils
 				}
 			}
 		}
+
+		sFile = sFile.replaceAll( "&vzemb=1", "" );
 
 		boolean launched = Program.launch(sFile);
 		if (!launched && Constants.isUnix) {
