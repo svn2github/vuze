@@ -30,9 +30,14 @@ import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
+
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 
 /**
  * @author Olivier
@@ -74,9 +79,25 @@ public class FinishPanel extends AbstractWizardPanel<ConfigureWizard> {
     	COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY, false );
     	COConfigurationManager.setParameter( "Max Upload Speed KBs", upLimit/1024 );
     	COConfigurationManager.setParameter( "enable.seedingonly.upload.rate", false );
-        COConfigurationManager.setParameter( "Auto Adjust Transfer Defaults", true );
 	    COConfigurationManager.setParameter( "max active torrents",wizard.maxActiveTorrents);
 	    COConfigurationManager.setParameter( "max downloads",wizard.maxDownloads);
+	    
+	    try{
+	    	SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();
+	    
+	    	boolean is_manual = wizard.isUploadLimitManual();
+	    	
+	    	sm.setEstimatedUploadCapacityBytesPerSec( upLimit, is_manual?SpeedManagerLimitEstimate.TYPE_MANUAL:SpeedManagerLimitEstimate.TYPE_MEASURED );
+	    	
+	    }catch( Throwable e ){
+	    	
+	    	Debug.out( e );
+	    }
+	    
+	    	// toggle to ensure listeners get the message that they should recalc things
+	    
+        COConfigurationManager.setParameter( "Auto Adjust Transfer Defaults", false );
+        COConfigurationManager.setParameter( "Auto Adjust Transfer Defaults", true );
     }
     COConfigurationManager.setParameter("TCP.Listen.Port",wizard.serverTCPListenPort);
     COConfigurationManager.setParameter("UDP.Listen.Port",wizard.serverTCPListenPort);

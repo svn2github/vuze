@@ -197,7 +197,7 @@ TransferPanel2
 		    														public void
 		    														run()
 		    														{
-		    															updateUp( u );
+		    															updateUp( u, false );
 		    														}								
 		    													});
 		    											}
@@ -311,7 +311,7 @@ TransferPanel2
     		{
     			int index = connection_speed.getSelectionIndex();
     			    			
-    			updateUp( connection_rates[index]/8 );
+    			updateUp( connection_rates[index]/8, true );
      		}
     	});
     
@@ -349,7 +349,7 @@ TransferPanel2
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.verticalIndent=10;
     uprate_label.setLayoutData( gridData );
-    updateUp( 0 );
+    updateUp( 0, true );
     
     manual_mode = false;
     
@@ -358,9 +358,10 @@ TransferPanel2
 
   private void
   updateUp(
-	  int		rate )
+	  int		rate,
+	  boolean	manual )
   {
-	wizard.setConnectionUploadLimit( rate );
+	wizard.setConnectionUploadLimit( rate, manual );
 	
 	if ( rate == 0 ){
 		

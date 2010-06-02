@@ -38,6 +38,7 @@ public class ConfigureWizard extends Wizard {
   //Transfer settings
 
   private int connectionUploadLimit;
+  private boolean uploadLimitManual;
   private int uploadLimit;
   
   int maxActiveTorrents;
@@ -126,12 +127,15 @@ public class ConfigureWizard extends Wizard {
   
   protected void
   setConnectionUploadLimit(
-	int		rate )
+	int		rate,
+	boolean	is_manual )
   {
 	  connectionUploadLimit = rate;
 	  
 	  if ( connectionUploadLimit != 0 ){
 
+		  uploadLimitManual = is_manual;
+		  
 		  uploadLimit = (connectionUploadLimit/5)*4;
 		  
 		  uploadLimit = (uploadLimit/1024)*1024;
@@ -168,5 +172,11 @@ public class ConfigureWizard extends Wizard {
   getUploadLimit()
   {
 	  return( uploadLimit );
+  }
+  
+  protected boolean
+  isUploadLimitManual()
+  {
+	  return( uploadLimitManual );
   }
 }
