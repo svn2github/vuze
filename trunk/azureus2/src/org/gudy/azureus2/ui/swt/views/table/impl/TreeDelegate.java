@@ -176,14 +176,14 @@ public class TreeDelegate implements TableOrTreeSWT
 		return tree.isLayoutDeferred();
 	}
 
-	public Object getData() {
-		return getData(null);
-	}
-
 	public void layout() {
 		tree.layout();
 	}
 
+	public Object getData() {
+		return getData(null);
+	}
+	
 	public Object getData(String key) {
 		synchronized (data) {
 			return data.get(key);
@@ -262,14 +262,14 @@ public class TreeDelegate implements TableOrTreeSWT
 		tree.setTabList(tabList);
 	}
 
-	public void setData(Object data) {
-		setData(null, data);
-	}
-
 	public Cursor getCursor() {
 		return tree.getCursor();
 	}
 
+	public void setData(Object data) {
+		setData(null, data);
+	}
+	
 	public void setData(String key, Object value) {
 		synchronized (data) {
 			data.put(key, value);
@@ -643,14 +643,6 @@ public class TreeDelegate implements TableOrTreeSWT
 		return tree.isDisposed();
 	}
 
-	public int internal_new_GC(GCData data) {
-		return tree.internal_new_GC(data);
-	}
-
-	public void internal_dispose_GC(int hDC, GCData data) {
-		tree.internal_dispose_GC(hDC, data);
-	}
-
 	public void update() {
 		tree.update();
 	}
@@ -767,7 +759,7 @@ public class TreeDelegate implements TableOrTreeSWT
 		if (item == null) {
 			return null;
 		}
-		return new TreeItemDelegate(item);
+		return TableOrTreeUtils.getEventItem(item);
 	}
 
 	private TableItemOrTreeItem[] wrapOrNull(TreeItem[] items) {
@@ -776,7 +768,7 @@ public class TreeDelegate implements TableOrTreeSWT
 		}
 		TableItemOrTreeItem[] returnItems = new TableItemOrTreeItem[items.length];
 		for (int i = 0; i < returnItems.length; i++) {
-			returnItems[i] = new TreeItemDelegate(items[i]);
+			returnItems[i] = TableOrTreeUtils.getEventItem(items[i]);
 		}
 		return returnItems;
 	}
@@ -872,7 +864,7 @@ public class TreeDelegate implements TableOrTreeSWT
 	}
 
 	public TableItemOrTreeItem createNewItem(int style) {
-		return new TreeItemDelegate(this, style);
+		return TableOrTreeUtils.createNewItem(this, style);
 	}
 
   public TableColumnOrTreeColumn createNewColumn(int style) {

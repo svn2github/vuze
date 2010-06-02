@@ -351,16 +351,8 @@ public class TableDelegate
 		table.clear(indices);
 	}
 
-	public int internal_new_GC(GCData data) {
-		return table.internal_new_GC(data);
-	}
-
 	public void clearAll() {
 		table.clearAll();
-	}
-
-	public void internal_dispose_GC(int hDC, GCData data) {
-		table.internal_dispose_GC(hDC, data);
 	}
 
 	public boolean isEnabled() {
@@ -800,7 +792,7 @@ public class TableDelegate
 		if (item == null) {
 			return null;
 		}
-		return new TableItemDelegate(item);
+		return TableOrTreeUtils.getEventItem(item);
 	}
 
 	private TableItemOrTreeItem[] wrapOrNull(TableItem[] items) {
@@ -809,7 +801,7 @@ public class TableDelegate
 		}
 		TableItemOrTreeItem[] returnItems = new TableItemOrTreeItem[items.length];
 		for (int i = 0; i < returnItems.length; i++) {
-			returnItems[i] = new TableItemDelegate(items[i]);
+			returnItems[i] = TableOrTreeUtils.getEventItem(items[i]);
 		}
 		return returnItems;
 	}
@@ -908,7 +900,7 @@ public class TableDelegate
 	}
 
 	public TableItemOrTreeItem createNewItem(int style) {
-		return new TableItemDelegate(this, style);
+		return TableOrTreeUtils.createNewItem(this, style);
 	}
 
 	public TableColumnOrTreeColumn createNewColumn(int style) {
