@@ -146,6 +146,8 @@ public class TableCellImpl
 	private boolean bInRefreshAsync = false;
 	
 	private int textAlpha = 255;
+
+	private Image icon;
 	
 	static {
   	COConfigurationManager.addAndFireParameterListener(CFG_PAINT,
@@ -495,10 +497,12 @@ public class TableCellImpl
   	tableColumn.setLastSortValueChange(SystemTime.getCurrentTime());
     sortValue = valueToSort;
     
+    /*
   	if (cellSWTPaintListeners != null
 				|| tableColumn.hasCellOtherListeners("SWTPaint")) {
   		redraw();
   	}
+  	*/
 
     return true;
   }
@@ -1301,17 +1305,15 @@ public class TableCellImpl
   	if (isInvisibleAndCanRefresh())
   		return false;
 
-    bufferedTableItem.setIcon(img);
+  	icon = img;
+  	
     graphic = null;
     setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
     return true;
   }
   
   public Image getIcon() {
-  	if (bufferedTableItem == null) {
-  		return null;
-  	}
-  	return bufferedTableItem.getIcon();
+  	return icon;
   }
 
   public boolean needsPainting() {

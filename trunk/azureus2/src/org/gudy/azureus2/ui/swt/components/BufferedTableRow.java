@@ -671,7 +671,7 @@ BufferedTableRow
   		int numColumns = table.getColumnCount();
   		for (int i = 0; i < numColumns; i++) {
   			try {
-  				newRow.setImage(i, null);
+  				//newRow.setImage(i, null);
   				newRow.setForeground(i, null);
   			} catch (NoSuchMethodError e) {
   				/* Ignore for Pre 3.0 SWT.. */
@@ -706,7 +706,7 @@ BufferedTableRow
   		int numColumns = table.getColumnCount();
   		for (int i = 0; i < numColumns; i++) {
         try {
-        	item.setImage(i, null);
+        	//item.setImage(i, null);
         	item.setForeground(i, null);
         } catch (NoSuchMethodError e) {
           /* Ignore for Pre 3.0 SWT.. */
