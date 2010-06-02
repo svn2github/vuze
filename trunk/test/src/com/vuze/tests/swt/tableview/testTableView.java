@@ -58,6 +58,8 @@ public class testTableView
 			new CT_ID(),
 			new CT_InvalidOnly(),
 			new CT_Live(),
+			new CT_LiveExt(),
+			new CT_InvOnlyExt(),
 		};
 
 		TableColumnManager.getInstance().addColumns(columns);
