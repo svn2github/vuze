@@ -39,7 +39,7 @@ SpeedTestWizard
 	SpeedTestWizard() 
 	{
 		super("speedtest.wizard.title");
-		SpeedTestPanel panel = new SpeedTestPanel(this, null);
+		SpeedTestSelector panel = new SpeedTestSelector(this, null);
 		setFirstPanel(panel);
     }
 

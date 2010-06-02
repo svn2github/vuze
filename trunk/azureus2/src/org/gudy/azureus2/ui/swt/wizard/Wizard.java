@@ -276,8 +276,10 @@ public class Wizard {
   {
 	  completed = true;
 	  
-	  currentPanel.cancelled();
-	  
+	  if ( currentPanel != null ){
+		  
+		  currentPanel.cancelled();
+	  }
 	  wizardWindow.dispose();
   }
   
@@ -295,6 +297,9 @@ public class Wizard {
   }
 
   private void clearPanel() {
+	if ( panel.isDisposed()){
+		return;
+	}
     Control[] controls = panel.getChildren();
     for (int i = 0; i < controls.length; i++) {
       if (controls[i] != null && !controls[i].isDisposed())
