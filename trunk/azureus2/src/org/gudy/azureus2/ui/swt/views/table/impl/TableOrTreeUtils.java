@@ -18,9 +18,14 @@
 
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.custom.TreeEditor;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
@@ -34,14 +39,62 @@ import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
  */
 public class TableOrTreeUtils
 {
+	private static Map<Object, Object> mapDelegates = new HashMap<Object, Object>();
+
 	public static TableItemOrTreeItem getEventItem(Widget item) {
-		if (item instanceof TreeItem) {
-			return new TreeItemDelegate((TreeItem) item);
+		synchronized (mapDelegates) {
+			Object object = mapDelegates.get(item);
+			if (object instanceof TableItemOrTreeItem) {
+				return (TableItemOrTreeItem) object;
+			}
 		}
-		if (item instanceof TableItem) {
-			return new TableItemDelegate((TableItem) item);
+
+		TableItemOrTreeItem delegate = null;
+		synchronized (mapDelegates) {
+			if (item instanceof TreeItem) {
+				delegate = new TreeItemDelegate((TreeItem) item);
+				mapDelegates.put(item, delegate);
+			} else if (item instanceof TableItem) {
+				delegate = new TableItemDelegate((TableItem) item);
+				mapDelegates.put(item, delegate);
+			}
 		}
-		return null;
+
+		if (delegate != null) {
+			delegate.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					synchronized (mapDelegates) {
+						mapDelegates.remove(e.widget);
+					}
+				}
+			});
+		}
+		return delegate;
+	}
+
+	public static TableItemOrTreeItem createNewItem(TableOrTreeSWT parent,
+			int style) {
+		TableItemOrTreeItem delegate = null;
+		synchronized (mapDelegates) {
+			if (parent instanceof TreeDelegate) {
+				delegate = new TreeItemDelegate(parent, style);
+				mapDelegates.put(((TreeItemDelegate) delegate).item, delegate);
+			} else if (parent instanceof TableDelegate) {
+				delegate = new TableItemDelegate((TableDelegate) parent, style);
+				mapDelegates.put(((TableItemDelegate)delegate).item, delegate);
+			}
+		}
+
+		if (delegate != null) {
+			delegate.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					synchronized (mapDelegates) {
+						mapDelegates.remove(e.widget);
+					}
+				}
+			});
+		}
+		return delegate;
 	}
 
 	public static TableColumnOrTreeColumn getTableColumnEventItem(Widget item) {
@@ -72,9 +125,10 @@ public class TableOrTreeUtils
 	public static void setEditorItem(ControlEditor editor, Control input,
 			int column, TableItemOrTreeItem item) {
 		if (item instanceof TreeItemDelegate) {
-			((TreeEditor)editor).setEditor(input, (TreeItem) item.getItem(), column);
+			((TreeEditor) editor).setEditor(input, (TreeItem) item.getItem(), column);
 		} else {
-			((TableEditor)editor).setEditor(input, (TableItem) item.getItem(), column);
+			((TableEditor) editor).setEditor(input, (TableItem) item.getItem(),
+					column);
 		}
 	}
 }
