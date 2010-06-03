@@ -18,6 +18,8 @@ public class CT_InvalidOnly
 	implements TableCellRefreshListener, TableCellSWTPaintListener
 {
 	public static String name = new Object() { }.getClass().getEnclosingClass().getSimpleName();
+	private static String ID_TICS = name + ".num1";
+	private static String ID_CELLPAINTS = name + ".numCP";
 
 	public CT_InvalidOnly() {
 		super(name, 150, "test");
@@ -29,8 +31,8 @@ public class CT_InvalidOnly
 	public void refresh(TableCell cell) {
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 
-		int num = MapUtils.getMapInt(ds.map, name + ".num1", 0) + 1;
-		ds.map.put(name + ".num1", num);
+		int num = MapUtils.getMapInt(ds.map, ID_TICS, 0) + 1;
+		ds.map.put(ID_TICS, num);
 
 		cell.setSortValue(0);
 		cell.setText(Integer.toString(num));
@@ -39,8 +41,8 @@ public class CT_InvalidOnly
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 
-		int num = MapUtils.getMapInt(ds.map, name + ".numCP", 0) + 1;
-		ds.map.put(name + ".numCP", num);
+		int num = MapUtils.getMapInt(ds.map, ID_CELLPAINTS, 0) + 1;
+		ds.map.put(ID_CELLPAINTS, num);
 		GCStringPrinter.printString(gc, Integer.toString(num), cell.getBounds(), true, true,
 				SWT.RIGHT);
 	}

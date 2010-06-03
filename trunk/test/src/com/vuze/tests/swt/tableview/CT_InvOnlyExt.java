@@ -1,5 +1,8 @@
 package com.vuze.tests.swt.tableview;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
@@ -20,13 +23,33 @@ public class CT_InvOnlyExt
 {
 	public static String name = new Object() { }.getClass().getEnclosingClass().getSimpleName();
 	private static Timer timer;
+	private static List<TableCell> cells = new ArrayList<TableCell>();
+	private static String ID_TICS = name + ".num1";
+	private static String ID_CELLPAINTS = name + ".numCP";
+	private static String ID_REFRESHES = name + ".num2";
 
 	static {
-		timer = new Timer("Simple Timer", 5000);
+		timer = new Timer("Simple Timer", 1);
 		
 		timer.setIndestructable();
 		
 		timer.setWarnWhenFull();
+
+		timer.addPeriodicEvent("updateLiveExt", 1000, new TimerEventPerformer() {
+			public void perform(TimerEvent event) {
+				TableCell[] array = cells.toArray(new TableCell[0]);
+				for (TableCell cell : array) {
+					if (cell.isDisposed()) {
+						event.cancel();
+						return;
+					}
+					TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
+					int num = MapUtils.getMapInt(ds.map, ID_TICS, 0) + 1;
+					ds.map.put(ID_TICS, num);
+					cell.invalidate();
+				}
+ 			}
+		});
 	}
 
 	public CT_InvOnlyExt() {
@@ -39,10 +62,10 @@ public class CT_InvOnlyExt
 	public void refresh(TableCell cell) {
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 
-		int num = MapUtils.getMapInt(ds.map, name + ".num1", 0);
+		int num = MapUtils.getMapInt(ds.map, ID_TICS, 0);
 		
-		int num2 = MapUtils.getMapInt(ds.map, name + ".num2", 0) + 1;
-		ds.map.put(name + ".num2", num2);
+		int num2 = MapUtils.getMapInt(ds.map, ID_REFRESHES, 0) + 1;
+		ds.map.put(ID_REFRESHES, num2);
 		
 		cell.setSortValue(0);
 		cell.setText("tics=" + num + ";refr=" + num2);
@@ -51,23 +74,21 @@ public class CT_InvOnlyExt
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 
-		int num = MapUtils.getMapInt(ds.map, name + ".numCP", 0) + 1;
-		ds.map.put(name + ".numCP", num);
+		int num = MapUtils.getMapInt(ds.map, ID_CELLPAINTS, 0) + 1;
+		ds.map.put(ID_CELLPAINTS, num);
 		GCStringPrinter.printString(gc, "" + num, cell.getBounds(), true, true, SWT.RIGHT);
 	}
 
 	public void cellAdded(final TableCell cell) {
-		timer.addPeriodicEvent("updateLiveExt", 1000, new TimerEventPerformer() {
-			public void perform(TimerEvent event) {
-				if (cell.isDisposed()) {
-					event.cancel();
-					return;
-				}
-				TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
-				int num = MapUtils.getMapInt(ds.map, name + ".num1", 0) + 1;
-				ds.map.put(name + ".num1", num);
-				cell.invalidate();
- 			}
-		});
+		synchronized (cells) {
+			cells.add(cell);
+		}
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener#dispose(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void dispose(TableCell cell) {
+		synchronized (cells) {
+			cells.remove(cell);
+		}
 	}
 }

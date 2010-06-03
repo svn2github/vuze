@@ -19,6 +19,7 @@ public class CT_Live
 		TableCellSWTPaintListener
 {
 	public static String name = new Object() { }.getClass().getEnclosingClass().getSimpleName();
+	private static String ID_CELLPAINTS = name + ".numCP";
 
 	public CT_Live() {
 		super(name, 150, "test");
@@ -40,8 +41,8 @@ public class CT_Live
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 
-		int num = MapUtils.getMapInt(ds.map, name + ".numCP", 0) + 1;
-		ds.map.put(name + ".numCP", num);
+		int num = MapUtils.getMapInt(ds.map, ID_CELLPAINTS, 0) + 1;
+		ds.map.put(ID_CELLPAINTS, num);
 		GCStringPrinter.printString(gc, Integer.toString(num), cell.getBounds(), true, true, SWT.RIGHT);
 	}
 }
