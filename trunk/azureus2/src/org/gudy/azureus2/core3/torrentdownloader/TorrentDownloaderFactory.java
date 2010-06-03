@@ -284,7 +284,7 @@ public class TorrentDownloaderFactory {
 	  				 				delegate.setIgnoreReponseCode( irc );
 	  				 			}
 	  				 			
-	  				  			delegate.init( this, "DC1ADD710FC546AFA8B0EC63794F92FCEDD2ABC0", referrer, request_properties, fileordir );
+	  				  			delegate.init( this, retry_url, referrer, request_properties, fileordir );
 	  				  			
 	  							no_retry	= true;
 	  							
