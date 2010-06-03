@@ -99,24 +99,32 @@ public class FinishPanel extends AbstractWizardPanel<ConfigureWizard> {
         COConfigurationManager.setParameter( "Auto Adjust Transfer Defaults", false );
         COConfigurationManager.setParameter( "Auto Adjust Transfer Defaults", true );
     }
-    COConfigurationManager.setParameter("TCP.Listen.Port",wizard.serverTCPListenPort);
-    COConfigurationManager.setParameter("UDP.Listen.Port",wizard.serverTCPListenPort);
-    COConfigurationManager.setParameter("UDP.NonData.Listen.Port",wizard.serverTCPListenPort);
-    //COConfigurationManager.setParameter("Low Port",cfWizard.serverMinPort);
-	//COConfigurationManager.setParameter("High Port",cfWizard.serverMaxPort);
-	//COConfigurationManager.setParameter("Server.shared.port",cfWizard.serverSharePort);
-    COConfigurationManager.setParameter("General_sDefaultTorrent_Directory",wizard.torrentPath);
-    //COConfigurationManager.setParameter("Use Resume",cfWizard.fastResume);
-    
-    if ( wizard.hasDataPathChanged()){
-    	COConfigurationManager.setParameter( "Use default data dir", true );
-    	COConfigurationManager.setParameter( "Default save path", wizard.getDataPath());
+   
+    if ( wizard.isSpeedTest()){
+    	
+    	wizard.close();
+    	
+    }else{
+	    COConfigurationManager.setParameter("TCP.Listen.Port",wizard.serverTCPListenPort);
+	    COConfigurationManager.setParameter("UDP.Listen.Port",wizard.serverTCPListenPort);
+	    COConfigurationManager.setParameter("UDP.NonData.Listen.Port",wizard.serverTCPListenPort);
+	    //COConfigurationManager.setParameter("Low Port",cfWizard.serverMinPort);
+		//COConfigurationManager.setParameter("High Port",cfWizard.serverMaxPort);
+		//COConfigurationManager.setParameter("Server.shared.port",cfWizard.serverSharePort);
+	    COConfigurationManager.setParameter("General_sDefaultTorrent_Directory",wizard.torrentPath);
+	    //COConfigurationManager.setParameter("Use Resume",cfWizard.fastResume);
+	    
+	    if ( wizard.hasDataPathChanged()){
+	    	COConfigurationManager.setParameter( "Use default data dir", true );
+	    	COConfigurationManager.setParameter( "Default save path", wizard.getDataPath());
+	    }
+	    
+	    COConfigurationManager.setParameter("Wizard Completed",true);
+	    COConfigurationManager.save();
+	    wizard.switchToClose();
+	    
+	    wizard.completed = true;
     }
-    
-    COConfigurationManager.setParameter("Wizard Completed",true);
-    COConfigurationManager.save();
-    wizard.switchToClose();
-    wizard.completed = true;
   }
   
   public boolean isPreviousEnabled() {

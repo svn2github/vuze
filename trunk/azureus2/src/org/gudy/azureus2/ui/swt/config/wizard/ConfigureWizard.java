@@ -35,6 +35,8 @@ import com.aelitis.azureus.ui.UserPrompterResultListener;
  */
 public class ConfigureWizard extends Wizard {
 
+	private boolean is_speed_test;
+	
   //Transfer settings
 
   private int connectionUploadLimit;
@@ -56,10 +58,14 @@ public class ConfigureWizard extends Wizard {
 
   public 
   ConfigureWizard(
-		boolean modal) 
+		  boolean 	modal,
+		  boolean	speed_test ) 
   {
     super("configureWizard.title",modal);
-    IWizardPanel panel = new LanguagePanel(this,null);
+    
+    is_speed_test = speed_test;
+    
+    IWizardPanel panel = is_speed_test?new TransferPanel2( this, null ):new LanguagePanel(this,null);
     try  {
       torrentPath = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
     } catch(Exception e) {
@@ -79,8 +85,10 @@ public class ConfigureWizard extends Wizard {
   
   public void onClose() {
 		try {
-			if (!completed
-					&& !COConfigurationManager.getBooleanParameter("Wizard Completed")) {
+			if (	!completed && 
+					!is_speed_test && 
+					!COConfigurationManager.getBooleanParameter("Wizard Completed")){
+				
 				MessageBoxShell mb = new MessageBoxShell(
 						MessageText.getString("wizard.close.confirmation"),
 						MessageText.getString("wizard.close.message"), new String[] {
@@ -178,5 +186,11 @@ public class ConfigureWizard extends Wizard {
   isUploadLimitManual()
   {
 	  return( uploadLimitManual );
+  }
+  
+  protected boolean
+  isSpeedTest()
+  {
+	  return( is_speed_test );
   }
 }

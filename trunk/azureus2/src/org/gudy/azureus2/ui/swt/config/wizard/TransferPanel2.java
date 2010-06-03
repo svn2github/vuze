@@ -140,8 +140,8 @@ TransferPanel2
     final Button speed_test = new Button( gRadio, SWT.NULL );
     
     Messages.setLanguageText( speed_test, "configureWizard.transfer2.test" );
-    
-    speed_test.addSelectionListener(
+        		
+    final SelectionAdapter speed_test_listener = 
     	new SelectionAdapter()
     	{
     		public void 
@@ -153,7 +153,6 @@ TransferPanel2
     			test_in_progress = true;
     			
     			updateNextEnabled();
-				wizard.setPreviousEnabled( false );
 
 				rootPanel.getShell().setEnabled( false );
 				
@@ -260,7 +259,6 @@ TransferPanel2
 											test_in_progress = false;
 											
 											updateNextEnabled();
-											wizard.setPreviousEnabled( true );
 											
 											rootPanel.getShell().setEnabled( true );
 										};
@@ -268,8 +266,9 @@ TransferPanel2
     					}
     				});	
     		}
-    	});
+    	};
     
+ 	speed_test.addSelectionListener( speed_test_listener );
     
     	// manual
     
@@ -354,6 +353,20 @@ TransferPanel2
     manual_mode = false;
     
     updateNextEnabled();
+    
+    if ( wizard.isSpeedTest()){
+    	
+    	Utils.execSWTThreadLater(
+    		0,
+    		new Runnable()
+    		{
+    			public void
+    			run()
+    			{
+    				speed_test_listener.widgetSelected( null );
+    			}
+    		});
+    }
   }
 
   private void
@@ -383,11 +396,24 @@ TransferPanel2
   private void
   updateNextEnabled()
   {
-	  wizard.setNextEnabled( isNextEnabled() );
+	 wizard.setPreviousEnabled( isPreviousEnabled() );
+	 
+	 boolean enabled = isProgressEnabled();
+	 	  
+	   
+	 if ( wizard.isSpeedTest()){
+		 
+		 wizard.setNextEnabled( false );
+		 
+	   	 wizard.setFinishEnabled( enabled );
+	 }else{
+		 
+		 wizard.setNextEnabled( enabled );
+	 }
   }
   
   public boolean 
-  isNextEnabled() 
+  isProgressEnabled() 
   {
     if ( test_in_progress ){
     	
@@ -403,15 +429,27 @@ TransferPanel2
   }
   
   public boolean 
+  isNextEnabled() 
+  {
+	  return( isProgressEnabled() && !wizard.isSpeedTest());
+  }
+  
+  public boolean 
   isPreviousEnabled() 
   {
-    return( !test_in_progress );
+    return( ! ( test_in_progress || wizard.isSpeedTest()));
+  }
+  
+  public IWizardPanel 
+  getFinishPanel() 
+  {
+    return( new FinishPanel(wizard,this));
   }
   
   public IWizardPanel 
   getNextPanel() 
   {
-    return new NatPanel(((ConfigureWizard)wizard),this);
+    return( new NatPanel((wizard),this));
   }
 
 }
