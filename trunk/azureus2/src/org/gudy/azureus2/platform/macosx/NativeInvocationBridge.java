@@ -50,7 +50,7 @@ public abstract class NativeInvocationBridge
 						"org.gudy.azureus2.platform.macosx.access.cocoa.CocoaJavaBridge").getConstructor().newInstance();
 				instance = (NativeInvocationBridge) newInstance;
 			} catch (Throwable e) {
-				Debug.out(e);
+				//Debug.out(e);
 				instance = new DummyBridge();
 			}
 		}
