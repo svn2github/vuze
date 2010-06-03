@@ -148,7 +148,7 @@ public class TableItemDelegate
 	}
 
 	public TableOrTreeSWT getParent() {
-		return new TableDelegate(item.getParent());
+		return TableOrTreeUtils.getTableOrTreeSWT(item.getParent());
 	}
 
 	public int getStyle() {

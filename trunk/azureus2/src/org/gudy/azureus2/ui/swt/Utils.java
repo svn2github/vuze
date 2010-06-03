@@ -431,7 +431,7 @@ public class Utils
 		if (iTopIndex < 0) {
 			return;
 		}
-		TableOrTreeSWT tt = new TableDelegate(table);
+		TableOrTreeSWT tt = TableOrTreeUtils.getTableOrTreeSWT(table);
 		int iBottomIndex = getTableBottomIndex(tt, iTopIndex);
 
 		Color[] colors = {

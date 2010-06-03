@@ -73,7 +73,7 @@ public class TreeColumnDelegate implements TableColumnOrTreeColumn
 	}
 
 	public TableOrTreeSWT getParent() {
-		return new TreeDelegate(treeColumn.getParent());
+		return TableOrTreeUtils.getTableOrTreeSWT(treeColumn.getParent());
 	}
 
 	public boolean getResizable() {

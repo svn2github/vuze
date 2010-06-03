@@ -46,16 +46,16 @@ public class TableDelegate
 {
 	Table table;
 	
-	Map data = new LightHashMap(3);
+	Map data = new LightHashMap(5);
 
 	private TableDelegate() {
 	}
 
-	public TableDelegate(Table table) {
+	protected TableDelegate(Table table) {
 		this.table = table;
 	}
 
-	public TableDelegate(Composite parent, int style) {
+	protected TableDelegate(Composite parent, int style) {
 		table = new Table(parent, style);
 	}
 

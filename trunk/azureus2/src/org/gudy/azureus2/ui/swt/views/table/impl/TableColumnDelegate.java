@@ -70,7 +70,7 @@ public class TableColumnDelegate
 	}
 
 	public TableOrTreeSWT getParent() {
-		return new TableDelegate(column.getParent());
+		return TableOrTreeUtils.getTableOrTreeSWT(column.getParent());
 	}
 
 	public boolean getMoveable() {

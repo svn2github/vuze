@@ -72,6 +72,37 @@ public class TableOrTreeUtils
 		return delegate;
 	}
 
+	public static TableOrTreeSWT getTableOrTreeSWT(Widget widget) {
+		synchronized (mapDelegates) {
+			Object object = mapDelegates.get(widget);
+			if (object instanceof TableOrTreeSWT) {
+				return (TableOrTreeSWT) object;
+			}
+		}
+
+		TableOrTreeSWT delegate = null;
+		synchronized (mapDelegates) {
+			if (widget instanceof Tree) {
+				delegate = new TreeDelegate((Tree) widget);
+				mapDelegates.put(widget, delegate);
+			} else if (widget instanceof Table) {
+				delegate = new TableDelegate((Table) widget);
+				mapDelegates.put(widget, delegate);
+			}
+		}
+
+		if (delegate != null) {
+			delegate.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					synchronized (mapDelegates) {
+						mapDelegates.remove(e.widget);
+					}
+				}
+			});
+		}
+		return delegate;
+	}
+
 	public static TableItemOrTreeItem createNewItem(TableOrTreeSWT parent,
 			int style) {
 		TableItemOrTreeItem delegate = null;
@@ -109,8 +140,27 @@ public class TableOrTreeUtils
 
 	public static TableOrTreeSWT createGrid(Composite parent, int style,
 			boolean tree) {
-		return tree ? new TreeDelegate(parent, style) : new TableDelegate(parent,
-				style);
+		TableOrTreeSWT delegate = null;
+		synchronized (mapDelegates) {
+			if (tree) {
+				delegate = new TreeDelegate(parent, style);
+				mapDelegates.put(((TreeDelegate) delegate).getComposite(), delegate);
+			} else {
+				delegate = new TableDelegate(parent, style);
+				mapDelegates.put(((TableDelegate)delegate).getComposite(), delegate);
+			}
+		}
+
+		if (delegate != null) {
+			delegate.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					synchronized (mapDelegates) {
+						mapDelegates.remove(e.widget);
+					}
+				}
+			});
+		}
+		return delegate;
 	}
 
 	public static ControlEditor createTableOrTreeEditor(TableOrTreeSWT tableOrTree) {
@@ -131,4 +181,5 @@ public class TableOrTreeUtils
 					column);
 		}
 	}
+
 }

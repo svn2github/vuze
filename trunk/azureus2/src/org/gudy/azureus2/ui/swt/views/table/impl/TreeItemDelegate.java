@@ -181,7 +181,7 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 	}
 
 	public TableOrTreeSWT getParent() {
-		return new TreeDelegate(item.getParent());
+		return TableOrTreeUtils.getTableOrTreeSWT(item.getParent());
 	}
 
 	public TableItemOrTreeItem getParentItem() {

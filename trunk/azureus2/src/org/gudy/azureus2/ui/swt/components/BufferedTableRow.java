@@ -310,6 +310,13 @@ BufferedTableRow
 		//	System.out.println(Debug.getCompressedStackTrace());
 		//}
 		
+		Rectangle bounds = getBounds(0);
+		if (bounds == null) {
+			return false;
+		}
+		return table.getClientArea().contains(bounds.x, bounds.y);
+
+		/*
 		int index = table.indexOf(item);
 		if (index == -1)
 			return false;
@@ -325,6 +332,7 @@ BufferedTableRow
   	//System.out.println("i-" + index + ";top=" + iTopIndex + ";b=" + iBottomIndex);
 		
 		return true;
+		*/
 	}
 	
 	
@@ -719,8 +727,11 @@ BufferedTableRow
 		item.setItemCount(numSubItems);
 		item.setExpanded(wasExpanded);
 		expanded = wasExpanded;
-		if (newRowHadItem) {
-			invalidate();
+		if (newRowHadItem && isVisible) {
+			//invalidate();
+			// skip the visibility check and SWT thread wrapping of invalidate
+			Rectangle r = item.getBounds(0);
+			table.redraw(0, r.y, table.getClientArea().width, r.height, true);
 		}
 
     return true;

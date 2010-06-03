@@ -391,9 +391,12 @@ public class TableRowImpl
 			//System.out.println("row " + newIndex + " from " + lastIndex + ";" + tableView.isRowVisible(this) + ";" + changedSWTRow);
 			lastIndex = newIndex;
 		}
-		setShown(tableView.isRowVisible(this), changedSWTRow);
-		if (changedSWTRow) {
-			invalidate();
+		boolean rowVisible = tableView.isRowVisible(this);
+		setShown(rowVisible, changedSWTRow);
+		if (changedSWTRow && rowVisible) {
+			//invalidate();
+			//refresh(true, true);
+			setUpToDate(false);
 		}
 		return changedSWTRow; 
 	}

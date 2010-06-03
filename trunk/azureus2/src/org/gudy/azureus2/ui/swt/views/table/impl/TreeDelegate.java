@@ -46,13 +46,13 @@ public class TreeDelegate implements TableOrTreeSWT
 {
 	Tree tree;
 
-	Map data = new LightHashMap(3);
+	Map data = new LightHashMap(5);
 
-	public TreeDelegate(Composite parent, int style) {
+	protected TreeDelegate(Composite parent, int style) {
 		this(new Tree2(parent, style));
 	}
 
-	public TreeDelegate(Tree t) {
+	protected TreeDelegate(Tree t) {
 		tree = t;
 	}
 

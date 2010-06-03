@@ -247,7 +247,7 @@ public class GCStringPrinter
 			return false;
 		}
 
-		ArrayList lines = new ArrayList();
+		ArrayList<LineInfo> lines = new ArrayList<LineInfo>(1);
 		
 		while (string.indexOf('\t') >= 0) {
 			string = string.replace('\t', ' ');
@@ -385,7 +385,7 @@ public class GCStringPrinter
 							if (excess != null) {
 								if (fullLinesOnly) {
 									if (lines.size() > 0) {
-										lineInfo = (LineInfo) lines.remove(lines.size() - 1);
+										lineInfo = lines.remove(lines.size() - 1);
 										sProcessedLine = lineInfo.originalLine.length() > MAX_LINE_LEN
 												? lineInfo.originalLine.substring(0, MAX_LINE_LEN)
 												: lineInfo.originalLine;
@@ -478,9 +478,9 @@ public class GCStringPrinter
 				// rebuild full text to get the exact y-extent of the output
 				// this may be different (but shouldn't be!) than the height of each
 				// line
+				/*
 				StringBuffer fullText = new StringBuffer(string.length() + 10);
-				for (Iterator iter = lines.iterator(); iter.hasNext();) {
-					LineInfo lineInfo = (LineInfo) iter.next();
+				for (LineInfo lineInfo : lines) {
 					if (fullText.length() > 0) {
 						fullText.append('\n');
 					}
@@ -488,9 +488,9 @@ public class GCStringPrinter
 				}
 
 				//size = gc.textExtent(fullText.toString());
+				 */
 
-				for (Iterator iter = lines.iterator(); iter.hasNext();) {
-					LineInfo lineInfo = (LineInfo) iter.next();
+				for (LineInfo lineInfo : lines) {
 					size.x = Math.max(lineInfo.width, size.x);
 					size.y += lineInfo.height;
 				}
@@ -503,8 +503,7 @@ public class GCStringPrinter
 				}
 
 				if (!noDraw || listUrlInfo != null) {
-					for (Iterator iter = lines.iterator(); iter.hasNext();) {
-						LineInfo lineInfo = (LineInfo) iter.next();
+					for (LineInfo lineInfo : lines) {
 						try {
 							drawLine(gc, lineInfo, swtFlags, rectDraw, noDraw);
 						} catch (Throwable t) {

@@ -332,6 +332,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private boolean useTree;
 
+	private int headerHeight;
+
 
 	/**
 	 * Main Initializer
@@ -1204,6 +1206,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 
 		table.setHeaderVisible(getHeaderVisible());
+		headerHeight = table.getHeaderHeight();
 
 		clientArea = table.getClientArea();
 		//firstClientArea = table.getClientArea();
@@ -1753,7 +1756,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			// Cocoa calls paintitem while row is below tablearea, and painting there
 			// is valid!
 			if (!Utils.isCocoa) {
-				int headerHeight = table.getHeaderHeight();
 				int iMinY = headerHeight + clientArea.y;
 
   			if (clipping.y < iMinY) {
@@ -2093,7 +2095,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				if (!header) {
 					Rectangle clientArea = table.getClientArea();
-					header = clientArea.y <= pt.y && pt.y < (clientArea.y + table.getHeaderHeight());
+					header = clientArea.y <= pt.y && pt.y < (clientArea.y + headerHeight);
 				}
 
 				menu.setData("isHeader", new Boolean(header));
@@ -4424,7 +4426,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				if (iBottomIndex >= count) {
 					iBottomIndex = count - 1;
 				}
-				if (allSelectedRowsVisible) {
+				// No idea why we needed to setTableItem for all rowse when !allSelectedRowsVisible
+				// disabling for now..
+				//if (allSelectedRowsVisible) {
+				{
 					for (int i = 0; i < sortedRows.size(); i++) {
 						TableRowSWT row = sortedRows.get(i);
 						boolean visible = i >= iTopIndex && i <= iBottomIndex;
@@ -4440,18 +4445,18 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					}
 
 					// visibleRowsChanged() will setTableItem for the rest
-				} else {
-					for (int i = 0; i < sortedRows.size(); i++) {
-						boolean visible = i >= iTopIndex && i <= iBottomIndex;
-						TableRowSWT row = sortedRows.get(i);
-						if (row.setTableItem(i, visible)) {
-							iNumMoves++;
-						} else {
-							if (row instanceof TableRowImpl) {
-								((TableRowImpl) row).setShown(visible, false);
-							}
-						}
-					}
+				//} else {
+				//	for (int i = 0; i < sortedRows.size(); i++) {
+				//		boolean visible = i >= iTopIndex && i <= iBottomIndex;
+				//		TableRowSWT row = sortedRows.get(i);
+				//		if (row.setTableItem(i, visible)) {
+				//			iNumMoves++;
+				//		} else {
+				//			if (row instanceof TableRowImpl) {
+				//				((TableRowImpl) row).setShown(visible, false);
+				//			}
+				//		}
+				//	}
 				}
 			} finally {
 				sortedRows_mon.exit();
@@ -4492,8 +4497,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					if (bFollowSelected) {
 						table.setSelection(newSelectedRowIndices);
 					} else {
-						table.deselectAll();
-						table.select(newSelectedRowIndices);
+						// OMG, on tree, deselect all takes forever!
+						//table.deselectAll();
+						//table.select(newSelectedRowIndices);
+						table.setSelection(newSelectedRowIndices);
 					}
 					setSelectedRowIndexes(table.getSelectionIndices());
 				}
@@ -4629,8 +4636,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				try {
 					sortedRows_mon.enter();
 					for (int i = iTopIndex; i < tmpIndex && i < sortedRows.size(); i++) {
-						//TableRowSWT row = (TableRowSWT) getRow(i);
-						TableRowCore row = getRowQuick(i);
+						// can't use getRowQuick.. we getRow does setTableItem
+						TableRowSWT row = (TableRowSWT) getRow(i);
+						//TableRowCore row = getRowQuick(i);
 						if (row != null) {
 							row.setAlternatingBGColor(true);
 							row.refresh(true, true);
@@ -4675,8 +4683,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				try {
 					sortedRows_mon.enter();
 					for (int i = tmpIndex + 1; i <= iBottomIndex && i < sortedRows.size(); i++) {
-						//TableRowSWT row = (TableRowSWT) getRow(i);
-						TableRowCore row = getRowQuick(i);
+						TableRowSWT row = (TableRowSWT) getRow(i);
+						// can't use getRowQuick.. we getRow does setTableItem
+						//TableRowCore row = getRowQuick(i);
 						if (row != null) {
 							row.setAlternatingBGColor(true);
 							// needed?  we'll get paintitems for each...
