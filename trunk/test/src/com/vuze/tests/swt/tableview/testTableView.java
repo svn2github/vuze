@@ -24,7 +24,7 @@ public class testTableView
 {
 	private static TableViewSWTImpl<TableViewTestDS> tv;
 
-	private static boolean pause = false;
+	private static boolean pause = true;
 
 	public static void main(String[] args) {
 		Display display = new Display();
@@ -109,9 +109,18 @@ public class testTableView
 
 		Button btnPauseRefresh = new Button(cBottom, SWT.TOGGLE);
 		btnPauseRefresh.setText("Pause");
+		btnPauseRefresh.setSelection(pause);
 		btnPauseRefresh.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				pause = !pause;
+			}
+		});
+
+		Button btnManualRefresh = new Button(cBottom, SWT.PUSH);
+		btnManualRefresh.setText("Manual Refresh");
+		btnManualRefresh.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				tv.refreshTable(false);
 			}
 		});
 
