@@ -228,10 +228,7 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
      */
     protected boolean isEnabled()
     {
-        // simple check with classpath
-        boolean b = System.getProperty("java.class.path").toLowerCase().indexOf(CLASS_PATH) != -1;
-        System.out.println("isEnabled=" + b + ";" + System.getProperty("java.class.path"));
-        return true;
+    	return claNSAutoreleasePool != null;
     }
 
     // class utility methods
