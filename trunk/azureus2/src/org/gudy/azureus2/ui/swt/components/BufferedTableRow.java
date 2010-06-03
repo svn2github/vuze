@@ -23,17 +23,14 @@ package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Widget;
 
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.table.*;
-import org.gudy.azureus2.ui.swt.views.table.impl.TreeItemDelegate;
+import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
+import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
 /**
  * A buffered Table Row.
@@ -711,15 +708,16 @@ BufferedTableRow
     // unlink old item from tablerow
     if (lastItemExisted && item.getData("TableRow") == this && !newRow.equals(item)) {
     	item.setData("TableRow", null);
+    	/*
   		int numColumns = table.getColumnCount();
   		for (int i = 0; i < numColumns; i++) {
         try {
         	//item.setImage(i, null);
         	item.setForeground(i, null);
         } catch (NoSuchMethodError e) {
-          /* Ignore for Pre 3.0 SWT.. */
         }
   		}
+  		*/
     }
 
     boolean wasExpanded = lastItemExisted ? item.getExpanded() : false;
@@ -727,7 +725,7 @@ BufferedTableRow
 		item.setItemCount(numSubItems);
 		item.setExpanded(wasExpanded);
 		expanded = wasExpanded;
-		if (newRowHadItem && isVisible) {
+		if (newRowHadItem && isVisible && !inPaintItem()) {
 			//invalidate();
 			// skip the visibility check and SWT thread wrapping of invalidate
 			Rectangle r = item.getBounds(0);
