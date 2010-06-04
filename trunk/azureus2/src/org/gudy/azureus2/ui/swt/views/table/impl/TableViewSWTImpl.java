@@ -4638,12 +4638,18 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	// @see com.aelitis.azureus.ui.common.table.TableView#selectAll()
 	public void selectAll() {
 		if (table != null && !table.isDisposed()) {
-			ensureAllRowsHaveIndex();
+			// Used to ensure all rows have index, but I don't see a reason why.
+			// Uses a lot of CPU, so kill it :)
+			//ensureAllRowsHaveIndex();
 			table.selectAll();
 			updateSelectedRowIndexes();
 
-			triggerSelectionListeners(getSelectedRows());
-			triggerTabViewsDataSourceChanged();
+			Utils.getOffOfSWTThread(new AERunnable() {
+				public void runSupport() {
+					triggerSelectionListeners(getSelectedRows());
+					triggerTabViewsDataSourceChanged();
+				}
+			});
 		}
 	}
 
