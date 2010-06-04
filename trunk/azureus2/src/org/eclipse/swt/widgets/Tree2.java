@@ -18,6 +18,7 @@
 
 package org.eclipse.swt.widgets;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +43,55 @@ public class Tree2
 	protected void checkSubclass() {
 		// skip check
 	};
+
+	// @see org.eclipse.swt.widgets.Tree#createHandle()
+	void createHandle() {
+		// lucky for us, other platforms have a super.createHandle too
+		super.createHandle();
+		//if (explorerTheme) {
+		//	int bits2 = (int)/*64*/OS.SendMessage (handle, OS.TVM_GETEXTENDEDSTYLE, 0, 0);
+		//	bits2 &= ~OS.TVS_EX_FADEINOUTEXPANDOS;
+		//	OS.SendMessage (handle, OS.TVM_SETEXTENDEDSTYLE, 0, bits2);
+		//}
+
+		try {
+			Class<?> claOS = Class.forName("org.eclipse.swt.internal.win32.OS");
+
+			int TVM_GETEXTENDEDSTYLE = ((Number) claOS.getField(
+					"TVM_GETEXTENDEDSTYLE").get(null)).intValue();
+			int TVM_SETEXTENDEDSTYLE = ((Number) claOS.getField(
+					"TVM_SETEXTENDEDSTYLE").get(null)).intValue();
+			int TVS_EX_FADEINOUTEXPANDOS = ((Number) claOS.getField(
+					"TVS_EX_FADEINOUTEXPANDOS").get(null)).intValue();
+
+			Field fldHandle = this.getClass().getField("handle");
+			Class<?> handleType = fldHandle.getType();
+			if (handleType == int.class) {
+				Method methSendMessage = claOS.getMethod("SendMessage", int.class,
+						int.class, int.class, int.class);
+				Number nbits2 = (Number) methSendMessage.invoke(null,
+						fldHandle.get(this), TVM_GETEXTENDEDSTYLE, 0, 0);
+				int bits2 = nbits2.intValue() & (~TVS_EX_FADEINOUTEXPANDOS);
+
+				methSendMessage.invoke(null, ((Number) fldHandle.get(this)).intValue(),
+						TVM_SETEXTENDEDSTYLE, 0, bits2);
+			} else {
+				Method methSendMessage = claOS.getMethod("SendMessage", long.class,
+						int.class, long.class, long.class);
+
+				Number nbits2 = (Number) methSendMessage.invoke(null,
+						fldHandle.get(this), TVM_GETEXTENDEDSTYLE, 0, 0);
+				long bits2 = nbits2.longValue() & (~TVS_EX_FADEINOUTEXPANDOS);
+
+				methSendMessage.invoke(null,
+						((Number) fldHandle.get(this)).longValue(), TVM_SETEXTENDEDSTYLE,
+						0, bits2);
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
 
 	int widgetStyle() {
 		/* I was going to go with this code, but OSX doesn't ahve widgetStyle,
