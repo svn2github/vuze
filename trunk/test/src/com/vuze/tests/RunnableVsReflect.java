@@ -26,6 +26,14 @@ import org.gudy.azureus2.core3.util.AERunnable;
  * @author TuxPaper
  * @created Jun 4, 2010
  *
+ * My Results:
+
+10000000 calls:
+direct took 9ms
+reflect with cache took 210ms
+basic reflect took 2693ms
+AERunnable took 127ms
+
  */
 public class RunnableVsReflect
 {
