@@ -708,6 +708,7 @@ BufferedTableRow
     // unlink old item from tablerow
     if (lastItemExisted && item.getData("TableRow") == this && !newRow.equals(item)) {
     	item.setData("TableRow", null);
+    	table.deselect(item);
     	/*
   		int numColumns = table.getColumnCount();
   		for (int i = 0; i < numColumns; i++) {
