@@ -2759,7 +2759,9 @@ DHTControlImpl
 				
 				int	c_factor = router.getK();
 				
-				if ( adapter.getStorageAdapter().getNetwork() != DHT.NW_CVS ){
+				DHTStorageAdapter sad = adapter.getStorageAdapter();
+				
+				if ( sad != null && sad.getNetwork() != DHT.NW_CVS ){
 					
 					c_factor += ( c_factor/2 );
 				}
