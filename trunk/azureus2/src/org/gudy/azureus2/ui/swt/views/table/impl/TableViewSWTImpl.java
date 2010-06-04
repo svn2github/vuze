@@ -4487,9 +4487,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					int index = selectedRows[i].getIndex();
 					int iNewPos = (selectedRows[i] == focusedRow) ? 0 : pos++;
 					//System.out.println("new selected, index=" + index + ";row=" + selectedRows[i].getDataSource(true));
-					newSelectedRowIndices[iNewPos] = index;
-					if (Arrays.binarySearch(selectedRowIndices, index) >= 0) {
-						numSame++;
+					if (iNewPos < newSelectedRowIndices.length) {
+  					newSelectedRowIndices[iNewPos] = index;
+  					if (Arrays.binarySearch(selectedRowIndices, index) >= 0) {
+  						numSame++;
+  					}
 					}
 				}
 
