@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Widget;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
@@ -68,6 +69,9 @@ public class TableViewSWT_PaintItem
 	 * @param rowIndex 
 	 */
 	protected void paintItem(Event event, int rowIndex) {
+		//if (event.index == 1 && rowIndex == 0) {
+		//	System.out.println("paintItem " + event.gc.getClipping() +":" + rowIndex + ":" + event.detail + ": " + Debug.getCompressedStackTrace());
+		//}
 		try {
 			//System.out.println(event.gc.getForeground().getRGB().toString());
 			//System.out.println("paintItem " + event.gc.getClipping());
@@ -117,11 +121,12 @@ public class TableViewSWT_PaintItem
 			//System.out.println("cb=" + cellBounds + ";b=" + event.getBounds() + ";clip=" + event.gc.getClipping());
 			Rectangle origClipping = event.gc.getClipping();
 
-			if (!origClipping.isEmpty()
-					&& (origClipping.width < cellBounds.width || origClipping.height < cellBounds.height)) {
+			if (origClipping.isEmpty()
+					|| (origClipping.width >= cellBounds.width && origClipping.height >= cellBounds.height)) {
 				table.setData("fullPaint", Boolean.TRUE);
 			} else {
 				table.setData("fullPaint", Boolean.FALSE);
+				//System.out.println("not full paint: " + origClipping + ";cellbounds=" + cellBounds);
 			}
 
 			table.setData("curCellBounds", cellBounds);
