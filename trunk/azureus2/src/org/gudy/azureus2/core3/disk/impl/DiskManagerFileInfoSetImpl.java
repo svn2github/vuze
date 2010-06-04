@@ -77,9 +77,53 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 		try	{
 			dmState.suppressStateSave(true);
 			
-			if (!setSkipped && !Arrays.equals(toChange, setStorageTypes(toChange, DiskManagerFileInfo.ST_LINEAR)))
-				return;
+			if (!setSkipped ){
+				
+				String[] types = diskManager.getStorageTypes();
+
+				boolean[]	toLinear 	= new boolean[toChange.length];
+				boolean[]	toReorder 	= new boolean[toChange.length];
+				
+				int	num_linear 	= 0;
+				int num_reorder	= 0;
+				
+				for ( int i=0;i<toChange.length;i++){
+					
+					if ( toChange[i] ){
+						
+						int old_type = DiskManagerUtil.convertDMStorageTypeFromString( types[i] );
+						
+						if ( old_type == DiskManagerFileInfo.ST_COMPACT ){
+							
+							toLinear[i] = true;
+							
+							num_linear++;
+							
+						}else if ( old_type == DiskManagerFileInfo.ST_REORDER_COMPACT ){
+							
+							toReorder[i] = true;
+							
+							num_reorder++;
+						}
+					}	
+				}
+				
+				if ( num_linear > 0 ){
+					
+					if (!Arrays.equals(toLinear, setStorageTypes(toLinear, DiskManagerFileInfo.ST_LINEAR))){
+						
+						return;
+					}
+				}
 			
+				if ( num_reorder > 0 ){
+					
+					if (!Arrays.equals(toReorder, setStorageTypes(toReorder, DiskManagerFileInfo.ST_REORDER ))){
+						
+						return;
+					}
+				}
+			}
 			for (int i = 0; i < files.length; i++)
 				if (toChange[i])
 				{

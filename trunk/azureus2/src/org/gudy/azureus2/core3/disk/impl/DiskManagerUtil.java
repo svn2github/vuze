@@ -378,8 +378,51 @@ DiskManagerUtil
 					if(toChange.length != res.length)
 						throw new IllegalArgumentException("array length mismatches the number of files");
 					
-	        		if (!setSkipped && !Arrays.equals(toChange,setStorageTypes(toChange, FileSkeleton.ST_LINEAR))){
-	        			return;
+	        		if (!setSkipped ){
+	    				String[] types = DiskManagerImpl.getStorageTypes(download_manager);
+
+	    				boolean[]	toLinear 	= new boolean[toChange.length];
+	    				boolean[]	toReorder 	= new boolean[toChange.length];
+	    				
+	    				int	num_linear 	= 0;
+	    				int num_reorder	= 0;
+	    				
+	    				for ( int i=0;i<toChange.length;i++){
+	    					
+	    					if ( toChange[i] ){
+	    						
+	    						int old_type = DiskManagerUtil.convertDMStorageTypeFromString( types[i] );
+	    						
+	    						if ( old_type == DiskManagerFileInfo.ST_COMPACT ){
+	    							
+	    							toLinear[i] = true;
+	    							
+	    							num_linear++;
+	    							
+	    						}else if ( old_type == DiskManagerFileInfo.ST_REORDER_COMPACT ){
+	    							
+	    							toReorder[i] = true;
+	    							
+	    							num_reorder++;
+	    						}
+	    					}	
+	    				}
+	    				
+	    				if ( num_linear > 0 ){
+	    					
+	    					if (!Arrays.equals(toLinear, setStorageTypes(toLinear, DiskManagerFileInfo.ST_LINEAR))){
+	    						
+	    						return;
+	    					}
+	    				}
+	    			
+	    				if ( num_reorder > 0 ){
+	    					
+	    					if (!Arrays.equals(toReorder, setStorageTypes(toReorder, DiskManagerFileInfo.ST_REORDER ))){
+	    						
+	    						return;
+	    					}
+	    				}
 	        		}
 	        		
 					for(int i=0;i<res.length;i++)
@@ -396,7 +439,7 @@ DiskManagerUtil
 							listener.filePriorityChanged(res[i]);
 				}
 	
-				public boolean[] setStorageTypes(boolean[] toChange, int newStroageType) {
+				public boolean[] setStorageTypes(boolean[] toChange, int newStorageType) {
 					if(toChange.length != res.length)
 						throw new IllegalArgumentException("array length mismatches the number of files");
 					
@@ -421,7 +464,7 @@ DiskManagerUtil
 	
 							//System.out.println(old_type + " <> " + newStroageType);
 	
-							if ( newStroageType == old_type )
+							if ( newStorageType == old_type )
 							{
 								modified[i] = true;
 								continue;
@@ -466,11 +509,11 @@ DiskManagerUtil
 												}
 											},
 											target_file,
-											DiskManagerUtil.convertDMStorageTypeToCache( newStroageType ));
+											DiskManagerUtil.convertDMStorageTypeToCache( newStorageType ));
 	
 									cache_file.close();
 	
-									toSkip[i] = ( newStroageType == FileSkeleton.ST_COMPACT || newStroageType == FileSkeleton.ST_REORDER_COMPACT )&& !res[i].isSkipped();
+									toSkip[i] = ( newStorageType == FileSkeleton.ST_COMPACT || newStorageType == FileSkeleton.ST_REORDER_COMPACT )&& !res[i].isSkipped();
 									if(toSkip[i])
 										toSkipCount++;
 								}
@@ -494,7 +537,7 @@ DiskManagerUtil
 	
 							}
 	
-							types[i] = DiskManagerUtil.convertDMStorageTypeToString( newStroageType );
+							types[i] = DiskManagerUtil.convertDMStorageTypeToString( newStorageType );
 						}
 						
 						/*
@@ -530,7 +573,7 @@ DiskManagerUtil
 	
 						DiskManagerImpl.storeFileDownloaded( download_manager, res, true );
 	
-						doFileExistenceChecks(this, toChange, download_manager, newStroageType == FileSkeleton.ST_LINEAR);
+						doFileExistenceChecks(this, toChange, download_manager, newStorageType == FileSkeleton.ST_LINEAR || newStorageType == FileSkeleton.ST_REORDER );
 	
 					} finally {
 						dmState.suppressStateSave(false);
