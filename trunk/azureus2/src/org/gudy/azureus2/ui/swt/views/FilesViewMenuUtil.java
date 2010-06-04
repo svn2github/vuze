@@ -428,8 +428,12 @@ public class FilesViewMenuUtil
 		int nbFiles = manager.getDiskManagerFileInfoSet().nbFiles();
 		boolean[] setLinear = new boolean[nbFiles];
 		boolean[] setCompact = new boolean[nbFiles];
+		boolean[] setReorder = new boolean[nbFiles];
+		boolean[] setReorderCompact = new boolean[nbFiles];
 		int compactCount = 0;
 		int linearCount = 0;
+		int reorderCount = 0;
+		int reorderCompactCount = 0;
 
 		if (infos.length > 1) {
 
@@ -444,7 +448,16 @@ public class FilesViewMenuUtil
 
 		for (int i = 0; i < infos.length; i++) {
 			int existing_storage_type = existing_storage_types[i];
-			int new_storage_type = DiskManagerFileInfo.ST_LINEAR;
+			int compact_target;
+			int non_compact_target;
+			if ( existing_storage_type == DiskManagerFileInfo.ST_COMPACT || existing_storage_type == DiskManagerFileInfo.ST_LINEAR ){
+				compact_target 		= DiskManagerFileInfo.ST_COMPACT;
+				non_compact_target	= DiskManagerFileInfo.ST_LINEAR;
+			}else{
+				compact_target 		= DiskManagerFileInfo.ST_REORDER_COMPACT;
+				non_compact_target	= DiskManagerFileInfo.ST_REORDER;
+			}
+			int new_storage_type;
 			if (skipped) {
 
 				// Check to see if the file exists, but try to avoid doing an
@@ -479,29 +492,45 @@ public class FilesViewMenuUtil
 
 						boolean wants_to_delete = mb.waitUntilClosed() == SWT.OK;
 
-						if (wants_to_delete) {
-							new_storage_type = DiskManagerFileInfo.ST_COMPACT;
+						if ( wants_to_delete ){
+							
+							new_storage_type = compact_target;
+							
+						}else{
+							
+							new_storage_type = non_compact_target;
 						}
+					}else{
+						
+						new_storage_type = non_compact_target;
 					}
 				}
 				// File does not exist.
 				else {
-					new_storage_type = DiskManagerFileInfo.ST_COMPACT;
+					new_storage_type = compact_target;
 				}
+			}else{
+				new_storage_type = non_compact_target;
 			}
 
 			boolean has_changed = existing_storage_type != new_storage_type;
 			type_has_been_changed |= has_changed;
-			requires_pausing |= (has_changed && new_storage_type == DiskManagerFileInfo.ST_COMPACT);
+			requires_pausing |= (has_changed && ( new_storage_type == DiskManagerFileInfo.ST_COMPACT || new_storage_type == DiskManagerFileInfo.ST_REORDER_COMPACT ));
 
 			type_has_been_changed = existing_storage_type != new_storage_type;
 
 			if (new_storage_type == DiskManagerFileInfo.ST_COMPACT) {
 				setCompact[infos[i].getIndex()] = true;
 				compactCount++;
-			} else {
+			} else if (new_storage_type == DiskManagerFileInfo.ST_LINEAR) {
 				setLinear[infos[i].getIndex()] = true;
 				linearCount++;
+			} else if (new_storage_type == DiskManagerFileInfo.ST_REORDER) {
+				setReorder[infos[i].getIndex()] = true;
+				reorderCount++;
+			} else if (new_storage_type == DiskManagerFileInfo.ST_REORDER_COMPACT) {
+				setReorderCompact[infos[i].getIndex()] = true;
+				reorderCompactCount++;
 			}
 		}
 
@@ -520,6 +549,16 @@ public class FilesViewMenuUtil
 						setCompact,
 						manager.getDiskManagerFileInfoSet().setStorageTypes(setCompact,
 								DiskManagerFileInfo.ST_COMPACT));
+			if (reorderCount > 0)
+				ok &= Arrays.equals(
+						setReorder,
+						manager.getDiskManagerFileInfoSet().setStorageTypes(setReorder,
+								DiskManagerFileInfo.ST_REORDER));
+			if (reorderCompactCount > 0)
+				ok &= Arrays.equals(
+						setReorderCompact,
+						manager.getDiskManagerFileInfoSet().setStorageTypes(setReorderCompact,
+								DiskManagerFileInfo.ST_REORDER_COMPACT));
 		}
 
 		if (ok) {
