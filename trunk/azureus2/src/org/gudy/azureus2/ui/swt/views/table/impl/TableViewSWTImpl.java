@@ -4667,7 +4667,19 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#setSelectedRows(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void setSelectedRows(TableRowCore[] rows) {
+
+		//String s = "";
+		int[] selectedIndexes = new int[rows.length];
+		for (int i = 0; i < rows.length; i++) {
+			selectedIndexes[i] = rows[i].getIndex();
+			//s += selectedIndexes[i] + ", "; 
+		}
 		table.deselectAll();
+		table.setSelection(selectedIndexes);
+		
+		//System.out.println(s);
+
+		/* Old way of setting selection
 		for (int i = 0; i < rows.length; i++) {
 			TableRowCore row = rows[i];
 			if (row.getIndex() == -1) {
@@ -4680,6 +4692,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 			row.setSelected(true);
 		}
+		*/
 		updateSelectedRowIndexes();
 	}
 
