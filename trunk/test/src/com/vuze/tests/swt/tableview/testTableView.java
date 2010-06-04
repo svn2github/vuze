@@ -71,10 +71,7 @@ public class testTableView
 		
 		tv.setRowDefaultHeight(20);
 
-		for (int i = 0; i < 500; i++) {
-			tv.addDataSource(new TableViewTestDS() {
-			});
-		}
+		//addRows(500);
 
 		tv.addKeyListener(new KeyListener() {
 
@@ -84,7 +81,7 @@ public class testTableView
 			public void keyPressed(KeyEvent e) {
 				if (e.character == SWT.DEL) {
 					List<TableViewTestDS> sources = tv.getSelectedDataSources();
-					tv.removeDataSources((TableViewTestDS[]) sources.toArray(new TableViewTestDS[0]));
+					tv.removeDataSources(sources.toArray(new TableViewTestDS[0]));
 				} else if (e.keyCode == SWT.INSERT) {
 					TableViewTestDS ds = new TableViewTestDS();
 					ds.map.put("ID", new Double(3.1));
@@ -107,8 +104,44 @@ public class testTableView
 			}
 		});
 
+		Button btnAdd1 = new Button(cBottom, SWT.PUSH);
+		btnAdd1.setText("Add 1");
+		btnAdd1.setSelection(pause);
+		btnAdd1.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				addRows(1);
+			}
+		});
+
+		Button btnAdd10 = new Button(cBottom, SWT.PUSH);
+		btnAdd10.setText("Add 10");
+		btnAdd10.setSelection(pause);
+		btnAdd10.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				addRows(10);
+			}
+		});
+
+		Button btnAdd100 = new Button(cBottom, SWT.PUSH);
+		btnAdd100.setText("Add 100");
+		btnAdd100.setSelection(pause);
+		btnAdd100.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				addRows(100);
+			}
+		});
+
+		Button btnClear = new Button(cBottom, SWT.PUSH);
+		btnClear.setText("Clear");
+		btnClear.setSelection(pause);
+		btnClear.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				tv.removeAllTableRows();
+			}
+		});
+
 		Button btnPauseRefresh = new Button(cBottom, SWT.TOGGLE);
-		btnPauseRefresh.setText("Pause");
+		btnPauseRefresh.setText("Pause Refresh");
 		btnPauseRefresh.setSelection(pause);
 		btnPauseRefresh.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -172,6 +205,17 @@ public class testTableView
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
+		}
+	}
+
+	/**
+	 * @param i
+	 *
+	 * @since 4.4.0.5
+	 */
+	private static void addRows(int num) {
+		for (int i = 0; i < num; i++) {
+			tv.addDataSource(new TableViewTestDS());
 		}
 	}
 

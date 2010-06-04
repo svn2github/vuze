@@ -3,6 +3,7 @@ package com.vuze.tests.swt.tableview;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -40,7 +41,6 @@ public class CT_Live
 
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
-
 		int num = MapUtils.getMapInt(ds.map, ID_CELLPAINTS, 0) + 1;
 		ds.map.put(ID_CELLPAINTS, num);
 		GCStringPrinter.printString(gc, Integer.toString(num), cell.getBounds(), true, true, SWT.RIGHT);
