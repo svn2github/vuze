@@ -4505,6 +4505,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					setSelectedRowIndexes(table.getSelectionIndices());
 				}
 			}
+			
+			calculateClientArea();
 
 			if (DEBUG_SORTER) {
 				long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
