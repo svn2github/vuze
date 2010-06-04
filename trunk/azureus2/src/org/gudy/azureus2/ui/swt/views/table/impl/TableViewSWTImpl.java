@@ -3849,6 +3849,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 	
 	public boolean isSelected(TableRow row) {
+		int index = ((TableRowCore) row).getIndex();
+		if (index >= 0) {
+			Arrays.sort(selectedRowIndexes);
+			return Arrays.binarySearch(selectedRowIndexes, index) >= 0;
+		}
+
 		TableRowCore[] selectedRows = getSelectedRows();
 		for (TableRowCore selectedRow : selectedRows) {
 			if (selectedRow == row) {
