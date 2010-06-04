@@ -148,7 +148,7 @@ public class FilesViewMenuUtil
 				open = false;
 			}
 
-			if (all_compact && storage_types[i] != DiskManagerFileInfo.ST_COMPACT) {
+			if (all_compact && storage_types[i] != DiskManagerFileInfo.ST_COMPACT && storage_types[i] != DiskManagerFileInfo.ST_REORDER_COMPACT ) {
 				all_compact = false;
 			}
 

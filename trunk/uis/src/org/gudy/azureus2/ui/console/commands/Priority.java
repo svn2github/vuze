@@ -202,7 +202,15 @@ public class Priority extends OptionsConsoleCommand {
 					files[i].setPriority(false);
 					files[i].setSkipped(true);
 				} else if (newprio == DELETE) {
-					if (files[i].setStorageType(DiskManagerFileInfo.ST_COMPACT)) {
+					int st = files[i].getStorageType();
+					int target_st = -1;
+					if ( st == DiskManagerFileInfo.ST_LINEAR ){
+						target_st = DiskManagerFileInfo.ST_COMPACT;
+					}else if ( st == DiskManagerFileInfo.ST_REORDER ){
+						target_st = DiskManagerFileInfo.ST_REORDER_COMPACT;
+					}
+					if (target_st != -1 &&
+						files[i].setStorageType(target_st)) {
 						files[i].setPriority(false);
 						files[i].setSkipped(true);
 					} else {

@@ -133,6 +133,7 @@ public class ConfigurationDefaults {
 
     def.put("Override Ip", "");
     def.put("Enable incremental file creation", FALSE);
+    def.put("Enable reorder storage mode", FALSE);
     
     def.put("TCP.Listen.Port", new Long( 6881 ));
     def.put("TCP.Listen.Port.Enable", TRUE );

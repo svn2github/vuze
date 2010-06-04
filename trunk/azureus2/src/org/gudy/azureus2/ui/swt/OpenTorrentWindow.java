@@ -2270,6 +2270,9 @@ public class OpenTorrentWindow
 				{
 					public void initialised(DownloadManager dm) {
 						DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
+						
+						boolean	reorder_mode = COConfigurationManager.getBooleanParameter( "Enable reorder storage mode" );
+						
 						try
 						{
 							dm.getDownloadState().suppressStateSave(true);
@@ -2302,8 +2305,7 @@ public class OpenTorrentWindow
 									}
 								}
 							}
-							
-							dm.getDiskManagerFileInfoSet().setStorageTypes(toCompact, DiskManagerFileInfo.ST_COMPACT);
+							dm.getDiskManagerFileInfoSet().setStorageTypes(toCompact, reorder_mode?DiskManagerFileInfo.ST_REORDER_COMPACT:DiskManagerFileInfo.ST_COMPACT);
 							dm.getDiskManagerFileInfoSet().setSkipped(toSkip, true);
 						} finally
 						{

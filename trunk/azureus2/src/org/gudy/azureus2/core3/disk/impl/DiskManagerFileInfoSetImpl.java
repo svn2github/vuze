@@ -107,7 +107,7 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 		boolean[] modified = new boolean[files.length];
 		DownloadManagerState	dm_state = diskManager.getDownloadState();
 
-		if (newStroageType == DiskManagerFileInfo.ST_COMPACT)
+		if (newStroageType == DiskManagerFileInfo.ST_COMPACT || newStroageType == DiskManagerFileInfo.ST_REORDER_COMPACT)
 		{
 			Debug.out("Download must be stopped for linear -> compact conversion");
 			return modified;

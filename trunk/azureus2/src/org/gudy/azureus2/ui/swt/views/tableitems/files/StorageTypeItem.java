@@ -52,10 +52,13 @@ public class StorageTypeItem
     if (fileInfo == null) {
       tmp = "";
     } else {
-      if (fileInfo.getStorageType() == DiskManagerFileInfo.ST_LINEAR ){
+      int st = fileInfo.getStorageType();
+      if (st == DiskManagerFileInfo.ST_LINEAR ){
         tmp = MessageText.getString("FileItem.storage.linear");
-      }else{
+      }else if ( st == DiskManagerFileInfo.ST_COMPACT ){
         tmp = MessageText.getString("FileItem.storage.compact");
+      }else{
+    	tmp = MessageText.getString("FileItem.storage.reorder");
       }
     }
     cell.setText(tmp);

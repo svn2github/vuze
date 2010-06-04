@@ -55,7 +55,8 @@ public class PriorityItem
 			tmp = "";
 		else
 		{
-			if(fileInfo.getStorageType() == DiskManagerFileInfo.ST_COMPACT && fileInfo.isSkipped())
+			int	st = fileInfo.getStorageType();
+			if((st == DiskManagerFileInfo.ST_COMPACT || st == DiskManagerFileInfo.ST_REORDER_COMPACT ) && fileInfo.isSkipped())
 			{
 				tmp = MessageText.getString("FileItem.delete");
 				sortval = 1;				

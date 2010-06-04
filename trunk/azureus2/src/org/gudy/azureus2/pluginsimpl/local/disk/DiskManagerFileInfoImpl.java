@@ -64,20 +64,51 @@ public class DiskManagerFileInfoImpl
 	public void
 	setDeleted(boolean b)
 	{
+		int st = core.getStorageType();
+		
+		int	target_st;
+		
 		if ( b ){
-						
-			core.setStorageType( org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_COMPACT );
+			
+			if ( st == org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_LINEAR ){
+				
+				target_st = org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_COMPACT;
+				
+			}else if ( st == org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_REORDER ){
+				
+				target_st = org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_REORDER_COMPACT;
+				
+			}else{
+				
+				return;
+			}
 			
 		}else{
 			
-			core.setStorageType( org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_LINEAR );
+			if ( st == org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_COMPACT ){
+				
+				target_st = org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_LINEAR;
+				
+			}else if ( st == org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_REORDER_COMPACT ){
+				
+				target_st = org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_REORDER;
+				
+			}else{
+				
+				return;
+			}		
 		}
+		
+		core.setStorageType( target_st );
+
 	}
 	
 	public boolean
 	isDeleted()
 	{
-		return( core.getStorageType() ==  org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_COMPACT );
+		int st = core.getStorageType();
+		
+		return( st ==  org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_COMPACT || st == org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_REORDER_COMPACT );
 	}
 	
 	public void

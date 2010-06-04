@@ -29,6 +29,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.access.DMAccessFactory;
 import org.gudy.azureus2.core3.disk.impl.access.DMChecker;
@@ -113,6 +114,22 @@ DiskManagerImpl
     getDefaultDiskAccessController()
     {
         return( disk_access_controller );
+    }
+    
+    private static boolean reorder_storage_mode;
+    
+    static{
+    	COConfigurationManager.addAndFireParameterListener(
+    		"Enable reorder storage mode",
+    		new ParameterListener()
+    		{
+    			public void 
+    			parameterChanged(
+    				String parameterName ) 
+    			{
+    				reorder_storage_mode = COConfigurationManager.getBooleanParameter( "Enable reorder storage mode" );
+    			}
+    		});
     }
     
     private static DiskManagerRecheckScheduler      recheck_scheduler       = new DiskManagerRecheckScheduler();
@@ -2702,7 +2719,7 @@ DiskManagerImpl
         if (types.length == 0) {
             types = new String[download_manager.getTorrent().getFiles().length];
             for (int i=0; i<types.length; i++){
-                types[i] = "L"; 
+                types[i] = reorder_storage_mode?"R":"L"; 
             }
         }
         return( types );
@@ -2713,7 +2730,7 @@ DiskManagerImpl
         DownloadManagerState state = download_manager.getDownloadState();
         String type = state.getListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES,fileIndex);
         
-        return type != null ? type : "L"; 
+        return type != null ? type : (reorder_storage_mode?"R":"L" );
     }
     
     public static void

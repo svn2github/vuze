@@ -572,6 +572,12 @@ DiskManagerUtil
 	            			}
 	            		}
 	
+	            		if ( !_skipped && getStorageType() == ST_REORDER_COMPACT ){
+	            			if ( !setStorageType( ST_REORDER )){
+	            				return;
+	            			}
+	            		}
+
 	            		skipped = _skipped;
 	
 	            		DiskManagerImpl.storeFilePriorities( download_manager, res );
