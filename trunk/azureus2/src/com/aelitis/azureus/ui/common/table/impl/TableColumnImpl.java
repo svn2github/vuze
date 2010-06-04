@@ -1476,9 +1476,10 @@ public class TableColumnImpl
 			iPreferredWidth = width;
 		}
 
-		if (bColumnAdded && bVisible) {
-			triggerColumnSizeChange();
-		}
+		// Commented out because size hasn't changed!
+		//if (bColumnAdded && bVisible) {
+		//	triggerColumnSizeChange();
+		//}
 	}
 	
 	public void setAutoTooltip(boolean auto_tooltip) {
