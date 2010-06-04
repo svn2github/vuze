@@ -53,7 +53,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
-import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.IViewExtension;
 import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow;
@@ -108,9 +107,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	TableStructureModificationListener<DATASOURCETYPE>, ObfusticateImage,
 	KeyListener
 {
-	private final static boolean DRAW_VERTICAL_LINES = Constants.isWindows;
+	protected final static boolean DRAW_VERTICAL_LINES = Constants.isWindows;
 
-	private static final boolean DRAW_FULL_ROW = Constants.isWindows;
+	protected static final boolean DRAW_FULL_ROW = Constants.isWindows;
 
 	private final static LogIDs LOGID = LogIDs.GUI;
 
@@ -125,6 +124,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private static final long BREAKOFF_ADDROWSTOSWT = 800;
 
+	// If you change this to true, check usage to see if we aren't doing SWT
+	// stuff on a non-SWT thread
 	private static final boolean TRIGGER_PAINT_ON_SELECTIONS = false;
 
 	private static final int ASYOUTYPE_MODE_FIND = 0;
@@ -134,7 +135,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private static final Color COLOR_FILTER_REGEX	= Colors.fadedYellow;
 	
-	private static final boolean DEBUG_CELL_CHANGES = false;
+	protected static final boolean DEBUG_CELL_CHANGES = false;
 
 	/** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
 	 * of the table this class is
@@ -155,7 +156,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	/** 1st column gap problem (Eclipse Bug 43910).  Set to true when table is 
 	 * using TableItem.setImage 
 	 */
-	private boolean bSkipFirstColumn = true;
+	protected boolean bSkipFirstColumn = true;
 
 	private Point ptIconSize = null;
 
@@ -247,9 +248,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	/** TabViews */
 	private ArrayList<IView> tabViews = new ArrayList<IView>(1);
 
-	private int lastTopIndex = 0;
+	protected int lastTopIndex = 0;
 
-	private int lastBottomIndex = -1;
+	protected int lastBottomIndex = -1;
 
 	protected IView[] coreTabViews = null;
 
@@ -277,9 +278,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private ArrayList<TableRowRefreshListener> refreshListeners;
 
-	private Font fontBold;
-
-	private Rectangle clientArea;
+	/**
+	 * Up to date table client area.  So far, the best places to refresh
+	 * this variable are in the PaintItem event and the scrollbar's events.
+	 * Typically table.getClientArea() is time consuming 
+	 */
+	protected Rectangle clientArea;
 
 	private boolean isVisible;
 
@@ -332,7 +336,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private boolean useTree;
 
-	private int headerHeight;
+	protected int headerHeight;
 
 
 	/**
@@ -771,95 +775,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 
-		table.addListener(SWT.PaintItem, new Listener() {
-			Widget lastItem;
-			int lastRowIndex = -1;
-
-			public void handleEvent(Event event) {
-
-				if (event.gc.getClipping().isEmpty()) {
-					return;
-				}
-
-				if (!table.isEnabled()) {
-					// added disable affect
-					event.gc.setAlpha(192);
-				}
-				
-				table.setData("inPaintItem", event.item);
-				table.setData("curCellIndex", event.index);
-
-				if (event.item != lastItem) {
-  				table.setData("lastIndex", null);
-  				lastRowIndex = table.indexOf(event.item);
-  				table.setData("lastIndex", lastRowIndex);
-				}
-				
-				//visibleRowsChanged();
-				paintItem(event, lastRowIndex);
-
-				lastItem = event.item;
-				table.setData("inPaintItem", null);
-				table.setData("curCellBounds", null);
-			}
-		});
+		table.addListener(SWT.PaintItem, new TableViewSWT_PaintItem(this, table));
 
 		if (DRAW_FULL_ROW || DRAW_VERTICAL_LINES) {
-		// OSX SWT (3624) Requires SWT.EraseItem hooking, otherwise foreground
-		// color will not be set correctly when row is selected.
-		// Hook listener for all OSes in case this requirement beomes xplatform
-		// See https://bugs.eclipse.org/bugs/show_bug.cgi?id=312734
-		// See https://bugs.eclipse.org/bugs/show_bug.cgi?id=312735
-		table.addListener(SWT.EraseItem, new Listener() {
-			final Color[] alternatingColors = new Color[] {
-				null,
-				Colors.colorAltRow
-			};
-
-			public void handleEvent(Event event) {
-				TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
-				Rectangle bounds = event.getBounds();
-
-				if (DRAW_FULL_ROW
-						&& (event.detail & (SWT.HOT | SWT.SELECTED | SWT.FOCUSED)) == 0) {
-					
-					int pos;
-					TableItemOrTreeItem parentItem = item.getParentItem();
-					if (parentItem != null) {
-						pos = parentItem.indexOf(item) + ((table.indexOf(parentItem) + 1) % 2);
-					} else {
-						pos = table.indexOf(item);
-					}
-					Color color = alternatingColors[pos % 2];
-					if (color != null) {
-						event.gc.setBackground(color);
-					}
-					Rectangle drawBounds = bounds;
-					if (event.index == table.getColumnCount() - 1) {
-						calculateClientArea();
-						drawBounds = new Rectangle(bounds.x, bounds.y, clientArea.x + clientArea.width - bounds.x, bounds.height);
-						event.gc.setClipping(drawBounds);
-						//System.out.println(bounds.width);
-					}
-					event.gc.fillRectangle(drawBounds);
-					event.detail &= ~SWT.BACKGROUND;
-				}
-
-				// Vertical lines between columns
-				if (DRAW_VERTICAL_LINES) {
-					if (item != null && (bounds.width == item.getParent().getColumn(event.index).getWidth())) {
-						//System.out.println(bounds.width + ";" + item.getParent().getColumn(event.index).getWidth());
-  					Color fg = event.gc.getForeground();
-  					event.gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST + 1]);
-  					//event.gc.setAlpha(40);
-  					event.gc.setClipping((Rectangle)null);
-  					event.gc.drawLine(bounds.x + bounds.width - 1, bounds.y - 1, bounds.x
-  							+ bounds.width - 1, bounds.y + bounds.height);
-  					event.gc.setForeground(fg);
-					}
-				}
-			}
-		});
+			table.addListener(SWT.EraseItem, new TableViewSWT_EraseItem(this, table));
 		}
 
 		//table.addListener(SWT.Paint, new Listener() {
@@ -872,12 +791,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (horizontalBar != null) {
 			horizontalBar.addSelectionListener(new SelectionListener() {
 				public void widgetDefaultSelected(SelectionEvent e) {
-					calculateClientArea();
+					swt_calculateClientArea();
 					//updateColumnVisibilities();
 				}
 
 				public void widgetSelected(SelectionEvent e) {
-					calculateClientArea();
+					swt_calculateClientArea();
 					//updateColumnVisibilities();
 				}
 			});
@@ -1195,7 +1114,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (bar != null) {
 			bar.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
-					calculateClientArea();
+					swt_calculateClientArea();
 					visibleRowsChanged();
 					// Bug: Scroll is slow when table is not focus
 					if (!table.isFocusControl()) {
@@ -1212,7 +1131,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		//firstClientArea = table.getClientArea();
 		table.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
-				calculateClientArea();
+				swt_calculateClientArea();
 			}
 		});
 
@@ -1322,7 +1241,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	public void keyReleased(KeyEvent event) {
-		calculateClientArea();
+		swt_calculateClientArea();
 		visibleRowsChanged();
 
 		Object[] listeners = listenersKey.toArray();
@@ -1342,12 +1261,18 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	public void setHeaderVisible(boolean visible) {
 		headerVisible = visible;
-		if (table != null && !table.isDisposed()) {
-			table.setHeaderVisible(visible);
-		}
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (table != null && !table.isDisposed()) {
+					table.setHeaderVisible(headerVisible);
+					headerHeight = table.getHeaderHeight();
+				}
+			}
+		});
 	}
 
-	protected void calculateClientArea() {
+	protected void swt_calculateClientArea() {
 		Rectangle oldClientArea = clientArea;
 		clientArea = table.getClientArea();
 		ScrollBar horizontalBar = table.getHorizontalBar();
@@ -1448,6 +1373,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	private boolean isDragging;
 
 	private void editCell(final int column, final int row) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_editCell(column, row);
+			}
+		});
+	}
+
+	private void swt_editCell(final int column, final int row) {
 		Text oldInput = (Text) editor.getEditor();
 		if (column >= table.getColumnCount() || row < 0
 				|| row >= table.getItemCount()) {
@@ -1643,196 +1576,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return event;
 	}
 
-	/**
-	 * @param event
-	 * @param rowIndex 
-	 */
-	protected void paintItem(Event event, int rowIndex) {
-		try {
-			//System.out.println(event.gc.getForeground().getRGB().toString());
-			//System.out.println("paintItem " + event.gc.getClipping());
-			if (DEBUG_CELL_CHANGES) {
-  			Random random = new Random(SystemTime.getCurrentTime() / 500);
-  			event.gc.setBackground(ColorCache.getColor(event.gc.getDevice(), 
-  					210 + random.nextInt(45), 
-  					210 + random.nextInt(45), 
-  					210 + random.nextInt(45)));
-  			event.gc.fillRectangle(event.gc.getClipping());
-			}
-			
-			TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
-			if (item == null || item.isDisposed()) {
-				return;
-			}
-			int iColumnNo = event.index;
-
-			//System.out.println(SystemTime.getCurrentTime() + "] paintItem " + table.indexOf(item) + ":" + iColumnNo);
-			if (bSkipFirstColumn) {
-				if (iColumnNo == 0) {
-					return;
-				}
-				iColumnNo--;
-			}
-
-			if (iColumnNo >= columnsOrdered.length) {
-				System.out.println("Col #" + iColumnNo + " >= " + columnsOrdered.length
-						+ " count");
-				return;
-			}
-
-			if (!isColumnVisible(columnsOrdered[iColumnNo])) {
-				//System.out.println("col not visible " + iColumnNo);
-				return;
-			}
-
-			if (rowIndex < lastTopIndex || rowIndex > lastBottomIndex) {
-				// this refreshes whole row (perhaps multiple), saving the many
-				// cell.refresh calls later because !cell.isUpToDate()
-				visibleRowsChanged();
-			}
-
-			Rectangle cellBounds = item.getBounds(event.index);
-
-			//System.out.println("cb=" + cellBounds + ";b=" + event.getBounds() + ";clip=" + event.gc.getClipping());
-			Rectangle origClipping = event.gc.getClipping();
-			
-			if (!origClipping.isEmpty() && (origClipping.width < cellBounds.width || origClipping.height < cellBounds.height)) {
-				table.setData("fullPaint", Boolean.TRUE);
-			} else {
-				table.setData("fullPaint", Boolean.FALSE);
-			}
-			
-			table.setData("curCellBounds", cellBounds);
-
-			TableRowSWT row = (TableRowSWT) getRow(item);
-			if (row == null) {
-				//cellBounds.width = table.getColumn(event.index).getWidth();
-				invokePaintListeners(event.gc, item, columnsOrdered[iColumnNo], cellBounds);
-				//System.out.println("no row");
-				return;
-			}
-
-			int rowAlpha = row.getAlpha();
-
-			int fontStyle = row.getFontStyle();
-			if (fontStyle == SWT.BOLD) {
-				if (fontBold == null) {
-					FontData[] fontData = event.gc.getFont().getFontData();
-					for (int i = 0; i < fontData.length; i++) {
-						FontData fd = fontData[i];
-						fd.setStyle(SWT.BOLD);
-					}
-					fontBold = new Font(event.gc.getDevice(), fontData);
-				}
-				event.gc.setFont(fontBold);
-			}
-
-			//if (item.getImage(event.index) != null) {
-			//	cellBounds.x += 18;
-			//	cellBounds.width -= 18;
-			//}
-
-			if (cellBounds.width <= 0 || cellBounds.height <= 0) {
-				//System.out.println("no bounds");
-				return;
-			}
-
-			TableCellSWT cell = row.getTableCellSWT(columnsOrdered[iColumnNo].getName());
-
-			if (cell == null) {
-				return;
-			}
-
-			if (!cell.isUpToDate()) {
-				//System.out.println("R " + table.indexOf(item) + ":" + iColumnNo);
-				cell.refresh(true, true);
-				//return;
-			}
-
-			String text = cell.getText();
-
-			Rectangle clipping = new Rectangle(cellBounds.x, cellBounds.y,
-					cellBounds.width, cellBounds.height);
-			// Cocoa calls paintitem while row is below tablearea, and painting there
-			// is valid!
-			if (!Utils.isCocoa) {
-				int iMinY = headerHeight + clientArea.y;
-
-  			if (clipping.y < iMinY) {
-  				clipping.height -= iMinY - clipping.y;
-  				clipping.y = iMinY;
-  			}
-  			int iMaxY = clientArea.height + clientArea.y;
-  			if (clipping.y + clipping.height > iMaxY) {
-  				clipping.height = iMaxY - clipping.y + 1;
-  			}
-			}
-
-			if (clipping.width <= 0 || clipping.height <= 0) {
-				//System.out.println(row.getIndex() + " clipping="+clipping + ";" );
-				return;
-			}
-
-			event.gc.setClipping(clipping);
-
-			if (rowAlpha < 255) {
-				event.gc.setAlpha(rowAlpha);
-			}
-
-			if (cell.needsPainting()) {
-				cell.doPaint(event.gc);
-			}
-			if (text.length() > 0) {
-				int ofsx = 0;
-				Image image = cell.getIcon();
-				if (image != null && !image.isDisposed()) {
-					int ofs = image.getBounds().width;
-					ofsx += ofs;
-					cellBounds.x += ofs;
-					cellBounds.width -= ofs;
-				}
-				//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds + ";" + cell.getText());
-				int style = TableColumnSWTUtils.convertColumnAlignmentToSWT(columnsOrdered[iColumnNo].getAlignment());
-				if (cellBounds.height > 20) {
-					style |= SWT.WRAP;
-				}
-				int textOpacity = cell.getTextAlpha();
-				if (textOpacity < 255) {
-					event.gc.setAlpha(textOpacity);
-				}
-				// put some padding on text
-				ofsx += 6;
-				cellBounds.x += 3;
-				cellBounds.width -= 6;
-				if (!cellBounds.isEmpty()) {
-					GCStringPrinter sp = new GCStringPrinter(event.gc, text, cellBounds,
-							true, cellBounds.height > 20, style);
-
-					boolean fit = sp.printString();
-					if (fit) {
-						
-						cell.setDefaultToolTip(null);
-					}else{
-						
-						cell.setDefaultToolTip(text);
-					}
-
-					Point size = sp.getCalculatedSize();
-					size.x += ofsx;
-
-					if (cell.getTableColumn().getPreferredWidth() < size.x) {
-						cell.getTableColumn().setPreferredWidth(size.x);
-					}
-				}else{
-					cell.setDefaultToolTip(null);
-				}
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public void runDefaultAction(int stateMask) {
 		// plugin may have cancelled the default action
 
@@ -1845,7 +1588,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
-	private void updateColumnVisibilities() {
+	private void swt_updateColumnVisibilities() {
 		TableColumnOrTreeColumn[] columns = table.getColumns();
 		if (table.getItemCount() < 1) {
 			return;
@@ -1873,7 +1616,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (columnsVisible[position] != nowVisible) {
 				columnsVisible[position] = nowVisible;
 				if (nowVisible) {
-					runForVisibleRows(new TableGroupRowRunner() {
+					swt_runForVisibleRows(new TableGroupRowRunner() {
 						public void run(TableRowCore row) {
 							TableCellCore cell = row.getTableCellCore(tc.getName());
 							cell.invalidate();
@@ -2431,7 +2174,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	public void refreshTable(final boolean bForceSort) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				_refreshTable(bForceSort);
+				swt_refreshTable(bForceSort);
 
 				if (bEnableTabViews && tabFolder != null && !tabFolder.isDisposed()
 						&& !tabFolder.getMinimized()) {
@@ -2443,7 +2186,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		triggerTableRefreshListeners();
 	}
 
-	private void _refreshTable(boolean bForceSort) {
+	private void swt_refreshTable(boolean bForceSort) {
 		// don't refresh while there's no table
 		if (table == null) {
 			return;
@@ -2461,7 +2204,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			if (columnVisibilitiesChanged == true) {
-				updateColumnVisibilities();
+				swt_updateColumnVisibilities();
 			}
 
 			final boolean bDoGraphics = (loopFactor % graphicsUpdate) == 0;
@@ -2498,12 +2241,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
-	private void refreshVisibleRows() {
+	private void swt_refreshVisibleRows() {
 		if (getComposite() == null || getComposite().isDisposed()) {
 			return;
 		}
 
-		runForVisibleRows(new TableGroupRowRunner() {
+		swt_runForVisibleRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
 				row.refresh(false, true);
 			}
@@ -2568,7 +2311,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
-		runForVisibleRows(new TableGroupRowRunner() {
+		swt_runForVisibleRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
 				if (!(row instanceof TableRowSWT)) {
 					return;
@@ -3318,7 +3061,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				if (bRefresh) {
 					fillRowGaps(false);
-					refreshVisibleRows();
+					swt_refreshVisibleRows();
 					if (DEBUGADDREMOVE) {
 						debug("-- Fill row gaps and refresh after remove");
 					}
@@ -3460,23 +3203,35 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// ITableStructureModificationListener
-	public void columnOrderChanged(int[] positions) {
-		try {
-			table.setColumnOrder(positions);
-			updateColumnVisibilities();
-		} catch (NoSuchMethodError e) {
-			// Pre SWT 3.1
-			// This shouldn't really happen, since this function only gets triggered
-			// from SWT >= 3.1
-			tableStructureChanged(false, null);
-		}
+	public void columnOrderChanged(final int[] positions) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				try {
+					table.setColumnOrder(positions);
+					swt_updateColumnVisibilities();
+				} catch (NoSuchMethodError e) {
+					// Pre SWT 3.1
+					// This shouldn't really happen, since this function only gets triggered
+					// from SWT >= 3.1
+					tableStructureChanged(false, null);
+				}
+			}
+		});
 	}
 
 	/** 
 	 * The Columns width changed
 	 */
 	// ITableStructureModificationListener
-	public void columnSizeChanged(TableColumnCore tableColumn) {
+	public void columnSizeChanged(final TableColumnCore tableColumn) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_columnSizeChanged(tableColumn);
+			}
+		});
+	}
+
+	public void swt_columnSizeChanged(TableColumnCore tableColumn) {
 		int newWidth = tableColumn.getWidth();
 		if (table == null || table.isDisposed()) {
 			return;
@@ -3497,7 +3252,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (lOfs != null) {
 			newWidth += lOfs.intValue();
 		}
-		refreshVisibleRows();
+		swt_refreshVisibleRows();
 		if (column.isDisposed() || (column.getWidth() == newWidth)) {
 			return;
 		}
@@ -3688,7 +3443,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return i;
 	}
 
-	private TableRowCore getRow(TableItemOrTreeItem item) {
+	/** Warning: this method may require SWT Thread! 
+	 * 
+	 * TODO: Make sure callers are okay with that
+	 */
+	protected TableRowCore getRow(TableItemOrTreeItem item) {
 		if (item == null) {
 			return null;
 		}
@@ -3849,7 +3608,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 	
 	public boolean isSelected(TableRow row) {
-		int index = ((TableRowCore) row).getIndex();
+		int index = indexOf((TableRowCore) row);
 		if (index >= 0) {
 			Arrays.sort(selectedRowIndexes);
 			return Arrays.binarySearch(selectedRowIndexes, index) >= 0;
@@ -3879,7 +3638,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return (DATASOURCETYPE) getFirstSelectedDataSource(true);
 	}
 
-	public TableRowSWT[] getVisibleRows() {
+	public TableRowSWT[] swt_getVisibleRows() {
 		if (!isVisible()) {
 			return new TableRowSWT[0];
 		}
@@ -3972,8 +3731,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 *
 	 * @param runner Code to run for each selected row/datasource
 	 */
-	public void runForVisibleRows(TableGroupRowRunner runner) {
-		TableRowSWT[] rows = getVisibleRows();
+	public void swt_runForVisibleRows(TableGroupRowRunner runner) {
+		TableRowSWT[] rows = swt_getVisibleRows();
 		if (runner.run(rows)) {
 			return;
 		}
@@ -4514,7 +4273,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 			}
 			
-			calculateClientArea();
+			swt_calculateClientArea();
 
 			if (DEBUG_SORTER) {
 				long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
@@ -4617,7 +4376,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return i >= iTopIndex && i <= iBottomIndex;
 	}
 
-	private void visibleRowsChanged() {
+	protected void visibleRowsChanged() {
 		if (!isVisible()) {
 			lastTopIndex = 0;
 			lastBottomIndex = -1;
@@ -4632,7 +4391,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		if (lastTopIndex != iTopIndex) {
 			if (Utils.isCocoa) {
-				calculateClientArea();
+				swt_calculateClientArea();
 			}
 			int tmpIndex = lastTopIndex;
 			lastTopIndex = iTopIndex;
@@ -5086,12 +4845,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
+	/** Note: Callers need to be on SWT Thread */
 	public boolean isVisible() {
 		boolean wasVisible = isVisible;
 		isVisible = table != null && !table.isDisposed() && table.isVisible();
 		if (isVisible != wasVisible) {
 			if (isVisible) {
-				runForVisibleRows(new TableGroupRowRunner() {
+				swt_runForVisibleRows(new TableGroupRowRunner() {
 					public void run(TableRowCore row) {
 						row.invalidate();
 					}
@@ -5112,11 +4872,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return isVisible;
 	}
 
-	public void showRow(TableRowCore row) {
-		int index = row.getIndex();
-		if (index >= 0 && index < table.getItemCount()) {
-			table.showItem(table.getItem(index));
-		}
+	public void showRow(final TableRowCore row) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				int index = row.getIndex();
+				if (index >= 0 && index < table.getItemCount()) {
+					table.showItem(table.getItem(index));
+				}
+			}
+		});
 	}
 
 	public boolean isMenuEnabled() {
@@ -5504,7 +5268,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
-	private void invokePaintListeners(GC gc, TableItemOrTreeItem item,
+	protected void invokePaintListeners(GC gc, TableItemOrTreeItem item,
 			TableColumnCore column, Rectangle cellArea) {
 		ArrayList listeners = rowPaintListeners;
 		if (listeners == null)
@@ -5524,5 +5288,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	public boolean canHaveSubItems() {
 		return useTree;
+	}
+	
+	protected TableColumnCore[] getColumnsOrdered() {
+		return columnsOrdered;
 	}
 }
