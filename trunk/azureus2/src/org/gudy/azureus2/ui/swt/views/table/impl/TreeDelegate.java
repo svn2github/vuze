@@ -837,8 +837,11 @@ public class TreeDelegate implements TableOrTreeSWT
 	// @see org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT#setSelection(int[])
 	public void setSelection(int[] newSelectedRowIndices) {
 		TreeItem[] items = new TreeItem[newSelectedRowIndices.length];
+		int itemCount = tree.getItemCount();
 		for (int i = 0; i < items.length; i++) {
-			items[i] = tree.getItem(newSelectedRowIndices[i]);
+			if (newSelectedRowIndices[i] >= 0 && newSelectedRowIndices[i] < itemCount) {
+				items[i] = tree.getItem(newSelectedRowIndices[i]);
+			}
 		}
 		tree.setSelection(items);
 	}
