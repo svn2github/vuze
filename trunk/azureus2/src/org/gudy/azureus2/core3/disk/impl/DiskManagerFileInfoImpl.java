@@ -69,7 +69,7 @@ DiskManagerFileInfoImpl
   	File				_file,
   	int					_file_index,
 	TOTorrentFile		_torrent_file,
-	boolean				_linear_storage )
+	int					_storage_type )
   
   	throws CacheFileManagerException
   {
@@ -79,14 +79,13 @@ DiskManagerFileInfoImpl
     file		= _file;
     file_index	= _file_index;
     
-  	cache_file = CacheFileManagerFactory.getSingleton().createFile( 
-  						this, _file, _linear_storage?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
-  
-  		// if compact storage then the file must be skipped
+    int	cache_st = DiskManagerUtil.convertDMStorageTypeToCache( _storage_type );
+    
+  	cache_file = CacheFileManagerFactory.getSingleton().createFile( this, _file, cache_st);
   	
-  	if ( !_linear_storage ){
+  	if ( cache_st == CacheFile.CT_COMPACT || cache_st == CacheFile.CT_PIECE_REORDER_COMPACT ){
   		
-  		skipped	= true;
+  		skipped = true;
   	}
   }
   
@@ -256,7 +255,7 @@ DiskManagerFileInfoImpl
 	public int
 	getStorageType()
 	{
-		return( diskManager.getStorageType(file_index).equals( "L")?ST_LINEAR:ST_COMPACT );
+		return( DiskManagerUtil.convertDMStorageTypeFromString( diskManager.getStorageType(file_index)));
 	}
 	
 	protected boolean
@@ -337,12 +336,23 @@ DiskManagerFileInfoImpl
    * @param skipped
    */
   public void setSkipped(boolean _skipped) {
+	  
+	int	existing_st = getStorageType();
+	
 	  // currently a non-skipped file must be linear
-	if ( !_skipped && getStorageType() == ST_COMPACT ){
+	
+	if ( !_skipped && existing_st == ST_COMPACT ){
 		if ( !setStorageType( ST_LINEAR )){
 			return;
 		}
 	}
+	
+	if ( !_skipped && existing_st == ST_REORDER_COMPACT ){
+		if ( !setStorageType( ST_REORDER )){
+			return;
+		}
+	}
+	
 	skipped = _skipped;
 	diskManager.skippedFileSetChanged( this );
 	if(!_skipped)

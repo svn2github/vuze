@@ -34,9 +34,10 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 public interface 
 FMFile 
 {
-	public static final int	FT_LINEAR			= 1;
-	public static final int	FT_COMPACT			= 2;
-	public static final int	FT_PIECE_REORDER	= 3;
+	public static final int	FT_LINEAR					= 1;
+	public static final int	FT_COMPACT					= 2;
+	public static final int	FT_PIECE_REORDER			= 3;
+	public static final int	FT_PIECE_REORDER_COMPACT	= 4;
 	
 	public static final int	FM_READ		= 1;
 	public static final int FM_WRITE	= 2;

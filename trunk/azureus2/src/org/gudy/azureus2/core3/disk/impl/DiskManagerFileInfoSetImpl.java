@@ -121,7 +121,7 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 				if(!toChange[i])
 					continue;
 				
-				int old_type = types[i].equals("L") ? DiskManagerFileInfo.ST_LINEAR : DiskManagerFileInfo.ST_COMPACT;
+				int old_type = DiskManagerUtil.convertDMStorageTypeFromString( types[i] );
 				if (newStroageType == old_type)
 				{
 					modified[i] = true;
@@ -131,14 +131,14 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 				DiskManagerFileInfoImpl file = files[i];
 				
 				try	{
-					file.getCacheFile().setStorageType(newStroageType == DiskManagerFileInfo.ST_LINEAR ? CacheFile.CT_LINEAR : CacheFile.CT_COMPACT);
+					file.getCacheFile().setStorageType( DiskManagerUtil.convertDMStorageTypeToCache( newStroageType ));
 					modified[i] = true;
 				} catch (Throwable e) {
 					Debug.printStackTrace(e);
 					diskManager.setFailed(file, "Failed to change storage type for '" + file.getFile(true) + "': " + Debug.getNestedExceptionMessage(e));
 					break;
 				} finally {
-					types[i] = file.getCacheFile().getStorageType() == CacheFile.CT_LINEAR ? "L" : "C";
+					types[i] = DiskManagerUtil.convertCacheStorageTypeToString( file.getCacheFile().getStorageType());
 				}
 			}
 			

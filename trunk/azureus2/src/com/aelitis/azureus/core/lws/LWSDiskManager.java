@@ -199,7 +199,7 @@ LWSDiskManager
 											new File( save_location, relative_file.toString()), 
 											i,
 											pm_info.getTorrentFile(),
-											true );
+											DiskManagerFileInfo.ST_LINEAR );
 				
 				local_files[i] = file_info;
 

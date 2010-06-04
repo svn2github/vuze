@@ -73,9 +73,13 @@ CacheFileManagerImpl
 			
 			return( FMFile.FT_COMPACT );
 			
-		}else{
+		}else if ( cache_type == CacheFile.CT_PIECE_REORDER ){
 			
 			return( FMFile.FT_PIECE_REORDER );
+			
+		}else{
+			
+			return( FMFile.FT_PIECE_REORDER_COMPACT );
 		}
 	}
 	
@@ -91,9 +95,13 @@ CacheFileManagerImpl
 			
 			return( CacheFile.CT_COMPACT );
 			
-		}else{
+		}else if ( file_type == FMFile.FT_PIECE_REORDER ){
 			
 			return( CacheFile.CT_PIECE_REORDER );
+			
+		}else{
+			
+			return( CacheFile.CT_PIECE_REORDER_COMPACT );
 		}
 	}
 	

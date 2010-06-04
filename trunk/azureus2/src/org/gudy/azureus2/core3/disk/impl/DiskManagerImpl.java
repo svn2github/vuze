@@ -684,14 +684,14 @@ DiskManagerImpl
             try{
                 if ( file_info == null ){
 
-                    boolean linear = storage_types[i].equals("L");
+                    int storage_type = DiskManagerUtil.convertDMStorageTypeFromString( storage_types[i]);
 
                     file_info = new DiskManagerFileInfoImpl(
                                         this,
                                         new File( root_dir + relative_file.toString()),
                                         i,
                                         pm_info.getTorrentFile(),
-                                        linear );
+                                        storage_type );
 
                     close_it    = true;
                 }
@@ -829,14 +829,14 @@ DiskManagerImpl
                 DiskManagerFileInfoImpl fileInfo;
 
                 try{
-                    boolean linear = storage_types[i].equals("L");
+                    int storage_type = DiskManagerUtil.convertDMStorageTypeFromString( storage_types[i]);
 
                     fileInfo = new DiskManagerFileInfoImpl(
                                     this,
                                     new File( root_dir + relative_data_file.toString()),
                                     i,
                                     pm_info.getTorrentFile(),
-                                    linear );
+                                    storage_type );
 
                     allocated_files[i] = fileInfo;
 
@@ -912,7 +912,9 @@ DiskManagerImpl
 
                 fileInfo.setDownloaded(0);
                 
-                boolean compact = cache_file.getStorageType() == CacheFile.CT_COMPACT;
+                int st = cache_file.getStorageType();
+                
+                boolean compact = st == CacheFile.CT_COMPACT || st == CacheFile.CT_PIECE_REORDER_COMPACT;
                 
                 boolean mustExistOrAllocate = ( !compact ) || RDResumeHandler.fileMustExist(download_manager, fileInfo);
                 
@@ -2700,7 +2702,7 @@ DiskManagerImpl
         if (types.length == 0) {
             types = new String[download_manager.getTorrent().getFiles().length];
             for (int i=0; i<types.length; i++){
-                types[i] = "L";
+                types[i] = "L"; 
             }
         }
         return( types );
@@ -2711,7 +2713,7 @@ DiskManagerImpl
         DownloadManagerState state = download_manager.getDownloadState();
         String type = state.getListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES,fileIndex);
         
-        return type != null ? type : "L";
+        return type != null ? type : "L"; 
     }
     
     public static void

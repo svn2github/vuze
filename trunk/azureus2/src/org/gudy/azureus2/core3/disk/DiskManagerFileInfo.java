@@ -33,11 +33,13 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 public interface 
 DiskManagerFileInfo 
 {
-	public static final int READ = 1;
-	public static final int WRITE = 2;
+	public static final int READ 	= 1;
+	public static final int WRITE 	= 2;
 
-	public static final int	ST_LINEAR	= 1;
-	public static final int	ST_COMPACT	= 2;
+	public static final int	ST_LINEAR			= 1;
+	public static final int	ST_COMPACT			= 2;
+	public static final int	ST_REORDER			= 3;
+	public static final int	ST_REORDER_COMPACT	= 4;
 	
 		// set methods
 		

@@ -642,9 +642,14 @@ DMCheckerImpl
 						return;
 					}
 					
-					if ( all_compact && ( cache_file.getStorageType() != CacheFile.CT_COMPACT || file_info.getNbPieces() <= 2 )){
+					if ( all_compact ){
 						
-						all_compact = false;
+						int st = cache_file.getStorageType();
+						
+						if (( st != CacheFile.CT_COMPACT && st != CacheFile.CT_PIECE_REORDER_COMPACT ) || file_info.getNbPieces() <= 2 ){
+										
+							all_compact = false;
+						}
 					}
 				}
 				

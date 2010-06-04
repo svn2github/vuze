@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerFactory;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerUtil;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
@@ -4413,10 +4414,8 @@ DownloadManagerImpl
 	public int[] getStorageType(DiskManagerFileInfo[] info) {
 		String[] types = DiskManagerImpl.getStorageTypes(this);
 		int[] result = new int[info.length];
-		boolean is_linear;
 		for (int i=0; i<info.length; i++) {
-			is_linear = types[info[i].getIndex()].equals("L");
-			result[i] = is_linear ? DiskManagerFileInfo.ST_LINEAR : DiskManagerFileInfo.ST_COMPACT;
+			result[i] = DiskManagerUtil.convertDMStorageTypeFromString( types[info[i].getIndex()]);
 		}
 		return result;
 	}

@@ -189,8 +189,10 @@ DiskManagerUtil
 				File currentFile = files[i].getFile(true);
 				if(!RDResumeHandler.fileMustExist(dm, files[i]))
 				{
-					if(types[i].equals("C"))
+					int	st = convertDMStorageTypeFromString( types[i] );
+					if( st == DiskManagerFileInfo.ST_COMPACT || st == DiskManagerFileInfo.ST_REORDER_COMPACT ){
 						currentFile.delete();
+					}
 				} else if(allowAlloction && !currentFile.exists())	{
 					/*
 					 * file must exist, does not exist and we probably just changed to linear
@@ -415,7 +417,7 @@ DiskManagerUtil
 	
 							final int idx = i;
 	
-							int old_type = types[i].equals( "L")?FileSkeleton.ST_LINEAR:FileSkeleton.ST_COMPACT;
+							int old_type = DiskManagerUtil.convertDMStorageTypeFromString( types[i] );
 	
 							//System.out.println(old_type + " <> " + newStroageType);
 	
@@ -464,11 +466,11 @@ DiskManagerUtil
 												}
 											},
 											target_file,
-											newStroageType==FileSkeleton.ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
+											DiskManagerUtil.convertDMStorageTypeToCache( newStroageType ));
 	
 									cache_file.close();
 	
-									toSkip[i] = newStroageType == FileSkeleton.ST_COMPACT && !res[i].isSkipped();
+									toSkip[i] = ( newStroageType == FileSkeleton.ST_COMPACT || newStroageType == FileSkeleton.ST_REORDER_COMPACT )&& !res[i].isSkipped();
 									if(toSkip[i])
 										toSkipCount++;
 								}
@@ -492,7 +494,7 @@ DiskManagerUtil
 	
 							}
 	
-							types[i] = newStroageType== FileSkeleton.ST_LINEAR?"L":"C";
+							types[i] = DiskManagerUtil.convertDMStorageTypeToString( newStroageType );
 						}
 						
 						/*
@@ -783,7 +785,7 @@ DiskManagerUtil
                 	public int
                 	getStorageType()
                 	{
-                		return( DiskManagerImpl.getStorageType(download_manager, file_index).equals("L")?ST_LINEAR:ST_COMPACT );
+                		return( DiskManagerUtil.convertDMStorageTypeFromString( DiskManagerImpl.getStorageType(download_manager, file_index)));
                 	}
 
                 	public void
@@ -804,7 +806,7 @@ DiskManagerUtil
                 			if ( read_cache_file == null ){
 
                 				try{
-                					int type = DiskManagerImpl.getStorageType(download_manager, file_index).equals( "L")?ST_LINEAR:ST_COMPACT;
+                					int type = convertDMStorageTypeFromString( DiskManagerImpl.getStorageType(download_manager, file_index));
 
                 					read_cache_file =
                 						CacheFileManagerFactory.getSingleton().createFile(
@@ -834,7 +836,7 @@ DiskManagerUtil
                 								}
                 							},
                 							getFile( true ),
-                							type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
+                							convertDMStorageTypeToCache( type ));
 
                 				}catch( Throwable e ){
 
@@ -926,6 +928,103 @@ DiskManagerUtil
 	    }
 	}
 
+	public static int
+	convertDMStorageTypeFromString(
+		String		str )
+	{
+		char c = str.charAt(0);
+		
+		switch( c ){
+			case 'L':{
+				return( DiskManagerFileInfo.ST_LINEAR );
+			}
+			case 'C':{
+				return( DiskManagerFileInfo.ST_COMPACT );
+			}
+			case 'R':{
+				return( DiskManagerFileInfo.ST_REORDER );
+			}
+			case 'X':{
+				return( DiskManagerFileInfo.ST_REORDER_COMPACT );
+			}
+		}
+		
+		Debug.out( "eh?" );
+		
+		return( DiskManagerFileInfo.ST_LINEAR );
+	}
+	
+	public static String
+	convertDMStorageTypeToString(
+		int		dm_type )
+	{
+		switch( dm_type ){
+			case DiskManagerFileInfo.ST_LINEAR:{
+				return( "L" );
+			}
+			case DiskManagerFileInfo.ST_COMPACT:{
+				return( "C" );
+			}
+			case DiskManagerFileInfo.ST_REORDER:{
+				return( "R" );
+			}
+			case DiskManagerFileInfo.ST_REORDER_COMPACT:{
+				return( "X" );
+			}
+		}
+		
+		Debug.out( "eh?" );
+		
+		return( "?" );
+	}
+	
+	public static String
+	convertCacheStorageTypeToString(
+		int		cache_type )
+	{
+		switch( cache_type ){
+			case CacheFile.CT_LINEAR:{
+				return( "L" );
+			}
+			case CacheFile.CT_COMPACT:{
+				return( "C" );
+			}
+			case CacheFile.CT_PIECE_REORDER:{
+				return( "R" );
+			}
+			case CacheFile.CT_PIECE_REORDER_COMPACT:{
+				return( "X" );
+			}
+		}
+		
+		Debug.out( "eh?" );
+		
+		return( "?" );
+	}
+	public static int
+	convertDMStorageTypeToCache(
+		int	dm_type )
+	{
+		switch( dm_type ){
+			case DiskManagerFileInfo.ST_LINEAR:{
+				return( CacheFile.CT_LINEAR );
+			}
+			case DiskManagerFileInfo.ST_COMPACT:{
+				return( CacheFile.CT_COMPACT );
+			}
+			case DiskManagerFileInfo.ST_REORDER:{
+				return( CacheFile.CT_PIECE_REORDER );
+			}
+			case DiskManagerFileInfo.ST_REORDER_COMPACT:{
+				return( CacheFile.CT_PIECE_REORDER_COMPACT );
+			}
+		}
+		
+		Debug.out( "eh?" );
+		
+		return( CacheFile.CT_LINEAR );
+	}
+	
 	static void
 	  loadFilePriorities(
 	    DownloadManager         download_manager,

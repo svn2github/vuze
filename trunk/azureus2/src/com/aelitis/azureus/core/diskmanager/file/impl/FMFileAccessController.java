@@ -102,13 +102,13 @@ FMFileAccessController
 				
 			}else if ( new File( controlPath, controlFileName + REORDER_SUFFIX ).exists()){
 			
-				type = FMFile.FT_PIECE_REORDER;
+				type = _target_type==FMFile.FT_PIECE_REORDER?FMFile.FT_PIECE_REORDER:FMFile.FT_PIECE_REORDER_COMPACT;
 				
 			}else{
 				
-				if ( _target_type == FMFile.FT_PIECE_REORDER && !owner.getLinkedFile().exists()){
+				if ((_target_type == FMFile.FT_PIECE_REORDER || _target_type == FMFile.FT_PIECE_REORDER_COMPACT ) && !owner.getLinkedFile().exists()){
 					
-					type = FMFile.FT_PIECE_REORDER;
+					type = _target_type;
 					
 				}else{
 					
@@ -137,11 +137,8 @@ FMFileAccessController
 							controlFileName + REORDER_SUFFIX,  
 							new FMFileAccessLinear( owner ));
 			}
-			
-			if ( type != _target_type ){
-				
-				convert( _target_type );
-			}
+							
+			convert( _target_type );
 		}
 	}
 	
@@ -150,8 +147,22 @@ FMFileAccessController
 		int					target_type )
 	
 		throws FMFileManagerException
-	{
+	{	
+		if ( type == target_type ){
+			
+			return;
+		}
+		
 		if ( type == FMFile.FT_PIECE_REORDER || target_type == FMFile.FT_PIECE_REORDER ){
+			
+			if ( target_type == FMFile.FT_PIECE_REORDER_COMPACT || type == FMFile.FT_PIECE_REORDER_COMPACT ){
+				
+					// these two access modes are in fact identical at the moment
+				
+				type = target_type;
+				
+				return;
+			}
 			
 			throw( new FMFileManagerException( "Conversion to/from piece-reorder not supported" ));
 		}
@@ -361,12 +372,7 @@ FMFileAccessController
 		int					new_type )
 	
 		throws FMFileManagerException
-	{
-		if ( new_type == type ){
-			
-			return;
-		}
-		
+	{		
 		convert( new_type );
 	}
 	
