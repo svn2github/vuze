@@ -1,6 +1,13 @@
 VUZE CHANGELOG
 -----------------
 
+2010.06.04 | Vuze 4.4.0.6
+
+CHANGE: Core  | Improved logging
+BUGFIX: Core  | Search edge case
+
+
+
 2010.05.08 | Vuze 4.4.0.4
 
 BUGFIX: Core  | Fix PEX bug [Parg]
