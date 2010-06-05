@@ -2958,6 +2958,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 
 				int numSelected = table.getSelectionCount();
+				int[] oldSelection = table.getSelectionIndices();
 
 				mainComposite.getParent().setCursor(
 						table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
@@ -3073,8 +3074,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 				mainComposite.getParent().setCursor(null);
 
-				if (numSelected != table.getSelectionCount()) {
+				int numNowSelected = table.getSelectionCount();
+				if (numSelected != numNowSelected) {
 					triggerDeselectionListeners(new TableRowCore[0]);
+					if (numSelected >= 0 && numNowSelected == 0
+							&& oldSelection.length > 0
+							&& oldSelection[0] < table.getItemCount()) {
+						table.select(new int[] {
+							oldSelection[0]
+						});
+					}
 				}
 				if (hasSelected) {
 					updateSelectedRowIndexes();
@@ -4245,13 +4254,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				int numSame = 0;
 				int[] newSelectedRowIndices = new int[selectedRows.length];
 				Arrays.sort(selectedRowIndices);
+
 				for (int i = 0; i < selectedRows.length; i++) {
 					if (selectedRows[i] == null) {
 						continue;
 					}
 					int index = selectedRows[i].getIndex();
-					int iNewPos = (selectedRows[i] == focusedRow) ? 0 : pos++;
-					//System.out.println("new selected, index=" + index + ";row=" + selectedRows[i].getDataSource(true));
+					int iNewPos = (selectedRows[i].equals(focusedRow)) ? 0 : pos++;
+					//System.out.println("new selected, index=" + index + "; newPos:" + iNewPos + ";row=" + selectedRows[i].getDataSource(true));
 					if (iNewPos < newSelectedRowIndices.length) {
   					newSelectedRowIndices[iNewPos] = index;
   					if (Arrays.binarySearch(selectedRowIndices, index) >= 0) {
@@ -4266,8 +4276,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					} else {
 						// OMG, on tree, deselect all takes forever!
 						//table.deselectAll();
-						//table.select(newSelectedRowIndices);
-						table.setSelection(newSelectedRowIndices);
+						TableItemOrTreeItem[] selectionIndices = table.getSelection();
+						for (TableItemOrTreeItem item : selectionIndices) {
+							table.deselect(item);
+						}
+						table.select(newSelectedRowIndices);
 					}
 					setSelectedRowIndexes(table.getSelectionIndices());
 				}
@@ -4294,6 +4307,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @since 4.1.0.5
 	 */
 	protected void setSelectedRowIndexes(int[] newSelectedRowIndices) {
+		/*
+		System.out.print("setSelectedRows to ");
+		for (int i : newSelectedRowIndices) {
+			System.out.print(i + ", ");
+		}
+		System.out.println("via " + Debug.getCompressedStackTrace());
+		*/
 		selectedRowIndexes = newSelectedRowIndices;
 		listSelectedCoreDataSources = null;
 	}
