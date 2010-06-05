@@ -817,7 +817,7 @@ public class TreeDelegate implements TableOrTreeSWT
 		if (selection == null || selection.length == 0) {
 			return -1;
 		}
-		return 0;
+		return tree.indexOf(selection[0]);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT#getSelectionIndices()
