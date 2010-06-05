@@ -42,7 +42,7 @@ public class Tree2
 
 	protected void checkSubclass() {
 		// skip check
-	};
+	}
 
 	// @see org.eclipse.swt.widgets.Tree#createHandle()
 	void createHandle() {
@@ -121,9 +121,9 @@ public class Tree2
 			}
 
 			Tree tree = new Tree(parent, style);
-			Method method = Tree.class.getDeclaredMethod("widgetStyle", null);
+			Method method = Tree.class.getDeclaredMethod("widgetStyle");
 			method.setAccessible(true);
-			int oldStyle = ((Number) method.invoke(tree, null)).intValue();
+			int oldStyle = ((Number) method.invoke(tree)).intValue();
 			tree.dispose();
 
 			Class<?> claOS = Class.forName("org.eclipse.swt.internal.win32.OS");
