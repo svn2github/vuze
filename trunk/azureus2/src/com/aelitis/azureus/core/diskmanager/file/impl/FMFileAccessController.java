@@ -106,7 +106,21 @@ FMFileAccessController
 				
 			}else{
 				
-				if ((_target_type == FMFile.FT_PIECE_REORDER || _target_type == FMFile.FT_PIECE_REORDER_COMPACT ) && !owner.getLinkedFile().exists()){
+				if ((_target_type == FMFile.FT_PIECE_REORDER || _target_type == FMFile.FT_PIECE_REORDER_COMPACT )){
+					
+					if ( owner.getLinkedFile().exists()){
+					
+							// control file has been deleted, we could do some smart recovery here but
+							// for the moment we just create an empty file and let things proceed
+						
+						try{
+							new File( controlPath, controlFileName + REORDER_SUFFIX ).createNewFile();
+							
+						}catch( Throwable e ){
+							
+							throw( new FMFileManagerException( "Failed to create control file", e ));
+						}
+					}
 					
 					type = _target_type;
 					

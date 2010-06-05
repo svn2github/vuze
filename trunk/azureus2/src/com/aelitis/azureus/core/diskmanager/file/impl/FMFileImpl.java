@@ -489,7 +489,7 @@ FMFileImpl
 			if (OUTPUT_REOPEN_RELATED_ERRORS) {Debug.printStackTrace(e);}
 			
 			try{
-				reopen();
+				reopen( e );
 				
 				return( file_access.getLength( raf ));
 				
@@ -514,7 +514,7 @@ FMFileImpl
 			if (OUTPUT_REOPEN_RELATED_ERRORS) {Debug.printStackTrace(e);}
 						
 			try{
-				reopen();
+				reopen( e );
 
 				file_access.setLength( raf, length );
 				
@@ -526,10 +526,16 @@ FMFileImpl
 	}
 	
 	protected void
-	reopen()
+	reopen(
+		FMFileManagerException		cause )
 
 		throws Throwable
 	{
+		if ( !cause.isRecoverable()){
+			
+			throw( cause );
+		}
+		
 		if ( raf != null ){
 			
 			try{
@@ -690,7 +696,7 @@ FMFileImpl
 			if (OUTPUT_REOPEN_RELATED_ERRORS) {Debug.printStackTrace(e);}
 			
 			try{
-				reopen();
+				reopen( e );
 
 				file_access.read( raf, buffers, position );
 				
@@ -727,7 +733,7 @@ FMFileImpl
 			if (OUTPUT_REOPEN_RELATED_ERRORS) {Debug.printStackTrace(e);}
 			
 			try{
-				reopen();
+				reopen( e );
 
 				file_access.write( raf, buffers, position );
 				

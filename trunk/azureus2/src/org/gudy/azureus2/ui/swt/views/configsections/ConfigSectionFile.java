@@ -209,6 +209,18 @@ public class ConfigSectionFile implements UISWTConfigSection {
     	zeroNew.setLayoutData(gridData);
     }
 
+    BooleanParameter pieceReorder = null;
+
+    sCurConfigID = "Enable reorder storage mode";
+    allConfigIDs.add(sCurConfigID);
+    if( userMode > 0 ) {
+    	// zero new files
+    	pieceReorder = new BooleanParameter(gFile, sCurConfigID,
+                                                    "ConfigView.label.piecereorder");
+    	gridData = new GridData();
+    	gridData.horizontalSpan = 2;
+    	pieceReorder.setLayoutData(gridData);
+    }
     
     sCurConfigID = "File.truncate.if.too.large";
     allConfigIDs.add(sCurConfigID);

@@ -30,6 +30,9 @@ public class
 FMFileManagerException
 	extends Exception
 {
+	private boolean recoverable = true;
+	
+	
 	public
 	FMFileManagerException(
 		String		str )
@@ -43,5 +46,18 @@ FMFileManagerException
 		Throwable	cause )
 	{
 		super( str, cause );
+	}
+	
+	public void
+	setRecoverable(
+		boolean		_recoverable )
+	{
+		recoverable	= _recoverable;
+	}
+	
+	public boolean
+	isRecoverable()
+	{
+		return( recoverable );
 	}
 }

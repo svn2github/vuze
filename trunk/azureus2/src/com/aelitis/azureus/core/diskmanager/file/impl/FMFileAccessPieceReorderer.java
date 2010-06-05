@@ -704,7 +704,9 @@ FMFileAccessPieceReorderer
 			
 			if ( l_len == null || l_next == null || piece_bytes == null ){
 			
-				throw( new FMFileManagerException( "Failed to read control file " + new File( control_dir, control_file ).getAbsolutePath() + ": map invalid - " + map ));
+				configBorked( "Failed to read control file " + new File( control_dir, control_file ).getAbsolutePath() + ": map invalid - " + map );
+				
+				return;
 			}
 			
 			current_length 		= l_len.longValue();
@@ -712,7 +714,9 @@ FMFileAccessPieceReorderer
 			
 			if ( piece_bytes.length != num_pieces * 4 ){
 				
-				throw( new FMFileManagerException( "Failed to read control file " + new File( control_dir, control_file ).getAbsolutePath() + ": piece bytes invalid" ));
+				configBorked( "Failed to read control file " + new File( control_dir, control_file ).getAbsolutePath() + ": piece bytes invalid" );
+				
+				return;
 			}
 			
 			int	pos = 0;
@@ -739,6 +743,31 @@ FMFileAccessPieceReorderer
 		}
 	}
 
+	private void
+	configBorked(
+		String	error )
+	
+		throws FMFileManagerException
+	{
+		piece_map 			= new int[num_pieces];
+		piece_reverse_map 	= new int[num_pieces];
+					
+		Arrays.fill( piece_map, -1 );
+		
+		piece_map[0]			= 0;
+		piece_reverse_map[0]	= 0;
+		next_piece_index 		= 1;
+		current_length			= 0;
+		
+		writeConfig();
+		
+		FMFileManagerException e = new FMFileManagerException( error );
+		
+		e.setRecoverable( false );
+		
+		throw( e );
+	}
+	
 	protected void
 	setDirty()
 	
