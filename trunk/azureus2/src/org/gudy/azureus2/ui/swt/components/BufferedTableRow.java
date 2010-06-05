@@ -663,7 +663,8 @@ BufferedTableRow
   		return false;
   	
   	boolean lastItemExisted = item != null && !item.isDisposed();
-  	boolean newRowHadItem = newRow.getData("TableRow") != null;
+  	// can't base newRowHadItem on "TableRow" as we clear it in "unlinking" stage
+  	//boolean newRowHadItem = newRow.getData("TableRow") != null;
 
   	if (bCopyFromOld) {
   		copyToItem(newRow);
@@ -726,7 +727,8 @@ BufferedTableRow
 		item.setItemCount(numSubItems);
 		item.setExpanded(wasExpanded);
 		expanded = wasExpanded;
-		if (newRowHadItem && isVisible && !inPaintItem()) {
+		if (isVisible && !inPaintItem()) {
+		//if (newRowHadItem && isVisible && !inPaintItem()) {
 			//invalidate();
 			// skip the visibility check and SWT thread wrapping of invalidate
 			Rectangle r = item.getBounds(0);
