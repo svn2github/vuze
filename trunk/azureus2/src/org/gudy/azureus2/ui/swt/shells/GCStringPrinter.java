@@ -264,7 +264,7 @@ public class GCStringPrinter
 		boolean noDraw = (printFlags & FLAG_NODRAW) > 0;
 		wrap = (swtFlags & SWT.WRAP) > 0;
 
-		if (string.indexOf('<') > 0) {
+		if (string.indexOf('<') >= 0) {
   		if ((printFlags & FLAG_KEEP_URL_INFO) == 0) {
   			Matcher htmlMatcher = patHREF.matcher(string);
   			boolean hasURL = htmlMatcher.find();
