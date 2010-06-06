@@ -64,7 +64,7 @@ public class ClientIdentifier {
 			   *   "Azureus a.b.c.d"
 			   */ 
 			  if (az_client_name.equals("Azureus") && peer_id_client.equals("Azureus")) {
-				  if (!msg_client_name.substring(0, 15).equals(peer_id_client_name.substring(0, 15))) {
+				  if (msg_client_name.length()<15 || peer_id_client_name.length() < 15 || !msg_client_name.substring(0, 15).equals(peer_id_client_name.substring(0, 15))) {
 					  return asDiscrepancy("Azureus (Hacked)", peer_id_client_name, msg_client_name, "fake_client", "AZMP", peer_id);
 				  }
 			  }
