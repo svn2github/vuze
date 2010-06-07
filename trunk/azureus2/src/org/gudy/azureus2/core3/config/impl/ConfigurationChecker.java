@@ -608,7 +608,9 @@ ConfigurationChecker
 	    	ConfigurationDefaults.getInstance().addParameter( SpeedManagerImpl.CONFIG_VERSION, 1 );	// 1 == classic, 2 == beta
 	    }
 	    
-	    if ( COConfigurationManager.getIntParameter( "config.checker.level", 0 ) == 0 ){
+	    int check_level = COConfigurationManager.getIntParameter( "config.checker.level", 0 );
+	    
+	    if ( check_level < 1 ){
 	    	
 	    	COConfigurationManager.setParameter( "config.checker.level", 1 );
 	    	
@@ -645,6 +647,20 @@ ConfigurationChecker
 			}
 	    }
 	
+	    if ( Constants.isOSX && check_level < 2 ){
+	    	
+	    		// turn on piece-reorder mode for osx
+	    	
+	    	COConfigurationManager.setParameter( "config.checker.level", 2 );
+	    	
+	    	changed = true;
+	    	
+	    	if ( !COConfigurationManager.getBooleanParameter( "Zero New" )){
+	    		
+	    		COConfigurationManager.setParameter( "Enable reorder storage mode", true );
+	    	}
+	    }
+	    
 	    if(changed) {
 	      COConfigurationManager.save();
 	    } 
