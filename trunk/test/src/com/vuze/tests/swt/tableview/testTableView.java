@@ -60,6 +60,7 @@ public class testTableView
 			new CT_Live(),
 			new CT_LiveExt(),
 			new CT_InvOnlyExt(),
+			new CT_InvOnlyReord(),
 		};
 
 		TableColumnManager.getInstance().addColumns(columns);
