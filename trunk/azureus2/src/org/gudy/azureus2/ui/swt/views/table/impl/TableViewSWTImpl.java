@@ -124,10 +124,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private static final long BREAKOFF_ADDROWSTOSWT = 800;
 
-	// If you change this to true, check usage to see if we aren't doing SWT
-	// stuff on a non-SWT thread
-	private static final boolean TRIGGER_PAINT_ON_SELECTIONS = false;
-
 	private static final int ASYOUTYPE_MODE_FIND = 0;
 	private static final int ASYOUTYPE_MODE_FILTER = 1;
 	private static final int ASYOUTYPE_MODE = ASYOUTYPE_MODE_FILTER;
@@ -1232,7 +1228,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 			}
 		}
-		
+
 		if (!event.doit) {
 			return;
 		}
@@ -1296,32 +1292,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 			});
 		}
-	}
-
-	// @see com.aelitis.azureus.ui.common.table.impl.TableViewImpl#triggerSelectionListeners(com.aelitis.azureus.ui.common.table.TableRowCore[])
-	protected void triggerSelectionListeners(TableRowCore[] rows) {
-		//System.out.println("triggerSelectionLis" + rows[0]);
-		if (TRIGGER_PAINT_ON_SELECTIONS) {
-			for (int i = 0; i < rows.length; i++) {
-				TableRowCore row = rows[i];
-				row.redraw();
-				table.update();
-			}
-		}
-		//System.out.println("e triggerSelectionLis" + rows[0]);
-		super.triggerSelectionListeners(rows);
-	}
-
-	// @see com.aelitis.azureus.ui.common.table.impl.TableViewImpl#triggerDeselectionListeners(com.aelitis.azureus.ui.common.table.TableRowCore[])
-	protected void triggerDeselectionListeners(TableRowCore[] rows) {
-		if (TRIGGER_PAINT_ON_SELECTIONS) {
-			for (int i = 0; i < rows.length; i++) {
-				TableRowCore row = rows[i];
-				row.redraw();
-				table.update();
-			}
-		}
-		super.triggerDeselectionListeners(rows);
 	}
 
 	/**
@@ -4985,7 +4955,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			} else if (filter.nextText.length() > 0) {
 				newText = filter.nextText.substring(0, filter.nextText.length() - 1);
 			}
-		} else if ((e.stateMask & ~SWT.SHIFT) == 0 && e.character > 0) {
+		} else if ((e.stateMask & ~SWT.SHIFT) == 0 && e.character > 32) {
 			newText = filter.nextText + String.valueOf(e.character);
 		}
 
