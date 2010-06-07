@@ -63,13 +63,15 @@ DownloadManagerState
 	public static final String AT_TIME_STOPPED				= "timestopped";
 	public static final String AT_INCOMP_FILE_SUFFIX		= "incompfilesuffix";
 	public static final String AT_SCRAPE_CACHE				= "scrapecache";	// long value, seeds in upper word, leechers in lower
-	
+	public static final String AT_REORDER_MIN_MB			= "reordermb";
+
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
 		{ AT_VERSION,								new Integer( -1 )},
 		{ AT_TIME_SINCE_DOWNLOAD,					new Integer( -1 )},
 		{ AT_TIME_SINCE_UPLOAD,						new Integer( -1 )},
 		{ AT_AVAIL_BAD_TIME,						new Long( -1 )},
 		{ AT_SCRAPE_CACHE,							new Long( -1 )},
+		{ AT_REORDER_MIN_MB,						new Integer( -1 )},
 	};
 	
 	public static final long FLAG_ONLY_EVER_SEEDED						= Download.FLAG_ONLY_EVER_SEEDED;

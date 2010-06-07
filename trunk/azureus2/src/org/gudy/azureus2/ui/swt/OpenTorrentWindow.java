@@ -2271,14 +2271,19 @@ public class OpenTorrentWindow
 					public void initialised(DownloadManager dm) {
 						DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
 						
-						boolean	reorder_mode = COConfigurationManager.getBooleanParameter( "Enable reorder storage mode" );
+						boolean	reorder_mode 		= COConfigurationManager.getBooleanParameter( "Enable reorder storage mode" );
+						int		reorder_mode_min_mb = COConfigurationManager.getIntParameter( "Reorder storage mode min MB" );
 						
 						try
 						{
 							dm.getDownloadState().suppressStateSave(true);
 							
-							boolean[] toSkip = new boolean[fileInfos.length];
-							boolean[] toCompact = new boolean[fileInfos.length];
+							boolean[] toSkip 			= new boolean[fileInfos.length];
+							boolean[] toCompact 		= new boolean[fileInfos.length];
+							boolean[] toReorderCompact 	= new boolean[fileInfos.length];
+							
+							int	comp_num 			= 0;
+							int reorder_comp_num	= 0;
 							
 							for (int iIndex = 0; iIndex < fileInfos.length; iIndex++)
 							{
@@ -2289,26 +2294,53 @@ public class OpenTorrentWindow
 									// TorrentFileInfo because the destination may have changed
 									// by magic code elsewhere
 									File fDest = fileInfo.getFile(true);
-									if (files[iIndex].isLinked())
-									{
+									if (files[iIndex].isLinked()){
+									
 										fDest = files[iIndex].getDestFileFullName();
-										// Can't use fileInfo.setLink(fDest) as it renames
-										// the existing file if there is one
-										dm.getDownloadState().setFileLink(
-														fileInfo.getFile(false), fDest);
+										
+											// Can't use fileInfo.setLink(fDest) as it renames
+											// the existing file if there is one
+										
+										dm.getDownloadState().setFileLink( fileInfo.getFile(false), fDest);
 									}
-									if (!files[iIndex].bDownload)
-									{
+									
+									if (!files[iIndex].bDownload){
+									
 										toSkip[iIndex] = true;
-										if (!fDest.exists())
-											toCompact[iIndex] = true;
+										
+										if (!fDest.exists()){
+											
+											if ( reorder_mode && ( fileInfo.getLength()/(1024*1024)) >= reorder_mode_min_mb ){
+												
+												toReorderCompact[iIndex] = true;
+												
+												reorder_comp_num++;
+												
+											}else{
+												
+												toCompact[iIndex] = true;
+												
+												comp_num++;
+											}
+										}
 									}
 								}
 							}
-							dm.getDiskManagerFileInfoSet().setStorageTypes(toCompact, reorder_mode?DiskManagerFileInfo.ST_REORDER_COMPACT:DiskManagerFileInfo.ST_COMPACT);
+							
+							if ( comp_num > 0 ){
+								
+								dm.getDiskManagerFileInfoSet().setStorageTypes(toCompact, DiskManagerFileInfo.ST_COMPACT);
+							}
+							
+							if ( reorder_comp_num > 0 ){
+								
+								dm.getDiskManagerFileInfoSet().setStorageTypes(toReorderCompact, DiskManagerFileInfo.ST_REORDER_COMPACT );
+							}
+							
 							dm.getDiskManagerFileInfoSet().setSkipped(toSkip, true);
-						} finally
-						{
+							
+						}finally{
+						
 							dm.getDownloadState().suppressStateSave(false);
 						}
 					}

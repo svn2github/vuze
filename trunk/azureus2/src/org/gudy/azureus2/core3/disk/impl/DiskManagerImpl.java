@@ -116,18 +116,22 @@ DiskManagerImpl
         return( disk_access_controller );
     }
     
-    private static boolean reorder_storage_mode;
+    private static boolean 	reorder_storage_mode;
+    private static int		reorder_storage_mode_min_mb;
     
     static{
-    	COConfigurationManager.addAndFireParameterListener(
-    		"Enable reorder storage mode",
+    	COConfigurationManager.addAndFireParameterListeners(
+    		new String[]{
+    			"Enable reorder storage mode",
+    			"Reorder storage mode min MB" },
     		new ParameterListener()
     		{
     			public void 
     			parameterChanged(
     				String parameterName ) 
     			{
-    				reorder_storage_mode = COConfigurationManager.getBooleanParameter( "Enable reorder storage mode" );
+       				reorder_storage_mode 		= COConfigurationManager.getBooleanParameter( "Enable reorder storage mode" );
+       				reorder_storage_mode_min_mb = COConfigurationManager.getIntParameter( "Reorder storage mode min MB" );
     			}
     		});
     }
@@ -2717,9 +2721,10 @@ DiskManagerImpl
         DownloadManagerState state = download_manager.getDownloadState();
         String[] types = state.getListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES);
         if (types.length == 0) {
+        	TOTorrentFile[] files = download_manager.getTorrent().getFiles();
             types = new String[download_manager.getTorrent().getFiles().length];
             for (int i=0; i<types.length; i++){
-                types[i] = reorder_storage_mode?"R":"L"; 
+                types[i] = getDefaultStorageType(state,files[i]);
             }
         }
         return( types );
@@ -2730,7 +2735,32 @@ DiskManagerImpl
         DownloadManagerState state = download_manager.getDownloadState();
         String type = state.getListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES,fileIndex);
         
-        return type != null ? type : (reorder_storage_mode?"R":"L" );
+        return type != null ? type : getDefaultStorageType(state,download_manager.getTorrent().getFiles()[fileIndex]);
+    }
+    
+    private static String
+    getDefaultStorageType(
+    	DownloadManagerState		state,
+    	TOTorrentFile				file )
+    {
+    	if ( reorder_storage_mode ){
+    		
+    		int	existing = state.getIntAttribute( DownloadManagerState.AT_REORDER_MIN_MB );
+    		
+    		if ( existing < 0 ){
+    			
+    			existing = reorder_storage_mode_min_mb;
+    			
+    			state.setIntAttribute( DownloadManagerState.AT_REORDER_MIN_MB, existing );
+    		}
+    		
+    		if ( file.getLength()/(1024*1024) >= existing ){
+    			
+    			return( "R" );
+    		}
+    	}
+    	
+    	return( "L" );
     }
     
     public static void
