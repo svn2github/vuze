@@ -170,7 +170,15 @@ public class testTableView
 		btnRndDel.setText("RndDel");
 		btnRndDel.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				rndDel();
+				rndDel(1);
+			}
+		});
+
+		Button btnRndDel5 = new Button(cBottom, SWT.PUSH);
+		btnRndDel5.setText("RndDelx5");
+		btnRndDel5.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				rndDel(5);
 			}
 		});
 
@@ -220,13 +228,17 @@ public class testTableView
 		}
 	}
 
-	protected static void rndDel() {
+	protected static void rndDel(int num) {
 		int size = tv.size(false);
 		if (size <= 0) {
 			return;
 		}
-		int pos = (int) (Math.random() * size);
-		tv.removeDataSource((TableViewTestDS) tv.getRow(pos).getDataSource(true));
+		TableViewTestDS[] ds = new TableViewTestDS[num];
+		for (int i = 0; i < ds.length; i++) {
+			int pos = (int) (Math.random() * size);
+			ds[i] = (TableViewTestDS) tv.getRow(pos).getDataSource(true);
+		}
+		tv.removeDataSources(ds);
 	}
 
 	protected static void rndInsert() {
@@ -258,7 +270,7 @@ public class testTableView
 				return;
 			}
 			if (Math.random() > 0.5) {
-				rndDel();
+				rndDel(1);
 			} else {
 				rndInsert();
 			}

@@ -40,8 +40,10 @@ public class CT_InvOnlyReord
 				TableCell[] array = cells.toArray(new TableCell[0]);
 				for (TableCell cell : array) {
 					if (cell.isDisposed()) {
-						event.cancel();
-						return;
+						synchronized (cells) {
+							cells.remove(cell);
+						}
+						continue;
 					}
 					TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 					int num = MapUtils.getMapInt(ds.map, ID_TICS, 0)
