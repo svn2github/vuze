@@ -207,33 +207,47 @@ public class ConfigSectionFile implements UISWTConfigSection {
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
     	zeroNew.setLayoutData(gridData);
-    }
+    }    
 
-    BooleanParameter pieceReorder = null;
+   	BooleanParameter pieceReorder = null;
 
-    sCurConfigID = "Enable reorder storage mode";
-    allConfigIDs.add(sCurConfigID);
+   	sCurConfigID = "Enable reorder storage mode";
+   	allConfigIDs.add(sCurConfigID);
     if( userMode > 0 ) {
-    	// zero new files
+    	
     	pieceReorder = new BooleanParameter(gFile, sCurConfigID,
                                                     "ConfigView.label.piecereorder");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
     	pieceReorder.setLayoutData(gridData);
+    	
+    	//Make the reorder checkbox (button) deselect when zero new is used
+    	Button[] btnReorder = {(Button)pieceReorder.getControl()};
+    	zeroNew.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnReorder));
+
+    	//Make the zero new checkbox(button) deselct when reorder is used
+    	Button[] btnZeroNew = {(Button)zeroNew.getControl()};
+    	pieceReorder.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnZeroNew));
     }
-    
-    sCurConfigID = "File.truncate.if.too.large";
+     
+    sCurConfigID = "Reorder storage mode min MB";
     allConfigIDs.add(sCurConfigID);
-    if( userMode > 0 ) {
-    	// truncate too large
-    	BooleanParameter truncateLarge = 
-    		new BooleanParameter(gFile, sCurConfigID,
-                                    "ConfigView.section.file.truncate.too.large");
-    	gridData = new GridData();
-    	gridData.horizontalSpan = 2;
-    	truncateLarge.setLayoutData(gridData);
-    }
     
+    if( userMode > 0 ) {
+        Label lblMinMB = new Label(gFile, SWT.NULL);
+        Messages.setLanguageText(lblMinMB, "ConfigView.label.piecereorderminmb");
+        gridData = new GridData();
+        gridData.horizontalIndent = 25;
+        lblMinMB.setLayoutData(gridData);
+        
+        IntParameter minMB = new IntParameter(gFile, sCurConfigID);
+        gridData = new GridData();
+        minMB.setLayoutData(gridData);
+        
+        pieceReorder.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(lblMinMB));
+        pieceReorder.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(minMB));
+    }
+        
     sCurConfigID = "Enable incremental file creation";
     allConfigIDs.add(sCurConfigID);
     if( userMode > 0 ) {
@@ -253,7 +267,18 @@ public class ConfigSectionFile implements UISWTConfigSection {
     	incremental.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnZeroNew));
     }
     
-    
+    sCurConfigID = "File.truncate.if.too.large";
+    allConfigIDs.add(sCurConfigID);
+    if( userMode > 0 ) {
+    	// truncate too large
+    	BooleanParameter truncateLarge = 
+    		new BooleanParameter(gFile, sCurConfigID,
+                                    "ConfigView.section.file.truncate.too.large");
+    	gridData = new GridData();
+    	gridData.horizontalSpan = 2;
+    	truncateLarge.setLayoutData(gridData);
+    }
+
     sCurConfigID = "Check Pieces on Completion";
     allConfigIDs.add(sCurConfigID);
     if( userMode > 0 ) {
