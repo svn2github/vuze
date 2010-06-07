@@ -2953,142 +2953,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		boolean ok = Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (table == null || table.isDisposed()) {
-					return;
-				}
-
-				int numSelected = table.getSelectionCount();
-				int[] oldSelection = table.getSelectionIndices();
-
-				mainComposite.getParent().setCursor(
-						table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
-
-				StringBuffer sbWillRemove = null;
-				if (DEBUGADDREMOVE) {
-					debug(">>> Remove rows.  Start w/" + mapDataSourceToRow.size()
-							+ "ds; tc=" + table.getItemCount() + ";"
-							+ (SystemTime.getCurrentTime() - lStart) + "ms wait");
-
-					sbWillRemove = new StringBuffer("Will soon remove row #");
-				}
-
-				ArrayList<TableRowSWT> itemsToRemove = new ArrayList<TableRowSWT>();
-				ArrayList<Long> swtItemsToRemove = new ArrayList<Long>();
-				int iTopIndex = table.getTopIndex();
-				int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
-				boolean bRefresh = false;
-
-				if (DEBUGADDREMOVE) {
-					debug("--- Remove: vis rows " + iTopIndex + " to " + iBottomIndex);
-				}
-
-				// pass one: get the SWT indexes of the items we are going to remove
-				//           This will re-link them if they lost their link
-				for (int i = 0; i < dataSources.length; i++) {
-					if (dataSources[i] == null) {
-						continue;
-					}
-
-					TableRowSWT item = (TableRowSWT) mapDataSourceToRow.get(dataSources[i]);
-					if (item != null) {
-						// use sortedRows position instead of item.getIndex(), because
-						// getIndex may have a wrong value (unless we fillRowGaps() which
-						// is more time consuming and we do afterwards anyway)
-						int index = sortedRows.indexOf(item);
-						if (!bRefresh) {
-							bRefresh = index >= iTopIndex && index <= iBottomIndex;
-						}
-						if (DEBUGADDREMOVE) {
-							if (i != 0) {
-								sbWillRemove.append(", ");
-							}
-							sbWillRemove.append(index);
-						}
-						if (index >= 0) {
-							swtItemsToRemove.add(new Long(index));
-						}
-					}
-				}
-
-				if (DEBUGADDREMOVE) {
-					debug(sbWillRemove.toString());
-					debug("#swtItemsToRemove=" + swtItemsToRemove.size());
-				}
-
-				boolean hasSelected = false;
-				// pass 2: remove from map and list, add removed to seperate list
-				for (int i = 0; i < dataSources.length; i++) {
-					if (dataSources[i] == null) {
-						continue;
-					}
-
-					// Must remove from map before deleted from gui
-					TableRowSWT item = (TableRowSWT) mapDataSourceToRow.remove(dataSources[i]);
-					if (item != null) {
-						if (item.isSelected()) {
-							hasSelected = true;
-						}
-						itemsToRemove.add(item);
-						sortedRows.remove(item);
-						triggerListenerRowRemoved(item);
-					}
-				}
-
-				if (DEBUGADDREMOVE) {
-					debug("-- Removed from map and list");
-				}
-				// Remove the rows from SWT first.  On SWT 3.2, this currently has 
-				// zero perf gain, and a small perf gain on Windows.  However, in the
-				// future it may be optimized.
-				if (swtItemsToRemove.size() > 0) {
-					//					int[] swtRowsToRemove = new int[swtItemsToRemove.size()];
-					//					for (int i = 0; i < swtItemsToRemove.size(); i++) {
-					//						swtRowsToRemove[i] = ((Long) swtItemsToRemove.get(i)).intValue();
-					//					}
-					//					table.remove(swtRowsToRemove);
-					// refreshVisibleRows should fix up the display
-					table.setItemCount(mapDataSourceToRow.size());
-				}
-
-				if (DEBUGADDREMOVE) {
-					debug("-- Removed from SWT");
-				}
-
-				// Finally, delete the rows
-				for (Iterator<TableRowSWT> iter = itemsToRemove.iterator(); iter.hasNext();) {
-					TableRowCore row = iter.next();
-					row.delete();
-				}
-
-				if (bRefresh) {
-					fillRowGaps(false);
-					swt_refreshVisibleRows();
-					if (DEBUGADDREMOVE) {
-						debug("-- Fill row gaps and refresh after remove");
-					}
-				}
-
-				if (DEBUGADDREMOVE) {
-					debug("<< Remove " + itemsToRemove.size() + " rows. now "
-							+ mapDataSourceToRow.size() + "ds; tc=" + table.getItemCount());
-				}
-				mainComposite.getParent().setCursor(null);
-
-				int numNowSelected = table.getSelectionCount();
-				if (numSelected != numNowSelected) {
-					triggerDeselectionListeners(new TableRowCore[0]);
-					if (numSelected >= 0 && numNowSelected == 0
-							&& oldSelection.length > 0
-							&& oldSelection[0] < table.getItemCount()) {
-						table.select(new int[] {
-							oldSelection[0]
-						});
-					}
-				}
-				if (hasSelected) {
-					updateSelectedRowIndexes();
-					triggerSelectionListeners(getSelectedRows());
-				}
+				swt_reallyRemoveDataSources(dataSources, lStart);
 			}
 		});
 
@@ -3109,6 +2974,154 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (DEBUGADDREMOVE) {
 				debug("<< Remove row(s), noswt");
 			}
+		}
+	}
+	
+	private void swt_reallyRemoveDataSources(Object[] dataSources, long lStart) {
+		if (table == null || table.isDisposed()) {
+			return;
+		}
+
+		int numSelected = table.getSelectionCount();
+		int[] oldSelection = table.getSelectionIndices();
+		TableRowCore[] oldSelectedRows = getSelectedRows();
+
+		mainComposite.getParent().setCursor(
+				table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
+
+		try {
+			StringBuffer sbWillRemove = null;
+			if (DEBUGADDREMOVE) {
+				debug(">>> Remove rows.  Start w/" + mapDataSourceToRow.size()
+						+ "ds; tc=" + table.getItemCount() + ";"
+						+ (SystemTime.getCurrentTime() - lStart) + "ms wait");
+
+				sbWillRemove = new StringBuffer("Will soon remove row #");
+			}
+
+			ArrayList<TableRowSWT> itemsToRemove = new ArrayList<TableRowSWT>();
+			ArrayList<Long> swtItemsToRemove = new ArrayList<Long>();
+			int iTopIndex = table.getTopIndex();
+			int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+			boolean bRefresh = false;
+
+			if (DEBUGADDREMOVE) {
+				debug("--- Remove: vis rows " + iTopIndex + " to " + iBottomIndex);
+			}
+
+			// pass one: get the SWT indexes of the items we are going to remove
+			//           This will re-link them if they lost their link
+			for (int i = 0; i < dataSources.length; i++) {
+				if (dataSources[i] == null) {
+					continue;
+				}
+
+				TableRowSWT item = (TableRowSWT) mapDataSourceToRow.get(dataSources[i]);
+				if (item != null) {
+					// use sortedRows position instead of item.getIndex(), because
+					// getIndex may have a wrong value (unless we fillRowGaps() which
+					// is more time consuming and we do afterwards anyway)
+					int index = sortedRows.indexOf(item);
+					if (!bRefresh) {
+						bRefresh = index >= iTopIndex && index <= iBottomIndex;
+					}
+					if (DEBUGADDREMOVE) {
+						if (i != 0) {
+							sbWillRemove.append(", ");
+						}
+						sbWillRemove.append(index);
+					}
+					if (index >= 0) {
+						swtItemsToRemove.add(new Long(index));
+					}
+				}
+			}
+
+			if (DEBUGADDREMOVE) {
+				debug(sbWillRemove.toString());
+				debug("#swtItemsToRemove=" + swtItemsToRemove.size());
+			}
+
+			int numRemovedHavingSelection = 0;
+			// pass 2: remove from map and list, add removed to seperate list
+			for (int i = 0; i < dataSources.length; i++) {
+				if (dataSources[i] == null) {
+					continue;
+				}
+
+				// Must remove from map before deleted from gui
+				TableRowSWT item = (TableRowSWT) mapDataSourceToRow.remove(dataSources[i]);
+				if (item != null) {
+					if (item.isSelected()) {
+						numRemovedHavingSelection++;
+					}
+					itemsToRemove.add(item);
+					sortedRows.remove(item);
+					triggerListenerRowRemoved(item);
+				}
+			}
+
+			if (DEBUGADDREMOVE) {
+				debug("-- Removed from map and list");
+			}
+			// Remove the rows from SWT first.  On SWT 3.2, this currently has 
+			// zero perf gain, and a small perf gain on Windows.  However, in the
+			// future it may be optimized.
+			if (swtItemsToRemove.size() > 0) {
+				//					int[] swtRowsToRemove = new int[swtItemsToRemove.size()];
+				//					for (int i = 0; i < swtItemsToRemove.size(); i++) {
+				//						swtRowsToRemove[i] = ((Long) swtItemsToRemove.get(i)).intValue();
+				//					}
+				//					table.remove(swtRowsToRemove);
+				// refreshVisibleRows should fix up the display
+				table.setItemCount(mapDataSourceToRow.size());
+				// Bug in Cocoa SWT: On setItemCOunt(0), table doesn't do
+				// a repaint so the rows appear to still be there.
+				if (Utils.isCocoa && mapDataSourceToRow.size() == 0) {
+					table.redraw();
+				}
+			}
+
+			if (DEBUGADDREMOVE) {
+				debug("-- Removed from SWT");
+			}
+
+			// Finally, delete the rows
+			for (Iterator<TableRowSWT> iter = itemsToRemove.iterator(); iter.hasNext();) {
+				TableRowCore row = iter.next();
+				row.delete();
+			}
+
+			if (bRefresh) {
+				fillRowGaps(false);
+				swt_refreshVisibleRows();
+				if (DEBUGADDREMOVE) {
+					debug("-- Fill row gaps and refresh after remove");
+				}
+			}
+
+			if (DEBUGADDREMOVE) {
+				debug("<< Remove " + itemsToRemove.size() + " rows. now "
+						+ mapDataSourceToRow.size() + "ds; tc=" + table.getItemCount());
+			}
+
+			// if we removed all selected rows, select a row closest to the
+			// first one
+			if (numRemovedHavingSelection == numSelected && numSelected >= 0
+					&& oldSelection.length > 0 && oldSelection[0] < table.getItemCount()
+					&& oldSelection[0] < sortedRows.size()) {
+				oldSelectedRows = new TableRowCore[] {
+					sortedRows.get(oldSelection[0])
+				};
+				setSelectedRows(oldSelectedRows);
+				triggerSelectionListeners(getSelectedRows());
+				return;
+			}
+			if (oldSelectedRows.length > 0) {
+				setSelectedRows(oldSelectedRows);
+			}
+		} finally {
+			mainComposite.getParent().setCursor(null);
 		}
 	}
 
