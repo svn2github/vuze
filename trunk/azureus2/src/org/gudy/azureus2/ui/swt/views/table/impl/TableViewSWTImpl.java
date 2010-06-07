@@ -4708,7 +4708,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			//s += selectedIndexes[i] + ", "; 
 		}
 		table.deselectAll();
-		table.setSelection(selectedIndexes);
+		table.select(selectedIndexes);
 		
 		//System.out.println(s);
 
