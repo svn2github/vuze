@@ -70,7 +70,7 @@ public class TableRowImpl
   private static AEMonitor this_mon = new AEMonitor( "TableRowImpl" );
 	private ArrayList mouseListeners;
 	private boolean wasShown = false;
-	private Map dataList;
+	private Map<String,Object> dataList;
 	
 	private int lastIndex = -1;
 	private int fontStyle;
@@ -549,18 +549,22 @@ public class TableRowImpl
 	}
 
 	public void setData(String id, Object data) {
-		if (dataList == null) {
-			dataList = new HashMap(1);
-		}
-		if (data == null) {
-			dataList.remove(id);
-		} else {
-			dataList.put(id, data);
+		synchronized (this) {
+			if (dataList == null) {
+				dataList = new HashMap<String, Object>(1);
+			}
+			if (data == null) {
+				dataList.remove(id);
+			} else {
+				dataList.put(id, data);
+			}
 		}
 	}
 	
 	public Object getData(String id) {
-		return dataList == null ? null : dataList.get(id);
+		synchronized (this) {
+			return dataList == null ? null : dataList.get(id);
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#setDrawableHeight(int)
