@@ -496,13 +496,13 @@ public class TableCellImpl
   	
   	tableColumn.setLastSortValueChange(SystemTime.getCurrentTime());
     sortValue = valueToSort;
-    
-    /*
+
+    // Columns with SWT Paint Listeners usually rely on a repaint whenever the
+    // sort value changes
   	if (cellSWTPaintListeners != null
 				|| tableColumn.hasCellOtherListeners("SWTPaint")) {
   		redraw();
   	}
-  	*/
 
     return true;
   }
