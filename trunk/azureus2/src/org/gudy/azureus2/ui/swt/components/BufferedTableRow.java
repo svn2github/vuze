@@ -807,6 +807,13 @@ BufferedTableRow
 
 	public void setSubItemCount(int i) {
 		numSubItems = i;
+		if (item != null) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					item.setItemCount(numSubItems);
+				}
+			});
+		}
 	}
 	
 	public int getSubItemCount() {
