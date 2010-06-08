@@ -72,7 +72,7 @@ PRUDPPacketRequestScrape
 		throws IOException
 	{
 		super( PRUDPPacketTracker.ACT_REQUEST_SCRAPE, con_id, trans_id );
-		
+		hashes = new ArrayList();
 		byte[] hash;
 		while(is.read(hash = new byte[20]) == 20)
 			hashes.add(hash);
