@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -2814,7 +2815,10 @@ DHTTrackerPlugin
 		}
 	}
 	
-	/*
+		/**
+		 * This is used by the dhtscraper plugin
+		 */
+	
 	public DownloadScrapeResult
 	scrape(
 		byte[]		hash )
@@ -2934,7 +2938,6 @@ DHTTrackerPlugin
 					}
 				});
 	}
-	*/
 	
 	protected void
 	increaseActive(
