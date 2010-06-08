@@ -143,10 +143,10 @@ PRUDPPacketRequestAnnounce
 		return( left );
 	}
 	
-	public short
+	public int
 	getPort()
 	{
-		return( port );
+		return( port&0x0000ffff );
 	}
 	
 	public long
