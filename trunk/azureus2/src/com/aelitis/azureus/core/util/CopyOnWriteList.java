@@ -23,10 +23,7 @@
 package com.aelitis.azureus.core.util;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
@@ -123,6 +120,34 @@ implements Iterable<T>
 				}
 				
 				list.add( obj );
+			}
+		}
+	}
+
+	public void
+	addAll(
+		Collection<T>	c )
+	{
+		synchronized( this ){
+			
+			if ( visible ){
+				
+				List<T>	new_list = new ArrayList<T>( list );
+				
+				//mutated();
+				
+				new_list.addAll( c );
+			
+				list	= new_list;
+			
+				visible = false;
+				
+			}else{
+				if (list == Collections.EMPTY_LIST) {
+					list = new ArrayList<T>(initialCapacity);
+				}
+				
+				list.addAll( c );
 			}
 		}
 	}
