@@ -188,6 +188,28 @@ DHTTrackerPlugin
 	
 	private AESemaphore			initialised_sem = new AESemaphore( "DHTTrackerPlugin:init" );
 	
+	private boolean				disable_put;
+	
+	{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"Enable.Proxy", 	
+				"Enable.SOCKS",					
+			}, 
+			new org.gudy.azureus2.core3.config.ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameter_name ) 
+				{
+					boolean	enable_proxy 	= COConfigurationManager.getBooleanParameter("Enable.Proxy");
+				    boolean enable_socks	= COConfigurationManager.getBooleanParameter("Enable.SOCKS");
+				    
+				    disable_put = enable_proxy && enable_socks;
+				}
+			});
+	}
+	
 	public static void
 	load(
 		PluginInterface		plugin_interface )
@@ -1592,7 +1614,18 @@ DHTTrackerPlugin
 				continue;
 			}
 			
-			dht.put( 
+			if ( disable_put ){
+				
+				if ( target.getType() == REG_TYPE_FULL ){
+					
+					log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
+							"Registration of '" + download.getName()
+									+ "'" + target.getDesc() + " skipped as disabled due to use of SOCKS proxy");
+				}
+
+			}else{
+				
+				dht.put( 
 					target.getHash(),
 					"Tracker registration of '" + download.getName() + "'" + target.getDesc() + " -> " + encoded,
 					encoded_bytes,
@@ -1641,6 +1674,7 @@ DHTTrackerPlugin
 								// decreaseActive( dl );
 						}
 					});
+			}
 		}
 	}
 	
@@ -2614,7 +2648,9 @@ DHTTrackerPlugin
 										
 										interesting_published++;
 										
-										dht.put( 
+										if ( !disable_put ){
+											
+											dht.put( 
 												f_ready_download.getTorrent().getHash(),
 												"Presence store '" + f_ready_download.getName() + "'",
 												"0".getBytes(),	// port 0, no connections
@@ -2653,7 +2689,7 @@ DHTTrackerPlugin
 													{
 													}
 												});
-	
+										}
 									}
 									
 									
