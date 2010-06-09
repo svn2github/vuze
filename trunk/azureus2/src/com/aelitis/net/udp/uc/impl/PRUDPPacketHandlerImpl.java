@@ -60,7 +60,8 @@ PRUDPPacketHandlerImpl
 	static{
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{
-					
+				"Enable.Proxy", 	
+				"Enable.SOCKS",
 			}, 
 			new ParameterListener()
 			{
@@ -1470,9 +1471,6 @@ PRUDPPacketHandlerImpl
 		if ( packet_transformer != null ){
 			
 			packet_transformer.transformSend( p );
-			
-			System.out.println( "sending to " + p.getAddress() + ":" +p.getPort());
-
 		}
 		
 		socket.send( p );

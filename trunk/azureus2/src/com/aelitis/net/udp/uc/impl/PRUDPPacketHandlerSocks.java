@@ -21,6 +21,7 @@
 
 package com.aelitis.net.udp.uc.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -58,7 +59,10 @@ PRUDPPacketHandlerSocks
 	static{
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{
-					
+				"Proxy.Host",
+				"Proxy.Port",
+				"Proxy.Username",
+				"Proxy.Password",
 			}, 
 			new ParameterListener()
 			{
@@ -279,9 +283,7 @@ PRUDPPacketHandlerSocks
 	public void
 	transformSend(
 		DatagramPacket	packet )
-	{
-		System.out.println( "xform out" );
-		
+	{		
 		byte[]	data 		= packet.getData();
 		int		data_len	= packet.getLength();
 		
@@ -297,7 +299,44 @@ PRUDPPacketHandlerSocks
 	transformReceive(
 		DatagramPacket	packet )
 	{
-		System.out.println( "xform in" );
+		byte[]	data 		= packet.getData();
+		int		data_len	= packet.getLength();
+		
+		DataInputStream dis = new DataInputStream( new ByteArrayInputStream( data, 0, data_len ));
+		
+		try{
+			dis.readByte();	// res
+			dis.readByte();	// res
+			dis.readByte();	// assume no frag
+		
+			byte	atype = dis.readByte();
+			
+			int	encap_len = 4;
+			if ( atype == 1 ){
+				
+				encap_len += 4;
+				
+			}else if ( atype == 3 ){
+				
+				encap_len += 1 + (dis.readByte()&0xff);
+				
+			}else{
+				
+				encap_len += 16;
+			}
+			
+			encap_len += 2;	// port
+			
+			byte[]	new_data = new byte[data_len-encap_len];
+			
+			System.arraycopy( data, encap_len, new_data, 0, data_len - encap_len );
+			
+			packet.setData( new_data );
+			
+		}catch( IOException e ){
+			
+			Debug.out( e );
+		}
 	}
 			
 	private void
