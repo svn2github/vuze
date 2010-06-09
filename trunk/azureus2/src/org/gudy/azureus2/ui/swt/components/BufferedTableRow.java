@@ -102,7 +102,7 @@ BufferedTableRow
 	/**
 	 * Create a row in the SWT table
 	 *
-	 */
+	 *
 	public void createSWTRow() {
     item = table.createNewItem(SWT.NULL);
 		item.setItemCount(numSubItems);
@@ -114,6 +114,7 @@ BufferedTableRow
 		table.createNewItem(SWT.NULL);
     setTableItem(index, false);
 	}
+	*/
 	
 	public void setAlternatingBGColor(boolean bEvenIfNotVisible) {
 		if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR || true)
@@ -646,6 +647,10 @@ BufferedTableRow
   		return false;
   	}
   	
+  	return setTableItem(newRow, bCopyFromOld, isVisible);
+  }
+
+  public boolean setTableItem(TableItemOrTreeItem newRow, boolean bCopyFromOld, boolean isVisible) {
   	if (newRow.isDisposed()) {
   		Debug.out("newRow disposed from " + Debug.getCompressedStackTrace());
   		return false;
@@ -653,8 +658,8 @@ BufferedTableRow
 
   	if (newRow.equals(item)) {
   		if (newRow.getData("TableRow") == this) {
-  			if(isVisible && needsNewAltBG)
-  				setAlternatingBGColor(true);
+//  			if(isVisible && needsNewAltBG)
+//  				setAlternatingBGColor(true);
   			return false;
   		}
   	}
@@ -688,8 +693,8 @@ BufferedTableRow
   		setIconSize(ptIconSize);
   	}
 
-  	if(isVisible && needsNewAltBG)
-  		setAlternatingBGColor(false);
+//  	if(isVisible && needsNewAltBG)
+//  		setAlternatingBGColor(false);
 
   	try {
   		newRow.setData("TableRow", this);
