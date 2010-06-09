@@ -1498,7 +1498,7 @@ PRUDPPacketHandlerImpl
 		return( stats );
 	}
 	
-	protected void
+	public void
 	destroy()
 	{
 		destroyed	= true;

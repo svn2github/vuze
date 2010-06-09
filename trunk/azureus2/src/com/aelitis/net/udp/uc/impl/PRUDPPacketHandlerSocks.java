@@ -214,10 +214,10 @@ PRUDPPacketHandlerSocks
 
 		    }
 		    
-		    int	relay_port = (((dis.readByte()&0xff)<<8) | dis.readByte()) & 0x0000ffff;
+		    int	relay_port = ((dis.readByte()<<8)&0xff00) | (dis.readByte() & 0x00ff );
 		    		
 		    relay = new InetSocketAddress( relay_address, relay_port );
-		    	
+		    			    
 		    	// use the maped ip for dns resolution so we don't leak the
 		    	// actual address if this is a secure one (e.g. I2P one)
 		    
@@ -463,6 +463,23 @@ PRUDPPacketHandlerSocks
 				
 				Debug.out( e );
 			}
+		}
+		
+		if ( delegate != null ){
+			
+			delegate.destroy();
+		}
+	}
+	
+	public void
+	destroy()
+	{
+		try{
+			closeSession();
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
 		}
 	}
 }

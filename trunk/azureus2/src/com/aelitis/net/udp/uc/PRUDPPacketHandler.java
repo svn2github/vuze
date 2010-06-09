@@ -149,4 +149,7 @@ PRUDPPacketHandler
 	closeSession()
 	
 		throws PRUDPPacketHandlerException;
+	
+	public void
+	destroy();
 }
