@@ -62,7 +62,7 @@ PRUDPPacketHandlerFactoryImpl
 			
 			if ( receiver == null ){
 				
-				receiver = new PRUDPPacketHandlerImpl( port, bind_ip );
+				receiver = new PRUDPPacketHandlerImpl( port, bind_ip, null );
 				
 				receiver_map.put( f_port, receiver );
 			}
@@ -99,7 +99,7 @@ PRUDPPacketHandlerFactoryImpl
 			
 			if ( receiver == null ){
 				
-				receiver = new PRUDPPacketHandlerImpl( port, null );
+				receiver = new PRUDPPacketHandlerImpl( port, null, null );
 				
 				receiver_map.put( f_port, receiver );
 			}

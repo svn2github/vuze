@@ -138,4 +138,15 @@ PRUDPPacketHandler
 	
 	public PRUDPPacketHandlerStats
 	getStats();
+	
+	public PRUDPPacketHandler
+	openSession(
+		InetSocketAddress	target )
+	
+		throws PRUDPPacketHandlerException;
+	
+	public void
+	closeSession()
+	
+		throws PRUDPPacketHandlerException;
 }

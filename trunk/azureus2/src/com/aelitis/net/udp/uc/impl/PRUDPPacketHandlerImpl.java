@@ -32,6 +32,8 @@ import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -52,6 +54,28 @@ PRUDPPacketHandlerImpl
 	
 	private static final long	MAX_SEND_QUEUE_DATA_SIZE	= 2*1024*1024;
 	private static final long	MAX_RECV_QUEUE_DATA_SIZE	= 1*1024*1024;
+	
+	private static boolean	use_socks;
+
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+					
+			}, 
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameter_name ) 
+				{
+					boolean	enable_proxy 	= COConfigurationManager.getBooleanParameter("Enable.Proxy");
+				    boolean enable_socks	= COConfigurationManager.getBooleanParameter("Enable.SOCKS");
+				    
+				    use_socks = enable_proxy && enable_socks;
+				}
+			});
+	}
+  
 	
 	private int				port;
 	private DatagramSocket	socket;
@@ -103,14 +127,17 @@ PRUDPPacketHandlerImpl
 	
 	private PRUDPPacketHandlerImpl altProtocolDelegate; 
 	
+	private final PacketTransformer	packet_transformer;
 	
 	protected
 	PRUDPPacketHandlerImpl(
-		int				_port,
-		InetAddress		_bind_ip )
+		int					_port,
+		InetAddress			_bind_ip,
+		PacketTransformer	_packet_transformer )
 	{
 		port				= _port;
 		explicit_bind_ip	= _bind_ip;
+		packet_transformer	= _packet_transformer;
 		
 		default_bind_ip = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 		
@@ -201,6 +228,11 @@ PRUDPPacketHandlerImpl
 	public int
 	getPort()
 	{
+		if ( port == 0 && socket != null ){
+			
+			return( socket.getLocalPort());
+		}
+		
 		return( port );
 	}
 	
@@ -295,7 +327,7 @@ PRUDPPacketHandlerImpl
 			
 			if(altAddress != null && altProtocolDelegate == null)
 			{
-				altProtocolDelegate = new PRUDPPacketHandlerImpl(port,altAddress);
+				altProtocolDelegate = new PRUDPPacketHandlerImpl(port,altAddress,packet_transformer);
 				altProtocolDelegate.stats = stats;
 				altProtocolDelegate.primordial_handler = primordial_handler;
 				altProtocolDelegate.request_handler = request_handler;
@@ -441,7 +473,7 @@ PRUDPPacketHandlerImpl
 	
 						DatagramPacket packet = new DatagramPacket( buffer, buffer.length, address );
 						
-						socket.receive( packet );
+						receiveFromSocket( packet );
 						
 						long	receive_time = SystemTime.getCurrentTime();
 						
@@ -1034,7 +1066,7 @@ PRUDPPacketHandlerImpl
 							
 								// synchronous write holding lock to block senders
 							
-							socket.send( dg_packet );
+							sendToSocket( dg_packet );
 							
 							stats.packetSent( buffer.length );
 							
@@ -1136,7 +1168,7 @@ PRUDPPacketHandlerImpl
 													
 													r.sent();
 													
-													socket.send( p );
+													sendToSocket( p );
 													
 													stats.packetSent( p.getLength() );
 							
@@ -1180,7 +1212,8 @@ PRUDPPacketHandlerImpl
 					
 					request.sent();
 					if (dg_packet == null) {throw new NullPointerException("dg_packet is null");}
-					socket.send( dg_packet );
+					
+					sendToSocket( dg_packet );
 					
 					// System.out.println( "sent:" + buffer.length );
 					
@@ -1289,7 +1322,7 @@ PRUDPPacketHandlerImpl
 								+ request_packet.getString()));
 			}
 			
-			socket.send( dg_packet );
+			sendToSocket( dg_packet );
 			
 			stats.packetSent( buffer.length );
 			
@@ -1418,13 +1451,44 @@ PRUDPPacketHandlerImpl
 						"PRUDPPacketHandler: reply packet sent: " + buffer.length + " to " + target ));
 			}
 			
-			socket.send( dg_packet );
+			sendToSocket( dg_packet );
 			
 			stats.primordialPacketSent( buffer.length );
 			
 		}catch( Throwable e ){
 			
 			throw( new PRUDPPacketHandlerException( e.getMessage()));
+		}
+	}
+	
+	private void
+	sendToSocket(
+		DatagramPacket	p )
+	
+		throws IOException
+	{
+		if ( packet_transformer != null ){
+			
+			packet_transformer.transformSend( p );
+			
+			System.out.println( "sending to " + p.getAddress() + ":" +p.getPort());
+
+		}
+		
+		socket.send( p );
+	}
+	
+	private void
+	receiveFromSocket(
+		DatagramPacket	p )
+	
+		throws IOException
+	{
+		socket.receive( p );
+		
+		if ( packet_transformer != null ){
+			
+			packet_transformer.transformReceive( p );
 		}
 	}
 	
@@ -1440,9 +1504,49 @@ PRUDPPacketHandlerImpl
 		destroyed	= true;
 		
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-		if(delegate != null)
+		
+		if (delegate != null ){
+			
 			delegate.destroy();
-
+		}
+		
 		destroy_sem.reserve();
+	}
+	
+	
+	public PRUDPPacketHandler
+	openSession(
+		InetSocketAddress		target )
+	
+		throws PRUDPPacketHandlerException
+	{
+		if ( use_socks ){
+			
+			return( new PRUDPPacketHandlerSocks( target ));
+			
+		}else{
+			
+			return( this );
+		}
+	}
+	
+	public void
+	closeSession()
+	
+		throws PRUDPPacketHandlerException
+	{
+	}
+	
+	protected interface
+	PacketTransformer
+	{
+		public void
+		transformSend(
+			DatagramPacket	packet );
+			
+		public void
+		transformReceive(
+			DatagramPacket	packet );
+			
 	}
 }
