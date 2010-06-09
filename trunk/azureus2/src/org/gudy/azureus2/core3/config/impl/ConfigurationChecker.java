@@ -661,6 +661,17 @@ ConfigurationChecker
 	    	}
 	    }
 	    
+	    if ( check_level < 3 && ( Constants.IS_CVS_VERSION || COConfigurationManager.isNewInstall())){
+
+	    	COConfigurationManager.setParameter( "config.checker.level", 3 );
+	    	
+	    	changed = true;
+	    	
+	    		// new users, and cvs users for testing purposes, get the config wizard
+	    	
+	    	COConfigurationManager.setParameter( "Wizard Completed", false );
+	    }
+	    
 	    if(changed) {
 	      COConfigurationManager.save();
 	    } 

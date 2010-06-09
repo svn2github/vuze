@@ -718,7 +718,7 @@ public class MenuFactory
 	public static MenuItem addConfigWizardMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_CONFIGURE, new Listener() {
 			public void handleEvent(Event e) {
-				new ConfigureWizard(false,false);
+				new ConfigureWizard(false,ConfigureWizard.WIZARD_MODE_FULL);
 			}
 		});
 	}

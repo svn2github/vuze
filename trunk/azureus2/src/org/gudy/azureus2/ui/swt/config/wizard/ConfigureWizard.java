@@ -35,7 +35,11 @@ import com.aelitis.azureus.ui.UserPrompterResultListener;
  */
 public class ConfigureWizard extends Wizard {
 
-	private boolean is_speed_test;
+	  public static final int WIZARD_MODE_FULL				= 0;
+	  public static final int WIZARD_MODE_SPEED_TEST_AUTO	= 1;
+	  public static final int WIZARD_MODE_SPEED_TEST_MANUAL	= 2;
+  
+	private int wizard_mode;
 	
   //Transfer settings
 
@@ -58,14 +62,14 @@ public class ConfigureWizard extends Wizard {
 
   public 
   ConfigureWizard(
-		  boolean 	modal,
-		  boolean	speed_test ) 
+	  boolean 	_modal,
+	  int		_wizard_mode ) 
   {
-    super("configureWizard.title",modal);
+    super("configureWizard.title",_modal);
     
-    is_speed_test = speed_test;
+    wizard_mode = _wizard_mode;
     
-    IWizardPanel panel = is_speed_test?new TransferPanel2( this, null ):new LanguagePanel(this,null);
+    IWizardPanel panel = wizard_mode==WIZARD_MODE_FULL?new LanguagePanel(this,null):new TransferPanel2( this, null );
     try  {
       torrentPath = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
     } catch(Exception e) {
@@ -86,7 +90,7 @@ public class ConfigureWizard extends Wizard {
   public void onClose() {
 		try {
 			if (	!completed && 
-					!is_speed_test && 
+					wizard_mode != WIZARD_MODE_SPEED_TEST_AUTO && 
 					!COConfigurationManager.getBooleanParameter("Wizard Completed")){
 				
 				MessageBoxShell mb = new MessageBoxShell(
@@ -167,6 +171,15 @@ public class ConfigureWizard extends Wizard {
 
 		  maxActiveTorrents = nbMaxActive;
 		  maxDownloads = nbMaxDownloads;
+		  
+	  }else{	  
+		  
+		  	// reset to defaults
+		  
+		  uploadLimitManual	= false;
+		  uploadLimit 		= 0;
+		  maxActiveTorrents	= 0;
+		  maxDownloads		= 0;
 	  }
   }
   
@@ -188,9 +201,9 @@ public class ConfigureWizard extends Wizard {
 	  return( uploadLimitManual );
   }
   
-  protected boolean
-  isSpeedTest()
+  protected int
+  getWizardMode()
   {
-	  return( is_speed_test );
+	  return( wizard_mode );
   }
 }

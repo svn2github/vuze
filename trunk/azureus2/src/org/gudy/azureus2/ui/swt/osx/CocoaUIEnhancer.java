@@ -198,7 +198,7 @@ public class CocoaUIEnhancer
 				uiFunctions.dispose(true, false);
 			}
 		} else if (sel == sel_wizardMenuSelected_) {
-			new ConfigureWizard(false,false);
+			new ConfigureWizard(false,ConfigureWizard.WIZARD_MODE_FULL);
 		} else if (sel == sel_natMenuSelected_) {
 			new NatTestWindow();
 		} else if (sel == sel_speedMenuSelected_) {

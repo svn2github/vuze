@@ -284,7 +284,7 @@ TransferPanel2
 
     String connection_labels[] = new String[connection_rates.length];
 
-    connection_labels[0] = "";
+    connection_labels[0] = MessageText.getString( "configureWizard.transfer2.current" );
  
     String dial_up = MessageText.getString( "dial.up" );
     
@@ -299,6 +299,8 @@ TransferPanel2
     	
     	connection_speed.add(connection_labels[i]);
     }
+    
+    connection_speed.select(0);
     
     connection_speed.addListener(
     	SWT.Selection,
@@ -354,7 +356,7 @@ TransferPanel2
     
     updateNextEnabled();
     
-    if ( wizard.isSpeedTest()){
+    if ( wizard.getWizardMode() == ConfigureWizard.WIZARD_MODE_SPEED_TEST_AUTO ){
     	
     	Utils.execSWTThreadLater(
     		0,
@@ -401,7 +403,7 @@ TransferPanel2
 	 boolean enabled = isProgressEnabled();
 	 	  
 	   
-	 if ( wizard.isSpeedTest()){
+	 if ( wizard.getWizardMode() != ConfigureWizard.WIZARD_MODE_FULL ){
 		 
 		 wizard.setNextEnabled( false );
 		 
@@ -431,13 +433,13 @@ TransferPanel2
   public boolean 
   isNextEnabled() 
   {
-	  return( isProgressEnabled() && !wizard.isSpeedTest());
+	  return( isProgressEnabled() && wizard.getWizardMode() == ConfigureWizard.WIZARD_MODE_FULL);
   }
   
   public boolean 
   isPreviousEnabled() 
   {
-    return( ! ( test_in_progress || wizard.isSpeedTest()));
+    return( ! ( test_in_progress || wizard.getWizardMode() != ConfigureWizard.WIZARD_MODE_FULL ));
   }
   
   public IWizardPanel 

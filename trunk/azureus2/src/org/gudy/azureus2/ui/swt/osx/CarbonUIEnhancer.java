@@ -820,7 +820,7 @@ public class CarbonUIEnhancer
 						return noErr;
 					}
 					case kHICommandWizard:
-						new ConfigureWizard(false,false);
+						new ConfigureWizard(false,ConfigureWizard.WIZARD_MODE_FULL);
 						return noErr;
 					case kHICommandNatTest:
 						new NatTestWindow();

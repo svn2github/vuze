@@ -100,7 +100,7 @@ public class FinishPanel extends AbstractWizardPanel<ConfigureWizard> {
         COConfigurationManager.setParameter( "Auto Adjust Transfer Defaults", true );
     }
    
-    if ( wizard.isSpeedTest()){
+    if ( wizard.getWizardMode() != ConfigureWizard.WIZARD_MODE_FULL ){
     	
     	wizard.close();
     	

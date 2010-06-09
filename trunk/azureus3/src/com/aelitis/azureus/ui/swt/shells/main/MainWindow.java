@@ -51,6 +51,7 @@ import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
+import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -1385,9 +1386,16 @@ public class MainWindow
 
 			uiInitializer.initializationComplete();
 		}
+							
+		if ( !COConfigurationManager.getBooleanParameter( "Wizard Completed" )){
+				
+			new ConfigureWizard( false, ConfigureWizard.WIZARD_MODE_SPEED_TEST_MANUAL );
+		}
 		
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
-		if (uiClassic) {
+
+		if ( uiClassic ){
+			
 			checkForWhatsNewWindow();
 		}
 

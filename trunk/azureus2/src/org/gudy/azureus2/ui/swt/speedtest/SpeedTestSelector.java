@@ -94,7 +94,7 @@ SpeedTestSelector
 
 			wizard.close();
 
-			new ConfigureWizard( false, true );
+			new ConfigureWizard( false, ConfigureWizard.WIZARD_MODE_SPEED_TEST_AUTO );
 			
 			return( null );
 
