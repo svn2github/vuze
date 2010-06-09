@@ -23,6 +23,7 @@ import org.eclipse.swt.graphics.Rectangle;
 
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 
 /**
  * @author TuxPaper
@@ -31,6 +32,6 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
  */
 public interface TableRowSWTPaintListener
 {
-	public void rowPaint(GC gc, TableItemOrTreeItem row, TableColumnCore column,
+	public void rowPaint(GC gc, TableRowCore row, TableColumnCore column,
 			Rectangle cellArea);
 }

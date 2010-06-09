@@ -2566,8 +2566,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				if (mapDataSourceToRow.containsKey(dataSources[i])) {
 					dataSources[i] = null;
 				} else {
-					TableRowImpl row = new TableRowImpl(this, table, sTableID,
-							columnsOrdered, dataSources[i], bSkipFirstColumn);
+					TableRowImpl row = new TableRowImpl(this, table, columnsOrdered,
+							dataSources[i], bSkipFirstColumn);
 					mapDataSourceToRow.put((DATASOURCETYPE) dataSources[i], row);
 				}
 			}
@@ -3450,6 +3450,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			if (item.getParentItem() != null) {
+				TableRowCore row = getRow(item.getParentItem());
+				row.linkSubItem(item.getParentItem().indexOf(item));
 				return null;
 			}
 			
@@ -5290,7 +5292,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
-	protected void invokePaintListeners(GC gc, TableItemOrTreeItem item,
+	protected void invokePaintListeners(GC gc, TableRowCore row,
 			TableColumnCore column, Rectangle cellArea) {
 		ArrayList listeners = rowPaintListeners;
 		if (listeners == null)
@@ -5300,7 +5302,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			try {
 				TableRowSWTPaintListener l = (TableRowSWTPaintListener) (listeners.get(i));
 
-				l.rowPaint(gc, item, column, cellArea);
+				l.rowPaint(gc, row, column, cellArea);
 
 			} catch (Throwable e) {
 				Debug.printStackTrace(e);

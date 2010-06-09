@@ -2130,9 +2130,9 @@ public class MyTorrentsView
   	if (tv.canHaveSubItems()) {
     	DownloadManager dm = (DownloadManager) row.getDataSource(true);
     	if (dm != null) {
-    		TOTorrent torrent = dm.getTorrent();
-    		if (torrent != null) {
-    			row.setSubItemCount(torrent.getFiles().length);
+    		DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
+    		if (fileInfos != null && fileInfos.length > 0) {
+    			row.setSubItems(fileInfos);
     		}
     	}
   	}
@@ -2215,15 +2215,14 @@ public class MyTorrentsView
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWTPaintListener#rowPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableRowSWT)
-	public void rowPaint(GC gc, TableItemOrTreeItem row, TableColumnCore column,
+	public void rowPaint(GC gc, TableRowCore row, TableColumnCore column,
 			Rectangle cellArea) {
-		TableItemOrTreeItem parentItem = row.getParentItem();
-		if (parentItem != null) {
-			TableRowSWT parentRow = (TableRowSWT) parentItem.getData("TableRow");
+		TableRowCore parentRow = row.getParentRowCore();
+		if (parentRow != null) {
 			DownloadManager dm = (DownloadManager) parentRow.getDataSource(true);
 			if (dm != null) {
 				DiskManagerFileInfo[] infos = dm.getDiskManagerFileInfo();
-				int i = parentItem.indexOf(row);
+				int i = row.getIndex();
 				if (i >= 0 && i < infos.length) {
 					if (column.getName().equals("name")) {
 						final String CFG_SHOWPROGRAMICON = "NameColumn.showProgramIcon."	+ tv.getTableID();

@@ -133,12 +133,12 @@ public class TableViewSWT_PaintItem
 
 			TableRowSWT row = (TableRowSWT) tv.getRow(item);
 			if (row == null) {
-				//cellBounds.width = table.getColumn(event.index).getWidth();
-				tv.invokePaintListeners(event.gc, item, columnsOrdered[iColumnNo],
-						cellBounds);
 				//System.out.println("no row");
 				return;
 			}
+
+			tv.invokePaintListeners(event.gc, row, columnsOrdered[iColumnNo],
+					cellBounds);
 
 			int rowAlpha = row.getAlpha();
 
@@ -164,7 +164,7 @@ public class TableViewSWT_PaintItem
 				//System.out.println("no bounds");
 				return;
 			}
-
+			
 			TableCellSWT cell = row.getTableCellSWT(columnsOrdered[iColumnNo].getName());
 
 			if (cell == null) {

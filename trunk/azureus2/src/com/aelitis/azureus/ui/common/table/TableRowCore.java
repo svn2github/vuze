@@ -160,6 +160,8 @@ public interface TableRowCore extends TableRow
 	public boolean isExpanded();
 
 	public void setExpanded(boolean b);
+	
+	public TableRowCore getParentRowCore();
 
 	/**
 	 * @return
@@ -167,4 +169,18 @@ public interface TableRowCore extends TableRow
 	 * @since 4.4.0.5
 	 */
 	public boolean isInPaintItem();
+
+	/**
+	 * @param indexOf
+	 *
+	 * @since 4.4.0.5
+	 */
+	void linkSubItem(int indexOf);
+
+	/**
+	 * @param datasources
+	 *
+	 * @since 4.4.0.5
+	 */
+	void setSubItems(Object[] datasources);
 }
