@@ -166,6 +166,7 @@ AZInstanceManagerImpl
 	private volatile boolean		include_well_known_lans	= true;
 	
 	private AESemaphore	initial_search_sem	= new AESemaphore( "AZInstanceManager:initialSearch" );
+	private boolean		init_wait_abandoned;
 	
 	private AEMonitor	this_mon = new AEMonitor( "AZInstanceManager" );
 
@@ -691,8 +692,8 @@ AZInstanceManagerImpl
 	public int
   	getOtherInstanceCount()
   	{
-  		initial_search_sem.reserve();
-  		
+		waitForInit();
+		
   		try{
   			this_mon.enter();
 
@@ -707,7 +708,7 @@ AZInstanceManagerImpl
 	public AZInstance[]
 	getOtherInstances()
 	{
-		initial_search_sem.reserve();
+		waitForInit();
 		
 		try{
 			this_mon.enter();
@@ -718,6 +719,21 @@ AZInstanceManagerImpl
 			
 			this_mon.exit();
 		}
+	}
+	
+	private void
+	waitForInit()
+	{
+		if ( init_wait_abandoned ){
+			
+			return;
+		}
+		
+  		if ( !initial_search_sem.reserve(2500)){
+  			Debug.out( "Instance manager - timeout waiting for initial search" );
+  			
+  			init_wait_abandoned = true;
+  		}
 	}
 	
 	protected void
