@@ -55,7 +55,10 @@ TRTrackerServerProcessorUDP
 	private DatagramSocket			socket;
 	private DatagramPacket			request_dg;
 	
-	private static Map				connection_id_map 	= new LinkedHashMap();
+	private static Map<Long,connectionData>				connection_id_map 	= new LinkedHashMap<Long,connectionData>();
+	private static Map<String,List<connectionData>>		connection_ip_map 	= new HashMap<String,List<connectionData>>();
+	private static long									last_timeout_check;
+	
 	private static SecureRandom		random				= RandomUtils.SECURE_RANDOM;
 	private static AEMonitor		random_mon 			= new AEMonitor( "TRTrackerServerUDP:rand" );
 
@@ -218,6 +221,11 @@ TRTrackerServerProcessorUDP
 							
 							Object[] x = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_ANNOUNCE );
 							
+							if ( x == null ){
+								
+								throw( new Exception( "Connection ID mismatch" ));
+							}
+							
 							reply 	= (PRUDPPacket)x[0];
 							torrent	= (TRTrackerServerTorrentImpl)x[1];
 					
@@ -227,6 +235,11 @@ TRTrackerServerProcessorUDP
 							
 							Object[] x = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_SCRAPE );
 							
+							if ( x == null ){
+								
+								throw( new Exception( "Connection ID mismatch" ));
+							}
+
 							reply 	= (PRUDPPacket)x[0];
 							torrent	= (TRTrackerServerTorrentImpl)x[1];
 		
@@ -307,36 +320,82 @@ TRTrackerServerProcessorUDP
 			
 			Long	new_key = new Long(id);
 			
-			connectionData	new_data = new connectionData( client_address );
+			connectionData	new_data = new connectionData( client_address, id );
 			
 				// check for timeouts
 			
-			Iterator	it = connection_id_map.keySet().iterator();
-			
-			while(it.hasNext()){
+			if ( new_data.getTime() - last_timeout_check > 500 ){
 				
-				Long	key = (Long)it.next();
+				last_timeout_check = new_data.getTime();
 				
-				connectionData	data = (connectionData)connection_id_map.get(key);
-			
-				if ( new_data.getTime() - data.getTime() > CONNECTION_ID_LIFETIME ){
+				Iterator<Long>	it = connection_id_map.keySet().iterator();
+							
+				while(it.hasNext()){
 					
-					// System.out.println( "TRTrackerServerProcessorUDP: conection id timeout" );
+					Long	key = it.next();
 					
-					it.remove();
-					
-				}else{
-						// insertion order into map is time based - LinkedHashMap returns keys in same order
-					
-					break;
-				}
-			}	
+					connectionData	data = connection_id_map.get(key);
+				
+					if ( new_data.getTime() - data.getTime() > CONNECTION_ID_LIFETIME ){
 						
+						// System.out.println( "TRTrackerServerProcessorUDP: connection id timeout" );
+						
+						it.remove();
+						
+						List<connectionData> cds = connection_ip_map.get( client_address );
+
+						if ( cds != null ){
+							
+							Iterator<connectionData> it2 = cds.iterator();
+								
+							while( it2.hasNext()){
+								
+								if ( it2.next().getID() == key ){
+									
+									it2.remove();
+									
+									break;
+								}
+							}
+							
+							if ( cds.size() == 0 ){
+								
+								connection_ip_map.remove( client_address );
+							}
+						}
+						
+					}else{
+							// insertion order into map is time based - LinkedHashMap returns keys in same order
+						
+						break;
+					}
+				}
+			}
+				
+			List<connectionData> cds = connection_ip_map.get( client_address );
+			
+			if ( cds == null ){
+			
+				cds = new ArrayList<connectionData>();
+				
+				connection_ip_map.put( client_address, cds );
+			}
+			
+			cds.add( new_data );
+			
+			if ( cds.size() > 512 ){
+				
+				connectionData dead = cds.remove(0);
+				
+				connection_id_map.remove( dead.getID());
+			}
+			
 			connection_id_map.put( new_key, new_data );
 			
-			// System.out.println( "TRTrackerServerProcessorUDP: allocated:" + id + ", conection id map size = " + connection_id_map.size());
+			// System.out.println( "TRTrackerServerProcessorUDP: allocated:" + id + ", connection id map size = " + connection_id_map.size());
 			
 			return( id );
+			
 		}finally{
 			
 			random_mon.exit();
@@ -363,9 +422,10 @@ TRTrackerServerProcessorUDP
 				
 			}else{
 				
-					// single shot id, can't be reused
-				
-				connection_id_map.remove( key );
+				if ( SystemTime.getMonotonousTime() - data.getTime() > CONNECTION_ID_LIFETIME ){
+					
+					return( false );
+				}
 			}
 			
 			boolean	ok = data.getAddress().equals( client_address );
@@ -373,6 +433,7 @@ TRTrackerServerProcessorUDP
 			// System.out.println( "TRTrackerServerProcessorUDP: tested:" + id + "/" + client_address + " -> " + ok );
 			
 			return( ok );
+			
 		}finally{
 			
 			random_mon.exit();
@@ -689,24 +750,34 @@ TRTrackerServerProcessorUDP
 	protected static class
 	connectionData
 	{
-		protected String		address;
-		protected long			time;
+		private String		address;
+		private long		id;
+		private long		time;
 		
-		protected
+		private
 		connectionData(
-			String		_address )
+			String		_address,
+			long		_id )
 		{
 			address	= _address;
-			time	= SystemTime.getCurrentTime();
+			id		= _id;
+			
+			time	= SystemTime.getMonotonousTime();
 		}
 		
-		protected String
+		private String
 		getAddress()
 		{
 			return( address );
 		}
 		
-		protected long
+		private long
+		getID()
+		{
+			return( id );
+		}
+		
+		private long
 		getTime()
 		{
 			return( time );
