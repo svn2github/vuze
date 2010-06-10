@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.FileUtil;
 
+import com.aelitis.azureus.core.diskmanager.file.FMFile;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
 public class 
@@ -528,6 +529,12 @@ FMFileAccessCompact
 				throw( new FMFileManagerException( "Failed to write control file state", e ));
 			}
 		}
+	}
+	
+	public FMFileImpl 
+	getFile()
+	{
+		return( delegate.getFile());
 	}
 	
 	public String

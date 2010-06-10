@@ -53,7 +53,7 @@ FMFileAccessController
 	
 	private int		type		= FMFile.FT_LINEAR;
 	
-	private File	controlPath;
+	private File	control_dir;
 	private String	controlFileName;
 	
 	private FMFileAccess	file_access;
@@ -81,7 +81,7 @@ FMFileAccessController
 	
 		setControlFile();
 	
-		if ( controlPath == null ){
+		if ( control_dir == null ){
 			
 			// Debug.out( "No control file" ); in optimised environments we don't support compact and return null here
 			
@@ -96,11 +96,11 @@ FMFileAccessController
 
 		}else{
 		
-			if ( new File( controlPath, controlFileName ).exists()){
+			if ( new File( control_dir, controlFileName ).exists()){
 				
 				type = FMFile.FT_COMPACT;
 				
-			}else if ( new File( controlPath, controlFileName + REORDER_SUFFIX ).exists()){
+			}else if ( new File( control_dir, controlFileName + REORDER_SUFFIX ).exists()){
 			
 				type = _target_type==FMFile.FT_PIECE_REORDER?FMFile.FT_PIECE_REORDER:FMFile.FT_PIECE_REORDER_COMPACT;
 				
@@ -108,18 +108,14 @@ FMFileAccessController
 				
 				if ((_target_type == FMFile.FT_PIECE_REORDER || _target_type == FMFile.FT_PIECE_REORDER_COMPACT )){
 					
-					if ( owner.getLinkedFile().exists()){
+					File	target_file = owner.getLinkedFile();
 					
-							// control file has been deleted, we could do some smart recovery here but
-							// for the moment we just create an empty file and let things proceed
-						
-						try{
-							new File( controlPath, controlFileName + REORDER_SUFFIX ).createNewFile();
-							
-						}catch( Throwable e ){
-							
-							throw( new FMFileManagerException( "Failed to create control file", e ));
-						}
+					if ( target_file.exists()){
+					
+						FMFileAccessPieceReorderer.recoverConfig( 
+							owner.getOwner().getTorrentFile(),
+							target_file, 
+							new File( control_dir, controlFileName + REORDER_SUFFIX ));
 					}
 					
 					type = _target_type;
@@ -139,7 +135,7 @@ FMFileAccessController
 				file_access = 
 					new FMFileAccessCompact(
 							owner.getOwner().getTorrentFile(),
-							controlPath,
+							control_dir,
 							controlFileName,  
 							new FMFileAccessLinear( owner ));
 			}else{
@@ -147,7 +143,7 @@ FMFileAccessController
 				file_access = 
 					new FMFileAccessPieceReorderer(
 							owner.getOwner().getTorrentFile(),
-							controlPath,
+							control_dir,
 							controlFileName + REORDER_SUFFIX,  
 							new FMFileAccessLinear( owner ));
 			}
@@ -197,7 +193,7 @@ FMFileAccessController
 			}else{
 				
 				target_access = new FMFileAccessCompact(
-										owner.getOwner().getTorrentFile(),controlPath,
+										owner.getOwner().getTorrentFile(),control_dir,
 										controlFileName,  
 										new FMFileAccessLinear( owner ));
 			}
@@ -333,7 +329,7 @@ FMFileAccessController
 				
 				if ( type == FMFile.FT_LINEAR ){
 					
-					new File(controlPath,controlFileName).delete();	
+					new File(control_dir,controlFileName).delete();	
 				}
 			}
 		}
@@ -347,7 +343,7 @@ FMFileAccessController
 		if ( tf == null ){
 
 			controlFileName = null;
-			controlPath = null;
+			control_dir = null;
 		}
 		
 		TOTorrent	torrent = tf.getTorrent();
@@ -371,11 +367,11 @@ FMFileAccessController
 			Debug.out("File '" + owner.getName() + "' not found in torrent!" );
 			
 			controlFileName = null;
-			controlPath 	= null;
+			control_dir 	= null;
 			
 		}else{
 			
-			controlPath 	= owner.getOwner().getControlFileDir( );
+			control_dir 	= owner.getOwner().getControlFileDir( );
 			controlFileName =  StringInterner.intern("fmfile" + file_index + ".dat");
 		}
 	}
@@ -465,6 +461,12 @@ FMFileAccessController
 		throws FMFileManagerException
 	{
 		file_access.flush();
+	}
+	
+	public FMFileImpl 
+	getFile() 
+	{
+		return( owner );
 	}
 	
 	public String

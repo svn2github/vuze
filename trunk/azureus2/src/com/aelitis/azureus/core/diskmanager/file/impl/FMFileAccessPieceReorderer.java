@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.diskmanager.file.FMFile;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
 public class 
@@ -676,8 +677,8 @@ FMFileAccessPieceReorderer
 		
 		return( store_index );
 	}
-	
-	protected void
+		
+	private void
 	readConfig()
 	
 		throws FMFileManagerException
@@ -756,8 +757,22 @@ FMFileAccessPieceReorderer
 		
 		piece_map[0]			= 0;
 		piece_reverse_map[0]	= 0;
-		next_piece_index 		= 1;
-		current_length			= 0;
+		current_length			= getFile().getLinkedFile().length();
+		
+		int	piece_count = (int)(( current_length + piece_size - 1 )/piece_size);
+		
+		if ( piece_count > num_pieces ){
+			
+			piece_count = num_pieces;
+		}
+		
+		for ( int i=1;i<piece_count;i++){
+			
+			piece_map[i] 			= i;
+			piece_reverse_map[i]	= i;
+		}
+		
+		next_piece_index 		= piece_count;
 		
 		writeConfig();
 		
@@ -797,16 +812,12 @@ FMFileAccessPieceReorderer
 		}
 	}
 
-	protected void
-	writeConfig()
-	
-		throws FMFileManagerException
+	private static Map
+	encodeConfig(
+		long		current_length,
+		long		next_piece_index,
+		int[]		piece_map )
 	{
-		if ( piece_map == null ){
-			
-			readConfig();
-		}
-		
 		Map	map = new HashMap();
 		
 		map.put( "len", 	new Long( current_length ));
@@ -835,6 +846,75 @@ FMFileAccessPieceReorderer
 		
 		map.put( "pieces", 	pieces_bytes );
 		
+		return( map );
+	}
+	
+	protected static void
+	recoverConfig(
+		TOTorrentFile	torrent_file,
+		File			data_file,
+		File			config_file )
+	
+		throws FMFileManagerException
+	{
+		// most likely add-for-seeding which means a recheck will occur. just map all existing pieces
+		// to their correct positions and let the recheck sort things out
+			
+		int first_piece_number 	= torrent_file.getFirstPieceNumber();
+
+		int num_pieces = torrent_file.getLastPieceNumber() - first_piece_number + 1;
+
+		int piece_size = (int)torrent_file.getTorrent().getPieceLength();
+
+		int[] piece_map 			= new int[num_pieces];
+					
+		Arrays.fill( piece_map, -1 );
+
+		piece_map[0]	= 0;
+		
+		long	current_length = data_file.length();
+		
+		int	piece_count = (int)(( current_length + piece_size - 1 )/piece_size);
+		
+		if ( piece_count > num_pieces ){
+			
+			piece_count = num_pieces;
+		}
+		
+		for ( int i=1;i<piece_count;i++){
+			
+			piece_map[i] = i;
+		}
+		
+		int	next_piece_index = piece_count;
+		
+		Map	map = encodeConfig( current_length, next_piece_index, piece_map );
+		
+		File	control_dir = config_file.getParentFile();
+
+		if ( !control_dir.exists()){
+			
+			control_dir.mkdirs();
+		}
+		
+		if ( !FileUtil.writeResilientFileWithResult( control_dir, config_file.getName(), map )){
+			
+			throw( new FMFileManagerException( "Failed to write control file " + config_file.getAbsolutePath()));
+		}
+	}
+
+	private void
+	writeConfig()
+	
+		throws FMFileManagerException
+	{
+		if ( piece_map == null ){
+			
+			readConfig();
+		}
+		
+		Map	map = encodeConfig( current_length, next_piece_index, piece_map );
+		
 		if ( !control_dir.exists()){
 			
 			control_dir.mkdirs();
@@ -851,6 +931,12 @@ FMFileAccessPieceReorderer
 		
 		dirt_state 	= DIRT_CLEAN;
 		dirt_time	= -1;
+	}
+	
+	public FMFileImpl 
+	getFile() 
+	{
+		return( delegate.getFile());
 	}
 	
 	public String

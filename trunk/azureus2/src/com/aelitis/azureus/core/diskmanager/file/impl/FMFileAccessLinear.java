@@ -442,6 +442,12 @@ FMFileAccessLinear
 		// no state to flush
 	}
 	
+	public FMFileImpl 
+	getFile() 
+	{
+		return( owner );
+	}
+	
 	public String
 	getString()
 	{

@@ -26,6 +26,7 @@ import java.io.RandomAccessFile;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
+import com.aelitis.azureus.core.diskmanager.file.FMFile;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
 public interface 
@@ -77,6 +78,9 @@ FMFileAccess
 		DirectByteBuffer	piece_data )
 	
 		throws FMFileManagerException;
+	 
+	public FMFileImpl
+	getFile();
 	
 	public String
 	getString();
