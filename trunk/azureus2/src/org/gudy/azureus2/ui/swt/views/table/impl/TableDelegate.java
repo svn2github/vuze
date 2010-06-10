@@ -653,8 +653,9 @@ public class TableDelegate
 		table.setVisible(visible);
 	}
 
-	public boolean isSelected(int index) {
-		return table.isSelected(index);
+	// @see org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT#isSelected(org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem)
+	public boolean isSelected(TableItemOrTreeItem item) {
+		return table.isSelected(indexOf(item));
 	}
 
 	public Point toControl(int x, int y) {

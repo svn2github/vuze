@@ -74,7 +74,6 @@ public class TableRowImpl
 	
 	private TableRowCore parentRow;
 	private CopyOnWriteList<TableRowImpl> subRows;
-	
 
   // XXX add rowVisuallyupdated bool like in ListRow
 
@@ -701,11 +700,13 @@ public class TableRowImpl
 
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setSelected(boolean)
 	public void setSelected(boolean selected) {
-		super.setSelected(selected);
-
 		if (tableView instanceof TableViewSWTImpl) {
-			((TableViewSWTImpl)tableView).updateSelectedRowIndexes();
+			((TableViewSWTImpl)tableView).selectRow(this, true);
 		}
+	}
+
+	public void setWidgetSelected(boolean selected) {
+		super.setSelected(selected);
 	}	
 	
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#isSelected()

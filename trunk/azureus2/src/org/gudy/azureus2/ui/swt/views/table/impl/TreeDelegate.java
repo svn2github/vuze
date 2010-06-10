@@ -855,11 +855,14 @@ public class TreeDelegate implements TableOrTreeSWT
 		}
 	}
 
-	// @see org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT#isSelected(int)
-	public boolean isSelected(int index) {
-		int[] selectionIndices = getSelectionIndices();
-		Arrays.sort(selectionIndices);
-		return Arrays.binarySearch(selectionIndices, index) == 0;
+	public boolean isSelected(TableItemOrTreeItem item) {
+		TreeItem[] selection = tree.getSelection();
+		for (TreeItem treeItem : selection) {
+			if (treeItem == item.getItem()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean equalsTableOrTree(TableOrTreeSWT tt) {

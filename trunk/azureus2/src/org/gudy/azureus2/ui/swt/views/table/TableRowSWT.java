@@ -96,4 +96,11 @@ public interface TableRowSWT extends TableRowCore
 	 * @since 3.1.1.1
 	 */
 	public boolean setAlpha(int alpha);
+
+	/**
+	 * @param selected
+	 *
+	 * @since 4.4.0.5
+	 */
+	void setWidgetSelected(boolean selected);
 }

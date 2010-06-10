@@ -340,7 +340,7 @@ BufferedTableRow
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
   	  return null;
 		
-		if (ourForeground == null && table.isSelected(table.indexOf(item))) {
+		if (ourForeground == null && table.isSelected(item)) {
 			return table.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
 		}
 
@@ -595,11 +595,18 @@ BufferedTableRow
 		if (!checkWidget(REQUIRE_TABLEITEM))
   		return false;
 
-  	// Invalid Indexes are checked/ignored by SWT.
-    return table.isSelected(table.indexOf(item));
+    return table.isSelected(item);
   }
 
-  public void setSelected(boolean bSelected) {
+  public void setSelected(final boolean bSelected) {
+  	Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_setSelected(bSelected);
+			}
+		});
+  }
+  
+  private void swt_setSelected(boolean bSelected) {
 		if (!checkWidget(REQUIRE_TABLEITEM))
   		return;
 
@@ -731,6 +738,11 @@ BufferedTableRow
     item = newRow;
 		item.setItemCount(numSubItems);
 		item.setExpanded(wasExpanded);
+		if (isSelected()) {
+			item.getParent().select(item);
+		} else {
+			item.getParent().deselect(item);
+		}
 		expanded = wasExpanded;
 		if (isVisible && !inPaintItem()) {
 		//if (newRowHadItem && isVisible && !inPaintItem()) {

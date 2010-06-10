@@ -380,7 +380,7 @@ public interface TableOrTreeSWT
 
 	public void select(int[] newSelectedRowIndices);
 
-	public boolean isSelected(int indexOf);
+	public boolean isSelected(TableItemOrTreeItem item);
 
 	boolean equalsTableOrTree(TableOrTreeSWT tt);
 	

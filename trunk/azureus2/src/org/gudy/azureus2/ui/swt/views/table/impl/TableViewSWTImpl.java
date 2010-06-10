@@ -288,9 +288,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	private boolean headerVisible = true;
 
 	/**
-	 * Up to date list of selected rows, so we can access rows without being on SWT Thread
+	 * Up to date list of selected rows, so we can access rows without being on SWT Thread.
+	 * Guaranteed to have no nulls
 	 */
-	private int[] selectedRowIndexes;
+	private List<TableRowCore> selectedRows = new ArrayList<TableRowCore>(1);
 
 	private List<DATASOURCETYPE> listSelectedCoreDataSources;
 
@@ -867,7 +868,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				// we need to fill the selected row indexes here because the
 				// dragstart event can occur before the SWT.SELECTION event and
 				// our drag code needs to know the selected rows..
-				updateSelectedRowIndexes();
+				TableRowSWT row = getTableRow(e.x, e.y);
+				selectRow(row, true);
 
 				TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellSWT cell = getTableCell(e.x, e.y);
@@ -896,47 +898,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					if (e.button == 1) {
 						lastClickRow = cell.getTableRowCore();
 					}
-				}
-
-				try {
-					if (table.getItemCount() <= 0) {
-						return;
-					}
-
-					// skip if outside client area (ie. scrollbars)
-					//System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+clientArea);
-					Point pMousePosition = new Point(e.x, e.y);
-					if (clientArea.contains(pMousePosition)) {
-
-						int[] columnOrder = table.getColumnOrder();
-						if (columnOrder.length == 0) {
-							return;
-						}
-						TableItemOrTreeItem ti = table.getItem(table.getItemCount() - 1);
-						Rectangle cellBounds = ti.getBounds(columnOrder[columnOrder.length - 1]);
-						// OSX returns 0 size if the cell is not on screen (sometimes? all the time?)
-						if (cellBounds.width <= 0 || cellBounds.height <= 0) {
-							return;
-						}
-						//System.out.println("cellbounds="+cellBounds);
-						if (e.x > cellBounds.x + cellBounds.width
-								|| e.y > cellBounds.y + cellBounds.height) {
-							table.deselectAll();
-							updateSelectedRowIndexes();
-						}
-						/*        // This doesn't work because of OS inconsistencies when table is scrolled
-						 // Re-enable once SWT fixes the problem
-						 // Bug 103934: Table.getItem(Point) uses incorrect calculation on Motif
-						 //             Fixed 20050718 SWT 3.2M1 (3201) & SWT 3.1.1 (3139)
-						 // TODO: Get Build IDs and use this code (if it works)
-						 TableItemOrTreeItem ti = table.getItem(pMousePosition);
-						 if (ti == null)
-						 table.deselectAll();
-						 */
-					}
-				} catch (Exception ex) {
-					System.out.println("MouseDownError");
-					Debug.printStackTrace(ex);
 				}
 			}
 		});
@@ -1014,36 +975,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		});
 
 		table.addSelectionListener(new SelectionListener() {
-			int[] wasSelected = new int[0];
-
 			public void widgetSelected(SelectionEvent event) {
-				updateSelectedRowIndexes();
-
-				Arrays.sort(selectedRowIndexes);
-				int x = 0;
-				for (int i = 0; i < wasSelected.length; i++) {
-					int index = wasSelected[i];
-					if (x < selectedRowIndexes.length && selectedRowIndexes[x] == index) {
-						x++;
-						continue;
-					} else {
-						triggerDeselectionListeners(new TableRowCore[] {
-							getRow(index)
-						});
-					}
-				}
-
-				wasSelected = selectedRowIndexes;
-
-				//System.out.println(table.getSelection().length);
-				if (selectedRowIndexes.length > 0 && event.item != null) {
-					TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
-					triggerSelectionListeners(new TableRowCore[] {
-						getRow(item)
-					});
-				}
-
-				triggerTabViewsDataSourceChanged();
+				updateSelectedRows(table.getSelection(), true);
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -1512,7 +1445,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		TableOrTreeUtils.setEditorItem(editor, newInput, column, item);
 		table.deselectAll();
 		table.select(table.getItem(row));
-		updateSelectedRowIndexes();
+		updateSelectedRows(new TableRowCore[] { sortedRows.get(row) }, true);
 
 		l.resizing = false;
 
@@ -1830,38 +1763,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						if (isHeader) {
 							fillColumnMenu(tcColumn);
 						} else {
-							Point pt = table.getDisplay().getCursorLocation();
-							pt = table.toControl(pt);
-							TableItemOrTreeItem item = table.getItem(new Point(2, pt.y));
-
-							if (item != null && item.getParentItem() != null) {
-								TableItemOrTreeItem parentItem = item.getParentItem();
-								TableRowCore row = getRow(parentItem);
-								
-								fillLeafMenu(menu, tcColumn, row, parentItem.indexOf(item));
-							} else {
-								fillMenu(menu, tcColumn);
-							}
+							fillMenu(menu, tcColumn);
 						}
 
 					}
 				});
 
 		return menu;
-	}
-
-	private void fillLeafMenu(Menu menu, TableColumnOrTreeColumn tcColumn,
-			TableRow parentRow, int index) {
-		String columnName = tcColumn == null ? null
-				: (String) tcColumn.getData("Name");
-
-		Object[] listeners = listenersMenuFill.toArray();
-		for (int i = 0; i < listeners.length; i++) {
-			if (listeners[i] instanceof TableViewSWTMenuFillListener2) {
-				TableViewSWTMenuFillListener2 l = (TableViewSWTMenuFillListener2) listeners[i];
-				l.fillLeafMenu(columnName, menu, parentRow, index);
-			}
-		}
 	}
 
 	/** Fill the Context Menu with items.  Called when menu is about to be shown.
@@ -1879,11 +1787,27 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			TableViewSWTMenuFillListener l = (TableViewSWTMenuFillListener) listeners[i];
 			l.fillMenu(columnName, menu);
 		}
+
+		boolean hasLevel1 = false;
+		boolean hasLevel2 = false;
+		// quick hack so we don't show plugin menus on selections of subitems
+		synchronized (selectedRows) {
+  		for (TableRowCore row : selectedRows) {
+  			if (row.getParentRowCore() != null) {
+  				hasLevel2 = true;
+  			} else {
+  				hasLevel1 = true;
+  			}
+  		}
+		}
+		
+		String sMenuID = hasLevel1 ? sTableID : TableManager.TABLE_TORRENT_FILES;
+		
 		// Add Plugin Context menus..
 		boolean enable_items = table != null && table.getSelection().length > 0;
 
 		TableContextMenuItem[] items = TableContextMenuManager.getInstance().getAllAsArray(
-				sTableID);
+				sMenuID);
 
 		// We'll add download-context specific menu items - if the table is download specific.
 		// We need a better way to determine this...
@@ -1978,6 +1902,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		}
 		
+		if (hasLevel1) {
 		// Add Plugin Context menus..
 		if (tcColumn != null) {
   		TableColumnCore tc = (TableColumnCore) tcColumn.getData("TableColumnCore");
@@ -2000,6 +1925,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   				openFilterDialog();
   			}
   		});
+		}
 		}
 	}
 
@@ -3489,24 +3415,25 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (listSelectedCoreDataSources != null) {
 			return listSelectedCoreDataSources;
 		}
-		if (table == null || table.isDisposed() || selectedRowIndexes == null
-				|| selectedRowIndexes.length == 0) {
-			return Collections.emptyList();
+		synchronized (selectedRows) {
+			if (table == null || table.isDisposed() || selectedRows.size() == 0) {
+  			return Collections.emptyList();
+  		}
+  
+  		final ArrayList<DATASOURCETYPE> l = new ArrayList<DATASOURCETYPE>(
+  				selectedRows.size());
+  		for (TableRowCore row : selectedRows) {
+  			if (row != null) {
+  				Object ds = row.getDataSource(true);
+  				if (ds != null) {
+  					l.add((DATASOURCETYPE) ds);
+  				}
+  			}
+  		}
+ 
+  		listSelectedCoreDataSources = l;
+  		return l;
 		}
-
-		final ArrayList<DATASOURCETYPE> l = new ArrayList<DATASOURCETYPE>(
-				selectedRowIndexes.length);
-		for (int index : selectedRowIndexes) {
-			TableRowCore row = getRowQuick(index);
-			if (row != null) {
-				Object ds = row.getDataSource(true);
-				if (ds != null) {
-					l.add((DATASOURCETYPE) ds);
-				}
-			}
-		}
-		listSelectedCoreDataSources = l;
-		return l;
 	}
 
 	/** Returns an array of all selected Data Sources.  Null data sources are
@@ -3519,22 +3446,22 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 *                  because of non-created rows when select user selects all
 	 */
 	public List<Object> getSelectedPluginDataSourcesList() {
-		if (table == null || table.isDisposed() || selectedRowIndexes == null
-				|| selectedRowIndexes.length == 0) {
-			return Collections.emptyList();
+		synchronized (selectedRows) {
+  		if (table == null || table.isDisposed() || selectedRows.size() == 0) {
+  			return Collections.emptyList();
+  		}
+  
+  		final ArrayList<Object> l = new ArrayList<Object>(selectedRows.size());
+  		for (TableRowCore row : selectedRows) {
+  			if (row != null) {
+  				Object ds = row.getDataSource(false);
+  				if (ds != null) {
+  					l.add(ds);
+  				}
+  			}
+  		}
+  		return l;
 		}
-
-		final ArrayList<Object> l = new ArrayList<Object>(selectedRowIndexes.length);
-		for (int index : selectedRowIndexes) {
-			TableRowCore row = getRowQuick(index);
-			if (row != null) {
-				Object ds = row.getDataSource(false);
-				if (ds != null) {
-					l.add(ds);
-				}
-			}
-		}
-		return l;
 	}
 
 	/** Returns an array of all selected Data Sources.  Null data sources are
@@ -3558,16 +3485,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	/** @see com.aelitis.azureus.ui.common.table.TableView#getSelectedRows() */
 	public TableRowCore[] getSelectedRows() {
-		return getSelectedRowsList().toArray(new TableRowCore[0]);
+		synchronized (selectedRows) {
+			return selectedRows.toArray(new TableRowCore[0]);
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getSelectedRowsSize()
 	public int getSelectedRowsSize() {
-		return selectedRowIndexes == null ? 0 : selectedRowIndexes.length;
-	}
-
-	public TableRowSWT[] getSelectedRowsSWT() {
-		return getSelectedRowsList().toArray(new TableRowSWT[0]);
+		synchronized (selectedRows) {
+			return selectedRows.size();
+		}
 	}
 
 	/** Returns an list of all selected TableRowSWT objects.  Null data sources are
@@ -3576,54 +3503,33 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @return an list containing the selected TableRowSWT objects
 	 */
 	public List<TableRowCore> getSelectedRowsList() {
-		if (selectedRowIndexes == null) {
-			return new ArrayList<TableRowCore>(0);
+		synchronized (selectedRows) {
+  		final ArrayList<TableRowCore> l = new ArrayList<TableRowCore>(
+  				selectedRows.size());
+  		for (TableRowCore row : selectedRows) {
+  			if (row != null) {
+  				l.add(row);
+  			}
+  		}
+  
+  		return l;
 		}
-		final ArrayList<TableRowCore> l = new ArrayList<TableRowCore>(
-				selectedRowIndexes.length);
-		for (int index : selectedRowIndexes) {
-			TableRowCore row = getRowQuick(index);
-			if (row != null) {
-				l.add(row);
-			}
-		}
-		/*
-		if (table != null && !table.isDisposed()) {
-			TableItemOrTreeItem[] tis = table.getSelection();
-			for (int i = 0; i < tis.length; i++) {
-				TableRowSWT row = (TableRowSWT) getRow(tis[i]);
-				if (row != null && row.getDataSource(true) != null) {
-					l.add(row);
-				}
-			}
-		}
-		*/
-		return l;
 	}
 	
 	public boolean isSelected(TableRow row) {
-		int index = indexOf((TableRowCore) row);
-		if (index >= 0) {
-			Arrays.sort(selectedRowIndexes);
-			return Arrays.binarySearch(selectedRowIndexes, index) >= 0;
+		synchronized (selectedRows) {
+			return selectedRows.contains(row);
 		}
-
-		TableRowCore[] selectedRows = getSelectedRows();
-		for (TableRowCore selectedRow : selectedRows) {
-			if (selectedRow == row) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getFocusedRow()
 	public TableRowCore getFocusedRow() {
-		TableRowSWT[] selectedRows = getSelectedRowsSWT();
-		if (selectedRows.length == 0) {
-			return null;
+		synchronized (selectedRows) {
+			if (selectedRows.size() == 0) {
+				return null;
+			}
+			return selectedRows.get(0);
 		}
-		return selectedRows[0];
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getFirstSelectedDataSource()
@@ -4126,26 +4032,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			int iNumMoves = 0;
 
-			// This actually gets the focus, assuming the focus is selected
-			int iFocusIndex = table.getSelectionIndex();
-			TableRowCore focusedRow = (iFocusIndex == -1) ? null
-					: getRow(iFocusIndex);
-
 			int iTopIndex = table.getTopIndex();
 			int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
-			boolean allSelectedRowsVisible = true;
-
-			int[] selectedRowIndices = table.getSelectionIndices();
-			TableRowCore[] selectedRows = new TableRowCore[selectedRowIndices.length];
-			for (int i = 0; i < selectedRowIndices.length; i++) {
-				int index = selectedRowIndices[i];
-				selectedRows[i] = getRow(table.getItem(index));
-				if (allSelectedRowsVisible
-						&& (index < iTopIndex || index > iBottomIndex)) {
-					allSelectedRowsVisible = false;
-				}
-				//System.out.println("Selected: " + selectedRowIndices[i] + ";" + selectedRows[i].getDataSource(true));
-			}
 
 			try {
 				sortedRows_mon.enter();
@@ -4221,56 +4109,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				sortedRows_mon.exit();
 			}
 
-			// move cursor to selected row
-			/** SWT/Windows Bug:
-			 * When we set selection, the first index is the focus row.
-			 * This works visually, however, if you press shift-up or shift-down,
-			 * it uses an older selection index.
-			 * 
-			 * ie. User selects row #10
-			 *     Programmically change selection to Row #15 only
-			 *     Shift-down
-			 *     Rows 10 through 26 will be selected
-			 *     
-			 * This is Eclipse bug #77106, and is marked WONTFIX 
-			 */
-			if (focusedRow != null) {
-				int pos = selectedRows.length == 1 ? 0 : 1;
-				int numSame = 0;
-				int[] newSelectedRowIndices = new int[selectedRows.length];
-				Arrays.sort(selectedRowIndices);
-
-				for (int i = 0; i < selectedRows.length; i++) {
-					if (selectedRows[i] == null) {
-						continue;
-					}
-					int index = selectedRows[i].getIndex();
-					int iNewPos = (selectedRows[i].equals(focusedRow)) ? 0 : pos++;
-					//System.out.println("new selected, index=" + index + "; newPos:" + iNewPos + ";row=" + selectedRows[i].getDataSource(true));
-					if (iNewPos < newSelectedRowIndices.length) {
-  					newSelectedRowIndices[iNewPos] = index;
-  					if (Arrays.binarySearch(selectedRowIndices, index) >= 0) {
-  						numSame++;
-  					}
-					}
-				}
-
-				if (numSame < selectedRows.length) {
-					if (bFollowSelected) {
-						table.setSelection(newSelectedRowIndices);
-					} else {
-						// OMG, on tree, deselect all takes forever!
-						//table.deselectAll();
-						TableItemOrTreeItem[] selectionIndices = table.getSelection();
-						for (TableItemOrTreeItem item : selectionIndices) {
-							table.deselect(item);
-						}
-						table.select(newSelectedRowIndices);
-					}
-					setSelectedRowIndexes(table.getSelectionIndices());
-				}
-			}
-			
 			swt_calculateClientArea();
 
 			if (DEBUG_SORTER) {
@@ -4278,7 +4116,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				if (lTimeDiff >= 500) {
 					System.out.println("<<< Sort & Assign took " + lTimeDiff + "ms with "
 							+ iNumMoves + " rows (of " + sortedRows.size() + ") moved. "
-							+ focusedRow + ";" + Debug.getCompressedStackTrace());
+							+ Debug.getCompressedStackTrace());
 				}
 			}
 		} finally {
@@ -4286,27 +4124,97 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
-	/**
-	 * @param newSelectedRowIndices
-	 *
-	 * @since 4.1.0.5
-	 */
-	protected void setSelectedRowIndexes(int[] newSelectedRowIndices) {
-		/*
-		System.out.print("setSelectedRows to ");
-		for (int i : newSelectedRowIndices) {
-			System.out.print(i + ", ");
+	protected void selectRow(final TableRowCore row, boolean trigger) {
+		if (row == null) {
+			return;
 		}
-		System.out.println("via " + Debug.getCompressedStackTrace());
-		*/
-		selectedRowIndexes = newSelectedRowIndices;
-		listSelectedCoreDataSources = null;
+		synchronized (selectedRows) {
+  		if (selectedRows.contains(row)) {
+  			return;
+  		}
+  		selectedRows.add(row);
+		}
+		
+		if (trigger) {
+			triggerSelectionListeners(new TableRowCore[] { row });
+		}
+		
+		((TableRowSWT) row).setWidgetSelected(true);
 	}
 
-	protected void updateSelectedRowIndexes() {
-		if (!table.isDisposed()) {
-			setSelectedRowIndexes(table.getSelectionIndices());
+	protected void updateSelectedRows(TableItemOrTreeItem[] newSelectionArray, boolean trigger) {
+		List<TableRowCore> newSelectionList = new ArrayList<TableRowCore>(1);
+		for (TableItemOrTreeItem item : newSelectionArray) {
+			TableRowCore row = getRow(item);
+			if (row != null) {
+				newSelectionList.add(row);
+			}
 		}
+		updateSelectedRows(newSelectionList.toArray(new TableRowCore[0]), trigger);
+	}
+	
+	protected void updateSelectedRows(final TableRowCore[] newSelectionArray,
+			final boolean trigger) {
+		if (table.isDisposed()) {
+			return;
+		}
+
+		Utils.getOffOfSWTThread(new AERunnable() {
+			public void runSupport() {
+				List<TableRowCore> oldSelectionList;
+				List<TableRowCore> listNewlySelected;
+				boolean somethingChanged;
+				synchronized (selectedRows) {
+					List<TableRowCore> newSelectionList = new ArrayList<TableRowCore>(1);
+					oldSelectionList = new ArrayList<TableRowCore>(selectedRows);
+					listNewlySelected = new ArrayList<TableRowCore>(1);
+
+					for (TableRowCore row : newSelectionArray) {
+						if (row == null) {
+							continue;
+						}
+
+						boolean existed = false;
+						for (TableRowCore oldRow : oldSelectionList) {
+							if (oldRow == row) {
+								existed = true;
+								newSelectionList.add(row);
+								oldSelectionList.remove(row);
+								break;
+							}
+						}
+						if (!existed) {
+							newSelectionList.add(row);
+							listNewlySelected.add(row);
+						}
+					}
+
+					somethingChanged = listNewlySelected.size() > 0
+							|| oldSelectionList.size() > 0;
+					System.out.println(somethingChanged + "] +"
+							+ listNewlySelected.size() + "/-" + oldSelectionList.size()
+							+ ";  UpdateSelectedRows via " + Debug.getCompressedStackTrace());
+
+					if (somethingChanged) {
+						listSelectedCoreDataSources = null;
+
+						selectedRows = newSelectionList;
+					}
+				}
+
+				if (trigger && somethingChanged) {
+					if (listNewlySelected.size() > 0) {
+						triggerSelectionListeners(listNewlySelected.toArray(new TableRowCore[0]));
+					}
+					if (oldSelectionList.size() > 0) {
+						triggerDeselectionListeners(oldSelectionList.toArray(new TableRowCore[0]));
+					}
+
+					triggerTabViewsDataSourceChanged();
+				}
+
+			}
+		});
 	}
 
 	public void sortColumnReverse(TableColumnCore sorter) {
@@ -4647,14 +4555,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			// Uses a lot of CPU, so kill it :)
 			//ensureAllRowsHaveIndex();
 			table.selectAll();
-			updateSelectedRowIndexes();
-
-			Utils.getOffOfSWTThread(new AERunnable() {
-				public void runSupport() {
-					triggerSelectionListeners(getSelectedRows());
-					triggerTabViewsDataSourceChanged();
-				}
-			});
+			updateSelectedRows(getRows(), true);
 		}
 	}
 
@@ -4670,36 +4571,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
-	// @see com.aelitis.azureus.ui.common.table.TableView#setSelectedRows(com.aelitis.azureus.ui.common.table.TableRowCore[])
-	public void setSelectedRows(TableRowCore[] rows) {
-
-		//String s = "";
-		int[] selectedIndexes = new int[rows.length];
-		for (int i = 0; i < rows.length; i++) {
-			selectedIndexes[i] = rows[i].getIndex();
-			//s += selectedIndexes[i] + ", "; 
-		}
-		table.deselectAll();
-		table.select(selectedIndexes);
-		
-		//System.out.println(s);
-
-		/* Old way of setting selection
-		for (int i = 0; i < rows.length; i++) {
-			TableRowCore row = rows[i];
-			if (row.getIndex() == -1) {
-				int j = sortedRows.indexOf(row);
-				if (j == -1) {
-					System.err.println("BOO");
-				} else {
-					row.setTableItem(j);
-				}
-			}
-			row.setSelected(true);
-		}
-		*/
-		updateSelectedRowIndexes();
-	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#isTableFocus()
 	public boolean isTableFocus() {
@@ -5316,5 +5187,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	
 	protected TableColumnCore[] getColumnsOrdered() {
 		return columnsOrdered;
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#setSelectedRows(com.aelitis.azureus.ui.common.table.TableRowCore[])
+	public void setSelectedRows(TableRowCore[] rows) {
+		updateSelectedRows(rows, true);
 	}
 }
