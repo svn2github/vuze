@@ -55,6 +55,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
@@ -2241,6 +2242,36 @@ public class MyTorrentsView
 				String s = DisplayFormatters.formatByteCountToKiBEtc(fileInfo.getLength());
 				cellArea.width -= 3;
 				GCStringPrinter.printString(gc, s, cellArea, true, false, SWT.RIGHT);
+			} else if (column.getName().equals("ProgressETA")) {
+				long percent = 0;
+				long bytesDownloaded = fileInfo.getDownloaded();
+
+				if (bytesDownloaded < 0) {
+
+					return;
+
+				} else if (fileInfo.getLength() != 0) {
+
+					percent = (1000 * bytesDownloaded) / fileInfo.getLength();
+				}
+
+				final int TEXT_WIDTH = 50;
+				cellArea.width -= 3;
+				Rectangle printBounds = new Rectangle(cellArea.x, cellArea.y, TEXT_WIDTH, cellArea.height);
+				String s = DisplayFormatters.formatPercentFromThousands((int) percent);
+				GCStringPrinter.printString(gc, s, printBounds, true, false, SWT.RIGHT);
+				
+				final int PROGRESS_HEIGHT = 12;
+				int ofsX = TEXT_WIDTH + 3;
+				int ofsY = (cellArea.height / 2) - (PROGRESS_HEIGHT / 2) - 1;
+				int progressWidth = cellArea.width - ofsX - 3;
+				gc.drawRectangle(cellArea.x + ofsX, cellArea.y + ofsY, progressWidth, PROGRESS_HEIGHT);
+				
+				int pctWidth = (int) (percent * (progressWidth - 1) / 1000);
+				gc.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
+				gc.fillRectangle(cellArea.x + ofsX + 1, cellArea.y + ofsY + 1, pctWidth, PROGRESS_HEIGHT - 1);
+				gc.setBackground(Colors.white);
+				gc.fillRectangle(cellArea.x + ofsX + pctWidth + 1, cellArea.y + ofsY + 1, progressWidth - pctWidth - 1, PROGRESS_HEIGHT - 1);
 			}
 			//Rectangle bounds = row.getBounds();
 			//bounds.x = 120;
