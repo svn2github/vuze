@@ -122,9 +122,8 @@ public class FinishPanel extends AbstractWizardPanel<ConfigureWizard> {
 	    COConfigurationManager.setParameter("Wizard Completed",true);
 	    COConfigurationManager.save();
 	    wizard.switchToClose();
-	    
-	    wizard.completed = true;
     }
+	wizard.completed = true;
   }
   
   public boolean isPreviousEnabled() {
