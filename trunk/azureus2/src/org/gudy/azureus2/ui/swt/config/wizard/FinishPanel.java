@@ -73,6 +73,9 @@ public class FinishPanel extends AbstractWizardPanel<ConfigureWizard> {
   }
 
   public void finish() {
+	  
+	wizard.completed = true;
+
     int	upLimit = wizard.getUploadLimit();
     if (upLimit > 0 ){
     	COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, false );
@@ -99,7 +102,7 @@ public class FinishPanel extends AbstractWizardPanel<ConfigureWizard> {
         COConfigurationManager.setParameter( "Auto Adjust Transfer Defaults", false );
         COConfigurationManager.setParameter( "Auto Adjust Transfer Defaults", true );
     }
-   
+   	
     if ( wizard.getWizardMode() != ConfigureWizard.WIZARD_MODE_FULL ){
     	
     	wizard.close();
@@ -123,7 +126,6 @@ public class FinishPanel extends AbstractWizardPanel<ConfigureWizard> {
 	    COConfigurationManager.save();
 	    wizard.switchToClose();
     }
-	wizard.completed = true;
   }
   
   public boolean isPreviousEnabled() {
