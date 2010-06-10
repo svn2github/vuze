@@ -309,27 +309,25 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		
 		// double-click
 		
-    if (COConfigurationManager.getStringParameter("ui").equals("az3")) {
-  		label = new Label(cArea, SWT.NULL);
-  		Messages.setLanguageText(label, LBLKEY_PREFIX + "dm.dblclick");
-  
-  		String[] dblclickOptions = {
-  			"ConfigView.option.dm.dblclick.play",
-  			"ConfigView.option.dm.dblclick.details",
-  			"ConfigView.option.dm.dblclick.show",
-  		};
-  
-  		String dblclickLabels[] = new String[dblclickOptions.length];
-  		String dblclickValues[] = new String[dblclickOptions.length];
-  
-  		for (int i = 0; i < dblclickOptions.length; i++) {
-  
-  			dblclickLabels[i] = MessageText.getString(dblclickOptions[i]);
-  			dblclickValues[i] = "" + i;
-  		}
-  		new StringListParameter(cArea, "list.dm.dblclick", dblclickLabels,
-  				dblclickValues);
-    }
+		label = new Label(cArea, SWT.NULL);
+		Messages.setLanguageText(label, LBLKEY_PREFIX + "dm.dblclick");
+
+		String[] dblclickOptions = {
+			"ConfigView.option.dm.dblclick.play",
+			"ConfigView.option.dm.dblclick.details",
+			"ConfigView.option.dm.dblclick.show",
+		};
+
+		String dblclickLabels[] = new String[dblclickOptions.length];
+		String dblclickValues[] = new String[dblclickOptions.length];
+
+		for (int i = 0; i < dblclickOptions.length; i++) {
+
+			dblclickLabels[i] = MessageText.getString(dblclickOptions[i]);
+			dblclickValues[i] = "" + i;
+		}
+		new StringListParameter(cArea, "list.dm.dblclick", dblclickLabels,
+				dblclickValues);
 		
 
 		// reset associations
