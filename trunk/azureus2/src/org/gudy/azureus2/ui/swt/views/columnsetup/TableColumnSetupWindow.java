@@ -37,7 +37,9 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
@@ -120,7 +122,7 @@ public class TableColumnSetupWindow
 			public void dragStart(DragSourceEvent event) {
 				event.doit = true;
 
-				Control table = ((DragSource) event.widget).getControl();
+				TableOrTreeSWT table = TableOrTreeUtils.getTableOrTreeSWT(((DragSource) event.widget).getControl());
 				TableView tv = (TableView) table.getData("TableView");
 				// drag start happens a bit after the mouse moves, so the
 				// cursor location isn't accurate
@@ -169,7 +171,7 @@ public class TableColumnSetupWindow
 			}
 
 			public void dragSetData(DragSourceEvent event) {
-				Control table = ((DragSource) event.widget).getControl();
+				TableOrTreeSWT table = TableOrTreeUtils.getTableOrTreeSWT(((DragSource) event.widget).getControl());
 				TableView tv = (TableView) table.getData("TableView");
 				event.data = "" + (tv == tvChosen ? "c" : "a");
 			}
