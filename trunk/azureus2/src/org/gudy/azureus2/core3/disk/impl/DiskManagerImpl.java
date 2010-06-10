@@ -2716,51 +2716,63 @@ DiskManagerImpl
     	return( getStorageType( download_manager , fileIndex));
     }
 
-    // Used by DownloadManagerImpl too.
+    	// Used by DownloadManagerImpl too.
+    
     public static String[] getStorageTypes(DownloadManager download_manager) {
         DownloadManagerState state = download_manager.getDownloadState();
         String[] types = state.getListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES);
         if (types.length == 0) {
         	TOTorrentFile[] files = download_manager.getTorrent().getFiles();
             types = new String[download_manager.getTorrent().getFiles().length];
-            for (int i=0; i<types.length; i++){
-                types[i] = getDefaultStorageType(state,files[i]);
+            
+         	if ( reorder_storage_mode ){
+        		
+        		int	existing = state.getIntAttribute( DownloadManagerState.AT_REORDER_MIN_MB );
+        		
+        		if ( existing < 0 ){
+        			
+        			existing = reorder_storage_mode_min_mb;
+        			
+        			state.setIntAttribute( DownloadManagerState.AT_REORDER_MIN_MB, existing );
+        		}
+                  		
+        		for (int i=0; i<types.length; i++){
+                           		
+            		if ( files[i].getLength()/(1024*1024) >= existing ){
+            			            			
+            			types[i] = "R";
+            			
+            		}else{
+            			
+            			types[i] = "L";
+            		}
+            	}
+          	}else{
+         		
+         		for (int i=0; i<types.length; i++){
+         			
+         			types[i] = "L";
+         		}
             }
+         	
+			state.setListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES, types );
         }
+        
         return( types );
     }
     
-    // Used by DownloadManagerImpl too.
+    	// Used by DownloadManagerImpl too.
+    
     public static String getStorageType(DownloadManager download_manager, int fileIndex) {
         DownloadManagerState state = download_manager.getDownloadState();
         String type = state.getListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES,fileIndex);
         
-        return type != null ? type : getDefaultStorageType(state,download_manager.getTorrent().getFiles()[fileIndex]);
-    }
-    
-    private static String
-    getDefaultStorageType(
-    	DownloadManagerState		state,
-    	TOTorrentFile				file )
-    {
-    	if ( reorder_storage_mode ){
-    		
-    		int	existing = state.getIntAttribute( DownloadManagerState.AT_REORDER_MIN_MB );
-    		
-    		if ( existing < 0 ){
-    			
-    			existing = reorder_storage_mode_min_mb;
-    			
-    			state.setIntAttribute( DownloadManagerState.AT_REORDER_MIN_MB, existing );
-    		}
-    		
-    		if ( file.getLength()/(1024*1024) >= existing ){
-    			
-    			return( "R" );
-    		}
-    	}
-    	
-    	return( "L" );
+        if ( type != null ){
+        	
+        	return( type );
+        }
+        
+        return( getStorageTypes( download_manager )[fileIndex]);
     }
     
     public static void
