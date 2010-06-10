@@ -48,7 +48,7 @@ import com.aelitis.azureus.ui.common.table.TableView;
  */
 public class FilesViewMenuUtil
 {
-	public static void fillMenu(final TableView tv, String sColumnName,
+	public static void fillMenu(final TableView tv,
 			final Menu menu, final DownloadManager manager,
 			final Object[] data_sources) {
 		Shell shell = menu.getShell();

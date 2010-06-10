@@ -96,7 +96,7 @@ public class MyTorrentsView
                   TableLifeCycleListener, 
                   TableViewSWTPanelCreator,
                   TableSelectionListener,
-                  TableViewSWTMenuFillListener2,
+                  TableViewSWTMenuFillListener,
                   TableRefreshListener,
                   TableCountChangeListener,
                   TableViewFilterCheck<DownloadManager>,
@@ -1310,31 +1310,21 @@ public class MyTorrentsView
 	}
 
 	public void updateSelectedContent() {
-		if (cTablePanel == null || cTablePanel.isDisposed()
-				|| !cTablePanel.isVisible()) {
+		if (cTablePanel == null || cTablePanel.isDisposed()) {
 			return;
 		}
-		DownloadManager[] dms = getSelectedDownloads();
-		ISelectedContent[] sc = new ISelectedContent[dms.length];
-		int pos = 0;
-		for (int i = 0; i < dms.length; i++) {
-			DownloadManager dm = dms[i];
-			if (dm != null) {
-				try {
-					sc[pos] = new SelectedContent(dm);
-					pos++;
-				} catch (Exception e) {
-				}
+		
+		Object[] dataSources = tv.getSelectedDataSources(true);
+		List<SelectedContent> listSelected = new ArrayList<SelectedContent>(dataSources.length);
+		for (Object ds : dataSources) {
+			if (ds instanceof DownloadManager) {
+				listSelected.add(new SelectedContent((DownloadManager) ds));
+			} else if (ds instanceof DiskManagerFileInfo) {
+				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
+				listSelected.add(new SelectedContent(fileInfo.getDownloadManager(), fileInfo.getIndex()));
 			}
 		}
-		if (pos != dms.length) {
-			ISelectedContent[] sc_temp = new ISelectedContent[pos];
-			
-			System.arraycopy(sc, 0, sc_temp, 0, pos);
-			
-			sc = sc_temp;
-		}
-		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), sc, tv);
+		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), listSelected.toArray(new SelectedContent[0]), tv);
 	}
 	
   private void refreshIconBar() {
@@ -1354,9 +1344,13 @@ public class MyTorrentsView
 	
 	public DownloadManager[] getSelectedDownloads() {
 		Object[] data_sources = tv.getSelectedDataSources().toArray();
-		DownloadManager[] result = new DownloadManager[data_sources.length];
-		System.arraycopy(data_sources, 0, result, 0, result.length);
-		return result;
+		List<DownloadManager> list = new ArrayList<DownloadManager>();
+		for (Object ds : data_sources) {
+			if (ds instanceof DownloadManager) {
+				list.add((DownloadManager) ds);
+			}
+		}
+		return list.toArray(new DownloadManager[0]);
 	}
 
   // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
@@ -1372,12 +1366,11 @@ public class MyTorrentsView
 		Object[] dm_sources = tv.getSelectedDataSources().toArray();
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		for (int i = 0; i < dm_sources.length; i++) {
-			if (dm_sources[i] == null) {
+			if (!(dm_sources[i] instanceof DownloadManager)) {
 				continue;
 			}
 			if (uiFunctions != null) {
-				uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS,
-						(DownloadManager) dm_sources[i]);
+				uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, dm_sources[i]);
 			}
 		}  	
   }
@@ -1407,30 +1400,39 @@ public class MyTorrentsView
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener#fillMenu(java.lang.String, org.eclipse.swt.widgets.Menu)
 	public void fillMenu(String sColumnName, final Menu menu) {
-		Object[] dm_items = tv.getSelectedDataSources().toArray();
-		boolean hasSelection = (dm_items.length > 0);
+		Object[] dataSources = tv.getSelectedDataSources(true);
+		DownloadManager[] dms = getSelectedDownloads();
+		
+		if (dms.length == 0 && dataSources.length > 0) {
+  		List<DiskManagerFileInfo> listFileInfos = new ArrayList<DiskManagerFileInfo>();
+  		DownloadManager firstFileDM = null;
+  		for (Object ds : dataSources) {
+  			if (ds instanceof DiskManagerFileInfo) {
+  				DiskManagerFileInfo info = (DiskManagerFileInfo) ds;
+  				// for now, FilesViewMenuUtil.fillmenu can only handle one DM
+  				if (firstFileDM != null && !firstFileDM.equals(info.getDownloadManager())) {
+  					break;
+  				}
+  				firstFileDM = info.getDownloadManager();
+  				listFileInfos.add(info);
+  			}
+  		}
+  		if (listFileInfos.size() > 0) {
+  			FilesViewMenuUtil.fillMenu(tv, menu, firstFileDM,
+  					listFileInfos.toArray(new DiskManagerFileInfo[0]));
+  			return;
+  		}
+		}
+		
+		boolean hasSelection = (dms.length > 0);
 
 		if (hasSelection) {
-			DownloadManager[] dms = new DownloadManager[dm_items.length];
-			for (int i = 0; i < dm_items.length; i++) {
-				dms[i] = (DownloadManager) dm_items[i];
-			}
 			TorrentUtil.fillTorrentMenu(menu, dms, azureus_core, cTablePanel, true,
 					(isSeedingView) ? 2 : 1, tv);
 
 			// ---
 			new MenuItem(menu, SWT.SEPARATOR);
 		}
-	}
-	
-	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener2#fillLeafMenu(java.lang.String, org.eclipse.swt.widgets.Menu, org.gudy.azureus2.plugins.ui.tables.TableRow, int)
-	public void fillLeafMenu(String columnName, Menu menu, TableRow parentRow,
-			int index) {
-		DownloadManager dm = (DownloadManager) ((TableRowCore) parentRow).getDataSource(true);
-		DiskManagerFileInfo fileInfo = dm.getDiskManagerFileInfo()[index];
-		FilesViewMenuUtil.fillMenu(tv, columnName, menu, dm, new Object[] {
-			fileInfo
-		});
 	}
 
 	private void createDragDrop() {
@@ -1538,6 +1540,9 @@ public class MyTorrentsView
 							TableRowCore row = tv.getRow(event);
 							if (row == null)
 								return;
+							if (row.getParentRowCore() != null) {
+								row = row.getParentRowCore();
+							}
 							int drag_drop_line_end = row.getIndex();
 							if (drag_drop_line_end != drag_drop_line_start) {
 								DownloadManager dm = (DownloadManager) row.getDataSource(true);
@@ -1567,10 +1572,11 @@ public class MyTorrentsView
 
     for (int i = 0; i < rows.length; i++) {
 			TableRowCore row = rows[i];
-      DownloadManager dm = (DownloadManager)row.getDataSource(true);
-      if (dm == null) {
+      Object ds = row.getDataSource(true);
+      if (!(ds instanceof DownloadManager)) {
       	continue;
       }
+      DownloadManager dm = (DownloadManager) ds;
       int iOldPos = dm.getPosition();
       
       globalManager.moveTo(dm, iNewPos);
@@ -1711,14 +1717,14 @@ public class MyTorrentsView
 
   private void moveSelectedTorrentsDown() {
     // Don't use runForSelectDataSources to ensure the order we want
-    Object[] dataSources = tv.getSelectedDataSources().toArray();
-    Arrays.sort(dataSources, new Comparator() {
-      public int compare (Object a, Object b) {
-        return ((DownloadManager)a).getPosition() - ((DownloadManager)b).getPosition();
-      }
+  	DownloadManager[] dms = getSelectedDownloads();
+    Arrays.sort(dms, new Comparator<DownloadManager>() {
+			public int compare(DownloadManager a, DownloadManager b) {
+        return a.getPosition() - b.getPosition();
+			}
     });
-    for (int i = dataSources.length - 1; i >= 0; i--) {
-      DownloadManager dm = (DownloadManager)dataSources[i];
+    for (int i = dms.length - 1; i >= 0; i--) {
+      DownloadManager dm = dms[i];
       if (dm.getGlobalManager().isMoveableDown(dm)) {
         dm.getGlobalManager().moveDown(dm);
       }
@@ -1732,14 +1738,14 @@ public class MyTorrentsView
 
   private void moveSelectedTorrentsUp() {
     // Don't use runForSelectDataSources to ensure the order we want
-    Object[] dataSources = tv.getSelectedDataSources().toArray();
-    Arrays.sort(dataSources, new Comparator() {
-      public int compare (Object a, Object b) {
-        return ((DownloadManager)a).getPosition() - ((DownloadManager)b).getPosition();
+  	DownloadManager[] dms = getSelectedDownloads();
+    Arrays.sort(dms, new Comparator<DownloadManager>() {
+    	public int compare(DownloadManager a, DownloadManager b) {
+        return a.getPosition() - b.getPosition();
       }
     });
-    for (int i = 0; i < dataSources.length; i++) {
-      DownloadManager dm = (DownloadManager)dataSources[i];
+    for (int i = 0; i < dms.length; i++) {
+      DownloadManager dm = dms[i];
       if (dm.getGlobalManager().isMoveableUp(dm)) {
         dm.getGlobalManager().moveUp(dm);
       }
@@ -1752,21 +1758,21 @@ public class MyTorrentsView
 
 	private void moveSelectedTorrents(int by) {
 		// Don't use runForSelectDataSources to ensure the order we want
-		Object[] dataSources = tv.getSelectedDataSources().toArray();
-		if (dataSources.length <= 0)
+  	DownloadManager[] dms = getSelectedDownloads();
+		if (dms.length <= 0)
 			return;
 
-		int[] newPositions = new int[dataSources.length];
+		int[] newPositions = new int[dms.length];
 
 		if (by < 0) {
-			Arrays.sort(dataSources, new Comparator() {
+			Arrays.sort(dms, new Comparator() {
 				public int compare(Object a, Object b) {
 					return ((DownloadManager) a).getPosition()
 							- ((DownloadManager) b).getPosition();
 				}
 			});
 		} else {
-			Arrays.sort(dataSources, new Comparator() {
+			Arrays.sort(dms, new Comparator() {
 				public int compare(Object a, Object b) {
 					return ((DownloadManager) b).getPosition()
 							- ((DownloadManager) a).getPosition();
@@ -1775,8 +1781,8 @@ public class MyTorrentsView
 		}
 
 		int count = globalManager.downloadManagerCount(isSeedingView); 
-		for (int i = 0; i < dataSources.length; i++) {
-			DownloadManager dm = (DownloadManager) dataSources[i];
+		for (int i = 0; i < dms.length; i++) {
+			DownloadManager dm = dms[i];
 			int pos = dm.getPosition() + by;
 			if (pos < i + 1)
 				pos = i + 1;
@@ -1786,8 +1792,8 @@ public class MyTorrentsView
 			newPositions[i] = pos;
 		}
 
-		for (int i = 0; i < dataSources.length; i++) {
-			DownloadManager dm = (DownloadManager) dataSources[i];
+		for (int i = 0; i < dms.length; i++) {
+			DownloadManager dm = dms[i];
 			globalManager.moveTo(dm, newPositions[i]);
 		}
 
@@ -1805,16 +1811,14 @@ public class MyTorrentsView
   }
 
   private void moveSelectedTorrentsTopOrEnd(boolean moveToTop) {
-  	Object[] datasources = tv.getSelectedDataSources().toArray();
-    if (datasources.length == 0)
+  	DownloadManager[] dms = getSelectedDownloads();
+    if (dms.length == 0)
       return;
-  	DownloadManager[] downloadManagers = new DownloadManager[datasources.length];
-  	System.arraycopy(datasources, 0, downloadManagers, 0, datasources.length);
 
     if(moveToTop)
-      globalManager.moveTop(downloadManagers);
+      globalManager.moveTop(dms);
     else
-      globalManager.moveEnd(downloadManagers);
+      globalManager.moveEnd(dms);
 
     boolean bForceSort = tv.getSortColumn().getName().equals("#");
     if (bForceSort) {
@@ -1848,16 +1852,18 @@ public class MyTorrentsView
     up = down = run =  remove = (dataSources.length > 0);
     top = bottom = start = stop = false;
     for (int i = 0; i < dataSources.length; i++) {
-      DownloadManager dm = (DownloadManager)dataSources[i];
-
-      if(!start && ManagerUtils.isStartable(dm))
-        start =  true;
-      if(!stop && ManagerUtils.isStopable(dm))
-        stop = true;
-      if(!top && dm.getGlobalManager().isMoveableUp(dm))
-        top = true;
-      if(!bottom && dm.getGlobalManager().isMoveableDown(dm))
-        bottom = true;
+    	if (dataSources[i] instanceof DownloadManager) {
+        DownloadManager dm = (DownloadManager)dataSources[i];
+  
+        if(!start && ManagerUtils.isStartable(dm))
+          start =  true;
+        if(!stop && ManagerUtils.isStopable(dm))
+          stop = true;
+        if(!top && dm.getGlobalManager().isMoveableUp(dm))
+          top = true;
+        if(!bottom && dm.getGlobalManager().isMoveableDown(dm))
+          bottom = true;
+    	}
     }
   }
 
@@ -2127,7 +2133,7 @@ public class MyTorrentsView
 
   // @see com.aelitis.azureus.ui.common.table.TableCountChangeListener#rowAdded(com.aelitis.azureus.ui.common.table.TableRowCore)
   public void rowAdded(TableRowCore row) {
-  	if (tv.canHaveSubItems()) {
+  	if (tv.canHaveSubItems() && row.getParentRowCore() == null) {
     	DownloadManager dm = (DownloadManager) row.getDataSource(true);
     	if (dm != null) {
     		DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
@@ -2198,8 +2204,8 @@ public class MyTorrentsView
 		return new TableViewSWTImpl(forDataSourceType, tableID, getPropertiesPrefix(),
 				basicItems, "#", tableExtraStyle | SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL | SWT.CASCADE) {
-			protected void setSelectedRowIndexes(int[] newSelectedRowIndices) {
-				super.setSelectedRowIndexes(newSelectedRowIndices);
+			public void setSelectedRows(TableRowCore[] rows) {
+				super.setSelectedRows(rows);
 				updateSelectedContent();
 			}			
 		};
@@ -2217,33 +2223,29 @@ public class MyTorrentsView
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWTPaintListener#rowPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableRowSWT)
 	public void rowPaint(GC gc, TableRowCore row, TableColumnCore column,
 			Rectangle cellArea) {
-		TableRowCore parentRow = row.getParentRowCore();
-		if (parentRow != null) {
-			DownloadManager dm = (DownloadManager) parentRow.getDataSource(true);
-			if (dm != null) {
-				DiskManagerFileInfo[] infos = dm.getDiskManagerFileInfo();
-				int i = row.getIndex();
-				if (i >= 0 && i < infos.length) {
-					if (column.getName().equals("name")) {
-						final String CFG_SHOWPROGRAMICON = "NameColumn.showProgramIcon."	+ tv.getTableID();
-						boolean showIcon = COConfigurationManager.getBooleanParameter(
-								CFG_SHOWPROGRAMICON,
-								COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon"));
-						//System.out.println(cellArea);
-						int padding = 10 + 20 + (showIcon ? cellArea.height : 0);
-						cellArea.x += padding;
-						cellArea.width -= padding;
-						GCStringPrinter.printString(gc, infos[i].getFile(true).getName(), cellArea, true, false, SWT.LEFT );
-					} else if (column.getName().equals("size")) {
-						String s = DisplayFormatters.formatByteCountToKiBEtc(infos[i].getLength());
-						cellArea.width -= 3;
-						GCStringPrinter.printString(gc, s, cellArea, true, false, SWT.RIGHT);
-					}
-					//Rectangle bounds = row.getBounds();
-					//bounds.x = 120;
-					//bounds.width = row.getParent().getClientArea().width - bounds.x;
-				}
+		Object dataSource = row.getDataSource(true);
+		if (dataSource instanceof DiskManagerFileInfo) {
+			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) dataSource;
+
+			if (column.getName().equals("name")) {
+				final String CFG_SHOWPROGRAMICON = "NameColumn.showProgramIcon."	+ tv.getTableID();
+				boolean showIcon = COConfigurationManager.getBooleanParameter(
+						CFG_SHOWPROGRAMICON,
+						COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon"));
+				//System.out.println(cellArea);
+				int padding = 10 + 20 + (showIcon ? cellArea.height : 0);
+				cellArea.x += padding;
+				cellArea.width -= padding;
+				GCStringPrinter.printString(gc, fileInfo.getFile(true).getName(), cellArea, true, false, SWT.LEFT );
+			} else if (column.getName().equals("size")) {
+				String s = DisplayFormatters.formatByteCountToKiBEtc(fileInfo.getLength());
+				cellArea.width -= 3;
+				GCStringPrinter.printString(gc, s, cellArea, true, false, SWT.RIGHT);
 			}
+			//Rectangle bounds = row.getBounds();
+			//bounds.x = 120;
+			//bounds.width = row.getParent().getClientArea().width - bounds.x;
+		
 		}
 	}
 }

@@ -229,7 +229,7 @@ public class FilesView
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWTMenuFillListener#fillMenu(org.eclipse.swt.widgets.Menu)
 	public void fillMenu(String sColumnName, final Menu menu) {
 		Object[] data_sources = tv.getSelectedDataSources().toArray();
-		FilesViewMenuUtil.fillMenu(tv, sColumnName, menu, manager, data_sources);
+		FilesViewMenuUtil.fillMenu(tv, menu, manager, data_sources);
 	}
 
 	
