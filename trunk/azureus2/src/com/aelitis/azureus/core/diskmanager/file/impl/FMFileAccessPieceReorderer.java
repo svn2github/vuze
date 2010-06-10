@@ -268,7 +268,7 @@ FMFileAccessPieceReorderer
 			
 		}else{
 			
-			return( first_piece_length + ((index-1)*piece_size ));
+			return( first_piece_length + ((index-1)*(long)piece_size ));
 		}
 	}
 
@@ -548,8 +548,8 @@ FMFileAccessPieceReorderer
 			DirectByteBuffer[] temp_buffers = new DirectByteBuffer[]{ temp_buffer };
 			
 			try{
-				long	store_offset = first_piece_length + ((store_index-1)*piece_size );
-				long	swap_offset	 = first_piece_length + ((piece_number-1)*piece_size );
+				long	store_offset = first_piece_length + ((store_index-1)*(long)piece_size );
+				long	swap_offset	 = first_piece_length + ((piece_number-1)*(long)piece_size );
 				
 				delegate.read( raf, temp_buffers, swap_offset );
 				
@@ -631,8 +631,8 @@ FMFileAccessPieceReorderer
 					DirectByteBuffer[] temp_buffers = new DirectByteBuffer[]{ temp_buffer };
 	
 					try{
-						long	store_offset 	= first_piece_length + ((store_index-1)*piece_size );
-						long	swap_offset 	= first_piece_length + ((swap_index-1)*piece_size );
+						long	store_offset 	= first_piece_length + ((store_index-1)*(long)piece_size );
+						long	swap_offset 	= first_piece_length + ((swap_index-1)*(long)piece_size );
 
 						delegate.read( raf, temp_buffers, swap_offset );
 
