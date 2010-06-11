@@ -125,6 +125,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("v3.topbar.show.plugin", false);
 		def.addParameter("pluginbar.visible", false);
 		def.addParameter("ui.toolbar.uiswitcher", false);
+		def.addParameter("Table.extendedErase", false);
 
 		if ("az2".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui", "az3"))) {
 			def.addParameter("v3.Show Welcome", false);

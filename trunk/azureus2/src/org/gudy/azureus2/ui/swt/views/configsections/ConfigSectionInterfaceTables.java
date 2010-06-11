@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.BooleanParameter;
@@ -156,6 +157,13 @@ public class ConfigSectionInterfaceTables
 		new BooleanParameter(cLook, "Table.useTree", MSG_PREFIX
 				+ "useTree").setLayoutData(new GridData(SWT.FILL,
 				SWT.LEFT, true, false, 2, 1));
+
+
+		if (Constants.isWindows) {
+  		new BooleanParameter(cLook, "Table.extendedErase", MSG_PREFIX
+  				+ "extendedErase").setLayoutData(new GridData(SWT.FILL,
+  				SWT.LEFT, true, false, 2, 1));
+		}
 
 		return cLook;
 	}
