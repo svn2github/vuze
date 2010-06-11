@@ -26,6 +26,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
@@ -49,7 +50,8 @@ public class TreeDelegate implements TableOrTreeSWT
 	Map data = new LightHashMap(5);
 
 	protected TreeDelegate(Composite parent, int style) {
-		this(new Tree2(parent, style));
+		this(Constants.isWindows ? new Tree2(parent, style) : new Tree(parent,
+				style));
 	}
 
 	protected TreeDelegate(Tree t) {
