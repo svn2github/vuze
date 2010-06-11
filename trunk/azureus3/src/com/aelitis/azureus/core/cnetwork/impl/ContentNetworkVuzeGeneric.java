@@ -245,7 +245,7 @@ ContentNetworkVuzeGeneric
 		addService( SERVICE_PROFILE,			URL_PREFIX + "profile/" );
 		addService( SERVICE_TORRENT_DOWNLOAD,	URL_PREFIX + "download/" );
 		addService( SERVICE_SITE,				URL_PREFIX );
-		addService( SERVICE_SUPPORT,			URL_PREFIX + "support/" );
+		addService( SERVICE_SUPPORT,			URL_EXT_PREFIX + "support/" );
 		addService( SERVICE_LOGIN,				URL_PREFIX + "login.start?" );
 		addService( SERVICE_LOGOUT,				URL_PREFIX + "logout.start?" );
 		addService( SERVICE_REGISTER,			URL_PREFIX + "register.start?" );
