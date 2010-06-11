@@ -56,7 +56,7 @@ public class CT_InvOnlyReord
 	}
 
 	public CT_InvOnlyReord() {
-		super(name, 150, "test");
+		super(name, 190, "test");
 		setForDataSourceType(TableViewTestDS.class);
 		setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		setVisible(true);

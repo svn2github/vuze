@@ -20,7 +20,7 @@ public class CT_ID
 	public static String name = new Object() { }.getClass().getEnclosingClass().getSimpleName();
 	
 	public CT_ID() {
-		super(name, 150, "test");
+		super(name, 170, "test");
 		setForDataSourceType(TableViewTestDS.class);
 		setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		setVisible(true);

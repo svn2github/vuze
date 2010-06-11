@@ -22,7 +22,7 @@ public class CT_InvalidOnly
 	private static String ID_CELLPAINTS = name + ".numCP";
 
 	public CT_InvalidOnly() {
-		super(name, 150, "test");
+		super(name, 110, "test");
 		setForDataSourceType(TableViewTestDS.class);
 		setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		setVisible(true);

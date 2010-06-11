@@ -56,7 +56,7 @@ public class CT_LiveExt
 	}
 	
 	public CT_LiveExt() {
-		super(name, 150, "test");
+		super(name, 190, "test");
 		setForDataSourceType(TableViewTestDS.class);
 		setRefreshInterval(TableColumn.INTERVAL_LIVE);
 		setVisible(true);

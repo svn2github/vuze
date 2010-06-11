@@ -23,7 +23,7 @@ public class CT_Live
 	private static String ID_CELLPAINTS = name + ".numCP";
 
 	public CT_Live() {
-		super(name, 150, "test");
+		super(name, 110, "test");
 		setForDataSourceType(TableViewTestDS.class);
 		setRefreshInterval(TableColumn.INTERVAL_LIVE);
 		setVisible(true);
