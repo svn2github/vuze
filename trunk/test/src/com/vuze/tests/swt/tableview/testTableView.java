@@ -17,6 +17,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
@@ -43,11 +44,18 @@ public class testTableView
 		Composite cTV = new Composite(shell, SWT.BORDER);
 
 		Composite cBottom = new Composite(shell, SWT.BORDER);
+		Composite cToggles = new Composite(shell, SWT.BORDER);
 
 		fd = Utils.getFilledFormData();
-		fd.bottom = new FormAttachment(cBottom, -5);
+		fd.bottom = new FormAttachment(cToggles, -5);
 		cTV.setLayout(new FillLayout());
 		cTV.setLayoutData(fd);
+
+		fd = Utils.getFilledFormData();
+		fd.top = null;
+		fd.bottom = new FormAttachment(cBottom);
+		cToggles.setLayout(new RowLayout());
+		cToggles.setLayoutData(fd);
 
 		fd = Utils.getFilledFormData();
 		fd.top = null;
@@ -105,6 +113,43 @@ public class testTableView
 			}
 		});
 
+		Button btnPauseRefresh = new Button(cToggles, SWT.TOGGLE);
+		btnPauseRefresh.setText("Pause Refresh");
+		btnPauseRefresh.setSelection(pause);
+		btnPauseRefresh.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				pause = !pause;
+			}
+		});
+
+		Button btnRndChaos = new Button(cToggles, SWT.TOGGLE);
+		btnRndChaos.setText("RndChaos");
+		btnRndChaos.addListener(SWT.Selection, new Listener() {
+			boolean enabled[] = { false };
+			public void handleEvent(Event event) {
+				enabled[0] = !enabled[0];
+				if (enabled[0]) {
+					final cChaos cChaos = new cChaos(enabled);
+					startChaos(cChaos);
+				}
+			}
+		});
+
+		Button btnRndChaos1 = new Button(cToggles, SWT.TOGGLE);
+		btnRndChaos1.setText("RndChaos");
+		btnRndChaos1.addListener(SWT.Selection, new Listener() {
+			boolean enabled[] = { false };
+			public void handleEvent(Event event) {
+				enabled[0] = !enabled[0];
+				if (enabled[0]) {
+					final cChaos cChaos = new cChaos(enabled);
+					startChaos(cChaos);
+				}
+			}
+		});
+
+		/////////////
+
 		Button btnAdd1 = new Button(cBottom, SWT.PUSH);
 		btnAdd1.setText("Add 1");
 		btnAdd1.setSelection(pause);
@@ -132,21 +177,21 @@ public class testTableView
 			}
 		});
 
+		Button btnAddSubs = new Button(cBottom, SWT.PUSH);
+		btnAddSubs.setText("Add Subs");
+		btnAddSubs.setSelection(pause);
+		btnAddSubs.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				addSubs();
+			}
+		});
+
 		Button btnClear = new Button(cBottom, SWT.PUSH);
 		btnClear.setText("Clear");
 		btnClear.setSelection(pause);
 		btnClear.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				tv.removeAllTableRows();
-			}
-		});
-
-		Button btnPauseRefresh = new Button(cBottom, SWT.TOGGLE);
-		btnPauseRefresh.setText("Pause Refresh");
-		btnPauseRefresh.setSelection(pause);
-		btnPauseRefresh.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				pause = !pause;
 			}
 		});
 
@@ -182,38 +227,24 @@ public class testTableView
 			}
 		});
 
-		Button btnRndChaos = new Button(cBottom, SWT.TOGGLE);
-		btnRndChaos.setText("RndChaos");
-		btnRndChaos.addListener(SWT.Selection, new Listener() {
-			boolean enabled[] = { false };
-			public void handleEvent(Event event) {
-				enabled[0] = !enabled[0];
-				if (enabled[0]) {
-					final cChaos cChaos = new cChaos(enabled);
-					startChaos(cChaos);
-				}
-			}
-		});
-
-		Button btnRndChaos1 = new Button(cBottom, SWT.TOGGLE);
-		btnRndChaos1.setText("RndChaos");
-		btnRndChaos1.addListener(SWT.Selection, new Listener() {
-			boolean enabled[] = { false };
-			public void handleEvent(Event event) {
-				enabled[0] = !enabled[0];
-				if (enabled[0]) {
-					final cChaos cChaos = new cChaos(enabled);
-					startChaos(cChaos);
-				}
-			}
-		});
-
 		shell.open();
 
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
+		}
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 4.4.0.5
+	 */
+	protected static void addSubs() {
+		TableRowCore[] selectedRows = tv.getSelectedRows();
+		for (TableRowCore row : selectedRows) {
+			row.setSubItemCount((int) (Math.random() * 50));
 		}
 	}
 
