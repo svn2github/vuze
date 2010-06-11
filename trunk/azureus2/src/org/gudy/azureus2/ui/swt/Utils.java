@@ -783,79 +783,18 @@ public class Utils
 			return ((Number)lastBottomIndex).intValue();
 		}
 		
-		if (Constants.isWindows) {
-			int xPos = table.getColumn(0).getWidth() + table.getColumn(1).getWidth() - 1;
+		int xPos = table.getColumn(0).getWidth() + table.getColumn(1).getWidth() - 1;
 
-			Rectangle clientArea = table.getClientArea();
-			TableItemOrTreeItem bottomItem = table.getItem(new Point(xPos,
-					clientArea.y + clientArea.height - 2));
-			if (bottomItem != null) {
-				while (bottomItem.getParentItem() != null) {
-					bottomItem = bottomItem.getParentItem();
-				}
-				return table.indexOf(bottomItem);
+		Rectangle clientArea = table.getClientArea();
+		TableItemOrTreeItem bottomItem = table.getItem(new Point(xPos,
+				clientArea.y + clientArea.height - 2));
+		if (bottomItem != null) {
+			while (bottomItem.getParentItem() != null) {
+				bottomItem = bottomItem.getParentItem();
 			}
-			return table.getItemCount() - 1;
+			return table.indexOf(bottomItem);
 		}
-		
-		// on Linux, getItemHeight is slow AND WRONG. so is getItem(x).getBounds().y 
-		// getItem(Point) is slow on OSX
-		
-		// On Windows, in rare cases, getItem(Point(2,y)) doesn't return the item
-		// (such as within a paint event)
-
-		int itemCount = table.getItemCount();
-		if (iTopIndex >= itemCount || iTopIndex < 0)
-			return -1;
-
-		if (Constants.isOSX || Constants.isWindows) {
-			try {
-				TableItemOrTreeItem item = table.getItem(iTopIndex);
-				Rectangle bounds = item.getBounds();
-				Rectangle clientArea = table.getClientArea();
-
-				int itemHeight = table.getItemHeight();
-				int iBottomIndex = Math.min(iTopIndex
-						+ (clientArea.height + clientArea.y - bounds.y - 1) / itemHeight,
-						itemCount - 1);
-
-				//			System.out.println(bounds + ";" + clientArea + ";" + itemHeight + ";bi="
-				//					+ iBottomIndex + ";ti=" + iTopIndex + ";"
-				//					+ (clientArea.height + clientArea.y - bounds.y - 1));
-				return iBottomIndex;
-			} catch (ArrayIndexOutOfBoundsException e) {
-				// OSX bug where item.getBounds() throws OOB
-				//	at org.eclipse.swt.widgets.Table._getItem(Table.java:188)
-				//	at org.eclipse.swt.widgets.Table.cellSize(Table.java:211)
-				//	at org.eclipse.swt.widgets.Display.windowProc(Display.java:4750)
-				//	at org.eclipse.swt.internal.cocoa.OS.objc_msgSend_stret(Native Method)
-				//	at org.eclipse.swt.internal.cocoa.NSCell.cellSize(NSCell.java:34)
-				///	at org.eclipse.swt.widgets.TableItem.getBounds(TableItem.java:296)
-				return Math.min(
-						iTopIndex
-								+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / table.getItemHeight())
-								+ 1, table.getItemCount() - 1);
-			} catch (NoSuchMethodError e) {
-				// item.getBounds is 3.2
-				return Math.min(
-						iTopIndex
-								+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / table.getItemHeight())
-								+ 1, table.getItemCount() - 1);
-			}
-		}
-
-		// getItem will return null if clientArea's height is smaller than
-		// header height.
-		int areaHeight = table.getClientArea().height;
-		if (areaHeight <= table.getHeaderHeight())
-			return -1;
-
-		// 2 offset to be on the safe side
-		TableItemOrTreeItem bottomItem = table.getItem(new Point(2,
-				table.getClientArea().height - 1));
-		int iBottomIndex = (bottomItem != null) ? table.indexOf(bottomItem)
-				: itemCount - 1;
-		return iBottomIndex;
+		return table.getItemCount() - 1;
 	}
 	
 	public static List<TableItemOrTreeItem> getVisibleTableItems(TableOrTreeSWT table) {
