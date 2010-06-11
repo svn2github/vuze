@@ -333,8 +333,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	protected int headerHeight;
 
-	private TableViewSWT_EraseItem tableViewSWT_EraseItem;
-
 
 	/**
 	 * Main Initializer
@@ -775,25 +773,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		table.addListener(SWT.PaintItem, new TableViewSWT_PaintItem(this, table));
 
-		COConfigurationManager.addAndFireParameterListener("Table.extendedErase",
-				new ParameterListener() {
-					public void parameterChanged(String parameterName) {
-						Utils.execSWTThread(new AERunnable() {
-							public void runSupport() {
-								boolean enable = COConfigurationManager.getBooleanParameter("Table.extendedErase");
-
-								if (enable && (DRAW_FULL_ROW || DRAW_VERTICAL_LINES)) {
-									tableViewSWT_EraseItem = new TableViewSWT_EraseItem(
-											TableViewSWTImpl.this, table);
-									table.addListener(SWT.EraseItem, tableViewSWT_EraseItem);
-								} else if (tableViewSWT_EraseItem != null) {
-									table.removeListener(SWT.EraseItem, tableViewSWT_EraseItem);
-									tableViewSWT_EraseItem = null;
-								}
-							}
-						});
-					}
-				});
+		if (Constants.isWindows) {
+			table.addListener(SWT.EraseItem, new TableViewSWT_EraseItem(this, table));
+		}
 
 		//table.addListener(SWT.Paint, new Listener() {
 		//	public void handleEvent(Event event) {

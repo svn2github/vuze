@@ -6,6 +6,10 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
@@ -22,17 +26,35 @@ public class TableViewSWT_EraseItem
 	
 	private TableViewSWTImpl<?> tv;
 	
-	public TableViewSWT_EraseItem(TableViewSWTImpl<?> tv, TableOrTreeSWT table) {
+	private boolean drawExtended;
+	
+	private boolean first = true;
+	
+	public TableViewSWT_EraseItem(TableViewSWTImpl<?> _tv, TableOrTreeSWT table) {
 		this.table = table;
-		this.tv = tv;
+		this.tv = _tv;
+		COConfigurationManager.addAndFireParameterListener("Table.extendedErase",
+				new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								drawExtended = COConfigurationManager.getBooleanParameter("Table.extendedErase");
+								if (!first) {
+									Rectangle bounds = tv.getTableComposite().getBounds();
+									tv.getTableComposite().redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
+								}
+								first = false;
+							}
+						});
+					}
+				});
 	}
 	
 	public void handleEvent(Event event) {
 		TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
 		Rectangle bounds = event.getBounds();
 
-		if (TableViewSWTImpl.DRAW_FULL_ROW
-				&& (event.detail & (SWT.HOT | SWT.SELECTED | SWT.FOCUSED)) == 0) {
+		if ((event.detail & (SWT.HOT | SWT.SELECTED | SWT.FOCUSED)) == 0) {
 
 			int pos;
 			TableItemOrTreeItem parentItem = item.getParentItem();
@@ -46,7 +68,8 @@ public class TableViewSWT_EraseItem
 				event.gc.setBackground(color);
 			}
 			Rectangle drawBounds = bounds;
-			if (event.index == table.getColumnCount() - 1) {
+			if (TableViewSWTImpl.DRAW_FULL_ROW && drawExtended
+					&& event.index == table.getColumnCount() - 1) {
 				tv.swt_calculateClientArea();
 				drawBounds = new Rectangle(bounds.x, bounds.y, tv.clientArea.x
 						+ tv.clientArea.width - bounds.x, bounds.height);
@@ -56,15 +79,21 @@ public class TableViewSWT_EraseItem
 			event.gc.fillRectangle(drawBounds);
 			event.detail &= ~SWT.BACKGROUND;
 		}
+		
+		if ((event.detail & SWT.SELECTED) > 0 && !table.isFocusControl()) {
+			event.gc.setBackground(Colors.blues[3]);
+			event.gc.fillRectangle(bounds);
+			event.detail &= ~SWT.BACKGROUND;
+		}
 
 		// Vertical lines between columns
-		if (TableViewSWTImpl.DRAW_VERTICAL_LINES) {
+		if (TableViewSWTImpl.DRAW_VERTICAL_LINES && drawExtended) {
 			if (item != null
 					&& (bounds.width == item.getParent().getColumn(event.index).getWidth())) {
 				//System.out.println(bounds.width + ";" + item.getParent().getColumn(event.index).getWidth());
 				Color fg = event.gc.getForeground();
-				event.gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST + 1]);
-				//event.gc.setAlpha(40);
+				event.gc.setForeground(Colors.black);
+				event.gc.setAlpha(10);
 				event.gc.setClipping((Rectangle) null);
 				event.gc.drawLine(bounds.x + bounds.width - 1, bounds.y - 1, bounds.x
 						+ bounds.width - 1, bounds.y + bounds.height);
