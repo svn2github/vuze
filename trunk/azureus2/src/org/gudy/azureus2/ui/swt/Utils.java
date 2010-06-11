@@ -783,6 +783,21 @@ public class Utils
 			return ((Number)lastBottomIndex).intValue();
 		}
 		
+		if (Constants.isWindows) {
+			int xPos = table.getColumn(0).getWidth() + table.getColumn(1).getWidth() - 1;
+
+			Rectangle clientArea = table.getClientArea();
+			TableItemOrTreeItem bottomItem = table.getItem(new Point(xPos,
+					clientArea.y + clientArea.height - 2));
+			if (bottomItem != null) {
+				while (bottomItem.getParentItem() != null) {
+					bottomItem = bottomItem.getParentItem();
+				}
+				return table.indexOf(bottomItem);
+			}
+			return table.getItemCount() - 1;
+		}
+		
 		// on Linux, getItemHeight is slow AND WRONG. so is getItem(x).getBounds().y 
 		// getItem(Point) is slow on OSX
 		
@@ -841,6 +856,64 @@ public class Utils
 		int iBottomIndex = (bottomItem != null) ? table.indexOf(bottomItem)
 				: itemCount - 1;
 		return iBottomIndex;
+	}
+	
+	public static List<TableItemOrTreeItem> getVisibleTableItems(TableOrTreeSWT table) {
+
+		int xPos = table.getColumn(0).getWidth() + table.getColumn(1).getWidth() - 1;
+
+		Rectangle clientArea = table.getClientArea();
+		TableItemOrTreeItem bottomItem = table.getItem(new Point(xPos,
+				clientArea.y + clientArea.height - 1));
+		if (bottomItem != null) {
+			while (bottomItem.getParentItem() != null) {
+				bottomItem = bottomItem.getParentItem();
+			}
+		} else {
+			if (clientArea.height + clientArea.y <= 0) {
+				return Collections.emptyList();
+			}
+		}
+
+		TableItemOrTreeItem curItem = table.getTopItem();
+		if (curItem == null) {
+			return Collections.emptyList();
+		}
+		List<TableItemOrTreeItem> items = new ArrayList<TableItemOrTreeItem>();
+		int i = table.indexOf(curItem);
+		int count = table.getItemCount();
+		while (true) {
+			if (curItem == bottomItem) {
+				items.add(curItem);
+				break;
+			} else if (curItem == null) {
+				break;
+			}
+			items.add(curItem);
+			if (curItem.getExpanded() && curItem.getItemCount() > 0) {
+				if (!addItemsToList(items, curItem.getItems(), bottomItem)) {
+					break;
+				}
+			}
+			i++;
+			if (i >= count) {
+				break;
+			}
+			curItem = table.getItem(i);
+		}
+		return items;
+	}
+
+	private static boolean addItemsToList(List<TableItemOrTreeItem> list, TableItemOrTreeItem[] items,
+			TableItemOrTreeItem stopOnItem) {
+		
+		for (TableItemOrTreeItem item : items) {
+			list.add(item);
+			if (item == stopOnItem) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public static void launch( final DiskManagerFileInfo fileInfo ){

@@ -857,8 +857,8 @@ public class TableDelegate
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT#getTopItem()
 	public TableItemOrTreeItem getTopItem() {
-		// TODO Auto-generated method stub
-		return null;
+		int i = table.getTopIndex();
+		return i < 0 || (i == 0 && table.getItemCount() == 0) ? null : getItem(i);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT#removeTreeListener(org.eclipse.swt.events.TreeListener)

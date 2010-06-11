@@ -110,11 +110,11 @@ public class TableViewSWT_PaintItem
 				return;
 			}
 
-			if (rowIndex < tv.lastTopIndex || rowIndex > tv.lastBottomIndex) {
+			//if (rowIndex < tv.lastTopIndex || rowIndex > tv.lastBottomIndex) {
 				// this refreshes whole row (perhaps multiple), saving the many
 				// cell.refresh calls later because !cell.isUpToDate()
-				tv.visibleRowsChanged();
-			}
+				//tv.visibleRowsChanged();
+			//}
 
 			Rectangle cellBounds = item.getBounds(event.index);
 
@@ -135,6 +135,10 @@ public class TableViewSWT_PaintItem
 			if (row == null) {
 				//System.out.println("no row");
 				return;
+			}
+			
+			if (!tv.isRowVisible(row)) {
+				tv.visibleRowsChanged();
 			}
 
 			tv.invokePaintListeners(event.gc, row, columnsOrdered[iColumnNo],

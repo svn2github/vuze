@@ -96,10 +96,6 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
  *             instead of setting it to the actual space needed for the text.
  *             We should really store the last measured width in TableCell and
  *             use that.
- *             
- * @todo Instead of calculating top/bottomindex, call visibleRowsChanged() and 
- * 				use lastTopIndex and lastBottomIndex.  Need to make sure we don't
- * 				recurse.
  */
 public class TableViewSWTImpl<DATASOURCETYPE>
 	extends TableViewImpl<DATASOURCETYPE>
@@ -132,6 +128,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	private static final Color COLOR_FILTER_REGEX	= Colors.fadedYellow;
 	
 	protected static final boolean DEBUG_CELL_CHANGES = false;
+
+	private static final boolean DEBUG_SELECTION = false;
+
+	private static final boolean DEBUG_ROWCHANGE = false;
 
 	/** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
 	 * of the table this class is
@@ -244,9 +244,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	/** TabViews */
 	private ArrayList<IView> tabViews = new ArrayList<IView>(1);
 
-	protected int lastTopIndex = 0;
-
-	protected int lastBottomIndex = -1;
+	TableRowSWT[] visibleRows;
 
 	protected IView[] coreTabViews = null;
 
@@ -268,7 +266,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	private boolean columnVisibilitiesChanged = true;
 
 	// What type of data is stored in this table
-	private final Class classPluginDataSourceType;
+	private final Class<?> classPluginDataSourceType;
 
 	private AEMonitor listeners_mon = new AEMonitor("tablelisteners");
 
@@ -349,8 +347,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @param _sDefaultSortOn Column name to sort on if user hasn't chosen one yet
 	 * @param _iTableStyle SWT style constants used when creating the table
 	 */
-	public TableViewSWTImpl(Class pluginDataSourceType, String _sTableID, String _sPropertiesPrefix,
-			TableColumnCore[] _basicItems, String _sDefaultSortOn, int _iTableStyle) {
+	public TableViewSWTImpl(Class<?> pluginDataSourceType, String _sTableID,
+			String _sPropertiesPrefix, TableColumnCore[] _basicItems,
+			String _sDefaultSortOn, int _iTableStyle) {
 		boolean wantTree = (_iTableStyle & SWT.CASCADE) != 0;
 		_iTableStyle &= ~SWT.CASCADE;
 		if (wantTree) {
@@ -383,7 +382,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @param _sDefaultSortOn Column name to sort on if user hasn't chosen one
 	 *                         yet
 	 */
-	public TableViewSWTImpl(Class pluginDataSourceType,
+	public TableViewSWTImpl(Class<?> pluginDataSourceType,
 			String _sTableID, String _sPropertiesPrefix,
 			TableColumnCore[] _basicItems, String _sDefaultSortOn) {
 		this(pluginDataSourceType, _sTableID, _sPropertiesPrefix, _basicItems,
@@ -868,7 +867,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				// we need to fill the selected row indexes here because the
 				// dragstart event can occur before the SWT.SELECTION event and
 				// our drag code needs to know the selected rows..
-				TableRowSWT row = getTableRow(e.x, e.y);
+				TableRowSWT row = getTableRow(e.x, e.y, false);
 				selectRow(row, true);
 
 				TableColumnCore tc = getTableColumnByOffset(e.x);
@@ -1215,6 +1214,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (oldClientArea != null
 				&& (oldClientArea.x != clientArea.x || oldClientArea.width != clientArea.width)) {
 			columnVisibilitiesChanged = true;
+		}
+		if (oldClientArea != null
+				&& (oldClientArea.y != clientArea.y || oldClientArea.height != clientArea.height)) {
+			visibleRowsChanged();
 		}
 		if (columnVisibilitiesChanged) {
 			Utils.execSWTThreadLater(50, new AERunnable() {
@@ -2202,6 +2205,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		});
 	}
 
+	/*
 	private void doPaint(final GC gc, final Rectangle dirtyArea) {
 		if (getComposite() == null || getComposite().isDisposed()) {
 			return;
@@ -2237,6 +2241,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 	}
+	*/
 
 	/** IView.delete: This method is called when the view is destroyed.
 	 * Each color instanciated, images and such things should be disposed.
@@ -2717,8 +2722,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (!bBrokeEarly || bReplacedVisible) {
 			fillRowGaps(false);
 			if (bReplacedVisible) {
-				lastTopIndex = 0;
-				lastBottomIndex = -1;
 				visibleRowsChanged();
 			}
 		}
@@ -3543,38 +3546,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return new TableRowSWT[0];
 		}
 		
-		visibleRowsChanged(); // updates lastTopIndex and lastBottomIndex
-		int iTopIndex = lastTopIndex;
-		int iBottomIndex = lastBottomIndex;
-		if (iTopIndex < 0) {
-			return new TableRowSWT[0];
+		synchronized (this) {
+  		if (visibleRows == null) {
+  			visibleRowsChanged();
+  		}
+  		
+  		return visibleRows;
 		}
-
-		int size = iBottomIndex - iTopIndex + 1;
-		if (size <= 0) {
-			return new TableRowSWT[0];
-		}
-
-		TableRowSWT[] rows = new TableRowSWT[size];
-		int pos = 0;
-		for (int i = iTopIndex; i <= iBottomIndex; i++) {
-			TableItemOrTreeItem item = table.getItem(i);
-			if (item != null && !item.isDisposed()) {
-				TableRowSWT row = (TableRowSWT) getRow(item);
-				if (row != null) {
-					rows[pos++] = row;
-				}
-			}
-		}
-
-		if (pos <= rows.length) {
-			// Some were null, shrink array
-			TableRowSWT[] temp = new TableRowSWT[pos];
-			System.arraycopy(rows, 0, temp, 0, pos);
-			return temp;
-		}
-
-		return rows;
 	}
 
 	/** Returns the first selected data sources.
@@ -3609,19 +3587,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		for (int i = 0; i < tis.length; i++) {
 			TableRowCore row = getRow(tis[i]);
 			if (row != null) {
-				if (rows_to_use != null) {
-					rows_to_use.add(row);
-				}
+				rows_to_use.add(row);
 			}
 		}
-		if (rows_to_use != null) {
-			TableRowCore[] rows = rows_to_use.toArray(new TableRowCore[rows_to_use.size()]);
-			boolean ran = runner.run(rows);
-			if (!ran) {
-				for (int i = 0; i < rows.length; i++) {
-					TableRowCore row = rows[i];
-					runner.run(row);
-				}
+		TableRowCore[] rows = rows_to_use.toArray(new TableRowCore[rows_to_use.size()]);
+		boolean ran = runner.run(rows);
+		if (!ran) {
+			for (int i = 0; i < rows.length; i++) {
+				TableRowCore row = rows[i];
+				runner.run(row);
 			}
 		}
 	}
@@ -3650,18 +3624,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		// put to array instead of synchronised iterator, so that runner can remove
 		TableRowCore[] rows = getRows();
-		int iTopIndex;
-		int iBottomIndex;
-		if (isVisible()) {
-			iTopIndex = table.getTopIndex();
-			iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
-		} else {
-			iTopIndex = -1;
-			iBottomIndex = -2;
-		}
 
 		for (int i = 0; i < rows.length; i++) {
-			runner.run(rows[i], i >= iTopIndex && i <= iBottomIndex);
+			runner.run(rows[i], isRowVisible(rows[i]));
 		}
 	}
 
@@ -3891,8 +3856,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return row.getTableCellSWT(sCellName);
 	}
 
-	public TableRowSWT getTableRow(int x, int y) {
-		TableItemOrTreeItem item = table.getItem(new Point(2, y));
+	public TableRowSWT getTableRow(int x, int y, boolean anyX) {
+		TableItemOrTreeItem item = table.getItem(new Point(anyX ? 2 : x, y));
 		if (item == null) {
 			return null;
 		}
@@ -4191,9 +4156,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 					somethingChanged = listNewlySelected.size() > 0
 							|| oldSelectionList.size() > 0;
-					System.out.println(somethingChanged + "] +"
-							+ listNewlySelected.size() + "/-" + oldSelectionList.size()
-							+ ";  UpdateSelectedRows via " + Debug.getCompressedStackTrace());
+					if (DEBUG_SELECTION) {
+  					System.out.println(somethingChanged + "] +"
+  							+ listNewlySelected.size() + "/-" + oldSelectionList.size()
+  							+ ";  UpdateSelectedRows via " + Debug.getCompressedStackTrace());
+					}
 
 					if (somethingChanged) {
 						listSelectedCoreDataSources = null;
@@ -4280,119 +4247,78 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (!isVisible()) {
 			return false;
 		}
-		int i = row.getIndex();
-		int iTopIndex = table.getTopIndex();
-		if (iTopIndex < 0) {
+		if (visibleRows == null) {
 			return false;
 		}
-		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
-		return i >= iTopIndex && i <= iBottomIndex;
+		for (TableRowCore visibleRow : visibleRows) {
+			if (row == visibleRow) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected void visibleRowsChanged() {
-		if (!isVisible()) {
-			lastTopIndex = 0;
-			lastBottomIndex = -1;
-			return;
-		}
 		//debug("VRC " + Debug.getCompressedStackTrace());
 
-		table.setData("lastBottomIndex", null);
+
+		List<TableRowSWT> newlyVisibleRows = new ArrayList<TableRowSWT>();
+		List<TableRowSWT> nowInVisibleRows;
+		synchronized (this) {
+  		List<TableItemOrTreeItem> visibleTableItems;
+  		if (isVisible()) {
+  			visibleTableItems = Utils.getVisibleTableItems(table);
+  		} else {
+  			visibleTableItems = Collections.emptyList();
+  		}
+			nowInVisibleRows = new ArrayList<TableRowSWT>(0);
+  		if (visibleRows != null) {
+  			nowInVisibleRows.addAll(Arrays.asList(visibleRows));
+  		}
+  		TableRowSWT[] rows = new TableRowSWT[visibleTableItems.size()];
+  		int pos = 0;
+  		for (TableItemOrTreeItem item : visibleTableItems) {
+  			TableRowCore row = getRow(item);
+  			if (row instanceof TableRowSWT) {
+  				rows[pos++] = (TableRowSWT) row;
+  				boolean removed = nowInVisibleRows.remove(row);
+  				if (!removed) {
+  					newlyVisibleRows.add((TableRowSWT) row);
+  				}
+  			}
+  		}
+  
+  		if (pos <= rows.length) {
+  			// Some were null, shrink array
+  			TableRowSWT[] temp = new TableRowSWT[pos];
+  			System.arraycopy(rows, 0, temp, 0, pos);
+  			visibleRows = temp;
+  		} else {
+  			visibleRows = rows;
+  		}
+		}
+		
 		boolean bTableUpdate = false;
-		int iTopIndex = table.getTopIndex();
-		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
-		if (lastTopIndex != iTopIndex) {
-			if (Utils.isCocoa) {
-				swt_calculateClientArea();
+		if (DEBUG_ROWCHANGE) {
+			System.out.println("visRowsChanged; shown=" + visibleRows.length + "; +"
+					+ newlyVisibleRows.size() + "/-" + nowInVisibleRows.size() + " via "
+					+ Debug.getCompressedStackTrace(8));
+		}
+		for (TableRowSWT row : newlyVisibleRows) {
+			row.setAlternatingBGColor(true);
+			row.refresh(true, true);
+			if (row instanceof TableRowImpl) {
+				((TableRowImpl) row).setShown(true, false);
 			}
-			int tmpIndex = lastTopIndex;
-			lastTopIndex = iTopIndex;
-
-			if (iTopIndex < tmpIndex) {
-				if (tmpIndex > iBottomIndex + 1 && iBottomIndex >= 0) {
-					tmpIndex = iBottomIndex + 1;
-				}
-
-				//debug("Refresh top rows " + iTopIndex + " to " + (tmpIndex - 1));
-				try {
-					sortedRows_mon.enter();
-					for (int i = iTopIndex; i < tmpIndex && i < sortedRows.size(); i++) {
-						// can't use getRowQuick.. we getRow does setTableItem
-						TableRowSWT row = (TableRowSWT) getRow(i);
-						//TableRowCore row = getRowQuick(i);
-						if (row != null) {
-							row.setAlternatingBGColor(true);
-							row.refresh(true, true);
-							if (row instanceof TableRowImpl) {
-								((TableRowImpl) row).setShown(true, false);
-							}
-							if (Constants.isOSX) {
-								bTableUpdate = true;
-							}
-						}
-					}
-				} finally {
-					sortedRows_mon.exit();
-				}
-
-				// A refresh might have triggered a row height resize, so
-				// bottom index needs updating
-				iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
-			} else {
-				//System.out.println("Made T.Invisible " + (tmpIndex) + " to " + (iTopIndex - 1));
-				for (int i = tmpIndex; i < iTopIndex; i++) {
-					//TableRowSWT row = (TableRowSWT) getRow(i);
-					TableRowCore row = getRowQuick(i);
-					if (row instanceof TableRowImpl) {
-						((TableRowImpl) row).setShown(false, false);
-					}
-				}
+			if (Constants.isOSX) {
+				bTableUpdate = true;
 			}
 		}
 
-		if (lastBottomIndex != iBottomIndex) {
-			int tmpIndex = lastBottomIndex;
-			lastBottomIndex = iBottomIndex;
-			table.setData("lastBottomIndex", Integer.valueOf(lastBottomIndex));
-
-			if (tmpIndex < iTopIndex - 1) {
-				tmpIndex = iTopIndex - 1;
-			}
-
-			if (tmpIndex <= iBottomIndex) {
-				//debug("Refresh bottom rows " + (tmpIndex + 1) + " to " + iBottomIndex);
-				try {
-					sortedRows_mon.enter();
-					for (int i = tmpIndex + 1; i <= iBottomIndex && i < sortedRows.size(); i++) {
-						TableRowSWT row = (TableRowSWT) getRow(i);
-						// can't use getRowQuick.. we getRow does setTableItem
-						//TableRowCore row = getRowQuick(i);
-						if (row != null) {
-							row.setAlternatingBGColor(true);
-							// needed?  we'll get paintitems for each...
-							//row.refresh(true, true);
-							if (row instanceof TableRowImpl) {
-								((TableRowImpl) row).setShown(true, false);
-							}
-
-							if (Constants.isOSX) {
-								bTableUpdate = true;
-							}
-						}
-					}
-				} finally {
-					sortedRows_mon.exit();
-				}
-			} else {
-				//System.out.println("Made B.Invisible " + (tmpIndex) + " to " + (iBottomIndex + 1));
-				for (int i = tmpIndex; i <= iBottomIndex; i++) {
-					//TableRowSWT row = (TableRowSWT) getRow(i);
-					TableRowCore row = getRowQuick(i);
-					if (row instanceof TableRowImpl) {
-						((TableRowImpl) row).setShown(false, false);
-					}
-				}
+		for (TableRowSWT row : nowInVisibleRows) {
+			if (row instanceof TableRowImpl) {
+				((TableRowImpl) row).setShown(false, false);
 			}
 		}
 
@@ -4563,13 +4489,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * 
 	 *
 	 * @since 3.0.0.7
-	 */
+	 *
 	private void ensureAllRowsHaveIndex() {
 		for (int i = 0; i < sortedRows.size(); i++) {
 			TableRowSWT row = sortedRows.get(i);
 			row.setTableItem(i);
 		}
 	}
+	*/
 
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#isTableFocus()
@@ -4657,7 +4584,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	public TableRowCore getTableRowWithCursor() {
 		Point pt = table.getDisplay().getCursorLocation();
 		pt = table.toControl(pt);
-		return getTableRow(pt.x, pt.y);
+		return getTableRow(pt.x, pt.y, true);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getTableCellMouseOffset()
@@ -4681,7 +4608,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getDataSourceType()
-	public Class getDataSourceType() {
+	public Class<?> getDataSourceType() {
 		return classPluginDataSourceType;
 	}
 
@@ -4743,14 +4670,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	/** Note: Callers need to be on SWT Thread */
 	public boolean isVisible() {
 		boolean wasVisible = isVisible;
-		isVisible = table != null && !table.isDisposed() && table.isVisible();
+		isVisible = table != null && !table.isDisposed() && table.isVisible() && !table.getShell().getMinimized();
 		if (isVisible != wasVisible) {
+			visibleRowsChanged();
 			if (isVisible) {
-				swt_runForVisibleRows(new TableGroupRowRunner() {
-					public void run(TableRowCore row) {
-						row.invalidate();
-					}
-				});
 				loopFactor = 0;
 
 				IView view = getActiveSubView();
@@ -5140,7 +5063,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			mon_RowPaintListener.enter();
 
 			if (rowPaintListeners == null)
-				rowPaintListeners = new ArrayList(1);
+				rowPaintListeners = new ArrayList<TableRowSWTPaintListener>(1);
 
 			rowPaintListeners.add(listener);
 
@@ -5165,13 +5088,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	protected void invokePaintListeners(GC gc, TableRowCore row,
 			TableColumnCore column, Rectangle cellArea) {
-		ArrayList listeners = rowPaintListeners;
-		if (listeners == null)
+		if (rowPaintListeners == null) {
 			return;
-		
+		}
+		ArrayList<TableRowSWTPaintListener> listeners = new ArrayList<TableRowSWTPaintListener>(
+				rowPaintListeners);
+
 		for (int i = 0; i < listeners.size(); i++) {
 			try {
-				TableRowSWTPaintListener l = (TableRowSWTPaintListener) (listeners.get(i));
+				TableRowSWTPaintListener l = (listeners.get(i));
 
 				l.rowPaint(gc, row, column, cellArea);
 
