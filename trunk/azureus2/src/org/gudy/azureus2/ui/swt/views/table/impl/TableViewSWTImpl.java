@@ -116,10 +116,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
 
-	private static final long BREAKOFF_ADDTOMAP = 1000;
-
-	private static final long BREAKOFF_ADDROWSTOSWT = 800;
-
 	private static final int ASYOUTYPE_MODE_FIND = 0;
 	private static final int ASYOUTYPE_MODE_FILTER = 1;
 	private static final int ASYOUTYPE_MODE = ASYOUTYPE_MODE_FILTER;
@@ -2464,7 +2460,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			debug(">>" + " Add " + dataSources.length + " rows;");
 		}
 
-		Object[] remainingDataSources = null;
 		Object[] doneDataSources = dataSources;
 
 		// Create row, and add to map immediately
@@ -2476,22 +2471,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			for (int i = 0; i < dataSources.length; i++) {
 				if (dataSources[i] == null) {
 					continue;
-				}
-
-				// Break off and add the rows to the UI if we've taken too long to
-				// create them
-				if (SystemTime.getCurrentTime() - lStartTime > BREAKOFF_ADDTOMAP) {
-					int iNewSize = dataSources.length - i;
-					if (DEBUGADDREMOVE) {
-						debug("Breaking off adding datasources to map after " + i
-								+ " took " + (SystemTime.getCurrentTime() - lStartTime)
-								+ "ms; # remaining: " + iNewSize);
-					}
-					remainingDataSources = new Object[iNewSize];
-					doneDataSources = new Object[i];
-					System.arraycopy(dataSources, i, remainingDataSources, 0, iNewSize);
-					System.arraycopy(dataSources, 0, doneDataSources, 0, i);
-					break;
 				}
 
 				if (mapDataSourceToRow.containsKey(dataSources[i])) {
@@ -2513,21 +2492,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			debug("--" + " Add " + doneDataSources.length + " rows;");
 		}
 
-		if (remainingDataSources == null) {
-			addDataSourcesToSWT(doneDataSources, true);
-		} else {
-			final Object[] fDoneDataSources = doneDataSources;
-			final Object[] fRemainingDataSources = remainingDataSources;
-			// wrap both calls in a SWT thread so that continuation of adding 
-			// remaining datasources will be on SWT thread.  OSX has horrible handling
-			// of switching to SWT thread.
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					addDataSourcesToSWT(fDoneDataSources, false);
-					reallyAddDataSources(fRemainingDataSources);
-				}
-			}, false);
-		}
+		addDataSourcesToSWT(doneDataSources, true);
 	}
 
 	private void addDataSourcesToSWT(final Object dataSources[], boolean async) {
@@ -2541,7 +2506,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			if (async) {
-				table.getDisplay().asyncExec(new AERunnable() {
+				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
 						_addDataSourcesToSWT(dataSources);
 					}
@@ -2571,7 +2536,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		TableRowCore[] selectedRows = getSelectedRows();
 
-		boolean bBrokeEarly = false;
 		boolean bReplacedVisible = false;
 		boolean bWas0Rows = table.getItemCount() == 0;
 		try {
@@ -2596,22 +2560,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				Object dataSource = dataSources[i];
 				if (dataSource == null) {
 					continue;
-				}
-
-				// If we've been processing on the SWT thread for too long,
-				// break off and allow SWT a breather to update.
-				if (SystemTime.getCurrentTime() - lStartTime > BREAKOFF_ADDROWSTOSWT) {
-					int iNewSize = dataSources.length - i;
-					if (DEBUGADDREMOVE) {
-						debug("Breaking off adding datasources to SWT after " + i
-								+ " took " + (SystemTime.getCurrentTime() - lStartTime)
-								+ "ms; # remaining: " + iNewSize);
-					}
-					Object[] remainingDataSources = new Object[iNewSize];
-					System.arraycopy(dataSources, i, remainingDataSources, 0, iNewSize);
-					addDataSourcesToSWT(remainingDataSources, true);
-					bBrokeEarly = true;
-					break;
 				}
 
 				TableRowImpl row = (TableRowImpl) mapDataSourceToRow.get(dataSource);
@@ -2700,7 +2648,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			// Sanity Check: Make sure # of rows in table and in array match
-			if (table.getItemCount() > sortedRows.size() && !bBrokeEarly) {
+			if (table.getItemCount() > sortedRows.size()) {
 				// This could happen if one of the datasources was null, or
 				// an error occured
 				table.setItemCount(sortedRows.size());
@@ -2713,17 +2661,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			sortedRows_mon.exit();
 			dataSourceToRow_mon.exit();
 
-			if (!bBrokeEarly) {
-				bReallyAddingDataSources = false;
-				refreshenProcessDataSourcesTimer();
-			}
+			bReallyAddingDataSources = false;
+			refreshenProcessDataSourcesTimer();
 		}
 
-		if (!bBrokeEarly || bReplacedVisible) {
-			fillRowGaps(false);
-			if (bReplacedVisible) {
-				visibleRowsChanged();
-			}
+		fillRowGaps(false);
+		if (bReplacedVisible) {
+			visibleRowsChanged();
 		}
 
 		if (!columnPaddingAdjusted && table.getItemCount() > 0 && bWas0Rows) {

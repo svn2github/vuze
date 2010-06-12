@@ -245,7 +245,7 @@ public class TableRowImpl
 	    	mTableCells_mon.exit();
 	    }
 			
-			setForeground((Color) null);
+			//setForeground((Color) null);
 
 			bDisposed = true;
 		} finally {

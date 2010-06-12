@@ -1290,7 +1290,7 @@ public class TableCellImpl
     }
     
     if (bufferedTableItem != null) {
-			bufferedTableItem.setForeground(null);
+			//bufferedTableItem.setForeground(null);
 			bufferedTableItem.dispose();
 		}
     
