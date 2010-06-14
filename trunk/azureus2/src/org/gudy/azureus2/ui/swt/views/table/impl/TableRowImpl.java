@@ -106,7 +106,7 @@ public class TableRowImpl
 
     mTableCells_mon.enter();
     try {
-    	mTableCells = new LightHashMap<String, TableCellImpl>();
+    	mTableCells = new LightHashMap<String, TableCellImpl>(columnsSorted.length, 1);
 
     	// create all the cells for the column
     	for (int i = 0; i < columnsSorted.length; i++) {
@@ -691,11 +691,16 @@ public class TableRowImpl
 	
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#isVisible()
 	public boolean isVisible() {
-		return Utils.execSWTThreadWithBool("isVisible", new AERunnableBoolean() {
-			public boolean runSupport() {
-				return TableRowImpl.super.isVisible();
-			}
-		}, 1000);
+		return tableView.isRowVisible(this);
+		//return Utils.execSWTThreadWithBool("isVisible", new AERunnableBoolean() {
+		//	public boolean runSupport() {
+		//		return TableRowImpl.super.isVisible();
+		//	}
+		//}, 1000);
+	}
+
+	public boolean isVisibleNoSWT() {
+		return tableView.isRowVisible(this);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setSelected(boolean)

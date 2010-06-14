@@ -252,8 +252,9 @@ public class TableCellImpl
   }
   
   private void checkCellForSetting() {
-  	if (isDisposed())
+  	if ((flags & FLAG_DISPOSED) != 0) {
   		throw new UIRuntimeException("Table Cell is disposed.");
+  	}
   }
   
   /* Public API */
@@ -558,7 +559,7 @@ public class TableCellImpl
   }
   
 	public boolean isDisposed() {
-		return hasFlag(FLAG_DISPOSED);
+		return (flags & FLAG_DISPOSED) != 0;
 	}
 	
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMaxLines()
@@ -1047,15 +1048,18 @@ public class TableCellImpl
   //////////////////////////////////
 	
 	public void redraw() {
+		if (!tableRow.isVisible()) {
+			return;
+		}
 		if (bufferedTableItem != null) {
 			bufferedTableItem.redraw();
 		}
 	}
 	
   public void invalidate(final boolean bMustRefresh) {
-  	if (!hasFlag(FLAG_VALID)) {
+  	if ((flags & FLAG_VALID) == 0) { //!hasFlag(FLAG_VALID)
   		if (bMustRefresh) {
-  			if (hasFlag(FLAG_MUSTREFRESH)) {
+  			if ((flags & FLAG_MUSTREFRESH) != 0) {
   				return;
   			}
   		} else {

@@ -863,4 +863,8 @@ BufferedTableRow
 		}
 		return false;
 	}
+
+	public boolean isVisibleNoSWT() {
+		return true;  // assume the worst
+	}
 }

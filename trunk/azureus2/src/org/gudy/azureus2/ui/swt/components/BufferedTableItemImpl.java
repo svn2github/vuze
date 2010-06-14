@@ -78,6 +78,10 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 			}
 			isDirty = true;
 		}
+  	
+  	if (!row.isVisibleNoSWT()) {
+  		return;
+  	}
 
 		// Might be a good optimization.. haven't tried it
   	//if (isInPaintItem()) {

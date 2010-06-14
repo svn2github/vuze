@@ -864,7 +864,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				// dragstart event can occur before the SWT.SELECTION event and
 				// our drag code needs to know the selected rows..
 				TableRowSWT row = getTableRow(e.x, e.y, false);
-				selectRow(row, true);
+				if (row == null) {
+					setSelectedRows(new TableRowCore[0]);
+				} else {
+					selectRow(row, true);
+				}
 
 				TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellSWT cell = getTableCell(e.x, e.y);
@@ -2149,7 +2153,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// see common.TableView
-	public void processDataSourceQueue() {
+	public void processDataSourceQueue() { 
+		Utils.getOffOfSWTThread(new AERunnable() {
+			public void runSupport() {
+				_processDataSourceQueue();
+			}
+		});
+	}
+	
+	private void _processDataSourceQueue() { 
 		Object[] dataSourcesAdd = null;
 		Object[] dataSourcesRemove = null;
 
@@ -2460,8 +2472,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			debug(">>" + " Add " + dataSources.length + " rows;");
 		}
 
-		Object[] doneDataSources = dataSources;
-
 		// Create row, and add to map immediately
 		try {
 			dataSourceToRow_mon.enter();
@@ -2489,10 +2499,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 
 		if (DEBUGADDREMOVE) {
-			debug("--" + " Add " + doneDataSources.length + " rows;");
+			debug("--" + " Add " + dataSources.length + " rows;");
 		}
 
-		addDataSourcesToSWT(doneDataSources, true);
+		addDataSourcesToSWT(dataSources, true);
 	}
 
 	private void addDataSourcesToSWT(final Object dataSources[], boolean async) {
@@ -2563,7 +2573,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 
 				TableRowImpl row = (TableRowImpl) mapDataSourceToRow.get(dataSource);
-				if (row == null || row.getIndex() >= 0) {
+				// We used to check if row already existed in sortedRows, but this
+				// was always false, assuming dataSources only contains newly created
+				// rows
+				//if (row == null) || sortedRows.indexOf(row) >= 0) {
+				if (row == null) {
 					continue;
 				}
 				if (sortColumn != null) {
@@ -4068,14 +4082,44 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
+		final List<TableRowCore> oldSelectionList = new ArrayList<TableRowCore>();
+		boolean somethingChanged;
+		synchronized (selectedRows) {
+			oldSelectionList.addAll(selectedRows);
+
+			int[] indexes = new int[newSelectionArray.length];
+			int i = 0;
+			listSelectedCoreDataSources = null;
+			selectedRows.clear();
+			if (newSelectionArray.length > 0) {
+  			for (TableRowCore row : newSelectionArray) {
+  				if (row != null) {
+  					indexes[i++] = sortedRows.indexOf(row);
+  					selectedRows.add(row);
+  				}
+  			}
+  			final int[] newIndexes = new int[i];
+  			System.arraycopy(indexes, 0, newIndexes, 0, i);
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						table.setSelection(newIndexes);
+					}
+				});
+			} else {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						table.setSelection(new int[0]);
+					}
+				});
+			}
+		}
+
 		Utils.getOffOfSWTThread(new AERunnable() {
 			public void runSupport() {
-				List<TableRowCore> oldSelectionList;
 				List<TableRowCore> listNewlySelected;
 				boolean somethingChanged;
 				synchronized (selectedRows) {
 					List<TableRowCore> newSelectionList = new ArrayList<TableRowCore>(1);
-					oldSelectionList = new ArrayList<TableRowCore>(selectedRows);
 					listNewlySelected = new ArrayList<TableRowCore>(1);
 
 					for (TableRowCore row : newSelectionArray) {
@@ -4104,12 +4148,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   					System.out.println(somethingChanged + "] +"
   							+ listNewlySelected.size() + "/-" + oldSelectionList.size()
   							+ ";  UpdateSelectedRows via " + Debug.getCompressedStackTrace());
-					}
-
-					if (somethingChanged) {
-						listSelectedCoreDataSources = null;
-
-						selectedRows = newSelectionList;
 					}
 				}
 
@@ -4188,7 +4226,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (row.isInPaintItem()) {
 			return true;
 		}
-		if (!isVisible()) {
+		if (Utils.isThisThreadSWT() && !isVisible()) {
 			return false;
 		}
 		if (visibleRows == null) {
