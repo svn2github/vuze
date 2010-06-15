@@ -120,7 +120,9 @@ public class UIConfigDefaultsSWT
 		def.addParameter("MyTorrentsView.table.style", 0);
 		def.addParameter("MyTorrentsView.alwaysShowHeader", true);
 		
-		def.addParameter("ConfigView.section.style.swt.library.selection", "cocoa");
+		if (Constants.isOSX) {
+			def.addParameter("ConfigView.section.style.swt.library.selection", "cocoa");
+		}
 		def.addParameter("v3.topbar.height", 60);
 		def.addParameter("v3.topbar.show.plugin", false);
 		def.addParameter("pluginbar.visible", false);
