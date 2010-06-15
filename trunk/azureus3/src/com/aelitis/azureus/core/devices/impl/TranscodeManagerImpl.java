@@ -121,7 +121,10 @@ TranscodeManagerImpl
 				
 				public void
 				closedownInitiated()
-				{	
+				{
+						// we don't want things hanging around for init if we're closing
+					
+					init_sem.releaseForever();
 				}
 				
 				public void
