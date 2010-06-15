@@ -4064,28 +4064,48 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		synchronized (selectedRows) {
 			oldSelectionList.addAll(selectedRows);
 
-			int[] indexes = new int[newSelectionArray.length];
+			final TableItemOrTreeItem[] newSelectionItems = new TableItemOrTreeItem[newSelectionArray.length];
 			int i = 0;
 			listSelectedCoreDataSources = null;
 			selectedRows.clear();
 			if (newSelectionArray.length > 0) {
   			for (TableRowCore row : newSelectionArray) {
   				if (row != null) {
-  					indexes[i++] = sortedRows.indexOf(row);
+  					newSelectionItems[i] = ((TableRowImpl)row).getItem();
+  					if (newSelectionItems[i] != null && !newSelectionItems[i].isDisposed()) {
+  						i++;
+  					}
   					selectedRows.add(row);
   				}
   			}
-  			final int[] newIndexes = new int[i];
-  			System.arraycopy(indexes, 0, newIndexes, 0, i);
+  			final int numItems = i;
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
-						table.setSelection(newIndexes);
+						TableItemOrTreeItem[] selection = table.getSelection();
+						for (int i = 0; i < numItems; i++) {
+							boolean alreadySelected = false;
+							for (int j = 0; j < selection.length; j++) {
+								if (selection[j] == newSelectionItems[i]) {
+									alreadySelected = true;
+									selection[j] = null;
+									break;
+								}
+							}
+							if (!alreadySelected) {
+								table.select(newSelectionItems[i]);
+							}
+						}
+						for (int j = 0; j < selection.length; j++) {
+							if (selection[j] != null) {
+								table.deselect(selection[j]);
+							}
+						}
 					}
 				});
 			} else {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
-						table.setSelection(new int[0]);
+						table.deselectAll();
 					}
 				});
 			}
