@@ -2985,6 +2985,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			// if we removed all selected rows, select a row closest to the
 			// first one
+			/**  This is bad if the row was auto-removed and we select a new
+			 * row that the user doesn't know about, and then he does some bad
+			 * command to it.
 			if (numRemovedHavingSelection == numSelected && numSelected >= 0
 					&& oldSelection.length > 0 && oldSelection[0] < table.getItemCount()
 					&& oldSelection[0] < sortedRows.size()) {
@@ -2995,6 +2998,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				triggerSelectionListeners(getSelectedRows());
 				return;
 			}
+			*/
 			if (oldSelectedRows.length > 0) {
 				setSelectedRows(oldSelectedRows);
 			}
@@ -4065,12 +4069,18 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	protected void updateSelectedRows(TableItemOrTreeItem[] newSelectionArray, boolean trigger) {
 		List<TableRowCore> newSelectionList = new ArrayList<TableRowCore>(1);
+		/*
+		System.out.print("Selected Items: ");
 		for (TableItemOrTreeItem item : newSelectionArray) {
+			System.out.print(table.indexOf(item));
 			TableRowCore row = getRow(item);
 			if (row != null) {
 				newSelectionList.add(row);
-			}
+			} else { System.out.print("( NO ROW)"); }
+			System.out.print(", ");
 		}
+		System.out.println();
+		*/
 		updateSelectedRows(newSelectionList.toArray(new TableRowCore[0]), trigger);
 	}
 	
@@ -4079,7 +4089,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (table.isDisposed()) {
 			return;
 		}
-
+		
 		final List<TableRowCore> oldSelectionList = new ArrayList<TableRowCore>();
 		synchronized (selectedRows) {
 			oldSelectionList.addAll(selectedRows);
