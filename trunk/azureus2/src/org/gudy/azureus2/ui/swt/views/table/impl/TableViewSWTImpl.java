@@ -3666,7 +3666,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		 * @param event event information
 		 */
 		public void handleEvent(final Event event) {
-			if (event.stateMask != 0) {
+			int maskNoButton = (event.stateMask & ~SWT.BUTTON_MASK);
+			if (maskNoButton != 0) {
 				return;
 			}
 			TableColumnOrTreeColumn column = TableOrTreeUtils.getTableColumnEventItem(event.widget);
