@@ -102,6 +102,9 @@ public class SBC_LibraryTableView
 			public void azureusCoreRunning(final AzureusCore core) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
+						if (soParent == null || soParent.isDisposed()) {
+							return;
+						}
 						initShow(core);
 					}
 				});
