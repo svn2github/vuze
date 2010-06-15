@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.ui.swt.components;
 
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
@@ -301,9 +303,6 @@ BufferedTableRow
 		Color	c )
 	{
 		setForegroundDebug("setForeground(Color)", c);
-		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
-			return;
-
 		if (foreground == null && c == null) {return;}
 		
 		if (foreground != null && foreground.equals(c))
@@ -317,15 +316,14 @@ BufferedTableRow
 			this.ourForeground = null;
 		}
 		
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
+			return;
+
 		item.setForeground(foreground);
 	}
 	
 	public void setForeground(int red, int green, int blue) {
 		setForegroundDebug("setForeground(r,g,b)", red, green, blue);
-		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED)) {
-			return;
-		}
-		
 		if (red == -1 && green == -1 && blue == -1) {
 			this.setForeground(null);
 			return;
@@ -339,7 +337,9 @@ BufferedTableRow
 		// Hopefully it is OK to just assume it is safe to dispose of the colour,
 		// since we're expecting it to match this.foreground.
 		Color newColor = new Color(getTable().getDisplay(), newRGB);
-		item.setForeground(newColor);
+		if (checkWidget(REQUIRE_TABLEITEM_INITIALIZED)) {
+			item.setForeground(newColor);
+		}
 		if (ourForeground != null && !ourForeground.isDisposed()) {
 			ourForeground.dispose();
 		}
@@ -353,8 +353,6 @@ BufferedTableRow
 		Color	new_color )
 	{
 		setForegroundDebug("setForeground(int,Color)", new_color);
-		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
-			return false;
 				
 		if ( index >= foreground_colors.length ){
 			
@@ -382,6 +380,10 @@ BufferedTableRow
 		}
 		
 		foreground_colors[index] = new_color;
+
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED)) {
+			return true;
+		}
 
     try {
       item.setForeground(index, new_color);
@@ -558,6 +560,7 @@ BufferedTableRow
   	if (!isVisible) {
   		// Q&D, clear out.. we'll fill it correctly when it's visible
   		newRow.setData("TableRow", null);
+  		table.deselect(newRow);
   		//System.out.println("quickclear " + table.indexOf(newRow));
   		return true;
   	}
@@ -568,24 +571,23 @@ BufferedTableRow
   	//boolean newRowHadItem = newRow.getData("TableRow") != null;
 
   	if (newRow.getData("SD") != null) {
-  		// clear causes too much flicker
-  		//table.clear(table.indexOf(newRow));
-  		newRow.setForeground(null);
-  		//newRow.setBackground(null);
-
-  		int numColumns = table.getColumnCount();
-  		for (int i = 0; i < numColumns; i++) {
-  			try {
-  				//newRow.setImage(i, null);
-  				newRow.setForeground(i, null);
-  			} catch (NoSuchMethodError e) {
-  				/* Ignore for Pre 3.0 SWT.. */
-  			}
-  		}
   	} else {
   		newRow.setData("SD", "1");
   		setIconSize(ptIconSize);
   	}
+
+		newRow.setForeground(foreground);
+
+		int numColumns = table.getColumnCount();
+		for (int i = 0; i < numColumns; i++) {
+			try {
+				//newRow.setImage(i, null);
+				newRow.setForeground(i, i < foreground_colors.length
+						? foreground_colors[i] : null);
+			} catch (NoSuchMethodError e) {
+				/* Ignore for Pre 3.0 SWT.. */
+			}
+		}
 
   	try {
   		newRow.setData("TableRow", this);
@@ -599,8 +601,8 @@ BufferedTableRow
   	}
 
 	  image_values	= new Image[0];
-	  foreground_colors	= new Color[0];
-    foreground = null;
+	  //foreground_colors	= new Color[0];
+    //foreground = null;
 
     // unlink old item from tablerow
     if (lastItemExisted && item.getData("TableRow") == this && !newRow.equals(item)) {
@@ -622,11 +624,23 @@ BufferedTableRow
     item = newRow;
 		item.setItemCount(numSubItems);
 		item.setExpanded(wasExpanded);
-		if (isSelected()) {
-			item.getParent().select(item);
-		} else {
-			item.getParent().deselect(item);
-		}
+		// Need to execute (de)select later, because if we are in a paint event
+		// that paint event may be reporting a row selected before the selection
+		// event fired (Cocoa 3650 fires paint before select yet the row is marked
+		// selected)
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				if (isSelected()) {
+					if (!table.isSelected(item)) {
+						table.select(item);
+					}
+				} else {
+					if (table.isSelected(item)) {
+						table.deselect(item);
+					}
+				}
+			}
+		});
 		expanded = wasExpanded;
 		if (isVisible && !inPaintItem()) {
 		//if (newRowHadItem && isVisible && !inPaintItem()) {
