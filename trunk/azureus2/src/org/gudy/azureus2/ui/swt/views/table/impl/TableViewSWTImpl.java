@@ -881,7 +881,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				TableRowSWT row = getTableRow(e.x, e.y, false);
 				if (row == null) {
 					setSelectedRows(new TableRowCore[0]);
-				} else {
+				} else if (!row.isRowDisposed()) {
 					selectRow(row, true);
 				}
 
@@ -1020,7 +1020,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   					return;
   				}
   				TableRowCore row = getRow(item);
-  				if (row == null) {
+  				if (row == null || row.isRowDisposed()) {
   					return;
   				}
   				row.setExpanded(event.type == SWT.Expand ? true : false);
@@ -1955,7 +1955,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	void showColumnEditor() {
 		TableRowCore focusedRow = getFocusedRow();
-		if (focusedRow == null) {
+		if (focusedRow == null || focusedRow.isRowDisposed()) {
 			focusedRow = getRow(0);
 		}
 		new TableColumnSetupWindow(classPluginDataSourceType, sTableID, focusedRow,
@@ -2598,7 +2598,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				// was always false, assuming dataSources only contains newly created
 				// rows
 				//if (row == null) || sortedRows.indexOf(row) >= 0) {
-				if (row == null) {
+				if (row == null || row.isRowDisposed()) {
 					continue;
 				}
 				if (sortColumn != null) {
@@ -3357,7 +3357,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 		try {
 			Object o = item.getData("TableRow");
-			if (o instanceof TableRowCore) {
+			if ((o instanceof TableRowCore) && !((TableRowCore) o).isRowDisposed()) {
 				return (TableRowCore) o;
 			}
 
@@ -3372,11 +3372,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (iPos >= 0 && iPos < sortedRows.size()) {
 				TableRowSWT row = sortedRows.get(iPos);
 				//System.out.print(".. associating to " + row);
-				if (row != null) {
+				if (row != null && !row.isRowDisposed()) {
 					row.setTableItem(iPos);
+					//System.out.println(", now " + row);
+					return row;
 				}
-				//System.out.println(", now " + row);
-				return row;
+				return null;
 			}
 		} catch (Exception e) {
 			Debug.out(e);
@@ -3409,7 +3410,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   		final ArrayList<DATASOURCETYPE> l = new ArrayList<DATASOURCETYPE>(
   				selectedRows.size());
   		for (TableRowCore row : selectedRows) {
-  			if (row != null) {
+  			if (row != null && !row.isRowDisposed()) {
   				Object ds = row.getDataSource(true);
   				if (ds != null) {
   					l.add((DATASOURCETYPE) ds);
@@ -3439,7 +3440,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   
   		final ArrayList<Object> l = new ArrayList<Object>(selectedRows.size());
   		for (TableRowCore row : selectedRows) {
-  			if (row != null) {
+  			if (row != null && !row.isRowDisposed()) {
   				Object ds = row.getDataSource(false);
   				if (ds != null) {
   					l.add(ds);
@@ -3493,7 +3494,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   		final ArrayList<TableRowCore> l = new ArrayList<TableRowCore>(
   				selectedRows.size());
   		for (TableRowCore row : selectedRows) {
-  			if (row != null) {
+  			if (row != null && !row.isRowDisposed()) {
   				l.add(row);
   			}
   		}
@@ -3549,7 +3550,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 
 		TableRowCore row = getRow(table.getSelection()[0]);
-		if (row == null) {
+		if (row == null || row.isRowDisposed()) {
 			return null;
 		}
 		return row.getDataSource(bCoreObject);
@@ -3569,7 +3570,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		List<TableRowCore> rows_to_use = new ArrayList<TableRowCore>(tis.length);
 		for (int i = 0; i < tis.length; i++) {
 			TableRowCore row = getRow(tis[i]);
-			if (row != null) {
+			if (row != null && !row.isRowDisposed()) {
 				rows_to_use.add(row);
 			}
 		}
@@ -3632,7 +3633,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			TableRowSWT row = (TableRowSWT) getRow(tableItem);
-			if (row != null) {
+			if (row != null && !row.isRowDisposed()) {
 				rows_to_use.add(row);
 			}
 		}
@@ -3827,7 +3828,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 		TableRowSWT row = (TableRowSWT) getRow(item);
 
-		if (row == null) {
+		if (row == null || row.isRowDisposed()) {
 			return null;
 		}
 
@@ -4050,7 +4051,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	protected void selectRow(final TableRowCore row, boolean trigger) {
-		if (row == null) {
+		if (row == null || row.isRowDisposed()) {
 			return;
 		}
 		synchronized (selectedRows) {
@@ -4074,7 +4075,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		for (TableItemOrTreeItem item : newSelectionArray) {
 			//System.out.print(table.indexOf(item));
 			TableRowCore row = getRow(item);
-			if (row != null) {
+			if (row != null && !row.isRowDisposed()) {
 				newSelectionList.add(row);
 			}// else { System.out.print("( NO ROW)"); }
 			//System.out.print(", ");
@@ -4088,7 +4089,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (table.isDisposed()) {
 			return;
 		}
-		
+
+		/*
+		System.out.print(newSelectionArray.length + " Selected Rows: ");
+		for (TableRowCore row : newSelectionArray) {
+			System.out.print(indexOf(row));
+			System.out.print(", ");
+		}
+		System.out.println(" via " + Debug.getCompressedStackTrace(4));
+		*/
+
 		final List<TableRowCore> oldSelectionList = new ArrayList<TableRowCore>();
 		synchronized (selectedRows) {
 			oldSelectionList.addAll(selectedRows);
@@ -4099,7 +4109,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			selectedRows.clear();
 			if (newSelectionArray.length > 0) {
   			for (TableRowCore row : newSelectionArray) {
-  				if (row != null) {
+  				if (row != null && !row.isRowDisposed()) {
   					newSelectionItems[i] = ((TableRowImpl)row).getItem();
   					if (newSelectionItems[i] != null && !newSelectionItems[i].isDisposed()) {
   						i++;
@@ -4151,7 +4161,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					// We'll remove items still selected from oldSelectionLeft, leaving
 					// it with a list of items that need to fire the deselection event.
 					for (TableRowCore row : newSelectionArray) {
-						if (row == null) {
+						if (row == null || row.isRowDisposed()) {
 							continue;
 						}
 
@@ -4357,7 +4367,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				for (int j = iTopIndex; j <= iBottomIndex; j++) {
 					TableItemOrTreeItem rowSWT = table.getItem(j);
 					TableRowSWT row = (TableRowSWT) table.getItem(j).getData("TableRow");
-					if (row != null) {
+					if (row != null && !row.isRowDisposed()) {
 						TableCellSWT cell = row.getTableCellSWT(tc.getName());
 						final Rectangle columnBounds = rowSWT.getBounds(i);
 						if (columnBounds.y + columnBounds.height > clientArea.y
