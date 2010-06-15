@@ -22,8 +22,8 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
 public class testTableView
@@ -38,6 +38,7 @@ public class testTableView
 
 		COConfigurationManager.initialise();
 		COConfigurationManager.setParameter("Table.useTree", true);
+		//COConfigurationManager.setParameter("GUI Refresh", 15000);
 		UIConfigDefaultsSWT.initialize();
 		
 		Colors.getInstance();
@@ -84,6 +85,27 @@ public class testTableView
 		tv.initialize(cTV);
 		
 		tv.setRowDefaultHeight(20);
+		
+		tv.addSelectionListener(new TableSelectionListener() {
+			public void selected(TableRowCore[] row) {
+			}
+			
+			public void mouseExit(TableRowCore row) {
+			}
+			
+			public void mouseEnter(TableRowCore row) {
+			}
+			
+			public void focusChanged(TableRowCore focus) {
+			}
+			
+			public void deselected(TableRowCore[] rows) {
+			}
+			
+			public void defaultSelected(TableRowCore[] rows, int stateMask) {
+				System.out.println("Selected " + rows.length);
+			}
+		}, false);
 
 		//addRows(500);
 
@@ -95,7 +117,19 @@ public class testTableView
 			public void keyPressed(KeyEvent e) {
 				if (e.character == SWT.DEL) {
 					List<TableViewTestDS> sources = tv.getSelectedDataSources();
+					int count = sources.size();
+					if (count == 0) {
+						return;
+					}
+					int i = tv.getRow(sources.get(count - 1)).getIndex();
+					if (i >= tv.getRowCount() - 1) {
+						i -= count;
+					} else {
+						i++;
+					}
+					TableRowCore[] newSelRows = i < 0 || i >= tv.getRowCount() ? new TableRowCore[0] : new TableRowCore[] { tv.getRow(i) };
 					tv.removeDataSources(sources.toArray(new TableViewTestDS[0]));
+					tv.setSelectedRows(newSelRows);
 				} else if (e.keyCode == SWT.INSERT) {
 					TableViewTestDS ds = new TableViewTestDS();
 					ds.map.put("ID", new Double(3.1));

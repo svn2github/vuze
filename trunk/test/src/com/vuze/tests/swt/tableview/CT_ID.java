@@ -14,7 +14,7 @@ import com.aelitis.azureus.util.MapUtils;
 
 public class CT_ID
 	extends CoreTableColumn
-	implements TableCellAddedListener, TableCellSWTPaintListener
+	implements TableCellAddedListener, TableCellSWTPaintListener, TableCellRefreshListener
 {
 	public static double id = 0;
 	public static String name = new Object() { }.getClass().getEnclosingClass().getSimpleName();
@@ -37,6 +37,14 @@ public class CT_ID
   		id++;
   		cell.setSortValue(id);
   		cell.setText(Double.toString(id));
+		}
+	}
+	
+	public void refresh(TableCell cell) {
+		int id = ((Number) cell.getSortValue()).intValue();
+		if (id % 10 == 1) {
+			cell.setForeground(200, 0, 0);
+			cell.getTableRow().setForeground(150, 0, 0);
 		}
 	}
 
