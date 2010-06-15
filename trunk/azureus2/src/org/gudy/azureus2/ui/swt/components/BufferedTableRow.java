@@ -630,6 +630,9 @@ BufferedTableRow
 		// selected)
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
+				if (item.getData("TableRow") != BufferedTableRow.this) {
+					return;
+				}
 				if (isSelected()) {
 					if (!table.isSelected(item)) {
 						table.select(item);
