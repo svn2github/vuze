@@ -1245,8 +1245,10 @@ public class SideBar
 			}
 		}
 		TreeItem treeItem = createTreeItem(parentTreeItem, index);
-		treeItem.setData("MdiEntry", entry);
-		entry.setTreeItem(treeItem);
+		if (treeItem != null) {
+  		treeItem.setData("MdiEntry", entry);
+  		entry.setTreeItem(treeItem);
+		}
 	}
 
 	private MdiEntry createTreeItemFromIViewClass(String parent, String id,
