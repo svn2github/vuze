@@ -107,7 +107,7 @@ AssociationChecker
 		if (display.isDisposed())
 			return;
 
- 		shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+ 		shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM);
  	
  		Utils.setShellIcon(shell);
 	 	shell.setText(MessageText.getString("dialog.associations.title"));
