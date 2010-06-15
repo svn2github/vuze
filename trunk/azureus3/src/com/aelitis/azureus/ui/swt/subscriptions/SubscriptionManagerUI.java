@@ -323,10 +323,14 @@ SubscriptionManagerUI
 		subs_man = SubscriptionManagerFactory.getSingleton();
 		
 		final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		if (mdi == null) {
-			Debug.out("No MDI");
+		
+		if ( mdi == null ){
+			
+				// closing down
+			
 			return;
 		}
+		
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
@@ -723,7 +727,7 @@ SubscriptionManagerUI
 										
 										String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
 										MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-										if (mdi != null) {
+										if ( mdi != null ){
 											mdi.showEntryByID(key);
 										}
 										break;
@@ -761,6 +765,7 @@ SubscriptionManagerUI
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		
 		if (mdi == null) {
 			return;
 		}
@@ -906,7 +911,7 @@ SubscriptionManagerUI
 					
 					String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
 					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-					if (mdi != null) {
+					if ( mdi != null ){
 						mdi.showEntryByID(key);
 					}
 				}
@@ -1013,6 +1018,13 @@ SubscriptionManagerUI
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 
+		if ( mdi == null ){
+			
+				// closing down
+			
+			return;
+		}
+		
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 		if (uiClassic && !show) {
 			mdi.registerEntry(key, new MdiEntryCreationListener() {
@@ -1033,6 +1045,13 @@ SubscriptionManagerUI
 	private MdiEntry createSubsEntry(final Subscription subs) {
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		
+		if ( mdi == null ){
+			
+				// closing down
+		
+			return( null );
+		}
+	
 		ViewTitleInfo viewTitleInfo = new ViewTitleInfo() {
 			public Object 
 			getTitleInfoProperty(
@@ -1095,7 +1114,9 @@ SubscriptionManagerUI
 
 			String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
 			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-			if (mdi != null) {
+			
+			if  (mdi != null ){
+				
 				mdi.closeEntry(key);
 			}
 
