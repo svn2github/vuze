@@ -247,6 +247,13 @@ DeviceManagerUI
 				canClose() 
 				{
 					try{
+						if ( device_manager == null ){
+							
+								// not yet init, safe to close
+							
+							return( true );
+						}
+						
 						final TranscodeJob job = device_manager.getTranscodeManager().getQueue().getCurrentJob();
 
 						if ( job == null || job.getState() != TranscodeJob.ST_RUNNING ){
