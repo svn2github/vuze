@@ -463,7 +463,19 @@ PluginInstallerImpl
 	
 		throws PluginException
 	{
-		PluginUpdatePlugin	pup = (PluginUpdatePlugin)manager.getPluginInterfaceByClass( PluginUpdatePlugin.class ).getPlugin();
+		PluginInterface	pup_pi = manager.getPluginInterfaceByClass( PluginUpdatePlugin.class );
+		
+		if ( pup_pi == null ){
+			
+			throw( new PluginException( "Installation aborted, plugin-update plugin unavailable" ));
+		}
+		
+		if ( !pup_pi.getPluginState().isOperational()){
+			
+			throw( new PluginException( "Installation aborted, plugin-update plugin not operational" ));
+		}
+		
+		PluginUpdatePlugin	pup = (PluginUpdatePlugin)pup_pi.getPlugin();
 		
 		UpdateManagerImpl	uman = (UpdateManagerImpl)manager.getDefaultPluginInterface().getUpdateManager();
 		
