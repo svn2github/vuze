@@ -4069,18 +4069,17 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	protected void updateSelectedRows(TableItemOrTreeItem[] newSelectionArray, boolean trigger) {
 		List<TableRowCore> newSelectionList = new ArrayList<TableRowCore>(1);
-		/*
-		System.out.print("Selected Items: ");
+
+		//System.out.print("Selected Items: ");
 		for (TableItemOrTreeItem item : newSelectionArray) {
-			System.out.print(table.indexOf(item));
+			//System.out.print(table.indexOf(item));
 			TableRowCore row = getRow(item);
 			if (row != null) {
 				newSelectionList.add(row);
-			} else { System.out.print("( NO ROW)"); }
-			System.out.print(", ");
+			}// else { System.out.print("( NO ROW)"); }
+			//System.out.print(", ");
 		}
-		System.out.println();
-		*/
+		//System.out.println();
 		updateSelectedRows(newSelectionList.toArray(new TableRowCore[0]), trigger);
 	}
 	
