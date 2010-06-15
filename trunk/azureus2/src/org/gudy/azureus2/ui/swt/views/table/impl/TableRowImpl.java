@@ -762,4 +762,8 @@ public class TableRowImpl
 	public TableRowCore getParentRowCore() {
 		return parentRow;
 	}
+
+	public TableItemOrTreeItem getItem() {
+		return super.item;
+	}
 }
