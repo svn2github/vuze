@@ -61,6 +61,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.views.IView;
@@ -71,6 +72,7 @@ import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
@@ -1389,7 +1391,16 @@ public class MainWindow
 							
 		if ( !COConfigurationManager.getBooleanParameter( "Wizard Completed" )){
 				
-			new ConfigureWizard( false, ConfigureWizard.WIZARD_MODE_SPEED_TEST_MANUAL );
+			CoreWaiterSWT.waitForCoreRunning(
+				new AzureusCoreRunningListener() 
+				{
+					public void 
+					azureusCoreRunning(
+						AzureusCore core) 
+					{
+						new ConfigureWizard( false, ConfigureWizard.WIZARD_MODE_SPEED_TEST_MANUAL );
+					}
+				});
 		}
 		
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
