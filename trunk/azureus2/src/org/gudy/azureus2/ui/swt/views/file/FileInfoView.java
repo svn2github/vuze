@@ -118,7 +118,11 @@ public class FileInfoView
 		else
 			file = (DiskManagerFileInfo) newDataSource;
 
-		fillFileInfoSection();
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				fillFileInfoSection();
+			}
+		});
 	}
 
 	/* (non-Javadoc)
