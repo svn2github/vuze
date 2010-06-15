@@ -137,6 +137,9 @@ public class TransferStatsView extends AbstractIView {
 			public void azureusCoreRunning(AzureusCore core) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
+						if (mainPanel == null || mainPanel.isDisposed()) {
+							return;
+						}
 						createGeneralPanel();
 						createConnectionPanel();
 						createCapacityPanel();
