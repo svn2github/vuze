@@ -25,7 +25,6 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.RGB;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
@@ -119,6 +118,9 @@ public class ColorCache
 	}
 
 	public static Color getColor(Device device, int red, int green, int blue) {
+		if (device == null || device.isDisposed()) {
+			return null;
+		}
 		ensureMapColorsInitialized(device);
 
 		Long key = new Long(((long) red << 16) + (green << 8) + blue);
@@ -152,6 +154,9 @@ public class ColorCache
 	}
 
 	private static void ensureMapColorsInitialized(Device device) {
+		if (device == null || device.isDisposed()) {
+			return;
+		}
 		if (mapColors.size() == 0) {
 			for (int i = 1; i <= 16; i++) {
 				Color color = device.getSystemColor(i);
@@ -217,7 +222,7 @@ public class ColorCache
 				if (value.startsWith("COLOR_")) {
 					for (int i = 0; i < systemColorNames.length; i++) {
 						String name = systemColorNames[i];
-						if (name.equals(value)) {
+						if (name.equals(value) && device != null && !device.isDisposed()) {
 							return device.getSystemColor(i + SYSTEMCOLOR_INDEXSTART);
 						}
 					}
