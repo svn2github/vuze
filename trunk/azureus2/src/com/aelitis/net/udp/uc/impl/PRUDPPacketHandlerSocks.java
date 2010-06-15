@@ -21,6 +21,7 @@
 
 package com.aelitis.net.udp.uc.impl;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -110,7 +111,7 @@ PRUDPPacketHandlerSocks
 			
 			control_socket.connect( new InetSocketAddress( socks_host, socks_port ));
 		
-			DataOutputStream 	dos = new DataOutputStream( control_socket.getOutputStream());
+			DataOutputStream 	dos = new DataOutputStream( new BufferedOutputStream( control_socket.getOutputStream(), 256 ));
 			DataInputStream 	dis = new DataInputStream( control_socket.getInputStream());
 						
 			dos.writeByte( (byte)5 ); // socks 5
@@ -219,7 +220,12 @@ PRUDPPacketHandlerSocks
 		    }
 		    
 		    int	relay_port = ((dis.readByte()<<8)&0xff00) | (dis.readByte() & 0x00ff );
-		    		
+		    	
+		    if ( relay_address.isAnyLocalAddress()){
+		    	
+		    	relay_address = control_socket.getInetAddress();
+		    }
+		    
 		    relay = new InetSocketAddress( relay_address, relay_port );
 		    			    
 		    	// use the maped ip for dns resolution so we don't leak the
@@ -259,7 +265,7 @@ PRUDPPacketHandlerSocks
 			
 		}catch( Throwable e ){
 			
-			throw( new PRUDPPacketHandlerException( "socks setup failed", e));
+			throw( new PRUDPPacketHandlerException( "socks setup failed: " + Debug.getNestedExceptionMessage(e), e));
 			
 		}finally{
 			
@@ -275,6 +281,17 @@ PRUDPPacketHandlerSocks
 				}finally{
 					
 					control_socket = null;
+				}
+				
+				if ( delegate != null ){
+					
+					try{
+					    delegate.destroy();
+					    
+					}finally{
+						
+						delegate = null;
+					}
 				}
 			}
 		}
