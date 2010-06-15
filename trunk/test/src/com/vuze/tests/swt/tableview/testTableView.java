@@ -1,5 +1,6 @@
 package com.vuze.tests.swt.tableview;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -10,6 +11,9 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.UIConfigDefaultsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -19,6 +23,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
 public class testTableView
@@ -152,7 +157,6 @@ public class testTableView
 
 		Button btnAdd1 = new Button(cBottom, SWT.PUSH);
 		btnAdd1.setText("Add 1");
-		btnAdd1.setSelection(pause);
 		btnAdd1.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				addRows(1);
@@ -161,7 +165,6 @@ public class testTableView
 
 		Button btnAdd10 = new Button(cBottom, SWT.PUSH);
 		btnAdd10.setText("Add 10");
-		btnAdd10.setSelection(pause);
 		btnAdd10.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				addRows(10);
@@ -170,10 +173,44 @@ public class testTableView
 
 		Button btnAdd100 = new Button(cBottom, SWT.PUSH);
 		btnAdd100.setText("Add 100");
-		btnAdd100.setSelection(pause);
 		btnAdd100.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				addRows(100);
+			}
+		});
+
+		Button btnAddX = new Button(cBottom, SWT.PUSH);
+		btnAddX.setText("Add...");
+		btnAddX.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow("!Add!", "!How Many?");
+				entryWindow.prompt(new UIInputReceiverListener() {
+					public void UIInputReceiverClosed(UIInputReceiver receiver) {
+						if (receiver.hasSubmittedInput()) {
+							int parseInt = Integer.parseInt(receiver.getSubmittedInput());
+							addRows(parseInt);
+						}
+					}
+				});
+			}
+		});
+
+		Button btnAddSame = new Button(cBottom, SWT.PUSH);
+		btnAddSame.setText("Add 5 Same + 1");
+		btnAddSame.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				ArrayList<TableViewTestDS> dataSources = tv.getDataSources();
+				int i = 0;
+				int count = 5;
+				TableViewTestDS[] add = new TableViewTestDS[count + 1];
+				for (TableViewTestDS ds : dataSources) {
+					add[i++] = ds;
+					if (i >= count) {
+						break;
+					}
+				}
+				add[i] = new TableViewTestDS();
+				tv.addDataSources(add);
 			}
 		});
 

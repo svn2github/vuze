@@ -35,23 +35,26 @@ public class CT_InvOnlyExt
 		
 		timer.setWarnWhenFull();
 
-		timer.addPeriodicEvent("updateLiveExt", 1000, new TimerEventPerformer() {
-			public void perform(TimerEvent event) {
-				TableCell[] array = cells.toArray(new TableCell[0]);
-				for (TableCell cell : array) {
-					if (cell.isDisposed()) {
-						synchronized (cells) {
-							cells.remove(cell);
+		timer.addEvent("updateLiveExt", SystemTime.getOffsetTime(1000),
+				new TimerEventPerformer() {
+					public void perform(TimerEvent event) {
+						TableCell[] array = cells.toArray(new TableCell[0]);
+						for (TableCell cell : array) {
+							if (cell.isDisposed()) {
+								synchronized (cells) {
+									cells.remove(cell);
+								}
+								continue;
+							}
+							TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
+							int num = MapUtils.getMapInt(ds.map, ID_TICS, 0) + 1;
+							ds.map.put(ID_TICS, num);
+							cell.invalidate();
 						}
-						continue;
+						timer.addEvent("updateLiveExt", SystemTime.getOffsetTime(1000),
+								this);
 					}
-					TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
-					int num = MapUtils.getMapInt(ds.map, ID_TICS, 0) + 1;
-					ds.map.put(ID_TICS, num);
-					cell.invalidate();
-				}
- 			}
-		});
+				});
 	}
 
 	public CT_InvOnlyExt() {

@@ -35,7 +35,7 @@ public class CT_InvOnlyReord
 		
 		timer.setWarnWhenFull();
 
-		timer.addPeriodicEvent("updateInvOnlyRoord", 10000, new TimerEventPerformer() {
+		timer.addPeriodicEvent("updateInvOnlyRoord", SystemTime.getOffsetTime(10000), new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
 				TableCell[] array = cells.toArray(new TableCell[0]);
 				for (TableCell cell : array) {
@@ -51,6 +51,8 @@ public class CT_InvOnlyReord
 					ds.map.put(ID_TICS, num);
 					cell.invalidate();
 				}
+				
+				timer.addPeriodicEvent("updateInvOnlyRoord", SystemTime.getOffsetTime(10000), this);
  			}
 		});
 	}

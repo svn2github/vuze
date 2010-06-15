@@ -36,7 +36,7 @@ public class CT_LiveExt
 		
 		timer.setWarnWhenFull();
 
-		timer.addPeriodicEvent("updateLiveExt", 1000, new TimerEventPerformer() {
+		timer.addPeriodicEvent("updateLiveExt",  SystemTime.getOffsetTime(1000), new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
 				TableCell[] array = cells.toArray(new TableCell[0]);
 				for (TableCell cell : array) {
@@ -51,6 +51,8 @@ public class CT_LiveExt
 					ds.map.put(ID_TICS, num);
 					cell.invalidate();
 				}
+				
+				timer.addPeriodicEvent("updateLiveExt",  SystemTime.getOffsetTime(1000), this);
  			}
 		});
 	}
