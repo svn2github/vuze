@@ -313,10 +313,6 @@ public class TableRowImpl
     return list;
   }
 
-  public void setAlternatingBGColor(boolean bEvenIfNotVisible) {
-  	super.setAlternatingBGColor(bEvenIfNotVisible);
-  }
-
   public void locationChanged(int iStartColumn) {
     if (bDisposed || !isVisible())
       return;
@@ -446,15 +442,15 @@ public class TableRowImpl
 		//if (getRealIndex() != newIndex) {
 		//	((TableViewSWTImpl)tableView).debug("sTI " + newIndex + "; via " + Debug.getCompressedStackTrace(4));
 		//}
-		boolean changedSWTRow = super.setTableItem(newIndex, false, isVisible);
+		boolean changedSWTRow = super.setTableItem(newIndex, isVisible);
 		boolean changedIndex = lastIndex != newIndex;
 		if (changedIndex) {
 			//System.out.println("row " + newIndex + " from " + lastIndex + ";" + tableView.isRowVisible(this) + ";" + changedSWTRow);
 			lastIndex = newIndex;
 		}
-		boolean rowVisible = tableView.isRowVisible(this);
-		setShown(rowVisible, changedSWTRow);
-		if (changedSWTRow && rowVisible) {
+		//boolean rowVisible = tableView.isRowVisible(this);
+		setShown(isVisible, changedSWTRow);
+		if (changedSWTRow && isVisible) {
 			//invalidate();
 			//refresh(true, true);
 			setUpToDate(false);
@@ -754,7 +750,7 @@ public class TableRowImpl
 	public void linkSubItem(int indexOf) {
 		TableRowImpl subRow = subRows.get(indexOf);
 		TableItemOrTreeItem subItem = item.getItem(indexOf);
-		subRow.setTableItem(subItem, false, false);
+		subRow.setTableItem(subItem, false);
 	}
 	
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#isInPaintItem()

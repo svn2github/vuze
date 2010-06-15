@@ -24,11 +24,9 @@ package org.gudy.azureus2.ui.swt.components;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
-import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
@@ -54,8 +52,6 @@ public class
 BufferedTableRow
 {
 	private static final int VALUE_SIZE_INC	= 8;
-	
-	private static Color[] alternatingColors = null;
 
 	// for checkWidget(int)
 	public final static int REQUIRE_TABLEITEM = 0;
@@ -80,14 +76,6 @@ BufferedTableRow
 	private boolean expanded;
 	
 	
-	static {
-		Colors.getInstance().addColorsChangedListener(new ParameterListener() {
-			public void parameterChanged(String parameterName) {
-				alternatingColors = null;
-			}
-		});
-	}
-	
 	/**
 	 * Default constructor
 	 * 
@@ -99,56 +87,6 @@ BufferedTableRow
 		item = null;
 	}
 	
-	/**
-	 * Create a row in the SWT table
-	 *
-	 *
-	public void createSWTRow() {
-    item = table.createNewItem(SWT.NULL);
-		item.setItemCount(numSubItems);
-		item.setExpanded(expanded);
-		setAlternatingBGColor(true);
-	}
-
-	public void createSWTRow(int index) {
-		table.createNewItem(SWT.NULL);
-    setTableItem(index, false);
-	}
-	*/
-	
-	public void setAlternatingBGColor(boolean bEvenIfNotVisible) {
-		if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR || true)
-			return;
-			
-		if ((table.getStyle() & SWT.VIRTUAL) != 0 && !bEvenIfNotVisible
-				&& !isVisible()) {
-			return;
-		} else if (item == null || item.isDisposed()) {
-			return;
-		}
-
-		int index = table.indexOf(item);
-		if (index == -1) {
-			return;
-		}
-
-		try {
-			if (alternatingColors == null || alternatingColors[1].isDisposed()) {
-				alternatingColors = new Color[] {
-					table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
-					Colors.colorAltRow
-				};
-			}
-
-			Color newColor = alternatingColors[index % alternatingColors.length];
-			if (!newColor.equals(getBackground())) {
-				item.setBackground(newColor);
-			}
-		} catch (Exception e) {
-			Debug.out(e);
-		}
-	}
-
 	/**
 	 * Disposes of underlying SWT TableItem. If no TableItem has been
 	 * assigned to the row yet, an unused TableItem will be disposed of, if
@@ -280,7 +218,6 @@ BufferedTableRow
 					} catch (NullPointerException badSWT) {
 					}
 
-		   		setAlternatingBGColor(true);
 		    	setIconSize(ptIconSize);
 					invalidate();
 				}
@@ -558,39 +495,6 @@ BufferedTableRow
     return table.indexOf(item);
   }
   
-  private void copyToItem(TableItemOrTreeItem newItem) {
-    TableOrTreeSWT table = getTable();
-    if (table == null || item == null)
-      return;
-
-//    newItem.setText(text_values);
-		newItem.setImage(image_values);
-		Color colorFG = item.getForeground();
-		Color colorBG = item.getBackground();
-		newItem.setForeground(colorFG);
-		newItem.setBackground(colorBG);
-		int numColumns = table.getColumnCount();
-		for (int i = 0; i < numColumns; i++) {
-      try {
-      	newItem.setText(i, item.getText(i));
-        Color colorColumnFG = item.getForeground(i);
-        Color colorColumnBG = item.getBackground(i);
-        if (!colorColumnFG.equals(colorFG))
-          newItem.setForeground(i, colorColumnFG);
-        if (!colorColumnBG.equals(colorBG))
-          newItem.setBackground(i, colorColumnBG);
-      } catch (NoSuchMethodError e) {
-        /* Ignore for Pre 3.0 SWT.. */
-      }
-		}
-    if (isSelected())
-      table.select(newItem);
-    else
-      table.deselect(newItem);
-
-    newItem.setData("TableRow", item.getData("TableRow"));
-	}
-  
   public boolean isSelected() {
 		if (!checkWidget(REQUIRE_TABLEITEM))
   		return false;
@@ -616,30 +520,9 @@ BufferedTableRow
       table.deselect(item);
   }
 
-  /**
-   * Set the TableItem associated with this row to the TableItem at the
-   * specified index.
-   * 
-   * @param newIndex Index of TableItem that will be associated with this row
-   * @param bCopyFromOld True: Copy the visuals from the old TableItem to
-   *                            the new TableItem
-   * @return success level
-   */
-  public boolean setTableItem(int newIndex, boolean bCopyFromOld) {
-	  return setTableItem(newIndex, bCopyFromOld, true);	  
-  }
-  
-  public boolean setTableItem(int newIndex, boolean bCopyFromOld, boolean isVisible) {
+  public boolean setTableItem(int newIndex, boolean isVisible) {
   	TableItemOrTreeItem newRow;
 
-  	boolean needsNewAltBG = false;
-		if (alternatingColors != null) {
-			int newAltRowNo = newIndex % alternatingColors.length;
-			int oldAltRowNo = item == null ? -1 : table.indexOf(item)
-					% alternatingColors.length;
-			needsNewAltBG = newAltRowNo != oldAltRowNo;
-		}
-  	
   	try {
   		newRow = table.getItem(newIndex);
   	} catch (IllegalArgumentException er) {
@@ -649,15 +532,15 @@ BufferedTableRow
   		item = null;
   		return true;
   	} catch (Throwable e) {
-  		System.out.println("setTableItem(" + newIndex + ", " + bCopyFromOld + ")");
+  		System.out.println("setTableItem(" + newIndex + ", " + isVisible + ")");
   		e.printStackTrace();
   		return false;
   	}
   	
-  	return setTableItem(newRow, bCopyFromOld, isVisible);
+  	return setTableItem(newRow, isVisible);
   }
 
-  public boolean setTableItem(TableItemOrTreeItem newRow, boolean bCopyFromOld, boolean isVisible) {
+  public boolean setTableItem(TableItemOrTreeItem newRow, boolean isVisible) {
   	if (newRow.isDisposed()) {
   		Debug.out("newRow disposed from " + Debug.getCompressedStackTrace());
   		return false;
@@ -665,22 +548,26 @@ BufferedTableRow
 
   	if (newRow.equals(item)) {
   		if (newRow.getData("TableRow") == this) {
-//  			if(isVisible && needsNewAltBG)
-//  				setAlternatingBGColor(true);
   			return false;
   		}
   	}
 
-  	if (!newRow.getParent().equalsTableOrTree(table))
-  		return false;
-  	
+  	//if (!newRow.getParent().equalsTableOrTree(table))
+  	//	return false;
+
+  	if (!isVisible) {
+  		// Q&D, clear out.. we'll fill it correctly when it's visible
+  		newRow.setData("TableRow", null);
+  		//System.out.println("quickclear " + table.indexOf(newRow));
+  		return true;
+  	}
+		//System.out.println("slowset " + table.indexOf(newRow));
+
   	boolean lastItemExisted = item != null && !item.isDisposed();
   	// can't base newRowHadItem on "TableRow" as we clear it in "unlinking" stage
   	//boolean newRowHadItem = newRow.getData("TableRow") != null;
 
-  	if (bCopyFromOld) {
-  		copyToItem(newRow);
-  	} else if (newRow.getData("SD") != null) {
+  	if (newRow.getData("SD") != null) {
   		// clear causes too much flicker
   		//table.clear(table.indexOf(newRow));
   		newRow.setForeground(null);
@@ -699,9 +586,6 @@ BufferedTableRow
   		newRow.setData("SD", "1");
   		setIconSize(ptIconSize);
   	}
-
-//  	if(isVisible && needsNewAltBG)
-//  		setAlternatingBGColor(false);
 
   	try {
   		newRow.setData("TableRow", this);

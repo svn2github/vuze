@@ -3997,37 +3997,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				if (iBottomIndex >= count) {
 					iBottomIndex = count - 1;
 				}
-				// No idea why we needed to setTableItem for all rowse when !allSelectedRowsVisible
-				// disabling for now..
-				//if (allSelectedRowsVisible) {
-				{
-					for (int i = 0; i < sortedRows.size(); i++) {
-						TableRowSWT row = sortedRows.get(i);
-						boolean visible = i >= iTopIndex && i <= iBottomIndex;
-						if (visible) {
-							if (row.setTableItem(i)) {
-								iNumMoves++;
-							}
-						} else {
-							if (row instanceof TableRowImpl) {
-								((TableRowImpl) row).setShown(visible, false);
-							}
-						}
-					}
 
-					// visibleRowsChanged() will setTableItem for the rest
-				//} else {
-				//	for (int i = 0; i < sortedRows.size(); i++) {
-				//		boolean visible = i >= iTopIndex && i <= iBottomIndex;
-				//		TableRowSWT row = sortedRows.get(i);
-				//		if (row.setTableItem(i, visible)) {
-				//			iNumMoves++;
-				//		} else {
-				//			if (row instanceof TableRowImpl) {
-				//				((TableRowImpl) row).setShown(visible, false);
-				//			}
-				//		}
-				//	}
+				for (int i = 0; i < sortedRows.size(); i++) {
+					TableRowSWT row = sortedRows.get(i);
+					boolean visible = i >= iTopIndex && i <= iBottomIndex;
+					if (row.setTableItem(i, visible)) {
+						iNumMoves++;
+					}
 				}
 			} finally {
 				sortedRows_mon.exit();
@@ -4289,7 +4265,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					+ Debug.getCompressedStackTrace(8));
 		}
 		for (TableRowSWT row : newlyVisibleRows) {
-			row.setAlternatingBGColor(true);
 			row.refresh(true, true);
 			if (row instanceof TableRowImpl) {
 				((TableRowImpl) row).setShown(true, false);
