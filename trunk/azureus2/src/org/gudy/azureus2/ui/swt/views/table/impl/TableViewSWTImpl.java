@@ -246,6 +246,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private long lCancelSelectionTriggeredOn = -1;
 
+	private long lastSelectionTriggeredOn = -1;
+
 	private List<TableViewSWTMenuFillListener> listenersMenuFill = new ArrayList<TableViewSWTMenuFillListener>(
 			1);
 	
@@ -817,7 +819,17 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		// Deselect rows if user clicks on a blank spot (a spot with no row)
 		table.addMouseListener(new MouseAdapter() {
+			long lastMouseDblClkEventTime = 0;
 			public void mouseDoubleClick(MouseEvent e) {
+				long time = e.time & 0xFFFFFFFFL;
+				long diff = time - lastMouseDblClkEventTime;
+				// We fake a double click on MouseUp.. this traps 2 double clicks
+				// in quick succession and ignores the 2nd.
+				if (diff <= e.display.getDoubleClickTime() && diff >= 0) {
+					return;
+				}
+				lastMouseDblClkEventTime = time;
+
 				TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellSWT cell = getTableCell(e.x, e.y);
 				if (cell != null && tc != null) {
@@ -837,7 +849,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			public void mouseUp(MouseEvent e) {
 				long time = e.time & 0xFFFFFFFFL;
 				long diff = time - lastMouseUpEventTime;
-				if (diff < 10 && diff >= 0) {
+				if (diff <= e.display.getDoubleClickTime() && diff >= 0) {
+					// Fake double click because Cocoa SWT 3650 doesn't always trigger
+					// DefaultSelection listener on a Tree on dblclick (works find in Table)
+					runDefaultAction(e.stateMask);
 					return;
 				}
 				lastMouseUpEventTime = time;
@@ -1483,12 +1498,18 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	public void runDefaultAction(int stateMask) {
+		// Don't allow mutliple run defaults in quick succession
+		if (lastSelectionTriggeredOn > 0
+				&& System.currentTimeMillis() - lastSelectionTriggeredOn < 200) {
+			return;
+		}
+		
 		// plugin may have cancelled the default action
-
 		if (lCancelSelectionTriggeredOn > 0
 				&& System.currentTimeMillis() - lCancelSelectionTriggeredOn < 200) {
 			lCancelSelectionTriggeredOn = -1;
 		} else {
+			lastSelectionTriggeredOn = System.currentTimeMillis();
 			TableRowCore[] selectedRows = getSelectedRows();
 			triggerDefaultSelectedListeners(selectedRows, stateMask);
 		}
@@ -4060,7 +4081,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 
 		final List<TableRowCore> oldSelectionList = new ArrayList<TableRowCore>();
-		boolean somethingChanged;
 		synchronized (selectedRows) {
 			oldSelectionList.addAll(selectedRows);
 
@@ -4119,6 +4139,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					List<TableRowCore> newSelectionList = new ArrayList<TableRowCore>(1);
 					listNewlySelected = new ArrayList<TableRowCore>(1);
 
+					// We'll remove items still selected from oldSelectionLeft, leaving
+					// it with a list of items that need to fire the deselection event.
 					for (TableRowCore row : newSelectionArray) {
 						if (row == null) {
 							continue;
