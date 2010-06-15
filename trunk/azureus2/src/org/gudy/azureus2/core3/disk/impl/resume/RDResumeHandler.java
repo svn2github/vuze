@@ -30,6 +30,10 @@ import org.gudy.azureus2.core3.disk.DiskManagerCheckRequest;
 import org.gudy.azureus2.core3.disk.DiskManagerCheckRequestListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
+import org.gudy.azureus2.core3.disk.DiskManagerWriteRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerWriteRequestListener;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerRecheckInstance;
@@ -43,7 +47,9 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
 
@@ -139,6 +145,8 @@ RDResumeHandler
 
         final AESemaphore	 run_sem = new AESemaphore( "RDResumeHandler::checkAllPieces:runsem", 2 );
 
+        final List<DiskManagerCheckRequest>	failed_pieces = new ArrayList<DiskManagerCheckRequest>();
+        
 		try{
 			boolean	resume_data_complete = false;
 			
@@ -401,6 +409,11 @@ RDResumeHandler
 													DiskManagerCheckRequest 	request,
 													boolean						passed )
 												{
+													if ( !passed ){
+														
+														failed_pieces.add( request );
+													}
+													
 													complete();
 												}
 												 
@@ -538,6 +551,11 @@ RDResumeHandler
 											DiskManagerCheckRequest 	request,
 											boolean						passed )
 										{
+											if ( !passed ){
+												
+												failed_pieces.add( request );
+											}
+											
 											complete();
 										}
 										 
@@ -578,6 +596,146 @@ RDResumeHandler
 						pending_checks_sem.reserve();
 						
 						pending_check_num--;
+					}
+				}
+				
+				if ( failed_pieces.size() > 0 ){
+					
+					byte[][] piece_hashes = disk_manager.getTorrent().getPieces();
+					
+					ByteArrayHashMap<Integer>	hash_map = new ByteArrayHashMap<Integer>();
+					
+					for ( int i=0;i<piece_hashes.length;i++){
+						
+						hash_map.put( piece_hashes[i], i );
+					}
+										
+					for ( DiskManagerCheckRequest request: failed_pieces ){
+						
+						while( ! stopped ){
+							
+							if ( recheck_inst.getPermission()){
+								
+								break;
+							}
+						}
+
+						if ( stopped ){
+							
+							break;
+						}
+						
+						byte[] hash = request.getHash();
+						
+						if ( hash != null ){
+							
+							final Integer target_index = hash_map.get( hash );
+							
+							int		current_index 	= request.getPieceNumber();
+							
+							int		piece_size		= disk_manager.getPieceLength( current_index );
+							
+							if ( 	target_index != null && 
+									target_index != current_index &&
+									disk_manager.getPieceLength( target_index ) == piece_size &&
+									!disk_manager.isDone( target_index )){
+																
+								final AESemaphore sem = new AESemaphore( "PieceReorder" );
+								
+								disk_manager.enqueueReadRequest(
+									disk_manager.createReadRequest( current_index, 0, piece_size ),
+									new DiskManagerReadRequestListener()
+									{
+										public void 
+										readCompleted( 
+											DiskManagerReadRequest 	request, 
+											DirectByteBuffer 		data )
+										{
+											try{
+												disk_manager.enqueueWriteRequest(
+													disk_manager.createWriteRequest( target_index, 0, data, null ),
+													new DiskManagerWriteRequestListener()
+													{
+														public void 
+														writeCompleted( 
+															DiskManagerWriteRequest 	request )
+														{
+															try{
+																DiskManagerCheckRequest	check_request = disk_manager.createCheckRequest( target_index, null );
+																
+																check_request.setLowPriority( true );
+										
+																checker.enqueueCheckRequest(
+																		check_request, 
+																		new DiskManagerCheckRequestListener()
+																		{
+																			public void 
+																			checkCompleted( 
+																				DiskManagerCheckRequest 	request,
+																				boolean						passed )
+																			{
+																				sem.release();
+																			}
+																			 
+																			public void
+																			checkCancelled(
+																				DiskManagerCheckRequest		request )
+																			{
+																				sem.release();
+																			}
+																			
+																			public void 
+																			checkFailed( 
+																				DiskManagerCheckRequest 	request, 
+																				Throwable		 			cause )
+																			{
+																				sem.release();
+																			}
+																		});
+															}catch( Throwable e ){
+																
+																sem.release();
+															}
+														}
+														  
+														public void 
+														writeFailed( 
+															DiskManagerWriteRequest 	request, 
+															Throwable		 			cause )
+														{
+															sem.release();
+														}
+													});
+											}catch( Throwable e ){
+												
+												sem.release();
+											}
+										}
+
+										public void 
+										readFailed( 
+											DiskManagerReadRequest 	request, 
+											Throwable		 		cause )
+										{
+											sem.release();
+										}
+
+										public int
+										getPriority()
+										{
+											return( -1 );
+										}
+										
+										public void 
+										requestExecuted(
+											long 	bytes )
+										{
+										}
+									});
+								
+								sem.reserve();
+							}
+						}
 					}
 				}
 			}finally{

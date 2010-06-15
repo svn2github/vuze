@@ -337,8 +337,10 @@ DMCheckerImpl
 			  						break;
 			  					}
 			  					
+			  					final DiskManagerCheckRequest this_request = createCheckRequest( i, request.getUserData());
+			  					
 			  					enqueueCheckRequest( 
-			  						createCheckRequest( i, request.getUserData()),
+			  						this_request,
 			  	       				new DiskManagerCheckRequestListener()
 									{
 					  	       			public void 
@@ -742,15 +744,17 @@ DMCheckerImpl
 					    						    		    					
 					    					try{
 					    						
-												byte[] testHash = hash_request.getResult();
+												byte[] actual_hash = hash_request.getResult();
 														    								
-												if ( testHash != null ){
-															
+												if ( actual_hash != null ){
+														
+													request.setHash( actual_hash );
+													
 				    								async_result = 1; // success
 				    								
-				    								for (int i = 0; i < testHash.length; i++){
+				    								for (int i = 0; i < actual_hash.length; i++){
 				    									
-				    									if ( testHash[i] != required_hash[i]){
+				    									if ( actual_hash[i] != required_hash[i]){
 				    										
 				    										async_result = 2; // failed;
 				    										

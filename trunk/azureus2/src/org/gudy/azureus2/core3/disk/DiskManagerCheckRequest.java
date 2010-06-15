@@ -46,4 +46,11 @@ DiskManagerCheckRequest
 	public boolean
 	isAdHoc();
 	
+	public void
+	setHash(
+		byte[]		hash );
+	
+	public byte[]
+	getHash();
+	
 }

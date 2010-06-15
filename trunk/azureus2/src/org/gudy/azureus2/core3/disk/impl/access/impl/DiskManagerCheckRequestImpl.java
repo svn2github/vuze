@@ -34,6 +34,8 @@ DiskManagerCheckRequestImpl
 	private boolean	low_priority;
 	private boolean	ad_hoc		= true;
 	
+	private byte[]	hash;
+	
 	public 
 	DiskManagerCheckRequestImpl(
 		int		_piece_number,
@@ -85,5 +87,18 @@ DiskManagerCheckRequestImpl
 	isAdHoc()
 	{
 		return( ad_hoc );
+	}
+	
+	public void
+	setHash(
+		byte[]		_hash )
+	{
+		hash	= _hash;
+	}
+	
+	public byte[]
+	getHash()
+	{
+		return( hash );
 	}
 }
