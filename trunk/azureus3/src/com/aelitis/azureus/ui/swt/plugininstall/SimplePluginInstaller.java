@@ -31,6 +31,7 @@ SimplePluginInstaller
 	private PluginInstaller installer;
 	private volatile UpdateCheckInstance instance;
 	
+	private boolean	completed;
 	private boolean	cancelled;
 	
 	public 
@@ -109,6 +110,11 @@ SimplePluginInstaller
 		
 		synchronized( this ){
 			
+			if ( completed ){
+				
+				return;
+			}
+			
 			cancelled = true;
 			
 			to_cancel = instance;
@@ -156,6 +162,11 @@ SimplePluginInstaller
 						public void
 						completed()
 						{
+							synchronized( SimplePluginInstaller.this ){
+								
+								completed = true;
+							}
+							
 							result[0] = true;
 							
 							if ( listener != null ){
