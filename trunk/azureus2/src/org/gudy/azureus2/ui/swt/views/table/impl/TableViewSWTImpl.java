@@ -3363,8 +3363,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			if (item.getParentItem() != null) {
 				TableRowCore row = getRow(item.getParentItem());
-				row.linkSubItem(item.getParentItem().indexOf(item));
-				return null;
+				return row.linkSubItem(item.getParentItem().indexOf(item));
 			}
 			
 			int iPos = table.indexOf(item);

@@ -747,10 +747,11 @@ public class TableRowImpl
 		subRows.addAll(list);
 	}
 
-	public void linkSubItem(int indexOf) {
+	public TableRowCore linkSubItem(int indexOf) {
 		TableRowImpl subRow = subRows.get(indexOf);
 		TableItemOrTreeItem subItem = item.getItem(indexOf);
 		subRow.setTableItem(subItem, false);
+		return subRow;
 	}
 	
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#isInPaintItem()
