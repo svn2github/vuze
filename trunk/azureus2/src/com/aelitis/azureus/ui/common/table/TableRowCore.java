@@ -170,7 +170,7 @@ public interface TableRowCore extends TableRow
 	 *
 	 * @since 4.4.0.5
 	 */
-	void linkSubItem(int indexOf);
+	TableRowCore linkSubItem(int indexOf);
 
 	/**
 	 * @param datasources
