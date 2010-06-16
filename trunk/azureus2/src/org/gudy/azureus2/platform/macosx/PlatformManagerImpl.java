@@ -204,7 +204,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 			editor.setSimpleStringValue("CFBundleGetInfoString","Vuze");
 			editor.setSimpleStringValue("CFBundleShortVersionString",Constants.AZUREUS_VERSION);
 			editor.setSimpleStringValue("CFBundleVersion",Constants.AZUREUS_VERSION);
-			editor.setArrayValues("CFBundleURLSchemes", "string", new String[] { "magnet", "dht", "vuze"});
+			editor.setArrayValues("CFBundleURLSchemes", "string", new String[] { "magnet", "dht", "vuze", "bc" });
 			
 				// always touch it, see if it helps ensure we are registered as magnet
 				// handler
