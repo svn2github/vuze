@@ -559,8 +559,10 @@ BufferedTableRow
 
   	if (!isVisible) {
   		// Q&D, clear out.. we'll fill it correctly when it's visible
-  		newRow.setData("TableRow", null);
-  		table.deselect(newRow);
+  		if (newRow.getData("TableRow") != null) {
+    		newRow.setData("TableRow", null);
+    		table.deselect(newRow);
+  		}
   		//System.out.println("quickclear " + table.indexOf(newRow));
   		return true;
   	}
