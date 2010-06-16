@@ -612,7 +612,11 @@ public class TableDelegate
 	}
 
 	public int getTopIndex() {
-		return table.getTopIndex();
+		int topIndex = table.getTopIndex();
+		if (topIndex == 0 && table.getItemCount() == 0) {
+			return -1;
+		}
+		return topIndex;
 	}
 
 	public int hashCode() {

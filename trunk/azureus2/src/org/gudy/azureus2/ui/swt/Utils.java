@@ -428,7 +428,7 @@ public class Utils
 		}
 
 		int iTopIndex = table.getTopIndex();
-		if (iTopIndex < 0) {
+		if (iTopIndex < 0 || (iTopIndex == 0 && table.getItemCount() == 0)) {
 			return;
 		}
 		TableOrTreeSWT tt = TableOrTreeUtils.getTableOrTreeSWT(table);
