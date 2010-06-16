@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
 
-import com.aelitis.azureus.core.diskmanager.file.FMFile;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
 public class 
@@ -759,7 +758,7 @@ FMFileAccessPieceReorderer
 		piece_reverse_map[0]	= 0;
 		current_length			= getFile().getLinkedFile().length();
 		
-		int	piece_count = (int)(( current_length + piece_size - 1 )/piece_size);
+		int	piece_count = (int)(( current_length + piece_size - 1 )/piece_size) + 1;
 		
 		if ( piece_count > num_pieces ){
 			
@@ -874,7 +873,7 @@ FMFileAccessPieceReorderer
 		
 		long	current_length = data_file.length();
 		
-		int	piece_count = (int)(( current_length + piece_size - 1 )/piece_size);
+		int	piece_count = (int)(( current_length + piece_size - 1 )/piece_size) + 1;
 		
 		if ( piece_count > num_pieces ){
 			
