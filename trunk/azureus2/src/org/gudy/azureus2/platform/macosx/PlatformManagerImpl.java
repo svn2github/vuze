@@ -139,12 +139,12 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
  
         AEDiagnostics.addEvidenceGenerator(this);
         
-        /* one day soon...
+ 
         if ( checkPList()){
         	
-            capabilitySet.add(PlatformManagerCapabilities.AccessExplicitVMOptions);
+            // one day soon...
+            // capabilitySet.add(PlatformManagerCapabilities.AccessExplicitVMOptions);
         }
-        */
         
         capabilitySet.add(PlatformManagerCapabilities.RunAtLogin);
     }
