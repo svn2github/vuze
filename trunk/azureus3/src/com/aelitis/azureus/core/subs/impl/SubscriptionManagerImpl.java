@@ -1539,7 +1539,7 @@ SubscriptionManagerImpl
 		}
 		
 		List	result = new ArrayList();
-		
+				
 		synchronized( this ){
 			
 			for (int i=0;i<subscriptions.size();i++){

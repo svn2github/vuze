@@ -394,7 +394,7 @@ SubscriptionSchedulerImpl
 	protected void
 	calculateSchedule()
 	{
-		Subscription[]	subs = manager.getSubscriptions();
+		Subscription[]	subs = manager.getSubscriptions( true );
 		
 		synchronized( this ){
 			
@@ -413,12 +413,7 @@ SubscriptionSchedulerImpl
 			for (int i=0;i<subs.length;i++){
 				
 				Subscription sub = subs[i];
-				
-				if ( !sub.isSubscribed()){
-					
-					continue;
-				}
-				
+								
 				SubscriptionHistory history = sub.getHistory();
 				
 				if ( !history.isEnabled()){
@@ -515,19 +510,14 @@ SubscriptionSchedulerImpl
 	protected void
 	schedule()
 	{
-		Subscription[]	subs = manager.getSubscriptions();
+		Subscription[]	subs = manager.getSubscriptions( true );
 		
 		long now = SystemTime.getCurrentTime();
 			
 		for (int i=0;i<subs.length;i++){
 			
 			Subscription sub = subs[i];
-			
-			if ( !sub.isSubscribed()){
-				
-				continue;
-			}
-			
+						
 			SubscriptionHistory history = sub.getHistory();
 			
 			if ( !history.isEnabled()){

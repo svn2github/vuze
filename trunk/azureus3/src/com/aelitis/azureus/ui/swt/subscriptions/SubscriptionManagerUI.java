@@ -232,7 +232,7 @@ SubscriptionManagerUI
 							
 							if ( enabled ){
 							
-								Subscription[] subs = subs_man.getSubscriptions();
+								Subscription[] subs = subs_man.getSubscriptions( true );
 								
 								boolean	incomplete = ((TableContextMenuItem)menu).getTableID() == TableManager.TABLE_MYTORRENTS_INCOMPLETE;
 								
@@ -829,7 +829,7 @@ SubscriptionManagerUI
 								int		total 	= 0;
 								boolean	warn 	= false;
 								
-								Subscription[] subs = subs_man.getSubscriptions();
+								Subscription[] subs = subs_man.getSubscriptions( true );
 								
 								for ( Subscription s: subs ){
 									
@@ -967,8 +967,10 @@ SubscriptionManagerUI
 			});
 	}
 	
-	private void addAllSubscriptions() {
-		Subscription[]	subs = subs_man.getSubscriptions();
+	private void 
+	addAllSubscriptions() 
+	{
+		Subscription[]	subs = subs_man.getSubscriptions( true );
 		
 		Arrays.sort(
 			subs,
