@@ -64,6 +64,9 @@ public class PercentItem
 		}else if ( fileInfo.getLength() != 0 ){
 
 			percent = (1000 * bytesDownloaded) / fileInfo.getLength();
+		}else{
+			
+			percent = 1000;
 		}
 	  
     }else{
