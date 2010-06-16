@@ -750,7 +750,7 @@ public class TableRowImpl
 	public TableRowCore linkSubItem(int indexOf) {
 		TableRowImpl subRow = subRows.get(indexOf);
 		TableItemOrTreeItem subItem = item.getItem(indexOf);
-		subRow.setTableItem(subItem, false);
+		subRow.setTableItem(subItem, true);
 		return subRow;
 	}
 	
