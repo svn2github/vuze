@@ -246,6 +246,10 @@ public class UrlUtils
 				return "magnet:?xt=urn:btih:" + Base32.encode(infohash);
 			}
 		}
+		
+		if (accept_magnets && text.startsWith("bc://")) {
+			return parseTextForMagnets(text);
+		}
 
 		return null;
 	}
@@ -287,6 +291,35 @@ public class UrlUtils
 				byte[] infohash = ByteFormatter.decodeString(hash.toUpperCase());
 				// convert to BASE32
 				return "magnet:?xt=urn:btih:" + Base32.encode(infohash);
+			}
+
+			pattern = Pattern.compile("bc://bt/([a-z0-9=+/]+)", Pattern.CASE_INSENSITIVE);
+			matcher = pattern.matcher(text);
+			if (matcher.find()) {
+				String base64 = matcher.group(1);
+				byte[] decode = Base64.decode(base64);
+				if (decode != null && decode.length > 0) {
+					// Format is AA/<name>/<size>/<hash>/ZZ
+					try {
+						String decodeString = new String(decode, "utf8");
+						pattern = Pattern.compile("AA.*/(.*)/ZZ", Pattern.CASE_INSENSITIVE);
+						matcher = pattern.matcher(decodeString);
+						if (matcher.find()) {
+							String hash = matcher.group(1);
+							String magnet = parseTextForMagnets(hash);
+							if (magnet != null) {
+								pattern = Pattern.compile("AA/(.*)/[0-9]+", Pattern.CASE_INSENSITIVE);
+								matcher = pattern.matcher(decodeString);
+								if (matcher.find()) {
+									String name = matcher.group(1);
+									return magnet + "&dn=" + encode(name);
+								}
+								return magnet;
+							}
+						}
+					} catch (UnsupportedEncodingException e) {
+					}
+				}
 			}
 		}
 		
@@ -332,12 +365,28 @@ public class UrlUtils
 				"magnet%3A//%3Fmooo",
 				"magnet:?xt=urn:btih:" + Base32.encode(infohash),
 				"aaaaaaaaaabbbbbbbbbbccccccccccdddddddddd",
-				"magnet:?dn=OpenOffice.org_2.0.3_Win32Intel_install.exe&xt=urn:sha1:PEMIGLKMNFI4HZ4CCHZNPKZJNMAAORKN&xt=urn:tree:tiger:JMIJVWHCQUX47YYH7O4XIBCORNU2KYKHBBC6DHA&xt=urn:ed2k:1c0804541f34b6583a383bb8f2cec682&xl=96793015&xs=http://mirror.switch.ch/ftp/mirror/OpenOffice/stable/2.0.3/OOo_2.0.3_Win32Intel_install.exe"
+				"magnet:?dn=OpenOffice.org_2.0.3_Win32Intel_install.exe&xt=urn:sha1:PEMIGLKMNFI4HZ4CCHZNPKZJNMAAORKN&xt=urn:tree:tiger:JMIJVWHCQUX47YYH7O4XIBCORNU2KYKHBBC6DHA&xt=urn:ed2k:1c0804541f34b6583a383bb8f2cec682&xl=96793015&xs=http://mirror.switch.ch/ftp/mirror/OpenOffice/stable/2.0.3/OOo_2.0.3_Win32Intel_install.exe",
 				};
 		for (int i = 0; i < test.length; i++) {
-			System.out.println("decode: " + test[i] + " -> " + URLDecoder.decode(test[i]));
+			System.out.println("URLDecoder.decode: " + test[i] + " -> " + URLDecoder.decode(test[i]));
+			System.out.println("decode: " + test[i] + " -> " + decode(test[i]));
 			System.out.println("isURL: " + test[i] + " -> " + isURL(test[i]));
 			System.out.println("parse: " + test[i] + " -> " + parseTextForURL(test[i], true));
+		}
+
+		String[] testEncode = {
+			"a b"
+		};
+		for (int i = 0; i < testEncode.length; i++) {
+			String txt = testEncode[i];
+			try {
+				System.out.println("URLEncoder.encode: " + txt + " -> "
+						+ URLEncoder.encode(txt, "UTF8"));
+			} catch (UnsupportedEncodingException e) {
+			}
+			System.out.println("URLEncoder.encode: " + txt + " -> "
+					+ URLEncoder.encode(txt));
+			System.out.println("encode: " + txt + " -> " + encode(txt));
 		}
 
 	}
