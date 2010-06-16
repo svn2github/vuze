@@ -293,8 +293,8 @@ public class UrlUtils
 				return "magnet:?xt=urn:btih:" + Base32.encode(infohash);
 			}
 
-			pattern = Pattern.compile("bc://bt/([a-z0-9=+/]+)", Pattern.CASE_INSENSITIVE);
-			matcher = pattern.matcher(text);
+			pattern = Pattern.compile("bc://bt/([a-z0-9=\\+/]+)", Pattern.CASE_INSENSITIVE);
+			matcher = pattern.matcher(text.replaceAll(" ", "+"));
 			if (matcher.find()) {
 				String base64 = matcher.group(1);
 				byte[] decode = Base64.decode(base64);
