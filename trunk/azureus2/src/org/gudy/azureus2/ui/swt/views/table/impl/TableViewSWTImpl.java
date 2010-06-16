@@ -1159,8 +1159,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					if (filter != null && event.widget == filter.widget) {
 						filter.regex = !filter.regex;
 						filter.widget.setBackground(filter.regex?COLOR_FILTER_REGEX:null);
-						event.doit = false;
 						refilter();
+						return;
 					}
 					break;
 			}
@@ -1548,8 +1548,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					swt_runForVisibleRows(new TableGroupRowRunner() {
 						public void run(TableRowCore row) {
 							TableCellCore cell = row.getTableCellCore(tc.getName());
-							cell.invalidate();
-							cell.redraw();
+							if (cell != null) {
+  							cell.invalidate();
+  							cell.redraw();
+							}
 						}
 					});
 				}
