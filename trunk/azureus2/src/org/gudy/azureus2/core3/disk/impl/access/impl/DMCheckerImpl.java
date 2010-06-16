@@ -774,9 +774,14 @@ DMCheckerImpl
 					    											
 					    										DiskManagerFileInfoImpl	file_info = piece_entry.getFile();
 					    										
-					    										CacheFile	cache_file = file_info.getCacheFile();
+					    											// edge case here for skipped zero length files that have been deleted
 					    										
-					    										cache_file.setPieceComplete( pieceNumber, f_buffer );
+					    										if ( file_info.getLength() > 0 || !file_info.isSkipped()){
+
+					    											CacheFile	cache_file = file_info.getCacheFile();										
+					    										
+					    											cache_file.setPieceComplete( pieceNumber, f_buffer );
+					    										}
 					    									}
 					    								}catch( Throwable e ){
 					    									
