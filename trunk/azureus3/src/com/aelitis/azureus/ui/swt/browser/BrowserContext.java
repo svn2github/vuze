@@ -372,6 +372,7 @@ public class BrowserContext
 				String lowerLocation = event_location.toLowerCase();
 				boolean isOurURI = lowerLocation.startsWith("magnet:")
 						|| lowerLocation.startsWith("vuze:")
+						|| lowerLocation.startsWith("bc:")
 						|| lowerLocation.startsWith("dht:");
 
 				if (isOurURI) {

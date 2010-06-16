@@ -305,7 +305,7 @@ public class FileDownloadWindow
 			
 			lc_url = url.toLowerCase(MessageText.LOCALE_ENGLISH);
 
-			if ( lc_url.startsWith( "magnet:") || lc_url.startsWith( "dht:" )){
+			if ( lc_url.startsWith( "magnet:") || lc_url.startsWith( "dht:" ) || lc_url.startsWith( "bc:" )){
 				
 				return( url );
 			}

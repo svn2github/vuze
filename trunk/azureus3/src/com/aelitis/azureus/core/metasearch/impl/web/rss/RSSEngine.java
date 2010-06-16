@@ -323,6 +323,7 @@ RSSEngine
 
 									if ( 	lc_value.endsWith( ".torrent" ) ||
 											lc_value.startsWith( "magnet:" ) ||
+											lc_value.startsWith( "bc:" ) ||
 											lc_value.startsWith( "dht:" )){
 										
 										

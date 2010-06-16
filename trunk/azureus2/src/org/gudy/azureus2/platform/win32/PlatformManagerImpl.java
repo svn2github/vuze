@@ -1278,6 +1278,16 @@ PlatformManagerImpl
 			Debug.printStackTrace(e);
 		}
 	
+		try{
+				// always trigger magnet reg here if not owned so old users get it...
+				
+			registerBC();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	
 		if ( isAdditionalFileTypeRegistered( OLD_MAIN_ASS0C, ".torrent" )){
 			
 			unregisterAdditionalFileType( OLD_MAIN_ASS0C, ".torrent" );
@@ -1562,6 +1572,23 @@ PlatformManagerImpl
 				"DHT URI", 
 				".dht", 
 				"application/x-dht",
+				true );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	protected void
+	registerBC()
+	{
+		try{
+			registerAdditionalFileType( 
+				"BC", 
+				"BC URI", 
+				".bcuri", 
+				"application/x-bc-uri",
 				true );
 			
 		}catch( Throwable e ){

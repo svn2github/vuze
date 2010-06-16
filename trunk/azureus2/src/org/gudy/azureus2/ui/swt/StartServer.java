@@ -337,10 +337,11 @@ StartServer
   {
       String file_name_lower = file_name.toLowerCase();
       
-	  return( file_name_lower.startsWith( "http:" ) || 
-			  file_name_lower.startsWith( "https:" ) || 
-			  file_name_lower.startsWith( "magnet:" ) ||
-			  file_name_lower.startsWith( "dht:" ));
+	  return( 	file_name_lower.startsWith( "http:" ) || 
+			  	file_name_lower.startsWith( "https:" ) || 
+			  	file_name_lower.startsWith( "magnet:" ) ||
+			  	file_name_lower.startsWith( "bc:" ) ||
+	  			file_name_lower.startsWith( "dht:" ));
   }
   
   protected void
