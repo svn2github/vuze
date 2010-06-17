@@ -198,6 +198,8 @@ implements PiecePicker
 
 	private int					allocate_request_loop_count;
 
+	private int					max_file_priority;
+	
 	private static boolean		enable_request_hints;
 	private static boolean		includeLanPeersInReqLimiting;
 	
@@ -303,6 +305,9 @@ implements PiecePicker
 
 		// with priorities charged and primed, ready for dm messages
 		diskManagerListener =new DiskManagerListenerImpl();
+		
+		syncFilePriorities();
+		
 		diskManager.addListener(diskManagerListener);
 	}
 
@@ -1019,6 +1024,25 @@ implements PiecePicker
 		return RarestAllowed;
 	}
 
+	private void
+	syncFilePriorities()
+	{
+		DiskManagerFileInfo[] files = diskManager.getFiles();
+		
+		int max = 0;
+		
+		for ( DiskManagerFileInfo file: files ){
+			
+			int p = file.getPriority();
+			
+			if ( p > max ){
+				
+				max = p;
+			}
+		}
+		
+		max_file_priority = max;
+	}
 	/** This computes the base priority for all pieces that need requesting if there's
 	 * been any availability change or user priority setting changes since the last
 	 * call, which will be most of the time since availability changes so dynamicaly
@@ -1102,9 +1126,18 @@ implements PiecePicker
 						}
 						// if the file is high-priority
 						// startPriority +=(1000 *fileInfo.getPriority()) /255;
-						if (fileInfo.getPriority() > 0)
-						{
-							priority +=PRIORITY_W_FILE;
+						
+						int file_priority = fileInfo.getPriority();
+						
+						if ( file_priority > 0 ){
+							
+							int max = Math.max( file_priority, max_file_priority );
+						
+							if ( max == 1 ){
+								priority += PRIORITY_W_FILE;
+							}else{
+								priority += ( PRIORITY_W_FILE*file_priority )/max;
+							}
 							if (completionPriorityL)
 							{
 								final long percent =(1000 *downloaded) /length;
@@ -2691,6 +2724,7 @@ implements PiecePicker
 
 		public final void filePriorityChanged(DiskManagerFileInfo file)
 		{
+			syncFilePriorities();
 			// record that user-based priorities changed
 			filePriorityChange++;	// this is a user's priority change event
 
