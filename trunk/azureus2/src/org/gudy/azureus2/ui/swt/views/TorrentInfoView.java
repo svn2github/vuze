@@ -42,8 +42,10 @@ import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.views.table.impl.FakeTableCell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
@@ -426,8 +428,13 @@ TorrentInfoView
 		if (newDataSource instanceof DownloadManager) {
 			download_manager = (DownloadManager) newDataSource;
 		}
-		if (parent != null) {
-			initialize(parent);
-		}
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (parent != null) {
+					initialize(parent);
+				}
+			}
+		});
 	}
 }
