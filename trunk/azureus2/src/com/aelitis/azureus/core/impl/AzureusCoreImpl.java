@@ -1114,6 +1114,12 @@ AzureusCoreImpl
 		// Debug.out("Core Start Complete");
 	}
 
+	public boolean 
+	isInitThread() 
+	{
+		return( AEThread2.isOurThread( Thread.currentThread()));
+	}
+	
 	public boolean
 	isStarted()
 	{

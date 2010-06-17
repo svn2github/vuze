@@ -50,6 +50,9 @@ AzureusCore
 	public boolean
 	isStarted();
 	
+	public boolean
+	isInitThread();
+	
 		/**
 		 * stop the core and inform lifecycle listeners of stopping
 		 * @throws AzureusCoreException

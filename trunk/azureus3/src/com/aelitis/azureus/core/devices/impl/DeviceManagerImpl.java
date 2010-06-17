@@ -232,7 +232,19 @@ DeviceManagerImpl
 	private void
 	ensureInitialised()
 	{
-		initWithCore( AzureusCoreFactory.getSingleton());
+		AzureusCore core =  AzureusCoreFactory.getSingleton();
+		
+		if ( core.isStarted()){
+		
+			initWithCore( core );
+		}
+		
+		if ( core.isInitThread()){
+			
+			Debug.out( "This is bad" );
+			
+			initWithCore( core );
+		}
 		
 		init_sem.reserve();
 	}
