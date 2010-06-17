@@ -124,7 +124,11 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 		else
 			manager = (DownloadManager)newDataSource;
 
-		refreshInfo();
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_refreshInfo();
+			}
+		});
 	}
 
   /* (non-Javadoc)
@@ -149,13 +153,13 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 
     Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-				refreshInfo();
+				swt_refreshInfo();
 			}
 		});
     COConfigurationManager.addParameterListener("Graphics Update", this);
   }
   
-  private void refreshInfo() {
+  private void swt_refreshInfo() {
   	if (manager == null || parent == null)
   		return;
   	
