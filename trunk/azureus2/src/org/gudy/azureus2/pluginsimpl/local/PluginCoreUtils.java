@@ -150,9 +150,9 @@ PluginCoreUtils
 			{
 				public void 
 				setPriority(
-					boolean b )
+					int b )
 				{
-					info.setPriority(b);
+					info.setPriority(b>0);
 				}
 				
 				public void 
@@ -241,10 +241,10 @@ PluginCoreUtils
 					return( info.getNumPieces());
 				}
 						
-				public boolean 
-				isPriority()
+				public int 
+				getPriority()
 				{
-					return( info.isPriority());
+					return( info.isPriority()?1:0);
 				}
 				
 				public boolean 

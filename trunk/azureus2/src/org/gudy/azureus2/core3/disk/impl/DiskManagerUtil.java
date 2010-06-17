@@ -307,7 +307,7 @@ DiskManagerUtil
 	}
 
 	static abstract class FileSkeleton implements DiskManagerFileInfoHelper {
-	    protected boolean priority;
+	    protected int     priority;
 	    protected boolean skipped;
 		protected long    downloaded;
 	}
@@ -357,20 +357,19 @@ DiskManagerUtil
 					return res.length;
 				}
 	
-				public void setPriority(boolean[] toChange, boolean setPriority) {
+				public void setPriority(int[] toChange) {
 					if(toChange.length != res.length)
 						throw new IllegalArgumentException("array length mismatches the number of files");
 					
 					for(int i=0;i<res.length;i++)
-						if(toChange[i])
-							res[i].priority = setPriority;
+						res[i].priority = toChange[i];
 					
 					DiskManagerImpl.storeFilePriorities( download_manager, res);
 					
 					
 					
 					for(int i=0;i<res.length;i++)
-						if(toChange[i])
+						if(toChange[i] > 0 )
 							listener.filePriorityChanged(res[i]);
 				}
 	
@@ -597,7 +596,7 @@ DiskManagerUtil
 	            	private WeakReference dataFile = new WeakReference(null);
 	
 	            	public void
-	            	setPriority(boolean b)
+	            	setPriority(int b)
 	            	{
 	            		priority    = b;
 	
@@ -701,8 +700,8 @@ DiskManagerUtil
 	            		return( torrent_file.getNumberOfPieces());
 	            	}
 	
-	            	public boolean
-	            	isPriority()
+	            	public int
+	            	getPriority()
 	            	{
 	            		return( priority );
 	            	}
@@ -1088,17 +1087,17 @@ DiskManagerUtil
 	        if ( file_priorities == null ) return;
 	        
 	        boolean[] toSkip = new boolean[files.length];
-	        boolean[] prio = new boolean[files.length];
+	        int[] prio = new int[files.length];
 	        
 	        for (int i=0; i < files.length; i++) {
 	            DiskManagerFileInfo file = files[i];
 	            if (file == null) return;
 	            int priority = ((Long)file_priorities.get( i )).intValue();
 	            if ( priority == 0 ) toSkip[i] = true;
-	            else if (priority == 1) prio[i] = true;
+	            else if (priority >= 1) prio[i] = priority;
 	        }
 	        
-	        fileSet.setPriority(prio, true);
+	        fileSet.setPriority(prio);
 	        fileSet.setSkipped(toSkip, true);
 	        
 	    }

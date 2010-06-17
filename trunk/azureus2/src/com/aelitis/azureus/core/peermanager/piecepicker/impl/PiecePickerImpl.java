@@ -1102,7 +1102,7 @@ implements PiecePicker
 						}
 						// if the file is high-priority
 						// startPriority +=(1000 *fileInfo.getPriority()) /255;
-						if (fileInfo.isPriority())
+						if (fileInfo.getPriority() > 0)
 						{
 							priority +=PRIORITY_W_FILE;
 							if (completionPriorityL)

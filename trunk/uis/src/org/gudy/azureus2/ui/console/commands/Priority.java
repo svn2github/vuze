@@ -193,13 +193,13 @@ public class Priority extends OptionsConsoleCommand {
 				// DEBUG
 //				console.out.println("Setting priority for file " + i + " to " + newprio);
 				if (newprio == NORMAL) {
-					files[i].setPriority(false);
+					files[i].setPriority(0);
 					files[i].setSkipped(false);
 				} else if (newprio == HIGH) {
-					files[i].setPriority(true);
+					files[i].setPriority(1);
 					files[i].setSkipped(false);
 				} else if (newprio == DONOTDOWNLOAD) {
-					files[i].setPriority(false);
+					files[i].setPriority(0);
 					files[i].setSkipped(true);
 				} else if (newprio == DELETE) {
 					int st = files[i].getStorageType();
@@ -211,7 +211,7 @@ public class Priority extends OptionsConsoleCommand {
 					}
 					if (target_st != -1 &&
 						files[i].setStorageType(target_st)) {
-						files[i].setPriority(false);
+						files[i].setPriority(0);
 						files[i].setSkipped(true);
 					} else {
 						console.out.println("> Command 'prio': Failed to delete file " + (i+1));

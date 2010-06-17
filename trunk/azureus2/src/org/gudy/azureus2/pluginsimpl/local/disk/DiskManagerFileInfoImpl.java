@@ -54,7 +54,7 @@ public class DiskManagerFileInfoImpl
 	}
 
 	public void setPriority(boolean b) {
-	  core.setPriority(b);
+	  core.setPriority(b?1:0);
 	}
 	
 	public void setSkipped(boolean b) {
@@ -166,7 +166,7 @@ public class DiskManagerFileInfoImpl
 	}
 		
 	public boolean isPriority() {
-	  return core.isPriority();
+	  return core.getPriority() > 0;
 	}
 	
 	public boolean isSkipped() {

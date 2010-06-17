@@ -927,7 +927,7 @@ DiskManagerImpl
                                               fileInfo.getExtension().equalsIgnoreCase(extension) :
                                               fileInfo.getExtension().equals(extension);
                         if (bHighPriority)
-                            fileInfo.setPriority(true);
+                            fileInfo.setPriority(1);
                     }
                 }
 
@@ -2628,10 +2628,10 @@ DiskManagerImpl
       DiskManagerFileInfo file = files[i];
       if (file == null) return;
       boolean skipped = file.isSkipped();
-      boolean priority = file.isPriority();
+      int priority = file.getPriority();
       int value = -1;
       if ( skipped ) value = 0;
-      else if ( priority ) value = 1;
+      else if ( priority > 0 ) value = priority;
       file_priorities.add( i, Long.valueOf(value));
     }
     download_manager.setData( "file_priorities", file_priorities );

@@ -64,7 +64,7 @@ public class PriorityItem
 			{
 				tmp = MessageText.getString("FileItem.donotdownload");
 				sortval = 2;
-			} else if (fileInfo.isPriority()) {
+			} else if (fileInfo.getPriority() > 0 ) {
 				tmp = MessageText.getString("FileItem.high");
 				sortval = 4;
 			} else {

@@ -58,8 +58,9 @@ DiskManagerFileInfoImpl
   private DiskManagerHelper 	diskManager;
   private TOTorrentFile			torrent_file;
   
-  boolean priority = false;  
-  boolean skipped = false;
+  private int 		priority 	= 0;
+  
+  protected boolean 	skipped 	= false;
   
   private CopyOnWriteList	listeners;
   
@@ -313,14 +314,14 @@ DiskManagerFileInfoImpl
   /**
    * @return
    */
-  public boolean isPriority() {
+  public int getPriority() {
 	return priority;
   }
 
   /**
    * @param b
    */
-  public void setPriority(boolean b) {
+  public void setPriority(int b) {
 	priority = b;
 	diskManager.priorityChanged( this );
   }

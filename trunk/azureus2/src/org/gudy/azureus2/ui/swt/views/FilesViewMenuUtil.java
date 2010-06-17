@@ -161,7 +161,7 @@ public class FilesViewMenuUtil
 
 					// Only do this check if we need to.
 					if (all_not_priority || all_priority) {
-						if (file_info.isPriority()) {
+						if (file_info.getPriority() > 0 ) {
 							all_not_priority = false;
 						} else {
 							all_priority = false;
@@ -321,7 +321,7 @@ public class FilesViewMenuUtil
 			for (int i = 0; i < datasources.length; i++) {
 				file_infos[i] = (DiskManagerFileInfo) datasources[i];
 				if (type == 0 || type == 1) {
-					file_infos[i].setPriority(type == 0);
+					file_infos[i].setPriority(type == 0?1:0);
 				}
 			}
 			boolean skipped = (type == 2 || type == 3);

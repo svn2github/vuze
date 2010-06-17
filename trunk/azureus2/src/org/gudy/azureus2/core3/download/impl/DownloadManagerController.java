@@ -2297,8 +2297,8 @@ DownloadManagerController
 			return delegate.nbFiles();
 		}
 
-		public void setPriority(boolean[] toChange, boolean setPriority) {
-			delegate.setPriority(toChange, setPriority);
+		public void setPriority(int[] toChange) {
+			delegate.setPriority(toChange);
 		}
 
 		public void setSkipped(boolean[] toChange, boolean setSkipped) {
@@ -2455,7 +2455,7 @@ DownloadManagerController
 
 		public void 
 		setPriority(
-			boolean b )
+			int b )
 		{
 			delegate.setPriority(b);
 		}
@@ -2544,10 +2544,10 @@ DownloadManagerController
 			return( delegate.getNbPieces());
 		}
 				
-		public boolean 
-		isPriority()
+		public int 
+		getPriority()
 		{
-			return( delegate.isPriority());
+			return( delegate.getPriority());
 		}
 		
 		public boolean 

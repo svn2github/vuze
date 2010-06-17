@@ -559,7 +559,7 @@ public class Show extends IConsoleCommand {
 				out.print(((i < 9) ? "   " : "  ") + Integer.toString(i + 1)
 						+ " (");
 				String tmp = ">";
-				if (files[i].isPriority())
+				if (files[i].getPriority()>0)
 					tmp = "+";
 				if (files[i].isSkipped())
 					tmp = "!";

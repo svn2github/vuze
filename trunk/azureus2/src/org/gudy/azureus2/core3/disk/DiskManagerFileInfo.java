@@ -43,7 +43,7 @@ DiskManagerFileInfo
 	
 		// set methods
 		
-	public void setPriority(boolean b);
+	public void setPriority(int p);
 	
 	public void setSkipped(boolean b);
 	 
@@ -92,7 +92,7 @@ DiskManagerFileInfo
 		
 	public int getNbPieces();
 			
-	public boolean isPriority();
+	public int getPriority();
 	
 	public boolean isSkipped();
 	
