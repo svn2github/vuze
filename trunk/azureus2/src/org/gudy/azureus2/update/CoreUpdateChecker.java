@@ -651,7 +651,7 @@ CoreUpdateChecker
 							  if ( uif != null ){
 								  
 								  try{
-									  uif.forceNotify( UIFunctions.STATUSICON_NONE, null, alert_text, null, null, -1 );
+									  uif.forceNotify( UIFunctions.STATUSICON_NONE, null, alert_text, null, null, 0 );
 								  
 									  completed = true;
 									  
