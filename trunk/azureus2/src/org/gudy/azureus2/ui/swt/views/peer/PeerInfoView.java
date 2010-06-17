@@ -179,7 +179,11 @@ public class PeerInfoView
 		else
 			peer = (PEPeer) newDataSource;
 
-		fillPeerInfoSection();
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_fillPeerInfoSection();
+			}
+		});
 	}
 
 	/* (non-Javadoc)
@@ -325,7 +329,7 @@ public class PeerInfoView
 		return peerInfoComposite;
 	}
 
-	public void fillPeerInfoSection() {
+	public void swt_fillPeerInfoSection() {
 		if (imageLabel.getImage() != null) {
 			Image image = imageLabel.getImage();
 			imageLabel.setImage(null);
