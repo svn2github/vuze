@@ -965,7 +965,11 @@ public class ConfigView extends AbstractIView {
   	if (newDataSource instanceof String) {
 			String id = (String) newDataSource;
 	  	startSection = id;
-			selectSection(id);
+	  	Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					selectSection(startSection);
+				}
+			});
 		}
   }
 }
