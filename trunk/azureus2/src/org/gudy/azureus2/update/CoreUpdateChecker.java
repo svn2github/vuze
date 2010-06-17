@@ -626,6 +626,15 @@ CoreUpdateChecker
 						  
 						  String  alert_text    = message;
 		
+						  boolean	force = false;
+						  
+						  if ( alert_text.startsWith( "f:" )){
+							  
+							  force = true;
+						  
+							  alert_text = alert_text.substring( 2 );
+						  }
+						  
 						  if ( alert_text.startsWith("i:" )){
 		
 							  alert_type = LogAlert.AT_INFORMATION;
@@ -635,7 +644,27 @@ CoreUpdateChecker
 		
 						  plugin_interface.getPluginProperties().setProperty( MESSAGE_PROPERTY, alert_text );
 		
-						  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, alert_type, alert_text, 0 ));
+						  if ( force ){
+							  
+							  UIFunctions uif = UIFunctionsManager.getUIFunctions();
+							  
+							  if ( uif != null ){
+								  
+								  try{
+									  uif.forceNotify( UIFunctions.STATUSICON_NONE, null, alert_text, null, null, -1 );
+								  
+									  completed = true;
+									  
+								  }catch( Throwable e ){
+									  
+								  }
+							  }
+						  }
+						  
+						  if ( !completed ){
+							  
+							  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, alert_type, alert_text, 0 ));
+						  }
 						  
 						  completed = true;
 					  }
