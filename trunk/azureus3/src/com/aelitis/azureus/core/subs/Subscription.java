@@ -53,6 +53,9 @@ Subscription
 	public int
 	getVersion();
 
+	public long
+	getAddTime();
+	
 	public int
 	getHighestVersion();
 	

@@ -692,6 +692,12 @@ SubscriptionImpl
 		return( name_ex );
 	}
 	
+	public long
+	getAddTime()
+	{
+		return( add_time );
+	}
+	
 	public boolean
 	isPublic()
 	{
@@ -1911,6 +1917,7 @@ SubscriptionImpl
 					",pub=" + is_public +
 					",mine=" + isMine() +
 					",sub=" + is_subscribed +
+					(is_subscribed?(",hist={" + history.getString() + "}"):"") +
 					",pop=" + popularity + 
 					(server_publication_outstanding?",spo=true":""));
 	}

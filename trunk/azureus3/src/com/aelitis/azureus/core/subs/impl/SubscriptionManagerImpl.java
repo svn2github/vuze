@@ -91,6 +91,8 @@ SubscriptionManagerImpl
 	
 	private static final String	RSS_ENABLE_CONFIG_KEY		= "subscriptions.config.rss_enable";
 
+	private static final int DELETE_UNUSED_AFTER_MILLIS = 2*7*24*60*60*1000;
+	
 	
 	private static SubscriptionManagerImpl		singleton;
 	private static boolean						pre_initialised;
@@ -204,7 +206,7 @@ SubscriptionManagerImpl
 	
 	private volatile DHTPlugin	dht_plugin;
 	
-	private List<Subscription>		subscriptions	= new ArrayList<Subscription>();
+	private List<SubscriptionImpl>		subscriptions	= new ArrayList<SubscriptionImpl>();
 	
 	private boolean	config_dirty;
 	
@@ -222,12 +224,12 @@ SubscriptionManagerImpl
 	private boolean					periodic_lookup_in_progress;
 	private int						priority_lookup_pending;
 	
-	private CopyOnWriteList			listeners = new CopyOnWriteList();
+	private CopyOnWriteList<SubscriptionManagerListener>			listeners = new CopyOnWriteList<SubscriptionManagerListener>();
 	
 	private SubscriptionSchedulerImpl	scheduler;
 	
-	private List					potential_associations	= new ArrayList();
-	private Map						potential_associations2	= new HashMap();
+	private List<Object[]>				potential_associations	= new ArrayList<Object[]>();
+	private Map<HashWrapper,Object[]>	potential_associations2	= new HashMap<HashWrapper,Object[]>();
 	
 	private boolean					meta_search_listener_added;
 	
@@ -1272,16 +1274,46 @@ SubscriptionManagerImpl
 	checkStuff(
 		int		ticks )
 	{
-		List subs;
+		long now = SystemTime.getCurrentTime();
+		
+		List<SubscriptionImpl> subs;
 		
 		synchronized( this ){
 			
-			subs = new ArrayList( subscriptions );
+			subs = new ArrayList<SubscriptionImpl>( subscriptions );
 		}
+		
+		SubscriptionImpl	expired_subs = null;
 		
 		for (int i=0;i<subs.size();i++){
 			
-			((SubscriptionImpl)subs.get(i)).checkPublish();
+			SubscriptionImpl sub = subs.get( i );
+			
+			if ( !( sub.isMine() || sub.isSubscribed())){
+				
+				long	age = now - sub.getAddTime();
+				
+				if ( age > DELETE_UNUSED_AFTER_MILLIS ){
+					
+					if ( 	expired_subs == null || 
+							( sub.getAddTime() < expired_subs.getAddTime())){
+						
+						expired_subs = sub;
+					}
+					
+					continue;
+				}
+			}
+			
+			
+			sub.checkPublish();
+		}
+		
+		if ( expired_subs != null ){
+			
+			log( "Removing unsubscribed subscription '" + expired_subs.getName() + "' as expired" );
+					
+			expired_subs.remove();
 		}
 		
 		if ( ticks % ASSOC_CHECK_TICKS == 0 ){
@@ -3255,11 +3287,11 @@ SubscriptionManagerImpl
 		
 		synchronized( potential_associations ){
 
-			Iterator it = potential_associations.iterator();
+			Iterator<Object[]> it = potential_associations.iterator();
 			
 			while( it.hasNext()){
 				
-				Object[]	entry = (Object[])it.next();
+				Object[]	entry = it.next();
 				
 				String	this_key = (String)entry[2];
 				

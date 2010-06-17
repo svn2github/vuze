@@ -970,4 +970,10 @@ SubscriptionHistoryImpl
 	{
 		subs.log( "History: " + str, e );
 	}
+	
+	protected String
+	getString()
+	{
+		return( "unread=" + num_unread + ",read=" + num_read+ ",last_err=" + last_error );
+	}
 }
