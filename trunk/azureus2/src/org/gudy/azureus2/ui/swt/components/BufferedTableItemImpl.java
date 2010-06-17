@@ -25,6 +25,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Table;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
@@ -76,7 +77,6 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 			if (isDirty) {
 				return;
 			}
-			isDirty = true;
 		}
   	
   	if (!row.isVisibleNoSWT()) {
@@ -123,6 +123,9 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 			}
 		}
 		
+		synchronized (this) {
+			isDirty = true;
+		}
 		Utils.execSWTThread(runnableDirtyCell);
 	}
 
