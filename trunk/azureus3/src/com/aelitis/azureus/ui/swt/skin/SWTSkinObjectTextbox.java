@@ -91,6 +91,11 @@ public class SWTSkinObjectTextbox
 				text = textWidget.getText();
 			}
 		});
+		
+		String message = properties.getStringValue(configID + ".message", (String) null);
+		if (message != null && message.length() > 0) {
+			textWidget.setMessage(message);
+		}
 
 		setControl(textWidget);
 	}
