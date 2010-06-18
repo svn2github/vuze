@@ -200,6 +200,10 @@ OpenUrlWindow
       	
       	url_str = UrlUtils.parseHTMLforURL( url_str );
       	
+      	if (url_str == null) {
+      		url_str = UrlUtils.parseTextForMagnets(url_str);
+      	}
+      	
       	if ( url_str == null ){
       		
       		url_str = url.getText();
