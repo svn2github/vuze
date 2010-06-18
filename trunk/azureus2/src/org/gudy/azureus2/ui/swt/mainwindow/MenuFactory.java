@@ -15,6 +15,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.beta.BetaWizard;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
@@ -1026,6 +1027,15 @@ public class MenuFactory
 		});
 	}
 
+	public static MenuItem addBetaMenuItem(Menu menuParent) {
+		return addMenuItem(menuParent, MENU_ID_BETA_PROG,
+				new Listener() {
+					public void handleEvent(Event e) {
+						new BetaWizard();
+			}
+		});
+	}
+	
 	public static MenuItem addPluginInstallMenuItem(Menu menuParent) {
 		return addMenuItem(menuParent, MENU_ID_PLUGINS_INSTALL,
 				new Listener() {

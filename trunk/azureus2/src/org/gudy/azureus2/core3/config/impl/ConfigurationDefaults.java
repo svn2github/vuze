@@ -572,6 +572,8 @@ public class ConfigurationDefaults {
     def.put("MyTorrentsView.menu.show_parent_folder_enabled", FALSE);
     def.put("FileBrowse.usePathFinder", FALSE);
     	
+    def.put( "Beta Programme Enabled", FALSE );
+    
     //temp section for SpeedManagerAlgorithmProviderV2
     
     try{

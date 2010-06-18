@@ -542,6 +542,7 @@ public class MainMenu
 		if (false == SystemProperties.isJavaWebStartInstance()) {
 			MenuFactory.addSeparatorMenuItem(helpMenu);
 			MenuFactory.addCheckUpdateMenuItem(helpMenu);
+			MenuFactory.addBetaMenuItem(helpMenu);
 		}
 		
 		if (FeatureManagerUI.enabled) {

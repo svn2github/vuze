@@ -292,6 +292,7 @@ public class MainMenu
 
 		if (false == SystemProperties.isJavaWebStartInstance()) {
 			MenuFactory.addCheckUpdateMenuItem(helpMenu);
+			MenuFactory.addBetaMenuItem(helpMenu);
 		}
 		MenuFactory.addDonationMenuItem(helpMenu);
 
