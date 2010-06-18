@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.swt;
 
 import java.net.URLDecoder;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
@@ -35,6 +37,7 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.progress.*;
 
@@ -273,25 +276,23 @@ public class FileDownloadWindow
 	 */
 	private String getFileName(String url) {
 		try {
-			String	lc_url = url.toLowerCase(MessageText.LOCALE_ENGLISH);
-
 			/*
 			 * First try to retrieve the 'title' field if it has one
 			 */
-
-			int idx = lc_url.indexOf("&title=");
-			if (idx >= 0) {
-				String title = url.substring(idx + "&title=".length());
-				idx = title.indexOf('&');
-				if (idx > 0) {
-					title = title.substring(0, idx);
-					title = title.replace('+', ' ');
-					if (title.length() > 0) {
-						return title;
-					}
+			
+			final String[] titles = {
+				"title",
+				"dn"
+			};
+			// magnet:?xt=urn:btih:WENBTYBB7676MQWJ7NLTD4NGYDKYSQPO&dn=[DmzJ][School_Days][Vol.01-06][DVDRip]
+			for (String toMatch : titles) {
+				Matcher matcher = Pattern.compile("[?&]" + toMatch + "=(.*)&?",
+						Pattern.CASE_INSENSITIVE).matcher(url);
+				if (matcher.find()) {
+					return matcher.group(1);
 				}
 			}
-
+			
 			/*
 			 * If no 'title' field was found then just get the file name instead
 			 * 
@@ -303,7 +304,7 @@ public class FileDownloadWindow
 
 			url = getShortURL(url);
 			
-			lc_url = url.toLowerCase(MessageText.LOCALE_ENGLISH);
+			String lc_url = url.toLowerCase(MessageText.LOCALE_ENGLISH);
 
 			if ( lc_url.startsWith( "magnet:") || lc_url.startsWith( "dht:" ) || lc_url.startsWith( "bc:" )){
 				
