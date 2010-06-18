@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.progress.ProgressReportingManager;
 import org.gudy.azureus2.update.CoreUpdateChecker;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
@@ -470,6 +471,11 @@ public class UpdateMonitor
 			current_update_instance.cancel();
 		}
 
+		if ( bForce ){
+			
+			VersionCheckClient.getSingleton().clearCache();
+		}
+		
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		if (uiFunctions != null) {
 			// XXX What kind of format is this!?

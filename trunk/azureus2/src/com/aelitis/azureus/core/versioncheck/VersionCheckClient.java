@@ -483,6 +483,13 @@ public class VersionCheckClient {
 	  return( v6?last_check_time_v6:last_check_time_v4);
   }
   
+  public void
+  clearCache()
+  {
+	  last_check_time_v6	= 0;
+	  last_check_time_v4	= 0;
+  }
+  
   /**
    * Get the ip address seen by the version check server.
    * NOTE: This information may be cached, see getVersionCheckInfo().
