@@ -54,6 +54,7 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedManualPeer;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.DownloadUtils;
+import com.aelitis.azureus.util.PlayUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -284,7 +285,9 @@ EnhancedDownloadManager
 					
 			}else{
 				
-				primary_file = enhanced_files[0];
+				primary_index = PlayUtils.getPrimaryFileIndex( download_manager );
+				
+				primary_file = enhanced_files[primary_index==-1?0:primary_index];
 			}		
 		}else{
 			

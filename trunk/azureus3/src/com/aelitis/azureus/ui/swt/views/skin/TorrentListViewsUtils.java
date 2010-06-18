@@ -244,7 +244,7 @@ public class TorrentListViewsUtils
 		if (dm == null) {
 			downloadDataSource(ds, true, referal);
 		} else {
-			playOrStream(dm, file_index, btn, launch_already_checked);
+			playOrStream(dm, file_index, PlayUtils.COMPLETE_PLAY_ONLY, btn, launch_already_checked);
 		}
 
 	}
@@ -305,7 +305,7 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	public static void playOrStream(final DownloadManager dm, final int file_index,
+	public static void playOrStream(final DownloadManager dm, final int file_index, final boolean complete_only,
 			final SWTSkinButtonUtility btn, boolean launch_already_checked ) {
 			
 		if (dm == null) {
@@ -314,7 +314,7 @@ public class TorrentListViewsUtils
 		
 		if ( launch_already_checked ){
 		
-			_playOrStream(dm, file_index, btn);
+			_playOrStream(dm, file_index, complete_only, btn);
 			
 		}else{
 			
@@ -335,7 +335,7 @@ public class TorrentListViewsUtils
 								public void
 								run()
 								{
-									_playOrStream(dm, file_index, btn);
+									_playOrStream(dm, file_index, complete_only, btn);
 								}
 							});
 					}
@@ -350,7 +350,7 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	private static void _playOrStream(final DownloadManager dm, final int file_index,
+	private static void _playOrStream(final DownloadManager dm, final int file_index, boolean complete_only,
 			final SWTSkinButtonUtility btn) {
 
 		if (dm == null) {
@@ -368,7 +368,7 @@ public class TorrentListViewsUtils
 		if (PlayUtils.canUseEMP(torrent, file_index)) {
 			debug("Can use EMP");
 
-			int open_result = openInEMP(dm,file_index);
+			int open_result = openInEMP(dm,file_index,complete_only);
 			
 			if ( open_result == 0 ){
 				PlatformTorrentUtils.setHasBeenOpened(dm, true);
@@ -584,7 +584,8 @@ public class TorrentListViewsUtils
 	private static int 
 	installEMP(
 		final DownloadManager 	dm,
-		final int 				file_index ) 
+		final int 				file_index,
+		final boolean			complete_only ) 
 	{
 		synchronized( TorrentListViewsUtils.class ){
 			
@@ -616,7 +617,7 @@ public class TorrentListViewsUtils
 							Utils.execSWTThread(new AERunnable() {
 								
 								public void runSupport() {
-									openInEMP(dm,file_index);
+									openInEMP(dm,file_index,complete_only);
 									
 								}
 							});
@@ -665,7 +666,7 @@ public class TorrentListViewsUtils
 	 * @return - int: 0 = ok, 1 = fail, 2 = abandon, installation in progress
 	 * @since 3.0.4.4 -
 	 */
-	private static int openInEMP(DownloadManager dm, int file_index) {
+	private static int openInEMP(DownloadManager dm, int file_index, boolean complete_only) {
 
 		Class epwClass = null;
 		try {
@@ -676,7 +677,7 @@ public class TorrentListViewsUtils
 
 			if (pi == null) {
 
-				return (installEMP(dm, file_index ));
+				return (installEMP(dm, file_index,complete_only ));
 				
 			}else if ( !pi.getPluginState().isOperational()){
 				
@@ -708,7 +709,7 @@ public class TorrentListViewsUtils
 			
 			org.gudy.azureus2.plugins.disk.DiskManagerFileInfo file = PluginCoreUtils.wrap( dm ).getDiskManagerFileInfo()[ file_index ];
 				
-			if ((! PlayUtils.DISABLE_INCOMPLETE_PLAY ) && file.getDownloaded() != file.getLength()){
+			if ((! complete_only ) && file.getDownloaded() != file.getLength()){
 					
 				url = PlayUtils.getMediaServerContentURL( file );
 			}
@@ -1040,6 +1041,6 @@ public class TorrentListViewsUtils
 	}
 
 	public static void playOrStream(final DownloadManager dm, int file_index ) {
-		playOrStream(dm, file_index, null, false );
+		playOrStream(dm, file_index, PlayUtils.COMPLETE_PLAY_ONLY, null, false );
 	}
 }

@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import org.eclipse.swt.program.Program;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -55,7 +56,7 @@ import org.gudy.azureus2.plugins.download.DownloadException;
  */
 public class PlayUtils
 {
-	public static final boolean DISABLE_INCOMPLETE_PLAY = true;
+	public static final boolean COMPLETE_PLAY_ONLY = true;
 	
 	public static final int fileSizeThreshold = 90;
 	public static final String playableFileExtensions = ".mpg .avi .flv .flc .mp4 .mpeg .divx .h264 .mkv .wmv .mov .mp2 .m2v .m4v .mp3 .ts .mts .aac";
@@ -115,11 +116,16 @@ public class PlayUtils
 	}
 
 	public static boolean canUseEMP(TOTorrent torrent, int file_index) {
+		
+		return( canUseEMP( torrent, file_index, COMPLETE_PLAY_ONLY ));
+	}
+	
+	public static boolean canUseEMP(TOTorrent torrent, int file_index, boolean complete_only ) {
 		if (torrent == null) { 
 			return false;
 		}
 
-		if (canPlayViaExternalEMP(torrent, file_index)) {
+		if (canPlayViaExternalEMP(torrent, file_index, complete_only)) {
 			return true;
 		}
 		
@@ -182,6 +188,61 @@ public class PlayUtils
 		}
 		
 		return false;
+	}
+	
+		// stream stuff
+	
+	private static boolean 
+	canStream(
+		DownloadManager 	dm, 
+		int 				file_index ) 
+	{
+		if ( dm == null ){
+			
+			return( false );
+		}
+		
+		org.gudy.azureus2.core3.disk.DiskManagerFileInfo	file;
+		
+		if ( file_index == -1 ){
+			
+			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
+			
+			file = edm.getPrimaryFile();
+			
+		}else{
+			
+			file = dm.getDiskManagerFileInfo()[ file_index ];
+		}
+		
+		if ( file.getDownloaded() == file.getLength()){
+			
+			return( false );
+		}
+		
+		TOTorrent torrent = dm.getTorrent();
+		
+		return( canUseEMP( torrent, file_index, false ));
+	}
+		
+	public static boolean 
+	canStreamDS(
+		Object ds, 
+		int file_index ) 
+	{
+		if ( ds == null ){
+			
+			return( false );
+		}
+	
+		DownloadManager dm = DataSourceUtils.getDM(ds);
+		
+		if ( dm != null ){
+			
+			return( canStream( dm, file_index ));
+		}
+		
+		return( false );
 	}
 
 	/**
@@ -418,9 +479,9 @@ public class PlayUtils
 		return null;
 	}
 	
-	public static boolean isExternallyPlayable(Download d, int file_index ) {
+	public static boolean isExternallyPlayable(Download d, int file_index, boolean complete_only ) {
 		
-		File primaryFile;
+		int primary_file_index = -1;
 
 		if ( file_index == -1 ){
 			
@@ -433,13 +494,13 @@ public class PlayUtils
 						
 			if ( file.getDownloaded() != file.getLength()) {
 				
-				if ( DISABLE_INCOMPLETE_PLAY || getMediaServerContentURL( file ) == null ){
+				if ( complete_only || getMediaServerContentURL( file ) == null ){
 					
 					return( false );
 				}
 			}
 			
-			primaryFile = getPrimaryFile(d);
+			primary_file_index = getPrimaryFileIndex(d);
 
 		}else{
 			
@@ -447,26 +508,21 @@ public class PlayUtils
 			
 			if ( file.getDownloaded() != file.getLength()) {
 				
-				if ( DISABLE_INCOMPLETE_PLAY || getMediaServerContentURL( file ) == null ){
+				if ( complete_only || getMediaServerContentURL( file ) == null ){
 					
 					return( false );
 				}
 			}
 			
-			primaryFile = file.getFile( true );
+			primary_file_index = file_index;
 		}
 
-		if ( primaryFile == null ){
+		if ( primary_file_index == -1 ){
 			
 			return false;
 		}
 		
-		String name = primaryFile.getName();
-		
-		if ( name == null ){
-			
-			return false;
-		}
+		String name = d.getTorrent().getFiles()[primary_file_index].getName();
 		
 		int extIndex = name.lastIndexOf(".");
 		
@@ -490,14 +546,14 @@ public class PlayUtils
 		return false;
 	}
 	
-	public static boolean isExternallyPlayable(TOTorrent torrent, int file_index ) {
+	public static boolean isExternallyPlayable(TOTorrent torrent, int file_index, boolean complete_only ) {
 		if (torrent == null) {
 			return false;
 		}
 		try {
 			Download download = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().getDownload(torrent.getHash());
 			if (download != null) {
-				return isExternallyPlayable(download, file_index);
+				return isExternallyPlayable(download, file_index, complete_only);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -506,12 +562,12 @@ public class PlayUtils
 		return false;
 	}
 	
-	private static final boolean canPlayViaExternalEMP(TOTorrent torrent, int file_index ) {
+	private static final boolean canPlayViaExternalEMP(TOTorrent torrent, int file_index, boolean complete_only ) {
 		if (torrent == null) {
 			return false;
 		}
 		if(!loadEmpPluginClass() || methodIsExternallyPlayable == null) {
-			return isExternallyPlayable(torrent, file_index );
+			return isExternallyPlayable(torrent, file_index, complete_only );
 		}
 		
 		//Data is passed to the openWindow via download manager.

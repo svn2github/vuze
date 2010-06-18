@@ -155,6 +155,25 @@ public class ToolBarView
   		};
   		addToolBarItem(item);
 
+  		
+ 		// ==stream
+  		item = new ToolBarItem("stream", "image.button.play", "iconBar.stream") {
+  			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+  			public void triggerToolBarItem() {
+  				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+  				if (viewID == null && triggerIViewToolBar(getId())) {
+  					return;
+  				}
+  				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+  				if (sc != null) {
+  					TorrentListViewsUtils.playOrStreamDataSource(sc[0], sc[0].getFileIndex(),
+  							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR, false );
+  				}
+  			}
+  		};
+  		addToolBarItem(item);
+  		
+  		
   		addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep", soMain);
 
   		lastControl = null;
@@ -738,6 +757,7 @@ public class ToolBarView
 				String[] TBKEYS = new String[] {
 					"download",
 					"play",
+					"stream",
 					"run",
 					"top",
 					"up",
@@ -847,6 +867,13 @@ public class ToolBarView
 		if (item != null) {
 			item.setEnabled(has1Selection && (!(currentContent[0] instanceof ISelectedVuzeFileContent )) && PlayUtils.canPlayDS(currentContent[0], currentContent[0].getFileIndex()));
 		}
+		
+		item = getToolBarItem("stream");
+		if (item != null) {
+			item.setEnabled(has1Selection && (!(currentContent[0] instanceof ISelectedVuzeFileContent )) && PlayUtils.canStreamDS(currentContent[0], currentContent[0].getFileIndex()));
+		}
+
+		
 		item = getToolBarItem("download");
 		if (item != null) {
 			boolean enabled = has1Selection
