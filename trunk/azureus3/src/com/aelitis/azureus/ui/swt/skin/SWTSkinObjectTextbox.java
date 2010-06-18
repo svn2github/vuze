@@ -48,7 +48,7 @@ public class SWTSkinObjectTextbox
 
 	public SWTSkinObjectTextbox(SWTSkin skin, SWTSkinProperties properties,
 			String id, String configID, SWTSkinObject parentSkinObject) {
-		super(skin, properties, id, configID, "checkbox", parentSkinObject);
+		super(skin, properties, id, configID, "textbox", parentSkinObject);
 
 		Composite createOn;
 		if (parent == null) {
@@ -73,6 +73,9 @@ public class SWTSkinObjectTextbox
 				style |= SWT.MULTI | SWT.V_SCROLL;
 			} else {
 				style |= SWT.SINGLE;
+			}
+			if (Arrays.binarySearch(styles, "search") >= 0) {
+				style |= SWT.SEARCH | SWT.ICON_SEARCH;
 			}
 		}
 		

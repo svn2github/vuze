@@ -4863,7 +4863,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				SystemTime.getOffsetTime(ASYOUTYPE_UPDATEDELAY),
 				new TimerEventPerformer() {
 					public void perform(TimerEvent event) {
-						if (filter.eventUpdate.isCancelled()) {
+						if (filter == null) {
+							return;
+						}
+						if (filter.eventUpdate == null || filter.eventUpdate.isCancelled()) {
 							filter.eventUpdate = null;
 							return;
 						}

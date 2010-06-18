@@ -1,6 +1,8 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Debug;
@@ -27,8 +29,10 @@ public class MyTorrentsView_Big
 	private final int torrentFilterMode;
 
 	public MyTorrentsView_Big(AzureusCore _azureus_core, int torrentFilterMode,
-			TableColumnCore[] basicItems) {
+			TableColumnCore[] basicItems, Text txtFilter, Composite cCats) {
 		this.torrentFilterMode = torrentFilterMode;
+		this.txtFilter = txtFilter;
+		this.cCategories = cCats;
 		Class forDataSourceType;
 		switch (torrentFilterMode) {
 			case SBC_LibraryView.TORRENTS_COMPLETE:

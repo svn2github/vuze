@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,6 +28,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.impl.access.DMAccessFactory;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
@@ -104,23 +106,33 @@ public class SBC_LibraryView
 
 	private static final boolean DL_VITALITY_CONSTANT = true;
 
-	private static int numSeeding = 0;
+	private static class stats {
+		private int numSeeding = 0;
 
-	private static int numDownloading = 0;
+		private int numDownloading = 0;
 
-	private static int numComplete = 0;
+		private int numComplete = 0;
 
-	private static int numIncomplete = 0;
+		private int numIncomplete = 0;
 
-	private static int numErrorComplete = 0;
+		private int numErrorComplete = 0;
 
-	private static String errorInCompleteTooltip;
+		private String errorInCompleteTooltip;
 
-	private static int numErrorInComplete = 0;
+		private int numErrorInComplete = 0;
 
-	private static String errorCompleteTooltip;
+		private String errorCompleteTooltip;
 
-	private static int numUnOpened = 0;
+		private int numUnOpened = 0;
+		
+		private int numStopped = 0;
+	};
+
+	private static stats stats = new stats();
+	
+	private static List<countRefreshListener> listeners = new ArrayList<countRefreshListener>();
+
+	private static boolean first = true;
 
 	private int viewMode = -1;
 
@@ -146,6 +158,8 @@ public class SBC_LibraryView
 	
 	private int waitProgress = 0;
 
+	private SWTSkinObjectText soLibraryInfo;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		soWait = null;
@@ -163,6 +177,18 @@ public class SBC_LibraryView
 						e.gc.fillRectangle(0, 0, breakX, size.y);
 						e.gc.setBackground(ColorCache.getColor(e.display, "#cccccc"));
 						e.gc.fillRectangle(breakX, 0, size.x - breakX, size.y);
+					}
+				});
+			}
+			
+			soLibraryInfo = (SWTSkinObjectText) getSkinObject("library-info");
+			if (soLibraryInfo != null) {
+				addCountRefreshListener(new countRefreshListener() {
+					public void countRefreshed(stats stats) {
+						int total = stats.numComplete + stats.numIncomplete;
+						soLibraryInfo.setText(total + " items: " + stats.numSeeding
+								+ " seeding, " + stats.numDownloading + " downloading, "
+								+ stats.numStopped + " stopped");
 					}
 				});
 			}
@@ -268,6 +294,14 @@ public class SBC_LibraryView
 			}
 		});
 
+		if (first) {
+  		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+  			public void azureusCoreRunning(AzureusCore core) {
+  				setupViewTitleWithCore(core);
+  			}
+  		});
+  		first = true;
+		}
 		return null;
 	}
 
@@ -410,13 +444,13 @@ public class SBC_LibraryView
 		final ViewTitleInfo titleInfoDownloading = new ViewTitleInfo() {
 			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_INDICATOR_TEXT) {
-					if (numIncomplete > 0)
-						return numIncomplete + ""; // + " of " + numIncomplete;
+					if (stats.numIncomplete > 0)
+						return stats.numIncomplete + ""; // + " of " + numIncomplete;
 				}
 
 				if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
-					return "There are " + numIncomplete + " incomplete torrents, "
-							+ numDownloading + " of which are currently downloading";
+					return "There are " + stats.numIncomplete + " incomplete torrents, "
+							+ stats.numDownloading + " of which are currently downloading";
 				}
 
 				return null;
@@ -458,8 +492,8 @@ public class SBC_LibraryView
 				}
 
 				if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
-					return "There are " + numComplete + " complete torrents, "
-							+ numSeeding + " of which are currently seeding";
+					return "There are " + stats.numComplete + " complete torrents, "
+							+ stats.numSeeding + " of which are currently seeding";
 				}
 				return null;
 			}
@@ -476,19 +510,22 @@ public class SBC_LibraryView
 		if (infoLibraryUn != null) {
 			infoLibraryUn.setViewTitleInfo(new ViewTitleInfo() {
 				public Object getTitleInfoProperty(int propertyID) {
-					if (propertyID == TITLE_INDICATOR_TEXT && numUnOpened > 0) {
-						return "" + numUnOpened;
+					if (propertyID == TITLE_INDICATOR_TEXT && stats.numUnOpened > 0) {
+						return "" + stats.numUnOpened;
 					}
 					return null;
 				}
 			});
 		}
 
-		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-			public void azureusCoreRunning(AzureusCore core) {
-				setupViewTitleWithCore(core);
-			}
-		});
+		if (first) {
+  		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+  			public void azureusCoreRunning(AzureusCore core) {
+  				setupViewTitleWithCore(core);
+  			}
+  		});
+  		first = true;
+		}
 		PlatformTorrentUtils.addHasBeenOpenedListener(new HasBeenOpenedListener() {
 			public void hasBeenOpenedChanged(DownloadManager dm, boolean opened) {
 				recountUnopened();
@@ -515,9 +552,9 @@ public class SBC_LibraryView
 				if (isErrorState != wasErrorState) {
 					int rel = isErrorState ? 1 : -1;
 					if (complete) {
-						numErrorComplete += rel;
+						stats.numErrorComplete += rel;
 					} else {
-						numErrorInComplete += rel;
+						stats.numErrorInComplete += rel;
 					}
 					updateErrorTooltip();
 					dm.setUserData("wasErrorState", new Boolean(isErrorState));
@@ -531,19 +568,19 @@ public class SBC_LibraryView
 				}
 				updateDMCounts(dm);
 				if (completed) {
-					numComplete++;
-					numIncomplete--;
+					stats.numComplete++;
+					stats.numIncomplete--;
 					if (dm.getState() == DownloadManager.STATE_ERROR) {
-						numErrorComplete++;
-						numErrorInComplete--;
+						stats.numErrorComplete++;
+						stats.numErrorInComplete--;
 					}
 				} else {
-					numComplete--;
-					numIncomplete++;
+					stats.numComplete--;
+					stats.numIncomplete++;
 
 					if (dm.getState() == DownloadManager.STATE_ERROR) {
-						numErrorComplete--;
-						numErrorInComplete++;
+						stats.numErrorComplete--;
+						stats.numErrorInComplete++;
 					}
 				}
 				recountUnopened();
@@ -552,14 +589,14 @@ public class SBC_LibraryView
 			}
 			
 			protected void updateErrorTooltip() {
-				if (numErrorComplete < 0) {
-					numErrorComplete = 0;
+				if (stats.numErrorComplete < 0) {
+					stats.numErrorComplete = 0;
 				}
-				if (numErrorInComplete < 0) {
-					numErrorInComplete = 0;
+				if (stats.numErrorInComplete < 0) {
+					stats.numErrorInComplete = 0;
 				}
 				
-				if (numErrorComplete > 0 || numErrorInComplete > 0) {
+				if (stats.numErrorComplete > 0 || stats.numErrorInComplete > 0) {
 					
 					String comp_error = null;
 					String incomp_error = null;
@@ -595,8 +632,8 @@ public class SBC_LibraryView
 						}
 					}
 					
-					errorCompleteTooltip = comp_error;
-					errorInCompleteTooltip = incomp_error;
+					stats.errorCompleteTooltip = comp_error;
+					stats.errorInCompleteTooltip = incomp_error;
 				}
 			}
 		};
@@ -608,16 +645,16 @@ public class SBC_LibraryView
 				}
 				recountUnopened();
 				if (dm.getAssumedComplete()) {
-					numComplete--;
+					stats.numComplete--;
 					Boolean wasDownloadingB = (Boolean) dm.getUserData("wasDownloading");
 					if (wasDownloadingB != null && wasDownloadingB.booleanValue()) {
-						numDownloading--;
+						stats.numDownloading--;
 					}
 				} else {
-					numIncomplete--;
+					stats.numIncomplete--;
 					Boolean wasSeedingB = (Boolean) dm.getUserData("wasSeeding");
 					if (wasSeedingB != null && wasSeedingB.booleanValue()) {
-						numSeeding--;
+						stats.numSeeding--;
 					}
 				}
 				refreshAllLibraries();
@@ -632,15 +669,15 @@ public class SBC_LibraryView
 				
 				recountUnopened();
 				if (dm.getAssumedComplete()) {
-					numComplete++;
+					stats.numComplete++;
 					if (dm.getState() == DownloadManager.STATE_SEEDING) {
-						numSeeding++;
+						stats.numSeeding++;
 					}
 				} else {
-					numIncomplete++;
+					stats.numIncomplete++;
 					if (dm.getState() == DownloadManager.STATE_DOWNLOADING) {
 						dm.setUserData("wasDownloading", new Boolean(true));
-						numSeeding++;
+						stats.numSeeding++;
 					} else {
 						dm.setUserData("wasDownloading", new Boolean(false));
 					}
@@ -655,28 +692,34 @@ public class SBC_LibraryView
 				continue;
 			}
 			dm.addListener(dmListener, false);
+			int state = dm.getState();
+			if (state == DownloadManager.STATE_STOPPED) {
+				stats.numStopped++;
+			}
 			if (dm.getAssumedComplete()) {
-				numComplete++;
-				if (dm.getState() == DownloadManager.STATE_SEEDING) {
+				stats.numComplete++;
+				if (state == DownloadManager.STATE_SEEDING) {
 					dm.setUserData("wasSeeding", new Boolean(true));
-					numSeeding++;
+					stats.numSeeding++;
 				} else {
 					dm.setUserData("wasSeeding", new Boolean(false));
 				}
 			} else {
-				numIncomplete++;
-				if (dm.getState() == DownloadManager.STATE_DOWNLOADING) {
-					numSeeding++;
+				stats.numIncomplete++;
+				if (state == DownloadManager.STATE_DOWNLOADING) {
+					stats.numSeeding++;
 				}
 			}
 		}
 
 		recountUnopened();
+		refreshAllLibraries();
 	}
 
 	protected static void updateDMCounts(DownloadManager dm) {
 		boolean isSeeding;
 		boolean isDownloading;
+		boolean isStopped;
 
 		Boolean wasSeedingB = (Boolean) dm.getUserData("wasSeeding");
 		boolean wasSeeding = wasSeedingB == null ? false
@@ -684,6 +727,9 @@ public class SBC_LibraryView
 		Boolean wasDownloadingB = (Boolean) dm.getUserData("wasDownloading");
 		boolean wasDownloading = wasDownloadingB == null ? false
 				: wasDownloadingB.booleanValue();
+		Boolean wasStoppedB = (Boolean) dm.getUserData("wasStopped");
+		boolean wasStopped = wasStoppedB == null ? false
+				: wasStoppedB.booleanValue();
 
 		if (dm.getAssumedComplete()) {
 			isSeeding = dm.getState() == DownloadManager.STATE_SEEDING;
@@ -692,23 +738,34 @@ public class SBC_LibraryView
 			isDownloading = dm.getState() == DownloadManager.STATE_DOWNLOADING;
 			isSeeding = false;
 		}
+		
+		isStopped = dm.getState() == DownloadManager.STATE_STOPPED;
 
 		if (isDownloading != wasDownloading) {
 			if (isDownloading) {
-				numDownloading++;
+				stats.numDownloading++;
 			} else {
-				numDownloading--;
+				stats.numDownloading--;
 			}
 			dm.setUserData("wasDownloading", new Boolean(isDownloading));
 		}
 
 		if (isSeeding != wasSeeding) {
 			if (isSeeding) {
-				numSeeding++;
+				stats.numSeeding++;
 			} else {
-				numSeeding--;
+				stats.numSeeding--;
 			}
 			dm.setUserData("wasSeeding", new Boolean(isSeeding));
+		}
+
+		if (isStopped != wasStopped) {
+			if (isStopped) {
+				stats.numStopped++;
+			} else {
+				stats.numStopped--;
+			}
+			dm.setUserData("wasStopped", new Boolean(isStopped));
 		}
 
 	}
@@ -719,13 +776,18 @@ public class SBC_LibraryView
 		}
 		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		List dms = gm.getDownloadManagers();
-		numUnOpened = 0;
+		stats.numUnOpened = 0;
 		for (Iterator iter = dms.iterator(); iter.hasNext();) {
 			DownloadManager dm = (DownloadManager) iter.next();
 			if (!PlatformTorrentUtils.getHasBeenOpened(dm) && dm.getAssumedComplete()) {
-				numUnOpened++;
+				stats.numUnOpened++;
 			}
 		}
+	}
+	
+	protected static void addCountRefreshListener(countRefreshListener l) {
+		l.countRefreshed(stats);
+		listeners.add(l);
 	}
 
 	/**
@@ -734,6 +796,9 @@ public class SBC_LibraryView
 	 * @since 3.1.1.1
 	 */
 	protected static void refreshAllLibraries() {
+		for (countRefreshListener l : listeners) {
+			l.countRefreshed(stats);
+		}
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		if (mdi == null) {
 			return;
@@ -744,14 +809,14 @@ public class SBC_LibraryView
   		for (int i = 0; i < vitalityImages.length; i++) {
   			MdiEntryVitalityImage vitalityImage = vitalityImages[i];
   			if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
-  				vitalityImage.setVisible(numDownloading > 0);
+  				vitalityImage.setVisible(stats.numDownloading > 0);
   
   				refreshDLSpinner((SideBarVitalityImageSWT) vitalityImage);
   
   			} else if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
-  				vitalityImage.setVisible(numErrorInComplete > 0);
-  				if (numErrorInComplete > 0) {
-  					vitalityImage.setToolTip(errorInCompleteTooltip);
+  				vitalityImage.setVisible(stats.numErrorInComplete > 0);
+  				if (stats.numErrorInComplete > 0) {
+  					vitalityImage.setToolTip(stats.errorInCompleteTooltip);
   				}
   			}
   		}
@@ -764,9 +829,9 @@ public class SBC_LibraryView
   		for (int i = 0; i < vitalityImages.length; i++) {
   			MdiEntryVitalityImage vitalityImage = vitalityImages[i];
   			if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
-  				vitalityImage.setVisible(numErrorComplete > 0);
-  				if (numErrorComplete > 0) {
-  					vitalityImage.setToolTip(errorCompleteTooltip);
+  				vitalityImage.setVisible(stats.numErrorComplete > 0);
+  				if (stats.numErrorComplete > 0) {
+  					vitalityImage.setToolTip(stats.errorCompleteTooltip);
   				}
   			}
   		}
@@ -841,5 +906,9 @@ public class SBC_LibraryView
 			return TableManager.TABLE_MYTORRENTS_ALL_BIG;
 		}
 		return null;
+	}
+	
+	protected static interface countRefreshListener {
+		public void countRefreshed(stats stats);
 	}
 }

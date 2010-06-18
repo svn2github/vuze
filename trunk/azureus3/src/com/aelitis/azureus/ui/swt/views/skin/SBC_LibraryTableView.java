@@ -26,6 +26,7 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -64,9 +65,7 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.DataSourceUtils;
@@ -121,9 +120,19 @@ public class SBC_LibraryTableView
 			torrentFilterMode = (int) ((Long) data).longValue();
 		}
 		boolean useBigTable = useBigTable();
+		
+		SWTSkinObjectTextbox soFilter = (SWTSkinObjectTextbox) skin.getSkinObject(
+				"library-filter", soParent.getParent());
+		Text txtFilter = soFilter == null ? null : (Text) soFilter.getControl();
+		
+		SWTSkinObjectContainer soCats = (SWTSkinObjectContainer) skin.getSkinObject(
+				"library-categories", soParent.getParent());
+		Composite cCats = soCats == null ? null : soCats.getComposite();
 
 		// columns not needed for small mode, all torrents
-		TableColumnCore[] columns = useBigTable || torrentFilterMode != SBC_LibraryView.TORRENTS_ALL ? getColumns() : null;
+		TableColumnCore[] columns = useBigTable
+				|| torrentFilterMode != SBC_LibraryView.TORRENTS_ALL ? getColumns()
+				: null;
 
 		if (null != columns) {
 			TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -135,24 +144,29 @@ public class SBC_LibraryTableView
 					|| torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE
 					|| torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
 
-				view = new MyTorrentsView_Big(core, torrentFilterMode, columns);
+				view = new MyTorrentsView_Big(core, torrentFilterMode, columns,
+						txtFilter, cCats);
 
 			} else {
 				//view = new MyTorrentsSuperView_Big();
-				view = new MyTorrentsView_Big(core, torrentFilterMode, columns);
+				view = new MyTorrentsView_Big(core, torrentFilterMode, columns,
+						txtFilter, cCats);
 			}
 
 		} else {
 			String tableID = SBC_LibraryView.getTableIdFromFilterMode(
 					torrentFilterMode, false);
 			if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
-				view = new MyTorrentsView(core, tableID, true, columns);
+				view = new MyTorrentsView(core, tableID, true, columns, txtFilter,
+						cCats);
 
 			} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
-				view = new MyTorrentsView(core, tableID, false, columns);
+				view = new MyTorrentsView(core, tableID, false, columns, txtFilter,
+						cCats);
 
 			} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
-				view = new MyTorrentsView(core, tableID, true, columns) {
+				view = new MyTorrentsView(core, tableID, true, columns, txtFilter,
+						cCats) {
 					public boolean isOurDownloadManager(DownloadManager dm) {
 						if (PlatformTorrentUtils.getHasBeenOpened(dm)) {
 							return false;
@@ -161,7 +175,7 @@ public class SBC_LibraryTableView
 					}
 				};
 			} else {
-				view = new MyTorrentsSuperView() {
+				view = new MyTorrentsSuperView(txtFilter, cCats) {
 					public void initializeDone() {
 						MyTorrentsView seedingview = getSeedingview();
 						if (seedingview != null) {
@@ -198,10 +212,10 @@ public class SBC_LibraryTableView
 		skin.layout();
 
 		viewComposite = soContents.getComposite();
-		viewComposite.setBackground(viewComposite.getDisplay().getSystemColor(
-				SWT.COLOR_WIDGET_BACKGROUND));
-		viewComposite.setForeground(viewComposite.getDisplay().getSystemColor(
-				SWT.COLOR_WIDGET_FOREGROUND));
+//		viewComposite.setBackground(viewComposite.getDisplay().getSystemColor(
+//				SWT.COLOR_WIDGET_BACKGROUND));
+//		viewComposite.setForeground(viewComposite.getDisplay().getSystemColor(
+//				SWT.COLOR_WIDGET_FOREGROUND));
 		viewComposite.setLayoutData(Utils.getFilledFormData());
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;

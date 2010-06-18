@@ -50,10 +50,10 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
-import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
+import org.gudy.azureus2.ui.swt.components.CompositeMinSize;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -71,11 +71,10 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /** Displays a list of torrents in a table view.
  *
@@ -112,14 +111,10 @@ public class MyTorrentsView
 
   private Composite cTablePanel;
   private Font fontButton = null;
-  private Composite cCategories;
-  private ControlAdapter catResizeAdapter;
+  protected Composite cCategories;
   private DragSource dragSource = null;
   private DropTarget dropTarget = null;
-  private Composite cHeader = null;
-  private Label lblHeader = null;
-  private Text txtFilter = null;
-  private Label lblX = null;
+  protected Text txtFilter = null;
   
   private Category currentCategory;
 
@@ -133,11 +128,7 @@ public class MyTorrentsView
 	protected boolean viewActive;
 	private boolean forceHeaderVisible = false;
 	private TableSelectionListener defaultSelectedListener;
-	private Composite cFilterArea;
-	protected boolean resizeHeaderEventQueued;
-	private Button btnFilter;
 
-	private Composite cSizer;
 
 	public MyTorrentsView() {
 		super("MyTorrentsView");
@@ -149,26 +140,30 @@ public class MyTorrentsView
    * @param _azureus_core
    * @param isSeedingView
    * @param basicItems
+   * @param cCats 
    */
   public 
   MyTorrentsView(
   		AzureusCore				_azureus_core,
   		String						tableID,
   		boolean 					isSeedingView,
-      TableColumnCore[]	basicItems) 
+      TableColumnCore[]	basicItems,
+      Text txtFilter, Composite cCats) 
   {
 		super("MyTorrentsView");
+		this.txtFilter = txtFilter;
+		this.cCategories = cCats;
 		init(_azureus_core, tableID, isSeedingView, isSeedingView
 				? DownloadTypeComplete.class : DownloadTypeIncomplete.class, basicItems);
   }
   
   // @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
-  public TableViewSWT initYourTableView() {
+  public TableViewSWT<DownloadManager> initYourTableView() {
   	return tv;
   }
   
   public void init(AzureusCore _azureus_core, String tableID,
-			boolean isSeedingView, Class forDataSourceType, TableColumnCore[] basicItems) {
+			boolean isSeedingView, Class<?> forDataSourceType, TableColumnCore[] basicItems) {
 
   	this.isSeedingView 	= isSeedingView;
   	
@@ -298,7 +293,7 @@ public class MyTorrentsView
 		});
   	
     GridData gridData;
-    cTableParentPanel = new Composite(composite, SWT.NULL);
+    cTableParentPanel = new Composite(composite, SWT.NONE);
     GridLayout layout = new GridLayout();
     layout.horizontalSpacing = 0;
     layout.verticalSpacing = 0;
@@ -310,8 +305,6 @@ public class MyTorrentsView
     }
     
     cTablePanel = new Composite(cTableParentPanel, SWT.NULL);
-    cTablePanel.setBackground(composite.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
-    cTablePanel.setForeground(composite.getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 
     gridData = new GridData(GridData.FILL_BOTH);
     cTablePanel.setLayoutData(gridData);
@@ -335,331 +328,61 @@ public class MyTorrentsView
   }
 
   private void createTabs() {
-    GridData gridData;
     Category[] categories = CategoryManager.getCategories();
     Arrays.sort(categories);
-    boolean showCat = tv.getFilterText().length() > 0;
-    if (!showCat) {
-	    for(int i = 0; i < categories.length; i++) {
-	        if(categories[i].getType() == Category.TYPE_USER) {
-	            showCat = true;
-	            break;
-	        }
-	    }
+    boolean showCat = false;
+    for(int i = 0; i < categories.length; i++) {
+        if(categories[i].getType() == Category.TYPE_USER) {
+            showCat = true;
+            break;
+        }
     }
-    boolean show = showCat || forceHeaderVisible;
 
-    if (!showCat) {
-    	if (cCategories != null && !cCategories.isDisposed()) {
-        Control[] controls = cCategories.getChildren();
-        for (int i = 0; i < controls.length; i++) {
-          controls[i].dispose();
-        }
-    	}
-    }
+   	buildHeaderArea();
+  	if (cCategories != null && !cCategories.isDisposed()) {
+      Control[] controls = cCategories.getChildren();
+      for (int i = 0; i < controls.length; i++) {
+        controls[i].dispose();
+      }
+  	}
     
-    if (show) {
-      if (cCategories == null || cCategories.isDisposed()) {
-      	buildHeaderArea();
-      } else {
-        Control[] controls = cCategories.getChildren();
-        for (int i = 0; i < controls.length; i++) {
-          controls[i].dispose();
-        }
-      }
-      
-      if (showCat) {
-      	buildCat(categories);
-      }
-    } else {
-    	if (cHeader != null && !cHeader.isDisposed()) {
-    		cHeader.dispose();
-    	}
-    	if (cTableParentPanel != null && !cTableParentPanel.isDisposed()) {
-    		cTableParentPanel.layout();
-    	}
-    }
+    if (showCat) {
+    	buildCat(categories);
+    } else if (cTableParentPanel != null && !cTableParentPanel.isDisposed()) {
+  		cTableParentPanel.layout();
+  	}
   }
   
-  /**
-	 * 
-	 *
-	 * @since 4.1.0.5
-	 */
 	private void buildHeaderArea() {
-		GridData gridData;
-    Composite parent = cTableParentPanel;
-
-    cHeader = new Composite(parent, SWT.NONE);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalIndent = 5;
-    cHeader.setLayoutData(gridData);
-    cHeader.setLayout(new FormLayout());
-    FormData fd;
-    
-    lblHeader = new Label(cHeader, SWT.WRAP);
-    updateTableLabel();
-    
-    Label lblSep = new Label(cHeader, SWT.SEPARATOR | SWT.VERTICAL);
-    gridData = new GridData(GridData.FILL_VERTICAL);
-    gridData.heightHint = 5;
-    lblSep.setLayoutData(gridData);
-    
-    btnFilter = new Button(cHeader, SWT.TOGGLE);
-    Messages.setLanguageText(btnFilter, "MyTorrentsView.filter");
-    btnFilter.addSelectionListener(new SelectionListener() {
-		
-			public void widgetSelected(SelectionEvent e) {
-				boolean enable = btnFilter.getSelection();
-        cFilterArea.setVisible(enable);
-        if (enable) {
-        	tv.setFilterText(txtFilter.getText());
-        	txtFilter.setFocus();
-        } else {
-        	tv.setFilterText("");
-        	tv.setFocus();
-        }
-        resizeHeader();
-			}
-		
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		});
-    boolean hasLastSearch = tv.getFilterText().length() != 0;
-    btnFilter.setSelection(hasLastSearch);
-    
-
-    cFilterArea = new Composite(cHeader, SWT.NONE);
-    cFilterArea.setVisible(hasLastSearch);
-    GridLayout layout = new GridLayout();
-    layout.marginHeight = 0;
-    layout.numColumns = 5;
-    cFilterArea.setLayout(layout);
-            
-    cCategories = new Composite(cHeader, SWT.NONE);
-    RowLayout rowLayout = new RowLayout();
-    rowLayout.marginTop = 0;
-    rowLayout.marginBottom = 0;
-    rowLayout.marginLeft = 3;
-    rowLayout.marginRight = 0;
-    rowLayout.spacing = 0;
-    rowLayout.wrap = true;
-    cCategories.setLayout(rowLayout);
-    
-    cSizer = new Composite(cHeader, SWT.NONE);
-
-    fd = new FormData();
-    fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER);
-    lblHeader.setLayoutData(fd);
-
-    fd = new FormData();
-    fd.left = new FormAttachment(lblSep, 10);
-    fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER);
-    btnFilter.setLayoutData(fd);
-
-    fd = new FormData();
-    fd.left = new FormAttachment(lblHeader, 10);
-    fd.top = new FormAttachment(cFilterArea, 3, SWT.TOP);
-    fd.bottom = new FormAttachment(cFilterArea, -3, SWT.BOTTOM);
-    lblSep.setLayoutData(fd);
-
-    fd = new FormData();
-    fd.top = new FormAttachment(0, 2);
-    fd.left = new FormAttachment(btnFilter, 0);
-    fd.right = new FormAttachment(cCategories, -10);
-    cFilterArea.setLayoutData(fd);
-
-    fd = new FormData();
-    fd.right = new FormAttachment(cSizer, -5); 
-    fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
-    fd.bottom = new FormAttachment(cFilterArea, 0, SWT.BOTTOM);
-    cCategories.setLayoutData(fd);
-
-		int userMode = COConfigurationManager.getIntParameter("User Mode");
-
-		boolean enableSizer = userMode >= 2 && Constants.IS_CVS_VERSION;
-		
-    fd = new FormData();
-    fd.right = new FormAttachment(100, -1); 
-    fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
-    fd.width = enableSizer ? 20 : 1;
-    fd.height = enableSizer ? 20 : 1;
-    cSizer.setLayoutData(fd);
-
-    if (enableSizer) {
-    	tv.enableSizeSlider(cSizer, 16, 96);
-    }
-
-    cHeader.addListener(SWT.Resize, new Listener(){
-			public void handleEvent(Event event) {
-				if (!resizeHeaderEventQueued) {
-	        resizeHeaderEventQueued = true;
-					Utils.execSWTThreadLater(0, new AERunnable(){
-						public void runSupport() {
-							resizeHeader();
-							resizeHeaderEventQueued = false;
-						}
-					});
-				}
-			}
-		});
-    
-    
-    txtFilter = new Text(cFilterArea, SWT.BORDER);
-    Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    txtFilter.setLayoutData(gridData);
-    
-
-    lblX = new Label(cFilterArea, SWT.WRAP);
-    Messages.setLanguageTooltip(lblX, "MyTorrentsView.clearFilter.tooltip");
-    gridData = new GridData(SWT.TOP);
-    lblX.setLayoutData(gridData);
-    ImageLoader.getInstance().setLabelImage(lblX, "smallx-gray");
-    lblX.setData("ImageID", "smallx-gray");
-    lblX.addMouseListener(new MouseAdapter() {
-    	public void mouseUp(MouseEvent e) {
-    		if (e.y <= 10) {
-    			tv.setFilterText("");
-      		txtFilter.setText("");
-    		}
-    	}
-    });
-    
-
-    lblSep = new Label(cFilterArea, SWT.SEPARATOR | SWT.VERTICAL);
-    gridData = new GridData(GridData.FILL_VERTICAL);
-    gridData.heightHint = 5;
-    lblSep.setLayoutData(gridData);
-    
-    cHeader.moveAbove(null);
-    parent.layout(true, true);
+		if (cCategories == null) {
+			cCategories = new CompositeMinSize(cTableParentPanel, SWT.NONE);
+			((CompositeMinSize) cCategories).setMinSize(new Point(SWT.DEFAULT, 24));
+			GridData gridData = new GridData(SWT.RIGHT, SWT.TOP, true, false);
+			cCategories.setLayoutData(gridData);
+			cCategories.moveAbove(null);
+		}
+		if (!(cCategories.getLayout() instanceof RowLayout)) {
+      RowLayout rowLayout = new RowLayout();
+      rowLayout.marginTop = 0;
+      rowLayout.marginBottom = 0;
+      rowLayout.marginLeft = 3;
+      rowLayout.marginRight = 0;
+      rowLayout.spacing = 0;
+      rowLayout.wrap = true;
+      cCategories.setLayout(rowLayout);
+		}
 
     tv.enableFilterCheck(txtFilter, this);
 	}
 
-  private void hideShowSlider() {
-  	if (!Constants.IS_CVS_VERSION) {
-  		return;
-  	}
-  	Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				int userMode = COConfigurationManager.getIntParameter("User Mode");
-				boolean isAdvanced = userMode >= 2;
-				
-				if (cSizer == null || cSizer.isDisposed()) {
-					return;
-				}
-				
-				FormData fd = (FormData) cSizer.getLayoutData();
-				if (isAdvanced) {
-					if (fd.width < 20) {
-						fd.width = 20;
-						fd.height = 16;
-			    	tv.enableSizeSlider(cSizer, 16, 96);
-			    	cSizer.setVisible(false);
-						cSizer.getParent().layout(true);
-					}
-				} else {
-					if (fd.width == 100) {
-						fd.width = 1;
-						fd.height = 1;
-						tv.disableSizeSlider();
-						cSizer.setVisible(true);
-						cSizer.getParent().layout(true);
-					}
-				}
-			}
-		});
-
-		
-	}
-
-
-	/**
-	 * 
-	 *
-	 * @since 4.1.0.5
-	 */
-	protected void showFilterArea() {
-		if (cFilterArea != null && !cFilterArea.isDisposed() && !cFilterArea.isVisible()) {
-			cFilterArea.setVisible(true);
-		}
-		if (btnFilter != null && !btnFilter.isDisposed() && !btnFilter.getSelection()) {
-			btnFilter.setSelection(true);
-		}
-	}
-
-	/**
-	 * 
-	 *
-	 * @since 4.1.0.5
-	 */
-	protected void resizeHeader() {
-		if (cCategories == null || cCategories.isDisposed()) {
-			return;
-		}
-		Point curCatPos = cCategories.getLocation();
-		int posEndFilter = cFilterArea.getLocation().x + (cFilterArea.isVisible() ? 170 : 0);
-		
-		boolean onNewLine = ((FormData)cCategories.getLayoutData()).left != null;
-		
-		//System.out.println("posend=" + posEndFilter + ";curcat" + curCatPos);
-		if (onNewLine) {
-			Point prefSizeCat = cCategories.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			//System.out.println("pref=" + prefSizeCat + ";sz=" + cHeader.getClientArea());
-			if (prefSizeCat.x + posEndFilter + cSizer.getSize().x < cHeader.getClientArea().width) {
-				//System.out.println("MOVE UP");
-				FormData fd = new FormData();
-        fd.right = new FormAttachment(cSizer, -2); 
-        fd.top = new FormAttachment(cFilterArea, 0, SWT.CENTER); 
-        fd.bottom = new FormAttachment(cFilterArea, 0, SWT.BOTTOM); 
-				cCategories.setLayoutData(fd);
-
-        fd = new FormData();
-        fd.top = new FormAttachment(0, 2);
-        fd.left = new FormAttachment(btnFilter, 0);
-        fd.right = new FormAttachment(cCategories, -10);
-        cFilterArea.setLayoutData(fd);
-
-				cHeader.getShell().layout(new Control[] {
-					cFilterArea,
-					cCategories
-				});
-			}
-			// assume on new line
-		} else {
-			if (curCatPos.x < posEndFilter) {
-				//System.out.println("MOVE DOWN");
-				FormData fd = new FormData();
-				fd.top = new FormAttachment(cFilterArea, 2);
-				fd.bottom = new FormAttachment(100, -3);
-				fd.left = new FormAttachment(0,0);
-				fd.right = new FormAttachment(100,0);
-				cCategories.setLayoutData(fd);
-
-				fd = new FormData();
-		    fd.top = new FormAttachment(0, 2);
-        fd.left = new FormAttachment(btnFilter, 0);
-        fd.right = new FormAttachment(cSizer, -10);
-        cFilterArea.setLayoutData(fd);
-
-				cHeader.getShell().layout(new Control[] {
-					cFilterArea,
-					cCategories
-				});
-			}
-		}
-	}
-
-	/**
+  /**
 	 * 
 	 *
 	 * @param categories 
    * @since 3.1.1.1
 	 */
 	private void buildCat(Category[] categories) {
-		int iFontPixelsHeight = 11;
+		int iFontPixelsHeight = 10;
 		int iFontPointHeight = (iFontPixelsHeight * 72)
 				/ cCategories.getDisplay().getDPI().y;
 		for (int i = 0; i < categories.length; i++) {
@@ -1154,48 +877,8 @@ public class MyTorrentsView
 				}
 			});
 		}
-
-		cHeader.layout(true, true);
-		Utils.execSWTThreadLater(0, new AERunnable(){
-			public void runSupport() {
-				resizeHeader();
-			}
-		});
-
-		// layout hack - relayout
-//		if (catResizeAdapter == null) {
-//			catResizeAdapter = new ControlAdapter() {
-//				public void controlResized(ControlEvent event) {
-//					if (getComposite().isDisposed() || cCategories.isDisposed())
-//						return;
-//
-//					GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-//
-//					int parentWidth = cCategories.getParent().getClientArea().width;
-//					int catsWidth = cCategories.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-//					// give text a 5 pixel right padding
-//					int textWidth = 200;
-//					System.out.println("TW=" + textWidth + ";" + (cHeader.computeSize(20, SWT.DEFAULT).x));
-//
-//					Object layoutData = cHeader.getLayoutData();
-//					if (layoutData instanceof GridData) {
-//						GridData labelGrid = (GridData) layoutData;
-//						textWidth += labelGrid.horizontalIndent;
-//					}
-//
-//					if (textWidth + catsWidth > parentWidth) {
-//						gridData.widthHint = parentWidth - textWidth;
-//					}
-//					cCategories.setLayoutData(gridData);
-//					cCategories.getParent().layout(true);
-//
-//				}
-//			};
-//
-//			tv.getTableComposite().addControlListener(catResizeAdapter);
-//		}
-//
-//		catResizeAdapter.controlResized(null);
+		
+		cCategories.getParent().layout(true, true);
 	}
 
 	public boolean isOurDownloadManager(DownloadManager dm) {
@@ -1260,22 +943,26 @@ public class MyTorrentsView
 	
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewFilterCheck#filterSet(java.lang.String)
 	public void filterSet(final String filter) {
-		Utils.execSWTThread(new AERunnable(){
+		if (forceHeaderVisible) {
+			return;
+		}
+		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (lblX != null && !lblX.isDisposed()) {
-					String oldID = (String) lblX.getData("ImageID");
-					String id = filter.length() > 0 ? "smallx" : "smallx-gray";
-					if (oldID == null || !oldID.equals(id)) {
-						ImageLoader.getInstance().setLabelImage(lblX, id);
-						lblX.setData("ImageID", id);
+				if (txtFilter != null) {
+					boolean visible = filter.length() > 0;
+					Composite c = txtFilter.getParent();
+					Object layoutData = c.getLayoutData();
+					if (layoutData instanceof FormData) {
+						FormData fd = (FormData) layoutData;
+						boolean wasVisible = fd.height != 0;
+						if (visible != wasVisible) {
+  						fd.height = visible ? SWT.DEFAULT : 0;
+  						c.setLayoutData(layoutData);
+  						c.getParent().layout();
+						}
 					}
-				}
-
-				if (filter.length() > 0) {
-					if (txtFilter == null) {
-				    createTabs();
-					} else {
-						showFilterArea();
+					if (!visible) {
+						tv.setFocus();
 					}
 				}
 			}
@@ -1766,17 +1453,15 @@ public class MyTorrentsView
 		int[] newPositions = new int[dms.length];
 
 		if (by < 0) {
-			Arrays.sort(dms, new Comparator() {
-				public int compare(Object a, Object b) {
-					return ((DownloadManager) a).getPosition()
-							- ((DownloadManager) b).getPosition();
+			Arrays.sort(dms, new Comparator<DownloadManager>() {
+				public int compare(DownloadManager a, DownloadManager b) {
+					return a.getPosition() - b.getPosition();
 				}
 			});
 		} else {
-			Arrays.sort(dms, new Comparator() {
-				public int compare(Object a, Object b) {
-					return ((DownloadManager) b).getPosition()
-							- ((DownloadManager) a).getPosition();
+			Arrays.sort(dms, new Comparator<DownloadManager>() {
+				public int compare(DownloadManager a, DownloadManager b) {
+					return b.getPosition() - a.getPosition();
 				}
 			});
 		}
@@ -1839,9 +1524,6 @@ public class MyTorrentsView
 		}
 		if (parameterName == null || parameterName.equals("MyTorrentsView.alwaysShowHeader")) {
 			setForceHeaderVisible(COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader"));
-		}
-		if (parameterName == null || parameterName.equals("User Mode")) {
-			hideShowSlider();
 		}
 	}
 
@@ -2037,7 +1719,7 @@ public class MyTorrentsView
 		}
 		
 		Object[] managers = globalManager.getDownloadManagers().toArray();
-		Set existing = new HashSet(tv.getDataSources());
+		Set<DownloadManager> existing = new HashSet<DownloadManager>(tv.getDataSources());
 		List<DownloadManager> listRemoves = new ArrayList<DownloadManager>();
 		List<DownloadManager> listAdds = new ArrayList<DownloadManager>();
 		
@@ -2085,29 +1767,24 @@ public class MyTorrentsView
 
 
   // CategoryManagerListener Functions
-  public void categoryAdded(Category category) {
-  	Utils.execSWTThread(
-	  		new AERunnable() 
-			{
-	  			public void 
-				runSupport() 
-	  			{
-	  				createTabs();
-	  			}
-			});
-  }
+	public void categoryAdded(Category category) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				createTabs();
+			}
+		});
+	}
 
-  public void categoryRemoved(Category category) {
-  	Utils.execSWTThread(
-	  		new AERunnable() 
-			{
-	  			public void 
-				runSupport() 
-	  			{
-	  				createTabs();
-	  			}
-			});
-  }
+	public void categoryRemoved(Category category) {
+		if (currentCategory == category) {
+			currentCategory = null;
+		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				createTabs();
+			}
+		});
+	}
   
   public void categoryChanged(Category category) {	
   }
@@ -2143,45 +1820,16 @@ public class MyTorrentsView
     		}
     	}
   	}
-		updateTableLabel();
   }
 
   // @see com.aelitis.azureus.ui.common.table.TableCountChangeListener#rowRemoved(com.aelitis.azureus.ui.common.table.TableRowCore)
   public void rowRemoved(TableRowCore row) {
-		updateTableLabel();
 	}
 	
 
 	public void updateLanguage() {
 		super.updateLanguage();
-		updateTableLabel();
 		getComposite().layout(true, true);
-	}
-
-	/**
-	 * 
-	 */
-	private boolean refreshingTableLabel = false;
-	private void updateTableLabel() {
-		if (refreshingTableLabel || lblHeader == null || lblHeader.isDisposed()) {
-			return;
-		}
-		refreshingTableLabel = true;
-		lblHeader.getDisplay().asyncExec(new AERunnable() {
-			public void runSupport() {
-				try {
-					if (lblHeader != null && !lblHeader.isDisposed()) {
-						String sText = MessageText.getString(tv.getTableID() + "View"
-								+ ".header")
-								+ " (" + tv.size(true) + ")";
-						lblHeader.setText(sText);
-						lblHeader.getParent().layout();
-					}
-				} finally {
-					refreshingTableLabel = false;
-				}
-			}
-		});
 	}
 
 	public boolean isTableFocus() {
@@ -2199,16 +1847,16 @@ public class MyTorrentsView
 	 * @param basicItems
 	 * @return
 	 */
-	protected TableViewSWT createTableView(Class forDataSourceType, String tableID,
-			TableColumnCore[] basicItems) {
+	protected TableViewSWT<DownloadManager> createTableView(
+			Class<?> forDataSourceType, String tableID, TableColumnCore[] basicItems) {
 		int tableExtraStyle = COConfigurationManager.getIntParameter("MyTorrentsView.table.style");
-		return new TableViewSWTImpl(forDataSourceType, tableID, getPropertiesPrefix(),
-				basicItems, "#", tableExtraStyle | SWT.MULTI | SWT.FULL_SELECTION
-						| SWT.VIRTUAL | SWT.CASCADE) {
+		return new TableViewSWTImpl<DownloadManager>(forDataSourceType, tableID,
+				getPropertiesPrefix(), basicItems, "#", tableExtraStyle | SWT.MULTI
+						| SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.CASCADE) {
 			public void setSelectedRows(TableRowCore[] rows) {
 				super.setSelectedRows(rows);
 				updateSelectedContent();
-			}			
+			}
 		};
 	}
 

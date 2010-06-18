@@ -69,8 +69,16 @@ public class MyTorrentsSuperView extends AbstractIView implements
 
 	private Composite child2;
 
-  public MyTorrentsSuperView() {
-  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+
+	private final Text txtFilter;
+
+
+	private final Composite cCats;
+
+  public MyTorrentsSuperView(Text txtFilter, Composite cCats) {
+  	this.txtFilter = txtFilter;
+		this.cCats = cCats;
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
@@ -113,7 +121,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
   	GridLayout layout;
   	
   	
-  	child1 = new Composite(form,SWT.NULL);
+  	child1 = new Composite(form,SWT.NONE);
   	layout = new GridLayout();
   	layout.numColumns = 1;
   	layout.horizontalSpacing = 0;
@@ -428,7 +436,8 @@ public class MyTorrentsSuperView extends AbstractIView implements
 	 */
 	protected MyTorrentsView createTorrentView(AzureusCore _azureus_core,
 			String tableID, boolean isSeedingView, TableColumnCore[] columns, Composite c) {
-		MyTorrentsView view = new MyTorrentsView(_azureus_core, tableID, isSeedingView, columns);
+		MyTorrentsView view = new MyTorrentsView(_azureus_core, tableID,
+				isSeedingView, columns, txtFilter, cCats);
     view.initialize(c);
 		c.addListener(SWT.Activate, new Listener() {
 			public void handleEvent(Event event) {
