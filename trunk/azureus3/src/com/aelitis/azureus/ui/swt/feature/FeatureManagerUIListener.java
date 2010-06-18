@@ -187,7 +187,7 @@ public class FeatureManagerUIListener
 				}
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
-						skin.getShell().setText("Vuze Plus");
+						UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell().setText("Vuze Plus");
 					}
 				});
 			}
