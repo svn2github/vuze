@@ -783,7 +783,14 @@ public class Utils
 			return ((Number)lastBottomIndex).intValue();
 		}
 		
-		int xPos = table.getColumn(0).getWidth() + table.getColumn(1).getWidth() - 1;
+		int columnCount = table.getColumnCount();
+		if (columnCount == 0) {
+			return -1;
+		}
+		int xPos = table.getColumn(0).getWidth() - 1;
+		if (columnCount > 1) {
+			xPos += table.getColumn(1).getWidth();
+		}
 
 		Rectangle clientArea = table.getClientArea();
 		TableItemOrTreeItem bottomItem = table.getItem(new Point(xPos,
