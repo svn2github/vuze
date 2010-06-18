@@ -212,6 +212,11 @@ public class UrlUtils
 			return null;
 		}
 
+		if (accept_magnets
+				&& (text.startsWith("bc://") || text.startsWith("bctp://"))) {
+			return parseTextForMagnets(text);
+		}
+
 		// accept raw hash of 40 hex chars
 		if (accept_magnets && text.matches("^[a-fA-F0-9]{40}$")) {
 			// convert from HEX to raw bytes
@@ -247,10 +252,6 @@ public class UrlUtils
 			}
 		}
 		
-		if (accept_magnets && text.startsWith("bc://")) {
-			return parseTextForMagnets(text);
-		}
-
 		return null;
 	}
 
@@ -258,6 +259,10 @@ public class UrlUtils
 	parseTextForMagnets(
 		String		text )
 	{
+		if (text.startsWith("magnet:")) {
+			return text;
+		}
+
 		// accept raw hash of 40 hex chars
 		if (text.matches("^[a-fA-F0-9]{40}$")) {
 			// convert from HEX to raw bytes
@@ -271,13 +276,60 @@ public class UrlUtils
 			return "magnet:?xt=urn:btih:" + text;
 		}
 		
-		// javascript:loadOrAlert('WVOPRHRPFSCLAW7UWHCXCH7QNQIU6TWG')
+		Pattern pattern;
+		Matcher matcher;
+
+		pattern = Pattern.compile("bc://bt/([a-z0-9=\\+/]+)", Pattern.CASE_INSENSITIVE);
+		matcher = pattern.matcher(text.replaceAll(" ", "+"));
+		if (matcher.find()) {
+			String base64 = matcher.group(1);
+			byte[] decode = Base64.decode(base64);
+			if (decode != null && decode.length > 0) {
+				// Format is AA/<name>/<size>/<hash>/ZZ
+				try {
+					String decodeString = new String(decode, "utf8");
+					pattern = Pattern.compile("AA.*/(.*)/ZZ", Pattern.CASE_INSENSITIVE);
+					matcher = pattern.matcher(decodeString);
+					if (matcher.find()) {
+						String hash = matcher.group(1);
+						String magnet = parseTextForMagnets(hash);
+						if (magnet != null) {
+							pattern = Pattern.compile("AA/(.*)/[0-9]+", Pattern.CASE_INSENSITIVE);
+							matcher = pattern.matcher(decodeString);
+							if (matcher.find()) {
+								String name = matcher.group(1);
+								return magnet + "&dn=" + encode(name);
+							}
+							return magnet;
+						}
+					}
+				} catch (UnsupportedEncodingException e) {
+				}
+			}
+		}
+
+		pattern = Pattern.compile("bctp://task/(.*)", Pattern.CASE_INSENSITIVE);
+		matcher = pattern.matcher(text);
+		if (matcher.find()) {
+			// Format is <name>/<size>/<hash>
+			String decodeString = matcher.group(1);
+			String magnet = parseTextForMagnets(decodeString);
+			if (magnet != null) {
+				pattern = Pattern.compile("(.*)/[0-9]+", Pattern.CASE_INSENSITIVE);
+				matcher = pattern.matcher(decodeString);
+				if (matcher.find()) {
+					String name = matcher.group(1);
+					return magnet + "&dn=" + encode(name);
+				}
+				return magnet;
+			}
+		}
 
 		// accept raw hash of 32 base-32 chars, with garbage around it
 		if (true) {
 			text = "!" + text + "!";
-			Pattern pattern = Pattern.compile("[^a-zA-Z2-7][a-zA-Z2-7]{32}[^a-zA-Z2-7]");
-			Matcher matcher = pattern.matcher(text);
+			pattern = Pattern.compile("[^a-zA-Z2-7][a-zA-Z2-7]{32}[^a-zA-Z2-7]");
+			matcher = pattern.matcher(text);
 			if (matcher.find()) {
 				String hash = text.substring(matcher.start() + 1, matcher.start() + 33);
 				return "magnet:?xt=urn:btih:" + hash;
@@ -291,35 +343,6 @@ public class UrlUtils
 				byte[] infohash = ByteFormatter.decodeString(hash.toUpperCase());
 				// convert to BASE32
 				return "magnet:?xt=urn:btih:" + Base32.encode(infohash);
-			}
-
-			pattern = Pattern.compile("bc://bt/([a-z0-9=\\+/]+)", Pattern.CASE_INSENSITIVE);
-			matcher = pattern.matcher(text.replaceAll(" ", "+"));
-			if (matcher.find()) {
-				String base64 = matcher.group(1);
-				byte[] decode = Base64.decode(base64);
-				if (decode != null && decode.length > 0) {
-					// Format is AA/<name>/<size>/<hash>/ZZ
-					try {
-						String decodeString = new String(decode, "utf8");
-						pattern = Pattern.compile("AA.*/(.*)/ZZ", Pattern.CASE_INSENSITIVE);
-						matcher = pattern.matcher(decodeString);
-						if (matcher.find()) {
-							String hash = matcher.group(1);
-							String magnet = parseTextForMagnets(hash);
-							if (magnet != null) {
-								pattern = Pattern.compile("AA/(.*)/[0-9]+", Pattern.CASE_INSENSITIVE);
-								matcher = pattern.matcher(decodeString);
-								if (matcher.find()) {
-									String name = matcher.group(1);
-									return magnet + "&dn=" + encode(name);
-								}
-								return magnet;
-							}
-						}
-					} catch (UnsupportedEncodingException e) {
-					}
-				}
 			}
 		}
 		
