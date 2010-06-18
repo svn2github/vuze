@@ -72,12 +72,12 @@ BetaWizardStart
 		Label link_label = link.getlabel();
 		
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.verticalIndent=20;
+		gridData.verticalIndent=10;
 		link_label.setLayoutData(gridData);
 
 		final Composite gRadio = new Composite(rootPanel, SWT.NULL);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-	    gridData.verticalIndent=20;
+	    gridData.verticalIndent=10;
 		gRadio.setLayoutData(gridData);
 		layout = new GridLayout();
 		layout.numColumns = 1;
@@ -102,9 +102,16 @@ BetaWizardStart
 		
 		on_button.setSelection( wizard.getBetaEnabled());
 
+		LinkLabel forum = new LinkLabel( rootPanel, "beta.wizard.forum", MessageText.getString( "beta.wizard.forum.url" ));
+		Label forum_label = link.getlabel();
+		
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.verticalIndent=10;
+		forum_label.setLayoutData(gridData);
+
 		Label version_label = new Label( rootPanel, SWT.WRAP );
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.verticalIndent=20;
+		gridData.verticalIndent=10;
 		version_label.setLayoutData(gridData);
 		version_label.setText( MessageText.getString( "beta.wizard.version", new String[]{ Constants.AZUREUS_VERSION } ));
 	}

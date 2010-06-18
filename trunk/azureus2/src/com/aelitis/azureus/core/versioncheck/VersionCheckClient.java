@@ -1188,6 +1188,11 @@ public class VersionCheckClient {
         message.put( "subver", sub_ver );
     }
     
+    if ( COConfigurationManager.getBooleanParameter( "Beta Programme Enabled" )){
+    
+    	message.put( "beta_prog", "true" );
+    }
+    
     message.put( "ui",      COConfigurationManager.getStringParameter( "ui", "unknown" ) );
     message.put( "os",      Constants.OSName );
     message.put( "os_version", System.getProperty( "os.version" ) );
