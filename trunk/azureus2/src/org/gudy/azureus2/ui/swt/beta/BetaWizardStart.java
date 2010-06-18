@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -58,7 +59,7 @@ BetaWizardStart
 
         Composite rootPanel = wizard.getPanel();
 		GridLayout layout = new GridLayout();
-		layout.numColumns = 2;
+		layout.numColumns = 1;
 		rootPanel.setLayout(layout);
 		
         
@@ -71,13 +72,11 @@ BetaWizardStart
 		Label link_label = link.getlabel();
 		
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.horizontalSpan=2;
 		gridData.verticalIndent=20;
 		link_label.setLayoutData(gridData);
 
 		final Composite gRadio = new Composite(rootPanel, SWT.NULL);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-	    gridData.horizontalSpan = 2;
 	    gridData.verticalIndent=20;
 		gRadio.setLayoutData(gridData);
 		layout = new GridLayout();
@@ -103,6 +102,11 @@ BetaWizardStart
 		
 		on_button.setSelection( wizard.getBetaEnabled());
 
+		Label version_label = new Label( rootPanel, SWT.WRAP );
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.verticalIndent=20;
+		version_label.setLayoutData(gridData);
+		version_label.setText( MessageText.getString( "beta.wizard.version", new String[]{ Constants.AZUREUS_VERSION } ));
 	}
 	
 	public IWizardPanel

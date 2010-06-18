@@ -21,8 +21,17 @@
 
 package org.gudy.azureus2.ui.swt.beta;
 
+import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
+
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 public class 
 BetaWizard
@@ -30,13 +39,15 @@ BetaWizard
 {	
 	private boolean beta_enabled = COConfigurationManager.getBooleanParameter( "Beta Programme Enabled" );
 	
+	private boolean beta_was_enabled = beta_enabled;
+	
 	private boolean	finished;
 	
 	public
 	BetaWizard()
 	{
 		super( "beta.wizard.title", false );
-			
+	
 		BetaWizardStart panel = new BetaWizardStart( this );
 		
 		setFirstPanel( panel );
@@ -49,7 +60,36 @@ BetaWizard
 		
 		if ( finished ){
 			
-			COConfigurationManager.setParameter( "Beta Programme Enabled",beta_enabled );
+			COConfigurationManager.setParameter( "Beta Programme Enabled", beta_enabled );
+			
+			if ( !beta_enabled && Constants.IS_CVS_VERSION ){
+				
+				MessageBoxShell mb = new MessageBoxShell( 
+						SWT.ICON_INFORMATION | SWT.OK,
+						MessageText.getString( "beta.wizard.disable.title" ),
+						MessageText.getString( "beta.wizard.disable.text" ));
+				
+				mb.open(null);
+				
+			}else if ( beta_enabled && !beta_was_enabled ){
+				
+				UpdateMonitor.getSingleton( 
+					AzureusCoreFactory.getSingleton()).performCheck(
+						true, false, false,
+						new UpdateCheckInstanceListener() {
+							public void 
+							cancelled(
+								UpdateCheckInstance instance) 
+							{
+							}
+
+							public void 
+							complete(
+								UpdateCheckInstance instance) 
+							{
+							}
+						});
+			}
 		}
 	}
 	
