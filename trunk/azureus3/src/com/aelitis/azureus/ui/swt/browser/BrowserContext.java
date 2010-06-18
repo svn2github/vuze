@@ -373,6 +373,7 @@ public class BrowserContext
 				boolean isOurURI = lowerLocation.startsWith("magnet:")
 						|| lowerLocation.startsWith("vuze:")
 						|| lowerLocation.startsWith("bc:")
+						|| lowerLocation.startsWith("bctp:")
 						|| lowerLocation.startsWith("dht:");
 
 				if (isOurURI) {

@@ -436,6 +436,7 @@ public class WebResult extends Result {
 					lc_link.startsWith("azplug:") ||
 					lc_link.startsWith("magnet:") ||
 					lc_link.startsWith("bc:") ||
+					lc_link.startsWith("bctp:") ||
 					lc_link.startsWith("dht:" )){
 				
 				return( link );

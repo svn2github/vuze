@@ -1595,6 +1595,19 @@ PlatformManagerImpl
 			
 			Debug.printStackTrace(e);
 		}
+		
+		try{
+			registerAdditionalFileType( 
+				"BCTP", 
+				"BCTP URI", 
+				".bctpuri", 
+				"application/x-bctp-uri",
+				true );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
 	}
 	
 	public void
