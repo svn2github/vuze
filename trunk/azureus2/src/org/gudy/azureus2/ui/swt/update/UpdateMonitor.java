@@ -62,7 +62,8 @@ public class UpdateMonitor
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 
-	public static final long AUTO_UPDATE_CHECK_PERIOD = 23 * 60 * 60 * 1000; // 23 hours
+	public static final long AUTO_UPDATE_CHECK_PERIOD 		= 23 * 60 * 60 * 1000; // 23 hours
+	public static final long AUTO_UPDATE_CHECK_PERIOD_BETA 	= 4 * 60 * 60 * 1000; // 4 hours
 
 	private static final String MSG_PREFIX = "UpdateMonitor.messagebox.";
 
@@ -156,7 +157,8 @@ public class UpdateMonitor
 
 
 		SimpleTimer.addPeriodicEvent("UpdateMon:autocheck",
-				AUTO_UPDATE_CHECK_PERIOD, new TimerEventPerformer() {
+				COConfigurationManager.getBooleanParameter( "Beta Programme Enabled" )?AUTO_UPDATE_CHECK_PERIOD_BETA:AUTO_UPDATE_CHECK_PERIOD,
+				new TimerEventPerformer() {
 					public void perform(TimerEvent ev) {
 						performAutoCheck(false);
 					}
