@@ -318,8 +318,11 @@ public class MessageBoxShell
 		MouseTrackAdapter mouseAdapter = null;
 		final Display display = parent.getDisplay();
 
-		shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM
-				| SWT.RESIZE | SWT.APPLICATION_MODAL);
+		//APPLICATION_MODAL causes some crazy sht to happen on Windows.  
+		// Example: 5 windows open in APPLICATION MODAL mode, 
+		// and somehow none of them show until you do a "Window->Bring To Front"
+		// which only makes ONE visible
+		shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
 		if (title != null) {
 			shell.setText(title);
 		}
