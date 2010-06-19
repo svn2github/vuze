@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -108,6 +109,17 @@ public class AdvRenameWindow
 		rowLayout.fill = true;
 		rowLayout.spacing = 5;
 		cButtons.setLayout(rowLayout);
+		
+		Button btnReset = new Button(cButtons, SWT.PUSH);
+		Messages.setLanguageText(btnReset, "Button.reset");
+		btnReset.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				txtInput.setText(TorrentUtils.getLocalisedName(dm.getTorrent()));
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
 
 		Button btnOk = new Button(cButtons, SWT.PUSH);
 		Messages.setLanguageText(btnOk, "Button.ok");
