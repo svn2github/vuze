@@ -2680,20 +2680,7 @@ public class OpenTorrentWindow
 		}
 
 		public String getTorrentName() {
-			if (torrent == null)
-				return "";
-			try {
-				LocaleUtilDecoder decoder = LocaleTorrentUtil.getTorrentEncodingIfAvailable(torrent);
-				if (decoder != null)
-					return decoder.decodeString(torrent.getName());
-			} catch (Exception e) {
-			}
-
-			try {
-				return new String(torrent.getName());
-			} catch (Exception e) {
-				return "TextDecodingError";
-			}
+			return TorrentUtils.getLocalisedName(torrent);
 		}
 
 		public boolean allFilesMoving() {
