@@ -759,11 +759,13 @@ public class TorrentUtil {
 		// Advanced - > Rename
 		final MenuItem itemRename = new MenuItem(menuAdvanced, SWT.DROP_DOWN);
 		Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");
-		itemRename.setEnabled(hasSelection && dms.length == 1);
+		itemRename.setEnabled(hasSelection);
 		itemRename.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				AdvRenameWindow window = new AdvRenameWindow();
-				window.open(dms[0]);
+				for (DownloadManager dm : dms) {
+					AdvRenameWindow window = new AdvRenameWindow();
+					window.open(dm);
+				}
 			}
 		});
 
