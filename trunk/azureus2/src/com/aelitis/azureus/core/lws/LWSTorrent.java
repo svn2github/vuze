@@ -115,7 +115,11 @@ LWSTorrent
 	{
 		return( lws.getName().getBytes());
 	}
-	
+
+	public String getUTF8Name() {
+		return lws.getName();
+	}
+
 	public boolean
 	isSimpleTorrent()
 	{

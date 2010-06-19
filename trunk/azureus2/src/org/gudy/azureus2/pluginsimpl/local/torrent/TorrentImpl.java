@@ -78,7 +78,8 @@ TorrentImpl
 	public String
 	getName()
 	{
-		String	name = decode( torrent.getName());
+		String utf8Name = torrent.getUTF8Name();
+		String	name = utf8Name == null ? decode( torrent.getName()) : utf8Name;
 		
 		name = FileUtil.convertOSSpecificChars( name, false );
 

@@ -73,6 +73,10 @@ TRHostExternalTorrent
 		return( name );
 	}
 	
+	public String getUTF8Name() {
+		return null;
+	}
+
 	
 	public boolean
 	isSimpleTorrent()

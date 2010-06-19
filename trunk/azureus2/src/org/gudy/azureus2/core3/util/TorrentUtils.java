@@ -878,7 +878,14 @@ TorrentUtils
 	getLocalisedName(
 		TOTorrent		torrent )
 	{
+		if (torrent == null) {
+			return "";
+		}
 		try{
+			String utf8Name = torrent.getUTF8Name();
+			if (utf8Name != null) {
+				return utf8Name;
+			}
 			
 			LocaleUtilDecoder decoder = LocaleTorrentUtil.getTorrentEncodingIfAvailable( torrent );
 			
@@ -2297,6 +2304,10 @@ TorrentUtils
 			if (delegate instanceof LogRelation)
 				return ((LogRelation)delegate).getQueryableInterfaces();
 			return super.getQueryableInterfaces();
+		}
+
+		public String getUTF8Name() {
+			return delegate.getUTF8Name();
 		}
 	}
 

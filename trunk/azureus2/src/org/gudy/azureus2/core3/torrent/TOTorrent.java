@@ -355,4 +355,11 @@ TOTorrent
 	  */
 	public void
 	print();
+
+	/**
+	 * Retrieves the utf8 name of the torrent ONLY if the torrent specified one
+	 * in it's info map.  Otherwise, returns null (you'll have to use getName()
+	 * and decode it yourself)
+	 */
+	String getUTF8Name();
 }

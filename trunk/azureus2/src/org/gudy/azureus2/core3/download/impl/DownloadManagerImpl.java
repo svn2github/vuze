@@ -649,7 +649,7 @@ DownloadManagerImpl
 				 	// if its a simple torrent and an explicit save file wasn't supplied, use
 				 	// the torrent name itself
 
-				 display_name = FileUtil.convertOSSpecificChars(locale_decoder.decodeString(torrent.getName()),false);
+				 display_name = FileUtil.convertOSSpecificChars(TorrentUtils.getLocalisedName(torrent),false);
 				 
 				 internal_name = ByteFormatter.nicePrint(torrent.getHash(),true);
 	

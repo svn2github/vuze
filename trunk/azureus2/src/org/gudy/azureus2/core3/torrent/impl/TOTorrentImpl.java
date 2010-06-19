@@ -478,6 +478,17 @@ TOTorrentImpl
 		torrent_name	= _name;
 	}
 	
+	public String
+	getUTF8Name()
+	{
+		try {
+			return torrent_name_utf8 == null ? null : new String(torrent_name_utf8,
+					"utf8");
+		} catch (UnsupportedEncodingException e) {
+			return null;
+		}
+	}
+	
 	protected void
 	setNameUTF8(
 		byte[]	_name )
