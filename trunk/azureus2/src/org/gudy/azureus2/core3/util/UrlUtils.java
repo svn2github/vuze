@@ -349,7 +349,7 @@ public class UrlUtils
 		return( null );
 	}
 	
-	public static String parseHTMLforURL(String text) {
+	private static String parseHTMLforURL(String text) {
 		if (text == null) {
 			return null;
 		}
