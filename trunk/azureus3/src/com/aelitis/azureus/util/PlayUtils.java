@@ -208,6 +208,11 @@ public class PlayUtils
 			
 			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
 			
+			if ( edm == null ) {
+				
+				return( false );
+			}
+			
 			file = edm.getPrimaryFile();
 			
 		}else{
