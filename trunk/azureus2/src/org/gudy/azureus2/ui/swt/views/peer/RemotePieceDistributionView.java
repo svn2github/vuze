@@ -23,6 +23,8 @@ import java.util.Arrays;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportProtocol;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.PieceDistributionView;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
@@ -49,7 +51,12 @@ public class RemotePieceDistributionView extends PieceDistributionView {
 			peer = null;
 			pem = null;
 		}
-		refresh();
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				refresh();
+			}
+		});
 	}
 
 	public void refresh() {
