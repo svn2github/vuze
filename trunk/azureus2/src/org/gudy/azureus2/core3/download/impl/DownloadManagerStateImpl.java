@@ -3826,7 +3826,10 @@ DownloadManagerStateImpl
      	}
 
 			public String getUTF8Name() {
-				return delegate.getUTF8Name();
+				if (fixup()) {
+					return delegate.getUTF8Name();
+				}
+				return null;
 			}
 	}
 }
