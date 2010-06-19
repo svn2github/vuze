@@ -2794,6 +2794,7 @@ DownloadManagerStateImpl
 			
 			cache.put( "hash", state.getHash());
 			cache.put( "name", state.getName());
+			cache.put( "utf8name", state.getUTF8Name() == null ? "" : state.getUTF8Name());
 			cache.put( "comment", state.getComment());
 			cache.put( "createdby", state.getCreatedBy());
 			cache.put( "size", new Long( state.getSize()));
@@ -3196,6 +3197,32 @@ DownloadManagerStateImpl
 	   		// My experience is that we just get an empty string here...
 	   		return(("Error - " + Debug.getNestedExceptionMessage( fixup_failure )).getBytes());
     	}
+
+		public String getUTF8Name() {
+			Map	c = cache;
+			
+			if ( c != null ){
+
+				byte[] name = (byte[])c.get( "utf8name" );
+				if (name != null) {
+					String utf8name;
+					try {
+						utf8name = new String(name, "utf8");
+					} catch (UnsupportedEncodingException e) {
+						return null;
+					}
+					if (utf8name.length() == 0) {
+						return null;
+					}
+					return utf8name;
+				}
+			}
+
+			if (fixup()) {
+				return delegate.getUTF8Name();
+			}
+			return null;
+		}
 
     	public boolean
     	isSimpleTorrent()
@@ -3824,12 +3851,5 @@ DownloadManagerStateImpl
 
      		return null;
      	}
-
-			public String getUTF8Name() {
-				if (fixup()) {
-					return delegate.getUTF8Name();
-				}
-				return null;
-			}
 	}
 }
