@@ -846,17 +846,20 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			long lastMouseUpEventTime = 0;
+			Point lastMouseUpPos = new Point(0, 0);
 			public void mouseUp(MouseEvent e) {
 				if (e.button == 1) {
   				long time = e.time & 0xFFFFFFFFL;
   				long diff = time - lastMouseUpEventTime;
-  				if (diff <= e.display.getDoubleClickTime() && diff >= 0) {
-  					// Fake double click because Cocoa SWT 3650 doesn't always trigger
-  					// DefaultSelection listener on a Tree on dblclick (works find in Table)
-  					runDefaultAction(e.stateMask);
-  					return;
-  				}
+					if (diff <= e.display.getDoubleClickTime() && diff >= 0
+							&& lastMouseUpPos.x == e.x && lastMouseUpPos.y == e.y) {
+						// Fake double click because Cocoa SWT 3650 doesn't always trigger
+						// DefaultSelection listener on a Tree on dblclick (works find in Table)
+						runDefaultAction(e.stateMask);
+						return;
+					}
   				lastMouseUpEventTime = time;
+  				lastMouseUpPos = new Point(e.x, e.y);
 				}
 
 				TableColumnCore tc = getTableColumnByOffset(e.x);
