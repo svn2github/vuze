@@ -2570,7 +2570,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 
 		TableRowCore[] selectedRows = getSelectedRows();
-
+			
 		boolean bReplacedVisible = false;
 		boolean bWas0Rows = table.getItemCount() == 0;
 		try {
@@ -4066,6 +4066,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		
 		if (trigger) {
 			triggerSelectionListeners(new TableRowCore[] { row });
+			triggerTabViewsDataSourceChanged();
 		}
 		
 		((TableRowSWT) row).setWidgetSelected(true);
