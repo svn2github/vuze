@@ -289,7 +289,7 @@ ExternalSeedReaderGetRight
 	{	
 		setReconnectDelay( RECONNECT_DEFAULT, false );
 		
-		long	request_start 	= start_piece_number * piece_size + start_piece_offset;
+		long	request_start 	= start_piece_number * (long)piece_size + start_piece_offset;
 		int		request_length	= length;
 		
 		if ( http_downloaders.length == 1 ){
