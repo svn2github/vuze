@@ -701,6 +701,13 @@ public class SBC_LibraryView
 					}
 				}
 
+				Boolean wasStoppedB = (Boolean) dm.getUserData("wasStopped");
+				boolean wasStopped = wasStoppedB == null ? false
+						: wasStoppedB.booleanValue();
+				if (wasStopped) {
+					stats.numStopped--;
+				}
+
 				refreshAllLibraries();
 				dm.removeListener(dmListener);
 			}
