@@ -300,7 +300,7 @@ public class SBC_LibraryView
   				setupViewTitleWithCore(core);
   			}
   		});
-  		first = true;
+  		first = false;
 		}
 		return null;
 	}
@@ -524,7 +524,7 @@ public class SBC_LibraryView
   				setupViewTitleWithCore(core);
   			}
   		});
-  		first = true;
+  		first = false;
 		}
 		PlatformTorrentUtils.addHasBeenOpenedListener(new HasBeenOpenedListener() {
 			public void hasBeenOpenedChanged(DownloadManager dm, boolean opened) {
