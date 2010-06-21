@@ -660,7 +660,7 @@ public class Utils
 					final long lStart = SystemTime.getCurrentTime();
 
 					final Display fDisplay = display;
-					AERunnable runnableWrapper = new AERunnable() {
+					final AERunnable runnableWrapper = new AERunnable() {
 						public void runSupport() {
 							long wait = SystemTime.getCurrentTime() - lStart - msLater;
 							if (wait > 700) {
@@ -707,13 +707,13 @@ public class Utils
 						display.asyncExec(runnableWrapper);
 					} else {
 						if(isSWTThread) {
-							display.timerExec(msLater, code);
+							display.timerExec(msLater, runnableWrapper);
 						} else {
   						SimpleTimer.addEvent("execSWTThreadLater",
   								SystemTime.getOffsetTime(msLater), new TimerEventPerformer() {
   									public void perform(TimerEvent event) {
   										if (!display.isDisposed()) {
-  											display.asyncExec(code);
+  											display.asyncExec(runnableWrapper);
   										}
   									}
   								});
