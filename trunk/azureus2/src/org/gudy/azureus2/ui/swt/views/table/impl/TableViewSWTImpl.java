@@ -1224,22 +1224,24 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		Rectangle oldClientArea = clientArea;
 		clientArea = table.getClientArea();
 		ScrollBar horizontalBar = table.getHorizontalBar();
+		boolean clientAreaCausedVisibilityChanged = false;
 		if (horizontalBar != null) {
 			int pos = horizontalBar.getSelection();
 			if (pos != lastHorizontalPos) {
 				lastHorizontalPos = pos;
-				columnVisibilitiesChanged = true;
+				clientAreaCausedVisibilityChanged = true;
 			}
 		}
 		if (oldClientArea != null
 				&& (oldClientArea.x != clientArea.x || oldClientArea.width != clientArea.width)) {
-			columnVisibilitiesChanged = true;
+			clientAreaCausedVisibilityChanged = true;
 		}
 		if (oldClientArea != null
 				&& (oldClientArea.y != clientArea.y || oldClientArea.height != clientArea.height)) {
 			visibleRowsChanged();
 		}
-		if (columnVisibilitiesChanged) {
+		if (clientAreaCausedVisibilityChanged) {
+			columnVisibilitiesChanged = true;
 			Utils.execSWTThreadLater(50, new AERunnable() {
 				public void runSupport() {
 					if (columnVisibilitiesChanged) {
@@ -4041,8 +4043,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				sortedRows_mon.exit();
 			}
 
-			swt_calculateClientArea();
-
 			if (DEBUG_SORTER) {
 				long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
 				if (lTimeDiff >= 500) {
@@ -4946,6 +4946,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 		filter.widget = txtFilter;
 		if (txtFilter != null) {
+			txtFilter.setMessage("Filter");
   		txtFilter.addKeyListener(this);
   
   		filter.widgetModifyListener = new ModifyListener() {
