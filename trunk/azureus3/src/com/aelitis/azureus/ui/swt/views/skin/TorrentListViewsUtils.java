@@ -59,6 +59,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
+import com.aelitis.azureus.core.download.StreamManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -234,17 +235,17 @@ public class TorrentListViewsUtils
 		} else if (ds instanceof ISelectedContent) {
 			referal = DLReferals.DL_REFERAL_SELCONTENT;
 		}
-		playOrStreamDataSource(ds, file_index, btn, referal, launch_already_checked);
+		playOrStreamDataSource(ds, file_index, btn, referal, launch_already_checked, true );
 	}
 
 	public static void playOrStreamDataSource(Object ds, int file_index,
-			SWTSkinButtonUtility btn, String referal, boolean launch_already_checked ) {
+			SWTSkinButtonUtility btn, String referal, boolean launch_already_checked, boolean complete_only ) {
 
 		DownloadManager dm = DataSourceUtils.getDM(ds);
 		if (dm == null) {
 			downloadDataSource(ds, true, referal);
 		} else {
-			playOrStream(dm, file_index, PlayUtils.COMPLETE_PLAY_ONLY, btn, launch_already_checked);
+			playOrStream(dm, file_index, complete_only, btn, launch_already_checked);
 		}
 
 	}
@@ -365,7 +366,7 @@ public class TorrentListViewsUtils
 		if (torrent == null) {
 			return;
 		}
-		if (PlayUtils.canUseEMP(torrent, file_index)) {
+		if (PlayUtils.canUseEMP(torrent, file_index,complete_only)) {
 			debug("Can use EMP");
 
 			int open_result = openInEMP(dm,file_index,complete_only);
@@ -734,7 +735,12 @@ public class TorrentListViewsUtils
 				}
 			}else{
 			
+				StreamManager	sm = StreamManager.getSingleton();
+								
 				try{
+					sm.stream( dm, file_index, new URL( url ));
+
+					/*
 					Method method = epwClass.getMethod("openWindow", new Class[] {
 							URL.class, String.class
 						});
@@ -742,7 +748,8 @@ public class TorrentListViewsUtils
 					method.invoke(null, new Object[] {
 							new URL( url ), file.getFile( true ).getName()
 						});
-						
+					*/
+					
 					return( 0 );
 						
 				}catch( Throwable e ){

@@ -155,7 +155,7 @@ public class InitialisationFunctions
 					int														file_index )
 				{
 					TorrentListViewsUtils.playOrStreamDataSource(
-							dm, -1, null, DLReferals.DL_REFERAL_PLAYDM, false );
+							dm, -1, null, DLReferals.DL_REFERAL_PLAYDM, false, true );
 				}	
 				
 				public TranscodeTarget[]

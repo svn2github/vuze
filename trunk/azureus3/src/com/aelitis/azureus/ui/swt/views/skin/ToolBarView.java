@@ -149,7 +149,7 @@ public class ToolBarView
   				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
   				if (sc != null) {
   					TorrentListViewsUtils.playOrStreamDataSource(sc[0], sc[0].getFileIndex(),
-  							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR, false );
+  							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR, false, true );
   				}
   			}
   		};
@@ -167,7 +167,7 @@ public class ToolBarView
   				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
   				if (sc != null) {
   					TorrentListViewsUtils.playOrStreamDataSource(sc[0], sc[0].getFileIndex(),
-  							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR, false );
+  							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR, true, false );
   				}
   			}
   		};
