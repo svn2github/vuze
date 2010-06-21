@@ -4,7 +4,9 @@ VUZE CHANGELOG
 2010.xx.xx | Vuze 4.4.0.7
 
 FEATURE: Core | Handle "bc://" URLs [TuxPaper]
+FEATURE: UI   | Added [Reset] button to Torrent->Rename.. dialog [TuxPaper]
 
+BUGFIX: Core | Better handle torrents with valid UTF8 name, but invalid (to user's locale) non-UTF name. [TuxPaper]
 
 
 2010.06.04 | Vuze 4.4.0.6
