@@ -18,7 +18,7 @@
  
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.accessibility.Accessible;
@@ -27,7 +27,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
@@ -47,7 +47,7 @@ public class TreeDelegate implements TableOrTreeSWT
 {
 	Tree tree;
 
-	Map data = new LightHashMap(5);
+	Map<String, Object> data = new HashMap<String, Object>(5);
 
 	protected TreeDelegate(Composite parent, int style) {
 		this(Constants.isWindows ? new Tree2(parent, style) : new Tree(parent,
@@ -443,6 +443,7 @@ public class TreeDelegate implements TableOrTreeSWT
 	}
 
 	public void deselect(TableItemOrTreeItem item) {
+		//System.out.println("DESEL " + Debug.getCompressedStackTrace());
 		tree.deselect((TreeItem) item.getItem());
 	}
 
