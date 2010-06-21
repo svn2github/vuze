@@ -21,7 +21,7 @@
 
 package com.aelitis.azureus.core.download;
 
-public class 
+public interface 
 StreamManagerDownload 
 {
 
