@@ -3323,7 +3323,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (iPos >= 0 && iPos < sortedRows.size()) {
 				TableRowCore row = sortedRows.get(iPos);
 
-				if (row.getIndex() != iPos) {
+				if (row.getIndex() != iPos && Utils.isThisThreadSWT()) {
 					row.setTableItem(iPos);
 				}
 				return row;
