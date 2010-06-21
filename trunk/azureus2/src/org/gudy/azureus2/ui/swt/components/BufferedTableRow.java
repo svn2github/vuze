@@ -624,7 +624,10 @@ BufferedTableRow
 
     boolean wasExpanded = lastItemExisted ? item.getExpanded() : false;
     item = newRow;
-		item.setItemCount(numSubItems);
+    // setItemCount takes longer than a getItemCount comparison
+    if (item.getItemCount() != numSubItems) {
+    	item.setItemCount(numSubItems);
+    }
 		item.setExpanded(wasExpanded);
 		// Need to execute (de)select later, because if we are in a paint event
 		// that paint event may be reporting a row selected before the selection
@@ -635,14 +638,11 @@ BufferedTableRow
 				if (item.getData("TableRow") != BufferedTableRow.this) {
 					return;
 				}
+				// select/deselect takes less time than a table.isSelected (tree)
 				if (isSelected()) {
-					if (!table.isSelected(item)) {
-						table.select(item);
-					}
+					table.select(item);
 				} else {
-					if (table.isSelected(item)) {
-						table.deselect(item);
-					}
+					table.deselect(item);
 				}
 			}
 		});
