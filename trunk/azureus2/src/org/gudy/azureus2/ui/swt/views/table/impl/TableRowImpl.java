@@ -49,22 +49,23 @@ import com.aelitis.azureus.ui.common.table.*;
  *                         BufferedTableRow
  *            2005/Oct/07: Removed all calls to BufferedTableRoe.getItem()
  */
-public class TableRowImpl 
+public class TableRowImpl<COREDATASOURCE> 
        extends BufferedTableRow 
        implements TableRowSWT
 {
   /** List of cells in this column.  They are not stored in display order */
   private Map<String, TableCellImpl> mTableCells;
+  private TableCellImpl[] tableCells;
   private AEMonitor2 mTableCells_mon = new AEMonitor2("mTableCells");
   
   private Object coreDataSource;
   private Object pluginDataSource;
   private boolean bDisposed;
   private boolean bSetNotUpToDateLastRefresh = false;
-	private TableView tableView;
+	private TableView<COREDATASOURCE> tableView;
 
   private static AEMonitor this_mon = new AEMonitor( "TableRowImpl" );
-	private ArrayList mouseListeners;
+	private ArrayList<TableRowMouseListener> mouseListeners;
 	private boolean wasShown = false;
 	private Map<String,Object> dataList;
 	
@@ -73,12 +74,12 @@ public class TableRowImpl
 	private int alpha = 255;
 	
 	private TableRowCore parentRow;
-	private CopyOnWriteList<TableRowImpl> subRows;
+	private CopyOnWriteList<TableRowImpl<Object>> subRows;
 
   // XXX add rowVisuallyupdated bool like in ListRow
 
-	public TableRowImpl(TableRowCore parentRow, TableView<?> tv, TableOrTreeSWT table, String sTableID,
-			Object dataSource, int index) {
+	public TableRowImpl(TableRowCore parentRow, TableView<COREDATASOURCE> tv,
+			TableOrTreeSWT table, String sTableID, Object dataSource, int index) {
 		super(table);
 		this.parentRow = parentRow;
 		this.tableView = tv;
@@ -96,7 +97,7 @@ public class TableRowImpl
 	 * @param dataSource
 	 * @param bSkipFirstColumn
 	 */
-	public TableRowImpl(TableView tv, TableOrTreeSWT table,
+	public TableRowImpl(TableView<COREDATASOURCE> tv, TableOrTreeSWT table,
 			TableColumnCore[] columnsSorted, Object dataSource,
 			boolean bSkipFirstColumn) {
 		super(table);
@@ -118,6 +119,8 @@ public class TableRowImpl
     		mTableCells.put(columnsSorted[i].getName(), cell);
     		//if (i == 10) cell.bDebug = true;
     	}
+    	
+    	tableCells = mTableCells.values().toArray(new TableCellImpl[mTableCells.size()]);
     } finally {
     	mTableCells_mon.exit();
     }
@@ -131,7 +134,7 @@ public class TableRowImpl
     boolean valid = true;
     mTableCells_mon.enter();
     try {
-    	for (TableCell cell : mTableCells.values()) {
+    	for (TableCell cell : tableCells) {
     		if (cell.isValid()) {
     			return false;
     		}
@@ -176,7 +179,7 @@ public class TableRowImpl
 			this_mon.enter();
 
 			if (mouseListeners == null)
-				mouseListeners = new ArrayList(1);
+				mouseListeners = new ArrayList<TableRowMouseListener>(1);
 
 			mouseListeners.add(listener);
 
@@ -200,13 +203,13 @@ public class TableRowImpl
 	}
 
   public void invokeMouseListeners(TableRowMouseEvent event) {
-		ArrayList listeners = mouseListeners;
+		ArrayList<TableRowMouseListener> listeners = mouseListeners;
 		if (listeners == null)
 			return;
 		
 		for (int i = 0; i < listeners.size(); i++) {
 			try {
-				TableRowMouseListener l = (TableRowMouseListener) (listeners.get(i));
+				TableRowMouseListener l = listeners.get(i);
 
 				l.rowMouseTrigger(event);
 
@@ -233,7 +236,7 @@ public class TableRowImpl
 			mTableCells_mon.enter();
 			try {
   			if (mTableCells != null) {
-  				for (TableCellSWT item : mTableCells.values()) {
+  				for (TableCellSWT item : tableCells) {
   					try {
   						item.dispose();
   					} catch (Exception e) {
@@ -253,7 +256,7 @@ public class TableRowImpl
 		}
 	}
   
-  public List refresh(boolean bDoGraphics) {
+  public List<TableCellSWT> refresh(boolean bDoGraphics) {
     if (bDisposed) {
       return Collections.EMPTY_LIST;
     }
@@ -263,10 +266,10 @@ public class TableRowImpl
     return refresh(bDoGraphics, bVisible);
   }
 
-  public List refresh(boolean bDoGraphics, boolean bVisible) {
+  public List<TableCellSWT> refresh(boolean bDoGraphics, boolean bVisible) {
     // If this were called from a plugin, we'd have to refresh the sorted column
     // even if we weren't visible
-    List list = Collections.EMPTY_LIST;
+    List<TableCellSWT> list = Collections.EMPTY_LIST;
 
   	if (bDisposed) {
   		return list;
@@ -284,12 +287,12 @@ public class TableRowImpl
 		
 		//System.out.println(SystemTime.getCurrentTime() + "refresh " + getIndex() + ";vis=" + bVisible);
 		
-		((TableViewSWTImpl)tableView).invokeRefreshListeners(this);
+		((TableViewSWTImpl<COREDATASOURCE>)tableView).invokeRefreshListeners(this);
 
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-				for (TableCellSWT item : mTableCells.values()) {
+				for (TableCellSWT item : tableCells) {
     			TableColumn column = item.getTableColumn();
     			//System.out.println(column);
     			if (column != tableView.getSortColumn() && !tableView.isColumnVisible(column)) {
@@ -300,7 +303,7 @@ public class TableRowImpl
     			if (changed)
     			{
     				if(list == Collections.EMPTY_LIST)
-    					list = new ArrayList(mTableCells.size());
+    					list = new ArrayList<TableCellSWT>(mTableCells.size());
     				list.add(item);
     			}
     				
@@ -320,7 +323,7 @@ public class TableRowImpl
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-    		for (TableCellSWT item : mTableCells.values()) {
+    		for (TableCellSWT item : tableCells) {
       		if (item.getTableColumn().getPosition() > iStartColumn) {
       		  item.locationChanged();
       		}
@@ -343,7 +346,7 @@ public class TableRowImpl
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-    		for (TableCellSWT cell : mTableCells.values()) {
+    		for (TableCellSWT cell : tableCells) {
 //    	if (bOnlyIfChanged && !cell.getVisuallyChangedSinceRefresh()) {
 //    		continue;
 //    	}
@@ -415,7 +418,7 @@ public class TableRowImpl
 			if (parentRow != null) {
 				return lastIndex;
 			}
-			TableRowCore row = ((TableViewSWTImpl) tableView).getRowQuick(lastIndex);
+			TableRowCore row = ((TableViewSWTImpl<COREDATASOURCE>) tableView).getRowQuick(lastIndex);
 			if (row == this) {
 				return lastIndex;
 			}
@@ -533,7 +536,7 @@ public class TableRowImpl
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-    		for (TableCellSWT cell : mTableCells.values()) {
+    		for (TableCellSWT cell : tableCells) {
     			cell.invalidate(false);
       	}
   		}
@@ -549,7 +552,7 @@ public class TableRowImpl
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-    		for (TableCellSWT cell : mTableCells.values()) {
+    		for (TableCellSWT cell : tableCells) {
     			cell.setUpToDate(upToDate);
       	}
   		}
@@ -572,7 +575,7 @@ public class TableRowImpl
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#getView()
-	public TableView getView() {
+	public TableView<COREDATASOURCE> getView() {
 		return tableView;
 	}
 
@@ -593,7 +596,7 @@ public class TableRowImpl
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-    		for (TableCellSWT cell : mTableCells.values()) {
+    		for (TableCellSWT cell : tableCells) {
     			cell.invokeVisibilityListeners(b
     					? TableCellVisibilityListener.VISIBILITY_SHOWN
     							: TableCellVisibilityListener.VISIBILITY_HIDDEN, true);
@@ -702,7 +705,7 @@ public class TableRowImpl
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setSelected(boolean)
 	public void setSelected(boolean selected) {
 		if (tableView instanceof TableViewSWTImpl) {
-			((TableViewSWTImpl)tableView).selectRow(this, true);
+			((TableViewSWTImpl<COREDATASOURCE>)tableView).selectRow(this, true);
 		}
 	}
 
@@ -723,32 +726,36 @@ public class TableRowImpl
 	}
 	
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setSubItemCount(int)
+	@SuppressWarnings("rawtypes")
 	public void setSubItemCount(final int count) {
 		super.setSubItemCount(count);
 		// instead of adding each one to subRows, buld up a list on a non-COW
 		// and add them all at the end
-		subRows = new CopyOnWriteList<TableRowImpl>(count);
-		List list = new ArrayList(count);
+		subRows = new CopyOnWriteList<TableRowImpl<Object>>(count);
+		List<TableRowImpl<Object>> list = new ArrayList<TableRowImpl<Object>>(count);
 		for (int i = 0; i < count; i++) {
 			list.add(new TableRowImpl(this, tableView, table, getTableID(), null, i));
 		}
 		subRows.addAll(list);
 	}
 
+	@SuppressWarnings("rawtypes")
 	public void setSubItems(Object[] datasources) {
 		super.setSubItemCount(datasources.length);
 		// instead of adding each one to subRows, buld up a list on a non-COW
 		// and add them all at the end
-		subRows = new CopyOnWriteList<TableRowImpl>(datasources.length);
-		List list = new ArrayList(datasources.length);
+		subRows = new CopyOnWriteList<TableRowImpl<Object>>(datasources.length);
+		List<TableRowImpl<Object>> list = new ArrayList<TableRowImpl<Object>>(
+				datasources.length);
 		for (int i = 0; i < datasources.length; i++) {
-			list.add(new TableRowImpl(this, tableView, table, getTableID(), datasources[i], i));
+			list.add(new TableRowImpl(this, tableView, table, getTableID(),
+					datasources[i], i));
 		}
 		subRows.addAll(list);
 	}
 
 	public TableRowCore linkSubItem(int indexOf) {
-		TableRowImpl subRow = subRows.get(indexOf);
+		TableRowImpl<Object> subRow = subRows.get(indexOf);
 		TableItemOrTreeItem subItem = item.getItem(indexOf);
 		subRow.setTableItem(subItem, true);
 		return subRow;
