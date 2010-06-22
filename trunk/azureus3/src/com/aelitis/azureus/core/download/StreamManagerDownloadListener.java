@@ -22,7 +22,16 @@
 package com.aelitis.azureus.core.download;
 
 public interface 
-StreamManagerListener 
+StreamManagerDownloadListener 
 {
-
+	public void
+	updateActivity(
+		String		str );
+	
+	public void
+	ready();
+	
+	public void
+	failed(
+		Throwable 	error );
 }

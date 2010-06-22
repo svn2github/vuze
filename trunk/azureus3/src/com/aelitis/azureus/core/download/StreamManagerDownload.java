@@ -24,5 +24,6 @@ package com.aelitis.azureus.core.download;
 public interface 
 StreamManagerDownload 
 {
-
+	public void
+	cancel();
 }

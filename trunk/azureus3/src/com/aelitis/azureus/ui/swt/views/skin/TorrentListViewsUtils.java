@@ -60,6 +60,8 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.download.StreamManager;
+import com.aelitis.azureus.core.download.StreamManagerDownload;
+import com.aelitis.azureus.core.download.StreamManagerDownloadListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -738,7 +740,34 @@ public class TorrentListViewsUtils
 				StreamManager	sm = StreamManager.getSingleton();
 								
 				try{
-					sm.stream( dm, file_index, new URL( url ));
+					StreamManagerDownload sd = 
+						sm.stream( 
+							dm, file_index, new URL( url ),
+							new StreamManagerDownloadListener()
+							{
+								public void
+								updateActivity(
+									String		str )
+								{
+									System.out.println( "sd: " + str );
+								}
+								
+								public void
+								ready()
+								{
+									System.out.println( "sd: ready" );
+								}
+								
+								public void
+								failed(
+									Throwable 	error )
+								{
+									System.out.println( "sd: failed" );
+									
+									Debug.out( error );
+								}
+								
+							});
 
 					/*
 					Method method = epwClass.getMethod("openWindow", new Class[] {

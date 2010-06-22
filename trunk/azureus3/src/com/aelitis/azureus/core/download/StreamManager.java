@@ -22,19 +22,25 @@
 package com.aelitis.azureus.core.download;
 
 import java.util.*;
+import java.lang.reflect.Method;
 import java.net.URL;
 
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
@@ -46,7 +52,10 @@ import com.aelitis.azureus.core.devices.TranscodeManager;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeProvider;
 import com.aelitis.azureus.core.devices.TranscodeProviderAnalysis;
+import com.aelitis.azureus.core.devices.TranscodeQueue;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.swt.plugininstall.SimplePluginInstaller;
 
 public class 
 StreamManager 
@@ -73,11 +82,12 @@ StreamManager
 	
 	public StreamManagerDownload
 	stream(
-		DownloadManager			dm,
-		int						file_index,
-		URL						url )
+		DownloadManager					dm,
+		int								file_index,
+		URL								url,
+		StreamManagerDownloadListener	listener )
 	{
-		SMDImpl	result = new SMDImpl( dm, file_index, url );
+		SMDImpl	result = new SMDImpl( dm, file_index, url, listener );
 				
 		return( result );
 	}
@@ -88,23 +98,24 @@ StreamManager
 		extends AERunnable
 		implements StreamManagerDownload
 	{
-		private DownloadManager			dm;
-		private int						file_index;
-		private URL						url;
-		
-		private int						state = 0;
+		private DownloadManager						dm;
+		private int									file_index;
+		private URL									url;
+		private StreamManagerDownloadListener	listener;
 		
 		private long					duration;
 		
 		private 
 		SMDImpl(
-			DownloadManager			_dm,
-			int						_file_index,
-			URL						_url )
+			DownloadManager					_dm,
+			int								_file_index,
+			URL								_url,
+			StreamManagerDownloadListener	_listener )
 		{
 			dm			= _dm;
 			file_index	= _file_index;
 			url			= _url;
+			listener	= _listener;
 			
 			dispatcher.dispatch( this );
 		}
@@ -112,9 +123,13 @@ StreamManager
 		public void
 		runSupport()
 		{
-			if ( state == 0 ){
-								
+			boolean	ok				= false;
+			boolean	error_reported	= false;
+			
+			try{
 				Download download = PluginCoreUtils.wrap( dm );
+				
+				DiskManagerFileInfo file = download.getDiskManagerFileInfo( file_index );
 				
 				Map	map = download.getMapAttribute( mi_ta );
 				
@@ -122,11 +137,18 @@ StreamManager
 				
 				if ( map != null ){
 					
-					l_duration = (Long)map.get( "duration" );
+					Map file_map = (Map)map.get( String.valueOf( file_index ));
+					
+					if ( file_map != null ){
+						
+						l_duration = (Long)file_map.get( "duration" );
+					}
 				}
 				
 				if ( l_duration == null ){
 						
+					checkPlugin( "vuzexcode", "media analyser" );
+					
 					try{
 						DeviceManager dm = DeviceManagerFactory.getSingleton();
 						
@@ -138,9 +160,21 @@ StreamManager
 								"18a0b53a-a466-6795-1d0f-cf38c830ca0e", 
 								"generic",
 								"Media Analyser" );
-
+	
 						dmr.setHidden(true);
-
+	
+						TranscodeQueue queue = tm.getQueue();
+						
+						TranscodeJob[] jobs = queue.getJobs();
+						
+						for ( TranscodeJob job: jobs ){
+							
+							if ( job.getTarget() == dmr ){
+								
+								job.removeForce();
+							}
+						}
+						
 						TranscodeProfile[] profiles = dmr.getTranscodeProfiles();
 						
 						TranscodeProfile profile = null;
@@ -155,9 +189,20 @@ StreamManager
 							}
 						}
 						
-						final TranscodeJob tj = tm.getQueue().add( dmr, profile, download.getDiskManagerFileInfo( file_index ), true );
-					
+						if ( profile == null ){
+							
+							throw( new Exception( "Analyser transcode profile not found" ));
+						}
+						
+						final TranscodeJob tj = queue.add( dmr, profile, file, true );
+											
 						try{
+							final AESemaphore sem = new AESemaphore( "analyserWait" );
+	
+							final long[] properties = new long[3];
+							
+							final Throwable[] error = { null };
+							
 							tj.analyseNow(
 								new TranscodeAnalysisListener()
 								{
@@ -166,40 +211,231 @@ StreamManager
 										TranscodeJob					file,
 										TranscodeProviderAnalysis		analysis )
 									{
-										System.out.println( "done" );
-										
-										analysis.getLongProperty( TranscodeProviderAnalysis.PT_DURATION_MILLIS );
-										analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_WIDTH );
-										analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_HEIGHT );
-										
-										tj.removeForce();
+										try{											
+											properties[0] = analysis.getLongProperty( TranscodeProviderAnalysis.PT_DURATION_MILLIS );
+											properties[1] = analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_WIDTH );
+											properties[2] = analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_HEIGHT );
+											
+											tj.removeForce();
+											
+										}finally{
+											
+											sem.release();
+										}
 									}
 									
 									public void
 									analysisFailed(
 										TranscodeJob		file,
-										TranscodeException	error )
+										TranscodeException	e )
 									{
-										Debug.out(error);
+										try{
+											error[0] = e;
 										
-										tj.removeForce();
+											tj.removeForce();
+											
+										}finally{
+											
+											sem.release();
+										}
 									}
 								});
+							
+							sem.reserve();
+							
+							if ( error[0] != null ){
+								
+								throw( error[0] );
+							}
+							
+							if ( map == null ){
+								
+								map = new HashMap();
+								
+							}else{
+								
+								map = new HashMap( map );
+							}
+							
+							Map file_map = (Map)map.get( String.valueOf( file_index ));
+							
+							if ( file_map == null ){
+							
+								file_map = new HashMap();
+								
+								map.put( String.valueOf( file_index ), file_map );
+							}
+							
+							file_map.put( "duration", properties[0] );
+							file_map.put( "video_width", properties[1] );
+							file_map.put( "video_height", properties[2] );
+							
+							download.setMapAttribute( mi_ta, map );
+							
+							duration = properties[0] * 1000;
+							
 						}catch( Throwable e ){
 							
 							tj.removeForce();
 							
-							Debug.out( e );
+							throw( e );
 						}
 						
 					}catch( Throwable e ){
 						
-						Debug.out( e );
+						throw( new Exception( "Media analysis failed", e ));
 					}
 				}else{
 						
 					duration = l_duration;
 				}
+				
+				System.out.println( "Duration=" + duration + ", size=" + file.getLength() );
+	
+				if ( duration == 0 ){
+					
+					throw( new Exception( "Media analysis failed - duration unknown" ));
+				}
+				
+				PluginInterface emp_pi = checkPlugin( "azemp", "media player" );
+				
+				EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
+				
+				edm.setExplicitProgressive( 30, file.getLength() / (duration/1000), file_index );
+				
+				if ( !edm.setProgressiveMode( true )){
+					
+					throw( new Exception( "Failed to set download as progressive" ));
+				}
+				
+				while( true ){
+				
+					long eta = edm.getProgressivePlayETA();
+				
+					if ( eta <= 0 ){
+						
+						break;
+					}
+					
+					int dm_state = dm.getState();
+					
+					if ( dm_state == DownloadManager.STATE_ERROR || dm_state == DownloadManager.STATE_STOPPED ){
+						
+						throw( new Exception( "Streaming abandoned, download isn't running" ));
+					}
+					
+					listener.updateActivity( "eta: " + eta );
+					
+					Thread.sleep(1000);
+				}
+				
+				Class epwClass = emp_pi.getPlugin().getClass().getClassLoader().loadClass( "com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT" );
+				
+				Method method = epwClass.getMethod("openWindow", new Class[] { URL.class, String.class });
+				
+				method.invoke(null, new Object[] { url, file.getFile( true ).getName() });
+
+				ok = true;
+				
+			}catch( Throwable e ){
+				
+				error_reported = true;
+				
+				listener.failed( e );
+				
+			}finally{
+				
+				if ( ok ){
+					
+					listener.ready();
+					
+				}else if ( !error_reported ){
+					
+					listener.failed( new Exception( "Streaming setup failed, reason unknown" ));
+				}
+			}
+		}
+		
+		public void
+		cancel()
+		{
+			
+		}
+		
+		private PluginInterface
+		checkPlugin(
+			String		id,
+			String		name )
+		
+			throws Throwable
+		{
+			PluginManager plug_man = AzureusCoreFactory.getSingleton().getPluginManager();
+			
+			PluginInterface pi = plug_man.getPluginInterfaceByID( id, false );
+			
+			if ( pi == null ){
+				
+				listener.updateActivity( "Installing " + name );
+				
+				final AESemaphore sem = new AESemaphore( "analyserWait" );
+
+				final Throwable[] error = { null };
+				
+				new SimplePluginInstaller(
+						id,
+	    				"dlg.install." + id,
+	    				new UIFunctions.actionListener()
+						{
+							public void
+							actionComplete(
+								Object		result )
+							{
+								try{
+									if ( result instanceof Boolean ){
+										
+									}else{
+										
+										error[0] = (Throwable)result;
+									}
+								}finally{
+									
+									sem.release();
+								}
+							}
+						});
+				
+				sem.reserve();
+				
+				if( error[0] != null ){
+					
+					throw( error[0] );
+				}
+				
+				long start = SystemTime.getMonotonousTime();
+				
+				while( true ){
+					
+					if ( SystemTime.getMonotonousTime() - start >= 30*1000 ){
+						
+						throw( new Exception( "Timeout waiting for " + name + " to initialise" ));
+					}
+					
+					pi = plug_man.getPluginInterfaceByID( id, false );
+
+					if ( pi != null && pi.getPluginState().isOperational()){
+						
+						return( pi );
+					}
+					
+					Thread.sleep(250);
+				}
+			}else if ( !pi.getPluginState().isOperational()){
+				
+				throw( new Exception( name + " not operational" ));
+				
+			}else{
+				
+				return( pi );
 			}
 		}
 	}		

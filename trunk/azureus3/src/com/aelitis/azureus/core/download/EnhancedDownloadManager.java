@@ -146,6 +146,7 @@ EnhancedDownloadManager
 	private DownloadManager				download_manager;
 	
 	private boolean						platform_content;
+	private boolean						explicit_progressive;
 	
 	private transient PiecePicker		current_piece_pickler;
 	
@@ -434,6 +435,28 @@ EnhancedDownloadManager
 			});
 	}
 
+	public void
+	setExplicitProgressive(
+		int		min_initial_buffer_secs,
+		long	min_bps,
+		int		file_index )
+	{
+		if ( file_index >= 0 && file_index < enhanced_files.length ){
+			
+			minimum_initial_buffer_secs_for_eta = min_initial_buffer_secs;
+			
+			content_min_delivery_bps = min_bps;
+				
+			platform_content = PlatformTorrentUtils.isContent( download_manager.getTorrent(), true );
+							
+			primary_file = enhanced_files[file_index];
+				
+			progressive_stats	= createProgressiveStats( download_manager, primary_file );
+			
+			explicit_progressive = true;
+		}
+	}
+	
 	public String
 	getName()
 	{
@@ -1020,17 +1043,18 @@ EnhancedDownloadManager
 			return( false );
 		}
 		
-		return( enhancer.isProgressiveAvailable() && PlatformTorrentUtils.isContentProgressive( torrent ));
+		return( enhancer.isProgressiveAvailable() && 
+				( PlatformTorrentUtils.isContentProgressive( torrent ) || explicit_progressive ));
 	}
 	
-	public void
+	public boolean
 	setProgressiveMode(
 		boolean		active )
 	{
-		setProgressiveMode( active, false );
+		return( setProgressiveMode( active, false ));
 	}
 		
-	protected void
+	protected boolean
 	setProgressiveMode(
 		boolean		active,
 		boolean		switching_progressive_downloads )
@@ -1039,21 +1063,21 @@ EnhancedDownloadManager
 		
 		if ( torrent == null ){
 
-			return;
+			return( false );
 		}
 		
 		synchronized( this ){
 
 			if ( progressive_active == active ){
 				
-				return;
+				return( true );
 			}			
 
 			if (active && !supportsProgressiveMode()) {
 				
 				Debug.out( "Attempt to set progress mode on non-progressible content - " + getName());
 				
-				return;
+				return( false );
 			}
 			
 			log( "Progressive mode changed to " + active );
@@ -1160,6 +1184,8 @@ EnhancedDownloadManager
 			
 			download_manager.requestTrackerAnnounce( true );
 		}
+		
+		return( true );
 	}
 
 
