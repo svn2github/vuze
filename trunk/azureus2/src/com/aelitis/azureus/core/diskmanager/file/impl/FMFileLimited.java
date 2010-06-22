@@ -190,8 +190,26 @@ FMFileLimited
 		
 			ensureOpen( "FMFileLimited:setPieceComplete" );
 			
-			setPieceCompleteSupport( piece_number, piece_data );
+			boolean	switched_mode = false;
 			
+			if ( getAccessMode() != FM_WRITE ){
+				
+				setAccessMode( FM_WRITE );
+				
+				switched_mode = true;
+			}
+			
+			try{
+			
+				setPieceCompleteSupport( piece_number, piece_data );
+				
+			}finally{
+				
+				if ( switched_mode ){
+					
+					setAccessMode( FM_READ );
+				}
+			}
 		}finally{
 			
 			this_mon.exit();
