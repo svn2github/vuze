@@ -739,7 +739,12 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 	// ConfigurationListener
 	public void configurationSaved() {
-		reloadConfigParams();
+		new AEThread2("reloadConfigParams", true) {
+			// @see org.gudy.azureus2.core3.util.AEThread2#run()
+			public void run() {
+				reloadConfigParams();
+			}
+		}.start();
 	}
 
 	private void reloadConfigParams() {
