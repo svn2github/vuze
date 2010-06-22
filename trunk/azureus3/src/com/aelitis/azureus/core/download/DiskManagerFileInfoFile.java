@@ -193,7 +193,8 @@ DiskManagerFileInfoFile
 	channel
 		implements DiskManagerChannel
 	{
-		private volatile boolean	destroyed;
+		private volatile boolean	channel_destroyed;
+		private volatile long		channel_position;
 		
 		public DiskManagerRequest
 		createRequest()
@@ -207,10 +208,22 @@ DiskManagerFileInfoFile
 			return( DiskManagerFileInfoFile.this );
 		}
 		
+		public long 
+		getPosition() 
+		{
+			return( channel_position );
+		}
+		
+		public boolean 
+		isDestroyed() 
+		{
+			return( channel_destroyed );
+		}
+		
 		public void
 		destroy()
 		{
-			destroyed	= true;
+			channel_destroyed	= true;
 		}
 		
 		protected class
@@ -297,7 +310,7 @@ DiskManagerFileInfoFile
 							
 							throw( new Exception( "Cancelled" ));
 							
-						}else if ( destroyed ){
+						}else if ( channel_destroyed ){
 							
 							throw( new Exception( "Destroyed" ));
 						}
@@ -394,6 +407,8 @@ DiskManagerFileInfoFile
 					buffer			= _buffer;
 					event_offset	= _offset;
 					event_length	= _length;
+					
+					channel_position = _offset + _length - 1;
 				}
 				
 				public int

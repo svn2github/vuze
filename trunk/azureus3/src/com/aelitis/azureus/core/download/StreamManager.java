@@ -29,6 +29,7 @@ import java.net.URL;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -50,10 +51,8 @@ import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeManager;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
-import com.aelitis.azureus.core.devices.TranscodeProvider;
 import com.aelitis.azureus.core.devices.TranscodeProviderAnalysis;
 import com.aelitis.azureus.core.devices.TranscodeQueue;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.swt.plugininstall.SimplePluginInstaller;
 
@@ -102,8 +101,11 @@ StreamManager
 		private int									file_index;
 		private URL									url;
 		private StreamManagerDownloadListener	listener;
+			
+		private AESemaphore				active_sem;
+		private TranscodeJob			active_job;
 		
-		private long					duration;
+		private volatile boolean		cancelled;
 		
 		private 
 		SMDImpl(
@@ -144,6 +146,8 @@ StreamManager
 						l_duration = (Long)file_map.get( "duration" );
 					}
 				}
+				
+				long duration;
 				
 				if ( l_duration == null ){
 						
@@ -198,7 +202,18 @@ StreamManager
 											
 						try{
 							final AESemaphore sem = new AESemaphore( "analyserWait" );
-	
+
+							synchronized( StreamManager.this ){
+								
+								if ( cancelled ){
+									
+									throw( new Exception( "Cancelled" ));
+								}
+								
+								active_sem	= sem;
+								active_job 	= tj;
+							}
+								
 							final long[] properties = new long[3];
 							
 							final Throwable[] error = { null };
@@ -243,11 +258,24 @@ StreamManager
 							
 							sem.reserve();
 							
+							synchronized( StreamManager.this ){
+								
+								if ( cancelled ){
+										
+									throw( new Exception( "Cancelled" ));
+								}
+								
+								active_job 	= null;
+								active_sem	= null;
+							}
+							
 							if ( error[0] != null ){
 								
 								throw( error[0] );
 							}
 							
+
+
 							if ( map == null ){
 								
 								map = new HashMap();
@@ -289,9 +317,7 @@ StreamManager
 						
 					duration = l_duration;
 				}
-				
-				System.out.println( "Duration=" + duration + ", size=" + file.getLength() );
-	
+					
 				if ( duration == 0 ){
 					
 					throw( new Exception( "Media analysis failed - duration unknown" ));
@@ -299,9 +325,13 @@ StreamManager
 				
 				PluginInterface emp_pi = checkPlugin( "azemp", "media player" );
 				
-				EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
+				final EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
 				
-				edm.setExplicitProgressive( 30, file.getLength() / (duration/1000), file_index );
+				long	bytes_per_sec = file.getLength() / (duration/1000);
+				
+				bytes_per_sec += (bytes_per_sec/10);
+				
+				edm.setExplicitProgressive( 30, bytes_per_sec, file_index );
 				
 				if ( !edm.setProgressiveMode( true )){
 					
@@ -310,6 +340,11 @@ StreamManager
 				
 				while( true ){
 				
+					if ( cancelled ){
+						
+						throw( new Exception( "Cancelled" ));
+					}
+					
 					long eta = edm.getProgressivePlayETA();
 				
 					if ( eta <= 0 ){
@@ -335,6 +370,30 @@ StreamManager
 				
 				method.invoke(null, new Object[] { url, file.getFile( true ).getName() });
 
+				new AEThread2( "streamMon" )
+				{
+					public void
+					run()
+					{
+						try{
+							while( edm.getProgressiveMode() && !cancelled ){
+							
+								long eta = edm.getProgressivePlayETA();
+								
+								if ( eta > 0 ){
+									
+									listener.updateActivity( "eta: " + eta );
+								}
+								
+								Thread.sleep( 1000 );
+							}
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}.start();
+				
 				ok = true;
 				
 			}catch( Throwable e ){
@@ -359,7 +418,24 @@ StreamManager
 		public void
 		cancel()
 		{
+			TranscodeJob	job;
 			
+			synchronized( StreamManager.this ){
+				
+				cancelled = true;
+			
+				job = active_job;
+				
+				if ( active_sem != null ){
+					
+					active_sem.release();
+				}
+			}
+			
+			if ( job != null ){
+				
+				job.removeForce();
+			}
 		}
 		
 		private PluginInterface
@@ -379,6 +455,16 @@ StreamManager
 				
 				final AESemaphore sem = new AESemaphore( "analyserWait" );
 
+				synchronized( StreamManager.this ){
+					
+					if ( cancelled ){
+						
+						throw( new Exception( "Cancelled" ));
+					}
+					
+					active_sem	= sem;
+				}
+				
 				final Throwable[] error = { null };
 				
 				new SimplePluginInstaller(
@@ -406,6 +492,16 @@ StreamManager
 				
 				sem.reserve();
 				
+				synchronized( StreamManager.this ){
+					
+					if ( cancelled ){
+							
+						throw( new Exception( "Cancelled" ));
+					}
+					
+					active_sem	= null;
+				}
+
 				if( error[0] != null ){
 					
 					throw( error[0] );
@@ -414,6 +510,11 @@ StreamManager
 				long start = SystemTime.getMonotonousTime();
 				
 				while( true ){
+					
+					if ( cancelled ){
+						
+						throw( new Exception( "Cancelled" ));
+					}
 					
 					if ( SystemTime.getMonotonousTime() - start >= 30*1000 ){
 						

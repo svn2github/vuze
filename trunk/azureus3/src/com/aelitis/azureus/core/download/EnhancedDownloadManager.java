@@ -443,6 +443,8 @@ EnhancedDownloadManager
 	{
 		if ( file_index >= 0 && file_index < enhanced_files.length ){
 			
+			explicit_progressive = true;
+
 			minimum_initial_buffer_secs_for_eta = min_initial_buffer_secs;
 			
 			content_min_delivery_bps = min_bps;
@@ -451,9 +453,7 @@ EnhancedDownloadManager
 							
 			primary_file = enhanced_files[file_index];
 				
-			progressive_stats	= createProgressiveStats( download_manager, primary_file );
-			
-			explicit_progressive = true;
+			progressive_stats	= createProgressiveStats( download_manager, primary_file );		
 		}
 	}
 	
@@ -1228,7 +1228,7 @@ EnhancedDownloadManager
 	{
 		TOTorrent torrent = download_manager.getTorrent();
 		
-		if ( torrent != null && PlatformTorrentUtils.useEMP( torrent )){
+		if ( torrent != null && ( PlatformTorrentUtils.useEMP( torrent ) || explicit_progressive )){
 			
 			return( new progressiveStatsInternal( dm, file ));
 			
@@ -1330,7 +1330,10 @@ EnhancedDownloadManager
 		
 		if ( dm == null ){
 			
-			// TODO: Check if file is complete.. if it is, return correct size
+			if ( file.getDownloaded() == file.getLength()){
+				
+				return( file.getLength() - file_start_offset );
+			}
 			
 			return( -1 );
 		}
@@ -1461,15 +1464,23 @@ EnhancedDownloadManager
 		DiskManagerFileInfo 	file_info, 
 		long 					bytes)
 	{
-		if (file_info != null) {
-
-  		int	index = file_info.getIndex();
-  		
-  		if ( index < enhanced_files.length ){
-  			
-  			bytes += enhanced_files[index].getByteOffestInTorrent();
-  		}
+		if ( file_info == null ){
+			
+			return;
 		}
+		
+		setViewerPosition( file_info.getIndex(), bytes );
+	}
+	
+	public void
+	setViewerPosition(
+		int						file_index, 
+		long 					bytes)
+	{		
+  		if ( file_index < enhanced_files.length ){
+  			
+  			bytes += enhanced_files[file_index].getByteOffestInTorrent();
+  		}
 		
 		progressive_stats.setViewerBytePosition( bytes );
 	}
@@ -2482,7 +2493,7 @@ EnhancedDownloadManager
 					}
 				}
 				
-				provider_byte_position	= current_provider.getCurrentPosition();
+				provider_byte_position			= current_provider.getCurrentPosition();
 				provider_blocking_byte_position	= current_provider.getBlockingPosition();
 				
 				long bytes_read = provider_byte_position - provider_last_byte_position;
@@ -2700,7 +2711,7 @@ EnhancedDownloadManager
 			
 			long eta = secs_to_download - secs_to_watch;
 			
-			if ( rem_secs > eta ){
+			if ( rem_secs > eta && rem_secs > 0 ){
 				
 				eta = rem_secs;
 			}
@@ -2884,7 +2895,7 @@ EnhancedDownloadManager
 				return;
 			}
 			
-			content_stream_bps_min = PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
+			content_stream_bps_min = explicit_progressive?content_min_delivery_bps:PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
 			
 			if ( content_stream_bps_min == 0 ){
 			
@@ -2964,6 +2975,8 @@ EnhancedDownloadManager
 			long bytes) 
 		{
 			// nothing for external viewer case as this doesn't get called
+			
+			Debug.out( "eh?" );
 		}
 
 		protected long
@@ -3005,7 +3018,7 @@ EnhancedDownloadManager
 				return;
 			}
 						
-			content_stream_bps_min = PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
+			content_stream_bps_min = explicit_progressive?content_min_delivery_bps:PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
 			
 			if ( content_stream_bps_min == 0 ){
 			

@@ -31,6 +31,12 @@ DiskManagerChannel
 	public DiskManagerFileInfo
 	getFile();
 	
+	public long
+	getPosition();
+	
+	public boolean
+	isDestroyed();
+	
 	public void
 	destroy();
 }

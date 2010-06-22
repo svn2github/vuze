@@ -186,7 +186,8 @@ DiskManagerChannelImpl
 	
 	private long	start_position;
 	private long	start_time;
-	private long	current_position;
+	
+	private volatile long	current_position;
 	
 	private request	current_request;
 	
@@ -197,6 +198,8 @@ DiskManagerChannelImpl
 	private long[]	rtas;
 	
 	private int		channel_id;
+	
+	private volatile boolean	destroyed;
 	
 	protected
 	DiskManagerChannelImpl(
@@ -292,6 +295,18 @@ DiskManagerChannelImpl
 		current_request = new request();
 		
 		return( current_request );
+	}
+	
+	public long 
+	getPosition() 
+	{
+		return( current_position );
+	}
+	
+	public boolean 
+	isDestroyed() 
+	{
+		return( destroyed );
 	}
 	
 	public void
@@ -458,13 +473,13 @@ DiskManagerChannelImpl
    	public long
    	getStartPosition()
    	{
-   		return( start_position );
+   		return( file_offset_in_torrent + start_position );
    	}
    
 	public long
 	getCurrentPosition()
 	{
-		return( current_position );
+		return( file_offset_in_torrent + current_position );
 	}
 	
 	public long
@@ -474,10 +489,10 @@ DiskManagerChannelImpl
 		
 		if ( r == null ){
 			
-			return( current_position );
+			return( file_offset_in_torrent + current_position );
 		}
 		
-		return( current_position + r.getAvailableBytes());
+		return( file_offset_in_torrent + current_position + r.getAvailableBytes());
 	}
 	
 	public void
@@ -503,6 +518,8 @@ DiskManagerChannelImpl
 	public void
 	destroy()
 	{
+		destroyed	= true;
+		
 		core_file.removeListener( this );
 		
 		core_file.getDownloadManager().removePeerListener(this);

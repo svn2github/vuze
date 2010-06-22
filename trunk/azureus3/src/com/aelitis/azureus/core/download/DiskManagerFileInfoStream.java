@@ -509,6 +509,7 @@ DiskManagerFileInfoStream
 			implements DiskManagerChannel
 		{
 			private volatile boolean	channel_destroyed;
+			private volatile long		channel_position;
 			
 			public DiskManagerRequest
 			createRequest()
@@ -520,6 +521,18 @@ DiskManagerFileInfoStream
 			getFile()
 			{
 				return( DiskManagerFileInfoStream.this );
+			}
+			
+			public long 
+			getPosition() 
+			{
+				return( channel_position );
+			}
+			
+			public boolean 
+			isDestroyed() 
+			{
+				return( channel_destroyed );
 			}
 			
 			public void
@@ -706,6 +719,8 @@ DiskManagerFileInfoStream
 						event_type		= DiskManagerEvent.EVENT_TYPE_BLOCKED;
 
 						event_offset	= _offset;	
+						
+						channel_position	= _offset;
 					}
 					
 					protected
@@ -718,6 +733,8 @@ DiskManagerFileInfoStream
 						buffer			= _buffer;
 						event_offset	= _offset;
 						event_length	= _length;
+						
+						channel_position	= _offset + _length - 1;
 					}
 					
 					public int

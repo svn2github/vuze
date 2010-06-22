@@ -272,10 +272,10 @@ DownloadManagerEnhancer
 			{
 				public void
 				channelCreated(
-					DiskManagerChannel	channel )
+					final DiskManagerChannel	channel )
 				{
 					try{
-						EnhancedDownloadManager edm = 
+						final EnhancedDownloadManager edm = 
 							getEnhancedDownload(
 									PluginCoreUtils.unwrap(channel.getFile().getDownload()));
 
@@ -289,6 +289,25 @@ DownloadManagerEnhancer
 							return;
 						}
 						
+						new AEThread2( "posUpdater" )
+						{
+							public void
+							run()
+							{
+								try{
+									while( !channel.isDestroyed()){
+										
+										edm.setViewerPosition( channel.getFile().getIndex(), channel.getPosition());
+										
+										Thread.sleep(250);
+									}
+								}catch( Throwable e ){
+									
+									Debug.out(e );
+								}
+							}
+						}.start();
+												
 						if ( !edm.getProgressiveMode()){
 							
 							if ( edm.supportsProgressiveMode()){
