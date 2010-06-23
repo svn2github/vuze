@@ -734,10 +734,10 @@ public class SBC_LibraryView
 				} else {
 					stats.numIncomplete++;
 					if (dm.getState() == DownloadManager.STATE_DOWNLOADING) {
-						dm.setUserData("wasDownloading", new Boolean(true));
+						dm.setUserData("wasDownloading", Boolean.TRUE);
 						stats.numDownloading++;
 					} else {
-						dm.setUserData("wasDownloading", new Boolean(false));
+						dm.setUserData("wasDownloading", Boolean.FALSE);
 					}
 				}
 				refreshAllLibraries();
@@ -750,10 +750,13 @@ public class SBC_LibraryView
 			dm.addListener(dmListener, false);
 			int state = dm.getState();
 			if (state == DownloadManager.STATE_STOPPED) {
+				dm.setUserData("wasStopped", Boolean.TRUE);
 				statsWithLowNoise.numStopped++;
 				if (!lowNoise) {
 					statsNoLowNoise.numStopped++;
 				}
+			} else {
+				dm.setUserData("wasStopped", Boolean.FALSE);
 			}
 			if (dm.getAssumedComplete()) {
 				statsWithLowNoise.numComplete++;
@@ -761,13 +764,13 @@ public class SBC_LibraryView
 					statsNoLowNoise.numComplete++;
 				}
 				if (state == DownloadManager.STATE_SEEDING) {
-					dm.setUserData("wasSeeding", new Boolean(true));
+					dm.setUserData("wasSeeding", Boolean.TRUE);
 					statsWithLowNoise.numSeeding++;
 					if (!lowNoise) {
 						statsNoLowNoise.numSeeding++;
 					}
 				} else {
-					dm.setUserData("wasSeeding", new Boolean(false));
+					dm.setUserData("wasSeeding", Boolean.FALSE);
 				}
 			} else {
 				statsWithLowNoise.numIncomplete++;
