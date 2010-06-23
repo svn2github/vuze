@@ -1286,14 +1286,16 @@ implements PiecePicker
 		for (int i =0; i <nbBlocks; i++)
 		{
 			final int thisBlock =blockNumber +i;
-			if (pt.request(pieceNumber, thisBlock *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(thisBlock)) != null )
-			{
+			
+			if (pt.request(pieceNumber, thisBlock *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(thisBlock)) != null ){
 				requested++;
 				pt.setLastPiece(pieceNumber);
 
 				pePiece.setLastRequestedPeerSpeed( peerSpeed );
 				// have requested a block
-			} 
+			} else{
+				pePiece.clearRequested(thisBlock);
+			}
 		}
 
 		if (requested > 0
