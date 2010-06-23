@@ -2974,9 +2974,6 @@ EnhancedDownloadManager
 		setViewerBytePosition(
 			long bytes) 
 		{
-			// nothing for external viewer case as this doesn't get called
-			
-			Debug.out( "eh?" );
 		}
 
 		protected long

@@ -284,8 +284,17 @@ TranscodeProviderVuze
 						{
 							if ( property == PT_DURATION_MILLIS ){
 								
-								return( getLongProperty( "duration_millis", 0 ));
+								long duration = getLongProperty( "duration_millis", 0 );
+								
+								long audio_duration	= getLongProperty( "audio_duration_millis", 0 );
+								
+								if ( audio_duration > 0 && audio_duration < duration ){
+									
+									duration = audio_duration;
+								}
 							
+								return( duration );
+								
 							}else if ( property == PT_VIDEO_WIDTH ){
 								
 								return( getLongProperty( "video_width", 0 ));

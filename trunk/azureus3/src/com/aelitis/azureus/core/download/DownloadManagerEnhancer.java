@@ -254,7 +254,9 @@ DownloadManagerEnhancer
 									state == DownloadManager.STATE_SEEDING ){
 								
 								EnhancedDownloadManager edm = getEnhancedDownload( download );
-								if (edm == null) {
+								
+								if ( edm == null ){
+									
 									return;
 								}
 								

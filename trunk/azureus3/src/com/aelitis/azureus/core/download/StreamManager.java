@@ -300,7 +300,7 @@ StreamManager
 							
 							download.setMapAttribute( mi_ta, map );
 							
-							duration = properties[0] * 1000;
+							duration = properties[0];
 							
 						}catch( Throwable e ){
 							
