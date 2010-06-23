@@ -29,6 +29,12 @@ StreamManagerDownloadListener
 		String		str );
 	
 	public void
+	updateStats(
+		int			buffer_actual_secs,
+		int			buffer_target_secs,
+		long		eta );
+	
+	public void
 	ready();
 	
 	public void

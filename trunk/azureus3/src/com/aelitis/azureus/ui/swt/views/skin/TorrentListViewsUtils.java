@@ -50,6 +50,7 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -99,6 +100,9 @@ public class TorrentListViewsUtils
 
 	public static final boolean ENABLE_ON_HOVER = false;
 
+	private static StreamManagerDownload	current_stream;
+	private static TextViewerWindow			stream_viewer;
+	
 	/**
 	 * @param dm
 	 *
@@ -669,122 +673,200 @@ public class TorrentListViewsUtils
 	 * @return - int: 0 = ok, 1 = fail, 2 = abandon, installation in progress
 	 * @since 3.0.4.4 -
 	 */
-	private static int openInEMP(DownloadManager dm, int file_index, boolean complete_only) {
-
-		Class epwClass = null;
+	private static int 
+	openInEMP(
+		final DownloadManager dm, int _file_index, boolean complete_only ) 
+	{
 		try {
-			// Assumed we have a core, since we are passed a
-			// DownloadManager
-			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-					"azemp", false );
-
-			if (pi == null) {
-
-				return (installEMP(dm, file_index,complete_only ));
-				
-			}else if ( !pi.getPluginState().isOperational()){
-				
-				return( 1 );
-			}
-
-			epwClass = pi.getPlugin().getClass().getClassLoader().loadClass(
-					"com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT");
-
-		} catch (ClassNotFoundException e1) {
-			return 1;
-		}
-
-		//Data is passed to the openWindow via download manager.
-		try {
-			debug("EmbeddedPlayerWindowSWT - openWindow");
+			final int file_index;
 			
-			if ( file_index == -1 ){
+			if ( _file_index == -1 ){
 				
 				file_index = PlayUtils.getPrimaryFileIndex( dm );
+				
+			}else{
+				
+				file_index = _file_index;
 			}
 			
 			if ( file_index == -1 ){
 				
 				return( 1 );
 			}
-			
-			String	url = null;
-			
+						
 			org.gudy.azureus2.plugins.disk.DiskManagerFileInfo file = PluginCoreUtils.wrap( dm ).getDiskManagerFileInfo()[ file_index ];
-				
+			
+			final URL url;
+			
 			if ((! complete_only ) && file.getDownloaded() != file.getLength()){
 					
 				url = PlayUtils.getMediaServerContentURL( file );
+				
+			}else{
+				
+				url = null;
 			}
 				
-			if ( url == null ){
+			if ( url != null ){
+								
+				new AEThread2( "stream:async" )
+				{
+					public void
+					run()
+					{
+						StreamManager	sm = StreamManager.getSingleton();
+
+						synchronized( TorrentListViewsUtils.class ){
 							
-				try{
-					Method method = epwClass.getMethod("openWindow", new Class[] {
-							File.class, String.class
-						});
-
-					File f = file.getFile( true );
-					
-					method.invoke(null, new Object[] {
-							f, f.getName()
-						});
-						
-					return( 0 );
-						
-				}catch( Throwable e ){
-					debug( "file/name open method missing" );
-				}
-			}else{
+							if ( current_stream != null ){
+								
+								current_stream.cancel();
+								
+								current_stream = null;
+							}
 			
-				StreamManager	sm = StreamManager.getSingleton();
+							if ( stream_viewer == null || stream_viewer.isDisposed()){
 								
-				try{
-					StreamManagerDownload sd = 
-						sm.stream( 
-							dm, file_index, new URL( url ),
-							new StreamManagerDownloadListener()
-							{
-								public void
-								updateActivity(
-									String		str )
-								{
-									System.out.println( "sd: " + str );
-								}
-								
-								public void
-								ready()
-								{
-									System.out.println( "sd: ready" );
-								}
-								
-								public void
-								failed(
-									Throwable 	error )
-								{
-									System.out.println( "sd: failed" );
-									
-									Debug.out( error );
-								}
-								
-							});
-
-					/*
-					Method method = epwClass.getMethod("openWindow", new Class[] {
-							URL.class, String.class
-						});
+								Utils.execSWTThread(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											if ( stream_viewer != null ){
+												
+												stream_viewer.close();
+											}
+											
+											stream_viewer = new 
+												TextViewerWindow( "Stream Status", "Debug information for stream process", "", false );
+											
+											stream_viewer.addListener(
+												new TextViewerWindow.TextViewerWindowListener()
+												{
+													public void 
+													closed() 
+													{
+														synchronized( TorrentListViewsUtils.class ){
+															
+															if ( current_stream != null ){
+																
+																current_stream.cancel();
+																
+																current_stream = null;
+															}
+														}
+													}
+												});
+										}
+									});
+							}
+							
+							current_stream = 
+								sm.stream( 
+									dm, file_index, url,
+									new StreamManagerDownloadListener()
+									{
+										public void
+										updateActivity(
+											String		str )
+										{
+											append( "Activity: " + str );
+										}
+										
+										public void
+										updateStats(
+											int			buffer_actual_secs,
+											int			buffer_target_secs ,
+											long		eta )
+										{
+											append( "stats: buffer=" + buffer_actual_secs + "/" + buffer_target_secs + ", eta=" + eta );
+										}
+										
+										public void
+										ready()
+										{
+											append( "ready" );
+										}
+										
+										public void
+										failed(
+											Throwable 	error )
+										{
+											append( "failed: " + Debug.getNestedExceptionMessage(error));
+											
+											Debug.out( error );
+										}
+										
+										private void
+										append(
+											final String	str )
+										{
+											Utils.execSWTThread(
+												new Runnable()
+												{
+													public void
+													run()
+													{
+														if ( stream_viewer != null && !stream_viewer.isDisposed()){
+															
+															stream_viewer.append( str + "\r\n" );
+														}
+													}
+												});
+										}
+									});
+							}
+						}
+					}.start();
+	
 					
-					method.invoke(null, new Object[] {
-							new URL( url ), file.getFile( true ).getName()
-						});
-					*/
-					
-					return( 0 );
+				return( 0 );
 						
-				}catch( Throwable e ){
-					debug( "file/name open method missing" );
-				}
 			}
+			
+			Class epwClass = null;
+			
+			try {
+				// Assumed we have a core, since we are passed a
+				// DownloadManager
+				PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+						"azemp", false );
+
+				if (pi == null) {
+
+					return (installEMP(dm, file_index,complete_only ));
+					
+				}else if ( !pi.getPluginState().isOperational()){
+					
+					return( 1 );
+				}
+
+				epwClass = pi.getPlugin().getClass().getClassLoader().loadClass(
+						"com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT");
+
+			} catch (ClassNotFoundException e1) {
+				return 1;
+			}
+	
+										
+			try{
+				Method method = epwClass.getMethod("openWindow", new Class[] {
+						File.class, String.class
+					});
+
+				File f = file.getFile( true );
+				
+				method.invoke(null, new Object[] {
+						f, f.getName()
+					});
+					
+				return( 0 );
+					
+			}catch( Throwable e ){
+				debug( "file/name open method missing" );
+			}
+
 			
 				// fall through here if old emp
 			

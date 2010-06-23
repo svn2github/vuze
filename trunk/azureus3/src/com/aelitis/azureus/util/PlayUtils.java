@@ -21,6 +21,7 @@ package com.aelitis.azureus.util;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.eclipse.swt.program.Program;
 
@@ -332,7 +333,7 @@ public class PlayUtils
 		return null;
 	}
 	
-	public static String getMediaServerContentURL(DiskManagerFileInfo file) {
+	public static URL getMediaServerContentURL(DiskManagerFileInfo file) {
 		
 		//TorrentListViewsUtils.debugDCAD("enter - getMediaServerContentURL");
 	
@@ -362,7 +363,7 @@ public class PlayUtils
 					file
 			});
 			if (url instanceof String) {
-				return (String) url;
+				return new URL( (String) url);
 			}
 		} catch (Throwable e) {
 			Logger.log(new LogEvent(LogIDs.UI3, LogEvent.LT_WARNING,

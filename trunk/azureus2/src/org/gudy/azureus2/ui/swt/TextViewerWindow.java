@@ -20,7 +20,11 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.util.*;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -35,9 +39,24 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 public class TextViewerWindow {
-  public TextViewerWindow(String sTitleID, String sMessageID, String sText) {
+  private Shell shell;
+  private Text txtInfo;
+  
+  private List<TextViewerWindowListener> listeners = new ArrayList<TextViewerWindowListener>();
+  
+  public 
+  TextViewerWindow(
+		 String sTitleID, String sMessageID, String sText )
+  {
+	  this( sTitleID, sMessageID, sText, true );
+  }
+  
+  public 
+  TextViewerWindow(
+		 String sTitleID, String sMessageID, String sText, boolean modal ) 
+  {
     final Display display = SWTThread.getInstance().getDisplay();
-    final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE );
+    shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | (modal?SWT.APPLICATION_MODAL:SWT.ON_TOP) | SWT.RESIZE );
 
     if (sTitleID != null) shell.setText(MessageText.keyExists(sTitleID)?MessageText.getString(sTitleID):sTitleID);
     
@@ -54,7 +73,7 @@ public class TextViewerWindow {
     gridData.horizontalSpan = 2;
     label.setLayoutData(gridData);
 
-    final Text txtInfo = new Text(shell, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+    txtInfo = new Text(shell, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
     gridData = new GridData(  GridData.FILL_BOTH );
     gridData.widthHint = 500;
     gridData.heightHint = 400;
@@ -91,10 +110,64 @@ public class TextViewerWindow {
 		}
 	});
 	
+	shell.addDisposeListener(
+		new DisposeListener()
+		{
+			public void 
+			widgetDisposed(
+				DisposeEvent arg0) 
+			{
+				for ( TextViewerWindowListener l: listeners ){
+					
+					l.closed();
+				}
+			}
+		});
+	
     shell.pack();
 	Utils.centreWindow( shell );
     shell.open();
-    while (!shell.isDisposed())
-      if (!display.readAndDispatch()) display.sleep();
+    
+    if ( modal ){
+    	while (!shell.isDisposed())
+    		if (!display.readAndDispatch()) display.sleep();
+    }
+  }
+  
+  public void
+  append(
+	String	str )
+  {
+	  txtInfo.setText( txtInfo.getText() + str );
+	  
+	  txtInfo.setSelection( txtInfo.getTextLimit());
+  }
+  
+  public void
+  addListener(
+	 TextViewerWindowListener		l )
+  {
+	  listeners.add( l );
+  }
+  
+  public boolean
+  isDisposed()
+  {
+	  return( shell.isDisposed());
+  }
+  
+  public void
+  close()
+  {
+	  if ( !shell.isDisposed()){
+		  
+		  shell.dispose();
+	  }
+  }
+  public interface
+  TextViewerWindowListener
+  {
+	  public void
+	  closed();
   }
 }

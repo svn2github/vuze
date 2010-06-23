@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -59,6 +60,8 @@ import com.aelitis.azureus.ui.swt.plugininstall.SimplePluginInstaller;
 public class 
 StreamManager 
 {
+	private static final int BUFFER_SECS = 30;
+
 	private static StreamManager		singleton = new StreamManager();
 	
 	public static StreamManager
@@ -198,6 +201,8 @@ StreamManager
 							throw( new Exception( "Analyser transcode profile not found" ));
 						}
 						
+						listener.updateActivity( "analysing media" );
+						
 						final TranscodeJob tj = queue.add( dmr, profile, file, true );
 											
 						try{
@@ -274,8 +279,6 @@ StreamManager
 								throw( error[0] );
 							}
 							
-
-
 							if ( map == null ){
 								
 								map = new HashMap();
@@ -329,9 +332,11 @@ StreamManager
 				
 				long	bytes_per_sec = file.getLength() / (duration/1000);
 				
-				bytes_per_sec += (bytes_per_sec/10);
+				listener.updateActivity( "media duraton=" + (duration/1000) + " sec, average rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( bytes_per_sec ));
 				
-				edm.setExplicitProgressive( 30, bytes_per_sec, file_index );
+				bytes_per_sec += (bytes_per_sec/10);
+								
+				edm.setExplicitProgressive( BUFFER_SECS, bytes_per_sec, file_index );
 				
 				if ( !edm.setProgressiveMode( true )){
 					
@@ -347,6 +352,8 @@ StreamManager
 					
 					long eta = edm.getProgressivePlayETA();
 				
+					updateETA( eta );
+					
 					if ( eta <= 0 ){
 						
 						break;
@@ -358,9 +365,7 @@ StreamManager
 						
 						throw( new Exception( "Streaming abandoned, download isn't running" ));
 					}
-					
-					listener.updateActivity( "eta: " + eta );
-					
+										
 					Thread.sleep(1000);
 				}
 				
@@ -379,11 +384,8 @@ StreamManager
 							while( edm.getProgressiveMode() && !cancelled ){
 							
 								long eta = edm.getProgressivePlayETA();
-								
-								if ( eta > 0 ){
-									
-									listener.updateActivity( "eta: " + eta );
-								}
+																	
+								updateETA( eta );
 								
 								Thread.sleep( 1000 );
 							}
@@ -413,6 +415,25 @@ StreamManager
 					listener.failed( new Exception( "Streaming setup failed, reason unknown" ));
 				}
 			}
+		}
+		
+		private void
+		updateETA(
+			long		eta )
+		{
+			long actual_buffer_secs = BUFFER_SECS - eta;
+			
+			if ( actual_buffer_secs < 0 ){
+				
+				actual_buffer_secs = 0;
+			}
+			
+			if ( actual_buffer_secs > BUFFER_SECS ){
+				
+				actual_buffer_secs = BUFFER_SECS;
+			}
+			
+			listener.updateStats( (int)actual_buffer_secs, BUFFER_SECS, eta );
 		}
 		
 		public void
@@ -508,6 +529,8 @@ StreamManager
 				}
 				
 				long start = SystemTime.getMonotonousTime();
+				
+				listener.updateActivity( "Waiting for plugin initialisation" );
 				
 				while( true ){
 					
