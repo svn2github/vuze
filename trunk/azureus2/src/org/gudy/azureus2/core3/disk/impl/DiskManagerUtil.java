@@ -846,8 +846,10 @@ DiskManagerUtil
                 		long    offset,
                 		int     length )
 
-                	throws IOException
+                		throws IOException
                 	{
+                		CacheFile temp;;
+                		
                 		try{
                 			cache_read_mon.enter();
 
@@ -893,6 +895,9 @@ DiskManagerUtil
                 					throw( new IOException( e.getMessage()));
                 				}
                 			}
+                			
+                			temp = read_cache_file;
+                			
                 		}finally{
 
                 			cache_read_mon.exit();
@@ -902,7 +907,7 @@ DiskManagerUtil
                 			DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ, length );
 
                 		try{
-                			read_cache_file.read( buffer, offset, CacheFile.CP_READ_CACHE );
+                			temp.read( buffer, offset, CacheFile.CP_READ_CACHE );
 
                 		}catch( Throwable e ){
 
@@ -919,17 +924,29 @@ DiskManagerUtil
                 	public void
                 	close()
                 	{
-                		if ( read_cache_file != null ){
+                		CacheFile temp;
+                	
+                   		try{
+                			cache_read_mon.enter();
+
+                			temp = read_cache_file;
+                			
+                			read_cache_file = null;
+                			
+                   		}finally{
+                   			
+                   			cache_read_mon.exit();
+                   		}
+                   		
+                		if ( temp != null ){
 
                 			try{
-                				read_cache_file.close();
+                				temp.close();
 
                 			}catch( Throwable e ){
 
                 				Debug.printStackTrace(e);
                 			}
-
-                			read_cache_file = null;
                 		}
                 	}
 	

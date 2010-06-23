@@ -524,6 +524,8 @@ DiskManagerChannelImpl
 		
 		core_file.getDownloadManager().removePeerListener(this);
 		
+		core_file.close();
+		
 		if ( peer_manager != null ){
 			
 			peer_manager.getPiecePicker().removeRTAProvider( this );
