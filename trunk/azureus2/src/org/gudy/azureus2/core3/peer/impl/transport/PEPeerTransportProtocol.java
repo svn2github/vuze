@@ -1219,7 +1219,9 @@ implements PEPeerTransport
 			manager.requestCanceled(request);
 			return null;
 		}	
+		
 		boolean added =false;
+		
 		try{
 			requested_mon.enter();
 
@@ -1227,16 +1229,17 @@ implements PEPeerTransport
 				
 				requested.add(request);
 				
-				added =true;
+				added = true;
 			}
 		}finally{
 
 			requested_mon.exit();
 		}
 
-		if (added)
-		{
+		if ( added ){
+		
             connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength, other_peer_request_version ), false );
+            
 			_lastPiece =pieceNumber;
 
 			if ( DEBUG_FAST ){
@@ -1250,12 +1253,13 @@ implements PEPeerTransport
 				recent_outgoing_requests_mon.enter();
 
 				recent_outgoing_requests.put( request, null );
+				
 			}finally{
 				recent_outgoing_requests_mon.exit();
 			}
-			return request;
 		}
-		return null;
+		
+		return request;
 	}
 
 	public int
