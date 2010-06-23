@@ -43,4 +43,13 @@ public interface SWTSkinProperties
 
 
 	public Color getColor(String name, Color def);
+
+
+	/**
+	 * @param sID
+	 * @return
+	 *
+	 * @since 4.4.0.7
+	 */
+	SWTColorWithAlpha getColorWithAlpha(String sID);
 }

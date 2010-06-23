@@ -55,6 +55,10 @@ public class SWTSkinPropertiesParamImpl
 		return properties.getColor(name);
 	}
 
+	public SWTColorWithAlpha getColorWithAlpha(String sID) {
+		return properties.getColorWithAlpha(sID);
+	}
+
 	public int[] getColorValue(String name) {
 		return properties.getColorValue(name);
 	}

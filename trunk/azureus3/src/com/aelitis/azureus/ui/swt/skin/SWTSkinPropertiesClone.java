@@ -84,6 +84,27 @@ public class SWTSkinPropertiesClone
 		properties.addProperty(sCloneConfigID + name, value);
 	}
 
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinProperties#getColorWithAlpha(java.lang.String)
+	public SWTColorWithAlpha getColorWithAlpha(String name) {
+		if (name == null) {
+			return null;
+		}
+		if (DEBUG) {
+			checkName(name);
+		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getColorWithAlpha(name);
+		}
+
+
+		SWTColorWithAlpha val = properties.getColorWithAlpha(sCloneConfigID + name);
+		if (val != null) {
+			return val;
+		}
+
+		return properties.getColorWithAlpha(sTemplateConfigID + name);
+	}
+
 	public Color getColor(String name) {
 		if (name == null) {
 			return null;

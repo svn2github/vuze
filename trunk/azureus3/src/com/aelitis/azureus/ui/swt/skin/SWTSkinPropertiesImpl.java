@@ -40,7 +40,7 @@ public class SWTSkinPropertiesImpl
 	extends SkinPropertiesImpl
 	implements SWTSkinProperties
 {
-	private static Map colorMap = new LightHashMap();
+	private static Map<String, SWTColorWithAlpha> colorMap = new LightHashMap<String, SWTColorWithAlpha>();
 
 	/**
 	 * @param skinPath
@@ -59,15 +59,23 @@ public class SWTSkinPropertiesImpl
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinProperties#getColor(java.lang.String)
 	public Color getColor(String sID) {
+		return getColorWithAlpha(sID).color;
+	}
+
+	public SWTColorWithAlpha getColorWithAlpha(String sID) {
 		Color color;
 		if (colorMap.containsKey(sID)) {
-			return (Color) colorMap.get(sID);
+			return colorMap.get(sID);
 		}
 
+		int alpha = 255;
 		try {
 			int[] rgb = getColorValue(sID);
 			if (rgb[0] > -1) {
 				color = ColorCache.getSchemedColor(Utils.getDisplay(), rgb[0], rgb[1], rgb[2]);
+				if (rgb.length > 3) {
+					alpha = rgb[3];
+				}
 			} else {
 				color = ColorCache.getColor(Utils.getDisplay(), getStringValue(sID));
 			}
@@ -77,9 +85,10 @@ public class SWTSkinPropertiesImpl
 			color = null;
 		}
 
-		colorMap.put(sID, color);
+		SWTColorWithAlpha colorInfo = new SWTColorWithAlpha(color, alpha);
+		colorMap.put(sID, colorInfo);
 
-		return color;
+		return colorInfo;
 	}
 
 	public void clearCache() {
@@ -95,6 +104,4 @@ public class SWTSkinPropertiesImpl
 		}
 		return color;
 	}
-	
-	
 }

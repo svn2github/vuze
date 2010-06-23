@@ -96,7 +96,7 @@ public class SWTSkinObjectText2
 
 	protected boolean mouseDown;
 
-	private Color colorShadow;
+	private SWTColorWithAlpha colorShadow;
 
 	public SWTSkinObjectText2(SWTSkin skin,
 			final SWTSkinProperties skinProperties, String sID,
@@ -472,8 +472,8 @@ public class SWTSkinObjectText2
 						: sText;
 			}
 			
-			colorShadow = properties.getColor(sPrefix + ".shadow", null);
-			if (colorShadow != null) {
+			colorShadow = properties.getColorWithAlpha(sPrefix + ".shadow");
+			if (colorShadow.color != null) {
 				hasShadow = true;
 			}
 
@@ -633,12 +633,13 @@ public class SWTSkinObjectText2
 					clientArea.width, clientArea.height);
 
 			Color foreground = gc.getForeground();
-			if (colorShadow == null) {
+			if (colorShadow.color == null) {
   			Color color = ColorCache.getColor(gc.getDevice(), 0, 0, 0);
   			gc.setForeground(color);
   			gc.setAlpha(64);
 			} else {
-				gc.setForeground(colorShadow);
+				gc.setForeground(colorShadow.color);
+				gc.setAlpha(colorShadow.alpha);
 			}
 			GCStringPrinter.printString(gc, sDisplayText, r, true, false, style);
 			gc.setForeground(foreground);
