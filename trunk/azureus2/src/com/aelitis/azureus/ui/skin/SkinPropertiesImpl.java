@@ -274,7 +274,7 @@ public class SkinPropertiesImpl
 	}
 
 	public int[] getColorValue(String name) {
-		int[] colors = new int[3];
+		int[] colors = new int[4];
 		String value = getValue(name, null);
 
 		if (value == null || value.length() == 0 || value.startsWith("COLOR_")) {
@@ -286,14 +286,25 @@ public class SkinPropertiesImpl
 			if (value.charAt(0) == '#') {
 				// hex color string
 				long l = Long.parseLong(value.substring(1), 16);
-				colors[0] = (int) ((l >> 16) & 255);
-				colors[1] = (int) ((l >> 8) & 255);
-				colors[2] = (int) (l & 255);
+				if (value.length() == 9) {
+					colors = new int[] {
+						(int) ((l >> 24) & 255),
+						(int) ((l >> 16) & 255),
+						(int) ((l >> 8) & 255),
+						(int) (l & 255)
+					};
+				} else {
+  				colors[0] = (int) ((l >> 16) & 255);
+  				colors[1] = (int) ((l >> 8) & 255);
+  				colors[2] = (int) (l & 255);
+  				colors[3] = 255;
+				}
 			} else {
 				StringTokenizer st = new StringTokenizer(value, ",");
 				colors[0] = Integer.parseInt(st.nextToken());
 				colors[1] = Integer.parseInt(st.nextToken());
 				colors[2] = Integer.parseInt(st.nextToken());
+				colors[3] = st.hasMoreTokens() ? Integer.parseInt(st.nextToken()) : 255;
 			}
 		} catch (Exception e) {
 			//e.printStackTrace();
