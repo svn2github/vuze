@@ -646,7 +646,9 @@ SubscriptionManagerUI
 					result.addCellRefreshListener( subs_refresh_listener );
 					result.addCellMouseListener( subs_mouse_listener );
 					
-					columns.add(result);
+					synchronized (columns) {
+						columns.add(result);
+					}
 				}
 			});
 		
@@ -753,7 +755,9 @@ SubscriptionManagerUI
 						result.addCellRefreshListener( link_refresh_listener );
 						result.addCellMouseListener( link_mouse_listener );
 						
-						columns.add(result);
+						synchronized (columns) {
+							columns.add(result);
+						}
 					}
 				});
 	}
@@ -1130,11 +1134,13 @@ SubscriptionManagerUI
 	protected void
 	refreshColumns()
 	{
-		for ( Iterator<TableColumn> iter = columns.iterator(); iter.hasNext();){
-			
-			TableColumn column = iter.next();
-			
-			column.invalidateCells();
+		synchronized (columns) {
+  		for ( Iterator<TableColumn> iter = columns.iterator(); iter.hasNext();){
+  			
+  			TableColumn column = iter.next();
+  			
+  			column.invalidateCells();
+  		}
 		}
 	}
 	
