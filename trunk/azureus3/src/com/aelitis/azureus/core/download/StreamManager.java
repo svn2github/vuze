@@ -334,7 +334,7 @@ StreamManager
 				
 				listener.updateActivity( "media duraton=" + (duration/1000) + " sec, average rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( bytes_per_sec ));
 				
-				bytes_per_sec += (bytes_per_sec/10);
+				bytes_per_sec += (bytes_per_sec/5);
 								
 				edm.setExplicitProgressive( BUFFER_SECS, bytes_per_sec, file_index );
 				
