@@ -138,13 +138,14 @@ public class MyTorrentsSuperView extends AbstractIView implements
     for (int i = 0; i < row.length; i++) {
    		row[i] = (i % 3) != 0 ? 0xE0E0E0 : 0x808080;
     	if (imageData.depth == 32) {
-    		row[i] = row[i] << 8;
+    		row[i] = (row[i] & 255) + (row[i] << 8);
     	}
 		}
-    for (int y = 0; y < imageData.height - 1; y++) {
+    for (int y = 1; y < imageData.height - 1; y++) {
     	imageData.setPixels(0, y, row.length, row, 0);
     }
     Arrays.fill(row, 0xE0E0E0E0);
+  	imageData.setPixels(0, 0, row.length, row, 0);
   	imageData.setPixels(0, imageData.height - 1, row.length, row, 0);
     image.dispose();
     image = new Image(sash.getDisplay(), imageData);
