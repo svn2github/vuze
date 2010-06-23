@@ -60,7 +60,7 @@ ExternalSeedPeer
 	private Monitor					connection_mon;
 	private boolean					peer_added;
 	
-	private List					request_list = new ArrayList();
+	private List<PeerReadRequest>					request_list = new ArrayList<PeerReadRequest>();
 	
 	private CopyOnWriteList			listeners;
 	private Monitor					listeners_mon;
@@ -533,11 +533,23 @@ ExternalSeedPeer
 		
 	}
   		
-	public List
+	public List<PeerReadRequest>
 	getRequests()
 	{
-		return( reader.getRequests());
+		List<PeerReadRequest> requests = reader.getRequests();
 		
+		if ( request_list.size() > 0 ){
+			
+			try{
+				requests.addAll( request_list );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		return( requests );
 	}
 
 	public int
@@ -598,15 +610,18 @@ ExternalSeedPeer
 	public boolean 
 	addRequest(
 		PeerReadRequest	request )
-	{		
+	{	
 		if ( !doing_allocations ){
 			
 			Debug.out( "request added when not in allocation phase" );
 		}
 		
-		request_list.add( request );
-		
-		snubbed = 0;
+		if ( !request_list.contains( request )){
+			
+			request_list.add( request );
+			
+			snubbed = 0;
+		}
 		
 		return( true );
 	}
@@ -822,7 +837,7 @@ ExternalSeedPeer
 			
 			stats.received( res );
 		}
-		
+				
 		return( res );
 	}
 	
