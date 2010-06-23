@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 public class TextViewerWindow {
@@ -56,8 +57,16 @@ public class TextViewerWindow {
 		 String sTitleID, String sMessageID, String sText, boolean modal ) 
   {
     final Display display = SWTThread.getInstance().getDisplay();
-    shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | (modal?SWT.APPLICATION_MODAL:SWT.ON_TOP) | SWT.RESIZE );
-
+    
+    if ( modal ){
+    
+    	shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE );
+    	
+    }else{
+    	
+    	shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE );
+    }
+    
     if (sTitleID != null) shell.setText(MessageText.keyExists(sTitleID)?MessageText.getString(sTitleID):sTitleID);
     
     Utils.setShellIcon(shell);
