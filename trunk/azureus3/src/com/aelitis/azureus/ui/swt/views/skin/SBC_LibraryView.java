@@ -735,7 +735,7 @@ public class SBC_LibraryView
 					stats.numIncomplete++;
 					if (dm.getState() == DownloadManager.STATE_DOWNLOADING) {
 						dm.setUserData("wasDownloading", new Boolean(true));
-						stats.numSeeding++;
+						stats.numDownloading++;
 					} else {
 						dm.setUserData("wasDownloading", new Boolean(false));
 					}
@@ -775,9 +775,9 @@ public class SBC_LibraryView
 					statsNoLowNoise.numIncomplete++;
 				}
 				if (state == DownloadManager.STATE_DOWNLOADING) {
-					statsWithLowNoise.numSeeding++;
+					statsWithLowNoise.numDownloading++;
 					if (!lowNoise) {
-						statsNoLowNoise.numSeeding++;
+						statsNoLowNoise.numDownloading++;
 					}
 				}
 			}
