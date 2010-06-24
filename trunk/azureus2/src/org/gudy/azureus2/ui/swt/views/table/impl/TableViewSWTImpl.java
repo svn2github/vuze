@@ -1878,12 +1878,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   				if (columnName == null) {
   					return;
   				}
-  				TableItemOrTreeItem[] tis = table.getSelection();
-  				for (int i = 0; i < tis.length; i++) {
-  					if (i != 0) {
+  				TableRowCore[] rows = getSelectedRows();
+  				for (TableRowCore row : rows) {
+  					if (row != rows[0]) {
   						sToClipboard += "\n";
   					}
-  					TableRowCore row = (TableRowCore) tis[i].getData("TableRow");
   					TableCellCore cell = row.getTableCellCore(columnName);
   					if (cell != null) {
   						sToClipboard += cell.getClipboardText();
@@ -2869,8 +2868,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
-		int numSelected = table.getSelectionCount();
-		int[] oldSelection = table.getSelectionIndices();
 		TableRowCore[] oldSelectedRows = getSelectedRows();
 
 		mainComposite.getParent().setCursor(
@@ -3553,15 +3550,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 *         selected
 	 */
 	public Object getFirstSelectedDataSource(boolean bCoreObject) {
-		if (table == null || table.isDisposed() || table.getSelectionCount() == 0) {
-			return null;
+		synchronized (selectedRows) {
+			if (selectedRows.size() > 0) {
+				return selectedRows.get(0).getDataSource(bCoreObject);
+			}
 		}
-
-		TableRowCore row = getRow(table.getSelection()[0]);
-		if (row == null || row.isRowDisposed()) {
-			return null;
-		}
-		return row.getDataSource(bCoreObject);
+		return null;
 	}
 
 	/** For each row source that the user has selected, run the code
@@ -3574,15 +3568,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
-		TableItemOrTreeItem[] tis = table.getSelection();
-		List<TableRowCore> rows_to_use = new ArrayList<TableRowCore>(tis.length);
-		for (int i = 0; i < tis.length; i++) {
-			TableRowCore row = getRow(tis[i]);
-			if (row != null && !row.isRowDisposed()) {
-				rows_to_use.add(row);
-			}
+		TableRowCore[] rows;
+		synchronized (selectedRows) {
+			rows = selectedRows.toArray(new TableRowCore[0]);
 		}
-		TableRowCore[] rows = rows_to_use.toArray(new TableRowCore[rows_to_use.size()]);
 		boolean ran = runner.run(rows);
 		if (!ran) {
 			for (int i = 0; i < rows.length; i++) {
@@ -3667,10 +3656,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			sToClipboard += table.getColumn(j).getText();
 		}
 
-		TableItemOrTreeItem[] tis = table.getSelection();
-		for (int i = 0; i < tis.length; i++) {
+		TableRowCore[] rows = getSelectedRows();
+		for (TableRowCore row : rows) {
 			sToClipboard += "\n";
-			TableRowCore row = getRow(tis[i]);
 			TableColumnCore[] visibleColumns = getVisibleColumns();
 			for (int j = 0; j < visibleColumns.length; j++) {
 				TableColumnCore column = visibleColumns[j];
