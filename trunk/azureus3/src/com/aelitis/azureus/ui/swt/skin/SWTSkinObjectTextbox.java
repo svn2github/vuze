@@ -75,7 +75,7 @@ public class SWTSkinObjectTextbox
 				style |= SWT.SINGLE;
 			}
 			if (Arrays.binarySearch(styles, "search") >= 0) {
-				style |= SWT.SEARCH | SWT.ICON_SEARCH;
+				style |= SWT.SEARCH | SWT.ICON_SEARCH | SWT.ICON_CANCEL;
 			}
 		}
 		
