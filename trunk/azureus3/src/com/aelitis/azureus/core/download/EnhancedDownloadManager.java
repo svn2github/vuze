@@ -1319,7 +1319,7 @@ EnhancedDownloadManager
 	public long
 	getContiguousAvailableBytes(
 		DiskManagerFileInfo		file,
-		int						file_start_offset )
+		long					file_start_offset )
 	{
 		if ( file == null ) {
 
@@ -1846,7 +1846,7 @@ EnhancedDownloadManager
 					
 					long	piece_size = disk_manager.getPieceLength();
 					
-					int		start_piece = (int)( stats.getBytePosition() / piece_size );
+					int		start_piece = (int)( stats.getViewerBytePosition( true ) / piece_size );
 						
 					long	bytes_offset = 0;
 					
@@ -1862,7 +1862,7 @@ EnhancedDownloadManager
 				
 						long total_avail = getContiguousAvailableBytes( getPrimaryFile());
 						
-						long viewer_pos = stats.getViewerBytePosition();
+						long viewer_pos = stats.getViewerBytePosition( true );
 						
 						long avail = total_avail - viewer_pos;
 						
@@ -2325,10 +2325,7 @@ EnhancedDownloadManager
 	{
 		protected abstract boolean
 		isProviderActive();
-		
-		protected abstract long
-		getBytePosition();
-		
+				
 		protected abstract long
 		getStreamBytesPerSecondMax();
 		
@@ -2350,8 +2347,15 @@ EnhancedDownloadManager
 			long		bytes );
 		
 		protected abstract long
-		getViewerBytePosition();
+		getViewerBytePosition(
+			boolean	absolute );
 		
+		protected abstract long
+		getSecondsToDownload();
+		
+		protected abstract long
+		getSecondsToWatch();
+
 		protected abstract void
 		update(
 			int	tick_count );
@@ -2396,7 +2400,8 @@ EnhancedDownloadManager
 		private PieceRTAProvider	current_provider;
 		private String				current_user_agent;
 		
-		protected long		total_file_length = download_manager.getSize();
+		protected final long		total_download_length;
+		protected final long		file_length;
 
 
 		private Average		capped_download_rate_average 	= AverageFactory.MovingImmediateAverage( 10 );
@@ -2420,6 +2425,10 @@ EnhancedDownloadManager
 			DownloadManager					dm,
 			EnhancedDownloadManagerFile		primary_file )
 		{
+			total_download_length	= dm.getSize();
+			
+			file_length = primary_file==null?0:primary_file.getLength();
+			
 			calculateSpeeds( dm, primary_file );
 			
 			setRTA( false );
@@ -2673,14 +2682,9 @@ EnhancedDownloadManager
 		getETA(
 			boolean ignore_min_buffer_size )
 		{
-			DiskManager dm = download_manager.getDiskManager();
+			DiskManagerFileInfo file = primary_file.getFile();
 			
-			if ( dm == null ){
-				
-				return( Long.MAX_VALUE );
-			}
-			
-			if ( dm.getRemainingExcludingDND() == 0 ){
+			if ( file.getLength() == file.getDownloaded()){
 				
 				return( 0 );
 			}
@@ -2831,22 +2835,16 @@ EnhancedDownloadManager
 			return( weighted_bytes_to_download / download_rate );
 		}
 		
-		protected long
+		public long
 		getSecondsToWatch()
 		{
-			return((total_file_length - getViewerBytePosition()) / getStreamBytesPerSecondMin());
+			return(( file_length - getViewerBytePosition(false)) / getStreamBytesPerSecondMin());
 		}
-		
-		protected long
-		getBytePosition()
-		{
-			return( getViewerBytePosition());
-		}
-				
+						
 		protected long
 		getViewerBufferSeconds()
 		{
-			return((provider_byte_position - getViewerBytePosition() ) / getStreamBytesPerSecondMax() );
+			return((provider_byte_position - getViewerBytePosition(true) ) / getStreamBytesPerSecondMax() );
 		}
 				
 		protected String
@@ -2860,9 +2858,9 @@ EnhancedDownloadManager
 					", dl_rate=" + formatSpeed(dl_rate)+ ", download_rem=" + formatBytes(weighted_bytes_to_download) + "/" + formatBytes(actual_bytes_to_download) +
 					", discard_rate=" + formatSpeed((long)discard_rate_average.getAverage()) +
 					", init_done=" + getInitialBytesDownloaded(init_bytes) + ", init_buff=" + init_bytes +
-					", viewer: byte=" + formatBytes( getViewerBytePosition()) + " secs=" + ( getViewerBytePosition()/getStreamBytesPerSecondMin() ) + 
+					", viewer: byte=" + formatBytes( getViewerBytePosition(false)) + " secs=" + ( getViewerBytePosition(false)/getStreamBytesPerSecondMin() ) + 
 					", prov: byte=" + formatBytes( provider_byte_position ) + " secs=" + ( provider_byte_position/getStreamBytesPerSecondMin()) + " speed=" + formatSpeed((long)provider_speed_average.getAverage()) +
-					" block= " + formatBytes( provider_blocking_byte_position ) + " buffer=" + formatBytes( provider_byte_position - getViewerBytePosition() ) + "/" + getViewerBufferSeconds());
+					" block= " + formatBytes( provider_blocking_byte_position ) + " buffer=" + formatBytes( provider_byte_position - getViewerBytePosition(true) ) + "/" + getViewerBufferSeconds());
 		}
 	}
 
@@ -2873,7 +2871,7 @@ EnhancedDownloadManager
 		private long	content_stream_bps_min;
 		private long	content_stream_bps_max;
 
-		private long	viewer_byte_position;
+		private long	viewer_byte_position;		// absolute in torrent
 		
 		protected
 		progressiveStatsExternal(
@@ -2959,9 +2957,9 @@ EnhancedDownloadManager
 		{
 			viewer_byte_position 	= getInitialProviderPosition() + (getStreamBytesPerSecondMax() * getProviderLifeSecs());
 			
-			if ( viewer_byte_position > total_file_length ){
+			if ( viewer_byte_position > total_download_length ){
 				
-				viewer_byte_position = total_file_length;
+				viewer_byte_position = total_download_length;
 			}
 			
 			if ( viewer_byte_position > getProviderBytePosition()){
@@ -2977,9 +2975,10 @@ EnhancedDownloadManager
 		}
 
 		protected long
-		getViewerBytePosition()
+		getViewerBytePosition(
+			boolean	absolute )
 		{
-			return( viewer_byte_position );
+			return( absolute?viewer_byte_position:(viewer_byte_position-primary_file.getByteOffestInTorrent()) );
 		}
 	}
 	
@@ -2990,7 +2989,7 @@ EnhancedDownloadManager
 		private long	content_stream_bps_min;
 		private long	content_stream_bps_max;
 
-		private long	viewer_byte_position;
+		private long	viewer_byte_position;			// absolute in torrent
 		private long	viewer_byte_position_set_time;
 				
 		private long	last_warning;
@@ -3105,7 +3104,8 @@ EnhancedDownloadManager
 		}
 
 		protected long
-		getViewerBytePosition()
+		getViewerBytePosition(
+			boolean	absolute )
 		{
 			long	now = SystemTime.getCurrentTime();
 			
@@ -3126,7 +3126,19 @@ EnhancedDownloadManager
 				}
 			}
 			
-			return( viewer_byte_position );
+			long res = viewer_byte_position;
+			
+			if ( absolute ){
+				
+				res -= primary_file.getByteOffestInTorrent();
+				
+				if ( res < 0 ){
+					
+					res = 0;
+				}
+			}
+			
+			return( res );
 		}
 	}
 }

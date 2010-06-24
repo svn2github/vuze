@@ -350,10 +350,8 @@ StreamManager
 						throw( new Exception( "Cancelled" ));
 					}
 					
-					long eta = edm.getProgressivePlayETA();
-				
-					updateETA( eta );
-					
+					long eta = updateETA( edm );
+							
 					if ( eta <= 0 ){
 						
 						break;
@@ -382,10 +380,8 @@ StreamManager
 					{
 						try{
 							while( edm.getProgressiveMode() && !cancelled ){
-							
-								long eta = edm.getProgressivePlayETA();
-																	
-								updateETA( eta );
+																								
+								updateETA( edm );
 								
 								Thread.sleep( 1000 );
 							}
@@ -417,10 +413,25 @@ StreamManager
 			}
 		}
 		
-		private void
+		private long
 		updateETA(
-			long		eta )
+			EnhancedDownloadManager edm )
 		{
+			long eta = edm.getProgressivePlayETA();
+						
+			EnhancedDownloadManager.progressiveStats stats = edm.getProgressiveStats();
+			
+			long view_pos = stats.getViewerBytePosition( false );
+			
+			long buffer = edm.getContiguousAvailableBytes( edm.getPrimaryFile(), view_pos );
+			
+			long bps = stats.getStreamBytesPerSecondMin();
+			
+			long to_dl 		= stats.getSecondsToDownload();
+			long to_watch	= stats.getSecondsToWatch();
+			
+			System.out.println( "eta=" + eta + ", view=" + view_pos + ", buffer=" + buffer + "/" + (buffer/bps ) + ", dl=" + to_dl + ", view=" + to_watch );
+			
 			long actual_buffer_secs = BUFFER_SECS - eta;
 			
 			if ( actual_buffer_secs < 0 ){
@@ -434,6 +445,8 @@ StreamManager
 			}
 			
 			listener.updateStats( (int)actual_buffer_secs, BUFFER_SECS, eta );
+			
+			return( eta );
 		}
 		
 		public void

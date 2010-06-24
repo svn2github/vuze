@@ -88,6 +88,12 @@ EnhancedDownloadManagerFile
 	}
 	
 	public long
+	getLength()
+	{
+		return( file.getLength());
+	}
+	
+	public long
 	getByteOffestInTorrent()
 	{
 		return( offset );
