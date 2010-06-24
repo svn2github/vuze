@@ -43,11 +43,13 @@ public class PlatformVuzeActivitiesMessenger
 	public static final long DEFAULT_RETRY_MS = 1000L * 60 * 60 * 24;
 
 	public static void getEntries(final long contentNetworkID, final long agoMS,
-			long maxDelayMS, final GetEntriesReplyListener replyListener) {
+			long maxDelayMS, String reason, final GetEntriesReplyListener replyListener) {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID, OP_GET,
 				new Object[] {
 					"ago-ms",
 					new Long(agoMS),
+					"reason",
+					reason,
 				}, maxDelayMS);
 		message.setContentNetworkID(contentNetworkID);
 

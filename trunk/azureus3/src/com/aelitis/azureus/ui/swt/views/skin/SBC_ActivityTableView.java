@@ -117,10 +117,10 @@ public class SBC_ActivityTableView
 					if ((e.stateMask & SWT.CONTROL) > 0) {
 						System.out.println("pull all vuze news entries");
 						VuzeActivitiesManager.clearLastPullTimes();
-						VuzeActivitiesManager.pullActivitiesNow(0);
+						VuzeActivitiesManager.pullActivitiesNow(0, "^F5", true);
 					} else {
 						System.out.println("pull latest vuze news entries");
-						VuzeActivitiesManager.pullActivitiesNow(0);
+						VuzeActivitiesManager.pullActivitiesNow(0, "F5", true);
 					}
 				}
 			}

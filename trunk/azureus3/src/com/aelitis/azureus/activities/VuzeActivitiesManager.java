@@ -141,13 +141,13 @@ public class VuzeActivitiesManager
 				SimpleTimer.addEvent("GetVuzeNews",
 						SystemTime.getOffsetTime(refreshInMS), new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
-								pullActivitiesNow(5000);
+								pullActivitiesNow(5000, "timer", false);
 							}
 						});
 			}
 		};
 
-		pullActivitiesNow(5000);
+		pullActivitiesNow(5000, "initial", false);
 	}
 
 	/**
@@ -166,7 +166,7 @@ public class VuzeActivitiesManager
 				boolean isActive = (oIsActive instanceof Boolean)
 						? ((Boolean) oIsActive).booleanValue() : false;
 				if (isActive) {
-					pullActivitiesNow(2000);
+					pullActivitiesNow(2000, "CN:PropChange", false);
 				}
 			}
 		});
@@ -242,12 +242,12 @@ public class VuzeActivitiesManager
 	/**
 	 * Pull entries from webapp
 	 * 
-	 * @param agoMS Pull all events within this timespan (ms)
 	 * @param delay max time to wait before running request
 	 *
 	 * @since 3.0.4.3
 	 */
-	public static void pullActivitiesNow(long delay) {
+	public static void pullActivitiesNow(long delay, String reason,
+			boolean alwaysPull) {
 		/*
 		ContentNetworkManager cnm = ContentNetworkManagerFactory.getSingleton();
 		if (cnm == null) {
@@ -276,14 +276,14 @@ public class VuzeActivitiesManager
 			long lastPullTime = oLastPullTime != null ? oLastPullTime.longValue() : 0;
 			long now = SystemTime.getCurrentTime();
 			long diff = now - lastPullTime;
-			if (diff < 5000) {
+			if (!alwaysPull && diff < 5000) {
 				return;
 			}
 			if (diff > MAX_LIFE_MS) {
 				diff = MAX_LIFE_MS;
 			}
 			PlatformVuzeActivitiesMessenger.getEntries(cn.getID(), diff, delay,
-					replyListener);
+					reason, replyListener);
 			lastNewsAt.put(id, new Long(now));
 		}
 	}

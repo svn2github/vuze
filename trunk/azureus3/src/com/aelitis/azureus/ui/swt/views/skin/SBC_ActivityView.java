@@ -23,6 +23,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -114,6 +115,11 @@ public class SBC_ActivityView
 				MODE_DEFAULT), false);
 
 		return null;
+	}
+	
+	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
+		VuzeActivitiesManager.pullActivitiesNow(0, "shown", true);
+		return super.skinObjectShown(skinObject, params);
 	}
 
 	public int getViewMode() {
