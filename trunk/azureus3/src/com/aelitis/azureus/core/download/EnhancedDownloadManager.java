@@ -996,7 +996,7 @@ EnhancedDownloadManager
 					bytes_offset += piece_size;		
 					
 					if ( bytes_offset > buffer_bytes ){
-												
+							
 						break;
 					}
 				}
@@ -1031,7 +1031,8 @@ EnhancedDownloadManager
 		
     	public void
     	setBufferMillis(
-			long	seconds )
+			long	millis,
+			long	delay_millis )
 		{
 		}
     	
@@ -1352,7 +1353,7 @@ EnhancedDownloadManager
 					
 					buffer_secs = Math.max( 10, buffer_secs );
 					
-					best_provider.setBufferMillis( buffer_secs * 1000 );
+					best_provider.setBufferMillis( 15*1000, buffer_secs * 1000 );
 				}
 				
 				DiskManagerPiece[] pieces = disk_manager.getPieces();

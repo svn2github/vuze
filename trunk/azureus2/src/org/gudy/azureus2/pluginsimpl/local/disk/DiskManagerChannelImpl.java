@@ -57,8 +57,8 @@ public class
 DiskManagerChannelImpl 
 	implements DiskManagerChannel, DiskManagerFileInfoListener, DownloadManagerPeerListener, PieceRTAProvider
 {
-	private static int		BUFFER_MILLIS;
-	private static int		MIN_PIECES_TO_BUFFER;
+	private static int		DEFAULT_BUFFER_MILLIS;
+	private static int		DEFAULT_MIN_PIECES_TO_BUFFER;
 	
 	static{
 		COConfigurationManager.addAndFireParameterListeners(
@@ -72,8 +72,8 @@ DiskManagerChannelImpl
 				parameterChanged(
 					String parameterName )
 				{
-					BUFFER_MILLIS			= COConfigurationManager.getIntParameter( "filechannel.rt.buffer.millis" );
-					MIN_PIECES_TO_BUFFER 	= COConfigurationManager.getIntParameter( "filechannel.rt.buffer.pieces" );
+					DEFAULT_BUFFER_MILLIS			= COConfigurationManager.getIntParameter( "filechannel.rt.buffer.millis" );
+					DEFAULT_MIN_PIECES_TO_BUFFER 	= COConfigurationManager.getIntParameter( "filechannel.rt.buffer.pieces" );
 				}
 			});
 	}
@@ -191,7 +191,8 @@ DiskManagerChannelImpl
 	
 	private request	current_request;
 	
-	private long	buffer_millis;
+	private long	buffer_millis_override;
+	private long	buffer_delay_millis;
 	
 	private PEPeerManager	peer_manager;
 	
@@ -432,7 +433,9 @@ DiskManagerChannelImpl
    		
    		long	rate = byte_rate.getAverage();
    		
-   		long	buffer_bytes = ( BUFFER_MILLIS * rate ) / 1000;
+   		int	buffer_millis = (int)(buffer_millis_override==0?DEFAULT_BUFFER_MILLIS:buffer_millis_override);
+   		
+   		long	buffer_bytes = ( buffer_millis * rate ) / 1000;
    		
    		int	pieces_to_buffer = (int)( buffer_bytes / piece_size );
    		
@@ -441,11 +444,11 @@ DiskManagerChannelImpl
    			pieces_to_buffer	= 1;
    		}
    		
-   		int	millis_per_piece = BUFFER_MILLIS/pieces_to_buffer; 
+   		int	millis_per_piece = buffer_millis/pieces_to_buffer; 
 
-   		if ( pieces_to_buffer < MIN_PIECES_TO_BUFFER ){
+   		if ( pieces_to_buffer < DEFAULT_MIN_PIECES_TO_BUFFER ){
    			
-   			pieces_to_buffer = MIN_PIECES_TO_BUFFER;
+   			pieces_to_buffer = DEFAULT_MIN_PIECES_TO_BUFFER;
    		}
    		   		
    		// System.out.println( "rate = " + rate + ", buffer_bytes = " + buffer_bytes + ", pieces = " + pieces_to_buffer + ", millis_per_piece = " + millis_per_piece );
@@ -454,13 +457,13 @@ DiskManagerChannelImpl
    		 
    		long	now = SystemTime.getCurrentTime();
    		
-   		now += buffer_millis;
+   		now += buffer_delay_millis;
    		
    		for (int i=first_piece;i<first_piece+pieces_to_buffer&&i<rtas.length;i++){
    			
    			rtas[i]	= now + (( i - first_piece ) * millis_per_piece );
    		}
-   		
+   		   		
    		return( rtas );
    	}
    
@@ -497,9 +500,11 @@ DiskManagerChannelImpl
 	
 	public void
 	setBufferMillis(
-		long	millis )
+		long	millis,
+		long	delay_millis )
 	{
-		buffer_millis = millis;
+		buffer_millis_override	= millis;
+		buffer_delay_millis 	= delay_millis;
 	}
 	
 	public String

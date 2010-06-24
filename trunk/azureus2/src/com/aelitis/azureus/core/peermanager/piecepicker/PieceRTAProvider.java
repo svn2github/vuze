@@ -48,7 +48,8 @@ PieceRTAProvider
 	
 	public void
 	setBufferMillis(
-		long	millis );
+		long	millis,
+		long	delay_millis );
 	
 		/**
 		 * Returns the user-agent associated with this RTA activity, if known
