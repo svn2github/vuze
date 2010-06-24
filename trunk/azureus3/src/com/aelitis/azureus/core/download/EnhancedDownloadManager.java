@@ -613,7 +613,7 @@ EnhancedDownloadManager
 		
 		DiskManagerFileInfo[]	 files = dm.getFiles();
 		
-		long	start_index = efile.getByteOffestInTorrent();
+		long	start_index = efile.getByteOffestInTorrent() + file_start_offset;
 	
 		
 		int	first_piece_index 	= (int)( start_index / piece_size );
@@ -871,7 +871,22 @@ EnhancedDownloadManager
     			return( null );
     		}
     		
+			long	abs_provider_pos = stats.getCurrentProviderPosition( true );
+ 			long	rel_provider_pos = stats.getCurrentProviderPosition( false );
+
+			long	buffer_bytes = stats.getBufferBytes();
+ 			
   			boolean buffering = getProgressivePlayETA() >= 0;
+  			
+  			if ( buffering ){
+  				
+				long	 buffer_size = getContiguousAvailableBytes( file.getIndex(), rel_provider_pos, buffer_bytes );
+				
+				if ( buffer_size == buffer_bytes ){
+					
+					buffering = false;
+				}
+  			}
   				
   			if ( buffering != is_buffering ){
   			
@@ -888,10 +903,7 @@ EnhancedDownloadManager
   			}
   			
 			long	piece_size = disk_manager.getPieceLength();
-			
- 			long	abs_provider_pos = stats.getCurrentProviderPosition( true );
- 			long	rel_provider_pos = stats.getCurrentProviderPosition( false );
- 			  		  
+			 			  		  
 			int		start_piece = (int)( abs_provider_pos / piece_size );
 
 			int		end_piece	= file.getFile().getLastPieceNumber();
@@ -976,9 +988,7 @@ EnhancedDownloadManager
 				long	bytes_offset = 0;
 				
 				long	max_bps = stats.getStreamBytesPerSecondMax();
-				
-				long	buffer_bytes = stats.getBufferBytes();
-				
+								
 				for (int i=start_piece;i<=end_piece;i++){
 										
 					piece_rtas[i] = now + ( 1000 * ( bytes_offset / max_bps ));
@@ -1436,15 +1446,10 @@ EnhancedDownloadManager
 			
 			long 	rem_buffer = buffer_bytes - buffer_done;	// ok as initial dl is forced in order byte buffer-rta
 			
-			long 	rem_secs = rem_buffer / download_rate;
+			long 	rem_secs = (rem_buffer<=0)?0:(rem_buffer / download_rate);
 			
 			long	secs_to_download = getSecondsToDownload();
-			
-				// increase time to download a bit so we don't start streaming too soon
-				// we'll always lose time due to speed variations, discards, hashfails...
-			
-			secs_to_download = secs_to_download + (secs_to_download/10);
-			
+									
 			long	secs_to_watch = getSecondsToWatch();
 			
 			long eta = secs_to_download - secs_to_watch;
