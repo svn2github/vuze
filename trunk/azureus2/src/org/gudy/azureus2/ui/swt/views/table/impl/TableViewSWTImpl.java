@@ -1685,7 +1685,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 			column.setAlignment(TableColumnSWTUtils.convertColumnAlignmentToSWT(tableColumns[i].getAlignment()));
 			Messages.setLanguageText(column.getColumn(), tableColumns[i].getTitleLanguageKey());
-			if (!Constants.isUnix) {
+			if (!Constants.isUnix && !Utils.isCarbon) {
 				column.setWidth(tableColumns[i].getWidth());
 			} else {
 				column.setData("widthOffset", new Long(1));
