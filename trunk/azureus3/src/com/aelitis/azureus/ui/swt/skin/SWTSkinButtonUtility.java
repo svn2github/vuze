@@ -129,6 +129,7 @@ public class SWTSkinButtonUtility
 	}
 
 	private boolean inSetDisabled = false;
+	private boolean lastDisabledState = false;
 	public void setDisabled(final boolean disabled) {
 		if (inSetDisabled) {
 			return;
@@ -139,9 +140,13 @@ public class SWTSkinButtonUtility
   			return;
   		}
   		if (skinObject instanceof SWTSkinObjectButton) {
-  			Utils.execSWTThread(new AERunnable() {
+  			lastDisabledState = disabled;
+  			Utils.execSWTThreadLater(100, new AERunnable() {
 					public void runSupport() {
-						((SWTSkinObjectButton) skinObject).getControl().setEnabled(!disabled);
+			  		if (lastDisabledState == isDisabled()) {
+			  			return;
+			  		}
+						((SWTSkinObjectButton) skinObject).getControl().setEnabled(!lastDisabledState);
 					}
 				});
   		}
