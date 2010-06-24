@@ -88,13 +88,15 @@ public class ToolBarView
 	private SWTSkinObject soGap;
 
 	private boolean initComplete = false;
-	
-	private ArrayList<ToolBarViewListener> listeners = new ArrayList<ToolBarViewListener>(1);
+
+	private ArrayList<ToolBarViewListener> listeners = new ArrayList<ToolBarViewListener>(
+			1);
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(final SWTSkinObject skinObject,
 			Object params) {
-		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals(
+				"az2");
 
 		this.skinObject = skinObject;
 		buttonListener = new toolbarButtonListener();
@@ -118,69 +120,70 @@ public class ToolBarView
 		ToolBarItem item;
 
 		if (!uiClassic) {
-  		// ==download
-  		item = new ToolBarItem("download", "image.button.download",
-  				"v3.MainWindow.button.download") {
-  			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-  			public void triggerToolBarItem() {
-  				String viewID = SelectedContentManager.getCurrentySelectedViewID();
-  				if (viewID == null && triggerIViewToolBar(getId())) {
-  					return;
-  				}
-  				// This is for our CDP pages
-  				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-  				if (sc != null && sc.length == 1
-  						&& (sc[0].getHash() != null || sc[0].getDownloadInfo() != null)) {
-  					TorrentListViewsUtils.downloadDataSource(sc[0], false,
-  							DLReferals.DL_REFERAL_TOOLBAR);
-  				}
-  			}
-  		};
-  		addToolBarItem(item);
-  
-  		// ==play
-  		item = new ToolBarItem("play", "image.button.play", "iconBar.play") {
-  			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-  			public void triggerToolBarItem() {
-  				String viewID = SelectedContentManager.getCurrentySelectedViewID();
-  				if (viewID == null && triggerIViewToolBar(getId())) {
-  					return;
-  				}
-  				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-  				if (sc != null) {
-  					TorrentListViewsUtils.playOrStreamDataSource(sc[0], sc[0].getFileIndex(),
-  							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR, false, true );
-  				}
-  			}
-  		};
-  		addToolBarItem(item);
+			// ==download
+			item = new ToolBarItem("download", "image.button.download",
+					"v3.MainWindow.button.download") {
+				// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+				public void triggerToolBarItem() {
+					String viewID = SelectedContentManager.getCurrentySelectedViewID();
+					if (viewID == null && triggerIViewToolBar(getId())) {
+						return;
+					}
+					// This is for our CDP pages
+					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+					if (sc != null && sc.length == 1
+							&& (sc[0].getHash() != null || sc[0].getDownloadInfo() != null)) {
+						TorrentListViewsUtils.downloadDataSource(sc[0], false,
+								DLReferals.DL_REFERAL_TOOLBAR);
+					}
+				}
+			};
+			addToolBarItem(item);
 
-  		
- 		// ==stream
-  		item = new ToolBarItem("stream", "image.button.play", "iconBar.stream") {
-  			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-  			public void triggerToolBarItem() {
-  				String viewID = SelectedContentManager.getCurrentySelectedViewID();
-  				if (viewID == null && triggerIViewToolBar(getId())) {
-  					return;
-  				}
-  				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-  				if (sc != null) {
-  					TorrentListViewsUtils.playOrStreamDataSource(sc[0], sc[0].getFileIndex(),
-  							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR, true, false );
-  				}
-  			}
-  		};
-  		addToolBarItem(item);
-  		
-  		
-  		addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep", soMain);
+			// ==play
+			item = new ToolBarItem("play", "image.button.play", "iconBar.play") {
+				// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+				public void triggerToolBarItem() {
+					String viewID = SelectedContentManager.getCurrentySelectedViewID();
+					if (viewID == null && triggerIViewToolBar(getId())) {
+						return;
+					}
+					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+					if (sc != null) {
+						TorrentListViewsUtils.playOrStreamDataSource(sc[0],
+								sc[0].getFileIndex(), this.getSkinButton(),
+								DLReferals.DL_REFERAL_TOOLBAR, false, true);
+					}
+				}
+			};
+			addToolBarItem(item);
 
-  		lastControl = null;
+			// ==stream
+			item = new ToolBarItem("stream", "image.button.play", "iconBar.stream") {
+				// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+				public void triggerToolBarItem() {
+					String viewID = SelectedContentManager.getCurrentySelectedViewID();
+					if (viewID == null && triggerIViewToolBar(getId())) {
+						return;
+					}
+					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+					if (sc != null) {
+						TorrentListViewsUtils.playOrStreamDataSource(sc[0],
+								sc[0].getFileIndex(), this.getSkinButton(),
+								DLReferals.DL_REFERAL_TOOLBAR, true, false);
+					}
+				}
+			};
+			addToolBarItem(item);
+
+			addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep",
+					soMain);
+
+			lastControl = null;
 
 		} else {
 
-  		lastControl = null;
+			lastControl = null;
 
 			// ==OPEN
 			item = new ToolBarItem("open", "image.toolbar.open", "Button.add") {
@@ -191,9 +194,9 @@ public class ToolBarView
 			item.setAlwaysAvailable(true);
 			addToolBarItem(item, "toolbar.area.sitem.left", so2nd);
 
-  		addSeperator(so2nd);
+			addSeperator(so2nd);
 
-  		// ==SEARCH
+			// ==SEARCH
 			item = new ToolBarItem("search", "search", "Button.search") {
 				public void triggerToolBarItem() {
 					UIFunctionsManagerSWT.getUIFunctionsSWT().promptForSearch();
@@ -202,35 +205,36 @@ public class ToolBarView
 			item.setAlwaysAvailable(true);
 			addToolBarItem(item, "toolbar.area.sitem.right", so2nd);
 
-			addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep3", so2nd);
+			addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep3",
+					so2nd);
 
 			addNonToolBar("toolbar.area.sitem.left2", so2nd);
 		}
 
-
-		boolean first = true; 
+		boolean first = true;
 
 		// ==transcode
 		if (!DeviceManagerUI.DISABLED) {
-  		item = new ToolBarItem("transcode", "image.button.transcode",
-  				"iconBar.transcode") {
-  			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-  			public void triggerToolBarItem() {
-  				String viewID = SelectedContentManager.getCurrentySelectedViewID();
-  				if (viewID == null && triggerIViewToolBar(getId())) {
-  					return;
-  				}
-  				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
-  				if (contents.length == 0) {
-  					return;
-  				}
- 
-  				deviceSelected( contents, true );
-  			}
-  		};
-  		addToolBarItem(item, first ? "toolbar.area.sitem.left" : "toolbar.area.sitem", so2nd);
-  		first = false;
-  		addSeperator(so2nd);
+			item = new ToolBarItem("transcode", "image.button.transcode",
+					"iconBar.transcode") {
+				// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+				public void triggerToolBarItem() {
+					String viewID = SelectedContentManager.getCurrentySelectedViewID();
+					if (viewID == null && triggerIViewToolBar(getId())) {
+						return;
+					}
+					ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+					if (contents.length == 0) {
+						return;
+					}
+
+					deviceSelected(contents, true);
+				}
+			};
+			addToolBarItem(item, first ? "toolbar.area.sitem.left"
+					: "toolbar.area.sitem", so2nd);
+			first = false;
+			addSeperator(so2nd);
 		}
 
 		// ==run
@@ -263,7 +267,8 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item, first ? "toolbar.area.sitem.left" : "toolbar.area.sitem", so2nd);
+		addToolBarItem(item, first ? "toolbar.area.sitem.left"
+				: "toolbar.area.sitem", so2nd);
 		first = false;
 		//addToolBarItem(item, "toolbar.area.sitem", so2nd);
 		addSeperator(so2nd);
@@ -486,7 +491,8 @@ public class ToolBarView
 
 		///////////////////////
 
-		addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep3", so2nd);
+		addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep3",
+				so2nd);
 
 		addNonToolBar("toolbar.area.sitem.left2", so2nd);
 
@@ -550,7 +556,7 @@ public class ToolBarView
 				}
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -567,11 +573,8 @@ public class ToolBarView
 		return true;
 	}
 
-	protected void
-	deviceSelected(
-		final ISelectedContent[]	contents,
-		final boolean				allow_retry )
-	{
+	protected void deviceSelected(final ISelectedContent[] contents,
+			final boolean allow_retry) {
 		TranscodeChooser deviceChooser = new TranscodeChooser() {
 			public void closed() {
 				DeviceManager deviceManager = DeviceManagerFactory.getSingleton();
@@ -590,8 +593,7 @@ public class ToolBarView
 										selectedTranscodeTarget,
 										selectedProfile,
 										(org.gudy.azureus2.plugins.disk.DiskManagerFileInfo) PluginCoreUtils.convert(
-												file, false),
-												false );
+												file, false), false);
 							} catch (TranscodeException e) {
 								Debug.out(e);
 							}
@@ -600,21 +602,17 @@ public class ToolBarView
 				}
 			}
 		};
-		
-		deviceChooser.show(
-			new Runnable()
-			{
-				public void
-				run()
-				{
-					if ( allow_retry ){
-					
-						deviceSelected( contents, false );
-					}
+
+		deviceChooser.show(new Runnable() {
+			public void run() {
+				if (allow_retry) {
+
+					deviceSelected(contents, false);
 				}
-			});
+			}
+		});
 	}
-	
+
 	protected boolean moveTop() {
 		if (!AzureusCoreFactory.isCoreRunning()) {
 			return false;
@@ -662,6 +660,7 @@ public class ToolBarView
 	 */
 	protected void updateCoreItems(ISelectedContent[] currentContent,
 			String viewID) {
+		//System.out.println("updateCoreItems via " + Debug.getCompressedStackTrace());
 		String[] itemsNeedingSelection = {};
 
 		String[] itemsNeedingRealDMSelection = {
@@ -865,19 +864,24 @@ public class ToolBarView
 		}
 		item = getToolBarItem("play");
 		if (item != null) {
-			item.setEnabled(has1Selection && (!(currentContent[0] instanceof ISelectedVuzeFileContent )) && PlayUtils.canPlayDS(currentContent[0], currentContent[0].getFileIndex()));
-		}
-		
-		item = getToolBarItem("stream");
-		if (item != null) {
-			item.setEnabled(has1Selection && (!(currentContent[0] instanceof ISelectedVuzeFileContent )) && PlayUtils.canStreamDS(currentContent[0], currentContent[0].getFileIndex()));
+			item.setEnabled(has1Selection
+					&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
+					&& PlayUtils.canPlayDS(currentContent[0],
+							currentContent[0].getFileIndex()));
 		}
 
-		
+		item = getToolBarItem("stream");
+		if (item != null) {
+			item.setEnabled(has1Selection
+					&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
+					&& PlayUtils.canStreamDS(currentContent[0],
+							currentContent[0].getFileIndex()));
+		}
+
 		item = getToolBarItem("download");
 		if (item != null) {
 			boolean enabled = has1Selection
-					&& (!(currentContent[0] instanceof ISelectedVuzeFileContent ))
+					&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
 					&& currentContent[0].getDownloadManager() == null
 					&& (currentContent[0].getHash() != null || currentContent[0].getDownloadInfo() != null);
 			item.setEnabled(enabled);
@@ -927,9 +931,21 @@ public class ToolBarView
 		return items.values().toArray(new ToolBarItem[0]);
 	}
 
+	private boolean willRefreshCoreToolBarItems = false;
+
 	public void refreshCoreToolBarItems() {
+		synchronized (this) {
+			if (willRefreshCoreToolBarItems) {
+				return;
+			}
+			willRefreshCoreToolBarItems = true;
+		}
+		//System.out.println("refreshCoreItems via " + Debug.getCompressedStackTrace());
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				synchronized (ToolBarView.this) {
+					willRefreshCoreToolBarItems = false;
+				}
 				_refreshCoreToolBarItems();
 			}
 		});
@@ -952,7 +968,8 @@ public class ToolBarView
 					} else {
 						for (int i = 0; i < allToolBarItems.length; i++) {
 							ToolBarItem toolBarItem = allToolBarItems[i];
-							toolBarItem.setEnabled(toolBarItem.isAlwaysAvailable() ? true : false);
+							toolBarItem.setEnabled(toolBarItem.isAlwaysAvailable() ? true
+									: false);
 						}
 						return;
 					}
@@ -960,7 +977,8 @@ public class ToolBarView
 
 				for (int i = 0; i < allToolBarItems.length; i++) {
 					ToolBarItem toolBarItem = allToolBarItems[i];
-					toolBarItem.setEnabled(toolBarItem.isAlwaysAvailable() ? true : enabler.isEnabled(toolBarItem.getId()));
+					toolBarItem.setEnabled(toolBarItem.isAlwaysAvailable() ? true
+							: enabler.isEnabled(toolBarItem.getId()));
 				}
 			}
 		}
@@ -1084,7 +1102,7 @@ public class ToolBarView
 			ToolBarItem item = (ToolBarItem) buttonUtility.getSkinObject().getData(
 					"toolbaritem");
 			buttonUtility.getSkinObject().switchSuffix("", 0, false, true);
-			
+
 			boolean triggerToolBarItemHold = item.triggerToolBarItemHold();
 			return triggerToolBarItemHold;
 		}
@@ -1147,11 +1165,11 @@ public class ToolBarView
 			Debug.out(e);
 		}
 	}
-	
+
 	public void addListener(ToolBarViewListener l) {
 		synchronized (listeners) {
 			listeners.add(l);
-			
+
 			if (initComplete) {
 				try {
 					l.toolbarViewInitialized(this);
@@ -1161,14 +1179,15 @@ public class ToolBarView
 			}
 		}
 	}
-	
+
 	public void removeListener(ToolBarViewListener l) {
 		synchronized (listeners) {
 			listeners.remove(l);
 		}
 	}
-	
-	public interface ToolBarViewListener {
+
+	public interface ToolBarViewListener
+	{
 		public void toolbarViewInitialized(ToolBarView tbv);
 	}
 
