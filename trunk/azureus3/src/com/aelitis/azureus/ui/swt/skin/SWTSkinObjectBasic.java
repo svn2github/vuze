@@ -766,8 +766,8 @@ public class SWTSkinObjectBasic
   				SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED, datasource);
 		}
 
-		if (isVisible && initialized && !neverCalledSetIsVisible) {
-			Utils.execSWTThread(new AERunnable() {
+		if (isVisible && initialized) {
+			Utils.execSWTThreadLater(0, new AERunnable() {
 				public void runSupport() {
 					listener.eventOccured(SWTSkinObjectBasic.this,
 							SWTSkinObjectListener.EVENT_SHOW, null);
