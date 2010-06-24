@@ -290,26 +290,7 @@ DownloadManagerEnhancer
 						
 							return;
 						}
-						
-						new AEThread2( "posUpdater" )
-						{
-							public void
-							run()
-							{
-								try{
-									while( !channel.isDestroyed()){
-										
-										edm.setViewerPosition( channel.getFile().getIndex(), channel.getPosition());
-										
-										Thread.sleep(250);
-									}
-								}catch( Throwable e ){
-									
-									Debug.out(e );
-								}
-							}
-						}.start();
-												
+								
 						if ( !edm.getProgressiveMode()){
 							
 							if ( edm.supportsProgressiveMode()){
@@ -351,8 +332,17 @@ DownloadManagerEnhancer
 	getEnhancedDownload(
 		DownloadManager	manager )
 	{
-		DownloadManager dm2 = manager.getGlobalManager().getDownloadManager(manager.getTorrent());
-		if (dm2 != manager) {
+		TOTorrent torrent = manager.getTorrent();
+		
+		if ( torrent == null ){
+			
+			return( null );
+		}
+		
+		DownloadManager dm2 = manager.getGlobalManager().getDownloadManager( torrent );
+		
+		if ( dm2 != manager ){
+			
 			return null;
 		}
 

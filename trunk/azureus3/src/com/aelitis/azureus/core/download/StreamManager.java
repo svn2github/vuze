@@ -333,9 +333,7 @@ StreamManager
 				long	bytes_per_sec = file.getLength() / (duration/1000);
 				
 				listener.updateActivity( "media duraton=" + (duration/1000) + " sec, average rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( bytes_per_sec ));
-				
-				bytes_per_sec += (bytes_per_sec/5);
-								
+												
 				edm.setExplicitProgressive( BUFFER_SECS, bytes_per_sec, file_index );
 				
 				if ( !edm.setProgressiveMode( true )){
@@ -421,16 +419,16 @@ StreamManager
 						
 			EnhancedDownloadManager.progressiveStats stats = edm.getProgressiveStats();
 			
-			long view_pos = stats.getViewerBytePosition( false );
+			long provider_pos = stats.getCurrentProviderPosition( false );
 			
-			long buffer = edm.getContiguousAvailableBytes( edm.getPrimaryFile(), view_pos );
+			long buffer = edm.getContiguousAvailableBytes( edm.getPrimaryFile().getIndex(), provider_pos, 0 );
 			
 			long bps = stats.getStreamBytesPerSecondMin();
 			
 			long to_dl 		= stats.getSecondsToDownload();
 			long to_watch	= stats.getSecondsToWatch();
 			
-			System.out.println( "eta=" + eta + ", view=" + view_pos + ", buffer=" + buffer + "/" + (buffer/bps ) + ", dl=" + to_dl + ", view=" + to_watch );
+			System.out.println( "eta=" + eta + ", view=" + provider_pos + ", buffer=" + buffer + "/" + (buffer/bps ) + ", dl=" + to_dl + ", view=" + to_watch );
 			
 			long actual_buffer_secs = BUFFER_SECS - eta;
 			
