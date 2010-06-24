@@ -51,6 +51,8 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
  */
 public class SWTSkin
 {
+	public static final boolean DEBUG_VISIBILITIES = false;
+
 	private static final SWTSkinObjectListener[] NOLISTENERS = new SWTSkinObjectListener[0];
 
 	public boolean DEBUGLAYOUT = System.getProperty("debuglayout") != null;

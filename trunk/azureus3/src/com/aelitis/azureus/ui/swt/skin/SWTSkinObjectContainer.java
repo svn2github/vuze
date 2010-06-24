@@ -249,23 +249,42 @@ public class SWTSkinObjectContainer
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setIsVisible(boolean)
 	protected boolean setIsVisible(boolean visible, boolean walkup) {
-		boolean changed = super.setIsVisible(visible, walkup);
-		
+		boolean changed = super.setIsVisible(visible, walkup && visible);
+
+		if (!changed) {
+			return false;
+		}
+
 		// Currently we ignore "changed" and set visibility on children to ensure
 		// things display
-		if (!changed || true) {
-  		SWTSkinObject[] children = getChildren();
-  		for (int i = 0; i < children.length; i++) {
-  			if (children[i] instanceof SWTSkinObjectBasic) {
-  				SWTSkinObjectBasic child = ((SWTSkinObjectBasic)children[i]);
-  				Control childControl = child.getControl();
-  				if (childControl != null && !childControl.isDisposed()) {
-  					//child.setIsVisible(visible, false);
-  					child.setIsVisible(childControl.isVisible(), false);
-  				}
-  			}
-  		}
-		}
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				SWTSkinObject[] children = getChildren();
+				if (children.length == 0) {
+					return;
+				}
+				if (SWTSkin.DEBUG_VISIBILITIES) {
+					System.out.println(">> setIsVisible for " + children.length
+							+ " children of " + SWTSkinObjectContainer.this);
+				}
+				for (int i = 0; i < children.length; i++) {
+					if (children[i] instanceof SWTSkinObjectBasic) {
+						SWTSkinObjectBasic child = ((SWTSkinObjectBasic) children[i]);
+						Control childControl = child.getControl();
+						if (childControl != null && !childControl.isDisposed()) {
+							//child.setIsVisible(visible, false);
+							//System.out.println("child control " + child + " is " + (childControl.isVisible() ? "visible" : "invisible"));
+							child.setIsVisible(childControl.isVisible(), false);
+						}
+					}
+				}
+				getComposite().layout();
+				if (SWTSkin.DEBUG_VISIBILITIES) {
+					System.out.println("<< setIsVisible for " + children.length
+							+ " children");
+				}
+			}
+		});
 		return changed;
 	}
 

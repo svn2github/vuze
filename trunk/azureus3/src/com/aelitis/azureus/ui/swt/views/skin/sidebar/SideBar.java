@@ -111,8 +111,6 @@ public class SideBar
 
 	private Font font;
 
-	double lastPercent = 0.8;
-
 	private SWTSkinObject soSideBarPopout;
 
 	private SelectionListener dropDownSelectionListener;
@@ -292,11 +290,20 @@ public class SideBar
 		}
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-				if (soSash.getPercent() == 0) {
-					if (lastPercent != 0) {
-						soSash.setPercent(lastPercent);
-					}
-
+				soSash.setAboveVisible(!soSash.isAboveVisible());
+				updateSidebarVisibility();
+			}
+		});
+	}
+	
+	private void updateSidebarVisibility() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				final SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
+				if (soSash == null) {
+					return;
+				}
+				if (soSash.isAboveVisible()) {
 					if (soSideBarPopout != null) {
 						Object ld = soSideBarPopout.getControl().getLayoutData();
 						if (ld instanceof FormData) {
@@ -308,10 +315,6 @@ public class SideBar
 						Utils.relayout(soSideBarPopout.getControl());
 					}
 				} else {
-					// invisible
-					lastPercent = soSash.getPercent();
-					soSash.setPercent(0);
-
 					if (soSideBarPopout != null) {
 						Object ld = soSideBarPopout.getControl().getLayoutData();
 						if (ld instanceof FormData) {
@@ -332,15 +335,12 @@ public class SideBar
 		if (soSash == null) {
 			return false;
 		}
-		return soSash.getPercent() != 0.0;
+		return soSash.isAboveVisible();
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
-		// force visible on first launch
-		if (!isVisible()) {
-			flipSideBarVisibility();
-		}
+		updateSidebarVisibility();
 		return null;
 	}
 
@@ -882,7 +882,7 @@ public class SideBar
 
 			TreeItem[] subItems = treeItem.getItems();
 			if (subItems.length > 0) {
-				fillDropDownMenu(menuDropDown, subItems, ++indent);
+				fillDropDownMenu(menuDropDown, subItems, indent + 1);
 			}
 		}
 	}

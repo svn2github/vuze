@@ -60,7 +60,7 @@ public class SWTSkinObjectBasic
 
 	protected String[] suffixes = null;
 
-	protected ArrayList listeners = new ArrayList();
+	protected ArrayList<SWTSkinObjectListener> listeners = new ArrayList<SWTSkinObjectListener>();
 
 	protected AEMonitor listeners_mon = new AEMonitor(
 			"SWTSkinObjectBasic::listener");
@@ -108,6 +108,8 @@ public class SWTSkinObjectBasic
 	private boolean firstVisibility;
 
 	private boolean layoutComplete;
+
+	private boolean neverCalledSetIsVisible = true;
 	
 	/**
 	 * @param properties TODO
@@ -135,7 +137,7 @@ public class SWTSkinObjectBasic
 
 	public void setControl(final Control control) {
 		
-		firstVisibility = properties.getBooleanValue(sConfigID + ".visible", true);
+		isVisible = firstVisibility = properties.getBooleanValue(sConfigID + ".visible", true);
 		
 		if (!Utils.isThisThreadSWT()) {
 			Debug.out("Warning: setControl not called in SWT thread for " + this);
@@ -218,14 +220,18 @@ public class SWTSkinObjectBasic
 		final Listener lShowHide = new Listener() {
 			public void handleEvent(final Event event) {
 				final boolean toBeVisible = event.type == SWT.Show;
-				//System.out.println(">>show/hide " + ((event.widget).getData("SkinObject")) + ";tobe/is=" + toBeVisible + "/" + isVisible + " via " + Debug.getCompressedStackTrace());
-				//System.out.println(SWTSkinObjectBasic.this + ">show/hide " + ((event.widget).getData("SkinObject")) + ";" + ((Control)event.widget).isVisible() + ";" + Debug.getCompressedStackTrace());
+				if (SWTSkin.DEBUG_VISIBILITIES) {
+					System.out.println(">>swt.show/hide " + ((event.widget).getData("SkinObject")) + ";tobe/is=" + toBeVisible + "/" + isVisible + " via " + Debug.getCompressedStackTrace());
+					//System.out.println(SWTSkinObjectBasic.this + "> swt.show/hide " + ((event.widget).getData("SkinObject")) + ";" + ((Control)event.widget).isVisible() + ";" + Debug.getCompressedStackTrace());
+				}
 
 				// wait until show or hide event is processed to guarantee
 				// isVisible will be correct for listener triggers
 				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
-						//System.out.println(">>show/hide " + ((event.widget).getData("SkinObject")) + ";" + ((Control) event.widget).isVisible());
+						if (SWTSkin.DEBUG_VISIBILITIES) {
+							//System.out.println(">>swt.show/hide " + ((event.widget).getData("SkinObject")) + ";" + ((Control) event.widget).isVisible());
+						}
 						if (control == null || control.isDisposed()) {
 							setIsVisible(false, true);
 							return;
@@ -249,7 +255,6 @@ public class SWTSkinObjectBasic
 				});
 			}
 		};
-		setIsVisible(control.isVisible(), false);
 
 		control.addListener(SWT.Show, lShowHide);
 		control.addListener(SWT.Hide, lShowHide);
@@ -291,10 +296,13 @@ public class SWTSkinObjectBasic
 	 * @since 3.0.4.3
 	 */
 	protected boolean setIsVisible(boolean visible, boolean walkup) {
-		//System.out.println(this + " SET IS VISIBLE " + visible + " via " + Debug.getCompressedStackTrace());
-		if (visible == isVisible) {
+		if (visible == isVisible && !neverCalledSetIsVisible) {
 			return false;
 		}
+		if (SWTSkin.DEBUG_VISIBILITIES) {
+			System.out.println(this + " SET IS VISIBLE " + visible + " via " + Debug.getCompressedStackTrace(9));
+		}
+		neverCalledSetIsVisible = false;
 		isVisible = visible;
 		switchSuffix(null, 0, false);
 		triggerListeners(visible ? SWTSkinObjectListener.EVENT_SHOW
@@ -451,7 +459,12 @@ public class SWTSkinObjectBasic
 	public void setVisible(final boolean visible) {
 		if (!layoutComplete) {
 			firstVisibility = visible;
+			setIsVisible(visible, true);
 			return;
+		}
+		if (SWTSkin.DEBUG_VISIBILITIES) {
+			System.out.println(this + " SET VISIBLE(" + visible + ") via "
+					+ Debug.getCompressedStackTrace());
 		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -519,6 +532,9 @@ public class SWTSkinObjectBasic
 	public boolean isVisible() {
 		if (control == null || control.isDisposed()) {
 			return false;
+		}
+		if (!layoutComplete) {
+			return firstVisibility;
 		}
 		return isVisible;
 	}
@@ -750,7 +766,7 @@ public class SWTSkinObjectBasic
   				SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED, datasource);
 		}
 
-		if (isVisible && initialized) {
+		if (isVisible && initialized && !neverCalledSetIsVisible) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					listener.eventOccured(SWTSkinObjectBasic.this,
@@ -781,9 +797,11 @@ public class SWTSkinObjectBasic
 	}
 
 	public void triggerListeners(final int eventType, final Object params) {
-		//if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-		//	System.out.println("Show " + this + " via " + Debug.getCompressedStackTrace());
-		//}
+		if (SWTSkin.DEBUG_VISIBILITIES) {
+			if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
+				System.out.println("Show " + this + " via " + Debug.getCompressedStackTrace());
+			}
+		}
 		// delay show and hide events while not initialized
 		if (eventType == SWTSkinObjectListener.EVENT_SHOW
 				|| eventType == SWTSkinObjectListener.EVENT_HIDE) {
@@ -793,10 +811,14 @@ public class SWTSkinObjectBasic
 			}
 
 			if (eventType == SWTSkinObjectListener.EVENT_SHOW && !isVisible) {
-				//System.out.println("Warning: Show Event when not visible " + this + " via " + Debug.getCompressedStackTrace());
+				if (SWTSkin.DEBUG_VISIBILITIES) {
+					System.out.println("Warning: Show Event when not visible " + this + " via " + Debug.getCompressedStackTrace());
+				}
 				return;
 			} else if (eventType == SWTSkinObjectListener.EVENT_HIDE && isVisible) {
-				//System.out.println("Warning: Hide Event when visible " + this + " via " + Debug.getCompressedStackTrace());
+				if (SWTSkin.DEBUG_VISIBILITIES) {
+					System.out.println("Warning: Hide Event when visible " + this + " via " + Debug.getCompressedStackTrace());
+				}
 				return;
 			}
 		} else if (eventType == SWTSkinObjectListener.EVENT_CREATED) {
