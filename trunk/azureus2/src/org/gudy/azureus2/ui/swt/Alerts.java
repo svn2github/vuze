@@ -60,7 +60,7 @@ public class Alerts
 
 	private static boolean initialisation_complete = false;
 
-	private static transient boolean stopping;
+	private static volatile boolean stopping;
 
 	private static List<AlertListener> listeners = new ArrayList<AlertListener>();
 

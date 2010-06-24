@@ -385,7 +385,7 @@ HTTPAuthHelper
 		private Socket		socket_in;
 		private Socket		socket_out;
 		
-		private transient boolean	destroyed;
+		private volatile boolean	destroyed;
 		
 		protected
 		processor(
