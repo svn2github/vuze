@@ -232,7 +232,12 @@ public class SWTSkinObjectSash
 				}
 
 				if (e.type == SWT.Show) {
-					handleShow();
+					// delay so soAbove's show gets triggered
+					Utils.execSWTThreadLater(0, new AERunnable() {
+						public void runSupport() {
+							handleShow();
+						}
+					});
 				} else if (e.type == SWT.Selection) {
 					if (FASTDRAG && e.detail == SWT.DRAG) {
 						return;
