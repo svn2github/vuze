@@ -50,6 +50,9 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
+import org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent;
+import org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -75,6 +78,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 /** Displays a list of torrents in a table view.
  *
@@ -100,7 +104,8 @@ public class MyTorrentsView
                   TableRefreshListener,
                   TableCountChangeListener,
                   TableViewFilterCheck<DownloadManager>,
-                  TableRowSWTPaintListener
+                  TableRowSWTPaintListener,
+                  TableRowMouseListener
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
@@ -189,6 +194,7 @@ public class MyTorrentsView
     tv.addRefreshListener(this, false);
     tv.addCountChangeListener(this);
     tv.addRowPaintListener(this);
+    tv.addRowMouseListener(this);
     
     forceHeaderVisible = COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader");
 
@@ -1891,40 +1897,116 @@ public class MyTorrentsView
 				cellArea.width -= 3;
 				GCStringPrinter.printString(gc, s, cellArea, true, false, SWT.RIGHT);
 			} else if (column.getName().equals("ProgressETA")) {
-				long percent = 0;
-				long bytesDownloaded = fileInfo.getDownloaded();
-
-				if (bytesDownloaded < 0) {
-
-					return;
-
-				} else if (fileInfo.getLength() != 0) {
-
-					percent = (1000 * bytesDownloaded) / fileInfo.getLength();
-				}
-
-				final int TEXT_WIDTH = 50;
-				cellArea.width -= 3;
-				Rectangle printBounds = new Rectangle(cellArea.x, cellArea.y, TEXT_WIDTH, cellArea.height);
-				String s = DisplayFormatters.formatPercentFromThousands((int) percent);
-				GCStringPrinter.printString(gc, s, printBounds, true, false, SWT.RIGHT);
-				
-				final int PROGRESS_HEIGHT = 12;
-				int ofsX = TEXT_WIDTH + 3;
-				int ofsY = (cellArea.height / 2) - (PROGRESS_HEIGHT / 2) - 1;
-				int progressWidth = cellArea.width - ofsX - 3;
-				gc.drawRectangle(cellArea.x + ofsX, cellArea.y + ofsY, progressWidth, PROGRESS_HEIGHT);
-				
-				int pctWidth = (int) (percent * (progressWidth - 1) / 1000);
-				gc.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
-				gc.fillRectangle(cellArea.x + ofsX + 1, cellArea.y + ofsY + 1, pctWidth, PROGRESS_HEIGHT - 1);
-				gc.setBackground(Colors.white);
-				gc.fillRectangle(cellArea.x + ofsX + pctWidth + 1, cellArea.y + ofsY + 1, progressWidth - pctWidth - 1, PROGRESS_HEIGHT - 1);
+				drawSubItemProgressETA(row, gc, fileInfo, cellArea);
 			}
 			//Rectangle bounds = row.getBounds();
 			//bounds.x = 120;
 			//bounds.width = row.getParent().getClientArea().width - bounds.x;
 		
+		}
+	}
+
+	private Font progressFont;
+
+	private void drawSubItemProgressETA(TableRowCore row, GC gc,
+			DiskManagerFileInfo fileInfo, Rectangle cellArea) {
+		long percent = 0;
+		long bytesDownloaded = fileInfo.getDownloaded();
+
+		if (bytesDownloaded < 0) {
+
+			return;
+
+		} else if (fileInfo.getLength() != 0) {
+
+			percent = (1000 * bytesDownloaded) / fileInfo.getLength();
+		}
+
+		final int BUTTON_WIDTH = 16;
+		final int PADDING_X = 5;
+		final int PROGRESS_HEIGHT = 12;
+		final int PROGRESS_TO_BUTTON_GAP = 10;
+
+		cellArea.width -= 3;
+
+		int ofsX = PADDING_X;
+		int ofsY = (cellArea.height / 2) - (PROGRESS_HEIGHT / 2) - 1;
+		int progressWidth = cellArea.width - ofsX - PROGRESS_TO_BUTTON_GAP - BUTTON_WIDTH;
+		if (progressFont == null) {
+			progressFont = FontUtils.getFontWithHeight(gc.getFont(), gc, PROGRESS_HEIGHT - 2);
+		}
+		gc.setFont(progressFont);
+		gc.drawRectangle(cellArea.x + ofsX, cellArea.y + ofsY, progressWidth,
+				PROGRESS_HEIGHT);
+
+		int pctWidth = (int) (percent * (progressWidth - 1) / 1000);
+		gc.setBackground(Colors.blues[Colors.BLUES_MIDLIGHT]);
+		gc.fillRectangle(cellArea.x + ofsX + 1, cellArea.y + ofsY + 1, pctWidth,
+				PROGRESS_HEIGHT - 1);
+		gc.setBackground(Colors.white);
+		gc.fillRectangle(cellArea.x + ofsX + pctWidth + 1, cellArea.y + ofsY + 1,
+				progressWidth - pctWidth - 1, PROGRESS_HEIGHT - 1);
+
+	
+		Rectangle printBounds = new Rectangle(cellArea.x + PADDING_X * 2, cellArea.y, progressWidth,
+				cellArea.height);
+		String s = DisplayFormatters.formatPercentFromThousands((int) percent);
+		gc.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
+		GCStringPrinter.printString(gc, s, printBounds, true, false, SWT.LEFT);
+		
+		ofsY = (cellArea.height / 2) - (BUTTON_WIDTH / 2) - 1;
+		Rectangle buttonBounds = new Rectangle(cellArea.x + cellArea.width
+				- BUTTON_WIDTH - PADDING_X, cellArea.y + ofsY, BUTTON_WIDTH,
+				BUTTON_WIDTH);
+		row.setData("buttonBounds", buttonBounds);
+		gc.fillRectangle(buttonBounds);
+		//gc.setForeground(ColorCache.getRandomColor());
+		gc.drawRectangle(buttonBounds);
+		int st = fileInfo.getStorageType();
+		if ((st == DiskManagerFileInfo.ST_COMPACT || st == DiskManagerFileInfo.ST_REORDER_COMPACT)
+				&& fileInfo.isSkipped()) {
+			s = "X";
+		} else if (fileInfo.isSkipped()) {
+			s = "S";
+		} else if (fileInfo.getPriority() > 0) {
+			s = "H";
+		} else {
+			s = "N";
+		}
+		//System.out.println(cellArea + s + ";" + Debug.getCompressedStackTrace());
+		GCStringPrinter.printString(gc, s, buttonBounds, false, false, SWT.CENTER);
+		// make relative to row, because mouse events are
+		buttonBounds.y -= cellArea.y;
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener#rowMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent)
+	public void rowMouseTrigger(TableRowMouseEvent event) {
+		Object dataSource = ((TableRowCore) event.row).getDataSource(true);
+		if (dataSource instanceof DiskManagerFileInfo) {
+			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) dataSource;
+			Rectangle buttonBounds = (Rectangle) event.row.getData("buttonBounds");
+			if (buttonBounds != null && buttonBounds.contains(event.x, event.y)) {
+				int st = fileInfo.getStorageType();
+				if ((st == DiskManagerFileInfo.ST_COMPACT || st == DiskManagerFileInfo.ST_REORDER_COMPACT)
+						&& fileInfo.isSkipped()) {
+					// deleted: Move to normal
+					fileInfo.setPriority(0);
+					fileInfo.setSkipped(false);
+				} else if (fileInfo.isSkipped()) {
+					// skipped: move to normal
+					fileInfo.setPriority(0);
+					fileInfo.setSkipped(false);
+				} else if (fileInfo.getPriority() > 0) {
+
+					// high: move to skipped
+					fileInfo.setSkipped(true);
+				} else {
+					// normal: move to high
+					fileInfo.setPriority(1);
+				}
+				//((TableRowCore) event.row).invalidate();
+				((TableRowCore) event.row).redraw();
+			}
 		}
 	}
 }
