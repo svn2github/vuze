@@ -77,50 +77,15 @@ EnhancedDownloadManager
 			});
 	}
 	
-	public static final int SPEED_CONTROL_INITIAL_DELAY	= 10*1000;
-	public static final int SPEED_INCREASE_GRACE_PERIOD	= 3*1000;
-	public static final int PEER_INJECT_GRACE_PERIOD	= 3*1000;
-	public static final int IDLE_PEER_DISCONNECT_PERIOD	= 60*1000;
-	public static final int IDLE_SEED_DISCONNECT_PERIOD = 60*1000;
-	public static final int MIN_SEED_CONNECTION_TIME	= 60*1000;
-	
-	public static final int IDLE_SEED_DISCONNECT_SECS	= IDLE_SEED_DISCONNECT_PERIOD/1000;
-	
-	public static final int CACHE_RECONNECT_MIN_PERIOD	= 15*60*1000;
-	public static final int CACHE_REQUERY_MIN_PERIOD	= 60*60*1000;
-	
-	public static final int TARGET_SPEED_EXCESS_MARGIN	= 2*1024;
-	
-	public static final int DISCONNECT_CHECK_PERIOD	= 10*1000;
-	public static final int DISCONNECT_CHECK_TICKS	= DISCONNECT_CHECK_PERIOD/DownloadManagerEnhancer.TICK_PERIOD;
-	
 	public static final int REACTIVATE_PROVIDER_PERIOD			= 5*1000;
 	public static final int REACTIVATE_PROVIDER_PERIOD_TICKS	= REACTIVATE_PROVIDER_PERIOD/DownloadManagerEnhancer.TICK_PERIOD;
 
 	public static final int LOG_PROG_STATS_PERIOD	= 10*1000;
 	public static final int LOG_PROG_STATS_TICKS	= LOG_PROG_STATS_PERIOD/DownloadManagerEnhancer.TICK_PERIOD;
 
-	private static int internal_content_stream_bps_increase_ratio		= 5;
-	private static int internal_content_stream_bps_increase_absolute	= 0;
+	private static final int content_stream_bps_min_increase_ratio	= 5;
+	private static final int content_stream_bps_max_increase_ratio	= 8;
 	
-		// these are here to allow other components (e.g. a plugin) to modify behaviour
-		// while we verify that things work ok
-	
-	public static void
-	setInternalContentStreamBPSIncreaseRatio(
-		String	caller_id,
-		int		ratio )
-	{
-		internal_content_stream_bps_increase_ratio	= ratio;
-	}
-	
-	public static void
-	setInternalContentStreamBPSIncreaseAbsolute(
-		String	caller_id,
-		int		abs )
-	{
-		internal_content_stream_bps_increase_absolute	= abs;
-	}
 	
 	private DownloadManagerEnhancer		enhancer;
 	private DownloadManager				download_manager;
@@ -1172,9 +1137,9 @@ EnhancedDownloadManager
 				
 				// bump it up by a bit to be conservative to deal with fluctuations, discards etc.
 				
-			content_stream_bps_min += internal_content_stream_bps_increase_absolute;
+			content_stream_bps_min += content_stream_bps_min / content_stream_bps_min_increase_ratio;
 			
-			content_stream_bps_max = content_stream_bps_min + ( content_stream_bps_min / internal_content_stream_bps_increase_ratio );
+			content_stream_bps_max = content_stream_bps_min + ( content_stream_bps_min / content_stream_bps_max_increase_ratio );
 			
 			setRTA( false );
 			
