@@ -34,6 +34,7 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableView;
 
+import org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener;
 import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 
 /**
@@ -180,4 +181,18 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 * @since 4.2.0.3
 	 */
 	void removeRowPaintListener(TableRowSWTPaintListener listener);
+
+	/**
+	 * @param listener
+	 *
+	 * @since 4.4.0.7
+	 */
+	void removeRowMouseListener(TableRowMouseListener listener);
+
+	/**
+	 * @param listener
+	 *
+	 * @since 4.4.0.7
+	 */
+	void addRowMouseListener(TableRowMouseListener listener);
 }

@@ -255,6 +255,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
   private static AEMonitor mon_RowPaintListener = new AEMonitor( "rpl" );
 
+	private ArrayList<TableRowMouseListener> rowMouseListeners;
+
+  private static AEMonitor mon_RowMouseListener = new AEMonitor( "rml" );
+
 	private TableViewSWTPanelCreator mainPanelCreator;
 
 	private List<KeyListener> listenersKey = new ArrayList<KeyListener>(1);
@@ -906,6 +910,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					if (event != null) {
 						tc.invokeCellMouseListeners(event);
 						cell.invokeMouseListeners(event);
+						invokeRowMouseListener(event);
 						if (event.skipCoreFunctionality) {
 							lCancelSelectionTriggeredOn = System.currentTimeMillis();
 						}
@@ -916,6 +921,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					}
 					if (e.button == 1) {
 						lastClickRow = cell.getTableRowCore();
+					}
+				} else {
+					TableRowMouseEvent event = createMouseEvent(row, e,
+							TableCellMouseEvent.EVENT_MOUSEDOWN, false);
+					if (event != null) {
+						invokeRowMouseListener(event);
 					}
 				}
 			}
@@ -1491,6 +1502,30 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		event.skipCoreFunctionality = false;
 		if (cell != null) {
 			Rectangle r = cell.getBounds();
+			event.x = e.x - r.x;
+			if (!allowOOB && event.x < 0) {
+				return null;
+			}
+			event.y = e.y - r.y;
+			if (!allowOOB && event.y < 0) {
+				return null;
+			}
+		}
+
+		return event;
+	}
+
+	private TableRowMouseEvent createMouseEvent(TableRowSWT row, MouseEvent e,
+			int type, boolean allowOOB) {
+		TableCellMouseEvent event = new TableCellMouseEvent();
+		event.row = row;
+		event.eventType = type;
+		event.button = e.button;
+		// TODO: Change to not use SWT masks
+		event.keyboardState = e.stateMask;
+		event.skipCoreFunctionality = false;
+		if (row != null) {
+			Rectangle r = row.getBounds();
 			event.x = e.x - r.x;
 			if (!allowOOB && event.x < 0) {
 				return null;
@@ -5075,6 +5110,54 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 	}
+	
+	public void addRowMouseListener(TableRowMouseListener listener) {
+		try {
+			mon_RowMouseListener.enter();
+
+			if (rowMouseListeners == null)
+				rowMouseListeners = new ArrayList<TableRowMouseListener>(1);
+
+			rowMouseListeners.add(listener);
+
+		} finally {
+			mon_RowMouseListener.exit();
+		}
+	}
+
+	public void removeRowMouseListener(TableRowMouseListener listener) {
+		try {
+			mon_RowMouseListener.enter();
+
+			if (rowMouseListeners == null)
+				return;
+
+			rowMouseListeners.remove(listener);
+
+		} finally {
+			mon_RowMouseListener.exit();
+		}
+	}
+	
+	private void invokeRowMouseListener(TableRowMouseEvent event) {
+		if (rowPaintListeners == null) {
+			return;
+		}
+		ArrayList<TableRowMouseListener> listeners = new ArrayList<TableRowMouseListener>(
+				rowMouseListeners);
+
+		for (int i = 0; i < listeners.size(); i++) {
+			try {
+				TableRowMouseListener l = (listeners.get(i));
+
+				l.rowMouseTrigger(event);
+
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+
 
 	public void addRowPaintListener(TableRowSWTPaintListener listener) {
 		try {
