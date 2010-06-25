@@ -133,7 +133,7 @@ public class SWTSkinObjectBasic
 		setDebug(properties.getBooleanValue(sConfigID + ".debug", false));
 	}
 
-	public void setControl(final Control control) {
+	public void setControl(final Control _control) {
 		
 		firstVisibility = properties.getBooleanValue(sConfigID + ".visible", true);
 		
@@ -203,7 +203,7 @@ public class SWTSkinObjectBasic
 			}
 		};
 		
-		this.control = control;
+		this.control = _control;
 		control.setData("ConfigID", sConfigID);
 		control.setData("SkinObject", this);
 
@@ -786,7 +786,7 @@ public class SWTSkinObjectBasic
 	}
 
 	public SWTSkinObjectListener[] getListeners() {
-		return (SWTSkinObjectListener[]) listeners.toArray(new SWTSkinObjectListener[0]);
+		return listeners.toArray(new SWTSkinObjectListener[0]);
 	}
 
 	public void triggerListeners(int eventType) {
