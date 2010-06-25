@@ -456,11 +456,6 @@ BufferedTableRow
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
 			return null;
 
-		// Some Platforms (OSX) don't handle getBounds properly (3.2M4) when
-		// item doesn't exist in table
-		if (table.indexOf(item) == -1)
-			return null;
-
 		Rectangle r = item.getBounds(index);
 		if (r == null || r.width == 0 || r.height == 0)
 			return null;
