@@ -171,7 +171,8 @@ public class ColumnProgressETA
 
 			long eta = getETA(cell);
 
-			if (!cell.setSortValue(sortValue) && cell.isValid()
+			boolean sortChanged = cell.setSortValue(sortValue);
+			if (!sortChanged && cell.isValid()
 					&& lastPercentDone == percentDone && lastETA == eta) {
 				return;
 			}
@@ -179,7 +180,9 @@ public class ColumnProgressETA
 			lastPercentDone = percentDone;
 			lastETA = eta;
 
-			cell.invalidate();
+			if (sortChanged) {
+				cell.invalidate();
+			}
 		}
 
 		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
@@ -323,10 +326,20 @@ public class ColumnProgressETA
 
 				gc.setForeground(cText);
 				String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
-				gc.drawText(sSpeed, xStart + 50, yStart + yRelProgressFillStart + 1,
+				Point pctExtent = gc.textExtent(sPercent, SWT.DRAW_TRANSPARENT);
+				Point spdExtent = gc.textExtent(sSpeed, SWT.DRAW_TRANSPARENT);
+				gc.drawText(sSpeed, xStart + pctExtent.x + 4, yStart + yRelProgressFillStart + 1,
 						true);
 				gc.drawText(sPercent, xStart + 2, yStart + yRelProgressFillStart + 1,
 						true);
+				
+				if (!showSecondLine && sETALine != null) {
+					boolean over = GCStringPrinter.printString(gc, sETALine, new Rectangle(
+							xStart + pctExtent.x + spdExtent.x + 10, yStart + yRelProgressFillStart + 1, 
+							xRelProgressFillEnd - (pctExtent.x + spdExtent.x + 12),
+							newHeight - yRelProgressFillEnd), true, false, SWT.RIGHT);
+					cell.setToolTip(over ? sETALine : null);
+				}
 			}
 
 			gc.setFont(null);
