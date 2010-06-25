@@ -569,7 +569,7 @@ public abstract class BaseMdiEntry
 		SWTSkinObject skinObject = getSkinObjectMaster();
 		if (skinObject instanceof SWTSkinObjectContainer) {
 			SWTSkinObjectContainer container = (SWTSkinObjectContainer) skinObject;
-			//container.setVisible(true);
+			container.setVisible(true);
 			Composite composite = container.getComposite();
 			if (composite != null && !composite.isDisposed()) {
 				composite.setVisible(true);
