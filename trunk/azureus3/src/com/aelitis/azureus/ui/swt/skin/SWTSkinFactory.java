@@ -29,8 +29,10 @@ public class SWTSkinFactory
 	private static SWTSkin instance = null;
 
 	public static SWTSkin getInstance() {
-		if (instance == null) {
-			instance = new SWTSkin();
+		synchronized (SWTSkinFactory.class) {
+			if (instance == null) {
+				instance = new SWTSkin();
+			}
 		}
 		return instance;
 	}
