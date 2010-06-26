@@ -268,7 +268,9 @@ public final class ShellFactory
 				firstShellWithStyle.setVisible(true);
 				firstShellWithStyle.forceActive();
 			} else {
-				super.open();
+				if (isDisposed()) {
+					super.open();
+				}
 			}
 		}
 	}
