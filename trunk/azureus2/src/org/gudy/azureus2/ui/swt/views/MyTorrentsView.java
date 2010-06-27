@@ -197,6 +197,38 @@ public class MyTorrentsView
     tv.addRowMouseListener(this);
     
     forceHeaderVisible = COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader");
+		if (txtFilter != null) {
+			Composite parent = txtFilter.getParent();
+			Menu menuFilterHeader = new Menu(parent);
+			final MenuItem menuItemAlwaysShow = new MenuItem(menuFilterHeader,
+					SWT.CHECK);
+			Messages.setLanguageText(menuItemAlwaysShow,
+					"ConfigView.label.alwaysShowLibraryHeader");
+			menuFilterHeader.addMenuListener(new MenuListener() {
+				public void menuShown(MenuEvent e) {
+					menuItemAlwaysShow.setSelection(forceHeaderVisible);
+				}
+
+				public void menuHidden(MenuEvent e) {
+				}
+			});
+			menuItemAlwaysShow.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) {
+					COConfigurationManager.setParameter(
+							"MyTorrentsView.alwaysShowHeader", !forceHeaderVisible);
+				}
+
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+			parent.setMenu(menuFilterHeader);
+			Control[] children = parent.getChildren();
+			for (Control control : children) {
+				if (control != txtFilter) {
+					control.setMenu(menuFilterHeader);
+				}
+			}
+		}
 
 		//tv.setEnableTabViews(true);
 		//IView views[] = { new GeneralView(), new PeersView(),
