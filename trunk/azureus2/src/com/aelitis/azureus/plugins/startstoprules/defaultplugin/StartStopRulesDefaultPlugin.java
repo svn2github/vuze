@@ -126,7 +126,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private RecalcSeedingRanksTask recalcSeedingRanksTask;
 
 	/** Map to relate downloadData to a Download */
-	private static Map downloadDataMap = Collections.synchronizedMap(new HashMap());
+	private static Map<Download, DefaultRankCalculator> downloadDataMap = Collections.synchronizedMap(new HashMap<Download, DefaultRankCalculator>());
+
 	/**
 	 * this is used to reduce the number of comperator invocations
 	 * by keeping a mostly sorted copy around, must be nulled whenever the map is changed
@@ -412,7 +413,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	}
 
 	public static DefaultRankCalculator getRankCalculator(Download dl) {
-		return (DefaultRankCalculator) downloadDataMap.get(dl);
+		return downloadDataMap.get(dl);
 	}
 
 	private void recalcAllSeedingRanks(boolean force) {
@@ -423,8 +424,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		try {
 			this_mon.enter();
 
-			DefaultRankCalculator[] dlDataArray = (DefaultRankCalculator[]) downloadDataMap.values().toArray(
-					new DefaultRankCalculator[0]);
+			DefaultRankCalculator[] dlDataArray;
+			synchronized (downloadDataMap) {
+				dlDataArray = downloadDataMap.values().toArray(
+						new DefaultRankCalculator[0]);
+			}
 
 			// Check Group #1: Ones that always should run since they set things
 			for (int i = 0; i < dlDataArray.length; i++) {
@@ -502,7 +506,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private class StartStopDownloadListener implements DownloadListener
 	{
 		public void stateChanged(Download download, int old_state, int new_state) {
-			DefaultRankCalculator dlData = (DefaultRankCalculator) downloadDataMap.get(download);
+			DefaultRankCalculator dlData = downloadDataMap.get(download);
 
 			if (dlData != null) {
 				// force a SR recalc, so that it gets position properly next process()
@@ -530,7 +534,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 		public void positionChanged(Download download, int oldPosition,
 				int newPosition) {
-			DefaultRankCalculator dlData = (DefaultRankCalculator) downloadDataMap.get(download);
+			DefaultRankCalculator dlData = downloadDataMap.get(download);
 			if (dlData != null) {
 				requestProcessCycle(dlData);
 				if (bDebugLog)
@@ -547,7 +551,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	{
 		public void scrapeResult(DownloadScrapeResult result) {
 			Download dl = result.getDownload();
-			DefaultRankCalculator dlData = (DefaultRankCalculator) downloadDataMap.get(dl);
+			DefaultRankCalculator dlData = downloadDataMap.get(dl);
 
 			// Skip if error (which happens when listener is first added and the
 			// torrent isn't scraped yet)
@@ -585,7 +589,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			//System.out.println("StartStop: activation request: count = "
 			//		+ event.getActivationCount());
 			Download download = event.getDownload();
-			DefaultRankCalculator dlData = (DefaultRankCalculator) downloadDataMap.get(download);
+			DefaultRankCalculator dlData = downloadDataMap.get(download);
 
 			if (bDebugLog) {
 				log.log(download, LoggerChannel.LT_INFORMATION, ">> somethingChanged: ActivationRequest");
@@ -628,7 +632,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		public void downloadAdded(Download download) {
 			DefaultRankCalculator dlData = null;
 			if (downloadDataMap.containsKey(download)) {
-				dlData = (DefaultRankCalculator) downloadDataMap.get(download);
+				dlData = downloadDataMap.get(download);
 			} else {
 				dlData = new DefaultRankCalculator(StartStopRulesDefaultPlugin.this,
 						download);
@@ -692,8 +696,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 				lLastRunTime = now;
 
-				DefaultRankCalculator[] dlDataArray = (DefaultRankCalculator[]) downloadDataMap.values().toArray(
-						new DefaultRankCalculator[0]);
+				DefaultRankCalculator[] dlDataArray;
+				synchronized (downloadDataMap) {
+					dlDataArray = downloadDataMap.values().toArray(
+							new DefaultRankCalculator[0]);
+				}
 
 				int iNumDLing = 0;
 				int iNumCDing = 0;
@@ -827,15 +834,17 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 			// force a recalc on all downloads by setting SR to 0, scheduling
 			// a recalc on next process, and requsting a process cycle
-			Collection allDownloads = downloadDataMap.values();
-			DefaultRankCalculator[] dlDataArray = (DefaultRankCalculator[]) allDownloads.toArray(new DefaultRankCalculator[0]);
+			Collection<DefaultRankCalculator> allDownloads = downloadDataMap.values();
+			DefaultRankCalculator[] dlDataArray = allDownloads.toArray(new DefaultRankCalculator[0]);
 			for (int i = 0; i < dlDataArray.length; i++) {
 				dlDataArray[i].getDownloadObject().setSeedingRank(0);
 			}
 			try {
 				ranksToRecalc_mon.enter();
 
-				ranksToRecalc.addAll(allDownloads);
+				synchronized (downloadDataMap) {
+					ranksToRecalc.addAll(allDownloads);
+				}
 				
 			} finally {
 				ranksToRecalc_mon.exit();
@@ -858,7 +867,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 								if (!(ds instanceof Download))
 									return;
 
-								DefaultRankCalculator dlData = (DefaultRankCalculator) downloadDataMap.get(ds);
+								DefaultRankCalculator dlData = downloadDataMap.get(ds);
 
 								if (dlData != null) {
 									if (bSWTUI)
@@ -1237,11 +1246,14 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 			// pull the data into a local array, so we don't have to lock/synchronize
 			DefaultRankCalculator[] dlDataArray;			
-			if(sortedArrayCache != null && sortedArrayCache.length == downloadDataMap.size())
+			if(sortedArrayCache != null && sortedArrayCache.length == downloadDataMap.size()) {
 				dlDataArray = sortedArrayCache;
-			else
-				dlDataArray = sortedArrayCache = (DefaultRankCalculator[]) downloadDataMap.values().toArray(
-					new DefaultRankCalculator[downloadDataMap.size()]);
+			} else {
+				synchronized (downloadDataMap) {
+					dlDataArray = sortedArrayCache = downloadDataMap.values().toArray(
+							new DefaultRankCalculator[downloadDataMap.size()]);
+				}
+			}
 
 			TotalsStats totals = new TotalsStats(dlDataArray);
 
