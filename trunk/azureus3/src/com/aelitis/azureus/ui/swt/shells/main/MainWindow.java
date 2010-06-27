@@ -86,6 +86,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
@@ -662,6 +663,9 @@ public class MainWindow
 			skin = SWTSkinFactory.getInstance();
 			if (uiClassic) {
   			SWTSkinProperties skinProperties = skin.getSkinProperties();
+  			String skinPath = SkinPropertiesImpl.PATH_SKIN_DEFS + "skin3_classic";
+  			ResourceBundle rb = ResourceBundle.getBundle(skinPath);
+  			skinProperties.addResourceBundle(rb, skinPath);
   			String[] ids = {
   				"image.toolbar.2nd.m-bg",
   				"image.toolbar.2nd.r-bg",
