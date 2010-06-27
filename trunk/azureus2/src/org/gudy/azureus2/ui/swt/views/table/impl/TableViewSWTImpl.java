@@ -922,7 +922,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					if (e.button == 1) {
 						lastClickRow = cell.getTableRowCore();
 					}
-				} else {
+				} else if (row != null) {
 					TableRowMouseEvent event = createMouseEvent(row, e,
 							TableCellMouseEvent.EVENT_MOUSEDOWN, false);
 					if (event != null) {
@@ -1805,14 +1805,17 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		table.addListener(SWT.MenuDetect, new Listener() {
 			public void handleEvent(Event event) {
 				Point pt = event.display.map(null, table.getComposite(), new Point(event.x, event.y));
-				boolean header = table.getItem(pt) == null;
+				boolean noRow = table.getItem(pt) == null;
 
-				if (!header) {
-					Rectangle clientArea = table.getClientArea();
-					header = clientArea.y <= pt.y && pt.y < (clientArea.y + headerHeight);
+				Rectangle clientArea = table.getClientArea();
+				boolean inHeader = clientArea.y <= pt.y && pt.y < (clientArea.y + headerHeight);
+				if (!noRow) {
+					noRow = inHeader;
 				}
+				
+				menu.setData("inBlankArea", (!inHeader && noRow));
 
-				menu.setData("isHeader", new Boolean(header));
+				menu.setData("isHeader", new Boolean(noRow));
 
 				int columnNo = getColumnNo(pt.x);
 				menu.setData("column", columnNo < 0
@@ -1824,12 +1827,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				new MenuBuildUtils.MenuBuilder() {
 					public void buildMenu(Menu menu, MenuEvent menuEvent) {
 						Object oIsHeader = menu.getData("isHeader");
-						boolean isHeader = (oIsHeader instanceof Boolean) ? ((Boolean)oIsHeader).booleanValue() : false;
+						boolean isHeader = (oIsHeader instanceof Boolean)
+								? ((Boolean) oIsHeader).booleanValue() : false;
+						Object oInBlankArea = menu.getData("inBlankArea");
+						boolean inBlankArea = (oInBlankArea instanceof Boolean)
+								? ((Boolean) oInBlankArea).booleanValue() : false;
 
 						TableColumnOrTreeColumn tcColumn = (TableColumnOrTreeColumn) menu.getData("column");
 						
 						if (isHeader) {
-							fillColumnMenu(tcColumn);
+							fillColumnMenu(tcColumn, inBlankArea);
 						} else {
 							fillMenu(menu, tcColumn);
 						}
@@ -2010,8 +2017,44 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 *
 	 * @param iColumn Column # that tasks apply to.
 	 */
-	private void fillColumnMenu(final TableColumnOrTreeColumn tcColumn) {
-		
+	private void fillColumnMenu(final TableColumnOrTreeColumn tcColumn,
+			boolean isBlankArea) {
+		if (!isBlankArea) {
+  		TableColumnManager tcm = TableColumnManager.getInstance();
+  		TableColumnCore[] allTableColumns = tcm.getAllTableColumnCoreAsArray(
+  				classPluginDataSourceType, sTableID);
+  		
+  		Arrays.sort(allTableColumns, new Comparator<TableColumnCore>() {
+  			public int compare(TableColumnCore o1, TableColumnCore o2) {
+  				return o1.getPosition() - o2.getPosition();
+  			}
+  		});
+  		for (final TableColumnCore tc : allTableColumns) {
+  			boolean visible = tc.isVisible();
+  			if (!visible) {
+  				TableColumnInfo columnInfo = tcm.getColumnInfo(classPluginDataSourceType, sTableID, tc.getName());
+  				if (columnInfo.getProficiency() != TableColumnInfo.PROFICIENCY_BEGINNER) {
+  					continue;
+  				}
+  			}
+  			MenuItem menuItem = new MenuItem(menu, SWT.CHECK);
+  			Messages.setLanguageText(menuItem, tc.getTitleLanguageKey());
+  			if (visible) {
+  				menuItem.setSelection(true);
+  			}
+  			menuItem.addListener(SWT.Selection, new Listener() {
+  				public void handleEvent(Event e) {
+  					tc.setVisible(!tc.isVisible());
+  					tableStructureChanged(true, null);
+  				}
+  			});
+  		}
+		}
+
+		if (menu.getItemCount() > 0) {
+			new MenuItem(menu, SWT.SEPARATOR);
+		}
+
 		final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemChangeTable,
 				"MyTorrentsView.menu.editTableColumns");
@@ -2040,18 +2083,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		}
 
-		if (menu.getItemCount() > 0) {
-			new MenuItem(menu, SWT.SEPARATOR);
-		}
-
-		MenuItem item = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.sort");
-		item.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				tcColumn.notifyListeners(SWT.Selection, new Event());
-			}
-		});
-
 		final MenuItem at_item = new MenuItem(menu, SWT.CHECK);
 		Messages.setLanguageText(at_item,
 				"MyTorrentsView.menu.thisColumn.autoTooltip");
@@ -2065,28 +2096,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		});
 		at_item.setSelection(((TableColumnCore) tcColumn.getData("TableColumnCore")).doesAutoTooltip());
 
-		item = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.remove");
-
-		item.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				TableColumnOrTreeColumn tc = (TableColumnOrTreeColumn) menu.getData("column");
-				if (tc == null) {
-					return;
-				}
-				String columnName = (String) tcColumn.getData("Name");
-				if (columnName == null) {
-					return;
-				}
-				for (int i = 0; i < tableColumns.length; i++) {
-					if (tableColumns[i].getName().equals(columnName)) {
-						tableColumns[i].setVisible(false);
-					}
-				}
-
-				tableStructureChanged(false, null);
-			}
-		});
 
 		// Add Plugin Context menus..
 		TableColumnCore tc = (TableColumnCore) tcColumn.getData("TableColumnCore");
