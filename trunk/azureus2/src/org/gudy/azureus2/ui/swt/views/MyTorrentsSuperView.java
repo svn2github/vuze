@@ -473,6 +473,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
 				viewDeactivated();
 			}
 		});
+		c.layout();
 		return view;
 	}
 
