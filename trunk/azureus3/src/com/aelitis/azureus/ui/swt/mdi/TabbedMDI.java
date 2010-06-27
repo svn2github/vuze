@@ -63,7 +63,7 @@ public class TabbedMDI
 						? "MyTorrentsView.mytorrents" : "sidebar."
 								+ SIDEBAR_SECTION_LIBRARY);
 				MdiEntry entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY,
-						"library", title, null, null, false, -1);
+						"library", title, null, null, false, 0);
 				entry.setImageLeftID("image.sidebar.library");
 				return entry;
 			}
@@ -367,7 +367,7 @@ public class TabbedMDI
 		if (index < 0 || index >= tabFolder.getItemCount()) {
 			index = tabFolder.getItemCount();
 		}
-		CTabItem cTabItem = new CTabItem(tabFolder, SWT.CLOSE);
+		CTabItem cTabItem = new CTabItem(tabFolder, SWT.CLOSE, index);
 		cTabItem.setData("TabbedEntry", entry);
 		entry.setSwtItem(cTabItem);
 	}
