@@ -44,11 +44,11 @@ LoggerChannelImpl
 	implements LoggerChannel
 {
 	private static final LogIDs LOGID = org.gudy.azureus2.core3.logging.LogIDs.PLUGIN;
-	private Logger		logger;
-	private String		name;
-	private boolean		timestamp;
-	private boolean		no_output;
-	private List		listeners = new ArrayList();
+	final private Logger		logger;
+	final private String		name;
+	final private boolean		timestamp;
+	final boolean		no_output;
+	final List		listeners = new ArrayList();
 	
 	private AEDiagnosticsLogger	diagnostic_logger;
 	
@@ -105,7 +105,7 @@ LoggerChannelImpl
 	public void
 	setDiagnostic(
 		long	max_file_size,
-		boolean	timestamp )
+		boolean	diag_timestamp )
 	{
 		if ( diagnostic_logger == null ){
 			
@@ -115,8 +115,8 @@ LoggerChannelImpl
 				
 				diagnostic_logger.setMaxFileSize((int)max_file_size );
 			}
-			
-			diagnostic_logger.enableTimeStamp( timestamp );
+						
+			diagnostic_logger.enableTimeStamp( !timestamp && diag_timestamp );
 			
 			addListener(
 				new LoggerChannelListener()
