@@ -1254,6 +1254,8 @@ TranscodeQueueImpl
 			
 		final AESemaphore analysis_sem = new AESemaphore( "analysis:proc" );		
 
+		final boolean	was_stopped = job.getState() == TranscodeJob.ST_STOPPED;
+		
 		TranscodeProviderAdapter analysis_adapter = 
 			new TranscodeProviderAdapter()
 			{
@@ -1308,10 +1310,19 @@ TranscodeQueueImpl
 						
 						int	state = job.getState();
 						
-						if ( 	state == TranscodeJob.ST_CANCELLED ||
-								state == TranscodeJob.ST_STOPPED ){
-						
+						if ( 	state == TranscodeJob.ST_CANCELLED ){
+							
 							provider_analysis.cancel();
+							
+						}else if ( 	state == TranscodeJob.ST_STOPPED ){
+						
+								// only treat this as a failure if the job was initially
+								// running and has been explicitly stopped
+							
+							if ( !was_stopped ){
+							
+								provider_analysis.cancel();
+							}
 						}
 					}
 				}
