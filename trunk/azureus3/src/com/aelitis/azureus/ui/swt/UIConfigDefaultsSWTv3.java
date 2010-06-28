@@ -170,6 +170,7 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("burninfo.shownonce", false);
 		
 		defaults.addParameter("Table.extendedErase", true);
+		defaults.addParameter("Table.useTree", true);
 		
 		// by default, turn off some slidey warning
 		// Since they are plugin configs, we need to set the default after the 
