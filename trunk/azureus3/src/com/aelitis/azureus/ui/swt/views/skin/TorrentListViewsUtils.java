@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -776,11 +777,12 @@ public class TorrentListViewsUtils
 										
 										public void
 										updateStats(
-											int			buffer_actual_secs,
-											int			buffer_target_secs ,
-											long		eta )
+											int			secs_until_playable,
+											int			buffer_secs,
+											long		buffer_bytes,
+											int			target_secs )
 										{
-											append( "stats: buffer=" + buffer_actual_secs + "/" + buffer_target_secs + ", eta=" + eta );
+											append( "stats: play in " + secs_until_playable + " sec, buffer=" + DisplayFormatters.formatByteCountToKiBEtc( buffer_bytes ) + "/" + buffer_secs + " sec - target=" + target_secs + " sec" );
 										}
 										
 										public void

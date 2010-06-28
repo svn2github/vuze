@@ -30,9 +30,10 @@ StreamManagerDownloadListener
 	
 	public void
 	updateStats(
-		int			buffer_actual_secs,
-		int			buffer_target_secs,
-		long		eta );
+		int			secs_until_playable,
+		int			buffer_secs,
+		long		buffer_bytes,
+		int			target_buffer_secs );
 	
 	public void
 	ready();

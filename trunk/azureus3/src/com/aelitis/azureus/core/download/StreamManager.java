@@ -415,8 +415,10 @@ StreamManager
 		updateETA(
 			EnhancedDownloadManager edm )
 		{
-			long eta = edm.getProgressivePlayETA();
-						
+			long _eta = edm.getProgressivePlayETA();
+					
+			int	eta = _eta>=Integer.MAX_VALUE?Integer.MAX_VALUE:(int)_eta;
+			
 			EnhancedDownloadManager.progressiveStats stats = edm.getProgressiveStats();
 			
 			long provider_pos = stats.getCurrentProviderPosition( false );
@@ -428,21 +430,11 @@ StreamManager
 			long to_dl 		= stats.getSecondsToDownload();
 			long to_watch	= stats.getSecondsToWatch();
 			
-			System.out.println( "eta=" + eta + ", view=" + provider_pos + ", buffer=" + buffer + "/" + (buffer/bps ) + ", dl=" + to_dl + ", view=" + to_watch );
+			int	buffer_secs = bps<=0?Integer.MAX_VALUE:(int)(buffer/bps);
 			
-			long actual_buffer_secs = BUFFER_SECS - eta;
+			System.out.println( "eta=" + eta + ", view=" + provider_pos + ", buffer=" + buffer + "/" + buffer_secs + ", dl=" + to_dl + ", view=" + to_watch );
 			
-			if ( actual_buffer_secs < 0 ){
-				
-				actual_buffer_secs = 0;
-			}
-			
-			if ( actual_buffer_secs > BUFFER_SECS ){
-				
-				actual_buffer_secs = BUFFER_SECS;
-			}
-			
-			listener.updateStats( (int)actual_buffer_secs, BUFFER_SECS, eta );
+			listener.updateStats( eta, buffer_secs, buffer, BUFFER_SECS );
 			
 			return( eta );
 		}
