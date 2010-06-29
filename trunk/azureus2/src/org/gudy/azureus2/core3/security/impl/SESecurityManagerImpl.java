@@ -226,6 +226,15 @@ SESecurityManagerImpl
 	initEmptyTrustStore()
 	{
 		try{
+			File	target = new File( truststore_name );
+
+			if ( target.exists() && target.length() > 2*1024 ){
+				
+					// doesn't look very empty, bail!
+				
+				return;
+			}
+			
 			KeyStore keystore = getTrustStore();
 			
 			if ( keystore.size() == 0 ){
@@ -234,7 +243,6 @@ SESecurityManagerImpl
 				
 				if ( cacerts.exists()){
 					
-					File	target = new File( truststore_name );
 					
 					FileUtil.copyFile( cacerts, target );
 					
