@@ -101,8 +101,8 @@ public class SWTSkinObjectTextbox
 			FormData fd = new FormData();
 			fd.top = new FormAttachment(0, 2);
 			fd.bottom = new FormAttachment(100, -2);
-			fd.left = new FormAttachment(0, 20);
-			fd.right = new FormAttachment(100, -15);
+			fd.left = new FormAttachment(0, 17);
+			fd.right = new FormAttachment(100, -14);
 			textWidget.setLayoutData(fd);
 
 			cBubble.addPaintListener(new PaintListener() {
