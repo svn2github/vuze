@@ -28,9 +28,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
@@ -104,7 +102,7 @@ public class SWTSkinObjectTextbox
 			fd.top = new FormAttachment(0, 2);
 			fd.bottom = new FormAttachment(100, -2);
 			fd.left = new FormAttachment(0, 20);
-			fd.right = new FormAttachment(100, -14);
+			fd.right = new FormAttachment(100, -15);
 			textWidget.setLayoutData(fd);
 
 			cBubble.addPaintListener(new PaintListener() {
@@ -135,6 +133,10 @@ public class SWTSkinObjectTextbox
 					
 					//e.gc.setLineWidth(1);
 					e.gc.setAlpha(80);
+					Rectangle rXArea = new Rectangle(clientArea.x + clientArea.width - 14,
+							clientArea.y + 6, 7, 7);
+					cBubble.setData("XArea", rXArea);
+
 					e.gc.drawPolyline(new int[] {
 						clientArea.x + clientArea.width - 7,
 						clientArea.y + 6,
@@ -147,6 +149,16 @@ public class SWTSkinObjectTextbox
 						clientArea.x + clientArea.width - (7 + 7),
 						clientArea.y + 6,
 					});
+				}
+			});
+			
+			cBubble.addListener(SWT.MouseDown, new Listener() {
+				public void handleEvent(Event event) {
+					Rectangle r = (Rectangle) event.widget.getData("XArea");
+					System.out.println(r + ";;;;" + event.x + "," + event.y);
+					if (r != null && r.contains(event.x, event.y)) {
+						textWidget.setText("");
+					}
 				}
 			});
 		}
