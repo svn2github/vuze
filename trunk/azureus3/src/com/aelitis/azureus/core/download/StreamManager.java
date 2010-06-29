@@ -138,7 +138,8 @@ StreamManager
 				
 				Map	map = download.getMapAttribute( mi_ta );
 				
-				Long	l_duration = null;
+				Long	l_duration 		= null;
+				Long	l_video_width 	= null;
 				
 				if ( map != null ){
 					
@@ -146,11 +147,13 @@ StreamManager
 					
 					if ( file_map != null ){
 						
-						l_duration = (Long)file_map.get( "duration" );
+						l_duration 		= (Long)file_map.get( "duration" );
+						l_video_width 	= (Long)file_map.get( "video_width" );
 					}
 				}
 				
 				long duration;
+				long video_width;
 				
 				if ( l_duration == null ){
 						
@@ -303,7 +306,8 @@ StreamManager
 							
 							download.setMapAttribute( mi_ta, map );
 							
-							duration = properties[0];
+							duration 	= properties[0];
+							video_width	= properties[1];
 							
 						}catch( Throwable e ){
 							
@@ -318,9 +322,15 @@ StreamManager
 					}
 				}else{
 						
-					duration = l_duration;
+					duration 	= l_duration;
+					video_width	= l_video_width==null?0:l_video_width;
 				}
 					
+				if ( video_width == 0 ){
+					
+					throw( new Exception( "Media analysis failed - video stream not found" ));
+				}
+				
 				if ( duration == 0 ){
 					
 					throw( new Exception( "Media analysis failed - duration unknown" ));
