@@ -24,11 +24,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -43,6 +48,8 @@ public class SWTSkinObjectTextbox
 	extends SWTSkinObjectBasic
 {
 	private Text textWidget;
+	
+	private Composite cBubble;
 	
 	private String text = "";
 
@@ -76,6 +83,10 @@ public class SWTSkinObjectTextbox
 			}
 			if (Arrays.binarySearch(styles, "search") >= 0) {
 				style |= SWT.SEARCH | SWT.ICON_SEARCH | SWT.ICON_CANCEL;
+				if (Constants.isWindows) {
+					cBubble = new Composite(createOn, SWT.NONE);
+					cBubble.setLayout(new FormLayout());
+				}
 			}
 		}
 		
@@ -84,7 +95,61 @@ public class SWTSkinObjectTextbox
 		}
 
 
-		textWidget = new Text(createOn, style);
+		if (cBubble == null) {
+			textWidget = new Text(createOn, style);
+		} else {
+			textWidget = new Text(cBubble, style & ~(SWT.BORDER | SWT.SEARCH));
+			
+			FormData fd = new FormData();
+			fd.top = new FormAttachment(0, 2);
+			fd.bottom = new FormAttachment(100, -2);
+			fd.left = new FormAttachment(0, 20);
+			fd.right = new FormAttachment(100, -14);
+			textWidget.setLayoutData(fd);
+
+			cBubble.addPaintListener(new PaintListener() {
+				public void paintControl(PaintEvent e) {
+					Rectangle clientArea = cBubble.getClientArea();
+					e.gc.setBackground(textWidget.getBackground());
+					e.gc.setAdvanced(true);
+					e.gc.setAntialias(SWT.ON);
+					e.gc.fillRoundRectangle(clientArea.x, clientArea.y,
+							clientArea.width - 1, clientArea.height - 1, clientArea.height,
+							clientArea.height);
+					e.gc.setAlpha(127);
+					e.gc.drawRoundRectangle(clientArea.x, clientArea.y,
+							clientArea.width - 1, clientArea.height - 1, clientArea.height,
+							clientArea.height);
+
+					e.gc.setLineCap(SWT.CAP_ROUND);
+
+					e.gc.setAlpha(120);
+					e.gc.setLineWidth(2);
+					e.gc.drawOval(clientArea.x + 6, clientArea.y + 5, 7, 6); 
+					e.gc.drawPolyline(new int[] {
+						clientArea.x + 12,
+						clientArea.y + 11,
+						clientArea.x + 15,
+						clientArea.y + clientArea.height - 5,
+					});
+					
+					//e.gc.setLineWidth(1);
+					e.gc.setAlpha(80);
+					e.gc.drawPolyline(new int[] {
+						clientArea.x + clientArea.width - 7,
+						clientArea.y + 6,
+						clientArea.x + clientArea.width - (7 + 7),
+						clientArea.y + clientArea.height - 6,
+					});
+					e.gc.drawPolyline(new int[] {
+						clientArea.x + clientArea.width - 7,
+						clientArea.y + clientArea.height - 6,
+						clientArea.x + clientArea.width - (7 + 7),
+						clientArea.y + 6,
+					});
+				}
+			});
+		}
 		
 		textWidget.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
@@ -97,7 +162,7 @@ public class SWTSkinObjectTextbox
 			textWidget.setMessage(message);
 		}
 
-		setControl(textWidget);
+		setControl(cBubble == null ? textWidget : cBubble);
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#switchSuffix(java.lang.String, int, boolean)
@@ -132,6 +197,10 @@ public class SWTSkinObjectTextbox
 
 	public String getText() {
 		return text;
+	}
+
+	public Text getTextControl() {
+		return textWidget;
 	}
 
 }
