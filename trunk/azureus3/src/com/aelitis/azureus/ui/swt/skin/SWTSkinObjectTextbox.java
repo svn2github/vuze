@@ -131,31 +131,33 @@ public class SWTSkinObjectTextbox
 						clientArea.y + clientArea.height - 5,
 					});
 					
-					//e.gc.setLineWidth(1);
-					e.gc.setAlpha(80);
-					Rectangle rXArea = new Rectangle(clientArea.x + clientArea.width - 14,
-							clientArea.y + 6, 7, 7);
-					cBubble.setData("XArea", rXArea);
+					boolean textIsBlank = text.length() == 0;
+					if (!textIsBlank) {
+						//e.gc.setLineWidth(1);
+						e.gc.setAlpha(80);
+						Rectangle rXArea = new Rectangle(clientArea.x + clientArea.width
+								- 14, clientArea.y + 6, 7, 7);
+						cBubble.setData("XArea", rXArea);
 
-					e.gc.drawPolyline(new int[] {
-						clientArea.x + clientArea.width - 7,
-						clientArea.y + 6,
-						clientArea.x + clientArea.width - (7 + 7),
-						clientArea.y + clientArea.height - 6,
-					});
-					e.gc.drawPolyline(new int[] {
-						clientArea.x + clientArea.width - 7,
-						clientArea.y + clientArea.height - 6,
-						clientArea.x + clientArea.width - (7 + 7),
-						clientArea.y + 6,
-					});
+						e.gc.drawPolyline(new int[] {
+							clientArea.x + clientArea.width - 7,
+							clientArea.y + 7,
+							clientArea.x + clientArea.width - (7 + 5),
+							clientArea.y + clientArea.height - 7,
+						});
+						e.gc.drawPolyline(new int[] {
+							clientArea.x + clientArea.width - 7,
+							clientArea.y + clientArea.height - 7,
+							clientArea.x + clientArea.width - (7 + 5),
+							clientArea.y + 7,
+						});
+					}
 				}
 			});
 			
 			cBubble.addListener(SWT.MouseDown, new Listener() {
 				public void handleEvent(Event event) {
 					Rectangle r = (Rectangle) event.widget.getData("XArea");
-					System.out.println(r + ";;;;" + event.x + "," + event.y);
 					if (r != null && r.contains(event.x, event.y)) {
 						textWidget.setText("");
 					}
@@ -165,7 +167,12 @@ public class SWTSkinObjectTextbox
 		
 		textWidget.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
+				boolean textWasBlank = text.length() == 0;
 				text = textWidget.getText();
+				boolean textIsBlank = text.length() == 0;
+				if (textWasBlank != textIsBlank && cBubble != null) {
+					cBubble.redraw();
+				}
 			}
 		});
 		
