@@ -123,7 +123,7 @@ public class SBC_LibraryTableView
 		
 		SWTSkinObjectTextbox soFilter = (SWTSkinObjectTextbox) skin.getSkinObject(
 				"library-filter", soParent.getParent());
-		Text txtFilter = soFilter == null ? null : (Text) soFilter.getControl();
+		Text txtFilter = soFilter == null ? null : soFilter.getTextControl();
 		
 		SWTSkinObjectContainer soCats = (SWTSkinObjectContainer) skin.getSkinObject(
 				"library-categories", soParent.getParent());
