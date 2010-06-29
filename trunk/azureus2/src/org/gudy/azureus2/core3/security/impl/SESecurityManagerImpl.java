@@ -145,7 +145,7 @@ SESecurityManagerImpl
 	
 		// debug SSL with -Djavax.net.debug=ssl
 	
-		keystore_name 	= FileUtil.getUserFile(SESecurityManager.SSL_KEYS).getAbsolutePath();
+		keystore_name 		= FileUtil.getUserFile(SESecurityManager.SSL_KEYS).getAbsolutePath();
 		truststore_name 	= FileUtil.getUserFile(SESecurityManager.SSL_CERTS).getAbsolutePath();
 		
 		System.setProperty( "javax.net.ssl.trustStore", truststore_name );
@@ -193,6 +193,8 @@ SESecurityManagerImpl
 		
 		ensureStoreExists( truststore_name );
 		
+		initEmptyTrustStore();
+		
 		/*
 			try{
 				Certificate c = createSelfSignedCertificate( "Dummy", "CN=fred,OU=wap,O=wip,L=here,ST=there,C=GB", 512 );
@@ -218,6 +220,37 @@ SESecurityManagerImpl
 			}
 		}
 		*/
+	}
+	
+	private void
+	initEmptyTrustStore()
+	{
+		try{
+			KeyStore keystore = getTrustStore();
+			
+			if ( keystore.size() == 0 ){
+				
+				File cacerts = new File( new File( new File( System.getProperty( "java.home" ), "lib" ), "security" ), "cacerts" );
+				
+				if ( cacerts.exists()){
+					
+					File	target = new File( truststore_name );
+					
+					FileUtil.copyFile( cacerts, target );
+					
+					try{
+						getTrustStore();
+						
+					}catch( Throwable e ){
+						
+						target.delete();
+						
+						ensureStoreExists( truststore_name );
+					}
+				}
+			}
+		}catch( Throwable e ){
+		}
 	}
 	
 	public String
