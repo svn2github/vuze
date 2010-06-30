@@ -288,6 +288,11 @@ TranscodeProviderVuze
 								
 								long audio_duration	= getLongProperty( "audio_duration_millis", 0 );
 								
+								if ( duration <= 0 && audio_duration > 0 ){
+									
+									duration = audio_duration;
+								}
+								
 								if ( audio_duration > 0 && audio_duration < duration ){
 									
 									duration = audio_duration;
