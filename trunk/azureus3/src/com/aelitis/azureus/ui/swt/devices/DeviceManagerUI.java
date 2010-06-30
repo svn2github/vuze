@@ -1745,6 +1745,11 @@ DeviceManagerUI
 						
 						for ( Device device: devices ){
 							
+							if ( device.isHidden()){
+								
+								continue;
+							}
+							
 							if ( device instanceof TranscodeTarget ){
 								
 								devices_added++;
