@@ -721,6 +721,13 @@ public class TorrentListViewsUtils
 							
 							if ( current_stream != null ){
 								
+								if ( current_stream.getURL().equals( url )){
+									
+									current_stream.setPreviewMode( !current_stream.getPreviewMode());
+									
+									return;
+								}
+								
 								current_stream.cancel();
 								
 								current_stream = null;
@@ -765,7 +772,7 @@ public class TorrentListViewsUtils
 							
 							current_stream = 
 								sm.stream( 
-									dm, file_index, url,
+									dm, file_index, url, false,
 									new StreamManagerDownloadListener()
 									{
 										public void

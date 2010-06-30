@@ -21,9 +21,29 @@
 
 package com.aelitis.azureus.core.download;
 
+import java.net.URL;
+
+import org.gudy.azureus2.core3.download.DownloadManager;
+
 public interface 
 StreamManagerDownload 
 {
+	public DownloadManager
+	getDownload();
+	
+	public int
+	getFileIndex();
+	
+	public URL
+	getURL();
+	
+	public boolean
+	getPreviewMode();
+	
+	public void
+	setPreviewMode(
+		boolean	preview_mode );
+	
 	public void
 	cancel();
 }

@@ -87,9 +87,10 @@ StreamManager
 		DownloadManager					dm,
 		int								file_index,
 		URL								url,
+		boolean							preview_mode,
 		StreamManagerDownloadListener	listener )
 	{
-		SMDImpl	result = new SMDImpl( dm, file_index, url, listener );
+		SMDImpl	result = new SMDImpl( dm, file_index, url, preview_mode, listener );
 				
 		return( result );
 	}
@@ -105,6 +106,8 @@ StreamManager
 		private URL									url;
 		private StreamManagerDownloadListener	listener;
 			
+		private boolean					preview_mode;
+		
 		private AESemaphore				active_sem;
 		private TranscodeJob			active_job;
 		
@@ -115,14 +118,49 @@ StreamManager
 			DownloadManager					_dm,
 			int								_file_index,
 			URL								_url,
+			boolean							_preview_mode,
 			StreamManagerDownloadListener	_listener )
 		{
-			dm			= _dm;
-			file_index	= _file_index;
-			url			= _url;
-			listener	= _listener;
+			dm				= _dm;
+			file_index		= _file_index;
+			url				= _url;
+			preview_mode	= _preview_mode;
+			listener		= _listener;
 			
 			dispatcher.dispatch( this );
+		}
+		
+		public DownloadManager
+		getDownload()
+		{
+			return( dm );
+		}
+		
+		public int
+		getFileIndex()
+		{
+			return( file_index );
+		}
+		
+		public URL
+		getURL()
+		{
+			return( url );
+		}
+		
+		public boolean
+		getPreviewMode()
+		{
+			return( preview_mode );
+		}
+		
+		public void
+		setPreviewMode(
+			boolean	_preview_mode )
+		{
+			preview_mode = _preview_mode;
+			
+			listener.updateActivity( "Preview mode changed to " + preview_mode );
 		}
 		
 		public void
@@ -358,11 +396,19 @@ StreamManager
 						throw( new Exception( "Cancelled" ));
 					}
 					
-					long eta = updateETA( edm );
+					long[] eta_details = updateETA( edm );
 							
-					if ( eta <= 0 ){
+					if ( eta_details[0] <= 0 ){
 						
 						break;
+					}
+					
+					if ( preview_mode ){
+						
+						if ( eta_details[1] >= 5 ){
+							
+							break;
+						}
 					}
 					
 					int dm_state = dm.getState();
@@ -421,7 +467,7 @@ StreamManager
 			}
 		}
 		
-		private long
+		private long[]
 		updateETA(
 			EnhancedDownloadManager edm )
 		{
@@ -446,7 +492,7 @@ StreamManager
 			
 			listener.updateStats( eta, buffer_secs, buffer, BUFFER_SECS );
 			
-			return( eta );
+			return( new long[]{ eta, buffer_secs } );
 		}
 		
 		public void
