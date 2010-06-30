@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.ui.swt.views.IView;
 
+import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableView;
 
@@ -113,7 +114,7 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 *
 	 * @since 3.0.0.7
 	 */
-	TableCellSWT getTableCell(int x, int y);
+	TableCellCore getTableCell(int x, int y);
 
 	/**
 	 * @return Offset potision of the cursor relative to the cell the cursor is in

@@ -27,7 +27,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.common.table.*;
 
@@ -53,7 +52,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
  * 
  * @author TuxPaper
  * 
- * @see org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager
+ * @see com.aelitis.azureus.ui.common.table.impl.TableColumnManager
  */
 public class TableColumnImpl
 	implements TableColumnCore
@@ -151,7 +150,7 @@ public class TableColumnImpl
 
 	private boolean removed;
 	
-	private Class forPluginDataSourceType;
+	private List<Class> forPluginDataSourceTypes = new ArrayList<Class>();
 
 	/**
 	 * @deprecated
@@ -193,7 +192,7 @@ public class TableColumnImpl
 	
 	private void init(Class forDataSourceType, String tableID,
 			String columnID) {
-		this.forPluginDataSourceType = forDataSourceType;
+		forPluginDataSourceTypes.add(forDataSourceType);
 		sTableID = tableID;
 		sName = columnID;
 		iType = TYPE_TEXT_ONLY;
@@ -431,6 +430,23 @@ public class TableColumnImpl
 
 			this_mon.exit();
 		}
+	}
+	
+	public void removeCellOtherListener(String listenerID, Object l) {
+		try {
+			this_mon.enter();
+			
+  		if (mapOtherCellListeners == null) {
+  			return;
+  		}
+  		
+  		mapOtherCellListeners.remove(listenerID);
+
+		} finally {
+
+			this_mon.exit();
+		}
+
 	}
 	
 	public Object[] getCellOtherListeners(String listenerID) {
@@ -963,7 +979,9 @@ public class TableColumnImpl
 			
 		TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
 					
-		tsed.tableStructureChanged(true, forPluginDataSourceType);
+		for (Class cla : forPluginDataSourceTypes) {
+			tsed.tableStructureChanged(true, cla);
+		}
 	}
 
 	public boolean 
@@ -1502,17 +1520,36 @@ public class TableColumnImpl
 		return false;
 	}
 
-	public Class getForDataSourceType() {
-		return forPluginDataSourceType;
-	}
-
-	public void setForDataSourceType(Class forDataSourceType) {
-		this.forPluginDataSourceType = forDataSourceType;
+	public Class[] getForDataSourceTypes() {
+		return forPluginDataSourceTypes.toArray(new Class[0]);
 	}
 
 	public void reset() {
 		if (iDefaultWidth != 0) {
 			setWidth(iDefaultWidth);
 		}
+	}
+
+	public void addDataSourceType(Class<?> cla) {
+		if (cla == org.gudy.azureus2.core3.disk.DiskManagerFileInfo.class) {
+			cla = DiskManagerFileInfo.class;
+		}
+		forPluginDataSourceTypes.add(cla);
+	}
+	
+	public boolean handlesDataSourceType(Class<?> cla) {
+		if (forPluginDataSourceTypes.contains(cla)) {
+			return true;
+		}
+		for (Class forClass : forPluginDataSourceTypes) {
+			if (forClass.isAssignableFrom(cla)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public Class getForDataSourceType() {
+		return forPluginDataSourceTypes.size() > 0 ? forPluginDataSourceTypes.get(0) : null;
 	}
 }

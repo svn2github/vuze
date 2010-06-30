@@ -54,8 +54,8 @@ public class TableRowImpl<COREDATASOURCE>
        implements TableRowSWT
 {
   /** List of cells in this column.  They are not stored in display order */
-  private Map<String, TableCellImpl> mTableCells;
-  private TableCellImpl[] tableCells;
+  private Map<String, TableCellCore> mTableCells;
+  private TableCellCore[] tableCells;
   private AEMonitor2 mTableCells_mon = new AEMonitor2("mTableCells");
   
   private Object coreDataSource;
@@ -75,17 +75,47 @@ public class TableRowImpl<COREDATASOURCE>
 	
 	private TableRowCore parentRow;
 	private CopyOnWriteList<TableRowImpl<Object>> subRows;
+	private TableColumnCore[] columnsSorted;
+	private boolean bSkipFirstColumn;
 
   // XXX add rowVisuallyupdated bool like in ListRow
 
 	public TableRowImpl(TableRowCore parentRow, TableView<COREDATASOURCE> tv,
-			TableOrTreeSWT table, String sTableID, Object dataSource, int index) {
+			TableOrTreeSWT table, TableColumnCore[] columnsSorted,
+			String sTableID, Object dataSource, int index, boolean bSkipFirstColumn) {
 		super(table);
 		this.parentRow = parentRow;
 		this.tableView = tv;
 		coreDataSource = dataSource;
 		bDisposed = false;
 		lastIndex = index;
+
+    mTableCells_mon.enter();
+    try {
+    	mTableCells = new LightHashMap<String, TableCellCore>(columnsSorted.length, 1);
+
+    	// create all the cells for the column
+    	for (int i = 0; i < columnsSorted.length; i++) {
+    		if (columnsSorted[i] == null) {
+    			continue;
+    		}
+    		
+    		if (!columnsSorted[i].handlesDataSourceType(getDataSource(false).getClass())) {
+      		mTableCells.put(columnsSorted[i].getName(), null);
+    			continue;
+    		}
+    		
+    		//System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
+    		TableSubCellImpl cell = new TableSubCellImpl(TableRowImpl.this, columnsSorted[i], 
+    				bSkipFirstColumn ? i+1 : i);
+    		mTableCells.put(columnsSorted[i].getName(), cell);
+    		//if (i == 10) cell.bDebug = true;
+    	}
+    	
+    	tableCells = mTableCells.values().toArray(new TableCellCore[mTableCells.size()]);
+    } finally {
+    	mTableCells_mon.exit();
+    }
 	}
 
 	/**
@@ -102,12 +132,14 @@ public class TableRowImpl<COREDATASOURCE>
 			boolean bSkipFirstColumn) {
 		super(table);
 		this.tableView = tv;
+		this.columnsSorted = columnsSorted;
     coreDataSource = dataSource;
+		this.bSkipFirstColumn = bSkipFirstColumn;
     bDisposed = false;
 
     mTableCells_mon.enter();
     try {
-    	mTableCells = new LightHashMap<String, TableCellImpl>(columnsSorted.length, 1);
+    	mTableCells = new LightHashMap<String, TableCellCore>(columnsSorted.length, 1);
 
     	// create all the cells for the column
     	for (int i = 0; i < columnsSorted.length; i++) {
@@ -135,7 +167,7 @@ public class TableRowImpl<COREDATASOURCE>
     mTableCells_mon.enter();
     try {
     	for (TableCell cell : tableCells) {
-    		if (cell.isValid()) {
+    		if (cell != null && cell.isValid()) {
     			return false;
     		}
       }
@@ -236,9 +268,11 @@ public class TableRowImpl<COREDATASOURCE>
 			mTableCells_mon.enter();
 			try {
   			if (mTableCells != null) {
-  				for (TableCellSWT item : tableCells) {
+  				for (TableCellCore cell : tableCells) {
   					try {
-  						item.dispose();
+  						if (cell != null) {
+  							cell.dispose();
+  						}
   					} catch (Exception e) {
   						Debug.out(e);
   					}
@@ -256,7 +290,7 @@ public class TableRowImpl<COREDATASOURCE>
 		}
 	}
   
-  public List<TableCellSWT> refresh(boolean bDoGraphics) {
+  public List<TableCellCore> refresh(boolean bDoGraphics) {
     if (bDisposed) {
       return Collections.EMPTY_LIST;
     }
@@ -266,10 +300,10 @@ public class TableRowImpl<COREDATASOURCE>
     return refresh(bDoGraphics, bVisible);
   }
 
-  public List<TableCellSWT> refresh(boolean bDoGraphics, boolean bVisible) {
+  public List<TableCellCore> refresh(boolean bDoGraphics, boolean bVisible) {
     // If this were called from a plugin, we'd have to refresh the sorted column
     // even if we weren't visible
-    List<TableCellSWT> list = Collections.EMPTY_LIST;
+    List<TableCellCore> list = Collections.EMPTY_LIST;
 
   	if (bDisposed) {
   		return list;
@@ -292,19 +326,22 @@ public class TableRowImpl<COREDATASOURCE>
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-				for (TableCellSWT item : tableCells) {
-    			TableColumn column = item.getTableColumn();
+				for (TableCellCore cell : tableCells) {
+					if (cell == null) {
+						continue;
+					}
+    			TableColumn column = cell.getTableColumn();
     			//System.out.println(column);
     			if (column != tableView.getSortColumn() && !tableView.isColumnVisible(column)) {
     				//System.out.println("skip " + column);
     				continue;
     			}
-    			boolean changed = item.refresh(bDoGraphics, bVisible);
+    			boolean changed = cell.refresh(bDoGraphics, bVisible);
     			if (changed)
     			{
     				if(list == Collections.EMPTY_LIST)
-    					list = new ArrayList<TableCellSWT>(mTableCells.size());
-    				list.add(item);
+    					list = new ArrayList<TableCellCore>(mTableCells.size());
+    				list.add(cell);
     			}
     				
     		}
@@ -323,9 +360,9 @@ public class TableRowImpl<COREDATASOURCE>
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-    		for (TableCellSWT item : tableCells) {
-      		if (item.getTableColumn().getPosition() > iStartColumn) {
-      		  item.locationChanged();
+    		for (TableCellCore cell : tableCells) {
+      		if (cell != null && cell.getTableColumn().getPosition() > iStartColumn) {
+      		  cell.locationChanged();
       		}
       	}
   		}
@@ -346,12 +383,12 @@ public class TableRowImpl<COREDATASOURCE>
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-    		for (TableCellSWT cell : tableCells) {
+    		for (TableCellCore cell : tableCells) {
 //    	if (bOnlyIfChanged && !cell.getVisuallyChangedSinceRefresh()) {
 //    		continue;
 //    	}
-      		if (cell.needsPainting()) {
-      			cell.doPaint(gc);
+      		if (cell != null && cell.needsPainting() && (cell instanceof TableCellSWT)) {
+      			((TableCellSWT) cell).doPaint(gc);
       		}
       	}
   		}
@@ -382,7 +419,11 @@ public class TableRowImpl<COREDATASOURCE>
 
 		mTableCells_mon.enter();
 		try {
-  		return mTableCells.get(name);
+  		TableCellCore cell = mTableCells.get(name);
+  		if (cell instanceof TableCellSWT) {
+  			return (TableCellSWT) cell;
+  		}
+  		return null;
     } finally {
     	mTableCells_mon.exit();
     }
@@ -536,8 +577,10 @@ public class TableRowImpl<COREDATASOURCE>
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-    		for (TableCellSWT cell : tableCells) {
-    			cell.invalidate(false);
+    		for (TableCellCore cell : tableCells) {
+    			if (cell != null) {
+    				cell.invalidate(false);
+    			}
       	}
   		}
     } finally {
@@ -552,9 +595,11 @@ public class TableRowImpl<COREDATASOURCE>
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-    		for (TableCellSWT cell : tableCells) {
-    			cell.setUpToDate(upToDate);
-      	}
+    		for (TableCellCore cell : tableCells) {
+    			if (cell != null) {
+    				cell.setUpToDate(upToDate);
+    			}
+    		}
   		}
     } finally {
     	mTableCells_mon.exit();
@@ -596,10 +641,12 @@ public class TableRowImpl<COREDATASOURCE>
 		mTableCells_mon.enter();
 		try {
   		if (mTableCells != null) {
-    		for (TableCellSWT cell : tableCells) {
-    			cell.invokeVisibilityListeners(b
-    					? TableCellVisibilityListener.VISIBILITY_SHOWN
-    							: TableCellVisibilityListener.VISIBILITY_HIDDEN, true);
+    		for (TableCellCore cell : tableCells) {
+    			if (cell != null) {
+      			cell.invokeVisibilityListeners(b
+      					? TableCellVisibilityListener.VISIBILITY_SHOWN
+      							: TableCellVisibilityListener.VISIBILITY_HIDDEN, true);
+    			}
       	}
   		}
     } finally {
@@ -734,7 +781,8 @@ public class TableRowImpl<COREDATASOURCE>
 		subRows = new CopyOnWriteList<TableRowImpl<Object>>(count);
 		List<TableRowImpl<Object>> list = new ArrayList<TableRowImpl<Object>>(count);
 		for (int i = 0; i < count; i++) {
-			list.add(new TableRowImpl(this, tableView, table, getTableID(), null, i));
+			list.add(new TableRowImpl(this, tableView, table, columnsSorted,
+					getTableID(), null, i, bSkipFirstColumn));
 		}
 		subRows.addAll(list);
 	}
@@ -748,8 +796,8 @@ public class TableRowImpl<COREDATASOURCE>
 		List<TableRowImpl<Object>> list = new ArrayList<TableRowImpl<Object>>(
 				datasources.length);
 		for (int i = 0; i < datasources.length; i++) {
-			list.add(new TableRowImpl(this, tableView, table, getTableID(),
-					datasources[i], i));
+			list.add(new TableRowImpl(this, tableView, table, columnsSorted,
+					getTableID(), datasources[i], i, bSkipFirstColumn));
 		}
 		subRows.addAll(list);
 	}
@@ -759,6 +807,10 @@ public class TableRowImpl<COREDATASOURCE>
 		TableItemOrTreeItem subItem = item.getItem(indexOf);
 		subRow.setTableItem(subItem, true);
 		return subRow;
+	}
+	
+	public TableRowCore[] getSubRows() {
+		return subRows.toArray(new TableRowImpl[0]);
 	}
 	
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#isInPaintItem()

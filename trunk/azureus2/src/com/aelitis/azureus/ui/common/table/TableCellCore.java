@@ -184,4 +184,12 @@ public interface TableCellCore extends TableCell, Comparable
 	 * @since 3.1.1.1
 	 */
 	void redraw();
+
+	/**
+	 * Sets tooltip to be shown in absence of an explicit one
+	 * @param str
+	 */
+	public void setDefaultToolTip(Object tt);
+
+	public Object getDefaultToolTip();
 }

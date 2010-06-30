@@ -32,10 +32,11 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.views.columnsetup.ColumnTC_ChosenColumn;
 import org.gudy.azureus2.ui.swt.views.columnsetup.ColumnTC_NameInfo;
 import org.gudy.azureus2.ui.swt.views.columnsetup.ColumnTC_Sample;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableColumnCoreCreationListener;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 
 /**
  * @author TuxPaper

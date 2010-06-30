@@ -24,6 +24,7 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -51,6 +52,7 @@ public class SizeItem
 	/** Default Constructor */
 	public SizeItem(String sTableID) {
 		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 70, sTableID);
+		addDataSourceType(DiskManagerFileInfo.class);
 		setRefreshInterval(INTERVAL_GRAPHIC);
 		setMinWidthAuto(true);
 	}
@@ -64,9 +66,19 @@ public class SizeItem
 	}
 
 	public void refresh(TableCell cell) {
-		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		sizeitemsort value = (dm == null) ? new sizeitemsort(0, 0)
-				: new sizeitemsort(dm.getSize(), dm.getStats().getRemaining());
+		Object ds = cell.getDataSource();
+		sizeitemsort value;
+		if (ds instanceof DownloadManager) {
+			DownloadManager dm = (DownloadManager) ds;
+			
+			value = new sizeitemsort(dm.getSize(), dm.getStats().getRemaining());
+		} else if (ds instanceof DiskManagerFileInfo) {
+			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
+			value = new sizeitemsort(fileInfo.getLength(), fileInfo.getLength()
+					- fileInfo.getDownloaded());
+		} else {
+			return;
+		}
 
 		// cell.setSortValue(value) always returns true and if I change it,
 		// I'm afraid something will break.. so use compareTo

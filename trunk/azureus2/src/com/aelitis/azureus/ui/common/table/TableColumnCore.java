@@ -323,6 +323,9 @@ public interface TableColumnCore
 	 */
 	void addCellOtherListener(String listenerID, Object listener);
 
+	public void removeCellOtherListener(String listenerID,
+			Object l);
+
 	/**
 	 * @param listenerID
 	 * @return
@@ -356,4 +359,6 @@ public interface TableColumnCore
 	void reset();
 
 	String getClipboardText(TableCell cell);
+
+	boolean handlesDataSourceType(Class<?> cla);
 }

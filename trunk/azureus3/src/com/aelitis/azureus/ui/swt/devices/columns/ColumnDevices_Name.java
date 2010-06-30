@@ -42,7 +42,7 @@ implements TableCellRefreshListener
 	 */
 	public ColumnDevices_Name(String tableID) {
 		super(COLUMN_ID, tableID);
-		setForDataSourceType(TranscodeProvider.class);
+		addDataSourceType(TranscodeProvider.class);
 		initialize(ALIGN_LEAD | ALIGN_TOP, POSITION_INVISIBLE, 150, INTERVAL_INVALID_ONLY);
 	}
 

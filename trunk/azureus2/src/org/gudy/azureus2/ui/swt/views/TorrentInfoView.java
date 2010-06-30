@@ -48,10 +48,10 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.views.table.impl.FakeTableCell;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;

@@ -29,6 +29,7 @@ import org.eclipse.swt.graphics.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
@@ -47,7 +48,6 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3.ContentImageLoadedListener;
@@ -86,6 +86,7 @@ public class ColumnThumbAndName
 	 */
 	public ColumnThumbAndName(String sTableID) {
 		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 250, sTableID);
+		addDataSourceType(org.gudy.azureus2.plugins.disk.DiskManagerFileInfo.class);
 		setObfustication(true);
 		setRefreshInterval(INTERVAL_LIVE);
 		initializeAsGraphic(250);
@@ -177,7 +178,11 @@ public class ColumnThumbAndName
 
 	public void refresh(TableCell cell, boolean sortOnlyRefresh) {
 		String name = null;
-		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		Object ds = cell.getDataSource();
+		if (ds instanceof DiskManagerFileInfo) {
+			return;
+		}
+		DownloadManager dm = (DownloadManager) ds;
 		if (dm != null) {
 			name = dm.getDisplayName();
 		}
@@ -190,6 +195,10 @@ public class ColumnThumbAndName
 
 	public void cellPaint(GC gc, final TableCellSWT cell) {
 		Object ds = cell.getDataSource();
+		if (ds instanceof DiskManagerFileInfo) {
+			cellPaintFileInfo(gc, cell, (DiskManagerFileInfo) ds);
+			return;
+		}
 
 		Rectangle cellBounds = cell.getBounds();
 
@@ -355,10 +364,25 @@ public class ColumnThumbAndName
 		cellPaintName(cell, gc, cellBounds, textX);
 	}
 
+	private void cellPaintFileInfo(GC gc, TableCellSWT cell,
+			DiskManagerFileInfo fileInfo) {
+		Rectangle cellArea = cell.getBounds();
+		//System.out.println(cellArea);
+		int padding = 10 + 20 + (showIcon ? cellArea.height : 0);
+		cellArea.x += padding;
+		cellArea.width -= padding;
+		GCStringPrinter.printString(gc, fileInfo.getFile(true).getName(), cellArea,
+				true, false, SWT.LEFT);
+	}
+
 	private void cellPaintName(TableCell cell, GC gc, Rectangle cellBounds,
 			int textX) {
 		String name = null;
-		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		Object ds = cell.getDataSource();
+		if (ds instanceof DiskManagerFileInfo) {
+			return;
+		}
+		DownloadManager dm = (DownloadManager) ds;
 		if (dm != null)
 			name = dm.getDisplayName();
 		if (name == null)
@@ -371,7 +395,11 @@ public class ColumnThumbAndName
 
 	public String getObfusticatedText(TableCell cell) {
 		String name = null;
-		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		Object ds = cell.getDataSource();
+		if (ds instanceof DiskManagerFileInfo) {
+			return null;
+		}
+		DownloadManager dm = (DownloadManager) ds;
 		if (dm != null) {
 			name = dm.toString();
 			int i = name.indexOf('#');
@@ -411,7 +439,11 @@ public class ColumnThumbAndName
 
 	public String getClipboardText(TableCell cell) {
 		String name = null;
-		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		Object ds = cell.getDataSource();
+		if (ds instanceof DiskManagerFileInfo) {
+			return null;
+		}
+		DownloadManager dm = (DownloadManager) ds;
 		if (dm != null)
 			name = dm.getDisplayName();
 		if (name == null)

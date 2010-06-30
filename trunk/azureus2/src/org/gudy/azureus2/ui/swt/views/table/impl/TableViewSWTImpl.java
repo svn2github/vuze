@@ -57,11 +57,11 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.IViewExtension;
 import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow;
 import org.gudy.azureus2.ui.swt.views.table.*;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -835,7 +835,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				lastMouseDblClkEventTime = time;
 
 				TableColumnCore tc = getTableColumnByOffset(e.x);
-				TableCellSWT cell = getTableCell(e.x, e.y);
+				TableCellCore cell = getTableCell(e.x, e.y);
 				if (cell != null && tc != null) {
 					TableCellMouseEvent event = createMouseEvent(cell, e,
 							TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK, false);
@@ -867,7 +867,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 
 				TableColumnCore tc = getTableColumnByOffset(e.x);
-				TableCellSWT cell = getTableCell(e.x, e.y);
+				TableCellCore cell = getTableCell(e.x, e.y);
 				if (cell != null && tc != null) {
 					TableCellMouseEvent event = createMouseEvent(cell, e,
 							TableCellMouseEvent.EVENT_MOUSEUP, false);
@@ -895,7 +895,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 
 				TableColumnCore tc = getTableColumnByOffset(e.x);
-				TableCellSWT cell = getTableCell(e.x, e.y);
+				TableCellCore cell = getTableCell(e.x, e.y);
 
 				editCell(-1, -1); // clear out current cell editor
 
@@ -933,7 +933,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		});
 
 		table.addMouseMoveListener(new MouseMoveListener() {
-			TableCellSWT lastCell = null;
+			TableCellCore lastCell = null;
 
 			int lastCursorID = 0;
 
@@ -942,7 +942,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					return;
 				}
 				try {
-					TableCellSWT cell = getTableCell(e.x, e.y);
+					TableCellCore cell = getTableCell(e.x, e.y);
 					
 					if (lastCell != null && cell != lastCell && !lastCell.isDisposed()) {
 						TableCellMouseEvent event = createMouseEvent(lastCell, e,
@@ -1488,7 +1488,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		l.controlMoved(null);
 	}
 
-	private TableCellMouseEvent createMouseEvent(TableCellSWT cell, MouseEvent e,
+	private TableCellMouseEvent createMouseEvent(TableCellCore cell, MouseEvent e,
 			int type, boolean allowOOB) {
 		TableCellMouseEvent event = new TableCellMouseEvent();
 		event.cell = cell;
@@ -1500,8 +1500,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		// TODO: Change to not use SWT masks
 		event.keyboardState = e.stateMask;
 		event.skipCoreFunctionality = false;
-		if (cell != null) {
-			Rectangle r = cell.getBounds();
+		if (cell instanceof TableCellSWT) {
+			Rectangle r = ((TableCellSWT) cell).getBounds();
 			event.x = e.x - r.x;
 			if (!allowOOB && event.x < 0) {
 				return null;
@@ -2654,7 +2654,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					continue;
 				}
 				if (sortColumn != null) {
-					TableCellSWT cell = row.getTableCellSWT(sortColumn.getName());
+					TableCellCore cell = row.getTableCellCore(sortColumn.getName());
 					if (cell != null) {
 						try {
 							cell.invalidate();
@@ -3243,7 +3243,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		final String sColumnName = tableColumn.getName();
 		runForAllRows(new TableGroupRowVisibilityRunner() {
 			public void run(TableRowCore row, boolean bVisible) {
-				TableCellSWT cell = ((TableRowSWT) row).getTableCellSWT(sColumnName);
+				TableCellCore cell = row.getTableCellCore(sColumnName);
 				if (cell != null) {
 					cell.refresh(true, bVisible);
 				}
@@ -3278,7 +3278,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		runForAllRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
-				TableCellSWT cell = ((TableRowSWT) row).getTableCellSWT(sColumnName);
+				TableCellCore cell = row.getTableCellCore(sColumnName);
 				if (cell != null) {
 					cell.invalidate(bMustRefresh);
 				}
@@ -3294,7 +3294,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		runForAllRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
-				TableCellSWT cell = ((TableRowSWT) row).getTableCellSWT(sColumnName);
+				TableCellCore cell = row.getTableCellCore(sColumnName);
 				if (cell != null && cell.getDataSource() != null
 						&& cell.getDataSource().equals(data_source)) {
 					cell.invalidate(bMustRefresh);
@@ -3651,7 +3651,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		TableRowCore[] rows = getRows();
 
 		for (int i = 0; i < rows.length; i++) {
-			runner.run(rows[i], isRowVisible(rows[i]));
+			boolean isRowVisible = isRowVisible(rows[i]);
+			runner.run(rows[i], isRowVisible);
+			
+			int numSubRows = rows[i].getSubItemCount();
+			if (numSubRows > 0) {
+				TableRowCore[] subRows = rows[i].getSubRows();
+				for (TableRowCore subRow : subRows) {
+					runner.run(subRow, isRowVisible && isRowVisible(subRow));
+				}
+			}
 		}
 	}
 
@@ -3856,7 +3865,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return getRow(item);
 	}
 
-	public TableCellSWT getTableCell(int x, int y) {
+	public TableCellCore getTableCell(int x, int y) {
 		int iColumn = getColumnNo(x);
 		if (iColumn < 0) {
 			return null;
@@ -3878,7 +3887,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return null;
 		}
 
-		return row.getTableCellSWT(sCellName);
+		return row.getTableCellCore(sCellName);
 	}
 
 	public TableRowSWT getTableRow(int x, int y, boolean anyX) {
@@ -4129,14 +4138,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
-		/*
+		/**
 		System.out.print(newSelectionArray.length + " Selected Rows: ");
 		for (TableRowCore row : newSelectionArray) {
 			System.out.print(indexOf(row));
 			System.out.print(", ");
 		}
 		System.out.println(" via " + Debug.getCompressedStackTrace(4));
-		*/
+		/**/
 
 		final List<TableRowCore> oldSelectionList = new ArrayList<TableRowCore>();
 		synchronized (selectedRows) {
@@ -4347,7 +4356,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   			}
   		}
   
-  		if (pos <= rows.length) {
+  		if (pos < rows.length) {
   			// Some were null, shrink array
   			TableRowSWT[] temp = new TableRowSWT[pos];
   			System.arraycopy(rows, 0, temp, 0, pos);

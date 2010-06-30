@@ -117,16 +117,4 @@ public interface TableCellSWT extends com.aelitis.azureus.ui.common.table.TableC
 	 * @since 3.1.1.1
 	 */
 	void setTextAlpha(int textOpacity);
-	
-		/**
-		 * Sets tooltip to be shown in absence of an explicit one
-		 * @param str
-		 */
-	
-	public void
-	setDefaultToolTip(
-		Object	tt );
-	
-	public Object
-	getDefaultToolTip();
 }

@@ -20,21 +20,22 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
  
-package org.gudy.azureus2.ui.swt.views.table.utils;
+package com.aelitis.azureus.ui.common.table.impl;
 
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
+import com.aelitis.azureus.ui.common.table.TableColumnCoreCreationListener;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnInfoImpl;
 
 
 /** Holds a list of column definitions (TableColumnCore) for 

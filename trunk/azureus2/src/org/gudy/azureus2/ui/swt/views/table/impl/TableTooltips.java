@@ -30,6 +30,8 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
+import com.aelitis.azureus.ui.common.table.TableCellCore;
+
 /**
  * @author TuxPaper
  * @created Mar 1, 2007
@@ -70,7 +72,7 @@ public class TableTooltips
 				if (toolTipShell != null && !toolTipShell.isDisposed())
 					toolTipShell.dispose();
 
-				TableCellSWT cell = tv.getTableCell(event.x, event.y);
+				TableCellCore cell = tv.getTableCell(event.x, event.y);
 				if (cell == null)
 					return;
 				cell.invokeToolTipListeners(TableCellSWT.TOOLTIPLISTENER_HOVER);

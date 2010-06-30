@@ -178,4 +178,6 @@ public interface TableRowCore extends TableRow
 	 * @since 4.4.0.5
 	 */
 	void setSubItems(Object[] datasources);
+
+	TableRowCore[] getSubRows();
 }
