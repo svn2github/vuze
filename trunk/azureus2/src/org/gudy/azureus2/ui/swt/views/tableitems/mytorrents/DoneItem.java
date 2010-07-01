@@ -24,6 +24,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -48,6 +49,7 @@ public class DoneItem
 	/** Default Constructor */
   public DoneItem(String sTableID) {
     super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 55, sTableID);
+    addDataSourceType(DiskManagerFileInfo.class);
     setRefreshInterval(INTERVAL_LIVE);
     if (sTableID.equals(TableManager.TABLE_MYTORRENTS_INCOMPLETE))
       setPosition(POSITION_LAST);
@@ -61,8 +63,16 @@ public class DoneItem
 	}
 
   public void refresh(TableCell cell) {
-    DownloadManager dm = (DownloadManager)cell.getDataSource();
-    int value = (dm == null) ? 0 : dm.getStats().getCompleted();
+  	int value;
+  	Object ds = cell.getDataSource();
+  	if (ds instanceof DownloadManager) {
+  		value = ((DownloadManager) ds).getStats().getCompleted();
+  	} else if (ds instanceof DiskManagerFileInfo) {
+  		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
+  		value = (int) (fileInfo.getDownloaded() * 100 / fileInfo.getLength());
+  	} else {
+  		return;
+  	}
     if (!cell.setSortValue(value) && cell.isValid())
       return;
     cell.setText(DisplayFormatters.formatPercentFromThousands(value));
