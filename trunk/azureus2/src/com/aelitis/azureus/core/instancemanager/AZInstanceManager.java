@@ -49,6 +49,9 @@ AZInstanceManager
 	public AZInstance[]
 	getOtherInstances();
 	
+	public void
+	updateNow();
+	
 	public AZInstanceTracked[]
 	track(
 		byte[]								hash,

@@ -26,6 +26,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -402,5 +403,11 @@ AZMyInstanceImpl
 	getUDPNonDataListenPort() 
 	{
 		return( udp_non_data_port );
+	}
+	
+	public Map<String, Object> 
+	getProperties() 
+	{
+		return((Map<String, Object>)COConfigurationManager.getMapParameter( "instance.manager.props", null ));
 	}
 }

@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -71,6 +72,8 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
+import org.json.simple.parser.JSONParser;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -86,6 +89,7 @@ import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
+import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.net.upnp.UPnPRootDevice;
 
 public class 
@@ -387,6 +391,61 @@ PairingManagerImpl
 		boolean	enabled )
 	{
 		param_enable.setValue( enabled );
+	}
+	
+	public void 
+	setGroup(
+		String group ) 
+	{
+		COConfigurationManager.setParameter( "pairing.groupcode", group );
+		
+		updateNeeded();
+	}
+	
+	public String
+	getGroup()
+	{
+		return( COConfigurationManager.getStringParameter( "pairing.groupcode", null ));
+	}
+
+	public List<PairedNode> 
+	listGroup() 
+	
+		throws PairingException 
+	{
+		try{
+			URL url = new URL( SERVICE_URL + "/remote/listGroup?gc=" + getGroup());
+			
+			
+			InputStream is =  new ResourceDownloaderFactoryImpl().create( url ).download();
+			
+			Map json = JSONUtils.decodeJSON( new String( FileUtil.readInputStreamAsByteArray( is ), "UTF-8" ));
+			
+			List<Map>	list = (List<Map>)json.get( "result" );
+			
+			List<PairedNode>	result = new ArrayList<PairedNode>();
+			
+			String my_ac = peekAccessCode();
+
+			if ( list != null ){
+				
+				for ( Map m: list ){
+					
+					PairedNodeImpl node = new PairedNodeImpl( m );
+							
+					if ( my_ac == null || !my_ac.equals( node.getAccessCode())){
+					
+						result.add( node );
+					}
+				}
+			}
+			
+			return( result );
+			
+		}catch( Throwable e ){
+			
+			throw( new PairingException( "Failed to list group", e ));
+		}
 	}
 	
 	protected void
@@ -1009,6 +1068,13 @@ PairingManagerImpl
 			}
 			
 			payload.put( "ac", ac );
+			
+			String	gc = getGroup();
+			
+			if ( gc != null && gc.length() > 0 ){
+				
+				payload.put( "gc", gc );
+			}
 			
 			synchronized( this ){
 
@@ -1690,6 +1756,111 @@ PairingManagerImpl
 			}
 			
 			return( result );
+		}
+	}
+	
+	private class
+	PairedNodeImpl
+		implements PairedNode
+	{
+		private Map		map;
+		
+		protected
+		PairedNodeImpl(
+			Map		_map )
+		{
+			map	= _map;
+		}
+		
+		public String
+		getAccessCode()
+		{
+			return((String)map.get( "ac" ));
+		}
+		
+		public List<PairedService>
+		getServices()
+		{
+			Map<String,Map> smap = (Map)map.get( "services" );
+			
+			List<PairedService>	services = new ArrayList<PairedService>();
+			
+			for ( Map.Entry<String,Map> entry: smap.entrySet()){
+				
+				services.add( new PairedService2Impl( entry.getKey(), entry.getValue()));
+			}
+			
+			return( services );
+		}
+	}
+	
+	private class
+	PairedService2Impl
+		implements PairedService
+	{
+		private String		sid;
+		private Map			map;
+		
+		protected
+		PairedService2Impl(
+			String		_sid,
+			Map			_map )
+		{
+			sid		= _sid;
+			map		= _map;
+		}
+		
+		public String
+		getSID()
+		{
+			return( sid );
+		}
+		
+		public PairingConnectionData
+		getConnectionData()
+		{
+			return( new PairingConnectionData2( map ));
+		}
+		
+		public void
+		remove()
+		{
+			throw( new RuntimeException( "Not supported" ));
+		}
+	}
+	
+	private class
+	PairingConnectionData2
+		implements PairingConnectionData
+	{
+		private Map		map;
+		
+		protected
+		PairingConnectionData2(
+			Map		_map )
+		{
+			map		= _map;
+		}
+		
+		public void
+		setAttribute(
+			String		name,
+			String		value )
+		{
+			throw( new RuntimeException( "Not supported" ));
+		}
+		
+		public String
+		getAttribute(
+			String		name )
+		{
+			return( (String)map.get( name ));
+		}
+		
+		public void
+		sync()
+		{
+			throw( new RuntimeException( "Not supported" ));
 		}
 	}
 }

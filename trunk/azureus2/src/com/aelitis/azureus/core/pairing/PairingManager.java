@@ -21,11 +21,25 @@
 
 package com.aelitis.azureus.core.pairing;
 
+import java.util.List;
+
 public interface 
 PairingManager 
 {
 	public boolean
 	isEnabled();
+	
+	public void
+	setGroup(
+		String		group );
+	
+	public String
+	getGroup();
+	
+	public List<PairedNode>
+	listGroup()
+	
+		throws PairingException;
 	
 	public String
 	getAccessCode()

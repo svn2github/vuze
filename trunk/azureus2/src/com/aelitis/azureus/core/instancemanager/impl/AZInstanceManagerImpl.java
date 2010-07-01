@@ -345,6 +345,12 @@ AZInstanceManagerImpl
 		return( initial_search_sem.isReleasedForever());
 	}
 	
+	public void
+	updateNow()
+	{
+		sendAlive();
+	}
+	
 	protected boolean
 	isClosing()
 	{

@@ -63,6 +63,8 @@ AZOtherInstanceImpl
 			app_id = new String( app_id_bytes );
 		}
 		
+		Map<String,Object>	props = (Map<String,Object>)map.get( "pr" );
+		
 		try{
 			if ( !int_ip.equals("0.0.0.0")){
 				
@@ -75,7 +77,7 @@ AZOtherInstanceImpl
 			
 			if ( internal_address instanceof Inet4Address == external_address instanceof Inet4Address ){
 				
-				return( new AZOtherInstanceImpl(id, app_id, internal_address, external_address, tcp, udp, udp_other ));
+				return( new AZOtherInstanceImpl(id, app_id, internal_address, external_address, tcp, udp, udp_other, props ));
 			}
 			
 			return( null );
@@ -95,6 +97,7 @@ AZOtherInstanceImpl
 	private int						tcp_port;
 	private int						udp_port;
 	private int						udp_non_data_port;
+	private Map<String,Object>		props;
 	
 	private long	alive_time;
 
@@ -107,7 +110,8 @@ AZOtherInstanceImpl
 		InetAddress				_external_address,
 		int						_tcp_port,
 		int						_udp_port,
-		int						_udp_non_data_port )
+		int						_udp_non_data_port,
+		Map<String,Object>		_props )
 	{
 		id					= _id;
 		app_id				= _app_id;
@@ -118,6 +122,8 @@ AZOtherInstanceImpl
 		tcp_port			= _tcp_port;
 		udp_port			= _udp_port;
 		udp_non_data_port	= _udp_non_data_port;
+	
+		props				= _props;
 		
 		alive_time	= SystemTime.getCurrentTime();
 	}
@@ -202,6 +208,12 @@ AZOtherInstanceImpl
 	getUDPNonDataListenPort() 
 	{
 		return( udp_non_data_port );
+	}
+	
+	public Map<String, Object> 
+	getProperties() 
+	{
+		return( props );
 	}
 	
 	protected long

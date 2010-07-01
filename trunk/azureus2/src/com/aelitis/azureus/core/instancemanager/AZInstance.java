@@ -22,7 +22,7 @@
 
 package com.aelitis.azureus.core.instancemanager;
 
-import java.util.List;
+import java.util.*;
 import java.net.InetAddress;
 
 public interface 
@@ -51,6 +51,9 @@ AZInstance
 	
 	public int
 	getUDPNonDataListenPort();
+	
+	public Map<String,Object>
+	getProperties();
 	
 	public String
 	getString();
