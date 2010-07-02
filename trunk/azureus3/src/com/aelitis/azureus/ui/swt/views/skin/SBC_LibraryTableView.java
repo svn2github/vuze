@@ -247,7 +247,11 @@ public class SBC_LibraryTableView
 			tv.addRefreshListener(new TableRowRefreshListener() {
 				public void rowRefresh(TableRow row) {
 					TableRowSWT rowCore = (TableRowSWT)row;
-					DownloadManager dm = (DownloadManager) rowCore.getDataSource(true);
+					Object ds = rowCore.getDataSource(true);
+					if (!(ds instanceof DownloadManager)) {
+						return;
+					}
+					DownloadManager dm = (DownloadManager) ds;
 					boolean changed = false;
 					boolean assumedComplete = dm.getAssumedComplete();
 					if (!assumedComplete) {
@@ -408,7 +412,12 @@ public class SBC_LibraryTableView
 			((MyTorrentsView)view).updateSelectedContent();
 		}
 		
-		updateUI();
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			
+			public void runSupport() {
+				updateUI();
+			}
+		});
 
 		return null;
 	}
