@@ -130,6 +130,7 @@ DiskManagerUtil
 	checkBlockConsistencyForRead(
 		DiskManager	dm,
 		String		originator,
+		boolean		peer_request,
 		int 		pieceNumber,
 		int 		offset,
 		int 		length)
@@ -139,7 +140,7 @@ DiskManagerUtil
 			return( false );
 		}
 		
-		if (length > max_read_block_size) {
+		if (length > max_read_block_size && peer_request) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
 						"Read invalid: " + originator + " length=" + length + " > " + max_read_block_size));

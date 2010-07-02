@@ -59,7 +59,7 @@ DiskManagerImpl
 	
 		throws DiskManagerException 
 	{
-		if ( !disk_manager.checkBlockConsistencyForRead( "plugin", piece_number, offset, length )){
+		if ( !disk_manager.checkBlockConsistencyForRead( "plugin", false, piece_number, offset, length )){
 			
 			throw( new DiskManagerException( "read invalid - parameters incorrect or piece incomplete" ));
 		}

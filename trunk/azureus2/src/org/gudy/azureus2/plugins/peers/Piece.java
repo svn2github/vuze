@@ -28,6 +28,9 @@ Piece
 	public int
 	getIndex();
 	
+	public int
+	getLength();
+	
 	public boolean
 	isDone();
 	

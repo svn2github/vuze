@@ -709,6 +709,12 @@ PeerManagerImpl
 			return( index );
 		}
 		
+		public int
+		getLength()
+		{
+			return( dm_pieces[index].getLength());
+		}
+		
 		public boolean
 		isDone()
 		{

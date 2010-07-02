@@ -27,12 +27,16 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ddb.*;
+import org.gudy.azureus2.plugins.disk.DiskManagerException;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.disk.DiskManagerReadRequest;
+import org.gudy.azureus2.plugins.disk.DiskManagerReadRequestListener;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
@@ -142,8 +146,8 @@ Test
 						{
 							public void
 							peerManagerAdded(
-								Download		download,
-								PeerManager		peer_manager )
+								Download				download,
+								final PeerManager		peer_manager )
 							{
 								peer_manager.addListener(
 									new PeerManagerListener2()
@@ -157,6 +161,36 @@ Test
 												Piece piece = (Piece)event.getData();
 												
 												System.out.println( "piece: " + piece.getIndex() + ", done=" + piece.isDone());
+												
+												try{
+													peer_manager.getDiskManager().read(
+														piece.getIndex(),
+														0,
+														piece.getLength(),
+														new DiskManagerReadRequestListener()
+														{
+															public void
+															complete(
+																DiskManagerReadRequest		request,
+																PooledByteBuffer			buffer )
+															{
+																System.out.println( "    read ok" );
+																
+																buffer.returnToPool();
+															}
+															
+															public void
+															failed(
+																DiskManagerReadRequest		request,
+																DiskManagerException		error )
+															{
+																System.out.println( "    read failed: " + Debug.getNestedExceptionMessage( error ));
+															}
+														});
+												}catch( Throwable e ){
+												
+													e.printStackTrace();
+												}
 											}
 										}
 									});

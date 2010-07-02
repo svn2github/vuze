@@ -270,6 +270,7 @@ DiskManager
 	public boolean 
 	checkBlockConsistencyForRead(
 		String	originator,
+		boolean	peer_request,
 		int 	pieceNumber, 
 		int	 	offset, 
 		int 	length );

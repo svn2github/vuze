@@ -2276,7 +2276,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			int 			offset, 
 			int 			length) 
 	{
-		if ( disk_mgr.checkBlockConsistencyForRead(originator.getClient() + ": " + originator.getIp(),pieceNumber, offset, length)){
+		if ( disk_mgr.checkBlockConsistencyForRead(originator.getClient() + ": " + originator.getIp(), true, pieceNumber, offset, length)){
 
 			if ( enable_seeding_piece_rechecks && isSeeding()){
 

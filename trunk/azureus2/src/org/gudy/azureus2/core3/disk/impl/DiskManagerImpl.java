@@ -1851,11 +1851,12 @@ DiskManagerImpl
 	public boolean
 	checkBlockConsistencyForRead(
 		String	originator,
+	    boolean	peer_request,
 	    int 	pieceNumber,
 	    int 	offset,
 	    int 	length )
 	{
-		return( DiskManagerUtil.checkBlockConsistencyForRead(this, originator, pieceNumber, offset, length));
+		return( DiskManagerUtil.checkBlockConsistencyForRead(this, originator, peer_request, pieceNumber, offset, length));
 	}
 	
 	public boolean
