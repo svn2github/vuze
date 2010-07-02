@@ -47,6 +47,9 @@ import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
+import org.gudy.azureus2.plugins.messaging.bittorrent.BTMessageCancel;
+import org.gudy.azureus2.plugins.messaging.bittorrent.BTMessagePiece;
+import org.gudy.azureus2.plugins.messaging.bittorrent.BTMessageRequest;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
@@ -173,12 +176,25 @@ Test
 														 messageReceived( 
 															Message message )
 														 {
-															 System.out.println( "Received " + message );
-															 
-															 if ( message.getID().equals( "BT_HANDSHAKE" )){
+															 if ( message instanceof BTMessageRequest ){
 																 
-																 //return( true );
+																 BTMessageRequest request = (BTMessageRequest)message;
+																 
+																 System.out.println( "BT_REQUEST: " + request.getPieceNumber() + "/" + request.getPieceOffset() + "/" + request.getLength());
+																 
+															 }else if ( message instanceof BTMessageCancel ){
+																 
+																 BTMessageCancel cancel = (BTMessageCancel)message;
+																 
+																 System.out.println( "BT_CANCEL: " + cancel.getPieceNumber() + "/" + cancel.getPieceOffset() + "/" + cancel.getLength());
+
+															 }else if ( message instanceof BTMessagePiece ){
+																
+																 BTMessagePiece piece = (BTMessagePiece)message;
+																 
+																 System.out.println( "BT_PIECE: " + piece.getPieceNumber() + "/" + piece.getPieceOffset() + "/" + piece.getPieceData().remaining());
 															 }
+															 
 															 return( false );
 														 }
 														  
