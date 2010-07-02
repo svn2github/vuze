@@ -109,6 +109,7 @@ public class Utils
 
 	static {
 		if (DEBUG_SWTEXEC) {
+			System.out.println("==== debug.swtexec=1, performance may be affected ====");
 			queue = new ArrayList<Runnable>();
 			diag_logger = AEDiagnostics.getLogger("swt");
 			diag_logger.log("\n\nSWT Logging Starts");
@@ -629,7 +630,7 @@ public class Utils
 				long wait = SystemTime.getCurrentTime() - lStartTimeRun;
 				if (wait > 700) {
 					diag_logger.log(SystemTime.getCurrentTime() + "] took " + wait
-							+ "ms to run " + Debug.getCompressedStackTrace());
+							+ "ms to run " + Debug.getCompressedStackTrace(-5));
 				}
 			}
 		} else if (msLater >= -1) {
@@ -656,7 +657,7 @@ public class Utils
 
 					diag_logger.log(SystemTime.getCurrentTime() + "] + Q. size= "
 							+ queue.size() + "; add " + code + " via "
-							+ Debug.getCompressedStackTrace());
+							+ Debug.getCompressedStackTrace(-5));
 					final long lStart = SystemTime.getCurrentTime();
 
 					final Display fDisplay = display;
