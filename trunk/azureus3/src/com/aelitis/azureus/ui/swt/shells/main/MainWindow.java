@@ -1428,6 +1428,19 @@ public class MainWindow
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				fixupActionBarSize();
+				SWTSkinObject soPlusHeader = skin.getSkinObject("plus-header");
+				if (soPlusHeader != null) {
+					soPlusHeader.addListener(new SWTSkinObjectListener() {
+						public Object eventOccured(SWTSkinObject skinObject, int eventType,
+								Object params) {
+							if (eventType == SWTSkinObjectListener.EVENT_HIDE
+									|| eventType == SWTSkinObjectListener.EVENT_SHOW) {
+								fixupActionBarSize();
+							}
+							return null;
+						}
+					});
+				}
 			}
 		});
 
