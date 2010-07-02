@@ -2043,7 +2043,7 @@ public class MainWindow
 		if (fd == null || fd.width <= 0) {
 			return;
 		}
-		if (clientArea.width > 1024 && fd.width == MAXWIDTH) {
+		if (clientArea.width > 1124 && fd.width == MAXWIDTH) {
 			return;
 		}
 		SWTSkinObject soTabBar = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
