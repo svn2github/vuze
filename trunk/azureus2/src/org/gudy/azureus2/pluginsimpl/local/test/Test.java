@@ -35,6 +35,7 @@ import org.gudy.azureus2.plugins.ddb.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
@@ -42,6 +43,10 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListe
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
+import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.peers.PeerManagerEvent;
+import org.gudy.azureus2.plugins.peers.PeerManagerListener2;
+import org.gudy.azureus2.plugins.peers.Piece;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeEvent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeListener;
@@ -100,138 +105,8 @@ Test
 								runSupport()
 								{
 									
-									// testLinks();
-									// testMessaging();
-									try{
-										// PlatformManagerFactory.getPlatformManager().performRecoverableFileDelete( "C:\\temp\\recycle.txt" );
-										// PlatformManagerFactory.getPlatformManager().setTCPTOSEnabled( false );
-										
-									}catch( Throwable e ){
-										
-										e.printStackTrace();
-									}
-									
-									try{
-										SubscriptionManager sm = plugin_interface.getUtilities().getSubscriptionManager();
-									
-										Subscription[] subs = sm.getSubscriptions();
-										
-										for ( Subscription s: subs ){
-											
-											System.out.println( "subs: " + s.getName());
-											
-											SubscriptionResult[] results = s.getResults();
-											
-											for ( SubscriptionResult result: results ){
-												
-												System.out.println( "    " + result.getProperty( SearchResult.PR_NAME ) + ", read=" + result.isRead());
-											}
-											
-										}
-									}catch( Throwable e ){
-										
-										e.printStackTrace();
-									}
-									
-									/*
-									while( true ){
-										
-										try{
-											Thread.sleep(1000);
-											
-											SearchInitiator si = plugin_interface.getUtilities().getSearchInitiator();
-			
-											SearchProvider[] providers = si.getProviders();
-											
-											System.out.println( "search providers=" + providers.length );
-											
-											if ( providers.length > 0 ){
-												
-												Map<String,String> properties = new HashMap<String,String>();
-											
-												properties.put( SearchInitiator.PR_SEARCH_TERM, "monkey" );
-												properties.put( SearchInitiator.PR_MATURE, "true" );
-												
-												/*
-												final boolean[] complete = {false};
-												
-												Search s = 
-													si.createSearch(
-														providers,
-														properties,
-														new SearchListener()
-														{
-															public void
-															receivedResults(
-																SearchProviderResults[]		results )
-															{
-																System.out.println( "received results" );
-																
-																for ( SearchProviderResults result: results ){
-																	
-																	System.out.println( "    " + result.getProvider().getProperty( SearchProvider.PR_NAME ) + ": comp=" + result.isComplete() + ", error=" + result.getError());
-																	
-																	SearchResult[] srs = result.getResults();
-																	
-																	for ( SearchResult sr: srs ){
-																		
-																		System.out.println( "        " + sr.getProperty( SearchResult.PR_NAME ));
-																	}
-																}
-															}
-															
-															public void
-															completed()
-															{
-																System.out.println( "received completed" );
-																
-																complete[0] = true;
-															}
-														});
-												
-												while( !complete[0] ){
-													
-													Thread.sleep(1000);
-													
-													System.out.println( "waiting for results" );
-												}
-												
-												
-												
-												Search s = si.createSearch(	providers, properties, null );
-												
-												while( !s.isComplete()){
-													
-													Thread.sleep(1000);
-													
-													SearchProviderResults[] results = s.getResults();
-													
-													if ( results.length > 0 ){
-													
-														System.out.println( "Got results: " + results.length );
-														
-														for ( SearchProviderResults result: results ){
-															
-															System.out.println( "    " + result.getProvider().getProperty( SearchProvider.PR_NAME ) + ": comp=" + result.isComplete() + ", error=" + result.getError());
-															
-															SearchResult[] srs = result.getResults();
-															
-															for ( SearchResult sr: srs ){
-																
-																System.out.println( "        " + sr.getProperty( SearchResult.PR_NAME ));
-															}
-														}
-													}
-												}
-												
-												break;
-											}
-										}catch( Throwable e){
-											
-											e.printStackTrace();
-										}
-									}
-									*/
+									testPieceListener();
+	
 								}
 							};
 							
@@ -252,7 +127,87 @@ Test
 				});
 	}
 	
-	protected void
+	private void
+	testPieceListener()
+	{
+		plugin_interface.getDownloadManager().addListener(
+			new DownloadManagerListener()
+			{
+				public void
+				downloadAdded(
+					Download	download )
+				{
+					download.addPeerListener(
+						new DownloadPeerListener()
+						{
+							public void
+							peerManagerAdded(
+								Download		download,
+								PeerManager		peer_manager )
+							{
+								peer_manager.addListener(
+									new PeerManagerListener2()
+									{
+										public void
+										eventOccurred(
+											PeerManagerEvent	event )
+										{
+											if ( event.getType() == PeerManagerEvent.ET_PIECE_COMPLETION_CHANGED ){
+												
+												Piece piece = (Piece)event.getData();
+												
+												System.out.println( "piece: " + piece.getIndex() + ", done=" + piece.isDone());
+											}
+										}
+									});
+							}
+							
+							public void
+							peerManagerRemoved(
+								Download		download,
+								PeerManager		peer_manager )
+							{
+								
+							}
+						});
+				}
+				
+				public void
+				downloadRemoved(
+					Download	download )
+				{
+					
+				}
+			});
+	}
+	
+	private void
+	testSubs()
+	{
+		try{
+			SubscriptionManager sm = plugin_interface.getUtilities().getSubscriptionManager();
+		
+			Subscription[] subs = sm.getSubscriptions();
+			
+			for ( Subscription s: subs ){
+				
+				System.out.println( "subs: " + s.getName());
+				
+				SubscriptionResult[] results = s.getResults();
+				
+				for ( SubscriptionResult result: results ){
+					
+					System.out.println( "    " + result.getProperty( SearchResult.PR_NAME ) + ", read=" + result.isRead());
+				}
+				
+			}
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	private void
 	testMessaging()
 	{
 		try{
@@ -523,7 +478,110 @@ Test
 		}
 	}
 	
-	protected void
+	private void
+	testSearch()
+	{
+		while( true ){
+			
+			try{
+				Thread.sleep(1000);
+				
+				SearchInitiator si = plugin_interface.getUtilities().getSearchInitiator();
+
+				SearchProvider[] providers = si.getProviders();
+				
+				System.out.println( "search providers=" + providers.length );
+				
+				if ( providers.length > 0 ){
+					
+					Map<String,String> properties = new HashMap<String,String>();
+				
+					properties.put( SearchInitiator.PR_SEARCH_TERM, "monkey" );
+					properties.put( SearchInitiator.PR_MATURE, "true" );
+					
+					/*
+					 * 
+					final boolean[] complete = {false};
+
+					Search s = 
+						si.createSearch(
+							providers,
+							properties,
+							new SearchListener()
+							{
+								public void
+								receivedResults(
+									SearchProviderResults[]		results )
+								{
+									System.out.println( "received results" );
+									
+									for ( SearchProviderResults result: results ){
+										
+										System.out.println( "    " + result.getProvider().getProperty( SearchProvider.PR_NAME ) + ": comp=" + result.isComplete() + ", error=" + result.getError());
+										
+										SearchResult[] srs = result.getResults();
+										
+										for ( SearchResult sr: srs ){
+											
+											System.out.println( "        " + sr.getProperty( SearchResult.PR_NAME ));
+										}
+									}
+								}
+								
+								public void
+								completed()
+								{
+									System.out.println( "received completed" );
+									
+									complete[0] = true;
+								}
+							});
+					
+					while( !complete[0] ){
+						
+						Thread.sleep(1000);
+						
+						System.out.println( "waiting for results" );
+					}
+					*/
+					
+					
+					Search s = si.createSearch(	providers, properties, null );
+					
+					while( !s.isComplete()){
+						
+						Thread.sleep(1000);
+						
+						SearchProviderResults[] results = s.getResults();
+						
+						if ( results.length > 0 ){
+						
+							System.out.println( "Got results: " + results.length );
+							
+							for ( SearchProviderResults result: results ){
+								
+								System.out.println( "    " + result.getProvider().getProperty( SearchProvider.PR_NAME ) + ": comp=" + result.isComplete() + ", error=" + result.getError());
+								
+								SearchResult[] srs = result.getResults();
+								
+								for ( SearchResult sr: srs ){
+									
+									System.out.println( "        " + sr.getProperty( SearchResult.PR_NAME ));
+								}
+							}
+						}
+					}
+					
+					break;
+				}
+			}catch( Throwable e){
+				
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private void
 	testLinks()
 	{
 		plugin_interface.getDownloadManager().addListener(
@@ -550,7 +608,7 @@ Test
 			});
 	}
 	
-	protected void
+	private void
 	testDDB()
 	{
 		try{
@@ -636,7 +694,7 @@ Test
 		}
 	}
 	
-	protected void
+	private void
 	taTest()
 	{
 		try{

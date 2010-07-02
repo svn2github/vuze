@@ -25,6 +25,9 @@ package org.gudy.azureus2.plugins.peers;
 public interface 
 Piece 
 {
+	public int
+	getIndex();
+	
 	public boolean
 	isDone();
 	

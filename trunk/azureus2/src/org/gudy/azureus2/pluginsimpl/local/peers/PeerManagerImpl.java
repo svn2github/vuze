@@ -703,6 +703,12 @@ PeerManagerImpl
 			index	= _index;
 		}
 		
+		public int
+		getIndex()
+		{
+			return( index );
+		}
+		
 		public boolean
 		isDone()
 		{
