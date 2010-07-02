@@ -196,6 +196,12 @@ public class Debug {
 		String sStackTrace = showErrString ? (t.toString() + "; ") : "";
 		StackTraceElement[]	st = t.getStackTrace();
 
+		if (iMaxLines < 0) {
+			iMaxLines = st.length + iMaxLines;
+			if (iMaxLines < 0) {
+				iMaxLines = 1;
+			}
+		}
 		int iMax = Math.min(st.length, iMaxLines + frames_to_skip);
 		for (int i = frames_to_skip; i < iMax; i++) {
 
@@ -410,6 +416,11 @@ public class Debug {
 		return( getCompressedStackTrace( new Throwable(), 2, 200, false ));
 	}
 
+	/**
+	 * 
+	 * @param iMaxLines Max # of stack lines.  If < 0, chops off -MaxLines entries from end
+	 * @return
+	 */
 	public static String
 	getCompressedStackTrace(int iMaxLines)
 	{
