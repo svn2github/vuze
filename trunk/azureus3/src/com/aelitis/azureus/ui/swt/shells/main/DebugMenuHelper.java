@@ -225,6 +225,29 @@ public class DebugMenuHelper
 			}
 		});
 
+		item = new MenuItem(menuDebug, SWT.CASCADE);
+		item.setText("Size");
+		Menu menuSize = new Menu(menuDebug.getParent(), SWT.DROP_DOWN);
+		item.setMenu(menuSize);
+
+		int[] sizes = {
+			640, 430,
+			800, 550,
+			1024, 718,
+			1280, 700,
+		};
+		for (int i = 0; i < sizes.length; i += 2) {
+			final int x = sizes[i];
+			final int y = sizes[i + 1];
+			item = new MenuItem(menuSize, SWT.NONE);
+			item.setText("" + x + "," + y);
+			item.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell().setSize(x, y);
+				}
+			});
+		}
+		
 		
 		return item;
 	}
