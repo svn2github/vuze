@@ -1538,9 +1538,6 @@ public class TableColumnImpl
 	}
 	
 	public boolean handlesDataSourceType(Class<?> cla) {
-		if (forPluginDataSourceTypes.contains(cla)) {
-			return true;
-		}
 		for (Class forClass : forPluginDataSourceTypes) {
 			if (forClass.isAssignableFrom(cla)) {
 				return true;
