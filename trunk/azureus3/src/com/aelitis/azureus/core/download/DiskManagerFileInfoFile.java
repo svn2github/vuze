@@ -66,6 +66,19 @@ DiskManagerFileInfoFile
 	{
 	}
 	
+	public int 
+	getNumericPriorty() 
+	{
+		return( 0 );
+	}
+	
+	public void 
+	setNumericPriority(
+		int priority) 
+	{
+		throw( new RuntimeException( "Not supported" ));
+	}
+	
 	public void 
 	setSkipped(
 		boolean b )

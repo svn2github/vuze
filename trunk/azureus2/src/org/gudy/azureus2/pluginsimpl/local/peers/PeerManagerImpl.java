@@ -28,6 +28,8 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerListener;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.*;
@@ -82,7 +84,8 @@ PeerManagerImpl
 	
 	private Map		foreign_map		= new HashMap();
 	
-	private Map		listener_map 	= new HashMap();
+	private Map<PeerManagerListener,PEPeerManagerListener>	listener_map1 	= new HashMap<PeerManagerListener,PEPeerManagerListener>();
+	private Map<PeerManagerListener2,CoreListener>	listener_map2 	= new HashMap<PeerManagerListener2,CoreListener>();
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "PeerManager" );
 
@@ -142,7 +145,7 @@ PeerManagerImpl
 				 public void 
 				 pieceAdded( 
 					 PEPeerManager 	manager, 
-					 PEPiece 		peice, 
+					 PEPiece 		piece, 
 					 PEPeer 		for_peer )
 				 {
 				 }
@@ -150,7 +153,7 @@ PeerManagerImpl
 				 public void 
 				 pieceRemoved( 
 					 PEPeerManager 	manager, 
-					 PEPiece 		peice )
+					 PEPiece 		piece )
 				 {
 				 }
 					
@@ -594,7 +597,7 @@ PeerManagerImpl
 				public void 
 				pieceAdded( 
 					PEPeerManager 	manager, 
-					PEPiece 		peice, 
+					PEPiece 		piece, 
 					PEPeer 			for_peer )
 				{
 				}
@@ -602,7 +605,7 @@ PeerManagerImpl
 				public void 
 				pieceRemoved( 
 					PEPeerManager 	manager, 
-					PEPiece 		peice )
+					PEPiece 		piece )
 				{
 				}
 				
@@ -617,7 +620,7 @@ PeerManagerImpl
 				}
 			};
 
-			listener_map.put( l, core_listener );
+			listener_map1.put( l, core_listener );
 
 			manager.addListener( core_listener );
 		}finally{
@@ -633,9 +636,10 @@ PeerManagerImpl
 		try{
 			this_mon.enter();
 		
-			PEPeerManagerListener core_listener	= (PEPeerManagerListener)listener_map.remove( l );
+			PEPeerManagerListener core_listener	= (PEPeerManagerListener)listener_map1.remove( l );
 		
 			if ( core_listener != null ){
+				
 				manager.removeListener( core_listener );
 			}
       
@@ -651,167 +655,13 @@ PeerManagerImpl
 		try{
 			this_mon.enter();
 
-			final Map<PEPeer, Peer>	peer_map = new HashMap<PEPeer, Peer>();
-
-			PEPeerManagerListener core_listener = new 
-				PEPeerManagerListener() 
-				{
-					public void 
-					peerAdded( 
-						PEPeerManager manager, PEPeer peer )
-					{
-						PeerImpl pi = getPeerForPEPeer( peer );
-						
-						peer_map.put( peer, pi );
-						
-						fireEvent(
-							PeerManagerEvent.ET_PEER_ADDED,
-							pi,
-							null,
-							null );
-				}
-
-				public void 
-				peerRemoved( 
-					PEPeerManager manager, 
-					PEPeer peer ) 
-				{
-					PeerImpl  pi = (PeerImpl)peer_map.remove( peer );
-
-					if ( pi == null ){
-
-					}else{
-						
-						fireEvent(
-							PeerManagerEvent.ET_PEER_REMOVED,
-							pi,
-							null,
-							null );
-					}
-				}
-				
-				public void 
-				peerDiscovered(
-					PEPeerManager 	manager,
-					PeerItem 		peer_item, 
-					PEPeer 			finder ) 
-				{
-					PeerImpl	pi;
-					
-					if ( finder != null ){
-						
-						pi = getPeerForPEPeer( finder );
-						
-						peer_map.put( finder, pi );
-						
-					}else{
-						
-						pi = null;
-					}
-					
-					fireEvent(
-						PeerManagerEvent.ET_PEER_DISCOVERED,
-						pi,
-						peer_item,
-						null );
-				}
-				
-				public void 
-				pieceAdded( 
-					PEPeerManager 	manager, 
-					PEPiece 		peice, 
-					PEPeer 			for_peer )
-				{
-					PeerImpl pi = for_peer==null?null:getPeerForPEPeer( for_peer );
-
-					fireEvent(
-							PeerManagerEvent.ET_PIECE_ACTIVATED,
-							pi,
-							null,
-							new pieceFacade( peice.getPieceNumber()));
-				}
-				  
-				public void 
-				pieceRemoved( 
-					PEPeerManager 	manager, 
-					PEPiece 		peice )
-				{
-					fireEvent(
-							PeerManagerEvent.ET_PIECE_DEACTIVATED,
-							null,
-							null,
-							new pieceFacade( peice.getPieceNumber()));
-				}
-				
-				public void 
-				peerSentBadData(
-					PEPeerManager 	manager,
-					PEPeer 			peer, 
-					int 			pieceNumber) 
-				{
-					PeerImpl pi = getPeerForPEPeer( peer );
-					
-					peer_map.put( peer, pi );
-					
-					fireEvent(
-						PeerManagerEvent.ET_PEER_SENT_BAD_DATA,
-						pi,
-						null,
-						new Integer( pieceNumber ));
-					
-				}
-				protected void
-				fireEvent(
-					final int			type,
-					final Peer			peer,
-					final PeerItem		peer_item,
-					final Object		data )
-				{
-					l.eventOccurred(
-						new PeerManagerEvent()
-						{
-							public PeerManager
-							getPeerManager()
-							{
-								return( PeerManagerImpl.this );
-							}
-							
-							public int
-							getType()
-							{
-								return( type );
-							}
-							
-							public Peer
-							getPeer()
-							{
-								return( peer );
-							}
-							
-							public PeerDescriptor
-							getPeerDescriptor()
-							{
-								return( peer_item );
-							}
-							
-							public Object 
-							getData() 
-							{
-								return( data );
-							}
-						});
-				}
-					
-					
-				public void
-				destroyed()
-				{
-				}
-			};
-
-			listener_map.put( l, core_listener );
+			CoreListener core_listener = new CoreListener( l );
+			
+			listener_map2.put( l, core_listener );
 
 			manager.addListener( core_listener );
+			
+			manager.getDiskManager().addListener( core_listener );
 		}finally{
 
 			this_mon.exit();
@@ -825,13 +675,17 @@ PeerManagerImpl
 		try{
 			this_mon.enter();
 		
-			PEPeerManagerListener core_listener	= (PEPeerManagerListener)listener_map.remove( l );
+			CoreListener core_listener	= listener_map2.remove( l );
 		
 			if ( core_listener != null ){
+				
 				manager.removeListener( core_listener );
+				
+				manager.getDiskManager().removeListener( core_listener );
 			}
       
 		}finally{
+			
 			this_mon.exit();
 		}
 	}
@@ -933,6 +787,208 @@ PeerManagerImpl
 			
 				mapped_peer.addReservedPieceNumber( index );
 			}
+		}
+	}
+	
+	private class
+	CoreListener
+		implements PEPeerManagerListener, DiskManagerListener
+	{
+		private PeerManagerListener2		listener;
+		private Map<PEPeer, Peer>			peer_map = new HashMap<PEPeer, Peer>();
+
+		private
+		CoreListener(
+			PeerManagerListener2		_listener )
+		{
+			listener	= _listener;
+		}
+		
+		public void 
+		peerAdded( 
+			PEPeerManager manager, PEPeer peer )
+		{
+			PeerImpl pi = getPeerForPEPeer( peer );
+			
+			peer_map.put( peer, pi );
+			
+			fireEvent(
+				PeerManagerEvent.ET_PEER_ADDED,
+				pi,
+				null,
+				null );
+		}
+	
+		public void 
+		peerRemoved( 
+			PEPeerManager manager, 
+			PEPeer peer ) 
+		{
+			PeerImpl  pi = (PeerImpl)peer_map.remove( peer );
+	
+			if ( pi == null ){
+	
+			}else{
+				
+				fireEvent(
+					PeerManagerEvent.ET_PEER_REMOVED,
+					pi,
+					null,
+					null );
+			}
+		}
+		
+		public void 
+		peerDiscovered(
+			PEPeerManager 	manager,
+			PeerItem 		peer_item, 
+			PEPeer 			finder ) 
+		{
+			PeerImpl	pi;
+			
+			if ( finder != null ){
+				
+				pi = getPeerForPEPeer( finder );
+				
+				peer_map.put( finder, pi );
+				
+			}else{
+				
+				pi = null;
+			}
+			
+			fireEvent(
+				PeerManagerEvent.ET_PEER_DISCOVERED,
+				pi,
+				peer_item,
+				null );
+		}
+		
+		public void 
+		pieceAdded( 
+			PEPeerManager 	manager, 
+			PEPiece 		piece, 
+			PEPeer 			for_peer )
+		{
+			PeerImpl pi = for_peer==null?null:getPeerForPEPeer( for_peer );
+	
+			fireEvent(
+					PeerManagerEvent.ET_PIECE_ACTIVATED,
+					pi,
+					null,
+					new pieceFacade( piece.getPieceNumber()));
+		}
+		  
+		public void 
+		pieceRemoved( 
+			PEPeerManager 	manager, 
+			PEPiece 		piece )
+		{
+			fireEvent(
+					PeerManagerEvent.ET_PIECE_DEACTIVATED,
+					null,
+					null,
+					new pieceFacade( piece.getPieceNumber()));
+		}
+		
+		public void 
+		peerSentBadData(
+			PEPeerManager 	manager,
+			PEPeer 			peer, 
+			int 			pieceNumber) 
+		{
+			PeerImpl pi = getPeerForPEPeer( peer );
+			
+			peer_map.put( peer, pi );
+			
+			fireEvent(
+				PeerManagerEvent.ET_PEER_SENT_BAD_DATA,
+				pi,
+				null,
+				new Integer( pieceNumber ));
+			
+		}
+		
+			// disk manager methods
+		
+		public void
+		stateChanged(
+			int oldState, 
+			int	newState )
+		{
+		}
+		
+		public void
+		filePriorityChanged(
+			DiskManagerFileInfo		file )
+		{
+		}
+
+		public void
+		pieceDoneChanged(
+			DiskManagerPiece		piece )
+		{
+			fireEvent(
+					PeerManagerEvent.ET_PIECE_COMPLETION_CHANGED,
+					null,
+					null,
+					new pieceFacade( piece.getPieceNumber()));
+		}
+		
+		public void
+		fileAccessModeChanged(
+			DiskManagerFileInfo		file,
+			int						old_mode,
+			int						new_mode )
+		{
+		}
+		
+		protected void
+		fireEvent(
+			final int			type,
+			final Peer			peer,
+			final PeerItem		peer_item,
+			final Object		data )
+		{
+			listener.eventOccurred(
+				new PeerManagerEvent()
+				{
+					public PeerManager
+					getPeerManager()
+					{
+						return( PeerManagerImpl.this );
+					}
+					
+					public int
+					getType()
+					{
+						return( type );
+					}
+					
+					public Peer
+					getPeer()
+					{
+						return( peer );
+					}
+					
+					public PeerDescriptor
+					getPeerDescriptor()
+					{
+						return( peer_item );
+					}
+					
+					public Object 
+					getData() 
+					{
+						return( data );
+					}
+				});
+		}
+			
+			
+		public void
+		destroyed()
+		{
 		}
 	}
 }

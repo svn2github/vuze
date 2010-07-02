@@ -44,6 +44,15 @@ DiskManagerFileInfo
 	setPriority(
 		boolean b );
 	
+		/**
+		 * @since 4407
+		 * @param priority
+		 */
+	
+	public void
+	setNumericPriority(
+		int		priority );
+	
 	public void 
 	setSkipped(
 		boolean b );
@@ -108,6 +117,14 @@ DiskManagerFileInfo
 		
 	public boolean 
 	isPriority();
+	
+		/**
+		 * @since 4407
+		 * @return
+		 */
+	
+	public int
+	getNumericPriorty();
 	
 	public boolean 
 	isSkipped();

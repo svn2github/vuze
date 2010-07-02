@@ -61,6 +61,19 @@ public class DiskManagerFileInfoImpl
 	  core.setSkipped(b);
 	}
 	 
+	public int 
+	getNumericPriorty() 
+	{
+		return( core.getPriority());
+	}
+	
+	public void 
+	setNumericPriority(
+		int priority) 
+	{
+		core.setPriority( priority );
+	}
+	
 	public void
 	setDeleted(boolean b)
 	{

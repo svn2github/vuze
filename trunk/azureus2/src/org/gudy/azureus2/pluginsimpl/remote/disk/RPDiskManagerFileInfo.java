@@ -118,6 +118,22 @@ RPDiskManagerFileInfo
 	{
 		notSupported();
 	}
+	
+	public int 
+	getNumericPriorty() 
+	{
+		notSupported();
+		
+		return( 0 );
+	}
+	
+	public void 
+	setNumericPriority(
+		int priority) 
+	{
+		notSupported();
+	}
+	
 	public void
 	setDeleted(boolean b)
 	{
