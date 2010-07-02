@@ -776,14 +776,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		table.addListener(SWT.PaintItem, new TableViewSWT_PaintItem(this, table));
 
 		if (Constants.isWindows) {
-			table.addListener(SWT.EraseItem, new TableViewSWT_EraseItem(this, table));
+			TableViewSWT_EraseItem eraseItemListener = new TableViewSWT_EraseItem(this, table);
+			table.addListener(SWT.EraseItem, eraseItemListener);
+			table.addListener(SWT.Paint, eraseItemListener);
 		}
-
-		//table.addListener(SWT.Paint, new Listener() {
-		//	public void handleEvent(Event event) {
-		//		System.out.println("paint " + event.getBounds() + ";" + table.getColumnCount());
-		//	}
-		//});
 
 		ScrollBar horizontalBar = table.getHorizontalBar();
 		if (horizontalBar != null) {
@@ -2630,7 +2626,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			// purposefully not included in time check 
-			table.setItemCount(sortedRows.size() + dataSources.length);
+			if (!Constants.isWindows) {
+				// Bug in Windows (7).  If you add 10 rows by setItemCount,
+				// Windows will do some crappy shifting down of the non-row area
+				table.setItemCount(sortedRows.size() + dataSources.length);
+			}
 
 			long lStartTime = SystemTime.getCurrentTime();
 			int iTopIndex = table.getTopIndex();
@@ -2735,7 +2735,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			// Sanity Check: Make sure # of rows in table and in array match
-			if (table.getItemCount() > sortedRows.size()) {
+			if (table.getItemCount() != sortedRows.size()) {
 				// This could happen if one of the datasources was null, or
 				// an error occured
 				table.setItemCount(sortedRows.size());
@@ -3656,9 +3656,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			
 			int numSubRows = rows[i].getSubItemCount();
 			if (numSubRows > 0) {
-				TableRowCore[] subRows = rows[i].getSubRows();
+				TableRowCore[] subRows = rows[i].getSubRowsWithNull();
 				for (TableRowCore subRow : subRows) {
-					runner.run(subRow, isRowVisible && isRowVisible(subRow));
+					if (subRow != null) {
+						runner.run(subRow, isRowVisible && isRowVisible(subRow));
+					}
 				}
 			}
 		}

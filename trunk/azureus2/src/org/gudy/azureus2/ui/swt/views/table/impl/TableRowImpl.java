@@ -74,7 +74,8 @@ public class TableRowImpl<COREDATASOURCE>
 	private int alpha = 255;
 	
 	private TableRowCore parentRow;
-	private CopyOnWriteList<TableRowImpl<Object>> subRows;
+	private TableRowImpl<Object>[] subRows;
+	private AEMonitor mon_SubRows = new AEMonitor("subRows");
 	private TableColumnCore[] columnsSorted;
 	private boolean bSkipFirstColumn;
 
@@ -507,6 +508,7 @@ public class TableRowImpl<COREDATASOURCE>
 	}
 	
 	private static final boolean DEBUG_SET_FOREGROUND = System.getProperty("debug.setforeground") != null;
+	private Object[] subDataSources;
 	private static void setForegroundDebug(String method_sig, Color c) {
 		if (DEBUG_SET_FOREGROUND && c != null) {
 			Debug.out("BufferedTableRow " + method_sig + " -> " + c);
@@ -776,41 +778,55 @@ public class TableRowImpl<COREDATASOURCE>
 	@SuppressWarnings("rawtypes")
 	public void setSubItemCount(final int count) {
 		super.setSubItemCount(count);
-		// instead of adding each one to subRows, buld up a list on a non-COW
-		// and add them all at the end
-		subRows = new CopyOnWriteList<TableRowImpl<Object>>(count);
-		List<TableRowImpl<Object>> list = new ArrayList<TableRowImpl<Object>>(count);
-		for (int i = 0; i < count; i++) {
-			list.add(new TableRowImpl(this, tableView, table, columnsSorted,
-					getTableID(), null, i, bSkipFirstColumn));
+		mon_SubRows.enter();
+		try {
+  		subRows = new TableRowImpl[count];
+  		for (int i = 0; i < count; i++) {
+  			subRows[i] = new TableRowImpl(this, tableView, table, columnsSorted,
+  					getTableID(), null, i, bSkipFirstColumn);
+  		}
+		} finally {
+			mon_SubRows.exit();
 		}
-		subRows.addAll(list);
 	}
 
 	@SuppressWarnings("rawtypes")
 	public void setSubItems(Object[] datasources) {
+		this.subDataSources = datasources;
 		super.setSubItemCount(datasources.length);
-		// instead of adding each one to subRows, buld up a list on a non-COW
-		// and add them all at the end
-		subRows = new CopyOnWriteList<TableRowImpl<Object>>(datasources.length);
-		List<TableRowImpl<Object>> list = new ArrayList<TableRowImpl<Object>>(
-				datasources.length);
-		for (int i = 0; i < datasources.length; i++) {
-			list.add(new TableRowImpl(this, tableView, table, columnsSorted,
-					getTableID(), datasources[i], i, bSkipFirstColumn));
+
+		mon_SubRows.enter();
+		try {
+  		subRows = new TableRowImpl[datasources.length];
+  		for (int i = 0; i < datasources.length; i++) {
+  			//subRows[i] = new TableRowImpl(this, tableView, table, columnsSorted,
+  			//		getTableID(), datasources[i], i, bSkipFirstColumn);
+  			subRows[i] = null;
+  		}
+		} finally {
+			mon_SubRows.exit();
 		}
-		subRows.addAll(list);
 	}
 
 	public TableRowCore linkSubItem(int indexOf) {
-		TableRowImpl<Object> subRow = subRows.get(indexOf);
-		TableItemOrTreeItem subItem = item.getItem(indexOf);
-		subRow.setTableItem(subItem, true);
-		return subRow;
+		mon_SubRows.enter();
+		try {
+			TableRowImpl<Object> subRow = subRows[indexOf];
+			if (subRow == null) {
+				subRows[indexOf] = subRow = new TableRowImpl(this, tableView, table,
+						columnsSorted, getTableID(), subDataSources[indexOf], indexOf,
+						bSkipFirstColumn);
+			}
+			TableItemOrTreeItem subItem = item.getItem(indexOf);
+			subRow.setTableItem(subItem, true);
+			return subRow;
+		} finally {
+			mon_SubRows.exit();
+		}
 	}
 	
-	public TableRowCore[] getSubRows() {
-		return subRows.toArray(new TableRowImpl[0]);
+	public TableRowCore[] getSubRowsWithNull() {
+		return Arrays.copyOf(subRows, subRows.length);
 	}
 	
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#isInPaintItem()
