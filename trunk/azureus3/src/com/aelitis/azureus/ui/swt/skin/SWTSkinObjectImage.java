@@ -110,8 +110,13 @@ public class SWTSkinObjectImage
 					e.gc.drawImage(imgSrc, 0, 0);
 				} else if (drawMode == DRAW_NORMAL || drawMode == DRAW_CENTER
 						|| drawMode == DRAW_ANIMATE) {
-					e.gc.drawImage(imgSrc, (size.x - imgSrcBounds.width) / 2,
-							(size.y - imgSrcBounds.height) / 2);
+					if ((control.getStyle() & SWT.RIGHT) > 0) {
+  					e.gc.drawImage(imgSrc, size.x - imgSrcBounds.width,
+  							(size.y - imgSrcBounds.height) / 2);
+					} else {
+  					e.gc.drawImage(imgSrc, (size.x - imgSrcBounds.width) / 2,
+  							(size.y - imgSrcBounds.height) / 2);
+					}
 				} else if (drawMode == DRAW_HCENTER) {
 					e.gc.drawImage(imgSrc, (size.x - imgSrcBounds.width) / 2, 0);
 				} else if (drawMode == DRAW_SCALE) {
