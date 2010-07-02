@@ -633,7 +633,8 @@ BufferedTableRow
 				if (table.isDisposed()) {
 					return;
 				}
-				if (item.getData("TableRow") != BufferedTableRow.this) {
+				if (item.isDisposed()
+						|| item.getData("TableRow") != BufferedTableRow.this) {
 					return;
 				}
 				// select/deselect takes less time than a table.isSelected (tree)
