@@ -96,8 +96,29 @@ public class BTMessageManager {
     return null;
   }
   
-
-  
+  public static MessageAdapter
+  wrapCoreMessage(
+	 BTMessage		core_msg )
+  {
+	  String	id = core_msg.getID();
+	  
+	  if ( id.equals( BTMessage.ID_BT_REQUEST )){
+		   
+		  return new BTMessageRequest( core_msg );
+		  
+	  }else if ( id.equals( BTMessage.ID_BT_CANCEL )){
+		   
+		  return new BTMessageCancel( core_msg );
+		  
+	  }else if ( id.equals( BTMessage.ID_BT_PIECE )){
+		   
+		  return new BTMessagePiece( core_msg );
+		  
+	  }else{
+		  
+		  return( new MessageAdapter( core_msg ));
+	  }
+  }
   
   /**
    * Create a core BT Request message instance.

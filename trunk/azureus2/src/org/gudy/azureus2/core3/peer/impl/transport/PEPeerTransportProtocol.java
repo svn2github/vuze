@@ -3785,6 +3785,12 @@ implements PEPeerTransport
 
 					manager.dataBytesReceived( PEPeerTransportProtocol.this, byte_count );
 				}
+				
+				public boolean 
+				isPriority() 
+				{
+					return( false );
+				}
 		});
 
 

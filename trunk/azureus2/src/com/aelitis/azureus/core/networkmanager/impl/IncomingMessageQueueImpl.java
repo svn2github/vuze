@@ -39,7 +39,7 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  */
 public class IncomingMessageQueueImpl implements IncomingMessageQueue{
   
-  private volatile ArrayList listeners = new ArrayList();  //copy-on-write
+  private volatile ArrayList<MessageQueueListener> listeners = new ArrayList<MessageQueueListener>();  //copy-on-write
   private final AEMonitor listeners_mon = new AEMonitor( "IncomingMessageQueue:listeners" );
 
   private MessageStreamDecoder stream_decoder;
@@ -232,9 +232,26 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue{
   public void registerQueueListener( MessageQueueListener listener ) {
     try{  listeners_mon.enter();
       //copy-on-write
-      ArrayList new_list = new ArrayList( listeners.size() + 1 );
-      new_list.addAll( listeners );
-      new_list.add( listener );
+      ArrayList<MessageQueueListener> new_list = new ArrayList<MessageQueueListener>( listeners.size() + 1 );
+      
+      if ( listener.isPriority()){
+    	  boolean	added = false;
+    	  for (int i=0;i<listeners.size();i++){
+    		  MessageQueueListener existing = listeners.get(i);
+    		  if ( added || existing.isPriority()){
+     		  }else{
+    			  new_list.add( listener );
+    			  added = true;
+    		  }
+   			  new_list.add( existing );
+    	  }
+    	  if ( !added ){
+    		  new_list.add( listener );
+    	  }
+      }else{
+	      new_list.addAll( listeners );
+	      new_list.add( listener );
+      }
       listeners = new_list;
     }
     finally{  listeners_mon.exit();  }

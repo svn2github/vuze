@@ -44,6 +44,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerWriteRequestListener;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
+import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
@@ -51,6 +52,7 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListe
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
+import org.gudy.azureus2.plugins.network.IncomingMessageQueueListener;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerManagerEvent;
 import org.gudy.azureus2.plugins.peers.PeerManagerListener2;
@@ -115,7 +117,7 @@ Test
 								runSupport()
 								{
 									
-									testPluginWrite();
+									testBTMessageHandler();
 	
 								}
 							};
@@ -135,6 +137,80 @@ Test
 					{
 					}
 				});
+	}
+	
+	private void
+	testBTMessageHandler()
+	{
+		plugin_interface.getDownloadManager().addListener(
+			new DownloadManagerListener()
+			{
+				public void
+				downloadAdded(
+					Download	download )
+				{
+					download.addPeerListener(
+						new DownloadPeerListener()
+						{
+							public void
+							peerManagerAdded(
+								final Download			download,
+								final PeerManager		peer_manager )
+							{
+								peer_manager.addListener(
+									new PeerManagerListener2()
+									{
+										public void
+										eventOccurred(
+											PeerManagerEvent	event )
+										{
+											if ( event.getType() == PeerManagerEvent.ET_PEER_ADDED ){
+												
+												event.getPeer().getConnection().getIncomingMessageQueue().registerPriorityListener(
+													new IncomingMessageQueueListener()
+													{
+														 public boolean 
+														 messageReceived( 
+															Message message )
+														 {
+															 System.out.println( "Received " + message );
+															 
+															 if ( message.getID().equals( "BT_HANDSHAKE" )){
+																 
+																 //return( true );
+															 }
+															 return( false );
+														 }
+														  
+														 public void 
+														 bytesReceived( 
+																int byte_count )
+														 {
+															 
+														 }
+													});
+											}
+										}
+									});
+							}
+							
+							public void
+							peerManagerRemoved(
+								Download		download,
+								PeerManager		peer_manager )
+							{
+								
+							}
+						});
+				}
+				
+				public void
+				downloadRemoved(
+					Download	download )
+				{
+					
+				}
+			});
 	}
 	
 	private void

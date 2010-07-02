@@ -455,6 +455,12 @@ GenericMessageConnectionDirect
 	    				int byte_count )
 	    			{	
 	    			}
+	    			
+	    			public boolean 
+	    			isPriority() 
+	    			{
+	    				return false;
+	    			}
 	    		});
 	    
 	    connection.getOutgoingMessageQueue().registerQueueListener( 

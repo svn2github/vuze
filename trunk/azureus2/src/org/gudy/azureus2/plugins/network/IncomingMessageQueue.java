@@ -36,6 +36,12 @@ public interface IncomingMessageQueue {
    */
   public void registerListener( IncomingMessageQueueListener listener );
   
+  /**
+   * Register queue listener that will get to process messages *ahead* of the core.
+   * @param listener
+   */
+  public void registerPriorityListener( IncomingMessageQueueListener listener );
+
   
   /**
    * Remove registration of queue listener.

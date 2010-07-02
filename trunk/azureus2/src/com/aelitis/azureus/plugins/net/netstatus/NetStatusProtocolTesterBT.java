@@ -703,6 +703,12 @@ NetStatusProtocolTesterBT
 						int byte_count ) 
 					{
 					}
+					
+					public boolean 
+					isPriority() 
+					{
+						return true;
+					}
 				});
 
 			connection.getOutgoingMessageQueue().registerQueueListener( 

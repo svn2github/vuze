@@ -124,6 +124,8 @@ public interface IncomingMessageQueue {
      */
     public void dataBytesReceived( int byte_count );
     
+    public boolean
+    isPriority();
   }
   
   

@@ -25,8 +25,11 @@ package org.gudy.azureus2.pluginsimpl.local.network;
 import java.util.HashMap;
 
 import org.gudy.azureus2.plugins.messaging.*;
+import org.gudy.azureus2.plugins.messaging.bittorrent.BTMessageManager;
 import org.gudy.azureus2.plugins.network.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
+
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessage;
 
 
 
@@ -42,7 +45,15 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
     this.core_queue = core_queue;
   } 
 
-  public void registerListener( final IncomingMessageQueueListener listener ) {
+  public void registerListener( IncomingMessageQueueListener listener ) {
+	  registerListenerSupport( listener, false );
+  }
+  
+  public void registerPriorityListener( IncomingMessageQueueListener listener ) {
+	  registerListenerSupport( listener, true );
+  }
+  
+  private void registerListenerSupport( final IncomingMessageQueueListener listener, final boolean is_priority ) {
     com.aelitis.azureus.core.networkmanager.IncomingMessageQueue.MessageQueueListener core_listener = 
       new com.aelitis.azureus.core.networkmanager.IncomingMessageQueue.MessageQueueListener() {
         public boolean messageReceived( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
@@ -53,12 +64,26 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
           }
           
           //message originally decoded by core
-          return listener.messageReceived( new MessageAdapter( message ) );
+          
+          if ( message instanceof BTMessage ){
+        	  
+              return listener.messageReceived( BTMessageManager.wrapCoreMessage((BTMessage)message ));
+              
+          }else{
+          
+        	  return listener.messageReceived( new MessageAdapter( message ));
+          }
         }
       
         public void protocolBytesReceived( int byte_count ) {  listener.bytesReceived( byte_count );  }
 
         public void dataBytesReceived( int byte_count ) {  listener.bytesReceived( byte_count );  }
+        
+        public boolean 
+        isPriority() 
+        {
+        	return( is_priority );
+        }
     };
     
     registrations.put( listener, core_listener );  //save this mapping for later
