@@ -27,8 +27,10 @@ package org.gudy.azureus2.pluginsimpl.local.disk;
  */
 
 
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.disk.*;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 public class 
@@ -102,6 +104,65 @@ DiskManagerImpl
 		return( request );
 	}
 	
+	public DiskManagerWriteRequest
+	write(
+		final int								piece_number,
+		final int								offset,
+		PooledByteBuffer						data,
+		final DiskManagerWriteRequestListener	listener )
+	
+		throws DiskManagerException
+	{
+		DirectByteBuffer buffer = ((PooledByteBufferImpl)data).getBuffer();
+				
+		if ( !disk_manager.checkBlockConsistencyForWrite( "plugin", piece_number, offset, buffer )){
+			
+			throw( new DiskManagerException( "write invalid - parameters incorrect" ));
+		}
+		
+		final int	length = buffer.remaining( DirectByteBuffer.SS_EXTERNAL );
+		
+		final DMWR request = new DMWR( disk_manager.createWriteRequest( piece_number, offset, buffer, null ),length );
+		
+		disk_manager.enqueueWriteRequest(
+			request.getDelegate(),
+			new org.gudy.azureus2.core3.disk.DiskManagerWriteRequestListener()
+			{
+				public void 
+				writeCompleted( 
+					org.gudy.azureus2.core3.disk.DiskManagerWriteRequest 	_request )
+				{
+					DiskManagerPiece[]	dm_pieces = disk_manager.getPieces();
+				
+					DiskManagerPiece	dm_piece = dm_pieces[piece_number];
+
+					if (!dm_piece.isDone()){
+						
+						int	current_offset = offset;
+						
+						for ( int i=0;i<length;i+=DiskManager.BLOCK_SIZE ){
+						
+							dm_piece.setWritten( current_offset / DiskManager.BLOCK_SIZE );
+							
+							current_offset += DiskManager.BLOCK_SIZE;
+						}
+					}
+					
+					listener.complete( request );
+				}
+
+				public void 
+				writeFailed( 
+					org.gudy.azureus2.core3.disk.DiskManagerWriteRequest 	_request, 
+					Throwable		 										_cause )
+				{
+					listener.failed( request, new DiskManagerException( "read failed", _cause ));
+				}
+			});
+		
+		return( request );
+	}
+	
 	private class
 	DMRR
 		implements org.gudy.azureus2.plugins.disk.DiskManagerReadRequest
@@ -137,6 +198,46 @@ DiskManagerImpl
 		getLength()
 		{
 			return( request.getLength());
+		}
+	}
+	
+	private class
+	DMWR
+		implements org.gudy.azureus2.plugins.disk.DiskManagerWriteRequest
+	{
+		private org.gudy.azureus2.core3.disk.DiskManagerWriteRequest		request;
+		private int															length;
+		
+		private
+		DMWR(
+			org.gudy.azureus2.core3.disk.DiskManagerWriteRequest	_request,
+			int														_length )
+		{
+			request = _request;
+		}
+		
+		private org.gudy.azureus2.core3.disk.DiskManagerWriteRequest
+		getDelegate()
+		{
+			return( request );
+		}
+		
+		public int
+		getPieceNumber()
+		{
+			return( request.getPieceNumber());
+		}
+		
+		public int
+		getOffset()
+		{
+			return( request.getOffset());
+		}
+		
+		public int
+		getLength()
+		{
+			return( length );
 		}
 	}
 }

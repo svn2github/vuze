@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.plugins.peers;
 
+import org.gudy.azureus2.plugins.disk.DiskManager;
+
 /**
  * @author parg
  *
@@ -30,7 +32,7 @@ package org.gudy.azureus2.plugins.peers;
 public interface 
 PeerReadRequest 
 {
-	public static final int	NORMAL_REQUEST_SIZE	= 16384;
+	public static final int	NORMAL_REQUEST_SIZE	= DiskManager.BLOCK_SIZE;
 	
 	public int
 	getPieceNumber();

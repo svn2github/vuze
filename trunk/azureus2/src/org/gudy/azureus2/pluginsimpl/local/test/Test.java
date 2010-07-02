@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.test;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.Plugin;
@@ -33,10 +34,13 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ddb.*;
+import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerException;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.plugins.disk.DiskManagerReadRequestListener;
+import org.gudy.azureus2.plugins.disk.DiskManagerWriteRequest;
+import org.gudy.azureus2.plugins.disk.DiskManagerWriteRequestListener;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
@@ -55,6 +59,7 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeEvent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeListener;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
+import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.plugins.utils.search.Search;
 import org.gudy.azureus2.plugins.utils.search.SearchInitiator;
 import org.gudy.azureus2.plugins.utils.search.SearchListener;
@@ -73,6 +78,7 @@ import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler.passwordDetails;
 
 import java.io.File;
+import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.util.*;
 
@@ -109,7 +115,7 @@ Test
 								runSupport()
 								{
 									
-									testPieceListener();
+									testPluginWrite();
 	
 								}
 							};
@@ -127,6 +133,137 @@ Test
 					public void
 					closedownComplete()
 					{
+					}
+				});
+	}
+	
+	private void
+	testPluginWrite()
+	{
+		plugin_interface.getDownloadManager().addListener(
+				new DownloadManagerListener()
+				{
+					public void
+					downloadAdded(
+						Download	download )
+					{
+						download.addPeerListener(
+							new DownloadPeerListener()
+							{
+								public void
+								peerManagerAdded(
+									final Download			download,
+									final PeerManager		peer_manager )
+								{
+									new AEThread2( "" )
+									{
+										public void
+										run()
+										{
+											DiskManager dm  = peer_manager.getDiskManager();
+																						
+											File f = new File( "C:\\temp\\capture2.pcap" );
+											
+											long	len = f.length();
+											
+											int	piece_size 	= (int)download.getTorrent().getPieceSize();
+
+											int	max_blocks = piece_size / DiskManager.BLOCK_SIZE;
+											
+											List<long[]> chunks = new ArrayList<long[]>();
+											
+											long i = 0;
+											
+											while( i < len ){
+												
+												int		blocks = ((int)(Math.random()*max_blocks))+1;
+												
+												long	rem_in_piece = i - ((i/piece_size)*piece_size);
+												
+												if ( rem_in_piece == 0 ){
+													
+													rem_in_piece = piece_size;
+												}
+												
+												rem_in_piece = Math.min( len-i, rem_in_piece);
+												
+												long	chunk_size = Math.min(rem_in_piece,blocks*DiskManager.BLOCK_SIZE);
+												
+												chunks.add( new long[]{ i, chunk_size });
+												
+												i += chunk_size;
+											}
+																				
+											Utilities utils = plugin_interface.getUtilities();
+											
+											try{
+												RandomAccessFile raf = new RandomAccessFile(f, "r" );
+												
+												while( !chunks.isEmpty()){
+													
+													long[] chunk = chunks.remove((int)(Math.random()*chunks.size()));
+													
+													final long	position 	= chunk[0];
+													final int	size		= (int)chunk[1];
+													
+													raf.seek( position );
+													
+													byte[] buffer = new byte[ size ];
+													
+													raf.read( buffer );
+													
+													int	piece_number 	= (int)(position/piece_size);
+													int	piece_offset	= (int)(position % piece_size);
+																							
+													dm.write(
+														piece_number,
+														piece_offset,
+														utils.allocatePooledByteBuffer( buffer ),
+														new DiskManagerWriteRequestListener()
+														{
+															public void
+															complete(
+																DiskManagerWriteRequest		request )
+															{
+																System.out.println( "write ok: offset=" + position + ",size=" + size );
+															}
+															
+															public void
+															failed(
+																DiskManagerWriteRequest		request,
+																DiskManagerException		error )
+															{
+																System.out.println( "write failed" );
+																
+																error.printStackTrace();
+															}
+														});
+													
+													Thread.sleep(10);
+												}
+											}catch( Throwable e ){
+												
+												e.printStackTrace();
+											}
+										}
+									}.start();
+								}
+								
+								public void
+								peerManagerRemoved(
+									Download		download,
+									PeerManager		peer_manager )
+								{
+									
+								}
+							});
+					}
+					
+					public void
+					downloadRemoved(
+						Download	download )
+					{
+						
 					}
 				});
 	}

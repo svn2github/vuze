@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.plugins.disk;
 
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
+
 /**
  * @author parg
  *
@@ -29,12 +31,33 @@ package org.gudy.azureus2.plugins.disk;
 public interface 
 DiskManager 
 {
+	public static final int	BLOCK_SIZE	= 16384;
+
 	public DiskManagerReadRequest
 	read(
 		int								piece_number,
 		int								offset,
 		int								length,
 		DiskManagerReadRequestListener	listener )
+	
+		throws DiskManagerException;
+	
+		/**
+		 * Data length has to be consistent with block layout of the piece and piece size
+		 * @param piece_number
+		 * @param offset
+		 * @param data
+		 * @param listener
+		 * @return
+		 * @throws DiskManagerException
+		 */
+	
+	public DiskManagerWriteRequest
+	write(
+		int								piece_number,
+		int								offset,
+		PooledByteBuffer				data,
+		DiskManagerWriteRequestListener	listener )
 	
 		throws DiskManagerException;
 }
