@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
+import org.gudy.azureus2.plugins.messaging.MessageManagerListener;
 import org.gudy.azureus2.plugins.messaging.bittorrent.BTMessageCancel;
 import org.gudy.azureus2.plugins.messaging.bittorrent.BTMessagePiece;
 import org.gudy.azureus2.plugins.messaging.bittorrent.BTMessageRequest;
@@ -56,6 +57,7 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
 import org.gudy.azureus2.plugins.network.IncomingMessageQueueListener;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerManagerEvent;
 import org.gudy.azureus2.plugins.peers.PeerManagerListener2;
@@ -85,6 +87,7 @@ import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler.passwordDe
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 
@@ -145,6 +148,63 @@ Test
 	private void
 	testBTMessageHandler()
 	{
+		try{
+			MessageManager man = plugin_interface.getMessageManager();
+			
+			man.registerMessageType( new BorkMessage( "" ));
+
+			man.locateCompatiblePeers(
+				plugin_interface, 
+				new BorkMessage( "" ), 
+				new MessageManagerListener()
+				{
+					public void 
+					compatiblePeerFound( 
+						Download 	download, 
+						Peer 		peer, 
+						Message 	message )
+					{
+						peer.getConnection().getIncomingMessageQueue().registerPriorityListener(
+							new IncomingMessageQueueListener()
+							{
+								 public boolean 
+								 messageReceived( 
+									Message message )
+								 {
+									 if ( message instanceof BorkMessage ){
+										
+										 System.out.println( "Got a borker: " + ((BorkMessage)message).getArg());
+										 
+										 return( true );
+									 }
+									 
+									 return( false );
+								 }
+								  
+								 public void 
+								 bytesReceived( 
+										int byte_count )
+								 {							 
+								 }
+							});
+						
+						peer.getConnection().getOutgoingMessageQueue().sendMessage( new BorkMessage( "Hello Mr Borker" ));
+					}
+
+					public void 
+					peerRemoved( 
+						Download 	download, 
+						Peer 		peer )
+					{					
+					}
+				});
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+		
+		/*
 		plugin_interface.getDownloadManager().addListener(
 			new DownloadManagerListener()
 			{
@@ -227,6 +287,94 @@ Test
 					
 				}
 			});
+			*/
+	}
+	
+	private class
+	BorkMessage
+		implements Message
+	{
+		private ByteBuffer 	buffer;
+		private String		arg;
+		
+		private
+		BorkMessage(
+			String		_arg )
+		{
+			arg		= _arg;
+			
+			try{
+			    byte[] arg_bytes = arg.getBytes( "UTF-8" );
+			    
+			    buffer = ByteBuffer.allocate( 4 + arg_bytes.length );
+			    
+			    buffer.putInt( arg_bytes.length );
+			    
+			    buffer.put( arg_bytes );
+			    
+			    buffer.flip();
+			    
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		public String 
+		getID()
+		{
+			return( "BORK_MESSAGE" );
+		}
+
+		public int 
+		getType()
+		{
+			return( TYPE_PROTOCOL_PAYLOAD );
+		}
+
+		public String 
+		getDescription()
+		{
+			return( "borker message" );
+		}
+
+		public ByteBuffer[] 
+		getPayload()
+		{
+			return new ByteBuffer[] { buffer };  
+		}
+
+		public String
+		getArg()
+		{
+			return( arg );
+		}
+
+		public Message 
+		create( 
+			ByteBuffer data ) 
+
+			throws MessageException
+		{
+			try{
+				int size = data.getInt();
+	
+				byte[] bytes = new byte[ size ];
+				
+				data.get( bytes );
+				
+				return( new BorkMessage(new String(bytes, "UTF-8" )));
+				
+			}catch( Throwable e ){
+				
+				throw( new MessageException( "create failed", e ));
+			}
+		}
+		
+		public void 
+		destroy()
+		{
+		}
 	}
 	
 	private void
