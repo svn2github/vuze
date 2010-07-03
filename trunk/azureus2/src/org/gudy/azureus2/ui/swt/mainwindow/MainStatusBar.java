@@ -1376,13 +1376,15 @@ public class MainStatusBar
 			Point textSize = sp.getCalculatedSize();
 
 			if (imageBounds != null) {
+				int pad = 2;
 				int ofs = imageBounds.width + imageBounds.x;
-				e.gc.drawImage(image,  (clientArea.width / 2) - (textSize.x / 2) - (ofs / 2) - 5,
+				int xStartImage = (clientArea.width - textSize.x - ofs - pad) / 2;
+				e.gc.drawImage(image, xStartImage,
 						(clientArea.height / 2) - (imageBounds.height / 2));
-				clientArea.x += ofs / 2;
-				clientArea.width -= ofs / 2;
+				clientArea.x += xStartImage + ofs + pad;
+				clientArea.width -= xStartImage + ofs + pad;
 			}
-			sp.printString(e.gc, clientArea, SWT.CENTER);
+			sp.printString(e.gc, clientArea, SWT.LEFT);
 
 		}
 
@@ -1399,7 +1401,7 @@ public class MainStatusBar
 			if (image != null && !image.isDisposed()) {
 				Rectangle bounds = image.getBounds();
 				int ofs = bounds.width + bounds.x + 5;
-				lastSize.x += ofs + 20;
+				lastSize.x += ofs;
 				lastSize.y = bounds.height;
 			}
 
