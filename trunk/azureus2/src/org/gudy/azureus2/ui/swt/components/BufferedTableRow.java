@@ -279,7 +279,7 @@ BufferedTableRow
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
   	  return null;
 		
-		if (ourForeground == null && table.isSelected(item)) {
+		if (ourForeground == null && isSelected()) {
 			return table.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
 		}
 
@@ -621,7 +621,7 @@ BufferedTableRow
     item = newRow;
     // setItemCount takes longer than a getItemCount comparison
     if (item.getItemCount() != numSubItems) {
-    	item.setItemCount(numSubItems);
+    	setSubItemCount(numSubItems);
     }
 		item.setExpanded(wasExpanded);
 		// Need to execute (de)select later, because if we are in a paint event
@@ -729,7 +729,9 @@ BufferedTableRow
 		if (item != null) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					item.setItemCount(numSubItems);
+			    if (item.getItemCount() != numSubItems) {
+			    	item.setItemCount(numSubItems);
+			    }
 				}
 			});
 		}
