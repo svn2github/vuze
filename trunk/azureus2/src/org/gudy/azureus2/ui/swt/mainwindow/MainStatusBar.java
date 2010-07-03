@@ -1419,7 +1419,6 @@ public class MainStatusBar
 			if (hHint == SWT.DEFAULT) {
 				pt.y = lastSize.y;
 			}
-			System.out.println("computerSize=" + pt);
 			return pt;
 		}
 		
