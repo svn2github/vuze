@@ -88,9 +88,14 @@ public class TableViewSWT_EraseItem
 			int startY;
 			if (numItems > 0) {
 				TableItemOrTreeItem lastItem = table.getItem(numItems - 1);
-				TableItemOrTreeItem[] subItems = lastItem.getItems();
-				Rectangle lastItemBounds = subItems == null || subItems.length == 0
-						? lastItem.getBounds() : subItems[subItems.length - 1].getBounds();
+				Rectangle lastItemBounds;
+				if (lastItem.getExpanded()) {
+  				TableItemOrTreeItem[] subItems = lastItem.getItems();
+  				lastItemBounds = subItems == null || subItems.length == 0
+  						? lastItem.getBounds() : subItems[subItems.length - 1].getBounds();
+				} else {
+					lastItemBounds = lastItem.getBounds();
+				}
 				startY = lastItemBounds.y + lastItemBounds.height;
 			} else {
 				startY = 0;
