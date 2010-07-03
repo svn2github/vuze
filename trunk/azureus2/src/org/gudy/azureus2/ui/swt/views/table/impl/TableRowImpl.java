@@ -830,7 +830,14 @@ public class TableRowImpl<COREDATASOURCE>
 	}
 	
 	public TableRowCore[] getSubRowsWithNull() {
-		return Arrays.copyOf(subRows, subRows.length);
+		mon_SubRows.enter();
+		try {
+			TableRowCore[] copyOf = new TableRowCore[subRows.length];
+			System.arraycopy(subRows, 0, copyOf, 0, subRows.length);
+			return copyOf;
+		} finally {
+			mon_SubRows.exit();
+		}
 	}
 	
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#isInPaintItem()
