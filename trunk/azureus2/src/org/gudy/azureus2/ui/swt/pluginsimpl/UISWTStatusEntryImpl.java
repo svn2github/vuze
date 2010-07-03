@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Event;
@@ -21,6 +20,7 @@ import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
+import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar.CLabelPadding;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntryListener;
 
@@ -64,7 +64,7 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 		return this.menu_context;
 	}
 	
-	public boolean update(CLabel label) {
+	public boolean update(CLabelPadding label) {
 		if (needs_disposing && !label.isDisposed()) {
 			if (menu != null && !menu.isDisposed()) {
 				menu.dispose();
@@ -116,7 +116,7 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 		}
 	}
 
-	private void update0(final CLabel label) {
+	private void update0(final CLabelPadding label) {
 		label.setText(text);
 		label.setToolTipText(tooltip);
 		label.setImage(image_enabled ? image : null);
@@ -247,7 +247,7 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 		this_mon.exit();
 	}
 
-	public void created(final CLabel label) {
+	public void created(final MainStatusBar.CLabelPadding label) {
 		final Listener click_listener = new Listener() {
 			public void handleEvent(Event e) {
 				onClick();

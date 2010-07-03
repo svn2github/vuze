@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.Alerts.AlertHistoryListener;
 import org.gudy.azureus2.ui.swt.progress.*;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -93,17 +94,17 @@ public class MainStatusBar
 
 	private AZProgressBar progressBar;
 
-	private CLabel ipBlocked;
+	private CLabelPadding ipBlocked;
 
-	private CLabel srStatus;
+	private CLabelPadding srStatus;
 
-	private CLabel natStatus;
+	private CLabelPadding natStatus;
 
-	private CLabel dhtStatus;
+	private CLabelPadding dhtStatus;
 
-	private CLabel statusDown;
+	private CLabelPadding statusDown;
 
-	private CLabel statusUp;
+	private CLabelPadding statusUp;
 
 	private Composite plugin_label_composite;
 	
@@ -178,6 +179,11 @@ public class MainStatusBar
 	private long last_rec_data = - 1;
 
 	private long last_rec_prot;
+
+	private long max_rec;
+
+	private Image imgRec;
+	private int imgrec_pos = 0;
 
 	private Image	warningIcon;
 	private Image	infoIcon;
@@ -602,6 +608,13 @@ public class MainStatusBar
 			}
 		});
 		
+		imgRec = new Image(display, 100, 20);
+		gc = new GC(imgRec);
+		gc.setBackground(statusDown.getBackground());
+		gc.fillRectangle(0, 0, 100, 20);
+		gc.dispose();
+		statusDown.setBackgroundImage(imgRec);
+		
 		/////////
 		
 		PRManager.addListener(new ProgressListener());
@@ -698,11 +711,11 @@ public class MainStatusBar
 		} else if (secs_uptime - last_uptime > 15 * 60) {
 
 			createStatusEntry(new CLabelUpdater() {
-				public boolean update(CLabel label) {
+				public boolean update(CLabelPadding label) {
 					return( false );
 				}
 
-				public void created(CLabel feedback) {
+				public void created(CLabelPadding feedback) {
 					feedback.setText(MessageText.getString("statusbar.feedback"));
 					
 					Listener feedback_listener = new Listener() {
@@ -954,7 +967,29 @@ public class MainStatusBar
 				statusDown.setText((dl_limit == 0 ? "" : "[" + dl_limit + "K] ")
 						+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(rec_data, rec_prot));
 			}
-
+			
+			if (imgRec != null && !imgRec.isDisposed()) {
+  			GC gc = new GC(imgRec);
+  			long rec = rec_data + rec_prot;
+  			if (rec > max_rec) {
+  				int y = 20 - (int) (max_rec * 20 / rec);
+  				gc.setBackground(statusDown.getBackground());
+    			gc.fillRectangle(0, 0, 99, y);
+  				//gc.drawImage(imgRec, 1, 0, 99, 20, 0, y, 99, 20 - y);
+  				gc.copyArea(1, 0, 99, 20, 0, y);
+  				max_rec = rec;
+  			} else {
+  				gc.copyArea(1, 0, 99, 20, 0, 0);
+  				//gc.drawImage(imgRec, 1, 0, 99, 20, 0, 0, 99, 20);
+  			}
+  			gc.setForeground(statusDown.getBackground());
+  			int breakPoint = 20 - (max_rec == 0 ? 0 : (int) (rec * 20 / max_rec));
+  			gc.drawLine(99, 0, 99, breakPoint);
+  			gc.setForeground(Colors.blues[5]);
+  			gc.drawLine(99, breakPoint, 99, 19);
+  			gc.dispose();
+  			statusDown.redraw();
+			}
 
 			boolean auto_up = TransferSpeedValidator.isAutoSpeedActive(gm)
 					&& TransferSpeedValidator.isAutoUploadAvailable(core);
@@ -1272,8 +1307,8 @@ public class MainStatusBar
 
 	public static interface CLabelUpdater
 	{
-		public void created(CLabel label);
-		public boolean update(CLabel label);
+		public void created(CLabelPadding label);
+		public boolean update(CLabelPadding label);
 	}
 
 	/**
@@ -1284,14 +1319,20 @@ public class MainStatusBar
 	 * @created Mar 21, 2006
 	 *
 	 */
-	private class CLabelPadding
-		extends CLabel
+	public class CLabelPadding
+		extends Canvas implements PaintListener
 	{
 		private int lastWidth = 0;
 
 		private long widthSetOn = 0;
 
 		private static final int KEEPWIDTHFOR_MS = 30 * 1000;
+		
+		String text = "";
+
+		private Image image;
+
+		private Image bgImage;
 
 		/**
 		 * Default Constructor
@@ -1306,6 +1347,101 @@ public class MainStatusBar
 					| GridData.VERTICAL_ALIGN_FILL);
 			setLayoutData(gridData);
 			setForeground(parent.getForeground());
+			
+			addPaintListener(this);
+		}
+
+		public void paintControl(PaintEvent e) {
+			Point size = getSize();
+			e.gc.setAdvanced(true);
+			if (bgImage != null && !bgImage.isDisposed()) {
+				Rectangle bounds = bgImage.getBounds();
+				if (display.getCursorControl() != this) {
+					e.gc.setAlpha(110);
+				}
+				e.gc.drawImage(bgImage, 0, 0, bounds.width, bounds.height, 0, 2,
+						size.x, size.y - 4);
+				e.gc.setAlpha(255);
+			}
+			Rectangle clientArea = getClientArea();
+
+			Image image = getImage();
+			Rectangle imageBounds = null;
+			if (image != null && !image.isDisposed()) {
+				imageBounds = image.getBounds();
+			}
+			GCStringPrinter sp = new GCStringPrinter(e.gc, getText(), clientArea,
+					true, true, SWT.CENTER);
+			sp.calculateMetrics();
+			Point textSize = sp.getCalculatedSize();
+
+			if (imageBounds != null) {
+				int ofs = imageBounds.width + imageBounds.x;
+				e.gc.drawImage(image,  (clientArea.width / 2) - (textSize.x / 2) - (ofs / 2) - 5,
+						(clientArea.height / 2) - (imageBounds.height / 2));
+				clientArea.x += ofs / 2;
+				clientArea.width -= ofs / 2;
+			}
+			sp.printString(e.gc, clientArea, SWT.CENTER);
+
+		}
+
+		// @see org.eclipse.swt.widgets.Control#computeSize(int, int)
+		public Point computeSize(int wHint, int hHint) {
+			if (wHint != SWT.DEFAULT && hHint != SWT.DEFAULT) {
+				return new Point(wHint, hHint);
+			}
+			Point pt = new Point(wHint, hHint);
+
+			Point lastSize = new Point(0, 0);
+
+			Image image = getImage();
+			if (image != null && !image.isDisposed()) {
+				Rectangle bounds = image.getBounds();
+				int ofs = bounds.width + bounds.x + 5;
+				lastSize.x += ofs + 20;
+				lastSize.y = bounds.height;
+			}
+
+			GC gc = new GC(this);
+			GCStringPrinter sp = new GCStringPrinter(gc, getText(), new Rectangle(0,
+					0, 10000, 20), true, true, SWT.LEFT);
+			sp.calculateMetrics();
+			Point lastTextSize = sp.getCalculatedSize();
+			gc.dispose();
+
+			lastSize.x += lastTextSize.x;
+			lastSize.y = Math.max(lastSize.y, lastTextSize.y);
+
+			if (wHint == SWT.DEFAULT) {
+				pt.x = lastSize.x;
+			}
+			if (hHint == SWT.DEFAULT) {
+				pt.y = lastSize.y;
+			}
+			System.out.println("computerSize=" + pt);
+			return pt;
+		}
+		
+
+		public void setImage(Image image) {
+			this.image = image;
+		}
+		
+		public Image getImage() {
+			return image;
+		}
+		
+		public void setBackgroundImage(Image image) {
+			bgImage = image;
+		}
+		
+		public Image getBackgroundImage() {
+			return bgImage;
+		}
+		
+		public String getText() {
+			return text;
 		}
 		
 		public void setText(String text) {
@@ -1315,7 +1451,7 @@ public class MainStatusBar
 			if (text.equals(getText())) {
 				return;
 			}
-			super.setText(text);
+			this.text = text;
 			int oldWidth = lastWidth;
 			Point pt = super.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 			pt.x += 4;
@@ -1331,6 +1467,7 @@ public class MainStatusBar
 					}
 				});
 			}
+			redraw();
 		}
 		
 		public void
@@ -1353,7 +1490,7 @@ public class MainStatusBar
 				return (new Point(0, 0));
 			}
 			try {
-				Point pt = super.computeSize(wHint, hHint, changed);
+				Point pt = computeSize(wHint, hHint);
   			pt.x += 4;
   
   			long now = System.currentTimeMillis();
@@ -1367,7 +1504,7 @@ public class MainStatusBar
   
   			return pt;
 			} catch (Throwable t) {
-				Debug.out("Error while computing size for CLabel with text:" + getText());
+				Debug.out("Error while computing size for CLabel with text:" + getText() + "; " + t.toString());
 				return new Point(0, 0);
 			}
 		}
