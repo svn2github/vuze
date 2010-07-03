@@ -778,12 +778,16 @@ public class TableRowImpl<COREDATASOURCE>
 	@SuppressWarnings("rawtypes")
 	public void setSubItemCount(final int count) {
 		super.setSubItemCount(count);
+		if (count == getSubItemCount()) {
+			return;
+		}
 		mon_SubRows.enter();
 		try {
   		subRows = new TableRowImpl[count];
   		for (int i = 0; i < count; i++) {
-  			subRows[i] = new TableRowImpl(this, tableView, table, columnsSorted,
-  					getTableID(), null, i, bSkipFirstColumn);
+  			//subRows[i] = new TableRowImpl(this, tableView, table, columnsSorted,
+  			//		getTableID(), null, i, bSkipFirstColumn);
+  			subRows[i] = null;
   		}
 		} finally {
 			mon_SubRows.exit();
