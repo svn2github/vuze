@@ -87,7 +87,10 @@ public class TableViewSWT_EraseItem
 		if (blankHeight > 0) {
 			int startY;
 			if (numItems > 0) {
-				Rectangle lastItemBounds = table.getItem(numItems - 1).getBounds();
+				TableItemOrTreeItem lastItem = table.getItem(numItems - 1);
+				TableItemOrTreeItem[] subItems = lastItem.getItems();
+				Rectangle lastItemBounds = subItems == null || subItems.length == 0
+						? lastItem.getBounds() : subItems[subItems.length - 1].getBounds();
 				startY = lastItemBounds.y + lastItemBounds.height;
 			} else {
 				startY = 0;
