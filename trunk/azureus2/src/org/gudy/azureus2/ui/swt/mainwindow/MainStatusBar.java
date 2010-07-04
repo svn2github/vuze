@@ -1341,7 +1341,7 @@ public class MainStatusBar
 		 * @param style
 		 */
 		public CLabelPadding(Composite parent, int style) {
-			super(parent, style | SWT.CENTER);
+			super(parent, style | SWT.CENTER | SWT.DOUBLE_BUFFERED);
 
 			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER
 					| GridData.VERTICAL_ALIGN_FILL);
