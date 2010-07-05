@@ -2708,7 +2708,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					// we should trigger after fillRowGaps()
 					triggerListenerRowAdded(row);
 
-					if (!bReplacedVisible && index >= iTopIndex && index <= iBottomIndex) {
+					if (!bReplacedVisible
+							&& ((index >= iTopIndex && index <= iBottomIndex) || (index == sortedRows.size() - 1))) {
 						bReplacedVisible = true;
 					}
 
@@ -3021,6 +3022,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			if (bRefresh) {
+				visibleRowsChanged();
 				fillRowGaps(false);
 				swt_refreshVisibleRows();
 				if (DEBUGADDREMOVE) {
