@@ -21,7 +21,7 @@ public class CT_ID
 	
 	public CT_ID() {
 		super(name, 170, "test");
-		setForDataSourceType(TableViewTestDS.class);
+		addDataSourceType(TableViewTestDS.class);
 		setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		setVisible(true);
 	}

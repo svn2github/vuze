@@ -59,7 +59,7 @@ public class CT_LiveExt
 	
 	public CT_LiveExt() {
 		super(name, 190, "test");
-		setForDataSourceType(TableViewTestDS.class);
+		addDataSourceType(TableViewTestDS.class);
 		setRefreshInterval(TableColumn.INTERVAL_LIVE);
 		setVisible(true);
 	}
@@ -86,6 +86,9 @@ public class CT_LiveExt
 	}
 
 	public void cellAdded(final TableCell cell) {
+		if (cell == null) {
+			System.out.println("CELL NULL? " + Debug.getCompressedStackTrace());
+		}
 		synchronized (cells) {
 			cells.add(cell);
 		}

@@ -18,7 +18,6 @@ import org.gudy.azureus2.ui.swt.UIConfigDefaultsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -38,6 +37,7 @@ public class testTableView
 
 		COConfigurationManager.initialise();
 		COConfigurationManager.setParameter("Table.useTree", true);
+		COConfigurationManager.setParameter("Table.extendedErase", true);
 		//COConfigurationManager.setParameter("GUI Refresh", 15000);
 		UIConfigDefaultsSWT.initialize();
 		
@@ -77,7 +77,7 @@ public class testTableView
 			new CT_InvOnlyReord(),
 		};
 
-		TableColumnManager.getInstance().addColumns(columns);
+		com.aelitis.azureus.ui.common.table.impl.TableColumnManager.getInstance().addColumns(columns);
 
 		tv = new TableViewSWTImpl<TableViewTestDS>(TableViewTestDS.class, "test",
 				"", columns, CT_ID.name, SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.CASCADE);
@@ -278,7 +278,7 @@ public class testTableView
 		btnRndInsert.setText("RndInsert");
 		btnRndInsert.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				rndInsert();
+				rndInsert(1);
 			}
 		});
 
@@ -294,6 +294,15 @@ public class testTableView
 		btnRndDel5.setText("RndDelx5");
 		btnRndDel5.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
+				rndDel(5);
+			}
+		});
+
+		Button btnRndAddDell5 = new Button(cBottom, SWT.PUSH);
+		btnRndAddDell5.setText("RndAddDelx5");
+		btnRndAddDell5.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				rndInsert(5);
 				rndDel(5);
 			}
 		});
@@ -343,12 +352,14 @@ public class testTableView
 		tv.removeDataSources(ds);
 	}
 
-	protected static void rndInsert() {
-		int size = tv.size(false);
-		double pos = Math.random() * size;
-		TableViewTestDS ds = new TableViewTestDS();
-		ds.map.put("ID", new Double(pos));
-		tv.addDataSource(ds);
+	protected static void rndInsert(int num) {
+		for (int i = 0; i < num; i++) {
+  		int size = tv.size(false);
+  		double pos = Math.random() * size;
+  		TableViewTestDS ds = new TableViewTestDS();
+  		ds.map.put("ID", new Double(pos));
+  		tv.addDataSource(ds);
+		}
 	}
 
 	protected static void startChaos(final cChaos cChaos) {
@@ -374,7 +385,7 @@ public class testTableView
 			if (Math.random() > 0.5) {
 				rndDel(1);
 			} else {
-				rndInsert();
+				rndInsert(1);
 			}
 			SimpleTimer.addEvent("chaos",
 					SystemTime.getOffsetTime((long) (Math.random() * 3000)), this);

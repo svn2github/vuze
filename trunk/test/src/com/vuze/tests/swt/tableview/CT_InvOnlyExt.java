@@ -59,7 +59,7 @@ public class CT_InvOnlyExt
 
 	public CT_InvOnlyExt() {
 		super(name, 190, "test");
-		setForDataSourceType(TableViewTestDS.class);
+		addDataSourceType(TableViewTestDS.class);
 		setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		setVisible(true);
 	}

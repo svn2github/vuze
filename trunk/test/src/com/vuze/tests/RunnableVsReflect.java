@@ -100,6 +100,22 @@ public class RunnableVsReflect
 		}
 		diff = System.currentTimeMillis() - start;
 		System.out.println("AERunnable took " + diff + "ms" );
+
+		start = System.currentTimeMillis();
+		for (int i = 0; i < COUNT; i++) {
+			try {
+				Runnable runnable = new Runnable() {
+					public void run() {
+						foo();
+					}
+				};
+				runnable.run();
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
+		}
+		diff = System.currentTimeMillis() - start;
+		System.out.println("Runnable took " + diff + "ms" );
 	}
 	
 	public void reflectTo(String name, Object o) throws Throwable {

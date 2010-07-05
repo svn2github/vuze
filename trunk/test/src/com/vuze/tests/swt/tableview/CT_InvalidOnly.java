@@ -23,7 +23,7 @@ public class CT_InvalidOnly
 
 	public CT_InvalidOnly() {
 		super(name, 110, "test");
-		setForDataSourceType(TableViewTestDS.class);
+		addDataSourceType(TableViewTestDS.class);
 		setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		setVisible(true);
 	}

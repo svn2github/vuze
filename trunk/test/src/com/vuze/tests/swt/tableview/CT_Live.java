@@ -24,7 +24,7 @@ public class CT_Live
 
 	public CT_Live() {
 		super(name, 110, "test");
-		setForDataSourceType(TableViewTestDS.class);
+		addDataSourceType(TableViewTestDS.class);
 		setRefreshInterval(TableColumn.INTERVAL_LIVE);
 		setVisible(true);
 	}
