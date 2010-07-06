@@ -987,7 +987,7 @@ public class MainStatusBar
 						: (int) (rec * 20 / max_rec));
 				gc.drawLine(99, 0, 99, breakPoint);
 				gc.setForeground(Colors.blues[5]);
-				gc.drawLine(99, breakPoint, 99, 19);
+				gc.drawLine(99, breakPoint, 99, 20);
 				gc.dispose();
 				statusDown.redraw();
 			}
