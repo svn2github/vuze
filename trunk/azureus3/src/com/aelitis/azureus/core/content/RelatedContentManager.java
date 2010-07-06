@@ -268,137 +268,22 @@ RelatedContentManager
 					}
 				});
 			
-			SimpleTimer.addEvent(
-				"rcm.delay.init",
-				SystemTime.getOffsetTime( 15*1000 ),
-				new TimerEventPerformer()
-				{
-					public void 
-					perform(
-						TimerEvent event )
-					{						
-						plugin_interface.addListener(
-							new PluginListener()
+			plugin_interface.getUtilities().createDelayedTask(new AERunnable() {
+				public void runSupport() {
+					SimpleTimer.addEvent(
+							"rcm.delay.init",
+							SystemTime.getOffsetTime( 15*1000 ),
+							new TimerEventPerformer()
 							{
-								public void
-								initializationComplete()
+								public void 
+								perform(
+									TimerEvent event )
 								{
-									if ( !persist ){
-										
-										deleteRelatedContent();
-									}
-									
-									try{
-										PluginInterface dht_pi = 
-											plugin_interface.getPluginManager().getPluginInterfaceByClass(
-														DHTPlugin.class );
-							
-										if ( dht_pi != null ){
-								
-											dht_plugin = (DHTPlugin)dht_pi.getPlugin();
-		
-											if ( !dht_plugin.isEnabled()){
-												
-												return;
-											}
-											
-											DownloadManager dm = plugin_interface.getDownloadManager();
-											
-											Download[] downloads = dm.getDownloads();
-											
-											addDownloads( downloads, true );
-											
-											dm.addListener(
-												new DownloadManagerListener()
-												{
-													public void
-													downloadAdded(
-														Download	download )
-													{
-														addDownloads( new Download[]{ download }, false );
-													}
-													
-													public void
-													downloadRemoved(
-														Download	download )
-													{
-													}
-												},
-												false );
-											
-											SimpleTimer.addPeriodicEvent(
-												"RCM:publisher",
-												TIMER_PERIOD,
-												new TimerEventPerformer()
-												{
-													private int	tick_count;
-													
-													public void 
-													perform(
-														TimerEvent event ) 
-													{
-														tick_count++;
-
-														if ( tick_count == 1 ){
-															
-															try{
-																ddb = plugin_interface.getDistributedDatabase();
-															
-																ddb.addTransferHandler( transfer_type, RelatedContentManager.this );
-																
-															}catch( Throwable e ){
-																
-																// Debug.out( e );
-															}
-														}
-														
-														if ( enabled ){
-																
-															if ( tick_count >= INITIAL_PUBLISH_TICKS ){
-																
-																if ( tick_count % PUBLISH_CHECK_TICKS == 0 ){
-																
-																	publish();
-																}
-																
-																if ( tick_count % SECONDARY_LOOKUP_TICKS == 0 ){
-	
-																	secondaryLookup();
-																}
-																
-																if ( tick_count % REPUBLISH_TICKS == 0 ){
-	
-																	republish();
-																}
-																
-																if ( tick_count % CONFIG_SAVE_TICKS == 0 ){
-																	
-																	saveRelatedContent();
-																}
-															}
-														}
-													}
-												});
-										}										
-									}finally{
-											
-										initialisation_complete_sem.releaseForever();
-									}
-								}
-								
-								public void
-								closedownInitiated()
-								{
-									saveRelatedContent();
-								}
-								
-								public void
-								closedownComplete()
-								{
+									delayedInit();
 								}
 							});
-					}
-				});
+				}
+			});
 			
 		}catch( Throwable e ){
 			
@@ -411,6 +296,130 @@ RelatedContentManager
 			
 			throw( new ContentException( "Initialisation failed", e ));
 		}
+	}
+	
+	private void delayedInit() {
+		
+		plugin_interface.addListener(
+			new PluginListener()
+			{
+				public void
+				initializationComplete()
+				{
+					if ( !persist ){
+						
+						deleteRelatedContent();
+					}
+					
+					try{
+						PluginInterface dht_pi = 
+							plugin_interface.getPluginManager().getPluginInterfaceByClass(
+										DHTPlugin.class );
+			
+						if ( dht_pi != null ){
+				
+							dht_plugin = (DHTPlugin)dht_pi.getPlugin();
+
+							if ( !dht_plugin.isEnabled()){
+								
+								return;
+							}
+							
+							DownloadManager dm = plugin_interface.getDownloadManager();
+							
+							Download[] downloads = dm.getDownloads();
+							
+							addDownloads( downloads, true );
+							
+							dm.addListener(
+								new DownloadManagerListener()
+								{
+									public void
+									downloadAdded(
+										Download	download )
+									{
+										addDownloads( new Download[]{ download }, false );
+									}
+									
+									public void
+									downloadRemoved(
+										Download	download )
+									{
+									}
+								},
+								false );
+							
+							SimpleTimer.addPeriodicEvent(
+								"RCM:publisher",
+								TIMER_PERIOD,
+								new TimerEventPerformer()
+								{
+									private int	tick_count;
+									
+									public void 
+									perform(
+										TimerEvent event ) 
+									{
+										tick_count++;
+
+										if ( tick_count == 1 ){
+											
+											try{
+												ddb = plugin_interface.getDistributedDatabase();
+											
+												ddb.addTransferHandler( transfer_type, RelatedContentManager.this );
+												
+											}catch( Throwable e ){
+												
+												// Debug.out( e );
+											}
+										}
+										
+										if ( enabled ){
+												
+											if ( tick_count >= INITIAL_PUBLISH_TICKS ){
+												
+												if ( tick_count % PUBLISH_CHECK_TICKS == 0 ){
+												
+													publish();
+												}
+												
+												if ( tick_count % SECONDARY_LOOKUP_TICKS == 0 ){
+
+													secondaryLookup();
+												}
+												
+												if ( tick_count % REPUBLISH_TICKS == 0 ){
+
+													republish();
+												}
+												
+												if ( tick_count % CONFIG_SAVE_TICKS == 0 ){
+													
+													saveRelatedContent();
+												}
+											}
+										}
+									}
+								});
+						}										
+					}finally{
+							
+						initialisation_complete_sem.releaseForever();
+					}
+				}
+				
+				public void
+				closedownInitiated()
+				{
+					saveRelatedContent();
+				}
+				
+				public void
+				closedownComplete()
+				{
+				}
+			});
 	}
 	
 	public boolean

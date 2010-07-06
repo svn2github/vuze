@@ -1106,7 +1106,7 @@ public class MainWindow
 				});
 	}
 
-	public boolean _dispose(boolean bForRestart, boolean bCloseAlreadyInProgress) {
+	public boolean _dispose(final boolean bForRestart, boolean bCloseAlreadyInProgress) {
 		if (disposedOrDisposing) {
 			return true;
 		}
@@ -1164,7 +1164,13 @@ public class MainWindow
 		}
 
 		if (!SWTThread.getInstance().isTerminated()) {
-			SWTThread.getInstance().getInitializer().stopIt(bForRestart, false);
+			Utils.getOffOfSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (!SWTThread.getInstance().isTerminated()) {
+						SWTThread.getInstance().getInitializer().stopIt(bForRestart, false);
+					}
+				}
+			});
 		}
 
 		return true;

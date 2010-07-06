@@ -24,7 +24,11 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -574,7 +578,29 @@ public class Initializer
 
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					SWTThread.getInstance().terminate();
+					SWTThread instance = SWTThread.getInstance();
+					if (instance == null || instance.isTerminated()) {
+						return;
+					}
+					Shell anyShell = Utils.findAnyShell();
+					Point location = null;
+					if (anyShell != null) {
+						Rectangle bounds = anyShell.getBounds();
+						location = new Point(bounds.x, bounds.y);
+					}
+					Shell[] shells = instance.getDisplay().getShells();
+					for (Shell shell : shells) {
+						if (!shell.isDisposed()) {
+							shell.dispose();
+						}
+					}
+    			Shell shell = new Shell(instance.getDisplay(), SWT.BORDER | SWT.TITLE);
+    			shell.setText("Shutting Down Vuze..");
+    			shell.setSize(200, 0);
+    			if (location != null) {
+    				shell.setLocation(location);
+    			}
+    			shell.open();
 				}
 			});
 
@@ -613,6 +639,13 @@ public class Initializer
 					startServer.stopIt();
 				}
 			}
+
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					SWTThread.getInstance().terminate();
+				}
+			});
+
 		}
 	}
 
@@ -709,18 +742,31 @@ public class Initializer
 
 		// Old Initializer would delay 8500
 
-		  new DelayedEvent( 
-				  "SWTInitComplete:delay",
-				  2500,
-				  new AERunnable()
-				  {
-					  public void
-					  runSupport()
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+			  new DelayedEvent( 
+					  "SWTInitComplete:delay",
+					  2500,
+					  new AERunnable()
 					  {
-					  	//System.out.println("Release Init. Task");
-						  init_task.release();
-					  }
-				  });
+						  public void
+						  runSupport()
+						  {
+						  	/*
+						  	try {
+									String captureSnapshot = new Controller().captureSnapshot(ProfilingModes.SNAPSHOT_WITH_HEAP);
+									System.out.println(captureSnapshot);
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+								*/
+						  	//System.out.println("Release Init. Task");
+							  init_task.release();
+						  }
+					  });
+			}
+		});
 	}
 
 	/**
