@@ -5,7 +5,9 @@ package com.aelitis.azureus.ui.common.table.impl;
 
 import java.util.Iterator;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.common.table.*;
@@ -186,11 +188,15 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		listenersCountChange.remove(listener);
 	}
 
-	protected void triggerListenerRowAdded(TableRowCore row) {
-		for (Iterator iter = listenersCountChange.iterator(); iter.hasNext();) {
-			TableCountChangeListener l = (TableCountChangeListener) iter.next();
-			l.rowAdded(row);
-		}
+	protected void triggerListenerRowAdded(final TableRowCore row) {
+		Utils.getOffOfSWTThread(new AERunnable() {
+			public void runSupport() {
+				for (Iterator iter = listenersCountChange.iterator(); iter.hasNext();) {
+					TableCountChangeListener l = (TableCountChangeListener) iter.next();
+					l.rowAdded(row);
+				}
+			}
+		});
 	}
 
 	protected void triggerListenerRowRemoved(TableRowCore row) {
