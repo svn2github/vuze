@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSChannel;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
@@ -506,6 +507,23 @@ RSSEngine
 							
 						}catch( Throwable e ){
 							
+						}
+					}
+					
+					String dlink = result.getDownloadLink();
+					
+					if ( dlink == null || dlink.length() == 0 ){
+						
+						String name = result.getName();
+						
+						if ( name != null ){
+							
+							String magnet = UrlUtils.parseTextForMagnets( name );
+							
+							if ( magnet != null ){
+								
+								result.setTorrentLink( magnet );
+							}
 						}
 					}
 					
