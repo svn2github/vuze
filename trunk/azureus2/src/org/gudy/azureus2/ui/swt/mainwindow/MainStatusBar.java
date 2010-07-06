@@ -1341,7 +1341,7 @@ public class MainStatusBar
 		 * @param style
 		 */
 		public CLabelPadding(Composite parent, int style) {
-			super(parent, style | SWT.CENTER | SWT.DOUBLE_BUFFERED);
+			super(parent, style | SWT.DOUBLE_BUFFERED);
 
 			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER
 					| GridData.VERTICAL_ALIGN_FILL);
@@ -1364,6 +1364,7 @@ public class MainStatusBar
 				e.gc.setAlpha(255);
 			}
 			Rectangle clientArea = getClientArea();
+			
 
 			Image image = getImage();
 			Rectangle imageBounds = null;
@@ -1383,13 +1384,44 @@ public class MainStatusBar
 						(clientArea.height / 2) - (imageBounds.height / 2));
 				clientArea.x += xStartImage + ofs + pad;
 				clientArea.width -= xStartImage + ofs + pad;
+			} else {
+				int ofs = (clientArea.width / 2) - (textSize.x / 2);
+				clientArea.x += ofs;
+				clientArea.width -= ofs;
 			}
 			sp.printString(e.gc, clientArea, SWT.LEFT);
 
+			e.gc.setLineStyle(SWT.LINE_DOT);
+			int x = clientArea.x + clientArea.width - 1;
+			e.gc.setAlpha(20);
+			e.gc.drawLine(x, 3, x, clientArea.height - 3);
+		}
+
+		/* (non-Javadoc)
+		 * @see org.eclipse.swt.custom.CLabel#computeSize(int, int, boolean)
+		 */
+		public Point computeSize(int wHint, int hHint) {
+			return computeSize(wHint, hHint, true);
+		}
+
+		public Point computeSize(int wHint, int hHint, boolean changed) {
+			try {
+				Point pt = computeSize(wHint, hHint, changed, false);
+
+				return pt;
+			} catch (Throwable t) {
+				Debug.out("Error while computing size for CLabel with text:"
+						+ getText() + "; " + t.toString());
+				return new Point(0, 0);
+			}
 		}
 
 		// @see org.eclipse.swt.widgets.Control#computeSize(int, int)
-		public Point computeSize(int wHint, int hHint) {
+		public Point computeSize(int wHint, int hHint, boolean changed, boolean realWidth) {
+			if (!isVisible()) {
+				return (new Point(0, 0));
+			}
+
 			if (wHint != SWT.DEFAULT && hHint != SWT.DEFAULT) {
 				return new Point(wHint, hHint);
 			}
@@ -1412,7 +1444,7 @@ public class MainStatusBar
 			Point lastTextSize = sp.getCalculatedSize();
 			gc.dispose();
 
-			lastSize.x += lastTextSize.x;
+			lastSize.x += lastTextSize.x + 10;
 			lastSize.y = Math.max(lastSize.y, lastTextSize.y);
 
 			if (wHint == SWT.DEFAULT) {
@@ -1421,6 +1453,19 @@ public class MainStatusBar
 			if (hHint == SWT.DEFAULT) {
 				pt.y = lastSize.y;
 			}
+
+			if (!realWidth) {
+	  			long now = System.currentTimeMillis();
+	  			if (lastWidth > pt.x && now - widthSetOn < KEEPWIDTHFOR_MS) {
+	  				pt.x = lastWidth;
+	  			} else {
+	  				if (lastWidth != pt.x) {
+	  					lastWidth = pt.x;
+	  				}
+	  				widthSetOn = now;
+	  			}
+			}
+
 			return pt;
 		}
 		
@@ -1454,8 +1499,7 @@ public class MainStatusBar
 			}
 			this.text = text;
 			int oldWidth = lastWidth;
-			Point pt = super.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
-			pt.x += 4;
+			Point pt = computeSize(SWT.DEFAULT, SWT.DEFAULT, true, true);
 			if (pt.x > oldWidth && text.length() > 0) {
 				statusBar.layout();
 			} else if (pt.x < oldWidth) {
@@ -1483,32 +1527,6 @@ public class MainStatusBar
 			statusBar.layout();
 		}
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.swt.custom.CLabel#computeSize(int, int, boolean)
-		 */
-		public Point computeSize(int wHint, int hHint, boolean changed) {
-			if (!isVisible()) {
-				return (new Point(0, 0));
-			}
-			try {
-				Point pt = computeSize(wHint, hHint);
-  			pt.x += 4;
-  
-  			long now = System.currentTimeMillis();
-  			if (lastWidth > pt.x && now - widthSetOn < KEEPWIDTHFOR_MS) {
-  				pt.x = lastWidth;
-  			} else {
-  				if (lastWidth != pt.x)
-  					lastWidth = pt.x;
-  				widthSetOn = now;
-  			}
-  
-  			return pt;
-			} catch (Throwable t) {
-				Debug.out("Error while computing size for CLabel with text:" + getText() + "; " + t.toString());
-				return new Point(0, 0);
-			}
-		}
 	}
 
 	private class UpdateableCLabel
