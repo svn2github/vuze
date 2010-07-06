@@ -113,10 +113,6 @@ public class BDecoder
 		return( decode(new BDecoderInputStreamArray(data, offset, length ),internKeys));
 	}
 	
-	public Map decodeByteBuffer(ByteBuffer buffer, boolean internKeys) throws IOException {
-		return decode(new BDecoderInputStreamArray(buffer),internKeys);
-	}
-	
 	public Map 
 	decodeStream(
 		BufferedInputStream data )  
@@ -994,20 +990,22 @@ public class BDecoder
 		final private byte[] bytes;
 		private int pos = 0;
 		private int markPos;
-		private int size;
+		private int overPos;
 
+		/*
 		public BDecoderInputStreamArray(ByteBuffer buffer) {
 			bytes = buffer.array();
-			pos = buffer.arrayOffset();
-			size = bytes.length;
+			pos = buffer.arrayOffset() + buffer.position();
+			overPos = pos + buffer.remaining();
 		}
+		*/
 		
 		private
 		BDecoderInputStreamArray(
 			byte[]		_buffer )
 		{
 			bytes = _buffer;
-			size = bytes.length;
+			overPos = bytes.length;
 		}
 
 		private
@@ -1018,10 +1016,11 @@ public class BDecoder
 		{
 			if (_offset == 0) {
 				bytes = _buffer;
-				size = _length;
+				overPos = _length;
 			} else {
-  			bytes = new byte[_length];
-  			System.arraycopy(_buffer, _offset, bytes, 0, _length);
+				bytes = _buffer;
+				pos = _offset;
+				overPos = Math.min(_offset + _length, bytes.length);
 			}
 		}
 		
@@ -1030,7 +1029,7 @@ public class BDecoder
 
 			throws IOException
 		{
-			if (pos < size) {
+			if (pos < overPos) {
 				return bytes[pos++] & 0xFF;
 			}
 			return -1;
@@ -1054,8 +1053,8 @@ public class BDecoder
 			throws IOException
 		{
 			
-			if (pos < size) {
-				int toRead = Math.min(length, size - pos);
+			if (pos < overPos) {
+				int toRead = Math.min(length, overPos - pos);
 				System.arraycopy(bytes, pos, b, offset, toRead);
 				pos += toRead;
 				return toRead;
@@ -1069,7 +1068,7 @@ public class BDecoder
 
 			throws IOException
 		{
-			return size - pos;
+			return overPos - pos;
 		}
 
 		public boolean
