@@ -314,11 +314,24 @@ public class SideBarEntrySWT
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (swtItem != null) {
-					swtItem.dispose();
-					swtItem = null;
+					try {
+  					swtItem.setFont(null);
+  					swtItem.dispose();
+					} catch (Exception e) {
+						// on OSX, SWT does some misguided exceptions on disposal of TreeItem
+						// We occasionally get SWTException of "Widget is Disposed" or
+						// "Argument not valid", as well as NPEs
+						Debug.outNoStack(
+								"Warning on SidebarEntry dispose: " + e.toString(), false);
+					} finally {
+  					swtItem = null;
+					}
 				} else if (iview != null) {
-					iview.delete();
-					iview = null;
+					try {
+						iview.delete();
+					} finally {
+						iview = null;
+					}
 				}
 			}
 		});
