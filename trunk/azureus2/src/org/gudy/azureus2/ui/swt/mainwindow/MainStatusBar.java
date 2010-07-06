@@ -969,26 +969,27 @@ public class MainStatusBar
 			}
 			
 			if (imgRec != null && !imgRec.isDisposed()) {
-  			GC gc = new GC(imgRec);
-  			long rec = rec_data + rec_prot;
-  			if (rec > max_rec) {
-  				int y = 20 - (int) (max_rec * 20 / rec);
-  				gc.setBackground(statusDown.getBackground());
-    			gc.fillRectangle(0, 0, 99, y);
-  				//gc.drawImage(imgRec, 1, 0, 99, 20, 0, y, 99, 20 - y);
-  				gc.copyArea(1, 0, 99, 20, 0, y);
-  				max_rec = rec;
-  			} else {
-  				gc.copyArea(1, 0, 99, 20, 0, 0);
-  				//gc.drawImage(imgRec, 1, 0, 99, 20, 0, 0, 99, 20);
-  			}
-  			gc.setForeground(statusDown.getBackground());
-  			int breakPoint = 20 - (max_rec == 0 ? 0 : (int) (rec * 20 / max_rec));
-  			gc.drawLine(99, 0, 99, breakPoint);
-  			gc.setForeground(Colors.blues[5]);
-  			gc.drawLine(99, breakPoint, 99, 19);
-  			gc.dispose();
-  			statusDown.redraw();
+				GC gc = new GC(imgRec);
+				long rec = rec_data;
+				if (rec > max_rec) {
+					int y = 20 - (int) (max_rec * 20 / rec);
+					gc.setBackground(statusDown.getBackground());
+					gc.fillRectangle(0, 0, 99, y);
+					// gc.drawImage(imgRec, 1, 0, 99, 20, 0, y, 99, 20 - y);
+					gc.copyArea(1, 0, 99, 20, 0, y);
+					max_rec = rec;
+				} else {
+					gc.copyArea(1, 0, 99, 20, 0, 0);
+					// gc.drawImage(imgRec, 1, 0, 99, 20, 0, 0, 99, 20);
+				}
+				gc.setForeground(statusDown.getBackground());
+				int breakPoint = 20 - (max_rec == 0 ? 0
+						: (int) (rec * 20 / max_rec));
+				gc.drawLine(99, 0, 99, breakPoint);
+				gc.setForeground(Colors.blues[5]);
+				gc.drawLine(99, breakPoint, 99, 19);
+				gc.dispose();
+				statusDown.redraw();
 			}
 
 			boolean auto_up = TransferSpeedValidator.isAutoSpeedActive(gm)
@@ -1357,7 +1358,7 @@ public class MainStatusBar
 			if (bgImage != null && !bgImage.isDisposed()) {
 				Rectangle bounds = bgImage.getBounds();
 				if (display.getCursorControl() != this) {
-					e.gc.setAlpha(110);
+					e.gc.setAlpha(100);
 				}
 				e.gc.drawImage(bgImage, 0, 0, bounds.width, bounds.height, 0, 2,
 						size.x, size.y - 4);
