@@ -476,4 +476,10 @@ PluginCoreUtils
 	{
 		return(((PeerImpl)peer).getDelegate());
 	}
+	
+	public static boolean
+	isInitialisationComplete()
+	{
+		return( PluginInitializer.getDefaultInterface().getPluginState().isInitialisationComplete());
+	}
 }

@@ -30,6 +30,8 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.dht.DHT;
@@ -147,6 +149,13 @@ NATTraverser
 				
 				if ( puncher == null ){
 			
+					if ( !PluginCoreUtils.isInitialisationComplete()){
+						
+						listener.failed( new Exception( "NAT traversal failed, initialisation not complete" ));
+						
+						return;
+					}
+
 					PluginInterface dht_pi = 
 						core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
 					
