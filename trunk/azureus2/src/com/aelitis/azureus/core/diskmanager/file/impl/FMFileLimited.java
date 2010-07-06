@@ -197,6 +197,10 @@ FMFileLimited
 				setAccessMode( FM_WRITE );
 				
 				switched_mode = true;
+				
+					// switching mode closes the file...
+				
+				ensureOpen( "FMFileLimited:setPieceComplete2" );
 			}
 			
 			try{
