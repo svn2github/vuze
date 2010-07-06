@@ -998,6 +998,7 @@ public class BDecoder
 
 		public BDecoderInputStreamArray(ByteBuffer buffer) {
 			bytes = buffer.array();
+			pos = buffer.arrayOffset();
 			size = bytes.length;
 		}
 		
