@@ -991,17 +991,22 @@ public class BDecoder
 	
 		extends InputStream
 	{
-		final private ByteBuffer	buffer;
+		final private byte[] bytes;
+		private int pos = 0;
+		private int markPos;
+		private int size;
 
 		public BDecoderInputStreamArray(ByteBuffer buffer) {
-			this.buffer = buffer;
+			bytes = buffer.array();
+			size = bytes.length;
 		}
 		
 		private
 		BDecoderInputStreamArray(
 			byte[]		_buffer )
 		{
-			buffer	= ByteBuffer.wrap(_buffer);
+			bytes = _buffer;
+			size = bytes.length;
 		}
 
 		private
@@ -1010,8 +1015,13 @@ public class BDecoder
 			int			_offset,
 			int			_length )
 		{
-			buffer = ByteBuffer.wrap(_buffer, _offset, _length);
-
+			if (_offset == 0) {
+				bytes = _buffer;
+				size = _length;
+			} else {
+  			bytes = new byte[_length];
+  			System.arraycopy(_buffer, _offset, bytes, 0, _length);
+			}
 		}
 		
 		public int
@@ -1019,10 +1029,10 @@ public class BDecoder
 
 			throws IOException
 		{
-			if(buffer.remaining() > 0)
-				return buffer.get() & 0xFF;
-			else
-				return -1;
+			if (pos < size) {
+				return bytes[pos++] & 0xFF;
+			}
+			return -1;
 		}
 
 		public int
@@ -1043,15 +1053,14 @@ public class BDecoder
 			throws IOException
 		{
 			
-			if (!buffer.hasRemaining() )
-				return -1;
-			
-			int toRead = Math.min(length, buffer.remaining());
-			
-			buffer.get(b, offset, toRead);
+			if (pos < size) {
+				int toRead = Math.min(length, size - pos);
+				System.arraycopy(bytes, pos, b, offset, toRead);
+				pos += toRead;
+				return toRead;
+			}
+			return -1;
 
-
-			return( toRead );
 		}
 
 		public int
@@ -1059,7 +1068,7 @@ public class BDecoder
 
 			throws IOException
 		{
-			return buffer.remaining();
+			return size - pos;
 		}
 
 		public boolean
@@ -1072,7 +1081,7 @@ public class BDecoder
 		mark(
 			int	limit )
 		{
-			buffer.mark();
+			markPos = pos;
 		}
 
 		public void
@@ -1080,7 +1089,7 @@ public class BDecoder
 
 			throws IOException
 		{
-			buffer.reset();
+			pos = markPos;
 		}
 	}
 
