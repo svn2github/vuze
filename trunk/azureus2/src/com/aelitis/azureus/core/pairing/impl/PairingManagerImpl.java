@@ -1778,6 +1778,59 @@ PairingManagerImpl
 			return((String)map.get( "ac" ));
 		}
 		
+		public List<InetAddress>
+		getAddresses()
+		{
+			Set<InetAddress> addresses = new HashSet<InetAddress>();
+			
+			addAddress( addresses, "c_v4" );
+			addAddress( addresses, "c_v6" );
+			addAddress( addresses, "l_v4" );
+			addAddress( addresses, "l_v6" );
+			addAddress( addresses, "e_v4" );
+			addAddress( addresses, "e_v6" );
+			addAddress( addresses, "e_l_v4" );
+			addAddress( addresses, "e_l_v6" );
+			addAddress( addresses, "e_h" );
+			
+			return( new ArrayList<InetAddress>( addresses ));
+		}
+		
+		private void
+		addAddress(
+			Set<InetAddress>	addresses,
+			String				key )
+		{
+			String str = (String)map.get( key );
+			
+			if ( str != null ){
+				
+				String[] bits = str.split(",");
+				
+				for ( String bit: bits ){
+					
+					bit = bit.trim();
+					
+					if ( bit.length() == 0 ){
+						
+						continue;
+					}
+					
+					
+					if ( bit.endsWith( "*" )){
+						
+						bit = bit.substring( 0, bit.length()-1 );
+					}
+
+					try{
+						addresses.add( InetAddress.getByName( bit ));
+						
+					}catch( Throwable e ){
+					}
+				}
+			}
+		}
+		
 		public List<PairedService>
 		getServices()
 		{

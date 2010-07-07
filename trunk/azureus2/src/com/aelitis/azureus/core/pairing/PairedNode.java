@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.pairing;
 
+import java.net.InetAddress;
 import java.util.List;
 
 public interface 
@@ -28,6 +29,9 @@ PairedNode
 {
 	public String
 	getAccessCode();
+	
+	public List<InetAddress>
+	getAddresses();
 	
 	public List<PairedService>
 	getServices();
