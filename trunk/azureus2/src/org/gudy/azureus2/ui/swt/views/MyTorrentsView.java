@@ -126,6 +126,8 @@ public class MyTorrentsView
 	private boolean forceHeaderVisible = false;
 	private TableSelectionListener defaultSelectedListener;
 
+	private Composite filterParent;
+
 
 	public MyTorrentsView() {
 		super("MyTorrentsView");
@@ -190,8 +192,12 @@ public class MyTorrentsView
     
     forceHeaderVisible = COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader");
 		if (txtFilter != null) {
-			Composite parent = txtFilter.getParent();
-			Menu menuFilterHeader = new Menu(parent);
+			filterParent = txtFilter.getParent();
+			if (Constants.isWindows) {
+				// dirty hack because window's filter box is within a bubble of it's own
+				filterParent = filterParent.getParent();
+			}
+			Menu menuFilterHeader = new Menu(filterParent);
 			final MenuItem menuItemAlwaysShow = new MenuItem(menuFilterHeader,
 					SWT.CHECK);
 			Messages.setLanguageText(menuItemAlwaysShow,
@@ -213,8 +219,8 @@ public class MyTorrentsView
 				public void widgetDefaultSelected(SelectionEvent e) {
 				}
 			});
-			parent.setMenu(menuFilterHeader);
-			Control[] children = parent.getChildren();
+			filterParent.setMenu(menuFilterHeader);
+			Control[] children = filterParent.getChildren();
 			for (Control control : children) {
 				if (control != txtFilter) {
 					control.setMenu(menuFilterHeader);
@@ -979,15 +985,14 @@ public class MyTorrentsView
 			public void runSupport() {
 				if (txtFilter != null) {
 					boolean visible = filter.length() > 0;
-					Composite c = txtFilter.getParent();
-					Object layoutData = c.getLayoutData();
+					Object layoutData = filterParent.getLayoutData();
 					if (layoutData instanceof FormData) {
 						FormData fd = (FormData) layoutData;
 						boolean wasVisible = fd.height != 0;
 						if (visible != wasVisible) {
   						fd.height = visible ? SWT.DEFAULT : 0;
-  						c.setLayoutData(layoutData);
-  						c.getParent().layout();
+  						filterParent.setLayoutData(layoutData);
+  						filterParent.getParent().layout();
 						}
 					}
 					if (!visible) {
