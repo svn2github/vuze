@@ -195,7 +195,7 @@ LoggerChannelImpl
 	
 	public void log(Object[] relatedTo, int log_type, String data) {
 
-		String listenerData = data;
+		String listenerData;
 		if (relatedTo != null) {
 			StringBuffer text = new StringBuffer();
 			for (int i = 0; i < relatedTo.length; i++) {
@@ -216,7 +216,9 @@ LoggerChannelImpl
 				}
 			}
 			
-			listenerData += "\t" +  text.toString() + "] " + data;
+			listenerData = text.toString() + "] " + data;
+		}else{
+			listenerData = data;
 		}
 		
 		notifyListeners(log_type, addTimeStamp(listenerData));
