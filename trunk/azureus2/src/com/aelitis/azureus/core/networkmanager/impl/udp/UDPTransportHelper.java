@@ -59,7 +59,7 @@ UDPTransportHelper
 	private boolean				closed;
 	private IOException			failed;
 	
-	private ByteBuffer			pending_partial_write;
+	private ByteBuffer[]		pending_partial_writes;
 		
 	private Map	user_data;
 	
@@ -173,15 +173,20 @@ UDPTransportHelper
 	delayWrite(
 		ByteBuffer buffer) 
 	{
-			// TODO: support this one day?
+		if ( pending_partial_writes == null ){
+			
+			pending_partial_writes = new ByteBuffer[]{ buffer };
+			
+			return( true );
+		}
 		
-		return false;
+		return( false );
 	}
 	
 	public boolean
 	hasDelayedWrite()
 	{
-		return( false );
+		return( pending_partial_writes != null );
 	}
 	
 	public int 
@@ -204,35 +209,79 @@ UDPTransportHelper
 			}
 		}
 		
-		if ( partial_write ){
+		int	buffer_rem = buffer.remaining();
+		
+		if ( partial_write && buffer_rem < UDPConnectionSet.MIN_WRITE_PAYLOAD ){
 			
-			if ( pending_partial_write == null ){
+			if ( pending_partial_writes == null ){
 				
-				if ( buffer.remaining() < UDPConnectionSet.MIN_WRITE_PAYLOAD ){
+				pending_partial_writes = new ByteBuffer[1];
+								
+				ByteBuffer	copy = ByteBuffer.allocate( buffer_rem );
 				
-					ByteBuffer	copy = ByteBuffer.allocate( buffer.remaining());
+				copy.put( buffer );
+				
+				copy.position( 0 );
+				
+				pending_partial_writes[0] = copy;
+				
+				return( buffer_rem );
+				
+			}else{
+				
+				int	queued = 0;
+				
+				for ( int i=0;i<pending_partial_writes.length;i++){
+					
+					queued += pending_partial_writes[i].remaining();
+				}
+				
+				if ( queued + buffer_rem <= UDPConnectionSet.MAX_BUFFERED_PAYLOAD ){
+					
+					ByteBuffer[] new_ppw = new ByteBuffer[ pending_partial_writes.length+1 ];
+					
+					for (int i=0;i<pending_partial_writes.length;i++){
+						
+						new_ppw[i] = pending_partial_writes[i];
+					}
+					
+					ByteBuffer	copy = ByteBuffer.allocate( buffer_rem );
 					
 					copy.put( buffer );
 					
 					copy.position( 0 );
 					
-					pending_partial_write = copy;
+					new_ppw[pending_partial_writes.length] = copy;
 					
-					return( copy.remaining());
+					pending_partial_writes = new_ppw;
+					
+					return( buffer_rem );
 				}
 			}
 		}
 		
-		if ( pending_partial_write != null ){
+		if ( pending_partial_writes != null ){
+			
+			int	ppw_len = pending_partial_writes.length;
+			int	ppw_rem	= 0;
+			
+			ByteBuffer[]	buffers2 = new ByteBuffer[ppw_len+1];
+			
+			for ( int i=0;i<ppw_len;i++){
+				
+				buffers2[i] = pending_partial_writes[i];
+				
+				ppw_rem += buffers2[i].remaining();
+			}
+			
+			buffers2[ppw_len] = buffer;
 			
 			try{
-				int	pw_len = pending_partial_write.remaining();
+				int written = connection.write( buffers2, 0, buffers2.length );
 				
-				int	written = connection.write( new ByteBuffer[]{ pending_partial_write, buffer }, 0, 2 );
-				
-				if ( written >= pw_len ){
+				if ( written >= ppw_rem ){
 					
-					return( written - pw_len );
+					return( written - ppw_rem );
 					
 				}else{
 					
@@ -241,12 +290,18 @@ UDPTransportHelper
 				
 			}finally{
 				
-				if ( pending_partial_write.remaining() == 0 ){
+				ppw_rem	= 0;
+				
+				for ( int i=0;i<ppw_len;i++){
+										
+					ppw_rem += buffers2[i].remaining();
+				}
+				
+				if ( ppw_rem == 0 ){
 					
-					pending_partial_write = null;
+					pending_partial_writes = null;
 				}
 			}
-			
 		}else{
 			
 			return( connection.write( new ByteBuffer[]{ buffer }, 0, 1 ));
@@ -274,13 +329,21 @@ UDPTransportHelper
 			}
 		}
 		
-		if ( pending_partial_write != null ){
+		if ( pending_partial_writes != null ){
 			
-			ByteBuffer[]	buffers2 = new ByteBuffer[length+1];
+			int	ppw_len = pending_partial_writes.length;
+			int	ppw_rem	= 0;
 			
-			buffers2[0] = pending_partial_write;
+			ByteBuffer[]	buffers2 = new ByteBuffer[length+ppw_len];
 			
-			int	pos = 1;
+			for ( int i=0;i<ppw_len;i++){
+				
+				buffers2[i] = pending_partial_writes[i];
+				
+				ppw_rem += buffers2[i].remaining();
+			}
+			
+			int	pos = ppw_len;
 
 			for (int i=array_offset;i<array_offset+length;i++){
 				
@@ -288,13 +351,11 @@ UDPTransportHelper
 			}
 			
 			try{
-				int	pw_len = pending_partial_write.remaining();
-				
 				int written = connection.write( buffers2, 0, buffers2.length );
 				
-				if ( written >= pw_len ){
+				if ( written >= ppw_rem ){
 					
-					return( written - pw_len );
+					return( written - ppw_rem );
 					
 				}else{
 					
@@ -303,9 +364,16 @@ UDPTransportHelper
 				
 			}finally{
 				
-				if ( pending_partial_write.remaining() == 0 ){
+				ppw_rem	= 0;
+				
+				for ( int i=0;i<ppw_len;i++){
+										
+					ppw_rem += buffers2[i].remaining();
+				}
+				
+				if ( ppw_rem == 0 ){
 					
-					pending_partial_write = null;
+					pending_partial_writes = null;
 				}
 			}
 		}else{

@@ -64,7 +64,8 @@ UDPConnectionSet
 	private static final int MIN_MSS	= 256;
 	private static final int MAX_HEADER	= 128;
 	
-	public static final int MIN_WRITE_PAYLOAD	= MIN_MSS - MAX_HEADER;
+	public static final int MIN_WRITE_PAYLOAD		= MIN_MSS - MAX_HEADER;
+	public static final int MAX_BUFFERED_PAYLOAD	= 512;
 		
 	private UDPConnectionManager	manager;
 	private UDPSelector				selector;
