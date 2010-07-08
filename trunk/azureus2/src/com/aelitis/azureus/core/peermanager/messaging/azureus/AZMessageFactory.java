@@ -209,9 +209,7 @@ public class AZMessageFactory {
     		
     		padding_length = 0;
     	}
-    		
-    	System.out.println( "Padding: enable=" + enable_padding + ", len=" + padding_length );
-    	
+    		    	
     	byte	flags = enable_padding?(byte)0x01:(byte)0x00;
     	
     	int	header_size = 4 + 4 + id_bytes.length + 1 + (enable_padding?(2+padding_length):0);
