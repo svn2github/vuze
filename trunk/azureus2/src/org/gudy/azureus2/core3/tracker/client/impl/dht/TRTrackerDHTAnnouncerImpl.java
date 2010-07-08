@@ -217,8 +217,6 @@ TRTrackerDHTAnnouncerImpl
 		boolean	force )
 	{
 		state = TS_DOWNLOADING;
-		
-		checkCache();
 	}	
 	
 	public void
@@ -348,24 +346,20 @@ TRTrackerDHTAnnouncerImpl
 		}
 		
 		last_response = response;
-				
-		helper.informResponse( this, response );
-	}
-	
-	protected void
-	checkCache()
-	{
-		if ( last_response.getStatus() != TRTrackerAnnouncerResponse.ST_ONLINE ){
+			
+		TRTrackerAnnouncerResponsePeer[] peers = response.getPeers();
+		
+		if ( peers == null || peers.length < 5 ){
 			
 		     TRTrackerAnnouncerResponsePeer[]	cached_peers = helper.getPeersFromCache(100);
 
 		     if ( cached_peers.length > 0 ){
 		     	
-		     	last_response.setPeers( cached_peers );
-		     	
-				helper.informResponse( this, last_response );
+		    	 response.setPeers( cached_peers );
 		     }
 		}
+		
+		helper.informResponse( this, response );
 	}
 	
 	public void 
