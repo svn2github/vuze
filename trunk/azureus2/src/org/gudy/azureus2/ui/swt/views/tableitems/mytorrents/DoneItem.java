@@ -72,8 +72,9 @@ public class DoneItem
 			long length = fileInfo.getLength();
 			if (length == 0) {
 				value = 1000;
+			} else {
+				value = (int) (fileInfo.getDownloaded() * 1000 / length);
 			}
-			value = (int) (fileInfo.getDownloaded() * 1000 / length);
   	} else {
   		return;
   	}
