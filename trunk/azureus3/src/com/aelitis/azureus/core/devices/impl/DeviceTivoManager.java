@@ -49,6 +49,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceManagerException;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 
 public class 
@@ -434,7 +435,9 @@ DeviceTivoManager
 				}catch( Throwable e ){
 				}
 				
-				control_socket.bind( new InetSocketAddress((InetAddress)null, CONTROL_PORT ));
+				InetAddress bind = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
+				
+				control_socket.bind( new InetSocketAddress( bind, CONTROL_PORT ));
 		
 				timer_event = 
 					SimpleTimer.addPeriodicEvent(
