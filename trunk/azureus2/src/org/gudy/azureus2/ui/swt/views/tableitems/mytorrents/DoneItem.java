@@ -69,7 +69,11 @@ public class DoneItem
   		value = ((DownloadManager) ds).getStats().getCompleted();
   	} else if (ds instanceof DiskManagerFileInfo) {
   		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
-  		value = (int) (fileInfo.getDownloaded() * 1000 / fileInfo.getLength());
+			long length = fileInfo.getLength();
+			if (length == 0) {
+				value = 1000;
+			}
+			value = (int) (fileInfo.getDownloaded() * 1000 / length);
   	} else {
   		return;
   	}

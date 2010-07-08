@@ -364,7 +364,11 @@ public class ColumnProgressETA
 			return ((DownloadManager) ds).getStats().getDownloadCompleted(true);
 		} else if (ds instanceof DiskManagerFileInfo) {
 			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
-			return (int) (fileInfo.getDownloaded() * 100 / fileInfo.getLength());
+			long length = fileInfo.getLength();
+			if (length == 0) {
+				return 1000;
+			}
+			return (int) (fileInfo.getDownloaded() * 1000 / length);
 		}
 		return 0;
 	}
@@ -426,14 +430,19 @@ public class ColumnProgressETA
 			DiskManagerFileInfo fileInfo, Rectangle cellArea) {
 		long percent = 0;
 		long bytesDownloaded = fileInfo.getDownloaded();
+		long length = fileInfo.getLength();
 
 		if (bytesDownloaded < 0) {
 
 			return;
+			
+		} else if (length == 0) {
+
+			percent = 1000;
 
 		} else if (fileInfo.getLength() != 0) {
 
-			percent = (1000 * bytesDownloaded) / fileInfo.getLength();
+			percent = (1000 * bytesDownloaded) / length;
 		}
 
 		final int BUTTON_WIDTH = 16;
