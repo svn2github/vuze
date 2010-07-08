@@ -2011,6 +2011,8 @@ ProtocolDecoderPHE
 
 		processing_complete	= true;
 		
+		transport.setScatteringMode(0);
+		
 		adapter.decodeComplete( this, initial_data_out );	
 	}
 	
