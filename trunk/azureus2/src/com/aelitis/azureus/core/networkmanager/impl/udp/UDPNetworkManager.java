@@ -35,8 +35,6 @@ import com.aelitis.net.udp.uc.PRUDPPacket;
 public class 
 UDPNetworkManager 
 {
-	public static final int		PROTOCOL_HEADER_SIZE	= UDPConnectionSet.PROTOCOL_DATA_HEADER_SIZE;
-	
 	public static final boolean	MINIMISE_OVERHEADS	= true;
 	
 	public static final int MIN_INCOMING_INITIAL_PACKET_SIZE = ProtocolDecoderPHE.MIN_INCOMING_INITIAL_PACKET_SIZE;
@@ -70,7 +68,7 @@ UDPNetworkManager
 	refreshRates(
 		int		min_rate )
 	{
-		udp_mss_size = COConfigurationManager.getIntParameter( "network.udp.mtu.size" ) - PROTOCOL_HEADER_SIZE; 	        
+		udp_mss_size = COConfigurationManager.getIntParameter( "network.udp.mtu.size" ) - 40; 	        
 
 	    if( udp_mss_size > min_rate )  udp_mss_size = min_rate - 1;
 	    

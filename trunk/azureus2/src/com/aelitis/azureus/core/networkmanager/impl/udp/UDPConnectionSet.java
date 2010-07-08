@@ -46,8 +46,6 @@ public class
 UDPConnectionSet 
 {
 	private static final LogIDs LOGID = LogIDs.NET;
-
-	public static final int PROTOCOL_DATA_HEADER_SIZE	= 30;
 	
 	private static final boolean	DEBUG_SEQUENCES	= false;
 	
@@ -925,7 +923,7 @@ UDPConnectionSet
 		
 		byte[]	payload = packet.getBuffer();
 			
-		if ( manager.trace() ){
+		if ( manager.trace()){
 			trace( packet.getConnection(), "Write: " + packet.getString());
 		}
 						
@@ -1600,10 +1598,8 @@ UDPConnectionSet
 			header_buffer.putInt( connection.getID());
 			
 			int header_size = writeHeaderEnd( header_buffer, false );
-						
-				// we get to add the header back in here to give the total packet size available
-			
-			int	mss = connection.getTransport().getMss() + UDPNetworkManager.PROTOCOL_HEADER_SIZE;
+									
+			int	mss = connection.getTransport().getMss();
 	
 				// just in case we have some crazy limit set
 			
