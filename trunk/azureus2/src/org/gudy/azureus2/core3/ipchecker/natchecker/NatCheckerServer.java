@@ -196,7 +196,7 @@ public class NatCheckerServer extends AEThread {
 	              }
 	            },
 	            new MessageStreamFactory() {
-	              public MessageStreamEncoder createEncoder() {  return new AZMessageEncoder(false);  /* unused */}
+	              public MessageStreamEncoder createEncoder() {  return new AZMessageEncoder(AZMessageEncoder.PADDING_MODE_NONE);  /* unused */}
 	              public MessageStreamDecoder createDecoder() {  return new AZMessageDecoder();  /* unused */}
 	            });
 	      }

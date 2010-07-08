@@ -169,7 +169,7 @@ public class AZMessageFactory {
    * @param base_message to create from
    * @return AZ raw message
    */
-  public static RawMessage createAZRawMessage( Message base_message, boolean enable_padding ) {
+  public static RawMessage createAZRawMessage( Message base_message, int padding_mode ) {
     byte[] id_bytes = base_message.getIDBytes();
     byte version = base_message.getVersion();
     
@@ -185,9 +185,33 @@ public class AZMessageFactory {
     DirectByteBuffer header;
     
     if ( version >= MESSAGE_VERSION_SUPPORTS_PADDING ){
-    	    	
-    	short 	padding_length = enable_padding?(short)(( Math.random() * ( payload_size>256?SMALL_PAD_MAX:BIG_PAD_MAX ))+1):0;
-    	    	
+    	    
+    	boolean enable_padding = padding_mode != AZMessageEncoder.PADDING_MODE_NONE;
+    	
+    	short 	padding_length;
+    	
+    	if ( enable_padding ){
+    		
+    		if ( padding_mode == AZMessageEncoder.PADDING_MODE_MINIMAL ){
+    			
+       			padding_length = (short)(( Math.random() * SMALL_PAD_MAX  ));
+
+    		}else{
+    			
+    			padding_length = (short)(( Math.random() * ( payload_size>256?SMALL_PAD_MAX:BIG_PAD_MAX )));
+    		}
+    		
+    		if ( padding_length == 0 ){
+    			
+    			enable_padding = false;
+    		}
+    	}else{
+    		
+    		padding_length = 0;
+    	}
+    		
+    	System.out.println( "Padding: enable=" + enable_padding + ", len=" + padding_length );
+    	
     	byte	flags = enable_padding?(byte)0x01:(byte)0x00;
     	
     	int	header_size = 4 + 4 + id_bytes.length + 1 + (enable_padding?(2+padding_length):0);

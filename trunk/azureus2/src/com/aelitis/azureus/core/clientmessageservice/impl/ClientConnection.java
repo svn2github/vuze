@@ -48,7 +48,7 @@ public class ClientConnection {
 	private final Transport light_transport;
 	private final OutgoingMessageQueue out_queue;
 	private final AZMessageDecoder decoder;
-	private static final AZMessageEncoder encoder = new AZMessageEncoder( false );
+	private static final AZMessageEncoder encoder = new AZMessageEncoder( AZMessageEncoder.PADDING_MODE_NONE );
 	private long last_activity_time;
 	
 	private final AEMonitor msg_mon = new AEMonitor( "ClientConnection" );

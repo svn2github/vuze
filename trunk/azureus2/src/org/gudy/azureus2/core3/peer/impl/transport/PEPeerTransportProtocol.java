@@ -2315,9 +2315,18 @@ implements PEPeerTransport
 			this.ml_dht_enabled = false;
         
 			Transport transport = connection.getTransport();
-			boolean enable_padding = transport.isTCP() && transport.isEncrypted();
+			int padding_mode;
+			if ( transport.isEncrypted()){
+				if ( transport.isTCP()){
+					padding_mode = AZMessageEncoder.PADDING_MODE_NORMAL;
+				}else{
+					padding_mode = AZMessageEncoder.PADDING_MODE_MINIMAL;
+				}
+			}else{
+				padding_mode = AZMessageEncoder.PADDING_MODE_NONE;
+			}
 			connection.getIncomingMessageQueue().setDecoder(new AZMessageDecoder());
-			connection.getOutgoingMessageQueue().setEncoder(new AZMessageEncoder(enable_padding));
+			connection.getOutgoingMessageQueue().setEncoder(new AZMessageEncoder(padding_mode));
 
 			// We will wait until we get the Az handshake before considering the connection
 			// initialised.
