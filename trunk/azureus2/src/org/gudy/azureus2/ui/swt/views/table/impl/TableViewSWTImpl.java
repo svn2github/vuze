@@ -757,6 +757,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		table.setMenu(menu);
 		table.setData("Name", sTableID);
 		table.setData("TableView", this);
+		
+		// On Windows, TreeItems POSTPAINT event spendsabout 7% of it's time in getFont()
+		// calling the OS API.  If we set the font, it skips the API call.
+		// This could be optimized further by setting the font on each table item,
+		// however, it's unknown what performace hit we'd get on row creation.
+		table.setFont(table.getFont());
 
 		// Setup table
 		// -----------
