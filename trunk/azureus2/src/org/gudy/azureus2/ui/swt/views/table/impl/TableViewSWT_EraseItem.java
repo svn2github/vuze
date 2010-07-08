@@ -156,6 +156,9 @@ public class TableViewSWT_EraseItem
 			Color color = alternatingColors[pos % 2];
 			if (color != null) {
 				event.gc.setBackground(color);
+				if (parentItem != null) {
+					event.gc.setAlpha(128);
+				}
 			}
 			Rectangle drawBounds = bounds;
 			if (TableViewSWTImpl.DRAW_FULL_ROW && drawExtended
