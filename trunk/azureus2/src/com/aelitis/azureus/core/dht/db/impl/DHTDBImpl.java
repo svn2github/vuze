@@ -913,7 +913,11 @@ DHTDBImpl
 					
 					DHTDBValueImpl	value = it2.next();
 				
-					if ( !value.isLocal()){
+					if ( value.isLocal()){
+						
+						all_rf_values = false;
+						
+					}else{
 						
 						if ( value.getReplicationFactor() == DHT.REP_FACT_DEFAULT ){
 							
