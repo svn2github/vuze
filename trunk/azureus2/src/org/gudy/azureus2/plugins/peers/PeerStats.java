@@ -94,6 +94,16 @@ public interface PeerStats
 	 */
 	public int getStatisticSentAverage();
 
+	
+	/**
+	 * For an external process receiving bytes on behalf of this peer this gives the current
+	 * rate-limited number of bytes that can be received. Update with actual send using 'sent' below.
+	 * @since 4.4.0.7 
+	 * @return
+	 */
+	
+	public int getPermittedBytesToReceive();
+	
 	/**
 	 * The given number of data (payload) bytes have been received from the peer.
 	 * This number gets added to the total and is used to calculate the rate.
@@ -108,6 +118,14 @@ public interface PeerStats
 	
 	public void received(int bytes);
 
+	/**
+	 * For an external process sending bytes on behalf of this peer this gives the current
+	 * rate-limited number of bytes that can be sent. Update with actual send using 'sent' below.
+	 * @since 4.4.0.7 
+	 * @return
+	 */
+	
+	public int getPermittedBytesToSend();
 	
 	/**
 	 * The given number of data (payload) bytes have been sent to the peer.
@@ -120,7 +138,7 @@ public interface PeerStats
 	 * 
 	 * @since 4.4.0.7
 	 */
-	
+		
 	public void sent(int bytes);
 	
 	/**

@@ -179,4 +179,13 @@ PEPeerStats
   public void setDownloadRateLimitBytesPerSecond( int bytes );
   public int getUploadRateLimitBytesPerSecond();
   public int getDownloadRateLimitBytesPerSecond();
+  
+  	// external rate control
+  
+  public int getPermittedBytesToSend();
+  public void permittedSendBytesUsed( int num );
+  
+  public int getPermittedBytesToReceive();
+  public void permittedReceiveBytesUsed( int num );
+  
 }

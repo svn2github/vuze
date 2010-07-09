@@ -97,19 +97,35 @@ PeerStatsImpl
 		return( (int)delegate.getEstimatedUploadRateOfPeer());
 	}
 	
+	public int 
+	getPermittedBytesToReceive()
+	{
+		return( delegate.getPermittedBytesToReceive());
+	}
+
 	public void
 	received(
 		int		bytes )
 	{
+		delegate.permittedReceiveBytesUsed( bytes );
+		
 		delegate.dataBytesReceived( bytes );
 		
 		manager.dataBytesReceived( delegate.getPeer(), bytes );
+	}
+	
+	public int 
+	getPermittedBytesToSend()
+	{
+		return( delegate.getPermittedBytesToSend());
 	}
 	
 	public void
 	sent(
 		int		bytes )
 	{
+		delegate.permittedSendBytesUsed( bytes );
+		
 		delegate.dataBytesSent( bytes );
 		
 		manager.dataBytesSent( delegate.getPeer(), bytes );

@@ -28,6 +28,9 @@ package org.gudy.azureus2.core3.peer.impl;
 
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
+
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 
 public class 
 PEPeerStatsImpl 
@@ -204,4 +207,38 @@ PEPeerStatsImpl
     public void setDownloadRateLimitBytesPerSecond( int bytes ){owner.setDownloadRateLimitBytesPerSecond( bytes );}
     public int getUploadRateLimitBytesPerSecond(){return owner.getUploadRateLimitBytesPerSecond();}
     public int getDownloadRateLimitBytesPerSecond(){return owner.getDownloadRateLimitBytesPerSecond();}
+    
+    public int 
+    getPermittedBytesToSend()
+    {
+    	return(NetworkManager.getSingleton().getRateHandler(
+    		((ConnectionImpl)owner.getPluginConnection()).getCoreConnection(),
+    		true ).getCurrentNumBytesAllowed());
+    }
+    
+    public void 
+    permittedSendBytesUsed( 
+    	int num )
+    {
+    	NetworkManager.getSingleton().getRateHandler(
+        	((ConnectionImpl)owner.getPluginConnection()).getCoreConnection(),
+        	true ).bytesProcessed( num );
+    }
+    
+    public int 
+    getPermittedBytesToReceive()
+    {
+    	return(NetworkManager.getSingleton().getRateHandler(
+        	((ConnectionImpl)owner.getPluginConnection()).getCoreConnection(),
+        	false ).getCurrentNumBytesAllowed());
+    }
+    
+    public void 
+    permittedReceiveBytesUsed( 
+    	int num )
+    {
+       	NetworkManager.getSingleton().getRateHandler(
+        	((ConnectionImpl)owner.getPluginConnection()).getCoreConnection(),
+        	false ).bytesProcessed( num );
+    }
 }

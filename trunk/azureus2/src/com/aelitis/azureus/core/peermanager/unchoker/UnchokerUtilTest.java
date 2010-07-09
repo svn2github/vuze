@@ -286,6 +286,10 @@ public class UnchokerUtilTest {
         public int getUploadRateLimitBytesPerSecond(){return 0;}
         public int getDownloadRateLimitBytesPerSecond(){return 0;}
         public long getEstimatedSecondsToCompletion(){return(0);};
+        public int getPermittedBytesToSend(){ return 0; }
+        public void permittedSendBytesUsed( int num ){}
+        public int getPermittedBytesToReceive(){ return 0; }
+        public void permittedReceiveBytesUsed( int num ){}
       };
       peers.add( peer );
     }
