@@ -44,8 +44,8 @@ public class PlatformVuzeActivitiesMessenger
 
 	public static void getEntries(final long contentNetworkID, final long agoMS,
 			long maxDelayMS, String reason, final GetEntriesReplyListener replyListener) {
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID, OP_GET,
-				new Object[] {
+		PlatformMessage message = new PlatformMessage("AZMSG",
+				reason.equals("shown") ? "vznews" : LISTENER_ID, OP_GET, new Object[] {
 					"ago-ms",
 					new Long(agoMS),
 					"reason",
