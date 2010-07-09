@@ -35,4 +35,8 @@ TRTrackerAnnouncerResponsePeer
 	
 	public int
 	getUploadSpeed();
+	
+	public int
+	compareTo( 
+		TRTrackerAnnouncerResponsePeer	other );
 }

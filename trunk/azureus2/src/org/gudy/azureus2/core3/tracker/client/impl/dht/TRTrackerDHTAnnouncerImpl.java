@@ -23,7 +23,12 @@
 package org.gudy.azureus2.core3.tracker.client.impl.dht;
 
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -355,7 +360,27 @@ TRTrackerDHTAnnouncerImpl
 
 		     if ( cached_peers.length > 0 ){
 		     	
-		    	 response.setPeers( cached_peers );
+		    	 Set<TRTrackerAnnouncerResponsePeer>	new_peers = 
+		    		 new TreeSet<TRTrackerAnnouncerResponsePeer>(
+			    		new Comparator<TRTrackerAnnouncerResponsePeer>()
+			    		{
+			    			public int 
+			    			compare(
+			    				TRTrackerAnnouncerResponsePeer o1,
+			    				TRTrackerAnnouncerResponsePeer o2 ) 
+			    			{
+			    				return( o1.compareTo( o2 ));
+			    			}		    			
+			    		});
+		    	 
+		    	 if ( peers != null ){
+		    		 
+		    		 new_peers.addAll( Arrays.asList( peers ));
+		    	 }
+		    	 
+	    		 new_peers.addAll( Arrays.asList( cached_peers ));
+
+		    	 response.setPeers( new_peers.toArray( new TRTrackerAnnouncerResponsePeer[new_peers.size()]) );
 		     }
 		}
 		

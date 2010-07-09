@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.tracker.client.impl;
 
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.StringInterner;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 
 public class 
 TRTrackerAnnouncerResponsePeerImpl
@@ -120,6 +121,20 @@ TRTrackerAnnouncerResponsePeerImpl
 	getKey()
 	{
 		return( address + ":" + tcp_port );
+	}
+	
+	public int 
+	compareTo(
+		TRTrackerAnnouncerResponsePeer other ) 
+	{
+		return( getString2( this ).compareTo( getString2( other )));
+	}
+	
+	private String
+	getString2(
+		TRTrackerAnnouncerResponsePeer	peer )
+	{
+		return( peer.getAddress() + ":" + peer.getPort() + ":" + peer.getHTTPPort() + ":" + peer.getUDPPort());
 	}
 	
 	public String
