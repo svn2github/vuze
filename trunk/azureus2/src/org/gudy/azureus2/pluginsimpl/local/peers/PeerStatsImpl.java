@@ -107,6 +107,15 @@ PeerStatsImpl
 	}
 	
 	public void
+	sent(
+		int		bytes )
+	{
+		delegate.dataBytesSent( bytes );
+		
+		manager.dataBytesSent( delegate.getPeer(), bytes );
+	}
+	
+	public void
 	discarded(
 		int		bytes )
 	{

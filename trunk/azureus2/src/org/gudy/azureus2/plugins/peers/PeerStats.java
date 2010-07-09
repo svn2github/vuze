@@ -105,8 +105,24 @@ public interface PeerStats
 	 * 
 	 * @since 2.1.0.0
 	 */
+	
 	public void received(int bytes);
 
+	
+	/**
+	 * The given number of data (payload) bytes have been sent to the peer.
+	 * This number gets added to the total and is used to calculate the rate.
+	 * <p>
+	 * Use this if you are talking to the peer outside of Azureus' API, and
+	 * want your stats added into Azureus'
+	 * 
+	 * @param bytes
+	 * 
+	 * @since 4.4.0.7
+	 */
+	
+	public void sent(int bytes);
+	
 	/**
 	 * The given number of bytes received from the peer were discarded.
 	 * This number gets added to the total and is used to calculate rates that
