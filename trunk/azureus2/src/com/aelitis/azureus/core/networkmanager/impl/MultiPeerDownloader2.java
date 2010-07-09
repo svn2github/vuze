@@ -66,6 +66,11 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 		main_handler = _main_handler;
 	}
 
+	public RateHandler 
+	getRateHandler() 
+	{
+		return( main_handler );
+	}
 
 	/**
 	 * Add the given connection to the downloader.

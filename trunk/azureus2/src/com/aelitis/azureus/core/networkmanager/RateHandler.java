@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager.impl;
+package com.aelitis.azureus.core.networkmanager;
 
 /**
  * Handler to allow external control of an entity's byte processing rate.

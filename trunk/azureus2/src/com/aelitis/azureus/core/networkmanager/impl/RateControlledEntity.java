@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.networkmanager.impl;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
+import com.aelitis.azureus.core.networkmanager.RateHandler;
 
 /**
  * Interface designation for rate-limited entities controlled by a handler.
@@ -72,6 +73,9 @@ public interface RateControlledEntity {
   
   public int
   getReadyConnectionCount( EventWaiter waiter );
+  
+  public RateHandler
+  getRateHandler();
   
   public String
   getString();

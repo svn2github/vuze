@@ -176,6 +176,41 @@ public class EntityHandler {
     finally {  lock.exit();  }
   }
 
+  public RateHandler
+  getRateHandler(
+	 NetworkConnectionBase		connection )
+  {
+	  try{
+		  lock.enter();
+		  
+		  if( handler_type == TransferProcessor.TYPE_UPLOAD ){
+			  
+			  SinglePeerUploader upload_entity = (SinglePeerUploader)upgraded_connections.get( connection );
+			  
+			  if ( upload_entity != null ){
+				  
+				  return( upload_entity.getRateHandler());
+			  }else{
+				  
+				  return( global_uploader.getRateHandler());
+			  }
+		  }else{
+			  
+			  SinglePeerDownloader download_entity = (SinglePeerDownloader)upgraded_connections.get( connection );
+			  
+			  if ( download_entity != null ){
+				  
+				  return( download_entity.getRateHandler());
+			  }else{
+				  
+				  return( global_downloader.getRateHandler());
+			  } 
+		  }
+
+	  }finally{
+		  lock.exit();  
+	  }
+  }
   
   /**
    * Is the general pool entity in need of a transfer op.

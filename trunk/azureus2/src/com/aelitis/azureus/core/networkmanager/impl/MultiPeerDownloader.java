@@ -53,6 +53,11 @@ public class MultiPeerDownloader implements RateControlledEntity {
 		this.main_handler = main_handler;
 	}
 
+	public RateHandler 
+	getRateHandler() 
+	{
+		return( main_handler );
+	}
 
 	/**
 	 * Add the given connection to the downloader.

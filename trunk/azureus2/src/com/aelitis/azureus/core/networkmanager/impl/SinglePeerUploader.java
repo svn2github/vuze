@@ -29,7 +29,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
-import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
+import com.aelitis.azureus.core.networkmanager.RateHandler;
 
 
 /**
@@ -45,6 +45,12 @@ public class SinglePeerUploader implements RateControlledEntity {
     this.rate_handler = rate_handler;
   }
     
+	public RateHandler 
+	getRateHandler() 
+	{
+		return( rate_handler );
+	}
+	
 ////////////////RateControlledWriteEntity implementation ////////////////////
   
   public boolean canProcess(EventWaiter waiter) {

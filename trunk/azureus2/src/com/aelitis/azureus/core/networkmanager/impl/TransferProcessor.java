@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.RateHandler;
 
 
 
@@ -449,6 +450,12 @@ public class TransferProcessor {
     }
   }
   
+  public RateHandler
+  getRateHandler(
+	NetworkConnectionBase	connection )
+  {
+	return( main_controller.getRateHandler( connection ));  
+  }
   
   private ByteBucket
   createBucket(

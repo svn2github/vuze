@@ -594,6 +594,31 @@ public class NetworkManager {
 	  }
   }
   
+  public RateHandler
+  getRateHandler(
+	NetworkConnectionBase 	peer_connection,
+	boolean					upload )
+  {
+	  if ( upload ){
+		  
+		  if ( lan_upload_processor.isRegistered( peer_connection )){
+			  
+		  		return( lan_upload_processor.getRateHandler( peer_connection ));
+	
+		  }else{
+		  		return( upload_processor.getRateHandler( peer_connection ));
+		  } 
+	  }else{
+		  if ( lan_download_processor.isRegistered( peer_connection )){
+			  
+			  	return( lan_download_processor.getRateHandler( peer_connection ));
+	
+		  }else{
+		  		return( download_processor.getRateHandler( peer_connection ));
+		  } 
+	  }
+  }
+  
   public NetworkManagerStats
   getStats()
   {

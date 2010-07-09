@@ -62,7 +62,12 @@ public class MultiPeerUploader implements RateControlledEntity {
     this.rate_handler = rate_handler;
   }
   
-  
+	public RateHandler 
+	getRateHandler() 
+	{
+		return( rate_handler );
+	}
+	
   /**
    * Checks the connections in the waiting list to see if it's time to be force-flushed.
    */

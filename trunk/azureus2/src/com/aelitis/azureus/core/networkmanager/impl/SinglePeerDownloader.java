@@ -44,7 +44,11 @@ public class SinglePeerDownloader implements RateControlledEntity {
     this.rate_handler = rate_handler;
   }
   
-  
+	public RateHandler 
+	getRateHandler() 
+	{
+		return( rate_handler );
+	}
 
   public boolean canProcess( EventWaiter waiter ) {
 
