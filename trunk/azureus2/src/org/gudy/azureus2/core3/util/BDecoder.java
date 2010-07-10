@@ -210,7 +210,7 @@ public class BDecoder
 					
 					// decode key strings manually so we can reuse the bytebuffer
 
-					int keyLength = (int)getNumberFromStream(dbis, ':');
+					int keyLength = (int)getPositiveNumberFromStream(dbis, ':');
 
 					ByteBuffer keyBytes;
 					if(keyLength < keyBytesBuffer.capacity())
@@ -412,6 +412,53 @@ public class BDecoder
 	/** only create the array once per decoder instance (no issues with recursion as it's only used in a leaf method)
 	 */
 	private final char[] numberChars = new char[32];
+
+	/**
+	 * @note will break (likely return a negative) if number >
+	 * {@link Integer#MAX_VALUE}.  This check is intentionally skipped to
+	 * increase performance
+	 */
+	private int
+	getPositiveNumberFromStream(
+			InputStream	dbis,
+			char	parseChar)
+
+	throws IOException 
+	{
+		int tempByte = dbis.read();
+		if (tempByte < 0) {
+			return -1;
+		}
+		if (tempByte != parseChar) {
+
+			int value = tempByte - '0';
+			
+			tempByte = dbis.read();
+			// optimized for single digit cases
+			if (tempByte == parseChar) {
+				return value;
+			}
+			if (tempByte < 0) {
+				return -1;
+			}
+
+			while (true) {
+				// Base10 shift left --> v*8 + v*2 = v*10
+				value = (value << 3) + (value << 1) + (tempByte - '0');
+				// For bounds check:
+				// if (value < 0) return something;
+				tempByte = dbis.read();
+				if (tempByte == parseChar) {
+					return value;
+				}
+				if (tempByte < 0) {
+					return -1;
+				}
+			}
+		} else {
+			return 0;
+		}
+	}
 	
 	private long 
 	getNumberFromStream(
@@ -639,7 +686,7 @@ public class BDecoder
 		
 		throws IOException 
 	{
-		int length = (int) getNumberFromStream(dbis, ':');
+		int length = (int) getPositiveNumberFromStream(dbis, ':');
 
 		if (length < 0) {
 			return null;
