@@ -94,4 +94,29 @@ PeerManagerStatsImpl
 		return( stats.getTotalHashFailBytes());
 	}
 	
+	public int 
+	getPermittedBytesToReceive()
+	{
+		return( stats.getPermittedBytesToReceive());
+	}
+	
+	public void 
+	permittedReceiveBytesUsed( 
+		int bytes )
+	{
+		stats.permittedReceiveBytesUsed( bytes );
+	}
+	
+	public int 
+	getPermittedBytesToSend()
+	{
+		return( stats.getPermittedBytesToSend());
+	}
+	
+	public void 
+	permittedSendBytesUsed( 
+		int bytes )
+	{
+		stats.permittedSendBytesUsed( bytes );
+	}
 }

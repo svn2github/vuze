@@ -102,16 +102,14 @@ PeerStatsImpl
 	{
 		return( delegate.getPermittedBytesToReceive());
 	}
-
-	public void
-	received(
-		int		bytes )
+	
+	public void 
+	permittedReceiveBytesUsed( 
+		int bytes )
 	{
 		delegate.permittedReceiveBytesUsed( bytes );
-		
-		delegate.dataBytesReceived( bytes );
-		
-		manager.dataBytesReceived( delegate.getPeer(), bytes );
+
+		received( bytes );
 	}
 	
 	public int 
@@ -120,12 +118,28 @@ PeerStatsImpl
 		return( delegate.getPermittedBytesToSend());
 	}
 	
+	public void 
+	permittedSendBytesUsed( 
+		int bytes )
+	{
+		delegate.permittedSendBytesUsed( bytes );
+
+		sent( bytes );
+	}
+	
+	public void
+	received(
+		int		bytes )
+	{
+		delegate.dataBytesReceived( bytes );
+		
+		manager.dataBytesReceived( delegate.getPeer(), bytes );
+	}
+	
 	public void
 	sent(
 		int		bytes )
-	{
-		delegate.permittedSendBytesUsed( bytes );
-		
+	{		
 		delegate.dataBytesSent( bytes );
 		
 		manager.dataBytesSent( delegate.getPeer(), bytes );
