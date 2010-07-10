@@ -2546,7 +2546,7 @@ outer:
 			
 			logger.log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
 			
-			throw( new DHTTransportException( "No transfer handler registered" ));
+			throw( new DHTTransportException( "No transfer handler registered for " + ByteFormatter.encodeString(transfer_key) ));
 		}
 
 		if ( data == null ){
