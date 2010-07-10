@@ -175,4 +175,10 @@ PEPeerManagerAdapter
 	
 	public boolean
 	hasPriorityConnection();
+	
+	public int getPermittedBytesToReceive();
+	public void permittedReceiveBytesUsed( int bytes );
+	
+	public int getPermittedBytesToSend();
+	public void	permittedSendBytesUsed(	int bytes );
 }

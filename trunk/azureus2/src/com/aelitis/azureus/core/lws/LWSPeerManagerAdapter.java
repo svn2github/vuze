@@ -83,6 +83,30 @@ LWSPeerManagerAdapter
 		return( 0 );
 	}
 	
+	public int 
+	getPermittedBytesToReceive()
+	{
+		return( Integer.MAX_VALUE );
+	}
+	
+	public void 
+	permittedReceiveBytesUsed( 
+		int bytes )
+	{
+	}
+	
+	public int 
+	getPermittedBytesToSend()
+	{
+		return( Integer.MAX_VALUE );
+	}
+	
+	public void	
+	permittedSendBytesUsed(	
+		int bytes )
+	{
+	}
+	
 	public int
 	getMaxUploads()
 	{

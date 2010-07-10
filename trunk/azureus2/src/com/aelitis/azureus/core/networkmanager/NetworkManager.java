@@ -596,6 +596,31 @@ public class NetworkManager {
   
   public RateHandler
   getRateHandler(
+	boolean					upload,
+	boolean					lan )
+  {
+	  if ( upload ){
+		  
+		  if ( lan ){
+			  
+		  		return( lan_upload_processor.getRateHandler());
+	
+		  }else{
+		  		return( upload_processor.getRateHandler());
+		  } 
+	  }else{
+		  if ( lan ){
+			  
+			  	return( lan_download_processor.getRateHandler());
+	
+		  }else{
+		  		return( download_processor.getRateHandler());
+		  } 
+	  }
+  }
+  
+  public RateHandler
+  getRateHandler(
 	NetworkConnectionBase 	peer_connection,
 	boolean					upload )
   {

@@ -54,6 +54,7 @@ public class TransferProcessor {
   
   private final LimitedRateGroup max_rate;
   
+  private final RateHandler	main_rate_handler;
   private final ByteBucket main_bucket;
   private final EntityHandler main_controller;
   
@@ -76,18 +77,21 @@ public class TransferProcessor {
 
     main_bucket = createBucket( max_rate.getRateLimitBytesPerSecond() ); 
 
-    main_controller = new EntityHandler( processor_type, new RateHandler() {
-      public int getCurrentNumBytesAllowed() {
-        if( main_bucket.getRate() != max_rate.getRateLimitBytesPerSecond() ) { //sync rate
-          main_bucket.setRate( max_rate.getRateLimitBytesPerSecond() );
+    main_rate_handler = 
+    	new RateHandler() {
+        public int getCurrentNumBytesAllowed() {
+          if( main_bucket.getRate() != max_rate.getRateLimitBytesPerSecond() ) { //sync rate
+            main_bucket.setRate( max_rate.getRateLimitBytesPerSecond() );
+          }
+          return main_bucket.getAvailableByteCount();
         }
-        return main_bucket.getAvailableByteCount();
-      }
+        
+        public void bytesProcessed( int num_bytes_written ) {
+          main_bucket.setBytesUsed( num_bytes_written );
+        }
+      };
       
-      public void bytesProcessed( int num_bytes_written ) {
-        main_bucket.setBytesUsed( num_bytes_written );
-      }
-    });
+    main_controller = new EntityHandler( processor_type, main_rate_handler );
   }
   
 
@@ -448,6 +452,12 @@ public class TransferProcessor {
       main_controller.downgradePeerConnection( connection );
       conn_data.state = ConnectionData.STATE_NORMAL;
     }
+  }
+  
+  public RateHandler
+  getRateHandler()
+  {
+	  return( main_rate_handler );
   }
   
   public RateHandler

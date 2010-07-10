@@ -97,26 +97,14 @@ public interface PeerStats
 	
 	/**
 	 * For an external process receiving bytes on behalf of this peer this gives the current
-	 * rate-limited number of bytes that can be received. Update with actual send using 'sent' below.
+	 * rate-limited number of bytes that can be received. Update with actual send using 'permittedReceiveBytesUsed' below.
 	 * @since 4.4.0.7 
 	 * @return
 	 */
 	
 	public int getPermittedBytesToReceive();
 	
-	/**
-	 * The given number of data (payload) bytes have been received from the peer.
-	 * This number gets added to the total and is used to calculate the rate.
-	 * <p>
-	 * Use this if you are talking to the peer outside of Azureus' API, and
-	 * want your stats added into Azureus'
-	 * 
-	 * @param bytes
-	 * 
-	 * @since 2.1.0.0
-	 */
-	
-	public void received(int bytes);
+	public void permittedReceiveBytesUsed( int bytes );
 
 	/**
 	 * For an external process sending bytes on behalf of this peer this gives the current
@@ -127,6 +115,8 @@ public interface PeerStats
 	
 	public int getPermittedBytesToSend();
 	
+	public void permittedSendBytesUsed( int bytes );
+
 	/**
 	 * The given number of data (payload) bytes have been sent to the peer.
 	 * This number gets added to the total and is used to calculate the rate.
@@ -139,6 +129,20 @@ public interface PeerStats
 	 * @since 4.4.0.7
 	 */
 		
+	public void received(int bytes);
+
+	/**
+	 * The given number of data (payload) bytes have been received from the peer.
+	 * This number gets added to the total and is used to calculate the rate.
+	 * <p>
+	 * Use this if you are talking to the peer outside of Azureus' API, and
+	 * want your stats added into Azureus'
+	 * 
+	 * @param bytes
+	 * 
+	 * @since 2.1.0.0
+	 */
+
 	public void sent(int bytes);
 	
 	/**

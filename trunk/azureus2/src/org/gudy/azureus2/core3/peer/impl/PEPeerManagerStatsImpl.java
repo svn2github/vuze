@@ -266,4 +266,30 @@ PEPeerManagerStatsImpl
 	{
 		return( total_outgoing );
 	}
+	
+	public int 
+	getPermittedBytesToReceive()
+	{
+		return( adapter.getPermittedBytesToReceive());
+	}
+	
+	public void 
+	permittedReceiveBytesUsed( 
+		int bytes )
+	{
+		adapter.permittedReceiveBytesUsed(bytes);
+	}
+	
+	public int 
+	getPermittedBytesToSend()
+	{
+		return( adapter.getPermittedBytesToSend());
+	}
+	
+	public void 
+	permittedSendBytesUsed( 
+		int bytes )
+	{
+		adapter.permittedSendBytesUsed(bytes);
+	}
 }

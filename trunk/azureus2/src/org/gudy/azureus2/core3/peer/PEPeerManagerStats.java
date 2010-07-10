@@ -67,4 +67,10 @@ PEPeerManagerStats
 	
 	public int getTotalIncomingConnections();
 	public int getTotalOutgoingConnections();
+	
+	public int getPermittedBytesToReceive();
+	public void permittedReceiveBytesUsed( int bytes );
+	
+	public int getPermittedBytesToSend();
+	public void	permittedSendBytesUsed(	int bytes );
 }

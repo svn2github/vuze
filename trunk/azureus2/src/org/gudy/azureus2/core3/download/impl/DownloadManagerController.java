@@ -53,6 +53,7 @@ import org.gudy.azureus2.plugins.network.ConnectionManager;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
@@ -1936,6 +1937,35 @@ DownloadManagerController
 	getDownloadRateLimitBytesPerSecond()
 	{
 		return( stats.getDownloadRateLimitBytesPerSecond());
+	}
+	
+		// these per-download rates are not easy to implement as we either have per-peer limits or global limits, with the download-limits being implemented
+		// by adding them to all peers as peer-limits. So for the moment we stick with global (non-lan) limits 
+	
+	public int 
+	getPermittedBytesToReceive()
+	{
+		return( NetworkManager.getSingleton().getRateHandler( false, false ).getCurrentNumBytesAllowed());
+	}
+	
+	public void 
+	permittedReceiveBytesUsed( 
+		int bytes )
+	{
+		NetworkManager.getSingleton().getRateHandler( false, false ).bytesProcessed( bytes );
+	}
+	
+	public int 
+	getPermittedBytesToSend()
+	{
+		return( NetworkManager.getSingleton().getRateHandler( true, false ).getCurrentNumBytesAllowed());
+	}
+	
+	public void	
+	permittedSendBytesUsed(	
+		int bytes )
+	{
+		NetworkManager.getSingleton().getRateHandler( true, false ).bytesProcessed( bytes );
 	}
 	
 	public int
