@@ -19,7 +19,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
@@ -50,6 +50,12 @@ import com.aelitis.azureus.ui.common.table.TableView;
  */
 public class FilesViewMenuUtil
 {
+	public static final Object PRIORITY_HIGH = Integer.valueOf(0);
+	public static final Object PRIORITY_NORMAL = Integer.valueOf(1);
+	public static final Object PRIORITY_NUMERIC = Integer.valueOf(99);
+	public static final Object PRIORITY_SKIPPED = Integer.valueOf(2);
+	public static final Object PRIORITY_DELETE = Integer.valueOf(3);
+
 	public static void fillMenu(final TableView tv,
 			final Menu menu, final DownloadManager manager,
 			final Object[] data_sources) {
@@ -103,23 +109,23 @@ public class FilesViewMenuUtil
 		itemPriority.setMenu(menuPriority);
 
 		final MenuItem itemHigh = new MenuItem(menuPriority, SWT.CASCADE);
-		itemHigh.setData("Priority", new Integer(0));
+		itemHigh.setData("Priority", PRIORITY_HIGH);
 		Messages.setLanguageText(itemHigh, "FilesView.menu.setpriority.high"); 
 
 		final MenuItem itemLow = new MenuItem(menuPriority, SWT.CASCADE);
-		itemLow.setData("Priority", new Integer(1));
+		itemLow.setData("Priority", PRIORITY_NORMAL);
 		Messages.setLanguageText(itemLow, "FilesView.menu.setpriority.normal");
 
 		final MenuItem itemNumeric = new MenuItem(menuPriority, SWT.CASCADE);
-		itemNumeric.setData("Priority", new Integer(99));
+		itemNumeric.setData("Priority", PRIORITY_NUMERIC);
 		Messages.setLanguageText(itemNumeric, "FilesView.menu.setpriority.numeric"); 
 
 		final MenuItem itemSkipped = new MenuItem(menuPriority, SWT.CASCADE);
-		itemSkipped.setData("Priority", new Integer(2));
+		itemSkipped.setData("Priority", PRIORITY_SKIPPED);
 		Messages.setLanguageText(itemSkipped, "FilesView.menu.setpriority.skipped"); 
 
 		final MenuItem itemDelete = new MenuItem(menuPriority, SWT.CASCADE);
-		itemDelete.setData("Priority", new Integer(3));
+		itemDelete.setData("Priority", PRIORITY_DELETE);
 		Messages.setLanguageText(itemDelete, "wizard.multitracker.delete"); // lazy but we're near release
 
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -224,7 +230,7 @@ public class FilesViewMenuUtil
 				final int priority = ((Integer) event.widget.getData("Priority")).intValue();
 				Utils.getOffOfSWTThread(new AERunnable() {
 					public void runSupport() {
-						changePriority(manager, priority, data_sources);
+						changePriority(priority, data_sources);
 					}
 				});
 			}
@@ -315,79 +321,103 @@ public class FilesViewMenuUtil
 		}
 	}
 
-	public static void changePriority(final DownloadManager manager, int type,
-			final Object[] datasources) {
-		if (manager == null) {
+	public static void changePriority(Object type, final Object[] datasources) {
 
+		if (datasources == null || datasources.length == 0) {
 			return;
 		}
 
-		if ( type == 99 ){
-			SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
-					"FilesView.dialog.priority.title",
-					"FilesView.dialog.priority.text");
-			entryWindow.prompt(new UIInputReceiverListener() {
-				public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
-					if (!entryWindow.hasSubmittedInput()) {
-						return;
-					}
-					String sReturn = entryWindow.getSubmittedInput();
-					
-					if (sReturn == null)
-						return;
-					
-					int priority = -1;
-					try {
-						priority = Integer.valueOf(sReturn).intValue();
-					} catch (NumberFormatException er) {
-						// Ignore
-					}
-					
-					if ( priority >= 0 ){
-						boolean paused = false;
-						try{
-							DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[datasources.length];
-							for (int i = 0; i < datasources.length; i++) {
-								file_infos[i] = (DiskManagerFileInfo) datasources[i];
-								
-								file_infos[i].setPriority( priority );
-							}
-							
-							paused = setSkipped(manager, file_infos, false, false );
-							
-						} finally {
-
-							if (paused) {
-
-								manager.resume();
-							}
-						}
-					}
-				}
-			});
-			
+		if (type == PRIORITY_NUMERIC) {
+			changePriorityManual(datasources);
 			return;
 		}
-		
-		boolean paused = false;
-		try {
-			DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[datasources.length];
-			for (int i = 0; i < datasources.length; i++) {
-				file_infos[i] = (DiskManagerFileInfo) datasources[i];
-				if (type == 0 || type == 1) {
-					file_infos[i].setPriority(type == 0?1:0);
-				}
+
+		Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new HashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
+
+		DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[datasources.length];
+		for (int i = 0; i < datasources.length; i++) {
+			file_infos[i] = (DiskManagerFileInfo) datasources[i];
+
+			DownloadManager dm = file_infos[i].getDownloadManager();
+			ArrayList<DiskManagerFileInfo> listFileInfos = mapDMtoDMFI.get(dm);
+			if (listFileInfos == null) {
+				listFileInfos = new ArrayList<DiskManagerFileInfo>(1);
+				mapDMtoDMFI.put(dm, listFileInfos);
 			}
-			boolean skipped = (type == 2 || type == 3);
-			boolean delete_action = (type == 3);
-			paused = setSkipped(manager, file_infos, skipped, delete_action);
-		} finally {
+			listFileInfos.add(file_infos[i]);
+
+			if (type == PRIORITY_NORMAL || type == PRIORITY_HIGH) {
+				file_infos[i].setPriority(type == PRIORITY_HIGH ? 1 : 0);
+			}
+		}
+		boolean skipped = (type == PRIORITY_SKIPPED || type == PRIORITY_DELETE);
+		boolean delete_action = (type == PRIORITY_DELETE);
+		for (DownloadManager dm : mapDMtoDMFI.keySet()) {
+			ArrayList<DiskManagerFileInfo> list = mapDMtoDMFI.get(dm);
+			DiskManagerFileInfo[] fileInfos = list.toArray(new DiskManagerFileInfo[0]);
+			boolean paused = setSkipped(dm, fileInfos, skipped, delete_action);
 
 			if (paused) {
 
-				manager.resume();
+				dm.resume();
 			}
 		}
+	}
+
+	private static void changePriorityManual(final Object[] datasources) {
+
+		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+				"FilesView.dialog.priority.title",
+				"FilesView.dialog.priority.text");
+		entryWindow.prompt(new UIInputReceiverListener() {
+			public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
+				if (!entryWindow.hasSubmittedInput()) {
+					return;
+				}
+				String sReturn = entryWindow.getSubmittedInput();
+				
+				if (sReturn == null)
+					return;
+				
+				int priority = -1;
+				try {
+					priority = Integer.valueOf(sReturn).intValue();
+				} catch (NumberFormatException er) {
+					// Ignore
+				}
+				
+				if ( priority >= 0 ){
+					Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new HashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
+
+					DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[datasources.length];
+					for (int i = 0; i < datasources.length; i++) {
+						file_infos[i] = (DiskManagerFileInfo) datasources[i];
+
+						DownloadManager dm = file_infos[i].getDownloadManager();
+						ArrayList<DiskManagerFileInfo> listFileInfos = mapDMtoDMFI.get(dm);
+						if (listFileInfos == null) {
+							listFileInfos = new ArrayList<DiskManagerFileInfo>(1);
+							mapDMtoDMFI.put(dm, listFileInfos);
+						}
+						listFileInfos.add(file_infos[i]);
+
+						file_infos[i].setPriority(priority);
+					}
+
+					for (DownloadManager dm : mapDMtoDMFI.keySet()) {
+						ArrayList<DiskManagerFileInfo> list = mapDMtoDMFI.get(dm);
+						DiskManagerFileInfo[] fileInfos = list.toArray(new DiskManagerFileInfo[0]);
+						boolean paused = setSkipped(dm, fileInfos, false, false);
+
+						if (paused) {
+
+							dm.resume();
+						}
+					}
+
+				}
+			}
+		});
 	}
 
 	private static String askForRenameFilename(DiskManagerFileInfo fileInfo) {
