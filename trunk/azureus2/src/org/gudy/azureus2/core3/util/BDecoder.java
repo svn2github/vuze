@@ -113,6 +113,11 @@ public class BDecoder
 		return( decode(new BDecoderInputStreamArray(data, offset, length ),internKeys));
 	}
 	
+	// used externally 
+	public Map decodeByteBuffer(ByteBuffer buffer, boolean internKeys) throws IOException {
+		return decode(new BDecoderInputStreamArray(buffer),internKeys);
+	}
+	
 	public Map 
 	decodeStream(
 		BufferedInputStream data )  
@@ -1039,13 +1044,13 @@ public class BDecoder
 		private int markPos;
 		private int overPos;
 
-		/*
+		
 		public BDecoderInputStreamArray(ByteBuffer buffer) {
 			bytes = buffer.array();
 			pos = buffer.arrayOffset() + buffer.position();
 			overPos = pos + buffer.remaining();
 		}
-		*/
+		
 		
 		private
 		BDecoderInputStreamArray(
