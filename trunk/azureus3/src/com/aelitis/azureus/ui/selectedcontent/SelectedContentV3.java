@@ -80,7 +80,7 @@ public class SelectedContentV3
 	}
 
 	public int getFileIndex() {
-		return -1;
+		return content.getFileIndex();
 	}
 	public TOTorrent getTorrent(){
 		return content.getTorrent();
