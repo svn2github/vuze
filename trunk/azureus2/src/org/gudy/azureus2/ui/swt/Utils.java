@@ -39,6 +39,7 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
@@ -106,6 +107,8 @@ public class Utils
 	};
 
 	public static final Rectangle EMPTY_RECT = new Rectangle(0, 0, 0, 0);
+	
+	private static int userMode;
 
 	static {
 		if (DEBUG_SWTEXEC) {
@@ -128,6 +131,12 @@ public class Utils
 			queue = null;
 			diag_logger = null;
 		}
+		
+		COConfigurationManager.addAndFireParameterListener("User Mode", new ParameterListener() {
+			public void parameterChanged(String parameterName) {
+				userMode = COConfigurationManager.getIntParameter("User Mode");
+			}
+		});
 	}
 
 	public static boolean isAZ2UI() {
@@ -2138,5 +2147,9 @@ public class Utils
 		} catch (Throwable e) {
 		}
 		return null;
+	}
+	
+	public static int getUserMode() {
+		return userMode;
 	}
 }
