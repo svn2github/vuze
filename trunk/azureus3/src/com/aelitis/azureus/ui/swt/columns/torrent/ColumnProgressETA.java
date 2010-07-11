@@ -165,8 +165,27 @@ public class ColumnProgressETA
 			} else {
 				sortValue = completedTime;
 			}
-		} else {
-			sortValue = Long.MAX_VALUE - 10000 + percentDone;
+		} else if (ds instanceof DiskManagerFileInfo) {
+			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
+			int	st = fileInfo.getStorageType();
+			if((st == DiskManagerFileInfo.ST_COMPACT || st == DiskManagerFileInfo.ST_REORDER_COMPACT ) && fileInfo.isSkipped())
+			{
+				sortValue = 1;				
+			} else if (fileInfo.isSkipped())
+			{
+				sortValue = 2;
+			} else if (fileInfo.getPriority() > 0 ) {
+				
+				int pri = fileInfo.getPriority();
+				sortValue = 4;
+				
+				if ( pri > 1 ){
+					sortValue += pri;
+				}
+			} else {
+				sortValue = 3;
+			}
+			sortValue = Long.MAX_VALUE - ((10000 + percentDone) * 1000) - sortValue;
 		}
 
 		long eta = getETA(cell);
