@@ -27,12 +27,17 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+
+import com.aelitis.azureus.ui.common.table.TableCellCore;
 
 /** Size of Torrent cell
  *
@@ -95,6 +100,15 @@ public class SizeItem
 							false, 0) + " to go";
 		}
 		cell.setText(s);
+		if (Utils.getUserMode() > 0 && (cell instanceof TableCellSWT)) {
+			if (value.size >= 0x40000000l) {
+				((TableCellSWT)cell).setTextAlpha(200 | 0x100);
+			} else if (value.size < 0x100000) {
+				((TableCellSWT)cell).setTextAlpha(180);
+			} else {
+				((TableCellSWT)cell).setTextAlpha(255);
+			}
+		}
 	}
 
 	private class sizeitemsort
