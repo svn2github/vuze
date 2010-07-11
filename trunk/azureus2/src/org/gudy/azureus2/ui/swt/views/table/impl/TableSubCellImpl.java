@@ -30,6 +30,8 @@ public class TableSubCellImpl
 
 	private String text;
 
+	private int textAlpha;
+
 	public TableSubCellImpl(TableRowImpl tableRow, TableColumnCore tableColumn,
 			int position) {
 		this.row = tableRow;
@@ -396,9 +398,10 @@ public class TableSubCellImpl
 	}
 
 	public int getTextAlpha() {
-		return 255;
+		return textAlpha;
 	}
 
 	public void setTextAlpha(int textOpacity) {
+		textAlpha = textOpacity;
 	}
 }
