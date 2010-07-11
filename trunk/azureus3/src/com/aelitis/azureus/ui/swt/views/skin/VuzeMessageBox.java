@@ -492,6 +492,12 @@ public class VuzeMessageBox
 			resultListeners.add(l);
 		}
 	}
+	
+	public void setDefaultButtonByPos(int pos) {
+		if (dlg == null) {
+			defaultButtonPos = pos;
+		}
+	}
 
 	
 	private static class rbInfo {
