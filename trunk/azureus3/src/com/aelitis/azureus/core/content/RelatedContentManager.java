@@ -283,7 +283,7 @@ RelatedContentManager
 								}
 							});
 				}
-			});
+			}).queue();
 			
 		}catch( Throwable e ){
 			
@@ -1243,7 +1243,7 @@ RelatedContentManager
 										(byte)(cnet==null?ContentNetwork.CONTENT_NETWORK_UNKNOWN:cnet.byteValue())),
 									listener==null?null:manager_listener );
 								
-							}catch( Throwable e ){							
+							}catch( Throwable e ){	
 							}
 						}
 						
