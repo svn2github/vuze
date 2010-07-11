@@ -146,6 +146,11 @@ public class ProgressGraphItem extends CoreTableColumn implements TableCellAdded
 			if (piecesImage != null && !piecesImage.isDisposed())
 				piecesImage.dispose();
 			
+			if (!running) {
+				cell.setGraphic(null);
+				return;
+			}
+			
 			piecesImage = new Image(SWTThread.getInstance().getDisplay(), newWidth, newHeight);
 			final GC gcImage = new GC(piecesImage);
 			
