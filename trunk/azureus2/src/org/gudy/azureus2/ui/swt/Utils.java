@@ -807,16 +807,16 @@ public class Utils
 	
 	public static List<TableItemOrTreeItem> getVisibleTableItems(TableOrTreeSWT table) {
 
+		if (table.getColumnCount() < 2) {
+			return Collections.emptyList();
+		}
+
 		int xPos = table.getColumn(0).getWidth() + table.getColumn(1).getWidth() - 1;
 
 		Rectangle clientArea = table.getClientArea();
 		TableItemOrTreeItem bottomItem = table.getItem(new Point(xPos,
 				clientArea.y + clientArea.height - 1));
-		if (bottomItem != null) {
-			while (bottomItem.getParentItem() != null) {
-				bottomItem = bottomItem.getParentItem();
-			}
-		} else {
+		if (bottomItem == null) {
 			if (clientArea.height + clientArea.y <= 0) {
 				return Collections.emptyList();
 			}
