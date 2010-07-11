@@ -172,10 +172,15 @@ DownloadManager
     public DiskManager
     getDiskManager();
 
+  	/**
+  	 * @deprecated use getDiskManagerFileInfoSet() instead 
+  	 */
     public DiskManagerFileInfo[]
     getDiskManagerFileInfo();
     
     public DiskManagerFileInfoSet getDiskManagerFileInfoSet();
+    
+    public int getNumFileInfos();
 
     public PEPeerManager
     getPeerManager();

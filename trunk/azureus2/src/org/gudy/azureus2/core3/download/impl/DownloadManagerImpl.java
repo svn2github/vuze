@@ -2276,10 +2276,20 @@ DownloadManagerImpl
 		return controller.getDiskManagerFileInfoSet();
 	}
   
+	/**
+	 * @deprecated use getDiskManagerFileInfoSet() instead 
+	 */
 	public DiskManagerFileInfo[]
    	getDiskManagerFileInfo()
 	{
 		return( controller.getDiskManagerFileInfo());
+	}
+	
+	public int getNumFileInfos() {
+		// probably faster than controller.getDiskManagerFileInfoSet().nbFiles()
+		// (especially when the facade isn't filled yet)
+		return torrent == null ? 0 : torrent.isSimpleTorrent() ? 1
+				: torrent.getFiles().length;
 	}
 	
 	public PEPeerManager
