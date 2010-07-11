@@ -46,7 +46,7 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 	}
 
 	protected TreeItemDelegate(TableOrTreeSWT tree, int style) {
-		item = new TreeItem((Tree) tree, style);
+		item = new TreeItem((Tree) tree.getComposite(), style);
 	}
 
 	public void addListener(int eventType, Listener listener) {
