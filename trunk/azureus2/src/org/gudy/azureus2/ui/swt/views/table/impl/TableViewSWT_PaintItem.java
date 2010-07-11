@@ -148,15 +148,7 @@ public class TableViewSWT_PaintItem
 
 			int fontStyle = row.getFontStyle();
 			if (fontStyle == SWT.BOLD) {
-				if (fontBold == null) {
-					FontData[] fontData = event.gc.getFont().getFontData();
-					for (int i = 0; i < fontData.length; i++) {
-						FontData fd = fontData[i];
-						fd.setStyle(SWT.BOLD);
-					}
-					fontBold = new Font(event.gc.getDevice(), fontData);
-				}
-				event.gc.setFont(fontBold);
+				event.gc.setFont(getFontBold(event.gc));
 			}
 
 			//if (item.getImage(event.index) != null) {
@@ -230,7 +222,12 @@ public class TableViewSWT_PaintItem
 				}
 				int textOpacity = cell.getTextAlpha();
 				if (textOpacity < 255) {
+					event.gc.setTextAntialias(SWT.ON);
 					event.gc.setAlpha(textOpacity);
+				} else if (textOpacity > 255) {
+					event.gc.setFont(getFontBold(event.gc));
+					event.gc.setTextAntialias(SWT.ON);
+					event.gc.setAlpha(textOpacity & 255);
 				}
 				// put some padding on text
 				ofsx += 6;
@@ -263,6 +260,18 @@ public class TableViewSWT_PaintItem
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	private Font getFontBold(GC gc) {
+		if (fontBold == null) {
+			FontData[] fontData = gc.getFont().getFontData();
+			for (int i = 0; i < fontData.length; i++) {
+				FontData fd = fontData[i];
+				fd.setStyle(SWT.BOLD);
+			}
+			fontBold = new Font(gc.getDevice(), fontData);
+		}
+		return fontBold;
 	}
 
 }
