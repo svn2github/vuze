@@ -69,20 +69,14 @@ import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser;
-import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser;
+import com.aelitis.azureus.ui.swt.devices.add.*;
 import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser.DeviceTemplateClosedListener;
 import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser.ClosedListener;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -109,7 +103,7 @@ DeviceManagerUI
 	private static final boolean	SHOW_RENDERER_VITALITY 	= false;
 	private static final boolean	SHOW_OD_VITALITY 		= true;
 	
-	private static final String[] to_copy_indicator_colors = { "#000000", "#000000", "#168866", "#1c5620" };
+	//private static final String[] to_copy_indicator_colors = { "#000000", "#000000", "#168866", "#1c5620" };
 	
 	private DeviceManager			device_manager;
 	private DeviceManagerListener	device_manager_listener;
@@ -1063,70 +1057,6 @@ DeviceManagerUI
 	protected void
 	setupListeners()
 	{
-		mdi.addListener(
-			new MdiListener()
-			{
-				public void 
-				mdiEntrySelected(
-					MdiEntry new_entry,
-					MdiEntry old_entry	)
-				{
-					Object data_source = new_entry.getDatasource();
-					
-					if ( data_source instanceof Device ){
-						
-						final Device	device = (Device)data_source;
-						
-						ISelectedContent[] sels = {
-							new ToolBarEnablerSelectedContent( 
-								new ToolBarEnabler()
-								{
-									public boolean 
-									isEnabled(
-										String itemKey )
-									{
-										return( "remove".equals(itemKey));
-									}
-									  
-									public boolean 
-									isSelected(
-										String itemKey )
-									{
-										return( false );
-									}
-									  
-									public void 
-									itemActivated(
-										String itemKey )
-									{
-										MessageBoxShell mb = 
-											new MessageBoxShell(
-												MessageText.getString("message.confirm.delete.title"),
-												MessageText.getString("message.confirm.delete.text",
-														new String[] {
-															device.getName()
-														}), 
-												new String[] {
-													MessageText.getString("Button.yes"),
-													MessageText.getString("Button.no")
-												},
-												1 );
-										
-										mb.open(new UserPrompterResultListener() {
-											public void prompterClosed(int result) {
-												if (result == 0) {
-													device.remove();
-												}
-											}
-										});
-									}
-								})};
-										
-						SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler", sels );
-					}
-				}
-			});
-		
 		COConfigurationManager.addAndFireParameterListeners( 
 			new String[]{
 				CONFIG_VIEW_TYPE,

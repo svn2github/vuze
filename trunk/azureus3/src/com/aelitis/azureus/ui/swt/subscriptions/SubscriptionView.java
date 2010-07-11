@@ -21,6 +21,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.subs.*;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -28,13 +29,12 @@ import com.aelitis.azureus.ui.swt.browser.*;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
 import com.aelitis.azureus.util.*;
 
 public class
 SubscriptionView
 	extends 	AbstractIView
-	implements IViewExtension, OpenCloseSearchDetailsListener
+	implements IViewExtension, OpenCloseSearchDetailsListener, ToolBarEnabler
 {
 	private Subscription	subs;
 	
@@ -309,41 +309,24 @@ SubscriptionView
 			mainBrowser.getParent().layout(true,true);
 			
 			
-			ISelectedContent[] sels = {
-				new SubscriptionSelectedContent( 
-					new ToolBarEnabler()
-					{
-						  public boolean 
-						  isEnabled(
-							  String itemKey )
-						  {
-							  return( "share".equals(itemKey) || "remove".equals(itemKey));
-						  }
-						  
-						  public boolean 
-						  isSelected(
-							  String itemKey )
-						  {
-							  return( false );
-						  }
-						  
-						  public void 
-						  itemActivated(
-							String itemKey )
-						  {
-						  	mdiInfo.removeWithConfirm();
-						  }
-					}, 
-					subs )};
-							
-			SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler", sels );
-			
 		}catch( Throwable e ){
 		
 			Debug.printStackTrace(e);
 		}
 	}
 	
+	public void refreshToolBar(Map<String, Boolean> list) {
+		list.put("share", true);
+		list.put("remove", true);
+	}
+
+	public boolean toolBarItemActivated(String itemKey) {
+		if (itemKey.equals("remove")) {
+	  	mdiInfo.removeWithConfirm();
+		}
+		return false;
+	}
+
 	protected void
 	destroyBrowsers()
 	{

@@ -66,7 +66,7 @@ public class ColumnFileCount
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellAdded(TableCell cell) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		int sortVal = dm.getDiskManagerFileInfo().length;
+		int sortVal = dm.getNumFileInfos();
 		cell.setSortValue(sortVal);
 	}
 
@@ -91,7 +91,7 @@ public class ColumnFileCount
 			return;
 		}
 
-		int sortVal = dm.getDiskManagerFileInfo().length;
+		int sortVal = dm.getNumFileInfos();
 		Rectangle bounds = cell.getBounds();
 		Rectangle printArea = new Rectangle(bounds.x, bounds.y, bounds.width - 25,
 				bounds.height);
@@ -107,7 +107,7 @@ public class ColumnFileCount
 		Rectangle bounds = ((TableCellSWT) cell).getBoundsOnDisplay();
 		bounds.y += bounds.height;
 		bounds.width = 630;
-		bounds.height = (16 * dm.getDiskManagerFileInfo().length) + 60;
+		bounds.height = (16 * dm.getNumFileInfos()) + 60;
 		Rectangle realBounds = shell.computeTrim(0, 0, bounds.width, bounds.height);
 		realBounds.width -= realBounds.x;
 		realBounds.height -= realBounds.y;

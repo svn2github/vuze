@@ -32,12 +32,15 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -56,7 +59,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class 
 SBC_DevicesODView
 	extends SkinView
-	implements UIUpdatable, IconBarEnabler
+	implements UIUpdatable, ToolBarEnabler
 {
 	public static final String TABLE_RCM = "DevicesOD";
 
@@ -91,7 +94,7 @@ SBC_DevicesODView
 			
 			mdi_entry = mdi.getCurrentEntrySWT();
 			
-			mdi_entry.setIconBarEnabler( this );
+			mdi_entry.addToolbarEnabler( this );
 			
 			device = (DeviceOfflineDownloader)mdi_entry.getDatasource();
 		}
@@ -568,25 +571,36 @@ SBC_DevicesODView
 		
 		control.layout(true);
 	}	
-	
-	public boolean 
-	isEnabled(
-		String key )
-	{
-		return( false );
+
+	public void refreshToolBar(Map<String, Boolean> list) {
+		list.put("remove", true);
 	}
 	
-	public boolean 
-	isSelected(
-		String key )
-	{
-		return( false );
-	}
-	
-	public void 
-	itemActivated(
-		String key )
-	{
+	public boolean toolBarItemActivated(String itemKey) {
+		if (itemKey.equals("remove")) {
+			MessageBoxShell mb = 
+				new MessageBoxShell(
+					MessageText.getString("message.confirm.delete.title"),
+					MessageText.getString("message.confirm.delete.text",
+							new String[] {
+								device.getName()
+							}), 
+					new String[] {
+						MessageText.getString("Button.yes"),
+						MessageText.getString("Button.no")
+					},
+					1 );
+			
+			mb.open(new UserPrompterResultListener() {
+				public void prompterClosed(int result) {
+					if (result == 0) {
+						device.remove();
+					}
+				}
+			});
+			return true;
+		}
+		return false;
 	}
 	
 	public String 

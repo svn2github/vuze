@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -45,11 +46,14 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostListener;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrentRemovalVetoException;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AsyncController;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
+import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -61,17 +65,11 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytracker.*;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
-
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
-import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 
 
 /**
@@ -153,7 +151,7 @@ public class MyTrackerView
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void defaultSelected(TableRowCore[] rows, int stateMask) {
-		final TRHostTorrent torrent = tv.getFirstSelectedDataSource();
+		final TRHostTorrent torrent = (TRHostTorrent) tv.getFirstSelectedDataSource();
 		if (torrent == null)
 			return;
 		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
@@ -303,7 +301,6 @@ public class MyTrackerView
 			return;
 	   	}
 		
-		computePossibleActions();
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.refreshIconBar();
@@ -349,10 +346,9 @@ public class MyTrackerView
 		}
 	}	 
 
-  private boolean start,stop,remove;
-  
-  private void computePossibleActions() {
-    start = stop = remove = false;
+	@Override
+	public void refreshToolBar(Map list) {
+    boolean start = false, stop = false, remove = false;
     Object[] hostTorrents = tv.getSelectedDataSources().toArray();
     if (hostTorrents.length > 0) {
       remove = true;
@@ -380,33 +376,31 @@ public class MyTrackerView
         */
       }
     }
-  }
-  
-  public boolean isEnabled(String itemKey) {
-    if(itemKey.equals("start"))
-      return start;
-    if(itemKey.equals("stop"))
-      return stop;
-    if(itemKey.equals("remove"))
-      return remove;
-    return false;
+
+    list.put("start", start);
+    list.put("stop", stop);
+    list.put("remove", remove);
+
+		super.refreshToolBar(list);
   }
   
 
-  public void itemActivated(String itemKey) {
+	public boolean toolBarItemActivated(String itemKey) {
     if(itemKey.equals("start")) {
       startSelectedTorrents();
-      return;
+      return true;
     }
     if(itemKey.equals("stop")){
       stopSelectedTorrents();
-      return;
+      return true;
     }
     if(itemKey.equals("remove")){
       removeSelectedTorrents();
-      return;
+      return true;
     }
-  }
+
+		return super.toolBarItemActivated(itemKey);
+	}
   
   private void stopSelectedTorrents() {
     tv.runForSelectedRows(new TableGroupRowRunner() {
@@ -596,7 +590,6 @@ public class MyTrackerView
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void deselected(TableRowCore[] rows) {
-		computePossibleActions();
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.refreshIconBar();
@@ -605,7 +598,6 @@ public class MyTrackerView
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#focusChanged(com.aelitis.azureus.ui.common.table.TableRowCore)
 	public void focusChanged(TableRowCore focus) {
-		computePossibleActions();
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.refreshIconBar();
@@ -614,7 +606,6 @@ public class MyTrackerView
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void selected(TableRowCore[] rows) {
-		computePossibleActions();
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.refreshIconBar();

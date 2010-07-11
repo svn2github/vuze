@@ -1,8 +1,6 @@
 package com.aelitis.azureus.ui.swt.mdi;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
@@ -15,7 +13,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
@@ -27,6 +24,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.IViewExtension;
 
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
@@ -41,8 +39,6 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
@@ -78,8 +74,6 @@ public abstract class BaseMdiEntry
 
 	protected ViewTitleInfo viewTitleInfo;
 
-	private IconBarEnabler iconBarEnabler;
-
 	private SWTSkinObject skinObject;
 
 	private String title;
@@ -96,8 +90,6 @@ public abstract class BaseMdiEntry
 
 	private boolean disposed;
 
-	private Object skinRefParams;
-
 	private String imageLeftID;
 
 	private Image imageLeft;
@@ -105,6 +97,8 @@ public abstract class BaseMdiEntry
 	private boolean collapseDisabled;
 
 	private SWTSkinObject soMaster;
+	
+	private Set<ToolBarEnabler> setToolBarEnablers = new HashSet<ToolBarEnabler>(1);
 
 	@SuppressWarnings("unused")
 	private BaseMdiEntry() {
@@ -425,14 +419,18 @@ public abstract class BaseMdiEntry
 		}
 	}
 
-	public IconBarEnabler getIconBarEnabler() {
-		return iconBarEnabler;
+	public void addToolbarEnabler(ToolBarEnabler enabler) {
+		setToolBarEnablers.add(enabler);
 	}
-
-	public void setIconBarEnabler(IconBarEnabler iconBarEnabler) {
-		this.iconBarEnabler = iconBarEnabler;
+	
+	public void removeToolbarEnabler(ToolBarEnabler enabler) {
+		setToolBarEnablers.remove(enabler);
 	}
-
+	
+	public ToolBarEnabler[] getToolbarEnablers() {
+		return setToolBarEnablers.toArray(new ToolBarEnabler[0]);
+	}
+	
 	public void setIView(IView iview) {
 		this.iview = iview;
 		if (iview instanceof ViewTitleInfo) {
@@ -442,6 +440,10 @@ public abstract class BaseMdiEntry
 			if (eventListener instanceof ViewTitleInfo) {
 				setViewTitleInfo((ViewTitleInfo) eventListener);
 			}
+		}
+		
+		if (iview instanceof ToolBarEnabler) {
+			addToolbarEnabler((ToolBarEnabler) iview);
 		}
 
 		if (iview != null) {
@@ -514,21 +516,7 @@ public abstract class BaseMdiEntry
 			return;
 		}
 
-		if (iview instanceof ToolBarEnabler) {
-			ISelectedContent[] sels = new ISelectedContent[1];
-			sels[0] = new ToolBarEnablerSelectedContent((ToolBarEnabler) iview);
-			TableView<?> tv = null;
-			if (iview instanceof TableView<?>) {
-				tv = (TableView<?>) iview;
-			}
-			SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler",
-					sels, tv);
-
-		} else {
-
-			SelectedContentManager.clearCurrentlySelectedContent();
-
-		}
+		SelectedContentManager.clearCurrentlySelectedContent();
 
 		disableViewModes();
 
@@ -536,34 +524,6 @@ public abstract class BaseMdiEntry
 		if (uif != null) {
 			//uif.refreshIconBar(); // needed?
 			uif.refreshTorrentMenu();
-		}
-
-		// bit of hackery to change currently selected content when
-		// moving to an iview that has Download(Manager) as a datasource
-		// Unsure if needed as view activation should take care of this..
-		if (iview instanceof UISWTViewImpl) {
-			Object ds = ((UISWTViewImpl) iview).getDataSource();
-			DownloadManager dm = null;
-			if (ds instanceof DownloadManager) {
-				dm = (DownloadManager) ds;
-			} else if (ds instanceof Download) {
-				dm = PluginCoreUtils.unwrap((Download) ds);
-			}
-			if (dm != null) {
-				try {
-					TableView<?> tv = null;
-					if (iview instanceof TableView<?>) {
-						tv = (TableView<?>) iview;
-					}
-					SelectedContentManager.changeCurrentlySelectedContent(id,
-							new ISelectedContent[] {
-								new SelectedContentV3(dm)
-							}, tv);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 		}
 
 		SWTSkinObject skinObject = getSkinObjectMaster();
@@ -647,6 +607,13 @@ public abstract class BaseMdiEntry
 
 	public void setEventListener(UISWTViewEventListener _eventListener) {
 		this.eventListener = _eventListener;
+		
+		if (eventListener instanceof ToolBarEnabler) {
+			addToolbarEnabler((ToolBarEnabler) eventListener);
+		}
+		if ((eventListener instanceof ViewTitleInfo) && viewTitleInfo == null) {
+			setViewTitleInfo((ViewTitleInfo) eventListener);
+		}
 
 		UISWTViewEventListener eventListenerDelegate = _eventListener;
 		/*
@@ -770,7 +737,7 @@ public abstract class BaseMdiEntry
 				}
 			} else if (datasource instanceof DownloadManager[]) {
 				DownloadManager[] dms = (DownloadManager[]) datasource;
-				List list = new ArrayList();
+				List<String> list = new ArrayList<String>();
 				for (DownloadManager dm : dms) {
 					try {
 						list.add(dm.getTorrent().getHashWrapper().toBase32String());

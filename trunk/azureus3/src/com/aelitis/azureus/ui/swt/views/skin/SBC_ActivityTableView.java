@@ -20,6 +20,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
@@ -38,11 +39,15 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.activities.*;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
@@ -54,7 +59,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
  */
 public class SBC_ActivityTableView
 	extends SkinView
-	implements UIUpdatable, IconBarEnabler, VuzeActivitiesListener
+	implements UIUpdatable, ToolBarEnabler, VuzeActivitiesListener
 {
 	private static final String TABLE_ID_PREFIX = "activity-";
 
@@ -194,10 +199,21 @@ public class SBC_ActivityTableView
 		
 		return null;
 	}
+	
+	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if ( mdi != null ){
+			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
+			entry.addToolbarEnabler( this );
+		}
+		return super.skinObjectShown(skinObject, params);
+	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectDestroyed(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
-		view.delete();
+		if (view != null) {
+			view.delete();
+		}
 		return super.skinObjectDestroyed(skinObject, params);
 	}
 
@@ -208,21 +224,22 @@ public class SBC_ActivityTableView
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
 	public void updateUI() {
-		view.refreshTable(false);
+		if (view != null) {
+			view.refreshTable(false);
+		}
 	}
 
-	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isEnabled(java.lang.String)
-	public boolean isEnabled(String itemKey) {
+	public void refreshToolBar(Map<String, Boolean> list) {
+		list.put("remove", isVisible() && view != null && view.getSelectedRowsSize() > 0);
+	}
+
+	public boolean toolBarItemActivated(String itemKey) {
+		if (itemKey.equals("remove")) {
+			removeSelected();
+			return true;
+		}
+		
 		return false;
-	}
-
-	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isSelected(java.lang.String)
-	public boolean isSelected(String itemKey) {
-		return false;
-	}
-
-	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#itemActivated(java.lang.String)
-	public void itemActivated(String itemKey) {
 	}
 
 
@@ -252,17 +269,24 @@ public class SBC_ActivityTableView
 
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesAdded(com.aelitis.azureus.util.VuzeNewsEntry[])
 	public void vuzeNewsEntriesAdded(VuzeActivitiesEntry[] entries) {
-		view.addDataSources(entries);
+		if (view != null) {
+			view.addDataSources(entries);
+		}
 	}
 
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesRemoved(com.aelitis.azureus.util.VuzeNewsEntry[])
 	public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {
-		view.removeDataSources(entries);
-		view.processDataSourceQueue();
+		if (view != null) {
+			view.removeDataSources(entries);
+			view.processDataSourceQueue();
+		}
 	}
 
 	// @see com.aelitis.azureus.util.VuzeActivitiesListener#vuzeNewsEntryChanged(com.aelitis.azureus.util.VuzeActivitiesEntry)
 	public void vuzeNewsEntryChanged(VuzeActivitiesEntry entry) {
+		if (view == null) {
+			return;
+		}
 		TableRowCore row = view.getRow(entry);
 		if (row != null) {
 			row.invalidate();
@@ -325,6 +349,9 @@ public class SBC_ActivityTableView
 	}
 
 	protected void removeSelected() {
+		if (view == null) {
+			return;
+		}
 		VuzeActivitiesEntry[] selectedEntries = view.getSelectedDataSources().toArray(new VuzeActivitiesEntry[0]);
 		removeEntries(selectedEntries, 0);
 	}

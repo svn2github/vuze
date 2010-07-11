@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -61,6 +62,7 @@ import org.gudy.azureus2.ui.swt.maketorrent.WebSeedsEditorListener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.shells.AdvRenameWindow;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.views.FilesViewMenuUtil;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -70,8 +72,8 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 
 
 /**
@@ -328,7 +330,7 @@ public class TorrentUtil {
 		Utils.setMenuItemImage(itemOpen, "run");
 		itemOpen.addListener(SWT.Selection, new DMTask(dms) {
 			public void run(DownloadManager[] dms) {
-				runTorrents(dms);
+				runDataSources(dms);
 			}
 		});
 		itemOpen.setEnabled(hasSelection);
@@ -1218,9 +1220,10 @@ public class TorrentUtil {
 		final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue"); //$NON-NLS-1$
 		Utils.setMenuItemImage(itemQueue, "start");
-		itemQueue.addListener(SWT.Selection, new DMTask(dms) {
-			public void run(DownloadManager[] dms) {
-				queueTorrents(dms, menu.getShell());
+		itemQueue.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
+			public boolean run(TableRowCore[] rows) {
+				queueDataSources(dms);
+				return true;
 			}
 		});
 		itemQueue.setEnabled(start);
@@ -1245,9 +1248,10 @@ public class TorrentUtil {
 		final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
 		Utils.setMenuItemImage(itemStop, "stop");
-		itemStop.addListener(SWT.Selection, new DMTask(dms) {
-			public void run(DownloadManager[] dms) {
-				stopTorrents(dms, menu.getShell());
+		itemStop.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
+			public boolean run(TableRowCore[] rows) {
+				stopDataSources(dms);
+				return true;
 			}
 		});
 		itemStop.setEnabled(stop);
@@ -1271,7 +1275,7 @@ public class TorrentUtil {
 		Utils.setMenuItemImage(itemRemove, "delete");
 		itemRemove.addListener(SWT.Selection, new DMTask(dms) {
 			public void run(DownloadManager dm) {
-				removeTorrent(dm, false, false, menu.getShell());
+				ManagerUtils.remove(dm, null, false, false);
 			}
 		});
 		itemRemove.setEnabled(hasSelection);
@@ -1292,7 +1296,7 @@ public class TorrentUtil {
 		Messages.setLanguageText(itemDeleteTorrent, "MyTorrentsView.menu.removeand.deletetorrent"); //$NON-NLS-1$
 		itemDeleteTorrent.addListener(SWT.Selection, new DMTask(dms) {
 			public void run(DownloadManager dm) {
-				removeTorrent(dm, true, false, menu.getShell());
+				ManagerUtils.remove(dm, null, true, false);
 			}
 		});
 
@@ -1301,7 +1305,7 @@ public class TorrentUtil {
 		Messages.setLanguageText(itemDeleteData, "MyTorrentsView.menu.removeand.deletedata");
 		itemDeleteData.addListener(SWT.Selection, new DMTask(dms) {
 			public void run(DownloadManager dm) {
-				removeTorrent(dm, false, true, menu.getShell());
+				ManagerUtils.remove(dm, null, false, true);
 			}
 		});
 
@@ -1310,7 +1314,7 @@ public class TorrentUtil {
 		Messages.setLanguageText(itemDeleteBoth, "MyTorrentsView.menu.removeand.deleteboth");
 		itemDeleteBoth.addListener(SWT.Selection, new DMTask(dms) {
 			public void run(DownloadManager dm) {
-				removeTorrent(dm, true, true, menu.getShell());
+				ManagerUtils.remove(dm, null, true, true);
 			}
 		});
 	}
@@ -1471,11 +1475,17 @@ public class TorrentUtil {
 		}
 	}
 
-	public static void runTorrents(Object[] download_managers) {
-		for (int i = download_managers.length - 1; i >= 0; i--) {
-			DownloadManager dm = (DownloadManager) download_managers[i];
-			if (dm != null) {
+	/**
+	 * Runs a DownloadManager or DiskManagerFileInfo
+	 */
+	public static void runDataSources(Object[] datasources) {
+		for (int i = datasources.length - 1; i >= 0; i--) {
+			if (datasources[i] instanceof DownloadManager) {
+				DownloadManager dm = (DownloadManager) datasources[i];
 				ManagerUtils.run(dm);
+			} else if (datasources[i] instanceof DiskManagerFileInfo) {
+				DiskManagerFileInfo info = (DiskManagerFileInfo) datasources[i];
+				Utils.launch(info);
 			}
 		}
 	}
@@ -1508,36 +1518,40 @@ public class TorrentUtil {
 		}
 	}
 
-	public static void removeTorrent(final DownloadManager dm, final boolean bDeleteTorrent, final boolean bDeleteData,
-			Shell shell) {
-		ManagerUtils.remove(dm, shell, bDeleteTorrent, bDeleteData);
+	public static void removeDataSources(final Object[] datasources) {
+		DownloadManager[] dms = toDMS(datasources);
+		for (DownloadManager dm : dms) {
+			ManagerUtils.remove(dm, null, false, false);
+		}
+		DiskManagerFileInfo[] fileInfos = toDMFI(datasources);
+		if (fileInfos.length > 0) {
+			FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_DELETE,
+					fileInfos);
+		}
 	}
 
-	public static void removeTorrents(Object[] download_managers, final Shell shell) {
-		DMTask task = new DMTask(toDMS(download_managers)) {
-			public void run(DownloadManager dm) {
-				removeTorrent(dm, false, false, shell);
-			}
-		};
-		task.go();
+	public static void stopDataSources(Object[] datasources) {
+		DownloadManager[] dms = toDMS(datasources);
+		for (DownloadManager dm : dms) {
+			ManagerUtils.stop(dm, null);
+		}
+		DiskManagerFileInfo[] fileInfos = toDMFI(datasources);
+		if (fileInfos.length > 0) {
+			FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_SKIPPED,
+					fileInfos);
+		}
 	}
 
-	public static void stopTorrents(Object[] download_managers, final Shell shell) {
-		DMTask task = new DMTask(toDMS(download_managers)) {
-			public void run(DownloadManager dm) {
-				ManagerUtils.stop(dm, shell);
-			}
-		};
-		task.go();
-	}
-
-	public static void queueTorrents(Object[] download_managers, final Shell shell) {
-		DMTask task = new DMTask(toDMS(download_managers)) {
-			public void run(DownloadManager dm) {
-				ManagerUtils.queue(dm, shell);
-			}
-		};
-		task.go();
+	public static void queueDataSources(Object[] datasources) {
+		DownloadManager[] dms = toDMS(datasources);
+		for (DownloadManager dm : dms) {
+			ManagerUtils.queue(dm, null);
+		}
+		DiskManagerFileInfo[] fileInfos = toDMFI(datasources);
+		if (fileInfos.length > 0) {
+			FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_NORMAL,
+					fileInfos);
+		}
 	}
 
 	public static void resumeTorrents(Object[] download_managers) {
@@ -1590,10 +1604,48 @@ public class TorrentUtil {
 
 
 	private static DownloadManager[] toDMS(Object[] objects) {
-		if (objects instanceof DownloadManager[]) { return (DownloadManager[]) objects; }
+		int count = 0;
 		DownloadManager[] result = new DownloadManager[objects.length];
-		System.arraycopy(objects, 0, result, 0, result.length);
-		return result;
+		for (Object object : objects) {
+			if (object instanceof DownloadManager) {
+				DownloadManager dm = (DownloadManager) object;
+				result[count++] = dm;
+			} else if (object instanceof SelectedContent) {
+				SelectedContent sc = (SelectedContent) object;
+				if (sc.getFileIndex() == -1 && sc.getDownloadManager() != null) {
+					result[count++] = sc.getDownloadManager();
+				}
+			}
+		}
+		DownloadManager[] resultTrim = new DownloadManager[count];
+		System.arraycopy(result, 0, resultTrim, 0, count);
+		return resultTrim;
+	}
+
+	private static DiskManagerFileInfo[] toDMFI(Object[] objects) {
+		int count = 0;
+		DiskManagerFileInfo[] result = new DiskManagerFileInfo[objects.length];
+		for (Object object : objects) {
+			if (object instanceof DiskManagerFileInfo) {
+				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) object;
+				result[count++] = fileInfo;
+			} else if (object instanceof SelectedContent) {
+				SelectedContent sc = (SelectedContent) object;
+				int fileIndex = sc.getFileIndex();
+				if (fileIndex >= 0 && sc.getDownloadManager() != null) {
+					DownloadManager dm = sc.getDownloadManager();
+					if (dm != null) {
+						DiskManagerFileInfo[] infos = dm.getDiskManagerFileInfo();
+						if (fileIndex < infos.length) {
+							result[count++] = infos[fileIndex];
+						}
+					}
+				}
+			}
+		}
+		DiskManagerFileInfo[] resultTrim = new DiskManagerFileInfo[count];
+		System.arraycopy(result, 0, resultTrim, 0, count);
+		return resultTrim;
 	}
 
 	private abstract static class DMTask implements Listener {

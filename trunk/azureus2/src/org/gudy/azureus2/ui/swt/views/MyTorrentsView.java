@@ -50,6 +50,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -61,6 +63,7 @@ import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RankItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -69,10 +72,13 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.selectedcontent.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 
 /** Displays a list of torrents in a table view.
  *
@@ -97,7 +103,8 @@ public class MyTorrentsView
                   TableViewSWTMenuFillListener,
                   TableRefreshListener,
                   TableCountChangeListener,
-                  TableViewFilterCheck<DownloadManager>
+                  TableViewFilterCheck<DownloadManager>,
+                  ToolBarEnabler
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
@@ -127,7 +134,6 @@ public class MyTorrentsView
 	private TableSelectionListener defaultSelectedListener;
 
 	private Composite filterParent;
-
 
 	public MyTorrentsView() {
 		super("MyTorrentsView");
@@ -315,7 +321,7 @@ public class MyTorrentsView
 			public void handleEvent(Event event) {
 				viewActive = true;
 		    updateSelectedContent();
-		    refreshIconBar();
+		    //refreshIconBar();
 			}
 		});
   	composite.addListener(SWT.Deactivate, new Listener() {
@@ -707,9 +713,10 @@ public class MyTorrentsView
 					final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
 					Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue");
 					Utils.setMenuItemImage(itemQueue, "start");
-					itemQueue.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event event) {
-							TorrentUtil.queueTorrents(dms, menu.getShell());
+					itemQueue.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
+						public boolean run(TableRowCore[] rows) {
+							TorrentUtil.queueDataSources(dms);
+							return true;
 						}
 					});
 					itemQueue.setEnabled(start);
@@ -719,9 +726,10 @@ public class MyTorrentsView
 					final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
 					Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop");
 					Utils.setMenuItemImage(itemStop, "stop");
-					itemStop.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event event) {
-							TorrentUtil.stopTorrents(dms, menu.getShell());
+					itemStop.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
+						public boolean run(TableRowCore[] rows) {
+							TorrentUtil.stopDataSources(dms);
+							return true;
 						}
 					});
 					itemStop.setEnabled(stop);
@@ -1007,19 +1015,17 @@ public class MyTorrentsView
   public void selected(TableRowCore[] rows) {
   	updateSelectedContent();
   	refreshTorrentMenu();
-  	refreshIconBar();
   }
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void deselected(TableRowCore[] rows) {
   	updateSelectedContent();
   	refreshTorrentMenu();
-  	refreshIconBar();
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#focusChanged(com.aelitis.azureus.ui.common.table.TableRowCore)
 	public void focusChanged(TableRowCore focus) {
-  	refreshIconBar();
+		updateSelectedContent();
   	refreshTorrentMenu();
 	}
 
@@ -1046,17 +1052,10 @@ public class MyTorrentsView
 				listSelected.add(new SelectedContent(fileInfo.getDownloadManager(), fileInfo.getIndex()));
 			}
 		}
-		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), listSelected.toArray(new SelectedContent[0]), tv);
+		SelectedContent[] content = listSelected.toArray(new SelectedContent[0]);
+		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), content, tv);
 	}
 	
-  private void refreshIconBar() {
-  	computePossibleActions();
-  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-  	if (uiFunctions != null) {
-  		uiFunctions.refreshIconBar();
-  	}
-  }
-  
 	private void refreshTorrentMenu() {
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		if (uiFunctions != null && uiFunctions instanceof UIFunctionsSWT) {
@@ -1406,8 +1405,11 @@ public class MyTorrentsView
 					e.doit = false;
 					break;
 				case 's': // CTRL+S stop selected Torrents
-					TorrentUtil.stopTorrents(tv.getSelectedDataSources().toArray(),
-							cTablePanel.getShell());
+					Utils.getOffOfSWTThread(new AERunnable() {
+						public void runSupport() {
+							TorrentUtil.stopDataSources(tv.getSelectedDataSources().toArray());
+						}
+					});
 					e.doit = false;
 					break;
 			}
@@ -1418,7 +1420,11 @@ public class MyTorrentsView
 		
 		// DEL remove selected Torrents
 		if (e.stateMask == 0 && e.keyCode == SWT.DEL && e.widget != txtFilter) {
-			TorrentUtil.removeTorrents(tv.getSelectedDataSources().toArray(), cTablePanel.getShell());
+			Utils.getOffOfSWTThread(new AERunnable() {
+				public void runSupport() {
+					TorrentUtil.removeDataSources(tv.getSelectedDataSources().toArray());
+				}
+			});
 			e.doit = false;
 			return;
 		}
@@ -1453,7 +1459,6 @@ public class MyTorrentsView
     }
 
     boolean bForceSort = tv.getSortColumn().getName().equals("#");
-    System.out.println("forcesort? " + bForceSort);
     tv.columnInvalidate("#");
     tv.refreshTable(bForceSort);
   }
@@ -1561,90 +1566,48 @@ public class MyTorrentsView
 		}
 	}
 
-	private boolean top,bottom,up,down,run,start,stop,remove;
 
-  private void computePossibleActions() {
-    Object[] dataSources = tv.getSelectedDataSources().toArray();
-    // enable up and down so that we can do the "selection rotate trick"
-    up = down = run =  remove = (dataSources.length > 0);
-    top = bottom = start = stop = false;
-    for (int i = 0; i < dataSources.length; i++) {
-    	if (dataSources[i] instanceof DownloadManager) {
-        DownloadManager dm = (DownloadManager)dataSources[i];
+  public void refreshToolBar(Map<String, Boolean> list) {
+		Map<String, Boolean> states = calculateToolbarStates(
+				SelectedContentManager.getCurrentlySelectedContent(), tv.getTableID());
+		list.putAll(states);
+  }
   
-        if(!start && ManagerUtils.isStartable(dm))
-          start =  true;
-        if(!stop && ManagerUtils.isStopable(dm))
-          stop = true;
-        if(!top && dm.getGlobalManager().isMoveableUp(dm))
-          top = true;
-        if(!bottom && dm.getGlobalManager().isMoveableDown(dm))
-          bottom = true;
-    	}
-    }
-  }
 
-  public boolean isEnabled(String itemKey) {
-    if(itemKey.equals("run"))
-      return run;
-    if(itemKey.equals("start"))
-      return start;
-    if(itemKey.equals("stop"))
-      return stop;
-    if(itemKey.equals("remove"))
-      return remove;
-    if(itemKey.equals("top"))
-      return top;
-    if(itemKey.equals("bottom"))
-      return bottom;
-    if(itemKey.equals("up"))
-      return up;
-    if(itemKey.equals("down"))
-      return down;
-    if(itemKey.equals("share"))
-      return remove;
-    if(itemKey.equals("transcode"))
-      return remove;
-    return super.isEnabled(itemKey);
-  }
-
-  public void itemActivated(String itemKey) {
+  public boolean toolBarItemActivated(String itemKey) {
     if(itemKey.equals("top")) {
       moveSelectedTorrentsTop();
-      return;
+      return true;
     }
     if(itemKey.equals("bottom")){
       moveSelectedTorrentsEnd();
-      return;
+      return true;
     }
     if(itemKey.equals("up")) {
       moveSelectedTorrentsUp();
-      return;
+      return true;
     }
     if(itemKey.equals("down")){
       moveSelectedTorrentsDown();
-      return;
+      return true;
     }
     if(itemKey.equals("run")){
-      TorrentUtil.runTorrents(tv.getSelectedDataSources().toArray());
-      return;
+      TorrentUtil.runDataSources(tv.getSelectedDataSources().toArray());
+      return true;
     }
     if(itemKey.equals("start")){
-      TorrentUtil.queueTorrents(tv.getSelectedDataSources().toArray(),
-					cTablePanel.getShell());
-      return;
+      TorrentUtil.queueDataSources(tv.getSelectedDataSources().toArray());
+      return true;
     }
     if(itemKey.equals("stop")){
-      TorrentUtil.stopTorrents(tv.getSelectedDataSources().toArray(),
-					cTablePanel.getShell());
-      return;
+      TorrentUtil.stopDataSources(tv.getSelectedDataSources().toArray());
+      return true;
     }
     if(itemKey.equals("remove")){
-      TorrentUtil.removeTorrents(tv.getSelectedDataSources().toArray(),
-					cTablePanel.getShell());
-      return;
+      TorrentUtil.removeDataSources(tv.getSelectedDataSources().toArray());
+      return true;
     }
-    super.itemActivated(itemKey);
+    return false;
   }
   
 
@@ -1670,7 +1633,7 @@ public class MyTorrentsView
 				public void runSupport() {
 		    	row.refresh(true);
 		    	if (row.isSelected()) {
-		    		refreshIconBar();
+		    		updateSelectedContent();
 		    	}
 				}
     	});
@@ -1682,7 +1645,7 @@ public class MyTorrentsView
   	if (isOurDownloadManager(download)) {
     	Utils.execSWTThreadLater(0, new AERunnable() {
 				public void runSupport() {
-					refreshIconBar();
+					updateSelectedContent();
 				}
     	});
   	}
@@ -1901,6 +1864,193 @@ public class MyTorrentsView
 	 */
 	protected int getRowDefaultHeight(){
 		return -1;
+	}
+
+	public static Map<String, Boolean> calculateToolbarStates(
+			ISelectedContent[] currentContent, String viewID) {
+		//System.out.println("updateCoreItems(" + currentContent.length + ", " + viewID + " via " + Debug.getCompressedStackTrace());
+		String[] TBKEYS = new String[] {
+			"download",
+			"play",
+			"stream",
+			"run",
+			"top",
+			"up",
+			"down",
+			"bottom",
+			"start",
+			"stop",
+			"remove"
+		};
+		
+		Map<String, Boolean> mapNewToolbarStates = new HashMap<String, Boolean>();
+		
+		String[] itemsNeedingSelection = {};
+
+		String[] itemsNeedingRealDMSelection = {
+			"remove",
+			"top",
+			"bottom",
+			"transcode",
+		};
+
+		String[] itemsRequiring1DMwithHash = {
+			"details",
+			"comment",
+			"up",
+			"down",
+		};
+
+		String[] itemsRequiring1DMSelection = {};
+
+		int numSelection = currentContent.length;
+		boolean hasSelection = numSelection > 0;
+		boolean has1Selection = numSelection == 1;
+
+		for (int i = 0; i < itemsNeedingSelection.length; i++) {
+			String itemID = itemsNeedingSelection[i];
+			mapNewToolbarStates.put(itemID, hasSelection);
+		}
+
+		TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
+		boolean hasRealDM = tv != null;
+		if (!hasRealDM) {
+			MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+			if (mdi != null) {
+				MdiEntrySWT entry = mdi.getCurrentEntrySWT();
+				if (entry != null) {
+					if (entry.getDatasource() instanceof DownloadManager) {
+						hasRealDM = true;
+					} else if ((entry.getIView() instanceof UIPluginView)
+							&& (((UIPluginView) entry.getIView()).getDataSource() instanceof DownloadManager)) {
+						hasRealDM = true;
+					}
+				}
+			}
+		}
+
+		boolean canStart = false;
+		boolean canStop = false;
+    boolean canRemoveFileInfo = false;
+    boolean canRunFileInfo = false;
+    boolean hasDM = false;
+
+		if (currentContent.length > 0 && hasRealDM) {
+			for (int i = 0; i < currentContent.length; i++) {
+				ISelectedContent content = currentContent[i];
+				DownloadManager dm = content.getDownloadManager();
+				int fileIndex = content.getFileIndex();
+				if (fileIndex == -1) {
+					hasDM = true;
+  				if (!canStart && ManagerUtils.isStartable(dm)) {
+  					canStart = true;
+  				}
+  				if (!canStop && ManagerUtils.isStopable(dm)) {
+  					canStop = true;
+  				}
+				} else {
+					DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
+					if (fileIndex < fileInfos.length) {
+						DiskManagerFileInfo fileInfo = fileInfos[fileIndex];
+		    		if (!canStart && fileInfo.isSkipped()) {
+		    			canStart = true;
+		    		}
+		    		
+		    		if (!canStop && !fileInfo.isSkipped()) {
+		    			canStop = true;
+		    		}
+		    		
+						if (!canRemoveFileInfo && !fileInfo.isSkipped()) {
+							int storageType = fileInfo.getStorageType();
+							if (storageType == DiskManagerFileInfo.ST_LINEAR
+									|| storageType == DiskManagerFileInfo.ST_COMPACT) {
+								canRemoveFileInfo = true;
+							}
+		    		}
+						
+						if (!canRunFileInfo
+								&& fileInfo.getAccessMode() == DiskManagerFileInfo.READ
+								&& fileInfo.getDownloaded() == fileInfo.getLength()
+								&& fileInfo.getFile(true).exists()) {
+							canRunFileInfo = true;
+						}
+					}
+				}
+			}
+			boolean canRemove = hasDM || canRemoveFileInfo;
+			mapNewToolbarStates.put("remove", canRemove);
+		}
+
+    boolean canRun = has1Selection && ((hasDM && !canRunFileInfo) || (!hasDM && canRunFileInfo));
+		if (canRun) {
+			ISelectedContent content = currentContent[0];
+			DownloadManager dm = content.getDownloadManager();
+
+			if (dm == null) {
+				canRun = false;
+			} else {
+				TOTorrent torrent = dm.getTorrent();
+
+				if (torrent == null) {
+
+					canRun = false;
+
+				} else if (!dm.getAssumedComplete() && torrent.isSimpleTorrent()) {
+
+					canRun = false;
+/*
+				} else if (PlatformTorrentUtils.useEMP(torrent)
+						&& PlatformTorrentUtils.embeddedPlayerAvail()
+						&& PlayUtils.canProgressiveOrIsComplete(torrent)) {
+					// play button enabled and not UMP.. don't need launch
+
+					canRun = false;
+
+				}
+				*/
+				}
+			}
+		}
+		mapNewToolbarStates.put("run", canRun);
+
+		mapNewToolbarStates.put("start", canStart);
+		mapNewToolbarStates.put("stop", canStop);
+
+		for (int i = 0; i < itemsNeedingRealDMSelection.length; i++) {
+			String itemID = itemsNeedingRealDMSelection[i];
+			if (!mapNewToolbarStates.containsKey(itemID)) {
+  			mapNewToolbarStates.put(itemID, hasSelection && hasDM
+  					&& hasRealDM);
+			}
+		}
+		for (int i = 0; i < itemsRequiring1DMSelection.length; i++) {
+			String itemID = itemsRequiring1DMSelection[i];
+			if (!mapNewToolbarStates.containsKey(itemID)) {
+				mapNewToolbarStates.put(itemID, has1Selection && hasDM);
+			}
+		}
+
+		for (int i = 0; i < itemsRequiring1DMwithHash.length; i++) {
+			String itemID = itemsRequiring1DMwithHash[i];
+			if (!mapNewToolbarStates.containsKey(itemID)) {
+				mapNewToolbarStates.put(itemID, hasDM);
+			}
+		}
+
+		mapNewToolbarStates.put("download", has1Selection
+					&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
+					&& currentContent[0].getDownloadManager() == null
+					&& (currentContent[0].getHash() != null || currentContent[0].getDownloadInfo() != null));
+
+		if (tv != null) {
+			TableColumn tc = tv.getTableColumn(RankItem.COLUMN_ID);
+			if (tc != null && !tc.isVisible()) {
+				mapNewToolbarStates.put("up", false);
+				mapNewToolbarStates.put("down", false);
+			}
+		}
+		
+		return mapNewToolbarStates;
 	}
 
 }

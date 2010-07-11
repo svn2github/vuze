@@ -22,8 +22,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -45,6 +44,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -54,10 +54,12 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 
 import com.aelitis.azureus.core.util.AZ3Functions;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 
 /**
@@ -171,6 +173,7 @@ public class FilesView
 	
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void deselected(TableRowCore[] rows) {
+		updateSelectedContent();
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#focusChanged(com.aelitis.azureus.ui.common.table.TableRowCore)
@@ -179,25 +182,25 @@ public class FilesView
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void selected(TableRowCore[] rows) {
-		
-		List<DiskManagerFileInfo> ds = tv.getSelectedDataSources();
-			
-		if ( ds.size() != 1 ){
-			
-			SelectedContent selected = new SelectedContent( manager );
-			
-			SelectedContentManager.changeCurrentlySelectedContent( "IconBarEnabler", new ISelectedContent[]{ selected }, null );
-			
-		}else{
-				
-			DiskManagerFileInfo info = ds.get(0);
-			
-			SelectedContent selected = new SelectedContent( info.getDownloadManager(), info.getIndex()); 
-				
-			SelectedContentManager.changeCurrentlySelectedContent( "IconBarEnabler", new ISelectedContent[]{ selected }, null );
-		}
+		updateSelectedContent();
 	}
 
+	public void updateSelectedContent() {
+		Object[] dataSources = tv.getSelectedDataSources(true);
+		List<SelectedContent> listSelected = new ArrayList<SelectedContent>(
+				dataSources.length);
+		for (Object ds : dataSources) {
+			if (ds instanceof DiskManagerFileInfo) {
+				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
+				listSelected.add(new SelectedContent(fileInfo.getDownloadManager(),
+						fileInfo.getIndex()));
+			}
+		}
+		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(),
+				listSelected.toArray(new SelectedContent[0]), tv);
+	}
+
+	
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void defaultSelected(TableRowCore[] rows, int stateMask) {
 		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tv.getFirstSelectedDataSource();
@@ -432,5 +435,38 @@ public class FilesView
 		} catch (Throwable t) {
 			Logger.log(new LogEvent(LogIDs.GUI, "failed to init drag-n-drop", t));
 		}
+	}
+	
+	public void refreshToolBar(Map<String, Boolean> list) {
+		ISelectedContent[] content = SelectedContentManager.getCurrentlySelectedContent();
+		Map<String, Boolean> states = MyTorrentsView.calculateToolbarStates(content, tv.getTableID());
+		list.putAll(states);
+		list.put("up", false);
+		list.put("down", false);
+		super.refreshToolBar(list);
+	}
+
+	public boolean toolBarItemActivated(String itemKey) {
+    if(itemKey.equals("run")){
+      TorrentUtil.runDataSources(tv.getSelectedDataSources().toArray());
+      return true;
+    }
+    if(itemKey.equals("start")){
+      TorrentUtil.queueDataSources(tv.getSelectedDataSources().toArray());
+      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
+      return true;
+    }
+    if(itemKey.equals("stop")){
+      TorrentUtil.stopDataSources(tv.getSelectedDataSources().toArray());
+      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
+      return true;
+    }
+    if(itemKey.equals("remove")){
+      TorrentUtil.removeDataSources(tv.getSelectedDataSources().toArray());
+      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
+      return true;
+    }
+
+    return super.toolBarItemActivated(itemKey);
 	}
 }

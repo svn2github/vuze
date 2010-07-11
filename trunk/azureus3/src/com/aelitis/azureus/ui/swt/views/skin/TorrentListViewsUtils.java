@@ -24,12 +24,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
-
 import java.util.Map;
 
-
 import org.eclipse.swt.program.Program;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
@@ -38,13 +36,8 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -59,11 +52,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
-import com.aelitis.azureus.core.download.EnhancedDownloadManager;
-import com.aelitis.azureus.core.download.StreamManager;
-import com.aelitis.azureus.core.download.StreamManagerDownload;
-import com.aelitis.azureus.core.download.StreamManagerDownloadListener;
+import com.aelitis.azureus.core.download.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -79,16 +68,12 @@ import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.player.PlayerInstallWindow;
 import com.aelitis.azureus.ui.swt.player.PlayerInstaller;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
-import com.aelitis.azureus.util.ContentNetworkUtils;
-import com.aelitis.azureus.util.DLReferals;
-import com.aelitis.azureus.util.DataSourceUtils;
-import com.aelitis.azureus.util.PlayUtils;
+import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
 /**
@@ -284,7 +269,7 @@ public class TorrentListViewsUtils
 			TorrentUIUtilsV3.addTorrentToGM(torrent);
 		} else {
 			DownloadUrlInfo dlInfo = DataSourceUtils.getDownloadInfo(ds);
-			if (dlInfo instanceof DownloadUrlInfoSWT) {
+			if (dlInfo != null) {
 				TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false,
 						true, true);
 				return;
@@ -294,6 +279,9 @@ public class TorrentListViewsUtils
 			if (hash != null) {
 				ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
 				if (cn == null) {
+					dlInfo = new DownloadUrlInfo(UrlUtils.parseTextForMagnets(hash));
+					dlInfo.setReferer(referal);
+					TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false, true, false);
 					return;
 				}
 				if (ds instanceof VuzeActivitiesEntry) {
@@ -306,9 +294,6 @@ public class TorrentListViewsUtils
 				String url = cn.getTorrentDownloadService(hash, referal);
 				dlInfo = new DownloadUrlInfoContentNetwork(url, cn);
 				TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false, true, true);
-			} else if (dlInfo != null) {
-				TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false,
-						true, true);
 			}
 		}
 	}
@@ -414,7 +399,7 @@ public class TorrentListViewsUtils
 					return;
 				}
 
-				if (!doProgressive && dm.getDiskManagerFileInfo().length > 1
+				if (!doProgressive && dm.getNumFileInfos() > 1
 						&& PlatformTorrentUtils.getContentPrimaryFileIndex(torrent) == -1) {
 					// multi-file torrent that we aren't progressive playing or useEMPing
 					Utils.launch(dm.getSaveLocation().getAbsolutePath());

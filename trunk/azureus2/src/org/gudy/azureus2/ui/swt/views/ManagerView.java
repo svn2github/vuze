@@ -30,7 +30,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -42,7 +41,10 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
@@ -54,18 +56,18 @@ import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-
-import org.gudy.azureus2.plugins.download.DownloadException;
 
 /**
  * Torrent download view, consisting of several information tabs
@@ -75,7 +77,7 @@ import org.gudy.azureus2.plugins.download.DownloadException;
  */
 public class ManagerView
 	implements DownloadManagerListener, ObfusticateTab, ObfusticateImage,
-	ViewTitleInfo, UISWTViewCoreEventListener, IconBarEnabler, UIUpdatable
+	ViewTitleInfo, UISWTViewCoreEventListener, ToolBarEnabler, UIUpdatable
 {
 
   private DownloadManager 	manager;
@@ -279,13 +281,18 @@ public class ManagerView
           if (item != null) {
           	IView view = (IView)item.getData("IView");
             activeView = view;
-          	
+          	 
           	if (item.getControl() == null) {
             	view.initialize(folder);
             	item.setControl(view.getComposite());
           	}
           	
           	item.getControl().setFocus();
+
+      	    UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+      			if (uiFunctions != null) {
+      				uiFunctions.refreshIconBar(); // For edit columns view
+      			}
           }
           refresh();
       		ViewTitleInfoManager.refreshTitleInfo(ManagerView.this);
@@ -349,11 +356,6 @@ public class ManagerView
         }
       }
 	    
-	    UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-			if (uiFunctions != null) {
-				uiFunctions.refreshIconBar(); // For edit columns view
-			}
-
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
 		}
@@ -388,57 +390,53 @@ public class ManagerView
 	  return( str.replaceAll( "&", "&&" ));
   }
   
-  public boolean isEnabled(String itemKey) {
-		if (itemKey.equals("run"))
-			return true;
-
-		if (itemKey.equals("start"))
-			return ManagerUtils.isStartable(manager);
-
-		if (itemKey.equals("stop"))
-			return ManagerUtils.isStopable(manager);
-
-		if (itemKey.equals("remove"))
-			return true;
-		
-		if (itemKey.equals("editcolumns")) {
-			IView active_view = getActiveView();
-			if (active_view != null) {
-				return active_view.isEnabled(itemKey);
-			}
+	public void refreshToolBar(Map<String, Boolean> list) {
+		IView active_view = getActiveView();
+		if (active_view instanceof ToolBarEnabler) {
+			((ToolBarEnabler) active_view).refreshToolBar(list);
+			return;
 		}
-		
-		return false;
+
+		list.put("run", true);
+		list.put("start", ManagerUtils.isStartable(manager));
+		list.put("stop", ManagerUtils.isStopable(manager));
+		list.put("remove", true);
 	}
 
-	public void itemActivated(String itemKey) {
+	public boolean toolBarItemActivated(String itemKey) {
+		IView active_view = getActiveView();
+		if (active_view instanceof ToolBarEnabler) {
+			return ((ToolBarEnabler) active_view).toolBarItemActivated(itemKey);
+		}
+
 		if (itemKey.equals("run")) {
 			ManagerUtils.run(manager);
-			return;
+			return true;
 		}
 		
 		if (itemKey.equals("start")) {
 			ManagerUtils.queue(manager, folder.getShell());
-			return;
+			return true;
 		}
 		
 		if (itemKey.equals("stop")) {
 			ManagerUtils.stop(manager, folder.getShell());
-			return;
+			return true;
 		}
 		
 		if (itemKey.equals("remove")) {
 			ManagerUtils.remove(manager, null, false, false);
-			return;
+			return true;
 		}
 		
 		if (itemKey.equals("editcolumns")) {
-			IView active_view = getActiveView();
 			if (active_view != null) {
 				active_view.itemActivated(itemKey);
-				return;
+				return true;
 			}
 		}
+		
+		return false;
 	}
   
   

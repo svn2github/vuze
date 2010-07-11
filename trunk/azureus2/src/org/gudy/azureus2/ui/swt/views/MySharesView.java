@@ -25,8 +25,7 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -115,7 +114,7 @@ implements ShareManagerListener,
   }
 	
 	private void defaultSelected(TableRowCore[] rows) {
-		ShareResource share = tv.getFirstSelectedDataSource();
+		ShareResource share = (ShareResource) tv.getFirstSelectedDataSource();
 		if (share == null) {
 			return;
 		}
@@ -254,7 +253,6 @@ implements ShareManagerListener,
 	public void	reportCurrentTask(final String task_description) { }
  
 	public void tableRefresh() {
-		computePossibleActions();
 	  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
  	  	if (uiFunctions != null) {
  	  		uiFunctions.refreshIconBar();
@@ -347,12 +345,8 @@ implements ShareManagerListener,
 	    });
 	  }
 	  
-  private boolean start,stop,remove;
-  
-  private void 
-  computePossibleActions() 
-  {
-    start = stop = remove = false;
+  public void refreshToolBar(Map list) {
+    boolean start = false, stop = false, remove = false;
     
     if (!AzureusCoreFactory.isCoreRunning()) {
     	return;
@@ -400,31 +394,27 @@ implements ShareManagerListener,
     	}
       }
     }
-  }
   
-  public boolean isEnabled(String itemKey) {
-    if(itemKey.equals("start"))
-      return start;
-    if(itemKey.equals("stop"))
-      return stop;
-    if(itemKey.equals("remove"))
-      return remove;
-    return super.isEnabled(itemKey);
+  	list.put("start", start);
+  	list.put("stop", stop);
+  	list.put("remove", remove);
+
+    super.refreshToolBar(list);
   }
   
 
-  public void itemActivated(String itemKey) {
+  public boolean toolBarItemActivated(String itemKey) {
     if(itemKey.equals("remove")){
       removeSelectedShares();
-      return;
+      return true;
     }else if ( itemKey.equals( "stop" )){
     	stopSelectedShares();
-    	return;
+    	return true;
     }else if ( itemKey.equals( "start" )){
     	startSelectedShares();
-    	return;
+    	return true;
     }
-    super.itemActivated(itemKey);
+  	return super.toolBarItemActivated(itemKey);
   }
   
   private List
@@ -623,7 +613,6 @@ implements ShareManagerListener,
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void deselected(TableRowCore[] rows) {
-		computePossibleActions();
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.refreshIconBar();
@@ -632,7 +621,6 @@ implements ShareManagerListener,
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#focusChanged(com.aelitis.azureus.ui.common.table.TableRowCore)
 	public void focusChanged(TableRowCore focus) {
-		computePossibleActions();
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.refreshIconBar();
@@ -649,7 +637,6 @@ implements ShareManagerListener,
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void selected(TableRowCore[] row) {
-		computePossibleActions();
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.refreshIconBar();

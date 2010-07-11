@@ -20,6 +20,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
@@ -29,15 +30,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
-import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.IView;
@@ -54,16 +52,17 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
-import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
@@ -80,7 +79,7 @@ import com.aelitis.azureus.util.PlayUtils;
  */
 public class SBC_LibraryTableView
 	extends SkinView
-	implements UIUpdatable, IconBarEnabler
+	implements UIUpdatable, ToolBarEnabler
 {
 	private final static String ID = "SBC_LibraryTableView";
 
@@ -109,7 +108,6 @@ public class SBC_LibraryTableView
 				});
 			}
   	});
-
 
 		return null;
 	}
@@ -390,6 +388,12 @@ public class SBC_LibraryTableView
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
 
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if ( mdi != null ){
+			MdiEntry entry = mdi.getCurrentEntry();
+			entry.addToolbarEnabler( this );
+		}
+
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED
 				&& AzureusCoreFactory.isCoreRunning()) {
 			if (view instanceof MyTorrentsView) {
@@ -424,45 +428,46 @@ public class SBC_LibraryTableView
 	
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
-		if (view instanceof MyTorrentsView) {
-			((MyTorrentsView)view).updateSelectedContent();
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if ( mdi != null ){
+			MdiEntry entry = mdi.getCurrentEntry();
+			entry.removeToolbarEnabler( this );
 		}
+
 		return super.skinObjectHidden(skinObject, params);
 	}
 
-	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isEnabled(java.lang.String)
-	public boolean isEnabled(String itemKey) {
-		try {
-			if (view != null) {
-				return view.isEnabled(itemKey);
-			}
-		} catch (Throwable t) {
-			Debug.out(t);
+	public void refreshToolBar(Map<String, Boolean> list) {
+		if (view instanceof ToolBarEnabler) {
+			((ToolBarEnabler) view).refreshToolBar(list);
 		}
-		return false;
+		if (tv == null) {
+			return;
+		}
+		ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+		boolean has1Selection = currentContent.length == 1;
+		list.put(
+				"play",
+				has1Selection
+						&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
+						&& PlayUtils.canPlayDS(currentContent[0],
+								currentContent[0].getFileIndex()));
+		list.put(
+				"stream",
+				has1Selection
+						&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
+						&& PlayUtils.canStreamDS(currentContent[0],
+								currentContent[0].getFileIndex()));
 	}
 
-	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isSelected(java.lang.String)
-	public boolean isSelected(String itemKey) {
-		try {
-			if (view != null) {
-				return view.isSelected(itemKey);
+	public boolean toolBarItemActivated(String itemKey) {
+		if (view instanceof ToolBarEnabler) {
+			if (((ToolBarEnabler) view).toolBarItemActivated(itemKey)) {
+				return true;
 			}
-		} catch (Throwable t) {
-			Debug.out(t);
 		}
+		// currently stream and play are handled by ToolbarView..
 		return false;
-	}
-
-	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#itemActivated(java.lang.String)
-	public void itemActivated(String itemKey) {
-		try {
-			if (view != null) {
-				view.itemActivated(itemKey);
-			}
-		} catch (Throwable t) {
-			Debug.out(t);
-		}
 	}
 
 	/**

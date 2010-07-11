@@ -217,7 +217,7 @@ public class PlayUtils
 			
 		}else{
 			
-			file = dm.getDiskManagerFileInfo()[ file_index ];
+			file = dm.getDiskManagerFileInfoSet().getFiles()[ file_index ];
 		}
 		
 		if ( file.getDownloaded() == file.getLength()){

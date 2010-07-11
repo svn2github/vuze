@@ -3,7 +3,6 @@
  */
 package com.aelitis.azureus.ui.swt.mdi;
 
-import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.mdi.MdiEntry;
@@ -19,8 +18,4 @@ public interface MdiEntrySWT
 	//public SWTSkinObject getSkinObject();
 
 	public IView getIView();
-
-	public IconBarEnabler getIconBarEnabler();
-
-	public void setIconBarEnabler(IconBarEnabler iconBarEnabler);
 }

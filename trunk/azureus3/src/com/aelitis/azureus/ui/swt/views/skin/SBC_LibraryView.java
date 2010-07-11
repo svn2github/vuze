@@ -18,9 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -48,6 +46,7 @@ import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
@@ -72,7 +71,7 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarVitalityImageSWT;
  *
  */
 public class SBC_LibraryView
-	extends SkinView
+	extends SkinView implements ToolBarEnabler
 {
 	private final static String ID = "library-list";
 
@@ -294,6 +293,10 @@ public class SBC_LibraryView
 				}
 			});
 		}
+		
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		MdiEntry entry = mdi.getCurrentEntry();
+		entry.addToolbarEnabler(this);
 
 		SkinViewManager.addListener(ToolBarView.class,
 				new SkinViewManager.SkinViewManagerListener() {
@@ -302,7 +305,7 @@ public class SBC_LibraryView
 							ToolBarView tbv = (ToolBarView) skinview;
 							tbv.addListener(new ToolBarViewListener() {
 								public void toolbarViewInitialized(ToolBarView tbv) {
-									initToolBarView(tbv);
+									setupModeButtons();
 								}
 							});
 						}
@@ -320,39 +323,23 @@ public class SBC_LibraryView
 		return null;
 	}
 
-	protected void initToolBarView(ToolBarView tb) {
-		itemModeSmall = tb.getToolBarItem("modeSmall");
-		if (itemModeSmall != null) {
-			itemModeSmall.addListener(new ToolBarItemListener() {
-				public void pressed(ToolBarItem toolBarItem) {
-					if (isVisible()) {
-						setViewMode(MODE_SMALLTABLE, true);
-					}
-				}
-
-				public boolean held(ToolBarItem toolBarItem) {
-					return false;
-				}
-			});
+	public void refreshToolBar(Map<String, Boolean> list) {
+		list.put("modeSmall", true);
+		list.put("modeBig", true);
+	}
+	
+	public boolean toolBarItemActivated(String itemKey) {
+		if (itemKey.equals("modeSmall")) {
+			if (isVisible()) {
+				setViewMode(MODE_SMALLTABLE, true);
+			}
 		}
-		itemModeBig = tb.getToolBarItem("modeBig");
-		if (itemModeBig != null) {
-			itemModeBig.addListener(new ToolBarItemListener() {
-				public void pressed(ToolBarItem toolBarItem) {
-					if (isVisible()) {
-						setViewMode(MODE_BIGTABLE, true);
-					}
-				}
-
-				public boolean held(ToolBarItem toolBarItem) {
-					return false;
-				}
-			});
+		if (itemKey.equals("modeBig")) {
+			if (isVisible()) {
+				setViewMode(MODE_BIGTABLE, true);
+			}
 		}
-
-		if (isVisible()) {
-			setupModeButtons();
-		}
+		return false;
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
@@ -364,17 +351,16 @@ public class SBC_LibraryView
 	}
 
 	private void setupModeButtons() {
+		
 		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 		if (tb != null) {
 			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
 			if (itemModeSmall != null) {
-				itemModeSmall.setEnabled(true);
 				itemModeSmall.getSkinButton().getSkinObject().switchSuffix(
 						viewMode == MODE_BIGTABLE ? "" : "-down");
 			}
 			ToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
 			if (itemModeBig != null) {
-				itemModeBig.setEnabled(true);
 				itemModeBig.getSkinButton().getSkinObject().switchSuffix(
 						viewMode == MODE_BIGTABLE ? "-down" : "");
 			}
@@ -394,15 +380,6 @@ public class SBC_LibraryView
 		if (viewMode >= modeViewIDs.length || viewMode < 0
 				|| viewMode == this.viewMode) {
 			return;
-		}
-
-		if (itemModeSmall != null) {
-			itemModeSmall.getSkinButton().getSkinObject().switchSuffix(
-					viewMode == MODE_BIGTABLE ? "" : "-down");
-		}
-		if (itemModeBig != null) {
-			itemModeBig.getSkinButton().getSkinObject().switchSuffix(
-					viewMode == MODE_BIGTABLE ? "-down" : "");
 		}
 
 		int oldViewMode = this.viewMode;
@@ -456,6 +433,8 @@ public class SBC_LibraryView
 		for (countRefreshListener l : listeners) {
 			l.countRefreshed(statsWithLowNoise, statsNoLowNoise);
 		}
+
+		setupModeButtons();
 	}
 
 	public static void setupViewTitle() {

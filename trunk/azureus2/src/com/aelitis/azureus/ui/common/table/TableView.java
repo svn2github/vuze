@@ -120,9 +120,9 @@ public interface TableView<DATASOURCETYPE>
 	List<DATASOURCETYPE> getDataSources();
 
 	/**
-	 * @return
+	 * @note May not necessarily return DATASOURCETYPE if table has subrows
 	 */
-	DATASOURCETYPE getFirstSelectedDataSource();
+	Object getFirstSelectedDataSource();
 
 	/**
 	 * @return
@@ -147,8 +147,10 @@ public interface TableView<DATASOURCETYPE>
 	 * ommitted.
 	 *
 	 * @return an array containing the selected data sources
+	 * 
+	 * @note May not necessarily return DATASOURCETYPE if table has subrows
 	 */
-	List<DATASOURCETYPE> getSelectedDataSources();
+	List<Object> getSelectedDataSources();
 
 	/** 
 	 * Returns an array of all selected Data Sources.  Null data sources are

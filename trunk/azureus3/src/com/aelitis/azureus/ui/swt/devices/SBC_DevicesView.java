@@ -35,6 +35,10 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -44,9 +48,14 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.devices.*;
-import com.aelitis.azureus.ui.*;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -60,10 +69,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-
 /**
  * @author TuxPaper
  * @created Feb 24, 2009
@@ -71,7 +76,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
  */
 public class SBC_DevicesView
 	extends SkinView
-	implements TranscodeQueueListener, IconBarEnabler, UIUpdatable,
+	implements TranscodeQueueListener, ToolBarEnabler, UIUpdatable,
 	TranscodeTargetListener, DeviceListener
 {
 	public static final String TABLE_DEVICES = "Devices";
@@ -123,7 +128,7 @@ public class SBC_DevicesView
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi != null) {
 			mdiEntry = mdi.getCurrentEntrySWT();
-			mdiEntry.setIconBarEnabler(this);
+			mdiEntry.addToolbarEnabler(this);
 			device = (Device) mdiEntry.getDatasource();
 		}
 
@@ -566,7 +571,7 @@ public class SBC_DevicesView
 								
 							}else{
 							
-								List<TranscodeFile> selectedDataSources = tvFiles.getSelectedDataSources();
+								List<Object> selectedDataSources = tvFiles.getSelectedDataSources();
 								selected = selectedDataSources.toArray(new TranscodeFile[0]);
 							}
 						}
@@ -1051,26 +1056,21 @@ public class SBC_DevicesView
 		}
 	}
 
-	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isEnabled(java.lang.String)
-	public boolean isEnabled(String itemKey) {
+	public void refreshToolBar(Map<String, Boolean> list) {
 		Object[] selectedDS;
 		int size;
 		synchronized (this) {
 			if (tvFiles == null) {
-				return false;
+				return;
 			}
 			selectedDS = tvFiles.getSelectedDataSources().toArray();
 			size = tvFiles.size(false);
 		}
 		if (selectedDS.length == 0) {
-
-			return (false);
+			return;
 		}
 
-		if (itemKey.equals("remove")) {
-
-			return (true);
-		}
+		list.put("remove", true);
 
 		boolean can_stop = true;
 		boolean can_queue = true;
@@ -1119,49 +1119,26 @@ public class SBC_DevicesView
 			can_stop = can_queue = can_move_down = can_move_up = false;
 		}
 
-		if (itemKey.equals("stop")) {
-
-			return (can_stop);
-		}
-
-		if (itemKey.equals("start")) {
-
-			return (can_queue);
-		}
-
-		if (itemKey.equals("up")) {
-
-			return (can_move_up);
-		}
-
-		if (itemKey.equals("down")) {
-
-			return (can_move_down);
-		}
-
-		return (false);
+		list.put("stop", can_stop);
+		list.put("start", can_queue);
+		list.put("up", can_move_up);
+		list.put("down", can_move_down);
 	}
 
-	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isSelected(java.lang.String)
-	public boolean isSelected(String itemKey) {
-		return false;
-	}
-
-	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#itemActivated(java.lang.String)
-	public void itemActivated(final String itemKey) {
+	public boolean toolBarItemActivated(final String itemKey) {
 		// assumed to be on SWT thread, so it's safe to use tvFiles without a sync
 		if (tvFiles == null) {
-			return;
+			return false;
 		}
 
 		TranscodeFile[] selectedDS = tvFiles.getSelectedDataSources().toArray(new TranscodeFile[0]);
 		if (selectedDS.length == 0) {
-			return;
+			return false;
 		}
 
 		if (itemKey.equals("remove")) {
 			deleteFiles(selectedDS, 0);
-			return;
+			return true;
 		}
 
 		java.util.List<TranscodeJob> jobs = new ArrayList<TranscodeJob>(
@@ -1175,7 +1152,7 @@ public class SBC_DevicesView
 			}
 		}
 		if (jobs.size() == 0) {
-			return;
+			return false;
 		}
 
 		if (itemKey.equals("up") || itemKey.equals("down")) {
@@ -1188,19 +1165,23 @@ public class SBC_DevicesView
 			});
 		}
 
+		boolean didSomething = false;
 		boolean forceSort = false;
 		for (TranscodeJob job : jobs) {
 
 			if (itemKey.equals("stop")) {
 
 				job.stop();
+				didSomething = true;
 
 			} else if (itemKey.equals("start")) {
 
+				didSomething = true;
 				job.queue();
 
 			} else if (itemKey.equals("up")) {
 
+				didSomething = true;
 				job.moveUp();
 
 				TableColumnCore sortColumn = tvFiles.getSortColumn();
@@ -1209,6 +1190,7 @@ public class SBC_DevicesView
 
 			} else if (itemKey.equals("down")) {
 
+				didSomething = true;
 				job.moveDown();
 
 				TableColumnCore sortColumn = tvFiles.getSortColumn();
@@ -1218,6 +1200,7 @@ public class SBC_DevicesView
 		}
 		tvFiles.refreshTable(forceSort);
 
+		return didSomething;
 	}
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()

@@ -18,6 +18,7 @@
  
 package com.aelitis.azureus.ui.mdi;
 
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 
 
@@ -122,4 +123,10 @@ public interface MdiEntry
 	public void expandTo();
 
 	public void setParentID(String id);
+
+	public ToolBarEnabler[] getToolbarEnablers();
+
+	public void addToolbarEnabler(ToolBarEnabler enabler);
+
+	public void removeToolbarEnabler(ToolBarEnabler enabler);
 }

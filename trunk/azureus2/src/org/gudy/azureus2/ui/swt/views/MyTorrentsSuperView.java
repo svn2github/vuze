@@ -19,6 +19,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -39,6 +40,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -52,7 +54,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
  */
 
 public class MyTorrentsSuperView extends AbstractIView implements
-		ObfusticateImage, IViewExtension
+		ObfusticateImage, IViewExtension, ToolBarEnabler
 {
 	private static int SASH_WIDTH = 5;
 
@@ -321,21 +323,21 @@ public class MyTorrentsSuperView extends AbstractIView implements
     return lastSelectedView;
   }
 
-  // IconBarEnabler
-  public boolean isEnabled(String itemKey) {
+  public void refreshToolBar(Map<String, Boolean> list) {
     IView currentView = getCurrentView();
-    if (currentView != null)
-      return currentView.isEnabled(itemKey);
-    else
-      return false;
+    if (currentView instanceof ToolBarEnabler) {
+      ((ToolBarEnabler) currentView).refreshToolBar(list);
+    }
   }
-  
-  // IconBarEnabler
-  // @see org.gudy.azureus2.ui.swt.views.AbstractIView#itemActivated(java.lang.String)
-  public void itemActivated(String itemKey) {
+
+  public boolean toolBarItemActivated(String itemKey) {
     IView currentView = getCurrentView();
-    if (currentView != null)
-      currentView.itemActivated(itemKey);    
+    if (currentView instanceof ToolBarEnabler) {
+      if (((ToolBarEnabler) currentView).toolBarItemActivated(itemKey)) {
+      	return true;
+      }
+    }
+    return false;
   }
   
   public DownloadManager[] getSelectedDownloads() {

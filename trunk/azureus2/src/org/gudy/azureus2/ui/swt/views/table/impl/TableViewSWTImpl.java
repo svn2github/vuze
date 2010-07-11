@@ -293,7 +293,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 */
 	private List<TableRowCore> selectedRows = new ArrayList<TableRowCore>(1);
 
-	private List<DATASOURCETYPE> listSelectedCoreDataSources;
+	private List<Object> listSelectedCoreDataSources;
 
 	private Utils.addDataSourceCallback processDataSourceQueueCallback = new Utils.addDataSourceCallback() {
 		public void process() {
@@ -1960,7 +1960,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						enable_items, new MenuBuildUtils.PluginMenuController() {
 							public Listener makeSelectionListener(
 									final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
-								return new TableSelectedRowsListener(TableViewSWTImpl.this) {
+								return new TableSelectedRowsListener(TableViewSWTImpl.this, false) {
 									public boolean run(TableRowCore[] rows) {
 										if (rows.length != 0) {
 											((TableContextMenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
@@ -3455,7 +3455,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	/* various selected rows functions */
 	/***********************************/
 
-	public List<DATASOURCETYPE> getSelectedDataSourcesList() {
+	public List<Object> getSelectedDataSourcesList() {
 		if (listSelectedCoreDataSources != null) {
 			return listSelectedCoreDataSources;
 		}
@@ -3464,13 +3464,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   			return Collections.emptyList();
   		}
   
-  		final ArrayList<DATASOURCETYPE> l = new ArrayList<DATASOURCETYPE>(
+  		final ArrayList<Object> l = new ArrayList<Object>(
   				selectedRows.size());
   		for (TableRowCore row : selectedRows) {
   			if (row != null && !row.isRowDisposed()) {
   				Object ds = row.getDataSource(true);
   				if (ds != null) {
-  					l.add((DATASOURCETYPE) ds);
+  					l.add(ds);
   				}
   			}
   		}
@@ -3515,8 +3515,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 *
 	 **/
 	// see common.TableView
-	public List<DATASOURCETYPE> getSelectedDataSources() {
-		return new ArrayList<DATASOURCETYPE>(getSelectedDataSourcesList());
+	public List<Object> getSelectedDataSources() {
+		return new ArrayList<Object>(getSelectedDataSourcesList());
 	}
 
 	// see common.TableView
@@ -3577,9 +3577,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getFirstSelectedDataSource()
-	@SuppressWarnings("unchecked")
-	public DATASOURCETYPE getFirstSelectedDataSource() {
-		return (DATASOURCETYPE) getFirstSelectedDataSource(true);
+	public Object getFirstSelectedDataSource() {
+		return getFirstSelectedDataSource(true);
 	}
 
 	public TableRowSWT[] swt_getVisibleRows() {

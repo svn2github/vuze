@@ -25,6 +25,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
@@ -35,12 +36,11 @@ import org.gudy.azureus2.ui.swt.IconBarEnabler;
 
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedVuzeFileContent;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 
 public class 
 SubscriptionSelectedContent 
-	extends ToolBarEnablerSelectedContent
 	implements ISelectedVuzeFileContent
 {
 	private Subscription		subs;
@@ -49,11 +49,8 @@ SubscriptionSelectedContent
 	
 	protected
 	SubscriptionSelectedContent(
-		IconBarEnabler		_enabler,
 		Subscription		_subs )
 	{
-		super( _enabler );
-		
 		subs	= _subs;
 	}
 		
@@ -135,5 +132,32 @@ SubscriptionSelectedContent
 		}
 		
 		return( torrent );
+	}
+
+	public void setHash(String hash) {
+	}
+
+	public DownloadManager getDownloadManager() {
+		return null;
+	}
+
+	public int getFileIndex() {
+		return 0;
+	}
+
+	public void setDownloadManager(DownloadManager dm) {
+	}
+
+	public void setTorrent(TOTorrent torrent) {
+	}
+
+	public void setDisplayName(String displayName) {
+	}
+
+	public DownloadUrlInfo getDownloadInfo() {
+		return null;
+	}
+
+	public void setDownloadInfo(DownloadUrlInfo downloadInfo) {
 	}
 }

@@ -1,5 +1,7 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -17,7 +19,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
@@ -26,6 +28,7 @@ import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -33,11 +36,11 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.*;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class SubscriptionsView
-	implements UIUpdatable, IView, SubscriptionManagerListener, ToolBarEnabler
+	extends AbstractIView
+	implements UIUpdatable, SubscriptionManagerListener, ToolBarEnabler
 {
 	private static final String TABLE_ID = "subscriptions";
 
@@ -83,40 +86,23 @@ public class SubscriptionsView
 		}
 	}
 	
-	public boolean isEnabled(String itemKey) {
-		if("remove".equals(itemKey) ) {
-			return view.getSelectedRowsSize() > 0;
-		}
-		if("share".equals(itemKey) ) {
-			
-			TableRowCore[] rows = view.getSelectedRows();
-			
-			if ( rows.length == 1 ){
-				
-				Subscription subs = (Subscription) rows[0].getDataSource();
-									
-				return( true );
-			}
-			
-			return( false );
-		}
-		
-		return false;
+	public void refreshToolBar(Map<String, Boolean> list) {
+		list.put("remove", view.getSelectedRowsSize() > 0);
+		TableRowCore[] rows = view.getSelectedRows();
+		list.put("share", rows.length == 1);
 	}
 	
 	public String getUpdateUIName() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	public boolean isSelected(String itemKey) {
-		return false;
-	}
-	
-	public void itemActivated(String itemKey) {
+
+	public boolean toolBarItemActivated(String itemKey) {
 		if("remove".equals(itemKey) ) {
 			removeSelected();
+			return true;
 		}
+		return false;
 	}
 
 
@@ -218,10 +204,6 @@ public class SubscriptionsView
 		return MessageText.getString("subscriptions.view.title");
 	}
 	
-	public String getShortTitle() {
-		return MessageText.getString("subscriptions.view.title");
-	}
-	
 	public void initialize(Composite parent) {
 		
 		viewComposite = new Composite(parent,SWT.NONE);
@@ -277,10 +259,10 @@ public class SubscriptionsView
 				
 				for (int i=0;i<rows.length;i++){
 					
-					sels[i] = new SubscriptionSelectedContent(SubscriptionsView.this, (Subscription)rows[i].getDataSource());
+					sels[i] = new SubscriptionSelectedContent((Subscription)rows[i].getDataSource());
 				}
 				
-				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler",
+				SelectedContentManager.changeCurrentlySelectedContent(view.getTableID(),
 						sels, view);
 			}
 			

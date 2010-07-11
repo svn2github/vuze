@@ -1,5 +1,7 @@
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
+import java.util.Map;
+
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 
@@ -9,9 +11,11 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IViewExtension;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
+
 public abstract class TableViewTab<DATASOURCETYPE>
 	extends AbstractIView
-	implements IViewExtension
+	implements IViewExtension, ToolBarEnabler
 {
 	private TableViewSWT<DATASOURCETYPE> tv;
 	private Object parentDataSource;
@@ -101,17 +105,18 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		return composite;
 	}
 	
-	public void itemActivated(String itemKey) {
+	public boolean toolBarItemActivated(String itemKey) {
 		if (itemKey.equals("editcolumns")) {
 			if (tv instanceof TableViewSWTImpl) {
 				((TableViewSWTImpl)tv).showColumnEditor();
+				return true;
 			}
 		}
+		return false;
 	}
 	
-	public boolean isEnabled(String itemKey) {
-		if (itemKey.equals("editcolumns")) {return true;}
-		return false;
+	public void refreshToolBar(Map<String, Boolean> list) {
+		list.put("ediltColumns", true);
 	}
 
 	public String getPropertiesPrefix() {

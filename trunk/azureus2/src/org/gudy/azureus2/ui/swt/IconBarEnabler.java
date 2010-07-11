@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt;
 /**
  * @author Olivier
  *
+ * @deprecated
  */
 public interface IconBarEnabler {
   public boolean isEnabled(String itemKey);
