@@ -21,8 +21,6 @@
 
 package org.gudy.azureus2.ui.swt.components;
 
-import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
@@ -617,13 +615,10 @@ BufferedTableRow
   		*/
     }
 
-    boolean wasExpanded = lastItemExisted ? item.getExpanded() : false;
     item = newRow;
-    // setItemCount takes longer than a getItemCount comparison
-    if (item.getItemCount() != numSubItems) {
-    	setSubItemCount(numSubItems);
-    }
-		item.setExpanded(wasExpanded);
+
+  	setSubItemCount(numSubItems);
+		item.setExpanded(expanded);
 		// Need to execute (de)select later, because if we are in a paint event
 		// that paint event may be reporting a row selected before the selection
 		// event fired (Cocoa 3650 fires paint before select yet the row is marked
@@ -645,7 +640,6 @@ BufferedTableRow
 				}
 			}
 		});
-		expanded = wasExpanded;
 		if (isVisible && !inPaintItem()) {
 		//if (newRowHadItem && isVisible && !inPaintItem()) {
 			//invalidate();
@@ -732,6 +726,10 @@ BufferedTableRow
 			    if (item.getItemCount() != numSubItems) {
 			    	item.setItemCount(numSubItems);
 			    }
+			    TableItemOrTreeItem[] items = item.getItems();
+			    for (TableItemOrTreeItem subItem : items) {
+						subItem.setData("TableRow", null);
+					}
 				}
 			});
 		}
