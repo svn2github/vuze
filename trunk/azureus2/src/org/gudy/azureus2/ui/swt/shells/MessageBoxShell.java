@@ -1051,22 +1051,32 @@ public class MessageBoxShell
 	 *       {@link UserPrompterResultListener} if possible
 	 */
 	public int waitUntilClosed() {
-		Utils.execSWTThreadWithBool("waitUntilClose", new AERunnableBoolean() {
-			public boolean runSupport() {
-				if (shell == null) {
-					return false;
-				}
-				if (!opened) {
-					shell.open();
-				}
-				while (shell != null && !shell.isDisposed()) {
-					if (shell.getDisplay() != null && !shell.getDisplay().readAndDispatch()) {
-						shell.getDisplay().sleep();
+		final AESemaphore sem = new AESemaphore("waitUntilClosed");
+		
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				try {
+					if (shell == null) {
+						return;
 					}
+					if (!opened) {
+						shell.open();
+					}
+					while (shell != null && !shell.isDisposed()) {
+						if (shell.getDisplay() != null
+								&& !shell.getDisplay().readAndDispatch()) {
+							shell.getDisplay().sleep();
+						}
+					}
+					return;
+				} finally {
+					sem.releaseForever();
 				}
-				return true;
 			}
 		});
+		
+		sem.reserve();
+
 		int realResult = getButtonVal(result);
 
 		return realResult;
