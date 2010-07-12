@@ -181,7 +181,7 @@ public class SeedsItem
 					&& lTotalPeers > 0) {
 				long lSeedsToAdd = lTotalPeers / iFC_NumPeers;
 				sToolTip += "\n"
-						+ MessageText.getString("MyTorrentsView.seeds.fullcopycalc",
+						+ MessageText.getString("TableColumn.header.seeds.fullcopycalc",
 								new String[] {
 									"" + lTotalPeers,
 									"" + lSeedsToAdd
