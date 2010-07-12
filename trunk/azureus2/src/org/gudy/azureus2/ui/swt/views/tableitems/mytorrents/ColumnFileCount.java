@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
+import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
@@ -56,11 +57,17 @@ public class ColumnFileCount
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
-	public static final String COLUMN_ID = "files";
+	public static final String COLUMN_ID = "filecount";
 
 	public ColumnFileCount(String sTableID) {
-		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, 60, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 60, sTableID);
 		setRefreshInterval(INTERVAL_INVALID_ONLY);
+	}
+	
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+		});
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -71,9 +78,16 @@ public class ColumnFileCount
 	}
 
 	public void cellMouseTrigger(final TableCellMouseEvent event) {
+		if (Utils.getUserMode() < 2) {
+			return;
+		}
 		final DownloadManager dm = (DownloadManager) event.cell.getDataSource();
-
-		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEUP
+		
+		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER) {
+			((TableCellCore) event.cell).setCursorID(SWT.CURSOR_HAND);
+		} else if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER) {
+			((TableCellCore) event.cell).setCursorID(SWT.CURSOR_ARROW);
+		} else if (event.eventType == TableRowMouseEvent.EVENT_MOUSEUP
 				&& event.button == 1) {
 			Utils.execSWTThreadLater(0, new AERunnable() {
 
@@ -93,7 +107,7 @@ public class ColumnFileCount
 
 		int sortVal = dm.getNumFileInfos();
 		Rectangle bounds = cell.getBounds();
-		Rectangle printArea = new Rectangle(bounds.x, bounds.y, bounds.width - 25,
+		Rectangle printArea = new Rectangle(bounds.x, bounds.y, bounds.width - 6,
 				bounds.height);
 		GCStringPrinter.printString(gc, "" + sortVal, printArea, true, true,
 				SWT.RIGHT);

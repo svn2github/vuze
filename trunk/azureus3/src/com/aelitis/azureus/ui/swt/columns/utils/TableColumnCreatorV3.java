@@ -41,12 +41,14 @@ public class TableColumnCreatorV3
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
 			ColumnThumbAndName.COLUMN_ID,
-			"RatingColumn",
-			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
-			StatusItem.COLUMN_ID,
-			ShareRatioItem.COLUMN_ID,
 			DateCompletedItem.COLUMN_ID,
+			"azsubs.ui.column.subs",
+			StatusItem.COLUMN_ID,
+			ColumnTorrentSpeed.COLUMN_ID,
+			SeedsItem.COLUMN_ID,
+			PeersItem.COLUMN_ID,
+			ShareRatioItem.COLUMN_ID
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -88,11 +90,12 @@ public class TableColumnCreatorV3
 	public static TableColumnCore[] createIncompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnThumbAndName.COLUMN_ID,
-			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
+			ColumnFileCount.COLUMN_ID,
 			ColumnProgressETA.COLUMN_ID,
 			SeedsItem.COLUMN_ID,
 			PeersItem.COLUMN_ID,
+			"azsubs.ui.column.subs",
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();

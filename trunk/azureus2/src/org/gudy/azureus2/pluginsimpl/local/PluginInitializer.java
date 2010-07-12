@@ -59,7 +59,7 @@ public class
 PluginInitializer
 	implements GlobalManagerListener, AEDiagnosticsEvidenceGenerator
 {
-	public static final boolean DISABLE_PLUGIN_VERIFICATION = false;
+	public static final boolean DISABLE_PLUGIN_VERIFICATION = true;
 	
 	private static final LogIDs LOGID = LogIDs.CORE;
 	public static final String	INTERNAL_PLUGIN_ID = "<internal>";

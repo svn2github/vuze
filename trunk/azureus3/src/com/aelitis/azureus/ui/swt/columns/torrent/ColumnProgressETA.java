@@ -6,6 +6,8 @@ package com.aelitis.azureus.ui.swt.columns.torrent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -50,7 +52,7 @@ public class ColumnProgressETA
 
 	private static final int borderWidth = 1;
 
-	private static final int COLUMN_WIDTH = 150;
+	private static final int COLUMN_WIDTH = 200;
 
 	public static final long SHOW_ETA_AFTER_MS = 30000;
 
@@ -111,6 +113,7 @@ public class ColumnProgressETA
 
 	public void cellAdded(TableCell cell) {
 		cell.setMarginHeight(3);
+		cell.setMarginWidth(8);
 	}
 
 	public void cellMouseTrigger(TableCellMouseEvent event) {
@@ -167,19 +170,18 @@ public class ColumnProgressETA
 			}
 		} else if (ds instanceof DiskManagerFileInfo) {
 			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
-			int	st = fileInfo.getStorageType();
-			if((st == DiskManagerFileInfo.ST_COMPACT || st == DiskManagerFileInfo.ST_REORDER_COMPACT ) && fileInfo.isSkipped())
-			{
-				sortValue = 1;				
-			} else if (fileInfo.isSkipped())
-			{
+			int st = fileInfo.getStorageType();
+			if ((st == DiskManagerFileInfo.ST_COMPACT || st == DiskManagerFileInfo.ST_REORDER_COMPACT)
+					&& fileInfo.isSkipped()) {
+				sortValue = 1;
+			} else if (fileInfo.isSkipped()) {
 				sortValue = 2;
-			} else if (fileInfo.getPriority() > 0 ) {
-				
+			} else if (fileInfo.getPriority() > 0) {
+
 				int pri = fileInfo.getPriority();
 				sortValue = 4;
-				
-				if ( pri > 1 ){
+
+				if (pri > 1) {
 					sortValue += pri;
 				}
 			} else {
@@ -190,7 +192,7 @@ public class ColumnProgressETA
 
 		long eta = getETA(cell);
 		long speed = getSpeed(ds);
-		
+
 		boolean sortChanged = cell.setSortValue(sortValue);
 
 		long lastETA = 0;
@@ -218,7 +220,7 @@ public class ColumnProgressETA
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		Object ds = cell.getDataSource();
 		if (ds instanceof DiskManagerFileInfo) {
-			filInfoProgressETA(cell.getTableRowCore(), gc, (DiskManagerFileInfo) ds,
+			fillInfoProgressETA(cell.getTableRowCore(), gc, (DiskManagerFileInfo) ds,
 					cell.getBounds());
 			return;
 		}
@@ -236,8 +238,8 @@ public class ColumnProgressETA
 
 		Rectangle cellBounds = cell.getBounds();
 
-		int xStart = cellBounds.x + cell.getMarginWidth();
-		int yStart = cellBounds.y + cell.getMarginHeight();
+		int xStart = cellBounds.x;
+		int yStart = cellBounds.y;
 
 		int xRelProgressFillStart = borderWidth;
 		int yRelProgressFillStart = borderWidth;
@@ -248,35 +250,49 @@ public class ColumnProgressETA
 		if (xRelProgressFillEnd < 10 || xRelProgressFillEnd < 10) {
 			return;
 		}
-
-		boolean bDrawProgressBar = true;
-
 		String sETALine = null;
 
 		// Draw Progress bar
-		if (bDrawProgressBar && percentDone < 1000) {
+		if (percentDone < 1000) {
 			ImageLoader imageLoader = ImageLoader.getInstance();
-			Image imgEnd = imageLoader.getImage("dl_bar_end");
-			Image img0 = imageLoader.getImage("dl_bar_0");
-			Image img1 = imageLoader.getImage("dl_bar_1");
+			Image imgBG = imageLoader.getImage("dl_bar_torrent_bg");
 
-			gc.drawImage(imgEnd, xStart, yStart + yRelProgressFillStart);
-			gc.drawImage(imgEnd, xStart + xRelProgressFillEnd - xRelProgressFillStart
-					+ 1, yStart + yRelProgressFillStart);
+			Rectangle boundsImgBG;
 
-			int limit = ((xRelProgressFillEnd - xRelProgressFillStart) * percentDone) / 1000;
-
-			gc.drawImage(img1, 0, 0, 1, 13, xStart + xRelProgressFillStart, yStart
-					+ yRelProgressFillStart, limit, 13);
-
-			if (limit < xRelProgressFillEnd) {
-				gc.drawImage(img0, 0, 0, 1, 13, xStart + limit + 1, yStart
-						+ yRelProgressFillStart, xRelProgressFillEnd - limit - 1, 13);
+			if (!ImageLoader.isRealImage(imgBG)) {
+				boundsImgBG = new Rectangle(0, 0, 0, 13);
+			} else {
+				boundsImgBG = imgBG.getBounds();
 			}
 
-			imageLoader.releaseImage("dl_bar_end");
-			imageLoader.releaseImage("dl_bar_0");
-			imageLoader.releaseImage("dl_bar_1");
+			if (!showSecondLine) {
+				yRelProgressFillStart = (cellBounds.height / 2)
+						- ((boundsImgBG.height + 2) / 2);
+			}
+
+			yRelProgressFillEnd = yRelProgressFillStart + boundsImgBG.height;
+
+			int progressWidth = newWidth - 2;
+			gc.setForeground(cText);
+			gc.drawRectangle(xStart + xRelProgressFillStart - 1, yStart + yRelProgressFillStart - 1,
+					progressWidth + 1, boundsImgBG.height + 1);
+
+			int pctWidth = (int) (percentDone * (progressWidth - 1) / 1000);
+			gc.setBackground(Colors.blues[Colors.BLUES_MIDLIGHT]);
+			gc.fillRectangle(xStart + xRelProgressFillStart, yStart + yRelProgressFillStart, pctWidth,
+					boundsImgBG.height);
+			gc.setBackground(Colors.white);
+			gc.fillRectangle(xStart + xRelProgressFillStart + pctWidth + 1,
+					yStart + yRelProgressFillStart, progressWidth - pctWidth - 1,
+					boundsImgBG.height);
+
+			if (boundsImgBG.width > 0) {
+				gc.drawImage(imgBG, 0, 0, boundsImgBG.width, boundsImgBG.height,
+						xStart + xRelProgressFillStart, yStart + yRelProgressFillStart + 1,
+						progressWidth - 2, boundsImgBG.height);
+			}
+
+			imageLoader.releaseImage("dl_bar_torrent_bg");
 		}
 
 		if (sETALine == null && (ds instanceof DownloadManager)) {
@@ -351,26 +367,29 @@ public class ColumnProgressETA
 			String s = "Completed on " + DisplayFormatters.formatDateShort(value);
 			GCStringPrinter.printString(gc, s, new Rectangle(xStart + 2, yStart,
 					newWidth - 4, newHeight), true, false, SWT.WRAP);
-		} else if (bDrawProgressBar) {
+		} else {
 			long lSpeed = getSpeed(ds);
-			String sSpeed = lSpeed <= 0 ? "" : "("
+			String sSpeed = lSpeed <= 0 ? "" : " ("
 					+ DisplayFormatters.formatByteCountToKiBEtcPerSec(lSpeed, true) + ")";
 
 			gc.setForeground(cText);
 			String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
-			Point pctExtent = gc.textExtent(sPercent, SWT.DRAW_TRANSPARENT);
-			Point spdExtent = gc.textExtent(sSpeed, SWT.DRAW_TRANSPARENT);
-			gc.drawText(sSpeed, xStart + pctExtent.x + 4, yStart
-					+ yRelProgressFillStart + 1, true);
-			gc.drawText(sPercent, xStart + 2, yStart + yRelProgressFillStart + 1,
-					true);
-
+			
+			Rectangle area = new Rectangle(xStart + xRelProgressFillStart + 3, yStart
+					+ yRelProgressFillStart, xRelProgressFillEnd
+					- xRelProgressFillStart - 6, yRelProgressFillEnd
+					- yRelProgressFillStart);
+			GCStringPrinter sp = new GCStringPrinter(gc, sPercent + sSpeed,
+					area, true, false, SWT.LEFT);
+			sp.printString();
+			Point pctExtent = sp.getCalculatedSize();
+			
+			area.width -= (pctExtent.x + 3);
+			area.x += (pctExtent.x + 3);
+			
 			if (!showSecondLine && sETALine != null) {
-				boolean over = GCStringPrinter.printString(gc, sETALine, new Rectangle(
-						xStart + pctExtent.x + spdExtent.x + 10, yStart
-								+ yRelProgressFillStart + 1, xRelProgressFillEnd
-								- (pctExtent.x + spdExtent.x + 12), newHeight
-								- yRelProgressFillEnd), true, false, SWT.RIGHT);
+				boolean over = GCStringPrinter.printString(gc, sETALine, area, true,
+						false, SWT.RIGHT);
 				cell.setToolTip(over ? sETALine : null);
 			}
 		}
@@ -445,7 +464,7 @@ public class ColumnProgressETA
 
 	private Font progressFont;
 
-	private void filInfoProgressETA(TableRowCore row, GC gc,
+	private void fillInfoProgressETA(TableRowCore row, GC gc,
 			DiskManagerFileInfo fileInfo, Rectangle cellArea) {
 		long percent = 0;
 		long bytesDownloaded = fileInfo.getDownloaded();
@@ -454,7 +473,7 @@ public class ColumnProgressETA
 		if (bytesDownloaded < 0) {
 
 			return;
-			
+
 		} else if (length == 0) {
 
 			percent = 1000;
@@ -463,23 +482,34 @@ public class ColumnProgressETA
 
 			percent = (1000 * bytesDownloaded) / length;
 		}
+		
+		if (fileInfo.isSkipped()) {
+			gc.setAdvanced(true);
+			gc.setTextAntialias(SWT.ON);
+			gc.setAlpha(80);
+		}
+		
 
-		final int BUTTON_WIDTH = 16;
-		final int PADDING_X = 5;
+		final int BUTTON_WH = 14;
+		final int HILOW_WH = 14;
+		final int PADDING_X = 12;
+		final int PADDING_TEXT = 5;
 		final int PROGRESS_HEIGHT = 12;
-		final int PROGRESS_TO_BUTTON_GAP = 10;
+		final int PROGRESS_TO_HILOW_GAP = 5;
+		final int HILOW_TO_BUTTON_GAP = 5;
 
 		cellArea.width -= 3;
 
 		int ofsX = PADDING_X;
 		int ofsY = (cellArea.height / 2) - (PROGRESS_HEIGHT / 2) - 1;
-		int progressWidth = cellArea.width - ofsX - PROGRESS_TO_BUTTON_GAP
-				- BUTTON_WIDTH;
+		int progressWidth = cellArea.width - (ofsX * 2) - PROGRESS_TO_HILOW_GAP
+				- HILOW_WH - HILOW_TO_BUTTON_GAP - BUTTON_WH;
 		if (progressFont == null) {
 			progressFont = FontUtils.getFontWithHeight(gc.getFont(), gc,
 					PROGRESS_HEIGHT - 2);
 		}
 		gc.setFont(progressFont);
+		gc.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
 		gc.drawRectangle(cellArea.x + ofsX, cellArea.y + ofsY, progressWidth,
 				PROGRESS_HEIGHT);
 
@@ -491,42 +521,125 @@ public class ColumnProgressETA
 		gc.fillRectangle(cellArea.x + ofsX + pctWidth + 1, cellArea.y + ofsY + 1,
 				progressWidth - pctWidth - 1, PROGRESS_HEIGHT - 1);
 
-		Rectangle printBounds = new Rectangle(cellArea.x + PADDING_X * 2,
-				cellArea.y, progressWidth, cellArea.height);
+		gc.setAlpha(255);
+		Color colorText = fileInfo.isSkipped() ? Colors.faded[Colors.FADED_DARKEST] : Colors.blues[Colors.BLUES_DARKEST];
+
+
+		Rectangle printBounds = new Rectangle(cellArea.x + PADDING_X + PADDING_TEXT,
+				cellArea.y, progressWidth - (PADDING_TEXT * 2), cellArea.height);
+		ofsY = (cellArea.height / 2) - (BUTTON_WH / 2) - 1;
+		
+		Rectangle buttonBounds = new Rectangle(cellArea.x + cellArea.width
+				- BUTTON_WH - PADDING_X, cellArea.y + ofsY, BUTTON_WH,
+				BUTTON_WH);
+		row.setData("buttonBounds", buttonBounds);
+
+		Rectangle hilowBounds = new Rectangle(buttonBounds.x - HILOW_TO_BUTTON_GAP - HILOW_WH,
+				buttonBounds.y, HILOW_WH, HILOW_WH);
+		row.setData("hilowBounds", hilowBounds);
+
+		
+		gc.setForeground(colorText);
+
 		String s = DisplayFormatters.formatPercentFromThousands((int) percent);
-		gc.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
 		GCStringPrinter.printString(gc, s, printBounds, true, false, SWT.LEFT);
 
-		ofsY = (cellArea.height / 2) - (BUTTON_WIDTH / 2) - 1;
-		Rectangle buttonBounds = new Rectangle(cellArea.x + cellArea.width
-				- BUTTON_WIDTH - PADDING_X, cellArea.y + ofsY, BUTTON_WIDTH,
-				BUTTON_WIDTH);
-		row.setData("buttonBounds", buttonBounds);
-		gc.fillRectangle(buttonBounds);
 		//gc.setForeground(ColorCache.getRandomColor());
-		gc.drawRectangle(buttonBounds);
+
 		int st = fileInfo.getStorageType();
+		String tmp = null;
 		if ((st == DiskManagerFileInfo.ST_COMPACT || st == DiskManagerFileInfo.ST_REORDER_COMPACT)
 				&& fileInfo.isSkipped()) {
-			s = "X";
+			tmp = MessageText.getString("FileProgress.deleted");
 		} else if (fileInfo.isSkipped()) {
-			s = "S";
+			tmp = MessageText.getString("FileProgress.stopped");
 		} else if (fileInfo.getPriority() > 0) {
-			s = "H";
+
+			int pri = fileInfo.getPriority();
+
+			if (pri > 1) {
+				tmp = MessageText.getString("FileItem.high");
+				tmp += " (" + pri + ")";
+			}
 		} else {
-			s = "N";
+			//tmp = MessageText.getString("FileItem.normal");
 		}
+
+		if (tmp != null) {
+			GCStringPrinter.printString(gc, tmp.toUpperCase(), printBounds, false,
+					false, SWT.RIGHT);
+		}
+
+		if (fileInfo.isSkipped()) {
+			gc.setAlpha(80);
+		}
+
+		String hilo = fileInfo.getPriority() > 0 ? "H" : "L";
+		gc.setFont(null);
+		GCStringPrinter.printString(gc, hilo, hilowBounds, false, false, SWT.CENTER);
+
+		gc.setAlpha(255);
+		gc.setAdvanced(true);
+		gc.setAntialias(SWT.ON);
+		gc.setForeground(Colors.black);
+		gc.setBackground(Colors.fadedYellow);
+		gc.fillRoundRectangle(buttonBounds.x, buttonBounds.y, buttonBounds.width, buttonBounds.height, 16, 6);
+		gc.drawRoundRectangle(buttonBounds.x, buttonBounds.y, buttonBounds.width, buttonBounds.height, 16, 6);
+
 		//System.out.println(cellArea + s + ";" + Debug.getCompressedStackTrace());
-		GCStringPrinter.printString(gc, s, buttonBounds, false, false, SWT.CENTER);
 		// make relative to row, because mouse events are
+		hilowBounds.y -= cellArea.y;
+		hilowBounds.x -= cellArea.x;
+		buttonBounds.x -= cellArea.x;
 		buttonBounds.y -= cellArea.y;
 	}
 
 	public void fileInfoMouseTrigger(TableCellMouseEvent event) {
+		if (event.eventType != TableRowMouseEvent.EVENT_MOUSEDOWN) {
+			return;
+		}
 		Object dataSource = ((TableRowCore) event.row).getDataSource(true);
 		if (dataSource instanceof DiskManagerFileInfo) {
 			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) dataSource;
+			Rectangle hilowBounds = (Rectangle) event.row.getData("hilowBounds");
+			if (event.button == 1 && hilowBounds != null
+					&& hilowBounds.contains(event.x, event.y)) {
+				if (fileInfo.getPriority() > 0) {
+					fileInfo.setPriority(0);
+				} else {
+					fileInfo.setPriority(1);
+				}
+				((TableRowCore) event.row).redraw();
+			}
+			
 			Rectangle buttonBounds = (Rectangle) event.row.getData("buttonBounds");
+			
+			if (buttonBounds != null && buttonBounds.contains(event.x, event.y)) {
+				Menu menu = new Menu(Display.getDefault().getActiveShell(), SWT.POP_UP);
+				
+				MenuItem itemHigh = new MenuItem(menu, SWT.PUSH);
+				itemHigh.setText("High Priority");
+
+				MenuItem itemLow = new MenuItem(menu, SWT.PUSH);
+				itemLow.setText("Low Priority");
+
+				new MenuItem(menu, SWT.SEPARATOR);
+
+				MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
+				itemStop.setText("Stop");
+
+				MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
+				itemStart.setText("Start");
+
+				new MenuItem(menu, SWT.SEPARATOR);
+
+				MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
+				itemDelete.setText("Delete");
+
+				menu.setVisible(true);
+				event.skipCoreFunctionality = true;
+			}
+			/*
 			if (buttonBounds != null && buttonBounds.contains(event.x, event.y)) {
 				int st = fileInfo.getStorageType();
 				if ((st == DiskManagerFileInfo.ST_COMPACT || st == DiskManagerFileInfo.ST_REORDER_COMPACT)
@@ -549,6 +662,7 @@ public class ColumnProgressETA
 				//((TableRowCore) event.row).invalidate();
 				((TableRowCore) event.row).redraw();
 			}
+			*/
 		}
 	}
 }
