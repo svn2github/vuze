@@ -581,7 +581,7 @@ public class TableCellImpl
 
   public int getWidth() {
   	if (QUICK_WIDTH) {
-  		return tableColumn.getWidth() - 2;
+  		return tableColumn.getWidth() - 2 - (getMarginWidth() * 2);
   	}
   	Point pt = null;
   	
