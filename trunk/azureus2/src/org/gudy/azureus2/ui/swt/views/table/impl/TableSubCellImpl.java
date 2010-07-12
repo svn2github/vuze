@@ -32,6 +32,10 @@ public class TableSubCellImpl
 
 	private int textAlpha;
 
+	private int marginWidth;
+
+	private int marginHeight;
+
 	public TableSubCellImpl(TableRowImpl tableRow, TableColumnCore tableColumn,
 			int position) {
 		this.row = tableRow;
@@ -177,17 +181,19 @@ public class TableSubCellImpl
 	}
 
 	public int getMarginHeight() {
-		return 0;
+		return marginHeight;
 	}
 
 	public void setMarginHeight(int height) {
+		marginHeight = height;
 	}
 
 	public int getMarginWidth() {
-		return 0;
+		return marginWidth;
 	}
 
 	public void setMarginWidth(int width) {
+		marginWidth = width;
 	}
 
 	public void addRefreshListener(TableCellRefreshListener listener) {
@@ -366,7 +372,16 @@ public class TableSubCellImpl
 	}
 
 	public Rectangle getBounds() {
-		return row.getBounds(position);
+		Rectangle bounds = row.getBounds(position);
+		if (marginWidth > 0) {
+  		bounds.x += marginWidth;
+  		bounds.width -= (marginWidth * 2);
+		}
+		if (marginHeight > 0) {
+  		bounds.y += marginHeight;
+  		bounds.height -= (marginHeight * 2);
+		}
+		return bounds;
 	}
 
 	public Rectangle getBoundsOnDisplay() {
