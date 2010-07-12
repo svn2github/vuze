@@ -10,6 +10,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
@@ -31,6 +32,8 @@ public class TableViewSWT_EraseItem
 	private boolean drawExtended;
 	
 	private boolean first = true;
+
+	private Color colorLine;
 	
 	public TableViewSWT_EraseItem(TableViewSWTImpl<?> _tv, TableOrTreeSWT table) {
 		this.table = table;
@@ -50,6 +53,21 @@ public class TableViewSWT_EraseItem
 						});
 					}
 				});
+
+		colorLine = tv.getComposite().getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+		HSLColor hslColor = new HSLColor();
+		hslColor.initHSLbyRGB(colorLine.getRed(), colorLine.getGreen(),
+				colorLine.getBlue());
+
+		int lum = hslColor.getLuminence();
+		if (lum > 127)
+			lum -= 25;
+		else
+			lum += 40;
+		hslColor.setLuminence(lum);
+		
+		colorLine = new Color(tv.getComposite().getDisplay(), hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue());
+
 		/* Background image badly slows down tree drawing
 		int itemHeight = table.getItemHeight() + 1;
 		int height = 1920;
@@ -185,9 +203,8 @@ public class TableViewSWT_EraseItem
 					&& (bounds.width == item.getParent().getColumn(event.index).getWidth())) {
 				//System.out.println(bounds.width + ";" + item.getParent().getColumn(event.index).getWidth());
 				Color fg = event.gc.getForeground();
-				event.gc.setForeground(Colors.black);
-				event.gc.setAlpha(10);
-				event.gc.setClipping((Rectangle) null);
+				event.gc.setForeground(colorLine);
+				//event.gc.setClipping((Rectangle) null);
 				event.gc.drawLine(bounds.x + bounds.width - 1, bounds.y - 1, bounds.x
 						+ bounds.width - 1, bounds.y + bounds.height);
 				event.gc.setForeground(fg);
