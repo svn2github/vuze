@@ -240,7 +240,7 @@ public class Colors implements ParameterListener {
 
 				int lum = hslColor.getLuminence();
 				if (lum > 127)
-					lum -= 16;
+					lum -= 13;
 				else
 					lum += 30; // it's usually harder to see difference in darkness
 				hslColor.setLuminence(lum);
