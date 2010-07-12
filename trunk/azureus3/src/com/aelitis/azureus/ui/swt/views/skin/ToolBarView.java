@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
@@ -152,24 +153,26 @@ public class ToolBarView
 			};
 			addToolBarItem(item);
 
-			// ==stream
-			item = new ToolBarItem("stream", "image.button.play", "iconBar.stream") {
-				// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-				public void triggerToolBarItem() {
-					String viewID = SelectedContentManager.getCurrentySelectedViewID();
-					if (viewID == null && triggerIViewToolBar(getId())) {
-						return;
+			if ( Constants.IS_CVS_VERSION ){
+				// ==stream
+				item = new ToolBarItem("stream", "image.button.play", "iconBar.stream") {
+					// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+					public void triggerToolBarItem() {
+						String viewID = SelectedContentManager.getCurrentySelectedViewID();
+						if (viewID == null && triggerIViewToolBar(getId())) {
+							return;
+						}
+						ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+						if (sc != null) {
+							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
+									sc[0].getFileIndex(), this.getSkinButton(),
+									DLReferals.DL_REFERAL_TOOLBAR, true, false);
+						}
 					}
-					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-					if (sc != null) {
-						TorrentListViewsUtils.playOrStreamDataSource(sc[0],
-								sc[0].getFileIndex(), this.getSkinButton(),
-								DLReferals.DL_REFERAL_TOOLBAR, true, false);
-					}
-				}
-			};
-			addToolBarItem(item);
-
+				};
+				addToolBarItem(item);
+			}
+			
 			addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep",
 					soMain);
 
