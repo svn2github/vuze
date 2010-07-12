@@ -5,9 +5,7 @@ package com.aelitis.azureus.ui.swt.columns.torrent;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -21,6 +19,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.FilesViewMenuUtil;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -598,7 +597,7 @@ public class ColumnProgressETA
 		if (event.eventType != TableRowMouseEvent.EVENT_MOUSEDOWN) {
 			return;
 		}
-		Object dataSource = ((TableRowCore) event.row).getDataSource(true);
+		final Object dataSource = ((TableRowCore) event.row).getDataSource(true);
 		if (dataSource instanceof DiskManagerFileInfo) {
 			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) dataSource;
 			Rectangle hilowBounds = (Rectangle) event.row.getData("hilowBounds");
@@ -619,22 +618,62 @@ public class ColumnProgressETA
 				
 				MenuItem itemHigh = new MenuItem(menu, SWT.PUSH);
 				itemHigh.setText("High Priority");
+				itemHigh.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_HIGH,
+								new Object[] {
+									dataSource
+								});
+					}
+				});
 
 				MenuItem itemLow = new MenuItem(menu, SWT.PUSH);
 				itemLow.setText("Low Priority");
+				itemLow.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_NORMAL,
+								new Object[] {
+									dataSource
+								});
+					}
+				});
 
 				new MenuItem(menu, SWT.SEPARATOR);
 
 				MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
 				itemStop.setText("Stop");
+				itemStop.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_SKIPPED,
+								new Object[] {
+									dataSource
+								});
+					}
+				});
 
 				MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
 				itemStart.setText("Start");
+				itemStart.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_NORMAL,
+								new Object[] {
+									dataSource
+								});
+					}
+				});
 
 				new MenuItem(menu, SWT.SEPARATOR);
 
 				MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
 				itemDelete.setText("Delete");
+				itemDelete.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_DELETE,
+								new Object[] {
+									dataSource
+								});
+					}
+				});
 
 				menu.setVisible(true);
 				event.skipCoreFunctionality = true;
