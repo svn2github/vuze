@@ -260,7 +260,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
     * @return what size/position the canvas should be
     */
   public Rectangle getBoundsForCanvas() {
-    Rectangle bounds = getBounds();
+    Rectangle bounds = super.getBounds();
     if(bounds == null)
       return null;
     bounds.y += marginHeight;
@@ -269,9 +269,14 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
     bounds.width -= (marginWidth * 2);
     return bounds;
   }
+  
+  // @see {getBounds}
+  public Rectangle getBounds() {
+  	return getBoundsForCanvas();
+  }
 
   public Point getSize() {
-    Rectangle bounds = getBounds();
+    Rectangle bounds = super.getBounds();
     if(bounds == null)
       return new Point(0, 0);
     return new Point(bounds.width - (marginWidth * 2), 
@@ -310,7 +315,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
   public Image getBackgroundImage() {
   	Image imageRowBG = row.getBackgroundImage();
   	if (imageRowBG != null) {
-  		Rectangle bounds = getBounds();
+  		Rectangle bounds = super.getBounds();
   		
   		int wInside = bounds.width - (marginWidth * 2);
   		int hInside = bounds.height - (marginHeight * 2);
@@ -325,7 +330,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
   	
 		TableOrTreeSWT table = row.getTable();
 		
-		Rectangle bounds = getBounds();
+		Rectangle bounds = super.getBounds();
 		
 		if (bounds.isEmpty()) {
 			return null;
