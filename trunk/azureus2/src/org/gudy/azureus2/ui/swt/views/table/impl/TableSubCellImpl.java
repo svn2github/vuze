@@ -30,7 +30,7 @@ public class TableSubCellImpl
 
 	private String text;
 
-	private int textAlpha;
+	private int textAlpha = 255;
 
 	private int marginWidth;
 
