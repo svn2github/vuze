@@ -570,7 +570,7 @@ public class FilesViewMenuUtil
 										}));
 						mb.setDefaultButtonUsingStyle(SWT.OK);
 						mb.setRememberOnlyIfButton(0);
-						mb.setRemember("FilesView.messagebox.delete.id", true, null);
+						mb.setRemember("FilesView.messagebox.delete.id", false, null);
 						mb.setLeftImage(SWT.ICON_WARNING);
 						mb.open(null);
 
