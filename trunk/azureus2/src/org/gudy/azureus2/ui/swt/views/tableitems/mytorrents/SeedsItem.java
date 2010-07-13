@@ -142,9 +142,13 @@ public class SeedsItem
 
 			boolean bCompleteTorrent = dm == null ? false : dm.getAssumedComplete();
 			
-			String tmp = lConnectedSeeds == 0 ? "" : String.valueOf(lConnectedSeeds);
+			int state = dm.getState();
+			boolean showOf = state == DownloadManager.STATE_SEEDING
+					|| state == DownloadManager.STATE_DOWNLOADING;
+			String tmp = lConnectedSeeds == 0 && !showOf ? ""
+					: String.valueOf(lConnectedSeeds);
 			if (lTotalSeeds != -1) {
-				if (lConnectedSeeds > 0) {
+				if (showOf) {
 					tmp += " " + MessageText.getString("splash.of") + " ";
 				}
 				tmp += lTotalSeeds;
