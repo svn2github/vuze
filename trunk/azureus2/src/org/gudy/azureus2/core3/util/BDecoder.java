@@ -25,6 +25,7 @@ package org.gudy.azureus2.core3.util;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -115,7 +116,10 @@ public class BDecoder
 	
 	// used externally 
 	public Map decodeByteBuffer(ByteBuffer buffer, boolean internKeys) throws IOException {
-		return decode(new BDecoderInputStreamArray(buffer),internKeys);
+		InputStream is = new BDecoderInputStreamArray(buffer);
+		Map result = decode(is,internKeys);
+		buffer.position(buffer.limit()-is.available());
+		return result;
 	}
 	
 	public Map 
@@ -168,8 +172,10 @@ public class BDecoder
 		return((Map)res );
 	}
 	
-	// reuseable buffer for keys, recursion is not an issue as this is only a temporary buffer that gets converted into a string immediately
+	// reuseable objects for key decoding
 	private ByteBuffer keyBytesBuffer = ByteBuffer.allocate(32);
+	private CharBuffer keyCharsBuffer = CharBuffer.allocate(32);
+	private CharsetDecoder keyDecoder = Constants.BYTE_CHARSET.newDecoder();
 
 	private Object 
 	decodeInputStream(
@@ -217,25 +223,30 @@ public class BDecoder
 
 					int keyLength = (int)getPositiveNumberFromStream(dbis, ':');
 
-					ByteBuffer keyBytes;
-					if(keyLength < keyBytesBuffer.capacity())
-					{
-						keyBytes = keyBytesBuffer;
-						keyBytes.position(0).limit(keyLength);
-					} else {
-						keyBytes = keyBytesBuffer = ByteBuffer.allocate(keyLength);
-					}
-					
-					getByteArrayFromStream(dbis, keyLength, keyBytes.array());						
-
 					if ( keyLength > MAX_MAP_KEY_SIZE ){
-						String msg = "dictionary key is too large, max=" + MAX_MAP_KEY_SIZE + ": value=" + new String( keyBytes.array(), 0, 128 );
+						byte[] remaining = new byte[128];
+						getByteArrayFromStream(dbis, 128, remaining);
+						String msg = "dictionary key is too large, max=" + MAX_MAP_KEY_SIZE + ": value=" + new String(remaining);
 						System.err.println( msg );
 						throw( new IOException( msg ));
 					}
 					
-					CharBuffer	cb = Constants.BYTE_CHARSET.decode(keyBytes);
-					String key = new String(cb.array(),0,cb.limit());
+					if(keyLength < keyBytesBuffer.capacity())
+					{
+						keyBytesBuffer.position(0).limit(keyLength);
+						keyCharsBuffer.position(0).limit(keyLength);
+					} else {
+						keyBytesBuffer = ByteBuffer.allocate(keyLength);
+						keyCharsBuffer = CharBuffer.allocate(keyLength);
+					}
+					
+					getByteArrayFromStream(dbis, keyLength, keyBytesBuffer.array());						
+
+					
+					keyDecoder.reset();
+					keyDecoder.decode(keyBytesBuffer,keyCharsBuffer,true);
+					keyDecoder.flush(keyCharsBuffer);
+					String key = new String(keyCharsBuffer.array(),0,keyCharsBuffer.limit());
 					
 					// keys often repeat a lot - intern to save space
 					if (internKeys)
