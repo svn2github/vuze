@@ -1504,6 +1504,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		event.skipCoreFunctionality = false;
 		if (cell instanceof TableCellSWT) {
 			Rectangle r = ((TableCellSWT) cell).getBounds();
+			if (r == null) {
+				return event;
+			}
 			event.x = e.x - r.x;
 			if (!allowOOB && event.x < 0) {
 				return null;
