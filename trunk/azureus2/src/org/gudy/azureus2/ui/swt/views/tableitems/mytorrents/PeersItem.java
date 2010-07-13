@@ -118,17 +118,21 @@ public class PeersItem extends CoreTableColumn implements
 			if (!cell.setSortValue(value) && cell.isValid())
 				return;
 
+			int state = dm.getState();
+			boolean showOf = state == DownloadManager.STATE_SEEDING
+					|| state == DownloadManager.STATE_DOWNLOADING;
+
 			String tmp;
-			if (lConnectedPeers <= 0) {
+			if (showOf) {
+  			tmp = String.valueOf(lConnectedPeers);
+  			if (totalPeers != -1) {
+  				tmp += " " + MessageText.getString("splash.of") + " " + totalPeers;
+  			}
+			} else {
   			if (totalPeers != -1) {
   				tmp = String.valueOf(totalPeers);
   			} else {
   				tmp = "";
-  			}
-			} else {
-  			tmp = String.valueOf(lConnectedPeers);
-  			if (totalPeers != -1) {
-  				tmp += " " + MessageText.getString("splash.of") + " " + totalPeers;
   			}
 			}
 			cell.setText(tmp);
