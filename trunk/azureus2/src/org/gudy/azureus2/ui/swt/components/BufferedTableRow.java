@@ -625,7 +625,7 @@ BufferedTableRow
 		// selected)
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-				if (table.isDisposed()) {
+				if (table.isDisposed() || item == null) {
 					return;
 				}
 				if (item.isDisposed()
