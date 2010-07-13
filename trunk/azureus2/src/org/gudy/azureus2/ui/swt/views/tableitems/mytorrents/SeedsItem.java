@@ -142,16 +142,18 @@ public class SeedsItem
 
 			boolean bCompleteTorrent = dm == null ? false : dm.getAssumedComplete();
 			
-			String tmp = String.valueOf(lConnectedSeeds);
+			String tmp = lConnectedSeeds == 0 ? "" : String.valueOf(lConnectedSeeds);
 			if (lTotalSeeds != -1) {
-				tmp += " (" + lTotalSeeds;
+				if (lConnectedSeeds > 0) {
+					tmp += " " + MessageText.getString("splash.of") + " ";
+				}
+				tmp += lTotalSeeds;
 				if (bCompleteTorrent && iFC_NumPeers > 0 && lTotalSeeds >= iFC_MinSeeds
 						&& lTotalPeers > 0) {
 					long lSeedsToAdd = lTotalPeers / iFC_NumPeers;
 					if (lSeedsToAdd > 0)
 						tmp += "+" + lSeedsToAdd;
 				}
-				tmp += ")";
 			}
 			cell.setText(tmp);
 		}

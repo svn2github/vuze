@@ -118,9 +118,15 @@ public class PeersItem extends CoreTableColumn implements
 			if (!cell.setSortValue(value) && cell.isValid())
 				return;
 
-			String tmp = String.valueOf(lConnectedPeers);
-			if (totalPeers != -1)
-				tmp += " (" + totalPeers + ")";
+			String tmp;
+			if (lConnectedPeers == 0) {
+				tmp = String.valueOf(lTotalPeers);
+			} else {
+  			tmp = String.valueOf(lConnectedPeers);
+  			if (totalPeers != -1) {
+  				tmp += " " + MessageText.getString("splash.of") + " " + lTotalPeers;
+  			}
+			}
 
 			cell.setText(tmp);
 		}
