@@ -119,15 +119,18 @@ public class PeersItem extends CoreTableColumn implements
 				return;
 
 			String tmp;
-			if (lConnectedPeers == 0) {
-				tmp = String.valueOf(lTotalPeers);
+			if (lConnectedPeers <= 0) {
+  			if (totalPeers != -1) {
+  				tmp = String.valueOf(totalPeers);
+  			} else {
+  				tmp = "";
+  			}
 			} else {
   			tmp = String.valueOf(lConnectedPeers);
   			if (totalPeers != -1) {
-  				tmp += " " + MessageText.getString("splash.of") + " " + lTotalPeers;
+  				tmp += " " + MessageText.getString("splash.of") + " " + totalPeers;
   			}
 			}
-
 			cell.setText(tmp);
 		}
 
