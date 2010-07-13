@@ -295,8 +295,7 @@ public class TableItemDelegate
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem#getItems()
 	public TableItemOrTreeItem[] getItems() {
-		// TODO Auto-generated method stub
-		return null;
+		return new TableItemOrTreeItem[0];
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem#getParentItem()
