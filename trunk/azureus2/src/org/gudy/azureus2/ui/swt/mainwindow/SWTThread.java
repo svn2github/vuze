@@ -72,6 +72,7 @@ public class SWTThread {
   private final IUIIntializer initializer;
   
 	private Monitor primaryMonitor;
+	protected boolean displayDispoed;
   
   private 
   SWTThread(
@@ -197,6 +198,12 @@ public class SWTThread {
 				if (uif != null) {
 					uif.bringToFront(false);
 				}
+			}
+		});
+		
+		display.addListener(SWT.Dispose, new Listener() {
+			public void handleEvent(Event event) {
+				displayDispoed = true;
 			}
 		});
 
@@ -352,7 +359,8 @@ public class SWTThread {
   }
   
   public boolean isTerminated() {
-  	return terminated;
+  	//System.out.println("isTerm" + terminated + ";" + display.isDisposed() + Debug.getCompressedStackTrace(3));
+  	return terminated || display.isDisposed() || displayDispoed;
   }
 
 	public IUIIntializer getInitializer() {
