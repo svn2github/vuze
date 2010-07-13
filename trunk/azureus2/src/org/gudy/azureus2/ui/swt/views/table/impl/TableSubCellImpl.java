@@ -36,6 +36,8 @@ public class TableSubCellImpl
 
 	private int marginHeight;
 
+	private boolean disposed;
+
 	public TableSubCellImpl(TableRowImpl tableRow, TableColumnCore tableColumn,
 			int position) {
 		this.row = tableRow;
@@ -154,7 +156,7 @@ public class TableSubCellImpl
 	}
 
 	public boolean isDisposed() {
-		return false;
+		return disposed;
 	}
 
 	public int getMaxLines() {
@@ -228,7 +230,7 @@ public class TableSubCellImpl
 	}
 
 	public int[] getMouseOffset() {
-		return null;
+		return new int[] { 0, 0 };
 	}
 
 	public String getClipboardText() {
@@ -247,7 +249,11 @@ public class TableSubCellImpl
 	}
 
 	public boolean refresh() {
-	  try {
+		if (isDisposed()) {
+			return false;
+		}
+
+		try {
 			tableColumn.invokeCellRefreshListeners(this, false);
 		} catch (Throwable e) {
 			Debug.out(e);
@@ -265,6 +271,7 @@ public class TableSubCellImpl
 	}
 
 	public void dispose() {
+		disposed = true;
 	}
 
 	public boolean needsPainting() {
@@ -372,7 +379,14 @@ public class TableSubCellImpl
 	}
 
 	public Rectangle getBounds() {
+		if (isDisposed()) {
+			return new Rectangle(0, 0, 0, 0);
+		}
+
 		Rectangle bounds = row.getBounds(position);
+		if (bounds == null) {
+			return null;
+		}
 		if (marginWidth > 0) {
   		bounds.x += marginWidth;
   		bounds.width -= (marginWidth * 2);
