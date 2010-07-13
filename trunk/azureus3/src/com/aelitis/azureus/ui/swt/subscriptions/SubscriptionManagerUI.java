@@ -41,6 +41,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 
 import org.gudy.azureus2.plugins.PluginConfigListener;
@@ -349,15 +350,13 @@ SubscriptionManagerUI
 			return;
 		}
 		
-		icon_rss_small			= loadGraphic( swt, "btn_rss_subscribe_orange_30x14.png" );
+		icon_rss_small			= loadGraphic( swt, "subscription_icon.png" );
 		icon_rss_big			= icon_rss_small;
 
-		//icon_rss_all_add_small	= loadGraphic( swt, "btn_rss_subscribed_green_30x14.png" );
-		icon_rss_all_add_small	= loadGraphic( swt, "btn_rss_subscribed_gray_30x14.png" );
+		icon_rss_all_add_small	= loadGraphic( swt, "subscription_icon_inactive.png" );
 		icon_rss_all_add_big	= icon_rss_all_add_small;
 		
-		// icon_rss_some_add_small	= loadGraphic( swt, "btn_rss_subscribe_green_30x14.png" );
-		icon_rss_some_add_small	= loadGraphic( swt, "btn_rss_subscribed_gray_30x14.png" );
+		icon_rss_some_add_small	= icon_rss_all_add_small;
 		icon_rss_some_add_big	= icon_rss_some_add_small;
 		
 		subs_man.addListener(
@@ -1149,7 +1148,7 @@ SubscriptionManagerUI
 		UISWTInstance	swt,
 		String			name )
 	{
-		Image	image = swt.loadImage( "org/gudy/azureus2/ui/icons/" + name );
+		Image	image = swt.loadImage( "com/aelitis/azureus/ui/images/" + name );
 
 		Graphic graphic = swt.createGraphic(image );
 		
