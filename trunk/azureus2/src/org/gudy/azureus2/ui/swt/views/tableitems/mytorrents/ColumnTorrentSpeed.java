@@ -37,6 +37,9 @@ public class ColumnTorrentSpeed
 	}
 
   public void refresh(TableCell cell) {
+  	if (!(cell.getDataSource() instanceof Download)) {
+  		return;
+  	}
     Download dm = (Download)cell.getDataSource();
     long value;
     long sortValue;
