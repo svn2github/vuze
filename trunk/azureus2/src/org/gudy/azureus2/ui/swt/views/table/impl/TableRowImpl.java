@@ -779,7 +779,9 @@ public class TableRowImpl<COREDATASOURCE>
 	public void setSubItemCount(final int count) {
 		super.setSubItemCount(count);
 		if (count == getSubItemCount()) {
-			return;
+			if (count == 0 || subRows[0] == null) {
+				return;
+			}
 		}
 		mon_SubRows.enter();
 		try {
@@ -835,6 +837,45 @@ public class TableRowImpl<COREDATASOURCE>
 			TableRowCore[] copyOf = new TableRowCore[subRows.length];
 			System.arraycopy(subRows, 0, copyOf, 0, subRows.length);
 			return copyOf;
+		} finally {
+			mon_SubRows.exit();
+		}
+	}
+	
+	public void removeSubRow(Object datasource) {
+		if (datasource instanceof TableRowImpl) {
+			removeSubRow(((TableRowImpl)datasource).getDataSource());
+		}
+		
+		mon_SubRows.enter();
+		try {
+			if (subDataSources == null || subDataSources.length == 0
+					|| subDataSources.length != subRows.length) {
+				return;
+			}
+
+			for (int i = 0; i < subDataSources.length; i++) {
+				Object ds = subDataSources[i];
+				if (ds == datasource) { // use .equals instead?
+					TableRowImpl rowToDel = subRows[i];
+					TableRowImpl[] newSubRows = new TableRowImpl[subRows.length - 1];
+					System.arraycopy(subRows, 0, newSubRows, 0, i);
+					System.arraycopy(subRows, i + 1, newSubRows, i, subRows.length - i - 1);
+					subRows = newSubRows;
+
+					Object[] newDatasources = new Object[subRows.length];
+					System.arraycopy(subDataSources, 0, newDatasources, 0, i);
+					System.arraycopy(subDataSources, i + 1, newDatasources, i, subDataSources.length - i - 1);
+					subDataSources = newDatasources;
+					
+					rowToDel.dispose();
+					rowToDel.delete();
+					
+					super.setSubItemCount(subRows.length);
+					
+					break;
+				}
+			}
 		} finally {
 			mon_SubRows.exit();
 		}

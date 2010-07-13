@@ -181,4 +181,6 @@ public interface TableRowCore extends TableRow
 	void setSubItems(Object[] datasources);
 
 	TableRowCore[] getSubRowsWithNull();
+
+	void removeSubRow(Object datasource);
 }
