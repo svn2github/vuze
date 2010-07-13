@@ -204,7 +204,9 @@ public class TableViewSWT_EraseItem
 				//System.out.println(bounds.width + ";" + item.getParent().getColumn(event.index).getWidth());
 				Color fg = event.gc.getForeground();
 				event.gc.setForeground(colorLine);
-				//event.gc.setClipping((Rectangle) null);
+				// needed because windows shifts the area over, dragging our old line
+				// around.  Clear clipping so we can erase it
+				event.gc.setClipping((Rectangle) null);
 				event.gc.drawLine(bounds.x + bounds.width - 1, bounds.y - 1, bounds.x
 						+ bounds.width - 1, bounds.y + bounds.height);
 				event.gc.setForeground(fg);
