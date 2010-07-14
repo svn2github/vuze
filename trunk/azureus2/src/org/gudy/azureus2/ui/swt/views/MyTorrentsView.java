@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
@@ -1190,17 +1191,38 @@ public class MyTorrentsView
 
 						// Build eventData here because on OSX, selection gets cleared
 						// by the time dragSetData occurs
-						DownloadManager[] selectedDownloads = getSelectedDownloads();
-						eventData = "DownloadManager\n";
-						for (int i = 0; i < selectedDownloads.length; i++) {
-							DownloadManager dm = selectedDownloads[i];
-							
-							TOTorrent torrent = dm.getTorrent();
-							try {
-								eventData += torrent.getHashWrapper().toBase32String() + "\n";
-							} catch (Exception e) {
+						boolean onlyDMs = true;
+						StringBuffer sb = new StringBuffer();
+						Object[] selectedDataSources = tv.getSelectedDataSources(true);
+						for (Object ds : selectedDataSources) {
+							if (ds instanceof DownloadManager) {
+								DownloadManager dm = (DownloadManager) ds;
+								TOTorrent torrent = dm.getTorrent();
+								if (torrent != null) {
+									try {
+										sb.append(torrent.getHashWrapper().toBase32String());
+										sb.append('\n');
+									} catch (TOTorrentException e) {
+									}
+								}
+							} else if (ds instanceof DiskManagerFileInfo) {
+								DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
+								DownloadManager dm = fileInfo.getDownloadManager();
+								TOTorrent torrent = dm.getTorrent();
+								if (torrent != null) {
+									try {
+										sb.append(torrent.getHashWrapper().toBase32String());
+										sb.append(';');
+										sb.append(fileInfo.getIndex());
+										sb.append('\n');
+										onlyDMs = false;
+									} catch (TOTorrentException e) {
+									}
+								}
 							}
 						}
+						
+						eventData = (onlyDMs ? "DownloadManager\n" : "DiskManagerFileInfo\n") + sb.toString();
 					}
 
 					public void dragSetData(DragSourceEvent event) {
