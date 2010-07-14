@@ -70,6 +70,10 @@ PluginEvent
 
 	public static final int	PEV_PLUGIN_NOT_OPERATIONAL			= 9;
 
+	public static final int	PEV_PLUGIN_INSTALLED				= 10;	// value is String plugin_id
+	public static final int	PEV_PLUGIN_UPDATED					= 11;	// value is String plugin_id
+	public static final int	PEV_PLUGIN_UNINSTALLED				= 12;	// value is String plugin_id
+
 		/**
 		 * Plugin specific events can be raised by a plugin to communicate with
 		 * other components. The event type must start from the number below

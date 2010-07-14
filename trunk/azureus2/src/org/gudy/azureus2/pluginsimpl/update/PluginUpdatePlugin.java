@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.pluginsimpl.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 import org.gudy.azureus2.update.CorePatchChecker;
 
@@ -1668,6 +1669,17 @@ PluginUpdatePlugin
 				log.logAlertRepeatable( update_txt_found?LoggerChannel.LT_WARNING:LoggerChannel.LT_INFORMATION, msg );			
 			}
 			
+			try{
+				String plugin_id = plugin.getPluginID();
+					
+				PluginInitializer.fireEvent(
+					checker.getCheckInstance().getType() == UpdateCheckInstance.UCI_INSTALL?PluginEvent.PEV_PLUGIN_INSTALLED:PluginEvent.PEV_PLUGIN_UPDATED,
+					plugin_id );
+					
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
 			update_successful = true;
 			
 		}catch( Throwable e ){
