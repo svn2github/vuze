@@ -101,6 +101,19 @@ TranscodeProfileImpl
 		return((String)properties.get( "icon-url" ));
 	}
 	
+	public int
+	getIconIndex()
+	{
+		Object o = properties.get( "icon-index" );
+		
+		if ( o instanceof Number ){
+			
+			return(((Number)o).intValue());
+		}
+		
+		return( 0 );
+	}
+	
 	public File
 	getAssetDirectory()
 	{

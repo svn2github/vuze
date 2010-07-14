@@ -323,7 +323,16 @@ public abstract class TranscodeChooser
 
 		Arrays.sort(transcodeProfiles, new Comparator<TranscodeProfile>() {
 			public int compare(TranscodeProfile o1, TranscodeProfile o2) {
-				return o1.getName().compareToIgnoreCase(o2.getName());
+				int i1 = o1.getIconIndex();
+				int i2 = o2.getIconIndex();
+				
+				if ( i1 == i2 ){
+				
+					return o1.getName().compareToIgnoreCase(o2.getName());
+				}else{
+					
+					return( i1 - i2 );
+				}
 			}
 		});
 

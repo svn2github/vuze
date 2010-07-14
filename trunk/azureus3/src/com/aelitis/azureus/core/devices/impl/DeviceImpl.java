@@ -95,6 +95,12 @@ DeviceImpl
 				return( null );
 			}
 			
+			public int 
+			getIconIndex() 
+			{
+				return( 0 );
+			}
+			
 			public String
 			getFileExtension()
 			{

@@ -41,6 +41,9 @@ TranscodeProfile
 	public String
 	getIconURL();
 	
+	public int
+	getIconIndex();
+	
 	public String
 	getFileExtension();
 	
