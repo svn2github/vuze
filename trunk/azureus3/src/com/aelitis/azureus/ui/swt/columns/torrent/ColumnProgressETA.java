@@ -15,6 +15,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -126,6 +127,7 @@ public class ColumnProgressETA
 			CAT_ESSENTIAL,
 			CAT_TIME,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -639,8 +641,8 @@ public class ColumnProgressETA
 			if (buttonBounds != null && buttonBounds.contains(event.x, event.y)) {
 				Menu menu = new Menu(Display.getDefault().getActiveShell(), SWT.POP_UP);
 
-				MenuItem itemHigh = new MenuItem(menu, SWT.PUSH);
-				itemHigh.setText("High Priority");
+				MenuItem itemHigh = new MenuItem(menu, SWT.RADIO);
+				Messages.setLanguageText(itemHigh, "priority.high");
 				itemHigh.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
 						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_HIGH,
@@ -649,10 +651,11 @@ public class ColumnProgressETA
 								});
 					}
 				});
+				itemHigh.setSelection(fileInfo.getPriority() != 0); 
 
-				MenuItem itemLow = new MenuItem(menu, SWT.PUSH);
-				itemLow.setText("Low Priority");
-				itemLow.addListener(SWT.Selection, new Listener() {
+				MenuItem itemNormal = new MenuItem(menu, SWT.RADIO);
+				Messages.setLanguageText(itemNormal, "priority.normal");
+				itemNormal.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
 						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_NORMAL,
 								new Object[] {
@@ -660,11 +663,12 @@ public class ColumnProgressETA
 								});
 					}
 				});
+				itemNormal.setSelection(fileInfo.getPriority() == 0);
 
 				new MenuItem(menu, SWT.SEPARATOR);
 
 				MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
-				itemStop.setText("Stop");
+				Messages.setLanguageText(itemStop, "v3.MainWindow.button.stop");
 				itemStop.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
 						FilesViewMenuUtil.changePriority(
@@ -673,9 +677,10 @@ public class ColumnProgressETA
 								});
 					}
 				});
+				itemStop.setEnabled(!fileInfo.isSkipped());
 
 				MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
-				itemStart.setText("Start");
+				Messages.setLanguageText(itemStart, "v3.MainWindow.button.start");
 				itemStart.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
 						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_NORMAL,
@@ -684,11 +689,12 @@ public class ColumnProgressETA
 								});
 					}
 				});
+				itemStart.setEnabled(fileInfo.isSkipped());
 
 				new MenuItem(menu, SWT.SEPARATOR);
 
 				MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
-				itemDelete.setText("Delete");
+				Messages.setLanguageText(itemDelete, "v3.MainWindow.button.delete");
 				itemDelete.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
 						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_DELETE,
