@@ -638,12 +638,13 @@ SubscriptionManagerUI
 				public void tableColumnCreated(TableColumn result) {
 					result.setAlignment(TableColumn.ALIGN_CENTER);
 					result.setPosition(TableColumn.POSITION_LAST);
-					result.setWidth(72);
+					result.setWidth(32);
 					result.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 					result.setType(TableColumn.TYPE_GRAPHIC);
 				
 					result.addCellRefreshListener( subs_refresh_listener );
 					result.addCellMouseListener( subs_mouse_listener );
+					result.setIconReference("image.subscription.column", true);
 					
 					synchronized (columns) {
 						columns.add(result);
