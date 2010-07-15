@@ -1724,7 +1724,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				// Ignore < SWT 3.1
 			}
 			column.setAlignment(TableColumnSWTUtils.convertColumnAlignmentToSWT(tableColumns[i].getAlignment()));
-			Messages.setLanguageText(column.getColumn(), tableColumns[i].getTitleLanguageKey());
+			String iconReference = tableColumns[i].getIconReference();
+			if (iconReference != null) {
+				Image image = ImageLoader.getInstance().getImage(iconReference);
+				column.setImage(image);
+			} else {
+				Messages.setLanguageText(column.getColumn(), tableColumns[i].getTitleLanguageKey());
+			}
 			if (!Constants.isUnix && !Utils.isCarbon) {
 				column.setWidth(tableColumns[i].getWidth());
 			} else {
@@ -2644,7 +2650,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			long lStartTime = SystemTime.getCurrentTime();
 			int iTopIndex = table.getTopIndex();
 			int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
-
+			
 			// add to sortedRows list in best position.  
 			// We need to be in the SWT thread because the rowSorter may end up
 			// calling SWT objects.
@@ -4046,6 +4052,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			int iTopIndex = table.getTopIndex();
 			int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
+			boolean needsUpdate = false;
+
 			try {
 				sortedRows_mon.enter();
 
@@ -4089,11 +4097,23 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					TableRowSWT row = sortedRows.get(i);
 					boolean visible = i >= iTopIndex && i <= iBottomIndex;
 					if (row.setTableItem(i, visible)) {
+						if (visible) {
+							needsUpdate = true;
+						}
 						iNumMoves++;
 					}
 				}
 			} finally {
 				sortedRows_mon.exit();
+			}
+
+			if (DEBUG_SORTER && iNumMoves > 0) {
+				System.out.println("numMoves= " + iNumMoves + ";top=" + iTopIndex
+						+ ";bottom=" + iBottomIndex + ";needUpdate?" + needsUpdate);
+			}
+
+			if (needsUpdate) {
+				visibleRowsChanged();
 			}
 
 			if (DEBUG_SORTER) {
