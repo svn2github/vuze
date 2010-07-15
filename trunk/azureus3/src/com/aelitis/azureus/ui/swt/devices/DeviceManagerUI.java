@@ -450,11 +450,15 @@ DeviceManagerUI
 						if ( job_count == 0 || last_job_count == 0 ){
 													
 							MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-							MdiEntry main_entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
-	
-							if ( main_entry != null ){
-						
-								ViewTitleInfoManager.refreshTitleInfo( main_entry.getViewTitleInfo());
+							
+							if ( mdi != null ){
+								
+								MdiEntry main_entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+		
+								if ( main_entry != null ){
+							
+									ViewTitleInfoManager.refreshTitleInfo( main_entry.getViewTitleInfo());
+								}
 							}
 						}
 						
@@ -1106,9 +1110,15 @@ DeviceManagerUI
 	rebuildSideBarIfExists()
 	{
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		MdiEntry entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
-		if (entry != null) {
-			rebuildSideBar();
+		
+		if ( mdi != null ){
+		
+			MdiEntry entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+		
+			if (entry != null) {
+			
+				rebuildSideBar();
+			}
 		}
 	}
 
@@ -1140,7 +1150,10 @@ DeviceManagerUI
 		boolean			rebuild )	
 	{		
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		main_sb_entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+		
+		if ( mdi != null ){
+		
+			main_sb_entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
 
 				
 			MenuManager menu_manager = ui_manager.getMenuManager();
@@ -1545,8 +1558,10 @@ DeviceManagerUI
 				
 				categories.add( internet_category );
 			}
+		}
 		
 		sidebar_built = true;
+		
 		return main_sb_entry;
 	}
 	
@@ -2652,7 +2667,11 @@ DeviceManagerUI
 			if ( existing_di != null ){
 				
 				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				mdi.showEntry(existing_di.getMdiEntry());
+				
+				if ( mdi != null ){
+				
+					mdi.showEntry(existing_di.getMdiEntry());
+				}
 			}
 		}
 	}
@@ -3503,15 +3522,19 @@ DeviceManagerUI
 			while( key != null ){
 			
 				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				MdiEntry parent = mdi.getEntry( key );
-			
-				if ( parent != null ){
 				
-					ViewTitleInfoManager.refreshTitleInfo(parent.getViewTitleInfo());
+				if ( mdi != null ){
 					
-					key = parent.getParentID();
-				} else {
-					key = null;
+					MdiEntry parent = mdi.getEntry( key );
+				
+					if ( parent != null ){
+					
+						ViewTitleInfoManager.refreshTitleInfo(parent.getViewTitleInfo());
+						
+						key = parent.getParentID();
+					} else {
+						key = null;
+					}
 				}
 			}
 		}
