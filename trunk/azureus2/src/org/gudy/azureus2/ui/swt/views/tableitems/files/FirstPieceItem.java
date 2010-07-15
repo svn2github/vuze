@@ -44,6 +44,7 @@ public class FirstPieceItem
 		info.addCategories(new String[] {
 			CAT_PROTOCOL,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_ADVANCED);
 	}
 
   public void refresh(TableCell cell) {

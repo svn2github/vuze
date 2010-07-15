@@ -68,6 +68,7 @@ public class ColumnFileCount
 		info.addCategories(new String[] {
 			CAT_CONTENT,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)

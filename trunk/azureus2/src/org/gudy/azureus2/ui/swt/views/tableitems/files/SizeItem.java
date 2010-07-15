@@ -45,6 +45,7 @@ public class SizeItem
 		info.addCategories(new String[] {
 			CAT_BYTES,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
   public void refresh(TableCell cell) {

@@ -60,6 +60,7 @@ public class DoneItem
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] { CAT_PROGRESS });
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
   public void refresh(TableCell cell) {

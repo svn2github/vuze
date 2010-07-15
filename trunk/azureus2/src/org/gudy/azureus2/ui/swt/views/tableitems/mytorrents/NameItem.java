@@ -58,6 +58,7 @@ public class NameItem extends CoreTableColumn implements
 	
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] { CAT_ESSENTIAL, CAT_CONTENT });
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	/**

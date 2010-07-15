@@ -67,6 +67,7 @@ public class DownSpeedItem
 			CAT_ESSENTIAL,
 			CAT_BYTES,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
   public void cellAdded(TableCell cell) {

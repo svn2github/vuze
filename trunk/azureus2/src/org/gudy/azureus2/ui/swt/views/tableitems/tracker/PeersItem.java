@@ -51,6 +51,7 @@ PeersItem
 		info.addCategories( new String[]{
 			CAT_ESSENTIAL,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	public void 

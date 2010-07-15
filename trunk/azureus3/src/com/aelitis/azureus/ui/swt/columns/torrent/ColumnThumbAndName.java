@@ -78,6 +78,7 @@ public class ColumnThumbAndName
 			CAT_ESSENTIAL,
 			CAT_CONTENT
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	/**

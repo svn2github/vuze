@@ -47,6 +47,7 @@ public class RemainingPiecesItem
 		info.addCategories(new String[] {
 			CAT_PROGRESS,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_INTERMEDIATE);
 	}
 
   public void refresh(TableCell cell) {

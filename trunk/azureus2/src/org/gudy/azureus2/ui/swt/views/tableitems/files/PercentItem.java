@@ -46,6 +46,7 @@ public class PercentItem
 		info.addCategories(new String[] {
 			CAT_PROGRESS,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
   public void refresh(TableCell cell) {

@@ -32,7 +32,7 @@ public class TableColumnInfoImpl
 {
 	String[] categories;
 
-	byte proficiency;
+	byte proficiency = TableColumnInfo.PROFICIENCY_INTERMEDIATE;
 
 	private final TableColumnCore column;
 

@@ -45,6 +45,7 @@ public class PriorityItem
 		info.addCategories(new String[] {
 			CAT_CONTENT,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
   public void refresh(TableCell cell) {

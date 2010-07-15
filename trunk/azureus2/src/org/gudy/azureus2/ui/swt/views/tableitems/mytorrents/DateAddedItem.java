@@ -47,6 +47,7 @@ public class DateAddedItem
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] { CAT_TIME, CAT_CONTENT });
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	public DateAddedItem(String sTableID) {

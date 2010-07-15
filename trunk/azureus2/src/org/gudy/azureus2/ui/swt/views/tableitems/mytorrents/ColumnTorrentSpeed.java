@@ -34,6 +34,7 @@ public class ColumnTorrentSpeed
 			CAT_ESSENTIAL,
 			CAT_BYTES,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
   public void refresh(TableCell cell) {

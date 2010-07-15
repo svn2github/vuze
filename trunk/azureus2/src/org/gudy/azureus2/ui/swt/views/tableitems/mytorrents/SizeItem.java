@@ -68,6 +68,7 @@ public class SizeItem
 			CAT_CONTENT,
 			CAT_BYTES
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	public void refresh(TableCell cell) {

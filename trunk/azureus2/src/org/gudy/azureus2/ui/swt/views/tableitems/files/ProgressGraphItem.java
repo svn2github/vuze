@@ -60,6 +60,7 @@ public class ProgressGraphItem extends CoreTableColumn implements TableCellAdded
 		info.addCategories(new String[] {
 			CAT_PROGRESS,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	public void cellAdded(TableCell cell) {

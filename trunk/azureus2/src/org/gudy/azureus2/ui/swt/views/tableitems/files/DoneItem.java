@@ -47,6 +47,7 @@ public class DoneItem
 			CAT_BYTES,
 			CAT_PROGRESS,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
   public void refresh(TableCell cell) {

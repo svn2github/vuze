@@ -46,6 +46,7 @@ public class ModeItem
 		info.addCategories(new String[] {
 			CAT_CONTENT,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_INTERMEDIATE);
 	}
 
   public void refresh(TableCell cell) {

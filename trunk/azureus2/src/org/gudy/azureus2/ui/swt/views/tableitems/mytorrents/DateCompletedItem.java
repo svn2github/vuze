@@ -54,6 +54,7 @@ public class DateCompletedItem
 			CAT_TIME,
 			CAT_CONTENT,
 		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	/**

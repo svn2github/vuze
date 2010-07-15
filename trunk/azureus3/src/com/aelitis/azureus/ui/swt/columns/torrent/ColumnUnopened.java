@@ -47,6 +47,7 @@ public class ColumnUnopened
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] { CAT_CONTENT, CAT_ESSENTIAL });
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	private static UISWTGraphicImpl graphicCheck;
