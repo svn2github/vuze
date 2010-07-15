@@ -555,9 +555,10 @@ BufferedTableRow
   		if (newRow.getData("TableRow") != null) {
     		newRow.setData("TableRow", null);
     		table.deselect(newRow);
+    		return true;
   		}
   		//System.out.println("quickclear " + table.indexOf(newRow));
-  		return true;
+  		return false;
   	}
 		//System.out.println("slowset " + table.indexOf(newRow));
 
