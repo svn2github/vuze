@@ -88,23 +88,23 @@ public class TableColumnImpl
 
 	private ArrayList<TableCellRefreshListener> cellRefreshListeners;
 
-	private ArrayList cellAddedListeners;
+	private ArrayList<TableCellAddedListener> cellAddedListeners;
 
-	private ArrayList cellDisposeListeners;
+	private ArrayList<TableCellDisposeListener> cellDisposeListeners;
 
-	private ArrayList cellToolTipListeners;
+	private ArrayList<TableCellToolTipListener> cellToolTipListeners;
 
-	private ArrayList cellMouseListeners;
+	private ArrayList<TableCellMouseListener> cellMouseListeners;
 
-	private ArrayList cellMouseMoveListeners;
+	private ArrayList<TableCellMouseMoveListener> cellMouseMoveListeners;
 
-	private ArrayList cellVisibilityListeners;
+	private ArrayList<TableCellVisibilityListener> cellVisibilityListeners;
 	
-	private ArrayList cellClipboardListeners;
+	private ArrayList<TableCellClipboardListener> cellClipboardListeners;
 	
 	private ArrayList<TableColumnExtraInfoListener> columnExtraInfoListeners;
 
-	private Map mapOtherCellListeners;
+	private Map<String, List<Object>> mapOtherCellListeners;
 	
 	private int iConsecutiveErrCount;
 
@@ -150,14 +150,16 @@ public class TableColumnImpl
 
 	private boolean removed;
 	
-	private List<Class> forPluginDataSourceTypes = new ArrayList<Class>();
+	private List<Class<?>> forPluginDataSourceTypes = new ArrayList<Class<?>>();
+
+	private String iconID;
 
 	/**
 	 * @deprecated
 	 */
 	public TableColumnImpl(String tableID, String columnID) {
 		// Guess forPluginDataSourceType based on tableID
-		Class forPluginDataSourceType = null;
+		Class<?> forPluginDataSourceType = null;
 		if (TableManager.TABLE_MYTORRENTS_ALL_BIG.equals(tableID)
 				|| TableManager.TABLE_MYTORRENTS_UNOPENED.equals(tableID)
 				|| TableManager.TABLE_MYTORRENTS_UNOPENED_BIG.equals(tableID)) {
@@ -185,12 +187,12 @@ public class TableColumnImpl
 	 * @param tableID table in which the column belongs to
 	 * @param columnID name/id of the column
 	 */
-	public TableColumnImpl(Class forDataSourceType, String tableID,
+	public TableColumnImpl(Class<?> forDataSourceType, String tableID,
 			String columnID) {
 		init(forDataSourceType, tableID, columnID);
 	}
 	
-	private void init(Class forDataSourceType, String tableID,
+	private void init(Class<?> forDataSourceType, String tableID,
 			String columnID) {
 		forPluginDataSourceTypes.add(forDataSourceType);
 		sTableID = tableID;
@@ -399,7 +401,7 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (cellAddedListeners == null) {
-				cellAddedListeners = new ArrayList(1);
+				cellAddedListeners = new ArrayList<TableCellAddedListener>(1);
 			}
 
 			cellAddedListeners.add(listener);
@@ -415,12 +417,12 @@ public class TableColumnImpl
 			this_mon.enter();
 			
 			if (mapOtherCellListeners == null) {
-				mapOtherCellListeners = new HashMap(1);
+				mapOtherCellListeners = new HashMap<String, List<Object>>(1);
 			}
 
-			List list = (List) mapOtherCellListeners.get(listenerID);
+			List<Object> list = mapOtherCellListeners.get(listenerID);
 			if (list == null) {
-				list = new ArrayList(1);
+				list = new ArrayList<Object>(1);
 				mapOtherCellListeners.put(listenerID, list);
 			}
 
@@ -454,7 +456,7 @@ public class TableColumnImpl
 			return null;
 		}
 
-		List list = (List) mapOtherCellListeners.get(listenerID);
+		List<Object> list = mapOtherCellListeners.get(listenerID);
 		if (list == null) {
 			return null;
 		}
@@ -472,7 +474,7 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (cellAddedListeners == null) {
-				return (new ArrayList(0));
+				return Collections.emptyList();
 			}
 
 			return (new ArrayList(cellAddedListeners));
@@ -504,7 +506,7 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (cellDisposeListeners == null) {
-				cellDisposeListeners = new ArrayList(1);
+				cellDisposeListeners = new ArrayList<TableCellDisposeListener>(1);
 			}
 
 			cellDisposeListeners.add(listener);
@@ -534,7 +536,7 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (cellToolTipListeners == null) {
-				cellToolTipListeners = new ArrayList(1);
+				cellToolTipListeners = new ArrayList<TableCellToolTipListener>(1);
 			}
 
 			cellToolTipListeners.add(listener);
@@ -563,7 +565,7 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (cellMouseListeners == null) {
-				cellMouseListeners = new ArrayList(1);
+				cellMouseListeners = new ArrayList<TableCellMouseListener>(1);
 			}
 
 			cellMouseListeners.add(listener);
@@ -597,7 +599,7 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (cellMouseMoveListeners == null) {
-				cellMouseMoveListeners = new ArrayList(1);
+				cellMouseMoveListeners = new ArrayList<TableCellMouseMoveListener>(1);
 			}
 
 			cellMouseMoveListeners.add(listener);
@@ -627,7 +629,7 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (cellClipboardListeners == null) {
-				cellClipboardListeners = new ArrayList(1);
+				cellClipboardListeners = new ArrayList<TableCellClipboardListener>(1);
 			}
 
 			cellClipboardListeners.add(listener);
@@ -657,7 +659,7 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (cellVisibilityListeners == null) {
-				cellVisibilityListeners = new ArrayList(1);
+				cellVisibilityListeners = new ArrayList<TableCellVisibilityListener>(1);
 			}
 
 			cellVisibilityListeners.add(listener);
@@ -703,7 +705,7 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (columnExtraInfoListeners == null) {
-				columnExtraInfoListeners = new ArrayList(1);
+				columnExtraInfoListeners = new ArrayList<TableColumnExtraInfoListener>(1);
 			}
 
 			columnExtraInfoListeners.add(listener);
@@ -905,7 +907,7 @@ public class TableColumnImpl
 	}
 
 	public void invokeCellMouseListeners(TableCellMouseEvent event) {
-		ArrayList listeners = event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE
+		ArrayList<?> listeners = event.eventType == TableCellMouseEvent.EVENT_MOUSEMOVE
 				? cellMouseMoveListeners : this.cellMouseListeners;
 		if (listeners == null) {
 			return;
@@ -979,7 +981,7 @@ public class TableColumnImpl
 			
 		TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
 					
-		for (Class cla : forPluginDataSourceTypes) {
+		for (Class<?> cla : forPluginDataSourceTypes) {
 			tsed.tableStructureChanged(true, cla);
 		}
 	}
@@ -1282,7 +1284,7 @@ public class TableColumnImpl
 		}
 	}
 
-	private String getListCountString(List l) {
+	private String getListCountString(List<?> l) {
 		if (l == null) {
 			return "-0";
 		}
@@ -1538,7 +1540,7 @@ public class TableColumnImpl
 	}
 	
 	public boolean handlesDataSourceType(Class<?> cla) {
-		for (Class forClass : forPluginDataSourceTypes) {
+		for (Class<?> forClass : forPluginDataSourceTypes) {
 			if (forClass.isAssignableFrom(cla)) {
 				return true;
 			}
@@ -1548,5 +1550,13 @@ public class TableColumnImpl
 
 	public Class getForDataSourceType() {
 		return forPluginDataSourceTypes.size() > 0 ? forPluginDataSourceTypes.get(0) : null;
+	}
+	
+	public void setIconReference(String iconID, boolean showOnlyIcon) {
+		this.iconID = iconID;
+	}
+	
+	public String getIconReference() {
+		return iconID;
 	}
 }

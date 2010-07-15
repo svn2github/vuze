@@ -584,4 +584,16 @@ public interface TableColumn {
 	 * @since 4.0.0.5
 	 */
 	Class getForDataSourceType();
+
+	/**
+	 * 
+	 * @since 4.4.0.7
+	 */
+	public void setIconReference(String iconID, boolean showOnlyIcon);
+	
+	/**
+	 * 
+	 * @since 4.4.0.7
+	 */
+	public String getIconReference();
 }
