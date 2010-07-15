@@ -169,7 +169,7 @@ ResourceDownloaderTorrentImpl
 				
 				if( !torrent_holder[0].isSimpleTorrent()){
 					
-					throw( new ResourceDownloaderException( "Only simple torrents supported" ));
+					throw( new ResourceDownloaderException( this, "Only simple torrents supported" ));
 				}
 			}
 			
@@ -201,7 +201,7 @@ ResourceDownloaderTorrentImpl
 			
 		}catch( TOTorrentException e ){
 			
-			throw( new ResourceDownloaderException( "Torrent deserialisation failed", e ));
+			throw( new ResourceDownloaderException( this, "Torrent deserialisation failed", e ));
 		}
 	}	
 	
@@ -443,7 +443,7 @@ ResourceDownloaderTorrentImpl
 			}
 		}catch( Throwable e ){
 			
-			failed( this, new ResourceDownloaderException( "Torrent download failed", e ));
+			failed( this, new ResourceDownloaderException( this, "Torrent download failed", e ));
 		}
 	}
 	
@@ -506,7 +506,7 @@ ResourceDownloaderTorrentImpl
 			
 			Debug.printStackTrace( e );
 			
-			failed( this, new ResourceDownloaderException( "Failed to read downloaded torrent data: " + e.getMessage(), e ));
+			failed( this, new ResourceDownloaderException( this, "Failed to read downloaded torrent data: " + e.getMessage(), e ));
 		}
 	}
 	
@@ -519,7 +519,7 @@ ResourceDownloaderTorrentImpl
 
 		if (!( result instanceof InputStream )){
 			
-			failed( this, new ResourceDownloaderException( "Download did not complete" ));
+			failed( this, new ResourceDownloaderException( this, "Download did not complete" ));
 		}
 	}
 	
@@ -531,7 +531,7 @@ ResourceDownloaderTorrentImpl
 		try{
 			this_mon.enter();
 		
-			result	= new ResourceDownloaderCancelledException();
+			result	= new ResourceDownloaderCancelledException(  this  );
 			
 			cancelled	= true;
 			
@@ -563,12 +563,12 @@ ResourceDownloaderTorrentImpl
 				
 			}else{
 				
-				failed( this, new ResourceDownloaderException( "Only simple torrents supported" ));
+				failed( this, new ResourceDownloaderException( this, "Only simple torrents supported" ));
 			}
 			
 		}catch( TOTorrentException e ){
 			
-			failed( downloader, new ResourceDownloaderException( "Torrent deserialisation failed", e ));
+			failed( downloader, new ResourceDownloaderException( this, "Torrent deserialisation failed", e ));
 			
 		}finally{
 			

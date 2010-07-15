@@ -112,7 +112,7 @@ ResourceDownloaderAlternateImpl
 	{		
 		if( delegates.length == 0 ){
 			
-			ResourceDownloaderException error = new ResourceDownloaderException( "Alternate download fails - 0 alteratives");
+			ResourceDownloaderException error = new ResourceDownloaderException( this, "Alternate download fails - 0 alteratives");
 			
 			informFailed( error );
 			
@@ -217,7 +217,7 @@ ResourceDownloaderAlternateImpl
 	{
 		if( delegates.length == 0 ){
 			
-			ResourceDownloaderException error = new ResourceDownloaderException( "Alternate download fails - 0 alteratives");
+			ResourceDownloaderException error = new ResourceDownloaderException( this, "Alternate download fails - 0 alteratives");
 			
 			informFailed( error );
 			
@@ -274,7 +274,7 @@ ResourceDownloaderAlternateImpl
 		try{
 			this_mon.enter();
 		
-			result	= new ResourceDownloaderCancelledException();
+			result	= new ResourceDownloaderCancelledException( this );
 			
 			cancelled	= true;
 			

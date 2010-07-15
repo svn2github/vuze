@@ -32,16 +32,18 @@ ResourceDownloaderException
 {
 	public
 	ResourceDownloaderException(
-		String	str )
+		ResourceDownloader	rd,
+		String				str )
 	{
-		super(str);
+		super( rd.getName() + ": " + str);
 	}
 	
 	public
 	ResourceDownloaderException(
-		String		str,
-		Throwable	cause )
+		ResourceDownloader	rd,
+		String				str,
+		Throwable			cause )
 	{
-		super(str, cause);
+		super( rd.getName() + ": " + str, cause);
 	}
 }

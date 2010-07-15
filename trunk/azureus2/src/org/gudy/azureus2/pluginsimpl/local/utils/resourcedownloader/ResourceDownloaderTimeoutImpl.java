@@ -180,7 +180,7 @@ ResourceDownloaderTimeoutImpl
 							try{
 								Thread.sleep( timeout_millis );
 								
-								cancel(new ResourceDownloaderException( "Download timeout"));
+								cancel(new ResourceDownloaderException( ResourceDownloaderTimeoutImpl.this, "Download timeout"));
 								
 							}catch( Throwable e ){
 								
@@ -259,7 +259,7 @@ ResourceDownloaderTimeoutImpl
 							try{
 								Thread.sleep( timeout_millis );
 								
-								cancel(new ResourceDownloaderException( "getSize timeout"));
+								cancel(new ResourceDownloaderException( ResourceDownloaderTimeoutImpl.this, "getSize timeout"));
 								
 							}catch( Throwable e ){
 								
@@ -281,7 +281,7 @@ ResourceDownloaderTimeoutImpl
 	public void
 	cancel()
 	{
-		cancel( new ResourceDownloaderCancelledException());
+		cancel( new ResourceDownloaderCancelledException(  this  ));
 	}
 	
 	protected void

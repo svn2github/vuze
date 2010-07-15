@@ -159,7 +159,7 @@ ResourceDownloaderMetaRefreshImpl
 			}
 		}catch( HTMLException e ){
 			
-			throw( new ResourceDownloaderException( "getSize failed", e ));
+			throw( new ResourceDownloaderException( this, "getSize failed", e ));
 		}
 	}	
 	
@@ -232,7 +232,7 @@ ResourceDownloaderMetaRefreshImpl
 		try{
 			this_mon.enter();
 		
-			result	= new ResourceDownloaderCancelledException();
+			result	= new ResourceDownloaderCancelledException(  this  );
 			
 			cancelled	= true;
 			
@@ -281,7 +281,7 @@ ResourceDownloaderMetaRefreshImpl
 					
 					if ( !marked ){
 						
-						failed( downloader, new ResourceDownloaderException( "meta refresh tag not found and input stream not recoverable"));
+						failed( downloader, new ResourceDownloaderException( this, "meta refresh tag not found and input stream not recoverable"));
 						
 					}else{
 					
@@ -319,7 +319,7 @@ ResourceDownloaderMetaRefreshImpl
 			}
 		}catch( Throwable e ){
 			
-			failed( downloader, new ResourceDownloaderException("meta-refresh processing fails", e ));
+			failed( downloader, new ResourceDownloaderException( this, "meta-refresh processing fails", e ));
 		}
 		
 		return( true );

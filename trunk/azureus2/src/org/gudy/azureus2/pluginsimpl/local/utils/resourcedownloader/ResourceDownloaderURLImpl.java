@@ -283,7 +283,7 @@ ResourceDownloaderURLImpl
 								
 								setProperty( "URL_HTTP_Response", new Long( response ));
 
-								throw( new ResourceDownloaderException("Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+								throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 							}
 															
 							getRequestProperties( con );
@@ -322,7 +322,7 @@ ResourceDownloaderURLImpl
 						}
 					}
 					
-					throw( new ResourceDownloaderException("Should never get here" ));
+					throw( new ResourceDownloaderException( this, "Should never get here" ));
 
 				}finally{
 					
@@ -333,15 +333,15 @@ ResourceDownloaderURLImpl
 				}
 			}catch (java.net.MalformedURLException e){
 				
-				throw( new ResourceDownloaderException("Exception while parsing URL '" + original_url + "':" + e.getMessage(), e));
+				throw( new ResourceDownloaderException( this, "Exception while parsing URL '" + original_url + "':" + e.getMessage(), e));
 				
 			}catch (java.net.UnknownHostException e){
 				
-				throw( new ResourceDownloaderException("Exception while initializing download of '" + trimForDisplay( original_url ) + "': Unknown Host '" + e.getMessage() + "'", e));
+				throw( new ResourceDownloaderException( this, "Exception while initializing download of '" + trimForDisplay( original_url ) + "': Unknown Host '" + e.getMessage() + "'", e));
 				
 			}catch (java.io.IOException e ){
 				
-				throw( new ResourceDownloaderException("I/O Exception while downloading '" + trimForDisplay( original_url )+ "'", e ));
+				throw( new ResourceDownloaderException( this, "I/O Exception while downloading '" + trimForDisplay( original_url )+ "'", e ));
 			}
 		}catch( Throwable e ){
 			
@@ -355,7 +355,7 @@ ResourceDownloaderURLImpl
 				
 				Debug.out(e);
 				
-				rde = new ResourceDownloaderException( "Unexpected error", e );
+				rde = new ResourceDownloaderException( this, "Unexpected error", e );
 			}
 						
 			throw( rde );
@@ -422,7 +422,7 @@ ResourceDownloaderURLImpl
 				
 				if ( download_initiated ){
 					
-					throw( new ResourceDownloaderException("Download already initiated"));
+					throw( new ResourceDownloaderException( this, "Download already initiated"));
 				}
 				
 				download_initiated	= true;
@@ -587,7 +587,7 @@ redirect_label:
 									
 									setProperty( "URL_HTTP_Response", new Long( response ));
 
-									throw( new ResourceDownloaderException("Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+									throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 								}
 									
 								getRequestProperties( con );
@@ -740,7 +740,7 @@ redirect_label:
 									}
 								}
 								
-								throw( new ResourceDownloaderException("Contents downloaded but rejected: '" + trimForDisplay( original_url ) + "'" ));
+								throw( new ResourceDownloaderException( this, "Contents downloaded but rejected: '" + trimForDisplay( original_url ) + "'" ));
 		
 							}catch( SSLException e ){
 								
@@ -804,7 +804,7 @@ redirect_label:
 						}
 					}
 					
-					throw( new ResourceDownloaderException("Should never get here" ));
+					throw( new ResourceDownloaderException( this, "Should never get here" ));
 					
 				}finally{
 							
@@ -815,15 +815,15 @@ redirect_label:
 				}
 			}catch (java.net.MalformedURLException e){
 				
-				throw( new ResourceDownloaderException("Exception while parsing URL '" + trimForDisplay( original_url ) + "':" + e.getMessage(), e));
+				throw( new ResourceDownloaderException( this, "Exception while parsing URL '" + trimForDisplay( original_url ) + "':" + e.getMessage(), e));
 				
 			}catch (java.net.UnknownHostException e){
 				
-				throw( new ResourceDownloaderException("Exception while initializing download of '" + trimForDisplay( original_url ) + "': Unknown Host '" + e.getMessage() + "'", e));
+				throw( new ResourceDownloaderException( this, "Exception while initializing download of '" + trimForDisplay( original_url ) + "': Unknown Host '" + e.getMessage() + "'", e));
 				
 			}catch (java.io.IOException e ){
 				
-				throw( new ResourceDownloaderException("I/O Exception while downloading '" + trimForDisplay( original_url ) + "'", e ));
+				throw( new ResourceDownloaderException( this, "I/O Exception while downloading '" + trimForDisplay( original_url ) + "'", e ));
 			}
 		}catch( Throwable e ){
 			
@@ -836,7 +836,7 @@ redirect_label:
 			}else{
 				Debug.out(e);
 				
-				rde = new ResourceDownloaderException( "Unexpected error", e );
+				rde = new ResourceDownloaderException( this, "Unexpected error", e );
 			}
 			
 			informFailed(rde);
@@ -869,7 +869,7 @@ redirect_label:
 			this_mon.exit();
 		}
 		
-		informFailed( new ResourceDownloaderCancelledException());
+		informFailed( new ResourceDownloaderCancelledException(  this  ));
 	}
 	
 	protected void

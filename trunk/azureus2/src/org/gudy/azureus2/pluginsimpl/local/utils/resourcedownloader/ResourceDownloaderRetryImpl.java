@@ -209,7 +209,7 @@ ResourceDownloaderRetryImpl
 		try{
 			this_mon.enter();
 		
-			result	= new ResourceDownloaderCancelledException();
+			result	= new ResourceDownloaderCancelledException(  this  );
 			
 			cancelled	= true;
 			

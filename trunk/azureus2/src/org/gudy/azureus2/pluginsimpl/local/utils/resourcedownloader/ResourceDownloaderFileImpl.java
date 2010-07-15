@@ -170,7 +170,7 @@ ResourceDownloaderFileImpl
 								
 							}catch( Throwable e ){
 								
-								failed( ResourceDownloaderFileImpl.this, new ResourceDownloaderException( "Failed to read file", e ));
+								failed( ResourceDownloaderFileImpl.this, new ResourceDownloaderException( ResourceDownloaderFileImpl.this, "Failed to read file", e ));
 								
 								Debug.printStackTrace( e );
 								
@@ -192,7 +192,7 @@ ResourceDownloaderFileImpl
 	public void
 	cancel()
 	{
-		cancel( new ResourceDownloaderCancelledException());
+		cancel( new ResourceDownloaderCancelledException(  this  ));
 	}
 	
 	protected void
