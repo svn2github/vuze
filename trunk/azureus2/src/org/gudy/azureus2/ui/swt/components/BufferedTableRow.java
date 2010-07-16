@@ -726,6 +726,10 @@ BufferedTableRow
 				public void runSupport() {
 			    if (item.getItemCount() != numSubItems) {
 			    	item.setItemCount(numSubItems);
+						Rectangle r = item.getBounds(0);
+						if (r != null) {
+							table.redraw(0, r.y, table.getClientArea().width, r.height, true);
+						}
 			    }
 			    TableItemOrTreeItem[] items = item.getItems();
 			    for (TableItemOrTreeItem subItem : items) {
