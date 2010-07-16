@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -53,6 +54,8 @@ import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -103,9 +106,9 @@ public class MyTorrentsView
                   TableSelectionListener,
                   TableViewSWTMenuFillListener,
                   TableRefreshListener,
-                  TableCountChangeListener,
                   TableViewFilterCheck<DownloadManager>,
-                  ToolBarEnabler
+                  ToolBarEnabler,
+                  TableRowRefreshListener
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
@@ -193,10 +196,10 @@ public class MyTorrentsView
     tv.addSelectionListener(this, false);
     tv.addMenuFillListener(this);
     tv.addRefreshListener(this, false);
-    tv.addCountChangeListener(this);
-    //tv.addRowPaintListener(this);
-    //tv.addRowMouseListener(this);
-    
+    if (tv.canHaveSubItems()) {
+    	tv.addRefreshListener(this);
+    }
+
     forceHeaderVisible = COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader");
 		if (txtFilter != null) {
 			filterParent = txtFilter.getParent();
@@ -1828,23 +1831,6 @@ public class MyTorrentsView
   
 
 
-  // @see com.aelitis.azureus.ui.common.table.TableCountChangeListener#rowAdded(com.aelitis.azureus.ui.common.table.TableRowCore)
-  public void rowAdded(TableRowCore row) {
-  	if (tv.canHaveSubItems() && row.getParentRowCore() == null) {
-    	DownloadManager dm = (DownloadManager) row.getDataSource(true);
-    	if (dm != null) {
-    		DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
-    		if (fileInfos != null && fileInfos.length > 0) {
-    			row.setSubItems(fileInfos);
-    		}
-    	}
-  	}
-  }
-
-  // @see com.aelitis.azureus.ui.common.table.TableCountChangeListener#rowRemoved(com.aelitis.azureus.ui.common.table.TableRowCore)
-  public void rowRemoved(TableRowCore row) {
-	}
-	
 
 	public void updateLanguage() {
 		super.updateLanguage();
@@ -2073,6 +2059,28 @@ public class MyTorrentsView
 		}
 		
 		return mapNewToolbarStates;
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener#rowRefresh(org.gudy.azureus2.plugins.ui.tables.TableRow)
+	public void rowRefresh(TableRow row) {
+		if (!(row instanceof TableRowCore)) {
+			return;
+		}
+
+		TableRowCore rowCore = (TableRowCore) row;
+		Object ds = rowCore.getDataSource(true);
+		if (!(ds instanceof DownloadManager)) {
+			return;
+		}
+
+		DownloadManager dm = (DownloadManager) ds;
+		if (rowCore.getSubItemCount() == 0 && dm.getTorrent() != null
+				&& !dm.getTorrent().isSimpleTorrent() && rowCore.isVisible()) {
+			DiskManagerFileInfoSet fileInfos = dm.getDiskManagerFileInfoSet();
+			if (fileInfos != null && fileInfos.nbFiles() > 0) {
+				rowCore.setSubItems(fileInfos.getFiles());
+			}
+		}
 	}
 
 }
