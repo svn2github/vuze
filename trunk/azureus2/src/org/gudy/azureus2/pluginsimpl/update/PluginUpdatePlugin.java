@@ -37,6 +37,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.installer.InstallablePlugin;
+import org.gudy.azureus2.plugins.installer.PluginInstallationListener;
 import org.gudy.azureus2.plugins.installer.PluginInstaller;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.plugins.logging.*;
@@ -50,6 +52,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 import org.gudy.azureus2.update.CorePatchChecker;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 public class 
@@ -200,7 +203,9 @@ PluginUpdatePlugin
 				{
 					if ( checkForUpdateSupport( checker, null, false ) == 0 ){
 						
-						String[] rps = VersionCheckClient.getSingleton(). getRecommendedPlugins();
+						VersionCheckClient vc = VersionCheckClient.getSingleton();
+						
+						String[] rps = vc.getRecommendedPlugins();
 						
 						boolean	found_one = false;
 						
@@ -266,6 +271,172 @@ PluginUpdatePlugin
 							if ( found_one ){
 								
 								break;
+							}
+						}
+						
+						if ( !found_one ){
+							
+							Set<String>	auto_install = vc.getAutoInstallPluginIDs();
+							
+							final List<String>	to_do = new ArrayList<String>();
+							
+							for ( String pid: auto_install ){
+								
+								if ( plugin_manager.getPluginInterfaceByID( pid, false ) == null ){
+									
+									to_do.add( pid );
+								}
+							}
+							
+							if ( to_do.size() > 0 ){
+								
+								new AEThread2( "pup:autoinst" )
+								{
+									public void 
+									run() 
+									{		
+										try{
+											Thread.sleep( 120*1000 );
+											
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+											
+											return;
+										}
+										
+										UpdateManager update_manager = plugin_interface.getUpdateManager();
+										
+										final List<UpdateCheckInstance>	l_instances = new ArrayList<UpdateCheckInstance>();
+										
+										update_manager.addListener( 
+											new UpdateManagerListener()
+											{
+												public void
+												checkInstanceCreated(
+													UpdateCheckInstance	instance )
+												{
+													synchronized( l_instances ){
+														
+														l_instances.add( instance );
+													}
+												}
+											});
+										
+										UpdateCheckInstance[] instances = update_manager.getCheckInstances();
+										
+										l_instances.addAll( Arrays.asList( instances ));
+										
+										long start = SystemTime.getMonotonousTime();
+										
+										while( true ){
+											
+											if ( SystemTime.getMonotonousTime() - start >= 5*60*1000 ){
+												
+												break;
+											}
+											
+											try{
+												Thread.sleep(5000);
+												
+											}catch( Throwable e ){
+												
+												Debug.out( e );
+												
+												return;
+											}
+											
+											if ( l_instances.size() > 0 ){
+											
+												boolean	all_done = true;
+												
+												for ( UpdateCheckInstance instance: l_instances ){
+													
+													if ( !instance.isCompleteOrCancelled()){
+														
+														all_done = false;
+														
+														break;
+													}
+												}
+												
+												if ( all_done ){
+													
+													break;
+												}
+											}
+										}
+										
+										if ( update_manager.getInstallers().length > 0 ){
+											
+											return;
+										}
+										
+										PluginInstaller installer = plugin_interface.getPluginManager().getPluginInstaller();
+										
+										List<InstallablePlugin>	sps = new ArrayList<InstallablePlugin>();
+										
+										for ( String pid: to_do ){
+											
+											try{
+												StandardPlugin sp = installer.getStandardPlugin( pid );
+												
+												if ( sp != null ){
+													
+													log.log( "Auto-installing " + pid );
+													
+													sps.add( sp );
+													
+												}else{
+													
+													log.log( "Standard plugin '" + pid + "' missing" );
+												}
+											}catch( Throwable e ){
+												
+												log.log( "Standard plugin '" + pid + "' missing", e );
+											}
+										}	
+								 		
+										if ( sps.size() > 0 ){
+											
+											Map<Integer, Object> properties = new HashMap<Integer, Object>();
+									
+											properties.put( UpdateCheckInstance.PT_UI_STYLE, UpdateCheckInstance.PT_UI_STYLE_NONE );
+												
+											properties.put(UpdateCheckInstance.PT_UI_DISABLE_ON_SUCCESS_SLIDEY, true);
+	
+											try{
+												installer.install(
+													sps.toArray( new InstallablePlugin[ sps.size()]),
+													false,
+													properties,
+													new PluginInstallationListener() {
+		
+														public void
+														completed()
+														{
+														}
+														
+														public void
+														cancelled()
+														{
+														}
+														
+														public void
+														failed(
+															PluginException	e )
+														{
+			
+														}
+													});
+												
+											}catch( Throwable e ){
+												
+												log.log( "Auto install failed", e );
+											}
+										}
+									};
+								}.start();
 							}
 						}
 					}
