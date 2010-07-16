@@ -1442,36 +1442,67 @@ AzureusCoreImpl
 			try{
 				ThreadGroup	tg = Thread.currentThread().getThreadGroup();
 				
-				Thread[]	threads = new Thread[tg.activeCount()+32];
+				while( tg.getParent() != null ){
+					
+					tg = tg.getParent();
+				}
 				
-				tg.enumerate( threads );
+				Thread[]	threads = new Thread[tg.activeCount()+1024];
+				
+				tg.enumerate( threads, true );
+				
+				boolean	bad_found = false;
 				
 				for (int i=0;i<threads.length;i++){
 					
-					final Thread	t = threads[i];
-					
+					Thread	t = threads[i];
+										
 					if ( t != null && t.isAlive() && t != Thread.currentThread() && !t.isDaemon() && !AEThread2.isOurThread( t )){
-						
-						new AEThread2( "VMKiller", true )
-						{
-							public void
-							run()
-							{
-								try{
-									Thread.sleep(10*1000);
-									
-									Debug.out( "Non-daemon thread found '" + t.getName() + "', force closing VM" );
-									
-									SESecurityManager.exitVM(0);
-									
-								}catch( Throwable e ){
-									
-								}
-							}
-						}.start();
+					
+						bad_found = true;
 						
 						break;
 					}
+				}
+				
+				if ( bad_found ){
+										
+					new AEThread2( "VMKiller", true )
+					{
+						public void
+						run()
+						{
+							try{
+								Thread.sleep(10*1000);
+								
+								ThreadGroup	tg = Thread.currentThread().getThreadGroup();
+								
+								Thread[]	threads = new Thread[tg.activeCount()+1024];
+								
+								tg.enumerate( threads, true );
+								
+								String	bad_found = "";
+								
+								for (int i=0;i<threads.length;i++){
+									
+									Thread	t = threads[i];
+																		
+									if ( t != null && t.isAlive() && !t.isDaemon() && !AEThread2.isOurThread( t )){
+									
+										bad_found += (bad_found.length()==0?"":", ") + t.getName();
+									}
+								}
+								
+								Debug.out( "Non-daemon thread(s) found: '" + bad_found + "', force closing VM" );
+								
+								SESecurityManager.exitVM(0);
+								
+							}catch( Throwable e ){
+								
+							}
+						}
+					}.start();
+	
 				}
 			}catch( Throwable e ){
 			}
