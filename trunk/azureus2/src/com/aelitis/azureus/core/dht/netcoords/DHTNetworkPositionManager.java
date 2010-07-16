@@ -28,7 +28,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -46,7 +45,7 @@ DHTNetworkPositionManager
 	
 	private static DHTStorageAdapter	storage_adapter = null;
 	
-	private static CopyOnWriteList	position_listeners;
+	private static CopyOnWriteList<DHTNetworkPositionListener>	position_listeners;
 	
 	public static void
 	initialise(
@@ -189,7 +188,7 @@ DHTNetworkPositionManager
 	{
 		DHTNetworkPositionProvider[]	prov = providers;
 		
-		List res = new ArrayList();
+		List<DHTNetworkPosition> res = new ArrayList<DHTNetworkPosition>();
 		
 		for (int i=0;i<prov.length;i++){
 			
@@ -206,7 +205,7 @@ DHTNetworkPositionManager
 			}
 		}
 		
-		return((DHTNetworkPosition[])res.toArray(new DHTNetworkPosition[res.size()])); 
+		return( res.toArray(new DHTNetworkPosition[res.size()])); 
 
 	}
 	
@@ -418,16 +417,16 @@ DHTNetworkPositionManager
 				try{
 					DHTNetworkPosition np = provider.deserialisePosition( is );
 					
-					CopyOnWriteList listeners = position_listeners;
+					CopyOnWriteList<DHTNetworkPositionListener> listeners = position_listeners;
 					
 					if ( listeners != null ){
 						
-						Iterator it = listeners.iterator();
+						Iterator<DHTNetworkPositionListener> it = listeners.iterator();
 						
 						while( it.hasNext()){
 							
 							try{
-								((DHTNetworkPositionListener)it.next()).positionFound( provider, originator, np );
+								it.next().positionFound( provider, originator, np );
 								
 							}catch( Throwable e ){
 								
@@ -460,10 +459,28 @@ DHTNetworkPositionManager
 		
 			if ( position_listeners == null ){
 				
-				position_listeners = new CopyOnWriteList();
+				position_listeners = new CopyOnWriteList<DHTNetworkPositionListener>();
 			}
 			
 			position_listeners.add( listener );
+		}
+	}
+	
+	public static void
+	removePositionListener(
+		DHTNetworkPositionListener		listener )
+	{
+		synchronized( DHTNetworkPositionManager.class ){
+		
+			if ( position_listeners != null ){
+				
+				position_listeners.remove( listener );
+				
+				if ( position_listeners.size() == 0 ){
+					
+					position_listeners = null;
+				}
+			}
 		}
 	}
 }
