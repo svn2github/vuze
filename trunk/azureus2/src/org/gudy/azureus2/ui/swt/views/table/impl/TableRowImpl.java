@@ -817,6 +817,9 @@ public class TableRowImpl<COREDATASOURCE>
 	public TableRowCore linkSubItem(int indexOf) {
 		mon_SubRows.enter();
 		try {
+			if (indexOf >= subRows.length) {
+				return null;
+			}
 			TableRowImpl<Object> subRow = subRows[indexOf];
 			if (subRow == null) {
 				subRows[indexOf] = subRow = new TableRowImpl(this, tableView, table,
