@@ -1489,11 +1489,27 @@ AzureusCoreImpl
 																		
 									if ( t != null && t.isAlive() && !t.isDaemon() && !AEThread2.isOurThread( t )){
 									
-										bad_found += (bad_found.length()==0?"":", ") + t.getName();
+										String	details = t.getName();
+										
+										StackTraceElement[] trace = t.getStackTrace();
+										
+										if ( trace.length > 0 ){
+											
+											details += "[";
+											
+											for ( int j=0;j<trace.length;j++ ){
+											
+												details += (j==0?"":",") + trace[j];
+											}
+											
+											details += "]";
+										}
+										
+										bad_found += (bad_found.length()==0?"":", ") + details;
 									}
 								}
 								
-								Debug.out( "Non-daemon thread(s) found: '" + bad_found + "', force closing VM" );
+								Debug.out( "Non-daemon thread(s) found: '" + bad_found + "' - force closing VM" );
 								
 								SESecurityManager.exitVM(0);
 								
