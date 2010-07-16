@@ -476,6 +476,118 @@ public class VersionCheckClient {
 	  return( result );
   }
   
+  public Set<String>
+  getDisabledPluginIDs()
+  {  
+	  Set<String>	result = new HashSet<String>();
+	  
+	  Map m = getMostRecentVersionCheckData();
+	  
+	  if ( m != null ){
+		  
+		  byte[]	x = (byte[])m.get( "disabled_pids" );
+		  
+		  if ( x != null ){
+			  
+			  String str = new String( x );
+			  
+			  String latest = COConfigurationManager.getStringParameter( "vc.disabled_pids.latest", "" );
+			  
+			  if ( !str.equals( latest )){
+				  
+				  byte[]	sig = (byte[])m.get( "disabled_pids_sig" );
+				  
+				  if ( sig == null ){
+					  
+					  Debug.out( "disabled plugins sig missing" );
+					  
+					  return( result );
+				  }
+				  
+				  try{
+					  AEVerifier.verifyData( str, sig );
+					  
+					  COConfigurationManager.setParameter( "vc.disabled_pids.latest", str );
+
+				  }catch( Throwable e ){
+					  
+					  return( result );
+				  }
+			  }
+			  
+			  String[] bits = str.split( "," );
+			  
+			  for ( String b: bits ){
+				  
+				  b = b.trim();
+				  
+				  if ( b.length() > 0 ){
+					  
+					  result.add( b );
+				  }
+			  }
+		  }
+	  }
+	  
+	  return( result );
+  }
+  
+  public Set<String>
+  getAutoInstallPluginIDs()
+  {  
+	  Set<String>	result = new HashSet<String>();
+	  
+	  Map m = getMostRecentVersionCheckData();
+	  
+	  if ( m != null ){
+		  
+		  byte[]	x = (byte[])m.get( "autoinstall_pids" );
+		  
+		  if ( x != null ){
+			  
+			  String str = new String( x );
+			  
+			  String latest = COConfigurationManager.getStringParameter( "vc.autoinstall_pids.latest", "" );
+			  
+			  if ( !str.equals( latest )){
+				  
+				  byte[]	sig = (byte[])m.get( "autoinstall_pids_sig" );
+				  
+				  if ( sig == null ){
+					  
+					  Debug.out( "autoinstall plugins sig missing" );
+					  
+					  return( result );
+				  }
+				  
+				  try{
+					  AEVerifier.verifyData( str, sig );
+					  
+					  COConfigurationManager.setParameter( "vc.autoinstall_pids.latest", str );
+
+				  }catch( Throwable e ){
+					  
+					  return( result );
+				  }
+			  }
+			  
+			  String[] bits = str.split( "," );
+			  
+			  for ( String b: bits ){
+				  
+				  b = b.trim();
+				  
+				  if ( b.length() > 0 ){
+					  
+					  result.add( b );
+				  }
+			  }
+		  }
+	  }
+	  
+	  return( result );
+  }
+  
   public long
   getCacheTime(
 	  boolean v6 )

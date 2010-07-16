@@ -48,6 +48,7 @@ import org.gudy.azureus2.update.UpdaterUtils;
 
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 
 
@@ -233,6 +234,7 @@ PluginInitializer
   
   private volatile boolean	plugins_initialised;
   
+  private Set<String>	vc_disabled_plugins = VersionCheckClient.getSingleton().getDisabledPluginIDs();
   
   public static PluginInitializer
   getSingleton(
@@ -1113,132 +1115,137 @@ PluginInitializer
 	      
 	      Plugin plugin = null;
 	      
-	      if ( pid.endsWith( "_v" )){
+	      if ( vc_disabled_plugins.contains ( pid )){
 	    	  
-	    	  verified_files = new ArrayList<File>();
+	    	  log( "Plugin '" + pid + "' has been administratively disabled" );
 	    	  
-	    	  	// re-verify jar files
-	    	  
-	    	  log( "Re-verifying " + pid );
-	    	  
-	    	  for( int i = 0 ; i < pluginContents.length ; i++){
-	    	    	
-	    	    	File	jar_file = pluginContents[i];
-	    	    	
-	    	    	if ( jar_file.getName().endsWith( ".jar" )){
-	    	    		
-	    	    		try{
-	    	    			log( "    verifying " + jar_file );
-	    	    			
-	    	    			AEVerifier.verifyData( jar_file );
-	    	    			
-	    	    			verified_files.add( jar_file );
-	    	    			
-	    	    			log( "    OK" );
-	    	    			
-	    	    		}catch( Throwable e ){
-	    	    			
-	    	    	    	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
-	    	    	    	 
-	    	    	    	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, e));
-	    	    			
-	    	    			plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
-	    	    		}
-	    	    	}
-	    	   }
-	      }
-	      
-	      if ( plugin == null ){
-	    	  
-		      plugin = PluginLauncherImpl.getPreloadedPlugin( plugin_class );
+	      }else{
+		      if ( pid.endsWith( "_v" )){
+		    	  
+		    	  verified_files = new ArrayList<File>();
+		    	  
+		    	  	// re-verify jar files
+		    	  
+		    	  log( "Re-verifying " + pid );
+		    	  
+		    	  for( int i = 0 ; i < pluginContents.length ; i++){
+		    	    	
+		    	    	File	jar_file = pluginContents[i];
+		    	    	
+		    	    	if ( jar_file.getName().endsWith( ".jar" )){
+		    	    		
+		    	    		try{
+		    	    			log( "    verifying " + jar_file );
+		    	    			
+		    	    			AEVerifier.verifyData( jar_file );
+		    	    			
+		    	    			verified_files.add( jar_file );
+		    	    			
+		    	    			log( "    OK" );
+		    	    			
+		    	    		}catch( Throwable e ){
+		    	    			
+		    	    	    	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
+		    	    	    	 
+		    	    	    	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, e));
+		    	    			
+		    	    			plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
+		    	    		}
+		    	    	}
+		    	   }
+		      }
 		      
 		      if ( plugin == null ){
 		    	  
-		    	  try{
-		    		  Class c = plugin_class_loader.loadClass(plugin_class);
+			      plugin = PluginLauncherImpl.getPreloadedPlugin( plugin_class );
 			      
-		    		  plugin	= (Plugin) c.newInstance();
-		    		  
-		    	  }catch (java.lang.UnsupportedClassVersionError e) {
-		    		  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
-		    		  
-		    		  // shorten stack trace
-		    		  load_failure	= new UnsupportedClassVersionError(e.getMessage());
-		    		  
-		    	  }catch( Throwable e ){
-		      	
-		    		  if ( 	e instanceof ClassNotFoundException &&
-		    				props.getProperty( "plugin.install_if_missing", "no" ).equalsIgnoreCase( "yes" )){
-		    			  
-		    			  // don't report the failure
-		    			  
-		    		  }else{
-		    			  
-		    			  load_failure	= e;
-		    		  }
-		      	
-		    		  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
-		    	  }
-		      }else{
-		    	  
-		    	  plugin_class_loader = plugin.getClass().getClassLoader();
+			      if ( plugin == null ){
+			    	  
+			    	  try{
+			    		  Class c = plugin_class_loader.loadClass(plugin_class);
+				      
+			    		  plugin	= (Plugin) c.newInstance();
+			    		  
+			    	  }catch (java.lang.UnsupportedClassVersionError e) {
+			    		  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
+			    		  
+			    		  // shorten stack trace
+			    		  load_failure	= new UnsupportedClassVersionError(e.getMessage());
+			    		  
+			    	  }catch( Throwable e ){
+			      	
+			    		  if ( 	e instanceof ClassNotFoundException &&
+			    				props.getProperty( "plugin.install_if_missing", "no" ).equalsIgnoreCase( "yes" )){
+			    			  
+			    			  // don't report the failure
+			    			  
+			    		  }else{
+			    			  
+			    			  load_failure	= e;
+			    		  }
+			      	
+			    		  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
+			    	  }
+			      }else{
+			    	  
+			    	  plugin_class_loader = plugin.getClass().getClassLoader();
+			      }
 		      }
-	      }
-	      	      
-	      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),plugin_class_loader);
-
-	      PluginInterfaceImpl plugin_interface = 
-	      		new PluginInterfaceImpl(
-	      					plugin, 
-							this, 
-							directory, 
-							plugin_class_loader,
-							verified_files,
-							directory.getName(),	// key for config values
-							new_props,
-							directory.getAbsolutePath(),
-							pid,
-							plugin_version[0] );
-	      
-	      boolean bEnabled = (loading_for_startup) ? plugin_interface.getPluginState().isLoadedAtStartup() : initialise;
-	      plugin_interface.getPluginState().setDisabled(!bEnabled);
-
-	      try{
-	      
-	      	Method	load_method = plugin.getClass().getMethod( "load", new Class[]{ PluginInterface.class });
-	      	
-	      	load_method.invoke( plugin, new Object[]{ plugin_interface });
-	      	
-	      }catch( NoSuchMethodException e ){
-	      	
-	      }catch( Throwable e ){
-	      	
-	      	load_failure	= e;
-	      }
-	      
-	      loaded_pis.add( plugin_interface );
-	      
-	      if ( load_failure != null ){
-	    	  plugin_interface.setAsFailed();
-	    	  
-	    	// don't complain about our internal one
-	    	  if ( !pid.equals(UpdaterUpdateChecker.getPluginID())){
-	    		  
-		      	String msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
-		      	LogAlert la;
-		      	if (load_failure instanceof UnsupportedClassVersionError) {
-		      		la = new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg + ". " + MessageText.getString("plugin.install.class_version_error"));
-		      	}
-		      	else {
-		      		la = new LogAlert(LogAlert.UNREPEATABLE, msg, load_failure);
-		      	}
-		      	Logger.log(la);
+		      	      
+		      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),plugin_class_loader);
 	
-		      	System.out.println( msg + ": " + load_failure);
+		      PluginInterfaceImpl plugin_interface = 
+		      		new PluginInterfaceImpl(
+		      					plugin, 
+								this, 
+								directory, 
+								plugin_class_loader,
+								verified_files,
+								directory.getName(),	// key for config values
+								new_props,
+								directory.getAbsolutePath(),
+								pid,
+								plugin_version[0] );
+		      
+		      boolean bEnabled = (loading_for_startup) ? plugin_interface.getPluginState().isLoadedAtStartup() : initialise;
+		      plugin_interface.getPluginState().setDisabled(!bEnabled);
+	
+		      try{
+		      
+		      	Method	load_method = plugin.getClass().getMethod( "load", new Class[]{ PluginInterface.class });
+		      	
+		      	load_method.invoke( plugin, new Object[]{ plugin_interface });
+		      	
+		      }catch( NoSuchMethodException e ){
+		      	
+		      }catch( Throwable e ){
+		      	
+		      	load_failure	= e;
 		      }
-	      }
+		      
+		      loaded_pis.add( plugin_interface );
+		      
+		      if ( load_failure != null ){
+		    	  plugin_interface.setAsFailed();
+		    	  
+		    	// don't complain about our internal one
+		    	  if ( !pid.equals(UpdaterUpdateChecker.getPluginID())){
+		    		  
+			      	String msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
+			      	LogAlert la;
+			      	if (load_failure instanceof UnsupportedClassVersionError) {
+			      		la = new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg + ". " + MessageText.getString("plugin.install.class_version_error"));
+			      	}
+			      	else {
+			      		la = new LogAlert(LogAlert.UNREPEATABLE, msg, load_failure);
+			      	}
+			      	Logger.log(la);
+		
+			      	System.out.println( msg + ": " + load_failure);
+			      }
+		      }
+	  		}
   		}
-	      
 	    if ( p1 == -1 ){
 	    	break;
 	      	
