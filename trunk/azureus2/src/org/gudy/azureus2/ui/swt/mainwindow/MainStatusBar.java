@@ -1392,7 +1392,6 @@ public class MainStatusBar
 			}
 			sp.printString(e.gc, clientArea, SWT.LEFT);
 
-			e.gc.setLineStyle(SWT.LINE_DOT);
 			int x = clientArea.x + clientArea.width - 1;
 			e.gc.setAlpha(20);
 			e.gc.drawLine(x, 3, x, clientArea.height - 3);
