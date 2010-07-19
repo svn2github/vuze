@@ -214,6 +214,11 @@ PluginInitializer
   
   private static List		initThreads = new ArrayList(1);
   
+  private static AsyncDispatcher	async_dispatcher = new AsyncDispatcher();
+  private static List<PluginEvent>	plugin_event_history = new ArrayList<PluginEvent>();
+  
+  
+  
   private AzureusCoreOperation core_operation;
   
   private AzureusCore		azureus_core;
@@ -235,7 +240,7 @@ PluginInitializer
   private volatile boolean	plugins_initialised;
   
   private Set<String>	vc_disabled_plugins = VersionCheckClient.getSingleton().getDisabledPluginIDs();
-  
+    
   public static PluginInitializer
   getSingleton(
   	AzureusCore		 		azureus_core,
@@ -1979,50 +1984,87 @@ PluginInitializer
     /*nothing*/
   }
   
+  protected void
+  runPEVTask(
+		AERunnable	run )
+  {
+	  async_dispatcher.dispatch( run );
+  }
+  
+  
+  protected List<PluginEvent>
+  getPEVHistory()
+  {
+	  return( plugin_event_history );
+  }
   
   protected void
   fireEventSupport(
   	final int		type,
   	final Object	value )
   {
-  	PluginEvent	ev = 
-  		new PluginEvent()
-  		{ 
-  			public int 
-  			getType()
-  			{ 
-  				return( type );
-  			}
-  			
-  			public Object
-  			getValue()
-  			{
-  				return( value );
-  			}
-  		};
-  	
-  	List plugin_interfaces;
-  		  	
-  	synchronized( s_plugin_interfaces ){
-  			
-  		plugin_interfaces = new ArrayList( s_plugin_interfaces );
-  	}
-  	
-  	for (int i=0;i<plugin_interfaces.size();i++){
-  		
-  		try{
-  			((PluginInterfaceImpl)plugin_interfaces.get(i)).firePluginEvent(ev);
-  			
-  		}catch(Throwable e ){
-  			
-  			Debug.printStackTrace(e);
-  		}
-  	} 
-  	
- 	if ( default_plugin != null ){
-  		
-  		default_plugin.firePluginEvent(ev);
-  	}
+	  async_dispatcher.dispatch(
+		 new AERunnable()
+		 {
+			 public void
+			 runSupport()
+			 {		 
+			  	PluginEvent	ev = 
+			  		new PluginEvent()
+			  		{ 
+			  			public int 
+			  			getType()
+			  			{ 
+			  				return( type );
+			  			}
+			  			
+			  			public Object
+			  			getValue()
+			  			{
+			  				return( value );
+			  			}
+			  		};
+			  	
+			  	if ( 	type == PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS ||
+			  			type == PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES ||
+			  			type == PluginEvent.PEV_INITIAL_SHARING_COMPLETE ||
+			  			type == PluginEvent.PEV_INITIALISATION_UI_COMPLETES ||
+			  			type == PluginEvent.PEV_ALL_PLUGINS_INITIALISED ){
+			  		
+			  		plugin_event_history.add( ev );
+			  		
+			  		if ( plugin_event_history.size() > 1024 ){
+			  			
+			  			Debug.out( "Plugin event history too large!!!!" );
+			  			
+			  			plugin_event_history.remove( 0 );
+			  		}
+			  	}
+			  	
+			  	List plugin_interfaces;
+			  		  	
+			  	synchronized( s_plugin_interfaces ){
+			  			
+			  		plugin_interfaces = new ArrayList( s_plugin_interfaces );
+			  	}
+			  	
+			  	for (int i=0;i<plugin_interfaces.size();i++){
+			  		
+			  		try{
+			  			((PluginInterfaceImpl)plugin_interfaces.get(i)).firePluginEventSupport(ev);
+			  			
+			  		}catch(Throwable e ){
+			  			
+			  			Debug.printStackTrace(e);
+			  		}
+			  	} 
+			  	
+			 	if ( default_plugin != null ){
+			  		
+			  		default_plugin.firePluginEventSupport(ev);
+			  	}
+			  }
+		 });
   }
   
   public static void

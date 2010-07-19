@@ -673,30 +673,7 @@ PluginInterfaceImpl
 		  ((PluginInterfaceImpl)children.get(i)).closedownComplete();
 	  }
   }
-  
-  public void
-  firePluginEvent(
-	PluginEvent		event )
-  {
-	  Iterator it = event_listeners.iterator();
-	  
-	  while( it.hasNext()){
-
-		  try{
-			  ((PluginEventListener)it.next()).handleEvent( event );
-
-		  }catch( Throwable e ){
-
-			  Debug.printStackTrace( e );
-		  }
-	  } 
-
-	  for (int i=0;i<children.size();i++){
-
-		  ((PluginInterfaceImpl)children.get(i)).firePluginEvent(event);
-	  }
-  }
-  
+    
   public ClassLoader
   getPluginClassLoader()
   {
@@ -813,18 +790,86 @@ PluginInterfaceImpl
   
   public void
   addEventListener(
-  	PluginEventListener	l )
+	  final PluginEventListener	l )
   {
-  	event_listeners.add(l);
+	  initialiser.runPEVTask(
+		 new AERunnable()
+		 {
+			 public void
+			 runSupport()
+			 {
+				 List<PluginEvent> events = initialiser.getPEVHistory();
+				 
+				 for ( PluginEvent event: events ){
+					 
+					 try{
+						 l.handleEvent( event );
+						 
+					 }catch( Throwable e ){
+						 
+						 Debug.out( e );
+					 }
+				 }
+				 event_listeners.add(l);
+			 }
+		 });
   }
-  
+
   public void
   removeEventListener(
-  	PluginEventListener	l )
+	  final PluginEventListener	l )
   {
-  	event_listeners.remove(l);
+	  initialiser.runPEVTask(
+		 new AERunnable()
+		 {
+			 public void
+			 runSupport()
+			 {
+				  event_listeners.remove(l);
+			 }
+		 });
   }
-  
+
+  public void
+  firePluginEvent(
+	  final PluginEvent		event )
+  {
+	  initialiser.runPEVTask(
+		 new AERunnable()
+		 {
+			 public void
+			 runSupport()
+			 {
+				 firePluginEventSupport( event );
+			 }
+		 });
+  }
+
+  protected void
+  firePluginEventSupport(
+	  PluginEvent		event )
+  {
+	  Iterator<PluginEventListener> it = event_listeners.iterator();
+
+	  while( it.hasNext()){
+
+		  try{
+			  PluginEventListener listener = it.next();
+			  			 
+			  listener.handleEvent( event );
+
+		  }catch( Throwable e ){
+
+			  Debug.printStackTrace( e );
+		  }
+	  } 
+
+	  for (int i=0;i<children.size();i++){
+
+		  ((PluginInterfaceImpl)children.get(i)).firePluginEvent(event);
+	  }
+  }
+
 	protected void
 	generateEvidence(
 		IndentWriter		writer )
