@@ -1521,7 +1521,7 @@ public class TorrentUtil {
 	public static void removeDataSources(final Object[] datasources) {
 		DownloadManager[] dms = toDMS(datasources);
 		for (DownloadManager dm : dms) {
-			ManagerUtils.remove(dm, null, false, false);
+			ManagerUtils.remove(dm, null, true, true);
 		}
 		DiskManagerFileInfo[] fileInfos = toDMFI(datasources);
 		if (fileInfos.length > 0) {
