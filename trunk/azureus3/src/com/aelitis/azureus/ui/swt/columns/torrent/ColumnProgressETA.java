@@ -172,7 +172,7 @@ public class ColumnProgressETA
 
 	public void refresh(TableCell cell) {
 		Object ds = cell.getDataSource();
-
+		
 		int percentDone = getPercentDone(ds);
 
 		long sortValue = 0;
@@ -206,7 +206,8 @@ public class ColumnProgressETA
 			} else {
 				sortValue = 3;
 			}
-			sortValue = Long.MAX_VALUE - ((10000 + percentDone) * 1000) - sortValue;
+			sortValue = (fileInfo.getDownloadManager().getState() * 10000)
+				+ percentDone + sortValue;
 		}
 
 		long eta = getETA(cell);
