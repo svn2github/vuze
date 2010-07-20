@@ -1438,6 +1438,10 @@ public class VersionCheckClient {
       }
       message.put("orig_locale", originalLocale);
 
+      // We may want to reply differently if the user is in Beginner mode vs Advanced
+			message.put("user_mode",
+					COConfigurationManager.getIntParameter("User Mode", -1));
+
       Set<String> features = UtilitiesImpl.getFeaturesInstalled();
       
       if ( features.size() > 0 ){
