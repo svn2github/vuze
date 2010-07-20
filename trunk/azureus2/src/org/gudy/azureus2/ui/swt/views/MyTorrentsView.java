@@ -1267,14 +1267,26 @@ public class MyTorrentsView
 
 					public void dragOver(DropTargetEvent event) {
 						if (drag_drop_line_start >= 0) {
+							if (drag_drop_rows.length > 0
+									&& !(drag_drop_rows[0].getDataSource(true) instanceof DownloadManager)) {
+								event.detail = DND.DROP_NONE;
+								return;
+							}
 							event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
 							event.feedback = DND.FEEDBACK_SCROLL | DND.FEEDBACK_INSERT_BEFORE;
 						}
 					}
 
 					public void drop(DropTargetEvent event) {
-						if (!(event.data instanceof String)
-								|| !((String) event.data).startsWith("DownloadManager\n")) {
+						if (!(event.data instanceof String)) {
+							TorrentOpener.openDroppedTorrents(event, true);
+							return;
+						}
+						String data = (String) event.data;
+						if (data.startsWith("DiskManagerFileInfo\n")) {
+							return;
+						}
+						if (!data.startsWith("DownloadManager\n")) {
 							TorrentOpener.openDroppedTorrents(event, true);
 							return;
 						}
