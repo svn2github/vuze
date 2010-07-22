@@ -284,7 +284,8 @@ public class VuzeActivitiesManager
 			}
 			PlatformVuzeActivitiesMessenger.getEntries(cn.getID(), diff, delay,
 					reason, replyListener);
-			lastNewsAt.put(id, new Long(now));
+			// broken..
+			//lastNewsAt.put(id, new Long(now));
 		}
 	}
 	
