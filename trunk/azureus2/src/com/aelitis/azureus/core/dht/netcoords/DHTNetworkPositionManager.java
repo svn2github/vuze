@@ -98,6 +98,29 @@ DHTNetworkPositionManager
 		}
 	}
 	
+	private static void
+	shutDown(
+		DHTNetworkPositionProvider	provider )
+	{
+		try{			
+			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+			
+			DataOutputStream	dos = new DataOutputStream( baos );
+			
+			provider.shutDown( dos );
+			
+			dos.flush();
+			
+			byte[]	data = baos.toByteArray();
+			
+			storage_adapter.setStorageForKey( "NPP:" + provider.getPositionType(), data );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
+	}
+	
 	public static void
 	destroy(
 		DHTStorageAdapter		adapter )
@@ -108,25 +131,7 @@ DHTNetworkPositionManager
 
 				for (int i=0;i<providers.length;i++){
 
-					try{
-						DHTNetworkPositionProvider	provider = providers[i];
-						
-						ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-						
-						DataOutputStream	dos = new DataOutputStream( baos );
-						
-						provider.shutDown( dos );
-						
-						dos.flush();
-						
-						byte[]	data = baos.toByteArray();
-						
-						storage_adapter.setStorageForKey( "NPP:" + provider.getPositionType(), data );
-						
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace( e );
-					}
+					shutDown( providers[i] );
 				}
 				
 				storage_adapter	= null;
@@ -140,17 +145,32 @@ DHTNetworkPositionManager
 	{
 		synchronized( providers ){
 	
-			DHTNetworkPositionProvider[]	p = new DHTNetworkPositionProvider[providers.length + 1 ];
+			boolean	found = false;
 			
-			System.arraycopy( providers, 0, p, 0, providers.length );
+			for ( DHTNetworkPositionProvider p: providers ){
+				
+				if ( p == provider ){
+					
+					found = true;
+					
+					break;
+				}
+			}
 			
-			p[providers.length] = provider;
-			
-			providers	= p;
-			
-			if ( storage_adapter != null ){
-			
-				startUp( provider );
+			if ( !found ){
+				
+				DHTNetworkPositionProvider[]	new_providers = new DHTNetworkPositionProvider[providers.length + 1 ];
+				
+				System.arraycopy( providers, 0, new_providers, 0, providers.length );
+				
+				new_providers[providers.length] = provider;
+				
+				providers	= new_providers;
+				
+				if ( storage_adapter != null ){
+				
+					startUp( provider );
+				}
 			}
 		}
 		
@@ -163,6 +183,41 @@ DHTNetworkPositionManager
 						DHTLog.log("NetPos " + provider.getPositionType() + ": " + log );
 					}
 				});
+	}
+	
+	public static void
+	unregisterProvider(
+		DHTNetworkPositionProvider	provider )
+	{
+		synchronized( providers ){
+	
+			if ( providers.length == 0 ){
+				
+				return;
+			}
+			
+			DHTNetworkPositionProvider[]	new_providers = new DHTNetworkPositionProvider[providers.length - 1 ];
+
+			int	pos = 0;
+			
+			for ( int i=0;i<providers.length;i++){
+				
+				if ( providers[i] == provider ){
+					
+					if ( storage_adapter != null ){
+						
+						shutDown( provider );
+					}
+				}else{
+					
+					new_providers[pos++] = providers[i];
+				}
+			}
+			if ( pos == new_providers.length ){
+			
+				providers = new_providers;
+			}
+		}
 	}
 	
 	public static DHTNetworkPositionProvider
