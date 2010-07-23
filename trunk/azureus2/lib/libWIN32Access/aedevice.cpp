@@ -189,6 +189,12 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
 		if (pDevDesc->ProductIdOffset != 0) {
 			addToMap(env, hashMap, methPut, clsLong, longInit, "ProductID", &OutBuf[pDevDesc->ProductIdOffset]);
 		}
+		if (pDevDesc->ProductRevisionOffset != 0) {
+			addToMap(env, hashMap, methPut, clsLong, longInit, "ProductRevision", &OutBuf[pDevDesc->ProductRevisionOffset]);
+		}
+		if (pDevDesc->SerialNumberOffset != 0) {
+			addToMap(env, hashMap, methPut, clsLong, longInit, "SerialNumber", &OutBuf[pDevDesc->SerialNumberOffset]);
+		}
 
 	}
 
