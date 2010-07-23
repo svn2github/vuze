@@ -29,7 +29,7 @@ public class VuzeMessageBox
 
 	private String text;
 
-	private String[] buttons;
+	private String[] buttonIDs;
 
 	private Integer[] buttonVals;
 
@@ -61,12 +61,40 @@ public class VuzeMessageBox
 
 	private boolean opened;
 
+	private Button[] buttons;
+
+	private boolean[] buttonsEnabled;
+
 	public VuzeMessageBox(final String title, final String text,
 			final String[] buttons, final int defaultOption) {
 		this.title = title;
 		this.text = text;
-		this.buttons = buttons == null ? new String[0] : buttons;
+		this.buttonIDs = buttons == null ? new String[0] : buttons;
 		this.defaultButtonPos = defaultOption;
+	}
+	
+	public void setButtonEnableStates(boolean[] _buttonsEnabled) {
+		this.buttonsEnabled = _buttonsEnabled;
+		if (buttons == null) {
+			return;
+		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (buttons == null) {
+					return;
+				}
+				for (int i = 0; i < buttons.length; i++) {
+					Button button = buttons[i];
+					if (button != null && !button.isDisposed()) {
+							if (i < buttonsEnabled.length) {
+								button.setEnabled(buttonsEnabled[i]);
+							} else {
+								button.setEnabled(true);
+							}
+					}
+				}
+			}
+		});
 	}
 	
 	public void setButtonVals(Integer[] buttonVals) {
@@ -81,19 +109,19 @@ public class VuzeMessageBox
 		}
 		if (cancelPos >= 0) {
   		if (Constants.isOSX && cancelPos != 0) {
-				String cancelButton = buttons[cancelPos];
+				String cancelButton = buttonIDs[cancelPos];
 
 				for (int i = cancelPos; i > 0; i--) {
 					if (defaultButtonPos == i) {
 						defaultButtonPos = i - 1;
 					}
-					this.buttons[i] = this.buttons[i - 1];
+					this.buttonIDs[i] = this.buttonIDs[i - 1];
 					this.buttonVals[i] = this.buttonVals[i - 1];
 				}
 				if (defaultButtonPos == 0) {
 					defaultButtonPos = 1;
 				}
-				buttons[0] = cancelButton;
+				buttonIDs[0] = cancelButton;
 				buttonVals[0] = SWT.CANCEL;
 			} // else if (cancelPos != buttons.length - 1) { // TODO: move to end
 		}
@@ -231,7 +259,7 @@ public class VuzeMessageBox
 		
 		SWTSkinObjectContainer soBottomArea = (SWTSkinObjectContainer) skin.getSkinObject("bottom-area");
 		if (soBottomArea != null) {
-			if (buttons.length == 0) {
+			if (buttonIDs.length == 0) {
 				soBottomArea.setVisible(false);
 			} else {
 				createButtons(soBottomArea);
@@ -285,13 +313,17 @@ public class VuzeMessageBox
 		rowLayout.spacing = 8;
 		rowLayout.pack = false;
 		cButtonArea.setLayout(rowLayout);
-				
-		for (int i = 0; i < buttons.length; i++) {
-			String buttonText = buttons[i];
+
+		buttons = new Button[buttonIDs.length];
+		for (int i = 0; i < buttonIDs.length; i++) {
+			String buttonText = buttonIDs[i];
 			if (buttonText == null) {
 				continue;
 			}
-			Button button = new Button(cButtonArea, SWT.PUSH);
+			Button button = buttons[i] = new Button(cButtonArea, SWT.PUSH);
+			if (buttonsEnabled != null && i < buttonsEnabled.length) {
+				button.setEnabled(buttonsEnabled[i]);
+			}
 			button.setText(buttonText);
 
 			RowData rowData = new RowData();
