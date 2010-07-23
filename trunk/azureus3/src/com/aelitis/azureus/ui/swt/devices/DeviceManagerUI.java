@@ -1939,6 +1939,7 @@ DeviceManagerUI
 	addOrChangeDevice(
 		final Device		device )
 	{
+		System.out.println( "aoc: " + device.getName());
 		int	type = device.getType();
 		
 		if ( !device_manager.getOfflineDownlaoderManager().isOfflineDownloadingEnabled() && type == Device.DT_OFFLINE_DOWNLOADER ){
@@ -3523,7 +3524,11 @@ DeviceManagerUI
 			
 				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 				
-				if ( mdi != null ){
+				if ( mdi == null ){
+					
+					break;
+					
+				}else{
 					
 					MdiEntry parent = mdi.getEntry( key );
 				
