@@ -971,7 +971,10 @@ public class SWTSkinObjectBasic
 					? ((Composite) control).getClientArea() : control.getBounds();
 			if (colorFillParams != null) {
   			if (colorFillType == BORDER_ROUNDED_FILL) {
-  				e.gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, colorFillParams[0], colorFillParams[1]);
+					e.gc.fillRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1,
+							colorFillParams[0], colorFillParams[1]);
+					e.gc.drawRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1,
+							colorFillParams[0], colorFillParams[1]);
   			} else if (colorFillType == BORDER_ROUNDED) {
   				Color oldFG = e.gc.getForeground();
   				e.gc.setForeground(bgColor);
