@@ -719,7 +719,7 @@ public class MyTorrentsView
 					Utils.setMenuItemImage(itemQueue, "start");
 					itemQueue.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
 						public boolean run(TableRowCore[] rows) {
-							TorrentUtil.queueDataSources(dms);
+							TorrentUtil.queueDataSources(dms, true);
 							return true;
 						}
 					});
@@ -1633,7 +1633,7 @@ public class MyTorrentsView
       return true;
     }
     if(itemKey.equals("start")){
-      TorrentUtil.queueDataSources(tv.getSelectedDataSources().toArray());
+      TorrentUtil.queueDataSources(tv.getSelectedDataSources().toArray(), true);
       return true;
     }
     if(itemKey.equals("stop")){

@@ -452,7 +452,7 @@ public class FilesView
       return true;
     }
     if(itemKey.equals("start")){
-      TorrentUtil.queueDataSources(tv.getSelectedDataSources().toArray());
+      TorrentUtil.queueDataSources(tv.getSelectedDataSources().toArray(), false);
       UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
       return true;
     }

@@ -359,7 +359,7 @@ public class ToolBarView
 				if (!triggerBasicToolBarItem(getId())) {
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 					if (dms != null) {
-						TorrentUtil.queueDataSources(dms);
+						TorrentUtil.queueDataSources(dms, true);
 					}
 				}
 			}

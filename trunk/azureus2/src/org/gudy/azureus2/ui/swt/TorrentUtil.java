@@ -1222,7 +1222,7 @@ public class TorrentUtil {
 		Utils.setMenuItemImage(itemQueue, "start");
 		itemQueue.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
 			public boolean run(TableRowCore[] rows) {
-				queueDataSources(dms);
+				queueDataSources(dms, true);
 				return true;
 			}
 		});
@@ -1542,7 +1542,8 @@ public class TorrentUtil {
 		}
 	}
 
-	public static void queueDataSources(Object[] datasources) {
+	public static void queueDataSources(Object[] datasources,
+			boolean startStoppedParents) {
 		DownloadManager[] dms = toDMS(datasources);
 		for (DownloadManager dm : dms) {
 			ManagerUtils.queue(dm, null);
@@ -1551,6 +1552,14 @@ public class TorrentUtil {
 		if (fileInfos.length > 0) {
 			FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_NORMAL,
 					fileInfos);
+
+			if (startStoppedParents) {
+				for (DiskManagerFileInfo fileInfo : fileInfos) {
+					if (fileInfo.getDownloadManager().getState() == DownloadManager.STATE_STOPPED) {
+						ManagerUtils.queue(fileInfo.getDownloadManager(), null);
+					}
+				}
+			}
 		}
 	}
 
