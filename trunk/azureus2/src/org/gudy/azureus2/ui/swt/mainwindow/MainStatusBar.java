@@ -180,10 +180,11 @@ public class MainStatusBar
 
 	private long last_rec_prot;
 
-	private long max_rec;
+	private long[] max_rec = { 0 };
+	private long[] max_sent = { 0 };
 
 	private Image imgRec;
-	private int imgrec_pos = 0;
+	private Image imgSent;
 
 	private Image	warningIcon;
 	private Image	infoIcon;
@@ -608,12 +609,39 @@ public class MainStatusBar
 			}
 		});
 		
-		imgRec = new Image(display, 100, 20);
-		gc = new GC(imgRec);
-		gc.setBackground(statusDown.getBackground());
-		gc.fillRectangle(0, 0, 100, 20);
-		gc.dispose();
-		statusDown.setBackgroundImage(imgRec);
+		COConfigurationManager.addAndFireParameterListener("User Mode", new ParameterListener() {
+			public void parameterChanged(String parameterName) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						int userMode = COConfigurationManager.getIntParameter("User Mode");
+						if (userMode > 0) {
+							if (imgRec == null || imgRec.isDisposed()) {
+  							imgRec = new Image(display, 100, 20);
+  							GC gc = new GC(imgRec);
+  							gc.setBackground(statusDown.getBackground());
+  							gc.fillRectangle(0, 0, 100, 20);
+  							gc.dispose();
+  							statusDown.setBackgroundImage(imgRec);
+							}
+							
+							if (imgSent == null || imgSent.isDisposed()) {
+  							imgSent = new Image(display, 100, 20);
+  							GC gc = new GC(imgSent);
+  							gc.setBackground(statusUp.getBackground());
+  							gc.fillRectangle(0, 0, 100, 20);
+  							gc.dispose();
+  							statusUp.setBackgroundImage(imgSent);
+							}
+						} else {
+							statusUp.setBackgroundImage(null);
+							statusDown.setBackgroundImage(null);
+							Utils.disposeSWTObjects(new Object[] { imgRec, imgSent });
+							imgRec = imgSent = null;
+						}
+					}
+				});
+			}
+		});
 		
 		/////////
 		
@@ -968,30 +996,6 @@ public class MainStatusBar
 						+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(rec_data, rec_prot));
 			}
 			
-			if (imgRec != null && !imgRec.isDisposed()) {
-				GC gc = new GC(imgRec);
-				long rec = rec_data;
-				if (rec > max_rec) {
-					int y = 20 - (int) (max_rec * 20 / rec);
-					gc.setBackground(statusDown.getBackground());
-					gc.fillRectangle(0, 0, 99, y);
-					// gc.drawImage(imgRec, 1, 0, 99, 20, 0, y, 99, 20 - y);
-					gc.copyArea(1, 0, 99, 20, 0, y);
-					max_rec = rec;
-				} else {
-					gc.copyArea(1, 0, 99, 20, 0, 0);
-					// gc.drawImage(imgRec, 1, 0, 99, 20, 0, 0, 99, 20);
-				}
-				gc.setForeground(statusDown.getBackground());
-				int breakPoint = 20 - (max_rec == 0 ? 0
-						: (int) (rec * 20 / max_rec));
-				gc.drawLine(99, 0, 99, breakPoint);
-				gc.setForeground(Colors.blues[5]);
-				gc.drawLine(99, breakPoint, 99, 20);
-				gc.dispose();
-				statusDown.redraw();
-			}
-
 			boolean auto_up = TransferSpeedValidator.isAutoSpeedActive(gm)
 					&& TransferSpeedValidator.isAutoUploadAvailable(core);
 
@@ -1010,12 +1014,47 @@ public class MainStatusBar
 				seeding_only = "";
 			}
 
+			int sent_data = stats.getDataSendRate();
+			if (imgRec != null && !imgRec.isDisposed()) {
+				updateGraph(statusDown, imgRec, rec_data, max_rec);
+				updateGraph(statusUp, imgSent, sent_data, max_sent);
+			}
+
+
 			statusUp.setText((ul_limit_norm == 0 ? "" : "[" + ul_limit_norm + "K"
 					+ seeding_only + "]")
 					+ (auto_up ? "* " : " ")
 					+ DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
-							stats.getDataSendRate(), stats.getProtocolSendRate()));
+							sent_data, stats.getProtocolSendRate()));
 		}
+	}
+
+	private void updateGraph(CLabelPadding label, Image img,
+			long newVal, long[] max) {
+		GC gc = new GC(img);
+		long val = newVal;
+		Rectangle bounds = img.getBounds();
+		final int padding = 2;
+		int x = bounds.width - padding - padding;
+		if (val > max[0]) {
+			int y = 20 - (int) (max[0] * 20 / val);
+			gc.setBackground(label.getBackground());
+			gc.fillRectangle(padding, 0, x, y);
+			// gc.drawImage(imgRec, 1, 0, x, 20, 0, y, x, 20 - y);
+			gc.copyArea(padding + 1, 0, x, 20, padding, y);
+			max[0] = val;
+		} else {
+			gc.copyArea(padding + 1, 0, x, 20, padding, 0);
+			// gc.drawImage(imgRec, 1, 0, x, 20, 0, 0, x, 20);
+		}
+		gc.setForeground(label.getBackground());
+		int breakPoint = 20 - (max[0] == 0 ? 0
+				: (int) (val * 20 / max[0]));
+		gc.drawLine(x, 0, x, breakPoint);
+		gc.setForeground(Colors.blues[5]);
+		gc.drawLine(x, breakPoint, x, 20);
+		gc.dispose();
+		label.redraw();
 	}
 
 	/**
