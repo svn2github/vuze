@@ -223,7 +223,7 @@ TransferPanel2
 	    						try{
 	    							pi.getIPC().invoke(
 	    								"runTest",
-	    								new Object[]{ new HashMap<String,Object>(), callback });
+	    								new Object[]{ new HashMap<String,Object>(), callback, false });
 	    							
 	    						}catch( Throwable e ){
 	    							

@@ -64,6 +64,7 @@ import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
+import org.gudy.azureus2.ui.swt.speedtest.SpeedTestSelector;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
@@ -83,6 +84,7 @@ import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -94,6 +96,7 @@ import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.mdi.TabbedMDI;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 import com.aelitis.azureus.ui.swt.utils.PlayNowList;
 import com.aelitis.azureus.ui.swt.views.skin.*;
@@ -115,7 +118,7 @@ import com.aelitis.azureus.util.*;
  */
 public class MainWindow
 	implements IMainWindow, ObfusticateShell, MdiListener,
-	AEDiagnosticsEvidenceGenerator, MdiEntryLogIdListener
+	AEDiagnosticsEvidenceGenerator, MdiEntryLogIdListener, UIUpdatable
 {
 
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -328,6 +331,7 @@ public class MainWindow
 				}
 			}
 		});
+		UIUpdaterSWT.getInstance().addUpdater(this);
 	}
 
 	/**
@@ -1399,21 +1403,24 @@ public class MainWindow
 			uiInitializer.initializationComplete();
 		}
 							
-		if ( !COConfigurationManager.getBooleanParameter( "Wizard Completed" )){
-				
-			CoreWaiterSWT.waitForCoreRunning(
-				new AzureusCoreRunningListener() 
-				{
-					public void 
-					azureusCoreRunning(
-						AzureusCore core) 
-					{
-						new ConfigureWizard( false, ConfigureWizard.WIZARD_MODE_SPEED_TEST_MANUAL );
-					}
-				});
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals(
+				"az2");
+
+		if (!uiClassic
+				&& !COConfigurationManager.getBooleanParameter("SpeedTest Completed")) {
+
+			SpeedTestSelector.runMLABTest();
 		}
-		
-		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
+
+		if (uiClassic
+				&& !COConfigurationManager.getBooleanParameter("Wizard Completed")) {
+
+			CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+				public void azureusCoreRunning(AzureusCore core) {
+					new ConfigureWizard(false, ConfigureWizard.WIZARD_MODE_FULL);
+				}
+			});
+		}
 
 		if ( uiClassic ){
 			
@@ -2517,6 +2524,16 @@ public class MainWindow
 
 	protected IMainMenu getMainMenu() {
 		return menu;
+	}
+
+	public void updateUI() {
+		//if (shell != null) {
+		//	Utils.setShellIcon(shell);
+		//}
+	}
+
+	public String getUpdateUIName() {
+		return "MainWindow";
 	}
 
 }

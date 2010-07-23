@@ -2,17 +2,33 @@ package org.gudy.azureus2.ui.swt.speedtest;
 
 
 
+import java.util.HashMap;
+
 import org.eclipse.swt.SWT;
 
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ipc.IPCException;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 
 public class 
 SpeedTestSelector
@@ -94,13 +110,73 @@ SpeedTestSelector
 
 			wizard.close();
 
-			new ConfigureWizard( false, ConfigureWizard.WIZARD_MODE_SPEED_TEST_AUTO );
+			runMLABTest();
+			
+			//new ConfigureWizard( false, ConfigureWizard.WIZARD_MODE_SPEED_TEST_AUTO );
 			
 			return( null );
 
 		}else{
 
 			return( new SpeedTestPanel( wizard, null ));
+		}
+	}
+
+	public static void runMLABTest() {
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				UIFunctionsManager.getUIFunctions().installPlugin("mlab",
+						"dlg.install.mlab", new UIFunctions.actionListener() {
+							public void actionComplete(Object result) {
+								if (result instanceof Boolean) {
+									_runMLABTest();
+								} else {
+
+									try {
+										Throwable error = (Throwable) result;
+
+										Debug.out(error);
+
+									} finally {
+
+									}
+								}
+							}
+						});
+			}
+		});
+	}
+	
+	private static void _runMLABTest() {
+		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+				"mlab");
+		try {
+			pi.getIPC().invoke("runTest", new Object[] {
+				new HashMap<String, Object>(),
+				new IPCInterface() {
+					public Object invoke(String methodName, Object[] params)
+							throws IPCException {
+						// we could set SpeedTest Completed when methodName == "results"
+						// or ask user if they want to be prompted again if it isn't
+						// But, we'd have to pass a param into runMLABTest (so we don't
+						// get prompt on menu invocation).
+
+						// For now, show only once, with no reprompt (even if they cancel).
+						// They can use the menu
+						COConfigurationManager.setParameter("SpeedTest Completed", true);
+						return null;
+					}
+
+					public boolean canInvoke(String methodName, Object[] params) {
+						return true;
+					}
+				},
+				true
+			});
+
+		} catch (Throwable e) {
+
+			Debug.out(e);
 		}
 	}
 }

@@ -56,8 +56,6 @@ public class UIConfigDefaultsSWTv3
 		String sFirstVersion = config.getStringParameter("First Recorded Version");
 
 		final ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
-		// Always have the wizard complete when running az3
-		defaults.addParameter("Wizard Completed", true);
 
 		defaults.addParameter("ui", "az3");
 

@@ -66,6 +66,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("MyTorrents.SplitAt", 30);
 
 		def.addParameter("Wizard Completed", false);
+		def.addParameter("SpeedTest Completed", false);
 		def.addParameter("Color Scheme.red", 0);
 		def.addParameter("Color Scheme.green", 128);
 		def.addParameter("Color Scheme.blue", 255);
