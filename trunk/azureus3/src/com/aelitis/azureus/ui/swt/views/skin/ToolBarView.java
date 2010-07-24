@@ -36,7 +36,6 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.DeviceManager;
@@ -582,7 +581,7 @@ public class ToolBarView
 
 	protected void updateCoreItems(ISelectedContent[] currentContent,
 			String viewID) {
-		Map<String, Boolean> mapNewToolbarStates = MyTorrentsView.calculateToolbarStates(
+		Map<String, Boolean> mapNewToolbarStates = TorrentUtil.calculateToolbarStates(
 				currentContent, viewID);
 		
 		for (String key : mapNewToolbarStates.keySet()) {

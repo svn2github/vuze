@@ -439,7 +439,7 @@ public class FilesView
 	
 	public void refreshToolBar(Map<String, Boolean> list) {
 		ISelectedContent[] content = SelectedContentManager.getCurrentlySelectedContent();
-		Map<String, Boolean> states = MyTorrentsView.calculateToolbarStates(content, tv.getTableID());
+		Map<String, Boolean> states = TorrentUtil.calculateToolbarStates(content, tv.getTableID());
 		list.putAll(states);
 		list.put("up", false);
 		list.put("down", false);

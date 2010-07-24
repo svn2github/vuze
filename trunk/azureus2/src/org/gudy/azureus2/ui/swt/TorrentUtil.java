@@ -52,6 +52,8 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -64,6 +66,7 @@ import org.gudy.azureus2.ui.swt.shells.AdvRenameWindow;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.FilesViewMenuUtil;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RankItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -73,7 +76,10 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.*;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 
 
 /**
@@ -1793,4 +1799,191 @@ public class TorrentUtil {
 
 		return true;
 	}
+
+	public static Map<String, Boolean> calculateToolbarStates(
+				ISelectedContent[] currentContent, String viewID) {
+			//System.out.println("updateCoreItems(" + currentContent.length + ", " + viewID + " via " + Debug.getCompressedStackTrace());
+			String[] TBKEYS = new String[] {
+				"download",
+				"play",
+				"stream",
+				"run",
+				"top",
+				"up",
+				"down",
+				"bottom",
+				"start",
+				"stop",
+				"remove"
+			};
+			
+			Map<String, Boolean> mapNewToolbarStates = new HashMap<String, Boolean>();
+			
+			String[] itemsNeedingSelection = {};
+	
+			String[] itemsNeedingRealDMSelection = {
+				"remove",
+				"top",
+				"bottom",
+				"transcode",
+			};
+	
+			String[] itemsRequiring1DMwithHash = {
+				"details",
+				"comment",
+				"up",
+				"down",
+			};
+	
+			String[] itemsRequiring1DMSelection = {};
+	
+			int numSelection = currentContent.length;
+			boolean hasSelection = numSelection > 0;
+			boolean has1Selection = numSelection == 1;
+	
+			for (int i = 0; i < itemsNeedingSelection.length; i++) {
+				String itemID = itemsNeedingSelection[i];
+				mapNewToolbarStates.put(itemID, hasSelection);
+			}
+	
+			TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
+			boolean hasRealDM = tv != null;
+			if (!hasRealDM) {
+				MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+				if (mdi != null) {
+					MdiEntrySWT entry = mdi.getCurrentEntrySWT();
+					if (entry != null) {
+						if (entry.getDatasource() instanceof DownloadManager) {
+							hasRealDM = true;
+						} else if ((entry.getIView() instanceof UIPluginView)
+								&& (((UIPluginView) entry.getIView()).getDataSource() instanceof DownloadManager)) {
+							hasRealDM = true;
+						}
+					}
+				}
+			}
+	
+			boolean canStart = false;
+			boolean canStop = false;
+	    boolean canRemoveFileInfo = false;
+	    boolean canRunFileInfo = false;
+	    boolean hasDM = false;
+	
+			if (currentContent.length > 0 && hasRealDM) {
+				for (int i = 0; i < currentContent.length; i++) {
+					ISelectedContent content = currentContent[i];
+					DownloadManager dm = content.getDownloadManager();
+					int fileIndex = content.getFileIndex();
+					if (fileIndex == -1) {
+						hasDM = true;
+	  				if (!canStart && ManagerUtils.isStartable(dm)) {
+	  					canStart = true;
+	  				}
+	  				if (!canStop && ManagerUtils.isStopable(dm)) {
+	  					canStop = true;
+	  				}
+					} else {
+						DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
+						if (fileIndex < fileInfos.length) {
+							DiskManagerFileInfo fileInfo = fileInfos[fileIndex];
+			    		if (!canStart && fileInfo.isSkipped()) {
+			    			canStart = true;
+			    		}
+			    		
+			    		if (!canStop && !fileInfo.isSkipped()) {
+			    			canStop = true;
+			    		}
+			    		
+							if (!canRemoveFileInfo && !fileInfo.isSkipped()) {
+								int storageType = fileInfo.getStorageType();
+								if (storageType == DiskManagerFileInfo.ST_LINEAR
+										|| storageType == DiskManagerFileInfo.ST_COMPACT) {
+									canRemoveFileInfo = true;
+								}
+			    		}
+							
+							if (!canRunFileInfo
+									&& fileInfo.getAccessMode() == DiskManagerFileInfo.READ
+									&& fileInfo.getDownloaded() == fileInfo.getLength()
+									&& fileInfo.getFile(true).exists()) {
+								canRunFileInfo = true;
+							}
+						}
+					}
+				}
+				boolean canRemove = hasDM || canRemoveFileInfo;
+				mapNewToolbarStates.put("remove", canRemove);
+			}
+	
+	    boolean canRun = has1Selection && ((hasDM && !canRunFileInfo) || (!hasDM && canRunFileInfo));
+			if (canRun) {
+				ISelectedContent content = currentContent[0];
+				DownloadManager dm = content.getDownloadManager();
+	
+				if (dm == null) {
+					canRun = false;
+				} else {
+					TOTorrent torrent = dm.getTorrent();
+	
+					if (torrent == null) {
+	
+						canRun = false;
+	
+					} else if (!dm.getAssumedComplete() && torrent.isSimpleTorrent()) {
+	
+						canRun = false;
+	/*
+					} else if (PlatformTorrentUtils.useEMP(torrent)
+							&& PlatformTorrentUtils.embeddedPlayerAvail()
+							&& PlayUtils.canProgressiveOrIsComplete(torrent)) {
+						// play button enabled and not UMP.. don't need launch
+	
+						canRun = false;
+	
+					}
+					*/
+					}
+				}
+			}
+			mapNewToolbarStates.put("run", canRun);
+	
+			mapNewToolbarStates.put("start", canStart);
+			mapNewToolbarStates.put("stop", canStop);
+	
+			for (int i = 0; i < itemsNeedingRealDMSelection.length; i++) {
+				String itemID = itemsNeedingRealDMSelection[i];
+				if (!mapNewToolbarStates.containsKey(itemID)) {
+	  			mapNewToolbarStates.put(itemID, hasSelection && hasDM
+	  					&& hasRealDM);
+				}
+			}
+			for (int i = 0; i < itemsRequiring1DMSelection.length; i++) {
+				String itemID = itemsRequiring1DMSelection[i];
+				if (!mapNewToolbarStates.containsKey(itemID)) {
+					mapNewToolbarStates.put(itemID, has1Selection && hasDM);
+				}
+			}
+	
+			for (int i = 0; i < itemsRequiring1DMwithHash.length; i++) {
+				String itemID = itemsRequiring1DMwithHash[i];
+				if (!mapNewToolbarStates.containsKey(itemID)) {
+					mapNewToolbarStates.put(itemID, hasDM);
+				}
+			}
+	
+			mapNewToolbarStates.put("download", has1Selection
+						&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
+						&& currentContent[0].getDownloadManager() == null
+						&& (currentContent[0].getHash() != null || currentContent[0].getDownloadInfo() != null));
+	
+			if (tv != null) {
+				TableColumn tc = tv.getTableColumn(RankItem.COLUMN_ID);
+				if (tc != null && !tc.isVisible()) {
+					mapNewToolbarStates.put("up", false);
+					mapNewToolbarStates.put("down", false);
+				}
+			}
+			
+			return mapNewToolbarStates;
+		}
 }
