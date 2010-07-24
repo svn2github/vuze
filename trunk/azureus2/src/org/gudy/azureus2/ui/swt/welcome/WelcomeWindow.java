@@ -278,7 +278,7 @@ public class WelcomeWindow {
 				return;
 			}
   	} else {
-  		helpFile = "/idonotexist";  //MessageText.getString("window.welcome.file");
+  		helpFile = MessageText.getString("window.welcome.file");
 
 			InputStream stream;
 			stream = getClass().getResourceAsStream(helpFile);
