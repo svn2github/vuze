@@ -470,7 +470,7 @@ BUGFIX: UIvz  | Fixed bug where "My Library" info bar displayed on Downloading s
 BUGFIX: UIvz  | Fix some notification entries losing their related avatar image [TuxPaper]
 BUGFIX: UIvz  | Log View's "Show Config" button wasn't going to proper config section [TuxPaper]
 BUGFIX: UIvz  | Fix default visible columns, order, and sort column for new installs for "Advanced" library Lists [TuxPaper]
-BUGFIX: UI    | "Show Time" state on date columns now remembered accross sessions [TuxPaper]
+BUGFIX: UI    | "Show Time" state on date columns now remembered across sessions [TuxPaper]
 BUGFIX: UI    | Fix "Pieces" column in Library view not updating unless you clicked it [TuxPaper]
 BUGFIX: UI    | Info tab in Torrent Details now displays more columns that it couldn't before (like share ratio) [TuxPaper]
 BUGFIX: UI    | Localize the date in the subscription view correctly [Parg]

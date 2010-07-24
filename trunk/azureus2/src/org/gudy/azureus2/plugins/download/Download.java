@@ -655,7 +655,7 @@ Download extends DownloadEventNotifier
 	public DownloadStats
 	getStats();
 	
-	/** Downloads can be persistent (be remembered accross Azureus sessions), or
+	/** Downloads can be persistent (be remembered across Azureus sessions), or
 	 * non-persistent.
 	 *
 	 * @return true - persistent<br>

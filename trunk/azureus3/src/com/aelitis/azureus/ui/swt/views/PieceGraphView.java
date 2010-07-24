@@ -183,7 +183,7 @@ public class PieceGraphView
 					if (BLOCK_SIZE <= 0) {
 						BLOCK_SIZE = 1;
 					}
-					// since calc above doesn't account for not splitting squares accross
+					// since calc above doesn't account for not splitting squares across
 					// rows, make sure we can fit.  If we can't, we have to shrink
 					int numCanFit = (bounds.width / BLOCK_SIZE)
 							* (bounds.height / BLOCK_SIZE);
