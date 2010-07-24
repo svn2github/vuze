@@ -1413,7 +1413,8 @@ public class MainWindow
 		}
 
 		if (uiClassic
-				&& !COConfigurationManager.getBooleanParameter("Wizard Completed")) {
+				&& !COConfigurationManager.getBooleanParameter("Wizard Completed")
+				&& (ConfigurationChecker.isNewInstall())) {
 
 			CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
 				public void azureusCoreRunning(AzureusCore core) {
