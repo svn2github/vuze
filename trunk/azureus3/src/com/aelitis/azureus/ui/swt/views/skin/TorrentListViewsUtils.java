@@ -78,29 +78,9 @@ import com.aelitis.azureus.util.win32.Win32Utils;
  */
 public class TorrentListViewsUtils
 {
-
-	public static final boolean ENABLE_ON_HOVER = false;
-
 	private static StreamManagerDownload	current_stream;
 	private static TextViewerWindow			stream_viewer;
 	
-	/**
-	 * @param dm
-	 *
-	 * @since 3.0.1.5
-	 */
-	public static void stop(DownloadManager dm) {
-		int state = dm.getState();
-		if (state == DownloadManager.STATE_ERROR) {
-			dm.stopIt(DownloadManager.STATE_QUEUED, false, false);
-		} else if (state == DownloadManager.STATE_STOPPED) {
-			ManagerUtils.queue(dm, null);
-		} else {
-			ManagerUtils.stop(dm, null);
-		}
-	}
-
-
 	public static void playOrStreamDataSource(Object ds, int file_index, SWTSkinButtonUtility btn, boolean launch_already_checked) {
 		String referal = DLReferals.DL_REFERAL_UNKNOWN;
 		if (ds instanceof VuzeActivitiesEntry) {
@@ -845,14 +825,6 @@ public class TorrentListViewsUtils
 			Logger.log(new LogEvent(LogIDs.UI3, "IPC to media server plugin failed",
 					e));
 		}
-	}
-
-	/**
-	 * @param dm
-	 *
-	 * @since 3.0.2.3
-	 */
-	public static void showHomeHint(final DownloadManager dm) {
 	}
 
 	public static void playOrStream(final DownloadManager dm, int file_index ) {
