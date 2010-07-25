@@ -29,7 +29,6 @@ import java.util.Map;
 import org.eclipse.swt.program.Program;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -37,7 +36,6 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -58,22 +56,19 @@ import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.player.PlayerInstallWindow;
 import com.aelitis.azureus.ui.swt.player.PlayerInstaller;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.util.DLReferals;
+import com.aelitis.azureus.util.DataSourceUtils;
+import com.aelitis.azureus.util.PlayUtils;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
 /**
@@ -103,118 +98,6 @@ public class TorrentListViewsUtils
 		} else {
 			ManagerUtils.stop(dm, null);
 		}
-	}
-
-	public static void viewDetails(TableRowCore row, String ref) {
-		Object ds = row.getDataSource(true);
-		viewDetails(DataSourceUtils.getContentNetwork(ds),
-				DataSourceUtils.getHash(ds), ref);
-	}
-
-	public static boolean canViewDetails(DownloadManager dm) {
-		if (dm == null) {
-			return( false );
-		}
-		if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
-			return( false );
-		}
-
-		try{
-			return(	canViewDetails(DataSourceUtils.getContentNetwork(dm.getTorrent()),
-						dm.getTorrent().getHashWrapper().toBase32String()));
-		} catch (Throwable e) {
-			Debug.out(e);
-			
-			return( false );
-		}
-	}
-	
-	public static void viewDetails(DownloadManager dm, String ref) {
-		if (dm == null) {
-			return;
-		}
-		if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
-			return;
-		}
-
-		try {
-			viewDetails(DataSourceUtils.getContentNetwork(dm.getTorrent()),
-					dm.getTorrent().getHashWrapper().toBase32String(), ref);
-		} catch (Throwable e) {
-			Debug.out(e);
-		}
-	}
-
-	public static void viewDetails(ContentNetwork cn, String hash, String ref) {
-		if (hash == null || cn == null) {
-			return;
-		}
-
-		String url = cn.getContentDetailsService( hash, ref );
-
-		UIFunctions functions = UIFunctionsManager.getUIFunctions();
-		if (functions != null) {
-			functions.viewURL(url, ContentNetworkUtils.getTarget(cn), ref);
-		}
-	}
-
-	public static boolean canViewDetails(ContentNetwork cn, String hash) {
-		if (hash == null || cn == null ) {
-			return( false );
-		}
-
-		String url = cn.getContentDetailsService( hash, "" );
-
-		UIFunctions functions = UIFunctionsManager.getUIFunctions();
-		
-		return( functions != null && url != null );
-	}
-	
-	public static String
-	getDetailsURL(
-		DownloadManager		dm )
-	{
-		try {
-			ContentNetwork cn = DataSourceUtils.getContentNetwork(dm.getTorrent());
-			
-			if ( cn == null ){
-				
-				return( null );
-			}
-			
-			TOTorrent torrent = dm.getTorrent();
-			
-			if ( torrent == null ){
-				
-				return( null );
-			}
-
-			String hash = torrent.getHashWrapper().toBase32String();
-			
-			String url = cn.getContentDetailsService( hash, "" );
-
-			return( url );
-			
-		}catch(Throwable  e ){
-			
-			Debug.out(e);
-			
-			return( null );
-		}
-	}
-
-	/**
-	 * @param ds
-	 * @param ref
-	 *
-	 * @since 4.0.0.5
-	 */
-	public static void viewDetailsFromDS(Object ds, String ref) {
-		String hash = DataSourceUtils.getHash(ds);
-		if (hash == null) {
-			return;
-		}
-		viewDetails(DataSourceUtils.getContentNetwork(ds), hash, ref);
 	}
 
 
@@ -270,8 +153,7 @@ public class TorrentListViewsUtils
 		} else {
 			DownloadUrlInfo dlInfo = DataSourceUtils.getDownloadInfo(ds);
 			if (dlInfo != null) {
-				TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false,
-						true, true);
+				TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false, true);
 				return;
 			}
 
@@ -281,19 +163,13 @@ public class TorrentListViewsUtils
 				if (cn == null) {
 					dlInfo = new DownloadUrlInfo(UrlUtils.parseTextForMagnets(hash));
 					dlInfo.setReferer(referal);
-					TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false, true, false);
+					TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false, true);
 					return;
-				}
-				if (ds instanceof VuzeActivitiesEntry) {
-					if (((VuzeActivitiesEntry) ds).isDRM()) {
-						TorrentListViewsUtils.viewDetails(cn, hash, "drm-play");
-						return;
-					}
 				}
 
 				String url = cn.getTorrentDownloadService(hash, referal);
 				dlInfo = new DownloadUrlInfoContentNetwork(url, cn);
-				TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false, true, true);
+				TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, false, true);
 			}
 		}
 	}

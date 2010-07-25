@@ -57,19 +57,6 @@ AZ3Functions
 			throws Exception;
 		
 		public boolean
-		canShowCDP(
-			DownloadManager		dm );
-		
-		public void
-		showCDP(
-			DownloadManager		dm,
-			String				ref );
-		
-		public String
-		getCDPURL(
-			DownloadManager		dm );
-		
-		public boolean
 		canPlay(
 			DownloadManager		dm,
 			int					file_index );

@@ -287,8 +287,7 @@ public class SBC_LibraryTableView
 									String url = cn.getTorrentDownloadService(contentHash, "coq");
 									DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(
 											url, cn);
-									TorrentUIUtilsV3.loadTorrent(dlInfo, false, false,
-											true, false);
+									TorrentUIUtilsV3.loadTorrent(dlInfo, false, false, true);
 								}
 
 							}

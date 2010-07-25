@@ -211,14 +211,6 @@ public class ColumnActivityActions
 						String referal = null;
 						Object ds = event.cell.getDataSource();
 						if (ds instanceof VuzeActivitiesEntry) {
-							if (((VuzeActivitiesEntry) ds).isDRM()) {
-								if (DataSourceUtils.isPlatformContent(ds)) {
-									TorrentListViewsUtils.viewDetailsFromDS(
-											event.cell.getDataSource(), "activity-dl");
-								}
-								return;
-							}
-
 							referal = DLReferals.DL_REFERAL_DASHACTIVITY + "-"
 									+ ((VuzeActivitiesEntry) ds).getTypeID();
 						}
@@ -228,14 +220,6 @@ public class ColumnActivityActions
 						String referal = null;
 						Object ds = event.cell.getDataSource();
 						if (ds instanceof VuzeActivitiesEntry) {
-							if (((VuzeActivitiesEntry) ds).isDRM()
-									&& ((VuzeActivitiesEntry) ds).getDownloadManger() == null) {
-								if (DataSourceUtils.isPlatformContent(ds)) {
-									TorrentListViewsUtils.viewDetailsFromDS(
-											event.cell.getDataSource(), "thumb");
-								}
-								return;
-							}
 							referal = DLReferals.DL_REFERAL_PLAYDASHACTIVITY + "-"
 									+ ((VuzeActivitiesEntry) ds).getTypeID();
 						}

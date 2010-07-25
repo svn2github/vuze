@@ -82,7 +82,7 @@ public class TorrentListener
 				AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 					public void azureusCoreRunning(AzureusCore core) {
 						TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, playPrepare,
-								bringToFront, false);
+								bringToFront);
 					}
 				});
 			} else {

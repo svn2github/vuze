@@ -82,11 +82,10 @@ public class TorrentUIUtilsV3
 	public static void loadTorrent(	final DownloadUrlInfo dlInfo, 
 			final boolean playNow, // open player
 			final boolean playPrepare, // as for open player but don't actually open it
-			final boolean bringToFront, final boolean forceDRMtoCDP) {
+			final boolean bringToFront) {
 		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
-				_loadTorrent(core, dlInfo, playNow, playPrepare, bringToFront,
-						forceDRMtoCDP);
+				_loadTorrent(core, dlInfo, playNow, playPrepare, bringToFront);
 			}
 		});
 	}
@@ -95,7 +94,7 @@ public class TorrentUIUtilsV3
 			final DownloadUrlInfo dlInfo, 
 			final boolean playNow, // open player
 			final boolean playPrepare, // as for open player but don't actually open it
-			final boolean bringToFront, final boolean forceDRMtoCDP) {
+			final boolean bringToFront) {
 		if (dlInfo instanceof DownloadUrlInfoSWT) {
 			DownloadUrlInfoSWT dlInfoSWT = (DownloadUrlInfoSWT) dlInfo;
 			dlInfoSWT.invoke(playNow ? "play" : "download");
@@ -175,25 +174,8 @@ public class TorrentUIUtilsV3
 										file.deleteOnExit();
 
 										// Do a quick check to see if it's a torrent
-										if (!TorrentUtil.isFileTorrent(file, null, file.getName())) {
-											Matcher m = hashPattern.matcher(inf.getURL());
-											if (m.find()) {
-												String hash = m.group(1);
-
-												ContentNetwork cn = null;
-												if (dlInfo instanceof DownloadUrlInfoContentNetwork) {
-													cn = ((DownloadUrlInfoContentNetwork) dlInfo).getContentNetwork();
-												}
-												if (cn == null) {
-													cn = ConstantsVuze.getDefaultContentNetwork();
-												}
-												TorrentListViewsUtils.viewDetails(cn, hash,
-														"loadtorrent");
-											} else {
-												TorrentUtil.isFileTorrent(file, Utils.findAnyShell(),
-														file.getName());
-											}
-
+										if (!TorrentUtil.isFileTorrent(file, Utils.findAnyShell(),
+												file.getName())) {
 											return;
 										}
 
@@ -216,13 +198,6 @@ public class TorrentUIUtilsV3
 											hw = torrent.getHashWrapper();
 										} catch (TOTorrentException e1) {
 											Debug.out(e1);
-											return;
-										}
-
-										if (forceDRMtoCDP
-												&& (PlatformTorrentUtils.isContentDRM(torrent) || PlatformTorrentUtils.isContentPurchased(torrent))) {
-											TorrentListViewsUtils.viewDetailsFromDS(torrent,
-													"loadtorrent");
 											return;
 										}
 

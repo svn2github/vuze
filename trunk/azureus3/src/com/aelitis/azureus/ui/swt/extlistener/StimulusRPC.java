@@ -164,7 +164,7 @@ public class StimulusRPC
 									null));
 
 							TorrentUIUtilsV3.loadTorrent(dlInfo, playNow, playPrepare,
-									bringToFront, false);
+									bringToFront);
 
 							return true;
 						}

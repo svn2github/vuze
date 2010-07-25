@@ -3929,8 +3929,6 @@ BuddyPlugin
 				
 		ByteArrayOutputStream	os = new ByteArrayOutputStream();
 			
-		AZ3Functions.provider az3 = AZ3Functions.getProvider();
-		
 		try{
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter( os, "UTF-8" ));
 			
@@ -3976,16 +3974,6 @@ BuddyPlugin
 				pw.println( "<title>" + escape( download.getName()) + "</title>" );
 				
 				pw.println( "<guid>" + hash_str + "</guid>" );
-				
-				if ( az3 != null ){
-					
-					String cdp = az3.getCDPURL( core_download );
-					
-					if ( cdp != null ){
-						
-						pw.println( "<link>" + escape(cdp) + "</link>" );
-					}
-				}
 				
 				long added = core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
 				

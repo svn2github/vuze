@@ -42,7 +42,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  */
 public class TrackerStatusItem extends CoreTableColumn implements
-		TableCellAddedListener, TableCellToolTipListener, TableCellMouseMoveListener
+		TableCellAddedListener, TableCellToolTipListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
@@ -64,62 +64,6 @@ public class TrackerStatusItem extends CoreTableColumn implements
 		new Cell(cell);
 	}
 
-	public void 
-	cellMouseTrigger(
-		TableCellMouseEvent event )
-	{
-		Object ds = event.cell.getDataSource();
-		
-		if ( !( ds instanceof DownloadManager )){
-			
-			return;
-		}
-		
-		DownloadManager dm = (DownloadManager)ds;
-
-		AZ3Functions.provider az3 = AZ3Functions.getProvider();
-		
-		if ( az3 == null || !az3.canShowCDP( dm )){
-			
-			return;
-		}
-		
-		if ( !(event.cell instanceof TableCellSWT )){
-			
-			return;
-		}
-		
-		TableCellSWT cell = (TableCellSWT)event.cell;
-		
-		boolean invalidateAndRefresh = false;
-		
-		int newCursor = dm.isUnauthorisedOnTracker()?SWT.CURSOR_HAND:SWT.CURSOR_ARROW;
-		
-		int oldCursor = cell.getCursorID();
-		
-		if ( oldCursor != newCursor ){
-			
-			invalidateAndRefresh = true;
-			
-			cell.setCursorID(newCursor);
-		}
-		
-		if ( event.eventType == TableCellMouseEvent.EVENT_MOUSEUP ){
-			
-			if ( newCursor == SWT.CURSOR_HAND ){
-				
-				az3.showCDP( dm, "tracker.unauth" );
-			}
-		}
-		
-		if ( invalidateAndRefresh ){
-			
-			cell.invalidate();
-			
-			cell.redraw();
-		}
-	}
-	
 	private class Cell extends AbstractTrackerCell {
 		public Cell(TableCell cell) {
 			super(cell);

@@ -27,8 +27,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 
-import com.aelitis.azureus.core.util.AZ3Functions;
-
 public class ScrapeInfoView
 	extends AbstractIView
 	implements IViewExtension
@@ -238,22 +236,6 @@ public class ScrapeInfoView
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		tracker_status.setLayoutData(gridData);
 
-		tracker_status.addMouseListener(new MouseAdapter() {
-			public void mouseDown(MouseEvent event) {
-				if (event.button == 1) {
-					if (manager.isUnauthorisedOnTracker()) {
-
-						AZ3Functions.provider az3 = AZ3Functions.getProvider();
-
-						if (az3 != null && az3.canShowCDP(manager)) {
-
-							az3.showCDP(manager, "tracker.unauth");
-						}
-					}
-				}
-			}
-		});
-
 		updateButton = new Button(cScrapeInfoView, SWT.PUSH);
 		Messages.setLanguageText(updateButton, "GeneralView.label.trackerurlupdate");
 		gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
@@ -311,23 +293,6 @@ public class ScrapeInfoView
 		TRTrackerAnnouncer trackerClient = manager.getTrackerClient();
 
 		tracker_status.setText(status);
-
-		boolean show_cdp_link = false;
-
-		if (manager.isUnauthorisedOnTracker()) {
-
-			AZ3Functions.provider az3 = AZ3Functions.getProvider();
-
-			show_cdp_link = az3 != null && az3.canShowCDP(manager);
-		}
-
-		if (show_cdp_link) {
-			tracker_status.setForeground(Colors.colorError);
-			tracker_status.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
-		} else {
-			tracker_status.setForeground(null);
-			tracker_status.setCursor(null);
-		}
 
 		if (time < 0) {
 

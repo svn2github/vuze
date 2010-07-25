@@ -119,28 +119,6 @@ public class InitialisationFunctions
 					}
 				}
 				
-				public boolean 
-				canShowCDP(
-					org.gudy.azureus2.core3.download.DownloadManager dm ) 
-				{
-					return( TorrentListViewsUtils.canViewDetails( dm ));
-				}
-				
-				public void 
-				showCDP(
-					org.gudy.azureus2.core3.download.DownloadManager	dm,
-					String 												ref )
-				{
-					TorrentListViewsUtils.viewDetails( dm, ref );
-				}
-				
-				public String 
-				getCDPURL(
-					org.gudy.azureus2.core3.download.DownloadManager 	dm ) 
-				{
-					return( TorrentListViewsUtils.getDetailsURL( dm ));
-				}
-				
 				public boolean
 				canPlay(
 					org.gudy.azureus2.core3.download.DownloadManager		dm,
