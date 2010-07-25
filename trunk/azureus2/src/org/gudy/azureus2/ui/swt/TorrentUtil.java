@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
@@ -78,6 +79,7 @@ import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 
@@ -1526,9 +1528,7 @@ public class TorrentUtil {
 
 	public static void removeDataSources(final Object[] datasources) {
 		DownloadManager[] dms = toDMS(datasources);
-		for (DownloadManager dm : dms) {
-			ManagerUtils.remove(dm, null, true, true);
-		}
+		removeDownloads(dms);
 		DiskManagerFileInfo[] fileInfos = toDMFI(datasources);
 		if (fileInfos.length > 0) {
 			FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_DELETE,
@@ -1986,4 +1986,102 @@ public class TorrentUtil {
 			
 			return mapNewToolbarStates;
 		}
+
+	public static void removeDownloads(final DownloadManager[] dms) {
+		if (dms == null) {
+			return;
+		}
+	
+		// confusing code:
+		// for loop goes through erasing published and low noise torrents until
+		// it reaches a normal one.  We then prompt the user, and stop the loop.
+		// When the user finally chooses an option, we act on it.  If the user
+		// chose to act on all, we do immediately all and quit.  
+		// If the user chose an action just for the one torrent, we do that action, 
+		// remove that item from the array (by nulling it), and then call 
+		// removeDownloads again so we can prompt again (or erase more published/low noise torrents)
+		for (int i = 0; i < dms.length; i++) {
+			DownloadManager dm = dms[i];
+			if (dm != null) {
+				if (dm.getDownloadState().getFlag(
+						Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE)) {
+					ManagerUtils.remove(dm, null, true, false, null);
+					continue;
+				}
+	
+			boolean deleteTorrent = true;
+			boolean deleteData = true;
+	
+	
+			if (!dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
+				String title = MessageText.getString("deletedata.title");
+				String text = MessageText.getString("v3.deleteContent.message",
+						new String[] {
+							dm.getDisplayName()
+						});
+					
+				final MessageBoxShell mb = new MessageBoxShell(title,
+						text, new String[] {
+							MessageText.getString("Button.cancel"),
+							MessageText.getString("Button.deleteContent.fromComputer"),
+							MessageText.getString("Button.deleteContent.fromLibrary"),
+						}, 2);
+				int numLeft = (dms.length - i);
+				if (numLeft > 1) {
+					mb.setRemember("na", false, MessageText.getString(
+							"v3.deleteContent.applyToAll", new String[] {
+								"" + numLeft
+							}));
+					mb.setRememberOnlyIfButton(-3);
+				}
+				mb.setRelatedObject(dm);
+				mb.setLeftImage(ImageLoader.getInstance().getImage("image.trash"));
+	
+				final int index = i;
+				mb.open(new UserPrompterResultListener() {
+					
+					public void prompterClosed(int result) {
+						ImageLoader.getInstance().releaseImage("image.trash");
+						
+						if (result == -1) {
+							// user pressed ESC (as opposed to clicked Cancel), cancel whole
+							// list
+							return;
+						}
+						if (mb.isRemembered()) {
+							if (result == 1 || result == 2) {
+								boolean deleteData = result == 2 ? false : true;
+								boolean deleteTorrent = true;
+							
+								for (int i = index; i < dms.length; i++) {
+									DownloadManager dm = dms[i];
+									ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+											deleteTorrent, deleteData, null);
+								}
+							} //else cancel
+						} else { // not remembered
+							if (result == 1 || result == 2) {
+								boolean deleteData = result == 2 ? false : true;
+								boolean deleteTorrent = true;
+							
+								DownloadManager dm = dms[index];
+								ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+										deleteTorrent, deleteData, null);
+							}
+							// remove the one we just did and go through loop again
+							dms[index] = null;
+							if (index != dms.length - 1) {
+								removeDownloads(dms);
+							}
+						}
+					}
+				});
+				return;
+			} else {
+				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+						deleteTorrent, deleteData, null);
+			}
+			dms[i] = null;
+		}}
+	}
 }
