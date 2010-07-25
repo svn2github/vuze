@@ -30,15 +30,15 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 import com.aelitis.azureus.util.ConstantsVuze;
@@ -367,6 +367,8 @@ public class SWTSkinObjectText2
 		Color newColorURL = properties.getColor(sPrefix + ".urlcolor" + suffix);
 		if (newColorURL != null) {
 			colorUrl = newColorURL;
+		} else {
+			colorUrl = properties.getColor(sPrefix + ".urlcolor");
 		}
 
 		Color newColorURL2 = properties.getColor(sPrefix + ".urlcolor-pressed");
@@ -376,9 +378,13 @@ public class SWTSkinObjectText2
 
 
 		Color color = properties.getColor(sPrefix + ".color" + suffix);
-		//System.out.println(this + "; " + sPrefix + ";" + suffix + "; " + color + "; " + text);
+		if (debug) {
+		System.out.println(this + "; " + sPrefix + ";" + suffix + "; " + color + "; " + getText());
+		}
 		if (color != null) {
 			canvas.setData("color", color);
+		} else {
+			canvas.setData("color", properties.getColor(sPrefix + ".color"));
 		}
 		
 		alpha  = properties.getIntValue(sConfigID + ".alpha", 255);
@@ -616,6 +622,9 @@ public class SWTSkinObjectText2
 			gc.setFont(existingFont);
 		}
 
+		if (debug) {
+			System.out.println("paint " + existingColor + ";" + gc.getForeground());
+		}
 		if (existingColor != null) {
 			gc.setForeground(existingColor);
 		}
