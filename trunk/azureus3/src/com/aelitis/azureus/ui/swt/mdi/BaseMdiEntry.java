@@ -518,8 +518,6 @@ public abstract class BaseMdiEntry
 
 		SelectedContentManager.clearCurrentlySelectedContent();
 
-		disableViewModes();
-
 		UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uif != null) {
 			//uif.refreshIconBar(); // needed?
@@ -664,22 +662,6 @@ public abstract class BaseMdiEntry
 		if ((_eventListener instanceof BasicPluginViewImpl)
 				&& getImageLeftID() == null) {
 			setImageLeftID("image.sidebar.logview");
-		}
-	}
-
-	protected void disableViewModes() {
-		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-		if (tb != null) {
-			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
-			if (itemModeSmall != null) {
-				itemModeSmall.getSkinButton().getSkinObject().switchSuffix("");
-				itemModeSmall.setEnabled(false);
-			}
-			ToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
-			if (itemModeBig != null) {
-				itemModeBig.getSkinButton().getSkinObject().switchSuffix("");
-				itemModeBig.setEnabled(false);
-			}
 		}
 	}
 

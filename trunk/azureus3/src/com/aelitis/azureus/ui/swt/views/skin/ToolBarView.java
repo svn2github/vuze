@@ -406,9 +406,7 @@ public class ToolBarView
 			}
 		};
 		addToolBarItem(item, "toolbar.area.vitem.left", so2nd);
-		item.setEnabled(false);
 
-		Control bigItem = item.getSkinButton().getSkinObject().getControl();
 		SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title",
 				item.getSkinButton().getSkinObject());
 		if (soTitle instanceof SWTSkinObjectText) {
@@ -425,9 +423,6 @@ public class ToolBarView
 			}
 		};
 		addToolBarItem(item, "toolbar.area.vitem.right", so2nd);
-		item.setEnabled(false);
-
-		Control smallItem = item.getSkinButton().getSkinObject().getControl();
 
 		soTitle = skin.getSkinObject("toolbar-item-title",
 				item.getSkinButton().getSkinObject());
