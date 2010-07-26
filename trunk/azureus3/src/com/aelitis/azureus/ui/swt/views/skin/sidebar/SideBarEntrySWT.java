@@ -543,7 +543,10 @@ public class SideBarEntrySWT
 
 		Rectangle treeArea = tree.getClientArea();
 
-		gc.setFont(tree.getFont());
+		Font font = tree.getFont();
+		if (font != null && !font.isDisposed()) {
+			gc.setFont(font);
+		}
 
 		if (DO_OUR_OWN_TREE_INDENT) {
 			int indentLevel = 0;
