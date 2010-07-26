@@ -496,7 +496,7 @@ public class VuzeMessageBox
 			for (int i = 0; i < buttonVals.length; i++) {
 				int val = buttonVals[i];
 				if (buttonVal == val) {
-					pos = val;
+					pos = i;
 					break;
 				}
 			}
