@@ -353,7 +353,7 @@ public class SubscriptionsView
 		
 		data = new FormData();
 		data.left = new FormAttachment(preText,5);
-		data.top = new FormAttachment(preText,0,SWT.TOP);
+		data.top = new FormAttachment(preText,0,SWT.CENTER);
 		image.setLayoutData(data);
 		
 		data = new FormData();
