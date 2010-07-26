@@ -38,6 +38,8 @@ public class TableSubCellImpl
 
 	private boolean disposed;
 
+	private Object oToolTip;
+
 	public TableSubCellImpl(TableRowImpl tableRow, TableColumnCore tableColumn,
 			int position) {
 		this.row = tableRow;
@@ -149,10 +151,11 @@ public class TableSubCellImpl
 	}
 
 	public void setToolTip(Object tooltip) {
+    oToolTip = tooltip;
 	}
 
 	public Object getToolTip() {
-		return null;
+		return oToolTip;
 	}
 
 	public boolean isDisposed() {

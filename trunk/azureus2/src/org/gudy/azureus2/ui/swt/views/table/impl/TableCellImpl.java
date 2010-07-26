@@ -544,7 +544,12 @@ public class TableCellImpl
   
   public void setToolTip(Object tooltip) {
     oToolTip = tooltip;
-    clearFlag(FLAG_TOOLTIPISAUTO);
+
+    if (tooltip == null) {
+    	setFlag(FLAG_TOOLTIPISAUTO);
+    } else {
+    	clearFlag(FLAG_TOOLTIPISAUTO);
+    }
   }
 
   public Object getToolTip() {
