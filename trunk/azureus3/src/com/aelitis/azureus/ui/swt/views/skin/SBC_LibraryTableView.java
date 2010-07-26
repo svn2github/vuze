@@ -362,8 +362,7 @@ public class SBC_LibraryTableView
 			// fallback
 		
 		if (PlayUtils.canPlayDS(ds, -1) || (stateMask & SWT.CONTROL) > 0) {
-			TorrentListViewsUtils.playOrStreamDataSource(
-					ds, -1, null,
+			TorrentListViewsUtils.playOrStreamDataSource(ds,
 					DLReferals.DL_REFERAL_DBLCLICK, false, true );
 		}
 

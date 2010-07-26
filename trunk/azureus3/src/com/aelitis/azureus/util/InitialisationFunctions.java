@@ -50,6 +50,7 @@ import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -132,8 +133,15 @@ public class InitialisationFunctions
 					org.gudy.azureus2.core3.download.DownloadManager		dm,
 					int														file_index )
 				{
-					TorrentListViewsUtils.playOrStreamDataSource(
-							dm, -1, null, DLReferals.DL_REFERAL_PLAYDM, false, true );
+					Object ds = dm;
+					if (file_index >= 0) {
+						DiskManagerFileInfo[] files = dm.getDiskManagerFileInfoSet().getFiles();
+						if (file_index < files.length) {
+							ds = files[file_index];
+						}
+					}
+					TorrentListViewsUtils.playOrStreamDataSource(ds,
+							DLReferals.DL_REFERAL_PLAYDM, false, true);
 				}	
 				
 				public TranscodeTarget[]

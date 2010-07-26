@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.eclipse.swt.program.Program;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -65,6 +66,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.player.PlayerInstallWindow;
 import com.aelitis.azureus.ui.swt.player.PlayerInstaller;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.DataSourceUtils;
@@ -81,7 +83,8 @@ public class TorrentListViewsUtils
 	private static StreamManagerDownload	current_stream;
 	private static TextViewerWindow			stream_viewer;
 	
-	public static void playOrStreamDataSource(Object ds, int file_index, SWTSkinButtonUtility btn, boolean launch_already_checked) {
+	public static void playOrStreamDataSource(Object ds,
+			boolean launch_already_checked) {
 		String referal = DLReferals.DL_REFERAL_UNKNOWN;
 		if (ds instanceof VuzeActivitiesEntry) {
 			referal = DLReferals.DL_REFERAL_PLAYDASHACTIVITY;
@@ -90,17 +93,23 @@ public class TorrentListViewsUtils
 		} else if (ds instanceof ISelectedContent) {
 			referal = DLReferals.DL_REFERAL_SELCONTENT;
 		}
-		playOrStreamDataSource(ds, file_index, btn, referal, launch_already_checked, true );
+		playOrStreamDataSource(ds, referal, launch_already_checked, true );
 	}
 
-	public static void playOrStreamDataSource(Object ds, int file_index,
-			SWTSkinButtonUtility btn, String referal, boolean launch_already_checked, boolean complete_only ) {
+	public static void playOrStreamDataSource(Object ds, String referal,
+			boolean launch_already_checked, boolean complete_only) {
 
+		DiskManagerFileInfo fileInfo = DataSourceUtils.getFileInfo(ds);
+		if (fileInfo != null) {
+			playOrStream(fileInfo.getDownloadManager(), fileInfo.getIndex(),
+					complete_only, launch_already_checked);
+		}
+		
 		DownloadManager dm = DataSourceUtils.getDM(ds);
 		if (dm == null) {
 			downloadDataSource(ds, true, referal);
 		} else {
-			playOrStream(dm, file_index, complete_only, btn, launch_already_checked);
+			playOrStream(dm, -1, complete_only, launch_already_checked);
 		}
 
 	}
@@ -154,8 +163,9 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	public static void playOrStream(final DownloadManager dm, final int file_index, final boolean complete_only,
-			final SWTSkinButtonUtility btn, boolean launch_already_checked ) {
+	public static void playOrStream(final DownloadManager dm,
+			final int file_index, final boolean complete_only,
+			boolean launch_already_checked) {
 			
 		if (dm == null) {
 			return;
@@ -163,7 +173,7 @@ public class TorrentListViewsUtils
 		
 		if ( launch_already_checked ){
 		
-			_playOrStream(dm, file_index, complete_only, btn);
+			_playOrStream(dm, file_index, complete_only);
 			
 		}else{
 			
@@ -184,7 +194,7 @@ public class TorrentListViewsUtils
 								public void
 								run()
 								{
-									_playOrStream(dm, file_index, complete_only, btn);
+									_playOrStream(dm, file_index, complete_only);
 								}
 							});
 					}
@@ -199,8 +209,8 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	private static void _playOrStream(final DownloadManager dm, final int file_index, boolean complete_only,
-			final SWTSkinButtonUtility btn) {
+	private static void _playOrStream(final DownloadManager dm,
+			final int file_index, boolean complete_only) {
 
 		if (dm == null) {
 			return;
@@ -234,8 +244,14 @@ public class TorrentListViewsUtils
 					+ PlatformTorrentUtils.useEMP(torrent));
 		}
 
+		ToolBarItem btnPlay = null;
+		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+		if (tb != null) {
+			btnPlay = tb.getToolBarItem("play");
+		}
+		final ToolBarItem btn = btnPlay;
 		if (btn != null) {
-			btn.setDisabled(true);
+			btn.setEnabled(false);
 		}
 
 		boolean reenableButton = false;
@@ -353,12 +369,12 @@ public class TorrentListViewsUtils
     
     			if (bComplete) {
     				if (btn != null) {
-    					btn.setDisabled(false);
+    					btn.setEnabled(true);
     				}
     				runFile(dm.getTorrent(), file_index, sfFile);
     			} else {
     				if (btn != null) {
-    					btn.setDisabled(false);
+    					btn.setEnabled(true);
     				}
     				try {
     					playViaMediaServer(DownloadManagerImpl.getDownloadStatic(dm), file_index );
@@ -371,7 +387,7 @@ public class TorrentListViewsUtils
 			
 		} finally {
 			if (btn != null && reenableButton) {
-				btn.setDisabled(false);
+				btn.setEnabled(true);
 			}
 		}
 	}
@@ -828,6 +844,6 @@ public class TorrentListViewsUtils
 	}
 
 	public static void playOrStream(final DownloadManager dm, int file_index ) {
-		playOrStream(dm, file_index, PlayUtils.COMPLETE_PLAY_ONLY, null, false );
+		playOrStream(dm, file_index, PlayUtils.COMPLETE_PLAY_ONLY, false );
 	}
 }

@@ -24,6 +24,11 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -37,13 +42,6 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadException;
-import org.gudy.azureus2.plugins.torrent.Torrent;
-
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-
 /**
  * @author TuxPaper
  * @created Jun 1, 2008
@@ -51,6 +49,39 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
  */
 public class DataSourceUtils
 {
+	public static org.gudy.azureus2.core3.disk.DiskManagerFileInfo getFileInfo(
+			Object ds) {
+		try {
+			if (ds instanceof DiskManagerFileInfo) {
+				return PluginCoreUtils.unwrap((DiskManagerFileInfo) ds);
+			} else if (ds instanceof org.gudy.azureus2.core3.disk.DiskManagerFileInfo) {
+				return (org.gudy.azureus2.core3.disk.DiskManagerFileInfo) ds;
+			} else if ((ds instanceof ISelectedContent)
+					&& ((ISelectedContent) ds).getFileIndex() >= 0) {
+				ISelectedContent sc = (ISelectedContent) ds;
+				int idx = sc.getFileIndex();
+				DownloadManager dm = sc.getDownloadManager();
+				return dm.getDiskManagerFileInfoSet().getFiles()[idx];
+			} else if (ds instanceof TranscodeJob) {
+				TranscodeJob tj = (TranscodeJob) ds;
+				try {
+					return PluginCoreUtils.unwrap(tj.getFile());
+				} catch (DownloadException e) {
+				}
+			} else if (ds instanceof TranscodeFile) {
+				TranscodeFile tf = (TranscodeFile) ds;
+				try {
+					DiskManagerFileInfo file = tf.getSourceFile();
+					return PluginCoreUtils.unwrap(file);
+				} catch (DownloadException e) {
+				}
+			}
+
+		} catch (Exception e) {
+			Debug.printStackTrace(e);
+		}
+		return null;
+	}
 
 	public static DownloadManager getDM(Object ds) {
 		try {

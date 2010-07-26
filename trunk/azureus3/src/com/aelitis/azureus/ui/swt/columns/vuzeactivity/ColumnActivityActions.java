@@ -223,12 +223,12 @@ public class ColumnActivityActions
 							referal = DLReferals.DL_REFERAL_PLAYDASHACTIVITY + "-"
 									+ ((VuzeActivitiesEntry) ds).getTypeID();
 						}
-						TorrentListViewsUtils.playOrStreamDataSource(ds, -1, null, referal, false, true );
+						TorrentListViewsUtils.playOrStreamDataSource(ds, referal, false, true );
 						
 					} else if (hitUrl.url.equals("launch")) {
 						// run via play or stream so we get the security warning
 						Object ds = event.cell.getDataSource();
-						TorrentListViewsUtils.playOrStreamDataSource(ds, -1, null,
+						TorrentListViewsUtils.playOrStreamDataSource(ds,
 								DLReferals.DL_REFERAL_LAUNCH, false, true);
 						
 					} else if (!UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
