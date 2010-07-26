@@ -24,8 +24,11 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import java.util.Locale;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -55,6 +58,26 @@ public class PeersItem extends CoreTableColumn implements
 	public static final Class DATASOURCE_TYPE = Download.class;
 
 	public static final String COLUMN_ID = "peers";
+
+
+	private static String textStarted;
+	private static String textStartedOver;
+	private static String textNotStarted;
+	private static String textStartedNoScrape;
+	private static String textNotStartedNoScrape;
+
+	
+	static {
+		MessageText.addAndFireListener(new MessageTextListener() {
+			public void localeChanged(Locale old_locale, Locale new_locale) {
+				textStarted = MessageText.getString("Column.seedspeers.started");
+				textStartedOver = MessageText.getString("Column.seedspeers.started.over");
+				textNotStarted = MessageText.getString("Column.seedspeers.notstarted");
+				textStartedNoScrape = MessageText.getString("Column.seedspeers.started.noscrape");
+				textNotStartedNoScrape = MessageText.getString("Column.seedspeers.notstarted.noscrape");
+			}
+		});
+	}
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] { CAT_SWARM });
@@ -119,22 +142,20 @@ public class PeersItem extends CoreTableColumn implements
 				return;
 
 			int state = dm.getState();
-			boolean showOf = state == DownloadManager.STATE_SEEDING
+			boolean started = state == DownloadManager.STATE_SEEDING
 					|| state == DownloadManager.STATE_DOWNLOADING;
+			boolean hasScrape = lTotalPeers >= 0;
 
 			String tmp;
-			if (showOf) {
-  			tmp = String.valueOf(lConnectedPeers);
-  			if (totalPeers != -1) {
-  				tmp += " " + MessageText.getString("splash.of") + " " + totalPeers;
-  			}
+			if (started) {
+				tmp = hasScrape ? (lConnectedPeers > lTotalPeers ? textStartedOver
+						: textStarted) : textStartedNoScrape;
 			} else {
-  			if (totalPeers != -1) {
-  				tmp = String.valueOf(totalPeers);
-  			} else {
-  				tmp = "";
-  			}
+				tmp = hasScrape ? textNotStarted : textNotStartedNoScrape;
 			}
+			
+			tmp = tmp.replaceAll("%1", String.valueOf(lConnectedPeers));
+			tmp = tmp.replaceAll("%2", String.valueOf(totalPeers));
 			cell.setText(tmp);
 		}
 

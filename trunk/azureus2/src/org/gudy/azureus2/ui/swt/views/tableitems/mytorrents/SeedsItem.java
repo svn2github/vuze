@@ -24,17 +24,19 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import java.util.Locale;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
  *
@@ -53,6 +55,25 @@ public class SeedsItem
 	private static final String CFG_FC_NUMPEERS = "StartStopManager_iNumPeersAsFullCopy";
 
 	public static final String COLUMN_ID = "seeds";
+
+	private static String textStarted;
+	private static String textStartedOver;
+	private static String textNotStarted;
+	private static String textStartedNoScrape;
+	private static String textNotStartedNoScrape;
+
+	
+	static {
+		MessageText.addAndFireListener(new MessageTextListener() {
+			public void localeChanged(Locale old_locale, Locale new_locale) {
+				textStarted = MessageText.getString("Column.seedspeers.started");
+				textStartedOver = MessageText.getString("Column.seedspeers.started.over");
+				textNotStarted = MessageText.getString("Column.seedspeers.notstarted");
+				textStartedNoScrape = MessageText.getString("Column.seedspeers.started.noscrape");
+				textNotStartedNoScrape = MessageText.getString("Column.seedspeers.notstarted.noscrape");
+			}
+		});
+	}
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] { CAT_SWARM });
@@ -143,22 +164,29 @@ public class SeedsItem
 			boolean bCompleteTorrent = dm == null ? false : dm.getAssumedComplete();
 			
 			int state = dm.getState();
-			boolean showOf = state == DownloadManager.STATE_SEEDING
-					|| state == DownloadManager.STATE_DOWNLOADING;
-			String tmp = lConnectedSeeds == 0 && !showOf ? ""
-					: String.valueOf(lConnectedSeeds);
+			boolean started = (state == DownloadManager.STATE_SEEDING || state == DownloadManager.STATE_DOWNLOADING);
+			boolean hasScrape = lTotalSeeds >= 0;
+			String tmp;
+			
+			if (started) {
+				tmp = hasScrape ? (lConnectedSeeds > lTotalSeeds ? textStartedOver
+						: textStarted) : textStartedNoScrape;
+			} else {
+				tmp = hasScrape ? textNotStarted : textNotStartedNoScrape;
+			}
+			tmp = tmp.replaceAll("%1", String.valueOf(lConnectedSeeds));
+			String param2 = "?";
 			if (lTotalSeeds != -1) {
-				if (showOf) {
-					tmp += " " + MessageText.getString("splash.of") + " ";
-				}
-				tmp += lTotalSeeds;
+				param2 = String.valueOf(lTotalSeeds);
 				if (bCompleteTorrent && iFC_NumPeers > 0 && lTotalSeeds >= iFC_MinSeeds
 						&& lTotalPeers > 0) {
 					long lSeedsToAdd = lTotalPeers / iFC_NumPeers;
-					if (lSeedsToAdd > 0)
-						tmp += "+" + lSeedsToAdd;
+					if (lSeedsToAdd > 0) {
+						param2 += "+" + lSeedsToAdd;
+					}
 				}
 			}
+			tmp = tmp.replaceAll("%2", param2);
 			cell.setText(tmp);
 		}
 
