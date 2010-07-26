@@ -307,6 +307,22 @@ DHTControlImpl
 				}
 				
 				public void
+				resetNetworkPositions()
+				{
+					List<DHTRouterContact>	contacts = router.getAllContacts();
+					
+					for (int i=0;i<contacts.size();i++){
+												
+						DHTRouterContact	rc = contacts.get(i);
+
+						if ( !router.isID( rc.getID())){
+							
+							((DHTControlContactImpl)rc.getAttachment()).getTransportContact().createNetworkPositions( false );
+						}
+					}
+				}
+				
+				public void
 				currentAddress(
 					String		address )
 				{
@@ -4613,6 +4629,13 @@ DHTControlImpl
 		remove()
 		{
 			delegate.remove();
+		}
+		
+		public void 
+		createNetworkPositions(
+			boolean is_local) 
+		{
+			delegate.createNetworkPositions(is_local);
 		}
 		
 		public DHTNetworkPosition[]

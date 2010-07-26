@@ -138,6 +138,10 @@ DHTTransportContact
 	public void
 	remove();
 	
+	public void
+	createNetworkPositions(
+		boolean		is_local );
+			
 	public DHTNetworkPosition[]
 	getNetworkPositions();
 	

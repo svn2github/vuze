@@ -236,6 +236,12 @@ DHTTransportLoopbackContactImpl
 		transport.removeContact( this );
 	}
 	
+	public void 
+	createNetworkPositions(
+		boolean is_local) 
+	{
+	}
+	
 	public DHTNetworkPosition[]
 	getNetworkPositions()
 	{

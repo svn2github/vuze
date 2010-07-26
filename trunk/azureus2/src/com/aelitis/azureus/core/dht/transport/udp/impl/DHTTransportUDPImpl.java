@@ -58,6 +58,7 @@ import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionProvider;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionProviderListener;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandler;
@@ -294,6 +295,54 @@ DHTTransportUDPImpl
 		
 		InetSocketAddress	address = new InetSocketAddress( external_address, port );
 
+		DHTNetworkPositionManager.addProviderListener(
+			new DHTNetworkPositionProviderListener()
+			{
+				public void
+				providerAdded(
+					DHTNetworkPositionProvider		provider )
+				{
+					if ( local_contact != null ){
+						
+						local_contact.createNetworkPositions( true );
+						
+						try{
+							this_mon.enter();
+
+							for ( DHTTransportContact c: contact_history.values()){
+								
+								c.createNetworkPositions( false );
+							}
+
+							for ( DHTTransportContact c: routable_contact_history.values()){
+								
+								c.createNetworkPositions( false );
+							}
+						}finally{
+							
+							this_mon.exit();
+						}
+						
+						for (int i=0;i<listeners.size();i++){
+							
+							try{
+								((DHTTransportListener)listeners.get(i)).resetNetworkPositions();
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					}
+				}
+				
+				public void
+				providerRemoved(
+					DHTNetworkPositionProvider		provider )
+				{				
+				}
+			});
+		
 		logger.log( "Initial external address: " + address );
 		
 		local_contact = new DHTTransportUDPContactImpl( true, this, address, address, protocol_version, random.nextInt(), 0 );

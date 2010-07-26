@@ -190,6 +190,11 @@ DHTPluginImpl
 					}
 					
 					public void
+					resetNetworkPositions()
+					{
+					}
+					
+					public void
 					currentAddress(
 						String		address )
 					{

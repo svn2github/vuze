@@ -99,8 +99,8 @@ DHTTransportUDPContactImpl
 
 			id = DHTUDPUtils.getNodeID( external_address, protocol_version );
 		}
-		
-		network_positions	= DHTNetworkPositionManager.createPositions( id==null?DHTUDPUtils.getBogusNodeID():id, _is_local );
+
+		createNetworkPositions( _is_local );
 	}
 	
 	public DHTTransport
@@ -408,6 +408,13 @@ DHTTransportUDPContactImpl
   	{
   		network_positions	= positions;
   	}
+	
+	public void
+	createNetworkPositions(
+		boolean  is_local )
+	{
+		network_positions	= DHTNetworkPositionManager.createPositions( id==null?DHTUDPUtils.getBogusNodeID():id, is_local );
+	}
 	
 	public DHTNetworkPosition[]
   	getNetworkPositions()

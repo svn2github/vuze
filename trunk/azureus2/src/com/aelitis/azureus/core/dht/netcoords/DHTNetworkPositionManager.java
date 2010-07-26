@@ -45,7 +45,8 @@ DHTNetworkPositionManager
 	
 	private static DHTStorageAdapter	storage_adapter = null;
 	
-	private static CopyOnWriteList<DHTNetworkPositionListener>	position_listeners;
+	private static CopyOnWriteList<DHTNetworkPositionProviderListener>	provider_listeners = new CopyOnWriteList<DHTNetworkPositionProviderListener>();
+	private static CopyOnWriteList<DHTNetworkPositionListener>			position_listeners;
 	
 	public static void
 	initialise(
@@ -143,6 +144,8 @@ DHTNetworkPositionManager
 	registerProvider(
 		final DHTNetworkPositionProvider	provider )
 	{
+		boolean	fire_added = false;
+		
 		synchronized( providers ){
 	
 			boolean	found = false;
@@ -171,6 +174,23 @@ DHTNetworkPositionManager
 				
 					startUp( provider );
 				}
+				
+				fire_added = true;
+			}
+		}
+		
+		if ( fire_added ){
+			
+			for ( DHTNetworkPositionProviderListener l: provider_listeners ){
+				
+				try{
+					
+					l.providerAdded( provider );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
 			}
 		}
 		
@@ -189,6 +209,8 @@ DHTNetworkPositionManager
 	unregisterProvider(
 		DHTNetworkPositionProvider	provider )
 	{
+		boolean	fire_removed = false;
+		
 		synchronized( providers ){
 	
 			if ( providers.length == 0 ){
@@ -216,6 +238,23 @@ DHTNetworkPositionManager
 			if ( pos == new_providers.length ){
 			
 				providers = new_providers;
+				
+				fire_removed = true;
+			}
+		}
+		
+		if ( fire_removed ){
+			
+			for ( DHTNetworkPositionProviderListener l: provider_listeners ){
+				
+				try{
+					
+					l.providerRemoved( provider );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
 			}
 		}
 	}
@@ -537,5 +576,19 @@ DHTNetworkPositionManager
 				}
 			}
 		}
+	}
+	
+	public static void
+	addProviderListener(
+		DHTNetworkPositionProviderListener		listener )
+	{
+		provider_listeners.add( listener );
+	}
+	
+	public static void
+	removeProviderListener(
+		DHTNetworkPositionProviderListener		listener )
+	{
+		provider_listeners.remove( listener );
 	}
 }
