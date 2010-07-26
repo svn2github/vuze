@@ -37,7 +37,7 @@ import org.gudy.azureus2.ui.swt.Utils;
  *
  */
 public class ColumnTJ_Status
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
 	public static final String COLUMN_ID = "transcode_status";
 
@@ -79,6 +79,14 @@ public class ColumnTJ_Status
 			}
 		});
 	}
+	
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			TableColumn.CAT_ESSENTIAL,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
+	}
+
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {

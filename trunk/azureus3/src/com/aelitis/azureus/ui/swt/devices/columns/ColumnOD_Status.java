@@ -33,7 +33,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  */
 public class ColumnOD_Status
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
 	public static final String COLUMN_ID = "od_status";
 
@@ -59,6 +59,13 @@ public class ColumnOD_Status
 				column.invalidateCells();
 			}
 		});
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			TableColumn.CAT_ESSENTIAL,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	public void refresh(TableCell cell) {

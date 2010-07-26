@@ -30,7 +30,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  */
 public class ColumnOD_Remaining
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
 	public static final String COLUMN_ID = "od_remaining";
 	
@@ -40,6 +40,12 @@ public class ColumnOD_Remaining
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 		
+	}
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			TableColumn.CAT_ESSENTIAL,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	public void refresh(TableCell cell) {

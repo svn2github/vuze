@@ -57,6 +57,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -240,6 +241,7 @@ public class SBC_DevicesView
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnThumbnail(column);
 						column.setWidth(70);
+						column.setVisible(false);
 					}
 				});
 		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Name.COLUMN_ID,
@@ -319,6 +321,29 @@ public class SBC_DevicesView
 						new ColumnTJ_Category(column);
 					}
 				});
+		
+		TableColumnManager tcm = TableColumnManager.getInstance();
+		TableColumnCore[] allTCs = tcm.getAllTableColumnCoreAsArray(
+				TranscodeFile.class, TABLE_DEVICE_LIBRARY);
+		ArrayList<String> names = new ArrayList<String>();
+		for (int i = 0; i < allTCs.length; i++) {
+			TableColumn tc = allTCs[i];
+			if (tc.isVisible()) {
+				names.add(tc.getName());
+			}
+		}
+		tcm.setDefaultColumnNames(TABLE_DEVICE_LIBRARY, names.toArray(new String[0]));
+
+		allTCs = tcm.getAllTableColumnCoreAsArray(
+				TranscodeFile.class, TABLE_TRANSCODE_QUEUE);
+		names = new ArrayList<String>();
+		for (int i = 0; i < allTCs.length; i++) {
+			TableColumn tc = allTCs[i];
+			if (tc.isVisible()) {
+				names.add(tc.getName());
+			}
+		}
+		tcm.setDefaultColumnNames(TABLE_TRANSCODE_QUEUE, names.toArray(new String[0]));
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
@@ -471,7 +496,7 @@ public class SBC_DevicesView
 				tableID, new TableColumnCore[0], device == null
 						? ColumnTJ_Rank.COLUMN_ID : ColumnTJ_Status.COLUMN_ID, SWT.MULTI
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);
-		tvFiles.setRowDefaultHeight(50);
+		tvFiles.setRowDefaultHeight(27);
 		tvFiles.setHeaderVisible(true);
 		tvFiles.setParentDataSource(device);
 
@@ -983,7 +1008,7 @@ public class SBC_DevicesView
 	private void initDeviceListTable(Composite control) {
 		tvDevices = new TableViewSWTImpl(TranscodeProvider.class, TABLE_DEVICES,
 				TABLE_DEVICES, new TableColumnCore[0], ColumnTJ_Rank.COLUMN_ID);
-		tvDevices.setRowDefaultHeight(50);
+		tvDevices.setRowDefaultHeight(27);
 		tvDevices.setHeaderVisible(true);
 
 		Composite parent = new Composite(control, SWT.NONE);

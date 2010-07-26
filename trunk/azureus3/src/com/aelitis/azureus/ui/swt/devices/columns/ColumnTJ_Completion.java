@@ -48,7 +48,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 public class ColumnTJ_Completion
 implements TableCellAddedListener, TableCellRefreshListener,
-TableCellDisposeListener, TableCellSWTPaintListener
+TableCellDisposeListener, TableCellSWTPaintListener, TableColumnExtraInfoListener
 {
 	private static final int borderWidth = 1;
 
@@ -87,6 +87,13 @@ TableCellDisposeListener, TableCellSWTPaintListener
 				column.invalidateCells();
 			}
 		});
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			TableColumn.CAT_ESSENTIAL,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)

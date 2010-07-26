@@ -42,6 +42,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -161,7 +162,20 @@ SBC_DevicesODView
 						new ColumnOD_Remaining(column);
 					}
 				});
-	}
+
+		TableColumnManager tcm = TableColumnManager.getInstance();
+		TableColumnCore[] allTCs = tcm.getAllTableColumnCoreAsArray(
+				DeviceOfflineDownload.class, TABLE_RCM);
+		// for now, all columns are default
+		ArrayList<String> names = new ArrayList<String>();
+		for (int i = 0; i < allTCs.length; i++) {
+			TableColumn tc = allTCs[i];
+			if (tc.isVisible()) {
+				names.add(tc.getName());
+			}
+		}
+		tcm.setDefaultColumnNames(TABLE_RCM, names.toArray(new String[0]));
+}
 
 	public Object 
 	skinObjectShown(

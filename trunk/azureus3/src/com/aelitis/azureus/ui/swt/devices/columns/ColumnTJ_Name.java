@@ -33,7 +33,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 public class ColumnTJ_Name
 	implements TableCellRefreshListener, ObfusticateCellText,
-	TableCellDisposeListener
+	TableCellDisposeListener, TableColumnExtraInfoListener
 {
 	public static final String COLUMN_ID = "transcode_name";
 
@@ -47,6 +47,13 @@ public class ColumnTJ_Name
 		column.setObfustication(true);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			TableColumn.CAT_ESSENTIAL,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	public void refresh(TableCell cell) {

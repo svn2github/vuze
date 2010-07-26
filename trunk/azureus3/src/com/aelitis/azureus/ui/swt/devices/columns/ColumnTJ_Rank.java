@@ -21,9 +21,7 @@ package com.aelitis.azureus.ui.swt.devices.columns;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -31,7 +29,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
  *
  */
 public class ColumnTJ_Rank
-implements TableCellRefreshListener
+implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
 	public static final String COLUMN_ID = "trancode_qpos";
 
@@ -42,6 +40,13 @@ implements TableCellRefreshListener
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 	}
 
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			TableColumn.CAT_ESSENTIAL,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
+	}
+	
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
 		TranscodeFile tf = (TranscodeFile) cell.getDataSource();

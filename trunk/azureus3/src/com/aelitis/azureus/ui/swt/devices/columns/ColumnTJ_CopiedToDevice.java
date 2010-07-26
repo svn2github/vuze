@@ -27,9 +27,7 @@ import com.aelitis.azureus.core.devices.TranscodeFile;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -37,7 +35,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
  *
  */
 public class ColumnTJ_CopiedToDevice
-implements TableCellRefreshListener
+implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
 	public static final String COLUMN_ID = "copied";
 
@@ -58,6 +56,14 @@ implements TableCellRefreshListener
 			}
 		});
 	}
+	
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			TableColumn.CAT_ESSENTIAL,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
+	}
+
 
 	public void refresh(TableCell cell) {
 		TranscodeFile tf = (TranscodeFile) cell.getDataSource();
