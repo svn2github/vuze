@@ -576,33 +576,36 @@ public class Initializer
 				Debug.out(e);
 			}
 
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					SWTThread instance = SWTThread.getInstance();
-					if (instance == null || instance.isTerminated()) {
-						return;
-					}
-					Shell anyShell = Utils.findAnyShell();
-					Point location = null;
-					if (anyShell != null) {
-						Rectangle bounds = anyShell.getBounds();
-						location = new Point(bounds.x, bounds.y);
-					}
-					Shell[] shells = instance.getDisplay().getShells();
-					for (Shell shell : shells) {
-						if (!shell.isDisposed()) {
-							shell.dispose();
-						}
-					}
-    			Shell shell = new Shell(instance.getDisplay(), SWT.BORDER | SWT.TITLE);
-    			shell.setText("Shutting Down Vuze..");
-    			shell.setSize(200, 0);
-    			if (location != null) {
-    				shell.setLocation(location);
-    			}
-    			shell.open();
-				}
-			});
+			if (Constants.IS_CVS_VERSION) {
+  			Utils.execSWTThread(new AERunnable() {
+  				public void runSupport() {
+  					SWTThread instance = SWTThread.getInstance();
+  					if (instance == null || instance.isTerminated()) {
+  						return;
+  					}
+  					Shell anyShell = Utils.findAnyShell();
+  					Point location = null;
+  					if (anyShell != null) {
+  						Rectangle bounds = anyShell.getBounds();
+  						location = new Point(bounds.x, bounds.y);
+  					}
+  					Shell[] shells = instance.getDisplay().getShells();
+  					for (Shell shell : shells) {
+  						if (!shell.isDisposed()) {
+  							shell.dispose();
+  						}
+  					}
+      			Shell shell = new Shell(instance.getDisplay(), SWT.BORDER | SWT.TITLE);
+      			Utils.setShellIcon(shell);
+      			shell.setText("Shutting Down Vuze..");
+      			shell.setSize(200, 0);
+      			if (location != null) {
+      				shell.setLocation(location);
+      			}
+      			shell.open();
+  				}
+  			});
+			}
 
 		} finally {
 
