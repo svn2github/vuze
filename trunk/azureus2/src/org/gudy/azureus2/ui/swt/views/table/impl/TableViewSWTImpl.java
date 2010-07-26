@@ -2037,7 +2037,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   		
   		Arrays.sort(allTableColumns, new Comparator<TableColumnCore>() {
   			public int compare(TableColumnCore o1, TableColumnCore o2) {
-  				return o1.getPosition() - o2.getPosition();
+  				int p1 = o1.getPosition() < 0 ? Integer.MAX_VALUE : o1.getPosition();
+  				int p2 = o2.getPosition() < 0 ? Integer.MAX_VALUE : o2.getPosition();
+  				return p1 - p2;
   			}
   		});
   		for (final TableColumnCore tc : allTableColumns) {
