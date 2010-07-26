@@ -40,6 +40,7 @@ import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
@@ -998,6 +999,8 @@ SubscriptionManagerUI
 	changeSubscription(
 		final Subscription	subs )
 	{
+		ViewTitleInfoManager.refreshTitleInfo(mainSBEntry.getViewTitleInfo());
+
 		if ( subs.isSubscribed()){
 			
 			addSubscription( subs, false );
