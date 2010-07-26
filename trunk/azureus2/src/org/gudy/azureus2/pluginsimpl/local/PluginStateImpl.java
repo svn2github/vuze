@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -147,7 +148,11 @@ public class PluginStateImpl implements PluginState {
 		  	
 		// if not dir based then just test this one
 		if (dir == null || dir.length() == 0) {
-			((UnloadablePlugin)pi.getPlugin()).unload();
+			try{
+				((UnloadablePlugin)pi.getPlugin()).unload();
+			}catch( Throwable e ){
+				Debug.out( "Plugin unload operation failed", e );
+			}
 			initialiser.unloadPlugin(this.pi);
 		} else {
 		  		
@@ -159,7 +164,11 @@ public class PluginStateImpl implements PluginState {
 				String other_dir = pi.getPluginDirectoryName();
 		  		if (other_dir == null || other_dir.length() == 0) {continue;}
 		  		if (dir.equals(other_dir)) {
-		  			((UnloadablePlugin)pi.getPlugin()).unload();
+		  			try{
+		  				((UnloadablePlugin)pi.getPlugin()).unload();
+		  			}catch( Throwable e ){
+						Debug.out( "Plugin unload operation failed", e );
+					}
 		  			initialiser.unloadPlugin( pi );
 		  		}
 			}
