@@ -30,6 +30,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -220,6 +221,15 @@ public class SubscriptionsView
 				new ColumnSubscriptionCategory(TABLE_ID),
 				
 		};
+		
+		TableColumnManager tcm = TableColumnManager.getInstance();
+		tcm.setDefaultColumnNames(TABLE_ID, new String[] {
+			ColumnSubscriptionNew.COLUMN_ID,
+			ColumnSubscriptionName.COLUMN_ID,
+			ColumnSubscriptionNbNewResults.COLUMN_ID,
+			ColumnSubscriptionNbResults.COLUMN_ID,
+			ColumnSubscriptionAutoDownload.COLUMN_ID,
+		});
 		
 		view = new TableViewSWTImpl(Subscription.class, TABLE_ID, TABLE_ID,
 				columns, "name", SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);

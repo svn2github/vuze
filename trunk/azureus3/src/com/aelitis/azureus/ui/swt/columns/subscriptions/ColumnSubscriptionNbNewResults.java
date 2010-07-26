@@ -19,6 +19,7 @@ package com.aelitis.azureus.ui.swt.columns.subscriptions;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.subs.Subscription;
@@ -33,6 +34,13 @@ public class ColumnSubscriptionNbNewResults
 	implements TableCellRefreshListener
 {
 	public static String COLUMN_ID = "nb-new-results";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_ESSENTIAL,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
+	}
 
 	/** Default Constructor */
 	public ColumnSubscriptionNbNewResults(String sTableID) {

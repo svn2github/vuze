@@ -51,6 +51,13 @@ public class ColumnSubscriptionName
 	int imageWidth = -1;
 	int imageHeight = -1;
 
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_ESSENTIAL,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
+	}
+
 	/** Default Constructor */
 	public ColumnSubscriptionName(String sTableID) {
 		super(COLUMN_ID, POSITION_LAST, 350, sTableID);

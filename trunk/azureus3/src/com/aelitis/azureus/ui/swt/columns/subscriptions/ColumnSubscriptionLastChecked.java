@@ -19,6 +19,7 @@ package com.aelitis.azureus.ui.swt.columns.subscriptions;
 
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 
@@ -35,6 +36,14 @@ ColumnSubscriptionLastChecked
 {	
 	public static String COLUMN_ID = "last-checked";
 	
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_ESSENTIAL,
+			CAT_TIME
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_INTERMEDIATE);
+	}
+
 	public 
 	ColumnSubscriptionLastChecked(
 		String sTableID ) 

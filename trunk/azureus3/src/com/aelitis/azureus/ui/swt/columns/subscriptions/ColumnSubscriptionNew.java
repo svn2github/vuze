@@ -20,9 +20,7 @@ package com.aelitis.azureus.ui.swt.columns.subscriptions;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -61,6 +59,13 @@ public class ColumnSubscriptionNew
 		setVisible(true);
 		imgNew = ImageLoader.getInstance().getImage("image.activity.unread");
 		imgBounds = imgNew.getBounds();
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_ESSENTIAL,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)
