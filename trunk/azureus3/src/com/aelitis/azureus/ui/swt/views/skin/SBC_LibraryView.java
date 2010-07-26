@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -152,10 +153,6 @@ public class SBC_LibraryView
 
 	private String torrentFilter;
 
-	private ToolBarItem itemModeSmall;
-
-	private ToolBarItem itemModeBig;
-
 	private SWTSkinObject soWait;
 
 	private SWTSkinObject soWaitProgress;
@@ -201,14 +198,25 @@ public class SBC_LibraryView
 						stats stats = viewMode == MODE_SMALLTABLE
 						? statsWithLowNoise : statsNoLowNoise;
 						if (torrentFilterMode == TORRENTS_INCOMPLETE) {
-							soLibraryInfo.setText(stats.numDownloading + " transfers: "
-									+ stats.numIncomplete + " torrents, " + Float.NaN
-									+ " files total, " + stats.numStoppedIncomplete + " stopped");
-						} else {
-  						int total = stats.numComplete + stats.numIncomplete;
-  						soLibraryInfo.setText(total + " items: " + stats.numSeeding
-  								+ " seeding, " + stats.numDownloading + " downloading, "
-  								+ stats.numStoppedAll + " stopped");
+							String s = MessageText.getString("library.incomplete.header",
+									new String[] {
+								String.valueOf(stats.numDownloading),
+								String.valueOf(stats.numIncomplete - stats.numDownloading),
+							});
+							soLibraryInfo.setText(s);
+						} else if (torrentFilterMode == TORRENTS_ALL) {
+							String s = MessageText.getString("library.all.header",
+									new String[] {
+								String.valueOf(stats.numComplete + stats.numIncomplete),
+								String.valueOf(stats.numSeeding + stats.numDownloading),
+							});
+							soLibraryInfo.setText(s);
+						} else if (torrentFilterMode == TORRENTS_UNOPENED) {
+							String s = MessageText.getString("library.unopened.header",
+									new String[] {
+								String.valueOf(stats.numUnOpened),
+							});
+							soLibraryInfo.setText(s);
 						}
 					}
 				});
