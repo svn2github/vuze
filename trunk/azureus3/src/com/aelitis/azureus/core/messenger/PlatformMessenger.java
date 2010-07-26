@@ -364,7 +364,7 @@ public class PlatformMessenger
 		}
 
 		String sURL_RPC = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_RPC)
-					+ "?" + urlStem.toString();
+					+ "&" + urlStem.toString();
 
 		// Build full url and data to send
 		String sURL;
