@@ -752,6 +752,17 @@ PluginInterfaceImpl
 		state.failed = true;
 	}
 	
+	protected void
+	destroy()
+	{
+		class_loader = null;
+		
+			// unhook the reference to the plugin but leave with a valid reference in case
+			// something tries to use it
+		
+		plugin = new FailedPlugin( "Plugin '" + getPluginID() + "' has been unloaded!", null );
+	}
+	
   public void
   addListener(
   	PluginListener	l )

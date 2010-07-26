@@ -179,7 +179,7 @@ public class PluginStateImpl implements PluginState {
 		}
 		  	
 		setOperational(false, for_reload );
-		pi.class_loader = null;
+		pi.destroy();
 	}
 		
 	public boolean isUnloadable() {
