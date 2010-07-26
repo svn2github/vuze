@@ -323,27 +323,24 @@ public class SBC_DevicesView
 				});
 		
 		TableColumnManager tcm = TableColumnManager.getInstance();
-		TableColumnCore[] allTCs = tcm.getAllTableColumnCoreAsArray(
-				TranscodeFile.class, TABLE_DEVICE_LIBRARY);
-		ArrayList<String> names = new ArrayList<String>();
-		for (int i = 0; i < allTCs.length; i++) {
-			TableColumn tc = allTCs[i];
-			if (tc.isVisible()) {
-				names.add(tc.getName());
-			}
-		}
-		tcm.setDefaultColumnNames(TABLE_DEVICE_LIBRARY, names.toArray(new String[0]));
-
-		allTCs = tcm.getAllTableColumnCoreAsArray(
-				TranscodeFile.class, TABLE_TRANSCODE_QUEUE);
-		names = new ArrayList<String>();
-		for (int i = 0; i < allTCs.length; i++) {
-			TableColumn tc = allTCs[i];
-			if (tc.isVisible()) {
-				names.add(tc.getName());
-			}
-		}
-		tcm.setDefaultColumnNames(TABLE_TRANSCODE_QUEUE, names.toArray(new String[0]));
+		String[] defaultLibraryColumns = {
+			ColumnTJ_Rank.COLUMN_ID,
+			ColumnTJ_Name.COLUMN_ID,
+			ColumnTJ_Duration.COLUMN_ID,
+			ColumnTJ_Device.COLUMN_ID,
+			ColumnTJ_Status.COLUMN_ID,
+			ColumnTJ_Completion.COLUMN_ID,
+		};
+		tcm.setDefaultColumnNames(TABLE_DEVICE_LIBRARY, defaultLibraryColumns);
+		
+		String[] defaultQColumns = {
+			ColumnTJ_Name.COLUMN_ID,
+			ColumnTJ_Duration.COLUMN_ID,
+			ColumnTJ_Profile.COLUMN_ID,
+			ColumnTJ_Status.COLUMN_ID,
+			ColumnTJ_Completion.COLUMN_ID,
+		};
+		tcm.setDefaultColumnNames(TABLE_TRANSCODE_QUEUE, defaultQColumns);
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
@@ -496,7 +493,7 @@ public class SBC_DevicesView
 				tableID, new TableColumnCore[0], device == null
 						? ColumnTJ_Rank.COLUMN_ID : ColumnTJ_Status.COLUMN_ID, SWT.MULTI
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);
-		tvFiles.setRowDefaultHeight(27);
+		tvFiles.setRowDefaultHeight(25);
 		tvFiles.setHeaderVisible(true);
 		tvFiles.setParentDataSource(device);
 
@@ -1008,7 +1005,7 @@ public class SBC_DevicesView
 	private void initDeviceListTable(Composite control) {
 		tvDevices = new TableViewSWTImpl(TranscodeProvider.class, TABLE_DEVICES,
 				TABLE_DEVICES, new TableColumnCore[0], ColumnTJ_Rank.COLUMN_ID);
-		tvDevices.setRowDefaultHeight(27);
+		tvDevices.setRowDefaultHeight(25);
 		tvDevices.setHeaderVisible(true);
 
 		Composite parent = new Composite(control, SWT.NONE);

@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCoreCreationListener;
+import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
@@ -89,6 +90,9 @@ public class TableColumnManager {
 	 */
 	private Map<String, String[]> mapTableDefaultColumns = new LightHashMap<String, String[]>();
 
+	private static final Map<String, String> mapResetTable_Version;
+	private static final boolean RERESET = false;
+	
 	static {
 		orderComparator = new Comparator() {
 			public int compare(Object arg0, Object arg1) {				
@@ -105,6 +109,14 @@ public class TableColumnManager {
 				return 0;
 			}
 		};
+		
+		mapResetTable_Version = new HashMap<String, String>();
+		mapResetTable_Version.put("DeviceLibrary", "4.4.0.7");
+		mapResetTable_Version.put("TranscodeQueue", "4.4.0.7");
+		mapResetTable_Version.put(TableManager.TABLE_MYTORRENTS_COMPLETE_BIG, "4.4.0.7");
+		mapResetTable_Version.put(TableManager.TABLE_MYTORRENTS_ALL_BIG, "4.4.0.7");
+		mapResetTable_Version.put(TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG, "4.4.0.7");
+		mapResetTable_Version.put(TableManager.TABLE_MYTORRENTS_UNOPENED_BIG, "4.4.0.7");
 	}
 
   
@@ -506,7 +518,19 @@ public class TableColumnManager {
   	try {
   		Map mapTableConfig = getTableConfigMap(sTableID);
   		int size = mapTableConfig.size();
-  		if (size == 0 || (size == 1 && mapTableConfig.containsKey("SortColumn"))) {
+  		if (size == 0) {
+  			return false;
+  		}
+  		boolean hasColumnInfo = false;
+  		for (Object key : mapTableConfig.keySet()) {
+				if (key instanceof String) {
+					if (((String) key).startsWith("Column.")) {
+						hasColumnInfo = true;
+						break;
+					}
+				}
+			}
+  		if (!hasColumnInfo) {
   			return false;
   		}
       TableColumnCore[] tcs = getAllTableColumnCoreAsArray(forDataSourceType,
@@ -523,15 +547,23 @@ public class TableColumnManager {
   
   public Map getTableConfigMap(String sTableID) {
 		synchronized (this) {
+			String key = "Table." + sTableID;
+
 			lastTableConfigAccess = SystemTime.getMonotonousTime();
 			
 			if (mapTablesConfig == null) {
 				mapTablesConfig = FileUtil.readResilientConfigFile(CONFIG_FILE);
+				
+				if (RERESET) {
+					for (Object map : mapTablesConfig.values()) {
+						((Map) map).remove("last.reset");
+					}
+				}
 
 					// Dispose of tableconfigs after XXs.. saves up to 50k
 				
 				SimpleTimer.addEvent(
-						"DisposeTbaleConfigMap",
+						"DisposeTableConfigMap",
 						SystemTime.getOffsetTime(30000), 
 						new TimerEventPerformer() 
 						{
@@ -549,7 +581,7 @@ public class TableColumnManager {
 										
 									}else{
 										SimpleTimer.addEvent(
-											"DisposeTbaleConfigMap",
+											"DisposeTableConfigMap",
 											SystemTime.getOffsetTime(30000), 
 											this );
 									}
@@ -558,10 +590,22 @@ public class TableColumnManager {
 						});
 			}
 
-			Map mapTableConfig = (Map) mapTablesConfig.get("Table." + sTableID);
+			Map mapTableConfig = (Map) mapTablesConfig.get(key);
 			if (mapTableConfig == null) {
 				mapTableConfig = new HashMap();
 				mapTablesConfig.put("Table." + sTableID, mapTableConfig);
+			} else {
+				String resetIfLastResetBelowVersion = mapResetTable_Version.get(sTableID);
+				if (resetIfLastResetBelowVersion != null) {
+					String lastReset = MapUtils.getMapString(mapTableConfig,
+							"last.reset", "0.0.0.0");
+					if (Constants.compareVersions(lastReset, resetIfLastResetBelowVersion) < 0) {
+						mapTableConfig.clear();
+						mapTableConfig.put("last.reset", Constants.getBaseVersion());
+						saveTableConfigs();
+						mapResetTable_Version.remove(sTableID);
+					}
+				}
 			}
 
 			return mapTableConfig;
