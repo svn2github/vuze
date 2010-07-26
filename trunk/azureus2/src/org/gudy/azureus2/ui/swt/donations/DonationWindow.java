@@ -63,6 +63,8 @@ public class DonationWindow
 
 	private static Browser browser;
 
+	private static BrowserFunction browserFunction;
+
 	public static void checkForDonationPopup() {
 		if (shell != null) {
 			if (DEBUG) {
@@ -190,6 +192,9 @@ public class DonationWindow
 				if (parentShell != null) {
 					parentShell.setCursor(e.display.getSystemCursor(SWT.CURSOR_ARROW));
 				}
+				if (browserFunction != null && !browserFunction.isDisposed()) {
+					browserFunction.dispose();
+				}
 				shell = null;
 			}
 		});
@@ -208,20 +213,30 @@ public class DonationWindow
 				shell.setText(event.title);
 			}
 		});
+		
+		browserFunction = new BrowserFunction(browser, "sendDonationEvent") {
+			public Object function(Object[] arguments) {
 
-		browser.addStatusTextListener(new StatusTextListener() {
-			String last = null;
-
-			public void changed(StatusTextEvent event) {
 				if (shell == null || shell.isDisposed()) {
-					return;
+					return null;
+				}
+				
+				if (arguments == null) {
+					Debug.out("Invalid sendDonationEvent null ");
+					return null;
+				}
+				if (arguments.length < 1) {
+					Debug.out("Invalid sendDonationEvent length " + arguments.length + " not 1");
+					return null;
+				}
+				if (!(arguments[0] instanceof String)) {
+					Debug.out("Invalid sendDonationEvent "
+							+ (arguments[0] == null ? "NULL"
+									: arguments.getClass().getSimpleName()) + " not String");
+					return null;
 				}
 
-				String text = event.text.toLowerCase();
-				if (last != null && last.equals(text)) {
-					return;
-				}
-				last = text;
+				String text = (String) arguments[0];
 				if (text.contains("page-loaded")) {
 					pageLoadedOk = true;
 					COConfigurationManager.setParameter("donations.count",
@@ -250,7 +265,7 @@ public class DonationWindow
 						}
 					});
 				} else if (text.startsWith("open-url")) {
-					String url = event.text.substring(9);
+					String url = text.substring(9);
 					Utils.launch(url);
 				} else if (text.startsWith("set-size")) {
 					String[] strings = text.split(" ");
@@ -265,6 +280,22 @@ public class DonationWindow
 						}
 					}
 				}
+				return null;
+			}
+		};
+
+		browser.addStatusTextListener(new StatusTextListener() {
+			String last = null;
+
+			public void changed(StatusTextEvent event) {
+				String text = event.text.toLowerCase();
+				if (last != null && last.equals(text)) {
+					return;
+				}
+				last = text;
+				browserFunction.function(new Object[] {
+					text
+				});
 			}
 		});
 
