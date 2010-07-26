@@ -63,7 +63,7 @@ public class VuzeMessageBox
 
 	private Button[] buttons;
 
-	private boolean[] buttonsEnabled;
+	private Map<Integer, Boolean> buttonsEnabled = new HashMap<Integer, Boolean>();
 
 	public VuzeMessageBox(final String title, final String text,
 			final String[] buttons, final int defaultOption) {
@@ -73,8 +73,8 @@ public class VuzeMessageBox
 		this.defaultButtonPos = defaultOption;
 	}
 	
-	public void setButtonEnableStates(boolean[] _buttonsEnabled) {
-		this.buttonsEnabled = _buttonsEnabled;
+	public void setButtonEnabled(final int buttonVal, final boolean enable) {
+		buttonsEnabled.put(buttonVal, enable);
 		if (buttons == null) {
 			return;
 		}
@@ -83,14 +83,11 @@ public class VuzeMessageBox
 				if (buttons == null) {
 					return;
 				}
-				for (int i = 0; i < buttons.length; i++) {
-					Button button = buttons[i];
+				int pos = getButtonPosFromVal(buttonVal);
+				if (pos >= 0 && pos < buttons.length) {
+					Button button = buttons[pos];
 					if (button != null && !button.isDisposed()) {
-							if (i < buttonsEnabled.length) {
-								button.setEnabled(buttonsEnabled[i]);
-							} else {
-								button.setEnabled(true);
-							}
+						button.setEnabled(enable);
 					}
 				}
 			}
@@ -321,9 +318,12 @@ public class VuzeMessageBox
 				continue;
 			}
 			Button button = buttons[i] = new Button(cButtonArea, SWT.PUSH);
-			if (buttonsEnabled != null && i < buttonsEnabled.length) {
-				button.setEnabled(buttonsEnabled[i]);
+			int buttonVal = buttonVals == null || i >= buttonVals.length ? i : buttonVals[i];
+			Boolean b = buttonsEnabled.get(buttonVal);
+			if (b == null) {
+				b = Boolean.TRUE;
 			}
+			button.setEnabled(b);
 			button.setText(buttonText);
 
 			RowData rowData = new RowData();
@@ -489,20 +489,25 @@ public class VuzeMessageBox
   		}
 		}
 	}
+	
+	private int getButtonPosFromVal(int buttonVal) {
+		int pos = buttonVal;
+		if (buttonVals != null) {
+			for (int i = 0; i < buttonVals.length; i++) {
+				int val = buttonVals[i];
+				if (buttonVal == val) {
+					pos = val;
+					break;
+				}
+			}
+		}
+		return pos;
+	}
 
 	public void closeWithButtonVal(int buttonVal) {
 		synchronized (VuzeMessageBox.this) {
   		this.closed = true;
-			this.result = buttonVal;
-  		if (buttonVals != null) {
-  			for (int i = 0; i < buttonVals.length; i++) {
-					int val = buttonVals[i];
-					if (buttonVal == val) {
-						this.result = i;
-						break;
-					}
-				}
-  		}
+  		this.result = getButtonPosFromVal(buttonVal);
   		if (dlg != null) {
   			dlg.close();
   		}
