@@ -655,13 +655,8 @@ public class SWTSkinObjectBasic
 					}
 				}
 
-				if (properties.hasKey(sConfigID + ".fgcolor" + sSuffix)) {
-  				Color fg = properties.getColor(sConfigID + ".fgcolor" + sSuffix);
- 					control.setForeground(fg);
-				} else if (sSuffix.length() > 0) {
-  				Color fg = properties.getColor(sConfigID + ".fgcolor");
- 					control.setForeground(fg);
-				}
+				Color fg = getColor_SuffixWalkback(sConfigID + ".fgcolor");
+				control.setForeground(fg);
 
 				// Color,[width]
 				String sBorderStyle = properties.getStringValue(sConfigID + ".border"
@@ -1086,5 +1081,23 @@ public class SWTSkinObjectBasic
 			color = c;
 			startPoint = d;
 		}
+	}
+	
+	private Color getColor_SuffixWalkback(String id) {
+		int max = suffixes == null ? 0 : suffixes.length;
+		while (max >= 0) {
+			String suffix = "";
+  		for (int i = 0; i < max; i++) {
+  			if (suffixes[i] != null) {
+  				suffix += suffixes[i];
+  			}
+  		}
+  		Color color = properties.getColor(id + suffix);
+  		if (color != null) {
+  			return color;
+  		}
+  		max--;
+		}
+		return null;
 	}
 }
