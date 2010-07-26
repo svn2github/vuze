@@ -35,9 +35,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.config.BooleanParameter;
-import org.gudy.azureus2.ui.swt.config.IntListParameter;
-import org.gudy.azureus2.ui.swt.config.IntParameter;
+import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class ConfigSectionInterfaceTables
@@ -164,6 +162,28 @@ public class ConfigSectionInterfaceTables
   				+ "extendedErase").setLayoutData(new GridData(SWT.FILL,
   				SWT.LEFT, true, false, 2, 1));
 		}
+
+		// double-click
+		
+		label = new Label(cLook, SWT.NULL);
+		Messages.setLanguageText(label, "ConfigView.label.dm.dblclick");
+
+		String[] dblclickOptions = {
+			"ConfigView.option.dm.dblclick.play",
+			"ConfigView.option.dm.dblclick.details",
+			"ConfigView.option.dm.dblclick.show",
+		};
+
+		String dblclickLabels[] = new String[dblclickOptions.length];
+		String dblclickValues[] = new String[dblclickOptions.length];
+
+		for (int i = 0; i < dblclickOptions.length; i++) {
+
+			dblclickLabels[i] = MessageText.getString(dblclickOptions[i]);
+			dblclickValues[i] = "" + i;
+		}
+		new StringListParameter(cLook, "list.dm.dblclick", dblclickLabels,
+				dblclickValues);
 
 		return cLook;
 	}
