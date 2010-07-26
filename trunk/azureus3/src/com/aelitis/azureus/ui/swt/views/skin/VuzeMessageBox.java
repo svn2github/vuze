@@ -477,6 +477,9 @@ public class VuzeMessageBox
 		this.vuzeMessageBoxListener = l;
 	}
 
+	/**
+	 * @deprecated Since buttons can swap around, you should use {@link #closeWithButtonVal(int)}
+	 */
 	public void close(int buttonNo) {
 		synchronized (VuzeMessageBox.this) {
   		this.closed = true;
@@ -486,7 +489,26 @@ public class VuzeMessageBox
   		}
 		}
 	}
-	
+
+	public void closeWithButtonVal(int buttonVal) {
+		synchronized (VuzeMessageBox.this) {
+  		this.closed = true;
+			this.result = buttonVal;
+  		if (buttonVals != null) {
+  			for (int i = 0; i < buttonVals.length; i++) {
+					int val = buttonVals[i];
+					if (buttonVal == val) {
+						this.result = i;
+						break;
+					}
+				}
+  		}
+  		if (dlg != null) {
+  			dlg.close();
+  		}
+		}
+	}
+
 	public void addResourceBundle(Class cla, String path, String name) {
 
 		synchronized (listRBs) {
