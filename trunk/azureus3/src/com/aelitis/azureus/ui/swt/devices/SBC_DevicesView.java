@@ -331,7 +331,7 @@ public class SBC_DevicesView
 			ColumnTJ_Status.COLUMN_ID,
 			ColumnTJ_Completion.COLUMN_ID,
 		};
-		tcm.setDefaultColumnNames(TABLE_DEVICE_LIBRARY, defaultLibraryColumns);
+		tcm.setDefaultColumnNames(TABLE_TRANSCODE_QUEUE, defaultLibraryColumns);
 		
 		String[] defaultQColumns = {
 			ColumnTJ_Name.COLUMN_ID,
@@ -340,7 +340,7 @@ public class SBC_DevicesView
 			ColumnTJ_Status.COLUMN_ID,
 			ColumnTJ_Completion.COLUMN_ID,
 		};
-		tcm.setDefaultColumnNames(TABLE_TRANSCODE_QUEUE, defaultQColumns);
+		tcm.setDefaultColumnNames(TABLE_DEVICE_LIBRARY, defaultQColumns);
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
