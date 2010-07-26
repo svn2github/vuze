@@ -111,6 +111,11 @@ public class NameItem extends CoreTableColumn implements
 					}
 				});
 	}
+	
+	public void reset() {
+		super.reset();
+		COConfigurationManager.removeParameter("NameColumn.showProgramIcon");
+	}
 
 	public void refresh(TableCell cell)
 	{

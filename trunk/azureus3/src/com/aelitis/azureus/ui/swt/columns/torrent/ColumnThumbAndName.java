@@ -73,6 +73,8 @@ public class ColumnThumbAndName
 
 	private boolean wrapText;
 
+	private String tooltip;
+
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
 			CAT_ESSENTIAL,
@@ -171,6 +173,15 @@ public class ColumnThumbAndName
 								COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon")));
 					}
 				});
+	}
+	
+	public void reset() {
+		super.reset();
+		
+		COConfigurationManager.removeParameter("NameColumn.wrapText."
+				+ getTableID());
+		COConfigurationManager.removeParameter("NameColumn.showProgramIcon."
+				+ getTableID());
 	}
 
 	public void refresh(TableCell cell) {
@@ -380,8 +391,10 @@ public class ColumnThumbAndName
 		int padding = 10 + 20 + (showIcon ? cellArea.height : 0);
 		cellArea.x += padding;
 		cellArea.width -= padding;
-		GCStringPrinter.printString(gc, fileInfo.getFile(true).getName(), cellArea,
-				true, false, SWT.LEFT);
+		String s = fileInfo.getFile(true).getName();
+		boolean over = GCStringPrinter.printString(gc, s, cellArea, true, false,
+				SWT.LEFT);
+		cell.setToolTip(over ? null : s);
 	}
 
 	private void cellPaintName(TableCell cell, GC gc, Rectangle cellBounds,
@@ -397,9 +410,10 @@ public class ColumnThumbAndName
 		if (name == null)
 			name = "";
 
-		GCStringPrinter.printString(gc, name, new Rectangle(textX, cellBounds.y,
-				cellBounds.x + cellBounds.width - textX, cellBounds.height), true,
-				true, wrapText ? SWT.WRAP : SWT.NONE);
+		boolean over = GCStringPrinter.printString(gc, name, new Rectangle(textX,
+				cellBounds.y, cellBounds.x + cellBounds.width - textX,
+				cellBounds.height), true, true, wrapText ? SWT.WRAP : SWT.NONE);
+		cell.setToolTip(over ? null : name);
 	}
 
 	public String getObfusticatedText(TableCell cell) {
