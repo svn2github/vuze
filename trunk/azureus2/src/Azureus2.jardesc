@@ -231,6 +231,7 @@
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.devices"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.instancemanager"/>
         <javaElement handleIdentifier="=azuis_svn/&lt;org.gudy.azureus2.ui.common"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.ui.swt.toolbar"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.clientmessageservice.secure"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.help"/>
