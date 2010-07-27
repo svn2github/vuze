@@ -36,7 +36,9 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.*;
@@ -224,7 +226,11 @@ public class Initializer
 	public void runInSWTThread() {
 		UISwitcherUtil.calcUIMode();
 		
-		initializePlatformClientMessageContext();
+		try {
+  		initializePlatformClientMessageContext();
+		} catch (Exception e) {
+			Debug.out(e);
+		}
 		new AEThread2("cleanupOldStuff", true) {
 			public void run() {
 				cleanupOldStuff();
@@ -786,6 +792,24 @@ public class Initializer
 			clientMsgContext.addMessageListener(new DisplayListener(null));
 			clientMsgContext.addMessageListener(new ConfigListener(null));
 		}
+		PluginInitializer.getDefaultInterface().addEventListener(new PluginEventListener() {
+			public void handleEvent(PluginEvent ev) {
+				try {
+  				int type = ev.getType();
+  				String event = null;
+  				if (type == PluginEvent.PEV_PLUGIN_INSTALLED) {
+  					event = "installed";
+  				} else if (type == PluginEvent.PEV_PLUGIN_UNINSTALLED) {
+  					event = "uninstalled";
+  				}
+  				if (event != null && (ev.getValue() instanceof String)) {
+  					PlatformConfigMessenger.logPlugin(event, (String) ev.getValue());
+  				}
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+		});
 	}
 
   public static boolean

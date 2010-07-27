@@ -44,6 +44,8 @@ import com.aelitis.azureus.util.*;
 public class PlatformConfigMessenger
 {
 	public static final String LISTENER_ID = "config";
+	
+	private static final String OP_LOG_PLUGIN = "log-plugin";
 
 	private static boolean allowSendDeviceList = false;
 
@@ -179,6 +181,26 @@ public class PlatformConfigMessenger
 		PlatformMessenger.pushMessageNow(message, listener);
 	}
 
+	public static void logPlugin(String event, String pluginID) {
+		boolean send_info = COConfigurationManager.getBooleanParameter( "Send Version Info" );
+		if (!send_info) {
+			return;
+		}
+		try {
+			PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+					OP_LOG_PLUGIN, new Object[] {
+						"event",
+						event,
+						"plugin-id",
+						pluginID,
+					}, 5000);
+
+			PlatformMessenger.queueMessage(message, null);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+	}
+	
 	public static void sendUsageStats(Map stats, long timestamp, String version,
 			PlatformMessengerListener l) {
 		if (!sendStats) {
