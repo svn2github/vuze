@@ -1407,14 +1407,14 @@ public class MainWindow
 				"az2");
 
 		if (!uiClassic
-				&& !COConfigurationManager.getBooleanParameter("SpeedTest Completed")) {
+				&& !COConfigurationManager.getBooleanParameter("SpeedTest Completed")
+				&& ConfigurationChecker.isNewInstall()) {
 
 			SpeedTestSelector.runMLABTest();
 		}
 
 		if (uiClassic
-				&& !COConfigurationManager.getBooleanParameter("Wizard Completed")
-				&& (ConfigurationChecker.isNewInstall())) {
+				&& !COConfigurationManager.getBooleanParameter("Wizard Completed")) {
 
 			CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
 				public void azureusCoreRunning(AzureusCore core) {
