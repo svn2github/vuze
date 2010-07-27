@@ -5139,6 +5139,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			public void runSupport() {
 				if (!isDisposed()) {
 					table.setEnabled(enable);
+					/*
 					if (enable) {
 						Image oldImage = table.getBackgroundImage();
 						table.setBackgroundImage(null);
@@ -5147,7 +5148,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						final Image image = new Image(table.getDisplay(), 50, 50);
 						
 						GC gc = new GC(image);
-						gc.setBackground(ColorCache.getColor(gc.getDevice(), 0xff, 0xff, 0xff));
+						gc.setBackground(ColorCache.getColor(gc.getDevice(), 0xee, 0xee, 0xee));
 						gc.fillRectangle(0, 0, 50, 50);
 						gc.dispose();
 						table.addDisposeListener(new DisposeListener() {
@@ -5158,6 +5159,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						
 						table.setBackgroundImage(image);
 					}
+					*/
 				}
 			}
 		});
