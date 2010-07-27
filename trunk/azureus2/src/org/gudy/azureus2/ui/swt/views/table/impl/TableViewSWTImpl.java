@@ -3804,7 +3804,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			TableColumnOrTreeColumn[] tableColumns = table.getColumns();
 			int iAddedPosition;
 			for (iAddedPosition = 0; iAddedPosition < tableColumns.length; iAddedPosition++) {
-				if (column == tableColumns[iAddedPosition]) {
+				if (column.getColumn() == tableColumns[iAddedPosition].getColumn()) {
 					break;
 				}
 			}
