@@ -189,9 +189,9 @@ public class SWTThread {
 		}
 
 
-		display.addListener(SWT.Activate, new Listener() {
+		Listener lShowMainWindow = new Listener() {
 			public void handleEvent(Event event) {
-				if (event.detail != 1) {
+				if (event.display.getActiveShell() != null) {
 					return;
 				}
 				UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -199,7 +199,9 @@ public class SWTThread {
 					uif.bringToFront(false);
 				}
 			}
-		});
+		};
+		display.addListener(SWT.Activate, lShowMainWindow);
+		display.addListener(SWT.Selection, lShowMainWindow);
 		
 		display.addListener(SWT.Dispose, new Listener() {
 			public void handleEvent(Event event) {
