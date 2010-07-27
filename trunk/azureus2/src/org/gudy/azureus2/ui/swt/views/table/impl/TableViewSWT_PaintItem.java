@@ -44,7 +44,7 @@ public class TableViewSWT_PaintItem
 
 		if (!table.isEnabled()) {
 			// added disable affect
-			event.gc.setAlpha(192);
+			event.gc.setAlpha(100);
 		}
 
 		table.setData("inPaintItem", event.item);
