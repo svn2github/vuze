@@ -151,7 +151,7 @@ public class ToolBarView
 			};
 			addToolBarItem(item);
 
-			if ( Constants.IS_CVS_VERSION ){
+			if ( Constants.IS_CVS_VERSION && ( Constants.isWindows || Constants.isOSX )){
 				// ==stream
 				item = new ToolBarItem("stream", "image.button.play", "iconBar.stream") {
 					// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
