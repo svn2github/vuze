@@ -239,11 +239,18 @@ public class Colors implements ParameterListener {
 						colorTables.getBlue());
 
 				int lum = hslColor.getLuminence();
-				if (lum > 127)
-					lum -= 13;
-				else
+				int sat = hslColor.getSaturation();
+				int hue = hslColor.getHue();
+				if (lum > 127) {
+					lum -= 10;
+					sat = 127;
+					hue = 155;
+				} else {
 					lum += 30; // it's usually harder to see difference in darkness
+				}
 				hslColor.setLuminence(lum);
+				hslColor.setHue(hue);
+				hslColor.setSaturation(sat);
 				
 				//HSLColor blueHSL = new HSLColor();
 				//RGB rgb = blues[BLUES_DARKEST].getRGB();
