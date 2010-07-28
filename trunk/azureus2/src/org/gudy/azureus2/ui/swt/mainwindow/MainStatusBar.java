@@ -609,12 +609,13 @@ public class MainStatusBar
 			}
 		});
 		
-		COConfigurationManager.addAndFireParameterListener("User Mode", new ParameterListener() {
+		COConfigurationManager.addAndFireParameterListener("status.rategraphs",
+				new ParameterListener() {
 			public void parameterChanged(String parameterName) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
-						int userMode = COConfigurationManager.getIntParameter("User Mode");
-						if (userMode > 0) {
+						boolean doRateGraphs = COConfigurationManager.getBooleanParameter("status.rategraphs");
+						if (doRateGraphs) {
 							if (imgRec == null || imgRec.isDisposed()) {
   							imgRec = new Image(display, 100, 20);
   							GC gc = new GC(imgRec);
