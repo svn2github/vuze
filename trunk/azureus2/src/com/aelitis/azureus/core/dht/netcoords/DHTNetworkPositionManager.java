@@ -148,7 +148,8 @@ DHTNetworkPositionManager
 		
 		synchronized( providers ){
 	
-			boolean	found = false;
+			boolean						found 		= false;
+			DHTNetworkPositionProvider	type_found	= null;
 			
 			for ( DHTNetworkPositionProvider p: providers ){
 				
@@ -157,10 +158,21 @@ DHTNetworkPositionManager
 					found = true;
 					
 					break;
+					
+				}else if ( p.getPositionType() == provider.getPositionType()){
+					
+					type_found = p;
 				}
 			}
 			
 			if ( !found ){
+				
+				if ( type_found != null ){
+					
+					Debug.out( "Registration of " + provider + " found previous provider for same position type, removing it" );
+					
+					unregisterProviderSupport( type_found );
+				}
 				
 				DHTNetworkPositionProvider[]	new_providers = new DHTNetworkPositionProvider[providers.length + 1 ];
 				
@@ -209,13 +221,33 @@ DHTNetworkPositionManager
 	unregisterProvider(
 		DHTNetworkPositionProvider	provider )
 	{
-		boolean	fire_removed = false;
+		if ( unregisterProviderSupport( provider )){
+			
+			for ( DHTNetworkPositionProviderListener l: provider_listeners ){
+				
+				try{
+					
+					l.providerRemoved( provider );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+	}
+	
+	private static boolean
+	unregisterProviderSupport(
+		DHTNetworkPositionProvider	provider )
+	{
+		boolean	removed = false;
 		
 		synchronized( providers ){
 	
 			if ( providers.length == 0 ){
 				
-				return;
+				return( false );
 			}
 			
 			DHTNetworkPositionProvider[]	new_providers = new DHTNetworkPositionProvider[providers.length - 1 ];
@@ -239,24 +271,11 @@ DHTNetworkPositionManager
 			
 				providers = new_providers;
 				
-				fire_removed = true;
+				removed = true;
 			}
 		}
-		
-		if ( fire_removed ){
-			
-			for ( DHTNetworkPositionProviderListener l: provider_listeners ){
-				
-				try{
-					
-					l.providerRemoved( provider );
-					
-				}catch( Throwable e ){
-					
-					Debug.out( e );
-				}
-			}
-		}
+
+		return( removed );
 	}
 	
 	public static DHTNetworkPositionProvider
