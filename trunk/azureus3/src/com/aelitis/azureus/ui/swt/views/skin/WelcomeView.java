@@ -45,10 +45,24 @@ import com.aelitis.azureus.util.ContentNetworkUtils;
 public class WelcomeView
 	extends SkinView
 {
+	private static boolean waitLoadingURL = true;
+	
+	private static WelcomeView instance;
+
 	private SWTSkinObjectBrowser browserSkinObject;
+
+	private SWTSkinObject skinObject;
+
+	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
+		instance = null;
+		return super.skinObjectDestroyed(skinObject, params);
+	}
 
 	public Object skinObjectInitialShow(final SWTSkinObject skinObject,
 			Object params) {
+		
+		this.skinObject = skinObject;
+		instance = this;
 		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
 				SkinConstants.VIEWID_BROWSER_WELCOME, soMain);
 
@@ -62,15 +76,8 @@ public class WelcomeView
 		});
 
 		COConfigurationManager.setParameter("v3.Show Welcome", false);
-
-		Object o = skinObject.getData("CreationParams");
-		if (o instanceof String) {
-			browserSkinObject.setURL((String) o);
-		} else {
-			String sURL = ContentNetworkUtils.getUrl(
-					ConstantsVuze.getDefaultContentNetwork(), ContentNetwork.SERVICE_WELCOME);
-			browserSkinObject.setURL(sURL);
-		}
+		
+		openURL();
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		MdiEntry entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_WELCOME);
@@ -84,5 +91,26 @@ public class WelcomeView
 		});
 
 		return null;
+	}
+
+	private void openURL() {
+		if (waitLoadingURL) {
+			return;
+		}
+		Object o = skinObject.getData("CreationParams");
+		if (o instanceof String) {
+			browserSkinObject.setURL((String) o);
+		} else {
+			String sURL = ContentNetworkUtils.getUrl(
+					ConstantsVuze.getDefaultContentNetwork(), ContentNetwork.SERVICE_WELCOME);
+			browserSkinObject.setURL(sURL);
+		}
+	}
+
+	public static void setWaitLoadingURL(boolean waitLoadingURL) {
+		WelcomeView.waitLoadingURL = waitLoadingURL;
+		if (!waitLoadingURL && instance != null) {
+			instance.openURL();
+		}
 	}
 }

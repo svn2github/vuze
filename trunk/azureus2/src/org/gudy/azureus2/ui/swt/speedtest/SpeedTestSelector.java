@@ -110,7 +110,7 @@ SpeedTestSelector
 
 			wizard.close();
 
-			runMLABTest();
+			runMLABTest(null);
 			
 			//new ConfigureWizard( false, ConfigureWizard.WIZARD_MODE_SPEED_TEST_AUTO );
 			
@@ -122,14 +122,14 @@ SpeedTestSelector
 		}
 	}
 
-	public static void runMLABTest() {
+	public static void runMLABTest(final Runnable runWhenClosed) {
 		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
 				UIFunctionsManager.getUIFunctions().installPlugin("mlab",
 						"dlg.install.mlab", new UIFunctions.actionListener() {
 							public void actionComplete(Object result) {
 								if (result instanceof Boolean) {
-									_runMLABTest();
+									_runMLABTest(runWhenClosed);
 								} else {
 
 									try {
@@ -138,7 +138,9 @@ SpeedTestSelector
 										Debug.out(error);
 
 									} finally {
-
+										if (runWhenClosed != null) {
+											runWhenClosed.run();
+										}
 									}
 								}
 							}
@@ -147,7 +149,7 @@ SpeedTestSelector
 		});
 	}
 	
-	private static void _runMLABTest() {
+	private static void _runMLABTest(final Runnable runWhenClosed) {
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
 				"mlab");
 		try {
@@ -164,6 +166,10 @@ SpeedTestSelector
 						// For now, show only once, with no reprompt (even if they cancel).
 						// They can use the menu
 						COConfigurationManager.setParameter("SpeedTest Completed", true);
+
+						if (runWhenClosed != null) {
+							runWhenClosed.run();
+						}
 						return null;
 					}
 
@@ -177,6 +183,9 @@ SpeedTestSelector
 		} catch (Throwable e) {
 
 			Debug.out(e);
+			if (runWhenClosed != null) {
+				runWhenClosed.run();
+			}
 		}
 	}
 }

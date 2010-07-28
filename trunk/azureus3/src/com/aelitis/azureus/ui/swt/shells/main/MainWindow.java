@@ -1410,7 +1410,13 @@ public class MainWindow
 				&& !COConfigurationManager.getBooleanParameter("SpeedTest Completed")
 				&& ConfigurationChecker.isNewInstall()) {
 
-			SpeedTestSelector.runMLABTest();
+			SpeedTestSelector.runMLABTest(new AERunnable() {
+				public void runSupport() {
+					WelcomeView.setWaitLoadingURL(false);
+				}
+			});
+		} else {
+			WelcomeView.setWaitLoadingURL(false);
 		}
 
 		if (uiClassic
