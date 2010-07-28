@@ -39,6 +39,8 @@ FeatureAvailability
 	
 	private static final long	FT_ENABLE_INTERNAL_FEATURES			= 0x0000000000000100;
 	
+	private static final long	FT_TRIGGER_SPEED_TEST_V1			= 0x0000000000000200;
+	
 	private static VersionCheckClient vcc = VersionCheckClient.getSingleton();
 	
 	/*
@@ -117,6 +119,14 @@ FeatureAvailability
 	allowAllFEClients()
 	{
 		final boolean result = ( vcc.getFeatureFlags() & FT_ENABLE_ALL_FE_CLIENTS ) != 0;
+		
+		return( result );
+	}
+	
+	public static boolean
+	triggerSpeedTestV1()
+	{
+		final boolean result = ( vcc.getFeatureFlags() & FT_TRIGGER_SPEED_TEST_V1 ) != 0;
 		
 		return( result );
 	}

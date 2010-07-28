@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.*;
@@ -79,6 +80,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -1402,20 +1404,55 @@ public class MainWindow
 
 			uiInitializer.initializationComplete();
 		}
-							
-		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals(
-				"az2");
+			
+		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 
-		if (!uiClassic
-				&& !COConfigurationManager.getBooleanParameter("SpeedTest Completed")
-				&& ConfigurationChecker.isNewInstall()) {
+		boolean	run_speed_test = false;
 
-			SpeedTestSelector.runMLABTest(new AERunnable() {
-				public void runSupport() {
-					WelcomeView.setWaitLoadingURL(false);
+		if (!uiClassic && !COConfigurationManager.getBooleanParameter("SpeedTest Completed")){
+			
+			
+			if ( ConfigurationChecker.isNewInstall()){
+				
+				run_speed_test = true;
+				
+			}else if ( FeatureAvailability.triggerSpeedTestV1()){
+				
+				long	upload_limit	= COConfigurationManager.getLongParameter("Max Upload Speed KBs" );
+				boolean	auto_up			= COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY );
+				
+				if ( auto_up ){
+					
+					if ( upload_limit <= 18 ){
+						
+						run_speed_test = true;
+					}
+				}else{
+					
+					boolean up_seed_limit	= COConfigurationManager.getBooleanParameter("enable.seedingonly.upload.rate" );
+				
+					if ( upload_limit == 0 && !up_seed_limit ){
+						
+						run_speed_test = true;
+					}
 				}
-			});
-		} else {
+			}
+		}
+		
+		
+		if ( run_speed_test ){
+
+			SpeedTestSelector.runMLABTest(
+				new AERunnable() 
+				{
+					public void 
+					runSupport() 
+					{
+						WelcomeView.setWaitLoadingURL(false);
+					}
+				});
+		}else{
+			
 			WelcomeView.setWaitLoadingURL(false);
 		}
 
