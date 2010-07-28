@@ -187,8 +187,10 @@ public class TableViewSWT_EraseItem
 				event.gc.setClipping(drawBounds);
 				//System.out.println(bounds.width);
 			}
-			event.gc.fillRectangle(drawBounds);
-			event.detail &= ~SWT.BACKGROUND;
+			if (color != null) {
+				event.gc.fillRectangle(drawBounds);
+				event.detail &= ~SWT.BACKGROUND;
+			}
 		}
 		
 		if ((event.detail & SWT.SELECTED) > 0 && !table.isFocusControl()) {
