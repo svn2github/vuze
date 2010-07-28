@@ -582,6 +582,7 @@ SubscriptionManagerUI
 						
 						sort_order += 1000*num_unsubscribed + num_subscribed;
 						
+						cell.setMarginHeight(0);
 						cell.setGraphic( graphic );
 						cell.setToolTip( tooltip );
 						
