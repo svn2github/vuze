@@ -1886,7 +1886,7 @@ public class TorrentUtil {
 						DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
 						if (fileIndex < fileInfos.length) {
 							DiskManagerFileInfo fileInfo = fileInfos[fileIndex];
-			    		if (!canStart && fileInfo.isSkipped()) {
+			    		if (!canStart && (fileInfo.isSkipped() ||  ManagerUtils.isStartable(dm))) {
 			    			canStart = true;
 			    		}
 			    		
