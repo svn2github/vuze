@@ -209,8 +209,10 @@ public class TableViewSWT_PaintItem
 			if (text.length() > 0) {
 				int ofsx = 0;
 				Image image = cell.getIcon();
+				Rectangle imageBounds = null;
 				if (image != null && !image.isDisposed()) {
-					int ofs = image.getBounds().width;
+					imageBounds = image.getBounds();
+					int ofs = imageBounds.width;
 					ofsx += ofs;
 					cellBounds.x += ofs;
 					cellBounds.width -= ofs;
@@ -251,6 +253,17 @@ public class TableViewSWT_PaintItem
 
 					if (cell.getTableColumn().getPreferredWidth() < size.x) {
 						cell.getTableColumn().setPreferredWidth(size.x);
+					}
+					
+					if (imageBounds != null) {
+						int drawToY = cellBounds.y + (cellBounds.height / 2)
+								- (imageBounds.height / 2);
+						if ((style & SWT.RIGHT) > 0) {
+							int drawToX = cellBounds.x + cellBounds.width - size.x;
+							event.gc.drawImage(image, drawToX, drawToY);
+						} else {
+							event.gc.drawImage(image, cellBounds.x - imageBounds.width - 3, drawToY);
+						}
 					}
 				} else {
 					cell.setDefaultToolTip(null);

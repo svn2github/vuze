@@ -3,10 +3,16 @@
  */
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.graphics.Image;
+
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import com.aelitis.azureus.ui.common.table.TableCellCore;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author TuxPaper
@@ -21,12 +27,20 @@ public class ColumnTorrentSpeed
 
 	public static final String COLUMN_ID = "torrentspeed";
 
+	private Image imgUp;
+
+	private Image imgDown;
+
 	public ColumnTorrentSpeed(String tableID) {
 		super(COLUMN_ID, 80, tableID);
 		setAlignment(ALIGN_TRAIL);
 		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
     setUseCoreDataSource(false);
+    
+    ImageLoader imageLoader = ImageLoader.getInstance();
+    imgUp = imageLoader.getImage("image.torrentspeed.up");
+    imgDown = imageLoader.getImage("image.torrentspeed.down");
 	}
 	
 	public void fillTableColumnInfo(TableColumnInfo info) {
@@ -52,11 +66,12 @@ public class ColumnTorrentSpeed
       iState = dm.getState();
       if (iState == Download.ST_DOWNLOADING) {
       	value = dm.getStats().getDownloadAverage();
-      	prefix = "\u21D3 ";
+      	((TableCellSWT)cell).setIcon(imgDown);
       } else if (iState == Download.ST_SEEDING) {
       	value = dm.getStats().getUploadAverage();
-      	prefix = "\u21D1 ";
+      	((TableCellSWT)cell).setIcon(imgUp);
       } else {
+      	((TableCellSWT)cell).setIcon(null);
       	value = 0;
       }
       sortValue = (value << 4) | iState;
