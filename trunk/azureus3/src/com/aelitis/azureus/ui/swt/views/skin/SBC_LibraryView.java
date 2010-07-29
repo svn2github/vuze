@@ -213,7 +213,7 @@ public class SBC_LibraryView
 							if (stats.numComplete + stats.numIncomplete != 1) {
 								id += ".p";
 							}
-							String s = MessageText.getString("library.all.header",
+							String s = MessageText.getString(id,
 									new String[] {
 								String.valueOf(stats.numComplete + stats.numIncomplete),
 								String.valueOf(stats.numSeeding + stats.numDownloading),
@@ -224,7 +224,7 @@ public class SBC_LibraryView
 							if (stats.numUnOpened != 1) {
 								id += ".p";
 							}
-							String s = MessageText.getString("library.unopened.header",
+							String s = MessageText.getString(id,
 									new String[] {
 								String.valueOf(stats.numUnOpened),
 							});
