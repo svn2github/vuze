@@ -5,9 +5,29 @@ VUZE CHANGELOG
 
 FEATURE: Core | Handle "bc://" URLs [TuxPaper]
 FEATURE: UI   | Added [Reset] button to Torrent->Rename.. dialog [TuxPaper]
+FEATURE: Core | Switched to piece-reordering based file storage on OSX by default (option for other OS) [Parg]
+FEATURE: Core | Recover out-of-order pieces on recheck [Parg]
+FEATURE: Core | Added numeric file priorities to allow more than just 'high' and 'normal' priorities [Parg]
+FEATURE: Core | Basic streaming playback support, relegated to CVS only on release due to lack of time to tidy up UI [Parg]
+FEATURE: Core | New speed test [Parg,Tux]
+FEATURE: Core | Bias upload to incomplete downloads [Parg]
 
-BUGFIX: Core | Better handle torrents with valid UTF8 name, but invalid (to user's locale) non-UTF name. [TuxPaper]
+CHANGE: Core  | Proxy UDP tracker conns through socks when enabled [Parg]
+CHANGE: Core  | Clear out unused subscriptions [Parg]
+CHANGE: UI    | Show zero length files as completed rather than 0% done [Parg]
+CHANGE: Core  | Grab default SSL certs from Java on init [Parg]
+CHANGE: Plug  | Various enhancements to facilitate the writing of cache peers [Parg]
+CHANGE: Core  | Some packeting optimisations with crypto [Parg]
+CHANGE: Core  | Fixed some issues to allow plugins to be network position providers [Parg]
 
+BUGFIX: Core  | Better handle torrents with valid UTF8 name, but invalid (to user's locale) non-UTF name. [TuxPaper]
+BUGFIX: Core  | Fix slow core closedown caused by subscription updates [Parg]
+BUGFIX: Core  | Fix a few places where only subscribed subscriptions should be used [Parg]
+BUGFIX: Core  | Fix webseed handling for files bigger than 2GB (ish) [Parg]
+BUGFIX: Core  | Ensure all file handles released when closing down streams [Parg]
+BUGFIX: Core  | Removed double timestamps from some logs [Parg]
+BUGFIX: Core  | For trackerless torrents fix to use cached peers on startup [Parg]
+BUGFIX: Core  | Fix bug where DHT wasn't re-publishing values correctly [Parg]
 
 2010.06.04 | Vuze 4.4.0.6
 
