@@ -1308,16 +1308,16 @@ CoreUpdateChecker
 			//	3) 2.4.0.1_B12 -> 2.4.0.2  and 2.4.0.1_B14
 		
 			// but NOT
-			//  1) 2.4.0.0 	   -> 2.4.0.1_CVS or 2.4.0.1_B23
+			//  1) 2.4.0.0 	   -> 2.4.0.1_CVS
 			//  2) 2.4.0.1_CVS -> 2.4.0.1_B23
 		
 			// for inc values: 0 = not CVS, -1 = _CVS, > 0 = Bnn
 
 		int	major_comp = Constants.compareVersions( current_base, latest_base );
 		
-		if ( major_comp < 0 && latest_inc == 0 ){
-			
-			return( true );		// latest is higher version and not CVS
+		if ( major_comp < 0 && latest_inc >= 0 ){
+						
+			return( true );		// latest is higher version and not CVS			
 		}
 		
 			// same version, both are B versions and latest B is more recent
@@ -1336,7 +1336,7 @@ CoreUpdateChecker
 				{ "2.4.0.1_B12", 	"2.4.0.1_B34",	"true" },
 				{ "2.4.0.1_B12", 	"2.4.0.1_B6",	"false" },
 				{ "2.4.0.0", 		"2.4.0.1_CVS",	"false" },
-				{ "2.4.0.0", 		"2.4.0.1_B12",	"false" },
+				{ "2.4.0.0", 		"2.4.0.1_B12",	"true" },
 				{ "2.4.0.0", 		"2.4.0.0"	,	"false" },
 				{ "2.4.0.1_CVS", 	"2.4.0.1_CVS",	"false" },
 				{ "2.4.0.1_B2", 	"2.4.0.1_B2",	"false" },
