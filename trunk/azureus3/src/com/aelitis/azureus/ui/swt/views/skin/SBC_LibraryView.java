@@ -718,8 +718,12 @@ public class SBC_LibraryView
 			}
 
 			public void downloadManagerAdded(DownloadManager dm) {
+				dm.addListener(dmListener, false);
+				recountUnopened();
+
 				downloadManagerAdded(dm, statsNoLowNoise);
 				downloadManagerAdded(dm, statsWithLowNoise);
+				refreshAllLibraries();
 			}
 
 			public void downloadManagerAdded(DownloadManager dm, stats stats) {
@@ -728,9 +732,6 @@ public class SBC_LibraryView
 					return;
 				}
 
-				dm.addListener(dmListener, false);
-
-				recountUnopened();
 				if (dm.getAssumedComplete()) {
 					stats.numComplete++;
 					if (dm.getState() == DownloadManager.STATE_SEEDING) {
@@ -745,7 +746,6 @@ public class SBC_LibraryView
 						dm.setUserData("wasDownloading", Boolean.FALSE);
 					}
 				}
-				refreshAllLibraries();
 			}
 		}, false);
 		List downloadManagers = gm.getDownloadManagers();
