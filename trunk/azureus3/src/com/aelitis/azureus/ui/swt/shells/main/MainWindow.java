@@ -1442,7 +1442,7 @@ public class MainWindow
 		
 		if ( run_speed_test ){
 
-			SpeedTestSelector.runMLABTest(
+			SpeedTestSelector.runMLABTest(false,
 				new AERunnable() 
 				{
 					public void 
