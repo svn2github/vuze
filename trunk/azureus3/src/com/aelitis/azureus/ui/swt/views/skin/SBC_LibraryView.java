@@ -198,13 +198,21 @@ public class SBC_LibraryView
 						stats stats = viewMode == MODE_SMALLTABLE
 						? statsWithLowNoise : statsNoLowNoise;
 						if (torrentFilterMode == TORRENTS_INCOMPLETE) {
-							String s = MessageText.getString("library.incomplete.header",
+							String id = "library.incomplete.header";
+							if (stats.numDownloading != 1) {
+								id += ".p";
+							}
+							String s = MessageText.getString(id,
 									new String[] {
 								String.valueOf(stats.numDownloading),
 								String.valueOf(stats.numIncomplete - stats.numDownloading),
 							});
 							soLibraryInfo.setText(s);
 						} else if (torrentFilterMode == TORRENTS_ALL) {
+							String id = "library.all.header";
+							if (stats.numComplete + stats.numIncomplete != 1) {
+								id += ".p";
+							}
 							String s = MessageText.getString("library.all.header",
 									new String[] {
 								String.valueOf(stats.numComplete + stats.numIncomplete),
@@ -212,6 +220,10 @@ public class SBC_LibraryView
 							});
 							soLibraryInfo.setText(s);
 						} else if (torrentFilterMode == TORRENTS_UNOPENED) {
+							String id = "library.unopened.header";
+							if (stats.numUnOpened != 1) {
+								id += ".p";
+							}
 							String s = MessageText.getString("library.unopened.header",
 									new String[] {
 								String.valueOf(stats.numUnOpened),
