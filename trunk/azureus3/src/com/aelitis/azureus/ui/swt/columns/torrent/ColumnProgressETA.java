@@ -16,6 +16,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -28,11 +29,13 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
+import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -213,7 +216,12 @@ public class ColumnProgressETA
 		long eta = getETA(cell);
 		long speed = getSpeed(ds);
 
+		//System.out.println("REFRESH " + sortValue + ";" + ds);
 		boolean sortChanged = cell.setSortValue(sortValue);
+		
+		if (sortChanged) {
+			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
+		}
 
 		long lastETA = 0;
 		long lastSpeed = 0;
@@ -625,7 +633,7 @@ public class ColumnProgressETA
 		}
 		final Object dataSource = ((TableRowCore) event.row).getDataSource(true);
 		if (dataSource instanceof DiskManagerFileInfo) {
-			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) dataSource;
+			final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) dataSource;
 			Rectangle hilowBounds = (Rectangle) event.row.getData("hilowBounds");
 			if (event.button == 1 && hilowBounds != null
 					&& hilowBounds.contains(event.x, event.y)) {
@@ -667,6 +675,8 @@ public class ColumnProgressETA
 				itemNormal.setSelection(fileInfo.getPriority() == 0);
 
 				new MenuItem(menu, SWT.SEPARATOR);
+				
+				boolean canStart = fileInfo.isSkipped() || fileInfo.getDownloadManager().getState() == DownloadManager.STATE_STOPPED;
 
 				MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
 				Messages.setLanguageText(itemStop, "v3.MainWindow.button.stop");
@@ -678,19 +688,23 @@ public class ColumnProgressETA
 								});
 					}
 				});
-				itemStop.setEnabled(!fileInfo.isSkipped());
+				itemStop.setEnabled(!canStart);
 
 				MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
 				Messages.setLanguageText(itemStart, "v3.MainWindow.button.start");
 				itemStart.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
+						if (fileInfo.getDownloadManager().getState() == DownloadManager.STATE_STOPPED) {
+							TorrentUtil.queueDataSources(new Object[] { dataSource }, true);
+						}
+						
 						FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_NORMAL,
 								new Object[] {
 									dataSource
 								});
 					}
 				});
-				itemStart.setEnabled(fileInfo.isSkipped());
+				itemStart.setEnabled(canStart);
 
 				new MenuItem(menu, SWT.SEPARATOR);
 
