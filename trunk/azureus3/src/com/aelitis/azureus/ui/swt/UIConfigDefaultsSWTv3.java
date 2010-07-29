@@ -168,7 +168,7 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("ToolBar.showText", true);
 		defaults.addParameter("burninfo.shownonce", false);
 		
-		defaults.addParameter("Table.extendedErase", true);
+		defaults.addParameter("Table.extendedErase", !Constants.isWindowsXP);
 		defaults.addParameter("Table.useTree", true);
 		
 		// by default, turn off some slidey warning
