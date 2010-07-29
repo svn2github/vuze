@@ -2442,7 +2442,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				} else {
 					dataSourcesToAdd.add(dataSource);
 					if (DEBUGADDREMOVE) {
-						debug("Queued 1 dataSource to add.  Total Additions Queued: " + dataSourcesToAdd.size());
+						debug("Queued 1 dataSource to add.  Total Additions Queued: " + dataSourcesToAdd.size() + "; already=" + sortedRows.size());
 					}
 					refreshenProcessDataSourcesTimer();
 				}
@@ -2666,8 +2666,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				// We used to check if row already existed in sortedRows, but this
 				// was always false, assuming dataSources only contains newly created
 				// rows
-				//if (row == null) || sortedRows.indexOf(row) >= 0) {
-				if (row == null || row.isRowDisposed()) {
+				// ABOVE IS WRONG! It's not always false.  There's a case where
+				// table is filled, cleared, filled again
+				if ((row == null) || row.isRowDisposed() || sortedRows.indexOf(row) >= 0) {
+				//if (row == null || row.isRowDisposed()) {
 					continue;
 				}
 				if (sortColumn != null) {
@@ -3104,6 +3106,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (DEBUGADDREMOVE) {
+					debug("removeAll (SWT)");
+				}
+
 				if (table != null && !table.isDisposed()) {
 					table.removeAll();
 				}
