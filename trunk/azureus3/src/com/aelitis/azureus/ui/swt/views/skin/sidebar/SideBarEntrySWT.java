@@ -897,9 +897,11 @@ public class SideBarEntrySWT
 			return;
 		}
 
-		if (swtItem != null) {
+		if (swtItem != null && !Constants.isOSX) {
 			// In theory, the disposal of swtItem will trigger the disposal of the
 			// children.  Let's force it just in case
+			// On OSX this will cause disposal confusion in SWT, and possibly result
+			// in a SIGSEGV crash.
 			TreeItem[] children = swtItem.getItems();
 			for (TreeItem child : children) {
 				MdiEntry entry = (MdiEntry) child.getData("MdiEntry");
