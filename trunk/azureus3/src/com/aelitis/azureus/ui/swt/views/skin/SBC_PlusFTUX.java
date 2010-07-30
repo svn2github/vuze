@@ -103,8 +103,8 @@ public class SBC_PlusFTUX
 	private void buildURL(boolean forceSet) {
 		long remainingUses = FeatureManagerUI.getRemaining();
 
-		String suffix = "?mode=" + FeatureManagerUI.getMode()
-				+ "&sourceRef=" + UrlUtils.encode(sRef) + "&remaining=" + remainingUses;
+		String suffix = "?mode=" + FeatureManagerUI.getMode() + "&sourceRef="
+				+ UrlUtils.encode(sRef + "-/plus/ftux") + "&remaining=" + remainingUses;
 		String newUrl = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
 				"plus-ftux.start" + suffix, false);
 		if (!forceSet && newUrl.equals(url)) {

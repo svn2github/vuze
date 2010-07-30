@@ -107,9 +107,9 @@ public class SBC_BurnFTUX
 	private void buildURL(boolean forceSet) {
 		long remainingUses = FeatureManagerUI.getRemaining();
 
-		String suffix = "?view=" + entryID + "&mode="
-				+ FeatureManagerUI.getMode() + "&sourceRef="
-				+ UrlUtils.encode(sRef) + "&remaining=" + remainingUses;
+		String suffix = "?view=" + entryID + "&mode=" + FeatureManagerUI.getMode()
+				+ "&sourceRef=" + UrlUtils.encode(sRef + "-/plus/ftux/dvd")
+				+ "&remaining=" + remainingUses;
 		String newUrl = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
 				"burn_ftux.start" + suffix, false);
 		if (!forceSet && newUrl.equals(url)) {
