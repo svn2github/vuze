@@ -646,8 +646,15 @@ StringInterner
 			{
 				URL my = getURL();
 				URL other = ((WeakURLEntry) obj).getURL();
+				
+				if ( my == other ){
+					return( true );
+				}
+				if ( my == null || other == null ){
+					return( false );
+				}
 				// use string compare as URL.equals tries to resolve hostnames
-				return my == null ? false : my.toExternalForm().equals(other.toExternalForm());
+				return my.toExternalForm().equals(other.toExternalForm());
 			}
 			return false;
 		}
