@@ -582,7 +582,7 @@ public class Initializer
 				Debug.out(e);
 			}
 
-			if (Constants.IS_CVS_VERSION) {
+			if (Constants.IS_CVS_VERSION && !Constants.isOSX) {
   			Utils.execSWTThread(new AERunnable() {
   				public void runSupport() {
   					SWTThread instance = SWTThread.getInstance();
