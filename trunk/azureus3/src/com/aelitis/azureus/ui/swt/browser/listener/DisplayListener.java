@@ -1,6 +1,8 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.dnd.*;
@@ -27,12 +29,15 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.*;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.SBC_BurnFTUX;
+import com.aelitis.azureus.ui.swt.views.skin.SBC_PlusFTUX;
 import com.aelitis.azureus.util.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -316,6 +321,25 @@ public class DisplayListener
 		}
 		if (sourceRef != null) {
 			ContentNetworkUtils.setSourceRef(tabID, sourceRef, false);
+
+			if (MultipleDocumentInterface.SIDEBAR_SECTION_PLUS.equals(tabID) ||
+					MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO.equals(tabID)) {
+				Pattern pattern = Pattern.compile("http.*//[^/]+/([^.]+)");
+				Matcher matcher = pattern.matcher(sourceRef);
+				
+				String sourceRef2;
+				if (matcher.find()) {
+					sourceRef2 = matcher.group(1);
+				} else {
+					sourceRef2 = sourceRef;
+				}
+				
+				if (MultipleDocumentInterface.SIDEBAR_SECTION_PLUS.equals(tabID)) {
+  				SBC_PlusFTUX.setSourceRef(sourceRef2);
+				} else {
+					SBC_BurnFTUX.setSourceRef(sourceRef2);
+				}
+			}
 		}
 		mdi.showEntryByID(tabID);
 	}
