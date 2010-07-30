@@ -22,6 +22,8 @@ package com.aelitis.azureus.ui.swt.browser.msg;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.browser.*;
 
@@ -92,6 +94,7 @@ public class MessageDispatcherSWT
   				
   
   				BrowserMessage message = new BrowserMessage((String) args[0], (String) args[1], params);
+  				message.setReferer(browser.getUrl());
   				dispatch(message);
   				return null;
   			}
