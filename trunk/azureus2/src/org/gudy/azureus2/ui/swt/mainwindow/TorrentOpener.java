@@ -163,8 +163,7 @@ public class TorrentOpener {
 		});
 	}
 
-  public static void openDroppedTorrents(DropTargetEvent event,
-			final boolean bAllowShareAdd) {
+  public static void openDroppedTorrents(DropTargetEvent event, boolean deprecated_sharing_param ){
 		if (event.data == null)
 			return;
 
@@ -205,14 +204,8 @@ public class TorrentOpener {
 							
 							
 							try {
-								if (!TorrentUtils.isTorrentFile(filename) && bAllowShareAdd) {
-									Logger.log(new LogEvent(LogIDs.GUI,
-													"openDroppedTorrents: file not a torrent file, sharing"));
-									ShareUtils.shareFile(filename);
-								} else {
-									openTorrentWindow(null, new String[] { filename },
-											bOverrideToStopped);
-								}
+								openTorrentWindow(null, new String[] { filename }, bOverrideToStopped);
+				
 							} catch (Exception e) {
 								Logger.log(new LogAlert(LogAlert.REPEATABLE,
 										"Torrent open fails for '" + filename + "'", e));
@@ -224,22 +217,7 @@ public class TorrentOpener {
 					
 					String dir_name = source.getAbsolutePath();
 
-					if (!bAllowShareAdd) {
-						openTorrentWindow(dir_name, null, bOverrideToStopped);
-					} else {
-						String drop_action = COConfigurationManager.getStringParameter(
-								"config.style.dropdiraction" );
-	
-						if (drop_action.equals("1")) {
-							ShareUtils.shareDir(dir_name);
-						} else if (drop_action.equals("2")) {
-							ShareUtils.shareDirContents(dir_name, false);
-						} else if (drop_action.equals("3")) {
-							ShareUtils.shareDirContents(dir_name, true);
-						} else {
-							openTorrentWindow(dir_name, null, bOverrideToStopped);
-						}
-					}
+					openTorrentWindow(dir_name, null, bOverrideToStopped);
 				}
 			}
 		} else if (event.data instanceof URLTransfer.URLType) {

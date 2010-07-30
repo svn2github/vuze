@@ -287,7 +287,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 				decisions_parameter_listener);
 
 		// drag-drop
-
+		/* gone to comply with whateverooo
 		label = new Label(cArea, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.style.dropdiraction");
 
@@ -306,6 +306,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		}
 		new StringListParameter(cArea, "config.style.dropdiraction",
 				dropLabels, dropValues);
+		*/
 		
 		// reset associations
 
