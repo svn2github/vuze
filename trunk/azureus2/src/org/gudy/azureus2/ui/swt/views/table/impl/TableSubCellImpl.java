@@ -331,6 +331,9 @@ public class TableSubCellImpl
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				Rectangle r = getBounds();
+				if (r == null) {
+					return;
+				}
 				row.getItem().getParent().redraw(r.x, r.y, r.width, r.height, true);
 			}
 		});
