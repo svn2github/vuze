@@ -20,6 +20,7 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
@@ -248,7 +249,15 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 	}
 
 	public void setExpanded(boolean expanded) {
+		boolean wasExpanded = item.getExpanded();
 		item.setExpanded(expanded);
+		if (expanded != wasExpanded) {
+			Event event = new Event();
+			event.widget = item.getParent();
+			event.item = item;
+			event.type = expanded ? SWT.Expand : SWT.Collapse;
+			item.getParent().notifyListeners(event.type, event);
+		}
 	}
 
 	public void setFont(Font font) {
