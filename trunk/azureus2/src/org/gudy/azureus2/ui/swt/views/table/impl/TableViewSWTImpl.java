@@ -1042,6 +1042,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   					return;
   				}
   				row.setExpanded(event.type == SWT.Expand ? true : false);
+  				Utils.execSWTThreadLater(0, new AERunnable() {
+						public void runSupport() {
+							visibleRowsChanged();
+						}
+					});
   			}
   		};
   		table.addListener(SWT.Expand, listenerExpandCollapse);
