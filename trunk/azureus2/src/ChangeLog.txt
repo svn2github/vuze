@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2010.xx.xx | Vuze 4.4.0.7
+2010.07.31 | Vuze 4.4.1.0
 
 FEATURE: Core | Handle "bc://" URLs [TuxPaper]
 FEATURE: Core | Switched to piece-reordering based file storage on OSX by default (option for other OS) [Parg]

@@ -55,8 +55,7 @@ extract messagebundles
 
 	<!-- METHODS -->
 
-	<!-- <target name="run" depends="clean,preprocess,package,docs,postprocess" description="For automated builds"> -->
-	<target name="run" depends="clean,preprocess,package,postprocess" description="For automated builds">
+	<target name="run" depends="clean,preprocess,package,docs,postprocess" description="For automated builds">
 		<echo message="Build DONE."/>
 	</target>
 	
