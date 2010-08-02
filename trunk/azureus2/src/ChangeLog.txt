@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2010.08.xx | Vuze 4.4.1.1
+
+
+
 2010.07.31 | Vuze 4.4.1.0
 
 FEATURE: Core | Handle "bc://" URLs [TuxPaper]
