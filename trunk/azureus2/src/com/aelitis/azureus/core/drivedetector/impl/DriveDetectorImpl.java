@@ -20,8 +20,7 @@
 package com.aelitis.azureus.core.drivedetector.impl;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor2;
 import org.gudy.azureus2.core3.util.Debug;
@@ -41,10 +40,9 @@ public class DriveDetectorImpl
 
 	private CopyOnWriteList<DriveDetectedListener> listListeners = new CopyOnWriteList<DriveDetectedListener>(1);
 	
-	private List<File> listDrives = new ArrayList<File>(1); 
+	private Map<File, Map> mapDrives = new HashMap<File, Map>(1); 
 
 	public void addListener(DriveDetectedListener l) {
-		File[] drives;
 		mon_driveDetector.enter();
 		try {
 			if (!listListeners.contains(l)) {
@@ -54,17 +52,16 @@ public class DriveDetectorImpl
 				return;
 			}
 			
-			drives = listDrives.toArray(new File[0]);
+
+			for (File key : mapDrives.keySet()) {
+				try {
+					l.driveDetected(new DriveDetectedInfoImpl(key, mapDrives.get(key)));
+				} catch (Throwable e) {
+					Debug.out(e);
+				}
+			}
 		} finally {
 			mon_driveDetector.exit();
-		}
-		
-		for (File drive : drives) {
-			try {
-				l.driveDetected(new DriveDetectedInfoImpl(drive));
-			} catch (Throwable e) {
-				Debug.out(e);
-			}
 		}
 	}
 
@@ -72,12 +69,13 @@ public class DriveDetectorImpl
 		listListeners.remove(l);
 	}
 
-	public void driveDetected(File location) {
+	public void driveDetected(File location, Map info) {
 		location = normaliseFile( location );
 		mon_driveDetector.enter();
 		try {
-			if (!listDrives.contains(location)) {
-				listDrives.add(location);
+			if (!mapDrives.containsKey(location)) {
+				info.put("File", location);
+				mapDrives.put(location, info);
 			} else {
 				// already there, no trigger
 				return;
@@ -89,7 +87,7 @@ public class DriveDetectorImpl
 		
 		for (DriveDetectedListener l : listListeners) {
 			try {
-				l.driveDetected(new DriveDetectedInfoImpl(location));
+				l.driveDetected(new DriveDetectedInfoImpl(location, info));
  			} catch (Throwable e) {
  				Debug.out(e);
 			}
@@ -98,9 +96,11 @@ public class DriveDetectorImpl
 
 	public void driveRemoved(File location) {
 		location = normaliseFile( location );
+		Map map;
 		mon_driveDetector.enter();
 		try {
-			if (!listDrives.remove(location)) {
+			map = mapDrives.remove(location);
+			if (map == null) {
 				// not there, no trigger
 				return;
 			}
@@ -110,7 +110,7 @@ public class DriveDetectorImpl
 		
 		for (DriveDetectedListener l : listListeners) {
 			try {
-				l.driveRemoved(new DriveDetectedInfoImpl(location));
+				l.driveRemoved(new DriveDetectedInfoImpl(location, map));
 			} catch (Throwable e) {
 				Debug.out(e);
 			}

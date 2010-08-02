@@ -89,108 +89,119 @@ DeviceDriveManager
 	public void 
 	driveDetected(
 		final DriveDetectedInfo info )
-	{
-		async_dispatcher.dispatch(
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
-					File root = info.getLocation();
-					
-					if ( root.exists()){
-						
-						File[] folders = root.listFiles();
-						
-						if ( folders != null ){
-							
-							Set<String>	names = new HashSet<String>();
-							
-							for ( File file: folders ){
-								
-								names.add( file.getName().toLowerCase());
-							}
-							
-							if ( names.contains( "psp" ) && names.contains( "video" )){
-								
-								DeviceImpl[] devices = manager.getDevices();
-								
-								String target_name				= "PSP";
-								String target_classification 	= "sony.PSP";
-								
-								File target_directory = new File( root,"VIDEO" );
+ {
+		async_dispatcher.dispatch(new AERunnable() {
+			public void runSupport() {
+				File root = info.getLocation();
 
-								for ( DeviceImpl device: devices ){
-									
-									if ( device instanceof DeviceMediaRendererManual ){
-									
-										DeviceMediaRendererManual renderer = (DeviceMediaRendererManual)device;
-										
-										String classification = renderer.getClassification();
-									
-										if ( classification.equalsIgnoreCase( target_classification )){
-																						
-											mapDevice( renderer, root, target_directory );
-											
-											return;
-										}
-									}
-								}
-								
-								DeviceTemplate[] templates = manager.getDeviceTemplates( Device.DT_MEDIA_RENDERER );
-								
-								DeviceMediaRendererManual	renderer = null;
-								
-								for ( DeviceTemplate template: templates ){
-									
-									if ( template.getClassification().equalsIgnoreCase( target_classification )){
-										
-										try{
-											renderer = (DeviceMediaRendererManual)template.createInstance( target_name );
-	
-											break;
-											
-										}catch( Throwable e ){
-											
-											log( "Failed to add device", e );
-										}
-									}
-								}
-								
-								if ( renderer == null ){
-									
-										// damn, the above doesn't work until devices is turned on...
-									
-									try{
-										renderer = (DeviceMediaRendererManual)manager.createDevice( Device.DT_MEDIA_RENDERER, null, target_classification, target_name );
-										
-									}catch( Throwable e ){
-										
-										log( "Failed to add device", e );
-									}
-								}
-								
-								if ( renderer != null ){
-									
-									try{
-										renderer.setAutoCopyToFolder( true );
-										
-										mapDevice( renderer, root, target_directory );
-										
-										return;
-										
-									}catch( Throwable e ){
-										
-										log( "Failed to add device", e );
-									}
-								}
-							}
+				Object prodID = info.getInfo("ProductID");
+				if ((prodID instanceof String)
+						&& ((String) prodID).toLowerCase().contains("android")) {
+					Object vendor = info.getInfo("VendorID");
+					String name = (vendor instanceof String) ? ((String) vendor).trim()
+							+ " " : "";
+					name += ((String) prodID).trim();
+					addDevice(name, "google.Android", root, new File(root, "videos"));
+					return;
+				}
+
+				if (root.exists()) {
+
+					File[] folders = root.listFiles();
+
+					if (folders != null) {
+
+						Set<String> names = new HashSet<String>();
+
+						for (File file : folders) {
+
+							names.add(file.getName().toLowerCase());
+						}
+
+						if (names.contains("psp") && names.contains("video")) {
+							addDevice("PSP", "sony.PSP", root, new File(root, "VIDEO"));
 						}
 					}
 				}
-			});
+			}
+		});
 	}
 	
+	protected void addDevice(
+			String target_name, 
+			String target_classification,
+			File root,
+			File target_directory)
+	{
+		
+		DeviceImpl[] devices = manager.getDevices();
+		
+		for ( DeviceImpl device: devices ){
+			
+			if ( device instanceof DeviceMediaRendererManual ){
+			
+				DeviceMediaRendererManual renderer = (DeviceMediaRendererManual)device;
+				
+				String classification = renderer.getClassification();
+			
+				if ( classification.equalsIgnoreCase( target_classification )){
+																
+					mapDevice( renderer, root, target_directory );
+					
+					return;
+				}
+			}
+		}
+		
+		DeviceTemplate[] templates = manager.getDeviceTemplates( Device.DT_MEDIA_RENDERER );
+		
+		DeviceMediaRendererManual	renderer = null;
+		
+		for ( DeviceTemplate template: templates ){
+			
+			if ( template.getClassification().equalsIgnoreCase( target_classification )){
+				
+				try{
+					renderer = (DeviceMediaRendererManual)template.createInstance( target_name );
+
+					break;
+					
+				}catch( Throwable e ){
+					
+					log( "Failed to add device", e );
+				}
+			}
+		}
+		
+		if ( renderer == null ){
+			
+				// damn, the above doesn't work until devices is turned on...
+			
+			try{
+				renderer = (DeviceMediaRendererManual)manager.createDevice( Device.DT_MEDIA_RENDERER, null, target_classification, target_name );
+				
+			}catch( Throwable e ){
+				
+				log( "Failed to add device", e );
+			}
+		}
+		
+		if ( renderer != null ){
+			
+			try{
+				renderer.setAutoCopyToFolder( true );
+				
+				mapDevice( renderer, root, target_directory );
+				
+				return;
+				
+			}catch( Throwable e ){
+				
+				log( "Failed to add device", e );
+			}
+		}
+		}
+
 	public void 
 	driveRemoved(
 		final DriveDetectedInfo info )

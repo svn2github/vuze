@@ -24,6 +24,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Device;
@@ -33,6 +34,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
+import org.gudy.azureus2.platform.win32.access.impl.AEWin32AccessInterface;
 
 import com.aelitis.azureus.core.drivedetector.*;
 
@@ -301,21 +303,19 @@ public class Win32UIEnhancer
 			ex.printStackTrace();
 		}
 
-		if (!Constants.isWindows7OrHigher) {
-			new AEThread2( "Async:USB" )
+		new AEThread2( "Async:USB" )
+		{
+			public void
+			run()
 			{
-				public void
-				run()
-				{
-			  		File[] drives = AEWin32Manager.getAccessor(false).getUSBDrives();
-			  		if (drives != null) {
-			  			for (File file : drives) {
-			  				DriveDetectorFactory.getDeviceDetector().driveDetected(file);
-			  			}
-			  		}
-				}
-			}.start();
-		}
+		  		Map<File, Map> drives = AEWin32Manager.getAccessor(false).getUSBDrives();
+		  		if (drives != null) {
+		  			for (File file : drives.keySet()) {
+		  				DriveDetectorFactory.getDeviceDetector().driveDetected(file, drives.get(file));
+		  			}
+		  		}
+			}
+		}.start();
 	}
 
 	static int /*long*/messageProc2(int /*long*/hwnd, int /*long*/msg,
@@ -383,7 +383,8 @@ public class Win32UIEnhancer
 							}
 							if (letter != '?') {
 								DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
-								driveDetector.driveDetected(new File(letter + ":\\"));
+								Map driveInfo = AEWin32AccessInterface.getDriveInfo(letter);
+								driveDetector.driveDetected(new File(letter + ":\\"), driveInfo);
 							}
 						}
 

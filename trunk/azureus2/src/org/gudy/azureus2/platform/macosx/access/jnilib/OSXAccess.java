@@ -100,7 +100,7 @@ public class OSXAccess
 					boolean isRemovable = MapUtils.getMapLong(driveInfo, "Removable", 0) != 0;
 					boolean isWritable = MapUtils.getMapLong(driveInfo, "Writable", 0) != 0;
 					if (isRemovable && isWritable && !isOptical) {
-						DriveDetectorFactory.getDeviceDetector().driveDetected(mount);
+						DriveDetectorFactory.getDeviceDetector().driveDetected(mount, driveInfo);
 					}
 				}
 			});

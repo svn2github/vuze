@@ -20,6 +20,7 @@
 package com.aelitis.azureus.core.drivedetector;
 
 import java.io.File;
+import java.util.Map;
 
 
 
@@ -30,7 +31,7 @@ import java.io.File;
  */
 public interface DriveDetector
 {
-	public void driveDetected(File location);
+	public void driveDetected(File location, Map info);
 	
 	public void driveRemoved(File location);
 	

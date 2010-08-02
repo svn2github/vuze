@@ -20,6 +20,7 @@
 package com.aelitis.azureus.core.drivedetector.impl;
 
 import java.io.File;
+import java.util.Map;
 
 import com.aelitis.azureus.core.drivedetector.DriveDetectedInfo;
 
@@ -32,13 +33,19 @@ public class DriveDetectedInfoImpl
 	implements DriveDetectedInfo
 {
 	File location;
+	private Map info;
 	
-	public DriveDetectedInfoImpl(File location) {
+	public DriveDetectedInfoImpl(File location, Map info) {
 		this.location = location;
+		this.info = info;
 	}
 
 	public File getLocation() {
 		return location;
+	}
+	
+	public Object getInfo(String key) {
+		return info.get(key);
 	}
 
 }

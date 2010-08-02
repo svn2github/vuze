@@ -29,4 +29,6 @@ import java.io.File;
 public interface DriveDetectedInfo
 {
 	public File getLocation();
+
+	public Object getInfo(String key);
 }

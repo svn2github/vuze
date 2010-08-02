@@ -557,9 +557,9 @@ AEWin32AccessImpl
 		}  	
 	}
     
-    public File[] getUSBDrives() {
+    public Map<File, Map> getUSBDrives() {
     	
-    	ArrayList<File> listUSB = new ArrayList<File>();
+    	Map<File, Map> mapUSB = new HashMap<File, Map>();
     	try {
 				List availableDrives = AEWin32AccessInterface.getAvailableDrives();
 				if (availableDrives != null) {
@@ -577,18 +577,18 @@ AEWin32AccessImpl
 							long mediaType = MapUtils.getMapLong(driveInfo, "MediaType", 0);
 
 							if (removeable && driveType == 2 && busType == 7 && mediaType == 11) {
-								listUSB.add(f);
+								mapUSB.put(f, driveInfo);
 							}
 						}
 					}
 				}
 				
-				return listUSB.toArray(new File[0]);
+				return mapUSB;
     	} catch (UnsatisfiedLinkError ue) {
     		Debug.outNoStack("Old aereg.dll");
 			} catch (Throwable e) {
 				Debug.out(e);
 			}
-			return new File[0];
+			return Collections.emptyMap();
     }
 }
