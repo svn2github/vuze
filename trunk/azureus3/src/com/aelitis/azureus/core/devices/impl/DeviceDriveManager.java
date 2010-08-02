@@ -95,9 +95,15 @@ DeviceDriveManager
 				File root = info.getLocation();
 
 				Object prodID = info.getInfo("ProductID");
+				if (prodID == null) {
+					prodID = info.getInfo("Product Name");
+				}
 				if ((prodID instanceof String)
 						&& ((String) prodID).toLowerCase().contains("android")) {
 					Object vendor = info.getInfo("VendorID");
+					if (vendor == null) {
+						vendor = info.getInfo("Vendor Name");
+					}
 					String name = (vendor instanceof String) ? ((String) vendor).trim()
 							+ " " : "";
 					name += ((String) prodID).trim();
