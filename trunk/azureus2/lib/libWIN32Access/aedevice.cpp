@@ -67,6 +67,15 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
 			continue;
 		}
 
+		char drive2[4];
+		wsprintfA(drive2, "%C:\\", 'a' + nDrive);
+		DWORD uType = GetDriveTypeA(drive2);
+
+		// CreateFileW on Windows 7 on a Remote Drive that isn't attached will crash this call and cause parent .exe to be unkillable
+		if (uType == DRIVE_REMOTE) {
+			continue;
+		}
+
 		// Do an aditional check by using GetDriveGeometry.  If it fails, then there's
 		// no "disk" in the drive
 
@@ -81,9 +90,6 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
 			OPEN_EXISTING,    // disposition
 			0,                // file attributes
 			NULL);            // do not copy file attributes
-
-		char drive2[4];
-		wsprintfA(drive2, "%C:\\", 'a' + nDrive);
 
 		if (hDevice == INVALID_HANDLE_VALUE) // cannot open the drive
 		{
@@ -134,9 +140,18 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
 	BOOL bResult;                 // generic results flag
 	ULONGLONG DiskSize;           // size of the drive, in bytes
 
+
+	char drive2[4];
+	wsprintfA(drive2, "%C:\\", driveLetter);
+	DWORD uType = GetDriveTypeA(drive2);
+
+	// CreateFileW on Windows 7 on a Remote Drive that isn't attached will crash this call and cause parent .exe to be unkillable
+	if (uType == DRIVE_REMOTE) {
+		return hashMap;
+	}
+
+
 	HANDLE hDevice;
-
-
 	WCHAR drive[100];
 
 	wsprintfW(drive, L"\\\\.\\%C:", driveLetter);
@@ -148,11 +163,6 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
 		OPEN_EXISTING,    // disposition
 		0,                // file attributes
 		NULL);            // do not copy file attributes
-
-	WCHAR drive2[4];
-	wsprintfW(drive2, L"%C:\\", driveLetter);
-	DWORD uType = GetDriveTypeW(drive2);
-
 
 	addToMap(env, hashMap, methPut, clsLong, longInit, "DriveType", (jlong) uType);
 
