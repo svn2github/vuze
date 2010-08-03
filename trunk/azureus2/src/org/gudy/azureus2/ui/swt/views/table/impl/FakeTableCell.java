@@ -121,6 +121,8 @@ public class FakeTableCell
 
 	private boolean hadMore;
 
+	private boolean wrapText	= true;
+	
 	private ArrayList cellSWTPaintListeners;
 	
 	private boolean valid;
@@ -763,6 +765,10 @@ public class FakeTableCell
 		// TODO Auto-generated method stub
 
 	}
+	
+	public void setWrapText( boolean wrap ){
+		wrapText = wrap;
+	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setForeground(int, int, int)
 	public boolean setForeground(int red, int green, int blue) {
@@ -966,7 +972,7 @@ public class FakeTableCell
 
 		if (text != null && text.length() > 0) {
 			GCStringPrinter sp = new GCStringPrinter(gc, text, bounds, true, false,
-					orientation | SWT.WRAP);
+					wrapText?( orientation | SWT.WRAP ):orientation );
 			sp.printString();
 			hadMore = sp.isCutoff();
 		}

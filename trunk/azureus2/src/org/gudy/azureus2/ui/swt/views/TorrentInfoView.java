@@ -97,9 +97,10 @@ TorrentInfoView
 		}
 
 		sc = new ScrolledComposite(composite, SWT.V_SCROLL | SWT.H_SCROLL );
+		sc.getVerticalBar().setIncrement(16);
 		sc.setExpandHorizontal(true);
 		sc.setExpandVertical(true);
-		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1);
+		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true, true, 1, 1);
 		sc.setLayoutData(gridData);	
 		
 		outer_panel = sc;
@@ -257,7 +258,7 @@ TorrentInfoView
 				 
 		Group gColumns = new Group(panel, SWT.NULL);
 		Messages.setLanguageText(gColumns, TEXT_PREFIX + "columns" );
-		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		gridData = new GridData(GridData.FILL_BOTH);
 		gColumns.setLayoutData(gridData);
 		layout = new GridLayout();
 		layout.numColumns = 4;
@@ -293,6 +294,7 @@ TorrentInfoView
 				try {
   				fakeTableCell = new FakeTableCell(col);
   				fakeTableCell.setOrentation(SWT.LEFT);
+  				fakeTableCell.setWrapText(false);
   				fakeTableCell.setDataSource(download_manager);
 					col.invokeCellAddedListeners(fakeTableCell);
   				// One refresh to see if it throws up
@@ -348,7 +350,7 @@ TorrentInfoView
 
 			final Composite c = new Composite(gColumns, SWT.NONE);
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
-			gridData.heightHint = 32;
+			gridData.heightHint = 16;
 			c.setLayoutData(gridData);
 			cell.setControl(c);
 			cell.invalidate();
