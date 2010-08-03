@@ -400,7 +400,9 @@ public class SearchResultsTabArea
 			final MdiEntry entry = mdi.getEntryBySkinView(this);
 			if (entry != null) {
 				vitalityImage = entry.addVitalityImage("image.sidebar.vitality.dots");
-				vitalityImage.setVisible(false);
+				if ( vitalityImage != null ){
+					vitalityImage.setVisible(false);
+				}
 			}
 		}
 		browserSkinObject.addListener(new loadingListener() {
