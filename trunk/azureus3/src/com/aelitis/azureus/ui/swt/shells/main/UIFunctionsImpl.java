@@ -499,11 +499,6 @@ public class UIFunctionsImpl
 				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, StatsView.class,
 						null, data, true);
 				break;
-
-			case VIEW_DETAILED_LISTVIEW:
-				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS,
-						DetailedListView.class, null, data, true);
-				break;
 				
 			case VIEW_RCM: {
 				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();

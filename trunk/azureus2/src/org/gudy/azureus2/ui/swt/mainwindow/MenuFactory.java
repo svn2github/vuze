@@ -538,17 +538,6 @@ public class MenuFactory
 			}
 		});
 	}
-
-	public static MenuItem addDetailedListMenuItem(Menu menu) {
-		return addMenuItem(menu, MENU_ID_DETAILED_LIST, new Listener() {
-			public void handleEvent(Event e) {
-				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-				if (uiFunctions != null) {
-					uiFunctions.openView(UIFunctions.VIEW_DETAILED_LISTVIEW, null);
-				}
-			}
-		});
-	}
 	
 	public static MenuItem addAllPeersMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_ALL_PEERS, new Listener() {
