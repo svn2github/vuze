@@ -386,17 +386,15 @@ public class Win32UIEnhancer
 									+ (b[14] << 24);
 							char letter = '?';
 							for (int i = 0; i < 26; i++) {
-								if (1 << i == unitMask) {
+								if (((1 << i) & unitMask) > 0) {
 									letter = (char) ('A' + i);
+									if (DEBUG) {
+										System.out.println("Drive " + letter + ";mask=" + unitMask);
+									}
+									DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
+									Map driveInfo = AEWin32AccessInterface.getDriveInfo(letter);
+									driveDetector.driveDetected(new File(letter + ":\\"), driveInfo);
 								}
-							}
-							if (DEBUG) {
-								System.out.println("Drive " + letter);
-							}
-							if (letter != '?') {
-								DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
-								Map driveInfo = AEWin32AccessInterface.getDriveInfo(letter);
-								driveDetector.driveDetected(new File(letter + ":\\"), driveInfo);
 							}
 						}
 
@@ -443,16 +441,14 @@ public class Win32UIEnhancer
 									+ (b[14] << 24);
 							char letter = '?';
 							for (int i = 0; i < 26; i++) {
-								if (1 << i == unitMask) {
+								if (((1 << i) & unitMask) > 0) {
 									letter = (char) ('A' + i);
+									if (DEBUG) {
+										System.out.println("Drive " + letter + ";mask=" + unitMask);
+										DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
+										driveDetector.driveRemoved(new File(letter + ":\\"));
+									}
 								}
-							}
-							if (DEBUG) {
-								System.out.println("Drive " + letter);
-							}
-							if (letter != '?') {
-								DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
-								driveDetector.driveRemoved(new File(letter + ":\\"));
 							}
 						}
 
