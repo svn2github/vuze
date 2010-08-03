@@ -109,7 +109,10 @@ DeviceDriveManager
 						: "";
 
 				if (sProdID.toLowerCase().contains("android")
-						|| (sVendor.toLowerCase().contains("motorola"))) {
+						|| sVendor.toLowerCase().contains("motorola")
+						|| sVendor.toLowerCase().contains("samsung")
+						) {
+					boolean hidden = false;
 					String name = sVendor;
 					if (name.length() > 0) {
 						name += " ";
@@ -123,6 +126,10 @@ DeviceDriveManager
 						} else if (sProdID.equalsIgnoreCase("mb810")) {
 							name = "Droid X";
 						}
+					} else if (sProdID.equalsIgnoreCase("sgh-t959")) {
+						name = "Galaxy S"; // non-card
+					} else if (sProdID.toLowerCase().contains("sgh-t959")) {
+						hidden = true;
 					}
 
 					String id = "android.";
@@ -131,7 +138,7 @@ DeviceDriveManager
 						id += "." + sVendor.replaceAll(" ", ".");
 					}
 					
-					addDevice(name, id.toLowerCase(), root, new File(root, "videos"));
+					addDevice(name, id.toLowerCase(), root, new File(root, "videos"), hidden);
 					return;
 				}
 
@@ -149,7 +156,7 @@ DeviceDriveManager
 						}
 
 						if (names.contains("psp") && names.contains("video")) {
-							addDevice("PSP", "sony.PSP", root, new File(root, "VIDEO"));
+							addDevice("PSP", "sony.PSP", root, new File(root, "VIDEO"), false);
 						}
 					}
 				}
@@ -161,7 +168,8 @@ DeviceDriveManager
 			String target_name, 
 			String target_classification,
 			File root,
-			File target_directory)
+			File target_directory,
+			boolean hidden)
 	{
 		
 		DeviceImpl[] devices = manager.getDevices();
@@ -220,6 +228,7 @@ DeviceDriveManager
 			
 			try{
 				renderer.setAutoCopyToFolder( true );
+				renderer.setHidden(hidden);
 				
 				mapDevice( renderer, root, target_directory );
 				
