@@ -81,8 +81,15 @@ DeviceTivoManager
 	{
 		plugin_interface = PluginInitializer.getDefaultInterface();
 
-		is_enabled = COConfigurationManager.getBooleanParameter( "devices.tivo.enabled", true );
-
+		if ( COConfigurationManager.getStringParameter("ui").equals("az2")){
+			
+			is_enabled = false;
+			
+		}else{
+		
+			is_enabled = COConfigurationManager.getBooleanParameter( "devices.tivo.enabled", true );
+		}
+		
 		uid = COConfigurationManager.getStringParameter( "devices.tivo.uid", null );
 		
 		if ( uid == null ){
