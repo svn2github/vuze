@@ -729,7 +729,10 @@ public class SideBarEntrySWT
 		//		gc.setInterpolation(SWT.HIGH);
 
 		if (treeItem.getParentItem() == null) {
-			gc.setFont(sidebar.getHeaderFont());
+			Font headerFont = sidebar.getHeaderFont();
+			if (headerFont != null && !headerFont.isDisposed()) {
+				gc.setFont(headerFont);
+			}
 			gc.setForeground(ColorCache.getColor(gc.getDevice(), "#2B2D32"));
 		}
 
