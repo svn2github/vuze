@@ -837,6 +837,8 @@ SubscriptionManagerUI
 								
 								Subscription[] subs = subs_man.getSubscriptions( true );
 								
+								String	error_str = "";
+								
 								for ( Subscription s: subs ){
 									
 									SubscriptionHistory history = s.getHistory();
@@ -845,18 +847,30 @@ SubscriptionManagerUI
 									
 									String	last_error = history.getLastError();
 
-									if ( last_error != null ){
+									if ( last_error != null && last_error.length() > 0 ){
 										
 										boolean	auth_fail = history.isAuthFail();
 																		
 										if ( history.getConsecFails() >= 3 || auth_fail ){
 										
 											warn = true;
+											
+											if ( error_str.length() > 128 ){
+												
+												if ( !error_str.endsWith( ", ..." )){
+													
+													error_str += ", ...";
+												}
+											}else{
+												
+												error_str += (error_str.length()==0?"":", ") + last_error;
+											}
 										}
 									}
 								}
 								
 								warnSub.setVisible( warn );
+								warnSub.setToolTip( error_str );
 								
 								if ( total > 0 ){
 								
@@ -1083,13 +1097,23 @@ SubscriptionManagerUI
 							
 							res += " (" + MessageText.getString("subscriptions.listwindow.popularity").toLowerCase() + "=" + pop + ")";
 						}
-						
+												
 						return( res );
 					}
 					case ViewTitleInfo.TITLE_INDICATOR_TEXT :{
-						if(subs.getHistory().getNumUnread() > 0) {
+						
+						SubscriptionMDIEntry mdi = (SubscriptionMDIEntry) subs.getUserData(SubscriptionManagerUI.SUB_ENTRYINFO_KEY);
+						
+						if ( mdi != null ){
+							
+							mdi.setWarning();
+						}
+
+						if( subs.getHistory().getNumUnread() > 0 ){
+							
 							return ( "" + subs.getHistory().getNumUnread());
 						}
+						
 						return null;
 					}
 				}
