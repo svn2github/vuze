@@ -308,6 +308,18 @@ public class Win32UIEnhancer
 			public void
 			run()
 			{
+				if ( Constants.isWindows7OrHigher ){
+					
+					String version = AEWin32Manager.getAccessor( false ).getVersion();
+					
+					if ( Constants.compareVersions( "1.21", version ) > 0 ){
+				
+							// bug fixed in 1.21 whereby some win7 users got crashes
+						
+						return;
+					}
+				}
+				
 		  		Map<File, Map> drives = AEWin32Manager.getAccessor(false).getUSBDrives();
 		  		if (drives != null) {
 		  			for (File file : drives.keySet()) {
