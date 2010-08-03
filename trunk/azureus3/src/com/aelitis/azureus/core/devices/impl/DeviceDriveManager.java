@@ -109,8 +109,7 @@ DeviceDriveManager
 						: "";
 
 				if (sProdID.toLowerCase().contains("android")
-						|| (sVendor.toLowerCase().contains("motorola") && sProdID.toLowerCase().startsWith(
-								"a"))) {
+						|| (sVendor.toLowerCase().contains("motorola"))) {
 					String name = sVendor;
 					if (name.length() > 0) {
 						name += " ";
@@ -121,6 +120,8 @@ DeviceDriveManager
 							name = "Droid";
 						} else if (sProdID.equalsIgnoreCase("a955")) {
 							name = "Droid 2";
+						} else if (sProdID.equalsIgnoreCase("mb810")) {
+							name = "Droid X";
 						}
 					}
 
