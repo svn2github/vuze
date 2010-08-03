@@ -98,16 +98,39 @@ DeviceDriveManager
 				if (prodID == null) {
 					prodID = info.getInfo("Product Name");
 				}
-				if ((prodID instanceof String)
-						&& ((String) prodID).toLowerCase().contains("android")) {
-					Object vendor = info.getInfo("VendorID");
-					if (vendor == null) {
-						vendor = info.getInfo("Vendor Name");
+				String sProdID = (prodID instanceof String) ? ((String) prodID).trim()
+						: "";
+
+				Object vendor = info.getInfo("VendorID");
+				if (vendor == null) {
+					vendor = info.getInfo("Vendor Name");
+				}
+				String sVendor = (vendor instanceof String) ? ((String) vendor).trim()
+						: "";
+
+				if (sProdID.toLowerCase().contains("android")
+						|| (sVendor.toLowerCase().contains("motorola") && sProdID.toLowerCase().startsWith(
+								"a"))) {
+					String name = sVendor;
+					if (name.length() > 0) {
+						name += " ";
 					}
-					String name = (vendor instanceof String) ? ((String) vendor).trim()
-							+ " " : "";
-					name += ((String) prodID).trim();
-					addDevice(name, "google.Android", root, new File(root, "videos"));
+					name += sProdID;
+					if (sVendor.compareToIgnoreCase("motorola") == 0) {
+						if (sProdID.equalsIgnoreCase("a855")) {
+							name = "Droid";
+						} else if (sProdID.equalsIgnoreCase("a955")) {
+							name = "Droid 2";
+						}
+					}
+
+					String id = "android.";
+					id += sProdID.replaceAll(" ", ".");
+					if (sVendor.length() > 0) {
+						id += "." + sVendor.replaceAll(" ", ".");
+					}
+					
+					addDevice(name, id.toLowerCase(), root, new File(root, "videos"));
 					return;
 				}
 
