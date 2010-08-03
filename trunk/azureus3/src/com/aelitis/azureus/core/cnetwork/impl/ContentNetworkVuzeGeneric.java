@@ -43,29 +43,29 @@ ContentNetworkVuzeGeneric
 {
 	private static String URL_SUFFIX;
 
-	static{
-		COConfigurationManager.addAndFireParameterListener(
-			"locale",
-			new ParameterListener(){
-				public void 
-				parameterChanged(
-					String parameterName )
-				{	
-						// Don't change the order of the params as there's some code somewhere
-						// that depends on them (I think its code that removes the azid so
-						// we can fix this up when that code's migrated here I guess
-					
-					URL_SUFFIX = 	"azid=" 	+ Base32.encode(VuzeCryptoManager.getSingleton().getPlatformAZID()) +
-									"&azv=" 	+ Constants.AZUREUS_VERSION +
-									"&locale=" 	+ Locale.getDefault().toString() +
-									"&os.name=" + UrlUtils.encode(System.getProperty("os.name")) +
-									"&vzemb=1";
-					String suffix = System.getProperty("url.suffix", null);
-					if (suffix != null) {
-						URL_SUFFIX += "&" + suffix;
-					}
+	static {
+		COConfigurationManager.addAndFireParameterListeners(new String[] {
+			"Send Version Info",
+			"locale"
+		}, new ParameterListener() {
+			public void parameterChanged(String parameterName) {
+				// Don't change the order of the params as there's some code somewhere
+				// that depends on them (I think its code that removes the azid so
+				// we can fix this up when that code's migrated here I guess
+				boolean send_info = COConfigurationManager.getBooleanParameter("Send Version Info");
+
+				URL_SUFFIX = "azid="
+						+ (send_info
+								? Base32.encode(VuzeCryptoManager.getSingleton().getPlatformAZID())
+								: "anonymous") + "&azv=" + Constants.AZUREUS_VERSION
+						+ "&locale=" + Locale.getDefault().toString() + "&os.name="
+						+ UrlUtils.encode(System.getProperty("os.name")) + "&vzemb=1";
+				String suffix = System.getProperty("url.suffix", null);
+				if (suffix != null) {
+					URL_SUFFIX += "&" + suffix;
 				}
-			});
+			}
+		});
 	}
 
 	private Map<Integer, String>		service_map = new HashMap<Integer, String>();
@@ -585,12 +585,13 @@ ContentNetworkVuzeGeneric
 		boolean		for_post,
 		boolean 	include_azid ) 
 	{
-		if ( url_in.indexOf( "azid=" ) != -1 ){
+		if ( url_in.indexOf( "vzemb=" ) != -1 ){
 	
 				// already present
 			
 			return( url_in );
 		}
+		
 	
 		String suffix = URL_SUFFIX;
 		
