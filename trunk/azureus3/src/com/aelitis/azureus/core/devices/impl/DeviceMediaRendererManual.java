@@ -469,7 +469,7 @@ DeviceMediaRendererManual
 					
 				}else if ( !copy_to.canWrite()){
 					
-					if ( getDeviceClassification().equals( "google.Android" )){
+					if ( getDeviceClassification().startsWith( "google.Android" )){
 						
 						setError( COPY_ERROR_KEY, MessageText.getString( "device.error.mountrequired", new String[]{copy_to.getAbsolutePath()}));
 

@@ -1053,6 +1053,52 @@ DeviceImpl
 	public TranscodeProfile[]
 	getTranscodeProfiles()
 	{		
+		String classification = getDeviceClassification();
+		
+		TranscodeProfile[] result = getTranscodeProfiles( classification );
+		
+		if ( result.length > 0 ){
+			
+			return( result );
+		}
+		
+		try{
+			String[]	bits = classification.split( "\\." );
+			
+				// I would like to drill all the way up to just 'generic' but unfortunately this
+				// would break the current samsung/ms_wmp support that requires the detected profile
+				// set to be empty (we have two existing profiles at the 'generic' level)
+			
+			for ( int i=bits.length-1;i>=1;i--){
+				
+				String c = "";
+				
+				for (int j=0;j<i;j++){
+					
+					c = c + (c.length()==0?"":".") + bits[j];
+				}
+				
+				c = c + (c.length()==0?"":".") + "generic";
+				
+				result = getTranscodeProfiles( c );
+				
+				if ( result.length > 0 ){
+					
+					return( result );
+				}
+			}
+		}catch( Throwable e ){
+	
+			Debug.out( e );
+		}
+		
+		return( new TranscodeProfile[0] );
+	}
+		
+	private TranscodeProfile[]
+	getTranscodeProfiles(
+		String		classification )
+	{		
 		List<TranscodeProfile>	profiles = new ArrayList<TranscodeProfile>();
 		
 		DeviceManagerImpl dm = getManager();
@@ -1060,9 +1106,7 @@ DeviceImpl
 		TranscodeManagerImpl tm = dm.getTranscodeManager();
 				
 		TranscodeProvider[] providers = tm.getProviders();
-				
-		String classification = getDeviceClassification();
-		
+						
 		for ( TranscodeProvider provider: providers ){
 			
 			TranscodeProfile[] ps = provider.getProfiles();
@@ -1086,7 +1130,7 @@ DeviceImpl
 		
 		return( profiles.toArray( new TranscodeProfile[profiles.size()] ));
 	}
-		
+	
 	public TranscodeProfile
 	getDefaultTranscodeProfile()
 	{
