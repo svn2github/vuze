@@ -2642,10 +2642,14 @@ DeviceManagerUI
 				
 			}else if ( classification.startsWith( "ms_wmp.")){
 
-					// update skin3_constants.properties!
+				// update skin3_constants.properties!
+			
+			id = "mswmp";
 				
-				id = "mswmp";
-				
+			}else if ( classification.toLowerCase().contains( "android")){
+
+				id = "android";
+
 			}else{
 				
 				

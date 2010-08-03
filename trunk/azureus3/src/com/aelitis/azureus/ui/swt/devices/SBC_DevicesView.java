@@ -165,6 +165,8 @@ public class SBC_DevicesView
 						speciesID = "psp";
 					}else if ( classification.startsWith( "tivo.")){
 						speciesID = "tivo";
+					}else if ( classification.toLowerCase().contains( "android")){
+						speciesID = "android";
 					}
 				}
 				default:
