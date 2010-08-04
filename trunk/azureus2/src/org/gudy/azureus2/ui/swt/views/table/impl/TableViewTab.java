@@ -116,7 +116,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 	}
 	
 	public void refreshToolBar(Map<String, Boolean> list) {
-		list.put("ediltColumns", true);
+		list.put("editcolumns", true);
 	}
 
 	public String getPropertiesPrefix() {
