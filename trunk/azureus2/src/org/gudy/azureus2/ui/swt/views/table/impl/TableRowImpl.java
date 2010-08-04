@@ -845,7 +845,14 @@ public class TableRowImpl<COREDATASOURCE>
 		}
 	}
 	
-	public void removeSubRow(Object datasource) {
+	public void removeSubRow(final Object datasource) {
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				swt_removeSubRow(datasource);
+			}
+		});
+	}
+	public void swt_removeSubRow(Object datasource) {
 		if (datasource instanceof TableRowImpl) {
 			removeSubRow(((TableRowImpl)datasource).getDataSource());
 		}
