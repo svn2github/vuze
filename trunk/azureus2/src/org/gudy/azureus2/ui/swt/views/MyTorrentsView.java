@@ -1897,7 +1897,25 @@ public class MyTorrentsView
 				&& !dm.getTorrent().isSimpleTorrent() && rowCore.isVisible()) {
 			DiskManagerFileInfoSet fileInfos = dm.getDiskManagerFileInfoSet();
 			if (fileInfos != null && fileInfos.nbFiles() > 0) {
-				rowCore.setSubItems(fileInfos.getFiles());
+				DiskManagerFileInfo[] files = fileInfos.getFiles();
+				int pos = 0;
+				for (int i = 0; i < files.length; i++) {
+					DiskManagerFileInfo fileInfo = files[i];
+					if (fileInfo.isSkipped()
+							&& (fileInfo.getStorageType() == DiskManagerFileInfo.ST_COMPACT || fileInfo.getStorageType() == DiskManagerFileInfo.ST_REORDER_COMPACT)) {
+						continue;
+					}
+					if (pos != i) {
+						files[pos] = files[i];
+					}
+					pos++;
+				}
+				if (pos != files.length) {
+					DiskManagerFileInfo[] oldFiles = files;
+					files = new DiskManagerFileInfo[pos];
+					System.arraycopy(oldFiles, 0, files, 0, pos);
+				}
+				rowCore.setSubItems(files);
 			}
 		}
 	}
