@@ -348,7 +348,7 @@ DeviceMediaRendererManual
 		
 		while( true ){
 			
-			if ( copy_sem.reserve( 60*1000 )){
+			if ( copy_sem.reserve( 10*1000 )){
 				
 				while( copy_sem.reserveIfAvailable());
 			}
@@ -450,42 +450,65 @@ DeviceMediaRendererManual
 				String str = MessageText.getString( "devices.info.copypending2", new String[]{ String.valueOf( pending ) });
 				
 				setInfo( COPY_PENDING_KEY, str );
-
 				
 				borked = true;
 				
 			}else{
+				
+				boolean	sub_borked = false;
+				
 				if ( copy_to == null ){
 				
 					setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytonotset" ));
 					
-					borked = true;
+					sub_borked = true;
 					
 				}else if ( !copy_to.exists()){
 					
 					if ( getDeviceClassification().startsWith( "android" )){
 						
-						setError( COPY_ERROR_KEY, MessageText.getString( "device.error.mountrequired", new String[]{copy_to.getAbsolutePath()}));
+							// bah, due to the two-phase mount of android devices and the fact that the
+							// copy-to location is %root$/videos, the root might exist but the sub-folder 
+							// not. 
+						
+						File parent = copy_to.getParentFile();
+						
+						if ( parent != null && parent.canWrite()){
+							
+							copy_to.mkdir();
+						}
+						
+						if ( !copy_to.exists()){
+						
+							setError( COPY_ERROR_KEY, MessageText.getString( "device.error.mountrequired", new String[]{copy_to.getAbsolutePath()}));
 
+							sub_borked = true;
+						}
 					}else{
 
 						setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytomissing", new String[]{copy_to.getAbsolutePath()}));
+					
+						sub_borked = true;
 					}
-					
-					borked = true;
-					
-				}else if ( !copy_to.canWrite()){
-					
-					setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytonowrite", new String[]{copy_to.getAbsolutePath()}));
-					
-					borked = true;
-					
-				}else{
-					
-					try_copy = true;
-					
-					setError( COPY_ERROR_KEY, null );
 				}
+				
+				if ( !sub_borked ){
+				
+					if ( !copy_to.canWrite()){
+					
+						setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytonowrite", new String[]{copy_to.getAbsolutePath()}));
+					
+						sub_borked = true;
+					
+					}else{
+					
+						try_copy = true;
+					
+						setError( COPY_ERROR_KEY, null );
+					}
+				}
+			
+				borked = sub_borked;
 			}
 		}
 		
