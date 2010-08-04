@@ -574,9 +574,10 @@ AEWin32AccessImpl
 							// values STORAGE_BUS_TYPE
 							long busType = MapUtils.getMapLong(driveInfo, "BusType", 0);
 							// values MEDIA_TYPE
-							long mediaType = MapUtils.getMapLong(driveInfo, "MediaType", 0);
+							long mediaType = MapUtils.getMapLong(driveInfo, "MediaType", -1);
 
-							if (removeable && driveType == 2 && busType == 7 && mediaType == 11) {
+						if (removeable && driveType == 2 && busType == 7
+								&& (mediaType == 11 || mediaType == -1)) {
 								mapUSB.put(f, driveInfo);
 							}
 						}
