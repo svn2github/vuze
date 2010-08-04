@@ -21,6 +21,8 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
@@ -37,6 +39,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
@@ -54,7 +57,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
  */
 
 public class PiecesView 
-	extends TableViewTab
+	extends TableViewTab<PEPiece>
 	implements DownloadManagerPeerListener, 
 	DownloadManagerPieceListener,
 	TableDataSourceChangedListener,
@@ -210,5 +213,42 @@ public class PiecesView
 	 */
 	public DownloadManager getManager() {
 		return manager;
+	}
+	
+	public boolean toolBarItemActivated(String itemKey) {
+
+		if ( super.toolBarItemActivated(itemKey)){
+			return( true );
+		}
+		
+		if (itemKey.equals("run")) {
+			ManagerUtils.run(manager);
+			return true;
+		}
+		
+		if (itemKey.equals("start")) {
+			ManagerUtils.queue(manager, getComposite().getShell());
+			return true;
+		}
+		
+		if (itemKey.equals("stop")) {
+			ManagerUtils.stop(manager, getComposite().getShell());
+			return true;
+		}
+		
+		if (itemKey.equals("remove")) {
+			ManagerUtils.remove(manager, null, false, false);
+			return true;
+		}
+		return false;
+	}
+	
+	public void refreshToolBar(Map<String, Boolean> list) {
+		list.put("run", true);
+		list.put("start", ManagerUtils.isStartable(manager));
+		list.put("stop", ManagerUtils.isStopable(manager));
+		list.put("remove", true);
+		
+		super.refreshToolBar(list);
 	}
 }
