@@ -45,7 +45,6 @@ BOOL GetStorageProperty(HANDLE hDevice, PSTORAGE_DEVICE_DESCRIPTOR *p)
 JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getAvailableDrives
 (JNIEnv *env, jclass cla)
 {
-	DISK_GEOMETRY pdg;            // disk drive geometry structure
 	BOOL bResult;                 // generic results flag
 	ULONGLONG DiskSize;           // size of the drive, in bytes
 
@@ -96,22 +95,16 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
 			continue;
 		}
 
-
-		bResult = GetDriveGeometry (hDevice, &pdg);
-
-		if (bResult)
-		{
-			// Create File
-			jclass cls = env->FindClass("java/io/File");
-			jmethodID constructor = env->GetMethodID(cls, "<init>", "(Ljava/lang/String;)V");
-			jobject object = env->NewObject(cls, constructor, env->NewStringUTF(drive2));
-
-			// add to list
-
-			env->CallBooleanMethod( arrayList, methAdd, object );
-		}
-
 		CloseHandle(hDevice);
+
+		// Create File
+		jclass cls = env->FindClass("java/io/File");
+		jmethodID constructor = env->GetMethodID(cls, "<init>", "(Ljava/lang/String;)V");
+		jobject object = env->NewObject(cls, constructor, env->NewStringUTF(drive2));
+
+		// add to list
+
+		env->CallBooleanMethod( arrayList, methAdd, object );
 	}
 	return arrayList;
 }
