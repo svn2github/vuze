@@ -59,7 +59,7 @@ public class PlayUtils
 	public static final boolean COMPLETE_PLAY_ONLY = true;
 	
 	public static final int fileSizeThreshold = 90;
-	public static final String playableFileExtensions = ".mpg .avi .flv .flc .mp4 .mpeg .divx .h264 .mkv .wmv .mov .mp2 .m2v .m4v .mp3 .ts .mts .aac";
+	public static final String playableFileExtensions = ".avi .flv .flc .mp4 .divx .h264 .mkv .mov .mp2 .m4v .mp3 .aac";
 	
 	
 	private static boolean triedLoadingEmpPluginClass = false;
