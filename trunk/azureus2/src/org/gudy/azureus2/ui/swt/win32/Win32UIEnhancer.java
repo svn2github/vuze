@@ -445,9 +445,9 @@ public class Win32UIEnhancer
 									letter = (char) ('A' + i);
 									if (DEBUG) {
 										System.out.println("Drive " + letter + ";mask=" + unitMask);
-										DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
-										driveDetector.driveRemoved(new File(letter + ":\\"));
 									}
+									DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
+									driveDetector.driveRemoved(new File(letter + ":\\"));
 								}
 							}
 						}
