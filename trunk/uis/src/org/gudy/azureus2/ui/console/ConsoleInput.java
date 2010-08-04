@@ -89,14 +89,14 @@ public class ConsoleInput extends Thread {
 	private final UserProfile userProfile;
 	
 	/**
-	 * can be used by plugins to register console commands since they may not have access o
+	 * can be used by plugins to register console commands since they may not have access to
 	 * each ConsoleInput object that is created.
 	 */
 	public static void registerPluginCommand(Class clazz)
 	{
-		if( ! clazz.isInstance(IConsoleCommand.class) )
+		if( ! IConsoleCommand.class.isAssignableFrom(clazz))
 		{
-			throw new IllegalArgumentException("Class must be extend IConsoleCommand");
+			throw new IllegalArgumentException("Class must be implement  IConsoleCommand");
 		}
 		pluginCommands.add( clazz );
 	}
