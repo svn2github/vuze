@@ -463,20 +463,20 @@ DeviceMediaRendererManual
 					
 				}else if ( !copy_to.exists()){
 					
-					setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytomissing", new String[]{copy_to.getAbsolutePath()}));
+					if ( getDeviceClassification().startsWith( "android" )){
+						
+						setError( COPY_ERROR_KEY, MessageText.getString( "device.error.mountrequired", new String[]{copy_to.getAbsolutePath()}));
+
+					}else{
+
+						setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytomissing", new String[]{copy_to.getAbsolutePath()}));
+					}
 					
 					borked = true;
 					
 				}else if ( !copy_to.canWrite()){
 					
-					if ( getDeviceClassification().startsWith( "google.Android" )){
-						
-						setError( COPY_ERROR_KEY, MessageText.getString( "device.error.mountrequired", new String[]{copy_to.getAbsolutePath()}));
-
-					}else{
-					
-						setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytonowrite", new String[]{copy_to.getAbsolutePath()}));
-					}
+					setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytonowrite", new String[]{copy_to.getAbsolutePath()}));
 					
 					borked = true;
 					
