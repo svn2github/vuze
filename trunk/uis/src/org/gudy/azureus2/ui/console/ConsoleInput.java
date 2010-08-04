@@ -96,7 +96,7 @@ public class ConsoleInput extends Thread {
 	{
 		if( ! IConsoleCommand.class.isAssignableFrom(clazz))
 		{
-			throw new IllegalArgumentException("Class must be implement  IConsoleCommand");
+			throw new IllegalArgumentException("Class must implement IConsoleCommand");
 		}
 		pluginCommands.add( clazz );
 	}
