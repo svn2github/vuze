@@ -724,6 +724,9 @@ BufferedTableRow
 		if (item != null) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
+					if (item.isDisposed()) {
+						return;
+					}
 			    if (item.getItemCount() != numSubItems) {
 			    	item.setItemCount(numSubItems);
 						Rectangle r = item.getBounds(0);
