@@ -248,15 +248,21 @@ public class TreeItemDelegate implements TableItemOrTreeItem
 		item.setChecked(checked);
 	}
 
+	private Boolean settingExpandTo = null;
 	public void setExpanded(boolean expanded) {
 		boolean wasExpanded = item.getExpanded();
 		item.setExpanded(expanded);
-		if (expanded != wasExpanded) {
-			Event event = new Event();
-			event.widget = item.getParent();
-			event.item = item;
-			event.type = expanded ? SWT.Expand : SWT.Collapse;
-			item.getParent().notifyListeners(event.type, event);
+		if (expanded != wasExpanded && (settingExpandTo == null || settingExpandTo != expanded)) {
+			try {
+				settingExpandTo = expanded;
+  			Event event = new Event();
+  			event.widget = item.getParent();
+  			event.item = item;
+  			event.type = expanded ? SWT.Expand : SWT.Collapse;
+  			item.getParent().notifyListeners(event.type, event);
+			} finally {
+				settingExpandTo = null;
+			}
 		}
 	}
 
