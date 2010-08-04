@@ -127,7 +127,7 @@ DeviceDriveManager
 							name = "Droid X";
 						}
 					} else if (sProdID.equalsIgnoreCase("sgh-t959")) {
-						name = "Galaxy S"; // non-card
+						name = "Samsung Vibrant"; // non-card
 					} else if (sProdID.toLowerCase().contains("sgh-t959")) {
 						hidden = true;
 					}
