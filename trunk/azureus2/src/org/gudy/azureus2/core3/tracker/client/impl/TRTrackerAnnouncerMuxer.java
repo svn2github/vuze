@@ -55,6 +55,8 @@ TRTrackerAnnouncerMuxer
 	private static final int ACT_CHECK_INIT_DELAY			= 2500;
 	private static final int ACT_CHECK_INTERIM_DELAY		= 10*1000;
 	private static final int ACT_CHECK_IDLE_DELAY			= 30*1000;
+	private static final int ACT_CHECK_SEEDING_SHORT_DELAY		= 60*1000;
+	private static final int ACT_CHECK_SEEDING_LONG_DELAY		= 3*60*1000;
 	
 	
 	private String[]			networks;
@@ -64,7 +66,10 @@ TRTrackerAnnouncerMuxer
 	
 	private CopyOnWriteList<TRTrackerAnnouncerHelper>	announcers 	= new CopyOnWriteList<TRTrackerAnnouncerHelper>();
 	private Set<TRTrackerAnnouncerHelper>				activated	= new HashSet<TRTrackerAnnouncerHelper>();
+	private long										last_activation_time;
 	private Set<String>									failed_urls	= new HashSet<String>();
+	
+	private volatile TimerEvent					event;
 	
 	private TRTrackerAnnouncerDataProvider		provider;
 	private String								ip_override;
@@ -434,6 +439,8 @@ TRTrackerAnnouncerMuxer
 
 					activated.add( a );
 					
+					last_activation_time = SystemTime.getMonotonousTime();
+					
 					if ( provider != null ){
 						
 						to_activate = a;
@@ -463,7 +470,7 @@ TRTrackerAnnouncerMuxer
 	{
 		if ( announcers.size() > activated.size()){
 			
-			SimpleTimer.addEvent(
+			event = SimpleTimer.addEvent(
 				"TRMuxer:check",
 				SystemTime.getOffsetTime( delay ),
 				new TimerEventPerformer()
@@ -505,10 +512,25 @@ TRTrackerAnnouncerMuxer
 
 				if ( seeding && activated.size() > 0 ){
 				
-						// when seeding we only activate on tracker fail
-					
-					next_check_delay = 0;
-				
+						// when seeding we only activate on tracker fail or major lack of connections
+						// as normally we rely on downloaders rotating and finding us
+
+					int	connected	= provider.getConnectedConnectionCount();
+
+					if ( connected < 1 ){
+						
+						activate = SystemTime.getMonotonousTime() - last_activation_time >= 60*1000;
+						
+						next_check_delay = ACT_CHECK_SEEDING_SHORT_DELAY;
+						
+					}else if ( connected < 3 ){
+						
+						next_check_delay = ACT_CHECK_SEEDING_LONG_DELAY;
+						
+					}else{
+						
+						next_check_delay = 0;
+					}
 				}else{
 					
 					int	allowed		= provider.getMaxNewConnectionsAllowed();	
@@ -586,6 +608,8 @@ TRTrackerAnnouncerMuxer
 							}
 							
 							activated.add( a );
+							
+							last_activation_time = SystemTime.getMonotonousTime();
 							
 							if ( complete ){
 								
@@ -1133,6 +1157,13 @@ TRTrackerAnnouncerMuxer
 		for ( TRTrackerAnnouncer announcer: to_destroy ){
 		
 			announcer.destroy();
+		}
+		
+		TimerEvent	ev = event;
+		
+		if ( ev != null ){
+			
+			ev.cancel();
 		}
 	}
 	
