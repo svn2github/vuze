@@ -1898,6 +1898,7 @@ public class MyTorrentsView
 			DiskManagerFileInfoSet fileInfos = dm.getDiskManagerFileInfoSet();
 			if (fileInfos != null && fileInfos.nbFiles() > 0) {
 				DiskManagerFileInfo[] files = fileInfos.getFiles();
+				boolean copied = false;
 				int pos = 0;
 				for (int i = 0; i < files.length; i++) {
 					DiskManagerFileInfo fileInfo = files[i];
@@ -1906,6 +1907,16 @@ public class MyTorrentsView
 						continue;
 					}
 					if (pos != i) {
+						if ( !copied ){
+								// we *MUSTN'T* modify the returned array!!!!
+							
+							DiskManagerFileInfo[] oldFiles = files;
+							files = new DiskManagerFileInfo[files.length];
+							System.arraycopy(oldFiles, 0, files, 0, files.length);
+							
+							copied = true;
+						}
+						
 						files[pos] = files[i];
 					}
 					pos++;
