@@ -106,15 +106,20 @@ public class TableViewSWT_EraseItem
 			int startY;
 			if (numItems > 0) {
 				TableItemOrTreeItem lastItem = table.getItem(numItems - 1);
-				Rectangle lastItemBounds;
-				if (lastItem.getExpanded()) {
-  				TableItemOrTreeItem[] subItems = lastItem.getItems();
-  				lastItemBounds = subItems == null || subItems.length == 0
-  						? lastItem.getBounds() : subItems[subItems.length - 1].getBounds();
-				} else {
-					lastItemBounds = lastItem.getBounds();
+					// dunno how, but I have a stacktrace with an NPE caused by lastItem being null (even though numItems > 0 ...)
+				if ( lastItem != null ){
+					Rectangle lastItemBounds;
+					if (lastItem.getExpanded()) {
+	  				TableItemOrTreeItem[] subItems = lastItem.getItems();
+	  				lastItemBounds = subItems == null || subItems.length == 0
+	  						? lastItem.getBounds() : subItems[subItems.length - 1].getBounds();
+					} else {
+						lastItemBounds = lastItem.getBounds();
+					}
+					startY = lastItemBounds.y + lastItemBounds.height;
+				}else{
+					startY = 0;
 				}
-				startY = lastItemBounds.y + lastItemBounds.height;
 			} else {
 				startY = 0;
 			}
