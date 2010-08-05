@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2010.0x.xx | Vuze 4.5.0.1
+
+
+
 2010.08.04 | Vuze 4.5.0.0
 
 FEATURE: Plug | Android Devices support
