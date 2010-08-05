@@ -3,6 +3,10 @@ VUZE CHANGELOG
 
 2010.08.xx | Vuze 4.4.1.1
 
+FEATURE: Plug | Android support
+
+BUGFIX: UI    | Fixed occasional crash when twisting twistie on Windows 7
+
 
 
 2010.07.31 | Vuze 4.4.1.0
