@@ -508,7 +508,7 @@ DeviceMediaRendererManual
 					}
 				}
 			
-				borked = sub_borked;
+				borked = borked | sub_borked;
 			}
 		}
 		
