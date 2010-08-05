@@ -1,10 +1,13 @@
 VUZE CHANGELOG
 -----------------
 
-2010.08.xx | Vuze 4.4.1.1
+2010.08.04 | Vuze 4.5.0.0
 
-FEATURE: Plug | Android support
+FEATURE: Plug | Android Devices support
 
+CHANGE: Core  | Try alternative trackers when seeding and zero connected peers [Parg]
+
+BUGFIX: UI    | Layout improvements in torrent Info view [Parg]
 BUGFIX: UI    | Fixed occasional crash when twisting twistie on Windows 7
 
 
