@@ -63,9 +63,32 @@ public class TableSubCellImpl
 		return row.getTableID();
 	}
 
-	public boolean setText(String text) {
-		this.text = text;
-		return false;
+	public boolean setText(String new_text) {
+		
+		if ( text == new_text ){
+			
+			return( false );
+			
+		}else if ( text == null || new_text == null ){
+			
+			text = new_text;
+			
+			invalidate();
+			
+			return( true );
+			
+		}else if ( text.equals( new_text )){
+			
+			return( false );
+			
+		}else{
+		
+			text = new_text;
+			
+			invalidate();
+			
+			return( true );
+		}
 	}
 
 	public String getText() {
