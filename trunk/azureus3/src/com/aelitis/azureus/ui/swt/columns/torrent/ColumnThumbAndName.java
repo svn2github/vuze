@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
@@ -70,6 +71,26 @@ public class ColumnThumbAndName
 	private static final String ID_EXPANDOHITAREA = "expandoHitArea";
 	private static final String ID_EXPANDOHITAREASHOW = "expandoHitAreaShow";
 
+	private static boolean NEVER_SHOW_TWISTY;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"Table.useTree",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name ) 
+				{
+						// currently linux always shows its own twisty
+					
+					NEVER_SHOW_TWISTY = 
+						Constants.isLinux || 
+						!COConfigurationManager.getBooleanParameter(name);
+				}
+			});
+	}
+	
 	private boolean showIcon;
 
 	private boolean wrapText;
@@ -233,20 +254,30 @@ public class ColumnThumbAndName
 			
 			boolean	show_twisty;
 			
-			if (numSubItems > 1 ){
+			if ( NEVER_SHOW_TWISTY ){
+				
+				show_twisty = false;
+				
+			}else if (numSubItems > 1 ){
+				
 				show_twisty = true;
 			}else{
+				
 				Boolean show = (Boolean)rowCore.getData( ID_EXPANDOHITAREASHOW );
+				
 				if ( show == null ){
+					
 					DownloadManager dm = (DownloadManager)ds;
 					
 					show_twisty = dm.getDiskManagerFileInfoSet().nbFiles() > 1;
 					
 					rowCore.setData( ID_EXPANDOHITAREASHOW, new Boolean( show_twisty ));
+					
 				}else{
 					show_twisty = show;
 				}
 			}
+			
 			if (show_twisty) {
 				int middleY = cellBounds.y + (cellBounds.height / 2) - 1;
 				int startX = cellBounds.x + paddingX;
