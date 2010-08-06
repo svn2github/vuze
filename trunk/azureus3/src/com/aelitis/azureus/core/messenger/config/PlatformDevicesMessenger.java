@@ -237,36 +237,37 @@ public class PlatformDevicesMessenger
 	}
 	
 	public static void setupDeviceSender() {
-		final DeviceManager deviceManager = DeviceManagerFactory.getSingleton();
-		Device[] devices = deviceManager.getDevices();
-		if (devices == null || devices.length == 0) {
-  		deviceManager.addListener(new DeviceManagerListener() {
-  		
-  			public void deviceRemoved(Device device) {
-  			}
-  		
-  			public void deviceChanged(Device device) {
-  			}
-  		
-  			public void deviceAttentionRequest(Device device) {
-  			}
-  			
-  			public void deviceAdded(Device device) {
-  			}
-  
-  			public void deviceManagerLoaded() {
-  				deviceManager.removeListener(this);
-  				Device[] devices = deviceManager.getDevices();
-  				if (devices != null && devices.length > 0) {
-  					sendDeviceList(devices);
-  				}
-  			}
-  		});
-		} else {
-			sendDeviceList(devices);
-		}
-		
+		if ( !COConfigurationManager.getStringParameter("ui").equals("az2")){
 
+			final DeviceManager deviceManager = DeviceManagerFactory.getSingleton();
+			Device[] devices = deviceManager.getDevices();
+			if (devices == null || devices.length == 0) {
+	  		deviceManager.addListener(new DeviceManagerListener() {
+	  		
+	  			public void deviceRemoved(Device device) {
+	  			}
+	  		
+	  			public void deviceChanged(Device device) {
+	  			}
+	  		
+	  			public void deviceAttentionRequest(Device device) {
+	  			}
+	  			
+	  			public void deviceAdded(Device device) {
+	  			}
+	  
+	  			public void deviceManagerLoaded() {
+	  				deviceManager.removeListener(this);
+	  				Device[] devices = deviceManager.getDevices();
+	  				if (devices != null && devices.length > 0) {
+	  					sendDeviceList(devices);
+	  				}
+	  			}
+	  		});
+			} else {
+				sendDeviceList(devices);
+			}
+		}
 	}
 
 	private static void sendDeviceList(Device[] devices) {
