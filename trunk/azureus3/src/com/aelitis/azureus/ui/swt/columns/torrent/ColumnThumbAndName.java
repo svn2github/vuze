@@ -68,6 +68,7 @@ public class ColumnThumbAndName
 	public static final String COLUMN_ID = "name";
 
 	private static final String ID_EXPANDOHITAREA = "expandoHitArea";
+	private static final String ID_EXPANDOHITAREASHOW = "expandoHitAreaShow";
 
 	private boolean showIcon;
 
@@ -229,7 +230,24 @@ public class ColumnThumbAndName
 			int numSubItems = rowCore.getSubItemCount();
 			int paddingX = 3;
 			int width = 7;
-			if (numSubItems > 1) {
+			
+			boolean	show_twisty;
+			
+			if (numSubItems > 1 ){
+				show_twisty = true;
+			}else{
+				Boolean show = (Boolean)rowCore.getData( ID_EXPANDOHITAREASHOW );
+				if ( show == null ){
+					DownloadManager dm = (DownloadManager)ds;
+					
+					show_twisty = dm.getDiskManagerFileInfoSet().nbFiles() > 1;
+					
+					rowCore.setData( ID_EXPANDOHITAREASHOW, new Boolean( show_twisty ));
+				}else{
+					show_twisty = show;
+				}
+			}
+			if (show_twisty) {
 				int middleY = cellBounds.y + (cellBounds.height / 2) - 1;
 				int startX = cellBounds.x + paddingX;
 				int halfHeight = 2;
