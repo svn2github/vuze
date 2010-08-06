@@ -142,6 +142,9 @@ public class TabbedMDI
 
 		tabFolder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
 			public void handleEvent(Event event) {
+				if ( tabFolder.isDisposed()){
+					return;
+				}
 				// Another window has control, skip filter
 				Control focus_control = tabFolder.getDisplay().getFocusControl();
 				if (focus_control != null
