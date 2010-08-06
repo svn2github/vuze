@@ -3,7 +3,11 @@ VUZE CHANGELOG
 
 2010.0x.xx | Vuze 4.5.0.1
 
+CHANGE: Core  | Prevent device manager initialisation in classic UI [Parg]
 
+BUGFIX: UI    | Setting files to 'delete' state corrupting internal view of a torrent's files [Parg]
+BUGFIX: UI    | Added reworked progress column to library view by default in place of completion date to allow file manipulation from that view [Parg]
+BUGFIX: UI    | Consistently show the file-expand twisty [Parg]
 
 2010.08.04 | Vuze 4.5.0.0
 
