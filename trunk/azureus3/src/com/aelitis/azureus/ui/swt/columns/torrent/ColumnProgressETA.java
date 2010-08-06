@@ -391,7 +391,9 @@ public class ColumnProgressETA
 			}
 
 			gc.setForeground(cText);
-			String s = "Completed on " + DisplayFormatters.formatDateShort(value);
+			
+			String s = MessageText.getString( "MyTorrents.column.ColumnProgressETA.compon", new String[]{ DisplayFormatters.formatDateShort(value)});
+			
 			GCStringPrinter.printString(gc, s, new Rectangle(xStart + 2, yStart,
 					newWidth - 4, newHeight), true, false, SWT.WRAP);
 		} else {
@@ -422,9 +424,9 @@ public class ColumnProgressETA
 			area.x += (pctExtent.x + 3);
 
 			if (!showSecondLine && sETALine != null) {
-				boolean over = GCStringPrinter.printString(gc, sETALine, area, true,
+				boolean fit = GCStringPrinter.printString(gc, sETALine, area.intersection(cellBounds), true,
 						false, SWT.RIGHT);
-				cell.setToolTip(over ? sETALine : null);
+				cell.setToolTip(fit ? null:sETALine);
 			}
 		}
 
@@ -536,29 +538,32 @@ public class ColumnProgressETA
 		int ofsY = (cellArea.height / 2) - (PROGRESS_HEIGHT / 2) - 1;
 		int progressWidth = cellArea.width - (ofsX * 2) - PROGRESS_TO_HILOW_GAP
 				- HILOW_WIDTH - HILOW_TO_BUTTON_GAP - BUTTON_WIDTH;
-		if (progressFont == null) {
-			progressFont = FontUtils.getFontWithHeight(gc.getFont(), gc,
-					PROGRESS_HEIGHT - 2);
+		
+		if ( progressWidth > 0 ){
+			if (progressFont == null) {
+				progressFont = FontUtils.getFontWithHeight(gc.getFont(), gc,
+						PROGRESS_HEIGHT - 2);
+			}
+			gc.setFont(progressFont);
+			gc.setForeground(ColorCache.getSchemedColor(display, fileInfo.isSkipped()
+					? "#95a6b2" : "#88acc1"));
+			gc.drawRectangle(cellArea.x + ofsX, cellArea.y + ofsY - 1, progressWidth,
+					PROGRESS_HEIGHT + 1);
+	
+			int pctWidth = (int) (percent * (progressWidth - 1) / 1000);
+			gc.setBackground(ColorCache.getSchemedColor(display, fileInfo.isSkipped()
+					? "#a6bdce" : "#8ccfff"));
+			gc.fillRectangle(cellArea.x + ofsX + 1, cellArea.y + ofsY, pctWidth,
+					PROGRESS_HEIGHT);
+			gc.setBackground(Colors.white);
+			gc.fillRectangle(cellArea.x + ofsX + pctWidth + 1, cellArea.y + ofsY,
+					progressWidth - pctWidth - 1, PROGRESS_HEIGHT);
+	
+			Rectangle boundsImgBG = imgBGfile.getBounds();
+			gc.drawImage(imgBGfile, boundsImgBG.x, boundsImgBG.y, boundsImgBG.width,
+					boundsImgBG.height, cellArea.x + ofsX + 1,
+					cellArea.y + ofsY, progressWidth - 1, PROGRESS_HEIGHT);
 		}
-		gc.setFont(progressFont);
-		gc.setForeground(ColorCache.getSchemedColor(display, fileInfo.isSkipped()
-				? "#95a6b2" : "#88acc1"));
-		gc.drawRectangle(cellArea.x + ofsX, cellArea.y + ofsY - 1, progressWidth,
-				PROGRESS_HEIGHT + 1);
-
-		int pctWidth = (int) (percent * (progressWidth - 1) / 1000);
-		gc.setBackground(ColorCache.getSchemedColor(display, fileInfo.isSkipped()
-				? "#a6bdce" : "#8ccfff"));
-		gc.fillRectangle(cellArea.x + ofsX + 1, cellArea.y + ofsY, pctWidth,
-				PROGRESS_HEIGHT);
-		gc.setBackground(Colors.white);
-		gc.fillRectangle(cellArea.x + ofsX + pctWidth + 1, cellArea.y + ofsY,
-				progressWidth - pctWidth - 1, PROGRESS_HEIGHT);
-
-		Rectangle boundsImgBG = imgBGfile.getBounds();
-		gc.drawImage(imgBGfile, boundsImgBG.x, boundsImgBG.y, boundsImgBG.width,
-				boundsImgBG.height, cellArea.x + ofsX + 1,
-				cellArea.y + ofsY, progressWidth - 1, PROGRESS_HEIGHT);
 		
 		Color colorText = ColorCache.getSchemedColor(display, fileInfo.isSkipped()
 				? "#556875" : "#2678b1");
