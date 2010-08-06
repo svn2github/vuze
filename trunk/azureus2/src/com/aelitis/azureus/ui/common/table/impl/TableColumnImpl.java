@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.sharing.ShareResource;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
@@ -1558,5 +1559,22 @@ public class TableColumnImpl
 	
 	public String getIconReference() {
 		return iconID;
+	}
+	
+	public void setMinimumRequiredUserMode(int mode) {
+
+		TableColumnInfo info = TableColumnManager.getInstance().getColumnInfo( getForDataSourceType(), getTableID(), getName());
+		
+		if ( info != null ){
+			byte	prof;
+			if ( mode == Parameter.MODE_BEGINNER ){
+				prof = TableColumnInfo.PROFICIENCY_BEGINNER;
+			}else if ( mode == Parameter.MODE_INTERMEDIATE ){
+				prof = TableColumnInfo.PROFICIENCY_INTERMEDIATE;
+			}else{
+				prof = TableColumnInfo.PROFICIENCY_ADVANCED;
+			}
+			info.setProficiency( prof );
+		}
 	}
 }

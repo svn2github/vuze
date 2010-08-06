@@ -596,4 +596,13 @@ public interface TableColumn {
 	 * @since 4.4.0.7
 	 */
 	public String getIconReference();
+	
+	/**
+	 * *since 4501
+	 * @param mode from Parameter. constants
+	 */
+	
+	public void
+	setMinimumRequiredUserMode(
+		int		mode );
 }

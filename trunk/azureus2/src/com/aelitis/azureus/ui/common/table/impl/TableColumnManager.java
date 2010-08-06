@@ -725,6 +725,7 @@ public class TableColumnManager {
 		}
 		if (columnInfo.getCategories() == null && !(column instanceof CoreTableColumn)) {
 			columnInfo.addCategories(new String[] { "plugin" });
+			columnInfo.setProficiency( TableColumnInfo.PROFICIENCY_BEGINNER );
 		}
 
 		return columnInfo;

@@ -756,6 +756,7 @@ SubscriptionManagerUI
 					
 						result.addCellRefreshListener( link_refresh_listener );
 						result.addCellMouseListener( link_mouse_listener );
+						result.setMinimumRequiredUserMode( Parameter.MODE_INTERMEDIATE );
 						
 						synchronized (columns) {
 							columns.add(result);
