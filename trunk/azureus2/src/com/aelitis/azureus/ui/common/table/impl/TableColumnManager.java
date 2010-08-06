@@ -718,6 +718,11 @@ public class TableColumnManager {
 
 		TableColumnCore column = getTableColumnCore(forTableID, columnID);
 		
+		return( getColumnInfo( column ));
+	}
+	
+	public TableColumnInfo getColumnInfo( TableColumnCore column ){
+		
 		TableColumnInfoImpl columnInfo = new TableColumnInfoImpl(column);
 		List<TableColumnExtraInfoListener> listeners = column.getColumnExtraInfoListeners();
 		for (TableColumnExtraInfoListener l : listeners) {

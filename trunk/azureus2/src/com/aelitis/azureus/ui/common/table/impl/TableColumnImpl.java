@@ -1563,7 +1563,7 @@ public class TableColumnImpl
 	
 	public void setMinimumRequiredUserMode(int mode) {
 
-		TableColumnInfo info = TableColumnManager.getInstance().getColumnInfo( getForDataSourceType(), getTableID(), getName());
+		TableColumnInfo info = TableColumnManager.getInstance().getColumnInfo( this );
 		
 		if ( info != null ){
 			byte	prof;
