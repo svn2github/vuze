@@ -414,6 +414,10 @@ public class ColumnProgressETA
 			
 			String s = MessageText.getString( "MyTorrents.column.ColumnProgressETA.compon", new String[]{ DisplayFormatters.formatDateShort(value)});
 			
+			if ( percentDone < 1000 ){
+				
+				s = DisplayFormatters.formatPercentFromThousands((int)percentDone) + " " + s; // " " + Character.toLowerCase(s.charAt(0))+s.substring(1);
+			}
 			GCStringPrinter.printString(gc, s, new Rectangle(xStart + 2, yStart,
 					newWidth - 4, newHeight), true, false, SWT.WRAP);
 		} else {
