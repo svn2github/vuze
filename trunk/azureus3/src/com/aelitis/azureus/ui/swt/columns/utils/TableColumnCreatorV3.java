@@ -42,7 +42,8 @@ public class TableColumnCreatorV3
 			ColumnUnopened.COLUMN_ID,
 			ColumnThumbAndName.COLUMN_ID,
 			SizeItem.COLUMN_ID,
-			DateCompletedItem.COLUMN_ID,
+			ColumnProgressETA.COLUMN_ID,
+			//DateCompletedItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
 			StatusItem.COLUMN_ID,
 			ColumnTorrentSpeed.COLUMN_ID,
@@ -60,9 +61,9 @@ public class TableColumnCreatorV3
 		if (!tcManager.loadTableColumnSettings(Download.class, tableID)
 				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
-			DateCompletedItem tc = (DateCompletedItem) mapTCs.get(DateCompletedItem.COLUMN_ID);
+			ColumnProgressETA tc = (ColumnProgressETA) mapTCs.get(ColumnProgressETA.COLUMN_ID);
 			if (tc != null) {
-				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
+				tcManager.setDefaultSortColumnName(tableID, ColumnProgressETA.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
 		}
@@ -212,8 +213,9 @@ public class TableColumnCreatorV3
 			ColumnThumbAndName.COLUMN_ID,
 			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
+			ColumnProgressETA.COLUMN_ID,
 			StatusItem.COLUMN_ID,
-			DateCompletedItem.COLUMN_ID,
+			//DateCompletedItem.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();

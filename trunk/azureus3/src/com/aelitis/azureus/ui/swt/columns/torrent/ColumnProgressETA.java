@@ -35,7 +35,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
-import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -252,6 +251,13 @@ public class ColumnProgressETA
 					cell.getBounds());
 			return;
 		}
+
+		if( !(ds instanceof DownloadManager )){
+			return;
+		}
+		
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+
 		int percentDone = getPercentDone(ds);
 		long eta = getETA(cell);
 
@@ -264,6 +270,8 @@ public class ColumnProgressETA
 
 		Color fgFirst = gc.getForeground();
 
+		final Color fgOriginal = fgFirst;
+		
 		Rectangle cellBounds = cell.getBounds();
 
 		int xStart = cellBounds.x;
@@ -325,8 +333,7 @@ public class ColumnProgressETA
 			}
 		}
 
-		if (sETALine == null && (ds instanceof DownloadManager)) {
-			DownloadManager dm = (DownloadManager) cell.getDataSource();
+		if (sETALine == null ) {
 			if (dm.isUnauthorisedOnTracker()) {
 				sETALine = dm.getTrackerStatus();
 				// fgFirst = Colors.colorError;	pftt, no colours allowed apparently
@@ -377,8 +384,8 @@ public class ColumnProgressETA
 			cell.setToolTip(over ? sETALine : null);
 		}
 		int middleY = (yRelProgressFillEnd - 12) / 2;
-		if (percentDone == 1000 && (ds instanceof DownloadManager)) {
-			DownloadManager dm = (DownloadManager) cell.getDataSource();
+				
+		if (percentDone == 1000 || dm.isDownloadComplete(false)) {
 			gc.setForeground(fgFirst);
 			long value;
 			long completedTime = dm.getDownloadState().getLongParameter(
@@ -390,7 +397,20 @@ public class ColumnProgressETA
 				value = completedTime;
 			}
 
-			gc.setForeground(cText);
+			if ( getTableID() == TableManager.TABLE_MYTORRENTS_ALL_BIG ){
+			
+				if ( percentDone == 1000 ){
+				
+					gc.setForeground( fgOriginal  );
+					
+				}else{
+					
+					gc.setForeground(Colors.black);
+				}
+			}else{
+				
+				gc.setForeground(cText);
+			}
 			
 			String s = MessageText.getString( "MyTorrents.column.ColumnProgressETA.compon", new String[]{ DisplayFormatters.formatDateShort(value)});
 			
