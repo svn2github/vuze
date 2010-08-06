@@ -71,25 +71,9 @@ public class ColumnThumbAndName
 	private static final String ID_EXPANDOHITAREA = "expandoHitArea";
 	private static final String ID_EXPANDOHITAREASHOW = "expandoHitAreaShow";
 
-	private static boolean NEVER_SHOW_TWISTY;
-	
-	static{
-		COConfigurationManager.addAndFireParameterListener(
-			"Table.useTree",
-			new ParameterListener()
-			{
-				public void 
-				parameterChanged(
-					String name ) 
-				{
-						// currently linux always shows its own twisty
-					
-					NEVER_SHOW_TWISTY = 
-						Constants.isLinux || 
-						!COConfigurationManager.getBooleanParameter(name);
-				}
-			});
-	}
+	private static final boolean NEVER_SHOW_TWISTY = 
+		Constants.isLinux || 
+		!COConfigurationManager.getBooleanParameter("Table.useTree");
 	
 	private boolean showIcon;
 
