@@ -279,8 +279,6 @@ public class ColumnThumbAndName
 						- cellBounds.y, width, (halfHeight * 4) + 1);
 				rowCore.setData(ID_EXPANDOHITAREA, hitArea);
 
-			}
-			if (numSubItems > 0) {
 				cellBounds.x += paddingX * 2 + width;
 				cellBounds.width -= paddingX * 2 + width;
 			}
