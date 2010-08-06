@@ -149,98 +149,101 @@ public class InitialisationFunctions
 				{
 					List<TranscodeTarget> result = new ArrayList<TranscodeTarget>();
 					
-					try{
-						DeviceManager dm = DeviceManagerFactory.getSingleton();
-					
-						Device[] devices = dm.getDevices();
+					if ( !COConfigurationManager.getStringParameter("ui").equals("az2")){
+
+						try{
+							DeviceManager dm = DeviceManagerFactory.getSingleton();
 						
-						for ( final Device d: devices ){
+							Device[] devices = dm.getDevices();
 							
-							if ( d instanceof DeviceMediaRenderer ){
+							for ( final Device d: devices ){
 								
-								final DeviceMediaRenderer dmr = (DeviceMediaRenderer)d;							
-
-								boolean	hide_device = d.isHidden();
-								
-								if ( COConfigurationManager.getBooleanParameter( "device.sidebar.ui.rend.hidegeneric", true ) ){
-																		
-									if ( dmr.isNonSimple()){
-										
-										hide_device = true;
-									}
-								}
-								
-								if ( hide_device ){
+								if ( d instanceof DeviceMediaRenderer ){
 									
-									continue;
-								}
-								
-								result.add( 
-									new TranscodeTarget()
-									{
-										public String
-										getName()
-										{
-											return( d.getName());
-										}
-										
-										public TranscodeProfile[]
-										getProfiles()
-										{		
-											List<TranscodeProfile>	ps = new ArrayList<TranscodeProfile>(); 
-
-											com.aelitis.azureus.core.devices.TranscodeProfile[] profs = dmr.getTranscodeProfiles();	
+									final DeviceMediaRenderer dmr = (DeviceMediaRenderer)d;							
+	
+									boolean	hide_device = d.isHidden();
+									
+									if ( COConfigurationManager.getBooleanParameter( "device.sidebar.ui.rend.hidegeneric", true ) ){
+																			
+										if ( dmr.isNonSimple()){
 											
-											if ( profs.length == 0 ){
+											hide_device = true;
+										}
+									}
+									
+									if ( hide_device ){
+										
+										continue;
+									}
+									
+									result.add( 
+										new TranscodeTarget()
+										{
+											public String
+											getName()
+											{
+												return( d.getName());
+											}
+											
+											public TranscodeProfile[]
+											getProfiles()
+											{		
+												List<TranscodeProfile>	ps = new ArrayList<TranscodeProfile>(); 
+	
+												com.aelitis.azureus.core.devices.TranscodeProfile[] profs = dmr.getTranscodeProfiles();	
 												
-												if ( dmr.getTranscodeRequirement() == com.aelitis.azureus.core.devices.TranscodeTarget.TRANSCODE_NEVER ){
+												if ( profs.length == 0 ){
 													
-													ps.add(
+													if ( dmr.getTranscodeRequirement() == com.aelitis.azureus.core.devices.TranscodeTarget.TRANSCODE_NEVER ){
+														
+														ps.add(
+																new TranscodeProfile()
+																{
+																	public String
+																	getUID()
+																	{
+																		return( dmr.getID() + "/" + dmr.getBlankProfile().getName());
+																	}
+																	
+																	public String
+																	getName()
+																	{
+																		return( MessageText.getString( "devices.profile.direct" ));
+																	}
+																});												}
+												}else{
+												
+													for ( final com.aelitis.azureus.core.devices.TranscodeProfile prof: profs ){
+											
+														ps.add(
 															new TranscodeProfile()
 															{
 																public String
 																getUID()
 																{
-																	return( dmr.getID() + "/" + dmr.getBlankProfile().getName());
+																	return( prof.getUID());
 																}
 																
 																public String
 																getName()
 																{
-																	return( MessageText.getString( "devices.profile.direct" ));
+																	return( prof.getName());
 																}
-															});												}
-											}else{
-											
-												for ( final com.aelitis.azureus.core.devices.TranscodeProfile prof: profs ){
-										
-													ps.add(
-														new TranscodeProfile()
-														{
-															public String
-															getUID()
-															{
-																return( prof.getUID());
-															}
-															
-															public String
-															getName()
-															{
-																return( prof.getName());
-															}
-														});
+															});
+													}
 												}
+												
+												return( ps.toArray( new TranscodeProfile[ ps.size()]));
 											}
-											
-											return( ps.toArray( new TranscodeProfile[ ps.size()]));
-										}
-									});					
+										});					
+								}
 							}
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
 						}
-						
-					}catch( Throwable e ){
-						
-						Debug.out( e );
 					}
 					
 					Collections.sort(
