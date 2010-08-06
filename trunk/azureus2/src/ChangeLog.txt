@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2010.xx.xx | Vuze 4.5.0.3
+
+
+
 2010.08.06 | Vuze 4.5.0.2
 
 CHANGE: Core  | Prevent device manager initialisation in classic UI [Parg]
