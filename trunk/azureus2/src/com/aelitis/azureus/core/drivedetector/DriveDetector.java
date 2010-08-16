@@ -38,4 +38,6 @@ public interface DriveDetector
 	public void addListener(DriveDetectedListener l);
 
 	public void removeListener(DriveDetectedListener l);
+
+	public DriveDetectedInfo[] getDetectedDriveInfo();
 }

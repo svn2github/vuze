@@ -22,8 +22,7 @@ package com.aelitis.azureus.core.drivedetector.impl;
 import java.io.File;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEMonitor2;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.drivedetector.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -34,14 +33,33 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
  *
  */
 public class DriveDetectorImpl
-	implements DriveDetector
+	implements DriveDetector,
+	AEDiagnosticsEvidenceGenerator
 {
 	private AEMonitor2 mon_driveDetector = new AEMonitor2("driveDetector");
 
 	private CopyOnWriteList<DriveDetectedListener> listListeners = new CopyOnWriteList<DriveDetectedListener>(1);
 	
 	private Map<File, Map> mapDrives = new HashMap<File, Map>(1); 
+	
+	public DriveDetectorImpl() {
+		AEDiagnostics.addEvidenceGenerator(this);
+	}
 
+	public DriveDetectedInfo[] getDetectedDriveInfo() {
+		mon_driveDetector.enter();
+		try {
+			int i = 0;
+			DriveDetectedInfo[] ddi = new DriveDetectedInfo[mapDrives.size()];
+			for (File key : mapDrives.keySet()) {
+				ddi[i++] = new DriveDetectedInfoImpl(key, mapDrives.get(key));
+			}
+			return ddi;
+		} finally {
+			mon_driveDetector.exit();
+		}
+	}
+	
 	public void addListener(DriveDetectedListener l) {
 		mon_driveDetector.enter();
 		try {
@@ -130,5 +148,35 @@ public class DriveDetectorImpl
 			
 			return( f );
 		}	
+	}
+
+	// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
+	public void generate(IndentWriter writer) {
+		synchronized (mapDrives) {
+			writer.println("DriveDetector: " + mapDrives.size() + " drives");
+			for (File file : mapDrives.keySet()) {
+				try {
+					writer.indent();
+					writer.println(file.getPath());
+					
+					try {
+						writer.indent();
+
+  					Map driveInfo = mapDrives.get(file);
+  					for (Iterator iter = driveInfo.keySet().iterator(); iter.hasNext();) {
+  						Object key = (Object) iter.next();
+  						Object val = driveInfo.get(key);
+  						writer.println(key + ": " + val);
+  					}
+					} finally {
+						writer.exdent();
+					}
+				} catch (Throwable e) {
+					Debug.out(e);
+				} finally {
+					writer.exdent();
+				}
+			}
+		}
 	}
 }
