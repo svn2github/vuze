@@ -91,7 +91,7 @@ DeviceDriveManager
 	driveDetected(
 		final DriveDetectedInfo info )
  {
-		System.out.println("DD " + info.getLocation() + " via " + Debug.getCompressedStackTrace());
+		//System.out.println("DD " + info.getLocation() + " via " + Debug.getCompressedStackTrace());
 		async_dispatcher.dispatch(new AERunnable() {
 			public void runSupport() {
 				File root = info.getLocation();
