@@ -191,12 +191,12 @@ public class SWTThread {
 
 		Listener lShowMainWindow = new Listener() {
 			public void handleEvent(Event event) {
-				if (event.display.getActiveShell() != null) {
-					return;
-				}
 				UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 				if (uif != null) {
-					uif.bringToFront(false);
+					Shell mainShell = uif.getMainShell();
+					if (mainShell == null || !mainShell.isVisible() || mainShell.getMinimized()) {
+  					uif.bringToFront(false);
+  				}
 				}
 			}
 		};
