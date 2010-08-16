@@ -152,6 +152,7 @@ public class FeatureManagerUI
 				});
 		if (ConfigurationChecker.isNewVersion()
 				&& !ConfigurationChecker.isNewInstall() && !hasFullLicence()) {
+			SBC_PlusFTUX.setSourceRef("startup");
 			mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
 		}
 	}
