@@ -361,6 +361,18 @@ public class UIDebugGenerator
 				addFilesToZip(out, files);
 			}
 
+			// recent OSX crashes
+			File diagReportspath = new File(System.getProperty("user.home"), "Library"
+					+ File.separator + "Logs" + File.separator + "DiagnosticReports");
+			if (diagReportspath.isDirectory()) {
+				files = diagReportspath.listFiles(new FileFilter() {
+					public boolean accept(File pathname) {
+						return (pathname.getName().endsWith("crash") && pathname.lastModified() > ago);
+					}
+				});
+				addFilesToZip(out, files);
+			}
+
 			boolean bLogToFile = COConfigurationManager.getBooleanParameter("Logging Enable");
 			String sLogDir = COConfigurationManager.getStringParameter("Logging Dir",
 					"");
