@@ -1052,11 +1052,11 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
   }
 
-	public Image obfusticatedImage(Image image, Point shellOffset) {
+	public Image obfusticatedImage(Image image) {
 		UIDebugGenerator.obfusticateArea(image, (Control) fileName.getWidget(),
-				shellOffset, manager.toString());
+				manager.toString());
 		UIDebugGenerator.obfusticateArea(image, (Control) saveIn.getWidget(),
-				shellOffset, Debug.secretFileName(saveIn.getText()));
+				Debug.secretFileName(saveIn.getText()));
 		return image;
 }
 }

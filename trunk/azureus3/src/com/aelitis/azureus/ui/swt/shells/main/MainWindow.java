@@ -53,7 +53,9 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
+import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
@@ -704,9 +706,9 @@ public class MainWindow
 			initSkinListeners();
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
-			System.out.println("skinlisteners init took "
-					+ (SystemTime.getCurrentTime() - startTime) + "ms");
-			startTime = SystemTime.getCurrentTime();
+			// 0ms
+			//System.out.println("skinlisteners init took " + (SystemTime.getCurrentTime() - startTime) + "ms");
+			//startTime = SystemTime.getCurrentTime();
 
 			String startID = uiClassic ? "classic.shell" : "main.shell";
 			skin.initialize(shell, startID, uiInitializer);
@@ -780,19 +782,20 @@ public class MainWindow
 				};
 				shell.addListener(SWT.Expand, toggleListener);
 				shell.addListener(SWT.Collapse, toggleListener);
+
+				System.out.println("createWindow init took "
+						+ (SystemTime.getCurrentTime() - startTime) + "ms");
+				startTime = SystemTime.getCurrentTime();
 			}
 
-			System.out.println("createWindow init took "
-					+ (SystemTime.getCurrentTime() - startTime) + "ms");
-			startTime = SystemTime.getCurrentTime();
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
 			skin.layout();
 
-			System.out.println("skin layout took "
-					+ (SystemTime.getCurrentTime() - startTime) + "ms");
-			startTime = SystemTime.getCurrentTime();
+			// 0ms
+			//System.out.println("skin layout took " + (SystemTime.getCurrentTime() - startTime) + "ms");
+			//startTime = SystemTime.getCurrentTime();
 
 			try {
 				Utils.createTorrentDropTarget(shell, false);
@@ -889,9 +892,9 @@ public class MainWindow
 			}
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
-			System.out.println("hooks init took "
-					+ (SystemTime.getCurrentTime() - startTime) + "ms");
-			startTime = SystemTime.getCurrentTime();
+			// 0ms
+			//System.out.println("hooks init took " + (SystemTime.getCurrentTime() - startTime) + "ms");
+			//startTime = SystemTime.getCurrentTime();
 
 			initWidgets();
 			System.out.println("skin widgets (1/2) init took "
@@ -900,7 +903,7 @@ public class MainWindow
 			initWidgets2();
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
-			System.out.println("skin widgets init took "
+			System.out.println("skin widgets (2/2) init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
@@ -1938,6 +1941,16 @@ public class MainWindow
 		FormData filledFormData = Utils.getFilledFormData();
 		text.setLayoutData(filledFormData);
 
+		text.setData("ObfusticateImage", new ObfusticateImage() {
+			public Image obfusticatedImage(Image image) {
+				Point location = Utils.getLocationRelativeToShell(text);
+				Point size = text.getSize();
+				UIDebugGenerator.obfusticateArea(display, image, new Rectangle(
+						location.x, location.y, size.x, size.y));
+				return image;
+			}
+		});
+		
 		text.addListener(SWT.Resize, new Listener() {
 			Font lastFont = null;
 
@@ -2402,31 +2415,44 @@ public class MainWindow
 	public Image generateObfusticatedImage() {
 		// 3.2 TODO: Obfusticate! (esp advanced view)
 
-		Image image;
-		Rectangle clientArea = shell.getClientArea();
-		image = new Image(display, clientArea.width, clientArea.height);
+		Rectangle shellBounds = shell.getBounds();
+		Rectangle shellClientArea = shell.getClientArea();
+		Image fullImage = new Image(display, shellBounds.width, shellBounds.height);
+		Image subImage = new Image(display, shellClientArea.width, shellClientArea.height);
 
-		GC gc = new GC(shell);
+		GC gc = new GC(display);
 		try {
-			gc.copyArea(image, clientArea.x, clientArea.y);
-
-			Control[] children = shell.getChildren();
-			for (int i = 0; i < children.length; i++) {
-				Control control = children[i];
-				SWTSkinObject so = (SWTSkinObject) control.getData("SkinObject");
-				if (so != null) {
-					Image obfusticatedImage = so.generateObfusticatedImage();
-					if (obfusticatedImage != null) {
-						Rectangle bounds = so.getControl().getBounds();
-						gc.drawImage(obfusticatedImage, bounds.x, bounds.y);
-					}
-				}
-			}
+			gc.copyArea(fullImage, shellBounds.x, shellBounds.y);
 		} finally {
 			gc.dispose();
 		}
+		GC gcShell = new GC(shell);
+		try {
+			gcShell.copyArea(subImage, 0, 0);
+		} finally {
+			gcShell.dispose();
+		}
+		GC gcFullImage = new GC(fullImage);
+		try {
+			Point location = shell.toDisplay(0, 0);
+			gcFullImage.drawImage(subImage, location.x - shellBounds.x, location.y
+					- shellBounds.y);
+		} finally {
+			gcFullImage.dispose();
+		}
+		subImage.dispose();
 
-		return image;
+		Control[] children = shell.getChildren();
+		for (int i = 0; i < children.length; i++) {
+			Control control = children[i];
+			SWTSkinObject so = (SWTSkinObject) control.getData("SkinObject");
+			if (so instanceof ObfusticateImage) {
+				ObfusticateImage oi = (ObfusticateImage) so;
+				oi.obfusticatedImage(fullImage);
+			}
+		}
+
+		return fullImage;
 	}
 
 	/**

@@ -46,6 +46,8 @@ AZ3Functions
 	public interface
 	provider
 	{
+		public static int SERVICE_SITE_RELATIVE = 27;
+
 		public void
 		subscribeToRSS(
 			String		name,
@@ -65,7 +67,7 @@ AZ3Functions
 		play(
 			DownloadManager		dm,
 			int					file_index );
-		
+
 		public TranscodeTarget[]
 		getTranscodeTargets();
 		
@@ -88,5 +90,10 @@ AZ3Functions
 			public String
 			getName();
 		}
+
+		public String
+		getDefaultContentNetworkURL(
+				int type, 
+				Object[] params);
 	}
 }

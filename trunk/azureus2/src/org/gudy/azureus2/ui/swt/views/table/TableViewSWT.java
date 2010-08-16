@@ -80,10 +80,9 @@ public interface TableViewSWT<DATASOURCETYPE>
 
 	/**
 	 * @param image
-	 * @param shellOffset
 	 * @return
 	 */
-	Image obfusticatedImage(Image image, Point shellOffset);
+	Image obfusticatedImage(Image image);
 
 	/**
 	 * @param listener

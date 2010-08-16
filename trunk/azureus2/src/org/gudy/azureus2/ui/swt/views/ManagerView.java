@@ -29,7 +29,6 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -492,11 +491,11 @@ public class ManagerView
 		tabViews.add(view);
 	}
 
-	public Image obfusticatedImage(Image image, Point shellOffset) {
+	public Image obfusticatedImage(Image image) {
 		IView view = getActiveView();
 		if (view instanceof ObfusticateImage) {
 			try {
-				((ObfusticateImage)view).obfusticatedImage(image, shellOffset);
+				((ObfusticateImage)view).obfusticatedImage(image);
 			} catch (Exception e) {
 				Debug.out("Obfusticating " + view, e);
 			}

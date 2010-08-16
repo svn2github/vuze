@@ -19,6 +19,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -33,7 +34,7 @@ import com.aelitis.azureus.util.StringCompareUtils;
  *
  */
 public class SWTSkinObjectBasic
-	implements SWTSkinObject, PaintListener
+	implements SWTSkinObject, PaintListener, ObfusticateImage
 {
 	protected static final int BORDER_ROUNDED = 1;
 
@@ -108,6 +109,8 @@ public class SWTSkinObjectBasic
 	private boolean firstVisibility;
 
 	private boolean layoutComplete;
+
+	private ObfusticateImage obfusticatedImageGenerator;
 
 	/**
 	 * @param properties TODO
@@ -1029,9 +1032,23 @@ public class SWTSkinObjectBasic
 		mapData.put(id, data);
 	}
 
-	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateShell#generateObfusticatedImage()
-	public Image generateObfusticatedImage() {
-		return null;
+	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateImage#obfusticatedImage(org.eclipse.swt.graphics.Image, org.eclipse.swt.graphics.Point)
+	public Image obfusticatedImage(Image image) {
+		if (!isVisible()) {
+			return image;
+		}
+		Point ourOfs = Utils.getLocationRelativeToShell(control);
+		if (obfusticatedImageGenerator == null) {
+			if (skinView instanceof ObfusticateImage) {
+				return ((ObfusticateImage) skinView).obfusticatedImage(image);
+			}
+			return image;
+		}
+		return obfusticatedImageGenerator.obfusticatedImage(image);
+	}
+	
+	public void setObfusticatedImageGenerator(ObfusticateImage obfusticatedImageGenerator) {
+		this.obfusticatedImageGenerator = obfusticatedImageGenerator;
 	}
 
 	/**
@@ -1100,4 +1117,5 @@ public class SWTSkinObjectBasic
 		}
 		return null;
 	}
+
 }

@@ -619,8 +619,8 @@ public class PeerInfoView
 		super.delete();
 	}
 
-	public Image obfusticatedImage(Image image, Point shellOffset) {
-		UIDebugGenerator.obfusticateArea(image, topLabel, shellOffset, "");
+	public Image obfusticatedImage(Image image) {
+		UIDebugGenerator.obfusticateArea(image, topLabel, "");
 		return image;
 	}
 

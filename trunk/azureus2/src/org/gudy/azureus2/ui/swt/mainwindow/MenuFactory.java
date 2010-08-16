@@ -986,7 +986,8 @@ public class MenuFactory
 	public static MenuItem addDebugHelpMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_DEBUG_HELP, new Listener() {
 			public void handleEvent(Event e) {
-				UIDebugGenerator.generate();
+				UIDebugGenerator.generate(Constants.APP_NAME + " "
+						+ Constants.AZUREUS_VERSION, "Generated via Help Menu");
 			}
 		});
 	}

@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.swt.devices.columns;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 
 /**
  * @author TuxPaper
@@ -29,7 +30,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  */
 public class ColumnOD_Name
-	implements TableCellRefreshListener, TableColumnExtraInfoListener
+	implements TableCellRefreshListener, TableColumnExtraInfoListener, ObfusticateCellText
 {
 	public static final String COLUMN_ID = "od_name";
 
@@ -38,6 +39,7 @@ public class ColumnOD_Name
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
+		column.setObfustication(true);
 	}
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
@@ -61,5 +63,18 @@ public class ColumnOD_Name
 		}
 
 		cell.setText(text);
+	}
+
+	public String getObfusticatedText(TableCell cell) {
+		DeviceOfflineDownload od = (DeviceOfflineDownload) cell.getDataSource();
+		if (od == null) {
+			return null;
+		}
+		String name = od.getDownload().toString();
+		int i = name.indexOf('#');
+		if (i > 0) {
+			name = name.substring(i + 1);
+		}
+		return name;
 	}
 }

@@ -4439,7 +4439,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
-	public Image obfusticatedImage(final Image image, Point shellOffset) {
+	public Image obfusticatedImage(final Image image) {
 		if (table.getItemCount() == 0 || !isVisible()) {
 			return image;
 		}
@@ -4462,26 +4462,27 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					TableRowSWT row = (TableRowSWT) table.getItem(j).getData("TableRow");
 					if (row != null && !row.isRowDisposed()) {
 						TableCellSWT cell = row.getTableCellSWT(tc.getName());
-						final Rectangle columnBounds = rowSWT.getBounds(i);
-						if (columnBounds.y + columnBounds.height > clientArea.y
-								+ clientArea.height) {
-							columnBounds.height -= (columnBounds.y + columnBounds.height)
-									- (clientArea.y + clientArea.height);
-						}
-						if (columnBounds.x + columnBounds.width > clientArea.x
-								+ clientArea.width) {
-							columnBounds.width -= (columnBounds.x + columnBounds.width)
-									- (clientArea.x + clientArea.width);
-						}
-
-						final Point offset = table.toDisplay(columnBounds.x, columnBounds.y);
-
-						columnBounds.x = offset.x - shellOffset.x;
-						columnBounds.y = offset.y - shellOffset.y;
 
 						String text = cell.getObfusticatedText();
 
 						if (text != null) {
+							final Rectangle columnBounds = rowSWT.getBounds(i);
+							if (columnBounds.y + columnBounds.height > clientArea.y
+									+ clientArea.height) {
+								columnBounds.height -= (columnBounds.y + columnBounds.height)
+										- (clientArea.y + clientArea.height);
+							}
+							if (columnBounds.x + columnBounds.width > clientArea.x
+									+ clientArea.width) {
+								columnBounds.width -= (columnBounds.x + columnBounds.width)
+										- (clientArea.x + clientArea.width);
+							}
+							
+							Point location = Utils.getLocationRelativeToShell(table.getComposite());
+							
+							columnBounds.x += location.x;
+							columnBounds.y += location.y;
+
 							UIDebugGenerator.obfusticateArea(table.getDisplay(), image,
 									columnBounds, text);
 						}
@@ -4495,7 +4496,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		IView view = getActiveSubView();
 		if (view instanceof ObfusticateImage) {
 			try {
-				((ObfusticateImage) view).obfusticatedImage(image, shellOffset);
+				((ObfusticateImage) view).obfusticatedImage(image);
 			} catch (Exception e) {
 				Debug.out("Obfusticating " + view, e);
 			}

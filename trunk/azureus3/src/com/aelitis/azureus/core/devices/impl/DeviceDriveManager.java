@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceTemplate;
@@ -90,6 +91,7 @@ DeviceDriveManager
 	driveDetected(
 		final DriveDetectedInfo info )
  {
+		System.out.println("DD " + info.getLocation() + " via " + Debug.getCompressedStackTrace());
 		async_dispatcher.dispatch(new AERunnable() {
 			public void runSupport() {
 				File root = info.getLocation();
@@ -129,16 +131,34 @@ DeviceDriveManager
 					} else if (sProdID.equalsIgnoreCase("sgh-t959")) {
 						name = "Samsung Vibrant"; // non-card
 					} else if (sProdID.toLowerCase().contains("sgh-t959")) {
-						hidden = true;
-					}
+							hidden = true;
+						}
 
 					String id = "android.";
-					id += sProdID.replaceAll(" ", ".");
+					id += sProdID.replaceAll(" ", ".").toLowerCase();
 					if (sVendor.length() > 0) {
-						id += "." + sVendor.replaceAll(" ", ".");
+						id += "." + sVendor.replaceAll(" ", ".").toLowerCase();
 					}
 					
-					addDevice(name, id.toLowerCase(), root, new File(root, "videos"), hidden);
+					if (id.equals("android.android.phone.htc") && info.getInfo("PID") != null) {
+						id = "android.htc." + info.getInfo("PID");
+					}
+					
+					addDevice(name, id, root, new File(root, "videos"), hidden);
+					return;
+				} else if (sVendor.toLowerCase().equals("rim") && !sProdID.toLowerCase().contains(" SD")) {
+					// for some reason, the SD card never fully attaches, only the main device drive
+					String name = sVendor;
+  				if (name.length() > 0) {
+  					name += " ";
+  				}
+  				name += sProdID;
+					String id = "";
+					id += sProdID.replaceAll(" ", ".").toLowerCase();
+					if (sVendor.length() > 0) {
+						id += "." + sVendor.replaceAll(" ", ".").toLowerCase();
+					}
+					addDevice(name, id, root, new File(root, "videos"), false);
 					return;
 				}
 

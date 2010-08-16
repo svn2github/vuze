@@ -25,6 +25,7 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
@@ -37,6 +38,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
@@ -79,7 +81,7 @@ import com.aelitis.azureus.util.PlayUtils;
  */
 public class SBC_LibraryTableView
 	extends SkinView
-	implements UIUpdatable, ToolBarEnabler
+	implements UIUpdatable, ToolBarEnabler, ObfusticateImage
 {
 	private final static String ID = "SBC_LibraryTableView";
 
@@ -512,5 +514,14 @@ public class SBC_LibraryTableView
 			view.delete();
 		}
 		return super.skinObjectDestroyed(skinObject, params);
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateImage#obfusticatedImage(org.eclipse.swt.graphics.Image, org.eclipse.swt.graphics.Point)
+	public Image obfusticatedImage(Image image) {
+		if (view instanceof ObfusticateImage) {
+			ObfusticateImage oi = (ObfusticateImage) view;
+			return oi.obfusticatedImage(image);
+		}
+		return image;
 	}
 }

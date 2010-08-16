@@ -91,10 +91,14 @@ public class InitialisationFunctions
 		NavigationHelper.initialise();
 		
 		RelatedContentManager.preInitialise( core );
-		
+
 		AZ3Functions.setProvider(
 			new AZ3Functions.provider()
 			{
+				public String getDefaultContentNetworkURL(int type, Object[] params) {
+					return ConstantsVuze.getDefaultContentNetwork().getServiceURL(type, params);
+				}
+
 				public void 
 				subscribeToRSS(
 					String		name,

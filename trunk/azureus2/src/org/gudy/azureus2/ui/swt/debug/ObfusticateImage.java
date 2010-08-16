@@ -20,7 +20,6 @@
 package org.gudy.azureus2.ui.swt.debug;
 
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 
 /**
  * @author TuxPaper
@@ -29,5 +28,5 @@ import org.eclipse.swt.graphics.Point;
  */
 public interface ObfusticateImage
 {
-	Image obfusticatedImage(Image image, Point shellOffset);
+	Image obfusticatedImage(Image image);
 }

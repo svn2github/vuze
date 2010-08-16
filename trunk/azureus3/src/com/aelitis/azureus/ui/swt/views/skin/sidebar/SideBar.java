@@ -143,7 +143,7 @@ public class SideBar
 		soSideBarPopout = skin.getSkinObject("sidebar-pop");
 
 		if (ConfigurationChecker.isNewVersion()
-				&& Constants.compareVersions(Constants.AZUREUS_VERSION, "4.4.1.0") == 0) {
+				&& Constants.compareVersions(Constants.AZUREUS_VERSION, "4.5.0.4") == 0) {
 			final SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
 			if (soSash != null) {
 				soSash.resetWidth();
@@ -400,6 +400,7 @@ public class SideBar
 			public void handleEvent(final Event event) {
 				TreeItem treeItem = (TreeItem) event.item;
 
+				try {
 				switch (event.type) {
 					case SWT.MeasureItem: {
 						int clientWidth = tree.getClientArea().width;
@@ -622,6 +623,9 @@ public class SideBar
 						break;
 					}
 
+				}
+				} catch (Exception e) {
+					Debug.out(e);
 				}
 			}
 		};
@@ -1326,6 +1330,7 @@ public class SideBar
 
 		final SideBarEntrySWT oldEntry = (SideBarEntrySWT) currentEntry;
 
+		System.out.println("showEntry " + newEntry.getId() + "; was " + (oldEntry == null ? "null" : oldEntry.getId()));
 		if (currentEntry == newEntry) {
 			triggerSelectionListener(newEntry, newEntry);
 			return;

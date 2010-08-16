@@ -1848,8 +1848,8 @@ public class MyTorrentsView
 		//return tv.isTableFocus();
 	}
 	
-	public Image obfusticatedImage(final Image image, Point shellOffset) {
-		return tv.obfusticatedImage(image, shellOffset);
+	public Image obfusticatedImage(final Image image) {
+		return tv.obfusticatedImage(image);
 	}
 	
 	/**

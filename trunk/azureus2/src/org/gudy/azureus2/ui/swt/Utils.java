@@ -2152,4 +2152,10 @@ public class Utils
 	public static int getUserMode() {
 		return userMode;
 	}
+	
+	public static Point getLocationRelativeToShell(Control table) {
+		Point controlLocation = table.toDisplay(table.getLocation());
+		Point shellLocation = table.getShell().getLocation();
+		return new Point(controlLocation.x - shellLocation.x, controlLocation.y - shellLocation.y);
+	}
 }
