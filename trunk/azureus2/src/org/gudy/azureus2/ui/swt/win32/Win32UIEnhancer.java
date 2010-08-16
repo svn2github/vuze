@@ -24,6 +24,8 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -33,7 +35,9 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.platform.win32.access.AEWin32Access;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
+import org.gudy.azureus2.platform.win32.access.impl.AEWin32AccessImpl;
 import org.gudy.azureus2.platform.win32.access.impl.AEWin32AccessInterface;
 
 import com.aelitis.azureus.core.drivedetector.*;
@@ -382,8 +386,8 @@ public class Win32UIEnhancer
   								(int) st[0]
   							});
 							}
-							long unitMask = b[12] + (b[13] << 8) + (b[14] << 16)
-									+ (b[14] << 24);
+							long unitMask = (b[12] & 255) + ((b[13] & 255) << 8) + ((b[14] & 255) << 16)
+									+ ((b[15] & 3) << 24);
 							char letter = '?';
 							for (int i = 0; i < 26; i++) {
 								if (((1 << i) & unitMask) > 0) {
@@ -437,19 +441,35 @@ public class Win32UIEnhancer
   								(int) st[0]
   							});
 							}
-							long unitMask = b[12] + (b[13] << 8) + (b[14] << 16)
-									+ (b[14] << 24);
+							long unitMask = (b[12] & 255) + ((b[13] & 255) << 8)
+									+ ((b[14] & 255) << 16) + ((b[15] & 3) << 24);
 							char letter = '?';
+							DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
 							for (int i = 0; i < 26; i++) {
 								if (((1 << i) & unitMask) > 0) {
 									letter = (char) ('A' + i);
 									if (DEBUG) {
 										System.out.println("Drive " + letter + ";mask=" + unitMask);
 									}
-									DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
 									driveDetector.driveRemoved(new File(letter + ":\\"));
 								}
 							}
+
+							Map<File, Map> drives = AEWin32Manager.getAccessor(false).getUSBDrives();
+				  		if (drives != null) {
+  							DriveDetectedInfo[] existingDrives = driveDetector.getDetectedDriveInfo();
+  							for (DriveDetectedInfo existingDrive : existingDrives) {
+  								File existingDriveFile = existingDrive.getLocation();
+  								boolean found = drives.containsKey(existingDriveFile);
+  								if (!found) {
+  									if (DEBUG) {
+  										System.out.println("Fixup: Remove Drive " + existingDriveFile);
+  									}
+  									driveDetector.driveRemoved(existingDriveFile);
+  								}
+  							}
+				  		}
+
 						}
 
 					}
