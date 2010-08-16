@@ -236,4 +236,6 @@ AEWin32Access
 	 */
 	public Map<File, Map> 
 		getUSBDrives();
+
+  public boolean isUSBDrive(Map driveInfo);
 }

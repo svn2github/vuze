@@ -567,19 +567,8 @@ AEWin32AccessImpl
 						File f = (File) object;
 
 						Map driveInfo = AEWin32AccessInterface.getDriveInfo(f.getPath().charAt(0));
-						if (driveInfo != null) {
-							boolean removeable = MapUtils.getMapBoolean(driveInfo, "Removable", false);
-							// values GetDriveType
-							long driveType = MapUtils.getMapLong(driveInfo, "DriveType", 0);
-							// values STORAGE_BUS_TYPE
-							long busType = MapUtils.getMapLong(driveInfo, "BusType", 0);
-							// values MEDIA_TYPE
-							long mediaType = MapUtils.getMapLong(driveInfo, "MediaType", -1);
-
-						if (removeable && driveType == 2 && busType == 7
-								&& (mediaType == 11 || mediaType == -1)) {
-								mapUSB.put(f, driveInfo);
-							}
+						if (isUSBDrive(driveInfo)) {
+							mapUSB.put(f, driveInfo);
 						}
 					}
 				}
@@ -592,4 +581,24 @@ AEWin32AccessImpl
 			}
 			return Collections.emptyMap();
     }
+    
+  public boolean isUSBDrive(Map driveInfo) {
+  	if (driveInfo == null) {
+  		return false;
+  	}
+  	boolean removeable = MapUtils.getMapBoolean(driveInfo, "Removable", false);
+  	// values GetDriveType
+  	long driveType = MapUtils.getMapLong(driveInfo, "DriveType", 0);
+  	// values STORAGE_BUS_TYPE
+  	long busType = MapUtils.getMapLong(driveInfo, "BusType", 0);
+  	// values MEDIA_TYPE
+  	long mediaType = MapUtils.getMapLong(driveInfo, "MediaType", -1);
+  
+  	if (removeable && driveType == 2 && busType == 7
+  			&& (mediaType == 11 || mediaType == -1)) {
+  		return true;
+  	}
+  	
+  	return false;
+  }
 }

@@ -395,9 +395,11 @@ public class Win32UIEnhancer
 									if (DEBUG) {
 										System.out.println("Drive " + letter + ";mask=" + unitMask);
 									}
-									DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
 									Map driveInfo = AEWin32AccessInterface.getDriveInfo(letter);
-									driveDetector.driveDetected(new File(letter + ":\\"), driveInfo);
+									if (AEWin32Manager.getAccessor(false).isUSBDrive(driveInfo)) {
+										DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
+										driveDetector.driveDetected(new File(letter + ":\\"), driveInfo);
+									}
 								}
 							}
 						}
