@@ -587,11 +587,11 @@ AEWin32AccessImpl
   		return false;
   	}
   	boolean removeable = MapUtils.getMapBoolean(driveInfo, "Removable", false);
-  	// values GetDriveType
+  	// values GetDriveType: {UNKNOWN, NO_ROOT_DIR, REMOVABLE, FIXED, REMOTE, CDROM, RAMDISK}
   	long driveType = MapUtils.getMapLong(driveInfo, "DriveType", 0);
-  	// values STORAGE_BUS_TYPE
+  	// STORAGE_BUS_TYPE: http://msdn.microsoft.com/en-us/library/aa363465%28VS.85%29.aspx
   	long busType = MapUtils.getMapLong(driveInfo, "BusType", 0);
-  	// values MEDIA_TYPE
+  	// MEDIA_TYPE: http://msdn.microsoft.com/en-us/library/aa365231%28VS.85%29.aspx
   	long mediaType = MapUtils.getMapLong(driveInfo, "MediaType", -1);
   
   	if (removeable && driveType == 2 && busType == 7
