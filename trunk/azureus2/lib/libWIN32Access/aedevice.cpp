@@ -4,6 +4,9 @@
 #include <windows.h>
 #include <winioctl.h>
 #include <stdio.h>
+#include <	Cfgmgr32.h >
+#include < Setupapi.h >
+#include "aereg.h"
 
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
@@ -21,6 +24,8 @@ BOOL GetDriveGeometry(HANDLE hDevice, DISK_GEOMETRY *pdg)
 
 	return (bResult);
 }
+
+
 BOOL GetStorageProperty(HANDLE hDevice, PSTORAGE_DEVICE_DESCRIPTOR *p)
 {
 	DWORD junk;                   // discard results
@@ -41,6 +46,28 @@ BOOL GetStorageProperty(HANDLE hDevice, PSTORAGE_DEVICE_DESCRIPTOR *p)
 
 	return (res);
 }
+
+BOOL GetStorageDeviceID(HANDLE hDevice, PSTORAGE_DEVICE_ID_DESCRIPTOR *p)
+{
+	DWORD junk;                   // discard results
+
+	STORAGE_PROPERTY_QUERY Query;   // input param for query
+
+	// specify the query type
+	Query.PropertyId = StorageDeviceIdProperty;
+	Query.QueryType = PropertyStandardQuery;
+
+
+	BOOL res = DeviceIoControl(hDevice,                     // device handle
+		IOCTL_STORAGE_QUERY_PROPERTY,             // info of device property
+		&Query, sizeof(STORAGE_PROPERTY_QUERY),  // input data buffer
+		*p, (*p)->Size,               // output data buffer
+		&junk,                           // out's length
+		(LPOVERLAPPED)NULL);
+
+	return (res);
+}
+
 
 JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getAvailableDrives
 (JNIEnv *env, jclass cla)
@@ -114,9 +141,69 @@ void addToMap(JNIEnv *env, jobject hashMap, jmethodID methPut, jclass clsLong, j
 	env->CallObjectMethod(hashMap, methPut, env->NewStringUTF(key), longObj);
 }
 
-void addToMap(JNIEnv *env, jobject hashMap, jmethodID methPut, jclass clsLong, jmethodID longInit, char *key, char *val) {
+void addToMap(JNIEnv *env, jobject hashMap, jmethodID methPut, char *key, char *val) {
 	env->CallObjectMethod(hashMap, methPut, env->NewStringUTF(key), env->NewStringUTF(val));
 }
+
+
+void addToMap(JNIEnv *env, jobject hashMap, jmethodID methPut, char *key, WCHAR *val, int val_len) {
+	//int len = WideCharToMultiByte(CP_UTF8, 0, val, -1, NULL, 0, NULL, NULL);
+	//char *utf8 = new char[len];
+	//WideCharToMultiByte(CP_UTF8, 0, val, -1, utf8, len, NULL, NULL);
+	//int val_len = wcslen(val);
+	//addToMap(env, hashMap, methPut, key, utf8);
+	env->CallObjectMethod(hashMap, methPut, env->NewStringUTF(key), env->NewString((jchar *)val, val_len));
+	//delete[] utf8;
+}
+
+void findVID_PID(WCHAR *str, JNIEnv *env, jobject hashMap, jmethodID methPut) {
+	WCHAR *vid = wcsstr(str, L"VID_");
+	WCHAR *pid = wcsstr(str, L"PID_");
+	if (vid) {
+		vid += 4;
+		addToMap(env, hashMap, methPut, "VID", vid, 4);
+	}
+	if (pid) {
+		pid += 4;
+		addToMap(env, hashMap, methPut, "PID", pid, 4);
+	}
+}
+
+void CMStuff(char *devID, JNIEnv *env, jobject hashMap, jmethodID methPut)
+{
+    DEVINST devinst;
+    DEVINST devinstparent;
+    unsigned long buflen;
+
+    CM_Locate_DevNodeA(&devinst, devID, NULL);
+    CM_Get_Parent(&devinstparent, devinst, NULL);
+
+	char *has = strstr(devID, "RemovableMedia");
+	if (has) {
+        CM_Get_Parent(&devinstparent, devinstparent, NULL);
+	}
+
+	CM_Get_Device_ID_Size(&buflen, devinst, 0);
+	if (buflen < 2048) {
+		WCHAR *buffer = new WCHAR[buflen];
+		CM_Get_Device_ID(devinst, buffer, buflen, 0);
+
+		addToMap(env, hashMap, methPut, "DevInst_DevID", buffer, buflen);
+		findVID_PID(buffer, env, hashMap, methPut);
+		delete[] buffer;
+	}
+
+    CM_Get_Device_ID_Size(&buflen, devinstparent, 0);
+	if (buflen < 2048) {
+		WCHAR *buffer = new WCHAR[buflen];
+		CM_Get_Device_ID(devinstparent, buffer, buflen, 0);
+
+		addToMap(env, hashMap, methPut, "DevInstParent_DevID", buffer, buflen);
+		findVID_PID(buffer, env, hashMap, methPut);
+		delete[] buffer;
+	}
+}
+
 
 JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getDriveInfo
 (JNIEnv *env, jclass cla, jchar driveLetter)
@@ -187,22 +274,90 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
 		addToMap(env, hashMap, methPut, clsLong, longInit, "Removable", (jlong) pDevDesc->RemovableMedia);
 
 		if (pDevDesc->VendorIdOffset != 0) {
-			addToMap(env, hashMap, methPut, clsLong, longInit, "VendorID", &OutBuf[pDevDesc->VendorIdOffset]);
+			addToMap(env, hashMap, methPut, "VendorID", &OutBuf[pDevDesc->VendorIdOffset]);
 		}
 		if (pDevDesc->ProductIdOffset != 0) {
-			addToMap(env, hashMap, methPut, clsLong, longInit, "ProductID", &OutBuf[pDevDesc->ProductIdOffset]);
+			addToMap(env, hashMap, methPut, "ProductID", &OutBuf[pDevDesc->ProductIdOffset]);
 		}
 		if (pDevDesc->ProductRevisionOffset != 0) {
-			addToMap(env, hashMap, methPut, clsLong, longInit, "ProductRevision", &OutBuf[pDevDesc->ProductRevisionOffset]);
+			addToMap(env, hashMap, methPut, "ProductRevision", &OutBuf[pDevDesc->ProductRevisionOffset]);
 		}
 		if (pDevDesc->SerialNumberOffset != 0) {
-			addToMap(env, hashMap, methPut, clsLong, longInit, "SerialNumber", &OutBuf[pDevDesc->SerialNumberOffset]);
+			addToMap(env, hashMap, methPut, "SerialNumber", &OutBuf[pDevDesc->SerialNumberOffset]);
 		}
-
 	}
 
-	STORAGE_BUS_TYPE t;
+	    STORAGE_DEVICE_NUMBER Strage_Device_Number;
+    DWORD BytesReturned;
+
+	        BOOL bResult6 = DeviceIoControl(
+                     hDevice,                // handle to a partition
+                     IOCTL_STORAGE_GET_DEVICE_NUMBER,   // dwIoControlCode
+                     NULL,                            // lpInBuffer
+                     0,                               // nInBufferSize
+                     &Strage_Device_Number,            // output buffer
+                     sizeof Strage_Device_Number,  // size of output buffer
+                     &BytesReturned,       // number of bytes returned
+                     NULL      // OVERLAPPED structure
+                   );
+	if (bResult6) {
+		addToMap(env, hashMap, methPut, clsLong, longInit, "DeviceNumber", (jlong) Strage_Device_Number.DeviceNumber);
+	}
+
+	
+	char subkey[14];
+	wsprintfA(subkey, "\\DosDevices\\%C:", driveLetter);
+
+	DWORD valuesize;
+    HKEY key;
+    int res;
+
+    subkey[12] = driveLetter;
+    res = RegOpenKeyExA( HKEY_LOCAL_MACHINE, "SYSTEM\\MountedDevices", NULL, KEY_QUERY_VALUE, &key);
+	
+	if(RegQueryValueExA(key, subkey, NULL, NULL, NULL, &valuesize) == ERROR_SUCCESS && valuesize > 8) {
+		WCHAR *value = new WCHAR[valuesize / 2];
+		res = RegQueryValueExA(key, subkey, NULL, NULL,(LPBYTE) value, &valuesize);
+		valuesize /= 2;
+        if(res == ERROR_SUCCESS)
+        {
+			char *devname = new char[valuesize];
+			int pos = 0;
+			for (int i = 4; i < valuesize; i ++) {
+				char c = value[i];
+				if (c == '{') {
+					if (devname[pos - 1] == '\\') {
+						devname[pos - 1] = 0;
+					}
+					break;
+				}
+
+				if (c == '#') {
+					c = '\\';
+				}
+
+				devname[pos] = c;
+				pos++;
+			}
+
+			if (devname[0] != 0) {
+				devname[pos++] = 0;
+				devname[pos++] = 0;
+
+				addToMap(env, hashMap, methPut, "OSDeviceID", devname);
+
+
+				CMStuff(devname, env, hashMap, methPut);
+			}
+			delete[] devname;
+        }
+        delete[] value;
+	}
+	RegCloseKey(key);
+
 
 	CloseHandle(hDevice);
 	return hashMap;
 }
+
+

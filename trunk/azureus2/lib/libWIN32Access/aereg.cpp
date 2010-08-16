@@ -544,7 +544,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readStr
 
 		if ( RegQueryValueExW( subkey, value_name, NULL, &type, (unsigned char*)value, &value_length ) == ERROR_SUCCESS){
 
-			if ( type == REG_SZ || type == REG_EXPAND_SZ || type == REG_MULTI_SZ ){
+			if ( type == REG_SZ || type == REG_EXPAND_SZ || type == REG_MULTI_SZ || type == REG_BINARY ){
 
 				if ( type == REG_EXPAND_SZ ){
 
@@ -553,6 +553,11 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readStr
 					ExpandEnvironmentStringsW((const WCHAR*)value, expanded_value, sizeof( expanded_value ));
 			
 					result = env->NewString((const jchar *)expanded_value,wcslen(expanded_value));
+
+				}else if (type == REG_BINARY) {
+
+					// Assume binary blob is actually a 2 byte string
+					result = env->NewString((const jchar *)value, value_length / 2);
 
 				}else{
 
