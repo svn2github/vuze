@@ -855,6 +855,9 @@ public class SideBarEntrySWT
 			gc.setForeground(color1);
 			gc.setBackground(color2);
 			Rectangle itemBounds = swt_getBounds();
+			if (itemBounds == null) {
+				return fgText;
+			}
 			// always need to start gradient at the same Y position
 			// +3 is to start gradient off 3 pixels lower
 			gc.fillGradientRectangle(drawBounds.x, itemBounds.y + 3,
