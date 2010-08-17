@@ -404,15 +404,4 @@ public class SubscriptionsView
 		view.refreshTable(false);
 	}
 	
-	public void updateLanguage() {
-		view.updateLanguage();
-	}
-	
-	
-	
-	
-	
-	
-	
-	
 }

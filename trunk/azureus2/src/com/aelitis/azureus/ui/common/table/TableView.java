@@ -256,8 +256,6 @@ public interface TableView<DATASOURCETYPE>
 	 */
 	int size(boolean bIncludeQueue);
 
-	void updateLanguage();
-
 	/**
 	 * @return
 	 */

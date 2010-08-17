@@ -63,13 +63,6 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		}
 	}
 
-	public void updateLanguage() {
-		super.updateLanguage();
-		if (tv != null) {
-			tv.updateLanguage();
-		}
-	}
-
 	public final void refresh() {
 		if (tv != null) {
 			tv.refreshTable(false);

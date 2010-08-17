@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -101,7 +102,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	extends TableViewImpl<DATASOURCETYPE>
 	implements ParameterListener, TableViewSWT<DATASOURCETYPE>,
 	TableStructureModificationListener<DATASOURCETYPE>, ObfusticateImage,
-	KeyListener
+	KeyListener, MessageTextListener
 {
 	protected final static boolean DRAW_VERTICAL_LINES = Constants.isWindows;
 
@@ -1102,7 +1103,37 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		});
 
 		initializeTableColumns(table);
+
+		MessageText.addListener(this);
 	}
+	
+	public void localeChanged(Locale old_locale, Locale new_locale) {
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				if (tabViews != null && tabViews.size() > 0) {
+					for (int i = 0; i < tabViews.size(); i++) {
+						IView view = tabViews.get(i);
+						if (view != null) {
+							view.updateLanguage();
+						}
+					}
+				}
+				tableInvalidate();
+				refreshTable(true);
+
+				TableColumnOrTreeColumn[] tableColumnsSWT = table.getColumns();
+				for (int i = 0; i < tableColumnsSWT.length; i++) {
+					TableColumnCore column = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
+					if (column != null) {
+						Messages.setLanguageText(tableColumnsSWT[i].getColumn(),
+								column.getTitleLanguageKey());
+					}
+				}
+
+			}
+		});
+	}
+
 
 	public void keyPressed(KeyEvent event) {
 		// Note: Both table key presses and txtFilter keypresses go through this
@@ -1121,6 +1152,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (event.keyCode == SWT.F5) {
 			if ((event.stateMask & SWT.SHIFT) > 0) {
 				runForSelectedRows(new TableGroupRowRunner() {
+					public void run(TableRowCore row) {
+						row.invalidate();
+						row.refresh(true);
+					}
+				});
+			} else if ((event.stateMask & SWT.CONTROL) > 0) {
+				runForAllRows(new TableGroupRowRunner() {
 					public void run(TableRowCore row) {
 						row.invalidate();
 						row.refresh(true);
@@ -2138,6 +2176,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	public Composite getTableComposite() {
 		return tableComposite;
 	}
+	
+	public TableOrTreeSWT getTableOrTreeSWT() {
+		return table;
+	}
 
 	public IView getActiveSubView() {
 		if (!bEnableTabViews || tabFolder == null || tabFolder.isDisposed()
@@ -2379,20 +2421,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (comp != null && !comp.isDisposed()) {
 			comp.dispose();
 		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#updateLanguage()
-	 */
-	public void updateLanguage() {
-		if (tabViews != null && tabViews.size() > 0) {
-			for (int i = 0; i < tabViews.size(); i++) {
-				IView view = tabViews.get(i);
-				if (view != null) {
-					view.updateLanguage();
-				}
-			}
-		}
+		
+		MessageText.removeListener(this);
 	}
 
 	// see common.TableView

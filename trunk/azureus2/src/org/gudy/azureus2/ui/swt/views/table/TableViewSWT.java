@@ -195,4 +195,6 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 * @since 4.4.0.7
 	 */
 	void addRowMouseListener(TableRowMouseListener listener);
+
+	TableOrTreeSWT getTableOrTreeSWT();
 }
