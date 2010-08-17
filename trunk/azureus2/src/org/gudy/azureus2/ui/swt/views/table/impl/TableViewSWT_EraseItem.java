@@ -45,8 +45,8 @@ public class TableViewSWT_EraseItem
 							public void runSupport() {
 								drawExtended = COConfigurationManager.getBooleanParameter("Table.extendedErase");
 								if (!first) {
-									Rectangle bounds = tv.getTableComposite().getBounds();
-									tv.getTableComposite().redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
+									Rectangle bounds = tv.getTableOrTreeSWT().getBounds();
+									tv.getTableOrTreeSWT().redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
 								}
 								first = false;
 							}
