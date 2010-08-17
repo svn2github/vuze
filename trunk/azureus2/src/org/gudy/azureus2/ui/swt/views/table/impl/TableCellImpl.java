@@ -1650,7 +1650,7 @@ public class TableCellImpl
 
 	public Rectangle getBoundsOnDisplay() {
 		Rectangle bounds = getBounds();
-		Point pt = ((TableViewSWT) tableRow.getView()).getTableComposite().toDisplay(bounds.x, bounds.y);
+		Point pt = ((TableViewSWT) tableRow.getView()).getTableOrTreeSWT().toDisplay(bounds.x, bounds.y);
 		bounds.x = pt.x;
 		bounds.y = pt.y;
 		return bounds;
