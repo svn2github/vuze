@@ -792,12 +792,20 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (horizontalBar != null) {
 			horizontalBar.addSelectionListener(new SelectionListener() {
 				public void widgetDefaultSelected(SelectionEvent e) {
-					swt_calculateClientArea();
+					Utils.execSWTThreadLater(0, new AERunnable() {
+						public void runSupport() {
+							swt_calculateClientArea();
+						}
+					});
 					//updateColumnVisibilities();
 				}
 
 				public void widgetSelected(SelectionEvent e) {
-					swt_calculateClientArea();
+					Utils.execSWTThreadLater(0, new AERunnable() {
+						public void runSupport() {
+							swt_calculateClientArea();
+						}
+					});
 					//updateColumnVisibilities();
 				}
 			});
@@ -1081,8 +1089,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (bar != null) {
 			bar.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
-					swt_calculateClientArea();
-					visibleRowsChanged();
+					Utils.execSWTThreadLater(0, new AERunnable() {
+						public void runSupport() {
+							// need to calc later as getClientArea isn't up to date yet
+							// on Win
+							swt_calculateClientArea();
+							visibleRowsChanged();
+						}
+					});
 					// Bug: Scroll is slow when table is not focus
 					if (!table.isFocusControl()) {
 						table.setFocus();
