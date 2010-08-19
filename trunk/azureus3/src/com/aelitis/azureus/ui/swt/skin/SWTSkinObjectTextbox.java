@@ -136,7 +136,7 @@ public class SWTSkinObjectTextbox
 						//e.gc.setLineWidth(1);
 						e.gc.setAlpha(80);
 						Rectangle rXArea = new Rectangle(clientArea.x + clientArea.width
-								- 14, clientArea.y + 6, 7, 7);
+								- 16, clientArea.y + 1, 11, clientArea.height - 2);
 						cBubble.setData("XArea", rXArea);
 
 						e.gc.drawPolyline(new int[] {
