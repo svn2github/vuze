@@ -110,8 +110,16 @@ DeviceDriveManager
 
 				if (sProdID.toLowerCase().contains("android")
 						|| sVendor.toLowerCase().contains("motorola")
-						|| (sVendor.matches("^samsung [^y]") && sVendor.matches("[A-Z]-") )
-						) {
+						|| sVendor.equalsIgnoreCase("samsung")) {
+					
+					if (isWritableUSB && sVendor.equalsIgnoreCase("samsung")) {
+						// Samsungs that start with Y are MP3 players
+						// Samsungs that don't have a dash aren't smart phones (none that we know of anyway..)
+						// Fake not writable so we remove the device instead of adding it
+						isWritableUSB = !sProdID.startsWith("Y")
+								&& sProdID.matches(".*[A-Z]-.*");
+					}
+
 					boolean hidden = false;
 					String name = sVendor;
 					if (name.length() > 0) {
@@ -129,8 +137,8 @@ DeviceDriveManager
 					} else if (sProdID.equalsIgnoreCase("sgh-t959")) {
 						name = "Samsung Vibrant"; // non-card
 					} else if (sProdID.toLowerCase().contains("sgh-t959")) {
-							hidden = true;
-						}
+						hidden = true;
+					}
 
 					String id = "android.";
 					id += sProdID.replaceAll(" ", ".").toLowerCase();
