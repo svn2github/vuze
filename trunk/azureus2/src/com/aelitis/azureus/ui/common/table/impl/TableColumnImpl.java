@@ -1430,7 +1430,14 @@ public class TableColumnImpl
 
 		bVisible = visible;
 		if (bVisible && iPosition == POSITION_INVISIBLE) {
-			iPosition = POSITION_LAST;
+			TableColumnCore[] allColumns = TableColumnManager.getInstance().getAllTableColumnCoreAsArray(
+					null, sTableID);
+			iPosition = 0;
+			for (TableColumnCore tableColumnCore : allColumns) {
+				if (tableColumnCore.getPosition() > iPosition) {
+					iPosition = tableColumnCore.getPosition() + 1;
+				}
+			}
 		}
 		invalidateCells();
 	}
