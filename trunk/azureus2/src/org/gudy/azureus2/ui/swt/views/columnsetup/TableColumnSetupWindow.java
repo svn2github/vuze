@@ -512,7 +512,7 @@ public class TableColumnSetupWindow
   		});
 		}
 		
-		Button btnCancel = new Button(shell, SWT.PUSH);
+		final Button btnCancel = new Button(shell, SWT.PUSH);
 		Messages.setLanguageText(btnCancel, "Button.cancel");
 		btnCancel.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -525,6 +525,7 @@ public class TableColumnSetupWindow
 		btnApply.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				apply();
+				btnCancel.setEnabled(false);
 			}
 		});
 
