@@ -1621,7 +1621,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private void swt_updateColumnVisibilities() {
 		TableColumnOrTreeColumn[] columns = table.getColumns();
-		if (table.getItemCount() < 1) {
+		if (table.getItemCount() < 1 || columns.length == 0 || !table.isVisible()) {
 			return;
 		}
 		columnVisibilitiesChanged = false;
@@ -1641,9 +1641,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			Rectangle size = topRow.getBounds(i);
-			//System.out.println("column " + i + ": size="  + size + "; ca=" + clientArea);
+			//System.out.println(sTableID + ": column " + i + ":" + tc.getName() + ": size="  + size + "; ca=" + clientArea + "; pos=" + position);
 			size.intersect(clientArea);
 			boolean nowVisible = !size.isEmpty();
+			//System.out.println("  visible; was=" + columnsVisible[position] + "; now=" + nowVisible);
 			if (columnsVisible[position] != nowVisible) {
 				columnsVisible[position] = nowVisible;
 				if (nowVisible) {
@@ -1755,14 +1756,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		//may not be in the natural order (if the user re-order the columns).
 		int swtColumnPos = (bSkipFirstColumn ? 1 : 0);
 		for (int i = 0; i < tableColumns.length; i++) {
-			int position = tableColumns[i].getPosition();
-			if (position == -1 || !tableColumns[i].isVisible()) {
+			TableColumnCore columnCore = tableColumns[i];
+			int position = columnCore.getPosition();
+			if (position == -1 || !columnCore.isVisible()) {
 				continue;
 			}
 
 			columnsVisible[i] = true;
 
-			String sName = tableColumns[i].getName();
+			String sName = columnCore.getName();
 			// +1 for Eclipse Bug 43910 (see above)
 			// user has reported a problem here with index-out-of-bounds - not sure why
 			// but putting in a preventative check so that hopefully the view still opens
@@ -1780,25 +1782,25 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			} catch (NoSuchMethodError e) {
 				// Ignore < SWT 3.1
 			}
-			column.setAlignment(TableColumnSWTUtils.convertColumnAlignmentToSWT(tableColumns[i].getAlignment()));
-			String iconReference = tableColumns[i].getIconReference();
+			column.setAlignment(TableColumnSWTUtils.convertColumnAlignmentToSWT(columnCore.getAlignment()));
+			String iconReference = columnCore.getIconReference();
 			if (iconReference != null) {
 				Image image = ImageLoader.getInstance().getImage(iconReference);
 				column.setImage(image);
 			} else {
-				Messages.setLanguageText(column.getColumn(), tableColumns[i].getTitleLanguageKey());
+				Messages.setLanguageText(column.getColumn(), columnCore.getTitleLanguageKey());
 			}
 			if (!Constants.isUnix && !Utils.isCarbon) {
-				column.setWidth(tableColumns[i].getWidth());
+				column.setWidth(columnCore.getWidth());
 			} else {
 				column.setData("widthOffset", new Long(1));
-				column.setWidth(tableColumns[i].getWidth() + 1);
+				column.setWidth(columnCore.getWidth() + 1);
 			}
-			if (tableColumns[i].getMinWidth() == tableColumns[i].getMaxWidth()
-					&& tableColumns[i].getMinWidth() > 0) {
+			if (columnCore.getMinWidth() == columnCore.getMaxWidth()
+					&& columnCore.getMinWidth() > 0) {
 				column.setResizable(false);
 			}
-			column.setData("TableColumnCore", tableColumns[i]);
+			column.setData("TableColumnCore", columnCore);
 			column.setData("configName", "Table." + sTableID + "." + sName);
 			column.setData("Name", sName);
 
@@ -2808,6 +2810,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				// This could happen if one of the datasources was null, or
 				// an error occured
 				table.setItemCount(sortedRows.size());
+			}
+			if (sortedRows.size() == 1) {
+				columnVisibilitiesChanged = true;
 			}
 
 		} catch (Exception e) {
