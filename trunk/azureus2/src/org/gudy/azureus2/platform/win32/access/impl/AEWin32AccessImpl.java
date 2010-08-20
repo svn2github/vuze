@@ -557,23 +557,22 @@ AEWin32AccessImpl
 		}  	
 	}
     
-    public Map<File, Map> getUSBDrives() {
+    public Map<File, Map> getAllDrives() {
     	
-    	Map<File, Map> mapUSB = new HashMap<File, Map>();
+    	Map<File, Map> mapDrives = new HashMap<File, Map>();
     	try {
 				List availableDrives = AEWin32AccessInterface.getAvailableDrives();
 				if (availableDrives != null) {
 					for (Object object : availableDrives) {
 						File f = (File) object;
-
 						Map driveInfo = AEWin32AccessInterface.getDriveInfo(f.getPath().charAt(0));
-						if (isUSBDrive(driveInfo)) {
-							mapUSB.put(f, driveInfo);
-						}
+						boolean isWritableUSB = AEWin32Manager.getAccessor(false).isUSBDrive(driveInfo);
+						driveInfo.put("isWritableUSB", isWritableUSB);
+						mapDrives.put(f, driveInfo);
 					}
 				}
 				
-				return mapUSB;
+				return mapDrives;
     	} catch (UnsatisfiedLinkError ue) {
     		Debug.outNoStack("Old aereg.dll");
 			} catch (Throwable e) {

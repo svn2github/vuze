@@ -324,10 +324,13 @@ public class Win32UIEnhancer
 					}
 				}
 				
-		  		Map<File, Map> drives = AEWin32Manager.getAccessor(false).getUSBDrives();
+		  		Map<File, Map> drives = AEWin32Manager.getAccessor(false).getAllDrives();
 		  		if (drives != null) {
 		  			for (File file : drives.keySet()) {
-		  				DriveDetectorFactory.getDeviceDetector().driveDetected(file, drives.get(file));
+		  				Map driveInfo = drives.get(file);
+							boolean isWritableUSB = AEWin32Manager.getAccessor(false).isUSBDrive(driveInfo);
+							driveInfo.put("isWritableUSB", isWritableUSB);
+		  				DriveDetectorFactory.getDeviceDetector().driveDetected(file, driveInfo);
 		  			}
 		  		}
 			}
@@ -396,10 +399,10 @@ public class Win32UIEnhancer
 										System.out.println("Drive " + letter + ";mask=" + unitMask);
 									}
 									Map driveInfo = AEWin32AccessInterface.getDriveInfo(letter);
-									if (AEWin32Manager.getAccessor(false).isUSBDrive(driveInfo)) {
-										DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
-										driveDetector.driveDetected(new File(letter + ":\\"), driveInfo);
-									}
+									boolean isWritableUSB = AEWin32Manager.getAccessor(false).isUSBDrive(driveInfo);
+									driveInfo.put("isWritableUSB", isWritableUSB);
+									DriveDetector driveDetector = DriveDetectorFactory.getDeviceDetector();
+									driveDetector.driveDetected(new File(letter + ":\\"), driveInfo);
 								}
 							}
 						}
@@ -457,7 +460,7 @@ public class Win32UIEnhancer
 								}
 							}
 
-							Map<File, Map> drives = AEWin32Manager.getAccessor(false).getUSBDrives();
+							Map<File, Map> drives = AEWin32Manager.getAccessor(false).getAllDrives();
 				  		if (drives != null) {
   							DriveDetectedInfo[] existingDrives = driveDetector.getDetectedDriveInfo();
   							for (DriveDetectedInfo existingDrive : existingDrives) {

@@ -20,6 +20,7 @@
 package com.aelitis.azureus.core.drivedetector;
 
 import java.io.File;
+import java.util.Map;
 
 /**
  * @author TuxPaper
@@ -31,4 +32,6 @@ public interface DriveDetectedInfo
 	public File getLocation();
 
 	public Object getInfo(String key);
+
+	public Map<String, Object> getInfoMap();
 }

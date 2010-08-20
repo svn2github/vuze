@@ -29,10 +29,12 @@ import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.devices.DeviceTemplate;
 import com.aelitis.azureus.core.drivedetector.DriveDetectedInfo;
 import com.aelitis.azureus.core.drivedetector.DriveDetectedListener;
 import com.aelitis.azureus.core.drivedetector.DriveDetectorFactory;
+import com.aelitis.azureus.util.MapUtils;
 
 public class 
 DeviceDriveManager 
@@ -94,25 +96,21 @@ DeviceDriveManager
 		//System.out.println("DD " + info.getLocation() + " via " + Debug.getCompressedStackTrace());
 		async_dispatcher.dispatch(new AERunnable() {
 			public void runSupport() {
+				
+				Map<String, Object> infoMap = info.getInfoMap();
+
+				boolean isWritableUSB = MapUtils.getMapBoolean(infoMap, "isWritableUSB", false);
+				
 				File root = info.getLocation();
 
-				Object prodID = info.getInfo("ProductID");
-				if (prodID == null) {
-					prodID = info.getInfo("Product Name");
-				}
-				String sProdID = (prodID instanceof String) ? ((String) prodID).trim()
-						: "";
-
-				Object vendor = info.getInfo("VendorID");
-				if (vendor == null) {
-					vendor = info.getInfo("Vendor Name");
-				}
-				String sVendor = (vendor instanceof String) ? ((String) vendor).trim()
-						: "";
+				String sProdID = MapUtils.getMapString(infoMap, "ProductID",
+						MapUtils.getMapString(infoMap, "Product Name", "")).trim();
+				String sVendor = MapUtils.getMapString(infoMap, "VendorID",
+						MapUtils.getMapString(infoMap, "Vendor Name", "")).trim();
 
 				if (sProdID.toLowerCase().contains("android")
 						|| sVendor.toLowerCase().contains("motorola")
-						|| sVendor.toLowerCase().contains("samsung")
+						|| (sVendor.matches("^samsung [^y]") && sVendor.matches("[A-Z]-") )
 						) {
 					boolean hidden = false;
 					String name = sVendor;
@@ -140,13 +138,18 @@ DeviceDriveManager
 						id += "." + sVendor.replaceAll(" ", ".").toLowerCase();
 					}
 					
-					if (id.equals("android.android.phone.htc") && info.getInfo("PID") != null) {
-						id = "android.htc." + info.getInfo("PID");
+					if (isWritableUSB) {
+						addDevice(name, id, root, new File(root, "videos"), hidden);
+					} else {
+						//Fixup old bug where we were adding Samsung hard drives as devices
+						Device existingDevice = getDeviceMediaRendererByClassification(id);
+						if (existingDevice != null) {
+							existingDevice.remove();
+						}
 					}
-					
-					addDevice(name, id, root, new File(root, "videos"), hidden);
 					return;
-				} else if (sVendor.toLowerCase().equals("rim") && !sProdID.toLowerCase().contains(" SD")) {
+				} else if (isWritableUSB && sVendor.toLowerCase().equals("rim")
+						&& !sProdID.toLowerCase().contains(" SD")) {
 					// for some reason, the SD card never fully attaches, only the main device drive
 					String name = sVendor;
   				if (name.length() > 0) {
@@ -162,7 +165,7 @@ DeviceDriveManager
 					return;
 				}
 
-				if (root.exists()) {
+				if (isWritableUSB && root.exists()) {
 
 					File[] folders = root.listFiles();
 
@@ -184,6 +187,27 @@ DeviceDriveManager
 		});
 	}
 	
+	protected DeviceMediaRenderer getDeviceMediaRendererByClassification(String target_classification) {
+		DeviceImpl[] devices = manager.getDevices();
+		
+		for ( DeviceImpl device: devices ){
+			
+			if ( device instanceof DeviceMediaRenderer ){
+			
+				DeviceMediaRenderer renderer = (DeviceMediaRenderer)device;
+				
+				String classification = renderer.getClassification();
+			
+				if ( classification.equalsIgnoreCase( target_classification )){
+																
+					return renderer;
+				}
+			}
+		}
+
+		return null;
+	}
+
 	protected void addDevice(
 			String target_name, 
 			String target_classification,
@@ -192,23 +216,11 @@ DeviceDriveManager
 			boolean hidden)
 	{
 		
-		DeviceImpl[] devices = manager.getDevices();
-		
-		for ( DeviceImpl device: devices ){
+		DeviceMediaRenderer existingDevice = getDeviceMediaRendererByClassification(target_classification);
+		if (existingDevice instanceof DeviceMediaRendererManual ) {
+			mapDevice( (DeviceMediaRendererManual) existingDevice, root, target_directory );
 			
-			if ( device instanceof DeviceMediaRendererManual ){
-			
-				DeviceMediaRendererManual renderer = (DeviceMediaRendererManual)device;
-				
-				String classification = renderer.getClassification();
-			
-				if ( classification.equalsIgnoreCase( target_classification )){
-																
-					mapDevice( renderer, root, target_directory );
-					
-					return;
-				}
-			}
+			return;
 		}
 		
 		DeviceTemplate[] templates = manager.getDeviceTemplates( Device.DT_MEDIA_RENDERER );

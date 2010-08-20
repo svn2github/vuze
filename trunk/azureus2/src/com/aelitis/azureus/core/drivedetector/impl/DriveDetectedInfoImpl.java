@@ -20,6 +20,7 @@
 package com.aelitis.azureus.core.drivedetector.impl;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 
 import com.aelitis.azureus.core.drivedetector.DriveDetectedInfo;
@@ -46,6 +47,10 @@ public class DriveDetectedInfoImpl
 	
 	public Object getInfo(String key) {
 		return info.get(key);
+	}
+	
+	public Map<String, Object> getInfoMap() {
+		return Collections.unmodifiableMap(info);
 	}
 
 }
