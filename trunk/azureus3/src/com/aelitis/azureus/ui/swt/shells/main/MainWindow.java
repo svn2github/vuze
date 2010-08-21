@@ -1068,6 +1068,19 @@ public class MainWindow
 						newEntry.getId());
 			}
 		});
+		
+		COConfigurationManager.addAndFireParameterListener(
+				"Beta Programme Enabled", new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
+						if (enabled) {
+							MdiEntry entry = mdi.createEntryFromSkinRef(null,
+									"BetaProgramme", "main.area.beta",
+									MessageText.getString("Sidebar.beta.title"), null, null,
+									true, 0);
+						}
+					}
+		});
 
 		//		System.out.println("Activate sidebar " + startTab + " took "
 		//				+ (SystemTime.getCurrentTime() - startTime) + "ms");

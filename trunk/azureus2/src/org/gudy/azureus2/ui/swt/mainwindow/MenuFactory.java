@@ -1018,12 +1018,29 @@ public class MenuFactory
 	}
 
 	public static MenuItem addBetaMenuItem(Menu menuParent) {
-		return addMenuItem(menuParent, MENU_ID_BETA_PROG,
+		final MenuItem menuItem = addMenuItem(menuParent, MENU_ID_BETA_PROG,
 				new Listener() {
 					public void handleEvent(Event e) {
 						new BetaWizard();
 			}
 		});
+
+		COConfigurationManager.addAndFireParameterListener(
+				"Beta Programme Enabled", new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
+								Messages.setLanguageText(
+										menuItem,
+										MessageText.resolveLocalizationKey(MENU_ID_BETA_PROG
+												+ (enabled ? ".off" : ".on")));
+							}
+						});
+					}
+				});
+
+		return menuItem;
 	}
 	
 	public static MenuItem addPluginInstallMenuItem(Menu menuParent) {
