@@ -198,7 +198,8 @@ public class Utils
   				((Resource) o).dispose();
   			}
 			} catch (Exception e) {
-				Debug.out("Warning: Disposal failed", e);
+				Debug.out("Warning: Disposal failed "
+						+ Debug.getCompressedStackTrace(e, 0, -1, true));
 			}
 		}
 	}
