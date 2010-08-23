@@ -49,6 +49,8 @@ AEWin32AccessInterface
 	public static final int	PBT_APMSUSPEND          = 0x0004;
 	public static final int	PBT_APMRESUMESUSPEND    = 0x0007;
 	
+	public static final int ES_SYSTEM_REQUIRED = 0x01;
+	
 	private static boolean						enabled;
 	private static boolean						enabled_set;
 	
@@ -262,4 +264,7 @@ AEWin32AccessInterface
 	public static native Map
 	getDriveInfo(char driveLetter)
 		throws AEWin32AccessExceptionImpl;
+	
+	public static native int 
+	setThreadExecutionState(int esFLAGS);
 }
