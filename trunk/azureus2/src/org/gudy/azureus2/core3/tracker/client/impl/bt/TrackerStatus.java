@@ -359,7 +359,7 @@ public class TrackerStatus {
 					.getBooleanParameter("Tracker Client Scrape Enable");
 			boolean disable_stopped_scrapes = !COConfigurationManager
 					.getBooleanParameter("Tracker Client Scrape Stopped Enable");
-
+			
 			byte[]	scrape_reply = null;
 			
 			try {
@@ -686,7 +686,7 @@ public class TrackerStatus {
 											+ MessageText.getString(SSErr + "nohash"));
 							// notifiy listeners
 							scraper.scrapeReceived(response);
-						} else {
+						} else if (!disable_stopped_scrapes || scraper.isTorrentRunning(response.getHash())) {
 							// This tracker doesn't support multiple hash requests.
 							// revert status to what it was
 
