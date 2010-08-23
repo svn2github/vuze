@@ -2118,3 +2118,10 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellEx
 	}
 }
 
+JNIEXPORT jint JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_setThreadExecutionState
+  (JNIEnv *env, jclass cla, jint esStates)
+{
+	return SetThreadExecutionState((EXECUTION_STATE) esStates);
+}
+
+

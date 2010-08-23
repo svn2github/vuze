@@ -27,6 +27,8 @@ extern "C" {
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMSUSPEND 4L
 #undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMRESUMESUSPEND
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMRESUMESUSPEND 7L
+#undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_ES_SYSTEM_REQUIRED
+#define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_ES_SYSTEM_REQUIRED 1L
 /*
  * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
  * Method:    initialise
@@ -170,6 +172,14 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
  */
 JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getDriveInfo
   (JNIEnv *, jclass, jchar);
+
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    setThreadExecutionState
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_setThreadExecutionState
+  (JNIEnv *, jclass, jint);
 
 #ifdef __cplusplus
 }
