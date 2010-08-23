@@ -155,15 +155,17 @@ Test
 
 			man.locateCompatiblePeers(
 				plugin_interface, 
-				new BorkMessage( "" ), 
+				new TestMessage( "" ), 
 				new MessageManagerListener()
 				{
 					public void 
 					compatiblePeerFound( 
 						Download 	download, 
-						Peer 		peer, 
+						final Peer 		peer, 
 						Message 	message )
 					{
+						System.out.println( "Compatible peer found: " + peer.getIp());
+						
 						peer.getConnection().getIncomingMessageQueue().registerPriorityListener(
 							new IncomingMessageQueueListener()
 							{
@@ -171,6 +173,8 @@ Test
 								 messageReceived( 
 									Message message )
 								 {
+									 System.out.println( peer.getIp() + ": " + message.getDescription() + " (" + message + ")");
+									 
 									 if ( message instanceof BorkMessage ){
 										
 										 System.out.println( "Got a borker: " + ((BorkMessage)message).getArg());
@@ -188,7 +192,7 @@ Test
 								 }
 							});
 						
-						peer.getConnection().getOutgoingMessageQueue().sendMessage( new BorkMessage( "Hello Mr Borker" ));
+						//peer.getConnection().getOutgoingMessageQueue().sendMessage( new BorkMessage( "Hello Mr Borker" ));
 					}
 
 					public void 
@@ -324,6 +328,93 @@ Test
 		getID()
 		{
 			return( "BORK_MESSAGE" );
+		}
+
+		public int 
+		getType()
+		{
+			return( TYPE_PROTOCOL_PAYLOAD );
+		}
+
+		public String 
+		getDescription()
+		{
+			return( "borker message" );
+		}
+
+		public ByteBuffer[] 
+		getPayload()
+		{
+			return new ByteBuffer[] { buffer };  
+		}
+
+		public String
+		getArg()
+		{
+			return( arg );
+		}
+
+		public Message 
+		create( 
+			ByteBuffer data ) 
+
+			throws MessageException
+		{
+			try{
+				int size = data.getInt();
+	
+				byte[] bytes = new byte[ size ];
+				
+				data.get( bytes );
+				
+				return( new BorkMessage(new String(bytes, "UTF-8" )));
+				
+			}catch( Throwable e ){
+				
+				throw( new MessageException( "create failed", e ));
+			}
+		}
+		
+		public void 
+		destroy()
+		{
+		}
+	}
+	
+	private class
+	TestMessage
+		implements Message
+	{
+		private ByteBuffer 	buffer;
+		private String		arg;
+		
+		private
+		TestMessage(
+			String		_arg )
+		{
+			arg		= _arg;
+			
+			try{
+			    byte[] arg_bytes = arg.getBytes( "UTF-8" );
+			    
+			    buffer = ByteBuffer.allocate( 4 + arg_bytes.length );
+			    
+			    buffer.putInt( arg_bytes.length );
+			    
+			    buffer.put( arg_bytes );
+			    
+			    buffer.flip();
+			    
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		public String 
+		getID()
+		{
+			return( "BT_REQUEST" );
 		}
 
 		public int 
