@@ -1015,11 +1015,11 @@ ConfigurationManager
 						
 					}else if ( value instanceof List ){
 						
-						writer.println( key + "=" + value + "[list]" );
+						writer.println( key + "=" + BDecoder.decodeStrings((List)BEncoder.clone(value)) + "[list]" );
 						
 					}else if ( value instanceof Map ){
 						
-						writer.println( key + "=" + value + "[map]" );
+						writer.println( key + "=" + BDecoder.decodeStrings((Map)BEncoder.clone(value)) + "[map]" );
 						
 					}else if ( value instanceof byte[] ){
 						
