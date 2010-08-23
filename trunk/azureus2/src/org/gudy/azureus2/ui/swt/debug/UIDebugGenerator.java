@@ -412,7 +412,7 @@ public class UIDebugGenerator
 		return null;
 	}
 
-	private static void promptUser(boolean allowEmpty, GeneratedResults gr) {
+	private static void promptUser(final boolean allowEmpty, GeneratedResults gr) {
 		final Shell shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.SHELL_TRIM);
 
 		final String[] text = { null, null };
@@ -443,18 +443,22 @@ public class UIDebugGenerator
 		Button btnSendNow = new Button(cButtons, SWT.PUSH);
 		btnSendNow.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				text[0] = textMessage.getText();
-				text[1] = textEmail.getText();
-				sendMode[0] = 0;
+				if (emptyCheck(textMessage, allowEmpty)) {
+  				text[0] = textMessage.getText();
+  				text[1] = textEmail.getText();
+  				sendMode[0] = 0;
+				}
 				shell.dispose();
 			}
 		});
 		Button btnSendLater = new Button(cButtons, SWT.PUSH);
 		btnSendLater.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				text[0] = textMessage.getText();
-				text[1] = textEmail.getText();
-				sendMode[0] = 1;
+				if (emptyCheck(textMessage, allowEmpty)) {
+  				text[0] = textMessage.getText();
+  				text[1] = textEmail.getText();
+  				sendMode[0] = 1;
+				}
 				shell.dispose();
 			}
 		});
@@ -516,6 +520,27 @@ public class UIDebugGenerator
 			gr.email = text[1];
 		}
 		gr.sendNow = sendMode[0] == 0;
+	}
+
+	/**
+	 * @param textMessage
+	 * @param allowEmpty
+	 * @return
+	 *
+	 * @since 4.5.0.3
+	 */
+	protected static boolean emptyCheck(Text textMessage, boolean allowEmpty) {
+		if (allowEmpty) {
+			return true;
+		}
+		if (textMessage.getText().length() > 0) {
+			return true;
+		}
+		
+		new MessageBoxShell(SWT.OK, "UIDebugGenerator.message.cancel",
+				(String[]) null).open(null);
+
+		return false;
 	}
 
 	private static void addFilesToZip(ZipOutputStream out, File[] files) {
