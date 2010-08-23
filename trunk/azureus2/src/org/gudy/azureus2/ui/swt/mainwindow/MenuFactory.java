@@ -51,6 +51,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
 
@@ -1005,7 +1006,15 @@ public class MenuFactory
 							}
 
 							public void complete(UpdateCheckInstance instance) {
-								if (instance.getUpdates().length == 0) {
+								Update[] updates = instance.getUpdates();
+								boolean hasUpdates = false;
+								for (Update update : updates) {
+									if (update.getDownloaders().length > 0) {
+										hasUpdates = true;
+										break;
+									}
+								}
+								if (!hasUpdates) {
 									MessageBoxShell mb = new MessageBoxShell(
 											SWT.ICON_INFORMATION | SWT.OK,
 											"window.update.noupdates", (String[]) null);
