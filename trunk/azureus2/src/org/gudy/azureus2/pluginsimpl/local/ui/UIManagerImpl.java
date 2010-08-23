@@ -72,8 +72,8 @@ UIManagerImpl
 	
 	protected static boolean				initialisation_complete;
 	
-	protected static CopyOnWriteList		ui_listeners		= new CopyOnWriteList();
-	protected static CopyOnWriteList		ui_event_listeners	= new CopyOnWriteList();
+	protected static CopyOnWriteList<Object[]>		ui_listeners		= new CopyOnWriteList<Object[]>();
+	protected static CopyOnWriteList				ui_event_listeners	= new CopyOnWriteList();
 	
 	protected static List<UIInstanceFactory>		ui_factories		= new ArrayList<UIInstanceFactory>();
 	protected static List<UIManagerEventAdapter>	ui_event_history	= new ArrayList<UIManagerEventAdapter>();
@@ -254,6 +254,8 @@ UIManagerImpl
   	public static void
   	initialisationComplete()
   	{
+  		List<Object[]> to_fire = new ArrayList<Object[]>();
+  		
   		try{
   			class_mon.enter();
   			
@@ -261,29 +263,41 @@ UIManagerImpl
   			
 			for (int j=0;j<ui_factories.size();j++){
 
-				UIInstanceFactory	instance = (UIInstanceFactory)ui_factories.get(j);
+				UIInstanceFactory	factory = (UIInstanceFactory)ui_factories.get(j);
 				
-  				Iterator it = ui_listeners.iterator();
+  				Iterator<Object[]> it = ui_listeners.iterator();
 
   				while( it.hasNext()){
   					
- 					Object[]	entry = (Object[])it.next();
+ 					Object[]	entry = it.next();
   					
-  					try{
-  						((UIManagerListener)entry[0]).UIAttached( 
-  								instance.getInstance((PluginInterface)entry[1]) );
-						
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace(e);
-					}
+ 					List<UIInstanceFactory> fired = (List<UIInstanceFactory>)entry[2];
+ 					
+ 					if ( !fired.contains( factory )){
+ 						
+ 						fired.add( factory );
+ 						
+ 						to_fire.add( new Object[]{ entry[0], factory.getInstance((PluginInterface)entry[1])});
+ 					}
 				}  				
 			}
   		}finally{
   			
   			class_mon.exit();
   		}
+  		
+  		for ( Object[] entry: to_fire ){
+  			
+			try{
+				((UIManagerListener)entry[0]).UIAttached( (UIInstance)entry[1] );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+  		}
   	}
+  	
   	
   	public void attachUI(UIInstanceFactory factory) throws UIException {
   		attachUI(factory, null);
@@ -291,8 +305,11 @@ UIManagerImpl
   
 	public void
 	attachUI(
-		UIInstanceFactory		factory, IUIIntializer init)
+		UIInstanceFactory		factory, 
+		IUIIntializer 			init )
 	{
+ 		List<Object[]> to_fire = new ArrayList<Object[]>();
+
 		try{
   			class_mon.enter();
   			
@@ -300,102 +317,131 @@ UIManagerImpl
   			
   			if ( initialisation_complete ){
   				
-  				Iterator it = ui_listeners.iterator();
+  				Iterator<Object[]> it = ui_listeners.iterator();
 
   				while( it.hasNext()){
   					
   					Object[]	entry = (Object[])it.next();
   					
-  					PluginInterface pi = (PluginInterface)entry[1];
-  					
-  					String name = pi.getPluginName();
-  					
-  					if(init != null)
-  					{
-  						init.reportCurrentTask(MessageText.getString("splash.plugin.UIinit",new String[] {name}));
-  						init.increaseProgress();
-  					}
-  					
-  					try{
-  						((UIManagerListener)entry[0]).UIAttached(factory.getInstance(pi));
-  						
-  					}catch( Throwable e ){
-  						
-  						Debug.printStackTrace(e);
-  					}
+					List<UIInstanceFactory> fired = (List<UIInstanceFactory>)entry[2];
+
+					fired.add( factory );
+						
+					to_fire.add( new Object[]{ entry[0], entry[1], factory.getInstance((PluginInterface)entry[1])});
   				}
   			}
   		}finally{
   			
   			class_mon.exit();
   		}		
+  		
+  		for ( Object[] entry: to_fire ){
+
+			PluginInterface pi = (PluginInterface)entry[1];
+				
+			String name = pi.getPluginName();
+				
+			if ( init != null ){
+					
+				init.reportCurrentTask(MessageText.getString("splash.plugin.UIinit",new String[] {name}));
+					
+				init.increaseProgress();
+			}
+				
+			try{
+				((UIManagerListener)entry[0]).UIAttached( (UIInstance)entry[2]);
+					
+			}catch( Throwable e ){
+					
+				Debug.printStackTrace(e);
+			}
+  		}
 	}
 	
 	public void
 	detachUI(
-		UIInstanceFactory		instance )
+		UIInstanceFactory		factory )
 	
 		throws UIException
 	{
+		factory.detach();
+
+ 		List<Object[]> to_fire = new ArrayList<Object[]>();
+
 		try{
   			class_mon.enter();
-  			
-  			instance.detach();
-  			
-  			ui_factories.remove( instance );
+  			  			
+  			ui_factories.remove( factory );
   			
   			if ( initialisation_complete ){
   				
-  				Iterator it = ui_listeners.iterator();
+  				Iterator<Object[]> it = ui_listeners.iterator();
 
   				while( it.hasNext()){
   					
  					Object[]	entry = (Object[])it.next();
   					
-  					try{
-   						((UIManagerListener)entry[0]).UIDetached( 
-   								instance.getInstance((PluginInterface)entry[1]));
-  						
-  					}catch( Throwable e ){
-  						
-  						Debug.printStackTrace(e);
-  					}
+					List<UIInstanceFactory> fired = (List<UIInstanceFactory>)entry[2];
+
+					fired.remove( factory );
+					
+ 					to_fire.add( new Object[]{ entry[0], factory.getInstance((PluginInterface)entry[1])});
   				}
   			}
   		}finally{
   			
   			class_mon.exit();
   		}		
+  		
+  		for ( Object[] entry: to_fire ){
+
+			try{
+				((UIManagerListener)entry[0]).UIDetached((UIInstance)entry[1]);
+					
+			}catch( Throwable e ){
+					
+				Debug.printStackTrace(e);
+			}
+  		}
 	}
 	
   	public void
   	addUIListener(
   		UIManagerListener listener )
   	{
+ 		List<UIInstance> to_fire = new ArrayList<UIInstance>();
+
 		try{
   			class_mon.enter();
   			
-  			ui_listeners.add( new Object[]{ listener, pi });
+  			List<UIInstanceFactory> fired = new ArrayList<UIInstanceFactory>();
+  			
+  			ui_listeners.add( new Object[]{ listener, pi, fired });
   			
  			if ( initialisation_complete ){
   				
   				for (int i=0;i<ui_factories.size();i++){
   					
-  					UIInstanceFactory	instance = (UIInstanceFactory)ui_factories.get(i);
+  					UIInstanceFactory	factory = (UIInstanceFactory)ui_factories.get(i);
 
-  					try{  						
-  						listener.UIAttached( instance.getInstance( pi ));
-  						
-  					}catch( Throwable e ){
-  						
-  						Debug.printStackTrace(e);
-  					}
+  					to_fire.add( factory.getInstance( pi ));
   				}
   			}
   		}finally{
   			
   			class_mon.exit();
   		} 		
+		
+  		for ( UIInstance instance: to_fire ){
+  			
+			try{  						
+				listener.UIAttached( instance );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+  		}
   	}
   	
  	public void
