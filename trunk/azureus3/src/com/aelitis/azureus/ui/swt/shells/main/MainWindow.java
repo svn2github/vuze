@@ -1992,6 +1992,16 @@ public class MainWindow
 			}
 		});
 		text.setTextLimit(254);
+		
+		if (Constants.isWindows) {
+  		text.addListener(SWT.MouseDown, new Listener() {
+  			public void handleEvent(Event event) {
+  				if (event.count == 3) {
+  					text.selectAll();
+  				}
+  			}
+  		});
+		}
 
 		final String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
 
