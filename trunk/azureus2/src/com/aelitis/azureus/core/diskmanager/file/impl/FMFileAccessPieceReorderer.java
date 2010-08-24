@@ -498,12 +498,16 @@ FMFileAccessPieceReorderer
 			piece_number = piece_number - first_piece_number;
 			
 			if ( TRACE ){
-				System.out.println( "pieceComplete: " + piece_number );
+				System.out.println( "isPieceCompleteProcessingNeeded: " + piece_number );
 			}
 	
 			if ( piece_number >= next_piece_index ){
 			
 					// nothing stored yet in the location where this piece belongs
+				
+				if ( TRACE ){
+					System.out.println( "   nothing stored" );
+				}
 				
 				return( false );
 			}
@@ -513,6 +517,10 @@ FMFileAccessPieceReorderer
 			if ( store_index == -1 ){
 				
 					// things screwed up, return true to trigger subsequent fail
+				
+				if ( TRACE ){
+					System.out.println( "   screwed" );
+				}
 				
 				return( true );
 			}
@@ -526,6 +534,10 @@ FMFileAccessPieceReorderer
 				}
 				
 				return( false );
+			}
+			
+			if ( TRACE ){
+				System.out.println( "   needs moving" );
 			}
 			
 			return( true );
