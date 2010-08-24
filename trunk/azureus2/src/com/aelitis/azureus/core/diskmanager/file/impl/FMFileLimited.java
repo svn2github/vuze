@@ -189,29 +189,32 @@ FMFileLimited
 			this_mon.enter();
 		
 			ensureOpen( "FMFileLimited:setPieceComplete" );
-			
-			boolean	switched_mode = false;
-			
-			if ( getAccessMode() != FM_WRITE ){
+
+			if ( isPieceCompleteProcessingNeeded( piece_number )){
+								
+				boolean	switched_mode = false;
 				
-				setAccessMode( FM_WRITE );
-				
-				switched_mode = true;
-				
-					// switching mode closes the file...
-				
-				ensureOpen( "FMFileLimited:setPieceComplete2" );
-			}
-			
-			try{
-			
-				setPieceCompleteSupport( piece_number, piece_data );
-				
-			}finally{
-				
-				if ( switched_mode ){
+				if ( getAccessMode() != FM_WRITE ){
 					
-					setAccessMode( FM_READ );
+					setAccessMode( FM_WRITE );
+					
+					switched_mode = true;
+					
+						// switching mode closes the file...
+					
+					ensureOpen( "FMFileLimited:setPieceComplete2" );
+				}
+				
+				try{
+				
+					setPieceCompleteSupport( piece_number, piece_data );
+					
+				}finally{
+					
+					if ( switched_mode ){
+						
+						setAccessMode( FM_READ );
+					}
 				}
 			}
 		}finally{

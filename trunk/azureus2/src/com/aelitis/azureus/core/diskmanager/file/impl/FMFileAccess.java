@@ -71,6 +71,10 @@ FMFileAccess
 	
 		throws FMFileManagerException;
 	
+	public boolean
+	isPieceCompleteProcessingNeeded(
+		int					piece_number );
+	
 	public void
 	setPieceComplete(
 		RandomAccessFile	raf,

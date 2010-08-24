@@ -422,6 +422,13 @@ FMFileAccessController
 		file_access.setLength( raf, length );
 	}
 	
+	public boolean
+	isPieceCompleteProcessingNeeded(
+		int					piece_number )
+	{
+		return( file_access.isPieceCompleteProcessingNeeded( piece_number ));
+	}
+	
 	public void
 	setPieceComplete(
 		RandomAccessFile	raf,

@@ -141,26 +141,33 @@ FMFileUnlimited
 		try{
 			this_mon.enter();
 		
-			ensureOpen( "FMFileUnlimited:setLength" );
-			
-			boolean	switched_mode = false;
-			
-			if ( getAccessMode() != FM_WRITE ){
+			ensureOpen( "FMFileUnlimited:setPieceComplete" );
+
+			if ( isPieceCompleteProcessingNeeded( piece_number )){
+								
+				boolean	switched_mode = false;
 				
-				setAccessMode( FM_WRITE );
-				
-				switched_mode = true;
-			}
-			
-			try{
-			
-				setPieceCompleteSupport( piece_number, piece_data );
-				
-			}finally{
-				
-				if ( switched_mode ){
+				if ( getAccessMode() != FM_WRITE ){
 					
-					setAccessMode( FM_READ );
+					setAccessMode( FM_WRITE );
+					
+					switched_mode = true;
+					
+						// switching mode closes the file...
+					
+					ensureOpen( "FMFileUnlimited:setPieceComplete2" );
+				}
+				
+				try{
+				
+					setPieceCompleteSupport( piece_number, piece_data );
+					
+				}finally{
+					
+					if ( switched_mode ){
+						
+						setAccessMode( FM_READ );
+					}
 				}
 			}
 		}finally{

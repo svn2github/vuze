@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.SystemTime;
 
-import com.aelitis.azureus.core.diskmanager.file.FMFile;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
 public class 
@@ -97,6 +96,13 @@ FMFileAccessLinear
 			
 			throw( new FMFileManagerException( "setLength fails", e ));
 		}
+	}
+	
+	public boolean
+	isPieceCompleteProcessingNeeded(
+		int					piece_number )
+	{
+		return( false );
 	}
 	
 	public void

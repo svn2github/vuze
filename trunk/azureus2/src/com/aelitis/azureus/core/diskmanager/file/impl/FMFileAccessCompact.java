@@ -470,6 +470,13 @@ FMFileAccessCompact
 		writeState();
 	}
 	
+	public boolean
+	isPieceCompleteProcessingNeeded(
+		int					piece_number )
+	{
+		return( false );
+	}
+	
 	public void
 	setPieceComplete(
 		RandomAccessFile	raf,

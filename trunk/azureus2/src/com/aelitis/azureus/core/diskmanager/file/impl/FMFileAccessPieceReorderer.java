@@ -483,6 +483,59 @@ FMFileAccessPieceReorderer
 		}
 	}
 	
+	public boolean
+	isPieceCompleteProcessingNeeded(
+		int					piece_number )
+	{
+		if ( num_pieces >= MIN_PIECES_REORDERABLE ){
+			
+				// note that it is possible to reduce the number of piece moves at the expense
+				// of complicating the allocation process. We have the advantage here of having
+				// the piece data already in memory. We also don't want to defer a mass of IO
+				// until the download completes, hence interfering with other stuff such as
+				// streaming. So I'm going to stick with this approach.
+			
+			piece_number = piece_number - first_piece_number;
+			
+			if ( TRACE ){
+				System.out.println( "pieceComplete: " + piece_number );
+			}
+	
+			if ( piece_number >= next_piece_index ){
+			
+					// nothing stored yet in the location where this piece belongs
+				
+				return( false );
+			}
+			
+			int	store_index = piece_map[ piece_number ];
+			
+			if ( store_index == -1 ){
+				
+					// things screwed up, return true to trigger subsequent fail
+				
+				return( true );
+			}
+			
+			if ( piece_number == store_index ){
+				
+					// already in the right place
+				
+				if ( TRACE ){
+					System.out.println( "    already in right place" );
+				}
+				
+				return( false );
+			}
+			
+			return( true );
+			
+		}else{
+			
+			return( delegate.isPieceCompleteProcessingNeeded( piece_number ));
+		}
+	}
+	
 	public void
 	setPieceComplete(
 		RandomAccessFile	raf,
@@ -491,6 +544,8 @@ FMFileAccessPieceReorderer
 	
 		throws FMFileManagerException
 	{	
+			// note, some of this logic repeated above
+		
 		if ( num_pieces >= MIN_PIECES_REORDERABLE ){
 				
 				// note that it is possible to reduce the number of piece moves at the expense

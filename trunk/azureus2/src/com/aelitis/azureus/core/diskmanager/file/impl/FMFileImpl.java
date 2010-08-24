@@ -265,7 +265,7 @@ FMFileImpl
 	protected void
 	setAccessModeSupport(
 		int		mode )
-	{
+	{		
 		access_mode	= mode;
 	}
 	
@@ -642,6 +642,15 @@ FMFileImpl
 		throws FMFileManagerException
 	{
 		file_access.flush();
+	}
+	
+	protected boolean
+	isPieceCompleteProcessingNeeded(
+		int					piece_number )
+	
+		throws FMFileManagerException
+	{
+		return( file_access.isPieceCompleteProcessingNeeded( piece_number ));
 	}
 	
 	protected void
