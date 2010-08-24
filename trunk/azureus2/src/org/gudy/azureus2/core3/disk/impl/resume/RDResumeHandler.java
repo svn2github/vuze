@@ -62,6 +62,14 @@ RDResumeHandler
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
 
+	private static final boolean TEST_RECHECK_FAILURE_HANDLING	= false;
+	
+	static{
+		if ( TEST_RECHECK_FAILURE_HANDLING ){
+			Debug.out( "**** test recheck failure enabled ****" );
+		}
+	}
+	
 	private static final byte		PIECE_NOT_DONE			= 0;
 	private static final byte		PIECE_DONE				= 1;
 	private static final byte		PIECE_RECHECK_REQUIRED	= 2;
@@ -409,6 +417,13 @@ RDResumeHandler
 													DiskManagerCheckRequest 	request,
 													boolean						passed )
 												{
+													if ( TEST_RECHECK_FAILURE_HANDLING && (int)(Math.random()*10) == 0 ){
+														
+														disk_manager.getPiece(request.getPieceNumber()).setDone(false);
+														
+														passed  = false;
+													}
+													
 													if ( !passed ){
 														
 														failed_pieces.add( request );
@@ -551,6 +566,13 @@ RDResumeHandler
 											DiskManagerCheckRequest 	request,
 											boolean						passed )
 										{
+											if ( TEST_RECHECK_FAILURE_HANDLING && (int)(Math.random()*10) == 0 ){
+												
+												disk_manager.getPiece(request.getPieceNumber()).setDone(false);
+												
+												passed  = false;
+											}
+											
 											if ( !passed ){
 												
 												failed_pieces.add( request );
@@ -599,7 +621,7 @@ RDResumeHandler
 					}
 				}
 				
-				if ( failed_pieces.size() > 0 ){
+				if ( failed_pieces.size() > 0 && !TEST_RECHECK_FAILURE_HANDLING ){
 					
 					byte[][] piece_hashes = disk_manager.getTorrent().getPieces();
 					

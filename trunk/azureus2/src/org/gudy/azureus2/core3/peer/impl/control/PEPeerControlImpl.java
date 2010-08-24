@@ -96,6 +96,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 {
 	private static final LogIDs LOGID = LogIDs.PEER;
 
+	private static final boolean TEST_PERIODIC_SEEDING_SCAN_FAIL_HANDLING	= false;
+	
+	static{
+		if ( TEST_PERIODIC_SEEDING_SCAN_FAIL_HANDLING ){
+			Debug.out( "**** test periodic scan failure enabled ****" );
+		}
+	}
+	
 	private static final int WARNINGS_LIMIT = 2;
 
 	private static final int	CHECK_REASON_DOWNLOADED		= 1;
@@ -2970,6 +2978,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	public void checkCompleted(DiskManagerCheckRequest request, boolean passed)
 	{
+		if ( TEST_PERIODIC_SEEDING_SCAN_FAIL_HANDLING && ((Integer) request.getUserData()).intValue() == CHECK_REASON_SEEDING_CHECK ){
+			
+			passed = false;	
+		}
+		
 		try
 		{
 			piece_check_result_list_mon.enter();
@@ -3433,42 +3446,50 @@ DiskManagerCheckRequestListener, IPFilterListener
 		int	max_reads 		= 0;
 		int	max_reads_index = 0;
 
-		for (int i=0;i<dm_pieces.length;i++){
+		if ( TEST_PERIODIC_SEEDING_SCAN_FAIL_HANDLING ){
+			
+			max_reads_index = (int)(Math.random()*dm_pieces.length);;
+			max_reads = dm_pieces[ max_reads_index ].getNbBlocks()*3;
 
-				// skip dnd pieces
-			
-			DiskManagerPiece	dm_piece = dm_pieces[i];
-			
-			if ( !dm_piece.isDone()){
+		}else{
+
+			for (int i=0;i<dm_pieces.length;i++){
+	
+					// skip dnd pieces
 				
-				continue;
-			}
-			
-			int	num = dm_piece.getReadCount()&0xffff;
-
-			if ( num > SEED_CHECK_WAIT_MARKER ){
-
-				// recently been checked, skip for a while
-
-					num--;
-
-				if ( num == SEED_CHECK_WAIT_MARKER ){
-
-					num = 0;
+				DiskManagerPiece	dm_piece = dm_pieces[i];
+				
+				if ( !dm_piece.isDone()){
+					
+					continue;
 				}
-
-				dm_piece.setReadCount((short)num);
-
-			}else{
-
-				if ( num > max_reads ){
-
-					max_reads 		= num;
-					max_reads_index = i;
+				
+				int	num = dm_piece.getReadCount()&0xffff;
+	
+				if ( num > SEED_CHECK_WAIT_MARKER ){
+	
+					// recently been checked, skip for a while
+	
+						num--;
+	
+					if ( num == SEED_CHECK_WAIT_MARKER ){
+	
+						num = 0;
+					}
+	
+					dm_piece.setReadCount((short)num);
+	
+				}else{
+	
+					if ( num > max_reads ){
+	
+						max_reads 		= num;
+						max_reads_index = i;
+					}
 				}
 			}
 		}
-
+		
 		if ( max_reads > 0 ){
 
 			DiskManagerPiece	dm_piece = dm_pieces[ max_reads_index ];
