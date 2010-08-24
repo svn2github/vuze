@@ -238,4 +238,12 @@ AEWin32Access
 		getAllDrives();
 
   public boolean isUSBDrive(Map driveInfo);
+
+	/**
+	 * @return
+	 * @throws AEWin32AccessException
+	 *
+	 * @since 4.5.0.3
+	 */
+	String getLocalAppData() throws AEWin32AccessException;
 }

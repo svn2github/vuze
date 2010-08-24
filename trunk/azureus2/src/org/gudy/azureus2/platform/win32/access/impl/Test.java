@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
+import org.gudy.azureus2.platform.win32.access.AEWin32Access;
+import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
 
 public class 
 Test 
@@ -43,6 +45,16 @@ Test
 		String[]	args )
 	{
 		try{
+  		AEWin32Access access = AEWin32Manager.getAccessor(false);
+  		
+  		String	app_data = access.getUserAppData();
+  		
+  		System.out.println( "AppData = " + app_data );
+  
+  		String	local_app_data = access.getLocalAppData();
+  		
+  		System.out.println( "Local AppData = " + local_app_data );
+
 			
 			List availableDrives = AEWin32AccessInterface.getAvailableDrives();
 			
