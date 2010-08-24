@@ -141,10 +141,10 @@ FMFileUnlimited
 		try{
 			this_mon.enter();
 		
-			ensureOpen( "FMFileUnlimited:setPieceComplete" );
-
 			if ( isPieceCompleteProcessingNeeded( piece_number )){
-								
+		
+				ensureOpen( "FMFileUnlimited:setPieceComplete" );
+
 				boolean	switched_mode = false;
 				
 				if ( getAccessMode() != FM_WRITE ){

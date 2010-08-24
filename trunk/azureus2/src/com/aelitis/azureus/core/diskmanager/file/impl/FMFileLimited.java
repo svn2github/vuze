@@ -188,10 +188,10 @@ FMFileLimited
 		try{
 			this_mon.enter();
 		
-			ensureOpen( "FMFileLimited:setPieceComplete" );
-
 			if ( isPieceCompleteProcessingNeeded( piece_number )){
-								
+		
+				ensureOpen( "FMFileLimited:setPieceComplete" );
+
 				boolean	switched_mode = false;
 				
 				if ( getAccessMode() != FM_WRITE ){
