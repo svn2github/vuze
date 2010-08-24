@@ -474,7 +474,7 @@ public class UIDebugGenerator
 		}
 		Messages.setLanguageText(btnCancel, "Button.cancel");
 		Messages.setLanguageText(btnSendNow, "Button.sendNow");
-		Messages.setLanguageText(btnSendLater, "Button.sendLater");
+		Messages.setLanguageText(btnSendLater, "Button.sendManual");
 
 		FormData fd;
 		
