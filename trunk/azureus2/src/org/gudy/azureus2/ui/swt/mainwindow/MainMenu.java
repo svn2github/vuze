@@ -23,15 +23,18 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.ui.swt.Utils;
+
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 /**
  * @author Olivier Chalouhi
@@ -192,9 +195,36 @@ public class MainMenu
 	private void addViewMenu(final Shell parent) {
 		try {
 			MenuItem viewItem = MenuFactory.createViewMenuItem(menuBar);
-			Menu viewMenu = viewItem.getMenu();
+			final Menu viewMenu = viewItem.getMenu();
+			
+			viewMenu.addListener(SWT.Show, new Listener() {
+				public void handleEvent(Event event) {
+					Utils.disposeSWTObjects(viewMenu.getItems());
+					buildSimpleViewMenu(viewMenu);
+				}
+			});
+		} catch (Exception e) {
+			Debug.out("Error creating View Menu", e);
+		}
+	}
 
+	protected void buildSimpleViewMenu(final Menu viewMenu) {
+		try {
 			MenuFactory.addLabelMenuItem(viewMenu, "MainWindow.menu.view.show");
+			boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
+			if (enabled) {
+				indent(MenuFactory.addMenuItem(viewMenu, SWT.CHECK, "MainWindow.menu.view.beta",
+						new Listener() {
+							public void handleEvent(Event event) {
+								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+          			MdiEntry entry = mdi.createEntryFromSkinRef(null,
+          					"BetaProgramme", "main.area.beta",
+          					MessageText.getString("Sidebar.beta.title"), null, null,
+          					true, 0);
+          			mdi.showEntry(entry);
+							}
+				}));
+			}
 
 			indent(MenuFactory.addMyTorrentsMenuItem(viewMenu));
 			indent(MenuFactory.addMyTrackerMenuItem(viewMenu));
@@ -219,6 +249,7 @@ public class MainMenu
 		} catch (Exception e) {
 			Debug.out("Error creating View Menu", e);
 		}
+		
 	}
 
 	/**

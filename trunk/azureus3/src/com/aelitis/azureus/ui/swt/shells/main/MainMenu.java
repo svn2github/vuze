@@ -7,6 +7,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -17,6 +18,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.content.RelatedContentManager;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
@@ -196,7 +198,42 @@ public class MainMenu
 		try {
 			MenuItem viewItem = MenuFactory.createViewMenuItem(menuBar);
 			final Menu viewMenu = viewItem.getMenu();
+			
+			viewMenu.addListener(SWT.Show, new Listener() {
+				public void handleEvent(Event event) {
+					Utils.disposeSWTObjects(viewMenu.getItems());
+					buildSimpleViewMenu(viewMenu);
+				}
+			});
+		} catch (Exception e) {
+			Debug.out("Error creating View Menu", e);
+		}
+	}
 
+	/**
+	 * @param viewMenu
+	 *
+	 * @since 4.5.0.3
+	 */
+	protected void buildSimpleViewMenu(final Menu viewMenu) {
+		try {
+			boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
+			if (enabled) {
+				MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V2 + ".view.beta",
+						new Listener() {
+							public void handleEvent(Event event) {
+								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+          			MdiEntry entry = mdi.createEntryFromSkinRef(null,
+          					"BetaProgramme", "main.area.beta",
+          					MessageText.getString("Sidebar.beta.title"), null, null,
+          					true, 0);
+          			mdi.showEntry(entry);
+							}
+				});
+			}
+
+			
+			
 			MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V3 + ".view.sidebar",
 					new Listener() {
 						public void handleEvent(Event event) {
@@ -342,7 +379,6 @@ public class MainMenu
 				public void menuHidden(MenuEvent e) {
 				}
 			});
-
 		} catch (Exception e) {
 			Debug.out("Error creating View Menu", e);
 		}

@@ -646,10 +646,15 @@ public class MenuFactory
 						}
 					}
 				});
+		item.setSelection(!MiniBarManager.getManager().getShellManager().isEmpty());
 
 		menu.addListener(SWT.Show, new Listener() {
 			public void handleEvent(Event event) {
-				item.setSelection(!MiniBarManager.getManager().getShellManager().isEmpty());
+				if (item.isDisposed()) {
+					menu.removeListener(SWT.Show, this);
+				} else {
+					item.setSelection(!MiniBarManager.getManager().getShellManager().isEmpty());
+				}
 			}
 		});
 		return item;
