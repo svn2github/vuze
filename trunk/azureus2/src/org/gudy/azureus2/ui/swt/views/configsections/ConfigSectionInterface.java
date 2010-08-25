@@ -153,11 +153,12 @@ public class ConfigSectionInterface implements UISWTConfigSection {
         Group limit_group = new Group(cDisplay, SWT.NULL);
         Messages.setLanguageText(limit_group, LBLKEY_PREFIX + "set_ui_transfer_speeds");
         layout = new GridLayout();
+        layout.numColumns = 2;
         limit_group.setLayout(layout);
         limit_group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
         Label limit_group_label = new Label(limit_group, SWT.WRAP);
-        limit_group_label.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.GRAB_HORIZONTAL));
+        limit_group_label.setLayoutData(Utils.getWrappableLabelGridData(2, GridData.GRAB_HORIZONTAL));
         Messages.setLanguageText(limit_group_label, LBLKEY_PREFIX + "set_ui_transfer_speeds.description");
         
         String[] limit_types = new String[] {"download", "upload"};
@@ -209,14 +210,6 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		layout.numColumns = 2;
 		cArea.setLayout(layout);
 		cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-		// config torrent removal
-		
-		BooleanParameter confirm_removal = new BooleanParameter(cArea,
-				"confirm_torrent_removal", KEY_PREFIX + "confirm_torrent_removal");
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		confirm_removal.setLayoutData(gridData);
 
 		// clear remembered decisions
 

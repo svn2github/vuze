@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerPieceListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.views.piece.MyPieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
@@ -237,7 +238,9 @@ public class PiecesView
 		}
 		
 		if (itemKey.equals("remove")) {
-			ManagerUtils.remove(manager, null, false, false);
+			TorrentUtil.removeDownloads(new DownloadManager[] {
+				manager
+			}, null);
 			return true;
 		}
 		return false;

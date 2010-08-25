@@ -46,9 +46,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
-import org.gudy.azureus2.ui.swt.IconBarEnabler;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.plugins.*;
@@ -424,7 +422,9 @@ public class ManagerView
 		}
 		
 		if (itemKey.equals("remove")) {
-			ManagerUtils.remove(manager, null, false, false);
+			TorrentUtil.removeDownloads(new DownloadManager[] {
+				manager
+			}, null);
 			return true;
 		}
 		

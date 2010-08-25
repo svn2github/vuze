@@ -782,7 +782,8 @@ public class TorrentListViewsUtils
 		mb.open(new UserPrompterResultListener() {
 			public void prompterClosed(int i) {
 				if (i == 0) {
-					ManagerUtils.remove(dm, functionsSWT.getMainShell(), true, false);
+					ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+							true, false, null);
 				} else if (i == 1) {
 					dm.forceRecheck(new ForceRecheckListener() {
 						public void forceRecheckComplete(DownloadManager dm) {

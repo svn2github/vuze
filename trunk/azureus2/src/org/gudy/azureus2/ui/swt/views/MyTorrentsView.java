@@ -253,7 +253,6 @@ public class MyTorrentsView
 
     COConfigurationManager.addAndFireParameterListeners(new String[] {
 			"DND Always In Incomplete",
-			"Confirm Data Delete",
 			"MyTorrentsView.alwaysShowHeader",
 			"User Mode"
 		}, this);
@@ -308,7 +307,6 @@ public class MyTorrentsView
     CategoryManager.removeCategoryManagerListener(this);
     globalManager.removeListener(this);
     COConfigurationManager.removeParameterListener("DND Always In Incomplete", this);
-    COConfigurationManager.removeParameterListener("Confirm Data Delete", this);
     COConfigurationManager.removeParameterListener("User Mode", this);
   }
   

@@ -450,7 +450,6 @@ public class ConfigurationDefaults {
     def.put( "confirmationOnExit", FALSE );
     def.put( "locale", Locale.getDefault().toString() );
     def.put( "locale.set.complete.count", ZERO);
-    def.put( "Confirm Data Delete", TRUE );
     def.put( "Password Confirm", null );
     def.put( "Auto Update", TRUE );
     def.put( "Alert on close", FALSE );
@@ -514,7 +513,6 @@ public class ConfigurationDefaults {
     def.put( "network.control.read.processor.count", new Long(1));
     def.put( "network.control.write.processor.count", new Long(1));
     def.put( "peermanager.schedule.time", new Long(100));
-    def.put( "confirm_torrent_removal", FALSE );
     def.put( "enable_small_osx_fonts", TRUE );
     def.put( "Play Download Finished Announcement", FALSE);
     def.put( "Play Download Finished Announcement Text", "Download Complete");
@@ -573,6 +571,8 @@ public class ConfigurationDefaults {
     def.put("FileBrowse.usePathFinder", FALSE);
     	
     def.put( "Beta Programme Enabled", FALSE );
+    def.put( "def.deletetorrent", TRUE );
+    def.put( "confirm.delete.content", TRUE );
     
     //temp section for SpeedManagerAlgorithmProviderV2
     

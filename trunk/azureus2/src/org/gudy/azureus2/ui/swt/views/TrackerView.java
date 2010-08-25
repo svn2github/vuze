@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerTPSListener;
 import org.gudy.azureus2.core3.util.AERunnable;
 
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -205,7 +206,9 @@ public class TrackerView
 		}
 		
 		if (itemKey.equals("remove")) {
-			ManagerUtils.remove(manager, null, false, false);
+			TorrentUtil.removeDownloads(new DownloadManager[] {
+				manager
+			}, null);
 			return true;
 		}
 		return false;

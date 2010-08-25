@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -412,7 +413,9 @@ public class PeersView
 		}
 		
 		if (itemKey.equals("remove")) {
-			ManagerUtils.remove(manager, null, false, false);
+			TorrentUtil.removeDownloads(new DownloadManager[] {
+				manager
+			}, null);
 			return true;
 		}
 		return false;

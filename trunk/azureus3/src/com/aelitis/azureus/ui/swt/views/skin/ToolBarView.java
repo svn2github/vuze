@@ -383,7 +383,7 @@ public class ToolBarView
 			public void triggerToolBarItem() {
 				if (!triggerBasicToolBarItem(getId())) {
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-					TorrentUtil.removeDownloads(dms);
+					TorrentUtil.removeDownloads(dms, null);
 				}
 			}
 		};

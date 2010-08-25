@@ -584,7 +584,8 @@ public class MainWindow
 								public void perform(TimerEvent event) {
 									dm.getDownloadState().setFlag(
 											DownloadManagerState.FLAG_LOW_NOISE, true);
-									ManagerUtils.remove(dm, null, true, true);
+									ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+											true, true, null);
 								}
 							});
 				}

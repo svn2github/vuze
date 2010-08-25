@@ -58,6 +58,7 @@ import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Alerts;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -446,73 +447,22 @@ public class ManagerUtils {
 		}
 	}
 
+  /**
+   * @deprecated Use {@link TorrentUtil#removeDownloads(DownloadManager[], AERunnable)}
+   */
   public static void remove(final DownloadManager dm, Shell unused_shell,
 			final boolean bDeleteTorrent, final boolean bDeleteData) {
   	remove(dm, unused_shell, bDeleteTorrent, bDeleteData, null);
 	}
   
+  /**
+   * @deprecated Use {@link TorrentUtil#removeDownloads(DownloadManager[], AERunnable)}
+   */
   public static void remove(final DownloadManager dm, Shell unused_shell,
 			final boolean bDeleteTorrent, final boolean bDeleteData,
 			final AERunnable deleteFailed) {
-
-	  	DownloadManagerState state = dm.getDownloadState();
-	  
-		if (!( state.getFlag(DownloadManagerState.FLAG_LOW_NOISE) || state.getFlag(DownloadManagerState.FLAG_FORCE_DIRECT_DELETE ))){
-			if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
-
-				String title = MessageText.getString("deletedata.title");
-				String text = MessageText.getString("deletetorrent.message1")
-						+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
-						+ MessageText.getString("deletetorrent.message2");
-
-				MessageBoxShell mb = new MessageBoxShell(SWT.YES | SWT.NO, title, text);
-				mb.setDefaultButtonUsingStyle(SWT.NO);
-				mb.setRelatedObject(dm);
-				mb.setLeftImage(SWT.ICON_WARNING);
-
-				mb.open(null);
-				int result = mb.waitUntilClosed();
-				if (result != SWT.YES) {
-					if (deleteFailed != null) {
-						deleteFailed.runSupport();
-					}
-					return;
-				}
-			}
-
-			boolean confirmDataDelete = COConfigurationManager.getBooleanParameter(
-					"Confirm Data Delete");
-
-			if (confirmDataDelete && bDeleteData) {
-				String path = dm.getSaveLocation().toString();
-
-				String title = MessageText.getString("deletedata.title");
-				String text = MessageText.getString("deletedata.message1",
-						new String[] {
-							dm.getDisplayName()
-						});
-						
-				MessageBoxShell mb = new MessageBoxShell(SWT.YES | SWT.NO, title, text);
-				mb.setDefaultButtonUsingStyle(SWT.NO);
-				mb.setRemember("deletedata.noconfirm.key2", false,
-						MessageText.getString("deletedata.noprompt"));
-				mb.setRememberOnlyIfButton(0);
-				mb.setRelatedObject(dm);
-				mb.setLeftImage(SWT.ICON_WARNING);
-
-				mb.open(null);
-				int result = mb.waitUntilClosed();
-				if (result != SWT.YES) {
-					if (deleteFailed != null) {
-						deleteFailed.runSupport();
-					}
-					return;
-				}
-			}
-		}
-
-		asyncStopDelete(dm, DownloadManager.STATE_STOPPED, bDeleteTorrent,
-				bDeleteData, deleteFailed);
+  	TorrentUtil.removeDownloads(new DownloadManager[] { dm }, null);
+  	Debug.out("ManagerUtils.remove is Deprecated.  Use TorrentUtil.removeDownloads");
 	}
   
   private static AsyncDispatcher async = new AsyncDispatcher(2000);

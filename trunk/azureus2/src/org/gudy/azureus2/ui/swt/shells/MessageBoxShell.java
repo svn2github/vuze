@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
@@ -109,6 +110,12 @@ public class MessageBoxShell
 	private boolean opened;
 
 	private boolean useTextBox;
+
+	private String cbMessageID;
+
+	private int cbMinUserMode;
+
+	private boolean cbEnabled;
 	
 	public static void open(Shell parent, String title, String text,
 			String[] buttons, int defaultOption, String rememberID,
@@ -469,9 +476,12 @@ public class MessageBoxShell
 		}
 
 
-		if (!squish && (autoCloseInMS > 0 || rememberID != null)) {
-			Label lblPadding = new Label(shell, SWT.NONE );
-			lblPadding.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		if (!squish
+				&& (autoCloseInMS > 0 || rememberID != null || (cbMessageID != null && Utils.getUserMode() >= cbMinUserMode))) {
+			Label lblPadding = new Label(shell, SWT.NONE);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.heightHint = 5;
+			lblPadding.setLayoutData(gridData);
 		}
 
 		// Closing in..
@@ -562,6 +572,22 @@ public class MessageBoxShell
 			});
 		}
 
+		if (cbMessageID != null && Utils.getUserMode() >= cbMinUserMode) {
+			Button cb = new Button(shell, SWT.CHECK);
+			cb.addSelectionListener(new SelectionListener() {
+				
+				public void widgetSelected(SelectionEvent e) {
+					cbEnabled = ((Button) e.widget).getSelection();
+				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+			Messages.setLanguageText(cb, cbMessageID);
+			cb.setSelection(cbEnabled);
+		}
+		
+		
 		// Remember Me
 		Button checkRemember = null;
 		if (rememberID != null) {
@@ -589,13 +615,25 @@ public class MessageBoxShell
 			});
 		}
 
+
 		// Buttons
 
 		if ( buttons.length > 0 ){
+			Canvas line = new Canvas(shell,SWT.NO_BACKGROUND);
+			line.addListener(SWT.Paint, new Listener() {
+				public void handleEvent(Event e) {
+					Rectangle clientArea = ((Canvas) e.widget).getClientArea();
+					e.gc.setForeground(e.display.getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+					e.gc.drawRectangle(clientArea);
+					clientArea.y++;
+					e.gc.setForeground(e.display.getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW));
+					e.gc.drawRectangle(clientArea);
+				}
+			});
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.heightHint = 2;
+			line.setLayoutData(gridData);
 			
-			Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
-			labelSeparator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
 			Composite cButtons = new Composite(shell, SWT.NONE);
 			FormLayout layout = new FormLayout();
 	
@@ -655,7 +693,7 @@ public class MessageBoxShell
 				}
 			}
 		}
-		
+
 		shell.addTraverseListener(new TraverseListener() {
 			public void keyTraversed(TraverseEvent event) {
 				if (event.detail == SWT.TRAVERSE_ESCAPE) {
@@ -1144,6 +1182,16 @@ public class MessageBoxShell
 		this.buttons = buttons;
 		this.buttonVals = buttonVals;
 	}
+	
+	public void addCheckBox(String cbMessageID, int cbMinUserMode, boolean defaultOn) {
+		this.cbMessageID = cbMessageID;
+		this.cbMinUserMode = cbMinUserMode;
+		this.cbEnabled = defaultOn;
+	}
+	
+	public boolean getCheckBoxEnabled() {
+		return cbEnabled;
+	}
 
 	public Shell getParent() {
 		return parent;
@@ -1175,6 +1223,14 @@ public class MessageBoxShell
 	 */
 	public boolean useTextBox() {
 		return useTextBox;
+	}
+
+	public void setLeftImage(final String id) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				setLeftImage(ImageLoader.getInstance().getImage(id));
+			}
+		});
 	}
 
 }

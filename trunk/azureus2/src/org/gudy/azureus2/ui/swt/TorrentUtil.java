@@ -1277,54 +1277,17 @@ public class TorrentUtil {
 		});
 		itemRecheck.setEnabled(recheck);
 
-		// Remove
+		// Delete
 		final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
+		Messages.setLanguageText(itemRemove, "menu.delete.options");
 		Utils.setMenuItemImage(itemRemove, "delete");
-		itemRemove.addListener(SWT.Selection, new DMTask(dms) {
-			public void run(DownloadManager dm) {
-				ManagerUtils.remove(dm, null, false, false);
+		itemRemove.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				removeDownloads(dms, null, true);
 			}
 		});
 		itemRemove.setEnabled(hasSelection);
 
-		// === Remove And ===
-		// ==================
-
-		final MenuItem itemRemoveAnd = new MenuItem(menu, SWT.CASCADE);
-		Messages.setLanguageText(itemRemoveAnd, "MyTorrentsView.menu.removeand"); //$NON-NLS-1$
-		Utils.setMenuItemImage(itemRemoveAnd, "delete");
-		itemRemoveAnd.setEnabled(hasSelection);
-
-		final Menu menuRemove = new Menu(composite.getShell(), SWT.DROP_DOWN);
-		itemRemoveAnd.setMenu(menuRemove);
-
-		// Remove And > Delete Torrent
-		final MenuItem itemDeleteTorrent = new MenuItem(menuRemove, SWT.PUSH);
-		Messages.setLanguageText(itemDeleteTorrent, "MyTorrentsView.menu.removeand.deletetorrent"); //$NON-NLS-1$
-		itemDeleteTorrent.addListener(SWT.Selection, new DMTask(dms) {
-			public void run(DownloadManager dm) {
-				ManagerUtils.remove(dm, null, true, false);
-			}
-		});
-
-		// Remove And > Delete Data
-		final MenuItem itemDeleteData = new MenuItem(menuRemove, SWT.PUSH);
-		Messages.setLanguageText(itemDeleteData, "MyTorrentsView.menu.removeand.deletedata");
-		itemDeleteData.addListener(SWT.Selection, new DMTask(dms) {
-			public void run(DownloadManager dm) {
-				ManagerUtils.remove(dm, null, false, true);
-			}
-		});
-
-		// Remove And > Delete Both
-		final MenuItem itemDeleteBoth = new MenuItem(menuRemove, SWT.PUSH);
-		Messages.setLanguageText(itemDeleteBoth, "MyTorrentsView.menu.removeand.deleteboth");
-		itemDeleteBoth.addListener(SWT.Selection, new DMTask(dms) {
-			public void run(DownloadManager dm) {
-				ManagerUtils.remove(dm, null, true, true);
-			}
-		});
 	}
 
 	private static void addCategorySubMenu(final DownloadManager[] dms, Menu menuCategory, final Composite composite) {
@@ -1528,7 +1491,7 @@ public class TorrentUtil {
 
 	public static void removeDataSources(final Object[] datasources) {
 		DownloadManager[] dms = toDMS(datasources);
-		removeDownloads(dms);
+		removeDownloads(dms, null);
 		DiskManagerFileInfo[] fileInfos = toDMFI(datasources);
 		if (fileInfos.length > 0) {
 			FilesViewMenuUtil.changePriority(FilesViewMenuUtil.PRIORITY_DELETE,
@@ -1987,11 +1950,16 @@ public class TorrentUtil {
 			return mapNewToolbarStates;
 		}
 
-	public static void removeDownloads(final DownloadManager[] dms) {
+	public static void removeDownloads(DownloadManager[] dms, AERunnable deleteFailed) {
+		removeDownloads(dms, deleteFailed, false);
+	}
+
+	public static void removeDownloads(final DownloadManager[] dms,
+			final AERunnable deleteFailed, final boolean forcePrompt) {
 		if (dms == null) {
 			return;
 		}
-	
+
 		// confusing code:
 		// for loop goes through erasing published and low noise torrents until
 		// it reaches a normal one.  We then prompt the user, and stop the loop.
@@ -2002,86 +1970,115 @@ public class TorrentUtil {
 		// removeDownloads again so we can prompt again (or erase more published/low noise torrents)
 		for (int i = 0; i < dms.length; i++) {
 			DownloadManager dm = dms[i];
-			if (dm != null) {
-				if (dm.getDownloadState().getFlag(
-						Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE)) {
-					ManagerUtils.remove(dm, null, true, false, null);
-					continue;
-				}
-	
-			boolean deleteTorrent = true;
+			if (dm == null) {
+				continue;
+			}
+
+			boolean deleteTorrent = COConfigurationManager.getBooleanParameter("def.deletetorrent");
 			boolean deleteData = true;
-	
-	
-			if (!dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
+
+			DownloadManagerState state = dm.getDownloadState();
+			if (state.getFlag(DownloadManagerState.FLAG_LOW_NOISE)
+					|| state.getFlag(DownloadManagerState.FLAG_FORCE_DIRECT_DELETE)) {
+				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+						deleteTorrent, deleteData, deleteFailed);
+				continue;
+			}
+
+			boolean doPrompt = COConfigurationManager.getBooleanParameter("confirm.delete.content")
+					| forcePrompt;
+
+			if (doPrompt) {
 				String title = MessageText.getString("deletedata.title");
 				String text = MessageText.getString("v3.deleteContent.message",
 						new String[] {
 							dm.getDisplayName()
 						});
-					
-				final MessageBoxShell mb = new MessageBoxShell(title,
-						text, new String[] {
-							MessageText.getString("Button.cancel"),
-							MessageText.getString("Button.deleteContent.fromComputer"),
-							MessageText.getString("Button.deleteContent.fromLibrary"),
-						}, 2);
+
+				String[] buttons;
+				int[] buttonVals;
+				int defaultButtonPos;
+				buttons = new String[] {
+					MessageText.getString("Button.cancel"),
+					MessageText.getString("Button.deleteContent.fromComputer"),
+					MessageText.getString("Button.deleteContent.fromLibrary"),
+				};
+				buttonVals = new int[] {
+					SWT.CANCEL,
+					1,
+					2
+				};
+				defaultButtonPos = 2;
+
+				final MessageBoxShell mb = new MessageBoxShell(title, text, buttons,
+						defaultButtonPos);
 				int numLeft = (dms.length - i);
 				if (numLeft > 1) {
 					mb.setRemember("na", false, MessageText.getString(
 							"v3.deleteContent.applyToAll", new String[] {
 								"" + numLeft
 							}));
+					// never store remember state
 					mb.setRememberOnlyIfButton(-3);
 				}
 				mb.setRelatedObject(dm);
-				mb.setLeftImage(ImageLoader.getInstance().getImage("image.trash"));
-	
+				mb.setLeftImage("image.trash");
+				mb.addCheckBox("deletecontent.also.deletetorrent", 2, deleteTorrent);
+
 				final int index = i;
+
 				mb.open(new UserPrompterResultListener() {
-					
+
 					public void prompterClosed(int result) {
 						ImageLoader.getInstance().releaseImage("image.trash");
-						
-						if (result == -1) {
-							// user pressed ESC (as opposed to clicked Cancel), cancel whole
-							// list
-							return;
-						}
-						if (mb.isRemembered()) {
-							if (result == 1 || result == 2) {
-								boolean deleteData = result == 2 ? false : true;
-								boolean deleteTorrent = true;
-							
-								for (int i = index; i < dms.length; i++) {
-									DownloadManager dm = dms[i];
-									ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
-											deleteTorrent, deleteData, null);
-								}
-							} //else cancel
-						} else { // not remembered
-							if (result == 1 || result == 2) {
-								boolean deleteData = result == 2 ? false : true;
-								boolean deleteTorrent = true;
-							
-								DownloadManager dm = dms[index];
-								ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
-										deleteTorrent, deleteData, null);
-							}
-							// remove the one we just did and go through loop again
-							dms[index] = null;
-							if (index != dms.length - 1) {
-								removeDownloads(dms);
-							}
-						}
+
+						removeDownloadsPrompterClosed(dms, index, deleteFailed, result,
+								mb.isRemembered(), mb.getCheckBoxEnabled());
 					}
 				});
 				return;
 			} else {
+				removeDownloadsPrompterClosed(dms, i, deleteFailed, 1, true,
+						deleteTorrent);
+			}
+		}
+	}
+
+	private static void removeDownloadsPrompterClosed(DownloadManager[] dms,
+			int index, AERunnable deleteFailed, int result, boolean doAll,
+			boolean deleteTorrent) {
+		if (result == -1) {
+			// user pressed ESC (as opposed to clicked Cancel), cancel whole
+			// list
+			return;
+		}
+		if (doAll) {
+			if (result == 1 || result == 2) {
+
+				for (int i = index; i < dms.length; i++) {
+					DownloadManager dm = dms[i];
+					boolean deleteData = result == 2 ? false
+							: !dm.getDownloadState().getFlag(
+									Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE);
+					ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+							deleteTorrent, deleteData, deleteFailed);
+				}
+			} //else cancel
+		} else { // not remembered
+			if (result == 1 || result == 2) {
+				DownloadManager dm = dms[index];
+				boolean deleteData = result == 2 ? false
+						: !dm.getDownloadState().getFlag(
+								Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE);
+
 				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
 						deleteTorrent, deleteData, null);
 			}
-			dms[i] = null;
-		}}
+			// remove the one we just did and go through loop again
+			dms[index] = null;
+			if (index != dms.length - 1) {
+				removeDownloads(dms, deleteFailed, true);
+			}
+		}
 	}
 }
