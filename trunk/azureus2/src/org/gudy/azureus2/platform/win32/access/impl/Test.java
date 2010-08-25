@@ -45,7 +45,7 @@ Test
 		String[]	args )
 	{
 		try{
-  		AEWin32Access access = AEWin32Manager.getAccessor(false);
+  		AEWin32Access access = AEWin32Manager.getAccessor(true);
   		
   		String	app_data = access.getUserAppData();
   		
