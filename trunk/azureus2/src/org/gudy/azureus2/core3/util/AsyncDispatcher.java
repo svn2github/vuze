@@ -115,4 +115,13 @@ AsyncDispatcher
 			return( queue.size());
 		}
 	}
+	
+	public boolean
+	isDispatchThread()
+	{
+		synchronized( this ){
+			
+			return( thread != null && thread.isCurrentThread());
+		}
+	}
 }

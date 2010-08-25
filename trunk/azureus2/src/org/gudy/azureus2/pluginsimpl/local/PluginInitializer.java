@@ -2067,6 +2067,35 @@ PluginInitializer
 		 });
   }
   
+  private void
+  waitForEvents()
+  {
+	  if ( async_dispatcher.isDispatchThread()){
+		  
+		  Debug.out( "Deadlock - recode this monkey boy" );
+		  
+	  }else{
+		  
+		  final AESemaphore sem = new AESemaphore( "waiter" );
+		  
+		  async_dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						sem.release();
+					}
+				});
+		  
+		  if ( !sem.reserve( 10*1000 )){
+			  
+			  Debug.out( "Timeout waiting for event dispatch" );
+		  }
+				 
+	  }
+  }
+  
   public static void
   fireEvent(
   	int		type )
@@ -2080,6 +2109,12 @@ PluginInitializer
 	Object	value )
   {
   	singleton.fireEventSupport(type, value);
+  }
+  
+  public static void
+  waitForPluginEvents()
+  {
+	  singleton.waitForEvents();
   }
   
   public void

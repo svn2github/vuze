@@ -567,6 +567,10 @@ PluginInstallerImpl
 												
 												if ( failed_update == null ){
 													
+														// flush plugin events through before reporting complete
+													
+													PluginInitializer.waitForPluginEvents();
+													
 													listener.completed();
 													
 												}else{
