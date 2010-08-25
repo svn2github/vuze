@@ -87,7 +87,9 @@ PlatformManagerImpl
 	private List	listeners = new ArrayList();
 	
 	static {
-		if (System.getProperty("os.arch", "").contains("64")) {
+		if (System.getProperty("aereg", null) != null) {
+			DLL_NAME = System.getProperty("aereg");
+		} else if (System.getProperty("os.arch", "").contains("64")) {
 			DLL_NAME += "64";
 		}
 	}
