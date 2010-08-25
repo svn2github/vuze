@@ -64,6 +64,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.*;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -644,6 +645,9 @@ public class UIFunctionsImpl
 						if (null == dm_final) {
 							torrentItem.setEnabled(false);
 						} else {
+							TableView<?> tv = SelectedContentManager.getCurrentlySelectedTableView();
+
+							torrentItem.setData("TableView", tv);
 							torrentItem.setData("downloads", dm_final);
 							torrentItem.setData("is_detailed_view",
 									Boolean.valueOf(detailed_view_final));
