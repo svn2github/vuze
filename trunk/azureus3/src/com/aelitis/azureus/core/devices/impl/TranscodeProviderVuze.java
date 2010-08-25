@@ -70,6 +70,8 @@ TranscodeProviderVuze
 		PluginInterface		pi )
 	{
 		plugin_interface		= pi;
+		
+		profiles = null;
 	}
 	
 	public String
