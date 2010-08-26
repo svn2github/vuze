@@ -862,7 +862,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			long lastMouseUpEventTime = 0;
 			Point lastMouseUpPos = new Point(0, 0);
+			boolean mouseDown = false;
 			public void mouseUp(MouseEvent e) {
+				// SWT OSX Bug: two mouseup events when app not in focus and user
+				// clicks on the table.  Only one mousedown, so track that and ignore
+				if (!mouseDown) {
+					return;
+				}
+				mouseDown = false;
 				if (e.button == 1) {
   				long time = e.time & 0xFFFFFFFFL;
   				long diff = time - lastMouseUpEventTime;
@@ -895,6 +902,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			TableRowCore lastClickRow;
 
 			public void mouseDown(MouseEvent e) {
+				mouseDown = true;
 				// we need to fill the selected row indexes here because the
 				// dragstart event can occur before the SWT.SELECTION event and
 				// our drag code needs to know the selected rows..
