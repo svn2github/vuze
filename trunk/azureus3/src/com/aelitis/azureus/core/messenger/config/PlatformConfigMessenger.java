@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.messenger.config;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -77,7 +78,7 @@ public class PlatformConfigMessenger
 			"version",
 			org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
 			"locale",
-			Locale.getDefault().toString(),
+			MessageText.getCurrentLocale().toString(),
 			"vid",
 			COConfigurationManager.getStringParameter("ID"),
 			"source-ref",

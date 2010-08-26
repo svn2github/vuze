@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -58,7 +59,7 @@ ContentNetworkVuzeGeneric
 						+ (send_info
 								? Base32.encode(VuzeCryptoManager.getSingleton().getPlatformAZID())
 								: "anonymous") + "&azv=" + Constants.AZUREUS_VERSION
-						+ "&locale=" + Locale.getDefault().toString() + "&os.name="
+						+ "&locale=" + MessageText.getCurrentLocale().toString() + "&os.name="
 						+ UrlUtils.encode(System.getProperty("os.name")) + "&vzemb=1";
 				String suffix = System.getProperty("url.suffix", null);
 				if (suffix != null) {
@@ -570,7 +571,7 @@ ContentNetworkVuzeGeneric
 			case SERVICE_ABOUT: {
 				// no azid needed (+ makes URL ugly)
 				return base + "azv=" + Constants.AZUREUS_VERSION + "&locale="
-						+ Locale.getDefault().toString();  
+						+ MessageText.getCurrentLocale().toString();  
 			}
 			default:{
 				

@@ -30,6 +30,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -203,7 +204,7 @@ public class FullUpdateWindow
 			});
 	
 			String final_url = url + ( url.indexOf('?')==-1?"?":"&") + 
-						"locale=" + Locale.getDefault().toString() + 
+						"locale=" + MessageText.getCurrentLocale().toString() + 
 						"&azv=" + Constants.AZUREUS_VERSION; 
 				
 			SimpleTimer.addEvent(
