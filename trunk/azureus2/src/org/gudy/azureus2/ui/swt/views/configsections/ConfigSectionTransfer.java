@@ -313,9 +313,11 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 					cSection, 
 					"Bias Upload Enable",
 					"ConfigView.label.xfer.bias_up" );
-
-			new Label(cSection, SWT.NULL );
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			bias_upload.setLayoutData(gridData);
 			
+
 			final Composite bias_slack_area = new Composite(cSection, SWT.NULL);
 			layout = new GridLayout();
 			layout.numColumns = 3;
