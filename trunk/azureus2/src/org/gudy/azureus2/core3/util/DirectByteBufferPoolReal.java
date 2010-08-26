@@ -288,39 +288,59 @@ DirectByteBufferPoolReal
 	
 					//	check if the buffers in this pool are big enough
 	      
-				if (reqVal.compareTo(keyVal) <= 0) {
+				if ( reqVal.compareTo(keyVal) <= 0 ){
 	      	
-	   
 					ArrayList bufferPool = (ArrayList)buffersMap.get(keyVal);
-	            
-					synchronized ( poolsLock ) { 
 	        
-						//	make sure we don't remove a buffer when running compaction
-						//if there are no free buffers in the pool, create a new one.
-						//otherwise use one from the pool
-	        	
-						if (bufferPool.isEmpty()) {
-	          	
-							buff = allocateNewBuffer(keyVal.intValue());
-	            
-						}else{
-	          	
-							synchronized ( bufferPool ) {
-	            	
-								buff = (ByteBuffer)bufferPool.remove(bufferPool.size() - 1);
+					while( true ){
+						
+						synchronized ( poolsLock ) { 
+		        
+							// make sure we don't remove a buffer when running compaction
+							// if there are no free buffers in the pool, create a new one.
+							// otherwise use one from the pool
+		        	
+							if ( bufferPool.isEmpty()){
+		          	
+								buff = allocateNewBuffer(keyVal.intValue());
+		            
+								if ( buff == null ){
+									
+									Debug.out( "allocateNewBuffer for " + _length + " returned null" );
+								}
+								
+								break;
+								
+							}else{
+		          	
+								synchronized ( bufferPool ) {
+		            	
+									buff = (ByteBuffer)bufferPool.remove(bufferPool.size() - 1);
+								}
+								
+								if ( buff == null ){
+									
+									Debug.out( "buffer pool for " + _length + " contained null entry" ); 
+									
+								}else{
+									
+									break;
+								}
 							}
 						}
 					}
-			
+					
 					break;
 				}
 			}
 		
 			if ( buff == null ){
-						      
-			    Debug.out("Unable to find an appropriate buffer pool");
+					
+				String str = "Unable to find an appropriate buffer pool for " + _length;
+				
+			    Debug.out( str );
 			    
-			    throw( new RuntimeException( "Unable to find an appropriate buffer pool" ));
+			    throw( new RuntimeException( str ));
 			}
 			
 			res = new DirectByteBuffer( _allocator, buff, this );		   
@@ -392,6 +412,11 @@ DirectByteBufferPoolReal
 		DirectByteBuffer ddb ) 
 	{		
 		ByteBuffer	buff = ddb.getBufferInternal();
+		
+		if ( buff == null ){
+			
+			Debug.out( "Returned dbb has null delegate" );
+		}
 		
 		int	capacity = buff.capacity();
 
