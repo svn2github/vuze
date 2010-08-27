@@ -582,7 +582,9 @@ public class Initializer
 				Debug.out(e);
 			}
 
-			if (Constants.IS_CVS_VERSION && !Constants.isOSX) {
+			if (Constants.IS_CVS_VERSION && !Constants.isOSX && !Constants.isUnix) {
+				// No Unix as it will dispose before isTerminated is set, causing
+				// a 'user close' flag to be incorrectly set and used
   			Utils.execSWTThread(new AERunnable() {
   				public void runSupport() {
   					SWTThread instance = SWTThread.getInstance();
