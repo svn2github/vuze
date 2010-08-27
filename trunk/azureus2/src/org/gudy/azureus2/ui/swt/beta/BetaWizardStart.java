@@ -89,18 +89,20 @@ BetaWizardStart
 		final Button on_button = new Button (gRadio, SWT.RADIO);
 		Messages.setLanguageText(on_button, "beta.wizard.on");
 		
-		off_button.addSelectionListener(
-			new SelectionAdapter()
-	    	{
-	    		public void 
-	    		widgetSelected(
-	    			SelectionEvent arg0 ) 
-	    		{
-	    			wizard.setBetaEnabled( on_button.getSelection());
-	    		}
-	    	});
+		SelectionAdapter l = new SelectionAdapter()
+    	{
+    		public void 
+    		widgetSelected(
+    			SelectionEvent arg0 ) 
+    		{
+    			wizard.setBetaEnabled( on_button.getSelection());
+    		}
+    	};
+		off_button.addSelectionListener(l);
+		on_button.addSelectionListener(l);
 		
 		on_button.setSelection( wizard.getBetaEnabled());
+		off_button.setSelection( !wizard.getBetaEnabled());
 
 		LinkLabel forum = new LinkLabel( rootPanel, "beta.wizard.forum", MessageText.getString( "beta.wizard.forum.url" ));
 		Label forum_label = link.getlabel();
