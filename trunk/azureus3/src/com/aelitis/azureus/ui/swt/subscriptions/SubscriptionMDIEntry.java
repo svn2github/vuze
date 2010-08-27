@@ -27,16 +27,14 @@ import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
-import com.aelitis.azureus.core.subs.Subscription;
-import com.aelitis.azureus.core.subs.SubscriptionException;
-import com.aelitis.azureus.core.subs.SubscriptionHistory;
+import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 
-public class SubscriptionMDIEntry
+public class SubscriptionMDIEntry implements SubscriptionListener
 {
 	private static final String ALERT_IMAGE_ID	= "image.sidebar.vitality.alert";
 	private static final String AUTH_IMAGE_ID	= "image.sidebar.vitality.auth";
@@ -330,6 +328,15 @@ public class SubscriptionMDIEntry
 				showProperties();
 			}
 		});
+		
+		subs.addListener(this); 
+	}
+
+	public void subscriptionDownloaded(Subscription subs, boolean auto) {
+	}
+	
+	public void subscriptionChanged(Subscription subs) {
+		mdiEntry.redraw();
 	}
 
 	protected void refreshView() {
