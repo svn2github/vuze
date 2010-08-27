@@ -191,6 +191,12 @@ public class SWTThread {
 
 		Listener lShowMainWindow = new Listener() {
 			public void handleEvent(Event event) {
+				Shell as = Display.getDefault().getActiveShell();
+				if (as != null) {
+					as.setVisible(true);
+					as.forceActive();
+					return;
+				}
 				UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 				if (uif != null) {
 					Shell mainShell = uif.getMainShell();
