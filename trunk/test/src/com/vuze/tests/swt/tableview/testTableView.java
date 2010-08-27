@@ -116,12 +116,12 @@ public class testTableView
 
 			public void keyPressed(KeyEvent e) {
 				if (e.character == SWT.DEL) {
-					List<TableViewTestDS> sources = tv.getSelectedDataSources();
+					List<Object> sources = tv.getSelectedDataSources();
 					int count = sources.size();
 					if (count == 0) {
 						return;
 					}
-					int i = tv.getRow(sources.get(count - 1)).getIndex();
+					int i = tv.getRow((TableViewTestDS) sources.get(count - 1)).getIndex();
 					if (i >= tv.getRowCount() - 1) {
 						i -= count;
 					} else {
