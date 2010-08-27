@@ -3961,6 +3961,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		TableItemOrTreeItem item = table.getItem(new Point(2, y));
 		if (item == null) {
+			item = table.getItem(new Point(x, y));
+		}
+
+		if (item == null) {
 			return null;
 		}
 		TableRowSWT row = (TableRowSWT) getRow(item);
