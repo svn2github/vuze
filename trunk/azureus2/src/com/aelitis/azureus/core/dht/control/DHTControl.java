@@ -203,12 +203,8 @@ DHTControl
 	getObfuscatedKey(
 		byte[]		plain_key );
 	
-	/**
-	 * Returns a list of DHTTransportContact objects
-	 * @return
-	 */
 	
-	public List<DHTTransportContact>
+	public List<DHTControlContact>
 	getContacts();
 	
 		// debug method only
