@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.net.udp.uc.*;
 
 public class 
@@ -81,8 +82,8 @@ PRUDPPacketHandlerImpl
 	private int				port;
 	private DatagramSocket	socket;
 	
-	private PRUDPPrimordialHandler	primordial_handler;
-	private PRUDPRequestHandler		request_handler;
+	private CopyOnWriteList<PRUDPPrimordialHandler>	primordial_handlers = new CopyOnWriteList<PRUDPPrimordialHandler>();
+	private PRUDPRequestHandler				request_handler;
 	
 	private PRUDPPacketHandlerStatsImpl	stats = new PRUDPPacketHandlerStatsImpl( this );
 	
@@ -182,19 +183,35 @@ PRUDPPacketHandlerImpl
 	}
 	
 	public void
-	setPrimordialHandler(
+	addPrimordialHandler(
 		PRUDPPrimordialHandler	handler )
 	{
-		if ( primordial_handler != null && handler != null ){
+		if ( primordial_handlers.contains( handler )){
 			
-			Debug.out( "Primordial handler replaced!" );
+			Debug.out( "Primordial handler already added!" );
+			
+			return;
 		}
 		
-		primordial_handler	= handler;
+		primordial_handlers.add( handler );
 		
-		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-		if(delegate != null)
-			delegate.setPrimordialHandler(handler);
+			// if we have an altProtocolDelegate then this shares the list of handlers so no need to add
+	}
+	
+	public void
+	removePrimordialHandler(
+		PRUDPPrimordialHandler	handler )
+	{
+		if ( !primordial_handlers.contains( handler )){
+			
+			Debug.out( "Primordial handler not found!" );
+			
+			return;
+		}
+		
+		primordial_handlers.remove( handler );
+	
+			// if we have an altProtocolDelegate then this shares the list of handlers so no need to remove
 	}
 	
 	public void
@@ -216,8 +233,11 @@ PRUDPPacketHandlerImpl
 		request_handler	= _request_handler;
 		
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-		if(delegate != null)
+		
+		if ( delegate != null ){
+			
 			delegate.setRequestHandler(_request_handler);
+		}
 	}
 	
 	public PRUDPRequestHandler
@@ -330,7 +350,7 @@ PRUDPPacketHandlerImpl
 			{
 				altProtocolDelegate = new PRUDPPacketHandlerImpl(port,altAddress,packet_transformer);
 				altProtocolDelegate.stats = stats;
-				altProtocolDelegate.primordial_handler = primordial_handler;
+				altProtocolDelegate.primordial_handlers = primordial_handlers;
 				altProtocolDelegate.request_handler = request_handler;
 			}
 				
@@ -475,17 +495,15 @@ PRUDPPacketHandlerImpl
 						DatagramPacket packet = new DatagramPacket( buffer, buffer.length, address );
 						
 						receiveFromSocket( packet );
-						
+												
 						long	receive_time = SystemTime.getCurrentTime();
 						
 						successful_accepts++;
 						
 						failed_accepts = 0;
 						
-						PRUDPPrimordialHandler prim_hand = primordial_handler;
-						
-						if ( prim_hand != null ){
-							
+						for ( PRUDPPrimordialHandler prim_hand: primordial_handlers ){
+													
 							if ( prim_hand.packetReceived( packet )){
 						
 									// primordial handlers get their own buffer as we can't guarantee
@@ -494,6 +512,8 @@ PRUDPPacketHandlerImpl
 								buffer	= null;
 								
 								stats.primordialPacketReceived( packet.getLength());
+								
+								break;
 							}
 						}
 						
@@ -596,10 +616,12 @@ PRUDPPacketHandlerImpl
 
 			// make sure we destroy the delegate too if something happend
 			PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-			if(delegate != null)
-				delegate.destroy();
-
 			
+			if ( delegate != null ){
+				
+				delegate.destroy();
+			}
+		
 			NetworkAdmin.getSingleton().removePropertyChangeListener( prop_listener );
 		}
 	}
@@ -975,9 +997,12 @@ PRUDPPacketHandlerImpl
 		}
 		
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-		if(delegate != null && destination_address.getAddress().getClass().isInstance(delegate.explicit_bind_ip))
+		
+		if (	delegate != null && 
+				destination_address.getAddress().getClass().isInstance(delegate.explicit_bind_ip)){
+			
 			return delegate.sendAndReceive(auth, request_packet, destination_address, receiver, timeout, priority);		
-
+		}
 		
 		try{
 			checkTargetAddress( destination_address );
@@ -1293,12 +1318,14 @@ PRUDPPacketHandlerImpl
 		}
 		
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-		if(delegate != null && destination_address.getAddress().getClass().isInstance(delegate.explicit_bind_ip))
-		{
+		
+		if (	delegate != null && 
+				destination_address.getAddress().getClass().isInstance(delegate.explicit_bind_ip)){
+		
 			delegate.send(request_packet, destination_address);
+			
 			return;
 		}
-
 		
 		try{
 			checkTargetAddress( destination_address );
@@ -1384,10 +1411,11 @@ PRUDPPacketHandlerImpl
 		}
 		
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-		if(delegate != null)
+		
+		if ( delegate != null ){
+			
 			delegate.setDelays(_send_delay, _receive_delay, _queued_request_timeout);
-		
-		
+		}
 	}
 	
 	public long
@@ -1399,9 +1427,12 @@ PRUDPPacketHandlerImpl
 		}
 
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-		if(delegate != null)
+		
+		if ( delegate != null ){
+			
 			res += delegate.getSendQueueLength();
-
+		}
+		
 		return(res);
 	}
 	
@@ -1409,9 +1440,14 @@ PRUDPPacketHandlerImpl
 	getReceiveQueueLength()
 	{
 		long size = recv_queue.size(); 
+		
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-		if(delegate != null)
+		
+		if ( delegate != null ){
+			
 			size += delegate.getReceiveQueueLength();
+		}
+		
 		return size;
 	}
 	
@@ -1433,12 +1469,14 @@ PRUDPPacketHandlerImpl
 		}
 		
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-		if(delegate != null && target.getAddress().getClass().isInstance(delegate.explicit_bind_ip))
-		{
+		
+		if ( 	delegate != null && 
+				target.getAddress().getClass().isInstance(delegate.explicit_bind_ip)){
+		
 			delegate.primordialSend(buffer, target);
+			
 			return;
 		}
-
 		
 		try{
 			checkTargetAddress( target );
@@ -1503,7 +1541,7 @@ PRUDPPacketHandlerImpl
 		
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
 		
-		if (delegate != null ){
+		if ( delegate != null ){
 			
 			delegate.destroy();
 		}

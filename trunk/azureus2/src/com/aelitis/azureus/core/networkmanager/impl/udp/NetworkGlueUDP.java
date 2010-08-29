@@ -87,14 +87,14 @@ NetworkGlueUDP
 								
 								Logger.log(new LogEvent(LOGID, "Deactivating UDP listener on port " + handler.getPort()));
 
-								handler.setPrimordialHandler( null );
+								handler.removePrimordialHandler( NetworkGlueUDP.this );
 							}
 
 							Logger.log(new LogEvent(LOGID, "Activating UDP listener on port " + port ));
 								
 							handler = PRUDPPacketHandlerFactory.getHandler( port );
 	
-							handler.setPrimordialHandler( NetworkGlueUDP.this );
+							handler.addPrimordialHandler( NetworkGlueUDP.this );
 						}
 					}else{
 						
@@ -102,7 +102,7 @@ NetworkGlueUDP
 							
 							Logger.log(new LogEvent(LOGID, "Deactivating UDP listener on port " + handler.getPort()));
 							
-							handler.setPrimordialHandler( null );
+							handler.removePrimordialHandler( NetworkGlueUDP.this );
 						}
 					}
 				}

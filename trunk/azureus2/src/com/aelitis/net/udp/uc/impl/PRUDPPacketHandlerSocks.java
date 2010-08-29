@@ -461,7 +461,13 @@ PRUDPPacketHandlerSocks
 	}
 	
 	public void
-	setPrimordialHandler(
+	addPrimordialHandler(
+		PRUDPPrimordialHandler	handler )
+	{
+	}
+	
+	public void
+	removePrimordialHandler(
 		PRUDPPrimordialHandler	handler )
 	{
 	}
