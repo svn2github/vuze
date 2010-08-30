@@ -49,19 +49,16 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
-import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
-import org.gudy.azureus2.ui.swt.maketorrent.WebSeedsEditor;
-import org.gudy.azureus2.ui.swt.maketorrent.WebSeedsEditorListener;
+import org.gudy.azureus2.ui.swt.maketorrent.*;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.shells.AdvRenameWindow;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -76,7 +73,8 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
-import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -1228,10 +1226,13 @@ public class TorrentUtil {
 		final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue"); //$NON-NLS-1$
 		Utils.setMenuItemImage(itemQueue, "start");
-		itemQueue.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
-			public boolean run(TableRowCore[] rows) {
-				queueDataSources(dms, true);
-				return true;
+		itemQueue.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				Utils.getOffOfSWTThread(new AERunnable() {
+					public void runSupport() {
+						queueDataSources(dms, true);
+					}
+				});
 			}
 		});
 		itemQueue.setEnabled(start);
@@ -1256,12 +1257,15 @@ public class TorrentUtil {
 		final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
 		Utils.setMenuItemImage(itemStop, "stop");
-		itemStop.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
-			public boolean run(TableRowCore[] rows) {
-				stopDataSources(dms);
-				return true;
+		itemStop.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				Utils.getOffOfSWTThread(new AERunnable() {
+					public void runSupport() {
+						stopDataSources(dms);
+					}
+				});
 			}
-		});
+		}); 
 		itemStop.setEnabled(stop);
 
 		// Force Recheck
