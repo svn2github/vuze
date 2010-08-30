@@ -49,6 +49,7 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.sharing.ShareResource;
@@ -476,8 +477,14 @@ public class ManagerUtils {
 			public void runSupport() {
 
 				try {
+					// I would move the FLAG_DO_NOT_DELETE_DATA_ON_REMOVE even deeper
+					// but I fear what could possibly go wrong.
+					boolean reallyDeleteData = bDeleteData
+							&& !dm.getDownloadState().getFlag(
+									Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE);
+
 					dm.getGlobalManager().removeDownloadManager(dm, bDeleteTorrent,
-							bDeleteData);
+							reallyDeleteData);
 				} catch (GlobalManagerDownloadRemovalVetoException f) {
 					
 						// see if we can delete a corresponding share as users frequently share
