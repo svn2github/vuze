@@ -1977,14 +1977,6 @@ public class TorrentUtil {
 			boolean deleteTorrent = COConfigurationManager.getBooleanParameter("def.deletetorrent");
 			boolean deleteData = true;
 
-			DownloadManagerState state = dm.getDownloadState();
-			if (state.getFlag(DownloadManagerState.FLAG_LOW_NOISE)
-					|| state.getFlag(DownloadManagerState.FLAG_FORCE_DIRECT_DELETE)) {
-				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
-						deleteTorrent, deleteData, deleteFailed);
-				continue;
-			}
-
 			boolean doPrompt = COConfigurationManager.getBooleanParameter("confirm.delete.content")
 					| forcePrompt;
 
