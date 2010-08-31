@@ -1,11 +1,11 @@
 VUZE CHANGELOG
 -----------------
 
-2010.xx.xx | Vuze 4.5.0.3
+2010.09.01 | Vuze 4.5.0.4
 
-FEATURE: UI   | Ability to auto-send crash logs [TuxPaper]
-FEATURE: UI   | Members of the Beta Program now get a Sidebar entry which will one day have usefull beta information [TuxPaper]
 FEATURE: Core | Allow multiple primordial UDP handlers [Parg]
+FEATURE: UI   | Ability to auto-send crash logs [TuxPaper]
+FEATURE: UI   | Members of the Beta Program now get a Sidebar entry which will one day have useful beta information [TuxPaper]
 
 CHANGE: UI    | Improved languages change detection so more of the text now shows in the new language (unfortunately not all) [TuxPaper]
 CHANGE: UI    | (Windows) Bigger click area around the "X" in the Library's filter box [TuxPaper]
@@ -17,6 +17,10 @@ BUGFIX: Core  | (Windows) Fix drive with letters D: H: L: P: T: X: not being det
 BUGFIX: Core  | Fixed some hard drives incorrectly being added as a Device and shown in the sidebar [TuxPaper]
 BUGFIX: Core  | (OSX) Add additional (new?) crash log directory to crash log generator (debug.zip) [TuxPaper]
 BUGFIX: Core  | (OSX) Fixed two cases where main window would not show after clicking the dock icon [TuxPaper]
+BUGFIX: Core  | Don't open files with write-access unless required [Parg]
+BUGFIX: Core  | Ensure new profiles are picked up when xcode plugin reloads [Parg]
+BUGFIX: Core  | Correctly sequence plugin events to ensure that listeners see the correct plugin state [Parg]
+BUGFIX: Core  | Delete .vuze files when subscriptions are removed [Parg]
 BUGFIX: UI    | (*nix) Fix table cells not getting click events (affected triggering the "New" column's state) [TuxPaper]
 BUGFIX: UI    | Fix case where scrolling right in a table view (Library) didn't draw the newly visible columns [TuxPaper]
 BUGFIX: UI    | Fixed some cases where column re-ordering was not being remembered [TuxPaper]
@@ -25,10 +29,8 @@ BUGFIX: UI    | Fixed visual problems with Tracker Status column when "Don't Scr
 BUGFIX: UI    | Fixed Queue and Stop not working on Torrent menu and right click of Sidebar's download's details item [TuxPaper]
 BUGFIX: UI    | (OSX) Fixed bug where a false double click was registered when Vuze did not have the focus and you single clicked on a row in the Library [TuxPaper]
 BUGFIX: UI    | Fixed subscription name and count on Sidebar not redrawing when either changes [TuxPaper]
-BUGFIX: Core  | Don't open files with write-access unless required [Parg]
-BUGFIX: Core  | Ensure new profiles are picked up when xcode plugin reloads [Parg]
-BUGFIX: Core  | Correctly sequence plugin events to ensure that listeners see the correct plugin state [Parg]
-BUGFIX: Core  | Delete .vuze files when subscriptions are removed [Parg]
+
+
 
 2010.08.06 | Vuze 4.5.0.2
 
