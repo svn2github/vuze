@@ -5,6 +5,7 @@ VUZE CHANGELOG
 
 FEATURE: UI   | Ability to auto-send crash logs [TuxPaper]
 FEATURE: UI   | Members of the Beta Program now get a Sidebar entry which will one day have usefull beta information [TuxPaper]
+FEATURE: Core | Allow multiple primordial UDP handlers [Parg]
 
 CHANGE: UI    | Improved languages change detection so more of the text now shows in the new language (unfortunately not all) [TuxPaper]
 CHANGE: UI    | (Windows) Bigger click area around the "X" in the Library's filter box [TuxPaper]
@@ -24,8 +25,10 @@ BUGFIX: UI    | Fixed visual problems with Tracker Status column when "Don't Scr
 BUGFIX: UI    | Fixed Queue and Stop not working on Torrent menu and right click of Sidebar's download's details item [TuxPaper]
 BUGFIX: UI    | (OSX) Fixed bug where a false double click was registered when Vuze did not have the focus and you single clicked on a row in the Library [TuxPaper]
 BUGFIX: UI    | Fixed subscription name and count on Sidebar not redrawing when either changes [TuxPaper]
-
-
+BUGFIX: Core  | Don't open files with write-access unless required [Parg]
+BUGFIX: Core  | Ensure new profiles are picked up when xcode plugin reloads [Parg]
+BUGFIX: Core  | Correctly sequence plugin events to ensure that listeners see the correct plugin state [Parg]
+BUGFIX: Core  | Delete .vuze files when subscriptions are removed [Parg]
 
 2010.08.06 | Vuze 4.5.0.2
 
