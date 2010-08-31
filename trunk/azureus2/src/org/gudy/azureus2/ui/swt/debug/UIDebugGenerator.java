@@ -112,6 +112,10 @@ public class UIDebugGenerator
 				postData.append(UrlUtils.encode(additionalText));
 				postData.append("&sourceRef=");
 				postData.append(UrlUtils.encode(sourceRef));
+				if (gr.email != null && gr.email.length() > 0) {
+					postData.append("&email=");
+					postData.append(UrlUtils.encode(gr.email));
+				}
 				postData.append("&debug_zip=");
 				try {
 					byte[] fileArray = FileUtil.readFileAsByteArray(gr.file);
