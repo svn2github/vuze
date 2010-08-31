@@ -30,6 +30,7 @@ import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
@@ -337,6 +338,7 @@ public class SubscriptionMDIEntry implements SubscriptionListener
 	
 	public void subscriptionChanged(Subscription subs) {
 		mdiEntry.redraw();
+		ViewTitleInfoManager.refreshTitleInfo(mdiEntry.getViewTitleInfo());
 	}
 
 	protected void refreshView() {
