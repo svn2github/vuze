@@ -28,6 +28,7 @@ public class
 AsyncDispatcher 
 {
 	private AEThread2	thread;
+	private int			priority	= Thread.NORM_PRIORITY;
 	private LinkedList	queue 		= new LinkedList();
 	private AESemaphore	queue_sem 	= new AESemaphore( "AsyncDispatcher" );
 	
@@ -91,6 +92,8 @@ AsyncDispatcher
 						}
 					};
 					
+				thread.setPriority( priority );
+				
 				thread.start();
 			}
 		}
@@ -114,6 +117,13 @@ AsyncDispatcher
 
 			return( queue.size());
 		}
+	}
+	
+	public void
+	setPriority(
+		int		p )
+	{
+		priority = p;
 	}
 	
 	public boolean
