@@ -27,6 +27,7 @@ import java.util.LinkedList;
 public class 
 AsyncDispatcher 
 {
+	private String		name;
 	private AEThread2	thread;
 	private int			priority	= Thread.NORM_PRIORITY;
 	private LinkedList	queue 		= new LinkedList();
@@ -37,13 +38,29 @@ AsyncDispatcher
 	public
 	AsyncDispatcher()
 	{
-		this( 10000 );
+		this( "AsyncDispatcher", 10000 );
 	}
 	
 	public
 	AsyncDispatcher(
-		int	_quiesce_after_millis )
+		String		name )
 	{
+		this( name, 10000 );
+	}
+	
+	public
+	AsyncDispatcher(
+		int		quiesce_after_millis )
+	{
+		this( "AsyncDispatcher", quiesce_after_millis );
+	}
+	
+	public
+	AsyncDispatcher(
+		String		_name,
+		int			_quiesce_after_millis )
+	{
+		name					= _name;
 		quiesce_after_millis	= _quiesce_after_millis;
 	}
 	
@@ -58,7 +75,7 @@ AsyncDispatcher
 			if ( thread == null ){
 				
 				thread = 
-					new AEThread2( "AsyncDispatcher", true )
+					new AEThread2( name, true )
 					{
 						public void
 						run()
