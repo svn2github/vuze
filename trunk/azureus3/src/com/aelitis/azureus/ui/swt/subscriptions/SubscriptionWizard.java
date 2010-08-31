@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.CustomTableTooltipHandler;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -21,6 +22,8 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -1089,8 +1092,14 @@ public class SubscriptionWizard {
 					
 					user_data.put( SubscriptionManagerUI.SUB_EDIT_MODE_KEY, new Boolean( true ));
 					
-					SubscriptionManagerFactory.getSingleton().createRSS( url_str, url, SubscriptionHistory.DEFAULT_CHECK_INTERVAL_MINS, user_data );
+					Subscription subRSS = SubscriptionManagerFactory.getSingleton().createRSS( url_str, url, SubscriptionHistory.DEFAULT_CHECK_INTERVAL_MINS, user_data );
 					shell.close();
+
+					final String key = "Subscription_" + ByteFormatter.encodeString(subRSS.getPublicKey());				
+
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+					mdi.showEntryByID(key);
+
 				} catch (Throwable e) {
 					
 					Utils.reportError( e );
