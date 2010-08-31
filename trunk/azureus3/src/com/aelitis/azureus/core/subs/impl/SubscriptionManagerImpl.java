@@ -1099,7 +1099,13 @@ SubscriptionManagerImpl
 				saveConfig();
 				
 				try{
-					getResultsFile( subs ).delete();
+					FileUtil.deleteResilientFile( getResultsFile( subs ));
+					
+					File vuze_file = getVuzeFile( subs );
+					
+					vuze_file.delete();
+					
+					new File( vuze_file.getParent(), vuze_file.getName() + ".bak" ).delete();
 					
 				}catch( Throwable e ){
 					
@@ -5055,7 +5061,7 @@ SubscriptionManagerImpl
 		}
  	}
 	
-	protected void
+	private void
 	loadConfig()
 	{
 		if ( !FileUtil.resilientConfigFileExists( CONFIG_FILE )){
