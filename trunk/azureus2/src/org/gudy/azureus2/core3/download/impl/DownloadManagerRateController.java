@@ -55,7 +55,7 @@ DownloadManagerRateController
 	
 	private static TimerEventPeriodic	timer;
 	
-	private static AsyncDispatcher	dispatcher = new AsyncDispatcher();
+	private static AsyncDispatcher	dispatcher = new AsyncDispatcher( "DMCRateController" );
 	
 	private static boolean	enable;
 	private static boolean 	enable_limit_handling;
@@ -186,7 +186,7 @@ DownloadManagerRateController
 						pm.addRateLimiter( limiter, true );
 					}
 					
-					pm_map.put( pm, new PMState( is_complete, up_bytes ));
+					pm_map.put( pm, new PMState( pm, is_complete, up_bytes ));
 										
 					if ( timer == null ){
 						
@@ -257,8 +257,12 @@ DownloadManagerRateController
 		int	num_complete 	= 0;
 		int	num_incomplete 	= 0;
 		
+		int	num_interesting = 0;
+		
 		int i_up_total	= 0;
 		int c_up_total	= 0;
+		
+		long	mono_now = SystemTime.getMonotonousTime();
 		
 		for ( Map.Entry<PEPeerManager, PMState> entry: pm_map.entrySet()){
 			
@@ -284,6 +288,11 @@ DownloadManagerRateController
 				num_incomplete++;
 				
 				i_up_total += diff;
+				
+				if ( state.isInteresting( mono_now )){
+					
+					num_interesting++;
+				}
 			}
 				
 			if ( state.isComplete() != is_complete ){
@@ -301,7 +310,7 @@ DownloadManagerRateController
 			}
 		}
 		
-		if ( num_incomplete == 0 || num_complete == 0 ){
+		if ( num_incomplete == 0 || num_complete == 0 || num_interesting == 0 ){
 			
 			rate_limit = 0;
 			
@@ -332,7 +341,7 @@ DownloadManagerRateController
 		}
 		
 		try{
-			long	now = SystemTime.getCurrentTime();
+			long	real_now = SystemTime.getCurrentTime();
 			
 			SpeedManagerPingMapper mapper = speed_manager.getActiveMapper();
 			
@@ -365,7 +374,7 @@ DownloadManagerRateController
 						
 						long	t = bad.getWhen();
 						
-						if ( now - t <= 30*1000 && bad.getBytesPerSec() != last_bad_limit ){
+						if ( real_now - t <= 30*1000 && bad.getBytesPerSec() != last_bad_limit ){
 							
 							total += bad.getBytesPerSec();
 							
@@ -548,16 +557,23 @@ DownloadManagerRateController
 	private static class
 	PMState
 	{
-		private boolean		complete;
-		private long		bytes_up;
+		final private PEPeerManager	manager;
+		
+		private boolean			complete;
+		private long			bytes_up;
+		
+		private boolean			interesting;
+		private long			last_interesting_calc;
 		
 		private
 		PMState(
-			boolean	comp,
-			long	b )
+			PEPeerManager	_manager,
+			boolean			_complete,
+			long			_bytes_up )
 		{
-			complete 	= comp;
-			bytes_up	= b;
+			manager		= _manager;
+			complete 	= _complete;
+			bytes_up	= _bytes_up;
 		}
 		
 		private boolean
@@ -582,6 +598,55 @@ DownloadManagerRateController
 			bytes_up = b;
 			
 			return( diff );
+		}
+		
+		private boolean
+		isInteresting(
+			long		now )
+		{
+			boolean	calc;
+					
+			if ( last_interesting_calc == 0 ){
+		
+				calc = true;
+				
+			}else if ( !interesting ){
+				
+				calc = now - last_interesting_calc >= 5*1000;
+				
+			}else{
+				
+				calc = now - last_interesting_calc >= 60*1000;
+			}
+			
+			if ( calc ){
+				
+				last_interesting_calc = now;
+				
+					// not interesting if stalled downloading
+				
+				long dl_rate = manager.getStats().getDataReceiveRate();
+				
+				if ( dl_rate < 5*1024 ){
+					
+					interesting = false;
+					
+				}else{
+					
+						// not interesting if we have nobody to seed to!
+					
+					if ( manager.getNbPeers() < 3 ){
+						
+						interesting = false;
+						
+					}else{
+						
+						interesting = true;
+					}
+				}
+			}
+			
+			return( interesting );
 		}
 	}
 }
