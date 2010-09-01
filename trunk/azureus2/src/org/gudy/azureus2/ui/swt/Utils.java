@@ -110,7 +110,7 @@ public class Utils
 	
 	private static int userMode;
 
-	private static String uiMode;
+	private static boolean isAZ2;
 
 	static {
 		if (DEBUG_SWTEXEC) {
@@ -141,13 +141,13 @@ public class Utils
 		});
 		COConfigurationManager.addAndFireParameterListener("ui", new ParameterListener() {
 			public void parameterChanged(String parameterName) {
-				uiMode = COConfigurationManager.getStringParameter("ui");
+				isAZ2 = "az2".equals(COConfigurationManager.getStringParameter("ui"));
 			}
 		});
 	}
 
 	public static boolean isAZ2UI() {
-		return uiMode.equals("az2");
+		return isAZ2;
 	}
 
 	public static void disposeComposite(Composite composite, boolean disposeSelf) {
