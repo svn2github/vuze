@@ -368,9 +368,8 @@ public class ManagerView
 			int completed = manager == null ? -1
 					: manager.getStats().getCompleted();
 			if (lastCompleted != completed) {
-				swtView.setTitle(DisplayFormatters.formatPercentFromThousands(completed)
-						+ " : " + manager.getDisplayName());
 				ViewTitleInfoManager.refreshTitleInfo(this);
+				lastCompleted = completed;
 			}
 		}
 	}
@@ -513,13 +512,22 @@ public class ManagerView
 	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoProperty(int)
 	public Object getTitleInfoProperty(int propertyID) {
 		if (propertyID == TITLE_TEXT) {
-			return manager == null ? "" : manager.getDisplayName();
+			if (Utils.isAZ2UI()) {
+				if (manager == null) {
+					return null;
+				}
+		    int completed = manager.getStats().getCompleted();
+				swtView.setTitle(DisplayFormatters.formatPercentFromThousands(completed)
+						+ " : " + manager.getDisplayName());
+			} else {
+				return manager == null ? "" : manager.getDisplayName();
+			}
 		}
 
 		if (manager == null) {
 			return null;
 		}
-		if (propertyID == TITLE_INDICATOR_TEXT) {
+		if (propertyID == TITLE_INDICATOR_TEXT && !Utils.isAZ2UI()) {
 	    int completed = manager.getStats().getCompleted();
 	    if (completed != 1000) {
 	    	return (completed / 10) + "%";
