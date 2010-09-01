@@ -635,7 +635,7 @@ DownloadManagerRateController
 					
 						// not interesting if we have nobody to seed to!
 					
-					if ( manager.getNbPeers() < 3 ){
+					if ( manager.getNbPeersUnchoked() < 3 ){
 						
 						interesting = false;
 						
