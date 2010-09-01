@@ -90,7 +90,8 @@ TRTrackerBTAnnouncerImpl
 	
 	private static int userMinInterval = 0;
 	private static int userMaxNumwant = 100;
-	private static boolean udpAnnounceEnabled = true;
+	private static boolean udpAnnounceEnabled;
+	private static boolean udpProbeEnabled;
 
     static{
 	  	PRUDPTrackerCodecs.registerCodecs();
@@ -98,7 +99,8 @@ TRTrackerBTAnnouncerImpl
 	  		new String[] {
 	  			"Tracker Client Min Announce Interval",
 	  			"Tracker Client Numwant Limit",
-	  			"Server Enable UDP"
+	  			"Server Enable UDP",
+	  			"Tracker UDP Probe Enable"
 	  			},
 	  		new ParameterListener()
 	  		{
@@ -107,6 +109,7 @@ TRTrackerBTAnnouncerImpl
 	  				userMinInterval = COConfigurationManager.getIntParameter("Tracker Client Min Announce Interval");
 	  				userMaxNumwant = COConfigurationManager.getIntParameter("Tracker Client Numwant Limit");
 	  				udpAnnounceEnabled = COConfigurationManager.getBooleanParameter("Server Enable UDP");
+					udpProbeEnabled  = COConfigurationManager.getBooleanParameter("Tracker UDP Probe Enable");
 	  			}	  		
 	  		});
     }
@@ -1111,9 +1114,16 @@ TRTrackerBTAnnouncerImpl
 			  		
 			  			// if we have multiple tracker URLs then do something sensible about
 			  		
-			  		if ( protocol.equalsIgnoreCase("udp") && udpAnnounceEnabled ){
+			  		if ( protocol.equalsIgnoreCase("udp")){
 			  			
-						udpAnnounceURL = reqUrl;
+			  			if ( udpAnnounceEnabled ){
+			  			
+			  				udpAnnounceURL = reqUrl;
+			  				
+			  			}else{
+			  				
+			  				throw( new IOException( "UDP Tracker protocol disabled" ));
+			  			}
 						
 					}else if (	protocol.equalsIgnoreCase("http") && 
 								!az_tracker	&& 

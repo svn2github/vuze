@@ -82,19 +82,26 @@ public class TrackerStatus {
 	private final static int		GROUP_SCRAPES_MS				= 60 * 15 * 1000;
 	private final static int		GROUP_SCRAPES_LIMIT				= 20;
 	
+	private static boolean udpScrapeEnabled; 
+	private static boolean udpProbeEnabled; 
+
 	static
 	{
 		PRUDPTrackerCodecs.registerCodecs();
-	  	COConfigurationManager.addAndFireParameterListener("Server Enable UDP", new ParameterListener()
-		{
+		
+	  	COConfigurationManager.addAndFireParameterListeners(
+	  		new String[]{
+	  			"Server Enable UDP",
+	  			"Tracker UDP Probe Enable"
+	  		}, new ParameterListener()
+	  		{
 			public void parameterChanged(final String parameterName) {
-				udpScrapeEnabled = COConfigurationManager.getBooleanParameter("Server Enable UDP");
-			}
-		});
+					udpScrapeEnabled = COConfigurationManager.getBooleanParameter("Server Enable UDP");
+					udpProbeEnabled  = COConfigurationManager.getBooleanParameter("Tracker UDP Probe Enable");
+				}
+			});
 	}
-	
-	private static boolean udpScrapeEnabled = true; 
-	
+		
 	private byte					autoUDPscrapeEvery				= 1;
 	private int						scrapeCount;
 	
@@ -486,13 +493,26 @@ public class TrackerStatus {
 		  		
 		  		boolean auto_probe = false;
 		  		
-		  		if(protocol.equalsIgnoreCase("udp") && udpScrapeEnabled)
-		  			udpScrapeURL = reqUrl;
-		  		else if(protocol.equalsIgnoreCase("http") && !az_tracker && scrapeCount % autoUDPscrapeEvery == 0 && udpScrapeEnabled) {
+		  		if (protocol.equalsIgnoreCase("udp")){
+		  			
+		  			if ( udpScrapeEnabled ){
+		  		
+		  				udpScrapeURL = reqUrl;
+		  				
+		  			}else{
+		  				
+		  				throw( new IOException( "UDP Tracker protocol disabled" ));
+		  				
+		  			}
+		  		}else if ( protocol.equalsIgnoreCase("http") && 
+		  				!az_tracker && 
+		  				scrapeCount % autoUDPscrapeEvery == 0 && 
+		  				udpProbeEnabled && udpScrapeEnabled ){
+		  			
 		  			udpScrapeURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
+		  			
 		  			auto_probe = true;
 		  		}
-		  			
 		  		
 		  		try{
 		  				// set context in case authentication dialog is required
