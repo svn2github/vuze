@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2010.xx.xx | Vuze 4.5.0.5
+
+
+
 2010.09.01 | Vuze 4.5.0.4
 
 FEATURE: Core | Allow multiple primordial UDP handlers [Parg]
