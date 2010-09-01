@@ -180,19 +180,19 @@ NetworkConnectionImpl
 	  
 	  transport = new bogusTransport( transport );
 	  
-	  close();
+	  close( "detached transport" );
 	  
 	  return( t );
   }
   
-  public void close() {
+  public void close( String reason ) {
   	NetworkManager.getSingleton().stopTransferProcessing( this );   
   	closed	= true;
     if ( connection_attempt != null ){
     	connection_attempt.abandon();
     }
     if ( transport != null ){
-    	transport.close( "Tidy close" );
+    	transport.close( "Tidy close" + ( reason==null||reason.length()==0?"":(": " + reason )));
     }
     incoming_message_queue.destroy();
    	outgoing_message_queue.destroy();  

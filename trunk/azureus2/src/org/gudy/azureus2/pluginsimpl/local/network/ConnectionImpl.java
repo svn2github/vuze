@@ -70,7 +70,7 @@ public class ConnectionImpl implements Connection {
   
   
   public void close() {
-    core_connection.close();
+    core_connection.close( null );
   }
 
   

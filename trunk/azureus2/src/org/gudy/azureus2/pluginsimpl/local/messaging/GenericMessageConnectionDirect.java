@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
@@ -277,7 +278,7 @@ GenericMessageConnectionDirect
 					{
 						owner.reportFailed( failure_msg );
 						
-						connection.close();
+						connection.close( failure_msg==null?null:Debug.getNestedExceptionMessage(failure_msg));
 					}
 					    
 					public void 
@@ -286,7 +287,7 @@ GenericMessageConnectionDirect
 					{
 						owner.reportFailed( error );
 						
-						connection.close();
+						connection.close( error==null?null:Debug.getNestedExceptionMessage(error));
 					}
 					
 					public String 
@@ -407,7 +408,7 @@ GenericMessageConnectionDirect
 					{
 						listener.connectFailure( failure_msg );
 						
-						connection.close();
+						connection.close(failure_msg==null?null:Debug.getNestedExceptionMessage(failure_msg));
 					}
 					    
 					public void 
@@ -416,7 +417,7 @@ GenericMessageConnectionDirect
 					{
 						listener.connectFailure( error );
 						
-						connection.close();
+						connection.close(error==null?null:Debug.getNestedExceptionMessage(error));
 					}
 					
 					public String 
@@ -579,7 +580,7 @@ GenericMessageConnectionDirect
 	
 			closed	= true;
 			
-			connection.close();
+			connection.close( null );
 		}
 	}
 }

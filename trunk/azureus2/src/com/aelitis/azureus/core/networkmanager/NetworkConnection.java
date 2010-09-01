@@ -46,7 +46,7 @@ NetworkConnection
   /**
    * Close and shutdown this connection.
    */
-  public void close();
+  public void close( String reason );
   
   
   /**

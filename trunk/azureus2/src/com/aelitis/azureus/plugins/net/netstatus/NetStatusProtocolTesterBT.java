@@ -865,7 +865,7 @@ NetStatusProtocolTesterBT
 				
 				log( "Closing connection" );
 				
-				connection.close();
+				connection.close( null );
 				
 			}else{
 				

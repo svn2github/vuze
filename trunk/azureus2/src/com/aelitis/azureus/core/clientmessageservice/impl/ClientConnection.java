@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.impl.OutgoingMessageQueueImpl;
@@ -194,11 +195,12 @@ public class ClientConnection {
 		decoder.destroy();
 		out_queue.destroy();
 		
+		String x = "Tidy close" + ( reason==null?"":(": " + Debug.getNestedExceptionMessage( reason )));
 		if( parent_transport != null ) {
-			parent_transport.close( "Tidy close");  //have the parent do the close if possible
+			parent_transport.close( x );  //have the parent do the close if possible
 		}
 		else {
-			light_transport.close("Tidy close");
+			light_transport.close( x );
 		}
 	}
 	

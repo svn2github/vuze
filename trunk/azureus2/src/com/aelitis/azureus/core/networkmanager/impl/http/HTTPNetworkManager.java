@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -733,7 +734,7 @@ HTTPNetworkManager
 										Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " closed" ));
 				   					}   					
 
-									connection.close();
+									connection.close( null );
 					  			}
 					  			
 					  			return( written > 0 );
@@ -746,7 +747,7 @@ HTTPNetworkManager
 									Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " failed to write error '" + data + "'" ));
 			   					}   					
 
-					  			connection.close();
+					  			connection.close(e==null?null:Debug.getNestedExceptionMessage(e));
 					  			
 					  			return( false );
 					  		}
@@ -764,7 +765,7 @@ HTTPNetworkManager
 								Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " failed to write error '" + data + "'" ));
 		   					}   					
 
-				        	connection.close();
+				        	connection.close(msg==null?null:Debug.getNestedExceptionMessage(msg));
 				        }
 					},
 					null );
@@ -774,7 +775,7 @@ HTTPNetworkManager
 					Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " closed" ));
    				}   					
 
-				connection.close();
+				connection.close( null );
 			}
 		}catch( Throwable e ){
 			
@@ -782,7 +783,7 @@ HTTPNetworkManager
 				Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " failed to write error '" + data + "'" ));
 			}   					
 
-			connection.close();
+			connection.close(e==null?null:Debug.getNestedExceptionMessage(e));
 		}
 	}
 	

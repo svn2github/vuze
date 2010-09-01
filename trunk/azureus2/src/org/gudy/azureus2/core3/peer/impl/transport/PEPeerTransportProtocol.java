@@ -853,7 +853,7 @@ implements PEPeerTransport
 		}
 
 		if( connection != null ) {  //can be null if close is called within ::<init>::, like when the given port is invalid
-			connection.close();
+			connection.close( reason );
 		}
 
 		if ( ip_resolver_request != null ){

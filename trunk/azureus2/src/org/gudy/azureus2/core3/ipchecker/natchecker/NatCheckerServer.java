@@ -186,7 +186,7 @@ public class NatCheckerServer extends AEThread {
 	            		  Debug.out( "Nat check write failed", t );
 	            	  }
 	
-	            	  connection.close();
+	            	  connection.close( null );
 	              }
 	              
 	              public boolean

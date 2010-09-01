@@ -301,7 +301,8 @@ IncomingConnectionManager
 	protected void 
 	removeConnection( 
 		IncomingConnection 	connection, 
-		boolean 			close_as_well ) 
+		boolean 			close_as_well,
+		String				reason ) 
 	{
 
 		try{  
@@ -318,7 +319,7 @@ IncomingConnectionManager
 		    
 		if( close_as_well ) {
 		
-			connection.filter.getHelper().close( "Tidy close" );
+			connection.filter.getHelper().close( "Tidy close" + ( reason==null||reason.length()==0?"":(": " + reason )));
 		}
 	}
 		  
@@ -372,7 +373,7 @@ IncomingConnectionManager
 		if( to_close != null ) {
 			for( int i=0; i < to_close.size(); i++ ) {
 				IncomingConnection ic = (IncomingConnection)to_close.get( i );
-				removeConnection( ic, true );
+				removeConnection( ic, true, "incoming connection routing timeout" );
 			}
 		}
 
@@ -450,7 +451,7 @@ IncomingConnectionManager
 									+ "] does not match "
 									+ "any known byte pattern: "
 									+ ByteFormatter.nicePrint(ic.buffer.array(), 128)));
-						removeConnection( ic, true );
+						removeConnection( ic, true, "routing failed: unknown hash" );
 					}
 				}
 				else {  //match found!
@@ -461,7 +462,7 @@ IncomingConnectionManager
 								+ "] recognized as "
 								+ "known byte pattern: "
 								+ ByteFormatter.nicePrint(ic.buffer.array(), 64)));
-					removeConnection( ic, false );
+					removeConnection( ic, false, null );
 
 					transport.setAlreadyRead( ic.buffer );
 
@@ -488,7 +489,7 @@ IncomingConnectionManager
 					t.printStackTrace();
 				}
 
-				removeConnection( ic, true );
+				removeConnection( ic, true, t==null?null:Debug.getNestedExceptionMessage(t));
 
 				return( false );
 			}
@@ -509,7 +510,7 @@ IncomingConnectionManager
 						+ msg.getMessage()));
 			}
 			
-			removeConnection( ic, true );
+			removeConnection( ic, true, msg==null?null:Debug.getNestedExceptionMessage(msg));
 		}
 	}  
 	  

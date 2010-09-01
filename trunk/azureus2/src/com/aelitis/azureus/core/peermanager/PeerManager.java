@@ -696,7 +696,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 									"Incoming connection from [" + connection
 									                           + "] closed due to deactivation" ));
 
-						connection.close();
+						connection.close( "deactivated" );
 					}
 
 					pending_connections = null;
@@ -824,7 +824,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 							"Incoming connection from [" + connection
 							+ "] to " + adapter.getDescription() + " dropped as peer source disabled" ));
 				
-				connection.close();
+				connection.close( "peer source disabled" );
 
 				return;
 			}
@@ -849,7 +849,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 									"Incoming connection from [" + connection
 									+ "] to " + adapter.getDescription() + " dropped too many pending activations" ));
 						
-						connection.close();
+						connection.close( "too many pending activations" );
 
 						return;
 						
@@ -923,7 +923,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 									"Incoming connection from [" + connection
 									+ "] to " + adapter.getDescription() + " closed due to activation timeout" ));
 
-						connection.close();		
+						connection.close( "activation timeout" );		
 					}
 				}
 
@@ -963,7 +963,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 							+ "] dropped as IP address already "
 							+ "connected for ["
 							+ control.getDisplayName() + "]"));
-				connection.close();
+				connection.close( "already connected to peer");
 
 				return;
 			}
@@ -992,7 +992,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 				if ( !ok ){
 
-					connection.close();
+					connection.close( "routing denied" );
 
 					return;
 				}

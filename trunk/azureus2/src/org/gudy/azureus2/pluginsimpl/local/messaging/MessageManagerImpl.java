@@ -292,14 +292,14 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 
 							}else{
 								
-								connection.close();
+								connection.close( "connection not accepted" );
 							}	
 							
 						}catch( Throwable e ){
 							
 							Debug.printStackTrace(e);
 							
-							connection.close();
+							connection.close( e==null?null:Debug.getNestedExceptionMessage(e));
 						}
 					}
 					
