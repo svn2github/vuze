@@ -110,6 +110,8 @@ public class Utils
 	
 	private static int userMode;
 
+	private static String uiMode;
+
 	static {
 		if (DEBUG_SWTEXEC) {
 			System.out.println("==== debug.swtexec=1, performance may be affected ====");
@@ -137,12 +139,15 @@ public class Utils
 				userMode = COConfigurationManager.getIntParameter("User Mode");
 			}
 		});
+		COConfigurationManager.addAndFireParameterListener("ui", new ParameterListener() {
+			public void parameterChanged(String parameterName) {
+				uiMode = COConfigurationManager.getStringParameter("ui");
+			}
+		});
 	}
 
 	public static boolean isAZ2UI() {
-		String ui_type = COConfigurationManager.getStringParameter("ui");
-
-		return (ui_type.equals("az2"));
+		return uiMode.equals("az2");
 	}
 
 	public static void disposeComposite(Composite composite, boolean disposeSelf) {
