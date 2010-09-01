@@ -131,7 +131,7 @@ ConfigSectionTrackerClient
     BooleanParameter enableUDPProbe = new BooleanParameter(gMainTab, "Tracker UDP Probe Enable", "ConfigView.section.server.enableudpprobe");
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    enableUDP.setLayoutData(gridData); 
+    enableUDPProbe.setLayoutData(gridData); 
     
     label = new Label(gMainTab, SWT.NULL);
   
