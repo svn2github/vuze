@@ -621,7 +621,6 @@ public class MainWindow
 		startTime = SystemTime.getCurrentTime();
 
 		shell = new Shell(display, SWT.SHELL_TRIM);
-		
 
 		if (Constants.isWindows) {
 			try {
@@ -1057,6 +1056,9 @@ public class MainWindow
 					if (mdi == null || !mdi.entryExists(startTab)) {
 						startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
 					}
+				}
+				if (startTab.equals(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS)) {
+					SBC_PlusFTUX.setSourceRef("lastview");
 				}
 				mdi.showEntryByID(startTab);
 			}
@@ -1601,6 +1603,10 @@ public class MainWindow
 							return;
 						}
 					}
+				}
+				
+				if (!isReady) {
+					return;
 				}
 
 				ArrayList<Shell> wasVisibleList = null;
