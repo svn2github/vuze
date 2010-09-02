@@ -54,20 +54,28 @@ public class SuperSeedPiece {
   public void peerHasPiece(PEPeer peer) {
   	try{
   		class_mon.enter();
-  	
-	    if(level < 2) {
-	      firstReceiver = peer;
-	      timeFirstDistributed = SystemTime.getCurrentTime();
-	      //numberOfPeersWhenFirstReceived = manager.getNbPeers();
-	    } else {
-	      if(peer != null && firstReceiver != null) {
-	        timeToReachAnotherPeer = (int) (SystemTime.getCurrentTime() - timeFirstDistributed);
-	        firstReceiver.setUploadHint(timeToReachAnotherPeer);
-	      }
-	    }
-	    level = 2;
-  	}finally{
-  		
+  			//System.out.println("piece: #"+pieceNumber+" , old level:"+level+", timeFirstDistributed:"+timeFirstDistributed+ "/ timetoreachanotherpeer:"+timeToReachAnotherPeer);
+  			if(level < 2) {
+  				// first time that somebody tells us this piece exists elsewhere
+  				// if peer=null, it is due to bitfield scan, so firstreceiver gets NULL	   	 
+  				firstReceiver = peer;
+  				timeFirstDistributed = SystemTime.getCurrentTime();
+  				//numberOfPeersWhenFirstReceived = manager.getNbPeers();
+  				level = 2;
+  			}
+  			else {
+  				// level=2 or 3 and we arrive here when somebody has got the piece, either BT_HAVE or bitfield scan
+  				// if we are here due to bitfield scan, 'peer' = null --> do nothing
+  				// if level=2 --> mark piece redistributed, set speedstatus of firstreceiver, bump level to 3
+  				// if level=3 --> this piece has been already seen at 3rd party earlier, do nothing
+  				if(peer != null && firstReceiver != null && level==2) {
+  					timeToReachAnotherPeer = (int) (SystemTime.getCurrentTime() - timeFirstDistributed);
+  					firstReceiver.setUploadHint(timeToReachAnotherPeer);
+  					level = 3;
+  				}
+  			}  			
+  	}
+  	finally{  		
   		class_mon.exit();
   	}
   }
@@ -100,10 +108,13 @@ public class SuperSeedPiece {
   
   public void updateTime() {
     if(level < 2)
+   	// not yet distributed, no effect on speed status
       return;
     if(timeToReachAnotherPeer > 0)
+   	// piece has been seen elsewhere, no effect on speed status any more
       return;
     if(firstReceiver == null)
+   	// piece was found due to bitfield scan, no idea how it got distributed
       return;
     int timeToSend = (int) (SystemTime.getCurrentTime() - timeFirstDistributed);
     if(timeToSend > firstReceiver.getUploadHint())

@@ -3739,6 +3739,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 		//Find a piece
 		boolean found = false;
 		SuperSeedPiece piece = null;
+		boolean loopdone = false;  // add loop status
+		
 		while(!found) {
 			piece = superSeedPieces[superSeedModeCurrentPiece];
 			if(piece.getLevel() > 0) {
@@ -3746,12 +3748,18 @@ DiskManagerCheckRequestListener, IPFilterListener
 				superSeedModeCurrentPiece++;
 				if(superSeedModeCurrentPiece >= _nbPieces) {
 					superSeedModeCurrentPiece = 0;
-
-					//quit superseed mode
-					superSeedMode = false;
-					closeAndRemoveAllPeers( "quiting SuperSeed mode", true );
-
-					return;
+					
+					if (loopdone) {  // if already been here, has been full loop through pieces, quit
+						//quit superseed mode
+						superSeedMode = false;
+						closeAndRemoveAllPeers( "quiting SuperSeed mode", true );
+						return;
+					}
+					else {                                                                                  
+						// loopdone==false --> first time here --> go through the pieces                    
+						// for a second time to check if reserved pieces have got freed due to peers leaving
+						loopdone = true;                                                                    
+					}				
 				}
 			} else {
 				found = true;
@@ -3774,6 +3782,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	}
 
 	public void updateSuperSeedPiece(PEPeer peer,int pieceNumber) {
+		// currently this gets only called from bitfield scan function in PEPeerTransportProtocol
 		if (!superSeedMode)
 			return;
 		superSeedPieces[pieceNumber].peerHasPiece(null);
