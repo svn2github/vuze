@@ -3,6 +3,8 @@ VUZE CHANGELOG
 
 2010.xx.xx | Vuze 4.5.0.5
 
+BUGFIX: Core  | Fixes to superseeding mode [thanks Mmore1q3]
+
 
 
 2010.09.01 | Vuze 4.5.0.4
