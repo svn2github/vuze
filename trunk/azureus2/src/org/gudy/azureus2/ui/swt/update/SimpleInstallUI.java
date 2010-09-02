@@ -92,6 +92,10 @@ SimpleInstallUI
 		
 		if ( parent != null ){
 			
+			if (parent.isDisposed()) {
+				throw( new RuntimeException( "cancelled" ));
+			}
+			
 			build( parent );
 			
 		}else{
