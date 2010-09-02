@@ -195,7 +195,7 @@ public class SearchResultsTabArea
 							
 							engine_menu.setStyle( MenuItem.STYLE_MENU );
 
-							if ( engine.getSource() != Engine.ENGINE_SOURCE_VUZE ){
+							if ( true || engine.getSource() != Engine.ENGINE_SOURCE_VUZE ){
 								
 								MenuItem mi = menuManager.addMenuItem( engine_menu, "MyTorrentsView.menu.exportmenu" );
 
