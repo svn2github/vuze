@@ -623,9 +623,11 @@ DownloadManagerRateController
 				
 				last_interesting_calc = now;
 				
+				PEPeerManagerStats stats = manager.getStats();
+				
 					// not interesting if stalled downloading
 				
-				long dl_rate = manager.getStats().getDataReceiveRate();
+				long dl_rate = stats.getDataReceiveRate();
 				
 				if ( dl_rate < 5*1024 ){
 					
@@ -641,7 +643,20 @@ DownloadManagerRateController
 						
 					}else{
 						
-						interesting = true;
+							// see if the download has a manually imposed upload limit and if
+							// we are close to it
+						
+						int limit = manager.getUploadRateLimitBytesPerSecond();
+						
+						if ( 	limit > 0 &&
+								( stats.getDataSendRate() + stats.getProtocolSendRate() ) >= ( limit - (5*1024))){
+							
+							interesting = false;
+							
+						}else{
+							
+							interesting = true;
+						}
 					}
 				}
 			}
