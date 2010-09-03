@@ -79,6 +79,14 @@ NetworkConnection
 
   public boolean isConnected();
     
+  public Object
+  setUserData(
+  	Object		key,
+  	Object		value );
+  
+  public Object
+  getUserData(
+  	Object		key );
   
   /**
    * Listener for notification of connection events.

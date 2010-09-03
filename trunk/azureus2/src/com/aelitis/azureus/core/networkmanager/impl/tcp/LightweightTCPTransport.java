@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
@@ -101,4 +102,16 @@ public class LightweightTCPTransport implements Transport {
   public String getEncryption(boolean verbose){ return( filter.getName(verbose)); }
   public boolean isEncrypted(){ return( filter.isEncrypted());}
   public boolean isTCP(){ return true; }
+  
+  public void
+  bindConnection(
+	NetworkConnection	connection )
+  {
+  }
+  
+  public void
+  unbindConnection(
+	NetworkConnection	connection )
+  {  
+  }
 }

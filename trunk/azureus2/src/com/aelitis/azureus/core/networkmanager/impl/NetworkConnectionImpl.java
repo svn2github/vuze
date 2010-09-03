@@ -25,9 +25,11 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.LightHashMap;
 
 
 import com.aelitis.azureus.core.networkmanager.*;
@@ -62,6 +64,8 @@ NetworkConnectionImpl
   
   private volatile ConnectionAttempt	connection_attempt;
   private volatile boolean				closed;
+  
+  private Map<Object,Object>			user_data;
   
   /**
    * Constructor for new OUTbound connection.
@@ -102,6 +106,8 @@ NetworkConnectionImpl
     outgoing_message_queue = new OutgoingMessageQueueImpl( encoder );
     outgoing_message_queue.setTransport( transport );
     incoming_message_queue = new IncomingMessageQueueImpl( decoder, this );
+    
+    transport.bindConnection( this );
   }
   
 
@@ -152,6 +158,7 @@ NetworkConnectionImpl
 			        is_connected = true;
 			        transport	= _transport;
 			        outgoing_message_queue.setTransport( transport );
+			        transport.bindConnection( NetworkConnectionImpl.this );
 			        connection_listener.connectSuccess( remaining_initial_data );
 			        connection_attempt	= null;
 			      }
@@ -177,6 +184,11 @@ NetworkConnectionImpl
   detachTransport()
   {
 	  Transport	t = transport;
+	  
+	  if ( t != null ){
+		  
+		  t.unbindConnection( this );
+	  }
 	  
 	  transport = new bogusTransport( transport );
 	  
@@ -248,7 +260,33 @@ NetworkConnectionImpl
 	  }
   }
   
-
+  
+  public Object
+  setUserData(
+  	Object		key,
+  	Object		value )
+  {
+	synchronized( this ){
+		if ( user_data == null ){
+			user_data = new LightHashMap<Object, Object>();
+		}
+		
+		return( user_data.put( key, value ));
+	}
+  }
+  
+  public Object
+  getUserData(
+  	Object		key )
+  {
+	  synchronized( this ){
+			if ( user_data == null ){
+				return( null );
+			}
+			
+			return( user_data.get( key ));
+	  }
+  }
 	
   public String toString() {
     return( transport==null?connection_endpoint.getDescription():transport.getDescription() );
@@ -410,6 +448,18 @@ NetworkConnectionImpl
 			String reason )
 		{
 			// we get here after detaching a transport and then closing the peer connection
+		}
+		
+		public void
+		bindConnection(
+			NetworkConnection	connection )
+		{
+		}
+
+		public void
+		unbindConnection(
+			NetworkConnection	connection )
+		{
 		}
 
 		public void

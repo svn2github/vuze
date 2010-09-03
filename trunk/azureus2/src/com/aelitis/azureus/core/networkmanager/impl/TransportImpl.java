@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.Transport;
 
 public abstract class 
@@ -373,6 +374,18 @@ TransportImpl
 		registerSelectHandling();
 	}
 	
+	public void
+	bindConnection(
+		NetworkConnection	connection )
+	{
+	}
+
+	public void
+	unbindConnection(
+		NetworkConnection	connection )
+	{
+	}
+	  
 	private void 
 	registerSelectHandling() 
 	{

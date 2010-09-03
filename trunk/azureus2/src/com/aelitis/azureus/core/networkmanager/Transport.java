@@ -128,6 +128,14 @@ Transport
   public void close( String reason );
   
   public void
+  bindConnection(
+		NetworkConnection	connection );
+  
+  public void
+  unbindConnection(
+		NetworkConnection	connection );
+  
+  public void
   setTrace(
 		boolean	on );
   

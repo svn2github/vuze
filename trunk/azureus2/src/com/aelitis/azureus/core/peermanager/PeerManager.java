@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.AEGenericCallback;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -951,6 +952,19 @@ public class PeerManager implements AzureusCoreStatsProvider{
 			// loopback connects for co-located proxy-based connections and
 			// testing
 
+			Object callback = connection.getUserData( "RoutedCallback" );
+			
+			if ( callback instanceof AEGenericCallback ){
+				
+				try{
+					((AEGenericCallback)callback).invoke( control );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+			
 			String host_address = connection.getEndpoint().getNotionalAddress().getAddress().getHostAddress();
 
 			boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || host_address.equals( "127.0.0.1" );
