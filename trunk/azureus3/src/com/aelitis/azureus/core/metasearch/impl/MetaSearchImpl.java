@@ -590,6 +590,24 @@ MetaSearchImpl
 		}
 	}
 	
+	public String
+	getFUD()
+	{
+		List<EngineImpl> l = engines.getList();
+
+		String	fud = "";
+		
+		for ( EngineImpl engine: l ){
+			
+			if ( engine.getSource() == Engine.ENGINE_SOURCE_VUZE ){
+				
+				fud += (fud.length()==0?"":",") + engine.getId(); 
+			}
+		}
+		
+		return( fud );
+	}
+	
 	public Engine[] 
 	getEngines(
 		boolean		active_only,

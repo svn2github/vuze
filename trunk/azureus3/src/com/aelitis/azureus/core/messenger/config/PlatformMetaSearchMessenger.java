@@ -129,7 +129,8 @@ PlatformMetaSearchMessenger
 	
 	public static templateInfo[] 
 	listTopPopularTemplates(
-		String		extension_key )
+		String		extension_key,
+		String		fud )
 	
 		throws PlatformMessengerException
 	{		
@@ -140,6 +141,8 @@ PlatformMetaSearchMessenger
 			parameters.put( "extension_key", extension_key );
 		}
 		
+		parameters.put( "fud", fud );
+		
 		Map reply = dispatcher.syncInvoke(	OP_LIST_POPULAR_TEMPLATES, parameters ); 
 
 		return( getTemplatesInfo( reply ));
@@ -147,7 +150,8 @@ PlatformMetaSearchMessenger
 	
 	public static templateInfo[] 
    	listAllPopularTemplates(
-   		String		extension_key )
+   		String		extension_key,
+   		String		fud )
    	
    		throws PlatformMessengerException
    	{
@@ -157,6 +161,8 @@ PlatformMetaSearchMessenger
 			
 			parameters.put( "extension_key", extension_key );
 		}
+		
+		parameters.put( "fud", fud );
 		
    		parameters.put( "page-num", new Long( 1 ));
    		parameters.put( "items-per-page", new Long( MAX_TEMPLATE_LIST ));
@@ -168,7 +174,8 @@ PlatformMetaSearchMessenger
 	
 	public static templateInfo[] 
 	listFeaturedTemplates(
-		String		extension_key )
+		String		extension_key,
+		String		fud )
 	
 		throws PlatformMessengerException
 	{
@@ -178,6 +185,8 @@ PlatformMetaSearchMessenger
 			
 			parameters.put( "extension_key", extension_key );
 		}
+		
+		parameters.put( "fud", fud );
 		
 		parameters.put( "page-num", new Long( 1 ));
 		parameters.put( "items-per-page", new Long( MAX_TEMPLATE_LIST ));

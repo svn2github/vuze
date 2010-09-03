@@ -65,6 +65,9 @@ MetaSearch
   		Map<String,String>	context,
   		int					max_per_engine );
 	
+	public String
+	getFUD();
+	
 	public Engine[] 
 	getEngines(
 		boolean		active_only,

@@ -517,8 +517,10 @@ MetaSearchManagerImpl
 					
 			Engine[]	engines = meta_search.getEngines( false, false );
 	
+			String	fud = meta_search.getFUD();
+			
 			try{
-				PlatformMetaSearchMessenger.templateInfo[] featured = PlatformMetaSearchMessenger.listFeaturedTemplates( extension_key );
+				PlatformMetaSearchMessenger.templateInfo[] featured = PlatformMetaSearchMessenger.listFeaturedTemplates( extension_key, fud );
 				
 				String featured_str = "";
 				
@@ -544,7 +546,7 @@ MetaSearchManagerImpl
 				
 				if ( auto_mode || first_run ){
 					
-					PlatformMetaSearchMessenger.templateInfo[] popular = PlatformMetaSearchMessenger.listTopPopularTemplates( extension_key );
+					PlatformMetaSearchMessenger.templateInfo[] popular = PlatformMetaSearchMessenger.listTopPopularTemplates( extension_key, fud );
 					
 					String popular_str = "";
 					String preload_str = "";

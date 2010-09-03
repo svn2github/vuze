@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
+import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.util.ImportExportUtils;
 
 public class 
@@ -410,6 +411,8 @@ ContentNetworkVuzeGeneric
 					
 					url_str += "&extension_key=" + UrlUtils.encode( extension_key );
 				}
+				
+				url_str += "&fud=" + UrlUtils.encode( MetaSearchManagerFactory.getSingleton().getMetaSearch().getFUD());
 				
 				return( url_str );
 			}
