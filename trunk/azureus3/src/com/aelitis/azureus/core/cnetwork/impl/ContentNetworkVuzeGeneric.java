@@ -70,6 +70,8 @@ ContentNetworkVuzeGeneric
 		});
 	}
 
+	private static final String RPC_ADDRESS = System.getProperty( "platform_rpc", "vrpc.vuze.com" );
+
 	private Map<Integer, String>		service_map = new HashMap<Integer, String>();
 
 	private Set<Integer>				service_exclusions;
@@ -235,11 +237,11 @@ ContentNetworkVuzeGeneric
 		
 		addService( SERVICE_SEARCH, 			URL_PREFIX + "search?q=" );
 		addService( SERVICE_XSEARCH, 			URL_PREFIX + "xsearch/index.php?q=" );
-		addService( SERVICE_RPC, 				"http://vrpc.vuze.com/vzrpc/rpc.php" );
+		addService( SERVICE_RPC, 				"http://" + RPC_ADDRESS + "/vzrpc/rpc.php" );
 		addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" );
 		addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start?" );
 		addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start?" );
-		addService( SERVICE_ABOUT, 			URL_PREFIX + "about.start?" );
+		addService( SERVICE_ABOUT, 				URL_PREFIX + "about.start?" );
 		addService( SERVICE_PUBLISH_NEW, 		URL_PREFIX + "publishnew.start?" );
 		addService( SERVICE_PUBLISH_ABOUT, 		URL_PREFIX + "publishinfo.start" );
 		addService( SERVICE_CONTENT_DETAILS, 	URL_PREFIX + "details/" );
