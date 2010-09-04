@@ -594,15 +594,24 @@ MetaSearchImpl
 	getFUD()
 	{
 		List<EngineImpl> l = engines.getList();
-
-		String	fud = "";
+		
+		List<Long>	ids = new ArrayList<Long>();
 		
 		for ( EngineImpl engine: l ){
 			
 			if ( engine.getSource() == Engine.ENGINE_SOURCE_VUZE ){
 				
-				fud += (fud.length()==0?"":",") + engine.getId(); 
+				ids.add( engine.getId());
 			}
+		}
+		
+		Collections.sort( ids );
+		
+		String	fud = "";
+
+		for ( Long id: ids ){
+		
+			fud += (fud.length()==0?"":",") +id; 
 		}
 		
 		return( fud );
