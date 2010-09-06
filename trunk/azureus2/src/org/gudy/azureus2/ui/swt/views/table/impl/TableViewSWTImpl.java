@@ -5050,8 +5050,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		try {
 			DATASOURCETYPE[] unfilteredArray = (DATASOURCETYPE[]) listUnfilteredDataSources.toArray();
 
-			boolean all = filter.text.length() == 0;
-
 			Set<DATASOURCETYPE> existing = new HashSet<DATASOURCETYPE>(
 					getDataSources());
 			List<DATASOURCETYPE> listRemoves = new ArrayList<DATASOURCETYPE>();
@@ -5059,7 +5057,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 			for (int i = 0; i < unfilteredArray.length; i++) {
 				boolean bHave = existing.contains(unfilteredArray[i]);
-				boolean isOurs = all ? true : filter.checker.filterCheck(
+				boolean isOurs = filter.checker.filterCheck(
 						unfilteredArray[i], filter.text, filter.regex);
 				if (!isOurs) {
 					if (bHave) {
@@ -5082,6 +5080,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#enableFilterCheck(org.eclipse.swt.widgets.Text, org.gudy.azureus2.ui.swt.views.table.TableViewFilterCheck)
 	public void enableFilterCheck(Text txtFilter,
 			TableViewFilterCheck<DATASOURCETYPE> filterCheck) {
 		if (filter != null) {
