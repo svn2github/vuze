@@ -253,7 +253,7 @@ public class ColumnThumbAndName
 					
 					DownloadManager dm = (DownloadManager)ds;
 					
-					show_twisty = dm.getDiskManagerFileInfoSet().nbFiles() > 1;
+					show_twisty = dm.getNumFileInfos() > 1;
 					
 					rowCore.setData( ID_EXPANDOHITAREASHOW, new Boolean( show_twisty ));
 					
