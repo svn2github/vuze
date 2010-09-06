@@ -1892,9 +1892,10 @@ public class MyTorrentsView
 
 		DownloadManager dm = (DownloadManager) ds;
 		if (rowCore.getSubItemCount() == 0 && dm.getTorrent() != null
-				&& !dm.getTorrent().isSimpleTorrent() && rowCore.isVisible()) {
+				&& !dm.getTorrent().isSimpleTorrent() && rowCore.isVisible()
+				&& dm.getNumFileInfos() > 0) {
 			DiskManagerFileInfoSet fileInfos = dm.getDiskManagerFileInfoSet();
-			if (fileInfos != null && fileInfos.nbFiles() > 0) {
+			if (fileInfos != null) {
 				DiskManagerFileInfo[] files = fileInfos.getFiles();
 				boolean copied = false;
 				int pos = 0;
