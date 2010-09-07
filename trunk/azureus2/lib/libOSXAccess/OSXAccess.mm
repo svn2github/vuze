@@ -11,10 +11,11 @@
 #import <IOKit/storage/IOCDMedia.h>
 #import <IOKit/storage/IODVDMedia.h>
 #include <IOKit/storage/IOBlockStorageDevice.h>
+#include <IOKit/usb/USBSpec.h>
 
 #include "IONotification.h"
 
-#define VERSION "1.08"
+#define VERSION "1.09"
 
 #define assertNot0(a) if (a == 0) { fprintf(stderr, "%s is 0\n", #a); return; }
 void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethodID methPut);
@@ -40,6 +41,8 @@ static jclass gCallBackClass = 0;
 static jobject gCallBackObj = 0;
 
 static JavaVM *gjvm = 0;
+
+static int indent = 0;
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 	gjvm = vm;
@@ -204,7 +207,7 @@ jobject createLong(JNIEnv *env, jlong l) {
 
 #define IOOBJECTRELEASE(x) if ((x)) IOObjectRelease((x)); (x) = NULL;
 
-io_object_t IOKitObjectFindParentOfClass(io_object_t inService, io_name_t inClassName) {
+io_object_t IOKitObjectFindParentOfClass(io_object_t inService, const io_name_t inClassName) {
 	io_object_t rval = NULL;
 	io_iterator_t iter = NULL;
 	io_object_t service = NULL;
@@ -318,6 +321,48 @@ void notify(const char *mount, io_service_t service, struct statfs *fs, bool add
 	[pool release];
 }
 
+void putCFNumberIntoHashMap(const char *key, const char *hexkey, CFNumberRef cft, JNIEnv *env, jobject hashMap, jmethodID methPut) {
+	if (!cft) {
+		return;
+	}
+	long long n;
+	double d;
+	CFNumberRef cfr = (CFNumberRef)cft;
+	CFNumberType cfnt = CFNumberGetType(cfr);
+	switch (cfnt) {
+		case kCFNumberSInt8Type:
+		case kCFNumberSInt16Type:
+		case kCFNumberSInt32Type:
+		case kCFNumberSInt64Type:
+		case kCFNumberCharType:
+		case kCFNumberShortType:
+		case kCFNumberIntType:
+		case kCFNumberLongType:
+		case kCFNumberLongLongType:
+			CFNumberGetValue(cfr, kCFNumberLongLongType, &n);
+			fprintf(stderr, " = %lld", n);
+			if (key) {
+				env->CallObjectMethod(hashMap, methPut, char2jstring(env, key), createLong(env, (jlong) n));
+			}
+			if (hexkey) {
+				char cHex[50];
+				sprintf(cHex, "%04llX", n);
+				env->CallObjectMethod(hashMap, methPut, char2jstring(env, hexkey), char2jstring(env, cHex));
+			}
+			break;
+		case kCFNumberFloat32Type:
+		case kCFNumberFloat64Type:
+		case kCFNumberFloatType:
+		case kCFNumberDoubleType:
+			CFNumberGetValue(cfr, kCFNumberDoubleType, &d);
+			fprintf(stderr, " = %f", d);
+			break;
+		default:
+			fprintf(stderr, " = UNKNOWN TYPE %d", (int) cfnt);
+			break;
+	}
+}
+
 void addDictionaryToHashMap(CFDictionaryRef dict, JNIEnv *env, jobject hashMap, jmethodID methPut) {
 	CFIndex		count;
 	CFIndex 		i;
@@ -342,12 +387,16 @@ void addDictionaryToHashMap(CFDictionaryRef dict, JNIEnv *env, jobject hashMap, 
 	CFDictionaryGetKeysAndValues(dict, keys, values);
 	
 	for (i = 0; i < count; i++) {
-		//fprintf(stderr, "%d. ", i);
+		
+		for (int j = 0; j < indent; j++) {
+			fprintf(stderr, "\t");
+		}
+		fprintf(stderr, "%d. ", (int) i);
 		CFStringRef cfstr = (CFStringRef) keys[i];
 		int len = CFStringGetLength(cfstr) * 2 + 1;
 		char key[len];
 		CFStringGetCString(cfstr, key, len, kCFStringEncodingUTF8);
-		//fprintf(stderr, "%s", key);
+		fprintf(stderr, "%s", key);
 		
 		CFTypeRef cft = (CFTypeRef) values[i];
 		CFTypeID tCFTypeID = CFGetTypeID(cft);
@@ -357,48 +406,42 @@ void addDictionaryToHashMap(CFDictionaryRef dict, JNIEnv *env, jobject hashMap, 
 			int len = CFStringGetLength(cfstr) * 2 + 1;
 			char s[len];
 			CFStringGetCString(cfstr, s, len, kCFStringEncodingUTF8);
-			//fprintf(stderr, " = %s", s);
+			fprintf(stderr, " = %s", s);
 			env->CallObjectMethod(hashMap, methPut, char2jstring(env, key), char2jstring(env, s));
 		} else if (tCFTypeID == CFBooleanGetTypeID()) {
-			//fprintf(stderr, " = %s", ((CFBooleanRef)cft == kCFBooleanTrue) ? "true" : "false");
+			fprintf(stderr, " = %s", ((CFBooleanRef)cft == kCFBooleanTrue) ? "true" : "false");
 			BOOL b = (CFBooleanRef)cft == kCFBooleanTrue;
 			env->CallObjectMethod(hashMap, methPut, char2jstring(env, key), createLong(env, (jlong) b));
 		} else if (tCFTypeID == CFNumberGetTypeID()) {
-			long long n;
-			double d;
-			CFNumberRef cfr = (CFNumberRef)cft;
-			CFNumberType cfnt = CFNumberGetType(cfr);
-			switch (cfnt) {
-				case kCFNumberSInt8Type:
-				case kCFNumberSInt16Type:
-				case kCFNumberSInt32Type:
-				case kCFNumberSInt64Type:
-				case kCFNumberCharType:
-				case kCFNumberShortType:
-				case kCFNumberIntType:
-				case kCFNumberLongType:
-				case kCFNumberLongLongType:
-					CFNumberGetValue(cfr, kCFNumberLongLongType, &n);
-					//fprintf(stderr, " = %d", n);
-					env->CallObjectMethod(hashMap, methPut, char2jstring(env, key), createLong(env, (jlong) n));
-					break;
-				case kCFNumberFloat32Type:
-				case kCFNumberFloat64Type:
-				case kCFNumberFloatType:
-				case kCFNumberDoubleType:
-					CFNumberGetValue(cfr, kCFNumberDoubleType, &d);
-					//fprintf(stderr, " = %f", d);
-					break;
-				default:
-					break;
+			putCFNumberIntoHashMap(key, NULL, (CFNumberRef) cft,env, hashMap, methPut);
+		} else if (tCFTypeID == CFDictionaryGetTypeID()) {
+			CFDictionaryRef        sub;
+			sub = (CFDictionaryRef) CFDictionaryGetValue(dict, cfstr);
+			if (sub) {
+				indent++;
+				fprintf(stderr, "Dictionary ->\n");
+				addDictionaryToHashMap(sub, env, hashMap, methPut);
+				indent--;
 			}
 		} else {
-			//fprintf(stderr, " unknown %d", tCFTypeID);
+			fprintf(stderr, " unknown %d", (int) tCFTypeID);
 		}
-		//fprintf(stderr, "\n");
+		fprintf(stderr, "\n"); fflush(stderr);
 		}
 		free(keys);
 		free(values);
+}
+
+CFTypeRef FindProp( io_registry_entry_t e, CFStringRef key, bool up )
+{
+	IOOptionBits bits = kIORegistryIterateRecursively;
+	
+	if( up )
+	{
+		bits |= kIORegistryIterateParents;
+	}
+	return IORegistryEntrySearchCFProperty( e, kIOServicePlane, key, NULL, 
+										   bits );
 }
 
 void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethodID methPut) {
@@ -444,7 +487,10 @@ void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethod
 	CFMutableDictionaryRef properties = NULL;
 	kr = IORegistryEntryCreateCFProperties(service, &properties, kCFAllocatorDefault, 0);
 	if (kr == KERN_SUCCESS) {
+		fprintf(stderr, "service:\n");
+		indent++;
 		addDictionaryToHashMap(properties, env, hashMap, methPut);
+		indent--;
 		CFRelease(properties);
 	}
 
@@ -465,15 +511,23 @@ void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethod
 	IOObjectRelease(services);
 
 	if (device) {
+		CFNumberRef vid = (CFNumberRef)FindProp(device, CFSTR(kUSBVendorID), true);
+		if (vid) {
+			putCFNumberIntoHashMap("Vendor ID", "VID", vid, env, hashMap, methPut);
+		}
+		CFNumberRef pid = (CFNumberRef)FindProp(device, CFSTR(kUSBProductID), true);
+		if (pid) {
+			putCFNumberIntoHashMap("Product ID", "PID", pid, env, hashMap, methPut);
+		}
+
 		kr = IORegistryEntryCreateCFProperties(device, &properties, kCFAllocatorDefault, 0);
 		if (kr == KERN_SUCCESS) {
+			fprintf(stderr, "device:\n");
+			indent++;
+			
 			addDictionaryToHashMap(properties, env, hashMap, methPut);
-
-			CFDictionaryRef        sub;
-			sub = (CFDictionaryRef) CFDictionaryGetValue(properties, CFSTR(kIOPropertyDeviceCharacteristicsKey));
-			if (sub) {
-				addDictionaryToHashMap(sub, env, hashMap, methPut);
-			}
+			
+			indent--;
 
 			CFRelease(properties);
 		}

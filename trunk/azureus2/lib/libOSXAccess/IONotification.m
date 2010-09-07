@@ -83,7 +83,7 @@ void print( NSDictionary *map ) {
     void * key;
 
     while ( key = [enumerator nextObject] ) {
-        fprintf(stderr, "%p => %s\n", key, [map objectForKey: key]  );
+        fprintf(stderr, "%p => %s\n", key, (char *) [map objectForKey: key]  );
     }
 }
 
