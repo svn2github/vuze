@@ -726,9 +726,17 @@ MetaSearchManagerImpl
 					
 					if ( this_engine != null ){
 							
-						if ( this_engine.getSelectionState() == Engine.SEL_STATE_DESELECTED ){
+						int sel_state = this_engine.getSelectionState();
+						
+						if ( sel_state == Engine.SEL_STATE_DESELECTED ){
 						
 							log( "Auto-selecting " + this_engine.getString());
+							
+							this_engine.setSelectionState( Engine.SEL_STATE_AUTO_SELECTED );
+							
+						}else if ( auto_mode && sel_state == Engine.SEL_STATE_MANUAL_SELECTED ){
+							
+							log( "Switching Manual to Auto select for " + this_engine.getString());
 							
 							this_engine.setSelectionState( Engine.SEL_STATE_AUTO_SELECTED );
 						}
