@@ -1201,6 +1201,11 @@ TRTrackerBTAnnouncerImpl
 					if ( failure_reason == null ){
 						
 						failure_reason = "No data received from tracker";
+						
+						if ( reqUrl.getProtocol().equalsIgnoreCase( "udp" )){
+						
+							errorLevel = false;
+						}
 					}
 				}catch( SSLException e ){
 					
@@ -1228,8 +1233,10 @@ TRTrackerBTAnnouncerImpl
 					}
 				}catch( IOException e ){
 					
-					if(e instanceof UnknownHostException)
+					if ( e instanceof UnknownHostException || e instanceof ConnectException ){
+						
 						errorLevel = false;
+					}
 					
 		     		if ( i == 0 && protocol.toLowerCase().startsWith( "http" )){
 		      			
