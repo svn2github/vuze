@@ -4114,7 +4114,7 @@ implements PEPeerTransport
     		( dropped != null && dropped.length > exchange.getMaxAllowedPeersPerVolley(!this.has_received_initial_pex, false))) {
     	
 			//drop these too-large messages as they seem to be used for DOS by swarm poisoners
-   			closeConnectionInternally( "Invalid PEX message received: too large, dropping likely poisoner peer connection. (added=" + added.length + ",dropped=" + dropped.length +")" );
+   			closeConnectionInternally( "Invalid PEX message received: too large, dropping likely poisoner peer connection. (added=" + (added==null?0:added.length) + ",dropped=" + (dropped==null?0:dropped.length) +")" );
 			return;
 		}
     
