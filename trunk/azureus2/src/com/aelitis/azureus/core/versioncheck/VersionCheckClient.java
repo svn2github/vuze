@@ -810,7 +810,7 @@ public class VersionCheckClient {
 	  Map 					reply		= null;	
 
 	  try{
-		  msg_service = ClientMessageServiceClient.getServerService( host, AZ_MSG_SERVER_PORT, MESSAGE_TYPE_ID );
+		  msg_service = ClientMessageServiceClient.getServerService( host, AZ_MSG_SERVER_PORT, 20*1000, MESSAGE_TYPE_ID );
 
 		  msg_service.sendMessage( data_to_send );  //send our version message
 
@@ -854,6 +854,9 @@ public class VersionCheckClient {
 	  URL	url = new URL( url_str );
 	  
 	  HttpURLConnection	url_connection = (HttpURLConnection)url.openConnection();
+	  
+	  url_connection.setConnectTimeout( 10*1000 );
+	  url_connection.setReadTimeout( 10*1000 );
 	  
 	  url_connection.connect();
 	  
