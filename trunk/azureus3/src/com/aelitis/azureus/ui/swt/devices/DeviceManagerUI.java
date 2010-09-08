@@ -107,6 +107,7 @@ DeviceManagerUI
 	
 	private DeviceManager			device_manager;
 	private DeviceManagerListener	device_manager_listener;
+	private boolean					device_manager_listener_added;
 	
 	private final PluginInterface	plugin_interface;
 	private final UIManager			ui_manager;
@@ -376,96 +377,110 @@ DeviceManagerUI
 	private void
 	setupUIwithDeviceManager()
 	{
-		device_manager_listener = 
-			new DeviceManagerListener()
-			{
-				public void 
-				deviceAdded(
-					Device device ) 
-				{
-					addOrChangeDevice( device );
-				}
-				
-				public void
-				deviceChanged(
-					Device		device )
-				{
-					addOrChangeDevice( device );
-				}
-				
-				public void
-				deviceAttentionRequest(
-					Device		device )
-				{
-					showDevice( device );
-				}
-				
-				public void
-				deviceRemoved(
-					Device		device )
-				{
-					removeDevice( device );
-				}
-				
-				public void 
-				deviceManagerLoaded() {
-				}
-			};
+		boolean	add_all = false;
 		
-			TranscodeManager transMan = device_manager.getTranscodeManager();
-			TranscodeQueue transQ = transMan.getQueue();
-			transQ.addListener(
-			new TranscodeQueueListener()
-			{
-				int	last_job_count = 0;
-				
-				public void
-				jobAdded(
-					TranscodeJob		job )
+		synchronized( this ){
+			
+			device_manager_listener = 
+				new DeviceManagerListener()
 				{
-					check();
-				}
-				
-				public void
-				jobChanged(
-					TranscodeJob		job )
-				{
-					check();
-				}
-				
-				public void
-				jobRemoved(
-					TranscodeJob		job )
-				{
-					check();
-				}
-				
-				protected void
-				check()
-				{
-					int job_count = device_manager.getTranscodeManager().getQueue().getJobCount();
+					public void 
+					deviceAdded(
+						Device device ) 
+					{
+						addOrChangeDevice( device );
+					}
 					
-					if ( job_count != last_job_count ){
-						
-						if ( job_count == 0 || last_job_count == 0 ){
-													
-							MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-							
-							if ( mdi != null ){
-								
-								MdiEntry main_entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+					public void
+					deviceChanged(
+						Device		device )
+					{
+						addOrChangeDevice( device );
+					}
+					
+					public void
+					deviceAttentionRequest(
+						Device		device )
+					{
+						showDevice( device );
+					}
+					
+					public void
+					deviceRemoved(
+						Device		device )
+					{
+						removeDevice( device );
+					}
+					
+					public void 
+					deviceManagerLoaded() {
+					}
+				};
+				
+			if ( needsAddAllDevices ){
+				
+				add_all = true;
+				
+				needsAddAllDevices = false;
+			}
+		}
 		
-								if ( main_entry != null ){
-							
-									ViewTitleInfoManager.refreshTitleInfo( main_entry.getViewTitleInfo());
+		TranscodeManager transMan = device_manager.getTranscodeManager();
+
+		TranscodeQueue transQ = transMan.getQueue();
+
+		transQ.addListener(
+				new TranscodeQueueListener()
+				{
+					int	last_job_count = 0;
+
+					public void
+					jobAdded(
+							TranscodeJob		job )
+					{
+						check();
+					}
+
+					public void
+					jobChanged(
+							TranscodeJob		job )
+					{
+						check();
+					}
+
+					public void
+					jobRemoved(
+							TranscodeJob		job )
+					{
+						check();
+					}
+
+					protected void
+					check()
+					{
+						int job_count = device_manager.getTranscodeManager().getQueue().getJobCount();
+
+						if ( job_count != last_job_count ){
+
+							if ( job_count == 0 || last_job_count == 0 ){
+
+								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+
+								if ( mdi != null ){
+
+									MdiEntry main_entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+
+									if ( main_entry != null ){
+
+										ViewTitleInfoManager.refreshTitleInfo( main_entry.getViewTitleInfo());
+									}
 								}
 							}
+
+							last_job_count = job_count;
 						}
-						
-						last_job_count = job_count;
 					}
-				}
-			});
+				});
 		
 		setupListeners();
 		
@@ -473,9 +488,9 @@ DeviceManagerUI
 		
 		setupConfigUI(); // MDIEntry not required
 
-		if (needsAddAllDevices) {
-  		addAllDevices();
-  		needsAddAllDevices = false;
+		if ( add_all ){
+			
+			addAllDevices();
 		}
 		
 		setupTranscodeMenus(); // MDIEntry not required
@@ -2961,11 +2976,22 @@ DeviceManagerUI
 	protected void
 	addAllDevices()
 	{
-		if (device_manager_listener == null) {
-			needsAddAllDevices = true;
-			return;
+		synchronized( this ){
+		
+			if ( device_manager_listener == null ){
+			
+				needsAddAllDevices = true;
+			
+				return;
+			}
+
+			if ( !device_manager_listener_added ){
+		
+				device_manager_listener_added	= true;
+				
+				device_manager.addListener( device_manager_listener );
+			}
 		}
-		device_manager.addListener( device_manager_listener );
 			
 		Utils.execSWTThread(
 				new Runnable()
@@ -2999,7 +3025,15 @@ DeviceManagerUI
 	protected void
 	removeAllDevices()
 	{
-		device_manager.removeListener( device_manager_listener );
+		synchronized( this ){
+		
+			if ( device_manager_listener_added ){
+			
+				device_manager_listener_added	= false;
+
+				device_manager.removeListener( device_manager_listener );
+			}
+		}
 
 		Utils.execSWTThread(
 				new Runnable()
