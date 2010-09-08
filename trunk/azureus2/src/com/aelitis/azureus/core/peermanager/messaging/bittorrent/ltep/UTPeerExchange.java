@@ -241,9 +241,15 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	   * swarms over a short period, the biggest "added" list I saw was one
 	   * containing 38 peers, so it's quite possible list sizes above 50 get
 	   * sent out. So 100 is a safe-ish figure. 
+	   * 
+	   * Update: uTorrent doesn't have any set limits on this, apparently it simply
+	   * depends on the number of connections a peer has, which can be large for
+	   * fast peers (I've seen 350 peers for example). Increased limits somewhat
+	   * and added code to ignore excessive peers rather than dropping the
+	   * connection 
 	   */
 	  public int getMaxAllowedPeersPerVolley(boolean initial, boolean added) {
-		  return (initial && added) ? 200 : 100;
+		  return (initial && added) ? 500 : 250;
 	  }
 
 	  /**** DEBUG STUFF ****/

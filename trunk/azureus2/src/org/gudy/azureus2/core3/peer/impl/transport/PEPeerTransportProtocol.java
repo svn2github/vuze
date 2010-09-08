@@ -4097,11 +4097,13 @@ implements PEPeerTransport
 
 	protected void decodePeerExchange( AZStylePeerExchange exchange ) {
 		
-		// if we're seeding ignore µT-PEXed seeds, Az won't send them in the first place 
-		final PeerItem[] added = exchange instanceof UTPeerExchange ? ((UTPeerExchange)exchange).getAddedPeers(!( manager.isSeeding() || Constants.DOWNLOAD_SOURCES_PRETEND_COMPLETE )) : exchange.getAddedPeers();
-		final PeerItem[] dropped = exchange.getDroppedPeers();
+			// if we're seeding ignore µT-PEXed seeds, Az won't send them in the first place 
 		
-		//make sure they're not spamming us
+		PeerItem[] added = exchange instanceof UTPeerExchange ? ((UTPeerExchange)exchange).getAddedPeers(!( manager.isSeeding() || Constants.DOWNLOAD_SOURCES_PRETEND_COMPLETE )) : exchange.getAddedPeers();
+		PeerItem[] dropped = exchange.getDroppedPeers();
+		
+			//make sure they're not spamming us
+		
 		if( !message_limiter.countIncomingMessage( exchange.getID(), 7, 120*1000 ) ) {  //allow max 7 PEX per 2min  //TODO reduce max after 2308 release?
 			System.out.println( manager.getDisplayName() + ": Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
 			closeConnectionInternally( "Incoming PEX message flood detected, dropping spamming peer connection." );
@@ -4110,15 +4112,23 @@ implements PEPeerTransport
 
 		exchange.destroy();
 
-    if(		( added != null   && added.length   > exchange.getMaxAllowedPeersPerVolley(!this.has_received_initial_pex, true)) ||
-    		( dropped != null && dropped.length > exchange.getMaxAllowedPeersPerVolley(!this.has_received_initial_pex, false))) {
+		if(		( added != null   && added.length   > exchange.getMaxAllowedPeersPerVolley(!this.has_received_initial_pex, true)) ||
+				( dropped != null && dropped.length > exchange.getMaxAllowedPeersPerVolley(!this.has_received_initial_pex, false))) {
     	
-			//drop these too-large messages as they seem to be used for DOS by swarm poisoners
-   			closeConnectionInternally( "Invalid PEX message received: too large, dropping likely poisoner peer connection. (added=" + (added==null?0:added.length) + ",dropped=" + (dropped==null?0:dropped.length) +")" );
-			return;
+				// log these too-large messages and ignore them - if the swarm really is this large then
+				// we'll discover the peers soon anyway
+    	
+    		if (Logger.isEnabled()){
+    			Logger.log(
+    				new LogEvent(this, LOGID,
+    				"Invalid PEX message received: too large, ignoring this exchange. (added=" + (added==null?0:added.length) + ",dropped=" + (dropped==null?0:dropped.length) +")" ));
+    		}
+    		
+    		added 	= null;
+    		dropped	= null;
 		}
     
-    	this.has_received_initial_pex = true;
+    	has_received_initial_pex = true;
 
     	PeerExchangerItem pex_item = peer_exchange_item;
     
