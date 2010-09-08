@@ -255,7 +255,8 @@ public class SWTSkinObjectContainer
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setIsVisible(boolean)
 	protected boolean setIsVisible(boolean visible, boolean walkup) {
-		if (Utils.isThisThreadSWT() && !control.getShell().isVisible()) {
+		if (Utils.isThisThreadSWT() && !control.isDisposed()
+				&& !control.getShell().isVisible()) {
 			return false;
 		}
 		boolean changed = super.setIsVisible(visible, walkup && visible);
