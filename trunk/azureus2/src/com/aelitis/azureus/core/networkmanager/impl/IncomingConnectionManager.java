@@ -98,7 +98,7 @@ IncomingConnectionManager
 	      MatchListener listener 		= null;
 	      Object		routing_data 	= null;
 	      	    	  
-	      for( Iterator i = match_buffers_cow.entrySet().iterator(); i.hasNext(); ) {
+	      for( Iterator i = match_buffers_cow.entrySet().iterator(); i.hasNext() && !transport.isClosed(); ) {
 	        Map.Entry entry = (Map.Entry)i.next();
 	        NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)entry.getKey();
 	        MatchListener this_listener = (MatchListener)entry.getValue();
@@ -442,7 +442,9 @@ IncomingConnectionManager
 				Object[] match_data = checkForMatch( transport_helper, local_port, ic.buffer, false );
 
 				if( match_data == null ) {  //no match found
-					if( ic.buffer.position() >= getMaxMatchBufferSize()) { //we've already read in enough bytes to have compared against all potential match buffers
+					if( transport_helper.isClosed() ||
+						ic.buffer.position() >= getMaxMatchBufferSize()) { //we've already read in enough bytes to have compared against all potential match buffers
+						
 						ic.buffer.flip();
 						if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID,

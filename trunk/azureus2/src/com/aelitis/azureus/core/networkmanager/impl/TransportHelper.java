@@ -109,6 +109,9 @@ TransportHelper
     public void
     cancelWriteSelects();
     
+    public boolean
+    isClosed();
+    
     public void
     close(
     	String		reason );

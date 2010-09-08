@@ -37,7 +37,7 @@ UDPTransportHelper
 	implements TransportHelper
 {
 	public static final int READ_TIMEOUT		= 30*1000;
-	public static final int CONNECT_TIMEOUT		= 60*1000;
+	public static final int CONNECT_TIMEOUT		= 20*1000;
 	
 	private UDPConnectionManager	manager;
 	private UDPSelector				selector;
@@ -617,6 +617,15 @@ UDPTransportHelper
     	connection.failedSupport( reason );
     }
     
+	public boolean
+	isClosed()
+	{
+		synchronized( this ){
+		
+			return( closed );
+		}
+	}
+	
     public void
     close(
     	String	reason )

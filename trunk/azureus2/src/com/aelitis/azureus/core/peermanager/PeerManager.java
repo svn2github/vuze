@@ -296,20 +296,28 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 						if ( routing_data.isKnownSeed( address )){
 
+							String reason = "Activation request from " + address + " denied as known seed";
+							
 							if (Logger.isEnabled()){
-								Logger.log(new LogEvent(LOGID, "Activation request from " + address + " denied as known seed" ));
+								Logger.log(new LogEvent(LOGID, reason  ));
 							}
 
+							transport.close( reason );
+							
 							routing_data = null;
 
 						}else{
 
 							if ( !routing_data.getAdapter().activateRequest( address )){
 
+								String reason = "Activation request from " + address + " denied by rules";
+								
 								if (Logger.isEnabled()){
-									Logger.log(new LogEvent(LOGID, "Activation request from " + address + " denied by rules" ));
+									Logger.log(new LogEvent(LOGID, reason ));
 								}
 
+								transport.close( reason );
+								
 								routing_data = null;	
 							}
 						}

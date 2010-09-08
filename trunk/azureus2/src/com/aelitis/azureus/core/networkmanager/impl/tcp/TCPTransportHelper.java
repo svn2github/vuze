@@ -45,7 +45,7 @@ TCPTransportHelper
 	implements TransportHelper
 {
 	public static final int READ_TIMEOUT		= 10*1000;
-	public static final int CONNECT_TIMEOUT		= 60*1000;
+	public static final int CONNECT_TIMEOUT		= 20*1000;
 	  
 	public static final int MAX_PARTIAL_WRITE_RETAIN	= 64;	// aim here is to catch headers
 	
@@ -60,6 +60,8 @@ TCPTransportHelper
 	private Map	user_data;
 	
 	private boolean	trace;
+	
+	private volatile boolean closed;
 	
 	public TCPTransportHelper( SocketChannel _channel ) {
 		channel = _channel;
@@ -537,9 +539,17 @@ TCPTransportHelper
 		TCPNetworkManager.getSingleton().getWriteSelector().pauseSelects( channel );
 	}
 
+	public boolean
+	isClosed()
+	{
+		return( closed );
+	}
+	
 	public void
 	close( String reason )
 	{
+		closed = true;
+		
 		TCPNetworkManager.getSingleton().getReadSelector().cancel( channel );
 		TCPNetworkManager.getSingleton().getWriteSelector().cancel( channel );
 		TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
