@@ -4101,7 +4101,12 @@ implements PEPeerTransport
 		
 		PeerItem[] added = exchange instanceof UTPeerExchange ? ((UTPeerExchange)exchange).getAddedPeers(!( manager.isSeeding() || Constants.DOWNLOAD_SOURCES_PRETEND_COMPLETE )) : exchange.getAddedPeers();
 		PeerItem[] dropped = exchange.getDroppedPeers();
+
+		int	max_added	= exchange.getMaxAllowedPeersPerVolley(!has_received_initial_pex, true);
+		int max_dropped = exchange.getMaxAllowedPeersPerVolley(!has_received_initial_pex, false);
 		
+		exchange.destroy();
+
 			//make sure they're not spamming us
 		
 		if( !message_limiter.countIncomingMessage( exchange.getID(), 7, 120*1000 ) ) {  //allow max 7 PEX per 2min  //TODO reduce max after 2308 release?
@@ -4110,10 +4115,8 @@ implements PEPeerTransport
 			return;
 		}
 
-		exchange.destroy();
-
-		if(		( added != null   && added.length   > exchange.getMaxAllowedPeersPerVolley(!this.has_received_initial_pex, true)) ||
-				( dropped != null && dropped.length > exchange.getMaxAllowedPeersPerVolley(!this.has_received_initial_pex, false))) {
+		if(		( added != null   && added.length  > max_added ) ||
+				( dropped != null && dropped.length > max_dropped )) {
     	
 				// log these too-large messages and ignore them - if the swarm really is this large then
 				// we'll discover the peers soon anyway
