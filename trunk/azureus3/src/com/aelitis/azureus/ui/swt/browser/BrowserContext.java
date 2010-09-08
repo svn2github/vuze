@@ -414,7 +414,10 @@ public class BrowserContext
 						boolean isVuzeFile	= false;
 						
 						//Try to catch .torrent files
-						if(event_location.endsWith(".torrent")) {
+						// URLs ending in "?torrent" on Amazon S3's Simple Storage Service 
+						// return an auto-generated a torrent based on the url, but only on
+						// GET.  HEAD will fail, so we have to trap and assume
+						if(event_location.endsWith(".torrent") || event_location.endsWith("?torrent")) {
 							isTorrent = true;
 						} else {
 							//If it's not obviously a web page
