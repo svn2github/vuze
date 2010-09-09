@@ -125,6 +125,35 @@ implements Iterable<T>
 	}
 
 	public void
+	add(
+		int	index,
+		T	obj )
+	{
+		synchronized( this ){
+			
+			if ( visible ){
+				
+				List<T>	new_list = new ArrayList<T>( list );
+				
+				//mutated();
+				
+				new_list.add( index, obj );
+			
+				list	= new_list;
+			
+				visible = false;
+				
+			}else{
+				if (list == Collections.EMPTY_LIST) {
+					list = new ArrayList<T>(initialCapacity);
+				}
+				
+				list.add( index, obj );
+			}
+		}
+	}
+	
+	public void
 	addAll(
 		Collection<T>	c )
 	{

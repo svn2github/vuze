@@ -37,13 +37,14 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.util.AEPriorityMixin;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 import com.aelitis.net.udp.uc.PRUDPPrimordialHandler;
 
 public class 
 NetworkGlueUDP
-	implements NetworkGlue, PRUDPPrimordialHandler
+	implements NetworkGlue, PRUDPPrimordialHandler, AEPriorityMixin
  
 {
 	private static final LogIDs LOGID = LogIDs.NET;
@@ -153,6 +154,12 @@ NetworkGlueUDP
 				}
 			}
 		}.start();
+	}
+	
+	public int 
+	getPriority() 
+	{
+		return( AEPriorityMixin.PRIORITY_LOW );
 	}
 	
 	public boolean

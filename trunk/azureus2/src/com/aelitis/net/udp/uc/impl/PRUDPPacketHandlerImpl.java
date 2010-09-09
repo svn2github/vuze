@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
+import com.aelitis.azureus.core.util.AEPriorityMixin;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.net.udp.uc.*;
 
@@ -186,14 +187,62 @@ PRUDPPacketHandlerImpl
 	addPrimordialHandler(
 		PRUDPPrimordialHandler	handler )
 	{
-		if ( primordial_handlers.contains( handler )){
+		synchronized( primordial_handlers ){
 			
-			Debug.out( "Primordial handler already added!" );
+			if ( primordial_handlers.contains( handler )){
+				
+				Debug.out( "Primordial handler already added!" );
+				
+				return;
+			}
 			
-			return;
+			int	priority;
+			
+			if ( handler instanceof AEPriorityMixin ){
+			
+				priority = ((AEPriorityMixin)handler).getPriority();
+				
+			}else{
+				
+				priority = AEPriorityMixin.PRIORITY_NORMAL;
+			}
+			
+			List<PRUDPPrimordialHandler> existing = primordial_handlers.getList();
+			
+			int	insert_at = -1;
+			
+			for (int i=0;i<existing.size();i++){
+				
+				PRUDPPrimordialHandler e = existing.get( i );
+				
+				int	existing_priority;
+				
+				if ( e instanceof AEPriorityMixin ){
+				
+					existing_priority = ((AEPriorityMixin)e).getPriority();
+					
+				}else{
+					
+					existing_priority = AEPriorityMixin.PRIORITY_NORMAL;
+				}
+				
+				if ( existing_priority < priority ){
+					
+					insert_at = i;
+					
+					break;
+				}
+			}
+			
+			if ( insert_at >= 0 ){
+				
+				primordial_handlers.add( insert_at, handler );
+				
+			}else{
+				
+				primordial_handlers.add( handler );
+			}
 		}
-		
-		primordial_handlers.add( handler );
 		
 			// if we have an altProtocolDelegate then this shares the list of handlers so no need to add
 	}
@@ -202,15 +251,18 @@ PRUDPPacketHandlerImpl
 	removePrimordialHandler(
 		PRUDPPrimordialHandler	handler )
 	{
-		if ( !primordial_handlers.contains( handler )){
+		synchronized( primordial_handlers ){
 			
-			Debug.out( "Primordial handler not found!" );
+			if ( !primordial_handlers.contains( handler )){
+				
+				Debug.out( "Primordial handler not found!" );
+				
+				return;
+			}
 			
-			return;
+			primordial_handlers.remove( handler );
 		}
 		
-		primordial_handlers.remove( handler );
-	
 			// if we have an altProtocolDelegate then this shares the list of handlers so no need to remove
 	}
 	
