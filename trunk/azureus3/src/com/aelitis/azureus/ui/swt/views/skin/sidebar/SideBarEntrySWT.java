@@ -696,7 +696,9 @@ public class SideBarEntrySWT
 					Image grey = ImageLoader.getInstance().getImage(imageLeftID + "-gray");
 
 					if (grey != null) {
+						gc.setAlpha(160);
 						gc.drawImage(grey, x, y);
+						gc.setAlpha(255);
 						ImageLoader.getInstance().releaseImage(imageLeftID + "-gray");
 
 						drawn = true;
