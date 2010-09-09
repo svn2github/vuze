@@ -1,0 +1,147 @@
+/*
+ * Created on Sep 9, 2010
+ * Created by Paul Gardner
+ * 
+ * Copyright 2010 Vuze, Inc.  All rights reserved.
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License only.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+
+package org.gudy.azureus2.core3.util;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryType;
+import java.util.List;
+
+import javax.management.Notification;
+import javax.management.NotificationEmitter;
+import javax.management.NotificationListener;
+
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
+
+public class 
+AEMemoryMonitor 
+{
+	protected static void
+	initialise()
+	{
+		try{
+			List<MemoryPoolMXBean> pools = ManagementFactory.getMemoryPoolMXBeans();
+		
+			MemoryPoolMXBean 	pool_to_monitor = null;
+			long				ptm_size		= 0;
+			
+			long	overall_max = 0;
+			
+			for ( MemoryPoolMXBean pool: pools ){
+			
+				long pool_max = pool.getUsage().getMax();
+				
+				if ( pool_max > 0 ){
+					
+					if ( pool.getType() == MemoryType.HEAP ){
+					
+						overall_max += pool_max;
+					}
+				}
+				
+				if ( pool.getType() == MemoryType.HEAP && pool.isCollectionUsageThresholdSupported()){
+				
+					long max = pool.getUsage().getMax();
+					
+					if ( max > ptm_size ){
+						
+						pool_to_monitor = pool;
+						ptm_size		= max;
+					}
+				}
+			}
+			
+			if ( pool_to_monitor != null ){
+
+				long max = pool_to_monitor.getUsage().getMax();
+				
+				long threshold = max*3/4;
+				
+				threshold = Math.min( threshold, 5*1024*1024 );
+				
+				MemoryMXBean mbean = ManagementFactory.getMemoryMXBean();
+
+				NotificationEmitter emitter = (NotificationEmitter) mbean;
+
+				final long MB = 1024*1024;
+
+				final long heap_max_mb = (overall_max+MB-1)/MB;
+				
+				emitter.addNotificationListener(
+					new NotificationListener()
+					{
+						long	last_mb_log = Long.MAX_VALUE;
+						
+						public void 
+						handleNotification(
+							Notification 	notification, 
+							Object 			handback ) 
+						{
+							MemoryPoolMXBean pool = (MemoryPoolMXBean)handback;
+
+							long used 	= pool.getCollectionUsage().getUsed();
+							long max 	= pool.getUsage().getMax();
+							
+							long avail = max-used;
+							
+							if ( avail < 0 ){
+								avail = 0;
+							}
+							
+							long	mb = (avail+MB-1)/(MB);
+							
+							if ( mb <= 4 ){
+								
+								synchronized( this ){
+									
+									if ( mb >= last_mb_log ){
+										
+										return;
+									}
+									
+									last_mb_log = mb;
+								}
+								
+	 							Logger.logTextResource(
+	 								new LogAlert(
+	 									LogAlert.REPEATABLE, 
+	 									LogAlert.AT_WARNING,
+										"memmon.low.warning"), 
+										new String[] {
+	 										DisplayFormatters.formatByteCountToKiBEtc( mb*MB, true ),
+	 										DisplayFormatters.formatByteCountToKiBEtc( heap_max_mb*MB, true )});
+							}
+						}
+					},
+					null, pool_to_monitor );
+
+				pool_to_monitor.setCollectionUsageThreshold( threshold );
+
+			}
+		}catch( Throwable e ){
+		
+			Debug.out( e );
+		}
+	}
+}

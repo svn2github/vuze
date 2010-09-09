@@ -240,6 +240,8 @@ AEDiagnostics
 			
 			AEThreadMonitor.initialise();
 			
+			AEMemoryMonitor.initialise();
+			
 		}catch( Throwable e ){
 			
 				// with webui we don't have the file stuff so this fails with class not found
