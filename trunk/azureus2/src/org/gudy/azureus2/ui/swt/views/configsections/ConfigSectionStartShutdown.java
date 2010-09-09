@@ -32,7 +32,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEMemoryMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
@@ -252,7 +254,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 				final File option_file = platform.getVMOptionFile();
 			 	
 				final Group gJVMOptions = new Group(gJVM, SWT.NULL);
-				layout = new GridLayout(2, false);
+				layout = new GridLayout(3, false);
 				gJVMOptions.setLayout(layout);
 				gridData = new GridData( GridData.FILL_HORIZONTAL );
 				gridData.horizontalSpan = 2;
@@ -341,196 +343,318 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		
 		String[] options = platform.getExplicitVMOptions();
 		
-			// max mem
+		{
+				// max mem
+			
+			long	max_mem = getJVMLongOption( options, "-Xmx" );
+			
+			final int MIN_MAX_JVM = 32*1024*1024;
+	
+			GridData gridData = new GridData();
+			Label label = new Label(area, SWT.NULL);
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label,	"jvm.max.mem", new String[]{encodeDisplayLong(MIN_MAX_JVM)});
+	
+			gridData = new GridData();
+			gridData.widthHint = 125;
+			final StringParameter max_vm = new StringParameter(area, "jvm.max.mem", "", false );
+			max_vm.setLayoutData(gridData);
+				
+			max_vm.setValue( max_mem == -1?"":encodeDisplayLong( max_mem ));
+			
+			max_vm.addChangeListener(
+				new ParameterChangeAdapter()
+				{
+					private String	last_value;
+					
+					public void
+					parameterChanged(
+						Parameter	p,
+						boolean		caused_internally )
+					{
+						if ( max_vm.isDisposed()){
+							
+							max_vm.removeChangeListener( this );
+							
+							return;
+						}
+						
+						String val = max_vm.getValue();
+						
+						if ( last_value != null && last_value.equals( val )){
+							
+							return;
+						}
+						
+						last_value = val;
+											
+						try{
+							long max_mem = decodeDisplayLong( val );
+							
+							if ( max_mem < MIN_MAX_JVM ){
+								
+								throw( new Exception( "Min=" + encodeDisplayLong( MIN_MAX_JVM )));
+							}
+													
+							String[] options = platform.getExplicitVMOptions();
+							
+							options = setJVMLongOption( options, "-Xmx", max_mem );
+	
+							long	min_mem = getJVMLongOption( options, "-Xms" );
+	
+							if ( min_mem == -1 || min_mem > max_mem ){
+								
+								options = setJVMLongOption( options, "-Xms", max_mem );
+							}
+							
+							platform.setExplicitVMOptions( options );
+							
+							buildOptions( parent, platform, area, true );
+							
+						}catch( Throwable e ){
+							
+							String param_name = MessageText.getString( "jvm.max.mem" );
+							
+							int	pos = param_name.indexOf( '[' );
+							
+							if ( pos != -1 ){
+								
+								param_name = param_name.substring( 0, pos ).trim();
+							}
+							
+							MessageBoxShell mb = 
+								new MessageBoxShell( 
+									SWT.ICON_ERROR | SWT.OK,
+									MessageText.getString( "ConfigView.section.invalid.value.title"),
+									MessageText.getString( 
+										"ConfigView.section.invalid.value", 
+										new String[]{ val, param_name, Debug.getNestedExceptionMessage(e)}));
+		  				
+									mb.setParent( parent.getShell());
+									mb.open(null);
+						}
+					}
+				});
+			
+			label = new Label(area, SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			label.setLayoutData(gridData);
+			
+			Long max_heap_mb = AEMemoryMonitor.getMaxHeapMB();
+			
+			if ( max_heap_mb > 0 ){
+				
+				Messages.setLanguageText(label,	"jvm.max.mem.current", new String[]{ DisplayFormatters.formatByteCountToKiBEtc( max_heap_mb*1024*1024, true )});
+			}
+		}
 		
-		long	max_mem = getJVMLongOption( options, "-Xmx" );
+		{
+				// min mem
+			
+			final int MIN_MIN_JVM = 8*1024*1024;
+	
+			long	min_mem = getJVMLongOption( options, "-Xms" );
+	
+			GridData gridData = new GridData();
+			Label label = new Label(area, SWT.NULL);
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label,	"jvm.min.mem", new String[]{encodeDisplayLong(MIN_MIN_JVM)});
+	
+			gridData = new GridData();
+			gridData.widthHint = 125;
+			final StringParameter min_vm = new StringParameter(area, "jvm.min.mem", "", false );
+			min_vm.setLayoutData(gridData);
+				
+			min_vm.setValue( min_mem == -1?"":encodeDisplayLong( min_mem ));
+			
+			min_vm.addChangeListener(
+				new ParameterChangeAdapter()
+				{
+					private String	last_value;
+					
+					public void
+					parameterChanged(
+						Parameter	p,
+						boolean		caused_internally )
+					{
+						if ( min_vm.isDisposed()){
+							
+							min_vm.removeChangeListener( this );
+							
+							return;
+						}
+						
+						String val = min_vm.getValue();
+						
+						if ( last_value != null && last_value.equals( val )){
+							
+							return;
+						}
+						
+						last_value = val;
+											
+						try{
+							long min_mem = decodeDisplayLong( val );
+							
+							if ( min_mem < MIN_MIN_JVM ){
+								
+								throw( new Exception( "Min=" + encodeDisplayLong( MIN_MIN_JVM )));
+							}
+													
+							String[] options = platform.getExplicitVMOptions();
+							
+							options = setJVMLongOption( options, "-Xms", min_mem );
+	
+							long	max_mem = getJVMLongOption( options, "-Xmx" );
+	
+							if ( max_mem == -1 || max_mem < min_mem ){
+								
+								options = setJVMLongOption( options, "-Xmx", min_mem );
+							}
+							
+							platform.setExplicitVMOptions( options );
+							
+							buildOptions( parent, platform, area, true );
+							
+						}catch( Throwable e ){
+							
+							String param_name = MessageText.getString( "jvm.min.mem" );
+							
+							int	pos = param_name.indexOf( '[' );
+							
+							if ( pos != -1 ){
+								
+								param_name = param_name.substring( 0, pos ).trim();
+							}
+							
+							MessageBoxShell mb = 
+								new MessageBoxShell( 
+									SWT.ICON_ERROR | SWT.OK,
+									MessageText.getString( "ConfigView.section.invalid.value.title"),
+									MessageText.getString( 
+										"ConfigView.section.invalid.value", 
+										new String[]{ val, param_name, Debug.getNestedExceptionMessage(e)}));
+		  				
+									mb.setParent( parent.getShell());
+									mb.open(null);
+						}
+					}
+				});
+			
+			label = new Label(area, SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			label.setLayoutData(gridData);
+		}
 		
-		final int MIN_MAX_JVM = 32*1024*1024;
+		{
+				// max DIRECT mem
+			
+			final int MIN_DIRECT_JVM = 32*1024*1024;
+			
+			final String OPTION_KEY = "-XX:MaxDirectMemorySize=";
+			
+			long	max_direct = getJVMLongOption( options, OPTION_KEY );
+	
+			GridData gridData = new GridData();
+			Label label = new Label(area, SWT.NULL);
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label,	"jvm.max.direct.mem", new String[]{encodeDisplayLong(MIN_DIRECT_JVM)});
+	
+			gridData = new GridData();
+			gridData.widthHint = 125;
+			final StringParameter max_direct_vm = new StringParameter(area, "jvm.max.direct.mem", "", false );
+			max_direct_vm.setLayoutData(gridData);
+				
+			max_direct_vm.setValue( max_direct == -1?"":encodeDisplayLong( max_direct ));
+			
+			max_direct_vm.addChangeListener(
+				new ParameterChangeAdapter()
+				{
+					private String	last_value;
+					
+					public void
+					parameterChanged(
+						Parameter	p,
+						boolean		caused_internally )
+					{
+						if ( max_direct_vm.isDisposed()){
+							
+							max_direct_vm.removeChangeListener( this );
+							
+							return;
+						}
+						
+						String val = max_direct_vm.getValue();
+						
+						if ( last_value != null && last_value.equals( val )){
+							
+							return;
+						}
+						
+						last_value = val;
+											
+						try{
+							long max_direct = decodeDisplayLong( val );
+							
+							if ( max_direct < MIN_DIRECT_JVM ){
+								
+								throw( new Exception( "Min=" + encodeDisplayLong( MIN_DIRECT_JVM )));
+							}
+													
+							String[] options = platform.getExplicitVMOptions();
+							
+							options = setJVMLongOption( options, OPTION_KEY, max_direct );
+								
+							platform.setExplicitVMOptions( options );
+							
+							buildOptions( parent, platform, area, true );
+							
+						}catch( Throwable e ){
+							
+							String param_name = MessageText.getString( "jvm.max.direct.mem" );
+							
+							int	pos = param_name.indexOf( '[' );
+							
+							if ( pos != -1 ){
+								
+								param_name = param_name.substring( 0, pos ).trim();
+							}
+							
+							MessageBoxShell mb = 
+								new MessageBoxShell( 
+									SWT.ICON_ERROR | SWT.OK,
+									MessageText.getString( "ConfigView.section.invalid.value.title"),
+									MessageText.getString( 
+										"ConfigView.section.invalid.value", 
+										new String[]{ val, param_name, Debug.getNestedExceptionMessage(e)}));
+		  				
+									mb.setParent( parent.getShell());
+									mb.open(null);
+						}
+					}
+				});
+			
+			label = new Label(area, SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label,	"jvm.max.direct.mem.info" );
+		}		
+		
+			// all options
 
-		GridData gridData = new GridData();
 		Label label = new Label(area, SWT.NULL);
+		GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 3;
 		label.setLayoutData(gridData);
-		Messages.setLanguageText(label,	"jvm.max.mem", new String[]{encodeDisplayLong(MIN_MAX_JVM)});
+		Messages.setLanguageText(label,	"jvm.options.summary" );
 
-		gridData = new GridData();
-		gridData.widthHint = 125;
-		final StringParameter max_vm = new StringParameter(area, "jvm.max.mem", "", false );
-		max_vm.setLayoutData(gridData);
-			
-		max_vm.setValue( max_mem == -1?"":encodeDisplayLong( max_mem ));
-		
-		max_vm.addChangeListener(
-			new ParameterChangeAdapter()
-			{
-				private String	last_value;
-				
-				public void
-				parameterChanged(
-					Parameter	p,
-					boolean		caused_internally )
-				{
-					if ( max_vm.isDisposed()){
-						
-						max_vm.removeChangeListener( this );
-						
-						return;
-					}
-					
-					String val = max_vm.getValue();
-					
-					if ( last_value != null && last_value.equals( val )){
-						
-						return;
-					}
-					
-					last_value = val;
-										
-					try{
-						long max_mem = decodeDisplayLong( val );
-						
-						if ( max_mem < MIN_MAX_JVM ){
-							
-							throw( new Exception( "Min=" + encodeDisplayLong( MIN_MAX_JVM )));
-						}
-												
-						String[] options = platform.getExplicitVMOptions();
-						
-						options = setJVMLongOption( options, "-Xmx", max_mem );
-
-						long	min_mem = getJVMLongOption( options, "-Xms" );
-
-						if ( min_mem == -1 || min_mem > max_mem ){
-							
-							options = setJVMLongOption( options, "-Xms", max_mem );
-						}
-						
-						platform.setExplicitVMOptions( options );
-						
-						buildOptions( parent, platform, area, true );
-						
-					}catch( Throwable e ){
-						
-						String param_name = MessageText.getString( "jvm.max.mem" );
-						
-						int	pos = param_name.indexOf( '[' );
-						
-						if ( pos != -1 ){
-							
-							param_name = param_name.substring( 0, pos ).trim();
-						}
-						
-						MessageBoxShell mb = 
-							new MessageBoxShell( 
-								SWT.ICON_ERROR | SWT.OK,
-								MessageText.getString( "ConfigView.section.invalid.value.title"),
-								MessageText.getString( 
-									"ConfigView.section.invalid.value", 
-									new String[]{ val, param_name, Debug.getNestedExceptionMessage(e)}));
-	  				
-								mb.setParent( parent.getShell());
-								mb.open(null);
-					}
-				}
-			});
-		
-			// min mem
-		
-		final int MIN_MIN_JVM = 8*1024*1024;
-
-		long	min_mem = getJVMLongOption( options, "-Xms" );
-
-		gridData = new GridData();
-		label = new Label(area, SWT.NULL);
-		label.setLayoutData(gridData);
-		Messages.setLanguageText(label,	"jvm.min.mem", new String[]{encodeDisplayLong(MIN_MIN_JVM)});
-
-		gridData = new GridData();
-		gridData.widthHint = 125;
-		final StringParameter min_vm = new StringParameter(area, "jvm.min.mem", "", false );
-		min_vm.setLayoutData(gridData);
-			
-		min_vm.setValue( min_mem == -1?"":encodeDisplayLong( min_mem ));
-		
-		min_vm.addChangeListener(
-			new ParameterChangeAdapter()
-			{
-				private String	last_value;
-				
-				public void
-				parameterChanged(
-					Parameter	p,
-					boolean		caused_internally )
-				{
-					if ( min_vm.isDisposed()){
-						
-						min_vm.removeChangeListener( this );
-						
-						return;
-					}
-					
-					String val = min_vm.getValue();
-					
-					if ( last_value != null && last_value.equals( val )){
-						
-						return;
-					}
-					
-					last_value = val;
-										
-					try{
-						long min_mem = decodeDisplayLong( val );
-						
-						if ( min_mem < MIN_MIN_JVM ){
-							
-							throw( new Exception( "Min=" + encodeDisplayLong( MIN_MIN_JVM )));
-						}
-												
-						String[] options = platform.getExplicitVMOptions();
-						
-						options = setJVMLongOption( options, "-Xms", min_mem );
-
-						long	max_mem = getJVMLongOption( options, "-Xmx" );
-
-						if ( max_mem == -1 || max_mem < min_mem ){
-							
-							options = setJVMLongOption( options, "-Xmx", min_mem );
-						}
-						
-						platform.setExplicitVMOptions( options );
-						
-						buildOptions( parent, platform, area, true );
-						
-					}catch( Throwable e ){
-						
-						String param_name = MessageText.getString( "jvm.min.mem" );
-						
-						int	pos = param_name.indexOf( '[' );
-						
-						if ( pos != -1 ){
-							
-							param_name = param_name.substring( 0, pos ).trim();
-						}
-						
-						MessageBoxShell mb = 
-							new MessageBoxShell( 
-								SWT.ICON_ERROR | SWT.OK,
-								MessageText.getString( "ConfigView.section.invalid.value.title"),
-								MessageText.getString( 
-									"ConfigView.section.invalid.value", 
-									new String[]{ val, param_name, Debug.getNestedExceptionMessage(e)}));
-	  				
-								mb.setParent( parent.getShell());
-								mb.open(null);
-					}
-				}
-			});
-		
 		for ( String option: options ){
 			
 			label = new Label(area, SWT.NULL);
 			label.setText( option );
 			gridData = new GridData( );
-			gridData.horizontalSpan = 2;
+			gridData.horizontalSpan = 3;
+			gridData.horizontalIndent = 20;
 			label.setLayoutData( gridData );
 		}
 		
@@ -665,6 +789,11 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		}
 		
 		long value = Long.parseLong( digits );
+		
+		if( units.length() == 0 ){
+			
+			units = "m";
+		}
 		
 		if ( units.length() > 0 ){
 			

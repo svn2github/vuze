@@ -37,6 +37,10 @@ import org.gudy.azureus2.core3.logging.Logger;
 public class 
 AEMemoryMonitor 
 {
+	private static final long MB = 1024*1024;
+
+	private static long	max_heap_mb;
+	
 	protected static void
 	initialise()
 	{
@@ -72,6 +76,8 @@ AEMemoryMonitor
 				}
 			}
 			
+			max_heap_mb = (overall_max+MB-1)/MB;
+
 			if ( pool_to_monitor != null ){
 
 				long max = pool_to_monitor.getUsage().getMax();
@@ -84,9 +90,6 @@ AEMemoryMonitor
 
 				NotificationEmitter emitter = (NotificationEmitter) mbean;
 
-				final long MB = 1024*1024;
-
-				final long heap_max_mb = (overall_max+MB-1)/MB;
 				
 				emitter.addNotificationListener(
 					new NotificationListener()
@@ -129,8 +132,8 @@ AEMemoryMonitor
 	 									LogAlert.AT_WARNING,
 										"memmon.low.warning"), 
 										new String[] {
-	 										DisplayFormatters.formatByteCountToKiBEtc( mb*MB, true ),
-	 										DisplayFormatters.formatByteCountToKiBEtc( heap_max_mb*MB, true )});
+	 										(mb==0?"< ":"") + DisplayFormatters.formatByteCountToKiBEtc( Math.max(1,mb)*MB, true ),
+	 										DisplayFormatters.formatByteCountToKiBEtc( max_heap_mb*MB, true )});
 							}
 						}
 					},
@@ -143,5 +146,16 @@ AEMemoryMonitor
 		
 			Debug.out( e );
 		}
+		
+		if ( max_heap_mb == 0 ){
+			
+			max_heap_mb = ( Runtime.getRuntime().maxMemory()+MB-1)/MB;
+		}
+	}
+	
+	public static long
+	getMaxHeapMB()
+	{
+		return( max_heap_mb );
 	}
 }
