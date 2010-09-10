@@ -1407,6 +1407,7 @@ DeviceManagerUI
 				
 
 				de_menu_item = menu_manager.addMenuItem( parentID, "device.showGeneric" );
+				de_menu_item.setStyle(MenuItem.STYLE_CHECK);
 				de_menu_item.addFillListener(new MenuItemFillListener() {
 					public void menuWillBeShown(MenuItem menu, Object data) {
 						menu.setData( COConfigurationManager.getBooleanParameter( CONFIG_VIEW_HIDE_REND_GENERIC, true ));
