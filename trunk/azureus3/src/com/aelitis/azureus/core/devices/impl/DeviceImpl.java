@@ -186,6 +186,11 @@ DeviceImpl
 				return( new_name );
 			}
 		}
+	
+		if ( name.startsWith( "WDTVLIVE")){
+			
+			name = "WD TV Live";
+		}
 		
 		return( name );
 	}
