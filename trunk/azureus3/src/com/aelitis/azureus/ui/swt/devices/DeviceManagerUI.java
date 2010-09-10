@@ -1405,6 +1405,21 @@ DeviceManagerUI
 				
 					// show hidden
 				
+
+				de_menu_item = menu_manager.addMenuItem( parentID, "device.showGeneric" );
+				de_menu_item.addFillListener(new MenuItemFillListener() {
+					public void menuWillBeShown(MenuItem menu, Object data) {
+						menu.setData( COConfigurationManager.getBooleanParameter( CONFIG_VIEW_HIDE_REND_GENERIC, true ));
+					}
+				});
+				de_menu_item.addListener(new MenuItemListener() {
+					public void selected(MenuItem menu, Object target) {
+						COConfigurationManager.setParameter(CONFIG_VIEW_HIDE_REND_GENERIC,
+								!COConfigurationManager.getBooleanParameter(
+										CONFIG_VIEW_HIDE_REND_GENERIC, true));
+					}
+				});
+
 				de_menu_item = menu_manager.addMenuItem( parentID, "device.show" );
 
 				de_menu_item.addListener( show_listener );
