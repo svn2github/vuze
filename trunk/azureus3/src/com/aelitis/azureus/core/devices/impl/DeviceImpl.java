@@ -238,6 +238,7 @@ DeviceImpl
 	private boolean				manual;
 	
 	private boolean			hidden;
+	private boolean isGenericUSB;
 	private long			last_seen;
 	private boolean			can_remove = true;
 	
@@ -262,7 +263,9 @@ DeviceImpl
 	private Map<Object,String>	infos	= new HashMap<Object, String>();
 	
 	private CopyOnWriteList<DeviceListener>		device_listeners;
-	
+
+	private String image_id;
+
 	protected
 	DeviceImpl(
 		DeviceManagerImpl	_manager,
@@ -304,6 +307,7 @@ DeviceImpl
 		uid				= ImportExportUtils.importString( map, "_uid" );
 		classification	= ImportExportUtils.importString( map, "_name" );
 		name			= ImportExportUtils.importString( map, "_lname" );
+		image_id			= ImportExportUtils.importString( map, "_image_id" );
 		
 		if ( name == null ){
 			
@@ -319,6 +323,7 @@ DeviceImpl
 
 		last_seen	= ImportExportUtils.importLong( map, "_ls" );
 		hidden		= ImportExportUtils.importBoolean( map, "_hide" );	
+		isGenericUSB = ImportExportUtils.importBoolean( map, "_genericUSB" );	
 		manual		= ImportExportUtils.importBoolean( map, "_man" );
 
 		if ( map.containsKey( "_pprops" )){
@@ -346,6 +351,7 @@ DeviceImpl
 		ImportExportUtils.exportString( map, "_name", classification );
 		ImportExportUtils.exportLong( map, "_rn", 1 );
 		ImportExportUtils.exportString( map, "_lname", name );
+		ImportExportUtils.exportString( map, "_image_id", image_id );
 		
 		if ( secondary_uid != null ){
 			
@@ -354,6 +360,7 @@ DeviceImpl
 		
 		ImportExportUtils.exportLong( map, "_ls", new Long( last_seen ));
 		ImportExportUtils.exportBoolean( map, "_hide", hidden );
+		ImportExportUtils.exportBoolean( map, "_genericUSB", isGenericUSB );	
 		ImportExportUtils.exportBoolean( map, "_man", manual );
 		
 		map.put( "_pprops", persistent_properties );
@@ -465,6 +472,14 @@ DeviceImpl
 	getSecondaryID()
 	{
 		return( secondary_uid );
+	}
+	
+	public String getImageID() {
+		return image_id;
+	}
+	
+	public void setImageID(String id) {
+		image_id = id;
 	}
 	
 	public Device
@@ -608,7 +623,7 @@ DeviceImpl
 	{
 			// apparently wmp isn't ready for the right chasm
 		
-		return( getDeviceClassification() == GENERIC || getClassification().startsWith( "ms_wmp." ));
+		return( getDeviceClassification() == GENERIC || getClassification().startsWith( "ms_wmp." ) || isGenericUSB());
 	}
 		
 	public boolean
@@ -634,7 +649,26 @@ DeviceImpl
 			setDirty();
 		}
 	}
+
 	
+	public boolean
+	isGenericUSB()
+	{
+		return( isGenericUSB );
+	}
+	
+	public void
+	setGenericUSB(
+		boolean		is )
+	{
+		if ( is != isGenericUSB ){
+			
+			isGenericUSB	= is;
+			
+			setDirty();
+		}
+	}
+
 	protected void
 	alive()
 	{

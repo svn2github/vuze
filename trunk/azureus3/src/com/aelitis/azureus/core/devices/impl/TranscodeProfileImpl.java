@@ -58,7 +58,8 @@ TranscodeProfileImpl
 	public String
 	getName()
 	{
-		return( name );
+		String displayName = properties.get("display-name");
+		return( displayName == null ? name : displayName );
 	}
 	
 	public TranscodeProvider

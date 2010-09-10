@@ -136,4 +136,16 @@ Device
 		public URL
 		getURL();
 	}
+
+	public boolean 
+	isGenericUSB();
+	
+	public void
+	setGenericUSB(boolean b);
+	
+	public String
+	getImageID();
+	
+	public void
+	setImageID(String id);
 }

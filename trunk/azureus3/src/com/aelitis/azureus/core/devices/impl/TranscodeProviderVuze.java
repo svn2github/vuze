@@ -25,11 +25,10 @@ import java.io.File;
 import java.net.URL;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.devices.TranscodeProfile;
@@ -56,7 +55,8 @@ TranscodeProviderVuze
 		PluginInterface			_plugin_interface )
 	{
 		manager					= _manager;
-		plugin_interface		= _plugin_interface;
+
+		update(_plugin_interface);
 	}
 	
 	public int
@@ -70,6 +70,19 @@ TranscodeProviderVuze
 		PluginInterface		pi )
 	{
 		plugin_interface		= pi;
+
+		try {
+			plugin_interface.getIPC().invoke("addProfileListChangedListener",
+					new Object[] {
+						new AERunnable() {
+							public void runSupport() {
+								profiles = null;
+							}
+						}
+					});
+		} catch (IPCException e) {
+			//Debug.out(e);
+		}
 		
 		profiles = null;
 	}

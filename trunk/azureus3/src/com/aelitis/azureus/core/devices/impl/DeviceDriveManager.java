@@ -172,8 +172,12 @@ DeviceDriveManager
 					addDevice(name, id, root, new File(root, "videos"), false);
 					return;
 				}
+				
+				if (!isWritableUSB) {
+					return;
+				}
 
-				if (isWritableUSB && root.exists()) {
+				if (root.exists()) {
 
 					File[] folders = root.listFiles();
 
@@ -188,8 +192,28 @@ DeviceDriveManager
 
 						if (names.contains("psp") && names.contains("video")) {
 							addDevice("PSP", "sony.PSP", root, new File(root, "VIDEO"), false);
+							return;
 						}
 					}
+				}
+				
+				String pid = MapUtils.getMapString(infoMap, "PID", null);
+				String vid = MapUtils.getMapString(infoMap, "VID", null);
+				if (pid != null && vid != null) {
+					String name = "(" + sVendor;
+  				if (name.length() > 0) {
+  					name += " ";
+  				}
+  				name += sProdID + ")";
+
+  				String id = "";
+					id += sProdID.replaceAll(" ", ".").toLowerCase();
+					id += "." + pid.toLowerCase();
+					if (sVendor.length() > 0) {
+						id += "." + sVendor.replaceAll(" ", ".").toLowerCase();
+					}
+					id += "." + vid.toLowerCase();
+					addDevice(name, id, root, new File(root, "videos"), true);
 				}
 			}
 		});
@@ -216,19 +240,19 @@ DeviceDriveManager
 		return null;
 	}
 
-	protected void addDevice(
+	protected DeviceMediaRendererManual addDevice(
 			String target_name, 
 			String target_classification,
 			File root,
 			File target_directory,
-			boolean hidden)
+			boolean generic)
 	{
 		
 		DeviceMediaRenderer existingDevice = getDeviceMediaRendererByClassification(target_classification);
 		if (existingDevice instanceof DeviceMediaRendererManual ) {
 			mapDevice( (DeviceMediaRendererManual) existingDevice, root, target_directory );
 			
-			return;
+			return null;
 		}
 		
 		DeviceTemplate[] templates = manager.getDeviceTemplates( Device.DT_MEDIA_RENDERER );
@@ -268,18 +292,20 @@ DeviceDriveManager
 			
 			try{
 				renderer.setAutoCopyToFolder( true );
-				renderer.setHidden(hidden);
+				//renderer.setHidden(hidden);
+				renderer.setGenericUSB(generic);
 				
 				mapDevice( renderer, root, target_directory );
 				
-				return;
+				return renderer;
 				
 			}catch( Throwable e ){
 				
 				log( "Failed to add device", e );
 			}
 		}
-		}
+		return renderer;
+	}
 
 	public void 
 	driveRemoved(

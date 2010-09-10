@@ -91,7 +91,7 @@ public class PlatformDevicesMessenger
 
 		addPluginVersionsToMap(map);
 
-		map.put("device-name", device.getName());
+		map.put("device-name", device.getName() + "/" + device.getClassification());
 		map.put("device-type", new Integer(device.getType()));
 		if (device instanceof DeviceMediaRenderer) {
 			DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
@@ -207,7 +207,7 @@ public class PlatformDevicesMessenger
 
 		// Gotta know which device/profile/renderer we are transcoding to so we
 		// know what's should be worked on more
-		map.put("device-name", device.getName());
+		map.put("device-name", device.getName() + "/" + device.getClassification());
 		map.put("device-type", new Integer(device.getType()));
 		if (profile != null) {
 			map.put("profile-name", profile.getName());

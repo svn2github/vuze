@@ -2627,6 +2627,11 @@ DeviceManagerUI
 	getDeviceImageID(
 		Device		device )
 	{
+		String imageID = device.getImageID();
+		if (imageID != null) {
+			return imageID;
+		}
+
 		int	species = ((DeviceMediaRenderer)device).getRendererSpecies();
 		
 		String	id;
@@ -2667,8 +2672,13 @@ DeviceManagerUI
 
 			}else{
 				
-				
-				id = String.valueOf( species );
+				if (device.isGenericUSB()) {
+					id = "usb";
+
+				} else {
+
+					id = String.valueOf( species );
+				}
 			}
 		}
 		
