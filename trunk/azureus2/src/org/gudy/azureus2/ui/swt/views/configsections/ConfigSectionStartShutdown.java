@@ -41,6 +41,7 @@ import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -242,6 +243,14 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			gJVM.setLayout(layout);
 			gJVM.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
 			
+				// wiki link
+			
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+
+			LinkLabel link = new LinkLabel(	gJVM, gridData, "ConfigView.label.please.visit.here",
+											"http://wiki.vuze.com/w/Java_VM_memory_usage");
+			
 				// info
 			
 			label = new Label(gJVM, SWT.NULL);
@@ -346,7 +355,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		{
 				// max mem
 			
-			long	max_mem = getJVMLongOption( options, "-Xmx" );
+			long	max_mem = AEMemoryMonitor.getJVMLongOption( options, "-Xmx" );
 			
 			final int MIN_MAX_JVM = 32*1024*1024;
 	
@@ -398,13 +407,13 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 													
 							String[] options = platform.getExplicitVMOptions();
 							
-							options = setJVMLongOption( options, "-Xmx", max_mem );
+							options = AEMemoryMonitor.setJVMLongOption( options, "-Xmx", max_mem );
 	
-							long	min_mem = getJVMLongOption( options, "-Xms" );
+							long	min_mem = AEMemoryMonitor.getJVMLongOption( options, "-Xms" );
 	
 							if ( min_mem == -1 || min_mem > max_mem ){
 								
-								options = setJVMLongOption( options, "-Xms", max_mem );
+								options = AEMemoryMonitor.setJVMLongOption( options, "-Xms", max_mem );
 							}
 							
 							platform.setExplicitVMOptions( options );
@@ -453,7 +462,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			
 			final int MIN_MIN_JVM = 8*1024*1024;
 	
-			long	min_mem = getJVMLongOption( options, "-Xms" );
+			long	min_mem = AEMemoryMonitor.getJVMLongOption( options, "-Xms" );
 	
 			GridData gridData = new GridData();
 			Label label = new Label(area, SWT.NULL);
@@ -503,13 +512,13 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 													
 							String[] options = platform.getExplicitVMOptions();
 							
-							options = setJVMLongOption( options, "-Xms", min_mem );
+							options = AEMemoryMonitor.setJVMLongOption( options, "-Xms", min_mem );
 	
-							long	max_mem = getJVMLongOption( options, "-Xmx" );
+							long	max_mem = AEMemoryMonitor.getJVMLongOption( options, "-Xmx" );
 	
 							if ( max_mem == -1 || max_mem < min_mem ){
 								
-								options = setJVMLongOption( options, "-Xmx", min_mem );
+								options = AEMemoryMonitor.setJVMLongOption( options, "-Xmx", min_mem );
 							}
 							
 							platform.setExplicitVMOptions( options );
@@ -553,7 +562,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			
 			final String OPTION_KEY = "-XX:MaxDirectMemorySize=";
 			
-			long	max_direct = getJVMLongOption( options, OPTION_KEY );
+			long	max_direct = AEMemoryMonitor.getJVMLongOption( options, OPTION_KEY );
 	
 			GridData gridData = new GridData();
 			Label label = new Label(area, SWT.NULL);
@@ -603,7 +612,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 													
 							String[] options = platform.getExplicitVMOptions();
 							
-							options = setJVMLongOption( options, OPTION_KEY, max_direct );
+							options = AEMemoryMonitor.setJVMLongOption( options, OPTION_KEY, max_direct );
 								
 							platform.setExplicitVMOptions( options );
 							
@@ -664,66 +673,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		}
 	}
 	
-	private long
-	getJVMLongOption(
-		String[]	options,
-		String		prefix )
-	{		
-		long	value = -1;
-		
-		for ( String option: options ){
-			
-			try{
-				if ( option.startsWith( prefix )){
-					
-					String	val = option.substring( prefix.length());
-					
-					value = decodeJVMLong( val );
-				}
-			}catch( Throwable e ){
-					
-				Debug.out( "Failed to process option '" + option + "'", e );
-			}
-		}
-		
-		return( value );
-	}
-	
-	private String[]
-	setJVMLongOption(
-		String[]	options,
-		String		prefix,
-		long		val )
-	{
-		String new_option = prefix + encodeJVMLong( val );
-				
-		for (int i=0;i<options.length;i++){
-			
-			String option = options[i];
-			
-			if ( option.startsWith( prefix )){
-			
-				options[i] = new_option;
-				
-				new_option = null;
-			}
-		}
-		
-		if ( new_option != null ){
-		
-			String[] new_options = new String[options.length+1];
-		
-			System.arraycopy( options, 0, new_options, 0, options.length );
-			
-			new_options[options.length] = new_option;
-			
-			options = new_options;
-		}
-		
-		return( options );
-	}
-	
-	private String
+	private static  String
 	encodeDisplayLong(
 		long		val )
 	{
@@ -751,7 +701,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		return( String.valueOf( val ) + " GB" );
 	}
 	
-	private long
+	private static  long
 	decodeDisplayLong(
 		String		val )
 	
@@ -819,67 +769,5 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		
 		return( value );
 	}
-	
-	private long
-	decodeJVMLong(
-		String		val )
-	
-		throws Exception
-	{
-		long	 mult = 1;
-		
-		char last_char = Character.toLowerCase( val.charAt( val.length()-1 ));
-		
-		if ( !Character.isDigit( last_char )){
-			
-			val = val.substring( 0, val.length()-1 );
-			
-			if ( last_char == 'k' ){
-					
-				mult	= 1024;
-				
-			}else if ( last_char == 'm' ){
-				
-				mult	= 1024*1024;
-				
-			}else if ( last_char == 'g' ){
-				
-				mult	= 1024*1024*1024;
-				
-			}else{
-				
-				throw( new Exception( "Invalid size unit '" + last_char + "'" ));
-			}
-		}
-		
-		return( Long.parseLong( val ) * mult );
-	}
-	
-	private String
-	encodeJVMLong(
-		long	val )
-	{
-		if ( val < 1024 ){
-			
-			return( String.valueOf( val ));
-		}
-		
-		val = val/1024;
-		
-		if ( val < 1024 ){
-			
-			return( String.valueOf( val ) + "k" );
-		}
-		
-		val = val/1024;
-		
-		if ( val < 1024 ){
-			
-			return( String.valueOf( val ) + "m" );
-		}
-		
-		val = val/1024;
-		
-		return( String.valueOf( val ) + "g" );
-	}
+
 }

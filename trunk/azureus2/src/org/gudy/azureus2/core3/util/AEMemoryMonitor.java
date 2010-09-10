@@ -31,8 +31,12 @@ import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 
 public class 
 AEMemoryMonitor 
@@ -94,7 +98,9 @@ AEMemoryMonitor
 				emitter.addNotificationListener(
 					new NotificationListener()
 					{
-						long	last_mb_log = Long.MAX_VALUE;
+						private long	last_mb_log = Long.MAX_VALUE;
+						
+						private boolean increase_tried;
 						
 						public void 
 						handleNotification(
@@ -134,6 +140,59 @@ AEMemoryMonitor
 										new String[] {
 	 										(mb==0?"< ":"") + DisplayFormatters.formatByteCountToKiBEtc( Math.max(1,mb)*MB, true ),
 	 										DisplayFormatters.formatByteCountToKiBEtc( max_heap_mb*MB, true )});
+	 							
+	 							if ( mb == 1 && !increase_tried ){
+	 								
+	 								increase_tried = true;
+	 							
+	 								if ( COConfigurationManager.getBooleanParameter( "jvm.heap.auto.increase.enable", true )){
+
+		 								PlatformManager platform = PlatformManagerFactory.getPlatformManager();
+	
+		 								if ( platform.hasCapability( PlatformManagerCapabilities.AccessExplicitVMOptions )){
+		 									
+		 									try{
+		 										String[] options = platform.getExplicitVMOptions();
+	
+		 										long	max_mem = getJVMLongOption( options, "-Xmx" );
+	
+		 										if ( max_mem <= 0 ){
+		 											
+		 											max_mem = getMaxHeapMB()*MB;
+		 										}
+		 										
+		 										final long HEAP_AUTO_INCREASE_MAX 	= 256*MB;
+		 										final long HEAP_AUTO_INCREASE_BY	= 16*MB;
+		 										
+		 										if ( max_mem > 0 && max_mem < HEAP_AUTO_INCREASE_MAX ){
+		 												 							 												
+	 												max_mem += HEAP_AUTO_INCREASE_BY;
+	 												
+	 												if ( max_mem > HEAP_AUTO_INCREASE_MAX ){
+	 													
+	 													max_mem = HEAP_AUTO_INCREASE_MAX;
+	 												}
+	 												
+	 												options = setJVMLongOption( options, "-Xmx", max_mem );
+	 												
+	 												platform.setExplicitVMOptions( options );
+	 												
+	 					 							Logger.logTextResource(
+	 						 								new LogAlert(
+	 						 									LogAlert.REPEATABLE, 
+	 						 									LogAlert.AT_WARNING,
+	 															"memmon.heap.auto.increase.warning"),
+	 															new String[] {
+	 					 											DisplayFormatters.formatByteCountToKiBEtc( max_mem, true )});
+	 											}
+		 									
+		 									}catch( Throwable e ){
+		 										
+		 										Debug.out( e );
+		 									}
+		 								}
+	 								}
+	 							}
 							}
 						}
 					},
@@ -157,5 +216,127 @@ AEMemoryMonitor
 	getMaxHeapMB()
 	{
 		return( max_heap_mb );
+	}
+	
+	public static  long
+	getJVMLongOption(
+		String[]	options,
+		String		prefix )
+	{		
+		long	value = -1;
+		
+		for ( String option: options ){
+			
+			try{
+				if ( option.startsWith( prefix )){
+					
+					String	val = option.substring( prefix.length());
+					
+					value = decodeJVMLong( val );
+				}
+			}catch( Throwable e ){
+					
+				Debug.out( "Failed to process option '" + option + "'", e );
+			}
+		}
+		
+		return( value );
+	}
+	
+	public static  String[]
+	setJVMLongOption(
+		String[]	options,
+		String		prefix,
+		long		val )
+	{
+		String new_option = prefix + encodeJVMLong( val );
+				
+		for (int i=0;i<options.length;i++){
+			
+			String option = options[i];
+			
+			if ( option.startsWith( prefix )){
+			
+				options[i] = new_option;
+				
+				new_option = null;
+			}
+		}
+		
+		if ( new_option != null ){
+		
+			String[] new_options = new String[options.length+1];
+		
+			System.arraycopy( options, 0, new_options, 0, options.length );
+			
+			new_options[options.length] = new_option;
+			
+			options = new_options;
+		}
+		
+		return( options );
+	}
+		
+	public static  long
+	decodeJVMLong(
+		String		val )
+	
+		throws Exception
+	{
+		long	 mult = 1;
+		
+		char last_char = Character.toLowerCase( val.charAt( val.length()-1 ));
+		
+		if ( !Character.isDigit( last_char )){
+			
+			val = val.substring( 0, val.length()-1 );
+			
+			if ( last_char == 'k' ){
+					
+				mult	= 1024;
+				
+			}else if ( last_char == 'm' ){
+				
+				mult	= 1024*1024;
+				
+			}else if ( last_char == 'g' ){
+				
+				mult	= 1024*1024*1024;
+				
+			}else{
+				
+				throw( new Exception( "Invalid size unit '" + last_char + "'" ));
+			}
+		}
+		
+		return( Long.parseLong( val ) * mult );
+	}
+	
+	public static String
+	encodeJVMLong(
+		long	val )
+	{
+		if ( val < 1024 ){
+			
+			return( String.valueOf( val ));
+		}
+		
+		val = val/1024;
+		
+		if ( val < 1024 ){
+			
+			return( String.valueOf( val ) + "k" );
+		}
+		
+		val = val/1024;
+		
+		if ( val < 1024 ){
+			
+			return( String.valueOf( val ) + "m" );
+		}
+		
+		val = val/1024;
+		
+		return( String.valueOf( val ) + "g" );
 	}
 }
