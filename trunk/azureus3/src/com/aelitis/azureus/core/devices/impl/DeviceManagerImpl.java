@@ -787,13 +787,24 @@ DeviceManagerImpl
 							
 							device.setTranscodeRequirement( TranscodeTarget.TRANSCODE_WHEN_REQUIRED );
 						}
+					}else if ( lc_manufacturer.startsWith( "western digital" )){
+							
+							device.setPersistentStringProperty( DeviceImpl.PP_REND_CLASSIFICATION, "western.digital.generic" );
+							
+							TranscodeProfile[] profiles = device.getTranscodeProfiles();
+							
+							if ( profiles.length == 0 ){
+								
+								device.setTranscodeRequirement( TranscodeTarget.TRANSCODE_NEVER );
+								
+							}else{
+								
+								device.setTranscodeRequirement( TranscodeTarget.TRANSCODE_WHEN_REQUIRED );
+							}
 					}else if ( lc_manufacturer.startsWith( "sony" ) && lc_fname.startsWith( "bravia" )){
 							
 						device.setPersistentStringProperty( DeviceImpl.PP_REND_CLASSIFICATION, "sony.bravia" );
 							
-						TranscodeProfile[] profiles = device.getTranscodeProfiles();
-							
-
 					}else if ( lc_model.equals( "windows media player" )){
 						
 						String model_number = upnp_device.getModelNumber();

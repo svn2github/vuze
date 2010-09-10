@@ -2656,6 +2656,10 @@ DeviceManagerUI
 
 				id = "samsung";
 				
+			}else if ( classification.startsWith( "western.digital.")){
+
+				id = "wdtv";
+				
 			}else if ( classification.startsWith( "sony.bravia")){
 
 				id = "bravia";
