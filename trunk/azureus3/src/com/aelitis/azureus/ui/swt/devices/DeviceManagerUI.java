@@ -1410,7 +1410,7 @@ DeviceManagerUI
 				de_menu_item.setStyle(MenuItem.STYLE_CHECK);
 				de_menu_item.addFillListener(new MenuItemFillListener() {
 					public void menuWillBeShown(MenuItem menu, Object data) {
-						menu.setData( COConfigurationManager.getBooleanParameter( CONFIG_VIEW_HIDE_REND_GENERIC, true ));
+						menu.setData( !COConfigurationManager.getBooleanParameter( CONFIG_VIEW_HIDE_REND_GENERIC, true ));
 					}
 				});
 				de_menu_item.addListener(new MenuItemListener() {
