@@ -173,17 +173,24 @@ AEMemoryMonitor
 	 													max_mem = HEAP_AUTO_INCREASE_MAX;
 	 												}
 	 												
-	 												options = setJVMLongOption( options, "-Xmx", max_mem );
+	 												long	last_increase = COConfigurationManager.getLongParameter( "jvm.heap.auto.increase.last", 0 );
 	 												
-	 												platform.setExplicitVMOptions( options );
-	 												
-	 					 							Logger.logTextResource(
-	 						 								new LogAlert(
-	 						 									LogAlert.REPEATABLE, 
-	 						 									LogAlert.AT_WARNING,
-	 															"memmon.heap.auto.increase.warning"),
-	 															new String[] {
-	 					 											DisplayFormatters.formatByteCountToKiBEtc( max_mem, true )});
+	 												if ( max_mem > last_increase ){
+	 													
+	 													COConfigurationManager.setParameter( "jvm.heap.auto.increase.last", max_mem );
+	 															
+		 												options = setJVMLongOption( options, "-Xmx", max_mem );
+		 												
+		 												platform.setExplicitVMOptions( options );
+		 												
+		 					 							Logger.logTextResource(
+		 						 								new LogAlert(
+		 						 									LogAlert.REPEATABLE, 
+		 						 									LogAlert.AT_WARNING,
+		 															"memmon.heap.auto.increase.warning"),
+		 															new String[] {
+		 					 											DisplayFormatters.formatByteCountToKiBEtc( max_mem, true )});
+	 												}
 	 											}
 		 									
 		 									}catch( Throwable e ){
