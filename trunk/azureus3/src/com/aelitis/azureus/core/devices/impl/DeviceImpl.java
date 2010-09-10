@@ -1091,12 +1091,19 @@ DeviceImpl
 	
 	public TranscodeProfile[]
 	getTranscodeProfiles()
+	{
+		return getTranscodeProfiles(true);
+	}
+
+	
+	public TranscodeProfile[]
+	getTranscodeProfiles(boolean walkup)
 	{		
 		String classification = getDeviceClassification();
 		
 		TranscodeProfile[] result = getTranscodeProfiles( classification );
 		
-		if ( result.length > 0 ){
+		if ( !walkup || result.length > 0 ){
 			
 			return( result );
 		}
