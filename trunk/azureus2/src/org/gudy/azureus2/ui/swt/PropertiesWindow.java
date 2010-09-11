@@ -179,17 +179,19 @@ PropertiesWindow
 			}
 		});
 	
-	 	int	shell_width = 400;
-	 	
-	 	int	main_height = main.computeSize(shell_width, SWT.DEFAULT).y;
-	 	
-	 	main_height = Math.max( main_height, 250 );
-	 	
-	 	main_height = Math.min( main_height, 500 );
-
-	 	int shell_height = main_height + 50;
-	 		
-	 	shell.setSize( shell_width, shell_height );
+	 	if (!Utils.linkShellMetricsToConfig(shell, "PropWin")) {
+  	 	int	shell_width = 400;
+  	 	
+  	 	int	main_height = main.computeSize(shell_width, SWT.DEFAULT).y;
+  	 	
+  	 	main_height = Math.max( main_height, 250 );
+  	 	
+  	 	main_height = Math.min( main_height, 500 );
+  
+  	 	int shell_height = main_height + 50;
+  	 		
+  	 	shell.setSize( shell_width, shell_height );
+	 	}
 
 		Utils.centreWindow( shell );
 
