@@ -44,7 +44,8 @@ Device
 	
 	public void
 	setName(
-		String		name );
+		String		name,
+		boolean isAutomaticName);
 	
 	public String
 	getClassification();
@@ -148,4 +149,7 @@ Device
 	
 	public void
 	setImageID(String id);
+
+	public boolean
+	isNameAutomatic();
 }

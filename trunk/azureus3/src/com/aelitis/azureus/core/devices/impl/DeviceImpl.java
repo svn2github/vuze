@@ -271,6 +271,8 @@ DeviceImpl
 
 	private String image_id;
 
+	private boolean isNameAutomatic;
+
 	protected
 	DeviceImpl(
 		DeviceManagerImpl	_manager,
@@ -297,6 +299,7 @@ DeviceImpl
 		classification	= _classification;
 		name			= modifyDeviceDisplayName( _name );
 		manual			= _manual;
+		isNameAutomatic = true;
 	}
 	
 	protected
@@ -312,6 +315,7 @@ DeviceImpl
 		uid				= ImportExportUtils.importString( map, "_uid" );
 		classification	= ImportExportUtils.importString( map, "_name" );
 		name			= ImportExportUtils.importString( map, "_lname" );
+		isNameAutomatic = ImportExportUtils.importBoolean( map, "_autoname", true );
 		image_id			= ImportExportUtils.importString( map, "_image_id" );
 		
 		if ( name == null ){
@@ -354,6 +358,7 @@ DeviceImpl
 		ImportExportUtils.exportLong( map, "_type", new Long( type ));
 		ImportExportUtils.exportString( map, "_uid", uid );
 		ImportExportUtils.exportString( map, "_name", classification );
+		ImportExportUtils.exportBoolean( map, "_autoname", isNameAutomatic );
 		ImportExportUtils.exportLong( map, "_rn", 1 );
 		ImportExportUtils.exportString( map, "_lname", name );
 		ImportExportUtils.exportString( map, "_image_id", image_id );
@@ -501,14 +506,22 @@ DeviceImpl
 	
 	public void 
 	setName(
-		String _name ) 
+		String _name,
+		boolean isAutomaticName ) 
 	{
-		if ( !name.equals( _name )){
+		if ( !name.equals( _name ) || isNameAutomatic != isAutomaticName ){
 			
 			name = _name;
+			isNameAutomatic = isAutomaticName;
 			
 			setDirty();
 		}
+	}
+	
+	public boolean
+	isNameAutomatic() 
+	{
+		return isNameAutomatic;
 	}
 	
 	public String

@@ -120,25 +120,11 @@ DeviceDriveManager
 								&& sProdID.matches(".*[A-Z]-.*");
 					}
 
-					boolean hidden = false;
 					String name = sVendor;
-					if (name.length() > 0) {
+					if (sVendor.length() > 0) {
 						name += " ";
 					}
 					name += sProdID;
-					if (sVendor.compareToIgnoreCase("motorola") == 0) {
-						if (sProdID.equalsIgnoreCase("a855")) {
-							name = "Droid";
-						} else if (sProdID.equalsIgnoreCase("a955")) {
-							name = "Droid 2";
-						} else if (sProdID.equalsIgnoreCase("mb810")) {
-							name = "Droid X";
-						}
-					} else if (sProdID.equalsIgnoreCase("sgh-t959")) {
-						name = "Samsung Vibrant"; // non-card
-					} else if (sProdID.toLowerCase().contains("sgh-t959")) {
-						hidden = true;
-					}
 
 					String id = "android.";
 					id += sProdID.replaceAll(" ", ".").toLowerCase();
@@ -147,7 +133,7 @@ DeviceDriveManager
 					}
 					
 					if (isWritableUSB) {
-						addDevice(name, id, root, new File(root, "videos"), hidden);
+						addDevice(name, id, root, new File(root, "videos"), true);
 					} else {
 						//Fixup old bug where we were adding Samsung hard drives as devices
 						Device existingDevice = getDeviceMediaRendererByClassification(id);
@@ -200,11 +186,11 @@ DeviceDriveManager
 				String pid = MapUtils.getMapString(infoMap, "PID", null);
 				String vid = MapUtils.getMapString(infoMap, "VID", null);
 				if (pid != null && vid != null) {
-					String name = "(" + sVendor;
+					String name = sVendor;
   				if (name.length() > 0) {
   					name += " ";
   				}
-  				name += sProdID + ")";
+  				name += sProdID;
 
   				String id = "";
 					id += sProdID.replaceAll(" ", ".").toLowerCase();
@@ -252,6 +238,7 @@ DeviceDriveManager
 		if (existingDevice instanceof DeviceMediaRendererManual ) {
 			mapDevice( (DeviceMediaRendererManual) existingDevice, root, target_directory );
 			
+			existingDevice.setGenericUSB(generic);
 			return null;
 		}
 		
@@ -292,7 +279,7 @@ DeviceDriveManager
 			
 			try{
 				renderer.setAutoCopyToFolder( true );
-				//renderer.setHidden(hidden);
+				// This will cause a change event
 				renderer.setGenericUSB(generic);
 				
 				mapDevice( renderer, root, target_directory );

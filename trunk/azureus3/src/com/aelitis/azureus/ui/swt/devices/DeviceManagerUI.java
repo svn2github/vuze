@@ -855,7 +855,7 @@ DeviceManagerUI
 									
 									if ( input.length() > 0 ){
 										
-										device.setName( input );
+										device.setName( input, false );
 									}
 								}
 							});		

@@ -124,7 +124,7 @@ DeviceTivo
 	{
 		super( _manager, _uid, _classification, false );
 		
-		setName( "TiVo" );
+		setName( "TiVo", true );
 	}
 
 	protected
