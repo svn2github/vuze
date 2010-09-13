@@ -87,6 +87,10 @@ public class PlatformDevicesMessenger
 			return;
 		}
 		
+		if ("ms_wmp.generic".equals(device.getClassification())) {
+			return;
+		}
+		
 		HashMap<String, Object> map = new HashMap<String, Object>();
 
 		addPluginVersionsToMap(map);
