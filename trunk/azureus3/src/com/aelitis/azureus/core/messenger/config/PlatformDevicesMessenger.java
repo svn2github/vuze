@@ -91,7 +91,7 @@ public class PlatformDevicesMessenger
 
 		addPluginVersionsToMap(map);
 
-		map.put("device-name", device.getName() + "/" + device.getClassification());
+		map.put("device-name", getDeviceName(device));
 		map.put("device-type", new Integer(device.getType()));
 		if (device instanceof DeviceMediaRenderer) {
 			DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
@@ -133,7 +133,7 @@ public class PlatformDevicesMessenger
 
 		Device device = transcodeTarget.getDevice();
 		if (device != null) { // should never be null..
-			map.put("device-name", device.getName());
+			map.put("device-name", getDeviceName(device));
 			map.put("device-type", new Integer(device.getType()));
 		}
 		if (transcodeTarget instanceof DeviceMediaRenderer) {
@@ -147,6 +147,13 @@ public class PlatformDevicesMessenger
 				OP_QOS_TRANSCODE_REQUEST, map, 5000);
 		message.setSendAZID(false);
 		PlatformMessenger.queueMessage(message, null);
+	}
+
+	private static Object getDeviceName(Device device) {
+		String name = device.getName();
+		String classification = device.getClassification();
+		String deviceName = name.equals(classification) ? name : name + "/" + classification;
+		return deviceName;
 	}
 
 	public static void qosTranscode(TranscodeJob job, int stateOveride) {
@@ -207,7 +214,7 @@ public class PlatformDevicesMessenger
 
 		// Gotta know which device/profile/renderer we are transcoding to so we
 		// know what's should be worked on more
-		map.put("device-name", device.getName() + "/" + device.getClassification());
+		map.put("device-name", getDeviceName(device));
 		map.put("device-type", new Integer(device.getType()));
 		if (profile != null) {
 			map.put("profile-name", profile.getName());
