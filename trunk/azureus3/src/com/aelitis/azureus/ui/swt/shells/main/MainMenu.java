@@ -217,22 +217,6 @@ public class MainMenu
 	 */
 	protected void buildSimpleViewMenu(final Menu viewMenu) {
 		try {
-			boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
-			if (enabled) {
-				MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V2 + ".view.beta",
-						new Listener() {
-							public void handleEvent(Event event) {
-								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-          			MdiEntry entry = mdi.createEntryFromSkinRef(null,
-          					"BetaProgramme", "main.area.beta",
-          					MessageText.getString("Sidebar.beta.title"), null, null,
-          					true, 0);
-          			mdi.showEntry(entry);
-							}
-				});
-			}
-
-			
 			
 			MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V3 + ".view.sidebar",
 					new Listener() {
@@ -292,6 +276,30 @@ public class MainMenu
 					});
 				}
 			}
+
+			MenuFactory.addSeparatorMenuItem(viewMenu);
+
+			boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
+			if (enabled) {
+				MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V2 + ".view.beta",
+						new Listener() {
+							public void handleEvent(Event event) {
+								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+          			MdiEntry entry = mdi.createEntryFromSkinRef(null,
+          					"BetaProgramme", "main.area.beta",
+          					MessageText.getString("Sidebar.beta.title"), null, null,
+          					true, 0);
+          			mdi.showEntry(entry);
+							}
+				});
+			}
+
+			MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".games", new Listener() {
+				public void handleEvent(Event event) {
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_GAMES);
+				}
+			});
 
 			MenuFactory.addSeparatorMenuItem(viewMenu);
 

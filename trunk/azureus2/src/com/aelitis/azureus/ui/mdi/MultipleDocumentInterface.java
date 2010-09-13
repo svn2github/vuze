@@ -12,6 +12,8 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_SECTION_LIBRARY = "Library";
 
+	public static final String SIDEBAR_SECTION_GAMES = "Games";
+
 	public static final String SIDEBAR_SECTION_LIBRARY_DL = "LibraryDL";
 
 	public static final String SIDEBAR_SECTION_LIBRARY_CD = "LibraryCD";

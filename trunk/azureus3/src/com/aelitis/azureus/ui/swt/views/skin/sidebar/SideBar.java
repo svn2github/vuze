@@ -51,9 +51,11 @@ import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.cnetwork.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.shells.AuthorizeWindow;
@@ -926,6 +928,8 @@ public class SideBar
 
 				org.eclipse.swt.widgets.MenuItem mi = MenuFactory.createTorrentMenuItem(menuTree);
 
+				TableView<?> tv = SelectedContentManager.getCurrentlySelectedTableView();
+				mi.setData("TableView", tv);
 				mi.setData("downloads", downloads);
 				mi.setData("is_detailed_view", new Boolean(true));
 			}
@@ -1069,13 +1073,21 @@ public class SideBar
 
 		loadEntryByID(SIDEBAR_SECTION_SUBSCRIPTIONS, false);
 		loadEntryByID(SIDEBAR_SECTION_DEVICES, false);
-		if (Constants.IS_CVS_VERSION) {
-			loadEntryByID(SIDEBAR_SECTION_RELATED_CONTENT, false);
-		}
-
-		if (Constants.IS_CVS_VERSION) {
-			loadEntryByID(SIDEBAR_SECTION_RELATED_CONTENT, false);
-		}
+		
+		registerEntry(SIDEBAR_SECTION_GAMES, new MdiEntryCreationListener() {
+			public MdiEntry createMDiEntry(String id) {
+				MdiEntry entry = createEntryFromSkinRef(null,
+						MultipleDocumentInterface.SIDEBAR_SECTION_GAMES,
+						"main.generic.browse", MessageText.getString("mdi.entry.games"),
+						null, null, true, -1);
+				((BaseMdiEntry)entry).setPreferredBelowID(SIDEBAR_SECTION_BROWSE);
+				String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("starts/games.start", false);
+				entry.setDatasource(url);
+				entry.setImageLeftID("image.sidebar.games");
+				return entry;
+			}
+		});
+		loadEntryByID(SIDEBAR_SECTION_GAMES, false, true);
 		
 		if (SHOW_TOOLS) {
 			createEntryFromSkinRef(null, SIDEBAR_SECTION_TOOLS, "main.area.hood",
@@ -1176,6 +1188,19 @@ public class SideBar
 		}
 	}
 
+	protected int indexOf(final MdiEntry entryLibrary) {
+		Object o = Utils.execSWTThreadWithObject("indexOf", new AERunnableObject() {
+			public Object runSupport() {
+				TreeItem treeItem = ((SideBarEntrySWT)entryLibrary).getTreeItem();
+				return treeItem == null ? -1 : tree.indexOf(treeItem);
+			}
+		}, 500);
+		if (o instanceof Number) {
+			return ((Number) o).intValue();
+		}
+		return -1;
+	}
+
 	/**
 	 * 
 	 *
@@ -1246,6 +1271,13 @@ public class SideBar
 			parentTreeItem = parentSWT.getTreeItem();
 			if (expandParent) {
 				parentTreeItem.setExpanded(true);
+			}
+		}
+		String preferredBelowID = entry.getPreferredBelowID();
+		if (preferredBelowID != null) {
+			MdiEntry entryAbove = getEntry(preferredBelowID);
+			if (entryAbove != null) {
+				index = indexOf(entryAbove) + 1;
 			}
 		}
 		TreeItem treeItem = createTreeItem(parentTreeItem, index);
@@ -1418,6 +1450,10 @@ public class SideBar
 	}
 
 	public boolean loadEntryByID(String id, boolean activate) {
+		return loadEntryByID(id, activate, false);
+	}
+
+	public boolean loadEntryByID(String id, boolean activate, boolean onlyLoadOnce) {
 		if (id == null) {
 			return false;
 		}
@@ -1428,6 +1464,12 @@ public class SideBar
 			}
 			return true;
 		}
+		
+		boolean loadedOnce = COConfigurationManager.getBooleanParameter("sb.once." + id, false);
+		if (loadedOnce && onlyLoadOnce) {
+			return false;
+		}
+		
 		if (id.equals(SIDEBAR_SECTION_WELCOME)) {
 			SideBarEntrySWT entryWelcome = (SideBarEntrySWT) createWelcomeSection();
 			if (activate) {
@@ -1452,6 +1494,9 @@ public class SideBar
 		if (mdiEntryCreationListener != null) {
 			MdiEntry mdiEntry = mdiEntryCreationListener.createMDiEntry(id);
 			if (mdiEntry instanceof SideBarEntrySWT) {
+				if (onlyLoadOnce) {
+					COConfigurationManager.setParameter("sb.once." + id, true);
+				}
 				if (activate) {
 					showEntry(mdiEntry);
 				}
