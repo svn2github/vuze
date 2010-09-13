@@ -99,6 +99,8 @@ public abstract class BaseMdiEntry
 	private SWTSkinObject soMaster;
 	
 	private Set<ToolBarEnabler> setToolBarEnablers = new HashSet<ToolBarEnabler>(1);
+	
+	private String preferredBelowID;
 
 	@SuppressWarnings("unused")
 	private BaseMdiEntry() {
@@ -826,5 +828,13 @@ public abstract class BaseMdiEntry
 	}
 
 	public void build() {
+	}
+
+	public void setPreferredBelowID(String preferredBelowID) {
+		this.preferredBelowID = preferredBelowID;
+	}
+
+	public String getPreferredBelowID() {
+		return preferredBelowID;
 	}
 }
