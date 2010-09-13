@@ -270,7 +270,7 @@ public class Initializer
 
 		UIConfigDefaultsSWTv3.initialize(core);
 		
-		//checkInstallID();
+		checkInstallID();
 
 		mainWindow = new MainWindow(Display.getDefault(), this);
 	}
