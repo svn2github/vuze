@@ -358,6 +358,17 @@ public abstract class BaseMDI
 			if (id.equals(SIDEBAR_SECTION_WELCOME)) {
 				createWelcomeSection();
 			}
+			
+			MdiEntryCreationListener mdiEntryCreationListener = mapIdToCreationListener.get(id);
+			if (mdiEntryCreationListener != null) {
+				try {
+					mdiEntryCreationListener.createMDiEntry(id);
+					return true;
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+
 
 			String title = MapUtils.getMapString(autoOpenInfo, "title", id);
 			String parentID = (String) autoOpenInfo.get("parentID");
