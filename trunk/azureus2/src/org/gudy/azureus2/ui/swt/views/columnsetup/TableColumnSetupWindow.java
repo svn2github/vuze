@@ -1012,7 +1012,7 @@ public class TableColumnSetupWindow
 
 		final TableViewColumnSetup tvAvail = new TableViewColumnSetup(this,
 				TableColumn.class, TABLEID_AVAIL, columns,
-				ColumnTC_ChosenColumn.COLUMN_ID, false);
+				ColumnTC_NameInfo.COLUMN_ID, false);
 		tvAvail.setMenuEnabled(false);
 		tvAvail.setSampleRow(sampleRow);
 		tvAvail.setRowDefaultHeight(65);
