@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -465,31 +466,26 @@ DeviceMediaRendererManual
 					
 				}else if ( !copy_to.exists()){
 					
-					if ( getDeviceClassification().startsWith( "android" )){
-						
-							// bah, due to the two-phase mount of android devices and the fact that the
-							// copy-to location is %root$/videos, the root might exist but the sub-folder 
-							// not. 
-						
-						File parent = copy_to.getParentFile();
-						
-						if ( parent != null && parent.canWrite()){
-							
-							copy_to.mkdir();
-						}
-						
-						if ( !copy_to.exists()){
-						
-							setError( COPY_ERROR_KEY, MessageText.getString( "device.error.mountrequired", new String[]{copy_to.getAbsolutePath()}));
-
-							sub_borked = true;
-						}
-					}else{
-
-						setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytomissing", new String[]{copy_to.getAbsolutePath()}));
+					// due to the two-phase mount of android devices and the fact that the
+					// copy-to location is %root$/videos, the root might exist but the sub-folder 
+					// not. 
 					
+					File parent = copy_to.getParentFile();
+					
+					if ( parent != null && parent.canWrite()){
+						
+						copy_to.mkdir();
+					}
+					
+					if ( !copy_to.exists()){
+					
+						setError( COPY_ERROR_KEY, MessageText.getString( "device.error.mountrequired", new String[]{copy_to.getAbsolutePath()}));
+
 						sub_borked = true;
 					}
+
+					//setError( COPY_ERROR_KEY, MessageText.getString( "device.error.copytomissing", new String[]{copy_to.getAbsolutePath()}));
+					//sub_borked = true;
 				}
 				
 				if ( !sub_borked ){
@@ -617,5 +613,16 @@ DeviceMediaRendererManual
 			
 			writer.exdent();
 		}
+	}
+
+	// @see com.aelitis.azureus.core.devices.impl.DeviceImpl#getStatus()
+	public String getStatus() {
+		String s = super.getStatus();
+
+		if (COConfigurationManager.getIntParameter("User Mode") > 0 && getCopyToFolder() != null) {
+			s += "(" + getCopyToFolder().getPath() + ")";
+		}
+
+		return s;
 	}
 }
