@@ -90,7 +90,7 @@ public class CompletionItem
 		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 150, sTableID);
 		this.marginHeight = marginHeight;
 		initializeAsGraphic(POSITION_INVISIBLE, 150);
-		setMinWidth(100);
+		setMinWidth(50);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
