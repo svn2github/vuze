@@ -496,6 +496,7 @@ public class BrowserContext
 						if ( isTorrent ){
 							
 							event.doit = false;
+							setPageLoading(false, event.location);
 							
 							try {
 								String referer_str = null;
@@ -539,6 +540,7 @@ public class BrowserContext
 						}else if ( isVuzeFile ){
 							
 							event.doit = false;
+							setPageLoading(false, event.location);
 							
 							try {
 								String referer_str = null;
@@ -567,6 +569,7 @@ public class BrowserContext
 								if ( vf == null ){
 									
 									event.doit = true;
+									setPageLoading(true, event.location);
 									
 								}else{
 									
