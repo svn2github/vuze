@@ -790,7 +790,7 @@ SubscriptionManagerUI
 
 		if (mainSBEntry != null) {
 			
-			mainSBEntry.setExpanded(false);
+			mainSBEntry.setDefaultExpanded(false);
 
 			MdiEntryVitalityImage addSub 	= mainSBEntry.addVitalityImage("image.sidebar.subs.add");
 			

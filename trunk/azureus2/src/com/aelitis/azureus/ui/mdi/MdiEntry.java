@@ -120,6 +120,8 @@ public interface MdiEntry
 
 	public void setExpanded(boolean expanded);
 	
+	public void setDefaultExpanded(boolean defaultExpanded);
+	
 	public void expandTo();
 
 	public void setParentID(String id);

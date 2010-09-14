@@ -86,7 +86,7 @@ public abstract class BaseMdiEntry
 
 	private boolean closeable;
 
-	private boolean isExpanded = false;
+	private Boolean isExpanded = null;
 
 	private boolean disposed;
 
@@ -106,6 +106,7 @@ public abstract class BaseMdiEntry
 	private BaseMdiEntry() {
 		mdi = null;
 		id = null;
+		setDefaultExpanded(false);
 	}
 
 	public BaseMdiEntry(MultipleDocumentInterface mdi, String id) {
@@ -123,6 +124,7 @@ public abstract class BaseMdiEntry
 				logID = id;
 			}
 		}
+		setDefaultExpanded(false);
 	}
 
 	public String getId() {
@@ -740,12 +742,20 @@ public abstract class BaseMdiEntry
 		}
 	}
 
+	// @see com.aelitis.azureus.ui.mdi.MdiEntry#setDefaultExpanded(boolean)
+	public void setDefaultExpanded(boolean defaultExpanded) {
+		COConfigurationManager.setBooleanDefault("SideBar.Expanded." + id, defaultExpanded);
+	}
+
 	public boolean isExpanded() {
-		return isExpanded;
+		return isExpanded == null
+				? COConfigurationManager.getBooleanParameter("SideBar.Expanded." + id)
+				: isExpanded;
 	}
 
 	public void setExpanded(boolean expanded) {
 		isExpanded = expanded;
+		COConfigurationManager.setParameter("SideBar.Expanded." + id, isExpanded);
 	}
 
 	public boolean isAdded() {

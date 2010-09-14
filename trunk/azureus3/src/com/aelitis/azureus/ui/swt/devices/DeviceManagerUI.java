@@ -1180,7 +1180,7 @@ DeviceManagerUI
 						SideBar.SIDEBAR_SECTION_DEVICES, "devicesview",
 						MessageText.getString("devices.view.title"),
 						null, null, false, -1);
-				main_sb_entry.setExpanded(true);
+				main_sb_entry.setDefaultExpanded(true);
 
 				addDefaultDropListener( main_sb_entry );
 
