@@ -142,9 +142,7 @@ DeviceDriveManager
 						}
 					}
 					return;
-				} else if (isWritableUSB && sVendor.toLowerCase().equals("rim")
-						&& !sProdID.toLowerCase().contains(" SD")) {
-					// for some reason, the SD card never fully attaches, only the main device drive
+				} else if (isWritableUSB && sVendor.toLowerCase().equals("rim")) {
 					String name = sVendor;
   				if (name.length() > 0) {
   					name += " ";
@@ -199,7 +197,7 @@ DeviceDriveManager
 						id += "." + sVendor.replaceAll(" ", ".").toLowerCase();
 					}
 					id += "." + vid.toLowerCase();
-					addDevice(name, id, root, new File(root, "videos"), true);
+					addDevice(name, id, root, new File(root, "video"), true);
 				}
 			}
 		});
