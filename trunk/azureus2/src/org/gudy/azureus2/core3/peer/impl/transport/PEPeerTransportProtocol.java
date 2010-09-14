@@ -3934,6 +3934,19 @@ implements PEPeerTransport
 		return( transport.getEncryption( false ));
 	}
 
+	public String
+	getProtocol()
+	{
+		Transport	transport = connection.getTransport();
+
+		if ( transport == null ){
+
+			return( "" );
+		}
+
+		return( transport.getProtocol());
+	}
+	
 	public void 
 	addListener( 
 			PEPeerListener listener ) 

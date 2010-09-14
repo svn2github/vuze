@@ -889,6 +889,11 @@ ExternalSeedPeer
 	getUserData(
 		Object	key )
 	{
+		if ( key == Peer.PR_PROTOCOL ){
+			
+			return( reader.getURL().getProtocol().toUpperCase());
+		}
+		
 		if ( user_data == null ){
 			
 			return( null );

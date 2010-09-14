@@ -43,7 +43,8 @@ Peer
 	public final static int DISCONNECTED 	= PEPeer.DISCONNECTED;
   
 
-	public final static Object PR_PRIORITY_CONNECTION = new Object();
+	public final static Object PR_PRIORITY_CONNECTION 	= new Object();
+	public final static Object PR_PROTOCOL				= new Object();
 	
 	public PeerManager
 	getManager();

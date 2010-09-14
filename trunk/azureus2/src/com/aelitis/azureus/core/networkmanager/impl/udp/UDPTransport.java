@@ -68,6 +68,12 @@ UDPTransport
 		return( false );
 	}
 	
+	public String 
+	getProtocol()
+	{
+		return "UDP"; 
+	}
+	
 	public TransportEndpoint 
 	getTransportEndpoint()
 	{

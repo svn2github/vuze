@@ -60,7 +60,9 @@ Transport
    * @return
    */
   public String getEncryption( boolean verbose );
-      
+     
+  public String getProtocol();
+  
   /**
    * fake a wakeup so that a read cycle is attempted
    */

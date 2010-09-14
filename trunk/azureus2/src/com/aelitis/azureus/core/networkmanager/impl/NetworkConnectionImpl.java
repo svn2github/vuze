@@ -383,6 +383,8 @@ NetworkConnectionImpl
 			return( transport.getEncryption( verbose ));
 		}
 
+		public String getProtocol(){ return transport.getProtocol(); }
+		
 		public void 
 		setReadyForRead()
 		{

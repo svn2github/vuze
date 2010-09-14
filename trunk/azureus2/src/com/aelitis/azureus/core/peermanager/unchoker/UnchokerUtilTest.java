@@ -160,6 +160,7 @@ public class UnchokerUtilTest {
         public int getMessagingMode(){ return PEPeer.MESSAGING_BT_ONLY; }
         public Message[] getSupportedMessages(){ return null; }
         public String getEncryption(){ return( "" ); }
+        public String getProtocol(){ return( "" ); }
         public int getReservedPieceNumber() { return -1; }
         public void addReservedPieceNumber(int pieceNumber) {}
         public void removeReservedPieceNumber(int pieceNumber) {}

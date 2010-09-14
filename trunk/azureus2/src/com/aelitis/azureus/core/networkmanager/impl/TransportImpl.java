@@ -105,11 +105,35 @@ TransportImpl
 		return( filter==null?"":filter.getName(verbose)); 
 	}
 	
-	 public boolean 
-	 isEncrypted()
-	 { 
-		 return( filter==null?false:filter.isEncrypted());
-	 }
+	public String
+	getProtocol()
+	{
+			// default impl = extract from encryption
+		
+		String s = getEncryption( false );
+		
+		int pos = s.indexOf( '(' );
+		
+		if ( pos != -1 ){
+			
+			s = s.substring( pos+1 );
+			
+			pos = s.indexOf( ')' );
+			
+			if ( pos > 0 ){
+				
+				return( s.substring( 0, pos ));
+			}
+		}
+		
+		return( "" );
+	}
+	
+	public boolean 
+	isEncrypted()
+	{ 
+		return( filter==null?false:filter.isEncrypted());
+	}
 	 
 	  /**
 	   * Is the transport ready to write,

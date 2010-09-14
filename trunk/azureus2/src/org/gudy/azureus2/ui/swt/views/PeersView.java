@@ -72,6 +72,7 @@ public class PeersView
 			new TypeItem(table_id),
 			new MessagingItem(table_id),
 			new EncryptionItem(table_id),
+			new ProtocolItem(table_id),
 			new PiecesItem(table_id),
 			new PercentItem(table_id),
 			new DownSpeedItem(table_id),

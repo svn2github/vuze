@@ -30,11 +30,11 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 /**
  * 
  */
-public class EncryptionItem
+public class ProtocolItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-	public static final String COLUMN_ID = "Encryption";
+	public static final String COLUMN_ID = "Protocol";
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
@@ -43,14 +43,14 @@ public class EncryptionItem
 	}
 
   /** Default Constructor */
-  public EncryptionItem(String table_id) {
+  public ProtocolItem(String table_id) {
     super(COLUMN_ID, ALIGN_CENTER, POSITION_INVISIBLE, 50, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    String value = peer == null ? "" : peer.getEncryption();
+    String value = peer == null ? "" : peer.getProtocol();
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;

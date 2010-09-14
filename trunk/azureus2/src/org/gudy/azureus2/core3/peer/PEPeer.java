@@ -278,6 +278,9 @@ PEPeer
   public String
   getEncryption();
   
+  public String
+  getProtocol();
+  
   /**
    * Get the list of messages that this peer and us both understand.
    * @return messages available for use, or null of supported is yet unknown or unavailable

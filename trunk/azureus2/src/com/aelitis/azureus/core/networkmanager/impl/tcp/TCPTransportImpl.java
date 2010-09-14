@@ -139,6 +139,8 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 	  return( true );
   }
 	
+  public String getProtocol(){ return "TCP"; }
+  
   /**
    * Get a textual description for this transport.
    * @return description

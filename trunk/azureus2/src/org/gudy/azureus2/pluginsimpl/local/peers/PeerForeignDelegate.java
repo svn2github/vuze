@@ -758,6 +758,19 @@ PeerForeignDelegate
 		return( "" );
 	}
 	
+	public String
+	getProtocol()
+	{
+		String res = (String)foreign.getUserData( Peer.PR_PROTOCOL );
+		
+		if ( res != null ){
+			
+			return( res );
+		}
+		
+		return( "Plugin" );
+	}
+	
 	public Message[] 
 	getSupportedMessages() 
 	{
