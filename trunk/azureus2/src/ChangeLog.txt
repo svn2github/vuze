@@ -1,23 +1,30 @@
 VUZE CHANGELOG
 -----------------
 
-2010.xx.xx | Vuze 4.5.0.5
+2010.09.xx | Vuze 4.5.0.5
 
 FEATURE: Core | Monitor available JVM memory and warn user if it is running out and auto increase (Windows only) [Parg]
 FEATURE: UI   | Allow setting of JVM direct memory max from UI (Windows only) [Parg]
 FEATURE: UI   | Added 'protocol' column to peers view [Parg]
+FEATURE: UI   | Expanded state of Sidebar entries are now remembered [TuxPaper]
+FEATURE: UI   | (Windows) Added Closeable Games sidebar entry [TuxPaper]
 
 CHANGE: Core  | Changed the trigger for upload rate bias when unlimited upload and inactive downloads [Parg]
 CHANGE: Core  | Permit export of all search templates [Parg]
 CHANGE: Core  | Reduce debug messages for connection-refused type tracker errors [Parg]
 CHANGE: Core  | Reduce version-check timeouts to prevent version server errors from adversely affecting Vuze [Parg]
 CHANGE: Core  | Be more tolerant of large PEX messages as clients are sending valid exchanges that exceeded our old limits [Parg]
+CHANGE: Core  | Improve detection of devices [TuxPaper]
 
 BUGFIX: Core  | Fixes to superseeding mode [thanks Mmore1q3]
 BUGFIX: Core  | Fixed up disabling of UDP tracker protocol and added option to control UDP probing [Parg]
 BUGFIX: Core  | Fixed bug involving switching search template from manual to auto mode [Parg]
 BUGFIX: Core  | Immediately drop incoming connections for stopped downloads (they used to persist and timeout later) [Parg]
 BUGFIX: UI    | Sort column editor available table correctly [Parg]
+BUGFIX: UI    | Fix case where sidebar doesn't display properly at startup [TuxPaper]
+BUGFIX: UI    | Changing name of Device should now be remembered [TuxPaper]
+
+
 
 2010.09.01 | Vuze 4.5.0.4
 
