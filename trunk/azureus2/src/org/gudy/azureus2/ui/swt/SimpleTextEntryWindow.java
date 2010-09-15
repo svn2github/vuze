@@ -310,6 +310,9 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 		
 		shell.addListener(SWT.Dispose, new Listener() {
 			public void handleEvent(Event event) {
+				if (!hasSubmittedInput()) {
+					recordUserAbort();
+				}
 				triggerReceiverListener();
 			}
 		});
