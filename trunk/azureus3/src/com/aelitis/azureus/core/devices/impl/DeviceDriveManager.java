@@ -108,7 +108,13 @@ DeviceDriveManager
 				String sVendor = MapUtils.getMapString(infoMap, "VendorID",
 						MapUtils.getMapString(infoMap, "Vendor Name", "")).trim();
 
-				if (sProdID.toLowerCase().contains("android")
+				// Historically, we gave IDs to Motorola, Samsung, and HTC phones
+				// based on their vendor and product id only.  We need to maintain
+				// this ID in order to not create duplicates.
+				// Fortunately, both Motorola and Samsung include their model id in the 
+				// sProdID.  HTC doesn't, however, their PID doesn't identify unique
+				// models anyway, so including that wouldn't have helped anyway
+				if ((sVendor.equalsIgnoreCase("htc") && sProdID.equalsIgnoreCase("android phone"))
 						|| sVendor.toLowerCase().contains("motorola")
 						|| sVendor.equalsIgnoreCase("samsung")) {
 					
