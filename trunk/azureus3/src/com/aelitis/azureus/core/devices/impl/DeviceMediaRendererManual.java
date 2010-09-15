@@ -620,7 +620,7 @@ DeviceMediaRendererManual
 		String s = super.getStatus();
 
 		if (COConfigurationManager.getIntParameter("User Mode") > 0 && getCopyToFolder() != null) {
-			s += "(" + getCopyToFolder().getPath() + ")";
+			s += " (" + getCopyToFolder().getPath() + ")";
 		}
 
 		return s;
