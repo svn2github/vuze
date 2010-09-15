@@ -277,7 +277,9 @@ public class MainMenu
 				}
 			}
 
-			MenuFactory.addSeparatorMenuItem(viewMenu);
+			if (Constants.isWindows) {
+				MenuFactory.addSeparatorMenuItem(viewMenu);
+			}
 
 			boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
 			if (enabled) {
@@ -294,12 +296,14 @@ public class MainMenu
 				});
 			}
 
-			MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".games", new Listener() {
-				public void handleEvent(Event event) {
-					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_GAMES);
-				}
-			});
+			if (Constants.isWindows) {
+  			MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".games", new Listener() {
+  				public void handleEvent(Event event) {
+  					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+  					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_GAMES);
+  				}
+  			});
+			}
 
 			MenuFactory.addSeparatorMenuItem(viewMenu);
 

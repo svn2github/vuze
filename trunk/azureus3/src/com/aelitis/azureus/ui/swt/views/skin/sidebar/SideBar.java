@@ -1074,20 +1074,22 @@ public class SideBar
 		loadEntryByID(SIDEBAR_SECTION_SUBSCRIPTIONS, false);
 		loadEntryByID(SIDEBAR_SECTION_DEVICES, false);
 		
-		registerEntry(SIDEBAR_SECTION_GAMES, new MdiEntryCreationListener() {
-			public MdiEntry createMDiEntry(String id) {
-				MdiEntry entry = createEntryFromSkinRef(null,
-						MultipleDocumentInterface.SIDEBAR_SECTION_GAMES,
-						"main.generic.browse", MessageText.getString("mdi.entry.games"),
-						null, null, true, -1);
-				((BaseMdiEntry)entry).setPreferredBelowID(SIDEBAR_SECTION_BROWSE);
-				String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("starts/games.start", false);
-				entry.setDatasource(url);
-				entry.setImageLeftID("image.sidebar.games");
-				return entry;
-			}
-		});
-		loadEntryByID(SIDEBAR_SECTION_GAMES, false, true);
+		if (Constants.isWindows) {
+  		registerEntry(SIDEBAR_SECTION_GAMES, new MdiEntryCreationListener() {
+  			public MdiEntry createMDiEntry(String id) {
+  				MdiEntry entry = createEntryFromSkinRef(null,
+  						MultipleDocumentInterface.SIDEBAR_SECTION_GAMES,
+  						"main.generic.browse", MessageText.getString("mdi.entry.games"),
+  						null, null, true, -1);
+  				((BaseMdiEntry)entry).setPreferredBelowID(SIDEBAR_SECTION_BROWSE);
+  				String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("starts/games.start", false);
+  				entry.setDatasource(url);
+  				entry.setImageLeftID("image.sidebar.games");
+  				return entry;
+  			}
+  		});
+  		loadEntryByID(SIDEBAR_SECTION_GAMES, false, true);
+		}
 		
 		if (SHOW_TOOLS) {
 			createEntryFromSkinRef(null, SIDEBAR_SECTION_TOOLS, "main.area.hood",
