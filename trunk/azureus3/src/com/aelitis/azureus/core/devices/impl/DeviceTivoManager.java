@@ -302,11 +302,29 @@ DeviceTivoManager
 				
 				if ( device.getID().equals( uid )){
 				
+					if ( classification != null ){
+						
+						String existing_classification = device.getClassification();
+						
+						if ( !classification.equals( existing_classification )){
+							
+							device.setPersistentStringProperty( DeviceImpl.PP_REND_CLASSIFICATION,classification );
+						}
+					}
+					
 					tivo.found( this, address, server_name, machine );
 					
 					return( tivo );
 				}
 			}
+		}
+		
+			// unfortunately we can't deduce the series from the browse request so start off with a series 3
+			// this will be corrected later if we receive a beacon which *does* contain the series details
+		
+		if ( classification == null ){
+			
+			classification = "tivo.series3";
 		}
 		
 		DeviceTivo new_device = new DeviceTivo( device_manager, uid, classification );
@@ -423,7 +441,7 @@ DeviceTivoManager
 								
 								persistent = true;
 								
-								DeviceTivo tivo = foundTiVo( request.getClientAddress2().getAddress(), id, "tivo.series3", null );
+								DeviceTivo tivo = foundTiVo( request.getClientAddress2().getAddress(), id, null, null );
 								
 								return( tivo.generate( request, response ));
 							}
