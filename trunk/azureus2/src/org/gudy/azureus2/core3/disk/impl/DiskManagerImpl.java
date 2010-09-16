@@ -1112,6 +1112,7 @@ DiskManagerImpl
 	            //fully allocate. XFS borks with zero length files though
 	
 	        if ( 	target_length > 0 && 
+	        		!Constants.isWindows && 
 	        		COConfigurationManager.getBooleanParameter("XFS Allocation") ){
 	        	
 	            fileInfo.getCacheFile().setLength( target_length );
