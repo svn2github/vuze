@@ -205,6 +205,47 @@ FMFileAccessPieceReorderer
 				readConfig();
 			}
 			
+			try{
+					// to cope with add-for-seeding mixed with the way the core handles move-to directory discovery we
+					// also need to have recovery code in this branch to deal with the situation where the file was initially
+					// opened pointing at a non-existant file and therefore missed the normal recovery path
+				
+				if ( current_length == 0 && next_piece_index == 1 ){
+					
+					long physical_length = raf.length();
+			
+					if ( physical_length > current_length ){
+					
+						long max_length = first_piece_length + (num_pieces-2)*piece_size + last_piece_length;
+					
+						physical_length = Math.min( physical_length, max_length );
+					
+						if ( physical_length > current_length ){
+						
+							current_length = physical_length;
+						
+							int	piece_count = (int)(( current_length + piece_size - 1 )/piece_size) + 1;
+						
+							if ( piece_count > num_pieces ){
+								
+								piece_count = num_pieces;
+							}
+						
+							for ( int i=1;i<piece_count;i++){
+																
+								piece_map[i] 			= i;
+								piece_reverse_map[i]	= i;
+							}
+							
+							next_piece_index = piece_count;
+							
+							setDirty();
+						}
+					}
+				}
+			}catch( IOException e ){
+			}
+			
 			return( current_length );
 			
 		}else{
