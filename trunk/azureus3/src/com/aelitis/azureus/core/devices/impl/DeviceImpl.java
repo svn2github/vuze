@@ -1321,7 +1321,7 @@ DeviceImpl
 			addDP( dp, "TableColumn.header.name", name );
 		}
 		
-		addDP( dp, "TableColumn.header.class", classification.toLowerCase());
+		addDP( dp, "TableColumn.header.class", getClassification().toLowerCase());
 		
 		addDP( dp, "!UID!", getID());
 		
