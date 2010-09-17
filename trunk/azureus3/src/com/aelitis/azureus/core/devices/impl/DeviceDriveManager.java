@@ -159,7 +159,10 @@ DeviceDriveManager
 					if (sVendor.length() > 0) {
 						id += "." + sVendor.replaceAll(" ", ".").toLowerCase();
 					}
-					addDevice(name, id, root, new File(root, "videos"), false);
+					DeviceMediaRendererManual device = addDevice(name, id, root, new File(root, "videos"), false);
+					if (device != null) {
+						device.setImageID("bb");
+					}
 					return;
 				}
 				
