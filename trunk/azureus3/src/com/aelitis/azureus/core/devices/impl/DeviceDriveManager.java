@@ -206,6 +206,14 @@ DeviceDriveManager
 						id += "." + sVendor.replaceAll(" ", ".").toLowerCase();
 					}
 					id += "." + vid.toLowerCase();
+					
+					// cheap hack to detect the PSP when it has no psp or video dir
+					if (id.equals("\"psp\".ms.02d2.sony.054c")) {
+						if (addDevice("PSP", "sony.PSP", root, new File(root, "VIDEO"), false) != null) {
+							return;
+						}
+					}
+					
 					addDevice(name, id, root, new File(root, "video"), true);
 				}
 			}
