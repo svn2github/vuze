@@ -115,7 +115,7 @@ DeviceDriveManager
 				// sProdID.  HTC doesn't, however, their PID doesn't identify unique
 				// models anyway, so including that wouldn't have helped anyway
 				if ((sVendor.equalsIgnoreCase("htc") && sProdID.equalsIgnoreCase("android phone"))
-						|| sVendor.toLowerCase().contains("motorola")
+						|| (sVendor.toLowerCase().contains("motorola") && sProdID.length() > 0)
 						|| sVendor.equalsIgnoreCase("samsung")) {
 					
 					if (isWritableUSB && sVendor.equalsIgnoreCase("samsung")) {
