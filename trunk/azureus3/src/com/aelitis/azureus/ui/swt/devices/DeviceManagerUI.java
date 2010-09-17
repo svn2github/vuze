@@ -1747,6 +1747,22 @@ DeviceManagerUI
 									device_item.setEnabled( false );
 									
 								}else{
+
+									Arrays.sort(profiles, new Comparator<TranscodeProfile>() {
+										public int compare(TranscodeProfile o1, TranscodeProfile o2) {
+											int i1 = o1.getIconIndex();
+											int i2 = o2.getIconIndex();
+											
+											if ( i1 == i2 ){
+											
+												return o1.getName().compareToIgnoreCase(o2.getName());
+											}else{
+												
+												return( i1 - i2 );
+											}
+										}
+									});
+
 									
 									for ( final TranscodeProfile profile: profiles ){
 										
@@ -2441,7 +2457,21 @@ DeviceManagerUI
 										final TranscodeProfile[] transcodeProfiles = renderer.getTranscodeProfiles();
 										
 										if (transcodeProfiles.length > 0) {
-											
+											Arrays.sort(transcodeProfiles, new Comparator<TranscodeProfile>() {
+												public int compare(TranscodeProfile o1, TranscodeProfile o2) {
+													int i1 = o1.getIconIndex();
+													int i2 = o2.getIconIndex();
+													
+													if ( i1 == i2 ){
+													
+														return o1.getName().compareToIgnoreCase(o2.getName());
+													}else{
+														
+														return( i1 - i2 );
+													}
+												}
+											});
+
 											need_sep = true;
 											
 											MenuItem menu_default_profile = menu_manager.addMenuItem(
