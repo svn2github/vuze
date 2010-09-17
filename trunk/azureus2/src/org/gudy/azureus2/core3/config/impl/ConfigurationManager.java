@@ -47,7 +47,7 @@ ConfigurationManager
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigMan:class" );
  
 		  
-  private Map propertiesMap;	// leave this NULL - it picks up errors caused by initialisation sequence errors
+  private Map<String,Object> propertiesMap;	// leave this NULL - it picks up errors caused by initialisation sequence errors
   private List transient_properties     = new ArrayList();
   
   private List<COConfigurationListener>		listenerz 			= new ArrayList<COConfigurationListener>();
@@ -984,14 +984,31 @@ ConfigurationManager
 			
 			writer.println( "Azureus Config" );
 
+			ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
+			
 			try{
 				writer.indent();
 			
-				Iterator it = new TreeSet(propertiesMap.keySet()).iterator();
+				Set<String> keys =
+					new TreeSet<String>(
+						new Comparator<String>()
+						{
+							public int 
+							compare(
+								String o1, 
+								String o2) 
+							{
+								return( o1.compareToIgnoreCase( o2 ));
+							}
+						});
 			
+				keys.addAll( propertiesMap.keySet());
+				
+				Iterator<String> it = keys.iterator();
+				
 				while( it.hasNext()){
 					
-					String	key 	= (String)it.next();
+					String	key 	= it.next();
 					
 						// don't dump crypto stuff
 					
@@ -1002,11 +1019,22 @@ ConfigurationManager
 					
 					Object	value	= propertiesMap.get(key);
 					
-					boolean bParamExists = ConfigurationDefaults.getInstance().doesParameterDefaultExist(key.toString());
+					boolean bParamExists = defaults.doesParameterDefaultExist(key.toString());
 					
 					if (!bParamExists){
 						
 						key = "[NoDef] " + key;
+					}else{
+						
+						Object def = defaults.getParameter( key );
+						
+						if ( def != null && value != null ){
+							
+							if ( !BEncoder.objectsAreIdentical( def, value )){
+								
+								key = "-> " + key;
+							}
+						}
 					}
 					
 					if ( value instanceof Long ){
