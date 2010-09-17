@@ -426,7 +426,10 @@ RDResumeHandler
 													
 													if ( !passed ){
 														
-														failed_pieces.add( request );
+														synchronized( failed_pieces ){
+														
+															failed_pieces.add( request );
+														}
 													}
 													
 													complete();
@@ -575,7 +578,10 @@ RDResumeHandler
 											
 											if ( !passed ){
 												
-												failed_pieces.add( request );
+												synchronized( failed_pieces ){
+													
+													failed_pieces.add( request );
+												}
 											}
 											
 											complete();
