@@ -126,7 +126,7 @@ DeviceDriveManager
 								&& sProdID.matches(".*[A-Z]-.*");
 					}
 
-					String name = sVendor;
+					String name = sProdID.startsWith(sVendor) ? "" : sVendor;
 					if (sVendor.length() > 0) {
 						name += " ";
 					}
@@ -193,7 +193,7 @@ DeviceDriveManager
 				String pid = MapUtils.getMapString(infoMap, "PID", null);
 				String vid = MapUtils.getMapString(infoMap, "VID", null);
 				if (pid != null && vid != null) {
-					String name = sVendor;
+					String name = sProdID.startsWith(sVendor) ? "" : sVendor;
   				if (name.length() > 0) {
   					name += " ";
   				}
