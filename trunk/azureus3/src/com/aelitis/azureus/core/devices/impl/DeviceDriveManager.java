@@ -246,7 +246,7 @@ DeviceDriveManager
 			mapDevice( (DeviceMediaRendererManual) existingDevice, root, target_directory );
 			
 			existingDevice.setGenericUSB(generic);
-			return null;
+			return (DeviceMediaRendererManual) existingDevice;
 		}
 		
 		DeviceTemplate[] templates = manager.getDeviceTemplates( Device.DT_MEDIA_RENDERER );
