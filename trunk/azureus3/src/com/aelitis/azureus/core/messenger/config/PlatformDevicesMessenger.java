@@ -21,9 +21,7 @@ package com.aelitis.azureus.core.messenger.config;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
@@ -81,13 +79,26 @@ public class PlatformDevicesMessenger
 		PlatformMessenger.queueMessage(message, null);
 	}
 
-	public static void qosFoundDevice(Device device) {
+	public static void qosFoundDevice(final Device device) {
 		if (device == null
 				|| !COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
 			return;
 		}
-		
+
 		if ("ms_wmp.generic".equals(device.getClassification())) {
+			return;
+		}
+		
+		SimpleTimer.addEvent("qosFoundDevice", SystemTime.getOffsetTime(1000), new TimerEventPerformer() {
+			public void perform(TimerEvent event) {
+				_qosFoundDevice(device);
+			}
+		});
+	}
+
+	private static void _qosFoundDevice(Device device) {
+		if (device == null
+				|| !COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
 			return;
 		}
 		
