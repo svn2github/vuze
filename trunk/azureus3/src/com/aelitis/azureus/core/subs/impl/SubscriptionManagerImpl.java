@@ -1098,19 +1098,6 @@ SubscriptionManagerImpl
 			
 				saveConfig();
 				
-				try{
-					FileUtil.deleteResilientFile( getResultsFile( subs ));
-					
-					File vuze_file = getVuzeFile( subs );
-					
-					vuze_file.delete();
-					
-					new File( vuze_file.getParent(), vuze_file.getName() + ".bak" ).delete();
-					
-				}catch( Throwable e ){
-					
-					log( "Failed to delete results file", e );
-				}
 			}else{
 			
 				return;
@@ -1132,17 +1119,31 @@ SubscriptionManagerImpl
 			log( "Failed to check for engine deletion", e );
 		}
 		
-		Iterator it = listeners.iterator();
+		Iterator<SubscriptionManagerListener> it = listeners.iterator();
 		
 		while( it.hasNext()){
 			
 			try{
-				((SubscriptionManagerListener)it.next()).subscriptionRemoved( subs );
+				it.next().subscriptionRemoved( subs );
 				
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace(e);
 			}
+		}
+		
+		try{
+			FileUtil.deleteResilientFile( getResultsFile( subs ));
+			
+			File vuze_file = getVuzeFile( subs );
+			
+			vuze_file.delete();
+			
+			new File( vuze_file.getParent(), vuze_file.getName() + ".bak" ).delete();
+			
+		}catch( Throwable e ){
+			
+			log( "Failed to delete results/vuze file", e );
 		}
 	}
 	
