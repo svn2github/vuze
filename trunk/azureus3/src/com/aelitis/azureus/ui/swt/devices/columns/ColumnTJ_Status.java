@@ -53,6 +53,7 @@ public class ColumnTJ_Status
 		"devices.on.demand",		// 8 
 		"devices.ready",			// 9
 		"devices.downloading",		// 10
+		"devices.copying", // 11
 	};
 
 	private static String[] js_resources;
@@ -115,8 +116,12 @@ public class ColumnTJ_Status
 			}
 			
 			if ( text == null ){
-				
-				if ( tf.getCopyToDeviceFails() > 0 ){
+
+				if ( tf.isCopyingToDevice() ) {
+
+					text = js_resources[11];
+
+				} else if ( tf.getCopyToDeviceFails() > 0 ){
 			
 					text = js_resources[7];
 					
@@ -192,6 +197,8 @@ public class ColumnTJ_Status
 				}
 			}
 		}
+		
+		
 		
 		cell.setText( text );
 		cell.setToolTip(tooltip);

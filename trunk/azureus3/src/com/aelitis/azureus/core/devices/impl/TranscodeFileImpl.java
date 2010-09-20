@@ -67,11 +67,12 @@ TranscodeFileImpl
 	private static final String			KEY_DATE				= "at_dt";
 	private static final String			KEY_CATEGORIES			= PT_CATEGORY;
 	private static final String			KEY_COPY_TO_OVERRIDE	= "ct_over";
+	private static final String			KEY_COPYING	= "copying";
 
 	private DeviceImpl					device;
 	private String						key;
 	private Map<String,Map<String,?>>	files_map;
-	
+
 		// don't store any local state here, store it in the map as this is just a wrapper
 		// for the underlying map and there can be multiple such wrappers concurrent
 	
@@ -97,6 +98,8 @@ TranscodeFileImpl
 		setLong( KEY_DATE, SystemTime.getCurrentTime());
 		
 		setBoolean( KEY_FOR_JOB, _for_job );
+		
+		setBoolean( KEY_COPYING, false );
 	}
 	
 	protected
@@ -359,15 +362,20 @@ TranscodeFileImpl
 	setCopiedToDevice(
 		boolean b )
 	{
+
 		setBoolean( PT_COPIED, b );
 		
 		setLong( PT_COPY_FAILED, 0 );
+
+		setCopyingToDevice(false);
 	}
 	
 	protected void
 	setCopyToDeviceFailed()
 	{
 		setLong( PT_COPY_FAILED, getLong( PT_COPY_FAILED ) + 1 );
+
+		setCopyingToDevice(false);
 	}
 	
 	public long
@@ -775,5 +783,18 @@ TranscodeFileImpl
 			
 			return( key + ": " + map );
 		}
+	}
+
+	public void 
+	setCopyingToDevice(
+			boolean b)
+	{
+		setBoolean(KEY_COPYING, b);
+	}
+	
+	public boolean
+	isCopyingToDevice()
+	{
+		return getBoolean(KEY_COPYING);
 	}
 }

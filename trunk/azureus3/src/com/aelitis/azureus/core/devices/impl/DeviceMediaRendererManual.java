@@ -542,6 +542,8 @@ DeviceMediaRendererManual
 				for ( TranscodeFileImpl transcode_file: to_copy ){
 					
 					try{
+						transcode_file.setCopyingToDevice( true );
+
 						File	file = transcode_file.getTargetFile().getFile();
 						
 						File	target = new File( copy_to, file.getName());

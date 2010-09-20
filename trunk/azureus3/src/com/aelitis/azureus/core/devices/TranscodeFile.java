@@ -130,4 +130,7 @@ TranscodeFile
 
 	public boolean 
 	isDeleted();
+
+	public boolean
+	isCopyingToDevice();
 }
