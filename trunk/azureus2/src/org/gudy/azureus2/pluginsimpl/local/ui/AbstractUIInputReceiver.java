@@ -123,6 +123,10 @@ public abstract class AbstractUIInputReceiver implements UIInputReceiver {
 		this.prompted = true;
 	}
 	
+	protected boolean isResultRecorded() {
+		return result_recorded;
+	}
+	
 	public final void prompt(UIInputReceiverListener receiver_listener) {
 		assertPrePrompt();
 		this.receiver_listener = receiver_listener;
