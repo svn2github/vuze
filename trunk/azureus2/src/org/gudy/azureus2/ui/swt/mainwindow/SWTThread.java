@@ -302,6 +302,8 @@ public class SWTThread {
   							e.printStackTrace();
   						if (Constants.isCVSVersion()) {
   							Logger.log(new LogAlert(LogAlert.UNREPEATABLE,MessageText.getString("SWT.alert.erroringuithread"),e));
+  						} else {
+  							Debug.out(MessageText.getString("SWT.alert.erroringuithread"), e);
   						}
 						}
 						
