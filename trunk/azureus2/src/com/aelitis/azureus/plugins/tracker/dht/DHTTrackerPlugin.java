@@ -2539,7 +2539,9 @@ DHTTrackerPlugin
 			
 			final Download	f_ready_download = ready_download;
 			
-			if ( dht.isDiversified( ready_download.getTorrent().getHash())){
+			final Torrent torrent = ready_download.getTorrent();
+			
+			if ( dht.isDiversified( torrent.getHash())){
 				
 				// System.out.println( "presence query for " + f_ready_download.getName() + "-> diversified pre start" );
 
@@ -2559,7 +2561,7 @@ DHTTrackerPlugin
 				final long start 		= now;
 				final long f_next_check = ready_download_next_check;
 				
-				dht.get(	ready_download.getTorrent().getHash(), 
+				dht.get(	torrent.getHash(), 
 							"Presence query for '" + ready_download.getName() + "'",
 							(byte)0,
 							INTERESTING_AVAIL_MAX, 
@@ -2614,7 +2616,7 @@ DHTTrackerPlugin
 	
 									int	total = leechers + seeds;
 									
-									log.log( f_ready_download.getTorrent(), LoggerChannel.LT_INFORMATION,
+									log.log( torrent, LoggerChannel.LT_INFORMATION,
 											"Presence query for '" + f_ready_download.getName() + "': availability="+
 											(total==INTERESTING_AVAIL_MAX?(INTERESTING_AVAIL_MAX+"+"):(total+"")) + ",div=" + diversified +
 											" (elapsed=" + (SystemTime.getCurrentTime() - start) + ")");
@@ -2651,7 +2653,7 @@ DHTTrackerPlugin
 										if ( !disable_put ){
 											
 											dht.put( 
-												f_ready_download.getTorrent().getHash(),
+												torrent.getHash(),
 												"Presence store '" + f_ready_download.getName() + "'",
 												"0".getBytes(),	// port 0, no connections
 												(byte)0,
@@ -2762,7 +2764,9 @@ DHTTrackerPlugin
 											public URL
 											getURL()
 											{
-												return( f_ready_download.getTorrent().getAnnounceURL());
+												URL	url_to_report = torrent.isDecentralised()?torrent.getAnnounceURL():DEFAULT_URL;
+
+												return( url_to_report );
 											}
 										});
 								}
