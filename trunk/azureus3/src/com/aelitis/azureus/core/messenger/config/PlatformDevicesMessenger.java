@@ -135,8 +135,19 @@ public class PlatformDevicesMessenger
 	private static Object getDeviceName(Device device) {
 		String name = device.getName();
 		String classification = device.getClassification();
-		String deviceName = name.equals(classification) ? name : name + "/" + classification;
-		return deviceName;
+		StringBuffer deviceName = new StringBuffer();
+		if (device.isGenericUSB()) {
+			deviceName.append("{g}");
+		}
+		if (device.isHidden()) {
+			deviceName.append("{h}");
+		}
+		deviceName.append(name);
+		if (!name.equals(classification)) {
+			deviceName.append('/');
+			deviceName.append(classification);
+		}
+		return deviceName.toString();
 	}
 
 	public static void qosTranscode(TranscodeJob job, int stateOveride) {
