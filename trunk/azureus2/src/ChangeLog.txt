@@ -15,6 +15,7 @@ CHANGE: Core  | Reduce debug messages for connection-refused type tracker errors
 CHANGE: Core  | Reduce version-check timeouts to prevent version server errors from adversely affecting Vuze [Parg]
 CHANGE: Core  | Be more tolerant of large PEX messages as clients are sending valid exchanges that exceeded our old limits [Parg]
 CHANGE: Core  | Improve detection of devices [TuxPaper]
+CHANGE: UI    | Device status column now reports when a file is being copied to the device [TuxPaper]
 
 BUGFIX: Core  | Fixes to superseeding mode [thanks Mmore1q3]
 BUGFIX: Core  | Fixed up disabling of UDP tracker protocol and added option to control UDP probing [Parg]
