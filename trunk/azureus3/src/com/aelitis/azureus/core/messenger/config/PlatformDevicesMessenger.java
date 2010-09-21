@@ -54,7 +54,7 @@ public class PlatformDevicesMessenger
 	private static final String OP_REPORT_DEVICES = "report-devices";
 	
 	private static String[] ignoreExtensions = { ".jpg", ".mp3", ".rar", };
-	
+
 	static {
 		Arrays.sort(ignoreExtensions);
 	}
@@ -132,7 +132,9 @@ public class PlatformDevicesMessenger
 		map.put("os-name", Constants.OSName);
 	}
 
-	private static Object getDeviceName(Device device) {
+	private static String getDeviceName(Device device) {
+		return device.getClassification();
+		/*
 		String name = device.getName();
 		String classification = device.getClassification();
 		StringBuffer deviceName = new StringBuffer();
@@ -148,6 +150,7 @@ public class PlatformDevicesMessenger
 			deviceName.append(classification);
 		}
 		return deviceName.toString();
+		*/
 	}
 
 	public static void qosTranscode(TranscodeJob job, int stateOveride) {
