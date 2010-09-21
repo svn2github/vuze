@@ -286,12 +286,6 @@ public abstract class TranscodeChooser
 
 		if (selectedTranscodeTarget != null) {
 			try {
-				PlatformDevicesMessenger.qosTranscodeRequest(selectedTranscodeTarget,
-						source);
-			} catch (Throwable ignore) {
-			}
-
-			try {
 				TranscodeProfile defaultProfile = selectedTranscodeTarget.getDefaultTranscodeProfile();
 				if (defaultProfile != null) {
 					// user chose not to ask

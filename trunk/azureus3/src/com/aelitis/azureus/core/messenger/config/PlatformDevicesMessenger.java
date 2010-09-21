@@ -51,17 +51,13 @@ public class PlatformDevicesMessenger
 
 	private static final String OP_QOS_TRANSCODE = "qos-transcode";
 
-	private static final String OP_QOS_PLAYBACK = "qos-playback";
-
-	private static final String OP_GET_PROFILES = "get-profiles";
-
 	private static final String OP_REPORT_DEVICES = "report-devices";
-
-	private static final String OP_QOS_TRANSCODE_REQUEST = "qos-transcode-request";
 	
-	private static String plugin_xcode_version = null;
+	private static String[] ignoreExtensions = { ".jpg", ".mp3", ".rar", };
 	
-	private static String plugin_itunes_version = null;
+	static {
+		Arrays.sort(ignoreExtensions);
+	}
 
 	public static void qosTurnOn(boolean withITunes) {
 		if (!COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
@@ -136,34 +132,6 @@ public class PlatformDevicesMessenger
 		map.put("os-name", Constants.OSName);
 	}
 
-	public static void qosTranscodeRequest(TranscodeTarget transcodeTarget, String sourceRef) {
-		if (!COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)
-				|| transcodeTarget == null) {
-			return;
-		}
-
-		HashMap<String, Object> map = new HashMap<String, Object>();
-
-		addPluginVersionsToMap(map);
-
-		Device device = transcodeTarget.getDevice();
-		if (device != null) { // should never be null..
-			map.put("device-name", getDeviceName(device));
-			map.put("device-type", new Integer(device.getType()));
-		}
-		if (transcodeTarget instanceof DeviceMediaRenderer) {
-			DeviceMediaRenderer renderer = (DeviceMediaRenderer) transcodeTarget;
-			map.put("renderer-species",
-					Integer.valueOf(renderer.getRendererSpecies()));
-		}
-		map.put("source-ref", sourceRef);
-
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-				OP_QOS_TRANSCODE_REQUEST, map, 5000);
-		message.setSendAZID(false);
-		PlatformMessenger.queueMessage(message, null);
-	}
-
 	private static Object getDeviceName(Device device) {
 		String name = device.getName();
 		String classification = device.getClassification();
@@ -177,12 +145,29 @@ public class PlatformDevicesMessenger
 			return;
 		}
 
+		HashMap<String, Object> map = new HashMap<String, Object>();
+
 		TranscodeFile transcodeFile = job.getTranscodeFile();
 		DiskManagerFileInfo sourceFileInfo = null;
 		try {
 			sourceFileInfo = transcodeFile.getSourceFile();
 		} catch (Throwable t) {
 		}
+		
+		// Don't worry, we don't send the filename, just the extension.  This
+		// helps us figure out which file types are failing/succeeding the most
+		if (sourceFileInfo != null) {
+			String extension = FileUtil.getExtension(sourceFileInfo.getFile().getName()).toLowerCase();
+			long len = sourceFileInfo.getLength();
+			if (Arrays.binarySearch(ignoreExtensions, extension) >= 0
+					|| extension.matches("^\\.r[0-9][0-9]$") || len < 768000) {
+				return;
+			}
+			map.put("source-file-ext", extension);
+			map.put("source-file-size", new Long(len));
+		}
+		
+		
 		DiskManagerFileInfo targetFileInfo = null;
 		try {
 			targetFileInfo = transcodeFile.getTargetFile();
@@ -192,8 +177,6 @@ public class PlatformDevicesMessenger
 		TranscodeTarget target = job.getTarget();
 		Device device = target.getDevice();
 		
-		HashMap<String, Object> map = new HashMap<String, Object>();
-
 		addPluginVersionsToMap(map);
 
 		map.put("job-state", Integer.valueOf(stateOveride));
@@ -240,12 +223,6 @@ public class PlatformDevicesMessenger
 			map.put("renderer-species", Integer.valueOf(renderer.getRendererSpecies()));
 		}
 
-		// Don't worry, we don't send the filename, just the extension.  This
-		// helps us figure out which file types are failing/succeeding the most
-		if (sourceFileInfo != null) {
-			map.put("source-file-ext", FileUtil.getExtension(sourceFileInfo.getFile().getName()));
-			map.put("source-file-size", new Long(sourceFileInfo.getLength()));
-		}
 		if (targetFileInfo != null) {
 			map.put("target-file-ext", FileUtil.getExtension(targetFileInfo.getFile().getName()));
 			map.put("target-file-size", new Long(targetFileInfo.getLength()));
