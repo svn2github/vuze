@@ -35,8 +35,11 @@ import java.io.InputStream;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginState;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -47,6 +50,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
@@ -185,8 +189,42 @@ SFPluginDetailsLoaderImpl
 	
 		throws SFPluginDetailsException
 	{
-		try{			
-			ResourceDownloader dl = rd_factory.create( new URL(page_url));
+		try{
+			String	page_url_to_use = page_url;
+			
+			try{
+				String pids = "";
+				
+				PluginInterface[] pis = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaces();
+				
+				for ( PluginInterface pi: pis ){
+					
+					PluginState ps = pi.getPluginState();
+					
+					if ( !( ps.isBuiltIn() || ps.isDisabled())){
+						
+						String version = pi.getPluginVersion();
+						
+						if ( version != null && Constants.compareVersions( version, "0" ) > 0 ){
+							
+							String pid = pi.getPluginID();
+							
+							if ( pid != null && pid.length() > 0 ){
+						
+								pids += pid + ":";
+							}
+						}
+					}
+				}
+	
+				page_url_to_use += "&epids=" + UrlUtils.encode( pids );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+			
+			ResourceDownloader dl = rd_factory.create( new URL(page_url_to_use));
 			
 			dl = rd_factory.getRetryDownloader( dl, 5 );
 			
