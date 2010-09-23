@@ -377,12 +377,8 @@ public class ManagerUtils {
   	stop(dm, shell, DownloadManager.STATE_STOPPED);
   }
   
-  public static void 
-  stop(
-  		final DownloadManager dm,
-		Shell shell,
-		int stateAfterStopped ) 
-  {
+	public static void stop(final DownloadManager dm, final Shell shell,
+			final int stateAfterStopped) {
 		if (dm == null) {
 			return;
 		}
@@ -401,10 +397,16 @@ public class ManagerUtils {
 			if (dm.getStats().getShareRatio() >= 0
 					&& dm.getStats().getShareRatio() < 1000
 					&& COConfigurationManager.getBooleanParameter("Alert on close", false)) {
-				if (shell == null) {
-					shell = Utils.findAnyShell();
+				if (!Utils.isThisThreadSWT()) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							stop(dm, shell, stateAfterStopped);
+						}
+					});
+					return;
 				}
-				MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING
+				Shell aShell = shell == null ? Utils.findAnyShell() : shell;
+				MessageBox mb = new MessageBox(aShell, SWT.ICON_WARNING
 						| SWT.YES | SWT.NO);
 				mb.setText(MessageText.getString("seedmore.title"));
 				mb.setMessage(MessageText.getString("seedmore.shareratio")
@@ -412,34 +414,6 @@ public class ManagerUtils {
 						+ MessageText.getString("seedmore.uploadmore"));
 				int action = mb.open();
 				stopme = action == SWT.YES;
-			} else if (dm.getDownloadState().isOurContent()
-					&& dm.getStats().getAvailability() < 2) {
-				TRTrackerScraperResponse scrape = dm.getTrackerScrapeResponse();
-				int numSeeds = scrape.getSeeds();
-	      long seedingStartedOn = dm.getStats().getTimeStartedSeeding();
-	      if ((numSeeds > 0) &&
-	          (seedingStartedOn > 0) &&
-	          (scrape.getScrapeStartTime() > seedingStartedOn))
-	        numSeeds--;
-	      
-	      if (numSeeds == 0) {
-					String title = MessageText.getString("Content.alert.notuploaded.title");
-					String text = MessageText.getString("Content.alert.notuploaded.text",
-							new String[] {
-								dm.getDisplayName(),
-								MessageText.getString("Content.alert.notuploaded.stop")
-							});
-
-					MessageBoxShell mb = new MessageBoxShell(
-							title, text, new String[] {
-								MessageText.getString("Content.alert.notuploaded.button.stop"),
-								MessageText.getString("Content.alert.notuploaded.button.continue")
-							}, 1);
-					mb.setRelatedObject(dm);
-
-					mb.open(null);
-					stopme = mb.waitUntilClosed() == 0;
-	      }
 			}
 		}
 		
