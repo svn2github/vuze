@@ -109,6 +109,13 @@ extract messagebundles
 	       	 <attribute name="Build-Version" value="${build.ver}"/>
 	       </manifest>
 	   </jar>
+		
+		<!-- Repack core jar for max compatibility and compression -->
+		<echo message="Repacking core jar ..." />
+		<exec executable="pack200" dir="." resolveexecutable="true" failonerror="false" failifexecutionfails="false" >
+			 <arg value="--repack" />
+			 <arg value="${dist.dir}/${build.name}.jar" />
+		</exec>
 		  
 		<!-- Package linkable plugin api jar, with embedded sources -->
 		<jar destfile="${dist.dir}/${build.name}_pluginapi.jar" level="9" >
