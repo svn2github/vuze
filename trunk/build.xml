@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!-- TODO
-repack jar
-verify  source="1.5" target="1.5 is really based on jdk1.5 bin
 extract messagebundles
 -->
 
