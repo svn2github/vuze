@@ -265,6 +265,14 @@ public class LoggerImpl {
 				alertLogger = AEDiagnostics.getLogger("alerts");
 			}
 		}
+		
+		Throwable error = alert.getError();
+		
+		if ( error != null ){
+			
+			logText += " (" + Debug.getNestedExceptionMessage( error ) + ")";
+		}
+		
 		alertLogger.log(logText);
 
 		alertHistory.add(alert);
