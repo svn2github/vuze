@@ -912,7 +912,9 @@ PluginInterfaceImpl
 				type = "built-in";
 			}
 			
-			writer.println( "type:" + type + ",enabled:" + !getPluginState().isDisabled() + ",operational:" + getPluginState().isOperational());
+			PluginState ps = getPluginState();
+			
+			writer.println( "type:" + type + ",enabled:" + !ps.isDisabled() + ",load_at_start=" + ps.isLoadedAtStartup() + ",operational:" + ps.isOperational());
 			
 		}finally{
 			
