@@ -109,7 +109,7 @@ extract messagebundles
 	   </jar>
 		
 		<!-- Repack core jar for max compatibility and compression -->
-		<echo message="Pack200 repacking core jar [${dist.dir}/${build.name}.jar]" />
+		<echo message="Pack200 repacking core jar [${build.name}.jar]." />
 		<exec executable="pack200" dir="." resolveexecutable="true" failonerror="false" failifexecutionfails="false" >
 			 <arg value="--repack" />
 			 <arg value="${dist.dir}/${build.name}.jar" />
