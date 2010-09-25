@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2010.xx.xx | Vuze 4.5.0.7
+
+
+
 2010.09.24 | Vuze 4.5.0.6
 
 FEATURE: Core | Monitor available JVM memory and warn user if it is running out and auto increase (Windows only) [Parg]
