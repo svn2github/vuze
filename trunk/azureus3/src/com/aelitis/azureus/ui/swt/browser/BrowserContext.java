@@ -364,7 +364,9 @@ public class BrowserContext
   				|| (event_location.startsWith("http://www.google.com/search") && !event_location.contains("&tbs="));
   				if (wasGoogleSearch && !isGoogleSearch) {
   					event.doit = false;
-  					Utils.launch(event.location);
+  					if (!event_location.equals("about:blank")) {
+  						Utils.launch(event.location);
+  					}
   					return;
   				}
 				}
