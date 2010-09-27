@@ -346,7 +346,7 @@ public class BrowserContext
 			}
 
 			public void changing(LocationEvent event) {
-				debug("browser.changing " + event.location);
+				debug("browser.changing " + event.location + " from " + browser.getUrl());
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
@@ -355,7 +355,19 @@ public class BrowserContext
 				}
 				
 				String event_location = event.location;
-				
+
+				if (!allowPopups()) {
+  				boolean wasGoogleSearch = browser.getUrl().startsWith(
+  						"http://www.google.com/#q")
+  						|| browser.getUrl().startsWith("http://www.google.com/search");
+  				boolean isGoogleSearch = event_location.startsWith("http://www.google.com/#q") 
+  				|| (event_location.startsWith("http://www.google.com/search") && !event_location.contains("&tbs="));
+  				if (wasGoogleSearch && !isGoogleSearch) {
+  					event.doit = false;
+  					Utils.launch(event.location);
+  					return;
+  				}
+				}
 				//Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "Location Changing", "Navigating to " + event_location );
 
 				if (event_location.startsWith("javascript")
