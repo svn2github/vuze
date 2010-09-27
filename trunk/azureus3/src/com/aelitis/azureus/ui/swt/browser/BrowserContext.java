@@ -621,7 +621,7 @@ public class BrowserContext
 	 * @since 3.1.1.1
 	 */
 	protected void setPageLoading(boolean b, String url) {
-		System.out.println("SPL: " + b + ";" + url);
+		//System.out.println("SPL: " + b + ";" + url);
 		// we may get multiple "load done"s (from each frame) which we don't
 		// want to skip
 		if (b && pageLoading) {
