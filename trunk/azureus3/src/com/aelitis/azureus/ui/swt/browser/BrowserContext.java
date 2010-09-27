@@ -362,11 +362,9 @@ public class BrowserContext
   						|| browser.getUrl().startsWith("http://www.google.com/search");
   				boolean isGoogleSearch = event_location.startsWith("http://www.google.com/#q") 
   				|| (event_location.startsWith("http://www.google.com/search") && !event_location.contains("&tbs="));
-  				if (wasGoogleSearch && !isGoogleSearch) {
+  				if (wasGoogleSearch && !isGoogleSearch &&!event_location.equals("about:blank")) {
   					event.doit = false;
-  					if (!event_location.equals("about:blank")) {
-  						Utils.launch(event.location);
-  					}
+						Utils.launch(event.location);
   					return;
   				}
 				}
@@ -623,6 +621,7 @@ public class BrowserContext
 	 * @since 3.1.1.1
 	 */
 	protected void setPageLoading(boolean b, String url) {
+		System.out.println("SPL: " + b + ";" + url);
 		// we may get multiple "load done"s (from each frame) which we don't
 		// want to skip
 		if (b && pageLoading) {
