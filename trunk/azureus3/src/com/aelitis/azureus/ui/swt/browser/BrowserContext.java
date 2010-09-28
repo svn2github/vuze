@@ -364,7 +364,23 @@ public class BrowserContext
   				|| (event_location.startsWith("http://www.google.com/search") && !event_location.contains("&tbs="));
   				if (wasGoogleSearch && !isGoogleSearch &&!event_location.equals("about:blank")) {
   					event.doit = false;
-						Utils.launch(event.location);
+						String[] contentTypes = getContentTypes(event_location, ((Browser)event.widget).getUrl());
+
+						boolean isTorrent = false;
+						for (String s : contentTypes) {
+							
+							if ( s != null ){
+								
+								if ( s.indexOf("torrent") != -1 ) {
+									
+									isTorrent = true;
+								}
+							}
+						}
+						
+						if (isTorrent || !openTorrent(event)) {
+							Utils.launch(event.location);
+						}
   					return;
   				}
 				}
@@ -441,114 +457,33 @@ public class BrowserContext
 							
 							if ( test_for_torrent || test_for_vuze ){
 								
-								try {
-									//See what the content type is
-									URL url = new URL(event_location);
-									URLConnection conn = url.openConnection();
-									
-										// we're only trying to get the content type so just use head
-									
-									((HttpURLConnection)conn).setRequestMethod("HEAD");
-									
-									String	referer_str = null;
-									
-									try{
-										URL referer = new URL(((Browser)event.widget).getUrl());
+								String[] contentTypes = getContentTypes(event_location, ((Browser)event.widget).getUrl());
 
-										if ( referer != null ){
-											
-											referer_str = referer.toExternalForm();
-
-										}
-									}catch( Throwable e ){
-									}
+								for (String s : contentTypes) {
 									
-									UrlUtils.setBrowserHeaders( conn, referer_str );
-									
-									UrlUtils.connectWithTimeouts( conn, 1500, 5000 );
-									
-									String contentType = conn.getContentType();
-									
-									if ( contentType != null ){
+									if ( s != null ){
 										
-										if ( test_for_torrent && contentType.indexOf("torrent") != -1 ) {
-									
+										if ( test_for_torrent && s.indexOf("torrent") != -1 ) {
+											
 											isTorrent = true;
 										}
 										
-										if ( test_for_vuze && contentType.indexOf("vuze") != -1 ) {
+										if ( test_for_vuze && s.indexOf("vuze") != -1 ) {
 											
 											isVuzeFile = true;
 										}
 									}
-									
-									String contentDisposition = conn.getHeaderField("Content-Disposition");
-									
-									if (contentDisposition != null ){
-										
-										if ( test_for_torrent && contentDisposition.indexOf(".torrent") != -1) {
-									
-											isTorrent = true;
-										}
-										
-										if ( test_for_vuze && contentDisposition.indexOf(".vuze") != -1) {
-											
-											isVuzeFile = true;
-										}
-			
-									}
-									
-								}catch( Throwable e){
 								}
 								
+									
 								//System.out.println( "Test for t/v: " + event_location + " -> " + isTorrent + "/" + isVuzeFile );
 							}
 						}
 						
 						if ( isTorrent ){
 							
-							event.doit = false;
-							setPageLoading(false, event.location);
+							openTorrent(event);
 							
-							try {
-								String referer_str = null;
-
-								try{
-									referer_str = new URL(((Browser)event.widget).getUrl()).toExternalForm();
-
-								}catch( Throwable e ){
-								}
-																
-								Map headers = UrlUtils.getBrowserHeaders( referer_str );
-											
-								
-								String cookies = (String) ((Browser)event.widget).getData("current-cookies");
-								
-								if (cookies != null ){
-									
-									headers.put("Cookie", cookies);
-								}
-								
-								String	url = event_location;
-								
-								if ( torrentURLHandler != null ){
-									
-									try{
-										torrentURLHandler.handleTorrentURL(url);
-										
-									}catch( Throwable e ){
-										
-										Debug.printStackTrace(e);
-									}
-								}
-								
-								PluginInitializer.getDefaultInterface().getDownloadManager().addDownload(
-										new URL(url), headers );
-								
-							}catch( Throwable e ){
-								
-								e.printStackTrace();
-							}
 						}else if ( isVuzeFile ){
 							
 							event.doit = false;
@@ -612,6 +547,92 @@ public class BrowserContext
 
 		messageDispatcherSWT.registerBrowser(browser);
 		this.display = browser.getDisplay();
+	}
+
+	protected boolean openTorrent(LocationEvent event) {
+		event.doit = false;
+		setPageLoading(false, event.location);
+		
+		try {
+			String referer_str = null;
+
+			try{
+				referer_str = new URL(((Browser)event.widget).getUrl()).toExternalForm();
+
+			}catch( Throwable e ){
+			}
+											
+			Map headers = UrlUtils.getBrowserHeaders( referer_str );
+						
+			
+			String cookies = (String) ((Browser)event.widget).getData("current-cookies");
+			
+			if (cookies != null ){
+				
+				headers.put("Cookie", cookies);
+			}
+			
+			String	url = event.location;
+			
+			if ( torrentURLHandler != null ){
+				
+				try{
+					torrentURLHandler.handleTorrentURL(url);
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+			
+			PluginInitializer.getDefaultInterface().getDownloadManager().addDownload(
+					new URL(url), headers );
+			
+			return true;
+		}catch( Throwable e ){
+			Debug.out(e);
+			return false;
+		}
+	}
+
+	protected String[] getContentTypes(String event_location, String _referer) {
+		try {
+			//See what the content type is
+			URL url = new URL(event_location);
+			URLConnection conn = url.openConnection();
+
+			// we're only trying to get the content type so just use head
+
+			((HttpURLConnection) conn).setRequestMethod("HEAD");
+
+			String referer_str = null;
+
+			try {
+				URL referer = new URL(_referer);
+
+				if (referer != null) {
+
+					referer_str = referer.toExternalForm();
+
+				}
+			} catch (Throwable e) {
+			}
+
+			UrlUtils.setBrowserHeaders(conn, referer_str);
+
+			UrlUtils.connectWithTimeouts(conn, 1500, 5000);
+
+			String contentType = conn.getContentType();
+			String contentDisposition = conn.getHeaderField("Content-Disposition");
+
+			return new String[] {
+				contentType,
+				contentDisposition
+			};
+		} catch (Throwable e) {
+		}
+
+		return new String[0];
 	}
 
 	/**
