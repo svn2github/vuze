@@ -378,7 +378,7 @@ public class BrowserContext
 							}
 						}
 						
-						if (isTorrent || !openTorrent(event)) {
+						if (!isTorrent || !openTorrent(event)) {
 							Utils.launch(event.location);
 						}
   					return;
