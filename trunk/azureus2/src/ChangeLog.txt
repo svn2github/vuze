@@ -3,7 +3,9 @@ VUZE CHANGELOG
 
 2010.xx.xx | Vuze 4.5.0.7
 
-
+CHANGE: Core  | Add alert details to alert log [Parg]
+CHANGE: Core  | Log plugin load-at-start state to diagnostics [Parg]
+BUGFIX: Core  | OSX - handle UTF-8 BOM in plist [Parg]
 
 2010.09.24 | Vuze 4.5.0.6
 
