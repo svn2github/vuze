@@ -20,11 +20,16 @@
 
 package org.gudy.azureus2.platform.macosx;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 public class 
@@ -32,6 +37,7 @@ PListEditor
 {	
 	private String plistFile;
 	
+	private boolean	found_bom;
 	
 	public 
 	PListEditor(
@@ -118,12 +124,11 @@ PListEditor
 	
 	private boolean 
 	isValuePresent(
-		String match )
+		String	fileContent,
+		String 	match )
 	
 		throws IOException
-	{
-		String fileContent = getFileContent();
-		
+	{		
 		//System.out.println("Searching for:\n" + match);
 		return fileContent.matches(match);
 	}
@@ -145,7 +150,7 @@ PListEditor
 	{
 		String fileContent = getFileContent();
 		
-		if( !isValuePresent(find)) {
+		if( !isValuePresent(fileContent,find)) {
 			//System.out.println("Changing " +plistFile);
 			fileContent = fileContent.replaceFirst(match, "$1"+value + "$3");
 			setFileContent(fileContent);
@@ -157,17 +162,41 @@ PListEditor
 	getFileContent()
 		throws IOException
 	{
-		FileReader fr = null;
-		
+		InputStreamReader reader = null;
+
 		try{
-			fr = new FileReader(plistFile);
+			byte[]	file_bytes = FileUtil.readFileAsByteArray( new File( plistFile ));
+			
+				// handle UTF-8 encoded BOM EFBBBF
+						
+			if ( 	file_bytes.length > 3 &&
+					file_bytes[0] == (byte)0xEF &&
+					file_bytes[1] == (byte)0xBB &&
+					file_bytes[2] == (byte)0xBF ){
+				
+				found_bom = true;
+				
+				reader = new InputStreamReader( new ByteArrayInputStream( file_bytes, 3, file_bytes.length - 3 ));
+				
+			}else{
+				
+				found_bom = false;
+				
+				reader = new InputStreamReader( new ByteArrayInputStream( file_bytes ));
+
+			}
+					
 			//max 32KB
+			
 			int length = 32 * 1024;
+			
 			char[] buffer = new char[length];
+			
 			int offset = 0;
+			
 			int len = 0;
 			
-			while((len = fr.read(buffer,offset,length-offset)) > 0) {
+			while((len = reader.read(buffer,offset,length-offset)) > 0) {
 				offset += len;
 			}
 			
@@ -176,8 +205,8 @@ PListEditor
 			return result;
 			
 		} finally {
-			if(fr != null) {
-				fr.close();
+			if(reader != null) {
+				reader.close();
 			}
 		}
 		
@@ -207,18 +236,34 @@ PListEditor
 		
 		try{
 			
-			FileWriter fw = null;
+			ByteArrayOutputStream	baos = new ByteArrayOutputStream( fileContent.length() + 256 );
 			
+			if ( found_bom ){
+				
+					// preserve UTF-8 BOM if it was found
+				
+				baos.write( new byte[]{ (byte)0xEF, (byte)0xBB, (byte)0xBF });
+			}
+			
+			OutputStreamWriter osw = new OutputStreamWriter( baos );
+			
+			osw.write( fileContent );
+			
+			osw.close();
+			
+			FileOutputStream out = null;
+						
 			try{
 				
-				fw = new FileWriter(plistFile);
-				fw.write(fileContent);
+				out = new FileOutputStream( plistFile );
+
+		    	out.write(  baos.toByteArray() );
 	
-			} finally {
+			}finally{
 				
-				if( fw != null ){
+				if( out != null ){
 					
-					fw.close();
+					out.close();
 					
 					ok = true;
 				}
