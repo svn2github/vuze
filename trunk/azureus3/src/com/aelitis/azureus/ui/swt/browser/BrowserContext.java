@@ -357,12 +357,14 @@ public class BrowserContext
 				String event_location = event.location;
 
 				if (!allowPopups()) {
-  				boolean wasGoogleSearch = browser.getUrl().startsWith(
-  						"http://www.google.com/#q")
-  						|| browser.getUrl().startsWith("http://www.google.com/search");
-  				boolean isGoogleSearch = event_location.startsWith("http://www.google.com/#q") 
-  				|| (event_location.startsWith("http://www.google.com/search") && !event_location.contains("&tbs="));
-  				if (wasGoogleSearch && !isGoogleSearch &&!event_location.equals("about:blank")) {
+					boolean wasGoogleSearch = browser.getUrl().startsWith(
+							"http://www.google.com/#q")
+							|| browser.getUrl().startsWith("http://www.google.com/search")
+							|| browser.getUrl().contains("vuzesearch");
+					boolean isGoogleSearch = event_location.startsWith("http://www.google.com/#q")
+							|| (event_location.startsWith("http://www.google.com/search") && !event_location.contains("&tbs="))
+							|| event_location.contains("vuzesearch");
+					if (wasGoogleSearch && !isGoogleSearch &&!event_location.equals("about:blank")) {
   					event.doit = false;
 						String[] contentTypes = getContentTypes(event_location, ((Browser)event.widget).getUrl());
 
