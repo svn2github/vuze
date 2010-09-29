@@ -50,6 +50,7 @@ import com.aelitis.azureus.activities.*;
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.cnetwork.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -1074,7 +1075,7 @@ public class SideBar
 		loadEntryByID(SIDEBAR_SECTION_SUBSCRIPTIONS, false);
 		loadEntryByID(SIDEBAR_SECTION_DEVICES, false);
 		
-		if (Constants.isWindows) {
+		if (Constants.isWindows && FeatureAvailability.isGamesEnabled()) {
   		registerEntry(SIDEBAR_SECTION_GAMES, new MdiEntryCreationListener() {
   			public MdiEntry createMDiEntry(String id) {
   				MdiEntry entry = createEntryFromSkinRef(null,

@@ -17,6 +17,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.content.RelatedContentManager;
+import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -281,6 +282,7 @@ public class MainMenu
 				MenuFactory.addSeparatorMenuItem(viewMenu);
 			}
 
+			boolean needsSep = false;
 			boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
 			if (enabled) {
 				MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V2 + ".view.beta",
@@ -294,18 +296,22 @@ public class MainMenu
           			mdi.showEntry(entry);
 							}
 				});
+				needsSep = true;
 			}
 
-			if (Constants.isWindows) {
+			if (Constants.isWindows && FeatureAvailability.isGamesEnabled()) {
   			MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".games", new Listener() {
   				public void handleEvent(Event event) {
   					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
   					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_GAMES);
   				}
   			});
+				needsSep = true;
 			}
 
-			MenuFactory.addSeparatorMenuItem(viewMenu);
+			if (needsSep) {
+				MenuFactory.addSeparatorMenuItem(viewMenu);
+			}
 
 			MenuFactory.addMenuItem(viewMenu, SWT.RADIO, PREFIX_V3
 					+ ".view.asSimpleList", new Listener() {

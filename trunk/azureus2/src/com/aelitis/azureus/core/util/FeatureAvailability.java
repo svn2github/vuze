@@ -40,6 +40,7 @@ FeatureAvailability
 	private static final long	FT_ENABLE_INTERNAL_FEATURES			= 0x0000000000000100;
 	
 	private static final long	FT_TRIGGER_SPEED_TEST_V1			= 0x0000000000000200;
+	private static final long	FT_DISABLE_GAMES			= 0x0000000000000400;
 	
 	private static VersionCheckClient vcc = VersionCheckClient.getSingleton();
 	
@@ -127,6 +128,14 @@ FeatureAvailability
 	triggerSpeedTestV1()
 	{
 		final boolean result = ( vcc.getFeatureFlags() & FT_TRIGGER_SPEED_TEST_V1 ) != 0;
+		
+		return( result );
+	}
+
+	public static boolean
+	isGamesEnabled()
+	{
+		final boolean result = ( vcc.getFeatureFlags() & FT_DISABLE_GAMES ) == 0;
 		
 		return( result );
 	}
