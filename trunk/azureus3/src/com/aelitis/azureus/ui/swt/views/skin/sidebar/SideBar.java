@@ -583,7 +583,7 @@ public class SideBar
 						MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
 						for (int i = 0; i < vitalityImages.length; i++) {
 							SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
-							if (!vitalityImage.isVisible()) {
+							if (vitalityImage == null || !vitalityImage.isVisible()) {
 								continue;
 							}
 							Rectangle hitArea = vitalityImage.getHitArea();
