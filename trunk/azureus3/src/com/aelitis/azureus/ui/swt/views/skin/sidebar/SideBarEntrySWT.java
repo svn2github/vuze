@@ -190,13 +190,15 @@ public class SideBarEntrySWT
 
 	// @see org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry#addVitalityImage(java.lang.String)
 	public MdiEntryVitalityImage addVitalityImage(String imageID) {
-		SideBarVitalityImageSWT vitalityImage = new SideBarVitalityImageSWT(this,
-				imageID);
-		if (listVitalityImages == Collections.EMPTY_LIST) {
-			listVitalityImages = new ArrayList<SideBarVitalityImageSWT>(1);
+		synchronized (this) {
+			SideBarVitalityImageSWT vitalityImage = new SideBarVitalityImageSWT(this,
+					imageID);
+			if (listVitalityImages == Collections.EMPTY_LIST) {
+				listVitalityImages = new ArrayList<SideBarVitalityImageSWT>(1);
+			}
+			listVitalityImages.add(vitalityImage);
+			return vitalityImage;
 		}
-		listVitalityImages.add(vitalityImage);
-		return vitalityImage;
 	}
 
 	public MdiEntryVitalityImage[] getVitalityImages() {
