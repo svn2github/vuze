@@ -366,7 +366,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         
         filename = URLDecoder.decode(filename, Constants.DEFAULT_ENCODING );
         
-        	// not sure of this piece of logic here but I'm not changing it at the moment
+        	// this code removes any parent directories from the filename we've extracted
         
         File temp = new File(filename);
         filename = temp.getName();
