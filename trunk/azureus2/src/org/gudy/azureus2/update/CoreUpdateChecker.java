@@ -528,6 +528,8 @@ CoreUpdateChecker
 	
 				  if ( !message.equals( last )){
 	
+					  boolean	repeatable = false;
+					  
 					  byte[]	signature = (byte[])reply.get( sig_key );
 	
 					  if ( signature == null ){
@@ -549,14 +551,19 @@ CoreUpdateChecker
 	
 					  boolean	completed = false;
 					  
-					  if ( message.startsWith( "x:" )){
+					  if ( message.startsWith( "x:" ) || message.startsWith( "y:" )){
 						  
 						  	// emergency patch application
+						  
+						  repeatable = message.startsWith( "y:" );
 						  
 						  try{
 							  URL jar_url = new URL( message.substring(2));
 							  
-							  Logger.log( new LogEvent( LogIDs.LOGGER, "Patch application requsted: url=" + jar_url ));
+							  if ( !repeatable ){
+							  
+								  Logger.log( new LogEvent( LogIDs.LOGGER, "Patch application requsted: url=" + jar_url ));
+							  }
 
 							  File	temp_dir = AETemporaryFileHandler.createTempDir();
 							  
@@ -602,10 +609,17 @@ CoreUpdateChecker
 								  
 									  is.close();
 								  }
+								  
+								  jar_file.delete();
+								  
+								  temp_dir.delete();
 							  }
 						  }catch( Throwable e ){
 							  
-							  Logger.log( new LogEvent( LogIDs.LOGGER, "Patch application failed", e  ));
+							  if ( !repeatable ){
+							  
+								  Logger.log( new LogEvent( LogIDs.LOGGER, "Patch application failed", e  ));
+							  }
 						  }
 					  } else if ( message.startsWith("u:") && message.length() > 4 ) {
 					  	try {
@@ -671,9 +685,12 @@ CoreUpdateChecker
 					  
 					  if ( completed ){
 						  
-						  COConfigurationManager.setParameter( last_message_key, message );
-	
-						  COConfigurationManager.save();
+						  if ( !repeatable ){
+							  
+							  COConfigurationManager.setParameter( last_message_key, message );
+		
+							  COConfigurationManager.save();
+						  }
 					  }
 				  }
 			  }
