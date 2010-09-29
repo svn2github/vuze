@@ -195,6 +195,9 @@ public class SideBarToolTips
 		MdiEntryVitalityImage[] vitalityImages = mdiEntry.getVitalityImages();
 		for (int i = 0; i < vitalityImages.length; i++) {
 			SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
+			if (vitalityImage == null) {
+				continue;
+			}
 			String indicatorToolTip = vitalityImage.getToolTip();
 			if (indicatorToolTip == null || !vitalityImage.isVisible()) {
 				continue;
