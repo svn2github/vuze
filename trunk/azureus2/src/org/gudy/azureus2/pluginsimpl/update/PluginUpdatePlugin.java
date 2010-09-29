@@ -1802,17 +1802,50 @@ PluginUpdatePlugin
 						// create installation move actions for the files that have been installed
 						// into temp location
 					
-					addInstallationActions( installer, install_properties, "%plugin%", target_plugin_dir, plugin_dir );
-					addInstallationActions( installer, install_properties, "%app%", target_prog_dir, prog_dir );
-					addInstallationActions( installer, install_properties, "%user%", target_user_dir, user_dir );					
+					boolean	defer_restart = false;
+					
+					if ( addInstallationActions( installer, install_properties, "%plugin%", target_plugin_dir, plugin_dir )){
+						
+						defer_restart = true;
+					}
+					
+					if ( addInstallationActions( installer, install_properties, "%app%", target_prog_dir, prog_dir )){
+						
+						defer_restart = true;
+					}
+					
+					if ( addInstallationActions( installer, install_properties, "%user%", target_user_dir, user_dir )){
+						
+						defer_restart = true;
+					}
 				
+					if ( defer_restart && update.getRestartRequired() == Update.RESTART_REQUIRED_YES ){
+						
+						log.log( "Deferring restart for '" + plugin.getPluginID() + "'" );
+						
+						update.setRestartRequired( Update.RESTART_REQUIRED_NO );
+					}
+					
 						// don't delete temp store, it'll get deleted on restart
 					
 				}else{
 					
-					applyInstallProperties( install_properties, "%plugin%", plugin_dir );
-					applyInstallProperties( install_properties, "%app%", prog_dir );
-					applyInstallProperties( install_properties, "%user%", user_dir );
+					boolean	defer_restart = false;
+					
+					if ( applyInstallProperties( install_properties, "%plugin%", plugin_dir )){
+						
+						defer_restart = true;
+					}
+					
+					if ( applyInstallProperties( install_properties, "%app%", prog_dir )){
+						
+						defer_restart = true;
+					}
+					
+					if ( applyInstallProperties( install_properties, "%user%", user_dir )){
+						
+						defer_restart = true;
+					}
 					
 					if ( unloadable ){
 					
@@ -1821,6 +1854,15 @@ PluginUpdatePlugin
 						plugin.getPluginState().reload();	// this will reload all if > 1 defined
 						
 						log.log( "... initialisation complete." );
+						
+					}else{
+						
+						if ( defer_restart && update.getRestartRequired() == Update.RESTART_REQUIRED_YES ){
+							
+							log.log( "Deferring restart for '" + plugin.getPluginID() + "'" );
+							
+							update.setRestartRequired( Update.RESTART_REQUIRED_NO );
+						}
 					}
 				}	
 			}
@@ -1866,7 +1908,7 @@ PluginUpdatePlugin
 		}
 	}
 		
-	protected void
+	protected boolean
 	addInstallationActions(
 		UpdateInstaller				installer,
 		Map<String,List<String[]>>	install_properties,
@@ -1876,6 +1918,8 @@ PluginUpdatePlugin
 	
 		throws UpdateException
 	{
+		boolean	defer_restart = false;
+		
 		if ( from_file.isDirectory()){
 			
 			File[]	files = from_file.listFiles();
@@ -1884,7 +1928,10 @@ PluginUpdatePlugin
 				
 				for (int i=0;i<files.length;i++){
 										
-					addInstallationActions( installer, install_properties, prefix + "/" + files[i].getName(), files[i], new File( to_file, files[i].getName()));
+					if ( addInstallationActions( installer, install_properties, prefix + "/" + files[i].getName(), files[i], new File( to_file, files[i].getName()))){
+						
+						defer_restart = true;
+					}
 				}
 			}
 		}else{
@@ -1912,18 +1959,26 @@ PluginUpdatePlugin
 						log.log( "Deleting " + to_file );
 						
 						installer.addRemoveAction( to_file.getAbsolutePath());
+						
+					}else if ( cmd.equals( "defer_restart" )){
+						
+						defer_restart = true;
 					}
 				}
 			}
 		}
+		
+		return( defer_restart );
 	}
 		
-	protected void
+	protected boolean
 	applyInstallProperties(
 		Map<String,List<String[]>>	install_properties,
 		String						prefix,
 		File						to_file )
 	{
+		boolean	defer_restart = false;
+
 		if ( to_file.isDirectory()){
 			
 			File[]	files = to_file.listFiles();
@@ -1957,7 +2012,10 @@ PluginUpdatePlugin
 					
 					if ( match ){
 					
-						applyInstallProperties( install_properties, new_prefix, files[i] );
+						if ( applyInstallProperties( install_properties, new_prefix, files[i] )){
+							
+							defer_restart = true;
+						}
 					}
 				}
 			}
@@ -1987,10 +2045,16 @@ PluginUpdatePlugin
 						log.log( "Deleting " + to_file );
 						
 						to_file.delete();
+
+					}else if ( cmd.equals( "defer_restart" )){
+						
+						defer_restart = true;
 					}
 				}
 			}
-		}	
+		}
+		
+		return( defer_restart );
 	}
 	
 	private void
