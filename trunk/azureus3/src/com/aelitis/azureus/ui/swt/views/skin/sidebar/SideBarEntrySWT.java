@@ -644,7 +644,7 @@ public class SideBarEntrySWT
 		MdiEntryVitalityImage[] vitalityImages = getVitalityImages();
 		for (int i = 0; i < vitalityImages.length; i++) {
 			SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
-			if (!vitalityImage.isVisible()
+			if (vitalityImage == null || !vitalityImage.isVisible()
 					|| vitalityImage.getAlignment() != SWT.RIGHT) {
 				continue;
 			}
