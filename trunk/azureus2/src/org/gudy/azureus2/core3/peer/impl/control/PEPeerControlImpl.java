@@ -2895,9 +2895,16 @@ DiskManagerCheckRequestListener, IPFilterListener
 	public void removePiece(PEPiece pePiece, int pieceNumber) {
 		if ( pePiece != null ){
 		adapter.removePiece(pePiece);
+		} else {
+			pePiece = pePieces[pieceNumber];
 		}
 		pePieces[pieceNumber] =null;
 		nbPiecesActive--;
+		
+		if (pePiece == null) {
+			Debug.outNoStack("Trying to remove piece " + pieceNumber + " when piece is null");
+			return;
+		}
 		
 		final ArrayList peer_manager_listeners = peer_manager_listeners_cow;
 
