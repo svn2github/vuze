@@ -3,6 +3,7 @@ package com.aelitis.azureus.ui.swt.feature;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
@@ -13,6 +14,7 @@ import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureManagerListener;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence.LicenceInstallationListener;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -66,6 +68,20 @@ public class FeatureManagerUIListener
 			public void failed(String licenceKey, PluginException error) {
 				if (DEBUG) {
 					System.out.println("FEAT: FAIL: " + licenceKey + ": " + error.toString());
+				}
+				if (licenceKey.equals(pendingAuthForKey)) {
+					pendingAuthForKey = null;
+					
+					FeatureManagerUI.closeLicenceValidatingWindow();
+					
+					String s = Debug.getNestedExceptionMessage(error);
+					
+					MessageBoxShell mb = new MessageBoxShell(
+							SWT.ICON_ERROR | SWT.OK,
+							"Licence Addition Error",
+							s );
+					
+					mb.open( null );
 				}
 			}
 	
