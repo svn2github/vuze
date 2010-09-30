@@ -173,10 +173,12 @@ public class PlatformDevicesMessenger
 		if (sourceFileInfo != null) {
 			String extension = FileUtil.getExtension(sourceFileInfo.getFile().getName()).toLowerCase();
 			long len = sourceFileInfo.getLength();
+			/*
 			if (Arrays.binarySearch(ignoreExtensions, extension) >= 0
 					|| extension.matches("^\\.r[0-9][0-9]$") || len < 768000) {
 				return;
 			}
+			*/
 			map.put("source-file-ext", extension);
 			map.put("source-file-size", new Long(len));
 		}
