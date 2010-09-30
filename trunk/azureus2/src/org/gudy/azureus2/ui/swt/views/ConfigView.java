@@ -891,17 +891,21 @@ public class ConfigView extends AbstractIView {
     	}
     }
   	sectionsCreated.clear();
-    pluginSections.clear();
-    if(! tree.isDisposed()) {
-	    TreeItem[] items = tree.getItems();
-	    for (int i = 0; i < items.length; i++) {
-	      Composite c = (Composite)items[i].getData("Panel");
-	      Utils.disposeComposite(c);
-	      items[i].setData("Panel", null);
-	
-	      items[i].setData("ConfigSectionSWT", null);
+  	if ( pluginSections != null ){
+  		pluginSections.clear();
+  	}
+  	if ( tree != null ){
+	    if(! tree.isDisposed()) {
+		    TreeItem[] items = tree.getItems();
+		    for (int i = 0; i < items.length; i++) {
+		      Composite c = (Composite)items[i].getData("Panel");
+		      Utils.disposeComposite(c);
+		      items[i].setData("Panel", null);
+		
+		      items[i].setData("ConfigSectionSWT", null);
+		    }
 	    }
-    }
+  	}
     Utils.disposeComposite(cConfig);
 
   	Utils.disposeSWTObjects(new Object[] { headerFont, filterFoundFont });
