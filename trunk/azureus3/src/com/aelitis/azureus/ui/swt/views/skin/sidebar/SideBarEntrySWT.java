@@ -914,6 +914,9 @@ public class SideBarEntrySWT
 			// in a SIGSEGV crash.
 			TreeItem[] children = swtItem.getItems();
 			for (TreeItem child : children) {
+				if (child.isDisposed()) {
+					continue;
+				}
 				MdiEntry entry = (MdiEntry) child.getData("MdiEntry");
 				if (entry != null) {
 					entry.close(true);
