@@ -212,7 +212,7 @@ public class FeatureManagerUI
 			Licence[] trial = featman.createLicences(new String[] {
 				"dvdburn_trial"
 			});
-		} catch (PluginException e) {
+		} catch (Throwable e) {
 			String s = "Creating Trial: " + Debug.getNestedExceptionMessage(e);
 			new MessageBoxShell("Trial Error", s).open(null);
 			Logger.log(new LogAlert(true, s, e));
@@ -352,7 +352,17 @@ public class FeatureManagerUI
   						} else if (initialState == Licence.LS_REVOKED) {
   							openLicenceRevokedWindow(licence);
   						}
-  					} catch (PluginException e) {
+  					} catch (Throwable e) {
+  						
+  						String s = Debug.getNestedExceptionMessage(e);
+  						
+  						MessageBoxShell mb = new MessageBoxShell(
+    							SWT.ICON_ERROR | SWT.OK,
+    							"Licence Addition Error",
+    							s );
+  						
+  						mb.open();
+  						
   						Logger.log(new LogAlert(true, LogAlert.AT_ERROR, "Adding Licence",
   								e));
   					}
