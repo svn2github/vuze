@@ -64,7 +64,7 @@ public class FeatureManagerInstallWindow
 	private String progressText;
 
 	private SWTSkinObjectText soInstallPct;
-
+	
 	public FeatureManagerInstallWindow(Licence licence) {
 		if (!FeatureManagerUI.enabled) {
 			return;
@@ -169,7 +169,7 @@ public class FeatureManagerInstallWindow
 	}
 
 	public void failed(String licence_key, PluginException error) {
-		
+				
 		UIFunctionsManager.getUIFunctions().promptUser(
 				MessageText.getString( "dlg.auth.install.failed.title" ), 
 				MessageText.getString( "dlg.auth.install.failed.text", new String[]{ licence_key, Debug.getNestedExceptionMessage( error )}),
@@ -184,6 +184,12 @@ public class FeatureManagerInstallWindow
 		licence.removeInstallationListener(this);
 	}
 
+	public void close() {
+		
+		box.close(0);
+		licence.removeInstallationListener(this);
+	}
+	
 	public void start(String licence_key) {
 	}
 

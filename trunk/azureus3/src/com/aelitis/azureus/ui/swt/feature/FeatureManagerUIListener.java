@@ -40,13 +40,21 @@ public class FeatureManagerUIListener
 	private LicenceInstallationListener installation_listener = 
 		new LicenceInstallationListener()
 		{
+			private Map<String,FeatureManagerInstallWindow> install_windows = new HashMap<String, FeatureManagerInstallWindow>();
+			
 			public void start(String licence_key) {
 				if (DEBUG) {
 					System.out.println("FEATINST: START! " + licence_key);
 				}
 				try {
 					Licence licence = featman.addLicence(licence_key);
-					new FeatureManagerInstallWindow(licence).open();
+					
+					FeatureManagerInstallWindow window = new FeatureManagerInstallWindow(licence);
+					
+					install_windows.put( licence_key, window );
+					
+					window.open();
+					
 				} catch (PluginException e) {
 					Debug.out(e);
 				}
@@ -69,10 +77,16 @@ public class FeatureManagerUIListener
 				if (DEBUG) {
 					System.out.println("FEAT: FAIL: " + licenceKey + ": " + error.toString());
 				}
+				
+				FeatureManagerInstallWindow window = install_windows.remove( licenceKey );
+
 				if (licenceKey.equals(pendingAuthForKey)) {
 					pendingAuthForKey = null;
+										
+					if ( window != null ){
 					
-					FeatureManagerUI.closeLicenceValidatingWindow();
+						window.close();
+					}
 					
 					String s = Debug.getNestedExceptionMessage(error);
 					
@@ -86,7 +100,11 @@ public class FeatureManagerUIListener
 			}
 	
 			public void complete(String licenceKey) {
+
+				install_windows.remove( licenceKey );
+
 				if (licenceKey.equals(pendingAuthForKey)) {
+					
 					pendingAuthForKey = null;
 					FeatureManagerUI.openLicenceSuccessWindow();
 				}
