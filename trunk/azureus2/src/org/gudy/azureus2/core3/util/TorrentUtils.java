@@ -164,7 +164,7 @@ TorrentUtils
 	    	
 		}catch (TOTorrentException e){
       
-			Debug.outNoStack( e.getMessage() );
+			// Debug.outNoStack( e.getMessage() );
 			
 			File torrentBackup = new File(file.getParent(), file.getName() + ".bak");
 			

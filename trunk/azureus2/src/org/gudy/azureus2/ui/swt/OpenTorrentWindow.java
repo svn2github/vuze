@@ -67,6 +67,9 @@ import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -2065,6 +2068,17 @@ public class OpenTorrentWindow
 			torrentFile = new File(sFileName);
 		}
 
+		VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+		
+		VuzeFile vf = vfh.loadVuzeFile( torrentFile );
+		
+		if ( vf != null ){
+			
+  			vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
+
+  			return null;
+		}
+		
 		// Do a quick check to see if it's a torrent
 		if (!TorrentUtil.isFileTorrent(torrentFile, shellForChildren,
 				torrentFile.getName())) {
@@ -2078,6 +2092,7 @@ public class OpenTorrentWindow
 		try {
 			torrent = TorrentUtils.readFromFile(torrentFile, false);
 		} catch (final TOTorrentException e) {
+			
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (shell == null)

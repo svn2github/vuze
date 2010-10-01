@@ -101,6 +101,34 @@ VuzeFileHandler
 		return( getVuzeFile( is ));
 	}
 	
+	public VuzeFile
+	loadVuzeFile(
+		File 	file )
+	{
+		InputStream is = null;
+		
+		try{
+			is = new FileInputStream( file );
+			
+			return( getVuzeFile( is ));
+			
+		}catch( Throwable e ){
+			
+			return( null );
+			
+		}finally{
+	
+			if ( is != null ){
+				
+				try{
+					is.close();
+					
+				}catch( Throwable e ){	
+				}
+			}
+		}
+	}
+	
 	protected VuzeFile
 	getVuzeFile(
 		InputStream		is )

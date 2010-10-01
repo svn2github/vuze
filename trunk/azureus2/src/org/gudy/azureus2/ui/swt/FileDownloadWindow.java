@@ -312,8 +312,17 @@ public class FileDownloadWindow
 			}
 			
 			String tmp = url.substring(url.lastIndexOf('/') + 1);
-			if (tmp.toLowerCase(MessageText.LOCALE_ENGLISH).lastIndexOf(".torrent") > 0) {
-				tmp = tmp.substring(0, tmp.toLowerCase(MessageText.LOCALE_ENGLISH).lastIndexOf(".torrent"));
+			
+			int pos = tmp.toLowerCase(MessageText.LOCALE_ENGLISH).lastIndexOf(".vuze");
+			
+			if ( pos > 0) {
+				return( tmp.substring(0, pos + 5 ));			
+			}
+
+			pos = tmp.toLowerCase(MessageText.LOCALE_ENGLISH).lastIndexOf(".torrent");
+			
+			if (pos > 0) {
+				tmp = tmp.substring(0, pos );
 			}
 			return tmp + ".torrent";
 		} catch (Exception t) {
