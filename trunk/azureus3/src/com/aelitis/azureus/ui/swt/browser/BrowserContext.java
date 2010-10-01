@@ -429,11 +429,10 @@ public class BrowserContext
   					return;
   				}
 
-					boolean wasAskCom = curURL.startsWith("http://www.ask.com")
-							&& curURL.contains("vuzesearch")
+					boolean wasVuzeSearch = curURL.contains("vuzesearch=1")
 							&& !curURL.equalsIgnoreCase(event_location)
 							&& !event_location.equals("about:blank");
-					if (wasAskCom && !isPageLoading()) {
+					if (wasVuzeSearch && !isPageLoading()) {
 						event.doit = false;
 						Utils.launch(event.location);
 						return;
