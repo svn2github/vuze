@@ -286,7 +286,11 @@ public class BrowserContext
   					}
   					public void changing(LocationEvent event) {
   						event.doit = false;
-							if (allowPopups()
+							boolean wasAskCom = browser.getUrl().toLowerCase().startsWith(
+									"http://www.ask.com");
+  						if (wasAskCom) {
+  							Program.launch(event.location);
+  						} else if (allowPopups()
 									&& !UrlFilter.getInstance().urlIsBlocked(event.location)
 									&& (event.location.startsWith("http://") || event.location.startsWith("https://"))) {
 								debug("open sub browser: " + event.location);
@@ -356,36 +360,6 @@ public class BrowserContext
 				
 				String event_location = event.location;
 
-				if (!allowPopups()) {
-					boolean wasGoogleSearch = browser.getUrl().startsWith(
-							"http://www.google.com/#q")
-							|| browser.getUrl().startsWith("http://www.google.com/search")
-							|| browser.getUrl().contains("vuzesearch");
-					boolean isGoogleSearch = event_location.startsWith("http://www.google.com/#q")
-							|| (event_location.startsWith("http://www.google.com/search") && !event_location.contains("&tbs="))
-							|| event_location.contains("vuzesearch");
-					if (wasGoogleSearch && !isGoogleSearch &&!event_location.equals("about:blank")) {
-  					event.doit = false;
-						String[] contentTypes = getContentTypes(event_location, ((Browser)event.widget).getUrl());
-
-						boolean isTorrent = false;
-						for (String s : contentTypes) {
-							
-							if ( s != null ){
-								
-								if ( s.indexOf("torrent") != -1 ) {
-									
-									isTorrent = true;
-								}
-							}
-						}
-						
-						if (!isTorrent || !openTorrent(event)) {
-							Utils.launch(event.location);
-						}
-  					return;
-  				}
-				}
 				//Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "Location Changing", "Navigating to " + event_location );
 
 				if (event_location.startsWith("javascript")
@@ -417,6 +391,53 @@ public class BrowserContext
 				if (!isWebURL) {
 					// we don't get a changed state on non URLs (mailto, javascript, etc)
 					return;
+				}
+
+				if (!allowPopups()) {
+					String curURL = browser.getUrl().toLowerCase();
+
+					boolean wasGoogleSearch = curURL.startsWith(
+							"http://www.google.com/#q")
+							|| curURL.startsWith("http://www.google.com/search")
+							|| browser.getUrl().contains("vuzesearch");
+					boolean isGoogleSearch = event_location.startsWith("http://www.google.com/#q")
+							|| (event_location.startsWith("http://www.google.com/search"))
+							|| event_location.contains("vuzesearch");
+					if (wasGoogleSearch 
+							&& !isGoogleSearch 
+							&& !curURL.equalsIgnoreCase(event_location)
+							&& !event_location.equals("about:blank") 
+							&& !isPageLoading()) {
+  					event.doit = false;
+						String[] contentTypes = getContentTypes(event_location, ((Browser)event.widget).getUrl());
+
+						boolean isTorrent = false;
+						for (String s : contentTypes) {
+							
+							if ( s != null ){
+								
+								if ( s.indexOf("torrent") != -1 ) {
+									
+									isTorrent = true;
+								}
+							}
+						}
+						
+						if (!isTorrent || !openTorrent(event)) {
+							Utils.launch(event.location);
+						}
+  					return;
+  				}
+
+					boolean wasAskCom = curURL.startsWith("http://www.ask.com")
+							&& curURL.contains("vuzesearch")
+							&& !curURL.equalsIgnoreCase(event_location)
+							&& !event_location.equals("about:blank");
+					if (wasAskCom && !isPageLoading()) {
+						event.doit = false;
+						Utils.launch(event.location);
+						return;
+					}
 				}
 
 				boolean blocked = UrlFilter.getInstance().urlIsBlocked(event_location);
