@@ -581,13 +581,15 @@ public class SWTSkinObjectText2
 		this.sKey = null;
 		bIsTextDefault = false;
 
-		lastStringPrinter = null;
 		// Doing execSWTThreadLater delays the relayout for too long at skin startup
 		// Since there are a lot of async execs at skin startup, we generally
 		// see the window a second or two before this async call would get called
 		// (if it were async)
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				// lastStringPrinter must be set while in SWT Thread otherwise
+				// sync issues happen
+				lastStringPrinter = null;
 				if (canvas != null && !canvas.isDisposed()) {
 					canvas.setCursor(null);
 					canvas.redraw();
