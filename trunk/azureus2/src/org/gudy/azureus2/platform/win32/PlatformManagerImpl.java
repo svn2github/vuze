@@ -2036,9 +2036,11 @@ PlatformManagerImpl
 	
 	public boolean isConduitInstalled() {
 		try {
-			access.readStringValue(AEWin32Access.HKEY_LOCAL_MACHINE, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Vuze Remote", "toolbar");
+			access.readStringValue(AEWin32Access.HKEY_CURRENT_USER,
+					"SOFTWARE\\Vuze\\toolbar", "DisplayName");
 			return true;
 		} catch (AEWin32AccessException e) {
+			e.printStackTrace();
 		}
 		
 		//%appdata%\Mozilla\Firefox\Profiles\xxx.xxx\extensions\{ba14329e-9550-4989-b3f2-9732e92d17cc}
