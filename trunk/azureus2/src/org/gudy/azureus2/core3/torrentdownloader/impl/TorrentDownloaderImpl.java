@@ -46,6 +46,8 @@ import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection;
 import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection2;
 import org.gudy.azureus2.core3.torrent.*;
 
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+
 
 /**
  * @author Tobias Minich
@@ -674,24 +676,55 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	          	// it to something more useful
 	          
 	          try{
-	          	if ( !filename.toLowerCase().endsWith(".torrent" )){
-	
-	          		TOTorrent	torrent = TorrentUtils.readFromFile( file, false );
-	          		
-	          		String	name = TorrentUtils.getLocalisedName( torrent ) + ".torrent";
-	          		
-	          		File	new_file	= new File( directoryname, name );
-	          		
-	          		if ( file.renameTo( new_file )){
-	          			
-	          			filename	= name;
-					
-	          			file	= new_file;
-	          		}
-	          	}
+	        	  if ( !filename.toLowerCase().endsWith(".torrent" )){
+
+	        		  TOTorrent	torrent = TorrentUtils.readFromFile( file, false );
+
+	        		  String	name = TorrentUtils.getLocalisedName( torrent ) + ".torrent";
+
+	        		  File	new_file	= new File( directoryname, name );
+
+	        		  if ( file.renameTo( new_file )){
+
+	        			  filename	= name;
+
+	        			  file	= new_file;
+	        		  }
+	        	  }
 	          }catch( Throwable e ){
-	          		
-	          	Debug.printStackTrace( e );
+
+	        	  boolean is_vuze_file = false;
+
+	        	  try{
+	        		  if ( filename.toLowerCase().endsWith( ".vuze" )){
+
+	        			  is_vuze_file = true;
+	        			  
+	        		  }else{
+	        			  
+	        			  if ( VuzeFileHandler.getSingleton().loadVuzeFile( file ) != null ){
+
+	        				  is_vuze_file = true;
+
+	        				  String	name = filename + ".vuze";
+
+	        				  File	new_file	= new File( directoryname, name );
+
+	        				  if ( file.renameTo( new_file )){
+
+	        					  filename	= name;
+
+	        					  file	= new_file;
+	        				  }
+	        			  }
+	        		  }
+	        	  }catch( Throwable f ){	          		
+	        	  }
+
+	        	  if ( !is_vuze_file ){
+
+	        		  Debug.printStackTrace( e );
+	        	  }
 	          }
 	          
 	          TorrentUtils.setObtainedFrom( file, original_url );
