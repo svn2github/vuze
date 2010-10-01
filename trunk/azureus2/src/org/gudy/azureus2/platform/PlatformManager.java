@@ -216,4 +216,6 @@ PlatformManager
 		
 			throws PlatformManagerException;
 
+		public boolean
+		isConduitInstalled();
 }

@@ -333,4 +333,9 @@ public class PlatformManagerImpl implements PlatformManager
 	public void requestUserAttention(int type, Object data) throws PlatformManagerException {
 		throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
+
+	// @see org.gudy.azureus2.platform.PlatformManager#isConduitInstalled()
+	public boolean isConduitInstalled() {
+		return false;
+	}
 }

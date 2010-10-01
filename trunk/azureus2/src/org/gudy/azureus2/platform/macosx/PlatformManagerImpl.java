@@ -1434,4 +1434,9 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 		}
 
 	}
+
+	// @see org.gudy.azureus2.platform.PlatformManager#isConduitInstalled()
+	public boolean isConduitInstalled() {
+		return false;
+	}
 }

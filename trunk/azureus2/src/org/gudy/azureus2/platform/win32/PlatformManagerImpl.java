@@ -27,14 +27,7 @@ package org.gudy.azureus2.platform.win32;
  *
  */
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.InetAddress;
 import java.util.*;
 
@@ -44,9 +37,7 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.*;
-import org.gudy.azureus2.platform.win32.access.AEWin32Access;
-import org.gudy.azureus2.platform.win32.access.AEWin32AccessListener;
-import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
+import org.gudy.azureus2.platform.win32.access.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
@@ -2041,6 +2032,34 @@ PlatformManagerImpl
 	
 	public void requestUserAttention(int type, Object data) throws PlatformManagerException {
 		throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
+	public boolean isConduitInstalled() {
+		try {
+			access.readStringValue(AEWin32Access.HKEY_LOCAL_MACHINE, "HKEY_LOCAL_MACHINE\\SOFTWARE\\Vuze Remote", "toolbar");
+			return true;
+		} catch (AEWin32AccessException e) {
+		}
+		
+		//%appdata%\Mozilla\Firefox\Profiles\xxx.xxx\extensions\{ba14329e-9550-4989-b3f2-9732e92d17cc}
+		
+		try {
+			File appDir = new File(access.getUserAppData());
+			File dirProfiles = new File(appDir, "Mozilla\\FireFox\\Profiles");
+			File[] listFiles = dirProfiles.listFiles(new FileFilter() {
+				public boolean accept(File pathname) {
+					return pathname.isDirectory();
+				}
+			});
+			for (File file : listFiles) {
+				File conduitExt = new File(file, "\\extensions\\{ba14329e-9550-4989-b3f2-9732e92d17cc}");
+				if (conduitExt.exists()) {
+					return true;
+				}
+			}
+		} catch (AEWin32AccessException e) {
+		}
+		return false;
 	}
 	
 	public void
