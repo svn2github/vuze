@@ -2043,6 +2043,14 @@ PlatformManagerImpl
 			e.printStackTrace();
 		}
 		
+		try {
+			access.readStringValue(AEWin32Access.HKEY_CURRENT_USER,
+					"SOFTWARE\\Vuze Remote\\toolbar", "DisplayName");
+			return true;
+		} catch (AEWin32AccessException e) {
+			e.printStackTrace();
+		}
+		
 		//%appdata%\Mozilla\Firefox\Profiles\xxx.xxx\extensions\{ba14329e-9550-4989-b3f2-9732e92d17cc}
 		
 		try {
@@ -2054,12 +2062,12 @@ PlatformManagerImpl
 				}
 			});
 			for (File file : listFiles) {
-				File conduitExt = new File(file, "\\extensions\\{ba14329e-9550-4989-b3f2-9732e92d17cc}");
+				File conduitExt = new File(file, "extensions\\{ba14329e-9550-4989-b3f2-9732e92d17cc}");
 				if (conduitExt.exists()) {
 					return true;
 				}
 			}
-		} catch (AEWin32AccessException e) {
+		} catch (Throwable e) {
 		}
 		return false;
 	}
