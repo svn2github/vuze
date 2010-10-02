@@ -46,7 +46,6 @@ import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
-import org.gudy.azureus2.platform.win32.access.AEWin32AccessException;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import com.aelitis.azureus.core.AzureusCore;
