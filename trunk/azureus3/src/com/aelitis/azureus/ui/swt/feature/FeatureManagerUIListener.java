@@ -35,82 +35,8 @@ public class FeatureManagerUIListener
 
 	private String pendingAuthForKey;
 	
-	private Map<String, Licence> mapKeyToLicence = new HashMap<String, Licence>();
+	private Map<String, Object[]> licence_map = new HashMap<String, Object[]>();
 
-	private LicenceInstallationListener installation_listener = 
-		new LicenceInstallationListener()
-		{
-			private Map<String,FeatureManagerInstallWindow> install_windows = new HashMap<String, FeatureManagerInstallWindow>();
-			
-			public void start(String licence_key) {
-				if (DEBUG) {
-					System.out.println("FEATINST: START! " + licence_key);
-				}
-				try {
-					Licence licence = featman.addLicence(licence_key);
-					
-					FeatureManagerInstallWindow window = new FeatureManagerInstallWindow(licence);
-					
-					install_windows.put( licence_key, window );
-					
-					window.open();
-					
-				} catch (PluginException e) {
-					Debug.out(e);
-				}
-			}
-	
-			public void reportProgress(String licenceKey, String install, int percent) {
-				if (DEBUG) {
-					System.out.println("FEATINST: " + install + ": " + percent);
-				}
-			}
-	
-			public void reportActivity(String licenceKey, String install,
-					String activity) {
-				if (DEBUG) {
-					System.out.println("FEAT: ACTIVITY: " + install + ": " + activity);
-				}
-			}
-	
-			public void failed(String licenceKey, PluginException error) {
-				if (DEBUG) {
-					System.out.println("FEAT: FAIL: " + licenceKey + ": " + error.toString());
-				}
-				
-				FeatureManagerInstallWindow window = install_windows.remove( licenceKey );
-
-				if (licenceKey.equals(pendingAuthForKey)) {
-					pendingAuthForKey = null;
-										
-					if ( window != null ){
-					
-						window.close();
-					}
-					
-					String s = Debug.getNestedExceptionMessage(error);
-					
-					MessageBoxShell mb = new MessageBoxShell(
-							SWT.ICON_ERROR | SWT.OK,
-							"Licence Addition Error",
-							s );
-					
-					mb.open( null );
-				}
-			}
-	
-			public void complete(String licenceKey) {
-
-				install_windows.remove( licenceKey );
-
-				if (licenceKey.equals(pendingAuthForKey)) {
-					
-					pendingAuthForKey = null;
-					FeatureManagerUI.openLicenceSuccessWindow();
-				}
-			}
-	};
-	
 	public FeatureManagerUIListener(FeatureManager featman) {
 		System.out.println("FEAT:");
 		this.featman = featman;
@@ -119,16 +45,7 @@ public class FeatureManagerUIListener
 	public void licenceAdded(Licence licence) {
 		updateUI();
 		
-		boolean	new_licence;
-		
-		synchronized (mapKeyToLicence) {
-			new_licence = mapKeyToLicence.put(licence.getKey(), licence) == null;
-		}
-
-		if ( new_licence ){
-			
-			licence.addInstallationListener( installation_listener );
-		}
+		mapLicence( licence );
 		
 		if (DEBUG) {
 			System.out.println("FEAT: Licence " + licence.getKey() + " Added with state " + licence.getState());
@@ -150,25 +67,25 @@ public class FeatureManagerUIListener
 		int state = licence.getState();
 
 		boolean stateChanged = true;
-		synchronized (mapKeyToLicence) {
-			Licence lastLicence = mapKeyToLicence.put(licence.getKey(), licence);
-			if (lastLicence != null) {
-				stateChanged = lastLicence.getState() != licence.getState();
-				
-				if ( 	( !stateChanged ) && 
-						licence.getState() == Licence.LS_AUTHENTICATED &&
-						lastLicence.isFullyInstalled() != licence.isFullyInstalled()){
-						
-						stateChanged = true;
-					}
-			} else {
-				// licenceChanged gets fired for all licences after listener is added
-				// (via code in FeatureManagerUI)
-				// skip case where licence is already cancelled
-				if (state == Licence.LS_CANCELLED || state == Licence.LS_REVOKED
-						|| state == Licence.LS_ACTIVATION_DENIED) {
-					stateChanged = false;
+
+		Licence lastLicence = mapLicence( licence );
+			
+		if (lastLicence != null) {
+			stateChanged = lastLicence.getState() != licence.getState();
+			
+			if ( 	( !stateChanged ) && 
+					licence.getState() == Licence.LS_AUTHENTICATED &&
+					lastLicence.isFullyInstalled() != licence.isFullyInstalled()){
+					
+					stateChanged = true;
 				}
+		} else {
+			// licenceChanged gets fired for all licences after listener is added
+			// (via code in FeatureManagerUI)
+			// skip case where licence is already cancelled
+			if (state == Licence.LS_CANCELLED || state == Licence.LS_REVOKED
+					|| state == Licence.LS_ACTIVATION_DENIED) {
+				stateChanged = false;
 			}
 		}
 
@@ -207,6 +124,113 @@ public class FeatureManagerUIListener
 		}
 	}
 
+	private Licence
+	mapLicence(
+		Licence		licence )
+	{
+		Licence existing_licence;
+		
+		LicenceInstallationListener	new_listener = null;
+		
+		synchronized ( licence_map ){
+			
+			String key = licence.getKey();
+			
+			Object[] entry = licence_map.get( key );
+					
+			if ( entry == null ){
+				
+				existing_licence = null;
+				
+				new_listener = 
+					new LicenceInstallationListener()
+					{
+						FeatureManagerInstallWindow install_window = null;
+	
+						public void start(String licence_key) {
+							if (DEBUG) {
+								System.out.println("FEATINST: START! " + licence_key);
+							}
+							try {
+								Licence licence = featman.addLicence(licence_key);
+	
+								install_window = new FeatureManagerInstallWindow(licence);
+		
+								install_window.open();
+	
+							} catch (PluginException e) {
+								Debug.out(e);
+							}
+						}
+	
+						public void reportProgress(String licenceKey, String install, int percent) {
+							if (DEBUG) {
+								System.out.println("FEATINST: " + install + ": " + percent);
+							}
+						}
+	
+						public void reportActivity(String licenceKey, String install,
+								String activity) {
+							if (DEBUG) {
+								System.out.println("FEAT: ACTIVITY: " + install + ": " + activity);
+							}
+						}
+	
+						public void failed(String licenceKey, PluginException error) {
+							if (DEBUG) {
+								System.out.println("FEAT: FAIL: " + licenceKey + ": " + error.toString());
+							}
+		
+							if ( install_window != null ){
+								
+								install_window.close();
+							}
+							
+							if ( licenceKey.equals(pendingAuthForKey)){
+								
+								pendingAuthForKey = null;
+							}
+
+							String s = Debug.getNestedExceptionMessage(error);
+
+							MessageBoxShell mb = new MessageBoxShell(
+									SWT.ICON_ERROR | SWT.OK,
+									"License Addition Error",
+									s );
+
+							mb.open( null );
+						}
+	
+						public void complete(String licenceKey) {
+		
+							if ( licenceKey.equals(pendingAuthForKey)){
+	
+								pendingAuthForKey = null;
+								
+								FeatureManagerUI.openLicenceSuccessWindow();
+							}
+						}
+					};
+					
+				
+				licence_map.put( key, new Object[]{ licence, new_listener });
+				
+			}else{
+				
+				existing_licence = (Licence)entry[0];
+				
+				entry[0] = licence;
+			}
+		}
+
+		if ( new_listener != null ){
+			
+			licence.addInstallationListener( new_listener );
+		}	
+		
+		return( existing_licence );
+	}
+	
 	/**
 	 * 
 	 */
@@ -252,11 +276,17 @@ public class FeatureManagerUIListener
 	}
 
 	public void licenceRemoved(Licence licence) {
-		synchronized (mapKeyToLicence) {
-			mapKeyToLicence.remove(licence.getKey());
+		Object[] entry;
+		
+		synchronized( licence_map ){
+			
+			entry = licence_map.remove(licence.getKey());
 		}
 
-		licence.removeInstallationListener( installation_listener );
+		if ( entry != null ){
+			
+			licence.removeInstallationListener( (LicenceInstallationListener)entry[1] );
+		}
 		
 		updateUI();
 	}
