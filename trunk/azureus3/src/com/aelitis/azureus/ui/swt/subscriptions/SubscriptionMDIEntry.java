@@ -658,15 +658,19 @@ public class SubscriptionMDIEntry implements SubscriptionListener
 			category_str = category;
 		}
 		
+		int	 check_freq			= history.getCheckFrequencyMins();
+		long last_new_result 	= history.getLastNewResultTime();
+		long next_scan 			= history.getNextScanTime();
+		
 		String[] values = { 
 				String.valueOf( history.isEnabled()),
 				String.valueOf( subs.isPublic()),
 				String.valueOf( history.isAutoDownload()),
 				String.valueOf( subs.isAutoDownloadSupported()),
-				String.valueOf( history.getCheckFrequencyMins() + " " + MessageText.getString( "ConfigView.text.minutes")),
+				(check_freq==Integer.MAX_VALUE?"":(String.valueOf( history.getCheckFrequencyMins() + " " + MessageText.getString( "ConfigView.text.minutes")))),
 				df.format(new Date( history.getLastScanTime())),
-				df.format(new Date( history.getLastNewResultTime())),
-				df.format(new Date( history.getNextScanTime())),
+				( last_new_result==0?"":df.format(new Date( last_new_result ))),
+				( next_scan == Long.MAX_VALUE?"":df.format(new Date( next_scan ))),
 				(last_error.length()==0?MessageText.getString("PeersView.uniquepiece.none"):last_error),
 				String.valueOf( history.getNumRead()),
 				String.valueOf( history.getNumUnread()),
