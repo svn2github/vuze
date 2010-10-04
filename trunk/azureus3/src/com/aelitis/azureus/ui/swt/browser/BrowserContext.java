@@ -76,6 +76,8 @@ public class BrowserContext
 	
 	private long pageLoadingStart = 0;
 
+	private long pageLoadingEnd = 0;
+
 	private String lastValidURL = null;
 
 	private final boolean forceVisibleAfterLoad;
@@ -350,7 +352,9 @@ public class BrowserContext
 			}
 
 			public void changing(LocationEvent event) {
-				debug("browser.changing " + event.location + " from " + browser.getUrl());
+				// event.top is always false.  changed event has it set though..
+				debug("browser.changing " + event.location + " from "
+						+ browser.getUrl() + ";" + event.top);
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
@@ -396,18 +400,21 @@ public class BrowserContext
 				if (!allowPopups()) {
 					String curURL = browser.getUrl().toLowerCase();
 
+					boolean isPageLoadingOrRecent = isPageLoading()
+							|| (pageLoadingEnd > 0 && pageLoadingEnd < SystemTime.getOffsetTime(500));
+					
 					boolean wasGoogleSearch = curURL.startsWith(
 							"http://www.google.com/#q")
 							|| curURL.startsWith("http://www.google.com/search")
-							|| browser.getUrl().contains("vuzesearch");
+							|| browser.getUrl().contains("vuzesearch=1");
 					boolean isGoogleSearch = event_location.startsWith("http://www.google.com/#q")
 							|| (event_location.startsWith("http://www.google.com/search"))
-							|| event_location.contains("vuzesearch");
+							|| event_location.contains("vuzesearch=1");
 					if (wasGoogleSearch 
 							&& !isGoogleSearch 
 							&& !curURL.equalsIgnoreCase(event_location)
 							&& !event_location.equals("about:blank") 
-							&& !isPageLoading()) {
+							&& !isPageLoadingOrRecent) {
   					event.doit = false;
 						String[] contentTypes = getContentTypes(event_location, ((Browser)event.widget).getUrl());
 
@@ -432,7 +439,7 @@ public class BrowserContext
 					boolean wasVuzeSearch = curURL.contains("vuzesearch=1")
 							&& !curURL.equalsIgnoreCase(event_location)
 							&& !event_location.equals("about:blank");
-					if (wasVuzeSearch && !isPageLoading()) {
+					if (wasVuzeSearch && !isPageLoadingOrRecent) {
 						event.doit = false;
 						Utils.launch(event.location);
 						return;
@@ -677,7 +684,8 @@ public class BrowserContext
   			pageLoadingStart = SystemTime.getCurrentTime();
   			pageLoadTime = -1;
   		} else if (pageLoadingStart > 0 && url != null) {
-  			pageLoadTime = SystemTime.getCurrentTime() - pageLoadingStart;
+  			pageLoadingEnd = SystemTime.getCurrentTime();
+  			pageLoadTime = pageLoadingEnd - pageLoadingStart;
   			executeInBrowser("clientSetLoadTime(" + pageLoadTime + ");");
   			
   			pageLoadingStart = 0;
