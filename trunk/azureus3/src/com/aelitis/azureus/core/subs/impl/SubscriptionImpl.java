@@ -1648,12 +1648,15 @@ SubscriptionImpl
 	{
 		Map	result = new HashMap();
 		
-		result.put( "h", hash );
 		result.put( "v", new Long( version ));
-		result.put( "z", new Long( sig_data_size ));
-		result.put( "s", sig );
 			
-		if ( singleton_details != null ){
+		if ( singleton_details == null ){
+			
+			result.put( "h", hash );
+			result.put( "z", new Long( sig_data_size ));
+			result.put( "s", sig );
+
+		}else{
 			
 			result.put( "x", singleton_details );
 		}

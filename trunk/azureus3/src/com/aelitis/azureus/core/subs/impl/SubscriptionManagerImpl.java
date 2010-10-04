@@ -783,7 +783,15 @@ SubscriptionManagerImpl
 		try{
 			Map	singleton_details = new HashMap();
 			
-			singleton_details.put( "key", url.toExternalForm().getBytes( "UTF-8" ));
+			if ( url.getProtocol().equalsIgnoreCase( "vuze" )){
+				
+					// hack to minimise encoded url length for our own urls
+				
+				singleton_details.put( "key", url.toExternalForm().getBytes( Constants.BYTE_ENCODING ));
+
+			}else{
+				singleton_details.put( "key", url.toExternalForm().getBytes( "UTF-8" ));
+			}
 						
 			String	name2 = name.length() > 64?name.substring(0,64):name;
 			
@@ -892,7 +900,7 @@ SubscriptionManagerImpl
 			
 			String protocol = url.getProtocol().toLowerCase();
 			
-			if ( ! ( protocol.equals( "azplug" ) || protocol.equals( "file" ))){
+			if ( ! ( protocol.equals( "azplug" ) || protocol.equals( "file" ) || protocol.equals( "vuze" ))){
 			
 				throw( new SubscriptionException( "Invalid URL '" + url + "'" ));
 			}
@@ -4141,7 +4149,7 @@ SubscriptionManagerImpl
 		details.put( "!", new Long( random_seed ));
 		
 		byte[] encoded = BEncoder.encode( details );
-		
+				
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				
 		GZIPOutputStream os = new GZIPOutputStream( baos );
