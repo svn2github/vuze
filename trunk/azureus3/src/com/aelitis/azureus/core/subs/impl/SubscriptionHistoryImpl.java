@@ -372,6 +372,11 @@ SubscriptionHistoryImpl
 			
 				long	interval_min = ((Long)schedule.get( "interval" )).longValue();
 				
+				if ( interval_min == Integer.MAX_VALUE || interval_min == Long.MAX_VALUE ){
+					
+					return( Long.MAX_VALUE );
+				}
+				
 				return( last_scan + interval_min*60*1000 );
 				
 			}catch( Throwable e ){
