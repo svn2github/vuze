@@ -218,7 +218,7 @@ ResourceDownloaderURLImpl
 		try{
 			String	protocol = original_url.getProtocol().toLowerCase();
 			
-			if ( protocol.equals( "magnet" ) || protocol.equals( "dht" )){
+			if ( protocol.equals( "magnet" ) || protocol.equals( "dht" ) || protocol.equals( "vuze" )){
 				
 				return( -1 );
 			}
@@ -439,7 +439,11 @@ ResourceDownloaderURLImpl
 				
 				String	protocol = url.getProtocol().toLowerCase();
 				
-				if ( url.getPort() == -1 && ! ( protocol.equals( "magnet" ) || protocol.equals( "dht" ))){
+				if ( protocol.equals( "vuze" )){
+					
+					url = original_url;
+					
+				}else if ( url.getPort() == -1 && ! ( protocol.equals( "magnet" ) || protocol.equals( "dht" ))){
 					
 					int	target_port;
 					
