@@ -3937,56 +3937,62 @@ SubscriptionManagerImpl
 						try{
 							byte[]	put_value = encodeSubscriptionDetails( subs );						
 							
-							byte	flags = DHTPlugin.FLAG_SINGLE_VALUE;
-							
-							if ( hits < 3 && !diversified ){
+							if ( put_value.length < DHTPlugin.MAX_VALUE_SIZE ){
 								
-								flags |= DHTPlugin.FLAG_PRECIOUS;
+								byte	flags = DHTPlugin.FLAG_SINGLE_VALUE;
+								
+								if ( hits < 3 && !diversified ){
+									
+									flags |= DHTPlugin.FLAG_PRECIOUS;
+								}
+								
+								dht_plugin.put(
+									key.getBytes(),
+									"Subscription presence write: " + ByteFormatter.encodeString( subs.getShortID() ) + ":" + subs.getVersion(),
+									put_value,
+									flags,
+									new DHTPluginOperationListener()
+									{
+										public void
+										diversified()
+										{
+										}
+										
+										public void 
+										starts(
+											byte[] 				key ) 
+										{
+										}
+										
+										public void
+										valueRead(
+											DHTPluginContact	originator,
+											DHTPluginValue		value )
+										{
+										}
+										
+										public void
+										valueWritten(
+											DHTPluginContact	target,
+											DHTPluginValue		value )
+										{
+										}
+										
+										public void
+										complete(
+											byte[]				key,
+											boolean				timeout_occurred )
+										{
+											log( "        completed '" + subs.getString() + "'" );
+						
+											publishNext();
+										}
+									});
+								
+							}else{
+								
+								publishNext();
 							}
-							
-							dht_plugin.put(
-								key.getBytes(),
-								"Subscription presence write: " + ByteFormatter.encodeString( subs.getShortID() ) + ":" + subs.getVersion(),
-								put_value,
-								flags,
-								new DHTPluginOperationListener()
-								{
-									public void
-									diversified()
-									{
-									}
-									
-									public void 
-									starts(
-										byte[] 				key ) 
-									{
-									}
-									
-									public void
-									valueRead(
-										DHTPluginContact	originator,
-										DHTPluginValue		value )
-									{
-									}
-									
-									public void
-									valueWritten(
-										DHTPluginContact	target,
-										DHTPluginValue		value )
-									{
-									}
-									
-									public void
-									complete(
-										byte[]				key,
-										boolean				timeout_occurred )
-									{
-										log( "        completed '" + subs.getString() + "'" );
-					
-										publishNext();
-									}
-								});
-							
 						}catch( Throwable e ){
 							
 							Debug.printStackTrace( e );
