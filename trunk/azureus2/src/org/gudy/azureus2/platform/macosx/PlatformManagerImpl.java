@@ -1435,27 +1435,4 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 
 	}
 
-	// @see org.gudy.azureus2.platform.PlatformManager#isConduitInstalled()
-	public boolean isConduitInstalled() {
-
-		// ~/Library/Application Support/Firefox/Profiles/xxx.xxx/extensions/{ba14329e-9550-4989-b3f2-9732e92d17cc}
-		try {
-			File dirProfiles = new File(System.getProperty("user.home")
-    			+ "/Library/Application Support/Firefox/Profiles");
-			File[] listFiles = dirProfiles.listFiles(new FileFilter() {
-				public boolean accept(File pathname) {
-					return pathname.isDirectory();
-				}
-			});
-			for (File file : listFiles) {
-				File conduitExt = new File(file, "extensions/{ba14329e-9550-4989-b3f2-9732e92d17cc}");
-				if (conduitExt.exists()) {
-					return true;
-				}
-			}
-		} catch (Throwable e) {
-		}
-
-		return false;
-	}
 }

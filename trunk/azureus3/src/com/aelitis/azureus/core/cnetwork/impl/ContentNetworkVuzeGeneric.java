@@ -387,34 +387,15 @@ ContentNetworkVuzeGeneric
 		
 			case SERVICE_SEARCH:{
 				
-				if (conduit == null) {
-					try {
-  					PlatformManager pm = PlatformManagerFactory.getPlatformManager();
-  					conduit = pm.isConduitInstalled();
-					} catch (Throwable t) {
-						conduit = false;
-					}
-				}
-				
 				String	query = (String)params[0];
 				
 				return(	base +
 						UrlUtils.encode(query) + 
 						"&" + URL_SUFFIX + 
-						"&conduit=" + conduit +
 						"&rand=" + SystemTime.getCurrentTime());
 			}
 			
 			case SERVICE_XSEARCH:{
-				
-				if (conduit == null) {
-					try {
-  					PlatformManager pm = PlatformManagerFactory.getPlatformManager();
-  					conduit = pm.isConduitInstalled();
-					} catch (Throwable t) {
-						conduit = false;
-					}
-				}
 				
 				String	query 			= (String)params[0];
 				boolean	to_subscribe	= (Boolean)params[1];
@@ -423,7 +404,6 @@ ContentNetworkVuzeGeneric
 							base +
 							UrlUtils.encode(query) + 
 							"&" + URL_SUFFIX + 
-							"&conduit=" + conduit +
 							"&rand=" + SystemTime.getCurrentTime();
 				
 				if ( to_subscribe ){

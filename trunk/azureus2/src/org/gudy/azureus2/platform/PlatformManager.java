@@ -215,7 +215,4 @@ PlatformManager
 			Object 	data)
 		
 			throws PlatformManagerException;
-
-		public boolean
-		isConduitInstalled();
 }

@@ -2034,42 +2034,6 @@ PlatformManagerImpl
 		throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
 	
-	public boolean isConduitInstalled() {
-		try {
-			access.readStringValue(AEWin32Access.HKEY_CURRENT_USER,
-					"SOFTWARE\\Vuze\\toolbar", "DisplayName");
-			return true;
-		} catch (AEWin32AccessException e) {
-		}
-		
-		try {
-			access.readStringValue(AEWin32Access.HKEY_CURRENT_USER,
-					"SOFTWARE\\Vuze Remote\\toolbar", "DisplayName");
-			return true;
-		} catch (AEWin32AccessException e) {
-		}
-		
-		//%appdata%\Mozilla\Firefox\Profiles\xxx.xxx\extensions\{ba14329e-9550-4989-b3f2-9732e92d17cc}
-		
-		try {
-			File appDir = new File(access.getUserAppData());
-			File dirProfiles = new File(appDir, "Mozilla\\FireFox\\Profiles");
-			File[] listFiles = dirProfiles.listFiles(new FileFilter() {
-				public boolean accept(File pathname) {
-					return pathname.isDirectory();
-				}
-			});
-			for (File file : listFiles) {
-				File conduitExt = new File(file, "extensions\\{ba14329e-9550-4989-b3f2-9732e92d17cc}");
-				if (conduitExt.exists()) {
-					return true;
-				}
-			}
-		} catch (Throwable e) {
-		}
-		return false;
-	}
-	
 	public void
 	generate(
 		IndentWriter		writer )
