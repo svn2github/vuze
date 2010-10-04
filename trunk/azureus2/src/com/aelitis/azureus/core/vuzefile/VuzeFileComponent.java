@@ -40,6 +40,9 @@ VuzeFileComponent
 	public int
 	getType();
 	
+	public String
+	getTypeName();
+	
 	public Map
 	getContent();
 	

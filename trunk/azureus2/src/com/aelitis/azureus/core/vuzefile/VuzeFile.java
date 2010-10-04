@@ -28,6 +28,9 @@ import java.util.Map;
 public interface 
 VuzeFile 
 {
+	public String
+	getName();
+	
 	public VuzeFileComponent[]
 	getComponents();
 	

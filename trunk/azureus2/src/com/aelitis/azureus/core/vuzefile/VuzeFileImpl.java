@@ -64,6 +64,19 @@ VuzeFileImpl
 		}
 	}
 	
+	public String
+	getName()
+	{
+		String str = "";
+		
+		for ( VuzeFileComponent comp: components ){
+			
+			str += (str.length()==0?"":",") + comp.getTypeName();
+		}
+		
+		return( str );
+	}
+	
 	public VuzeFileComponent[] 
 	getComponents()
 	{
@@ -169,6 +182,35 @@ VuzeFileImpl
 		getType()
 		{
 			return( type );
+		}
+		
+		public String 
+		getTypeName() 
+		{
+			switch( type ){
+				case COMP_TYPE_NONE: 
+					return( "None" );
+				case COMP_TYPE_METASEARCH_TEMPLATE: 
+					return( "Search Template" );
+				case COMP_TYPE_V3_NAVIGATION: 
+					return( "Navigation" );
+				case COMP_TYPE_V3_CONDITION_CHECK: 
+					return( "Condition Check" );
+				case COMP_TYPE_PLUGIN: 
+					return( "Plugin" );
+				case COMP_TYPE_SUBSCRIPTION: 
+					return( "Subscription" );
+				case COMP_TYPE_SUBSCRIPTION_SINGLETON: 
+					return( "Subscription" );
+				case COMP_TYPE_CUSTOMIZATION: 
+					return( "Customization" );
+				case COMP_TYPE_CONTENT_NETWORK: 
+					return( "Content Network" );
+				case COMP_TYPE_METASEARCH_OPERATION: 
+					return( "Search Operation" );
+				default: 
+					return( "Unknown" );
+			}
 		}
 		
 		public Map
