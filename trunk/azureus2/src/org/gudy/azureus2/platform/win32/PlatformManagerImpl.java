@@ -2040,7 +2040,6 @@ PlatformManagerImpl
 					"SOFTWARE\\Vuze\\toolbar", "DisplayName");
 			return true;
 		} catch (AEWin32AccessException e) {
-			e.printStackTrace();
 		}
 		
 		try {
@@ -2048,7 +2047,6 @@ PlatformManagerImpl
 					"SOFTWARE\\Vuze Remote\\toolbar", "DisplayName");
 			return true;
 		} catch (AEWin32AccessException e) {
-			e.printStackTrace();
 		}
 		
 		//%appdata%\Mozilla\Firefox\Profiles\xxx.xxx\extensions\{ba14329e-9550-4989-b3f2-9732e92d17cc}
