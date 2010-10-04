@@ -397,16 +397,23 @@ public class BrowserContext
 					return;
 				}
 
+				boolean blocked = UrlFilter.getInstance().urlIsBlocked(event_location);
+
 				if (!allowPopups()) {
+					if (blocked) {
+						return;
+					}
+
 					String curURL = browser.getUrl().toLowerCase();
 
 					boolean isPageLoadingOrRecent = isPageLoading()
-							|| (pageLoadingEnd > 0 && pageLoadingEnd < SystemTime.getOffsetTime(500));
-					
+							|| (pageLoadingEnd > 0 && pageLoadingEnd + 500 > SystemTime.getCurrentTime())
+							|| event_location.contains(".admonkey.");
+
 					boolean wasGoogleSearch = curURL.startsWith(
 							"http://www.google.com/#q")
 							|| curURL.startsWith("http://www.google.com/search")
-							|| browser.getUrl().contains("vuzesearch=1");
+							|| curURL.contains("vuzesearch=1");
 					boolean isGoogleSearch = event_location.startsWith("http://www.google.com/#q")
 							|| (event_location.startsWith("http://www.google.com/search"))
 							|| event_location.contains("vuzesearch=1");
@@ -445,8 +452,6 @@ public class BrowserContext
 						return;
 					}
 				}
-
-				boolean blocked = UrlFilter.getInstance().urlIsBlocked(event_location);
 
 				if (blocked) {
 					event.doit = false;
