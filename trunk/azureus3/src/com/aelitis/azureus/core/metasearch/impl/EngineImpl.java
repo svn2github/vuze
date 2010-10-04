@@ -238,7 +238,10 @@ EngineImpl
 		meta_search		= _meta_search;
 		
 		type			= ((Long)map.get( "type" )).intValue();
-		id				= ((Long)map.get( "id")).longValue();
+		
+		Long l_id = (Long)map.get( "id");
+		
+		id				= l_id==null?meta_search.getManager().getLocalTemplateID():l_id.longValue();
 		last_updated	= ImportExportUtils.importLong( map, "last_updated" );
 		name			= ImportExportUtils.importString( map, "name" );
 		
@@ -278,38 +281,48 @@ EngineImpl
 	
 	protected void
 	exportToBencodedMap(
-		Map		map )
+		Map			map,
+		boolean		generic )
 	
 		throws IOException
 	{
 		map.put( "type", new Long( type ));
-		map.put( "id", new Long( id ));
-		map.put( "last_updated", new Long( last_updated ));
 		
 		ImportExportUtils.exportString( map, "name", name );
 		
-		map.put( "selected", new Long( selection_state ));
-		
-		ImportExportUtils.exportBoolean( map, "select_rec", selection_state_recorded );
-		
 		map.put( "source", new Long( source ));
-		
-		ImportExportUtils.exportFloat( map, "rank_bias", rank_bias );
-		ImportExportUtils.exportFloat( map, "pref_count", preferred_count );
-		
+
 		exportBEncodedMappings( map, "l1_map", first_level_mapping );
 		exportBEncodedMappings( map, "l2_map", second_level_mapping );
-		
+
 		map.put( "version", new Long( version ));
 		map.put( "az_version", new Long( az_version ));
-		map.put( "uid", uid );
+
+		ImportExportUtils.exportFloat( map, "rank_bias", rank_bias );
+
+		if ( !generic ){
+			
+			map.put( "id", new Long( id ));
+			
+			map.put( "last_updated", new Long( last_updated ));
+		
+			map.put( "selected", new Long( selection_state ));
+		
+			ImportExportUtils.exportBoolean( map, "select_rec", selection_state_recorded );
+			
+			ImportExportUtils.exportFloat( map, "pref_count", preferred_count );
+		
+			map.put( "uid", uid );
+		}
 		
 		if ( update_url != null ){
 		
 			ImportExportUtils.exportString( map, "update_url", update_url );
 		}
 		
-		map.put( "update_url_check_secs", new Long( update_check_default_secs ));
+		if ( update_check_default_secs != DEFAULT_UPDATE_CHECK_SECS ){
+			map.put( "update_url_check_secs", new Long( update_check_default_secs ));
+		}
 	}
 	
 		// json constructor
@@ -1284,6 +1297,13 @@ EngineImpl
 	}
 	
 	public void
+	addPotentialAssociation(
+		String	key )
+	{
+		meta_search.addPotentialAssociation( this, key );
+	}
+	
+	public void
 	exportToVuzeFile(
 		File	target )
 	
@@ -1296,6 +1316,21 @@ EngineImpl
 			exportToBencodedMap());
 		
 		vf.write( target );
+	}
+	
+	public VuzeFile
+	exportToVuzeFile(
+		boolean		generic )
+	
+		throws IOException
+	{
+		VuzeFile	vf = VuzeFileHandler.getSingleton().create();
+		
+		vf.addComponent(
+			VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE,
+			exportToBencodedMap( generic ));
+		
+		return( vf );
 	}
 	
 	private String

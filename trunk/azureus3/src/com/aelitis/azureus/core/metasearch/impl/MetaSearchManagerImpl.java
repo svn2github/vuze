@@ -21,12 +21,17 @@
 
 package com.aelitis.azureus.core.metasearch.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
+import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 
@@ -53,6 +58,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import com.aelitis.azureus.core.custom.Customization;
 import com.aelitis.azureus.core.custom.CustomizationManager;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
@@ -62,6 +68,9 @@ import com.aelitis.azureus.core.metasearch.MetaSearchManagerListener;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
+import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionManager;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -132,7 +141,30 @@ MetaSearchManagerImpl
 						}
 					}
 				}
-			});		
+			});	
+		
+		TorrentUtils.addTorrentAttributeListener(
+				new TorrentUtils.torrentAttributeListener()
+				{
+					public void 
+					attributeSet(
+						TOTorrent 	torrent,
+						String 		attribute, 
+						Object 		value )
+					{
+						if ( 	attribute == TorrentUtils.TORRENT_AZ_PROP_OBTAINED_FROM && 
+								!TorrentUtils.isReallyPrivate( torrent )){
+							
+							try{
+								getSingleton().checkPotentialAssociations( torrent.getHash(), (String)value );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					}
+				});
 	}
 	
 	public static synchronized MetaSearchManagerImpl
@@ -160,6 +192,16 @@ MetaSearchManagerImpl
 	
 	private String		extension_key;
 	
+	private Map<String,EngineImpl>	potential_associations = 
+		new LinkedHashMap<String,EngineImpl>(32,0.75f,true)
+		{
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry<String,EngineImpl> eldest) 
+			{
+				return size() > 32;
+			}
+		};
 	protected
 	MetaSearchManagerImpl()
 	{
@@ -1110,6 +1152,57 @@ MetaSearchManagerImpl
 			}
 			
 			throw( new MetaSearchException( "Failed to add engine", e ));
+		}
+	}
+	
+	protected void
+	addPotentialAssociation(
+		EngineImpl		engine,
+		String			key )
+	{		
+		synchronized( potential_associations ){
+			
+			potential_associations.put( key, engine );
+		}
+	}
+	
+	private void
+	checkPotentialAssociations(
+		byte[]		hash,
+		String		key )
+	{
+		EngineImpl	engine;
+		
+		synchronized( potential_associations ){
+			
+			engine = potential_associations.remove( key );
+		}
+	
+		if ( engine != null ){
+	
+			try{
+				VuzeFile vf = engine.exportToVuzeFile( true );
+				
+				byte[] bytes = vf.exportToBytes();
+												
+				String url_str = "vuze://?body=" + new String( bytes, Constants.BYTE_ENCODING );
+								
+				SubscriptionManager sub_man = SubscriptionManagerFactory.getSingleton();
+		
+				Subscription subs =
+					sub_man.createSingletonRSS(
+						vf.getName() + ": " + engine.getName(),
+						new URL( url_str ),
+						Integer.MAX_VALUE );
+			
+				subs.setSubscribed( true );
+			
+				subs.addAssociation( hash );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
 		}
 	}
 	

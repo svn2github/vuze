@@ -219,11 +219,21 @@ Engine
 	public int
 	getAZVersion();
 	
+	public void
+	addPotentialAssociation(
+		String		key );
+	
 	public Map<String,Object> 
 	exportToBencodedMap() 
 	
 		throws IOException;
 	
+	public Map<String,Object> 
+	exportToBencodedMap(
+		boolean		generic )
+	
+		throws IOException;
+
 	public String
 	exportToJSONString()
 	

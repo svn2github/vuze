@@ -154,7 +154,16 @@ JSONEngine
 	}
 	
 	public Map 
-	exportToBencodedMap() 
+	exportToBencodedMap()
+	
+		throws IOException
+	{
+		return( exportToBencodedMap( false ));
+	}
+	
+	public Map 
+	exportToBencodedMap(
+		boolean		generic )
 	
 		throws IOException
 	{
@@ -162,7 +171,7 @@ JSONEngine
 		
 		ImportExportUtils.exportString( res, "json.path", resultsEntryPath );
 		
-		super.exportToBencodedMap( res );
+		super.exportToBencodedMap( res, generic );
 		
 		return( res );
 	}

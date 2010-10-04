@@ -158,7 +158,16 @@ RegexEngine
 	}
 	
 	public Map 
-	exportToBencodedMap() 
+	exportToBencodedMap()
+	
+		throws IOException
+	{
+		return( exportToBencodedMap( false ));
+	}
+	
+	public Map 
+	exportToBencodedMap(
+		boolean		generic ) 
 	
 		throws IOException
 	{
@@ -166,7 +175,7 @@ RegexEngine
 		
 		ImportExportUtils.exportString( res, "regex.pattern", pattern_str );
 		
-		super.exportToBencodedMap( res );
+		super.exportToBencodedMap( res, generic );
 		
 		return( res );
 	}

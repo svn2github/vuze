@@ -617,6 +617,14 @@ MetaSearchImpl
 		return( fud );
 	}
 	
+	protected void
+	addPotentialAssociation(
+		EngineImpl		engine,
+		String			key )
+	{
+		manager.addPotentialAssociation(engine, key);	
+	}
+	
 	public Engine[] 
 	getEngines(
 		boolean		active_only,

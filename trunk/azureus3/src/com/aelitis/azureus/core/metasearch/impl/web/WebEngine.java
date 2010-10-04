@@ -49,6 +49,9 @@ import com.aelitis.azureus.core.metasearch.SearchLoginException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.*;
 import com.aelitis.azureus.core.util.GeneralUtils;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.util.ImportExportUtils;
 import com.aelitis.azureus.util.UrlFilter;
 
@@ -58,6 +61,9 @@ WebEngine
 {
 	public static final String	AM_TRANSPARENT 	= "transparent";
 	public static final String	AM_PROXY		= "proxy";
+	
+	private static final boolean NEEDS_AUTH_DEFAULT				= false;
+	private static final boolean AUTOMATIC_DATE_PARSER_DEFAULT 	= true;
 	
 	static private final Pattern baseTagPattern = Pattern.compile("(?i)<base.*?href=\"([^\"]+)\".*?>");
 	static private final Pattern rootURLPattern = Pattern.compile("(https?://[^/]+)");
@@ -136,12 +142,12 @@ WebEngine
 		userDateFormat		= ImportExportUtils.importString( map, "web.date_format" );
 		downloadLinkCSS		= ImportExportUtils.importString( map, "web.dl_link_css" );
 		
-		needsAuth			= ImportExportUtils.importBoolean(map, "web.needs_auth", false );
+		needsAuth			= ImportExportUtils.importBoolean(map, "web.needs_auth", NEEDS_AUTH_DEFAULT );
 		authMethod			= ImportExportUtils.importString( map, "web.auth_method", WebEngine.AM_TRANSPARENT );
 		loginPageUrl 		= ImportExportUtils.importString( map, "web.login_page" );
 		requiredCookies 	= ImportExportUtils.importStringArray( map, "web.required_cookies" );
 
-		automaticDateParser	= ImportExportUtils.importBoolean( map, "web.auto_date", true );
+		automaticDateParser	= ImportExportUtils.importBoolean( map, "web.auto_date", AUTOMATIC_DATE_PARSER_DEFAULT );
 
 		List	maps = (List)map.get( "web.maps" );
 		
@@ -162,24 +168,58 @@ WebEngine
 	
 	protected void
 	exportToBencodedMap(
-		Map		map )
+		Map		map,
+		boolean	generic )
 	
 		throws IOException
 	{
-		super.exportToBencodedMap( map );
+		super.exportToBencodedMap( map, generic );
 		
-		ImportExportUtils.exportString( map, "web.search_url_format", 		searchURLFormat );
-		ImportExportUtils.exportString( map, "web.time_zone", 				timeZone );		
-		ImportExportUtils.exportString( map, "web.date_format", 			userDateFormat );
-		ImportExportUtils.exportString( map, "web.dl_link_css",				downloadLinkCSS );
+		if ( generic ){
+			
+			if ( searchURLFormat != null ){
+				ImportExportUtils.exportString( map, "web.search_url_format", 		searchURLFormat );
+			}
+			if ( timeZone != null ){
+				ImportExportUtils.exportString( map, "web.time_zone", 				timeZone );
+			}
+			if ( userDateFormat != null ){
+				ImportExportUtils.exportString( map, "web.date_format", 			userDateFormat );
+			}
+			if ( downloadLinkCSS != null ){
+				ImportExportUtils.exportString( map, "web.dl_link_css",				downloadLinkCSS );
+			}
+			
+			if ( needsAuth != NEEDS_AUTH_DEFAULT ){
+				ImportExportUtils.exportBoolean( map, "web.needs_auth",				needsAuth );
+			}
+			if ( authMethod != null && !authMethod.equals( WebEngine.AM_TRANSPARENT )){
+				ImportExportUtils.exportString( map, "web.auth_method",				authMethod );
+			}
+			if ( loginPageUrl != null ){
+				ImportExportUtils.exportString( map, "web.login_page",				loginPageUrl );
+			}
+			if ( requiredCookies != null && requiredCookies.length > 0 ){
+				ImportExportUtils.exportStringArray( map, "web.required_cookies",	requiredCookies );
+			}
+			if (automaticDateParser != AUTOMATIC_DATE_PARSER_DEFAULT ){
+				ImportExportUtils.exportBoolean( map, "web.auto_date", automaticDateParser );
+			}
+
+		}else{
+			ImportExportUtils.exportString( map, "web.search_url_format", 		searchURLFormat );
+			ImportExportUtils.exportString( map, "web.time_zone", 				timeZone );		
+			ImportExportUtils.exportString( map, "web.date_format", 			userDateFormat );
+			ImportExportUtils.exportString( map, "web.dl_link_css",				downloadLinkCSS );
+			
+			ImportExportUtils.exportBoolean( map, "web.needs_auth",				needsAuth );
+			ImportExportUtils.exportString( map, "web.auth_method",				authMethod );
+			ImportExportUtils.exportString( map, "web.login_page",				loginPageUrl );
+			ImportExportUtils.exportStringArray( map, "web.required_cookies",	requiredCookies );
+	
+			ImportExportUtils.exportBoolean( map, "web.auto_date", automaticDateParser );
+		}
 		
-		ImportExportUtils.exportBoolean( map, "web.needs_auth",				needsAuth );
-		ImportExportUtils.exportString( map, "web.auth_method",				authMethod );
-		ImportExportUtils.exportString( map, "web.login_page",				loginPageUrl );
-		ImportExportUtils.exportStringArray( map, "web.required_cookies",	requiredCookies );
-
-		ImportExportUtils.exportBoolean( map, "web.auto_date", automaticDateParser );
-
 		List	maps = new ArrayList();
 		
 		map.put( "web.maps", maps );
@@ -494,41 +534,46 @@ WebEngine
 			
 			String searchURL = searchURLFormat;
 			
-			String[]	from_strs 	= new String[ searchParameters.length ];
-			String[]	to_strs 	= new String[ searchParameters.length ];
+			boolean vuze_file = searchURL.toLowerCase().startsWith( "vuze:" );
 			
-			for( int i = 0 ; i < searchParameters.length ; i++ ){
+			if ( !vuze_file ){
 				
-				SearchParameter parameter = searchParameters[i];
+				String[]	from_strs 	= new String[ searchParameters.length ];
+				String[]	to_strs 	= new String[ searchParameters.length ];
 				
-				from_strs[i]	= "%" + parameter.getMatchPattern();
-				to_strs[i]		= URLEncoder.encode(parameter.getValue(),"UTF-8");
-			}
-			
-			searchURL = GeneralUtils.replaceAll( searchURL, from_strs, to_strs );
-				
-			Iterator<Map.Entry<String, String>>	it = searchContext.entrySet().iterator();
-			
-			while( it.hasNext()){
-				
-				Map.Entry<String, String>	entry = it.next();
-				
-				String	key 	= entry.getKey();
+				for( int i = 0 ; i < searchParameters.length ; i++ ){
 					
-				if ( supportsContext( key )){
+					SearchParameter parameter = searchParameters[i];
 					
-					if ( searchURL.indexOf('?') == -1 ){
+					from_strs[i]	= "%" + parameter.getMatchPattern();
+					to_strs[i]		= URLEncoder.encode(parameter.getValue(),"UTF-8");
+				}
+				
+				searchURL = GeneralUtils.replaceAll( searchURL, from_strs, to_strs );
+					
+				Iterator<Map.Entry<String, String>>	it = searchContext.entrySet().iterator();
+				
+				while( it.hasNext()){
+					
+					Map.Entry<String, String>	entry = it.next();
+					
+					String	key 	= entry.getKey();
 						
-						searchURL += "?";
+					if ( supportsContext( key )){
 						
-					}else{
+						if ( searchURL.indexOf('?') == -1 ){
+							
+							searchURL += "?";
+							
+						}else{
+							
+							searchURL += "&";
+						}
 						
-						searchURL += "&";
+						String	value 	= entry.getValue();
+	
+						searchURL += key + "=" + URLEncoder.encode( value, "UTF-8" );
 					}
-					
-					String	value 	= entry.getValue();
-
-					searchURL += key + "=" + URLEncoder.encode( value, "UTF-8" );
 				}
 			}
 			
@@ -781,6 +826,23 @@ WebEngine
 			}
 			
 			byte[] data = baos.toByteArray();
+			
+			if ( vuze_file ){
+				
+				try{
+					VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+					
+					VuzeFile vf = vfh.loadVuzeFile( data );
+					
+					vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+				
+				return( new pageDetails( initial_url, initial_url, null ));
+			}
 			
 			String 	page = null;
 			
