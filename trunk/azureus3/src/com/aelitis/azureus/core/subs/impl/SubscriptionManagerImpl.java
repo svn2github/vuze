@@ -2615,14 +2615,12 @@ SubscriptionManagerImpl
 					try{
 						checkSingletonPublish( subs );
 						
-						listener.gotPopularity( subs.isSubscribed()?1:0 );
-						
-						return;
-						
-					}catch( Throwable e ){
-						
-						log( "    failed to create singleton public subscription " + subs.getString(), e );
+					}catch( Throwable e ){						
 					}
+					
+					listener.gotPopularity( subs.isSubscribed()?1:0 );
+						
+					return;
 				}
 			}
 			
