@@ -21,14 +21,11 @@
 
 package com.aelitis.azureus.core.metasearch.impl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
 
-import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -58,7 +55,6 @@ import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import com.aelitis.azureus.core.custom.Customization;
 import com.aelitis.azureus.core.custom.CustomizationManager;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
-import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
@@ -1082,6 +1078,21 @@ MetaSearchManagerImpl
 					}
 					
 					return( existing );
+				}
+			}else{
+									
+				try{						
+					Engine[] engines = meta_search.getEngines( false, false );
+						
+					for ( Engine e: engines ){
+							
+						if ( e.sameLogicAs( engine )){
+								
+							return( e );
+						}
+					}
+				}catch( Throwable e ){
+					
 				}
 			}
 			
