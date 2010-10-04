@@ -1037,6 +1037,15 @@ SubscriptionManagerUI
 			return;
 		}
 		
+			// hack to hide useless entries
+		
+		String name = subs.getName();
+		
+		if ( name.startsWith( "Search Template: " )){
+			
+			return;
+		}
+	
 		refreshColumns();
 		
 		final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());				
