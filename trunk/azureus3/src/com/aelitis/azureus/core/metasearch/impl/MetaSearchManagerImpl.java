@@ -1205,7 +1205,7 @@ MetaSearchManagerImpl
 		
 				Subscription subs =
 					sub_man.createSingletonRSS(
-						vf.getName() + ": " + engine.getName(),
+						vf.getName() + ": " + engine.getName() + " (v" + engine.getVersion() + ")",
 						new URL( url_str ),
 						Integer.MAX_VALUE );
 			
