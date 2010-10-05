@@ -209,6 +209,9 @@ Engine
 	public boolean
 	isShareable();
 	
+	public boolean
+	isAuthenticated();
+	
 		/**
 		 * @return one of AUTO_DL constants above
 		 */

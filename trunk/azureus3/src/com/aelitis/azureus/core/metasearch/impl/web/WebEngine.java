@@ -1185,6 +1185,12 @@ WebEngine
 		return needsAuth;
 	}
 
+	public boolean
+	isAuthenticated()
+	{
+		return( isNeedsAuth());
+	}
+	
 	protected void
 	setNeedsAuth(
 		boolean	b )

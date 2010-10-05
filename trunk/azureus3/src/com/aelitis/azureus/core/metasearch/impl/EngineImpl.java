@@ -1103,6 +1103,12 @@ EngineImpl
 		}
 	}
 	
+	public boolean
+	isAuthenticated()
+	{
+		return( false );
+	}
+	
 	public void
 	recordSelectionState()
 	{

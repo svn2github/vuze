@@ -1135,6 +1135,11 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 						Engine engine = metaSearchManager.getMetaSearch().getEngine( engineID );
 						
+						if ( engine != null ){
+							
+							engine.addPotentialAssociation( torrentUrl );
+						}
+						
 						if ( engine != null && engine instanceof WebEngine ){
 							
 							WebEngine webEngine = (WebEngine) engine;

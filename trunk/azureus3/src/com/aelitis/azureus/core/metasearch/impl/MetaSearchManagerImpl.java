@@ -1171,9 +1171,12 @@ MetaSearchManagerImpl
 		EngineImpl		engine,
 		String			key )
 	{		
-		synchronized( potential_associations ){
+		if ( engine.isShareable() && !engine.isAuthenticated()){
 			
-			potential_associations.put( key, engine );
+			synchronized( potential_associations ){
+				
+				potential_associations.put( key, engine );
+			}
 		}
 	}
 	
