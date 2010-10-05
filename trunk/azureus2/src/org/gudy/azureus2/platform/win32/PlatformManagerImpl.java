@@ -501,7 +501,7 @@ PlatformManagerImpl
 	{
 		String vendor = System.getProperty( "java.vendor", "<unknown>" );
 		
-		if ( !vendor.toLowerCase().startsWith( "sun " )){
+		if ( !vendor.toLowerCase().startsWith( "sun " ) && !vendor.toLowerCase().startsWith( "oracle " )){
 			
 			throw( new PlatformManagerException( 
 						MessageText.getString( 
