@@ -3,9 +3,12 @@ VUZE CHANGELOG
 
 2010.xx.xx | Vuze 4.5.0.7
 
+FEATURE: UI   | Support opening .vuze files from URLs [Parg]
+
 CHANGE: Core  | Add alert details to alert log [Parg]
 CHANGE: Core  | Log plugin load-at-start state to diagnostics [Parg]
 CHANGE: UI    | Better handling in in-client browser for search engines and (blocking) pop-ups [TuxPaper]
+CHANGE: Core  | Report better error messages for failed plugin installs [Parg]
 
 BUGFIX: Core  | OSX - handle UTF-8 BOM in plist [Parg]
 BUGFIX: *     | Fix various Null Pointer Exceptions [TuxPaper]
