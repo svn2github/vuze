@@ -8,7 +8,7 @@ CHANGE: Core  | Log plugin load-at-start state to diagnostics [Parg]
 CHANGE: UI    | Better handling in in-client browser for search engines and (blocking) pop-ups [TuxPaper]
 
 BUGFIX: Core  | OSX - handle UTF-8 BOM in plist [Parg]
-BUGFIX: *     | Various Null Pointer Exceptions [TuxPaper]
+BUGFIX: *     | Fix various Null Pointer Exceptions [TuxPaper]
 
 
 
