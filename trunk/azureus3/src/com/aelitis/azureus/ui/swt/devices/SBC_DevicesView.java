@@ -834,7 +834,7 @@ public class SBC_DevicesView
 
 		final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 
-		remove_item.setText(MessageText.getString("azbuddy.ui.menu.remove"));
+		remove_item.setText(MessageText.getString("devices.cancel_xcode"));
 
 		Utils.setMenuItemImage(remove_item, "delete");
 
