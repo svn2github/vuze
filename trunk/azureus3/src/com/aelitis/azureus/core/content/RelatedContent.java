@@ -39,7 +39,7 @@ RelatedContent
 	
 	private byte[]		related_to_hash;
 
-	protected
+	public
 	RelatedContent(
 		byte[]		_related_to_hash,
 		String		_title,
@@ -60,7 +60,7 @@ RelatedContent
 		content_network		= _cnet;
 	}
 	
-	protected
+	public
 	RelatedContent(
 		String		_title,
 		byte[]		_hash,
