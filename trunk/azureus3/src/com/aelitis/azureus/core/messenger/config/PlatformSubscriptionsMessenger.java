@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.json.simple.JSONArray;
 
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.PlatformMessengerException;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 
@@ -312,6 +313,25 @@ PlatformSubscriptionsMessenger
 				
 				return( null );
 			}
+		}
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		try{
+			AzureusCoreFactory.create();
+			
+			String short_id = "";
+			
+			long res = getPopularityBySID( Base32.decode( short_id ));
+			
+			System.out.println( res );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
 		}
 	}
 }
