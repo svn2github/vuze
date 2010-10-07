@@ -19,8 +19,6 @@
 package org.gudy.azureus2.ui.swt.update;
 
 
-import java.util.Locale;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.DisposeEvent;
@@ -43,6 +41,8 @@ public class FullUpdateWindow
 	private static Shell current_shell = null;
 
 	private static Browser browser;
+
+	private static BrowserFunction browserFunction;
 
 	public static void 
 	handleUpdate(
@@ -96,6 +96,9 @@ public class FullUpdateWindow
 						if (parentShell != null) {
 							parentShell.setCursor(e.display.getSystemCursor(SWT.CURSOR_ARROW));
 						}
+						if (browserFunction != null && !browserFunction.isDisposed()) {
+							browserFunction.dispose();
+						}
 						current_shell = null;
 						
 					}finally{
@@ -129,16 +132,33 @@ public class FullUpdateWindow
 				}
 			});
 	
-			browser.addStatusTextListener(new StatusTextListener() {
-				String last = null;
-	
-				public void changed(StatusTextEvent event) {
+			browserFunction = new BrowserFunction(browser, "sendVuzeUpdateEvent") {
+				private String last = null;
+
+				public Object function(Object[] arguments) {
+
 					if (shell == null || shell.isDisposed()) {
-						return;
+						return null;
 					}
-					String text = event.text.toLowerCase();
-					if (last != null && last.equals(text)) {
-						return;
+					
+					if (arguments == null) {
+						Debug.out("Invalid sendVuzeUpdateEvent null ");
+						return null;
+					}
+					if (arguments.length < 1) {
+						Debug.out("Invalid sendVuzeUpdateEvent length " + arguments.length + " not 1");
+						return null;
+					}
+					if (!(arguments[0] instanceof String)) {
+						Debug.out("Invalid sendVuzeUpdateEvent "
+								+ (arguments[0] == null ? "NULL"
+										: arguments.getClass().getSimpleName()) + " not String");
+						return null;
+					}
+
+					String text = ((String) arguments[0]).toLowerCase();
+					if (last  != null && last.equals(text)) {
+						return null;
 					}
 					last = text;
 					if ( text.contains("page-loaded")) {
@@ -192,9 +212,18 @@ public class FullUpdateWindow
 							}
 						});
 					}
+					return null;
+				}
+			};
+
+			browser.addStatusTextListener(new StatusTextListener() {
+				public void changed(StatusTextEvent event) {
+					browserFunction.function(new Object[] {
+						event.text
+					});
 				}
 			});
-	
+
 			browser.addLocationListener(new LocationListener() {
 				public void changing(LocationEvent event) {
 				}
