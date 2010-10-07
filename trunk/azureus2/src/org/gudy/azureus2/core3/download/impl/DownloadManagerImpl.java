@@ -2092,7 +2092,10 @@ DownloadManagerImpl
 				response = scraper.scrape(torrent);
    
 			}else{
-    			    			
+    			   
+				URL							backup_url 		= null;
+				TRTrackerScraperResponse	backup_response = null;
+				
 					// we use a fixed seed so that subsequent scrapes will randomise
     				// in the same order, as required by the spec. Note that if the
     				// torrent's announce sets are edited this all works fine (if we
@@ -2130,10 +2133,23 @@ DownloadManagerImpl
 								// Exit if online
 							
 							if (status == TRTrackerScraperResponse.ST_ONLINE) {
-
-								active_url	= url;
 								
-								break;
+								if ( response.isDHTBackup()){
+								
+										// we'll use this if we don't find anything better
+									
+									backup_url		= url;
+									backup_response	= response;
+									
+									response = null;
+									
+									continue;
+								}else{
+									
+									active_url	= url;
+
+									break;
+								}
 							}
 
 								// Scrape 1 at a time to save on outgoing connections
@@ -2162,7 +2178,15 @@ DownloadManagerImpl
     		
 				if ( response == null ){
     			
-					response = non_null_response;
+					if ( backup_response != null ){
+						
+						response 	= backup_response;
+						active_url	= backup_url;
+						
+					}else{
+						
+						response = non_null_response;
+					}
 				}
 			}
 		}
@@ -3610,6 +3634,9 @@ DownloadManagerImpl
 			 					private TRTrackerAnnouncer		ta;
 			  					private long					ta_fixup;
 
+			  					private long		last_scrape_time;
+			  					private int[]		last_scrape;
+			  					
 								private TrackerPeerSource
 								fixup()
 								{
@@ -3643,6 +3670,50 @@ DownloadManagerImpl
 									}
 									
 									return( _delegate );
+								}
+								
+								protected int[]
+								getScrape()
+								{
+									long now = SystemTime.getMonotonousTime();
+									
+									if ( now - last_scrape_time > 30*1000 || last_scrape == null ){
+
+										TRTrackerScraper	scraper = globalManager.getTrackerScraper();
+
+										int	max_peers = -1;
+										int max_seeds = -1;
+										
+										for ( URL u: urls ){
+										
+											TRTrackerScraperResponse resp = scraper.peekScrape(torrent, u );
+											
+											if ( resp != null ){
+												
+												if ( !resp.isDHTBackup()){
+													
+													int peers = resp.getPeers();
+													int seeds = resp.getSeeds();
+													
+													if ( peers > max_peers ){
+													
+														max_peers = peers;
+													}
+													
+													if ( seeds > max_seeds ){
+														
+														max_seeds = seeds;
+													}
+												}
+											}
+										}
+										
+										last_scrape = new int[]{ max_seeds, max_peers }; 
+										
+										last_scrape_time = now;
+									}
+									
+									return( last_scrape );
 								}
 								
 								public int
@@ -3697,10 +3768,17 @@ DownloadManagerImpl
 									
 									if ( delegate == null ){
 									
-										return( -1 );
+										return( getScrape()[0] );
 									}
 									
-									return( delegate.getSeedCount());
+									int seeds = delegate.getSeedCount();
+									
+									if ( seeds < 0 ){
+										
+										seeds = getScrape()[0];
+									}
+									
+									return( seeds );
 								}
 								
 								public int
@@ -3710,10 +3788,17 @@ DownloadManagerImpl
 									
 									if ( delegate == null ){
 									
-										return( -1 );
+										return( getScrape()[1] );
 									}
 									
-									return( delegate.getLeecherCount());							
+									int leechers = delegate.getLeecherCount();
+									
+									if ( leechers < 0 ){
+										
+										leechers = getScrape()[1];
+									}
+									
+									return( leechers );						
 								}
 	
 								public int

@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperImpl;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperResponseImpl;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
 /**
@@ -91,9 +92,16 @@ TRTrackerBTScraperImpl
 			
 			TRTrackerScraperResponseImpl resp =	tracker_checker.getHashData( torrent, url );
 			
-				// only override details if underlying scrape is failing
+			boolean	update_is_dht	= TorrentUtils.isDecentralised( result.getURL());
 			
-			if ( resp != null && resp.getStatus() == TRTrackerScraperResponse.ST_ERROR ){
+				// only override details if underlying scrape is failing or this is an update
+				// to an existing dht-backup result
+			
+			if ( 	resp != null && 
+					( 	resp.getStatus() == TRTrackerScraperResponse.ST_ERROR ) ||
+						resp.isDHTBackup() && update_is_dht ){
+				
+				resp.setDHTBackup( update_is_dht );
 				
 				resp.setScrapeStartTime( result.getScrapeStartTime());
 				
@@ -134,6 +142,21 @@ TRTrackerBTScraperImpl
 		
 		// System.out.println( "scrape: " + torrent + " -> " + (res==null?"null":""+res.getSeeds()));
 		
+		return( res );
+	}
+	
+	public TRTrackerScraperResponse
+	peekScrape(
+		TOTorrent		torrent,
+		URL				target_url )
+	{
+		if ( torrent == null ){
+			
+			return null;
+		}
+
+		TRTrackerScraperResponse	res = tracker_checker.peekHashData( torrent, target_url );
+				
 		return( res );
 	}
 	

@@ -191,6 +191,41 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
     return data;
   }
   
+  protected TRTrackerScraperResponseImpl 
+  peekHashData(
+  	TOTorrent  	torrent,
+	URL			target_url )
+  {
+    try{
+    	URL trackerUrl = target_url==null?torrent.getAnnounceURL():target_url;
+      
+    	if ( trackerUrl == null ){
+    		return( null );
+        }
+      
+        String	url_str = trackerUrl.toString();
+          
+        try{
+            trackers_mon.enter();
+        	
+            TrackerStatus  ts = (TrackerStatus) trackers.get(url_str);
+        
+            if ( ts != null ){
+    	      
+    	      return( ts.getHashData( torrent.getHashWrapper()));      
+            }
+        }finally{
+          	
+            trackers_mon.exit();
+        }
+      
+    } catch(TOTorrentException e) {
+    	Debug.printStackTrace( e );
+    }
+    
+    return null;
+  }  
+  
   /** Removes the scrape task and data associated with the TOTorrent's
    * Announce URL, announce-list data and hash.
    */

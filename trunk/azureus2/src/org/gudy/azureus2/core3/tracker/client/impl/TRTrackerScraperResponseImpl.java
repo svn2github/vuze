@@ -181,6 +181,9 @@ TRTrackerScraperResponseImpl
     return !(seeds == -1 && peers == -1);
   }
   
+  public abstract void
+  setDHTBackup(
+		boolean	is_backup );
   
   /**
 	 * add the same, random value per session so that azureus peers diverge over

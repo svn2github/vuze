@@ -59,6 +59,11 @@ TRTrackerScraper
 		URL						url,
 		DownloadScrapeResult	result );
 	
+	public TRTrackerScraperResponse
+	peekScrape(
+		TOTorrent		torrent,
+		URL				target_url );
+	
 	public void
 	remove(
 		TOTorrent		torrent );

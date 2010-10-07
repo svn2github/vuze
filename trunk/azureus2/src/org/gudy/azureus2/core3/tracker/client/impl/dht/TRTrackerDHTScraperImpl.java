@@ -173,6 +173,27 @@ TRTrackerDHTScraperImpl
 	}
 	
 	public TRTrackerScraperResponse
+	peekScrape(
+		TOTorrent		torrent,
+		URL				unused_target_url )
+	{
+		if ( torrent != null ){
+
+			try{
+				HashWrapper hw = torrent.getHashWrapper();
+				
+				return( responses.get( hw ));
+				
+			}catch( TOTorrentException e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		return( null );
+	}
+	
+	public TRTrackerScraperResponse
 	scrape(
 		TRTrackerAnnouncer	tracker_client )
 	{

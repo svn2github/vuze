@@ -81,6 +81,9 @@ TRTrackerScraperResponse
 	public URL
 	getURL();
 	
+	public boolean
+	isDHTBackup();
+	
 	public String
 	getString();
 }

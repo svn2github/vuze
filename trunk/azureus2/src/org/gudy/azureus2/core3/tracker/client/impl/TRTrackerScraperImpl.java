@@ -157,6 +157,26 @@ TRTrackerScraperImpl
 	}
 		
 	public TRTrackerScraperResponse
+	peekScrape(
+		TOTorrent		torrent,
+		URL				target_url )
+	{
+		if ( torrent == null ){
+			
+			return null;
+		}
+
+		if ( TorrentUtils.isDecentralised( torrent )){
+			
+			return( dht_scraper.peekScrape( torrent, target_url ));
+			
+		}else{
+			
+			return( bt_scraper.peekScrape( torrent, target_url ));
+		}
+	}
+	
+	public TRTrackerScraperResponse
 	scrape(
 		TRTrackerAnnouncer	tracker_client )
 	{

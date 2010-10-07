@@ -62,4 +62,17 @@ TRTrackerDHTScraperResponseImpl
 	{
 		return( url );
 	}
+	
+	public void
+	setDHTBackup(
+		boolean	is_backup )
+	{
+		// we're never a backup
+	}
+	
+	public boolean 
+	isDHTBackup() 
+	{	
+		return false;
+	}
 }

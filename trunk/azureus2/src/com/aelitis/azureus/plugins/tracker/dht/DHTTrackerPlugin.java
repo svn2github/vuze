@@ -158,6 +158,7 @@ DHTTrackerPlugin
 	private int						interesting_published	= 0;
 	private int						interesting_pub_max		= INTERESTING_PUB_MAX_DEFAULT;
 	private Map<Download,int[]>		running_downloads 		= new HashMap<Download,int[]>();
+	private Map<Download,int[]>		run_data_cache	 		= new HashMap<Download,int[]>();
 	private Map<Download,RegistrationDetails>	registered_downloads 	= new HashMap<Download,RegistrationDetails>();
 	
 	private Map<Download,Boolean>	limited_online_tracking	= new HashMap<Download,Boolean>();
@@ -773,6 +774,8 @@ DHTTrackerPlugin
 				
 				running_downloads.remove( download );
 				
+				run_data_cache.remove( download );
+				
 				limited_online_tracking.remove( download );
 				
 			}finally{
@@ -1041,7 +1044,18 @@ DHTTrackerPlugin
 						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
 								"Monitoring '" + download.getName() + "': " + register_reason);
 						
-						running_downloads.put( download, new int[]{ register_type, 0, 0, 0 });
+						int[] cache = run_data_cache.remove( download );
+						
+						if ( cache == null ){
+						
+							running_downloads.put( download, new int[]{ register_type, 0, 0, 0 });
+							
+						}else{
+							
+							cache[0] = register_type;
+							
+							running_downloads.put( download, cache );
+						}
 						
 						query_map.put( download, new Long( SystemTime.getCurrentTime()));
 						
@@ -1065,6 +1079,8 @@ DHTTrackerPlugin
 								"Not monitoring '" + download.getName() + "': "	+ register_reason);
 	
 						running_downloads.remove( download );
+						
+						run_data_cache.put( download, run_data );
 						
 							// add back to interesting downloads for monitoring
 						
@@ -2192,6 +2208,26 @@ DHTTrackerPlugin
 								
 								scrape_injection_map.put( download, new int[]{ f_adj_seeds, f_adj_leechers });
 	
+								try{
+									this_mon.enter();
+								
+									int[] run_data = running_downloads.get( download );
+									
+									if ( run_data == null ){
+										
+										run_data = run_data_cache.get( download );
+									}
+									
+									if ( run_data != null ){
+
+										run_data[1] = f_adj_seeds;
+										run_data[2]	= f_adj_leechers;
+									}
+								}finally{
+									
+									this_mon.exit();
+								}
+								
 								download.setScrapeResult(
 									new DownloadScrapeResult()
 									{
@@ -2700,10 +2736,24 @@ DHTTrackerPlugin
 									
 										int[] run_data = running_downloads.get( f_ready_download );
 										
+										if ( run_data == null ){
+											
+											run_data = run_data_cache.get( f_ready_download );
+										}
+										
 										if ( run_data != null ){
 
-											run_data[1] = seeds;
-											run_data[2]	= leechers;
+											if ( total < INTERESTING_AVAIL_MAX ){
+											
+												run_data[1] = seeds;
+												run_data[2]	= leechers;
+												run_data[3] = total;
+												
+											}else{
+												
+												run_data[1] = Math.max( run_data[1], seeds );
+												run_data[2] = Math.max( run_data[2], leechers );
+											}
 										}
 									}finally{
 										
@@ -3394,6 +3444,11 @@ DHTTrackerPlugin
 							}else{
 								
 								status = ST_DISABLED;
+							}
+							
+							if ( run_data == null ){
+								
+								run_data = run_data_cache.get( download );
 							}
 						}finally{
 							

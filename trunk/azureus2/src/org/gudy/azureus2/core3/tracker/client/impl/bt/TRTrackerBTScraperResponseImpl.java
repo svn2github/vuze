@@ -38,54 +38,71 @@ public class
 TRTrackerBTScraperResponseImpl
 	extends TRTrackerScraperResponseImpl
 {
-	  private TrackerStatus ts;
+	private TrackerStatus ts;
 
-	  protected 
-	  TRTrackerBTScraperResponseImpl(
-	  		TrackerStatus _ts,
-            HashWrapper _hash) 
-	  {
-	  	this(_ts, _hash, -1, -1, -1,-1);
-	  }
-
-	  protected 
-	  TRTrackerBTScraperResponseImpl(
-	  		TrackerStatus _ts,
-	  		HashWrapper _hash,
-            int  _seeds, 
-            int  _peers,
-            int completed,
-            long _scrapeStartTime)  
-	  {
-	  	super( _hash, _seeds, _peers, completed, _scrapeStartTime );
-	  	
-	  	ts	= _ts;
-	  }
+	private boolean	is_dht_backup;
 	  
-	  public TrackerStatus getTrackerStatus() {
-	    return ts;
-	  }
+	protected 
+	TRTrackerBTScraperResponseImpl(
+		TrackerStatus _ts,
+		HashWrapper _hash) 
+	{
+		this(_ts, _hash, -1, -1, -1,-1);
+	}
+
+	protected 
+	TRTrackerBTScraperResponseImpl(
+		TrackerStatus _ts,
+		HashWrapper _hash,
+		int  _seeds, 
+		int  _peers,
+		int completed,
+		long _scrapeStartTime)  
+	{
+		super( _hash, _seeds, _peers, completed, _scrapeStartTime );
+
+		ts	= _ts;
+	}
+
+	public TrackerStatus 
+	getTrackerStatus() 
+	{
+		return ts;
+	}
 
 	public void 
 	setSeedsPeers(
-		int iSeeds, int iPeers) 
+		int iSeeds, int iPeers ) 
 	{
 		setSeeds( iSeeds );
 		setPeers( iPeers );
-		
+
 		if (isValid()){
 			setStatus(TRTrackerScraperResponse.ST_ONLINE);
 			setStatus( MessageText.getString("Scrape.status.ok"));
 		} else {
 			setStatus(TRTrackerScraperResponse.ST_INITIALIZING);
 		}
-		    // XXX Is this a good idea?
+		// XXX Is this a good idea?
 		ts.scrapeReceived(this);
 	}
-		
-	  public URL
-	  getURL()
-	  {
-	  	return( ts.getTrackerURL());
-	  }
+
+	public URL
+	getURL()
+	{
+		return( ts.getTrackerURL());
+	}
+
+	public void 
+	setDHTBackup(
+		boolean	is_backup )
+	{
+		is_dht_backup	= is_backup;
+	}
+	
+	public boolean 
+	isDHTBackup() 
+	{	
+		return is_dht_backup;
+	}
 }
