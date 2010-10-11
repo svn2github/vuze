@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.core.metasearch;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
@@ -108,6 +109,12 @@ MetaSearch
 	public void
 	enginePreferred(
 		Engine		engine );
+	
+	public void
+	exportEngines(
+		File	to_file )
+	
+		throws MetaSearchException;
 	
 	public void
 	addListener(

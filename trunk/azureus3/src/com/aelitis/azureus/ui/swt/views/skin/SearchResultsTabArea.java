@@ -76,11 +76,11 @@ public class SearchResultsTabArea
 	private boolean searchResultsInitialized = false;
 
 	protected String title;
-
-	private MenuItem menuItem;
-
+	
 	private MdiEntryVitalityImage vitalityImage;
 
+	private boolean menu_added;
+	
 	public SearchQuery sq;
 
 	public static class SearchQuery {
@@ -159,18 +159,20 @@ public class SearchResultsTabArea
 		
 		final MenuManager menuManager = uim.getMenuManager();
 
-		if ( menuItem == null ){
-		
-			menuItem = menuManager.addMenuItem("sidebar.Search","Search.menu.engines");
-		
-			menuItem.setStyle( MenuItem.STYLE_MENU );
+		if ( !menu_added ){
 			
-			menuItem.addFillListener(
+			menu_added = true;
+			
+			final MenuItem template_menu = menuManager.addMenuItem("sidebar.Search","Search.menu.engines");
+		
+			template_menu.setStyle( MenuItem.STYLE_MENU );
+			
+			template_menu.addFillListener(
 				new MenuItemFillListener()
 				{
 					public void menuWillBeShown(MenuItem menu, Object data) {
 				
-						menuItem.removeAllChildItems();
+						template_menu.removeAllChildItems();
 						
 						Engine[] engines = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngines( true, false );
 						
@@ -191,7 +193,7 @@ public class SearchResultsTabArea
 							
 							final Engine engine = engines[i];
 							
-							MenuItem engine_menu = menuManager.addMenuItem( menuItem, "!" + engine.getName() + "!" );
+							MenuItem engine_menu = menuManager.addMenuItem( template_menu, "!" + engine.getName() + "!" );
 							
 							engine_menu.setStyle( MenuItem.STYLE_MENU );
 
@@ -383,6 +385,68 @@ public class SearchResultsTabArea
 							}
 						}
 					}
+				});
+			
+			final MenuItem export_menu = menuManager.addMenuItem("sidebar.Search","search.export.all");
+			
+			
+			export_menu.setStyle( MenuItem.STYLE_PUSH );
+			
+			export_menu.addListener(
+				new MenuItemListener()
+				{
+					public void 
+					selected(
+						MenuItem menu, 
+						Object target) 
+					{
+						final Shell shell = Utils.findAnyShell();
+						
+						shell.getDisplay().asyncExec(
+							new AERunnable() 
+							{
+								public void 
+								runSupport()
+								{
+									FileDialog dialog = 
+										new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
+									
+									dialog.setFilterPath( TorrentOpener.getFilterPathData() );
+															
+									dialog.setText(MessageText.getString("metasearch.export.select.template.file"));
+									
+									dialog.setFilterExtensions(new String[] {
+											"*.vuze",
+											"*.vuz",
+											org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
+										});
+									dialog.setFilterNames(new String[] {
+											"*.vuze",
+											"*.vuz",
+											org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
+										});
+									
+									String path = TorrentOpener.setFilterPathData( dialog.open());
+				
+									if ( path != null ){
+										
+										String lc = path.toLowerCase();
+										
+										if ( !lc.endsWith( ".vuze" ) && !lc.endsWith( ".vuz" )){
+											
+											path += ".vuze";
+										}
+										
+										try{
+											MetaSearchManagerFactory.getSingleton().getMetaSearch().exportEngines(  new File( path ));
+											
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
+									}
+								}
+							});							}
 				});
 		}
 	}

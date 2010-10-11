@@ -81,6 +81,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
+import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
@@ -1908,6 +1909,63 @@ public class MainWindow
 				}
 			});
 
+			new MenuItem(topbarMenu, SWT.SEPARATOR);
+			
+			final MenuItem itemExport = new MenuItem(topbarMenu, SWT.PUSH);
+			Messages.setLanguageText(itemExport,
+					"search.export.all");
+			itemExport.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					final Shell shell = Utils.findAnyShell();
+					
+					shell.getDisplay().asyncExec(
+						new AERunnable() 
+						{
+							public void 
+							runSupport()
+							{
+								FileDialog dialog = 
+									new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
+								
+								dialog.setFilterPath( TorrentOpener.getFilterPathData() );
+														
+								dialog.setText(MessageText.getString("metasearch.export.select.template.file"));
+								
+								dialog.setFilterExtensions(new String[] {
+										"*.vuze",
+										"*.vuz",
+										org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
+									});
+								dialog.setFilterNames(new String[] {
+										"*.vuze",
+										"*.vuz",
+										org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
+									});
+								
+								String path = TorrentOpener.setFilterPathData( dialog.open());
+			
+								if ( path != null ){
+									
+									String lc = path.toLowerCase();
+									
+									if ( !lc.endsWith( ".vuze" ) && !lc.endsWith( ".vuz" )){
+										
+										path += ".vuze";
+									}
+									
+									try{
+										MetaSearchManagerFactory.getSingleton().getMetaSearch().exportEngines(  new File( path ));
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}
+						});	
+				}
+			});
+			
 			topbarMenu.addMenuListener(new MenuListener() {
 				public void menuShown(MenuEvent e) {
 					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);

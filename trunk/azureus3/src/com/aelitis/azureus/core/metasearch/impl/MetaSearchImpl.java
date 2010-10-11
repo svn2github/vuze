@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.metasearch.impl;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -53,6 +54,7 @@ import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 
 public class 
@@ -1094,6 +1096,39 @@ MetaSearchImpl
 		}
 		
 		return( engines );
+	}
+	
+	public void
+	exportEngines(
+		File	target )
+	
+		throws MetaSearchException
+	{
+		Engine[] engines = getEngines( true, false );
+		
+		VuzeFile	vf = VuzeFileHandler.getSingleton().create();
+		
+		for ( Engine engine: engines ){
+		
+			try{
+				vf.addComponent(
+					VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE,
+					engine.exportToBencodedMap());
+				
+			}catch( IOException e ){
+				
+				Debug.out( e );
+			}
+			
+		}
+		
+		try{
+			vf.write( target );
+			
+		}catch( IOException e ){
+			
+			throw( new MetaSearchException( "Failed to write file", e ));
+		}
 	}
 	
 	public void
