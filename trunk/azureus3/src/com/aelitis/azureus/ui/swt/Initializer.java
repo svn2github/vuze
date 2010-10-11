@@ -582,7 +582,7 @@ public class Initializer
 				Debug.out(e);
 			}
 
-			if (Constants.IS_CVS_VERSION && !Constants.isOSX && !Constants.isUnix) {
+			if (false) {
 				// No Unix as it will dispose before isTerminated is set, causing
 				// a 'user close' flag to be incorrectly set and used
   			Utils.execSWTThread(new AERunnable() {
