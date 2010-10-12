@@ -47,6 +47,11 @@ import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.search.SearchException;
+import org.gudy.azureus2.plugins.utils.search.SearchInstance;
+import org.gudy.azureus2.plugins.utils.search.SearchObserver;
+import org.gudy.azureus2.plugins.utils.search.SearchProvider;
+import org.gudy.azureus2.plugins.utils.search.SearchResult;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
@@ -75,6 +80,7 @@ import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
 import com.aelitis.azureus.util.ImportExportUtils;
 import com.aelitis.azureus.util.UrlFilter;
+import com.aelitis.net.magneturi.MagnetURIHandler;
 
 
 public class 
@@ -90,6 +96,8 @@ SubscriptionManagerImpl
 	private static final String CONFIG_AUTO_START_MAX_MB 	= "subscriptions.auto.start.max.mb";
 	
 	private static final String	RSS_ENABLE_CONFIG_KEY		= "subscriptions.config.rss_enable";
+
+	private static final String	CONFIG_ENABLE_SEARCH		= "subscriptions.config.search_enable";
 
 	private static final int DELETE_UNUSED_AFTER_MILLIS = 2*7*24*60*60*1000;
 	
@@ -616,8 +624,350 @@ SubscriptionManagerImpl
 		
 			delayed_task.queue();
 		}
+		
+		if ( isSearchEnabled()){
+			
+			try{
+				default_pi.getUtilities().registerSearchProvider(
+					new SearchProvider()
+					{
+						private Map<Integer,Object>	properties = new HashMap<Integer, Object>();
+						
+						{
+							properties.put( PR_NAME, MessageText.getString( "ConfigView.section.Subscriptions" ));
+							
+							try{
+								URL url = 
+									MagnetURIHandler.getSingleton().registerResource(
+										new MagnetURIHandler.ResourceProvider()
+										{
+											public String
+											getUID()
+											{
+												return( SubscriptionManager.class.getName() + ".1" );
+											}
+											
+											public String
+											getFileType()
+											{
+												return( "png" );
+											}
+													
+											public byte[]
+											getData()
+											{
+												InputStream is = getClass().getClassLoader().getResourceAsStream( "com/aelitis/azureus/ui/images/subscription_icon.png" );
+												
+												if ( is == null ){
+													
+													return( null );
+												}
+												
+												try{
+													ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+													
+													try{
+														byte[]	buffer = new byte[8192];
+														
+														while( true ){
+								
+															int	len = is.read( buffer );
+											
+															if ( len <= 0 ){
+																
+																break;
+															}
+									
+															baos.write( buffer, 0, len );
+														}
+													}finally{
+														
+														is.close();
+													}
+													
+													return( baos.toByteArray());
+													
+												}catch( Throwable e ){
+													
+													return( null );
+												}
+											}
+										});
+																		
+								properties.put( PR_ICON_URL, url.toExternalForm());
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+						
+						public SearchInstance
+						search(
+							Map<String,Object>	search_parameters,
+							SearchObserver		observer )
+						
+							throws SearchException
+						{		
+							try{
+								return( searchSubscriptions( search_parameters, observer ));
+								
+							}catch( Throwable e ){
+								
+								throw( new SearchException( "Search failed", e ));
+							}
+						}
+						
+						public Object
+						getProperty(
+							int			property )
+						{
+							return( properties.get( property ));
+						}
+						
+						public void
+						setProperty(
+							int			property,
+							Object		value )
+						{
+							properties.put( property, value );
+						}
+					});
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "Failed to register search provider" );
+			}
+		}
 	}
 
+	public SearchInstance
+	searchSubscriptions(
+		Map<String,Object>		search_parameters,
+		final SearchObserver	observer )
+	
+		throws SearchException
+	{
+		final String	term = (String)search_parameters.get( SearchProvider.SP_SEARCH_TERM );
+		
+		final SearchInstance si = 
+			new SearchInstance()
+			{
+				public void
+				cancel()
+				{
+					Debug.out( "Cancelled" );
+				}
+			};
+			
+		if ( term == null ){
+		
+			try{
+				observer.complete();
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}else{
+		
+			new AEThread2( "Subscriptions:search", true )
+			{
+				public void
+				run()
+				{
+					final Set<String>	hashes = new HashSet<String>();
+					
+					try{				
+						List<SubscriptionResult>	matches = matchSubscriptionResults( term );
+							
+						for ( final SubscriptionResult result: matches ){
+							
+							final Map result_properties = result.toPropertyMap();
+							
+							byte[] hash = (byte[])result_properties.get( SearchResult.PR_HASH );
+														
+							if ( hash != null ){
+															
+								String hash_str = Base32.encode( hash );
+							
+								if ( hashes.contains( hash_str )){
+								
+									continue;
+								}
+							
+								hashes.add( hash_str );
+							}
+							
+							SearchResult search_result = 
+								new SearchResult()
+								{
+									public Object
+									getProperty(
+										int		property_name )
+									{
+										return( result_properties.get( property_name ));
+									}
+								};
+						
+							try{
+								observer.resultReceived( si, search_result );
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+						
+					}finally{
+						
+						observer.complete();
+					}
+				}
+			}.start();
+		}
+		
+		return( si );
+	}
+	
+	private List<SubscriptionResult>
+	matchSubscriptionResults(
+		String		term )
+	{
+		List<SubscriptionResult> result = new ArrayList<SubscriptionResult>();
+		
+			// term is made up of space separated bits - all bits must match
+			// each bit can be prefixed by + or -, a leading - means 'bit doesn't match'. + doesn't mean anything
+			// each bit (with prefix removed) can be "(" regexp ")"
+			// if bit isn't regexp but has "|" in it it is turned into a regexp so a|b means 'a or b'
+			
+		String[]	 bits = term.toLowerCase().split( " " );
+	
+		int[]		bit_types 		= new int[bits.length];
+		Pattern[]	bit_patterns 	= new Pattern[bits.length];
+		
+		for (int i=0;i<bits.length;i++){
+			
+			String bit = bits[i] = bits[i].trim();
+			
+			if ( bit.length() > 0 ){
+				
+				char	c = bit.charAt(0);
+				
+				if ( c == '+' ){
+					
+					bit_types[i] = 1;
+					
+					bit = bits[i] = bit.substring(1);
+					
+				}else if ( c == '-' ){
+					
+					bit_types[i] = 2;
+					
+					bit = bits[i] = bit.substring(1);
+				}
+				
+				if ( bit.startsWith( "(" ) && bit.endsWith((")"))){
+					
+					bit = bit.substring( 1, bit.length()-1 );
+					
+					try{
+						bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+						
+					}catch( Throwable e ){
+					}
+				}else if ( bit.contains( "|" )){
+					
+					try{
+						bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+						
+					}catch( Throwable e ){
+					}
+				}
+			}
+		}
+		
+		for ( Subscription sub: getSubscriptions( true )){
+			
+			SubscriptionResult[] results = sub.getResults( false );
+			
+			for ( SubscriptionResult r: results ){
+				
+				Map properties = r.toPropertyMap();
+				
+				String name = (String)properties.get( SearchResult.PR_NAME );
+				
+				if ( name == null ){
+					
+					continue;
+				}
+				
+				name = name.toLowerCase();
+				
+				boolean	match 			= true;
+				boolean	at_least_one 	= false;
+				
+				for (int i=0;i<bits.length;i++){
+					
+					String bit = bits[i];
+					
+					if ( bit.length() > 0 ){
+						
+						boolean	hit;
+						
+						if ( bit_patterns[i] == null ){
+						
+							hit = name.contains( bit );
+							
+						}else{
+						
+							hit = bit_patterns[i].matcher( name ).find();
+						}
+						
+						int	type = bit_types[i];
+						
+						if ( hit ){
+													
+							if ( type == 2 ){
+								
+								match = false;
+								
+								break;
+								
+							}else{
+								
+								at_least_one = true;
+
+							}
+						}else{
+							
+							if ( type == 2 ){
+							
+								at_least_one = true;
+								
+							}else{
+								
+								match = false;
+							
+								break;
+							}
+						}
+					}
+				}
+				
+				if ( match && at_least_one ){
+					
+					result.add( r );
+				}
+			}
+		}
+		
+		return( result );
+	}
+	
 	protected void
 	checkMaxResults(
 		int		max )
@@ -647,6 +997,19 @@ SubscriptionManagerImpl
 		boolean		enabled )
 	{
 		COConfigurationManager.setParameter( RSS_ENABLE_CONFIG_KEY, enabled );
+	}
+	
+	public boolean
+	isSearchEnabled()
+	{
+		return( COConfigurationManager.getBooleanParameter( CONFIG_ENABLE_SEARCH, true ));
+	}
+	
+	public void
+	setSearchEnabled(
+		boolean		enabled )
+	{
+		COConfigurationManager.setParameter( CONFIG_ENABLE_SEARCH, enabled );
 	}
 	
 	public String

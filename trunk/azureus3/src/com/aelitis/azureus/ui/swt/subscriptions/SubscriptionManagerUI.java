@@ -408,6 +408,24 @@ SubscriptionManagerUI
 				"subscriptions.config.maxresults", 
 				subs_man.getMaxNonDeletedResults());
 			
+			// search
+		
+		final BooleanParameter search_enable = 
+			configModel.addBooleanParameter2( 
+				"subscriptions.search.enable", "subscriptions.search.enable",
+				subs_man.isSearchEnabled());
+		
+		search_enable.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					subs_man.setSearchEnabled( search_enable.getValue());
+				}
+			});
+		
 			// auto
 		
 		final BooleanParameter auto_start = configModel.addBooleanParameter2(

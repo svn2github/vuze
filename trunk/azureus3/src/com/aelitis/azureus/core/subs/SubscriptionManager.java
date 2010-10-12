@@ -136,6 +136,14 @@ SubscriptionManager
 	setRSSPublishEnabled(
 		boolean		enabled );
 	
+	public boolean
+	isSearchEnabled();
+	
+	public void
+	setSearchEnabled(
+		boolean		enabled );
+	
+	
 	public String
 	getRSSLink();
 	

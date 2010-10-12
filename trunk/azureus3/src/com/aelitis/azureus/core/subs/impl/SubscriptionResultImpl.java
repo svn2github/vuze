@@ -333,7 +333,7 @@ SubscriptionResultImpl
 		
 		String	hash = (String)map.get( "h" );
 		if ( hash != null ){
-			result.put( SearchResult.PR_HASH, hash );
+			result.put( SearchResult.PR_HASH, Base32.decode( hash ));
 		}
 		
 		String	seeds = (String)map.get( "s" );
