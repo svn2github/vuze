@@ -190,39 +190,7 @@ SFPluginDetailsLoaderImpl
 		throws SFPluginDetailsException
 	{
 		try{
-			String	page_url_to_use = page_url;
-			
-			try{
-				String pids = "";
-				
-				PluginInterface[] pis = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaces();
-				
-				for ( PluginInterface pi: pis ){
-					
-					PluginState ps = pi.getPluginState();
-					
-					if ( !( ps.isBuiltIn() || ps.isDisabled())){
-						
-						String version = pi.getPluginVersion();
-						
-						if ( version != null && Constants.compareVersions( version, "0" ) > 0 ){
-							
-							String pid = pi.getPluginID();
-							
-							if ( pid != null && pid.length() > 0 ){
-						
-								pids += pid + ":";
-							}
-						}
-					}
-				}
-	
-				page_url_to_use += "&epids=" + UrlUtils.encode( pids );
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-			}
+			String	page_url_to_use = addEPIDS( page_url );
 			
 			ResourceDownloader dl = rd_factory.create( new URL(page_url_to_use));
 			
@@ -300,14 +268,74 @@ SFPluginDetailsLoaderImpl
 		}
 	}
 	
+	private String
+	addEPIDS(
+		String	str )
+	{
+		try{
+			String pids = "";
+			
+			PluginInterface[] pis = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaces();
+			
+			for ( PluginInterface pi: pis ){
+				
+				PluginState ps = pi.getPluginState();
+				
+				if ( !( ps.isBuiltIn() || ps.isDisabled())){
+					
+					String version = pi.getPluginVersion();
+					
+					if ( version != null && Constants.compareVersions( version, "0" ) > 0 ){
+						
+						String pid = pi.getPluginID();
+						
+						if ( pid != null && pid.length() > 0 ){
+					
+							pids += pid + ":";
+						}
+					}
+				}
+			}
+
+			str += "&epids=" + UrlUtils.encode( pids );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( str );
+	}
+	
 	protected void
 	loadPluginDetails(
 		SFPluginDetailsImpl		details )
 	
 		throws SFPluginDetailsException
 	{
-		try{
-			ResourceDownloader p_dl = rd_factory.create( new URL( site_prefix + "plugin_details.php?plugin=" + details.getId() + "&" + base_url_params ));
+		try{			
+			String page_url_to_use = site_prefix + "plugin_details.php?plugin=" + details.getId() + "&" + base_url_params;
+			
+			page_url_to_use = addEPIDS( page_url_to_use );
+			
+			try{
+				PluginInterface pi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByID( details.getId(), false );
+	
+				if ( pi != null ){
+					
+					String existing_version = pi.getPluginVersion();
+				
+					if ( existing_version != null ){
+						
+						page_url_to_use += "&ver_" + details.getId() + "=" + UrlUtils.encode( existing_version );
+					}
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+			
+			ResourceDownloader p_dl = rd_factory.create( new URL( page_url_to_use ));
 		
 			p_dl = rd_factory.getRetryDownloader( p_dl, 5 );
 		
