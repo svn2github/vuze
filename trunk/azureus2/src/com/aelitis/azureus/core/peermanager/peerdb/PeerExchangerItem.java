@@ -39,8 +39,8 @@ public class PeerExchangerItem {
   
   private final PeerDatabase parent_db;
   private final PeerItem base_peer;
-  private final LinkedList<PeerItem> connections_added 		= new LinkedList<PeerItem>();
-  private final LinkedList<PeerItem> connections_dropped 	= new LinkedList<PeerItem>();
+  private final LinkedHashSet<PeerItem> connections_added 		= new LinkedHashSet<PeerItem>();
+  private final LinkedHashSet<PeerItem> connections_dropped 	= new LinkedHashSet<PeerItem>();
   private final Map<PeerItem,Object> connected_peers = new LightHashMap<PeerItem,Object>();
   private final AEMonitor peers_mon = new AEMonitor( "PeerConnectionItem" );
   private boolean maintain_peers_state = true;  //assume we do until explicitly disabled
@@ -99,7 +99,7 @@ public class PeerExchangerItem {
     
       if( !connections_dropped.contains( peer_connection ) ) {
         if( !connections_added.contains( peer_connection ) ) {
-          connections_added.addLast( peer_connection );  //register new add
+          connections_added.add( peer_connection );  //register new add
         }
       }
       else {  //was dropped and then re-added
@@ -116,7 +116,7 @@ public class PeerExchangerItem {
       
       if( !connections_added.contains( peer_connection ) ) {
         if( !connections_dropped.contains( peer_connection ) ) {
-          connections_dropped.addLast( peer_connection );  //register new drop
+          connections_dropped.add( peer_connection );  //register new drop
         }
       }
       else {  //was added and then re-dropped
@@ -144,8 +144,11 @@ public class PeerExchangerItem {
 
       PeerItem[] peers = new PeerItem[ num_to_send ];
       
+      Iterator<PeerItem> it = connections_added.iterator();
+      
       for( int i=0; i < num_to_send; i++ ) {
-        peers[i] = (PeerItem)connections_added.removeFirst();       
+        peers[i] = it.next();
+        it.remove();
       }
 
       return peers;
@@ -167,8 +170,11 @@ public class PeerExchangerItem {
 
       PeerItem[] peers = new PeerItem[ num_to_send ];
       
+      Iterator<PeerItem> it = connections_dropped.iterator();
+      
       for( int i=0; i < num_to_send; i++ ) {
-        peers[i] = (PeerItem)connections_dropped.removeFirst();       
+        peers[i] = it.next();
+        it.remove();
       }
       return peers;
     }

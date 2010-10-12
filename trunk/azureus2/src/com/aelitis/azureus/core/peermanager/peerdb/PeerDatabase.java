@@ -46,7 +46,7 @@ public class PeerDatabase {
   private long start_time = SystemTime.getMonotonousTime();
   
   private final HashMap peer_connections = new HashMap();
-  private final LinkedList discovered_peers = new LinkedList();
+  private final LinkedHashSet<PeerItem> discovered_peers = new LinkedHashSet<PeerItem>();
   private final AEMonitor map_mon = new AEMonitor( "PeerDatabase" );
   
   private PeerItem[] cached_peer_popularities = null;
@@ -160,13 +160,16 @@ public class PeerDatabase {
       }
       
       if( !discovered_peers.contains( peer ) ) {
-        discovered_peers.addLast( peer );  //add unknown peer
+        discovered_peers.add( peer );  //add unknown peer
 
         int max_cache_size = PeerUtils.MAX_CONNECTIONS_PER_TORRENT * 2;	// cache twice the amount to allow for failures
         if( max_cache_size < 1 || max_cache_size > MAX_DISCOVERED_PEERS )  max_cache_size = MAX_DISCOVERED_PEERS;
         
         if( discovered_peers.size() > max_cache_size ) {
-          discovered_peers.removeFirst();
+        	
+        	Iterator<PeerItem> it = discovered_peers.iterator();
+        	it.next();
+        	it.remove();
         }
       }
     }
@@ -222,9 +225,11 @@ public class PeerDatabase {
 	  try{  
 		  map_mon.enter();
 	  
-		  for (int i=0;i<discovered_peers.size();i++){
+		  Iterator<PeerItem> it = discovered_peers.iterator();
+		 
+		  while( it.hasNext()){
 			  
-			  PeerItem peer = (PeerItem)discovered_peers.get(i);
+			  PeerItem peer = it.next();
 			  
 			  if( peer.getIP().equals( address )){
 				  
@@ -301,7 +306,11 @@ public class PeerDatabase {
 	    	
 	    	if( !discovered_peers.isEmpty() ) {
 	    		
-	    		peer = (PeerItem)discovered_peers.removeFirst();
+	    		Iterator<PeerItem> it = discovered_peers.iterator();
+	    		
+	    		peer = it.next();
+	    		
+	    		it.remove();
 	        
 	    		discovered_peer	= true;
 	    	}
@@ -350,7 +359,7 @@ public class PeerDatabase {
     			  
     		    try{  map_mon.enter();
   
-    		    	discovered_peers.addLast( peer );
+    		    	discovered_peers.add( peer );
    
    			    }finally{  
    			    	map_mon.exit();  
