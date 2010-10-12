@@ -118,6 +118,10 @@ public class SubscriptionsView
 	}
 	
 	private void removeSubs(final Subscription[] toRemove, final int startIndex) {
+		if (toRemove == null || startIndex >= toRemove.length) {
+			return;
+		}
+
 		if (toRemove[startIndex] == null) {
 			int nextIndex = startIndex + 1;
 			if (nextIndex < toRemove.length) {
