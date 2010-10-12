@@ -644,7 +644,7 @@ SubscriptionManagerImpl
 											public String
 											getUID()
 											{
-												return( SubscriptionManager.class.getName() + ".1" );
+												return( SubscriptionManager.class.getName() + ".2" );
 											}
 											
 											public String
@@ -656,8 +656,8 @@ SubscriptionManagerImpl
 											public byte[]
 											getData()
 											{
-												InputStream is = getClass().getClassLoader().getResourceAsStream( "com/aelitis/azureus/ui/images/subscription_icon.png" );
-												
+												InputStream is = getClass().getClassLoader().getResourceAsStream( "com/aelitis/azureus/ui/images/subscription_icon_1616.png" );
+
 												if ( is == null ){
 													
 													return( null );
