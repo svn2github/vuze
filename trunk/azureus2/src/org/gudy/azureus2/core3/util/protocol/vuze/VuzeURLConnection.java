@@ -124,6 +124,11 @@ VuzeURLConnection
 	
 		throws IOException
 	{
+		if ( input_stream == null ){
+			
+			connect();
+		}
+		
 		return( input_stream );
 	}
 	
