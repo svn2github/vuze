@@ -2031,6 +2031,7 @@ public class TorrentUtil {
 								mb.isRemembered(), mb.getCheckBoxEnabled());
 					}
 				});
+				return;
 			} else {
 				boolean deleteData = confirm == 1;
 				removeDownloadsPrompterClosed(dms, i, deleteFailed, deleteData ? 1 : 2,
