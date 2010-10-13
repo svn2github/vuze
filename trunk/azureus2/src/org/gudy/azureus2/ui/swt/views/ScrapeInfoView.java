@@ -234,25 +234,25 @@ public class ScrapeInfoView
 		Messages.setLanguageText(label, "GeneralView.label.tracker");
 		tracker_status = new BufferedTruncatedLabel(cScrapeInfoView, SWT.LEFT, 150);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 3;
 		tracker_status.setLayoutData(gridData);
+
+		label = new Label(cScrapeInfoView, SWT.LEFT);
+		Messages.setLanguageText(label, "GeneralView.label.updatein");
+		trackerUpdateIn = new BufferedLabel(cScrapeInfoView, SWT.LEFT);
+		gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_CENTER);
+		trackerUpdateIn.setLayoutData(gridData);
 
 		updateButton = new Button(cScrapeInfoView, SWT.PUSH);
 		Messages.setLanguageText(updateButton, "GeneralView.label.trackerurlupdate");
-		gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-		gridData.verticalSpan = 2;
-		gridData.horizontalSpan = 2;
-		updateButton.setLayoutData(gridData);
+		updateButton.setLayoutData(new GridData());
 		updateButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				manager.requestTrackerAnnounce(false);
 			}
 		});
 
-		label = new Label(cScrapeInfoView, SWT.LEFT);
-		Messages.setLanguageText(label, "GeneralView.label.updatein");
-		trackerUpdateIn = new BufferedLabel(cScrapeInfoView, SWT.LEFT);
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		trackerUpdateIn.setLayoutData(gridData);
+		cScrapeInfoView.layout(true);
 
 	}
 
@@ -357,6 +357,7 @@ public class ScrapeInfoView
 
 			updateButton.setEnabled(update_state);
 		}
+		cScrapeInfoView.layout();
 	}
 
 	public void setDownlaodManager(DownloadManager dm) {
