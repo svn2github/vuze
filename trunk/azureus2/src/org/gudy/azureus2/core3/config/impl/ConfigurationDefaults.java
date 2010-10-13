@@ -573,7 +573,7 @@ public class ConfigurationDefaults {
     	
     def.put( "Beta Programme Enabled", FALSE );
     def.put( "def.deletetorrent", TRUE );
-    def.put( "confirm.delete.content", TRUE );
+    def.put( "tb.confirm.delete.content", Long.valueOf(0) ); // 0=ask; 1=delete content; 2=delete torrent
     
     //temp section for SpeedManagerAlgorithmProviderV2
     

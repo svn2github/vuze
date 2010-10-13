@@ -513,17 +513,37 @@ public class ConfigSectionFile
 		gDeletion.setLayoutData(gridData);
 		
 		if (userMode > 0) {
+  		Composite c = new Composite(gDeletion, SWT.NONE);
+  		layout = new GridLayout();
+  		layout.numColumns = 2;
+  		layout.marginHeight = 0;
+  		layout.marginWidth = 0;
+  		c.setLayout(layout);
+  		gridData = new GridData(GridData.FILL_HORIZONTAL);
+  		gridData.horizontalSpan = 2;
+  		c.setLayoutData(gridData);
+  		
+  		sCurConfigID = "tb.confirm.delete.content";
+  		label = new Label(c, SWT.NULL);
+  		Messages.setLanguageText(label, "ConfigView.section.file.tb.delete");
+  		int[] values = {
+  			0,
+  			1,
+  			2,
+  		};
+  		String[] labels = {
+  			MessageText.getString("ConfigView.tb.delete.ask"),
+  			MessageText.getString("ConfigView.tb.delete.content"),
+  			MessageText.getString("ConfigView.tb.delete.torrent"),
+  		};
+  		new IntListParameter(c, sCurConfigID, labels, values);
+
+  		
   		sCurConfigID = "def.deletetorrent";
   		allConfigIDs.add(sCurConfigID);
   		gridData = new GridData();
   		gridData.horizontalSpan = 2;
   		new BooleanParameter(gDeletion, sCurConfigID, "ConfigView.section.file.delete.torrent").setLayoutData(gridData);
-
-  		sCurConfigID = "confirm.delete.content";
-  		allConfigIDs.add(sCurConfigID);
-  		gridData = new GridData();
-  		gridData.horizontalSpan = 2;
-  		new BooleanParameter(gDeletion, sCurConfigID, "ConfigView.section.file.delete.confirm").setLayoutData(gridData);
 		}
 
 		

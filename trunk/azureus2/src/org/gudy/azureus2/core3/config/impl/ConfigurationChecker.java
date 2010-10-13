@@ -602,6 +602,14 @@ ConfigurationChecker
         ConfigurationManager.getInstance().removeParameter( "General_bEnableLanguageUpdate" );
         changed = true;
       }
+	    
+	    // 4511: confirm.delete.content (boolean) changed to tb..confirm.delete.content (long)
+	    if (ConfigurationManager.getInstance().doesParameterNonDefaultExist("confirm.delete.content") ) {
+	    	boolean confirm = COConfigurationManager.getBooleanParameter("confirm.delete.content");
+	    	if (!confirm) {
+	    		COConfigurationManager.setParameter("tb.confirm.delete.content", 1);
+	    	}
+	    }
       
 	    if ( FeatureAvailability.isAutoSpeedDefaultClassic()){
 	    

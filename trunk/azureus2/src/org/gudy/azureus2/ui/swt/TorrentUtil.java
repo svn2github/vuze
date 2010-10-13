@@ -1979,10 +1979,9 @@ public class TorrentUtil {
 			}
 
 			boolean deleteTorrent = COConfigurationManager.getBooleanParameter("def.deletetorrent");
-			boolean deleteData = true;
 
-			boolean doPrompt = COConfigurationManager.getBooleanParameter("confirm.delete.content")
-					| forcePrompt;
+			int confirm = COConfigurationManager.getIntParameter("tb.confirm.delete.content");
+			boolean doPrompt = confirm == 0 | forcePrompt;
 
 			if (doPrompt) {
 				String title = MessageText.getString("deletedata.title");
@@ -2032,10 +2031,10 @@ public class TorrentUtil {
 								mb.isRemembered(), mb.getCheckBoxEnabled());
 					}
 				});
-				return;
 			} else {
-				removeDownloadsPrompterClosed(dms, i, deleteFailed, 1, true,
-						deleteTorrent);
+				boolean deleteData = confirm == 1;
+				removeDownloadsPrompterClosed(dms, i, deleteFailed, deleteData ? 1 : 2,
+						true, deleteTorrent);
 			}
 		}
 	}
