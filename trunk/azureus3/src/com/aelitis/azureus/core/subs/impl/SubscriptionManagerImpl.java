@@ -962,9 +962,42 @@ SubscriptionManagerImpl
 							}
 						}
 						
+						List<Subscription>	interesting = new ArrayList<Subscription>();
+						
 						for ( Object[] entry: template_matches.values()){
-							
-							final Subscription sub = (Subscription)entry[0];
+						
+							interesting.add((Subscription)entry[0]);
+						}
+						
+						Collections.sort(
+							interesting,
+							new Comparator<Subscription>()
+							{
+								public int 
+								compare(
+									Subscription o1,
+									Subscription o2) 
+								{
+									long res = o2.getCachedPopularity() - o1.getCachedPopularity();
+									
+									if ( res < 0 ){
+										return( -1 );
+									}else if ( res > 0 ){
+										return( 1 );
+									}else{
+										return( 0 );
+									}
+								}
+							});
+						
+						int	added = 0;
+						
+						for ( final Subscription sub: interesting ){
+								
+							if ( added >= 3 ){
+								
+								break;
+							}
 							
 							try{
 								String subs_url_str = ((RSSEngine)sub.getEngine()).getSearchUrl( true );
@@ -1016,6 +1049,19 @@ SubscriptionManagerImpl
 													
 													return( url.toExternalForm());
 													
+												}else if ( property_name == SearchResult.PR_PUB_DATE ){
+													
+													return( new Date(sub.getAddTime()));
+													
+												}else if ( property_name == SearchResult.PR_SIZE ){
+													
+													return( 1024L );
+													
+												}else if ( 	property_name == SearchResult.PR_SEED_COUNT ||
+															property_name == SearchResult.PR_VOTES ){
+																							
+													return((long)sub.getCachedPopularity());
+													
 												}else if ( property_name == SearchResult.PR_RANK ){
 												
 													return( 100L );
@@ -1025,6 +1071,8 @@ SubscriptionManagerImpl
 											}
 										};
 							
+									added++;
+										
 									try{
 										observer.resultReceived( si, search_result );
 										
