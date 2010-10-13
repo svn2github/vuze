@@ -23,6 +23,8 @@ package com.aelitis.azureus.core.metasearch;
 import java.io.*;
 import java.util.Map;
 
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+
 
 public interface 
 Engine 
@@ -245,6 +247,11 @@ Engine
 	public void
 	exportToVuzeFile(
 		File	target )
+	
+		throws IOException;
+	
+	public VuzeFile
+	exportToVuzeFile()
 	
 		throws IOException;
 	

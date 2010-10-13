@@ -23,6 +23,8 @@ package com.aelitis.azureus.core.metasearch;
 
 import java.util.Map;
 
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+
 public interface 
 MetaSearchManager 
 {
@@ -47,6 +49,10 @@ MetaSearchManager
 		String		json_value )
 	
 		throws MetaSearchException;
+	
+	public boolean
+	isImportable(
+		VuzeFile		vf );
 	
 	public Engine
 	importEngine(

@@ -1158,6 +1158,19 @@ WebEngine
 	}
 
 	public String
+	getSearchUrl(
+		boolean		raw )
+	{
+		if ( raw ){
+			
+			return( searchURLFormat );
+		}else{
+			
+			return( getSearchUrl());
+		}
+	}
+	
+	public String
 	getSearchUrl()
 	{
 		return( searchURLFormat.replaceAll("%s", ""));

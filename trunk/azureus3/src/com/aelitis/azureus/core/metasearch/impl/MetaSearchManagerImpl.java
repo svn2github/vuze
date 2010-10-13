@@ -1045,6 +1045,64 @@ MetaSearchManagerImpl
 		}
 	}
 	
+	public boolean
+	isImportable(
+		VuzeFile		vf )
+	{
+		VuzeFileComponent[] comps = vf.getComponents();
+		
+		for (int j=0;j<comps.length;j++){
+			
+			VuzeFileComponent comp = comps[j];
+			
+			int	comp_type = comp.getType();
+			
+			if ( comp_type == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
+				
+				try{
+					EngineImpl engine = (EngineImpl)meta_search.importFromBEncodedMap( comp.getContent());
+					
+					long	id = engine.getId();
+					
+					Engine existing = meta_search.getEngine( id );
+					
+					if ( existing != null ){
+						
+						if ( !existing.sameLogicAs( engine )){
+							
+							return( true );
+						}
+					}else{
+						try{						
+							Engine[] engines = meta_search.getEngines( false, false );
+								
+							boolean is_new = true;
+							
+							for ( Engine e: engines ){
+									
+								if ( e.sameLogicAs( engine )){
+										
+									is_new = false;
+									
+									break;
+								}
+							}
+							
+							if ( is_new ){
+								
+								return( true );
+							}
+						}catch( Throwable e ){	
+						}	
+					}
+				}catch( Throwable e ){				
+				}
+			}
+		}
+		
+		return( false );
+	}
+	
 	public Engine
 	importEngine(
 		Map			map,

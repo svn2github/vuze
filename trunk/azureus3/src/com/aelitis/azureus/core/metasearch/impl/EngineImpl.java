@@ -1325,6 +1325,14 @@ EngineImpl
 	}
 	
 	public VuzeFile
+	exportToVuzeFile()
+	
+		throws IOException
+	{
+		return( exportToVuzeFile( false ));
+	}
+	
+	public VuzeFile
 	exportToVuzeFile(
 		boolean		generic )
 	

@@ -33,6 +33,7 @@ import java.util.zip.GZIPOutputStream;
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -70,8 +71,10 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchListener;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
+import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.*;
+import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.*;
@@ -211,6 +214,7 @@ SubscriptionManagerImpl
 	private static final Object	SP_LAST_ATTEMPTED	= new Object();
 	private static final Object	SP_CONSEC_FAIL		= new Object();
 	
+	private AzureusCore		azureus_core;
 	
 	private volatile DHTPlugin	dht_plugin;
 	
@@ -345,7 +349,7 @@ SubscriptionManagerImpl
 
 	protected void
 	initWithCore(
-		AzureusCore 	core )
+		AzureusCore 	_core )
 	{
 		synchronized( this ){
 			
@@ -357,6 +361,8 @@ SubscriptionManagerImpl
 			started	= true;
 		}
 
+		azureus_core = _core;
+		
 		final PluginInterface default_pi = PluginInitializer.getDefaultInterface();
 
 		rss_publisher = new SubscriptionRSSFeed( this, default_pi );
@@ -778,8 +784,10 @@ SubscriptionManagerImpl
 				{
 					final Set<String>	hashes = new HashSet<String>();
 					
+					searchMatcher	matcher = new searchMatcher( term );
+
 					try{				
-						List<SubscriptionResult>	matches = matchSubscriptionResults( term );
+						List<SubscriptionResult>	matches = matchSubscriptionResults( matcher );
 							
 						for ( final SubscriptionResult result: matches ){
 							
@@ -818,6 +826,218 @@ SubscriptionManagerImpl
 								Debug.out( e );
 							}
 						}
+												
+						Map<String,Object[]> template_matches = new HashMap<String, Object[]>();
+								
+						Engine[] engines = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngines( false, false );
+						
+						Map<Subscription,List<String>>	sub_dl_name_map = null;
+						
+						for ( Subscription sub: getSubscriptions( false )){
+							
+							String	sub_name = sub.getName();
+							
+							if ( !sub_name.startsWith( "Search Template:" )){
+								
+								continue;
+							}
+							
+							Engine sub_engine = sub.getEngine();
+							
+							if ( sub_engine.isActive() || !(sub_engine instanceof RSSEngine )){
+								
+								continue;
+							}
+							
+							int	pos = sub_name.indexOf( ":" );
+							
+							String t_name = sub_name.substring( pos+1 );
+							
+							pos	= t_name.indexOf( "(v" );
+							
+							int t_ver;
+							
+							if ( pos == -1 ){
+								
+								t_ver = 1;
+								
+							}else{
+								
+								String s = t_name.substring( pos+2, t_name.length()-1);
+								
+								t_name = t_name.substring( 0, pos );
+								
+								try{
+							
+									t_ver = Integer.parseInt(s);
+									
+								}catch( Throwable e ){
+									
+									t_ver = 1;
+								}
+							}
+							
+							t_name = t_name.trim();
+							
+							boolean skip = false;
+							
+							for ( Engine e: engines ){
+								
+								if ( e != sub_engine && e.sameLogicAs( sub_engine )){
+									
+									skip = true;
+									
+									break;
+								}
+								
+								if ( e.getName().equalsIgnoreCase( t_name )){
+									
+									if ( e.getVersion() >= t_ver ){
+										
+										skip = true;
+									}
+								}
+							}
+							
+							if ( skip ){
+								
+								continue;
+							}
+							
+							if ( sub_dl_name_map == null ){
+								
+								sub_dl_name_map = new HashMap<Subscription, List<String>>();
+								
+								SubscriptionDownloadDetails[] sdds = SubscriptionUtils.getAllCachedDownloadDetails( azureus_core );
+								
+								for ( SubscriptionDownloadDetails sdd: sdds ){
+									
+									String name = sdd.getDownload().getDisplayName();
+									
+									if ( matcher.matches( name )){
+										
+										Subscription[] x = sdd.getSubscriptions();
+										
+										for ( Subscription s: x ){
+											
+											List<String> g = sub_dl_name_map.get( s );
+											
+											if ( g == null ){
+												
+												g = new ArrayList<String>();
+												
+												sub_dl_name_map.put( s, g );
+											}
+											
+											g.add( name );
+										}
+									}
+								}
+							}
+							
+							List<String> names = sub_dl_name_map.get( sub );
+							
+							if ( names == null ){
+								
+								continue;
+							}
+													
+							String key = t_name.toLowerCase();
+							
+							Object[] entry = template_matches.get( key );
+							
+							if ( entry == null ){
+								
+								entry = new Object[]{ sub, t_ver };
+								
+								template_matches.put( key, entry );
+								
+							}else{
+								
+								if ( t_ver > (Integer)entry[1]){
+									
+									entry[0]	= sub;
+									entry[1]	= t_ver;
+								}
+							}
+						}
+						
+						for ( Object[] entry: template_matches.values()){
+							
+							final Subscription sub = (Subscription)entry[0];
+							
+							try{
+								String subs_url_str = ((RSSEngine)sub.getEngine()).getSearchUrl( true );
+								
+								URL subs_url = new URL( subs_url_str );
+								
+								final byte[] vf_bytes = FileUtil.readInputStreamAsByteArray(subs_url.openConnection().getInputStream());
+	
+								VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile( vf_bytes );
+								
+								if ( MetaSearchManagerFactory.getSingleton().isImportable( vf )){
+									
+									final URL url = 
+										MagnetURIHandler.getSingleton().registerResource(
+											new MagnetURIHandler.ResourceProvider()
+											{
+												public String
+												getUID()
+												{
+													return( SubscriptionManager.class.getName() + ".sid." + sub.getID() );
+												}
+												
+												public String
+												getFileType()
+												{
+													return( "vuze" );
+												}
+														
+												public byte[]
+												getData()
+												{
+													return( vf_bytes );
+												}
+											});
+											
+									SearchResult search_result = 
+										new SearchResult()
+										{
+											public Object
+											getProperty(
+												int		property_name )
+											{
+												if ( property_name == SearchResult.PR_NAME ){
+													
+													return( sub.getName());
+													
+												}else if ( 	property_name == SearchResult.PR_DOWNLOAD_LINK ||
+															property_name == SearchResult.PR_DOWNLOAD_BUTTON_LINK ){
+													
+													return( url.toExternalForm());
+													
+												}else if ( property_name == SearchResult.PR_RANK ){
+												
+													return( 100L );
+												}
+												
+												return( null );
+											}
+										};
+							
+									try{
+										observer.resultReceived( si, search_result );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
 					}catch( Throwable e ){
 						
 						Debug.out( e );
@@ -835,61 +1055,10 @@ SubscriptionManagerImpl
 	
 	private List<SubscriptionResult>
 	matchSubscriptionResults(
-		String		term )
+		searchMatcher	matcher  )
 	{
 		List<SubscriptionResult> result = new ArrayList<SubscriptionResult>();
-		
-			// term is made up of space separated bits - all bits must match
-			// each bit can be prefixed by + or -, a leading - means 'bit doesn't match'. + doesn't mean anything
-			// each bit (with prefix removed) can be "(" regexp ")"
-			// if bit isn't regexp but has "|" in it it is turned into a regexp so a|b means 'a or b'
-			
-		String[]	 bits = term.toLowerCase().split( " " );
-	
-		int[]		bit_types 		= new int[bits.length];
-		Pattern[]	bit_patterns 	= new Pattern[bits.length];
-		
-		for (int i=0;i<bits.length;i++){
-			
-			String bit = bits[i] = bits[i].trim();
-			
-			if ( bit.length() > 0 ){
 				
-				char	c = bit.charAt(0);
-				
-				if ( c == '+' ){
-					
-					bit_types[i] = 1;
-					
-					bit = bits[i] = bit.substring(1);
-					
-				}else if ( c == '-' ){
-					
-					bit_types[i] = 2;
-					
-					bit = bits[i] = bit.substring(1);
-				}
-				
-				if ( bit.startsWith( "(" ) && bit.endsWith((")"))){
-					
-					bit = bit.substring( 1, bit.length()-1 );
-					
-					try{
-						bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
-						
-					}catch( Throwable e ){
-					}
-				}else if ( bit.contains( "|" )){
-					
-					try{
-						bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
-						
-					}catch( Throwable e ){
-					}
-				}
-			}
-		}
-		
 		for ( Subscription sub: getSubscriptions( true )){
 			
 			SubscriptionResult[] results = sub.getResults( false );
@@ -905,60 +1074,7 @@ SubscriptionManagerImpl
 					continue;
 				}
 				
-				name = name.toLowerCase();
-				
-				boolean	match 			= true;
-				boolean	at_least_one 	= false;
-				
-				for (int i=0;i<bits.length;i++){
-					
-					String bit = bits[i];
-					
-					if ( bit.length() > 0 ){
-						
-						boolean	hit;
-						
-						if ( bit_patterns[i] == null ){
-						
-							hit = name.contains( bit );
-							
-						}else{
-						
-							hit = bit_patterns[i].matcher( name ).find();
-						}
-						
-						int	type = bit_types[i];
-						
-						if ( hit ){
-													
-							if ( type == 2 ){
-								
-								match = false;
-								
-								break;
-								
-							}else{
-								
-								at_least_one = true;
-
-							}
-						}else{
-							
-							if ( type == 2 ){
-							
-								at_least_one = true;
-								
-							}else{
-								
-								match = false;
-							
-								break;
-							}
-						}
-					}
-				}
-				
-				if ( match && at_least_one ){
+				if ( matcher.matches( name )){
 					
 					result.add( r );
 				}
@@ -5645,6 +5761,132 @@ SubscriptionManagerImpl
 		}finally{
 			
 			writer.exdent();
+		}
+	}
+	
+	private class
+	searchMatcher
+	{
+		private String[]	bits;
+		private int[]		bit_types;
+		private Pattern[]	bit_patterns;
+
+		protected 
+		searchMatcher(
+			String		term )
+		{
+			bits = term.toLowerCase().split( " " );
+			
+			bit_types 		= new int[bits.length];
+			bit_patterns 	= new Pattern[bits.length];
+			
+			for (int i=0;i<bits.length;i++){
+				
+				String bit = bits[i] = bits[i].trim();
+				
+				if ( bit.length() > 0 ){
+					
+					char	c = bit.charAt(0);
+					
+					if ( c == '+' ){
+						
+						bit_types[i] = 1;
+						
+						bit = bits[i] = bit.substring(1);
+						
+					}else if ( c == '-' ){
+						
+						bit_types[i] = 2;
+						
+						bit = bits[i] = bit.substring(1);
+					}
+					
+					if ( bit.startsWith( "(" ) && bit.endsWith((")"))){
+						
+						bit = bit.substring( 1, bit.length()-1 );
+						
+						try{
+							bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+							
+						}catch( Throwable e ){
+						}
+					}else if ( bit.contains( "|" )){
+						
+						try{
+							bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+							
+						}catch( Throwable e ){
+						}
+					}
+				}
+			}
+		}
+		
+		public boolean
+		matches(
+			String		str )
+		{			
+			// term is made up of space separated bits - all bits must match
+			// each bit can be prefixed by + or -, a leading - means 'bit doesn't match'. + doesn't mean anything
+			// each bit (with prefix removed) can be "(" regexp ")"
+			// if bit isn't regexp but has "|" in it it is turned into a regexp so a|b means 'a or b'
+									
+			str = str.toLowerCase();
+			
+			boolean	match 			= true;
+			boolean	at_least_one 	= false;
+			
+			for (int i=0;i<bits.length;i++){
+				
+				String bit = bits[i];
+				
+				if ( bit.length() > 0 ){
+					
+					boolean	hit;
+					
+					if ( bit_patterns[i] == null ){
+					
+						hit = str.contains( bit );
+						
+					}else{
+					
+						hit = bit_patterns[i].matcher( str ).find();
+					}
+					
+					int	type = bit_types[i];
+					
+					if ( hit ){
+												
+						if ( type == 2 ){
+							
+							match = false;
+							
+							break;
+							
+						}else{
+							
+							at_least_one = true;
+
+						}
+					}else{
+						
+						if ( type == 2 ){
+						
+							at_least_one = true;
+							
+						}else{
+							
+							match = false;
+						
+							break;
+						}
+					}
+				}
+			}
+			
+			boolean res = match && at_least_one;
+				
+			return( res );
 		}
 	}
 	
