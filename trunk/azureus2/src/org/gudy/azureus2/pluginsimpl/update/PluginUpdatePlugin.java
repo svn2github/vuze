@@ -52,7 +52,6 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 import org.gudy.azureus2.update.CorePatchChecker;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 public class 
@@ -83,6 +82,10 @@ PluginUpdatePlugin
 
 		log = plugin_interface.getLogger().getChannel("Plugin Update");
 
+		log.setDiagnostic();
+		
+		log.setForce( true );
+		
 		UIManager	ui_manager = plugin_interface.getUIManager();
 		
 		final BasicPluginViewModel model = 
