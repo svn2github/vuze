@@ -44,6 +44,8 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpointFactory;
 import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelectorFactory;
@@ -461,7 +463,7 @@ public class IncomingSocketChannelManager
 
 	ConnectionEndpoint	co_ep = new ConnectionEndpoint(tcp_address);
 
-	ProtocolEndpointTCP	pe_tcp = new ProtocolEndpointTCP( co_ep, tcp_address );
+	ProtocolEndpointTCP	pe_tcp = (ProtocolEndpointTCP)ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, co_ep, tcp_address );
 
 	Transport transport = new TCPTransportImpl( pe_tcp, filter );
 	

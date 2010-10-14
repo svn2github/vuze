@@ -73,8 +73,9 @@ public class ClientConnection {
 		
 		InetSocketAddress remote = null;	// unfortunately we don't have an address at this point (see NATTestService)
 		
-		ProtocolEndpointTCP	pe =  new ProtocolEndpointTCP( remote );
-				
+		ProtocolEndpointTCP	pe = 
+			(ProtocolEndpointTCP)ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, remote );
+							
 		light_transport = pe.connectLightWeight( channel );
 		
 		out_queue = new OutgoingMessageQueueImpl( encoder );

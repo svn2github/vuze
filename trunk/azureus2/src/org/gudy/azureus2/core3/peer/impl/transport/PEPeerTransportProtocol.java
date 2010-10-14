@@ -48,9 +48,7 @@ import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
-import com.aelitis.azureus.core.networkmanager.impl.udp.ProtocolEndpointUDP;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
@@ -548,13 +546,13 @@ implements PEPeerTransport
 
 			endpoint_address = new InetSocketAddress( ip, tcp_listen_port );
 
-			pe = new ProtocolEndpointTCP( endpoint_address );
+			pe = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, endpoint_address );
 
 		}else{
 
 			endpoint_address = new InetSocketAddress( ip, udp_listen_port );
 
-			pe = new ProtocolEndpointUDP( endpoint_address );
+			pe = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_UDP, endpoint_address );
 		}
 
 		ConnectionEndpoint connection_endpoint	= new ConnectionEndpoint( endpoint_address );

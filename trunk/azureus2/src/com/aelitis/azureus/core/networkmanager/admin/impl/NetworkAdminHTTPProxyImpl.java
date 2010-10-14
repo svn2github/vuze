@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpointFactory;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminHTTPProxy;
@@ -214,7 +215,7 @@ NetworkAdminHTTPProxyImpl
 					{
 						final TCPTransportImpl	transport = 
 							new TCPTransportImpl(
-									new ProtocolEndpointTCP( target_address ), false, false, null );
+									(ProtocolEndpointTCP)ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, target_address ), false, false, null );
 						
 						transport.setFilter( TCPTransportHelperFilterFactory.createTransparentFilter( channel ));
 		

@@ -38,6 +38,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpointFactory;
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
@@ -622,7 +624,7 @@ UDPConnectionManager
 						
 						ConnectionEndpoint	co_ep = new ConnectionEndpoint( remote_address);
 	
-						ProtocolEndpointUDP	pe_udp = new ProtocolEndpointUDP( co_ep, remote_address );
+						ProtocolEndpointUDP	pe_udp = (ProtocolEndpointUDP)ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_UDP, co_ep, remote_address );
 	
 						UDPTransport transport = new UDPTransport( pe_udp, filter );
 								

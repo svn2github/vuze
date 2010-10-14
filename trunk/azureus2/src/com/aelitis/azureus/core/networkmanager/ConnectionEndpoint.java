@@ -145,26 +145,9 @@ ConnectionEndpoint
 
 			ProtocolEndpoint ep = protocols[i];
 			
-			if ( ep.getType() == ProtocolEndpoint.PROTOCOL_TCP ){
-				
-				ProtocolEndpointTCP	tcp = (ProtocolEndpointTCP)ep;
+			InetSocketAddress address = ep.getAdjustedAddress( true );
 			
-				InetSocketAddress address = AddressUtils.adjustTCPAddress( tcp.getAddress(), true );
-								
-				new ProtocolEndpointTCP( result, address );
-				
-			}else if ( ep.getType() == ProtocolEndpoint.PROTOCOL_UDP ){
-				
-				ProtocolEndpointUDP	udp = (ProtocolEndpointUDP)ep;
-			
-				InetSocketAddress address = AddressUtils.adjustUDPAddress( udp.getAddress(), true );
-								
-				new ProtocolEndpointUDP( result, address );
-				
-			}else{
-				
-				result.addProtocol( ep );
-			}
+			ProtocolEndpointFactory.createEndpoint( ep.getType(), result, address );
 		}
 		
 		return( result );

@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpointFactory;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
@@ -199,7 +200,7 @@ NetStatusProtocolTesterBT
 				
 		boolean	allow_fallback	= false;
 		
-		ProtocolEndpoint	pe = new ProtocolEndpointTCP( address );
+		ProtocolEndpoint	pe = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, address );
 		
 		ConnectionEndpoint connection_endpoint	= new ConnectionEndpoint( address );
 

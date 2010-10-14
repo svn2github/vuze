@@ -100,7 +100,7 @@ public class AEClientService implements ClientMessageService {
 	
 	ConnectionEndpoint	ce = new ConnectionEndpoint( tcp_target );
 	
-	new ProtocolEndpointTCP( ce, tcp_target );
+	ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, ce, tcp_target );
 	   
     final AESemaphore connect_block = new AESemaphore( "AEClientService:C" );
     

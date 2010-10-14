@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpointFactory;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.udp.ProtocolEndpointUDP;
 
@@ -67,7 +68,7 @@ GenericMessageEndpointImpl
 	addTCP(
 		InetSocketAddress	target )
 	{
-		ce.addProtocol( new ProtocolEndpointTCP( target ));
+		ce.addProtocol( ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, target ));
 	}
 	
 	public InetSocketAddress
@@ -90,7 +91,7 @@ GenericMessageEndpointImpl
 	addUDP(
 		InetSocketAddress	target )
 	{
-		ce.addProtocol( new ProtocolEndpointUDP( target ));
+		ce.addProtocol( ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_UDP, target ));
 	}
 	
 	public InetSocketAddress

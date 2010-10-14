@@ -41,6 +41,8 @@ import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamEncoderAdapter
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpointFactory;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
@@ -88,7 +90,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
   {
 	  ConnectionEndpoint connection_endpoint	= new ConnectionEndpoint( remote_address );
 	  
-	  connection_endpoint.addProtocol( new ProtocolEndpointTCP( remote_address ));
+	  connection_endpoint.addProtocol( ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, remote_address ));
 	 
 	  com.aelitis.azureus.core.networkmanager.NetworkConnection core_conn =
 		  NetworkManager.getSingleton().createConnection( connection_endpoint, new MessageStreamEncoderAdapter( encoder ), new MessageStreamDecoderAdapter( decoder ), false, false, null );

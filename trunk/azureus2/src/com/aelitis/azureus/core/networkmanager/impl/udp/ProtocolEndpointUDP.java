@@ -25,8 +25,12 @@ package com.aelitis.azureus.core.networkmanager.impl.udp;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.core3.util.AddressUtils;
+
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpointHandler;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpointFactory;
 import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
 
@@ -34,10 +38,39 @@ public class
 ProtocolEndpointUDP 
 	implements ProtocolEndpoint
 {
+	public static void
+	register()
+	{
+		ProtocolEndpointFactory.registerHandler(
+			new ProtocolEndpointHandler()
+			{
+				public int
+				getType()
+				{
+					return( ProtocolEndpoint.PROTOCOL_TCP );
+				}
+				
+				public ProtocolEndpoint
+				create(
+					InetSocketAddress		address )
+				{
+					return( new ProtocolEndpointUDP( address ));
+				}
+				
+				public ProtocolEndpoint
+				create(
+					ConnectionEndpoint		connection_endpoint,
+					InetSocketAddress		address )
+				{
+					return( new ProtocolEndpointUDP( connection_endpoint, address ));
+				}
+			});
+	}
+	
 	private ConnectionEndpoint		ce;
 	private InetSocketAddress		address;
 	
-	public
+	private
 	ProtocolEndpointUDP(
 		ConnectionEndpoint		_ce,
 		InetSocketAddress		_address )
@@ -48,7 +81,7 @@ ProtocolEndpointUDP
 		ce.addProtocol( this );
 	}
 	
-	public
+	private
 	ProtocolEndpointUDP(
 		InetSocketAddress		_address )
 	{
@@ -77,6 +110,13 @@ ProtocolEndpointUDP
 	getAddress()
 	{
 		return( address );
+	}
+	
+	public InetSocketAddress 
+	getAdjustedAddress(
+		boolean to_lan )
+	{
+		return( AddressUtils.adjustUDPAddress( address, to_lan ));
 	}
 	
 	public ConnectionEndpoint

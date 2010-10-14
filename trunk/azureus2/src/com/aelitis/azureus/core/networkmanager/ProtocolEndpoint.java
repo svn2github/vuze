@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
@@ -31,6 +32,7 @@ ProtocolEndpoint
 {
 	public static final int	PROTOCOL_TCP	= 1;
 	public static final int	PROTOCOL_UDP	= 2;
+	public static final int	PROTOCOL_UTP	= 3;
 
 	public static final int CONNECT_PRIORITY_SUPER_HIGHEST	= 0;
 	public static final int CONNECT_PRIORITY_HIGHEST		= 1;
@@ -48,6 +50,13 @@ ProtocolEndpoint
 	public void
 	setConnectionEndpoint(
 		ConnectionEndpoint	ce );
+	
+	public InetSocketAddress
+	getAddress();
+	
+	public InetSocketAddress
+	getAdjustedAddress(
+		boolean		to_lan );
 	
 	public Transport
 	connectOutbound(

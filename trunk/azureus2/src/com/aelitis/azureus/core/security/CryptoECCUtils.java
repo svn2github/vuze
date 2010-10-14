@@ -167,7 +167,7 @@ CryptoECCUtils
    			
    		}catch (Throwable e){
    		
-   			throw( new CryptoManagerException( "Failed to decode public key" ));
+   			throw( new CryptoManagerException( "Failed to decode public key", e ));
    		}
    	}	
 }

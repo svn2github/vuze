@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 
 
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpointFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPConnectionManager;
@@ -211,7 +212,7 @@ NetworkAdminSocksProxyImpl
 				{
 					final TCPTransportImpl	transport = 
 						new TCPTransportImpl(
-								new ProtocolEndpointTCP( target_address ), false, false, null );
+								(ProtocolEndpointTCP)ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, target_address ), false, false, null );
 					
 					transport.setFilter( TCPTransportHelperFilterFactory.createTransparentFilter( channel ));
 	
