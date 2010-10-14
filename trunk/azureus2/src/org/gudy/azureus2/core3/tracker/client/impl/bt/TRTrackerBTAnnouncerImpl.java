@@ -1820,7 +1820,7 @@ TRTrackerBTAnnouncerImpl
   		class_name = class_name.substring(pos+1);
   	}
   	
-  	String str = class_name + ":" + e.getMessage();
+  	String str = class_name + ":" + Debug.getNestedExceptionMessage(e);
   	
   	if ( str.indexOf( "timed out") != -1 ){
   		
