@@ -613,6 +613,9 @@ public class MessageBoxShell
 					}
 				}
 			});
+		} else {
+			Button spacer = new Button(shell, SWT.CHECK);
+			spacer.setVisible(false);
 		}
 
 
