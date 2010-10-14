@@ -80,7 +80,9 @@ public class SubscriptionsView
 	}
 	
 	public void subscriptionChanged(Subscription subscription) {
-		if ( view.getRow(subscription) == null ){
+		if ( !subscription.isSubscribed()){
+			subscriptionRemoved(subscription);
+		}else if ( view.getRow(subscription) == null ){
 			subscriptionAdded( subscription );
 		}else{
 			view.refreshTable(true);
@@ -152,11 +154,11 @@ public class SubscriptionsView
 		mb.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == 0) {
-					toRemove[startIndex].remove();
+					toRemove[startIndex].setSubscribed( false );
 				} else if (result == 2) {
 					for (int i = startIndex; i < toRemove.length; i++) {
 						if (toRemove[i] != null) {
-							toRemove[i].remove();
+							toRemove[i].setSubscribed( false );
 						}
 					}
 					return;

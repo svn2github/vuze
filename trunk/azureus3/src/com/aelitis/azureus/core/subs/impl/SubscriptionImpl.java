@@ -1205,6 +1205,10 @@ SubscriptionImpl
 			if ( is_subscribed ){
 				
 				manager.setSelected( this );
+				
+			}else{
+				
+				reset();
 			}
 			
 			fireChanged();

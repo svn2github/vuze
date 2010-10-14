@@ -22,8 +22,6 @@ import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.browser.*;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
@@ -424,7 +422,7 @@ SubscriptionView
 	updateBrowser(
 		final boolean	is_auto )
 	{
-		if ( mainBrowser != null ){
+		if ( mainBrowser != null && !mainBrowser.isDisposed() ){
 			
 			Utils.execSWTThread(
 				new Runnable()
@@ -432,7 +430,7 @@ SubscriptionView
 					public void
 					run()
 					{
-						if ( mainBrowser != null && mainBrowser.isVisible()){
+						if ( mainBrowser != null && !mainBrowser.isDisposed() && mainBrowser.isVisible()){
 						
 							String url = (String)mainBrowser.getData( "StartURL" );
 
