@@ -287,12 +287,21 @@ public class ScrapeInfoView
 
 		Display display = cScrapeInfoView.getDisplay();
 
-		String status = manager.getTrackerStatus();
-		int time = manager.getTrackerTime();
+		String status 	= manager.getTrackerStatus();
+		int time 		= manager.getTrackerTime();
 
 		TRTrackerAnnouncer trackerClient = manager.getTrackerClient();
 
-		tracker_status.setText(status);
+		if ( trackerClient != null ){
+			
+			tracker_status.setText( trackerClient.getStatusString());
+			
+			time = trackerClient.getTimeUntilNextUpdate();
+			
+		}else{
+			
+			tracker_status.setText( status );
+		}
 
 		if (time < 0) {
 
