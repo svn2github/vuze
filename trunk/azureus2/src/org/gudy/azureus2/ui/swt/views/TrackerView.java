@@ -25,14 +25,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerTPSListener;
 import org.gudy.azureus2.core3.util.AERunnable;
 
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.tracker.*;
@@ -42,6 +46,8 @@ import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectedRowsListener;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -49,7 +55,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 public class TrackerView 
 	extends TableViewTab<TrackerPeerSource>
-	implements TableLifeCycleListener, TableDataSourceChangedListener, DownloadManagerTPSListener
+	implements 	TableLifeCycleListener, TableDataSourceChangedListener, 
+				DownloadManagerTPSListener, TableViewSWTMenuFillListener
 {
 	private final static TableColumnCore[] basicItems = {
 		new TypeItem(),
@@ -88,6 +95,7 @@ public class TrackerView
 				SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL );
 
 		tv.addLifeCycleListener(this);
+		tv.addMenuFillListener(this);
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.setEnableTabViews(true);
 		scrapeInfoView = new ScrapeInfoView(manager);
@@ -97,6 +105,77 @@ public class TrackerView
 		return tv;
 	}
 
+	
+	public void 
+	fillMenu(
+		String sColumnName, Menu menu) 
+	{
+		final Object[] sources = tv.getSelectedDataSources().toArray();
+		
+		boolean	found_tracker	= false;
+		boolean	update_ok 		= false;
+		
+		for ( Object o: sources ){
+	
+			TrackerPeerSource ps = (TrackerPeerSource)o;
+		
+			if ( ps.getType() == TrackerPeerSource.TP_TRACKER ){
+				
+				found_tracker = true;
+			}
+			
+			int	state = ps.getStatus();
+						
+			if ( 	( 	state == TrackerPeerSource.ST_ONLINE || 
+						state == TrackerPeerSource.ST_QUEUED || 
+						state == TrackerPeerSource.ST_ERROR ) &&
+					!ps.isUpdating() &&
+					ps.canManuallyUpdate()){
+				
+				update_ok = true;
+				
+				break;
+			}
+		}
+		
+		if ( found_tracker ){
+			final MenuItem update_item = new MenuItem( menu, SWT.PUSH);
+	
+			Messages.setLanguageText(update_item, "GeneralView.label.trackerurlupdate");
+			
+			update_item.setEnabled( update_ok );
+			
+			update_item.addListener(
+				SWT.Selection, 
+				new TableSelectedRowsListener(tv) 
+				{
+					public void 
+					run(
+						TableRowCore row )
+					{
+						for ( Object o: sources ){
+							
+							TrackerPeerSource ps = (TrackerPeerSource)o;
+	
+							if ( ps.canManuallyUpdate()){
+								
+								ps.manualUpdate();
+							}
+						}
+					}
+				});
+			
+			new MenuItem( menu, SWT.SEPARATOR );
+		}
+	}
+	
+	public void 
+	addThisColumnSubMenu(
+		String columnName, 
+		Menu menuThisColumn) 
+	{
+	}
+	
 	public void 
 	trackerPeerSourcesChanged() 
 	{

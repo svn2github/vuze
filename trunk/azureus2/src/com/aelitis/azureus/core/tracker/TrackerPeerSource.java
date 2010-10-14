@@ -77,4 +77,10 @@ TrackerPeerSource
 	
 	public boolean
 	isUpdating();
+	
+	public boolean
+	canManuallyUpdate();
+	
+	public void
+	manualUpdate();
 }

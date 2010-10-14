@@ -90,4 +90,15 @@ TrackerPeerSourceAdapter
 	{
 		return( false );
 	}
+	
+	public boolean
+	canManuallyUpdate()
+	{
+		return( false );
+	}
+	
+	public void
+	manualUpdate()
+	{
+	}
 }

@@ -1483,6 +1483,30 @@ TRTrackerAnnouncerMuxer
 					
 					return( false );
 				}
+				
+				public boolean
+				canManuallyUpdate()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary == null ){
+						
+						return( false );
+					}
+					
+					return( summary.canManuallyUpdate());
+				}
+				
+				public void
+				manualUpdate()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						summary.manualUpdate();
+					}
+				}
 			});
 	}
 	
@@ -1621,6 +1645,18 @@ TRTrackerAnnouncerMuxer
 		getSecondsToUpdate()
 		{
 			return( helper.getTimeUntilNextUpdate());
+		}
+		
+		public boolean
+		canManuallyUpdate()
+		{
+			return( ((SystemTime.getCurrentTime() / 1000 - helper.getLastUpdateTime() >= TRTrackerAnnouncer.REFRESH_MINIMUM_SECS)));
+		}
+		
+		public void
+		manualUpdate()
+		{
+			helper.update( true );
 		}
 	}
 }

@@ -3865,6 +3865,30 @@ DownloadManagerImpl
 									
 									return( delegate.getSecondsToUpdate());
 								}
+								
+								public boolean
+								canManuallyUpdate()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+										
+										return( false );
+									}
+									
+									return( delegate.canManuallyUpdate());
+								}
+								
+								public void
+								manualUpdate()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate != null ){
+										
+										delegate.manualUpdate();
+									}
+								}
 							});
 					}
 					
