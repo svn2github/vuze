@@ -47,7 +47,7 @@ ProtocolEndpointUDP
 				public int
 				getType()
 				{
-					return( ProtocolEndpoint.PROTOCOL_TCP );
+					return( ProtocolEndpoint.PROTOCOL_UDP );
 				}
 				
 				public ProtocolEndpoint
