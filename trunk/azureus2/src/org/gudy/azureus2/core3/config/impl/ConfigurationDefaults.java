@@ -498,6 +498,7 @@ public class ConfigurationDefaults {
     
     def.put( "network.max.simultaneous.connect.attempts", new Long( tcp_half_open_limited?8:24 ));
     def.put( "network.tcp.max.connections.outstanding", new Long( 2048 ));
+    def.put( "network.tcp.connect.outbound.enable", TRUE );  
     def.put( "network.tcp.mtu.size", new Long(1500) );
     def.put( "network.udp.mtu.size", new Long(1500) );
     def.put( "network.tcp.socket.SO_SNDBUF", ZERO );

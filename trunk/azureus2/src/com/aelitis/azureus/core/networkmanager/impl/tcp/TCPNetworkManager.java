@@ -56,15 +56,23 @@ TCPNetworkManager
 	public static boolean TCP_OUTGOING_ENABLED;
 	
 	static{
-		COConfigurationManager.addAndFireParameterListener(
-				"TCP.Listen.Port.Enable",
+		COConfigurationManager.addAndFireParameterListeners(
+				new String[]{
+					"TCP.Listen.Port.Enable",
+					"network.tcp.connect.outbound.enable"
+				},
 				new ParameterListener()
 				{
 					public void 
 					parameterChanged(
 						String name )
 					{
-						TCP_INCOMING_ENABLED = TCP_OUTGOING_ENABLED = COConfigurationManager.getBooleanParameter( name );
+						TCP_INCOMING_ENABLED = TCP_OUTGOING_ENABLED = COConfigurationManager.getBooleanParameter( "TCP.Listen.Port.Enable" );
+						
+						if ( TCP_OUTGOING_ENABLED ){
+							
+							TCP_OUTGOING_ENABLED = COConfigurationManager.getBooleanParameter( "network.tcp.connect.outbound.enable" );
+						}
 					}
 				});
 		
