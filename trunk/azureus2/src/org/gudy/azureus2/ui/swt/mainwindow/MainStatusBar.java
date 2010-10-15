@@ -1033,28 +1033,31 @@ public class MainStatusBar
 	private void updateGraph(CLabelPadding label, Image img,
 			long newVal, long[] max) {
 		GC gc = new GC(img);
-		long val = newVal;
-		Rectangle bounds = img.getBounds();
-		final int padding = 2;
-		int x = bounds.width - padding - padding;
-		if (val > max[0]) {
-			int y = 20 - (int) (max[0] * 20 / val);
-			gc.setBackground(label.getBackground());
-			gc.fillRectangle(padding, 0, x, y);
-			// gc.drawImage(imgRec, 1, 0, x, 20, 0, y, x, 20 - y);
-			gc.copyArea(padding + 1, 0, x, 20, padding, y);
-			max[0] = val;
-		} else {
-			gc.copyArea(padding + 1, 0, x, 20, padding, 0);
-			// gc.drawImage(imgRec, 1, 0, x, 20, 0, 0, x, 20);
+		try {
+  		long val = newVal;
+  		Rectangle bounds = img.getBounds();
+  		final int padding = 2;
+  		int x = bounds.width - padding - padding;
+  		if (val > max[0]) {
+  			int y = 20 - (int) (max[0] * 20 / val);
+  			gc.setBackground(label.getBackground());
+  			gc.fillRectangle(padding, 0, x, y);
+  			// gc.drawImage(imgRec, 1, 0, x, 20, 0, y, x, 20 - y);
+  			gc.copyArea(padding + 1, 0, x, 20, padding, y);
+  			max[0] = val;
+  		} else {
+  			gc.copyArea(padding + 1, 0, x, 20, padding, 0);
+  			// gc.drawImage(imgRec, 1, 0, x, 20, 0, 0, x, 20);
+  		}
+  		gc.setForeground(label.getBackground());
+  		int breakPoint = 20 - (max[0] == 0 ? 0
+  				: (int) (val * 20 / max[0]));
+  		gc.drawLine(x, 0, x, breakPoint);
+  		gc.setForeground(Colors.blues[5]);
+  		gc.drawLine(x, breakPoint, x, 20);
+		} finally {
+  		gc.dispose();
 		}
-		gc.setForeground(label.getBackground());
-		int breakPoint = 20 - (max[0] == 0 ? 0
-				: (int) (val * 20 / max[0]));
-		gc.drawLine(x, 0, x, breakPoint);
-		gc.setForeground(Colors.blues[5]);
-		gc.drawLine(x, breakPoint, x, 20);
-		gc.dispose();
 		label.redraw();
 	}
 
