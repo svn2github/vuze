@@ -661,13 +661,13 @@ TRTrackerAnnouncerImpl
 				public String
 				getName()
 				{
-					return( MessageText.getString( "tps.tracker.cache1", new String[]{ String.valueOf( tracker_peer_cache.size())}));
+					return( MessageText.getString( "tps.tracker.cache1", new String[]{ String.valueOf( cache_peers_used )}));
 				}
 				
 				public int
 				getPeers()
 				{
-					return( cache_peers_used );
+					return( tracker_peer_cache.size() );
 				}
 			});
 	}
