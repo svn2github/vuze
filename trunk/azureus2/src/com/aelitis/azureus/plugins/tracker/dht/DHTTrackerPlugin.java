@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -811,6 +812,8 @@ DHTTrackerPlugin
 		Download		download,
 		boolean			first_time )
 	{
+		boolean	skip_log = false;
+		
 		int	state = download.getState();
 			
 		int	register_type	= REG_TYPE_NONE;
@@ -1018,6 +1021,8 @@ DHTTrackerPlugin
 			
 			register_reason	= "not running";
 			
+			skip_log	= true;
+			
 		}else if ( 	state == Download.ST_QUEUED ){
 
 				// leave in whatever state it current is (reg or not reg) to avoid thrashing
@@ -1041,8 +1046,7 @@ DHTTrackerPlugin
 				
 					if ( run_data == null ){
 						
-						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
-								"Monitoring '" + download.getName() + "': " + register_reason);
+						log( download,	"Monitoring '" + download.getName() + "': " + register_reason);
 						
 						int[] cache = run_data_cache.remove( download );
 						
@@ -1075,8 +1079,10 @@ DHTTrackerPlugin
 					
 					if ( run_data  != null ){
 						
-						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
-								"Not monitoring '" + download.getName() + "': "	+ register_reason);
+						if ( !skip_log ){
+							
+							log( download, "Not monitoring: "	+ register_reason);
+						}
 	
 						running_downloads.remove( download );
 						
@@ -1091,10 +1097,9 @@ DHTTrackerPlugin
 
 					}else{
 						
-						if ( first_time ){
+						if ( first_time && !skip_log ){
 							
-							log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
-									"Not monitoring '" + download.getName() + "': "	+ register_reason);
+							log( download, "Not monitoring: "	+ register_reason);
 						}
 					}
 				}
@@ -1348,7 +1353,7 @@ DHTTrackerPlugin
 			
 			if ( registration == null ){
 				
-				log.log( "Registering download '" + dl.getName() + "' as " + (flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
+				log( dl, "Registering download as " + (flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
 
 				registration = new RegistrationDetails( dl, reg_type, put_details, flags );
 				
@@ -1369,7 +1374,7 @@ DHTTrackerPlugin
 						registration.getFlags() != flags ||
 						!registration.getPutDetails().sameAs( put_details )){
 				
-					log.log((registration==null?"Registering":"Re-registering") + " download '" + dl.getName() + "' as " + (flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
+					log( dl,(registration==null?"Registering":"Re-registering") + " download as " + (flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
 					
 					registration.update( put_details, flags );
 					
@@ -1417,8 +1422,7 @@ DHTTrackerPlugin
 			
 			if ( unregister ){
 				
-				log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
-						"Unregistering download '" + dl.getName() + "'");
+				log.log( dl, "Unregistering download" );
 								
 				rd_it.remove();
 				
@@ -1488,9 +1492,7 @@ DHTTrackerPlugin
 				
 				if ( skip ){
 					
-					log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
-							"Deferring announce for '" + dl.getName()
-									+ "' as activity outstanding");
+					log( dl, "Deferring announce as activity outstanding" );
 				}
 				
 				RegistrationDetails	registration = (RegistrationDetails)registered_downloads.get( dl );
@@ -1634,9 +1636,7 @@ DHTTrackerPlugin
 				
 				if ( target.getType() == REG_TYPE_FULL ){
 					
-					log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
-							"Registration of '" + download.getName()
-									+ "'" + target.getDesc() + " skipped as disabled due to use of SOCKS proxy");
+					log( download, "Registration of '" + target.getDesc() + " skipped as disabled due to use of SOCKS proxy");
 				}
 
 			}else{
@@ -1681,10 +1681,8 @@ DHTTrackerPlugin
 						{
 							if ( target.getType() == REG_TYPE_FULL ){
 								
-								log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
-										"Registration of '" + download.getName()
-												+ "'" + target.getDesc() + " completed (elapsed="
-												+ (SystemTime.getCurrentTime() - start) + ")");
+								log( 	download,
+										"Registration of '" + target.getDesc() + " completed (elapsed="	+ TimeFormatter.formatColonMillis((SystemTime.getCurrentTime() - start)) + ")");
 							}
 							
 								// decreaseActive( dl );
@@ -1875,9 +1873,8 @@ DHTTrackerPlugin
 									(	target.getType() == REG_TYPE_DERIVED && 
 										seed_count + leecher_count > 1 )){
 								
-								log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
-										"Get of '" + download.getName() + "'" + target.getDesc() + " completed (elapsed="
-												+ (SystemTime.getCurrentTime() - start)
+								log( 	download,
+										"Get of '" + target.getDesc() + " completed (elapsed=" + TimeFormatter.formatColonMillis(SystemTime.getCurrentTime() - start)
 												+ "), addresses=" + addresses.size() + ", seeds="
 												+ seed_count + ", leechers=" + leecher_count);
 							}
@@ -2053,7 +2050,7 @@ DHTTrackerPlugin
 										
 										DownloadAnnounceResultPeer peer = temp.remove( rand.nextInt( temp.size()));
 										
-										log.log( "    Injecting derived peer " + peer.getAddress() + " into " + download.getName());
+										log( download, "Injecting derived peer " + peer.getAddress() + " into " + download.getName());
 										
 										Map<Object,Object>	user_data = new HashMap<Object,Object>();
 																				
@@ -2376,9 +2373,9 @@ DHTTrackerPlugin
 							{
 								if ( target.getType() == REG_TYPE_FULL ){
 	
-									log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
-									"Unregistration of '" + download.getName() + "' " + target.getDesc() + " completed (elapsed="
-											+ (SystemTime.getCurrentTime() - start) + ")");
+									log( 	download,
+											"Unregistration of '" + target.getDesc() + "' completed (elapsed="
+												+ TimeFormatter.formatColonMillis(SystemTime.getCurrentTime() - start) + ")");
 								}
 								
 								decreaseActive( download );
@@ -2436,9 +2433,9 @@ DHTTrackerPlugin
 						{
 							if ( target.getType() == REG_TYPE_FULL ){
 
-								log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
-								"Unregistration of '" + download.getName() + "' " + target.getDesc() + " completed (elapsed="
-										+ (SystemTime.getCurrentTime() - start) + ")");
+								log( 	download,
+										"Unregistration of '" + target.getDesc() + "' completed (elapsed="
+										+ TimeFormatter.formatColonMillis(SystemTime.getCurrentTime() - start) + ")");
 							}
 							
 							decreaseActive( download );
@@ -2652,10 +2649,10 @@ DHTTrackerPlugin
 	
 									int	total = leechers + seeds;
 									
-									log.log( torrent, LoggerChannel.LT_INFORMATION,
-											"Presence query for '" + f_ready_download.getName() + "': availability="+
+									log( torrent,
+											"Presence query: availability="+
 											(total==INTERESTING_AVAIL_MAX?(INTERESTING_AVAIL_MAX+"+"):(total+"")) + ",div=" + diversified +
-											" (elapsed=" + (SystemTime.getCurrentTime() - start) + ")");
+											" (elapsed=" + TimeFormatter.formatColonMillis(SystemTime.getCurrentTime() - start) + ")");
 											
 									if ( diversified ){
 										
@@ -3394,6 +3391,22 @@ DHTTrackerPlugin
 		return( res );
 	}
 	
+	private void
+	log(
+		Download		download,
+		String			str )
+	{
+		log( download.getTorrent(), str );
+	}
+	
+	private void
+	log(
+		Torrent			torrent,
+		String			str )
+	{
+		log.log( torrent, LoggerChannel.LT_INFORMATION, str );
+	}
+	
 	public TrackerPeerSource
 	getTrackerPeerSource(
 		final Download		download )
@@ -3443,7 +3456,18 @@ DHTTrackerPlugin
 								
 							}else{
 								
-								status = ST_DISABLED;
+								int dl_state = download.getState();
+								
+								if ( 	dl_state == Download.ST_DOWNLOADING ||
+										dl_state == Download.ST_SEEDING ||
+										dl_state == Download.ST_QUEUED ){
+										
+									status = ST_DISABLED;
+									
+								}else{
+									
+									status = ST_STOPPED;
+								}
 							}
 							
 							if ( run_data == null ){

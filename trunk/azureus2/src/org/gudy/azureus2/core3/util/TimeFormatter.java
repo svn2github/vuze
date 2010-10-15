@@ -124,7 +124,30 @@ public class TimeFormatter {
 		
 		return( time_secs + "." + twoDigits( hundredths) + TIME_SUFFIXES[0]);
 	}
+	
+	/**
+	 * @param time millis 
+	 */
 
+	public static String formatColonMillis( long time )
+	{
+		if ( time > 0 ){
+			if ( time < 1000 ){
+				time = 1;
+			}else{
+				time = time / 1000;
+			}
+		}
+		
+		String str = formatColon( time );
+		
+		if ( str.startsWith( "00:00:" )){
+			
+			str = str.substring( 3 );
+		}
+		
+		return( str );
+	}
 	
 	/**
 	 * Format time into "[[# y] # d] 00:00:00" format
@@ -132,6 +155,7 @@ public class TimeFormatter {
 	 * @param time time in seconds
 	 * @return
 	 */
+	
     public static String formatColon(long time)
     {
       if (time == Constants.CRAPPY_INFINITY_AS_INT || time >= Constants.CRAPPY_INFINITE_AS_LONG) return Constants.INFINITY_STRING;
