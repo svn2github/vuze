@@ -19,6 +19,10 @@
  */
 package com.aelitis.azureus.ui.swt;
 
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
+
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 
@@ -29,11 +33,64 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
  */
 public class UIFunctionsManagerSWT extends UIFunctionsManager
 {
-	public static UIFunctionsSWT getUIFunctionsSWT() {
+	public static UIFunctionsSWT 
+	getUIFunctionsSWT() 
+	{
 		UIFunctions uiFunctions = getUIFunctions();
-		if (uiFunctions instanceof UIFunctionsSWT) {
+		
+		if (uiFunctions instanceof UIFunctionsSWT){
+			
 			return (UIFunctionsSWT)uiFunctions;
 		}
+		
 		return null;
+	}
+	
+	public static void
+	runWithUIFSWT(
+		final UIFSWTRunnable		target )
+	{
+		final boolean was_swt = Utils.isSWTThread();
+		
+		UIFunctionsManager.runWithUIF(
+			new UIFRunnable()
+			{
+				public void 
+				run(
+					final UIFunctions uif )
+				{
+					if ( uif instanceof UIFunctionsSWT ){
+					
+						boolean is_swt = Utils.isSWTThread();
+						
+						if ( was_swt && !is_swt ){
+							
+							Utils.execSWTThread(
+								new AERunnable() 
+								{
+									public void 
+									runSupport()
+									{
+										target.run((UIFunctionsSWT)uif);
+									}
+								});
+						}else{
+						
+							target.run((UIFunctionsSWT)uif);
+						}
+					}else{
+						
+						Debug.out( "Couldn't run " + target + " as uif not swt" );
+					}
+				}
+			});
+	}
+	
+	public interface
+	UIFSWTRunnable
+	{
+		public void
+		run(
+			UIFunctionsSWT	uif_swt );	
 	}
 }

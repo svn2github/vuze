@@ -141,7 +141,7 @@ public class TimeFormatter {
 		
 		String str = formatColon( time );
 		
-		if ( str.startsWith( "00:00:" )){
+		if ( str.startsWith( "00:" )){
 			
 			str = str.substring( 3 );
 		}

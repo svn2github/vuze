@@ -234,45 +234,53 @@ public class FeatureManagerUIListener
 	/**
 	 * 
 	 */
-	private void updateUI() {
-		boolean hasFullLicence = FeatureManagerUI.hasFullLicence();
-
-		if (hasFullLicence) {
-			final SWTSkin skin = SWTSkinFactory.getInstance();
-			if (skin != null) {
-				SWTSkinObject soHeader = skin.getSkinObject("plus-header");
-				if (soHeader != null) {
-					soHeader.setVisible(true);
-				}
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell().setText("Vuze Plus");
-					}
-				});
-			}
-		}
+	private void updateUI(){
 		
-		UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		MultipleDocumentInterfaceSWT mdi = uif == null ? null
-				: UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-		if (mdi != null) {
-			MdiEntrySWT entry = mdi.getEntrySWT(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
-			if (entry != null) {
-				String title = MessageText.getString(hasFullLicence
-						? "mdi.entry.plus.full" : "mdi.entry.plus.free");
-				entry.setTitle(title);
-				SBC_PlusFTUX view = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
-				if (view != null) {
-					view.updateLicenceInfo();
-				}
-				SkinView[] views = SkinViewManager.getMultiByClass(SBC_BurnFTUX.class);
-				if (views != null) {
-					for (SkinView bview : views) {
-						((SBC_BurnFTUX) bview).updateLicenceInfo();
+		UIFunctionsManagerSWT.runWithUIFSWT(
+			new UIFunctionsManagerSWT.UIFSWTRunnable()
+			{
+				public void 
+				run(
+					final UIFunctionsSWT uif ) 
+				{
+					boolean hasFullLicence = FeatureManagerUI.hasFullLicence();
+
+					if (hasFullLicence) {
+						final SWTSkin skin = SWTSkinFactory.getInstance();
+						if (skin != null) {
+							SWTSkinObject soHeader = skin.getSkinObject("plus-header");
+							if (soHeader != null) {
+								soHeader.setVisible(true);
+							}
+							Utils.execSWTThread(new AERunnable() {
+								public void runSupport() {
+									uif.getMainShell().setText("Vuze Plus");
+								}
+							});
+						}
+					}
+					
+					MultipleDocumentInterfaceSWT mdi = uif.getMDISWT();
+					if (mdi != null) {
+						MdiEntrySWT entry = mdi.getEntrySWT(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+						if (entry != null) {
+							String title = MessageText.getString(hasFullLicence
+									? "mdi.entry.plus.full" : "mdi.entry.plus.free");
+							entry.setTitle(title);
+							SBC_PlusFTUX view = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
+							if (view != null) {
+								view.updateLicenceInfo();
+							}
+							SkinView[] views = SkinViewManager.getMultiByClass(SBC_BurnFTUX.class);
+							if (views != null) {
+								for (SkinView bview : views) {
+									((SBC_BurnFTUX) bview).updateLicenceInfo();
+								}
+							}
+						}
 					}
 				}
-			}
-		}
+			});
 	}
 
 	public void licenceRemoved(Licence licence) {

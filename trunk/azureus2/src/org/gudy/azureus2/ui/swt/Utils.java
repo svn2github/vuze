@@ -627,6 +627,18 @@ public class Utils
 	 *
 	 * @since 3.0.4.3
 	 */
+	
+	public static boolean
+	isSWTThread()
+	{
+		final Display display = getDisplay();
+		if (display == null ){
+			return false;
+		}
+
+		return( display.getThread() == Thread.currentThread());
+	}
+	
 	private static boolean execSWTThread(final Runnable code, final int msLater) {
 		final Display display = getDisplay();
 		if (display == null || code == null) {
