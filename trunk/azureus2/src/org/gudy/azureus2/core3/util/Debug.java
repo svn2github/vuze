@@ -206,12 +206,17 @@ public class Debug {
 		for (int i = frames_to_skip; i < iMax; i++) {
 
 			if (i > frames_to_skip)
-				sStackTrace += ",";
+				sStackTrace += ", ";
 
 			String cn = st[i].getClassName();
 			cn = cn.substring( cn.lastIndexOf(".")+1);
 
-			sStackTrace += cn +"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
+			if (Constants.IS_CVS_VERSION) {
+				// Formatted so it's clickable in eclipse
+				sStackTrace += st[i].getMethodName() + " (" + st[i].getClassName() +".java:" + st[i].getLineNumber() + ")";
+			} else {
+				sStackTrace += cn +"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
+			}
 		}
 
 		Throwable cause = t.getCause();
