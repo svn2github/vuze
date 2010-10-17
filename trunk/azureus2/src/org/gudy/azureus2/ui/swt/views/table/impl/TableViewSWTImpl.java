@@ -957,6 +957,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			int lastCursorID = 0;
 
 			public void mouseMove(MouseEvent e) {
+				lCancelSelectionTriggeredOn = -1;
 				if (isDragging) {
 					return;
 				}
@@ -1032,7 +1033,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				if (lCancelSelectionTriggeredOn > 0
 						&& System.currentTimeMillis() - lCancelSelectionTriggeredOn < 200) {
 					e.doit = false;
-					lCancelSelectionTriggeredOn = -1;
 				} else {
 					runDefaultAction(e.stateMask);
 				}
@@ -1617,10 +1617,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 		
 		// plugin may have cancelled the default action
-		if (lCancelSelectionTriggeredOn > 0
-				&& System.currentTimeMillis() - lCancelSelectionTriggeredOn < 200) {
-			lCancelSelectionTriggeredOn = -1;
-		} else {
+		if (System.currentTimeMillis() - lCancelSelectionTriggeredOn > 200) {
 			lastSelectionTriggeredOn = System.currentTimeMillis();
 			TableRowCore[] selectedRows = getSelectedRows();
 			triggerDefaultSelectedListeners(selectedRows, stateMask);
