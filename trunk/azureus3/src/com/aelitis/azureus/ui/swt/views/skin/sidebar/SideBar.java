@@ -685,7 +685,14 @@ public class SideBar
 					draggingOver = null;
 				}
 				if (draggingOver == null || !draggingOver.hasDropListeners()) {
-					event.detail = DND.DROP_NONE;
+					
+					boolean isTorrent = TorrentOpener.doesDropHaveTorrents(event);
+					
+					if (isTorrent) {
+						event.detail = DND.DROP_COPY;
+					} else {
+						event.detail = DND.DROP_NONE;
+					}
 					draggingOver = null;
 				} else if ((event.operations & DND.DROP_LINK) > 0)
 					event.detail = DND.DROP_LINK;
