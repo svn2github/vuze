@@ -388,4 +388,29 @@ public class TorrentOpener {
 			}
 		});
 	}
+
+	public static boolean doesDropHaveTorrents(DropTargetEvent event) {
+		boolean isTorrent = false;
+		if (event.data == null && event.currentDataType != null) {
+			Object object = URLTransfer.getInstance().nativeToJava(event.currentDataType);
+			if (object instanceof URLTransfer.URLType) {
+				isTorrent = true;
+			}
+		} else if (event.data instanceof String[] || event.data instanceof String) {
+			final String[] sourceNames = (event.data instanceof String[])
+					? (String[]) event.data : new String[] {
+						(String) event.data
+					};
+			for (String name : sourceNames) {
+				String sURL = UrlUtils.parseTextForURL(name, true);
+				if (sURL != null) {
+					isTorrent = true;
+					break;
+				}
+			}
+		} else if (event.data instanceof URLTransfer.URLType) {
+			isTorrent = true;
+		}
+		return isTorrent;
+	}
 }
