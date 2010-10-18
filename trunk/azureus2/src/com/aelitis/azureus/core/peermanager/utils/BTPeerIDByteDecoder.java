@@ -489,8 +489,12 @@ public class BTPeerIDByteDecoder {
 		assertDecode("TuoTu 2.1.0", "-TT210w-dq!nWf~Qcext");
 		assertDecode("\u00B5Torrent 1.7.0 Beta", "2D555431 3730422D 92844644 1DB0A094 A01C01E5");
 		assertDecode("\u54c7\u560E (Vagaa) 2.6.4.4", "2D5647323634342D4FD62CDA69E235717E3BB94B");
-		assertDecode("Wyzo 0.3.0.0", "-WY0300-6huHF5Pr7Vde");
+		//assertDecode("Wyzo 0.3.0.0", "-WY0300-6huHF5Pr7Vde");
+		assertDecode("FireTorrent 0.3.0.0", "-WY0300-6huHF5Pr7Vde");
 		assertDecode("CacheLogic 25.1-26", "-PC251Q-6huHF5Pr7Vde");
+		assertDecode("KGet 2.4.5.0", "-KG2450-BDEw8OM14Hk6");
+		
+		
 		System.out.println();
 
 		// Shadow style clients.
@@ -550,6 +554,11 @@ public class BTPeerIDByteDecoder {
 		System.out.println("Testing various specialised clients...");
 		assertDecode("Mainline", "0000000000000000000000004C53441933104277");
 		assertDecode(UNKNOWN + " [" + FAKE + ": ZipTorrent 1.6.0.0]", "-ZT1600-bLAdeY9rdjbe");
+		
+		assertDecode("Tixati 1.37", "TIX0137-i6i6f0i5d5b7");
+		assertDecode("folx 0.9", "2D464C3039C6F22D5F436863327A6D792E283867");
+		
+		
 		System.out.println();
 		
 		// Unknown clients - may be random bytes.

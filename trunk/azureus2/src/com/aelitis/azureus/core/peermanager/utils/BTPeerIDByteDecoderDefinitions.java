@@ -60,6 +60,7 @@ public class BTPeerIDByteDecoderDefinitions {
 	static String VER_BLOCK = "abcde"; // Is given as a block in the peer ID, we show the same block
 	static String VER_DOTTED_BLOCK = "a.b.c.d.e"; // Is given as a dotted block in the peer ID, we show the block in the same dotted format.
 	static String VER_BYTE_BLOCK_DOTTED_CHAR = "abcde -> a.b.c.d.e"; // Is given a block in the peer ID, but should be displayed in a dotted format.
+	static String VER_TWOBYTE_BLOCK_DOTTED_CHAR = "abcde -> ab.cd"; // Is given a block in the peer ID, but should be displayed in a dotted format.
 	static String VER_BITS_ON_WHEELS = "BOW-STYLE";
 	static String VER_TWO_BYTE_THREE_PART = "ab -> a . b/10 . b%10";
 	static String NO_VERSION = "NO_VERSION";
@@ -260,6 +261,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("GS", "GSTorrent"); // TODO: Format is v"abcd"
 		addAzStyle("HL", "Halite", VER_AZ_THREE_DIGITS);
 		addAzStyle("HN", "Hydranode");
+		addAzStyle("KG", "KGet");
 		addAzStyle("KT", "KTorrent", VER_AZ_KTORRENT_STYLE);
 		addAzStyle("LC", "LeechCraft");
 		addAzStyle("LH", "LH-ABC");
@@ -428,6 +430,13 @@ public class BTPeerIDByteDecoderDefinitions {
 		// matching instead.
 		client = addSimpleClient("Top-BT", "TB");
 		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 3);
+		
+		client = addSimpleClient("Tixati", "TIX");
+		addVersionedClient(client, VER_TWOBYTE_BLOCK_DOTTED_CHAR, 4);
+		
+		client = addSimpleClient("folx", "-FL");	// seems to have a sub-version encoded in following 3 bytes, not worked out how: "folx/1.0.456.591" : 2D 464C 3130 FF862D 486263574A43585F66314D5A
+		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 2);
+
 		
 	}
 	
