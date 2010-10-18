@@ -832,9 +832,30 @@ public class SBC_DevicesView
 
 		// remove
 
+		int	comp 	= 0;
+		int	incomp	= 0;
+		
+		for ( TranscodeFile f: files ){
+			
+			if ( f.isComplete()){
+				comp++;
+			}else{
+				incomp++;
+			}
+		}
 		final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 
-		remove_item.setText(MessageText.getString("devices.cancel_xcode"));
+		String	text;
+		
+		if ( comp == 0 ){
+			text = "devices.cancel_xcode"; 
+		}else if ( incomp == 0 ){
+			text = "azbuddy.ui.menu.remove";
+		}else{
+			text = "devices.cancel_xcode_del";
+		}
+		
+		remove_item.setText(MessageText.getString(text));
 
 		Utils.setMenuItemImage(remove_item, "delete");
 
