@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.networkmanager.impl.udp;
 
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogIDs;
 
 import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
@@ -132,6 +133,13 @@ UDPTransport
 			return;
 		}
 		
+		if ( COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" )){
+			
+			listener.connectFailure( new Throwable( "UDP proxy connection not supported" ));
+			
+			return;
+		}
+		   
 		UDPConnectionManager	con_man = UDPNetworkManager.getSingleton().getConnectionManager();
 		
 		con_man.connectOutbound( this, endpoint.getAddress(), shared_secrets, initial_data, listener);
