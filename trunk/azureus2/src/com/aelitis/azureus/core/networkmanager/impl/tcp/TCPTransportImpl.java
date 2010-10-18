@@ -164,7 +164,12 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 		return;
 	}
 	
-    if( has_been_closed )  return;
+    if( has_been_closed ){
+    	
+		listener.connectFailure( new Throwable( "Connection already closed" ));
+
+    	return;
+    }
     
     if( getFilter() != null ) {  //already connected
       Debug.out( "socket_channel != null" );
@@ -192,7 +197,10 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
       	}
       	
         if( has_been_closed ) {  //closed between select ops
-          TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
+        	TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
+          
+  			listener.connectFailure( new Throwable( "Connection has been closed" ));
+
           return;
         }
         
