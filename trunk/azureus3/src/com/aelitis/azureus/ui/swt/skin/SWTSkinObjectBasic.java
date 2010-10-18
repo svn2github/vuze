@@ -238,7 +238,7 @@ public class SWTSkinObjectBasic
 							return;
 						}
 
-						if (toBeVisible == control.isVisible() && isVisible() == toBeVisible) {
+						if (toBeVisible == control.isVisible() && (isVisible == 1) == toBeVisible) {
 							return;
 						}
 
