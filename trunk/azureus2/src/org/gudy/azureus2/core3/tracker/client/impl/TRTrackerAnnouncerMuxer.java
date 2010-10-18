@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
@@ -82,6 +83,8 @@ TRTrackerAnnouncerMuxer
 	
 	private Map<String,StatusSummary>			recent_responses = new HashMap<String,StatusSummary>();
 	
+	private TRTrackerAnnouncerResponse			last_response_informed;
+
 	
 	protected
 	TRTrackerAnnouncerMuxer(
@@ -93,6 +96,16 @@ TRTrackerAnnouncerMuxer
 	{
 		super( _torrent );
 		
+		try{	
+			last_response_informed = new TRTrackerAnnouncerResponseImpl( null, _torrent.getHashWrapper(), TRTrackerAnnouncerResponse.ST_OFFLINE, TRTrackerAnnouncer.REFRESH_MINIMUM_SECS, "Initialising" );
+			
+		}catch( TOTorrentException e ){
+			
+			Logger.log(new LogEvent( _torrent, LOGID, "Torrent hash retrieval fails", e));
+			
+			throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));	
+		}
+
 		networks	= _networks;
 		is_manual 	= _manual;
 			
@@ -831,6 +844,28 @@ TRTrackerAnnouncerMuxer
 		return( announcer );
 	}
 	
+	
+	public TRTrackerAnnouncerResponse
+	getLastResponse()
+	{
+		TRTrackerAnnouncerResponse	result = null;
+		
+		TRTrackerAnnouncerHelper best = getBestActive();
+		
+		if ( best != null ){
+			
+			result = best.getLastResponse();
+		}
+		
+		if ( result == null ){
+			
+			result = last_response_informed;
+		}
+		
+		return( result );
+	}
+	
+
 	@Override
 	protected void
 	informResponse(
@@ -855,6 +890,12 @@ TRTrackerAnnouncerMuxer
 				}
 			}
 		}
+		
+		last_response_informed = response;
+		
+			// force recalc of best active next time
+		
+		last_best_active_set_time = 0;
 		
 		super.informResponse( helper, response );
 		

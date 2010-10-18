@@ -129,9 +129,7 @@ TRTrackerAnnouncerImpl
 	final private byte[]						peer_id;
 	final private String						tracker_key;
 	final private int							udp_key;
-	
-	private TRTrackerAnnouncerResponse	last_response;
-	
+		
 	
 	protected
 	TRTrackerAnnouncerImpl(
@@ -144,16 +142,6 @@ TRTrackerAnnouncerImpl
 		tracker_key	= createKeyID();
 	    
 		udp_key	= (int)(Math.random() *  0xFFFFFFFFL );
-
-		try{	
-			last_response = new TRTrackerAnnouncerResponseImpl( null, torrent.getHashWrapper(), TRTrackerAnnouncerResponse.ST_OFFLINE, TRTrackerAnnouncer.REFRESH_MINIMUM_SECS, "Initialising" );
-			
-		}catch( TOTorrentException e ){
-			
-			Logger.log(new LogEvent(torrent, LOGID, "Torrent hash retrieval fails", e));
-			
-			throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));	
-		}
 		
 		try{
 			peer_id		= ClientIDManagerImpl.getSingleton().generatePeerID( torrent, false );
@@ -672,19 +660,11 @@ TRTrackerAnnouncerImpl
 			});
 	}
 
-	public TRTrackerAnnouncerResponse
-	getLastResponse()
-	{
-		return( last_response );
-	}
-	
 	protected void
 	informResponse(
 		TRTrackerAnnouncerHelper		helper,
 		TRTrackerAnnouncerResponse		response )
 	{
-		last_response = response;
-		
 		listeners.dispatch( LDT_TRACKER_RESPONSE, response );
 	}
 
