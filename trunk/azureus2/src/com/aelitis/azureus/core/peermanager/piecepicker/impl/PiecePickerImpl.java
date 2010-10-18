@@ -55,35 +55,36 @@ implements PiecePicker
 	private static final LogIDs LOGID = LogIDs.PIECES;
 
 	/** min ms for recalculating availability - reducing this has serious ramifications */
-	private static final long TIME_MIN_AVAILABILITY	=974;
+	private static final long TIME_MIN_AVAILABILITY	= 974;
 	/** min ms for recalculating base priorities */
-	private static final long TIME_MIN_PRIORITIES	=999;
+	private static final long TIME_MIN_PRIORITIES	= 999;
 	/** min ms for forced availability rebuild */
-	private static final long TIME_AVAIL_REBUILD	=5*60*1000 -24; 
+	private static final long TIME_AVAIL_REBUILD	= 5*60*1000 -24; 
 
 	// The following are added to the base User setting based priorities (for all inspected pieces)
 	/** user select prioritize first/last */
-	private static final int PRIORITY_W_FIRSTLAST	=1300;
+	private static final int PRIORITY_W_FIRSTLAST	= 999;
 	/** min # pieces in file for first/last prioritization */
-	private static final long FIRST_PIECE_MIN_NB	=4;
+	private static final long FIRST_PIECE_MIN_NB	= 4;
 	/** number of pieces for first pieces prioritization */
 	// private static final int FIRST_PIECE_RANGE_PERCENT= 10;
 	/** user sets file as "High" */
-	private static final int PRIORITY_W_FILE		=1000;
+	private static final int PRIORITY_W_FILE_BASE	= 1000;	// min amount added for priority file. > first/last piece priority offset to give file priority priority over f/l piece priority
+	private static final int PRIORITY_W_FILE_RANGE	= 1000;	// priority range added for prioritized files 
 	/** Additional boost for more completed High priority */
-	private static final int PRIORITY_W_COMPLETION	=2000;
+	private static final int PRIORITY_W_COMPLETION	= 2000;
 
 	// The following are only used when resuming already running pieces
 	/** priority boost due to being too old */
-	private static final int PRIORITY_W_AGE		=900;
+	private static final int PRIORITY_W_AGE			= 900;
 	/** ms a block is expected to complete in */
-	private static final int PRIORITY_DW_AGE		=60 *1000;
+	private static final int PRIORITY_DW_AGE		= 60*1000;
 	/** ms since last write */
-	private static final int PRIORITY_DW_STALE		=120 *1000;
+	private static final int PRIORITY_DW_STALE		= 120*1000;
 	/** finish pieces already almost done */
-	private static final int PRIORITY_W_PIECE_DONE	=900;
+	private static final int PRIORITY_W_PIECE_DONE	= 900;
 	/** keep working on same piece */
-	private static final int PRIORITY_W_SAME_PIECE	=700;
+	private static final int PRIORITY_W_SAME_PIECE	= 700;
 
 	/** currently webseeds + other explicit priorities are around 10000 or more - at this point we ignore rarity */
 
@@ -1133,10 +1134,12 @@ implements PiecePicker
 							
 							int max = Math.max( file_priority, max_file_priority );
 						
+							priority += PRIORITY_W_FILE_BASE;
+							
 							if ( max == 1 ){
-								priority += PRIORITY_W_FILE;
+								priority += PRIORITY_W_FILE_RANGE;
 							}else{
-								priority += ( PRIORITY_W_FILE*file_priority )/max;
+								priority += ( PRIORITY_W_FILE_RANGE*file_priority )/max;
 							}
 							if (completionPriorityL)
 							{
