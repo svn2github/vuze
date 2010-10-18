@@ -35,7 +35,7 @@ public class ColumnTJ_Category
 	public ColumnTJ_Category(TableColumn column) {
 		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_INVISIBLE, 80);
 		column.addListeners(this);
-		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+		column.setRefreshInterval(TableColumn.INTERVAL_LIVE);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 	}
 
