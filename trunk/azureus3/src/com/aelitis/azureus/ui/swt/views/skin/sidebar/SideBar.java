@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -35,11 +36,14 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionHolder;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
@@ -51,6 +55,7 @@ import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.cnetwork.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.FeatureAvailability;
+import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -70,7 +75,9 @@ import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 
@@ -917,10 +924,67 @@ public class SideBar
 					entry
 				}));
 
-		if (entry != null) {
+		if (entry != null){
+			
 			menu_items = MenuItemManager.getInstance().getAllAsArray(
 					"sidebar." + entry.getId());
 
+			if ( menu_items.length == 0 ){
+				
+				if ( entry instanceof SideBarEntrySWT ){
+					
+					IView view = ((SideBarEntrySWT)entry).getIView();
+					
+					if ( view instanceof UISWTView ){
+						
+						PluginInterface pi = ((UISWTView)view).getPluginInterface();
+		
+						if ( pi != null ){
+		
+							final List<String>	relevant_sections = new ArrayList<String>();
+							
+							List<ConfigSectionHolder> sections = ConfigSectionRepository.getInstance().getHolderList();
+							
+							for ( ConfigSectionHolder cs: sections ){
+								
+								if ( pi == cs.getPluginInterface()){
+									
+									relevant_sections.add( cs.configSectionGetName());
+								}
+							}
+							
+							if ( relevant_sections.size() > 0 ){
+
+								MenuItem mi = pi.getUIManager().getMenuManager().addMenuItem( "sidebar." + entry.getId(), "MainWindow.menu.view.configuration" );
+	
+								mi.addListener( 
+								new MenuItemListener() 
+								{
+									public void 
+									selected(
+										MenuItem menu, Object target ) 
+									{
+								      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
+								      	 
+								      	 if ( uif != null ){
+								      		 
+								      		 for ( String s: relevant_sections ){
+								      		 
+								      			 uif.openView( UIFunctions.VIEW_CONFIG, s );
+								      		 }
+								      	 }
+									}
+								});
+					
+					
+								menu_items = MenuItemManager.getInstance().getAllAsArray(
+										"sidebar." + entry.getId());
+							}
+						}
+					}
+				}
+			}
+			
 			MenuBuildUtils.addPluginMenuItems((Composite) soMain.getControl(),
 					menu_items, menuTree, false, true,
 					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {

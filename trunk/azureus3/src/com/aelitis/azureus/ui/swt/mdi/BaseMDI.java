@@ -15,6 +15,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.IView;
 
@@ -263,11 +264,11 @@ public abstract class BaseMDI
 	protected void setupPluginViews() {
 		UISWTInstanceImpl uiSWTInstance = (UISWTInstanceImpl) UIFunctionsManagerSWT.getUIFunctionsSWT().getUISWTInstance();
 		if (uiSWTInstance != null) {
-			Map<String, Map<String, UISWTViewEventListener>> allViews = uiSWTInstance.getAllViews();
+			Map<String, Map<String, UISWTViewEventListenerHolder>> allViews = uiSWTInstance.getAllViews();
 			Object[] parentIDs = allViews.keySet().toArray();
 			for (int i = 0; i < parentIDs.length; i++) {
 				String parentID = (String) parentIDs[i];
-				Map<String, UISWTViewEventListener> mapSubViews = allViews.get(parentID);
+				Map<String, UISWTViewEventListenerHolder> mapSubViews = allViews.get(parentID);
 				if (mapSubViews != null) {
 					Object[] viewIDs = mapSubViews.keySet().toArray();
 					for (int j = 0; j < viewIDs.length; j++) {

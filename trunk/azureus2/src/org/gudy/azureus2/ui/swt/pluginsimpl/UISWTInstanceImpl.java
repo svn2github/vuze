@@ -89,7 +89,7 @@ UISWTInstanceImpl
 	private Map<UISWTAWTPluginView,UISWTPluginView> 			awt_view_map 	= new WeakHashMap<UISWTAWTPluginView,UISWTPluginView>();
 	private Map<BasicPluginConfigModel,BasicPluginConfigImpl> 	config_view_map = new WeakHashMap<BasicPluginConfigModel,BasicPluginConfigImpl>();
 	
-	private Map<String,Map<String,UISWTViewEventListener>> views = new HashMap<String,Map<String,UISWTViewEventListener>>();
+	private Map<String,Map<String,UISWTViewEventListenerHolder>> views = new HashMap<String,Map<String,UISWTViewEventListenerHolder>>();
 	
 	private Map<PluginInterface,UIInstance>	plugin_map = new WeakHashMap<PluginInterface,UIInstance>();
 	
@@ -678,24 +678,32 @@ UISWTInstanceImpl
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTInstance#addView(java.lang.String, java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener)
 	 */
-	public void addView(String sParentID, final String sViewID,
+	
+	public void addView(String sParentID, String sViewID,
 			final UISWTViewEventListener l) {
+		addView( null, sParentID, sViewID, l );
+	}
+	
+	public void addView( PluginInterface pi, String sParentID, final String sViewID,
+			UISWTViewEventListener _l) 
+	{
+		final UISWTViewEventListenerHolder l = new UISWTViewEventListenerHolder( _l, pi );
 		if (sParentID == null) {
 			sParentID = UISWTInstance.VIEW_MAIN;
 		}
-		Map<String,UISWTViewEventListener> subViews = views.get(sParentID);
+		Map<String,UISWTViewEventListenerHolder> subViews = views.get(sParentID);
 		if (subViews == null) {
-			subViews = new HashMap<String,UISWTViewEventListener>();
+			subViews = new HashMap<String,UISWTViewEventListenerHolder>();
 			views.put(sParentID, subViews);
 		}
 
-		subViews.put(sViewID, l);
+		subViews.put(sViewID, l );
 
 		if (sParentID.equals(UISWTInstance.VIEW_MAIN)) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					try {
-						uiFunctions.addPluginView(sViewID, l);
+						uiFunctions.addPluginView(sViewID, l );
 					} catch (Throwable e) {
 						// SWT not available prolly
 					}
@@ -706,7 +714,7 @@ UISWTInstanceImpl
 	
 	// TODO: Remove views from PeersView, etc
 	public void removeViews(String sParentID, final String sViewID) {
-		Map<String,UISWTViewEventListener> subViews = views.get(sParentID);
+		Map<String,UISWTViewEventListenerHolder> subViews = views.get(sParentID);
 		if (subViews == null)
 			return;
 
@@ -733,12 +741,12 @@ UISWTInstanceImpl
 	
 	public boolean openView(final String sParentID, final String sViewID,
 			final Object dataSource, final boolean setfocus) {
-		Map<String,UISWTViewEventListener> subViews = views.get(sParentID);
+		Map<String,UISWTViewEventListenerHolder> subViews = views.get(sParentID);
 		if (subViews == null) {
 			return false;
 		}
 
-		final UISWTViewEventListener l = subViews.get(sViewID);
+		final UISWTViewEventListenerHolder l = subViews.get(sViewID);
 		if (l == null) {
 			return false;
 		}
@@ -746,7 +754,8 @@ UISWTInstanceImpl
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (uiFunctions != null) {
-					uiFunctions.openPluginView(sParentID, sViewID, l, dataSource,
+					uiFunctions.openPluginView(
+							sParentID, sViewID, l, dataSource,
 							setfocus && !bUIAttaching);
 				}
 			}
@@ -828,7 +837,7 @@ UISWTInstanceImpl
 	// Core Functions
 	// ==============
 	
-	public Map<String,UISWTViewEventListener> getViewListeners(String sParentID) {
+	public Map<String,UISWTViewEventListenerHolder> getViewListeners(String sParentID) {
 		return views.get(sParentID);
 	}
 	
@@ -837,7 +846,7 @@ UISWTInstanceImpl
 	 *
 	 * @since 3.1.1.1
 	 */
-	public Map<String,Map<String,UISWTViewEventListener>> getAllViews() {
+	public Map<String,Map<String,UISWTViewEventListenerHolder>> getAllViews() {
 		return views;
 	}
 	
@@ -933,7 +942,9 @@ UISWTInstanceImpl
 		public void 
 		addView(String sParentID, String sViewID, UISWTViewEventListener l)
 		{
-			delegate.addView( sParentID, sViewID, l );
+			PluginInterface pi = pi_ref.get();
+			
+			delegate.addView( pi, sParentID, sViewID, l );
 		}
 
 		public void 
@@ -1035,7 +1046,4 @@ UISWTInstanceImpl
 		}
 		
 	}
-	
-	
-	
 }

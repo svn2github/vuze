@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.ui.model;
 
+import org.gudy.azureus2.plugins.PluginInterface;
+
 /**
  * @author parg
  *
@@ -31,6 +33,9 @@ PluginViewModel
 {
 	public String
 	getName();
+	
+	public PluginInterface
+	getPluginInterface();
 	
 	public void
 	destroy();

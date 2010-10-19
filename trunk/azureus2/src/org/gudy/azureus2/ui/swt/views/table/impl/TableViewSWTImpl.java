@@ -53,6 +53,7 @@ import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.IViewExtension;
@@ -463,7 +464,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		int iNumViews = coreTabViews == null ? 0 : coreTabViews.length;
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		Map<String, UISWTViewEventListener> pluginViews = null;
+		Map<String, UISWTViewEventListenerHolder> pluginViews = null;
 		if (uiFunctions != null) {
 			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
 

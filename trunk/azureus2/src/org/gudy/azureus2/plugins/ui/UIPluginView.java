@@ -24,6 +24,8 @@
 
 package org.gudy.azureus2.plugins.ui;
 
+import org.gudy.azureus2.plugins.PluginInterface;
+
 /**
  * All plugin views should inherit from this interface so that we can always
  * check to see if they are a plugin view.
@@ -59,4 +61,12 @@ public interface UIPluginView {
 	 * @since 2.3.0.6
 	 */
 	public void closeView();
+	
+	/**
+	 * @since 4.5.1.1
+	 * @return
+	 */
+	
+	public PluginInterface
+	getPluginInterface();
 }

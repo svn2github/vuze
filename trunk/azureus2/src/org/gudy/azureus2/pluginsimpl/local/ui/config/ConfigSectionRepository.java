@@ -21,8 +21,9 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
-import java.util.ArrayList;
+import java.util.*;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.core3.util.*;
 
@@ -31,10 +32,10 @@ public class ConfigSectionRepository {
   private static ConfigSectionRepository 	instance;
   private static AEMonitor					class_mon	= new AEMonitor( "ConfigSectionRepository:class");
   
-  private ArrayList items;
+  private Map<ConfigSection,ConfigSectionHolder> items;
 
   private ConfigSectionRepository() {
-   items = new ArrayList();
+   items = new HashMap<ConfigSection, ConfigSectionHolder>();
   }
 
   public static ConfigSectionRepository getInstance() {
@@ -50,11 +51,11 @@ public class ConfigSectionRepository {
   	}
   }
 
-  public void addConfigSection(ConfigSection item) {
+  public void addConfigSection(ConfigSection item, PluginInterface pi ) {
   	try{
   		class_mon.enter();
   		
-  		items.add(item);
+  		items.put(item, new ConfigSectionHolder( item, pi ));
   		
     }finally{
     	
@@ -74,11 +75,23 @@ public class ConfigSectionRepository {
 	    }
 	  }
   
-  public ArrayList getList() {
+  public ArrayList<ConfigSection> getList() {
+	 	try{
+	  		class_mon.enter();
+	   
+	  		return (new ArrayList<ConfigSection>( items.keySet() ));
+	  		
+	 	  }finally{
+	    	
+	    	class_mon.exit();
+	    } 		
+	  }
+  
+  public ArrayList<ConfigSectionHolder> getHolderList() {
  	try{
   		class_mon.enter();
    
-  		return (ArrayList)items.clone();
+  		return (new ArrayList<ConfigSectionHolder>( items.values() ));
   		
  	  }finally{
     	

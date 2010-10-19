@@ -20,6 +20,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.IViewExtension;
@@ -663,9 +664,12 @@ public abstract class BaseMdiEntry
 			Debug.out(e);
 		}
 		
-		if ((_eventListener instanceof BasicPluginViewImpl)
-				&& getImageLeftID() == null) {
-			setImageLeftID("image.sidebar.logview");
+		if ( 	( _eventListener instanceof BasicPluginViewImpl ) ||
+				(	( _eventListener instanceof UISWTViewEventListenerHolder )) && ((UISWTViewEventListenerHolder)_eventListener).isLogView()){
+
+			if ( getImageLeftID() == null) {
+				setImageLeftID("image.sidebar.logview");
+			}
 		}
 	}
 

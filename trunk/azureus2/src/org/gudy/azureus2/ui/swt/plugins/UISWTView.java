@@ -24,6 +24,7 @@
 
 package org.gudy.azureus2.ui.swt.plugins;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
 
 /**
@@ -113,4 +114,13 @@ public interface UISWTView extends UIPluginView {
 	 * @since 2.3.0.6
 	 */
 	public void setTitle(String title);
+	
+	/**
+	 * Gets the plugin interface associated with this view, null if none defined
+	 * @since 4.5.1.1
+	 * @return
+	 */
+	
+	public PluginInterface getPluginInterface();
+	
 }

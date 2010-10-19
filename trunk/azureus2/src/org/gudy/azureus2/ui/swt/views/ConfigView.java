@@ -354,7 +354,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionIPFilter(),
                                          new ConfigSectionPlugins(this),
                                          new ConfigSectionStats(),
-                                          new ConfigSectionTracker(),
+                                         new ConfigSectionTracker(),
                                          new ConfigSectionTrackerClient(),
                                          new ConfigSectionTrackerServer(),
                                          new ConfigSectionSecurity(),

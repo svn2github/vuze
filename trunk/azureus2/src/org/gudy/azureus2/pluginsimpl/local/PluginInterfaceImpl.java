@@ -263,7 +263,7 @@ PluginInterfaceImpl
   public void addConfigSection(ConfigSection section)
   {
 	// Method is used by autocat.
-  	ConfigSectionRepository.getInstance().addConfigSection(section);
+  	ConfigSectionRepository.getInstance().addConfigSection(section, this);
   	configSections.add(section);
   }
 

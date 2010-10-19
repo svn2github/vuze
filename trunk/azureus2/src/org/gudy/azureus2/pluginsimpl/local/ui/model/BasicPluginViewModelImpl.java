@@ -31,6 +31,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.ui.model.*;
@@ -82,6 +83,12 @@ BasicPluginViewModelImpl
 	getActivity()
 	{
 		return( activity );
+	}
+	
+	public PluginInterface 
+	getPluginInterface() 
+	{
+		return( ui_manager.getPluginInterface());
 	}
 	
 	public UITextArea

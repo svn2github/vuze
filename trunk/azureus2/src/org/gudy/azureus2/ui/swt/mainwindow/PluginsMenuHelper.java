@@ -14,6 +14,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
@@ -115,8 +116,16 @@ public class PluginsMenuHelper
 
 		view_info.name = name;
 
-		Map map_to_use = (l instanceof BasicPluginViewImpl)
-				? this.plugin_logs_view_info_map : this.plugin_view_info_map;
+		Map map_to_use;
+		
+		if ( 	( l instanceof BasicPluginViewImpl ) ||
+				(	( l instanceof UISWTViewEventListenerHolder )) && ((UISWTViewEventListenerHolder)l).isLogView()){
+					
+			map_to_use = plugin_logs_view_info_map;
+			
+		}else{
+			map_to_use = plugin_view_info_map;
+		}
 
 		try {
 			plugin_helper_mon.enter();

@@ -44,6 +44,7 @@ import org.gudy.azureus2.ui.swt.views.IViewExtension;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -199,6 +200,16 @@ public class UISWTViewImpl extends AbstractIView implements UISWTViewCore, IView
 		return composite;
 	}
 
+	public PluginInterface getPluginInterface()
+	{
+		if ( eventListener instanceof UISWTViewEventListenerHolder ){
+			
+			return(((UISWTViewEventListenerHolder)eventListener).getPluginInterface());
+		}
+		
+		return( null );
+	}
+	
 	public String getData() {
 		final String key = CFG_PREFIX + sViewID + ".title";
 		if (MessageText.keyExists(key))

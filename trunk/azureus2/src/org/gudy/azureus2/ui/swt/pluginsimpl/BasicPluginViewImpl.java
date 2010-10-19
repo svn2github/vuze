@@ -80,6 +80,12 @@ BasicPluginViewImpl
     isCreated = false;
   }
   
+  public BasicPluginViewModel
+  getModel()
+  {
+	  return( model );
+  }
+  
 	public boolean eventOccurred(UISWTViewEvent event) {
 		switch (event.getType()) {
 			case UISWTViewEvent.TYPE_CREATE:
