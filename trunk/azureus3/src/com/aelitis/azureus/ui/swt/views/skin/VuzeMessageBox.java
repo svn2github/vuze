@@ -423,7 +423,7 @@ public class VuzeMessageBox
 						dlg.open();
 					}
 					Shell shell = dlg.getShell();
-					if (shell == null) {
+					if (shell == null || shell.isDisposed()) {
 						sem.release();
 						return;
 					}
