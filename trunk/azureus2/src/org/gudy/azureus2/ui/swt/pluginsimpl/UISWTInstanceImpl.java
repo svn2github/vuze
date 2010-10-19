@@ -765,16 +765,28 @@ UISWTInstanceImpl
 	}
 
 	public void openMainView(final String sViewID,
-			final UISWTViewEventListener l, final Object dataSource) {
-		openMainView(sViewID, l, dataSource, true);
+			UISWTViewEventListener l, Object dataSource) {
+		openMainView(null,sViewID, l, dataSource, true);
+	}
+	
+	public void openMainView(PluginInterface pi, String sViewID,
+			UISWTViewEventListener l, Object dataSource) {
+		openMainView( pi, sViewID, l, dataSource, true);
 	}
 	
 	public void openMainView(final String sViewID,
 			final UISWTViewEventListener l, final Object dataSource,
 			final boolean setfocus) {
+		openMainView( null, sViewID, l, dataSource, setfocus );
+	}
+	public void openMainView(final PluginInterface pi, final String sViewID,
+			final UISWTViewEventListener _l, final Object dataSource,
+			final boolean setfocus) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (uiFunctions != null) {
+					UISWTViewEventListenerHolder l = new UISWTViewEventListenerHolder( _l, pi );
+					
 					uiFunctions.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l, dataSource, setfocus && !bUIAttaching);
 				}
 			}
@@ -950,13 +962,17 @@ UISWTInstanceImpl
 		public void 
 		openMainView(String sViewID, UISWTViewEventListener l,Object dataSource)
 		{
-			delegate.openMainView( sViewID, l, dataSource );
+			PluginInterface pi = pi_ref.get();
+			
+			delegate.openMainView( pi, sViewID, l, dataSource );
 		}
 
 		public void 
 		openMainView(String sViewID, UISWTViewEventListener l,Object dataSource, boolean setfocus)
 		{
-			delegate.openMainView( sViewID, l, dataSource, setfocus );
+			PluginInterface pi = pi_ref.get();
+			
+			delegate.openMainView( pi, sViewID, l, dataSource, setfocus );
 		}
 
 		
