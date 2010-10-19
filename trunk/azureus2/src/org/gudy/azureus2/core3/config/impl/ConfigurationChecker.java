@@ -604,11 +604,16 @@ ConfigurationChecker
       }
 	    
 	    // 4511: confirm.delete.content (boolean) changed to tb..confirm.delete.content (long)
-	    if (ConfigurationManager.getInstance().doesParameterNonDefaultExist("confirm.delete.content") ) {
-	    	boolean confirm = COConfigurationManager.getBooleanParameter("confirm.delete.content");
-	    	if (!confirm) {
+	    final String CFG_CONFIRM_DELETE_CONTENT = "confirm.delete.content";
+	    if (ConfigurationManager.getInstance().doesParameterNonDefaultExist(CFG_CONFIRM_DELETE_CONTENT) ) {
+	    	boolean confirm = COConfigurationManager.getBooleanParameter(CFG_CONFIRM_DELETE_CONTENT);
+				if (!confirm
+						&& !ConfigurationManager.getInstance().doesParameterNonDefaultExist(
+								"tb.confirm.delete.content")) {
 	    		COConfigurationManager.setParameter("tb.confirm.delete.content", 1);
 	    	}
+	    	COConfigurationManager.removeParameter(CFG_CONFIRM_DELETE_CONTENT);
+	    	changed = true;
 	    }
       
 	    if ( FeatureAvailability.isAutoSpeedDefaultClassic()){
