@@ -1462,7 +1462,7 @@ DeviceManagerUI
 				
 					// options 
 				
-				de_menu_item = menu_manager.addMenuItem( parentID, "ConfigView.title.short" );
+				de_menu_item = menu_manager.addMenuItem( parentID, "MainWindow.menu.view.configuration" );
 				
 				de_menu_item.addListener( 
 						new MenuItemListener() 

@@ -905,7 +905,7 @@ SubscriptionManagerUI
 
 			MenuManager menu_manager = ui_manager.getMenuManager();
 			
-			MenuItem mi = menu_manager.addMenuItem( parentID, "ConfigView.title.short" );
+			MenuItem mi = menu_manager.addMenuItem( parentID, "MainWindow.menu.view.configuration" );
 			
 			mi.addListener( 
 					new MenuItemListener() 
