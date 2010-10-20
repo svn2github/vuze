@@ -202,6 +202,7 @@ void CMStuff(char *devID, JNIEnv *env, jobject hashMap, jmethodID methPut)
 		WCHAR *buffer = new WCHAR[buflen];
 		ret = CM_Get_Device_ID(devinst, buffer, buflen, 0);
 		if (ret != CR_SUCCESS) {
+			delete[] buffer;
 			return;
 		}
 
@@ -219,6 +220,7 @@ void CMStuff(char *devID, JNIEnv *env, jobject hashMap, jmethodID methPut)
 		WCHAR *buffer = new WCHAR[buflen];
 		ret = CM_Get_Device_ID(devinstparent, buffer, buflen, 0);
 		if (ret != CR_SUCCESS) {
+			delete[] buffer;
 			return;
 		}
 
