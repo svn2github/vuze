@@ -523,9 +523,38 @@ StreamManager
 								
 								listener.updateStats( eta, buffer_secs, buffer, BUFFER_SECS );
 
-								boolean playable =  buffer_secs > BUFFER_SECS && ( eta <= 0 || preview_mode );
+								boolean playable;
 								
-								if ( !playback_started ){
+								if ( playback_started ){
+									
+									playable = buffer_secs >= BUFFER_MIN_SECS;
+									
+								}else{
+									
+									playable = buffer_secs > BUFFER_SECS && ( eta <= 0 || preview_mode );
+								}
+								
+								if ( playback_started ){
+									
+									if ( playable ){
+										
+										if ( playback_paused ){
+											
+											listener.updateActivity( "Resuming playback" );
+											
+											resume_method.invoke(player, new Object[] {});
+
+											playback_paused = false;
+										}
+									}else{
+											
+										listener.updateActivity( "Pausing playback to prevent stall" );
+																						
+										pause_method.invoke(player, new Object[] {});
+
+										playback_paused = true;
+									}
+								}else{
 									
 									if ( playable ){
 										
@@ -534,29 +563,6 @@ StreamManager
 										start_method.invoke(player, new Object[] { url });
 										
 										playback_started = true;
-									}
-								}else if ( playback_started ){
-									
-									if ( buffer_secs < BUFFER_MIN_SECS ){
-										
-										if ( !playback_paused ){
-											
-											listener.updateActivity( "Pausing playback to prevent stall" );
-																						
-											pause_method.invoke(player, new Object[] {});
-
-											playback_paused = true;
-										}
-									}else if ( playable ){
-										
-										if ( playback_paused ){
-										
-											listener.updateActivity( "Resuming playback" );
-											
-											resume_method.invoke(player, new Object[] {});
-
-											playback_paused = false;
-										}
 									}
 								}
 							
