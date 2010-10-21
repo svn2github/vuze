@@ -31,6 +31,8 @@ import org.gudy.azureus2.core3.category.CategoryListener;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.CategoryManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -63,6 +65,7 @@ TranscodeManagerImpl
 	
 	private Map<Category,Object[]> 	category_map = new HashMap<Category, Object[]>();
 	private CategoryListener		category_listener;
+	private GlobalManagerListener	category_dl_listener;
 	private TorrentAttribute		category_ta;
 	
 	protected
@@ -391,7 +394,7 @@ TranscodeManagerImpl
 				}
 			}
 			
-			for ( Category c: active_map.keySet()){
+			for ( final Category c: active_map.keySet()){
 				
 				if ( !category_map.containsKey( c )){
 					
@@ -400,6 +403,62 @@ TranscodeManagerImpl
 					c.addCategoryListener( category_listener );
 					
 					category_map.put( c, active_map.get(c));
+					
+					if ( c.getType() == Category.TYPE_UNCATEGORIZED ){
+						
+						if ( category_dl_listener == null ){
+						
+								// new downloads don't get a category-change event fired when added
+								// we also want to delay things a bit to allow other components
+								// to set an initial category. there's no hurry anyways
+							
+							category_dl_listener = 
+								new GlobalManagerAdapter()
+								{
+									public void
+									downloadManagerAdded(
+										final DownloadManager	dm )
+									{
+										new DelayedEvent( 
+											"TM:cat-check",
+											10*1000,
+											new AERunnable()
+											{
+												public void
+												runSupport()
+												{
+													Category dm_c = dm.getDownloadState().getCategory();
+													
+													if ( dm_c == null || dm_c == c ){
+														
+															// still uncategorised
+													
+														Object[]	details;
+														
+														synchronized( category_map ){
+	
+															details = category_map.get( c );
+														}
+														
+														if ( details != null ){
+															
+															processCategory( c, details, dm );
+														}
+													}
+												}
+											});
+									}
+									public void
+									downloadManagerRemoved(
+										DownloadManager	dm )
+									{
+									}
+								};
+						
+								
+							azureus_core.getGlobalManager().addListener( category_dl_listener, false );
+						}
+					}
 				}
 			}
 		}
