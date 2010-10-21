@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -60,7 +61,9 @@ import com.aelitis.azureus.ui.swt.plugininstall.SimplePluginInstaller;
 public class 
 StreamManager 
 {
-	private static final int BUFFER_SECS = 30;
+	private static final int BUFFER_SECS 		= 30;
+	private static final int BUFFER_MIN_SECS	= 3;
+	
 
 	private static StreamManager		singleton = new StreamManager();
 	
@@ -104,9 +107,10 @@ StreamManager
 		private DownloadManager						dm;
 		private int									file_index;
 		private URL									url;
-		private StreamManagerDownloadListener	listener;
+		private StreamManagerDownloadListener		listener;
 			
 		private boolean					preview_mode;
+		private long					preview_mode_last_change = 0;
 		
 		private AESemaphore				active_sem;
 		private TranscodeJob			active_job;
@@ -158,40 +162,107 @@ StreamManager
 		setPreviewMode(
 			boolean	_preview_mode )
 		{
-			preview_mode = _preview_mode;
+			long	now = SystemTime.getMonotonousTime();
 			
-			listener.updateActivity( "Preview mode changed to " + preview_mode );
+			if ( 	preview_mode_last_change == 0 || 
+					now - preview_mode_last_change > 500 ){
+				
+				preview_mode_last_change = now;
+				
+				preview_mode = _preview_mode;
+				
+				listener.updateActivity( "Preview mode changed to " + preview_mode );
+			}
 		}
 		
 		public void
 		runSupport()
 		{
-			boolean	ok				= false;
-			boolean	error_reported	= false;
-			
 			try{
 				Download download = PluginCoreUtils.wrap( dm );
 				
-				DiskManagerFileInfo file = download.getDiskManagerFileInfo( file_index );
+				final DiskManagerFileInfo file = download.getDiskManagerFileInfo( file_index );
 				
-				Map	map = download.getMapAttribute( mi_ta );
+				PluginInterface emp_pi = checkPlugin( "azemp", "media player" );
+
+				Class<?> epwClass = emp_pi.getPlugin().getClass().getClassLoader().loadClass( "com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT" );
+				
+				Method method = epwClass.getMethod( "prepareWindow", new Class[] { String.class });
+				
+				final Object player = method.invoke(null, new Object[] { file.getFile( true ).getName() });
+			
+				final Method buffering_method	= player.getClass().getMethod( "bufferingPlayback", new Class[] { Map.class });
+
+				final StreamManagerDownloadListener original_listener = listener;
+				
+				listener = 
+					new StreamManagerDownloadListener()
+					{
+						public void
+						updateActivity(
+							String		str )
+						{
+							original_listener.updateActivity(str);
+						}
+						
+						public void
+						updateStats(
+							int			secs_until_playable,
+							int			buffer_secs,
+							long		buffer_bytes,
+							int			target_buffer_secs )
+						{
+							original_listener.updateStats(secs_until_playable, buffer_secs, buffer_bytes, target_buffer_secs);
+						}
+						
+						public void
+						ready()
+						{
+							original_listener.ready();
+						}
+						
+						public void
+						failed(
+							Throwable 	error )
+						{
+							original_listener.failed(error);
+							
+							Map<String,Object> b_map = new HashMap<String,Object>();
+							
+							b_map.put( "state", new Integer( 3 ));
+							b_map.put( "msg", Debug.getNestedExceptionMessage( error ));
+							
+							try{
+								buffering_method.invoke(player, new Object[] { b_map });
+
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					};
+				
+				Map<String,Map<String,Object>>	map = (Map<String,Map<String,Object>>)download.getMapAttribute( mi_ta );
 				
 				Long	l_duration 		= null;
 				Long	l_video_width 	= null;
+				Long	l_video_height 	= null;
 				
 				if ( map != null ){
 					
-					Map file_map = (Map)map.get( String.valueOf( file_index ));
+					Map<String,Object> file_map = map.get( String.valueOf( file_index ));
 					
 					if ( file_map != null ){
 						
 						l_duration 		= (Long)file_map.get( "duration" );
 						l_video_width 	= (Long)file_map.get( "video_width" );
+						l_video_height 	= (Long)file_map.get( "video_height" );
 					}
 				}
 				
 				long duration;
 				long video_width;
+				long video_height;
 				
 				if ( l_duration == null ){
 						
@@ -242,8 +313,15 @@ StreamManager
 							throw( new Exception( "Analyser transcode profile not found" ));
 						}
 						
-						listener.updateActivity( "analysing media" );
+						listener.updateActivity( "Analysing media" );
 						
+						Map<String,Object> b_map = new HashMap<String,Object>();
+						
+						b_map.put( "state", new Integer( 1 ));
+						b_map.put( "msg", "Analysing Media" );
+						
+						buffering_method.invoke(player, new Object[] { b_map });
+
 						final TranscodeJob tj = queue.add( dmr, profile, file, true );
 											
 						try{
@@ -320,32 +398,36 @@ StreamManager
 								throw( error[0] );
 							}
 							
-							if ( map == null ){
+							duration 		= properties[0];
+							video_width		= properties[1];
+							video_height	= properties[2];
+							
+							if ( duration > 0 ){
 								
-								map = new HashMap();
+								if ( map == null ){
+									
+									map = new HashMap<String, Map<String,Object>>();
+									
+								}else{
+									
+									map = new HashMap<String, Map<String,Object>>( map );
+								}
 								
-							}else{
+								Map<String,Object> file_map = map.get( String.valueOf( file_index ));
 								
-								map = new HashMap( map );
+								if ( file_map == null ){
+								
+									file_map = new HashMap<String, Object>();
+									
+									map.put( String.valueOf( file_index ), file_map );
+								}
+								
+								file_map.put( "duration", duration );
+								file_map.put( "video_width", video_width );
+								file_map.put( "video_height", video_height );
+								
+								download.setMapAttribute( mi_ta, map );
 							}
-							
-							Map file_map = (Map)map.get( String.valueOf( file_index ));
-							
-							if ( file_map == null ){
-							
-								file_map = new HashMap();
-								
-								map.put( String.valueOf( file_index ), file_map );
-							}
-							
-							file_map.put( "duration", properties[0] );
-							file_map.put( "video_width", properties[1] );
-							file_map.put( "video_height", properties[2] );
-							
-							download.setMapAttribute( mi_ta, map );
-							
-							duration 	= properties[0];
-							video_width	= properties[1];
 							
 						}catch( Throwable e ){
 							
@@ -360,11 +442,12 @@ StreamManager
 					}
 				}else{
 						
-					duration 	= l_duration;
-					video_width	= l_video_width==null?0:l_video_width;
+					duration 		= l_duration;
+					video_width		= l_video_width==null?0:l_video_width;
+					video_height	= l_video_height==null?0:l_video_height;
 				}
 					
-				if ( video_width == 0 ){
+				if ( video_width == 0 || video_height == 0){
 					
 					throw( new Exception( "Media analysis failed - video stream not found" ));
 				}
@@ -374,13 +457,23 @@ StreamManager
 					throw( new Exception( "Media analysis failed - duration unknown" ));
 				}
 				
-				PluginInterface emp_pi = checkPlugin( "azemp", "media player" );
+				listener.updateActivity( "MetaData read: duration=" + TimeFormatter.formatColon( duration/1000) + ", width=" + video_width + ", height=" + video_height );
 				
+				Method smd_method = player.getClass().getMethod( "setMetaData", new Class[] { Map.class });
+				
+				Map<String,Object>	md_map = new HashMap<String,Object>();
+				
+				md_map.put( "duration", duration );
+				md_map.put( "width", video_width );
+				md_map.put( "height", video_height );
+				
+				smd_method.invoke( player, new Object[] { md_map });
+
 				final EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
 				
 				long	bytes_per_sec = file.getLength() / (duration/1000);
 				
-				listener.updateActivity( "media duraton=" + (duration/1000) + " sec, average rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( bytes_per_sec ));
+				listener.updateActivity( "Average rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( bytes_per_sec ));
 												
 				edm.setExplicitProgressive( BUFFER_SECS, bytes_per_sec, file_index );
 				
@@ -388,88 +481,127 @@ StreamManager
 					
 					throw( new Exception( "Failed to set download as progressive" ));
 				}
-				
-				while( true ){
-				
-					if ( cancelled ){
-						
-						throw( new Exception( "Cancelled" ));
-					}
-					
-					long[] eta_details = updateETA( edm );
-							
-					if ( eta_details[0] <= 0 ){
-						
-						break;
-					}
-					
-					if ( preview_mode ){
-						
-						if ( eta_details[1] >= 5 ){
-							
-							break;
-						}
-					}
-					
-					int dm_state = dm.getState();
-					
-					if ( dm_state == DownloadManager.STATE_ERROR || dm_state == DownloadManager.STATE_STOPPED ){
-						
-						throw( new Exception( "Streaming abandoned, download isn't running" ));
-					}
-										
-					Thread.sleep(1000);
-				}
-				
-				Class epwClass = emp_pi.getPlugin().getClass().getClassLoader().loadClass( "com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT" );
-				
-				Method method = epwClass.getMethod("openWindow", new Class[] { URL.class, String.class });
-				
-				method.invoke(null, new Object[] { url, file.getFile( true ).getName() });
 
 				new AEThread2( "streamMon" )
 				{
+					private boolean playback_started 	= false;
+					private boolean	playback_paused		= false;
+					
 					public void
 					run()
-					{
+					{	
+						boolean	error_reported = false;
+						
 						try{
-							while( edm.getProgressiveMode() && !cancelled ){
-																								
-								updateETA( edm );
+							Method start_method 	= player.getClass().getMethod( "startPlayback", new Class[] { URL.class });
+							Method pause_method 	= player.getClass().getMethod( "pausePlayback", new Class[] {});
+							Method resume_method 	= player.getClass().getMethod( "resumePlayback", new Class[] {});
+							Method buffering_method	= player.getClass().getMethod( "bufferingPlayback", new Class[] { Map.class });
+
+							while( !cancelled ){
+									
+								if ( file.getLength() != file.getDownloaded()){
+
+									int dm_state = dm.getState();
+									
+									if ( dm_state == DownloadManager.STATE_ERROR || dm_state == DownloadManager.STATE_STOPPED ){
+										
+										throw( new Exception( "Streaming abandoned, download isn't running" ));
+									}
+	
+									if ( !edm.getProgressiveMode()){
+									
+										throw( new Exception( "Streaming mode abandoned for download" ));
+									}
+								}
+							
+								long[] details = updateETA( edm );
 								
-								Thread.sleep( 1000 );
+								int		eta 		= (int)details[0];
+								int		buffer_secs	= (int)details[1];
+								long	buffer		= details[2];
+								
+								listener.updateStats( eta, buffer_secs, buffer, BUFFER_SECS );
+
+								boolean playable =  buffer_secs > BUFFER_SECS && ( eta <= 0 || preview_mode );
+								
+								if ( !playback_started ){
+									
+									if ( playable ){
+										
+										listener.ready();
+											
+										start_method.invoke(player, new Object[] { url });
+										
+										playback_started = true;
+									}
+								}else if ( playback_started ){
+									
+									if ( buffer_secs < BUFFER_MIN_SECS ){
+										
+										if ( !playback_paused ){
+											
+											listener.updateActivity( "Pausing playback to prevent stall" );
+																						
+											pause_method.invoke(player, new Object[] {});
+
+											playback_paused = true;
+										}
+									}else if ( playable ){
+										
+										if ( playback_paused ){
+										
+											listener.updateActivity( "Resuming playback" );
+											
+											resume_method.invoke(player, new Object[] {});
+
+											playback_paused = false;
+										}
+									}
+								}
+							
+								if ( !playable ){
+									
+									Map<String,Object> map = new HashMap<String,Object>();
+									
+									map.put( "state", new Integer( 2 ));
+									map.put( "eta", new Integer( eta ));
+									map.put( "buffer_secs", new Integer( buffer_secs ));
+									map.put( "buffer_bytes", new Long( buffer ));
+									
+									buffering_method.invoke(player, new Object[] { map });
+								}
+								
+								Thread.sleep( 250 );
 							}
 						}catch( Throwable e ){
 							
-							Debug.out( e );
+							error_reported = true;
+							
+							listener.failed( e );
+							
+						}finally{
+							
+							if ( !( error_reported || cancelled )){
+								
+								if ( !playback_started ){
+								
+									listener.failed( new Exception( "Streaming failed, reason unknown" ));
+								}
+							}
 						}
 					}
 				}.start();
-				
-				ok = true;
-				
+								
 			}catch( Throwable e ){
-				
-				error_reported = true;
-				
+								
 				listener.failed( e );
-				
-			}finally{
-				
-				if ( ok ){
-					
-					listener.ready();
-					
-				}else if ( !error_reported ){
-					
-					listener.failed( new Exception( "Streaming setup failed, reason unknown" ));
-				}
 			}
 		}
 		
 		private long[]
 		updateETA(
-			EnhancedDownloadManager edm )
+			EnhancedDownloadManager 	edm )
 		{
 			long _eta = edm.getProgressivePlayETA();
 					
@@ -482,17 +614,10 @@ StreamManager
 			long buffer = edm.getContiguousAvailableBytes( edm.getPrimaryFile().getIndex(), provider_pos, 0 );
 			
 			long bps = stats.getStreamBytesPerSecondMin();
-			
-			long to_dl 		= stats.getSecondsToDownload();
-			long to_watch	= stats.getSecondsToWatch();
-			
+						
 			int	buffer_secs = bps<=0?Integer.MAX_VALUE:(int)(buffer/bps);
-			
-			System.out.println( "eta=" + eta + ", view=" + provider_pos + ", buffer=" + buffer + "/" + buffer_secs + ", dl=" + to_dl + ", view=" + to_watch );
-			
-			listener.updateStats( eta, buffer_secs, buffer, BUFFER_SECS );
-			
-			return( new long[]{ eta, buffer_secs } );
+											
+			return( new long[]{ eta, buffer_secs, buffer });
 		}
 		
 		public void

@@ -561,7 +561,7 @@ public class TorrentListViewsUtils
 				url = PlayUtils.getMediaServerContentURL( file );
 				
 			}else{
-				
+								
 				url = null;
 			}
 				
@@ -632,6 +632,8 @@ public class TorrentListViewsUtils
 									dm, file_index, url, false,
 									new StreamManagerDownloadListener()
 									{
+										private long	last_log = 0;
+										
 										public void
 										updateActivity(
 											String		str )
@@ -646,7 +648,14 @@ public class TorrentListViewsUtils
 											long		buffer_bytes,
 											int			target_secs )
 										{
-											append( "stats: play in " + secs_until_playable + " sec, buffer=" + DisplayFormatters.formatByteCountToKiBEtc( buffer_bytes ) + "/" + buffer_secs + " sec - target=" + target_secs + " sec" );
+											long	now = SystemTime.getMonotonousTime();
+											
+											if ( now - last_log >= 1000 ){
+											
+												last_log = now;
+												
+												append( "stats: play in " + secs_until_playable + " sec, buffer=" + DisplayFormatters.formatByteCountToKiBEtc( buffer_bytes ) + "/" + buffer_secs + " sec - target=" + target_secs + " sec" );
+											}
 										}
 										
 										public void
