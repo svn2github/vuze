@@ -523,13 +523,15 @@ public abstract class TranscodeChooser
 
 				} else {
 					Rectangle ca = lblImage.getClientArea();
-					event.gc.drawRectangle(ca.x, ca.y, ca.width - 1, ca.height - 1);
+					event.gc.setAdvanced(true);
+					event.gc.setAntialias(SWT.ON);
+					event.gc.drawRoundRectangle(ca.x, ca.y, ca.width - 1, ca.height - 1, 20, 20);
 				}
 			}
 		});
 		gridData = new GridData(GridData.FILL_VERTICAL);
-		gridData.heightHint = 100;
-		gridData.widthHint = 120;
+		gridData.heightHint = 50;
+		gridData.widthHint = 100;
 		if (iconURL != null) {
 			ImageLoader imageLoader = ImageLoader.getInstance();
 			Image image = imageLoader.getUrlImage(iconURL,
