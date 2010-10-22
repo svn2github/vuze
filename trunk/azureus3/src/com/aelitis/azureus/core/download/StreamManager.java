@@ -523,17 +523,10 @@ StreamManager
 								
 								listener.updateStats( eta, buffer_secs, buffer, BUFFER_SECS );
 
-								boolean playable;
+								boolean playable = buffer_secs > ( playback_started?BUFFER_MIN_SECS:BUFFER_SECS );
 								
-								if ( playback_started ){
-									
-									playable = buffer_secs >= BUFFER_MIN_SECS;
-									
-								}else{
-									
-									playable = buffer_secs > BUFFER_SECS && ( eta <= 0 || preview_mode );
-								}
-								
+								playable = playable && ( eta <= 0 || preview_mode );
+															
 								if ( playback_started ){
 									
 									if ( playable ){
@@ -548,11 +541,14 @@ StreamManager
 										}
 									}else{
 											
-										listener.updateActivity( "Pausing playback to prevent stall" );
-																						
-										pause_method.invoke(player, new Object[] {});
-
-										playback_paused = true;
+										if ( !playback_paused ){
+											
+											listener.updateActivity( "Pausing playback to prevent stall" );
+																							
+											pause_method.invoke(player, new Object[] {});
+	
+											playback_paused = true;
+										}
 									}
 								}else{
 									
