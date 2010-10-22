@@ -203,7 +203,7 @@ public abstract class BaseMdiEntry
 	}
 
 	public void setParentID(String id) {
-		if (id == null) {
+		if (id == null || id.equals("Tools")) {
 			id = MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS;
 		}
 		if (id.equals(getId())) {
