@@ -1069,6 +1069,9 @@ public class MainWindow
 		mdi.addListener(new MdiListener() {
 			public void mdiEntrySelected(MdiEntry newEntry,
 					MdiEntry oldEntry) {
+				if (newEntry == null) {
+					return;
+				}
 				COConfigurationManager.setParameter("v3.StartTab",
 						newEntry.getId());
 			}
@@ -1369,6 +1372,12 @@ public class MainWindow
 				System.out.println("---------SHOWN AT " + SystemTime.getCurrentTime()
 						+ ";" + (SystemTime.getCurrentTime() - Initializer.startTime)
 						+ "ms");
+			}
+		});
+		
+		shell.addListener(SWT.Hide, new Listener() {
+			public void handleEvent(Event event) {
+				System.out.println("HIDE");
 			}
 		});
 
