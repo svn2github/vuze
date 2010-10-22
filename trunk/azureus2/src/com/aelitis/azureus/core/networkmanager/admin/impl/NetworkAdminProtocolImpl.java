@@ -26,11 +26,15 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.net.InetAddress;
 
+import org.gudy.azureus2.plugins.PluginInterface;
+
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProgressListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProtocol;
+import com.aelitis.azureus.plugins.upnp.UPnPMapping;
+import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 public class 
 NetworkAdminProtocolImpl 
@@ -84,8 +88,9 @@ NetworkAdminProtocolImpl
 	
 	public InetAddress
 	test(
-		NetworkAdminNetworkInterfaceAddress	address,
-		NetworkAdminProgressListener		listener )
+		NetworkAdminNetworkInterfaceAddress		address,
+		boolean									upnp_map,
+		NetworkAdminProgressListener			listener )
 	
 		throws NetworkAdminException
 	{
@@ -113,11 +118,58 @@ NetworkAdminProtocolImpl
 			res = tester.testOutbound( bind_ip, 0 );
 			
 		}else{
+
+			UPnPMapping new_mapping = null;
+
+			if ( upnp_map ){
+				
+				PluginInterface pi_upnp = core.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+
+				if( pi_upnp != null ) {
+
+					UPnPPlugin upnp = (UPnPPlugin)pi_upnp.getPlugin();
+
+					UPnPMapping mapping = upnp.getMapping( type != PT_UDP , port );
+
+					if ( mapping == null ) {
+
+						new_mapping = mapping = upnp.addMapping( "NAT Tester", type != PT_UDP, port, true );
+
+							// give UPnP a chance to work
+
+						try{
+							Thread.sleep( 500 );
+
+						}catch( Throwable e ){
+
+						}
+					}
+				}
+			}
 			
-			res = tester.testInbound( bind_ip, port );
+			try{
+				res = tester.testInbound( bind_ip, port );
+				
+			}finally{
+				
+				if ( new_mapping != null ){
+					
+					new_mapping.destroy();
+				}
+			}
 		}
 		
 		return( res );
+	}
+	
+	public InetAddress
+	test(
+		NetworkAdminNetworkInterfaceAddress	address,
+		NetworkAdminProgressListener		listener )
+	
+		throws NetworkAdminException
+	{
+		return( test( address, false, listener ));
 	}
 	
 	public String

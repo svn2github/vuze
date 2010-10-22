@@ -75,7 +75,7 @@ public class NatTestWindow {
 	          NatChecker checker = new NatChecker(AzureusCoreFactory.getSingleton(), NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses(true)[0], TCPListenPort, false);          
 	          switch (checker.getResult()) {
 	          case NatChecker.NAT_OK :
-	            printMessage(MessageText.getString("configureWizard.nat.ok") + "\n" + checker.getAdditionalInfo());
+	            printMessage( "\n" + MessageText.getString("configureWizard.nat.ok") + "\n" + checker.getAdditionalInfo());
 	            break;
 	          case NatChecker.NAT_KO :
 	            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + " - " + checker.getAdditionalInfo()+".\n");
@@ -131,6 +131,11 @@ public class NatTestWindow {
 					}
 				}
 					
+				if ( selected == null ){
+					
+					selected = admin.createInboundProtocol( core, NetworkAdminProtocol.PT_UDP, udp_port );
+				}
+
 		        if ( selected == null ){
 		        	
 		        	printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + ". \n( No UDP protocols enabled ).\n");
@@ -138,27 +143,28 @@ public class NatTestWindow {
 		        }else{
 		        	
 		        	printMessage(MessageText.getString("configureWizard.nat.testing") + " UDP " + udp_port + " ... ");
-					
-						try{
-							selected.test( 
-								null,
-								new NetworkAdminProgressListener()
-								{
-									public void 
-									reportProgress(
-										String task )
-									{
-										printMessage( "\n    " + task );
-									}
-								});
-							
-				            printMessage( "\n" + MessageText.getString("configureWizard.nat.ok"));
-								
-						}catch( Throwable e ){
-							
-				            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + ". " + Debug.getNestedExceptionMessage(e)+".\n");
-						}
-					}
+
+		        	try{
+		        		selected.test( 
+		        				null,
+		        				true,
+		        				new NetworkAdminProgressListener()
+		        				{
+		        					public void 
+		        					reportProgress(
+		        							String task )
+		        					{
+		        						printMessage( "\n    " + task );
+		        					}
+		        				});
+
+		        		printMessage( "\n" + MessageText.getString("configureWizard.nat.ok"));
+
+		        	}catch( Throwable e ){
+
+		        		printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + ". " + Debug.getNestedExceptionMessage(e)+".\n");
+		        	}
+		        }
 		   
 	    	}finally{
 	    		if (display.isDisposed()) {return;}

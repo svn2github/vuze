@@ -114,12 +114,18 @@ NetworkAdmin
 	
 	public abstract NetworkAdminProtocol[]
 	getOutboundProtocols(
-			AzureusCore azureus_core);
+		AzureusCore azureus_core);
 	
 	public abstract NetworkAdminProtocol[]
 	getInboundProtocols(
-			AzureusCore azureus_core );
+		AzureusCore azureus_core );
 	
+	public abstract NetworkAdminProtocol
+	createInboundProtocol(
+		AzureusCore 	azureus_core,
+		int				type,
+		int				port );
+		
 	public abstract InetAddress
 	testProtocol(
 		NetworkAdminProtocol	protocol )

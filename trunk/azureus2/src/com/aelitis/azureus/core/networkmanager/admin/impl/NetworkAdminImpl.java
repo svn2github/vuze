@@ -1152,6 +1152,19 @@ addressLoop:
 		return( res );
 	}
  	
+	public NetworkAdminProtocol
+	createInboundProtocol(
+		AzureusCore 	azureus_core,
+		int				type,
+		int				port )
+	{
+		return(
+			new NetworkAdminProtocolImpl( 
+				azureus_core, 
+				type, 
+				port ));
+	}
+	
  	public NetworkAdminProtocol[]
  	getInboundProtocols(
  			AzureusCore azureus_core)

@@ -54,6 +54,14 @@ NetworkAdminProtocol
 	
 		throws NetworkAdminException;
 	
+	public InetAddress
+	test(
+		NetworkAdminNetworkInterfaceAddress	address,
+		boolean								upnp_map,
+		NetworkAdminProgressListener		listener )
+	
+		throws NetworkAdminException;
+	
 	public String
 	getName();
 }
