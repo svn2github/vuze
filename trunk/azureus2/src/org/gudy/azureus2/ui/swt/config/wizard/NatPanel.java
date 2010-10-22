@@ -21,6 +21,7 @@
 
 package org.gudy.azureus2.ui.swt.config.wizard;
 
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
@@ -31,6 +32,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipchecker.natchecker.NatChecker;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -39,6 +41,8 @@ import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProgressListener;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProtocol;
 
 /**
  * @author Olivier
@@ -47,61 +51,109 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 public class NatPanel extends AbstractWizardPanel {
 
   StyledText textResults;
-  Checker checker;
 
-  Button bTest;
-  Button bCancel;
+  Button bTestTCP,bTestUDP;
 
  
-  public class Checker extends AEThread {
+  public class CheckerTCP extends AEThread {
 
-    //private int lowPort;
-    //private int highPort;
-    private int TCPListenPort;
+	  	private AzureusCore	core;
+	    private int TCPListenPort;
+	    
+	    public CheckerTCP(AzureusCore _core, int tcp_listen_port) {
+	      super("NAT Checker TCP");
+	      core		= _core;
+	      this.TCPListenPort = tcp_listen_port;
+	    }
 
-    private boolean bContinue;
+	    public void 
+	    runSupport() 
+	    {
+	    	try{
+		          printMessage(MessageText.getString("configureWizard.nat.testing") + " TCP " + TCPListenPort + " ... ");
+		          NatChecker checker = new NatChecker(core, NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses(true)[0], TCPListenPort, false);          
+		          switch (checker.getResult()) {
+		          case NatChecker.NAT_OK :
+		            printMessage(MessageText.getString("configureWizard.nat.ok") + "\n" + checker.getAdditionalInfo());
+		            break;
+		          case NatChecker.NAT_KO :
+		            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + " - " + checker.getAdditionalInfo()+".\n");
+		            break;
+		          default :
+		            printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getAdditionalInfo()+").\n");
+		            break;
+		          }
+	    	}finally{
+	          enableNext();
+	    	}
+	    }
+	  }
+	  
+	  public class CheckerUDP extends AEThread {
 
-		private final AzureusCore core;
+		    private AzureusCore	core;
+		    private int			udp_port;
+		    
+		    public CheckerUDP(AzureusCore _core, int _udp_port ){
+		      super("NAT Checker UDP");
+		      core 		= _core;
+		      udp_port	= _udp_port;
+		    }
 
-    //public Checker(int lowPort, int highPort) {
-    public Checker(AzureusCore core, int tcp_listen_port) {
-      super("NAT Checker");
-			this.core = core;
-      //this.lowPort = lowPort;
-      //this.highPort = highPort;
-      this.TCPListenPort = tcp_listen_port;
-      this.bContinue = true;
-    }
-
-    public void runSupport() {
-      //if (lowPort <= highPort && (highPort-lowPort < 10)) {
-        //for (int port = lowPort; port <= highPort && bContinue; port++) {
-          printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");
-          NatChecker checker = new NatChecker(core, NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses(true)[0], TCPListenPort, false );
-          switch (checker.getResult()) {
-            case NatChecker.NAT_OK :
-              String	additional_info = checker.getAdditionalInfo();
-              printMessage(MessageText.getString("configureWizard.nat.ok") + "\n" + additional_info );
-              break;
-            case NatChecker.NAT_KO :
-              printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + " - " + checker.getAdditionalInfo()+".\n");
-              bContinue = false;
-              break;
-            default :
-              printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getAdditionalInfo()+").\n");
-              break;
-          }
-        //}
-      //}else {
-      //  printMessage(MessageText.getString("configureWizard.nat.tooManyPorts") + "\n");
-      //}
-      enableNext();
-    }
-
-    public void stopIt() {
-      bContinue = false;
-    }
-  }
+		    public void 
+		    runSupport() 
+		    {
+		    	try{
+			    	final NetworkAdmin	admin = NetworkAdmin.getSingleton();
+			    	
+					NetworkAdminProtocol[] inbound_protocols = admin.getInboundProtocols(core);
+					
+					NetworkAdminProtocol selected = null;
+					
+					for ( NetworkAdminProtocol p: inbound_protocols ){
+						
+						if ( p.getType() == NetworkAdminProtocol.PT_UDP && p.getPort() == udp_port ){
+							
+							selected = p;
+							
+							break;
+						}
+					}
+						
+			        if ( selected == null ){
+			        	
+			        	printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + ". \n( No UDP protocols enabled ).\n");
+			        	
+			        }else{
+			        	
+			        	printMessage(MessageText.getString("configureWizard.nat.testing") + " UDP " + udp_port + " ... ");
+						
+							try{
+								selected.test( 
+									null,
+									new NetworkAdminProgressListener()
+									{
+										public void 
+										reportProgress(
+											String task )
+										{
+											printMessage( "\n    " + task );
+										}
+									});
+								
+					            printMessage( "\n" + MessageText.getString("configureWizard.nat.ok"));
+									
+							}catch( Throwable e ){
+								
+					            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + ". " + Debug.getNestedExceptionMessage(e)+".\n");
+							}
+						}
+			   
+		    	}finally{
+		    		enableNext();
+		    	}
+		    }
+	  }
 
   public NatPanel(ConfigureWizard wizard, IWizardPanel previous) {
     super(wizard, previous);
@@ -133,6 +185,7 @@ public class NatPanel extends AbstractWizardPanel {
     gridData.horizontalSpan = 4;
     label.setLayoutData(gridData);
     
+    	// TCP
     
     label = new Label(panel, SWT.NULL);
     gridData = new GridData();
@@ -168,16 +221,27 @@ public class NatPanel extends AbstractWizardPanel {
       }
     });
 
-    /*
-    label = new Label(panel, SWT.NULL);
-    Messages.setLanguageText(label, "configureWizard.nat.serverhigh");
-
-    final Text textServerHigh = new Text(panel, SWT.BORDER);
+    bTestTCP = new Button(panel, SWT.PUSH);
+    Messages.setLanguageText(bTestTCP, "configureWizard.nat.test");
     gridData = new GridData();
-    gridData.widthHint = 100;
-    textServerHigh.setLayoutData(gridData);
-    textServerHigh.setText("" + ((ConfigureWizard) wizard).serverMaxPort);
-    textServerHigh.addListener(SWT.Verify, new Listener() {
+    gridData.widthHint = 70;
+    bTestTCP.setLayoutData(gridData);
+
+    label = new Label(panel, SWT.NULL);
+    
+    	// UDP
+
+    label = new Label(panel, SWT.NULL);
+    gridData = new GridData();
+    label.setLayoutData(gridData);
+    Messages.setLanguageText(label, "configureWizard.nat.server.udp_listen_port");
+
+    final Text textServerUDPListen = new Text(panel, SWT.BORDER);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.widthHint = 80;
+    textServerUDPListen.setLayoutData(gridData);
+    textServerUDPListen.setText("" + ((ConfigureWizard) wizard).serverUDPListenPort);
+    textServerUDPListen.addListener(SWT.Verify, new Listener() {
       public void handleEvent(Event e) {
         String text = e.text;
         char[] chars = new char[text.length()];
@@ -190,46 +254,27 @@ public class NatPanel extends AbstractWizardPanel {
         }
       }
     });
-    textServerHigh.addListener(SWT.Modify, new Listener() {
+    textServerUDPListen.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event e) {
-        int highPort = 0;
-        try{
-          highPort = Integer.parseInt(textServerHigh.getText());
-        } catch(Exception ignore) { }
-        ((ConfigureWizard) wizard).serverMaxPort = highPort;
+      	try {
+	        final int UDPListenPort = Integer.parseInt(textServerUDPListen.getText());
+	        ((ConfigureWizard) wizard).serverUDPListenPort = UDPListenPort;
+      	} catch (NumberFormatException ex) {
+      		// ignore
+      	}
       }
     });
 
-    final Button sharePort = new Button(panel,SWT.CHECK);
-    sharePort.setSelection(((ConfigureWizard)wizard).serverSharePort);
-    sharePort.addListener(SWT.Selection,new Listener() {
-    	public void handleEvent(Event arg0) {
-    		((ConfigureWizard)wizard).serverSharePort = sharePort.getSelection();
-    		textServerHigh.setEnabled(!((ConfigureWizard)wizard).serverSharePort);
-    	}
-    });
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-    sharePort.setLayoutData(gridData);
+    bTestUDP = new Button(panel, SWT.PUSH);
+    Messages.setLanguageText(bTestUDP, "configureWizard.nat.test");
+    gridData = new GridData();
+    gridData.widthHint = 70;
+    bTestUDP.setLayoutData(gridData);
     
-	label = new Label(panel,SWT.NULL);
-	Messages.setLanguageText(label, "configureWizard.nat.sharePort");
-	 
-    textServerHigh.setEnabled(!((ConfigureWizard)wizard).serverSharePort);
-    */
-
-    bTest = new Button(panel, SWT.PUSH);
-    Messages.setLanguageText(bTest, "configureWizard.nat.test");
-    gridData = new GridData();
-    gridData.widthHint = 70;
-    bTest.setLayoutData(gridData);
-
-    bCancel = new Button(panel, SWT.PUSH);
-    Messages.setLanguageText(bCancel, "Button.cancel");
-    gridData = new GridData();
-    gridData.widthHint = 70;
-    bCancel.setLayoutData(gridData);
-    bCancel.setEnabled(false);
-
+    label = new Label(panel, SWT.NULL);
+    
+    	// blah
+    
     textResults = new StyledText(panel, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP );
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.heightHint = 70;
@@ -237,34 +282,43 @@ public class NatPanel extends AbstractWizardPanel {
     textResults.setLayoutData(gridData);
     textResults.setBackground(panel.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 
-    bTest.addListener(SWT.Selection, new Listener() {
+    bTestTCP.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         wizard.setNextEnabled(false);
-        bTest.setEnabled(false);
-        bCancel.setEnabled(true);
+        bTestTCP.setEnabled(false);
+        bTestUDP.setEnabled(false);
         textResults.setText("");
         CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
 				
 					public void azureusCoreRunning(AzureusCore core) {
 						ConfigureWizard cw = (ConfigureWizard) wizard;
 						
-						//int lowPort = cw.serverMinPort;
-						//int highPort = cw.serverSharePort?cw.serverMinPort:cw.serverMaxPort;
 						int TCPListenPort = cw.serverTCPListenPort;
-						checker = new Checker(core, TCPListenPort);
+						CheckerTCP checker = new CheckerTCP(core, TCPListenPort);
 						checker.start();
 					}
 				});
       }
     });
 
-    bCancel.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {
-        if (checker != null)
-          checker.stopIt();
-        bCancel.setEnabled(false);
-      }
-    });
+    bTestUDP.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event event) {
+          wizard.setNextEnabled(false);
+          bTestTCP.setEnabled(false);
+          bTestUDP.setEnabled(false);
+          textResults.setText("");
+          CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+  				
+  					public void azureusCoreRunning(AzureusCore core) {
+  						ConfigureWizard cw = (ConfigureWizard) wizard;
+  						
+  						int UDPListenPort = cw.serverUDPListenPort;
+  						CheckerUDP checker = new CheckerUDP(core, UDPListenPort);
+  						checker.start();
+  					}
+  				});
+        }
+      });
   }
 
   public void printMessage(final String message) {
@@ -286,17 +340,19 @@ public class NatPanel extends AbstractWizardPanel {
       return;
     display.asyncExec(new AERunnable(){
       public void runSupport() {
-      	if (bTest == null || bTest.isDisposed()) {
+       	if (bTestTCP == null || bTestTCP.isDisposed()) {
       		return;
       	}
-      	
+     	if (bTestUDP == null || bTestUDP.isDisposed()) {
+      		return;
+      	}
       	if (wizard.getCurrentPanel().equals(this)) {
       		return;
       	}
 
         wizard.setNextEnabled(true);
-        bTest.setEnabled(true);
-        bCancel.setEnabled(false);
+        bTestTCP.setEnabled(true);
+        bTestUDP.setEnabled(true);
       }
     });
   }

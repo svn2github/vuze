@@ -52,6 +52,7 @@ public class ConfigureWizard extends Wizard {
   
   //Server / NAT Settings
   int serverTCPListenPort = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+  int serverUDPListenPort = COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
   //Files / Torrents
   private String 	_dataPath;
   private boolean 	_dataPathChanged;

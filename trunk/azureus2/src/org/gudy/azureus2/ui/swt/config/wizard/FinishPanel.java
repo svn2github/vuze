@@ -109,13 +109,9 @@ public class FinishPanel extends AbstractWizardPanel<ConfigureWizard> {
     	
     }else{
 	    COConfigurationManager.setParameter("TCP.Listen.Port",wizard.serverTCPListenPort);
-	    COConfigurationManager.setParameter("UDP.Listen.Port",wizard.serverTCPListenPort);
-	    COConfigurationManager.setParameter("UDP.NonData.Listen.Port",wizard.serverTCPListenPort);
-	    //COConfigurationManager.setParameter("Low Port",cfWizard.serverMinPort);
-		//COConfigurationManager.setParameter("High Port",cfWizard.serverMaxPort);
-		//COConfigurationManager.setParameter("Server.shared.port",cfWizard.serverSharePort);
+	    COConfigurationManager.setParameter("UDP.Listen.Port",wizard.serverUDPListenPort);
+	    COConfigurationManager.setParameter("UDP.NonData.Listen.Port",wizard.serverUDPListenPort);
 	    COConfigurationManager.setParameter("General_sDefaultTorrent_Directory",wizard.torrentPath);
-	    //COConfigurationManager.setParameter("Use Resume",cfWizard.fastResume);
 	    
 	    if ( wizard.hasDataPathChanged()){
 	    	COConfigurationManager.setParameter( "Use default data dir", true );

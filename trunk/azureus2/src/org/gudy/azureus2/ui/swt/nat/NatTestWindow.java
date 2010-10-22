@@ -67,20 +67,24 @@ public class NatTestWindow {
       this.TCPListenPort = tcp_listen_port;
     }
 
-    public void runSupport() {
-          printMessage(MessageText.getString("configureWizard.nat.testing") + " TCP " + TCPListenPort + " ... ");
-          NatChecker checker = new NatChecker(AzureusCoreFactory.getSingleton(), NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses(true)[0], TCPListenPort, false);          
-          switch (checker.getResult()) {
-          case NatChecker.NAT_OK :
-            printMessage(MessageText.getString("configureWizard.nat.ok") + "\n" + checker.getAdditionalInfo());
-            break;
-          case NatChecker.NAT_KO :
-            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + " - " + checker.getAdditionalInfo()+".\n");
-            break;
-          default :
-            printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getAdditionalInfo()+").\n");
-            break;
-          }
+    public void 
+    runSupport() 
+    {
+    	try{
+	          printMessage(MessageText.getString("configureWizard.nat.testing") + " TCP " + TCPListenPort + " ... ");
+	          NatChecker checker = new NatChecker(AzureusCoreFactory.getSingleton(), NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses(true)[0], TCPListenPort, false);          
+	          switch (checker.getResult()) {
+	          case NatChecker.NAT_OK :
+	            printMessage(MessageText.getString("configureWizard.nat.ok") + "\n" + checker.getAdditionalInfo());
+	            break;
+	          case NatChecker.NAT_KO :
+	            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + " - " + checker.getAdditionalInfo()+".\n");
+	            break;
+	          default :
+	            printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getAdditionalInfo()+").\n");
+	            break;
+	          }
+    	}finally{
           if (display.isDisposed()) {return;}
           display.asyncExec(new AERunnable()  {
             public void runSupport() {
@@ -92,6 +96,7 @@ public class NatTestWindow {
 				bApply.setEnabled(true);
             }
           });
+    	}
     }
   }
   
@@ -135,24 +140,23 @@ public class NatTestWindow {
 		        	printMessage(MessageText.getString("configureWizard.nat.testing") + " UDP " + udp_port + " ... ");
 					
 						try{
-							InetAddress public_address = 
-								selected.test( 
-									null,
-									new NetworkAdminProgressListener()
+							selected.test( 
+								null,
+								new NetworkAdminProgressListener()
+								{
+									public void 
+									reportProgress(
+										String task )
 									{
-										public void 
-										reportProgress(
-											String task )
-										{
-											printMessage( "\n    " + task );
-										}
-									});
+										printMessage( "\n    " + task );
+									}
+								});
 							
-				            printMessage(MessageText.getString("configureWizard.nat.ok"));
+				            printMessage( "\n" + MessageText.getString("configureWizard.nat.ok"));
 								
 						}catch( Throwable e ){
 							
-				            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + ". \n(" + Debug.getNestedExceptionMessage(e)+").\n");
+				            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + ". " + Debug.getNestedExceptionMessage(e)+".\n");
 						}
 					}
 		   
