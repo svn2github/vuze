@@ -262,6 +262,9 @@ public class SB_Transfers
 	}
 
 	protected static void setupViewTitleWithCore(AzureusCore core) {
+		if (!first) {
+			return;
+		}
 		first = false;
 		final GlobalManager gm = core.getGlobalManager();
 		final DownloadManagerListener dmListener = new DownloadManagerAdapter() {
