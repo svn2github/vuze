@@ -525,7 +525,7 @@ StreamManager
 
 								boolean playable = buffer_secs > ( playback_started?BUFFER_MIN_SECS:BUFFER_SECS );
 								
-								playable = playable && ( eta <= 0 || preview_mode );
+								playable = playable && ( eta <= 0  || (playback_started && !playback_paused ) || preview_mode );
 															
 								if ( playback_started ){
 									
