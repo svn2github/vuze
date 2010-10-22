@@ -22,6 +22,8 @@
  */
 package org.gudy.azureus2.ui.swt.nat;
 
+import java.net.InetAddress;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
@@ -32,6 +34,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipchecker.natchecker.NatChecker;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -42,29 +45,30 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProgressListener;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProtocol;
 
 public class NatTestWindow {
   
   Display display;
   
-  Button bTest,bApply,bCancel;
+  Button bTestTCP,bTestUDP,bApply,bCancel;
   StyledText textResults;
   
-  Checker checker;
   int serverTCPListenPort;
-  public class Checker extends AEThread {
+  int serverUDPListenPort;
+  
+  public class CheckerTCP extends AEThread {
 
-    //private int lowPort;
-    //private int highPort;
     private int TCPListenPort;
     
-    public Checker(int tcp_listen_port) {
-      super("NAT Checker");
+    public CheckerTCP(int tcp_listen_port) {
+      super("NAT Checker TCP");
       this.TCPListenPort = tcp_listen_port;
     }
 
     public void runSupport() {
-          printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");
+          printMessage(MessageText.getString("configureWizard.nat.testing") + " TCP " + TCPListenPort + " ... ");
           NatChecker checker = new NatChecker(AzureusCoreFactory.getSingleton(), NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses(true)[0], TCPListenPort, false);          
           switch (checker.getResult()) {
           case NatChecker.NAT_OK :
@@ -80,15 +84,98 @@ public class NatTestWindow {
           if (display.isDisposed()) {return;}
           display.asyncExec(new AERunnable()  {
             public void runSupport() {
-              if(bTest != null && ! bTest.isDisposed())
-               bTest.setEnabled(true);
+              if(bTestTCP != null && ! bTestTCP.isDisposed())
+            	  bTestTCP.setEnabled(true);
+			if(bTestUDP != null && ! bTestUDP.isDisposed())
+				bTestUDP.setEnabled(true);
+			if(bApply != null && ! bApply.isDisposed())
+				bApply.setEnabled(true);
             }
           });
     }
   }
   
+  public class CheckerUDP extends AEThread {
+
+	    private AzureusCore	core;
+	    private int			udp_port;
+	    
+	    public CheckerUDP(AzureusCore _core, int _udp_port ){
+	      super("NAT Checker UDP");
+	      core 		= _core;
+	      udp_port	= _udp_port;
+	    }
+
+	    public void 
+	    runSupport() 
+	    {
+	    	try{
+		    	final NetworkAdmin	admin = NetworkAdmin.getSingleton();
+		    	
+				NetworkAdminProtocol[] inbound_protocols = admin.getInboundProtocols(core);
+				
+				NetworkAdminProtocol selected = null;
+				
+				for ( NetworkAdminProtocol p: inbound_protocols ){
+					
+					if ( p.getType() == NetworkAdminProtocol.PT_UDP && p.getPort() == udp_port ){
+						
+						selected = p;
+						
+						break;
+					}
+				}
+					
+		        if ( selected == null ){
+		        	
+		        	printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + ". \n( No UDP protocols enabled ).\n");
+		        	
+		        }else{
+		        	
+		        	printMessage(MessageText.getString("configureWizard.nat.testing") + " UDP " + udp_port + " ... ");
+					
+						try{
+							InetAddress public_address = 
+								selected.test( 
+									null,
+									new NetworkAdminProgressListener()
+									{
+										public void 
+										reportProgress(
+											String task )
+										{
+											printMessage( "\n    " + task );
+										}
+									});
+							
+				            printMessage(MessageText.getString("configureWizard.nat.ok"));
+								
+						}catch( Throwable e ){
+							
+				            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + ". \n(" + Debug.getNestedExceptionMessage(e)+").\n");
+						}
+					}
+		   
+	    	}finally{
+	    		if (display.isDisposed()) {return;}
+	    		display.asyncExec(new AERunnable()  {
+	    			public void runSupport() {
+	    				if(bTestTCP != null && ! bTestTCP.isDisposed())
+	    					bTestTCP.setEnabled(true);
+	    				if(bTestUDP != null && ! bTestUDP.isDisposed())
+	    					bTestUDP.setEnabled(true);
+	    				if(bApply != null && ! bApply.isDisposed())
+	    					bApply.setEnabled(true);
+	    			}
+	    		});
+	    	}
+	    }
+  }
+  
+  
   public NatTestWindow() {
-    serverTCPListenPort = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+	serverTCPListenPort = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+	serverUDPListenPort = COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
     
     final Shell shell = ShellFactory.createMainShell(SWT.BORDER | SWT.TITLE | SWT.CLOSE);        
     shell.setText(MessageText.getString("configureWizard.nat.title"));
@@ -118,6 +205,9 @@ public class NatTestWindow {
     label = new Label(panel, SWT.NULL);
     label = new Label(panel, SWT.NULL);
     label = new Label(panel, SWT.NULL);
+    
+    	// TCP 
+    
     Messages.setLanguageText(label, "configureWizard.nat.server.tcp_listen_port");
 
     final Text textServerTCPListen = new Text(panel, SWT.BORDER);
@@ -147,14 +237,53 @@ public class NatTestWindow {
       }
     });
 
-   
-
-    bTest = new Button(panel, SWT.PUSH);
-    Messages.setLanguageText(bTest, "configureWizard.nat.test");
+    bTestTCP = new Button(panel, SWT.PUSH);
+    Messages.setLanguageText(bTestTCP, "configureWizard.nat.test");
     gridData = new GridData();
     gridData.widthHint = 70;
-    bTest.setLayoutData(gridData);
+    bTestTCP.setLayoutData(gridData);
 
+    label = new Label(panel, SWT.NULL);
+
+    	// UDP 
+    
+    Messages.setLanguageText(label, "configureWizard.nat.server.udp_listen_port");
+
+    final Text textServerUDPListen = new Text(panel, SWT.BORDER);
+    gridData = new GridData();    
+    gridData.grabExcessHorizontalSpace = true;
+    gridData.horizontalAlignment = SWT.FILL;
+    textServerUDPListen.setLayoutData(gridData);
+    textServerUDPListen.setText("" + serverUDPListenPort);
+    textServerUDPListen.addListener(SWT.Verify, new Listener() {
+      public void handleEvent(Event e) {
+        String text = e.text;
+        char[] chars = new char[text.length()];
+        text.getChars(0, chars.length, chars, 0);
+        for (int i = 0; i < chars.length; i++) {
+          if (!('0' <= chars[i] && chars[i] <= '9')) {
+            e.doit = false;
+            return;
+          }
+        }
+      }
+    });
+    
+    textServerUDPListen.addListener(SWT.Modify, new Listener() {
+      public void handleEvent(Event e) {
+        final int UDPListenPort = Integer.parseInt(textServerUDPListen.getText());
+        serverUDPListenPort =UDPListenPort;
+      }
+    });
+
+    bTestUDP = new Button(panel, SWT.PUSH);
+    Messages.setLanguageText(bTestUDP, "configureWizard.nat.test");
+    gridData = new GridData();
+    gridData.widthHint = 70;
+    bTestUDP.setLayoutData(gridData);
+    
+    	// results
+    
     textResults = new StyledText(panel, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP );
     gridData = new GridData();
     gridData.widthHint = 400;
@@ -165,22 +294,41 @@ public class NatTestWindow {
     textResults.setLayoutData(gridData);
     textResults.setBackground(panel.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 
-    bTest.addListener(SWT.Selection, new Listener() {
+    bTestTCP.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
-        bTest.setEnabled(false);
+      	bTestUDP.setEnabled(false);
+    	bTestTCP.setEnabled(false);
+    	bApply.setEnabled(false);
         textResults.setText("");
 
         CoreWaiterSWT.waitForCore(TriggerInThread.ANY_THREAD,
 						new AzureusCoreRunningListener() {
 							public void azureusCoreRunning(AzureusCore core) {
-						checker = new Checker(serverTCPListenPort);
-						checker.start();
+								CheckerTCP checker = new CheckerTCP(serverTCPListenPort);
+								checker.start();
 					}
 				});
       }
     });
         
-        
+      
+    bTestUDP.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event event) {
+          bTestUDP.setEnabled(false);
+          bTestTCP.setEnabled(false);
+          bApply.setEnabled(false);
+          textResults.setText("");
+
+          CoreWaiterSWT.waitForCore(TriggerInThread.ANY_THREAD,
+  						new AzureusCoreRunningListener() {
+  							public void azureusCoreRunning(AzureusCore core) {
+  								CheckerUDP checker = new CheckerUDP(core,serverUDPListenPort);
+  								checker.start();
+  					}
+  				});
+        }
+      });
+    
     bApply = new Button(panel,SWT.PUSH);
     bApply.setText(MessageText.getString("Button.apply"));
     gridData = new GridData();
@@ -197,15 +345,18 @@ public class NatTestWindow {
 	   	int	old_udp 	= COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
 	   	int	old_udp2 	= COConfigurationManager.getIntParameter( "UDP.NonData.Listen.Port" );
     	
-        COConfigurationManager.setParameter("TCP.Listen.Port",serverTCPListenPort);
+	   	if ( old_tcp != serverTCPListenPort ){
+	   		COConfigurationManager.setParameter("TCP.Listen.Port",serverTCPListenPort);
+	   	}
         
-        if ( old_tcp == old_udp ){
-        	COConfigurationManager.setParameter("UDP.Listen.Port",serverTCPListenPort);
+        if ( old_udp != serverUDPListenPort ){
+        	COConfigurationManager.setParameter("UDP.Listen.Port",serverUDPListenPort);
+     
+	        if ( old_udp == old_udp2 ){
+	        	COConfigurationManager.setParameter("UDP.NonData.Listen.Port",serverUDPListenPort);
+	        }
         }
-        if ( old_tcp == old_udp2 ){
-        	COConfigurationManager.setParameter("UDP.NonData.Listen.Port",serverTCPListenPort);
-        }
-
+        
         COConfigurationManager.save();
         
         shell.close();
