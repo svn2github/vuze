@@ -11,7 +11,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
-import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
@@ -26,23 +25,17 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.IViewExtension;
 
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
-import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 
 public abstract class BaseMdiEntry
 	implements MdiEntrySWT, ViewTitleInfoListener
@@ -101,7 +94,7 @@ public abstract class BaseMdiEntry
 	
 	private Set<ToolBarEnabler> setToolBarEnablers = new HashSet<ToolBarEnabler>(1);
 	
-	private String preferredBelowID;
+	private String preferredAfterID;
 
 	@SuppressWarnings("unused")
 	private BaseMdiEntry() {
@@ -210,7 +203,16 @@ public abstract class BaseMdiEntry
 	}
 
 	public void setParentID(String id) {
+		if (id == null) {
+			id = MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS;
+		}
+		if (id.equals(getId())) {
+			Debug.out("Setting Parent to same ID as child! " + id);
+			return;
+		}
 		parentID = id;
+		// ensure parent gets created if it isn't there already
+		mdi.loadEntryByID(parentID, false);
 	}
 
 	public MdiEntryVitalityImage[] getVitalityImages() {
@@ -777,7 +779,7 @@ public abstract class BaseMdiEntry
 	}
 
 	public String getImageLeftID() {
-		return (imageLeftID);
+		return imageLeftID;
 	}
 
 	/**
@@ -844,11 +846,11 @@ public abstract class BaseMdiEntry
 	public void build() {
 	}
 
-	public void setPreferredBelowID(String preferredBelowID) {
-		this.preferredBelowID = preferredBelowID;
+	public void setPreferredAfterID(String preferredAfterID) {
+		this.preferredAfterID = preferredAfterID;
 	}
 
-	public String getPreferredBelowID() {
-		return preferredBelowID;
+	public String getPreferredAfterID() {
+		return preferredAfterID;
 	}
 }

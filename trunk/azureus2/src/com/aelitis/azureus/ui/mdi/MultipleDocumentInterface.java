@@ -8,19 +8,31 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 
 public interface MultipleDocumentInterface
 {
+	public static final String SIDEBAR_HEADER_VUZE = "header.vuze";
+
+	public static final String SIDEBAR_HEADER_TRANSFERS = "header.transfers";
+
+	public static final String SIDEBAR_HEADER_DEVICES = "header.devices";
+
+	public static final String SIDEBAR_HEADER_DVD = "header.dvd";
+
+	public static final String SIDEBAR_HEADER_SUBSCRIPTIONS = "header.subscriptions";
+
+	public static final String SIDEBAR_HEADER_PLUGINS = "header.plugins";
+
 	public static final String SIDEBAR_SECTION_PLUGINS = "Plugins";
+
+	public static final String SIDEBAR_SECTION_ABOUTPLUGINS = "About.Plugins";
 
 	public static final String SIDEBAR_SECTION_LIBRARY = "Library";
 
 	public static final String SIDEBAR_SECTION_GAMES = "Games";
 
+	public static final String SIDEBAR_SECTION_BETAPROGRAM = "BetaProgramme";
+
 	public static final String SIDEBAR_SECTION_LIBRARY_DL = "LibraryDL";
 
 	public static final String SIDEBAR_SECTION_LIBRARY_CD = "LibraryCD";
-
-	public static final String SIDEBAR_SECTION_LIBRARY_UNOPENED = "LibraryUnopened";
-
-	public static final String SIDEBAR_SECTION_TOOLS = "Tools";
 
 	public static final String SIDEBAR_SECTION_WELCOME = "Welcome";
 
@@ -70,4 +82,6 @@ public interface MultipleDocumentInterface
 	public void showEntry(MdiEntry newEntry);
 
 	public void informAutoOpenSet(MdiEntry entry, Map<String, Object> autoOpenInfo);
+
+	public boolean loadEntryByID(String id, boolean activate);
 }

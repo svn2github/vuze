@@ -406,4 +406,13 @@ public class TabbedEntry
 			setTitle(newText);
 		}
 	}
+	
+	// @see com.aelitis.azureus.ui.mdi.MdiEntry#isSelectable()
+	public boolean isSelectable() {
+		return true;
+	}
+
+	// @see com.aelitis.azureus.ui.mdi.MdiEntry#setSelectable(boolean)
+	public void setSelectable(boolean selectable) {
+	}
 }

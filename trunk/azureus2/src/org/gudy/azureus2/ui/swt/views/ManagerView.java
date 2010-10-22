@@ -556,6 +556,8 @@ public class ManagerView
 				id = "??";
 			}
 			return "DMDetails-" + id;
+		} else if (propertyID == TITLE_IMAGEID) {
+			return "image.sidebar.details";
 		}
 		return null;
 	}

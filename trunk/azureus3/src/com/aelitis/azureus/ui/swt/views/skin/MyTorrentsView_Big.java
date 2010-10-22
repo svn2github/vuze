@@ -43,10 +43,6 @@ public class MyTorrentsView_Big
 				forDataSourceType = DownloadTypeIncomplete.class;
 				break;
 				
-			case SBC_LibraryView.TORRENTS_UNOPENED:
-				forDataSourceType = Download.class;
-				break;
-				
 			case SBC_LibraryView.TORRENTS_ALL:
 				forDataSourceType = Download.class;
 				break;
@@ -57,7 +53,7 @@ public class MyTorrentsView_Big
 		}
 		init(
 				_azureus_core,
-				SBC_LibraryView.getTableIdFromFilterMode(torrentFilterMode, true),
+				SB_Transfers.getTableIdFromFilterMode(torrentFilterMode, true),
 				torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE ? false : true,
 				forDataSourceType, basicItems);
 		//setForceHeaderVisible(true);
@@ -69,11 +65,7 @@ public class MyTorrentsView_Big
 			return false;
 		}
 		
-		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
-			if (PlatformTorrentUtils.getHasBeenOpened(dm)) {
-				return false;
-			}
-		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
+		if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
 			return isInCurrentCategory(dm);
 		}
 		
@@ -92,11 +84,6 @@ public class MyTorrentsView_Big
 			case SBC_LibraryView.TORRENTS_INCOMPLETE:
 				tableID = TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG;
 				forDataSourceType = DownloadTypeIncomplete.class;
-				break;
-				
-			case SBC_LibraryView.TORRENTS_UNOPENED:
-				tableID = TableManager.TABLE_MYTORRENTS_UNOPENED_BIG;
-				forDataSourceType = Download.class;
 				break;
 				
 			case SBC_LibraryView.TORRENTS_ALL:

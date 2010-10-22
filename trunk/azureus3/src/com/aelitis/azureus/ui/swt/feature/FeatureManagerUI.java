@@ -10,7 +10,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -31,8 +30,6 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.messenger.PlatformMessenger;
-//import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.mdi.*;
@@ -100,7 +97,8 @@ public class FeatureManagerUI
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
-						MdiEntry mainMdiEntry = mdi.createEntryFromSkinRef(null,
+						MdiEntry mainMdiEntry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_DVD,
 								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
 								"main.burn.ftux", MessageText.getString("mdi.entry.dvdburn"),
 								null, null, true, -1);
@@ -143,7 +141,8 @@ public class FeatureManagerUI
 								? "mdi.entry.plus.full" : "mdi.entry.plus.free");
 						int index = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME) == null
 								? 0 : 1;
-						MdiEntry entry = mdi.createEntryFromSkinRef(null,
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
 								MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
 								"main.area.plus", title, null, null, true, index);
 						entry.setImageLeftID("image.sidebar.plus");

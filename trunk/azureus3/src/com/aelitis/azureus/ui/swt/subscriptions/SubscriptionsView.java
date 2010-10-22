@@ -204,11 +204,7 @@ public class SubscriptionsView
 	}
 	
 	public String getData() {
-		return "subscriptions.view.title";
-	}
-	
-	public String getFullTitle() {
-		return MessageText.getString("subscriptions.view.title");
+		return "subscriptions.overview";
 	}
 	
 	public void initialize(Composite parent) {

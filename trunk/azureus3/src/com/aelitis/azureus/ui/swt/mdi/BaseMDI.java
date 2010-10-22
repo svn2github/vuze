@@ -13,6 +13,7 @@ import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
@@ -28,6 +29,7 @@ import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 import com.aelitis.azureus.util.MapUtils;
@@ -94,9 +96,16 @@ public abstract class BaseMDI
 			Object[] iviewClassVals, Object datasource, ViewTitleInfo titleInfo,
 			boolean closeable);
 
+	/**
+	 * @deprecated
+	 */
 	public abstract MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
 			boolean closeable, int index);
+
+	public abstract MdiEntry createEntryFromSkinRef(String parentID, String id,
+			String configID, String title, ViewTitleInfo titleInfo, Object params,
+			boolean closeable, String preferedAfterID);
 
 	public MdiEntry getCurrentEntry() {
 		return currentEntry;
@@ -217,10 +226,12 @@ public abstract class BaseMDI
 	}
 
 	protected MdiEntry createWelcomeSection() {
-		MdiEntry entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
-				"main.area.welcome", MessageText.getString(
-						"v3.MainWindow.menu.getting_started").replaceAll("&", ""), null,
-				null, true, 0);
+		MdiEntry entry = createEntryFromSkinRef(
+				SIDEBAR_HEADER_VUZE,
+				SIDEBAR_SECTION_WELCOME,
+				"main.area.welcome",
+				MessageText.getString("v3.MainWindow.menu.getting_started").replaceAll(
+						"&", ""), null, null, true, 0);
 		entry.setImageLeftID("image.sidebar.welcome");
 		addDropTest(entry);
 		return entry;
@@ -268,6 +279,12 @@ public abstract class BaseMDI
 			Object[] parentIDs = allViews.keySet().toArray();
 			for (int i = 0; i < parentIDs.length; i++) {
 				String parentID = (String) parentIDs[i];
+				String sidebarParentID = null;
+				if (UISWTInstance.VIEW_MYTORRENTS.equals(parentID)) {
+					sidebarParentID = SideBar.SIDEBAR_HEADER_TRANSFERS;
+				} else if (UISWTInstance.VIEW_MAIN.equals(parentID)) {
+					sidebarParentID = MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS;
+				}
 				Map<String, UISWTViewEventListenerHolder> mapSubViews = allViews.get(parentID);
 				if (mapSubViews != null) {
 					Object[] viewIDs = mapSubViews.keySet().toArray();
@@ -281,7 +298,7 @@ public abstract class BaseMDI
 							boolean open = COConfigurationManager.getBooleanParameter(
 									"SideBar.AutoOpen." + viewID, false);
 							if (open) {
-								createEntryFromEventListener(parentID, l, viewID, true, null);
+								createEntryFromEventListener(sidebarParentID, l, viewID, true, null);
 							}
 						}
 					}
@@ -372,7 +389,7 @@ public abstract class BaseMDI
 
 
 			String title = MapUtils.getMapString(autoOpenInfo, "title", id);
-			String parentID = (String) autoOpenInfo.get("parentID");
+			String parentID = MapUtils.getMapString(autoOpenInfo, "parentID", SIDEBAR_HEADER_PLUGINS);
 			Object datasource = autoOpenInfo.get("datasource");
 
 			if (viewInfo != null) {

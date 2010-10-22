@@ -173,7 +173,7 @@ public class SystemWarningWindow
 
 
 		ImageLoader imageLoader = ImageLoader.getInstance();
-		imgClose = imageLoader.getImage("image.sidebar.closeitem");
+		imgClose = imageLoader.getImage("image.systemwarning.closeitem");
 		boundsClose = imgClose.getBounds();
 
 		GC gc = new GC(shell);

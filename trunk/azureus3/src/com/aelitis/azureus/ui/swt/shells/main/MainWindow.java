@@ -79,8 +79,8 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
+import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.FeatureAvailability;
@@ -106,7 +106,8 @@ import com.aelitis.azureus.ui.swt.utils.FontUtils;
 import com.aelitis.azureus.ui.swt.utils.PlayNowList;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.*;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.*;
 
 /**
@@ -1078,13 +1079,22 @@ public class MainWindow
 					public void parameterChanged(String parameterName) {
 						boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
 						if (enabled) {
-							MdiEntry entry = mdi.createEntryFromSkinRef(null,
-									"BetaProgramme", "main.area.beta",
-									MessageText.getString("Sidebar.beta.title"), null, null,
-									true, 0);
+							mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM);
 						}
 					}
 		});
+		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+								MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
+								"main.area.beta", MessageText.getString("Sidebar.beta.title"),
+								null, null, true, 0);
+						return entry;
+					}
+				});
 
 		//		System.out.println("Activate sidebar " + startTab + " took "
 		//				+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -2269,8 +2279,9 @@ public class MainWindow
 			return;
 		}
 
-		final MdiEntry entry = mdi.createEntryFromSkinRef(null, id, "main.area.searchresultstab",
-				sSearchText, null, sq, true, -1);
+		final MdiEntry entry = mdi.createEntryFromSkinRef(
+				MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id,
+				"main.area.searchresultstab", sSearchText, null, sq, true, -1);
 		if (entry != null) {
 			entry.setImageLeftID("image.sidebar.search");
 			entry.setDatasource(sq);

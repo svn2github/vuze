@@ -141,8 +141,7 @@ public class SBC_LibraryTableView
 
 		if (useBigTable) {
 			if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE
-					|| torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE
-					|| torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
+					|| torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
 
 				view = new MyTorrentsView_Big(core, torrentFilterMode, columns,
 						txtFilter, cCats);
@@ -154,7 +153,7 @@ public class SBC_LibraryTableView
 			}
 
 		} else {
-			String tableID = SBC_LibraryView.getTableIdFromFilterMode(
+			String tableID = SB_Transfers.getTableIdFromFilterMode(
 					torrentFilterMode, false);
 			if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
 				view = new MyTorrentsView(core, tableID, true, columns, txtFilter,
@@ -164,16 +163,6 @@ public class SBC_LibraryTableView
 				view = new MyTorrentsView(core, tableID, false, columns, txtFilter,
 						cCats);
 
-			} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
-				view = new MyTorrentsView(core, tableID, true, columns, txtFilter,
-						cCats) {
-					public boolean isOurDownloadManager(DownloadManager dm) {
-						if (PlatformTorrentUtils.getHasBeenOpened(dm)) {
-							return false;
-						}
-						return super.isOurDownloadManager(dm);
-					}
-				};
 			} else {
 				view = new MyTorrentsSuperView(txtFilter, cCats) {
 					public void initializeDone() {
@@ -299,31 +288,6 @@ public class SBC_LibraryTableView
 			});
 		}
 
-		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
-			SWTSkinObject so = skin.getSkinObject("library-list-button-right",
-					soParent.getParent());
-			if (so != null) {
-				so.setVisible(true);
-				SWTSkinButtonUtility btn = new SWTSkinButtonUtility(so);
-				btn.setTextID("Mark All UnNew");
-				btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-					public void pressed(SWTSkinButtonUtility buttonUtility,
-							SWTSkinObject skinObject, int stateMask) {
-						TableViewSWT tv = ((MyTorrentsView) view).getTableView();
-						Object[] dataSources = tv.getDataSources().toArray();
-						for (int i = 0; i < dataSources.length; i++) {
-							Object ds = dataSources[i];
-							if (ds instanceof DownloadManager) {
-								PlatformTorrentUtils.setHasBeenOpened((DownloadManager) ds,
-										true);
-								// give user visual indication right away 
-								tv.removeDataSource(ds);
-							}
-						}
-					}
-				});
-			}
-		}
 		viewComposite.getParent().layout(true);
 	}
 
@@ -392,24 +356,6 @@ public class SBC_LibraryTableView
 		if ( mdi != null ){
 			MdiEntry entry = mdi.getCurrentEntry();
 			entry.addToolbarEnabler( this );
-		}
-
-		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED
-				&& AzureusCoreFactory.isCoreRunning()) {
-			if (view instanceof MyTorrentsView) {
-				MyTorrentsView torrentsView = (MyTorrentsView) view;
-				TableViewSWT tv = torrentsView.getTableView();
-				List dms = AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers();
-				for (Iterator iter = dms.iterator(); iter.hasNext();) {
-					DownloadManager dm = (DownloadManager) iter.next();
-
-					if (!torrentsView.isOurDownloadManager(dm)) {
-						tv.removeDataSource(dm);
-					} else {
-						tv.addDataSource(dm);
-					}
-				}
-			}
 		}
 
 		if (view instanceof MyTorrentsView) {
@@ -498,9 +444,6 @@ public class SBC_LibraryTableView
 			return TableColumnCreator.createCompleteDM(TableManager.TABLE_MYTORRENTS_COMPLETE);
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
 			return TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE);
-		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
-			return TableColumnCreatorV3.createUnopenedDM(
-					TableManager.TABLE_MYTORRENTS_UNOPENED, false);
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
 			return TableColumnCreator.createCompleteDM(TableManager.TABLE_MYTORRENTS_ALL_BIG);
 		}

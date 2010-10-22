@@ -35,12 +35,18 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionHolder;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -50,9 +56,15 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
-import com.aelitis.azureus.activities.*;
-import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.core.cnetwork.*;
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesListener;
+import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -63,23 +75,19 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
-import com.aelitis.azureus.ui.swt.mdi.*;
+import com.aelitis.azureus.ui.swt.mdi.BaseMDI;
+import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.shells.AuthorizeWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
-import com.aelitis.azureus.ui.swt.utils.FontUtils;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 import com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView;
+import com.aelitis.azureus.ui.swt.views.skin.SB_Transfers;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.menus.*;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 
 /**
  * @author TuxPaper
@@ -109,6 +117,8 @@ public class SideBar
 
 	public static final String SIDEBAR_SECTION_ACTIVITIES = "Activity";
 
+	private static final boolean GAP_BETWEEN_LEVEL_1 = true;
+
 	private SWTSkin skin;
 
 	private SWTSkinObjectContainer soSideBarContents;
@@ -132,6 +142,8 @@ public class SideBar
 	private Color fg;
 
 	private Color bg;
+
+	private String[] preferedOrder;
 
 	public static SideBar instance = null;
 
@@ -260,34 +272,6 @@ public class SideBar
 		});
 	}
 
-	private void addMenuUnwatched() {
-		PluginInterface pi = PluginInitializer.getDefaultInterface();
-		UIManager uim = pi.getUIManager();
-		MenuManager menuManager = uim.getMenuManager();
-
-		MenuItem menuItem = menuManager.addMenuItem("sidebar."
-				+ SIDEBAR_SECTION_LIBRARY_UNOPENED, "v3.activity.button.watchall");
-		menuItem.addListener(new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				CoreWaiterSWT.waitForCore(TriggerInThread.ANY_THREAD,
-						new AzureusCoreRunningListener() {
-							public void azureusCoreRunning(AzureusCore core) {
-								GlobalManager gm = core.getGlobalManager();
-								List<?> downloadManagers = gm.getDownloadManagers();
-								for (Iterator<?> iter = downloadManagers.iterator(); iter.hasNext();) {
-									DownloadManager dm = (DownloadManager) iter.next();
-
-									if (!PlatformTorrentUtils.getHasBeenOpened(dm)
-											&& dm.getAssumedComplete()) {
-										PlatformTorrentUtils.setHasBeenOpened(dm, true);
-									}
-								}
-							}
-						});
-			}
-		});
-	}
-
 	/**
 	 * 
 	 *
@@ -386,7 +370,7 @@ public class SideBar
 		tree.setForeground(fg);
 		FontData[] fontData = tree.getFont().getFontData();
 
-		int fontHeight = 13 + (tree.getItemHeight() > 18
+		int fontHeight = 12 + (tree.getItemHeight() > 18
 				? tree.getItemHeight() - 18 : 0);
 
 		fontData[0].setStyle(SWT.BOLD);
@@ -394,10 +378,11 @@ public class SideBar
 		//FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
 		fontHeader = new Font(tree.getDisplay(), fontData);
 		
-		fontData[0].setStyle(SWT.NORMAL);
-		FontUtils.setFontDataHeight(fontData, FontUtils.getHeight(fontData) * 0.92f);
-		//FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
-		font = new Font(tree.getDisplay(), fontData);
+		//fontData[0].setStyle(SWT.NORMAL);
+		//FontUtils.setFontDataHeight(fontData, FontUtils.getHeight(fontData) * 0.92f);
+		////FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
+		font = FontUtils.getFontWithHeight(tree.getFont(), null, fontHeight);
+		//font = new Font(tree.getDisplay(), fontData);
 
 		tree.setFont(font);
 
@@ -406,6 +391,8 @@ public class SideBar
 			TreeItem lastTopItem = null;
 
 			boolean mouseDowned = false;
+
+			private boolean wasExpanded;
 
 			public void handleEvent(final Event event) {
 				TreeItem treeItem = (TreeItem) event.item;
@@ -430,8 +417,9 @@ public class SideBar
 						//if (entry.imageLeft != null) {
 						//padding += 4;
 						//}
+						SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
 
-						event.height = 24;// Math.max(event.height, size.y + padding);
+						event.height = 20;// Math.max(event.height, size.y + padding);
 
 						break;
 					}
@@ -441,8 +429,14 @@ public class SideBar
 							//System.out.println("PaintItem: " + event.item + ";" + event.index + ";" + event.detail + ";" + id + ";" + event.getBounds() + ";" + event.gc.getClipping());
 							if (entry != null) {
 								TreeItem[] selection = tree.getSelection();
-								if (selection == null || selection.length == 0 || selection[0] != treeItem) {
+								boolean selected = currentEntry == entry && entry.isSelectable();
+
+								//if (!entry.isSelectable() || selection == null
+								//			|| selection.length == 0 || selection[0] != treeItem) {
+								if (!selected) {
 									event.detail &= ~SWT.SELECTED;
+								} else {
+									event.detail |= SWT.SELECTED;
 								}
 								entry.swt_paintSideBar(event);
 							}
@@ -503,8 +497,10 @@ public class SideBar
 							if (itemBounds != null) {
 								event.item = treeItem;
 
-								boolean selected = tree.getSelectionCount() == 1
-										&& tree.getSelection()[0].equals(treeItem);
+								boolean selected = currentEntry == entry && entry.isSelectable();
+//								boolean selected = tree.getSelectionCount() == 1
+//										&& tree.getSelection()[0].equals(treeItem)
+//										&& entry.isSelectable();
 								event.detail = selected ? SWT.SELECTED : SWT.NONE;
 
 								Rectangle newClip = bounds.intersection(itemBounds);
@@ -540,6 +536,10 @@ public class SideBar
 					}
 
 					case SWT.EraseItem: {
+						SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
+						if (entry == null) {
+							event.detail = 0;
+						}
 						//event.detail &= ~SWT.FOREGROUND;
 						//event.detail &= ~(SWT.FOREGROUND | SWT.BACKGROUND);
 						event.doit = true;
@@ -557,13 +557,49 @@ public class SideBar
 						}
 						SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
 						if (entry != null) {
-							showEntry(entry);
+							if (entry.isSelectable()) {
+								showEntry(entry);
+							} else {
+  							MdiEntrySWT old = currentEntry;
+  							currentEntry = null;
+  							showEntry(old);
+							}
+						}
+						break;
+					}
+					
+					case SWT.MouseMove: {
+						int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
+						treeItem = tree.getItem(new Point(indent, event.y));
+						SideBarEntrySWT entry = (SideBarEntrySWT) (treeItem == null
+								? null : treeItem.getData("MdiEntry"));
+
+						int cursorNo = SWT.CURSOR_ARROW;
+						if (treeItem != null) {
+							Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
+							if (closeArea != null && closeArea.contains(event.x, event.y)) {
+								cursorNo = SWT.CURSOR_HAND;
+							} else if (entry != null && !entry.isCollapseDisabled() && treeItem.getItemCount() > 0) {
+								cursorNo = SWT.CURSOR_HAND;
+							}
+						}
+						
+						Cursor cursor = event.display.getSystemCursor(cursorNo);
+						if (tree.getCursor() != cursor) {
+							tree.setCursor(cursor);
+						}
+
+						if (treeItem != null) {
+							wasExpanded = entry != null && entry.isExpanded(); 
+						} else {
+							wasExpanded = false;
 						}
 						break;
 					}
 
 					case SWT.MouseDown: {
 						mouseDowned = true;
+						break;
 					}
 
 					case SWT.MouseUp: {
@@ -584,25 +620,39 @@ public class SideBar
 						Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
 						if (closeArea != null && closeArea.contains(event.x, event.y)) {
 							treeItem.dispose();
+							return;
 						} else if (currentEntry != entry && Constants.isOSX) {
 							showEntry(entry);
+							return;
 						}
 
-						MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
-						for (int i = 0; i < vitalityImages.length; i++) {
-							SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
-							if (vitalityImage == null || !vitalityImage.isVisible()) {
-								continue;
-							}
-							Rectangle hitArea = vitalityImage.getHitArea();
-							if (hitArea == null) {
-								continue;
-							}
-							if (hitArea.contains(event.x, event.y)) {
-								vitalityImage.triggerClickedListeners(event.x, event.y);
-								break;
-							}
+						if (entry != null) {
+  						MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
+  						for (int i = 0; i < vitalityImages.length; i++) {
+  							SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
+  							if (vitalityImage == null || !vitalityImage.isVisible()) {
+  								continue;
+  							}
+  							Rectangle hitArea = vitalityImage.getHitArea();
+  							if (hitArea == null) {
+  								continue;
+  							}
+  							if (hitArea.contains(event.x, event.y)) {
+  								vitalityImage.triggerClickedListeners(event.x, event.y);
+  								return;
+  							}
+  						}
+
+  						if (!entry.isCollapseDisabled() && treeItem.getItemCount() > 0) {
+  							MdiEntry currentEntry = getCurrentEntry();
+  							if (currentEntry != null && entry.getId().equals(currentEntry.getParentID())) {
+  								showEntryByID(SIDEBAR_SECTION_LIBRARY);
+  							}
+  							entry.setExpanded(!wasExpanded);
+  							wasExpanded = !wasExpanded;
+  						}
 						}
+
 
 						break;
 					}
@@ -629,6 +679,11 @@ public class SideBar
 									tree.setRedraw(true);
 								}
 							});
+						} else {
+							MdiEntry currentEntry = getCurrentEntry();
+							if (currentEntry != null && entry.getId().equals(currentEntry.getParentID())) {
+								showEntryByID(SIDEBAR_SECTION_LIBRARY);
+							}
 						}
 						break;
 					}
@@ -654,6 +709,10 @@ public class SideBar
 		tree.addListener(SWT.MouseUp, treeListener);
 		tree.addListener(SWT.MouseDown, treeListener);
 
+		// For cursor
+		tree.addListener(SWT.MouseMove, treeListener);
+
+		
 		// to disable collapsing
 		tree.addListener(SWT.Collapse, treeListener);
 		
@@ -1093,26 +1152,44 @@ public class SideBar
 		});
 
 		MdiEntry entry;
-		
-		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
+
+		preferedOrder = new String[] {
+			SIDEBAR_HEADER_VUZE,
+			SIDEBAR_HEADER_TRANSFERS,
+			SIDEBAR_HEADER_DVD,
+			SIDEBAR_HEADER_DEVICES,
+			SIDEBAR_HEADER_SUBSCRIPTIONS,
+			SIDEBAR_HEADER_PLUGINS,
+		};
+
+		boolean[] disableCollapses =  {
+			true, true, false, false, false, false
+		};
+		for (int i = 0; i < preferedOrder.length; i++) {
+			String id = preferedOrder[i];
+			final boolean disableCollapse = disableCollapses[i];
+			registerEntry(id, new MdiEntryCreationListener() {
+				public MdiEntry createMDiEntry(String id) {
+					MdiEntry entry = createHeader(id,
+							MessageText.getString("sidebar." + id), null);
+					if (disableCollapse) {
+						entry.setCollapseDisabled(true);
+					} else {
+						entry.setDefaultExpanded(true);
+					}
+					return entry;
+				}
+			});
+		}
+
+		entry = createEntryFromSkinRef(SIDEBAR_HEADER_TRANSFERS, SIDEBAR_SECTION_LIBRARY, "library",
 				MessageText.getString("sidebar." + SIDEBAR_SECTION_LIBRARY), null,
 				null, false, -1);
 		entry.setImageLeftID("image.sidebar.library");
 		entry.setCollapseDisabled(true);
 
-		{
-			createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY,
-					SIDEBAR_SECTION_LIBRARY_DL, "library",
-					MessageText.getString("sidebar.LibraryDL"), null, null, false, -1);
 
-			createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY,
-					SIDEBAR_SECTION_LIBRARY_UNOPENED, "library",
-					MessageText.getString("sidebar.LibraryUnopened"), null, null, false,
-					-1);
-			addMenuUnwatched();
-		}
-
-		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_BROWSE,
+		entry = createEntryFromSkinRef(SIDEBAR_HEADER_VUZE, SIDEBAR_SECTION_BROWSE,
 				"main.area.browsetab", MessageText.getString("sidebar.VuzeHDNetwork"),
 				null, null, false, -1);
 		entry.setImageLeftID("image.sidebar.vuze");
@@ -1138,22 +1215,19 @@ public class SideBar
 			}
 		}
 
-		createEntryFromSkinRef(null, SIDEBAR_SECTION_ACTIVITIES, "activity",
+		createEntryFromSkinRef(SIDEBAR_HEADER_VUZE, SIDEBAR_SECTION_ACTIVITIES, "activity",
 				MessageText.getString("sidebar." + SIDEBAR_SECTION_ACTIVITIES),
 				titleInfoActivityView, null, false, -1);
 		addMenuNotifications();
 
-		loadEntryByID(SIDEBAR_SECTION_SUBSCRIPTIONS, false);
-		loadEntryByID(SIDEBAR_SECTION_DEVICES, false);
-		
 		if (Constants.isWindows && FeatureAvailability.isGamesEnabled()) {
   		registerEntry(SIDEBAR_SECTION_GAMES, new MdiEntryCreationListener() {
   			public MdiEntry createMDiEntry(String id) {
-  				MdiEntry entry = createEntryFromSkinRef(null,
+  				MdiEntry entry = createEntryFromSkinRef(SIDEBAR_HEADER_VUZE,
   						MultipleDocumentInterface.SIDEBAR_SECTION_GAMES,
   						"main.generic.browse", MessageText.getString("mdi.entry.games"),
   						null, null, true, -1);
-  				((BaseMdiEntry)entry).setPreferredBelowID(SIDEBAR_SECTION_BROWSE);
+  				((BaseMdiEntry)entry).setPreferredAfterID(SIDEBAR_SECTION_BROWSE);
   				String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("starts/games.start", false);
   				entry.setDatasource(url);
   				entry.setImageLeftID("image.sidebar.games");
@@ -1162,25 +1236,39 @@ public class SideBar
   		});
   		loadEntryByID(SIDEBAR_SECTION_GAMES, false, true);
 		}
-		
-		if (SHOW_TOOLS) {
-			createEntryFromSkinRef(null, SIDEBAR_SECTION_TOOLS, "main.area.hood",
-					"Under The Hood", null, null, false, -1);
 
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+		registerEntry(SIDEBAR_SECTION_ABOUTPLUGINS, new MdiEntryCreationListener() {
+			public MdiEntry createMDiEntry(String id) {
+				MdiEntry entry = createEntryFromSkinRef(SIDEBAR_HEADER_PLUGINS,
+						MultipleDocumentInterface.SIDEBAR_SECTION_ABOUTPLUGINS,
+						"main.generic.browse", MessageText.getString("mdi.entry.about.plugins"),
+						null, null, true, SIDEBAR_SECTION_BROWSE);
+				String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("plugins", true);
+				entry.setDatasource(url);
+				entry.setImageLeftID("image.sidebar.plugin");
+				return entry;
+			}
+		});
+		//loadEntryByID(SIDEBAR_SECTION_ABOUTPLUGINS, true, false);
+
+		if (SHOW_TOOLS) {
+		//	createEntryFromSkinRef(null, SIDEBAR_SECTION_TOOLS, "main.area.hood",
+		//			"Under The Hood", null, null, false, -1);
+
+			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
 					PeerSuperView.class.getSimpleName(), "All Peers",
 					PeerSuperView.class, true);
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
 					StatsView.class.getSimpleName(), "Stats", StatsView.class, true);
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
 					MyTrackerView.class.getSimpleName(), "My Tracker",
 					MyTrackerView.class, true);
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
 					MySharesView.class.getSimpleName(), "My Classic-Shares",
 					MySharesView.class, true);
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
 					LoggerView.class.getSimpleName(), "Logger", LoggerView.class, true);
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
 					ConfigView.class.getSimpleName(), "Config", ConfigView.class, true);
 		}
 
@@ -1219,7 +1307,7 @@ public class SideBar
 			}
 		}
 
-		SBC_LibraryView.setupViewTitle();
+		SB_Transfers.setup(this);
 
 		// building plugin views needs UISWTInstance, which needs core.
 		final int burnInfoShown = COConfigurationManager.getIntParameter("burninfo.shown", 0);
@@ -1275,12 +1363,22 @@ public class SideBar
 		return -1;
 	}
 
-	/**
-	 * 
-	 *
-	 * @return 
-	 * @since 3.1.1.1
-	 */
+	private MdiEntry createHeader(String id, String title, String preferedAfterID) {
+		MdiEntry oldEntry = getEntry(id);
+		if (oldEntry != null) {
+			return oldEntry;
+		}
+
+		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id);
+		entry.setSelectable(false);
+		entry.setPreferredAfterID(preferedAfterID);
+		entry.setTitle(title);
+		
+		setupNewEntry(entry, id, true, false);
+		
+		return entry;
+	}
+
 	public MdiEntry createEntryFromIView(String parentID, IView iview, String id,
 			Object datasource, boolean closeable, boolean show, boolean expand) {
 		if (id == null) {
@@ -1305,7 +1403,7 @@ public class SideBar
 		entry.setDatasource(datasource);
 		entry.setParentID(parentID);
 
-		setupNewEntry(entry, id, -1, expand, closeable);
+		setupNewEntry(entry, id, expand, closeable);
 
 		if (iview instanceof IViewAlwaysInitialize) {
 			entry.build();
@@ -1319,7 +1417,7 @@ public class SideBar
 	}
 
 	private void setupNewEntry(final SideBarEntrySWT entry, final String id,
-			final int index, final boolean expandParent, final boolean closeable) {
+			final boolean expandParent, final boolean closeable) {
 		//System.out.println("createItem " + id + ";" + Debug.getCompressedStackTrace());
 		synchronized (mapIdToEntry) {
 			mapIdToEntry.put(id, entry);
@@ -1327,15 +1425,19 @@ public class SideBar
 
 		entry.setCloseable(closeable);
 		entry.setParentSkinObject(soSideBarContents);
+		
+		if (SIDEBAR_HEADER_PLUGINS.equals(entry.getParentID()) && entry.getImageLeftID() == null) {
+			entry.setImageLeftID("image.sidebar.plugin");
+		}
 
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-				_setupNewEntry(entry, id, index, expandParent, closeable);
+				_setupNewEntry(entry, id, expandParent, closeable);
 			}
 		});
 	}
 
-	protected void _setupNewEntry(SideBarEntrySWT entry, String id, int index,
+	protected void _setupNewEntry(SideBarEntrySWT entry, String id,
 			boolean expandParent, boolean closeable) {
 		String parentID = entry.getParentID();
 		MdiEntry parent = getEntry(parentID);
@@ -1347,17 +1449,52 @@ public class SideBar
 				parentTreeItem.setExpanded(true);
 			}
 		}
-		String preferredBelowID = entry.getPreferredBelowID();
-		if (preferredBelowID != null) {
-			MdiEntry entryAbove = getEntry(preferredBelowID);
+		int index = -1;
+		String preferredAfterID = entry.getPreferredAfterID();
+		if (preferredAfterID != null) {
+			MdiEntry entryAbove = getEntry(preferredAfterID);
 			if (entryAbove != null) {
-				index = indexOf(entryAbove) + 1;
+				index = indexOf(entryAbove);
+				if (index >= 0) {
+					index++;
+				}
+				//System.out.println("ENTRY " + id + " is going to go below " + entryAbove.getId() + " at " + index);
+			}
+		}
+		
+		if (index == -1 && parent == null) {
+			index = 0;
+			for (int i = 0; i < preferedOrder.length; i++) {
+				String orderID = preferedOrder[i];
+				if (orderID.equals(id)) {
+					break;
+				} 
+				MdiEntry entry2 = getEntry(orderID);
+				if (entry2 != null) {
+					int i2 = indexOf(entry2);
+					if (i2 >= 0) {
+						index = i2 + 1;
+					}
+				}
+			}
+			if (index >= preferedOrder.length) {
+				index = -1;
+			}
+		}
+
+		if (GAP_BETWEEN_LEVEL_1 && parentTreeItem == null && tree.getItemCount() > 0 && index != 0) {
+			createTreeItem(null, index);
+			if (index >= 0) {
+				index++;
 			}
 		}
 		TreeItem treeItem = createTreeItem(parentTreeItem, index);
 		if (treeItem != null) {
   		treeItem.setData("MdiEntry", entry);
   		entry.setTreeItem(treeItem);
+		}
+		if (GAP_BETWEEN_LEVEL_1 && parentTreeItem == null && tree.getItemCount() > 1 && index == 0) {
+			createTreeItem(null, ++index);
 		}
 	}
 
@@ -1389,7 +1526,7 @@ public class SideBar
 		entry.setViewTitleInfo(titleInfo);
 		entry.setParentID(parent);
 
-		setupNewEntry(entry, id, -1, false, closeable);
+		setupNewEntry(entry, id, false, closeable);
 		
 		if (IViewAlwaysInitialize.class.isAssignableFrom(iviewClass)) {
 			entry.build();
@@ -1433,10 +1570,14 @@ public class SideBar
 		if (tree.isDisposed()) {
 			return;
 		}
+		
+		if (newEntry != null && !newEntry.isSelectable()) {
+			return;
+		}
 
 		final SideBarEntrySWT oldEntry = (SideBarEntrySWT) currentEntry;
 
-		System.out.println("showEntry " + newEntry.getId() + "; was " + (oldEntry == null ? "null" : oldEntry.getId()));
+		//System.out.println("showEntry " + newEntry.getId() + "; was " + (oldEntry == null ? "null" : oldEntry.getId()));
 		if (currentEntry == newEntry) {
 			triggerSelectionListener(newEntry, newEntry);
 			return;
@@ -1450,11 +1591,19 @@ public class SideBar
 		// hide old
 		if (oldEntry != null && oldEntry != newEntry) {
 			oldEntry.hide();
+			oldEntry.redraw();
+		}
+		
+		if (newEntry != null) {
+			newEntry.redraw();
 		}
 
 		triggerSelectionListener(newEntry, oldEntry);
 	}
 
+	/**
+	 *  @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#createEntryFromEventListener(java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener, java.lang.String, boolean, java.lang.Object)
+	 */
 	public MdiEntry createEntryFromEventListener(String parentID,
 			UISWTViewEventListener l, String id, boolean closeable, Object datasource) {
 
@@ -1475,7 +1624,7 @@ public class SideBar
 			entry.setParentID(parentID);
 			entry.setDatasource(datasource);
 
-			setupNewEntry(entry, id, -1, false, closeable);
+			setupNewEntry(entry, id, false, closeable);
 
 			entry.setEventListener(l);
 		} catch (Exception e) {
@@ -1493,6 +1642,15 @@ public class SideBar
 			final String configID, String title, ViewTitleInfo titleInfo,
 			final Object params, boolean closeable, int index) {
 
+		return createEntryFromSkinRef(parentID, id, configID, title,
+				titleInfo, params, closeable, null);
+	}
+
+	// @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#createEntryFromSkinRef(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo, java.lang.Object, boolean, java.lang.String)
+	public MdiEntry createEntryFromSkinRef(String parentID, String id,
+			String configID, String title, ViewTitleInfo titleInfo, Object params,
+			boolean closeable, String preferedAfterID) {
+
 		MdiEntry oldEntry = getEntry(id);
 		if (oldEntry != null) {
 			return oldEntry;
@@ -1504,8 +1662,9 @@ public class SideBar
 		entry.setSkinRef(configID, params);
 		entry.setParentID(parentID);
 		entry.setViewTitleInfo(titleInfo);
+		entry.setPreferredAfterID(preferedAfterID);
 
-		setupNewEntry(entry, id, index, false, closeable);
+		setupNewEntry(entry, id, false, closeable);
 
 		return entry;
 	}
@@ -1645,8 +1804,8 @@ public class SideBar
 		boolean closeable = (prop instanceof Boolean)
 				? ((Boolean) prop).booleanValue() : false;
 		final SideBarEntrySWT entry = (SideBarEntrySWT) createEntryFromSkinRef(
-				null, entryID, "main.area.browsetab", name, null, cn, closeable,
-				position);
+				SIDEBAR_HEADER_VUZE, entryID, "main.area.browsetab", name, null, cn,
+				closeable, position);
 
 		ContentNetworkUI.loadImage(cn.getID(),
 				new ContentNetworkImageLoadedListener() {

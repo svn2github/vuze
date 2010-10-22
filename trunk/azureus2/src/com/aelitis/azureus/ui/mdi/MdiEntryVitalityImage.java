@@ -33,6 +33,7 @@ public interface MdiEntryVitalityImage
 	
 	public void addListener(MdiEntryVitalityImageListener l);
 	
+	// Should really be ID
 	public void setToolTip(String tooltip);
 	
 	public void setVisible(boolean visible);

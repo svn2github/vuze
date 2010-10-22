@@ -216,9 +216,16 @@ public class TabbedMDI
 	}
 
 	public boolean showEntryByID(String id) {
+		return loadEntryByID(id, true);
+	}
+	
+	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#loadEntryByID(java.lang.String, boolean)
+	public boolean loadEntryByID(String id, boolean activate) {
 		MdiEntry entry = mapIdToEntry.get(id);
 		if (entry != null) {
-			showEntry(entry);
+			if (activate) {
+				showEntry(entry);
+			}
 			return true;
 		}
 
@@ -226,7 +233,9 @@ public class TabbedMDI
 		if (mdiEntryCreationListener != null) {
 			entry = mdiEntryCreationListener.createMDiEntry(id);
 			if (entry != null) {
-				showEntry(entry);
+				if (activate) {
+					showEntry(entry);
+				}
 				return true;
 			}
 		}
@@ -274,6 +283,14 @@ public class TabbedMDI
 		entry.setSkinRef(configID, params);
 		setupNewEntry(entry, id, index);
 		return entry;
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#createEntryFromSkinRef(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo, java.lang.Object, boolean, java.lang.String)
+	public MdiEntry createEntryFromSkinRef(String parentID, String id,
+			String configID, String title, ViewTitleInfo titleInfo, Object params,
+			boolean closeable, String preferedAfterID) {
+		// afterid not supported yet
+		return createEntryFromSkinRef(parentID, preferedAfterID, configID, title, titleInfo, params, closeable, -1);
 	}
 
 	public MdiEntry createEntryFromEventListener(String parentID,

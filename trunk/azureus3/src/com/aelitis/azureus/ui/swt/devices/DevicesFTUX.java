@@ -370,7 +370,7 @@ public class DevicesFTUX
 							close();
 
 							MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-							MdiEntry entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_DEVICES);
+							MdiEntry entry = mdi.getEntry(SideBar.SIDEBAR_HEADER_DEVICES);
 							MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
 							for (MdiEntryVitalityImage vi : vitalityImages) {
 								if (vi.getImageID().contains("turnon")) {

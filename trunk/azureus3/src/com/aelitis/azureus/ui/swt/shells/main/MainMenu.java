@@ -289,11 +289,9 @@ public class MainMenu
 						new Listener() {
 							public void handleEvent(Event event) {
 								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-          			MdiEntry entry = mdi.createEntryFromSkinRef(null,
-          					"BetaProgramme", "main.area.beta",
-          					MessageText.getString("Sidebar.beta.title"), null, null,
-          					true, 0);
-          			mdi.showEntry(entry);
+								if (mdi != null) {
+									mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM);
+								}
 							}
 				});
 				needsSep = true;

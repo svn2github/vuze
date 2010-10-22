@@ -273,8 +273,9 @@ public class UIFunctionsImpl
 			if (mdi == null) {
 				return;
 			}
-			if (mdi.createEntryFromIView(null, view, name, null, true, true,
-					true) != null) {
+			if (mdi.createEntryFromIView(
+					MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS, view, name, null,
+					true, true, true) != null) {
 				return;
 			}
 		} catch (Exception e) {
@@ -300,8 +301,10 @@ public class UIFunctionsImpl
 				String sidebarParentID = null;
 				
 				if (UISWTInstance.VIEW_MYTORRENTS.equals(sParentID)) {
-					sidebarParentID = SideBar.SIDEBAR_SECTION_LIBRARY;
-				} else if (!UISWTInstance.VIEW_MAIN.equals(sParentID)) {
+					sidebarParentID = SideBar.SIDEBAR_HEADER_TRANSFERS;
+				} else if (UISWTInstance.VIEW_MAIN.equals(sParentID)) {
+					sidebarParentID = MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS;
+				} else {
 					System.err.println("Can't find parent " + sParentID + " for " + sViewID);
 				}
 				
@@ -413,7 +416,7 @@ public class UIFunctionsImpl
 		try {
 			boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 			if (uiClassic) {
-				mainWindow.openView(null, ConfigView.class, null, section, true);
+				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, ConfigView.class, null, section, true);
 			} else {
 				ConfigShell.getInstance().open(section);
 			}
@@ -437,17 +440,17 @@ public class UIFunctionsImpl
 	private void _openView(int viewID, Object data) {
 		switch (viewID) {
 			case VIEW_CONSOLE:
-				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, LoggerView.class,
+				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, LoggerView.class,
 						null, data, true);
 				break;
 
 			case VIEW_ALLPEERS:
-				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, PeerSuperView.class,
+				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, PeerSuperView.class,
 						null, data, true);
 				break;
 
 			case VIEW_PEERS_STATS:
-				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, ClientStatsView.class,
+				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, ClientStatsView.class,
 						null, data, true);
 				break;
 
@@ -469,7 +472,7 @@ public class UIFunctionsImpl
 					}
 				}
 
-				mainWindow.openView(SideBar.SIDEBAR_SECTION_LIBRARY, ManagerView.class,
+				mainWindow.openView(SideBar.SIDEBAR_HEADER_TRANSFERS, ManagerView.class,
 						id, data, true);
 				break;
 
@@ -492,12 +495,12 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_MYTRACKER:
-				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, MyTrackerView.class,
+				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, MyTrackerView.class,
 						null, data, true);
 				break;
 
 			case VIEW_STATS:
-				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, StatsView.class,
+				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, StatsView.class,
 						null, data, true);
 				break;
 				

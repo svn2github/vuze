@@ -145,9 +145,11 @@ DeviceManagerUI
 	
 	private boolean	offline_menus_setup;
 
-	private MdiEntry main_sb_entry;
+	private MdiEntry mdiEntryOverview;
 
 	private boolean needsAddAllDevices;
+
+	private MdiEntry entryHeader;
 	
 	
 	static {
@@ -343,7 +345,7 @@ DeviceManagerUI
 						}
 							
 						addAllDevices();
-						return main_sb_entry;
+						return mdiEntryOverview;
 					}
 				});
 
@@ -1128,7 +1130,7 @@ DeviceManagerUI
 		
 		if ( mdi != null ){
 		
-			MdiEntry entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+			MdiEntry entry = mdi.getEntry( SideBar.SIDEBAR_HEADER_DEVICES );
 		
 			if (entry != null) {
 			
@@ -1160,443 +1162,417 @@ DeviceManagerUI
 				});
 	}
 	
-	protected MdiEntry
-	buildSideBar(
-		boolean			rebuild )	
-	{		
+	protected MdiEntry buildSideBar(boolean rebuild) {
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		
-		if ( mdi != null ){
-		
-			main_sb_entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
 
-				
-			MenuManager menu_manager = ui_manager.getMenuManager();
+		if (mdi == null) {
+			return null;
+		}
 
-			if ( main_sb_entry == null ){
-
-				
-				main_sb_entry = mdi.createEntryFromSkinRef(null,
-						SideBar.SIDEBAR_SECTION_DEVICES, "devicesview",
-						MessageText.getString("devices.view.title"),
-						null, null, false, -1);
-				main_sb_entry.setDefaultExpanded(true);
-
-				addDefaultDropListener( main_sb_entry );
-
-				/* and away you go!
-				SideBarVitalityImage addDevice = main_sb_entry.addVitalityImage("image.sidebar.subs.add");
-				
-				addDevice.setToolTip("Add Device");
-				
-				addDevice.addListener(
-					new SideBarVitalityImageListener() 
-					{
-						public void 
-						sbVitalityImage_clicked(
-							int x, int y) 
-						{
-							addNewDevice();
-							//new DevicesWizard( DeviceManagerUI.this );
-						}
-					});
-				*/
-
-				
-				device_manager.addListener(new DeviceManagerListener() {
-					
-					public void deviceRemoved(Device device) {
-					}
-
-					public void deviceManagerLoaded() {
-						device_manager.removeListener(this);
-						if (main_sb_entry == null || main_sb_entry.isDisposed()) {
-							return;
-						}
-						if (device_manager.getTranscodeManager().getProviders().length == 0) {
-							final MdiEntryVitalityImage turnon = main_sb_entry.addVitalityImage("image.sidebar.turnon");
-							if (turnon != null) {
-								turnon.addListener(new MdiEntryVitalityImageListener() {
-									public void mdiEntryVitalityImage_clicked(int x, int y) {
-										DevicesFTUX.ensureInstalled( null );
-									}
-								});
-								
-								device_manager.getTranscodeManager().addListener(
-									new TranscodeManagerListener()
-									{
-										public void
-										providerAdded(
-											TranscodeProvider	provider )
-										{
-											turnon.setVisible( false );
-										}
-										
-										public void
-										providerUpdated(
-											TranscodeProvider	provider )
-										{											
-										}
-										
-										public void
-										providerRemoved(
-											TranscodeProvider	provider )
-										{
-										}
-									});
-							}
-						}
-					}
-
-					public void deviceChanged(Device device) {
-					}
-					
-					public void deviceAttentionRequest(Device device) {
-					}
-					
-					public void deviceAdded(Device device) {
-					}
-				});
-
-				MdiEntryVitalityImage beta = main_sb_entry.addVitalityImage("image.sidebar.beta");
-				if (beta != null) {
-					beta.setAlignment(SWT.LEFT);
-				}
-				
-				main_sb_entry.setImageLeftID( "image.sidebar.devices" );
-					
-				
-				main_sb_entry.setViewTitleInfo(
-					new ViewTitleInfo() 
-					{
-						private int last_indicator = 0;
-						
-						MdiEntryVitalityImage spinner = main_sb_entry.addVitalityImage( SPINNER_IMAGE_ID );
-						MdiEntryVitalityImage warning = main_sb_entry.addVitalityImage( ALERT_IMAGE_ID );
-						MdiEntryVitalityImage info	 = main_sb_entry.addVitalityImage( INFO_IMAGE_ID );
-
-						{
-							hideIcon( spinner );
-							hideIcon( warning );
-							hideIcon( info );
-						}
-						
-						public Object 
-						getTitleInfoProperty(
-							int propertyID ) 
-						{
-							boolean expanded = main_sb_entry.isExpanded();
-														
-							if ( propertyID == TITLE_TEXT ){
-								
-								return MessageText.getString( "devices.view.title" );
-								
-							}else if ( propertyID == TITLE_INDICATOR_TEXT ){
-																
-								spinner.setVisible( !expanded && device_manager.isBusy());
-								
-								if ( !expanded ){
-																	
-									Device[] devices = device_manager.getDevices();
-									
-									last_indicator = 0;
-									
-									String all_errors = "";
-									String all_infos = "";
-									
-									for ( Device device: devices ){
-										
-										String error = device.getError();
-										
-										if ( error != null ){
-											
-											all_errors += (all_errors.length()==0?"":"; ") + error;
-										}
-										
-										String info = device.getInfo();
-										
-										if ( info != null ){
-											
-											all_infos += (all_infos.length()==0?"":"; ") + info;
-										}
-										
-										if ( device instanceof DeviceMediaRenderer ){
-									
-											if ( SHOW_RENDERER_VITALITY ){
-												
-												DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
-												
-												last_indicator += renderer.getCopyToDevicePending() + renderer.getCopyToFolderPending();
-											}
-										}else if ( device instanceof DeviceOfflineDownloader ){
-											
-											if ( SHOW_OD_VITALITY ){
-												
-												DeviceOfflineDownloader	dod = (DeviceOfflineDownloader)device;
-												
-												last_indicator += dod.getTransferingCount();
-											}
-										}
-									}
-									
-									if ( all_errors.length() > 0 ){
-										 
-										hideIcon( info );
-										
-										showIcon( warning, all_errors );
-										
-									}else{
-										
-										hideIcon( warning );
-										
-										if ( all_infos.length() > 0 ){
-										
-											showIcon( info, all_infos );
-																						
-										}else{
-										
-											hideIcon( info );
-										}
-									}
-									
-									if ( last_indicator > 0 ){
-																						
-										return( String.valueOf( last_indicator ));
-									}
-								}else{
-									
-									hideIcon( warning );
-									hideIcon( info );
-								
-								}
-							}else if ( propertyID == TITLE_INDICATOR_COLOR ){
-									
-								/*
-								if ( last_indicator > 0 ){
-									
-									if ( SHOW_VITALITY ){
-										
-										return( to_copy_indicator_colors );
-									}
-								}
-								*/
-							}
-
-							return null;
-						}
-					});
-
-					// devices
-				
-				String parentID = "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES;
-							
-				MenuItem de_menu_item = menu_manager.addMenuItem( parentID, "device.search" );
-			
-				de_menu_item.addListener( 
-						new MenuItemListener() 
-						{
-							public void 
-							selected(
-								MenuItem menu, Object target ) 
-							{
-								search();
-							}
-						});
-				
-					// show hidden
-				
-
-				de_menu_item = menu_manager.addMenuItem( parentID, "device.showGeneric" );
-				de_menu_item.setStyle(MenuItem.STYLE_CHECK);
-				de_menu_item.addFillListener(new MenuItemFillListener() {
-					public void menuWillBeShown(MenuItem menu, Object data) {
-						menu.setData( !COConfigurationManager.getBooleanParameter( CONFIG_VIEW_HIDE_REND_GENERIC, true ));
-					}
-				});
-				de_menu_item.addListener(new MenuItemListener() {
-					public void selected(MenuItem menu, Object target) {
-						COConfigurationManager.setParameter(CONFIG_VIEW_HIDE_REND_GENERIC,
-								!COConfigurationManager.getBooleanParameter(
-										CONFIG_VIEW_HIDE_REND_GENERIC, true));
-					}
-				});
-
-				de_menu_item = menu_manager.addMenuItem( parentID, "device.show" );
-
-				de_menu_item.addListener( show_listener );
-				de_menu_item.addFillListener( show_fill_listener );
-				
-
-					// simple
-				
-				de_menu_item = menu_manager.addMenuItem( parentID, "devices.sidebar.simple" );
-				
-				de_menu_item.setStyle( MenuItem.STYLE_CHECK );
-								
-				de_menu_item.addFillListener(
-					new MenuItemFillListener()
-					{
-						public void 
-						menuWillBeShown(
-							MenuItem menu, 
-							Object data) 
-						{
-							menu.setData( COConfigurationManager.getIntParameter( CONFIG_VIEW_TYPE, SBV_SIMPLE ) == SBV_SIMPLE );
-						}
-					});
-				
-				de_menu_item.addListener( 
-						new MenuItemListener() 
-						{
-							public void 
-							selected(
-								MenuItem menu, Object target ) 
-							{
-								COConfigurationManager.setParameter( CONFIG_VIEW_TYPE, ((Boolean)menu.getData())?SBV_SIMPLE:SBV_FULL );
-							}
-						});
-				
-				de_menu_item = menu_manager.addMenuItem( parentID, "sep" );
-
-				de_menu_item.setStyle( MenuItem.STYLE_SEPARATOR );
-				
-					// options 
-				
-				de_menu_item = menu_manager.addMenuItem( parentID, "MainWindow.menu.view.configuration" );
-				
-				de_menu_item.addListener( 
-						new MenuItemListener() 
-						{
-							public void 
-							selected(
-								MenuItem menu, Object target ) 
-							{
-						      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
-						      	 
-						      	 if ( uif != null ){
-						      		 
-						      		 uif.openView( UIFunctions.VIEW_CONFIG, "Devices" );
-						      	 }
-							}
-						});
-
-				if (Constants.isCVSVersion()) {
-					de_menu_item = menu_manager.addMenuItem(parentID,
-							"!(CVS Only)Show FTUX!");
-					
-					de_menu_item.addListener(new MenuItemListener(){
-						public void selected(MenuItem menu, Object target) {
-							DevicesFTUX.showForDebug();
-						}
-					});
-
-				}
-			}
-			
-			if ( rebuild ){
-				
-				for ( categoryView category: categories ){
-					
-					category.destroy();
-				}
-			}
-			
-			categories.clear();
-			
-			if ( side_bar_view_type == SBV_FULL ){
-				
-					// renderers
-				
-				categoryView renderers_category 		= addDeviceCategory( Device.DT_MEDIA_RENDERER, "device.renderer.view.title", "image.sidebar.device.renderer" );
-				
-				categories.add( renderers_category );
-				
-				MenuItem re_menu_item = menu_manager.addMenuItem( "sidebar." + renderers_category.getKey(), "device.show" );
-	
-				re_menu_item.addListener( show_listener );
-				re_menu_item.addFillListener( show_fill_listener );
-				
-					// media servers
-				
-				categoryView media_servers_category	= addDeviceCategory( Device.DT_CONTENT_DIRECTORY, "device.mediaserver.view.title", "image.sidebar.device.mediaserver" );
-					
-				categories.add( media_servers_category );
-				
-				MenuItem ms_menu_item = menu_manager.addMenuItem( "sidebar." + media_servers_category.getKey(), "device.show" );
-	
-				ms_menu_item.addListener( show_listener );
-				ms_menu_item.addFillListener( show_fill_listener );
-				
-				ms_menu_item = menu_manager.addMenuItem( "sidebar." + media_servers_category.getKey(), "device.mediaserver.configure");
-				
-				ms_menu_item.addListener( 
-						new MenuItemListener() 
-						{
-							public void 
-							selected(
-								MenuItem menu, Object target ) 
-							{
-						      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
-						      	 
-						      	 if ( uif != null ){
-						      		 
-						      		 uif.openView( UIFunctions.VIEW_CONFIG, "upnpmediaserver.name" );
-						      	 }
-							}
-						});
-	
-					// routers
-				
-				categoryView routers_category			= addDeviceCategory( Device.DT_INTERNET_GATEWAY, "device.router.view.title", "image.sidebar.device.router" );
-				
-				categories.add( routers_category );
-				
-				MenuItem rt_menu_item = menu_manager.addMenuItem( "sidebar." + routers_category.getKey(), "device.show" );
-	
-				rt_menu_item.addListener( show_listener );
-				rt_menu_item.addFillListener( show_fill_listener );
-				
-				rt_menu_item = menu_manager.addMenuItem( "sidebar." + routers_category.getKey(), "device.router.configure" );
-				
-				rt_menu_item.addListener( 
-						new MenuItemListener() 
-						{
-							public void 
-							selected(
-								MenuItem menu, Object target ) 
-							{
-						      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
-						      	 
-						      	 if ( uif != null ){
-						      		 
-						      		 uif.openView( UIFunctions.VIEW_CONFIG, "UPnP" );
-						      	 }
-							}
-						});
-				
-					// offline downloaders
-				
-				if ( device_manager.getOfflineDownlaoderManager().isOfflineDownloadingEnabled()){
-					
-					categoryView od_category	= addDeviceCategory( Device.DT_OFFLINE_DOWNLOADER, "device.offlinedownloader.view.title", "image.sidebar.device.offlinedownloader" );
-					
-					categories.add( od_category );
-				}
-				
-					// internet
-				
-				categoryView internet_category	= addDeviceCategory( Device.DT_INTERNET, "MainWindow.about.section.internet", "image.sidebar.device.internet" );
-				
-				categories.add( internet_category );
+		if (entryHeader == null) {
+			entryHeader = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_HEADER_DEVICES);
+			if (entryHeader != null) {
+				setupHeader(mdi, entryHeader);
 			}
 		}
-		
+
+		mdiEntryOverview = mdi.getEntry(SideBar.SIDEBAR_SECTION_DEVICES);
+
+		if (mdiEntryOverview == null) {
+			mdiEntryOverview = mdi.createEntryFromSkinRef(
+					SideBar.SIDEBAR_HEADER_DEVICES, SideBar.SIDEBAR_SECTION_DEVICES,
+					"devicesview", MessageText.getString("devices.view.title"), null,
+					null, false, -1);
+			mdiEntryOverview.setImageLeftID("image.sidebar.aboutdevices");
+		}
+
+		if (rebuild) {
+			for (categoryView category : categories) {
+				category.destroy();
+			}
+		}
+
+		categories.clear();
+
+		if (side_bar_view_type == SBV_FULL) {
+			buildCategories();
+		}
+
 		sidebar_built = true;
-		
-		return main_sb_entry;
+
+		return mdiEntryOverview;
+	}	
+	
+	private void buildCategories() {
+		MenuManager menu_manager = ui_manager.getMenuManager();
+		// renderers
+
+		categoryView renderers_category = addDeviceCategory(
+				Device.DT_MEDIA_RENDERER, "device.renderer.view.title",
+				"image.sidebar.device.renderer");
+
+		categories.add(renderers_category);
+
+		MenuItem re_menu_item = menu_manager.addMenuItem("sidebar."
+				+ renderers_category.getKey(), "device.show");
+
+		re_menu_item.addListener(show_listener);
+		re_menu_item.addFillListener(show_fill_listener);
+
+		// media servers
+
+		categoryView media_servers_category = addDeviceCategory(
+				Device.DT_CONTENT_DIRECTORY, "device.mediaserver.view.title",
+				"image.sidebar.device.mediaserver");
+
+		categories.add(media_servers_category);
+
+		MenuItem ms_menu_item = menu_manager.addMenuItem("sidebar."
+				+ media_servers_category.getKey(), "device.show");
+
+		ms_menu_item.addListener(show_listener);
+		ms_menu_item.addFillListener(show_fill_listener);
+
+		ms_menu_item = menu_manager.addMenuItem(
+				"sidebar." + media_servers_category.getKey(),
+				"device.mediaserver.configure");
+
+		ms_menu_item.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+				if (uif != null) {
+
+					uif.openView(UIFunctions.VIEW_CONFIG, "upnpmediaserver.name");
+				}
+			}
+		});
+
+		// routers
+
+		categoryView routers_category = addDeviceCategory(
+				Device.DT_INTERNET_GATEWAY, "device.router.view.title",
+				"image.sidebar.device.router");
+
+		categories.add(routers_category);
+
+		MenuItem rt_menu_item = menu_manager.addMenuItem("sidebar."
+				+ routers_category.getKey(), "device.show");
+
+		rt_menu_item.addListener(show_listener);
+		rt_menu_item.addFillListener(show_fill_listener);
+
+		rt_menu_item = menu_manager.addMenuItem(
+				"sidebar." + routers_category.getKey(), "device.router.configure");
+
+		rt_menu_item.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+				if (uif != null) {
+
+					uif.openView(UIFunctions.VIEW_CONFIG, "UPnP");
+				}
+			}
+		});
+
+		// offline downloaders
+
+		if (device_manager.getOfflineDownlaoderManager().isOfflineDownloadingEnabled()) {
+
+			categoryView od_category = addDeviceCategory(
+					Device.DT_OFFLINE_DOWNLOADER, "device.offlinedownloader.view.title",
+					"image.sidebar.device.offlinedownloader");
+
+			categories.add(od_category);
+		}
+
+		// internet
+
+		categoryView internet_category = addDeviceCategory(Device.DT_INTERNET,
+				"MainWindow.about.section.internet", "image.sidebar.device.internet");
+
+		categories.add(internet_category);
 	}
-	
-	
+
+	private void setupHeader(MultipleDocumentInterface mdi,
+			final MdiEntry entryHeader) {
+		addDefaultDropListener(entryHeader);
+
+		/* and away you go!
+		SideBarVitalityImage addDevice = entryHeader.addVitalityImage("image.sidebar.subs.add");
+		
+		addDevice.setToolTip("Add Device");
+		
+		addDevice.addListener(
+			new SideBarVitalityImageListener() 
+			{
+				public void 
+				sbVitalityImage_clicked(
+					int x, int y) 
+				{
+					addNewDevice();
+					//new DevicesWizard( DeviceManagerUI.this );
+				}
+			});
+		*/
+
+		// Rollup spinner/warning/info
+		entryHeader.setViewTitleInfo(new ViewTitleInfo() {
+			private int last_indicator = 0;
+
+			MdiEntryVitalityImage spinner = entryHeader.addVitalityImage(SPINNER_IMAGE_ID);
+
+			MdiEntryVitalityImage warning = entryHeader.addVitalityImage(ALERT_IMAGE_ID);
+
+			MdiEntryVitalityImage info = entryHeader.addVitalityImage(INFO_IMAGE_ID);
+
+			{
+				hideIcon(spinner);
+				hideIcon(warning);
+				hideIcon(info);
+			}
+
+			public Object getTitleInfoProperty(int propertyID) {
+				boolean expanded = entryHeader.isExpanded();
+
+				if (propertyID == TITLE_INDICATOR_TEXT) {
+
+					spinner.setVisible(!expanded && device_manager.isBusy());
+
+					if (!expanded) {
+
+						Device[] devices = device_manager.getDevices();
+
+						last_indicator = 0;
+
+						String all_errors = "";
+						String all_infos = "";
+
+						for (Device device : devices) {
+
+							String error = device.getError();
+
+							if (error != null) {
+
+								all_errors += (all_errors.length() == 0 ? "" : "; ") + error;
+							}
+
+							String info = device.getInfo();
+
+							if (info != null) {
+
+								all_infos += (all_infos.length() == 0 ? "" : "; ") + info;
+							}
+
+							if (device instanceof DeviceMediaRenderer) {
+
+								if (SHOW_RENDERER_VITALITY) {
+
+									DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
+
+									last_indicator += renderer.getCopyToDevicePending()
+											+ renderer.getCopyToFolderPending();
+								}
+							} else if (device instanceof DeviceOfflineDownloader) {
+
+								if (SHOW_OD_VITALITY) {
+
+									DeviceOfflineDownloader dod = (DeviceOfflineDownloader) device;
+
+									last_indicator += dod.getTransferingCount();
+								}
+							}
+						}
+
+						if (all_errors.length() > 0) {
+
+							hideIcon(info);
+
+							showIcon(warning, all_errors);
+
+						} else {
+
+							hideIcon(warning);
+
+							if (all_infos.length() > 0) {
+
+								showIcon(info, all_infos);
+
+							} else {
+
+								hideIcon(info);
+							}
+						}
+
+						if (last_indicator > 0) {
+
+							return (String.valueOf(last_indicator));
+						}
+					} else {
+
+						hideIcon(warning);
+						hideIcon(info);
+
+					}
+				} else if (propertyID == TITLE_INDICATOR_COLOR) {
+
+					/*
+					if ( last_indicator > 0 ){
+						
+						if ( SHOW_VITALITY ){
+							
+							return( to_copy_indicator_colors );
+						}
+					}
+					*/
+				}
+
+				return null;
+			}
+		});
+
+		///////// Turn On
+		device_manager.addListener(new DeviceManagerListener() {
+
+			public void deviceRemoved(Device device) {
+			}
+
+			public void deviceManagerLoaded() {
+				device_manager.removeListener(this);
+				if (entryHeader == null || entryHeader.isDisposed()) {
+					return;
+				}
+				if (device_manager.getTranscodeManager().getProviders().length == 0) {
+					final MdiEntryVitalityImage turnon = entryHeader.addVitalityImage("image.sidebar.turnon");
+					if (turnon != null) {
+						turnon.addListener(new MdiEntryVitalityImageListener() {
+							public void mdiEntryVitalityImage_clicked(int x, int y) {
+								DevicesFTUX.ensureInstalled(null);
+							}
+						});
+
+						device_manager.getTranscodeManager().addListener(
+								new TranscodeManagerListener() {
+									public void providerAdded(TranscodeProvider provider) {
+										turnon.setVisible(false);
+									}
+
+									public void providerUpdated(TranscodeProvider provider) {
+									}
+
+									public void providerRemoved(TranscodeProvider provider) {
+									}
+								});
+					}
+				}
+			}
+
+			public void deviceChanged(Device device) {
+			}
+
+			public void deviceAttentionRequest(Device device) {
+			}
+
+			public void deviceAdded(Device device) {
+			}
+		});
+
+		//////// Beta
+
+		MdiEntryVitalityImage beta = entryHeader.addVitalityImage("image.sidebar.beta");
+		if (beta != null) {
+			beta.setAlignment(SWT.LEFT);
+		}
+
+		///////// Menu
+
+		MenuManager menu_manager = ui_manager.getMenuManager();
+
+		String parentID = "sidebar." + SideBar.SIDEBAR_HEADER_DEVICES;
+
+		MenuItem de_menu_item = menu_manager.addMenuItem(parentID, "device.search");
+
+		de_menu_item.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				search();
+			}
+		});
+
+		// show hidden
+
+		de_menu_item = menu_manager.addMenuItem(parentID, "device.showGeneric");
+		de_menu_item.setStyle(MenuItem.STYLE_CHECK);
+		de_menu_item.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setData(!COConfigurationManager.getBooleanParameter(
+						CONFIG_VIEW_HIDE_REND_GENERIC, true));
+			}
+		});
+		de_menu_item.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				COConfigurationManager.setParameter(CONFIG_VIEW_HIDE_REND_GENERIC,
+						!COConfigurationManager.getBooleanParameter(
+								CONFIG_VIEW_HIDE_REND_GENERIC, true));
+			}
+		});
+
+		de_menu_item = menu_manager.addMenuItem(parentID, "device.show");
+
+		de_menu_item.addListener(show_listener);
+		de_menu_item.addFillListener(show_fill_listener);
+
+		// simple
+
+		de_menu_item = menu_manager.addMenuItem(parentID, "devices.sidebar.simple");
+
+		de_menu_item.setStyle(MenuItem.STYLE_CHECK);
+
+		de_menu_item.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setData(COConfigurationManager.getIntParameter(CONFIG_VIEW_TYPE,
+						SBV_SIMPLE) == SBV_SIMPLE);
+			}
+		});
+
+		de_menu_item.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				COConfigurationManager.setParameter(CONFIG_VIEW_TYPE,
+						((Boolean) menu.getData()) ? SBV_SIMPLE : SBV_FULL);
+			}
+		});
+
+		de_menu_item = menu_manager.addMenuItem(parentID, "sep");
+
+		de_menu_item.setStyle(MenuItem.STYLE_SEPARATOR);
+
+		// options 
+
+		de_menu_item = menu_manager.addMenuItem(parentID, "MainWindow.menu.view.configuration");
+
+		de_menu_item.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+				if (uif != null) {
+
+					uif.openView(UIFunctions.VIEW_CONFIG, "Devices");
+				}
+			}
+		});
+
+		if (Constants.isCVSVersion()) {
+			de_menu_item = menu_manager.addMenuItem(parentID, "!(CVS Only)Show FTUX!");
+
+			de_menu_item.addListener(new MenuItemListener() {
+				public void selected(MenuItem menu, Object target) {
+					DevicesFTUX.showForDebug();
+				}
+			});
+
+		}
+	}
+
 	/**
 	 * 
 	 *
@@ -2013,7 +1989,7 @@ DeviceManagerUI
 				return;
 			}
 			
-			parent_key = SideBar.SIDEBAR_SECTION_DEVICES;
+			parent_key = SideBar.SIDEBAR_HEADER_DEVICES;
 		}
 		
 		if ( parent_key == null ){
@@ -3149,7 +3125,7 @@ DeviceManagerUI
 		
 		MdiEntry	entry = 
 			mdi.createEntryFromIView(
-				SideBar.SIDEBAR_SECTION_DEVICES, 
+				SideBar.SIDEBAR_HEADER_DEVICES, 
 				view,
 				key, 
 				new Integer( device_type ), 

@@ -131,4 +131,12 @@ public interface MdiEntry
 	public void addToolbarEnabler(ToolBarEnabler enabler);
 
 	public void removeToolbarEnabler(ToolBarEnabler enabler);
+
+	public boolean isSelectable();
+
+	public void setSelectable(boolean selectable);
+
+	public void setPreferredAfterID(String preferredAfterID);
+
+	public String getPreferredAfterID();
 }

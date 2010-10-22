@@ -59,6 +59,8 @@ public class SubscriptionMDIEntry implements SubscriptionListener
 		if (mdiEntry == null) {
 			return;
 		}
+
+		mdiEntry.setImageLeftID("image.sidebar.subscriptions");
 		
 		warningImage = mdiEntry.addVitalityImage( ALERT_IMAGE_ID );
 		

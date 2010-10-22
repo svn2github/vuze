@@ -122,7 +122,7 @@ public class SideBarVitalityImageSWT
 									SideBarEntrySWT sbEntry = (SideBarEntrySWT) mdiEntry;
 									
 									TreeItem treeItem = sbEntry.getTreeItem();
-									if (treeItem == null || treeItem.isDisposed()) {
+									if (treeItem == null || treeItem.isDisposed() || !sbEntry.swt_isVisible()) {
 										return;
 									}
 									Tree parent = treeItem.getParent();
@@ -239,7 +239,7 @@ public class SideBarVitalityImageSWT
 		if (timerEvent != null) {
 			timerEvent.cancel();
 		}
-		if (images.length > 1) {
+		if (images != null && images.length > 1) {
 			ImageLoader imageLoader = ImageLoader.getInstance();
 			int delay = delayTime == -1 ? imageLoader.getAnimationDelay(imageID)
 					: delayTime;

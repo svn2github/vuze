@@ -82,7 +82,7 @@ SubscriptionManagerUI
 	protected UISWTInstance swt;
 	private UIManager ui_manager;
 	private PluginInterface default_pi;
-	private MdiEntry mainSBEntry;
+	private MdiEntry mdiEntryOverview;
 	
 	public
 	SubscriptionManagerUI()
@@ -336,7 +336,7 @@ SubscriptionManagerUI
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
 						setupSideBar( swt );
-						return mainSBEntry;
+						return mdiEntryOverview;
 					}
 				});
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
@@ -794,136 +794,43 @@ SubscriptionManagerUI
 			return;
 		}
 		
-		MdiEntry existingEntry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS);
-		
-		if (existingEntry == null || !existingEntry.isAdded()) {
-			mdi.createEntryFromIViewClass(null,
+		mdiEntryOverview = mdi.createEntryFromIViewClass(MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS,
 					MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
-					MessageText.getString("subscriptions.view.title"),
+					MessageText.getString("subscriptions.overview"),
 					SubscriptionsView.class, null, null, null, null, false);
+
+		if (mdiEntryOverview == null) {
+			return;
+		}
+			
+		mdiEntryOverview.setImageLeftID("image.sidebar.subscriptions");
+
+		MdiEntry headerEntry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS);
+		if (headerEntry != null) {
+			setupHeader(mdi, headerEntry);
 		}
 
-		mainSBEntry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS);
+		String parentID = "sidebar." + MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS;
 
-		if (mainSBEntry != null) {
-			
-			mainSBEntry.setDefaultExpanded(false);
-
-			MdiEntryVitalityImage addSub 	= mainSBEntry.addVitalityImage("image.sidebar.subs.add");
-			
-			if (addSub != null) {
-				addSub.setToolTip("Add Subscription");
-			
-  			addSub.addListener(new MdiEntryVitalityImageListener() {
-  				public void mdiEntryVitalityImage_clicked(int x, int y) {
-  					new SubscriptionWizard();
-  				}
-  			});
-			}
-			
-			final MdiEntryVitalityImage warnSub 	= mainSBEntry.addVitalityImage( ALERT_IMAGE_ID );
-			
-			if (warnSub != null) {
-				warnSub.setVisible( false );
-			}
-			
-			mainSBEntry.setImageLeftID("image.sidebar.subscriptions");
-
-			mainSBEntry.setViewTitleInfo(
-				new ViewTitleInfo() 
+		MenuManager menu_manager = ui_manager.getMenuManager();
+		
+		MenuItem mi = menu_manager.addMenuItem( parentID, "MainWindow.menu.view.configuration" );
+		
+		mi.addListener( 
+				new MenuItemListener() 
 				{
-					public Object 
-					getTitleInfoProperty(
-						int propertyID ) 
+					public void 
+					selected(
+						MenuItem menu, Object target ) 
 					{
-						if (propertyID == TITLE_TEXT) {
-							
-							return MessageText.getString("subscriptions.view.title");
-							
-						}else if ( propertyID == TITLE_INDICATOR_TEXT ){
-
-							boolean expanded = mainSBEntry.isExpanded();
-
-							if ( expanded ){
-								
-								warnSub.setVisible( false );
-								
-							}else{
-								
-								int		total 	= 0;
-								boolean	warn 	= false;
-								
-								Subscription[] subs = subs_man.getSubscriptions( true );
-								
-								String	error_str = "";
-								
-								for ( Subscription s: subs ){
-									
-									SubscriptionHistory history = s.getHistory();
-
-									total += history.getNumUnread();
-									
-									String	last_error = history.getLastError();
-
-									if ( last_error != null && last_error.length() > 0 ){
-										
-										boolean	auth_fail = history.isAuthFail();
-																		
-										if ( history.getConsecFails() >= 3 || auth_fail ){
-										
-											warn = true;
-											
-											if ( error_str.length() > 128 ){
-												
-												if ( !error_str.endsWith( ", ..." )){
-													
-													error_str += ", ...";
-												}
-											}else{
-												
-												error_str += (error_str.length()==0?"":", ") + last_error;
-											}
-										}
-									}
-								}
-								
-								warnSub.setVisible( warn );
-								warnSub.setToolTip( error_str );
-								
-								if ( total > 0 ){
-								
-									return( String.valueOf( total ));
-								}
-							}
-						}
-						
-						return null;
+				      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
+				      	 
+				      	 if ( uif != null ){
+				      		 
+				      		 uif.openView( UIFunctions.VIEW_CONFIG, "Subscriptions" );
+				      	 }
 					}
 				});
-
-			String parentID = "sidebar." + MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS;
-
-			MenuManager menu_manager = ui_manager.getMenuManager();
-			
-			MenuItem mi = menu_manager.addMenuItem( parentID, "MainWindow.menu.view.configuration" );
-			
-			mi.addListener( 
-					new MenuItemListener() 
-					{
-						public void 
-						selected(
-							MenuItem menu, Object target ) 
-						{
-					      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
-					      	 
-					      	 if ( uif != null ){
-					      		 
-					      		 uif.openView( UIFunctions.VIEW_CONFIG, "Subscriptions" );
-					      	 }
-						}
-					});
-		}
-		
 		
 		subs_man.addListener(
 			new SubscriptionManagerListener()
@@ -1005,6 +912,91 @@ SubscriptionManagerUI
 			});
 	}
 	
+	private void setupHeader(MultipleDocumentInterface mdi,
+			final MdiEntry headerEntry) {
+
+		MdiEntryVitalityImage addSub = headerEntry.addVitalityImage("image.sidebar.subs.add");
+
+		if (addSub != null) {
+			addSub.setToolTip(MessageText.getString("subscriptions.add.tooltip"));
+
+			addSub.addListener(new MdiEntryVitalityImageListener() {
+				public void mdiEntryVitalityImage_clicked(int x, int y) {
+					new SubscriptionWizard();
+				}
+			});
+		}
+
+		final MdiEntryVitalityImage warnSub = headerEntry.addVitalityImage(ALERT_IMAGE_ID);
+		if (warnSub != null) {
+			warnSub.setVisible(false);
+		}
+
+		headerEntry.setViewTitleInfo(new ViewTitleInfo() {
+			public Object getTitleInfoProperty(int propertyID) {
+				if (propertyID == TITLE_INDICATOR_TEXT) {
+
+					boolean expanded = headerEntry.isExpanded();
+
+					if (expanded) {
+
+						warnSub.setVisible(false);
+
+					} else {
+
+						int total = 0;
+						boolean warn = false;
+
+						Subscription[] subs = subs_man.getSubscriptions(true);
+
+						String error_str = "";
+
+						for (Subscription s : subs) {
+
+							SubscriptionHistory history = s.getHistory();
+
+							total += history.getNumUnread();
+
+							String last_error = history.getLastError();
+
+							if (last_error != null && last_error.length() > 0) {
+
+								boolean auth_fail = history.isAuthFail();
+
+								if (history.getConsecFails() >= 3 || auth_fail) {
+
+									warn = true;
+
+									if (error_str.length() > 128) {
+
+										if (!error_str.endsWith(", ...")) {
+
+											error_str += ", ...";
+										}
+									} else {
+
+										error_str += (error_str.length() == 0 ? "" : ", ")
+												+ last_error;
+									}
+								}
+							}
+						}
+
+						warnSub.setVisible(warn);
+						warnSub.setToolTip(error_str);
+
+						if (total > 0) {
+
+							return (String.valueOf(total));
+						}
+					}
+				}
+
+				return null;
+			}
+		});
+	}
+
 	private void 
 	addAllSubscriptions() 
 	{
@@ -1032,7 +1024,7 @@ SubscriptionManagerUI
 	changeSubscription(
 		final Subscription	subs )
 	{
-		ViewTitleInfoManager.refreshTitleInfo(mainSBEntry.getViewTitleInfo());
+		ViewTitleInfoManager.refreshTitleInfo(mdiEntryOverview.getViewTitleInfo());
 
 		if ( subs.isSubscribed()){
 			
@@ -1152,7 +1144,7 @@ SubscriptionManagerUI
 		final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
 		
 		MdiEntry entry = mdi.createEntryFromIViewClass(
-				MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS, key, null,
+				MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS, key, null,
 				SubscriptionView.class, new Class[] {
 					Subscription.class
 				}, new Object[] {

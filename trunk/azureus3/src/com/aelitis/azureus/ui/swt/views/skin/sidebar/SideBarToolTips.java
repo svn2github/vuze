@@ -112,6 +112,9 @@ public class SideBarToolTips
 			return;
 		}
 		mdiEntry = (MdiEntry) treeItem.getData("MdiEntry");
+		if (mdiEntry == null) {
+			return;
+		}
 
 		String sToolTip = getToolTip(mousePos);
 		if (sToolTip == null) {
