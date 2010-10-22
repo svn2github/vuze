@@ -942,6 +942,9 @@ public class SideBar
 			org.eclipse.swt.widgets.MenuItem menuItem = new org.eclipse.swt.widgets.MenuItem(
 					menuDropDown, SWT.RADIO);
 			SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
+			if (entry == null) {
+				continue;
+			}
 			String id = entry.getId();
 			menuItem.setData("Plugin.viewID", id);
 			ViewTitleInfo titleInfo = entry.getViewTitleInfo();
