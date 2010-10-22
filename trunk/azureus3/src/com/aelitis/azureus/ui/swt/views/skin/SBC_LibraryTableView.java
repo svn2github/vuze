@@ -377,7 +377,9 @@ public class SBC_LibraryTableView
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		if ( mdi != null ){
 			MdiEntry entry = mdi.getCurrentEntry();
-			entry.removeToolbarEnabler( this );
+			if (entry != null) {
+				entry.removeToolbarEnabler( this );
+			}
 		}
 
 		return super.skinObjectHidden(skinObject, params);
