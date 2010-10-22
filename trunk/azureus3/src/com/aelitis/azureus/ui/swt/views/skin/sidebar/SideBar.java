@@ -623,7 +623,6 @@ public class SideBar
 							return;
 						} else if (currentEntry != entry && Constants.isOSX) {
 							showEntry(entry);
-							return;
 						}
 
 						if (entry != null) {
