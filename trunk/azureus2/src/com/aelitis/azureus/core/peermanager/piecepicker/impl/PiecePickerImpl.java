@@ -1397,6 +1397,7 @@ implements PiecePicker
 	
 						piece_min_rta_time 	= piece_rta;
 						piece_min_rta_index = i;
+						piece_min_rta_block	= 0;
 	
 					}else{
 	
