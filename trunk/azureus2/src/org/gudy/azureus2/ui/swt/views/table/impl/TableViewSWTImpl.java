@@ -131,6 +131,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private static final boolean DEBUG_ROWCHANGE = false;
 
+	private static final boolean OBEY_COLUMN_MINWIDTH = false;
+
 	/** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
 	 * of the table this class is
 	 * handling.  Config settings are stored with the prefix of 
@@ -1710,7 +1712,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					if (tc != null) {
 						Long lPadding = (Long) column.getData("widthOffset");
 						int padding = (lPadding == null) ? 0 : lPadding.intValue();
-						tc.setWidth(column.getWidth() - padding);
+						int newWidth = column.getWidth();
+						if (OBEY_COLUMN_MINWIDTH) {
+  						int minWidth = tc.getMinWidth();
+  						if (minWidth > 0 && newWidth - padding < minWidth) {
+  							newWidth = minWidth + padding;
+  							column.setWidth(minWidth);
+  						}
+						}
+						tc.setWidth(newWidth - padding);
 					}
 
 					int columnNumber = table.indexOf(column);
@@ -4601,6 +4611,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#size(boolean)
+	/**
+	 * @note bIncludeQueue can return an invalid number, such as a negative :(
+	 */
 	public int size(boolean bIncludeQueue) {
 		int size = sortedRows.size();
 
