@@ -490,7 +490,7 @@ public class SideBar
 
 						while (treeItem != null) {
 							SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
-							Rectangle itemBounds = entry.swt_getBounds();
+							Rectangle itemBounds = entry == null ? null : entry.swt_getBounds();
 
 							// null itemBounds is weird, the entry must be disposed. it 
 							// happened once, so let's check..
@@ -1586,7 +1586,9 @@ public class SideBar
 		// show new
 		currentEntry = (MdiEntrySWT) newEntry;
 
-		((BaseMdiEntry) currentEntry).show();
+		if (currentEntry != null) {
+			((BaseMdiEntry) currentEntry).show();
+		}
 
 		// hide old
 		if (oldEntry != null && oldEntry != newEntry) {
