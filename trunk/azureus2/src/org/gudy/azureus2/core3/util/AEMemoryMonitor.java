@@ -132,6 +132,13 @@ AEMemoryMonitor
 									last_mb_log = mb;
 								}
 								
+								Runtime runtime = Runtime.getRuntime();
+								
+								Debug.out( "MemMon: notify triggered: pool=" + pool.getName() + 
+											", used=" + used + 
+											", max=" + max + 
+											": runtime free=" + runtime.freeMemory() + ", tot=" + runtime.totalMemory() + ", max=" + runtime.maxMemory());
+
 	 							Logger.logTextResource(
 	 								new LogAlert(
 	 									LogAlert.REPEATABLE, 
