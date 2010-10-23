@@ -28,6 +28,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
@@ -349,6 +350,23 @@ DeviceManagerUPnPImpl
 									handleBrowser( client_address );
 																		
 									handled = true;
+								}
+							}
+							
+							if ( !handled ){
+								
+								if ( Constants.IS_CVS_VERSION ){
+									
+									if ( client_info != null ){
+										
+										if  ( client_info.contains( "Sony Corporation" )){
+							
+											Debug.out( 
+													"Received browse: " + request.getClientAddress() +
+													", agent=" + user_agent +
+													", info=" + client_info );
+										}
+									}
 								}
 							}
 							
