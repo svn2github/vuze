@@ -343,6 +343,11 @@ DeviceManagerUPnPImpl
 							
 							if ( !handled ){
 								
+								handled = manager.browseReceived( request, browser_args );
+							}
+							
+							if ( !handled ){
+								
 								String	 source = (String)browser_args.get( "source" );
 								
 								if ( source != null && source.equalsIgnoreCase( "http" )){
@@ -350,23 +355,6 @@ DeviceManagerUPnPImpl
 									handleBrowser( client_address );
 																		
 									handled = true;
-								}
-							}
-							
-							if ( !handled ){
-								
-								if ( Constants.IS_CVS_VERSION ){
-									
-									if ( client_info != null ){
-										
-										if  ( client_info.contains( "Sony Corporation" )){
-							
-											Debug.out( 
-													"Received browse: " + request.getClientAddress() +
-													", agent=" + user_agent +
-													", info=" + client_info );
-										}
-									}
 								}
 							}
 							

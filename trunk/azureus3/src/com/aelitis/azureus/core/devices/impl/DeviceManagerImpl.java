@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -55,6 +56,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.net.upnp.UPnPDevice;
 
 public class 
@@ -205,6 +207,8 @@ DeviceManagerImpl
 	private int		explicit_search;
 	
 	private volatile TranscodeManagerImpl	transcode_manager;
+	
+	private CopyOnWriteList<DeviceManagerDiscoverListener>	discovery_listeners = new CopyOnWriteList<DeviceManagerDiscoverListener>();
 	
 	private int						getMimeType_fails;
 	
@@ -1393,6 +1397,41 @@ DeviceManagerImpl
   			listeners.dispatch( listener, LT_INITIALIZED, null );
   		}
   	}
+  	
+	protected boolean
+	browseReceived(
+		TrackerWebPageRequest		request,
+		Map<String,Object>			browser_args )
+	{
+		for ( DeviceManagerDiscoverListener l: discovery_listeners ){
+			
+			try{
+				if ( l.browseReceived( request, browser_args )){
+									
+					return( true );
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		return( false );
+	}
+	
+	public void
+	addDiscoveryListener(
+		DeviceManagerDiscoverListener	listener )
+	{
+		discovery_listeners.add( listener );
+	}
+	
+	public void
+	removeDiscoveryListener(
+		DeviceManagerDiscoverListener	listener )
+	{
+		discovery_listeners.remove( listener );
+	}
   	
   	public void
   	removeListener(

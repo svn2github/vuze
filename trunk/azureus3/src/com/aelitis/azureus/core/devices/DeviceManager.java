@@ -96,12 +96,20 @@ DeviceManager
 		boolean	enabled );
 	
 	public void
+	addDiscoveryListener(
+		DeviceManagerDiscoverListener	listener );
+	
+	public void
+	removeDiscoveryListener(
+		DeviceManagerDiscoverListener	listener );
+	
+	public void
 	addListener(
 		DeviceManagerListener		listener );
 	
 	public void
 	removeListener(
-			DeviceManagerListener		listener );
+		DeviceManagerListener		listener );
 	
 	public interface 
 	UnassociatedDevice
