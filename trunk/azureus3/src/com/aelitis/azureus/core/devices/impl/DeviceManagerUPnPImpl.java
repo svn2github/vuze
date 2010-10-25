@@ -527,7 +527,9 @@ DeviceManagerUPnPImpl
 					
 					DeviceMediaRendererImpl r = (DeviceMediaRendererImpl)d;
 					
-					if ( d.isAlive() && r.getAddress().equals( address )){
+					InetAddress device_address = r.getAddress();
+					
+					if ( d.isAlive() && device_address != null && device_address.equals( address )){
 						
 						already_assoc = true;
 						
