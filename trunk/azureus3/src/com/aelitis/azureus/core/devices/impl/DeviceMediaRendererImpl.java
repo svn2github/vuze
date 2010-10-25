@@ -37,7 +37,7 @@ DeviceMediaRendererImpl
 	extends DeviceUPnPImpl
 	implements DeviceMediaRenderer
 {
-	protected
+	public
 	DeviceMediaRendererImpl(
 		DeviceManagerImpl	_manager,
 		UPnPDevice			_device )
@@ -45,7 +45,7 @@ DeviceMediaRendererImpl
 		super( _manager, _device, Device.DT_MEDIA_RENDERER );
 	}
 	
-	protected
+	public
 	DeviceMediaRendererImpl(
 		DeviceManagerImpl	_manager,
 		String				_classification )
@@ -53,7 +53,7 @@ DeviceMediaRendererImpl
 		super( _manager, Device.DT_MEDIA_RENDERER, _classification );
 	}
 	
-	protected
+	public
 	DeviceMediaRendererImpl(
 		DeviceManagerImpl	_manager,
 		String				_uuid,
@@ -64,7 +64,7 @@ DeviceMediaRendererImpl
 		super( _manager, Device.DT_MEDIA_RENDERER, _uuid, _classification, _manual, _name );
 	}
 	
-	protected
+	public
 	DeviceMediaRendererImpl(
 		DeviceManagerImpl	_manager,
 		String				_uuid,

@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.net.InetAddress;
 import java.net.URL;
 
 public interface 
@@ -53,6 +54,9 @@ Device
 	public String
 	getShortDescription();
 	
+	public void
+	alive();
+	
 	public boolean
 	isAlive();
 	
@@ -78,6 +82,13 @@ Device
 	public browseLocation[]
 	getBrowseLocations();
 		
+	public InetAddress
+	getAddress();
+	
+	public void
+	setAddress(
+		InetAddress	address );
+	
 	public void
 	setTransientProperty(
 		Object		key,

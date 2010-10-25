@@ -687,7 +687,7 @@ DeviceImpl
 		}
 	}
 
-	protected void
+	public void
 	alive()
 	{
 		last_seen	= SystemTime.getCurrentTime();

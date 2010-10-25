@@ -401,7 +401,7 @@ DeviceUPnPImpl
 		return( null );
 	}
 	
-	protected void
+	public void
 	setAddress(
 		InetAddress	address )
 	{
