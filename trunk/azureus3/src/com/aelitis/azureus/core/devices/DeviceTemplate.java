@@ -54,4 +54,12 @@ DeviceTemplate
 		String		name )
 	
 		throws DeviceManagerException;
+	
+	public Device
+	createInstance(
+		String		name,
+		String		uid,
+		boolean		manual )
+	
+		throws DeviceManagerException;
 }

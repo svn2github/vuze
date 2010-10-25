@@ -208,7 +208,7 @@ DeviceManagerImpl
 	
 	private volatile TranscodeManagerImpl	transcode_manager;
 	
-	private CopyOnWriteList<DeviceManagerDiscoverListener>	discovery_listeners = new CopyOnWriteList<DeviceManagerDiscoverListener>();
+	private CopyOnWriteList<DeviceManagerDiscoveryListener>	discovery_listeners = new CopyOnWriteList<DeviceManagerDiscoveryListener>();
 	
 	private int						getMimeType_fails;
 	
@@ -552,7 +552,7 @@ DeviceManagerImpl
 	
 		throws DeviceManagerException
 	{
-		return( createDevice( type, uid, classification, name ));
+		return( createDevice( type, uid, classification, name, true ));
 	}
 	
 	protected Device
@@ -560,13 +560,23 @@ DeviceManagerImpl
 		int						device_type,
 		String					uid,
 		String					classification,
-		String					name )
+		String					name,
+		boolean					manual )
 	
 		throws DeviceManagerException
 	{
 		if ( device_type == Device.DT_MEDIA_RENDERER ){
 			
-			DeviceImpl res = new DeviceMediaRendererManual( this, uid, classification, true, name );
+			DeviceImpl res;
+			
+			if ( manual ){
+				
+				res = new DeviceMediaRendererManual( this, uid, classification, true, name );
+				
+			}else{
+				
+				res = new DeviceMediaRendererImpl( this, uid, classification, true, name );
+			}
 			
 			res = addDevice( res );
 			
@@ -1403,7 +1413,7 @@ DeviceManagerImpl
 		TrackerWebPageRequest		request,
 		Map<String,Object>			browser_args )
 	{
-		for ( DeviceManagerDiscoverListener l: discovery_listeners ){
+		for ( DeviceManagerDiscoveryListener l: discovery_listeners ){
 			
 			try{
 				if ( l.browseReceived( request, browser_args )){
@@ -1421,14 +1431,14 @@ DeviceManagerImpl
 	
 	public void
 	addDiscoveryListener(
-		DeviceManagerDiscoverListener	listener )
+		DeviceManagerDiscoveryListener	listener )
 	{
 		discovery_listeners.add( listener );
 	}
 	
 	public void
 	removeDiscoveryListener(
-		DeviceManagerDiscoverListener	listener )
+		DeviceManagerDiscoveryListener	listener )
 	{
 		discovery_listeners.remove( listener );
 	}

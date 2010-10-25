@@ -283,7 +283,7 @@ DeviceDriveManager
 				// damn, the above doesn't work until devices is turned on...
 			
 			try{
-				renderer = (DeviceMediaRendererManual)manager.createDevice( Device.DT_MEDIA_RENDERER, null, target_classification, target_name );
+				renderer = (DeviceMediaRendererManual)manager.createDevice( Device.DT_MEDIA_RENDERER, null, target_classification, target_name, true );
 				
 			}catch( Throwable e ){
 				

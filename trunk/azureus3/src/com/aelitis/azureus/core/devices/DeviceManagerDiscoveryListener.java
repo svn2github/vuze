@@ -26,7 +26,7 @@ import java.util.Map;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 
 public interface 
-DeviceManagerDiscoverListener 
+DeviceManagerDiscoveryListener 
 {
 	public boolean
 	browseReceived(

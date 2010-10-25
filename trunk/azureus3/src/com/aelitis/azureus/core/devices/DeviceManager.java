@@ -97,11 +97,11 @@ DeviceManager
 	
 	public void
 	addDiscoveryListener(
-		DeviceManagerDiscoverListener	listener );
+		DeviceManagerDiscoveryListener	listener );
 	
 	public void
 	removeDiscoveryListener(
-		DeviceManagerDiscoverListener	listener );
+		DeviceManagerDiscoveryListener	listener );
 	
 	public void
 	addListener(
