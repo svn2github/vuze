@@ -97,23 +97,16 @@ public class FeatureManagerUI
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
-						MdiEntry mainMdiEntry = mdi.createEntryFromSkinRef(
+
+						MdiEntry entryAbout = mdi.createEntryFromSkinRef(
 								MultipleDocumentInterface.SIDEBAR_HEADER_DVD,
-								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
-								"main.burn.ftux", MessageText.getString("mdi.entry.dvdburn"),
-								null, null, true, -1);
-						mainMdiEntry.setImageLeftID("image.sidebar.dvdburn");
-						mainMdiEntry.setExpanded(true);
-
-						MdiEntry entryAddDVD = mdi.createEntryFromSkinRef(
-								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
-								"burn-new", "main.burn.ftux",
-								MessageText.getString("mdi.entry.dvdburn.new"), null, null,
+								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO, "main.burn.ftux",
+								MessageText.getString("mdi.entry.about.dvdburn"), null, null,
 								false, -1);
-						entryAddDVD.setImageLeftID("image.sidebar.dvdburn.add");
-						entryAddDVD.setExpanded(true);
+						entryAbout.setImageLeftID("image.sidebar.dvdburn");
+						entryAbout.setExpanded(true);
 
-						entryAddDVD.addListener(new MdiEntryDropListener() {
+						entryAbout.addListener(new MdiEntryDropListener() {
 							public boolean mdiEntryDrop(MdiEntry entry, Object droppedObject) {
 								openTrialAskWindow();
 								return true;
@@ -130,7 +123,7 @@ public class FeatureManagerUI
 							}
 						});
 
-						return mainMdiEntry;
+						return entryAbout;
 					}
 				});
 
