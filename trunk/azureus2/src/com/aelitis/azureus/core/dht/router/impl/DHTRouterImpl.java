@@ -434,6 +434,14 @@ DHTRouterImpl
 		DHTRouterContactAttachment	attachment,
 		boolean						known_to_be_alive )
 	{		
+		if ( Arrays.equals( router_node_id, node_id )){
+			
+				// as we have reduced node id space the chance of us sharing a node id is higher. Easiest way to handle this is
+				// just to bail out here
+			
+			return( local_contact );
+		}
+		
 		DHTRouterNodeImpl	current_node = root;
 			
 		boolean	part_of_smallest_subtree	= false;
