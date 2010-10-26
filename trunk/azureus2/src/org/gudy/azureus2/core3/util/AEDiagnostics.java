@@ -602,6 +602,16 @@ AEDiagnostics
 	}
 	
 	public static void
+	removeEvidenceGenerator(
+		AEDiagnosticsEvidenceGenerator	gen )
+	{
+		synchronized( evidence_generators ){
+			
+			evidence_generators.remove( gen );
+		}
+	}
+	
+	public static void
 	generateEvidence(
 		PrintWriter		_writer )
 	{
