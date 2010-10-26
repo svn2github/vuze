@@ -297,8 +297,8 @@ public abstract class TranscodeChooser
 			}
 		}
 
-		if (transcodeProfiles.length == 0) {
-			if ( selectedTranscodeTarget != null && selectedTranscodeTarget.getTranscodeRequirement() == TranscodeTarget.TRANSCODE_NEVER ){
+		if (transcodeProfiles.length == 0 || selectedTranscodeTarget.getTranscodeRequirement() == TranscodeTarget.TRANSCODE_NEVER ){
+			if ( selectedTranscodeTarget != null ){
 				selectedProfile = selectedTranscodeTarget.getBlankProfile();
 				shell.dispose();
 				return;
@@ -311,6 +311,7 @@ public abstract class TranscodeChooser
 
 		if (transcodeProfiles.length == 1) {
 			selectedProfile = transcodeProfiles[0];
+			
 			shell.dispose();
 			return;
 		}

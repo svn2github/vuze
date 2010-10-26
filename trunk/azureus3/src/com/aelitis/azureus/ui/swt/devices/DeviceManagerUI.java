@@ -2453,7 +2453,23 @@ DeviceManagerUI
 											MenuItem menu_default_profile = menu_manager.addMenuItem(
 													"sidebar." + key, "v3.menu.device.defaultprofile");
 											menu_default_profile.setStyle(MenuItem.STYLE_MENU);
+												
+											MenuItem menu_profile_never = menu_manager.addMenuItem( menu_default_profile, "v3.menu.device.defaultprofile.never");
+													
+											menu_profile_never.setStyle(MenuItem.STYLE_CHECK );
+											menu_profile_never.setData(Boolean.TRUE);
+											menu_profile_never.addListener(new MenuItemListener() {
+												public void selected(MenuItem menu, Object target) {
+													renderer.setTranscodeRequirement(((Boolean)menu.getData())?TranscodeTarget.TRANSCODE_NEVER:TranscodeTarget.TRANSCODE_WHEN_REQUIRED );
+												}});
 
+
+											menu_profile_never.addFillListener(new MenuItemFillListener() {
+												public void menuWillBeShown(MenuItem menu, Object data) {
+													boolean never = renderer.getTranscodeRequirement() == TranscodeTarget.TRANSCODE_NEVER;
+													menu.setData( never );
+												}});
+											
 											MenuItem menu_profile_none = menu_manager.addMenuItem(
 												menu_default_profile, "option.askeverytime");
 											menu_profile_none.setStyle(MenuItem.STYLE_RADIO);
@@ -2477,10 +2493,12 @@ DeviceManagerUI
 														}
 														menu.setData((profile == null) ? Boolean.TRUE
 																: Boolean.FALSE);
+														
+														menu.setEnabled( renderer.getTranscodeRequirement() != TranscodeTarget.TRANSCODE_NEVER  );
 													}
 												}
 											});
-
+											
 											for (final TranscodeProfile profile : transcodeProfiles) {
 												MenuItem menuItem = menu_manager.addMenuItem(
 														menu_default_profile, "!" + profile.getName() + "!");
@@ -2491,6 +2509,7 @@ DeviceManagerUI
 														renderer.setDefaultTranscodeProfile(profile);
 													}
 												});
+																								
 												menuItem.addFillListener(new MenuItemFillListener() {
 													public void menuWillBeShown(MenuItem menu, Object data) {
 														if ( transcodeProfiles.length <= 1 ){
@@ -2504,6 +2523,8 @@ DeviceManagerUI
 															}
 															menu.setData((profile.equals(dprofile))
 																	? Boolean.TRUE : Boolean.FALSE);
+															
+															menu.setEnabled( renderer.getTranscodeRequirement() != TranscodeTarget.TRANSCODE_NEVER );
 														}
 													}
 												});
