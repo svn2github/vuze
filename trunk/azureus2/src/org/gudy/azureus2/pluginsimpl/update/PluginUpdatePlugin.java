@@ -1168,20 +1168,29 @@ PluginUpdatePlugin
 											break;
 										}
 										
-										String[] command = line.split( "," );
+										line = line.trim();
 										
-										if ( command.length > 1 ){
+										if ( line.endsWith( "defer_install" )){
 											
-											List<String[]> commands = install_properties.get( command[0] );
+											force_indirect_install = true;
 											
-											if ( commands == null ){
+										}else{
+											
+											String[] command = line.split( "," );
+											
+											if ( command.length > 1 ){
 												
-												commands = new ArrayList<String[]>();
+												List<String[]> commands = install_properties.get( command[0] );
 												
-												install_properties.put( command[0], commands );
+												if ( commands == null ){
+													
+													commands = new ArrayList<String[]>();
+													
+													install_properties.put( command[0], commands );
+												}
+												
+												commands.add( command );
 											}
-											
-											commands.add( command );
 										}
 									}
 								}catch( Throwable e ){
