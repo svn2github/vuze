@@ -1183,13 +1183,10 @@ public class SideBar
 				}
 			});
 		}
-
-		entry = createEntryFromSkinRef(SIDEBAR_HEADER_TRANSFERS, SIDEBAR_SECTION_LIBRARY, "library",
-				MessageText.getString("sidebar." + SIDEBAR_SECTION_LIBRARY), null,
-				null, false, -1);
-		entry.setImageLeftID("image.sidebar.library");
-		entry.setCollapseDisabled(true);
-
+		
+		SB_Transfers.setup(this);
+		
+		loadEntryByID(SIDEBAR_SECTION_LIBRARY, false);
 
 		entry = createEntryFromSkinRef(SIDEBAR_HEADER_VUZE, SIDEBAR_SECTION_BROWSE,
 				"main.area.browsetab", MessageText.getString("sidebar.VuzeHDNetwork"),
@@ -1308,8 +1305,6 @@ public class SideBar
 				entryPlugin.setEventListener(viewInfo.event_listener);
 			}
 		}
-
-		SB_Transfers.setup(this);
 
 		// building plugin views needs UISWTInstance, which needs core.
 		final int burnInfoShown = COConfigurationManager.getIntParameter("burninfo.shown", 0);

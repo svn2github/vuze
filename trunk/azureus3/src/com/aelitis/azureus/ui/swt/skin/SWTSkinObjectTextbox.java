@@ -121,14 +121,20 @@ public class SWTSkinObjectTextbox
 
 					e.gc.setLineCap(SWT.CAP_ROUND);
 
+					int iconHeight = clientArea.height - 9;
+					if (iconHeight > 13) {
+						iconHeight = 13;
+					}
+					int iconY = clientArea.y + ((clientArea.height - iconHeight + 1) / 2);
+					
 					e.gc.setAlpha(120);
 					e.gc.setLineWidth(2);
-					e.gc.drawOval(clientArea.x + 6, clientArea.y + 5, 7, 6); 
+					e.gc.drawOval(clientArea.x + 6, iconY, 7, 6); 
 					e.gc.drawPolyline(new int[] {
 						clientArea.x + 12,
-						clientArea.y + 11,
+						iconY + 6,
 						clientArea.x + 15,
-						clientArea.y + clientArea.height - 5,
+						iconY + iconHeight,
 					});
 					
 					boolean textIsBlank = text.length() == 0;

@@ -114,6 +114,20 @@ public class SB_Transfers
 
 	public static void setup(final MultipleDocumentInterface mdi) {
 
+		mdi.registerEntry(SideBar.SIDEBAR_SECTION_LIBRARY,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								SideBar.SIDEBAR_HEADER_TRANSFERS,
+								SideBar.SIDEBAR_SECTION_LIBRARY,
+								"library",
+								MessageText.getString("sidebar."
+										+ SideBar.SIDEBAR_SECTION_LIBRARY), null, null, false, -1);
+						entry.setImageLeftID("image.sidebar.library");
+						return entry;
+					}
+				});
+
 		mdi.registerEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {

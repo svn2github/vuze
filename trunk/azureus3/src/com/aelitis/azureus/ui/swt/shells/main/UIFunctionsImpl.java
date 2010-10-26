@@ -445,7 +445,7 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_ALLPEERS:
-				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, PeerSuperView.class,
+				mainWindow.openView(SideBar.SIDEBAR_HEADER_TRANSFERS, PeerSuperView.class,
 						null, data, true);
 				break;
 
@@ -477,19 +477,19 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_DM_MULTI_OPTIONS:
-				mainWindow.openView(SideBar.SIDEBAR_SECTION_LIBRARY,
+				mainWindow.openView(SideBar.SIDEBAR_HEADER_TRANSFERS,
 						TorrentOptionsView.class, null, data, true);
 				break;
 
 			case VIEW_MYSHARES:
-				mainWindow.openView(SideBar.SIDEBAR_SECTION_LIBRARY,
+				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS,
 						MySharesView.class, null, data, true);
 				break;
 
 			case VIEW_MYTORRENTS: {
 				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 				if (mdi != null) {
-					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+					mdi.showEntryByID(SideBar.SIDEBAR_HEADER_TRANSFERS);
 				}
 			}
 				break;

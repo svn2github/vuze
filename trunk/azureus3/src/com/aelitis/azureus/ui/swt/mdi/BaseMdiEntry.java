@@ -88,7 +88,7 @@ public abstract class BaseMdiEntry
 
 	private Image imageLeft;
 
-	private boolean collapseDisabled;
+	private boolean collapseDisabled = false;
 
 	private SWTSkinObject soMaster;
 	
@@ -755,7 +755,7 @@ public abstract class BaseMdiEntry
 
 	public boolean isExpanded() {
 		return isExpanded == null
-				? COConfigurationManager.getBooleanParameter("SideBar.Expanded." + id)
+				? COConfigurationManager.getBooleanParameter("SideBar.Expanded." + id, true)
 				: isExpanded;
 	}
 
