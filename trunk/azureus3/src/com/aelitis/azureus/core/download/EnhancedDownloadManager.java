@@ -763,28 +763,31 @@ EnhancedDownloadManager
 		activate(	
 			PiecePicker		picker )
 		{
-			log( "Activating RTA provider" );
-
 			synchronized( EnhancedDownloadManager.this ){
 
-				active = true;
+				if ( !active ){
+
+					log( "Activating RTA provider" );
 				
-				picker.addRTAProvider( this );
+					active = true;
+				
+					picker.addRTAProvider( this );
+				}
 			}
 		}
 		
 		protected void
 		deactivate(
 			PiecePicker		picker )
-		{
-			if ( active ){
-				
-   				log( "Deactivating RTA provider" );
-			}
-			
+		{			
 			synchronized( EnhancedDownloadManager.this ){
-									
-				picker.removeRTAProvider( this );
+		
+				if ( active ){
+					
+	   				log( "Deactivating RTA provider" );
+
+	   				picker.removeRTAProvider( this );
+				}
 				
 				piece_rtas	= null;
 				
