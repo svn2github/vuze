@@ -582,7 +582,10 @@ StreamManager
 	
 									if ( !active_edm.getProgressiveMode()){
 									
-										throw( new Exception( "Streaming mode abandoned for download" ));
+										if ( file.getLength() != file.getDownloaded()){
+										
+											throw( new Exception( "Streaming mode abandoned for download" ));
+										}
 									}
 								}
 							
@@ -641,6 +644,7 @@ StreamManager
 									
 										Map<String,Object> map = new HashMap<String,Object>();
 										
+										map.put( "buffer_min", new Long( BUFFER_SECS ));
 										map.put( "buffer_secs", new Integer( buffer_secs ));
 										map.put( "buffer_bytes", new Long( buffer ));
 										
@@ -664,6 +668,7 @@ StreamManager
 									
 									map.put( "state", new Integer( 2 ));
 									map.put( "eta", new Integer( eta ));
+									map.put( "buffer_min", new Long( BUFFER_SECS ));
 									map.put( "buffer_secs", new Integer( buffer_secs ));
 									map.put( "buffer_bytes", new Long( buffer ));
 									
