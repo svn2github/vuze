@@ -24,6 +24,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.util.Constants;
 
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+
 /**
  * @author TuxPaper
  * @created Nov 3, 2006
@@ -135,10 +137,9 @@ public class UIConfigDefaultsSWT
 			def.addParameter("v3.Show Welcome", false);
 
 			def.addParameter("list.dm.dblclick", "1");
-			def.addParameter("Library.viewmode", 1);
-  		def.addParameter("LibraryDL.viewmode", 1);
-  		def.addParameter("LibraryUnopened.viewmode", 1);
-  		def.addParameter("LibraryCD.viewmode", 1);
+			def.addParameter(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY + ".viewmode", 1);
+  		def.addParameter(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY_DL + "DL.viewmode", 1);
+  		def.addParameter(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY_CD + ".viewmode", 1);
 		}
 	}
 }
