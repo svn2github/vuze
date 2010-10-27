@@ -24,7 +24,7 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_SECTION_ABOUTPLUGINS = "About.Plugins";
 
-	public static final String SIDEBAR_SECTION_LIBRARY = "AllTransfers";
+	public static final String SIDEBAR_SECTION_LIBRARY = "Library";
 
 	public static final String SIDEBAR_SECTION_GAMES = "Games";
 

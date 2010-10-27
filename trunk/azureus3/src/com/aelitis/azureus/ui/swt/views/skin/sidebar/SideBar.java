@@ -561,8 +561,10 @@ public class SideBar
 								showEntry(entry);
 							} else {
   							MdiEntrySWT old = currentEntry;
-  							currentEntry = null;
-  							showEntry(old);
+  							tree.setSelection(((SideBarEntrySWT) currentEntry).getTreeItem());
+  							tree.showItem(treeItem);
+  							//currentEntry = null;
+  							//showEntry(old);
 							}
 						}
 						break;
