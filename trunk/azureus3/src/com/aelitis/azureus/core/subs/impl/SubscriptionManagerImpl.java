@@ -4252,7 +4252,7 @@ SubscriptionManagerImpl
 						}
 					}
 					
-					if (( hits == 0 && diversified ) || ( hits < 6 && !diversified )){			
+					if ( hits < 10 && !diversified ){			
 			
 						log( "    Publishing association '" + subs.getString() + "' -> '" + assoc.getString() + "', existing=" + hits );
 
@@ -4455,7 +4455,7 @@ SubscriptionManagerImpl
 				{
 					log( "Checked subscription publication '" + subs.getString() + "' - hits=" + hits + ",div=" + diversified );
 
-					if (( hits == 0 && diversified ) || ( hits < 6 && !diversified )){			
+					if ( hits < 10 && !diversified ){			
 			
 						log( "    Publishing subscription '" + subs.getString() + ", existing=" + hits );
 
