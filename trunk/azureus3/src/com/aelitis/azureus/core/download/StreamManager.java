@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
@@ -115,6 +116,8 @@ StreamManager
 		private AESemaphore				active_sem;
 		private TranscodeJob			active_job;
 		
+		private EnhancedDownloadManager	active_edm;
+
 		private volatile boolean		cancelled;
 		
 		private 
@@ -179,7 +182,9 @@ StreamManager
 		runSupport()
 		{
 			try{
-				Download download = PluginCoreUtils.wrap( dm );
+				final long stream_start = SystemTime.getMonotonousTime();
+				
+				final Download download = PluginCoreUtils.wrap( dm );
 				
 				final DiskManagerFileInfo file = download.getDiskManagerFileInfo( file_index );
 				
@@ -192,6 +197,7 @@ StreamManager
 				final Object player = method.invoke(null, new Object[] { file.getFile( true ).getName() });
 			
 				final Method buffering_method	= player.getClass().getMethod( "bufferingPlayback", new Class[] { Map.class });
+				final Method is_active_method	= player.getClass().getMethod( "isActive", new Class[] {});
 
 				final StreamManagerDownloadListener original_listener = listener;
 				
@@ -225,19 +231,24 @@ StreamManager
 						failed(
 							Throwable 	error )
 						{
-							original_listener.failed(error);
-							
-							Map<String,Object> b_map = new HashMap<String,Object>();
-							
-							b_map.put( "state", new Integer( 3 ));
-							b_map.put( "msg", Debug.getNestedExceptionMessage( error ));
-							
 							try{
-								buffering_method.invoke(player, new Object[] { b_map });
-
-							}catch( Throwable e ){
+								original_listener.failed(error);
 								
-								Debug.out( e );
+								Map<String,Object> b_map = new HashMap<String,Object>();
+								
+								b_map.put( "state", new Integer( 3 ));
+								b_map.put( "msg", Debug.getNestedExceptionMessage( error ));
+								
+								try{
+									buffering_method.invoke(player, new Object[] { b_map });
+	
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}finally{
+								
+								cancel();
 							}
 						}
 					};
@@ -260,7 +271,7 @@ StreamManager
 					}
 				}
 				
-				long duration;
+				final long duration;
 				long video_width;
 				long video_height;
 				
@@ -315,7 +326,7 @@ StreamManager
 						
 						listener.updateActivity( "Analysing media" );
 						
-						Map<String,Object> b_map = new HashMap<String,Object>();
+						final Map<String,Object> b_map = new HashMap<String,Object>();
 						
 						b_map.put( "state", new Integer( 1 ));
 						b_map.put( "msg", "Analysing Media" );
@@ -359,7 +370,7 @@ StreamManager
 											
 										}finally{
 											
-											sem.release();
+											sem.releaseForever();
 										}
 									}
 									
@@ -375,11 +386,54 @@ StreamManager
 											
 										}finally{
 											
-											sem.release();
+											sem.releaseForever();
 										}
 									}
 								});
 							
+							new AEThread2( "SM:anmon" )
+								{
+									public void
+									run()
+									{
+										while( !sem.isReleasedForever() && !cancelled ){
+											
+											if ( !sem.reserve( 250 )){
+											
+												if ( cancelled ){
+													
+													return;
+												}
+													
+												try{
+													Boolean b = (Boolean)is_active_method.invoke( player, new Object[0] );
+													
+													if ( !b ){
+														
+														cancel();
+														
+														break;
+													}
+												}catch( Throwable e ){	
+												}
+												
+												DownloadStats stats = download.getStats();
+												
+												b_map.put( "dl_rate", stats.getDownloadAverage());
+												b_map.put( "dl_size", stats.getDownloaded());
+												b_map.put( "dl_time", SystemTime.getMonotonousTime() - stream_start );
+												
+												try{
+													buffering_method.invoke(player, new Object[] { b_map });
+
+												}catch( Throwable e ){
+													
+												}
+											}
+										}
+									}
+								}.start();
+								
 							sem.reserve();
 							
 							synchronized( StreamManager.this ){
@@ -469,19 +523,27 @@ StreamManager
 				
 				smd_method.invoke( player, new Object[] { md_map });
 
-				final EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
-				
-				long	bytes_per_sec = file.getLength() / (duration/1000);
-				
-				listener.updateActivity( "Average rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( bytes_per_sec ));
-												
-				edm.setExplicitProgressive( BUFFER_SECS, bytes_per_sec, file_index );
-				
-				if ( !edm.setProgressiveMode( true )){
-					
-					throw( new Exception( "Failed to set download as progressive" ));
-				}
+				final long	bytes_per_sec = file.getLength() / (duration/1000);
 
+				listener.updateActivity( "Average rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( bytes_per_sec ));
+
+				synchronized( StreamManager.this ){
+					
+					if ( cancelled ){
+						
+						throw( new Exception( "Cancelled" ));
+					}
+				
+					active_edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
+																						
+					active_edm.setExplicitProgressive( BUFFER_SECS, bytes_per_sec, file_index );
+					
+					if ( !active_edm.setProgressiveMode( true )){
+						
+						throw( new Exception( "Failed to set download as progressive" ));
+					}
+				}
+				
 				new AEThread2( "streamMon" )
 				{
 					private boolean playback_started 	= false;
@@ -490,16 +552,25 @@ StreamManager
 					public void
 					run()
 					{	
+						final int TIMER_PERIOD 		= 250;
+						final int PLAY_STATS_PERIOD	= 5000;
+						final int PLAY_STATS_TICKS	= PLAY_STATS_PERIOD / TIMER_PERIOD;
+						
 						boolean	error_reported = false;
 						
 						try{
-							Method start_method 	= player.getClass().getMethod( "startPlayback", new Class[] { URL.class });
-							Method pause_method 	= player.getClass().getMethod( "pausePlayback", new Class[] {});
-							Method resume_method 	= player.getClass().getMethod( "resumePlayback", new Class[] {});
-							Method buffering_method	= player.getClass().getMethod( "bufferingPlayback", new Class[] { Map.class });
+							Method start_method 		= player.getClass().getMethod( "startPlayback", new Class[] { URL.class });
+							Method pause_method 		= player.getClass().getMethod( "pausePlayback", new Class[] {});
+							Method resume_method 		= player.getClass().getMethod( "resumePlayback", new Class[] {});
+							Method buffering_method		= player.getClass().getMethod( "bufferingPlayback", new Class[] { Map.class });
+							Method play_stats_method	= player.getClass().getMethod( "playStats", new Class[] { Map.class });
 
+							int tick_count = 0;
+							
 							while( !cancelled ){
 									
+								tick_count++;
+								
 								if ( file.getLength() != file.getDownloaded()){
 
 									int dm_state = dm.getState();
@@ -509,13 +580,13 @@ StreamManager
 										throw( new Exception( "Streaming abandoned, download isn't running" ));
 									}
 	
-									if ( !edm.getProgressiveMode()){
+									if ( !active_edm.getProgressiveMode()){
 									
 										throw( new Exception( "Streaming mode abandoned for download" ));
 									}
 								}
 							
-								long[] details = updateETA( edm );
+								long[] details = updateETA( active_edm );
 								
 								int		eta 		= (int)details[0];
 								int		buffer_secs	= (int)details[1];
@@ -562,7 +633,32 @@ StreamManager
 									}
 								}
 							
-								if ( !playable ){
+								if ( playable ){
+									
+									if ( tick_count % PLAY_STATS_TICKS == 0 ){
+											
+										long contiguous_done = active_edm.getContiguousAvailableBytes( active_edm.getPrimaryFile().getIndex(), 0, 0 );
+									
+										Map<String,Object> map = new HashMap<String,Object>();
+										
+										map.put( "buffer_secs", new Integer( buffer_secs ));
+										map.put( "buffer_bytes", new Long( buffer ));
+										
+										map.put( "stream_rate", bytes_per_sec );
+										
+										DownloadStats stats = download.getStats();
+										
+										map.put( "dl_rate", stats.getDownloadAverage());
+										map.put( "dl_size", stats.getDownloaded());
+										map.put( "dl_time", SystemTime.getMonotonousTime() - stream_start );
+	
+										map.put( "duration", duration );
+										map.put( "file_size", file.getLength());
+										map.put( "cont_done", contiguous_done );
+										
+										play_stats_method.invoke(player, new Object[] { map });
+									}
+								}else{
 									
 									Map<String,Object> map = new HashMap<String,Object>();
 									
@@ -571,10 +667,30 @@ StreamManager
 									map.put( "buffer_secs", new Integer( buffer_secs ));
 									map.put( "buffer_bytes", new Long( buffer ));
 									
+									map.put( "stream_rate", bytes_per_sec );
+									
+									DownloadStats stats = download.getStats();
+									
+									map.put( "dl_rate", stats.getDownloadAverage());
+									map.put( "dl_size", stats.getDownloaded());
+									map.put( "dl_time", SystemTime.getMonotonousTime() - stream_start );
+									
 									buffering_method.invoke(player, new Object[] { map });
 								}
 								
-								Thread.sleep( 250 );
+								Thread.sleep( TIMER_PERIOD );
+								
+								try{
+									Boolean b = (Boolean)is_active_method.invoke( player, new Object[0] );
+									
+									if ( !b ){
+										
+										cancel();
+										
+										break;
+									}
+								}catch( Throwable e ){	
+								}
 							}
 						}catch( Throwable e ){
 							
@@ -596,8 +712,14 @@ StreamManager
 				}.start();
 								
 			}catch( Throwable e ){
-								
-				listener.failed( e );
+						
+				try{
+					listener.failed( e );
+					
+				}finally{
+					
+					cancel();
+				}
 			}
 		}
 		
@@ -627,6 +749,8 @@ StreamManager
 		{
 			TranscodeJob	job;
 			
+			EnhancedDownloadManager	edm;
+			
 			synchronized( StreamManager.this ){
 				
 				cancelled = true;
@@ -635,14 +759,27 @@ StreamManager
 				
 				if ( active_sem != null ){
 					
-					active_sem.release();
+					active_sem.releaseForever();
 				}
+				
+				edm = active_edm;
 			}
 			
 			if ( job != null ){
 				
 				job.removeForce();
 			}
+			
+			if ( edm != null ){
+				
+				edm.setProgressiveMode( false );
+			}
+		}
+		
+		public boolean
+		isCancelled()
+		{
+			return( cancelled );
 		}
 		
 		private PluginInterface

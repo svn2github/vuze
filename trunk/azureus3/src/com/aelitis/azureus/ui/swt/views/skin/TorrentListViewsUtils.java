@@ -566,7 +566,9 @@ public class TorrentListViewsUtils
 			}
 				
 			if ( url != null ){
-								
+						
+				final boolean show_debug_window = false;
+				
 				new AEThread2( "stream:async" )
 				{
 					public void
@@ -576,7 +578,7 @@ public class TorrentListViewsUtils
 
 						synchronized( TorrentListViewsUtils.class ){
 							
-							if ( current_stream != null ){
+							if ( current_stream != null && !current_stream.isCancelled()){
 								
 								if ( current_stream.getURL().equals( url )){
 									
@@ -590,7 +592,7 @@ public class TorrentListViewsUtils
 								current_stream = null;
 							}
 			
-							if ( stream_viewer == null || stream_viewer.isDisposed()){
+							if ( show_debug_window && ( stream_viewer == null || stream_viewer.isDisposed())){
 								
 								Utils.execSWTThread(
 									new Runnable()

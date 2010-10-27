@@ -46,4 +46,7 @@ StreamManagerDownload
 	
 	public void
 	cancel();
+	
+	public boolean
+	isCancelled();
 }
