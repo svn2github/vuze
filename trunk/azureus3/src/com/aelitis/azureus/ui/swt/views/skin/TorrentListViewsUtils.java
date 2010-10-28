@@ -65,7 +65,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.player.PlayerInstallWindow;
 import com.aelitis.azureus.ui.swt.player.PlayerInstaller;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.DLReferals;
@@ -103,15 +102,15 @@ public class TorrentListViewsUtils
 		if (fileInfo != null) {
 			playOrStream(fileInfo.getDownloadManager(), fileInfo.getIndex(),
 					complete_only, launch_already_checked);
-		}
+		}else{
 		
-		DownloadManager dm = DataSourceUtils.getDM(ds);
-		if (dm == null) {
-			downloadDataSource(ds, true, referal);
-		} else {
-			playOrStream(dm, -1, complete_only, launch_already_checked);
+			DownloadManager dm = DataSourceUtils.getDM(ds);
+			if (dm == null) {
+				downloadDataSource(ds, true, referal);
+			} else {
+				playOrStream(dm, -1, complete_only, launch_already_checked);
+			}
 		}
-
 	}
 
 	public static void downloadDataSource(Object ds, boolean playNow,

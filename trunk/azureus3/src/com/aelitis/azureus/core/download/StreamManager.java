@@ -571,18 +571,24 @@ StreamManager
 									
 								tick_count++;
 								
-								if ( file.getLength() != file.getDownloaded()){
+								int dm_state = dm.getState();
+								
+								boolean complete = file.getLength() == file.getDownloaded();
 
-									int dm_state = dm.getState();
+								if ( !complete ){
 									
-									if ( dm_state == DownloadManager.STATE_ERROR || dm_state == DownloadManager.STATE_STOPPED ){
+									if ( 	dm_state == DownloadManager.STATE_ERROR || 
+											dm_state == DownloadManager.STATE_STOPPED ||
+											dm_state == DownloadManager.STATE_QUEUED ){
 										
 										throw( new Exception( "Streaming abandoned, download isn't running" ));
 									}
 	
 									if ( !active_edm.getProgressiveMode()){
 									
-										if ( file.getLength() != file.getDownloaded()){
+										complete = file.getLength() == file.getDownloaded();
+										
+										if ( !complete ){
 										
 											throw( new Exception( "Streaming mode abandoned for download" ));
 										}
@@ -597,10 +603,18 @@ StreamManager
 								
 								listener.updateStats( eta, buffer_secs, buffer, BUFFER_SECS );
 
-								boolean playable = buffer_secs > ( playback_started?BUFFER_MIN_SECS:BUFFER_SECS );
+								boolean playable;
 								
-								playable = playable && ( eta <= 0  || (playback_started && !playback_paused ) || preview_mode );
-															
+								if ( complete ){
+									
+									playable = true;
+									
+								}else{
+									playable = buffer_secs > ( playback_started?BUFFER_MIN_SECS:BUFFER_SECS );
+								
+									playable = playable && ( eta <= 0  || (playback_started && !playback_paused ) || preview_mode );
+								}
+								
 								if ( playback_started ){
 									
 									if ( playable ){
