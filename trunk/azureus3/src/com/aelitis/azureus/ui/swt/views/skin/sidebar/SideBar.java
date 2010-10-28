@@ -1189,6 +1189,8 @@ public class SideBar
 		SB_Transfers.setup(this);
 		
 		loadEntryByID(SIDEBAR_SECTION_LIBRARY, false);
+		loadEntryByID(SIDEBAR_SECTION_DEVICES, false);
+		loadEntryByID(SIDEBAR_SECTION_SUBSCRIPTIONS, false);
 
 		entry = createEntryFromSkinRef(SIDEBAR_HEADER_VUZE, SIDEBAR_SECTION_BROWSE,
 				"main.area.browsetab", MessageText.getString("sidebar.VuzeHDNetwork"),
