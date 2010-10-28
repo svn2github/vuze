@@ -143,7 +143,7 @@ public class SideBar
 
 	private Color bg;
 
-	private String[] preferedOrder;
+	private String[] preferredOrder;
 
 	public static SideBar instance = null;
 
@@ -559,12 +559,9 @@ public class SideBar
 						if (entry != null) {
 							if (entry.isSelectable()) {
 								showEntry(entry);
-							} else {
-  							MdiEntrySWT old = currentEntry;
+							} else if (currentEntry != null) {
   							tree.setSelection(((SideBarEntrySWT) currentEntry).getTreeItem());
   							tree.showItem(treeItem);
-  							//currentEntry = null;
-  							//showEntry(old);
 							}
 						}
 						break;
@@ -1157,7 +1154,7 @@ public class SideBar
 
 		MdiEntry entry;
 
-		preferedOrder = new String[] {
+		preferredOrder = new String[] {
 			SIDEBAR_HEADER_VUZE,
 			SIDEBAR_HEADER_TRANSFERS,
 			SIDEBAR_HEADER_DVD,
@@ -1169,8 +1166,8 @@ public class SideBar
 		boolean[] disableCollapses =  {
 			true, true, false, false, false, false
 		};
-		for (int i = 0; i < preferedOrder.length; i++) {
-			String id = preferedOrder[i];
+		for (int i = 0; i < preferredOrder.length; i++) {
+			String id = preferredOrder[i];
 			final boolean disableCollapse = disableCollapses[i];
 			registerEntry(id, new MdiEntryCreationListener() {
 				public MdiEntry createMDiEntry(String id) {
@@ -1189,8 +1186,8 @@ public class SideBar
 		SB_Transfers.setup(this);
 		
 		loadEntryByID(SIDEBAR_SECTION_LIBRARY, false);
-		loadEntryByID(SIDEBAR_SECTION_DEVICES, false);
 		loadEntryByID(SIDEBAR_SECTION_SUBSCRIPTIONS, false);
+		loadEntryByID(SIDEBAR_SECTION_DEVICES, false);
 
 		entry = createEntryFromSkinRef(SIDEBAR_HEADER_VUZE, SIDEBAR_SECTION_BROWSE,
 				"main.area.browsetab", MessageText.getString("sidebar.VuzeHDNetwork"),
@@ -1355,7 +1352,14 @@ public class SideBar
 		Object o = Utils.execSWTThreadWithObject("indexOf", new AERunnableObject() {
 			public Object runSupport() {
 				TreeItem treeItem = ((SideBarEntrySWT)entryLibrary).getTreeItem();
-				return treeItem == null ? -1 : tree.indexOf(treeItem);
+				if (treeItem == null) {
+					return -1;
+				}
+				TreeItem parentItem = treeItem.getParentItem();
+				if (parentItem != null) {
+					return parentItem.indexOf(treeItem);
+				}
+				return tree.indexOf(treeItem);
 			}
 		}, 500);
 		if (o instanceof Number) {
@@ -1364,7 +1368,7 @@ public class SideBar
 		return -1;
 	}
 
-	private MdiEntry createHeader(String id, String title, String preferedAfterID) {
+	private MdiEntry createHeader(String id, String title, String preferredAfterID) {
 		MdiEntry oldEntry = getEntry(id);
 		if (oldEntry != null) {
 			return oldEntry;
@@ -1372,7 +1376,7 @@ public class SideBar
 
 		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id);
 		entry.setSelectable(false);
-		entry.setPreferredAfterID(preferedAfterID);
+		entry.setPreferredAfterID(preferredAfterID);
 		entry.setTitle(title);
 		
 		setupNewEntry(entry, id, true, false);
@@ -1453,20 +1457,24 @@ public class SideBar
 		int index = -1;
 		String preferredAfterID = entry.getPreferredAfterID();
 		if (preferredAfterID != null) {
-			MdiEntry entryAbove = getEntry(preferredAfterID);
-			if (entryAbove != null) {
-				index = indexOf(entryAbove);
-				if (index >= 0) {
-					index++;
-				}
-				//System.out.println("ENTRY " + id + " is going to go below " + entryAbove.getId() + " at " + index);
+			if (preferredAfterID.length() == 0) {
+				index = 0;
+			} else {
+  			MdiEntry entryAbove = getEntry(preferredAfterID);
+  			if (entryAbove != null) {
+  				index = indexOf(entryAbove);
+  				if (index >= 0) {
+  					index++;
+  				}
+  				//System.out.println("ENTRY " + id + " is going to go below " + entryAbove.getId() + " at " + index);
+  			}
 			}
 		}
 		
 		if (index == -1 && parent == null) {
 			index = 0;
-			for (int i = 0; i < preferedOrder.length; i++) {
-				String orderID = preferedOrder[i];
+			for (int i = 0; i < preferredOrder.length; i++) {
+				String orderID = preferredOrder[i];
 				if (orderID.equals(id)) {
 					break;
 				} 
@@ -1478,7 +1486,7 @@ public class SideBar
 					}
 				}
 			}
-			if (index >= preferedOrder.length) {
+			if (index >= preferredOrder.length) {
 				index = -1;
 			}
 		}
@@ -1587,6 +1595,10 @@ public class SideBar
 		// show new
 		currentEntry = (MdiEntrySWT) newEntry;
 
+		if (oldEntry != null && oldEntry != newEntry) {
+			oldEntry.redraw();
+		}
+
 		if (currentEntry != null) {
 			((BaseMdiEntry) currentEntry).show();
 		}
@@ -1646,13 +1658,13 @@ public class SideBar
 			final Object params, boolean closeable, int index) {
 
 		return createEntryFromSkinRef(parentID, id, configID, title,
-				titleInfo, params, closeable, null);
+				titleInfo, params, closeable, index == 0 ? "" : null);
 	}
 
 	// @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#createEntryFromSkinRef(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo, java.lang.Object, boolean, java.lang.String)
 	public MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
-			boolean closeable, String preferedAfterID) {
+			boolean closeable, String preferredAfterID) {
 
 		MdiEntry oldEntry = getEntry(id);
 		if (oldEntry != null) {
@@ -1665,7 +1677,7 @@ public class SideBar
 		entry.setSkinRef(configID, params);
 		entry.setParentID(parentID);
 		entry.setViewTitleInfo(titleInfo);
-		entry.setPreferredAfterID(preferedAfterID);
+		entry.setPreferredAfterID(preferredAfterID);
 
 		setupNewEntry(entry, id, false, closeable);
 
