@@ -102,7 +102,7 @@ public class FeatureManagerUI
 								MultipleDocumentInterface.SIDEBAR_HEADER_DVD,
 								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO, "main.burn.ftux",
 								MessageText.getString("mdi.entry.about.dvdburn"), null, null,
-								false, -1);
+								false, null);
 						entryAbout.setImageLeftID("image.sidebar.dvdburn");
 						entryAbout.setExpanded(true);
 
@@ -132,12 +132,13 @@ public class FeatureManagerUI
 					public MdiEntry createMDiEntry(String id) {
 						String title = MessageText.getString(FeatureManagerUI.hasFullLicence()
 								? "mdi.entry.plus.full" : "mdi.entry.plus.free");
-						int index = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME) == null
-								? 0 : 1;
+						String placeBelow = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME) == null
+								? "" : MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME;
+						
 						MdiEntry entry = mdi.createEntryFromSkinRef(
 								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
 								MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
-								"main.area.plus", title, null, null, true, index);
+								"main.area.plus", title, null, null, true, placeBelow);
 						entry.setImageLeftID("image.sidebar.plus");
 						return entry;
 					}
