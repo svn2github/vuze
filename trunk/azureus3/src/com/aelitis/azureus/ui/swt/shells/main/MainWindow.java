@@ -2289,7 +2289,7 @@ public class MainWindow
 		}
 
 		final MdiEntry entry = mdi.createEntryFromSkinRef(
-				MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id,
+				MultipleDocumentInterface.SIDEBAR_HEADER_VUZE, id,
 				"main.area.searchresultstab", sSearchText, null, sq, true, -1);
 		if (entry != null) {
 			entry.setImageLeftID("image.sidebar.search");
