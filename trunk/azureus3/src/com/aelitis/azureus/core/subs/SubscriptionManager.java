@@ -58,6 +58,13 @@ SubscriptionManager
 	
 		throws SubscriptionException;
 	
+	public int
+	getKnownSubscriptionCount();
+	
+	public int
+	getSubscriptionCount(
+		boolean	subscribed_only );
+	
 	public Subscription[]
 	getSubscriptions();
 	

@@ -63,6 +63,7 @@ SubscriptionManagerUI
 	public static final Object	SUB_EDIT_MODE_KEY 	= new Object();
 	
 	private static final String ALERT_IMAGE_ID	= "image.sidebar.vitality.alert";
+	private static final String INFO_IMAGE_ID	= "image.sidebar.vitality.info";
 	
 
 	static final String EDIT_MODE_MARKER	= "&editMode=1";
@@ -932,69 +933,114 @@ SubscriptionManagerUI
 			warnSub.setVisible(false);
 		}
 
-		headerEntry.setViewTitleInfo(new ViewTitleInfo() {
-			public Object getTitleInfoProperty(int propertyID) {
-				if (propertyID == TITLE_INDICATOR_TEXT) {
+		final MdiEntryVitalityImage infoSub = headerEntry.addVitalityImage(INFO_IMAGE_ID);
+		if (infoSub != null) {
+			infoSub.setVisible(false);
+		}
 
-					boolean expanded = headerEntry.isExpanded();
-
-					if (expanded) {
-
-						warnSub.setVisible(false);
-
-					} else {
-
-						int total = 0;
-						boolean warn = false;
-
+		
+		headerEntry.setViewTitleInfo(
+			new ViewTitleInfo() 
+			{
+				private long	last_avail_calc = -1;
+				private int		last_avail;
+				
+				public Object 
+				getTitleInfoProperty(
+					int propertyID) 
+				{
+					Object result = null;
+	
+					if (propertyID == TITLE_INDICATOR_TEXT) {
+	
+						boolean expanded = headerEntry.isExpanded();
+	
 						Subscription[] subs = subs_man.getSubscriptions(true);
-
-						String error_str = "";
-
-						for (Subscription s : subs) {
-
-							SubscriptionHistory history = s.getHistory();
-
-							total += history.getNumUnread();
-
-							String last_error = history.getLastError();
-
-							if (last_error != null && last_error.length() > 0) {
-
-								boolean auth_fail = history.isAuthFail();
-
-								if (history.getConsecFails() >= 3 || auth_fail) {
-
-									warn = true;
-
-									if (error_str.length() > 128) {
-
-										if (!error_str.endsWith(", ...")) {
-
-											error_str += ", ...";
+						
+						if ( expanded ){
+	
+							warnSub.setVisible(false);
+	
+						}else{
+	
+							int total = 0;
+							
+							boolean warn = false;
+	
+							String error_str = "";
+	
+							for (Subscription s : subs) {
+	
+								SubscriptionHistory history = s.getHistory();
+	
+								total += history.getNumUnread();
+	
+								String last_error = history.getLastError();
+	
+								if (last_error != null && last_error.length() > 0) {
+	
+									boolean auth_fail = history.isAuthFail();
+	
+									if (history.getConsecFails() >= 3 || auth_fail) {
+	
+										warn = true;
+	
+										if (error_str.length() > 128) {
+	
+											if (!error_str.endsWith(", ...")) {
+	
+												error_str += ", ...";
+											}
+										} else {
+	
+											error_str += (error_str.length() == 0 ? "" : ", ")
+													+ last_error;
 										}
-									} else {
-
-										error_str += (error_str.length() == 0 ? "" : ", ")
-												+ last_error;
 									}
 								}
 							}
+	
+							warnSub.setVisible(warn);
+							warnSub.setToolTip(error_str);
+							
+							if (total > 0) {
+	
+								result = String.valueOf( total );
+							}
 						}
-
-						warnSub.setVisible(warn);
-						warnSub.setToolTip(error_str);
-
-						if (total > 0) {
-
-							return (String.valueOf(total));
+						
+						if ( subs.length == 0 ){
+							
+							long now = SystemTime.getMonotonousTime();
+							
+							if ( 	last_avail_calc == -1 ||
+									now - last_avail_calc > 60*1000 ){
+								
+								last_avail = subs_man.getKnownSubscriptionCount();
+								
+								last_avail_calc = now;
+							}
+							
+							if ( last_avail > 0 ){
+								
+								infoSub.setVisible( true );
+								
+								infoSub.setToolTip( 
+									MessageText.getString(
+										"subscriptions.info.avail",
+										new String[]{
+											String.valueOf( last_avail )
+										}));
+							}
+						}else{
+							
+							infoSub.setVisible( false );
 						}
 					}
+	
+					return( result );
 				}
-
-				return null;
-			}
-		});
+			});
 	}
 
 	private void 
@@ -1024,7 +1070,7 @@ SubscriptionManagerUI
 	changeSubscription(
 		final Subscription	subs )
 	{
-		ViewTitleInfoManager.refreshTitleInfo(mdiEntryOverview.getViewTitleInfo());
+		refreshTitles( mdiEntryOverview );
 
 		if ( subs.isSubscribed()){
 			
@@ -1157,7 +1203,31 @@ SubscriptionManagerUI
 		return entry;
 	}
 	
+	protected void
+	refreshTitles(
+		MdiEntry		entry )
+	{
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		
+		if ( mdi == null ){
+
+			return;
+		}
+		
+		while( entry != null ){
 	
+			ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
+
+			String key = entry.getParentID();
+			
+			if ( key == null ){
+				
+				return;
+			}
+			
+			entry = mdi.getEntry( key );
+		}
+	}
 
 	protected void
 	removeSubscription(

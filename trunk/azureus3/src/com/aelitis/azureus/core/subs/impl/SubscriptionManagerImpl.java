@@ -2130,6 +2130,32 @@ SubscriptionManagerImpl
 		return((SubscriptionImpl[])result.toArray( new SubscriptionImpl[result.size()]));
 	}
 	
+	public int
+	getSubscriptionCount(
+		boolean	subscribed_only )
+	{
+		if ( subscribed_only ){
+	
+			int total = 0;
+			
+			synchronized( this ){
+				
+				for ( Subscription subs: subscriptions ){
+					
+					if ( subs.isSubscribed()){
+						
+						total++;
+					}
+				}
+			}
+			
+			return( total );
+			
+		}else{
+			return( subscriptions.size());
+		}
+	}
+
 	protected SubscriptionImpl
 	getSubscriptionFromName(
 		String		name )
@@ -2219,6 +2245,45 @@ SubscriptionManagerImpl
  		File dir = getSubsDir();
  		
  		return( new File( dir, ByteFormatter.encodeString( subs.getShortID()) + ".results" ));
+	}
+	
+	public int
+	getKnownSubscriptionCount()
+	{
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
+
+		ByteArrayHashMap<String> results = new ByteArrayHashMap<String>();
+		
+		try{
+			Download[] downloads = pi.getDownloadManager().getDownloads();
+			
+			for ( Download download: downloads ){
+				
+				Map	m = download.getMapAttribute( ta_subscription_info );
+				
+				if ( m != null ){
+					
+					List s = (List)m.get("s");
+					
+					if ( s != null && s.size() > 0 ){
+						
+						List	result = new ArrayList( s.size());
+						
+						for (int i=0;i<s.size();i++){
+							
+							byte[]	sid = (byte[])s.get(i);
+							
+							results.put( sid, "" );
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			log( "Failed to get known subscriptions", e );
+		}
+		
+		return( results.size());
 	}
 	
 	public Subscription[]
