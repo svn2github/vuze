@@ -175,7 +175,7 @@ public class NonBlockingReadWriteService {
       	catch( Throwable t ) {
       		if ( !client.isClosePending()){
       			
-      			System.out.println( "[" +new Date()+ "] Connection read error [" +sc.socket().getInetAddress()+ "] [" +client.getDebugString()+ "]: " +t.getMessage() );
+      			//System.out.println( "[" +new Date()+ "] Connection read error [" +sc.socket().getInetAddress()+ "] [" +client.getDebugString()+ "]: " +t.getMessage() );
       		}
       		
       		listener.connectionError( client, t );
@@ -206,7 +206,7 @@ public class NonBlockingReadWriteService {
       		return( client.getLastWriteMadeProgress());
       	}
       	catch( Throwable t ) {
-          System.out.println( "[" +new Date()+ "] Connection write error [" +sc.socket().getInetAddress()+ "] [" +client.getDebugString()+ "]: " +t.getMessage() );
+          //System.out.println( "[" +new Date()+ "] Connection write error [" +sc.socket().getInetAddress()+ "] [" +client.getDebugString()+ "]: " +t.getMessage() );
           listener.connectionError( client, t );
           return( false );
       	}
@@ -279,7 +279,7 @@ public class NonBlockingReadWriteService {
 		finally {  connections_mon.exit();  }
 		
 		if( !still_connected ) {
-			System.out.println( "[" +new Date()+ "] Connection message send error [connection no longer connected]: " +vconn.getDebugString()+ "]" );
+			// System.out.println( "[" +new Date()+ "] Connection message send error [connection no longer connected]: " +vconn.getDebugString()+ "]" );
 			message.reportFailed( new Exception("No longer connected" ));
 			//listener.connectionError( vconn ); //no need to call this, as there is no connection to remove
       return;
