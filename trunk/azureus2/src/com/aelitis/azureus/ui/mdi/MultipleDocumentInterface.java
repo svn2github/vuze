@@ -34,6 +34,8 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_SECTION_LIBRARY_CD = "LibraryCD";
 
+	public static final String SIDEBAR_SECTION_LIBRARY_UNOPENED = "LibraryUnopened";
+
 	public static final String SIDEBAR_SECTION_WELCOME = "Welcome";
 
 	public static final String SIDEBAR_SECTION_PLUS = "Plus";
@@ -46,9 +48,16 @@ public interface MultipleDocumentInterface
 	
 	public static final String SIDEBAR_SECTION_BURN_INFO = "BurnInfo";
 	
+	/**
+	 * @deprecated
+	 */
 	public MdiEntry createEntryFromSkinRef(String parentID, String id,
-			String configID, String title, ViewTitleInfo titleInfo, Object datasource,
+			String configID, String title, ViewTitleInfo titleInfo, Object params,
 			boolean closeable, int index);
+
+	public MdiEntry createEntryFromSkinRef(String parentID, String id,
+			String configID, String title, ViewTitleInfo titleInfo, Object params,
+			boolean closeable, String preferedAfterID);
 
 	public boolean showEntryByID(String id);
 
