@@ -643,6 +643,10 @@ SubscriptionManagerUI
 
 								new SubscriptionWizard(PluginCoreUtils.unwrap(dl));
 								
+								COConfigurationManager.setParameter( "subscriptions.wizard.shown", true );
+
+								refreshTitles( mdiEntryOverview );
+								
 								//new SubscriptionListWindow(PluginCoreUtils.unwrap(dl),true);
 							}
 						}
@@ -924,6 +928,10 @@ SubscriptionManagerUI
 			addSub.addListener(new MdiEntryVitalityImageListener() {
 				public void mdiEntryVitalityImage_clicked(int x, int y) {
 					new SubscriptionWizard();
+					
+					COConfigurationManager.setParameter( "subscriptions.wizard.shown", true );
+
+					refreshTitles( mdiEntryOverview );
 				}
 			});
 		}
@@ -951,6 +959,8 @@ SubscriptionManagerUI
 				{
 					Object result = null;
 	
+					// COConfigurationManager.setParameter( "subscriptions.wizard.shown", false );
+					
 					if (propertyID == TITLE_INDICATOR_TEXT) {
 	
 						boolean expanded = headerEntry.isExpanded();
@@ -1009,7 +1019,7 @@ SubscriptionManagerUI
 							}
 						}
 						
-						if ( subs.length == 0 ){
+						if ( subs.length == 0 && !COConfigurationManager.getBooleanParameter( "subscriptions.wizard.shown", false )){
 							
 							long now = SystemTime.getMonotonousTime();
 							
