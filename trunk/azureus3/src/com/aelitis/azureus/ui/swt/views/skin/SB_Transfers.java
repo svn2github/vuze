@@ -128,7 +128,7 @@ public class SB_Transfers
 								SideBar.SIDEBAR_SECTION_LIBRARY,
 								"library",
 								MessageText.getString("sidebar."
-										+ SideBar.SIDEBAR_SECTION_LIBRARY), null, null, false, null);
+										+ SideBar.SIDEBAR_SECTION_LIBRARY), null, null, false, 0);
 						entry.setImageLeftID("image.sidebar.library");
 						return entry;
 					}
