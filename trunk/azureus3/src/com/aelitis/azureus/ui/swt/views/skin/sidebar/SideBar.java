@@ -1565,7 +1565,7 @@ public class SideBar
 			if (((TreeItem) parentSwtItem).isDisposed()) {
 				return null;
 			}
-			if (index >= 0) {
+			if (index >= 0 && index < ((TreeItem) parentSwtItem).getItemCount()) {
 				treeItem = new TreeItem((TreeItem) parentSwtItem, SWT.NONE, index);
 			} else {
 				treeItem = new TreeItem((TreeItem) parentSwtItem, SWT.NONE);
