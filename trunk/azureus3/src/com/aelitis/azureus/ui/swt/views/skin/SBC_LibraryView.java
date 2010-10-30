@@ -101,6 +101,8 @@ public class SBC_LibraryView
 
 	private SWTSkinObjectText soLibraryInfo;
 
+	private Object datasource;
+
 	public void setViewMode(int viewMode, boolean save) {
 		if (viewMode >= modeViewIDs.length || viewMode < 0
 				|| viewMode == this.viewMode) {
@@ -273,6 +275,8 @@ public class SBC_LibraryView
 
 		soListArea.getControl().setData("TorrentFilterMode",
 				new Long(torrentFilterMode));
+		soListArea.getControl().setData("DataSource",
+				datasource);
 
 		setViewMode(
 				COConfigurationManager.getIntParameter(torrentFilter + ".viewmode"),
@@ -374,6 +378,16 @@ public class SBC_LibraryView
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
 		return super.skinObjectHidden(skinObject, params);
+	}
+	
+	public Object dataSourceChanged(SWTSkinObject skinObject, Object params) {
+		datasource = params;
+		if (soListArea != null) {
+  		soListArea.getControl().setData("DataSource",
+  				params);
+		}
+		
+		return null;
 	}
 
 	public int getViewMode() {

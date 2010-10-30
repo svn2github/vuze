@@ -1679,6 +1679,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return columnsVisible[position];
 
 	}
+	
+	public boolean isUnfilteredDataSourceAdded(Object ds) {
+		return listUnfilteredDataSources.contains(ds); 
+	}
 
 	protected void initializeTableColumns(final TableOrTreeSWT table) {
 		TableColumnOrTreeColumn[] oldColumns = table.getColumns();

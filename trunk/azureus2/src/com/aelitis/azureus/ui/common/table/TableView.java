@@ -380,4 +380,6 @@ public interface TableView<DATASOURCETYPE>
 	 * @since 4.4.0.5
 	 */
 	boolean isSelected(TableRow row);
+
+	boolean isUnfilteredDataSourceAdded(Object ds);
 }

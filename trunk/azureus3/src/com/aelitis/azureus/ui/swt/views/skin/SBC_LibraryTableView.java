@@ -119,6 +119,9 @@ public class SBC_LibraryTableView
 		if (data instanceof Long) {
 			torrentFilterMode = (int) ((Long) data).longValue();
 		}
+		
+		data = soParent.getControl().getData("DataSource");
+		
 		boolean useBigTable = useBigTable();
 		
 		SWTSkinObjectTextbox soFilter = (SWTSkinObjectTextbox) skin.getSkinObject(
@@ -193,6 +196,10 @@ public class SBC_LibraryTableView
 					}
 				});
 			}
+		}
+
+		if (data != null) {
+			view.dataSourceChanged(data);
 		}
 
 		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,

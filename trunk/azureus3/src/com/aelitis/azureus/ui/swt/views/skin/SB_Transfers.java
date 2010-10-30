@@ -22,6 +22,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
+import org.gudy.azureus2.core3.category.CategoryManagerListener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
@@ -29,9 +34,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
@@ -39,6 +42,8 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
@@ -46,6 +51,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -122,7 +128,7 @@ public class SB_Transfers
 								SideBar.SIDEBAR_SECTION_LIBRARY,
 								"library",
 								MessageText.getString("sidebar."
-										+ SideBar.SIDEBAR_SECTION_LIBRARY), null, null, false, -1);
+										+ SideBar.SIDEBAR_SECTION_LIBRARY), null, null, false, null);
 						entry.setImageLeftID("image.sidebar.library");
 						return entry;
 					}
@@ -142,7 +148,6 @@ public class SB_Transfers
 					}
 				});
 
-		
 		if (first) {
 			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 				public void azureusCoreRunning(AzureusCore core) {
@@ -156,10 +161,10 @@ public class SB_Transfers
 				refreshAllLibraries();
 			}
 		});
-		
+
 		addMenuUnwatched();
 	}
-	
+
 	private static void addMenuUnwatched() {
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		UIManager uim = pi.getUIManager();
@@ -188,8 +193,6 @@ public class SB_Transfers
 		});
 	}
 
-
-
 	/**
 	 * @param mdi
 	 * @return
@@ -212,10 +215,10 @@ public class SB_Transfers
 			}
 		};
 
-		MdiEntry entry = mdi.createEntryFromSkinRef(SideBar.SIDEBAR_HEADER_TRANSFERS,
-				SideBar.SIDEBAR_SECTION_LIBRARY_DL, "library",
-				MessageText.getString("sidebar.LibraryDL"), titleInfoSeeding, null, false,
-				-1);
+		MdiEntry entry = mdi.createEntryFromSkinRef(
+				SideBar.SIDEBAR_HEADER_TRANSFERS, SideBar.SIDEBAR_SECTION_LIBRARY_DL,
+				"library", MessageText.getString("sidebar.LibraryDL"),
+				titleInfoSeeding, null, false, -1);
 		entry.setImageLeftID("image.sidebar.downloading");
 
 		MdiEntryVitalityImage vitalityImage = entry.addVitalityImage(ID_VITALITY_ALERT);
@@ -243,10 +246,10 @@ public class SB_Transfers
 				return null;
 			}
 		};
-		MdiEntry entry = mdi.createEntryFromSkinRef(SideBar.SIDEBAR_HEADER_TRANSFERS,
-				SideBar.SIDEBAR_SECTION_LIBRARY_DL, "library",
-				MessageText.getString("sidebar.LibraryDL"), titleInfoDownloading, null, false,
-				-1);
+		MdiEntry entry = mdi.createEntryFromSkinRef(
+				SideBar.SIDEBAR_HEADER_TRANSFERS, SideBar.SIDEBAR_SECTION_LIBRARY_DL,
+				"library", MessageText.getString("sidebar.LibraryDL"),
+				titleInfoDownloading, null, false, -1);
 		entry.setImageLeftID("image.sidebar.downloading");
 
 		MdiEntryVitalityImage vitalityImage = entry.addVitalityImage(ID_VITALITY_ACTIVE);
@@ -280,6 +283,68 @@ public class SB_Transfers
 			return;
 		}
 		first = false;
+
+		COConfigurationManager.addAndFireParameterListener("User Mode",
+				new ParameterListener() {
+					private CategoryManagerListener categoryManagerListener;
+
+					public void parameterChanged(String parameterName) {
+						Category[] categories = CategoryManager.getCategories();
+						if (categories.length == 0) {
+							return;
+						}
+
+						int userMode = COConfigurationManager.getIntParameter("User Mode");
+						if (userMode > 0) {
+							if (categoryManagerListener != null) {
+								return;
+							}
+
+							categoryManagerListener = new CategoryManagerListener() {
+
+								public void categoryRemoved(Category category) {
+									removeCategory(category);
+								}
+
+								public void categoryChanged(Category category) {
+									if (category.getType() != Category.TYPE_USER) {
+										return;
+									}
+									MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+									if (mdi == null) {
+										return;
+									}
+
+									MdiEntry entry = mdi.getEntry("Category." + category.getName());
+									if (entry == null) {
+										return;
+									}
+
+									ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
+								}
+
+								public void categoryAdded(Category category) {
+									setupCategory(category);
+								}
+							};
+							CategoryManager.addCategoryManagerListener(categoryManagerListener);
+							for (Category category : categories) {
+								setupCategory(category);
+							}
+
+						} else {
+
+							if (categoryManagerListener != null) {
+								CategoryManager.removeCategoryManagerListener(categoryManagerListener);
+								categoryManagerListener = null;
+							}
+							for (Category category : categories) {
+								removeCategory(category);
+							}
+						}
+					}
+				});
+
 		final GlobalManager gm = core.getGlobalManager();
 		final DownloadManagerListener dmListener = new DownloadManagerAdapter() {
 			public void stateChanged(DownloadManager dm, int state) {
@@ -527,6 +592,90 @@ public class SB_Transfers
 
 		recountUnopened();
 		refreshAllLibraries();
+	}
+
+	private static void setupCategory(final Category category) {
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
+			return;
+		}
+
+		String name = category.getName();
+		if (category.getType() != Category.TYPE_USER) {
+			return;
+			//name = MessageText.getString(name);
+		}
+		
+		ViewTitleInfo viewTitleInfo = new ViewTitleInfo() {
+			
+			public Object getTitleInfoProperty(int propertyID) {
+				if (propertyID == TITLE_INDICATOR_TEXT) {
+					if (statsNoLowNoise.numIncomplete > 0) {
+						List dms = category.getDownloadManagers(null);
+						if (dms != null) {
+							return "" + dms.size();
+						}
+					}
+				}
+				return null;
+			}
+		};
+
+		MdiEntry entry = mdi.createEntryFromSkinRef(
+				MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, "Category."
+						+ category.getName(), "library", name, viewTitleInfo, category, false, null);
+		if (entry != null) {
+			entry.setImageLeftID("image.sidebar.library");
+		}
+		
+		entry.addListener(new MdiEntryDropListener() {
+			public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
+				if (!(payload instanceof String)) {
+					return false;
+				}
+
+				String dropped = (String) payload;
+				String[] split = dropped.split("\n");
+				if (split.length > 1) {
+					String type = split[0];
+					if (type.startsWith("DownloadManager")) {
+						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+						for (int i = 1; i < split.length; i++) {
+							String hash = split[i];
+
+							try {
+								DownloadManager dm = gm.getDownloadManager(new HashWrapper(
+										Base32.decode(hash)));
+
+								if (dm != null) {
+									TorrentUtil.assignToCategory(new Object[] {
+										dm
+									}, category);
+								}
+
+							} catch (Throwable t) {
+
+							}
+						}
+					}
+				}
+
+				return true;
+			}
+		});
+	}
+
+	private static void removeCategory(Category category) {
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
+			return;
+		}
+
+		MdiEntry entry = mdi.getEntry("Category." + category.getName());
+
+		if (entry != null) {
+			entry.close(true);
+		}
 	}
 
 	protected static void updateDMCounts(DownloadManager dm) {

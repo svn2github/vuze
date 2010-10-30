@@ -133,6 +133,8 @@ public class MyTorrentsView
 
 	private Composite filterParent;
 
+	private boolean neverShowCatButtons;
+
 	public MyTorrentsView() {
 		super("MyTorrentsView");
 	}
@@ -184,7 +186,9 @@ public class MyTorrentsView
     this.globalManager 	= azureus_core.getGlobalManager();
     
 
-    currentCategory = CategoryManager.getCategory(Category.TYPE_ALL);
+    if (currentCategory == null) {
+    	currentCategory = CategoryManager.getCategory(Category.TYPE_ALL);
+    }
     tv.addLifeCycleListener(this);
     tv.setMainPanelCreator(this);
     tv.addSelectionListener(this, false);
@@ -193,6 +197,15 @@ public class MyTorrentsView
     if (tv.canHaveSubItems()) {
     	tv.addRefreshListener(this);
     }
+    
+    tv.addTableDataSourceChangedListener(new TableDataSourceChangedListener() {
+			public void tableDataSourceChanged(Object newDataSource) {
+				if (newDataSource instanceof Category) {
+		    	neverShowCatButtons = true;
+					activateCategory((Category) newDataSource);
+				}
+			}
+		}, true);
 
     forceHeaderVisible = COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader");
 		if (txtFilter != null) {
@@ -368,11 +381,13 @@ public class MyTorrentsView
     Category[] categories = CategoryManager.getCategories();
     Arrays.sort(categories);
     boolean showCat = false;
-    for(int i = 0; i < categories.length; i++) {
-        if(categories[i].getType() == Category.TYPE_USER) {
-            showCat = true;
-            break;
-        }
+    if (!neverShowCatButtons) {
+      for(int i = 0; i < categories.length; i++) {
+          if(categories[i].getType() == Category.TYPE_USER) {
+              showCat = true;
+              break;
+          }
+      }
     }
 
    	buildHeaderArea();
@@ -1744,15 +1759,15 @@ public class MyTorrentsView
 			currentCategory = category;
 		}
 		
+		tv.processDataSourceQueue();
 		Object[] managers = globalManager.getDownloadManagers().toArray();
-		Set<DownloadManager> existing = new HashSet<DownloadManager>(tv.getDataSources());
 		List<DownloadManager> listRemoves = new ArrayList<DownloadManager>();
 		List<DownloadManager> listAdds = new ArrayList<DownloadManager>();
 		
 		for (int i = 0; i < managers.length; i++) {
 			DownloadManager dm = (DownloadManager) managers[i];
 		
-			boolean bHave = existing.contains(dm);
+			boolean bHave = tv.isUnfilteredDataSourceAdded(dm);
 			if (!isOurDownloadManager(dm)) {
 				if (bHave) {
 					listRemoves.add(dm);

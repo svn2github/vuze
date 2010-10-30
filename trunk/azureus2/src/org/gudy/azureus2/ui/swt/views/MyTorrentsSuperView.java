@@ -78,6 +78,9 @@ public class MyTorrentsSuperView extends AbstractIView implements
 
 	private final Composite cCats;
 
+
+	private Object ds;
+
   public MyTorrentsSuperView(Text txtFilter, Composite cCats) {
   	this.txtFilter = txtFilter;
 		this.cCats = cCats;
@@ -464,6 +467,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
 			String tableID, boolean isSeedingView, TableColumnCore[] columns, Composite c) {
 		MyTorrentsView view = new MyTorrentsView(_azureus_core, tableID,
 				isSeedingView, columns, txtFilter, cCats);
+		view.dataSourceChanged(ds);
     view.initialize(c);
 		c.addListener(SWT.Activate, new Listener() {
 			public void handleEvent(Event event) {
@@ -487,5 +491,10 @@ public class MyTorrentsSuperView extends AbstractIView implements
 
 	public MyTorrentsView getSeedingview() {
 		return seedingview;
+	}
+	
+	public void dataSourceChanged(Object newDataSource) {
+		ds = newDataSource;
+		super.dataSourceChanged(newDataSource);
 	}
 }
