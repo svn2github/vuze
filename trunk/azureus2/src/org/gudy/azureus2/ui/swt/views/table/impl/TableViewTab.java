@@ -33,6 +33,9 @@ public abstract class TableViewTab<DATASOURCETYPE>
 
 	public final void initialize(Composite composite) {
 		tv = initYourTableView();
+		if (parentDataSource != null) {
+			tv.setParentDataSource(parentDataSource);
+		}
 		Composite parent = initComposite(composite);
 		tv.initialize(parent);
 		if (parent != composite) {
@@ -42,9 +45,6 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		}
 		
 		tableViewTabInitComplete();
-		if (parentDataSource != null) {
-			tv.setParentDataSource(parentDataSource);
-		}
 	}
 	
 	public void tableViewTabInitComplete() {
