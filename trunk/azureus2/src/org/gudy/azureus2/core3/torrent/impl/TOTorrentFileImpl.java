@@ -234,9 +234,34 @@ TOTorrentFileImpl
 	}
 	
 	public String getRelativePath() {
-		if (torrent == null)
+		if (torrent == null) {
 			return "";
+		}
 		String sRelativePath = "";
+		
+		byte[][] pathComponentsUTF8 = getPathComponentsUTF8();
+		if (pathComponentsUTF8 != null) {
+			for (int j = 0; j < pathComponentsUTF8.length; j++) {
+
+				try {
+					String comp;
+					try {
+						comp =  new String(pathComponentsUTF8[j], "utf8");
+					} catch (UnsupportedEncodingException e) {
+						System.out.println("file - unsupported encoding!!!!");
+						comp = "UnsupportedEncoding";
+					}
+	
+					comp = FileUtil.convertOSSpecificChars(comp, j != pathComponentsUTF8.length-1 );
+	
+					sRelativePath += (j == 0 ? "" : File.separator) + comp;
+				} catch (Exception ex) {
+					Debug.out(ex);
+				}
+
+			}
+			return sRelativePath;
+		}
 
 		LocaleUtilDecoder decoder = null;
 		try {
