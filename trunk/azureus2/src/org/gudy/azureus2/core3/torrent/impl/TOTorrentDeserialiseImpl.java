@@ -536,11 +536,14 @@ TOTorrentDeserialiseImpl
 					List	paths = (List)file_map.get( TK_PATH );
 					List	paths8 = (List)file_map.get( TK_PATH_UTF8 );
 					
-					byte[][]	path_comps = new byte[paths.size()][];
-					
-					for (int j=0;j<paths.size();j++){
-					
-						path_comps[j] = (byte[])paths.get(j);
+					byte[][]	path_comps = null;
+					if (paths != null) {
+  					path_comps = new byte[paths.size()][];
+  					
+  					for (int j=0;j<paths.size();j++){
+  					
+  						path_comps[j] = (byte[])paths.get(j);
+  					}
 					}
 					
 					TOTorrentFileImpl file;

@@ -152,6 +152,9 @@ TOTorrentFileImpl
 	
 		throws TOTorrentException
 	{
+		// grab nicest path components (utf8 if it's there)
+		byte[][] path_components = getPathComponents();
+
 		for (int i=0;i<path_components.length;i++){
 			
 			byte[] comp = path_components[i];
@@ -320,12 +323,14 @@ TOTorrentFileImpl
 		
 		byte[][]	path_comps = getPathComponentsBasic();
 		
-		for (int j=0;j<path_comps.length;j++){
-			
-			path.add( path_comps[j]);
+		if (path_comps != null) {
+  		for (int j=0;j<path_comps.length;j++){
+  			
+  			path.add( path_comps[j]);
+  		}
 		}
 		
-		if ( isUTF8()){
+		if (path_comps != null && isUTF8()){
 			
 			List utf8_path = new ArrayList();
 			
