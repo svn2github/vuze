@@ -152,18 +152,24 @@ TOTorrentFileImpl
 	
 		throws TOTorrentException
 	{
-		// grab nicest path components (utf8 if it's there)
-		byte[][] path_components = getPathComponents();
-
-		for (int i=0;i<path_components.length;i++){
+		byte[][][] to_do = { path_components, path_components_utf8 };
+		
+		for (byte[][] pc: to_do ){
 			
-			byte[] comp = path_components[i];
-			if (comp.length == 2 && comp[0] == (byte) '.' && comp[1] == (byte) '.')
-				throw (new TOTorrentException("Torrent file contains illegal '..' component", TOTorrentException.RT_DECODE_FAILS));
-
-			// intern directories as they're likely to repeat
-			if(i < (path_components.length - 1))
-				path_components[i] = StringInterner.internBytes(path_components[i]);
+			if ( pc == null ){
+				continue;
+			}
+		
+			for (int i=0;i<pc.length;i++){
+				
+				byte[] comp = pc[i];
+				if (comp.length == 2 && comp[0] == (byte) '.' && comp[1] == (byte) '.')
+					throw (new TOTorrentException("Torrent file contains illegal '..' component", TOTorrentException.RT_DECODE_FAILS));
+	
+				// intern directories as they're likely to repeat
+				if(i < (pc.length - 1))
+					pc[i] = StringInterner.internBytes(pc[i]);
+			}
 		}
 	}
 	
