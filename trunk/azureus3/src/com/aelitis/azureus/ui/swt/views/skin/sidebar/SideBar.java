@@ -560,8 +560,11 @@ public class SideBar
 							if (entry.isSelectable()) {
 								showEntry(entry);
 							} else if (currentEntry != null) {
-  							tree.setSelection(((SideBarEntrySWT) currentEntry).getTreeItem());
-  							tree.showItem(treeItem);
+								TreeItem ti = ((SideBarEntrySWT) currentEntry).getTreeItem();
+								if ( ti != null ){
+									tree.setSelection( ti );
+								}
+								tree.showItem(treeItem);
 							}
 						}
 						break;
