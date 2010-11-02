@@ -190,6 +190,8 @@ StreamManager
 				
 				PluginInterface emp_pi = checkPlugin( "azemp", "media player" );
 
+				checkPlugin( "vuzexcode", "media analyser" );
+
 				Class<?> epwClass = emp_pi.getPlugin().getClass().getClassLoader().loadClass( "com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT" );
 				
 				Method method = epwClass.getMethod( "prepareWindow", new Class[] { String.class });
@@ -276,9 +278,7 @@ StreamManager
 				long video_height;
 				
 				if ( l_duration == null ){
-						
-					checkPlugin( "vuzexcode", "media analyser" );
-					
+											
 					try{
 						DeviceManager dm = DeviceManagerFactory.getSingleton();
 						
