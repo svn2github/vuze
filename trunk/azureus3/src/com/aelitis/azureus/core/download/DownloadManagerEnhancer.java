@@ -26,6 +26,7 @@ package com.aelitis.azureus.core.download;
 import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
@@ -69,6 +70,8 @@ DownloadManagerEnhancer
 	
 	private Map<DownloadManager,EnhancedDownloadManager>		download_map = new HashMap<DownloadManager,EnhancedDownloadManager>();
 	
+	private Set<HashWrapper>		pause_set = new HashSet<HashWrapper>();
+	
 	private boolean			progressive_enabled;
 	
 	protected
@@ -108,8 +111,9 @@ DownloadManagerEnhancer
 				public void
 				destroyInitiated()
 				{
-					// resume any downloads we paused
-					core.getGlobalManager().resumeDownloads();
+						// resume any downloads we paused
+					
+					resume();
 				}
 					
 				public void
@@ -312,6 +316,133 @@ DownloadManagerEnhancer
 	getCore()
 	{
 		return( core );
+	}
+	
+	protected void
+	pause(
+		DownloadManager		dm )
+	{
+		TOTorrent torrent = dm.getTorrent();
+		
+		if ( torrent == null ){
+			
+			return;
+		}
+		
+		try{
+			HashWrapper hw = torrent.getHashWrapper();
+			
+			synchronized( pause_set ){
+				
+				if ( pause_set.contains( hw )){
+					
+					return;
+				}
+				
+				pause_set.add( hw );
+			}
+			
+			dm.pause();
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+	
+	protected void
+	resume(
+		DownloadManager		dm )
+	{
+		TOTorrent torrent = dm.getTorrent();
+		
+		if ( torrent == null ){
+			
+			return;
+		}
+		
+		try{
+			HashWrapper hw = torrent.getHashWrapper();
+			
+			synchronized( pause_set ){
+				
+				if ( !pause_set.remove( hw )){
+					
+					return;
+				}
+			}
+			
+			dm.resume();
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+	
+	protected void
+	resume()
+	{
+		Set<HashWrapper> copy;
+		
+		synchronized( pause_set ){
+		
+			copy = new HashSet<HashWrapper>( pause_set );
+			
+			pause_set.clear();
+		}
+		
+		GlobalManager gm = core.getGlobalManager();
+		
+		for ( HashWrapper hw: copy ){
+			
+			DownloadManager dm = gm.getDownloadManager( hw );
+			
+			if ( dm != null ){
+				
+				dm.resume();
+			}
+		}
+	}
+	
+	protected  void
+	prepareForProgressiveMode(
+		DownloadManager		dm,
+		boolean				active )
+	{
+		if ( active ){
+			
+			GlobalManager gm = core.getGlobalManager();
+
+			List<DownloadManager> dms = (List<DownloadManager>)gm.getDownloadManagers();
+			
+			for ( DownloadManager this_dm: dms ){
+				
+				if ( this_dm == dm ){
+					
+					continue;
+				}
+			
+				if ( !this_dm.isDownloadComplete(false)){
+					
+					int state = this_dm.getState();
+					
+					if ( 	state == DownloadManager.STATE_DOWNLOADING ||
+							state == DownloadManager.STATE_QUEUED) {
+					
+						pause( this_dm );
+					}
+				}
+			}
+			
+			if ( dm.isPaused()){
+				
+				dm.resume();
+			}
+		}else{
+			
+			resume();
+		}
 	}
 	
 	public EnhancedDownloadManager

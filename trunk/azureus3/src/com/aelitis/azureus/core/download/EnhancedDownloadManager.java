@@ -308,6 +308,13 @@ EnhancedDownloadManager
 				( PlatformTorrentUtils.isContentProgressive( torrent ) || explicit_progressive ));
 	}
 	
+	public void
+	prepareForProgressiveMode(
+		boolean		active )
+	{
+		enhancer.prepareForProgressiveMode( download_manager, active );
+	}
+	
 	public boolean
 	setProgressiveMode(
 		boolean		active )
@@ -348,7 +355,7 @@ EnhancedDownloadManager
 				if (dmListener == null) {
 					dmListener = new DownloadManagerAdapter() {
 						public void downloadComplete(DownloadManager manager) {
-							gm.resumeDownloads();
+							enhancer.resume();
 						}
 					};
 				}
@@ -367,7 +374,7 @@ EnhancedDownloadManager
 						int state = dmCheck.getState();
 						if (state == DownloadManager.STATE_DOWNLOADING
 								|| state == DownloadManager.STATE_QUEUED) {
-							dmCheck.pause();
+							enhancer.pause( dmCheck );
 						}
 						EnhancedDownloadManager edmCheck = enhancer.getEnhancedDownload(dmCheck);
 						if (edmCheck != null && edmCheck.getProgressiveMode()) {
@@ -376,7 +383,7 @@ EnhancedDownloadManager
 					}
 				}
 				if (download_manager.isPaused()) {
-					download_manager.resume();
+					enhancer.resume( download_manager );
 				}
 
 				// Make sure download can start by moving out of stop state
@@ -391,7 +398,7 @@ EnhancedDownloadManager
 			} else {
 				download_manager.removeListener(dmListener);
 				if ( !switching_progressive_downloads ){
-					gm.resumeDownloads();
+					enhancer.resume();
 				}
 			}
 			

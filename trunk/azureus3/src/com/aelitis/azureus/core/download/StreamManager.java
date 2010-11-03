@@ -117,6 +117,7 @@ StreamManager
 		private TranscodeJob			active_job;
 		
 		private EnhancedDownloadManager	active_edm;
+		private boolean					active_edm_activated;
 
 		private volatile boolean		cancelled;
 		
@@ -182,12 +183,22 @@ StreamManager
 		runSupport()
 		{
 			try{
+				synchronized( StreamManager.this ){
+					
+					if ( cancelled ){
+						
+						throw( new Exception( "Cancelled" ));
+					}
+
+					active_edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
+				}
+
 				final long stream_start = SystemTime.getMonotonousTime();
 				
 				final Download download = PluginCoreUtils.wrap( dm );
 				
 				final DiskManagerFileInfo file = download.getDiskManagerFileInfo( file_index );
-				
+								
 				PluginInterface emp_pi = checkPlugin( "azemp", "media player" );
 
 				checkPlugin( "vuzexcode", "media analyser" );
@@ -278,7 +289,9 @@ StreamManager
 				long video_height;
 				
 				if ( l_duration == null ){
-											
+						
+					active_edm.prepareForProgressiveMode( true );
+					
 					try{
 						DeviceManager dm = DeviceManagerFactory.getSingleton();
 						
@@ -493,6 +506,9 @@ StreamManager
 					}catch( Throwable e ){
 						
 						throw( new Exception( "Media analysis failed", e ));
+						
+					}finally{
+						
 					}
 				}else{
 						
@@ -533,15 +549,15 @@ StreamManager
 						
 						throw( new Exception( "Cancelled" ));
 					}
-				
-					active_edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
-																						
+																										
 					active_edm.setExplicitProgressive( BUFFER_SECS, bytes_per_sec, file_index );
 					
 					if ( !active_edm.setProgressiveMode( true )){
 						
 						throw( new Exception( "Failed to set download as progressive" ));
 					}
+					
+					active_edm_activated = true;
 				}
 				
 				new AEThread2( "streamMon" )
@@ -769,6 +785,7 @@ StreamManager
 			TranscodeJob	job;
 			
 			EnhancedDownloadManager	edm;
+			boolean					edm_activated;
 			
 			synchronized( StreamManager.this ){
 				
@@ -781,7 +798,8 @@ StreamManager
 					active_sem.releaseForever();
 				}
 				
-				edm = active_edm;
+				edm 			= active_edm;
+				edm_activated	= active_edm_activated;
 			}
 			
 			if ( job != null ){
@@ -791,7 +809,14 @@ StreamManager
 			
 			if ( edm != null ){
 				
-				edm.setProgressiveMode( false );
+				if ( edm_activated ){
+				
+					edm.setProgressiveMode( false );
+					
+				}else{
+					
+					edm.prepareForProgressiveMode( false );
+				}
 			}
 		}
 		
