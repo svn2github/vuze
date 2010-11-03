@@ -1101,6 +1101,11 @@ ConfigurationManager
 	stringToBytes(
 		String	str )
 	{
+		if ( str == null ){
+			
+			return( null );
+		}
+		
 		try{
 			return( str.getBytes( Constants.DEFAULT_ENCODING ));
 			
