@@ -412,7 +412,10 @@ public class MyTorrentsView
 			GridData gridData = new GridData(SWT.RIGHT, SWT.TOP, true, false);
 			cCategories.setLayoutData(gridData);
 			cCategories.moveAbove(null);
+		}else if ( cCategories.isDisposed()){
+			return;
 		}
+		
 		if (!(cCategories.getLayout() instanceof RowLayout)) {
       RowLayout rowLayout = new RowLayout();
       rowLayout.marginTop = 0;
