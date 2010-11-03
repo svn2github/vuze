@@ -295,7 +295,7 @@ public class SB_Transfers
 						}
 
 						int userMode = COConfigurationManager.getIntParameter("User Mode");
-						if (userMode > 0) {
+						if (userMode > 0 && !COConfigurationManager.getStringParameter("ui").equals("az2")){
 							if (categoryManagerListener != null) {
 								return;
 							}
