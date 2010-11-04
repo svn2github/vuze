@@ -22,7 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.common.table.TableView;
 
 /**
@@ -34,7 +36,7 @@ import com.aelitis.azureus.ui.common.table.TableView;
  */
 public class SelectedContentManager
 {
-	private static List listeners = new ArrayList();
+	private static CopyOnWriteList<SelectedContentListener> listeners = new CopyOnWriteList<SelectedContentListener>();
 
 	private static ISelectedContent[] currentlySelectedContent = new ISelectedContent[0];
 
@@ -63,7 +65,6 @@ public class SelectedContentManager
 
 	public static void changeCurrentlySelectedContent(String viewID,
 			ISelectedContent[] currentlySelectedContent, TableView tv) {
-		SelectedContentManager.tv = tv;
 		if (currentlySelectedContent == null) {
 			currentlySelectedContent = new ISelectedContent[0];
 		}
@@ -84,15 +85,48 @@ public class SelectedContentManager
 			return;
 		}
 
-		SelectedContentManager.currentlySelectedContent = currentlySelectedContent == null
-				? new ISelectedContent[0] : currentlySelectedContent;
-		SelectedContentManager.viewID = viewID;
-
-		Object[] listenerArray = listeners.toArray();
-		for (int i = 0; i < listenerArray.length; i++) {
-			SelectedContentListener l = (SelectedContentListener) listenerArray[i];
-			l.currentlySelectedContentChanged(
-					SelectedContentManager.currentlySelectedContent, viewID);
+		synchronized( SelectedContentManager.class ){
+			boolean	same = SelectedContentManager.tv == tv;
+			
+			if ( same ){
+				
+				same = 
+					SelectedContentManager.viewID == viewID ||
+					( 	SelectedContentManager.viewID != null && 
+						viewID != null &&
+						SelectedContentManager.viewID.equals( viewID ));
+				
+				if ( same ){
+					
+					if ( SelectedContentManager.currentlySelectedContent.length == currentlySelectedContent.length ){
+						
+						for ( int i=0;i<currentlySelectedContent.length && same ;i++){
+							
+							same = currentlySelectedContent[i].sameAs( SelectedContentManager.currentlySelectedContent[i]);
+						}
+				
+						if ( same ){
+														
+							return;
+						}
+					}
+				}
+			}
+			
+			SelectedContentManager.tv = tv;
+			SelectedContentManager.currentlySelectedContent = currentlySelectedContent;
+			SelectedContentManager.viewID = viewID;
+		}
+		
+		for( SelectedContentListener l: listeners ){
+	
+			try{
+				l.currentlySelectedContentChanged( currentlySelectedContent, viewID);
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
 		}
 	}
 

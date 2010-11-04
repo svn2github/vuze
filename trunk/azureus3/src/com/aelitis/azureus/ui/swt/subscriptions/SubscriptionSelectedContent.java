@@ -32,11 +32,11 @@ import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.IconBarEnabler;
 
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedVuzeFileContent;
 
 public class 
@@ -44,6 +44,8 @@ SubscriptionSelectedContent
 	implements ISelectedVuzeFileContent
 {
 	private Subscription		subs;
+	
+		// if you add more fields here be sure to amend 'sameAs' logic below
 	
 	private TOTorrent			torrent;
 	
@@ -159,5 +161,24 @@ SubscriptionSelectedContent
 	}
 
 	public void setDownloadInfo(DownloadUrlInfo downloadInfo) {
+	}
+	
+	public boolean 
+	sameAs(
+		ISelectedContent _other ) 
+	{
+		if ( _other == this ){
+			
+			return( true );
+		}
+		
+		if ( _other instanceof SubscriptionSelectedContent ){
+			
+			SubscriptionSelectedContent other = (SubscriptionSelectedContent)_other;
+			
+			return( subs == other.subs );
+		}
+		
+		return( false );
 	}
 }

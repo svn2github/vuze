@@ -37,6 +37,8 @@ public class DownloadUrlInfo
 
 	private Map additionalProperties = null;
 
+		// add more fields here -> amend sameAs below
+	
 	/**
 	 * @param url
 	 */
@@ -105,5 +107,38 @@ public class DownloadUrlInfo
 	 */
 	public Map getAdditionalProperties() {
 		return additionalProperties;
+	}
+	
+	private boolean
+	objectEquals(
+		Object	o1,
+		Object	o2 )
+	{
+		if ( o1 != o2 ){
+			
+			if ( 	o1 == null ||
+					o2 == null ||
+					!o1.equals( o2 )){
+				
+				return( false );
+			}
+		}
+		
+		return( true );
+	}
+	
+	public boolean
+	sameAs(
+		DownloadUrlInfo	other )
+	{
+		if ( other == this ){
+			
+			return( true );
+		}
+		
+		return( objectEquals( dlURL, other.dlURL ) &&
+				objectEquals( referer, other.referer ) &&
+				objectEquals( requestProperties, other.requestProperties ) &&
+				objectEquals( additionalProperties, other.additionalProperties ));
 	}
 }

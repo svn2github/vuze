@@ -20,7 +20,6 @@ package com.aelitis.azureus.ui.selectedcontent;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -48,6 +47,9 @@ public class SelectedContentV3
 	
 	private DownloadUrlInfo downloadInfo;
 
+		// if you add more fields here be sure to amend 'sameAs' logic below
+	
+	
 	public SelectedContentV3(SelectedContent content) {
 		this.content = content;
 		this.setDownloadManager(content.getDownloadManager());
@@ -180,5 +182,60 @@ public class SelectedContentV3
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setDownloadInfo(com.aelitis.azureus.ui.selectedcontent.SelectedContentDownloadInfo)
 	public void setDownloadInfo(DownloadUrlInfo info) {
 		this.downloadInfo = info;
+	}
+	
+	public boolean 
+	sameAs(
+		ISelectedContent _other ) 
+	{
+		if ( _other == this ){
+			
+			return( true );
+		}
+		
+		if ( _other instanceof SelectedContentV3 ){
+			
+			SelectedContentV3 other = (SelectedContentV3)_other;
+			
+			if ( !content.sameAs( other.content )){
+				
+				return( false );
+			}
+			
+			if ( 	isPlatformContent != other.isPlatformContent ||
+					canPlay != other.canPlay ){
+				
+				return( false );
+			}
+			
+			if ( thumbURL != other.thumbURL ){
+				
+				if ( 	thumbURL == null ||
+						other.thumbURL == null ||
+						!thumbURL.equals( other.thumbURL )){
+					
+					return( false );
+				}
+			}
+			
+			if ( imageBytes != other.imageBytes ){
+				
+				return( false );
+			}
+			
+			if ( downloadInfo != other.downloadInfo ){
+				
+				if ( 	downloadInfo == null ||
+						other.downloadInfo == null ||
+						!downloadInfo.sameAs( other.downloadInfo )){
+					
+					return( false );
+				}
+			}
+			
+			return( true );
+		}
+		
+		return( false );
 	}
 }

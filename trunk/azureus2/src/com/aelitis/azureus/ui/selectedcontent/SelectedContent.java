@@ -46,6 +46,8 @@ public class SelectedContent implements ISelectedContent
 	
 	private DownloadUrlInfo downloadInfo;
 
+		// add more fields and you need to amend sameAs below
+	
 	/**
 	 * @param dm2
 	 * @throws Exception 
@@ -140,5 +142,56 @@ public class SelectedContent implements ISelectedContent
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setDownloadInfo(com.aelitis.azureus.ui.selectedcontent.SelectedContentDownloadInfo)
 	public void setDownloadInfo(DownloadUrlInfo info) {
 		this.downloadInfo = info;
+	}
+		
+	public boolean 
+	sameAs(
+		ISelectedContent _other )
+	{
+		if ( _other instanceof SelectedContent ){
+			
+			SelectedContent other = (SelectedContent)_other;
+		
+			if ( hash != other.hash ){
+				
+				if ( 	hash == null ||
+						other.hash == null ||
+						!hash.equals( other.hash )){
+					
+					return( false );
+				}
+			}
+			
+			if ( 	dm != other.dm ||
+					torrent	!= other.torrent || 
+					file_index != other.file_index ){
+				
+				return( false );
+			}
+			
+			if ( displayName != other.displayName ){
+				
+				if ( 	displayName == null ||
+						other.displayName == null ||
+						!displayName.equals( other.displayName )){
+					
+					return( false );
+				}
+			}
+			
+			if ( downloadInfo != other.downloadInfo ){
+				
+				if ( 	downloadInfo == null ||
+						other.downloadInfo == null ||
+						!downloadInfo.sameAs( other.downloadInfo )){
+					
+					return( false );
+				}
+			}
+			
+			return( true );
+		}
+		
+		return( false );
 	}
 }

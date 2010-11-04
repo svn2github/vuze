@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -615,26 +616,49 @@ public class ToolBarView
 		return items.values().toArray(new ToolBarItem[0]);
 	}
 
-	private boolean willRefreshCoreToolBarItems = false;
-
-	public void refreshCoreToolBarItems() {
-		synchronized (this) {
-			if (willRefreshCoreToolBarItems) {
-				return;
-			}
-			willRefreshCoreToolBarItems = true;
-		}
-		if (DEBUG) {
-			System.out.println("refreshCoreItems via " + Debug.getCompressedStackTrace());
-		}
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				synchronized (ToolBarView.this) {
-					willRefreshCoreToolBarItems = false;
+	private FrequencyLimitedDispatcher refresh_limiter = 
+		new FrequencyLimitedDispatcher(
+			new AERunnable()
+			{
+				private AERunnable	lock = this;
+				private boolean 	refresh_pending;
+				
+				public void
+				runSupport()
+				{
+					synchronized( lock ){
+						
+						if ( refresh_pending ){
+							
+							return;
+						}
+						refresh_pending = true;
+					}
+					
+					if ( DEBUG ){
+						System.out.println("refreshCoreItems via " + Debug.getCompressedStackTrace());
+					}
+					
+					Utils.execSWTThread(
+						new AERunnable() 
+						{
+							public void 
+							runSupport() {
+						
+								synchronized( lock ){
+								
+									refresh_pending = false;
+								}
+							
+								_refreshCoreToolBarItems();
+							}
+						});
 				}
-				_refreshCoreToolBarItems();
-			}
-		});
+			},
+			100 );
+	
+	public void refreshCoreToolBarItems() {
+		refresh_limiter.dispatch();
 	}
 
 	public void _refreshCoreToolBarItems() {

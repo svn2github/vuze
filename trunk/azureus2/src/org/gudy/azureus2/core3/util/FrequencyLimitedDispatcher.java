@@ -43,7 +43,7 @@ FrequencyLimitedDispatcher
 	public void
 	dispatch()
 	{
-		long	now = SystemTime.getCurrentTime();
+		long	now = SystemTime.getMonotonousTime();
 		
 		boolean	run_it	= false;
 		
@@ -72,7 +72,7 @@ FrequencyLimitedDispatcher
 								public void
 								runSupport()
 								{
-									long	now = SystemTime.getCurrentTime();
+									long	now = SystemTime.getMonotonousTime();
 
 									synchronized( FrequencyLimitedDispatcher.this ){
 
