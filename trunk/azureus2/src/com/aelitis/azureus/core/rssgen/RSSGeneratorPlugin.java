@@ -57,6 +57,9 @@ RSSGeneratorPlugin
 	load(
 		PluginInterface		plugin_interface )
 	{
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
+
 		synchronized( RSSGeneratorPlugin.class ){
 			
 			if ( loaded ){
@@ -66,10 +69,7 @@ RSSGeneratorPlugin
 			
 			loaded = true;
 		}
-		
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
-		
+				
 		File	root_dir = new File( SystemProperties.getUserPath() + "rss" );
 		
 		if ( !root_dir.exists()){
