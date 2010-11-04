@@ -1055,7 +1055,9 @@ public class MyTorrentsView
 		if (cTablePanel == null || cTablePanel.isDisposed()) {
 			return;
 		}
-		
+		if ( !isTableFocus()){
+			return;
+		}
 		Object[] dataSources = tv.getSelectedDataSources(true);
 		List<SelectedContent> listSelected = new ArrayList<SelectedContent>(dataSources.length);
 		for (Object ds : dataSources) {
