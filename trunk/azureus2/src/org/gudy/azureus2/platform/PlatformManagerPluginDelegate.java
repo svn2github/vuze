@@ -38,6 +38,16 @@ import org.gudy.azureus2.plugins.update.UpdateChecker;
 public class PlatformManagerPluginDelegate
 	implements Plugin, UpdatableComponent	// we have to implement this as it used as a mixin to declare that this plugin handles its own update process
 {
+	
+	public static void
+	load(
+		PluginInterface		plugin_interface )
+	{
+			// name it during initialisation
+		
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 	"Platform-Specific Support" );
+	}
+	
 	// @see org.gudy.azureus2.plugins.Plugin#initialize(org.gudy.azureus2.plugins.PluginInterface)
 	public void initialize(PluginInterface pluginInterface)
 			throws PluginException {
