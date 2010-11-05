@@ -284,6 +284,20 @@ TranscodeJobImpl
 								
 								download_ok = true;
 							}
+						}else{
+							
+							int state = download.getState();
+							
+							if ( state == Download.ST_STOPPED ){
+								
+								try{
+									download.restart();
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
 						}
 					}
 				}
