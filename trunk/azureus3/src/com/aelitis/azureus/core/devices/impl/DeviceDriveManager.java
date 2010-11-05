@@ -73,6 +73,15 @@ DeviceDriveManager
 				{
 					if ( listener_added ){
 						
+						DriveDetectedInfo[] info = DriveDetectorFactory.getDeviceDetector().getDetectedDriveInfo();
+						
+						for ( DriveDetectedInfo i: info ){
+							
+							driveRemoved( i );
+							
+							driveDetected( i );
+						}
+						
 						return;
 					}
 					
