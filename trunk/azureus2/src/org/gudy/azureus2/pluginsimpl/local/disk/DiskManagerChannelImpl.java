@@ -714,6 +714,8 @@ DiskManagerChannelImpl
 			
 			long	pos = request_offset;
 			
+			long	download_not_running_time	= 0;
+			
 			try{
 
 				while( rem > 0 && !cancelled ){
@@ -787,16 +789,39 @@ DiskManagerChannelImpl
 						
 						try{
 
-							while( true ){
+							while( true && !cancelled ){
 							
 								if ( wait_sem.reserve( 500 )){
 									
 									break;
 								}
 								
-								if ( core_file.getDownloadManager().isDestroyed()){
+								DownloadManager dm = core_file.getDownloadManager();
+								
+								if ( dm.isDestroyed()){
 									
 									throw( new Exception( "Download has been removed" ));
+									
+								}else{
+									
+									int	state = dm.getState();
+									
+									if ( state == DownloadManager.STATE_ERROR || state == DownloadManager.STATE_STOPPED ){
+										
+										long	now = SystemTime.getMonotonousTime();
+										
+										if ( download_not_running_time == 0 ){
+											
+											download_not_running_time = now;
+											
+										}else if ( now - download_not_running_time > 15*1000 ){ 
+											
+											throw( new Exception( "Download has been stopped" ));
+										}
+									}else{
+										
+										download_not_running_time = 0;
+									}
 								}
 							}
 						}finally{
