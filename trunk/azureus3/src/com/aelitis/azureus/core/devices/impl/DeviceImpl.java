@@ -1161,10 +1161,8 @@ DeviceImpl
 		List<TranscodeProfile>	profiles = new ArrayList<TranscodeProfile>();
 		
 		DeviceManagerImpl dm = getManager();
-		
-		TranscodeManagerImpl tm = dm.getTranscodeManager();
-				
-		TranscodeProvider[] providers = tm.getProviders();
+						
+		TranscodeProvider[] providers = dm.getProviders();
 						
 		for ( TranscodeProvider provider: providers ){
 			

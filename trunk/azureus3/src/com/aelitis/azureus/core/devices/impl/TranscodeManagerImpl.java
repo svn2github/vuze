@@ -59,7 +59,7 @@ TranscodeManagerImpl
 	
 	private TranscodeQueueImpl		queue = new TranscodeQueueImpl( this );
 	
-	private AESemaphore	init_sem = new AESemaphore( "TM:init" );
+	private AESemaphore	init_sem 	= new AESemaphore( "TM:init" );
 
 	private boolean hooked_categories;
 	
@@ -80,51 +80,57 @@ TranscodeManagerImpl
 		
 		category_ta = default_pi.getTorrentManager().getPluginAttribute( "xcode.cat.done" );
 		
+		final AESemaphore	plugin_sem 	= new AESemaphore( "TM:plugin" );
+
 		default_pi.addListener(
 			new PluginListener()
 			{
 				public void
 				initializationComplete()
 				{
-					PluginInterface default_pi = PluginInitializer.getDefaultInterface();
-					default_pi.addEventListener(
-						new PluginEventListener()
-						{
-							public void 
-							handleEvent(
-								PluginEvent ev )
+					try{
+						PluginInterface default_pi = PluginInitializer.getDefaultInterface();
+						
+						default_pi.addEventListener(
+							new PluginEventListener()
 							{
-								int	type = ev.getType();
-								
-								if ( type == PluginEvent.PEV_PLUGIN_OPERATIONAL ){
+								public void 
+								handleEvent(
+									PluginEvent ev )
+								{
+									int	type = ev.getType();
 									
-									pluginAdded((PluginInterface)ev.getValue());
+									if ( type == PluginEvent.PEV_PLUGIN_OPERATIONAL ){
+										
+										pluginAdded((PluginInterface)ev.getValue());
+									}
+									if ( type == PluginEvent.PEV_PLUGIN_NOT_OPERATIONAL ){
+										
+										pluginRemoved((PluginInterface)ev.getValue());
+									}
 								}
-								if ( type == PluginEvent.PEV_PLUGIN_NOT_OPERATIONAL ){
-									
-									pluginRemoved((PluginInterface)ev.getValue());
-								}
+							});
+						
+						PluginInterface[] plugins = default_pi.getPluginManager().getPlugins();
+						
+						for ( PluginInterface pi: plugins ){
+							
+							if ( pi.getPluginState().isOperational()){
+							
+								pluginAdded( pi );
 							}
-						});
-					
-					PluginInterface[] plugins = default_pi.getPluginManager().getPlugins();
-					
-					for ( PluginInterface pi: plugins ){
-						
-						if ( pi.getPluginState().isOperational()){
-						
-							pluginAdded( pi );
 						}
+					}finally{
+						
+						plugin_sem.releaseForever();
 					}
-					
-					queue.initialise();
-					
-					init_sem.releaseForever();
 				}
 				
 				public void
 				closedownInitiated()
 				{
+					plugin_sem.releaseForever();
+					
 						// we don't want things hanging around for init if we're closing
 					
 					init_sem.releaseForever();
@@ -135,6 +141,21 @@ TranscodeManagerImpl
 				{
 				}
 			});
+		
+		if ( !plugin_sem.reserve( 30*1000 )){
+			
+			Debug.out( "Timeout waiting for init" );
+			
+			AEDiagnostics.dumpThreads();
+		}
+	}
+	
+	protected void
+	initialise()
+	{
+		queue.initialise();
+		
+		init_sem.releaseForever();
 	}
 	
 	protected void

@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -113,6 +114,8 @@ DeviceManagerImpl
 	private DeviceManagerUPnPImpl	upnp_manager;
 	private DeviceDriveManager		drive_manager;
 		
+	private Set<Device>				disable_events	= Collections.synchronizedSet( new HashSet<Device>());
+	
 		// have to go async on this as there are situations where we end up firing listeners
 		// while holding monitors and this can result in deadlock if sync
 	
@@ -233,24 +236,53 @@ DeviceManagerImpl
 		});
 	}
 	
-	private void
-	ensureInitialised()
+	private TranscodeManager
+	ensureInitialised(
+		boolean 	partial )
 	{
 		AzureusCore core =  AzureusCoreFactory.getSingleton();
 		
 		if ( core.isStarted()){
 		
 			initWithCore( core );
-		}
-		
-		if ( core.isInitThread()){
+			
+		}else if ( core.isInitThread()){
 			
 			Debug.out( "This is bad" );
 			
 			initWithCore( core );
 		}
 		
-		init_sem.reserve();
+		if ( partial ){
+			
+			long start = SystemTime.getMonotonousTime();
+			
+			while( !init_sem.reserve(250)){
+				
+				if ( transcode_manager != null ){
+					
+					break;
+				}
+				
+				if ( SystemTime.getMonotonousTime() - start >= 30*1000 ){
+					
+					Debug.out( "Timeout waiting for init" );
+					
+					AEDiagnostics.dumpThreads();
+					
+					break;
+				}
+			}
+		}else{
+			if ( !init_sem.reserve( 30*1000 )){
+				
+				Debug.out( "Timeout waiting for init" );
+				
+				AEDiagnostics.dumpThreads();
+			}
+		}
+		
+		return( transcode_manager );
 	}
 	
 	private void 
@@ -328,6 +360,8 @@ DeviceManagerImpl
 			drive_manager = new DeviceDriveManager( this );
 			
 			transcode_manager = new TranscodeManagerImpl( this );
+			
+			transcode_manager.initialise();
 			
 			core.addLifecycleListener(
 				new AzureusCoreLifecycleAdapter()
@@ -456,6 +490,19 @@ DeviceManagerImpl
 		boolean	enabled )
 	{
 		tivo_manager.setEnabled( enabled );
+	}
+	
+	public TranscodeProvider[]
+	getProviders()
+	{
+		TranscodeManager tm = ensureInitialised( true );
+		
+		if ( tm == null ){
+			
+			return( new TranscodeProvider[0] );
+		}
+		
+		return( tm.getProviders());
 	}
 	
 	public DeviceTemplate[] 
@@ -752,16 +799,23 @@ DeviceManagerImpl
 			
 			return( existing );
 		}
-					
-		device.initialise();
 		
-		if ( is_alive ){
+		try{
+			disable_events.add( device );
 		
-			device.alive();
+			device.initialise();
+			
+			if ( is_alive ){
+			
+				device.alive();
+			}
+			
+			applyUpdates( device );
+			
+		}finally{
+			
+			disable_events.remove( device );
 		}
-		
-		applyUpdates( device );
-		
 		deviceAdded( device );
 		
 		configDirty();
@@ -1229,8 +1283,11 @@ DeviceManagerImpl
 			
 			config_unclean = true;
 		}
-				
-		listeners.dispatch( LT_DEVICE_CHANGED, device );
+			
+		if ( !disable_events.contains( device )){
+		
+			listeners.dispatch( LT_DEVICE_CHANGED, device );
+		}
 	}
 	
 	protected void
@@ -1384,7 +1441,7 @@ DeviceManagerImpl
 	{
 		if ( transcode_manager == null ){
 			
-			ensureInitialised();
+			ensureInitialised( false );
 		}
 		
 		return( transcode_manager );

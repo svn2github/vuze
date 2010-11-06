@@ -26,9 +26,9 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
-import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceManagerListener;
 import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.devices.DeviceTemplate;
 import com.aelitis.azureus.core.drivedetector.DriveDetectedInfo;
@@ -53,6 +53,53 @@ DeviceDriveManager
 		DeviceManagerImpl		_manager )
 	{
 		manager = _manager;
+		
+		manager.addListener(
+			new DeviceManagerListener()
+			{
+				public void
+				deviceAdded(
+					Device		device )
+				{	
+				}
+				
+				public void
+				deviceChanged(
+					Device		device )
+				{
+				}
+				
+				public void
+				deviceAttentionRequest(
+					Device		device )
+				{
+				}
+				
+				public void
+				deviceRemoved(
+					Device		device )
+				{
+					synchronized( device_map ){
+						
+						Iterator<Map.Entry<String,DeviceMediaRendererManual>> it = device_map.entrySet().iterator();
+						
+						while( it.hasNext()){
+							
+							Map.Entry<String,DeviceMediaRendererManual> entry = it.next();
+							
+							if ( entry.getValue() == device ){
+								
+								it.remove();
+							}
+						}
+					}
+				}
+
+				public void
+				deviceManagerLoaded()
+				{
+				}
+			});
 		
 		if ( manager.getAutoSearch()){
 			
