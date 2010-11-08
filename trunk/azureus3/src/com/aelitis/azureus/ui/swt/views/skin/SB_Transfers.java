@@ -808,6 +808,10 @@ public class SB_Transfers
 			},
 			250 );
 	
+	static{
+		refresh_limiter.setSingleThreaded();
+	}
+	
 	private static void refreshAllLibraries(){
 		refresh_limiter.dispatch();
 	}

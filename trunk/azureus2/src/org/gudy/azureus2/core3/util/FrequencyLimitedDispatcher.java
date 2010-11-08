@@ -41,6 +41,57 @@ FrequencyLimitedDispatcher
 	}
 	
 	public void
+	setSingleThreaded()
+	{
+		final AERunnable old_target = target;
+		
+		target =
+			new AERunnable()
+			{
+				private boolean	running;
+				private boolean	pending;
+				
+				public void
+				runSupport()
+				{
+					synchronized( this ){
+						
+						if ( running ){
+							
+							pending = true;
+							
+							return;
+						}
+						
+						running = true;
+					}
+					
+					try{
+						old_target.runSupport();
+						
+					}finally{
+						
+						boolean	was_pending;
+						
+						synchronized( this ){
+							
+							running = false;
+							
+							was_pending = pending;
+							
+							pending = false;
+						}
+						
+						if ( was_pending ){
+							
+							dispatch();
+						}
+					}
+				}
+			};
+	}
+	
+	public void
 	dispatch()
 	{
 		long	now = SystemTime.getMonotonousTime();
