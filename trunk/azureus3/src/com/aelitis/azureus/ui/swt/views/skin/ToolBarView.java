@@ -655,7 +655,7 @@ public class ToolBarView
 						});
 				}
 			},
-			100 );
+			250 );
 	
 	public void refreshCoreToolBarItems() {
 		refresh_limiter.dispatch();

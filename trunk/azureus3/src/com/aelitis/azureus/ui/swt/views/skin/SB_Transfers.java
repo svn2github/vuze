@@ -795,7 +795,24 @@ public class SB_Transfers
 	 *
 	 * @since 3.1.1.1
 	 */
-	protected static void refreshAllLibraries() {
+	
+	private static FrequencyLimitedDispatcher refresh_limiter = 
+		new FrequencyLimitedDispatcher(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					refreshAllLibrariesSupport();
+				}
+			},
+			250 );
+	
+	private static void refreshAllLibraries(){
+		refresh_limiter.dispatch();
+	}
+	
+	private static void refreshAllLibrariesSupport() {
 		for (countRefreshListener l : listeners) {
 			l.countRefreshed(statsWithLowNoise, statsNoLowNoise);
 		}
