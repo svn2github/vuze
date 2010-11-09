@@ -4224,6 +4224,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   			return;
   		}
   		selectedRows.add(row);
+  		
+  		listSelectedCoreDataSources = null;
 		}
 		
 		if (trigger) {

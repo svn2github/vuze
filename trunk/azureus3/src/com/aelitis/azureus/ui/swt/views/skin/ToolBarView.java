@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
@@ -657,12 +658,14 @@ public class ToolBarView
 			},
 			250 );
 	
+	private Map<DownloadManager,DownloadManagerListener> dm_listener_map = new HashMap<DownloadManager, DownloadManagerListener>();
+	
 	public void refreshCoreToolBarItems() {
 		refresh_limiter.dispatch();
 	}
 
 	public void _refreshCoreToolBarItems() {
-		ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+		
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 
 		if (mdi != null) {
@@ -677,6 +680,83 @@ public class ToolBarView
 			}
 			
 			ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+							
+			synchronized( dm_listener_map ){
+		
+				Map<DownloadManager,DownloadManagerListener> copy = new HashMap<DownloadManager, DownloadManagerListener>( dm_listener_map );
+				
+				for ( ISelectedContent content : currentContent ){
+					
+					DownloadManager dm = content.getDownloadManager();
+					
+					if ( dm != null ){
+						
+						if ( copy.remove( dm ) == null ){
+							
+							DownloadManagerListener l = 
+								new DownloadManagerListener()
+								{
+									public void
+									stateChanged(
+										DownloadManager manager,
+										int		state )
+									{
+										refreshCoreToolBarItems();
+									}
+										
+									public void
+									downloadComplete(
+										DownloadManager manager)
+									{
+										refreshCoreToolBarItems();
+									}
+		
+									public void
+									completionChanged(
+										DownloadManager manager, 
+										boolean bCompleted )
+									{
+										refreshCoreToolBarItems();
+									}
+		
+									public void
+									positionChanged(
+										DownloadManager download, 
+										int oldPosition, 
+										int newPosition)
+									{
+										refreshCoreToolBarItems();
+									}
+								  
+									public void
+									filePriorityChanged( 
+										DownloadManager download, DiskManagerFileInfo file )
+									{
+										refreshCoreToolBarItems();
+									}
+								};
+																
+							dm.addListener( l, false );
+							
+							dm_listener_map.put( dm, l );
+							
+							// System.out.println( "Added " + dm.getDisplayName() + " - size=" + dm_listener_map.size());
+						}
+					}
+				}
+				
+				for ( Map.Entry<DownloadManager,DownloadManagerListener> e: copy.entrySet()){
+				
+					DownloadManager dm = e.getKey();
+										
+					dm.removeListener( e.getValue());
+					
+					dm_listener_map.remove( dm );
+					
+					// System.out.println( "Removed " + dm.getDisplayName() + " - size=" + dm_listener_map.size());
+				}
+			}
+			
 			if (!mapStates.containsKey("download")) {
 				for (ISelectedContent content : currentContent) {
 					if (content.getDownloadManager() == null
