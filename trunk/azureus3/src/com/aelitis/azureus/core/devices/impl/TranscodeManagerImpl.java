@@ -511,6 +511,11 @@ TranscodeManagerImpl
 	{
 		Download download = PluginCoreUtils.wrap( dm );
 		
+		if ( download.getFlag( Download.FLAG_LOW_NOISE )){
+			
+			return;
+		}
+		
 		String str = download.getAttribute( category_ta );
 		
 		String cat_name = cat.getName();
