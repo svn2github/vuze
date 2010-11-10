@@ -426,6 +426,24 @@ SubscriptionManagerUI
 				}
 			});
 		
+			// download subs enable
+		
+		final BooleanParameter download_subs_enable = 
+			configModel.addBooleanParameter2( 
+				"subscriptions.dl_subs.enable", "subscriptions.dl_subs.enable",
+				subs_man.isSubsDownloadEnabled());
+		
+		download_subs_enable.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					subs_man.setSubsDownloadEnabled( download_subs_enable.getValue());
+				}
+			});
+		
 			// auto
 		
 		final BooleanParameter auto_start = configModel.addBooleanParameter2(

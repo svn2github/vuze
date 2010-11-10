@@ -150,6 +150,12 @@ SubscriptionManager
 	setSearchEnabled(
 		boolean		enabled );
 	
+	public boolean
+	isSubsDownloadEnabled();
+	
+	public void
+	setSubsDownloadEnabled(
+		boolean		enabled );
 	
 	public String
 	getRSSLink();

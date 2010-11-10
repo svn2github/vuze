@@ -33,7 +33,6 @@ import java.util.zip.GZIPOutputStream;
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -98,9 +97,11 @@ SubscriptionManagerImpl
 	private static final String CONFIG_AUTO_START_MIN_MB 	= "subscriptions.auto.start.min.mb";
 	private static final String CONFIG_AUTO_START_MAX_MB 	= "subscriptions.auto.start.max.mb";
 	
-	private static final String	RSS_ENABLE_CONFIG_KEY		= "subscriptions.config.rss_enable";
+	private static final String	CONFIG_RSS_ENABLE			= "subscriptions.config.rss_enable";
 
 	private static final String	CONFIG_ENABLE_SEARCH		= "subscriptions.config.search_enable";
+
+	private static final String	CONFIG_DL_SUBS_ENABLE		= "subscriptions.config.dl_subs_enable";
 
 	private static final int DELETE_UNUSED_AFTER_MILLIS = 2*7*24*60*60*1000;
 	
@@ -1153,14 +1154,14 @@ SubscriptionManagerImpl
 	public boolean
 	isRSSPublishEnabled()
 	{
-		return( COConfigurationManager.getBooleanParameter( RSS_ENABLE_CONFIG_KEY, false ));
+		return( COConfigurationManager.getBooleanParameter( CONFIG_RSS_ENABLE, false ));
 	}
 	
 	public void
 	setRSSPublishEnabled(
 		boolean		enabled )
 	{
-		COConfigurationManager.setParameter( RSS_ENABLE_CONFIG_KEY, enabled );
+		COConfigurationManager.setParameter( CONFIG_RSS_ENABLE, enabled );
 	}
 	
 	public boolean
@@ -1174,6 +1175,19 @@ SubscriptionManagerImpl
 		boolean		enabled )
 	{
 		COConfigurationManager.setParameter( CONFIG_ENABLE_SEARCH, enabled );
+	}
+	
+	public boolean
+	isSubsDownloadEnabled()
+	{
+		return( COConfigurationManager.getBooleanParameter( CONFIG_DL_SUBS_ENABLE, true ));
+	}
+	
+	public void
+	setSubsDownloadEnabled(
+		boolean		enabled )
+	{
+		COConfigurationManager.setParameter( CONFIG_DL_SUBS_ENABLE, enabled );
 	}
 	
 	public String
@@ -4843,7 +4857,14 @@ SubscriptionManagerImpl
 	downloadTorrent(
 		byte[]		hash,
 		int			update_size )
-	{		
+	{
+		if ( !isSubsDownloadEnabled()){
+			
+			log( "    Can't download subscription " + Base32.encode( hash ) + " as feature disabled" );
+			
+			return( null );
+		}
+		
 		final MagnetPlugin	magnet_plugin = getMagnetPlugin();
 	
 		if ( magnet_plugin == null ){
