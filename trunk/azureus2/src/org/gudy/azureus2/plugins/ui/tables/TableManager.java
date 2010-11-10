@@ -30,9 +30,6 @@ public interface TableManager
   /** Visible for Incompleted Torrents table */
   public static final String TABLE_MYTORRENTS_INCOMPLETE = "MyTorrents";
   
-  /** 
-   * @deprecated 
-   */
   public static final String TABLE_MYTORRENTS_UNOPENED = "Unopened";
 
   /** Visible for Completed Torrents table (big version)*/
@@ -40,9 +37,6 @@ public interface TableManager
   /** Visible for Incompleted Torrents table (big version)*/
   public static final String TABLE_MYTORRENTS_INCOMPLETE_BIG = "MyTorrents.big";
   
-  /** 
-   * @deprecated 
-   */
   public static final String TABLE_MYTORRENTS_UNOPENED_BIG = "Unopened.big";
 
   public static final String TABLE_MYTORRENTS_ALL_BIG   = "MyLibrary.big";

@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
-import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -43,16 +42,12 @@ import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -60,7 +55,6 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarVitalityImageSWT;
 
 /**
  * @author TuxPaper
@@ -73,10 +67,6 @@ public class SB_Transfers
 	private static final String ID_VITALITY_ACTIVE = "image.sidebar.vitality.dl";
 
 	private static final String ID_VITALITY_ALERT = "image.sidebar.vitality.alert";
-
-	private static final long DL_VITALITY_REFRESH_RATE = 15000;
-
-	private static final boolean DL_VITALITY_CONSTANT = true;
 
 	public static class stats
 	{
@@ -148,6 +138,13 @@ public class SB_Transfers
 					}
 				});
 
+		mdi.registerEntry(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						return createUnopenedEntry(mdi);
+					}
+				});
+
 		if (first) {
 			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 				public void azureusCoreRunning(AzureusCore core) {
@@ -162,16 +159,37 @@ public class SB_Transfers
 			}
 		});
 
-		addMenuUnwatched();
+		addMenuUnwatched(SideBar.SIDEBAR_SECTION_LIBRARY);
 	}
 
-	private static void addMenuUnwatched() {
+	protected static MdiEntry createUnopenedEntry(MultipleDocumentInterface mdi) {
+		MdiEntry infoLibraryUn = mdi.createEntryFromSkinRef(
+				SideBar.SIDEBAR_HEADER_TRANSFERS,
+				SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED, "library",
+				MessageText.getString("sidebar.LibraryUnopened"), null, null, false,
+				SideBar.SIDEBAR_SECTION_LIBRARY);
+		infoLibraryUn.setImageLeftID("image.sidebar.unopened");
+
+		addMenuUnwatched(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
+		infoLibraryUn.setViewTitleInfo(new ViewTitleInfo() {
+			public Object getTitleInfoProperty(int propertyID) {
+				if (propertyID == TITLE_INDICATOR_TEXT
+						&& statsNoLowNoise.numUnOpened > 0) {
+					return "" + statsNoLowNoise.numUnOpened;
+				}
+				return null;
+			}
+		});
+		return infoLibraryUn;
+	}
+
+	private static void addMenuUnwatched(String id) {
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		UIManager uim = pi.getUIManager();
 		MenuManager menuManager = uim.getMenuManager();
 
 		MenuItem menuItem = menuManager.addMenuItem("sidebar."
-				+ SideBar.SIDEBAR_SECTION_LIBRARY, "v3.activity.button.watchall");
+				+ id, "v3.activity.button.watchall");
 		menuItem.addListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				CoreWaiterSWT.waitForCore(TriggerInThread.ANY_THREAD,
@@ -215,10 +233,10 @@ public class SB_Transfers
 			}
 		};
 
-		MdiEntry entry = mdi.createEntryFromSkinRef(
-				SideBar.SIDEBAR_HEADER_TRANSFERS, SideBar.SIDEBAR_SECTION_LIBRARY_DL,
-				"library", MessageText.getString("sidebar.LibraryDL"),
-				titleInfoSeeding, null, false, -1);
+		MdiEntry entry = mdi.createEntryFromSkinRef(SideBar.SIDEBAR_HEADER_TRANSFERS,
+				SideBar.SIDEBAR_SECTION_LIBRARY_DL, "library",
+				MessageText.getString("sidebar.LibraryDL"), titleInfoSeeding, null, false,
+				null);
 		entry.setImageLeftID("image.sidebar.downloading");
 
 		MdiEntryVitalityImage vitalityImage = entry.addVitalityImage(ID_VITALITY_ALERT);
@@ -246,10 +264,10 @@ public class SB_Transfers
 				return null;
 			}
 		};
-		MdiEntry entry = mdi.createEntryFromSkinRef(
-				SideBar.SIDEBAR_HEADER_TRANSFERS, SideBar.SIDEBAR_SECTION_LIBRARY_DL,
-				"library", MessageText.getString("sidebar.LibraryDL"),
-				titleInfoDownloading, null, false, -1);
+		MdiEntry entry = mdi.createEntryFromSkinRef(SideBar.SIDEBAR_HEADER_TRANSFERS,
+				SideBar.SIDEBAR_SECTION_LIBRARY_DL, "library",
+				MessageText.getString("sidebar.LibraryDL"), titleInfoDownloading, null, false,
+				null);
 		entry.setImageLeftID("image.sidebar.downloading");
 
 		MdiEntryVitalityImage vitalityImage = entry.addVitalityImage(ID_VITALITY_ACTIVE);
@@ -257,23 +275,6 @@ public class SB_Transfers
 
 		vitalityImage = entry.addVitalityImage(ID_VITALITY_ALERT);
 		vitalityImage.setVisible(false);
-
-		if (!DL_VITALITY_CONSTANT) {
-			SimpleTimer.addPeriodicEvent("DLVitalityRefresher",
-					DL_VITALITY_REFRESH_RATE, new TimerEventPerformer() {
-						public void perform(TimerEvent event) {
-							MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-							MdiEntry entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
-							MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
-							for (int i = 0; i < vitalityImages.length; i++) {
-								MdiEntryVitalityImage vitalityImage = vitalityImages[i];
-								if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
-									refreshDLSpinner((SideBarVitalityImageSWT) vitalityImage);
-								}
-							}
-						}
-					});
-		}
 
 		return entry;
 	}
@@ -432,7 +433,7 @@ public class SB_Transfers
 					String comp_error = null;
 					String incomp_error = null;
 
-					List downloads = gm.getDownloadManagers();
+					List<?> downloads = gm.getDownloadManagers();
 
 					for (int i = 0; i < downloads.size(); i++) {
 
@@ -541,8 +542,8 @@ public class SB_Transfers
 				}
 			}
 		}, false);
-		List downloadManagers = gm.getDownloadManagers();
-		for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
+		List<?> downloadManagers = gm.getDownloadManagers();
+		for (Iterator<?> iter = downloadManagers.iterator(); iter.hasNext();) {
 			DownloadManager dm = (DownloadManager) iter.next();
 			boolean lowNoise = PlatformTorrentUtils.isAdvancedViewOnly(dm);
 			dm.addListener(dmListener, false);
@@ -611,7 +612,7 @@ public class SB_Transfers
 			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_INDICATOR_TEXT) {
 					if (statsNoLowNoise.numIncomplete > 0) {
-						List dms = category.getDownloadManagers(null);
+						List<?> dms = category.getDownloadManagers(null);
 						if (dms != null) {
 							return "" + dms.size();
 						}
@@ -768,9 +769,9 @@ public class SB_Transfers
 			return;
 		}
 		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-		List dms = gm.getDownloadManagers();
+		List<?> dms = gm.getDownloadManagers();
 		statsNoLowNoise.numUnOpened = 0;
-		for (Iterator iter = dms.iterator(); iter.hasNext();) {
+		for (Iterator<?> iter = dms.iterator(); iter.hasNext();) {
 			DownloadManager dm = (DownloadManager) iter.next();
 			if (!PlatformTorrentUtils.getHasBeenOpened(dm) && dm.getAssumedComplete()) {
 				statsNoLowNoise.numUnOpened++;
@@ -848,8 +849,6 @@ public class SB_Transfers
 				if (imageID.equals(ID_VITALITY_ACTIVE)) {
 					vitalityImage.setVisible(statsNoLowNoise.numDownloading > 0);
 
-					refreshDLSpinner((SideBarVitalityImageSWT) vitalityImage);
-
 				} else if (imageID.equals(ID_VITALITY_ALERT)) {
 					vitalityImage.setVisible(statsNoLowNoise.numErrorInComplete > 0);
 					if (statsNoLowNoise.numErrorInComplete > 0) {
@@ -878,53 +877,9 @@ public class SB_Transfers
 			}
 		}
 
-	}
-
-	public static void refreshDLSpinner(SideBarVitalityImageSWT vitalityImage) {
-		if (DL_VITALITY_CONSTANT) {
-			return;
-		}
-
-		if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
-			if (!vitalityImage.isVisible()) {
-				return;
-			}
-			SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();
-			if (sm != null) {
-				GlobalManagerStats stats = AzureusCoreFactory.getSingleton().getGlobalManager().getStats();
-
-				int delay = 100;
-				int limit = NetworkManager.getMaxDownloadRateBPS();
-				if (limit <= 0) {
-					limit = sm.getEstimatedDownloadCapacityBytesPerSec().getBytesPerSec();
-				}
-
-				// smoothing
-				int current = stats.getDataReceiveRate() / 10;
-				limit /= 10;
-
-				if (limit > 0) {
-					if (current > limit) {
-						delay = 25;
-					} else {
-						// 40 incrememnts of 5.. max 200
-						current += 39;
-						delay = (40 - (current * 40 / limit)) * 5;
-						if (delay < 35) {
-							delay = 35;
-						} else if (delay > 200) {
-							delay = 200;
-						}
-					}
-					if (vitalityImage instanceof SideBarVitalityImageSWT) {
-						SideBarVitalityImageSWT viSWT = (SideBarVitalityImageSWT) vitalityImage;
-						if (viSWT.getDelayTime() != delay) {
-							viSWT.setDelayTime(delay);
-							//System.out.println("new delay: " + delay + "; via " + current + " / " + limit);
-						}
-					}
-				}
-			}
+		entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
+		if (entry != null) {
+			ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
 		}
 	}
 
@@ -938,6 +893,8 @@ public class SB_Transfers
 					: TableManager.TABLE_MYTORRENTS_INCOMPLETE;
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
 			return TableManager.TABLE_MYTORRENTS_ALL_BIG;
+		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
+			return TableManager.TABLE_MYTORRENTS_UNOPENED_BIG;
 		}
 		return null;
 	}

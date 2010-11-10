@@ -1181,8 +1181,8 @@ DeviceManagerUI
 		if (mdiEntryOverview == null) {
 			mdiEntryOverview = mdi.createEntryFromSkinRef(
 					SideBar.SIDEBAR_HEADER_DEVICES, SideBar.SIDEBAR_SECTION_DEVICES,
-					"devicesview", MessageText.getString("devices.view.title"), null,
-					null, false, -1);
+					"devicesview", MessageText.getString("mdi.entry.about.devices"), null,
+					null, false, "");
 			mdiEntryOverview.setImageLeftID("image.sidebar.aboutdevices");
 		}
 

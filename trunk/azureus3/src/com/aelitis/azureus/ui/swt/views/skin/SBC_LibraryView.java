@@ -69,6 +69,8 @@ public class SBC_LibraryView
 
 	public static final int TORRENTS_INCOMPLETE = 2;
 
+	public static final int TORRENTS_UNOPENED = 3;
+
 	private final static String[] modeViewIDs = {
 		SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG,
 		SkinConstants.VIEWID_SIDEBAR_LIBRARY_SMALL
@@ -145,6 +147,8 @@ public class SBC_LibraryView
 			entryID = SideBar.SIDEBAR_SECTION_LIBRARY_CD;
 		} else if (torrentFilterMode == TORRENTS_INCOMPLETE) {
 			entryID = SideBar.SIDEBAR_SECTION_LIBRARY_DL;
+		} else if (torrentFilterMode == TORRENTS_UNOPENED) {
+			entryID = SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED;
 		}
 
 		if (entryID != null) {
@@ -212,6 +216,16 @@ public class SBC_LibraryView
 								String.valueOf(stats.numSeeding + stats.numDownloading),
 							});
 							soLibraryInfo.setText(s);
+						} else if (torrentFilterMode == TORRENTS_UNOPENED) {
+							String id = "library.unopened.header";
+							if (stats.numUnOpened != 1) {
+								id += ".p";
+							}
+							String s = MessageText.getString(id,
+									new String[] {
+								String.valueOf(stats.numUnOpened),
+							});
+							soLibraryInfo.setText(s);
 						}
 					}
 				});
@@ -269,6 +283,8 @@ public class SBC_LibraryView
 			torrentFilterMode = TORRENTS_INCOMPLETE;
 		} else if (torrentFilter.equalsIgnoreCase(SideBar.SIDEBAR_SECTION_LIBRARY_CD)) {
 			torrentFilterMode = TORRENTS_COMPLETE;
+		} else if (torrentFilter.equalsIgnoreCase(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED)) {
+			torrentFilterMode = TORRENTS_UNOPENED;
 		}
 
 		soListArea = getSkinObject(ID + "-area");

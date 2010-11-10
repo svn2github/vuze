@@ -19,7 +19,6 @@
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -32,7 +31,6 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -51,8 +49,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
-import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
@@ -65,7 +61,6 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -84,7 +79,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
-import com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView;
 import com.aelitis.azureus.ui.swt.views.skin.SB_Transfers;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -370,7 +364,7 @@ public class SideBar
 		tree.setForeground(fg);
 		FontData[] fontData = tree.getFont().getFontData();
 
-		int fontHeight = 12 + (tree.getItemHeight() > 18
+		int fontHeight = 11 + (tree.getItemHeight() > 18
 				? tree.getItemHeight() - 18 : 0);
 
 		fontData[0].setStyle(SWT.BOLD);
@@ -1189,6 +1183,7 @@ public class SideBar
 		SB_Transfers.setup(this);
 		
 		loadEntryByID(SIDEBAR_SECTION_LIBRARY, false);
+		loadEntryByID(SIDEBAR_SECTION_LIBRARY_UNOPENED, false);
 		loadEntryByID(SIDEBAR_SECTION_SUBSCRIPTIONS, false);
 		loadEntryByID(SIDEBAR_SECTION_DEVICES, false);
 
