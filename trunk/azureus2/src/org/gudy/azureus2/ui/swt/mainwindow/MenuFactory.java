@@ -941,7 +941,7 @@ public class MenuFactory
 	public static MenuItem addWhatsNewMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_WHATS_NEW, new Listener() {
 			public void handleEvent(Event e) {
-				Utils.launch("http://azureus.sourceforge.net/changelog.php?version="
+				Utils.launch("http://plugins.vuze.com/changelog.php?version="
 						+ Constants.AZUREUS_VERSION);
 			}
 		});

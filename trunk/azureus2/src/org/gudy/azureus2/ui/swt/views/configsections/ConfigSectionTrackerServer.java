@@ -233,7 +233,7 @@ ConfigSectionTrackerServer
     gridData.horizontalSpan = 2;
     ssl_faq_label.setLayoutData(gridData);
     Messages.setLanguageText(ssl_faq_label, CFG_PREFIX + "tracker.sslport.info");
-    final String linkFAQ = "http://azureus.sourceforge.net/faq.php#19";
+    final String linkFAQ = "http://plugins.vuze.com/faq.php#19";
     ssl_faq_label.setCursor(ssl_faq_label.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
     ssl_faq_label.setForeground(Colors.blue);
     ssl_faq_label.addMouseListener(new MouseAdapter() {

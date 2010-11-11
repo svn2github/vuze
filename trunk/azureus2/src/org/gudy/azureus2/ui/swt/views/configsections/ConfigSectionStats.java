@@ -166,7 +166,7 @@ public class ConfigSectionStats implements UISWTConfigSection {
     controls[6] = xslParameter.getControl();
     Label lxslDetails = new Label(gStats, SWT.NULL);
     Messages.setLanguageText(lxslDetails, "ConfigView.section.stats.xslfiledetails"); //$NON-NLS-1$
-    final String linkFAQ = "http://azureus.sourceforge.net/faq.php#20";
+    final String linkFAQ = "http://plugins.vuze.com/faq.php#20";
     lxslDetails.setCursor(lxslDetails.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
     lxslDetails.setForeground(Colors.blue);
     lxslDetails.addMouseListener(new MouseAdapter() {

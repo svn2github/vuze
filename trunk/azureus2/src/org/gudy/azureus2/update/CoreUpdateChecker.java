@@ -799,7 +799,7 @@ CoreUpdateChecker
 							
 				log.log( "Downloading backup mirrors" );
 				
-				URL mirrors_url = new URL("http://azureus.sourceforge.net/mirrors.php");
+				URL mirrors_url = new URL("http://plugins.vuze.com/mirrors.php");
 				
 				ResourceDownloader	rd = rdf.create( mirrors_url );
 				
