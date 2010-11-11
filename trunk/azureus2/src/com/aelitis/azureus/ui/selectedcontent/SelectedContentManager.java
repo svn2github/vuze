@@ -86,7 +86,7 @@ public class SelectedContentManager
 		}
 
 		synchronized( SelectedContentManager.class ){
-			boolean	same = SelectedContentManager.tv == tv;
+			boolean	same = SelectedContentManager.tv == tv && tv != null;
 			
 			if ( same ){
 				
