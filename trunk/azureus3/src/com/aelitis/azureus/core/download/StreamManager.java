@@ -562,8 +562,6 @@ StreamManager
 				
 				new AEThread2( "streamMon" )
 				{
-					private boolean playback_started 	= false;
-					private boolean	playback_paused		= false;
 					
 					public void
 					run()
@@ -572,6 +570,12 @@ StreamManager
 						final int PLAY_STATS_PERIOD	= 5000;
 						final int PLAY_STATS_TICKS	= PLAY_STATS_PERIOD / TIMER_PERIOD;
 						
+						final int DL_STARTUP_PERIOD	= 5000;
+						final int DL_STARTUP_TICKS	= DL_STARTUP_PERIOD / TIMER_PERIOD;
+			
+						boolean playback_started 	= false;
+						boolean	playback_paused		= false;
+
 						boolean	error_reported = false;
 						
 						try{
@@ -597,7 +601,10 @@ StreamManager
 											dm_state == DownloadManager.STATE_STOPPED ||
 											dm_state == DownloadManager.STATE_QUEUED ){
 										
-										throw( new Exception( "Streaming abandoned, download isn't running" ));
+										if ( tick_count >= DL_STARTUP_TICKS ){
+										
+											throw( new Exception( "Streaming abandoned, download isn't running" ));
+										}
 									}
 	
 									if ( !active_edm.getProgressiveMode()){
