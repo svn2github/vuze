@@ -18,9 +18,6 @@
 
 package com.aelitis.azureus.ui.selectedcontent;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -55,7 +52,11 @@ public class SelectedContentManager
 	}
 
 	public static void clearCurrentlySelectedContent() {
-		changeCurrentlySelectedContent(null, null, null);
+		changeCurrentlySelectedContentNoTrigger(null, null, null);
+		// Always trigger selected content listeners since toolbar relies it
+		// them to reset the toolbaritems if something that didn't use
+		// SelectedContentManager modified the toolbaritems states
+		triggerSelectedContentListeners();
 	}
 
 	public static void changeCurrentlySelectedContent(String viewID,
@@ -64,6 +65,12 @@ public class SelectedContentManager
 	}
 
 	public static void changeCurrentlySelectedContent(String viewID,
+			ISelectedContent[] currentlySelectedContent, TableView tv) {
+		changeCurrentlySelectedContentNoTrigger(viewID, currentlySelectedContent, tv);
+		triggerSelectedContentListeners();
+	}
+
+	private static void changeCurrentlySelectedContentNoTrigger(String viewID,
 			ISelectedContent[] currentlySelectedContent, TableView tv) {
 		if (currentlySelectedContent == null) {
 			currentlySelectedContent = new ISelectedContent[0];
@@ -117,7 +124,9 @@ public class SelectedContentManager
 			SelectedContentManager.currentlySelectedContent = currentlySelectedContent;
 			SelectedContentManager.viewID = viewID;
 		}
-		
+	}
+	
+	public static void triggerSelectedContentListeners() {
 		for( SelectedContentListener l: listeners ){
 	
 			try{
