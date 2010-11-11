@@ -404,6 +404,15 @@ public class ToolBarView
 			public void triggerToolBarItem() {
 				triggerBasicToolBarItem(getId());
 			}
+			public void setEnabled(boolean enabled) {
+				if (!enabled) {
+  				SWTSkinObject so = getSkinButton().getSkinObject();
+  				if (so != null && so.getSuffix().contains("-down")) {
+  					so.switchSuffix("");
+  				}
+				}
+				super.setEnabled(enabled);
+			}
 		};
 		addToolBarItem(item, "toolbar.area.vitem.left", so2nd);
 
@@ -420,6 +429,16 @@ public class ToolBarView
 				"v3.iconBar.view.small") {
 			public void triggerToolBarItem() {
 				triggerBasicToolBarItem(getId());
+			}
+
+			public void setEnabled(boolean enabled) {
+				if (!enabled) {
+  				SWTSkinObject so = getSkinButton().getSkinObject();
+  				if (so != null && so.getSuffix().contains("-down")) {
+  					so.switchSuffix("");
+  				}
+				}
+				super.setEnabled(enabled);
 			}
 		};
 		addToolBarItem(item, "toolbar.area.vitem.right", so2nd);
