@@ -701,6 +701,16 @@ public class TorrentListViewsUtils
 						
 			}
 			
+			synchronized( TorrentListViewsUtils.class ){
+				
+				if ( current_stream != null && !current_stream.isCancelled()){
+										
+					current_stream.cancel();
+					
+					current_stream = null;
+				}
+			}
+			
 			Class epwClass = null;
 			
 			try {
