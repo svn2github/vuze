@@ -424,7 +424,7 @@ public class SBC_LibraryTableView
 		}
 
 		if (view instanceof MyTorrentsView) {
-			((MyTorrentsView)view).updateSelectedContent();
+			((MyTorrentsView)view).updateSelectedContent( true );
 		}
 		
 		Utils.execSWTThreadLater(0, new AERunnable() {
