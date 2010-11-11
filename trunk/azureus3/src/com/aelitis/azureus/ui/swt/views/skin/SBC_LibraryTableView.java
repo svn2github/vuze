@@ -40,9 +40,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.IView;
-import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
-import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
+import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -404,6 +402,10 @@ public class SBC_LibraryTableView
 				entry.addToolbarEnabler(this);
 			}
 		}
+		
+		if (view instanceof IViewExtension) {
+			((IViewExtension) view).viewActivated();
+		}
 
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED
 				&& AzureusCoreFactory.isCoreRunning()) {
@@ -445,6 +447,10 @@ public class SBC_LibraryTableView
 			if (entry != null) {
 				entry.removeToolbarEnabler( this );
 			}
+		}
+
+		if (view instanceof IViewExtension) {
+			((IViewExtension) view).viewActivated();
 		}
 
 		return super.skinObjectHidden(skinObject, params);
