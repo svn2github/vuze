@@ -480,6 +480,7 @@ public class SideBarEntrySWT
 			}
 
 			if (control != null && !control.isDisposed()) {
+				control.setData("BaseMDIEntry", this);
 				control.addDisposeListener(new DisposeListener() {
 					public void widgetDisposed(DisposeEvent e) {
 						close(true);

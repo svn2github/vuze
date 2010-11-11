@@ -12,6 +12,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
@@ -427,4 +428,19 @@ public class TabbedMDI
 		}
 	}
 
+	// @see com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT#getEntryFromSkinObject(org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject)
+	public MdiEntrySWT getEntryFromSkinObject(PluginUISWTSkinObject pluginSkinObject) {
+		if (pluginSkinObject instanceof SWTSkinObject) {
+			Control control = ((SWTSkinObject) pluginSkinObject).getControl();
+			while (control != null && !control.isDisposed()) {
+				Object entry = control.getData("BaseMDIEntry");
+				if (entry instanceof BaseMdiEntry) {
+					BaseMdiEntry mdiEntry = (BaseMdiEntry) entry;
+					return mdiEntry;
+				}
+				control = control.getParent();
+			}
+		}
+		return null;
+	}
 }

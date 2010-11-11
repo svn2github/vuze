@@ -41,6 +41,8 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.Initializer;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
@@ -321,9 +323,13 @@ public class SBC_LibraryView
 			});
 		}
 		
-		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		MdiEntry entry = mdi.getCurrentEntry();
-		entry.addToolbarEnabler(this);
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi != null) {
+			MdiEntry entry = mdi.getEntryFromSkinObject(skinObject);
+			if (entry != null) {
+				entry.addToolbarEnabler(this);
+			}
+		}
 
 		SkinViewManager.addListener(ToolBarView.class,
 				new SkinViewManager.SkinViewManagerListener() {

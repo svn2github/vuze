@@ -549,6 +549,7 @@ public abstract class BaseMdiEntry
 		if (iview != null) {
 			Composite c = iview.getComposite();
 			if (c != null && !c.isDisposed()) {
+				c.setData("BaseMDIEntry", this);
 				c.setVisible(true);
 				c.getParent().layout();
 			}

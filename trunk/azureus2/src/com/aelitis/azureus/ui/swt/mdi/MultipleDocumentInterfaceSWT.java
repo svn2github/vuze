@@ -3,6 +3,7 @@
  */
 package com.aelitis.azureus.ui.swt.mdi;
 
+import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.views.IView;
 
@@ -30,4 +31,6 @@ public interface MultipleDocumentInterfaceSWT
 	public MdiEntrySWT getEntrySWT(String id);
 
 	public MdiEntrySWT getCurrentEntrySWT();
+
+	public MdiEntrySWT getEntryFromSkinObject(PluginUISWTSkinObject skinObject);
 }

@@ -65,7 +65,9 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.DLReferals;
@@ -395,10 +397,12 @@ public class SBC_LibraryTableView
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
 
-		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		if ( mdi != null ){
-			MdiEntry entry = mdi.getCurrentEntry();
-			entry.addToolbarEnabler( this );
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi != null) {
+			MdiEntry entry = mdi.getEntryFromSkinObject(skinObject);
+			if (entry != null) {
+				entry.addToolbarEnabler(this);
+			}
 		}
 
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED
@@ -435,9 +439,9 @@ public class SBC_LibraryTableView
 	
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
-		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		if ( mdi != null ){
-			MdiEntry entry = mdi.getCurrentEntry();
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi != null) {
+			MdiEntry entry = mdi.getEntryFromSkinObject(skinObject);
 			if (entry != null) {
 				entry.removeToolbarEnabler( this );
 			}

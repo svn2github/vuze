@@ -42,6 +42,9 @@ import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 
@@ -53,7 +56,6 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 public class DeviceInfoArea
 	extends SkinView
 {
-	private MdiEntry sidebarEntry;
 	private DeviceMediaRenderer device;
 	private Composite main;
 	private Composite parent;
@@ -61,10 +63,12 @@ public class DeviceInfoArea
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
-		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi != null) {
-			sidebarEntry = mdi.getCurrentEntry();
-			device = (DeviceMediaRenderer) sidebarEntry.getDatasource();
+			MdiEntrySWT entry = mdi.getEntryFromSkinObject(skinObject);
+			if (entry != null) {
+				device = (DeviceMediaRenderer) entry.getDatasource();
+			}
 		}
 		
 		parent = (Composite) skinObject.getControl();
