@@ -1139,6 +1139,7 @@ public class SideBar
 		};
 		VuzeActivitiesManager.addListener(new VuzeActivitiesListener() {
 			public void vuzeNewsEntryChanged(VuzeActivitiesEntry entry) {
+				ViewTitleInfoManager.refreshTitleInfo(titleInfoActivityView);
 			}
 
 			public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {
