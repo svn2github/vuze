@@ -19,9 +19,7 @@
  */
 package com.aelitis.azureus.ui.swt.browser;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 import java.util.*;
 import java.util.List;
 
@@ -596,7 +594,7 @@ public class BrowserContext
 			}catch( Throwable e ){
 			}
 											
-			Map headers = UrlUtils.getBrowserHeaders( referer_str );
+			final Map headers = UrlUtils.getBrowserHeaders( referer_str );
 						
 			
 			String cookies = (String) ((Browser)event.widget).getData("current-cookies");
@@ -606,7 +604,7 @@ public class BrowserContext
 				headers.put("Cookie", cookies);
 			}
 			
-			String	url = event.location;
+			final String	url = event.location;
 			
 			if ( torrentURLHandler != null ){
 				
@@ -619,8 +617,17 @@ public class BrowserContext
 				}
 			}
 			
-			PluginInitializer.getDefaultInterface().getDownloadManager().addDownload(
-					new URL(url), headers );
+			Utils.getOffOfSWTThread(new AERunnable() {
+				
+				public void runSupport() {
+					try {
+						PluginInitializer.getDefaultInterface().getDownloadManager().addDownload(
+								new URL(url), headers );
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+				}
+			});
 			
 			return true;
 		}catch( Throwable e ){
@@ -651,6 +658,7 @@ public class BrowserContext
 				}
 			} catch (Throwable e) {
 			}
+			
 
 			UrlUtils.setBrowserHeaders(conn, referer_str);
 
@@ -658,6 +666,14 @@ public class BrowserContext
 
 			String contentType = conn.getContentType();
 			String contentDisposition = conn.getHeaderField("Content-Disposition");
+
+
+			// There's a bug in the ":3" server where a HEAD followed by a GET on the
+			// same content results in a corrupt GET reply
+			String server = conn.getHeaderField("Server");
+			if ("application/x-bittorrent".equals(contentType) && ":3".equals(server)) {
+				Thread.sleep(6000);
+			}
 
 			return new String[] {
 				contentType,
