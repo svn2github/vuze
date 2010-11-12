@@ -434,4 +434,10 @@ ResourceDownloaderBaseImpl
 	{
 		listeners.remove(l);
 	}
+	
+	public long
+	getLastModified()
+	{
+		return 0;
+	}
 }

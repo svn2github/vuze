@@ -120,4 +120,7 @@ ResourceDownloader
 	public void
 	removeListener(
 		ResourceDownloaderListener	l );
+
+	public long 
+	getLastModified();
 }
