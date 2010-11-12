@@ -34,7 +34,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
-
 /**
  * @author TuxPaper
  * @created Sep 15, 2008
@@ -47,7 +46,7 @@ public class SideBarVitalityImageSWT
 
 	private final MdiEntry mdiEntry;
 
-	private List listeners = Collections.EMPTY_LIST;
+	private List<MdiEntryVitalityImageListener> listeners = Collections.EMPTY_LIST;
 
 	private String tooltip;
 
@@ -64,80 +63,67 @@ public class SideBarVitalityImageSWT
 	private TimerEventPeriodic timerEvent;
 
 	private Image[] images;
-	
+
 	private int delayTime = -1;
 
 	private String fullImageID;
-	
+
 	private int alignment = SWT.RIGHT;
 
-	/**
-	 * @param imageID
-	 */
-	public 
-	SideBarVitalityImageSWT(
-		final MdiEntry mdiEntry, 
-		String 			imageID )
-	{
-		performer = 
-			new TimerEventPerformer() 
-			{		
-				private boolean	exec_pending 	= false;
-				private Object	lock			= this;
-				
-				public void 
-				perform(
-					TimerEvent event ) 
-				{
-					synchronized( lock ){
-						
-						if ( exec_pending ){
-					
+	public SideBarVitalityImageSWT(final MdiEntry mdiEntry, String imageID) {
+		performer = new TimerEventPerformer() {
+			private boolean exec_pending = false;
+
+			private Object lock = this;
+
+			public void perform(TimerEvent event) {
+				synchronized (lock) {
+
+					if (exec_pending) {
+
+						return;
+					}
+
+					exec_pending = true;
+				}
+
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						synchronized (lock) {
+
+							exec_pending = false;
+						}
+
+						if (images == null || images.length == 0 || !visible
+								|| hitArea == null) {
 							return;
 						}
-						
-						exec_pending = true;
-					}
-					
-					Utils.execSWTThread(
-						new AERunnable() 
-						{
-							public void 
-							runSupport() 
-							{
-								synchronized( lock ){
-									
-									exec_pending = false;
-								}
-								
-								if (images == null || images.length == 0 || !visible
-										|| hitArea == null) {
-									return;
-								}
-								currentAnimationIndex++;
-								if (currentAnimationIndex >= images.length) {
-									currentAnimationIndex = 0;
-								}
-								if (mdiEntry instanceof SideBarEntrySWT) {
-									SideBarEntrySWT sbEntry = (SideBarEntrySWT) mdiEntry;
-									
-									TreeItem treeItem = sbEntry.getTreeItem();
-									if (treeItem == null || treeItem.isDisposed() || !sbEntry.swt_isVisible()) {
-										return;
-									}
-									Tree parent = treeItem.getParent();
-									parent.redraw(hitArea.x, hitArea.y, hitArea.width, hitArea.height, true);
-									parent.update();
-								}
+						currentAnimationIndex++;
+						if (currentAnimationIndex >= images.length) {
+							currentAnimationIndex = 0;
+						}
+						if (mdiEntry instanceof SideBarEntrySWT) {
+							SideBarEntrySWT sbEntry = (SideBarEntrySWT) mdiEntry;
+
+							TreeItem treeItem = sbEntry.getTreeItem();
+							if (treeItem == null || treeItem.isDisposed()
+									|| !sbEntry.swt_isVisible()) {
+								return;
 							}
-						});
-				}
-			};
+							Tree parent = treeItem.getParent();
+							parent.redraw(hitArea.x, hitArea.y + treeItem.getBounds().y,
+									hitArea.width, hitArea.height, true);
+							parent.update();
+						}
+					}
+				});
+			}
+		};
 
 		this.mdiEntry = mdiEntry;
-		
+
 		mdiEntry.addListener(new MdiCloseListener() {
-		
+
 			public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
 				ImageLoader imageLoader = ImageLoader.getInstance();
 				if (fullImageID != null) {
@@ -145,7 +131,7 @@ public class SideBarVitalityImageSWT
 				}
 			}
 		});
-		
+
 		setImageID(imageID);
 	}
 
@@ -164,11 +150,11 @@ public class SideBarVitalityImageSWT
 	// @see org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage#addListener(org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener)
 	public void addListener(MdiEntryVitalityImageListener l) {
 		if (listeners == Collections.EMPTY_LIST) {
-			listeners = new ArrayList(1);
+			listeners = new ArrayList<MdiEntryVitalityImageListener>(1);
 		}
 		listeners.add(l);
 	}
-	
+
 	public void triggerClickedListeners(int x, int y) {
 		Object[] list = listeners.toArray();
 		for (int i = 0; i < list.length; i++) {
@@ -191,7 +177,7 @@ public class SideBarVitalityImageSWT
 	}
 
 	/**
-	 * @param bounds
+	 * @param bounds relative to entry
 	 *
 	 * @since 3.1.1.1
 	 */
@@ -243,7 +229,7 @@ public class SideBarVitalityImageSWT
 			ImageLoader imageLoader = ImageLoader.getInstance();
 			int delay = delayTime == -1 ? imageLoader.getAnimationDelay(imageID)
 					: delayTime;
-			
+
 			timerEvent = SimpleTimer.addPeriodicEvent("Animate " + imageID + suffix,
 					delay, performer);
 		}

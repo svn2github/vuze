@@ -681,6 +681,8 @@ public class SideBarEntrySWT
 				x1IndicatorOfs += bounds.width + SIDEBAR_SPACING;
 
 				gc.drawImage(image, bounds.x, bounds.y);
+				// setHitArea needs it relative to entry
+				bounds.y -= itemBounds.y;
 				vitalityImage.setHitArea(bounds);
 			}
 		}
