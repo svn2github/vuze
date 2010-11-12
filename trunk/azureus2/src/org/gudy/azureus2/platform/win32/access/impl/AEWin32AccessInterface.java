@@ -59,7 +59,7 @@ AEWin32AccessInterface
 	static{
 		try {
 			System.loadLibrary( PlatformManagerImpl.DLL_NAME );
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
 		}
 	}
