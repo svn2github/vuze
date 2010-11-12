@@ -108,6 +108,13 @@ public class LocaleTorrentUtil
 
 		throws TOTorrentException, UnsupportedEncodingException
 	{
+		return getTorrentEncoding(torrent, true);
+	}
+	
+	static public LocaleUtilDecoder getTorrentEncoding(TOTorrent torrent, boolean saveToFileAllowed)
+
+	throws TOTorrentException, UnsupportedEncodingException
+	{
 		String encoding = torrent.getAdditionalStringProperty("encoding");
 		if (TOTorrent.ENCODING_ACTUALLY_UTF8_KEYS.equals(encoding)) {
 			encoding = "utf8";
@@ -204,7 +211,7 @@ public class LocaleTorrentUtil
 
 		torrent.setAdditionalStringProperty("encoding", selected_decoder.getName());
 
-		if (bSaveToFile) {
+		if (bSaveToFile && saveToFileAllowed) {
 			TorrentUtils.writeToFile(torrent);
 		}
 
