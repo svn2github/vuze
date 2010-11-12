@@ -129,7 +129,7 @@ public class InitialisationFunctions
 					org.gudy.azureus2.core3.download.DownloadManager		dm,
 					int														file_index )
 				{
-					return( PlayUtils.canPlayDS(dm, file_index));
+					return( PlayUtils.canPlayDS(dm, file_index) || PlayUtils.canStreamDS(dm, file_index));
 				}
 				
 				public void
@@ -144,8 +144,15 @@ public class InitialisationFunctions
 							ds = files[file_index];
 						}
 					}
-					TorrentListViewsUtils.playOrStreamDataSource(ds,
-							DLReferals.DL_REFERAL_PLAYDM, false, true);
+					
+					if ( PlayUtils.canPlayDS(dm, file_index)){
+						TorrentListViewsUtils.playOrStreamDataSource(ds,
+								DLReferals.DL_REFERAL_PLAYDM, false, true);
+					}
+					if ( PlayUtils.canStreamDS(dm, file_index)){
+						TorrentListViewsUtils.playOrStreamDataSource(ds,
+								DLReferals.DL_REFERAL_PLAYDM, true, false);
+					}
 				}	
 				
 				public TranscodeTarget[]

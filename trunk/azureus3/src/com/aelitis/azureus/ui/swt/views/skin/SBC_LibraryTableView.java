@@ -375,6 +375,10 @@ public class SBC_LibraryTableView
 					DLReferals.DL_REFERAL_DBLCLICK, false, true );
 		}
 
+		if (PlayUtils.canStreamDS(ds, -1)) {
+			TorrentListViewsUtils.playOrStreamDataSource(ds,
+					DLReferals.DL_REFERAL_DBLCLICK, true, false );
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#getUpdateUIName()
