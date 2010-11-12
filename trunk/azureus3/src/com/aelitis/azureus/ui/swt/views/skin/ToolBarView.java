@@ -146,31 +146,18 @@ public class ToolBarView
 					}
 					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
 					if (sc != null) {
-						TorrentListViewsUtils.playOrStreamDataSource(sc[0],
+						
+						if ( PlayUtils.canStreamDS(sc[0], sc[0].getFileIndex())){
+							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
+									DLReferals.DL_REFERAL_TOOLBAR, true, false);
+						}else{
+							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
 								DLReferals.DL_REFERAL_TOOLBAR, false, true);
+						}
 					}
 				}
 			};
 			addToolBarItem(item);
-
-			if ( Constants.IS_CVS_VERSION && ( Constants.isWindows || Constants.isOSX )){
-				// ==stream
-				item = new ToolBarItem("stream", "image.button.play", "iconBar.stream") {
-					// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-					public void triggerToolBarItem() {
-						String viewID = SelectedContentManager.getCurrentySelectedViewID();
-						if (viewID == null && triggerIViewToolBar(getId())) {
-							return;
-						}
-						ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-						if (sc != null) {
-							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
-									DLReferals.DL_REFERAL_TOOLBAR, true, false);
-						}
-					}
-				};
-				addToolBarItem(item);
-			}
 			
 			addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep",
 					soMain);
@@ -786,19 +773,29 @@ public class ToolBarView
 				}
 			}
 			boolean has1Selection = currentContent.length == 1;
-			mapStates.put(
-					"play",
-					has1Selection
-							&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
-							&& PlayUtils.canPlayDS(currentContent[0],
-									currentContent[0].getFileIndex()));
-			mapStates.put(
-					"stream",
-					has1Selection
-							&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
-							&& PlayUtils.canStreamDS(currentContent[0],
-									currentContent[0].getFileIndex()));
+			
+			boolean can_play	= false;
+			boolean can_stream	= false;
+			
+			if ( has1Selection ){
+				
+				if ( !(currentContent[0] instanceof ISelectedVuzeFileContent)){
+					
+					can_play 	= PlayUtils.canPlayDS(currentContent[0], currentContent[0].getFileIndex());
+					can_stream	= PlayUtils.canStreamDS(currentContent[0], currentContent[0].getFileIndex());
+				}
+			}
+			
+			mapStates.put( "play", can_play | can_stream );
 
+			ToolBarItem pitem = getToolBarItem( "play" );
+			
+			if ( pitem != null ){
+			
+				pitem.setImageID( can_stream?"image.button.stream":"image.button.play" );
+				pitem.setTextID( can_stream?"iconBar.stream":"iconBar.play" );
+			}
+			
 			for (int i = 0; i < allToolBarItems.length; i++) {
 				ToolBarItem toolBarItem = allToolBarItems[i];
 				if (toolBarItem.isAlwaysAvailable()) {
@@ -855,6 +852,7 @@ public class ToolBarView
 			SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title", so);
 			if (soTitle instanceof SWTSkinObjectText) {
 				((SWTSkinObjectText) soTitle).setTextID(item.getTextID());
+				item.setSkinTitle((SWTSkinObjectText)soTitle);
 			}
 
 			if (initComplete) {

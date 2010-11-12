@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -239,6 +240,11 @@ public class PlayUtils
 		Object ds, 
 		int file_index ) 
 	{
+		if ( !( Constants.isWindows || Constants.isOSX )){
+			
+			return( false );
+		}
+		
 		if ( ds == null ){
 			
 			return( false );

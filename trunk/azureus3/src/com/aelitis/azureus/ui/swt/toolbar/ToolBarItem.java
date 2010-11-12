@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 
 /**
  * @author TuxPaper
@@ -35,7 +36,8 @@ public class ToolBarItem
 
 	String id;
 
-	private SWTSkinButtonUtility skinButton;
+	private SWTSkinButtonUtility 	skinButton;
+	private SWTSkinObjectText		skinTitle;
 	
 	boolean enabled = true;
 	
@@ -86,6 +88,10 @@ public class ToolBarItem
 		return skinButton;
 	}
 
+	public void setSkinTitle( SWTSkinObjectText s ){
+		skinTitle	= s;
+	}
+	
 	public boolean isEnabled() {
 		if (skinButton != null) {
 			return !skinButton.isDisabled();
@@ -106,6 +112,9 @@ public class ToolBarItem
 
 	public void setImageID(String imageID) {
 		this.imageID = imageID;
+		if (skinButton != null) {
+			skinButton.setImage(imageID);
+		}
 	}
 
 	/**
@@ -113,6 +122,9 @@ public class ToolBarItem
 	 */
 	public void setTextID(String textID) {
 		this.textID = textID;
+		if (skinTitle != null) {
+			skinTitle.setTextID(textID);
+		}
 	}
 
 	/**
