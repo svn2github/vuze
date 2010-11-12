@@ -166,6 +166,12 @@ public class PlayUtils
 	}
 
 	public static boolean canPlayDS(Object ds, int file_index ) {
+		
+		if ( !( Constants.isWindows || Constants.isOSX )){
+			
+			return( false );
+		}
+		
 		if (ds == null) {
 			return false;
 		}
