@@ -77,8 +77,6 @@ ResourceDownloaderURLImpl
 
 	private final String post_data;
 
-	private long lastModified;
-	
 	public 
 	ResourceDownloaderURLImpl(
 		ResourceDownloaderBaseImpl	_parent,
@@ -627,8 +625,6 @@ redirect_label:
 									this_mon.exit();
 								}
 								
-								lastModified = con.getLastModified();
-								
 								ByteArrayOutputStream	baos		= null;
 								FileOutputStream		fos			= null;
 								
@@ -1009,12 +1005,5 @@ redirect_label:
 		}
 		
 		return( str );
-	}
-
-	/**
-	 * @return the lastModified
-	 */
-	public long getLastModified() {
-		return lastModified;
 	}
 }
