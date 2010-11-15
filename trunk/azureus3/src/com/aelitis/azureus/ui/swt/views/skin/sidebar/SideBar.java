@@ -365,7 +365,7 @@ public class SideBar
 		tree.setForeground(fg);
 		FontData[] fontData = tree.getFont().getFontData();
 
-		int fontHeight = (Constants.isOSX ? 11 : 10) + (tree.getItemHeight() > 18
+		int fontHeight = (Constants.isOSX ? 11 : 12) + (tree.getItemHeight() > 18
 				? tree.getItemHeight() - 18 : 0);
 
 		fontData[0].setStyle(SWT.BOLD);
