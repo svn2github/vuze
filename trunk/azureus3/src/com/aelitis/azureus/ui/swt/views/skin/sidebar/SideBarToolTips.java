@@ -24,6 +24,8 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -53,7 +55,7 @@ public class SideBarToolTips
 
 	private MdiEntry mdiEntry;
 
-	private Point lastMouseHoverPos;
+	private Point lastRelMouseHoverPos;
 
 	/**
 	 * Initialize
@@ -116,12 +118,14 @@ public class SideBarToolTips
 			return;
 		}
 
-		String sToolTip = getToolTip(mousePos);
+		Rectangle itemBounds = treeItem.getBounds();
+		Point relPos = new Point(mousePos.x, mousePos.y - itemBounds.y);
+		String sToolTip = getToolTip(relPos);
 		if (sToolTip == null) {
 			return;
 		}
 
-		lastMouseHoverPos = mousePos;
+		lastRelMouseHoverPos = relPos;
 
 		Display d = tree.getDisplay();
 		if (d == null)
@@ -194,7 +198,7 @@ public class SideBarToolTips
 	 *
 	 * @since 3.1.1.1
 	 */
-	private String getToolTip(Point mousePos) {
+	private String getToolTip(Point mousePos_RelativeToItem) {
 		MdiEntryVitalityImage[] vitalityImages = mdiEntry.getVitalityImages();
 		for (int i = 0; i < vitalityImages.length; i++) {
 			SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
@@ -209,13 +213,14 @@ public class SideBarToolTips
 			if (hitArea == null) {
 				continue;
 			}
-			if (hitArea.contains(mousePos)) {
+			if (hitArea.contains(mousePos_RelativeToItem)) {
 				return indicatorToolTip;
 			}
 		}
 
 		if (mdiEntry.getViewTitleInfo() != null) {
-			return (String) mdiEntry.getViewTitleInfo().getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+			String tt = (String) mdiEntry.getViewTitleInfo().getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+			return tt;
 		}
 
 		return null;
@@ -234,7 +239,7 @@ public class SideBarToolTips
 		if (mdiEntry == null || mdiEntry.getViewTitleInfo() == null) {
 			return;
 		}
-		String sToolTip = getToolTip(lastMouseHoverPos);
+		String sToolTip = getToolTip(lastRelMouseHoverPos);
 		if (sToolTip == null) {
 			return;
 		}

@@ -633,8 +633,12 @@ public class SideBar
   							if (hitArea == null) {
   								continue;
   							}
-  							if (hitArea.contains(event.x, event.y)) {
-  								vitalityImage.triggerClickedListeners(event.x, event.y);
+  							// setHitArea needs it relative to entry
+  							Rectangle itemBounds = entry.swt_getBounds();
+  							int relY = event.y - (itemBounds == null ? 0 : itemBounds.y);
+  							
+  							if (hitArea.contains(event.x, relY)) {
+  								vitalityImage.triggerClickedListeners(event.x, relY);
   								return;
   							}
   						}
@@ -1100,7 +1104,7 @@ public class SideBar
 					if (bounds == null) {
 						continue;
 					}
-					bounds.y = itemBounds.y + (itemBounds.height - bounds.height) / 2;
+					bounds.y = (itemBounds.height - bounds.height) / 2;
 				}
 			}
 		}
