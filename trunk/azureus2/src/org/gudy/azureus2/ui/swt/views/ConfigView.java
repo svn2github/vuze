@@ -51,10 +51,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
-/**
- * @author Olivier
- *
- */
+@SuppressWarnings("deprecation")
 public class ConfigView extends AbstractIView {
 	private static final LogIDs LOGID = LogIDs.GUI;
   public static final String sSectionPrefix = "ConfigView.section.";
@@ -70,7 +67,7 @@ public class ConfigView extends AbstractIView {
   Font headerFont;
   Font filterFoundFont;
   Tree tree;
-  ArrayList pluginSections;
+  ArrayList<ConfigSection> pluginSections;
 
 	private Timer filterDelayTimer;
 	private String filterText = "";
@@ -127,18 +124,18 @@ public class ConfigView extends AbstractIView {
     /--cConfig-----------------------------------------------------------\
     | ###SashForm#form################################################## |
     | # /--cLeftSide-\ /--cRightSide---------------------------------\ # |
-    | # |txtFilter X | | ***cHeader********************************* | # |
-    | # | ##tree#### | | * lHeader                    usermodeHint * | # |
+    | # | ##tree#### | | ***cHeader********************************* | # |
+    | # | #        # | | * lHeader                    usermodeHint * | # |
     | # | #        # | | ******************************************* | # |
     | # | #        # | | ###Composite cConfigSection################ | # |
     | # | #        # | | #                                         # | # |
     | # | #        # | | #                                         # | # |
     | # | #        # | | #                                         # | # |
-    | # | #        # | | #                                         # | # |
-    | # | ########## | | ########################################### | # |
+    | # | ########## | | #                                         # | # |
+    | # |txtFilter X | | ########################################### | # |
     | # \------------/ \---------------------------------------------/ # |
     | ################################################################## |
-    |  [Button]                                                          |
+    |                                                          [Buttons] |
     \--------------------------------------------------------------------/
     */
     try {
@@ -371,7 +368,7 @@ public class ConfigView extends AbstractIView {
     	
       boolean	plugin_section = i >= internalSections.length;
       
-      ConfigSection section = (ConfigSection)pluginSections.get(i);
+      ConfigSection section = pluginSections.get(i);
       
       if (section instanceof ConfigSectionSWT || section instanceof UISWTConfigSection ) {
         String name;
@@ -530,18 +527,31 @@ public class ConfigView extends AbstractIView {
 
 						Utils.execSWTThread(new AERunnable() {
 							public void runSupport() {
-								// TODO Auto-generated method stub
-								ArrayList foundItems = new ArrayList();
-								TreeItem[] items = tree.getItems();
+								if (filterDelayTimer != null) {
+									return;
+								}
+								Shell shell = tree.getShell();
+								if (shell != null) {
+									shell.setCursor(shell.getDisplay().getSystemCursor(
+											SWT.CURSOR_WAIT));
+								}
 								try {
-									tree.setRedraw(false);
-									for (int i = 0; i < items.length; i++) {
-										items[i].setExpanded(false);
-									}
+									ArrayList<TreeItem> foundItems = new ArrayList<TreeItem>();
+									TreeItem[] items = tree.getItems();
+									try {
+										tree.setRedraw(false);
+										for (int i = 0; i < items.length; i++) {
+											items[i].setExpanded(false);
+										}
 
-									filterTree(items, filterText, foundItems);
+										filterTree(items, filterText, foundItems);
+									} finally {
+										tree.setRedraw(true);
+									}
 								} finally {
-									tree.setRedraw(true);
+									if (shell != null) {
+										shell.setCursor(null);
+									}
 								}
 							}
 						});
@@ -549,11 +559,11 @@ public class ConfigView extends AbstractIView {
 				});
 	}
 
-	protected void filterTree(TreeItem[] items, String text, ArrayList foundItems)
-	{
+	protected void filterTree(TreeItem[] items, String text,
+			ArrayList<TreeItem> foundItems) {
 		text = text.toLowerCase();
 		for (int i = 0; i < items.length; i++) {
-			ensureSectionBuilt(items[i]);
+			ensureSectionBuilt(items[i], false);
 			ScrolledComposite composite = (ScrolledComposite) items[i].getData("Panel");
 
 			if (text.length() > 0
@@ -617,7 +627,7 @@ public class ConfigView extends AbstractIView {
 
     if (item != null) {
     	
-    	ensureSectionBuilt(section);
+    	ensureSectionBuilt(section, true);
     	
       layoutConfigSection.topControl = item;
       
@@ -628,7 +638,7 @@ public class ConfigView extends AbstractIView {
     }
   }
 	
-	private void ensureSectionBuilt(TreeItem treeSection) {
+	private void ensureSectionBuilt(TreeItem treeSection, boolean recreateIfAlreadyThere) {
     ScrolledComposite item = (ScrolledComposite)treeSection.getData("Panel");
 
     if (item != null) {
@@ -639,6 +649,9 @@ public class ConfigView extends AbstractIView {
     	  
         Control previous = item.getContent();
         if (previous instanceof Composite) {
+        	if (!recreateIfAlreadyThere) {
+        		return;
+        	}
         	configSection.configSectionDelete();
           sectionsCreated.remove(configSection);    	
           Utils.disposeComposite((Composite)previous,true);
@@ -735,7 +748,7 @@ public class ConfigView extends AbstractIView {
     return cConfigSection;
   }
   
-  private static Comparator insert_point_comparator = new Comparator() {
+  private static Comparator<Object> insert_point_comparator = new Comparator<Object>() {
 	  
 	  private String asString(Object o) {
 		  if (o instanceof String) {
@@ -931,7 +944,7 @@ public class ConfigView extends AbstractIView {
 
   public void
   selectSection(
-  	Class	config_section_class )
+  	Class<?>	config_section_class )
   {
 	  TreeItem[]	items = tree.getItems();
 	  
@@ -958,7 +971,7 @@ public class ConfigView extends AbstractIView {
 
 		if (null != pluginSections) {
 			for (int i = 0; i < pluginSections.size(); i++) {
-				((ConfigSection) pluginSections.get(i)).configSectionSave();
+				pluginSections.get(i).configSectionSave();
 			}
 		}
 	}
