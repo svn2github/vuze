@@ -30,6 +30,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -609,6 +610,13 @@ public class ConfigView extends AbstractIView {
 			} else if (child instanceof Button) {
 				if (((Button)child).getText().toLowerCase().indexOf(text) >= 0) {
 					return true;
+				}
+			} else if (child instanceof List) {
+				String[] items = ((List)child).getItems();
+				for (String item : items) {
+					if (item.toLowerCase().indexOf(text) >= 0) {
+						return true;
+					}
 				}
 			}
 
