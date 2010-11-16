@@ -46,12 +46,14 @@ public class MenuItemManager {
 	 *    key = MENU_* type (see MenuManager in the plugin API)
 	 *    value = Map: key = menu key value = MenuItem object
 	 */
-	private Map items;
+	private Map<String, Map<String, MenuItem>> items;
 
 	private AEMonitor items_mon = new AEMonitor("MenuManager:items");
+	
+	private ArrayList<MenuItemManagerListener> listeners = new ArrayList<MenuItemManagerListener>(0);
 
 	private MenuItemManager() {
-		this.items = new HashMap();
+		this.items = new HashMap<String, Map<String, MenuItem>>();
 	}
 
 	/**
@@ -74,10 +76,10 @@ public class MenuItemManager {
 			String sMenuID = item.getMenuID();
 			try {
 				this.items_mon.enter();
-				Map mTypes = (Map) this.items.get(sMenuID);
+				Map<String, MenuItem> mTypes = this.items.get(sMenuID);
 				if (mTypes == null) {
 					// LinkedHashMap to preserve order
-					mTypes = new LinkedHashMap();
+					mTypes = new LinkedHashMap<String, MenuItem>();
 					this.items.put(sMenuID, mTypes);
 				}
 				mTypes.put(name, item);
@@ -96,37 +98,84 @@ public class MenuItemManager {
 	}
 	
 	public void removeMenuItem(MenuItem item) {
-		Map menu_item_map = (Map)this.items.get(item.getMenuID());
+		Map<String, MenuItem> menu_item_map = this.items.get(item.getMenuID());
 		if (menu_item_map != null) {menu_item_map.remove(item.getResourceKey());}
 	}
 
 	public MenuItem[] getAllAsArray(String sMenuID) {
-		Map local_menu_item_map = (Map)this.items.get(sMenuID);
-		Map global_menu_item_map = (Map)this.items.get(null);
+		if (sMenuID != null) {
+			triggerMenuItemQuery(sMenuID);
+		}
+		Map<String, MenuItem> local_menu_item_map = this.items.get(sMenuID);
+		Map<String, MenuItem> global_menu_item_map = this.items.get(null);
 		if (local_menu_item_map == null && global_menu_item_map == null) {
 			return new MenuItem[0];
 		}
 		
 		if (sMenuID == null) {local_menu_item_map = null;}
 		
-		ArrayList l = new ArrayList();
+		ArrayList<MenuItem> l = new ArrayList<MenuItem>();
 		if (local_menu_item_map != null) {l.addAll(local_menu_item_map.values());}
 		if (global_menu_item_map != null) {l.addAll(global_menu_item_map.values());}
-		return (MenuItem[]) l.toArray(new MenuItem[l.size()]);
+		return l.toArray(new MenuItem[l.size()]);
 	}
 	
 	public MenuItem[] getAllAsArray(String[] menu_ids) {
-		ArrayList l  = new ArrayList();
+		ArrayList<MenuItem> l  = new ArrayList<MenuItem>();
 		for (int i=0; i<menu_ids.length; i++) {
+			if (menu_ids[i] != null) {
+				triggerMenuItemQuery(menu_ids[i]);
+			}
 			addMenuItems(menu_ids[i], l);
 		}
 		addMenuItems(null, l);
-		return (MenuItem[]) l.toArray(new MenuItem[l.size()]);
+		return l.toArray(new MenuItem[l.size()]);
 	}
 	
-	private void addMenuItems(String menu_id, ArrayList l) {
-		Map menu_map = (Map)this.items.get(menu_id);
+	private void addMenuItems(String menu_id, ArrayList<MenuItem> l) {
+		Map<String, MenuItem> menu_map = this.items.get(menu_id);
 		if (menu_map != null) {l.addAll(menu_map.values());}
 	}
 
+	public void addListener(MenuItemManagerListener l) {
+		synchronized (listeners) {
+			if (!listeners.contains(l)) {
+				listeners.add(l);
+			}
+		}
+	}
+	
+	public void removeListener(MenuItemManagerListener l) {
+		synchronized (listeners) {
+			listeners.remove(l);
+		}
+	}
+	
+	private void triggerMenuItemQuery(String id) {
+		MenuItemManagerListener[] listenersArray;
+		synchronized (listeners) {
+			listenersArray = listeners.toArray(new MenuItemManagerListener[0]);
+		}
+		for (MenuItemManagerListener l : listenersArray) {
+			try {
+				l.queryForMenuItem(id);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+	}
+
+	public void triggerMenuItemCleanup(String id) {
+		MenuItemManagerListener[] listenersArray;
+		synchronized (listeners) {
+			listenersArray = listeners.toArray(new MenuItemManagerListener[0]);
+		}
+		for (MenuItemManagerListener l : listenersArray) {
+			try {
+				l.cleanupMenuItem(id);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+	}
 }
