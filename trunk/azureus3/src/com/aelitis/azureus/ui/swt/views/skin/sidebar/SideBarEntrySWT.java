@@ -107,6 +107,8 @@ public class SideBarEntrySWT
 	
 	private boolean selectable = true;
 
+	private List<SideBarMenuHackListener> listMenuHackListners;
+
 	public SideBarEntrySWT(SideBar sidebar, SWTSkin _skin, String id) {
 		super(sidebar, id);
 		this.skin = _skin;
@@ -1042,5 +1044,34 @@ public class SideBarEntrySWT
 			}
 		}
 		return true; // todo: bounds check
+	}
+
+	public void addListener(SideBarMenuHackListener l) {
+		synchronized (this) {
+			if (listMenuHackListners == null) {
+				listMenuHackListners = new ArrayList<SideBarMenuHackListener>(1);
+			}
+			if (!listMenuHackListners.contains(l)) {
+				listMenuHackListners.add(l);
+			}
+		}
+	}
+
+	public void removeListener(SideBarMenuHackListener l) {
+		synchronized (this) {
+			if (listMenuHackListners == null) {
+				listMenuHackListners = new ArrayList<SideBarMenuHackListener>(1);
+			}
+			listMenuHackListners.remove(l);
+		}
+	}
+	
+	public SideBarMenuHackListener[] getMenuHackListeners() {
+		synchronized (this) {
+			if (listMenuHackListners == null) {
+				return new SideBarMenuHackListener[0];
+			}
+			return listMenuHackListners.toArray(new SideBarMenuHackListener[0]);
+		}
 	}
 }

@@ -140,6 +140,8 @@ public class SideBar
 
 	private String[] preferredOrder;
 
+	private List<SideBarMenuHackListener> listMenuHackListners;
+
 	public static SideBar instance = null;
 
 	public SideBar() {
@@ -1061,6 +1063,25 @@ public class SideBar
 					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
 						entry
 					}));
+			
+			SideBarMenuHackListener[] menuHackListeners = getMenuHackListeners();
+			for (SideBarMenuHackListener l : menuHackListeners) {
+				try {
+					l.menuWillBeShown(entry, menuTree);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+			if (currentEntry instanceof SideBarEntrySWT) {
+  			menuHackListeners = ((SideBarEntrySWT) entry).getMenuHackListeners();
+  			for (SideBarMenuHackListener l : menuHackListeners) {
+  				try {
+  					l.menuWillBeShown(entry, menuTree);
+  				} catch (Exception e) {
+  					Debug.out(e);
+  				}
+  			}
+			}
 
 			if ((currentEntry instanceof BaseMdiEntry)
 					&& ((BaseMdiEntry) currentEntry).getDatasourceCore() instanceof DownloadManager) {
@@ -1076,6 +1097,35 @@ public class SideBar
 				mi.setData("downloads", downloads);
 				mi.setData("is_detailed_view", new Boolean(true));
 			}
+		}
+	}
+	
+	public void addListener(SideBarMenuHackListener l) {
+		synchronized (this) {
+			if (listMenuHackListners == null) {
+				listMenuHackListners = new ArrayList<SideBarMenuHackListener>(1);
+			}
+			if (!listMenuHackListners.contains(l)) {
+				listMenuHackListners.add(l);
+			}
+		}
+	}
+
+	public void removeListener(SideBarMenuHackListener l) {
+		synchronized (this) {
+			if (listMenuHackListners == null) {
+				listMenuHackListners = new ArrayList<SideBarMenuHackListener>(1);
+			}
+			listMenuHackListners.remove(l);
+		}
+	}
+	
+	public SideBarMenuHackListener[] getMenuHackListeners() {
+		synchronized (this) {
+			if (listMenuHackListners == null) {
+				return new SideBarMenuHackListener[0];
+			}
+			return listMenuHackListners.toArray(new SideBarMenuHackListener[0]);
 		}
 	}
 

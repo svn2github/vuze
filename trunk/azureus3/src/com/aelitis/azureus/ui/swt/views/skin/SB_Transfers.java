@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.swt.widgets.Menu;
+
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.CategoryManagerListener;
@@ -44,6 +46,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
+import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -55,6 +58,8 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarMenuHackListener;
 
 /**
  * @author TuxPaper
@@ -627,6 +632,15 @@ public class SB_Transfers
 						+ category.getName(), "library", name, viewTitleInfo, category, false, null);
 		if (entry != null) {
 			entry.setImageLeftID("image.sidebar.library");
+		}
+		
+		if (entry instanceof SideBarEntrySWT) {
+			final SideBarEntrySWT entrySWT = (SideBarEntrySWT) entry;
+			entrySWT.addListener(new SideBarMenuHackListener() {
+				public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
+					CategoryUIUtils.createMenuItems(menuTree, category);
+				}
+			});
 		}
 		
 		entry.addListener(new MdiEntryDropListener() {
