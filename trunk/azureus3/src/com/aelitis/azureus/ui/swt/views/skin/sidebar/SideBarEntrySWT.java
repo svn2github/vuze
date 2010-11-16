@@ -135,7 +135,7 @@ public class SideBarEntrySWT
 				SWTSkinProperties skinProperties = skin.getSkinProperties();
 				bg = skinProperties.getColor("color.sidebar.bg");
 				fg = skinProperties.getColor("color.sidebar."
-						+ (isSelectable() ? ".text" : ".header"));
+						+ (isSelectable() ? "text" : "header"));
 				bgSel = skinProperties.getColor("color.sidebar.selected.bg");
 				fgSel = skinProperties.getColor("color.sidebar.selected.fg");
 				//colorFocus = skinProperties.getColor("color.sidebar.focus");
