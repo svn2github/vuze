@@ -555,11 +555,20 @@ public class SideBar
 							if (entry.isSelectable()) {
 								showEntry(entry);
 							} else if (currentEntry != null) {
+								TreeItem topItem = tree.getTopItem();
+
+								// prevent "jumping" in the case where selection is off screen
+								// setSelection would jump the item on screen, and then
+								// showItem would jump back to where the user was.
+								tree.setRedraw(false);
 								TreeItem ti = ((SideBarEntrySWT) currentEntry).getTreeItem();
 								if ( ti != null ){
 									tree.setSelection( ti );
 								}
-								tree.showItem(treeItem);
+								tree.setRedraw(true);
+								
+								tree.showItem(topItem);
+								event.doit = false;
 							}
 						}
 						break;
