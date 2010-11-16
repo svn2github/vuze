@@ -558,7 +558,7 @@ public class SideBar
 								showEntry(entry);
 							} else if (currentEntry != null) {
 								TreeItem topItem = tree.getTopItem();
-
+								
 								// prevent "jumping" in the case where selection is off screen
 								// setSelection would jump the item on screen, and then
 								// showItem would jump back to where the user was.
@@ -567,9 +567,10 @@ public class SideBar
 								if ( ti != null ){
 									tree.setSelection( ti );
 								}
-								tree.setRedraw(true);
 								
-								tree.showItem(topItem);
+								tree.setTopItem(topItem);
+								tree.setRedraw(true);
+
 								event.doit = false;
 							}
 						}
