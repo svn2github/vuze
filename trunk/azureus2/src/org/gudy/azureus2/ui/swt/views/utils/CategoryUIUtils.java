@@ -100,8 +100,6 @@ public class CategoryUIUtils
 			Messages.setLanguageText(itemDelete,
 					"MyTorrentsView.menu.category.delete");
 
-			menu.setDefaultItem(itemDelete);
-
 			itemDelete.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {
 					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
