@@ -833,7 +833,7 @@ public class SideBarEntrySWT
 				&& (!Utils.isCocoa || !SideBar.HIDE_NATIVE_EXPANDER)) {
 			gc.setAntialias(SWT.ON);
 			Color oldBG = gc.getBackground();
-			gc.setBackground(gc.getForeground());
+			gc.setBackground(event.display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 			if (treeItem.getExpanded()) {
 				int xStart = 12;
 				int arrowSize = 8;
