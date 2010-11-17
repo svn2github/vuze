@@ -46,25 +46,33 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
-import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo2;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener;
 
 /**
  * Torrent download view, consisting of several information tabs
@@ -74,7 +82,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  */
 public class ManagerView
 	implements DownloadManagerListener, ObfusticateTab, ObfusticateImage,
-	ViewTitleInfo, UISWTViewCoreEventListener, ToolBarEnabler, UIUpdatable
+	ViewTitleInfo2, UISWTViewCoreEventListener, ToolBarEnabler, UIUpdatable
 {
 
   private DownloadManager 	manager;
@@ -508,6 +516,23 @@ public class ManagerView
 	}
 	
 	public DownloadManager getDownload() {return manager;}
+
+	
+	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo2#titleInfoLinked(com.aelitis.azureus.ui.mdi.MultipleDocumentInterface, com.aelitis.azureus.ui.mdi.MdiEntry)
+	public void titleInfoLinked(MultipleDocumentInterface mdi, MdiEntry mdiEntry) {
+		if (mdiEntry instanceof MdiEntrySWT) {
+			((MdiEntrySWT) mdiEntry).addListener(new MdiSWTMenuHackListener() {
+				public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
+					MenuFactory.buildTorrentMenu(menuTree);
+
+					TableView<?> tv = SelectedContentManager.getCurrentlySelectedTableView();
+					menuTree.setData("TableView", tv);
+					menuTree.setData("downloads", new DownloadManager[] { manager });
+					menuTree.setData("is_detailed_view", new Boolean(true));
+				}
+			});
+		}
+	}
 
 	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoProperty(int)
 	public Object getTitleInfoProperty(int propertyID) {

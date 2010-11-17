@@ -44,6 +44,7 @@ import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
+import com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
@@ -107,7 +108,7 @@ public class SideBarEntrySWT
 	
 	private boolean selectable = true;
 
-	private List<SideBarMenuHackListener> listMenuHackListners;
+	private List<MdiSWTMenuHackListener> listMenuHackListners;
 
 	public SideBarEntrySWT(SideBar sidebar, SWTSkin _skin, String id) {
 		super(sidebar, id);
@@ -1047,10 +1048,10 @@ public class SideBarEntrySWT
 		return true; // todo: bounds check
 	}
 
-	public void addListener(SideBarMenuHackListener l) {
+	public void addListener(MdiSWTMenuHackListener l) {
 		synchronized (this) {
 			if (listMenuHackListners == null) {
-				listMenuHackListners = new ArrayList<SideBarMenuHackListener>(1);
+				listMenuHackListners = new ArrayList<MdiSWTMenuHackListener>(1);
 			}
 			if (!listMenuHackListners.contains(l)) {
 				listMenuHackListners.add(l);
@@ -1058,21 +1059,21 @@ public class SideBarEntrySWT
 		}
 	}
 
-	public void removeListener(SideBarMenuHackListener l) {
+	public void removeListener(MdiSWTMenuHackListener l) {
 		synchronized (this) {
 			if (listMenuHackListners == null) {
-				listMenuHackListners = new ArrayList<SideBarMenuHackListener>(1);
+				listMenuHackListners = new ArrayList<MdiSWTMenuHackListener>(1);
 			}
 			listMenuHackListners.remove(l);
 		}
 	}
 	
-	public SideBarMenuHackListener[] getMenuHackListeners() {
+	public MdiSWTMenuHackListener[] getMenuHackListeners() {
 		synchronized (this) {
 			if (listMenuHackListners == null) {
-				return new SideBarMenuHackListener[0];
+				return new MdiSWTMenuHackListener[0];
 			}
-			return listMenuHackListners.toArray(new SideBarMenuHackListener[0]);
+			return listMenuHackListners.toArray(new MdiSWTMenuHackListener[0]);
 		}
 	}
 }

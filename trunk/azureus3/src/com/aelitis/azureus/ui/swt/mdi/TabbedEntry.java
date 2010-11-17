@@ -416,4 +416,14 @@ public class TabbedEntry
 	// @see com.aelitis.azureus.ui.mdi.MdiEntry#setSelectable(boolean)
 	public void setSelectable(boolean selectable) {
 	}
+
+	// @see com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT#addListener(com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener)
+	public void addListener(MdiSWTMenuHackListener l) {
+		// TODO Auto-generated method stub
+	}
+
+	// @see com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT#removeListener(com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener)
+	public void removeListener(MdiSWTMenuHackListener l) {
+		// TODO Auto-generated method stub
+	}
 }

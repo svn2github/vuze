@@ -650,9 +650,9 @@ public class UIFunctionsImpl
 						} else {
 							TableView<?> tv = SelectedContentManager.getCurrentlySelectedTableView();
 
-							torrentItem.setData("TableView", tv);
-							torrentItem.setData("downloads", dm_final);
-							torrentItem.setData("is_detailed_view",
+							torrentItem.getMenu().setData("TableView", tv);
+							torrentItem.getMenu().setData("downloads", dm_final);
+							torrentItem.getMenu().setData("is_detailed_view",
 									Boolean.valueOf(detailed_view_final));
 							torrentItem.setEnabled(true);
 						}

@@ -108,94 +108,98 @@ public class MenuFactory
 		return createTopLevelMenuItem(menuParent, MENU_ID_ADVANCED);
 	}
 
-	public static MenuItem createTorrentMenuItem(final Menu menuParent) {
-		final MenuItem torrentItem = createTopLevelMenuItem(menuParent,
-				MENU_ID_TORRENT);
+	public static Menu createTorrentMenuItem(final Menu menuParent) {
+		final Menu torrentMenu = createTopLevelMenuItem(menuParent,
+				MENU_ID_TORRENT).getMenu();
 
 		/*
 		 * The Torrents menu is context-sensitive to which torrent is selected in the UI.
 		 * For this reason we need to dynamically build the menu when ever it is about to be displayed
 		 * so that the states of the menu items accurately reflect what was selected in the UI. 
 		 */
-		MenuBuildUtils.addMaintenanceListenerForMenu(torrentItem.getMenu(),
+		MenuBuildUtils.addMaintenanceListenerForMenu(torrentMenu,
 				new MenuBuildUtils.MenuBuilder() {
 					public void buildMenu(Menu menu, MenuEvent menuEvent) {
-						DownloadManager[] current_dls = (DownloadManager[]) torrentItem.getData("downloads");
-						if (current_dls == null) {
-							return;
-						}
-
-						if (AzureusCoreFactory.isCoreRunning()) {
-							boolean is_detailed_view = ((Boolean) torrentItem.getData("is_detailed_view")).booleanValue();
-							TableViewSWT tv = (TableViewSWT) torrentItem.getData("TableView");
-							AzureusCore core = AzureusCoreFactory.getSingleton();
-
-							TorrentUtil.fillTorrentMenu(menu, current_dls, core,
-									menuParent.getShell(), !is_detailed_view, 0, tv);
-						}
-
-						org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
-
-						menu_items = MenuItemManager.getInstance().getAllAsArray(
-								new String[] {
-									MenuManager.MENU_TORRENT_MENU,
-									MenuManager.MENU_DOWNLOAD_CONTEXT
-								});
-
-						final Object[] plugin_dls = DownloadManagerImpl.getDownloadStatic(current_dls);
-
-						if (menu_items.length > 0) {
-							addSeparatorMenuItem(menu);
-
-							MenuBuildUtils.addPluginMenuItems(menuParent.getShell(),
-									menu_items, menu, true, true,
-									new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
-											plugin_dls));
-						}
-
-						menu_items = null;
-
-						/**
-						 * OK, "hack" time - we'll allow plugins which add menu items against
-						 * a table to appear in this menu. We'll have to fake the table row
-						 * object though. All downloads need to share a common table.
-						 */
-						String table_to_use = null;
-						for (int i = 0; i < current_dls.length; i++) {
-							String table_name = (current_dls[i].isDownloadComplete(false)
-									? TableManager.TABLE_MYTORRENTS_COMPLETE
-									: TableManager.TABLE_MYTORRENTS_INCOMPLETE);
-							if (table_to_use == null || table_to_use.equals(table_name)) {
-								table_to_use = table_name;
-							} else {
-								table_to_use = null;
-								break;
-							}
-						}
-
-						if (table_to_use != null) {
-							menu_items = TableContextMenuManager.getInstance().getAllAsArray(
-									table_to_use);
-						}
-
-						if (menu_items != null) {
-							addSeparatorMenuItem(menu);
-
-							TableRow[] dls_as_rows = null;
-							dls_as_rows = new TableRow[plugin_dls.length];
-							for (int i = 0; i < plugin_dls.length; i++) {
-								dls_as_rows[i] = wrapAsRow(plugin_dls[i], table_to_use);
-							}
-
-							MenuBuildUtils.addPluginMenuItems(menuParent.getShell(),
-									menu_items, menu, true, true,
-									new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
-											dls_as_rows));
-						}
-
+						buildTorrentMenu(menu);
 					}
 				});
-		return torrentItem;
+		return torrentMenu;
+	}
+
+	public static void buildTorrentMenu(Menu menu) {
+		DownloadManager[] current_dls = (DownloadManager[]) menu.getData("downloads");
+		if (current_dls == null) {
+			return;
+		}
+
+		if (AzureusCoreFactory.isCoreRunning()) {
+			boolean is_detailed_view = ((Boolean) menu.getData("is_detailed_view")).booleanValue();
+			TableViewSWT tv = (TableViewSWT) menu.getData("TableView");
+			AzureusCore core = AzureusCoreFactory.getSingleton();
+
+			TorrentUtil.fillTorrentMenu(menu, current_dls, core,
+					menu.getShell(), !is_detailed_view, 0, tv);
+		}
+
+		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
+
+		menu_items = MenuItemManager.getInstance().getAllAsArray(
+				new String[] {
+					MenuManager.MENU_TORRENT_MENU,
+					MenuManager.MENU_DOWNLOAD_CONTEXT
+				});
+
+		final Object[] plugin_dls = DownloadManagerImpl.getDownloadStatic(current_dls);
+
+		if (menu_items.length > 0) {
+			addSeparatorMenuItem(menu);
+
+			MenuBuildUtils.addPluginMenuItems(menu.getShell(),
+					menu_items, menu, true, true,
+					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
+							plugin_dls));
+		}
+
+		menu_items = null;
+
+		/**
+		 * OK, "hack" time - we'll allow plugins which add menu items against
+		 * a table to appear in this menu. We'll have to fake the table row
+		 * object though. All downloads need to share a common table.
+		 */
+			String table_to_use = null;
+		for (int i = 0; i < current_dls.length; i++) {
+			String table_name = (current_dls[i].isDownloadComplete(false)
+					? TableManager.TABLE_MYTORRENTS_COMPLETE
+							: TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+			if (table_to_use == null || table_to_use.equals(table_name)) {
+				table_to_use = table_name;
+			} else {
+				table_to_use = null;
+				break;
+			}
+		}
+
+		if (table_to_use != null) {
+			menu_items = TableContextMenuManager.getInstance().getAllAsArray(
+					table_to_use);
+		}
+
+		if (menu_items != null) {
+			addSeparatorMenuItem(menu);
+
+			TableRow[] dls_as_rows = null;
+			dls_as_rows = new TableRow[plugin_dls.length];
+			for (int i = 0; i < plugin_dls.length; i++) {
+				dls_as_rows[i] = wrapAsRow(plugin_dls[i], table_to_use);
+			}
+
+			MenuBuildUtils.addPluginMenuItems(menu.getShell(),
+					menu_items, menu, true, true,
+					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
+							dls_as_rows));
+		}
+
 	}
 
 	public static MenuItem createToolsMenuItem(Menu menuParent) {

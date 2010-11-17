@@ -57,9 +57,9 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarMenuHackListener;
 
 /**
  * @author TuxPaper
@@ -636,7 +636,7 @@ public class SB_Transfers
 		
 		if (entry instanceof SideBarEntrySWT) {
 			final SideBarEntrySWT entrySWT = (SideBarEntrySWT) entry;
-			entrySWT.addListener(new SideBarMenuHackListener() {
+			entrySWT.addListener(new MdiSWTMenuHackListener() {
 				public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
 					CategoryUIUtils.createMenuItems(menuTree, category);
 				}

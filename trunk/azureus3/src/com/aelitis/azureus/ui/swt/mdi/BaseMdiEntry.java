@@ -25,9 +25,7 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.IViewExtension;
 
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.common.viewtitleinfo.*;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -450,9 +448,21 @@ public abstract class BaseMdiEntry
 	 * @see com.aelitis.azureus.ui.mdi.MdiEntry#setViewTitleInfo(com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo)
 	 */
 	public void setViewTitleInfo(ViewTitleInfo viewTitleInfo) {
+		if (this.viewTitleInfo == viewTitleInfo) {
+			return;
+		}
 		this.viewTitleInfo = viewTitleInfo;
 		// TODO: Need to listen for viewTitleInfo triggers so we can refresh items below
 		if (viewTitleInfo != null) {
+			if (viewTitleInfo instanceof ViewTitleInfo2) {
+				ViewTitleInfo2 vti2 = (ViewTitleInfo2) viewTitleInfo;
+				try {
+					vti2.titleInfoLinked(mdi, this);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+
 			String newTitle = (String) viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_TEXT);
 			if (newTitle != null) {
 				setPullTitleFromIView(false);

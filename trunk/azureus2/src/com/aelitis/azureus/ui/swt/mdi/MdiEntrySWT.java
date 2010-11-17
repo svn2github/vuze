@@ -18,4 +18,9 @@ public interface MdiEntrySWT
 	//public SWTSkinObject getSkinObject();
 
 	public IView getIView();
+
+
+	public void addListener(MdiSWTMenuHackListener l);
+
+	public void removeListener(MdiSWTMenuHackListener l);
 }

@@ -1,5 +1,5 @@
 /**
- * Created on Nov 16, 2010
+ * Created on Nov 17, 2010
  *
  * Copyright 2010 Vuze, Inc.  All rights reserved.
  * This program is free software; you can redistribute it and/or modify
@@ -16,18 +16,18 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
  
-package com.aelitis.azureus.ui.swt.views.skin.sidebar;
-
-import org.eclipse.swt.widgets.Menu;
+package com.aelitis.azureus.ui.common.viewtitleinfo;
 
 import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 /**
  * @author TuxPaper
- * @created Nov 16, 2010
+ * @created Nov 17, 2010
  *
  */
-public interface SideBarMenuHackListener
+public interface ViewTitleInfo2
+	extends ViewTitleInfo
 {
-	public void menuWillBeShown(MdiEntry entry, Menu menuTree);
+	public void titleInfoLinked(MultipleDocumentInterface mdi, MdiEntry mdiEntry);
 }
