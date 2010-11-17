@@ -291,7 +291,7 @@ public class DevicesFTUX
 	}
 	
 	protected void _doInstall(AzureusCore core, boolean itunes, boolean sendQOS) {
-		qosTurnOn(sendQOS, itunes);
+		qosTurnOn(sendQOS, itunes, false);
 		
 		
 		List<InstallablePlugin> plugins = new ArrayList<InstallablePlugin>(2);
@@ -402,7 +402,7 @@ public class DevicesFTUX
 		}
 	}
 
-	private static void qosTurnOn(boolean on, boolean itunes) {
+	private static void qosTurnOn(boolean on, boolean itunes, boolean isBugFix) {
 		COConfigurationManager.setParameter(PlatformDevicesMessenger.CFG_SEND_QOS,
 				on);
 		
@@ -411,7 +411,7 @@ public class DevicesFTUX
 		}
 
 		try {
-			PlatformDevicesMessenger.qosTurnOn(itunes);
+			PlatformDevicesMessenger.qosTurnOn(itunes, isBugFix);
 		} catch (Throwable ignore) {
 		}
 		try {
@@ -493,7 +493,7 @@ public class DevicesFTUX
 			} catch (Throwable e) {
 			}
 			boolean hasItunes = (itunes_plugin != null && itunes_plugin.getPluginState().isOperational());
-			qosTurnOn(true, hasItunes);
+			qosTurnOn(true, hasItunes, true);
 			return;
 		}
 	}

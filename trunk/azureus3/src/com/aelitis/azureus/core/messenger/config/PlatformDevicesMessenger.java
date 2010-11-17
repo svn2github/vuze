@@ -59,7 +59,7 @@ public class PlatformDevicesMessenger
 		Arrays.sort(ignoreExtensions);
 	}
 
-	public static void qosTurnOn(boolean withITunes) {
+	public static void qosTurnOn(boolean withITunes, boolean bugFix) {
 		if (!COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
 			return;
 		}
@@ -69,7 +69,7 @@ public class PlatformDevicesMessenger
 					"itunes",
 					Boolean.valueOf(withITunes),
 					"os-name",
-					Constants.OSName
+					Constants.OSName + (bugFix ? ":BF" : "")
 				}, 5000);
 		message.setSendAZID(false);
 		PlatformMessenger.queueMessage(message, null);
