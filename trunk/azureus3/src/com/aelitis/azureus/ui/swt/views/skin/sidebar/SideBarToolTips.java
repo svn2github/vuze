@@ -121,7 +121,7 @@ public class SideBarToolTips
 		Rectangle itemBounds = treeItem.getBounds();
 		Point relPos = new Point(mousePos.x, mousePos.y - itemBounds.y);
 		String sToolTip = getToolTip(relPos);
-		if (sToolTip == null) {
+		if (sToolTip == null || sToolTip.length() == 0) {
 			return;
 		}
 
