@@ -1444,6 +1444,8 @@ DeviceManagerUI
 					return;
 				}
 				if (device_manager.getTranscodeManager().getProviders().length == 0) {
+					// provider plugin not installed yet
+
 					final MdiEntryVitalityImage turnon = entryHeader.addVitalityImage("image.sidebar.turnon");
 					if (turnon != null) {
 						turnon.addListener(new MdiEntryVitalityImageListener() {
@@ -1465,6 +1467,10 @@ DeviceManagerUI
 									}
 								});
 					}
+				} else {
+					// provider plugin installed, but we had a bug in older versions,
+					// so fixup
+					DevicesFTUX.alreadyInstalledFixup();
 				}
 			}
 

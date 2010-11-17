@@ -291,27 +291,7 @@ public class DevicesFTUX
 	}
 	
 	protected void _doInstall(AzureusCore core, boolean itunes, boolean sendQOS) {
-		COConfigurationManager.setParameter(PlatformDevicesMessenger.CFG_SEND_QOS,
-				sendQOS);
-
-		if (sendQOS) {
-  		try {
-  			PlatformDevicesMessenger.qosTurnOn(itunes);
-  		} catch (Throwable ignore) {
-  		}
-  		try {
-  			// catch any devices we found before installing additional plugins
-  			DeviceManager device_manager = DeviceManagerFactory.getSingleton();
-  			Device[] devices = device_manager.getDevices();
-  			for (Device device : devices) {
-  	  		try {
-  	  			PlatformDevicesMessenger.qosFoundDevice(device);
-  	  		} catch (Throwable ignore) {
-  	  		}
-				}
-  		} catch (Throwable ignore) {
-  		}
-		}
+		qosTurnOn(sendQOS, itunes);
 		
 		
 		List<InstallablePlugin> plugins = new ArrayList<InstallablePlugin>(2);
@@ -422,6 +402,32 @@ public class DevicesFTUX
 		}
 	}
 
+	private static void qosTurnOn(boolean on, boolean itunes) {
+		COConfigurationManager.setParameter(PlatformDevicesMessenger.CFG_SEND_QOS,
+				on);
+		
+		if (!on) {
+			return;
+		}
+
+		try {
+			PlatformDevicesMessenger.qosTurnOn(itunes);
+		} catch (Throwable ignore) {
+		}
+		try {
+			// catch any devices we found before installing additional plugins
+			DeviceManager device_manager = DeviceManagerFactory.getSingleton();
+			Device[] devices = device_manager.getDevices();
+			for (Device device : devices) {
+	  		try {
+	  			PlatformDevicesMessenger.qosFoundDevice(device);
+	  		} catch (Throwable ignore) {
+	  		}
+			}
+		} catch (Throwable ignore) {
+		}
+	}
+
 	/**
 	 * 
 	 *
@@ -472,6 +478,24 @@ public class DevicesFTUX
 				}
 			}
 		});
+	}
+
+	public static void alreadyInstalledFixup() {
+		if (!COConfigurationManager.hasParameter(
+				PlatformDevicesMessenger.CFG_SEND_QOS, true)) {
+			// fixup bug where item was turned on via non-dialog way
+			// dialog always set the parameter
+			PluginInterface itunes_plugin = null;
+			try {
+				itunes_plugin = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+						"azitunes", true);
+
+			} catch (Throwable e) {
+			}
+			boolean hasItunes = (itunes_plugin != null && itunes_plugin.getPluginState().isOperational());
+			qosTurnOn(true, hasItunes);
+			return;
+		}
 	}
 
 }
