@@ -482,6 +482,22 @@ public abstract class BaseMDI
 			}
 		}
 	}
+	
+	protected List<MdiEntry> getChildrenOf(String id) {
+		if (id == null) {
+			return Collections.emptyList();
+		}
+		List<MdiEntry> list = new ArrayList<MdiEntry>(1);
+		synchronized (mapIdToEntry) {
+			MdiEntrySWT[] entriesSWT = getEntriesSWT();
+			for (MdiEntrySWT entry : entriesSWT) {
+				if (id.equals(entry.getParentID())) {
+					list.add(entry);
+				}
+			}
+		}
+		return list;
+	}
 
 	public Object updateLanguage(SWTSkinObject skinObject, Object params) {
   	MdiEntrySWT[] entries = getEntriesSWT();
