@@ -675,6 +675,34 @@ public class SearchResultsTabArea
 		}
 
 		closeSearchResults(null);
+		if (Utils.isThisThreadSWT()) {
+			try {
+  			browserSkinObject.getBrowser().setText("");
+  			final Browser browser = browserSkinObject.getBrowser();
+  			final boolean[] done = {false};
+  			browser.addLocationListener(new LocationListener() {
+  				public void changing(LocationEvent event) {
+  				}
+  				
+  				public void changed(LocationEvent event) {
+  					done[0] = true;
+  					browser.removeLocationListener(this);
+  				}
+  			});
+  			browserSkinObject.getBrowser().setUrl("about:blank");
+  			browserSkinObject.getBrowser().refresh();
+  			browserSkinObject.getBrowser().update();
+  			Display display = Utils.getDisplay();
+  			long until = SystemTime.getCurrentTime() + 300;
+  			while (!done[0] && until > SystemTime.getCurrentTime()) {
+  				if (!display.readAndDispatch()) {
+  					display.sleep();
+  				}
+  			}
+			} catch (Throwable t) {
+				
+			}
+		}
 		browserSkinObject.setURL(url);
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
