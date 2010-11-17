@@ -1241,6 +1241,18 @@ public class SideBar
 					} else {
 						entry.setDefaultExpanded(true);
 					}
+					
+					if (id.equals(SIDEBAR_HEADER_PLUGINS)) {
+						entry.addListener(new MdiChildCloseListener() {
+							public void mdiChildEntryClosed(MdiEntry parent, MdiEntry child,
+									boolean user) {
+								if (getChildrenOf(parent.getId()).size() == 0) {
+									parent.close(true);
+								}
+							}
+						});
+					}
+					
 					return entry;
 				}
 			});
