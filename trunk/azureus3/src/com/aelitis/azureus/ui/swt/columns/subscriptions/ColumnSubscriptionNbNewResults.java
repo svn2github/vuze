@@ -47,6 +47,7 @@ public class ColumnSubscriptionNbNewResults
 		super(COLUMN_ID, POSITION_LAST, 100, sTableID);
 		setMinWidth(100);
 		setMaxWidth(100);
+		setAlignment(ALIGN_TRAIL);
 	}
 
 	public void refresh(TableCell cell) {
