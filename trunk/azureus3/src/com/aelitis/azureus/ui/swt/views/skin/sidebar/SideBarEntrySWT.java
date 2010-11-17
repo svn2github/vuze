@@ -966,6 +966,8 @@ public class SideBarEntrySWT
 
 		setTreeItem(null);
 
+		mdi.removeItem(SideBarEntrySWT.this);
+
 		triggerCloseListeners(!SWTThread.getInstance().isTerminated());
 
 		IView iview = getIView();
@@ -1012,7 +1014,6 @@ public class SideBarEntrySWT
 					Debug.out(e2);
 				}
 
-				mdi.removeItem(SideBarEntrySWT.this);
 				mdi.setEntryAutoOpen(id, false);
 			}
 		});
