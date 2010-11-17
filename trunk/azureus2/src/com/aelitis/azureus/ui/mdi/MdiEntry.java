@@ -53,12 +53,16 @@ public interface MdiEntry
 	 */
 	void addListener(MdiCloseListener l);
 
+	void addListener(MdiChildCloseListener l);
+
 	/**
 	 * @param l
 	 *
 	 * @since 4.1.0.3
 	 */
 	void removeListener(MdiCloseListener l);
+
+	void removeListener(MdiChildCloseListener l);
 
 	/**
 	 * @param l

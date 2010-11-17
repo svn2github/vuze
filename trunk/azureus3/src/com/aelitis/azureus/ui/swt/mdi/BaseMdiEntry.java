@@ -60,6 +60,8 @@ public abstract class BaseMdiEntry
 
 	private List<MdiCloseListener> listCloseListeners = null;
 
+	private List<MdiChildCloseListener> listChildCloseListeners = null;
+
 	private List<MdiEntryLogIdListener> listLogIDListeners = null;
 
 	private List<MdiEntryOpenListener> listOpenListeners = null;
@@ -250,12 +252,11 @@ public abstract class BaseMdiEntry
 	}
 
 	public void triggerCloseListeners(boolean user) {
-		if (listCloseListeners == null) {
-			return;
-		}
-		Object[] list;
+		Object[] list = {};
 		synchronized (this) {
-			list = listCloseListeners.toArray();
+			if (listCloseListeners != null) {
+				list = listCloseListeners.toArray();
+			}
 		}
 		for (int i = 0; i < list.length; i++) {
 			MdiCloseListener l = (MdiCloseListener) list[i];
@@ -265,7 +266,48 @@ public abstract class BaseMdiEntry
 				Debug.out(e);
 			}
 		}
+
+		MdiEntry parentEntry = mdi.getEntry(parentID);
+		if (parentEntry instanceof BaseMdiEntry) {
+			((BaseMdiEntry) parentEntry).triggerChildCloseListeners(this, user);
+		}
 	}
+
+	public void addListener(MdiChildCloseListener l) {
+		synchronized (this) {
+			if (listChildCloseListeners == null) {
+				listChildCloseListeners = new ArrayList<MdiChildCloseListener>(1);
+			}
+			listChildCloseListeners.add(l);
+		}
+	}
+
+	public void removeListener(MdiChildCloseListener l) {
+		synchronized (this) {
+			if (listChildCloseListeners != null) {
+				listChildCloseListeners.remove(l);
+			}
+		}
+	}
+
+	public void triggerChildCloseListeners(MdiEntry child, boolean user) {
+		if (listChildCloseListeners == null) {
+			return;
+		}
+		Object[] list;
+		synchronized (this) {
+			list = listChildCloseListeners.toArray();
+		}
+		for (int i = 0; i < list.length; i++) {
+			MdiChildCloseListener l = (MdiChildCloseListener) list[i];
+			try {
+				l.mdiChildEntryClosed(this, child, user);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+	}
+
 
 	public void addListener(MdiEntryLogIdListener l) {
 		synchronized (this) {
