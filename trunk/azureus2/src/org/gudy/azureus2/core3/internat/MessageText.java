@@ -203,7 +203,9 @@ public class MessageText {
 	  RESOURCE_BUNDLE	= bundle;
 	  
 	  Iterator	keys = RESOURCE_BUNDLE.getKeysLight();
-	  
+
+		String ui_suffix = getUISuffix();
+
 	  String	platform_suffix = getPlatformSuffix();
 	  
 	  Set platformKeys = new HashSet();
@@ -212,6 +214,11 @@ public class MessageText {
 		  String	key = (String)keys.next();
 		  if ( key.endsWith( platform_suffix ))
 			  platformKeys.add( key );
+		  else if ( key.endsWith(ui_suffix )) {
+				RESOURCE_BUNDLE.addString(
+						key.substring(0, key.length() - ui_suffix.length()),
+						RESOURCE_BUNDLE.getString(key));
+		  }
 	  }
 	  
 	  platform_specific_keys = platformKeys;
@@ -360,6 +367,11 @@ public class MessageText {
      else
        return "._unknown";
   }
+  
+	private static String getUISuffix() {
+		return "az2".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"))
+				? "._classic" : "._vuze";
+	}
 
   /**
    * Process a sequence of words, and translate the ones containing at least one '.', unless it's an ending dot.
