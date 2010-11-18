@@ -94,6 +94,11 @@ public class FeatureManagerUI
 
 	private static void addFreeBurnUI() {
 		final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		MdiEntry existingEntry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_HEADER_DVD);
+		if (existingEntry != null) {
+			// abandon all hope, something already added DVD stuff
+			return;
+		}
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
@@ -114,7 +119,7 @@ public class FeatureManagerUI
 						});
 
 						MenuManager menuManager = PluginInitializer.getDefaultInterface().getUIManager().getMenuManager();
-						MenuItem menuHide = menuManager.addMenuItem(
+						MenuItem menuHide = menuManager.addMenuItem("Sidebar." +
 								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
 								"popup.error.hide");
 						menuHide.addListener(new MenuItemListener() {
@@ -126,6 +131,20 @@ public class FeatureManagerUI
 						return entryAbout;
 					}
 				});
+		
+		mdi.addListener(new MdiEntryLoadedListener() {
+			public void mdiEntryLoaded(MdiEntry entry) {
+				if (!entry.getId().equals(MultipleDocumentInterface.SIDEBAR_HEADER_DVD)) {
+					return;
+				}
+				MdiEntryVitalityImage addSub = entry.addVitalityImage("image.sidebar.subs.add");
+				addSub.addListener(new MdiEntryVitalityImageListener() {
+					public void mdiEntryVitalityImage_clicked(int x, int y) {
+						openTrialAskWindow();
+					}
+				});
+			}
+		});
 
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
 				new MdiEntryCreationListener() {
