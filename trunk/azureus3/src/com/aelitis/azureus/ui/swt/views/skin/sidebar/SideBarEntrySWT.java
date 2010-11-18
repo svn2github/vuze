@@ -354,6 +354,7 @@ public class SideBarEntrySWT
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				swt_build();
+				SideBarEntrySWT.super.build();
 			}
 		});
 	}

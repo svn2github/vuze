@@ -52,6 +52,7 @@ public class TabbedEntry
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				swt_build();
+				TabbedEntry.super.build();
 			}
 		});
 	}
