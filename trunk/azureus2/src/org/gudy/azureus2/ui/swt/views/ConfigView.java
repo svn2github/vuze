@@ -553,6 +553,10 @@ public class ConfigView extends AbstractIView {
 									if (shell != null) {
 										shell.setCursor(null);
 									}
+									TreeItem[] selection = tree.getSelection();
+									if (selection != null && selection.length > 0) {
+										showSection(selection[0]);
+									}
 								}
 							}
 						});
@@ -618,6 +622,13 @@ public class ConfigView extends AbstractIView {
 						return true;
 					}
 				}
+			} else if (child instanceof Combo) {
+				String[] items = ((Combo)child).getItems();
+				for (String item : items) {
+					if (item.toLowerCase().indexOf(text) >= 0) {
+						return true;
+					}
+				}
 			}
 
 			if (child instanceof Composite) {
@@ -640,12 +651,70 @@ public class ConfigView extends AbstractIView {
       layoutConfigSection.topControl = item;
       
       setupSC(item);
+
+      if (filterText != null && filterText.length() > 0) {
+      	hilightText(item, filterText);
+        item.layout(true, true);
+      }
+
       cConfigSection.layout();
       
       updateHeader(section);
     }
   }
 	
+	private void hilightText(Composite c, String text) {
+		Control[] children = c.getChildren();
+		for (Control child : children) {
+			if (child instanceof Composite) {
+				hilightText((Composite) child, text);
+			}
+
+			if (child instanceof Label) {
+				if (((Label)child).getText().toLowerCase().indexOf(text) >= 0) {
+					hilightControl(child);
+				}
+			} else if (child instanceof Group) {
+				if (((Group)child).getText().toLowerCase().indexOf(text) >= 0) {
+					hilightControl(child);
+				}
+			} else if (child instanceof Button) {
+				if (((Button)child).getText().toLowerCase().indexOf(text) >= 0) {
+					hilightControl(child);
+				}
+			} else if (child instanceof List) {
+				String[] items = ((List)child).getItems();
+				for (String item : items) {
+					if (item.toLowerCase().indexOf(text) >= 0) {
+						hilightControl(child);
+						break;
+					}
+				}
+			} else if (child instanceof Combo) {
+				String[] items = ((Combo)child).getItems();
+				for (String item : items) {
+					if (item.toLowerCase().indexOf(text) >= 0) {
+						hilightControl(child);
+						break;
+					}
+				}
+			}
+
+		}
+	}
+
+	/**
+	 * @param child
+	 *
+	 * @since 4.5.1.1
+	 */
+	private void hilightControl(Control child) {
+		child.setFont(headerFont);
+		//child.setBackgroundImage(imgSmallX);
+		child.setBackground(child.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+		child.setForeground(child.getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+	}
+
 	private void ensureSectionBuilt(TreeItem treeSection, boolean recreateIfAlreadyThere) {
     ScrolledComposite item = (ScrolledComposite)treeSection.getData("Panel");
 
