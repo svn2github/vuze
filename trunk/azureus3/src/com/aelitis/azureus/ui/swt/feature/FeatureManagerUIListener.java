@@ -147,7 +147,6 @@ public class FeatureManagerUIListener
 					new LicenceInstallationListener()
 					{
 						FeatureManagerInstallWindow install_window = null;
-						private Object lastFailMessage;
 	
 						public void start(String licence_key) {
 							if (DEBUG) {
