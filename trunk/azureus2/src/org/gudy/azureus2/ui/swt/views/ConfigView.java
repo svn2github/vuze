@@ -710,7 +710,6 @@ public class ConfigView extends AbstractIView {
 	 */
 	private void hilightControl(Control child) {
 		child.setFont(headerFont);
-		//child.setBackgroundImage(imgSmallX);
 		child.setBackground(child.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 		child.setForeground(child.getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 	}
