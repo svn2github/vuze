@@ -82,7 +82,7 @@ public abstract class BaseMdiEntry
 
 	private Boolean isExpanded = null;
 
-	private boolean disposed;
+	private boolean disposed = true;
 
 	private String imageLeftID;
 
@@ -203,8 +203,13 @@ public abstract class BaseMdiEntry
 	}
 
 	public void setParentID(String id) {
-		if (id == null || id.equals("Tools")) {
-			id = MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS;
+		if (id == null || "Tools".equals(id)) {
+			if (getId().equals(MultipleDocumentInterface.SIDEBAR_HEADER_DVD)
+					&& id == null) {
+				id = "";
+			} else {
+				id = MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS;
+			}
 		}
 		if (id.equals(getId())) {
 			Debug.out("Setting Parent to same ID as child! " + id);
