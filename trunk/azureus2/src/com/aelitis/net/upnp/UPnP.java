@@ -58,6 +58,9 @@ UPnP
 	injectDiscoveryCache(
 		Map				cache );
 	
+	public UPnPSSDP
+	getSSDP();
+	
 		/**
 		 * Logs a message to all registered log listeners
 		 * @param str

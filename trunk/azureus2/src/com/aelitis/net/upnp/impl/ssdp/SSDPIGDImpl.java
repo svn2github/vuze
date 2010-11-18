@@ -70,6 +70,12 @@ SSDPIGDImpl
 		ssdp_core.addListener( this );
 	}
 	
+	public SSDPCore
+	getSSDP()
+	{
+		return( ssdp_core );
+	}
+	
 	public void
 	start()
 	

@@ -32,6 +32,9 @@ import com.aelitis.net.upnp.*;
 public interface 
 SSDPIGD 
 {
+	public UPnPSSDP
+	getSSDP();
+	
 	public void
 	start()
 	

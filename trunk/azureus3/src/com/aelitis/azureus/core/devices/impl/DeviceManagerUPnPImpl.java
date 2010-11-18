@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.*;
 
@@ -57,6 +58,7 @@ import com.aelitis.net.upnp.UPnPFactory;
 import com.aelitis.net.upnp.UPnPListener;
 import com.aelitis.net.upnp.UPnPRootDevice;
 import com.aelitis.net.upnp.UPnPRootDeviceListener;
+import com.aelitis.net.upnp.UPnPSSDPListener;
 import com.aelitis.net.upnp.UPnPService;
 import com.aelitis.net.upnp.services.UPnPOfflineDownloader;
 import com.aelitis.net.upnp.services.UPnPWANConnection;
@@ -225,6 +227,100 @@ DeviceManagerUPnPImpl
 					}
 				});
 		
+			upnp.getSSDP().addListener(
+				new UPnPSSDPListener()
+				{
+					private Map<InetAddress,Boolean>	liveness_map = new HashMap<InetAddress, Boolean>();
+					
+					public void
+					receivedResult(
+						NetworkInterface	network_interface,
+						InetAddress			local_address,
+						InetAddress			originator,
+						String				USN,
+						URL					location,
+						String				ST,
+						String				AL )
+					{
+					}
+					
+					public void
+					receivedNotify(
+						NetworkInterface	network_interface,
+						InetAddress			local_address,
+						InetAddress			originator,
+						String				USN,
+						URL					location,
+						String				NT,
+						String				NTS )
+					{
+						alive( originator, NTS.indexOf( "byebye") == -1 );
+					}
+
+					public String[]
+					receivedSearch(
+						NetworkInterface	network_interface,
+						InetAddress			local_address,
+						InetAddress			originator,
+						String				ST )
+					{
+						alive( originator, true );
+						
+						return( null );
+					}
+					
+					public void
+					interfaceChanged(
+						NetworkInterface	network_interface )
+					{
+					}
+					
+					private void
+					alive(
+						InetAddress		address,
+						boolean			alive )
+					{
+						synchronized( liveness_map ){
+						
+							Boolean	b = liveness_map.get( address );
+							
+							if ( b != null && b == alive ){
+								
+								return;
+							}
+							
+							liveness_map.put( address, alive );
+						}
+												
+						DeviceImpl[] devices = manager.getDevices();
+
+						for ( DeviceImpl d: devices ){
+												
+							if ( d instanceof DeviceMediaRendererImpl ){
+									
+								DeviceMediaRendererImpl r = (DeviceMediaRendererImpl)d;
+									
+								InetAddress device_address = r.getAddress();
+									
+								if ( device_address != null && device_address.equals( address )){
+										
+									if ( r.isAlive() != alive ){
+										
+										if ( alive ){
+											
+											r.alive();
+											
+										}else{
+											
+											r.dead();
+										}
+									}
+								}
+							}
+						}
+					}
+				});
+			
 		}catch( Throwable e ){
 			
 			manager.log( "UPnP device manager failed", e );

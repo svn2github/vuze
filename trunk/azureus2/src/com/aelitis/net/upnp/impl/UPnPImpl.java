@@ -125,6 +125,12 @@ UPnPImpl
 		ssdp.start();
 	}
 	
+	public UPnPSSDP 
+	getSSDP() 
+	{
+		return( ssdp.getSSDP());
+	}
+	
 	public void 
 	injectDiscoveryCache(
 		Map 		cache )
