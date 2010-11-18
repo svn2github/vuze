@@ -157,6 +157,7 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("LibraryDL.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("LibraryUnopened.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("LibraryCD.viewmode", startAdvanced ? 1 : 0);
+		defaults.addParameter("Library.CatInSideBar", startAdvanced ? 1 : 0);
 		
 		defaults.addParameter("list.dm.dblclick", "0");
 		defaults.addParameter("NameColumn.showProgramIcon", startAdvanced);

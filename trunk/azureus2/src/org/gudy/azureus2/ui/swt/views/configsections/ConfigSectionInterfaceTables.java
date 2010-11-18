@@ -151,16 +151,16 @@ public class ConfigSectionInterfaceTables
 
 		
 		{
-			Group cUnits = new Group(cSection, SWT.NULL);
-			Messages.setLanguageText(cUnits, MSG_PREFIX + "library");
+			Group cLibrary = new Group(cSection, SWT.NULL);
+			Messages.setLanguageText(cLibrary, MSG_PREFIX + "library");
 			layout = new GridLayout();
 			layout.numColumns = 2;
-			cUnits.setLayout(layout);
-			cUnits.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
+			cLibrary.setLayout(layout);
+			cLibrary.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
 
 			// double-click
 
-			label = new Label(cUnits, SWT.NULL);
+			label = new Label(cLibrary, SWT.NULL);
 			Messages.setLanguageText(label, "ConfigView.label.dm.dblclick");
 
 			String[] dblclickOptions = {
@@ -177,24 +177,29 @@ public class ConfigSectionInterfaceTables
 				dblclickLabels[i] = MessageText.getString(dblclickOptions[i]);
 				dblclickValues[i] = "" + i;
 			}
-			new StringListParameter(cUnits, "list.dm.dblclick", dblclickLabels,
+			new StringListParameter(cLibrary, "list.dm.dblclick", dblclickLabels,
 					dblclickValues);
 
 
-			new BooleanParameter(cUnits, "Table.useTree", MSG_PREFIX
+			new BooleanParameter(cLibrary, "Table.useTree", MSG_PREFIX
 					+ "useTree").setLayoutData(new GridData(SWT.FILL,
 							SWT.LEFT, true, false, 2, 1));
 
 			if (userMode > 1) {
-				new BooleanParameter(cUnits, "DND Always In Incomplete", MSG_PREFIX
+				new BooleanParameter(cLibrary, "DND Always In Incomplete", MSG_PREFIX
 						+ "DNDalwaysInIncomplete").setLayoutData(new GridData(SWT.FILL,
 								SWT.LEFT, true, false, 2, 1));
 			}
 
-			new BooleanParameter(cUnits, "MyTorrentsView.alwaysShowHeader",
+			new BooleanParameter(cLibrary, "MyTorrentsView.alwaysShowHeader",
 					"ConfigView.label.alwaysShowLibraryHeader").setLayoutData(new GridData(
 							SWT.FILL, SWT.LEFT, true, false, 2, 1));
 
+			if (isAZ3) {
+				new BooleanParameter(cLibrary, "Library.CatInSideBar", MSG_PREFIX
+						+ "CatInSidebar").setLayoutData(new GridData(SWT.FILL,
+								SWT.LEFT, true, false, 2, 1));
+			}
 		}
 
 		return cSection;

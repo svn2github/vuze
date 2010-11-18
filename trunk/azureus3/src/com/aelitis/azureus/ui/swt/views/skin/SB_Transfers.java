@@ -290,7 +290,7 @@ public class SB_Transfers
 		}
 		first = false;
 
-		COConfigurationManager.addAndFireParameterListener("User Mode",
+		COConfigurationManager.addAndFireParameterListener("Library.CatInSideBar",
 				new ParameterListener() {
 					private CategoryManagerListener categoryManagerListener;
 
@@ -300,8 +300,8 @@ public class SB_Transfers
 							return;
 						}
 
-						int userMode = COConfigurationManager.getIntParameter("User Mode");
-						if (userMode > 0 && !COConfigurationManager.getStringParameter("ui").equals("az2")){
+						boolean catInSidebar = COConfigurationManager.getBooleanParameter("Library.CatInSideBar");
+						if (catInSidebar){
 							if (categoryManagerListener != null) {
 								return;
 							}
