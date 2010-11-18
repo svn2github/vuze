@@ -168,14 +168,22 @@ public class FeatureManagerInstallWindow
 		licence.removeInstallationListener(this);
 	}
 
+	public static boolean alreadyFailing = false;
 	public void failed(String licence_key, PluginException error) {
-				
+		if (alreadyFailing) {
+			return;
+		}
+		alreadyFailing = true;
 		UIFunctionsManager.getUIFunctions().promptUser(
 				MessageText.getString( "dlg.auth.install.failed.title" ), 
 				MessageText.getString( "dlg.auth.install.failed.text", new String[]{ licence_key, Debug.getNestedExceptionMessage( error )}),
 				new String[] {
 					MessageText.getString("Button.ok")
-				}, 0, null, null, false, 0, null);
+				}, 0, null, null, false, 0, new UserPrompterResultListener() {
+					public void prompterClosed(int result) {
+						alreadyFailing = false;
+					}
+				});
 				
 		
 		Logger.log(new LogAlert(true, "Error while installing " + licence_key,
