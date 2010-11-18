@@ -16,6 +16,7 @@ import org.gudy.azureus2.plugins.utils.FeatureManager.Licence.LicenceInstallatio
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -146,6 +147,7 @@ public class FeatureManagerUIListener
 					new LicenceInstallationListener()
 					{
 						FeatureManagerInstallWindow install_window = null;
+						private Object lastFailMessage;
 	
 						public void start(String licence_key) {
 							if (DEBUG) {
@@ -176,6 +178,7 @@ public class FeatureManagerUIListener
 							}
 						}
 	
+						public boolean alreadyFailing = false;
 						public void failed(String licenceKey, PluginException error) {
 							if (DEBUG) {
 								System.out.println("FEAT: FAIL: " + licenceKey + ": " + error.toString());
@@ -191,14 +194,23 @@ public class FeatureManagerUIListener
 								pendingAuthForKey = null;
 							}
 
-							String s = Debug.getNestedExceptionMessage(error);
+							if (alreadyFailing) {
+								return;
+							}
+							alreadyFailing = true;
 
+							String s = Debug.getNestedExceptionMessage(error);
+							
 							MessageBoxShell mb = new MessageBoxShell(
 									SWT.ICON_ERROR | SWT.OK,
-									"License Addition Error",
+									"License Addition Error for " + licenceKey,
 									s );
 
-							mb.open( null );
+							mb.open( new UserPrompterResultListener() {
+								public void prompterClosed(int result) {
+									alreadyFailing = false;
+								}
+							} );
 						}
 	
 						public void complete(String licenceKey) {
