@@ -28,6 +28,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -73,13 +74,13 @@ public class ConfigSectionInterfaceTables
 		Label label;
 		GridLayout layout;
 		GridData gridData;
-		Composite cLook = new Composite(parent, SWT.NULL);
-		cLook.setLayoutData(new GridData(GridData.FILL_BOTH));
+		Composite cSection = new Composite(parent, SWT.NULL);
+		cSection.setLayoutData(new GridData(GridData.FILL_BOTH));
 		layout = new GridLayout();
 		layout.numColumns = 2;
-		cLook.setLayout(layout);
+		cSection.setLayout(layout);
 
-		label = new Label(cLook, SWT.NULL);
+		label = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "defaultSortOrder");
 		int[] sortOrderValues = {
 			0,
@@ -91,11 +92,11 @@ public class ConfigSectionInterfaceTables
 			MessageText.getString(MSG_PREFIX + "defaultSortOrder.desc"),
 			MessageText.getString(MSG_PREFIX + "defaultSortOrder.flip")
 		};
-		new IntListParameter(cLook, "config.style.table.defaultSortOrder",
+		new IntListParameter(cSection, "config.style.table.defaultSortOrder",
 				sortOrderLabels, sortOrderValues);
 
 		if (userMode > 0) {
-			label = new Label(cLook, SWT.NULL);
+			label = new Label(cSection, SWT.NULL);
 			Messages.setLanguageText(label, MSG_PREFIX + "guiUpdate");
 			int[] values = {
 				100,
@@ -117,74 +118,85 @@ public class ConfigSectionInterfaceTables
 				"10 s",
 				"15 s"
 			};
-			new IntListParameter(cLook, "GUI Refresh", 1000, labels, values);
+			new IntListParameter(cSection, "GUI Refresh", 1000, labels, values);
 
-			label = new Label(cLook, SWT.NULL);
+			label = new Label(cSection, SWT.NULL);
 			Messages.setLanguageText(label, MSG_PREFIX + "graphicsUpdate");
 			gridData = new GridData();
-			IntParameter graphicUpdate = new IntParameter(cLook, "Graphics Update",
+			IntParameter graphicUpdate = new IntParameter(cSection, "Graphics Update",
 					1, -1);
 			graphicUpdate.setLayoutData(gridData);
 
-			label = new Label(cLook, SWT.NULL);
+			label = new Label(cSection, SWT.NULL);
 			Messages.setLanguageText(label, MSG_PREFIX + "reOrderDelay");
 			gridData = new GridData();
-			IntParameter reorderDelay = new IntParameter(cLook, "ReOrder Delay");
+			IntParameter reorderDelay = new IntParameter(cSection, "ReOrder Delay");
 			reorderDelay.setLayoutData(gridData);
 
-			new BooleanParameter(cLook, "NameColumn.showProgramIcon", MSG_PREFIX
+			new BooleanParameter(cSection, "NameColumn.showProgramIcon", MSG_PREFIX
 					+ "showProgramIcon").setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false, 2, 1));
 		}
 
-		if (userMode > 1) {
-			new BooleanParameter(cLook, "DND Always In Incomplete", MSG_PREFIX
-					+ "DNDalwaysInIncomplete").setLayoutData(new GridData(SWT.FILL,
-					SWT.LEFT, true, false, 2, 1));
-		}
-
-		new BooleanParameter(cLook, "MyTorrentsView.alwaysShowHeader",
-				"ConfigView.label.alwaysShowLibraryHeader").setLayoutData(new GridData(
-				SWT.FILL, SWT.LEFT, true, false, 2, 1));
-
-		if (userMode > 1) {
-			new BooleanParameter(cLook, "GUI_SWT_bAlternateTablePainting", MSG_PREFIX
-					+ "alternateTablePainting").setLayoutData(new GridData(SWT.FILL,
-					SWT.LEFT, true, false, 2, 1));
-		}
-
-		new BooleanParameter(cLook, "Table.useTree", MSG_PREFIX
-				+ "useTree").setLayoutData(new GridData(SWT.FILL,
-				SWT.LEFT, true, false, 2, 1));
-
-
 		if (Constants.isWindows) {
-  		new BooleanParameter(cLook, "Table.extendedErase", MSG_PREFIX
+  		new BooleanParameter(cSection, "Table.extendedErase", MSG_PREFIX
   				+ "extendedErase").setLayoutData(new GridData(SWT.FILL,
   				SWT.LEFT, true, false, 2, 1));
 		}
 
-		// double-click
-		
-		label = new Label(cLook, SWT.NULL);
-		Messages.setLanguageText(label, "ConfigView.label.dm.dblclick");
-
-		String[] dblclickOptions = {
-			"ConfigView.option.dm.dblclick.play",
-			"ConfigView.option.dm.dblclick.details",
-			"ConfigView.option.dm.dblclick.show",
-		};
-
-		String dblclickLabels[] = new String[dblclickOptions.length];
-		String dblclickValues[] = new String[dblclickOptions.length];
-
-		for (int i = 0; i < dblclickOptions.length; i++) {
-
-			dblclickLabels[i] = MessageText.getString(dblclickOptions[i]);
-			dblclickValues[i] = "" + i;
+		if (userMode > 1) {
+			new BooleanParameter(cSection, "GUI_SWT_bAlternateTablePainting", MSG_PREFIX
+					+ "alternateTablePainting").setLayoutData(new GridData(SWT.FILL,
+							SWT.LEFT, true, false, 2, 1));
 		}
-		new StringListParameter(cLook, "list.dm.dblclick", dblclickLabels,
-				dblclickValues);
 
-		return cLook;
+		
+		{
+			Group cUnits = new Group(cSection, SWT.NULL);
+			Messages.setLanguageText(cUnits, MSG_PREFIX + "library");
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			cUnits.setLayout(layout);
+			cUnits.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
+
+			// double-click
+
+			label = new Label(cUnits, SWT.NULL);
+			Messages.setLanguageText(label, "ConfigView.label.dm.dblclick");
+
+			String[] dblclickOptions = {
+				"ConfigView.option.dm.dblclick.play",
+				"ConfigView.option.dm.dblclick.details",
+				"ConfigView.option.dm.dblclick.show",
+			};
+
+			String dblclickLabels[] = new String[dblclickOptions.length];
+			String dblclickValues[] = new String[dblclickOptions.length];
+
+			for (int i = 0; i < dblclickOptions.length; i++) {
+
+				dblclickLabels[i] = MessageText.getString(dblclickOptions[i]);
+				dblclickValues[i] = "" + i;
+			}
+			new StringListParameter(cUnits, "list.dm.dblclick", dblclickLabels,
+					dblclickValues);
+
+
+			new BooleanParameter(cUnits, "Table.useTree", MSG_PREFIX
+					+ "useTree").setLayoutData(new GridData(SWT.FILL,
+							SWT.LEFT, true, false, 2, 1));
+
+			if (userMode > 1) {
+				new BooleanParameter(cUnits, "DND Always In Incomplete", MSG_PREFIX
+						+ "DNDalwaysInIncomplete").setLayoutData(new GridData(SWT.FILL,
+								SWT.LEFT, true, false, 2, 1));
+			}
+
+			new BooleanParameter(cUnits, "MyTorrentsView.alwaysShowHeader",
+					"ConfigView.label.alwaysShowLibraryHeader").setLayoutData(new GridData(
+							SWT.FILL, SWT.LEFT, true, false, 2, 1));
+
+		}
+
+		return cSection;
 	}
 }
