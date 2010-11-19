@@ -38,11 +38,10 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
@@ -165,6 +164,34 @@ public class SB_Transfers
 		});
 
 		addMenuUnwatched(SideBar.SIDEBAR_SECTION_LIBRARY);
+
+		mdi.addListener(new MdiEntryLoadedListener() {
+			public void mdiEntryLoaded(MdiEntry entry) {
+				if (MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS.equals(entry.getId())) {
+					addHeaderMenu();
+				}
+			}
+		});
+	}
+
+	protected static void addHeaderMenu() {
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
+		UIManager uim = pi.getUIManager();
+		MenuManager menuManager = uim.getMenuManager();
+
+		MenuItem menuItem = menuManager.addMenuItem("sidebar."
+				+ MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+				"MyTorrentsView.menu.setCategory.add");
+		menuItem.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				new CategoryAdderWindow(null);
+			}
+		});
+		menuItem.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setVisible(COConfigurationManager.getBooleanParameter("Library.CatInSideBar"));
+			}
+		});
 	}
 
 	protected static MdiEntry createUnopenedEntry(MultipleDocumentInterface mdi) {
@@ -193,8 +220,8 @@ public class SB_Transfers
 		UIManager uim = pi.getUIManager();
 		MenuManager menuManager = uim.getMenuManager();
 
-		MenuItem menuItem = menuManager.addMenuItem("sidebar."
-				+ id, "v3.activity.button.watchall");
+		MenuItem menuItem = menuManager.addMenuItem("sidebar." + id,
+				"v3.activity.button.watchall");
 		menuItem.addListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				CoreWaiterSWT.waitForCore(TriggerInThread.ANY_THREAD,
@@ -238,10 +265,10 @@ public class SB_Transfers
 			}
 		};
 
-		MdiEntry entry = mdi.createEntryFromSkinRef(SideBar.SIDEBAR_HEADER_TRANSFERS,
-				SideBar.SIDEBAR_SECTION_LIBRARY_DL, "library",
-				MessageText.getString("sidebar.LibraryDL"), titleInfoSeeding, null, false,
-				null);
+		MdiEntry entry = mdi.createEntryFromSkinRef(
+				SideBar.SIDEBAR_HEADER_TRANSFERS, SideBar.SIDEBAR_SECTION_LIBRARY_DL,
+				"library", MessageText.getString("sidebar.LibraryDL"),
+				titleInfoSeeding, null, false, null);
 		entry.setImageLeftID("image.sidebar.downloading");
 
 		MdiEntryVitalityImage vitalityImage = entry.addVitalityImage(ID_VITALITY_ALERT);
@@ -269,10 +296,10 @@ public class SB_Transfers
 				return null;
 			}
 		};
-		MdiEntry entry = mdi.createEntryFromSkinRef(SideBar.SIDEBAR_HEADER_TRANSFERS,
-				SideBar.SIDEBAR_SECTION_LIBRARY_DL, "library",
-				MessageText.getString("sidebar.LibraryDL"), titleInfoDownloading, null, false,
-				null);
+		MdiEntry entry = mdi.createEntryFromSkinRef(
+				SideBar.SIDEBAR_HEADER_TRANSFERS, SideBar.SIDEBAR_SECTION_LIBRARY_DL,
+				"library", MessageText.getString("sidebar.LibraryDL"),
+				titleInfoDownloading, null, false, null);
 		entry.setImageLeftID("image.sidebar.downloading");
 
 		MdiEntryVitalityImage vitalityImage = entry.addVitalityImage(ID_VITALITY_ACTIVE);
@@ -301,7 +328,7 @@ public class SB_Transfers
 						}
 
 						boolean catInSidebar = COConfigurationManager.getBooleanParameter("Library.CatInSideBar");
-						if (catInSidebar){
+						if (catInSidebar) {
 							if (categoryManagerListener != null) {
 								return;
 							}
@@ -321,7 +348,8 @@ public class SB_Transfers
 										return;
 									}
 
-									MdiEntry entry = mdi.getEntry("Category." + category.getName());
+									MdiEntry entry = mdi.getEntry("Category."
+											+ category.getName());
 									if (entry == null) {
 										return;
 									}
@@ -611,9 +639,9 @@ public class SB_Transfers
 			return;
 			//name = MessageText.getString(name);
 		}
-		
+
 		ViewTitleInfo viewTitleInfo = new ViewTitleInfo() {
-			
+
 			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_INDICATOR_TEXT) {
 					if (statsNoLowNoise.numIncomplete > 0) {
@@ -629,11 +657,12 @@ public class SB_Transfers
 
 		MdiEntry entry = mdi.createEntryFromSkinRef(
 				MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, "Category."
-						+ category.getName(), "library", name, viewTitleInfo, category, false, null);
+						+ category.getName(), "library", name, viewTitleInfo, category,
+				false, null);
 		if (entry != null) {
 			entry.setImageLeftID("image.sidebar.library");
 		}
-		
+
 		if (entry instanceof SideBarEntrySWT) {
 			final SideBarEntrySWT entrySWT = (SideBarEntrySWT) entry;
 			entrySWT.addListener(new MdiSWTMenuHackListener() {
@@ -642,7 +671,7 @@ public class SB_Transfers
 				}
 			});
 		}
-		
+
 		entry.addListener(new MdiEntryDropListener() {
 			public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
 				if (!(payload instanceof String)) {
@@ -810,27 +839,22 @@ public class SB_Transfers
 	 *
 	 * @since 3.1.1.1
 	 */
-	
-	private static FrequencyLimitedDispatcher refresh_limiter = 
-		new FrequencyLimitedDispatcher(
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
+
+	private static FrequencyLimitedDispatcher refresh_limiter = new FrequencyLimitedDispatcher(
+			new AERunnable() {
+				public void runSupport() {
 					refreshAllLibrariesSupport();
 				}
-			},
-			250 );
-	
-	static{
+			}, 250);
+
+	static {
 		refresh_limiter.setSingleThreaded();
 	}
-	
-	private static void refreshAllLibraries(){
+
+	private static void refreshAllLibraries() {
 		refresh_limiter.dispatch();
 	}
-	
+
 	private static void refreshAllLibrariesSupport() {
 		for (countRefreshListener l : listeners) {
 			l.countRefreshed(statsWithLowNoise, statsNoLowNoise);
