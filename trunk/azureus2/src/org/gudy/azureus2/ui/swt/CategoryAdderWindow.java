@@ -34,7 +34,7 @@ public class CategoryAdderWindow
 {
 	private Category newCategory;
 
-	public CategoryAdderWindow(final Display display) {
+	public CategoryAdderWindow(final Display displayNotUsed) {
 		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
 				"CategoryAddWindow.title", "CategoryAddWindow.message");
 		entryWindow.prompt();
