@@ -209,7 +209,8 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		if (isInPaintItem()) {
 			Object data = row.getTable().getData("curCellBounds");
 			if (data instanceof Rectangle) {
-				return (Rectangle) data;
+				Rectangle r = (Rectangle) data;
+				return new Rectangle(r.x, r.y, r.width, r.height);
 			}
 		}
 		return row.getBounds(position);
