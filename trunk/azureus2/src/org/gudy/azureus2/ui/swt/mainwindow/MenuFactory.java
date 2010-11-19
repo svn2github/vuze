@@ -988,8 +988,9 @@ public class MenuFactory
 	public static MenuItem addGetPluginsMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_PLUGINS_HELP, new Listener() {
 			public void handleEvent(Event e) {
-				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_ABOUTPLUGINS);
+				Utils.launch("http://azureus.sourceforge.net/plugin_list.php");
+				//MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				//mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_ABOUTPLUGINS);
 			}
 		});
 	}
