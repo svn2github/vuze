@@ -53,6 +53,8 @@ public abstract class BaseMDI
 
 	private List<MdiListener> listeners = new ArrayList<MdiListener>();
 
+	private List<MdiEntryLoadedListener> listLoadListeners = new ArrayList<MdiEntryLoadedListener>();
+
 	private static Map<String, Object> mapAutoOpen = new LightHashMap<String, Object>();
 
 	public void addListener(MdiListener l) {
@@ -70,10 +72,48 @@ public abstract class BaseMDI
 		}
 	}
 
+	public void addListener(MdiEntryLoadedListener l) {
+		synchronized (listLoadListeners) {
+			if (listLoadListeners.contains(l)) {
+				return;
+			}
+			listLoadListeners.add(l);
+		}
+		// might be a very rare thread issue here if entry gets loaded while
+		// we are walking through entries
+		MdiEntry[] entries = getEntries();
+		for (MdiEntry entry : entries) {
+			if (entry.isAdded()) {
+				l.mdiEntryLoaded(entry);
+			}
+		}
+	}
+
+	public void removeListener(MdiEntryLoadedListener l) {
+		synchronized (listLoadListeners) {
+			listLoadListeners.remove(l);
+		}
+	}
+	
 	protected void triggerSelectionListener(MdiEntry newEntry, MdiEntry oldEntry) {
 		MdiListener[] array = listeners.toArray(new MdiListener[0]);
 		for (MdiListener l : array) {
-			l.mdiEntrySelected(newEntry, oldEntry);
+			try {
+				l.mdiEntrySelected(newEntry, oldEntry);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+	}
+
+	public void triggerEntryLoadedListeners(MdiEntry entry) {
+		MdiEntryLoadedListener[] array = listLoadListeners.toArray(new MdiEntryLoadedListener[0]);
+		for (MdiEntryLoadedListener l : array) {
+			try {
+				l.mdiEntryLoaded(entry);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 		}
 	}
 

@@ -1560,6 +1560,8 @@ public class SideBar
 		if (treeItem != null) {
   		treeItem.setData("MdiEntry", entry);
   		entry.setTreeItem(treeItem);
+
+  		triggerEntryLoadedListeners(entry);
 		}
 		if (GAP_BETWEEN_LEVEL_1 && parentTreeItem == null && tree.getItemCount() > 1 && index == 0) {
 			createTreeItem(null, ++index);

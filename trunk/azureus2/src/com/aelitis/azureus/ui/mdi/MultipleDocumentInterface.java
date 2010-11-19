@@ -70,7 +70,13 @@ public interface MultipleDocumentInterface
 
 	public MdiEntry getEntry(String id);
 
-	public void addListener(MdiListener sideBarListener);
+	public void addListener(MdiListener l);
+
+	public void removeListener(MdiListener l);
+
+	public void addListener(MdiEntryLoadedListener l);
+
+	public void removeListener(MdiEntryLoadedListener l);
 
 	public boolean isVisible();
 
@@ -79,8 +85,6 @@ public interface MultipleDocumentInterface
 	public MdiEntry[] getEntries();
 
 	public void registerEntry(String id, MdiEntryCreationListener l);
-
-	public void removeListener(MdiListener l);
 
 	boolean entryExists(String id);
 
