@@ -1495,8 +1495,11 @@ DeviceManagerUI
 
 		MenuManager menu_manager = ui_manager.getMenuManager();
 
-		String parentID = "sidebar." + SideBar.SIDEBAR_HEADER_DEVICES;
+		createOverallMenu(menu_manager, "sidebar." + SideBar.SIDEBAR_HEADER_DEVICES);
+		createOverallMenu(menu_manager, "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES);
+	}
 
+	private void createOverallMenu(MenuManager menu_manager, String parentID) {
 		MenuItem de_menu_item = menu_manager.addMenuItem(parentID, "device.search");
 
 		de_menu_item.addListener(new MenuItemListener() {
