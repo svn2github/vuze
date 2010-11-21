@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -591,7 +592,30 @@ redirect_label:
 									
 									setProperty( "URL_HTTP_Response", new Long( response ));
 
-									throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+									InputStream error_stream = con.getErrorStream();
+									
+									String error_str = null;
+									
+									if ( error_stream != null ){
+										
+										String encoding = con.getHeaderField( "content-encoding");
+						 				
+						 				if ( encoding != null ){
+						 					
+						 					if ( encoding.equalsIgnoreCase( "gzip"  )){
+						 									 					
+						 						error_stream = new GZIPInputStream( error_stream );
+							 					
+						 					}else if ( encoding.equalsIgnoreCase( "deflate" )){
+							 						
+						 						error_stream = new InflaterInputStream( error_stream );
+						 					}
+						 				}
+						 				
+										error_str = FileUtil.readInputStreamAsString( error_stream, 256 );
+									}
+									
+									throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + con.getResponseMessage() + (error_str==null?"":( ": error=" + error_str ))));    
 								}
 									
 								getRequestProperties( con );
