@@ -31,6 +31,8 @@ import java.util.*;
 public class Debug {
   
 	private static AEDiagnosticsLogger	diag_logger	= AEDiagnostics.getLogger( "debug" );
+	
+	private static boolean STOP_AT_INITIALIZER = System.getProperty("debug.stacktrace.full", "0").equals("0");
 
 	static{
 		diag_logger.setForced( true );
@@ -193,7 +195,7 @@ public class Debug {
 		int iMaxLines,
 		boolean showErrString) 
 	{
-		String sStackTrace = showErrString ? (t.toString() + "; ") : "";
+		StringBuffer sbStackTrace = new StringBuffer(showErrString ? (t.toString() + "; ") : "");
 		StackTraceElement[]	st = t.getStackTrace();
 
 		if (iMaxLines < 0) {
@@ -205,27 +207,43 @@ public class Debug {
 		int iMax = Math.min(st.length, iMaxLines + frames_to_skip);
 		for (int i = frames_to_skip; i < iMax; i++) {
 
-			if (i > frames_to_skip)
-				sStackTrace += ", ";
+			if (i > frames_to_skip) {
+				sbStackTrace.append(", ");
+			}
 
-			String cn = st[i].getClassName();
-			cn = cn.substring( cn.lastIndexOf(".")+1);
+			String classname = st[i].getClassName();
+			String cnShort = classname.substring( classname.lastIndexOf(".")+1);
 
 			if (Constants.IS_CVS_VERSION) {
+				if (STOP_AT_INITIALIZER
+						&& st[i].getClassName().equals(
+								"com.aelitis.azureus.ui.swt.Initializer")) {
+					sbStackTrace.append("Initializer");
+					break;
+				}
 				// Formatted so it's clickable in eclipse
-				sStackTrace += st[i].getMethodName() + " (" + st[i].getClassName() +".java:" + st[i].getLineNumber() + ")";
+				sbStackTrace.append(st[i].getMethodName());
+				sbStackTrace.append(" (");
+				sbStackTrace.append(classname);
+				sbStackTrace.append(".java:");
+				sbStackTrace.append(st[i].getLineNumber());
+				sbStackTrace.append(')');
 			} else {
-				sStackTrace += cn +"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
+				sbStackTrace.append("::");
+				sbStackTrace.append(st[i].getMethodName());
+				sbStackTrace.append("::");
+				sbStackTrace.append(st[i].getLineNumber());
 			}
 		}
 
 		Throwable cause = t.getCause();
 
 		if (cause != null) {
-			sStackTrace += "\n\tCaused By: " + getCompressedStackTrace(cause, 0);
+			sbStackTrace.append("\n\tCaused By: ");
+			sbStackTrace.append(getCompressedStackTrace(cause, 0));
 		}
 
-		return sStackTrace;
+		return sbStackTrace.toString();
 	}
 
 	public static String getStackTrace(boolean bCompressed, boolean bIncludeSelf) {
