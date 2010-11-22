@@ -109,6 +109,8 @@ public class SideBarEntrySWT
 	private boolean selectable = true;
 
 	private List<MdiSWTMenuHackListener> listMenuHackListners;
+	
+	private boolean neverPainted = true;
 
 	public SideBarEntrySWT(SideBar sidebar, SWTSkin _skin, String id) {
 		super(sidebar, id);
@@ -233,9 +235,25 @@ public class SideBarEntrySWT
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.mdi.MdiEntry#redraw()
 	 */
+	boolean isRedrawQueued = false;
 	public void redraw() {
+		if (neverPainted) {
+			return;
+		}
+		synchronized (this) {
+  		if (isRedrawQueued) {
+  			return;
+  		}
+  		isRedrawQueued = true;
+		}
+
+		//System.out.println("redraw " + Thread.currentThread().getName() + ":" + getId() + " via " + Debug.getCompressedStackTrace());
+		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				synchronized (SideBarEntrySWT.this) {
+					isRedrawQueued = false;
+				}
 				if (swtItem == null || swtItem.isDisposed()) {
 					return;
 				}
@@ -527,6 +545,7 @@ public class SideBarEntrySWT
 	}
 
 	protected void swt_paintSideBar(Event event) {
+		neverPainted = false;
 		//System.out.println(System.currentTimeMillis() + "] paint " + getId() + ";sel? " + ((event.detail & SWT.SELECTED) > 0));
 		TreeItem treeItem = (TreeItem) event.item;
 		if (treeItem.isDisposed() || isDisposed()) {
@@ -867,6 +886,7 @@ public class SideBarEntrySWT
 	}
 
 	protected Color swt_paintEntryBG(int detail, GC gc, Rectangle drawBounds) {
+		neverPainted = false;
 		Color fgText = Colors.black;
 		boolean selected = (detail & SWT.SELECTED) > 0;
 		//boolean focused = (detail & SWT.FOCUSED) > 0;
