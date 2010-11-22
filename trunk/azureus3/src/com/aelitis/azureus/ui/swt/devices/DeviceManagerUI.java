@@ -357,11 +357,7 @@ DeviceManagerUI
 		
 			public void deviceManagerLoaded() {
 				device_manager.removeListener(this);
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						setupUIwithDeviceManager();
-					}
-				});
+				setupUIwithDeviceManager();
 			}
 		
 			public void deviceChanged(Device device) {
@@ -1143,23 +1139,15 @@ DeviceManagerUI
 	rebuildSideBar()
 	{
 			
-		Utils.execSWTThread(
-				new Runnable()
-				{
-					public void
-					run()
-					{
-						if ( sidebar_built ){
-							removeAllDevices();
-							
-							buildSideBar( true );
-						} else {
-							buildSideBar(false);
-						}
-							
-						addAllDevices();
-					}
-				});
+		if ( sidebar_built ){
+			removeAllDevices();
+			
+			buildSideBar( true );
+		} else {
+			buildSideBar(false);
+		}
+			
+		addAllDevices();
 	}
 	
 	protected MdiEntry buildSideBar(boolean rebuild) {
@@ -2063,618 +2051,606 @@ DeviceManagerUI
 					final deviceItem new_di = new deviceItem();
 					
 					device.setTransientProperty( DEVICE_IVIEW_KEY, new_di );
-					
-					Utils.execSWTThread(
-						new Runnable()
-						{
-							public void
-							run()
-							{
-								synchronized( DeviceManagerUI.this ){
-	
-									if ( new_di.isDestroyed()){
-										
-										return;
-									}
-									
-									deviceView view = new deviceView( parent, device );
-									
-									new_di.setView( view );
-										
-									String key = parent + "/" + device.getID() + ":" + nextSidebarID();
 
-									final MdiEntry	entry;
-									
-									int	device_type = device.getType();
-									
-									if ( device_type == Device.DT_MEDIA_RENDERER ){
-
-										entry = 
-											mdi.createEntryFromSkinRef(
-												parent,
-												key, "devicerendererview",
-												device.getName(),
-												view, null, false, -1);
-										
-										String id = getDeviceImageID( device );
-																			
-										if ( id != null ){
-										
-											id = "image.sidebar.device." + id + ".small";
-											
-											entry.setImageLeftID(id);
-										}									
-									}else if ( device_type == Device.DT_OFFLINE_DOWNLOADER ){
-										
-										entry = 
-											mdi.createEntryFromSkinRef(
-												parent,
-												key, "devicesodview",
-												device.getName(),
-												view, null, false, -1);
-										entry.setExpanded(true);
-
-											
-										DeviceOfflineDownloader dod = (DeviceOfflineDownloader)device;
-										
-										String	id;
-										
-										String manufacturer = dod.getManufacturer();
-										
-										if ( manufacturer.toLowerCase().contains( "vuze" )){
-											
-											id = "vuze";
-
-										}else if ( manufacturer.toLowerCase().contains( "belkin" )){
-											
-											id = "bel";
-											
-										}else{
-											
-											id = "other";
-										}
-										
-										entry.setImageLeftID( "image.sidebar.device.od." + id + ".small" );
-
-									}else{
-										
-										entry = mdi.createEntryFromIView(
-												parent, 
-												view,
-												key, 
-												device, 
-												false, 
-												false,
-												true );
-										entry.setExpanded(true);
-									}
-									
-									entry.setDatasource( device );
-									
-									entry.setLogID(parent + "-" + device.getName());
-
-									new_di.setMdiEntry( entry );
-									
-									setStatus( device, new_di );
-																			
-									if ( device instanceof TranscodeTarget ){
-										
-										entry.addListener(
-											new MdiEntryDropListener()
-											{
-												public boolean 
-												mdiEntryDrop(
-													MdiEntry 		entry, 
-													Object 				payload  )
-												{
-													return handleDrop((TranscodeTarget)device, payload );
-												}
-											});
-									}
-									
-									final MenuManager menu_manager = ui_manager.getMenuManager();
-
-									boolean	need_sep = false;
-									
-									if ( device instanceof TranscodeTarget ){
-										
-										need_sep = true;
-										
-	  									MenuItem explore_menu_item = menu_manager.addMenuItem("sidebar." + key, "v3.menu.device.exploreTranscodes");
-	  									
-	  									explore_menu_item.addListener(new MenuItemListener() {
-	  										public void selected(MenuItem menu, Object target) {
-	  							 				ManagerUtils.open( ((TranscodeTarget) device).getWorkingDirectory());
-	  										}
-	  									});
-									}
-									
-									if ( device instanceof DeviceMediaRenderer ){
-										
-										need_sep = true;
-											// filter view
-										
-										final DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
-										
-										if ( renderer.canFilterFilesView()){
-											MenuItem filterfiles_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.only.show");
-											filterfiles_menu_item.setStyle(MenuItem.STYLE_CHECK);
-	
-											filterfiles_menu_item.addFillListener(new MenuItemFillListener() {
-												public void menuWillBeShown(MenuItem menu, Object data) {
-													menu.setData(new Boolean(renderer.getFilterFilesView()));
-												}
-											});
-											filterfiles_menu_item.addListener(new MenuItemListener() {
-												public void selected(MenuItem menu, Object target) {
-									 				renderer.setFilterFilesView( (Boolean) menu.getData());
-												}
-											});
-										}
-										
-											// show cats
-										
-										if ( renderer.canShowCategories()){
-											MenuItem showcat_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.show.cat");
-											showcat_menu_item.setStyle(MenuItem.STYLE_CHECK);
-	
-											showcat_menu_item.addFillListener(new MenuItemFillListener() {
-												public void menuWillBeShown(MenuItem menu, Object data) {
-													menu.setData(new Boolean(renderer.getShowCategories()));
-												}
-											});
-											showcat_menu_item.addListener(new MenuItemListener() {
-												public void selected(MenuItem menu, Object target) {
-									 				renderer.setShowCategories( (Boolean) menu.getData());
-												}
-											});
-										}
-
-											// cache files
-										
-										MenuItem alwayscache_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.always.cache");
-										alwayscache_menu_item.setStyle(MenuItem.STYLE_CHECK);
-	
-										alwayscache_menu_item.addFillListener(new MenuItemFillListener() {
-												public void menuWillBeShown(MenuItem menu, Object data) {
-													menu.setData(new Boolean(renderer.getAlwaysCacheFiles()));
-												}
-											});
-										alwayscache_menu_item.addListener(new MenuItemListener() {
-												public void selected(MenuItem menu, Object target) {
-									 				renderer.setAlwaysCacheFiles( (Boolean) menu.getData());
-												}
-											});
-					
-									}
-									
-									if ( need_sep ){
-									
-										menu_manager.addMenuItem("sidebar." + key, "1" ).setStyle( MenuItem.STYLE_SEPARATOR );
-									}
-									
-									need_sep = false;
-									
-									if ( device instanceof DeviceMediaRenderer ){
-	
-										final DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
-
-										if ( renderer.canCopyToFolder()){
-											
-											need_sep = true;
-											
-											MenuItem autocopy_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.autoCopy");
-											autocopy_menu_item.setStyle(MenuItem.STYLE_CHECK);
-											
-											autocopy_menu_item.addFillListener(new MenuItemFillListener() {
-												public void menuWillBeShown(MenuItem menu, Object data) {
-													menu.setData(new Boolean(renderer.getAutoCopyToFolder()));
-												}
-											});
-											autocopy_menu_item.addListener(new MenuItemListener() {
-												public void selected(MenuItem menu, Object target) {
-									 				renderer.setAutoCopyToFolder((Boolean) menu.getData());
-												}
-											});
-													
-											final MenuItem mancopy_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.mancopy");
-											mancopy_menu_item.setStyle(MenuItem.STYLE_PUSH);
-																			
-											mancopy_menu_item.addListener(new MenuItemListener() {
-												public void 
-												selected(
-													MenuItem menu, Object target) 
-												{
-													try{
-														renderer.manualCopy();
-														
-													}catch( Throwable e ){
-														
-														Debug.out( e );
-													}
-												}
-											});
-											
-											mancopy_menu_item.addFillListener(
-												new MenuItemFillListener()
-												{
-													public void 
-													menuWillBeShown(
-														MenuItem menu, Object data )
-													{
-														boolean	enabled = false;
-													
-														if ( !renderer.getAutoCopyToFolder()){
-															
-															File target = renderer.getCopyToFolder();
-															
-															if ( target != null && target.exists()){
-																
-																enabled = renderer.getCopyToFolderPending() > 0;
-															}
-														}
-														mancopy_menu_item.setEnabled( enabled );
-													}
-												});
-											
-											MenuItem setcopyto_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.setcopyto");
-											setcopyto_menu_item.setStyle(MenuItem.STYLE_PUSH);
-										
-											
-											setcopyto_menu_item.addListener(new MenuItemListener() {
-												public void 
-												selected(
-													MenuItem menu, Object target) 
-												{
-													Shell shell = Utils.findAnyShell();
-													
-													DirectoryDialog dd = new DirectoryDialog( shell );
-													
-													File existing = renderer.getCopyToFolder();
-													
-													if ( existing != null ){
-														
-														dd.setFilterPath( existing.getAbsolutePath());
-													}
-													
-													dd.setText( MessageText.getString( "devices.xcode.setcopyto.title" ));
-													
-													String	path = dd.open();
-													
-													if ( path != null ){
-														
-														renderer.setCopyToFolder( new File( path ));
-													}
-												}
-											});
-
-
-										}
-										
-										if ( renderer.canAutoStartDevice()){
-											
-											need_sep = true;
-											
-											MenuItem autostart_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.autoStart");
-											autostart_menu_item.setStyle(MenuItem.STYLE_CHECK);
-	
-											autostart_menu_item.addFillListener(new MenuItemFillListener() {
-												public void menuWillBeShown(MenuItem menu, Object data) {
-													menu.setData(new Boolean(renderer.getAutoStartDevice()));
-												}
-											});
-											autostart_menu_item.addListener(new MenuItemListener() {
-												public void selected(MenuItem menu, Object target) {
-									 				renderer.setAutoStartDevice((Boolean) menu.getData());
-												}
-											});
-										}
-										
-										if ( renderer.canAssociate()){
-											
-											need_sep = true;
-											
-											final MenuItem menu_associate = menu_manager.addMenuItem(
-													"sidebar." + key, "devices.associate");
-											
-											menu_associate.setStyle(MenuItem.STYLE_MENU);
-
-											menu_associate.addFillListener(
-												new MenuItemFillListener()
-												{
-													public void 
-													menuWillBeShown(
-														MenuItem menu, Object data )
-													{
-														menu_associate.removeAllChildItems();
-														
-														if ( renderer.isAlive()){
-															
-															InetAddress a = renderer.getAddress();
-															
-															String address = a==null?"":a.getHostAddress();
-															
-															MenuItem menu_none = menu_manager.addMenuItem(
-																	menu_associate,
-																	"!" + MessageText.getString( "devices.associate.already" ) + ": " + address + "!" );
-
-															menu_none.setEnabled( false );
-															
-															menu_associate.setEnabled( true );
-															
-														}else{
-															
-															UnassociatedDevice[] unassoc = device_manager.getUnassociatedDevices();
-															
-															if ( unassoc.length == 0 ){
-
-																menu_associate.setEnabled( false );
-																
-															}else{
-																
-																menu_associate.setEnabled( true );
-																
-																for ( final UnassociatedDevice un: unassoc ){
-																	
-																	MenuItem menu_un = menu_manager.addMenuItem(
-																			menu_associate,
-																			"!" + un.getAddress().getHostAddress() + ": " + un.getDescription() + "!");
-																	
-																	menu_un.addListener(
-																		new MenuItemListener() 
-																		{
-																			public void 
-																			selected(
-																				MenuItem 	menu, 
-																				Object 		target)
-																			{
-																				renderer.associate( un );
-																			}
-																		});
-																}
-															}
-														}
-													}
-												});
-
-										}
-										
-										final TranscodeProfile[] transcodeProfiles = renderer.getTranscodeProfiles();
-										
-										if (transcodeProfiles.length > 0) {
-											Arrays.sort(transcodeProfiles, new Comparator<TranscodeProfile>() {
-												public int compare(TranscodeProfile o1, TranscodeProfile o2) {
-													int i1 = o1.getIconIndex();
-													int i2 = o2.getIconIndex();
-													
-													if ( i1 == i2 ){
-													
-														return o1.getName().compareToIgnoreCase(o2.getName());
-													}else{
-														
-														return( i1 - i2 );
-													}
-												}
-											});
-
-											need_sep = true;
-											
-											MenuItem menu_default_profile = menu_manager.addMenuItem(
-													"sidebar." + key, "v3.menu.device.defaultprofile");
-											menu_default_profile.setStyle(MenuItem.STYLE_MENU);
-												
-											MenuItem menu_profile_never = menu_manager.addMenuItem( menu_default_profile, "v3.menu.device.defaultprofile.never");
-													
-											menu_profile_never.setStyle(MenuItem.STYLE_CHECK );
-											menu_profile_never.setData(Boolean.TRUE);
-											menu_profile_never.addListener(new MenuItemListener() {
-												public void selected(MenuItem menu, Object target) {
-													renderer.setTranscodeRequirement(((Boolean)menu.getData())?TranscodeTarget.TRANSCODE_NEVER:TranscodeTarget.TRANSCODE_WHEN_REQUIRED );
-												}});
-
-
-											menu_profile_never.addFillListener(new MenuItemFillListener() {
-												public void menuWillBeShown(MenuItem menu, Object data) {
-													boolean never = renderer.getTranscodeRequirement() == TranscodeTarget.TRANSCODE_NEVER;
-													menu.setData( never );
-												}});
-											
-											MenuItem menu_profile_none = menu_manager.addMenuItem(
-												menu_default_profile, "option.askeverytime");
-											menu_profile_none.setStyle(MenuItem.STYLE_RADIO);
-											menu_profile_none.setData(Boolean.FALSE);
-											menu_profile_none.addListener(new MenuItemListener() {
-												public void selected(MenuItem menu, Object target) {
-													renderer.setDefaultTranscodeProfile(null);
-												}
-											});
-											
-											menu_profile_none.addFillListener(new MenuItemFillListener() {
-												public void menuWillBeShown(MenuItem menu, Object data) {
-													if ( transcodeProfiles.length <= 1 ){
-														menu.setData( Boolean.FALSE );
-														menu.setEnabled( false );
-													}else{
-														TranscodeProfile profile = null;
-														try {
-															profile = renderer.getDefaultTranscodeProfile();
-														} catch (TranscodeException e) {
-														}
-														menu.setData((profile == null) ? Boolean.TRUE
-																: Boolean.FALSE);
-														
-														menu.setEnabled( renderer.getTranscodeRequirement() != TranscodeTarget.TRANSCODE_NEVER  );
-													}
-												}
-											});
-											
-											for (final TranscodeProfile profile : transcodeProfiles) {
-												MenuItem menuItem = menu_manager.addMenuItem(
-														menu_default_profile, "!" + profile.getName() + "!");
-												menuItem.setStyle(MenuItem.STYLE_RADIO);
-												menuItem.setData(Boolean.FALSE);
-												menuItem.addListener(new MenuItemListener() {
-													public void selected(MenuItem menu, Object target) {
-														renderer.setDefaultTranscodeProfile(profile);
-													}
-												});
-																								
-												menuItem.addFillListener(new MenuItemFillListener() {
-													public void menuWillBeShown(MenuItem menu, Object data) {
-														if ( transcodeProfiles.length <= 1 ){
-															menu.setData( Boolean.TRUE );
-															menu.setEnabled( false );
-														}else{
-															TranscodeProfile dprofile = null;
-															try {
-																dprofile = renderer.getDefaultTranscodeProfile();
-															} catch (TranscodeException e) {
-															}
-															menu.setData((profile.equals(dprofile))
-																	? Boolean.TRUE : Boolean.FALSE);
-															
-															menu.setEnabled( renderer.getTranscodeRequirement() != TranscodeTarget.TRANSCODE_NEVER );
-														}
-													}
-												});
-											}
-										}
-										
-										// publish to RSS feed
-										
-										if ( true ){
-											
-											need_sep = true;
-											
-											MenuItem rss_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.rsspub");
-											rss_menu_item.setStyle(MenuItem.STYLE_CHECK);
-
-											rss_menu_item.addFillListener(new MenuItemFillListener() {
-												public void menuWillBeShown(MenuItem menu, Object data) {
-													menu.setData(new Boolean(device_manager.isRSSPublishEnabled() && renderer.isRSSPublishEnabled()));
-												}
-											});
-											rss_menu_item.addListener(new MenuItemListener() {
-												public void selected(MenuItem menu, Object target) {
-									 				renderer.setRSSPublishEnabled((Boolean) menu.getData());
-												}
-											});
-											
-											rss_menu_item.setEnabled( device_manager.isRSSPublishEnabled());
-										}
-									}
-
-									if ( device instanceof DeviceOfflineDownloader ){
-
-										final DeviceOfflineDownloader	dod = (DeviceOfflineDownloader)device;
-										
-										need_sep = true;
-										
-										MenuItem configure_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.configure");
-											
-
-										configure_menu_item.addFillListener(new MenuItemFillListener() {
-											public void menuWillBeShown(MenuItem menu, Object data) {
-												menu.setEnabled( dod.isAlive());
-											}
-										});
-
-										configure_menu_item.addListener(
-											new MenuItemListener()
-											{
-												public void 
-												selected(
-													MenuItem 	menu,
-													Object 		target ) 
-												{
-													try{
-														new DevicesODFTUX( dod );
-														
-													}catch( Throwable e ){
-														
-														Debug.out( e );
-													}
-												}
-											});
-										
-										MenuItem enabled_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.contextmenu.od.enable" );
-										
-										enabled_menu_item.setStyle(MenuItem.STYLE_CHECK);
-
-										enabled_menu_item.addFillListener(new MenuItemFillListener() {
-											public void menuWillBeShown(MenuItem menu, Object data) {
-												menu.setData(new Boolean( dod.isEnabled()));
-											}
-										});
-										
-										enabled_menu_item.addListener(new MenuItemListener() {
-											public void selected(MenuItem menu, Object target) {
-								 				dod.setEnabled((Boolean) menu.getData());
-											}
-										});
-									}
-									
-									if ( device.isBrowsable()){
-										
-										need_sep = true;
-										
-										MenuItem browse_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.browse");
-										
-										browse_menu_item.setStyle( MenuItem.STYLE_MENU );
-										
-										browse_menu_item.addFillListener( will_browse_listener );
-									}
-																	
-									
-									if ( need_sep ){
-									
-										menu_manager.addMenuItem("sidebar." + key, "s2" ).setStyle( MenuItem.STYLE_SEPARATOR );
-									}
-									
-									MenuItem rename_menu_item = menu_manager.addMenuItem("sidebar." + key, "MyTorrentsView.menu.rename" );
-																	
-									rename_menu_item.addListener( rename_listener );									
-									
-									MenuItem hide_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.hide");
-									
-									hide_menu_item.addListener( hide_listener );
-	
-									MenuItem remove_menu_item = menu_manager.addMenuItem("sidebar." + key, "MySharesView.menu.remove");
-									
-									remove_menu_item.addFillListener( will_remove_listener );
- 									
-									remove_menu_item.addListener( remove_listener );
-
-										// sep
-									
-									menu_manager.addMenuItem("sidebar." + key, "s3" ).setStyle( MenuItem.STYLE_SEPARATOR );
-									
-										// props
-									
-									MenuItem menu_item = menu_manager.addMenuItem("sidebar." + key,"Subscription.menu.properties");
-									
-									menu_item.addListener( properties_listener );
-								}
-							}
-						});
+					setupEntry(new_di, device, parent);
 				}
 			}else{
 				
-				Utils.execSWTThread(
-						new Runnable()
-						{
-							public void
-							run()
-							{
-								ViewTitleInfoManager.refreshTitleInfo( existing_di.getView());
-								
-								setStatus( device, existing_di );
-							}
-						});
+				ViewTitleInfoManager.refreshTitleInfo( existing_di.getView());
+				
+				setStatus( device, existing_di );
 			}
 		}
 	}
 	
+	private void setupEntry(deviceItem new_di, final Device device, String parent) {
+		synchronized( DeviceManagerUI.this ){
+			
+			if ( new_di.isDestroyed()){
+				
+				return;
+			}
+			
+			deviceView view = new deviceView( parent, device );
+			
+			new_di.setView( view );
+			
+			String key = parent + "/" + device.getID() + ":" + nextSidebarID();
+
+			final MdiEntry	entry;
+			
+			int	device_type = device.getType();
+			
+			if ( device_type == Device.DT_MEDIA_RENDERER ){
+
+				entry = 
+						mdi.createEntryFromSkinRef(
+								parent,
+								key, "devicerendererview",
+								device.getName(),
+								view, null, false, -1);
+				
+				String id = getDeviceImageID( device );
+				
+				if ( id != null ){
+					
+					id = "image.sidebar.device." + id + ".small";
+					
+					entry.setImageLeftID(id);
+				}									
+			}else if ( device_type == Device.DT_OFFLINE_DOWNLOADER ){
+				
+				entry = 
+						mdi.createEntryFromSkinRef(
+								parent,
+								key, "devicesodview",
+								device.getName(),
+								view, null, false, -1);
+				entry.setExpanded(true);
+
+				
+				DeviceOfflineDownloader dod = (DeviceOfflineDownloader)device;
+				
+				String	id;
+				
+				String manufacturer = dod.getManufacturer();
+				
+				if ( manufacturer.toLowerCase().contains( "vuze" )){
+					
+					id = "vuze";
+
+				}else if ( manufacturer.toLowerCase().contains( "belkin" )){
+					
+					id = "bel";
+					
+				}else{
+					
+					id = "other";
+				}
+				
+				entry.setImageLeftID( "image.sidebar.device.od." + id + ".small" );
+
+			}else{
+				
+				entry = mdi.createEntryFromIView(
+						parent, 
+						view,
+						key, 
+						device, 
+						false, 
+						false,
+						true );
+				entry.setExpanded(true);
+			}
+			
+			entry.setDatasource( device );
+			
+			entry.setLogID(parent + "-" + device.getName());
+
+			new_di.setMdiEntry( entry );
+			
+			setStatus( device, new_di );
+			
+			if ( device instanceof TranscodeTarget ){
+				
+				entry.addListener(
+						new MdiEntryDropListener()
+						{
+							public boolean 
+							mdiEntryDrop(
+									MdiEntry 		entry, 
+									Object 				payload  )
+							{
+								return handleDrop((TranscodeTarget)device, payload );
+							}
+						});
+			}
+			
+			final MenuManager menu_manager = ui_manager.getMenuManager();
+
+			boolean	need_sep = false;
+			
+			if ( device instanceof TranscodeTarget ){
+				
+				need_sep = true;
+				
+				MenuItem explore_menu_item = menu_manager.addMenuItem("sidebar." + key, "v3.menu.device.exploreTranscodes");
+				
+				explore_menu_item.addListener(new MenuItemListener() {
+					public void selected(MenuItem menu, Object target) {
+		 				ManagerUtils.open( ((TranscodeTarget) device).getWorkingDirectory());
+					}
+				});
+			}
+			
+			if ( device instanceof DeviceMediaRenderer ){
+				
+				need_sep = true;
+				// filter view
+				
+				final DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
+				
+				if ( renderer.canFilterFilesView()){
+					MenuItem filterfiles_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.only.show");
+					filterfiles_menu_item.setStyle(MenuItem.STYLE_CHECK);
+					
+					filterfiles_menu_item.addFillListener(new MenuItemFillListener() {
+						public void menuWillBeShown(MenuItem menu, Object data) {
+							menu.setData(new Boolean(renderer.getFilterFilesView()));
+						}
+					});
+					filterfiles_menu_item.addListener(new MenuItemListener() {
+						public void selected(MenuItem menu, Object target) {
+			 				renderer.setFilterFilesView( (Boolean) menu.getData());
+						}
+					});
+				}
+				
+				// show cats
+				
+				if ( renderer.canShowCategories()){
+					MenuItem showcat_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.show.cat");
+					showcat_menu_item.setStyle(MenuItem.STYLE_CHECK);
+					
+					showcat_menu_item.addFillListener(new MenuItemFillListener() {
+						public void menuWillBeShown(MenuItem menu, Object data) {
+							menu.setData(new Boolean(renderer.getShowCategories()));
+						}
+					});
+					showcat_menu_item.addListener(new MenuItemListener() {
+						public void selected(MenuItem menu, Object target) {
+			 				renderer.setShowCategories( (Boolean) menu.getData());
+						}
+					});
+				}
+
+				// cache files
+				
+				MenuItem alwayscache_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.always.cache");
+				alwayscache_menu_item.setStyle(MenuItem.STYLE_CHECK);
+				
+				alwayscache_menu_item.addFillListener(new MenuItemFillListener() {
+					public void menuWillBeShown(MenuItem menu, Object data) {
+						menu.setData(new Boolean(renderer.getAlwaysCacheFiles()));
+					}
+				});
+				alwayscache_menu_item.addListener(new MenuItemListener() {
+					public void selected(MenuItem menu, Object target) {
+		 				renderer.setAlwaysCacheFiles( (Boolean) menu.getData());
+					}
+				});
+				
+			}
+			
+			if ( need_sep ){
+				
+				menu_manager.addMenuItem("sidebar." + key, "1" ).setStyle( MenuItem.STYLE_SEPARATOR );
+			}
+			
+			need_sep = false;
+			
+			if ( device instanceof DeviceMediaRenderer ){
+				
+				final DeviceMediaRenderer renderer = (DeviceMediaRenderer) device;
+
+				if ( renderer.canCopyToFolder()){
+					
+					need_sep = true;
+					
+					MenuItem autocopy_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.autoCopy");
+					autocopy_menu_item.setStyle(MenuItem.STYLE_CHECK);
+					
+					autocopy_menu_item.addFillListener(new MenuItemFillListener() {
+						public void menuWillBeShown(MenuItem menu, Object data) {
+							menu.setData(new Boolean(renderer.getAutoCopyToFolder()));
+						}
+					});
+					autocopy_menu_item.addListener(new MenuItemListener() {
+						public void selected(MenuItem menu, Object target) {
+			 				renderer.setAutoCopyToFolder((Boolean) menu.getData());
+						}
+					});
+					
+					final MenuItem mancopy_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.mancopy");
+					mancopy_menu_item.setStyle(MenuItem.STYLE_PUSH);
+					
+					mancopy_menu_item.addListener(new MenuItemListener() {
+						public void 
+						selected(
+								MenuItem menu, Object target) 
+						{
+							try{
+								renderer.manualCopy();
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					});
+					
+					mancopy_menu_item.addFillListener(
+							new MenuItemFillListener()
+							{
+								public void 
+								menuWillBeShown(
+										MenuItem menu, Object data )
+								{
+									boolean	enabled = false;
+									
+									if ( !renderer.getAutoCopyToFolder()){
+										
+										File target = renderer.getCopyToFolder();
+										
+										if ( target != null && target.exists()){
+											
+											enabled = renderer.getCopyToFolderPending() > 0;
+										}
+									}
+									mancopy_menu_item.setEnabled( enabled );
+								}
+							});
+					
+					MenuItem setcopyto_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.setcopyto");
+					setcopyto_menu_item.setStyle(MenuItem.STYLE_PUSH);
+					
+					
+					setcopyto_menu_item.addListener(new MenuItemListener() {
+						public void 
+						selected(
+								MenuItem menu, Object target) 
+						{
+							Shell shell = Utils.findAnyShell();
+							
+							DirectoryDialog dd = new DirectoryDialog( shell );
+							
+							File existing = renderer.getCopyToFolder();
+							
+							if ( existing != null ){
+								
+								dd.setFilterPath( existing.getAbsolutePath());
+							}
+							
+							dd.setText( MessageText.getString( "devices.xcode.setcopyto.title" ));
+							
+							String	path = dd.open();
+							
+							if ( path != null ){
+								
+								renderer.setCopyToFolder( new File( path ));
+							}
+						}
+					});
+
+
+				}
+				
+				if ( renderer.canAutoStartDevice()){
+					
+					need_sep = true;
+					
+					MenuItem autostart_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.autoStart");
+					autostart_menu_item.setStyle(MenuItem.STYLE_CHECK);
+					
+					autostart_menu_item.addFillListener(new MenuItemFillListener() {
+						public void menuWillBeShown(MenuItem menu, Object data) {
+							menu.setData(new Boolean(renderer.getAutoStartDevice()));
+						}
+					});
+					autostart_menu_item.addListener(new MenuItemListener() {
+						public void selected(MenuItem menu, Object target) {
+			 				renderer.setAutoStartDevice((Boolean) menu.getData());
+						}
+					});
+				}
+				
+				if ( renderer.canAssociate()){
+					
+					need_sep = true;
+					
+					final MenuItem menu_associate = menu_manager.addMenuItem(
+							"sidebar." + key, "devices.associate");
+					
+					menu_associate.setStyle(MenuItem.STYLE_MENU);
+
+					menu_associate.addFillListener(
+							new MenuItemFillListener()
+							{
+								public void 
+								menuWillBeShown(
+										MenuItem menu, Object data )
+								{
+									menu_associate.removeAllChildItems();
+									
+									if ( renderer.isAlive()){
+										
+										InetAddress a = renderer.getAddress();
+										
+										String address = a==null?"":a.getHostAddress();
+										
+										MenuItem menu_none = menu_manager.addMenuItem(
+												menu_associate,
+												"!" + MessageText.getString( "devices.associate.already" ) + ": " + address + "!" );
+
+										menu_none.setEnabled( false );
+										
+										menu_associate.setEnabled( true );
+										
+									}else{
+										
+										UnassociatedDevice[] unassoc = device_manager.getUnassociatedDevices();
+										
+										if ( unassoc.length == 0 ){
+
+											menu_associate.setEnabled( false );
+											
+										}else{
+											
+											menu_associate.setEnabled( true );
+											
+											for ( final UnassociatedDevice un: unassoc ){
+												
+												MenuItem menu_un = menu_manager.addMenuItem(
+														menu_associate,
+														"!" + un.getAddress().getHostAddress() + ": " + un.getDescription() + "!");
+													
+													menu_un.addListener(
+															new MenuItemListener() 
+															{
+																public void 
+																selected(
+																		MenuItem 	menu, 
+																		Object 		target)
+																{
+																	renderer.associate( un );
+																}
+															});
+											}
+										}
+									}
+								}
+							});
+
+				}
+				
+				final TranscodeProfile[] transcodeProfiles = renderer.getTranscodeProfiles();
+				
+				if (transcodeProfiles.length > 0) {
+					Arrays.sort(transcodeProfiles, new Comparator<TranscodeProfile>() {
+						public int compare(TranscodeProfile o1, TranscodeProfile o2) {
+							int i1 = o1.getIconIndex();
+							int i2 = o2.getIconIndex();
+							
+							if ( i1 == i2 ){
+								
+								return o1.getName().compareToIgnoreCase(o2.getName());
+							}else{
+								
+								return( i1 - i2 );
+							}
+						}
+					});
+
+					need_sep = true;
+					
+					MenuItem menu_default_profile = menu_manager.addMenuItem(
+							"sidebar." + key, "v3.menu.device.defaultprofile");
+					menu_default_profile.setStyle(MenuItem.STYLE_MENU);
+					
+					MenuItem menu_profile_never = menu_manager.addMenuItem( menu_default_profile, "v3.menu.device.defaultprofile.never");
+					
+					menu_profile_never.setStyle(MenuItem.STYLE_CHECK );
+					menu_profile_never.setData(Boolean.TRUE);
+					menu_profile_never.addListener(new MenuItemListener() {
+						public void selected(MenuItem menu, Object target) {
+							renderer.setTranscodeRequirement(((Boolean)menu.getData())?TranscodeTarget.TRANSCODE_NEVER:TranscodeTarget.TRANSCODE_WHEN_REQUIRED );
+						}});
+
+
+					menu_profile_never.addFillListener(new MenuItemFillListener() {
+						public void menuWillBeShown(MenuItem menu, Object data) {
+							boolean never = renderer.getTranscodeRequirement() == TranscodeTarget.TRANSCODE_NEVER;
+							menu.setData( never );
+						}});
+					
+					MenuItem menu_profile_none = menu_manager.addMenuItem(
+							menu_default_profile, "option.askeverytime");
+					menu_profile_none.setStyle(MenuItem.STYLE_RADIO);
+					menu_profile_none.setData(Boolean.FALSE);
+					menu_profile_none.addListener(new MenuItemListener() {
+						public void selected(MenuItem menu, Object target) {
+							renderer.setDefaultTranscodeProfile(null);
+						}
+					});
+					
+					menu_profile_none.addFillListener(new MenuItemFillListener() {
+						public void menuWillBeShown(MenuItem menu, Object data) {
+							if ( transcodeProfiles.length <= 1 ){
+								menu.setData( Boolean.FALSE );
+								menu.setEnabled( false );
+							}else{
+								TranscodeProfile profile = null;
+								try {
+									profile = renderer.getDefaultTranscodeProfile();
+								} catch (TranscodeException e) {
+								}
+								menu.setData((profile == null) ? Boolean.TRUE
+										: Boolean.FALSE);
+								
+								menu.setEnabled( renderer.getTranscodeRequirement() != TranscodeTarget.TRANSCODE_NEVER  );
+							}
+						}
+					});
+					
+					for (final TranscodeProfile profile : transcodeProfiles) {
+						MenuItem menuItem = menu_manager.addMenuItem(
+								menu_default_profile, "!" + profile.getName() + "!");
+							menuItem.setStyle(MenuItem.STYLE_RADIO);
+							menuItem.setData(Boolean.FALSE);
+							menuItem.addListener(new MenuItemListener() {
+								public void selected(MenuItem menu, Object target) {
+									renderer.setDefaultTranscodeProfile(profile);
+								}
+							});
+							
+							menuItem.addFillListener(new MenuItemFillListener() {
+								public void menuWillBeShown(MenuItem menu, Object data) {
+									if ( transcodeProfiles.length <= 1 ){
+										menu.setData( Boolean.TRUE );
+										menu.setEnabled( false );
+									}else{
+										TranscodeProfile dprofile = null;
+										try {
+											dprofile = renderer.getDefaultTranscodeProfile();
+										} catch (TranscodeException e) {
+										}
+										menu.setData((profile.equals(dprofile))
+												? Boolean.TRUE : Boolean.FALSE);
+										
+										menu.setEnabled( renderer.getTranscodeRequirement() != TranscodeTarget.TRANSCODE_NEVER );
+									}
+								}
+							});
+					}
+				}
+				
+				// publish to RSS feed
+				
+				if ( true ){
+					
+					need_sep = true;
+					
+					MenuItem rss_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.rsspub");
+					rss_menu_item.setStyle(MenuItem.STYLE_CHECK);
+
+					rss_menu_item.addFillListener(new MenuItemFillListener() {
+						public void menuWillBeShown(MenuItem menu, Object data) {
+							menu.setData(new Boolean(device_manager.isRSSPublishEnabled() && renderer.isRSSPublishEnabled()));
+						}
+					});
+					rss_menu_item.addListener(new MenuItemListener() {
+						public void selected(MenuItem menu, Object target) {
+			 				renderer.setRSSPublishEnabled((Boolean) menu.getData());
+						}
+					});
+					
+					rss_menu_item.setEnabled( device_manager.isRSSPublishEnabled());
+				}
+			}
+
+			if ( device instanceof DeviceOfflineDownloader ){
+
+				final DeviceOfflineDownloader	dod = (DeviceOfflineDownloader)device;
+				
+				need_sep = true;
+				
+				MenuItem configure_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.configure");
+				
+
+				configure_menu_item.addFillListener(new MenuItemFillListener() {
+					public void menuWillBeShown(MenuItem menu, Object data) {
+						menu.setEnabled( dod.isAlive());
+					}
+				});
+
+				configure_menu_item.addListener(
+						new MenuItemListener()
+						{
+							public void 
+							selected(
+									MenuItem 	menu,
+									Object 		target ) 
+							{
+								try{
+									new DevicesODFTUX( dod );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						});
+				
+				MenuItem enabled_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.contextmenu.od.enable" );
+				
+				enabled_menu_item.setStyle(MenuItem.STYLE_CHECK);
+
+				enabled_menu_item.addFillListener(new MenuItemFillListener() {
+					public void menuWillBeShown(MenuItem menu, Object data) {
+						menu.setData(new Boolean( dod.isEnabled()));
+					}
+				});
+				
+				enabled_menu_item.addListener(new MenuItemListener() {
+					public void selected(MenuItem menu, Object target) {
+		 				dod.setEnabled((Boolean) menu.getData());
+					}
+				});
+			}
+			
+			if ( device.isBrowsable()){
+				
+				need_sep = true;
+				
+				MenuItem browse_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.browse");
+				
+				browse_menu_item.setStyle( MenuItem.STYLE_MENU );
+				
+				browse_menu_item.addFillListener( will_browse_listener );
+			}
+			
+			
+			if ( need_sep ){
+				
+				menu_manager.addMenuItem("sidebar." + key, "s2" ).setStyle( MenuItem.STYLE_SEPARATOR );
+			}
+			
+			MenuItem rename_menu_item = menu_manager.addMenuItem("sidebar." + key, "MyTorrentsView.menu.rename" );
+			
+			rename_menu_item.addListener( rename_listener );									
+			
+			MenuItem hide_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.hide");
+			
+			hide_menu_item.addListener( hide_listener );
+			
+			MenuItem remove_menu_item = menu_manager.addMenuItem("sidebar." + key, "MySharesView.menu.remove");
+			
+			remove_menu_item.addFillListener( will_remove_listener );
+				
+			remove_menu_item.addListener( remove_listener );
+
+			// sep
+			
+			menu_manager.addMenuItem("sidebar." + key, "s3" ).setStyle( MenuItem.STYLE_SEPARATOR );
+			
+			// props
+			
+			MenuItem menu_item = menu_manager.addMenuItem("sidebar." + key,"Subscription.menu.properties");
+			
+			menu_item.addListener( properties_listener );
+		}
+	}
+
 	protected static String
 	getDeviceImageID(
 		Device		device )
@@ -3059,33 +3035,25 @@ DeviceManagerUI
 			}
 		}
 			
-		Utils.execSWTThread(
-				new Runnable()
+			Device[] devices = device_manager.getDevices();
+			
+			Arrays.sort(
+				devices,
+				new Comparator<Device>()
 				{
-					public void
-					run()
+					public int 
+					compare(
+						Device o1, 
+						Device o2) 
 					{
-						Device[] devices = device_manager.getDevices();
-						
-						Arrays.sort(
-							devices,
-							new Comparator<Device>()
-							{
-								public int 
-								compare(
-									Device o1, 
-									Device o2) 
-								{
-									return( o1.getName().compareToIgnoreCase( o2.getName()));
-								}
-							});
-						
-						for ( Device device: devices ){
-							
-							addOrChangeDevice( device );
-						}
+						return( o1.getName().compareToIgnoreCase( o2.getName()));
 					}
 				});
+			
+			for ( Device device: devices ){
+				
+				addOrChangeDevice( device );
+			}
 	}
 	
 	protected void
