@@ -551,26 +551,24 @@ public class SideBar
 							return;
 						}
 						SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
-						if (entry != null) {
-							if (entry.isSelectable()) {
-								showEntry(entry);
-							} else if (currentEntry != null) {
-								TreeItem topItem = tree.getTopItem();
-								
-								// prevent "jumping" in the case where selection is off screen
-								// setSelection would jump the item on screen, and then
-								// showItem would jump back to where the user was.
-								tree.setRedraw(false);
-								TreeItem ti = ((SideBarEntrySWT) currentEntry).getTreeItem();
-								if ( ti != null ){
-									tree.setSelection( ti );
-								}
-								
-								tree.setTopItem(topItem);
-								tree.setRedraw(true);
-
-								event.doit = false;
+						if (entry != null && entry.isSelectable()) {
+							showEntry(entry);
+						} else if (currentEntry != null) {
+							TreeItem topItem = tree.getTopItem();
+							
+							// prevent "jumping" in the case where selection is off screen
+							// setSelection would jump the item on screen, and then
+							// showItem would jump back to where the user was.
+							tree.setRedraw(false);
+							TreeItem ti = ((SideBarEntrySWT) currentEntry).getTreeItem();
+							if ( ti != null ){
+								tree.setSelection( ti );
 							}
+							
+							tree.setTopItem(topItem);
+							tree.setRedraw(true);
+
+							event.doit = false;
 						}
 						break;
 					}
@@ -1641,7 +1639,7 @@ public class SideBar
 			return;
 		}
 		
-		if (newEntry != null && !newEntry.isSelectable()) {
+		if (newEntry == null || !newEntry.isSelectable()) {
 			return;
 		}
 
@@ -1669,10 +1667,8 @@ public class SideBar
 			oldEntry.hide();
 			oldEntry.redraw();
 		}
-		
-		if (newEntry != null) {
-			newEntry.redraw();
-		}
+	
+		newEntry.redraw();
 
 		triggerSelectionListener(newEntry, oldEntry);
 	}
