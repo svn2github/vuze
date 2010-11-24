@@ -2049,7 +2049,7 @@ DeviceManagerUI
 				if ( !device.isHidden()){
 					
 					final deviceItem new_di = new deviceItem();
-					
+
 					device.setTransientProperty( DEVICE_IVIEW_KEY, new_di );
 
 					setupEntry(new_di, device, parent);
@@ -2148,7 +2148,7 @@ DeviceManagerUI
 			entry.setLogID(parent + "-" + device.getName());
 
 			new_di.setMdiEntry( entry );
-			
+
 			setStatus( device, new_di );
 			
 			if ( device instanceof TranscodeTarget ){
@@ -3069,20 +3069,12 @@ DeviceManagerUI
 			}
 		}
 
-		Utils.execSWTThread(
-				new Runnable()
-				{
-					public void
-					run()
-					{
-						Device[] devices = device_manager.getDevices();
-						
-						for ( Device device: devices ){
-							
-							removeDevice( device );
-						}
-					}
-				});
+		Device[] devices = device_manager.getDevices();
+		
+		for ( Device device: devices ){
+			
+			removeDevice( device );
+		}
 	}
 	
 	protected void
@@ -3748,6 +3740,7 @@ DeviceManagerUI
 		{
 			destroyed = true;
 			
+System.out.println("  destroy " + sb_entry);
 			if (sb_entry != null) {
 				sb_entry.close(false);
 			}
