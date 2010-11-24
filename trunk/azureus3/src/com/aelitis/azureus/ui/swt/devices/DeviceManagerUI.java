@@ -3740,7 +3740,6 @@ DeviceManagerUI
 		{
 			destroyed = true;
 			
-System.out.println("  destroy " + sb_entry);
 			if (sb_entry != null) {
 				sb_entry.close(false);
 			}
