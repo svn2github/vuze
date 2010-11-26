@@ -727,7 +727,7 @@ public abstract class BaseMdiEntry
 		if ( 	( _eventListener instanceof BasicPluginViewImpl ) ||
 				(	( _eventListener instanceof UISWTViewEventListenerHolder )) && ((UISWTViewEventListenerHolder)_eventListener).isLogView()){
 
-			if ( getImageLeftID() == null) {
+			if ("image.sidebar.plugin".equals(getImageLeftID())) {
 				setImageLeftID("image.sidebar.logview");
 			}
 		}
