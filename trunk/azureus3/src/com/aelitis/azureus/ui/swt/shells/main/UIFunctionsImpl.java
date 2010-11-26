@@ -489,7 +489,7 @@ public class UIFunctionsImpl
 			case VIEW_MYTORRENTS: {
 				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 				if (mdi != null) {
-					mdi.showEntryByID( COConfigurationManager.getStringParameter("ui").equals("az2")?SideBar.SIDEBAR_SECTION_LIBRARY:SideBar.SIDEBAR_HEADER_TRANSFERS);
+					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 				}
 			}
 				break;
