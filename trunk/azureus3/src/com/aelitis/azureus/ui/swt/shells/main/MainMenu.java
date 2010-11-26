@@ -7,7 +7,6 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -16,19 +15,18 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.content.RelatedContentManager;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
-import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
-import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.SBC_PlusFTUX;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -36,17 +34,11 @@ import com.aelitis.azureus.util.ContentNetworkUtils;
 public class MainMenu
 	implements IMainMenu, IMenuConstants
 {
-	private static final boolean ALLOW_ACTIONBAR_HIDING = false;
-
-	private static final boolean ALLOW_SIDEBAR_HIDING = true;
-
 	final String PREFIX_V2 = "MainWindow.menu";
 
 	final String PREFIX_V3 = "v3.MainWindow.menu";
 
 	private Menu menuBar;
-
-	private final SWTSkin skin;
 
 	/**
 	 * Creates the main menu on the supplied shell
@@ -54,8 +46,6 @@ public class MainMenu
 	 * @param shell
 	 */
 	public MainMenu(SWTSkin skin, final Shell shell) {
-		this.skin = skin;
-
 		if (null == skin) {
 			throw new NullPointerException(
 					"The parameter [SWTSkin skin] can not be null");
@@ -398,129 +388,6 @@ public class MainMenu
 		} catch (Exception e) {
 			Debug.out("Error creating View Menu", e);
 		}
-	}
-
-	/**
-	 * Creates the View menu and all its children
-	 */
-	private void addViewMenu() {
-		try {
-			MenuItem viewItem = MenuFactory.createViewMenuItem(menuBar);
-			final Menu viewMenu = viewItem.getMenu();
-
-			addViewToolBarsMenu(viewMenu);
-
-			//addViewMenuItems(viewMenu);
-
-		} catch (Exception e) {
-			Debug.out("Error creating View Menu", e);
-		}
-	}
-
-	/**
-	 * 
-	 *
-	 * @since 3.1.1.1
-	 */
-	private void addViewToolBarsMenu(Menu parent) {
-		try {
-
-			MenuItem viewToolBarsItem = MenuFactory.createTopLevelMenuItem(parent,
-					PREFIX_V3 + ".view.toolbars");
-			final Menu viewToolBarsMenu = viewToolBarsItem.getMenu();
-
-			if (ALLOW_SIDEBAR_HIDING) {
-				MenuFactory.addMenuItem(viewToolBarsMenu, SWT.CHECK, PREFIX_V3
-						+ ".view.sidebar", new Listener() {
-					public void handleEvent(Event event) {
-						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-						if (sidebar != null) {
-							sidebar.flipSideBarVisibility();
-						}
-					}
-				});
-			}
-
-			if (ALLOW_ACTIONBAR_HIDING) {
-				MenuFactory.addMenuItem(viewToolBarsMenu, SWT.CHECK, PREFIX_V3
-						+ ".view.actionbar", new Listener() {
-					public void handleEvent(Event event) {
-						if (skin != null) {
-							SWTSkinObject so = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
-							if (so != null) {
-								so.setVisible(!so.isVisible());
-							}
-						}
-					}
-				});
-			}
-
-			/*
-			 * NOTE: The following menu items must be created on-demand because
-			 * their creation code relies on the main window being in proper size already.
-			 * Adding these menus before the window is fully opened will result in improper
-			 * layout of the PluginBar and TabBar
-			 */
-			viewToolBarsMenu.addMenuListener(new MenuListener() {
-
-				public void menuShown(MenuEvent e) {
-
-					MenuItem sidebarMenuItem = MenuFactory.findMenuItem(viewToolBarsMenu,
-							PREFIX_V3 + ".view.sidebar");
-					if (sidebarMenuItem != null) {
-						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-						if (sidebar != null) {
-							sidebarMenuItem.setSelection(sidebar.isVisible());
-						}
-					}
-
-					MenuItem actionbarMenuItem = MenuFactory.findMenuItem(
-							viewToolBarsMenu, PREFIX_V3 + ".view.actionbar");
-					if (actionbarMenuItem != null) {
-						if (skin != null) {
-							SWTSkinObject so = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
-							if (so != null) {
-								actionbarMenuItem.setSelection(so.isVisible());
-							}
-						}
-					}
-
-					if (null == MenuFactory.findMenuItem(viewToolBarsMenu, PREFIX_V3
-							+ ".view." + SkinConstants.VIEWID_PLUGINBAR)) {
-						createViewMenuItem(skin, viewToolBarsMenu, PREFIX_V3 + ".view."
-								+ SkinConstants.VIEWID_PLUGINBAR,
-								SkinConstants.VIEWID_PLUGINBAR + ".visible",
-								SkinConstants.VIEWID_PLUGINBAR, true, 0);
-					}
-
-				}
-
-				public void menuHidden(MenuEvent e) {
-					// Do nothing
-				}
-
-			});
-		} catch (Exception e) {
-			Debug.out("Error creating View Menu", e);
-		}
-	}
-
-	private void addViewMenuItems(Menu viewMenu) {
-
-		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".browse", new Listener() {
-			public void handleEvent(Event event) {
-				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				mdi.showEntryByID(SideBar.SIDEBAR_SECTION_BROWSE);
-			}
-		});
-
-		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".library", new Listener() {
-			public void handleEvent(Event event) {
-				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
-			}
-		});
-
 	}
 
 	/**
