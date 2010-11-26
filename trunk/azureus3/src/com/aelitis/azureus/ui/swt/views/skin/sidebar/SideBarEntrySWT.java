@@ -519,7 +519,11 @@ public class SideBarEntrySWT
 	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#show()
 	 */
 	public void show() {
-		Utils.execSWTThread(new AERunnable() {
+		// ensure show order by user execThreadLater
+		// fixes case where two showEntries are called, the first from a non
+		// SWT thread, and the 2nd from a SWT thread.  The first one will run last
+		// showing itself
+		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				swt_show();
 			}
