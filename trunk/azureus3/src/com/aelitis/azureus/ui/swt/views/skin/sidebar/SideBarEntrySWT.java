@@ -588,15 +588,11 @@ public class SideBarEntrySWT
 
 		if (DO_OUR_OWN_TREE_INDENT) {
 			TreeItem tempItem = treeItem.getParentItem();
-			int indent = !isCollapseDisabled() && tempItem == null ? 22 : 10;
+			int indent;
 			if (!isCollapseDisabled() && tempItem == null) {
 				indent = 22;
 			} else {
-				if (treeItem.getItemCount() == 0 || tempItem == null) {
-					indent = 10;
-				} else {
-					indent = 30;
-				}
+				indent = 10;
 			}
 			while (tempItem != null) {
 				indent += 10;
@@ -859,16 +855,17 @@ public class SideBarEntrySWT
 			gc.setAntialias(SWT.ON);
 			Color oldBG = gc.getBackground();
 			gc.setBackground(event.display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
+			int baseX = 22; // itemBounds.x;
 			if (treeItem.getExpanded()) {
 				int xStart = 12;
 				int arrowSize = 8;
 				int yStart = itemBounds.height - (itemBounds.height + arrowSize) / 2;
 				gc.fillPolygon(new int[] {
-					itemBounds.x - xStart,
+					baseX - xStart,
 					itemBounds.y + yStart,
-					itemBounds.x - xStart + arrowSize,
+					baseX - xStart + arrowSize,
 					itemBounds.y + yStart,
-					itemBounds.x - xStart + (arrowSize / 2),
+					baseX - xStart + (arrowSize / 2),
 					itemBounds.y + yStart + arrowSize,
 				});
 			} else {
@@ -876,11 +873,11 @@ public class SideBarEntrySWT
 				int arrowSize = 8;
 				int yStart = itemBounds.height - (itemBounds.height + arrowSize) / 2;
 				gc.fillPolygon(new int[] {
-					itemBounds.x - xStart,
+					baseX - xStart,
 					itemBounds.y + yStart,
-					itemBounds.x - xStart + arrowSize,
+					baseX - xStart + arrowSize,
 					itemBounds.y + yStart + 4,
-					itemBounds.x - xStart,
+					baseX - xStart,
 					itemBounds.y + yStart + 8,
 				});
 			}
