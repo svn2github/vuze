@@ -30,18 +30,27 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.ui.swt.IconBarEnabler;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.activities.*;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -74,7 +83,6 @@ public class SBC_ActivityTableView
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
-
 		skinObject.addListener(new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
@@ -90,22 +98,24 @@ public class SBC_ActivityTableView
 		});
 
 		SWTSkinObject soParent = skinObject.getParent();
-		
-		Object data = soParent.getControl().getData(
-				"ViewMode");
+
+		Object data = soParent.getControl().getData("ViewMode");
 		if (data instanceof Long) {
-			viewMode  = (int) ((Long) data).longValue();
+			viewMode = (int) ((Long) data).longValue();
 		}
-		
+
 		boolean big = viewMode == SBC_ActivityView.MODE_BIGTABLE;
-		
-		tableID = big ? TableManager.TABLE_ACTIVITY_BIG : TableManager.TABLE_ACTIVITY;
-		TableColumnCore[] columns = big ?  TableColumnCreatorV3.createActivityBig(tableID) : TableColumnCreatorV3.createActivitySmall(tableID);
+
+		tableID = big ? TableManager.TABLE_ACTIVITY_BIG
+				: TableManager.TABLE_ACTIVITY;
+		TableColumnCore[] columns = big
+				? TableColumnCreatorV3.createActivityBig(tableID)
+				: TableColumnCreatorV3.createActivitySmall(tableID);
 
 		view = new TableViewSWTImpl<VuzeActivitiesEntry>(VuzeActivitiesEntry.class,
 				tableID, tableID, columns, "name", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
-		
+
 		view.setRowDefaultHeight(big ? 50 : 32);
 
 		view.addKeyListener(new KeyListener() {
@@ -142,7 +152,7 @@ public class SBC_ActivityTableView
 					}
 				}
 			}
-			
+
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 				if (rows.length == 1) {
 					TorrentListViewsUtils.playOrStreamDataSource(rows[0].getDataSource(),
@@ -154,7 +164,6 @@ public class SBC_ActivityTableView
 				selectionChanged();
 			}
 
-			
 			public void selectionChanged() {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
@@ -168,16 +177,15 @@ public class SBC_ActivityTableView
 			}
 
 		}, false);
-		
+
 		view.addLifeCycleListener(new TableLifeCycleListener() {
 			public void tableViewInitialized() {
 				view.addDataSources(VuzeActivitiesManager.getAllEntries());
 			}
-		
+
 			public void tableViewDestroyed() {
 			}
 		});
-
 
 		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
 				skin.getSkinProperties(), getUpdateUIName(), "", soMain);
@@ -197,15 +205,15 @@ public class SBC_ActivityTableView
 		view.initialize(viewComposite);
 
 		VuzeActivitiesManager.addListener(this);
-		
+
 		return null;
 	}
-	
+
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-		if ( mdi != null ){
+		if (mdi != null) {
 			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
-			entry.addToolbarEnabler( this );
+			entry.addToolbarEnabler(this);
 		}
 		return super.skinObjectShown(skinObject, params);
 	}
@@ -231,7 +239,8 @@ public class SBC_ActivityTableView
 	}
 
 	public void refreshToolBar(Map<String, Boolean> list) {
-		list.put("remove", isVisible() && view != null && view.getSelectedRowsSize() > 0);
+		list.put("remove",
+				isVisible() && view != null && view.getSelectedRowsSize() > 0);
 	}
 
 	public boolean toolBarItemActivated(String itemKey) {
@@ -239,10 +248,9 @@ public class SBC_ActivityTableView
 			removeSelected();
 			return true;
 		}
-		
+
 		return false;
 	}
-
 
 	public ISelectedContent[] getCurrentlySelectedContent() {
 		if (view == null) {
@@ -294,9 +302,11 @@ public class SBC_ActivityTableView
 		}
 	}
 
-	private void removeEntries(final VuzeActivitiesEntry[] toRemove, final int startIndex) {
+	private void removeEntries(final VuzeActivitiesEntry[] toRemove,
+			final int startIndex) {
 		final VuzeActivitiesEntry entry = toRemove[startIndex];
-		if (entry == null || VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID())) {
+		if (entry == null
+				|| VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID())) {
 			int nextIndex = startIndex + 1;
 			if (nextIndex < toRemove.length) {
 				removeEntries(toRemove, nextIndex);
@@ -306,10 +316,9 @@ public class SBC_ActivityTableView
 
 		MessageBoxShell mb = new MessageBoxShell(
 				MessageText.getString("v3.activity.remove.title"),
-				MessageText.getString("v3.activity.remove.text",
-						new String[] {
-							entry.getText()
-						}));
+				MessageText.getString("v3.activity.remove.text", new String[] {
+					entry.getText()
+				}));
 		mb.setRemember(tableID + "-Remove", false,
 				MessageText.getString("MessageBoxWindow.nomoreprompting"));
 
@@ -317,17 +326,24 @@ public class SBC_ActivityTableView
 			mb.setButtons(0, new String[] {
 				MessageText.getString("Button.yes"),
 				MessageText.getString("Button.no"),
-			}, new Integer[] { 0, 1 });
+			}, new Integer[] {
+				0,
+				1
+			});
 			mb.setRememberOnlyIfButton(0);
 		} else {
 			mb.setButtons(1, new String[] {
 				MessageText.getString("Button.removeAll"),
 				MessageText.getString("Button.yes"),
 				MessageText.getString("Button.no"),
-			}, new Integer[] { 2, 0, 1 });
+			}, new Integer[] {
+				2,
+				0,
+				1
+			});
 			mb.setRememberOnlyIfButton(1);
 		}
-		
+
 		mb.setHandleHTML(false);
 		mb.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
@@ -338,7 +354,9 @@ public class SBC_ActivityTableView
 					VuzeActivitiesManager.removeEntries(toGroupRemove);
 					return;
 				} else if (result == 0) {
-					VuzeActivitiesManager.removeEntries(new VuzeActivitiesEntry[] { entry } );
+					VuzeActivitiesManager.removeEntries(new VuzeActivitiesEntry[] {
+						entry
+					});
 				}
 
 				int nextIndex = startIndex + 1;
@@ -353,11 +371,78 @@ public class SBC_ActivityTableView
 		if (view == null) {
 			return;
 		}
-		VuzeActivitiesEntry[] selectedEntries = view.getSelectedDataSources().toArray(new VuzeActivitiesEntry[0]);
+		VuzeActivitiesEntry[] selectedEntries = view.getSelectedDataSources().toArray(
+				new VuzeActivitiesEntry[0]);
 		removeEntries(selectedEntries, 0);
 	}
-	
+
 	public TableViewSWT getView() {
 		return view;
+	}
+
+	public static void setupSidebarEntry() {
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+
+		// Put TitleInfo in another class
+		final ViewTitleInfo titleInfoActivityView = new ViewTitleInfo() {
+			public Object getTitleInfoProperty(int propertyID) {
+				if (propertyID == TITLE_INDICATOR_TEXT) {
+					int count = 0;
+					VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
+					for (int i = 0; i < allEntries.length; i++) {
+						VuzeActivitiesEntry entry = allEntries[i];
+						if (!entry.isRead()) {
+							count++;
+						}
+					}
+					if (count > 0) {
+						return "" + count;
+					} else {
+						return null;
+					}
+				} else if (propertyID == TITLE_IMAGEID) {
+					return "image.sidebar.activity";
+				}
+				return null;
+			}
+		};
+		VuzeActivitiesManager.addListener(new VuzeActivitiesListener() {
+			public void vuzeNewsEntryChanged(VuzeActivitiesEntry entry) {
+				ViewTitleInfoManager.refreshTitleInfo(titleInfoActivityView);
+			}
+
+			public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {
+				ViewTitleInfoManager.refreshTitleInfo(titleInfoActivityView);
+			}
+
+			public void vuzeNewsEntriesAdded(VuzeActivitiesEntry[] entries) {
+				ViewTitleInfoManager.refreshTitleInfo(titleInfoActivityView);
+			}
+		});
+
+		mdi.createEntryFromSkinRef(
+				MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+				MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES,
+				"activity",
+				MessageText.getString("sidebar."
+						+ MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES),
+				titleInfoActivityView, null, false, null);
+
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
+		UIManager uim = pi.getUIManager();
+		MenuManager menuManager = uim.getMenuManager();
+
+		MenuItem menuItem = menuManager.addMenuItem("sidebar."
+				+ MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES,
+				"v3.activity.button.readall");
+		menuItem.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
+				for (int i = 0; i < allEntries.length; i++) {
+					VuzeActivitiesEntry entry = allEntries[i];
+					entry.setRead(true);
+				}
+			}
+		});
 	}
 }

@@ -30,47 +30,32 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionHolder;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
-import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.views.*;
-import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
-import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.activities.VuzeActivitiesListener;
-import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.shells.AuthorizeWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -78,7 +63,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
-import com.aelitis.azureus.ui.swt.views.skin.SB_Transfers;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 
@@ -101,14 +85,6 @@ public class SideBar
 	private static final boolean USE_PAINT = !Constants.isWindows;
 
 	protected static final boolean HIDE_NATIVE_EXPANDER = false;
-
-	public static final boolean SHOW_ALL_PLUGINS = false;
-
-	public static final boolean SHOW_TOOLS = false;
-
-	public static final boolean SHOW_DEVICES = true;
-
-	public static final String SIDEBAR_SECTION_ACTIVITIES = "Activity";
 
 	private static final boolean GAP_BETWEEN_LEVEL_1 = true;
 
@@ -135,8 +111,6 @@ public class SideBar
 	private Color fg;
 
 	private Color bg;
-
-	private String[] preferredOrder;
 
 	private List<MdiSWTMenuHackListener> listMenuHackListners;
 
@@ -170,11 +144,6 @@ public class SideBar
 		// addTestMenus();
 
 		createSideBar();
-		try {
-			setupDefaultItems();
-		} catch (Exception e) {
-			Debug.out(e);
-		}
 
 		try {
 			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
@@ -249,24 +218,6 @@ public class SideBar
 	}
 	*/
 
-	private void addMenuNotifications() {
-		PluginInterface pi = PluginInitializer.getDefaultInterface();
-		UIManager uim = pi.getUIManager();
-		MenuManager menuManager = uim.getMenuManager();
-
-		MenuItem menuItem = menuManager.addMenuItem("sidebar."
-				+ SIDEBAR_SECTION_ACTIVITIES, "v3.activity.button.readall");
-		menuItem.addListener(new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
-				for (int i = 0; i < allEntries.length; i++) {
-					VuzeActivitiesEntry entry = allEntries[i];
-					entry.setRead(true);
-				}
-			}
-		});
-	}
-
 	/**
 	 * 
 	 *
@@ -284,7 +235,7 @@ public class SideBar
 			}
 		});
 	}
-	
+
 	private void updateSidebarVisibility() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -329,6 +280,23 @@ public class SideBar
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+		// building plugin views needs UISWTInstance, which needs core.
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						setupPluginViews();
+					}
+				});
+			}
+		});
+
+		try {
+			loadCloseables();
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
+
 		updateSidebarVisibility();
 		return null;
 	}
@@ -365,22 +333,15 @@ public class SideBar
 		tree.setForeground(fg);
 		FontData[] fontData = tree.getFont().getFontData();
 
-		int fontHeight = (Constants.isOSX ? 11 : 12) + (tree.getItemHeight() > 18
-				? tree.getItemHeight() - 18 : 0);
+		int fontHeight = (Constants.isOSX ? 11 : 12)
+				+ (tree.getItemHeight() > 18 ? tree.getItemHeight() - 18 : 0);
 
 		fontData[0].setStyle(SWT.BOLD);
 		FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
-		//FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
 		fontHeader = new Font(tree.getDisplay(), fontData);
-		
-		//fontData[0].setStyle(SWT.NORMAL);
-		//FontUtils.setFontDataHeight(fontData, FontUtils.getHeight(fontData) * 0.92f);
-		////FontUtils.getFontHeightFromPX(tree.getDisplay(), fontData, null, fontHeight);
 		font = FontUtils.getFontWithHeight(tree.getFont(), null, fontHeight);
-		//font = new Font(tree.getDisplay(), fontData);
 
 		tree.setFont(font);
-
 
 		Listener treeListener = new Listener() {
 			TreeItem lastTopItem = null;
@@ -393,55 +354,82 @@ public class SideBar
 				TreeItem treeItem = (TreeItem) event.item;
 
 				try {
-				switch (event.type) {
-					case SWT.MeasureItem: {
-						int clientWidth = tree.getClientArea().width;
-						String text = treeItem.getText(event.index);
-						Point size = event.gc.textExtent(text);
-						if (event.x + event.width < clientWidth) {
-							event.width = size.x + event.x; // tree.getClientArea().width;
-							event.x = 0;
-						}
-
-						if (Constants.isWindows) {
-							event.width = clientWidth - event.x;
-						}
-						//int padding = 4;
-						//String id = (String) treeItem.getData("Plugin.viewID");
-						//SideBarEntrySWT entry = getSideBarInfo(id);
-						//if (entry.imageLeft != null) {
-						//padding += 4;
-						//}
-						SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
-
-						event.height = 20;// Math.max(event.height, size.y + padding);
-
-						break;
-					}
-					case SWT.PaintItem: {
-						if (USE_PAINTITEM) {
-							SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
-							//System.out.println("PaintItem: " + event.item + ";" + event.index + ";" + event.detail + ";" + id + ";" + event.getBounds() + ";" + event.gc.getClipping());
-							if (entry != null) {
-								TreeItem[] selection = tree.getSelection();
-								boolean selected = currentEntry == entry && entry.isSelectable();
-
-								//if (!entry.isSelectable() || selection == null
-								//			|| selection.length == 0 || selection[0] != treeItem) {
-								if (!selected) {
-									event.detail &= ~SWT.SELECTED;
-								} else {
-									event.detail |= SWT.SELECTED;
-								}
-								entry.swt_paintSideBar(event);
+					switch (event.type) {
+						case SWT.MeasureItem: {
+							int clientWidth = tree.getClientArea().width;
+							String text = treeItem.getText(event.index);
+							Point size = event.gc.textExtent(text);
+							if (event.x + event.width < clientWidth) {
+								event.width = size.x + event.x; // tree.getClientArea().width;
+								event.x = 0;
 							}
-						}
-						break;
-					}
 
-					case SWT.Paint: {
-						if (HIDE_NATIVE_EXPANDER) {
-							boolean selected = (event.detail & SWT.SELECTED) > 0;
+							if (Constants.isWindows) {
+								event.width = clientWidth - event.x;
+							}
+
+							event.height = 20;
+
+							break;
+						}
+						case SWT.PaintItem: {
+							if (USE_PAINTITEM) {
+								SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
+								//System.out.println("PaintItem: " + event.item + ";" + event.index + ";" + event.detail + ";" + id + ";" + event.getBounds() + ";" + event.gc.getClipping());
+								if (entry != null) {
+									boolean selected = currentEntry == entry
+											&& entry.isSelectable();
+
+									if (!selected) {
+										event.detail &= ~SWT.SELECTED;
+									} else {
+										event.detail |= SWT.SELECTED;
+									}
+									entry.swt_paintSideBar(event);
+								}
+							}
+							break;
+						}
+
+						case SWT.Paint: {
+							if (HIDE_NATIVE_EXPANDER) {
+								boolean selected = (event.detail & SWT.SELECTED) > 0;
+								Rectangle bounds = event.getBounds();
+								int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
+								int y = event.y + 1;
+								treeItem = tree.getItem(new Point(indent, y));
+
+								while (treeItem != null) {
+									SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
+									Rectangle itemBounds = entry.swt_getBounds();
+
+									if (itemBounds != null && entry.isCollapseDisabled()) {
+										Rectangle paintArea = treeItem.getBounds();
+										paintArea.x = 0;
+										paintArea.width = 17;
+										selected = tree.getSelectionCount() == 1
+												&& tree.getSelection()[0].equals(treeItem);
+										int detail = 0;
+										if (selected) {
+											detail |= SWT.SELECTED;
+										}
+										entry.swt_paintEntryBG(detail, event.gc, paintArea);
+										y = itemBounds.y + itemBounds.height + 1;
+									} else {
+										y += tree.getItemHeight();
+									}
+
+									if (y > bounds.y + bounds.height) {
+										break;
+									}
+									treeItem = tree.getItem(new Point(indent, y));
+								}
+							}
+
+							//System.out.println("Paint: " + event.getBounds() + ";" + event.detail + ";" + event.index + ";" + event.gc.getClipping() + "  " + Debug.getCompressedStackTrace());
+							if (!USE_PAINT) {
+								return;
+							}
 							Rectangle bounds = event.getBounds();
 							int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
 							int y = event.y + 1;
@@ -449,19 +437,25 @@ public class SideBar
 
 							while (treeItem != null) {
 								SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
-								Rectangle itemBounds = entry.swt_getBounds();
+								Rectangle itemBounds = entry == null ? null
+										: entry.swt_getBounds();
 
-								if (itemBounds != null && entry.isCollapseDisabled()) {
-									Rectangle paintArea = treeItem.getBounds();
-									paintArea.x = 0;
-									paintArea.width = 17;
-									selected = tree.getSelectionCount() == 1
-											&& tree.getSelection()[0].equals(treeItem);
-									int detail = 0;
-									if (selected) {
-										detail |= SWT.SELECTED;
-									}
-									entry.swt_paintEntryBG(detail, event.gc, paintArea);
+								// null itemBounds is weird, the entry must be disposed. it 
+								// happened once, so let's check..
+								if (itemBounds != null) {
+									event.item = treeItem;
+
+									boolean selected = currentEntry == entry
+											&& entry.isSelectable();
+									event.detail = selected ? SWT.SELECTED : SWT.NONE;
+
+									Rectangle newClip = bounds.intersection(itemBounds);
+									//System.out.println("Paint " + id + " @ " + newClip);
+									event.setBounds(newClip);
+									event.gc.setClipping(newClip);
+
+									entry.swt_paintSideBar(event);
+
 									y = itemBounds.y + itemBounds.height + 1;
 								} else {
 									y += tree.getItemHeight();
@@ -470,233 +464,192 @@ public class SideBar
 								if (y > bounds.y + bounds.height) {
 									break;
 								}
+								TreeItem oldTreeItem = treeItem;
 								treeItem = tree.getItem(new Point(indent, y));
+								if (oldTreeItem == treeItem) {
+									break;
+								}
 							}
+
+							if (tree.getTopItem() != lastTopItem) {
+								lastTopItem = tree.getTopItem();
+								SideBarEntrySWT[] sideBarEntries = (SideBarEntrySWT[]) mapIdToEntry.values().toArray(
+										new SideBarEntrySWT[0]);
+								swt_updateSideBarHitAreasY(sideBarEntries);
+							}
+
+							break;
 						}
 
-						//System.out.println("Paint: " + event.getBounds() + ";" + event.detail + ";" + event.index + ";" + event.gc.getClipping() + "  " + Debug.getCompressedStackTrace());
-						if (!USE_PAINT) {
-							return;
-						}
-						Rectangle bounds = event.getBounds();
-						int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
-						int y = event.y + 1;
-						treeItem = tree.getItem(new Point(indent, y));
-
-						while (treeItem != null) {
+						case SWT.EraseItem: {
 							SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
-							Rectangle itemBounds = entry == null ? null : entry.swt_getBounds();
+							if (entry == null) {
+								event.detail = 0;
+							}
+							//event.detail &= ~SWT.FOREGROUND;
+							//event.detail &= ~(SWT.FOREGROUND | SWT.BACKGROUND);
+							event.doit = true;
+							break;
+						}
 
-							// null itemBounds is weird, the entry must be disposed. it 
-							// happened once, so let's check..
-							if (itemBounds != null) {
-								event.item = treeItem;
+						case SWT.Resize: {
+							tree.redraw();
+							break;
+						}
 
-								boolean selected = currentEntry == entry && entry.isSelectable();
-//								boolean selected = tree.getSelectionCount() == 1
-//										&& tree.getSelection()[0].equals(treeItem)
-//										&& entry.isSelectable();
-								event.detail = selected ? SWT.SELECTED : SWT.NONE;
+						case SWT.Selection: {
+							if (treeItem == null) {
+								return;
+							}
+							SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
+							if (entry != null && entry.isSelectable()) {
+								showEntry(entry);
+							} else if (currentEntry != null) {
+								TreeItem topItem = tree.getTopItem();
 
-								Rectangle newClip = bounds.intersection(itemBounds);
-								//System.out.println("Paint " + id + " @ " + newClip);
-								event.setBounds(newClip);
-								event.gc.setClipping(newClip);
+								// prevent "jumping" in the case where selection is off screen
+								// setSelection would jump the item on screen, and then
+								// showItem would jump back to where the user was.
+								tree.setRedraw(false);
+								TreeItem ti = ((SideBarEntrySWT) currentEntry).getTreeItem();
+								if (ti != null) {
+									tree.setSelection(ti);
+								}
 
-								entry.swt_paintSideBar(event);
+								tree.setTopItem(topItem);
+								tree.setRedraw(true);
 
-								y = itemBounds.y + itemBounds.height + 1;
+								event.doit = false;
+							}
+							break;
+						}
+
+						case SWT.MouseMove: {
+							int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
+							treeItem = tree.getItem(new Point(indent, event.y));
+							SideBarEntrySWT entry = (SideBarEntrySWT) (treeItem == null
+									? null : treeItem.getData("MdiEntry"));
+
+							int cursorNo = SWT.CURSOR_ARROW;
+							if (treeItem != null) {
+								Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
+								if (closeArea != null && closeArea.contains(event.x, event.y)) {
+									cursorNo = SWT.CURSOR_HAND;
+								} else if (entry != null && !entry.isCollapseDisabled()
+										&& treeItem.getItemCount() > 0) {
+									cursorNo = SWT.CURSOR_HAND;
+								}
+							}
+
+							Cursor cursor = event.display.getSystemCursor(cursorNo);
+							if (tree.getCursor() != cursor) {
+								tree.setCursor(cursor);
+							}
+
+							if (treeItem != null) {
+								wasExpanded = entry != null && entry.isExpanded();
 							} else {
-								y += tree.getItemHeight();
+								wasExpanded = false;
 							}
+							break;
+						}
 
-							if (y > bounds.y + bounds.height) {
-								break;
+						case SWT.MouseDown: {
+							mouseDowned = true;
+							break;
+						}
+
+						case SWT.MouseUp: {
+							if (!mouseDowned) {
+								return;
 							}
-							TreeItem oldTreeItem = treeItem;
-							treeItem = tree.getItem(new Point(indent, y));
-							if (oldTreeItem == treeItem) {
-								break;
+							mouseDowned = false;
+							if (tree.getItemCount() == 0 || event.button != 1) {
+								return;
 							}
-						}
-
-						if (tree.getTopItem() != lastTopItem) {
-							lastTopItem = tree.getTopItem();
-							SideBarEntrySWT[] sideBarEntries = (SideBarEntrySWT[]) mapIdToEntry.values().toArray(
-									new SideBarEntrySWT[0]);
-							swt_updateSideBarHitAreasY(sideBarEntries);
-						}
-
-						break;
-					}
-
-					case SWT.EraseItem: {
-						SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
-						if (entry == null) {
-							event.detail = 0;
-						}
-						//event.detail &= ~SWT.FOREGROUND;
-						//event.detail &= ~(SWT.FOREGROUND | SWT.BACKGROUND);
-						event.doit = true;
-						break;
-					}
-
-					case SWT.Resize: {
-						tree.redraw();
-						break;
-					}
-
-					case SWT.Selection: {
-						if (treeItem == null) {
-							return;
-						}
-						SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
-						if (entry != null && entry.isSelectable()) {
-							showEntry(entry);
-						} else if (currentEntry != null) {
-							TreeItem topItem = tree.getTopItem();
-							
-							// prevent "jumping" in the case where selection is off screen
-							// setSelection would jump the item on screen, and then
-							// showItem would jump back to where the user was.
-							tree.setRedraw(false);
-							TreeItem ti = ((SideBarEntrySWT) currentEntry).getTreeItem();
-							if ( ti != null ){
-								tree.setSelection( ti );
+							int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
+							treeItem = tree.getItem(new Point(indent, event.y));
+							if (treeItem == null) {
+								return;
 							}
-							
-							tree.setTopItem(topItem);
-							tree.setRedraw(true);
+							SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
 
-							event.doit = false;
-						}
-						break;
-					}
-					
-					case SWT.MouseMove: {
-						int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
-						treeItem = tree.getItem(new Point(indent, event.y));
-						SideBarEntrySWT entry = (SideBarEntrySWT) (treeItem == null
-								? null : treeItem.getData("MdiEntry"));
-
-						int cursorNo = SWT.CURSOR_ARROW;
-						if (treeItem != null) {
 							Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
 							if (closeArea != null && closeArea.contains(event.x, event.y)) {
-								cursorNo = SWT.CURSOR_HAND;
-							} else if (entry != null && !entry.isCollapseDisabled() && treeItem.getItemCount() > 0) {
-								cursorNo = SWT.CURSOR_HAND;
+								treeItem.dispose();
+								return;
+							} else if (currentEntry != entry && Constants.isOSX) {
+								showEntry(entry);
 							}
-						}
-						
-						Cursor cursor = event.display.getSystemCursor(cursorNo);
-						if (tree.getCursor() != cursor) {
-							tree.setCursor(cursor);
-						}
 
-						if (treeItem != null) {
-							wasExpanded = entry != null && entry.isExpanded(); 
-						} else {
-							wasExpanded = false;
-						}
-						break;
-					}
+							if (entry != null) {
+								MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
+								for (int i = 0; i < vitalityImages.length; i++) {
+									SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
+									if (vitalityImage == null || !vitalityImage.isVisible()) {
+										continue;
+									}
+									Rectangle hitArea = vitalityImage.getHitArea();
+									if (hitArea == null) {
+										continue;
+									}
+									// setHitArea needs it relative to entry
+									Rectangle itemBounds = entry.swt_getBounds();
+									int relY = event.y - (itemBounds == null ? 0 : itemBounds.y);
 
-					case SWT.MouseDown: {
-						mouseDowned = true;
-						break;
-					}
-
-					case SWT.MouseUp: {
-						if (!mouseDowned) {
-							return;
-						}
-						mouseDowned = false;
-						if (tree.getItemCount() == 0 || event.button != 1) {
-							return;
-						}
-						int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
-						treeItem = tree.getItem(new Point(indent, event.y));
-						if (treeItem == null) {
-							return;
-						}
-						SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
-
-						Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
-						if (closeArea != null && closeArea.contains(event.x, event.y)) {
-							treeItem.dispose();
-							return;
-						} else if (currentEntry != entry && Constants.isOSX) {
-							showEntry(entry);
-						}
-
-						if (entry != null) {
-  						MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
-  						for (int i = 0; i < vitalityImages.length; i++) {
-  							SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
-  							if (vitalityImage == null || !vitalityImage.isVisible()) {
-  								continue;
-  							}
-  							Rectangle hitArea = vitalityImage.getHitArea();
-  							if (hitArea == null) {
-  								continue;
-  							}
-  							// setHitArea needs it relative to entry
-  							Rectangle itemBounds = entry.swt_getBounds();
-  							int relY = event.y - (itemBounds == null ? 0 : itemBounds.y);
-  							
-  							if (hitArea.contains(event.x, relY)) {
-  								vitalityImage.triggerClickedListeners(event.x, relY);
-  								return;
-  							}
-  						}
-
-  						if (!entry.isCollapseDisabled() && treeItem.getItemCount() > 0) {
-  							MdiEntry currentEntry = getCurrentEntry();
-  							if (currentEntry != null && entry.getId().equals(currentEntry.getParentID())) {
-  								showEntryByID(SIDEBAR_SECTION_LIBRARY);
-  							}
-  							entry.setExpanded(!wasExpanded);
-  							wasExpanded = !wasExpanded;
-  						}
-						}
-
-
-						break;
-					}
-
-					case SWT.Dispose: {
-						fontHeader.dispose();
-						font.dispose();
-						if (dropTarget != null && !dropTarget.isDisposed()) {
-							dropTarget.dispose();
-						}
-						saveCloseables();
-
-						break;
-					}
-
-					case SWT.Collapse: {
-						SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
-
-						if (entry.isCollapseDisabled()) {
-							tree.setRedraw(false);
-							Display.getDefault().asyncExec(new Runnable() {
-								public void run() {
-									((TreeItem) event.item).setExpanded(true);
-									tree.setRedraw(true);
+									if (hitArea.contains(event.x, relY)) {
+										vitalityImage.triggerClickedListeners(event.x, relY);
+										return;
+									}
 								}
-							});
-						} else {
-							MdiEntry currentEntry = getCurrentEntry();
-							if (currentEntry != null && entry.getId().equals(currentEntry.getParentID())) {
-								showEntryByID(SIDEBAR_SECTION_LIBRARY);
-							}
-						}
-						break;
-					}
 
-				}
+								if (!entry.isCollapseDisabled() && treeItem.getItemCount() > 0) {
+									MdiEntry currentEntry = getCurrentEntry();
+									if (currentEntry != null
+											&& entry.getId().equals(currentEntry.getParentID())) {
+										showEntryByID(SIDEBAR_SECTION_LIBRARY);
+									}
+									entry.setExpanded(!wasExpanded);
+									wasExpanded = !wasExpanded;
+								}
+							}
+
+							break;
+						}
+
+						case SWT.Dispose: {
+							fontHeader.dispose();
+							font.dispose();
+							if (dropTarget != null && !dropTarget.isDisposed()) {
+								dropTarget.dispose();
+							}
+							saveCloseables();
+
+							break;
+						}
+
+						case SWT.Collapse: {
+							SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
+
+							if (entry.isCollapseDisabled()) {
+								tree.setRedraw(false);
+								Display.getDefault().asyncExec(new Runnable() {
+									public void run() {
+										((TreeItem) event.item).setExpanded(true);
+										tree.setRedraw(true);
+									}
+								});
+							} else {
+								MdiEntry currentEntry = getCurrentEntry();
+								if (currentEntry != null
+										&& entry.getId().equals(currentEntry.getParentID())) {
+									showEntryByID(SIDEBAR_SECTION_LIBRARY);
+								}
+							}
+							break;
+						}
+
+					}
 				} catch (Exception e) {
 					Debug.out(e);
 				}
@@ -720,12 +673,8 @@ public class SideBar
 		// For cursor
 		tree.addListener(SWT.MouseMove, treeListener);
 
-		
 		// to disable collapsing
 		tree.addListener(SWT.Collapse, treeListener);
-		
-		//DragSource dragSource = new DragSource(tree, DND.DROP_COPY | DND.DROP_MOVE);
-		//dragSource.setTransfer(new Transfer[] { TextTransfer.getInstance() });
 
 		dropTarget = new DropTarget(tree, DND.DROP_COPY);
 		dropTarget.setTransfer(new Transfer[] {
@@ -742,7 +691,7 @@ public class SideBar
 
 			public void dragEnter(DropTargetEvent event) {
 			}
-			
+
 			public void dragOperationChanged(DropTargetEvent event) {
 			}
 
@@ -759,9 +708,9 @@ public class SideBar
 					draggingOver = null;
 				}
 				if (draggingOver == null || !draggingOver.hasDropListeners()) {
-					
+
 					boolean isTorrent = TorrentOpener.doesDropHaveTorrents(event);
-					
+
 					if (isTorrent) {
 						event.detail = DND.DROP_COPY;
 					} else {
@@ -994,59 +943,55 @@ public class SideBar
 					entry
 				}));
 
-		if (entry != null){
-			
+		if (entry != null) {
+
 			menu_items = MenuItemManager.getInstance().getAllAsArray(
 					"sidebar." + entry.getId());
 
-			if ( menu_items.length == 0 ){
-				
-				if ( entry instanceof SideBarEntrySWT ){
-					
-					IView view = ((SideBarEntrySWT)entry).getIView();
-					
-					if ( view instanceof UISWTView ){
-						
-						PluginInterface pi = ((UISWTView)view).getPluginInterface();
-		
-						if ( pi != null ){
-		
-							final List<String>	relevant_sections = new ArrayList<String>();
-							
+			if (menu_items.length == 0) {
+
+				if (entry instanceof SideBarEntrySWT) {
+
+					IView view = ((SideBarEntrySWT) entry).getIView();
+
+					if (view instanceof UISWTView) {
+
+						PluginInterface pi = ((UISWTView) view).getPluginInterface();
+
+						if (pi != null) {
+
+							final List<String> relevant_sections = new ArrayList<String>();
+
 							List<ConfigSectionHolder> sections = ConfigSectionRepository.getInstance().getHolderList();
-							
-							for ( ConfigSectionHolder cs: sections ){
-								
-								if ( pi == cs.getPluginInterface()){
-									
-									relevant_sections.add( cs.configSectionGetName());
+
+							for (ConfigSectionHolder cs : sections) {
+
+								if (pi == cs.getPluginInterface()) {
+
+									relevant_sections.add(cs.configSectionGetName());
 								}
 							}
-							
-							if ( relevant_sections.size() > 0 ){
 
-								MenuItem mi = pi.getUIManager().getMenuManager().addMenuItem( "sidebar." + entry.getId(), "MainWindow.menu.view.configuration" );
-	
-								mi.addListener( 
-								new MenuItemListener() 
-								{
-									public void 
-									selected(
-										MenuItem menu, Object target ) 
-									{
-								      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
-								      	 
-								      	 if ( uif != null ){
-								      		 
-								      		 for ( String s: relevant_sections ){
-								      		 
-								      			 uif.openView( UIFunctions.VIEW_CONFIG, s );
-								      		 }
-								      	 }
+							if (relevant_sections.size() > 0) {
+
+								MenuItem mi = pi.getUIManager().getMenuManager().addMenuItem(
+										"sidebar." + entry.getId(),
+										"MainWindow.menu.view.configuration");
+
+								mi.addListener(new MenuItemListener() {
+									public void selected(MenuItem menu, Object target) {
+										UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+										if (uif != null) {
+
+											for (String s : relevant_sections) {
+
+												uif.openView(UIFunctions.VIEW_CONFIG, s);
+											}
+										}
 									}
 								});
-					
-					
+
 								menu_items = MenuItemManager.getInstance().getAllAsArray(
 										"sidebar." + entry.getId());
 							}
@@ -1054,13 +999,13 @@ public class SideBar
 					}
 				}
 			}
-			
+
 			MenuBuildUtils.addPluginMenuItems((Composite) soMain.getControl(),
 					menu_items, menuTree, false, true,
 					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
 						entry
 					}));
-			
+
 			MdiSWTMenuHackListener[] menuHackListeners = getMenuHackListeners();
 			for (MdiSWTMenuHackListener l : menuHackListeners) {
 				try {
@@ -1070,18 +1015,18 @@ public class SideBar
 				}
 			}
 			if (currentEntry instanceof SideBarEntrySWT) {
-  			menuHackListeners = ((SideBarEntrySWT) entry).getMenuHackListeners();
-  			for (MdiSWTMenuHackListener l : menuHackListeners) {
-  				try {
-  					l.menuWillBeShown(entry, menuTree);
-  				} catch (Exception e) {
-  					Debug.out(e);
-  				}
-  			}
+				menuHackListeners = ((SideBarEntrySWT) entry).getMenuHackListeners();
+				for (MdiSWTMenuHackListener l : menuHackListeners) {
+					try {
+						l.menuWillBeShown(entry, menuTree);
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+				}
 			}
 		}
 	}
-	
+
 	public void addListener(MdiSWTMenuHackListener l) {
 		synchronized (this) {
 			if (listMenuHackListners == null) {
@@ -1101,7 +1046,7 @@ public class SideBar
 			listMenuHackListners.remove(l);
 		}
 	}
-	
+
 	public MdiSWTMenuHackListener[] getMenuHackListeners() {
 		synchronized (this) {
 			if (listMenuHackListners == null) {
@@ -1151,264 +1096,10 @@ public class SideBar
 		}
 	}
 
-	/**
-	 * 
-	 *
-	 * @since 3.1.1.1
-	 */
-	private void setupDefaultItems() {
-		TreeItem treeItem;
-
-		// Put TitleInfo in another class
-		final ViewTitleInfo titleInfoActivityView = new ViewTitleInfo() {
-			public Object getTitleInfoProperty(int propertyID) {
-				if (propertyID == TITLE_INDICATOR_TEXT) {
-					int count = 0;
-					VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
-					for (int i = 0; i < allEntries.length; i++) {
-						VuzeActivitiesEntry entry = allEntries[i];
-						if (!entry.isRead()) {
-							count++;
-						}
-					}
-					if (count > 0) {
-						return "" + count;
-					} else {
-						return null;
-					}
-				} else if (propertyID == TITLE_IMAGEID) {
-					return "image.sidebar.activity";
-				}
-				return null;
-			}
-		};
-		VuzeActivitiesManager.addListener(new VuzeActivitiesListener() {
-			public void vuzeNewsEntryChanged(VuzeActivitiesEntry entry) {
-				ViewTitleInfoManager.refreshTitleInfo(titleInfoActivityView);
-			}
-
-			public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {
-				ViewTitleInfoManager.refreshTitleInfo(titleInfoActivityView);
-			}
-
-			public void vuzeNewsEntriesAdded(VuzeActivitiesEntry[] entries) {
-				ViewTitleInfoManager.refreshTitleInfo(titleInfoActivityView);
-			}
-		});
-
-		MdiEntry entry;
-
-		preferredOrder = new String[] {
-			SIDEBAR_HEADER_VUZE,
-			SIDEBAR_HEADER_TRANSFERS,
-			SIDEBAR_HEADER_DVD,
-			SIDEBAR_HEADER_DEVICES,
-			SIDEBAR_HEADER_SUBSCRIPTIONS,
-			SIDEBAR_HEADER_PLUGINS,
-		};
-
-		boolean[] disableCollapses =  {
-			true, true, false, false, false, false
-		};
-		for (int i = 0; i < preferredOrder.length; i++) {
-			String id = preferredOrder[i];
-			final boolean disableCollapse = disableCollapses[i];
-			registerEntry(id, new MdiEntryCreationListener() {
-				public MdiEntry createMDiEntry(String id) {
-					MdiEntry entry = createHeader(id,
-							MessageText.getString("sidebar." + id), null);
-					if (disableCollapse) {
-						entry.setCollapseDisabled(true);
-					} else {
-						entry.setDefaultExpanded(true);
-					}
-					
-					if (id.equals(SIDEBAR_HEADER_PLUGINS)) {
-						entry.addListener(new MdiChildCloseListener() {
-							public void mdiChildEntryClosed(MdiEntry parent, MdiEntry child,
-									boolean user) {
-								if (getChildrenOf(parent.getId()).size() == 0) {
-									parent.close(true);
-								}
-							}
-						});
-					}
-					
-					return entry;
-				}
-			});
-		}
-		
-		SB_Transfers.setup(this);
-		
-		loadEntryByID(SIDEBAR_SECTION_LIBRARY, false);
-		loadEntryByID(SIDEBAR_SECTION_LIBRARY_UNOPENED, false);
-		loadEntryByID(SIDEBAR_SECTION_SUBSCRIPTIONS, false);
-		loadEntryByID(SIDEBAR_SECTION_DEVICES, false);
-
-		entry = createEntryFromSkinRef(SIDEBAR_HEADER_VUZE, SIDEBAR_SECTION_BROWSE,
-				"main.area.browsetab", MessageText.getString("sidebar.VuzeHDNetwork"),
-				null, null, false, -1);
-		entry.setImageLeftID("image.sidebar.vuze");
-
-		ContentNetworkManager cnm = ContentNetworkManagerFactory.getSingleton();
-		if (cnm != null) {
-			ContentNetwork[] contentNetworks = cnm.getContentNetworks();
-			for (ContentNetwork cn : contentNetworks) {
-				if (cn == null) {
-					continue;
-				}
-				if (cn.getID() == ConstantsVuze.getDefaultContentNetwork().getID()) {
-					cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
-					continue;
-				}
-
-				Object oIsActive = cn.getPersistentProperty(ContentNetwork.PP_ACTIVE);
-				boolean isActive = (oIsActive instanceof Boolean)
-						? ((Boolean) oIsActive).booleanValue() : false;
-				if (isActive) {
-					createContentNetworkSideBarEntry(cn);
-				}
-			}
-		}
-
-		createEntryFromSkinRef(SIDEBAR_HEADER_VUZE, SIDEBAR_SECTION_ACTIVITIES, "activity",
-				MessageText.getString("sidebar." + SIDEBAR_SECTION_ACTIVITIES),
-				titleInfoActivityView, null, false, -1);
-		addMenuNotifications();
-
-		if (Constants.isWindows && FeatureAvailability.isGamesEnabled()) {
-  		registerEntry(SIDEBAR_SECTION_GAMES, new MdiEntryCreationListener() {
-  			public MdiEntry createMDiEntry(String id) {
-  				MdiEntry entry = createEntryFromSkinRef(SIDEBAR_HEADER_VUZE,
-  						MultipleDocumentInterface.SIDEBAR_SECTION_GAMES,
-  						"main.generic.browse", MessageText.getString("mdi.entry.games"),
-  						null, null, true, -1);
-  				((BaseMdiEntry)entry).setPreferredAfterID(SIDEBAR_SECTION_BROWSE);
-  				String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("starts/games.start", false);
-  				entry.setDatasource(url);
-  				entry.setImageLeftID("image.sidebar.games");
-  				return entry;
-  			}
-  		});
-  		loadEntryByID(SIDEBAR_SECTION_GAMES, false, true);
-		}
-
-		registerEntry(SIDEBAR_SECTION_ABOUTPLUGINS, new MdiEntryCreationListener() {
-			public MdiEntry createMDiEntry(String id) {
-				MdiEntry entry = createEntryFromSkinRef(SIDEBAR_HEADER_PLUGINS,
-						MultipleDocumentInterface.SIDEBAR_SECTION_ABOUTPLUGINS,
-						"main.generic.browse", MessageText.getString("mdi.entry.about.plugins"),
-						null, null, true, SIDEBAR_SECTION_BROWSE);
-				String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL("plugins", true);
-				entry.setDatasource(url);
-				entry.setImageLeftID("image.sidebar.plugin");
-				return entry;
-			}
-		});
-		//loadEntryByID(SIDEBAR_SECTION_ABOUTPLUGINS, true, false);
-
-		if (SHOW_TOOLS) {
-		//	createEntryFromSkinRef(null, SIDEBAR_SECTION_TOOLS, "main.area.hood",
-		//			"Under The Hood", null, null, false, -1);
-
-			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
-					PeerSuperView.class.getSimpleName(), "All Peers",
-					PeerSuperView.class, true);
-			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
-					StatsView.class.getSimpleName(), "Stats", StatsView.class, true);
-			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
-					MyTrackerView.class.getSimpleName(), "My Tracker",
-					MyTrackerView.class, true);
-			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
-					MySharesView.class.getSimpleName(), "My Classic-Shares",
-					MySharesView.class, true);
-			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
-					LoggerView.class.getSimpleName(), "Logger", LoggerView.class, true);
-			createTreeItemFromIViewClass(SIDEBAR_HEADER_PLUGINS,
-					ConfigView.class.getSimpleName(), "Config", ConfigView.class, true);
-		}
-
-		if (SHOW_ALL_PLUGINS) {
-			SideBarEntrySWT pluginsEntry = (SideBarEntrySWT) createEntryFromSkinRef(
-					null, SIDEBAR_SECTION_PLUGINS, "main.area.plugins", "Plugins", null,
-					null, false, -1);
-
-			IViewInfo[] pluginViewsInfo = PluginsMenuHelper.getInstance().getPluginViewsInfo();
-			for (int i = 0; i < pluginViewsInfo.length; i++) {
-				IViewInfo viewInfo = pluginViewsInfo[i];
-				treeItem = new TreeItem(pluginsEntry.getTreeItem(), SWT.NONE);
-
-				treeItem.setData("text", viewInfo.name);
-				SideBarEntrySWT entryPlugin = (SideBarEntrySWT) getEntry(viewInfo.viewID);
-				treeItem.setData("MdiEntry", entryPlugin);
-				entryPlugin.setTreeItem(treeItem);
-				entryPlugin.setIView(viewInfo.view);
-				entryPlugin.setEventListener(viewInfo.event_listener);
-			}
-
-			TreeItem itemPluginLogs = new TreeItem(pluginsEntry.getTreeItem(),
-					SWT.NONE);
-			itemPluginLogs.setText("Log Views");
-			IViewInfo[] pluginLogViewsInfo = PluginsMenuHelper.getInstance().getPluginLogViewsInfo();
-			for (int i = 0; i < pluginLogViewsInfo.length; i++) {
-				IViewInfo viewInfo = pluginLogViewsInfo[i];
-				treeItem = new TreeItem(itemPluginLogs, SWT.NONE);
-
-				treeItem.setData("text", viewInfo.name);
-				SideBarEntrySWT entryPlugin = (SideBarEntrySWT) getEntry(viewInfo.viewID);
-				treeItem.setData("MdiEntry", entryPlugin);
-				entryPlugin.setTreeItem(treeItem);
-				entryPlugin.setIView(viewInfo.view);
-				entryPlugin.setEventListener(viewInfo.event_listener);
-			}
-		}
-
-		// building plugin views needs UISWTInstance, which needs core.
-		final int burnInfoShown = COConfigurationManager.getIntParameter("burninfo.shown", 0);
-		if (burnInfoShown == 0) {
-  		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-  			public void azureusCoreRunning(AzureusCore core) {
-  				Utils.execSWTThread(new AERunnable() {
-  					public void runSupport() {
-  						if (FeatureManagerUI.enabled) {
-  							// blah, can't add until plugin initialization is done
-  
-  							
-  							loadEntryByID(SIDEBAR_SECTION_PLUS, false);
-  						
-  							if (!FeatureManagerUI.hasFullBurn()) {
-  								loadEntryByID(SIDEBAR_SECTION_BURN_INFO, false);
-  							}
-  							
-								COConfigurationManager.setParameter("burninfo.shown",
-										burnInfoShown + 1);
-  						}
-  
-  						setupPluginViews();
-  					}
-  				});
-  			}
-  		});
-		}
-
-		try {
-			loadCloseables();
-		} catch (Throwable t) {
-			Debug.out(t);
-		}
-
-		Composite parent = tree.getParent();
-
-		if (parent.isVisible()) {
-			parent.layout(true, true);
-		}
-	}
-
 	protected int indexOf(final MdiEntry entryLibrary) {
 		Object o = Utils.execSWTThreadWithObject("indexOf", new AERunnableObject() {
 			public Object runSupport() {
-				TreeItem treeItem = ((SideBarEntrySWT)entryLibrary).getTreeItem();
+				TreeItem treeItem = ((SideBarEntrySWT) entryLibrary).getTreeItem();
 				if (treeItem == null) {
 					return -1;
 				}
@@ -1425,7 +1116,7 @@ public class SideBar
 		return -1;
 	}
 
-	private MdiEntry createHeader(String id, String title, String preferredAfterID) {
+	public MdiEntry createHeader(String id, String title, String preferredAfterID) {
 		MdiEntry oldEntry = getEntry(id);
 		if (oldEntry != null) {
 			return oldEntry;
@@ -1435,9 +1126,9 @@ public class SideBar
 		entry.setSelectable(false);
 		entry.setPreferredAfterID(preferredAfterID);
 		entry.setTitle(title);
-		
+
 		setupNewEntry(entry, id, true, false);
-		
+
 		return entry;
 	}
 
@@ -1487,8 +1178,9 @@ public class SideBar
 
 		entry.setCloseable(closeable);
 		entry.setParentSkinObject(soSideBarContents);
-		
-		if (SIDEBAR_HEADER_PLUGINS.equals(entry.getParentID()) && entry.getImageLeftID() == null) {
+
+		if (SIDEBAR_HEADER_PLUGINS.equals(entry.getParentID())
+				&& entry.getImageLeftID() == null) {
 			entry.setImageLeftID("image.sidebar.plugin");
 		}
 
@@ -1517,24 +1209,25 @@ public class SideBar
 			if (preferredAfterID.length() == 0) {
 				index = 0;
 			} else {
-  			MdiEntry entryAbove = getEntry(preferredAfterID);
-  			if (entryAbove != null) {
-  				index = indexOf(entryAbove);
-  				if (index >= 0) {
-  					index++;
-  				}
-  				//System.out.println("ENTRY " + id + " is going to go below " + entryAbove.getId() + " at " + index);
-  			}
+				MdiEntry entryAbove = getEntry(preferredAfterID);
+				if (entryAbove != null) {
+					index = indexOf(entryAbove);
+					if (index >= 0) {
+						index++;
+					}
+					//System.out.println("ENTRY " + id + " is going to go below " + entryAbove.getId() + " at " + index);
+				}
 			}
 		}
-		
+
 		if (index == -1 && parent == null) {
 			index = 0;
-			for (int i = 0; i < preferredOrder.length; i++) {
-				String orderID = preferredOrder[i];
+			String[] order = getPreferredOrder();
+			for (int i = 0; i < order.length; i++) {
+				String orderID = order[i];
 				if (orderID.equals(id)) {
 					break;
-				} 
+				}
 				MdiEntry entry2 = getEntry(orderID);
 				if (entry2 != null) {
 					int i2 = indexOf(entry2);
@@ -1543,12 +1236,13 @@ public class SideBar
 					}
 				}
 			}
-			if (index >= preferredOrder.length) {
+			if (index >= order.length) {
 				index = -1;
 			}
 		}
 
-		if (GAP_BETWEEN_LEVEL_1 && parentTreeItem == null && tree.getItemCount() > 0 && index != 0) {
+		if (GAP_BETWEEN_LEVEL_1 && parentTreeItem == null
+				&& tree.getItemCount() > 0 && index != 0) {
 			createTreeItem(null, index);
 			if (index >= 0) {
 				index++;
@@ -1556,21 +1250,15 @@ public class SideBar
 		}
 		TreeItem treeItem = createTreeItem(parentTreeItem, index);
 		if (treeItem != null) {
-  		treeItem.setData("MdiEntry", entry);
-  		entry.setTreeItem(treeItem);
+			treeItem.setData("MdiEntry", entry);
+			entry.setTreeItem(treeItem);
 
-  		triggerEntryLoadedListeners(entry);
+			triggerEntryLoadedListeners(entry);
 		}
-		if (GAP_BETWEEN_LEVEL_1 && parentTreeItem == null && tree.getItemCount() > 1 && index == 0) {
+		if (GAP_BETWEEN_LEVEL_1 && parentTreeItem == null
+				&& tree.getItemCount() > 1 && index == 0) {
 			createTreeItem(null, ++index);
 		}
-	}
-
-	private MdiEntry createTreeItemFromIViewClass(String parent, String id,
-			String title, Class<?> iviewClass, boolean closeable) {
-
-		return createEntryFromIViewClass(parent, id, title, iviewClass, null, null,
-				null, null, closeable);
 	}
 
 	/* (non-Javadoc)
@@ -1595,11 +1283,11 @@ public class SideBar
 		entry.setParentID(parent);
 
 		setupNewEntry(entry, id, false, closeable);
-		
+
 		if (IViewAlwaysInitialize.class.isAssignableFrom(iviewClass)) {
 			entry.build();
 		}
-		
+
 		return entry;
 	}
 
@@ -1638,7 +1326,7 @@ public class SideBar
 		if (tree.isDisposed()) {
 			return;
 		}
-		
+
 		if (newEntry == null || !newEntry.isSelectable()) {
 			return;
 		}
@@ -1667,7 +1355,7 @@ public class SideBar
 			oldEntry.hide();
 			oldEntry.redraw();
 		}
-	
+
 		newEntry.redraw();
 
 		triggerSelectionListener(newEntry, oldEntry);
@@ -1714,8 +1402,8 @@ public class SideBar
 			final String configID, String title, ViewTitleInfo titleInfo,
 			final Object params, boolean closeable, int index) {
 
-		return createEntryFromSkinRef(parentID, id, configID, title,
-				titleInfo, params, closeable, index == 0 ? "" : null);
+		return createEntryFromSkinRef(parentID, id, configID, title, titleInfo,
+				params, closeable, index == 0 ? "" : null);
 	}
 
 	// @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#createEntryFromSkinRef(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo, java.lang.Object, boolean, java.lang.String)
@@ -1769,12 +1457,13 @@ public class SideBar
 			}
 			return true;
 		}
-		
-		boolean loadedOnce = COConfigurationManager.getBooleanParameter("sb.once." + id, false);
+
+		boolean loadedOnce = COConfigurationManager.getBooleanParameter("sb.once."
+				+ id, false);
 		if (loadedOnce && onlyLoadOnce) {
 			return false;
 		}
-		
+
 		if (id.equals(SIDEBAR_SECTION_WELCOME)) {
 			SideBarEntrySWT entryWelcome = (SideBarEntrySWT) createWelcomeSection();
 			if (activate) {
@@ -1820,21 +1509,22 @@ public class SideBar
 	 * @since 4.0.0.3
 	 */
 	protected void handleContentNetworkSwitch(String tabID, long networkID) {
+		String defaultID = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
 		try {
 			ContentNetworkManager cnManager = ContentNetworkManagerFactory.getSingleton();
 			if (cnManager == null) {
-				showEntryByID(SIDEBAR_SECTION_BROWSE);
+				showEntryByID(defaultID);
 				return;
 			}
 
 			ContentNetwork cn = cnManager.getContentNetwork(networkID);
 			if (cn == null) {
-				showEntryByID(SIDEBAR_SECTION_BROWSE);
+				showEntryByID(defaultID);
 				return;
 			}
 
 			if (networkID == ContentNetwork.CONTENT_NETWORK_VUZE) {
-				showEntryByID(SIDEBAR_SECTION_BROWSE);
+				showEntryByID(defaultID);
 				cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
 				return;
 			}
@@ -1857,7 +1547,7 @@ public class SideBar
 		} catch (Exception e) {
 			Debug.out(e);
 		}
-		showEntryByID(SIDEBAR_SECTION_BROWSE);
+		showEntryByID(defaultID);
 	}
 
 	private void createContentNetworkSideBarEntry(ContentNetwork cn) {
@@ -1868,7 +1558,7 @@ public class SideBar
 		}
 
 		String name = cn.getName();
-		SideBarEntrySWT entryBrowse = (SideBarEntrySWT) getEntry(SIDEBAR_SECTION_BROWSE);
+		SideBarEntrySWT entryBrowse = (SideBarEntrySWT) getEntry(ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork()));
 		int position = entryBrowse == null || entryBrowse.getTreeItem() == null ? 3
 				: tree.indexOf(entryBrowse.getTreeItem()) + 1;
 
@@ -1899,7 +1589,8 @@ public class SideBar
 	}
 
 	// @see com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT#getEntryFromSkinObject(org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject)
-	public MdiEntrySWT getEntryFromSkinObject(PluginUISWTSkinObject pluginSkinObject) {
+	public MdiEntrySWT getEntryFromSkinObject(
+			PluginUISWTSkinObject pluginSkinObject) {
 		if (pluginSkinObject instanceof SWTSkinObject) {
 			Control control = ((SWTSkinObject) pluginSkinObject).getControl();
 			while (control != null && !control.isDisposed()) {
@@ -1913,4 +1604,5 @@ public class SideBar
 		}
 		return null;
 	}
+
 }

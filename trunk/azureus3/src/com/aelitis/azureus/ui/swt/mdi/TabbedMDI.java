@@ -9,7 +9,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
@@ -43,34 +42,6 @@ public class TabbedMDI
 		super.skinObjectCreated(skinObject, params);
 
 		creatMDI();
-		setupDefaultItems();
-
-		try {
-			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
-		} catch (Exception e) {
-			Debug.out(e);
-		}
-
-		return null;
-	}
-
-	private void setupDefaultItems() {
-		registerEntry(SIDEBAR_SECTION_LIBRARY, new MdiEntryCreationListener() {
-			
-			public MdiEntry createMDiEntry(String id) {
-				boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals(
-						"az2");
-				String title = MessageText.getString(uiClassic
-						? "MyTorrentsView.mytorrents" : "sidebar."
-								+ SIDEBAR_SECTION_LIBRARY);
-				MdiEntry entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY,
-						"library", title, null, null, false, 0);
-				entry.setImageLeftID("image.sidebar.library");
-				return entry;
-			}
-		});
-		
-		showEntryByID(SIDEBAR_SECTION_LIBRARY);
 
 		// building plugin views needs UISWTInstance, which needs core.
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
@@ -88,6 +59,14 @@ public class TabbedMDI
 		} catch (Throwable t) {
 			Debug.out(t);
 		}
+
+		try {
+			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+
+		return null;
 	}
 
 	private void creatMDI() {
@@ -140,7 +119,7 @@ public class TabbedMDI
 				showEntry(entry);
 			}
 		});
-
+		
 		tabFolder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
 			public void handleEvent(Event event) {
 				if ( tabFolder.isDisposed()){
@@ -222,6 +201,10 @@ public class TabbedMDI
 	
 	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#loadEntryByID(java.lang.String, boolean)
 	public boolean loadEntryByID(String id, boolean activate) {
+		return loadEntryByID(id, activate, false);
+	}
+
+	public boolean loadEntryByID(String id, boolean activate, boolean onlyLoadOnce) {
 		MdiEntry entry = mapIdToEntry.get(id);
 		if (entry != null) {
 			if (activate) {
@@ -230,10 +213,18 @@ public class TabbedMDI
 			return true;
 		}
 
+		boolean loadedOnce = COConfigurationManager.getBooleanParameter("tab.once." + id, false);
+		if (loadedOnce && onlyLoadOnce) {
+			return false;
+		}
+
 		MdiEntryCreationListener mdiEntryCreationListener = mapIdToCreationListener.get(id);
 		if (mdiEntryCreationListener != null) {
 			entry = mdiEntryCreationListener.createMDiEntry(id);
 			if (entry != null) {
+				if (onlyLoadOnce) {
+					COConfigurationManager.setParameter("tab.once." + id, true);
+				}
 				if (activate) {
 					showEntry(entry);
 				}
@@ -259,7 +250,9 @@ public class TabbedMDI
 
 		currentEntry = (MdiEntrySWT) newEntry; // assumed MdiEntrySWT
 
-		((BaseMdiEntry) newEntry).show();
+		if (newEntry != null) {
+			((BaseMdiEntry) newEntry).show();
+		}
 
 		triggerSelectionListener(newEntry, oldEntry);
 	}
@@ -389,6 +382,13 @@ public class TabbedMDI
 			index = tabFolder.getItemCount();
 		}
 		CTabItem cTabItem = new CTabItem(tabFolder, SWT.CLOSE, index);
+		cTabItem.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				if (tabFolder.getItemCount() == 0) {
+					currentEntry = null;
+				}
+			}
+		});
 		cTabItem.setData("TabbedEntry", entry);
 		entry.setSwtItem(cTabItem);
 	}
@@ -441,6 +441,10 @@ public class TabbedMDI
 				control = control.getParent();
 			}
 		}
+		return null;
+	}
+	
+	public MdiEntry createHeader(String id, String title, String preferredAfterID) {
 		return null;
 	}
 }

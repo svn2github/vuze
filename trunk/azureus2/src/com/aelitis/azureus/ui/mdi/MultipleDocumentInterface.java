@@ -1,6 +1,7 @@
 package com.aelitis.azureus.ui.mdi;
 
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -8,6 +9,8 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 
 public interface MultipleDocumentInterface
 {
+	public static final String SIDEBAR_POS_FIRST = "";
+
 	public static final String SIDEBAR_HEADER_VUZE = "header.vuze";
 
 	public static final String SIDEBAR_HEADER_TRANSFERS = "header.transfers";
@@ -47,7 +50,9 @@ public interface MultipleDocumentInterface
 	public static final String SIDEBAR_SECTION_RELATED_CONTENT = "RelatedContent";
 	
 	public static final String SIDEBAR_SECTION_BURN_INFO = "BurnInfo";
-	
+
+	public static final String SIDEBAR_SECTION_ACTIVITIES = "Activity";
+
 	/**
 	 * @deprecated
 	 */
@@ -86,7 +91,7 @@ public interface MultipleDocumentInterface
 
 	public void registerEntry(String id, MdiEntryCreationListener l);
 
-	boolean entryExists(String id);
+	public boolean entryExists(String id);
 
 	public void removeItem(MdiEntry entry);
 
@@ -97,4 +102,14 @@ public interface MultipleDocumentInterface
 	public void informAutoOpenSet(MdiEntry entry, Map<String, Object> autoOpenInfo);
 
 	public boolean loadEntryByID(String id, boolean activate);
+
+	public void setPreferredOrder(String[] preferredOrder);
+
+	public String[] getPreferredOrder();
+
+	public MdiEntry createHeader(String id, String title, String preferredAfterID);
+
+	public List<MdiEntry> getChildrenOf(String id);
+
+	public boolean loadEntryByID(String id, boolean activate, boolean onlyLoadOnce);
 }

@@ -77,7 +77,6 @@ import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
@@ -97,6 +96,7 @@ import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
+import com.aelitis.azureus.ui.swt.mdi.BaseMDI;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.mdi.TabbedMDI;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -105,7 +105,6 @@ import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 import com.aelitis.azureus.ui.swt.utils.PlayNowList;
 import com.aelitis.azureus.ui.swt.views.skin.*;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.*;
@@ -304,7 +303,7 @@ public class MainWindow
 	 * @param uiInitializer
 	 */
 	public MainWindow(final Display display, final IUIIntializer uiInitializer) {
-		System.out.println("MainWindow: constructor");
+		//System.out.println("MainWindow: constructor");
 		delayedCore = true;
 		this.display = display;
 		this.uiInitializer = uiInitializer;
@@ -312,6 +311,7 @@ public class MainWindow
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				//System.out.println("createWindow");
 				try {
 					createWindow(uiInitializer);
 				} catch (Throwable e) {
@@ -331,6 +331,7 @@ public class MainWindow
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				//System.out.println("_init");
 				_init(core);
 				if (uiInitializer != null) {
 					uiInitializer.abortProgress();
@@ -450,12 +451,10 @@ public class MainWindow
 			return;
 		}
 
-		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
-
-		if (!uiClassic) {
+		if (!Utils.isAZ2UI()) {
 			VuzeActivitiesManager.initialize(core);
 		}
-		
+
 		if (!Constants.isSafeMode) {
 			if (core.getTrackerHost().getTorrents().length > 0) {
 				Utils.execSWTThreadLater(0, new Runnable() {
@@ -607,8 +606,6 @@ public class MainWindow
 	protected void createWindow(IUIIntializer uiInitializer) {
 		//System.out.println("MainWindow: createWindow)");
 
-		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
-		
 		long startTime = SystemTime.getCurrentTime();
 
 		uiFunctions = new UIFunctionsImpl(this);
@@ -671,7 +668,7 @@ public class MainWindow
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
 			skin = SWTSkinFactory.getInstance();
-			if (uiClassic) {
+			if (Utils.isAZ2UI()) {
   			SWTSkinProperties skinProperties = skin.getSkinProperties();
   			String skinPath = SkinPropertiesImpl.PATH_SKIN_DEFS + "skin3_classic";
   			ResourceBundle rb = ResourceBundle.getBundle(skinPath);
@@ -712,7 +709,7 @@ public class MainWindow
 			//System.out.println("skinlisteners init took " + (SystemTime.getCurrentTime() - startTime) + "ms");
 			//startTime = SystemTime.getCurrentTime();
 
-			String startID = uiClassic ? "classic.shell" : "main.shell";
+			String startID = Utils.isAZ2UI() ? "classic.shell" : "main.shell";
 			skin.initialize(shell, startID, uiInitializer);
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
@@ -720,7 +717,7 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			if (uiClassic) {
+			if (Utils.isAZ2UI()) {
 				menu = new org.gudy.azureus2.ui.swt.mainwindow.MainMenu(shell);
 			} else {
 				menu = new MainMenu(skin, shell);
@@ -898,7 +895,7 @@ public class MainWindow
 			//System.out.println("hooks init took " + (SystemTime.getCurrentTime() - startTime) + "ms");
 			//startTime = SystemTime.getCurrentTime();
 
-			initWidgets();
+			initMDI();
 			System.out.println("skin widgets (1/2) init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
@@ -908,19 +905,6 @@ public class MainWindow
 			System.out.println("skin widgets (2/2) init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
-
-			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-			if (mdi != null) {
-				setupSideBar(mdi);
-			} else {
-				SkinViewManager.addListener(new SkinViewManagerListener() {
-					public void skinViewAdded(SkinView skinview) {
-						if (skinview instanceof MultipleDocumentInterface) {
-							setupSideBar((MultipleDocumentInterface) skinview);
-						}
-					}
-				});
-			}
 
 			System.out.println("pre SWTInstance init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -1021,87 +1005,6 @@ public class MainWindow
 				}
 			});
 		}
-	}
-
-	/**
-	 * @param skinview
-	 *
-	 * @since 3.1.1.1
-	 */
-	protected void setupSideBar(final MultipleDocumentInterface mdi) {
-		mdi.addListener(this);
-
-		Utils.execSWTThreadLater(0, new AERunnable() {
-			public void runSupport() {
-				final String CFG_STARTTAB = "v3.StartTab";
-				String startTab;
-				boolean showWelcome = COConfigurationManager.getBooleanParameter("v3.Show Welcome");
-				if (ConfigurationChecker.isNewVersion()) {
-					showWelcome = true;
-				}
-
-				ContentNetwork startupCN = ContentNetworkManagerFactory.getSingleton().getStartupContentNetwork();
-				if (!startupCN.isServiceSupported(ContentNetwork.SERVICE_WELCOME)) {
-					showWelcome = false;
-				}
-
-				if (showWelcome) {
-					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
-				} else {
-					if (!COConfigurationManager.hasParameter(CFG_STARTTAB, true)) {
-						COConfigurationManager.setParameter(CFG_STARTTAB,
-								SideBar.SIDEBAR_SECTION_LIBRARY);
-					}
-					startTab = COConfigurationManager.getStringParameter(CFG_STARTTAB);
-					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-
-					if (mdi == null || !mdi.entryExists(startTab)) {
-						startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
-					}
-				}
-				if (startTab.equals(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS)) {
-					SBC_PlusFTUX.setSourceRef("lastview");
-				}
-				mdi.showEntryByID(startTab);
-			}
-		});
-		
-		mdi.addListener(new MdiListener() {
-			public void mdiEntrySelected(MdiEntry newEntry,
-					MdiEntry oldEntry) {
-				if (newEntry == null) {
-					return;
-				}
-				COConfigurationManager.setParameter("v3.StartTab",
-						newEntry.getId());
-			}
-		});
-		
-		COConfigurationManager.addAndFireParameterListener(
-				"Beta Programme Enabled", new ParameterListener() {
-					public void parameterChanged(String parameterName) {
-						boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
-						if (enabled) {
-							mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM);
-						}
-					}
-		});
-		
-		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
-				new MdiEntryCreationListener() {
-					public MdiEntry createMDiEntry(String id) {
-						MdiEntry entry = mdi.createEntryFromSkinRef(
-								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
-								MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
-								"main.area.beta", MessageText.getString("Sidebar.beta.title"),
-								null, null, true, 0);
-						return entry;
-					}
-				});
-
-		//		System.out.println("Activate sidebar " + startTab + " took "
-		//				+ (SystemTime.getCurrentTime() - startTime) + "ms");
-		//		startTime = SystemTime.getCurrentTime();
 	}
 
 	/**
@@ -1374,12 +1277,6 @@ public class MainWindow
 						+ "ms");
 			}
 		});
-		
-		shell.addListener(SWT.Hide, new Listener() {
-			public void handleEvent(Event event) {
-				System.out.println("HIDE");
-			}
-		});
 
 		if (!bStartMinimize) {
 			shell.open();
@@ -1444,11 +1341,9 @@ public class MainWindow
 			uiInitializer.initializationComplete();
 		}
 			
-		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
-
 		boolean	run_speed_test = false;
 
-		if (!uiClassic && !COConfigurationManager.getBooleanParameter("SpeedTest Completed")){
+		if (!Utils.isAZ2UI() && !COConfigurationManager.getBooleanParameter("SpeedTest Completed")){
 			
 			
 			if ( ConfigurationChecker.isNewInstall()){
@@ -1495,18 +1390,16 @@ public class MainWindow
 			WelcomeView.setWaitLoadingURL(false);
 		}
 
-		if (uiClassic
-				&& !COConfigurationManager.getBooleanParameter("Wizard Completed")) {
+		if (Utils.isAZ2UI()) {
+  		if (!COConfigurationManager.getBooleanParameter("Wizard Completed")) {
+  
+  			CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+  				public void azureusCoreRunning(AzureusCore core) {
+  					new ConfigureWizard(false, ConfigureWizard.WIZARD_MODE_FULL);
+  				}
+  			});
+  		}
 
-			CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
-				public void azureusCoreRunning(AzureusCore core) {
-					new ConfigureWizard(false, ConfigureWizard.WIZARD_MODE_FULL);
-				}
-			});
-		}
-
-		if ( uiClassic ){
-			
 			checkForWhatsNewWindow();
 		}
 
@@ -1853,38 +1746,19 @@ public class MainWindow
 		}
 	}
 
-	/**
-	 * 
-	 */
-	private void initWidgets() {
-		SWTSkinObject skinObject;
+	private void initMDI() {
+		Class<?> classMDI = Utils.isAZ2UI() ? TabbedMDI.class : SideBar.class;
 
-		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
-		/*
-		 * Directly loading the buddies viewer since we need to access it
-		 * before it's even shown for the first time
-		 */
-		Class<?>[] forceInits = new Class[] {
-			uiClassic ? TabbedMDI.class : SideBar.class,
-		};
-		String[] forceInitsIDs = new String[] {
-			SkinConstants.VIEWID_MDI,
-		};
-
-		for (int i = 0; i < forceInits.length; i++) {
-			Class<?> cla = forceInits[i];
-			String id = forceInitsIDs[i];
-
-			try {
-				skinObject = skin.getSkinObject(id);
-				if (null != skinObject) {
-					SkinView skinView = (SkinView) cla.newInstance();
-					skinView.setMainSkinObject(skinObject);
-					skinObject.addListener(skinView);
-				}
-			} catch (Throwable t) {
-				Debug.out(t);
+		try {
+			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_MDI);
+			if (null != skinObject) {
+				BaseMDI mdi = (BaseMDI) classMDI.newInstance();
+				mdi.setMainSkinObject(skinObject);
+				skinObject.addListener(mdi);
+				MainMDISetup.setupSideBar(mdi, this);
 			}
+		} catch (Throwable t) {
+			Debug.out(t);
 		}
 	}
 
@@ -2290,7 +2164,7 @@ public class MainWindow
 
 		final MdiEntry entry = mdi.createEntryFromSkinRef(
 				MultipleDocumentInterface.SIDEBAR_HEADER_VUZE, id,
-				"main.area.searchresultstab", sSearchText, null, sq, true, -1);
+				"main.area.searchresultstab", sSearchText, null, sq, true, null);
 		if (entry != null) {
 			entry.setImageLeftID("image.sidebar.search");
 			entry.setDatasource(sq);
@@ -2632,6 +2506,9 @@ public class MainWindow
 		if (newEntry == null) {
 			return;
 		}
+
+		COConfigurationManager.setParameter("v3.StartTab",
+				newEntry.getId());
 
 		if (mapTrackUsage != null && oldEntry != null) {
 			oldEntry.removeListener((MdiEntryLogIdListener) this);

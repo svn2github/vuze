@@ -38,12 +38,6 @@ public abstract class BaseMDI
 	extends SkinView
 	implements MultipleDocumentInterfaceSWT, UIUpdatable
 {
-	public static String SIDEBAR_SECTION_BROWSE = "ContentNetwork.1";
-
-	static {
-		SIDEBAR_SECTION_BROWSE = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
-	}
-
 	protected MdiEntrySWT currentEntry;
 
 	protected Map<String, MdiEntryCreationListener> mapIdToCreationListener = new LightHashMap<String, MdiEntryCreationListener>();
@@ -56,6 +50,8 @@ public abstract class BaseMDI
 	private List<MdiEntryLoadedListener> listLoadListeners = new ArrayList<MdiEntryLoadedListener>();
 
 	private static Map<String, Object> mapAutoOpen = new LightHashMap<String, Object>();
+
+	private String[] preferredOrder;
 
 	public void addListener(MdiListener l) {
 		synchronized (listeners) {
@@ -165,7 +161,7 @@ public abstract class BaseMDI
 
 	public MdiEntry getEntry(String id) {
 		if ("Browse".equalsIgnoreCase(id)) {
-			id = SIDEBAR_SECTION_BROWSE;
+			id = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
 		}
 		MdiEntry entry = mapIdToEntry.get(id);
 		return entry;
@@ -173,7 +169,7 @@ public abstract class BaseMDI
 
 	public MdiEntrySWT getEntrySWT(String id) {
 		if ("Browse".equalsIgnoreCase(id)) {
-			id = SIDEBAR_SECTION_BROWSE;
+			id = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
 		}
 		MdiEntrySWT entry = mapIdToEntry.get(id);
 		return entry;
@@ -256,7 +252,7 @@ public abstract class BaseMDI
 
 	public boolean entryExists(String id) {
 		if ("Browse".equalsIgnoreCase(id)) {
-			id = SIDEBAR_SECTION_BROWSE;
+			id = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
 		}
 		MdiEntry entry = mapIdToEntry.get(id);
 		if (entry == null) {
@@ -523,7 +519,7 @@ public abstract class BaseMDI
 		}
 	}
 	
-	protected List<MdiEntry> getChildrenOf(String id) {
+	public List<MdiEntry> getChildrenOf(String id) {
 		if (id == null) {
 			return Collections.emptyList();
 		}
@@ -558,5 +554,13 @@ public abstract class BaseMDI
 		}
     
 		return null;
+	}
+
+	public void setPreferredOrder(String[] preferredOrder) {
+		this.preferredOrder = preferredOrder;
+	}
+
+	public String[] getPreferredOrder() {
+		return preferredOrder == null ? new String[0] : preferredOrder;
 	}
 }
