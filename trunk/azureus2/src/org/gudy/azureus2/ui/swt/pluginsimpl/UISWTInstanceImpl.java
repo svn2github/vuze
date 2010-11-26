@@ -103,7 +103,7 @@ UISWTInstanceImpl
 
 		// Since this is a UI **SWT** Instance Implementor, it's assumed
 		// that the UI Functions are of UIFunctionsSWT 
-		uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
+		uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 	}
 	
 	public void init(IUIIntializer init) {
