@@ -162,7 +162,7 @@ public class MainMenu
 
 		MenuFactory.addSeparatorMenuItem(fileMenu);
 		MenuFactory.addCloseWindowMenuItem(fileMenu);
-		//MenuFactory.addCloseTabMenuItem(fileMenu, mainWindow);
+		MenuFactory.addCloseTabMenuItem(fileMenu);
 		MenuFactory.addCloseDetailsMenuItem(fileMenu);
 		MenuFactory.addCloseDownloadBarsToMenu(fileMenu);
 

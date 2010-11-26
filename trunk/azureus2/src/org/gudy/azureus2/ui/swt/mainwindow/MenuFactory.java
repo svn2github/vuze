@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -405,6 +406,37 @@ public class MenuFactory
 					}
 				});
 		return closeWindow;
+	}
+
+	public static MenuItem addCloseTabMenuItem(Menu menu) {
+		final MenuItem menuItem = addMenuItem(menu, MENU_ID_CLOSE_TAB, new Listener() {
+			public void handleEvent(Event event) {
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				if (mdi != null) {
+					MdiEntry currentEntry = mdi.getCurrentEntry();
+					if (currentEntry != null && currentEntry.isCloseable()) {
+						mdi.closeEntry(currentEntry.getId());
+					}
+				}
+			}
+		});
+		menu.addMenuListener(new MenuListener() {
+			public void menuShown(MenuEvent e) {
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				if (mdi != null) {
+					MdiEntry currentEntry = mdi.getCurrentEntry();
+					if (currentEntry != null && currentEntry.isCloseable()) {
+						menuItem.setEnabled(true);
+						return;
+					}
+				}
+				menuItem.setEnabled(false);
+			}
+			
+			public void menuHidden(MenuEvent e) {
+			}
+		});
+		return menuItem;
 	}
 
 	public static MenuItem addCloseDetailsMenuItem(Menu menu) {
