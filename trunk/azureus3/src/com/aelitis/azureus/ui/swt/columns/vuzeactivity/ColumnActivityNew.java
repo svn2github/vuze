@@ -90,11 +90,9 @@ public class ColumnActivityNew
 		boolean isRead = entry.getReadOn() > 0;
 		int sortVal = isRead ? 1 : 0;
 
-		if (!cell.setSortValue(sortVal) && cell.isValid()) {
-			return;
+		if (cell.setSortValue(sortVal)) {
+			cell.invalidate();
 		}
-
-		cell.invalidate();
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
