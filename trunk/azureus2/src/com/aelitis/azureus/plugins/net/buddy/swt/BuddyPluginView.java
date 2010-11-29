@@ -236,7 +236,7 @@ BuddyPluginView
 					{
 						try{
 							plugin.getPluginInterface().getUIManager().openURL(
-									new URL( "http://faq.vuze.com/?View=entry&EntryID=239" ));
+									new URL( "http://wiki.vuze.com" ));
 							
 						}catch( Throwable e ){
 							

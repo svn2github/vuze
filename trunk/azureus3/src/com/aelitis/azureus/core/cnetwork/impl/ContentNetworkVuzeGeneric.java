@@ -285,7 +285,7 @@ ContentNetworkVuzeGeneric
 		if ( URL_FAQ != null ){
 		 
 			addService( SERVICE_FAQ,			URL_FAQ );
-			addService( SERVICE_FAQ_TOPIC,		URL_FAQ + "?View=entry&EntryID=" );
+			addService( SERVICE_FAQ_TOPIC,		URL_FAQ );
 		}
 		 
 		if ( URL_BLOG != null ){

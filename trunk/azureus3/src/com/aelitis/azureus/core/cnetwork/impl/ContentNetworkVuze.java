@@ -72,7 +72,7 @@ ContentNetworkVuze
 			"authorized_rpc", "1").equals("1") ? DEFAULT_AUTHORIZED_RPC : URL_PREFIX
 			+ "app";
 	
-	private static final String URL_FAQ = "http://faq.vuze.com/";
+	private static final String URL_FAQ = "http://wiki.vuze.com/";
 
 	private static final String URL_BLOG = "http://blog.vuze.com/";
 	
