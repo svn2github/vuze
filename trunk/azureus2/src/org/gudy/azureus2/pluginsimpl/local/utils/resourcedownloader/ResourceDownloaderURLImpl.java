@@ -222,6 +222,10 @@ ResourceDownloaderURLImpl
 			if ( protocol.equals( "magnet" ) || protocol.equals( "dht" ) || protocol.equals( "vuze" )){
 				
 				return( -1 );
+				
+			}else if ( protocol.equals( "file" )){
+				
+				return( new File( original_url.toURI()).length());
 			}
 			
 			reportActivity(this, "Getting size of " + original_url );
@@ -444,6 +448,20 @@ ResourceDownloaderURLImpl
 					
 					url = original_url;
 					
+				}else if ( protocol.equals( "file" )){
+					
+					File file = new File( original_url.toURI());
+					
+					informAmountComplete( file.length());
+					
+					informPercentDone( 100 );
+					
+					FileInputStream fis = new FileInputStream( file );
+					
+					informComplete( fis );
+					
+					return( fis );
+
 				}else if ( url.getPort() == -1 && ! ( protocol.equals( "magnet" ) || protocol.equals( "dht" ))){
 					
 					int	target_port;
