@@ -129,7 +129,16 @@ DownloadStats
 	public int
 	getCheckingDoneInThousandNotation();
 
+	/*
+	 * resets totals. stops and restarts torrent if running to do so
+	 * @since 4511. Supply -1 to leave a value unchanged
+	 */
 
+	public void
+	resetUploadedDownloaded(
+		long		new_up,
+		long		new_down );
+	
 	/**
 	 * Gives the number of bytes downloaded
 	 * @return

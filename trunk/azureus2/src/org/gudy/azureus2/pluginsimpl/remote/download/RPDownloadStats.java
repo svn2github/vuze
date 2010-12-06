@@ -172,6 +172,14 @@ RPDownloadStats
 		return( 0 );
 	}
 
+	public void
+	resetUploadedDownloaded(
+		long l1, 
+		long l2 )
+	{
+		notSupported();
+	}
+	
 	public long
 	getDownloaded()
 	{

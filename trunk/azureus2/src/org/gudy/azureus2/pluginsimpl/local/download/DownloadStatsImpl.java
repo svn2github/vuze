@@ -103,6 +103,14 @@ DownloadStatsImpl
  		return( -1 );
 	}
 
+	public void
+	resetUploadedDownloaded(
+		long 	new_up, 
+		long 	new_down )
+	{
+		dm_stats.resetTotalBytesSentReceived( new_up, new_down );
+	}
+	
 	public long
 	getDownloaded()
 	{

@@ -292,6 +292,37 @@ DownloadManagerStatsImpl
 		return(saved_protocol_bytes_downloaded);
 	} 
   
+	public void 
+	resetTotalBytesSentReceived(
+		long 	new_sent,
+		long	new_received )
+	{
+		boolean running = download_manager.getPeerManager() != null;
+		
+		if ( running ){
+			
+			download_manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
+		}
+		
+		
+		if ( new_sent >= 0 ){
+			
+			saved_data_bytes_uploaded		= new_sent;
+			saved_protocol_bytes_uploaded	= 0;
+		}
+		
+		if ( new_received >= 0 ){
+			
+			saved_data_bytes_downloaded			= new_received;
+			saved_protocol_bytes_downloaded		= 0;
+		}
+
+		if ( running ){
+			
+			download_manager.setStateWaiting();
+		}
+	}
+	
 	public long 
 	getTotalDataBytesSent() 
 	{

@@ -89,9 +89,14 @@ DownloadManagerStats
    * @return total bytes uploaded
    */
 	public long	getTotalDataBytesSent();
-  
+  	
 	public long getTotalProtocolBytesSent();
 	
+	/*
+	 * Resets the total bytes sent/received - will stop and start the download if it is running
+	 */
+	public void resetTotalBytesSentReceived( long sent, long received );
+
 	public long getRemaining();
 	
 	public long
