@@ -35,7 +35,7 @@ public class ConfigSectionRepository {
   private Map<ConfigSection,ConfigSectionHolder> items;
 
   private ConfigSectionRepository() {
-   items = new HashMap<ConfigSection, ConfigSectionHolder>();
+   items = new LinkedHashMap<ConfigSection, ConfigSectionHolder>();
   }
 
   public static ConfigSectionRepository getInstance() {
