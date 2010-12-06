@@ -451,13 +451,13 @@ ResourceDownloaderURLImpl
 				}else if ( protocol.equals( "file" )){
 					
 					File file = new File( original_url.toURI());
+										
+					FileInputStream fis = new FileInputStream( file );
 					
 					informAmountComplete( file.length());
 					
 					informPercentDone( 100 );
-					
-					FileInputStream fis = new FileInputStream( file );
-					
+
 					informComplete( fis );
 					
 					return( fis );
