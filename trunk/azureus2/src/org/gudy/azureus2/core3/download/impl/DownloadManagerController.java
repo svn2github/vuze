@@ -948,23 +948,26 @@ DownloadManagerController
 						if ( went_async ){
 							
 							int	wait_count = 0;
-							
+
+							// Delay by 10ms, hoping for really short stop
+							Thread.sleep(10);
+
 							while( !dm.isStopped()){
 							
 								wait_count++;
 								
-								if ( wait_count > 2*60 ){
+								if ( wait_count > 2*60*10 ){
 									
 									Debug.out( "Download stop took too long to complete" );
 									
 									break;
 									
-								}else if ( wait_count % 20 == 0 ){
+								}else if ( wait_count % 200 == 0 ){
 									
 									Debug.out( "Waiting for download to stop - elapsed=" + wait_count + " sec" );
 								}
 								
-								Thread.sleep(1000);
+								Thread.sleep(100);
 							}
 						}
 						
@@ -974,7 +977,6 @@ DownloadManagerController
 					  		// we don't want to update the torrent if we're seeding
 					  
 						if ( !download_manager.getAssumedComplete()){
-					  	
 							download_manager.getDownloadState().save();
 						}			  					  
 					  							  
