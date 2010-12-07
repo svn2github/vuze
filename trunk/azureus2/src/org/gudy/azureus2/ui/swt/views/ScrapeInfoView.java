@@ -18,6 +18,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraper;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -248,7 +250,14 @@ public class ScrapeInfoView
 		updateButton.setLayoutData(new GridData());
 		updateButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				manager.requestTrackerAnnounce(false);
+				if ( manager.getTrackerClient() != null ){
+				
+					manager.requestTrackerAnnounce( false );
+					
+				}else{
+					
+					manager.requestTrackerScrape( true );
+				}
 			}
 		});
 
@@ -359,7 +368,17 @@ public class ScrapeInfoView
 					- trackerClient.getLastUpdateTime() >= TRTrackerAnnouncer.REFRESH_MINIMUM_SECS));
 
 		} else {
-			update_state = false;
+			TRTrackerScraperResponse sr = manager.getTrackerScrapeResponse();
+			
+			if ( sr == null ){
+				
+				update_state = true;
+				
+			}else{
+				
+				update_state = ((SystemTime.getCurrentTime()
+						- sr.getScrapeStartTime() >= TRTrackerScraper.REFRESH_MINIMUM_SECS * 1000));
+			}
 		}
 
 		if (updateButton.getEnabled() != update_state) {

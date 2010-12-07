@@ -33,6 +33,8 @@ import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 public interface 
 TRTrackerScraper 
 {
+	public static final int REFRESH_MINIMUM_SECS		= 2*60;
+	
 	public TRTrackerScraperResponse
 	scrape(
 		TOTorrent		torrent );
