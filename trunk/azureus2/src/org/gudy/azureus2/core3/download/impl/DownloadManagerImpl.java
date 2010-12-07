@@ -59,7 +59,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentListener;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
@@ -77,8 +76,6 @@ import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.plugins.extseed.ExternalSeedManualPeer;
-import com.aelitis.azureus.plugins.extseed.ExternalSeedPeer;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 import com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin;
@@ -1618,22 +1615,32 @@ DownloadManagerImpl
  		controller.startDownload( getTrackerClient() ); 
   	}
   	
-  	public void
-  	stopIt(
-  		int		state_after_stopping,
-  		boolean	remove_torrent,
-  		boolean	remove_data )
-  	{
-  		try{
-  			download_manager_state.setLongAttribute( DownloadManagerState.AT_TIME_STOPPED, SystemTime.getCurrentTime());
+	public void 
+	stopIt(
+			int state_after_stopping, 
+			boolean remove_torrent,
+			boolean remove_data) 
+	{
+		try {
+			boolean closing = state_after_stopping == DownloadManager.STATE_CLOSED;
+			int curState = getState();
+			boolean alreadyStopped = curState == STATE_STOPPED
+					|| curState == STATE_STOPPING || curState == STATE_ERROR;
+			boolean skipSetTimeStopped = alreadyStopped
+					|| (closing && curState == STATE_QUEUED);
 
-  			controller.stopIt( state_after_stopping, remove_torrent, remove_data );
-  			
-  		}finally{
-  			
-			download_manager_state.setActive( false );
-  		}
-  	}
+			if (!skipSetTimeStopped) {
+				download_manager_state.setLongAttribute(
+						DownloadManagerState.AT_TIME_STOPPED, SystemTime.getCurrentTime());
+			}
+
+			controller.stopIt(state_after_stopping, remove_torrent, remove_data);
+
+		} finally {
+
+			download_manager_state.setActive(false);
+		}
+	}
   	
 	public boolean
 	pause()
