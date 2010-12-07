@@ -35,7 +35,8 @@ public class ScrapeInfoView
 {
 	private DownloadManager manager;
 
-	private Composite cScrapeInfoView;
+	private Composite	cParent;
+	private Composite 	cScrapeInfoView;
 
 	private BufferedTruncatedLabel tracker_status;
 
@@ -60,6 +61,7 @@ public class ScrapeInfoView
 	}
 
 	public void initialize(Composite parent) {
+		cParent = parent;
 		Label label;
 		GridData gridData;
 		final Display display = parent.getDisplay();
@@ -392,8 +394,13 @@ public class ScrapeInfoView
 		manager = dm;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				Utils.disposeComposite(cScrapeInfoView, false);
-				initialize(cScrapeInfoView.getParent());
+				if ( cScrapeInfoView != null ){
+					Utils.disposeComposite(cScrapeInfoView, false);
+				}
+				if ( cParent != null ){
+					
+					initialize( cParent );
+				}
 			}
 		});
 	}
