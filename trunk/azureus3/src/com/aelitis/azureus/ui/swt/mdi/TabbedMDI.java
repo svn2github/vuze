@@ -283,8 +283,9 @@ public class TabbedMDI
 	public MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
 			boolean closeable, String preferedAfterID) {
-		// afterid not supported yet
-		return createEntryFromSkinRef(parentID, preferedAfterID, configID, title, titleInfo, params, closeable, -1);
+		// afterid not fully supported yet
+		return createEntryFromSkinRef(parentID, id, configID, title, titleInfo,
+				params, closeable, "".equals(preferedAfterID) ? 0 : -1);
 	}
 
 	public MdiEntry createEntryFromEventListener(String parentID,
