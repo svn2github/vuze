@@ -221,7 +221,7 @@ public class SideBarVitalityImageSWT
 	 *
 	 * @since 3.1.1.1
 	 */
-	private void createTimerEvent() {
+	private synchronized void createTimerEvent() {
 		if (timerEvent != null) {
 			timerEvent.cancel();
 		}
@@ -230,8 +230,8 @@ public class SideBarVitalityImageSWT
 			int delay = delayTime == -1 ? imageLoader.getAnimationDelay(imageID)
 					: delayTime;
 
-			timerEvent = SimpleTimer.addPeriodicEvent("Animate " + imageID + suffix,
-					delay, performer);
+			timerEvent = SimpleTimer.addPeriodicEvent("Animate " + mdiEntry.getId()
+					+ "::" + imageID + suffix, delay, performer);
 		}
 	}
 
