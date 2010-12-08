@@ -324,12 +324,6 @@ public class SWTSkin
 	public SWTSkinObject getSkinObject(String sViewID) {
 		SWTSkinObject[] objects = mapPublicViewIDsToSOs.get(sViewID);
 		if (objects == null || objects.length == 0) {
-			if (!Utils.isThisThreadSWT()) {
-				Debug.out("View "
-						+ sViewID
-						+ " does not exist.  Skipping unattach check because not in SWT thread");
-				return null;
-			}
 			return createUnattachedView(sViewID, null);
 		}
 
@@ -346,6 +340,12 @@ public class SWTSkin
 		String unattachedView = skinProperties.getStringValue("UnattachedView."
 				+ viewID);
 		if (unattachedView != null) {
+			if (!Utils.isThisThreadSWT()) {
+				Debug.out("View "
+						+ viewID
+						+ " does not exist.  Skipping unattach check because not in SWT thread");
+				return null;
+			}
 			if (unattachedView.indexOf(',') > 0) {
 				String[] split = unattachedView.split(",");
 				String parentID = split[1];
