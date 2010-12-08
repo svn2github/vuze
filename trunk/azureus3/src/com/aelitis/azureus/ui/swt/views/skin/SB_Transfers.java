@@ -43,6 +43,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
@@ -322,6 +323,10 @@ public class SB_Transfers
 					private CategoryManagerListener categoryManagerListener;
 
 					public void parameterChanged(String parameterName) {
+						if (Utils.isAZ2UI()) {
+							return;
+						}
+						
 						Category[] categories = CategoryManager.getCategories();
 						if (categories.length == 0) {
 							return;
