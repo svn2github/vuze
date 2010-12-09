@@ -235,6 +235,8 @@ public class TrackerView
 	{
 		if ( manager != null ){
 
+			manager.addTPSListener( this );
+			
 			addExistingDatasources();
 		}
     }
