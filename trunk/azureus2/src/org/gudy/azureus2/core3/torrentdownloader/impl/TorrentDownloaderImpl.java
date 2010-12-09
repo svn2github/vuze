@@ -28,6 +28,7 @@ import java.io.*;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.Iterator;
@@ -61,7 +62,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   private String 	file_str;
   
   private URL url;
-  private HttpURLConnection con;
+  private URLConnection con;
   private String error = "Ok";
   private String status = "";
   private TorrentDownloaderCallBackInterface iface;
@@ -197,7 +198,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 
     			}else{
 
-    				con = (HttpURLConnection) url.openConnection();
+    				con = url.openConnection();
 
     			}
 
@@ -269,10 +270,10 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     		}
       }
       
-  		int response = this.con.getResponseCode();
+  		int response = con instanceof HttpURLConnection?((HttpURLConnection)con).getResponseCode():HttpURLConnection.HTTP_OK;
     	if (!ignoreReponseCode) {
         if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
-          this.error(response, Integer.toString(response) + ": " + this.con.getResponseMessage());
+          this.error(response, Integer.toString(response) + ": " + ((HttpURLConnection)con).getResponseMessage());
           return;
         }
     	}
@@ -433,135 +434,140 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
       
     	notifyListener();
   
-        Thread	status_reader = 
-        	new AEThread( "TorrentDownloader:statusreader" )
-			{
-        		public void
-				runSupport()
-        		{
-        			boolean changed_status	= false;
-        			String	last_status		= "";
-        			
-        			boolean	sleep = false;
-        			
-        			long	last_progress_update = SystemTime.getMonotonousTime();
-        			
-        			while( true ){
-        				
-        				try{
-        					if ( sleep ){
-        					
-        						Thread.sleep(50);
-        						
-        						sleep = false;
-        					}
-        					
-        					try{
-        						this_mon.enter();
-        						
-        						if ( !status_reader_run[0] ){
-        						
-        							break;
-        						}
-        					}finally{
-        						
-        						this_mon.exit();
-        					}
-        					
-        					String	s = con.getResponseMessage();
-        					  
-        					if ( s.equals( last_status )){
-        						
-        						sleep = true;
-        						
-        					}else{
-        						
-        						last_status = s;
-        						
-        						String lc_s = s.toLowerCase();
-        						
-        						if ( !lc_s.startsWith("error:")){
-        							
-        							if ( s.toLowerCase().indexOf( "alive" ) != -1 ){
-        								
-        								if ( percentDone < 10 ){
-        									
-        									percentDone++;
-        								}
-        							}
-        							
-        							boolean progress_update = false;
-        							
-        	     					int	pos = s.indexOf( '%' );
-                					
-                					if ( pos != -1 ){
-                						
-                						int	 i;
-                						
-                						for ( i=pos-1;i>=0;i--){
-                							
-                							char	c = s.charAt(i);
-                							
-                							if ( !Character.isDigit( c ) && c != ' ' ){
-                								
-                								i++;
-                								
-                								break;
-                							}
-                						}
-                						
-                						try{
-                							percentDone = Integer.parseInt( s.substring( i, pos ).trim());
-                							
-                							progress_update = true;
-                							
-                						}catch( Throwable e ){
-                							
-                						}
-                					}
-                					
-                					if ( lc_s.startsWith("received")){
-                						
-                						progress_update = true;
-                					}
-                					
-                					if ( progress_update ){
-                						
-                						long now = SystemTime.getMonotonousTime();
-                						
-                						if ( now - last_progress_update < 250 ){
-                							
-                							continue;
-                						}
-                					
-                						last_progress_update = now;
-                					}
-                					
-        							setStatus(s);
-        						}else{
-        							
-        							error(con.getResponseCode(), s.substring(6));
-        						}
-        						
-        						changed_status	= true;
-        					} 
-        				}catch( Throwable e ){
-        					
-        					break;
-        				}
-        			}
-        			
-        			if ( changed_status ){
-        				
-        				setStatus( "" );
-        			}
-        		}
-			};
+    	if ( con instanceof HttpURLConnection ){
+    		
+	        Thread	status_reader = 
+	        	new AEThread( "TorrentDownloader:statusreader" )
+				{
+	        		public void
+					runSupport()
+	        		{
+	        			HttpURLConnection http_con = (HttpURLConnection)con;
+	        			
+	        			boolean changed_status	= false;
+	        			String	last_status		= "";
+	        			
+	        			boolean	sleep = false;
+	        			
+	        			long	last_progress_update = SystemTime.getMonotonousTime();
+	        			
+	        			while( true ){
+	        				
+	        				try{
+	        					if ( sleep ){
+	        					
+	        						Thread.sleep(50);
+	        						
+	        						sleep = false;
+	        					}
+	        					
+	        					try{
+	        						this_mon.enter();
+	        						
+	        						if ( !status_reader_run[0] ){
+	        						
+	        							break;
+	        						}
+	        					}finally{
+	        						
+	        						this_mon.exit();
+	        					}
+	        					
+	        					String	s = http_con.getResponseMessage();
+	        					  
+	        					if ( s.equals( last_status )){
+	        						
+	        						sleep = true;
+	        						
+	        					}else{
+	        						
+	        						last_status = s;
+	        						
+	        						String lc_s = s.toLowerCase();
+	        						
+	        						if ( !lc_s.startsWith("error:")){
+	        							
+	        							if ( s.toLowerCase().indexOf( "alive" ) != -1 ){
+	        								
+	        								if ( percentDone < 10 ){
+	        									
+	        									percentDone++;
+	        								}
+	        							}
+	        							
+	        							boolean progress_update = false;
+	        							
+	        	     					int	pos = s.indexOf( '%' );
+	                					
+	                					if ( pos != -1 ){
+	                						
+	                						int	 i;
+	                						
+	                						for ( i=pos-1;i>=0;i--){
+	                							
+	                							char	c = s.charAt(i);
+	                							
+	                							if ( !Character.isDigit( c ) && c != ' ' ){
+	                								
+	                								i++;
+	                								
+	                								break;
+	                							}
+	                						}
+	                						
+	                						try{
+	                							percentDone = Integer.parseInt( s.substring( i, pos ).trim());
+	                							
+	                							progress_update = true;
+	                							
+	                						}catch( Throwable e ){
+	                							
+	                						}
+	                					}
+	                					
+	                					if ( lc_s.startsWith("received")){
+	                						
+	                						progress_update = true;
+	                					}
+	                					
+	                					if ( progress_update ){
+	                						
+	                						long now = SystemTime.getMonotonousTime();
+	                						
+	                						if ( now - last_progress_update < 250 ){
+	                							
+	                							continue;
+	                						}
+	                					
+	                						last_progress_update = now;
+	                					}
+	                					
+	        							setStatus(s);
+	        						}else{
+	        							
+	        							error(http_con.getResponseCode(), s.substring(6));
+	        						}
+	        						
+	        						changed_status	= true;
+	        					} 
+	        				}catch( Throwable e ){
+	        					
+	        					break;
+	        				}
+	        			}
+	        			
+	        			if ( changed_status ){
+	        				
+	        				setStatus( "" );
+	        			}
+	        		}
+				};
+				
+			status_reader.setDaemon( true );
 			
-		status_reader.setDaemon( true );
-		
-		status_reader.start();
-  
+			status_reader.start();
+    	}
+    	
 		InputStream in;
 			
 		try{
@@ -570,7 +576,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 		} catch (FileNotFoundException e) {
 			if (ignoreReponseCode) {
 
-				in = this.con.getErrorStream();
+				in = con instanceof HttpURLConnection?((HttpURLConnection)con).getErrorStream():null;
 			} else {
 
 				throw e;
@@ -844,8 +850,12 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   protected void
   closeConnection()
   {
-	if ( con instanceof MagnetConnection || con instanceof MagnetConnection2 ){
-	  	con.disconnect();
+	if ( con instanceof MagnetConnection ){
+	  	((MagnetConnection)con).disconnect();
+	}
+	
+	if ( con instanceof MagnetConnection2 ){
+	  	((MagnetConnection2)con).disconnect();
 	}
   }
   

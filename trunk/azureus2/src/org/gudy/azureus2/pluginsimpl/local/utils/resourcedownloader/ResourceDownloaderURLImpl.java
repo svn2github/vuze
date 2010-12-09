@@ -219,7 +219,7 @@ ResourceDownloaderURLImpl
 		try{
 			String	protocol = original_url.getProtocol().toLowerCase();
 			
-			if ( protocol.equals( "magnet" ) || protocol.equals( "dht" ) || protocol.equals( "vuze" )){
+			if ( protocol.equals( "magnet" ) || protocol.equals( "dht" ) || protocol.equals( "vuze" ) || protocol.equals( "ftp" )){
 				
 				return( -1 );
 				
@@ -462,7 +462,8 @@ ResourceDownloaderURLImpl
 					
 					return( fis );
 
-				}else if ( url.getPort() == -1 && ! ( protocol.equals( "magnet" ) || protocol.equals( "dht" ))){
+				}else if ( 	url.getPort() == -1 && 
+							( protocol.equals( "http" ) || protocol.equals( "https" ))){
 					
 					int	target_port;
 					
@@ -521,7 +522,7 @@ redirect_label:
 							File					temp_file	= null;
 	
 							try{
-								HttpURLConnection	con;
+								URLConnection	con;
 								
 								if ( url.getProtocol().equalsIgnoreCase("https")){
 							      	
@@ -547,7 +548,7 @@ redirect_label:
 					  	
 								}else{
 					  	
-									con = (HttpURLConnection)openConnection(url);
+									con = openConnection(url);
 					  	
 								}
 								
@@ -562,11 +563,11 @@ redirect_label:
 						 		
 								setRequestProperties( con, use_compression );
 								
-								if ( post_data != null ){
+								if ( post_data != null && con instanceof HttpURLConnection ){
 									
 									con.setDoOutput(true);
 									
-									con.setRequestMethod("POST");
+									((HttpURLConnection)con).setRequestMethod("POST");
 									
 									OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
 									
@@ -577,7 +578,7 @@ redirect_label:
 	
 								con.connect();
 					
-								int response = con.getResponseCode();
+								int response = con instanceof HttpURLConnection?((HttpURLConnection)con).getResponseCode():HttpURLConnection.HTTP_OK;
 													
 								if ( 	response == HttpURLConnection.HTTP_MOVED_TEMP ||
 										response == HttpURLConnection.HTTP_MOVED_PERM ){
@@ -608,9 +609,11 @@ redirect_label:
 								if ( 	response != HttpURLConnection.HTTP_ACCEPTED && 
 										response != HttpURLConnection.HTTP_OK ) {
 									
+									HttpURLConnection	http_con = (HttpURLConnection)con;
+									
 									setProperty( "URL_HTTP_Response", new Long( response ));
 
-									InputStream error_stream = con.getErrorStream();
+									InputStream error_stream = http_con.getErrorStream();
 									
 									String error_str = null;
 									
@@ -633,7 +636,7 @@ redirect_label:
 										error_str = FileUtil.readInputStreamAsString( error_stream, 256 );
 									}
 									
-									throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + con.getResponseMessage() + (error_str==null?"":( ": error=" + error_str ))));    
+									throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + http_con.getResponseMessage() + (error_str==null?"":( ": error=" + error_str ))));    
 								}
 									
 								getRequestProperties( con );
@@ -920,8 +923,8 @@ redirect_label:
 	
 	protected void
 	setRequestProperties(
-		HttpURLConnection		con,
-		boolean					use_compression )
+		URLConnection		con,
+		boolean				use_compression )
 	{
 		Map properties = getLCKeyProperties();
 		
@@ -952,7 +955,7 @@ redirect_label:
 	
 	protected void
 	getRequestProperties(
-		HttpURLConnection		con )
+		URLConnection		con )
 	{
 		try{
 			setProperty( ResourceDownloader.PR_STRING_CONTENT_TYPE, con.getContentType() );

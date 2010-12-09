@@ -895,7 +895,7 @@ public class UrlUtils
 	
 	public static long
 	getContentLength(
-		HttpURLConnection	con )
+		URLConnection	con )
 	{
 		long res = con.getContentLength();
 		
