@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.ipchecker.natchecker;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -29,6 +30,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Properties;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
@@ -42,6 +44,9 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.clientid.ClientIDException;
+import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.plugins.upnp.*;
 
@@ -172,7 +177,25 @@ public class NatChecker {
       }
       
       URL url = new URL( urlStr );
+      
+      Properties	http_properties = new Properties();
+
+      http_properties.put( ClientIDGenerator.PR_URL, url );
+      http_properties.put( ClientIDGenerator.PR_RAW_REQUEST, true );
+
+      try{
+    	  ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
+
+      }catch( ClientIDException e ){
+
+    	  throw( new IOException( e.getMessage()));
+      }
+
+      url = (URL)http_properties.get( ClientIDGenerator.PR_URL );
+      
+     
       HttpURLConnection con = (HttpURLConnection)url.openConnection();
+      
       con.connect();
       
       ByteArrayOutputStream message = new ByteArrayOutputStream();

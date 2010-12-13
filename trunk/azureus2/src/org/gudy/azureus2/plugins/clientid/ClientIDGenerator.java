@@ -35,6 +35,7 @@ public interface
 ClientIDGenerator 
 {
 	public static final String PR_URL			= "URL";			// in/out, the target URL
+	public static final String PR_RAW_REQUEST	= "Raw-Request";	// in, Boolean
 	public static final String PR_USER_AGENT	= "User-Agent";		// out
 	
 		/**

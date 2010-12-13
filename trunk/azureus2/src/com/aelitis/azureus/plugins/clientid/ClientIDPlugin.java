@@ -83,6 +83,13 @@ ClientIDPlugin
 	doHTTPProperties(
 		Properties			properties )
 	{
+		Boolean	raw = (Boolean)properties.get( ClientIDGenerator.PR_RAW_REQUEST );
+		
+		if ( raw != null && raw ){
+			
+			return;
+		}
+		
 		String	version = Constants.AZUREUS_VERSION;
 		
 			// trim of any _Bnn or _CVS suffix as unfortunately some trackers can't cope with this
@@ -107,6 +114,4 @@ ClientIDPlugin
 		
 		properties.put( ClientIDGenerator.PR_USER_AGENT, agent );
 	}
-	
-
 }
