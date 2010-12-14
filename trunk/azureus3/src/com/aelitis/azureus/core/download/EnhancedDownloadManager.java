@@ -284,12 +284,11 @@ EnhancedDownloadManager
 		return( target_speed );
 	}
 	
-	protected void
+	protected boolean
 	updateStats(
 		int		tick_count )
 	{
-		updateProgressiveStats( tick_count );
-
+		return( updateProgressiveStats( tick_count ));
 	}
 	
 
@@ -404,6 +403,11 @@ EnhancedDownloadManager
 			
 			progressive_active	= active;
 
+			if ( progressive_active ){
+				
+				enhancer.progressiveActivated();
+			}
+			
 			if ( current_piece_pickler != null ){
 		
 				if ( progressive_active ){
@@ -483,20 +487,20 @@ EnhancedDownloadManager
 		return( new progressiveStatsCommon( dm, file ));
 	}
 	
-	protected void
+	protected boolean
 	updateProgressiveStats(
 		int		tick_count )
 	{
 		if ( !progressive_active ){
 			
-			return;
+			return( false );
 		}
 					
 		synchronized( this ){
 			
 			if ( !progressive_active || progressive_stats == null ){
 				
-				return;
+				return( false );
 			}			
 
 			if ( tick_count % REACTIVATE_PROVIDER_PERIOD_TICKS == 0 ){
@@ -518,6 +522,8 @@ EnhancedDownloadManager
 				RealTimeInfo.setProgressiveActive( current_max );
 			}
 		}
+		
+		return( true );
 	}
 	
 	protected void

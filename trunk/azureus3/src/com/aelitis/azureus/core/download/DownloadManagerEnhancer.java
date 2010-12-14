@@ -24,6 +24,7 @@
 package com.aelitis.azureus.core.download;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -73,6 +74,8 @@ DownloadManagerEnhancer
 	private Set<HashWrapper>		pause_set = new HashSet<HashWrapper>();
 	
 	private boolean			progressive_enabled;
+	
+	private AtomicLong	progressive_active_counter = new AtomicLong();
 	
 	protected
 	DownloadManagerEnhancer(
@@ -240,33 +243,43 @@ DownloadManagerEnhancer
 				{
 					private int tick_count;
 					
+					private long	last_inactive_marker = -1;
+					
 					public void 
 					perform(
 						TimerEvent event ) 
 					{
 						tick_count++;
 						
+						long	current_marker = progressive_active_counter.get();
+						
+						if ( last_inactive_marker == current_marker ){
+							
+							return;
+						}
+												
 						List	downloads = core.getGlobalManager().getDownloadManagers();
+						
+						boolean	is_active = false;
 						
 						for ( int i=0;i<downloads.size();i++){
 							
 							DownloadManager download = (DownloadManager)downloads.get(i);
-							
-							int	state = download.getState();
-							
-							if ( 	state == DownloadManager.STATE_DOWNLOADING ||
-									state == DownloadManager.STATE_SEEDING ){
+															
+							EnhancedDownloadManager edm = getEnhancedDownload( download );
 								
-								EnhancedDownloadManager edm = getEnhancedDownload( download );
-								
-								if ( edm == null ){
-									
-									return;
+							if ( edm != null ){
+																	
+								if ( edm.updateStats( tick_count )){
+										
+									is_active = true;
 								}
-								
-								edm.updateStats( tick_count );
-							
 							}
+						}
+						
+						if ( !is_active ){
+							
+							last_inactive_marker = current_marker;
 						}
 					}
 				});
@@ -310,6 +323,12 @@ DownloadManagerEnhancer
 					}
 				}
 			});
+	}
+	
+	protected void
+	progressiveActivated()
+	{
+		progressive_active_counter.incrementAndGet();
 	}
 	
 	protected AzureusCore
