@@ -436,7 +436,7 @@ public class Debug {
 	public static String
 	getCompressedStackTrace()
 	{
-		return( getCompressedStackTrace( new Throwable(), 2, 200, false ));
+		return( getCompressedStackTrace( new Throwable(), 1, 200, false ));
 	}
 
 	/**
@@ -447,7 +447,7 @@ public class Debug {
 	public static String
 	getCompressedStackTrace(int iMaxLines)
 	{
-		return( getCompressedStackTrace( new Throwable(), 2, iMaxLines, false ));
+		return( getCompressedStackTrace( new Throwable(), 1, iMaxLines, false ));
 	}
 
 	public static String
