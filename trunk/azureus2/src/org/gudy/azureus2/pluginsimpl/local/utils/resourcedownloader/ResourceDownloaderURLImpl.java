@@ -34,7 +34,9 @@ import java.net.*;
 
 import javax.net.ssl.*;
 import java.net.PasswordAuthentication;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
@@ -590,11 +592,56 @@ redirect_label:
 									if ( move_to != null && url.getProtocol().equalsIgnoreCase( "http" )){
 										
 										try{
-											URL	move_to_url = new URL( URLDecoder.decode( move_to, "UTF-8" ));
+												// don't URL decode the move-to as its already in the right format!
+											
+											URL	move_to_url = new URL( move_to ); // URLDecoder.decode( move_to, "UTF-8" ));
 											
 											if ( move_to_url.getProtocol().equalsIgnoreCase( "https" )){
 												
 												url = move_to_url;
+												
+												try{
+													List<String>	cookies_list = con.getHeaderFields().get( "Set-cookie" );
+													
+													List<String>	cookies_set = new ArrayList();
+													
+													if ( cookies_list != null ){
+														
+														for (int i=0;i<cookies_list.size();i++){
+															
+															String[] cookie_bits = ((String)cookies_list.get(i)).split(";");
+															
+															if ( cookie_bits.length > 0 ){
+															
+																cookies_set.add( cookie_bits[0] );
+															}
+														}
+													}
+													
+													if ( cookies_set.size() > 0 ){
+														
+														String	new_cookies = "";
+														
+														Map properties = getLCKeyProperties();
+														
+														Object obj = properties.get( "url_cookie" );
+														
+														if ( obj instanceof String ){
+														
+															new_cookies = (String)obj;
+														}
+														
+														for ( String s: cookies_set ){
+															
+															new_cookies += (new_cookies.length()==0?"":"; ") + s;
+														}
+														
+														setProperty( "URL_Cookie", new_cookies );
+													}
+												}catch( Throwable e ){
+													
+													Debug.out( e );
+												}
 												
 												follow_redirect = true;
 												
