@@ -36,4 +36,12 @@ PeerDescriptor
 	
 	public boolean
 	useCrypto();
+	
+		/**
+		 * source as defined in DownloadAnnounceResultPeer
+		 * @return
+		 */
+	
+	public String
+	getPeerSource();
 }

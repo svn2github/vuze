@@ -123,6 +123,8 @@ public class PeerItem implements PeerDescriptor {
    
   public byte getSource() {  return source;  }
 
+  public String getPeerSource() {  return convertSourceString( source );  }
+
   public byte getHandshakeType() {  return handshake;  }
   
   public byte getCryptoLevel() { return crypto_level; }
