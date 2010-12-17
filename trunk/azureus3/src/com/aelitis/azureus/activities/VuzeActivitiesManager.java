@@ -171,6 +171,7 @@ public class VuzeActivitiesManager
 			}
 		});
 		
+		/*
 		final String id_str = cn.getServiceURL( ContentNetwork.SERVICE_IDENTIFY );
 		
 		if ( id_str != null && id_str.length() > 0 ){
@@ -196,6 +197,7 @@ public class VuzeActivitiesManager
 				Debug.out( e );
 			}
 		}
+		*/
 	}
 	
 	private static void
