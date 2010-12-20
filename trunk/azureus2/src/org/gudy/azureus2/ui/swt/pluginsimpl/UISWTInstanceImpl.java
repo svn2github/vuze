@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.pluginsimpl;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
@@ -518,6 +519,12 @@ UISWTInstanceImpl
 		if ( is != null ){
 		        
 			ImageData imageData = new ImageData(is);
+			
+			try {
+				is.close();
+			} catch (IOException e) {
+				Debug.out(e);
+			}
 		    
 			return new Image(getDisplay(), imageData);
 		}
