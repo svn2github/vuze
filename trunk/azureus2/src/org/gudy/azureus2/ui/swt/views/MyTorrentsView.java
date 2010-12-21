@@ -265,27 +265,32 @@ public class MyTorrentsView
 
     createDragDrop();
 
-    COConfigurationManager.addAndFireParameterListeners(new String[] {
-			"DND Always In Incomplete",
-			"MyTorrentsView.alwaysShowHeader",
-			"User Mode"
-		}, this);
+    Utils.getOffOfSWTThread(new AERunnable() {
+			
+			public void runSupport() {
+		    COConfigurationManager.addAndFireParameterListeners(new String[] {
+					"DND Always In Incomplete",
+					"MyTorrentsView.alwaysShowHeader",
+					"User Mode"
+				}, MyTorrentsView.this);
 
-    if (currentCategory != null) {
-    	currentCategory.addCategoryListener(this);
-    }
-    CategoryManager.addCategoryManagerListener(this);
-    globalManager.addListener(this, false);
-    DownloadManager[] dms = (DownloadManager[]) globalManager.getDownloadManagers().toArray(new DownloadManager[0]);
-    for (int i = 0; i < dms.length; i++) {
-			DownloadManager dm = dms[i];
-			dm.addListener(this);
-			if (!isOurDownloadManager(dm)) {
-				dms[i] = null;
+		    if (currentCategory != null) {
+		    	currentCategory.addCategoryListener(MyTorrentsView.this);
+		    }
+		    CategoryManager.addCategoryManagerListener(MyTorrentsView.this);
+		    globalManager.addListener(MyTorrentsView.this, false);
+		    DownloadManager[] dms = (DownloadManager[]) globalManager.getDownloadManagers().toArray(new DownloadManager[0]);
+		    for (int i = 0; i < dms.length; i++) {
+					DownloadManager dm = dms[i];
+					dm.addListener(MyTorrentsView.this);
+					if (!isOurDownloadManager(dm)) {
+						dms[i] = null;
+					}
+				}
+		    tv.addDataSources(dms);
+		    tv.processDataSourceQueue();
 			}
-		}
-    tv.addDataSources(dms);
-    tv.processDataSourceQueue();
+		});
     
     cTablePanel.layout();
   }
@@ -379,6 +384,14 @@ public class MyTorrentsView
   }
 
   private void createTabs() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_createTabs();
+			}
+		});
+  }
+  
+  private void swt_createTabs() {
     Category[] categories = CategoryManager.getCategories();
     Arrays.sort(categories);
     boolean showCat = false;
@@ -1507,11 +1520,7 @@ public class MyTorrentsView
 
   // CategoryManagerListener Functions
 	public void categoryAdded(Category category) {
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				createTabs();
-			}
-		});
+		createTabs();
 	}
 
 	public void categoryRemoved(Category category) {
@@ -1523,11 +1532,7 @@ public class MyTorrentsView
 			activateCategory(currentCategory);
 		}
 
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				createTabs();
-			}
-		});
+		createTabs();
 	}
   
   public void categoryChanged(Category category) {	
