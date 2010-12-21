@@ -1037,13 +1037,13 @@ AzureusCoreImpl
 
 	   PairingManagerFactory.getSingleton();
 	   
-	   Object[] runningListeners;
+	   AzureusCoreRunningListener[] runningListeners;
 	   mon_coreRunningListeners.enter();
 	   try {
 	  	 if (coreRunningListeners == null) {
-	  		 runningListeners = new Object[0];
+	  		 runningListeners = new AzureusCoreRunningListener[0];
 	  	 } else {
-	  		 runningListeners = coreRunningListeners.toArray();
+	  		 runningListeners = coreRunningListeners.toArray(new AzureusCoreRunningListener[0]);
 	  		 coreRunningListeners = null;
 	  	 }
 	  	 
@@ -1102,10 +1102,19 @@ AzureusCoreImpl
 				}
 			}
 		}.start();
-		
-		for (Object l : runningListeners) {
+
+		// Typicially there are many runningListeners, most with quick execution, and 
+		// a few longer ones.  Let 3 run at a time, queue the rest.  Without
+		// a ThreadPool, the slow ones would delay the startup processes that run
+		// after this start() method
+		ThreadPool tp = new ThreadPool("Trigger AzureusCoreRunning Listeners", 3);
+		for (final AzureusCoreRunningListener l : runningListeners) {
 			try {
-				((AzureusCoreRunningListener) l).azureusCoreRunning(this);
+				tp.run(new AERunnable() {
+					public void runSupport() {
+						l.azureusCoreRunning(AzureusCoreImpl.this);
+					}
+				});
 			} catch (Throwable t) {
 				Debug.out(t);
 			}
