@@ -357,7 +357,7 @@ AEThread2
 
 						daemon_threads.addLast( this );
 
-						setName( "AEThead2:parked[" + daemon_threads.size() + "]" );
+						setName( "AEThread2:parked[" + daemon_threads.size() + "]" );
 						
 						// System.out.println( "AEThread2: queue=" + daemon_threads.size() + ",creates=" + total_creates + ",starts=" + total_starts );
 					}
