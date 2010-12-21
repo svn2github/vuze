@@ -25,6 +25,7 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Control;
 
+import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -208,16 +209,28 @@ public class SBC_LibraryView
 							});
 							soLibraryInfo.setText(s);
 						} else if (torrentFilterMode == TORRENTS_ALL) {
-							String id = "library.all.header";
-							if (stats.numComplete + stats.numIncomplete != 1) {
-								id += ".p";
+							if (datasource instanceof Category) {
+								Category cat = (Category) datasource;
+								
+								String id = "library.category.header";
+								String s = MessageText.getString(id,
+										new String[] {
+									cat.getName()
+								});
+								soLibraryInfo.setText(s);
+
+							} else {
+  							String id = "library.all.header";
+  							if (stats.numComplete + stats.numIncomplete != 1) {
+  								id += ".p";
+  							}
+  							String s = MessageText.getString(id,
+  									new String[] {
+  								String.valueOf(stats.numComplete + stats.numIncomplete),
+  								String.valueOf(stats.numSeeding + stats.numDownloading),
+  							});
+  							soLibraryInfo.setText(s);
 							}
-							String s = MessageText.getString(id,
-									new String[] {
-								String.valueOf(stats.numComplete + stats.numIncomplete),
-								String.valueOf(stats.numSeeding + stats.numDownloading),
-							});
-							soLibraryInfo.setText(s);
 						} else if (torrentFilterMode == TORRENTS_UNOPENED) {
 							String id = "library.unopened.header";
 							if (stats.numUnOpened != 1) {
