@@ -39,7 +39,9 @@ public class FeatureManagerUIListener
 	private Map<String, Object[]> licence_map = new HashMap<String, Object[]>();
 
 	public FeatureManagerUIListener(FeatureManager featman) {
-		System.out.println("FEAT:");
+		if (DEBUG) {
+			System.out.println("FEAT:");
+		}
 		this.featman = featman;
 	}
 
