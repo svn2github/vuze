@@ -291,6 +291,8 @@ public class ImageLoader
   							addImage(fullImageKey, image);
   						}
   					}
+					} else {
+						fullImageKey = sTryFile;
 					}
 				}
 			}
@@ -656,9 +658,6 @@ public class ImageLoader
 		if (!Utils.isThisThreadSWT()) {
 			Debug.out("addImage called on non-SWT thread");
 			return;
-		}
-		if (key.equals("com/aelitis/azureus/ui/images/tb/2nd_disabled.png")) {
-			System.out.println("GRR" + image.getBounds());
 		}
 		ImageLoaderRefInfo existing = mapImages.putIfAbsent(key,
 				new ImageLoaderRefInfo(image));
