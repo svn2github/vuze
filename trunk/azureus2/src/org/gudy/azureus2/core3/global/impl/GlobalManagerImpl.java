@@ -1342,7 +1342,7 @@ public class GlobalManagerImpl
 	
     for ( int i=0;i<nbDownloads;i++){
     	
-      DownloadManager manager = (DownloadManager)managers.get(i);
+      DownloadManager manager = managers.get(i);
       
       long	now = SystemTime.getCurrentTime();
       
