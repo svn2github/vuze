@@ -757,7 +757,7 @@ public class Initializer
 			public void azureusCoreRunning(AzureusCore core) {
 			  new DelayedEvent( 
 					  "SWTInitComplete:delay",
-					  2500,
+					  500,
 					  new AERunnable()
 					  {
 						  public void
