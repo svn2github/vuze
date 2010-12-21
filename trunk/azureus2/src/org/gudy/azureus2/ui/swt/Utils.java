@@ -2038,7 +2038,7 @@ public class Utils
 	
 	private static Map truncatedTextCache = new HashMap();
 
-	private static ThreadPool tp = new ThreadPool("GetOffSWT", 2);
+	private static ThreadPool tp = new ThreadPool("GetOffSWT", 3);
 	
 	private static class TruncatedTextResult {
 		String text;
