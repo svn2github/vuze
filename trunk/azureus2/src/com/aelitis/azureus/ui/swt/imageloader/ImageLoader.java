@@ -429,7 +429,7 @@ public class ImageLoader
 
 	private Image fadeImage(Image imgToFade) {
 		ImageData imageData = imgToFade.getImageData();
-		Image img = new Image(display, imageData);
+		Image img;
 		// decrease alpha
 		if (imageData.alphaData != null) {
 			if (disabledOpacity == -1) {
