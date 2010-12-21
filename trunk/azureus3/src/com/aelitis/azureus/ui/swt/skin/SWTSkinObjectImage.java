@@ -525,7 +525,9 @@ public class SWTSkinObjectImage
 						fd.height = 0;
 					}
 					canvas.setLayoutData(fd);
-					Utils.relayout(canvas);
+					if (initialized) {
+						Utils.relayout(canvas);
+					}
 				}
 			});
 		}
