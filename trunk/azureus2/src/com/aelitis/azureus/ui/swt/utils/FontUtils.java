@@ -229,9 +229,13 @@ public class FontUtils
 	public static Font findFontByFloat(GC gc, Font font, FontData[] fontData,
 			float[] returnSize, int heightInPixels, int style) {
 		float size = returnSize[0];
+		float delta = 2.0f;
+		boolean fits;
+		int numLoops = 0;
 		do {
+			numLoops++;
 			if (font != null) {
-				size -= 0.1;
+				size -= delta;
 				font.dispose();
 			}
 			try {
@@ -251,9 +255,14 @@ public class FontUtils
 			//		+ gc.textExtent(Utils.GOOD_STRING).y + " (want " + heightInPixels
 			//		+ ")");
 
-		} while (font != null
-				&& gc.textExtent(Utils.GOOD_STRING).y > heightInPixels && size > 1);
-
+			fits = gc.textExtent(Utils.GOOD_STRING).y <= heightInPixels;
+			if (fits && delta > .1) {
+				size += delta;
+				delta /= 2;
+				fits = false;
+			}
+		} while (!fits && size > 1);
+		
 		returnSize[0] = size;
 		return font;
 	}
