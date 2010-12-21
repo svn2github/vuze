@@ -382,7 +382,7 @@ public class Sleak
 		if (index == -1) {
 			return;
 		}
-		if (check.getSelection() && index < errors.length && errors[index] == null) {
+		if (check.getSelection() && index < errors.length && errors[index] != null) {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			PrintStream s = new PrintStream(stream);
 			errors[index].printStackTrace(s);
