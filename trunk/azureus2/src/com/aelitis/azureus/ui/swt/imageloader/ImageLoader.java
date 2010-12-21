@@ -218,9 +218,14 @@ public class ImageLoader
 
 		int splitX = 0;
 		int locationStart = 0;
+		int useIndex = -1; // all
 		if (values[0].equals("multi") && values.length > 2) {
 			splitX = Integer.parseInt(values[1]);
 			locationStart = 2;
+		} else if (values[0].equals("multi-index") && values.length > 3) {
+			splitX = Integer.parseInt(values[1]);
+			useIndex = Integer.parseInt(values[2]);
+			locationStart = 3;
 		}
 
 		if (locationStart == 0 || splitX <= 0) {
@@ -245,38 +250,87 @@ public class ImageLoader
 			}
 		} else {
 			Image image = null;
+			String fullImageKey = null;
+
 			String origFile = values[locationStart];
 			int index = origFile.lastIndexOf('.');
 			if (index > 0) {
-				String sTryFile = origFile.substring(0, index) + suffix
-						+ origFile.substring(index);
-				image = loadImage(display, cl, sTryFile, sKey);
-
-				if (image == null) {
-					sTryFile = origFile.substring(0, index) + suffix.replace('-', '_')
+				if (useIndex == -1) {
+					String sTryFile = origFile.substring(0, index) + suffix
 							+ origFile.substring(index);
 					image = loadImage(display, cl, sTryFile, sKey);
+
+					if (image == null) {
+						sTryFile = origFile.substring(0, index) + suffix.replace('-', '_')
+								+ origFile.substring(index);
+						image = loadImage(display, cl, sTryFile, sKey);
+					}
+				} else {
+					String sTryFile = origFile.substring(0, index) + suffix
+							+ origFile.substring(index);
+
+					// check the cache to see if full image is in there
+					image = getImageFromMap(sTryFile);
+					if (image == null) {
+  					image = loadImage(display, cl, sTryFile, sTryFile);
+  					boolean haveRealImage = isRealImage(image);
+  					if (haveRealImage) {
+  						fullImageKey = sTryFile;
+							addImage(fullImageKey, image);
+  					} else if (sTryFile.matches(".*[-_]disabled.*")) {
+  						String sTryFileNonDisabled = sTryFile.replaceAll("[-_]disabled", "");
+  						image = getImageFromMap(sTryFileNonDisabled);
+  						if (image == null) {
+    						image = loadImage(display, cl, sTryFileNonDisabled,
+    								sTryFileNonDisabled);
+  						}
+  						if (isRealImage(image)) {
+  							releaseImage(sTryFileNonDisabled);
+  							image = fadeImage(image);
+  							fullImageKey = sTryFile;
+  							addImage(fullImageKey, image);
+  						}
+  					}
+					}
 				}
 			}
 			if (image == null) {
 				image = loadImage(display, cl, values[locationStart], sKey);
 			}
 
-			if (image != null) {
+
+			if (isRealImage(image)) {
 				Rectangle bounds = image.getBounds();
-				images = new Image[(bounds.width + splitX - 1) / splitX];
-				for (int i = 0; i < images.length; i++) {
-					Image imgBG = Utils.createAlphaImage(display, splitX, bounds.height,
-							(byte) 0);
-					int pos = i * splitX;
+				if (useIndex == -1) {
+  				images = new Image[(bounds.width + splitX - 1) / splitX];
+  				for (int i = 0; i < images.length; i++) {
+  					Image imgBG = Utils.createAlphaImage(display, splitX, bounds.height,
+  							(byte) 0);
+  					int pos = i * splitX;
+  					try {
+  					images[i] = Utils.blitImage(display, image, new Rectangle(pos, 0,
+  							Math.min(splitX, bounds.width - pos), bounds.height), imgBG,
+  							new Point(0, 0));
+  					} catch (Exception e) {
+  						Debug.out(e);
+  					}
+  					imgBG.dispose();
+  				}
+				} else {
+					images = new Image[1];
+					Image imgBG = Utils.createAlphaImage(display, splitX, bounds.height, (byte) 0);
 					try {
-					images[i] = Utils.blitImage(display, image, new Rectangle(pos, 0,
-							Math.min(splitX, bounds.width - pos), bounds.height), imgBG,
-							new Point(0, 0));
-					} catch (Exception e) {
-						Debug.out(e);
-					}
-					imgBG.dispose();
+						int pos = useIndex * splitX;
+  					images[0] = Utils.blitImage(display, image, new Rectangle(pos, 0,
+  							Math.min(splitX, bounds.width - pos), bounds.height), imgBG,
+  							new Point(0, 0));
+  					} catch (Exception e) {
+  						Debug.out(e);
+  					}
+				}
+
+				if (fullImageKey != null) {
+					releaseImage(fullImageKey);
 				}
 			}
 		}
@@ -338,6 +392,7 @@ public class ImageLoader
 					if (is != null) {
 						img = new Image(display, is);
 						
+						//System.out.println("Loaded image from " + res + " via " + Debug.getCompressedStackTrace());
 						is.close();
 					}
 				}
@@ -350,31 +405,7 @@ public class ImageLoader
 						String id = sKey.substring(0, sKey.length() - 9);
 						Image imgToFade = getImage(id);
 						if (isRealImage(imgToFade)) {
-							ImageData imageData = imgToFade.getImageData();
-							img = new Image(display, imageData);
-							// decrease alpha
-							if (imageData.alphaData != null) {
-								if (disabledOpacity == -1) {
-									for (int i = 0; i < imageData.alphaData.length; i++) {
-										imageData.alphaData[i] = (byte) ((imageData.alphaData[i] & 0xff) >> 3);
-									}
-								} else {
-									for (int i = 0; i < imageData.alphaData.length; i++) {
-										imageData.alphaData[i] = (byte) ((imageData.alphaData[i] & 0xff)
-												* disabledOpacity / 100);
-									}
-								}
-								img = new Image(display, imageData);
-							} else {
-								Rectangle bounds = imgToFade.getBounds();
-								Image bg = Utils.createAlphaImage(display, bounds.width,
-										bounds.height, (byte) 0);
-
-								img = Utils.renderTransparency(display, bg, imgToFade,
-										new Point(0, 0), disabledOpacity == -1 ? 64
-												: disabledOpacity * 255 / 100);
-								bg.dispose();
-							}
+							img = fadeImage(imgToFade);
 						}
 						releaseImage(id);
 					}else if (sKey.endsWith("-gray")) {
@@ -396,6 +427,35 @@ public class ImageLoader
 		return img;
 	}
 
+	private Image fadeImage(Image imgToFade) {
+		ImageData imageData = imgToFade.getImageData();
+		Image img = new Image(display, imageData);
+		// decrease alpha
+		if (imageData.alphaData != null) {
+			if (disabledOpacity == -1) {
+				for (int i = 0; i < imageData.alphaData.length; i++) {
+					imageData.alphaData[i] = (byte) ((imageData.alphaData[i] & 0xff) >> 3);
+				}
+			} else {
+				for (int i = 0; i < imageData.alphaData.length; i++) {
+					imageData.alphaData[i] = (byte) ((imageData.alphaData[i] & 0xff)
+							* disabledOpacity / 100);
+				}
+			}
+			img = new Image(display, imageData);
+		} else {
+			Rectangle bounds = imgToFade.getBounds();
+			Image bg = Utils.createAlphaImage(display, bounds.width,
+					bounds.height, (byte) 0);
+
+			img = Utils.renderTransparency(display, bg, imgToFade,
+					new Point(0, 0), disabledOpacity == -1 ? 64
+							: disabledOpacity * 255 / 100);
+			bg.dispose();
+		}
+		return img;
+	}
+
 	public void unLoadImages() {
 		if (DEBUG_UNLOAD) {
 			for (String key : mapImages.keySet()) {
@@ -404,7 +464,7 @@ public class ImageLoader
 					for (int i = 0; i < images.length; i++) {
 						Image image = images[i];
 						if (isRealImage(image)) {
-							//System.out.println("dispose " + image + ";" + key);
+							System.out.println("dispose " + image + ";" + key);
 							image.dispose();
 						}
 					}
@@ -425,6 +485,33 @@ public class ImageLoader
 		}
 	}
 
+	protected Image getImageFromMap(String sKey) {
+		Image[] imagesFromMap = getImagesFromMap(sKey);
+		if (imagesFromMap.length == 0) {
+			return null;
+		}
+		return imagesFromMap[0];
+	}
+
+	protected Image[] getImagesFromMap(String sKey) {
+		if (sKey == null) {
+			return new Image[0];
+		}
+
+		ImageLoaderRefInfo imageInfo = mapImages.get(sKey);
+		if (imageInfo != null && imageInfo.getImages() != null) {
+			imageInfo.addref();
+			if (DEBUG_REFCOUNT) {
+				System.out.println("ImageLoader: ++ refcount to "
+						+ imageInfo.getRefCount() + " for " + sKey + " via "
+						+ Debug.getCompressedStackTrace());
+			}
+			return imageInfo.getImages();
+		}
+
+		return new Image[0];
+	}
+
 	public Image[] getImages(String sKey) {
 		if (!Utils.isThisThreadSWT()) {
 			Debug.out("getImages called on non-SWT thread");
@@ -439,8 +526,8 @@ public class ImageLoader
 		if (imageInfo != null && imageInfo.getImages() != null) {
 			imageInfo.addref();
 			if (DEBUG_REFCOUNT) {
-				System.out.println("ImageLoader: ++ refcount of " + sKey + " now "
-						+ imageInfo.getRefCount() + " via "
+				System.out.println("ImageLoader: ++ refcount to "
+						+ imageInfo.getRefCount() + " for " + sKey + " via "
 						+ Debug.getCompressedStackTrace());
 			}
 			return imageInfo.getImages();
@@ -510,6 +597,11 @@ public class ImageLoader
 		}
 
 		mapImages.put(sKey, new ImageLoaderRefInfo(images));
+		if (DEBUG_REFCOUNT) {
+			System.out.println("ImageLoader: ++ refcount to "
+					+ "1 for " + sKey + " via "
+					+ Debug.getCompressedStackTrace());
+		}
 
 		return images;
 	}
@@ -541,8 +633,8 @@ public class ImageLoader
 										+ (images[0] == noImage)))));
 			}
 			if (DEBUG_REFCOUNT) {
-				System.out.println("ImageLoader: -- refcount of " + sKey + " now "
-						+ imageInfo.getRefCount() + " via "
+				System.out.println("ImageLoader: -- refcount to "
+						+ imageInfo.getRefCount() + " for " + sKey + " via "
 						+ Debug.getCompressedStackTrace());
 			}
 			return imageInfo.getRefCount();
@@ -565,6 +657,9 @@ public class ImageLoader
 			Debug.out("addImage called on non-SWT thread");
 			return;
 		}
+		if (key.equals("com/aelitis/azureus/ui/images/tb/2nd_disabled.png")) {
+			System.out.println("GRR" + image.getBounds());
+		}
 		ImageLoaderRefInfo existing = mapImages.putIfAbsent(key,
 				new ImageLoaderRefInfo(image));
 		if (existing != null) {
@@ -573,6 +668,11 @@ public class ImageLoader
 				image
 			});
 			existing.addref();
+			if (DEBUG_REFCOUNT) {
+				System.out.println("ImageLoader: ++ refcount to "
+						+ existing.getRefCount() + " for " + key + " via "
+						+ Debug.getCompressedStackTrace());
+			}
 		}
 	}
 
@@ -587,6 +687,11 @@ public class ImageLoader
 			// should probably fail if refcount > 0
 			existing.setImages(images);
 			existing.addref();
+			if (DEBUG_REFCOUNT) {
+				System.out.println("ImageLoader: ++ refcount to "
+						+ existing.getRefCount() + " for " + key + " via "
+						+ Debug.getCompressedStackTrace());
+			}
 		}
 	}
 	
@@ -609,6 +714,11 @@ public class ImageLoader
 				image
 			});
 			existing.addref();
+			if (DEBUG_REFCOUNT) {
+				System.out.println("ImageLoader: ++ refcount to "
+						+ existing.getRefCount() + " for " + key + " via "
+						+ Debug.getCompressedStackTrace());
+			}
 		}
 	}
 
@@ -629,7 +739,9 @@ public class ImageLoader
 
 	public boolean imageExists(String name) {
 		boolean exists = isRealImage(getImage(name));
-		releaseImage(name);
+		if (exists) {
+			releaseImage(name);
+		}
 		return exists;
 	}
 
@@ -837,6 +949,9 @@ public class ImageLoader
 					// no one can addref in between canDispose and dispose because
 					// all our addrefs are in SWT threads.
 					if (info != null && info.canDispose()) {
+						if (DEBUG_UNLOAD) {
+							System.out.println("dispose " + key);
+						}
 						iter.remove();
 						numRemoved++;
 
