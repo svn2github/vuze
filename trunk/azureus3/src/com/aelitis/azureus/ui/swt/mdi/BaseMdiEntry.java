@@ -870,7 +870,7 @@ public abstract class BaseMdiEntry
 
 	public void releaseImageLeft(String suffix) {
 		if (imageLeft != null) {
-			ImageLoader.getInstance().releaseImage(imageLeftID + suffix);
+			ImageLoader.getInstance().releaseImage(imageLeftID + (suffix == null ? "" : suffix));
 		}
 	}
 
