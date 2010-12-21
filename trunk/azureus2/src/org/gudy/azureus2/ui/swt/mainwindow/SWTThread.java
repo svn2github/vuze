@@ -123,6 +123,7 @@ public class SWTThread {
 			}
 			return;
 		}
+    Thread.currentThread().setName("SWT Thread");
     
     primaryMonitor = display.getPrimaryMonitor();
     
