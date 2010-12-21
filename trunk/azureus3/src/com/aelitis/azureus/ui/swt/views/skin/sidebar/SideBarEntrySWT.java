@@ -249,27 +249,30 @@ public class SideBarEntrySWT
 
 		//System.out.println("redraw " + Thread.currentThread().getName() + ":" + getId() + " via " + Debug.getCompressedStackTrace());
 		
-		Utils.execSWTThread(new AERunnable() {
+		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-				synchronized (SideBarEntrySWT.this) {
-					isRedrawQueued = false;
-				}
-				if (swtItem == null || swtItem.isDisposed()) {
-					return;
-				}
-				Tree tree = swtItem.getParent();
-				if (!tree.isVisible()) {
-					return;
-				}
 				try {
-					Rectangle bounds = swtItem.getBounds();
-					Rectangle treeBounds = tree.getBounds();
-					tree.redraw(0, bounds.y, treeBounds.width, bounds.height, true);
-				} catch (NullPointerException npe) {
-					// ignore NPE. OSX seems to be spewing this when the tree size is 0
-					// or is invisible or something like that
+  				if (swtItem == null || swtItem.isDisposed()) {
+  					return;
+  				}
+  				Tree tree = swtItem.getParent();
+  				if (!tree.isVisible()) {
+  					return;
+  				}
+  				try {
+  					Rectangle bounds = swtItem.getBounds();
+  					Rectangle treeBounds = tree.getBounds();
+  					tree.redraw(0, bounds.y, treeBounds.width, bounds.height, true);
+  				} catch (NullPointerException npe) {
+  					// ignore NPE. OSX seems to be spewing this when the tree size is 0
+  					// or is invisible or something like that
+  				}
+  				//tree.update();
+				} finally {
+					synchronized (SideBarEntrySWT.this) {
+						isRedrawQueued = false;
+					}
 				}
-				//tree.update();
 			}
 		});
 	}
