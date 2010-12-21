@@ -495,7 +495,7 @@ public class FileUtil {
 					  
 					  tempOS.getFD().sync();
 				  }
-				  
+					  
 				  baos.close();
 				  baos = null;
 
@@ -513,15 +513,24 @@ public class FileUtil {
 						  }
 					  }
 					  
+					  if (file.exists()) {
+					  	Debug.out(file + " still exists after delete attempt");
+					  }
+					  
 					  if ( temp.renameTo( file )){
 						  
 						  return( true );
 						  
-					  }else{
-						  
-						 Debug.out( "Save of '" + file_name + "' fails - couldn't rename " + temp.getAbsolutePath() + " to " + file.getAbsolutePath());
-
 					  }
+
+					  // rename failed, sleep a little and try again
+					  Thread.sleep(50);
+					  if ( temp.renameTo( file )){
+					  	//System.err.println("2nd attempt of rename succeeded for " + temp.getAbsolutePath() + " to " + file.getAbsolutePath());
+					  	return true;
+					  }
+
+				  	Debug.out( "Save of '" + file_name + "' fails - couldn't rename " + temp.getAbsolutePath() + " to " + file.getAbsolutePath());
 				  }
 					  
 				  return( false );
