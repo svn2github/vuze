@@ -13,9 +13,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -80,7 +78,7 @@ public class SWTSkinObjectBasic
 
 	private int colorFillType;
 
-	private boolean initialized = false;
+	boolean initialized = false;
 
 	boolean paintListenerHooked = false;
 
@@ -612,7 +610,7 @@ public class SWTSkinObjectBasic
 					String colorStyle = properties.getStringValue(sConfigID
 							+ ".color.style" + sSuffix);
 					if (colorStyle != null) {
-						String[] split = colorStyle.split(",");
+						String[] split = Constants.PAT_SPLIT_COMMA.split(colorStyle);
 
 						if (split.length > 2) {
 							try {
@@ -667,7 +665,7 @@ public class SWTSkinObjectBasic
 				colorBorder = null;
 				colorBorderParams = null;
 				if (sBorderStyle != null) {
-					String[] split = sBorderStyle.split(",");
+					String[] split = Constants.PAT_SPLIT_COMMA.split(sBorderStyle);
 					colorBorder = ColorCache.getSchemedColor(control.getDisplay(), split[0]);
 					needPaintHook |= colorBorder != null;
 
@@ -863,7 +861,7 @@ public class SWTSkinObjectBasic
 			String initClass = properties.getStringValue(sConfigID + ".onshow.skinviewclass");
 			if (initClass != null) {
 				try {
-					String[] initClassItems = initClass.split(",");
+					String[] initClassItems = Constants.PAT_SPLIT_COMMA.split(initClass);
 					ClassLoader claLoader = this.getClass().getClassLoader();
 					if (initClassItems.length > 1) {
 						try {

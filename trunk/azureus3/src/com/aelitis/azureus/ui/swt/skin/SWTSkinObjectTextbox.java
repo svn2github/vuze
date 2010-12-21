@@ -66,7 +66,7 @@ public class SWTSkinObjectTextbox
 		
 		String styleString = properties.getStringValue(sConfigID + ".style");
 		if (styleString != null) {
-			String[] styles = styleString.toLowerCase().split(",");
+			String[] styles = Constants.PAT_SPLIT_COMMA.split(styleString.toLowerCase());
 			Arrays.sort(styles);
 			if (Arrays.binarySearch(styles, "readonly") >= 0) {
 				style |= SWT.READ_ONLY;

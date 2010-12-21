@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -160,7 +161,7 @@ public class SWTSkinObjectText1
 
 			String sStyle = properties.getStringValue(sPrefix + ".style" + suffix);
 			if (sStyle != null) {
-				String[] sStyles = sStyle.toLowerCase().split(",");
+				String[] sStyles = Constants.PAT_SPLIT_COMMA.split(sStyle.toLowerCase());
 				for (int i = 0; i < sStyles.length; i++) {
 					String s = sStyles[i];
 					if (s.equals("bold")) {

@@ -25,6 +25,7 @@ import java.io.LineNumberReader;
 import java.nio.charset.Charset;
 import java.util.Locale;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 /**
  *  
@@ -122,6 +123,14 @@ Constants
   public static final boolean isWindowsVistaOrHigher;
   public static final boolean isWindows7OrHigher;
   
+  
+  // Common Patterns
+	public static Pattern PAT_SPLIT_COMMAWORDS = Pattern.compile("\\s*,\\s*");
+	public static Pattern PAT_SPLIT_COMMA = Pattern.compile(",");
+	public static Pattern PAT_SPLIT_DOT = Pattern.compile("\\.");
+	public static Pattern PAT_SPLIT_SPACE = Pattern.compile(" ");
+	public static Pattern PAT_SPLIT_SLASH_N = Pattern.compile("\n");
+	
   
   static{
 

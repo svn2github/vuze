@@ -115,7 +115,7 @@ public class SkinPropertiesImpl
 				
 				if (sFiles != null && skinPath != null) {
 	  			
-					String[] sFilesArray = sFiles.split(",");
+					String[] sFilesArray = Constants.PAT_SPLIT_COMMA.split(sFiles);
 					for (int i = 0; i < sFilesArray.length; i++) {
 						String sFile = (sFilesArray[i].startsWith("/")
 								? sFilesArray[i].substring(1) : skinPath + sFilesArray[i]);
@@ -332,7 +332,7 @@ public class SkinPropertiesImpl
 			return null;
 		}
 
-		String[] values = s.split("\\s*,\\s*");
+		String[] values = Constants.PAT_SPLIT_COMMAWORDS.split(s);
 		if (values == null) {
 			return new String[] {
 				s

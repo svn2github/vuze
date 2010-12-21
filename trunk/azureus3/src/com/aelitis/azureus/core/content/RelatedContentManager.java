@@ -2015,7 +2015,7 @@ RelatedContentManager
 		
 		RelatedContent[] content = getRelatedContent();
 		
-		String[]	 bits = term.toLowerCase().split( " " );
+		String[]	 bits = Constants.PAT_SPLIT_SPACE.split(term.toLowerCase());
 
 		int[]		bit_types 		= new int[bits.length];
 		Pattern[]	bit_patterns 	= new Pattern[bits.length];

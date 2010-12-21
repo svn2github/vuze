@@ -684,7 +684,7 @@ public class SB_Transfers
 				}
 
 				String dropped = (String) payload;
-				String[] split = dropped.split("\n");
+				String[] split = Constants.PAT_SPLIT_SLASH_N.split(dropped);
 				if (split.length > 1) {
 					String type = split[0];
 					if (type.startsWith("DownloadManager")) {

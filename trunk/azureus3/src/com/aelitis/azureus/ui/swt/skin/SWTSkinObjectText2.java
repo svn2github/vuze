@@ -411,7 +411,7 @@ public class SWTSkinObjectText2
 			String sStyle = properties.getStringValue(sPrefix + ".style" + suffix);
 			if (sStyle != null) {
 				isAllcaps = false;
-				String[] sStyles = sStyle.toLowerCase().split(",");
+				String[] sStyles = Constants.PAT_SPLIT_COMMA.split(sStyle.toLowerCase());
 				for (int i = 0; i < sStyles.length; i++) {
 					String s = sStyles[i];
 

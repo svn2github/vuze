@@ -32,16 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DelayedEvent;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.core3.util.LightHashMap;
-import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
 import com.aelitis.azureus.core.devices.Device;
@@ -1122,7 +1113,7 @@ DeviceImpl
 		}
 		
 		try{
-			String[]	bits = classification.split( "\\." );
+			String[]	bits = Constants.PAT_SPLIT_DOT.split(classification);
 			
 				// I would like to drill all the way up to just 'generic' but unfortunately this
 				// would break the current samsung/ms_wmp support that requires the detected profile

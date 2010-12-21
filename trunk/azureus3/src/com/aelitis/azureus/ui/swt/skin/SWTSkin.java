@@ -347,7 +347,7 @@ public class SWTSkin
 				return null;
 			}
 			if (unattachedView.indexOf(',') > 0) {
-				String[] split = unattachedView.split(",");
+				String[] split = Constants.PAT_SPLIT_COMMA.split(unattachedView);
 				String parentID = split[1];
 				SWTSkinObject soParent = getSkinObjectByID(parentID, parent);
 				if (soParent != null) {
@@ -774,6 +774,8 @@ public class SWTSkin
 		if (templateID == null) {
 			//templateID = skinObject.getSkinObjectID();
 		}
+		
+		boolean debugControl = controlToLayout.getData("DEBUG") != null;
 
 		for (int i = 0; i < sDirections.length; i++) {
 			Control control = null;
@@ -899,7 +901,7 @@ public class SWTSkin
 				}
 			}
 
-			if (controlToLayout.getData("DEBUG") != null && attachment != null) {
+			if (debugControl && attachment != null) {
 				if (controlToLayout instanceof Group) {
 					Group group = (Group) controlToLayout;
 					String sValue = properties.getStringValue(prefix + suffix);

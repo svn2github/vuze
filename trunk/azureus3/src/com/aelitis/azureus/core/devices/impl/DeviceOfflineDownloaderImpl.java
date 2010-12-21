@@ -39,19 +39,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AsyncDispatcher;
-import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
-import org.gudy.azureus2.core3.util.LightHashMap;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -656,7 +644,7 @@ DeviceOfflineDownloaderImpl
 					throw( new Exception( "Failing result returned: " + set_dl_status ));
 				}
 				
-				String[]	bits = set_dl_result.split( "," );
+				String[]	bits = Constants.PAT_SPLIT_COMMA.split(set_dl_result);
 				
 				int	num_bits = set_dl_result.length()==0?0:bits.length;
 				

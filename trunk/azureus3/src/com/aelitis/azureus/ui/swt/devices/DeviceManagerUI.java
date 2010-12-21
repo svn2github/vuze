@@ -2954,7 +2954,7 @@ DeviceManagerUI
 			
 			if ( stuff.startsWith( "DownloadManager\n" ) ||stuff.startsWith( "DiskManagerFileInfo\n" )){
 				
-				String[]	bits = stuff.split( "\n" );
+				String[]	bits =  Constants.PAT_SPLIT_SLASH_N.split(stuff);
 				
 				for (int i=1;i<bits.length;i++){
 					
@@ -2992,7 +2992,7 @@ DeviceManagerUI
 				}
 			}else if ( stuff.startsWith( "TranscodeFile\n" )){
 				
-				String[]	bits = stuff.split( "\n" );
+				String[]	bits =  Constants.PAT_SPLIT_SLASH_N.split(stuff);
 				
 				for (int i=1;i<bits.length;i++){
 					

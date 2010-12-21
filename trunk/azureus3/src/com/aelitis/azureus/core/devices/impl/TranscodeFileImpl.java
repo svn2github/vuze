@@ -30,9 +30,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -514,7 +512,7 @@ TranscodeFileImpl
 			return( new String[0] );
 		}
 		
-		return( cats.split( "," ));
+		return( Constants.PAT_SPLIT_COMMA.split(cats));
 	}
 	
 	public void

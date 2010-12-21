@@ -33,6 +33,7 @@ import java.net.URLEncoder;
 import java.util.*;
 
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
@@ -492,7 +493,7 @@ DeviceTivo
 				
 				if ( sort_order != null ){
 					
-					String[] keys = sort_order.split( "," );
+					String[] keys = Constants.PAT_SPLIT_COMMA.split(sort_order);
 					
 					final List<Comparator<ItemInfo>> 	comparators = new  ArrayList<Comparator<ItemInfo>>();
 					final List<Boolean>					reverses	= new ArrayList<Boolean>();
