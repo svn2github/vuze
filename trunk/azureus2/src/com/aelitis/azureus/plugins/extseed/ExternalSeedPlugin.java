@@ -38,9 +38,11 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.components.UITextField;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
@@ -214,16 +216,30 @@ ExternalSeedPlugin
 		List	peers = new ArrayList();
 		
 		for (int i=0;i<factories.length;i++){
+
+
+			String attributeID = "no-ext-seeds-" + factories[i].getClass().getSimpleName();
+			TorrentAttribute attribute = plugin_interface.getTorrentManager().getPluginAttribute( attributeID );
+
+			boolean noExternalSeeds = download.getBooleanAttribute(attribute);
+			if (noExternalSeeds) {
+				continue;  	
+			}
 			
 			ExternalSeedReader[]	x = factories[i].getSeedReaders( this, download );
 			
-			for (int j=0;j<x.length;j++){
-				
-				ExternalSeedReader	reader = x[j];
-				
-				ExternalSeedPeer	peer = new ExternalSeedPeer( this, download, reader );
-				
-				peers.add( peer );
+			if (x.length == 0) {
+				download.setBooleanAttribute(attribute, true);
+			} else {
+
+  			for (int j=0;j<x.length;j++){
+  				
+  				ExternalSeedReader	reader = x[j];
+  				
+  				ExternalSeedPeer	peer = new ExternalSeedPeer( this, download, reader );
+  				
+  				peers.add( peer );
+  			}
 			}
 		}
 		
@@ -252,7 +268,12 @@ ExternalSeedPlugin
 						
 			for (int i=0;i<factories.length;i++){
 				
+				String attributeID = "no-ext-seeds-" + factories[i].getClass().getSimpleName();
+				TorrentAttribute attribute = plugin_interface.getTorrentManager().getPluginAttribute( attributeID );
+
 				ExternalSeedReader[]	x = factories[i].getSeedReaders( this, download, config );
+				
+				download.setBooleanAttribute(attribute, x.length == 0);
 				
 				for (int j=0;j<x.length;j++){
 					
