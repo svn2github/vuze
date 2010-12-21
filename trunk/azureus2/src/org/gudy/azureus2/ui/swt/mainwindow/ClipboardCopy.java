@@ -49,7 +49,7 @@ public class ClipboardCopy {
     String    data )
   {
 	  new Clipboard(SWTThread.getInstance().getDisplay()).setContents(
-			  new Object[] {data }, 
+			  new Object[] {data.replaceAll("\\x00", " " )  }, 
 			  new Transfer[] {TextTransfer.getInstance()});
   }
   
