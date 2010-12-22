@@ -36,7 +36,6 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.*;
 
-import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.common.table.*;
 
 /** Represents an entire row in a table.  Stores each cell belonging to the
@@ -49,41 +48,56 @@ import com.aelitis.azureus.ui.common.table.*;
  *                         BufferedTableRow
  *            2005/Oct/07: Removed all calls to BufferedTableRoe.getItem()
  */
-public class TableRowImpl<COREDATASOURCE> 
-       extends BufferedTableRow 
-       implements TableRowSWT
+public class TableRowImpl<COREDATASOURCE>
+	extends BufferedTableRow
+	implements TableRowSWT
 {
-  /** List of cells in this column.  They are not stored in display order */
-  private Map<String, TableCellCore> mTableCells;
-  private TableCellCore[] tableCells;
-  private AEMonitor2 mTableCells_mon = new AEMonitor2("mTableCells");
-  
-  private Object coreDataSource;
-  private Object pluginDataSource;
-  private boolean bDisposed;
-  private boolean bSetNotUpToDateLastRefresh = false;
+	/** 
+	 * List of cells in this row.  
+	 * They are not stored in display order.
+	 * Not written to after initializer
+	 */
+	private Map<String, TableCellCore> mTableCells;
+
+	private Object coreDataSource;
+
+	private Object pluginDataSource;
+
+	private boolean bDisposed;
+
+	private boolean bSetNotUpToDateLastRefresh = false;
+
 	private TableView<COREDATASOURCE> tableView;
 
-  private static AEMonitor this_mon = new AEMonitor( "TableRowImpl" );
+	private static AEMonitor this_mon = new AEMonitor("TableRowImpl");
+
 	private ArrayList<TableRowMouseListener> mouseListeners;
+
 	private boolean wasShown = false;
-	private Map<String,Object> dataList;
-	
+
+	private Map<String, Object> dataList;
+
 	private int lastIndex = -1;
+
 	private int fontStyle;
+
 	private int alpha = 255;
-	
+
 	private TableRowCore parentRow;
+
 	private TableRowImpl<Object>[] subRows;
+
 	private AEMonitor mon_SubRows = new AEMonitor("subRows");
+
 	private TableColumnCore[] columnsSorted;
+
 	private boolean bSkipFirstColumn;
 
-  // XXX add rowVisuallyupdated bool like in ListRow
+	// XXX add rowVisuallyupdated bool like in ListRow
 
 	public TableRowImpl(TableRowCore parentRow, TableView<COREDATASOURCE> tv,
-			TableOrTreeSWT table, TableColumnCore[] columnsSorted,
-			String sTableID, Object dataSource, int index, boolean bSkipFirstColumn) {
+			TableOrTreeSWT table, TableColumnCore[] columnsSorted, String sTableID,
+			Object dataSource, int index, boolean bSkipFirstColumn) {
 		super(table);
 		this.parentRow = parentRow;
 		this.tableView = tv;
@@ -91,32 +105,26 @@ public class TableRowImpl<COREDATASOURCE>
 		bDisposed = false;
 		lastIndex = index;
 
-    mTableCells_mon.enter();
-    try {
-    	mTableCells = new LightHashMap<String, TableCellCore>(columnsSorted.length, 1);
+		mTableCells = new LightHashMap<String, TableCellCore>(columnsSorted.length,
+				1);
 
-    	// create all the cells for the column
-    	for (int i = 0; i < columnsSorted.length; i++) {
-    		if (columnsSorted[i] == null) {
-    			continue;
-    		}
-    		
-    		if (!columnsSorted[i].handlesDataSourceType(getDataSource(false).getClass())) {
-      		mTableCells.put(columnsSorted[i].getName(), null);
-    			continue;
-    		}
-    		
-    		//System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
-    		TableSubCellImpl cell = new TableSubCellImpl(TableRowImpl.this, columnsSorted[i], 
-    				bSkipFirstColumn ? i+1 : i);
-    		mTableCells.put(columnsSorted[i].getName(), cell);
-    		//if (i == 10) cell.bDebug = true;
-    	}
-    	
-    	tableCells = mTableCells.values().toArray(new TableCellCore[mTableCells.size()]);
-    } finally {
-    	mTableCells_mon.exit();
-    }
+		// create all the cells for the column
+		for (int i = 0; i < columnsSorted.length; i++) {
+			if (columnsSorted[i] == null) {
+				continue;
+			}
+
+			if (!columnsSorted[i].handlesDataSourceType(getDataSource(false).getClass())) {
+				mTableCells.put(columnsSorted[i].getName(), null);
+				continue;
+			}
+
+			//System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
+			TableSubCellImpl cell = new TableSubCellImpl(TableRowImpl.this,
+					columnsSorted[i], bSkipFirstColumn ? i + 1 : i);
+			mTableCells.put(columnsSorted[i].getName(), cell);
+			//if (i == 10) cell.bDebug = true;
+		}
 	}
 
 	/**
@@ -134,85 +142,71 @@ public class TableRowImpl<COREDATASOURCE>
 		super(table);
 		this.tableView = tv;
 		this.columnsSorted = columnsSorted;
-    coreDataSource = dataSource;
+		coreDataSource = dataSource;
 		this.bSkipFirstColumn = bSkipFirstColumn;
-    bDisposed = false;
+		bDisposed = false;
 
-    mTableCells_mon.enter();
-    try {
-    	mTableCells = new LightHashMap<String, TableCellCore>(columnsSorted.length, 1);
+		mTableCells = new LightHashMap<String, TableCellCore>(columnsSorted.length,
+				1);
 
-    	// create all the cells for the column
-    	for (int i = 0; i < columnsSorted.length; i++) {
-    		if (columnsSorted[i] == null)
-    			continue;
-    		//System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
-    		TableCellImpl cell = new TableCellImpl(TableRowImpl.this, columnsSorted[i], 
-    				bSkipFirstColumn ? i+1 : i);
-    		mTableCells.put(columnsSorted[i].getName(), cell);
-    		//if (i == 10) cell.bDebug = true;
-    	}
-    	
-    	tableCells = mTableCells.values().toArray(new TableCellImpl[mTableCells.size()]);
-    } finally {
-    	mTableCells_mon.exit();
-    }
-  }
+		// create all the cells for the column
+		for (int i = 0; i < columnsSorted.length; i++) {
+			if (columnsSorted[i] == null) {
+				continue;
+			}
+			//System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
+			TableCellImpl cell = new TableCellImpl(TableRowImpl.this,
+					columnsSorted[i], bSkipFirstColumn ? i + 1 : i);
+			mTableCells.put(columnsSorted[i].getName(), cell);
+			//if (i == 10) cell.bDebug = true;
+		}
+	}
 
-  public boolean isValid() {
-  	if (bDisposed || mTableCells == null) {
-  		return true;
-  	}
+	public boolean isValid() {
+		if (bDisposed || mTableCells == null) {
+			return true;
+		}
 
-    boolean valid = true;
-    mTableCells_mon.enter();
-    try {
-    	for (TableCell cell : tableCells) {
-    		if (cell != null && cell.isValid()) {
-    			return false;
-    		}
-      }
-    } finally {
-    	mTableCells_mon.exit();
-    }
+		boolean valid = true;
+		for (TableCell cell : mTableCells.values()) {
+			if (cell != null && cell.isValid()) {
+				return false;
+			}
+		}
 
-    return valid;
-  }
+		return valid;
+	}
 
-  /** TableRow Implementation which returns the 
-   * associated plugin object for the row.  Core Column Object who wish to get 
-   * core data source must re-class TableRow as TableRowCore and use
-   * getDataSource(boolean)
-   *
-   * @see TableRowCore.getDataSource()
-   */
-  public Object getDataSource() {
-    return getDataSource(false);
-  }
+	/** TableRow Implementation which returns the 
+	 * associated plugin object for the row.  Core Column Object who wish to get 
+	 * core data source must re-class TableRow as TableRowCore and use
+	 * getDataSource(boolean)
+	 *
+	 * @see TableRowCore.getDataSource()
+	 */
+	public Object getDataSource() {
+		return getDataSource(false);
+	}
 
-  public String getTableID() {
-    return tableView.getTableID();
-  }
-  
-  public TableCell getTableCell(String field) {
-  	if (bDisposed || mTableCells == null) {
-  		return null;
-  	}
+	public String getTableID() {
+		return tableView.getTableID();
+	}
 
-  	mTableCells_mon.enter();
-  	try {
-  		return mTableCells.get(field);
-    } finally {
-    	mTableCells_mon.exit();
-    }
-  }
+	public TableCell getTableCell(String field) {
+		if (bDisposed || mTableCells == null) {
+			return null;
+		}
+
+		return mTableCells.get(field);
+	}
 
 	public void addMouseListener(TableRowMouseListener listener) {
 		try {
 			this_mon.enter();
 
-			if (mouseListeners == null)
+			if (mouseListeners == null) {
 				mouseListeners = new ArrayList<TableRowMouseListener>(1);
+			}
 
 			mouseListeners.add(listener);
 
@@ -225,8 +219,9 @@ public class TableRowImpl<COREDATASOURCE>
 		try {
 			this_mon.enter();
 
-			if (mouseListeners == null)
+			if (mouseListeners == null) {
 				return;
+			}
 
 			mouseListeners.remove(listener);
 
@@ -235,11 +230,12 @@ public class TableRowImpl<COREDATASOURCE>
 		}
 	}
 
-  public void invokeMouseListeners(TableRowMouseEvent event) {
+	public void invokeMouseListeners(TableRowMouseEvent event) {
 		ArrayList<TableRowMouseListener> listeners = mouseListeners;
-		if (listeners == null)
+		if (listeners == null) {
 			return;
-		
+		}
+
 		for (int i = 0; i < listeners.size(); i++) {
 			try {
 				TableRowMouseListener l = listeners.get(i);
@@ -252,37 +248,32 @@ public class TableRowImpl<COREDATASOURCE>
 		}
 	}
 
-  /* Start Core-Only functions */
-  ///////////////////////////////
+	/* Start Core-Only functions */
+	///////////////////////////////
 
-  public void delete() {
+	public void delete() {
 		this_mon.enter();
 
 		try {
-			if (bDisposed)
+			if (bDisposed) {
 				return;
+			}
 
-			if (TableViewSWT.DEBUGADDREMOVE)
+			if (TableViewSWT.DEBUGADDREMOVE) {
 				System.out.println((table.isDisposed() ? "" : table.getData("Name"))
 						+ " row delete; index=" + getIndex());
+			}
 
-			mTableCells_mon.enter();
-			try {
-  			if (mTableCells != null) {
-  				for (TableCellCore cell : tableCells) {
-  					try {
-  						if (cell != null) {
-  							cell.dispose();
-  						}
-  					} catch (Exception e) {
-  						Debug.out(e);
-  					}
-    			}
-  			}
-	    } finally {
-	    	mTableCells_mon.exit();
-	    }
-			
+			for (TableCellCore cell : mTableCells.values()) {
+				try {
+					if (cell != null) {
+						cell.dispose();
+					}
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+
 			//setForeground((Color) null);
 
 			bDisposed = true;
@@ -290,161 +281,140 @@ public class TableRowImpl<COREDATASOURCE>
 			this_mon.exit();
 		}
 	}
-  
-  public List<TableCellCore> refresh(boolean bDoGraphics) {
-    if (bDisposed) {
-      return Collections.EMPTY_LIST;
-    }
-    
-    boolean bVisible = isVisible();
 
-    return refresh(bDoGraphics, bVisible);
-  }
+	public List<TableCellCore> refresh(boolean bDoGraphics) {
+		if (bDisposed) {
+			return Collections.EMPTY_LIST;
+		}
 
-  public List<TableCellCore> refresh(boolean bDoGraphics, boolean bVisible) {
-    // If this were called from a plugin, we'd have to refresh the sorted column
-    // even if we weren't visible
-    List<TableCellCore> list = Collections.EMPTY_LIST;
+		boolean bVisible = isVisible();
 
-  	if (bDisposed) {
-  		return list;
-  	}
+		return refresh(bDoGraphics, bVisible);
+	}
 
-    if (!bVisible) {
-    	if (!bSetNotUpToDateLastRefresh) {
-    		setUpToDate(false);
-    		bSetNotUpToDateLastRefresh = true;
-    	}
-  		return list;
-  	}
-    
+	public List<TableCellCore> refresh(boolean bDoGraphics, boolean bVisible) {
+		// If this were called from a plugin, we'd have to refresh the sorted column
+		// even if we weren't visible
+		List<TableCellCore> list = Collections.EMPTY_LIST;
+
+		if (bDisposed) {
+			return list;
+		}
+
+		if (!bVisible) {
+			if (!bSetNotUpToDateLastRefresh) {
+				setUpToDate(false);
+				bSetNotUpToDateLastRefresh = true;
+			}
+			return list;
+		}
+
 		bSetNotUpToDateLastRefresh = false;
-		
+
 		//System.out.println(SystemTime.getCurrentTime() + "refresh " + getIndex() + ";vis=" + bVisible);
-		
-		((TableViewSWTImpl<COREDATASOURCE>)tableView).invokeRefreshListeners(this);
 
-		mTableCells_mon.enter();
-		try {
-  		if (mTableCells != null) {
-				for (TableCellCore cell : tableCells) {
-					if (cell == null) {
-						continue;
-					}
-    			TableColumn column = cell.getTableColumn();
-    			//System.out.println(column);
-    			if (column != tableView.getSortColumn() && !tableView.isColumnVisible(column)) {
-    				//System.out.println("skip " + column);
-    				continue;
-    			}
-    			boolean changed = cell.refresh(bDoGraphics, bVisible);
-    			if (changed)
-    			{
-    				if(list == Collections.EMPTY_LIST)
-    					list = new ArrayList<TableCellCore>(mTableCells.size());
-    				list.add(cell);
-    			}
-    				
-    		}
-  		}
-    } finally {
-    	mTableCells_mon.exit();
-    }
-    //System.out.println();
-    return list;
-  }
+		((TableViewSWTImpl<COREDATASOURCE>) tableView).invokeRefreshListeners(this);
 
-  public void locationChanged(int iStartColumn) {
-    if (bDisposed || !isVisible())
-      return;
+		for (TableCellCore cell : mTableCells.values()) {
+			if (cell == null) {
+				continue;
+			}
+			TableColumn column = cell.getTableColumn();
+			//System.out.println(column);
+			if (column != tableView.getSortColumn()
+					&& !tableView.isColumnVisible(column)) {
+				//System.out.println("skip " + column);
+				continue;
+			}
+			boolean changed = cell.refresh(bDoGraphics, bVisible);
+			if (changed) {
+				if (list == Collections.EMPTY_LIST) {
+					list = new ArrayList<TableCellCore>(mTableCells.size());
+				}
+				list.add(cell);
+			}
 
-		mTableCells_mon.enter();
-		try {
-  		if (mTableCells != null) {
-    		for (TableCellCore cell : tableCells) {
-      		if (cell != null && cell.getTableColumn().getPosition() > iStartColumn) {
-      		  cell.locationChanged();
-      		}
-      	}
-  		}
-    } finally {
-    	mTableCells_mon.exit();
-    }
-  }
+		}
 
-  public void doPaint(GC gc) {
-  	doPaint(gc, isVisible());
-  }
+		//System.out.println();
+		return list;
+	}
 
-  // @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#doPaint(org.eclipse.swt.graphics.GC, boolean, boolean)
-  public void doPaint(GC gc, boolean bVisible) {
-    if (bDisposed || !bVisible)
-      return;
+	public void locationChanged(int iStartColumn) {
+		if (bDisposed || !isVisible()) {
+			return;
+		}
 
-		mTableCells_mon.enter();
-		try {
-  		if (mTableCells != null) {
-    		for (TableCellCore cell : tableCells) {
-//    	if (bOnlyIfChanged && !cell.getVisuallyChangedSinceRefresh()) {
-//    		continue;
-//    	}
-      		if (cell != null && cell.needsPainting() && (cell instanceof TableCellSWT)) {
-      			((TableCellSWT) cell).doPaint(gc);
-      		}
-      	}
-  		}
-    } finally {
-    	mTableCells_mon.exit();
-    }
-  }
+		for (TableCellCore cell : mTableCells.values()) {
+			if (cell != null && cell.getTableColumn().getPosition() > iStartColumn) {
+				cell.locationChanged();
+			}
+		}
+	}
 
-  public TableCellCore getTableCellCore(String name) {
-  	if (bDisposed || mTableCells == null)
-  		return null;
+	public void doPaint(GC gc) {
+		doPaint(gc, isVisible());
+	}
 
-		mTableCells_mon.enter();
-		try {
-  		return mTableCells.get(name);
-    } finally {
-    	mTableCells_mon.exit();
-    }
-  }
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#doPaint(org.eclipse.swt.graphics.GC, boolean, boolean)
+	public void doPaint(GC gc, boolean bVisible) {
+		if (bDisposed || !bVisible) {
+			return;
+		}
+
+		for (TableCellCore cell : mTableCells.values()) {
+			//if (bOnlyIfChanged && !cell.getVisuallyChangedSinceRefresh()) {
+			//	continue;
+			//}
+			if (cell != null && cell.needsPainting()
+					&& (cell instanceof TableCellSWT)) {
+				((TableCellSWT) cell).doPaint(gc);
+			}
+		}
+	}
+
+	public TableCellCore getTableCellCore(String name) {
+		if (bDisposed || mTableCells == null) {
+			return null;
+		}
+
+		return mTableCells.get(name);
+	}
 
 	/**
 	 * @param name
 	 * @return
 	 */
 	public TableCellSWT getTableCellSWT(String name) {
-  	if (bDisposed || mTableCells == null)
-  		return null;
-
-		mTableCells_mon.enter();
-		try {
-  		TableCellCore cell = mTableCells.get(name);
-  		if (cell instanceof TableCellSWT) {
-  			return (TableCellSWT) cell;
-  		}
-  		return null;
-    } finally {
-    	mTableCells_mon.exit();
-    }
-	}
-  
-  public Object getDataSource(boolean bCoreObject) {
-		if (bDisposed)
+		if (bDisposed || mTableCells == null) {
 			return null;
+		}
 
-		if (bCoreObject)
+		TableCellCore cell = mTableCells.get(name);
+		if (cell instanceof TableCellSWT) {
+			return (TableCellSWT) cell;
+		}
+		return null;
+	}
+
+	public Object getDataSource(boolean bCoreObject) {
+		if (bDisposed) {
+			return null;
+		}
+
+		if (bCoreObject) {
 			return coreDataSource;
+		}
 
-		if (pluginDataSource != null)
+		if (pluginDataSource != null) {
 			return pluginDataSource;
-		
+		}
+
 		pluginDataSource = PluginCoreUtils.convert(coreDataSource, bCoreObject);
 
 		return pluginDataSource;
 	}
-  
+
 	public boolean isRowDisposed() {
 		return bDisposed;
 	}
@@ -453,8 +423,9 @@ public class TableRowImpl<COREDATASOURCE>
 	 * @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#getIndex()
 	 */
 	public int getIndex() {
-		if (bDisposed)
+		if (bDisposed) {
 			return -1;
+		}
 
 		if (lastIndex >= 0) {
 			if (parentRow != null) {
@@ -465,25 +436,25 @@ public class TableRowImpl<COREDATASOURCE>
 				return lastIndex;
 			}
 		}
-		
+
 		// don't set directly to lastIndex, so setTableItem will eventually do
 		// its job
 		return tableView.indexOf(this);
 
 		//return super.getIndex();
 	}
-	
+
 	public int getRealIndex() {
 		return super.getIndex();
 	}
-	
-	public boolean setTableItem(int newIndex, boolean isVisible)
-	{
+
+	public boolean setTableItem(int newIndex, boolean isVisible) {
 		if (bDisposed) {
-			System.out.println("XXX setTI: bDisposed from " + Debug.getCompressedStackTrace());
+			System.out.println("XXX setTI: bDisposed from "
+					+ Debug.getCompressedStackTrace());
 			return false;
 		}
-		
+
 		//if (getRealIndex() != newIndex) {
 		//	((TableViewSWTImpl)tableView).debug("sTI " + newIndex + "; via " + Debug.getCompressedStackTrace(4));
 		//}
@@ -500,26 +471,30 @@ public class TableRowImpl<COREDATASOURCE>
 			//refresh(true, true);
 			setUpToDate(false);
 		}
-		return changedSWTRow; 
+		return changedSWTRow;
 	}
 
 	public boolean setTableItem(int newIndex) {
-		return setTableItem(newIndex,true);
+		return setTableItem(newIndex, true);
 	}
-	
+
 	private static final boolean DEBUG_SET_FOREGROUND = System.getProperty("debug.setforeground") != null;
+
 	private Object[] subDataSources;
+
 	private static void setForegroundDebug(String method_sig, Color c) {
 		if (DEBUG_SET_FOREGROUND && c != null) {
 			Debug.out("BufferedTableRow " + method_sig + " -> " + c);
 		}
 	}
+
 	private static void setForegroundDebug(String method_sig, int r, int g, int b) {
 		if (DEBUG_SET_FOREGROUND && (!(r == 0 && g == 0 && b == 0))) {
-			Debug.out("BufferedTableRow " + method_sig + " -> " + r + "," + g + "," + b);
+			Debug.out("BufferedTableRow " + method_sig + " -> " + r + "," + g + ","
+					+ b);
 		}
 	}
-	
+
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setForeground(int, int, int)
 	public void setForeground(int r, int g, int b) {
 		setForegroundDebug("setForeground(r, g, b)", r, g, b);
@@ -535,8 +510,9 @@ public class TableRowImpl<COREDATASOURCE>
 	public void setForeground(final Color c) {
 		setForegroundDebug("setForeground(Color)", c);
 		// Don't need to set when not visible
-		if (!isVisible())
+		if (!isVisible()) {
 			return;
+		}
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -544,15 +520,15 @@ public class TableRowImpl<COREDATASOURCE>
 			}
 		});
 	}
-	
+
 	private void setForegroundInSWTThread(Color c) {
 		setForegroundDebug("setForegroundInSWTThread(Color)", c);
-		if (!isVisible())
+		if (!isVisible()) {
 			return;
+		}
 
 		super.setForeground(c);
 	}
-
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableRow#setForeground(int[])
 	public void setForeground(int[] rgb) {
@@ -572,42 +548,30 @@ public class TableRowImpl<COREDATASOURCE>
 	 */
 	public void invalidate() {
 		super.invalidate();
-		
-  	if (bDisposed)
-  		return;
 
-		mTableCells_mon.enter();
-		try {
-  		if (mTableCells != null) {
-    		for (TableCellCore cell : tableCells) {
-    			if (cell != null) {
-    				cell.invalidate(false);
-    			}
-      	}
-  		}
-    } finally {
-    	mTableCells_mon.exit();
-    }
+		if (bDisposed) {
+			return;
+		}
+
+		for (TableCellCore cell : mTableCells.values()) {
+			if (cell != null) {
+				cell.invalidate(false);
+			}
+		}
 	}
-	
+
 	public void setUpToDate(boolean upToDate) {
-  	if (bDisposed)
-  		return;
+		if (bDisposed) {
+			return;
+		}
 
-		mTableCells_mon.enter();
-		try {
-  		if (mTableCells != null) {
-    		for (TableCellCore cell : tableCells) {
-    			if (cell != null) {
-    				cell.setUpToDate(upToDate);
-    			}
-    		}
-  		}
-    } finally {
-    	mTableCells_mon.exit();
-    }
+		for (TableCellCore cell : mTableCells.values()) {
+			if (cell != null) {
+				cell.setUpToDate(upToDate);
+			}
+		}
 	}
-	
+
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#redraw()
 	public void redraw() {
 		// this will call paintItem which may call refresh
@@ -632,36 +596,30 @@ public class TableRowImpl<COREDATASOURCE>
 	 * @since 3.0.4.3
 	 */
 	public void setShown(boolean b, boolean force) {
-  	if (bDisposed)
-  		return;
-  	
-  	if (b == wasShown && !force) {
-  		return;
-  	}
-  	wasShown  = b;
-  	
-		mTableCells_mon.enter();
-		try {
-  		if (mTableCells != null) {
-    		for (TableCellCore cell : tableCells) {
-    			if (cell != null) {
-      			cell.invokeVisibilityListeners(b
-      					? TableCellVisibilityListener.VISIBILITY_SHOWN
-      							: TableCellVisibilityListener.VISIBILITY_HIDDEN, true);
-    			}
-      	}
-  		}
-    } finally {
-    	mTableCells_mon.exit();
-    }
+		if (bDisposed) {
+			return;
+		}
 
-    /* Don't need to refresh; paintItem will trigger a refresh on
-     * !cell.isUpToDate()
-     *
-  	if (b) {
-  		refresh(b, true);
-  	}
-  	/**/
+		if (b == wasShown && !force) {
+			return;
+		}
+		wasShown = b;
+
+		for (TableCellCore cell : mTableCells.values()) {
+			if (cell != null) {
+				cell.invokeVisibilityListeners(b
+						? TableCellVisibilityListener.VISIBILITY_SHOWN
+						: TableCellVisibilityListener.VISIBILITY_HIDDEN, true);
+			}
+		}
+
+		/* Don't need to refresh; paintItem will trigger a refresh on
+		 * !cell.isUpToDate()
+		 *
+		if (b) {
+			refresh(b, true);
+		}
+		/**/
 	}
 
 	public boolean isMouseOver() {
@@ -680,7 +638,7 @@ public class TableRowImpl<COREDATASOURCE>
 			}
 		}
 	}
-	
+
 	public Object getData(String id) {
 		synchronized (this) {
 			return dataList == null ? null : dataList.get(id);
@@ -691,7 +649,7 @@ public class TableRowImpl<COREDATASOURCE>
 	public boolean setDrawableHeight(int height) {
 		return setHeight(height);
 	}
-	
+
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getBounds()
 	public Rectangle getBounds() {
 		Rectangle bounds = getBounds(1);
@@ -708,10 +666,10 @@ public class TableRowImpl<COREDATASOURCE>
 		if (fontStyle == style) {
 			return false;
 		}
-		
+
 		fontStyle = style;
 		invalidate();
-		
+
 		return true;
 	}
 
@@ -720,23 +678,23 @@ public class TableRowImpl<COREDATASOURCE>
 		if (this.alpha == alpha) {
 			return false;
 		}
-		
+
 		this.alpha = alpha;
 		invalidate();
-		
+
 		return true;
 	}
-	
+
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getAlpha()
 	public int getAlpha() {
 		return alpha;
 	}
-	
+
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getFontStyle()
 	public int getFontStyle() {
 		return fontStyle;
 	}
-	
+
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#isVisible()
 	public boolean isVisible() {
 		return tableView.isRowVisible(this);
@@ -754,14 +712,14 @@ public class TableRowImpl<COREDATASOURCE>
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setSelected(boolean)
 	public void setSelected(boolean selected) {
 		if (tableView instanceof TableViewSWTImpl) {
-			((TableViewSWTImpl<COREDATASOURCE>)tableView).selectRow(this, true);
+			((TableViewSWTImpl<COREDATASOURCE>) tableView).selectRow(this, true);
 		}
 	}
 
 	public void setWidgetSelected(boolean selected) {
 		super.setSelected(selected);
-	}	
-	
+	}
+
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#isSelected()
 	public boolean isSelected() {
 		return tableView.isSelected(this);
@@ -773,7 +731,7 @@ public class TableRowImpl<COREDATASOURCE>
 		}, 1000);
 		*/
 	}
-	
+
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setSubItemCount(int)
 	@SuppressWarnings("rawtypes")
 	public void setSubItemCount(final int count) {
@@ -785,12 +743,12 @@ public class TableRowImpl<COREDATASOURCE>
 		}
 		mon_SubRows.enter();
 		try {
-  		subRows = new TableRowImpl[count];
-  		for (int i = 0; i < count; i++) {
-  			//subRows[i] = new TableRowImpl(this, tableView, table, columnsSorted,
-  			//		getTableID(), null, i, bSkipFirstColumn);
-  			subRows[i] = null;
-  		}
+			subRows = new TableRowImpl[count];
+			for (int i = 0; i < count; i++) {
+				//subRows[i] = new TableRowImpl(this, tableView, table, columnsSorted,
+				//		getTableID(), null, i, bSkipFirstColumn);
+				subRows[i] = null;
+			}
 		} finally {
 			mon_SubRows.exit();
 		}
@@ -803,12 +761,12 @@ public class TableRowImpl<COREDATASOURCE>
 
 		mon_SubRows.enter();
 		try {
-  		subRows = new TableRowImpl[datasources.length];
-  		for (int i = 0; i < datasources.length; i++) {
-  			//subRows[i] = new TableRowImpl(this, tableView, table, columnsSorted,
-  			//		getTableID(), datasources[i], i, bSkipFirstColumn);
-  			subRows[i] = null;
-  		}
+			subRows = new TableRowImpl[datasources.length];
+			for (int i = 0; i < datasources.length; i++) {
+				//subRows[i] = new TableRowImpl(this, tableView, table, columnsSorted,
+				//		getTableID(), datasources[i], i, bSkipFirstColumn);
+				subRows[i] = null;
+			}
 		} finally {
 			mon_SubRows.exit();
 		}
@@ -833,7 +791,7 @@ public class TableRowImpl<COREDATASOURCE>
 			mon_SubRows.exit();
 		}
 	}
-	
+
 	public TableRowCore[] getSubRowsWithNull() {
 		mon_SubRows.enter();
 		try {
@@ -844,7 +802,7 @@ public class TableRowImpl<COREDATASOURCE>
 			mon_SubRows.exit();
 		}
 	}
-	
+
 	public void removeSubRow(final Object datasource) {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
@@ -852,11 +810,12 @@ public class TableRowImpl<COREDATASOURCE>
 			}
 		});
 	}
+
 	public void swt_removeSubRow(Object datasource) {
 		if (datasource instanceof TableRowImpl) {
-			removeSubRow(((TableRowImpl)datasource).getDataSource());
+			removeSubRow(((TableRowImpl) datasource).getDataSource());
 		}
-		
+
 		mon_SubRows.enter();
 		try {
 			if (subDataSources == null || subDataSources.length == 0
@@ -870,19 +829,21 @@ public class TableRowImpl<COREDATASOURCE>
 					TableRowImpl rowToDel = subRows[i];
 					TableRowImpl[] newSubRows = new TableRowImpl[subRows.length - 1];
 					System.arraycopy(subRows, 0, newSubRows, 0, i);
-					System.arraycopy(subRows, i + 1, newSubRows, i, subRows.length - i - 1);
+					System.arraycopy(subRows, i + 1, newSubRows, i, subRows.length - i
+							- 1);
 					subRows = newSubRows;
 
 					Object[] newDatasources = new Object[subRows.length];
 					System.arraycopy(subDataSources, 0, newDatasources, 0, i);
-					System.arraycopy(subDataSources, i + 1, newDatasources, i, subDataSources.length - i - 1);
+					System.arraycopy(subDataSources, i + 1, newDatasources, i,
+							subDataSources.length - i - 1);
 					subDataSources = newDatasources;
-					
+
 					rowToDel.dispose();
 					rowToDel.delete();
-					
+
 					super.setSubItemCount(subRows.length);
-					
+
 					break;
 				}
 			}
@@ -890,7 +851,7 @@ public class TableRowImpl<COREDATASOURCE>
 			mon_SubRows.exit();
 		}
 	}
-	
+
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#isInPaintItem()
 	public boolean isInPaintItem() {
 		return super.inPaintItem();
