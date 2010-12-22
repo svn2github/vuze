@@ -768,6 +768,8 @@ public class SideBarEntrySWT
 			//					IMAGELEFT_SIZE);
 
 			x0IndicatorOfs += IMAGELEFT_SIZE + IMAGELEFT_GAP;
+
+			releaseImageLeft(suffix);
 		} else if (ALWAYS_IMAGE_GAP) {
 			if (isSelectable()) {
 				x0IndicatorOfs += IMAGELEFT_SIZE + IMAGELEFT_GAP;
