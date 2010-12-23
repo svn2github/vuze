@@ -76,9 +76,6 @@ SubscriptionManagerUI
 	private Graphic	icon_rss_some_add_big;
 	private List<Graphic>	icon_list	= new ArrayList<Graphic>();
 	
-	private SubscriptionManager	subs_man;
-	
-	
 	private List<TableColumn> columns = new ArrayList<TableColumn>();
 	protected UISWTInstance swt;
 	private UIManager ui_manager;
@@ -92,6 +89,11 @@ SubscriptionManagerUI
 		
 		final TableManager	table_manager = default_pi.getUIManager().getTableManager();
 
+		Utils.getOffOfSWTThread(new AERunnable() {
+			public void runSupport() {
+				SubscriptionManagerFactory.getSingleton();
+			}
+		});
 		
 		if ( Constants.isCVSVersion()){			
 			
@@ -195,6 +197,8 @@ SubscriptionManagerUI
 							MenuItem	menu,
 							Object		target )
 						{	
+							SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+
 							if ( subs_man == null ){
 								
 								return;
@@ -322,7 +326,6 @@ SubscriptionManagerUI
 	}
 	
 	void uiQuickInit() {
-		subs_man = SubscriptionManagerFactory.getSingleton();
 		
 		final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		
@@ -360,6 +363,7 @@ SubscriptionManagerUI
 		icon_rss_some_add_small	= icon_rss_all_add_small;
 		icon_rss_some_add_big	= icon_rss_some_add_small;
 		
+		SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
 		subs_man.addListener(
 			new SubscriptionManagerListener()
 			{
@@ -399,6 +403,8 @@ SubscriptionManagerUI
 	}
 
 	private void createConfigModel() {
+		final SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+
 		BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
 				ConfigSection.SECTION_ROOT, "Subscriptions");
 
@@ -545,6 +551,7 @@ SubscriptionManagerUI
 				{
 					TableCellSWT cell = (TableCellSWT)_cell;
 					
+					SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
 					if ( subs_man == null ){
 						
 						return;
@@ -653,6 +660,7 @@ SubscriptionManagerUI
 						
 						if ( torrent != null ){
 							
+							SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
 							Subscription[] subs = subs_man.getKnownSubscriptions( torrent.getHash());
 							
 							if ( subs.length > 0 ){
@@ -703,6 +711,7 @@ SubscriptionManagerUI
 				{
 					TableCellSWT cell = (TableCellSWT)_cell;
 					
+					SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
 					if ( subs_man == null ){
 						
 						return;
@@ -756,8 +765,10 @@ SubscriptionManagerUI
 							Download	dl = (Download)cell.getDataSource();
 							
 							Torrent	torrent = dl.getTorrent();
-							
-							if ( torrent != null ){
+
+							SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+
+							if ( torrent != null && subs_man != null ){
 								
 								byte[]	hash = torrent.getHash();
 								
@@ -855,6 +866,7 @@ SubscriptionManagerUI
 					}
 				});
 		
+		SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
 		subs_man.addListener(
 			new SubscriptionManagerListener()
 			{
@@ -983,7 +995,8 @@ SubscriptionManagerUI
 	
 						boolean expanded = headerEntry.isExpanded();
 	
-						Subscription[] subs = subs_man.getSubscriptions(true);
+						SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+						Subscription[] subs = subs_man == null ? new Subscription[0] : subs_man.getSubscriptions(true);
 						
 						if ( expanded ){
 	
@@ -1074,6 +1087,10 @@ SubscriptionManagerUI
 	private void 
 	addAllSubscriptions() 
 	{
+		SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+		if (subs_man == null) {
+			return;
+		}
 		Subscription[]	subs = subs_man.getSubscriptions( true );
 		
 		Arrays.sort(
