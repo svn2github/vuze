@@ -576,7 +576,11 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 		} catch (FileNotFoundException e) {
 			if (ignoreReponseCode) {
 
-				in = con instanceof HttpURLConnection?((HttpURLConnection)con).getErrorStream():null;
+				if (con instanceof HttpURLConnection) {
+					in = ((HttpURLConnection)con).getErrorStream();
+				} else {
+					in = null;
+				}
 			} else {
 
 				throw e;
