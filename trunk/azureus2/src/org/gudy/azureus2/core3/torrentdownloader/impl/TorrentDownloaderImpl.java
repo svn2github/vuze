@@ -630,7 +630,6 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	    	}
 	    	
 	    	if (useTempFile) {
-	    		System.out.println("usetemp");
 	    		this.file = File.createTempFile("AZU", ".torrent", new File(
 							this.directoryname));
 	    		this.file.createNewFile();
