@@ -29,7 +29,13 @@ import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -169,7 +175,7 @@ public class SBC_LibraryView
 
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(final SWTSkinObject skinObject, Object params) {
 		soWait = null;
 		try {
 			soWait = getSkinObject("library-wait");
@@ -283,16 +289,35 @@ public class SBC_LibraryView
 
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(final AzureusCore core) {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						if (soWait != null) {
-							soWait.setVisible(false);
+				PluginInterface pi = PluginInitializer.getDefaultInterface();
+				final UIManager uim = pi.getUIManager();
+				uim.addUIListener(new UIManagerListener() {
+					public void UIDetached(UIInstance instance) {
+					}
+
+					public void UIAttached(UIInstance instance) {
+						if (instance instanceof UISWTInstance) {
+							uim.removeUIListener(this);
+							Utils.execSWTThread(new AERunnable() {
+								public void runSupport() {
+									if (soWait != null) {
+										soWait.setVisible(false);
+									}
+									setupView(core, skinObject);
+								}
+							});
 						}
 					}
 				});
 			}
 		});
 
+		return null;
+	}
+	
+	
+
+	protected void setupView(AzureusCore core, SWTSkinObject skinObject) {
 		torrentFilter = skinObject.getSkinObjectID();
 		if (torrentFilter.equalsIgnoreCase(SideBar.SIDEBAR_SECTION_LIBRARY_DL)) {
 			torrentFilterMode = TORRENTS_INCOMPLETE;
@@ -306,8 +331,7 @@ public class SBC_LibraryView
 
 		soListArea.getControl().setData("TorrentFilterMode",
 				new Long(torrentFilterMode));
-		soListArea.getControl().setData("DataSource",
-				datasource);
+		soListArea.getControl().setData("DataSource", datasource);
 
 		setViewMode(
 				COConfigurationManager.getIntParameter(torrentFilter + ".viewmode"),
@@ -335,12 +359,12 @@ public class SBC_LibraryView
 				}
 			});
 		}
-		
+
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi != null) {
 			MdiEntry entry = mdi.getEntryFromSkinObject(skinObject);
 			if (entry != null) {
-				entry.addToolbarEnabler(this);
+				entry.addToolbarEnabler(SBC_LibraryView.this);
 			}
 		}
 
@@ -358,13 +382,9 @@ public class SBC_LibraryView
 					}
 				});
 
-		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-			public void azureusCoreRunning(AzureusCore core) {
-				SB_Transfers.setupViewTitleWithCore(core);
-			}
-		});
-		return null;
+		SB_Transfers.setupViewTitleWithCore(core);
 	}
+
 
 	public void refreshToolBar(Map<String, Boolean> list) {
 		list.put("modeSmall", true);
