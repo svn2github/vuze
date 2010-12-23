@@ -1782,7 +1782,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				continue;
 			}
 
-			columnsVisible[i] = true;
+			columnsVisible[i] = false;
 
 			String sName = columnCore.getName();
 			// +1 for Eclipse Bug 43910 (see above)
