@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -68,6 +69,7 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo2;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -608,6 +610,19 @@ public class ManagerView
       case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
       	dataSourceChanged(event.getData());
         break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	String id = getUpdateUIName();
+      	if (manager != null) {
+      		if (manager.getTorrent() != null) {
+						id += "." + manager.getInternalName();
+      		} else {
+      			id += ":" + manager.getSize();
+      		}
+      	}
+      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
+      		new SelectedContent(manager)
+      	});
 
         
       case UISWTViewEvent.TYPE_REFRESH:
