@@ -454,7 +454,7 @@ public class SBC_LibraryTableView
 		}
 
 		if (view instanceof IViewExtension) {
-			((IViewExtension) view).viewActivated();
+			((IViewExtension) view).viewDeactivated();
 		}
 
 		return super.skinObjectHidden(skinObject, params);
