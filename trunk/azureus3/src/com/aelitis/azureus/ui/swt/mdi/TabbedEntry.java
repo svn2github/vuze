@@ -407,8 +407,11 @@ public class TabbedEntry
 			}
 			setPullTitleFromIView(false);
 			setTitle(newText);
-		} else if (iview != null && textIndicator != null) {
-			newText = iview.getShortTitle() + " (" + textIndicator + ")";
+		} else if (iview != null) {
+			newText = iview.getShortTitle();
+			if (textIndicator != null) {
+				newText += " (" + textIndicator + ")";
+			}
 			setTitle(newText);
 		}
 	}
