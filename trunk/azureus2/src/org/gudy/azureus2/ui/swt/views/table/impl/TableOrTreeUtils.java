@@ -28,6 +28,7 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
@@ -143,8 +144,12 @@ public class TableOrTreeUtils
 		TableOrTreeSWT delegate = null;
 		synchronized (mapDelegates) {
 			if (tree) {
-				delegate = new TreeDelegate(parent, style);
-				mapDelegates.put(((TreeDelegate) delegate).getComposite(), delegate);
+				try {
+					delegate = new TreeDelegate(parent, style);
+					mapDelegates.put(((TreeDelegate) delegate).getComposite(), delegate);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 			} else {
 				delegate = new TableDelegate(parent, style);
 				mapDelegates.put(((TableDelegate)delegate).getComposite(), delegate);
