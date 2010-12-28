@@ -26,6 +26,10 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.Constants;
 
 /**
+ * Windows specific hack to remove expando<P>
+ * 
+ * This class can be safely excluded from non-Windows builds
+ * 
  * @author TuxPaper
  * @created May 12, 2010
  *
