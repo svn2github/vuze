@@ -18,6 +18,9 @@
  
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,13 +48,31 @@ import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
  */
 public class TreeDelegate implements TableOrTreeSWT
 {
+	static Constructor<?> constTree;
 	Tree tree;
 
 	Map<String, Object> data = new HashMap<String, Object>(5);
+	
+	static {
+		try {
+			Class<?> claTree;
+			if (Constants.isWindows) {
+				claTree = Class.forName("org.eclipse.swt.widgets.Tree2");
+			} else {
+				claTree = Tree.class;
+			}
+			constTree = claTree.getConstructor(new Class[] {
+				Composite.class,
+				int.class
+			});
+		} catch (Throwable t) {
+		}
+	}
 
-	protected TreeDelegate(Composite parent, int style) {
-		this(Constants.isWindows ? new Tree2(parent, style) : new Tree(parent,
-				style));
+	protected TreeDelegate(Composite parent, int style)
+			throws Exception {
+		this(constTree == null ? new Tree(parent,
+				style) : (Tree) constTree.newInstance(new Object[] { parent, style }));
 	}
 
 	protected TreeDelegate(Tree t) {
