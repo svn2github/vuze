@@ -179,8 +179,9 @@ public class SB_Transfers
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		UIManager uim = pi.getUIManager();
 		MenuManager menuManager = uim.getMenuManager();
+		MenuItem menuItem;
 
-		MenuItem menuItem = menuManager.addMenuItem("sidebar."
+		menuItem = menuManager.addMenuItem("sidebar."
 				+ MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
 				"MyTorrentsView.menu.setCategory.add");
 		menuItem.addListener(new MenuItemListener() {
@@ -191,6 +192,23 @@ public class SB_Transfers
 		menuItem.addFillListener(new MenuItemFillListener() {
 			public void menuWillBeShown(MenuItem menu, Object data) {
 				menu.setVisible(COConfigurationManager.getBooleanParameter("Library.CatInSideBar"));
+			}
+		});
+
+		menuItem = menuManager.addMenuItem("sidebar."
+				+ MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+				"ConfigView.section.style.CatInSidebar");
+		menuItem.setStyle(MenuItem.STYLE_CHECK);
+		menuItem.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				boolean b = COConfigurationManager.getBooleanParameter("Library.CatInSideBar");
+				COConfigurationManager.setParameter("Library.CatInSideBar", !b);
+			}
+		});
+		menuItem.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setVisible(CategoryManager.getCategories().length > 0);
+				menu.setData(Boolean.valueOf(COConfigurationManager.getBooleanParameter("Library.CatInSideBar")));
 			}
 		});
 	}
