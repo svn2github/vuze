@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.ui.swt.DelayedListenerMultiCombiner;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
@@ -234,8 +235,8 @@ public class MyTorrentsSuperView extends AbstractIView implements
 			}
 		});
 
-		form.addListener(SWT.Resize, new Listener() {
-			public void handleEvent(Event e) {
+		form.addListener(SWT.Resize, new DelayedListenerMultiCombiner() {
+			public void handleDelayedEvent(Event e) {
 				Double l = (Double) sash.getData("PCT");
 				if (l != null) {
 					child1Data.height = (int) (form.getBounds().height * l
